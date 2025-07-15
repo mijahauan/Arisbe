@@ -1,608 +1,421 @@
 """
-Ligature management system for Existential Graphs.
+Advanced ligature operations for the EG-HG rebuild project.
 
-This module provides sophisticated algorithms for detecting, tracing,
-and manipulating ligatures (connected components of identity relations)
-in existential graphs.
+This module provides sophisticated ligature management including
+splitting, merging, boundary detection, and connected component analysis
+for handling lines of identity in existential graphs.
 """
 
-from __future__ import annotations
-from typing import Dict, List, Set, Optional, Tuple, Iterator, Union
-from pyrsistent import PMap, PSet, PVector
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    PMapType = PMap
-    PSetType = PSet
-else:
-    PMapType = PMap
-    PSetType = PSet
+from typing import Dict, List, Optional, Set, Tuple, Any, Iterator
+from dataclasses import dataclass, replace
+from collections import defaultdict, deque
+import uuid
 
 from .eg_types import (
-    Node, Edge, Ligature,
-    NodeId, EdgeId, LigatureId, ItemId,
-    new_ligature_id, LigatureError, ValidationError
+    Node, Edge, Context, Ligature,
+    NodeId, EdgeId, ContextId, LigatureId, ItemId,
+    new_ligature_id, LigatureError, ValidationError,
+    pset
 )
 
+
 class LigatureManager:
+    """Advanced ligature management operations.
+    
+    This class provides sophisticated algorithms for managing ligatures
+    (lines of identity) in existential graphs, including splitting,
+    merging, and boundary detection operations.
     """
-    Manages ligatures (connected components of identity) in an existential graph.
     
-    This class provides algorithms for detecting, tracing, and manipulating
-    the identity relationships represented by ligatures in Peirce's system.
-    """
-    
-    def __init__(
-        self,
-        nodes: PMapType[NodeId, Node],
-        edges: PMapType[EdgeId, Edge]
-    ):
-        """
-        Initialize the ligature manager.
+    @staticmethod
+    def find_connected_ligature_components(nodes: Set[NodeId], edges: Set[EdgeId],
+                                         existing_ligatures: Dict[LigatureId, Ligature]) -> List[Set[ItemId]]:
+        """Find connected components among nodes and edges for ligature formation.
         
         Args:
-            nodes: Mapping of node IDs to nodes.
-            edges: Mapping of edge IDs to edges.
-        """
-        self._nodes = nodes
-        self._edges = edges
-        self._ligatures_cache: Optional[PMapType[LigatureId, Ligature]] = None
-        self._node_to_ligature_cache: Optional[PMapType[NodeId, LigatureId]] = None
-        self._edge_to_ligature_cache: Optional[PMapType[EdgeId, LigatureId]] = None
-    
-    def _invalidate_caches(self) -> None:
-        """Invalidate internal caches."""
-        self._ligatures_cache = None
-        self._node_to_ligature_cache = None
-        self._edge_to_ligature_cache = None
-    
-    def _get_equality_edges(self) -> List[Edge]:
-        """Get all equality edges in the graph."""
-        return [edge for edge in self._edges.values() if edge.edge_type == 'equality']
-    
-    def _build_adjacency_graph(self) -> Dict[NodeId, Set[NodeId]]:
-        """
-        Build an adjacency graph of nodes connected by equality edges.
-        
-        Returns:
-            A dictionary mapping each node to its neighbors via equality.
-        """
-        adjacency = {node_id: set() for node_id in self._nodes}
-        
-        for edge in self._get_equality_edges():
-            nodes = list(edge.nodes)
-            for i, node1 in enumerate(nodes):
-                for j, node2 in enumerate(nodes):
-                    if i != j and node1 in adjacency and node2 in adjacency:
-                        adjacency[node1].add(node2)
-        
-        return adjacency
-    
-    def detect_all_ligatures(self) -> PMapType[LigatureId, Ligature]:
-        """
-        Detect all ligatures in the graph using connected components analysis.
-        
-        Returns:
-            A mapping of ligature IDs to ligatures.
-        """
-        if self._ligatures_cache is not None:
-            return self._ligatures_cache
-        
-        adjacency = self._build_adjacency_graph()
-        visited_nodes = set()
-        ligatures = {}
-        
-        # Find connected components of nodes
-        for start_node in self._nodes:
-            if start_node in visited_nodes:
-                continue
-            
-            # Perform DFS to find connected component
-            component_nodes = set()
-            component_edges = set()
-            stack = [start_node]
-            
-            while stack:
-                current_node = stack.pop()
-                if current_node in visited_nodes:
-                    continue
-                
-                visited_nodes.add(current_node)
-                component_nodes.add(current_node)
-                
-                # Find equality edges connecting to this node
-                for edge in self._get_equality_edges():
-                    if current_node in edge.nodes:
-                        component_edges.add(edge.id)
-                        # Add other nodes from this edge
-                        for neighbor in edge.nodes:
-                            if neighbor not in visited_nodes:
-                                stack.append(neighbor)
-            
-            # Create ligature for this component
-            if component_nodes or component_edges:
-                ligature = Ligature(
-                    nodes=PSet(component_nodes),
-                    edges=PSet(component_edges)
-                )
-                ligatures[ligature.id] = ligature
-        
-        # Handle isolated equality edges (edges with no nodes)
-        for edge in self._get_equality_edges():
-            if not edge.nodes:  # Edge with no nodes
-                # Check if this edge is already in a ligature
-                already_included = False
-                for ligature in ligatures.values():
-                    if edge.id in ligature.edges:
-                        already_included = True
-                        break
-                
-                if not already_included:
-                    ligature = Ligature(edges=PSet([edge.id]))
-                    ligatures[ligature.id] = ligature
-        
-        self._ligatures_cache = PMap(ligatures)
-        return self._ligatures_cache
-    
-    def find_ligature_containing_node(self, node_id: NodeId) -> Optional[Ligature]:
-        """
-        Find the ligature containing a specific node.
-        
-        Args:
-            node_id: The ID of the node.
+            nodes: Set of node IDs to analyze.
+            edges: Set of edge IDs to analyze.
+            existing_ligatures: Existing ligatures to consider.
             
         Returns:
-            The ligature containing the node, or None if not found.
+            A list of sets, where each set contains connected item IDs.
         """
-        ligatures = self.detect_all_ligatures()
-        for ligature in ligatures.values():
-            if node_id in ligature.nodes:
-                return ligature
-        return None
-    
-    def find_ligature_containing_edge(self, edge_id: EdgeId) -> Optional[Ligature]:
-        """
-        Find the ligature containing a specific equality edge.
+        # Build adjacency graph for ligature connectivity
+        adjacency = defaultdict(set)
+        all_items = set(nodes) | set(edges)
         
-        Args:
-            edge_id: The ID of the edge.
-            
-        Returns:
-            The ligature containing the edge, or None if not found.
-        """
-        if edge_id not in self._edges:
-            return None
+        # Add connections from existing ligatures
+        for ligature in existing_ligatures.values():
+            ligature_items = set(ligature.nodes) | set(ligature.edges)
+            # Connect all items in the same ligature
+            for item1 in ligature_items:
+                for item2 in ligature_items:
+                    if item1 != item2 and item1 in all_items and item2 in all_items:
+                        adjacency[item1].add(item2)
         
-        edge = self._edges[edge_id]
-        if edge.edge_type != 'equality':
-            return None
-        
-        ligatures = self.detect_all_ligatures()
-        for ligature in ligatures.values():
-            if edge_id in ligature.edges:
-                return ligature
-        return None
-    
-    def trace_ligature_from_item(self, item_id: ItemId) -> Optional[Ligature]:
-        """
-        Trace the complete ligature starting from a node or equality edge.
-        
-        Args:
-            item_id: The ID of a node or equality edge.
-            
-        Returns:
-            The complete ligature containing the item, or None if not found.
-        """
-        if item_id in self._nodes:
-            return self.find_ligature_containing_node(item_id)
-        elif item_id in self._edges:
-            return self.find_ligature_containing_edge(item_id)
-        else:
-            return None
-    
-    def get_ligature_boundary_nodes(self, ligature: Ligature) -> Set[NodeId]:
-        """
-        Get nodes in a ligature that are connected to non-equality edges.
-        
-        These are the "boundary" nodes where the ligature interfaces with
-        the rest of the graph structure.
-        
-        Args:
-            ligature: The ligature to analyze.
-            
-        Returns:
-            A set of boundary node IDs.
-        """
-        boundary_nodes = set()
-        
-        for node_id in ligature.nodes:
-            # Check if this node is connected to any non-equality edges
-            for edge in self._edges.values():
-                if (edge.edge_type != 'equality' and 
-                    node_id in edge.nodes):
-                    boundary_nodes.add(node_id)
-                    break
-        
-        return boundary_nodes
-    
-    def split_ligature_at_nodes(
-        self,
-        ligature: Ligature,
-        split_nodes: Set[NodeId]
-    ) -> List[Ligature]:
-        """
-        Split a ligature by removing specific nodes and their connections.
-        
-        This operation is used when nodes are removed from the graph or
-        when ligatures need to be severed during transformations.
-        
-        Args:
-            ligature: The ligature to split.
-            split_nodes: The nodes to remove from the ligature.
-            
-        Returns:
-            A list of resulting ligatures after the split.
-        """
-        if not split_nodes.intersection(ligature.nodes):
-            return [ligature]  # No nodes to split
-        
-        # Remove split nodes and their associated edges
-        remaining_nodes = ligature.nodes - split_nodes
-        remaining_edges = set()
-        
-        for edge_id in ligature.edges:
-            edge = self._edges[edge_id]
-            # Keep edge only if all its nodes are still in the ligature
-            if all(node_id in remaining_nodes for node_id in edge.nodes):
-                remaining_edges.add(edge_id)
-        
-        if not remaining_nodes and not remaining_edges:
-            return []  # Ligature completely removed
-        
-        # Find connected components in the remaining structure
-        adjacency = {}
-        for node_id in remaining_nodes:
-            adjacency[node_id] = set()
-        
-        for edge_id in remaining_edges:
-            edge = self._edges[edge_id]
-            nodes = list(edge.nodes)
-            for i, node1 in enumerate(nodes):
-                for j, node2 in enumerate(nodes):
-                    if i != j and node1 in adjacency and node2 in adjacency:
-                        adjacency[node1].add(node2)
-        
-        # Find connected components
+        # Find connected components using DFS
         visited = set()
         components = []
         
-        for start_node in remaining_nodes:
-            if start_node in visited:
-                continue
-            
-            component_nodes = set()
-            component_edges = set()
-            stack = [start_node]
-            
-            while stack:
-                current_node = stack.pop()
-                if current_node in visited:
-                    continue
+        for item in all_items:
+            if item not in visited:
+                component = set()
+                stack = [item]
                 
-                visited.add(current_node)
-                component_nodes.add(current_node)
+                while stack:
+                    current = stack.pop()
+                    if current not in visited:
+                        visited.add(current)
+                        component.add(current)
+                        
+                        for neighbor in adjacency[current]:
+                            if neighbor not in visited:
+                                stack.append(neighbor)
                 
-                # Find edges in this component
-                for edge_id in remaining_edges:
-                    edge = self._edges[edge_id]
-                    if current_node in edge.nodes:
-                        component_edges.add(edge_id)
-                
-                # Add neighbors
-                for neighbor in adjacency.get(current_node, set()):
-                    if neighbor not in visited:
-                        stack.append(neighbor)
-            
-            if component_nodes or component_edges:
-                component = Ligature(
-                    nodes=PSet(component_nodes),
-                    edges=PSet(component_edges)
-                )
                 components.append(component)
         
         return components
     
-    def merge_ligatures(self, ligatures: List[Ligature]) -> Ligature:
-        """
-        Merge multiple ligatures into a single ligature.
-        
-        This operation is used when equality edges are added that connect
-        previously separate ligatures.
+    @staticmethod
+    def create_ligature_from_items(nodes: Set[NodeId], edges: Set[EdgeId],
+                                 properties: Optional[Dict[str, Any]] = None) -> Ligature:
+        """Create a new ligature from a set of nodes and edges.
         
         Args:
-            ligatures: The ligatures to merge.
+            nodes: Set of node IDs to include in the ligature.
+            edges: Set of edge IDs to include in the ligature.
+            properties: Optional properties for the ligature.
             
         Returns:
-            A single merged ligature.
+            A new ligature containing the specified items.
         """
-        if not ligatures:
-            return Ligature()
-        
-        if len(ligatures) == 1:
-            return ligatures[0]
-        
-        merged_nodes = set()
-        merged_edges = set()
-        
-        for ligature in ligatures:
-            merged_nodes.update(ligature.nodes)
-            merged_edges.update(ligature.edges)
-        
-        return Ligature(
-            nodes=PSet(merged_nodes),
-            edges=PSet(merged_edges)
+        return Ligature.create(
+            nodes=nodes,
+            edges=edges,
+            properties=properties or {}
         )
     
-    def add_equality_edge(
-        self,
-        edge: Edge,
-        current_ligatures: PMapType[LigatureId, Ligature]
-    ) -> PMapType[LigatureId, Ligature]:
-        """
-        Update ligatures when an equality edge is added.
+    @staticmethod
+    def split_ligature(ligature: Ligature, split_point: ItemId) -> Tuple[Ligature, Ligature]:
+        """Split a ligature at a specific item.
         
         Args:
-            edge: The equality edge being added.
-            current_ligatures: The current ligature mapping.
+            ligature: The ligature to split.
+            split_point: The item ID where to split the ligature.
             
         Returns:
-            Updated ligature mapping.
-        """
-        if edge.edge_type != 'equality':
-            return current_ligatures
-        
-        # Find existing ligatures that contain the edge's nodes
-        affected_ligatures = []
-        remaining_ligatures = {}
-        
-        for ligature_id, ligature in current_ligatures.items():
-            is_affected = False
-            for node_id in edge.nodes:
-                if node_id in ligature.nodes:
-                    is_affected = True
-                    break
+            A tuple of two new ligatures after splitting.
             
-            if is_affected:
-                affected_ligatures.append(ligature)
-            else:
-                remaining_ligatures[ligature_id] = ligature
-        
-        # Create new ligature with the edge
-        new_ligature_nodes = set(edge.nodes)
-        new_ligature_edges = {edge.id}
-        
-        # Merge with affected ligatures
-        for ligature in affected_ligatures:
-            new_ligature_nodes.update(ligature.nodes)
-            new_ligature_edges.update(ligature.edges)
-        
-        # Create the merged ligature
-        merged_ligature = Ligature(
-            nodes=PSet(new_ligature_nodes),
-            edges=PSet(new_ligature_edges)
-        )
-        
-        remaining_ligatures[merged_ligature.id] = merged_ligature
-        return PMap(remaining_ligatures)
-    
-    def remove_equality_edge(
-        self,
-        edge: Edge,
-        current_ligatures: PMapType[LigatureId, Ligature]
-    ) -> PMapType[LigatureId, Ligature]:
+        Raises:
+            LigatureError: If the split point is not in the ligature.
         """
-        Update ligatures when an equality edge is removed.
+        if split_point not in ligature.nodes and split_point not in ligature.edges:
+            raise LigatureError(f"Split point {split_point} not found in ligature {ligature.id}")
         
-        Args:
-            edge: The equality edge being removed.
-            current_ligatures: The current ligature mapping.
+        # For now, implement a simple split that separates the split point
+        # In a more sophisticated implementation, this would analyze connectivity
+        
+        if split_point in ligature.nodes:
+            # Split at a node
+            remaining_nodes = ligature.nodes.remove(split_point)
+            split_nodes = pset([split_point])
             
-        Returns:
-            Updated ligature mapping.
-        """
-        if edge.edge_type != 'equality':
-            return current_ligatures
-        
-        # Find the ligature containing this edge
-        target_ligature = None
-        target_ligature_id = None
-        remaining_ligatures = {}
-        
-        for ligature_id, ligature in current_ligatures.items():
-            if edge.id in ligature.edges:
-                target_ligature = ligature
-                target_ligature_id = ligature_id
-            else:
-                remaining_ligatures[ligature_id] = ligature
-        
-        if target_ligature is None:
-            return current_ligatures  # Edge not found in any ligature
-        
-        # Remove the edge from the ligature
-        updated_edges = target_ligature.edges.remove(edge.id)
-        
-        # Check if the ligature is still connected without this edge
-        if not updated_edges:
-            # No edges left, create separate single-node ligatures
-            for node_id in target_ligature.nodes:
-                node_ligature = Ligature(nodes=PSet([node_id]))
-                remaining_ligatures[node_ligature.id] = node_ligature
-        else:
-            # Reconstruct ligature(s) without this edge
-            # This may result in multiple disconnected ligatures
-            temp_manager = LigatureManager(
-                self._nodes,
-                PMap({eid: self._edges[eid] for eid in updated_edges})
+            ligature1 = Ligature.create(
+                nodes=remaining_nodes,
+                edges=ligature.edges,
+                properties=ligature.properties
             )
             
-            # Find connected components in the remaining edges
-            new_ligatures = temp_manager.detect_all_ligatures()
-            for ligature in new_ligatures.values():
-                # Only include ligatures that contain nodes from the original
-                if ligature.nodes.intersection(target_ligature.nodes):
-                    remaining_ligatures[ligature.id] = ligature
+            ligature2 = Ligature.create(
+                nodes=split_nodes,
+                edges=pset(),
+                properties={}
+            )
+        else:
+            # Split at an edge
+            remaining_edges = ligature.edges.remove(split_point)
+            split_edges = pset([split_point])
+            
+            ligature1 = Ligature.create(
+                nodes=ligature.nodes,
+                edges=remaining_edges,
+                properties=ligature.properties
+            )
+            
+            ligature2 = Ligature.create(
+                nodes=pset(),
+                edges=split_edges,
+                properties={}
+            )
         
-        return PMap(remaining_ligatures)
+        return ligature1, ligature2
     
-    def validate_ligatures(
-        self,
-        ligatures: PMapType[LigatureId, Ligature]
-    ) -> List[str]:
-        """
-        Validate the consistency of ligatures.
+    @staticmethod
+    def merge_ligatures(ligature1: Ligature, ligature2: Ligature) -> Ligature:
+        """Merge two ligatures into one.
         
         Args:
-            ligatures: The ligatures to validate.
+            ligature1: The first ligature to merge.
+            ligature2: The second ligature to merge.
             
         Returns:
-            A list of validation error messages.
+            A new ligature containing all items from both input ligatures.
+        """
+        merged_nodes = ligature1.nodes.union(ligature2.nodes)
+        merged_edges = ligature1.edges.union(ligature2.edges)
+        
+        # Merge properties (ligature1 takes precedence for conflicts)
+        merged_properties = dict(ligature2.properties)
+        merged_properties.update(dict(ligature1.properties))
+        
+        return Ligature.create(
+            nodes=merged_nodes,
+            edges=merged_edges,
+            properties=merged_properties
+        )
+    
+    @staticmethod
+    def find_ligature_boundaries(ligature: Ligature, context_boundaries: Dict[ItemId, ContextId]) -> Set[ItemId]:
+        """Find items in a ligature that cross context boundaries.
+        
+        Args:
+            ligature: The ligature to analyze.
+            context_boundaries: Mapping from item IDs to their context IDs.
+            
+        Returns:
+            A set of item IDs that are at context boundaries.
+        """
+        boundary_items = set()
+        all_items = set(ligature.nodes) | set(ligature.edges)
+        
+        # Group items by context
+        context_groups = defaultdict(set)
+        for item_id in all_items:
+            if item_id in context_boundaries:
+                context_id = context_boundaries[item_id]
+                context_groups[context_id].add(item_id)
+        
+        # If items span multiple contexts, they're at boundaries
+        if len(context_groups) > 1:
+            # Items that connect different contexts are boundary items
+            for context_id, items in context_groups.items():
+                if len(context_groups) > 1:  # Multiple contexts involved
+                    boundary_items.update(items)
+        
+        return boundary_items
+    
+    @staticmethod
+    def validate_ligature_consistency(ligature: Ligature, 
+                                    available_nodes: Set[NodeId],
+                                    available_edges: Set[EdgeId]) -> List[str]:
+        """Validate that a ligature is consistent with available graph items.
+        
+        Args:
+            ligature: The ligature to validate.
+            available_nodes: Set of node IDs available in the graph.
+            available_edges: Set of edge IDs available in the graph.
+            
+        Returns:
+            A list of error messages. Empty list means no errors.
         """
         errors = []
         
-        # Check that all referenced nodes and edges exist
-        for ligature_id, ligature in ligatures.items():
-            for node_id in ligature.nodes:
-                if node_id not in self._nodes:
-                    errors.append(f"Ligature {ligature_id} references non-existent node {node_id}")
-            
-            for edge_id in ligature.edges:
-                if edge_id not in self._edges:
-                    errors.append(f"Ligature {ligature_id} references non-existent edge {edge_id}")
-                else:
-                    edge = self._edges[edge_id]
-                    if edge.edge_type != 'equality':
-                        errors.append(f"Ligature {ligature_id} contains non-equality edge {edge_id}")
+        # Check that all nodes in the ligature exist
+        for node_id in ligature.nodes:
+            if node_id not in available_nodes:
+                errors.append(f"Ligature {ligature.id} references non-existent node {node_id}")
         
-        # Check that each node appears in at most one ligature
-        node_to_ligature = {}
-        for ligature_id, ligature in ligatures.items():
-            for node_id in ligature.nodes:
-                if node_id in node_to_ligature:
-                    other_ligature_id = node_to_ligature[node_id]
-                    errors.append(
-                        f"Node {node_id} appears in multiple ligatures: "
-                        f"{ligature_id} and {other_ligature_id}"
-                    )
-                else:
-                    node_to_ligature[node_id] = ligature_id
+        # Check that all edges in the ligature exist
+        for edge_id in ligature.edges:
+            if edge_id not in available_edges:
+                errors.append(f"Ligature {ligature.id} references non-existent edge {edge_id}")
         
-        # Check that each equality edge appears in at most one ligature
-        edge_to_ligature = {}
-        for ligature_id, ligature in ligatures.items():
-            for edge_id in ligature.edges:
-                if edge_id in edge_to_ligature:
-                    other_ligature_id = edge_to_ligature[edge_id]
-                    errors.append(
-                        f"Edge {edge_id} appears in multiple ligatures: "
-                        f"{ligature_id} and {other_ligature_id}"
-                    )
-                else:
-                    edge_to_ligature[edge_id] = ligature_id
-        
-        # Check ligature connectivity
-        for ligature_id, ligature in ligatures.items():
-            if ligature.nodes and ligature.edges:
-                # Verify that the ligature is actually connected
-                if not self._is_ligature_connected(ligature):
-                    errors.append(f"Ligature {ligature_id} is not connected")
+        # Check that the ligature is not empty
+        if len(ligature.nodes) == 0 and len(ligature.edges) == 0:
+            errors.append(f"Ligature {ligature.id} is empty")
         
         return errors
     
-    def _is_ligature_connected(self, ligature: Ligature) -> bool:
-        """
-        Check if a ligature represents a connected component.
+    @staticmethod
+    def compute_ligature_closure(seed_items: Set[ItemId],
+                               existing_ligatures: Dict[LigatureId, Ligature]) -> Set[ItemId]:
+        """Compute the transitive closure of items connected by ligatures.
         
         Args:
-            ligature: The ligature to check.
+            seed_items: Initial set of item IDs.
+            existing_ligatures: Existing ligatures to consider for closure.
             
         Returns:
-            True if the ligature is connected.
+            The complete set of items connected to the seed items through ligatures.
         """
-        if not ligature.nodes:
-            return True  # Empty or edge-only ligatures are considered connected
+        closure = set(seed_items)
+        changed = True
         
-        # Build adjacency graph for this ligature
-        adjacency = {node_id: set() for node_id in ligature.nodes}
-        
-        for edge_id in ligature.edges:
-            if edge_id in self._edges:
-                edge = self._edges[edge_id]
-                nodes = list(edge.nodes)
-                for i, node1 in enumerate(nodes):
-                    for j, node2 in enumerate(nodes):
-                        if i != j and node1 in adjacency and node2 in adjacency:
-                            adjacency[node1].add(node2)
-        
-        # Check if all nodes are reachable from the first node
-        if not ligature.nodes:
-            return True
-        
-        start_node = next(iter(ligature.nodes))
-        visited = set()
-        stack = [start_node]
-        
-        while stack:
-            current = stack.pop()
-            if current in visited:
-                continue
-            visited.add(current)
+        while changed:
+            changed = False
+            old_size = len(closure)
             
-            for neighbor in adjacency.get(current, set()):
-                if neighbor not in visited:
-                    stack.append(neighbor)
+            for ligature in existing_ligatures.values():
+                ligature_items = set(ligature.nodes) | set(ligature.edges)
+                
+                # If any item in the ligature is in the closure, add all items
+                if closure & ligature_items:
+                    closure.update(ligature_items)
+            
+            if len(closure) > old_size:
+                changed = True
         
-        return len(visited) == len(ligature.nodes)
+        return closure
     
-    def get_ligature_statistics(
-        self,
-        ligatures: PMapType[LigatureId, Ligature]
-    ) -> Dict[str, int]:
-        """
-        Get statistics about the ligatures in the graph.
+    @staticmethod
+    def find_ligature_intersections(ligatures: List[Ligature]) -> Dict[Tuple[LigatureId, LigatureId], Set[ItemId]]:
+        """Find intersections between ligatures.
         
         Args:
-            ligatures: The ligatures to analyze.
+            ligatures: List of ligatures to analyze.
             
         Returns:
-            A dictionary of statistics.
+            A dictionary mapping ligature ID pairs to their intersection items.
         """
-        stats = {
+        intersections = {}
+        
+        for i, ligature1 in enumerate(ligatures):
+            for j, ligature2 in enumerate(ligatures[i+1:], i+1):
+                items1 = set(ligature1.nodes) | set(ligature1.edges)
+                items2 = set(ligature2.nodes) | set(ligature2.edges)
+                
+                intersection = items1 & items2
+                if intersection:
+                    intersections[(ligature1.id, ligature2.id)] = intersection
+        
+        return intersections
+    
+    @staticmethod
+    def optimize_ligature_structure(ligatures: Dict[LigatureId, Ligature]) -> Dict[LigatureId, Ligature]:
+        """Optimize the structure of ligatures by merging overlapping ones.
+        
+        Args:
+            ligatures: Dictionary of ligatures to optimize.
+            
+        Returns:
+            An optimized dictionary of ligatures with overlaps resolved.
+        """
+        optimized = {}
+        ligature_list = list(ligatures.values())
+        processed = set()
+        
+        for i, ligature in enumerate(ligature_list):
+            if ligature.id in processed:
+                continue
+            
+            # Start with the current ligature
+            merged = ligature
+            processed.add(ligature.id)
+            
+            # Check for overlaps with remaining ligatures
+            for j, other_ligature in enumerate(ligature_list[i+1:], i+1):
+                if other_ligature.id in processed:
+                    continue
+                
+                merged_items = set(merged.nodes) | set(merged.edges)
+                other_items = set(other_ligature.nodes) | set(other_ligature.edges)
+                
+                # If there's an overlap, merge them
+                if merged_items & other_items:
+                    merged = LigatureManager.merge_ligatures(merged, other_ligature)
+                    processed.add(other_ligature.id)
+            
+            optimized[merged.id] = merged
+        
+        return optimized
+
+
+class LigatureAnalyzer:
+    """Analyzer for complex ligature patterns and relationships."""
+    
+    @staticmethod
+    def analyze_ligature_topology(ligatures: Dict[LigatureId, Ligature]) -> Dict[str, Any]:
+        """Analyze the topological properties of ligatures.
+        
+        Args:
+            ligatures: Dictionary of ligatures to analyze.
+            
+        Returns:
+            A dictionary containing topological analysis results.
+        """
+        analysis = {
             'total_ligatures': len(ligatures),
-            'total_nodes_in_ligatures': 0,
-            'total_edges_in_ligatures': 0,
-            'single_node_ligatures': 0,
-            'multi_node_ligatures': 0,
-            'largest_ligature_size': 0,
-            'average_ligature_size': 0.0
+            'total_items': 0,
+            'node_count': 0,
+            'edge_count': 0,
+            'average_size': 0,
+            'size_distribution': defaultdict(int),
+            'connectivity_matrix': {},
         }
         
-        sizes = []
+        all_items = set()
+        all_nodes = set()
+        all_edges = set()
+        
         for ligature in ligatures.values():
-            size = len(ligature.nodes) + len(ligature.edges)
-            sizes.append(size)
+            ligature_items = set(ligature.nodes) | set(ligature.edges)
+            size = len(ligature_items)
             
-            stats['total_nodes_in_ligatures'] += len(ligature.nodes)
-            stats['total_edges_in_ligatures'] += len(ligature.edges)
+            all_items.update(ligature_items)
+            all_nodes.update(ligature.nodes)
+            all_edges.update(ligature.edges)
             
-            if len(ligature.nodes) == 1:
-                stats['single_node_ligatures'] += 1
-            elif len(ligature.nodes) > 1:
-                stats['multi_node_ligatures'] += 1
+            analysis['size_distribution'][size] += 1
         
-        if sizes:
-            stats['largest_ligature_size'] = max(sizes)
-            stats['average_ligature_size'] = sum(sizes) / len(sizes)
+        analysis['total_items'] = len(all_items)
+        analysis['node_count'] = len(all_nodes)
+        analysis['edge_count'] = len(all_edges)
         
-        return stats
-
+        if ligatures:
+            total_size = sum(len(set(lig.nodes) | set(lig.edges)) for lig in ligatures.values())
+            analysis['average_size'] = total_size / len(ligatures)
+        
+        return analysis
+    
+    @staticmethod
+    def find_ligature_patterns(ligatures: Dict[LigatureId, Ligature]) -> Dict[str, List[LigatureId]]:
+        """Find common patterns in ligature structures.
+        
+        Args:
+            ligatures: Dictionary of ligatures to analyze.
+            
+        Returns:
+            A dictionary mapping pattern names to lists of ligature IDs.
+        """
+        patterns = {
+            'singleton_nodes': [],      # Ligatures with only one node
+            'singleton_edges': [],      # Ligatures with only one edge
+            'node_only': [],           # Ligatures with only nodes
+            'edge_only': [],           # Ligatures with only edges
+            'mixed': [],               # Ligatures with both nodes and edges
+            'large': [],               # Ligatures with many items (>5)
+        }
+        
+        for ligature_id, ligature in ligatures.items():
+            node_count = len(ligature.nodes)
+            edge_count = len(ligature.edges)
+            total_count = node_count + edge_count
+            
+            # Check specific singleton cases first
+            if node_count == 1 and edge_count == 0:
+                patterns['singleton_nodes'].append(ligature_id)
+            elif node_count == 0 and edge_count == 1:
+                patterns['singleton_edges'].append(ligature_id)
+            # Then check general cases
+            elif edge_count == 0 and node_count > 0:
+                patterns['node_only'].append(ligature_id)
+            elif node_count == 0 and edge_count > 0:
+                patterns['edge_only'].append(ligature_id)
+            elif node_count > 0 and edge_count > 0:
+                patterns['mixed'].append(ligature_id)
+            
+            if total_count > 5:
+                patterns['large'].append(ligature_id)
+        
+        return patterns
 
