@@ -239,6 +239,35 @@ class ContextManager:
         
         return descendants
     
+    def get_child_contexts(self, context_id: ContextId) -> List[ContextId]:
+        """
+        Get the immediate child contexts of a given context.
+        
+        Args:
+            context_id: The ID of the parent context.
+            
+        Returns:
+            A list of immediate child context IDs.
+        """
+        children = []
+        for ctx_id, ctx in self.contexts.items():
+            if ctx.parent_context == context_id:
+                children.append(ctx_id)
+        return children
+    
+    def get_parent_context(self, context_id: ContextId) -> Optional[ContextId]:
+        """
+        Get the parent context of a given context.
+        
+        Args:
+            context_id: The ID of the child context.
+            
+        Returns:
+            The parent context ID, or None if this is the root context.
+        """
+        context = self.get_context(context_id)
+        return context.parent_context if context else None
+    
     def is_ancestor(self, ancestor_id: ContextId, descendant_id: ContextId) -> bool:
         """Check if one context is an ancestor of another.
         
@@ -377,4 +406,38 @@ class ContextManager:
                 visited.update(path)
         
         return errors
+    
+    def remove_context(self, context_id: ContextId) -> 'ContextManager':
+        """Remove a context and update parent references.
+        
+        Args:
+            context_id: The ID of the context to remove.
+            
+        Returns:
+            A new ContextManager with the context removed.
+        """
+        if context_id not in self.contexts:
+            return self  # Context doesn't exist, return unchanged
+        
+        # Get the context to remove
+        context_to_remove = self.contexts[context_id]
+        
+        # Update children to point to the removed context's parent
+        new_contexts = self.contexts.remove(context_id)
+        
+        for ctx_id, ctx in new_contexts.items():
+            if ctx.parent_context == context_id:
+                # Update child to point to removed context's parent
+                updated_ctx = ctx.create(parent_context=context_to_remove.parent_context)
+                new_contexts = new_contexts.set(ctx_id, updated_ctx)
+        
+        # Remove items that were in this context
+        new_context_items = self.context_items
+        if context_id in new_context_items:
+            new_context_items = new_context_items.remove(context_id)
+        
+        return ContextManager(
+            contexts=new_contexts,
+            context_items=new_context_items
+        )
 

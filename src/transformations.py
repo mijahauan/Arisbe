@@ -90,6 +90,7 @@ class TransformationEngine:
         """Initialize the transformation engine."""
         self.transformation_history: List[TransformationAttempt] = []
         self.rules = self._initialize_rules()
+        self.validator = TransformationValidator()
     
     def apply_transformation(
         self, 
@@ -188,58 +189,75 @@ class TransformationEngine:
             self.transformation_history.append(attempt)
         
         return attempt
-    
-    def get_legal_transformations(self, graph: EGGraph, context_id: ContextId = None) -> List[TransformationType]:
+    def get_legal_transformations(self, graph: EGGraph, context_id: ContextId = None) -> Dict[TransformationType, List[Set[ItemId]]]:
         """Get all legal transformations for the current graph state.
         
         Args:
             graph: The graph to analyze.
             context_id: Optional context to focus on.
+            
+        Returns:
+            Dictionary mapping transformation types to lists of possible target sets.
         """
-        legal_transformations = []
+        legal_transformations = {}
         
         # Check each transformation type
         for transformation_type in TransformationType:
-            # For basic validation, check if the transformation type is implemented
-            if transformation_type in self.rules:
-                # Basic checks for common transformations
-                if transformation_type == TransformationType.DOUBLE_CUT_INSERTION:
-                    # Always legal - can insert double cut anywhere
-                    legal_transformations.append(transformation_type)
-                elif transformation_type == TransformationType.DOUBLE_CUT_ERASURE:
-                    # Legal if there are double cuts to erase
-                    if self._has_double_cuts(graph):
-                        legal_transformations.append(transformation_type)
-                elif transformation_type == TransformationType.INSERTION:
-                    # Legal if there are positive contexts
-                    if self._has_positive_contexts(graph):
-                        legal_transformations.append(transformation_type)
-                elif transformation_type == TransformationType.ERASURE:
-                    # Legal if there are items in negative contexts
-                    if self._has_items_in_negative_contexts(graph):
-                        legal_transformations.append(transformation_type)
-                elif transformation_type == TransformationType.ITERATION:
-                    # Legal if there are items to iterate
-                    if len(graph.nodes) > 0 or len(graph.edges) > 0:
-                        legal_transformations.append(transformation_type)
-                elif transformation_type == TransformationType.DEITERATION:
-                    # Legal if there are potential duplicates
-                    if len(graph.nodes) > 1:
-                        legal_transformations.append(transformation_type)
-                elif transformation_type == TransformationType.LIGATURE_JOIN:
-                    # Legal if there are at least 2 nodes
-                    if len(graph.nodes) >= 2:
-                        legal_transformations.append(transformation_type)
-                elif transformation_type == TransformationType.LIGATURE_SEVER:
-                    # Legal if there are ligatures
-                    if len(graph.ligatures) > 0:
-                        legal_transformations.append(transformation_type)
-                else:
-                    # For other transformations, assume they're legal
-                    legal_transformations.append(transformation_type)
+            validation_result = self.validator.validate_transformation(
+                graph, transformation_type, context_id or graph.context_manager.root_context
+            )
+            
+            if validation_result.is_valid:
+                # Find possible target sets for this transformation
+                target_sets = self._find_transformation_targets(graph, transformation_type, context_id)
+                if target_sets:
+                    legal_transformations[transformation_type] = target_sets
         
         return legal_transformations
     
+    def _find_transformation_targets(self, graph: EGGraph, transformation_type: TransformationType, 
+                                   context_id: ContextId = None) -> List[Set[ItemId]]:
+        """Find possible target sets for a given transformation type."""
+        targets = []
+        
+        if transformation_type == TransformationType.DOUBLE_CUT_INSERTION:
+            # Can insert double cuts around any subgraph
+            contexts = [context_id] if context_id else list(graph.context_manager.contexts.keys())
+            for ctx_id in contexts:
+                items_in_context = graph.get_items_in_context(ctx_id)
+                if items_in_context:
+                    targets.append(items_in_context)
+        
+        elif transformation_type == TransformationType.DOUBLE_CUT_ERASURE:
+            # Look for double cuts to erase
+            for ctx_id in graph.context_manager.contexts:
+                context = graph.context_manager.get_context(ctx_id)
+                if context and context.parent_context:
+                    parent = graph.context_manager.get_context(context.parent_context)
+                    if parent and parent.parent_context:
+                        # Check if this is a double cut pattern
+                        targets.append({ctx_id})
+        
+        elif transformation_type == TransformationType.ERASURE:
+            # Can erase items in negative contexts
+            for ctx_id in graph.context_manager.contexts:
+                context = graph.context_manager.get_context(ctx_id)
+                if context and not context.is_positive:
+                    items = graph.get_items_in_context(ctx_id)
+                    for item_id in items:
+                        targets.append({item_id})
+        
+        elif transformation_type == TransformationType.INSERTION:
+            # Can insert into positive contexts
+            for ctx_id in graph.context_manager.contexts:
+                context = graph.context_manager.get_context(ctx_id)
+                if context and context.is_positive:
+                    targets.append(set())  # Empty set means "insert here"
+        
+        # Add more transformation target finding logic as needed
+        
+        return targets
+
     def _has_double_cuts(self, graph: EGGraph) -> bool:
         """Check if graph has double cut structures."""
         for context_id, context in graph.context_manager.contexts.items():
@@ -363,10 +381,10 @@ class TransformationEngine:
         subgraph_items = kwargs.get('subgraph_items', set())
         
         # Create outer cut
-        graph, outer_cut = graph.create_context('cut', target_context, properties={'name': 'Double Cut Outer'})
+        graph, outer_cut = graph.create_context('cut', target_context, 'Double Cut Outer')
         
         # Create inner cut
-        graph, inner_cut = graph.create_context('cut', outer_cut.id, properties={'name': 'Double Cut Inner'})
+        graph, inner_cut = graph.create_context('cut', outer_cut.id, 'Double Cut Inner')
         
         # Move subgraph items to inner cut
         for item_id in subgraph_items:
@@ -694,7 +712,18 @@ class TransformationEngine:
             return None
         
         # Find common ancestor
-        return graph.context_manager.find_common_ancestor(item_contexts)
+        if len(item_contexts) == 1:
+            return item_contexts[0]
+        elif len(item_contexts) == 2:
+            return graph.context_manager.find_common_ancestor(item_contexts[0], item_contexts[1])
+        else:
+            # For multiple contexts, find pairwise common ancestors
+            common_ancestor = item_contexts[0]
+            for context_id in item_contexts[1:]:
+                common_ancestor = graph.context_manager.find_common_ancestor(common_ancestor, context_id)
+                if common_ancestor is None:
+                    return None
+            return common_ancestor
     
     def _find_crossing_ligatures(self, graph: EGGraph, items: Set[ItemId]) -> Set[LigatureId]:
         """Find ligatures that cross the boundary of the given items."""
@@ -912,6 +941,24 @@ class TransformationValidator:
     def __init__(self):
         """Initialize the validator."""
         pass
+    
+    def validate_transformation(self, graph: EGGraph, transformation_type: TransformationType, 
+                              target_context: ContextId) -> ValidationResult:
+        """Validate if a transformation is legal for the given graph state."""
+        # Basic validation - check if transformation type is supported
+        if transformation_type in [
+            TransformationType.DOUBLE_CUT_INSERTION,
+            TransformationType.DOUBLE_CUT_ERASURE,
+            TransformationType.ERASURE,
+            TransformationType.INSERTION,
+            TransformationType.ITERATION,
+            TransformationType.DEITERATION,
+            TransformationType.LIGATURE_JOIN,
+            TransformationType.LIGATURE_SEVER
+        ]:
+            return ValidationResult(True, "Transformation type is supported")
+        else:
+            return ValidationResult(False, f"Unsupported transformation type: {transformation_type}")
     
     def validate_transformation_sequence(self, transformations: List[TransformationAttempt]) -> ValidationResult:
         """Validate a sequence of transformations for logical consistency."""

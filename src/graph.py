@@ -477,6 +477,46 @@ class EGGraph:
             'max_context_depth': max(ctx.depth for ctx in self.context_manager.contexts.values()),
         }
     
+    def remove_context(self, context_id: ContextId) -> 'EGGraph':
+        """Remove a context and all its contents from the graph.
+        
+        Args:
+            context_id: The ID of the context to remove.
+            
+        Returns:
+            A new EGGraph with the context removed.
+        """
+        # Get all items in the context to remove
+        items_to_remove = self.get_items_in_context(context_id)
+        
+        # Remove all nodes in the context
+        new_nodes = self.nodes
+        for item_id in items_to_remove:
+            if item_id in new_nodes:
+                new_nodes = new_nodes.remove(item_id)
+        
+        # Remove all edges in the context
+        new_edges = self.edges
+        for item_id in items_to_remove:
+            if item_id in new_edges:
+                new_edges = new_edges.remove(item_id)
+        
+        # Remove ligatures that reference removed items
+        new_ligatures = self.ligatures
+        for ligature_id, ligature in self.ligatures.items():
+            if any(item_id in items_to_remove for item_id in ligature.nodes.union(ligature.edges)):
+                new_ligatures = new_ligatures.remove(ligature_id)
+        
+        # Remove the context itself
+        new_context_manager = self.context_manager.remove_context(context_id)
+        
+        return EGGraph(
+            context_manager=new_context_manager,
+            nodes=new_nodes,
+            edges=new_edges,
+            ligatures=new_ligatures
+        )
+    
     def __str__(self) -> str:
         """String representation of the graph."""
         stats = self.get_graph_statistics()
