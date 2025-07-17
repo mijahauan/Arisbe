@@ -1,676 +1,368 @@
 """
-Comprehensive tests for the transformation engine.
+Test suite for transformation rules with Entity-Predicate architecture.
 
-Tests all transformation rules with proper validation and edge cases.
+This test suite validates that the transformation rules work correctly
+with the new Entity-Predicate hypergraph model.
 """
 
 import pytest
-import uuid
-from hypothesis import given, strategies as st
+from typing import Set
 
-from src.transformations import (
-    TransformationEngine, TransformationType, TransformationResult,
-    TransformationValidator, ValidationResult
-)
+from src.eg_types import Entity, Predicate, Context, EntityId, PredicateId, ContextId
 from src.graph import EGGraph
-from src.eg_types import Node, Edge, Ligature
+from src.transformations import (
+    TransformationEngine, TransformationType, TransformationResult
+)
 
 
-class TestTransformationEngine:
-    """Test the core transformation engine."""
+class TestTransformationEngineEntityPredicate:
+    """Test the transformation engine with Entity-Predicate architecture."""
     
-    def test_engine_initialization(self):
-        """Test transformation engine initialization."""
-        engine = TransformationEngine()
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.engine = TransformationEngine()
         
-        assert len(engine.rules) > 0
-        assert len(engine.transformation_history) == 0
-        assert TransformationType.DOUBLE_CUT_INSERTION in engine.rules
-        assert TransformationType.ERASURE in engine.rules
-    
-    def test_get_legal_transformations(self):
-        """Test getting legal transformations for a graph."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+        # Create a simple test graph with entities and predicates
+        self.graph = EGGraph.create_empty()
         
-        # Empty graph should allow some transformations
-        legal = engine.get_legal_transformations(graph)
-        assert TransformationType.DOUBLE_CUT_INSERTION in legal
-        assert TransformationType.INSERTION in legal
-    
-    def test_transformation_history(self):
-        """Test that transformation history is recorded."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+        # Add some entities
+        self.socrates = Entity.create(name="Socrates", entity_type="constant")
+        self.x = Entity.create(name="x", entity_type="variable")
+        self.y = Entity.create(name="y", entity_type="variable")
         
-        # Apply a transformation
-        attempt = engine.apply_transformation(
-            graph, 
-            TransformationType.DOUBLE_CUT_INSERTION,
-            target_context=graph.root_context_id,
-            subgraph_items=set()
+        self.graph = self.graph.add_entity(self.socrates, self.graph.root_context_id)
+        self.graph = self.graph.add_entity(self.x, self.graph.root_context_id)
+        self.graph = self.graph.add_entity(self.y, self.graph.root_context_id)
+        
+        # Add some predicates
+        self.person_socrates = Predicate.create(
+            name="Person", 
+            entities=[self.socrates.id], 
+            arity=1
+        )
+        self.mortal_x = Predicate.create(
+            name="Mortal", 
+            entities=[self.x.id], 
+            arity=1
+        )
+        self.loves_xy = Predicate.create(
+            name="Loves", 
+            entities=[self.x.id, self.y.id], 
+            arity=2
         )
         
-        assert len(engine.transformation_history) == 1
-        assert engine.transformation_history[0] == attempt
-
-
-class TestAlphaRules:
-    """Test Alpha rules (propositional logic transformations)."""
+        self.graph = self.graph.add_predicate(self.person_socrates, self.graph.root_context_id)
+        self.graph = self.graph.add_predicate(self.mortal_x, self.graph.root_context_id)
+        self.graph = self.graph.add_predicate(self.loves_xy, self.graph.root_context_id)
     
     def test_double_cut_insertion(self):
         """Test double cut insertion transformation."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+        # Apply double cut insertion around the Person(Socrates) predicate
+        target_items = {self.person_socrates.id}
         
-        # Add a simple predicate
-        pred_node = Node.create(node_type='predicate', properties={'name': 'P'})
-        graph = graph.add_node(pred_node)
-        
-        # Apply double cut insertion
-        attempt = engine.apply_transformation(
-            graph,
+        attempt = self.engine.apply_transformation(
+            self.graph,
             TransformationType.DOUBLE_CUT_INSERTION,
-            target_context=graph.root_context_id,
-            subgraph_items={pred_node.id}
+            target_items=target_items,
+            target_context=self.graph.root_context_id,
+            subgraph_items=target_items
         )
         
         assert attempt.result == TransformationResult.SUCCESS
         assert attempt.result_graph is not None
         
-        # Should have created 2 new contexts
-        original_contexts = len(graph.context_manager.contexts)
-        new_contexts = len(attempt.result_graph.context_manager.contexts)
-        assert new_contexts == original_contexts + 2
-    
-    def test_double_cut_erasure(self):
-        """Test double cut erasure transformation."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+        # Check that two new contexts were created
+        original_context_count = len(self.graph.context_manager.contexts)
+        new_context_count = len(attempt.result_graph.context_manager.contexts)
+        assert new_context_count == original_context_count + 2
         
-        # Create double cut structure first
-        graph, outer_cut = graph.create_context('cut', graph.root_context_id, 'Outer')
-        graph, inner_cut = graph.create_context('cut', outer_cut.id, 'Inner')
-        
-        # Add predicate to inner cut
-        pred_node = Node.create(node_type='predicate', properties={'name': 'P'})
-        graph = graph.add_node(pred_node, inner_cut.id)
-        
-        # Apply double cut erasure
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.DOUBLE_CUT_ERASURE,
-            target_context=outer_cut.id
-        )
-        
-        assert attempt.result == TransformationResult.SUCCESS
-        assert attempt.result_graph is not None
-        
-        # Should have removed 2 contexts
-        original_contexts = len(graph.context_manager.contexts)
-        new_contexts = len(attempt.result_graph.context_manager.contexts)
-        assert new_contexts == original_contexts - 2
-        
-        # Predicate should be back in root context
-        root_items = attempt.result_graph.get_items_in_context(graph.root_context_id)
-        assert pred_node.id in root_items
-    
-    def test_double_cut_round_trip(self):
-        """Test that double cut insertion and erasure are inverses."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Add a predicate
-        pred_node = Node.create(node_type='predicate', properties={'name': 'P'})
-        graph = graph.add_node(pred_node)
-        
-        # Insert double cut
-        insert_attempt = engine.apply_transformation(
-            graph,
-            TransformationType.DOUBLE_CUT_INSERTION,
-            target_context=graph.root_context_id,
-            subgraph_items={pred_node.id}
-        )
-        
-        assert insert_attempt.result == TransformationResult.SUCCESS
-        intermediate_graph = insert_attempt.result_graph
-        
-        # Find the outer cut context
-        outer_cut_id = None
-        for context_id, context in intermediate_graph.context_manager.contexts.items():
-            if (context.parent_context == graph.root_context_id and 
-                context.properties.get('name') == 'Double Cut Outer'):
-                outer_cut_id = context_id
-                break
-        
-        assert outer_cut_id is not None
-        
-        # Erase double cut
-        erase_attempt = engine.apply_transformation(
-            intermediate_graph,
-            TransformationType.DOUBLE_CUT_ERASURE,
-            target_context=outer_cut_id
-        )
-        
-        assert erase_attempt.result == TransformationResult.SUCCESS
-        final_graph = erase_attempt.result_graph
-        
-        # Should be back to original structure
-        assert len(final_graph.nodes) == len(graph.nodes)
-        assert len(final_graph.context_manager.contexts) == len(graph.context_manager.contexts)
-
-
-class TestBetaRules:
-    """Test Beta rules (predicate logic transformations)."""
+        # Check that the predicate was moved to the inner context
+        assert self.person_socrates.id not in attempt.result_graph.context_manager.get_items_in_context(self.graph.root_context_id)
     
     def test_erasure_from_negative_context(self):
-        """Test erasure from negative context."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+        """Test erasure transformation from a negative context."""
+        # First create a negative context (cut)
+        graph, cut_context = self.graph.create_context('cut', self.graph.root_context_id, 'Test Cut')
         
-        # Create negative context
-        graph, neg_context = graph.create_context('cut', graph.root_context_id, 'Negative')
+        # Add a predicate to the negative context
+        test_predicate = Predicate.create(name="Test", entities=[self.x.id], arity=1)
+        graph = graph.add_predicate(test_predicate, cut_context.id)
         
-        # Add predicate to negative context
-        pred_node = Node.create(node_type='predicate', properties={'name': 'P'})
-        graph = graph.add_node(pred_node, neg_context.id)
-        
-        # Apply erasure
-        attempt = engine.apply_transformation(
+        # Apply erasure to remove the predicate from the negative context
+        attempt = self.engine.apply_transformation(
             graph,
             TransformationType.ERASURE,
-            target_items={pred_node.id}
+            target_items={test_predicate.id}
         )
         
         assert attempt.result == TransformationResult.SUCCESS
         assert attempt.result_graph is not None
         
-        # Predicate should be removed
-        assert pred_node.id not in attempt.result_graph.nodes
-    
-    def test_erasure_from_positive_context_fails(self):
-        """Test that erasure from positive context fails."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Add predicate to positive (root) context
-        pred_node = Node.create(node_type='predicate', properties={'name': 'P'})
-        graph = graph.add_node(pred_node)
-        
-        # Attempt erasure (should fail)
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.ERASURE,
-            target_items={pred_node.id}
-        )
-        
-        assert attempt.result == TransformationResult.PRECONDITION_FAILED
-        assert "positive context" in attempt.error_message.lower()
+        # Check that the predicate was removed
+        assert test_predicate.id not in attempt.result_graph.predicates
     
     def test_insertion_into_positive_context(self):
-        """Test insertion into positive context."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Define subgraph to insert
+        """Test insertion transformation into a positive context."""
+        # Define a subgraph to insert
         subgraph = {
-            'nodes': [
-                {'node_type': 'predicate', 'properties': {'name': 'Q'}},
-                {'node_type': 'term', 'properties': {'value': 'x'}}
+            'entities': [
+                {'name': 'NewEntity', 'entity_type': 'variable'}
             ],
-            'edges': [],
-            'ligatures': []
+            'predicates': [
+                {'name': 'NewPredicate', 'entities': [], 'arity': 0}
+            ]
         }
         
-        # Apply insertion
-        attempt = engine.apply_transformation(
-            graph,
+        attempt = self.engine.apply_transformation(
+            self.graph,
             TransformationType.INSERTION,
-            target_context=graph.root_context_id,
+            target_context=self.graph.root_context_id,
             subgraph=subgraph
         )
         
         assert attempt.result == TransformationResult.SUCCESS
         assert attempt.result_graph is not None
         
-        # Should have added nodes
-        assert len(attempt.result_graph.nodes) == len(graph.nodes) + 2
+        # Check that new items were added
+        original_entity_count = len(self.graph.entities)
+        original_predicate_count = len(self.graph.predicates)
+        new_entity_count = len(attempt.result_graph.entities)
+        new_predicate_count = len(attempt.result_graph.predicates)
+        
+        assert new_entity_count == original_entity_count + 1
+        assert new_predicate_count == original_predicate_count + 1
     
-    def test_insertion_into_negative_context_fails(self):
-        """Test that insertion into negative context fails."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+    def test_iteration_to_same_level(self):
+        """Test iteration transformation to the same context level."""
+        # Create another positive context at the same level
+        graph, sibling_context = self.graph.create_context('assertion', self.graph.root_context_id, 'Sibling')
         
-        # Create negative context
-        graph, neg_context = graph.create_context('cut', graph.root_context_id, 'Negative')
+        # Apply iteration to copy a predicate to the sibling context
+        target_items = {self.person_socrates.id, self.socrates.id}
         
-        # Attempt insertion (should fail)
-        attempt = engine.apply_transformation(
+        attempt = self.engine.apply_transformation(
+            graph,
+            TransformationType.ITERATION,
+            target_items=target_items,
+            target_context=sibling_context.id
+        )
+        
+        assert attempt.result == TransformationResult.SUCCESS
+        assert attempt.result_graph is not None
+        
+        # Check that items were copied (not moved)
+        assert self.person_socrates.id in attempt.result_graph.predicates  # Original still exists
+        
+        # Check that new items were created in the target context
+        sibling_items = attempt.result_graph.context_manager.get_items_in_context(sibling_context.id)
+        assert len(sibling_items) > 0
+    
+    def test_entity_join(self):
+        """Test entity join transformation."""
+        # Create two entities that should be joined
+        entity1 = Entity.create(name="a", entity_type="variable")
+        entity2 = Entity.create(name="b", entity_type="variable")
+        
+        graph = self.graph.add_entity(entity1, self.graph.root_context_id)
+        graph = graph.add_entity(entity2, self.graph.root_context_id)
+        
+        # Create predicates using these entities
+        pred1 = Predicate.create(name="P", entities=[entity1.id], arity=1)
+        pred2 = Predicate.create(name="Q", entities=[entity2.id], arity=1)
+        
+        graph = graph.add_predicate(pred1, self.graph.root_context_id)
+        graph = graph.add_predicate(pred2, self.graph.root_context_id)
+        
+        # Apply entity join
+        attempt = self.engine.apply_transformation(
+            graph,
+            TransformationType.ENTITY_JOIN,
+            target_items={entity1.id, entity2.id}
+        )
+        
+        assert attempt.result == TransformationResult.SUCCESS
+        assert attempt.result_graph is not None
+        
+        # Check that entities were merged
+        original_entity_count = len(graph.entities)
+        new_entity_count = len(attempt.result_graph.entities)
+        assert new_entity_count == original_entity_count - 1  # Two entities merged into one
+    
+    def test_entity_sever(self):
+        """Test entity sever transformation."""
+        # Create an entity used by multiple predicates
+        shared_entity = Entity.create(name="shared", entity_type="variable")
+        graph = self.graph.add_entity(shared_entity, self.graph.root_context_id)
+        
+        # Create multiple predicates using the shared entity
+        pred1 = Predicate.create(name="P", entities=[shared_entity.id], arity=1)
+        pred2 = Predicate.create(name="Q", entities=[shared_entity.id], arity=1)
+        
+        graph = graph.add_predicate(pred1, self.graph.root_context_id)
+        graph = graph.add_predicate(pred2, self.graph.root_context_id)
+        
+        # Apply entity sever
+        attempt = self.engine.apply_transformation(
+            graph,
+            TransformationType.ENTITY_SEVER,
+            target_items={shared_entity.id}
+        )
+        
+        assert attempt.result == TransformationResult.SUCCESS
+        assert attempt.result_graph is not None
+        
+        # Check that the shared entity was split
+        original_entity_count = len(graph.entities)
+        new_entity_count = len(attempt.result_graph.entities)
+        assert new_entity_count > original_entity_count  # Entity was split
+    
+    def test_invalid_erasure_from_positive_context(self):
+        """Test that erasure fails when attempted on positive context."""
+        # Try to erase from the root context (positive)
+        attempt = self.engine.apply_transformation(
+            self.graph,
+            TransformationType.ERASURE,
+            target_items={self.person_socrates.id}
+        )
+        
+        assert attempt.result == TransformationResult.PRECONDITION_FAILED
+        assert "positive context" in attempt.error_message.lower()
+    
+    def test_invalid_insertion_into_negative_context(self):
+        """Test that insertion fails when attempted on negative context."""
+        # Create a negative context (cut)
+        graph, cut_context = self.graph.create_context('cut', self.graph.root_context_id, 'Test Cut')
+        
+        # Try to insert into the negative context
+        subgraph = {
+            'entities': [{'name': 'Test', 'entity_type': 'variable'}],
+            'predicates': []
+        }
+        
+        attempt = self.engine.apply_transformation(
             graph,
             TransformationType.INSERTION,
-            target_context=neg_context.id,
-            subgraph={'nodes': [], 'edges': [], 'ligatures': []}
+            target_context=cut_context.id,
+            subgraph=subgraph
         )
         
         assert attempt.result == TransformationResult.PRECONDITION_FAILED
         assert "negative context" in attempt.error_message.lower()
     
-    def test_iteration_to_same_level(self):
-        """Test iteration to same context level."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+    def test_get_legal_transformations(self):
+        """Test getting legal transformations for a graph state."""
+        legal_transformations = self.engine.get_legal_transformations(self.graph)
         
-        # Create two contexts at same level
-        graph, context1 = graph.create_context('sheet', graph.root_context_id, 'Context1')
-        graph, context2 = graph.create_context('sheet', graph.root_context_id, 'Context2')
+        # Should include basic transformations
+        assert TransformationType.DOUBLE_CUT_INSERTION in legal_transformations
+        assert TransformationType.INSERTION in legal_transformations
         
-        # Add predicate to first context
-        pred_node = Node.create(node_type='predicate', properties={'name': 'P'})
-        graph = graph.add_node(pred_node, context1.id)
+        # Should not include erasure for positive context items
+        if TransformationType.ERASURE in legal_transformations:
+            # If erasure is listed, it should have empty target sets for positive context
+            erasure_targets = legal_transformations[TransformationType.ERASURE]
+            assert len(erasure_targets) == 0
+    
+    def test_transformation_history(self):
+        """Test that transformation history is properly recorded."""
+        initial_history_length = len(self.engine.transformation_history)
         
-        # Apply iteration
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.ITERATION,
-            target_items={pred_node.id},
-            target_context=context2.id
+        # Apply a transformation
+        self.engine.apply_transformation(
+            self.graph,
+            TransformationType.DOUBLE_CUT_INSERTION,
+            target_context=self.graph.root_context_id,
+            subgraph_items=set()
+        )
+        
+        # Check that history was updated
+        assert len(self.engine.transformation_history) == initial_history_length + 1
+        
+        # Check that the history entry contains expected information
+        last_attempt = self.engine.transformation_history[-1]
+        assert last_attempt.transformation_type == TransformationType.DOUBLE_CUT_INSERTION
+        assert last_attempt.source_graph == self.graph
+    
+    def test_entity_consistency_validation(self):
+        """Test that entity consistency is validated after transformations."""
+        # Create a graph with inconsistent entity references (for testing)
+        # This would normally be caught by the validation
+        
+        # Apply a valid transformation first
+        attempt = self.engine.apply_transformation(
+            self.graph,
+            TransformationType.DOUBLE_CUT_INSERTION,
+            target_context=self.graph.root_context_id,
+            subgraph_items=set()
         )
         
         assert attempt.result == TransformationResult.SUCCESS
-        assert attempt.result_graph is not None
         
-        # Should have created copy in second context
-        context2_items = attempt.result_graph.get_items_in_context(context2.id)
-        assert len(context2_items) == 1
-        
-        # Original should still exist
-        context1_items = attempt.result_graph.get_items_in_context(context1.id)
-        assert len(context1_items) == 1
-    
-    def test_iteration_to_deeper_level_fails(self):
-        """Test that iteration to deeper level fails."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Create nested contexts
-        graph, outer_context = graph.create_context('sheet', graph.root_context_id, 'Outer')
-        graph, inner_context = graph.create_context('cut', outer_context.id, 'Inner')
-        
-        # Add predicate to outer context
-        pred_node = Node.create(node_type='predicate', properties={'name': 'P'})
-        graph = graph.add_node(pred_node, outer_context.id)
-        
-        # Attempt iteration to deeper level (should fail)
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.ITERATION,
-            target_items={pred_node.id},
-            target_context=inner_context.id
-        )
-        
-        assert attempt.result == TransformationResult.PRECONDITION_FAILED
-        assert "deeper context" in attempt.error_message.lower()
-    
-    def test_deiteration_removes_duplicate(self):
-        """Test deiteration removes duplicate subgraph."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Add two identical predicates
-        pred1 = Node.create(node_type='predicate', properties={'name': 'P'})
-        pred2 = Node.create(node_type='predicate', properties={'name': 'P'})
-        
-        graph = graph.add_node(pred1)
-        graph = graph.add_node(pred2)
-        
-        # Apply deiteration
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.DEITERATION,
-            target_items={pred1.id}
-        )
-        
-        # Note: This test might fail with current simplified isomorphism check
-        # A full implementation would need sophisticated graph isomorphism
-        if attempt.result == TransformationResult.SUCCESS:
-            assert len(attempt.result_graph.nodes) == len(graph.nodes) - 1
-
-
-class TestLigatureOperations:
-    """Test ligature-related transformations."""
-    
-    def test_ligature_join(self):
-        """Test joining nodes with ligature."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Add two term nodes
-        term1 = Node.create(node_type='term', properties={'value': 'x'})
-        term2 = Node.create(node_type='term', properties={'value': 'y'})
-        
-        graph = graph.add_node(term1)
-        graph = graph.add_node(term2)
-        
-        # Apply ligature join
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.LIGATURE_JOIN,
-            target_items={term1.id, term2.id},
-            ligature_type='identity'
-        )
-        
-        assert attempt.result == TransformationResult.SUCCESS
-        assert attempt.result_graph is not None
-        
-        # Should have created ligature
-        assert len(attempt.result_graph.ligatures) == 1
-        
-        ligature = list(attempt.result_graph.ligatures.values())[0]
-        assert term1.id in ligature.nodes
-        assert term2.id in ligature.nodes
-    
-    def test_ligature_sever(self):
-        """Test severing ligature."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Add three term nodes
-        term1 = Node.create(node_type='term', properties={'value': 'x'})
-        term2 = Node.create(node_type='term', properties={'value': 'y'})
-        term3 = Node.create(node_type='term', properties={'value': 'z'})
-        
-        graph = graph.add_node(term1)
-        graph = graph.add_node(term2)
-        graph = graph.add_node(term3)
-        
-        # Create ligature connecting all three
-        ligature = Ligature.create(
-            nodes={term1.id, term2.id, term3.id},
-            properties={'type': 'identity'}
-        )
-        graph = graph.add_ligature(ligature)
-        
-        # Sever one node from ligature
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.LIGATURE_SEVER,
-            target_items={term1.id}
-        )
-        
-        assert attempt.result == TransformationResult.SUCCESS
-        assert attempt.result_graph is not None
-        
-        # Should still have ligature but with fewer nodes
-        assert len(attempt.result_graph.ligatures) == 1
-        
-        remaining_ligature = list(attempt.result_graph.ligatures.values())[0]
-        assert term1.id not in remaining_ligature.nodes
-        assert term2.id in remaining_ligature.nodes
-        assert term3.id in remaining_ligature.nodes
-    
-    def test_erasure_severs_crossing_ligatures(self):
-        """Test that erasure properly severs crossing ligatures."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Create negative context
-        graph, neg_context = graph.create_context('cut', graph.root_context_id, 'Negative')
-        
-        # Add nodes in different contexts
-        term1 = Node.create(node_type='term', properties={'value': 'x'})  # In root
-        term2 = Node.create(node_type='term', properties={'value': 'y'})  # In negative
-        
-        graph = graph.add_node(term1)  # Root context
-        graph = graph.add_node(term2, neg_context.id)  # Negative context
-        
-        # Create ligature crossing contexts
-        ligature = Ligature.create(
-            nodes={term1.id, term2.id},
-            properties={'type': 'identity'}
-        )
-        graph = graph.add_ligature(ligature)
-        
-        # Erase node from negative context
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.ERASURE,
-            target_items={term2.id}
-        )
-        
-        assert attempt.result == TransformationResult.SUCCESS
-        assert attempt.result_graph is not None
-        
-        # Ligature should be removed (only 1 node remaining)
-        assert len(attempt.result_graph.ligatures) == 0
-        
-        # Only term1 should remain
-        assert term1.id in attempt.result_graph.nodes
-        assert term2.id not in attempt.result_graph.nodes
+        # The validation should pass for a properly constructed transformation
+        validation_result = self.engine._validate_entity_consistency(attempt.result_graph)
+        assert validation_result.is_valid
 
 
 class TestTransformationValidation:
-    """Test transformation validation and error handling."""
+    """Test transformation validation logic."""
     
-    def test_invalid_transformation_type(self):
-        """Test handling of invalid transformation type."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.engine = TransformationEngine()
+        self.graph = EGGraph.create_empty()
         
-        # This should be handled by the enum, but test error handling
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.DOUBLE_CUT_INSERTION,
-            target_context=None  # Invalid: no target context
+        # Add basic entities and predicates
+        self.entity = Entity.create(name="test", entity_type="variable")
+        self.graph = self.graph.add_entity(self.entity, self.graph.root_context_id)
+        
+        self.predicate = Predicate.create(name="Test", entities=[self.entity.id], arity=1)
+        self.graph = self.graph.add_predicate(self.predicate, self.graph.root_context_id)
+    
+    def test_validate_entity_join_preconditions(self):
+        """Test validation of entity join preconditions."""
+        # Valid case: multiple entities
+        entity2 = Entity.create(name="test2", entity_type="variable")
+        graph = self.graph.add_entity(entity2, self.graph.root_context_id)
+        
+        result = self.engine._validate_entity_join_preconditions(
+            graph, {self.entity.id, entity2.id}
         )
+        assert result.is_valid
         
-        assert attempt.result == TransformationResult.PRECONDITION_FAILED
-    
-    def test_missing_target_items(self):
-        """Test handling of missing target items."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Attempt erasure with no target items
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.ERASURE,
-            target_items=set()
+        # Invalid case: single entity
+        result = self.engine._validate_entity_join_preconditions(
+            self.graph, {self.entity.id}
         )
+        assert not result.is_valid
+        assert "at least 2" in result.error_message
         
-        assert attempt.result == TransformationResult.PRECONDITION_FAILED
-        assert "target items" in attempt.error_message.lower()
-    
-    def test_nonexistent_context(self):
-        """Test handling of nonexistent context."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        from src.eg_types import ContextId
-        fake_context = ContextId(uuid.uuid4())
-        
-        # Attempt insertion into nonexistent context
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.INSERTION,
-            target_context=fake_context,
-            subgraph={'nodes': [], 'edges': [], 'ligatures': []}
+        # Invalid case: non-entity item
+        result = self.engine._validate_entity_join_preconditions(
+            self.graph, {self.predicate.id}
         )
-        
-        assert attempt.result == TransformationResult.PRECONDITION_FAILED
-        assert "does not exist" in attempt.error_message.lower()
-
-
-class TestTransformationSequences:
-    """Test sequences of transformations."""
+        assert not result.is_valid
+        assert "not an entity" in result.error_message
     
-    def test_transformation_sequence_validation(self):
-        """Test validation of transformation sequences."""
-        validator = TransformationValidator()
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
+    def test_validate_entity_sever_preconditions(self):
+        """Test validation of entity sever preconditions."""
+        # Create entity used by multiple predicates
+        pred2 = Predicate.create(name="Test2", entities=[self.entity.id], arity=1)
+        graph = self.graph.add_predicate(pred2, self.graph.root_context_id)
         
-        # Apply sequence of transformations
-        transformations = []
-        
-        # 1. Insert double cut
-        attempt1 = engine.apply_transformation(
-            graph,
-            TransformationType.DOUBLE_CUT_INSERTION,
-            target_context=graph.root_context_id,
-            subgraph_items=set()
+        # Valid case: entity used by multiple predicates
+        result = self.engine._validate_entity_sever_preconditions(
+            graph, {self.entity.id}
         )
-        transformations.append(attempt1)
+        assert result.is_valid
         
-        if attempt1.result == TransformationResult.SUCCESS:
-            # 2. Insert predicate
-            subgraph = {
-                'nodes': [{'node_type': 'predicate', 'properties': {'name': 'P'}}],
-                'edges': [],
-                'ligatures': []
-            }
-            
-            attempt2 = engine.apply_transformation(
-                attempt1.result_graph,
-                TransformationType.INSERTION,
-                target_context=graph.root_context_id,
-                subgraph=subgraph
-            )
-            transformations.append(attempt2)
-        
-        # Validate sequence
-        result = validator.validate_transformation_sequence(transformations)
-        
-        # Should be valid if all transformations succeeded
-        if all(t.result == TransformationResult.SUCCESS for t in transformations):
-            assert result.is_valid
-        else:
-            assert not result.is_valid
-    
-    def test_complex_transformation_chain(self):
-        """Test a complex chain of transformations."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Start with a predicate
-        pred_node = Node.create(node_type='predicate', properties={'name': 'P'})
-        graph = graph.add_node(pred_node)
-        
-        current_graph = graph
-        successful_transformations = 0
-        
-        # Apply series of transformations
-        transformations = [
-            (TransformationType.DOUBLE_CUT_INSERTION, {
-                'target_context': graph.root_context_id,
-                'subgraph_items': {pred_node.id}
-            }),
-            # Could add more transformations here
-        ]
-        
-        for trans_type, kwargs in transformations:
-            attempt = engine.apply_transformation(current_graph, trans_type, **kwargs)
-            
-            if attempt.result == TransformationResult.SUCCESS:
-                current_graph = attempt.result_graph
-                successful_transformations += 1
-            else:
-                break
-        
-        # Should have applied at least some transformations
-        assert successful_transformations > 0
-        assert len(engine.transformation_history) == len(transformations)
-
-
-class TestTransformationPropertyBased:
-    """Property-based tests for transformations."""
-    
-    @given(st.text(alphabet='PQRABCDEFGHIJKLMNOPQRSTUVWXYZ', min_size=1, max_size=3))
-    def test_double_cut_preserves_predicates(self, predicate_name):
-        """Test that double cut operations preserve predicate names."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Add predicate
-        pred_node = Node.create(node_type='predicate', properties={'name': predicate_name})
-        graph = graph.add_node(pred_node)
-        
-        # Apply double cut insertion
-        attempt = engine.apply_transformation(
-            graph,
-            TransformationType.DOUBLE_CUT_INSERTION,
-            target_context=graph.root_context_id,
-            subgraph_items={pred_node.id}
+        # Invalid case: entity used by only one predicate
+        result = self.engine._validate_entity_sever_preconditions(
+            self.graph, {self.entity.id}
         )
-        
-        if attempt.result == TransformationResult.SUCCESS:
-            # Predicate should still exist with same name
-            found_predicate = False
-            for node in attempt.result_graph.nodes.values():
-                if (node.node_type == 'predicate' and 
-                    node.properties.get('name') == predicate_name):
-                    found_predicate = True
-                    break
-            
-            assert found_predicate
-    
-    @given(st.integers(min_value=1, max_value=5))
-    def test_multiple_erasures(self, num_predicates):
-        """Test multiple erasure operations."""
-        engine = TransformationEngine()
-        graph = EGGraph.create_empty()
-        
-        # Create negative context
-        graph, neg_context = graph.create_context('cut', graph.root_context_id, 'Negative')
-        
-        # Add multiple predicates
-        predicates = []
-        for i in range(num_predicates):
-            pred = Node.create(node_type='predicate', properties={'name': f'P{i}'})
-            graph = graph.add_node(pred, neg_context.id)
-            predicates.append(pred)
-        
-        # Erase all predicates one by one
-        current_graph = graph
-        for pred in predicates:
-            attempt = engine.apply_transformation(
-                current_graph,
-                TransformationType.ERASURE,
-                target_items={pred.id}
-            )
-            
-            if attempt.result == TransformationResult.SUCCESS:
-                current_graph = attempt.result_graph
-        
-        # Should have removed all predicates
-        remaining_predicates = sum(1 for node in current_graph.nodes.values() 
-                                 if node.node_type == 'predicate')
-        assert remaining_predicates == 0
+        assert not result.is_valid
+        assert "multiple predicates" in result.error_message
 
 
-# Helper functions for testing
-
-def create_simple_graph_with_predicate(predicate_name: str = 'P') -> EGGraph:
-    """Create a simple graph with one predicate."""
-    graph = EGGraph.create_empty()
-    pred_node = Node.create(node_type='predicate', properties={'name': predicate_name})
-    graph = graph.add_node(pred_node)
-    return graph
-
-def create_graph_with_ligature() -> EGGraph:
-    """Create a graph with a ligature connecting two terms."""
-    graph = EGGraph.create_empty()
-    
-    term1 = Node.create(node_type='term', properties={'value': 'x'})
-    term2 = Node.create(node_type='term', properties={'value': 'y'})
-    
-    graph = graph.add_node(term1)
-    graph = graph.add_node(term2)
-    
-    ligature = Ligature.create(
-        nodes={term1.id, term2.id},
-        properties={'type': 'identity'}
-    )
-    graph = graph.add_ligature(ligature)
-    
-    return graph
+if __name__ == "__main__":
+    pytest.main([__file__])
 

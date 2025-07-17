@@ -1,509 +1,355 @@
 """
-Enhanced CLIF generator with pattern-aware output and full ISO 24707 support.
+Fixed CLIF generator with correct Entity-Predicate hypergraph architecture.
 
-This module provides sophisticated CLIF generation that leverages pattern
-recognition to produce clean, readable CLIF output that preserves the
-logical structure and intent of existential graphs.
+This module provides CLIF generation that correctly maps:
+- Entities (Lines of Identity) → CLIF terms (variables, constants)
+- Predicates (hyperedges connecting entities) → CLIF predicates
+- Entity scoping in contexts → CLIF quantifiers
+
+Fixed to work with the corrected graph API.
 """
 
 from typing import Dict, List, Optional, Set, Tuple, Any, Union
 from dataclasses import dataclass
+from collections import defaultdict
 import uuid
 
 from .eg_types import (
-    Node, Edge, Context, Ligature,
-    NodeId, EdgeId, ContextId, LigatureId, ItemId,
+    Entity, Predicate, Context,
+    EntityId, PredicateId, ContextId,
     ValidationError, pmap, pset
 )
 from .graph import EGGraph
-from .pattern_recognizer import PatternRecognitionEngine, PatternMatch
-
-
-@dataclass
-class CLIFGenerationOptions:
-    """Options for CLIF generation."""
-    use_pattern_recognition: bool = True
-    preserve_comments: bool = True
-    include_metadata: bool = False
-    format_output: bool = True
-    fallback_to_canonical: bool = True
-    variable_naming_strategy: str = 'alphabetic'  # 'alphabetic', 'descriptive', 'original'
 
 
 @dataclass
 class CLIFGenerationResult:
-    """Result of CLIF generation."""
-    clif_text: str
-    patterns_used: List[PatternMatch]
+    """Result of CLIF generation operation."""
+    clif_text: Optional[str]
+    errors: List[str]
     warnings: List[str]
     metadata: Dict[str, Any]
 
 
 class CLIFGenerator:
-    """Enhanced CLIF generator with pattern recognition."""
+    """Generator for CLIF (Common Logic Interchange Format) from Entity-Predicate graphs."""
     
-    def __init__(self, options: Optional[CLIFGenerationOptions] = None):
-        """Initialize the CLIF generator.
+    def __init__(self):
+        """Initialize the generator."""
+        self.errors = []
+        self.warnings = []
+        self.metadata = {}
         
-        Args:
-            options: Generation options. Uses defaults if None.
-        """
-        self.options = options or CLIFGenerationOptions()
-        self.pattern_engine = PatternRecognitionEngine()
+        # Entity name mapping for generation
+        self.entity_names = {}  # Dict[EntityId, str]
         self.variable_counter = 0
-        self.variable_mapping = {}
-        
-    def generate(self, graph: EGGraph, comments: List[str] = None, 
-                imports: List[str] = None) -> CLIFGenerationResult:
-        """Generate CLIF representation of an existential graph.
-        
-        Args:
-            graph: The existential graph to convert.
-            comments: Optional comments to include.
-            imports: Optional import statements.
+    
+    def generate(self, graph: EGGraph) -> CLIFGenerationResult:
+        """Generate CLIF from an existential graph."""
+        try:
+            # Initialize generator state
+            self.errors = []
+            self.warnings = []
+            self.metadata = {}
+            self.entity_names = {}
+            self.variable_counter = 0
             
-        Returns:
-            CLIFGenerationResult with the generated CLIF and metadata.
-        """
-        # Reset state
-        self.variable_counter = 0
-        self.variable_mapping = {}
-        warnings = []
+            # Build entity name mapping
+            self._build_entity_names(graph)
+            
+            # Generate CLIF content
+            clif_content = self._generate_clif_from_graph(graph)
+            
+            return CLIFGenerationResult(
+                clif_text=clif_content,
+                errors=self.errors,
+                warnings=self.warnings,
+                metadata=self.metadata
+            )
         
-        # Recognize patterns if enabled
-        patterns = []
-        if self.options.use_pattern_recognition:
-            try:
-                patterns = self.pattern_engine.recognize_patterns(graph)
-            except Exception as e:
-                warnings.append(f"Pattern recognition failed: {str(e)}")
-        
-        # Generate CLIF text
-        clif_parts = []
-        
-        # Add comments if requested
-        if self.options.preserve_comments and comments:
-            for comment in comments:
-                clif_parts.append(f"/* {comment} */")
-        
-        # Add imports if present
-        if imports:
-            for import_uri in imports:
-                clif_parts.append(f"(cl:imports \"{import_uri}\")")
-        
-        # Generate main content
-        if patterns and self.options.use_pattern_recognition:
-            main_content = self.pattern_engine.generate_clif_from_patterns(graph, patterns)
-        else:
-            if self.options.fallback_to_canonical:
-                main_content = self._generate_canonical_clif(graph)
-            else:
-                warnings.append("No patterns recognized and fallback disabled")
-                main_content = "(and)"
-        
-        if main_content and main_content != "(and)":
-            clif_parts.append(main_content)
-        
-        # Combine and format
-        clif_text = "\n".join(clif_parts)
-        
-        if self.options.format_output:
-            clif_text = self._format_clif(clif_text)
-        
-        # Prepare metadata
-        metadata = {
-            'pattern_count': len(patterns),
-            'variable_count': self.variable_counter,
-            'context_count': len(graph.context_manager.contexts),
-            'node_count': len(graph.nodes),
-            'edge_count': len(graph.edges),
-            'ligature_count': len(graph.ligatures)
-        }
-        
-        if self.options.include_metadata:
-            metadata.update({
-                'patterns_by_type': self._group_patterns_by_type(patterns),
-                'context_hierarchy': self._analyze_context_hierarchy(graph),
-                'variable_mapping': dict(self.variable_mapping)
-            })
-        
-        return CLIFGenerationResult(
-            clif_text=clif_text,
-            patterns_used=patterns,
-            warnings=warnings,
-            metadata=metadata
-        )
+        except Exception as e:
+            self._add_error(f"Generation failed: {str(e)}")
+            return CLIFGenerationResult(
+                clif_text=None,
+                errors=self.errors,
+                warnings=self.warnings,
+                metadata=self.metadata
+            )
     
-    def _generate_canonical_clif(self, graph: EGGraph) -> str:
-        """Generate canonical CLIF representation without pattern recognition."""
-        # Start from root context and traverse
+    def _add_error(self, message: str):
+        """Add an error to the error list."""
+        self.errors.append(message)
+    
+    def _add_warning(self, message: str):
+        """Add a warning to the warning list."""
+        self.warnings.append(message)
+    
+    def _build_entity_names(self, graph: EGGraph):
+        """Build mapping from entity IDs to names."""
+        for entity in graph.entities.values():
+            self.entity_names[entity.id] = entity.name
+    
+    def _generate_clif_from_graph(self, graph: EGGraph) -> str:
+        """Generate CLIF content from the graph."""
+        # Start with the root context
         root_content = self._generate_context_content(graph, graph.root_context_id)
         
-        if not root_content:
-            return "(and)"
-        
-        return root_content
+        if root_content.strip():
+            return root_content
+        else:
+            return "(cl:text)"  # Empty CLIF module
     
     def _generate_context_content(self, graph: EGGraph, context_id: ContextId) -> str:
         """Generate CLIF content for a specific context."""
-        context = graph.context_manager.get_context(context_id)
-        if not context:
+        context = graph.contexts.get(context_id)
+        if context is None:
             return ""
         
-        # Get items directly in this context (not in child contexts)
-        direct_items = self._get_direct_items(graph, context_id)
+        # Get entities and predicates in this context
+        context_entities = self._get_entities_in_context(graph, context_id)
+        context_predicates = self._get_predicates_in_context(graph, context_id)
         
         # Get child contexts
-        child_contexts = []
-        for ctx_id in graph.context_manager.get_descendants(context_id):
-            child_ctx = graph.context_manager.get_context(ctx_id)
-            if child_ctx and child_ctx.parent_context == context_id:
-                child_contexts.append(child_ctx)
+        child_contexts = self._get_child_contexts(graph, context_id)
         
-        content_parts = []
+        # Generate content based on context type
+        if context.context_type == 'sheet_of_assertion':
+            return self._generate_sheet_content(graph, context_entities, context_predicates, child_contexts)
+        elif context.context_type == 'cut':
+            return self._generate_cut_content(graph, context_id, context_entities, context_predicates, child_contexts)
+        else:
+            # Default: treat as conjunction
+            return self._generate_conjunction_content(graph, context_entities, context_predicates, child_contexts)
+    
+    def _get_entities_in_context(self, graph: EGGraph, context_id: ContextId) -> Set[EntityId]:
+        """Get entities directly in a specific context."""
+        entities = set()
         
-        # Process direct items (predicates, etc.)
-        for item_id in direct_items:
-            if item_id in graph.nodes:
-                node = graph.nodes[item_id]
-                if node.node_type == 'predicate':
-                    pred_clif = self._node_to_clif(graph, node)
-                    if pred_clif:
-                        content_parts.append(pred_clif)
+        # Get all items in context
+        items = graph.get_items_in_context(context_id)
         
-        # Process child contexts
-        for child_context in child_contexts:
-            child_content = self._generate_context_content(graph, child_context.id)
-            
+        # Filter for entities
+        for item_id in items:
+            if item_id in graph.entities:
+                entities.add(item_id)
+        
+        return entities
+    
+    def _get_predicates_in_context(self, graph: EGGraph, context_id: ContextId) -> Set[PredicateId]:
+        """Get predicates directly in a specific context."""
+        predicates = set()
+        
+        # Get all items in context
+        items = graph.get_items_in_context(context_id)
+        
+        # Filter for predicates
+        for item_id in items:
+            if item_id in graph.predicates:
+                predicates.add(item_id)
+        
+        return predicates
+    
+    def _get_child_contexts(self, graph: EGGraph, parent_id: ContextId) -> List[ContextId]:
+        """Get direct child contexts of a parent context."""
+        children = []
+        
+        for context_id, context in graph.contexts.items():
+            if context.parent_context == parent_id:
+                children.append(context_id)
+        
+        return children
+    
+    def _generate_sheet_content(self, graph: EGGraph, entities: Set[EntityId], 
+                               predicates: Set[PredicateId], child_contexts: List[ContextId]) -> str:
+        """Generate content for the sheet of assertion (root context)."""
+        statements = []
+        
+        # Generate predicates in root context
+        for predicate_id in predicates:
+            predicate = graph.predicates[predicate_id]
+            statement = self._generate_predicate_statement(graph, predicate)
+            if statement:
+                statements.append(statement)
+        
+        # Generate child contexts
+        for child_id in child_contexts:
+            child_content = self._generate_context_content(graph, child_id)
             if child_content:
-                if child_context.is_positive:
-                    content_parts.append(child_content)
-                else:
-                    # Negative context = negation
-                    content_parts.append(f"(not {child_content})")
+                statements.append(child_content)
         
-        # Combine content
-        if len(content_parts) == 0:
+        # Combine statements
+        if len(statements) == 0:
             return ""
-        elif len(content_parts) == 1:
-            return content_parts[0]
+        elif len(statements) == 1:
+            return statements[0]
         else:
-            return f"(and {' '.join(content_parts)})"
+            # Multiple statements - wrap in conjunction if needed
+            return self._combine_statements(statements)
     
-    def _get_direct_items(self, graph: EGGraph, context_id: ContextId) -> Set[ItemId]:
-        """Get items directly in a context (not in child contexts)."""
-        all_items = graph.get_items_in_context(context_id)
-        direct_items = set(all_items)
+    def _generate_cut_content(self, graph: EGGraph, context_id: ContextId, entities: Set[EntityId], 
+                             predicates: Set[PredicateId], child_contexts: List[ContextId]) -> str:
+        """Generate content for a cut context (negation)."""
+        # Check if this is part of a quantification pattern
+        context = graph.contexts[context_id]
+        context_name = context.properties.get("name", "")
         
-        # Remove items that are in child contexts
-        for ctx_id in graph.context_manager.get_descendants(context_id):
-            child_ctx = graph.context_manager.get_context(ctx_id)
-            if child_ctx and child_ctx.parent_context == context_id:
-                child_items = graph.get_items_in_context(child_ctx.id)
-                direct_items -= child_items
-        
-        return direct_items
-    
-    def _node_to_clif(self, graph: EGGraph, node: Node) -> Optional[str]:
-        """Convert a node to CLIF representation."""
-        if node.node_type == 'predicate':
-            pred_name = node.properties.get('name', '')
-            
-            # Find arguments through edges
-            incident_edges = graph.find_incident_edges(node.id)
-            arguments = []
-            
-            for edge in incident_edges:
-                if edge.edge_type == 'predication':
-                    for arg_id in edge.nodes:
-                        if arg_id != node.id and arg_id in graph.nodes:
-                            arg_node = graph.nodes[arg_id]
-                            arg_value = self._get_term_value(arg_node)
-                            if arg_value:
-                                arguments.append(arg_value)
-            
-            # Check for ligatures (equality)
-            ligatures = self._find_node_ligatures(graph, node.id)
-            for ligature in ligatures:
-                if ligature.properties.get('type') == 'equality':
-                    # Handle equality specially
-                    other_nodes = ligature.nodes - {node.id}
-                    for other_id in other_nodes:
-                        if other_id in graph.nodes:
-                            other_node = graph.nodes[other_id]
-                            other_value = self._get_term_value(other_node)
-                            if other_value:
-                                return f"(= {pred_name} {other_value})"
-            
-            if pred_name:
-                if arguments:
-                    return f"({pred_name} {' '.join(arguments)})"
-                else:
-                    return f"({pred_name})"
-        
-        elif node.node_type == 'term':
-            # Terms are handled as part of predicates
-            return None
-        
-        return None
-    
-    def _get_term_value(self, node: Node) -> Optional[str]:
-        """Get the value of a term node."""
-        if node.node_type in ['term', 'variable']:
-            value = node.properties.get('value') or node.properties.get('name')
-            
-            # Apply variable naming strategy
-            if (node.node_type == 'variable' and 
-                self.options.variable_naming_strategy == 'alphabetic'):
-                return self._get_alphabetic_variable_name(value)
-            
-            return value
-        
-        return None
-    
-    def _get_alphabetic_variable_name(self, original_name: Optional[str]) -> str:
-        """Get alphabetic variable name (x, y, z, x1, y1, ...)."""
-        if original_name and original_name in self.variable_mapping:
-            return self.variable_mapping[original_name]
-        
-        # Generate new alphabetic name
-        alphabet = 'xyzuvwabcdefghijklmnopqrst'
-        base_index = self.variable_counter % len(alphabet)
-        suffix = self.variable_counter // len(alphabet)
-        
-        if suffix == 0:
-            var_name = alphabet[base_index]
+        if "Universal Quantification" in context_name:
+            return self._generate_universal_quantification(graph, context_id, entities, predicates, child_contexts)
+        elif "Existential Quantification" in context_name:
+            return self._generate_existential_quantification(graph, context_id, entities, predicates, child_contexts)
         else:
-            var_name = f"{alphabet[base_index]}{suffix}"
-        
-        if original_name:
-            self.variable_mapping[original_name] = var_name
-        
-        self.variable_counter += 1
-        return var_name
-    
-    def _find_node_ligatures(self, graph: EGGraph, node_id: NodeId) -> List[Ligature]:
-        """Find all ligatures containing a specific node."""
-        ligatures = []
-        
-        for ligature in graph.ligatures.values():
-            if node_id in ligature.nodes:
-                ligatures.append(ligature)
-        
-        return ligatures
-    
-    def _format_clif(self, clif_text: str) -> str:
-        """Format CLIF text for readability."""
-        if not clif_text:
-            return clif_text
-        
-        # Simple formatting: add newlines and indentation
-        lines = []
-        current_line = ""
-        indent_level = 0
-        
-        i = 0
-        while i < len(clif_text):
-            char = clif_text[i]
-            
-            if char == '(':
-                if current_line.strip():
-                    lines.append("  " * indent_level + current_line.strip())
-                    current_line = ""
-                
-                current_line += char
-                
-                # Look ahead to see if this is a simple predicate
-                j = i + 1
-                paren_count = 1
-                is_simple = True
-                
-                while j < len(clif_text) and paren_count > 0:
-                    if clif_text[j] == '(':
-                        paren_count += 1
-                        if paren_count > 1:
-                            is_simple = False
-                    elif clif_text[j] == ')':
-                        paren_count -= 1
-                    j += 1
-                
-                if not is_simple:
-                    lines.append("  " * indent_level + current_line.strip())
-                    current_line = ""
-                    indent_level += 1
-                
-            elif char == ')':
-                current_line += char
-                
-                # Check if this closes a complex expression
-                if current_line.count('(') != current_line.count(')'):
-                    indent_level = max(0, indent_level - 1)
-                    lines.append("  " * indent_level + current_line.strip())
-                    current_line = ""
-                
-            elif char == ' ' and current_line.strip():
-                current_line += char
-                
-            elif char not in [' ', '\n', '\t']:
-                current_line += char
-            
-            i += 1
-        
-        if current_line.strip():
-            lines.append("  " * indent_level + current_line.strip())
-        
-        return "\n".join(lines)
-    
-    def _group_patterns_by_type(self, patterns: List[PatternMatch]) -> Dict[str, int]:
-        """Group patterns by type for metadata."""
-        pattern_counts = {}
-        
-        for pattern in patterns:
-            pattern_type = pattern.pattern_type
-            pattern_counts[pattern_type] = pattern_counts.get(pattern_type, 0) + 1
-        
-        return pattern_counts
-    
-    def _analyze_context_hierarchy(self, graph: EGGraph) -> Dict[str, Any]:
-        """Analyze the context hierarchy for metadata."""
-        contexts = graph.context_manager.contexts
-        
-        max_depth = 0
-        positive_count = 0
-        negative_count = 0
-        
-        for context in contexts.values():
-            max_depth = max(max_depth, context.depth)
-            
-            if context.is_positive:
-                positive_count += 1
+            # Simple negation
+            inner_content = self._generate_conjunction_content(graph, entities, predicates, child_contexts)
+            if inner_content:
+                return f"(not {inner_content})"
             else:
-                negative_count += 1
+                return "(not)"
+    
+    def _generate_universal_quantification(self, graph: EGGraph, context_id: ContextId, 
+                                         entities: Set[EntityId], predicates: Set[PredicateId], 
+                                         child_contexts: List[ContextId]) -> str:
+        """Generate universal quantification."""
+        # Find variables in this context
+        variables = []
+        for entity_id in entities:
+            entity = graph.entities[entity_id]
+            if entity.entity_type == 'variable':
+                variables.append(entity.name)
         
-        return {
-            'max_depth': max_depth,
-            'positive_contexts': positive_count,
-            'negative_contexts': negative_count,
-            'total_contexts': len(contexts)
-        }
+        # Generate body content
+        body_content = self._generate_conjunction_content(graph, entities, predicates, child_contexts)
+        
+        if variables and body_content:
+            var_list = " ".join(variables)
+            return f"(forall ({var_list}) {body_content})"
+        else:
+            return body_content or ""
+    
+    def _generate_existential_quantification(self, graph: EGGraph, context_id: ContextId, 
+                                           entities: Set[EntityId], predicates: Set[PredicateId], 
+                                           child_contexts: List[ContextId]) -> str:
+        """Generate existential quantification."""
+        # Find variables in this context
+        variables = []
+        for entity_id in entities:
+            entity = graph.entities[entity_id]
+            if entity.entity_type == 'variable':
+                variables.append(entity.name)
+        
+        # Generate body content
+        body_content = self._generate_conjunction_content(graph, entities, predicates, child_contexts)
+        
+        if variables and body_content:
+            var_list = " ".join(variables)
+            return f"(exists ({var_list}) {body_content})"
+        else:
+            return body_content or ""
+    
+    def _generate_conjunction_content(self, graph: EGGraph, entities: Set[EntityId], 
+                                    predicates: Set[PredicateId], child_contexts: List[ContextId]) -> str:
+        """Generate conjunction content."""
+        statements = []
+        
+        # Generate predicates
+        for predicate_id in predicates:
+            predicate = graph.predicates[predicate_id]
+            statement = self._generate_predicate_statement(graph, predicate)
+            if statement:
+                statements.append(statement)
+        
+        # Generate child contexts
+        for child_id in child_contexts:
+            child_content = self._generate_context_content(graph, child_id)
+            if child_content:
+                statements.append(child_content)
+        
+        return self._combine_statements(statements)
+    
+    def _generate_predicate_statement(self, graph: EGGraph, predicate: Predicate) -> str:
+        """Generate a CLIF statement for a predicate."""
+        if predicate.arity == 0:
+            # Zero-arity predicate
+            return f"({predicate.name})"
+        
+        # Get entity names
+        entity_names = []
+        for entity_id in predicate.entities:
+            if entity_id in self.entity_names:
+                entity_names.append(self.entity_names[entity_id])
+            else:
+                # Generate a name for unnamed entity
+                entity = graph.entities.get(entity_id)
+                if entity:
+                    entity_names.append(entity.name)
+                else:
+                    entity_names.append(f"entity_{entity_id}")
+        
+        if entity_names:
+            args = " ".join(entity_names)
+            return f"({predicate.name} {args})"
+        else:
+            return f"({predicate.name})"
+    
+    def _combine_statements(self, statements: List[str]) -> str:
+        """Combine multiple statements appropriately."""
+        if len(statements) == 0:
+            return ""
+        elif len(statements) == 1:
+            return statements[0]
+        else:
+            # Multiple statements - use conjunction
+            combined = " ".join(statements)
+            return f"(and {combined})"
 
 
 class CLIFRoundTripValidator:
-    """Validates CLIF round-trip conversion (EG -> CLIF -> EG)."""
+    """Validator for CLIF round-trip conversion."""
     
     def __init__(self):
         """Initialize the validator."""
-        self.generator = CLIFGenerator()
+        pass
     
-    def validate_round_trip(self, original_graph: EGGraph) -> Dict[str, Any]:
-        """Validate that EG -> CLIF -> EG preserves semantic equivalence.
-        
-        Args:
-            original_graph: The original existential graph.
-            
-        Returns:
-            Validation results with equivalence check and differences.
-        """
-        from .clif_parser import CLIFParser
-        
-        # Generate CLIF
-        generation_result = self.generator.generate(original_graph)
-        clif_text = generation_result.clif_text
-        
-        # Parse back to EG
-        parser = CLIFParser()
-        parse_result = parser.parse(clif_text)
-        
-        if parse_result.graph is None:
-            return {
-                'round_trip_successful': False,
-                'error': 'Failed to parse generated CLIF',
-                'parse_errors': parse_result.errors,
-                'original_clif': clif_text
-            }
-        
-        reconstructed_graph = parse_result.graph
-        
-        # Compare graphs for semantic equivalence
-        equivalence_result = self._check_semantic_equivalence(
-            original_graph, reconstructed_graph
-        )
-        
-        return {
-            'round_trip_successful': equivalence_result['equivalent'],
-            'semantic_equivalence': equivalence_result,
-            'original_clif': clif_text,
-            'generation_metadata': generation_result.metadata,
-            'parse_warnings': parse_result.warnings,
-            'patterns_preserved': len(generation_result.patterns_used)
+    def validate_round_trip(self, original_graph: EGGraph, roundtrip_graph: EGGraph) -> Dict[str, Any]:
+        """Validate that a round-trip conversion preserves graph structure."""
+        results = {
+            'valid': True,
+            'errors': [],
+            'warnings': [],
+            'statistics': {}
         }
-    
-    def _check_semantic_equivalence(self, graph1: EGGraph, graph2: EGGraph) -> Dict[str, Any]:
-        """Check if two graphs are semantically equivalent."""
-        # This is a simplified equivalence check
-        # A full implementation would use graph isomorphism
         
-        differences = []
+        # Compare entity counts
+        orig_entity_count = len(original_graph.entities)
+        rt_entity_count = len(roundtrip_graph.entities)
         
-        # Compare basic statistics
-        stats1 = self._get_graph_stats(graph1)
-        stats2 = self._get_graph_stats(graph2)
+        if orig_entity_count != rt_entity_count:
+            results['errors'].append(f"Entity count mismatch: {orig_entity_count} vs {rt_entity_count}")
+            results['valid'] = False
         
-        for key in stats1:
-            if stats1[key] != stats2[key]:
-                differences.append(f"{key}: {stats1[key]} vs {stats2[key]}")
+        # Compare predicate counts
+        orig_predicate_count = len(original_graph.predicates)
+        rt_predicate_count = len(roundtrip_graph.predicates)
         
-        # Compare context structure
-        context_diff = self._compare_context_structures(graph1, graph2)
-        if context_diff:
-            differences.extend(context_diff)
+        if orig_predicate_count != rt_predicate_count:
+            results['errors'].append(f"Predicate count mismatch: {orig_predicate_count} vs {rt_predicate_count}")
+            results['valid'] = False
         
-        equivalent = len(differences) == 0
+        # Compare context counts
+        orig_context_count = len(original_graph.contexts)
+        rt_context_count = len(roundtrip_graph.contexts)
         
-        return {
-            'equivalent': equivalent,
-            'differences': differences,
-            'original_stats': stats1,
-            'reconstructed_stats': stats2
+        if orig_context_count != rt_context_count:
+            results['warnings'].append(f"Context count difference: {orig_context_count} vs {rt_context_count}")
+        
+        # Store statistics
+        results['statistics'] = {
+            'original_entities': orig_entity_count,
+            'roundtrip_entities': rt_entity_count,
+            'original_predicates': orig_predicate_count,
+            'roundtrip_predicates': rt_predicate_count,
+            'original_contexts': orig_context_count,
+            'roundtrip_contexts': rt_context_count
         }
-    
-    def _get_graph_stats(self, graph: EGGraph) -> Dict[str, int]:
-        """Get basic statistics about a graph."""
-        return {
-            'node_count': len(graph.nodes),
-            'edge_count': len(graph.edges),
-            'ligature_count': len(graph.ligatures),
-            'context_count': len(graph.context_manager.contexts),
-            'predicate_count': sum(1 for node in graph.nodes.values() 
-                                 if node.node_type == 'predicate'),
-            'term_count': sum(1 for node in graph.nodes.values() 
-                            if node.node_type == 'term')
-        }
-    
-    def _compare_context_structures(self, graph1: EGGraph, graph2: EGGraph) -> List[str]:
-        """Compare the context structures of two graphs."""
-        differences = []
         
-        # Compare context counts by depth
-        depth_counts1 = {}
-        depth_counts2 = {}
-        
-        for context in graph1.context_manager.contexts.values():
-            depth = context.depth
-            depth_counts1[depth] = depth_counts1.get(depth, 0) + 1
-        
-        for context in graph2.context_manager.contexts.values():
-            depth = context.depth
-            depth_counts2[depth] = depth_counts2.get(depth, 0) + 1
-        
-        all_depths = set(depth_counts1.keys()) | set(depth_counts2.keys())
-        
-        for depth in all_depths:
-            count1 = depth_counts1.get(depth, 0)
-            count2 = depth_counts2.get(depth, 0)
-            
-            if count1 != count2:
-                differences.append(f"Depth {depth}: {count1} vs {count2} contexts")
-        
-        return differences
+        return results
 

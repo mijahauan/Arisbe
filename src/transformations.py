@@ -1,8 +1,13 @@
 """
 Complete transformation engine implementing Peirce's existential graph transformation rules.
 
+Updated for Entity-Predicate hypergraph architecture where:
+- CLIF terms (variables, constants) → Entities (Lines of Identity)
+- CLIF predicates → Predicates (hyperedges connecting entities)
+- CLIF quantifiers → Entity scoping in contexts
+
 This module provides a comprehensive implementation of all transformation rules
-for existential graphs, including Alpha and Beta rules with proper ligature
+for existential graphs, including Alpha and Beta rules with proper entity
 handling and validation.
 """
 
@@ -12,8 +17,8 @@ from enum import Enum
 import uuid
 
 from .eg_types import (
-    Node, Edge, Context, Ligature,
-    NodeId, EdgeId, ContextId, LigatureId, ItemId,
+    Entity, Predicate, Context, Ligature,
+    EntityId, PredicateId, ContextId, LigatureId, ItemId,
     ValidationError, pmap, pset
 )
 from .graph import EGGraph
@@ -39,9 +44,9 @@ class TransformationType(Enum):
     ITERATION = "iteration"
     DEITERATION = "deiteration"
     
-    # Ligature operations
-    LIGATURE_JOIN = "ligature_join"
-    LIGATURE_SEVER = "ligature_sever"
+    # Entity operations (Lines of Identity)
+    ENTITY_JOIN = "entity_join"
+    ENTITY_SEVER = "entity_sever"
     
     # Constants and functions (if supported)
     CONSTANT_INTRODUCTION = "constant_introduction"
@@ -54,7 +59,7 @@ class TransformationResult(Enum):
     SUCCESS = "success"
     INVALID_RULE = "invalid_rule"
     PRECONDITION_FAILED = "precondition_failed"
-    LIGATURE_VIOLATION = "ligature_violation"
+    ENTITY_VIOLATION = "entity_violation"
     CONTEXT_VIOLATION = "context_violation"
     ISOMORPHISM_FAILED = "isomorphism_failed"
 
@@ -80,11 +85,11 @@ class TransformationRule:
     description: str
     preconditions: List[str]
     effects: List[str]
-    ligature_effects: List[str]
+    entity_effects: List[str]
 
 
 class TransformationEngine:
-    """Complete transformation engine for existential graphs."""
+    """Complete transformation engine for existential graphs with Entity-Predicate architecture."""
     
     def __init__(self):
         """Initialize the transformation engine."""
@@ -150,10 +155,10 @@ class TransformationEngine:
                 result_graph = self._apply_iteration(graph, target_items, target_context, **kwargs)
             elif transformation_type == TransformationType.DEITERATION:
                 result_graph = self._apply_deiteration(graph, target_items, **kwargs)
-            elif transformation_type == TransformationType.LIGATURE_JOIN:
-                result_graph = self._apply_ligature_join(graph, target_items, **kwargs)
-            elif transformation_type == TransformationType.LIGATURE_SEVER:
-                result_graph = self._apply_ligature_sever(graph, target_items, **kwargs)
+            elif transformation_type == TransformationType.ENTITY_JOIN:
+                result_graph = self._apply_entity_join(graph, target_items, **kwargs)
+            elif transformation_type == TransformationType.ENTITY_SEVER:
+                result_graph = self._apply_entity_sever(graph, target_items, **kwargs)
             else:
                 attempt.result = TransformationResult.INVALID_RULE
                 attempt.error_message = f"Unsupported transformation type: {transformation_type}"
@@ -165,20 +170,19 @@ class TransformationEngine:
                 attempt.error_message = "Transformation returned None"
                 return attempt
             
-            # Validate ligature consistency
-            ligature_validation = self._validate_ligature_consistency(result_graph)
-            if not ligature_validation.is_valid:
-                attempt.result = TransformationResult.LIGATURE_VIOLATION
-                attempt.error_message = ligature_validation.error_message
+            # Validate entity consistency
+            entity_validation = self._validate_entity_consistency(result_graph)
+            if not entity_validation.is_valid:
+                attempt.result = TransformationResult.ENTITY_VIOLATION
+                attempt.error_message = entity_validation.error_message
                 return attempt
             
             # Success
             attempt.result_graph = result_graph
             attempt.metadata = {
-                'nodes_added': len(result_graph.nodes) - len(graph.nodes),
-                'edges_added': len(result_graph.edges) - len(graph.edges),
-                'contexts_added': len(result_graph.context_manager.contexts) - len(graph.context_manager.contexts),
-                'ligatures_added': len(result_graph.ligatures) - len(graph.ligatures)
+                'entities_added': len(result_graph.entities) - len(graph.entities),
+                'predicates_added': len(result_graph.predicates) - len(graph.predicates),
+                'contexts_added': len(result_graph.context_manager.contexts) - len(graph.context_manager.contexts)
             }
             
         except Exception as e:
@@ -189,6 +193,7 @@ class TransformationEngine:
             self.transformation_history.append(attempt)
         
         return attempt
+    
     def get_legal_transformations(self, graph: EGGraph, context_id: ContextId = None) -> Dict[TransformationType, List[Set[ItemId]]]:
         """Get all legal transformations for the current graph state.
         
@@ -204,7 +209,7 @@ class TransformationEngine:
         # Check each transformation type
         for transformation_type in TransformationType:
             validation_result = self.validator.validate_transformation(
-                graph, transformation_type, context_id or graph.context_manager.root_context
+                graph, transformation_type, context_id or graph.context_manager.root_context.id
             )
             
             if validation_result.is_valid:
@@ -224,7 +229,7 @@ class TransformationEngine:
             # Can insert double cuts around any subgraph
             contexts = [context_id] if context_id else list(graph.context_manager.contexts.keys())
             for ctx_id in contexts:
-                items_in_context = graph.get_items_in_context(ctx_id)
+                items_in_context = graph.context_manager.get_items_in_context(ctx_id)
                 if items_in_context:
                     targets.append(items_in_context)
         
@@ -242,8 +247,8 @@ class TransformationEngine:
             # Can erase items in negative contexts
             for ctx_id in graph.context_manager.contexts:
                 context = graph.context_manager.get_context(ctx_id)
-                if context and not context.is_positive:
-                    items = graph.get_items_in_context(ctx_id)
+                if context and context.depth % 2 == 1:  # Odd depth = negative context
+                    items = graph.context_manager.get_items_in_context(ctx_id)
                     for item_id in items:
                         targets.append({item_id})
         
@@ -251,38 +256,12 @@ class TransformationEngine:
             # Can insert into positive contexts
             for ctx_id in graph.context_manager.contexts:
                 context = graph.context_manager.get_context(ctx_id)
-                if context and context.is_positive:
+                if context and context.depth % 2 == 0:  # Even depth = positive context
                     targets.append(set())  # Empty set means "insert here"
         
         # Add more transformation target finding logic as needed
         
         return targets
-
-    def _has_double_cuts(self, graph: EGGraph) -> bool:
-        """Check if graph has double cut structures."""
-        for context_id, context in graph.context_manager.contexts.items():
-            if context.context_type == 'cut':
-                # Check if this cut has a child cut
-                for child_id, child_context in graph.context_manager.contexts.items():
-                    if child_context.parent_context == context_id and child_context.context_type == 'cut':
-                        return True
-        return False
-    
-    def _has_positive_contexts(self, graph: EGGraph) -> bool:
-        """Check if graph has positive contexts."""
-        for context in graph.context_manager.contexts.values():
-            if context.is_positive:
-                return True
-        return False
-    
-    def _has_items_in_negative_contexts(self, graph: EGGraph) -> bool:
-        """Check if graph has items in negative contexts."""
-        for context in graph.context_manager.contexts.values():
-            if not context.is_positive:
-                items = graph.get_items_in_context(context.id)
-                if items:
-                    return True
-        return False
     
     def _initialize_rules(self) -> Dict[TransformationType, TransformationRule]:
         """Initialize the transformation rules."""
@@ -295,7 +274,7 @@ class TransformationEngine:
             description="Insert two nested cuts around any subgraph",
             preconditions=["Target context exists", "Subgraph is well-formed"],
             effects=["Creates two new nested contexts", "Preserves logical equivalence"],
-            ligature_effects=["Ligatures remain unchanged"]
+            entity_effects=["Entities remain unchanged"]
         )
         
         rules[TransformationType.DOUBLE_CUT_ERASURE] = TransformationRule(
@@ -304,7 +283,7 @@ class TransformationEngine:
             description="Remove two nested cuts that contain a subgraph",
             preconditions=["Two nested cuts exist", "Inner cut contains only the subgraph"],
             effects=["Removes two nested contexts", "Preserves logical equivalence"],
-            ligature_effects=["Ligatures remain unchanged"]
+            entity_effects=["Entities remain unchanged"]
         )
         
         # Beta rules
@@ -312,9 +291,9 @@ class TransformationEngine:
             rule_type=TransformationType.ERASURE,
             name="Erasure",
             description="Erase any subgraph from a negative context",
-            preconditions=["Target items in negative context", "No ligatures cross context boundary"],
+            preconditions=["Target items in negative context", "No entities cross context boundary"],
             effects=["Removes specified items", "Strengthens the assertion"],
-            ligature_effects=["Severs ligatures crossing the boundary"]
+            entity_effects=["Severs entity connections crossing the boundary"]
         )
         
         rules[TransformationType.INSERTION] = TransformationRule(
@@ -323,7 +302,7 @@ class TransformationEngine:
             description="Insert any subgraph into a positive context",
             preconditions=["Target context is positive", "Subgraph is well-formed"],
             effects=["Adds specified items", "Weakens the assertion"],
-            ligature_effects=["May create new ligatures"]
+            entity_effects=["May create new entity connections"]
         )
         
         rules[TransformationType.ITERATION] = TransformationRule(
@@ -332,7 +311,7 @@ class TransformationEngine:
             description="Copy a subgraph to a context at the same or higher level",
             preconditions=["Source subgraph exists", "Target context at same or higher level"],
             effects=["Creates copy of subgraph", "Preserves logical strength"],
-            ligature_effects=["Extends ligatures to copied elements"]
+            entity_effects=["Extends entity connections to copied elements"]
         )
         
         rules[TransformationType.DEITERATION] = TransformationRule(
@@ -341,7 +320,7 @@ class TransformationEngine:
             description="Remove a subgraph that is isomorphic to another in the same context",
             preconditions=["Two isomorphic subgraphs exist", "Same context level"],
             effects=["Removes redundant subgraph", "Preserves logical strength"],
-            ligature_effects=["Merges ligatures from removed elements"]
+            entity_effects=["Merges entity connections from removed elements"]
         )
         
         return rules
@@ -353,7 +332,7 @@ class TransformationEngine:
         target_items: Set[ItemId],
         target_context: ContextId,
         **kwargs
-    ) -> 'ValidationResult':
+    ) -> ValidationResult:
         """Validate preconditions for a transformation."""
         
         if transformation_type == TransformationType.DOUBLE_CUT_INSERTION:
@@ -368,10 +347,10 @@ class TransformationEngine:
             return self._validate_iteration_preconditions(graph, target_items, target_context, **kwargs)
         elif transformation_type == TransformationType.DEITERATION:
             return self._validate_deiteration_preconditions(graph, target_items, **kwargs)
-        elif transformation_type == TransformationType.LIGATURE_JOIN:
-            return self._validate_ligature_join_preconditions(graph, target_items, **kwargs)
-        elif transformation_type == TransformationType.LIGATURE_SEVER:
-            return self._validate_ligature_sever_preconditions(graph, target_items, **kwargs)
+        elif transformation_type == TransformationType.ENTITY_JOIN:
+            return self._validate_entity_join_preconditions(graph, target_items, **kwargs)
+        elif transformation_type == TransformationType.ENTITY_SEVER:
+            return self._validate_entity_sever_preconditions(graph, target_items, **kwargs)
         else:
             return ValidationResult(False, f"Unknown transformation type: {transformation_type}")
     
@@ -388,14 +367,14 @@ class TransformationEngine:
         
         # Move subgraph items to inner cut
         for item_id in subgraph_items:
-            if item_id in graph.nodes:
-                node = graph.nodes[item_id]
-                graph = graph.remove_node(item_id)
-                graph = graph.add_node(node, inner_cut.id)
-            elif item_id in graph.edges:
-                edge = graph.edges[item_id]
-                graph = graph.remove_edge(item_id)
-                graph = graph.add_edge(edge, inner_cut.id)
+            if item_id in graph.entities:
+                entity = graph.entities[item_id]
+                graph = graph.remove_entity(item_id)
+                graph = graph.add_entity(entity, inner_cut.id)
+            elif item_id in graph.predicates:
+                predicate = graph.predicates[item_id]
+                graph = graph.remove_predicate(item_id)
+                graph = graph.add_predicate(predicate, inner_cut.id)
         
         return graph
     
@@ -408,7 +387,7 @@ class TransformationEngine:
         
         # Get child contexts
         child_contexts = []
-        for ctx_id in graph.context_manager.get_descendants(target_context):
+        for ctx_id in graph.context_manager.contexts:
             child_ctx = graph.context_manager.get_context(ctx_id)
             if child_ctx and child_ctx.parent_context == target_context:
                 child_contexts.append(child_ctx)
@@ -425,16 +404,16 @@ class TransformationEngine:
             parent_context = graph.root_context_id
         
         # Move all items from inner cut to parent
-        items_to_move = graph.get_items_in_context(inner_cut.id)
+        items_to_move = graph.context_manager.get_items_in_context(inner_cut.id)
         for item_id in items_to_move:
-            if item_id in graph.nodes:
-                node = graph.nodes[item_id]
-                graph = graph.remove_node(item_id)
-                graph = graph.add_node(node, parent_context)
-            elif item_id in graph.edges:
-                edge = graph.edges[item_id]
-                graph = graph.remove_edge(item_id)
-                graph = graph.add_edge(edge, parent_context)
+            if item_id in graph.entities:
+                entity = graph.entities[item_id]
+                graph = graph.remove_entity(item_id)
+                graph = graph.add_entity(entity, parent_context)
+            elif item_id in graph.predicates:
+                predicate = graph.predicates[item_id]
+                graph = graph.remove_predicate(item_id)
+                graph = graph.add_predicate(predicate, parent_context)
         
         # Remove both contexts
         graph = graph.remove_context(inner_cut.id)
@@ -451,22 +430,20 @@ class TransformationEngine:
                 continue
             
             context = graph.context_manager.get_context(item_context)
-            if context and context.is_positive:
+            if context and context.depth % 2 == 0:  # Even depth = positive context
                 raise ValueError(f"Cannot erase item {item_id} from positive context")
         
-        # Handle ligature severing
-        ligatures_to_sever = self._find_crossing_ligatures(graph, target_items)
-        for ligature_id in ligatures_to_sever:
-            graph = self._sever_ligature(graph, ligature_id, target_items)
+        # Handle entity severing for predicates being removed
+        entities_to_sever = self._find_crossing_entities(graph, target_items)
+        for entity_id in entities_to_sever:
+            graph = self._sever_entity_connections(graph, entity_id, target_items)
         
         # Remove the items
         for item_id in target_items:
-            if item_id in graph.nodes:
-                graph = graph.remove_node(item_id)
-            elif item_id in graph.edges:
-                graph = graph.remove_edge(item_id)
-            elif item_id in graph.ligatures:
-                graph = graph.remove_ligature(item_id)
+            if item_id in graph.entities:
+                graph = graph.remove_entity(item_id)
+            elif item_id in graph.predicates:
+                graph = graph.remove_predicate(item_id)
         
         return graph
     
@@ -477,28 +454,22 @@ class TransformationEngine:
         
         # Validate target context is positive
         context = graph.context_manager.get_context(target_context)
-        if context and context.is_negative:
+        if context and context.depth % 2 == 1:  # Odd depth = negative context
             raise ValueError("Cannot insert into negative context")
         
         # Create the subgraph items
-        nodes_to_add = subgraph_spec.get('nodes', [])
-        edges_to_add = subgraph_spec.get('edges', [])
-        ligatures_to_add = subgraph_spec.get('ligatures', [])
+        entities_to_add = subgraph_spec.get('entities', [])
+        predicates_to_add = subgraph_spec.get('predicates', [])
         
-        # Add nodes
-        for node_spec in nodes_to_add:
-            node = Node.create(**node_spec)
-            graph = graph.add_node(node, target_context)
+        # Add entities
+        for entity_spec in entities_to_add:
+            entity = Entity.create(**entity_spec)
+            graph = graph.add_entity(entity, target_context)
         
-        # Add edges
-        for edge_spec in edges_to_add:
-            edge = Edge.create(**edge_spec)
-            graph = graph.add_edge(edge, target_context)
-        
-        # Add ligatures
-        for ligature_spec in ligatures_to_add:
-            ligature = Ligature.create(**ligature_spec)
-            graph = graph.add_ligature(ligature)
+        # Add predicates
+        for predicate_spec in predicates_to_add:
+            predicate = Predicate.create(**predicate_spec)
+            graph = graph.add_predicate(predicate, target_context)
         
         return graph
     
@@ -515,47 +486,38 @@ class TransformationEngine:
         # Create copies of the items
         item_mapping = {}  # Old ID -> New ID
         
-        # Copy nodes
+        # Copy entities
         for item_id in target_items:
-            if item_id in graph.nodes:
-                original_node = graph.nodes[item_id]
-                new_node = Node.create(
-                    node_type=original_node.node_type,
-                    properties=dict(original_node.properties)
+            if item_id in graph.entities:
+                original_entity = graph.entities[item_id]
+                new_entity = Entity.create(
+                    name=original_entity.name,
+                    entity_type=original_entity.entity_type,
+                    properties=dict(original_entity.properties)
                 )
-                graph = graph.add_node(new_node, target_context)
-                item_mapping[item_id] = new_node.id
+                graph = graph.add_entity(new_entity, target_context)
+                item_mapping[item_id] = new_entity.id
         
-        # Copy edges with updated node references
+        # Copy predicates with updated entity references
         for item_id in target_items:
-            if item_id in graph.edges:
-                original_edge = graph.edges[item_id]
-                new_nodes = set()
+            if item_id in graph.predicates:
+                original_predicate = graph.predicates[item_id]
+                new_entities = []
                 
-                for node_id in original_edge.nodes:
-                    if node_id in item_mapping:
-                        new_nodes.add(item_mapping[node_id])
+                for entity_id in original_predicate.entities:
+                    if entity_id in item_mapping:
+                        new_entities.append(item_mapping[entity_id])
                     else:
-                        new_nodes.add(node_id)  # Reference to existing node
+                        new_entities.append(entity_id)  # Reference to existing entity
                 
-                new_edge = Edge.create(
-                    edge_type=original_edge.edge_type,
-                    nodes=new_nodes,
-                    properties=dict(original_edge.properties)
+                new_predicate = Predicate.create(
+                    name=original_predicate.name,
+                    entities=new_entities,
+                    arity=original_predicate.arity,
+                    properties=dict(original_predicate.properties)
                 )
-                graph = graph.add_edge(new_edge, target_context)
-                item_mapping[item_id] = new_edge.id
-        
-        # Extend ligatures to include copied items
-        for ligature in graph.ligatures.values():
-            nodes_to_add = set()
-            for node_id in ligature.nodes:
-                if node_id in item_mapping:
-                    nodes_to_add.add(item_mapping[node_id])
-            
-            if nodes_to_add:
-                extended_ligature = ligature.add_nodes(nodes_to_add)
-                graph = graph.update_ligature(extended_ligature)
+                graph = graph.add_predicate(new_predicate, target_context)
+                item_mapping[item_id] = new_predicate.id
         
         return graph
     
@@ -567,134 +529,115 @@ class TransformationEngine:
         if not isomorphic_items:
             raise ValueError("No isomorphic subgraph found for deiteration")
         
-        # Merge ligatures before removal
-        for ligature in graph.ligatures.values():
-            nodes_to_merge = set()
-            
-            # Find corresponding nodes in both subgraphs
-            for item_id in target_items:
-                if item_id in ligature.nodes and item_id in graph.nodes:
-                    # Find corresponding node in isomorphic subgraph
-                    corresponding_id = self._find_corresponding_item(graph, item_id, target_items, isomorphic_items)
-                    if corresponding_id and corresponding_id in graph.nodes:
-                        nodes_to_merge.add(corresponding_id)
-            
-            if nodes_to_merge:
-                extended_ligature = ligature.add_nodes(nodes_to_merge)
-                graph = graph.update_ligature(extended_ligature)
-        
         # Remove the redundant subgraph
         for item_id in target_items:
-            if item_id in graph.nodes:
-                graph = graph.remove_node(item_id)
-            elif item_id in graph.edges:
-                graph = graph.remove_edge(item_id)
+            if item_id in graph.entities:
+                graph = graph.remove_entity(item_id)
+            elif item_id in graph.predicates:
+                graph = graph.remove_predicate(item_id)
         
         return graph
     
-    def _apply_ligature_join(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> EGGraph:
-        """Apply ligature join transformation."""
-        # Create or extend ligature to connect the items
-        ligature_type = kwargs.get('ligature_type', 'identity')
+    def _apply_entity_join(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> EGGraph:
+        """Apply entity join transformation (merge entities into same Line of Identity)."""
+        # This would merge multiple entities into a single entity
+        # For now, implement as a placeholder
+        entity_type = kwargs.get('entity_type', 'variable')
         
-        # Check if any items are already in ligatures
-        existing_ligatures = []
-        for ligature in graph.ligatures.values():
-            if any(item_id in ligature.nodes for item_id in target_items):
-                existing_ligatures.append(ligature)
+        # Find entities to merge
+        entities_to_merge = []
+        for item_id in target_items:
+            if item_id in graph.entities:
+                entities_to_merge.append(graph.entities[item_id])
         
-        if existing_ligatures:
-            # Merge with existing ligature
-            base_ligature = existing_ligatures[0]
-            new_ligature = base_ligature.add_nodes(target_items)
-            graph = graph.update_ligature(new_ligature)
+        if len(entities_to_merge) < 2:
+            raise ValueError("Entity join requires at least 2 entities")
+        
+        # Create merged entity
+        merged_name = entities_to_merge[0].name  # Use first entity's name
+        merged_entity = Entity.create(
+            name=merged_name,
+            entity_type=entity_type,
+            properties={}
+        )
+        
+        # Find context for merged entity
+        context_id = self._find_item_context(graph, entities_to_merge[0].id)
+        if context_id is None:
+            context_id = graph.root_context_id
+        
+        graph = graph.add_entity(merged_entity, context_id)
+        
+        # Update all predicates to reference the merged entity
+        for predicate in graph.predicates.values():
+            updated_entities = []
+            changed = False
             
-            # Remove other ligatures and merge their nodes
-            for ligature in existing_ligatures[1:]:
-                new_ligature = new_ligature.add_nodes(ligature.nodes)
-                graph = graph.remove_ligature(ligature.id)
+            for entity_id in predicate.entities:
+                if entity_id in target_items:
+                    updated_entities.append(merged_entity.id)
+                    changed = True
+                else:
+                    updated_entities.append(entity_id)
             
-            graph = graph.update_ligature(new_ligature)
-        else:
-            # Create new ligature
-            ligature = Ligature.create(
-                nodes=target_items,
-                properties={'type': ligature_type}
-            )
-            graph = graph.add_ligature(ligature)
+            if changed:
+                updated_predicate = predicate.set_entities(updated_entities)
+                graph = graph.update_predicate(updated_predicate)
+        
+        # Remove original entities
+        for entity in entities_to_merge:
+            graph = graph.remove_entity(entity.id)
         
         return graph
     
-    def _apply_ligature_sever(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> EGGraph:
-        """Apply ligature sever transformation."""
-        # Find ligatures containing the target items
-        ligatures_to_modify = []
+    def _apply_entity_sever(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> EGGraph:
+        """Apply entity sever transformation (split shared entities)."""
+        # This would split a shared entity into separate entities
+        # For now, implement as a placeholder
         
-        for ligature in graph.ligatures.values():
-            if any(item_id in ligature.nodes for item_id in target_items):
-                ligatures_to_modify.append(ligature)
-        
-        # Sever the ligatures
-        for ligature in ligatures_to_modify:
-            remaining_nodes = ligature.nodes - target_items
-            
-            # Remove the original ligature
-            graph = graph.remove_ligature(ligature.id)
-            
-            if len(remaining_nodes) > 1:
-                # Create new ligature with remaining nodes
-                new_ligature = Ligature.create(
-                    nodes=remaining_nodes,
-                    edges=ligature.edges,
-                    properties=dict(ligature.properties)
-                )
-                graph = graph.add_ligature(new_ligature)
+        for item_id in target_items:
+            if item_id in graph.entities:
+                entity = graph.entities[item_id]
+                
+                # Find predicates using this entity
+                using_predicates = []
+                for predicate in graph.predicates.values():
+                    if entity.id in predicate.entities:
+                        using_predicates.append(predicate)
+                
+                if len(using_predicates) > 1:
+                    # Create separate entities for each predicate (except the first)
+                    for i, predicate in enumerate(using_predicates[1:], 1):
+                        new_entity = Entity.create(
+                            name=f"{entity.name}_{i}",
+                            entity_type=entity.entity_type,
+                            properties=dict(entity.properties)
+                        )
+                        
+                        context_id = self._find_item_context(graph, predicate.id)
+                        if context_id is None:
+                            context_id = graph.root_context_id
+                        
+                        graph = graph.add_entity(new_entity, context_id)
+                        
+                        # Update predicate to use new entity
+                        updated_entities = []
+                        for ent_id in predicate.entities:
+                            if ent_id == entity.id:
+                                updated_entities.append(new_entity.id)
+                            else:
+                                updated_entities.append(ent_id)
+                        
+                        updated_predicate = predicate.set_entities(updated_entities)
+                        graph = graph.update_predicate(updated_predicate)
         
         return graph
     
     # Helper methods for validation and analysis
     
-    def _can_apply_transformation(self, graph: EGGraph, transformation_type: TransformationType, context_id: ContextId = None) -> bool:
-        """Quick check if a transformation can be applied."""
-        try:
-            # Basic structural checks
-            if transformation_type in [TransformationType.DOUBLE_CUT_INSERTION, TransformationType.INSERTION]:
-                return context_id is not None and graph.context_manager.get_context(context_id) is not None
-            elif transformation_type in [TransformationType.ERASURE, TransformationType.DEITERATION]:
-                return len(graph.nodes) > 0 or len(graph.edges) > 0
-            elif transformation_type == TransformationType.ITERATION:
-                return len(graph.nodes) > 0 and context_id is not None
-            elif transformation_type == TransformationType.DOUBLE_CUT_ERASURE:
-                return self._has_double_cut_pattern(graph, context_id)
-            else:
-                return True
-        except:
-            return False
-    
-    def _has_double_cut_pattern(self, graph: EGGraph, context_id: ContextId) -> bool:
-        """Check if a context has the double cut pattern."""
-        if context_id is None:
-            return False
-        
-        context = graph.context_manager.get_context(context_id)
-        if not context or context.is_positive:
-            return False
-        
-        # Check for exactly one child context
-        child_contexts = []
-        for ctx_id in graph.context_manager.get_descendants(context_id):
-            child_ctx = graph.context_manager.get_context(ctx_id)
-            if child_ctx and child_ctx.parent_context == context_id:
-                child_contexts.append(child_ctx)
-        
-        return len(child_contexts) == 1 and child_contexts[0].is_positive
-    
     def _find_item_context(self, graph: EGGraph, item_id: ItemId) -> Optional[ContextId]:
         """Find the context containing an item."""
-        for context_id, context in graph.context_manager.contexts.items():
-            if item_id in context.contained_items:
-                return context_id
-        return None
+        return graph.context_manager.find_item_context(item_id)
     
     def _find_common_context(self, graph: EGGraph, items: Set[ItemId]) -> Optional[ContextId]:
         """Find the common context for a set of items."""
@@ -714,50 +657,52 @@ class TransformationEngine:
         # Find common ancestor
         if len(item_contexts) == 1:
             return item_contexts[0]
-        elif len(item_contexts) == 2:
-            return graph.context_manager.find_common_ancestor(item_contexts[0], item_contexts[1])
         else:
-            # For multiple contexts, find pairwise common ancestors
+            # For multiple contexts, find the lowest common ancestor
             common_ancestor = item_contexts[0]
             for context_id in item_contexts[1:]:
-                common_ancestor = graph.context_manager.find_common_ancestor(common_ancestor, context_id)
-                if common_ancestor is None:
-                    return None
+                # Simple implementation - would need proper LCA algorithm
+                ctx1_path = graph.context_manager.get_context_path(common_ancestor)
+                ctx2_path = graph.context_manager.get_context_path(context_id)
+                
+                # Find common prefix
+                common_path = []
+                for i in range(min(len(ctx1_path), len(ctx2_path))):
+                    if ctx1_path[i] == ctx2_path[i]:
+                        common_path.append(ctx1_path[i])
+                    else:
+                        break
+                
+                if common_path:
+                    common_ancestor = common_path[-1]
+                else:
+                    return graph.root_context_id
+            
             return common_ancestor
     
-    def _find_crossing_ligatures(self, graph: EGGraph, items: Set[ItemId]) -> Set[LigatureId]:
-        """Find ligatures that cross the boundary of the given items."""
-        crossing_ligatures = set()
+    def _find_crossing_entities(self, graph: EGGraph, items: Set[ItemId]) -> Set[EntityId]:
+        """Find entities that would be affected by removing the given items."""
+        crossing_entities = set()
         
-        for ligature in graph.ligatures.values():
-            items_in_ligature = ligature.nodes & items
-            items_outside_ligature = ligature.nodes - items
-            
-            if items_in_ligature and items_outside_ligature:
-                crossing_ligatures.add(ligature.id)
+        # Find predicates being removed
+        predicates_being_removed = {item_id for item_id in items if item_id in graph.predicates}
         
-        return crossing_ligatures
+        # Find entities connected to these predicates
+        for predicate_id in predicates_being_removed:
+            predicate = graph.predicates[predicate_id]
+            for entity_id in predicate.entities:
+                # Check if this entity is used by other predicates not being removed
+                other_predicates = [p for p in graph.predicates.values() 
+                                 if entity_id in p.entities and p.id not in predicates_being_removed]
+                if other_predicates:
+                    crossing_entities.add(entity_id)
+        
+        return crossing_entities
     
-    def _sever_ligature(self, graph: EGGraph, ligature_id: LigatureId, items_to_remove: Set[ItemId]) -> EGGraph:
-        """Sever a ligature by removing specified items."""
-        ligature = graph.ligatures.get(ligature_id)
-        if not ligature:
-            return graph
-        
-        remaining_nodes = ligature.nodes - items_to_remove
-        
-        # Remove the original ligature
-        graph = graph.remove_ligature(ligature_id)
-        
-        if len(remaining_nodes) > 1:
-            # Create new ligature with remaining nodes
-            new_ligature = Ligature.create(
-                nodes=remaining_nodes,
-                edges=ligature.edges,
-                properties=dict(ligature.properties)
-            )
-            graph = graph.add_ligature(new_ligature)
-        
+    def _sever_entity_connections(self, graph: EGGraph, entity_id: EntityId, items_to_remove: Set[ItemId]) -> EGGraph:
+        """Sever entity connections when removing items."""
+        # This is a placeholder - in a full implementation, this would handle
+        # the complex logic of maintaining entity consistency when removing predicates
         return graph
     
     def _find_isomorphic_subgraph(self, graph: EGGraph, target_items: Set[ItemId]) -> Optional[Set[ItemId]]:
@@ -770,62 +715,40 @@ class TransformationEngine:
             return None
         
         # Get all items in the same context
-        context_items = graph.get_items_in_context(target_context)
+        context_items = graph.context_manager.get_items_in_context(target_context)
         remaining_items = context_items - target_items
         
         # Simple structural matching (would need more sophisticated algorithm)
-        target_nodes = {item for item in target_items if item in graph.nodes}
-        target_edges = {item for item in target_items if item in graph.edges}
+        target_entities = {item for item in target_items if item in graph.entities}
+        target_predicates = {item for item in target_items if item in graph.predicates}
         
         # Look for similar structure in remaining items
         for item_id in remaining_items:
-            if item_id in graph.nodes:
-                node = graph.nodes[item_id]
-                # Check if there's a similar node in target
-                for target_node_id in target_nodes:
-                    target_node = graph.nodes[target_node_id]
-                    if (node.node_type == target_node.node_type and 
-                        node.properties.get('name') == target_node.properties.get('name')):
+            if item_id in graph.entities:
+                entity = graph.entities[item_id]
+                # Check if there's a similar entity in target
+                for target_entity_id in target_entities:
+                    target_entity = graph.entities[target_entity_id]
+                    if (entity.entity_type == target_entity.entity_type and 
+                        entity.name == target_entity.name):
                         # Found potential match - would need full isomorphism check
                         return {item_id}  # Simplified return
         
         return None
     
-    def _find_corresponding_item(self, graph: EGGraph, item_id: ItemId, subgraph1: Set[ItemId], subgraph2: Set[ItemId]) -> Optional[ItemId]:
-        """Find corresponding item in isomorphic subgraph."""
-        # Simplified correspondence finding
-        if item_id not in graph.nodes:
-            return None
+    def _validate_entity_consistency(self, graph: EGGraph) -> ValidationResult:
+        """Validate that all entity references are consistent."""
+        for predicate in graph.predicates.values():
+            # Check that all entities in predicate exist
+            for entity_id in predicate.entities:
+                if entity_id not in graph.entities:
+                    return ValidationResult(False, f"Predicate {predicate.id} references non-existent entity {entity_id}")
         
-        node = graph.nodes[item_id]
-        
-        # Look for node with same properties in subgraph2
-        for other_id in subgraph2:
-            if other_id in graph.nodes:
-                other_node = graph.nodes[other_id]
-                if (node.node_type == other_node.node_type and
-                    node.properties == other_node.properties):
-                    return other_id
-        
-        return None
-    
-    def _validate_ligature_consistency(self, graph: EGGraph) -> 'ValidationResult':
-        """Validate that all ligatures are consistent."""
-        for ligature in graph.ligatures.values():
-            # Check that all nodes in ligature exist
-            for node_id in ligature.nodes:
-                if node_id not in graph.nodes:
-                    return ValidationResult(False, f"Ligature {ligature.id} references non-existent node {node_id}")
-            
-            # Check that ligature has at least 2 nodes
-            if len(ligature.nodes) < 2:
-                return ValidationResult(False, f"Ligature {ligature.id} has fewer than 2 nodes")
-        
-        return ValidationResult(True, "Ligature consistency validated")
+        return ValidationResult(True, "Entity consistency validated")
     
     # Specific validation methods for each transformation
     
-    def _validate_double_cut_insertion_preconditions(self, graph: EGGraph, target_context: ContextId, **kwargs) -> 'ValidationResult':
+    def _validate_double_cut_insertion_preconditions(self, graph: EGGraph, target_context: ContextId, **kwargs) -> ValidationResult:
         """Validate preconditions for double cut insertion."""
         if target_context is None:
             return ValidationResult(False, "Target context required for double cut insertion")
@@ -836,14 +759,14 @@ class TransformationEngine:
         
         return ValidationResult(True, "Double cut insertion preconditions satisfied")
     
-    def _validate_double_cut_erasure_preconditions(self, graph: EGGraph, target_context: ContextId, **kwargs) -> 'ValidationResult':
+    def _validate_double_cut_erasure_preconditions(self, graph: EGGraph, target_context: ContextId, **kwargs) -> ValidationResult:
         """Validate preconditions for double cut erasure."""
         if not self._has_double_cut_pattern(graph, target_context):
             return ValidationResult(False, "No double cut pattern found at target context")
         
         return ValidationResult(True, "Double cut erasure preconditions satisfied")
     
-    def _validate_erasure_preconditions(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> 'ValidationResult':
+    def _validate_erasure_preconditions(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> ValidationResult:
         """Validate preconditions for erasure."""
         if not target_items:
             return ValidationResult(False, "No target items specified for erasure")
@@ -853,12 +776,12 @@ class TransformationEngine:
             context_id = self._find_item_context(graph, item_id)
             if context_id:
                 context = graph.context_manager.get_context(context_id)
-                if context and context.is_positive:
+                if context and context.depth % 2 == 0:  # Even depth = positive context
                     return ValidationResult(False, f"Item {item_id} is in positive context, cannot erase")
         
         return ValidationResult(True, "Erasure preconditions satisfied")
     
-    def _validate_insertion_preconditions(self, graph: EGGraph, target_context: ContextId, **kwargs) -> 'ValidationResult':
+    def _validate_insertion_preconditions(self, graph: EGGraph, target_context: ContextId, **kwargs) -> ValidationResult:
         """Validate preconditions for insertion."""
         if target_context is None:
             return ValidationResult(False, "Target context required for insertion")
@@ -867,12 +790,12 @@ class TransformationEngine:
         if context is None:
             return ValidationResult(False, f"Target context {target_context} does not exist")
         
-        if context.is_negative:
+        if context.depth % 2 == 1:  # Odd depth = negative context
             return ValidationResult(False, "Cannot insert into negative context")
         
         return ValidationResult(True, "Insertion preconditions satisfied")
     
-    def _validate_iteration_preconditions(self, graph: EGGraph, target_items: Set[ItemId], target_context: ContextId, **kwargs) -> 'ValidationResult':
+    def _validate_iteration_preconditions(self, graph: EGGraph, target_items: Set[ItemId], target_context: ContextId, **kwargs) -> ValidationResult:
         """Validate preconditions for iteration."""
         if not target_items:
             return ValidationResult(False, "No target items specified for iteration")
@@ -890,7 +813,7 @@ class TransformationEngine:
         
         return ValidationResult(True, "Iteration preconditions satisfied")
     
-    def _validate_deiteration_preconditions(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> 'ValidationResult':
+    def _validate_deiteration_preconditions(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> ValidationResult:
         """Validate preconditions for deiteration."""
         if not target_items:
             return ValidationResult(False, "No target items specified for deiteration")
@@ -902,37 +825,57 @@ class TransformationEngine:
         
         return ValidationResult(True, "Deiteration preconditions satisfied")
     
-    def _validate_ligature_join_preconditions(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> ValidationResult:
-        """Validate preconditions for ligature join."""
+    def _validate_entity_join_preconditions(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> ValidationResult:
+        """Validate preconditions for entity join."""
         if not target_items:
-            return ValidationResult(False, "No target items specified for ligature join")
+            return ValidationResult(False, "No target items specified for entity join")
         
         if len(target_items) < 2:
-            return ValidationResult(False, "Ligature join requires at least 2 items")
+            return ValidationResult(False, "Entity join requires at least 2 items")
         
-        # Check that all items are nodes (ligatures connect nodes, not edges)
+        # Check that all items are entities
         for item_id in target_items:
-            if item_id not in graph.nodes:
-                return ValidationResult(False, f"Item {item_id} is not a node")
+            if item_id not in graph.entities:
+                return ValidationResult(False, f"Item {item_id} is not an entity")
         
-        return ValidationResult(True, "Ligature join preconditions satisfied")
+        return ValidationResult(True, "Entity join preconditions satisfied")
     
-    def _validate_ligature_sever_preconditions(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> ValidationResult:
-        """Validate preconditions for ligature sever."""
+    def _validate_entity_sever_preconditions(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> ValidationResult:
+        """Validate preconditions for entity sever."""
         if not target_items:
-            return ValidationResult(False, "No target items specified for ligature sever")
+            return ValidationResult(False, "No target items specified for entity sever")
         
-        # Check that at least one item is in a ligature
-        items_in_ligatures = False
-        for ligature in graph.ligatures.values():
-            if any(item_id in ligature.nodes for item_id in target_items):
-                items_in_ligatures = True
-                break
+        # Check that at least one item is an entity used by multiple predicates
+        entities_with_multiple_uses = False
+        for item_id in target_items:
+            if item_id in graph.entities:
+                using_predicates = [p for p in graph.predicates.values() if item_id in p.entities]
+                if len(using_predicates) > 1:
+                    entities_with_multiple_uses = True
+                    break
         
-        if not items_in_ligatures:
-            return ValidationResult(False, "No target items are in ligatures")
+        if not entities_with_multiple_uses:
+            return ValidationResult(False, "No target entities are used by multiple predicates")
         
-        return ValidationResult(True, "Ligature sever preconditions satisfied")
+        return ValidationResult(True, "Entity sever preconditions satisfied")
+    
+    def _has_double_cut_pattern(self, graph: EGGraph, context_id: ContextId) -> bool:
+        """Check if a context has the double cut pattern."""
+        if context_id is None:
+            return False
+        
+        context = graph.context_manager.get_context(context_id)
+        if not context or context.depth % 2 == 0:  # Must be negative context
+            return False
+        
+        # Check for exactly one child context
+        child_contexts = []
+        for ctx_id in graph.context_manager.contexts:
+            child_ctx = graph.context_manager.get_context(ctx_id)
+            if child_ctx and child_ctx.parent_context == context_id:
+                child_contexts.append(child_ctx)
+        
+        return len(child_contexts) == 1 and child_contexts[0].depth % 2 == 0  # Child must be positive
 
 
 class TransformationValidator:
@@ -953,8 +896,8 @@ class TransformationValidator:
             TransformationType.INSERTION,
             TransformationType.ITERATION,
             TransformationType.DEITERATION,
-            TransformationType.LIGATURE_JOIN,
-            TransformationType.LIGATURE_SEVER
+            TransformationType.ENTITY_JOIN,
+            TransformationType.ENTITY_SEVER
         ]:
             return ValidationResult(True, "Transformation type is supported")
         else:
@@ -997,27 +940,20 @@ class TransformationValidator:
         # (A full implementation would check logical equivalence)
         
         # For now, just check that we haven't lost all content
-        return (stats1['node_count'] > 0 or stats2['node_count'] > 0 or
+        return (stats1['entity_count'] > 0 or stats2['entity_count'] > 0 or
                 stats1['context_count'] > 0 or stats2['context_count'] > 0)
     
     def _get_graph_stats(self, graph: EGGraph) -> Dict[str, int]:
         """Get basic statistics about a graph."""
         max_depth = 0
-        predicate_count = 0
         
         for context in graph.context_manager.contexts.values():
             max_depth = max(max_depth, context.depth)
         
-        for node in graph.nodes.values():
-            if node.node_type == 'predicate':
-                predicate_count += 1
-        
         return {
-            'node_count': len(graph.nodes),
-            'edge_count': len(graph.edges),
-            'ligature_count': len(graph.ligatures),
+            'entity_count': len(graph.entities),
+            'predicate_count': len(graph.predicates),
             'context_count': len(graph.context_manager.contexts),
-            'predicate_count': predicate_count,
             'context_depth': max_depth
         }
 

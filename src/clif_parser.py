@@ -1,9 +1,12 @@
 """
-Enhanced CLIF parser with full ISO 24707 standard support.
+Fixed CLIF parser with correct Entity-Predicate hypergraph architecture.
 
-This module provides comprehensive parsing of Common Logic Interchange Format
-with support for comments, domains of discourse, imports, and robust error
-handling with detailed reporting.
+This module provides CLIF parsing that correctly maps:
+- CLIF terms (variables, constants) → Entities (Lines of Identity)
+- CLIF predicates → Predicates (hyperedges connecting entities)
+- CLIF quantifiers → Entity scoping in contexts
+
+Fixed to properly handle graph state management, context tracking, and equality operator tokenization.
 """
 
 import re
@@ -13,9 +16,9 @@ from enum import Enum
 import uuid
 
 from .eg_types import (
-    Node, Edge, Context, Ligature,
-    NodeId, EdgeId, ContextId, LigatureId,
-    new_node_id, new_edge_id, new_context_id, new_ligature_id,
+    Entity, Predicate, Context,
+    EntityId, PredicateId, ContextId,
+    new_entity_id, new_predicate_id, new_context_id,
     ValidationError, pmap, pset
 )
 from .graph import EGGraph
@@ -32,6 +35,7 @@ class CLIFTokenType(Enum):
     WHITESPACE = "WHITESPACE"
     EOF = "EOF"
     KEYWORD = "KEYWORD"
+    OPERATOR = "OPERATOR"
 
 
 @dataclass
@@ -73,10 +77,13 @@ class CLIFLexer:
     KEYWORDS = {
         'cl:text', 'cl:module', 'cl:imports', 'cl:excludes',
         'forall', 'exists', 'and', 'or', 'not', 'if', 'iff',
-        '=', 'cl:comment'
+        'cl:comment'
     }
     
-    # Token patterns
+    # CLIF operators
+    OPERATORS = {'='}
+    
+    # Token patterns (order matters - more specific patterns first)
     TOKEN_PATTERNS = [
         (CLIFTokenType.COMMENT, r'/\*.*?\*/'),
         (CLIFTokenType.COMMENT, r'//.*?$'),
@@ -85,6 +92,7 @@ class CLIFLexer:
         (CLIFTokenType.RPAREN, r'\)'),
         (CLIFTokenType.STRING, r'"([^"\\]|\\.)*"'),
         (CLIFTokenType.NUMBER, r'-?\d+(\.\d+)?'),
+        (CLIFTokenType.OPERATOR, r'='),  # Add explicit pattern for =
         (CLIFTokenType.IDENTIFIER, r'[a-zA-Z_][a-zA-Z0-9_:.-]*'),
     ]
     
@@ -95,7 +103,7 @@ class CLIFLexer:
         self.line = 1
         self.column = 1
         self.tokens = []
-        
+    
     def tokenize(self) -> List[CLIFToken]:
         """Tokenize the source code."""
         self.tokens = []
@@ -110,10 +118,13 @@ class CLIFLexer:
                 if match:
                     value = match.group(0)
                     
-                    # Skip whitespace tokens
-                    if token_type != CLIFTokenType.WHITESPACE:
+                    # Skip whitespace and comments
+                    if token_type not in [CLIFTokenType.WHITESPACE, CLIFTokenType.COMMENT]:
                         # Check if identifier is a keyword
                         if token_type == CLIFTokenType.IDENTIFIER and value in self.KEYWORDS:
+                            token_type = CLIFTokenType.KEYWORD
+                        # Check if operator is a keyword (for backwards compatibility)
+                        elif token_type == CLIFTokenType.OPERATOR and value in self.KEYWORDS:
                             token_type = CLIFTokenType.KEYWORD
                         
                         token = CLIFToken(
@@ -125,7 +136,10 @@ class CLIFLexer:
                         )
                         self.tokens.append(token)
                     
-                    # Update position tracking
+                    # Update position
+                    self.position = match.end()
+                    
+                    # Update line and column
                     for char in value:
                         if char == '\n':
                             self.line += 1
@@ -133,42 +147,32 @@ class CLIFLexer:
                         else:
                             self.column += 1
                     
-                    self.position = match.end()
                     matched = True
                     break
             
             if not matched:
-                # Handle unexpected character
-                char = self.source[self.position]
-                error_token = CLIFToken(
-                    type=CLIFTokenType.IDENTIFIER,  # Fallback type
-                    value=char,
-                    line=self.line,
-                    column=self.column,
-                    position=self.position
-                )
-                self.tokens.append(error_token)
+                # Skip unknown character
                 self.position += 1
                 self.column += 1
         
         # Add EOF token
-        eof_token = CLIFToken(
+        self.tokens.append(CLIFToken(
             type=CLIFTokenType.EOF,
             value="",
             line=self.line,
             column=self.column,
             position=self.position
-        )
-        self.tokens.append(eof_token)
+        ))
         
         return self.tokens
 
 
 class CLIFParser:
-    """Parser for CLIF source code with full ISO 24707 support."""
+    """Parser for CLIF (Common Logic Interchange Format) with Entity-Predicate architecture."""
     
     def __init__(self):
         """Initialize the parser."""
+        self.lexer = None
         self.tokens = []
         self.position = 0
         self.errors = []
@@ -177,33 +181,27 @@ class CLIFParser:
         self.imports = []
         self.metadata = {}
         
+        # Entity registry for tracking entities across the parse
+        self.entity_registry = {}  # Dict[str, EntityId]
+        self.current_context = None
+    
     def parse(self, source: str) -> CLIFParseResult:
-        """Parse CLIF source code into an EGGraph.
-        
-        Args:
-            source: CLIF source code string.
-            
-        Returns:
-            CLIFParseResult containing the parsed graph and any errors.
-        """
-        # Reset parser state
-        self.errors = []
-        self.warnings = []
-        self.comments = []
-        self.imports = []
-        self.metadata = {}
-        
-        # Tokenize
-        lexer = CLIFLexer(source)
-        self.tokens = lexer.tokenize()
-        self.position = 0
-        
-        # Extract comments and imports first
-        self._extract_metadata()
-        
-        # Parse the main content
+        """Parse CLIF source code into an existential graph."""
         try:
+            # Initialize parser state
+            self.lexer = CLIFLexer(source)
+            self.tokens = self.lexer.tokenize()
+            self.position = 0
+            self.errors = []
+            self.warnings = []
+            self.comments = []
+            self.imports = []
+            self.metadata = {}
+            self.entity_registry = {}
+            
+            # Parse the module
             graph = self._parse_module()
+            
             return CLIFParseResult(
                 graph=graph,
                 errors=self.errors,
@@ -212,6 +210,7 @@ class CLIFParser:
                 imports=self.imports,
                 metadata=self.metadata
             )
+        
         except Exception as e:
             self._add_error(f"Parsing failed: {str(e)}", "PARSE_ERROR")
             return CLIFParseResult(
@@ -222,19 +221,6 @@ class CLIFParser:
                 imports=self.imports,
                 metadata=self.metadata
             )
-    
-    def _extract_metadata(self):
-        """Extract comments and imports from tokens."""
-        for token in self.tokens:
-            if token.type == CLIFTokenType.COMMENT:
-                # Clean up comment content
-                comment_text = token.value
-                if comment_text.startswith('/*') and comment_text.endswith('*/'):
-                    comment_text = comment_text[2:-2].strip()
-                elif comment_text.startswith('//'):
-                    comment_text = comment_text[2:].strip()
-                
-                self.comments.append(comment_text)
     
     def _current_token(self) -> CLIFToken:
         """Get the current token."""
@@ -249,26 +235,21 @@ class CLIFParser:
             self.position += 1
         return token
     
-    def _peek(self, offset: int = 1) -> CLIFToken:
-        """Peek at a future token."""
-        pos = self.position + offset
-        if pos < len(self.tokens):
-            return self.tokens[pos]
-        return self.tokens[-1]  # EOF token
-    
-    def _expect(self, token_type: CLIFTokenType) -> CLIFToken:
+    def _expect(self, expected_type: CLIFTokenType) -> CLIFToken:
         """Expect a specific token type and advance."""
         token = self._current_token()
-        if token.type != token_type:
+        if token.type != expected_type:
             self._add_error(
-                f"Expected {token_type.value}, got {token.type.value}",
-                "SYNTAX_ERROR",
-                suggestions=[f"Add {token_type.value}"]
+                f"Expected {expected_type.value}, got {token.type.value}: {token.value}",
+                "SYNTAX_ERROR"
             )
         return self._advance()
     
     def _add_error(self, message: str, error_type: str, suggestions: List[str] = None):
         """Add an error to the error list."""
+        if suggestions is None:
+            suggestions = []
+        
         token = self._current_token()
         error = CLIFError(
             message=message,
@@ -276,7 +257,7 @@ class CLIFParser:
             column=token.column,
             position=token.position,
             error_type=error_type,
-            suggestions=suggestions or []
+            suggestions=suggestions
         )
         self.errors.append(error)
     
@@ -296,6 +277,7 @@ class CLIFParser:
     def _parse_module(self) -> EGGraph:
         """Parse a CLIF module."""
         graph = EGGraph.create_empty()
+        self.current_context = graph.root_context_id
         
         while self._current_token().type != CLIFTokenType.EOF:
             if self._current_token().type == CLIFTokenType.LPAREN:
@@ -339,10 +321,11 @@ class CLIFParser:
                 return self._parse_not(graph)
             elif token.value == 'if':
                 return self._parse_if(graph)
-            elif token.value == '=':
-                return self._parse_equality(graph)
+        elif token.type == CLIFTokenType.OPERATOR and token.value == '=':
+            # Handle = as operator
+            return self._parse_equality(graph)
         elif token.type == CLIFTokenType.IDENTIFIER and token.value == '=':
-            # Handle = as identifier (not keyword)
+            # Handle = as identifier (fallback)
             return self._parse_equality(graph)
         
         # Default: parse as atomic sentence
@@ -384,15 +367,26 @@ class CLIFParser:
         variables = self._parse_variable_list()
         
         # Create a new context for the quantification
-        graph, quant_context = graph.create_context('cut', name='Universal Quantification')
+        # Universal quantification: forall x P(x) = ~exists x ~P(x)
+        graph, outer_cut = graph.create_context('cut', self.current_context, 'Universal Quantification')
+        graph, inner_cut = graph.create_context('cut', outer_cut.id, 'Existential Scope')
+        
+        # Set context for variable scoping
+        old_context = self.current_context
+        self.current_context = inner_cut.id
+        
+        # Add variables as entities in the inner context
+        for var_name in variables:
+            graph, entity = self._get_or_create_entity(graph, var_name, 'variable')
         
         # Parse the body
         if self._current_token().type == CLIFTokenType.LPAREN:
-            # Create negation context (forall x P(x) = ~exists x ~P(x))
-            graph, neg_context = graph.create_context('cut', quant_context.id, 'Negation')
             graph = self._parse_sentence(graph)
         else:
             self._add_error("Expected sentence after variable list", "SYNTAX_ERROR")
+        
+        # Restore context
+        self.current_context = old_context
         
         self._expect(CLIFTokenType.RPAREN)
         return graph
@@ -404,11 +398,25 @@ class CLIFParser:
         # Parse variable list
         variables = self._parse_variable_list()
         
+        # Create a new context for the quantification
+        graph, exist_context = graph.create_context('cut', self.current_context, 'Existential Quantification')
+        
+        # Set context for variable scoping
+        old_context = self.current_context
+        self.current_context = exist_context.id
+        
+        # Add variables as entities in the existential context
+        for var_name in variables:
+            graph, entity = self._get_or_create_entity(graph, var_name, 'variable')
+        
         # Parse the body
         if self._current_token().type == CLIFTokenType.LPAREN:
             graph = self._parse_sentence(graph)
         else:
             self._add_error("Expected sentence after variable list", "SYNTAX_ERROR")
+        
+        # Restore context
+        self.current_context = old_context
         
         self._expect(CLIFTokenType.RPAREN)
         return graph
@@ -417,13 +425,14 @@ class CLIFParser:
         """Parse a conjunction."""
         self._advance()  # consume 'and'
         
-        # Parse all conjuncts
+        # Parse all conjuncts in the same context
         while (self._current_token().type != CLIFTokenType.RPAREN and 
                self._current_token().type != CLIFTokenType.EOF):
             if self._current_token().type == CLIFTokenType.LPAREN:
                 graph = self._parse_sentence(graph)
             else:
-                self._advance()  # Skip unexpected tokens
+                self._add_error("Expected sentence in conjunction", "SYNTAX_ERROR")
+                break
         
         self._expect(CLIFTokenType.RPAREN)
         return graph
@@ -432,17 +441,26 @@ class CLIFParser:
         """Parse a disjunction."""
         self._advance()  # consume 'or'
         
-        # Create disjunction pattern: (or P Q) = ~(~P ~Q)
-        graph, outer_cut = graph.create_context('cut', name='Disjunction Outer')
+        # Disjunction: (or P Q) = ~(~P ~Q)
+        graph, outer_cut = graph.create_context('cut', self.current_context, 'Disjunction')
         
-        # Parse all disjuncts in separate cuts
+        old_context = self.current_context
+        self.current_context = outer_cut.id
+        
+        # Parse all disjuncts, each in its own cut
         while (self._current_token().type != CLIFTokenType.RPAREN and 
                self._current_token().type != CLIFTokenType.EOF):
             if self._current_token().type == CLIFTokenType.LPAREN:
                 graph, inner_cut = graph.create_context('cut', outer_cut.id, 'Disjunct')
+                self.current_context = inner_cut.id
                 graph = self._parse_sentence(graph)
+                self.current_context = outer_cut.id
             else:
-                self._advance()  # Skip unexpected tokens
+                self._add_error("Expected sentence in disjunction", "SYNTAX_ERROR")
+                break
+        
+        # Restore context
+        self.current_context = old_context
         
         self._expect(CLIFTokenType.RPAREN)
         return graph
@@ -451,14 +469,21 @@ class CLIFParser:
         """Parse a negation."""
         self._advance()  # consume 'not'
         
-        # Create cut context for negation
-        graph, cut_context = graph.create_context('cut', name='Negation')
+        # Create a cut context for negation
+        graph, cut_context = graph.create_context('cut', self.current_context, 'Negation')
+        
+        # Set context for the negated content
+        old_context = self.current_context
+        self.current_context = cut_context.id
         
         # Parse the negated sentence
         if self._current_token().type == CLIFTokenType.LPAREN:
             graph = self._parse_sentence(graph)
         else:
             self._add_error("Expected sentence after 'not'", "SYNTAX_ERROR")
+        
+        # Restore context
+        self.current_context = old_context
         
         self._expect(CLIFTokenType.RPAREN)
         return graph
@@ -468,20 +493,27 @@ class CLIFParser:
         self._advance()  # consume 'if'
         
         # Create implication pattern: (if P Q) = ~(P ~Q)
-        graph, outer_cut = graph.create_context('cut', name='Implication')
+        graph, outer_cut = graph.create_context('cut', self.current_context, 'Implication')
         
-        # Parse antecedent
+        # Parse antecedent in the outer cut
+        old_context = self.current_context
+        self.current_context = outer_cut.id
+        
         if self._current_token().type == CLIFTokenType.LPAREN:
             graph = self._parse_sentence(graph)
         else:
             self._add_error("Expected antecedent", "SYNTAX_ERROR")
         
-        # Parse consequent in a cut
+        # Parse consequent in a nested cut (negated)
         if self._current_token().type == CLIFTokenType.LPAREN:
             graph, inner_cut = graph.create_context('cut', outer_cut.id, 'Consequent Negation')
+            self.current_context = inner_cut.id
             graph = self._parse_sentence(graph)
         else:
             self._add_error("Expected consequent", "SYNTAX_ERROR")
+        
+        # Restore context
+        self.current_context = old_context
         
         self._expect(CLIFTokenType.RPAREN)
         return graph
@@ -494,21 +526,20 @@ class CLIFParser:
         term1 = self._parse_term()
         term2 = self._parse_term()
         
-        # Create equality as a ligature connecting the terms
+        # Create entities for the terms and connect them
         if term1 and term2:
-            # Create nodes for the terms
-            node1 = Node.create(node_type='term', properties={'value': term1})
-            node2 = Node.create(node_type='term', properties={'value': term2})
+            graph, entity1 = self._get_or_create_entity(graph, term1, self._get_term_type(term1))
+            graph, entity2 = self._get_or_create_entity(graph, term2, self._get_term_type(term2))
             
-            graph = graph.add_node(node1)
-            graph = graph.add_node(node2)
-            
-            # Create ligature to represent equality
-            ligature = Ligature.create(
-                nodes={node1.id, node2.id},
-                properties={'type': 'equality'}
+            # In EG, equality is represented by the same Line of Identity
+            # If they're different entities, we need to merge them or create a ligature
+            # For now, create an equality predicate
+            equality_pred = Predicate.create(
+                name='=',
+                entities=[entity1.id, entity2.id],
+                arity=2
             )
-            graph = graph.add_ligature(ligature)
+            graph = graph.add_predicate(equality_pred, self.current_context)
         else:
             self._add_error("Failed to parse equality terms", "SEMANTIC_ERROR")
         
@@ -516,39 +547,39 @@ class CLIFParser:
         return graph
     
     def _parse_atomic_sentence(self, graph: EGGraph) -> EGGraph:
-        """Parse an atomic sentence."""
+        """Parse an atomic sentence with correct Entity-Predicate architecture."""
         # Parse predicate name
         if self._current_token().type == CLIFTokenType.IDENTIFIER:
-            predicate = self._advance().value
+            predicate_name = self._advance().value
             
-            # Create predicate node
-            pred_node = Node.create(
-                node_type='predicate',
-                properties={'name': predicate}
-            )
-            graph = graph.add_node(pred_node)
-            
-            # Parse arguments
-            arg_nodes = []
+            # Parse arguments (terms)
+            entity_ids = []
             while (self._current_token().type != CLIFTokenType.RPAREN and 
                    self._current_token().type != CLIFTokenType.EOF):
                 term = self._parse_term()
                 if term:
-                    arg_node = Node.create(
-                        node_type='term',
-                        properties={'value': term}
-                    )
-                    graph = graph.add_node(arg_node)
-                    arg_nodes.append(arg_node)
+                    # Create or get entity for this term
+                    graph, entity = self._get_or_create_entity(graph, term, self._get_term_type(term))
+                    entity_ids.append(entity.id)
             
-            # Create edge connecting predicate to arguments
-            if arg_nodes:
-                all_nodes = {pred_node.id} | {node.id for node in arg_nodes}
-                edge = Edge.create(
-                    edge_type='predication',
-                    nodes=all_nodes
+            # Create predicate connecting the entities
+            if entity_ids:
+                predicate = Predicate.create(
+                    name=predicate_name,
+                    entities=entity_ids,
+                    arity=len(entity_ids)
                 )
-                graph = graph.add_edge(edge)
+                graph = graph.add_predicate(predicate, self.current_context)
+            else:
+                # Zero-arity predicate
+                predicate = Predicate.create(
+                    name=predicate_name,
+                    entities=[],
+                    arity=0
+                )
+                graph = graph.add_predicate(predicate, self.current_context)
+        else:
+            self._add_error(f"Expected predicate name, got {self._current_token().value}", "SYNTAX_ERROR")
         
         self._expect(CLIFTokenType.RPAREN)
         return graph
@@ -565,41 +596,61 @@ class CLIFParser:
                 variables.append(self._advance().value)
             else:
                 self._add_error("Expected variable name", "SYNTAX_ERROR")
-                self._advance()
+                break
         
         self._expect(CLIFTokenType.RPAREN)
         return variables
     
     def _parse_term(self) -> Optional[str]:
-        """Parse a term (variable, constant, or function application)."""
+        """Parse a term (variable, constant, or function)."""
         token = self._current_token()
         
         if token.type == CLIFTokenType.IDENTIFIER:
             return self._advance().value
         elif token.type == CLIFTokenType.STRING:
-            return self._advance().value[1:-1]  # Remove quotes
+            return self._advance().value
         elif token.type == CLIFTokenType.NUMBER:
             return self._advance().value
         elif token.type == CLIFTokenType.LPAREN:
-            # Function application
+            # Function term - for now, just skip it
             self._advance()  # consume '('
-            
-            if self._current_token().type == CLIFTokenType.IDENTIFIER:
-                func_name = self._advance().value
-                args = []
-                
-                while (self._current_token().type != CLIFTokenType.RPAREN and 
-                       self._current_token().type != CLIFTokenType.EOF):
-                    arg = self._parse_term()
-                    if arg:
-                        args.append(arg)
-                
-                self._expect(CLIFTokenType.RPAREN)
-                return f"{func_name}({', '.join(args)})"
-            else:
-                self._add_error("Expected function name", "SYNTAX_ERROR")
-                return None
+            while (self._current_token().type != CLIFTokenType.RPAREN and 
+                   self._current_token().type != CLIFTokenType.EOF):
+                self._advance()
+            self._advance()  # consume ')'
+            return None
         else:
             self._add_error(f"Expected term, got {token.value}", "SYNTAX_ERROR")
             return None
+    
+    def _get_or_create_entity(self, graph: EGGraph, name: str, entity_type: str) -> Tuple[EGGraph, Entity]:
+        """Get existing entity or create new one, returning updated graph and entity."""
+        # Check if entity already exists
+        if name in self.entity_registry:
+            entity_id = self.entity_registry[name]
+            entity = graph.entities.get(entity_id)
+            if entity is not None:
+                return graph, entity
+        
+        # Create new entity
+        entity = Entity.create(name=name, entity_type=entity_type)
+        updated_graph = graph.add_entity(entity, self.current_context)
+        
+        # Register entity
+        self.entity_registry[name] = entity.id
+        
+        return updated_graph, entity
+    
+    def _get_term_type(self, term: str) -> str:
+        """Determine the type of a term (variable, constant, function)."""
+        # Simple heuristic: lowercase single letters are variables
+        if len(term) == 1 and term.islower():
+            return 'variable'
+        elif term.startswith('"') or term.replace('.', '').replace('-', '').isdigit():
+            return 'constant'
+        elif '(' in term:
+            return 'function'
+        else:
+            # Default to constant for named entities
+            return 'constant'
 
