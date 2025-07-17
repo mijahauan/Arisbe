@@ -6,6 +6,11 @@ system for validating logical propositions through existential graph transformat
 The game engine serves as the "umpire" that enforces rules, manages player turns,
 and facilitates model negotiation.
 
+Updated for Entity-Predicate hypergraph architecture where:
+- CLIF terms (variables, constants) → Entities (Lines of Identity)
+- CLIF predicates → Predicates (hyperedges connecting entities)
+- CLIF quantifiers → Entity scoping in contexts
+
 Based on Charles Sanders Peirce's original conception and modern interpretations
 by Dau, Sowa, and others.
 """
@@ -16,7 +21,7 @@ from dataclasses import dataclass
 from uuid import UUID, uuid4
 import copy
 
-from .eg_types import NodeId, EdgeId, ContextId, LigatureId, ItemId
+from .eg_types import EntityId, PredicateId, ContextId, LigatureId, ItemId
 from .graph import EGGraph
 from .context import ContextManager
 from .transformations import TransformationEngine, TransformationType, TransformationResult
@@ -98,519 +103,538 @@ class LegalMoveAnalyzer:
         self.transformation_engine = transformation_engine
     
     def get_legal_moves(self, state: GameState) -> List[GameMove]:
-        """Get all legal moves for the current player in the current state."""
+        """Get all legal moves for the current player in the given state."""
         legal_moves = []
         
         if state.status != GameStatus.IN_PROGRESS:
             return legal_moves
         
-        # Add transformation moves
-        legal_moves.extend(self._get_transformation_moves(state))
+        # Get transformation-based moves
+        transformation_moves = self._get_transformation_moves(state)
+        legal_moves.extend(transformation_moves)
         
-        # Add game-specific moves
-        legal_moves.extend(self._get_game_specific_moves(state))
+        # Get scoping challenge moves
+        scoping_moves = self._get_scoping_moves(state)
+        legal_moves.extend(scoping_moves)
+        
+        # Get model negotiation moves
+        negotiation_moves = self._get_negotiation_moves(state)
+        legal_moves.extend(negotiation_moves)
         
         return legal_moves
     
     def _get_transformation_moves(self, state: GameState) -> List[GameMove]:
-        """Get legal transformation moves."""
+        """Get legal transformation moves for the current player."""
         moves = []
+        
+        # Get legal transformations from the transformation engine
         legal_transformations = self.transformation_engine.get_legal_transformations(
             state.graph, state.contested_context
         )
         
-        for trans_type in legal_transformations:
-            # Create move based on transformation type and current player
-            if self._is_transformation_legal_for_player(trans_type, state.current_player, state):
-                move = GameMove(
-                    player=state.current_player,
-                    move_type=MoveType.TRANSFORMATION,
-                    transformation_type=trans_type,
-                    description=f"{state.current_player.value} applies {trans_type.value}"
-                )
-                moves.append(move)
+        for transformation_type, target_sets in legal_transformations.items():
+            for target_items in target_sets:
+                # Check if this transformation is legal for the current player
+                if self._is_transformation_legal_for_player(
+                    state, transformation_type, target_items
+                ):
+                    move = GameMove(
+                        player=state.current_player,
+                        move_type=MoveType.TRANSFORMATION,
+                        transformation_type=transformation_type,
+                        target_items=target_items,
+                        target_context=state.contested_context,
+                        description=f"{transformation_type.value} on {len(target_items)} items"
+                    )
+                    moves.append(move)
         
         return moves
     
-    def _get_game_specific_moves(self, state: GameState) -> List[GameMove]:
-        """Get game-specific moves like unwrapping negations."""
+    def _get_scoping_moves(self, state: GameState) -> List[GameMove]:
+        """Get legal scoping challenge moves."""
         moves = []
         
-        # Unwrap negation move (for Skeptic)
-        if (state.current_player == Player.SKEPTIC and 
-            state.contested_context and
-            self._can_unwrap_negation(state)):
+        # Skeptic can challenge scoping of entities
+        if state.current_player == Player.SKEPTIC:
+            # Find entities that could be challenged for scoping
+            entities_in_contested = self._get_entities_in_context(state.graph, state.contested_context)
+            
+            for entity_id in entities_in_contested:
+                entity = state.graph.entities[entity_id]
+                if entity.entity_type == 'variable':  # Only variables can be scoped
+                    move = GameMove(
+                        player=Player.SKEPTIC,
+                        move_type=MoveType.SCOPING_CHALLENGE,
+                        target_items={entity_id},
+                        target_context=state.contested_context,
+                        description=f"Challenge scoping of variable {entity.name}"
+                    )
+                    moves.append(move)
+        
+        return moves
+    
+    def _get_negotiation_moves(self, state: GameState) -> List[GameMove]:
+        """Get legal model negotiation moves."""
+        moves = []
+        
+        # Both players can propose model negotiations
+        negotiation_types = [
+            NegotiationType.ADD_INDIVIDUAL,
+            NegotiationType.ASSERT_IDENTITY,
+            NegotiationType.RETRACT_FACT,
+            NegotiationType.AMEND_FACT
+        ]
+        
+        for neg_type in negotiation_types:
             move = GameMove(
-                player=Player.SKEPTIC,
-                move_type=MoveType.UNWRAP_NEGATION,
-                target_context=state.contested_context,
-                description="Skeptic unwraps negation to create sub-inning"
+                player=state.current_player,
+                move_type=MoveType.MODEL_NEGOTIATION,
+                parameters={"negotiation_type": neg_type},
+                description=f"Propose {neg_type.value}"
             )
             moves.append(move)
         
-        # Scoping challenge (for Skeptic)
-        if state.current_player == Player.SKEPTIC:
-            exposed_elements = self._find_exposed_elements(state)
-            if exposed_elements:
-                move = GameMove(
-                    player=Player.SKEPTIC,
-                    move_type=MoveType.SCOPING_CHALLENGE,
-                    target_items=exposed_elements,
-                    description="Skeptic challenges exposed elements"
-                )
-                moves.append(move)
-        
         return moves
     
-    def _is_transformation_legal_for_player(self, trans_type: TransformationType, 
-                                          player: Player, state: GameState) -> bool:
+    def _is_transformation_legal_for_player(
+        self, 
+        state: GameState, 
+        transformation_type: TransformationType,
+        target_items: Set[ItemId]
+    ) -> bool:
         """Check if a transformation is legal for the current player."""
-        # Proposer can generally use iteration, insertion into positive contexts
-        # Skeptic can use erasure from negative contexts
-        # Both can use double cut operations
         
-        if trans_type in [TransformationType.DOUBLE_CUT_INSERTION, 
-                         TransformationType.DOUBLE_CUT_ERASURE]:
-            return True
+        # Proposer can only strengthen the thesis (make it harder to refute)
+        if state.current_player == Player.PROPOSER:
+            strengthening_moves = {
+                TransformationType.INSERTION,
+                TransformationType.DOUBLE_CUT_INSERTION,
+                TransformationType.ITERATION,
+                TransformationType.ENTITY_JOIN
+            }
+            return transformation_type in strengthening_moves
         
-        if player == Player.PROPOSER:
-            return trans_type in [TransformationType.ITERATION, 
-                                TransformationType.INSERTION,
-                                TransformationType.LIGATURE_JOIN]
-        
-        if player == Player.SKEPTIC:
-            return trans_type in [TransformationType.ERASURE,
-                                TransformationType.DEITERATION,
-                                TransformationType.LIGATURE_SEVER]
+        # Skeptic can only weaken the thesis (make it easier to refute)
+        elif state.current_player == Player.SKEPTIC:
+            weakening_moves = {
+                TransformationType.ERASURE,
+                TransformationType.DOUBLE_CUT_ERASURE,
+                TransformationType.DEITERATION,
+                TransformationType.ENTITY_SEVER
+            }
+            return transformation_type in weakening_moves
         
         return False
     
-    def _can_unwrap_negation(self, state: GameState) -> bool:
-        """Check if the current contested context can be unwrapped."""
-        if not state.contested_context:
-            return False
+    def _get_entities_in_context(self, graph: EGGraph, context_id: Optional[ContextId]) -> Set[EntityId]:
+        """Get all entities in a specific context."""
+        if not context_id:
+            return set()
         
-        context = state.graph.context_manager.get_context(state.contested_context)
-        return context and context.context_type == 'cut'
-    
-    def _find_exposed_elements(self, state: GameState) -> Set[ItemId]:
-        """Find elements in the thesis that are exposed to the domain model."""
-        exposed = set()
-        
-        # Look for nodes/edges in the contested context that have connections
-        # to elements outside the contested area
-        if state.contested_context:
-            items_in_context = state.graph.get_items_in_context(state.contested_context)
-            
-            for item_id in items_in_context:
-                # Check if this item has ligatures connecting to domain model
-                for ligature in state.graph.ligatures.values():
-                    if item_id in ligature.nodes:
-                        # Check if ligature connects to domain model elements
-                        for node_id in ligature.nodes:
-                            if node_id not in items_in_context:
-                                exposed.add(item_id)
-                                break
-        
-        return exposed
-
-
-class ModelNegotiator:
-    """Handles model negotiation between players."""
-    
-    def __init__(self):
-        self.pending_negotiations: List[Dict[str, Any]] = []
-    
-    def propose_negotiation(self, negotiation_type: NegotiationType, 
-                          proposer: Player, details: Dict[str, Any]) -> str:
-        """Propose a model negotiation."""
-        negotiation_id = str(uuid4())
-        negotiation = {
-            'id': negotiation_id,
-            'type': negotiation_type,
-            'proposer': proposer,
-            'details': details,
-            'status': 'pending'
-        }
-        self.pending_negotiations.append(negotiation)
-        return negotiation_id
-    
-    def respond_to_negotiation(self, negotiation_id: str, 
-                             responder: Player, accept: bool) -> bool:
-        """Respond to a pending negotiation."""
-        for negotiation in self.pending_negotiations:
-            if negotiation['id'] == negotiation_id:
-                negotiation['responder'] = responder
-                negotiation['accepted'] = accept
-                negotiation['status'] = 'resolved'
-                return accept
-        return False
-    
-    def apply_negotiation(self, negotiation_id: str, 
-                         domain_model: EGGraph) -> EGGraph:
-        """Apply an accepted negotiation to the domain model."""
-        for negotiation in self.pending_negotiations:
-            if (negotiation['id'] == negotiation_id and 
-                negotiation.get('accepted', False)):
-                
-                return self._apply_negotiation_type(
-                    negotiation['type'], 
-                    negotiation['details'], 
-                    domain_model
-                )
-        return domain_model
-    
-    def _apply_negotiation_type(self, neg_type: NegotiationType, 
-                              details: Dict[str, Any], 
-                              domain_model: EGGraph) -> EGGraph:
-        """Apply a specific type of negotiation."""
-        if neg_type == NegotiationType.ADD_INDIVIDUAL:
-            # Add new individual to domain model
-            new_node = details['node']
-            return domain_model.add_node(new_node)
-        
-        elif neg_type == NegotiationType.ASSERT_IDENTITY:
-            # Join two nodes with a ligature
-            node1_id = details['node1_id']
-            node2_id = details['node2_id']
-            ligature = details['ligature']
-            return domain_model.add_ligature(ligature)
-        
-        elif neg_type == NegotiationType.RETRACT_FACT:
-            # Remove elements from domain model
-            items_to_remove = details['items']
-            new_model = domain_model
-            for item_id in items_to_remove:
-                if item_id in new_model.nodes:
-                    new_model = new_model.remove_node(item_id)
-                elif item_id in new_model.edges:
-                    new_model = new_model.remove_edge(item_id)
-            return new_model
-        
-        return domain_model
+        items_in_context = graph.context_manager.get_items_in_context(context_id)
+        return {item_id for item_id in items_in_context if item_id in graph.entities}
 
 
 class EndoporeuticGameEngine:
     """
-    The main game engine that serves as the "umpire" for the Endoporeutic Game.
+    Main game engine for the Endoporeutic Game with Entity-Predicate architecture.
     
-    This class manages the complete game lifecycle, enforces rules, validates moves,
-    and facilitates model negotiation between players.
+    Manages game state, enforces rules, and facilitates player interactions
+    in the context of existential graph transformations.
     """
     
     def __init__(self):
+        """Initialize the game engine."""
         self.transformation_engine = TransformationEngine()
         self.move_analyzer = LegalMoveAnalyzer(self.transformation_engine)
-        self.model_negotiator = ModelNegotiator()
         self.clif_parser = CLIFParser()
         self.clif_generator = CLIFGenerator()
-        
-        # Game state
-        self.current_state: Optional[GameState] = None
-        self.folio: Dict[str, EGGraph] = {}  # Named graph library
     
-    def add_to_folio(self, name: str, graph: EGGraph):
-        """Add a named graph to the folio."""
-        if name in self.folio:
-            raise ValueError(f"Graph '{name}' already exists in folio")
-        self.folio[name] = graph
-    
-    def start_inning(self, thesis: Union[str, EGGraph], 
-                    domain_model_name: Optional[str] = None) -> GameState:
-        """
-        Start a new inning of the Endoporeutic Game.
+    def create_game_state(self, thesis_graph: EGGraph, domain_model: Optional[EGGraph] = None) -> GameState:
+        """Create a new game state from a thesis graph."""
+        if domain_model is None:
+            domain_model = EGGraph.create_empty()
         
-        Args:
-            thesis: The thesis to be proven (CLIF string or EGGraph)
-            domain_model_name: Name of domain model from folio
+        # Find the contested context (deepest positive context with content)
+        contested_context = self._find_contested_context(thesis_graph)
         
-        Returns:
-            Initial game state
-        """
-        # Parse thesis if it's a CLIF string
-        if isinstance(thesis, str):
-            parse_result = self.clif_parser.parse(thesis)
-            if parse_result.errors:
-                raise ValueError(f"Thesis parsing failed: {parse_result.errors}")
-            thesis_graph = parse_result.graph
-        else:
-            thesis_graph = thesis
-        
-        # Get domain model
-        domain_model = EGGraph.create_empty()
-        if domain_model_name and domain_model_name in self.folio:
-            domain_model = self.folio[domain_model_name]
-        
-        # Create initial game graph: (not (and M (not G)))
-        # This represents: if M then G
-        initial_graph = self._create_initial_game_graph(thesis_graph, domain_model)
-        
-        # Find the contested context (the outer negation of G)
-        contested_context = self._find_initial_contested_context(initial_graph)
-        
-        # Initialize game state
-        self.current_state = GameState(
-            graph=initial_graph,
+        return GameState(
+            graph=thesis_graph,
             domain_model=domain_model,
-            current_player=Player.PROPOSER,
+            current_player=Player.SKEPTIC,  # Skeptic moves first
             contested_context=contested_context,
             status=GameStatus.IN_PROGRESS,
             move_history=[],
             sub_inning_stack=[],
-            metadata={
-                'thesis_description': str(thesis),
-                'domain_model_name': domain_model_name,
-                'inning_start_time': str(uuid4())  # Placeholder for timestamp
-            }
+            metadata={}
+        )
+    
+    def apply_move(self, state: GameState, move: GameMove) -> GameState:
+        """Apply a move to the game state and return the new state."""
+        if state.status != GameStatus.IN_PROGRESS:
+            raise ValueError(f"Cannot apply move to game with status {state.status}")
+        
+        if move.player != state.current_player:
+            raise ValueError(f"Move player {move.player} does not match current player {state.current_player}")
+        
+        # Validate that the move is legal
+        legal_moves = self.get_legal_moves(state)
+        if not self._is_move_in_legal_set(move, legal_moves):
+            raise ValueError(f"Move is not legal in current state")
+        
+        # Apply the move based on its type
+        if move.move_type == MoveType.TRANSFORMATION:
+            return self._apply_transformation_move(state, move)
+        elif move.move_type == MoveType.SCOPING_CHALLENGE:
+            return self._apply_scoping_challenge(state, move)
+        elif move.move_type == MoveType.MODEL_NEGOTIATION:
+            return self._apply_model_negotiation(state, move)
+        elif move.move_type == MoveType.UNWRAP_NEGATION:
+            return self._apply_unwrap_negation(state, move)
+        else:
+            raise ValueError(f"Unsupported move type: {move.move_type}")
+    
+    def get_legal_moves(self, state: GameState) -> List[GameMove]:
+        """Get all legal moves for the current player."""
+        return self.move_analyzer.get_legal_moves(state)
+    
+    def check_game_end_conditions(self, state: GameState) -> GameStatus:
+        """Check if the game has ended and return the appropriate status."""
+        
+        # Check if the contested context is empty (Skeptic wins)
+        if state.contested_context:
+            items_in_contested = state.graph.context_manager.get_items_in_context(state.contested_context)
+            if not items_in_contested:
+                return GameStatus.SKEPTIC_WIN
+        
+        # Check if no legal moves are available
+        legal_moves = self.get_legal_moves(state)
+        if not legal_moves:
+            # If it's Skeptic's turn and no moves, Proposer wins
+            if state.current_player == Player.SKEPTIC:
+                return GameStatus.PROPOSER_WIN
+            # If it's Proposer's turn and no moves, Skeptic wins
+            else:
+                return GameStatus.SKEPTIC_WIN
+        
+        # Check for draw conditions (too many moves without progress)
+        if len(state.move_history) > 100:  # Arbitrary limit
+            return GameStatus.DRAW_EXTEND
+        
+        return GameStatus.IN_PROGRESS
+    
+    def get_game_summary(self, state: GameState) -> Dict[str, Any]:
+        """Get a summary of the current game state."""
+        contested_items = set()
+        if state.contested_context:
+            contested_items = state.graph.context_manager.get_items_in_context(state.contested_context)
+        
+        entities_in_contested = {item for item in contested_items if item in state.graph.entities}
+        predicates_in_contested = {item for item in contested_items if item in state.graph.predicates}
+        
+        return {
+            "status": state.status.value,
+            "current_player": state.current_player.value,
+            "move_count": len(state.move_history),
+            "contested_context": str(state.contested_context) if state.contested_context else None,
+            "contested_entities": len(entities_in_contested),
+            "contested_predicates": len(predicates_in_contested),
+            "total_entities": len(state.graph.entities),
+            "total_predicates": len(state.graph.predicates),
+            "context_depth": self._get_max_context_depth(state.graph),
+            "legal_moves_available": len(self.get_legal_moves(state)),
+            "sub_innings": len(state.sub_inning_stack)
+        }
+    
+    def export_game_state_to_clif(self, state: GameState) -> str:
+        """Export the current game state to CLIF format."""
+        try:
+            return self.clif_generator.generate(state.graph)
+        except Exception as e:
+            return f"(comment \"CLIF export failed: {str(e)}\")"
+    
+    def create_sub_inning(self, state: GameState, target_context: ContextId) -> GameState:
+        """Create a sub-inning for a nested context."""
+        sub_inning = SubInning(
+            parent_context=state.contested_context or state.graph.root_context_id,
+            contested_context=target_context,
+            original_proposer=state.current_player if state.current_player == Player.PROPOSER else Player.SKEPTIC,
+            original_skeptic=state.current_player if state.current_player == Player.SKEPTIC else Player.PROPOSER,
+            depth=len(state.sub_inning_stack) + 1
         )
         
-        return self.current_state
+        new_stack = state.sub_inning_stack + [sub_inning]
+        
+        return GameState(
+            graph=state.graph,
+            domain_model=state.domain_model,
+            current_player=Player.SKEPTIC,  # Skeptic always starts sub-innings
+            contested_context=target_context,
+            status=state.status,
+            move_history=state.move_history,
+            sub_inning_stack=new_stack,
+            metadata=state.metadata
+        )
     
-    def get_legal_moves(self) -> List[GameMove]:
-        """Get legal moves for the current player."""
-        if not self.current_state:
-            return []
-        return self.move_analyzer.get_legal_moves(self.current_state)
+    def resolve_sub_inning(self, state: GameState, winner: Player) -> GameState:
+        """Resolve the current sub-inning and return to the parent level."""
+        if not state.sub_inning_stack:
+            raise ValueError("No sub-inning to resolve")
+        
+        current_sub_inning = state.sub_inning_stack[-1]
+        parent_stack = state.sub_inning_stack[:-1]
+        
+        # Determine the parent contested context
+        if parent_stack:
+            parent_contested = parent_stack[-1].contested_context
+        else:
+            parent_contested = self._find_contested_context(state.graph)
+        
+        # Determine next player based on sub-inning result
+        if winner == Player.SKEPTIC:
+            next_player = current_sub_inning.original_skeptic
+        else:
+            next_player = current_sub_inning.original_proposer
+        
+        return GameState(
+            graph=state.graph,
+            domain_model=state.domain_model,
+            current_player=next_player,
+            contested_context=parent_contested,
+            status=state.status,
+            move_history=state.move_history,
+            sub_inning_stack=parent_stack,
+            metadata=state.metadata
+        )
     
-    def make_move(self, move: GameMove) -> Tuple[bool, str]:
-        """
-        Execute a move and update the game state.
-        
-        Returns:
-            (success, message) tuple
-        """
-        if not self.current_state:
-            return False, "No active game"
-        
-        if self.current_state.status != GameStatus.IN_PROGRESS:
-            return False, "Game is not in progress"
-        
-        if move.player != self.current_state.current_player:
-            return False, f"Not {move.player.value}'s turn"
-        
-        # Validate move is legal
-        legal_moves = self.get_legal_moves()
-        if not self._is_move_legal(move, legal_moves):
-            return False, "Illegal move"
-        
-        # Execute the move
-        success, message = self._execute_move(move)
-        
-        if success:
-            # Add to history
-            self.current_state.move_history.append(move)
-            
-            # Check for win/loss conditions
-            self._check_game_status()
-            
-            # Switch players if appropriate
-            if move.move_type != MoveType.UNWRAP_NEGATION:
-                self._switch_player()
-        
-        return success, message
+    # Private helper methods
     
-    def _create_initial_game_graph(self, thesis: EGGraph, 
-                                 domain_model: EGGraph) -> EGGraph:
-        """Create the initial game graph representing (not (and M (not G)))."""
-        # Start with empty graph
-        game_graph = EGGraph.create_empty()
+    def _find_contested_context(self, graph: EGGraph) -> Optional[ContextId]:
+        """Find the context that should be contested in the game."""
+        # Look for the deepest positive context with content
+        best_context = None
+        max_depth = -1
         
-        # Add domain model M to the root context
-        game_graph = self._copy_subgraph(domain_model, game_graph, 
-                                       game_graph.root_context_id)
+        for context in graph.context_manager.contexts.values():
+            if context.depth % 2 == 0:  # Positive context
+                items_in_context = graph.context_manager.get_items_in_context(context.id)
+                if items_in_context and context.depth > max_depth:
+                    max_depth = context.depth
+                    best_context = context.id
         
-        # Create outer negation cut for (not G)
-        game_graph, outer_cut_context = game_graph.create_context(
-            'cut', game_graph.root_context_id
+        return best_context
+    
+    def _apply_transformation_move(self, state: GameState, move: GameMove) -> GameState:
+        """Apply a transformation move to the game state."""
+        if not move.transformation_type or not move.target_items:
+            raise ValueError("Transformation move requires transformation_type and target_items")
+        
+        # Apply the transformation
+        attempt = self.transformation_engine.apply_transformation(
+            state.graph,
+            move.transformation_type,
+            target_items=move.target_items,
+            target_context=move.target_context
         )
         
-        # Add thesis G inside the negation (making it not G)
-        game_graph = self._copy_subgraph(thesis, game_graph, outer_cut_context.id)
+        if attempt.result != TransformationResult.SUCCESS:
+            raise ValueError(f"Transformation failed: {attempt.error_message}")
         
-        return game_graph
+        # Update game state
+        new_move_history = state.move_history + [move]
+        next_player = Player.PROPOSER if state.current_player == Player.SKEPTIC else Player.SKEPTIC
+        
+        new_state = GameState(
+            graph=attempt.result_graph,
+            domain_model=state.domain_model,
+            current_player=next_player,
+            contested_context=state.contested_context,
+            status=state.status,
+            move_history=new_move_history,
+            sub_inning_stack=state.sub_inning_stack,
+            metadata=state.metadata
+        )
+        
+        # Check for game end conditions
+        new_status = self.check_game_end_conditions(new_state)
+        return GameState(
+            graph=new_state.graph,
+            domain_model=new_state.domain_model,
+            current_player=new_state.current_player,
+            contested_context=new_state.contested_context,
+            status=new_status,
+            move_history=new_state.move_history,
+            sub_inning_stack=new_state.sub_inning_stack,
+            metadata=new_state.metadata
+        )
     
-    def _copy_subgraph(self, source: EGGraph, target: EGGraph, 
-                      target_context: ContextId) -> EGGraph:
-        """Copy a subgraph from source to target in the specified context."""
-        # This is a simplified implementation
-        # A full implementation would handle complex copying with ligatures
+    def _apply_scoping_challenge(self, state: GameState, move: GameMove) -> GameState:
+        """Apply a scoping challenge move."""
+        if not move.target_items:
+            raise ValueError("Scoping challenge requires target_items")
         
-        new_target = target
+        # For now, scoping challenges create sub-innings
+        # In a full implementation, this would involve more complex logic
         
-        # Copy nodes
-        for node in source.nodes.values():
-            new_target = new_target.add_node(node, target_context)
+        # Find a nested context to contest
+        target_entity_id = next(iter(move.target_items))
+        entity_context = state.graph.context_manager.find_item_context(target_entity_id)
         
-        # Copy edges
-        for edge in source.edges.values():
-            new_target = new_target.add_edge(edge, target_context)
-        
-        return new_target
+        if entity_context and entity_context != state.contested_context:
+            # Create sub-inning for the entity's context
+            return self.create_sub_inning(state, entity_context)
+        else:
+            # Just switch players if no sub-inning needed
+            next_player = Player.PROPOSER if state.current_player == Player.SKEPTIC else Player.SKEPTIC
+            new_move_history = state.move_history + [move]
+            
+            return GameState(
+                graph=state.graph,
+                domain_model=state.domain_model,
+                current_player=next_player,
+                contested_context=state.contested_context,
+                status=state.status,
+                move_history=new_move_history,
+                sub_inning_stack=state.sub_inning_stack,
+                metadata=state.metadata
+            )
     
-    def _find_initial_contested_context(self, graph: EGGraph) -> Optional[ContextId]:
-        """Find the initial contested context (outer negation cut)."""
-        # Look for cut contexts in the root
-        root_items = graph.get_items_in_context(graph.root_context_id)
+    def _apply_model_negotiation(self, state: GameState, move: GameMove) -> GameState:
+        """Apply a model negotiation move."""
+        # Model negotiation affects the domain model, not the thesis graph
+        # For now, just record the move and switch players
         
-        for item_id in root_items:
-            # Check if this item is a context
-            try:
-                context = graph.context_manager.get_context(item_id)
-                if context and context.context_type == 'cut':
-                    return context.id
-            except:
-                # Not a context, continue
-                continue
+        next_player = Player.PROPOSER if state.current_player == Player.SKEPTIC else Player.SKEPTIC
+        new_move_history = state.move_history + [move]
         
-        return None
+        # In a full implementation, this would modify the domain_model
+        # based on the negotiation type
+        
+        return GameState(
+            graph=state.graph,
+            domain_model=state.domain_model,  # Would be modified in full implementation
+            current_player=next_player,
+            contested_context=state.contested_context,
+            status=state.status,
+            move_history=new_move_history,
+            sub_inning_stack=state.sub_inning_stack,
+            metadata=state.metadata
+        )
     
-    def _is_move_legal(self, move: GameMove, legal_moves: List[GameMove]) -> bool:
-        """Check if a move is in the list of legal moves."""
+    def _apply_unwrap_negation(self, state: GameState, move: GameMove) -> GameState:
+        """Apply an unwrap negation move."""
+        # This would involve removing a cut and moving its contents up one level
+        # For now, just switch players
+        
+        next_player = Player.PROPOSER if state.current_player == Player.SKEPTIC else Player.SKEPTIC
+        new_move_history = state.move_history + [move]
+        
+        return GameState(
+            graph=state.graph,  # Would be modified in full implementation
+            domain_model=state.domain_model,
+            current_player=next_player,
+            contested_context=state.contested_context,
+            status=state.status,
+            move_history=new_move_history,
+            sub_inning_stack=state.sub_inning_stack,
+            metadata=state.metadata
+        )
+    
+    def _is_move_in_legal_set(self, move: GameMove, legal_moves: List[GameMove]) -> bool:
+        """Check if a move is in the set of legal moves."""
         for legal_move in legal_moves:
-            if (move.move_type == legal_move.move_type and
-                move.transformation_type == legal_move.transformation_type):
+            if (move.player == legal_move.player and
+                move.move_type == legal_move.move_type and
+                move.transformation_type == legal_move.transformation_type and
+                move.target_items == legal_move.target_items and
+                move.target_context == legal_move.target_context):
                 return True
         return False
     
-    def _execute_move(self, move: GameMove) -> Tuple[bool, str]:
-        """Execute a specific move."""
-        if move.move_type == MoveType.TRANSFORMATION:
-            return self._execute_transformation_move(move)
-        elif move.move_type == MoveType.UNWRAP_NEGATION:
-            return self._execute_unwrap_negation(move)
-        elif move.move_type == MoveType.SCOPING_CHALLENGE:
-            return self._execute_scoping_challenge(move)
-        elif move.move_type == MoveType.MODEL_NEGOTIATION:
-            return self._execute_model_negotiation(move)
-        else:
-            return False, f"Unknown move type: {move.move_type}"
+    def _get_max_context_depth(self, graph: EGGraph) -> int:
+        """Get the maximum context depth in the graph."""
+        if not graph.context_manager.contexts:
+            return 0
+        return max(context.depth for context in graph.context_manager.contexts.values())
+
+
+# Convenience functions for game setup and analysis
+
+def create_simple_game(clif_text: str) -> Tuple[EndoporeuticGameEngine, GameState]:
+    """Create a simple game from CLIF text."""
+    engine = EndoporeuticGameEngine()
     
-    def _execute_transformation_move(self, move: GameMove) -> Tuple[bool, str]:
-        """Execute a transformation move."""
-        if not move.transformation_type:
-            return False, "No transformation type specified"
-        
-        try:
-            # Apply transformation
-            attempt = self.transformation_engine.apply_transformation(
-                self.current_state.graph,
-                move.transformation_type,
-                target_items=move.target_items or set(),
-                target_context=move.target_context,
-                **(move.parameters or {})
-            )
-            
-            if attempt.result == TransformationResult.SUCCESS:
-                self.current_state.graph = attempt.result_graph
-                return True, f"Applied {move.transformation_type.value}"
-            else:
-                return False, attempt.error_message or "Transformation failed"
-        
-        except Exception as e:
-            return False, f"Transformation error: {str(e)}"
+    # Parse the CLIF text
+    parse_result = engine.clif_parser.parse(clif_text)
+    if not parse_result.success:
+        raise ValueError(f"Failed to parse CLIF: {parse_result.error}")
     
-    def _execute_unwrap_negation(self, move: GameMove) -> Tuple[bool, str]:
-        """Execute unwrapping a negation (creating sub-inning)."""
-        if not move.target_context:
-            return False, "No target context specified"
-        
-        # Create sub-inning
-        sub_inning = SubInning(
-            parent_context=self.current_state.contested_context,
-            contested_context=move.target_context,
-            original_proposer=self.current_state.current_player,
-            original_skeptic=Player.SKEPTIC if self.current_state.current_player == Player.PROPOSER else Player.PROPOSER,
-            depth=len(self.current_state.sub_inning_stack) + 1
-        )
-        
-        self.current_state.sub_inning_stack.append(sub_inning)
-        self.current_state.contested_context = move.target_context
-        
-        # Switch roles for sub-inning
-        self.current_state.current_player = (
-            Player.SKEPTIC if self.current_state.current_player == Player.PROPOSER 
-            else Player.PROPOSER
-        )
-        
-        return True, "Created sub-inning with role reversal"
+    # Create game state
+    game_state = engine.create_game_state(parse_result.graph)
     
-    def _execute_scoping_challenge(self, move: GameMove) -> Tuple[bool, str]:
-        """Execute a scoping challenge."""
-        if not move.target_items:
-            return False, "No target items specified"
-        
-        # The Proposer must now justify these exposed elements
-        # This typically involves finding mappings in the domain model
-        
-        # For now, we'll mark this as requiring justification
-        self.current_state.metadata['pending_justification'] = list(move.target_items)
-        
-        return True, f"Skeptic challenges {len(move.target_items)} exposed elements"
+    return engine, game_state
+
+
+def analyze_game_complexity(graph: EGGraph) -> Dict[str, Any]:
+    """Analyze the complexity of a graph for game play."""
+    total_entities = len(graph.entities)
+    total_predicates = len(graph.predicates)
+    total_contexts = len(graph.context_manager.contexts)
+    max_depth = max((ctx.depth for ctx in graph.context_manager.contexts.values()), default=0)
     
-    def _execute_model_negotiation(self, move: GameMove) -> Tuple[bool, str]:
-        """Execute a model negotiation move."""
-        # This would involve the ModelNegotiator
-        # Implementation depends on specific negotiation type
-        return True, "Model negotiation initiated"
+    # Calculate complexity metrics
+    structural_complexity = total_entities + total_predicates + total_contexts
+    logical_complexity = max_depth * 2  # Depth contributes to logical complexity
     
-    def _check_game_status(self):
-        """Check for win/loss conditions and update game status."""
-        if not self.current_state.contested_context:
-            # No contested context means game is resolved
-            self.current_state.status = GameStatus.PROPOSER_WIN
-            return
-        
-        # Check if contested context is empty
-        items_in_context = self.current_state.graph.get_items_in_context(
-            self.current_state.contested_context
-        )
-        
-        if not items_in_context:
-            # Empty contested context
-            if self.current_state.current_player == Player.PROPOSER:
-                self.current_state.status = GameStatus.PROPOSER_WIN
-            else:
-                self.current_state.status = GameStatus.SKEPTIC_WIN
+    # Determine complexity category
+    if structural_complexity < 5 and logical_complexity < 4:
+        category = "Simple"
+    elif structural_complexity < 15 and logical_complexity < 8:
+        category = "Moderate"
+    else:
+        category = "Complex"
     
-    def _switch_player(self):
-        """Switch the current player."""
-        if self.current_state.current_player == Player.PROPOSER:
-            self.current_state.current_player = Player.SKEPTIC
-        else:
-            self.current_state.current_player = Player.PROPOSER
+    return {
+        "category": category,
+        "structural_complexity": structural_complexity,
+        "logical_complexity": logical_complexity,
+        "total_entities": total_entities,
+        "total_predicates": total_predicates,
+        "total_contexts": total_contexts,
+        "max_depth": max_depth,
+        "estimated_moves": structural_complexity * 2,  # Rough estimate
+        "strategic_notes": _generate_strategic_notes(graph)
+    }
+
+
+def _generate_strategic_notes(graph: EGGraph) -> List[str]:
+    """Generate strategic notes about a graph."""
+    notes = []
     
-    def get_game_summary(self) -> Dict[str, Any]:
-        """Get a summary of the current game state."""
-        if not self.current_state:
-            return {"status": "no_active_game"}
-        
-        return {
-            "status": self.current_state.status.value,
-            "current_player": self.current_state.current_player.value,
-            "move_count": len(self.current_state.move_history),
-            "sub_inning_depth": len(self.current_state.sub_inning_stack),
-            "contested_context": str(self.current_state.contested_context) if self.current_state.contested_context else None,
-            "legal_moves_count": len(self.get_legal_moves()),
-            "metadata": self.current_state.metadata
-        }
+    entity_count = len(graph.entities)
+    predicate_count = len(graph.predicates)
+    max_depth = max((ctx.depth for ctx in graph.context_manager.contexts.values()), default=0)
     
-    def export_game_state(self) -> str:
-        """Export the current game state as CLIF."""
-        if not self.current_state:
-            return ""
-        
-        result = self.clif_generator.generate(self.current_state.graph)
-        return result.clif_text
+    if entity_count > predicate_count:
+        notes.append("Many entities suggest rich quantification opportunities")
     
-    def save_to_folio(self, name: str, save_type: str = "current_graph"):
-        """Save current state to folio."""
-        if not self.current_state:
-            raise ValueError("No active game to save")
-        
-        if save_type == "current_graph":
-            self.add_to_folio(name, self.current_state.graph)
-        elif save_type == "domain_model":
-            self.add_to_folio(name, self.current_state.domain_model)
-        else:
-            raise ValueError(f"Unknown save type: {save_type}")
+    if predicate_count > entity_count:
+        notes.append("Many predicates suggest complex relational structure")
+    
+    if max_depth > 2:
+        notes.append("Deep nesting enables sophisticated logical maneuvers")
+    
+    if max_depth == 0:
+        notes.append("No cuts limit transformation options")
+    
+    # Count variables vs constants
+    variables = sum(1 for e in graph.entities.values() if e.entity_type == 'variable')
+    constants = sum(1 for e in graph.entities.values() if e.entity_type == 'constant')
+    
+    if variables > constants:
+        notes.append("Many variables enable flexible scoping strategies")
+    elif constants > variables:
+        notes.append("Many constants suggest concrete factual claims")
+    
+    return notes
 

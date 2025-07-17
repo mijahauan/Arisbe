@@ -5,6 +5,11 @@ This module provides tools for exploring existential graphs from different
 perspectives and scopes. It enables users to examine graphs at various
 levels of detail and from different logical and visual viewpoints.
 
+Updated for Entity-Predicate hypergraph architecture where:
+- CLIF terms (variables, constants) → Entities (Lines of Identity)
+- CLIF predicates → Predicates (hyperedges connecting entities)
+- CLIF quantifiers → Entity scoping in contexts
+
 The exploration system supports:
 1. Scope-based viewing (area, context, nested content)
 2. Level-based navigation (zoom in/out by context levels)
@@ -18,8 +23,8 @@ from enum import Enum
 import copy
 
 from .eg_types import (
-    Node, Edge, Context, Ligature, NodeId, EdgeId, ContextId, 
-    LigatureId, ItemId
+    Entity, Predicate, Context, Ligature, 
+    EntityId, PredicateId, ContextId, LigatureId, ItemId
 )
 from .graph import EGGraph
 from .context import ContextManager
@@ -65,8 +70,8 @@ class ViewScope:
 class ExplorationView:
     """A view of the graph from a specific scope and focus."""
     scope: ViewScope
-    visible_nodes: Set[NodeId]
-    visible_edges: Set[EdgeId]
+    visible_entities: Set[EntityId]
+    visible_predicates: Set[PredicateId]
     visible_contexts: Set[ContextId]
     visible_ligatures: Set[LigatureId]
     focus_items: Set[ItemId]
@@ -78,7 +83,7 @@ class ExplorationView:
     @property
     def total_visible_items(self) -> int:
         """Total number of visible items."""
-        return (len(self.visible_nodes) + len(self.visible_edges) + 
+        return (len(self.visible_entities) + len(self.visible_predicates) + 
                 len(self.visible_contexts) + len(self.visible_ligatures))
     
     @property
@@ -100,526 +105,651 @@ class NavigationPath:
         return self.contexts[-1] if self.contexts else None
     
     @property
-    def depth(self) -> int:
+    def current_depth(self) -> int:
         """Get the current depth."""
-        return len(self.contexts) - 1
+        return self.depths[-1] if self.depths else 0
+
+
+@dataclass(frozen=True)
+class EntityConnection:
+    """Represents a connection between entities through predicates."""
+    entity1: EntityId
+    entity2: EntityId
+    connecting_predicates: List[PredicateId]
+    connection_type: str  # 'direct', 'shared_predicate', 'ligature'
+    path_length: int
 
 
 @dataclass(frozen=True)
 class ExplorationState:
-    """Current state of exploration."""
+    """Current state of the exploration session."""
     current_view: ExplorationView
     navigation_path: NavigationPath
-    focus_mode: FocusMode
-    focus_target: Optional[ItemId]
+    focus_history: List[ItemId]
     bookmarks: Dict[str, ViewScope]
-    history: List[ViewScope]
-    
-    def can_go_back(self) -> bool:
-        """Check if we can navigate back."""
-        return len(self.history) > 1
-    
-    def can_zoom_in(self) -> bool:
-        """Check if we can zoom in further."""
-        return bool(self.current_view.scope_boundaries)
-    
-    def can_zoom_out(self) -> bool:
-        """Check if we can zoom out."""
-        return self.navigation_path.depth > 0
+    filters: Dict[str, Any]
 
 
 class GraphExplorer:
     """
-    Main tool for exploring existential graphs at different scopes.
+    Main tool for exploring existential graphs with Entity-Predicate architecture.
     
-    Provides navigation, focusing, and scope management capabilities
-    for understanding complex graph structures.
+    Provides multi-scope viewing, navigation, and analysis capabilities
+    for understanding graph structure and logical content.
     """
     
-    def __init__(self, graph: EGGraph):
-        self.graph = graph
+    def __init__(self):
+        """Initialize the graph explorer."""
         self.current_state: Optional[ExplorationState] = None
-        self._initialize_exploration()
+        self.graph: Optional[EGGraph] = None
     
-    def get_overview(self) -> ExplorationView:
-        """Get a high-level overview of the entire graph."""
-        scope = ViewScope(
-            scope_type=ScopeType.LEVEL_LIMITED,
-            focus_context=self.graph.root_context_id,
-            max_depth=2,
-            include_ligatures=True,
-            include_containing=False
+    def set_graph(self, graph: EGGraph) -> None:
+        """Set the graph to explore."""
+        self.graph = graph
+        # Initialize exploration state
+        root_scope = ViewScope(
+            scope_type=ScopeType.AREA_ONLY,
+            focus_context=graph.root_context_id
         )
-        return self._create_view(scope)
-    
-    def focus_on_context(self, context_id: ContextId, 
-                        scope_type: ScopeType = ScopeType.CONTEXT_COMPLETE) -> ExplorationView:
-        """Focus exploration on a specific context."""
-        scope = ViewScope(
-            scope_type=scope_type,
-            focus_context=context_id,
-            include_ligatures=True
-        )
-        view = self._create_view(scope)
-        self._update_exploration_state(view, scope, FocusMode.CONTEXT_AREA, context_id)
-        return view
-    
-    def focus_on_item(self, item_id: ItemId, 
-                     context_radius: int = 1) -> ExplorationView:
-        """Focus exploration on a specific item and its immediate context."""
-        # Find the context containing this item
-        containing_context = self._find_containing_context(item_id)
-        
-        scope = ViewScope(
-            scope_type=ScopeType.LEVEL_LIMITED,
-            focus_context=containing_context,
-            max_depth=context_radius,
-            include_ligatures=True
-        )
-        view = self._create_view(scope)
-        view = replace(view, focus_items={item_id})
-        self._update_exploration_state(view, scope, FocusMode.SINGLE_ITEM, item_id)
-        return view
-    
-    def focus_on_ligature(self, ligature_id: LigatureId) -> ExplorationView:
-        """Focus exploration on a ligature and all connected elements."""
-        if ligature_id not in self.graph.ligatures:
-            return self._create_empty_view("Ligature not found")
-        
-        ligature = self.graph.ligatures[ligature_id]
-        connected_nodes = ligature.nodes
-        
-        # Find all contexts containing connected nodes
-        contexts = set()
-        for node_id in connected_nodes:
-            context = self._find_containing_context(node_id)
-            contexts.add(context)
-        
-        # Find a common ancestor context to focus on
-        if contexts:
-            focus_context = self._find_common_ancestor_context(list(contexts))
-        else:
-            focus_context = self.graph.root_context_id
-        
-        scope = ViewScope(
-            scope_type=ScopeType.CONTEXT_COMPLETE,
-            focus_context=focus_context,
-            include_ligatures=True
-        )
-        view = self._create_view(scope)
-        view = replace(view, focus_items=connected_nodes | {ligature_id})
-        self._update_exploration_state(view, scope, FocusMode.LIGATURE_PATH, ligature_id)
-        return view
-    
-    def zoom_in(self, target_context: Optional[ContextId] = None) -> ExplorationView:
-        """Zoom in to show more detail."""
-        if not self.current_state:
-            return self.get_overview()
-        
-        current_scope = self.current_state.current_view.scope
-        
-        if target_context:
-            new_focus = target_context
-        else:
-            # Find a child context to zoom into
-            children = self.graph.context_manager.get_child_contexts(current_scope.focus_context)
-            if children:
-                new_focus = children[0]  # Choose first child
-            else:
-                return self.current_state.current_view  # Can't zoom in further
-        
-        new_scope = ViewScope(
-            scope_type=current_scope.scope_type,
-            focus_context=new_focus,
-            max_depth=current_scope.max_depth,
-            include_ligatures=current_scope.include_ligatures
+        initial_view = self.create_view(root_scope)
+        initial_path = NavigationPath(
+            contexts=[graph.root_context_id],
+            descriptions=["Root Context"],
+            depths=[0]
         )
         
-        view = self._create_view(new_scope)
-        self._update_exploration_state(view, new_scope, self.current_state.focus_mode)
-        return view
-    
-    def zoom_out(self) -> ExplorationView:
-        """Zoom out to show broader context."""
-        if not self.current_state:
-            return self.get_overview()
-        
-        current_scope = self.current_state.current_view.scope
-        current_context = current_scope.focus_context
-        
-        # Find parent context
-        parent_context = self.graph.context_manager.get_parent_context(current_context)
-        if parent_context is None:
-            return self.current_state.current_view  # Already at root
-        
-        new_scope = ViewScope(
-            scope_type=current_scope.scope_type,
-            focus_context=parent_context,
-            max_depth=current_scope.max_depth,
-            include_ligatures=current_scope.include_ligatures,
-            include_containing=True
+        self.current_state = ExplorationState(
+            current_view=initial_view,
+            navigation_path=initial_path,
+            focus_history=[],
+            bookmarks={},
+            filters={}
         )
-        
-        view = self._create_view(new_scope)
-        self._update_exploration_state(view, new_scope, self.current_state.focus_mode)
-        return view
     
-    def adjust_depth(self, new_depth: int) -> ExplorationView:
-        """Adjust the depth of exploration."""
-        if not self.current_state:
-            return self.get_overview()
+    def create_view(self, scope: ViewScope) -> ExplorationView:
+        """Create a view of the graph based on the given scope."""
+        if not self.graph:
+            raise ValueError("No graph set for exploration")
         
-        current_scope = self.current_state.current_view.scope
-        new_scope = current_scope.with_depth(new_depth)
-        
-        view = self._create_view(new_scope)
-        self._update_exploration_state(view, new_scope, self.current_state.focus_mode)
-        return view
-    
-    def navigate_to_context(self, context_id: ContextId) -> ExplorationView:
-        """Navigate directly to a specific context."""
-        return self.focus_on_context(context_id)
-    
-    def follow_ligature_path(self, start_node: NodeId, 
-                           max_hops: int = 3) -> List[ExplorationView]:
-        """Follow ligature connections from a starting node."""
-        views = []
-        visited = set()
-        current_nodes = {start_node}
-        
-        for hop in range(max_hops):
-            if not current_nodes or current_nodes.issubset(visited):
-                break
-            
-            # Find ligatures connecting to current nodes
-            connected_ligatures = set()
-            for ligature_id, ligature in self.graph.ligatures.items():
-                if ligature.nodes & current_nodes:
-                    connected_ligatures.add(ligature_id)
-            
-            if not connected_ligatures:
-                break
-            
-            # Create view for this hop
-            view = self.focus_on_ligature(list(connected_ligatures)[0])
-            views.append(view)
-            
-            # Find next nodes
-            next_nodes = set()
-            for ligature_id in connected_ligatures:
-                ligature = self.graph.ligatures[ligature_id]
-                next_nodes.update(ligature.nodes)
-            
-            visited.update(current_nodes)
-            current_nodes = next_nodes - visited
-        
-        return views
-    
-    def search_for_pattern(self, pattern_description: str) -> List[ExplorationView]:
-        """Search for elements matching a pattern description."""
-        # This would implement pattern searching
-        # For now, return empty list
-        return []
-    
-    def bookmark_current_view(self, name: str) -> bool:
-        """Bookmark the current view for later return."""
-        if not self.current_state:
-            return False
-        
-        try:
-            bookmarks = dict(self.current_state.bookmarks)
-            bookmarks[name] = self.current_state.current_view.scope
-            
-            new_state = replace(self.current_state, bookmarks=bookmarks)
-            self.current_state = new_state
-            return True
-        except Exception:
-            return False
-    
-    def go_to_bookmark(self, name: str) -> Optional[ExplorationView]:
-        """Navigate to a bookmarked view."""
-        if not self.current_state or name not in self.current_state.bookmarks:
-            return None
-        
-        scope = self.current_state.bookmarks[name]
-        view = self._create_view(scope)
-        self._update_exploration_state(view, scope, FocusMode.CONTEXT_AREA)
-        return view
-    
-    def get_navigation_options(self) -> Dict[str, List[str]]:
-        """Get available navigation options from current position."""
-        if not self.current_state:
-            return {}
-        
-        options = {}
-        current_context = self.current_state.current_view.scope.focus_context
-        
-        # Child contexts (zoom in options)
-        children = self.graph.context_manager.get_child_contexts(current_context)
-        if children:
-            options["zoom_in"] = [f"Context {ctx}" for ctx in children]
-        
-        # Parent context (zoom out option)
-        parent = self.graph.context_manager.get_parent_context(current_context)
-        if parent:
-            options["zoom_out"] = [f"Context {parent}"]
-        
-        # Sibling contexts (lateral navigation)
-        if parent:
-            siblings = self.graph.context_manager.get_child_contexts(parent)
-            siblings = [ctx for ctx in siblings if ctx != current_context]
-            if siblings:
-                options["siblings"] = [f"Context {ctx}" for ctx in siblings]
-        
-        # Connected elements via ligatures
-        connected = self._find_ligature_connected_contexts(current_context)
-        if connected:
-            options["ligature_paths"] = [f"Context {ctx}" for ctx in connected]
-        
-        return options
-    
-    def get_context_summary(self, context_id: ContextId) -> Dict[str, Any]:
-        """Get a summary of a context's contents."""
-        if context_id not in self.graph.context_manager.contexts:
-            return {"error": "Context not found"}
-        
-        context = self.graph.context_manager.contexts[context_id]
-        items = self.graph.get_items_in_context(context_id)
-        
-        # Count different types of items
-        nodes = [item for item in items if item in self.graph.nodes]
-        edges = [item for item in items if item in self.graph.edges]
-        
-        # Find ligatures that connect to items in this context
-        relevant_ligatures = []
-        for ligature_id, ligature in self.graph.ligatures.items():
-            if ligature.nodes & set(nodes):
-                relevant_ligatures.append(ligature_id)
-        
-        # Get child contexts
-        children = self.graph.context_manager.get_child_contexts(context_id)
-        
-        return {
-            "context_id": context_id,
-            "context_type": context.context_type,
-            "depth": context.depth,
-            "is_positive": context.is_positive,
-            "node_count": len(nodes),
-            "edge_count": len(edges),
-            "ligature_count": len(relevant_ligatures),
-            "child_context_count": len(children),
-            "total_items": len(items)
-        }
-    
-    def _create_view(self, scope: ViewScope) -> ExplorationView:
-        """Create an exploration view based on the given scope."""
-        visible_nodes = set()
-        visible_edges = set()
+        visible_entities = set()
+        visible_predicates = set()
         visible_contexts = set()
         visible_ligatures = set()
-        context_hierarchy = {}
         item_locations = {}
+        context_hierarchy = {}
         scope_boundaries = set()
         
-        # Start with the focus context
-        contexts_to_process = [(scope.focus_context, 0)]
-        processed_contexts = set()
+        # Get the focus context
+        focus_context = self.graph.context_manager.get_context(scope.focus_context)
+        if not focus_context:
+            raise ValueError(f"Focus context {scope.focus_context} not found")
         
-        while contexts_to_process:
-            context_id, depth = contexts_to_process.pop(0)
+        # Build context hierarchy
+        for context_id, context in self.graph.context_manager.contexts.items():
+            if context.parent_context:
+                if context.parent_context not in context_hierarchy:
+                    context_hierarchy[context.parent_context] = []
+                context_hierarchy[context.parent_context].append(context_id)
+        
+        # Determine visible items based on scope type
+        if scope.scope_type == ScopeType.AREA_ONLY:
+            # Only items directly in the focus context
+            items_in_context = self.graph.context_manager.get_items_in_context(scope.focus_context)
+            self._categorize_items(items_in_context, visible_entities, visible_predicates, visible_ligatures)
+            visible_contexts.add(scope.focus_context)
             
-            if context_id in processed_contexts:
-                continue
-            processed_contexts.add(context_id)
+        elif scope.scope_type == ScopeType.CONTEXT_COMPLETE:
+            # All items in focus context and all nested contexts
+            contexts_to_include = self._get_all_nested_contexts(scope.focus_context)
+            visible_contexts.update(contexts_to_include)
             
-            # Add this context to visible contexts
-            visible_contexts.add(context_id)
-            
-            # Get items in this context
-            items = self.graph.get_items_in_context(context_id)
-            
-            for item_id in items:
-                item_locations[item_id] = context_id
+            for context_id in contexts_to_include:
+                items_in_context = self.graph.context_manager.get_items_in_context(context_id)
+                self._categorize_items(items_in_context, visible_entities, visible_predicates, visible_ligatures)
                 
-                if item_id in self.graph.nodes:
-                    visible_nodes.add(item_id)
-                elif item_id in self.graph.edges:
-                    visible_edges.add(item_id)
+        elif scope.scope_type == ScopeType.LEVEL_LIMITED:
+            # Limited depth from focus context
+            max_depth = scope.max_depth or 2
+            contexts_to_include = self._get_contexts_within_depth(scope.focus_context, max_depth)
+            visible_contexts.update(contexts_to_include)
             
-            # Handle child contexts based on scope type
-            children = self.graph.context_manager.get_child_contexts(context_id)
-            context_hierarchy[context_id] = children
+            for context_id in contexts_to_include:
+                items_in_context = self.graph.context_manager.get_items_in_context(context_id)
+                self._categorize_items(items_in_context, visible_entities, visible_predicates, visible_ligatures)
+                
+            # Mark boundary contexts
+            scope_boundaries = self._find_boundary_contexts(contexts_to_include)
             
-            if scope.scope_type == ScopeType.AREA_ONLY:
-                # Don't descend into child contexts
-                scope_boundaries.update(children)
-            elif scope.scope_type == ScopeType.CONTEXT_COMPLETE:
-                # Include all nested content
-                for child in children:
-                    contexts_to_process.append((child, depth + 1))
-            elif scope.scope_type == ScopeType.LEVEL_LIMITED:
-                # Include children up to max depth
-                if scope.max_depth is None or depth < scope.max_depth:
-                    for child in children:
-                        contexts_to_process.append((child, depth + 1))
+        elif scope.scope_type == ScopeType.CONTAINING:
+            # Focus context and its containing contexts
+            current_context = focus_context
+            while current_context:
+                visible_contexts.add(current_context.id)
+                items_in_context = self.graph.context_manager.get_items_in_context(current_context.id)
+                self._categorize_items(items_in_context, visible_entities, visible_predicates, visible_ligatures)
+                
+                if current_context.parent_context:
+                    current_context = self.graph.context_manager.get_context(current_context.parent_context)
                 else:
-                    scope_boundaries.update(children)
+                    break
         
-        # Handle ligatures
-        if scope.include_ligatures:
-            for ligature_id, ligature in self.graph.ligatures.items():
-                # Include ligature if any of its nodes are visible
-                if ligature.nodes & visible_nodes:
-                    visible_ligatures.add(ligature_id)
+        # Build item locations
+        for entity_id in visible_entities:
+            context_id = self.graph.context_manager.find_item_context(entity_id)
+            if context_id:
+                item_locations[entity_id] = context_id
+        
+        for predicate_id in visible_predicates:
+            context_id = self.graph.context_manager.find_item_context(predicate_id)
+            if context_id:
+                item_locations[predicate_id] = context_id
+        
+        # Apply filters
+        if scope.filter_types:
+            visible_entities, visible_predicates = self._apply_type_filters(
+                visible_entities, visible_predicates, scope.filter_types
+            )
         
         # Generate navigation hints
-        navigation_hints = self._generate_navigation_hints(scope, scope_boundaries)
+        navigation_hints = self._generate_navigation_hints(scope, visible_contexts)
         
         return ExplorationView(
             scope=scope,
-            visible_nodes=visible_nodes,
-            visible_edges=visible_edges,
+            visible_entities=visible_entities,
+            visible_predicates=visible_predicates,
             visible_contexts=visible_contexts,
             visible_ligatures=visible_ligatures,
-            focus_items=set(),
+            focus_items=set(),  # Will be set by focus operations
             context_hierarchy=context_hierarchy,
             item_locations=item_locations,
             scope_boundaries=scope_boundaries,
             navigation_hints=navigation_hints
         )
     
-    def _create_empty_view(self, message: str) -> ExplorationView:
-        """Create an empty view with a message."""
-        return ExplorationView(
-            scope=ViewScope(ScopeType.AREA_ONLY, self.graph.root_context_id),
-            visible_nodes=set(),
-            visible_edges=set(),
-            visible_contexts=set(),
-            visible_ligatures=set(),
-            focus_items=set(),
-            context_hierarchy={},
-            item_locations={},
-            scope_boundaries=set(),
-            navigation_hints=[message]
+    def focus_on_item(self, item_id: ItemId, focus_mode: FocusMode = FocusMode.SINGLE_ITEM) -> ExplorationView:
+        """Focus the view on a specific item."""
+        if not self.current_state:
+            raise ValueError("No exploration state initialized")
+        
+        focus_items = set()
+        
+        if focus_mode == FocusMode.SINGLE_ITEM:
+            focus_items.add(item_id)
+            
+        elif focus_mode == FocusMode.CONTEXT_AREA:
+            # Focus on the item and everything in its context
+            item_context = self.graph.context_manager.find_item_context(item_id)
+            if item_context:
+                items_in_context = self.graph.context_manager.get_items_in_context(item_context)
+                focus_items.update(items_in_context)
+                
+        elif focus_mode == FocusMode.LIGATURE_PATH:
+            # Focus on ligature connections
+            if item_id in self.graph.entities:
+                connected_items = self._find_connected_items(item_id)
+                focus_items.update(connected_items)
+                focus_items.add(item_id)
+                
+        elif focus_mode == FocusMode.PATTERN_MATCH:
+            # Focus on items matching the same pattern as the target item
+            pattern_items = self._find_pattern_matches(item_id)
+            focus_items.update(pattern_items)
+        
+        # Update the current view with focus
+        updated_view = replace(self.current_state.current_view, focus_items=focus_items)
+        
+        # Update exploration state
+        updated_history = self.current_state.focus_history + [item_id]
+        self.current_state = replace(
+            self.current_state,
+            current_view=updated_view,
+            focus_history=updated_history
         )
+        
+        return updated_view
     
-    def _update_exploration_state(self, view: ExplorationView, scope: ViewScope,
-                                focus_mode: FocusMode, focus_target: Optional[ItemId] = None):
-        """Update the current exploration state."""
-        if self.current_state:
-            # Add current scope to history
-            history = list(self.current_state.history)
-            history.append(self.current_state.current_view.scope)
-            
-            # Limit history size
-            if len(history) > 20:
-                history.pop(0)
-            
-            bookmarks = self.current_state.bookmarks
+    def navigate_to_context(self, context_id: ContextId, scope_type: ScopeType = ScopeType.AREA_ONLY) -> ExplorationView:
+        """Navigate to a different context."""
+        if not self.current_state:
+            raise ValueError("No exploration state initialized")
+        
+        # Create new scope for the target context
+        new_scope = ViewScope(
+            scope_type=scope_type,
+            focus_context=context_id,
+            include_ligatures=self.current_state.current_view.scope.include_ligatures
+        )
+        
+        # Create new view
+        new_view = self.create_view(new_scope)
+        
+        # Update navigation path
+        context = self.graph.context_manager.get_context(context_id)
+        context_description = f"Context {context.depth}" if context else "Unknown Context"
+        
+        updated_path = NavigationPath(
+            contexts=self.current_state.navigation_path.contexts + [context_id],
+            descriptions=self.current_state.navigation_path.descriptions + [context_description],
+            depths=self.current_state.navigation_path.depths + [context.depth if context else 0]
+        )
+        
+        # Update exploration state
+        self.current_state = replace(
+            self.current_state,
+            current_view=new_view,
+            navigation_path=updated_path
+        )
+        
+        return new_view
+    
+    def zoom_in(self, levels: int = 1) -> ExplorationView:
+        """Zoom in by including more nested contexts."""
+        if not self.current_state:
+            raise ValueError("No exploration state initialized")
+        
+        current_scope = self.current_state.current_view.scope
+        
+        if current_scope.scope_type == ScopeType.AREA_ONLY:
+            # Switch to level limited with specified depth
+            new_scope = replace(current_scope, scope_type=ScopeType.LEVEL_LIMITED, max_depth=levels)
+        elif current_scope.scope_type == ScopeType.LEVEL_LIMITED:
+            # Increase the depth limit
+            current_depth = current_scope.max_depth or 1
+            new_scope = replace(current_scope, max_depth=current_depth + levels)
         else:
-            history = []
-            bookmarks = {}
+            # For other scope types, switch to level limited
+            new_scope = replace(current_scope, scope_type=ScopeType.LEVEL_LIMITED, max_depth=levels)
         
-        # Create navigation path
-        path_contexts = []
-        path_descriptions = []
-        path_depths = []
+        new_view = self.create_view(new_scope)
+        self.current_state = replace(self.current_state, current_view=new_view)
         
-        current = scope.focus_context
-        while current is not None:
-            path_contexts.insert(0, current)
-            context = self.graph.context_manager.contexts[current]
-            path_descriptions.insert(0, f"{context.context_type} (depth {context.depth})")
-            path_depths.insert(0, context.depth)
-            current = self.graph.context_manager.get_parent_context(current)
-        
-        navigation_path = NavigationPath(path_contexts, path_descriptions, path_depths)
-        
-        self.current_state = ExplorationState(
-            current_view=view,
-            navigation_path=navigation_path,
-            focus_mode=focus_mode,
-            focus_target=focus_target,
-            bookmarks=bookmarks,
-            history=history
-        )
+        return new_view
     
-    def _find_containing_context(self, item_id: ItemId) -> ContextId:
-        """Find the context that contains a specific item."""
-        for context_id in self.graph.context_manager.contexts:
-            items = self.graph.get_items_in_context(context_id)
-            if item_id in items:
-                return context_id
-        return self.graph.root_context_id
-    
-    def _find_common_ancestor_context(self, contexts: List[ContextId]) -> ContextId:
-        """Find the common ancestor of multiple contexts."""
-        if not contexts:
-            return self.graph.root_context_id
+    def zoom_out(self, levels: int = 1) -> ExplorationView:
+        """Zoom out by reducing scope or moving to containing contexts."""
+        if not self.current_state:
+            raise ValueError("No exploration state initialized")
         
-        if len(contexts) == 1:
-            return contexts[0]
+        current_scope = self.current_state.current_view.scope
         
-        # Get paths to root for each context
-        paths = []
-        for context_id in contexts:
-            path = []
-            current = context_id
-            while current is not None:
-                path.insert(0, current)
-                current = self.graph.context_manager.get_parent_context(current)
-            paths.append(path)
-        
-        # Find common prefix
-        common_ancestor = self.graph.root_context_id
-        min_length = min(len(path) for path in paths)
-        
-        for i in range(min_length):
-            if all(path[i] == paths[0][i] for path in paths):
-                common_ancestor = paths[0][i]
+        if current_scope.scope_type == ScopeType.LEVEL_LIMITED:
+            # Reduce the depth limit
+            current_depth = current_scope.max_depth or 1
+            new_depth = max(0, current_depth - levels)
+            if new_depth == 0:
+                new_scope = replace(current_scope, scope_type=ScopeType.AREA_ONLY, max_depth=None)
             else:
-                break
+                new_scope = replace(current_scope, max_depth=new_depth)
+        else:
+            # Move to parent context
+            current_context = self.graph.context_manager.get_context(current_scope.focus_context)
+            if current_context and current_context.parent_context:
+                new_scope = replace(current_scope, focus_context=current_context.parent_context)
+            else:
+                # Already at root, switch to containing view
+                new_scope = replace(current_scope, scope_type=ScopeType.CONTAINING)
         
-        return common_ancestor
+        new_view = self.create_view(new_scope)
+        self.current_state = replace(self.current_state, current_view=new_view)
+        
+        return new_view
     
-    def _find_ligature_connected_contexts(self, context_id: ContextId) -> Set[ContextId]:
-        """Find contexts connected via ligatures."""
-        connected = set()
+    def get_item_details(self, item_id: ItemId) -> Dict[str, Any]:
+        """Get detailed information about a specific item."""
+        if not self.graph:
+            return {"error": "No graph set"}
         
-        # Get items in this context
-        items = self.graph.get_items_in_context(context_id)
-        nodes_in_context = [item for item in items if item in self.graph.nodes]
+        details = {"id": str(item_id), "type": "unknown"}
         
-        # Find ligatures connecting to these nodes
-        for ligature_id, ligature in self.graph.ligatures.items():
-            if ligature.nodes & set(nodes_in_context):
-                # Find contexts containing other nodes in this ligature
-                for node_id in ligature.nodes:
-                    if node_id not in nodes_in_context:
-                        other_context = self._find_containing_context(node_id)
-                        if other_context != context_id:
-                            connected.add(other_context)
+        if item_id in self.graph.entities:
+            entity = self.graph.entities[item_id]
+            details.update({
+                "type": "entity",
+                "name": entity.name,
+                "entity_type": entity.entity_type,
+                "properties": dict(entity.properties),
+                "connected_predicates": self._get_connected_predicates(item_id),
+                "context": self.graph.context_manager.find_item_context(item_id)
+            })
+            
+        elif item_id in self.graph.predicates:
+            predicate = self.graph.predicates[item_id]
+            details.update({
+                "type": "predicate",
+                "name": predicate.name,
+                "arity": predicate.arity,
+                "entities": [str(eid) for eid in predicate.entities],
+                "properties": dict(predicate.properties),
+                "context": self.graph.context_manager.find_item_context(item_id)
+            })
+            
+        elif item_id in self.graph.context_manager.contexts:
+            context = self.graph.context_manager.get_context(item_id)
+            if context:
+                details.update({
+                    "type": "context",
+                    "context_type": context.context_type,
+                    "depth": context.depth,
+                    "parent": str(context.parent_context) if context.parent_context else None,
+                    "children": [str(cid) for cid in self._get_child_contexts(item_id)],
+                    "items": [str(iid) for iid in self.graph.context_manager.get_items_in_context(item_id)],
+                    "properties": dict(context.properties)
+                })
         
-        return connected
+        return details
     
-    def _generate_navigation_hints(self, scope: ViewScope, 
-                                 boundaries: Set[ContextId]) -> List[str]:
-        """Generate helpful navigation hints."""
+    def find_entity_connections(self, entity_id: EntityId) -> List[EntityConnection]:
+        """Find all connections between an entity and other entities."""
+        if not self.graph or entity_id not in self.graph.entities:
+            return []
+        
+        connections = []
+        
+        # Find predicates that include this entity
+        connected_predicates = self._get_connected_predicates(entity_id)
+        
+        # For each predicate, find other entities it connects to
+        for predicate_id in connected_predicates:
+            predicate = self.graph.predicates[predicate_id]
+            for other_entity_id in predicate.entities:
+                if other_entity_id != entity_id:
+                    connection = EntityConnection(
+                        entity1=entity_id,
+                        entity2=other_entity_id,
+                        connecting_predicates=[predicate_id],
+                        connection_type='direct',
+                        path_length=1
+                    )
+                    connections.append(connection)
+        
+        # Find ligature connections
+        for ligature in self.graph.ligatures.values():
+            if entity_id in ligature.connected_items:
+                for other_item_id in ligature.connected_items:
+                    if other_item_id != entity_id and other_item_id in self.graph.entities:
+                        connection = EntityConnection(
+                            entity1=entity_id,
+                            entity2=other_item_id,
+                            connecting_predicates=[],
+                            connection_type='ligature',
+                            path_length=1
+                        )
+                        connections.append(connection)
+        
+        return connections
+    
+    def get_context_summary(self, context_id: ContextId) -> Dict[str, Any]:
+        """Get a summary of a context's contents and structure."""
+        if not self.graph:
+            return {"error": "No graph set"}
+        
+        context = self.graph.context_manager.get_context(context_id)
+        if not context:
+            return {"error": f"Context {context_id} not found"}
+        
+        items_in_context = self.graph.context_manager.get_items_in_context(context_id)
+        
+        entities_in_context = [item for item in items_in_context if item in self.graph.entities]
+        predicates_in_context = [item for item in items_in_context if item in self.graph.predicates]
+        
+        child_contexts = self._get_child_contexts(context_id)
+        
+        return {
+            "context_id": str(context_id),
+            "type": context.context_type,
+            "depth": context.depth,
+            "polarity": "positive" if context.depth % 2 == 0 else "negative",
+            "parent": str(context.parent_context) if context.parent_context else None,
+            "entity_count": len(entities_in_context),
+            "predicate_count": len(predicates_in_context),
+            "child_context_count": len(child_contexts),
+            "total_items": len(items_in_context),
+            "properties": dict(context.properties)
+        }
+    
+    def bookmark_current_view(self, name: str) -> None:
+        """Bookmark the current view scope."""
+        if not self.current_state:
+            raise ValueError("No exploration state initialized")
+        
+        bookmarks = dict(self.current_state.bookmarks)
+        bookmarks[name] = self.current_state.current_view.scope
+        
+        self.current_state = replace(self.current_state, bookmarks=bookmarks)
+    
+    def navigate_to_bookmark(self, name: str) -> ExplorationView:
+        """Navigate to a bookmarked view."""
+        if not self.current_state or name not in self.current_state.bookmarks:
+            raise ValueError(f"Bookmark '{name}' not found")
+        
+        bookmarked_scope = self.current_state.bookmarks[name]
+        new_view = self.create_view(bookmarked_scope)
+        
+        self.current_state = replace(self.current_state, current_view=new_view)
+        return new_view
+    
+    # Helper methods
+    
+    def _categorize_items(self, items: Set[ItemId], entities: Set[EntityId], 
+                         predicates: Set[PredicateId], ligatures: Set[LigatureId]) -> None:
+        """Categorize items into entities, predicates, and ligatures."""
+        for item_id in items:
+            if item_id in self.graph.entities:
+                entities.add(item_id)
+            elif item_id in self.graph.predicates:
+                predicates.add(item_id)
+            elif item_id in self.graph.ligatures:
+                ligatures.add(item_id)
+    
+    def _get_all_nested_contexts(self, context_id: ContextId) -> Set[ContextId]:
+        """Get all contexts nested within the given context."""
+        contexts = {context_id}
+        
+        def add_children(ctx_id):
+            for child_id in self._get_child_contexts(ctx_id):
+                if child_id not in contexts:
+                    contexts.add(child_id)
+                    add_children(child_id)
+        
+        add_children(context_id)
+        return contexts
+    
+    def _get_contexts_within_depth(self, context_id: ContextId, max_depth: int) -> Set[ContextId]:
+        """Get contexts within a specified depth from the given context."""
+        contexts = {context_id}
+        current_depth = 0
+        
+        def add_children_with_depth(ctx_id, depth):
+            if depth >= max_depth:
+                return
+            for child_id in self._get_child_contexts(ctx_id):
+                if child_id not in contexts:
+                    contexts.add(child_id)
+                    add_children_with_depth(child_id, depth + 1)
+        
+        add_children_with_depth(context_id, 0)
+        return contexts
+    
+    def _get_child_contexts(self, context_id: ContextId) -> List[ContextId]:
+        """Get direct child contexts of the given context."""
+        children = []
+        for ctx_id, context in self.graph.context_manager.contexts.items():
+            if context.parent_context == context_id:
+                children.append(ctx_id)
+        return children
+    
+    def _find_boundary_contexts(self, included_contexts: Set[ContextId]) -> Set[ContextId]:
+        """Find contexts at the boundary of the included set."""
+        boundaries = set()
+        
+        for context_id in included_contexts:
+            children = self._get_child_contexts(context_id)
+            for child_id in children:
+                if child_id not in included_contexts:
+                    boundaries.add(context_id)
+                    break
+        
+        return boundaries
+    
+    def _apply_type_filters(self, entities: Set[EntityId], predicates: Set[PredicateId], 
+                          filter_types: Set[str]) -> Tuple[Set[EntityId], Set[PredicateId]]:
+        """Apply type filters to visible items."""
+        filtered_entities = set()
+        filtered_predicates = set()
+        
+        if 'entities' in filter_types or 'variables' in filter_types or 'constants' in filter_types:
+            for entity_id in entities:
+                entity = self.graph.entities[entity_id]
+                if ('entities' in filter_types or 
+                    (entity.entity_type == 'variable' and 'variables' in filter_types) or
+                    (entity.entity_type == 'constant' and 'constants' in filter_types)):
+                    filtered_entities.add(entity_id)
+        
+        if 'predicates' in filter_types:
+            filtered_predicates = predicates
+        
+        return filtered_entities, filtered_predicates
+    
+    def _generate_navigation_hints(self, scope: ViewScope, visible_contexts: Set[ContextId]) -> List[str]:
+        """Generate navigation hints for the current view."""
         hints = []
         
-        if boundaries:
-            hints.append(f"Can zoom into {len(boundaries)} child contexts")
+        if scope.scope_type == ScopeType.AREA_ONLY:
+            child_contexts = self._get_child_contexts(scope.focus_context)
+            if child_contexts:
+                hints.append(f"Zoom in to see {len(child_contexts)} nested contexts")
         
-        if scope.focus_context != self.graph.root_context_id:
-            hints.append("Can zoom out to parent context")
+        if scope.scope_type == ScopeType.LEVEL_LIMITED:
+            boundary_contexts = self._find_boundary_contexts(visible_contexts)
+            if boundary_contexts:
+                hints.append(f"Zoom in further to explore {len(boundary_contexts)} boundary contexts")
         
-        if scope.scope_type == ScopeType.LEVEL_LIMITED and scope.max_depth:
-            hints.append(f"Currently showing {scope.max_depth} levels deep")
+        focus_context = self.graph.context_manager.get_context(scope.focus_context)
+        if focus_context and focus_context.parent_context:
+            hints.append("Zoom out to see containing context")
         
         return hints
     
-    def _initialize_exploration(self):
-        """Initialize exploration with overview."""
-        overview = self.get_overview()
-        self._update_exploration_state(overview, overview.scope, FocusMode.CONTEXT_AREA)
+    def _get_connected_predicates(self, entity_id: EntityId) -> List[PredicateId]:
+        """Get all predicates connected to an entity."""
+        connected = []
+        for predicate_id, predicate in self.graph.predicates.items():
+            if entity_id in predicate.entities:
+                connected.append(predicate_id)
+        return connected
+    
+    def _find_connected_items(self, item_id: ItemId) -> Set[ItemId]:
+        """Find all items connected to the given item."""
+        connected = set()
+        
+        if item_id in self.graph.entities:
+            # Find predicates connected to this entity
+            for predicate_id, predicate in self.graph.predicates.items():
+                if item_id in predicate.entities:
+                    connected.add(predicate_id)
+                    # Add other entities in the same predicate
+                    connected.update(predicate.entities)
+        
+        elif item_id in self.graph.predicates:
+            # Add all entities in this predicate
+            predicate = self.graph.predicates[item_id]
+            connected.update(predicate.entities)
+        
+        # Find ligature connections
+        for ligature in self.graph.ligatures.values():
+            if item_id in ligature.connected_items:
+                connected.update(ligature.connected_items)
+        
+        # Remove the original item
+        connected.discard(item_id)
+        return connected
+    
+    def _find_pattern_matches(self, item_id: ItemId) -> Set[ItemId]:
+        """Find items that match the same pattern as the given item."""
+        matches = set()
+        
+        if item_id in self.graph.entities:
+            entity = self.graph.entities[item_id]
+            # Find entities of the same type
+            for other_id, other_entity in self.graph.entities.items():
+                if (other_id != item_id and 
+                    other_entity.entity_type == entity.entity_type):
+                    matches.add(other_id)
+        
+        elif item_id in self.graph.predicates:
+            predicate = self.graph.predicates[item_id]
+            # Find predicates with the same name or arity
+            for other_id, other_predicate in self.graph.predicates.items():
+                if (other_id != item_id and 
+                    (other_predicate.name == predicate.name or 
+                     other_predicate.arity == predicate.arity)):
+                    matches.add(other_id)
+        
+        return matches
+
+
+# Convenience functions for common exploration patterns
+
+def explore_quantification_structure(graph: EGGraph) -> Dict[str, Any]:
+    """Analyze the quantification structure of the graph."""
+    explorer = GraphExplorer()
+    explorer.set_graph(graph)
+    
+    quantification_info = {
+        "existential_contexts": [],
+        "universal_patterns": [],
+        "nested_depth": 0,
+        "variable_scoping": {}
+    }
+    
+    # Find contexts that represent quantification
+    for context_id, context in graph.context_manager.contexts.items():
+        if context.depth > 0:  # Non-root contexts
+            items_in_context = graph.context_manager.get_items_in_context(context_id)
+            entities_in_context = [item for item in items_in_context if item in graph.entities]
+            
+            if entities_in_context:
+                context_info = {
+                    "context_id": str(context_id),
+                    "depth": context.depth,
+                    "polarity": "positive" if context.depth % 2 == 0 else "negative",
+                    "entities": len(entities_in_context),
+                    "type": "existential" if context.depth % 2 == 0 else "negation"
+                }
+                
+                if context.depth % 2 == 0:
+                    quantification_info["existential_contexts"].append(context_info)
+                
+                quantification_info["nested_depth"] = max(quantification_info["nested_depth"], context.depth)
+    
+    return quantification_info
+
+
+def find_logical_patterns(graph: EGGraph) -> List[Dict[str, Any]]:
+    """Find common logical patterns in the graph."""
+    explorer = GraphExplorer()
+    explorer.set_graph(graph)
+    
+    patterns = []
+    
+    # Look for universal quantification pattern: ~[exists x ~[P(x)]]
+    for context_id, context in graph.context_manager.contexts.items():
+        if context.depth == 1 and context.depth % 2 == 1:  # Negative context at depth 1
+            child_contexts = explorer._get_child_contexts(context_id)
+            for child_id in child_contexts:
+                child_context = graph.context_manager.get_context(child_id)
+                if child_context and child_context.depth == 2:  # Positive context at depth 2
+                    grandchild_contexts = explorer._get_child_contexts(child_id)
+                    for grandchild_id in grandchild_contexts:
+                        grandchild_context = graph.context_manager.get_context(grandchild_id)
+                        if grandchild_context and grandchild_context.depth == 3:  # Negative context at depth 3
+                            patterns.append({
+                                "type": "universal_quantification",
+                                "outer_cut": str(context_id),
+                                "existential_scope": str(child_id),
+                                "inner_cut": str(grandchild_id),
+                                "confidence": 0.9
+                            })
+    
+    return patterns
 

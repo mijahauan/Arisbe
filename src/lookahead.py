@@ -1,617 +1,804 @@
 """
-Look Ahead System
+Strategic Lookahead System for Endoporeutic Game
 
-This module provides tools for exploring the consequences of transformations
-and patterns before committing to them. It supports two main types of look aheads:
+This module provides strategic lookahead capabilities for the Endoporeutic Game,
+enabling players to analyze potential move sequences and their consequences.
+The system evaluates game positions, suggests optimal moves, and predicts
+opponent responses.
 
-1. Step-based look aheads: Preview the effect of specific transformations
-2. Pattern-based look aheads: Explore instances of general patterns
+Updated for Entity-Predicate hypergraph architecture where:
+- CLIF terms (variables, constants) → Entities (Lines of Identity)
+- CLIF predicates → Predicates (hyperedges connecting entities)
+- CLIF quantifiers → Entity scoping in contexts
 
-The system enables safe exploration of the logical space without modifying
-the actual game state or graph structure.
+The lookahead system supports:
+1. Move tree generation and evaluation
+2. Position assessment and scoring
+3. Strategic move recommendation
+4. Opponent response prediction
+5. Game outcome probability estimation
 """
 
 from typing import Dict, List, Optional, Set, Tuple, Any, Union
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from enum import Enum
 import copy
+from collections import defaultdict
+import math
 
-from .eg_types import (
-    Node, Edge, Context, Ligature, NodeId, EdgeId, ContextId, 
-    LigatureId, ItemId
-)
+from .eg_types import EntityId, PredicateId, ContextId, LigatureId, ItemId
 from .graph import EGGraph
-from .transformations import (
-    TransformationEngine, TransformationType, TransformationResult,
-    ValidationResult as TransformationValidation
+from .game_engine import (
+    EndoporeuticGameEngine, GameState, GameMove, Player, GameStatus, MoveType
 )
-from .game_engine import EndoporeuticGameEngine, GameState, GameMove, Player, MoveType
-from .pattern_recognizer import PatternRecognitionEngine, PatternMatch
+from .transformations import TransformationType
+from .pattern_recognizer import PatternRecognitionEngine, PatternType
 
 
-class LookAheadType(Enum):
-    """Types of look ahead operations."""
-    TRANSFORMATION = "transformation"
-    GAME_MOVE = "game_move"
-    PATTERN_EXPLORATION = "pattern_exploration"
-    MOVE_SEQUENCE = "move_sequence"
+class PositionEvaluation(Enum):
+    """Evaluation of a game position."""
+    PROPOSER_WINNING = "proposer_winning"
+    PROPOSER_ADVANTAGE = "proposer_advantage"
+    BALANCED = "balanced"
+    SKEPTIC_ADVANTAGE = "skeptic_advantage"
+    SKEPTIC_WINNING = "skeptic_winning"
 
 
-@dataclass(frozen=True)
-class TransformationPreview:
-    """Preview of a transformation's effects."""
-    original_graph: EGGraph
-    transformed_graph: Optional[EGGraph]
-    transformation_type: TransformationType
-    target_items: Set[ItemId]
-    success: bool
-    validation_result: TransformationValidation
-    side_effects: List[str]
-    reversibility: str
-    complexity_change: str
+class MoveQuality(Enum):
+    """Quality assessment of a move."""
+    EXCELLENT = "excellent"
+    GOOD = "good"
+    NEUTRAL = "neutral"
+    POOR = "poor"
+    BLUNDER = "blunder"
+
+
+@dataclass
+class PositionScore:
+    """Numerical score for a game position."""
+    raw_score: float  # Positive favors Proposer, negative favors Skeptic
+    confidence: float  # 0.0 to 1.0
+    evaluation: PositionEvaluation
+    factors: Dict[str, float]  # Contributing factors to the score
     
     @property
-    def is_valid(self) -> bool:
-        """Check if the transformation preview is valid."""
-        return self.success and self.transformed_graph is not None
+    def normalized_score(self) -> float:
+        """Get score normalized to [-1, 1] range."""
+        return max(-1.0, min(1.0, self.raw_score / 100.0))
 
 
-@dataclass(frozen=True)
-class PatternMatch:
-    """A match for a pattern in a graph."""
-    pattern_type: str
-    confidence: float
-    matched_items: Set[ItemId]
-    context: ContextId
-    description: str
-    logical_form: str
-    
-    @property
-    def is_high_confidence(self) -> bool:
-        """Check if this is a high-confidence match."""
-        return self.confidence >= 0.8
-
-
-@dataclass(frozen=True)
-class PatternExploration:
-    """Results of exploring pattern instances."""
-    pattern_template: str
-    base_graph: EGGraph
-    matches: List[PatternMatch]
-    potential_instantiations: List[EGGraph]
-    exploration_notes: List[str]
-    
-    @property
-    def match_count(self) -> int:
-        """Number of pattern matches found."""
-        return len(self.matches)
-
-
-@dataclass(frozen=True)
-class GameMovePreview:
-    """Preview of a game move's effects."""
-    original_state: GameState
+@dataclass
+class MoveEvaluation:
+    """Evaluation of a specific move."""
     move: GameMove
-    resulting_state: Optional[GameState]
-    success: bool
-    error_message: Optional[str]
-    legal_moves_after: List[GameMove]
-    game_status_change: str
-    strategic_assessment: str
+    quality: MoveQuality
+    score_change: float
+    position_after: PositionScore
+    tactical_benefits: List[str]
+    strategic_risks: List[str]
+    opponent_responses: List['MoveEvaluation']
+    depth_analyzed: int
 
 
-@dataclass(frozen=True)
-class MoveSequenceSimulation:
-    """Simulation of a sequence of moves."""
-    initial_state: GameState
-    moves: List[GameMove]
-    intermediate_states: List[GameState]
-    final_state: Optional[GameState]
-    success: bool
-    failure_point: Optional[int]
-    outcome_assessment: str
-    alternative_suggestions: List[str]
+@dataclass
+class LookaheadNode:
+    """Node in the lookahead tree."""
+    state: GameState
+    move_to_reach: Optional[GameMove]
+    parent: Optional['LookaheadNode']
+    children: List['LookaheadNode']
+    position_score: Optional[PositionScore]
+    best_move: Optional[GameMove]
+    depth: int
+    is_terminal: bool
 
 
-class LookAheadEngine:
-    """
-    Main engine for look ahead operations.
-    
-    Provides safe exploration of transformations, game moves, and patterns
-    without modifying the actual game state or graph structure.
-    """
+@dataclass
+class LookaheadResult:
+    """Result of lookahead analysis."""
+    best_move: Optional[GameMove]
+    best_score: PositionScore
+    principal_variation: List[GameMove]
+    move_evaluations: List[MoveEvaluation]
+    analysis_depth: int
+    nodes_evaluated: int
+    time_taken: float
+
+
+class PositionEvaluator:
+    """Evaluates game positions to determine who has the advantage."""
     
     def __init__(self):
-        self.transformation_engine = TransformationEngine()
-        self.pattern_recognizer = PatternRecognitionEngine()
-        self.game_engine = EndoporeuticGameEngine()
+        """Initialize the position evaluator."""
+        self.pattern_engine = PatternRecognitionEngine()
     
-    def preview_transformation(self, graph: EGGraph, transformation_type: TransformationType,
-                             target_items: Set[ItemId], 
-                             additional_params: Optional[Dict[str, Any]] = None) -> TransformationPreview:
-        """
-        Preview the effects of applying a transformation to a graph.
+    def evaluate_position(self, state: GameState) -> PositionScore:
+        """Evaluate the current position and return a score."""
+        if state.status != GameStatus.IN_PROGRESS:
+            return self._evaluate_terminal_position(state)
         
-        Args:
-            graph: The graph to transform
-            transformation_type: Type of transformation to apply
-            target_items: Items to target for transformation
-            additional_params: Additional parameters for the transformation
-            
-        Returns:
-            Preview of the transformation's effects
-        """
-        # Create a copy of the graph for safe exploration
-        graph_copy = copy.deepcopy(graph)
+        factors = {}
         
-        try:
-            # Attempt the transformation
-            result = self.transformation_engine.apply_transformation(
-                graph_copy, transformation_type, target_items, additional_params or {}
-            )
-            
-            if result.result == TransformationResult.SUCCESS:
-                transformed_graph = result.new_graph
-                success = True
-                validation_result = TransformationValidation(True, "Transformation successful")
-            else:
-                transformed_graph = None
-                success = False
-                validation_result = TransformationValidation(False, result.message)
-            
-            # Analyze side effects
-            side_effects = self._analyze_side_effects(graph, transformed_graph, transformation_type)
-            
-            # Assess reversibility
-            reversibility = self._assess_reversibility(transformation_type, target_items)
-            
-            # Assess complexity change
-            complexity_change = self._assess_complexity_change(graph, transformed_graph)
-            
-            return TransformationPreview(
-                original_graph=graph,
-                transformed_graph=transformed_graph,
-                transformation_type=transformation_type,
-                target_items=target_items,
-                success=success,
-                validation_result=validation_result,
-                side_effects=side_effects,
-                reversibility=reversibility,
-                complexity_change=complexity_change
-            )
-            
-        except Exception as e:
-            return TransformationPreview(
-                original_graph=graph,
-                transformed_graph=None,
-                transformation_type=transformation_type,
-                target_items=target_items,
-                success=False,
-                validation_result=TransformationValidation(False, f"Error: {str(e)}"),
-                side_effects=[],
-                reversibility="Unknown",
-                complexity_change="Unknown"
-            )
-    
-    def explore_pattern_instances(self, pattern_template: str, base_graph: EGGraph,
-                                domain_graph: Optional[EGGraph] = None) -> PatternExploration:
-        """
-        Explore instances of a pattern in a graph or domain.
+        # Material evaluation (entities and predicates)
+        material_score = self._evaluate_material(state.graph)
+        factors['material'] = material_score
         
-        Args:
-            pattern_template: Template describing the pattern to find
-            base_graph: Graph to search for patterns
-            domain_graph: Optional domain model for additional context
-            
-        Returns:
-            Results of pattern exploration
-        """
-        try:
-            # Find existing matches in the base graph
-            matches = self._find_pattern_matches(pattern_template, base_graph)
-            
-            # Generate potential instantiations
-            instantiations = self._generate_pattern_instantiations(
-                pattern_template, base_graph, domain_graph
-            )
-            
-            # Generate exploration notes
-            notes = self._generate_exploration_notes(pattern_template, matches, instantiations)
-            
-            return PatternExploration(
-                pattern_template=pattern_template,
-                base_graph=base_graph,
-                matches=matches,
-                potential_instantiations=instantiations,
-                exploration_notes=notes
-            )
-            
-        except Exception as e:
-            return PatternExploration(
-                pattern_template=pattern_template,
-                base_graph=base_graph,
-                matches=[],
-                potential_instantiations=[],
-                exploration_notes=[f"Exploration failed: {str(e)}"]
-            )
-    
-    def preview_game_move(self, current_state: GameState, move: GameMove) -> GameMovePreview:
-        """
-        Preview the effects of a game move.
+        # Structural evaluation (context depth, complexity)
+        structural_score = self._evaluate_structure(state.graph)
+        factors['structure'] = structural_score
         
-        Args:
-            current_state: Current game state
-            move: Move to preview
-            
-        Returns:
-            Preview of the move's effects
-        """
-        # Create a copy of the game engine with the current state
-        engine_copy = copy.deepcopy(self.game_engine)
-        engine_copy.current_state = copy.deepcopy(current_state)
+        # Tactical evaluation (immediate threats and opportunities)
+        tactical_score = self._evaluate_tactics(state)
+        factors['tactics'] = tactical_score
         
-        try:
-            # Attempt the move
-            success, message = engine_copy.make_move(move)
-            
-            if success:
-                resulting_state = engine_copy.current_state
-                legal_moves_after = engine_copy.get_legal_moves()
-                game_status_change = self._assess_game_status_change(current_state, resulting_state)
-                strategic_assessment = self._assess_move_strategy(move, current_state, resulting_state)
-                error_message = None
-            else:
-                resulting_state = None
-                legal_moves_after = []
-                game_status_change = "Move failed"
-                strategic_assessment = "Invalid move"
-                error_message = message
-            
-            return GameMovePreview(
-                original_state=current_state,
-                move=move,
-                resulting_state=resulting_state,
-                success=success,
-                error_message=error_message,
-                legal_moves_after=legal_moves_after,
-                game_status_change=game_status_change,
-                strategic_assessment=strategic_assessment
-            )
-            
-        except Exception as e:
-            return GameMovePreview(
-                original_state=current_state,
-                move=move,
-                resulting_state=None,
-                success=False,
-                error_message=f"Error: {str(e)}",
-                legal_moves_after=[],
-                game_status_change="Error occurred",
-                strategic_assessment="Cannot assess"
-            )
-    
-    def simulate_move_sequence(self, initial_state: GameState, 
-                             moves: List[GameMove]) -> MoveSequenceSimulation:
-        """
-        Simulate a sequence of moves to see their combined effect.
+        # Strategic evaluation (long-term position factors)
+        strategic_score = self._evaluate_strategy(state)
+        factors['strategy'] = strategic_score
         
-        Args:
-            initial_state: Starting game state
-            moves: Sequence of moves to simulate
-            
-        Returns:
-            Results of the move sequence simulation
-        """
-        # Create a copy of the game engine
-        engine_copy = copy.deepcopy(self.game_engine)
-        engine_copy.current_state = copy.deepcopy(initial_state)
+        # Mobility evaluation (number of legal moves)
+        mobility_score = self._evaluate_mobility(state)
+        factors['mobility'] = mobility_score
         
-        intermediate_states = []
-        failure_point = None
+        # Pattern evaluation (logical patterns present)
+        pattern_score = self._evaluate_patterns(state.graph)
+        factors['patterns'] = pattern_score
         
-        try:
-            for i, move in enumerate(moves):
-                success, message = engine_copy.make_move(move)
-                
-                if success:
-                    intermediate_states.append(copy.deepcopy(engine_copy.current_state))
-                else:
-                    failure_point = i
-                    break
-            
-            if failure_point is None:
-                # All moves succeeded
-                final_state = engine_copy.current_state
-                success = True
-                outcome_assessment = self._assess_sequence_outcome(initial_state, final_state)
-                alternative_suggestions = []
-            else:
-                # Sequence failed at some point
-                final_state = None
-                success = False
-                outcome_assessment = f"Sequence failed at move {failure_point + 1}"
-                alternative_suggestions = self._suggest_alternatives(moves, failure_point)
-            
-            return MoveSequenceSimulation(
-                initial_state=initial_state,
-                moves=moves,
-                intermediate_states=intermediate_states,
-                final_state=final_state,
-                success=success,
-                failure_point=failure_point,
-                outcome_assessment=outcome_assessment,
-                alternative_suggestions=alternative_suggestions
-            )
-            
-        except Exception as e:
-            return MoveSequenceSimulation(
-                initial_state=initial_state,
-                moves=moves,
-                intermediate_states=intermediate_states,
-                final_state=None,
-                success=False,
-                failure_point=0,
-                outcome_assessment=f"Simulation error: {str(e)}",
-                alternative_suggestions=[]
-            )
-    
-    def get_transformation_suggestions(self, graph: EGGraph, 
-                                     goal: Optional[str] = None) -> List[TransformationPreview]:
-        """
-        Get suggestions for useful transformations on a graph.
-        
-        Args:
-            graph: Graph to analyze
-            goal: Optional goal description to guide suggestions
-            
-        Returns:
-            List of suggested transformations with previews
-        """
-        suggestions = []
-        
-        # Get all possible transformations
-        legal_transformations = self.transformation_engine.get_legal_transformations(graph)
-        
-        # Preview each transformation
-        for transformation_type, target_sets in legal_transformations.items():
-            for target_items in target_sets[:3]:  # Limit to first 3 for each type
-                preview = self.preview_transformation(graph, transformation_type, target_items)
-                if preview.is_valid:
-                    suggestions.append(preview)
-        
-        # Sort by usefulness (this would be more sophisticated in practice)
-        suggestions.sort(key=lambda p: len(p.side_effects))
-        
-        return suggestions[:10]  # Return top 10 suggestions
-    
-    def _analyze_side_effects(self, original: EGGraph, transformed: Optional[EGGraph],
-                            transformation_type: TransformationType) -> List[str]:
-        """Analyze side effects of a transformation."""
-        if transformed is None:
-            return ["Transformation failed"]
-        
-        side_effects = []
-        
-        # Compare node counts
-        original_nodes = len(original.nodes)
-        new_nodes = len(transformed.nodes)
-        if new_nodes != original_nodes:
-            side_effects.append(f"Node count changed: {original_nodes} → {new_nodes}")
-        
-        # Compare edge counts
-        original_edges = len(original.edges)
-        new_edges = len(transformed.edges)
-        if new_edges != original_edges:
-            side_effects.append(f"Edge count changed: {original_edges} → {new_edges}")
-        
-        # Compare context structure
-        original_contexts = len(original.context_manager.contexts)
-        new_contexts = len(transformed.context_manager.contexts)
-        if new_contexts != original_contexts:
-            side_effects.append(f"Context count changed: {original_contexts} → {new_contexts}")
-        
-        # Check for ligature changes
-        original_ligatures = len(original.ligatures)
-        new_ligatures = len(transformed.ligatures)
-        if new_ligatures != original_ligatures:
-            side_effects.append(f"Ligature count changed: {original_ligatures} → {new_ligatures}")
-        
-        return side_effects
-    
-    def _assess_reversibility(self, transformation_type: TransformationType, 
-                            target_items: Set[ItemId]) -> str:
-        """Assess whether a transformation is easily reversible."""
-        reversible_transformations = {
-            TransformationType.DOUBLE_CUT_INSERTION,
-            TransformationType.DOUBLE_CUT_ERASURE,
-            TransformationType.ITERATION,
-            TransformationType.DEITERATION
+        # Combine factors with weights
+        weights = {
+            'material': 0.25,
+            'structure': 0.20,
+            'tactics': 0.25,
+            'strategy': 0.15,
+            'mobility': 0.10,
+            'patterns': 0.05
         }
         
-        if transformation_type in reversible_transformations:
-            return "Easily reversible"
+        raw_score = sum(factors[factor] * weights[factor] for factor in factors)
+        
+        # Determine evaluation category
+        if raw_score > 50:
+            evaluation = PositionEvaluation.PROPOSER_WINNING
+        elif raw_score > 20:
+            evaluation = PositionEvaluation.PROPOSER_ADVANTAGE
+        elif raw_score > -20:
+            evaluation = PositionEvaluation.BALANCED
+        elif raw_score > -50:
+            evaluation = PositionEvaluation.SKEPTIC_ADVANTAGE
         else:
-            return "May be difficult to reverse"
+            evaluation = PositionEvaluation.SKEPTIC_WINNING
+        
+        # Calculate confidence based on score magnitude and consistency
+        confidence = min(1.0, abs(raw_score) / 100.0)
+        
+        return PositionScore(
+            raw_score=raw_score,
+            confidence=confidence,
+            evaluation=evaluation,
+            factors=factors
+        )
     
-    def _assess_complexity_change(self, original: EGGraph, 
-                                transformed: Optional[EGGraph]) -> str:
-        """Assess how transformation affects graph complexity."""
-        if transformed is None:
-            return "Unknown"
+    def _evaluate_terminal_position(self, state: GameState) -> PositionScore:
+        """Evaluate a terminal (ended) game position."""
+        if state.status == GameStatus.PROPOSER_WIN:
+            return PositionScore(
+                raw_score=1000.0,
+                confidence=1.0,
+                evaluation=PositionEvaluation.PROPOSER_WINNING,
+                factors={'terminal': 1000.0}
+            )
+        elif state.status == GameStatus.SKEPTIC_WIN:
+            return PositionScore(
+                raw_score=-1000.0,
+                confidence=1.0,
+                evaluation=PositionEvaluation.SKEPTIC_WINNING,
+                factors={'terminal': -1000.0}
+            )
+        else:  # Draw
+            return PositionScore(
+                raw_score=0.0,
+                confidence=1.0,
+                evaluation=PositionEvaluation.BALANCED,
+                factors={'terminal': 0.0}
+            )
+    
+    def _evaluate_material(self, graph: EGGraph) -> float:
+        """Evaluate material balance (entities and predicates)."""
+        entity_count = len(graph.entities)
+        predicate_count = len(graph.predicates)
         
-        original_complexity = self._calculate_complexity(original)
-        new_complexity = self._calculate_complexity(transformed)
+        # More entities generally favor the Skeptic (more to attack)
+        # More predicates generally favor the Proposer (more assertions)
+        material_score = predicate_count * 5 - entity_count * 3
         
-        if new_complexity > original_complexity:
-            return "Increased complexity"
-        elif new_complexity < original_complexity:
-            return "Reduced complexity"
+        return material_score
+    
+    def _evaluate_structure(self, graph: EGGraph) -> float:
+        """Evaluate structural factors."""
+        max_depth = 0
+        if graph.context_manager.contexts:
+            max_depth = max(ctx.depth for ctx in graph.context_manager.contexts.values())
+        
+        context_count = len(graph.context_manager.contexts)
+        
+        # Deeper structures generally favor the Proposer (more complex logic)
+        # But too many contexts can be unwieldy
+        depth_score = max_depth * 8 - (context_count - max_depth) * 2
+        
+        return depth_score
+    
+    def _evaluate_tactics(self, state: GameState) -> float:
+        """Evaluate tactical factors (immediate threats)."""
+        tactical_score = 0.0
+        
+        # Check for immediate winning/losing threats
+        if state.contested_context:
+            items_in_contested = state.graph.context_manager.get_items_in_context(state.contested_context)
+            
+            # Empty contested context = Skeptic wins
+            if not items_in_contested:
+                tactical_score -= 500.0
+            
+            # Very few items = dangerous for Proposer
+            elif len(items_in_contested) <= 2:
+                tactical_score -= 50.0
+            
+            # Many items = good for Proposer
+            elif len(items_in_contested) >= 5:
+                tactical_score += 30.0
+        
+        return tactical_score
+    
+    def _evaluate_strategy(self, state: GameState) -> float:
+        """Evaluate strategic factors."""
+        strategic_score = 0.0
+        
+        # Analyze variable scoping
+        variables_in_graph = sum(1 for e in state.graph.entities.values() 
+                               if e.entity_type == 'variable')
+        constants_in_graph = sum(1 for e in state.graph.entities.values() 
+                               if e.entity_type == 'constant')
+        
+        # More variables give more flexibility (slight advantage to current player)
+        strategic_score += variables_in_graph * 2
+        
+        # Constants provide concrete claims (advantage to Proposer)
+        strategic_score += constants_in_graph * 3
+        
+        # Analyze ligature connections
+        ligature_count = len(state.graph.ligatures)
+        strategic_score += ligature_count * 5  # Connections favor Proposer
+        
+        return strategic_score
+    
+    def _evaluate_mobility(self, state: GameState) -> float:
+        """Evaluate mobility (number of legal moves)."""
+        # This would require access to the game engine
+        # For now, return a placeholder based on graph complexity
+        
+        total_items = len(state.graph.entities) + len(state.graph.predicates)
+        context_count = len(state.graph.context_manager.contexts)
+        
+        # More items and contexts generally mean more move options
+        mobility_estimate = total_items * 2 + context_count * 3
+        
+        # Current player benefits from having more options
+        if state.current_player == Player.PROPOSER:
+            return mobility_estimate * 0.5
         else:
-            return "Complexity unchanged"
+            return -mobility_estimate * 0.5
     
-    def _calculate_complexity(self, graph: EGGraph) -> int:
-        """Calculate a simple complexity metric for a graph."""
-        return (len(graph.nodes) + 
-                len(graph.edges) + 
-                len(graph.ligatures) + 
-                graph.context_manager.get_max_depth() * 2)
-    
-    def _find_pattern_matches(self, pattern_template: str, graph: EGGraph) -> List[PatternMatch]:
-        """Find matches for a pattern template in a graph."""
-        matches = []
-        
-        # Use pattern recognizer to find logical patterns
-        patterns = self.pattern_recognizer.recognize_all_patterns(graph)
+    def _evaluate_patterns(self, graph: EGGraph) -> float:
+        """Evaluate logical patterns in the graph."""
+        patterns = self.pattern_engine.find_patterns(graph)
+        pattern_score = 0.0
         
         for pattern in patterns:
-            if pattern_template.lower() in pattern.pattern_type.lower():
-                match = PatternMatch(
-                    pattern_type=pattern.pattern_type,
-                    confidence=pattern.confidence,
-                    matched_items=pattern.matched_items,
-                    context=pattern.context,
-                    description=pattern.description,
-                    logical_form=pattern.logical_form
+            if pattern.pattern_type == PatternType.UNIVERSAL_QUANTIFICATION:
+                pattern_score += 15  # Strong logical structure favors Proposer
+            elif pattern.pattern_type == PatternType.EXISTENTIAL_QUANTIFICATION:
+                pattern_score += 10  # Quantification favors Proposer
+            elif pattern.pattern_type == PatternType.IMPLICATION:
+                pattern_score += 12  # Implications favor Proposer
+            elif pattern.pattern_type == PatternType.CONJUNCTION:
+                pattern_score += 8   # Conjunctions favor Proposer
+            elif pattern.pattern_type == PatternType.NEGATION:
+                pattern_score -= 5   # Negations can favor Skeptic
+        
+        return pattern_score
+
+
+class LookaheadEngine:
+    """
+    Strategic lookahead engine for the Endoporeutic Game with Entity-Predicate architecture.
+    
+    Provides deep analysis of move sequences, position evaluation,
+    and strategic recommendations for optimal play.
+    """
+    
+    def __init__(self, game_engine: EndoporeuticGameEngine):
+        """Initialize the lookahead engine."""
+        self.game_engine = game_engine
+        self.position_evaluator = PositionEvaluator()
+        self.transposition_table: Dict[str, PositionScore] = {}
+        self.max_depth = 6
+        self.max_nodes = 10000
+    
+    def analyze_position(self, state: GameState, depth: int = 4) -> LookaheadResult:
+        """Analyze the current position to the specified depth."""
+        start_time = 0  # Would use time.time() in real implementation
+        
+        # Create root node
+        root = LookaheadNode(
+            state=state,
+            move_to_reach=None,
+            parent=None,
+            children=[],
+            position_score=None,
+            best_move=None,
+            depth=0,
+            is_terminal=state.status != GameStatus.IN_PROGRESS
+        )
+        
+        # Perform minimax search with alpha-beta pruning
+        nodes_evaluated = 0
+        best_score = self._minimax(root, depth, -math.inf, math.inf, True, nodes_evaluated)
+        
+        # Extract results
+        best_move = root.best_move
+        principal_variation = self._extract_principal_variation(root)
+        move_evaluations = self._generate_move_evaluations(root)
+        
+        end_time = 0  # Would use time.time() in real implementation
+        time_taken = end_time - start_time
+        
+        return LookaheadResult(
+            best_move=best_move,
+            best_score=best_score,
+            principal_variation=principal_variation,
+            move_evaluations=move_evaluations,
+            analysis_depth=depth,
+            nodes_evaluated=nodes_evaluated,
+            time_taken=time_taken
+        )
+    
+    def suggest_move(self, state: GameState) -> Optional[GameMove]:
+        """Suggest the best move for the current position."""
+        if state.status != GameStatus.IN_PROGRESS:
+            return None
+        
+        result = self.analyze_position(state, depth=4)
+        return result.best_move
+    
+    def evaluate_move(self, state: GameState, move: GameMove) -> MoveEvaluation:
+        """Evaluate a specific move in the current position."""
+        # Apply the move
+        try:
+            new_state = self.game_engine.apply_move(state, move)
+        except ValueError:
+            # Illegal move
+            return MoveEvaluation(
+                move=move,
+                quality=MoveQuality.BLUNDER,
+                score_change=-1000.0,
+                position_after=PositionScore(-1000.0, 1.0, PositionEvaluation.SKEPTIC_WINNING, {}),
+                tactical_benefits=[],
+                strategic_risks=["Illegal move"],
+                opponent_responses=[],
+                depth_analyzed=0
+            )
+        
+        # Evaluate positions before and after
+        position_before = self.position_evaluator.evaluate_position(state)
+        position_after = self.position_evaluator.evaluate_position(new_state)
+        
+        # Calculate score change (from current player's perspective)
+        if state.current_player == Player.PROPOSER:
+            score_change = position_after.raw_score - position_before.raw_score
+        else:
+            score_change = position_before.raw_score - position_after.raw_score
+        
+        # Determine move quality
+        if score_change > 50:
+            quality = MoveQuality.EXCELLENT
+        elif score_change > 20:
+            quality = MoveQuality.GOOD
+        elif score_change > -10:
+            quality = MoveQuality.NEUTRAL
+        elif score_change > -50:
+            quality = MoveQuality.POOR
+        else:
+            quality = MoveQuality.BLUNDER
+        
+        # Analyze tactical benefits and risks
+        tactical_benefits = self._analyze_tactical_benefits(state, new_state, move)
+        strategic_risks = self._analyze_strategic_risks(state, new_state, move)
+        
+        # Analyze opponent responses (shallow)
+        opponent_responses = self._analyze_opponent_responses(new_state, depth=2)
+        
+        return MoveEvaluation(
+            move=move,
+            quality=quality,
+            score_change=score_change,
+            position_after=position_after,
+            tactical_benefits=tactical_benefits,
+            strategic_risks=strategic_risks,
+            opponent_responses=opponent_responses,
+            depth_analyzed=2
+        )
+    
+    def predict_game_outcome(self, state: GameState) -> Dict[str, float]:
+        """Predict the probability of different game outcomes."""
+        if state.status != GameStatus.IN_PROGRESS:
+            # Game already ended
+            if state.status == GameStatus.PROPOSER_WIN:
+                return {"proposer_win": 1.0, "skeptic_win": 0.0, "draw": 0.0}
+            elif state.status == GameStatus.SKEPTIC_WIN:
+                return {"proposer_win": 0.0, "skeptic_win": 1.0, "draw": 0.0}
+            else:
+                return {"proposer_win": 0.0, "skeptic_win": 0.0, "draw": 1.0}
+        
+        # Analyze current position
+        position_score = self.position_evaluator.evaluate_position(state)
+        
+        # Convert score to probabilities using sigmoid function
+        normalized_score = position_score.normalized_score
+        
+        # Sigmoid transformation
+        proposer_advantage = 1 / (1 + math.exp(-normalized_score * 3))
+        
+        # Adjust for confidence
+        confidence_factor = position_score.confidence
+        
+        # Calculate probabilities
+        if proposer_advantage > 0.6:
+            proposer_win_prob = 0.4 + (proposer_advantage - 0.6) * confidence_factor
+            skeptic_win_prob = 0.4 - (proposer_advantage - 0.6) * confidence_factor
+        elif proposer_advantage < 0.4:
+            proposer_win_prob = 0.4 - (0.4 - proposer_advantage) * confidence_factor
+            skeptic_win_prob = 0.4 + (0.4 - proposer_advantage) * confidence_factor
+        else:
+            proposer_win_prob = 0.4
+            skeptic_win_prob = 0.4
+        
+        draw_prob = 1.0 - proposer_win_prob - skeptic_win_prob
+        
+        return {
+            "proposer_win": max(0.0, min(1.0, proposer_win_prob)),
+            "skeptic_win": max(0.0, min(1.0, skeptic_win_prob)),
+            "draw": max(0.0, min(1.0, draw_prob))
+        }
+    
+    def find_tactical_shots(self, state: GameState) -> List[GameMove]:
+        """Find tactical moves that create immediate threats."""
+        tactical_moves = []
+        
+        legal_moves = self.game_engine.get_legal_moves(state)
+        
+        for move in legal_moves:
+            try:
+                new_state = self.game_engine.apply_move(state, move)
+                
+                # Check if this move creates a tactical threat
+                if self._is_tactical_shot(state, new_state, move):
+                    tactical_moves.append(move)
+                    
+            except ValueError:
+                continue  # Skip illegal moves
+        
+        return tactical_moves
+    
+    def analyze_endgame(self, state: GameState) -> Dict[str, Any]:
+        """Analyze endgame positions with perfect play."""
+        # This would implement endgame tablebase lookup or deep search
+        # For now, return basic analysis
+        
+        contested_items = set()
+        if state.contested_context:
+            contested_items = state.graph.context_manager.get_items_in_context(state.contested_context)
+        
+        entities_in_contested = {item for item in contested_items if item in state.graph.entities}
+        predicates_in_contested = {item for item in contested_items if item in state.graph.predicates}
+        
+        is_endgame = len(contested_items) <= 3
+        
+        return {
+            "is_endgame": is_endgame,
+            "contested_items": len(contested_items),
+            "contested_entities": len(entities_in_contested),
+            "contested_predicates": len(predicates_in_contested),
+            "theoretical_result": "unknown",  # Would be computed with perfect play
+            "key_moves": [],  # Critical moves in the endgame
+            "conversion_plan": []  # Plan to convert advantage
+        }
+    
+    # Private helper methods
+    
+    def _minimax(self, node: LookaheadNode, depth: int, alpha: float, beta: float, 
+                maximizing_player: bool, nodes_evaluated: int) -> PositionScore:
+        """Minimax algorithm with alpha-beta pruning."""
+        nodes_evaluated += 1
+        
+        # Terminal node or depth limit reached
+        if depth == 0 or node.is_terminal or nodes_evaluated >= self.max_nodes:
+            node.position_score = self.position_evaluator.evaluate_position(node.state)
+            return node.position_score
+        
+        # Check transposition table
+        state_hash = self._compute_state_hash(node.state)
+        if state_hash in self.transposition_table:
+            return self.transposition_table[state_hash]
+        
+        # Generate child nodes
+        legal_moves = self.game_engine.get_legal_moves(node.state)
+        
+        if maximizing_player:
+            max_eval = PositionScore(-math.inf, 0.0, PositionEvaluation.SKEPTIC_WINNING, {})
+            
+            for move in legal_moves:
+                try:
+                    new_state = self.game_engine.apply_move(node.state, move)
+                    child_node = LookaheadNode(
+                        state=new_state,
+                        move_to_reach=move,
+                        parent=node,
+                        children=[],
+                        position_score=None,
+                        best_move=None,
+                        depth=node.depth + 1,
+                        is_terminal=new_state.status != GameStatus.IN_PROGRESS
+                    )
+                    node.children.append(child_node)
+                    
+                    eval_score = self._minimax(child_node, depth - 1, alpha, beta, False, nodes_evaluated)
+                    
+                    if eval_score.raw_score > max_eval.raw_score:
+                        max_eval = eval_score
+                        node.best_move = move
+                    
+                    alpha = max(alpha, eval_score.raw_score)
+                    if beta <= alpha:
+                        break  # Alpha-beta pruning
+                        
+                except ValueError:
+                    continue  # Skip illegal moves
+            
+            node.position_score = max_eval
+            
+        else:
+            min_eval = PositionScore(math.inf, 0.0, PositionEvaluation.PROPOSER_WINNING, {})
+            
+            for move in legal_moves:
+                try:
+                    new_state = self.game_engine.apply_move(node.state, move)
+                    child_node = LookaheadNode(
+                        state=new_state,
+                        move_to_reach=move,
+                        parent=node,
+                        children=[],
+                        position_score=None,
+                        best_move=None,
+                        depth=node.depth + 1,
+                        is_terminal=new_state.status != GameStatus.IN_PROGRESS
+                    )
+                    node.children.append(child_node)
+                    
+                    eval_score = self._minimax(child_node, depth - 1, alpha, beta, True, nodes_evaluated)
+                    
+                    if eval_score.raw_score < min_eval.raw_score:
+                        min_eval = eval_score
+                        node.best_move = move
+                    
+                    beta = min(beta, eval_score.raw_score)
+                    if beta <= alpha:
+                        break  # Alpha-beta pruning
+                        
+                except ValueError:
+                    continue  # Skip illegal moves
+            
+            node.position_score = min_eval
+        
+        # Store in transposition table
+        self.transposition_table[state_hash] = node.position_score
+        
+        return node.position_score
+    
+    def _extract_principal_variation(self, root: LookaheadNode) -> List[GameMove]:
+        """Extract the principal variation (best line of play)."""
+        pv = []
+        current = root
+        
+        while current.best_move and current.children:
+            pv.append(current.best_move)
+            # Find the child corresponding to the best move
+            for child in current.children:
+                if child.move_to_reach == current.best_move:
+                    current = child
+                    break
+            else:
+                break  # Best move child not found
+        
+        return pv
+    
+    def _generate_move_evaluations(self, root: LookaheadNode) -> List[MoveEvaluation]:
+        """Generate evaluations for all legal moves."""
+        evaluations = []
+        
+        for child in root.children:
+            if child.move_to_reach and child.position_score:
+                # Determine move quality based on score
+                score_change = child.position_score.raw_score - (root.position_score.raw_score if root.position_score else 0)
+                
+                if score_change > 30:
+                    quality = MoveQuality.EXCELLENT
+                elif score_change > 10:
+                    quality = MoveQuality.GOOD
+                elif score_change > -10:
+                    quality = MoveQuality.NEUTRAL
+                elif score_change > -30:
+                    quality = MoveQuality.POOR
+                else:
+                    quality = MoveQuality.BLUNDER
+                
+                evaluation = MoveEvaluation(
+                    move=child.move_to_reach,
+                    quality=quality,
+                    score_change=score_change,
+                    position_after=child.position_score,
+                    tactical_benefits=[],
+                    strategic_risks=[],
+                    opponent_responses=[],
+                    depth_analyzed=child.depth
                 )
-                matches.append(match)
+                evaluations.append(evaluation)
         
-        return matches
+        # Sort by score change (best first)
+        evaluations.sort(key=lambda e: e.score_change, reverse=True)
+        
+        return evaluations
     
-    def _generate_pattern_instantiations(self, pattern_template: str, base_graph: EGGraph,
-                                       domain_graph: Optional[EGGraph]) -> List[EGGraph]:
-        """Generate potential instantiations of a pattern."""
-        instantiations = []
+    def _analyze_tactical_benefits(self, old_state: GameState, new_state: GameState, move: GameMove) -> List[str]:
+        """Analyze tactical benefits of a move."""
+        benefits = []
         
-        # This would implement pattern instantiation logic
-        # For now, return empty list
-        
-        return instantiations
-    
-    def _generate_exploration_notes(self, pattern_template: str, matches: List[PatternMatch],
-                                  instantiations: List[EGGraph]) -> List[str]:
-        """Generate notes about pattern exploration results."""
-        notes = []
-        
-        if matches:
-            notes.append(f"Found {len(matches)} existing instances of pattern")
-            high_confidence = [m for m in matches if m.is_high_confidence]
-            if high_confidence:
-                notes.append(f"{len(high_confidence)} high-confidence matches")
-        else:
-            notes.append("No existing instances found")
-        
-        if instantiations:
-            notes.append(f"Generated {len(instantiations)} potential instantiations")
-        
-        return notes
-    
-    def _assess_game_status_change(self, before: GameState, after: GameState) -> str:
-        """Assess how a move changed the game status."""
-        if before.status != after.status:
-            return f"Status changed: {before.status} → {after.status}"
-        
-        if before.current_player != after.current_player:
-            return f"Player changed: {before.current_player} → {after.current_player}"
-        
-        if before.contested_context != after.contested_context:
-            return "Contested context changed"
-        
-        return "No significant status change"
-    
-    def _assess_move_strategy(self, move: GameMove, before: GameState, 
-                            after: GameState) -> str:
-        """Assess the strategic value of a move."""
         if move.move_type == MoveType.TRANSFORMATION:
-            return f"Applied {move.transformation_type} transformation"
-        elif move.move_type == MoveType.UNWRAP_NEGATION:
-            return "Created sub-inning with role reversal"
-        elif move.move_type == MoveType.SCOPING_CHALLENGE:
-            return "Challenged exposed elements"
-        else:
-            return "Standard game move"
+            if move.transformation_type == TransformationType.ERASURE:
+                benefits.append("Removes opponent's assertion")
+            elif move.transformation_type == TransformationType.INSERTION:
+                benefits.append("Adds supporting assertion")
+            elif move.transformation_type == TransformationType.ITERATION:
+                benefits.append("Copies assertion to deeper context")
+            elif move.transformation_type == TransformationType.DOUBLE_CUT_ERASURE:
+                benefits.append("Simplifies graph structure")
+        
+        # Check if move threatens to empty contested context
+        if new_state.contested_context:
+            items_after = new_state.graph.context_manager.get_items_in_context(new_state.contested_context)
+            if len(items_after) <= 1:
+                benefits.append("Threatens to empty contested context")
+        
+        return benefits
     
-    def _assess_sequence_outcome(self, initial: GameState, final: GameState) -> str:
-        """Assess the outcome of a move sequence."""
-        if initial.status != final.status:
-            return f"Game concluded: {final.status}"
+    def _analyze_strategic_risks(self, old_state: GameState, new_state: GameState, move: GameMove) -> List[str]:
+        """Analyze strategic risks of a move."""
+        risks = []
         
-        move_count = len(final.move_history) - len(initial.move_history)
-        return f"Sequence of {move_count} moves completed successfully"
+        # Check if move exposes entities to attack
+        old_entities = len(old_state.graph.entities)
+        new_entities = len(new_state.graph.entities)
+        
+        if new_entities > old_entities:
+            risks.append("Introduces new entities vulnerable to attack")
+        
+        # Check if move increases graph complexity unnecessarily
+        old_contexts = len(old_state.graph.context_manager.contexts)
+        new_contexts = len(new_state.graph.context_manager.contexts)
+        
+        if new_contexts > old_contexts + 1:
+            risks.append("Significantly increases graph complexity")
+        
+        return risks
     
-    def _suggest_alternatives(self, failed_moves: List[GameMove], 
-                            failure_point: int) -> List[str]:
-        """Suggest alternative moves when a sequence fails."""
-        suggestions = []
+    def _analyze_opponent_responses(self, state: GameState, depth: int) -> List[MoveEvaluation]:
+        """Analyze likely opponent responses."""
+        if depth <= 0:
+            return []
         
-        failed_move = failed_moves[failure_point]
+        legal_moves = self.game_engine.get_legal_moves(state)
+        responses = []
         
-        if failed_move.move_type == MoveType.TRANSFORMATION:
-            suggestions.append("Try a different transformation type")
-            suggestions.append("Check if target items are valid")
-        elif failed_move.move_type == MoveType.UNWRAP_NEGATION:
-            suggestions.append("Ensure the target context is a cut")
-            suggestions.append("Check if unwrapping is legal at this point")
-        else:
-            suggestions.append("Verify move is legal in current game state")
+        # Evaluate top few moves
+        for move in legal_moves[:3]:  # Limit to top 3 for performance
+            evaluation = self.evaluate_move(state, move)
+            evaluation.depth_analyzed = depth - 1
+            responses.append(evaluation)
         
-        return suggestions
+        # Sort by quality
+        responses.sort(key=lambda e: e.score_change, reverse=True)
+        
+        return responses
+    
+    def _is_tactical_shot(self, old_state: GameState, new_state: GameState, move: GameMove) -> bool:
+        """Check if a move is a tactical shot (creates immediate threat)."""
+        # Check if move threatens to win immediately
+        if new_state.status in [GameStatus.PROPOSER_WIN, GameStatus.SKEPTIC_WIN]:
+            return True
+        
+        # Check if move threatens to empty contested context
+        if new_state.contested_context:
+            items_after = new_state.graph.context_manager.get_items_in_context(new_state.contested_context)
+            if len(items_after) <= 1:
+                return True
+        
+        # Check if move creates forcing sequence
+        opponent_moves = self.game_engine.get_legal_moves(new_state)
+        if len(opponent_moves) <= 2:  # Limited opponent options
+            return True
+        
+        return False
+    
+    def _compute_state_hash(self, state: GameState) -> str:
+        """Compute a hash for the game state for transposition table."""
+        # Simple hash based on graph structure and game state
+        entity_count = len(state.graph.entities)
+        predicate_count = len(state.graph.predicates)
+        context_count = len(state.graph.context_manager.contexts)
+        current_player = state.current_player.value
+        contested_context = str(state.contested_context) if state.contested_context else "none"
+        
+        return f"{entity_count}_{predicate_count}_{context_count}_{current_player}_{contested_context}"
 
 
-class UndoRedoManager:
-    """
-    Manager for undo/redo operations during look ahead exploration.
+# Convenience functions for strategic analysis
+
+def quick_move_suggestion(game_engine: EndoporeuticGameEngine, state: GameState) -> Optional[GameMove]:
+    """Get a quick move suggestion without deep analysis."""
+    lookahead = LookaheadEngine(game_engine)
+    return lookahead.suggest_move(state)
+
+
+def analyze_critical_position(game_engine: EndoporeuticGameEngine, state: GameState) -> Dict[str, Any]:
+    """Perform deep analysis of a critical position."""
+    lookahead = LookaheadEngine(game_engine)
     
-    Maintains a history of graph states to enable safe exploration
-    with easy backtracking.
-    """
+    # Deep analysis
+    result = lookahead.analyze_position(state, depth=6)
     
-    def __init__(self, initial_graph: EGGraph):
-        self.history: List[EGGraph] = [initial_graph]
-        self.current_index: int = 0
-        self.max_history: int = 50  # Limit history size
+    # Tactical analysis
+    tactical_shots = lookahead.find_tactical_shots(state)
     
-    def save_state(self, graph: EGGraph) -> None:
-        """Save a new graph state."""
-        # Remove any future states if we're not at the end
-        self.history = self.history[:self.current_index + 1]
-        
-        # Add new state
-        self.history.append(copy.deepcopy(graph))
-        self.current_index += 1
-        
-        # Limit history size
-        if len(self.history) > self.max_history:
-            self.history.pop(0)
-            self.current_index -= 1
+    # Outcome prediction
+    outcome_probs = lookahead.predict_game_outcome(state)
     
-    def undo(self) -> Optional[EGGraph]:
-        """Undo to previous state."""
-        if self.current_index > 0:
-            self.current_index -= 1
-            return copy.deepcopy(self.history[self.current_index])
-        return None
+    # Endgame analysis
+    endgame_info = lookahead.analyze_endgame(state)
     
-    def redo(self) -> Optional[EGGraph]:
-        """Redo to next state."""
-        if self.current_index < len(self.history) - 1:
-            self.current_index += 1
-            return copy.deepcopy(self.history[self.current_index])
-        return None
+    return {
+        "best_move": result.best_move.description if result.best_move else "No move found",
+        "evaluation": result.best_score.evaluation.value,
+        "score": result.best_score.raw_score,
+        "confidence": result.best_score.confidence,
+        "principal_variation": [move.description for move in result.principal_variation],
+        "tactical_shots": len(tactical_shots),
+        "outcome_probabilities": outcome_probs,
+        "endgame_info": endgame_info,
+        "analysis_depth": result.analysis_depth,
+        "nodes_evaluated": result.nodes_evaluated
+    }
+
+
+def compare_moves(game_engine: EndoporeuticGameEngine, state: GameState, 
+                 moves: List[GameMove]) -> List[MoveEvaluation]:
+    """Compare multiple moves and rank them."""
+    lookahead = LookaheadEngine(game_engine)
     
-    def can_undo(self) -> bool:
-        """Check if undo is possible."""
-        return self.current_index > 0
+    evaluations = []
+    for move in moves:
+        evaluation = lookahead.evaluate_move(state, move)
+        evaluations.append(evaluation)
     
-    def can_redo(self) -> bool:
-        """Check if redo is possible."""
-        return self.current_index < len(self.history) - 1
+    # Sort by score change (best first)
+    evaluations.sort(key=lambda e: e.score_change, reverse=True)
     
-    def get_current_state(self) -> EGGraph:
-        """Get the current graph state."""
-        return copy.deepcopy(self.history[self.current_index])
-    
-    def clear_history(self, new_initial: EGGraph) -> None:
-        """Clear history and start fresh with a new initial state."""
-        self.history = [copy.deepcopy(new_initial)]
-        self.current_index = 0
+    return evaluations
 
