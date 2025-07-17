@@ -308,8 +308,8 @@ class TransformationEngine:
         rules[TransformationType.ITERATION] = TransformationRule(
             rule_type=TransformationType.ITERATION,
             name="Iteration",
-            description="Copy a subgraph to a context at the same or higher level",
-            preconditions=["Source subgraph exists", "Target context at same or higher level"],
+            description="Copy a subgraph to a context at the same or deeper level",
+            preconditions=["Source subgraph exists", "Target context at same or deeper level"],
             effects=["Creates copy of subgraph", "Preserves logical strength"],
             entity_effects=["Extends entity connections to copied elements"]
         )
@@ -480,8 +480,8 @@ class TransformationEngine:
         target_ctx = graph.context_manager.get_context(target_context)
         source_ctx = graph.context_manager.get_context(source_context) if source_context else None
         
-        if source_ctx and target_ctx and target_ctx.depth > source_ctx.depth:
-            raise ValueError("Cannot iterate to deeper context")
+        if source_ctx and target_ctx and target_ctx.depth < source_ctx.depth:
+            raise ValueError("Cannot iterate to shallower context")
         
         # Create copies of the items
         item_mapping = {}  # Old ID -> New ID
@@ -540,8 +540,6 @@ class TransformationEngine:
     
     def _apply_entity_join(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> EGGraph:
         """Apply entity join transformation (merge entities into same Line of Identity)."""
-        # This would merge multiple entities into a single entity
-        # For now, implement as a placeholder
         entity_type = kwargs.get('entity_type', 'variable')
         
         # Find entities to merge
@@ -569,6 +567,7 @@ class TransformationEngine:
         graph = graph.add_entity(merged_entity, context_id)
         
         # Update all predicates to reference the merged entity
+        predicates_to_update = []
         for predicate in graph.predicates.values():
             updated_entities = []
             changed = False
@@ -581,8 +580,20 @@ class TransformationEngine:
                     updated_entities.append(entity_id)
             
             if changed:
-                updated_predicate = predicate.set_entities(updated_entities)
-                graph = graph.update_predicate(updated_predicate)
+                predicates_to_update.append((predicate, updated_entities))
+        
+        # Update predicates (remove old, add new)
+        for predicate, updated_entities in predicates_to_update:
+            predicate_context = self._find_item_context(graph, predicate.id) or context_id
+            graph = graph.remove_predicate(predicate.id)
+            
+            updated_predicate = Predicate.create(
+                name=predicate.name,
+                entities=updated_entities,
+                arity=predicate.arity,
+                properties=dict(predicate.properties)
+            )
+            graph = graph.add_predicate(updated_predicate, predicate_context)
         
         # Remove original entities
         for entity in entities_to_merge:
@@ -592,8 +603,6 @@ class TransformationEngine:
     
     def _apply_entity_sever(self, graph: EGGraph, target_items: Set[ItemId], **kwargs) -> EGGraph:
         """Apply entity sever transformation (split shared entities)."""
-        # This would split a shared entity into separate entities
-        # For now, implement as a placeholder
         
         for item_id in target_items:
             if item_id in graph.entities:
@@ -607,6 +616,8 @@ class TransformationEngine:
                 
                 if len(using_predicates) > 1:
                     # Create separate entities for each predicate (except the first)
+                    predicates_to_update = []
+                    
                     for i, predicate in enumerate(using_predicates[1:], 1):
                         new_entity = Entity.create(
                             name=f"{entity.name}_{i}",
@@ -628,8 +639,19 @@ class TransformationEngine:
                             else:
                                 updated_entities.append(ent_id)
                         
-                        updated_predicate = predicate.set_entities(updated_entities)
-                        graph = graph.update_predicate(updated_predicate)
+                        predicates_to_update.append((predicate, updated_entities, context_id))
+                    
+                    # Update predicates (remove old, add new)
+                    for predicate, updated_entities, context_id in predicates_to_update:
+                        graph = graph.remove_predicate(predicate.id)
+                        
+                        updated_predicate = Predicate.create(
+                            name=predicate.name,
+                            entities=updated_entities,
+                            arity=predicate.arity,
+                            properties=dict(predicate.properties)
+                        )
+                        graph = graph.add_predicate(updated_predicate, context_id)
         
         return graph
     
@@ -803,13 +825,16 @@ class TransformationEngine:
         if target_context is None:
             return ValidationResult(False, "Target context required for iteration")
         
-        # Check context levels
+        # Check context levels - iteration allows copying to same level OR deeper
+        # (In EG rules, you can iterate from outer to inner contexts)
         source_context = self._find_common_context(graph, target_items)
         target_ctx = graph.context_manager.get_context(target_context)
         source_ctx = graph.context_manager.get_context(source_context) if source_context else None
         
-        if source_ctx and target_ctx and target_ctx.depth > source_ctx.depth:
-            return ValidationResult(False, "Cannot iterate to deeper context level")
+        # Allow iteration to same level or deeper (target_depth >= source_depth)
+        # Only forbid iteration to shallower contexts (going outward)
+        if source_ctx and target_ctx and target_ctx.depth < source_ctx.depth:
+            return ValidationResult(False, "Cannot iterate to shallower context level")
         
         return ValidationResult(True, "Iteration preconditions satisfied")
     
@@ -830,13 +855,14 @@ class TransformationEngine:
         if not target_items:
             return ValidationResult(False, "No target items specified for entity join")
         
-        if len(target_items) < 2:
-            return ValidationResult(False, "Entity join requires at least 2 items")
-        
-        # Check that all items are entities
+        # Check that all items are entities FIRST
         for item_id in target_items:
             if item_id not in graph.entities:
                 return ValidationResult(False, f"Item {item_id} is not an entity")
+        
+        # Then check count
+        if len(target_items) < 2:
+            return ValidationResult(False, "Entity join requires at least 2 items")
         
         return ValidationResult(True, "Entity join preconditions satisfied")
     
