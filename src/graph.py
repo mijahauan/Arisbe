@@ -1,9 +1,10 @@
 """
-Unified graph operations for the EG-HG rebuild project.
+Redesigned graph operations for the EG-HG project with correct hypergraph mapping.
 
-This module provides the EGGraph class that combines all components
-(contexts, nodes, edges, ligatures) with comprehensive graph traversal
-and manipulation operations.
+This module provides the EGGraph class using the correct hypergraph architecture:
+- Entities (Lines of Identity) as primary nodes
+- Predicates (Relations) as hyperedges connecting entities
+- Contexts (Cuts) as logical scopes containing entities and predicates
 """
 
 from typing import Dict, List, Optional, Set, Tuple, Any, Iterator
@@ -12,240 +13,222 @@ from collections import defaultdict, deque
 import uuid
 
 from .eg_types import (
-    Node, Edge, Context, Ligature,
-    NodeId, EdgeId, ContextId, LigatureId, ItemId,
-    new_node_id, new_edge_id, new_context_id, new_ligature_id,
-    EGError, NodeError, EdgeError, ContextError, LigatureError,
-    pmap, pset
+    Entity, Predicate, Context,
+    EntityId, PredicateId, ContextId, ItemId,
+    new_entity_id, new_predicate_id, new_context_id,
+    EGError, EntityError, PredicateError, ContextError, ValidationError,
+    pmap, pset, pvector,
+    create_simple_assertion, validate_predicate_entity_connection
 )
-from .context import ContextManager
 
 
 @dataclass(frozen=True)
 class EGGraph:
-    """Unified existential graph with comprehensive operations.
+    """Existential graph with correct hypergraph mapping.
     
-    This class combines contexts, nodes, edges, and ligatures into a single
-    immutable graph structure with comprehensive traversal and manipulation
-    operations.
+    This class represents an existential graph using the proper hypergraph structure:
+    - Entities represent things that exist (Lines of Identity)
+    - Predicates represent relations connecting entities (hyperedges)
+    - Contexts represent logical scopes (cuts) containing entities and predicates
     """
     
-    context_manager: ContextManager
-    nodes: pmap  # Dict[NodeId, Node]
-    edges: pmap  # Dict[EdgeId, Edge]
-    ligatures: pmap  # Dict[LigatureId, Ligature]
+    entities: pmap              # Dict[EntityId, Entity]
+    predicates: pmap            # Dict[PredicateId, Predicate]
+    contexts: pmap              # Dict[ContextId, Context]
+    root_context_id: ContextId  # ID of the Sheet of Assertion
     
     @classmethod
     def create_empty(cls) -> 'EGGraph':
-        """Create an empty existential graph with just the root context."""
-        context_manager = ContextManager()
+        """Create an empty existential graph with just the root context (Sheet of Assertion)."""
+        root_context = Context.create(
+            context_type="sheet_of_assertion",
+            parent_context=None,
+            depth=0
+        )
+        
         return cls(
-            context_manager=context_manager,
-            nodes=pmap(),
-            edges=pmap(),
-            ligatures=pmap()
+            entities=pmap(),
+            predicates=pmap(),
+            contexts=pmap({root_context.id: root_context}),
+            root_context_id=root_context.id
         )
     
-    @property
-    def root_context_id(self) -> ContextId:
-        """Get the ID of the root context (Sheet of Assertion)."""
-        return self.context_manager.root_context.id
-    
-    # Node operations
-    def add_node(self, node: Node, context_id: Optional[ContextId] = None) -> 'EGGraph':
-        """Add a node to the graph in the specified context.
+    @classmethod
+    def create_from_simple_assertion(cls, predicate_name: str, entity_names: List[str]) -> 'EGGraph':
+        """Create a graph from a simple assertion like (Person Socrates).
         
         Args:
-            node: The node to add.
-            context_id: The context to add the node to. If None, uses root context.
+            predicate_name: Name of the predicate
+            entity_names: Names of entities (constants or variables)
             
         Returns:
-            A new EGGraph with the node added.
+            A new EGGraph containing the assertion
+        """
+        graph = cls.create_empty()
+        entities, predicate = create_simple_assertion(predicate_name, entity_names)
+        
+        # Add entities to the graph
+        for entity in entities:
+            graph = graph.add_entity(entity)
+        
+        # Add predicate to the graph
+        graph = graph.add_predicate(predicate)
+        
+        return graph
+    
+    # Entity operations
+    def add_entity(self, entity: Entity, context_id: Optional[ContextId] = None) -> 'EGGraph':
+        """Add an entity to the graph in the specified context.
+        
+        Args:
+            entity: The entity to add
+            context_id: The context to add the entity to. If None, uses root context.
+            
+        Returns:
+            A new EGGraph with the entity added
             
         Raises:
-            ContextError: If the context doesn't exist.
+            ContextError: If the context doesn't exist
         """
         if context_id is None:
             context_id = self.root_context_id
         
-        # Add node to the nodes collection
-        new_nodes = self.nodes.set(node.id, node)
+        if context_id not in self.contexts:
+            raise ContextError(f"Context {context_id} not found")
         
-        # Add node to the specified context
-        new_context_manager = self.context_manager.add_item_to_context(context_id, node.id)
+        # Add entity to entities collection
+        new_entities = self.entities.set(entity.id, entity)
         
-        return replace(self, nodes=new_nodes, context_manager=new_context_manager)
+        # Add entity to the specified context
+        context = self.contexts[context_id]
+        updated_context = context.add_entity(entity.id)
+        new_contexts = self.contexts.set(context_id, updated_context)
+        
+        return replace(self, entities=new_entities, contexts=new_contexts)
     
-    def remove_node(self, node_id: NodeId) -> 'EGGraph':
-        """Remove a node from the graph.
+    def remove_entity(self, entity_id: EntityId) -> 'EGGraph':
+        """Remove an entity from the graph.
         
         Args:
-            node_id: The ID of the node to remove.
+            entity_id: The ID of the entity to remove
             
         Returns:
-            A new EGGraph with the node removed.
+            A new EGGraph with the entity removed
             
         Raises:
-            NodeError: If the node doesn't exist.
+            EntityError: If the entity doesn't exist
         """
-        if node_id not in self.nodes:
-            raise NodeError(f"Node {node_id} not found")
+        if entity_id not in self.entities:
+            raise EntityError(f"Entity {entity_id} not found")
         
-        # Remove node from nodes collection
-        new_nodes = self.nodes.remove(node_id)
+        # Remove entity from entities collection
+        new_entities = self.entities.remove(entity_id)
         
-        # Remove node from any edges
-        new_edges = self.edges
-        for edge_id, edge in self.edges.items():
-            if node_id in edge.nodes:
-                updated_edge = edge.remove_node(node_id)
-                new_edges = new_edges.set(edge_id, updated_edge)
+        # Remove entity from any predicates
+        new_predicates = self.predicates
+        for predicate_id, predicate in self.predicates.items():
+            if entity_id in predicate.connected_entities:
+                updated_predicate = predicate.remove_entity(entity_id)
+                new_predicates = new_predicates.set(predicate_id, updated_predicate)
         
-        # Remove node from any ligatures
-        new_ligatures = self.ligatures
-        for ligature_id, ligature in self.ligatures.items():
-            if node_id in ligature.nodes:
-                updated_ligature = replace(ligature, nodes=ligature.nodes.remove(node_id))
-                new_ligatures = new_ligatures.set(ligature_id, updated_ligature)
-        
-        # Remove node from its context
-        context_id = self.context_manager.find_item_context(node_id)
-        new_context_manager = self.context_manager
+        # Remove entity from its context
+        context_id = self.find_entity_context(entity_id)
+        new_contexts = self.contexts
         if context_id is not None:
-            new_context_manager = self.context_manager.remove_item_from_context(context_id, node_id)
+            context = self.contexts[context_id]
+            updated_context = context.remove_entity(entity_id)
+            new_contexts = new_contexts.set(context_id, updated_context)
         
         return replace(self, 
-                      nodes=new_nodes, 
-                      edges=new_edges, 
-                      ligatures=new_ligatures,
-                      context_manager=new_context_manager)
+                      entities=new_entities, 
+                      predicates=new_predicates,
+                      contexts=new_contexts)
     
-    def get_node(self, node_id: NodeId) -> Optional[Node]:
-        """Get a node by its ID."""
-        return self.nodes.get(node_id)
+    def get_entity(self, entity_id: EntityId) -> Optional[Entity]:
+        """Get an entity by its ID."""
+        return self.entities.get(entity_id)
     
-    # Edge operations
-    def add_edge(self, edge: Edge, context_id: Optional[ContextId] = None) -> 'EGGraph':
-        """Add an edge to the graph in the specified context.
+    def find_entity_context(self, entity_id: EntityId) -> Optional[ContextId]:
+        """Find the context containing a specific entity."""
+        for context_id, context in self.contexts.items():
+            if entity_id in context.contained_entities:
+                return context_id
+        return None
+    
+    # Predicate operations
+    def add_predicate(self, predicate: Predicate, context_id: Optional[ContextId] = None) -> 'EGGraph':
+        """Add a predicate to the graph in the specified context.
         
         Args:
-            edge: The edge to add.
-            context_id: The context to add the edge to. If None, uses root context.
+            predicate: The predicate to add
+            context_id: The context to add the predicate to. If None, uses root context.
             
         Returns:
-            A new EGGraph with the edge added.
+            A new EGGraph with the predicate added
             
         Raises:
-            ContextError: If the context doesn't exist.
-            NodeError: If any of the edge's nodes don't exist.
+            ContextError: If the context doesn't exist
+            EntityError: If any connected entities don't exist
         """
         if context_id is None:
             context_id = self.root_context_id
         
-        # Validate that all nodes in the edge exist
-        for node_id in edge.nodes:
-            if node_id not in self.nodes:
-                raise NodeError(f"Node {node_id} not found")
+        if context_id not in self.contexts:
+            raise ContextError(f"Context {context_id} not found")
         
-        # Add edge to the edges collection
-        new_edges = self.edges.set(edge.id, edge)
+        # Validate that all connected entities exist
+        validation_errors = validate_predicate_entity_connection(predicate, dict(self.entities))
+        if validation_errors:
+            raise EntityError("; ".join(validation_errors))
         
-        # Add edge to the specified context
-        new_context_manager = self.context_manager.add_item_to_context(context_id, edge.id)
+        # Add predicate to predicates collection
+        new_predicates = self.predicates.set(predicate.id, predicate)
         
-        return replace(self, edges=new_edges, context_manager=new_context_manager)
+        # Add predicate to the specified context
+        context = self.contexts[context_id]
+        updated_context = context.add_predicate(predicate.id)
+        new_contexts = self.contexts.set(context_id, updated_context)
+        
+        return replace(self, predicates=new_predicates, contexts=new_contexts)
     
-    def remove_edge(self, edge_id: EdgeId) -> 'EGGraph':
-        """Remove an edge from the graph.
+    def remove_predicate(self, predicate_id: PredicateId) -> 'EGGraph':
+        """Remove a predicate from the graph.
         
         Args:
-            edge_id: The ID of the edge to remove.
+            predicate_id: The ID of the predicate to remove
             
         Returns:
-            A new EGGraph with the edge removed.
+            A new EGGraph with the predicate removed
             
         Raises:
-            EdgeError: If the edge doesn't exist.
+            PredicateError: If the predicate doesn't exist
         """
-        if edge_id not in self.edges:
-            raise EdgeError(f"Edge {edge_id} not found")
+        if predicate_id not in self.predicates:
+            raise PredicateError(f"Predicate {predicate_id} not found")
         
-        # Remove edge from edges collection
-        new_edges = self.edges.remove(edge_id)
+        # Remove predicate from predicates collection
+        new_predicates = self.predicates.remove(predicate_id)
         
-        # Remove edge from any ligatures
-        new_ligatures = self.ligatures
-        for ligature_id, ligature in self.ligatures.items():
-            if edge_id in ligature.edges:
-                updated_ligature = replace(ligature, edges=ligature.edges.remove(edge_id))
-                new_ligatures = new_ligatures.set(ligature_id, updated_ligature)
-        
-        # Remove edge from its context
-        context_id = self.context_manager.find_item_context(edge_id)
-        new_context_manager = self.context_manager
+        # Remove predicate from its context
+        context_id = self.find_predicate_context(predicate_id)
+        new_contexts = self.contexts
         if context_id is not None:
-            new_context_manager = self.context_manager.remove_item_from_context(context_id, edge_id)
+            context = self.contexts[context_id]
+            updated_context = context.remove_predicate(predicate_id)
+            new_contexts = new_contexts.set(context_id, updated_context)
         
-        return replace(self, 
-                      edges=new_edges, 
-                      ligatures=new_ligatures,
-                      context_manager=new_context_manager)
+        return replace(self, predicates=new_predicates, contexts=new_contexts)
     
-    def get_edge(self, edge_id: EdgeId) -> Optional[Edge]:
-        """Get an edge by its ID."""
-        return self.edges.get(edge_id)
+    def get_predicate(self, predicate_id: PredicateId) -> Optional[Predicate]:
+        """Get a predicate by its ID."""
+        return self.predicates.get(predicate_id)
     
-    # Ligature operations
-    def add_ligature(self, ligature: Ligature) -> 'EGGraph':
-        """Add a ligature to the graph.
-        
-        Args:
-            ligature: The ligature to add.
-            
-        Returns:
-            A new EGGraph with the ligature added.
-            
-        Raises:
-            NodeError: If any of the ligature's nodes don't exist.
-            EdgeError: If any of the ligature's edges don't exist.
-        """
-        # Validate that all nodes and edges in the ligature exist
-        for node_id in ligature.nodes:
-            if node_id not in self.nodes:
-                raise NodeError(f"Node {node_id} not found")
-        
-        for edge_id in ligature.edges:
-            if edge_id not in self.edges:
-                raise EdgeError(f"Edge {edge_id} not found")
-        
-        # Add ligature to the ligatures collection
-        new_ligatures = self.ligatures.set(ligature.id, ligature)
-        
-        return replace(self, ligatures=new_ligatures)
-    
-    def remove_ligature(self, ligature_id: LigatureId) -> 'EGGraph':
-        """Remove a ligature from the graph.
-        
-        Args:
-            ligature_id: The ID of the ligature to remove.
-            
-        Returns:
-            A new EGGraph with the ligature removed.
-            
-        Raises:
-            LigatureError: If the ligature doesn't exist.
-        """
-        if ligature_id not in self.ligatures:
-            raise LigatureError(f"Ligature {ligature_id} not found")
-        
-        # Remove ligature from ligatures collection
-        new_ligatures = self.ligatures.remove(ligature_id)
-        
-        return replace(self, ligatures=new_ligatures)
-    
-    def get_ligature(self, ligature_id: LigatureId) -> Optional[Ligature]:
-        """Get a ligature by its ID."""
-        return self.ligatures.get(ligature_id)
+    def find_predicate_context(self, predicate_id: PredicateId) -> Optional[ContextId]:
+        """Find the context containing a specific predicate."""
+        for context_id, context in self.contexts.items():
+            if predicate_id in context.contained_predicates:
+                return context_id
+        return None
     
     # Context operations
     def create_context(self, context_type: str, parent_id: Optional[ContextId] = None,
@@ -253,170 +236,183 @@ class EGGraph:
         """Create a new context in the graph.
         
         Args:
-            context_type: The type of context to create.
+            context_type: The type of context to create
             parent_id: The ID of the parent context. If None, uses root context.
-            name: Optional name for the context.
+            name: Optional name for the context
             
         Returns:
-            A tuple of (new_graph, new_context).
+            A tuple of (new_graph, new_context)
             
         Raises:
-            ContextError: If the parent context doesn't exist.
+            ContextError: If the parent context doesn't exist
         """
-        new_context_manager, new_context = self.context_manager.create_context(
-            context_type, parent_id, name
+        if parent_id is None:
+            parent_id = self.root_context_id
+        
+        if parent_id not in self.contexts:
+            raise ContextError(f"Parent context {parent_id} not found")
+        
+        parent_context = self.contexts[parent_id]
+        new_context = Context.create(
+            context_type=context_type,
+            parent_context=parent_id,
+            depth=parent_context.depth + 1
         )
         
-        return replace(self, context_manager=new_context_manager), new_context
+        if name:
+            new_context = new_context.set_property("name", name)
+        
+        new_contexts = self.contexts.set(new_context.id, new_context)
+        new_graph = replace(self, contexts=new_contexts)
+        
+        return new_graph, new_context
     
-    # Graph traversal operations
-    def find_incident_edges(self, node_id: NodeId) -> List[Edge]:
-        """Find all edges incident to a node.
+    def remove_context(self, context_id: ContextId) -> 'EGGraph':
+        """Remove a context and all its contents from the graph.
         
         Args:
-            node_id: The ID of the node.
+            context_id: The ID of the context to remove
             
         Returns:
-            A list of edges that contain the node.
+            A new EGGraph with the context removed
+            
+        Raises:
+            ContextError: If trying to remove the root context
         """
-        incident_edges = []
-        for edge in self.edges.values():
-            if node_id in edge.nodes:
-                incident_edges.append(edge)
-        return incident_edges
+        if context_id == self.root_context_id:
+            raise ContextError("Cannot remove root context")
+        
+        if context_id not in self.contexts:
+            raise ContextError(f"Context {context_id} not found")
+        
+        context = self.contexts[context_id]
+        
+        # Remove all entities in the context
+        new_entities = self.entities
+        for entity_id in context.contained_entities:
+            new_entities = new_entities.remove(entity_id)
+        
+        # Remove all predicates in the context
+        new_predicates = self.predicates
+        for predicate_id in context.contained_predicates:
+            new_predicates = new_predicates.remove(predicate_id)
+        
+        # Remove the context itself
+        new_contexts = self.contexts.remove(context_id)
+        
+        return replace(self, 
+                      entities=new_entities,
+                      predicates=new_predicates, 
+                      contexts=new_contexts)
     
-    def get_neighbors(self, node_id: NodeId) -> Set[NodeId]:
-        """Get all nodes connected to a given node through edges.
+    def get_context(self, context_id: ContextId) -> Optional[Context]:
+        """Get a context by its ID."""
+        return self.contexts.get(context_id)
+    
+    # Graph traversal and analysis operations
+    def find_predicates_for_entity(self, entity_id: EntityId) -> List[Predicate]:
+        """Find all predicates that connect to a specific entity.
         
         Args:
-            node_id: The ID of the node.
+            entity_id: The ID of the entity
             
         Returns:
-            A set of node IDs that are neighbors of the given node.
+            A list of predicates connected to the entity
         """
-        neighbors = set()
-        for edge in self.find_incident_edges(node_id):
-            for neighbor_id in edge.nodes:
-                if neighbor_id != node_id:
-                    neighbors.add(neighbor_id)
-        return neighbors
+        connected_predicates = []
+        for predicate in self.predicates.values():
+            if entity_id in predicate.connected_entities:
+                connected_predicates.append(predicate)
+        return connected_predicates
     
-    def find_path(self, start_node_id: NodeId, end_node_id: NodeId) -> Optional[List[NodeId]]:
-        """Find a path between two nodes using breadth-first search.
+    def find_entities_for_predicate(self, predicate_id: PredicateId) -> List[Entity]:
+        """Find all entities connected to a specific predicate.
         
         Args:
-            start_node_id: The starting node ID.
-            end_node_id: The ending node ID.
+            predicate_id: The ID of the predicate
             
         Returns:
-            A list of node IDs representing the path, or None if no path exists.
+            A list of entities connected to the predicate
         """
-        if start_node_id == end_node_id:
-            return [start_node_id]
+        predicate = self.get_predicate(predicate_id)
+        if not predicate:
+            return []
         
-        if start_node_id not in self.nodes or end_node_id not in self.nodes:
-            return None
+        connected_entities = []
+        for entity_id in predicate.connected_entities:
+            entity = self.get_entity(entity_id)
+            if entity:
+                connected_entities.append(entity)
         
-        queue = deque([(start_node_id, [start_node_id])])
-        visited = {start_node_id}
-        
-        while queue:
-            current_node, path = queue.popleft()
-            
-            for neighbor_id in self.get_neighbors(current_node):
-                if neighbor_id == end_node_id:
-                    return path + [neighbor_id]
-                
-                if neighbor_id not in visited:
-                    visited.add(neighbor_id)
-                    queue.append((neighbor_id, path + [neighbor_id]))
-        
-        return None
+        return connected_entities
     
-    def find_connected_components(self) -> List[Set[NodeId]]:
-        """Find all connected components in the graph.
-        
-        Returns:
-            A list of sets, where each set contains the node IDs in a connected component.
-        """
-        visited = set()
-        components = []
-        
-        for node_id in self.nodes:
-            if node_id not in visited:
-                component = set()
-                stack = [node_id]
-                
-                while stack:
-                    current = stack.pop()
-                    if current not in visited:
-                        visited.add(current)
-                        component.add(current)
-                        
-                        for neighbor in self.get_neighbors(current):
-                            if neighbor not in visited:
-                                stack.append(neighbor)
-                
-                components.append(component)
-        
-        return components
-    
-    def trace_ligature_path(self, item_id: ItemId) -> Optional[Ligature]:
-        """Trace the ligature path containing a given item.
+    def find_shared_entities(self, predicate_id1: PredicateId, predicate_id2: PredicateId) -> List[Entity]:
+        """Find entities that are shared between two predicates (Lines of Identity).
         
         Args:
-            item_id: The ID of the item (node or edge) to trace.
+            predicate_id1: ID of the first predicate
+            predicate_id2: ID of the second predicate
             
         Returns:
-            The ligature containing the item, or None if not found.
+            A list of entities shared between the predicates
         """
-        for ligature in self.ligatures.values():
-            if item_id in ligature.nodes or item_id in ligature.edges:
-                return ligature
-        return None
+        pred1 = self.get_predicate(predicate_id1)
+        pred2 = self.get_predicate(predicate_id2)
+        
+        if not pred1 or not pred2:
+            return []
+        
+        shared_entity_ids = set(pred1.connected_entities) & set(pred2.connected_entities)
+        shared_entities = []
+        
+        for entity_id in shared_entity_ids:
+            entity = self.get_entity(entity_id)
+            if entity:
+                shared_entities.append(entity)
+        
+        return shared_entities
     
-    def get_items_in_context(self, context_id: ContextId) -> Set[ItemId]:
-        """Get all items (nodes and edges) in a specific context.
+    def get_entities_in_context(self, context_id: ContextId) -> List[Entity]:
+        """Get all entities in a specific context.
         
         Args:
-            context_id: The ID of the context.
+            context_id: The ID of the context
             
         Returns:
-            A set of item IDs in the context.
+            A list of entities in the context
         """
-        return self.context_manager.get_items_in_context(context_id)
+        context = self.get_context(context_id)
+        if not context:
+            return []
+        
+        entities = []
+        for entity_id in context.contained_entities:
+            entity = self.get_entity(entity_id)
+            if entity:
+                entities.append(entity)
+        
+        return entities
     
-    def get_nodes_in_context(self, context_id: ContextId) -> List[Node]:
-        """Get all nodes in a specific context.
+    def get_predicates_in_context(self, context_id: ContextId) -> List[Predicate]:
+        """Get all predicates in a specific context.
         
         Args:
-            context_id: The ID of the context.
+            context_id: The ID of the context
             
         Returns:
-            A list of nodes in the context.
+            A list of predicates in the context
         """
-        item_ids = self.get_items_in_context(context_id)
-        nodes = []
-        for item_id in item_ids:
-            if item_id in self.nodes:
-                nodes.append(self.nodes[item_id])
-        return nodes
-    
-    def get_edges_in_context(self, context_id: ContextId) -> List[Edge]:
-        """Get all edges in a specific context.
+        context = self.get_context(context_id)
+        if not context:
+            return []
         
-        Args:
-            context_id: The ID of the context.
-            
-        Returns:
-            A list of edges in the context.
-        """
-        item_ids = self.get_items_in_context(context_id)
-        edges = []
-        for item_id in item_ids:
-            if item_id in self.edges:
-                edges.append(self.edges[item_id])
-        return edges
+        predicates = []
+        for predicate_id in context.contained_predicates:
+            predicate = self.get_predicate(predicate_id)
+            if predicate:
+                predicates.append(predicate)
+        
+        return predicates
     
     # Validation operations
     def validate_graph_consistency(self) -> List[str]:
@@ -427,37 +423,39 @@ class EGGraph:
         """
         errors = []
         
+        # Validate that root context exists
+        if self.root_context_id not in self.contexts:
+            errors.append("Root context not found")
+            return errors  # Can't continue without root context
+        
         # Validate context hierarchy
-        errors.extend(self.context_manager.validate_context_hierarchy())
+        for context_id, context in self.contexts.items():
+            if context.parent_context is not None:
+                if context.parent_context not in self.contexts:
+                    errors.append(f"Context {context_id} has non-existent parent {context.parent_context}")
         
-        # Validate that all edge nodes exist
-        for edge_id, edge in self.edges.items():
-            for node_id in edge.nodes:
-                if node_id not in self.nodes:
-                    errors.append(f"Edge {edge_id} references non-existent node {node_id}")
+        # Validate that all predicate entities exist
+        for predicate_id, predicate in self.predicates.items():
+            validation_errors = validate_predicate_entity_connection(predicate, dict(self.entities))
+            errors.extend(validation_errors)
         
-        # Validate that all ligature items exist
-        for ligature_id, ligature in self.ligatures.items():
-            for node_id in ligature.nodes:
-                if node_id not in self.nodes:
-                    errors.append(f"Ligature {ligature_id} references non-existent node {node_id}")
-            
-            for edge_id in ligature.edges:
-                if edge_id not in self.edges:
-                    errors.append(f"Ligature {ligature_id} references non-existent edge {edge_id}")
+        # Validate that all entities are in some context
+        all_context_entities = set()
+        for context in self.contexts.values():
+            all_context_entities.update(context.contained_entities)
         
-        # Validate that all items are in some context
-        all_context_items = set()
-        for context_id in self.context_manager.contexts:
-            all_context_items.update(self.get_items_in_context(context_id))
+        for entity_id in self.entities:
+            if entity_id not in all_context_entities:
+                errors.append(f"Entity {entity_id} is not in any context")
         
-        for node_id in self.nodes:
-            if node_id not in all_context_items:
-                errors.append(f"Node {node_id} is not in any context")
+        # Validate that all predicates are in some context
+        all_context_predicates = set()
+        for context in self.contexts.values():
+            all_context_predicates.update(context.contained_predicates)
         
-        for edge_id in self.edges:
-            if edge_id not in all_context_items:
-                errors.append(f"Edge {edge_id} is not in any context")
+        for predicate_id in self.predicates:
+            if predicate_id not in all_context_predicates:
+                errors.append(f"Predicate {predicate_id} is not in any context")
         
         return errors
     
@@ -466,62 +464,119 @@ class EGGraph:
         """Get statistics about the graph.
         
         Returns:
-            A dictionary containing various graph statistics.
+            A dictionary containing various graph statistics
         """
         return {
-            'num_contexts': len(self.context_manager.contexts),
-            'num_nodes': len(self.nodes),
-            'num_edges': len(self.edges),
-            'num_ligatures': len(self.ligatures),
-            'connected_components': len(self.find_connected_components()),
-            'max_context_depth': max(ctx.depth for ctx in self.context_manager.contexts.values()),
+            'num_contexts': len(self.contexts),
+            'num_entities': len(self.entities),
+            'num_predicates': len(self.predicates),
+            'max_context_depth': max(ctx.depth for ctx in self.contexts.values()) if self.contexts else 0,
+            'entities_by_type': {
+                'variables': len([e for e in self.entities.values() if e.is_variable]),
+                'constants': len([e for e in self.entities.values() if e.is_constant]),
+                'anonymous': len([e for e in self.entities.values() if e.is_anonymous])
+            },
+            'predicates_by_arity': {
+                'unary': len([p for p in self.predicates.values() if p.is_unary]),
+                'binary': len([p for p in self.predicates.values() if p.is_binary]),
+                'nary': len([p for p in self.predicates.values() if p.is_nary])
+            }
         }
     
-    def remove_context(self, context_id: ContextId) -> 'EGGraph':
-        """Remove a context and all its contents from the graph.
+    def to_simple_representation(self) -> Dict[str, Any]:
+        """Convert the graph to a simple dictionary representation for debugging.
         
-        Args:
-            context_id: The ID of the context to remove.
-            
         Returns:
-            A new EGGraph with the context removed.
+            A dictionary representation of the graph
         """
-        # Get all items in the context to remove
-        items_to_remove = self.get_items_in_context(context_id)
-        
-        # Remove all nodes in the context
-        new_nodes = self.nodes
-        for item_id in items_to_remove:
-            if item_id in new_nodes:
-                new_nodes = new_nodes.remove(item_id)
-        
-        # Remove all edges in the context
-        new_edges = self.edges
-        for item_id in items_to_remove:
-            if item_id in new_edges:
-                new_edges = new_edges.remove(item_id)
-        
-        # Remove ligatures that reference removed items
-        new_ligatures = self.ligatures
-        for ligature_id, ligature in self.ligatures.items():
-            if any(item_id in items_to_remove for item_id in ligature.nodes.union(ligature.edges)):
-                new_ligatures = new_ligatures.remove(ligature_id)
-        
-        # Remove the context itself
-        new_context_manager = self.context_manager.remove_context(context_id)
-        
-        return EGGraph(
-            context_manager=new_context_manager,
-            nodes=new_nodes,
-            edges=new_edges,
-            ligatures=new_ligatures
-        )
+        return {
+            'entities': {
+                str(entity_id): {
+                    'name': entity.name,
+                    'type': 'variable' if entity.is_variable else 'constant' if entity.is_constant else 'anonymous'
+                }
+                for entity_id, entity in self.entities.items()
+            },
+            'predicates': {
+                str(predicate_id): {
+                    'name': predicate.name,
+                    'arity': predicate.arity,
+                    'connected_entities': [str(eid) for eid in predicate.connected_entities]
+                }
+                for predicate_id, predicate in self.predicates.items()
+            },
+            'contexts': {
+                str(context_id): {
+                    'type': context.context_type,
+                    'depth': context.depth,
+                    'entities': [str(eid) for eid in context.contained_entities],
+                    'predicates': [str(pid) for pid in context.contained_predicates]
+                }
+                for context_id, context in self.contexts.items()
+            },
+            'root_context': str(self.root_context_id)
+        }
     
     def __str__(self) -> str:
         """String representation of the graph."""
         stats = self.get_graph_statistics()
         return (f"EGGraph(contexts={stats['num_contexts']}, "
-                f"nodes={stats['num_nodes']}, "
-                f"edges={stats['num_edges']}, "
-                f"ligatures={stats['num_ligatures']})")
+                f"entities={stats['num_entities']}, "
+                f"predicates={stats['num_predicates']})")
+
+
+# Utility functions for creating common graph patterns
+
+def create_unary_assertion(predicate_name: str, entity_name: str) -> EGGraph:
+    """Create a graph with a unary assertion like (Person Socrates).
+    
+    Args:
+        predicate_name: Name of the predicate
+        entity_name: Name of the entity
+        
+    Returns:
+        A new EGGraph containing the assertion
+    """
+    return EGGraph.create_from_simple_assertion(predicate_name, [entity_name])
+
+
+def create_binary_assertion(predicate_name: str, entity1_name: str, entity2_name: str) -> EGGraph:
+    """Create a graph with a binary assertion like (Loves Mary John).
+    
+    Args:
+        predicate_name: Name of the predicate
+        entity1_name: Name of the first entity
+        entity2_name: Name of the second entity
+        
+    Returns:
+        A new EGGraph containing the assertion
+    """
+    return EGGraph.create_from_simple_assertion(predicate_name, [entity1_name, entity2_name])
+
+
+def create_existential_assertion(predicate_name: str, variable_name: str) -> EGGraph:
+    """Create a graph with an existential assertion like (exists (x) (Person x)).
+    
+    Args:
+        predicate_name: Name of the predicate
+        variable_name: Name of the variable
+        
+    Returns:
+        A new EGGraph containing the existential assertion
+    """
+    # Create empty graph
+    graph = EGGraph.create_empty()
+    
+    # Create existential context
+    graph, existential_context = graph.create_context("existential")
+    
+    # Create variable entity
+    variable_entity = Entity.create_variable(variable_name)
+    graph = graph.add_entity(variable_entity, existential_context.id)
+    
+    # Create predicate connecting to the variable
+    predicate = Predicate.create(predicate_name, [variable_entity.id])
+    graph = graph.add_predicate(predicate, existential_context.id)
+    
+    return graph
 

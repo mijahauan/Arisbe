@@ -1,8 +1,11 @@
 """
-Foundational types for the EG-HG rebuild project.
+Redesigned foundational types for the EG-HG project with correct hypergraph mapping.
 
 This module provides robust, immutable data structures for representing
-existential graphs, including nodes, edges, contexts, and ligatures.
+existential graphs using the correct hypergraph mapping:
+- Entities (Lines of Identity) as primary nodes
+- Predicates (Relations) as hyperedges connecting entities
+- Contexts (Cuts) as logical scopes containing entities and predicates
 """
 
 import uuid
@@ -11,53 +14,41 @@ from pyrsistent import pmap, pset, pvector, PMap, PSet, PVector
 from dataclasses import dataclass, replace
 from copy import deepcopy
 
-# Type definitions
-NodeId = NewType('NodeId', uuid.UUID)
-EdgeId = NewType('EdgeId', uuid.UUID)
+# Type definitions for the correct hypergraph mapping
+EntityId = NewType('EntityId', uuid.UUID)
+PredicateId = NewType('PredicateId', uuid.UUID)
 ContextId = NewType('ContextId', uuid.UUID)
-LigatureId = NewType('LigatureId', uuid.UUID)
-ItemId = uuid.UUID  # Can be any of the above IDs
-NodeType = NewType('NodeType', str)
-EdgeType = NewType('EdgeType', str)
-ContextType = NewType('ContextType', str)
+ItemId = Union[EntityId, PredicateId]  # Items that can be in contexts
 Properties = Dict[str, Any]
 
 # ID generation functions
-def new_node_id() -> NodeId:
-    """Generate a new unique node ID."""
-    return NodeId(uuid.uuid4())
+def new_entity_id() -> EntityId:
+    """Generate a new unique entity ID."""
+    return EntityId(uuid.uuid4())
 
-def new_edge_id() -> EdgeId:
-    """Generate a new unique edge ID."""
-    return EdgeId(uuid.uuid4())
+def new_predicate_id() -> PredicateId:
+    """Generate a new unique predicate ID."""
+    return PredicateId(uuid.uuid4())
 
 def new_context_id() -> ContextId:
     """Generate a new unique context ID."""
     return ContextId(uuid.uuid4())
-
-def new_ligature_id() -> LigatureId:
-    """Generate a new unique ligature ID."""
-    return LigatureId(uuid.uuid4())
 
 # Exception hierarchy
 class EGError(Exception):
     """Base class for all exceptions in the EG system."""
     pass
 
-class NodeError(EGError):
-    """Exception raised for errors related to nodes."""
+class EntityError(EGError):
+    """Exception raised for errors related to entities."""
     pass
 
-class EdgeError(EGError):
-    """Exception raised for errors related to edges."""
+class PredicateError(EGError):
+    """Exception raised for errors related to predicates."""
     pass
 
 class ContextError(EGError):
     """Exception raised for errors related to contexts."""
-    pass
-
-class LigatureError(EGError):
-    """Exception raised for errors related to ligatures."""
     pass
 
 class ValidationError(EGError):
@@ -68,97 +59,199 @@ class ValidationError(EGError):
     """
     pass
 
-# Core data structures using regular classes with immutability
+# Core data structures with correct hypergraph mapping
+
 @dataclass(frozen=True)
-class Node:
-    """Represents a node in an existential graph."""
+class Entity:
+    """Represents an entity (Line of Identity) in an existential graph.
     
-    id: NodeId
-    node_type: str
+    Entities are the primary nodes in the hypergraph, representing things that exist.
+    They correspond to variables and constants in CLIF expressions and are visually
+    rendered as Lines of Identity in Peirce's notation.
+    """
+    
+    id: EntityId
+    variable_name: Optional[str]  # For variables (x, y, z) in CLIF
+    constant_name: Optional[str]  # For constants (Socrates, Mary) in CLIF
     properties: PMap
     
     @classmethod
-    def create(cls, node_type: str, properties: Optional[Dict[str, Any]] = None, 
-               id: Optional[NodeId] = None) -> 'Node':
-        """Create a new node with proper defaults."""
+    def create_variable(cls, variable_name: str, properties: Optional[Dict[str, Any]] = None,
+                       id: Optional[EntityId] = None) -> 'Entity':
+        """Create a new entity representing a variable."""
         return cls(
-            id=id or new_node_id(),
-            node_type=node_type,
+            id=id or new_entity_id(),
+            variable_name=variable_name,
+            constant_name=None,
             properties=pmap(properties or {})
         )
     
-    def set(self, key: str, value: Any) -> 'Node':
-        """Return a new node with the specified property set."""
+    @classmethod
+    def create_constant(cls, constant_name: str, properties: Optional[Dict[str, Any]] = None,
+                       id: Optional[EntityId] = None) -> 'Entity':
+        """Create a new entity representing a constant."""
+        return cls(
+            id=id or new_entity_id(),
+            variable_name=None,
+            constant_name=constant_name,
+            properties=pmap(properties or {})
+        )
+    
+    @classmethod
+    def create_anonymous(cls, properties: Optional[Dict[str, Any]] = None,
+                        id: Optional[EntityId] = None) -> 'Entity':
+        """Create a new anonymous entity (for complex expressions)."""
+        return cls(
+            id=id or new_entity_id(),
+            variable_name=None,
+            constant_name=None,
+            properties=pmap(properties or {})
+        )
+    
+    @property
+    def name(self) -> str:
+        """Get the display name of this entity."""
+        if self.constant_name:
+            return self.constant_name
+        elif self.variable_name:
+            return self.variable_name
+        else:
+            return f"entity_{str(self.id)[:8]}"
+    
+    @property
+    def is_variable(self) -> bool:
+        """Check if this entity represents a variable."""
+        return self.variable_name is not None
+    
+    @property
+    def is_constant(self) -> bool:
+        """Check if this entity represents a constant."""
+        return self.constant_name is not None
+    
+    @property
+    def is_anonymous(self) -> bool:
+        """Check if this entity is anonymous."""
+        return self.variable_name is None and self.constant_name is None
+    
+    def set_property(self, key: str, value: Any) -> 'Entity':
+        """Return a new entity with the specified property set."""
         new_properties = self.properties.set(key, value)
         return replace(self, properties=new_properties)
     
-    def remove(self, key: str) -> 'Node':
-        """Return a new node with the specified property removed."""
+    def remove_property(self, key: str) -> 'Entity':
+        """Return a new entity with the specified property removed."""
         if key not in self.properties:
             return self
         new_properties = self.properties.remove(key)
         return replace(self, properties=new_properties)
     
     def __str__(self) -> str:
-        return f"Node({self.node_type}, {dict(self.properties)})"
+        return f"Entity({self.name})"
 
 
 @dataclass(frozen=True)
-class Edge:
-    """Represents an edge in an existential graph."""
+class Predicate:
+    """Represents a predicate (relation) in an existential graph.
     
-    id: EdgeId
-    edge_type: str
-    nodes: PSet
+    Predicates are hyperedges in the hypergraph, connecting multiple entities
+    to express relationships or properties. They correspond to predicate symbols
+    in CLIF expressions and are visually rendered as rectangular labels attached
+    to Lines of Identity in Peirce's notation.
+    """
+    
+    id: PredicateId
+    name: str                      # Predicate name (Person, Loves, etc.)
+    arity: int                     # Number of entities this predicate connects
+    connected_entities: PVector    # Ordered list of EntityIds
     properties: PMap
     
     @classmethod
-    def create(cls, edge_type: str, nodes: Optional[Set[NodeId]] = None,
+    def create(cls, name: str, connected_entities: Optional[List[EntityId]] = None,
                properties: Optional[Dict[str, Any]] = None,
-               id: Optional[EdgeId] = None) -> 'Edge':
-        """Create a new edge with proper defaults."""
+               id: Optional[PredicateId] = None) -> 'Predicate':
+        """Create a new predicate with proper defaults."""
+        entities = pvector(connected_entities or [])
         return cls(
-            id=id or new_edge_id(),
-            edge_type=edge_type,
-            nodes=pset(nodes or set()),
+            id=id or new_predicate_id(),
+            name=name,
+            arity=len(entities),
+            connected_entities=entities,
             properties=pmap(properties or {})
         )
     
-    def add_node(self, node_id: NodeId) -> 'Edge':
-        """Return a new edge with the specified node added."""
-        new_nodes = self.nodes.add(node_id)
-        return replace(self, nodes=new_nodes)
+    def add_entity(self, entity_id: EntityId) -> 'Predicate':
+        """Return a new predicate with the specified entity added."""
+        new_entities = self.connected_entities.append(entity_id)
+        return replace(self, 
+                      connected_entities=new_entities,
+                      arity=len(new_entities))
     
-    def remove_node(self, node_id: NodeId) -> 'Edge':
-        """Return a new edge with the specified node removed."""
-        if node_id not in self.nodes:
-            return self
-        new_nodes = self.nodes.remove(node_id)
-        return replace(self, nodes=new_nodes)
+    def remove_entity(self, entity_id: EntityId) -> 'Predicate':
+        """Return a new predicate with the specified entity removed."""
+        try:
+            index = self.connected_entities.index(entity_id)
+            new_entities = self.connected_entities.delete(index)
+            return replace(self,
+                          connected_entities=new_entities,
+                          arity=len(new_entities))
+        except ValueError:
+            return self  # Entity not found, return unchanged
     
-    def set(self, key: str, value: Any) -> 'Edge':
-        """Return a new edge with the specified property set."""
+    def replace_entity(self, old_entity_id: EntityId, new_entity_id: EntityId) -> 'Predicate':
+        """Return a new predicate with an entity replaced."""
+        try:
+            index = self.connected_entities.index(old_entity_id)
+            new_entities = self.connected_entities.set(index, new_entity_id)
+            return replace(self, connected_entities=new_entities)
+        except ValueError:
+            return self  # Entity not found, return unchanged
+    
+    def set_property(self, key: str, value: Any) -> 'Predicate':
+        """Return a new predicate with the specified property set."""
         new_properties = self.properties.set(key, value)
         return replace(self, properties=new_properties)
     
+    @property
+    def is_unary(self) -> bool:
+        """Check if this is a unary predicate (property)."""
+        return self.arity == 1
+    
+    @property
+    def is_binary(self) -> bool:
+        """Check if this is a binary predicate (relation)."""
+        return self.arity == 2
+    
+    @property
+    def is_nary(self) -> bool:
+        """Check if this is an n-ary predicate (n > 2)."""
+        return self.arity > 2
+    
     def __str__(self) -> str:
-        return f"Edge({self.edge_type}, nodes={len(self.nodes)})"
+        return f"Predicate({self.name}/{self.arity})"
 
 
 @dataclass(frozen=True)
 class Context:
-    """Represents a context (cut) in an existential graph."""
+    """Represents a context (cut) in an existential graph.
+    
+    Contexts define logical scopes containing entities and predicates.
+    They correspond to quantifier scopes in CLIF expressions and are
+    visually rendered as cuts (oval boundaries) in Peirce's notation.
+    """
     
     id: ContextId
     context_type: str
     parent_context: Optional[ContextId]
     depth: int
-    contained_items: PSet
+    contained_entities: PSet       # EntityIds in this context
+    contained_predicates: PSet     # PredicateIds in this context
     properties: PMap
     
     @classmethod
     def create(cls, context_type: str, parent_context: Optional[ContextId] = None,
-               depth: int = 0, contained_items: Optional[Set[ItemId]] = None,
+               depth: int = 0, 
+               contained_entities: Optional[Set[EntityId]] = None,
+               contained_predicates: Optional[Set[PredicateId]] = None,
                properties: Optional[Dict[str, Any]] = None, 
                id: Optional[ContextId] = None) -> 'Context':
         """Create a new context with proper defaults."""
@@ -167,25 +260,38 @@ class Context:
             context_type=context_type,
             parent_context=parent_context,
             depth=depth,
-            contained_items=pset(contained_items or set()),
+            contained_entities=pset(contained_entities or set()),
+            contained_predicates=pset(contained_predicates or set()),
             properties=pmap(properties or {})
         )
     
-    def add_item(self, item_id: ItemId) -> 'Context':
-        """Return a new context with the specified item added."""
-        new_items = self.contained_items.add(item_id)
-        return replace(self, contained_items=new_items)
+    def add_entity(self, entity_id: EntityId) -> 'Context':
+        """Return a new context with the specified entity added."""
+        new_entities = self.contained_entities.add(entity_id)
+        return replace(self, contained_entities=new_entities)
     
-    def remove_item(self, item_id: ItemId) -> 'Context':
-        """Return a new context with the specified item removed."""
-        if item_id not in self.contained_items:
+    def remove_entity(self, entity_id: EntityId) -> 'Context':
+        """Return a new context with the specified entity removed."""
+        if entity_id not in self.contained_entities:
             return self
-        new_items = self.contained_items.remove(item_id)
-        return replace(self, contained_items=new_items)
+        new_entities = self.contained_entities.remove(entity_id)
+        return replace(self, contained_entities=new_entities)
     
-    def with_items(self, items: Set[ItemId]) -> 'Context':
-        """Return a new context with the specified items."""
-        return replace(self, contained_items=pset(items))
+    def add_predicate(self, predicate_id: PredicateId) -> 'Context':
+        """Return a new context with the specified predicate added."""
+        new_predicates = self.contained_predicates.add(predicate_id)
+        return replace(self, contained_predicates=new_predicates)
+    
+    def remove_predicate(self, predicate_id: PredicateId) -> 'Context':
+        """Return a new context with the specified predicate removed."""
+        if predicate_id not in self.contained_predicates:
+            return self
+        new_predicates = self.contained_predicates.remove(predicate_id)
+        return replace(self, contained_predicates=new_predicates)
+    
+    def get_all_items(self) -> Set[ItemId]:
+        """Get all items (entities and predicates) in this context."""
+        return set(self.contained_entities) | set(self.contained_predicates)
     
     @property
     def is_positive(self) -> bool:
@@ -197,66 +303,83 @@ class Context:
         """Check if this context has negative polarity (odd depth)."""
         return self.depth % 2 == 1
     
-    def __str__(self) -> str:
-        return f"Context({self.context_type}, depth={self.depth}, items={len(self.contained_items)})"
-
-
-@dataclass(frozen=True)
-class Ligature:
-    """Represents a ligature (equality relationship) in an existential graph."""
-    
-    id: LigatureId
-    nodes: PSet
-    edges: PSet
-    properties: PMap
-    
-    @classmethod
-    def create(cls, nodes: Optional[Set[NodeId]] = None,
-               edges: Optional[Set[EdgeId]] = None,
-               properties: Optional[Dict[str, Any]] = None,
-               id: Optional[LigatureId] = None) -> 'Ligature':
-        """Create a new ligature with proper defaults."""
-        return cls(
-            id=id or new_ligature_id(),
-            nodes=pset(nodes or set()),
-            edges=pset(edges or set()),
-            properties=pmap(properties or {})
-        )
-    
-    def add_node(self, node_id: NodeId) -> 'Ligature':
-        """Return a new ligature with the specified node added."""
-        new_nodes = self.nodes.add(node_id)
-        return replace(self, nodes=new_nodes)
-    
-    def add_edge(self, edge_id: EdgeId) -> 'Ligature':
-        """Return a new ligature with the specified edge added."""
-        new_edges = self.edges.add(edge_id)
-        return replace(self, edges=new_edges)
-    
-    def union(self, other: 'Ligature') -> 'Ligature':
-        """Return a new ligature that is the union of this and another ligature."""
-        new_nodes = self.nodes.union(other.nodes)
-        new_edges = self.edges.union(other.edges)
-        return replace(self, nodes=new_nodes, edges=new_edges)
+    @property
+    def is_root(self) -> bool:
+        """Check if this is the root context (Sheet of Assertion)."""
+        return self.parent_context is None
     
     def __str__(self) -> str:
-        return f"Ligature(nodes={len(self.nodes)}, edges={len(self.edges)})"
+        return f"Context({self.context_type}, depth={self.depth}, entities={len(self.contained_entities)}, predicates={len(self.contained_predicates)})"
+
+
+# Utility functions for working with the new architecture
+
+def create_simple_assertion(predicate_name: str, entity_names: List[str]) -> tuple[List[Entity], Predicate]:
+    """Create entities and a predicate for a simple assertion.
+    
+    Args:
+        predicate_name: Name of the predicate
+        entity_names: Names of entities (constants or variables)
+        
+    Returns:
+        Tuple of (entities_list, predicate)
+    """
+    entities = []
+    entity_ids = []
+    
+    for name in entity_names:
+        if name.islower() and len(name) == 1:
+            # Single lowercase letter = variable
+            entity = Entity.create_variable(name)
+        else:
+            # Otherwise = constant
+            entity = Entity.create_constant(name)
+        entities.append(entity)
+        entity_ids.append(entity.id)
+    
+    predicate = Predicate.create(predicate_name, entity_ids)
+    
+    return entities, predicate
+
+
+def validate_predicate_entity_connection(predicate: Predicate, entities: Dict[EntityId, Entity]) -> List[str]:
+    """Validate that a predicate's connected entities exist and are valid.
+    
+    Args:
+        predicate: The predicate to validate
+        entities: Dictionary of all entities in the graph
+        
+    Returns:
+        List of error messages (empty if valid)
+    """
+    errors = []
+    
+    for entity_id in predicate.connected_entities:
+        if entity_id not in entities:
+            errors.append(f"Predicate {predicate.name} references non-existent entity {entity_id}")
+    
+    if predicate.arity != len(predicate.connected_entities):
+        errors.append(f"Predicate {predicate.name} arity mismatch: declared {predicate.arity}, actual {len(predicate.connected_entities)}")
+    
+    return errors
 
 
 # Export all public symbols
 __all__ = [
     # Types
-    'NodeId', 'EdgeId', 'ContextId', 'LigatureId', 'ItemId',
-    'NodeType', 'EdgeType', 'ContextType', 'Properties',
+    'EntityId', 'PredicateId', 'ContextId', 'ItemId', 'Properties',
     
     # ID generators
-    'new_node_id', 'new_edge_id', 'new_context_id', 'new_ligature_id',
+    'new_entity_id', 'new_predicate_id', 'new_context_id',
     
     # Core classes
-    'Node', 'Edge', 'Context', 'Ligature',
+    'Entity', 'Predicate', 'Context',
+    
+    # Utility functions
+    'create_simple_assertion', 'validate_predicate_entity_connection',
     
     # Exceptions
-    'EGError', 'NodeError', 'EdgeError', 'ContextError', 'LigatureError', 'ValidationError',
+    'EGError', 'EntityError', 'PredicateError', 'ContextError', 'ValidationError',
     
     # Pyrsistent imports for convenience
     'pmap', 'pset', 'pvector'
