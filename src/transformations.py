@@ -8,7 +8,7 @@ Updated for Entity-Predicate hypergraph architecture where:
 
 This module provides a comprehensive implementation of all transformation rules
 for existential graphs, including Alpha and Beta rules with proper entity
-handling and validation.
+handling, validation, and cross-cut ligature compliance.
 """
 
 from typing import Dict, List, Optional, Set, Tuple, Any, Union
@@ -23,6 +23,7 @@ from .eg_types import (
 )
 from .graph import EGGraph
 from .context import ContextManager
+from .cross_cut_validator import CrossCutValidator, CrossCutInfo, IdentityPreservationResult
 
 
 @dataclass
@@ -96,6 +97,7 @@ class TransformationEngine:
         self.transformation_history: List[TransformationAttempt] = []
         self.rules = self._initialize_rules()
         self.validator = TransformationValidator()
+        self.cross_cut_validator = CrossCutValidator()  # Add cross-cut validation
     
     def apply_transformation(
         self, 
@@ -142,6 +144,16 @@ class TransformationEngine:
                 attempt.error_message = validation_result.error_message
                 return attempt
             
+            # Validate cross-cut ligature constraints
+            cross_cut_violations = self.cross_cut_validator.validate_transformation_constraints(
+                graph, transformation_type.value, target_items, target_context
+            )
+            
+            if cross_cut_violations:
+                attempt.result = TransformationResult.ENTITY_VIOLATION
+                attempt.error_message = f"Cross-cut ligature violations: {'; '.join(cross_cut_violations)}"
+                return attempt
+            
             # Apply the specific transformation
             if transformation_type == TransformationType.DOUBLE_CUT_INSERTION:
                 result_graph = self._apply_double_cut_insertion(graph, target_context, **kwargs)
@@ -177,13 +189,24 @@ class TransformationEngine:
                 attempt.error_message = entity_validation.error_message
                 return attempt
             
+            # Validate cross-cut ligature integrity after transformation
+            post_transformation_validation = self.cross_cut_validator.validate_identity_preservation(result_graph)
+            if not post_transformation_validation.is_preserved:
+                attempt.result = TransformationResult.ENTITY_VIOLATION
+                attempt.error_message = f"Post-transformation cross-cut violations: {'; '.join(post_transformation_validation.violations)}"
+                return attempt
+            
+            # Store cross-cut analysis in metadata
+            attempt.metadata['cross_cuts_analyzed'] = len(post_transformation_validation.cross_cuts)
+            attempt.metadata['cross_cut_warnings'] = post_transformation_validation.warnings
+            
             # Success
             attempt.result_graph = result_graph
-            attempt.metadata = {
+            attempt.metadata.update({
                 'entities_added': len(result_graph.entities) - len(graph.entities),
                 'predicates_added': len(result_graph.predicates) - len(graph.predicates),
                 'contexts_added': len(result_graph.context_manager.contexts) - len(graph.context_manager.contexts)
-            }
+            })
             
         except Exception as e:
             attempt.result = TransformationResult.INVALID_RULE
@@ -215,8 +238,19 @@ class TransformationEngine:
             if validation_result.is_valid:
                 # Find possible target sets for this transformation
                 target_sets = self._find_transformation_targets(graph, transformation_type, context_id)
-                if target_sets:
-                    legal_transformations[transformation_type] = target_sets
+                
+                # Filter target sets based on cross-cut constraints
+                valid_target_sets = []
+                for target_set in target_sets:
+                    cross_cut_violations = self.cross_cut_validator.validate_transformation_constraints(
+                        graph, transformation_type.value, target_set, context_id
+                    )
+                    
+                    if not cross_cut_violations:  # No violations means it's valid
+                        valid_target_sets.append(target_set)
+                
+                if valid_target_sets:
+                    legal_transformations[transformation_type] = valid_target_sets
         
         return legal_transformations
     

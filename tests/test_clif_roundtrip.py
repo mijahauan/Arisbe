@@ -14,12 +14,12 @@ from dataclasses import dataclass
 from collections import defaultdict
 import uuid
 
-from .eg_types import (
+from src.eg_types import (
     Entity, Predicate, Context,
     EntityId, PredicateId, ContextId,
     ValidationError, pmap, pset
 )
-from .graph import EGGraph
+from src.graph import EGGraph
 
 
 @dataclass
