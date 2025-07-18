@@ -523,20 +523,15 @@ class CLIFParser:
         self._advance()  # consume '='
         
         # Parse two terms
-        term1 = self._parse_term()
-        term2 = self._parse_term()
+        graph, term1_entity_id = self._parse_term(graph)
+        graph, term2_entity_id = self._parse_term(graph)
         
         # Create entities for the terms and connect them
-        if term1 and term2:
-            graph, entity1 = self._get_or_create_entity(graph, term1, self._get_term_type(term1))
-            graph, entity2 = self._get_or_create_entity(graph, term2, self._get_term_type(term2))
-            
-            # In EG, equality is represented by the same Line of Identity
-            # If they're different entities, we need to merge them or create a ligature
-            # For now, create an equality predicate
+        if term1_entity_id and term2_entity_id:
+            # Create an equality predicate
             equality_pred = Predicate.create(
                 name='=',
-                entities=[entity1.id, entity2.id],
+                entities=[term1_entity_id, term2_entity_id],
                 arity=2
             )
             graph = graph.add_predicate(equality_pred, self.current_context)
@@ -556,11 +551,9 @@ class CLIFParser:
             entity_ids = []
             while (self._current_token().type != CLIFTokenType.RPAREN and 
                    self._current_token().type != CLIFTokenType.EOF):
-                term = self._parse_term()
-                if term:
-                    # Create or get entity for this term
-                    graph, entity = self._get_or_create_entity(graph, term, self._get_term_type(term))
-                    entity_ids.append(entity.id)
+                graph, entity_id = self._parse_term(graph)
+                if entity_id:
+                    entity_ids.append(entity_id)
             
             # Create predicate connecting the entities
             if entity_ids:
@@ -601,27 +594,70 @@ class CLIFParser:
         self._expect(CLIFTokenType.RPAREN)
         return variables
     
-    def _parse_term(self) -> Optional[str]:
-        """Parse a term (variable, constant, or function)."""
+    def _parse_term(self, graph: EGGraph) -> Tuple[EGGraph, Optional[EntityId]]:
+        """Parse a term (variable, constant, or function), returning updated graph and entity ID."""
         token = self._current_token()
         
         if token.type == CLIFTokenType.IDENTIFIER:
-            return self._advance().value
+            term_name = self._advance().value
+            graph, entity = self._get_or_create_entity(graph, term_name, self._get_term_type(term_name))
+            return graph, entity.id
         elif token.type == CLIFTokenType.STRING:
-            return self._advance().value
+            term_name = self._advance().value
+            graph, entity = self._get_or_create_entity(graph, term_name, 'constant')
+            return graph, entity.id
         elif token.type == CLIFTokenType.NUMBER:
-            return self._advance().value
+            term_name = self._advance().value
+            graph, entity = self._get_or_create_entity(graph, term_name, 'constant')
+            return graph, entity.id
         elif token.type == CLIFTokenType.LPAREN:
-            # Function term - for now, just skip it
+            # Function term: (function_name arg1 arg2 ...)
             self._advance()  # consume '('
+            
+            if self._current_token().type != CLIFTokenType.IDENTIFIER:
+                self._add_error("Expected function name", "SYNTAX_ERROR")
+                return graph, None
+            
+            function_name = self._advance().value
+            
+            # Parse function arguments
+            arg_entity_ids = []
             while (self._current_token().type != CLIFTokenType.RPAREN and 
                    self._current_token().type != CLIFTokenType.EOF):
-                self._advance()
+                graph, arg_entity_id = self._parse_term(graph)
+                if arg_entity_id:
+                    arg_entity_ids.append(arg_entity_id)
+            
             self._advance()  # consume ')'
-            return None
+            
+            # Create a unique name for the result entity based on function and arguments
+            result_entity_name = f"{function_name}({','.join(str(id) for id in arg_entity_ids)})"
+            
+            # Check if this functional term already exists
+            if result_entity_name in self.entity_registry:
+                # Reuse existing entity
+                entity_id = self.entity_registry[result_entity_name]
+                entity = graph.entities.get(entity_id)
+                if entity is not None:
+                    return graph, entity.id
+            
+            # Create new result entity
+            graph, result_entity = self._get_or_create_entity(graph, result_entity_name, 'functional_term')
+            
+            # Create function predicate only if it doesn't already exist
+            function_predicate = Predicate.create(
+                name=function_name,
+                entities=arg_entity_ids + [result_entity.id],
+                arity=len(arg_entity_ids) + 1,
+                predicate_type='function',
+                return_entity=result_entity.id
+            )
+            graph = graph.add_predicate(function_predicate, self.current_context)
+            
+            return graph, result_entity.id
         else:
             self._add_error(f"Expected term, got {token.value}", "SYNTAX_ERROR")
-            return None
+            return graph, None
     
     def _get_or_create_entity(self, graph: EGGraph, name: str, entity_type: str) -> Tuple[EGGraph, Entity]:
         """Get existing entity or create new one, returning updated graph and entity."""

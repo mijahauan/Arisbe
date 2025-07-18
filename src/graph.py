@@ -39,7 +39,7 @@ class EGGraph:
     @classmethod
     def create_empty(cls) -> 'EGGraph':
         """Create an empty existential graph with just the root context."""
-        context_manager = ContextManager()
+        context_manager = ContextManager.create_empty()
         return cls(
             context_manager=context_manager,
             nodes=pmap(),
@@ -372,4 +372,3 @@ class EGGraph:
         errors.extend(context_errors)
         
         return errors
-

@@ -313,6 +313,10 @@ class Predicate:
     
     Predicates represent relations that connect entities. In hypergraph terms,
     predicates are hyperedges that can connect multiple entities.
+    
+    Extended to support Dau's function symbols:
+    - predicate_type distinguishes between 'relation' and 'function'
+    - return_entity identifies the result entity for functions
     """
     
     id: PredicateId
@@ -320,10 +324,14 @@ class Predicate:
     entities: PVector  # List of EntityId in order
     arity: int
     properties: PMap
+    predicate_type: str = 'relation'  # 'relation' or 'function' - default for backward compatibility
+    return_entity: Optional[EntityId] = None  # For functions, the entity representing the result
     
     @classmethod
     def create(cls, name: str, entities: Optional[List[EntityId]] = None,
                arity: Optional[int] = None,
+               predicate_type: str = 'relation',
+               return_entity: Optional[EntityId] = None,
                properties: Optional[Dict[str, Any]] = None,
                id: Optional[PredicateId] = None) -> 'Predicate':
         """Create a new predicate with proper defaults."""
@@ -333,7 +341,9 @@ class Predicate:
             name=name,
             entities=pvector(entities_list),
             arity=arity if arity is not None else len(entities_list),
-            properties=pmap(properties or {})
+            properties=pmap(properties or {}),
+            predicate_type=predicate_type,
+            return_entity=return_entity
         )
     
     def add_entity(self, entity_id: EntityId) -> 'Predicate':
@@ -355,8 +365,19 @@ class Predicate:
         new_properties = self.properties.set(key, value)
         return replace(self, properties=new_properties)
     
+    @property
+    def is_function(self) -> bool:
+        """Check if this predicate represents a function."""
+        return self.predicate_type == 'function'
+    
+    @property
+    def is_relation(self) -> bool:
+        """Check if this predicate represents a relation."""
+        return self.predicate_type == 'relation'
+    
     def __str__(self) -> str:
-        return f"Predicate({self.name}, arity={self.arity})"
+        type_str = f", {self.predicate_type}" if self.predicate_type != 'relation' else ""
+        return f"Predicate({self.name}, arity={self.arity}{type_str})"
 
 
 # Export all public symbols
