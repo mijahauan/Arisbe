@@ -23,7 +23,7 @@ from .eg_types import (
 )
 from .graph import EGGraph
 from .context import ContextManager
-from .cross_cut_validator import CrossCutValidator, CrossCutInfo, IdentityPreservationResult
+from .cross_cut_validator import CrossCutValidator
 
 
 @dataclass
@@ -63,6 +63,7 @@ class TransformationResult(Enum):
     ENTITY_VIOLATION = "entity_violation"
     CONTEXT_VIOLATION = "context_violation"
     ISOMORPHISM_FAILED = "isomorphism_failed"
+    SEMANTIC_VIOLATION = "semantic_violation"
 
 
 @dataclass
@@ -92,12 +93,17 @@ class TransformationRule:
 class TransformationEngine:
     """Complete transformation engine for existential graphs with Entity-Predicate architecture."""
     
-    def __init__(self):
-        """Initialize the transformation engine."""
+    def __init__(self, semantic_validator=None):
+        """Initialize the transformation engine.
+        
+        Args:
+            semantic_validator: Optional semantic validator for semantic consistency checking
+        """
         self.transformation_history: List[TransformationAttempt] = []
         self.rules = self._initialize_rules()
         self.validator = TransformationValidator()
         self.cross_cut_validator = CrossCutValidator()  # Add cross-cut validation
+        self.semantic_validator = semantic_validator  # Add semantic validation
     
     def apply_transformation(
         self, 
@@ -195,6 +201,21 @@ class TransformationEngine:
                 attempt.result = TransformationResult.ENTITY_VIOLATION
                 attempt.error_message = f"Post-transformation cross-cut violations: {'; '.join(post_transformation_validation.violations)}"
                 return attempt
+            
+            # Validate semantic consistency after transformation (if semantic validator is available)
+            if hasattr(self, 'semantic_validator') and self.semantic_validator:
+                semantic_validation = self.semantic_validator.validate_transformation_semantics(
+                    graph, result_graph, transformation_type.value
+                )
+                if not semantic_validation['overall_valid']:
+                    attempt.result = TransformationResult.SEMANTIC_VIOLATION
+                    attempt.error_message = f"Semantic validation failed: {semantic_validation.get('semantic_changes', [])}"
+                    attempt.metadata['semantic_issues'] = semantic_validation
+                    return attempt
+                
+                # Store semantic analysis in metadata
+                attempt.metadata['semantic_preserved'] = semantic_validation['semantics_preserved']
+                attempt.metadata['semantic_changes'] = semantic_validation.get('semantic_changes', [])
             
             # Store cross-cut analysis in metadata
             attempt.metadata['cross_cuts_analyzed'] = len(post_transformation_validation.cross_cuts)
