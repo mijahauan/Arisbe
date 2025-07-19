@@ -10,7 +10,7 @@ from dataclasses import dataclass, replace, field
 import uuid
 
 try:
-    from .eg_types import (
+    from eg_types import (
         Context, ContextId, ItemId,
         new_context_id, ContextError,
         pmap, pset

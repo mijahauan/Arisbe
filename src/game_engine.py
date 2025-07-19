@@ -21,12 +21,12 @@ from dataclasses import dataclass
 from uuid import UUID, uuid4
 import copy
 
-from .eg_types import EntityId, PredicateId, ContextId, LigatureId, ItemId
-from .graph import EGGraph
-from .context import ContextManager
-from .transformations import TransformationEngine, TransformationType, TransformationResult
-from .clif_parser import CLIFParser
-from .clif_generator import CLIFGenerator
+from eg_types import EntityId, PredicateId, ContextId, LigatureId, ItemId
+from graph import EGGraph
+from context import ContextManager
+from transformations import TransformationEngine, TransformationType, TransformationResult
+from clif_parser import CLIFParser
+from clif_generator import CLIFGenerator
 
 
 class Player(Enum):
@@ -566,8 +566,8 @@ def create_simple_game(clif_text: str) -> Tuple[EndoporeuticGameEngine, GameStat
     
     # Parse the CLIF text
     parse_result = engine.clif_parser.parse(clif_text)
-    if not parse_result.success:
-        raise ValueError(f"Failed to parse CLIF: {parse_result.error}")
+    if len(parse_result.errors) > 0 or parse_result.graph is None:
+        raise ValueError(f"Failed to parse CLIF: {parse_result.errors}")
     
     # Create game state
     game_state = engine.create_game_state(parse_result.graph)

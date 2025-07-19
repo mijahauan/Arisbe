@@ -12,12 +12,12 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import uuid
 
-from .eg_types import (
+from eg_types import (
     Entity, Predicate, Context, Ligature,
     EntityId, PredicateId, ContextId, LigatureId,
     pmap, pset, pvector
 )
-from .graph import EGGraph
+from graph import EGGraph
 
 
 class SemanticValueType(Enum):

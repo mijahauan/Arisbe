@@ -15,13 +15,13 @@ from dataclasses import dataclass
 from enum import Enum
 import uuid
 
-from .eg_types import (
+from eg_types import (
     Entity, Predicate, Context,
     EntityId, PredicateId, ContextId,
     new_entity_id, new_predicate_id, new_context_id,
     ValidationError, pmap, pset
 )
-from .graph import EGGraph
+from graph import EGGraph
 
 
 class CLIFTokenType(Enum):

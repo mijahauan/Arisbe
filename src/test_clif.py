@@ -1,4 +1,3 @@
-import sys; sys.path.append("src")
 """
 Fixed tests for redesigned CLIF parser and generator with correct API compatibility.
 

@@ -26,13 +26,13 @@ import copy
 from collections import defaultdict
 import math
 
-from .eg_types import EntityId, PredicateId, ContextId, LigatureId, ItemId
-from .graph import EGGraph
-from .game_engine import (
+from eg_types import EntityId, PredicateId, ContextId, LigatureId, ItemId
+from graph import EGGraph
+from game_engine import (
     EndoporeuticGameEngine, GameState, GameMove, Player, GameStatus, MoveType
 )
-from .transformations import TransformationType
-from .pattern_recognizer import PatternRecognitionEngine, PatternType
+from transformations import TransformationType
+from pattern_recognizer import PatternRecognitionEngine, PatternType
 
 
 class PositionEvaluation(Enum):

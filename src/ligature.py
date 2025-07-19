@@ -16,7 +16,7 @@ from dataclasses import dataclass, replace
 from collections import defaultdict, deque
 import uuid
 
-from .eg_types import (
+from eg_types import (
     Entity, Predicate, Context, Ligature,
     EntityId, PredicateId, ContextId, LigatureId, ItemId,
     new_ligature_id, LigatureError, ValidationError,

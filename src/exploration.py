@@ -22,12 +22,12 @@ from dataclasses import dataclass, replace
 from enum import Enum
 import copy
 
-from .eg_types import (
+from eg_types import (
     Entity, Predicate, Context, Ligature, 
     EntityId, PredicateId, ContextId, LigatureId, ItemId
 )
-from .graph import EGGraph
-from .context import ContextManager
+from graph import EGGraph
+from context import ContextManager
 
 
 class ScopeType(Enum):

@@ -10,14 +10,14 @@ from dataclasses import dataclass, replace
 from collections import defaultdict, deque
 import uuid
 
-from .eg_types import (
+from eg_types import (
     Node, Edge, Context, Ligature, Entity, Predicate,
     NodeId, EdgeId, ContextId, LigatureId, EntityId, PredicateId, ItemId,
     new_node_id, new_edge_id, new_context_id, new_ligature_id, new_entity_id, new_predicate_id,
     EGError, NodeError, EdgeError, ContextError, LigatureError, EntityError, PredicateError,
     pmap, pset, pvector
 )
-from .context import ContextManager
+from context import ContextManager
 
 
 @dataclass(frozen=True)
@@ -39,7 +39,7 @@ class EGGraph:
     @classmethod
     def create_empty(cls) -> 'EGGraph':
         """Create an empty existential graph with just the root context."""
-        context_manager = ContextManager.create_empty()
+        context_manager = ContextManager()
         return cls(
             context_manager=context_manager,
             nodes=pmap(),
@@ -372,3 +372,4 @@ class EGGraph:
         errors.extend(context_errors)
         
         return errors
+

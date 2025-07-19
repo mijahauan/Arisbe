@@ -6,14 +6,13 @@ validation system without complex graph construction.
 """
 
 import sys
-sys.path.append('src')
 
 import unittest
 from typing import Set, Dict, List
 
-from src.eg_types import Entity, Predicate, Context, EntityId, PredicateId, ContextId
-from src.graph import EGGraph
-from src.cross_cut_validator import CrossCutValidator, CrossCutType, CrossCutInfo
+from eg_types import Entity, Predicate, Context, EntityId, PredicateId, ContextId
+from graph import EGGraph
+from cross_cut_validator import CrossCutValidator, CrossCutType, CrossCutInfo
 
 
 class TestCrossCutCore(unittest.TestCase):

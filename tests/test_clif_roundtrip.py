@@ -1,462 +1,315 @@
+import sys; sys.path.append("src")
 """
-Fixed CLIF generator with correct Entity-Predicate hypergraph architecture.
+Comprehensive round-trip tests for CLIF parsing and generation with function symbols.
 
-This module provides CLIF generation that correctly maps:
-- Entities (Lines of Identity) → CLIF terms (variables, constants)
-- Predicates (hyperedges connecting entities) → CLIF predicates
-- Entity scoping in contexts → CLIF quantifiers
-
-Fixed to work with the corrected graph API.
+This module tests that Parse → Generate → Parse produces semantically identical graphs,
+with special focus on function symbol preservation and semantic consistency.
 """
 
-from typing import Dict, List, Optional, Set, Tuple, Any, Union
-from dataclasses import dataclass
-from collections import defaultdict
-import uuid
+import pytest
+from typing import List, Dict, Any
 
-from src.eg_types import (
-    Entity, Predicate, Context,
-    EntityId, PredicateId, ContextId,
-    ValidationError, pmap, pset
-)
-from src.graph import EGGraph
+import sys
+import os
+
+from clif_parser import CLIFParser
+from clif_generator import CLIFGenerator, CLIFRoundTripValidator
+from eg_types import Entity, Predicate
 
 
-@dataclass
-class CLIFGenerationResult:
-    """Result of CLIF generation operation."""
-    clif_text: Optional[str]
-    errors: List[str]
-    warnings: List[str]
-    metadata: Dict[str, Any]
-
-
-class CLIFGenerator:
-    """Generator for CLIF (Common Logic Interchange Format) from Entity-Predicate graphs."""
+class TestCLIFRoundTripFunctions:
+    """Test round-trip integrity for function symbols."""
     
-    def __init__(self):
-        """Initialize the generator."""
-        self.errors = []
-        self.warnings = []
-        self.metadata = {}
-        
-        # Entity name mapping for generation
-        self.entity_names = {}  # Dict[EntityId, str]
-        self.variable_counter = 0
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.parser = CLIFParser()
+        self.generator = CLIFGenerator()
+        self.validator = CLIFRoundTripValidator()
     
-    def generate(self, graph: EGGraph) -> CLIFGenerationResult:
-        """Generate CLIF from an existential graph."""
-        try:
-            # Initialize generator state
-            self.errors = []
-            self.warnings = []
-            self.metadata = {}
-            self.entity_names = {}
-            self.variable_counter = 0
-            
-            # Build entity name mapping
-            self._build_entity_names(graph)
-            
-            # Generate CLIF content
-            clif_content = self._generate_clif_from_graph(graph)
-            
-            return CLIFGenerationResult(
-                clif_text=clif_content,
-                errors=self.errors,
-                warnings=self.warnings,
-                metadata=self.metadata
-            )
+    def _perform_roundtrip(self, clif_text: str) -> Dict[str, Any]:
+        """Perform a complete round-trip test and return results."""
+        # Step 1: Parse original CLIF
+        parse_result1 = self.parser.parse(clif_text)
+        assert len(parse_result1.errors) == 0, f"Parse errors: {parse_result1.errors}"
+        assert parse_result1.graph is not None, "Parse failed to produce graph"
         
-        except Exception as e:
-            self._add_error(f"Generation failed: {str(e)}")
-            return CLIFGenerationResult(
-                clif_text=None,
-                errors=self.errors,
-                warnings=self.warnings,
-                metadata=self.metadata
-            )
-    
-    def _add_error(self, message: str):
-        """Add an error to the error list."""
-        self.errors.append(message)
-    
-    def _add_warning(self, message: str):
-        """Add a warning to the warning list."""
-        self.warnings.append(message)
-    
-    def _build_entity_names(self, graph: EGGraph):
-        """Build mapping from entity IDs to names."""
-        for entity in graph.entities.values():
-            self.entity_names[entity.id] = entity.name
-    
-    def _generate_clif_from_graph(self, graph: EGGraph) -> str:
-        """Generate CLIF content from the graph."""
-        # Start with the root context
-        root_content = self._generate_context_content(graph, graph.root_context_id)
+        # Step 2: Generate CLIF from parsed graph
+        gen_result = self.generator.generate(parse_result1.graph)
+        assert len(gen_result.errors) == 0, f"Generation errors: {gen_result.errors}"
+        assert gen_result.clif_text is not None, "Generation failed to produce CLIF"
         
-        if root_content.strip():
-            return root_content
-        else:
-            return "(cl:text)"  # Empty CLIF module
-    
-    def _generate_context_content(self, graph: EGGraph, context_id: ContextId) -> str:
-        """Generate CLIF content for a specific context."""
-        context = graph.contexts.get(context_id)
-        if context is None:
-            return ""
+        # Step 3: Parse generated CLIF
+        parse_result2 = self.parser.parse(gen_result.clif_text)
+        assert len(parse_result2.errors) == 0, f"Re-parse errors: {parse_result2.errors}"
+        assert parse_result2.graph is not None, "Re-parse failed to produce graph"
         
-        # Get entities and predicates in this context
-        context_entities = self._get_entities_in_context(graph, context_id)
-        context_predicates = self._get_predicates_in_context(graph, context_id)
+        # Step 4: Validate round-trip integrity
+        validation = self.validator.validate_round_trip(parse_result1.graph, parse_result2.graph)
         
-        # Get child contexts
-        child_contexts = self._get_child_contexts(graph, context_id)
-        
-        # Generate content based on context type
-        if context.context_type == 'sheet_of_assertion':
-            return self._generate_sheet_content(graph, context_entities, context_predicates, child_contexts)
-        elif context.context_type == 'cut':
-            return self._generate_cut_content(graph, context_id, context_entities, context_predicates, child_contexts)
-        else:
-            # Default: treat as conjunction
-            return self._generate_conjunction_content(graph, context_entities, context_predicates, child_contexts)
-    
-    def _get_entities_in_context(self, graph: EGGraph, context_id: ContextId) -> Set[EntityId]:
-        """Get entities directly in a specific context."""
-        entities = set()
-        
-        # Get all items in context
-        items = graph.get_items_in_context(context_id)
-        
-        # Filter for entities
-        for item_id in items:
-            if item_id in graph.entities:
-                entities.add(item_id)
-        
-        return entities
-    
-    def _get_predicates_in_context(self, graph: EGGraph, context_id: ContextId) -> Set[PredicateId]:
-        """Get predicates directly in a specific context."""
-        predicates = set()
-        
-        # Get all items in context
-        items = graph.get_items_in_context(context_id)
-        
-        # Filter for predicates
-        for item_id in items:
-            if item_id in graph.predicates:
-                predicates.add(item_id)
-        
-        return predicates
-    
-    def _get_child_contexts(self, graph: EGGraph, parent_id: ContextId) -> List[ContextId]:
-        """Get direct child contexts of a parent context."""
-        children = []
-        
-        for context_id, context in graph.contexts.items():
-            if context.parent_context == parent_id:
-                children.append(context_id)
-        
-        return children
-    
-    def _generate_sheet_content(self, graph: EGGraph, entities: Set[EntityId], 
-                               predicates: Set[PredicateId], child_contexts: List[ContextId]) -> str:
-        """Generate content for the sheet of assertion (root context)."""
-        statements = []
-        
-        # Generate predicates in root context (skip function predicates)
-        for predicate_id in predicates:
-            predicate = graph.predicates[predicate_id]
-            
-            # Skip function predicates - they should only appear as functional terms
-            if hasattr(predicate, 'predicate_type') and predicate.predicate_type == 'function':
-                continue
-                
-            statement = self._generate_predicate_statement(graph, predicate)
-            if statement:
-                statements.append(statement)
-        
-        # Generate child contexts
-        for child_id in child_contexts:
-            child_content = self._generate_context_content(graph, child_id)
-            if child_content:
-                statements.append(child_content)
-        
-        # Combine statements
-        if len(statements) == 0:
-            return ""
-        elif len(statements) == 1:
-            return statements[0]
-        else:
-            # Multiple statements - wrap in conjunction if needed
-            return self._combine_statements(statements)
-    
-    def _generate_cut_content(self, graph: EGGraph, context_id: ContextId, entities: Set[EntityId], 
-                             predicates: Set[PredicateId], child_contexts: List[ContextId]) -> str:
-        """Generate content for a cut context (negation)."""
-        # Check if this is part of a quantification pattern
-        context = graph.contexts[context_id]
-        context_name = context.properties.get("name", "")
-        
-        if "Universal Quantification" in context_name:
-            return self._generate_universal_quantification(graph, context_id, entities, predicates, child_contexts)
-        elif "Existential Quantification" in context_name:
-            return self._generate_existential_quantification(graph, context_id, entities, predicates, child_contexts)
-        else:
-            # Simple negation
-            inner_content = self._generate_conjunction_content(graph, entities, predicates, child_contexts)
-            if inner_content:
-                return f"(not {inner_content})"
-            else:
-                return "(not)"
-    
-    def _generate_universal_quantification(self, graph: EGGraph, context_id: ContextId, 
-                                         entities: Set[EntityId], predicates: Set[PredicateId], 
-                                         child_contexts: List[ContextId]) -> str:
-        """Generate universal quantification."""
-        # Find variables in this context
-        variables = []
-        for entity_id in entities:
-            entity = graph.entities[entity_id]
-            if entity.entity_type == 'variable':
-                variables.append(entity.name)
-        
-        # Generate body content
-        body_content = self._generate_conjunction_content(graph, entities, predicates, child_contexts)
-        
-        if variables and body_content:
-            var_list = " ".join(variables)
-            return f"(forall ({var_list}) {body_content})"
-        else:
-            return body_content or ""
-    
-    def _generate_existential_quantification(self, graph: EGGraph, context_id: ContextId, 
-                                           entities: Set[EntityId], predicates: Set[PredicateId], 
-                                           child_contexts: List[ContextId]) -> str:
-        """Generate existential quantification."""
-        # Find variables in this context
-        variables = []
-        for entity_id in entities:
-            entity = graph.entities[entity_id]
-            if entity.entity_type == 'variable':
-                variables.append(entity.name)
-        
-        # Generate body content
-        body_content = self._generate_conjunction_content(graph, entities, predicates, child_contexts)
-        
-        if variables and body_content:
-            var_list = " ".join(variables)
-            return f"(exists ({var_list}) {body_content})"
-        else:
-            return body_content or ""
-    
-    def _generate_conjunction_content(self, graph: EGGraph, entities: Set[EntityId], 
-                                    predicates: Set[PredicateId], child_contexts: List[ContextId]) -> str:
-        """Generate conjunction content."""
-        statements = []
-        
-        # Generate predicates (skip function predicates)
-        for predicate_id in predicates:
-            predicate = graph.predicates[predicate_id]
-            
-            # Skip function predicates - they should only appear as functional terms
-            if hasattr(predicate, 'predicate_type') and predicate.predicate_type == 'function':
-                continue
-                
-            statement = self._generate_predicate_statement(graph, predicate)
-            if statement:
-                statements.append(statement)
-        
-        # Generate child contexts
-        for child_id in child_contexts:
-            child_content = self._generate_context_content(graph, child_id)
-            if child_content:
-                statements.append(child_content)
-        
-        return self._combine_statements(statements)
-    
-    def _generate_predicate_statement(self, graph: EGGraph, predicate: Predicate) -> str:
-        """Generate a CLIF statement for a predicate."""
-        
-        # Handle function predicates specially
-        if hasattr(predicate, 'predicate_type') and predicate.predicate_type == 'function':
-            return self._generate_function_term(graph, predicate)
-        
-        # Handle regular relation predicates
-        if predicate.arity == 0:
-            # Zero-arity predicate
-            return f"({predicate.name})"
-        
-        # Get entity names
-        entity_names = []
-        for entity_id in predicate.entities:
-            entity_name = self._get_entity_name_for_clif(graph, entity_id)
-            entity_names.append(entity_name)
-        
-        if entity_names:
-            args = " ".join(entity_names)
-            return f"({predicate.name} {args})"
-        else:
-            return f"({predicate.name})"
-    
-    def _generate_function_term(self, graph: EGGraph, function_predicate: Predicate) -> str:
-        """Generate a functional term from a function predicate."""
-        # For function predicates, the last entity is the return entity
-        # The other entities are the arguments
-        
-        if not hasattr(function_predicate, 'return_entity') or function_predicate.return_entity is None:
-            # Fallback: treat as regular predicate if no return entity specified
-            return self._generate_regular_predicate_statement(graph, function_predicate)
-        
-        # Get argument entities (all except the return entity)
-        arg_entities = []
-        return_entity_id = function_predicate.return_entity
-        
-        for entity_id in function_predicate.entities:
-            if entity_id != return_entity_id:
-                arg_entities.append(entity_id)
-        
-        # Generate the functional term
-        if len(arg_entities) == 0:
-            # Zero-arity function
-            return f"({function_predicate.name})"
-        else:
-            # Function with arguments
-            arg_names = []
-            for entity_id in arg_entities:
-                arg_name = self._get_entity_name_for_clif(graph, entity_id)
-                arg_names.append(arg_name)
-            
-            args = " ".join(arg_names)
-            return f"({function_predicate.name} {args})"
-    
-    def _generate_regular_predicate_statement(self, graph: EGGraph, predicate: Predicate) -> str:
-        """Generate a regular predicate statement (fallback method)."""
-        if predicate.arity == 0:
-            return f"({predicate.name})"
-        
-        entity_names = []
-        for entity_id in predicate.entities:
-            entity_name = self._get_entity_name_for_clif(graph, entity_id)
-            entity_names.append(entity_name)
-        
-        if entity_names:
-            args = " ".join(entity_names)
-            return f"({predicate.name} {args})"
-        else:
-            return f"({predicate.name})"
-    
-    def _get_entity_name_for_clif(self, graph: EGGraph, entity_id: EntityId) -> str:
-        """Get the appropriate CLIF representation for an entity."""
-        entity = graph.entities.get(entity_id)
-        if entity is None:
-            return f"entity_{entity_id}"
-        
-        # Check if this entity is the result of a function
-        if hasattr(entity, 'entity_type') and entity.entity_type == 'functional_term':
-            # This entity represents the result of a function call
-            # We need to find the function predicate that produces this entity
-            function_term = self._reconstruct_function_term(graph, entity_id)
-            if function_term:
-                return function_term
-        
-        # Use the entity's name or generate one
-        if entity.name:
-            return entity.name
-        else:
-            return f"entity_{entity_id}"
-    
-    def _reconstruct_function_term(self, graph: EGGraph, result_entity_id: EntityId) -> Optional[str]:
-        """Reconstruct a functional term from its result entity."""
-        # Find the function predicate that has this entity as its return entity
-        for predicate in graph.predicates.values():
-            if (hasattr(predicate, 'predicate_type') and 
-                predicate.predicate_type == 'function' and
-                hasattr(predicate, 'return_entity') and
-                predicate.return_entity == result_entity_id):
-                
-                # Found the function predicate, reconstruct the term
-                arg_entities = []
-                for entity_id in predicate.entities:
-                    if entity_id != result_entity_id:
-                        arg_entities.append(entity_id)
-                
-                if len(arg_entities) == 0:
-                    # Zero-arity function
-                    return f"({predicate.name})"
-                else:
-                    # Function with arguments
-                    arg_names = []
-                    for entity_id in arg_entities:
-                        # Recursively get names for arguments (handles nested functions)
-                        arg_name = self._get_entity_name_for_clif(graph, entity_id)
-                        arg_names.append(arg_name)
-                    
-                    args = " ".join(arg_names)
-                    return f"({predicate.name} {args})"
-        
-        return None
-    
-    def _combine_statements(self, statements: List[str]) -> str:
-        """Combine multiple statements appropriately."""
-        if len(statements) == 0:
-            return ""
-        elif len(statements) == 1:
-            return statements[0]
-        else:
-            # Multiple statements - use conjunction
-            combined = " ".join(statements)
-            return f"(and {combined})"
-
-
-class CLIFRoundTripValidator:
-    """Validator for CLIF round-trip conversion."""
-    
-    def __init__(self):
-        """Initialize the validator."""
-        pass
-    
-    def validate_round_trip(self, original_graph: EGGraph, roundtrip_graph: EGGraph) -> Dict[str, Any]:
-        """Validate that a round-trip conversion preserves graph structure."""
-        results = {
-            'valid': True,
-            'errors': [],
-            'warnings': [],
-            'statistics': {}
+        return {
+            'original_clif': clif_text,
+            'generated_clif': gen_result.clif_text,
+            'original_graph': parse_result1.graph,
+            'roundtrip_graph': parse_result2.graph,
+            'validation': validation
         }
+    
+    def test_simple_function_roundtrip(self):
+        """Test round-trip for simple function terms."""
+        clif_text = "(Person (fatherOf Socrates))"
+        result = self._perform_roundtrip(clif_text)
         
-        # Compare entity counts
-        orig_entity_count = len(original_graph.entities)
-        rt_entity_count = len(roundtrip_graph.entities)
+        assert result['validation']['valid'], f"Round-trip validation failed: {result['validation']['errors']}"
         
-        if orig_entity_count != rt_entity_count:
-            results['errors'].append(f"Entity count mismatch: {orig_entity_count} vs {rt_entity_count}")
-            results['valid'] = False
+        # Verify semantic preservation
+        original = result['original_graph']
+        roundtrip = result['roundtrip_graph']
         
-        # Compare predicate counts
-        orig_predicate_count = len(original_graph.predicates)
-        rt_predicate_count = len(roundtrip_graph.predicates)
+        # Should have same number of entities and predicates
+        assert len(original.entities) == len(roundtrip.entities)
+        assert len(original.predicates) == len(roundtrip.predicates)
         
-        if orig_predicate_count != rt_predicate_count:
-            results['errors'].append(f"Predicate count mismatch: {orig_predicate_count} vs {rt_predicate_count}")
-            results['valid'] = False
+        # Should have one function predicate and one relation predicate
+        function_preds = [p for p in original.predicates.values() 
+                         if hasattr(p, 'predicate_type') and p.predicate_type == 'function']
+        relation_preds = [p for p in original.predicates.values() 
+                         if not hasattr(p, 'predicate_type') or p.predicate_type == 'relation']
         
-        # Compare context counts
-        orig_context_count = len(original_graph.contexts)
-        rt_context_count = len(roundtrip_graph.contexts)
+        assert len(function_preds) == 1, "Should have exactly one function predicate"
+        assert len(relation_preds) == 1, "Should have exactly one relation predicate"
+        assert function_preds[0].name == 'fatherOf'
+        assert relation_preds[0].name == 'Person'
+    
+    def test_nested_function_roundtrip(self):
+        """Test round-trip for nested function terms."""
+        clif_text = "(Wise (fatherOf (motherOf Socrates)))"
+        result = self._perform_roundtrip(clif_text)
         
-        if orig_context_count != rt_context_count:
-            results['warnings'].append(f"Context count difference: {orig_context_count} vs {rt_context_count}")
+        assert result['validation']['valid'], f"Round-trip validation failed: {result['validation']['errors']}"
         
-        # Store statistics
-        results['statistics'] = {
-            'original_entities': orig_entity_count,
-            'roundtrip_entities': rt_entity_count,
-            'original_predicates': orig_predicate_count,
-            'roundtrip_predicates': rt_predicate_count,
-            'original_contexts': orig_context_count,
-            'roundtrip_contexts': rt_context_count
-        }
+        # Verify nested structure is preserved
+        original = result['original_graph']
         
-        return results
+        # Should have 3 entities: Socrates, motherOf(Socrates), fatherOf(motherOf(Socrates))
+        assert len(original.entities) == 3
+        
+        # Should have 3 predicates: motherOf, fatherOf, Wise
+        assert len(original.predicates) == 3
+        
+        # Check that function predicates exist
+        function_names = [p.name for p in original.predicates.values() 
+                         if hasattr(p, 'predicate_type') and p.predicate_type == 'function']
+        assert 'motherOf' in function_names
+        assert 'fatherOf' in function_names
+    
+    def test_function_with_multiple_arguments_roundtrip(self):
+        """Test round-trip for functions with multiple arguments."""
+        clif_text = "(Person (childOf Socrates Plato))"
+        result = self._perform_roundtrip(clif_text)
+        
+        assert result['validation']['valid'], f"Round-trip validation failed: {result['validation']['errors']}"
+        
+        original = result['original_graph']
+        
+        # Should have 3 entities: Socrates, Plato, childOf(Socrates, Plato)
+        assert len(original.entities) == 3
+        
+        # Should have 2 predicates: childOf (function), Person (relation)
+        assert len(original.predicates) == 2
+        
+        # Verify function predicate has correct arity
+        function_pred = next(p for p in original.predicates.values() 
+                           if hasattr(p, 'predicate_type') and p.predicate_type == 'function')
+        assert function_pred.name == 'childOf'
+        assert function_pred.arity == 3  # 2 arguments + 1 return entity
+    
+    def test_function_in_quantified_expression_roundtrip(self):
+        """Test round-trip for functions in quantified expressions."""
+        clif_text = "(exists (x) (Person (fatherOf x)))"
+        result = self._perform_roundtrip(clif_text)
+        
+        assert result['validation']['valid'], f"Round-trip validation failed: {result['validation']['errors']}"
+        
+        original = result['original_graph']
+        
+        # Should have 2 entities: x (variable), fatherOf(x) (functional_term)
+        assert len(original.entities) == 2
+        
+        # Should have 2 predicates: fatherOf (function), Person (relation)
+        assert len(original.predicates) == 2
+    
+    def test_function_in_equality_roundtrip(self):
+        """Test round-trip for functions in equality statements."""
+        clif_text = "(= (fatherOf Socrates) Plato)"
+        result = self._perform_roundtrip(clif_text)
+        
+        assert result['validation']['valid'], f"Round-trip validation failed: {result['validation']['errors']}"
+        
+        original = result['original_graph']
+        
+        # Should have 3 entities: Socrates, fatherOf(Socrates), Plato
+        assert len(original.entities) == 3
+        
+        # Should have 2 predicates: fatherOf (function), = (relation)
+        assert len(original.predicates) == 2
+    
+    def test_zero_arity_function_roundtrip(self):
+        """Test round-trip for zero-arity functions."""
+        clif_text = "(Person (currentTime))"
+        result = self._perform_roundtrip(clif_text)
+        
+        assert result['validation']['valid'], f"Round-trip validation failed: {result['validation']['errors']}"
+        
+        original = result['original_graph']
+        
+        # Should have 1 entity: currentTime() (functional_term)
+        assert len(original.entities) == 1
+        
+        # Should have 2 predicates: currentTime (function), Person (relation)
+        assert len(original.predicates) == 2
+        
+        # Verify zero-arity function
+        function_pred = next(p for p in original.predicates.values() 
+                           if hasattr(p, 'predicate_type') and p.predicate_type == 'function')
+        assert function_pred.name == 'currentTime'
+        assert function_pred.arity == 1  # 0 arguments + 1 return entity
+    
+    def test_function_entity_reuse_roundtrip(self):
+        """Test round-trip for reused function entities."""
+        clif_text = "(and (Person (fatherOf Socrates)) (Wise (fatherOf Socrates)))"
+        result = self._perform_roundtrip(clif_text)
+        
+        assert result['validation']['valid'], f"Round-trip validation failed: {result['validation']['errors']}"
+        
+        original = result['original_graph']
+        
+        # Should have 2 entities: Socrates, fatherOf(Socrates) (reused)
+        assert len(original.entities) == 2
+        
+        # Should have 3 predicates: fatherOf (function), Person (relation), Wise (relation)
+        assert len(original.predicates) == 3
+        
+        # Verify function entity is reused
+        function_entities = [e for e in original.entities.values() 
+                           if hasattr(e, 'entity_type') and e.entity_type == 'functional_term']
+        assert len(function_entities) == 1, "Function entity should be reused"
+    
+    def test_complex_mixed_expression_roundtrip(self):
+        """Test round-trip for complex expressions mixing functions and relations."""
+        clif_text = "(and (Person Socrates) (= (fatherOf Socrates) (teacherOf Plato)) (Wise (fatherOf Socrates)))"
+        result = self._perform_roundtrip(clif_text)
+        
+        assert result['validation']['valid'], f"Round-trip validation failed: {result['validation']['errors']}"
+        
+        original = result['original_graph']
+        
+        # Should have appropriate number of entities and predicates
+        assert len(original.entities) >= 4  # Socrates, Plato, fatherOf(Socrates), teacherOf(Plato)
+        assert len(original.predicates) >= 5  # Person, fatherOf, teacherOf, =, Wise
+        
+        # Verify function predicates exist
+        function_names = [p.name for p in original.predicates.values() 
+                         if hasattr(p, 'predicate_type') and p.predicate_type == 'function']
+        assert 'fatherOf' in function_names
+        assert 'teacherOf' in function_names
+
+
+class TestCLIFGenerationEdgeCases:
+    """Test edge cases in CLIF generation for function symbols."""
+    
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.parser = CLIFParser()
+        self.generator = CLIFGenerator()
+    
+    def test_function_without_return_entity(self):
+        """Test generation of function predicate without return_entity field."""
+        # This tests backward compatibility
+        clif_text = "(Person Socrates)"
+        parse_result = self.parser.parse(clif_text)
+        
+        # Manually modify predicate to be a function without return_entity
+        predicate = list(parse_result.graph.predicates.values())[0]
+        modified_predicate = Predicate.create(
+            name=predicate.name,
+            entities=list(predicate.entities),
+            arity=predicate.arity,
+            predicate_type='function',  # Make it a function
+            return_entity=None,  # But no return entity
+            properties=dict(predicate.properties)
+        )
+        
+        # Replace in graph
+        graph = parse_result.graph
+        graph = graph.remove_predicate(predicate.id)
+        graph = graph.add_predicate(modified_predicate, graph.root_context_id)
+        
+        # Should generate without errors (fallback to regular predicate)
+        gen_result = self.generator.generate(graph)
+        assert len(gen_result.errors) == 0
+        assert gen_result.clif_text is not None
+    
+    def test_orphaned_functional_entity(self):
+        """Test generation when functional entity has no corresponding function predicate."""
+        clif_text = "(Person Socrates)"
+        parse_result = self.parser.parse(clif_text)
+        
+        # Manually add a functional entity without corresponding function predicate
+        from eg_types import Entity, new_entity_id
+        orphaned_entity = Entity.create(
+            name="orphaned_function_result",
+            entity_type="functional_term"
+        )
+        
+        graph = parse_result.graph.add_entity(orphaned_entity, parse_result.graph.root_context_id)
+        
+        # Should generate without errors (use entity name as fallback)
+        gen_result = self.generator.generate(graph)
+        assert len(gen_result.errors) == 0
+        assert gen_result.clif_text is not None
+
+
+class TestCLIFRoundTripValidator:
+    """Test the round-trip validator functionality."""
+    
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.parser = CLIFParser()
+        self.validator = CLIFRoundTripValidator()
+    
+    def test_validator_detects_entity_count_mismatch(self):
+        """Test that validator detects entity count mismatches."""
+        # Create two graphs with different entity counts
+        graph1 = self.parser.parse("(Person Socrates)").graph
+        graph2 = self.parser.parse("(and (Person Socrates) (Wise Plato))").graph
+        
+        validation = self.validator.validate_round_trip(graph1, graph2)
+        
+        assert not validation['valid']
+        assert any('Entity count mismatch' in error for error in validation['errors'])
+    
+    def test_validator_detects_predicate_count_mismatch(self):
+        """Test that validator detects predicate count mismatches."""
+        # Create two graphs with different predicate counts
+        graph1 = self.parser.parse("(Person Socrates)").graph
+        graph2 = self.parser.parse("(and (Person Socrates) (Wise Socrates))").graph
+        
+        validation = self.validator.validate_round_trip(graph1, graph2)
+        
+        assert not validation['valid']
+        assert any('Predicate count mismatch' in error for error in validation['errors'])
+    
+    def test_validator_passes_identical_graphs(self):
+        """Test that validator passes for identical graphs."""
+        graph1 = self.parser.parse("(Person (fatherOf Socrates))").graph
+        graph2 = self.parser.parse("(Person (fatherOf Socrates))").graph
+        
+        validation = self.validator.validate_round_trip(graph1, graph2)
+        
+        assert validation['valid']
+        assert len(validation['errors']) == 0
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
 

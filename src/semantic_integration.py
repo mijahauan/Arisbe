@@ -10,17 +10,17 @@ from typing import Dict, Set, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
 
-from .eg_types import (
+from eg_types import (
     Entity, Predicate, Context, Ligature,
     EntityId, PredicateId, ContextId, LigatureId,
     pmap, pset, pvector
 )
-from .graph import EGGraph
-from .semantic_interpreter import SemanticModel, SemanticInterpreter, create_finite_model
-from .semantic_evaluator import SemanticEvaluator, TruthEvaluationResult
-from .semantic_validator import SemanticValidator, SemanticValidationResult
-from .cross_cut_validator import CrossCutValidator
-from .transformations import TransformationEngine, TransformationType
+from graph import EGGraph
+from semantic_interpreter import SemanticModel, SemanticInterpreter, create_finite_model
+from semantic_evaluator import SemanticEvaluator, TruthEvaluationResult
+from semantic_validator import SemanticValidator, SemanticValidationResult
+from cross_cut_validator import CrossCutValidator
+from transformations import TransformationEngine, TransformationType
 
 
 @dataclass

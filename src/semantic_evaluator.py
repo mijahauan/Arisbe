@@ -11,13 +11,13 @@ from dataclasses import dataclass, field
 from enum import Enum
 import itertools
 
-from .eg_types import (
+from eg_types import (
     Entity, Predicate, Context, Ligature,
     EntityId, PredicateId, ContextId, LigatureId,
     pmap, pset, pvector
 )
-from .graph import EGGraph
-from .semantic_interpreter import (
+from graph import EGGraph
+from semantic_interpreter import (
     SemanticModel, VariableAssignment, SatisfactionResult,
     SemanticInterpreter
 )

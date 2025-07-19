@@ -1,3 +1,4 @@
+import sys; sys.path.append("src")
 """
 Test suite for function symbol support in CLIF parser.
 
@@ -10,9 +11,9 @@ import pytest
 from typing import Dict, List, Set
 
 # Import the modules
-from src.clif_parser import CLIFParser, CLIFParseResult
-from src.eg_types import Entity, Predicate, Context, EntityId, PredicateId
-from src.graph import EGGraph
+import sys; sys.path.append("src"); from clif_parser import CLIFParser, CLIFParseResult
+import sys; sys.path.append("src"); from eg_types import Entity, Predicate, Context, EntityId, PredicateId
+import sys; sys.path.append("src"); from graph import EGGraph
 
 
 class TestFunctionSupport:

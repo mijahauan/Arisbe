@@ -1,4 +1,3 @@
-import sys; sys.path.append("src")
 """
 Test suite for transformation rules with Entity-Predicate architecture.
 

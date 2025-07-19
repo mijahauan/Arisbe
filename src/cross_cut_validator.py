@@ -19,13 +19,13 @@ from collections import defaultdict, deque
 from enum import Enum
 import uuid
 
-from .eg_types import (
+from eg_types import (
     Entity, Predicate, Context, Ligature,
     EntityId, PredicateId, ContextId, LigatureId, ItemId,
     ValidationError, pmap, pset
 )
-from .graph import EGGraph
-from .ligature import LigatureManager
+from graph import EGGraph
+from ligature import LigatureManager
 
 
 class CrossCutType(Enum):

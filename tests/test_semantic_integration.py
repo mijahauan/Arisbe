@@ -6,19 +6,18 @@ cross-cut validation, semantic interpretation, and transformation preservation.
 """
 
 import sys
-sys.path.append('src')
 
 import unittest
 from typing import Set, List, Dict, Any
 
-from src.eg_types import Entity, Predicate, Context, pset, pmap, pvector
-from src.graph import EGGraph
-from src.semantic_interpreter import SemanticModel, SemanticDomain, create_finite_model, create_arithmetic_model
-from src.semantic_evaluator import SemanticEvaluator
-from src.semantic_validator import SemanticValidator
-from src.semantic_integration import SemanticFramework, SemanticConfiguration, create_semantic_framework
-from src.clif_parser import CLIFParser
-from src.transformations import TransformationEngine, TransformationType
+from eg_types import Entity, Predicate, Context, pset, pmap, pvector
+from graph import EGGraph
+from semantic_interpreter import SemanticModel, SemanticDomain, create_finite_model, create_arithmetic_model
+from semantic_evaluator import SemanticEvaluator
+from semantic_validator import SemanticValidator
+from semantic_integration import SemanticFramework, SemanticConfiguration, create_semantic_framework
+from clif_parser import CLIFParser
+from transformations import TransformationEngine, TransformationType
 
 
 class TestSemanticIntegration(unittest.TestCase):

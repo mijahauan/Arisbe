@@ -1,4 +1,3 @@
-import sys; sys.path.append("src")
 """
 Comprehensive tests for the Endoporeutic Game Engine
 
@@ -179,7 +178,7 @@ class TestLegalMoveAnalyzer:
     
     def test_analyzer_initialization(self):
         """Test analyzer initializes correctly."""
-        import sys; sys.path.append("src"); from transformations import TransformationEngine
+        from src.transformations import TransformationEngine
         engine = TransformationEngine()
         analyzer = LegalMoveAnalyzer(engine)
         
@@ -187,7 +186,7 @@ class TestLegalMoveAnalyzer:
     
     def test_get_legal_moves_game_over(self):
         """Test no legal moves when game is over."""
-        import sys; sys.path.append("src"); from transformations import TransformationEngine
+        from src.transformations import TransformationEngine
         engine = TransformationEngine()
         analyzer = LegalMoveAnalyzer(engine)
         
@@ -208,7 +207,7 @@ class TestLegalMoveAnalyzer:
     
     def test_get_legal_moves_with_active_game(self):
         """Test getting legal moves with an active game."""
-        import sys; sys.path.append("src"); from transformations import TransformationEngine
+        from src.transformations import TransformationEngine
         engine = TransformationEngine()
         analyzer = LegalMoveAnalyzer(engine)
         

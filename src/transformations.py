@@ -16,14 +16,14 @@ from dataclasses import dataclass
 from enum import Enum
 import uuid
 
-from .eg_types import (
+from eg_types import (
     Entity, Predicate, Context, Ligature,
     EntityId, PredicateId, ContextId, LigatureId, ItemId,
     ValidationError, pmap, pset
 )
-from .graph import EGGraph
-from .context import ContextManager
-from .cross_cut_validator import CrossCutValidator
+from graph import EGGraph
+from context import ContextManager
+from cross_cut_validator import CrossCutValidator
 
 
 @dataclass
