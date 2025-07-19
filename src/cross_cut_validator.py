@@ -58,7 +58,15 @@ class IdentityPreservationResult:
     violations: List[str]
     warnings: List[str]
     cross_cuts: List[CrossCutInfo]
-
+    
+    @property
+    def has_violations(self) -> bool:
+        """Check if there are any violations.
+        
+        This property provides compatibility with test expectations
+        and standardizes the violation checking interface.
+        """
+        return len(self.violations) > 0
 
 class CrossCutValidator:
     """Comprehensive cross-cut ligature validation system."""
@@ -130,6 +138,20 @@ class CrossCutValidator:
             warnings=warnings,
             cross_cuts=cross_cuts
         )
+    
+    def validate_graph(self, graph: EGGraph) -> IdentityPreservationResult:
+        """Validate the graph for cross-cut violations.
+        
+        This is an alias method that provides a standardized validation interface
+        compatible with test expectations and other validation patterns in the system.
+        
+        Args:
+            graph: The graph to validate
+            
+        Returns:
+            IdentityPreservationResult with validation results
+        """
+        return self.validate_identity_preservation(graph)
     
     def validate_transformation_constraints(self, graph: EGGraph, 
                                           transformation_type: str,

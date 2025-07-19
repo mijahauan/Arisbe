@@ -275,6 +275,21 @@ class TransformationEngine:
         
         return legal_transformations
     
+    def get_available_transformations(self, graph: EGGraph, context_id: ContextId = None) -> Dict[TransformationType, List[Set[ItemId]]]:
+        """Get all available transformations for the current graph state.
+        
+        This is an alias method that provides a standardized interface
+        compatible with test expectations and other transformation patterns in the system.
+        
+        Args:
+            graph: The graph to analyze.
+            context_id: Optional context to focus on.
+            
+        Returns:
+            Dictionary mapping transformation types to lists of possible target sets.
+        """
+        return self.get_legal_transformations(graph, context_id)
+
     def _find_transformation_targets(self, graph: EGGraph, transformation_type: TransformationType, 
                                    context_id: ContextId = None) -> List[Set[ItemId]]:
         """Find possible target sets for a given transformation type."""

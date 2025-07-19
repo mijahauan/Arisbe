@@ -373,3 +373,28 @@ class EGGraph:
         
         return errors
 
+    def validate(self) -> 'ValidationResult':
+        """Validate the graph and return a structured result.
+        
+        This is an alias method that provides a standardized validation interface
+        compatible with test expectations and other validation patterns in the system.
+        """
+        from dataclasses import dataclass
+        
+        @dataclass
+        class ValidationResult:
+            is_valid: bool
+            errors: List[str]
+            warnings: List[str] = None
+            
+            def __post_init__(self):
+                if self.warnings is None:
+                    self.warnings = []
+        
+        errors = self.validate_graph_integrity()
+        return ValidationResult(
+            is_valid=len(errors) == 0,
+            errors=errors,
+            warnings=[]
+        )
+

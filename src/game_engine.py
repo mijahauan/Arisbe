@@ -638,3 +638,44 @@ def _generate_strategic_notes(graph: EGGraph) -> List[str]:
     
     return notes
 
+
+# API Compatibility Alias
+# Provides backward compatibility for test suites and external code
+# that expects the shorter class name
+EGGameEngine = EndoporeuticGameEngine
+
+# Add compatibility methods to the EndoporeuticGameEngine class
+def _add_compatibility_methods():
+    """Add compatibility methods to EndoporeuticGameEngine."""
+    
+    def start_new_game(self, thesis_graph: EGGraph, domain_model: Optional[EGGraph] = None) -> GameState:
+        """Start a new game with the given thesis graph.
+        
+        This is an alias for create_game_state that provides compatibility
+        with test expectations and other game initialization patterns.
+        """
+        return self.create_game_state(thesis_graph, domain_model)
+    
+    def start_game(self, thesis_graph: EGGraph, domain_model: Optional[EGGraph] = None) -> GameState:
+        """Start a game with the given thesis graph.
+        
+        This is another alias for create_game_state that provides compatibility
+        with different naming conventions used in tests.
+        """
+        return self.create_game_state(thesis_graph, domain_model)
+    
+    def get_available_moves(self, state: GameState) -> List[GameMove]:
+        """Get available moves for the current game state.
+        
+        This is an alias for get_legal_moves that provides compatibility
+        with test expectations and other move analysis patterns.
+        """
+        return self.get_legal_moves(state)
+    
+    # Add methods to the class
+    EndoporeuticGameEngine.start_new_game = start_new_game
+    EndoporeuticGameEngine.start_game = start_game
+    EndoporeuticGameEngine.get_available_moves = get_available_moves
+
+# Apply the compatibility methods
+_add_compatibility_methods()
