@@ -1,0 +1,222 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [
+    {
+      "id": "841356a4-f639-48f0-a1da-1d2d364a4858",
+      "name": "Socrates",
+      "type": "constant",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 216.66666666666669,
+            "y": 300.0
+          },
+          {
+            "x": 266.6666666666667,
+            "y": 300.0
+          },
+          {
+            "x": 533.3333333333334,
+            "y": 300.0
+          },
+          {
+            "x": 583.3333333333334,
+            "y": 300.0
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Socrates",
+          "position": {
+            "x": 533.3333333333334,
+            "y": 285.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "id": "52046315-4550-4350-8b7b-dc8c76612819",
+      "name": "Person",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "841356a4-f639-48f0-a1da-1d2d364a4858"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 266.6666666666667,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Person",
+          "position": {
+            "x": 266.6666666666667,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "841356a4-f639-48f0-a1da-1d2d364a4858",
+          "connection_point": {
+            "x": 266.6666666666667,
+            "y": 300.0
+          },
+          "style": {}
+        }
+      ]
+    },
+    {
+      "id": "a27aafdb-3ae5-4ad5-b709-0ba10c7f011e",
+      "name": "Mortal",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "841356a4-f639-48f0-a1da-1d2d364a4858"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 533.3333333333334,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Mortal",
+          "position": {
+            "x": 533.3333333333334,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "841356a4-f639-48f0-a1da-1d2d364a4858",
+          "connection_point": {
+            "x": 533.3333333333334,
+            "y": 300.0
+          },
+          "style": {}
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "4f92245a-0755-4748-a371-9f1b7373b8e7",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 800.0,
+          "height": 600.0
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [
+        "52046315-4550-4350-8b7b-dc8c76612819",
+        "a27aafdb-3ae5-4ad5-b709-0ba10c7f011e",
+        "841356a4-f639-48f0-a1da-1d2d364a4858"
+      ],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Example 2: 2 Socrates Mortal",
+    "author": "System",
+    "created": "2025-07-21T05:35:14.940891",
+    "description": "Socrates is a person and Socrates is mortal"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(and (Person Socrates) (Mortal Socrates))",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}

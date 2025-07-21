@@ -1,0 +1,162 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [
+    {
+      "id": "38c9de84-a7b1-4d78-9b45-fdd69e1e0cd4",
+      "name": "x",
+      "type": "variable",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 350.0,
+            "y": 300.0
+          },
+          {
+            "x": 400.0,
+            "y": 300.0
+          },
+          {
+            "x": 450.0,
+            "y": 300.0
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "x",
+          "position": {
+            "x": 400.0,
+            "y": 285.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "id": "3b17ce6b-1e04-4218-a285-f4938057b8cb",
+      "name": "man",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "38c9de84-a7b1-4d78-9b45-fdd69e1e0cd4"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 400.0,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "man",
+          "position": {
+            "x": 400.0,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "38c9de84-a7b1-4d78-9b45-fdd69e1e0cd4",
+          "connection_point": {
+            "x": 400.0,
+            "y": 300.0
+          },
+          "style": {}
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "f02b5d0c-bba3-47da-a111-43b3d4b6413d",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 800.0,
+          "height": 600.0
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [
+        "3b17ce6b-1e04-4218-a285-f4938057b8cb",
+        "38c9de84-a7b1-4d78-9b45-fdd69e1e0cd4"
+      ],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Example 1: 1 Simple Man",
+    "author": "System",
+    "created": "2025-07-21T05:35:14.939897",
+    "description": "There is a man"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(man x)",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}

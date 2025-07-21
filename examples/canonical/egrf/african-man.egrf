@@ -1,0 +1,222 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [
+    {
+      "id": "d36a9358-8e02-4b84-84da-9f1dad255149",
+      "name": "x",
+      "type": "variable",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 216.66666666666669,
+            "y": 300.0
+          },
+          {
+            "x": 266.6666666666667,
+            "y": 300.0
+          },
+          {
+            "x": 533.3333333333334,
+            "y": 300.0
+          },
+          {
+            "x": 583.3333333333334,
+            "y": 300.0
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "x",
+          "position": {
+            "x": 533.3333333333334,
+            "y": 285.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "id": "9557546a-4597-483f-8906-4b4e5ba10e40",
+      "name": "man",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "d36a9358-8e02-4b84-84da-9f1dad255149"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 266.6666666666667,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "man",
+          "position": {
+            "x": 266.6666666666667,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "d36a9358-8e02-4b84-84da-9f1dad255149",
+          "connection_point": {
+            "x": 266.6666666666667,
+            "y": 300.0
+          },
+          "style": {}
+        }
+      ]
+    },
+    {
+      "id": "ff041558-93cc-4b55-a385-1a08339c8640",
+      "name": "African",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "d36a9358-8e02-4b84-84da-9f1dad255149"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 533.3333333333334,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "African",
+          "position": {
+            "x": 533.3333333333334,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "d36a9358-8e02-4b84-84da-9f1dad255149",
+          "connection_point": {
+            "x": 533.3333333333334,
+            "y": 300.0
+          },
+          "style": {}
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "e64d2522-b0c6-4fd0-a568-a153ba875397",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 800.0,
+          "height": 600.0
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [
+        "9557546a-4597-483f-8906-4b4e5ba10e40",
+        "d36a9358-8e02-4b84-84da-9f1dad255149",
+        "ff041558-93cc-4b55-a385-1a08339c8640"
+      ],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Example 5: 5 African Man",
+    "author": "System",
+    "created": "2025-07-21T05:35:14.943606",
+    "description": "There is an African man"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(and (man x) (African x))",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}

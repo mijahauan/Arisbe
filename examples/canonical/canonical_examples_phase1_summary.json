@@ -1,0 +1,68 @@
+{
+  "phase": "Foundational Examples (1-5)",
+  "timestamp": "2025-07-21T05:35:14.944281",
+  "examples": [
+    {
+      "number": 1,
+      "name": "Example 1: 1 Simple Man",
+      "description": "There is a man",
+      "formula": "\u2203x man(x)",
+      "egif": "[*x] (man ?x)",
+      "egrf_file": "/home/ubuntu/canonical_example_1:_1_simple_man.egrf",
+      "entities": 1,
+      "predicates": 1,
+      "contexts": 1
+    },
+    {
+      "number": 2,
+      "name": "Example 2: 2 Socrates Mortal",
+      "description": "Socrates is a person and Socrates is mortal",
+      "formula": "Person(Socrates) \u2227 Mortal(Socrates)",
+      "egif": "(Person Socrates) (Mortal Socrates)",
+      "egrf_file": "/home/ubuntu/canonical_example_2:_2_socrates_mortal.egrf",
+      "entities": 1,
+      "predicates": 2,
+      "contexts": 1
+    },
+    {
+      "number": 3,
+      "name": "Example 3: 3 Every Man Mortal",
+      "description": "Every man is mortal",
+      "formula": "\u2200x (man(x) \u2192 mortal(x))",
+      "egif": "~[[*x] (man ?x) ~[(mortal ?x)]]",
+      "egrf_file": "/home/ubuntu/canonical_example_3:_3_every_man_mortal.egrf",
+      "entities": 1,
+      "predicates": 2,
+      "contexts": 3
+    },
+    {
+      "number": 4,
+      "name": "Example 4: 4 Thunder Lightning",
+      "description": "If there is thunder, then there is lightning",
+      "formula": "thunder \u2192 lightning",
+      "egif": "~[(thunder) ~[(lightning)]]",
+      "egrf_file": "/home/ubuntu/canonical_example_4:_4_thunder_lightning.egrf",
+      "entities": 0,
+      "predicates": 2,
+      "contexts": 3
+    },
+    {
+      "number": 5,
+      "name": "Example 5: 5 African Man",
+      "description": "There is an African man",
+      "formula": "\u2203x (man(x) \u2227 African(x))",
+      "egif": "[*x] (man ?x) (African ?x)",
+      "egrf_file": "/home/ubuntu/canonical_example_5:_5_african_man.egrf",
+      "entities": 1,
+      "predicates": 2,
+      "contexts": 1
+    }
+  ],
+  "statistics": {
+    "total_examples": 5,
+    "successful_egrf_generation": 5,
+    "total_entities": 4,
+    "total_predicates": 9,
+    "total_contexts": 9
+  }
+}
