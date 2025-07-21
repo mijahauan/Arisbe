@@ -2,7 +2,7 @@
 import sys
 
 from graph import EGGraph
-from game_engine import EGGameEngine
+from game_engine import EGGameEngine, EndoporeuticGameEngine
 from cross_cut_validator import CrossCutValidator
 from transformations import TransformationEngine
 from eg_types import Entity, Predicate

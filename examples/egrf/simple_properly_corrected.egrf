@@ -1,0 +1,226 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [
+    {
+      "id": "socrates",
+      "name": "Socrates",
+      "type": "constant",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 100,
+            "y": 150
+          },
+          {
+            "x": 150,
+            "y": 150
+          },
+          {
+            "x": 200,
+            "y": 150
+          },
+          {
+            "x": 250,
+            "y": 150
+          },
+          {
+            "x": 300,
+            "y": 150
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Socrates",
+          "position": {
+            "x": 200,
+            "y": 135
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "id": "person",
+      "name": "Person",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "socrates"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 150,
+          "y": 180
+        },
+        "size": {
+          "width": 60,
+          "height": 30
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Person",
+          "position": {
+            "x": 150,
+            "y": 180
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "socrates",
+          "connection_point": {
+            "x": 150,
+            "y": 165
+          },
+          "style": {}
+        }
+      ]
+    },
+    {
+      "id": "mortal",
+      "name": "Mortal",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "socrates"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 250,
+          "y": 180
+        },
+        "size": {
+          "width": 60,
+          "height": 30
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Mortal",
+          "position": {
+            "x": 250,
+            "y": 180
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "socrates",
+          "connection_point": {
+            "x": 250,
+            "y": 165
+          },
+          "style": {}
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "root",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 100,
+          "height": 100
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [
+        "socrates",
+        "person",
+        "mortal"
+      ],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Socrates is a Mortal Person - Properly Corrected",
+    "author": "System",
+    "created": "2025-07-20T18:49:44.512352",
+    "description": "Simple existential graph showing (and (Person Socrates) (Mortal Socrates))"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(and (Person Socrates) (Mortal Socrates))",
+      "egif_equivalent": "[Person: Socrates] [Mortal: Socrates]"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}

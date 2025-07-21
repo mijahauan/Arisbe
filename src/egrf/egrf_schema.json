@@ -1,0 +1,349 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Existential Graph Rendering Format (EGRF)",
+  "description": "JSON schema for GUI-agnostic rendering of existential graphs",
+  "type": "object",
+  "required": ["format", "version", "entities", "predicates", "contexts"],
+  "properties": {
+    "format": {
+      "type": "string",
+      "const": "EGRF"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "title": {"type": "string"},
+        "author": {"type": "string"},
+        "created": {"type": "string", "format": "date-time"},
+        "description": {"type": "string"}
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "properties": {
+        "width": {"type": "number", "minimum": 0},
+        "height": {"type": "number", "minimum": 0},
+        "background": {"type": "string"},
+        "grid": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "size": {"type": "number", "minimum": 0},
+            "color": {"type": "string"}
+          }
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "type": {"type": "string", "enum": ["constant", "variable", "individual"]},
+          "visual": {
+            "type": "object",
+            "properties": {
+              "style": {"type": "string", "enum": ["line", "curve", "polyline"]},
+              "path": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["x", "y"],
+                  "properties": {
+                    "x": {"type": "number"},
+                    "y": {"type": "number"}
+                  }
+                }
+              },
+              "stroke": {
+                "type": "object",
+                "properties": {
+                  "color": {"type": "string"},
+                  "width": {"type": "number", "minimum": 0},
+                  "style": {"type": "string", "enum": ["solid", "dashed", "dotted"]}
+                }
+              }
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["text", "position"],
+              "properties": {
+                "text": {"type": "string"},
+                "position": {
+                  "type": "object",
+                  "required": ["x", "y"],
+                  "properties": {
+                    "x": {"type": "number"},
+                    "y": {"type": "number"}
+                  }
+                },
+                "font": {
+                  "type": "object",
+                  "properties": {
+                    "family": {"type": "string"},
+                    "size": {"type": "number", "minimum": 0},
+                    "weight": {"type": "string", "enum": ["normal", "bold"]},
+                    "color": {"type": "string"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "predicates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type", "arity", "connected_entities"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "type": {"type": "string", "enum": ["relation", "function"]},
+          "arity": {"type": "integer", "minimum": 0},
+          "connected_entities": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "visual": {
+            "type": "object",
+            "properties": {
+              "style": {"type": "string", "enum": ["oval", "rectangle", "diamond", "circle"]},
+              "position": {
+                "type": "object",
+                "required": ["x", "y"],
+                "properties": {
+                  "x": {"type": "number"},
+                  "y": {"type": "number"}
+                }
+              },
+              "size": {
+                "type": "object",
+                "required": ["width", "height"],
+                "properties": {
+                  "width": {"type": "number", "minimum": 0},
+                  "height": {"type": "number", "minimum": 0}
+                }
+              },
+              "fill": {
+                "type": "object",
+                "properties": {
+                  "color": {"type": "string"},
+                  "opacity": {"type": "number", "minimum": 0, "maximum": 1}
+                }
+              },
+              "stroke": {
+                "type": "object",
+                "properties": {
+                  "color": {"type": "string"},
+                  "width": {"type": "number", "minimum": 0},
+                  "style": {"type": "string", "enum": ["solid", "dashed", "dotted"]}
+                }
+              }
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["text", "position"],
+              "properties": {
+                "text": {"type": "string"},
+                "position": {
+                  "type": "object",
+                  "required": ["x", "y"],
+                  "properties": {
+                    "x": {"type": "number"},
+                    "y": {"type": "number"}
+                  }
+                },
+                "font": {
+                  "type": "object",
+                  "properties": {
+                    "family": {"type": "string"},
+                    "size": {"type": "number", "minimum": 0},
+                    "weight": {"type": "string", "enum": ["normal", "bold"]},
+                    "color": {"type": "string"}
+                  }
+                },
+                "alignment": {"type": "string", "enum": ["left", "center", "right"]}
+              }
+            }
+          },
+          "connections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["entity_id", "connection_point"],
+              "properties": {
+                "entity_id": {"type": "string"},
+                "connection_point": {
+                  "type": "object",
+                  "required": ["x", "y"],
+                  "properties": {
+                    "x": {"type": "number"},
+                    "y": {"type": "number"}
+                  }
+                },
+                "style": {
+                  "type": "object",
+                  "properties": {
+                    "stroke": {
+                      "type": "object",
+                      "properties": {
+                        "color": {"type": "string"},
+                        "width": {"type": "number", "minimum": 0}
+                      }
+                    },
+                    "marker": {"type": "string", "enum": ["none", "arrow", "circle", "square"]}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "contexts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": {"type": "string"},
+          "type": {"type": "string", "enum": ["root", "cut", "sheet_of_assertion"]},
+          "parent_context": {"type": ["string", "null"]},
+          "visual": {
+            "type": "object",
+            "properties": {
+              "style": {"type": "string", "enum": ["oval", "rectangle", "circle"]},
+              "bounds": {
+                "type": "object",
+                "required": ["x", "y", "width", "height"],
+                "properties": {
+                  "x": {"type": "number"},
+                  "y": {"type": "number"},
+                  "width": {"type": "number", "minimum": 0},
+                  "height": {"type": "number", "minimum": 0}
+                }
+              },
+              "fill": {
+                "type": "object",
+                "properties": {
+                  "color": {"type": "string"},
+                  "opacity": {"type": "number", "minimum": 0, "maximum": 1}
+                }
+              },
+              "stroke": {
+                "type": "object",
+                "properties": {
+                  "color": {"type": "string"},
+                  "width": {"type": "number", "minimum": 0},
+                  "style": {"type": "string", "enum": ["solid", "dashed", "dotted"]}
+                }
+              }
+            }
+          },
+          "contained_items": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "nesting_level": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "ligatures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "connected_entities", "type"],
+        "properties": {
+          "id": {"type": "string"},
+          "connected_entities": {
+            "type": "array",
+            "items": {"type": "string"},
+            "minItems": 2
+          },
+          "type": {"type": "string", "enum": ["identity", "coreference"]},
+          "visual": {
+            "type": "object",
+            "properties": {
+              "style": {"type": "string", "enum": ["dashed_line", "dotted_line", "curved_line"]},
+              "path": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["x", "y"],
+                  "properties": {
+                    "x": {"type": "number"},
+                    "y": {"type": "number"}
+                  }
+                }
+              },
+              "stroke": {
+                "type": "object",
+                "properties": {
+                  "color": {"type": "string"},
+                  "width": {"type": "number", "minimum": 0},
+                  "style": {"type": "string", "enum": ["solid", "dashed", "dotted"]}
+                }
+              },
+              "markers": {
+                "type": "object",
+                "properties": {
+                  "start": {
+                    "type": "object",
+                    "properties": {
+                      "type": {"type": "string", "enum": ["none", "circle", "square", "arrow"]},
+                      "size": {"type": "number", "minimum": 0}
+                    }
+                  },
+                  "end": {
+                    "type": "object",
+                    "properties": {
+                      "type": {"type": "string", "enum": ["none", "circle", "square", "arrow"]},
+                      "size": {"type": "number", "minimum": 0}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "semantics": {
+      "type": "object",
+      "properties": {
+        "logical_form": {
+          "type": "object",
+          "properties": {
+            "clif_equivalent": {"type": "string"},
+            "egif_equivalent": {"type": "string"}
+          }
+        },
+        "validation": {
+          "type": "object",
+          "properties": {
+            "is_valid": {"type": "boolean"},
+            "cross_cuts": {"type": "array"},
+            "function_symbols": {"type": "array"},
+            "quantifier_scope": {"type": "object"}
+          }
+        }
+      }
+    }
+  }
+}
+

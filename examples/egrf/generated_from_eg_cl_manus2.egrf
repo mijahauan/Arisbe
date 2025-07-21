@@ -1,0 +1,222 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [
+    {
+      "id": "91f61543-f391-41a6-bbbb-b813705f11d5",
+      "name": "Socrates",
+      "type": "constant",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 350.0,
+            "y": 300.0
+          },
+          {
+            "x": 400.0,
+            "y": 300.0
+          },
+          {
+            "x": 400.0,
+            "y": 300.0
+          },
+          {
+            "x": 450.0,
+            "y": 300.0
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Socrates",
+          "position": {
+            "x": 400.0,
+            "y": 285.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "id": "1de66b32-30ed-4531-abdf-d5da85e22a8d",
+      "name": "Mortal",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "91f61543-f391-41a6-bbbb-b813705f11d5"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 400.0,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Mortal",
+          "position": {
+            "x": 400.0,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "91f61543-f391-41a6-bbbb-b813705f11d5",
+          "connection_point": {
+            "x": 400.0,
+            "y": 285.0
+          },
+          "style": {}
+        }
+      ]
+    },
+    {
+      "id": "79835e38-c895-42b3-b9b2-e81da3c519ed",
+      "name": "Person",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "91f61543-f391-41a6-bbbb-b813705f11d5"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 400.0,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "Person",
+          "position": {
+            "x": 400.0,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "91f61543-f391-41a6-bbbb-b813705f11d5",
+          "connection_point": {
+            "x": 400.0,
+            "y": 285.0
+          },
+          "style": {}
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "5e6d599e-788d-4f71-9a93-c5e3e75ae265",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 800.0,
+          "height": 600.0
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [
+        "1de66b32-30ed-4531-abdf-d5da85e22a8d",
+        "79835e38-c895-42b3-b9b2-e81da3c519ed",
+        "91f61543-f391-41a6-bbbb-b813705f11d5"
+      ],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Generated from EG-CL-Manus2",
+    "author": "System",
+    "created": "2025-07-20T19:39:10.545608",
+    "description": "Automatically generated EGRF preserving logical structure"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(and (Mortal Socrates) (Person Socrates))",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}
