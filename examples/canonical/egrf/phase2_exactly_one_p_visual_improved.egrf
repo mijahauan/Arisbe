@@ -1,0 +1,416 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [
+    {
+      "id": "81fff72e-8d8d-4163-ade3-dd141c1e9b95",
+      "name": "x",
+      "type": "variable",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 70.0,
+            "y": 100
+          },
+          {
+            "x": 100.0,
+            "y": 100
+          },
+          {
+            "x": 275.0,
+            "y": 100
+          },
+          {
+            "x": 450.0,
+            "y": 350.0
+          },
+          {
+            "x": 480.0,
+            "y": 350.0
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 3.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "",
+          "visible": false,
+          "annotation": "x",
+          "suppressed": true,
+          "position": {
+            "x": 480.0,
+            "y": 335.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    },
+    {
+      "id": "9658986f-14d7-493b-a53d-9d87ece8de9a",
+      "name": "y",
+      "type": "variable",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 270.0,
+            "y": 250.0
+          },
+          {
+            "x": 300.0,
+            "y": 250.0
+          },
+          {
+            "x": 375.0,
+            "y": 250.0
+          },
+          {
+            "x": 450.0,
+            "y": 350.0
+          },
+          {
+            "x": 480.0,
+            "y": 350.0
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 3.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "",
+          "visible": false,
+          "annotation": "y",
+          "suppressed": true,
+          "position": {
+            "x": 480.0,
+            "y": 335.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "id": "84d7bddf-375a-4a71-bf49-fd0ec52d4251",
+      "name": "P",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "9658986f-14d7-493b-a53d-9d87ece8de9a"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 300.0,
+          "y": 250.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "transparent",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "transparent",
+          "width": 0.0,
+          "style": "none"
+        },
+        "hooks": true,
+        "border_inside_area": true,
+        "containing_context": "c71db58b-cc60-42a1-ba9b-fec503f84d50"
+      },
+      "labels": [
+        {
+          "text": "P",
+          "position": {
+            "x": 300.0,
+            "y": 250.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "9658986f-14d7-493b-a53d-9d87ece8de9a",
+          "connection_point": {
+            "x": 300.0,
+            "y": 250.0
+          },
+          "style": {}
+        }
+      ]
+    },
+    {
+      "id": "e7743f5e-3ceb-46c9-87be-5c895ea65dcd",
+      "name": "P",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "81fff72e-8d8d-4163-ade3-dd141c1e9b95"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 100.0,
+          "y": 100
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "transparent",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "transparent",
+          "width": 0.0,
+          "style": "none"
+        },
+        "hooks": true,
+        "border_inside_area": true,
+        "containing_context": "04cfe283-2a3b-4084-8e80-1cf4698f219a"
+      },
+      "labels": [
+        {
+          "text": "P",
+          "position": {
+            "x": 100.0,
+            "y": 100
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "81fff72e-8d8d-4163-ade3-dd141c1e9b95",
+          "connection_point": {
+            "x": 100.0,
+            "y": 100
+          },
+          "style": {}
+        }
+      ]
+    },
+    {
+      "id": "d0557af7-8aab-4199-affb-c88d1c349443",
+      "name": "=",
+      "type": "relation",
+      "arity": 2,
+      "connected_entities": [
+        "81fff72e-8d8d-4163-ade3-dd141c1e9b95",
+        "9658986f-14d7-493b-a53d-9d87ece8de9a"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 450.0,
+          "y": 350.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "transparent",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "transparent",
+          "width": 0.0,
+          "style": "none"
+        },
+        "hooks": true,
+        "border_inside_area": true,
+        "containing_context": "6198b032-522a-46d8-bb48-66a9e8869e12"
+      },
+      "labels": [
+        {
+          "text": "=",
+          "position": {
+            "x": 450.0,
+            "y": 350.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "81fff72e-8d8d-4163-ade3-dd141c1e9b95",
+          "connection_point": {
+            "x": 450.0,
+            "y": 350.0
+          },
+          "style": {}
+        },
+        {
+          "entity_id": "9658986f-14d7-493b-a53d-9d87ece8de9a",
+          "connection_point": {
+            "x": 450.0,
+            "y": 350.0
+          },
+          "style": {}
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "6198b032-522a-46d8-bb48-66a9e8869e12",
+      "type": "cut",
+      "parent_context": "c71db58b-cc60-42a1-ba9b-fec503f84d50",
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 420.0,
+          "y": 320.0,
+          "width": 200,
+          "height": 150
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.5,
+          "style": "solid"
+        },
+        "peirce_level": 2,
+        "is_shaded": false
+      },
+      "contained_items": [
+        "d0557af7-8aab-4199-affb-c88d1c349443"
+      ],
+      "nesting_level": 2
+    },
+    {
+      "id": "c71db58b-cc60-42a1-ba9b-fec503f84d50",
+      "type": "cut",
+      "parent_context": "04cfe283-2a3b-4084-8e80-1cf4698f219a",
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 50,
+          "y": 50,
+          "width": 700.0,
+          "height": 500.0
+        },
+        "fill": {
+          "color": "#c0c0c0",
+          "opacity": 0.8
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.5,
+          "style": "solid"
+        },
+        "peirce_level": 1,
+        "is_shaded": true
+      },
+      "contained_items": [
+        "84d7bddf-375a-4a71-bf49-fd0ec52d4251",
+        "9658986f-14d7-493b-a53d-9d87ece8de9a"
+      ],
+      "nesting_level": 1
+    },
+    {
+      "id": "04cfe283-2a3b-4084-8e80-1cf4698f219a",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 10,
+          "y": 10,
+          "width": 780.0,
+          "height": 580.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.5,
+          "style": "solid"
+        },
+        "peirce_level": 0,
+        "is_shaded": false
+      },
+      "contained_items": [
+        "81fff72e-8d8d-4163-ade3-dd141c1e9b95",
+        "e7743f5e-3ceb-46c9-87be-5c895ea65dcd"
+      ],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Exactly One P (Visual Improved)",
+    "author": "System",
+    "created": "2025-07-21T12:23:43.858671",
+    "description": "Cardinality constraint: ∃x(P(x) ∧ ¬∃y(P(y) ∧ ¬(x=y))) - With improved visual rendering"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(if (P y) (= x y))",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}

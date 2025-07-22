@@ -1,0 +1,165 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [],
+  "predicates": [
+    {
+      "id": "c008b381-75d2-4d6c-907e-9d9ccb5078f4",
+      "name": "P",
+      "type": "relation",
+      "arity": 0,
+      "connected_entities": [],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 450.0,
+          "y": 350.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "transparent",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "transparent",
+          "width": 0.0,
+          "style": "none"
+        },
+        "hooks": true,
+        "border_inside_area": true,
+        "containing_context": "5f031a14-586c-44c2-aadc-0ea1dab777b2"
+      },
+      "labels": [
+        {
+          "text": "P",
+          "position": {
+            "x": 450.0,
+            "y": 350.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": []
+    }
+  ],
+  "contexts": [
+    {
+      "id": "7075ab11-219d-46f9-bc9b-d5d3504c4564",
+      "type": "cut",
+      "parent_context": "feaa7164-7183-4c5b-9662-1b38b3c095a1",
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 50,
+          "y": 50,
+          "width": 700.0,
+          "height": 500.0
+        },
+        "fill": {
+          "color": "#c0c0c0",
+          "opacity": 0.8
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.5,
+          "style": "solid"
+        },
+        "peirce_level": 1,
+        "is_shaded": true
+      },
+      "contained_items": [],
+      "nesting_level": 1
+    },
+    {
+      "id": "5f031a14-586c-44c2-aadc-0ea1dab777b2",
+      "type": "cut",
+      "parent_context": "7075ab11-219d-46f9-bc9b-d5d3504c4564",
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 420.0,
+          "y": 320.0,
+          "width": 200,
+          "height": 150
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.5,
+          "style": "solid"
+        },
+        "peirce_level": 2,
+        "is_shaded": false
+      },
+      "contained_items": [
+        "c008b381-75d2-4d6c-907e-9d9ccb5078f4"
+      ],
+      "nesting_level": 2
+    },
+    {
+      "id": "feaa7164-7183-4c5b-9662-1b38b3c095a1",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 10,
+          "y": 10,
+          "width": 780.0,
+          "height": 580.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.5,
+          "style": "solid"
+        },
+        "peirce_level": 0,
+        "is_shaded": false
+      },
+      "contained_items": [],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Double negation (Visual Improved)",
+    "author": "System",
+    "created": "2025-07-21T12:23:43.864033",
+    "description": "Double cut: ¬¬P = P - With improved visual rendering"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(not (not P))",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}

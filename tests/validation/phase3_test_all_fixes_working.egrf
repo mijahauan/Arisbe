@@ -1,0 +1,33 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [],
+  "predicates": [],
+  "contexts": [],
+  "ligatures": [],
+  "metadata": {
+    "title": "Phase 3 Test",
+    "author": "System",
+    "created": "2025-07-21T15:43:46.815947",
+    "description": "Testing Phase 3 regeneration with all fixes"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(and (Mortal Socrates) (Man Socrates) (not))",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}

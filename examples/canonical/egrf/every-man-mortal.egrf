@@ -3,27 +3,31 @@
   "version": "1.0",
   "entities": [
     {
-      "id": "e8e653f5-cd00-46e1-824d-f0ed0848744a",
+      "id": "132568b3-1d96-415c-8131-6e9f6f427b61",
       "name": "x",
       "type": "variable",
       "visual": {
         "style": "line",
         "path": [
           {
-            "x": 216.66666666666669,
-            "y": 300.0
+            "x": 270.0,
+            "y": 250.0
           },
           {
-            "x": 266.6666666666667,
-            "y": 300.0
+            "x": 300.0,
+            "y": 250.0
           },
           {
-            "x": 533.3333333333334,
-            "y": 300.0
+            "x": 375.0,
+            "y": 250.0
           },
           {
-            "x": 583.3333333333334,
-            "y": 300.0
+            "x": 450.0,
+            "y": 350.0
+          },
+          {
+            "x": 480.0,
+            "y": 350.0
           }
         ],
         "stroke": {
@@ -36,8 +40,8 @@
         {
           "text": "x",
           "position": {
-            "x": 533.3333333333334,
-            "y": 285.0
+            "x": 480.0,
+            "y": 335.0
           },
           "font": {
             "family": "Arial",
@@ -52,73 +56,18 @@
   ],
   "predicates": [
     {
-      "id": "065665d4-8e92-4317-b605-6195dd421fb8",
-      "name": "mortal",
-      "type": "relation",
-      "arity": 1,
-      "connected_entities": [
-        "e8e653f5-cd00-46e1-824d-f0ed0848744a"
-      ],
-      "visual": {
-        "style": "oval",
-        "position": {
-          "x": 266.6666666666667,
-          "y": 300.0
-        },
-        "size": {
-          "width": 60.0,
-          "height": 30.0
-        },
-        "fill": {
-          "color": "#ffffff",
-          "opacity": 1.0
-        },
-        "stroke": {
-          "color": "#000000",
-          "width": 1.0,
-          "style": "solid"
-        }
-      },
-      "labels": [
-        {
-          "text": "mortal",
-          "position": {
-            "x": 266.6666666666667,
-            "y": 300.0
-          },
-          "font": {
-            "family": "Arial",
-            "size": 12.0,
-            "weight": "normal",
-            "color": "#000000"
-          },
-          "alignment": "center"
-        }
-      ],
-      "connections": [
-        {
-          "entity_id": "e8e653f5-cd00-46e1-824d-f0ed0848744a",
-          "connection_point": {
-            "x": 266.6666666666667,
-            "y": 300.0
-          },
-          "style": {}
-        }
-      ]
-    },
-    {
-      "id": "ab3889a2-0777-4777-bb0f-612c344490a7",
+      "id": "3439ff7b-798b-48ff-8952-8dfc9b84a63f",
       "name": "man",
       "type": "relation",
       "arity": 1,
       "connected_entities": [
-        "e8e653f5-cd00-46e1-824d-f0ed0848744a"
+        "132568b3-1d96-415c-8131-6e9f6f427b61"
       ],
       "visual": {
         "style": "oval",
         "position": {
-          "x": 533.3333333333334,
-          "y": 300.0
+          "x": 300.0,
+          "y": 250.0
         },
         "size": {
           "width": 60.0,
@@ -138,8 +87,8 @@
         {
           "text": "man",
           "position": {
-            "x": 533.3333333333334,
-            "y": 300.0
+            "x": 300.0,
+            "y": 250.0
           },
           "font": {
             "family": "Arial",
@@ -152,10 +101,65 @@
       ],
       "connections": [
         {
-          "entity_id": "e8e653f5-cd00-46e1-824d-f0ed0848744a",
+          "entity_id": "132568b3-1d96-415c-8131-6e9f6f427b61",
           "connection_point": {
-            "x": 533.3333333333334,
-            "y": 300.0
+            "x": 300.0,
+            "y": 250.0
+          },
+          "style": {}
+        }
+      ]
+    },
+    {
+      "id": "02e550b3-3ccd-42d7-a2f9-c1f47c964d3f",
+      "name": "mortal",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "132568b3-1d96-415c-8131-6e9f6f427b61"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 450.0,
+          "y": 350.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "mortal",
+          "position": {
+            "x": 450.0,
+            "y": 350.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "132568b3-1d96-415c-8131-6e9f6f427b61",
+          "connection_point": {
+            "x": 450.0,
+            "y": 350.0
           },
           "style": {}
         }
@@ -164,41 +168,16 @@
   ],
   "contexts": [
     {
-      "id": "87e18ffb-a87f-4c51-8b17-76305010de74",
+      "id": "55ded6bb-9398-49ba-af77-bfced510b226",
       "type": "cut",
-      "parent_context": "93733e1d-c1bd-42b1-a7c4-2fcc7c5c932d",
+      "parent_context": "4ed1503a-e97b-4ca2-98f5-f5957457e89a",
       "visual": {
         "style": "oval",
         "bounds": {
-          "x": 40.0,
-          "y": 40.0,
-          "width": 680.0,
-          "height": 480.0
-        },
-        "fill": {
-          "color": "#f0f0f0",
-          "opacity": 0.3
-        },
-        "stroke": {
-          "color": "#666666",
-          "width": 2.0,
-          "style": "dashed"
-        }
-      },
-      "contained_items": [],
-      "nesting_level": 2
-    },
-    {
-      "id": "44099694-b31e-40be-ad6f-ff90ccbfdfba",
-      "type": "sheet_of_assertion",
-      "parent_context": null,
-      "visual": {
-        "style": "oval",
-        "bounds": {
-          "x": 0,
-          "y": 0,
-          "width": 800.0,
-          "height": 600.0
+          "x": 420.0,
+          "y": 320.0,
+          "width": 200,
+          "height": 150
         },
         "fill": {
           "color": "#f0f0f0",
@@ -211,23 +190,21 @@
         }
       },
       "contained_items": [
-        "e8e653f5-cd00-46e1-824d-f0ed0848744a",
-        "065665d4-8e92-4317-b605-6195dd421fb8",
-        "ab3889a2-0777-4777-bb0f-612c344490a7"
+        "02e550b3-3ccd-42d7-a2f9-c1f47c964d3f"
       ],
-      "nesting_level": 0
+      "nesting_level": 2
     },
     {
-      "id": "93733e1d-c1bd-42b1-a7c4-2fcc7c5c932d",
+      "id": "4ed1503a-e97b-4ca2-98f5-f5957457e89a",
       "type": "cut",
-      "parent_context": "44099694-b31e-40be-ad6f-ff90ccbfdfba",
+      "parent_context": "7be0cdb4-58b0-4b19-aff1-8f05d2c6762e",
       "visual": {
         "style": "oval",
         "bounds": {
-          "x": 20.0,
-          "y": 20.0,
-          "width": 740.0,
-          "height": 540.0
+          "x": 50,
+          "y": 50,
+          "width": 700.0,
+          "height": 500.0
         },
         "fill": {
           "color": "#f0f0f0",
@@ -239,16 +216,45 @@
           "style": "dashed"
         }
       },
-      "contained_items": [],
+      "contained_items": [
+        "3439ff7b-798b-48ff-8952-8dfc9b84a63f"
+      ],
       "nesting_level": 1
+    },
+    {
+      "id": "7be0cdb4-58b0-4b19-aff1-8f05d2c6762e",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 10,
+          "y": 10,
+          "width": 780.0,
+          "height": 580.0
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [
+        "132568b3-1d96-415c-8131-6e9f6f427b61"
+      ],
+      "nesting_level": 0
     }
   ],
   "ligatures": [],
   "metadata": {
-    "title": "Example 3: 3 Every Man Mortal",
-    "author": "System",
-    "created": "2025-07-21T05:35:14.941780",
-    "description": "Every man is mortal"
+    "title": "Every Man is Mortal (Corrected)",
+    "author": "EG-CL-Manus2 Canonical Examples",
+    "created": "2025-01-20",
+    "description": "Universal quantification with proper implication structure: ∀x (man(x) → mortal(x))"
   },
   "canvas": {
     "width": 800.0,
@@ -262,7 +268,7 @@
   },
   "semantics": {
     "logical_form": {
-      "clif_equivalent": "(and (mortal x) (man x))",
+      "clif_equivalent": "(if (man x) (mortal x))",
       "egif_equivalent": "Generated from EG-CL-Manus2"
     },
     "validation": {

@@ -1,0 +1,304 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [
+    {
+      "id": "952d1423-7c42-4e74-8300-4c0b0b71481f",
+      "name": "y",
+      "type": "variable",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 270.0,
+            "y": 250
+          },
+          {
+            "x": 300.0,
+            "y": 250
+          },
+          {
+            "x": 330.0,
+            "y": 250
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 3.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "",
+          "visible": false,
+          "annotation": "y",
+          "suppressed": true,
+          "position": {
+            "x": 330.0,
+            "y": 235
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    },
+    {
+      "id": "359b0c94-07e9-4afa-a1dd-c1f77cda95d9",
+      "name": "x",
+      "type": "variable",
+      "visual": {
+        "style": "line",
+        "path": [
+          {
+            "x": 170.0,
+            "y": 200
+          },
+          {
+            "x": 200.0,
+            "y": 200
+          },
+          {
+            "x": 230.0,
+            "y": 200
+          }
+        ],
+        "stroke": {
+          "color": "#000000",
+          "width": 3.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "",
+          "visible": false,
+          "annotation": "x",
+          "suppressed": true,
+          "position": {
+            "x": 230.0,
+            "y": 185
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ]
+    }
+  ],
+  "predicates": [
+    {
+      "id": "b6ec2343-f5a4-4c07-977b-2cf124a1701e",
+      "name": "P",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "359b0c94-07e9-4afa-a1dd-c1f77cda95d9"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 200.0,
+          "y": 200
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "transparent",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "transparent",
+          "width": 0.0,
+          "style": "none"
+        },
+        "hooks": true,
+        "border_inside_area": true,
+        "containing_context": "e40bd19f-e82d-4e46-bdec-e7fa562f3db7"
+      },
+      "labels": [
+        {
+          "text": "P",
+          "position": {
+            "x": 200.0,
+            "y": 200
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "359b0c94-07e9-4afa-a1dd-c1f77cda95d9",
+          "connection_point": {
+            "x": 200.0,
+            "y": 200
+          },
+          "style": {}
+        }
+      ]
+    },
+    {
+      "id": "91dd63e0-c025-4b3c-8570-a095e807a75c",
+      "name": "Q",
+      "type": "relation",
+      "arity": 1,
+      "connected_entities": [
+        "952d1423-7c42-4e74-8300-4c0b0b71481f"
+      ],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 300.0,
+          "y": 250
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "transparent",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "transparent",
+          "width": 0.0,
+          "style": "none"
+        },
+        "hooks": true,
+        "border_inside_area": true,
+        "containing_context": "0a6c3466-811b-49a6-a229-152f51097651"
+      },
+      "labels": [
+        {
+          "text": "Q",
+          "position": {
+            "x": 300.0,
+            "y": 250
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": [
+        {
+          "entity_id": "952d1423-7c42-4e74-8300-4c0b0b71481f",
+          "connection_point": {
+            "x": 300.0,
+            "y": 250
+          },
+          "style": {}
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "id": "0a6c3466-811b-49a6-a229-152f51097651",
+      "type": "cut",
+      "parent_context": "e40bd19f-e82d-4e46-bdec-e7fa562f3db7",
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 50,
+          "y": 50,
+          "width": 700.0,
+          "height": 500.0
+        },
+        "fill": {
+          "color": "#c0c0c0",
+          "opacity": 0.8
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.5,
+          "style": "solid"
+        },
+        "peirce_level": 1,
+        "is_shaded": true
+      },
+      "contained_items": [
+        "952d1423-7c42-4e74-8300-4c0b0b71481f",
+        "91dd63e0-c025-4b3c-8570-a095e807a75c"
+      ],
+      "nesting_level": 1
+    },
+    {
+      "id": "e40bd19f-e82d-4e46-bdec-e7fa562f3db7",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 10,
+          "y": 10,
+          "width": 780.0,
+          "height": 580.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 0.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.5,
+          "style": "solid"
+        },
+        "peirce_level": 0,
+        "is_shaded": false
+      },
+      "contained_items": [
+        "b6ec2343-f5a4-4c07-977b-2cf124a1701e",
+        "359b0c94-07e9-4afa-a1dd-c1f77cda95d9"
+      ],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Existential Graph",
+    "author": "System",
+    "created": "2025-07-21T12:23:10.286850",
+    "description": ""
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "(not (Q y))",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}

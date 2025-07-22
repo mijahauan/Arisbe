@@ -1,0 +1,201 @@
+{
+  "format": "EGRF",
+  "version": "1.0",
+  "entities": [],
+  "predicates": [
+    {
+      "id": "02370a20-7e5e-44a1-897c-83a88c86fee7",
+      "name": "lightning",
+      "type": "relation",
+      "arity": 0,
+      "connected_entities": [],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 266.6666666666667,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "lightning",
+          "position": {
+            "x": 266.6666666666667,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": []
+    },
+    {
+      "id": "f5fe41bf-826c-4419-adf6-9f6de9f3499a",
+      "name": "thunder",
+      "type": "relation",
+      "arity": 0,
+      "connected_entities": [],
+      "visual": {
+        "style": "oval",
+        "position": {
+          "x": 533.3333333333334,
+          "y": 300.0
+        },
+        "size": {
+          "width": 60.0,
+          "height": 30.0
+        },
+        "fill": {
+          "color": "#ffffff",
+          "opacity": 1.0
+        },
+        "stroke": {
+          "color": "#000000",
+          "width": 1.0,
+          "style": "solid"
+        }
+      },
+      "labels": [
+        {
+          "text": "thunder",
+          "position": {
+            "x": 533.3333333333334,
+            "y": 300.0
+          },
+          "font": {
+            "family": "Arial",
+            "size": 12.0,
+            "weight": "normal",
+            "color": "#000000"
+          },
+          "alignment": "center"
+        }
+      ],
+      "connections": []
+    }
+  ],
+  "contexts": [
+    {
+      "id": "1bca1a2e-6f79-4151-b33c-6a3b66576a50",
+      "type": "cut",
+      "parent_context": "4b19f3cc-46c6-49fb-adc6-d636f3f126b7",
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 20.0,
+          "y": 20.0,
+          "width": 740.0,
+          "height": 540.0
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [],
+      "nesting_level": 1
+    },
+    {
+      "id": "829fae74-b3d6-486e-a9db-b496cd99aa4c",
+      "type": "cut",
+      "parent_context": "1bca1a2e-6f79-4151-b33c-6a3b66576a50",
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 40.0,
+          "y": 40.0,
+          "width": 680.0,
+          "height": 480.0
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [],
+      "nesting_level": 2
+    },
+    {
+      "id": "4b19f3cc-46c6-49fb-adc6-d636f3f126b7",
+      "type": "sheet_of_assertion",
+      "parent_context": null,
+      "visual": {
+        "style": "oval",
+        "bounds": {
+          "x": 0,
+          "y": 0,
+          "width": 800.0,
+          "height": 600.0
+        },
+        "fill": {
+          "color": "#f0f0f0",
+          "opacity": 0.3
+        },
+        "stroke": {
+          "color": "#666666",
+          "width": 2.0,
+          "style": "dashed"
+        }
+      },
+      "contained_items": [
+        "02370a20-7e5e-44a1-897c-83a88c86fee7",
+        "f5fe41bf-826c-4419-adf6-9f6de9f3499a"
+      ],
+      "nesting_level": 0
+    }
+  ],
+  "ligatures": [],
+  "metadata": {
+    "title": "Example 4: 4 Thunder Lightning",
+    "author": "System",
+    "created": "2025-07-21T05:35:14.942754",
+    "description": "If there is thunder, then there is lightning"
+  },
+  "canvas": {
+    "width": 800.0,
+    "height": 600.0,
+    "background": "#ffffff",
+    "grid": {
+      "enabled": true,
+      "size": 20,
+      "color": "#f0f0f0"
+    }
+  },
+  "semantics": {
+    "logical_form": {
+      "clif_equivalent": "()",
+      "egif_equivalent": "Generated from EG-CL-Manus2"
+    },
+    "validation": {
+      "is_valid": true
+    }
+  }
+}
