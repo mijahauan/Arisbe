@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EGRF v3.0 - Logical Containment Schema",
+  "type": "object",
+  "properties": {
+    "format": {"const": "EGRF"},
+    "version": {"const": "3.0"},
+    "layout_model": {"const": "logical_containment"}
+  },
+  "required": ["format", "version", "layout_model"]
+}
