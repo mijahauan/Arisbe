@@ -1,65 +1,109 @@
 """
-EGRF (Existential Graph Rendering Format) Module
+EGRF (Existential Graph Rendering Format) Module v3.0
 
-This module provides functionality for converting between EG-CL-Manus2 data structures
-and EGRF format, enabling visual representation of existential graphs while preserving
-logical integrity.
+This module provides functionality for converting between EG-HG data structures
+and EGRF v3.0 format using logical containment architecture.
 
 Key Components:
-- egrf_types: Core EGRF data structures and validation
-- egrf_generator: EG-CL-Manus2 → EGRF conversion
-- egrf_parser: EGRF → EG-CL-Manus2 conversion
-- egrf_schema: JSON schema validation
-- egrf_serializer: JSON serialization utilities
+- v3.logical_types: Core logical data structures and constraints
+- v3.containment_hierarchy: Nesting relationships and validation
+- v3.logical_generator: EG-HG → EGRF v3.0 conversion
+
+EGRF v3.0 Features:
+- Logical containment instead of absolute coordinates
+- Platform-independent layout constraints
+- Auto-sizing from content
+- User movement validation within logical bounds
+- Cross-platform GUI compatibility
 
 Usage:
-    from egrf import EGRFGenerator, EGRFParser, EGRFDocument
+    from egrf.v3 import create_logical_predicate, create_logical_context
     
-    # Generate EGRF from EG-CL-Manus2
-    generator = EGRFGenerator()
-    egrf_doc = generator.generate(eg_graph)
+    # Create logical elements
+    predicate = create_logical_predicate(
+        id="pred-1", 
+        name="Person", 
+        container="sheet_of_assertion"
+    )
     
-    # Parse EGRF back to EG-CL-Manus2
-    parser = EGRFParser()
-    result = parser.parse(egrf_doc)
-    if result.is_successful:
-        reconstructed_graph = result.graph
+    context = create_logical_context(
+        id="cut-1",
+        name="Negation Cut", 
+        container="sheet_of_assertion"
+    )
+
+Version History:
+- v1.0.0: Absolute coordinate system (archived)
+- v3.0.0: Logical containment architecture (current)
 """
 
-from .egrf_types import (
-    EGRFDocument, Entity, Predicate, Context, 
-    Point, Size, Connection, Label, Bounds,
-    EntityVisual, PredicateVisual, ContextVisual, LigatureVisual,
-    Stroke, Fill, Font, Canvas, Metadata, Semantics, Marker
-)
-
-# Import generator
-from .egrf_generator import EGRFGenerator, LayoutConstraints
-
-# Import parser
-from .egrf_parser import EGRFParser, ParseResult, EGRFParseError, parse_egrf, parse_egrf_from_json, parse_egrf_from_file
-
-# Import serialization
-from .egrf_serializer import EGRFSerializer
-
-__version__ = "1.0.0"
-__author__ = "EG-CL-Manus2 Project"
-
-__all__ = [
-    # Core types
-    'EGRFDocument', 'Entity', 'Predicate', 'Context',
-    'Point', 'Size', 'Connection', 'Label', 'Bounds',
-    'EntityVisual', 'PredicateVisual', 'ContextVisual', 'LigatureVisual',
-    'Stroke', 'Fill', 'Font', 'Canvas', 'Metadata', 'Semantics', 'Marker',
+# Import v3.0 logical types
+try:
+    from .v3.logical_types import (
+        # Basic types
+        LogicalPoint, LogicalSize, LogicalBounds, SpacingConstraint,
+        
+        # Constraint types
+        PositioningType, ContainerType, SizeConstraints, SpacingConstraints,
+        MovementConstraints, LayoutConstraints, ContainmentRelationship,
+        
+        # Element types
+        LogicalProperties, LogicalElement, PredicateProperties, LogicalPredicate,
+        EntityProperties, PathConstraints, ConnectionPoint, LogicalEntity,
+        ContextProperties, LogicalContext,
+        
+        # Ligature types
+        CutCrossing, LigatureConstraints, LogicalLigature,
+        
+        # Factory functions
+        create_logical_predicate, create_logical_context, create_logical_entity
+    )
     
-    # Generator
-    'EGRFGenerator', 'LayoutConstraints',
+    __all__ = [
+        # Basic types
+        'LogicalPoint', 'LogicalSize', 'LogicalBounds', 'SpacingConstraint',
+        
+        # Constraint types
+        'PositioningType', 'ContainerType', 'SizeConstraints', 'SpacingConstraints',
+        'MovementConstraints', 'LayoutConstraints', 'ContainmentRelationship',
+        
+        # Element types
+        'LogicalProperties', 'LogicalElement', 'PredicateProperties', 'LogicalPredicate',
+        'EntityProperties', 'PathConstraints', 'ConnectionPoint', 'LogicalEntity',
+        'ContextProperties', 'LogicalContext',
+        
+        # Ligature types
+        'CutCrossing', 'LigatureConstraints', 'LogicalLigature',
+        
+        # Factory functions
+        'create_logical_predicate', 'create_logical_context', 'create_logical_entity'
+    ]
     
-    # Parser
-    'EGRFParser', 'ParseResult', 'EGRFParseError', 
-    'parse_egrf', 'parse_egrf_from_json', 'parse_egrf_from_file',
+except ImportError:
+    # v3.0 modules not yet implemented
+    __all__ = []
+
+__version__ = "3.0.0-dev"
+__author__ = "EG-HG Project"
+
+# Legacy v1.0 compatibility note
+def _show_migration_notice():
+    """Show migration notice for v1.0 users."""
+    print("""
+    EGRF v3.0 Migration Notice:
     
-    # Serialization
-    'EGRFSerializer'
-]
+    EGRF v3.0 introduces breaking changes with logical containment architecture.
+    v1.0 absolute coordinate files are not compatible with v3.0.
+    
+    v1.0 implementation is preserved in:
+    - Tag: v1.0.1
+    - Branch: archive/egrf-v1.0-absolute-coordinates
+    
+    For v3.0 usage examples, see EGRF_Quick_Start_Tutorial.md
+    """)
+
+# Show migration notice on import (can be disabled by setting environment variable)
+import os
+if os.getenv('EGRF_HIDE_MIGRATION_NOTICE') != '1':
+    _show_migration_notice()
 
