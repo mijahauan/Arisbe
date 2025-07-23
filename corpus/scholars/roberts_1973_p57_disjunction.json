@@ -1,0 +1,27 @@
+{
+  "id": "roberts_1973_p57_disjunction",
+  "category": "scholars",
+  "source": {
+    "author": "Don D. Roberts",
+    "work": "The Existential Graphs of Charles S. Peirce",
+    "year": 1973,
+    "publisher": "Mouton",
+    "page": "57"
+  },
+  "description": "Roberts' example of disjunction using Peirce's double-cut method. This demonstrates how 'P or Q' is represented as '¬(¬P ∧ ¬Q)' in existential graphs.",
+  "logical_form": "¬(¬P ∧ ¬Q)",
+  "natural_language": "Either P or Q (or both).",
+  "complexity": {
+    "nesting_depth": 2,
+    "entity_count": 0,
+    "predicate_count": 2,
+    "cut_count": 3
+  },
+  "test_rationale": "This example tests the system's ability to represent disjunction using Peirce's method of double cuts. It demonstrates how complex logical operations can be built from the basic operations of conjunction and negation in existential graphs.",
+  "epg_features": {
+    "is_starting_position": true,
+    "valid_transformations": ["insertion", "double_cut_insertion", "double_cut_elimination"],
+    "invalid_transformations": ["erasure"]
+  }
+}
+

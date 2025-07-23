@@ -1,0 +1,27 @@
+
+# EG-HG representation
+id: file_graph
+description: Graph loaded from file
+
+graph:
+  # Contexts
+  contexts:
+    - id: c0
+      type: sheet
+      parent: null
+      polarity: positive
+    - id: c1
+      type: cut
+      parent: c0
+      polarity: negative
+  
+  # Predicates
+  predicates:
+    - id: p1
+      label: P
+      arity: 0
+      context: c0
+    - id: p2
+      label: Q
+      arity: 0
+      context: c1

@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "id": "dau_2006_p112_ligature",
+    "version": "3.0.0",
+    "source": "Dau, F. (2006). Mathematical Logic with Diagrams, p. 112",
+    "description": "Ligature crossing cut boundary: There exists something that is P but not Q",
+    "logical_form": "∃x(P(x) ∧ ¬Q(x))"
+  },
+  "elements": {
+    "sheet": {
+      "id": "sheet",
+      "type": "context",
+      "semantic_type": "sheet",
+      "nesting_level": 0
+    },
+    "cut": {
+      "id": "cut",
+      "type": "context",
+      "semantic_type": "cut",
+      "nesting_level": 1
+    },
+    "p_predicate": {
+      "id": "p_predicate",
+      "type": "predicate",
+      "label": "P",
+      "arity": 1
+    },
+    "q_predicate": {
+      "id": "q_predicate",
+      "type": "predicate",
+      "label": "Q",
+      "arity": 1
+    },
+    "entity_x": {
+      "id": "entity_x",
+      "type": "entity",
+      "label": "x"
+    }
+  },
+  "containment": {
+    "cut": "sheet",
+    "p_predicate": "sheet",
+    "q_predicate": "cut",
+    "entity_x": "sheet"
+  },
+  "connections": [
+    {
+      "entity_id": "entity_x",
+      "predicate_id": "p_predicate",
+      "role": "arg1"
+    },
+    {
+      "entity_id": "entity_x",
+      "predicate_id": "q_predicate",
+      "role": "arg1"
+    }
+  ],
+  "layout_constraints": [
+    {
+      "constraint_id": "sheet_size",
+      "type": "SizeConstraint",
+      "element_id": "sheet",
+      "min_width": 800,
+      "min_height": 600
+    },
+    {
+      "constraint_id": "cut_size",
+      "type": "SizeConstraint",
+      "element_id": "cut",
+      "min_width": 300,
+      "min_height": 200
+    },
+    {
+      "constraint_id": "p_predicate_size",
+      "type": "SizeConstraint",
+      "element_id": "p_predicate",
+      "preferred_width": 100,
+      "preferred_height": 50
+    },
+    {
+      "constraint_id": "q_predicate_size",
+      "type": "SizeConstraint",
+      "element_id": "q_predicate",
+      "preferred_width": 100,
+      "preferred_height": 50
+    },
+    {
+      "constraint_id": "cut_position",
+      "type": "PositionConstraint",
+      "element_id": "cut",
+      "reference_id": "sheet",
+      "relative_x": 0.6,
+      "relative_y": 0.5
+    },
+    {
+      "constraint_id": "p_predicate_position",
+      "type": "PositionConstraint",
+      "element_id": "p_predicate",
+      "reference_id": "sheet",
+      "relative_x": 0.3,
+      "relative_y": 0.5
+    },
+    {
+      "constraint_id": "q_predicate_position",
+      "type": "PositionConstraint",
+      "element_id": "q_predicate",
+      "reference_id": "cut",
+      "relative_x": 0.5,
+      "relative_y": 0.5
+    },
+    {
+      "constraint_id": "cut_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "cut",
+      "padding": 20
+    },
+    {
+      "constraint_id": "p_predicate_spacing",
+      "type": "SpacingConstraint",
+      "element_id": "p_predicate",
+      "min_spacing": 20
+    },
+    {
+      "constraint_id": "q_predicate_spacing",
+      "type": "SpacingConstraint",
+      "element_id": "q_predicate",
+      "min_spacing": 20
+    }
+  ]
+}
+

@@ -1,0 +1,12 @@
+(cl:comment "Sowa's example of existential quantification in Peirce's Beta graphs")
+(cl:comment "Logical form: ∃x(Cat(x) ∧ Mat(x))")
+(cl:comment "Source: Sowa (2011), Peirce's Tutorial on Existential Graphs, p. 356")
+
+(cl:text
+  (cl:imports "http://www.example.org/ontology/scholar-examples")
+  
+  (cl:comment "Existential quantification: There exists a cat on a mat")
+  (exists (x)
+    (and (Cat x) (On x) (Mat x)))
+)
+

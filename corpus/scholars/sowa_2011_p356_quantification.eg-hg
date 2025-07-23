@@ -1,0 +1,52 @@
+# EG-HG representation of Sowa's quantification example
+# Format: EG-HG v1.0
+
+# Metadata
+id: sowa_2011_p356_quantification
+source: "Sowa, J.F. (2011). Peirce's Tutorial on Existential Graphs, p. 356"
+description: "Existential quantification: There exists a cat on a mat"
+
+# Graph structure
+graph:
+  # Contexts (cuts)
+  contexts:
+    - id: c0
+      type: sheet
+      parent: null
+      polarity: positive
+  
+  # Entities
+  entities:
+    - id: e1
+      label: "x"
+      type: variable
+  
+  # Predicates
+  predicates:
+    - id: p1
+      label: "Cat"
+      arity: 1
+      context: c0
+    - id: p2
+      label: "On"
+      arity: 1
+      context: c0
+    - id: p3
+      label: "Mat"
+      arity: 1
+      context: c0
+  
+  # Connections
+  connections:
+    - predicate: p1
+      entities: [e1]
+      roles: ["arg1"]
+    - predicate: p2
+      entities: [e1]
+      roles: ["arg1"]
+    - predicate: p3
+      entities: [e1]
+      roles: ["arg1"]
+
+# End of file
+

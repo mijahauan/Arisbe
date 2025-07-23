@@ -1,0 +1,28 @@
+{
+  "id": "dau_2006_p112_ligature",
+  "category": "scholars",
+  "source": {
+    "author": "Frithjof Dau",
+    "work": "Mathematical Logic with Diagrams",
+    "year": 2006,
+    "publisher": "Technische Universität Darmstadt",
+    "page": "112",
+    "url": "http://www.dr-dau.net/Papers/habil.pdf"
+  },
+  "description": "Dau's example of complex ligature handling in Peirce's Beta graphs, demonstrating how lines of identity can cross cut boundaries to represent quantifier scope.",
+  "logical_form": "∃x(P(x) ∧ ¬Q(x))",
+  "natural_language": "There exists something that is P but not Q.",
+  "complexity": {
+    "nesting_depth": 1,
+    "entity_count": 1,
+    "predicate_count": 2,
+    "cut_count": 1
+  },
+  "test_rationale": "This example tests the system's ability to handle ligatures that cross cut boundaries, which is a key feature of Peirce's Beta graphs. It demonstrates how quantifier scope is represented through the placement of lines of identity relative to cuts.",
+  "epg_features": {
+    "is_starting_position": true,
+    "valid_transformations": ["insertion", "iteration", "double_cut_insertion"],
+    "invalid_transformations": ["erasure"]
+  }
+}
+

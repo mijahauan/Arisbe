@@ -1,0 +1,510 @@
+{
+  "metadata": {
+    "version": "3.0.0",
+    "format": "egrf",
+    "id": "implication_graph",
+    "description": "If Socrates is a person, then Socrates is mortal"
+  },
+  "elements": {
+    "sheet": {
+      "id": "sheet",
+      "name": "Sheet_of_assertion c0",
+      "element_type": "context",
+      "logical_properties": {
+        "semantic_role": null,
+        "nesting_level": 0,
+        "logical_type": null,
+        "context_type": "sheet_of_assertion",
+        "is_root": true,
+        "auto_size": true,
+        "padding": {
+          "min": 15.0,
+          "preferred": 25.0,
+          "max": 40.0
+        }
+      },
+      "layout_constraints": {
+        "container": "none",
+        "positioning_type": "constraint_based",
+        "collision_avoidance": true,
+        "shape": "rectangle",
+        "size_constraints": {
+          "auto_size": true,
+          "size_calculation": "content_plus_padding"
+        },
+        "spacing_constraints": {
+          "to_siblings": {
+            "min": 20.0,
+            "preferred": 40.0,
+            "max": null
+          },
+          "to_container_edge": {
+            "min": 10.0,
+            "preferred": 20.0,
+            "max": null
+          }
+        },
+        "movement_constraints": {
+          "moveable": false,
+          "movement_bounds": "none",
+          "forbidden_areas": [],
+          "snap_to_grid": false,
+          "grid_size": null
+        }
+      }
+    },
+    "context_c1": {
+      "id": "context_c1",
+      "name": "Cut c1",
+      "element_type": "context",
+      "logical_properties": {
+        "semantic_role": null,
+        "nesting_level": 1,
+        "logical_type": null,
+        "context_type": "cut",
+        "is_root": false,
+        "auto_size": true,
+        "padding": {
+          "min": 15.0,
+          "preferred": 25.0,
+          "max": 40.0
+        },
+        "container": "sheet"
+      },
+      "layout_constraints": {
+        "container": "placeholder",
+        "positioning_type": "constraint_based",
+        "collision_avoidance": true,
+        "shape": "oval",
+        "size_constraints": {
+          "auto_size": true,
+          "size_calculation": "content_plus_padding"
+        },
+        "spacing_constraints": {
+          "to_siblings": {
+            "min": 20.0,
+            "preferred": 40.0,
+            "max": null
+          },
+          "to_container_edge": {
+            "min": 10.0,
+            "preferred": 20.0,
+            "max": null
+          }
+        },
+        "movement_constraints": {
+          "moveable": true,
+          "movement_bounds": "container_interior",
+          "forbidden_areas": [],
+          "snap_to_grid": false,
+          "grid_size": null
+        }
+      }
+    },
+    "predicate_p1": {
+      "id": "predicate_p1",
+      "name": "Person",
+      "element_type": "predicate",
+      "logical_properties": {
+        "semantic_role": null,
+        "nesting_level": 0,
+        "logical_type": null,
+        "arity": 1,
+        "connected_entities": [],
+        "predicate_type": "relation"
+      },
+      "layout_constraints": {
+        "container": "context_c1",
+        "positioning_type": "constraint_based",
+        "collision_avoidance": true,
+        "shape": "rectangle",
+        "size_constraints": {
+          "auto_size": false,
+          "size_calculation": "content_driven",
+          "min": {
+            "width": 40.0,
+            "height": 20.0
+          },
+          "preferred": {
+            "width": 60.0,
+            "height": 30.0
+          },
+          "max": {
+            "width": 120.0,
+            "height": 60.0
+          }
+        },
+        "spacing_constraints": {
+          "to_siblings": {
+            "min": 10.0,
+            "preferred": 20.0,
+            "max": null
+          },
+          "to_container_edge": {
+            "min": 5.0,
+            "preferred": 15.0,
+            "max": null
+          }
+        },
+        "movement_constraints": {
+          "moveable": true,
+          "movement_bounds": "container_interior",
+          "forbidden_areas": [],
+          "snap_to_grid": false,
+          "grid_size": null
+        }
+      }
+    },
+    "predicate_p2": {
+      "id": "predicate_p2",
+      "name": "Mortal",
+      "element_type": "predicate",
+      "logical_properties": {
+        "semantic_role": null,
+        "nesting_level": 0,
+        "logical_type": null,
+        "arity": 1,
+        "connected_entities": [],
+        "predicate_type": "relation"
+      },
+      "layout_constraints": {
+        "container": "context_c2",
+        "positioning_type": "constraint_based",
+        "collision_avoidance": true,
+        "shape": "rectangle",
+        "size_constraints": {
+          "auto_size": false,
+          "size_calculation": "content_driven",
+          "min": {
+            "width": 40.0,
+            "height": 20.0
+          },
+          "preferred": {
+            "width": 60.0,
+            "height": 30.0
+          },
+          "max": {
+            "width": 120.0,
+            "height": 60.0
+          }
+        },
+        "spacing_constraints": {
+          "to_siblings": {
+            "min": 10.0,
+            "preferred": 20.0,
+            "max": null
+          },
+          "to_container_edge": {
+            "min": 5.0,
+            "preferred": 15.0,
+            "max": null
+          }
+        },
+        "movement_constraints": {
+          "moveable": true,
+          "movement_bounds": "container_interior",
+          "forbidden_areas": [],
+          "snap_to_grid": false,
+          "grid_size": null
+        }
+      }
+    },
+    "context_c2": {
+      "id": "context_c2",
+      "name": "Cut c2",
+      "element_type": "context",
+      "logical_properties": {
+        "semantic_role": null,
+        "nesting_level": 2,
+        "logical_type": null,
+        "context_type": "cut",
+        "is_root": false,
+        "auto_size": true,
+        "padding": {
+          "min": 15.0,
+          "preferred": 25.0,
+          "max": 40.0
+        },
+        "container": "context_c1"
+      },
+      "layout_constraints": {
+        "container": "placeholder",
+        "positioning_type": "constraint_based",
+        "collision_avoidance": true,
+        "shape": "oval",
+        "size_constraints": {
+          "auto_size": true,
+          "size_calculation": "content_plus_padding"
+        },
+        "spacing_constraints": {
+          "to_siblings": {
+            "min": 20.0,
+            "preferred": 40.0,
+            "max": null
+          },
+          "to_container_edge": {
+            "min": 10.0,
+            "preferred": 20.0,
+            "max": null
+          }
+        },
+        "movement_constraints": {
+          "moveable": true,
+          "movement_bounds": "container_interior",
+          "forbidden_areas": [],
+          "snap_to_grid": false,
+          "grid_size": null
+        }
+      }
+    },
+    "entity_e1": {
+      "id": "entity_e1",
+      "name": "Socrates1",
+      "element_type": "entity",
+      "logical_properties": {
+        "semantic_role": null,
+        "nesting_level": 0,
+        "logical_type": null,
+        "entity_type": "variable",
+        "connected_predicates": [],
+        "ligature_group": null
+      },
+      "layout_constraints": {
+        "container": "auto",
+        "positioning_type": "connection_driven",
+        "collision_avoidance": true,
+        "shape": "line"
+      },
+      "path_constraints": {
+        "path_type": "flexible",
+        "avoid_overlaps": true,
+        "prefer_straight_lines": true,
+        "crossing_minimization": true,
+        "min_length": 10.0
+      }
+    },
+    "entity_e2": {
+      "id": "entity_e2",
+      "name": "Socrates2",
+      "element_type": "entity",
+      "logical_properties": {
+        "semantic_role": null,
+        "nesting_level": 0,
+        "logical_type": null,
+        "entity_type": "variable",
+        "connected_predicates": [],
+        "ligature_group": null
+      },
+      "layout_constraints": {
+        "container": "auto",
+        "positioning_type": "connection_driven",
+        "collision_avoidance": true,
+        "shape": "line"
+      },
+      "path_constraints": {
+        "path_type": "flexible",
+        "avoid_overlaps": true,
+        "prefer_straight_lines": true,
+        "crossing_minimization": true,
+        "min_length": 10.0
+      }
+    }
+  },
+  "containment": {
+    "context_c1": "sheet",
+    "predicate_p1": "context_c1",
+    "predicate_p2": "context_c2",
+    "context_c2": "context_c1",
+    "entity_e1": "sheet",
+    "entity_e2": "sheet"
+  },
+  "connections": [
+    {
+      "entity_id": "entity_e1",
+      "predicate_id": "predicate_p1",
+      "role": "arg1"
+    },
+    {
+      "entity_id": "entity_e2",
+      "predicate_id": "predicate_p2",
+      "role": "arg1"
+    }
+  ],
+  "ligatures": [
+    {
+      "entity1_id": "entity_e1",
+      "entity2_id": "entity_e2",
+      "type": "identity"
+    }
+  ],
+  "layout_constraints": [
+    {
+      "element_id": "sheet",
+      "constraint_type": "size",
+      "width": 800,
+      "height": 600,
+      "min_width": 800,
+      "min_height": 600,
+      "max_width": 800,
+      "max_height": 600
+    },
+    {
+      "element_id": "context_c1",
+      "constraint_type": "size",
+      "width": 300,
+      "height": 200,
+      "min_width": 100,
+      "min_height": 100,
+      "max_width": 1000,
+      "max_height": 1000,
+      "auto_size": true
+    },
+    {
+      "element_id": "predicate_p1",
+      "constraint_type": "size",
+      "width": 120,
+      "height": 50,
+      "min_width": 96.0,
+      "min_height": 40.0,
+      "max_width": 144.0,
+      "max_height": 60.0
+    },
+    {
+      "element_id": "predicate_p2",
+      "constraint_type": "size",
+      "width": 120,
+      "height": 50,
+      "min_width": 96.0,
+      "min_height": 40.0,
+      "max_width": 144.0,
+      "max_height": 60.0
+    },
+    {
+      "element_id": "context_c2",
+      "constraint_type": "size",
+      "width": 300,
+      "height": 200,
+      "min_width": 100,
+      "min_height": 100,
+      "max_width": 1000,
+      "max_height": 1000,
+      "auto_size": true
+    },
+    {
+      "element_id": "entity_e1",
+      "constraint_type": "size",
+      "width": 10,
+      "height": 10,
+      "min_width": 5,
+      "min_height": 5,
+      "max_width": 15,
+      "max_height": 15
+    },
+    {
+      "element_id": "entity_e2",
+      "constraint_type": "size",
+      "width": 10,
+      "height": 10,
+      "min_width": 5,
+      "min_height": 5,
+      "max_width": 15,
+      "max_height": 15
+    },
+    {
+      "element_id": "context_c1",
+      "constraint_type": "position",
+      "container": "sheet",
+      "x": 0.5,
+      "y": 0.5,
+      "x_unit": "relative",
+      "y_unit": "relative"
+    },
+    {
+      "element_id": "predicate_p1",
+      "constraint_type": "position",
+      "container": "context_c1",
+      "x": 0.5,
+      "y": 0.5,
+      "x_unit": "relative",
+      "y_unit": "relative"
+    },
+    {
+      "element_id": "predicate_p2",
+      "constraint_type": "position",
+      "container": "context_c2",
+      "x": 0.5,
+      "y": 0.5,
+      "x_unit": "relative",
+      "y_unit": "relative"
+    },
+    {
+      "element_id": "context_c2",
+      "constraint_type": "position",
+      "container": "context_c1",
+      "x": 0.5,
+      "y": 0.5,
+      "x_unit": "relative",
+      "y_unit": "relative"
+    },
+    {
+      "element_id": "entity_e1",
+      "constraint_type": "position",
+      "container": "sheet",
+      "x": 0.5,
+      "y": 0.5,
+      "x_unit": "relative",
+      "y_unit": "relative"
+    },
+    {
+      "element_id": "entity_e2",
+      "constraint_type": "position",
+      "container": "sheet",
+      "x": 0.5,
+      "y": 0.5,
+      "x_unit": "relative",
+      "y_unit": "relative"
+    },
+    {
+      "element_id": "sheet",
+      "constraint_type": "spacing",
+      "min_spacing": 10,
+      "preferred_spacing": 20
+    },
+    {
+      "element_id": "context_c1",
+      "constraint_type": "spacing",
+      "min_spacing": 10,
+      "preferred_spacing": 20
+    },
+    {
+      "element_id": "predicate_p1",
+      "constraint_type": "spacing",
+      "min_spacing": 10,
+      "preferred_spacing": 20
+    },
+    {
+      "element_id": "predicate_p2",
+      "constraint_type": "spacing",
+      "min_spacing": 10,
+      "preferred_spacing": 20
+    },
+    {
+      "element_id": "context_c2",
+      "constraint_type": "spacing",
+      "min_spacing": 10,
+      "preferred_spacing": 20
+    },
+    {
+      "element_id": "entity_e1",
+      "constraint_type": "spacing",
+      "min_spacing": 10,
+      "preferred_spacing": 20
+    },
+    {
+      "element_id": "entity_e2",
+      "constraint_type": "spacing",
+      "min_spacing": 10,
+      "preferred_spacing": 20
+    }
+  ]
+}

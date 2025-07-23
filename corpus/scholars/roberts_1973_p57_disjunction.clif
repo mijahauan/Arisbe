@@ -1,0 +1,14 @@
+(cl:comment "Roberts' example of disjunction using Peirce's double-cut method")
+(cl:comment "Logical form: ¬(¬P ∧ ¬Q)")
+(cl:comment "Source: Roberts (1973), The Existential Graphs of Charles S. Peirce, p. 57")
+
+(cl:text
+  (cl:imports "http://www.example.org/ontology/scholar-examples")
+  
+  (cl:comment "Disjunction: P or Q")
+  (or P Q)
+  
+  (cl:comment "Equivalent form using negation and conjunction")
+  (not (and (not P) (not Q)))
+)
+

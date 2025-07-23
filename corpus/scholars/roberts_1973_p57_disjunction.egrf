@@ -1,0 +1,146 @@
+{
+  "metadata": {
+    "id": "roberts_1973_p57_disjunction",
+    "version": "3.0.0",
+    "source": "Roberts, D.D. (1973). The Existential Graphs of Charles S. Peirce, p. 57",
+    "description": "Disjunction: P or Q",
+    "logical_form": "¬(¬P ∧ ¬Q)"
+  },
+  "elements": {
+    "sheet": {
+      "id": "sheet",
+      "type": "context",
+      "semantic_type": "sheet",
+      "nesting_level": 0
+    },
+    "outer_cut": {
+      "id": "outer_cut",
+      "type": "context",
+      "semantic_type": "cut",
+      "nesting_level": 1
+    },
+    "p_cut": {
+      "id": "p_cut",
+      "type": "context",
+      "semantic_type": "cut",
+      "nesting_level": 2
+    },
+    "q_cut": {
+      "id": "q_cut",
+      "type": "context",
+      "semantic_type": "cut",
+      "nesting_level": 2
+    },
+    "p_predicate": {
+      "id": "p_predicate",
+      "type": "predicate",
+      "label": "P",
+      "arity": 0
+    },
+    "q_predicate": {
+      "id": "q_predicate",
+      "type": "predicate",
+      "label": "Q",
+      "arity": 0
+    }
+  },
+  "containment": {
+    "outer_cut": "sheet",
+    "p_cut": "outer_cut",
+    "q_cut": "outer_cut",
+    "p_predicate": "p_cut",
+    "q_predicate": "q_cut"
+  },
+  "connections": [],
+  "layout_constraints": [
+    {
+      "constraint_id": "sheet_size",
+      "type": "SizeConstraint",
+      "element_id": "sheet",
+      "min_width": 800,
+      "min_height": 600
+    },
+    {
+      "constraint_id": "outer_cut_size",
+      "type": "SizeConstraint",
+      "element_id": "outer_cut",
+      "min_width": 500,
+      "min_height": 300
+    },
+    {
+      "constraint_id": "p_cut_size",
+      "type": "SizeConstraint",
+      "element_id": "p_cut",
+      "min_width": 150,
+      "min_height": 100
+    },
+    {
+      "constraint_id": "q_cut_size",
+      "type": "SizeConstraint",
+      "element_id": "q_cut",
+      "min_width": 150,
+      "min_height": 100
+    },
+    {
+      "constraint_id": "p_predicate_size",
+      "type": "SizeConstraint",
+      "element_id": "p_predicate",
+      "preferred_width": 50,
+      "preferred_height": 50
+    },
+    {
+      "constraint_id": "q_predicate_size",
+      "type": "SizeConstraint",
+      "element_id": "q_predicate",
+      "preferred_width": 50,
+      "preferred_height": 50
+    },
+    {
+      "constraint_id": "outer_cut_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "outer_cut",
+      "padding": 10
+    },
+    {
+      "constraint_id": "p_cut_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "p_cut",
+      "padding": 10
+    },
+    {
+      "constraint_id": "q_cut_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "q_cut",
+      "padding": 10
+    },
+    {
+      "constraint_id": "p_predicate_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "p_predicate",
+      "padding": 5
+    },
+    {
+      "constraint_id": "q_predicate_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "q_predicate",
+      "padding": 5
+    },
+    {
+      "constraint_id": "p_cut_position",
+      "type": "PositionConstraint",
+      "element_id": "p_cut",
+      "reference_id": "outer_cut",
+      "relative_x": 0.25,
+      "relative_y": 0.5
+    },
+    {
+      "constraint_id": "q_cut_position",
+      "type": "PositionConstraint",
+      "element_id": "q_cut",
+      "reference_id": "outer_cut",
+      "relative_x": 0.75,
+      "relative_y": 0.5
+    }
+  ]
+}
+

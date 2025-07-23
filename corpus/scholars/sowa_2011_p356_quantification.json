@@ -1,0 +1,30 @@
+{
+  "id": "sowa_2011_p356_quantification",
+  "category": "scholars",
+  "source": {
+    "author": "John F. Sowa",
+    "work": "Peirce's Tutorial on Existential Graphs",
+    "year": 2011,
+    "journal": "Semiotica",
+    "volume": 186,
+    "issue": "1-4",
+    "page": "356",
+    "url": "https://www.jfsowa.com/pubs/egtut.pdf"
+  },
+  "description": "Sowa's example of existential quantification in Peirce's Beta graphs, demonstrating how lines of identity represent existentially quantified variables.",
+  "logical_form": "∃x(Cat(x) ∧ Mat(x))",
+  "natural_language": "There exists a cat on a mat.",
+  "complexity": {
+    "nesting_depth": 0,
+    "entity_count": 1,
+    "predicate_count": 2,
+    "cut_count": 0
+  },
+  "test_rationale": "This example tests the system's ability to represent existential quantification using lines of identity in Beta graphs. It demonstrates how entities can be shared between predicates, forming a basic relational structure.",
+  "epg_features": {
+    "is_starting_position": true,
+    "valid_transformations": ["insertion", "iteration"],
+    "invalid_transformations": ["erasure"]
+  }
+}
+
