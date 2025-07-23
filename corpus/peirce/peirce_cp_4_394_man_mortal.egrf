@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "id": "peirce_cp_4_394_man_mortal",
+    "version": "3.0.0",
+    "source": "Peirce, C.S. (1933). Collected Papers, 4.394",
+    "description": "If a man, then mortal",
+    "logical_form": "¬(Man(x) ∧ ¬Mortal(x))"
+  },
+  "elements": {
+    "sheet": {
+      "id": "sheet",
+      "type": "context",
+      "semantic_type": "sheet",
+      "nesting_level": 0
+    },
+    "outer_cut": {
+      "id": "outer_cut",
+      "type": "context",
+      "semantic_type": "cut",
+      "nesting_level": 1
+    },
+    "inner_cut": {
+      "id": "inner_cut",
+      "type": "context",
+      "semantic_type": "cut",
+      "nesting_level": 2
+    },
+    "man_predicate": {
+      "id": "man_predicate",
+      "type": "predicate",
+      "label": "Man",
+      "arity": 1
+    },
+    "mortal_predicate": {
+      "id": "mortal_predicate",
+      "type": "predicate",
+      "label": "Mortal",
+      "arity": 1
+    },
+    "entity_x": {
+      "id": "entity_x",
+      "type": "entity",
+      "label": "x"
+    }
+  },
+  "containment": {
+    "outer_cut": "sheet",
+    "inner_cut": "outer_cut",
+    "man_predicate": "outer_cut",
+    "mortal_predicate": "inner_cut",
+    "entity_x": "sheet"
+  },
+  "connections": [
+    {
+      "entity_id": "entity_x",
+      "predicate_id": "man_predicate",
+      "role": "arg1"
+    },
+    {
+      "entity_id": "entity_x",
+      "predicate_id": "mortal_predicate",
+      "role": "arg1"
+    }
+  ],
+  "layout_constraints": [
+    {
+      "constraint_id": "sheet_size",
+      "type": "SizeConstraint",
+      "element_id": "sheet",
+      "min_width": 800,
+      "min_height": 600
+    },
+    {
+      "constraint_id": "outer_cut_size",
+      "type": "SizeConstraint",
+      "element_id": "outer_cut",
+      "min_width": 400,
+      "min_height": 300
+    },
+    {
+      "constraint_id": "inner_cut_size",
+      "type": "SizeConstraint",
+      "element_id": "inner_cut",
+      "min_width": 200,
+      "min_height": 150
+    },
+    {
+      "constraint_id": "man_predicate_size",
+      "type": "SizeConstraint",
+      "element_id": "man_predicate",
+      "preferred_width": 100,
+      "preferred_height": 50
+    },
+    {
+      "constraint_id": "mortal_predicate_size",
+      "type": "SizeConstraint",
+      "element_id": "mortal_predicate",
+      "preferred_width": 100,
+      "preferred_height": 50
+    },
+    {
+      "constraint_id": "outer_cut_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "outer_cut",
+      "padding": 10
+    },
+    {
+      "constraint_id": "inner_cut_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "inner_cut",
+      "padding": 10
+    },
+    {
+      "constraint_id": "man_predicate_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "man_predicate",
+      "padding": 5
+    },
+    {
+      "constraint_id": "mortal_predicate_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "mortal_predicate",
+      "padding": 5
+    },
+    {
+      "constraint_id": "man_predicate_spacing",
+      "type": "SpacingConstraint",
+      "element_id": "man_predicate",
+      "min_spacing": 20
+    },
+    {
+      "constraint_id": "mortal_predicate_spacing",
+      "type": "SpacingConstraint",
+      "element_id": "mortal_predicate",
+      "min_spacing": 20
+    }
+  ]
+}
+

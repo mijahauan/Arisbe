@@ -1,0 +1,122 @@
+{
+  "metadata": {
+    "id": "canonical_implication",
+    "version": "3.0.0",
+    "source": "EGRF Development Team (2025). EGRF v3.0 Corpus",
+    "description": "Canonical example of implication (if-then)",
+    "logical_form": "¬(P ∧ ¬Q)"
+  },
+  "elements": {
+    "sheet": {
+      "id": "sheet",
+      "type": "context",
+      "semantic_type": "sheet",
+      "nesting_level": 0
+    },
+    "outer_cut": {
+      "id": "outer_cut",
+      "type": "context",
+      "semantic_type": "cut",
+      "nesting_level": 1
+    },
+    "inner_cut": {
+      "id": "inner_cut",
+      "type": "context",
+      "semantic_type": "cut",
+      "nesting_level": 2
+    },
+    "p_predicate": {
+      "id": "p_predicate",
+      "type": "predicate",
+      "label": "P",
+      "arity": 0
+    },
+    "q_predicate": {
+      "id": "q_predicate",
+      "type": "predicate",
+      "label": "Q",
+      "arity": 0
+    }
+  },
+  "containment": {
+    "outer_cut": "sheet",
+    "inner_cut": "outer_cut",
+    "p_predicate": "outer_cut",
+    "q_predicate": "inner_cut"
+  },
+  "connections": [],
+  "layout_constraints": [
+    {
+      "constraint_id": "sheet_size",
+      "type": "SizeConstraint",
+      "element_id": "sheet",
+      "min_width": 800,
+      "min_height": 600
+    },
+    {
+      "constraint_id": "outer_cut_size",
+      "type": "SizeConstraint",
+      "element_id": "outer_cut",
+      "min_width": 400,
+      "min_height": 300
+    },
+    {
+      "constraint_id": "inner_cut_size",
+      "type": "SizeConstraint",
+      "element_id": "inner_cut",
+      "min_width": 200,
+      "min_height": 150
+    },
+    {
+      "constraint_id": "p_predicate_size",
+      "type": "SizeConstraint",
+      "element_id": "p_predicate",
+      "preferred_width": 50,
+      "preferred_height": 50
+    },
+    {
+      "constraint_id": "q_predicate_size",
+      "type": "SizeConstraint",
+      "element_id": "q_predicate",
+      "preferred_width": 50,
+      "preferred_height": 50
+    },
+    {
+      "constraint_id": "outer_cut_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "outer_cut",
+      "padding": 10
+    },
+    {
+      "constraint_id": "inner_cut_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "inner_cut",
+      "padding": 10
+    },
+    {
+      "constraint_id": "p_predicate_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "p_predicate",
+      "padding": 5
+    },
+    {
+      "constraint_id": "q_predicate_containment",
+      "type": "ContainmentConstraint",
+      "element_id": "q_predicate",
+      "padding": 5
+    },
+    {
+      "constraint_id": "p_predicate_spacing",
+      "type": "SpacingConstraint",
+      "element_id": "p_predicate",
+      "min_spacing": 20
+    },
+    {
+      "constraint_id": "q_predicate_spacing",
+      "type": "SpacingConstraint",
+      "element_id": "q_predicate",
+      "min_spacing": 20
+    }
+  ]
+}
+

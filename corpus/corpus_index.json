@@ -1,0 +1,107 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2025-07-23",
+  "examples": [
+    {
+      "id": "peirce_cp_4_394_man_mortal",
+      "category": "peirce",
+      "path": "peirce/peirce_cp_4_394_man_mortal"
+    },
+    {
+      "id": "peirce_cp_4_399_socrates_man",
+      "category": "peirce",
+      "path": "peirce/peirce_cp_4_399_socrates_man"
+    },
+    {
+      "id": "peirce_cp_4_407_modus_ponens",
+      "category": "peirce",
+      "path": "peirce/peirce_cp_4_407_modus_ponens"
+    },
+    {
+      "id": "peirce_cp_4_411_quantification",
+      "category": "peirce",
+      "path": "peirce/peirce_cp_4_411_quantification"
+    },
+    {
+      "id": "peirce_cp_4_414_conjunction",
+      "category": "peirce",
+      "path": "peirce/peirce_cp_4_414_conjunction"
+    },
+    {
+      "id": "roberts_1973_p57_disjunction",
+      "category": "scholars",
+      "path": "scholars/roberts_1973_p57_disjunction"
+    },
+    {
+      "id": "roberts_1973_p62_conditional",
+      "category": "scholars",
+      "path": "scholars/roberts_1973_p62_conditional"
+    },
+    {
+      "id": "zeman_1964_p78_nested_cuts",
+      "category": "scholars",
+      "path": "scholars/zeman_1964_p78_nested_cuts"
+    },
+    {
+      "id": "shin_2002_p65_identity",
+      "category": "scholars",
+      "path": "scholars/shin_2002_p65_identity"
+    },
+    {
+      "id": "dau_2006_p112_ligature",
+      "category": "scholars",
+      "path": "scholars/dau_2006_p112_ligature"
+    },
+    {
+      "id": "canonical_simple_negation",
+      "category": "canonical",
+      "path": "canonical/canonical_simple_negation"
+    },
+    {
+      "id": "canonical_double_negation",
+      "category": "canonical",
+      "path": "canonical/canonical_double_negation"
+    },
+    {
+      "id": "canonical_conjunction",
+      "category": "canonical",
+      "path": "canonical/canonical_conjunction"
+    },
+    {
+      "id": "canonical_disjunction",
+      "category": "canonical",
+      "path": "canonical/canonical_disjunction"
+    },
+    {
+      "id": "canonical_implication",
+      "category": "canonical",
+      "path": "canonical/canonical_implication"
+    },
+    {
+      "id": "epg_simple_insertion",
+      "category": "epg",
+      "path": "epg/epg_simple_insertion"
+    },
+    {
+      "id": "epg_double_cut_insertion",
+      "category": "epg",
+      "path": "epg/epg_double_cut_insertion"
+    },
+    {
+      "id": "epg_iteration_example",
+      "category": "epg",
+      "path": "epg/epg_iteration_example"
+    },
+    {
+      "id": "epg_deiteration_example",
+      "category": "epg",
+      "path": "epg/epg_deiteration_example"
+    },
+    {
+      "id": "epg_complex_transformation",
+      "category": "epg",
+      "path": "epg/epg_complex_transformation"
+    }
+  ]
+}
+

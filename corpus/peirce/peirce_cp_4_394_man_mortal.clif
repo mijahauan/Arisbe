@@ -1,0 +1,16 @@
+(cl:comment "Peirce's classic example: If a man, then mortal")
+(cl:comment "Logical form: ¬(Man(x) ∧ ¬Mortal(x))")
+(cl:comment "Source: Collected Papers 4.394")
+
+(cl:text
+  (cl:imports "http://www.example.org/ontology/peirce-examples")
+  
+  (cl:comment "Implication: If x is a man, then x is mortal")
+  (forall (x)
+    (implies (Man x) (Mortal x)))
+  
+  (cl:comment "Equivalent form using negation and conjunction")
+  (forall (x)
+    (not (and (Man x) (not (Mortal x)))))
+)
+
