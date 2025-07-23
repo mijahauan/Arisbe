@@ -1,0 +1,14 @@
+{
+  "id": "canonical_implication",
+  "title": "Canonical Implication",
+  "description": "Standard form of implication using double-cut",
+  "source": {
+    "author": "Canonical Forms",
+    "work": "EGRF v3.0 Corpus",
+    "year": 2023
+  },
+  "logical_pattern": "implication",
+  "logical_form": "P → Q",
+  "notes": "This is the canonical form of implication in existential graphs, using the double-cut pattern. It represents 'If P, then Q' as '¬(P ∧ ¬Q)'."
+}
+

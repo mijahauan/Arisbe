@@ -1,0 +1,45 @@
+# Peirce's Man-Mortal Implication
+# "If a man, then mortal"
+
+contexts:
+  sheet:
+    type: sheet
+    nesting_level: 0
+  outer_cut:
+    type: cut
+    nesting_level: 1
+    parent: sheet
+  inner_cut:
+    type: cut
+    nesting_level: 2
+    parent: outer_cut
+
+predicates:
+  man:
+    name: Man
+    arity: 1
+    parent: outer_cut
+  mortal:
+    name: Mortal
+    arity: 1
+    parent: inner_cut
+
+entities:
+  x1:
+    name: x
+    parent: outer_cut
+    connections:
+      - predicate: man
+        role: arg1
+  x2:
+    name: x
+    parent: inner_cut
+    connections:
+      - predicate: mortal
+        role: arg1
+
+ligatures:
+  - entity1: x1
+    entity2: x2
+    type: identity
+

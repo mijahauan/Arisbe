@@ -1,0 +1,78 @@
+{
+  "metadata": {
+    "version": "3.0.0",
+    "format": "egrf",
+    "id": "",
+    "description": ""
+  },
+  "elements": {
+    "sheet": {
+      "id": "sheet",
+      "name": "Sheet of Assertion",
+      "element_type": "context",
+      "logical_properties": {
+        "semantic_role": null,
+        "nesting_level": 0,
+        "logical_type": null,
+        "context_type": "sheet_of_assertion",
+        "is_root": true,
+        "auto_size": true,
+        "padding": {
+          "min": 15.0,
+          "preferred": 25.0,
+          "max": 40.0
+        }
+      },
+      "layout_constraints": {
+        "container": "none",
+        "positioning_type": "constraint_based",
+        "collision_avoidance": true,
+        "shape": "rectangle",
+        "size_constraints": {
+          "auto_size": true,
+          "size_calculation": "content_plus_padding"
+        },
+        "spacing_constraints": {
+          "to_siblings": {
+            "min": 20.0,
+            "preferred": 40.0,
+            "max": null
+          },
+          "to_container_edge": {
+            "min": 10.0,
+            "preferred": 20.0,
+            "max": null
+          }
+        },
+        "movement_constraints": {
+          "moveable": false,
+          "movement_bounds": "none",
+          "forbidden_areas": [],
+          "snap_to_grid": false,
+          "grid_size": null
+        }
+      }
+    }
+  },
+  "containment": {},
+  "connections": [],
+  "ligatures": [],
+  "layout_constraints": [
+    {
+      "element_id": "sheet",
+      "constraint_type": "size",
+      "width": 800,
+      "height": 600,
+      "min_width": 800,
+      "min_height": 600,
+      "max_width": 800,
+      "max_height": 600
+    },
+    {
+      "element_id": "sheet",
+      "constraint_type": "spacing",
+      "min_spacing": 10,
+      "preferred_spacing": 20
+    }
+  ]
+}

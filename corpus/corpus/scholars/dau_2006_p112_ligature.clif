@@ -1,0 +1,2 @@
+(exists (x) (and (P x) (not (Q x))))
+
