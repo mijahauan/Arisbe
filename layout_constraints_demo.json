@@ -1,0 +1,199 @@
+{
+  "elements": {
+    "viewport": {
+      "id": "viewport",
+      "x": -957.0992003167219,
+      "y": 1.2252751445018142,
+      "width": 800,
+      "height": 600,
+      "scale_factor": 1.0
+    },
+    "sheet": {
+      "id": "sheet",
+      "x": 848.3487351622002,
+      "y": 11.458717102555825,
+      "width": 800,
+      "height": 600
+    },
+    "outer_cut": {
+      "id": "outer_cut",
+      "x": 848.3487351622002,
+      "y": 154.48058226033191,
+      "width": 600,
+      "height": 400
+    },
+    "person_predicate": {
+      "id": "person_predicate",
+      "x": 848.3487351622002,
+      "y": 154.48058226033191,
+      "width": 100,
+      "height": 50
+    },
+    "socrates1": {
+      "id": "socrates1",
+      "x": 848.3487351622002,
+      "y": 220,
+      "width": 10,
+      "height": 10
+    },
+    "inner_cut": {
+      "id": "inner_cut",
+      "x": 848.3487351622002,
+      "y": 154.48058226033191,
+      "width": 300,
+      "height": 200
+    },
+    "mortal_predicate": {
+      "id": "mortal_predicate",
+      "x": 848.3487351622002,
+      "y": 154.96320785060075,
+      "width": 100,
+      "height": 50
+    },
+    "socrates2": {
+      "id": "socrates2",
+      "x": 848.3487351622002,
+      "y": 260.5562098890673,
+      "width": 10,
+      "height": 10
+    }
+  },
+  "containers": {
+    "outer_cut": "sheet",
+    "person_predicate": "outer_cut",
+    "socrates1": "outer_cut",
+    "inner_cut": "outer_cut",
+    "mortal_predicate": "inner_cut",
+    "socrates2": "inner_cut"
+  },
+  "viewport": {
+    "id": "viewport",
+    "x": -957.0992003167219,
+    "y": 1.2252751445018142,
+    "width": 800,
+    "height": 600,
+    "scale_factor": 1.0
+  },
+  "constraints": [
+    {
+      "constraint_id": "sheet_size",
+      "element_id": "sheet",
+      "priority": 100,
+      "type": "SizeConstraint",
+      "min_width": 800,
+      "min_height": 600,
+      "max_width": null,
+      "max_height": null,
+      "preferred_width": null,
+      "preferred_height": null,
+      "aspect_ratio": null,
+      "maintain_aspect_ratio": false
+    },
+    {
+      "constraint_id": "outer_cut_size",
+      "element_id": "outer_cut",
+      "priority": 100,
+      "type": "SizeConstraint",
+      "min_width": 400,
+      "min_height": 300,
+      "max_width": null,
+      "max_height": null,
+      "preferred_width": null,
+      "preferred_height": null,
+      "aspect_ratio": null,
+      "maintain_aspect_ratio": false
+    },
+    {
+      "constraint_id": "inner_cut_size",
+      "element_id": "inner_cut",
+      "priority": 100,
+      "type": "SizeConstraint",
+      "min_width": 200,
+      "min_height": 150,
+      "max_width": null,
+      "max_height": null,
+      "preferred_width": null,
+      "preferred_height": null,
+      "aspect_ratio": null,
+      "maintain_aspect_ratio": false
+    },
+    {
+      "constraint_id": "person_predicate_size",
+      "element_id": "person_predicate",
+      "priority": 100,
+      "type": "SizeConstraint",
+      "min_width": 0,
+      "min_height": 0,
+      "max_width": null,
+      "max_height": null,
+      "preferred_width": 100,
+      "preferred_height": 50,
+      "aspect_ratio": null,
+      "maintain_aspect_ratio": false
+    },
+    {
+      "constraint_id": "mortal_predicate_size",
+      "element_id": "mortal_predicate",
+      "priority": 100,
+      "type": "SizeConstraint",
+      "min_width": 0,
+      "min_height": 0,
+      "max_width": null,
+      "max_height": null,
+      "preferred_width": 100,
+      "preferred_height": 50,
+      "aspect_ratio": null,
+      "maintain_aspect_ratio": false
+    },
+    {
+      "constraint_id": "outer_cut_containment",
+      "element_id": "outer_cut",
+      "priority": 100,
+      "type": "ContainmentConstraint",
+      "padding": 10
+    },
+    {
+      "constraint_id": "inner_cut_containment",
+      "element_id": "inner_cut",
+      "priority": 100,
+      "type": "ContainmentConstraint",
+      "padding": 10
+    },
+    {
+      "constraint_id": "person_predicate_containment",
+      "element_id": "person_predicate",
+      "priority": 100,
+      "type": "ContainmentConstraint",
+      "padding": 5
+    },
+    {
+      "constraint_id": "mortal_predicate_containment",
+      "element_id": "mortal_predicate",
+      "priority": 100,
+      "type": "ContainmentConstraint",
+      "padding": 5
+    },
+    {
+      "constraint_id": "person_predicate_spacing",
+      "element_id": "person_predicate",
+      "priority": 100,
+      "type": "SpacingConstraint",
+      "min_spacing": 20,
+      "reference_id": "",
+      "max_spacing": null,
+      "preferred_spacing": null,
+      "edge": null
+    },
+    {
+      "constraint_id": "mortal_predicate_spacing",
+      "element_id": "mortal_predicate",
+      "priority": 100,
+      "type": "SpacingConstraint",
+      "min_spacing": 20,
+      "reference_id": "",
+      "max_spacing": null,
+      "preferred_spacing": null,
+      "edge": null
+    }
+  ]
+}
