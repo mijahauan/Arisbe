@@ -1,0 +1,276 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://arisbe.org/schemas/eg-hg-yaml/v1.0.0",
+  "title": "EG-HG YAML Schema",
+  "description": "JSON Schema for validating Existential Graph Hypergraph (EG-HG) YAML files",
+  "type": "object",
+  "required": ["metadata", "entities", "predicates", "contexts"],
+  "additionalProperties": false,
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Metadata about the EG-HG graph",
+      "required": ["id", "title"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "description": "Unique identifier for the graph"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable title for the graph"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of the graph"
+        },
+        "format_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+          "description": "Version of the EG-HG YAML format"
+        },
+        "source": {
+          "type": "object",
+          "description": "Information about the source of this graph",
+          "properties": {
+            "author": {
+              "type": "string",
+              "description": "Author of the original work"
+            },
+            "work": {
+              "type": "string",
+              "description": "Title of the work"
+            },
+            "volume": {
+              "type": ["string", "number"],
+              "description": "Volume number if applicable"
+            },
+            "section": {
+              "type": "string",
+              "description": "Section or page reference"
+            },
+            "year": {
+              "type": "number",
+              "minimum": 1800,
+              "maximum": 2100,
+              "description": "Year of publication"
+            },
+            "url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to the source"
+            }
+          }
+        },
+        "logical_pattern": {
+          "type": "string",
+          "enum": [
+            "implication",
+            "conjunction",
+            "disjunction", 
+            "negation",
+            "quantification",
+            "identity",
+            "function",
+            "complex"
+          ],
+          "description": "Primary logical pattern demonstrated"
+        },
+        "logical_form": {
+          "type": "string",
+          "description": "Logical formula representation"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes about the graph"
+        }
+      }
+    },
+    "entities": {
+      "type": "object",
+      "description": "Entities (Lines of Identity) in the graph",
+      "patternProperties": {
+        "^[a-zA-Z0-9_]+$": {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "name": {
+              "type": ["string", "null"],
+              "description": "Name of the entity (null for anonymous entities)"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["variable", "constant", "anonymous", "functional_term"],
+              "description": "Type of entity"
+            },
+            "context": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_]+$",
+              "description": "Context containing this entity"
+            },
+            "properties": {
+              "type": "object",
+              "description": "Additional properties for the entity",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "predicates": {
+      "type": "object",
+      "description": "Predicates (hyperedges) in the graph",
+      "patternProperties": {
+        "^[a-zA-Z0-9_]+$": {
+          "type": "object",
+          "required": ["name", "arity", "entities", "type"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Name of the predicate"
+            },
+            "arity": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of arguments the predicate takes"
+            },
+            "entities": {
+              "type": "array",
+              "description": "List of entities connected to this predicate",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_]+$"
+              }
+            },
+            "type": {
+              "type": "string",
+              "enum": ["relation", "function"],
+              "description": "Type of predicate"
+            },
+            "return_entity": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_]+$",
+              "description": "For functions, the entity representing the return value"
+            },
+            "context": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_]+$",
+              "description": "Context containing this predicate"
+            },
+            "properties": {
+              "type": "object",
+              "description": "Additional properties for the predicate",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "contexts": {
+      "type": "object",
+      "description": "Contexts (cuts and sheet of assertion) in the graph",
+      "patternProperties": {
+        "^[a-zA-Z0-9_]+$": {
+          "type": "object",
+          "required": ["type", "nesting_level"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["sheet_of_assertion", "cut"],
+              "description": "Type of context"
+            },
+            "nesting_level": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Depth of nesting (0 for sheet of assertion)"
+            },
+            "parent": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_]+$",
+              "description": "Parent context (null for root context)"
+            },
+            "contains": {
+              "type": "array",
+              "description": "Items contained in this context",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_]+$"
+              }
+            },
+            "properties": {
+              "type": "object",
+              "description": "Additional properties for the context",
+              "additionalProperties": true
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ligatures": {
+      "type": "array",
+      "description": "Ligatures (identity relationships) in the graph",
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["identity", "equality"],
+            "description": "Type of ligature relationship"
+          },
+          "entities": {
+            "type": "array",
+            "description": "Entities connected by this ligature",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_]+$"
+            },
+            "minItems": 2
+          },
+          "predicates": {
+            "type": "array",
+            "description": "Predicates connected by this ligature",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_]+$"
+            }
+          },
+          "properties": {
+            "type": "object",
+            "description": "Additional properties for the ligature",
+            "additionalProperties": true
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_]+$",
+      "description": "Valid identifier pattern for EG-HG elements"
+    },
+    "context_type": {
+      "type": "string",
+      "enum": ["sheet_of_assertion", "cut"],
+      "description": "Valid context types in Existential Graphs"
+    },
+    "entity_type": {
+      "type": "string",
+      "enum": ["variable", "constant", "anonymous", "functional_term"],
+      "description": "Valid entity types in EG-HG"
+    },
+    "predicate_type": {
+      "type": "string",
+      "enum": ["relation", "function"],
+      "description": "Valid predicate types in EG-HG"
+    }
+  }
+}
+
