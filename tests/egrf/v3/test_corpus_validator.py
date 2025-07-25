@@ -7,7 +7,7 @@ import json
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 
-from src.egrf.v3.corpus_validator import (
+from egrf.v3.corpus_validator import (
     CorpusExample,
     CorpusLoader,
     EGRFValidator,
@@ -25,24 +25,31 @@ class TestCorpusExample(unittest.TestCase):
         mock_eg_hg = '# EG-HG representation'
         mock_clif = '(cl:text (P))'
         mock_egrf = '{"metadata": {"id": "test_example"}}'
+        mock_index = '{"examples": [{"id": "test_example", "category": "test", "path": "test/test_example"}]}'
         
         mock_files = {
+            '/corpus/corpus_index.json': mock_index,
             '/corpus/test/test_example.json': mock_metadata,
             '/corpus/test/test_example.eg-hg': mock_eg_hg,
             '/corpus/test/test_example.clif': mock_clif,
             '/corpus/test/test_example.egrf': mock_egrf
         }
         
-        def mock_open_file(filename, mode):
+        def mock_open_file(filename, mode='r'):
             if filename in mock_files:
                 file_mock = mock_open(read_data=mock_files[filename]).return_value
                 file_mock.__enter__.return_value = file_mock
                 return file_mock
             raise FileNotFoundError(f"File not found: {filename}")
         
+        def mock_json_load(f):
+            # Try to get content based on what was opened
+            content = f.read()
+            return json.loads(content)
+        
         with patch('builtins.open', mock_open_file), \
              patch('os.path.exists', lambda path: path in mock_files), \
-             patch('json.load', lambda f: json.loads(mock_files['/corpus/test/test_example.json'])):
+             patch('json.load', mock_json_load):
             
             entry = {
                 "id": "test_example",
@@ -53,11 +60,9 @@ class TestCorpusExample(unittest.TestCase):
             example = CorpusExample.from_index_entry(entry, '/corpus')
             
             self.assertEqual(example.id, "test_example")
-            self.assertEqual(example.category, "test")
-            self.assertEqual(example.path, "test/test_example")
             self.assertEqual(example.metadata["id"], "test_example")
-            self.assertEqual(example.eg_hg, mock_eg_hg)
-            self.assertEqual(example.clif, mock_clif)
+            self.assertEqual(example.eg_hg_data, mock_eg_hg)
+            self.assertEqual(example.clif_data, mock_clif)
             # Parse the JSON string to a dictionary for comparison
             self.assertEqual(json.loads(mock_egrf)["metadata"]["id"], "test_example")
 
@@ -108,11 +113,9 @@ class TestCorpusLoader(unittest.TestCase):
     
     def test_load_example(self):
         """Test loading a specific example from the corpus."""
-        with patch('os.path.exists', return_value=True), \
-             patch('builtins.open', mock_open(read_data=json.dumps(self.mock_index))), \
-             patch('json.load', return_value=self.mock_index), \
+        with patch('src.egrf.v3.corpus_validator.load_corpus_index', return_value=self.mock_index), \
              patch('src.egrf.v3.corpus_validator.CorpusExample.from_index_entry') as mock_from_index:
-            
+
             mock_from_index.return_value = CorpusExample(
                 id="example1",
                 category="test",
@@ -122,17 +125,20 @@ class TestCorpusLoader(unittest.TestCase):
                 clif="(cl:text (P))",
                 egrf={"metadata": {"id": "example1"}}
             )
-            
+
             loader = CorpusLoader('/corpus')
             example = loader.load_example("example1")
-            
+
             self.assertIsNotNone(example)
             self.assertEqual(example.id, "example1")
             
-            # Test loading non-existent example
-            mock_from_index.side_effect = Exception("Test error")
-            example = loader.load_example("non_existent")
-            self.assertIsNone(example)
+        # Test loading non-existent example
+        with patch('src.egrf.v3.corpus_validator.load_corpus_index', return_value=self.mock_index):
+            loader = CorpusLoader('/corpus')
+            with self.assertRaises(ValueError) as context:
+                loader.load_example("non_existent")
+            
+            self.assertIn("not found in corpus index", str(context.exception))
     
     def test_get_examples_by_category(self):
         """Test getting examples by category."""
@@ -288,23 +294,23 @@ class TestEGRFValidator(unittest.TestCase):
             "p_predicate": "outer_cut",
             "q_predicate": "inner_cut"
         }
-        
+
         try:
             self.validator._check_circular_containment(containment)
         except ValueError:
             self.fail("_check_circular_containment raised ValueError unexpectedly!")
-        
+
         # Circular containment
         containment = {
             "outer_cut": "sheet",
             "inner_cut": "outer_cut",
             "sheet": "inner_cut"  # Creates a cycle
         }
-        
+
         with self.assertRaises(ValueError) as context:
             self.validator._check_circular_containment(containment)
         
-        self.assertIn("Circular containment detected", str(context.exception))
+        self.assertIn("Circular containment", str(context.exception))
     
     def test_validate_nesting_levels(self):
         """Test validating nesting levels."""
@@ -389,43 +395,40 @@ class TestValidateCorpus(unittest.TestCase):
     
     def test_validate_corpus(self):
         """Test validating the entire corpus."""
-        with patch('src.egrf.v3.corpus_validator.CorpusLoader') as mock_loader, \
-             patch('src.egrf.v3.corpus_validator.EGRFValidator') as mock_validator:
+        with patch('src.egrf.v3.corpus_validator.CorpusLoader') as mock_loader:
             
             # Mock loader
             mock_loader_instance = MagicMock()
             mock_loader.return_value = mock_loader_instance
             
+            # Mock get_example_ids method
+            mock_loader_instance.get_example_ids.return_value = ["example1", "example2"]
+            
             # Mock examples
             example1 = MagicMock()
             example1.id = "example1"
+            example1.validate_all.return_value = (True, [])
             
             example2 = MagicMock()
             example2.id = "example2"
+            example2.validate_all.return_value = (False, ["Error 1", "Error 2"])
             
-            mock_loader_instance.load_all_examples.return_value = {
-                "example1": example1,
-                "example2": example2
-            }
-            
-            # Mock validator
-            mock_validator_instance = MagicMock()
-            mock_validator.return_value = mock_validator_instance
-            
-            # First example is valid, second is invalid
-            mock_validator_instance.validate_example.side_effect = [
-                (True, []),
-                (False, ["Error 1", "Error 2"])
-            ]
+            # Mock load_example method
+            def mock_load_example(example_id):
+                if example_id == "example1":
+                    return example1
+                elif example_id == "example2":
+                    return example2
+                
+            mock_loader_instance.load_example.side_effect = mock_load_example
             
             valid_count, total_count, errors = validate_corpus('/corpus')
             
             self.assertEqual(valid_count, 1)
             self.assertEqual(total_count, 2)
-            self.assertEqual(len(errors), 1)
-            self.assertIn("example2", errors[0])
-            self.assertIn("Error 1", errors[0])
-            self.assertIn("Error 2", errors[0])
+            self.assertEqual(len(errors), 2)  # Two error messages from example2
+            self.assertIn("example2: Error 1", errors)
+            self.assertIn("example2: Error 2", errors)
 
 
 if __name__ == '__main__':

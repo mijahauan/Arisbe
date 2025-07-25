@@ -1,0 +1,2 @@
+[console_scripts]
+arisbe-validate = arisbe.tools.validate_corpus:main
