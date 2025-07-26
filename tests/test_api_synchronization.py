@@ -8,11 +8,11 @@ properly applied and are working correctly.
 import pytest
 
 # Import using the module structure that works with pytest.ini
-from src.graph import EGGraph
-from src.game_engine import EGGameEngine, EndoporeuticGameEngine
-from src.cross_cut_validator import CrossCutValidator
-from src.transformations import TransformationEngine
-from src.eg_types import Entity, Predicate
+from graph import EGGraph
+from game_engine import EGGameEngine, EndoporeuticGameEngine
+from cross_cut_validator import CrossCutValidator
+from transformations import TransformationEngine
+from eg_types import Entity, Predicate
 
 
 class TestAPIStandardization:
