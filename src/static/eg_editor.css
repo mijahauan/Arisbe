@@ -1,0 +1,174 @@
+/* Existential Graph Editor - Authentic Visual Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Times New Roman', serif; /* Academic/historical feel */
+    background-color: #fefefe;
+    color: #333;
+}
+
+.container {
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    height: 100vh;
+    gap: 5px;
+    padding: 5px;
+}
+
+/* Toolbar */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.tool-group, .action-group, .option-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tool-group input[type="radio"] {
+    margin-right: 4px;
+}
+
+.tool-group label {
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+button {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+button:hover {
+    background-color: #f0f0f0;
+}
+
+button:active {
+    background-color: #e0e0e0;
+}
+
+/* Editor Area */
+.editor-area {
+    border: 2px solid #333;
+    background-color: #ffffff; /* Clean white sheet of assertion */
+    overflow: hidden;
+    position: relative;
+}
+
+#eg-canvas {
+    display: block;
+    cursor: crosshair;
+    background-color: #ffffff;
+}
+
+#eg-canvas.select-mode {
+    cursor: default;
+}
+
+#eg-canvas.entity-mode {
+    cursor: crosshair;
+}
+
+#eg-canvas.predicate-mode {
+    cursor: crosshair;
+}
+
+#eg-canvas.cut-mode {
+    cursor: crosshair;
+}
+
+/* Feedback Panel */
+.feedback-panel {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 10px;
+    max-height: 120px;
+    overflow-y: auto;
+}
+
+.feedback-panel h3 {
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+#feedback-content {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+#feedback-content p {
+    margin-bottom: 4px;
+    color: #666;
+}
+
+/* Status Bar */
+.status-bar {
+    padding: 6px 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    font-size: 12px;
+    color: #555;
+}
+
+/* EG Element Styles (for reference) */
+.eg-entity {
+    /* Small circles or endpoints for lines of identity */
+    fill: #ffffff;
+    stroke: #333333;
+    stroke-width: 2;
+}
+
+.eg-predicate {
+    /* Simple text labels */
+    font-family: 'Times New Roman', serif;
+    font-size: 14px;
+    fill: #000000;
+}
+
+.eg-cut {
+    /* Oval enclosures for negation */
+    fill: none;
+    stroke: #333333;
+    stroke-width: 2;
+}
+
+.eg-line {
+    /* Lines of identity */
+    stroke: #333333;
+    stroke-width: 1.5;
+    fill: none;
+}
+
+.selected {
+    stroke: #0066cc !important;
+    stroke-width: 3 !important;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .tool-group, .action-group, .option-group {
+        flex-wrap: wrap;
+    }
+}

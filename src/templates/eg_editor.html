@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Existential Graph Editor - Authentic Visual Interface</title>
+    <link rel="stylesheet" href="/static/eg_editor.css">
+</head>
+<body>
+    <div class="container">
+        <header class="toolbar">
+            <div class="tool-group">
+                <label>Tool:</label>
+                <input type="radio" id="select" name="tool" value="select" checked>
+                <label for="select">Select</label>
+                
+                <input type="radio" id="entity" name="tool" value="entity">
+                <label for="entity">Entity</label>
+                
+                <input type="radio" id="predicate" name="tool" value="predicate">
+                <label for="predicate">Predicate</label>
+                
+                <input type="radio" id="cut" name="tool" value="cut">
+                <label for="cut">Cut</label>
+            </div>
+            
+            <div class="action-group">
+                <button id="validate-btn">Validate</button>
+                <button id="clear-btn">Clear All</button>
+                <button id="help-btn">Help</button>
+            </div>
+            
+            <div class="option-group">
+                <input type="checkbox" id="educational-mode" checked>
+                <label for="educational-mode">Educational Mode</label>
+            </div>
+        </header>
+        
+        <main class="editor-area">
+            <canvas id="eg-canvas" width="{{ width }}" height="{{ height - 120 }}"></canvas>
+        </main>
+        
+        <aside class="feedback-panel">
+            <h3>Educational Feedback</h3>
+            <div id="feedback-content">
+                <p>Welcome to the Existential Graph Editor!</p>
+                <p>This interface follows the authentic visual conventions from Peirce's original notation.</p>
+            </div>
+        </aside>
+        
+        <footer class="status-bar">
+            <span id="status-text">Ready - Select a tool and click on canvas</span>
+        </footer>
+    </div>
+    
+    <script src="/static/eg_editor.js"></script>
+</body>
+</html>

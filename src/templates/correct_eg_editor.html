@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Correct Existential Graph Editor</title>
+    <link rel="stylesheet" href="/static/correct_eg.css">
+</head>
+<body>
+    <div class="container">
+        <header class="toolbar">
+            <div class="tool-group">
+                <label>Tool:</label>
+                <input type="radio" id="select" name="tool" value="select" checked>
+                <label for="select">Select</label>
+                
+                <input type="radio" id="line" name="tool" value="line">
+                <label for="line">Line of Identity</label>
+                
+                <input type="radio" id="predicate" name="tool" value="predicate">
+                <label for="predicate">Predicate</label>
+                
+                <input type="radio" id="attach" name="tool" value="attach">
+                <label for="attach">Attach</label>
+                
+                <input type="radio" id="cut" name="tool" value="cut">
+                <label for="cut">Cut</label>
+            </div>
+            
+            <div class="action-group">
+                <button id="validate-btn">Validate</button>
+                <button id="clear-btn">Clear</button>
+                <button id="help-btn">Help</button>
+            </div>
+        </header>
+        
+        <main class="editor-area">
+            <canvas id="eg-canvas" width="800" height="600"></canvas>
+        </main>
+        
+        <aside class="info-panel">
+            <h3>Graph Information</h3>
+            <div id="graph-info">
+                <p>Lines of Identity: <span id="line-count">0</span></p>
+                <p>Predicates: <span id="predicate-count">0</span></p>
+                <p>Cuts: <span id="cut-count">0</span></p>
+                <p>Attachments: <span id="attachment-count">0</span></p>
+            </div>
+            
+            <h3>Validation</h3>
+            <div id="validation-info">
+                <p id="validation-status">Valid</p>
+                <ul id="validation-issues"></ul>
+            </div>
+            
+            <h3>Instructions</h3>
+            <div id="instructions">
+                <p><strong>Line of Identity:</strong> Click to create entity line</p>
+                <p><strong>Predicate:</strong> Click to create predicate with hooks</p>
+                <p><strong>Attach:</strong> Click line, then predicate to attach</p>
+                <p><strong>Select:</strong> Drag predicates (lines move with them)</p>
+            </div>
+        </aside>
+        
+        <footer class="status-bar">
+            <span id="status-text">Ready - Correct EG semantics: Lines ARE entities</span>
+        </footer>
+    </div>
+    
+    <script src="/static/correct_eg.js"></script>
+</body>
+</html>
