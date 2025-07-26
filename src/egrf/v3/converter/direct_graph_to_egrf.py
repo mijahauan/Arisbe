@@ -48,7 +48,7 @@ class DirectGraphToEgrfConverter:
     
     def convert(self, graph: EGGraph, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
-        Convert an EGGraph directly to EGRF v3.0 format.
+        Convert an EGGraph to EGRF v3.0 format using proper API.
         
         Args:
             graph: The EGGraph object to convert
@@ -65,12 +65,12 @@ class DirectGraphToEgrfConverter:
             self._egrf_data["metadata"]["id"] = metadata.get("id", "graph")
             self._egrf_data["metadata"]["description"] = metadata.get("description", "Existential Graph")
         
-        # Process graph components directly
-        self._process_contexts_direct(graph)
-        self._process_predicates_direct(graph)
-        self._process_entities_direct(graph)
-        self._process_ligatures_direct(graph)
-        self._process_connections_direct(graph)
+        # Process graph components using proper EG-HG API
+        self._process_contexts_properly(graph)
+        self._process_predicates_properly(graph)
+        self._process_entities_properly(graph)
+        self._process_ligatures_properly(graph)
+        self._process_connections_properly(graph)
         self._generate_layout_constraints()
         
         return self._egrf_data
@@ -95,10 +95,13 @@ class DirectGraphToEgrfConverter:
         self._entity_map = {}
         self._hierarchy_manager = ContainmentHierarchyManager()
     
-    def _process_contexts_direct(self, graph: EGGraph) -> None:
-        """Process contexts directly from EGGraph."""
-        # Always create the root sheet context
+    def _process_contexts_properly(self, graph: EGGraph) -> None:
+        """Process contexts using proper EG-HG API for hierarchy."""
+        
+        # Create the root sheet context first
         sheet_id = "sheet"
+        root_context = graph.context_manager.root_context
+        
         sheet = create_logical_context(
             id=sheet_id,
             name="Sheet of Assertion",
@@ -109,52 +112,61 @@ class DirectGraphToEgrfConverter:
         )
         
         self._egrf_data["elements"][sheet_id] = sheet.to_dict()
-        self._context_map[graph.root_context_id] = sheet_id
+        self._context_map[root_context.id] = sheet_id
         self._hierarchy_manager.add_element(sheet)
         
-        # Process other contexts (cuts)
-        for context_id, context in graph.contexts.items():
-            if context_id != graph.root_context_id:
-                egrf_id = f"context_{context_id}"
-                self._context_map[context_id] = egrf_id
-                
-                # Determine parent context
-                parent_egrf_id = sheet_id  # Default to sheet
-                if hasattr(context, 'parent_id') and context.parent_id:
-                    parent_egrf_id = self._context_map.get(context.parent_id, sheet_id)
-                
-                # Calculate nesting level
-                nesting_level = self._calculate_nesting_level(graph, context_id)
-                
-                # Create logical context
-                logical_context = create_logical_context(
-                    id=egrf_id,
-                    name=f"Cut {context_id}",
-                    container=parent_egrf_id,
-                    context_type="cut",
-                    is_root=False,
-                    nesting_level=nesting_level
-                )
-                
-                self._egrf_data["elements"][egrf_id] = logical_context.to_dict()
-                self._egrf_data["containment"][egrf_id] = parent_egrf_id
-                self._hierarchy_manager.add_element(logical_context)
-                
-                # Add containment relationship
-                relationship = ContainmentRelationship(
-                    container=parent_egrf_id,
-                    contained_elements=[egrf_id]
-                )
-                self._hierarchy_manager.add_relationship(relationship)
+        # Get all non-root contexts and sort by depth (shallowest first for proper parent mapping)
+        non_root_contexts = [(context_id, context) for context_id, context in graph.contexts.items() 
+                           if context_id != root_context.id]
+        
+        # Sort by depth to ensure parents are processed before children
+        non_root_contexts.sort(key=lambda x: x[1].depth)
+        
+        # Process contexts in depth order
+        for context_id, context in non_root_contexts:
+            egrf_id = f"context_{context_id}"
+            self._context_map[context_id] = egrf_id
+            
+            # Get parent context using EG-HG API
+            parent_egrf_id = sheet_id  # Default fallback
+            if context.parent_context is not None:
+                parent_egrf_id = self._context_map.get(context.parent_context, sheet_id)
+            
+            # Use depth directly from EG-HG
+            nesting_level = context.depth
+            
+            # Determine context name based on semantic role
+            context_name = self._determine_context_name(context, nesting_level)
+            
+            # Create logical context
+            logical_context = create_logical_context(
+                id=egrf_id,
+                name=context_name,
+                container=parent_egrf_id,
+                context_type="cut",
+                is_root=False,
+                nesting_level=nesting_level
+            )
+            
+            self._egrf_data["elements"][egrf_id] = logical_context.to_dict()
+            self._egrf_data["containment"][egrf_id] = parent_egrf_id
+            self._hierarchy_manager.add_element(logical_context)
+            
+            # Add containment relationship
+            relationship = ContainmentRelationship(
+                container=parent_egrf_id,
+                contained_elements=[egrf_id]
+            )
+            self._hierarchy_manager.add_relationship(relationship)
     
-    def _process_predicates_direct(self, graph: EGGraph) -> None:
-        """Process predicates directly from EGGraph."""
+    def _process_predicates_properly(self, graph: EGGraph) -> None:
+        """Process predicates using proper EG-HG API for containment."""
         for predicate_id, predicate in graph.predicates.items():
             egrf_id = f"predicate_{predicate_id}"
             self._predicate_map[predicate_id] = egrf_id
             
-            # Find containing context
-            containing_context = self._find_containing_context(graph, predicate_id, 'predicate')
+            # Find containing context using EG-HG API
+            containing_context = self._find_containing_context_properly(graph, predicate_id)
             
             # Create logical predicate
             logical_predicate = create_logical_predicate(
@@ -175,14 +187,14 @@ class DirectGraphToEgrfConverter:
             )
             self._hierarchy_manager.add_relationship(relationship)
     
-    def _process_entities_direct(self, graph: EGGraph) -> None:
-        """Process entities directly from EGGraph."""
+    def _process_entities_properly(self, graph: EGGraph) -> None:
+        """Process entities using proper EG-HG API for containment."""
         for entity_id, entity in graph.entities.items():
             egrf_id = f"entity_{entity_id}"
             self._entity_map[entity_id] = egrf_id
             
-            # Find containing context
-            containing_context = self._find_containing_context(graph, entity_id, 'entity')
+            # Find containing context using EG-HG API
+            containing_context = self._find_containing_context_properly(graph, entity_id)
             
             # Determine entity type and name
             entity_name = getattr(entity, 'name', f"Entity {entity_id}")
@@ -191,8 +203,12 @@ class DirectGraphToEgrfConverter:
             # Get connected predicates for this entity
             connected_predicates = []
             try:
-                connected_predicates = [self._predicate_map.get(pred_id, pred_id) 
-                                      for pred_id in graph.find_predicates_for_entity(entity_id)]
+                # Use the EG-HG method to find connected predicates
+                for predicate_id, predicate in graph.predicates.items():
+                    if entity_id in predicate.entities:
+                        egrf_predicate_id = self._predicate_map.get(predicate_id)
+                        if egrf_predicate_id:
+                            connected_predicates.append(egrf_predicate_id)
             except Exception:
                 connected_predicates = []
             
@@ -215,8 +231,8 @@ class DirectGraphToEgrfConverter:
             )
             self._hierarchy_manager.add_relationship(relationship)
     
-    def _process_ligatures_direct(self, graph: EGGraph) -> None:
-        """Process ligatures directly from EGGraph."""
+    def _process_ligatures_properly(self, graph: EGGraph) -> None:
+        """Process ligatures using proper EG-HG API."""
         for ligature_id, ligature in graph.ligatures.items():
             # Map entity IDs to EGRF IDs
             egrf_entity1_id = self._entity_map.get(ligature.entity1_id)
@@ -231,79 +247,53 @@ class DirectGraphToEgrfConverter:
                 }
                 self._egrf_data["ligatures"].append(ligature_data)
     
-    def _process_connections_direct(self, graph: EGGraph) -> None:
-        """Process connections between predicates and entities directly from EGGraph."""
+    def _process_connections_properly(self, graph: EGGraph) -> None:
+        """Process connections using proper EG-HG API."""
         for predicate_id, predicate in graph.predicates.items():
             egrf_predicate_id = self._predicate_map.get(predicate_id)
             if not egrf_predicate_id:
                 continue
             
-            # Get entities connected to this predicate
-            try:
-                connected_entities = graph.get_entities_in_predicate(predicate_id)
-                
-                for i, entity_id in enumerate(connected_entities):
-                    egrf_entity_id = self._entity_map.get(entity_id)
-                    if egrf_entity_id:
-                        connection = {
-                            "predicate": egrf_predicate_id,
-                            "entity": egrf_entity_id,
-                            "role": i,
-                            "type": "argument"
-                        }
-                        self._egrf_data["connections"].append(connection)
-                        
-            except Exception:
-                # If we can't get entities for this predicate, skip it
-                continue
+            # Get entities connected to this predicate using EG-HG API
+            for i, entity_id in enumerate(predicate.entities):
+                egrf_entity_id = self._entity_map.get(entity_id)
+                if egrf_entity_id:
+                    connection = {
+                        "predicate": egrf_predicate_id,
+                        "entity": egrf_entity_id,
+                        "role": i,
+                        "type": "argument"
+                    }
+                    self._egrf_data["connections"].append(connection)
     
-    def _find_containing_context(self, graph: EGGraph, item_id: str, item_type: str) -> str:
-        """Find the context that contains a given item."""
-        try:
-            if item_type == 'predicate':
-                # Find contexts containing this predicate
-                for context_id in graph.contexts.keys():
-                    try:
-                        predicates_in_context = graph.get_predicates_in_context(context_id)
-                        if item_id in predicates_in_context:
-                            return self._context_map.get(context_id, "sheet")
-                    except Exception:
-                        continue
-                        
-            elif item_type == 'entity':
-                # Find contexts containing this entity
-                for context_id in graph.contexts.keys():
-                    try:
-                        entities_in_context = graph.get_entities_in_context(context_id)
-                        if item_id in entities_in_context:
-                            return self._context_map.get(context_id, "sheet")
-                    except Exception:
-                        continue
-            
-            # Fallback to sheet
-            return "sheet"
-            
-        except Exception:
-            # Ultimate fallback
-            return "sheet"
-    
-    def _calculate_nesting_level(self, graph: EGGraph, context_id: str) -> int:
-        """Calculate the nesting level of a context."""
-        if context_id == graph.root_context_id:
-            return 0
+    def _find_containing_context_properly(self, graph: EGGraph, item_id: str) -> str:
+        """Find the context that contains an item using proper EG-HG API."""
+        # Check each context to see if it contains this item
+        for context_id, context in graph.contexts.items():
+            if item_id in context.contained_items:
+                # Found the containing context, map to EGRF ID
+                return self._context_map.get(context_id, "sheet")
         
-        # Simple implementation - could be enhanced based on actual hierarchy
-        try:
-            context = graph.contexts.get(context_id)
-            if hasattr(context, 'parent_id') and context.parent_id:
-                if context.parent_id == graph.root_context_id:
-                    return 1
-                else:
-                    return 1 + self._calculate_nesting_level(graph, context.parent_id)
-            else:
-                return 1
-        except Exception:
-            return 1
+        # If not found in any context, default to sheet
+        return "sheet"
+    
+    def _determine_context_name(self, context: Context, nesting_level: int) -> str:
+        """Determine appropriate name for context based on its role and properties."""
+        # Check if context has a name property
+        if 'name' in context.properties:
+            return context.properties['name']
+        
+        # Use context type if available
+        if hasattr(context, 'context_type') and context.context_type != 'cut':
+            return context.context_type.replace('_', ' ').title()
+        
+        # Default naming based on nesting level
+        if nesting_level == 1:
+            return "Outer Cut"
+        elif nesting_level == 2:
+            return "Inner Cut"
+        else:
+            return f"Cut Level {nesting_level}"
     
     def _generate_layout_constraints(self) -> None:
         """Generate basic layout constraints for the EGRF data."""

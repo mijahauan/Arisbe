@@ -1,0 +1,112 @@
+{
+  "metadata": {
+    "format": "EGRF",
+    "version": "3.0",
+    "source": "Sowa 2011, EGIF p. 1",
+    "description": "Existential with Negation: There is something that is not a phoenix",
+    "complexity_level": "intermediate",
+    "logical_pattern": "existential_with_negation",
+    "test_rationale": "Tests line of identity crossing cut boundary; entity outside negation, predicate inside",
+    "teaching_purpose": "Demonstrates scope of quantification vs scope of negation",
+    "citation": "Sowa, John F. (2011). Existential Graphs and EGIF. EGIF specification, p. 1."
+  },
+  "elements": {
+    "sheet": {
+      "element_type": "context",
+      "logical_properties": {
+        "context_type": "sheet",
+        "is_root": true,
+        "nesting_level": 0,
+        "name": "Sheet of Assertion"
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 500,
+          "min_height": 350,
+          "preferred_width": 600,
+          "preferred_height": 400
+        }
+      }
+    },
+    "negation_cut": {
+      "element_type": "context",
+      "logical_properties": {
+        "context_type": "cut",
+        "is_root": false,
+        "nesting_level": 1,
+        "name": "Negation Cut"
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 250,
+          "min_height": 150,
+          "preferred_width": 300,
+          "preferred_height": 180
+        }
+      }
+    },
+    "phoenix_predicate": {
+      "element_type": "predicate",
+      "logical_properties": {
+        "name": "Phoenix",
+        "arity": 1,
+        "connected_entities": ["x1"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 80,
+          "min_height": 40,
+          "preferred_width": 100,
+          "preferred_height": 50
+        }
+      }
+    },
+    "x1": {
+      "element_type": "entity",
+      "logical_properties": {
+        "name": "x",
+        "entity_type": "variable",
+        "connected_predicates": ["phoenix_predicate"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 10,
+          "min_height": 10,
+          "preferred_width": 10,
+          "preferred_height": 10
+        }
+      }
+    }
+  },
+  "containment": {
+    "sheet": "viewport",
+    "negation_cut": "sheet",
+    "phoenix_predicate": "negation_cut",
+    "x1": "sheet"
+  },
+  "connections": [
+    {
+      "entity_id": "x1",
+      "predicate_id": "phoenix_predicate",
+      "role": "arg1"
+    }
+  ],
+  "ligatures": [
+    {
+      "entity1_id": "x1",
+      "entity2_id": "x1",
+      "type": "identity",
+      "connects_predicates": ["phoenix_predicate"],
+      "crosses_cuts": true,
+      "cut_boundary": "negation_cut"
+    }
+  ],
+  "logical_content": {
+    "english": "There is something that is not a phoenix",
+    "clif": "(exists (x) (not (Phoenix x)))",
+    "egif": "[*x] ~[ (Phoenix x) ]",
+    "logical_form": "∃x¬Phoenix(x)",
+    "semantic_notes": "Entity quantified outside cut, predicate negated inside cut; ligature crosses boundary"
+  }
+}
+

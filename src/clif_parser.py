@@ -398,25 +398,16 @@ class CLIFParser:
         # Parse variable list
         variables = self._parse_variable_list()
         
-        # Create a new context for the quantification
-        graph, exist_context = graph.create_context('cut', self.current_context, 'Existential Quantification')
+        # Existential quantification in Peirce's EG does NOT create cuts
+        # It only creates entities (lines of identity) that connect predicates
+        # The variables are scoped to the current context, not a new cut
         
-        # Set context for variable scoping
-        old_context = self.current_context
-        self.current_context = exist_context.id
-        
-        # Add variables as entities in the existential context
+        # Add variables as entities in the current context (no new context needed)
         for var_name in variables:
             graph, entity = self._get_or_create_entity(graph, var_name, 'variable')
         
-        # Parse the body
-        if self._current_token().type == CLIFTokenType.LPAREN:
-            graph = self._parse_sentence(graph)
-        else:
-            self._add_error("Expected sentence after variable list", "SYNTAX_ERROR")
-        
-        # Restore context
-        self.current_context = old_context
+        # Parse the body in the same context
+        graph = self._parse_sentence(graph)
         
         self._expect(CLIFTokenType.RPAREN)
         return graph

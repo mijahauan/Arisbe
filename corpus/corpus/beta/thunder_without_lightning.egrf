@@ -1,0 +1,134 @@
+{
+  "metadata": {
+    "format": "EGRF",
+    "version": "3.0",
+    "source": "Sowa 2011, EGIF p. 2",
+    "description": "Conjunction with Negation: It thunders without lightning",
+    "complexity_level": "intermediate",
+    "logical_pattern": "conjunction_with_negation",
+    "test_rationale": "Tests positive and negative predicates connected by same entity; mixed assertion/negation",
+    "teaching_purpose": "Shows how same entity can participate in both positive and negative assertions",
+    "citation": "Sowa, John F. (2011). Existential Graphs and EGIF. EGIF specification, p. 2."
+  },
+  "elements": {
+    "sheet": {
+      "element_type": "context",
+      "logical_properties": {
+        "context_type": "sheet",
+        "is_root": true,
+        "nesting_level": 0,
+        "name": "Sheet of Assertion"
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 500,
+          "min_height": 350,
+          "preferred_width": 600,
+          "preferred_height": 400
+        }
+      }
+    },
+    "negation_cut": {
+      "element_type": "context",
+      "logical_properties": {
+        "context_type": "cut",
+        "is_root": false,
+        "nesting_level": 1,
+        "name": "Negation Cut"
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 200,
+          "min_height": 120,
+          "preferred_width": 250,
+          "preferred_height": 150
+        }
+      }
+    },
+    "thunder_predicate": {
+      "element_type": "predicate",
+      "logical_properties": {
+        "name": "Thunder",
+        "arity": 1,
+        "connected_entities": ["x1"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 80,
+          "min_height": 40,
+          "preferred_width": 100,
+          "preferred_height": 50
+        }
+      }
+    },
+    "lightning_predicate": {
+      "element_type": "predicate",
+      "logical_properties": {
+        "name": "Lightning",
+        "arity": 1,
+        "connected_entities": ["x1"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 80,
+          "min_height": 40,
+          "preferred_width": 100,
+          "preferred_height": 50
+        }
+      }
+    },
+    "x1": {
+      "element_type": "entity",
+      "logical_properties": {
+        "name": "x",
+        "entity_type": "variable",
+        "connected_predicates": ["thunder_predicate", "lightning_predicate"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 10,
+          "min_height": 10,
+          "preferred_width": 10,
+          "preferred_height": 10
+        }
+      }
+    }
+  },
+  "containment": {
+    "sheet": "viewport",
+    "negation_cut": "sheet",
+    "thunder_predicate": "sheet",
+    "lightning_predicate": "negation_cut",
+    "x1": "sheet"
+  },
+  "connections": [
+    {
+      "entity_id": "x1",
+      "predicate_id": "thunder_predicate",
+      "role": "arg1"
+    },
+    {
+      "entity_id": "x1",
+      "predicate_id": "lightning_predicate",
+      "role": "arg1"
+    }
+  ],
+  "ligatures": [
+    {
+      "entity1_id": "x1",
+      "entity2_id": "x1",
+      "type": "identity",
+      "connects_predicates": ["thunder_predicate", "lightning_predicate"],
+      "crosses_cuts": true,
+      "cut_boundary": "negation_cut"
+    }
+  ],
+  "logical_content": {
+    "english": "It thunders without lightning",
+    "clif": "(exists (x) (and (Thunder x) (not (Lightning x))))",
+    "egif": "(Thunder *x) ~[ (Lightning x) ]",
+    "logical_form": "∃x(Thunder(x) ∧ ¬Lightning(x))",
+    "semantic_notes": "Same entity participates in positive assertion (thunder) and negative assertion (not lightning)"
+  }
+}
+

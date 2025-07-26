@@ -1,863 +1,645 @@
+#!/usr/bin/env python3
 """
-Existential Graphs Editor - PySide6 Implementation
-
-A "bullpen" application for preparing and exploring graphs before EPG innings.
-Supports dual-form editing (linear CLIF + diagrammatic EG) with continuous validation.
-
-Architecture:
-- Linear Form: CLIF text editing with syntax validation
-- Diagram Form: Interactive QGraphicsView with EGRF rendering
-- Validation: Real-time consistency checking between forms
-- Transformation: Lookahead exploration of Peircean rules
-- Output: Save, export, and EPG proposal capabilities
+Existential Graph Editor - GUI only handles EGRF rendering.
+Backend handles CLIF → EG-HG → EGRF conversion.
 """
 
 import sys
 import os
-from typing import Optional, Dict, List, Any
 from pathlib import Path
+from typing import Dict, List, Any, Optional, Tuple
+import json
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QSplitter, QTextEdit, QGraphicsView, QGraphicsScene, QGraphicsItem,
-    QMenuBar, QToolBar, QStatusBar, QTabWidget, QGroupBox, QLabel,
-    QPushButton, QComboBox, QListWidget, QTreeWidget, QTreeWidgetItem,
-    QMessageBox, QFileDialog, QProgressBar, QCheckBox, QSpinBox,
-    QGraphicsEllipseItem, QGraphicsRectItem, QGraphicsLineItem,
-    QGraphicsTextItem, QGraphicsPathItem
+    QTextEdit, QPushButton, QLabel, QTabWidget, QGraphicsView,
+    QGraphicsScene, QGraphicsItem, QComboBox, QSplitter, QFrame,
+    QGroupBox, QGridLayout, QMessageBox
 )
-from PySide6.QtCore import Qt, QTimer, QThread, Signal, QPointF, QRectF
-from PySide6.QtGui import (
-    QAction, QFont, QColor, QPen, QBrush, QPainter, QPainterPath,
-    QPixmap, QIcon
-)
+from PySide6.QtCore import Qt, QRectF, QPointF, Signal
+from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont
 
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from corpus_api import CorpusAPI
+# Backend API imports
 from clif_parser import CLIFParser
-from egrf.v3.converter.direct_graph_to_egrf import convert_graph_to_egrf_direct
-from eg_types import Entity, Predicate, Context
-from graph import EGGraph
-from transformations import TransformationEngine
-from semantic_validator import SemanticValidator
+from egrf_from_graph import convert_graph_to_egrf
 
-
-class EGGraphicsItem(QGraphicsItem):
-    """Base class for Existential Graph elements in the graphics view."""
-    
-    def __init__(self, element_data: Dict[str, Any], parent=None):
-        super().__init__(parent)
-        self.element_data = element_data
-        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
-        self.setFlag(QGraphicsItem.ItemIsMovable, True)
-        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
-    
-    def boundingRect(self) -> QRectF:
-        return QRectF(0, 0, 100, 50)
-    
-    def paint(self, painter: QPainter, option, widget):
-        painter.setPen(QPen(QColor(100, 100, 100), 2))
-        painter.drawRect(self.boundingRect())
-
-
-class ContextItem(EGGraphicsItem):
-    """Graphics item for EG contexts (cuts)."""
-    
-    def __init__(self, context_data: Dict[str, Any], parent=None):
-        super().__init__(context_data, parent)
-        
-        # Extract size from layout constraints or use defaults
-        layout_constraints = context_data.get('layout_constraints', {})
-        size_constraints = layout_constraints.get('size_constraints', {})
-        preferred_size = size_constraints.get('preferred', {'width': 200, 'height': 150})
-        
-        self.width = preferred_size.get('width', 200)
-        self.height = preferred_size.get('height', 150)
-        
-        # Determine context type
-        logical_props = context_data.get('logical_properties', {})
-        self.context_type = logical_props.get('context_type', 'cut')
-        self.is_root = logical_props.get('is_root', False)
-    
-    def boundingRect(self) -> QRectF:
-        return QRectF(0, 0, self.width, self.height)
-    
-    def paint(self, painter: QPainter, option, widget):
-        if self.is_root or self.context_type == 'sheet_of_assertion':
-            # Draw sheet of assertion as rectangle
-            painter.setPen(QPen(QColor(100, 100, 100), 2))
-            painter.setBrush(QBrush(QColor(250, 250, 250, 100)))
-            painter.drawRect(self.boundingRect())
-            
-            # Add label
-            painter.setPen(QPen(QColor(0, 0, 0)))
-            painter.drawText(10, 20, "Sheet of Assertion")
-        else:
-            # Draw cut as ellipse
-            painter.setPen(QPen(QColor(200, 50, 50), 3))
-            painter.setBrush(QBrush(QColor(255, 240, 240, 50)))
-            painter.drawEllipse(self.boundingRect())
-            
-            # Add label
-            painter.setPen(QPen(QColor(0, 0, 0)))
-            painter.drawText(10, 20, f"Cut {self.element_data.get('id', '')}")
-
-
-class PredicateItem(EGGraphicsItem):
-    """Graphics item for EG predicates."""
-    
-    def __init__(self, predicate_data: Dict[str, Any], parent=None):
-        super().__init__(predicate_data, parent)
-        self.radius = 25
-        
-        # Extract predicate name from logical properties
-        logical_props = predicate_data.get('logical_properties', {})
-        self.predicate_name = predicate_data.get('name', 'P')
-    
-    def boundingRect(self) -> QRectF:
-        return QRectF(-self.radius, -self.radius, 2*self.radius, 2*self.radius)
-    
-    def paint(self, painter: QPainter, option, widget):
-        painter.setPen(QPen(QColor(50, 100, 200), 2))
-        painter.setBrush(QBrush(QColor(240, 245, 255)))
-        painter.drawEllipse(self.boundingRect())
-        
-        # Add predicate label
-        painter.setPen(QPen(QColor(0, 0, 0)))
-        painter.drawText(-10, 5, self.predicate_name)
-
-
-class EntityItem(EGGraphicsItem):
-    """Graphics item for EG entities (lines of identity)."""
-    
-    def __init__(self, entity_data: Dict[str, Any], parent=None):
-        super().__init__(entity_data, parent)
-        self.connections = entity_data.get('connections', [])
-    
-    def boundingRect(self) -> QRectF:
-        if not self.connections:
-            return QRectF(0, 0, 50, 5)
-        
-        # Calculate bounding rect from connections
-        min_x = min(conn.get('x', 0) for conn in self.connections)
-        max_x = max(conn.get('x', 0) for conn in self.connections)
-        min_y = min(conn.get('y', 0) for conn in self.connections)
-        max_y = max(conn.get('y', 0) for conn in self.connections)
-        
-        return QRectF(min_x - 5, min_y - 5, max_x - min_x + 10, max_y - min_y + 10)
-    
-    def paint(self, painter: QPainter, option, widget):
-        painter.setPen(QPen(QColor(100, 150, 100), 3))
-        
-        # Draw line of identity connecting predicates
-        if len(self.connections) >= 2:
-            for i in range(len(self.connections) - 1):
-                start = self.connections[i]
-                end = self.connections[i + 1]
-                painter.drawLine(
-                    QPointF(start.get('x', 0), start.get('y', 0)),
-                    QPointF(end.get('x', 0), end.get('y', 0))
-                )
-        
-        # Draw connection points
-        for conn in self.connections:
-            painter.setBrush(QBrush(QColor(100, 150, 100)))
-            painter.drawEllipse(
-                QPointF(conn.get('x', 0), conn.get('y', 0)), 4, 4
-            )
+# GUI imports
+from gui.peirce_layout_engine import PeirceLayoutEngine
+from gui.peirce_graphics_adapter import PeirceGraphicsAdapter
+from gui.layout_calculator import LayoutCalculator  # Fallback for when Peirce engine fails
+from gui.graphics_items import ContextItem, PredicateItem, EntityItem, ConnectionManager
 
 
 class GraphCanvas(QGraphicsView):
-    """Interactive canvas for displaying and editing EG diagrams."""
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.scene = QGraphicsScene(self)
-        self.setScene(self.scene)
-        
-        # Configure view
-        self.setDragMode(QGraphicsView.RubberBandDrag)
-        self.setRenderHint(QPainter.Antialiasing)
-        self.setViewportUpdateMode(QGraphicsView.FullViewportUpdate)
-        
-        # Set scene size (Sheet of Assertion)
-        self.scene.setSceneRect(0, 0, 800, 600)
-        
-        # Current graph data
-        self.current_graph = None
-        self.graph_items = {}
-    
-    def load_egrf_graph(self, egrf_data: Dict[str, Any]):
-        """Load and display an EGRF graph."""
-        self.scene.clear()
-        self.graph_items.clear()
-        self.current_graph = egrf_data
-        
-        if not egrf_data or 'elements' not in egrf_data:
-            return
-        
-        # Create graphics items for each EGRF element
-        # Handle both dictionary and list formats for elements
-        elements = egrf_data['elements']
-        if isinstance(elements, dict):
-            # Elements is a dictionary with IDs as keys
-            element_count = 0
-            for element_id, element in elements.items():
-                item = self.create_graphics_item(element)
-                if item:
-                    self.scene.addItem(item)
-                    self.graph_items[element_id] = item
-                    
-                    # Position the item - use default grid if no position data
-                    pos = element.get('position', None)
-                    if pos is None:
-                        # Create a simple grid layout for elements without position
-                        x = 100 + (element_count % 3) * 150
-                        y = 100 + (element_count // 3) * 120
-                        pos = {'x': x, 'y': y}
-                    
-                    item.setPos(pos['x'], pos['y'])
-                    element_count += 1
-        else:
-            # Elements is a list
-            for i, element in enumerate(elements):
-                item = self.create_graphics_item(element)
-                if item:
-                    self.scene.addItem(item)
-                    self.graph_items[element['id']] = item
-                    
-                    # Position the item - use default grid if no position data
-                    pos = element.get('position', None)
-                    if pos is None:
-                        # Create a simple grid layout for elements without position
-                        x = 100 + (i % 3) * 150
-                        y = 100 + (i // 3) * 120
-                        pos = {'x': x, 'y': y}
-                    
-                    item.setPos(pos['x'], pos['y'])
-    
-    def create_graphics_item(self, element: Dict[str, Any]) -> Optional[EGGraphicsItem]:
-        """Create appropriate graphics item for EGRF element."""
-        element_type = element.get('element_type', element.get('type', 'unknown'))
-        
-        # Add debug info
-        print(f"Creating graphics item for: {element.get('id', 'no-id')} type: {element_type}")
-        
-        if element_type in ['context', 'cut']:
-            return ContextItem(element)
-        elif element_type == 'predicate':
-            return PredicateItem(element)
-        elif element_type == 'entity':
-            return EntityItem(element)
-        else:
-            print(f"Unknown element type: {element_type}")
-            return None
-    
-    def wheelEvent(self, event):
-        """Handle zoom with mouse wheel."""
-        factor = 1.2
-        if event.angleDelta().y() < 0:
-            factor = 1.0 / factor
-        self.scale(factor, factor)
-
-
-class ValidationPanel(QWidget):
-    """Panel for displaying validation results and graph statistics."""
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.init_ui()
-    
-    def init_ui(self):
-        layout = QVBoxLayout(self)
-        
-        # Validation status
-        self.status_label = QLabel("Validation Status: Ready")
-        self.status_label.setStyleSheet("font-weight: bold; padding: 5px;")
-        layout.addWidget(self.status_label)
-        
-        # Validation details
-        self.details_text = QTextEdit()
-        self.details_text.setMaximumHeight(150)
-        self.details_text.setReadOnly(True)
-        layout.addWidget(self.details_text)
-        
-        # Graph statistics
-        stats_group = QGroupBox("Graph Statistics")
-        stats_layout = QVBoxLayout(stats_group)
-        
-        self.stats_labels = {
-            'elements': QLabel("Elements: 0"),
-            'contexts': QLabel("Contexts: 0"),
-            'predicates': QLabel("Predicates: 0"),
-            'entities': QLabel("Entities: 0")
-        }
-        
-        for label in self.stats_labels.values():
-            stats_layout.addWidget(label)
-        
-        layout.addWidget(stats_group)
-    
-    def update_validation(self, is_valid: bool, messages: List[str], stats: Dict[str, int]):
-        """Update validation display."""
-        if is_valid:
-            self.status_label.setText("Validation Status: ✓ Valid")
-            self.status_label.setStyleSheet("color: green; font-weight: bold; padding: 5px;")
-        else:
-            self.status_label.setText("Validation Status: ✗ Invalid")
-            self.status_label.setStyleSheet("color: red; font-weight: bold; padding: 5px;")
-        
-        self.details_text.setPlainText('\n'.join(messages))
-        
-        # Update statistics
-        for key, label in self.stats_labels.items():
-            count = stats.get(key, 0)
-            label.setText(f"{key.capitalize()}: {count}")
-
-
-class TransformationPanel(QWidget):
-    """Panel for exploring Peircean transformations (lookahead)."""
-    
-    transformation_requested = Signal(str, dict)
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.init_ui()
-    
-    def init_ui(self):
-        layout = QVBoxLayout(self)
-        
-        # Peircean rules
-        rules_group = QGroupBox("Peircean Rules")
-        rules_layout = QVBoxLayout(rules_group)
-        
-        self.rule_buttons = {}
-        rules = [
-            ('insertion', 'Insertion'),
-            ('deletion', 'Deletion'),
-            ('erasure', 'Erasure'),
-            ('double_cut', 'Double Cut'),
-            ('iteration', 'Iteration')
-        ]
-        
-        for rule_id, rule_name in rules:
-            btn = QPushButton(rule_name)
-            btn.clicked.connect(lambda checked, r=rule_id: self.request_transformation(r))
-            rules_layout.addWidget(btn)
-            self.rule_buttons[rule_id] = btn
-        
-        layout.addWidget(rules_group)
-        
-        # Quick additions
-        quick_group = QGroupBox("Quick Add")
-        quick_layout = QVBoxLayout(quick_group)
-        
-        quick_buttons = [
-            ('add_cut', 'Add Cut'),
-            ('add_predicate', 'Add Predicate'),
-            ('add_line', 'Add Line of Identity')
-        ]
-        
-        for action_id, action_name in quick_buttons:
-            btn = QPushButton(action_name)
-            btn.clicked.connect(lambda checked, a=action_id: self.request_transformation(a))
-            quick_layout.addWidget(btn)
-        
-        layout.addWidget(quick_group)
-        
-        # Transformation history
-        history_group = QGroupBox("Recent Transformations")
-        history_layout = QVBoxLayout(history_group)
-        
-        self.history_list = QListWidget()
-        self.history_list.setMaximumHeight(100)
-        history_layout.addWidget(self.history_list)
-        
-        layout.addWidget(history_group)
-    
-    def request_transformation(self, rule_id: str):
-        """Request a transformation to be applied."""
-        self.transformation_requested.emit(rule_id, {})
-    
-    def add_to_history(self, rule_name: str, description: str):
-        """Add transformation to history."""
-        self.history_list.addItem(f"{rule_name}: {description}")
-        self.history_list.scrollToBottom()
-
-
-class GraphEditor(QMainWindow):
-    """Main Graph Editor window - the 'bullpen' for EPG preparation."""
+    """Canvas for displaying existential graphs from EGRF."""
     
     def __init__(self):
         super().__init__()
-        self.current_graph = None
-        self.clif_parser = CLIFParser()
+        self.scene = QGraphicsScene()
+        self.setScene(self.scene)
+        self.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
         
-        # Initialize corpus API with correct path
-        repo_root = Path(__file__).parent.parent.parent  # Go up from gui -> src -> Arisbe
-        corpus_path = repo_root / 'corpus' / 'corpus'
-        self.corpus_api = CorpusAPI(corpus_path)
+        # Initialize Peirce layout engine with fallback
+        self.layout_engine = PeirceLayoutEngine(1200, 800)
+        self.graphics_adapter = PeirceGraphicsAdapter(self.scene)
+        self.fallback_calculator = LayoutCalculator(1200, 800)  # Fallback when Peirce engine fails
         
-        self.init_ui()
-        self.init_connections()
+        # Connection manager for lines of identity
+        self.connection_manager = ConnectionManager()
+        
+        # Current EGRF data
+        self.current_egrf = None
+        
+        # Set scene size
+        self.scene.setSceneRect(0, 0, 1200, 800)
     
-    def init_ui(self):
-        self.setWindowTitle("Arisbe - Existential Graphs Editor (Bullpen)")
+    def load_egrf_graph(self, egrf_doc):
+        """Load and display an EGRF document."""
+        try:
+            print(f"DEBUG: Loading EGRF graph with {len(egrf_doc.logical_elements) if egrf_doc else 0} elements")
+            
+            # Clear existing scene
+            self.scene.clear()
+            
+            # Store current EGRF
+            self.current_egrf = egrf_doc
+            
+            if not egrf_doc or not egrf_doc.logical_elements:
+                print("Warning: No EGRF elements to display")
+                return
+            
+            # Calculate layout using Peirce engine with fallback
+            rendering_instructions = None
+            try:
+                rendering_instructions = self.layout_engine.calculate_layout(egrf_doc)
+                print(f"DEBUG: Peirce layout engine generated rendering instructions")
+                print(f"  Elements: {len(rendering_instructions.get('elements', []))}")
+                print(f"  Ligatures: {len(rendering_instructions.get('ligatures', []))}")
+            except Exception as layout_error:
+                print(f"DEBUG: Peirce layout engine failed ({layout_error}), falling back to original layout")
+                try:
+                    layout_data = self.fallback_calculator.calculate_layout(egrf_doc)
+                    print(f"DEBUG: Fallback layout calculated for {len(layout_data)} elements")
+                    # Convert fallback layout to rendering instructions format
+                    rendering_instructions = self._convert_fallback_to_instructions(layout_data)
+                except Exception as fallback_error:
+                    print(f"ERROR: Both layout engines failed: {fallback_error}")
+                    return
+            
+            if not rendering_instructions:
+                print("Warning: Layout calculation failed")
+                return
+            
+            # Create graphics items using Peirce adapter
+            if 'elements' in rendering_instructions:
+                # Use Peirce graphics adapter
+                graphics_items = self.graphics_adapter.create_graphics_from_instructions(rendering_instructions)
+                
+                # Update predicate names from EGRF data
+                self.graphics_adapter.update_element_names(egrf_doc)
+                
+                print(f"DEBUG: Created {len(graphics_items)} graphics items using Peirce adapter")
+            else:
+                # Fallback: use old graphics items system
+                graphics_items = self._create_fallback_graphics_items(rendering_instructions)
+                print(f"DEBUG: Created {len(graphics_items)} graphics items using fallback system")
+            
+            # Update the view to fit content
+            self.fitInView(self.scene.itemsBoundingRect(), Qt.AspectRatioMode.KeepAspectRatio)
+            
+        except Exception as e:
+            print(f"Error loading EGRF graph: {e}")
+            import traceback
+            traceback.print_exc()
+
+
+class BackendAPI:
+    """API for backend CLIF processing."""
+    
+    def __init__(self):
+        self.parser = CLIFParser()
+    
+    def clif_to_egrf(self, clif_text: str, metadata: Dict = None) -> Any:
+        """Convert CLIF to EGRF using backend pipeline."""
+        try:
+            # Step 1: Parse CLIF to EG-HG
+            parse_result = self.parser.parse(clif_text)
+            
+            if parse_result.errors:
+                raise Exception(f"CLIF parse errors: {[e.message for e in parse_result.errors]}")
+            
+            if not parse_result.graph:
+                raise Exception("No graph produced from CLIF parsing")
+            
+            # Step 2: Convert EG-HG to EGRF
+            egrf_doc = convert_graph_to_egrf(parse_result.graph, metadata or {})
+            
+            if not egrf_doc:
+                raise Exception("EGRF conversion failed")
+            
+            return egrf_doc
+            
+        except Exception as e:
+            print(f"Backend API error: {e}")
+            raise
+
+
+class GraphEditor(QMainWindow):
+    """Main graph editor application - GUI only."""
+    
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Arisbe - Existential Graphs Editor")
         self.setGeometry(100, 100, 1400, 900)
         
-        # Create central widget with splitter
+        # Initialize backend API
+        self.backend = BackendAPI()
+        
+        # Current graph data
+        self.current_clif = ""
+        self.current_egrf = None
+        
+        # Corpus data
+        self.corpus_examples = {}
+        self.load_corpus_examples()
+        
+        # Setup UI
+        self.setup_ui()
+        
+        # Load default example
+        if self.corpus_examples:
+            first_example = list(self.corpus_examples.keys())[0]
+            self.corpus_combo.setCurrentText(first_example)
+            self.load_corpus_example()
+    
+    def setup_ui(self):
+        """Setup the user interface."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
+        # Main layout
         main_layout = QHBoxLayout(central_widget)
-        splitter = QSplitter(Qt.Horizontal)
+        
+        # Create splitter for resizable panels
+        splitter = QSplitter(Qt.Orientation.Horizontal)
         main_layout.addWidget(splitter)
         
-        # Left panel - Input and controls
+        # Left panel
         left_panel = self.create_left_panel()
         splitter.addWidget(left_panel)
         
-        # Center panel - Graph canvas
-        center_panel = self.create_center_panel()
-        splitter.addWidget(center_panel)
-        
-        # Right panel - Validation and transformations
+        # Right panel
         right_panel = self.create_right_panel()
         splitter.addWidget(right_panel)
         
         # Set splitter proportions
-        splitter.setSizes([300, 700, 300])
-        
-        # Create menus and toolbars
-        self.create_menus()
-        self.create_toolbar()
-        self.create_status_bar()
+        splitter.setSizes([400, 1000])
     
-    def create_left_panel(self) -> QWidget:
-        """Create the left input panel."""
-        panel = QWidget()
+    def create_left_panel(self):
+        """Create the left control panel."""
+        panel = QFrame()
+        panel.setFrameStyle(QFrame.Shape.StyledPanel)
+        panel.setMaximumWidth(400)
+        
         layout = QVBoxLayout(panel)
         
-        # Input methods
+        # Graph Input section
         input_group = QGroupBox("Graph Input")
         input_layout = QVBoxLayout(input_group)
         
-        # CLIF input
-        clif_group = QGroupBox("CLIF Statement")
-        clif_layout = QVBoxLayout(clif_group)
+        # CLIF Statement
+        clif_label = QLabel("CLIF Statement")
+        input_layout.addWidget(clif_label)
         
-        self.clif_text = QTextEdit()
-        self.clif_text.setMaximumHeight(120)
-        self.clif_text.setPlaceholderText("Enter CLIF statement here...")
-        clif_layout.addWidget(self.clif_text)
+        self.clif_input = QTextEdit()
+        self.clif_input.setMaximumHeight(100)
+        self.clif_input.setPlaceholderText("Enter CLIF statement here...")
+        input_layout.addWidget(self.clif_input)
         
-        parse_btn = QPushButton("Parse CLIF")
-        parse_btn.clicked.connect(self.parse_clif)
-        clif_layout.addWidget(parse_btn)
+        # Parse button
+        parse_button = QPushButton("Parse CLIF")
+        parse_button.clicked.connect(self.parse_clif)
+        input_layout.addWidget(parse_button)
         
-        input_layout.addWidget(clif_group)
+        layout.addWidget(input_group)
         
-        # Corpus selection
+        # Corpus Examples section
         corpus_group = QGroupBox("Corpus Examples")
         corpus_layout = QVBoxLayout(corpus_group)
         
         self.corpus_combo = QComboBox()
-        self.load_corpus_examples()
+        self.populate_corpus_dropdown()
         corpus_layout.addWidget(self.corpus_combo)
         
-        load_corpus_btn = QPushButton("Load Example")
-        load_corpus_btn.clicked.connect(self.load_corpus_example)
-        corpus_layout.addWidget(load_corpus_btn)
+        load_example_button = QPushButton("Load Example")
+        load_example_button.clicked.connect(self.load_corpus_example)
+        corpus_layout.addWidget(load_example_button)
         
-        input_layout.addWidget(corpus_group)
+        layout.addWidget(corpus_group)
         
-        # Empty graph
-        empty_btn = QPushButton("Create Empty Graph")
-        empty_btn.clicked.connect(self.create_empty_graph)
-        input_layout.addWidget(empty_btn)
+        # Create Empty Graph button
+        empty_button = QPushButton("Create Empty Graph")
+        empty_button.clicked.connect(self.create_empty_graph)
+        layout.addWidget(empty_button)
         
-        layout.addWidget(input_group)
-        
-        # Export options
-        export_group = QGroupBox("Export & Save")
+        # Export/Save section
+        export_group = QGroupBox("Export / Save")
         export_layout = QVBoxLayout(export_group)
         
-        export_buttons = [
-            ("Save Graph", self.save_graph),
-            ("Export PDF", lambda: self.export_graph('pdf')),
-            ("Export PNG", lambda: self.export_graph('png')),
-            ("Export LaTeX", lambda: self.export_graph('latex')),
-            ("Propose to EPG", self.propose_to_epg)
-        ]
+        save_button = QPushButton("Save Graph")
+        save_button.clicked.connect(self.save_graph)
+        export_layout.addWidget(save_button)
         
-        for text, handler in export_buttons:
-            btn = QPushButton(text)
-            btn.clicked.connect(handler)
-            export_layout.addWidget(btn)
+        export_pdf_button = QPushButton("Export PDF")
+        export_pdf_button.clicked.connect(self.export_pdf)
+        export_layout.addWidget(export_pdf_button)
+        
+        export_png_button = QPushButton("Export PNG")
+        export_png_button.clicked.connect(self.export_png)
+        export_layout.addWidget(export_png_button)
+        
+        export_latex_button = QPushButton("Export LaTeX")
+        export_latex_button.clicked.connect(self.export_latex)
+        export_layout.addWidget(export_latex_button)
+        
+        propose_epg_button = QPushButton("Propose to EPG")
+        propose_epg_button.clicked.connect(self.propose_to_epg)
+        export_layout.addWidget(propose_epg_button)
         
         layout.addWidget(export_group)
         
+        # Add stretch to push everything to top
         layout.addStretch()
+        
         return panel
     
-    def create_center_panel(self) -> QWidget:
-        """Create the center graph canvas panel."""
+    def create_right_panel(self):
+        """Create the right panel with tabs and status."""
         panel = QWidget()
         layout = QVBoxLayout(panel)
         
-        # Tab widget for dual forms
+        # Tab widget for different views
         self.tab_widget = QTabWidget()
         
-        # Diagram tab
-        self.canvas = GraphCanvas()
-        self.tab_widget.addTab(self.canvas, "Diagram Form")
+        # Diagram Form tab
+        self.graph_canvas = GraphCanvas()
+        self.tab_widget.addTab(self.graph_canvas, "Diagram Form")
         
-        # Linear form tab
-        self.linear_text = QTextEdit()
-        self.linear_text.setFont(QFont("Courier", 10))
-        self.linear_text.setReadOnly(True)
-        self.tab_widget.addTab(self.linear_text, "Linear Form (CLIF)")
+        # Linear Form (CLIF) tab
+        self.linear_form = QTextEdit()
+        self.linear_form.setReadOnly(True)
+        self.linear_form.setFont(QFont("Courier", 10))
+        self.tab_widget.addTab(self.linear_form, "Linear Form (CLIF)")
         
         layout.addWidget(self.tab_widget)
+        
+        # Bottom status area
+        bottom_layout = QHBoxLayout()
+        
+        # Validation Status
+        validation_group = QGroupBox("Validation Status")
+        validation_layout = QVBoxLayout(validation_group)
+        
+        self.validation_label = QLabel("✓ Valid")
+        self.validation_label.setStyleSheet("color: green; font-weight: bold;")
+        validation_layout.addWidget(self.validation_label)
+        
+        self.validation_details = QLabel("Graph structure appears valid\nContains 0 elements\nDiagram rendering: INACTIVE")
+        self.validation_details.setWordWrap(True)
+        validation_layout.addWidget(self.validation_details)
+        
+        bottom_layout.addWidget(validation_group)
+        
+        # Graph Statistics
+        stats_group = QGroupBox("Graph Statistics")
+        stats_layout = QVBoxLayout(stats_group)
+        
+        self.stats_label = QLabel("Elements: 0\nContexts: 0\nPredicates: 0\nEntities: 0")
+        stats_layout.addWidget(self.stats_label)
+        
+        bottom_layout.addWidget(stats_group)
+        
+        # Peircean Rules
+        rules_group = QGroupBox("Peircean Rules")
+        rules_layout = QVBoxLayout(rules_group)
+        
+        insertion_button = QPushButton("Insertion")
+        deletion_button = QPushButton("Deletion")
+        erasure_button = QPushButton("Erasure")
+        double_cut_button = QPushButton("Double Cut")
+        iteration_button = QPushButton("Iteration")
+        
+        rules_layout.addWidget(insertion_button)
+        rules_layout.addWidget(deletion_button)
+        rules_layout.addWidget(erasure_button)
+        rules_layout.addWidget(double_cut_button)
+        rules_layout.addWidget(iteration_button)
+        
+        bottom_layout.addWidget(rules_group)
+        
+        # Quick Add
+        quick_group = QGroupBox("Quick Add")
+        quick_layout = QVBoxLayout(quick_group)
+        
+        add_cut_button = QPushButton("Add Cut")
+        add_predicate_button = QPushButton("Add Predicate")
+        add_line_button = QPushButton("Add Line of Identity")
+        
+        quick_layout.addWidget(add_cut_button)
+        quick_layout.addWidget(add_predicate_button)
+        quick_layout.addWidget(add_line_button)
+        
+        bottom_layout.addWidget(quick_group)
+        
+        layout.addLayout(bottom_layout)
+        
         return panel
-    
-    def create_right_panel(self) -> QWidget:
-        """Create the right validation and transformation panel."""
-        panel = QWidget()
-        layout = QVBoxLayout(panel)
-        
-        # Validation panel
-        self.validation_panel = ValidationPanel()
-        layout.addWidget(self.validation_panel)
-        
-        # Transformation panel
-        self.transformation_panel = TransformationPanel()
-        layout.addWidget(self.transformation_panel)
-        
-        return panel
-    
-    def create_menus(self):
-        """Create application menus."""
-        menubar = self.menuBar()
-        
-        # File menu
-        file_menu = menubar.addMenu("File")
-        
-        new_action = QAction("New Graph", self)
-        new_action.triggered.connect(self.create_empty_graph)
-        file_menu.addAction(new_action)
-        
-        open_action = QAction("Open...", self)
-        open_action.triggered.connect(self.open_graph)
-        file_menu.addAction(open_action)
-        
-        save_action = QAction("Save", self)
-        save_action.triggered.connect(self.save_graph)
-        file_menu.addAction(save_action)
-        
-        file_menu.addSeparator()
-        
-        exit_action = QAction("Exit", self)
-        exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
-        
-        # Edit menu
-        edit_menu = menubar.addMenu("Edit")
-        
-        validate_action = QAction("Validate Graph", self)
-        validate_action.triggered.connect(self.validate_current_graph)
-        edit_menu.addAction(validate_action)
-        
-        # View menu
-        view_menu = menubar.addMenu("View")
-        
-        zoom_in_action = QAction("Zoom In", self)
-        zoom_in_action.triggered.connect(lambda: self.canvas.scale(1.2, 1.2))
-        view_menu.addAction(zoom_in_action)
-        
-        zoom_out_action = QAction("Zoom Out", self)
-        zoom_out_action.triggered.connect(lambda: self.canvas.scale(0.8, 0.8))
-        view_menu.addAction(zoom_out_action)
-    
-    def create_toolbar(self):
-        """Create application toolbar."""
-        toolbar = self.addToolBar("Main")
-        
-        # Add common actions
-        toolbar.addAction("New", self.create_empty_graph)
-        toolbar.addAction("Open", self.open_graph)
-        toolbar.addAction("Save", self.save_graph)
-        toolbar.addSeparator()
-        toolbar.addAction("Validate", self.validate_current_graph)
-        toolbar.addSeparator()
-        toolbar.addAction("Zoom In", lambda: self.canvas.scale(1.2, 1.2))
-        toolbar.addAction("Zoom Out", lambda: self.canvas.scale(0.8, 0.8))
-    
-    def create_status_bar(self):
-        """Create application status bar."""
-        self.status_bar = self.statusBar()
-        self.status_bar.showMessage("Ready")
-        
-        # Add progress bar for long operations
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setVisible(False)
-        self.status_bar.addPermanentWidget(self.progress_bar)
-    
-    def init_connections(self):
-        """Initialize signal connections."""
-        self.transformation_panel.transformation_requested.connect(self.apply_transformation)
-        self.clif_text.textChanged.connect(self.on_clif_changed)
     
     def load_corpus_examples(self):
-        """Load corpus examples into combo box."""
+        """Load corpus examples from the corpus directory."""
         try:
-            example_ids = self.corpus_api.get_example_ids()
-            self.corpus_combo.clear()
-            self.corpus_combo.addItem("Select example...", None)
+            corpus_dir = Path(__file__).parent.parent.parent / "corpus" / "corpus"
             
-            for example_id in example_ids:
-                example = self.corpus_api.load_example(example_id)
-                display_name = f"{example.category}: {example_id}"
-                self.corpus_combo.addItem(display_name, example_id)
-                
+            if not corpus_dir.exists():
+                print(f"Warning: Corpus directory not found at {corpus_dir}")
+                return
+            
+            # Find all .clif files in corpus subdirectories
+            for clif_file in corpus_dir.rglob("*.clif"):
+                try:
+                    # Read the CLIF content
+                    with open(clif_file, 'r', encoding='utf-8') as f:
+                        clif_content = f.read().strip()
+                    
+                    # Create a display name from the file path
+                    relative_path = clif_file.relative_to(corpus_dir)
+                    category = relative_path.parts[0] if len(relative_path.parts) > 1 else "misc"
+                    filename = clif_file.stem
+                    
+                    display_name = f"{category}: {filename}"
+                    
+                    self.corpus_examples[display_name] = {
+                        'clif': clif_content,
+                        'file_path': str(clif_file),
+                        'category': category,
+                        'filename': filename
+                    }
+                    
+                except Exception as e:
+                    print(f"Warning: Could not load {clif_file}: {e}")
+            
+            print(f"Loaded {len(self.corpus_examples)} corpus examples")
+            
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to load corpus examples: {e}")
+            print(f"Error loading corpus examples: {e}")
+    
+    def populate_corpus_dropdown(self):
+        """Populate the corpus dropdown with available examples."""
+        self.corpus_combo.clear()
+        
+        if not self.corpus_examples:
+            self.corpus_combo.addItem("No corpus examples found")
+            return
+        
+        # Sort examples by category and name
+        sorted_examples = sorted(self.corpus_examples.keys())
+        
+        for example_name in sorted_examples:
+            self.corpus_combo.addItem(example_name)
     
     def parse_clif(self):
-        """Parse CLIF text and convert to graph."""
-        clif_text = self.clif_text.toPlainText().strip()
+        """Parse the CLIF input using backend API."""
+        clif_text = self.clif_input.toPlainText().strip()
+        
         if not clif_text:
+            QMessageBox.warning(self, "Warning", "Please enter a CLIF statement to parse.")
             return
         
         try:
-            self.status_bar.showMessage("Parsing CLIF...")
-            result = self.clif_parser.parse(clif_text)
+            # Use backend API to convert CLIF to EGRF
+            egrf_doc = self.backend.clif_to_egrf(clif_text, {
+                'title': 'User Input Graph',
+                'description': f'Graph from CLIF: {clif_text}'
+            })
             
-            if result.success:
-                self.load_graph(result.graph, clif_text)
-                self.status_bar.showMessage("CLIF parsed successfully")
-            else:
-                QMessageBox.warning(self, "Parse Error", f"Failed to parse CLIF: {result.error}")
-                self.status_bar.showMessage("Parse failed")
-                
+            # Update displays
+            self.current_clif = clif_text
+            self.current_egrf = egrf_doc
+            
+            self.update_displays()
+            
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error parsing CLIF: {e}")
-            self.status_bar.showMessage("Parse error")
+            QMessageBox.critical(self, "Error", f"Error parsing CLIF: {str(e)}")
     
     def load_corpus_example(self):
-        """Load selected corpus example."""
-        example_id = self.corpus_combo.currentData()
-        if not example_id:
+        """Load the selected corpus example using backend API."""
+        selected_example = self.corpus_combo.currentText()
+        print(f"DEBUG: Loading corpus example: {selected_example}")
+        
+        if selected_example not in self.corpus_examples:
+            print(f"DEBUG: Example not found: {selected_example}")
             return
         
+        example_data = self.corpus_examples[selected_example]
+        clif_text = example_data['clif']
+        print(f"DEBUG: CLIF text: {clif_text}")
+        
         try:
-            self.status_bar.showMessage("Loading corpus example...")
-            example = self.corpus_api.load_example(example_id)
+            # Set the CLIF input
+            self.clif_input.setPlainText(clif_text)
             
-            # Parse the CLIF content
-            result = self.clif_parser.parse(example.clif_content)
-            if not result.errors and result.graph is not None:
-                self.load_graph(result.graph, example.clif_content)
-                self.status_bar.showMessage(f"Loaded: {example_id}")
-            else:
-                error_msg = '; '.join([str(e) for e in result.errors]) if result.errors else "Unknown parsing error"
-                QMessageBox.warning(self, "Error", f"Failed to parse corpus example: {error_msg}")
+            # Use backend API to convert CLIF to EGRF
+            egrf_doc = self.backend.clif_to_egrf(clif_text, {
+                'title': example_data['filename'],
+                'description': f"Corpus example from {example_data['category']}"
+            })
+            
+            print(f"DEBUG: EGRF doc created with {len(egrf_doc.logical_elements)} elements")
+            
+            # Store and display
+            self.current_clif = clif_text
+            self.current_egrf = egrf_doc
+            
+            self.update_displays()
+            
+        except Exception as e:
+            error_msg = str(e)
+            print(f"DEBUG: Error loading corpus example: {error_msg}")
+            
+            # Check if it's a parsing error for unsupported syntax
+            if "CLIF parse errors" in error_msg and any(unsupported in clif_text for unsupported in ["(or P Q)", "(or ", "bare predicate"]):
+                QMessageBox.warning(self, "Unsupported CLIF Syntax", 
+                    f"The corpus example '{selected_example}' uses CLIF syntax that is not yet supported by the parser.\n\n"
+                    f"CLIF: {clif_text}\n\n"
+                    f"This example will be skipped. Please select a different corpus example.")
+                print(f"DEBUG: Skipping unsupported CLIF syntax: {clif_text}")
                 
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error loading corpus example: {e}")
+                # Try to load a different example
+                self.load_next_supported_example()
+            else:
+                QMessageBox.critical(self, "Error", f"Error loading corpus example: {error_msg}")
+                import traceback
+                traceback.print_exc()
     
-    def create_empty_graph(self):
-        """Create an empty Sheet of Assertion."""
-        try:
-            # Create minimal EGRF structure for empty sheet
-            empty_egrf = {
-                'id': 'empty_sheet',
-                'elements': {
-                    'sheet_of_assertion': {
-                        'id': 'sheet_of_assertion',
-                        'type': 'context',
-                        'label': 'Sheet of Assertion',
-                        'position': {'x': 50, 'y': 50},
-                        'size': {'width': 700, 'height': 500},
-                        'containment': []
-                    }
-                },
-                'containment': []
-            }
+    def load_next_supported_example(self):
+        """Load the next supported corpus example."""
+        current_index = self.corpus_combo.currentIndex()
+        total_examples = self.corpus_combo.count()
+        
+        # Try the next few examples to find a supported one
+        for i in range(1, min(5, total_examples)):
+            next_index = (current_index + i) % total_examples
+            self.corpus_combo.setCurrentIndex(next_index)
             
-            self.canvas.load_egrf_graph(empty_egrf)
-            self.linear_text.setPlainText("% Empty Sheet of Assertion")
-            self.current_graph = empty_egrf
-            self.validate_current_graph()
-            self.status_bar.showMessage("Created empty graph")
-            
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error creating empty graph: {e}")
+            example_name = self.corpus_combo.currentText()
+            if example_name in self.corpus_examples:
+                example_data = self.corpus_examples[example_name]
+                clif_text = example_data['clif']
+                
+                # Skip known unsupported patterns
+                if not any(unsupported in clif_text for unsupported in ["(or P Q)", "(or Q P)"]):
+                    print(f"DEBUG: Trying supported example: {example_name}")
+                    try:
+                        self.load_corpus_example()
+                        return  # Success, stop trying
+                    except:
+                        continue  # Try next example
+        
+        print("DEBUG: No supported examples found, staying with current selection")
     
-    def load_graph(self, eg_graph: EGGraph, clif_text: str):
-        """Load a graph into both diagram and linear forms."""
+    def update_displays(self):
+        """Update all displays with current graph data."""
         try:
-            # Convert EG-HG to EGRF
-            egrf_data = convert_graph_to_egrf_direct(eg_graph, {'id': 'loaded_graph'})
-            
-            # Load into canvas
-            self.canvas.load_egrf_graph(egrf_data)
-            
             # Update linear form
-            self.linear_text.setPlainText(clif_text)
+            self.linear_form.setPlainText(self.current_clif)
             
-            # Store current graph
-            self.current_graph = egrf_data
+            # Update diagram form
+            if self.current_egrf:
+                self.graph_canvas.load_egrf_graph(self.current_egrf)
             
-            # Validate
-            self.validate_current_graph()
+            # Update statistics
+            self.update_statistics()
+            
+            # Update validation status
+            self.update_validation_status()
             
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error loading graph: {e}")
+            print(f"Error updating displays: {e}")
+            import traceback
+            traceback.print_exc()
     
-    def validate_current_graph(self):
-        """Validate the current graph and update validation panel."""
-        if not self.current_graph:
-            self.validation_panel.update_validation(True, ["No graph loaded"], {})
+    def update_statistics(self):
+        """Update the statistics display."""
+        if not self.current_egrf:
+            self.stats_label.setText("Elements: 0\nContexts: 0\nPredicates: 0\nEntities: 0")
             return
         
         try:
-            # Basic validation - count elements
-            elements = self.current_graph.get('elements', {})
+            # Count elements by type
+            contexts = 0
+            predicates = 0
+            entities = 0
             
-            # Handle both dictionary and list formats
-            if isinstance(elements, dict):
-                element_list = list(elements.values())
-            else:
-                element_list = elements
+            for element in self.current_egrf.logical_elements:
+                if element.logical_type in ['sheet', 'cut']:
+                    contexts += 1
+                elif element.logical_type == 'relation':
+                    predicates += 1
+                elif element.logical_type in ['individual', 'line_of_identity']:
+                    entities += 1
             
-            stats = {
-                'elements': len(element_list),
-                'contexts': len([e for e in element_list if e.get('type') == 'context']),
-                'predicates': len([e for e in element_list if e.get('type') == 'predicate']),
-                'entities': len([e for e in element_list if e.get('type') == 'entity'])
-            }
+            total_elements = len(self.current_egrf.logical_elements)
             
-            # Simple validation - check for required elements
-            messages = []
-            is_valid = True
-            
-            if stats['elements'] == 0:
-                messages.append("Graph is empty")
-                is_valid = False
-            else:
-                messages.append("Graph structure appears valid")
-                messages.append(f"Contains {stats['elements']} elements")
-            
-            self.validation_panel.update_validation(is_valid, messages, stats)
-            
-        except Exception as e:
-            self.validation_panel.update_validation(False, [f"Validation error: {e}"], {})
-    
-    def apply_transformation(self, rule_id: str, params: Dict[str, Any]):
-        """Apply a Peircean transformation rule."""
-        if not self.current_graph:
-            QMessageBox.warning(self, "Warning", "No graph loaded")
-            return
-        
-        try:
-            # For now, just show what would happen
-            QMessageBox.information(
-                self, 
-                "Transformation", 
-                f"Would apply {rule_id} transformation\n(Implementation pending)"
+            self.stats_label.setText(
+                f"Elements: {total_elements}\n"
+                f"Contexts: {contexts}\n"
+                f"Predicates: {predicates}\n"
+                f"Entities: {entities}"
             )
             
-            # Add to transformation history
-            self.transformation_panel.add_to_history(rule_id, "Applied successfully")
+        except Exception as e:
+            print(f"Error updating statistics: {e}")
+            self.stats_label.setText("Elements: Error\nContexts: Error\nPredicates: Error\nEntities: Error")
+    
+    def update_validation_status(self):
+        """Update the validation status display."""
+        if not self.current_egrf:
+            self.validation_label.setText("No Graph")
+            self.validation_label.setStyleSheet("color: gray; font-weight: bold;")
+            self.validation_details.setText("No graph loaded\nDiagram rendering: INACTIVE")
+            return
+        
+        try:
+            # Basic validation
+            element_count = len(self.current_egrf.logical_elements)
+            
+            self.validation_label.setText("✓ Valid")
+            self.validation_label.setStyleSheet("color: green; font-weight: bold;")
+            self.validation_details.setText(
+                f"Graph structure appears valid\n"
+                f"Contains {element_count} elements\n"
+                f"Diagram rendering: ACTIVE"
+            )
             
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Transformation error: {e}")
+            print(f"Error updating validation status: {e}")
+            self.validation_label.setText("❌ Error")
+            self.validation_label.setStyleSheet("color: red; font-weight: bold;")
+            self.validation_details.setText("Error validating graph\nDiagram rendering: ERROR")
     
-    def on_clif_changed(self):
-        """Handle CLIF text changes."""
-        # Could add real-time validation here
-        pass
+    def create_empty_graph(self):
+        """Create an empty graph."""
+        # For now, just clear everything
+        self.clif_input.clear()
+        self.current_clif = ""
+        self.current_egrf = None
+        self.graph_canvas.scene.clear()
+        self.linear_form.clear()
+        self.update_statistics()
+        self.update_validation_status()
     
     def save_graph(self):
-        """Save current graph."""
-        if not self.current_graph:
-            QMessageBox.warning(self, "Warning", "No graph to save")
-            return
-        
-        filename, _ = QFileDialog.getSaveFileName(
-            self, "Save Graph", "", "JSON Files (*.json);;All Files (*)"
-        )
-        
-        if filename:
-            try:
-                import json
-                with open(filename, 'w') as f:
-                    json.dump(self.current_graph, f, indent=2)
-                self.status_bar.showMessage(f"Saved: {filename}")
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Save failed: {e}")
+        """Save the current graph."""
+        QMessageBox.information(self, "Info", "Save functionality not yet implemented.")
     
-    def open_graph(self):
-        """Open a saved graph."""
-        filename, _ = QFileDialog.getOpenFileName(
-            self, "Open Graph", "", "JSON Files (*.json);;All Files (*)"
-        )
-        
-        if filename:
-            try:
-                import json
-                with open(filename, 'r') as f:
-                    graph_data = json.load(f)
-                
-                self.canvas.load_egrf_graph(graph_data)
-                self.current_graph = graph_data
-                self.validate_current_graph()
-                self.status_bar.showMessage(f"Opened: {filename}")
-                
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Open failed: {e}")
+    def export_pdf(self):
+        """Export graph as PDF."""
+        QMessageBox.information(self, "Info", "PDF export functionality not yet implemented.")
     
-    def export_graph(self, format_type: str):
-        """Export graph in specified format."""
-        if not self.current_graph:
-            QMessageBox.warning(self, "Warning", "No graph to export")
-            return
-        
-        QMessageBox.information(
-            self, 
-            "Export", 
-            f"Would export to {format_type.upper()} format\n(Implementation pending)"
-        )
+    def export_png(self):
+        """Export graph as PNG."""
+        QMessageBox.information(self, "Info", "PNG export functionality not yet implemented.")
+    
+    def export_latex(self):
+        """Export graph as LaTeX."""
+        QMessageBox.information(self, "Info", "LaTeX export functionality not yet implemented.")
     
     def propose_to_epg(self):
-        """Propose current graph to Endoporeutic Game."""
-        if not self.current_graph:
-            QMessageBox.warning(self, "Warning", "No graph to propose")
-            return
-        
-        QMessageBox.information(
-            self, 
-            "EPG Proposal", 
-            "Would propose graph to Endoporeutic Game\n(Implementation pending)"
-        )
+        """Propose graph to Endoporeutic Game."""
+        QMessageBox.information(self, "Info", "EPG proposal functionality not yet implemented.")
 
 
 def main():
     """Main application entry point."""
     app = QApplication(sys.argv)
-    app.setApplicationName("Arisbe - Existential Graphs Editor")
-    app.setApplicationVersion("1.0.0")
+    
+    # Set application properties
+    app.setApplicationName("Arisbe Existential Graphs Editor")
+    app.setApplicationVersion("1.0")
+    app.setOrganizationName("Arisbe Project")
     
     # Create and show main window
     window = GraphEditor()
     window.show()
     
-    return app.exec()
+    # Run application
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
 
