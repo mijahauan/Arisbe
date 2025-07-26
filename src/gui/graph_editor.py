@@ -31,6 +31,7 @@ from gui.peirce_layout_engine import PeirceLayoutEngine
 from gui.peirce_graphics_adapter import PeirceGraphicsAdapter
 from gui.layout_calculator import LayoutCalculator  # Fallback for when Peirce engine fails
 from gui.graphics_items import ContextItem, PredicateItem, EntityItem, ConnectionManager
+from gui.corpus_manager import CorpusManager
 
 
 class GraphCanvas(QGraphicsView):
@@ -164,16 +165,23 @@ class GraphEditor(QMainWindow):
         self.current_egrf = None
         
         # Corpus data
-        self.corpus_examples = {}
+        self.corpus_manager = CorpusManager()
         self.load_corpus_examples()
         
         # Setup UI
         self.setup_ui()
         
         # Load default example
-        if self.corpus_examples:
-            first_example = list(self.corpus_examples.keys())[0]
-            self.corpus_combo.setCurrentText(first_example)
+        examples = self.corpus_manager.get_all_examples()
+        if examples:
+            # Load the first beginner example if available
+            beginner_examples = self.corpus_manager.get_examples_by_complexity('beginner')
+            if beginner_examples:
+                first_example = beginner_examples[0]
+                self.corpus_combo.setCurrentText(first_example.display_name)
+            else:
+                first_example = examples[0]
+                self.corpus_combo.setCurrentText(first_example.display_name)
             self.load_corpus_example()
     
     def setup_ui(self):
@@ -231,6 +239,30 @@ class GraphEditor(QMainWindow):
         corpus_group = QGroupBox("Corpus Examples")
         corpus_layout = QVBoxLayout(corpus_group)
         
+        # Category filter
+        category_layout = QHBoxLayout()
+        category_layout.addWidget(QLabel("Category:"))
+        self.category_combo = QComboBox()
+        self.category_combo.addItem("All Categories")
+        for category in self.corpus_manager.get_categories():
+            category_display = self.corpus_manager.categories[category][0].category_display if self.corpus_manager.categories[category] else category.title()
+            self.category_combo.addItem(category_display, category)
+        self.category_combo.currentTextChanged.connect(self.filter_corpus_examples)
+        category_layout.addWidget(self.category_combo)
+        corpus_layout.addLayout(category_layout)
+        
+        # Complexity filter
+        complexity_layout = QHBoxLayout()
+        complexity_layout.addWidget(QLabel("Level:"))
+        self.complexity_combo = QComboBox()
+        self.complexity_combo.addItem("All Levels")
+        for level in self.corpus_manager.get_complexity_levels():
+            self.complexity_combo.addItem(level.title(), level)
+        self.complexity_combo.currentTextChanged.connect(self.filter_corpus_examples)
+        complexity_layout.addWidget(self.complexity_combo)
+        corpus_layout.addLayout(complexity_layout)
+        
+        # Examples dropdown
         self.corpus_combo = QComboBox()
         self.populate_corpus_dropdown()
         corpus_layout.addWidget(self.corpus_combo)
@@ -360,39 +392,15 @@ class GraphEditor(QMainWindow):
         return panel
     
     def load_corpus_examples(self):
-        """Load corpus examples from the corpus directory."""
+        """Load corpus examples using the corpus manager."""
         try:
-            corpus_dir = Path(__file__).parent.parent.parent / "corpus" / "corpus"
+            self.corpus_manager.discover_examples()
+            print(f"Loaded {len(self.corpus_manager.examples)} corpus examples")
             
-            if not corpus_dir.exists():
-                print(f"Warning: Corpus directory not found at {corpus_dir}")
-                return
-            
-            # Find all .clif files in corpus subdirectories
-            for clif_file in corpus_dir.rglob("*.clif"):
-                try:
-                    # Read the CLIF content
-                    with open(clif_file, 'r', encoding='utf-8') as f:
-                        clif_content = f.read().strip()
-                    
-                    # Create a display name from the file path
-                    relative_path = clif_file.relative_to(corpus_dir)
-                    category = relative_path.parts[0] if len(relative_path.parts) > 1 else "misc"
-                    filename = clif_file.stem
-                    
-                    display_name = f"{category}: {filename}"
-                    
-                    self.corpus_examples[display_name] = {
-                        'clif': clif_content,
-                        'file_path': str(clif_file),
-                        'category': category,
-                        'filename': filename
-                    }
-                    
-                except Exception as e:
-                    print(f"Warning: Could not load {clif_file}: {e}")
-            
-            print(f"Loaded {len(self.corpus_examples)} corpus examples")
+            # Print statistics
+            stats = self.corpus_manager.get_statistics()
+            print(f"Categories: {list(stats['categories'].keys())}")
+            print(f"Complexity levels: {list(stats['complexity_levels'].keys())}")
             
         except Exception as e:
             print(f"Error loading corpus examples: {e}")
@@ -401,15 +409,50 @@ class GraphEditor(QMainWindow):
         """Populate the corpus dropdown with available examples."""
         self.corpus_combo.clear()
         
-        if not self.corpus_examples:
-            self.corpus_combo.addItem("No corpus examples found")
+        examples = self.get_filtered_examples()
+        
+        if not examples:
+            self.corpus_combo.addItem("No examples found")
             return
         
-        # Sort examples by category and name
-        sorted_examples = sorted(self.corpus_examples.keys())
+        # Group examples by category for better organization
+        current_category = None
+        for example in examples:
+            # Add category separator if needed
+            if example.category != current_category:
+                if current_category is not None:
+                    # Add separator
+                    self.corpus_combo.addItem("─" * 30)
+                    self.corpus_combo.setItemData(self.corpus_combo.count() - 1, None)
+                current_category = example.category
+                
+            # Add example with complexity indicator
+            display_text = f"{example.display_name}"
+            if example.complexity_level != 'unknown':
+                display_text += f" ({example.complexity_level})"
+                
+            self.corpus_combo.addItem(display_text)
+            self.corpus_combo.setItemData(self.corpus_combo.count() - 1, example.name)
+    
+    def get_filtered_examples(self):
+        """Get examples filtered by current category and complexity selections."""
+        examples = self.corpus_manager.get_all_examples()
         
-        for example_name in sorted_examples:
-            self.corpus_combo.addItem(example_name)
+        # Filter by category
+        category_filter = self.category_combo.currentData()
+        if category_filter:
+            examples = [ex for ex in examples if ex.category == category_filter]
+            
+        # Filter by complexity
+        complexity_filter = self.complexity_combo.currentData()
+        if complexity_filter:
+            examples = [ex for ex in examples if ex.complexity_level == complexity_filter]
+            
+        return examples
+        
+    def filter_corpus_examples(self):
+        """Update the corpus dropdown based on filter selections."""
+        self.populate_corpus_dropdown()
     
     def parse_clif(self):
         """Parse the CLIF input using backend API."""
@@ -437,31 +480,41 @@ class GraphEditor(QMainWindow):
     
     def load_corpus_example(self):
         """Load the selected corpus example using backend API."""
-        selected_example = self.corpus_combo.currentText()
-        print(f"DEBUG: Loading corpus example: {selected_example}")
+        selected_index = self.corpus_combo.currentIndex()
+        example_name = self.corpus_combo.itemData(selected_index)
         
-        if selected_example not in self.corpus_examples:
-            print(f"DEBUG: Example not found: {selected_example}")
+        if not example_name:
+            print("DEBUG: No valid example selected")
+            return
+            
+        example = self.corpus_manager.get_example(example_name)
+        if not example:
+            print(f"DEBUG: Example not found: {example_name}")
             return
         
-        example_data = self.corpus_examples[selected_example]
-        clif_text = example_data['clif']
-        print(f"DEBUG: CLIF text: {clif_text}")
+        print(f"DEBUG: Loading corpus example: {example.display_name}")
+        print(f"DEBUG: CLIF text: {example.clif}")
+        
+        if not example.clif:
+            QMessageBox.warning(self, "No CLIF Available", 
+                f"The example '{example.display_name}' does not have a CLIF statement.\n\n"
+                f"This may be an older corpus entry that needs updating.")
+            return
         
         try:
             # Set the CLIF input
-            self.clif_input.setPlainText(clif_text)
+            self.clif_input.setPlainText(example.clif)
             
             # Use backend API to convert CLIF to EGRF
-            egrf_doc = self.backend.clif_to_egrf(clif_text, {
-                'title': example_data['filename'],
-                'description': f"Corpus example from {example_data['category']}"
+            egrf_doc = self.backend.clif_to_egrf(example.clif, {
+                'title': example.name,
+                'description': example.description
             })
             
             print(f"DEBUG: EGRF doc created with {len(egrf_doc.logical_elements)} elements")
             
             # Store and display
-            self.current_clif = clif_text
+            self.current_clif = example.clif
             self.current_egrf = egrf_doc
             
             self.update_displays()
@@ -471,12 +524,12 @@ class GraphEditor(QMainWindow):
             print(f"DEBUG: Error loading corpus example: {error_msg}")
             
             # Check if it's a parsing error for unsupported syntax
-            if "CLIF parse errors" in error_msg and any(unsupported in clif_text for unsupported in ["(or P Q)", "(or ", "bare predicate"]):
+            if "CLIF parse errors" in error_msg and any(unsupported in example.clif for unsupported in ["(or P Q)", "(or ", "bare predicate"]):
                 QMessageBox.warning(self, "Unsupported CLIF Syntax", 
-                    f"The corpus example '{selected_example}' uses CLIF syntax that is not yet supported by the parser.\n\n"
-                    f"CLIF: {clif_text}\n\n"
+                    f"The corpus example '{example.display_name}' uses CLIF syntax that is not yet supported by the parser.\n\n"
+                    f"CLIF: {example.clif}\n\n"
                     f"This example will be skipped. Please select a different corpus example.")
-                print(f"DEBUG: Skipping unsupported CLIF syntax: {clif_text}")
+                print(f"DEBUG: Skipping unsupported CLIF syntax: {example.clif}")
                 
                 # Try to load a different example
                 self.load_next_supported_example()
