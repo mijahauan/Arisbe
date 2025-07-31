@@ -17,10 +17,10 @@ from typing import Dict, List, Tuple
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 try:
-    from test_utilities import run_transformation_test, validate_transformation_constraints
+    from updated_test_utilities import run_transformation_test, validate_transformation_constraints
 except ImportError as e:
     print(f"Import error: {e}")
-    print("Please ensure the test utilities are available")
+    print("Please ensure the updated test utilities are available")
     sys.exit(1)
 
 def run_comprehensive_tests():
