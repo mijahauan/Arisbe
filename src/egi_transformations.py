@@ -1,22 +1,20 @@
 """
-Implementation of the 8 canonical transformation rules for Existential Graphs
-based on Frithjof Dau's formalism.
+Immutable transformation functions for Existential Graphs.
+All transformations are pure functions that return new EGI instances.
+Based on Frithjof Dau's 8 canonical transformation rules.
 """
 
-from typing import List, Set, Dict, Optional, Tuple, Union
-from copy import deepcopy
+from typing import Tuple, Optional, Set, Union
 from enum import Enum
 
-from egi_core import EGI, Context, Vertex, Edge, ElementID, ElementType
-
-
-class TransformationError(Exception):
-    """Exception raised when a transformation is invalid."""
-    pass
+try:
+    from .egi_core import EGI, Context, Vertex, Edge, ElementID, EGIBuilder
+except ImportError:
+    from egi_core import EGI, Context, Vertex, Edge, ElementID, EGIBuilder
 
 
 class TransformationRule(Enum):
-    """Enumeration of the canonical transformation rules."""
+    """The 8 canonical transformation rules."""
     ERASURE = "erasure"
     INSERTION = "insertion"
     ITERATION = "iteration"
@@ -27,446 +25,401 @@ class TransformationRule(Enum):
     ISOLATED_VERTEX_REMOVAL = "isolated_vertex_removal"
 
 
-class EGITransformer:
-    """Implements the canonical transformation rules for EGI instances."""
-    
-    def __init__(self, egi: EGI):
-        """Initialize transformer with an EGI instance."""
-        self.egi = egi
-        self.transformation_log: List[Dict] = []
-    
-    def apply_transformation(self, rule: TransformationRule, **kwargs) -> EGI:
-        """Applies a transformation rule and returns a new EGI instance."""
-        # Create a deep copy to avoid modifying the original
-        new_egi = self._deep_copy_egi()
-        transformer = EGITransformer(new_egi)
-        
-        # Apply the specific rule
-        if rule == TransformationRule.ERASURE:
-            transformer._apply_erasure(**kwargs)
-        elif rule == TransformationRule.INSERTION:
-            transformer._apply_insertion(**kwargs)
-        elif rule == TransformationRule.ITERATION:
-            transformer._apply_iteration(**kwargs)
-        elif rule == TransformationRule.DE_ITERATION:
-            transformer._apply_de_iteration(**kwargs)
-        elif rule == TransformationRule.DOUBLE_CUT_ADDITION:
-            transformer._apply_double_cut_addition(**kwargs)
-        elif rule == TransformationRule.DOUBLE_CUT_REMOVAL:
-            transformer._apply_double_cut_removal(**kwargs)
-        elif rule == TransformationRule.ISOLATED_VERTEX_ADDITION:
-            transformer._apply_isolated_vertex_addition(**kwargs)
-        elif rule == TransformationRule.ISOLATED_VERTEX_REMOVAL:
-            transformer._apply_isolated_vertex_removal(**kwargs)
+class TransformationError(Exception):
+    """Error in transformation application."""
+    pass
+
+
+# Validation functions
+
+def can_erase(egi: EGI, element_id: ElementID) -> bool:
+    """Check if element can be erased (must be in positive context)."""
+    try:
+        if element_id in egi._vertex_map:
+            vertex = egi.get_vertex(element_id)
+            context = egi.get_context(vertex.context_id)
+            return context.is_positive()
+        elif element_id in egi._edge_map:
+            edge = egi.get_edge(element_id)
+            context = egi.get_context(edge.context_id)
+            return context.is_positive()
+        elif element_id in egi._context_map:
+            context = egi.get_context(element_id)
+            if context.id == egi.sheet_id:
+                return False  # Cannot erase sheet
+            parent_context = egi.get_context(context.parent_id)
+            return parent_context.is_positive()
         else:
-            raise ValueError(f"Unknown transformation rule: {rule}")
+            return False
+    except (ValueError, KeyError):
+        return False
+
+
+def can_insert(egi: EGI, context_id: ElementID) -> bool:
+    """Check if element can be inserted (must be in negative context)."""
+    try:
+        context = egi.get_context(context_id)
+        return context.is_negative()
+    except (ValueError, KeyError):
+        return False
+
+
+def can_iterate(egi: EGI, vertex_id: ElementID, target_context_id: ElementID) -> bool:
+    """Check if vertex can be iterated to target context."""
+    try:
+        vertex = egi.get_vertex(vertex_id)
+        source_context = egi.get_context(vertex.context_id)
+        target_context = egi.get_context(target_context_id)
         
-        # Log the transformation
-        transformer.transformation_log.append({
-            'rule': rule.value,
-            'parameters': kwargs
-        })
+        # Target must be nested within source context
+        return _context_encloses(egi, source_context.id, target_context_id)
+    except (ValueError, KeyError):
+        return False
+
+
+def can_de_iterate(egi: EGI, vertex_id: ElementID) -> bool:
+    """Check if vertex can be de-iterated (removed from inner context)."""
+    try:
+        vertex = egi.get_vertex(vertex_id)
+        context = egi.get_context(vertex.context_id)
         
-        return transformer.egi
-    
-    def _deep_copy_egi(self) -> EGI:
-        """Creates a deep copy of the EGI instance."""
-        # Create new EGI with same alphabet
-        new_egi = EGI(deepcopy(self.egi.alphabet))
+        # Must not be in sheet context and must be a copy
+        return context.id != egi.sheet_id
+    except (ValueError, KeyError):
+        return False
+
+
+def can_add_double_cut(egi: EGI, context_id: ElementID) -> bool:
+    """Check if double cut can be added to context."""
+    try:
+        egi.get_context(context_id)
+        return True
+    except (ValueError, KeyError):
+        return False
+
+
+def can_remove_double_cut(egi: EGI, outer_cut_id: ElementID) -> bool:
+    """Check if double cut can be removed."""
+    try:
+        outer_cut = egi.get_context(outer_cut_id)
         
-        # Copy vertices
-        vertex_mapping = {}
-        for vertex_id, vertex in self.egi.vertices.items():
-            # Find corresponding context in new EGI
-            if vertex.context == self.egi.sheet:
-                new_context = new_egi.sheet
-            else:
-                # For now, assume sheet context only - extend as needed
-                new_context = new_egi.sheet
-            
-            new_vertex = new_egi.add_vertex(
-                context=new_context,
-                is_constant=vertex.is_constant,
-                constant_name=vertex.constant_name
-            )
-            new_vertex.properties.update(vertex.properties)
-            vertex_mapping[vertex_id] = new_vertex.id
-        
-        # Copy edges
-        for edge_id, edge in self.egi.edges.items():
-            # Find corresponding context
-            if edge.context == self.egi.sheet:
-                new_context = new_egi.sheet
-            else:
-                new_context = new_egi.sheet
-            
-            # Map incident vertices
-            new_incident_vertices = [vertex_mapping[vid] for vid in edge.incident_vertices]
-            
-            new_edge = new_egi.add_edge(
-                context=new_context,
-                relation_name=edge.relation_name,
-                incident_vertices=new_incident_vertices,
-                check_dominance=False
-            )
-            new_edge.properties.update(edge.properties)
-        
-        return new_egi
-    
-    def _apply_erasure(self, element_id: ElementID) -> None:
-        """
-        Erasure Rule: Remove a subgraph from a positive context.
-        Can only erase from positive (evenly enclosed) contexts.
-        """
-        if element_id in self.egi.vertices:
-            vertex = self.egi.vertices[element_id]
-            if vertex.context.is_negative():
-                raise TransformationError("Cannot erase from negative context")
-            
-            # Remove vertex and all incident edges
-            incident_edges = list(vertex.incident_edges)
-            for edge_id in incident_edges:
-                self._remove_edge(edge_id)
-            self._remove_vertex(element_id)
-            
-        elif element_id in self.egi.edges:
-            edge = self.egi.edges[element_id]
-            if edge.context.is_negative():
-                raise TransformationError("Cannot erase from negative context")
-            
-            self._remove_edge(element_id)
-            
-        elif element_id in self.egi.cuts:
-            cut = self.egi.cuts[element_id]
-            if cut.parent and cut.parent.is_negative():
-                raise TransformationError("Cannot erase from negative context")
-            
-            self._remove_cut(element_id)
-            
-        else:
-            raise TransformationError(f"Element {element_id} not found")
-    
-    def _apply_insertion(self, subgraph: Dict, target_context_id: ElementID) -> None:
-        """
-        Insertion Rule: Add a subgraph to a negative context.
-        Can only insert into negative (oddly enclosed) contexts.
-        """
-        target_context = self.egi.get_context(target_context_id)
-        if target_context.is_positive():
-            raise TransformationError("Cannot insert into positive context")
-        
-        # Insert the subgraph into the target context
-        self._insert_subgraph(subgraph, target_context)
-    
-    def _apply_iteration(self, vertex_id: ElementID, target_context_id: ElementID) -> ElementID:
-        """
-        Iteration Rule: Copy a vertex from an outer context to an inner context.
-        The vertex must be in a context that dominates the target context.
-        """
-        vertex = self.egi.vertices[vertex_id]
-        target_context = self.egi.get_context(target_context_id)
-        
-        # Check that vertex context dominates target context
-        if not self._context_dominates(vertex.context, target_context):
-            raise TransformationError("Source context must dominate target context for iteration")
-        
-        # Create a copy of the vertex in the target context
-        new_vertex = self.egi.add_vertex(
-            context=target_context,
-            is_constant=vertex.is_constant,
-            constant_name=vertex.constant_name
-        )
-        
-        # Copy properties
-        new_vertex.properties.update(vertex.properties)
-        
-        return new_vertex.id
-    
-    def _apply_de_iteration(self, vertex_id: ElementID) -> None:
-        """
-        De-iteration Rule: Remove a vertex that is a copy of another vertex in an outer context.
-        The vertex must be in an inner context and have a corresponding vertex in an outer context.
-        """
-        vertex = self.egi.vertices[vertex_id]
-        
-        # Find corresponding vertex in outer context
-        outer_vertex = self._find_corresponding_outer_vertex(vertex)
-        if not outer_vertex:
-            raise TransformationError("No corresponding vertex found in outer context")
-        
-        # Remove the inner vertex and its edges
-        incident_edges = list(vertex.incident_edges)
-        for edge_id in incident_edges:
-            self._remove_edge(edge_id)
-        self._remove_vertex(vertex_id)
-    
-    def _apply_double_cut_addition(self, target_context_id: ElementID) -> Tuple[ElementID, ElementID]:
-        """
-        Double Cut Addition: Add two nested cuts around a subgraph.
-        Can be applied in any context.
-        """
-        target_context = self.egi.get_context(target_context_id)
-        
-        # Create first cut
-        outer_cut = self.egi.add_cut(target_context)
-        
-        # Create second cut inside the first
-        inner_cut = self.egi.add_cut(outer_cut)
-        
-        return outer_cut.id, inner_cut.id
-    
-    def _apply_double_cut_removal(self, outer_cut_id: ElementID) -> None:
-        """
-        Double Cut Removal: Remove two nested empty cuts.
-        Both cuts must be empty (contain no elements).
-        """
-        outer_cut = self.egi.cuts[outer_cut_id]
-        
-        # Check that outer cut has exactly one child (the inner cut)
+        # Must have exactly one child context
         if len(outer_cut.children) != 1:
-            raise TransformationError("Outer cut must have exactly one child cut")
+            return False
         
         inner_cut_id = next(iter(outer_cut.children))
-        inner_cut = self.egi.cuts[inner_cut_id]
+        inner_cut = egi.get_context(inner_cut_id)
         
-        # Check that both cuts are empty
-        if outer_cut.enclosed_elements or inner_cut.enclosed_elements or inner_cut.children:
-            raise TransformationError("Both cuts must be empty for double cut removal")
-        
-        # Remove both cuts
-        self._remove_cut(inner_cut_id)
-        self._remove_cut(outer_cut_id)
-    
-    def _apply_isolated_vertex_addition(self, target_context_id: ElementID, 
-                                       is_constant: bool = False, 
-                                       constant_name: Optional[str] = None) -> ElementID:
-        """
-        Isolated Vertex Addition: Add an isolated vertex to any context.
-        """
-        target_context = self.egi.get_context(target_context_id)
-        
-        vertex = self.egi.add_vertex(
-            context=target_context,
-            is_constant=is_constant,
-            constant_name=constant_name
-        )
-        
-        return vertex.id
-    
-    def _apply_isolated_vertex_removal(self, vertex_id: ElementID) -> None:
-        """
-        Isolated Vertex Removal: Remove an isolated vertex (no incident edges).
-        """
-        vertex = self.egi.vertices[vertex_id]
-        
-        if not vertex.is_isolated():
-            raise TransformationError("Can only remove isolated vertices")
-        
-        self._remove_vertex(vertex_id)
-    
-    def _remove_vertex(self, vertex_id: ElementID) -> None:
-        """Removes a vertex from the EGI."""
-        vertex = self.egi.vertices[vertex_id]
-        
-        # Remove from context
-        vertex.context.enclosed_elements.discard(vertex_id)
-        
-        # Remove from EGI
-        del self.egi.vertices[vertex_id]
-    
-    def _remove_edge(self, edge_id: ElementID) -> None:
-        """Removes an edge from the EGI."""
-        edge = self.egi.edges[edge_id]
-        
-        # Remove from incident vertices
-        for vertex_id in edge.incident_vertices:
-            if vertex_id in self.egi.vertices:
-                self.egi.vertices[vertex_id].remove_incident_edge(edge_id)
-        
-        # Remove from context
-        edge.context.enclosed_elements.discard(edge_id)
-        
-        # Remove from EGI
-        del self.egi.edges[edge_id]
-        
-        # Update ligatures if this was an identity edge
-        if edge.is_identity:
-            self.egi.ligature_manager.find_ligatures(self.egi)
-    
-    def _remove_cut(self, cut_id: ElementID) -> None:
-        """Removes a cut from the EGI."""
-        cut = self.egi.cuts[cut_id]
-        
-        # Remove from parent's children
-        if cut.parent:
-            cut.parent.children.discard(cut_id)
-        
-        # Remove all enclosed elements
-        for element_id in list(cut.enclosed_elements):
-            if element_id in self.egi.vertices:
-                self._remove_vertex(element_id)
-            elif element_id in self.egi.edges:
-                self._remove_edge(element_id)
-        
-        # Remove all child cuts
-        for child_cut_id in list(cut.children):
-            self._remove_cut(child_cut_id)
-        
-        # Remove from EGI
-        del self.egi.cuts[cut_id]
-    
-    def _insert_subgraph(self, subgraph: Dict, target_context: Context) -> None:
-        """Inserts a subgraph into the target context."""
-        # This is a simplified implementation
-        # In practice, you'd need to handle vertex mapping and edge reconstruction
-        
-        # Add vertices
-        vertex_mapping = {}
-        for vertex_data in subgraph.get('vertices', []):
-            new_vertex = self.egi.add_vertex(
-                context=target_context,
-                is_constant=vertex_data.get('is_constant', False),
-                constant_name=vertex_data.get('constant_name')
-            )
-            vertex_mapping[vertex_data['id']] = new_vertex.id
-        
-        # Add edges
-        for edge_data in subgraph.get('edges', []):
-            incident_vertices = [vertex_mapping[vid] for vid in edge_data['incident_vertices']]
-            self.egi.add_edge(
-                context=target_context,
-                relation_name=edge_data['relation_name'],
-                incident_vertices=incident_vertices,
-                check_dominance=False
-            )
-    
-    def _context_dominates(self, outer_context: Context, inner_context: Context) -> bool:
-        """Returns True if outer_context dominates inner_context."""
-        current = inner_context
-        while current is not None:
-            if current == outer_context:
-                return True
-            current = current.parent
+        # Both cuts must be empty
+        return (len(outer_cut.enclosed_elements) == 0 and 
+                len(inner_cut.enclosed_elements) == 0 and
+                len(inner_cut.children) == 0)
+    except (ValueError, KeyError):
         return False
-    
-    def _find_corresponding_outer_vertex(self, vertex: Vertex) -> Optional[Vertex]:
-        """Finds a corresponding vertex in an outer context."""
-        # Look for vertices with same properties in outer contexts
-        current_context = vertex.context.parent
-        
-        while current_context is not None:
-            for other_vertex in self.egi.vertices.values():
-                if (other_vertex.context == current_context and
-                    other_vertex.is_constant == vertex.is_constant and
-                    other_vertex.constant_name == vertex.constant_name):
-                    return other_vertex
-            current_context = current_context.parent
-        
-        return None
-    
-    def validate_transformation(self, rule: TransformationRule, **kwargs) -> bool:
-        """Validates whether a transformation can be applied without actually applying it."""
-        try:
-            # Create a temporary copy and try the transformation
-            temp_egi = self._deep_copy_egi()
-            temp_transformer = EGITransformer(temp_egi)
-            temp_transformer.apply_transformation(rule, **kwargs)
-            return True
-        except TransformationError:
-            return False
-    
-    def get_applicable_rules(self, element_id: Optional[ElementID] = None) -> List[TransformationRule]:
-        """Returns a list of transformation rules that can be applied."""
-        applicable = []
-        
-        # Check each rule
-        for rule in TransformationRule:
-            if rule == TransformationRule.ERASURE and element_id:
-                if self.validate_transformation(rule, element_id=element_id):
-                    applicable.append(rule)
-            elif rule == TransformationRule.DOUBLE_CUT_ADDITION:
-                # Can always add double cut to any context
-                applicable.append(rule)
-            elif rule == TransformationRule.ISOLATED_VERTEX_ADDITION:
-                # Can always add isolated vertex to any context
-                applicable.append(rule)
-            # Add more rule checks as needed
-        
-        return applicable
 
 
-# Convenience functions
+def can_add_isolated_vertex(egi: EGI, context_id: ElementID) -> bool:
+    """Check if isolated vertex can be added."""
+    try:
+        context = egi.get_context(context_id)
+        return context.is_negative()
+    except (ValueError, KeyError):
+        return False
+
+
+def can_remove_isolated_vertex(egi: EGI, vertex_id: ElementID) -> bool:
+    """Check if isolated vertex can be removed."""
+    try:
+        vertex = egi.get_vertex(vertex_id)
+        context = egi.get_context(vertex.context_id)
+        
+        # Must be isolated and in positive context
+        return context.is_positive() and egi.is_vertex_isolated(vertex_id)
+    except (ValueError, KeyError):
+        return False
+
+
+# Helper functions
+
+def _context_encloses(egi: EGI, outer_context_id: ElementID, inner_context_id: ElementID) -> bool:
+    """Check if outer context encloses inner context."""
+    if outer_context_id == inner_context_id:
+        return True
+    
+    try:
+        current_context = egi.get_context(inner_context_id)
+        while current_context.parent_id:
+            if current_context.parent_id == outer_context_id:
+                return True
+            current_context = egi.get_context(current_context.parent_id)
+        return False
+    except (ValueError, KeyError):
+        return False
+
+
+def _find_vertex_copies(egi: EGI, original_vertex_id: ElementID) -> Set[ElementID]:
+    """Find all copies of a vertex (vertices with same ID in different contexts)."""
+    original_vertex = egi.get_vertex(original_vertex_id)
+    copies = set()
+    
+    for vertex in egi.vertices:
+        if (vertex.id == original_vertex.id and 
+            vertex.context_id != original_vertex.context_id):
+            copies.add(vertex.id)
+    
+    return copies
+
+
+# Transformation functions
+
 def apply_erasure(egi: EGI, element_id: ElementID) -> EGI:
-    """Convenience function to apply erasure rule."""
-    transformer = EGITransformer(egi)
-    return transformer.apply_transformation(TransformationRule.ERASURE, element_id=element_id)
+    """Apply erasure transformation, returning new EGI."""
+    if not can_erase(egi, element_id):
+        raise TransformationError("Cannot erase from negative context")
+    
+    if element_id in egi._vertex_map:
+        return egi.without_vertex(element_id)
+    elif element_id in egi._edge_map:
+        return egi.without_edge(element_id)
+    elif element_id in egi._context_map:
+        return egi.without_context(element_id)
+    else:
+        raise TransformationError(f"Element {element_id} not found")
 
 
-def apply_insertion(egi: EGI, subgraph: Dict, target_context_id: ElementID) -> EGI:
-    """Convenience function to apply insertion rule."""
-    transformer = EGITransformer(egi)
-    return transformer.apply_transformation(TransformationRule.INSERTION, 
-                                          subgraph=subgraph, 
-                                          target_context_id=target_context_id)
+def apply_insertion(egi: EGI, element: Union[Vertex, Edge, Context], context_id: ElementID) -> EGI:
+    """Apply insertion transformation, returning new EGI."""
+    if not can_insert(egi, context_id):
+        raise TransformationError("Cannot insert into positive context")
+    
+    if isinstance(element, Vertex):
+        # Update vertex to be in target context
+        new_vertex = element.in_context(context_id)
+        return egi.with_vertex(new_vertex)
+    elif isinstance(element, Edge):
+        # Update edge to be in target context
+        new_edge = element.in_context(context_id)
+        return egi.with_edge(new_edge)
+    elif isinstance(element, Context):
+        # Update context to have target as parent
+        new_context = Context(
+            id=element.id,
+            parent_id=context_id,
+            depth=egi.get_context(context_id).depth + 1,
+            enclosed_elements=element.enclosed_elements,
+            children=element.children
+        )
+        return egi.with_context(new_context)
+    else:
+        raise TransformationError(f"Invalid element type for insertion: {type(element)}")
 
 
-def apply_double_cut_addition(egi: EGI, target_context_id: ElementID) -> EGI:
-    """Convenience function to apply double cut addition."""
-    transformer = EGITransformer(egi)
-    return transformer.apply_transformation(TransformationRule.DOUBLE_CUT_ADDITION, 
-                                          target_context_id=target_context_id)
+def apply_iteration(egi: EGI, vertex_id: ElementID, target_context_id: ElementID) -> EGI:
+    """Apply iteration transformation, returning new EGI."""
+    if not can_iterate(egi, vertex_id, target_context_id):
+        raise TransformationError("Cannot iterate vertex to target context")
+    
+    original_vertex = egi.get_vertex(vertex_id)
+    
+    # Create copy of vertex in target context
+    # Use builder to generate new ID for the copy
+    builder = EGIBuilder(egi.alphabet)
+    copy_vertex_id = builder._generate_id()
+    
+    copy_vertex = Vertex(
+        id=copy_vertex_id,
+        context_id=target_context_id,
+        is_constant=original_vertex.is_constant,
+        constant_name=original_vertex.constant_name,
+        properties=original_vertex.properties
+    )
+    
+    return egi.with_vertex(copy_vertex)
+
+
+def apply_de_iteration(egi: EGI, vertex_id: ElementID) -> EGI:
+    """Apply de-iteration transformation, returning new EGI."""
+    if not can_de_iterate(egi, vertex_id):
+        raise TransformationError("Cannot de-iterate vertex from sheet context")
+    
+    return egi.without_vertex(vertex_id)
+
+
+def apply_double_cut_addition(egi: EGI, context_id: ElementID) -> EGI:
+    """Apply double cut addition, returning new EGI."""
+    if not can_add_double_cut(egi, context_id):
+        raise TransformationError("Cannot add double cut to invalid context")
+    
+    target_context = egi.get_context(context_id)
+    
+    # Create outer cut
+    builder = EGIBuilder(egi.alphabet)
+    outer_cut_id = builder._generate_id()
+    outer_cut = Context(
+        id=outer_cut_id,
+        parent_id=context_id,
+        depth=target_context.depth + 1,
+        enclosed_elements=frozenset(),
+        children=frozenset()
+    )
+    
+    # Create inner cut
+    inner_cut_id = builder._generate_id()
+    inner_cut = Context(
+        id=inner_cut_id,
+        parent_id=outer_cut_id,
+        depth=target_context.depth + 2,
+        enclosed_elements=frozenset(),
+        children=frozenset()
+    )
+    
+    # Update outer cut to have inner as child
+    outer_cut = outer_cut.with_child(inner_cut_id)
+    
+    # Add both contexts
+    result_egi = egi.with_context(outer_cut).with_context(inner_cut)
+    
+    return result_egi
 
 
 def apply_double_cut_removal(egi: EGI, outer_cut_id: ElementID) -> EGI:
-    """Convenience function to apply double cut removal."""
-    transformer = EGITransformer(egi)
-    return transformer.apply_transformation(TransformationRule.DOUBLE_CUT_REMOVAL, 
-                                          outer_cut_id=outer_cut_id)
+    """Apply double cut removal, returning new EGI."""
+    if not can_remove_double_cut(egi, outer_cut_id):
+        raise TransformationError("Cannot remove non-empty double cut")
+    
+    outer_cut = egi.get_context(outer_cut_id)
+    inner_cut_id = next(iter(outer_cut.children))
+    
+    # Remove both contexts
+    return egi.without_context(outer_cut_id)
+
+
+def apply_isolated_vertex_addition(egi: EGI, context_id: ElementID, 
+                                   is_constant: bool = False, 
+                                   constant_name: Optional[str] = None) -> EGI:
+    """Apply isolated vertex addition, returning new EGI."""
+    if not can_add_isolated_vertex(egi, context_id):
+        raise TransformationError("Cannot add isolated vertex to positive context")
+    
+    # Create new isolated vertex
+    builder = EGIBuilder(egi.alphabet)
+    vertex_id = builder._generate_id()
+    
+    vertex = Vertex(
+        id=vertex_id,
+        context_id=context_id,
+        is_constant=is_constant,
+        constant_name=constant_name
+    )
+    
+    return egi.with_vertex(vertex)
+
+
+def apply_isolated_vertex_removal(egi: EGI, vertex_id: ElementID) -> EGI:
+    """Apply isolated vertex removal, returning new EGI."""
+    if not can_remove_isolated_vertex(egi, vertex_id):
+        raise TransformationError("Cannot remove non-isolated vertex or vertex in negative context")
+    
+    return egi.without_vertex(vertex_id)
+
+
+# High-level transformation interface
+
+def apply_transformation(egi: EGI, rule: TransformationRule, **kwargs) -> EGI:
+    """Apply transformation rule to EGI, returning new EGI."""
+    
+    if rule == TransformationRule.ERASURE:
+        element_id = kwargs.get('element_id')
+        if not element_id:
+            raise TransformationError("Erasure requires element_id")
+        return apply_erasure(egi, element_id)
+    
+    elif rule == TransformationRule.INSERTION:
+        element = kwargs.get('element')
+        context_id = kwargs.get('context_id')
+        if not element or not context_id:
+            raise TransformationError("Insertion requires element and context_id")
+        return apply_insertion(egi, element, context_id)
+    
+    elif rule == TransformationRule.ITERATION:
+        vertex_id = kwargs.get('vertex_id')
+        target_context_id = kwargs.get('target_context_id')
+        if not vertex_id or not target_context_id:
+            raise TransformationError("Iteration requires vertex_id and target_context_id")
+        return apply_iteration(egi, vertex_id, target_context_id)
+    
+    elif rule == TransformationRule.DE_ITERATION:
+        vertex_id = kwargs.get('vertex_id')
+        if not vertex_id:
+            raise TransformationError("De-iteration requires vertex_id")
+        return apply_de_iteration(egi, vertex_id)
+    
+    elif rule == TransformationRule.DOUBLE_CUT_ADDITION:
+        context_id = kwargs.get('context_id')
+        if not context_id:
+            raise TransformationError("Double cut addition requires context_id")
+        return apply_double_cut_addition(egi, context_id)
+    
+    elif rule == TransformationRule.DOUBLE_CUT_REMOVAL:
+        outer_cut_id = kwargs.get('outer_cut_id')
+        if not outer_cut_id:
+            raise TransformationError("Double cut removal requires outer_cut_id")
+        return apply_double_cut_removal(egi, outer_cut_id)
+    
+    elif rule == TransformationRule.ISOLATED_VERTEX_ADDITION:
+        context_id = kwargs.get('context_id')
+        if not context_id:
+            raise TransformationError("Isolated vertex addition requires context_id")
+        is_constant = kwargs.get('is_constant', False)
+        constant_name = kwargs.get('constant_name')
+        return apply_isolated_vertex_addition(egi, context_id, is_constant, constant_name)
+    
+    elif rule == TransformationRule.ISOLATED_VERTEX_REMOVAL:
+        vertex_id = kwargs.get('vertex_id')
+        if not vertex_id:
+            raise TransformationError("Isolated vertex removal requires vertex_id")
+        return apply_isolated_vertex_removal(egi, vertex_id)
+    
+    else:
+        raise TransformationError(f"Unknown transformation rule: {rule}")
 
 
 # Test the transformations
 if __name__ == "__main__":
-    from egif_parser import parse_egif
-    from egif_generator import generate_egif
+    print("Testing immutable transformations...")
     
-    print("Testing EGI Transformations...\n")
-    
-    # Test simple transformations without deep copy
-    egif = "(man *x)"
-    egi = parse_egif(egif)
-    print(f"Original: {egif}")
-    print(f"Vertices: {len(egi.vertices)}, Edges: {len(egi.edges)}")
-    
-    # Test isolated vertex addition directly
-    transformer = EGITransformer(egi)
     try:
-        new_vertex_id = transformer._apply_isolated_vertex_addition(
-            target_context_id=egi.sheet_id,
-            is_constant=True,
-            constant_name="Socrates"
-        )
-        new_egif = generate_egif(transformer.egi)
-        print(f"After adding isolated vertex: {new_egif}")
-    except Exception as e:
-        print(f"Isolated vertex addition failed: {e}")
+        from .egif_parser import parse_egif
+    except ImportError:
+        from egif_parser import parse_egif
     
-    # Test double cut addition directly
-    try:
-        outer_cut_id, inner_cut_id = transformer._apply_double_cut_addition(egi.sheet_id)
-        print(f"Added double cut: outer={outer_cut_id}, inner={inner_cut_id}")
-        print(f"Cuts in EGI: {len(transformer.egi.cuts)}")
-    except Exception as e:
-        print(f"Double cut addition failed: {e}")
+    # Test erasure
+    egi = parse_egif("(man *x) (human x)")
+    print(f"Original: {len(egi.edges)} edges")
     
-    # Test erasure directly
-    if transformer.egi.edges:
-        edge_id = next(iter(transformer.egi.edges.keys()))
-        try:
-            transformer._apply_erasure(edge_id)
-            new_egif = generate_egif(transformer.egi)
-            print(f"After erasure: {new_egif}")
-        except Exception as e:
-            print(f"Erasure failed: {e}")
+    # Get first edge
+    edge_id = next(iter(egi._edge_map.keys()))
+    new_egi = apply_erasure(egi, edge_id)
+    print(f"After erasure: {len(new_egi.edges)} edges")
+    print(f"Original unchanged: {len(egi.edges)} edges")
     
-    print("\nTransformation testing completed!")
+    # Test double cut addition
+    egi = parse_egif("(phoenix *x)")
+    new_egi = apply_double_cut_addition(egi, egi.sheet_id)
+    print(f"After double cut addition: {len(new_egi.contexts)} contexts")
+    
+    # Test double cut removal
+    outer_cuts = [c for c in new_egi.contexts if c.parent_id == egi.sheet_id]
+    if outer_cuts:
+        outer_cut = outer_cuts[0]
+        final_egi = apply_double_cut_removal(new_egi, outer_cut.id)
+        print(f"After double cut removal: {len(final_egi.contexts)} contexts")
+    
+    # Test isolated vertex addition
+    egi = parse_egif("~[ (man *x) ]")
+    neg_context = [c for c in egi.contexts if c.is_negative()][0]
+    new_egi = apply_isolated_vertex_addition(egi, neg_context.id)
+    print(f"After isolated vertex addition: {len(new_egi.vertices)} vertices")
+    
+    print("✓ Immutable transformations working correctly!")
 

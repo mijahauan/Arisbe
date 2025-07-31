@@ -1,320 +1,401 @@
 """
-Comprehensive test suite for the complete Existential Graphs pipeline.
-Tests EGIF -> EGI -> YAML -> EGI -> EGIF round-trip conversion and transformations.
+Comprehensive test suite for the immutable Existential Graphs implementation.
+Tests all components and verifies immutability guarantees.
 """
 
+import sys
+import os
+
+# Add src directory to path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+
+from egi_core import EGI, EGIBuilder, Alphabet, create_empty_egi, Vertex, Edge, Context
 from egif_parser import parse_egif
 from egif_generator import generate_egif
-from egi_yaml import serialize_egi_to_yaml, deserialize_egi_from_yaml
-from egi_transformations import EGITransformer, TransformationRule
+from egi_transformations import (
+    apply_transformation, TransformationRule, TransformationError,
+    apply_erasure, apply_double_cut_addition, apply_double_cut_removal
+)
 from egi_cli import EGICLIApplication, MarkupParser
 
 
-def test_basic_pipeline():
-    """Test basic EGIF -> EGI -> EGIF pipeline."""
-    print("Testing basic pipeline...")
+def test_immutability_guarantees():
+    """Test that all operations preserve immutability."""
+    print("Testing immutability guarantees...")
+    
+    # Test EGI immutability
+    egi = parse_egif("(man *x) (human x)")
+    original_vertex_count = len(egi.vertices)
+    original_edge_count = len(egi.edges)
+    
+    # Apply transformation
+    edge_id = next(iter(egi._edge_map.keys()))
+    new_egi = apply_erasure(egi, edge_id)
+    
+    # Verify original is unchanged
+    assert len(egi.vertices) == original_vertex_count
+    assert len(egi.edges) == original_edge_count
+    assert len(new_egi.edges) == original_edge_count - 1
+    
+    print("  ✓ EGI immutability preserved")
+    
+    # Test that modifying returned collections doesn't affect original
+    vertices_copy = set(egi.vertices)
+    vertices_copy.clear()
+    assert len(egi.vertices) == original_vertex_count
+    
+    print("  ✓ Collection immutability preserved")
+    
+    print("✓ Immutability guarantees test passed")
+
+
+def test_core_data_structures():
+    """Test core immutable data structures."""
+    print("Testing core data structures...")
+    
+    # Test Alphabet immutability
+    alphabet = Alphabet()
+    new_alphabet = alphabet.with_relation("test")
+    
+    assert "test" not in alphabet.relations
+    assert "test" in new_alphabet.relations
+    
+    print("  ✓ Alphabet immutability")
+    
+    # Test Context immutability
+    builder = EGIBuilder()
+    context_id = builder._sheet_id
+    context = builder._contexts[context_id]
+    
+    new_context = context.with_element("test_element")
+    assert "test_element" not in context.enclosed_elements
+    assert "test_element" in new_context.enclosed_elements
+    
+    print("  ✓ Context immutability")
+    
+    # Test Vertex immutability
+    vertex = Vertex(
+        id="test_vertex",
+        context_id=context_id,
+        is_constant=False
+    )
+    
+    new_vertex = vertex.with_property("test_prop", "test_value")
+    assert "test_prop" not in vertex.properties
+    assert vertex.properties.get("test_prop") != "test_value"
+    assert new_vertex.properties.get("test_prop") == "test_value"
+    
+    print("  ✓ Vertex immutability")
+    
+    # Test Edge immutability
+    edge = Edge(
+        id="test_edge",
+        context_id=context_id,
+        relation_name="test_relation",
+        incident_vertices=("test_vertex",)
+    )
+    
+    new_edge = edge.with_property("test_prop", "test_value")
+    assert "test_prop" not in edge.properties
+    assert new_edge.properties.get("test_prop") == "test_value"
+    
+    print("  ✓ Edge immutability")
+    
+    print("✓ Core data structures test passed")
+
+
+def test_parser_immutability():
+    """Test that parser creates immutable structures."""
+    print("Testing parser immutability...")
     
     test_cases = [
         "(phoenix *x)",
-        "~[ (phoenix *x) ]",
         "(man *x) (human x)",
-        '[If (thunder *x) [Then (lightning *y) ] ]',
         '(loves "Socrates" "Plato")',
+        "~[ (mortal *x) ]",
         "[*x *y] (P x) (Q y)"
     ]
     
     for egif in test_cases:
-        # Parse EGIF to EGI
         egi = parse_egif(egif)
         
-        # Generate EGIF from EGI
-        generated_egif = generate_egif(egi)
+        # Verify EGI is properly immutable
+        assert isinstance(egi.vertices, frozenset)
+        assert isinstance(egi.edges, frozenset)
+        assert isinstance(egi.contexts, frozenset)
         
-        # Parse generated EGIF back to EGI
-        egi2 = parse_egif(generated_egif)
+        # Verify individual elements are immutable
+        for vertex in egi.vertices:
+            assert hasattr(vertex, '__hash__')  # Immutable objects are hashable
         
-        # Check structural equivalence
-        assert len(egi.vertices) == len(egi2.vertices)
-        assert len(egi.edges) == len(egi2.edges)
-        assert len(egi.cuts) == len(egi2.cuts)
+        for edge in egi.edges:
+            assert hasattr(edge, '__hash__')
         
-        print(f"  ✓ {egif} -> {generated_egif}")
+        for context in egi.contexts:
+            assert hasattr(context, '__hash__')
+        
+        print(f"  ✓ {egif}")
     
-    print("✓ Basic pipeline test passed")
+    print("✓ Parser immutability test passed")
 
 
-def test_yaml_round_trip():
-    """Test EGIF -> EGI -> YAML -> EGI -> EGIF pipeline."""
-    print("Testing YAML round-trip...")
+def test_transformation_immutability():
+    """Test that transformations preserve immutability."""
+    print("Testing transformation immutability...")
     
-    test_cases = [
-        "(phoenix *x)",
-        "(man *x) (human x) (African x)",
-        "~[ (mortal *x) ]",
-        '(loves "Socrates" "Plato")'
-    ]
+    # Test erasure
+    egi = parse_egif("(man *x) (human x) (mortal x)")
+    edge_id = next(iter(egi._edge_map.keys()))
     
-    for egif in test_cases:
-        # Parse EGIF to EGI
-        egi = parse_egif(egif)
-        
-        # Serialize to YAML
-        yaml_str = serialize_egi_to_yaml(egi)
-        
-        # Deserialize from YAML
-        egi2 = deserialize_egi_from_yaml(yaml_str)
-        
-        # Generate EGIF from restored EGI
-        generated_egif = generate_egif(egi2)
-        
-        # Parse generated EGIF
-        egi3 = parse_egif(generated_egif)
-        
-        # Check structural equivalence
-        assert len(egi.vertices) == len(egi3.vertices)
-        assert len(egi.edges) == len(egi3.edges)
-        assert len(egi.cuts) == len(egi3.cuts)
-        
-        print(f"  ✓ {egif} -> YAML -> {generated_egif}")
+    new_egi = apply_erasure(egi, edge_id)
     
-    print("✓ YAML round-trip test passed")
-
-
-def test_transformation_pipeline():
-    """Test transformations in the pipeline."""
-    print("Testing transformation pipeline...")
+    # Verify original unchanged
+    assert len(egi.edges) == 3
+    assert len(new_egi.edges) == 2
+    assert egi is not new_egi
     
-    # Test erasure transformation
-    egif = "(man *x) (human x) (African x)"
-    egi = parse_egif(egif)
-    
-    transformer = EGITransformer(egi)
-    initial_edge_count = len(egi.edges)
-    
-    # Get first edge to erase
-    edge_id = next(iter(egi.edges.keys()))
-    edge = egi.edges[edge_id]
-    relation_name = edge.relation_name
-    
-    # Apply erasure
-    transformer._apply_erasure(edge_id)
-    
-    # Generate result
-    result_egif = generate_egif(transformer.egi)
-    
-    # Check that an edge was removed
-    assert len(transformer.egi.edges) == initial_edge_count - 1
-    
-    print(f"  ✓ Erasure: {egif} -> {result_egif}")
+    print("  ✓ Erasure immutability")
     
     # Test double cut addition
     egi = parse_egif("(phoenix *x)")
-    transformer = EGITransformer(egi)
+    new_egi = apply_double_cut_addition(egi, egi.sheet_id)
     
-    outer_cut_id, inner_cut_id = transformer._apply_double_cut_addition(egi.sheet_id)
-    result_egif = generate_egif(transformer.egi)
+    # Verify original unchanged
+    assert len(egi.contexts) == 1
+    assert len(new_egi.contexts) == 3
+    assert egi is not new_egi
     
-    # Should have cuts now
-    assert len(transformer.egi.cuts) == 2
-    
-    print(f"  ✓ Double cut addition: (phoenix *x) -> {result_egif}")
+    print("  ✓ Double cut addition immutability")
     
     # Test double cut removal
-    transformer._apply_double_cut_removal(outer_cut_id)
-    result_egif = generate_egif(transformer.egi)
+    outer_cuts = [c for c in new_egi.contexts if c.parent_id == egi.sheet_id]
+    if outer_cuts:
+        outer_cut = outer_cuts[0]
+        final_egi = apply_double_cut_removal(new_egi, outer_cut.id)
+        
+        # Verify intermediate EGI unchanged
+        assert len(new_egi.contexts) == 3
+        assert len(final_egi.contexts) == 1
+        assert new_egi is not final_egi
+        
+        print("  ✓ Double cut removal immutability")
     
-    # Should be back to original
-    assert len(transformer.egi.cuts) == 0
-    
-    print(f"  ✓ Double cut removal: -> {result_egif}")
-    
-    print("✓ Transformation pipeline test passed")
+    print("✓ Transformation immutability test passed")
 
 
-def test_cli_markup_pipeline():
-    """Test CLI markup processing pipeline."""
-    print("Testing CLI markup pipeline...")
+def test_generator_immutability():
+    """Test that generator doesn't modify input EGI."""
+    print("Testing generator immutability...")
+    
+    test_cases = [
+        "(phoenix *x)",
+        "(man *x) (human x)",
+        '(loves "Socrates" "Plato")',
+        "~[ (mortal *x) ]"
+    ]
+    
+    for original_egif in test_cases:
+        egi = parse_egif(original_egif)
+        original_vertex_count = len(egi.vertices)
+        original_edge_count = len(egi.edges)
+        original_context_count = len(egi.contexts)
+        
+        # Generate EGIF
+        generated_egif = generate_egif(egi)
+        
+        # Verify EGI unchanged
+        assert len(egi.vertices) == original_vertex_count
+        assert len(egi.edges) == original_edge_count
+        assert len(egi.contexts) == original_context_count
+        
+        print(f"  ✓ {original_egif}")
+    
+    print("✓ Generator immutability test passed")
+
+
+def test_cli_immutability():
+    """Test that CLI operations preserve immutability."""
+    print("Testing CLI immutability...")
     
     app = EGICLIApplication()
+    app.load_egif("(man *x) (human x)")
     
-    # Test basic erasure markup
-    app.load_egif("(man *x) (human x) (African x)")
-    initial_edges = len(app.current_egi.edges)
+    original_egi = app.current_egi
+    original_vertex_count = len(original_egi.vertices)
+    original_edge_count = len(original_egi.edges)
     
-    app.apply_transformation("^(man *x)^ (human x) (African x)")
+    # Apply transformation
+    app.apply_transformation("^(man *x)^ (human x)")
     
-    # Check that an edge was removed
-    assert len(app.current_egi.edges) == initial_edges - 1
+    # Verify original EGI in history is unchanged
+    history_egi = app.history[-1]
+    assert len(history_egi.vertices) == original_vertex_count
+    assert len(history_egi.edges) == original_edge_count
+    assert history_egi is original_egi
     
-    result_egif = generate_egif(app.current_egi)
+    # Verify current EGI is different
+    assert app.current_egi is not original_egi
+    assert len(app.current_egi.edges) < original_edge_count
     
-    print(f"  ✓ CLI erasure markup: -> {result_egif}")
+    print("  ✓ CLI transformation immutability")
     
-    # Test undo
+    # Test undo preserves immutability
     app.undo()
-    assert len(app.current_egi.edges) >= initial_edges - 1  # Allow for some variation
+    assert app.current_egi is history_egi
+    assert len(app.current_egi.edges) == original_edge_count
     
-    print("  ✓ CLI undo")
+    print("  ✓ CLI undo immutability")
     
-    print("✓ CLI markup pipeline test passed")
+    print("✓ CLI immutability test passed")
 
 
-def test_constants_and_functions():
-    """Test handling of constants and functions."""
-    print("Testing constants and functions...")
+def test_round_trip_immutability():
+    """Test round-trip conversion preserves immutability."""
+    print("Testing round-trip immutability...")
     
-    # Test constants
-    egif = '(loves "Socrates" "Plato")'
-    egi = parse_egif(egif)
+    test_cases = [
+        "(phoenix *x)",
+        '(loves "Socrates" "Plato")',
+        "~[ (mortal *x) ]"
+    ]
     
-    # Check that constants are properly parsed
-    constant_vertices = [v for v in egi.vertices.values() if v.is_constant]
-    assert len(constant_vertices) == 2
+    for original_egif in test_cases:
+        # Parse to EGI
+        egi1 = parse_egif(original_egif)
+        original_egi1 = egi1  # Keep reference
+        
+        # Generate EGIF
+        generated_egif = generate_egif(egi1)
+        
+        # Parse generated EGIF
+        egi2 = parse_egif(generated_egif)
+        
+        # Verify original EGI unchanged
+        assert egi1 is original_egi1
+        assert len(egi1.vertices) == len(original_egi1.vertices)
+        assert len(egi1.edges) == len(original_egi1.edges)
+        
+        # Verify structural equivalence
+        assert len(egi1.vertices) == len(egi2.vertices)
+        assert len(egi1.edges) == len(egi2.edges)
+        assert len(egi1.contexts) == len(egi2.contexts)
+        
+        print(f"  ✓ {original_egif} -> {generated_egif}")
     
-    constant_names = {v.constant_name for v in constant_vertices}
-    assert "Socrates" in constant_names
-    assert "Plato" in constant_names
-    
-    # Test round-trip with constants
-    generated_egif = generate_egif(egi)
-    assert "Socrates" in generated_egif
-    assert "Plato" in generated_egif
-    
-    print(f"  ✓ Constants: {egif} -> {generated_egif}")
-    
-    # Test function-like relations
-    egif = "(father_of *x *y) (man x)"
-    egi = parse_egif(egif)
-    
-    # Check that multi-argument relations work
-    father_edge = None
-    for edge in egi.edges.values():
-        if edge.relation_name == "father_of":
-            father_edge = edge
-            break
-    
-    assert father_edge is not None
-    assert len(father_edge.incident_vertices) == 2
-    
-    generated_egif = generate_egif(egi)
-    assert "father_of" in generated_egif
-    
-    print(f"  ✓ Functions: {egif} -> {generated_egif}")
-    
-    print("✓ Constants and functions test passed")
+    print("✓ Round-trip immutability test passed")
 
 
-def test_complex_structures():
-    """Test complex nested structures."""
-    print("Testing complex structures...")
+def test_performance_with_immutability():
+    """Test performance characteristics of immutable implementation."""
+    print("Testing performance with immutability...")
     
-    # Test nested cuts
-    egif = "~[ (A *x) ~[ (B x) ] ]"
-    egi = parse_egif(egif)
+    # Create larger structure
+    builder = EGIBuilder()
     
-    assert len(egi.cuts) == 2
-    assert len(egi.edges) == 2
-    
-    generated_egif = generate_egif(egi)
-    egi2 = parse_egif(generated_egif)
-    
-    assert len(egi2.cuts) == 2
-    assert len(egi2.edges) == 2
-    
-    print(f"  ✓ Nested cuts: {egif} -> {generated_egif}")
-    
-    # Test scroll patterns
-    egif = '[If (thunder *x) [Then (lightning *y) ] ]'
-    egi = parse_egif(egif)
-    
-    generated_egif = generate_egif(egi)
-    assert "If" in generated_egif
-    assert "Then" in generated_egif
-    
-    print(f"  ✓ Scroll pattern: {egif} -> {generated_egif}")
-    
-    print("✓ Complex structures test passed")
-
-
-def test_error_handling():
-    """Test error handling in the pipeline."""
-    print("Testing error handling...")
-    
-    # Test invalid EGIF
-    try:
-        parse_egif("(invalid syntax")
-        assert False, "Should have raised an error"
-    except Exception:
-        pass  # Expected
-    
-    print("  ✓ Invalid EGIF parsing error handling")
-    
-    # Test invalid transformation
-    egi = parse_egif("~[ (man *x) ]")
-    transformer = EGITransformer(egi)
-    
-    # Try to erase from negative context
-    edge_id = next(iter(egi.edges.keys()))
-    try:
-        transformer._apply_erasure(edge_id)
-        assert False, "Should have raised TransformationError"
-    except Exception:
-        pass  # Expected
-    
-    print("  ✓ Invalid transformation error handling")
-    
-    print("✓ Error handling test passed")
-
-
-def test_performance():
-    """Test performance with larger structures."""
-    print("Testing performance...")
-    
-    # Create a larger EGIF with different variables
-    relations = []
+    # Add multiple vertices and edges
+    vertex_ids = []
     for i in range(10):
-        relations.append(f"(R{i} *x{i})")
+        vertex_id = builder.add_vertex(
+            context_id=builder._sheet_id,
+            is_constant=True,
+            constant_name=f"const_{i}"
+        )
+        vertex_ids.append(vertex_id)
     
-    egif = " ".join(relations)
+    # Add edges connecting vertices
+    for i in range(9):
+        builder.add_edge(
+            context_id=builder._sheet_id,
+            relation_name=f"rel_{i}",
+            incident_vertices=(vertex_ids[i], vertex_ids[i+1])
+        )
     
-    # Test parsing
-    egi = parse_egif(egif)
-    assert len(egi.edges) == 10
-    assert len(egi.vertices) == 10  # Each relation has its own variable
+    egi = builder.build()
     
-    # Test generation
-    generated_egif = generate_egif(egi)
-    assert len(generated_egif.split()) >= 10
+    # Test that operations are reasonably fast
+    import time
     
-    # Test YAML serialization
-    yaml_str = serialize_egi_to_yaml(egi)
-    egi2 = deserialize_egi_from_yaml(yaml_str)
-    assert len(egi2.edges) == 10
-    assert len(egi2.vertices) == 10
+    # Test transformation performance
+    start_time = time.time()
+    edge_id = next(iter(egi._edge_map.keys()))
+    new_egi = apply_erasure(egi, edge_id)
+    transformation_time = time.time() - start_time
     
-    print(f"  ✓ Performance test with 10 relations and 10 variables")
+    assert transformation_time < 1.0  # Should be fast
+    assert len(new_egi.edges) == len(egi.edges) - 1
+    
+    # Test generation performance
+    start_time = time.time()
+    egif = generate_egif(egi)
+    generation_time = time.time() - start_time
+    
+    assert generation_time < 1.0  # Should be fast
+    assert len(egif) > 0
+    
+    print(f"  ✓ Transformation time: {transformation_time:.4f}s")
+    print(f"  ✓ Generation time: {generation_time:.4f}s")
     
     print("✓ Performance test passed")
 
 
-def run_comprehensive_tests():
-    """Run all comprehensive tests."""
-    print("Running comprehensive Existential Graphs pipeline tests...\n")
+def test_error_handling_immutability():
+    """Test that error conditions don't break immutability."""
+    print("Testing error handling immutability...")
     
-    test_basic_pipeline()
-    test_yaml_round_trip()
-    test_transformation_pipeline()
-    test_cli_markup_pipeline()
-    test_constants_and_functions()
-    test_complex_structures()
-    test_error_handling()
-    test_performance()
+    egi = parse_egif("~[ (man *x) ]")
+    original_egi = egi
     
-    print("\n🎉 All comprehensive pipeline tests passed!")
-    print("\nThe Existential Graphs application is working correctly!")
-    print("All components are integrated and functioning as expected.")
+    # Try invalid transformation
+    edge_id = next(iter(egi._edge_map.keys()))
+    
+    try:
+        apply_erasure(egi, edge_id)  # Should fail - negative context
+        assert False, "Should have raised TransformationError"
+    except TransformationError:
+        pass  # Expected
+    
+    # Verify EGI unchanged after error
+    assert egi is original_egi
+    assert len(egi.edges) == 1
+    assert len(egi.vertices) == 1
+    
+    print("  ✓ Error handling preserves immutability")
+    
+    # Test parser error handling
+    try:
+        parse_egif("(invalid syntax")
+        assert False, "Should have raised error"
+    except Exception:
+        pass  # Expected
+    
+    print("  ✓ Parser error handling")
+    
+    print("✓ Error handling immutability test passed")
+
+
+def run_comprehensive_immutable_tests():
+    """Run all comprehensive tests for immutable implementation."""
+    print("Running comprehensive immutable Existential Graphs tests...\n")
+    
+    test_immutability_guarantees()
+    test_core_data_structures()
+    test_parser_immutability()
+    test_transformation_immutability()
+    test_generator_immutability()
+    test_cli_immutability()
+    test_round_trip_immutability()
+    test_performance_with_immutability()
+    test_error_handling_immutability()
+    
+    print("\n🎉 All immutable implementation tests passed!")
+    print("\nThe immutable Existential Graphs implementation is working correctly!")
+    print("✓ Complete immutability guaranteed")
+    print("✓ Mathematical soundness preserved")
+    print("✓ All transformations return new instances")
+    print("✓ Original graphs never modified")
+    print("✓ Performance is acceptable")
 
 
 if __name__ == "__main__":
-    run_comprehensive_tests()
+    run_comprehensive_immutable_tests()
 

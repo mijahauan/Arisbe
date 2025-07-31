@@ -1,0 +1,14 @@
+# Arisbe Dau-Compliant Existential Graphs System Requirements
+
+# Core dependencies
+frozendict>=2.3.0
+
+# Testing dependencies (optional)
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Development dependencies (optional)
+black>=22.0.0
+mypy>=1.0.0
+flake8>=5.0.0
+

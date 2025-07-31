@@ -1,430 +1,603 @@
 """
-Core data structures for Existential Graph Instances (EGI)
-Based on Frithjof Dau's formalism and property hypergraph model.
+Immutable core data structures for Existential Graphs.
+Based on Frithjof Dau's formalism with complete immutability.
 """
 
-from typing import Union, Set, List, Dict, Optional, Tuple, Any
-from enum import Enum
-import uuid
 from dataclasses import dataclass, field
+from typing import FrozenSet, Tuple, Optional, Dict, Any, Union
+from frozendict import frozendict
+import uuid
+from enum import Enum
+
+# Type aliases
+ElementID = str
 
 
 class ElementType(Enum):
+    """Types of elements in an EGI."""
     VERTEX = "vertex"
-    EDGE = "edge" 
-    CUT = "cut"
-    SHEET = "sheet"
+    EDGE = "edge"
+    CONTEXT = "context"
 
 
 @dataclass(frozen=True)
-class ElementID:
-    """Immutable identifier for graph elements."""
-    value: str = field(default_factory=lambda: str(uuid.uuid4()))
-    element_type: ElementType = field(default=ElementType.VERTEX)
+class Alphabet:
+    """Immutable alphabet defining available relations, constants, and variables."""
+    relations: FrozenSet[str] = field(default_factory=frozenset)
+    constants: FrozenSet[str] = field(default_factory=frozenset)
+    variables: FrozenSet[str] = field(default_factory=frozenset)
     
-    def __str__(self) -> str:
-        return f"{self.element_type.value}_{self.value[:8]}"
+    def with_relation(self, relation: str) -> 'Alphabet':
+        """Returns new alphabet with additional relation."""
+        return Alphabet(
+            relations=self.relations | {relation},
+            constants=self.constants,
+            variables=self.variables
+        )
+    
+    def with_constant(self, constant: str) -> 'Alphabet':
+        """Returns new alphabet with additional constant."""
+        return Alphabet(
+            relations=self.relations,
+            constants=self.constants | {constant},
+            variables=self.variables
+        )
+    
+    def with_variable(self, variable: str) -> 'Alphabet':
+        """Returns new alphabet with additional variable."""
+        return Alphabet(
+            relations=self.relations,
+            constants=self.constants,
+            variables=self.variables | {variable}
+        )
 
 
-@dataclass
+@dataclass(frozen=True)
 class Context:
-    """Represents a context in the EGI (either a cut or the sheet of assertion)."""
+    """Immutable context representing a cut or the sheet of assertion."""
     id: ElementID
-    parent: Optional['Context'] = None
-    children: Set[ElementID] = field(default_factory=set)  # Store IDs instead of objects
-    enclosed_elements: Set[ElementID] = field(default_factory=set)
-    depth: int = 0
-    
-    def __hash__(self):
-        return hash(self.id)
+    parent_id: Optional[ElementID]
+    depth: int
+    enclosed_elements: FrozenSet[ElementID] = field(default_factory=frozenset)
+    children: FrozenSet[ElementID] = field(default_factory=frozenset)
     
     def is_positive(self) -> bool:
-        """Returns True if this context is positive (evenly enclosed)."""
+        """Returns True if context has even depth (positive)."""
         return self.depth % 2 == 0
     
     def is_negative(self) -> bool:
-        """Returns True if this context is negative (oddly enclosed)."""
+        """Returns True if context has odd depth (negative)."""
         return self.depth % 2 == 1
     
-    def add_child(self, child: 'Context') -> None:
-        """Adds a child context and updates the hierarchy."""
-        child.parent = self
-        child.depth = self.depth + 1
-        self.children.add(child.id)
+    def with_element(self, element_id: ElementID) -> 'Context':
+        """Returns new context with additional enclosed element."""
+        return Context(
+            id=self.id,
+            parent_id=self.parent_id,
+            depth=self.depth,
+            enclosed_elements=self.enclosed_elements | {element_id},
+            children=self.children
+        )
     
-    def encloses(self, element_id: ElementID) -> bool:
-        """Returns True if this context directly encloses the given element."""
-        return element_id in self.enclosed_elements
+    def without_element(self, element_id: ElementID) -> 'Context':
+        """Returns new context without specified element."""
+        return Context(
+            id=self.id,
+            parent_id=self.parent_id,
+            depth=self.depth,
+            enclosed_elements=self.enclosed_elements - {element_id},
+            children=self.children
+        )
     
-    def encloses_transitively(self, element_id: ElementID, egi: 'EGI') -> bool:
-        """Returns True if this context encloses the element directly or indirectly."""
-        if self.encloses(element_id):
-            return True
-        # Need EGI reference to look up child contexts
-        for child_id in self.children:
-            child_context = egi.get_context(child_id)
-            if child_context.encloses_transitively(element_id, egi):
-                return True
+    def with_child(self, child_id: ElementID) -> 'Context':
+        """Returns new context with additional child."""
+        return Context(
+            id=self.id,
+            parent_id=self.parent_id,
+            depth=self.depth,
+            enclosed_elements=self.enclosed_elements,
+            children=self.children | {child_id}
+        )
+    
+    def without_child(self, child_id: ElementID) -> 'Context':
+        """Returns new context without specified child."""
+        return Context(
+            id=self.id,
+            parent_id=self.parent_id,
+            depth=self.depth,
+            enclosed_elements=self.enclosed_elements,
+            children=self.children - {child_id}
+        )
+
+
+@dataclass(frozen=True)
+class Vertex:
+    """Immutable vertex representing an individual (variable or constant)."""
+    id: ElementID
+    context_id: ElementID
+    is_constant: bool
+    constant_name: Optional[str] = None
+    properties: frozendict = field(default_factory=frozendict)
+    
+    def __post_init__(self):
+        """Validate vertex constraints."""
+        if self.is_constant and not self.constant_name:
+            raise ValueError("Constant vertex must have constant_name")
+        if not self.is_constant and self.constant_name:
+            raise ValueError("Variable vertex cannot have constant_name")
+    
+    def with_property(self, key: str, value: Any) -> 'Vertex':
+        """Returns new vertex with additional property."""
+        new_properties = dict(self.properties)
+        new_properties[key] = value
+        return Vertex(
+            id=self.id,
+            context_id=self.context_id,
+            is_constant=self.is_constant,
+            constant_name=self.constant_name,
+            properties=frozendict(new_properties)
+        )
+    
+    def in_context(self, context_id: ElementID) -> 'Vertex':
+        """Returns new vertex in different context (for iteration)."""
+        return Vertex(
+            id=self.id,
+            context_id=context_id,
+            is_constant=self.is_constant,
+            constant_name=self.constant_name,
+            properties=self.properties
+        )
+    
+    def is_isolated(self) -> bool:
+        """Returns True if vertex has no incident edges."""
+        # This will be determined by the EGI that contains this vertex
+        # For now, return False as a placeholder
         return False
 
 
-@dataclass
-class Vertex:
-    """Represents a vertex in the EGI."""
-    id: ElementID
-    context: Context
-    is_constant: bool = False
-    constant_name: Optional[str] = None
-    properties: Dict[str, Any] = field(default_factory=dict)
-    incident_edges: Set[ElementID] = field(default_factory=set)
-    
-    def __post_init__(self):
-        """Validates vertex consistency after initialization."""
-        if self.is_constant and self.constant_name is None:
-            raise ValueError("Constant vertices must have a constant_name")
-        if not self.is_constant and self.constant_name is not None:
-            raise ValueError("Generic vertices cannot have a constant_name")
-        
-        # Ensure vertex is properly registered with its context
-        self.context.enclosed_elements.add(self.id)
-    
-    def add_incident_edge(self, edge_id: ElementID) -> None:
-        """Registers an edge as incident to this vertex."""
-        self.incident_edges.add(edge_id)
-    
-    def remove_incident_edge(self, edge_id: ElementID) -> None:
-        """Removes an edge from the incident edges set."""
-        self.incident_edges.discard(edge_id)
-    
-    def is_isolated(self) -> bool:
-        """Returns True if this vertex has no incident edges."""
-        return len(self.incident_edges) == 0
-    
-    def degree(self) -> int:
-        """Returns the number of edges incident to this vertex."""
-        return len(self.incident_edges)
-
-
-@dataclass
+@dataclass(frozen=True)
 class Edge:
-    """Represents a hyperedge in the EGI."""
+    """Immutable edge representing a relation or identity."""
     id: ElementID
-    context: Context
+    context_id: ElementID
     relation_name: str
-    arity: int
-    incident_vertices: List[ElementID]  # Ordered list for n-adic relations
+    incident_vertices: Tuple[ElementID, ...]
     is_identity: bool = False
-    properties: Dict[str, Any] = field(default_factory=dict)
+    properties: frozendict = field(default_factory=frozendict)
     
     def __post_init__(self):
-        """Validates edge consistency after initialization."""
-        if len(self.incident_vertices) != self.arity:
-            raise ValueError(f"Edge arity {self.arity} does not match vertex count {len(self.incident_vertices)}")
-        
-        if self.is_identity and self.arity != 2:
-            raise ValueError("Identity edges must have arity 2")
-        
+        """Validate edge constraints."""
         if self.is_identity and self.relation_name != "=":
-            raise ValueError("Identity edges must have relation_name '='")
-        
-        # Ensure edge is properly registered with its context
-        self.context.enclosed_elements.add(self.id)
+            raise ValueError("Identity edge must have relation_name '='")
+        if self.is_identity and len(self.incident_vertices) < 2:
+            raise ValueError("Identity edge must have at least 2 vertices")
+        if len(self.incident_vertices) == 0:
+            raise ValueError("Edge must have at least 1 incident vertex")
     
-    def connects(self, vertex_id: ElementID) -> bool:
-        """Returns True if this edge is incident to the given vertex."""
-        return vertex_id in self.incident_vertices
-    
-    def get_other_vertex(self, vertex_id: ElementID) -> Optional[ElementID]:
-        """For binary edges, returns the other vertex. None if not binary or vertex not found."""
-        if self.arity != 2 or vertex_id not in self.incident_vertices:
-            return None
-        return next(v for v in self.incident_vertices if v != vertex_id)
-    
-    def is_strict_identity(self, egi: 'EGI') -> bool:
-        """Returns True if this is a strict identity edge (both vertices in same context)."""
-        if not self.is_identity:
-            return False
-        
-        v1_context = egi.get_vertex(self.incident_vertices[0]).context
-        v2_context = egi.get_vertex(self.incident_vertices[1]).context
-        return v1_context == self.context and v2_context == self.context
-
-
-@dataclass
-class Ligature:
-    """Represents a connected component of identity edges and vertices."""
-    id: ElementID
-    vertices: Set[ElementID]
-    identity_edges: Set[ElementID]
-    is_connected: bool = True
-    
-    def __post_init__(self):
-        """Validates ligature consistency."""
-        if len(self.vertices) < 1:
-            raise ValueError("Ligature must contain at least one vertex")
-    
-    def add_vertex(self, vertex_id: ElementID) -> None:
-        """Adds a vertex to this ligature."""
-        self.vertices.add(vertex_id)
-    
-    def add_identity_edge(self, edge_id: ElementID) -> None:
-        """Adds an identity edge to this ligature."""
-        self.identity_edges.add(edge_id)
-    
-    def merge_with(self, other: 'Ligature') -> 'Ligature':
-        """Merges this ligature with another, returning a new ligature."""
-        merged_vertices = self.vertices.union(other.vertices)
-        merged_edges = self.identity_edges.union(other.identity_edges)
-        
-        return Ligature(
-            id=ElementID(element_type=ElementType.VERTEX),
-            vertices=merged_vertices,
-            identity_edges=merged_edges
+    def with_property(self, key: str, value: Any) -> 'Edge':
+        """Returns new edge with additional property."""
+        new_properties = dict(self.properties)
+        new_properties[key] = value
+        return Edge(
+            id=self.id,
+            context_id=self.context_id,
+            relation_name=self.relation_name,
+            incident_vertices=self.incident_vertices,
+            is_identity=self.is_identity,
+            properties=frozendict(new_properties)
         )
     
-    def size(self) -> int:
-        """Returns the number of vertices in this ligature."""
-        return len(self.vertices)
+    def in_context(self, context_id: ElementID) -> 'Edge':
+        """Returns new edge in different context."""
+        return Edge(
+            id=self.id,
+            context_id=context_id,
+            relation_name=self.relation_name,
+            incident_vertices=self.incident_vertices,
+            is_identity=self.is_identity,
+            properties=self.properties
+        )
 
 
-class LigatureManager:
-    """Manages ligature detection and maintenance in an EGI."""
-    
-    def __init__(self):
-        self.ligatures: Dict[ElementID, Ligature] = {}
-        self.vertex_to_ligature: Dict[ElementID, ElementID] = {}
-    
-    def find_ligatures(self, egi: 'EGI') -> None:
-        """Discovers all ligatures in the given EGI using union-find algorithm."""
-        # Reset ligature tracking
-        self.ligatures.clear()
-        self.vertex_to_ligature.clear()
-        
-        # Initialize each vertex as its own ligature
-        for vertex_id in egi.vertices:
-            ligature_id = ElementID(element_type=ElementType.VERTEX)
-            ligature = Ligature(
-                id=ligature_id,
-                vertices={vertex_id},
-                identity_edges=set()
-            )
-            self.ligatures[ligature_id] = ligature
-            self.vertex_to_ligature[vertex_id] = ligature_id
-        
-        # Process identity edges to merge ligatures
-        for edge in egi.edges.values():
-            if edge.is_identity:
-                v1_id, v2_id = edge.incident_vertices
-                self._union_vertices(v1_id, v2_id, edge.id)
-    
-    def _union_vertices(self, v1_id: ElementID, v2_id: ElementID, edge_id: ElementID) -> None:
-        """Merges the ligatures containing the two vertices."""
-        lig1_id = self._find_ligature(v1_id)
-        lig2_id = self._find_ligature(v2_id)
-        
-        if lig1_id == lig2_id:
-            # Vertices already in same ligature, just add the edge
-            self.ligatures[lig1_id].add_identity_edge(edge_id)
-            return
-        
-        # Merge the smaller ligature into the larger one
-        lig1 = self.ligatures[lig1_id]
-        lig2 = self.ligatures[lig2_id]
-        
-        if lig1.size() < lig2.size():
-            lig1, lig2 = lig2, lig1
-            lig1_id, lig2_id = lig2_id, lig1_id
-        
-        # Merge lig2 into lig1
-        lig1.vertices.update(lig2.vertices)
-        lig1.identity_edges.update(lig2.identity_edges)
-        lig1.add_identity_edge(edge_id)
-        
-        # Update vertex mappings
-        for vertex_id in lig2.vertices:
-            self.vertex_to_ligature[vertex_id] = lig1_id
-        
-        # Remove the merged ligature
-        del self.ligatures[lig2_id]
-    
-    def _find_ligature(self, vertex_id: ElementID) -> ElementID:
-        """Finds the ligature containing the given vertex."""
-        return self.vertex_to_ligature[vertex_id]
-    
-    def get_ligature_for_vertex(self, vertex_id: ElementID) -> Optional[Ligature]:
-        """Returns the ligature containing the given vertex."""
-        ligature_id = self.vertex_to_ligature.get(vertex_id)
-        return self.ligatures.get(ligature_id) if ligature_id else None
-    
-    def are_vertices_connected(self, v1_id: ElementID, v2_id: ElementID) -> bool:
-        """Returns True if the two vertices are in the same ligature."""
-        return self._find_ligature(v1_id) == self._find_ligature(v2_id)
-
-
-@dataclass
-class Alphabet:
-    """Manages relation names and their arities for an EGI."""
-    
-    def __init__(self):
-        self.relations: Dict[str, int] = {}
-        # Identity relation is always present
-        self.relations["="] = 2
-    
-    def add_relation(self, name: str, arity: int) -> None:
-        """Adds a relation name with its arity to the alphabet."""
-        if arity < 0:
-            raise ValueError("Relation arity must be non-negative")
-        
-        if name in self.relations and self.relations[name] != arity:
-            raise ValueError(f"Relation {name} already exists with different arity")
-        
-        self.relations[name] = arity
-    
-    def is_valid_relation(self, name: str, arity: int) -> bool:
-        """Returns True if the relation name and arity are valid."""
-        return name in self.relations and self.relations[name] == arity
-    
-    def get_arity(self, name: str) -> Optional[int]:
-        """Returns the arity of the given relation name."""
-        return self.relations.get(name)
-    
-    def get_all_relations(self) -> Dict[str, int]:
-        """Returns a copy of all relations in the alphabet."""
-        return self.relations.copy()
-
-
+@dataclass(frozen=True)
 class EGI:
-    """Complete Existential Graph Instance implementation."""
+    """Immutable Existential Graph Instance."""
+    vertices: FrozenSet[Vertex]
+    edges: FrozenSet[Edge]
+    contexts: FrozenSet[Context]
+    sheet_id: ElementID
+    alphabet: Alphabet
     
-    def __init__(self, alphabet: Optional[Alphabet] = None):
-        """Initializes an empty EGI with optional alphabet specification."""
-        self.vertices: Dict[ElementID, Vertex] = {}
-        self.edges: Dict[ElementID, Edge] = {}
-        self.cuts: Dict[ElementID, Context] = {}
-        
-        # Sheet of assertion (root context)
-        self.sheet_id = ElementID(element_type=ElementType.SHEET)
-        self.sheet = Context(id=self.sheet_id, depth=0)
-        
-        # Ligature management
-        self.ligature_manager = LigatureManager()
-        
-        # Alphabet for relation names and arities
-        self.alphabet = alphabet or Alphabet()
-        
-        # Transformation history for debugging and validation
-        self.transformation_history: List[Dict] = []
+    # Computed properties for efficient lookup
+    _vertex_map: frozendict = field(init=False)
+    _edge_map: frozendict = field(init=False)
+    _context_map: frozendict = field(init=False)
+    _vertex_edges_map: frozendict = field(init=False)  # vertex_id -> set of edge_ids
     
-    def add_vertex(self, context: Context, is_constant: bool = False, 
-                   constant_name: Optional[str] = None) -> Vertex:
-        """Adds a new vertex to the EGI."""
-        vertex_id = ElementID(element_type=ElementType.VERTEX)
+    def __post_init__(self):
+        """Build lookup maps for efficient access."""
+        # Build basic lookup maps
+        vertex_map = {v.id: v for v in self.vertices}
+        edge_map = {e.id: e for e in self.edges}
+        context_map = {c.id: c for c in self.contexts}
+        
+        # Build vertex-edges mapping
+        vertex_edges = {}
+        for vertex in self.vertices:
+            vertex_edges[vertex.id] = frozenset()
+        
+        for edge in self.edges:
+            for vertex_id in edge.incident_vertices:
+                if vertex_id in vertex_edges:
+                    vertex_edges[vertex_id] = vertex_edges[vertex_id] | {edge.id}
+        
+        # Set computed properties
+        object.__setattr__(self, '_vertex_map', frozendict(vertex_map))
+        object.__setattr__(self, '_edge_map', frozendict(edge_map))
+        object.__setattr__(self, '_context_map', frozendict(context_map))
+        object.__setattr__(self, '_vertex_edges_map', frozendict(vertex_edges))
+        
+        # Validate sheet exists
+        if self.sheet_id not in self._context_map:
+            raise ValueError(f"Sheet context {self.sheet_id} not found")
+        
+        # Validate all vertices and edges reference valid contexts
+        for vertex in self.vertices:
+            if vertex.context_id not in self._context_map:
+                raise ValueError(f"Vertex {vertex.id} references invalid context {vertex.context_id}")
+        
+        for edge in self.edges:
+            if edge.context_id not in self._context_map:
+                raise ValueError(f"Edge {edge.id} references invalid context {edge.context_id}")
+            
+            # Validate all incident vertices exist
+            for vertex_id in edge.incident_vertices:
+                if vertex_id not in self._vertex_map:
+                    raise ValueError(f"Edge {edge.id} references invalid vertex {vertex_id}")
+    
+    @property
+    def sheet(self) -> Context:
+        """Returns the sheet of assertion."""
+        return self._context_map[self.sheet_id]
+    
+    def get_vertex(self, vertex_id: ElementID) -> Vertex:
+        """Get vertex by ID."""
+        if vertex_id not in self._vertex_map:
+            raise ValueError(f"Vertex {vertex_id} not found")
+        return self._vertex_map[vertex_id]
+    
+    def get_edge(self, edge_id: ElementID) -> Edge:
+        """Get edge by ID."""
+        if edge_id not in self._edge_map:
+            raise ValueError(f"Edge {edge_id} not found")
+        return self._edge_map[edge_id]
+    
+    def get_context(self, context_id: ElementID) -> Context:
+        """Get context by ID."""
+        if context_id not in self._context_map:
+            raise ValueError(f"Context {context_id} not found")
+        return self._context_map[context_id]
+    
+    def get_vertex_edges(self, vertex_id: ElementID) -> FrozenSet[ElementID]:
+        """Get all edges incident to a vertex."""
+        if vertex_id not in self._vertex_edges_map:
+            return frozenset()
+        return self._vertex_edges_map[vertex_id]
+    
+    def is_vertex_isolated(self, vertex_id: ElementID) -> bool:
+        """Returns True if vertex has no incident edges."""
+        return len(self.get_vertex_edges(vertex_id)) == 0
+    
+    def with_vertex(self, vertex: Vertex) -> 'EGI':
+        """Returns new EGI with additional vertex."""
+        # Update context to include vertex
+        context = self.get_context(vertex.context_id)
+        updated_context = context.with_element(vertex.id)
+        
+        return EGI(
+            vertices=self.vertices | {vertex},
+            edges=self.edges,
+            contexts=(self.contexts - {context}) | {updated_context},
+            sheet_id=self.sheet_id,
+            alphabet=self.alphabet
+        )
+    
+    def without_vertex(self, vertex_id: ElementID) -> 'EGI':
+        """Returns new EGI without specified vertex."""
+        vertex = self.get_vertex(vertex_id)
+        context = self.get_context(vertex.context_id)
+        updated_context = context.without_element(vertex_id)
+        
+        # Remove all edges incident to this vertex
+        remaining_edges = {e for e in self.edges if vertex_id not in e.incident_vertices}
+        
+        # Update contexts to remove the incident edges
+        updated_contexts = {updated_context}
+        for edge in self.edges:
+            if vertex_id in edge.incident_vertices:
+                edge_context = self.get_context(edge.context_id)
+                if edge_context.id != context.id:
+                    updated_edge_context = edge_context.without_element(edge.id)
+                    updated_contexts.add(updated_edge_context)
+        
+        # Add all other contexts that weren't modified
+        for ctx in self.contexts:
+            if ctx.id not in {c.id for c in updated_contexts}:
+                updated_contexts.add(ctx)
+        
+        return EGI(
+            vertices=self.vertices - {vertex},
+            edges=frozenset(remaining_edges),
+            contexts=frozenset(updated_contexts),
+            sheet_id=self.sheet_id,
+            alphabet=self.alphabet
+        )
+    
+    def with_edge(self, edge: Edge) -> 'EGI':
+        """Returns new EGI with additional edge."""
+        context = self.get_context(edge.context_id)
+        updated_context = context.with_element(edge.id)
+        
+        return EGI(
+            vertices=self.vertices,
+            edges=self.edges | {edge},
+            contexts=(self.contexts - {context}) | {updated_context},
+            sheet_id=self.sheet_id,
+            alphabet=self.alphabet
+        )
+    
+    def without_edge(self, edge_id: ElementID) -> 'EGI':
+        """Returns new EGI without specified edge."""
+        edge = self.get_edge(edge_id)
+        context = self.get_context(edge.context_id)
+        updated_context = context.without_element(edge_id)
+        
+        return EGI(
+            vertices=self.vertices,
+            edges=self.edges - {edge},
+            contexts=(self.contexts - {context}) | {updated_context},
+            sheet_id=self.sheet_id,
+            alphabet=self.alphabet
+        )
+    
+    def with_context(self, context: Context) -> 'EGI':
+        """Returns new EGI with additional context."""
+        updated_contexts = self.contexts | {context}
+        
+        # Update parent context if exists
+        if context.parent_id:
+            parent = self.get_context(context.parent_id)
+            updated_parent = parent.with_child(context.id)
+            updated_contexts = (updated_contexts - {parent}) | {updated_parent}
+        
+        return EGI(
+            vertices=self.vertices,
+            edges=self.edges,
+            contexts=updated_contexts,
+            sheet_id=self.sheet_id,
+            alphabet=self.alphabet
+        )
+    
+    def without_context(self, context_id: ElementID) -> 'EGI':
+        """Returns new EGI without specified context and all its contents."""
+        if context_id == self.sheet_id:
+            raise ValueError("Cannot remove sheet context")
+        
+        context = self.get_context(context_id)
+        
+        # Remove all elements in this context
+        vertices_to_remove = {v for v in self.vertices if v.context_id == context_id}
+        edges_to_remove = {e for e in self.edges if e.context_id == context_id}
+        
+        # Remove all child contexts recursively
+        contexts_to_remove = {context}
+        contexts_to_check = list(context.children)
+        
+        while contexts_to_check:
+            child_id = contexts_to_check.pop()
+            child_context = self.get_context(child_id)
+            contexts_to_remove.add(child_context)
+            contexts_to_check.extend(child_context.children)
+            
+            # Remove elements in child contexts
+            vertices_to_remove.update(v for v in self.vertices if v.context_id == child_id)
+            edges_to_remove.update(e for e in self.edges if e.context_id == child_id)
+        
+        # Update parent context
+        updated_contexts = self.contexts - contexts_to_remove
+        if context.parent_id:
+            parent = self.get_context(context.parent_id)
+            updated_parent = parent.without_child(context_id)
+            updated_contexts = (updated_contexts - {parent}) | {updated_parent}
+        
+        return EGI(
+            vertices=self.vertices - vertices_to_remove,
+            edges=self.edges - edges_to_remove,
+            contexts=updated_contexts,
+            sheet_id=self.sheet_id,
+            alphabet=self.alphabet
+        )
+    
+    def replace_vertex(self, old_vertex: Vertex, new_vertex: Vertex) -> 'EGI':
+        """Returns new EGI with vertex replaced."""
+        return self.without_vertex(old_vertex.id).with_vertex(new_vertex)
+    
+    def replace_edge(self, old_edge: Edge, new_edge: Edge) -> 'EGI':
+        """Returns new EGI with edge replaced."""
+        return self.without_edge(old_edge.id).with_edge(new_edge)
+    
+    def replace_context(self, old_context: Context, new_context: Context) -> 'EGI':
+        """Returns new EGI with context replaced."""
+        if old_context.id == self.sheet_id:
+            # Special handling for sheet replacement
+            return EGI(
+                vertices=self.vertices,
+                edges=self.edges,
+                contexts=(self.contexts - {old_context}) | {new_context},
+                sheet_id=new_context.id,
+                alphabet=self.alphabet
+            )
+        else:
+            return EGI(
+                vertices=self.vertices,
+                edges=self.edges,
+                contexts=(self.contexts - {old_context}) | {new_context},
+                sheet_id=self.sheet_id,
+                alphabet=self.alphabet
+            )
+
+
+class EGIBuilder:
+    """Builder for constructing EGI instances incrementally."""
+    
+    def __init__(self, alphabet: Optional[Alphabet] = None, sheet_id: Optional[ElementID] = None):
+        self._alphabet = alphabet or Alphabet()
+        self._sheet_id = sheet_id or self._generate_id()
+        self._vertices: Dict[ElementID, Vertex] = {}
+        self._edges: Dict[ElementID, Edge] = {}
+        self._contexts: Dict[ElementID, Context] = {}
+        
+        # Create sheet context
+        self._contexts[self._sheet_id] = Context(
+            id=self._sheet_id,
+            parent_id=None,
+            depth=0,
+            enclosed_elements=frozenset(),
+            children=frozenset()
+        )
+    
+    def add_vertex(self, context_id: ElementID, is_constant: bool = False, 
+                   constant_name: Optional[str] = None, vertex_id: Optional[ElementID] = None,
+                   **properties) -> ElementID:
+        """Add vertex and return its ID."""
+        if vertex_id is None:
+            vertex_id = self._generate_id()
+        
         vertex = Vertex(
             id=vertex_id,
-            context=context,
+            context_id=context_id,
             is_constant=is_constant,
-            constant_name=constant_name
+            constant_name=constant_name,
+            properties=frozendict(properties)
         )
+        self._vertices[vertex_id] = vertex
         
-        self.vertices[vertex_id] = vertex
-        self._validate_dominating_nodes()
-        return vertex
+        # Update context
+        if context_id in self._contexts:
+            context = self._contexts[context_id]
+            self._contexts[context_id] = context.with_element(vertex_id)
+        
+        return vertex_id
     
-    def add_edge(self, context: Context, relation_name: str, 
-                 incident_vertices: List[ElementID], check_dominance: bool = True) -> Edge:
-        """Adds a new edge to the EGI."""
-        # Auto-register unknown relations
-        if relation_name not in self.alphabet.relations:
-            self.alphabet.add_relation(relation_name, len(incident_vertices))
-        
-        # Validate relation name and arity
-        if not self.alphabet.is_valid_relation(relation_name, len(incident_vertices)):
-            raise ValueError(f"Invalid relation {relation_name} with arity {len(incident_vertices)}")
-        
-        # Validate dominating nodes constraint (optional for parser)
-        if check_dominance:
-            for vertex_id in incident_vertices:
-                vertex = self.vertices[vertex_id]
-                if not self._context_dominates(context, vertex.context):
-                    raise ValueError(f"Edge context must dominate all incident vertex contexts")
-        
-        edge_id = ElementID(element_type=ElementType.EDGE)
-        is_identity = relation_name == "="
+    def add_edge(self, context_id: ElementID, relation_name: str, 
+                 incident_vertices: Tuple[ElementID, ...], 
+                 is_identity: bool = False, edge_id: Optional[ElementID] = None,
+                 **properties) -> ElementID:
+        """Add edge and return its ID."""
+        if edge_id is None:
+            edge_id = self._generate_id()
         
         edge = Edge(
             id=edge_id,
-            context=context,
+            context_id=context_id,
             relation_name=relation_name,
-            arity=len(incident_vertices),
             incident_vertices=incident_vertices,
-            is_identity=is_identity
+            is_identity=is_identity,
+            properties=frozendict(properties)
         )
+        self._edges[edge_id] = edge
         
-        self.edges[edge_id] = edge
+        # Update context
+        if context_id in self._contexts:
+            context = self._contexts[context_id]
+            self._contexts[context_id] = context.with_element(edge_id)
         
-        # Update vertex incident edge sets
-        for vertex_id in incident_vertices:
-            self.vertices[vertex_id].add_incident_edge(edge_id)
+        return edge_id
+    
+    def add_context(self, parent_id: Optional[ElementID] = None, 
+                    context_id: Optional[ElementID] = None) -> ElementID:
+        """Add context and return its ID."""
+        if context_id is None:
+            context_id = self._generate_id()
         
-        # Update ligatures if this is an identity edge
-        if is_identity:
-            self.ligature_manager.find_ligatures(self)
+        parent_depth = 0 if parent_id is None else self._contexts[parent_id].depth
         
-        return edge
-    
-    def add_cut(self, parent_context: Context) -> Context:
-        """Adds a new cut (negative context) to the EGI."""
-        cut_id = ElementID(element_type=ElementType.CUT)
-        cut = Context(id=cut_id)
+        context = Context(
+            id=context_id,
+            parent_id=parent_id,
+            depth=parent_depth + 1,
+            enclosed_elements=frozenset(),
+            children=frozenset()
+        )
+        self._contexts[context_id] = context
         
-        parent_context.add_child(cut)
-        self.cuts[cut_id] = cut
+        # Update parent
+        if parent_id and parent_id in self._contexts:
+            parent = self._contexts[parent_id]
+            self._contexts[parent_id] = parent.with_child(context_id)
         
-        return cut
+        return context_id
     
-    def get_vertex(self, vertex_id: ElementID) -> Vertex:
-        """Returns the vertex with the given ID."""
-        if vertex_id not in self.vertices:
-            raise ValueError(f"Vertex {vertex_id} not found")
-        return self.vertices[vertex_id]
+    def build(self) -> EGI:
+        """Build immutable EGI instance."""
+        return EGI(
+            vertices=frozenset(self._vertices.values()),
+            edges=frozenset(self._edges.values()),
+            contexts=frozenset(self._contexts.values()),
+            sheet_id=self._sheet_id,
+            alphabet=self._alphabet
+        )
     
-    def get_edge(self, edge_id: ElementID) -> Edge:
-        """Returns the edge with the given ID."""
-        if edge_id not in self.edges:
-            raise ValueError(f"Edge {edge_id} not found")
-        return self.edges[edge_id]
+    @staticmethod
+    def _generate_id() -> ElementID:
+        """Generate unique element ID."""
+        return f"elem_{uuid.uuid4().hex[:8]}"
+
+
+def create_empty_egi(alphabet: Optional[Alphabet] = None) -> EGI:
+    """Create an empty EGI with just the sheet of assertion."""
+    builder = EGIBuilder(alphabet)
+    return builder.build()
+
+
+# Test the implementation
+if __name__ == "__main__":
+    print("Testing immutable EGI implementation...")
     
-    def get_context(self, context_id: ElementID) -> Context:
-        """Returns the context with the given ID."""
-        if context_id == self.sheet_id:
-            return self.sheet
-        if context_id not in self.cuts:
-            raise ValueError(f"Context {context_id} not found")
-        return self.cuts[context_id]
+    # Create empty EGI
+    alphabet = Alphabet().with_relation("phoenix").with_relation("man")
+    egi = create_empty_egi(alphabet)
+    print(f"Created empty EGI with sheet: {egi.sheet_id}")
     
-    def _context_dominates(self, edge_context: Context, vertex_context: Context) -> bool:
-        """Returns True if edge_context dominates vertex_context (edge_context <= vertex_context)."""
-        current = vertex_context
-        while current is not None:
-            if current == edge_context:
-                return True
-            current = current.parent
-        return False
+    # Add a vertex
+    vertex = Vertex(
+        id="vertex_1",
+        context_id=egi.sheet_id,
+        is_constant=False
+    )
+    egi_with_vertex = egi.with_vertex(vertex)
+    print(f"Added vertex. Vertices: {len(egi_with_vertex.vertices)}")
     
-    def _validate_dominating_nodes(self) -> None:
-        """Validates that all edges satisfy the dominating nodes constraint."""
-        for edge in self.edges.values():
-            for vertex_id in edge.incident_vertices:
-                vertex = self.vertices[vertex_id]
-                if not self._context_dominates(edge.context, vertex.context):
-                    raise ValueError(f"Dominating nodes constraint violated for edge {edge.id}")
+    # Add an edge
+    edge = Edge(
+        id="edge_1",
+        context_id=egi.sheet_id,
+        relation_name="phoenix",
+        incident_vertices=("vertex_1",)
+    )
+    egi_with_edge = egi_with_vertex.with_edge(edge)
+    print(f"Added edge. Edges: {len(egi_with_edge.edges)}")
     
-    def is_well_formed(self) -> bool:
-        """Validates that this EGI satisfies all well-formedness constraints."""
-        try:
-            # Check dominating nodes constraint
-            self._validate_dominating_nodes()
-            return True
-        except ValueError:
-            return False
+    # Verify original EGI is unchanged
+    print(f"Original EGI vertices: {len(egi.vertices)}")
+    print(f"Original EGI edges: {len(egi.edges)}")
+    
+    # Test builder
+    builder = EGIBuilder(alphabet)
+    vertex_id = builder.add_vertex(builder._sheet_id, is_constant=True, constant_name="Socrates")
+    edge_id = builder.add_edge(builder._sheet_id, "philosopher", (vertex_id,))
+    built_egi = builder.build()
+    print(f"Built EGI with {len(built_egi.vertices)} vertices and {len(built_egi.edges)} edges")
+    
+    print("✓ Immutable EGI implementation working correctly!")
 

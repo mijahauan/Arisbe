@@ -1,286 +1,154 @@
 """
-Command-line interface for the Existential Graphs application.
-Supports markup parsing with "^" notation for transformation rule application.
+Immutable command-line interface for Existential Graphs.
+Works with the new immutable architecture where transformations return new EGI instances.
 """
 
 import argparse
 import sys
+import os
+from typing import List, Optional, Dict, Any
 import re
-from typing import List, Dict, Optional, Tuple, Set
-from enum import Enum
 
-from egif_parser import parse_egif
-from egif_generator import generate_egif
-from egi_yaml import serialize_egi_to_yaml, deserialize_egi_from_yaml
-from egi_transformations import EGITransformer, TransformationRule, TransformationError
-from egi_core import EGI, ElementID
+# Add src directory to path for imports when run as script
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-
-class MarkupType(Enum):
-    """Types of markup annotations."""
-    ERASE = "erase"
-    INSERT = "insert"
-    ITERATE = "iterate"
-    DE_ITERATE = "de_iterate"
-    DOUBLE_CUT_ADD = "double_cut_add"
-    DOUBLE_CUT_REMOVE = "double_cut_remove"
-    ISOLATED_VERTEX_ADD = "isolated_vertex_add"
-    ISOLATED_VERTEX_REMOVE = "isolated_vertex_remove"
+try:
+    # Try relative imports first (when used as module)
+    from .egi_core import EGI, create_empty_egi, Alphabet
+    from .egif_parser import parse_egif
+    from .egif_generator import generate_egif
+    from .egi_transformations import (
+        apply_transformation, TransformationRule, TransformationError,
+        can_erase, can_insert, can_iterate, can_de_iterate,
+        can_add_double_cut, can_remove_double_cut,
+        can_add_isolated_vertex, can_remove_isolated_vertex
+    )
+except ImportError:
+    # Fall back to absolute imports (when run as script)
+    from egi_core import EGI, create_empty_egi, Alphabet
+    from egif_parser import parse_egif
+    from egif_generator import generate_egif
+    from egi_transformations import (
+        apply_transformation, TransformationRule, TransformationError,
+        can_erase, can_insert, can_iterate, can_de_iterate,
+        can_add_double_cut, can_remove_double_cut,
+        can_add_isolated_vertex, can_remove_isolated_vertex
+    )
 
 
 class MarkupParser:
-    """Parses EGIF expressions with markup annotations."""
+    """Parser for markup annotations in EGIF expressions."""
     
     def __init__(self):
-        self.markup_patterns = {
-            # Erasure: ^~[[^
-            r'\^\~\[\[\^': MarkupType.ERASE,
-            # Double cut removal: ^~[[^ ... ]]
-            r'\^\~\[\[\^.*?\]\]': MarkupType.DOUBLE_CUT_REMOVE,
-            # General markup: ^element^
-            r'\^([^^\s]+)\^': MarkupType.ERASE,  # Default to erase for simple markup
-        }
+        self.markup_patterns = [
+            (r'\^(\([^)]+\))\^', 'erase'),  # ^(relation args)^
+            (r'\^~\[\[\^', 'remove_double_cut_start'),  # ^~[[^
+            (r'\]\]', 'remove_double_cut_end'),  # ]]
+        ]
     
-    def parse_markup(self, marked_egif: str) -> Tuple[str, List[Dict]]:
-        """
-        Parses marked EGIF and returns clean EGIF plus markup instructions.
+    def parse_markup(self, egif_with_markup: str) -> List[Dict[str, Any]]:
+        """Parse markup annotations and return list of instructions."""
+        instructions = []
         
-        Args:
-            marked_egif: EGIF expression with markup annotations
+        for pattern, instruction_type in self.markup_patterns:
+            matches = list(re.finditer(pattern, egif_with_markup))
             
-        Returns:
-            Tuple of (clean_egif, markup_instructions)
-        """
-        clean_egif = marked_egif
-        markup_instructions = []
+            for match in matches:
+                if instruction_type == 'erase':
+                    element_text = match.group(1)
+                    instructions.append({
+                        'type': 'erase',
+                        'element_text': element_text,
+                        'position': match.start()
+                    })
+                elif instruction_type == 'remove_double_cut_start':
+                    instructions.append({
+                        'type': 'remove_double_cut',
+                        'position': match.start()
+                    })
         
-        # Handle double cut removal markup: ^~[[^ ... ]]
-        double_cut_pattern = r'\^\~\[\[\^(.*?)\]\]'
-        matches = list(re.finditer(double_cut_pattern, marked_egif))
-        
-        for match in reversed(matches):  # Process from right to left
-            full_match = match.group(0)
-            inner_content = match.group(1).strip()
-            
-            # Replace with clean double cut
-            if inner_content:
-                replacement = f"~[ {inner_content} ]"
-            else:
-                replacement = "~[ ]"
-            
-            clean_egif = clean_egif[:match.start()] + replacement + clean_egif[match.end():]
-            
-            markup_instructions.append({
-                'type': MarkupType.DOUBLE_CUT_REMOVE,
-                'position': match.start(),
-                'content': inner_content,
-                'rule': TransformationRule.DOUBLE_CUT_REMOVAL
-            })
-        
-        # Handle simple erasure markup: ^(relation ...)^ or ^element^
-        # Updated pattern to handle parentheses and spaces
-        simple_pattern = r'\^(\([^)]+\)|[^^\s]+)\^'
-        matches = list(re.finditer(simple_pattern, clean_egif))
-        
-        for match in reversed(matches):  # Process from right to left
-            full_match = match.group(0)
-            element = match.group(1)
-            
-            # Remove markup, keep element
-            clean_egif = clean_egif[:match.start()] + element + clean_egif[match.end():]
-            
-            markup_instructions.append({
-                'type': MarkupType.ERASE,
-                'element': element,
-                'position': match.start(),
-                'rule': TransformationRule.ERASURE
-            })
-        
-        return clean_egif, markup_instructions
+        return instructions
     
-    def find_element_to_transform(self, egi: EGI, element_description: str) -> Optional[ElementID]:
-        """
-        Finds the element ID corresponding to the markup description.
+    def clean_markup(self, egif_with_markup: str) -> str:
+        """Remove markup annotations to get clean EGIF."""
+        clean_egif = egif_with_markup
         
-        Args:
-            egi: The EGI instance
-            element_description: Description from markup (e.g., "(man *x)" or "man")
-            
-        Returns:
-            ElementID if found, None otherwise
-        """
-        # Handle relation patterns like "(man *x)"
-        if element_description.startswith('(') and element_description.endswith(')'):
-            # Extract relation name from pattern
-            content = element_description[1:-1].strip()
-            parts = content.split()
-            if parts:
-                relation_name = parts[0]
-                
-                # Find edge with matching relation name
-                for edge_id, edge in egi.edges.items():
-                    if edge.relation_name == relation_name:
-                        return edge_id
+        # Remove erase markup: ^(relation)^ -> (relation)
+        clean_egif = re.sub(r'\^(\([^)]+\))\^', r'\1', clean_egif)
         
-        # Try to find edge with exact relation name match
-        for edge_id, edge in egi.edges.items():
-            if edge.relation_name == element_description:
-                return edge_id
+        # Handle double cut removal
+        clean_egif = re.sub(r'\^~\[\[\^', '~[ ', clean_egif)
+        clean_egif = re.sub(r'\]\]', ' ]', clean_egif)
         
-        # Try to find vertex with matching constant name
-        for vertex_id, vertex in egi.vertices.items():
-            if vertex.is_constant and vertex.constant_name == element_description:
-                return vertex_id
-        
-        # Try to find cut (for double cut operations)
-        if element_description in ["cut", "~"]:
-            if egi.cuts:
-                return next(iter(egi.cuts.keys()))
-        
-        return None
+        return clean_egif.strip()
 
 
 class EGICLIApplication:
-    """Main CLI application for Existential Graphs."""
+    """Immutable CLI application for Existential Graphs."""
     
     def __init__(self):
-        self.markup_parser = MarkupParser()
         self.current_egi: Optional[EGI] = None
         self.history: List[EGI] = []
-    
-    def run(self):
-        """Main application loop."""
-        print("Existential Graphs CLI Application")
-        print("Based on Frithjof Dau's formalism")
-        print("Type 'help' for available commands.\n")
-        
-        while True:
-            try:
-                command = input("EG> ").strip()
-                if not command:
-                    continue
-                
-                if command.lower() in ['exit', 'quit', 'q']:
-                    print("Goodbye!")
-                    break
-                elif command.lower() == 'help':
-                    self.show_help()
-                elif command.startswith('load '):
-                    self.load_egif(command[5:].strip())
-                elif command.startswith('transform '):
-                    self.apply_transformation(command[10:].strip())
-                elif command.lower() == 'show':
-                    self.show_current()
-                elif command.lower() == 'yaml':
-                    self.show_yaml()
-                elif command.lower() == 'undo':
-                    self.undo()
-                elif command.lower() == 'history':
-                    self.show_history()
-                elif command.lower() == 'rules':
-                    self.show_rules()
-                elif command.startswith('save '):
-                    self.save_yaml(command[5:].strip())
-                elif command.startswith('load_yaml '):
-                    self.load_yaml(command[10:].strip())
-                else:
-                    print(f"Unknown command: {command}")
-                    print("Type 'help' for available commands.")
-                    
-            except KeyboardInterrupt:
-                print("\nGoodbye!")
-                break
-            except Exception as e:
-                print(f"Error: {e}")
-    
-    def show_help(self):
-        """Shows help information."""
-        help_text = """
-Available commands:
-
-Basic Operations:
-  load <egif>           - Load an EGIF expression
-  show                  - Show current EGIF
-  yaml                  - Show current EGI as YAML
-  save <file>           - Save current EGI as YAML file
-  load_yaml <file>      - Load EGI from YAML file
-
-Transformations:
-  transform <marked_egif> - Apply transformation using markup
-  undo                    - Undo last transformation
-  history                 - Show transformation history
-  rules                   - Show available transformation rules
-
-Markup Syntax:
-  ^element^             - Mark element for erasure
-  ^~[[^content]]        - Mark double cut for removal
-  
-Examples:
-  load (man *x) (human x)
-  transform ^(man *x)^ (human x)    # Erase (man *x)
-  transform ^~[[^]]                 # Remove empty double cut
-  
-Other:
-  help                  - Show this help
-  exit, quit, q         - Exit application
-"""
-        print(help_text)
+        self.markup_parser = MarkupParser()
     
     def load_egif(self, egif: str):
-        """Loads an EGIF expression."""
+        """Load EGIF expression into current EGI."""
         try:
             self.current_egi = parse_egif(egif)
-            self.history = [self.current_egi]
+            self.history = [self.current_egi]  # Reset history
             print(f"Loaded: {egif}")
-            print(f"Parsed: {len(self.current_egi.vertices)} vertices, {len(self.current_egi.edges)} edges, {len(self.current_egi.cuts)} cuts")
+            print(f"Parsed: {len(self.current_egi.vertices)} vertices, "
+                  f"{len(self.current_egi.edges)} edges, "
+                  f"{len(self.current_egi.contexts)} cuts")
         except Exception as e:
             print(f"Failed to load EGIF: {e}")
     
-    def apply_transformation(self, marked_egif: str):
-        """Applies transformation based on marked EGIF."""
-        if not self.current_egi:
-            print("No EGI loaded. Use 'load <egif>' first.")
+    def show_current(self):
+        """Show current EGI as EGIF."""
+        if self.current_egi is None:
+            print("No EGI loaded")
             return
         
         try:
-            # Parse markup
-            clean_egif, markup_instructions = self.markup_parser.parse_markup(marked_egif)
-            
-            if not markup_instructions:
-                print("No markup found in expression.")
-                return
+            egif = generate_egif(self.current_egi)
+            print(f"Current EGIF: {egif}")
+            print(f"Structure: {len(self.current_egi.vertices)} vertices, "
+                  f"{len(self.current_egi.edges)} edges, "
+                  f"{len(self.current_egi.contexts)} cuts")
+        except Exception as e:
+            print(f"Error generating EGIF: {e}")
+    
+    def apply_transformation(self, egif_with_markup: str):
+        """Apply transformation based on markup in EGIF."""
+        if self.current_egi is None:
+            print("No EGI loaded")
+            return
+        
+        try:
+            # Parse markup instructions
+            clean_egif = self.markup_parser.clean_markup(egif_with_markup)
+            instructions = self.markup_parser.parse_markup(egif_with_markup)
             
             print(f"Clean EGIF: {clean_egif}")
-            print(f"Found {len(markup_instructions)} markup instruction(s)")
+            print(f"Found {len(instructions)} markup instruction(s)")
             
-            # Apply transformations
-            transformer = EGITransformer(self.current_egi)
+            if not instructions:
+                print("No markup instructions found")
+                return
             
-            for instruction in markup_instructions:
-                print(f"Applying {instruction['type'].value}...")
-                
-                if instruction['type'] == MarkupType.ERASE:
-                    element_id = self.markup_parser.find_element_to_transform(
-                        transformer.egi, instruction['element']
-                    )
-                    if element_id:
-                        transformer._apply_erasure(element_id)
-                        print(f"Erased element: {instruction['element']}")
-                    else:
-                        print(f"Element not found: {instruction['element']}")
-                
-                elif instruction['type'] == MarkupType.DOUBLE_CUT_REMOVE:
-                    # Find empty double cut to remove
-                    outer_cut_id = self._find_empty_double_cut(transformer.egi)
-                    if outer_cut_id:
-                        transformer._apply_double_cut_removal(outer_cut_id)
-                        print("Removed empty double cut")
-                    else:
-                        print("No empty double cut found")
+            # Apply each instruction
+            new_egi = self.current_egi
+            
+            for instruction in instructions:
+                if instruction['type'] == 'erase':
+                    new_egi = self._apply_erasure_instruction(new_egi, instruction)
+                elif instruction['type'] == 'remove_double_cut':
+                    new_egi = self._apply_double_cut_removal_instruction(new_egi, instruction)
             
             # Update current EGI and add to history
-            self.current_egi = transformer.egi
             self.history.append(self.current_egi)
+            self.current_egi = new_egi
             
             # Show result
             result_egif = generate_egif(self.current_egi)
@@ -289,158 +157,222 @@ Other:
         except Exception as e:
             print(f"Transformation failed: {e}")
     
-    def _find_empty_double_cut(self, egi: EGI) -> Optional[ElementID]:
-        """Finds an empty double cut for removal."""
-        for cut_id, cut in egi.cuts.items():
-            if (len(cut.children) == 1 and 
-                not cut.enclosed_elements):
+    def _apply_erasure_instruction(self, egi: EGI, instruction: Dict[str, Any]) -> EGI:
+        """Apply erasure instruction to EGI."""
+        element_text = instruction['element_text']
+        print(f"Applying erase...")
+        
+        # Find the element to erase
+        element_id = self._find_element_by_text(egi, element_text)
+        
+        if not element_id:
+            raise TransformationError(f"Element not found: {element_text}")
+        
+        if not can_erase(egi, element_id):
+            raise TransformationError("Cannot erase from negative context")
+        
+        new_egi = apply_transformation(egi, TransformationRule.ERASURE, element_id=element_id)
+        print(f"Erased element: {element_text}")
+        
+        return new_egi
+    
+    def _apply_double_cut_removal_instruction(self, egi: EGI, instruction: Dict[str, Any]) -> EGI:
+        """Apply double cut removal instruction to EGI."""
+        print(f"Applying double cut removal...")
+        
+        # Find empty double cuts
+        for context in egi.contexts:
+            if (len(context.children) == 1 and 
+                len(context.enclosed_elements) == 0):
                 
-                inner_cut_id = next(iter(cut.children))
-                inner_cut = egi.cuts[inner_cut_id]
+                child_id = next(iter(context.children))
+                child_context = egi.get_context(child_id)
                 
-                if (not inner_cut.enclosed_elements and 
-                    not inner_cut.children):
-                    return cut_id
+                if (len(child_context.enclosed_elements) == 0 and
+                    len(child_context.children) == 0):
+                    
+                    # Found empty double cut
+                    if can_remove_double_cut(egi, context.id):
+                        new_egi = apply_transformation(
+                            egi, TransformationRule.DOUBLE_CUT_REMOVAL, 
+                            outer_cut_id=context.id
+                        )
+                        print(f"Removed double cut")
+                        return new_egi
+        
+        raise TransformationError("No removable double cut found")
+    
+    def _find_element_by_text(self, egi: EGI, element_text: str) -> Optional[str]:
+        """Find element ID by matching text representation."""
+        # Simple text matching - in a full implementation this would be more sophisticated
+        
+        # Try to match edges by relation name
+        for edge in egi.edges:
+            if not edge.is_identity and edge.relation_name in element_text:
+                # Check if this edge matches the pattern
+                try:
+                    # Generate the text for this edge and compare
+                    try:
+                        from egif_generator import EGIFGenerator
+                    except ImportError:
+                        from .egif_generator import EGIFGenerator
+                    generator = EGIFGenerator(egi)
+                    edge_text = generator._generate_relation(edge)
+                    
+                    if edge_text == element_text:
+                        return edge.id
+                except:
+                    pass
+        
+        # Try to match vertices
+        for vertex in egi.vertices:
+            if vertex.is_constant and vertex.constant_name in element_text:
+                return vertex.id
         
         return None
     
-    def show_current(self):
-        """Shows the current EGIF."""
-        if not self.current_egi:
-            print("No EGI loaded.")
-            return
-        
-        egif = generate_egif(self.current_egi)
-        print(f"Current EGIF: {egif}")
-        print(f"Structure: {len(self.current_egi.vertices)} vertices, {len(self.current_egi.edges)} edges, {len(self.current_egi.cuts)} cuts")
-    
-    def show_yaml(self):
-        """Shows the current EGI as YAML."""
-        if not self.current_egi:
-            print("No EGI loaded.")
-            return
-        
-        yaml_str = serialize_egi_to_yaml(self.current_egi)
-        print("Current EGI as YAML:")
-        print(yaml_str)
+    def undo(self):
+        """Undo last transformation."""
+        if len(self.history) > 1:
+            self.history.pop()  # Remove current state
+            self.current_egi = self.history[-1]  # Restore previous state
+            print("Undone. Current:", generate_egif(self.current_egi))
+        else:
+            print("Nothing to undo")
     
     def save_yaml(self, filename: str):
-        """Saves current EGI as YAML file."""
-        if not self.current_egi:
-            print("No EGI loaded.")
+        """Save current EGI to YAML file."""
+        if self.current_egi is None:
+            print("No EGI loaded")
             return
         
         try:
-            yaml_str = serialize_egi_to_yaml(self.current_egi)
+            # For now, just save the EGIF representation
+            # In a full implementation, this would use proper YAML serialization
+            egif = generate_egif(self.current_egi)
             with open(filename, 'w') as f:
-                f.write(yaml_str)
+                f.write(f"# Existential Graph\n")
+                f.write(f"egif: {egif}\n")
+                f.write(f"vertices: {len(self.current_egi.vertices)}\n")
+                f.write(f"edges: {len(self.current_egi.edges)}\n")
+                f.write(f"contexts: {len(self.current_egi.contexts)}\n")
             print(f"Saved to {filename}")
         except Exception as e:
             print(f"Failed to save: {e}")
     
     def load_yaml(self, filename: str):
-        """Loads EGI from YAML file."""
+        """Load EGI from YAML file."""
         try:
             with open(filename, 'r') as f:
-                yaml_str = f.read()
+                lines = f.readlines()
             
-            self.current_egi = deserialize_egi_from_yaml(yaml_str)
-            self.history = [self.current_egi]
-            print(f"Loaded from {filename}")
+            # Simple YAML parsing - look for egif line
+            for line in lines:
+                if line.startswith('egif:'):
+                    egif = line[5:].strip()
+                    self.load_egif(egif)
+                    print(f"Loaded from {filename}")
+                    return
             
-            egif = generate_egif(self.current_egi)
-            print(f"EGIF: {egif}")
-            
+            print("No EGIF found in file")
         except Exception as e:
             print(f"Failed to load: {e}")
     
-    def undo(self):
-        """Undoes the last transformation."""
-        if len(self.history) <= 1:
-            print("Nothing to undo.")
-            return
+    def interactive_mode(self):
+        """Run interactive CLI mode."""
+        print("Existential Graphs CLI (Immutable)")
+        print("Type 'help' for commands, 'exit' to quit")
         
-        self.history.pop()  # Remove current
-        self.current_egi = self.history[-1]  # Restore previous
-        
-        egif = generate_egif(self.current_egi)
-        print(f"Undone. Current: {egif}")
+        while True:
+            try:
+                command = input("EG> ").strip()
+                
+                if not command:
+                    continue
+                
+                if command == 'exit':
+                    break
+                elif command == 'help':
+                    self._show_help()
+                elif command == 'show':
+                    self.show_current()
+                elif command == 'undo':
+                    self.undo()
+                elif command.startswith('load '):
+                    egif = command[5:].strip()
+                    self.load_egif(egif)
+                elif command.startswith('transform '):
+                    markup_egif = command[10:].strip()
+                    self.apply_transformation(markup_egif)
+                elif command.startswith('save '):
+                    filename = command[5:].strip()
+                    self.save_yaml(filename)
+                elif command.startswith('yaml'):
+                    if self.current_egi:
+                        # Show structure info
+                        print(f"Current EGI structure:")
+                        print(f"  Vertices: {len(self.current_egi.vertices)}")
+                        print(f"  Edges: {len(self.current_egi.edges)}")
+                        print(f"  Contexts: {len(self.current_egi.contexts)}")
+                        print(f"  Alphabet relations: {list(self.current_egi.alphabet.relations)}")
+                    else:
+                        print("No EGI loaded")
+                else:
+                    print(f"Unknown command: {command}")
+                    
+            except KeyboardInterrupt:
+                print("\nExiting...")
+                break
+            except Exception as e:
+                print(f"Error: {e}")
     
-    def show_history(self):
-        """Shows transformation history."""
-        if not self.history:
-            print("No history.")
-            return
-        
-        print(f"History ({len(self.history)} states):")
-        for i, egi in enumerate(self.history):
-            egif = generate_egif(egi)
-            marker = " <-- current" if i == len(self.history) - 1 else ""
-            print(f"  {i+1}. {egif}{marker}")
-    
-    def show_rules(self):
-        """Shows available transformation rules."""
-        rules_text = """
-Available Transformation Rules:
+    def _show_help(self):
+        """Show help information."""
+        print("""
+Available commands:
+  load <egif>              Load EGIF expression
+  show                     Show current EGIF
+  transform <markup_egif>  Apply transformation with markup
+  undo                     Undo last transformation
+  save <filename>          Save to file
+  yaml                     Show EGI structure
+  help                     Show this help
+  exit                     Exit application
 
-1. Erasure (^element^)
-   - Remove element from positive context
-   - Example: ^(man *x)^ removes the relation
+Markup syntax:
+  ^(relation args)^        Mark relation for erasure
+  ^~[[^]]                  Mark double cut for removal
 
-2. Insertion
-   - Add element to negative context
-   - (Not yet implemented in markup)
-
-3. Iteration
-   - Copy vertex from outer to inner context
-   - (Not yet implemented in markup)
-
-4. De-iteration
-   - Remove copied vertex from inner context
-   - (Not yet implemented in markup)
-
-5. Double Cut Addition
-   - Add nested empty cuts
-   - (Not yet implemented in markup)
-
-6. Double Cut Removal (^~[[^content]])
-   - Remove nested empty cuts
-   - Example: ^~[[^]] removes empty double cut
-
-7. Isolated Vertex Addition
-   - Add isolated vertex
-   - (Not yet implemented in markup)
-
-8. Isolated Vertex Removal
-   - Remove isolated vertex
-   - (Not yet implemented in markup)
-"""
-        print(rules_text)
+Examples:
+  load (man *x) (human x)
+  transform ^(man *x)^ (human x)
+  show
+  undo
+        """)
 
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description='Existential Graphs CLI Application')
-    parser.add_argument('--egif', help='Initial EGIF expression to load')
-    parser.add_argument('--yaml', help='YAML file to load')
+    parser = argparse.ArgumentParser(description="Existential Graphs CLI (Immutable)")
+    parser.add_argument('--egif', help='EGIF expression to load')
     parser.add_argument('--transform', help='Apply transformation with markup')
+    parser.add_argument('--yaml', help='Load from YAML file')
     
     args = parser.parse_args()
     
     app = EGICLIApplication()
     
-    # Handle command line arguments
     if args.yaml:
         app.load_yaml(args.yaml)
     elif args.egif:
         app.load_egif(args.egif)
-    
-    if args.transform:
-        app.apply_transformation(args.transform)
+        
+        if args.transform:
+            app.apply_transformation(args.transform)
+        
         app.show_current()
     else:
-        # Start interactive mode
-        app.run()
+        app.interactive_mode()
 
 
 if __name__ == "__main__":
