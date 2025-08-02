@@ -80,13 +80,14 @@ def test_controller_coordination():
     try:
         from diagram_controller import DiagramController
         from tkinter_backend import TkinterCanvas
+        from egi_core_dau import create_empty_graph
         
         # Create controller with minimal setup
         canvas = TkinterCanvas(800, 600)
         controller = DiagramController(canvas, 800, 600)
         
-        # Test basic graph setting
-        graph = test_data_layer()
+        # Test basic graph setting with correct function call
+        graph = create_empty_graph()
         if graph:
             controller.set_graph(graph)
             print("✅ Controller coordination working: graph set and pipeline triggered")

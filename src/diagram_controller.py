@@ -11,13 +11,13 @@ import uuid
 
 # Handle imports for both module and script execution
 try:
-    from .egi_core_dau import RelationalGraphWithCuts, ElementID, Vertex, Edge, Cut
+    from .egi_core_dau import RelationalGraphWithCuts, ElementID, Vertex, Edge, Cut, create_empty_graph
     from .layout_engine import LayoutEngine, LayoutResult, LayoutElement, Coordinate
     from .diagram_renderer import DiagramRenderer, RenderingContext, RenderingMode, VisualTheme
     from .canvas_backend import Canvas, CanvasEvent, EventType
     from .selection_system import SelectionManager, SelectionContext, SelectionMode
 except ImportError:
-    from egi_core_dau import RelationalGraphWithCuts, ElementID, Vertex, Edge, Cut
+    from egi_core_dau import RelationalGraphWithCuts, ElementID, Vertex, Edge, Cut, create_empty_graph
     from layout_engine import LayoutEngine, LayoutResult, LayoutElement, Coordinate
     from diagram_renderer import DiagramRenderer, RenderingContext, RenderingMode, VisualTheme
     from canvas_backend import Canvas, CanvasEvent, EventType
@@ -77,7 +77,7 @@ class DiagramController:
         
         # State management
         self.state = DiagramState(
-            graph=RelationalGraphWithCuts.create_empty_graph()
+            graph=create_empty_graph()
         )
         
         # Selection system integration
