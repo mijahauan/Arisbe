@@ -1,14 +1,23 @@
-# Arisbe Dau-Compliant Existential Graphs System Requirements
+# Arisbe - Existential Graph Diagrammatic Rendering System
+# Requirements for the complete system including visualization capabilities
 
 # Core dependencies
+PyYAML>=6.0
 frozendict>=2.3.0
 
-# Testing dependencies (optional)
-pytest>=7.0.0
-pytest-cov>=4.0.0
+# Diagrammatic rendering dependencies
+pygame>=2.6.0
+Pillow>=10.0.0
 
-# Development dependencies (optional)
-black>=22.0.0
-mypy>=1.0.0
-flake8>=5.0.0
+# Optional dependencies for enhanced functionality
+# matplotlib>=3.7.0  # Alternative plotting backend (optional)
+# numpy>=1.24.0      # Numerical operations (optional)
 
+# Development and testing dependencies (uncomment for development)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# black>=23.0.0
+# mypy>=1.0.0
+
+# Note: tkinter is included with Python standard library
+# Note: Standard library modules used: abc, dataclasses, enum, math, os, sys, threading, typing

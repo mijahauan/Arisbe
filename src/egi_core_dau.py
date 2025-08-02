@@ -329,13 +329,21 @@ class RelationalGraphWithCuts:
     
     def with_vertex(self, vertex: Vertex) -> 'RelationalGraphWithCuts':
         """Create new graph with additional vertex in sheet of assertion."""
+        return self.with_vertex_in_context(vertex, self.sheet)
+    
+    def with_vertex_in_context(self, vertex: Vertex, context_id: ElementID) -> 'RelationalGraphWithCuts':
+        """Create new graph with additional vertex in specified context."""
         if vertex.id in {v.id for v in self.V}:
             raise ValueError(f"Vertex {vertex.id} already exists")
         
+        # Validate context exists
+        if context_id != self.sheet and context_id not in {c.id for c in self.Cut}:
+            raise ValueError(f"Context {context_id} does not exist")
+        
         new_V = self.V | {vertex}
         new_area = dict(self.area)
-        sheet_area = new_area.get(self.sheet, frozenset())
-        new_area[self.sheet] = sheet_area | {vertex.id}
+        context_area = new_area.get(context_id, frozenset())
+        new_area[context_id] = context_area | {vertex.id}
         
         return RelationalGraphWithCuts(
             V=new_V,

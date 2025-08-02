@@ -35,8 +35,61 @@ class EGIFGenerator:
         self.used_labels = set()
         self.defining_vertices = set()
         
-        # Process vertices in order of first appearance (depth-first)
-        self._assign_labels_recursive(self.graph.sheet, set())
+        # CRITICAL FIX: Process vertices in ν mapping order to preserve argument order
+        # This ensures the ν mapping order from Dau's formalism is strictly preserved
+        self._assign_labels_preserving_nu_order(self.graph.sheet, set())
+    
+    def _assign_labels_preserving_nu_order(self, context_id: ElementID, processed_vertices: Set[ElementID]):
+        """Assign labels while strictly preserving ν mapping argument order."""
+        # Get area (direct contents) of this context
+        area_elements = self.graph.get_area(context_id)
+        
+        # CRITICAL: Process edges first to establish ν mapping order for vertices
+        for element_id in area_elements:
+            if element_id in self.graph._edge_map:
+                # Get the exact ν mapping order for this edge
+                vertex_sequence = self.graph.get_incident_vertices(element_id)
+                
+                # Process vertices in exact ν mapping order
+                for vertex_id in vertex_sequence:
+                    if vertex_id not in processed_vertices and vertex_id in self.graph._vertex_map:
+                        vertex = self.graph.get_vertex(vertex_id)
+                        
+                        if vertex.is_generic:
+                            if vertex_id not in self.vertex_labels:
+                                # First occurrence - assign fresh label and mark as defining
+                                label = self.alphabet.get_fresh_name()
+                                self.vertex_labels[vertex_id] = label
+                                self.used_labels.add(label)
+                                self.defining_vertices.add(vertex_id)
+                            # If already labeled, this is a bound occurrence (don't mark as defining)
+                        else:
+                            # Constant vertex - use its label
+                            self.vertex_labels[vertex_id] = f'"{vertex.label}"'
+                        
+                        processed_vertices.add(vertex_id)
+        
+        # Process isolated vertices in this area
+        for element_id in area_elements:
+            if element_id in self.graph._vertex_map and element_id not in processed_vertices:
+                vertex = self.graph.get_vertex(element_id)
+                
+                if vertex.is_generic:
+                    # Isolated generic vertex - assign fresh label and mark as defining
+                    label = self.alphabet.get_fresh_name()
+                    self.vertex_labels[element_id] = label
+                    self.used_labels.add(label)
+                    self.defining_vertices.add(element_id)
+                else:
+                    # Isolated constant vertex - use its label
+                    self.vertex_labels[element_id] = f'"{vertex.label}"'
+                
+                processed_vertices.add(element_id)
+        
+        # Process cuts in this area recursively
+        for element_id in area_elements:
+            if element_id in self.graph._cut_map:
+                self._assign_labels_preserving_nu_order(element_id, processed_vertices)
     
     def _assign_labels_recursive(self, context_id: ElementID, processed_vertices: Set[ElementID]):
         """Recursively assign labels and track defining occurrences."""

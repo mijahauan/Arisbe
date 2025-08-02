@@ -441,7 +441,7 @@ class EGIFParser:
             
             self.defining_labels.add(var_name)
             vertex = create_vertex(label=None, is_generic=True)
-            self.graph = self.graph.with_vertex(vertex)
+            self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.variable_map[var_name] = vertex.id
             
         elif token.type == TokenType.BOUND_VAR:
@@ -455,7 +455,7 @@ class EGIFParser:
             # Isolated constant "Socrates"
             constant_value = token.value[1:-1]  # Remove quotes
             vertex = create_vertex(label=constant_value, is_generic=False)
-            self.graph = self.graph.with_vertex(vertex)
+            self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             
         else:
             raise ValueError(f"Invalid isolated vertex token: {token.type}")
