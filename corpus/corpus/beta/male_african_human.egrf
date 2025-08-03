@@ -1,0 +1,137 @@
+{
+  "metadata": {
+    "format": "EGRF",
+    "version": "3.0",
+    "source": "Sowa 2011, EGIF p. 3",
+    "description": "Complex Identity: There is a male African human",
+    "complexity_level": "intermediate",
+    "logical_pattern": "complex_identity",
+    "test_rationale": "Tests ligature connecting multiple predicates; teridentity junction pattern",
+    "teaching_purpose": "Demonstrates how line of identity connects multiple predicates to same individual",
+    "citation": "Sowa, John F. (2011). Existential Graphs and EGIF. EGIF specification, p. 3."
+  },
+  "elements": {
+    "sheet": {
+      "element_type": "context",
+      "logical_properties": {
+        "context_type": "sheet",
+        "is_root": true,
+        "nesting_level": 0,
+        "name": "Sheet of Assertion"
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 500,
+          "min_height": 350,
+          "preferred_width": 600,
+          "preferred_height": 400
+        }
+      }
+    },
+    "male_predicate": {
+      "element_type": "predicate",
+      "logical_properties": {
+        "name": "Male",
+        "arity": 1,
+        "connected_entities": ["x1"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 80,
+          "min_height": 40,
+          "preferred_width": 100,
+          "preferred_height": 50
+        }
+      }
+    },
+    "human_predicate": {
+      "element_type": "predicate",
+      "logical_properties": {
+        "name": "Human",
+        "arity": 1,
+        "connected_entities": ["x1"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 80,
+          "min_height": 40,
+          "preferred_width": 100,
+          "preferred_height": 50
+        }
+      }
+    },
+    "african_predicate": {
+      "element_type": "predicate",
+      "logical_properties": {
+        "name": "African",
+        "arity": 1,
+        "connected_entities": ["x1"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 80,
+          "min_height": 40,
+          "preferred_width": 100,
+          "preferred_height": 50
+        }
+      }
+    },
+    "x1": {
+      "element_type": "entity",
+      "logical_properties": {
+        "name": "x",
+        "entity_type": "variable",
+        "connected_predicates": ["male_predicate", "human_predicate", "african_predicate"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 10,
+          "min_height": 10,
+          "preferred_width": 10,
+          "preferred_height": 10
+        }
+      }
+    }
+  },
+  "containment": {
+    "sheet": "viewport",
+    "male_predicate": "sheet",
+    "human_predicate": "sheet",
+    "african_predicate": "sheet",
+    "x1": "sheet"
+  },
+  "connections": [
+    {
+      "entity_id": "x1",
+      "predicate_id": "male_predicate",
+      "role": "arg1"
+    },
+    {
+      "entity_id": "x1",
+      "predicate_id": "human_predicate",
+      "role": "arg1"
+    },
+    {
+      "entity_id": "x1",
+      "predicate_id": "african_predicate",
+      "role": "arg1"
+    }
+  ],
+  "ligatures": [
+    {
+      "entity1_id": "x1",
+      "entity2_id": "x1",
+      "type": "identity",
+      "connects_predicates": ["male_predicate", "human_predicate", "african_predicate"],
+      "junction_type": "teridentity"
+    }
+  ],
+  "logical_content": {
+    "english": "There is a male African human",
+    "clif": "(exists (x) (and (Male x) (Human x) (African x)))",
+    "egif": "(Male *x) (Human x) (African x)",
+    "logical_form": "∃x(Male(x) ∧ Human(x) ∧ African(x))",
+    "semantic_notes": "Single entity connected to three predicates via teridentity junction (ligature)"
+  }
+}
+

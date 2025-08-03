@@ -1,0 +1,7 @@
+# Canonical Implication
+# Category: canonical
+# Description: Standard form of implication using double-cut
+# Source: Canonical Forms
+# Pattern: implication
+
+(P "x") ~[ (Q "x") ]

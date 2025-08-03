@@ -1,0 +1,15 @@
+{
+  "id": "dau_2006_p112_ligature",
+  "title": "Dau's Ligature Example",
+  "description": "Dau's example of ligatures crossing cut boundaries",
+  "source": {
+    "author": "Frithjof Dau",
+    "work": "Mathematical Logic with Diagrams",
+    "page": 112,
+    "year": 2006
+  },
+  "logical_pattern": "ligature",
+  "logical_form": "∃x(P(x) ∧ ¬Q(x))",
+  "notes": "This example demonstrates how ligatures can cross cut boundaries in existential graphs. The formula '∃x(P(x) ∧ ¬Q(x))' is represented by a line of identity that connects a predicate outside a cut with a predicate inside a cut."
+}
+

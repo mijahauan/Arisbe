@@ -1,0 +1,48 @@
+{
+  "name": "EGRF v3.0 Corpus",
+  "description": "Corpus of Existential Graph examples for testing EGRF v3.0",
+  "version": "1.0.0",
+  "examples": [
+    {
+      "id": "peirce_cp_4_394_man_mortal",
+      "category": "peirce",
+      "title": "Peirce's Man-Mortal Implication",
+      "description": "Peirce's classic example of implication: 'If a man, then mortal'",
+      "source": "Collected Papers 4.394",
+      "logical_pattern": "implication"
+    },
+    {
+      "id": "canonical_implication",
+      "category": "canonical",
+      "title": "Canonical Implication",
+      "description": "Standard form of implication using double-cut",
+      "source": "Canonical Forms",
+      "logical_pattern": "implication"
+    },
+    {
+      "id": "roberts_1973_p57_disjunction",
+      "category": "scholars",
+      "title": "Roberts' Disjunction Example",
+      "description": "Roberts' example of disjunction: 'P or Q'",
+      "source": "Roberts (1973), p.57",
+      "logical_pattern": "disjunction"
+    },
+    {
+      "id": "sowa_2011_p356_quantification",
+      "category": "scholars",
+      "title": "Sowa's Quantification Example",
+      "description": "Sowa's example of existential quantification",
+      "source": "Sowa (2011), p.356",
+      "logical_pattern": "quantification"
+    },
+    {
+      "id": "dau_2006_p112_ligature",
+      "category": "scholars",
+      "title": "Dau's Ligature Example",
+      "description": "Dau's example of ligatures crossing cut boundaries",
+      "source": "Dau (2006), p.112",
+      "logical_pattern": "ligature"
+    }
+  ]
+}
+

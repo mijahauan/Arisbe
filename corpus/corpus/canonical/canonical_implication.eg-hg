@@ -1,0 +1,26 @@
+# Canonical Implication
+# "If P, then Q"
+
+contexts:
+  sheet:
+    type: sheet
+    nesting_level: 0
+  outer_cut:
+    type: cut
+    nesting_level: 1
+    parent: sheet
+  inner_cut:
+    type: cut
+    nesting_level: 2
+    parent: outer_cut
+
+predicates:
+  p:
+    name: P
+    arity: 0
+    parent: outer_cut
+  q:
+    name: Q
+    arity: 0
+    parent: inner_cut
+

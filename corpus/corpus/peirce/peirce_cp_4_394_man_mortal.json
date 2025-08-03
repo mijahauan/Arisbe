@@ -1,0 +1,16 @@
+{
+  "id": "peirce_cp_4_394_man_mortal",
+  "title": "Peirce's Man-Mortal Implication",
+  "description": "Peirce's classic example of implication: 'If a man, then mortal'",
+  "source": {
+    "author": "Charles Sanders Peirce",
+    "work": "Collected Papers",
+    "volume": 4,
+    "section": "4.394",
+    "year": 1903
+  },
+  "logical_pattern": "implication",
+  "logical_form": "Man(x) → Mortal(x)",
+  "notes": "This is one of Peirce's most frequently cited examples of the use of existential graphs to represent implication. It demonstrates the double-cut pattern that is fundamental to representing conditional statements in EGs."
+}
+

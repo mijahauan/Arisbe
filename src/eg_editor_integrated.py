@@ -30,28 +30,31 @@ from tkinter_backend import TkinterCanvas
 # Phase 3 validation and transformation
 from eg_transformation_rules import EGTransformationEngine, TransformationRule
 from background_validation_system import create_validation_system, ValidationLevel
-
+from corpus_loader import CorpusLoader
 
 class IntegratedEGEditor:
     """
-    Main EG Editor application integrating all phases.
+    Main Arisbe application with three sub-applications:
+    - Bullpen: Graph editor with Warmup/Practice modes
+    - Browser: Graph collection viewer (placeholder)
+    - Endoporeutic Game: Formal game implementation (placeholder)
     
     Features:
-    - Load/save EGIF files
-    - Visual diagram editing with validation
-    - Real-time transformation rule application
+    - Tab-based navigation between applications
+    - Mode switching within Bullpen
     - Professional interaction patterns
     """
     
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Arisbe - Existential Graphs Editor")
+        self.root.title("Arisbe - Existential Graphs Platform")
         self.root.geometry("1400x900")
         
         # Core systems
         self.layout_engine = ContentDrivenLayoutEngine()
         self.transformation_engine = EGTransformationEngine()
         self.validation_system = create_validation_system(ValidationLevel.STANDARD)
+        self.corpus_loader = CorpusLoader()
         
         # Application state
         self.current_graph: Optional[RelationalGraphWithCuts] = None
@@ -73,13 +76,75 @@ class IntegratedEGEditor:
         self._load_example()
     
     def _create_ui(self):
-        """Create the main application UI."""
+        """Create the main application UI with hierarchical tabs."""
         
         # Menu bar
         self._create_menu()
         
-        # Main layout
-        main_paned = ttk.PanedWindow(self.root, orient=tk.HORIZONTAL)
+        # Main application tabs (top level)
+        self.main_notebook = ttk.Notebook(self.root)
+        self.main_notebook.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # === BULLPEN TAB ===
+        self.bullpen_frame = ttk.Frame(self.main_notebook)
+        self.main_notebook.add(self.bullpen_frame, text="Bullpen")
+        
+        # Bullpen sub-tabs (Warmup/Practice modes)
+        self.bullpen_notebook = ttk.Notebook(self.bullpen_frame)
+        self.bullpen_notebook.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # Warmup mode tab
+        self.warmup_frame = ttk.Frame(self.bullpen_notebook)
+        self.bullpen_notebook.add(self.warmup_frame, text="Warmup")
+        
+        # Practice mode tab
+        self.practice_frame = ttk.Frame(self.bullpen_notebook)
+        self.bullpen_notebook.add(self.practice_frame, text="Practice")
+        
+        # Create Warmup mode content (current editor)
+        self._create_warmup_mode(self.warmup_frame)
+        
+        # Create Practice mode content (placeholder for now)
+        self._create_practice_mode(self.practice_frame)
+        
+        # === BROWSER TAB (Placeholder) ===
+        self.browser_frame = ttk.Frame(self.main_notebook)
+        self.main_notebook.add(self.browser_frame, text="Browser", state="disabled")
+        
+        placeholder_browser = ttk.Label(self.browser_frame, 
+                                       text="Graph Browser\n(Coming Soon)", 
+                                       font=('TkDefaultFont', 16),
+                                       foreground='gray')
+        placeholder_browser.pack(expand=True)
+        
+        # === ENDOPOREUTIC GAME TAB (Placeholder) ===
+        self.game_frame = ttk.Frame(self.main_notebook)
+        self.main_notebook.add(self.game_frame, text="Endoporeutic Game", state="disabled")
+        
+        placeholder_game = ttk.Label(self.game_frame, 
+                                    text="Endoporeutic Game\n(Coming Soon)", 
+                                    font=('TkDefaultFont', 16),
+                                    foreground='gray')
+        placeholder_game.pack(expand=True)
+        
+        # Status bar
+        status_frame = ttk.Frame(self.root)
+        status_frame.pack(fill=tk.X, side=tk.BOTTOM)
+        
+        ttk.Label(status_frame, textvariable=self.status_var).pack(side=tk.LEFT, padx=5)
+        
+        # Mode indicator
+        self.mode_var = tk.StringVar(value="Warmup Mode")
+        ttk.Label(status_frame, textvariable=self.mode_var, foreground='blue').pack(side=tk.RIGHT, padx=5)
+        
+        # Bind tab change events
+        self.bullpen_notebook.bind("<<NotebookTabChanged>>", self._on_mode_change)
+
+    def _create_warmup_mode(self, parent):
+        """Create Warmup mode interface (current editor functionality)."""
+        
+        # Main layout for warmup mode
+        main_paned = ttk.PanedWindow(parent, orient=tk.HORIZONTAL)
         main_paned.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         
         # Left panel: Tools and validation
@@ -90,17 +155,47 @@ class IntegratedEGEditor:
         right_frame = ttk.Frame(main_paned)
         main_paned.add(right_frame, weight=1)
         
-        # === LEFT PANEL ===
+        # Create left panel (tools, validation)
         self._create_left_panel(left_frame)
         
-        # === RIGHT PANEL ===
+        # Create right panel (canvas)
         self._create_right_panel(right_frame)
+    
+    def _create_practice_mode(self, parent):
+        """Create Practice mode interface (rule-based editing)."""
         
-        # Status bar
-        status_frame = ttk.Frame(self.root)
-        status_frame.pack(fill=tk.X, side=tk.BOTTOM)
+        # Placeholder for Practice mode
+        practice_label = ttk.Label(parent, 
+                                  text="Practice Mode\n\nRule-based EG editing with formal validation\n(Implementation in progress)", 
+                                  font=('TkDefaultFont', 14),
+                                  foreground='darkblue',
+                                  justify='center')
+        practice_label.pack(expand=True)
         
-        ttk.Label(status_frame, textvariable=self.status_var).pack(side=tk.LEFT, padx=5)
+        # Add some placeholder controls
+        controls_frame = ttk.LabelFrame(parent, text="Formal Rules", padding=10)
+        controls_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        ttk.Button(controls_frame, text="Iteration", state="disabled").pack(side=tk.LEFT, padx=5)
+        ttk.Button(controls_frame, text="Deiteration", state="disabled").pack(side=tk.LEFT, padx=5)
+        ttk.Button(controls_frame, text="Erasure", state="disabled").pack(side=tk.LEFT, padx=5)
+        ttk.Button(controls_frame, text="Insertion", state="disabled").pack(side=tk.LEFT, padx=5)
+    
+    def _on_mode_change(self, event):
+        """Handle mode switching between Warmup and Practice."""
+        
+        selected_tab = self.bullpen_notebook.tab(self.bullpen_notebook.select(), "text")
+        
+        if selected_tab == "Warmup":
+            self.mode_var.set("Warmup Mode")
+            self._update_status("Switched to Warmup mode - Creative composition and exploration")
+        elif selected_tab == "Practice":
+            self.mode_var.set("Practice Mode")
+            self._update_status("Switched to Practice mode - Formal rule-based editing")
+            
+            # TODO: Validate current graph against formal rules when switching to Practice
+            # TODO: Initialize Practice mode with current graph state
+
     
     def _create_menu(self):
         """Create application menu bar."""
@@ -151,8 +246,8 @@ class IntegratedEGEditor:
     def _create_left_panel(self, parent):
         """Create left panel with tools and validation."""
         
-        # EGIF Input/Output
-        egif_frame = ttk.LabelFrame(parent, text="EGIF", padding=10)
+        # EGIF Input/Output (moved to top for prominence)
+        egif_frame = ttk.LabelFrame(parent, text="EGIF Input/Output", padding=10)
         egif_frame.pack(fill=tk.X, pady=(0, 10))
         
         self.egif_text = tk.Text(egif_frame, height=4, width=40)
@@ -163,6 +258,34 @@ class IntegratedEGEditor:
         
         ttk.Button(egif_buttons, text="Parse", command=self._parse_egif).pack(side=tk.LEFT, padx=(0, 5))
         ttk.Button(egif_buttons, text="Generate", command=self._generate_egif).pack(side=tk.LEFT)
+        
+        # Corpus Examples (compact layout)
+        corpus_frame = ttk.LabelFrame(parent, text="Load Examples", padding=10)
+        corpus_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        # Category selection (more compact)
+        category_frame = ttk.Frame(corpus_frame)
+        category_frame.pack(fill=tk.X, pady=(0, 5))
+        
+        ttk.Label(category_frame, text="Category:").pack(side=tk.LEFT)
+        self.category_var = tk.StringVar(value="All")
+        categories = ["All"] + self.corpus_loader.get_categories()
+        category_combo = ttk.Combobox(category_frame, textvariable=self.category_var, 
+                                     values=categories, state="readonly", width=12)
+        category_combo.pack(side=tk.LEFT, padx=(5, 0))
+        category_combo.bind('<<ComboboxSelected>>', self._on_category_change)
+        
+        # Load button (more prominent)
+        ttk.Button(category_frame, text="Load", 
+                  command=self._load_corpus_example).pack(side=tk.RIGHT)
+        
+        # Example selection (smaller height)
+        self.example_listbox = tk.Listbox(corpus_frame, height=3)
+        self.example_listbox.pack(fill=tk.X, pady=(5, 0))
+        self.example_listbox.bind('<Double-Button-1>', self._load_corpus_example)
+        
+        # Populate initial examples
+        self._update_corpus_examples()
         
         # Selection info
         selection_frame = ttk.LabelFrame(parent, text="Selection", padding=10)
@@ -727,23 +850,94 @@ class IntegratedEGEditor:
         
         return issues
     
+    def _on_category_change(self, event=None):
+        """Handle category selection change."""
+        self._update_corpus_examples()
+    
+    def _update_corpus_examples(self):
+        """Update the corpus examples listbox based on selected category."""
+        category = self.category_var.get()
+        
+        # Clear current list
+        self.example_listbox.delete(0, tk.END)
+        
+        # Get examples for category
+        if category == "All":
+            examples = self.corpus_loader.list_examples()
+        else:
+            examples = self.corpus_loader.list_examples(category)
+        
+        # Populate listbox
+        for example in examples:
+            display_text = f"{example.title} ({example.category})"
+            self.example_listbox.insert(tk.END, display_text)
+            # Store the example ID for retrieval
+            self.example_listbox.insert(tk.END, example.id)
+            self.example_listbox.delete(tk.END)  # Remove the ID, keep it in memory
+        
+        # Store examples for easy access
+        self._current_examples = examples
+    
+    def _load_corpus_example(self, event=None):
+        """Load selected corpus example into the editor."""
+        selection = self.example_listbox.curselection()
+        if not selection:
+            self._update_status("Please select an example to load")
+            return
+        
+        try:
+            # Get selected example
+            idx = selection[0]
+            if idx >= len(self._current_examples):
+                self._update_status("Invalid selection")
+                return
+            
+            example = self._current_examples[idx]
+            
+            # Try to load EGIF content
+            if example.egif_content:
+                egif_text = example.egif_content
+            else:
+                # Generate a simple EGIF from the logical form if available
+                if example.logical_form:
+                    # This is a placeholder - you might want to implement
+                    # a more sophisticated conversion from logical form to EGIF
+                    egif_text = f"# {example.title}\n# {example.description}\n# Logical form: {example.logical_form}\n# TODO: Convert to EGIF"
+                else:
+                    egif_text = f"# {example.title}\n# {example.description}\n# No EGIF content available"
+            
+            # Load into EGIF text area
+            self.egif_text.delete(1.0, tk.END)
+            self.egif_text.insert(1.0, egif_text)
+            
+            # If it's actual EGIF (not a comment), try to parse it
+            if not egif_text.strip().startswith('#'):
+                self._parse_egif()
+            
+            self._update_status(f"Loaded example: {example.title}")
+            
+        except Exception as e:
+            self._update_status(f"Error loading example: {e}")
+    
     def _load_example(self):
         """Load example graph."""
         
-        example_egif = '*x (Human x) ~[ (Mortal x) (Wise x) ]'
+        # Simple example for testing
+        egif_text = "(Human \"Socrates\") ~[ (Mortal \"Socrates\") ]"
         
         try:
-            parser = EGIFParser(example_egif)
-            self.current_graph = parser.parse()
+            parser = EGIFParser()
+            graph = parser.parse(egif_text)
             
+            self.current_graph = graph
             self.egif_text.delete(1.0, tk.END)
-            self.egif_text.insert(1.0, example_egif)
+            self.egif_text.insert(1.0, egif_text)
             
             self._update_display()
-            self._update_status("Example loaded")
+            self._update_status("Example loaded successfully")
             
         except Exception as e:
-            self._update_status(f"Failed to load example: {str(e)}")
+            self._update_status(f"Error loading example: {e}")
     
     def run(self):
         """Run the application."""

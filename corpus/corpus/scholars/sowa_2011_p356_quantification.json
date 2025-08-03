@@ -1,0 +1,15 @@
+{
+  "id": "sowa_2011_p356_quantification",
+  "title": "Sowa's Quantification Example",
+  "description": "Sowa's example of existential quantification",
+  "source": {
+    "author": "John F. Sowa",
+    "work": "Peirce's Tutorial on Existential Graphs",
+    "page": 356,
+    "year": 2011
+  },
+  "logical_pattern": "quantification",
+  "logical_form": "∃x(P(x) ∧ Q(x))",
+  "notes": "This example demonstrates how existential quantification is represented in existential graphs using lines of identity. The formula '∃x(P(x) ∧ Q(x))' is represented by a line of identity connecting the predicates P and Q."
+}
+

@@ -1,0 +1,1636 @@
+
+%% This is file `egpeirce.sty'
+%% Copyright (c) 2008--2023 Jukka Nikulainen
+%%
+%% This work may be distributed and/or modified under the
+%% conditions of the LaTeX Project Public License, either version 1.3
+%% of this license or (at your option) any later version.
+%% The latest version of this license is in
+%%   http://www.latex-project.org/lppl.txt
+%% and version 1.3 or later is part of all distributions of LaTeX
+%% version 2005/12/01 or later.
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%%
+%% The Current Maintainer of this work is Jukka Nikulainen.
+%%
+%% This work consists of the file `egpeirce.sty'
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{egpeirce}[2023/03/20 v1.0.0, Package for drawing existential graphs with PostScript]
+
+\RequirePackage{pstricks}
+\RequirePackage{pst-node}
+\RequirePackage{pst-text}
+\RequirePackage{pstricks-add}
+%\RequirePackage{etextools}% No real need for this (anymore), would also perhaps add overhead?
+\RequirePackage{fancybox}
+\RequirePackage{setspace}
+\RequirePackage{calc}
+\RequirePackage{graphicx}
+
+\RequirePackage{everypage}% This package is used to reset the rheme counter at every page:
+\AddEverypageHook{\setcounter{rheme}{0}}% TADAA! TODO: This mechanism has apparently been deprecated and added to LaTeX!
+
+
+%%
+%% Gaps and bridges
+%%
+\newpsfontdot{null}% The gap-ligature: really a line with an empty head or negative ending, instead of an arrow, etc.
+%[1.0 0.0 0.0 1.0 0.0 +1.0]{PSTricksDotFont}{(b)}
+[1.0 0.0 0.0 1.0 0.0 +1.0]{PSTricksDotFont}{(B)}
+\@namedef{psas@g}{\psk@dotsize \psds@null 0 3 Dot}
+
+%\newpsfontdot{bridge}% Deprecated since this mechanism would add a nonembedded font.
+%[4.0 0.0 0.0 1.0 -0.6576 -0.25]{Helvetica}{(-)}%
+%\@namedef{psas@b}{\psk@dotsize \psds@bridge 0 2 Dot}
+
+\def\tx@BridgeLine{ \tx@setStrokeTransparency BridgeLine }% The bridge-ligature with a line. This code is a bit overkill, but works.
+\@namedef{psas@b}{%
+  /BridgeLine {%
+    CLW mul add dup 2 div
+    /x ED mul neg
+    /y ED
+    /mtrx CM def
+    0 CLW
+    2 div T x y mul 0 ne { x y scale } if
+    0 -1.9 moveto
+    -0.7 -1.9 lineto
+    0.7 -1.9 lineto
+    0.6 setlinewidth
+    mtrx setmatrix stroke 0 2.8 moveto } def
+  \psk@rbracketlength\space \psk@tbarsize\space \tx@BridgeLine
+}
+
+\def\tx@BridgeWedge{ \tx@setStrokeTransparency BridgeWedge }% The bridge-ligature with carets. This code is a bit overkill, but works.
+\@namedef{psas@xb}{%
+  /BridgeWedge {%
+    CLW mul add dup 2 div
+    /x ED mul neg
+    /y ED
+    /mtrx CM def
+    0 CLW
+    2 div T x y mul 0 ne { x y scale } if
+    -0.5 -3.3 moveto
+    -0.5 -1.3 lineto
+    -1.1 -1.3 lineto
+    0.5 -3.3 moveto
+    0.5 -1.3 lineto
+    1.1 -1.3 lineto
+    0.6 setlinewidth
+    mtrx setmatrix stroke 0 CLW moveto } def
+  \psk@rbracketlength\space \psk@tbarsize\space \tx@BridgeWedge
+}
+
+\newcommand{\miniscule}{\ttfamily\@setfontsize\miniscule{4}{5}}% For the very small debugmode numbers.
+% This definition does throw an innocuous error message in LaTeX about size substitution differences, but it's nothing grave. Furthermore, since this really small font is used only for debugging purposes, we need not worry about it at all.
+
+
+%%
+%% Nodes and hooks
+%%
+\newcounter{rheme}
+\newlength{\cutlength}
+\newlength{\dbgnolength}% TODO: This really ought to be deprecated.
+
+\newcounter{egnode}% Node 'depth' counter.
+%\setcounter{egnode}{0}
+\newcommand{\egatn}{\the\value{egnode}}% This is just a shorthand, for iterated scrolls.
+\newcommand{\egpopin}{\stepcounter{egnode}}% These shorthands keep track of the leves of nestedness in iterated scrolls.
+\newcommand{\egpopout}{\setcounter{egnode}{\value{egnode}-1}}
+
+\newcommand{\everygraphhook}[1]{#1}
+
+\newcounter{cutdepth}% Cut 'depth' counter. Used to separate oddly cut areas iff \colouredcuts is True.
+
+\newsavebox\EgTbox% These boxes are used to evaluate the length of arguments in a scroll.
+\newsavebox\EgTTBox
+\newlength{\EgDLength}
+\newlength{\EgELength}
+\newlength{\EgFLength}
+\newif\ifintbox% This \if is used to prevent the rheme counter form advancing e.g. inside the temporary \boxes above. TODO: This mechanism doesn't (and cannot be made to directly) prevent the counters from advancing inside NESTED scrolls. See the TODO note on the scroll commands!
+\intboxfalse
+
+
+%% 
+%% Booleans
+%%
+\newif\ifinnerloop% TODO: This attempts to track nested scrolls so the rheme counter wouldn't advance inside them. Doesn't work. See the TODO note on the scroll commands!
+\newif\ifdebugmode
+\newif\ifcolouredcuts
+\newif\ifellipsecut
+\newif\ifnotinline
+
+\notinlinetrue
+\ellipsecutfalse
+\colouredcutsfalse
+\debugmodefalse
+
+
+%%
+%% Populate and initiate variables
+%%
+\newlength{\cutwidth}
+\newlength{\cutxwidth}
+\setlength{\cutwidth}{.2pt}
+\setlength{\cutxwidth}{.001pt}
+\newlength{\ligaturewidth}
+\setlength{\ligaturewidth}{1.2pt}
+\newcommand{\licolour}{black}
+\newcommand{\cutcolour}{black}
+\newcommand{\cutxcolour}{white}
+\newcommand{\bydefaultblack}{black}
+\newcommand{\cutxfillcolour}{gray}
+\newcommand{\scrollstretch}{0.3}
+\newcommand{\xfillstyle}{solid}
+\definecolor{debugcolour}{rgb}{0,0.45,0}
+
+\newenvironment{inline}[1][0.5]{\notinlinefalse \setstretch{#1}}{\notinlinetrue \setstretch{1}}
+
+
+%%
+%% Cut definitions:
+%%
+\newcommand{\cut}[1]{%
+\stepcounter{cutdepth}%
+{%
+\ifcolouredcuts%
+{%
+\ifodd \the\value{cutdepth}%
+\psset{framearc=1,framesep=\ifnotinline .07\else .05\fi,fillstyle=\xfillstyle,fillcolor=\cutxfillcolour,linestyle=none}%
+{\everygraphhook{\ifellipsecut\psovalbox{\vphantom{A}#1}\else\psframebox{\ifnotinline\strut\else\vphantom{a}\fi#1}\fi}}%
+\else%
+\psset{framearc=1,framesep=\ifnotinline .07\else .05\fi,fillstyle=\xfillstyle,fillcolor=white,linestyle=none}%
+{\everygraphhook{\ifellipsecut\psovalbox{\vphantom{A}#1}\else\psframebox{\ifnotinline\strut\else\vphantom{a}\fi{\everygraphhook{#1}}}\fi}}%
+\fi%
+}%
+\else%
+\psset{framearc=1,framesep=\ifnotinline .07\else .05\fi,linewidth=\cutwidth,linecolor=\cutcolour}%
+\ifellipsecut%
+\psovalbox{\everygraphhook{\vphantom{A}#1}}%
+\else%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+\fi%
+\fi%
+}%
+\setcounter{cutdepth}{\value{cutdepth}-1}%
+}
+
+\newcommand{\vcut}[1]{%
+\stepcounter{cutdepth}%
+{%
+\ifcolouredcuts%
+{%
+\ifodd \the\value{cutdepth}%
+\psset{framearc=.5,framesep=\ifnotinline .07\else .05\fi,fillstyle=\xfillstyle,fillcolor=\cutxfillcolour,linestyle=none}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+\else%
+\psset{framearc=.5,framesep=\ifnotinline .07\else .05\fi,fillstyle=\xfillstyle,fillcolor=white,linestyle=none}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+\fi%
+}%
+\else%
+\psset{framearc=.5,framesep=\ifnotinline .07\else .05\fi,linewidth=\cutwidth,linecolor=\cutcolour}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+\fi%
+}%
+\setcounter{cutdepth}{\value{cutdepth}-1}%
+}
+
+\newcommand{\vvcut}[1]{%
+\stepcounter{cutdepth}%
+{%
+\ifcolouredcuts%
+{%
+\ifodd \the\value{cutdepth}%
+\psset{framearc=.2,framesep=\ifnotinline .07\else .05\fi,fillstyle=\xfillstyle,fillcolor=\cutxfillcolour,linestyle=none}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+\else%
+\psset{framearc=.2,framesep=\ifnotinline .07\else .05\fi,fillstyle=\xfillstyle,fillcolor=white,linestyle=none}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+\fi%
+}%
+\else%
+\psset{framearc=.2,framesep=\ifnotinline .07\else .05\fi,linewidth=\cutwidth,linecolor=\cutcolour}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+\fi%
+}%
+\setcounter{cutdepth}{\value{cutdepth}-1}%
+}
+
+\newcommand{\gcut}[1]{%
+\psset{framearc=1,framesep=\ifnotinline .07\else .05\fi,linewidth=\cutwidth,linecolor=\cutcolour,linestyle=dashed,dash=2pt}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+}
+
+\newcommand{\gvcut}[1]{%
+\psset{framearc=.5,framesep=\ifnotinline .07\else .05\fi,linewidth=\cutwidth,linecolor=\cutcolour,linestyle=dashed,dash=2pt}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}\fi#1}}%
+}
+
+\newcommand{\gvvcut}[1]{%
+\psset{framearc=.2,framesep=\ifnotinline .07\else .05\fi,linewidth=\cutwidth,linecolor=\cutcolour,linestyle=dashed,dash=2pt}%
+\psframebox{\everygraphhook{\ifnotinline\strut\else\vphantom{a}}\fi#1}%
+}
+
+\newcommand{\dbcut}[1]{{\psset{linestyle=dashed,dash=2pt}\cut{\cut{{#1}}}}}
+
+\newcommand{\pcut}[1]{{\psset{linestyle=dashed,dash=2pt}\cut{\psset{linestyle=solid}\cut{#1}}}}
+
+\newcommand{\ncut}[1]{{\cut{\psset{linestyle=dashed,dash=2pt}\cut{{#1}}}}}
+
+\newcommand{\cutx}[1]{\psframebox[fillstyle=\xfillstyle,fillcolor=\cutxfillcolour,linecolor=\cutxcolour,framearc=1,framesep=.07,linewidth=\cutxwidth]{\ifnotinline\strut\else\scriptsize\vphantom{a}\fi#1}}
+\newcommand{\vcutx}[1]{\psframebox[fillstyle=\xfillstyle,fillcolor=\cutxfillcolour,linecolor=\cutxcolour,framearc=.5,framesep=.07,linewidth=\cutxwidth]{\strut#1}}
+\newcommand{\vvcutx}[1]{\psframebox[fillstyle=\xfillstyle,fillcolor=\cutxfillcolour,linecolor=\cutxcolour,framearc=.2,framesep=.07,linewidth=\cutxwidth]{\strut#1}}
+
+
+%%
+%% Hooks & ontops
+%%
+\newcommand{\hk}[1]{\ifintbox\else\stepcounter{rheme}\fi\Rnode{\therheme}{\ifnotinline{\everygraphhook{\vphantom{a}}}\fi{\everygraphhook{#1}}}%
+\ifintbox\else\ifdebugmode{\rput(0.05,0.18){\color{debugcolour}\miniscule\therheme}}\fi\fi}
+
+\newcommand{\shk}[1]{\stepcounter{rheme}\Rnode{\therheme}{\hspace{2pt}\psline[linewidth=1.2pt,linecolor=\licolour,](-0.1,0)(0.075,0.3)(0.25,0){\everygraphhook{#1}}\hspace{2pt}}}
+
+\newlength{\cutskip}
+\setlength{\cutskip}{0\p@ \@plus 1fill}
+\def\cutcenter{% NAH, easier to just use Bcenter, etc.
+\rightskip\cutskip\leftskip\cutskip
+\parindent\z@\parfillskip\z@skip
+}
+
+\newcommand{\ontop}[1]{\begin{Bcenter}#1\end{Bcenter}}
+\newcommand{\ontopl}[1]{\begin{Bflushleft}#1\end{Bflushleft}}
+\newcommand{\ontopr}[1]{\begin{Bflushright}#1\end{Bflushright}}
+
+
+%%
+%% Ligatures
+%%
+\newcommand{\li}[3][-]{\ncline[linewidth=\ligaturewidth,linecolor=\licolour]{#1}{#2}{#3}}
+
+\newcommand{\upright}[3][-]{\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=90,angleB=180]{#1}{#2}{#3}}
+\newcommand{\downright}[3][-]{\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=270,angleB=180]{#1}{#2}{#3}}
+\newcommand{\rightdown}[3][-]{\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,arrowLW=0.05\pslinewidth,angleA=0,angleB=90]{#1}{#2}{#3}}
+\newcommand{\rightup}[3][-]{\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=0,angleB=270]{#1}{#2}{#3}}
+
+\newcommand{\reflexivel}[3][-]{\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=180,angleB=180]{#1}{#2}{#3}}
+\newcommand{\reflexiver}[3][-]{\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=0,angleB=0]{#1}{#3}{#2}}
+
+\newcommand{\sligature}[3][-]{\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=0,angleB=180]{#1}{#2}{#3}}
+\newcommand{\hsligature}[2]{\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=270,angleB=90]{#1}{#2}}
+
+%%
+%% Scrolls
+%%
+
+%% TODO: MAJOR PROBLEMS! Only the noncoloured & noniterated scrolls work fully as expected! There are very few examples of coloured scrolls in Peirce's manuscripts and to my knowledge not one example on coloured and iterated scroll, though. BUT since scrolls are merely a kind of cut, also scrolls ought to behave similar to coloured cuts.
+%% Three problems remain: 
+%%   1) In _iterated_ scrolls, the hook numbers have gaps, since it is hard to make the rheme counter advance only once all the iterations are traversed (see the \intbox-boolean for a stab at the problem, but this doesn't really work). The fundamental problem is that the \DefNodes have to be defined BEFORE we draw the cut.
+%%   2) There's a very nasty redrawing necessary in _coloured_ scrolls (because of the order of the \DefNodes command and the cut mentioned above). Could this be avoided with clipping along the cut path? That would probably be just horribly difficult to do. 
+%%   3) The redrawing of coloured scrolls really works only in _v_scrolls, because there we can use the \EgDLength rules, etc. I have no idea, how one could _reliably_ measure the width of normal (non-v) scrolls?
+%%
+
+\SpecialCoor
+\newcommand\DefNodes[2]{%
+\rnode[tl]{#1-tl}{%
+\rnode[tr]{#1-tr}{%
+\rnode[ml]{#1-ml}{%
+\rnode[mr]{#1-mr}{%
+\rnode[bl]{#1-bl}{%
+\rnode[br]{#1-br}{#2}}}}}}}
+
+\def\scroll{\@ifstar\@scroll\@@scroll}
+\def\@@scroll#1#2{{\everygraphhook{%
+\ifnum \egatn>0 \,\fi\DefNodes{A\egatn}{\vphantom{lp}\egpopin{#1}\egpopout} \DefNodes{B\egatn}{\vphantom{lp}}\DefNodes{C\egatn}{\innerlooptrue\vphantom{lp}\egpopin#2\egpopout\innerloopfalse} \DefNodes{D\egatn}{\vphantom{lp}\,}\ifinnerloop\ifnum \egatn>0 \ \,\fi\fi% Here (and mutatis mutandis below) is a nasty-looking nested if-clause. This is because we only need the extra space inside the inner loop in iterated scrolls, and don't need it at all if the scroll is not iterated.
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour](A\egatn-bl)(A\egatn-tl)(D\egatn-tr)(C\egatn-br)(B\egatn-bl)(B\egatn-tl)(C\egatn-tr)(D\egatn-br)%
+\else%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour](A\egatn-bl)(A\egatn-tl)(D\egatn-tr)(C\egatn-br)(B\egatn-bl)(B\egatn-tl)(C\egatn-tr)(D\egatn-br)%
+\fi%
+%This redrawing is an unfortunate side-effect of the fillcolouring above.  TODO: The \EgDLength+\EgELength -method used in vscrolls doesn't work here!
+\else%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-bl)(A\egatn-tl)(D\egatn-tr)(C\egatn-br)(B\egatn-bl)(B\egatn-tl)(C\egatn-tr)(D\egatn-br)\fi}}}
+\def\@scroll#1#2#3#4#5{{\everygraphhook{%
+\DefNodes{A\egatn}{\egpopin#1\egpopout}\egpopin{#2}\egpopout\DefNodes{B\egatn}{\egpopin#3\egpopout}\DefNodes{C\egatn}{\egpopin{#4}\egpopout}\DefNodes{D\egatn}{\egpopin#5\egpopout}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-bl)(A\egatn-tl)(D\egatn-tr)(C\egatn-br)(B\egatn-bl)(B\egatn-tl)(C\egatn-tr)(D\egatn-br)}}}
+
+\def\inversescroll{\@ifstar\@inversescroll\@@inversescroll}
+\def\@@inversescroll#1#2{{\everygraphhook{%
+\ifinnerloop\ifnum \egatn>0 \ \,\fi\fi\DefNodes{A\egatn}{\,\vphantom{lp}} \DefNodes{B\egatn}{\innerlooptrue\vphantom{lp}\egpopin{#1}\egpopout\innerloopfalse}\DefNodes{C\egatn}{\vphantom{lp}} \DefNodes{D\egatn} {\vphantom{lp}{\egpopin#2}\egpopout}\ifnum \egatn>0 \,\fi%
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour](D\egatn-tr)(A\egatn-tl)%
+(B\egatn-bl)(C\egatn-br)(C\egatn-tr)(B\egatn-tl)(A\egatn-bl)(D\egatn-br)%
+\else%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour](D\egatn-tr)(A\egatn-tl)%
+(B\egatn-bl)(C\egatn-br)(C\egatn-tr)(B\egatn-tl)(A\egatn-bl)(D\egatn-br)%
+\fi%
+% This redrawing is an unfortunate side-effect of the fillcolouring above. TODO: The \EgDLength+\EgELength -method doesn't work here, what to do!
+\else%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](D\egatn-tr)(A\egatn-tl)%
+(B\egatn-bl)(C\egatn-br)(C\egatn-tr)(B\egatn-tl)(A\egatn-bl)(D\egatn-br)\fi}}}
+\def\@inversescroll#1#2#3#4#5{{\everygraphhook{%
+\DefNodes{A\egatn}{\egpopin#1\egpopout}\DefNodes{B\egatn}{\egpopin#2\egpopout}\DefNodes{C\egatn}{\egpopin#3\egpopout}\egpopin#4\egpopout\DefNodes{D\egatn}{\egpopin#5\egpopout}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](D\egatn-tr)(A\egatn-tl)(B\egatn-bl)(C\egatn-br)(C\egatn-tr)(B\egatn-tl)(A\egatn-bl)(D\egatn-br)}}}
+
+\def\vscroll{\@ifstar\@vscroll\@@vscroll}
+\def\@@vscroll#1#2{{\everygraphhook{\intboxtrue% Prevents the rheme counter in \hk from advancing here
+\savebox\EgTbox{#1}%
+\savebox\EgTTBox{#2}\intboxfalse%
+\setlength{\EgDLength}{\wd\EgTTBox}% First set final box to the length of #x
+\setlength{\EgELength}{\wd\EgTTBox}% This saves the length of the consequent for nested scrolls
+\ifdim \wd\EgTbox > \wd\EgTTBox \setlength{\EgDLength}{\wd\EgTbox}\fi% Or set it to #y
+\setlength{\EgFLength}{\EgDLength+5.0pt}%
+\setstretch{\scrollstretch}\begin{Bcenter}\DefNodes{A\egatn}{\egpopin\rule{\EgFLength}{0pt}\egpopout}\\\egpopin{\setstretch{0}\ontop{#1\\\rule{\EgDLength}{0pt}}}\egpopout\\ \DefNodes{B\egatn}{\rule{\EgELength+2pt}{0pt}\vspace*{6pt}}\\ \DefNodes{C\egatn}{\egpopin{\setstretch{0}\ontop{\,#2\,\\\rule{\EgELength+2pt}{0pt}}}\egpopout}\\ \DefNodes{D\egatn}{\rule{\EgFLength}{0pt}}\end{Bcenter}%
+%%
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}%
+\psccurve[curvature=1 0 0,arcsep=10pt,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-bl)(B\egatn-br)(C\egatn-br)(D\egatn-bl)%
+\else%
+\psccurve[curvature=1 0 0,arcsep=10pt,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-bl)(B\egatn-br)(C\egatn-br)(D\egatn-bl)%
+\fi%
+\kern-\EgFLength\setstretch{\scrollstretch}\begin{Bcenter}\DefNodes{A\egatn}{\egpopin\rule{\EgFLength}{0pt}\egpopout}\\\egpopin{\setstretch{0}\ontop{\stepcounter{cutdepth}\intboxtrue#1\intboxfalse\setcounter{cutdepth}{\value{cutdepth}-1}\\\rule{\EgDLength}{0pt}}}\egpopout\\ \DefNodes{B\egatn}{\rule{\EgELength+2pt}{0pt}\vspace*{6pt}}\\ \DefNodes{C\egatn}{\egpopin{\setstretch{0}\ontop{\,\intboxtrue#2\intboxfalse\,\\\rule{\EgELength+2pt}{0pt}}}\egpopout}\\ \DefNodes{D\egatn}{\rule{\EgFLength}{0pt}}\end{Bcenter}% This redrawing is an unfortunate side-effect of the fillcolouring above.
+\else%
+\psccurve[curvature=1 0 0,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-bl)(B\egatn-br)(C\egatn-br)(D\egatn-bl)% The normal cut.
+\fi%
+}}}%
+%%
+\def\@vscroll#1#2#3#4#5{{\everygraphhook{%
+\setstretch{\scrollstretch}\begin{Bcenter}\DefNodes{A\egatn}{\egpopin#1\egpopout}\\\egpopin#2\egpopout\\\DefNodes{B\egatn}{\egpopin#3\egpopout}\\\DefNodes{C\egatn}{\egpopin#4\egpopout}\\\DefNodes{D\egatn}{\egpopin#5\egpopout}\end{Bcenter}%
+\psccurve[curvature=1 0 0,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-bl)(B\egatn-br)(C\egatn-br)(D\egatn-bl)}}}
+
+\def\inversevscroll{\@ifstar\@inversevscroll\@@inversevscroll}
+\def\@@inversevscroll#1#2{{\everygraphhook{\intboxtrue% Prevents the rheme counter in \hk from advancing here
+\savebox\EgTbox{#1}%
+\savebox\EgTTBox{#2}\intboxfalse%
+\setlength{\EgDLength}{\wd\EgTTBox}% First set final box to the length of #x
+\setlength{\EgELength}{\wd\EgTbox}% In the inverse version, we need to track the first argument only here
+\ifdim \wd\EgTbox > \wd\EgTTBox \setlength{\EgDLength}{\wd\EgTbox}\fi% Or set it to #y
+\setlength{\EgFLength}{\EgDLength+5.0pt}%
+{\setstretch{\scrollstretch}\begin{Bcenter}\DefNodes{A\egatn}{\rule{\EgFLength}{0pt}}\\ \DefNodes{B\egatn}{\egpopin{\setstretch{0}\ontop{\rule{\EgELength+2pt}{0pt}\\#1}}\egpopout}\\ \DefNodes{C\egatn}{\rule{\EgELength+2pt}{0pt}\strut}\\ \DefNodes{D\egatn}{\egpopin{\ontop{\rule{\EgFLength}{0pt}\\#2}}\egpopout}\end{Bcenter}}%
+%%
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}%
+\psccurve[curvature=1 0 0,arcsep=10pt,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour](D\egatn-bl)(D\egatn-br)(A\egatn-tr)(B\egatn-tl)(C\egatn-ml)(C\egatn-mr)(B\egatn-tr)(A\egatn-tl)%
+\else%
+\psccurve[curvature=1 0 0,arcsep=10pt,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour](D\egatn-bl)(D\egatn-br)(A\egatn-tr)(B\egatn-tl)(C\egatn-ml)(C\egatn-mr)(B\egatn-tr)(A\egatn-tl)%
+\fi%
+\kern-\EgFLength{\setstretch{\scrollstretch}\begin{Bcenter}\DefNodes{A\egatn}{\rule{\EgFLength}{0pt}}\\ \DefNodes{B\egatn}{\egpopin{\setstretch{0}\ontop{\rule{\EgELength+2pt}{0pt}\\\intboxtrue{#1}\intboxfalse}}\egpopout}\\ \DefNodes{C\egatn}{\rule{\EgELength+2pt}{0pt}\strut}\\ \DefNodes{D\egatn}{\egpopin{\ontop{\rule{\EgFLength}{0pt}\\\stepcounter{cutdepth}\intboxtrue{#2}\intboxfalse\setcounter{cutdepth}{\value{cutdepth}-1}}}\egpopout}\end{Bcenter}}% This redrawing is an unfortunate side-effect of the fillcolouring above.
+\else%
+\psccurve[curvature=1 0 0,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](D\egatn-bl)(D\egatn-br)(A\egatn-tr)(B\egatn-tl)(C\egatn-ml)(C\egatn-mr)(B\egatn-tr)(A\egatn-tl)% The normal cut.
+\fi%
+}}}%
+%%
+\def\@inversevscroll#1#2#3#4#5{%
+{\everygraphhook{\setstretch{\scrollstretch}\begin{Bcenter}\DefNodes{A\egatn}{\egpopin#1\egpopout}\\\egpopin#2\egpopout\\ \DefNodes{B\egatn}{\egpopin#3\egpopout}\\ \DefNodes{C\egatn}{\egpopin#4\egpopout}\\ \DefNodes{D\egatn}{\egpopin#5\egpopout}\end{Bcenter}}}%
+\psccurve[curvature=1 0 0,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](D\egatn-bl)(D\egatn-br)(A\egatn-tr)(B\egatn-tl)(C\egatn-ml)(C\egatn-mr)(B\egatn-tr)(A\egatn-tl)}
+
+\def\longvscroll{\@ifstar\@longvscroll\@@longvscroll}
+\def\@@longvscroll#1#2{\intboxtrue% Prevents the rheme counter in \hk from advancing here
+\savebox\EgTbox{{\everygraphhook{\vphantom{#1}\hphantom{#1}}}}%
+\savebox\EgTTBox{{\everygraphhook{\,\vphantom{#2}\hphantom{#2}\,}}}\intboxfalse%% The \, here and below ensures that cuts in iterated scrolls won't overlap (& is comparable to \EgDLength+3pt).
+\setlength{\EgDLength}{\wd\EgTTBox}% First set final box to the length of #x
+\ifdim \wd\EgTbox > \wd\EgTTBox \setlength{\EgDLength}{\wd\EgTbox}\fi% Or set it to #y
+\setlength{\EgFLength}{\EgDLength+5.0pt}%
+{\everygraphhook{\setstretch{\scrollstretch}\begin{Bcenter}%
+\DefNodes{A\egatn}{\rule{\EgFLength}{0pt}}\\%
+\egpopin{#1}\egpopout\\%
+\DefNodes{B\egatn}{\rule{\wd\EgTTBox}{0pt}}\\%
+\DefNodes{C\egatn}{\egpopin{\,#2\,}\egpopout}\\%
+\DefNodes{D\egatn}{\rule{\EgFLength}{0pt}\vphantom{a}}\end{Bcenter}}}%
+%%
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}%
+\pspolygon[linearc=.14,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-ml)(B\egatn-mr)(C\egatn-br)(D\egatn-bl)%
+\else%
+\pspolygon[linearc=.14,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-ml)(B\egatn-mr)(C\egatn-br)(D\egatn-bl)%
+\fi%
+\kern-\EgFLength{\everygraphhook{\setstretch{\scrollstretch}\begin{Bcenter}\intboxtrue%
+\DefNodes{A\egatn}{\rule{\EgFLength}{0pt}}\\%
+\egpopin\stepcounter{cutdepth}{#1}\setcounter{cutdepth}{\value{cutdepth}-1}\egpopout\\%
+\DefNodes{B\egatn}{\rule{\wd\EgTTBox}{0pt}}\\%
+\DefNodes{C\egatn}{\egpopin\,{#2}\,\egpopout}\\%
+\DefNodes{D\egatn}{\rule{\EgFLength}{0pt}\vphantom{a}}\intboxfalse\end{Bcenter}}}% This redrawing is an unfortunate side-effect of the fillcolouring above.
+\else%
+\pspolygon[linearc=.14,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-ml)(B\egatn-mr)(C\egatn-br)(D\egatn-bl)% The normal cut.
+\fi%
+}%
+%%
+\def\@longvscroll#1#2#3#4#5{
+{\setstretch{\scrollstretch}\begin{Bcenter}\begin{inline}[0.4]%
+\DefNodes{A\egatn}{\egpopin#1\egpopout}\end{inline}\\%
+\egpopin#2\egpopout\\%
+\DefNodes{B\egatn}{\egpopin#3\egpopout}\\%
+\DefNodes{C\egatn}{\egpopin#4\egpopout}\\%
+\DefNodes{D\egatn}{\egpopin#5\egpopout}\end{Bcenter}}
+\pspolygon[linearc=.14,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-ml)(B\egatn-mr)(C\egatn-br)(D\egatn-bl)%
+}
+
+\def\longinversevscroll{\@ifstar\@longinversevscroll\@@longinversevscroll}
+\def\@@longinversevscroll#1#2{\intboxtrue% Prevents the rheme counter in \hk from advancing here
+\savebox\EgTbox{{\everygraphhook{\,#1\,}}}%
+\savebox\EgTTBox{{\everygraphhook{#2}}}\intboxfalse%
+\setlength{\EgDLength}{\wd\EgTTBox}% First set final box to the length of #x
+\ifdim \wd\EgTbox > \wd\EgTTBox \setlength{\EgDLength}{\wd\EgTbox}\fi% Or set it to #y
+\setlength{\EgFLength}{\EgDLength+5.0pt}%
+{\everygraphhook{\setstretch{\scrollstretch}\begin{Bcenter}%
+\DefNodes{A\egatn}{\rule{\EgFLength}{0pt}\vphantom{a}}\\%
+\DefNodes{B\egatn}{\egpopin{\,#1\,}\egpopout}\\%
+\DefNodes{C\egatn}{\rule{\wd\EgTbox}{0pt}}\\%
+\egpopin{#2}\egpopout\\%
+\DefNodes{D\egatn}{\rule{\EgFLength}{0pt}}%
+\end{Bcenter}}}%
+%%
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}%
+\pspolygon[linearc=.14,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour](D\egatn-bl)(A\egatn-tl)(B\egatn-tr)(C\egatn-mr)(C\egatn-ml)(B\egatn-tl)(A\egatn-tr)(D\egatn-br)%
+\else%
+\pspolygon[linearc=.14,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour](D\egatn-bl)(A\egatn-tl)(B\egatn-tr)(C\egatn-mr)(C\egatn-ml)(B\egatn-tl)(A\egatn-tr)(D\egatn-br)%
+\fi%
+\kern-\EgFLength{\everygraphhook{\setstretch{\scrollstretch}\begin{Bcenter}%
+\DefNodes{A\egatn}{\rule{\EgFLength}{0pt}\vphantom{a}}\\%
+\DefNodes{B\egatn}{\egpopin\,\intboxtrue{#1}\intboxfalse\,\egpopout}\\%
+\DefNodes{C\egatn}{\rule{\wd\EgTbox}{0pt}}\\%
+\egpopin\stepcounter{cutdepth}\intboxtrue{#2}\intboxfalse\setcounter{cutdepth}{\value{cutdepth}-1}\egpopout\\%
+\DefNodes{D\egatn}{\rule{\EgFLength}{0pt}}%
+\end{Bcenter}}}% This redrawing is an unfortunate side-effect of the fillcolouring above.
+\else%
+\pspolygon[linearc=.14,linewidth=\cutwidth,linecolor=\cutcolour](D\egatn-bl)(A\egatn-tl)(B\egatn-tr)(C\egatn-mr)(C\egatn-ml)(B\egatn-tl)(A\egatn-tr)(D\egatn-br)% The normal cut.
+\fi%
+}%
+%%
+\def\@longinversevscroll#1#2#3#4#5{
+{\everygraphhook{\setstretch{\scrollstretch}\begin{Bcenter}\begin{inline}[0.4]%
+\DefNodes{A\egatn}{\egpopin#1\egpopout}\end{inline}\\%
+\egpopin#2\egpopout\\%
+\DefNodes{B\egatn}{\egpopin#3\egpopout}\\%
+\DefNodes{C\egatn}{\egpopin#4\egpopout}\\%
+\DefNodes{D\egatn}{\egpopin#5\egpopout}\end{Bcenter}}}
+\pspolygon[linearc=.14,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(A\egatn-tr)(D\egatn-br)(C\egatn-bl)(B\egatn-ml)(B\egatn-mr)(C\egatn-br)(D\egatn-bl)%
+}
+
+\def\longscroll{\@ifstar\@longscroll\@@longscroll}
+\def\@@longscroll#1#2{{\everygraphhook{%
+\DefNodes{A\egatn}{\vphantom{lp}\egpopin\,#1\,\egpopout}%
+\DefNodes{B\egatn}{\vphantom{lp}}%
+\DefNodes{C\egatn}{\vphantom{lp}\egpopin\,#2\,\egpopout}%
+\DefNodes{D\egatn}{\vphantom{lp}\hphantom{i}}\ %
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}%
+\psccurve[curvature=0.25 0.5 0.5,arcsep=10pt,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour](A\egatn-bl)(A\egatn-tl)(D\egatn-tr)(C\egatn-br)(B\egatn-bl)(B\egatn-tl)(C\egatn-tr)(D\egatn-br)%
+\else%
+\psccurve[curvature=0.25 0.5 0.5,arcsep=10pt,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour](A\egatn-bl)(A\egatn-tl)(D\egatn-tr)(C\egatn-br)(B\egatn-bl)(B\egatn-tl)(C\egatn-tr)(D\egatn-br)%
+\fi%
+% This redrawing is an unfortunate side-effect of the fillcolouring above. TODO: The \EgDLength+\EgELength -method doesn't work here, what to do!
+\else%
+\psccurve[curvature=0.25 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-bl)(A\egatn-tl)(D\egatn-tr)(C\egatn-br)(B\egatn-bl)(B\egatn-tl)(C\egatn-tr)(D\egatn-br)\fi}}}
+\def\@longscroll#1#2#3#4{{\everygraphhook{%
+\DefNodes{A\egatn}{\vphantom{lp}\egpopin#1\egpopout}%
+\DefNodes{B\egatn}{\vphantom{lp}\egpopin#2\egpopout}%
+\DefNodes{C\egatn}{\vphantom{lp}\egpopin#3\egpopout}%
+\DefNodes{D\egatn}{\vphantom{lp}\egpopin#4\egpopout\hphantom{i}}%
+\psccurve[curvature=0.25 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-bl)(A\egatn-tl)(D\egatn-tr)(C\egatn-br)(B\egatn-bl)(B\egatn-tl)(C\egatn-tr)(D\egatn-br)
+}}}
+
+\def\longinversescroll{\@ifstar\@inverselongscroll\@@inverselongscroll}
+\def\@@inverselongscroll#1#2{{\everygraphhook{%
+\DefNodes{A\egatn}{\vphantom{lp}\hphantom{i}}%
+\DefNodes{B\egatn}{\vphantom{lp}\egpopin\,#1\,\egpopout}%
+\DefNodes{C\egatn}{\vphantom{lp}}%
+\DefNodes{D\egatn}{\vphantom{lp}\egpopin\,#2\,\egpopout}%
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}%
+\psccurve[curvature=0.25 0.5 0.5,arcsep=10pt,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour](D\egatn-tr)(A\egatn-tl)(B\egatn-bl)(C\egatn-br)(C\egatn-tr)(B\egatn-tl)(A\egatn-bl)(D\egatn-br)%
+\else%
+\psccurve[curvature=0.25 0.5 0.5,arcsep=10pt,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour](D\egatn-tr)(A\egatn-tl)(B\egatn-bl)(C\egatn-br)(C\egatn-tr)(B\egatn-tl)(A\egatn-bl)(D\egatn-br)%
+\fi%
+% This redrawing is an unfortunate side-effect of the fillcolouring above. TODO: The \EgDLength+\EgELength -method doesn't work here, what to do!
+\else%
+\psccurve[curvature=0.25 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](D\egatn-tr)(A\egatn-tl)(B\egatn-bl)(C\egatn-br)(C\egatn-tr)(B\egatn-tl)(A\egatn-bl)(D\egatn-br)\fi}}}
+\def\@longinversescroll#1#2#3#4{{\everygraphhook{
+\DefNodes{A\egatn}{\vphantom{lp}\egpopin#1\egpopout}%
+\DefNodes{B\egatn}{\vphantom{lp}\egpopin#2\egpopout}%
+\DefNodes{C\egatn}{\vphantom{lp}\egpopin#3\egpopout}%
+\DefNodes{D\egatn}{\vphantom{lp}\egpopin#4\egpopout\hphantom{i}}%
+\psccurve[curvature=0.25 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](D\egatn-tr)(A\egatn-tl)(B\egatn-bl)(C\egatn-br)(C\egatn-tr)(B\egatn-tl)(A\egatn-bl)(D\egatn-br)
+}}}
+
+\def\doublescroll{\@ifstar\@doublescroll\@@doublescroll}
+\def\@@doublescroll#1#2{%
+\DefNodes{A\egatn}{\egpopin\vphantom{lp}\egpopout} \DefNodes{B\egatn}{\vphantom{lp}\egpopin#1\egpopout} \,\DefNodes{C\egatn}{\vphantom{lp}\egpopin#2\egpopout} \DefNodes{D\egatn}{\egpopin\vphantom{lp}\egpopout}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(D\egatn-tr)(C\egatn-br)(C\egatn-bl)(C\egatn-tl)(C\egatn-tr)(D\egatn-br)(A\egatn-bl)(B\egatn-tl)(B\egatn-tr)(B\egatn-br)(B\egatn-bl)}
+\def\@doublescroll#1#2#3{%
+\DefNodes{A\egatn}{\egpopin\vphantom{lp}\egpopout} \DefNodes{B\egatn}{\vphantom{lp}\egpopin#1\egpopout}#2\DefNodes{C\egatn}{\vphantom{lp}\egpopin#3\egpopout} \DefNodes{D\egatn}{\egpopin\vphantom{lp}\egpopout}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(D\egatn-tr)(C\egatn-br)(C\egatn-bl)(C\egatn-tl)(C\egatn-tr)(D\egatn-br)(A\egatn-bl)(B\egatn-tl)(B\egatn-tr)(B\egatn-br)(B\egatn-bl)}
+
+\def\scrollscroll{\@ifstar\@scrollscroll\@@scrollscroll}
+\def\@@scrollscroll#1#2#3{%
+\ifnum \egatn>0 \ \,\fi\DefNodes{A\egatn}{\egpopin\vphantom{lp}\egpopout}\egpopin#1\egpopout\,\DefNodes{B\egatn}{\egpopin\vphantom{lp}\egpopout}\egpopin#2\egpopout\,\DefNodes{C\egatn}{\egpopin\vphantom{lp}#3\egpopout} \DefNodes{D\egatn}{\egpopin\vphantom{lp}\egpopout} \DefNodes{E\egatn}{\egpopin\vphantom{lp}\egpopout}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-bl)(A\egatn-tl)(E\egatn-tr)(E\egatn-br)(B\egatn-bl)(B\egatn-tl)(D\egatn-tr)(C\egatn-br)(C\egatn-bl)(C\egatn-tl)(C\egatn-tr)(D\egatn-br)%
+}
+\def\@scrollscroll#1#2#3#4#5{% TODO: Reconfigure below IF NEEDED
+\DefNodes{A\egatn}{\egpopin\vphantom{lp}#1\egpopout} \DefNodes{B\egatn}{\vphantom{lp}\egpopin#2\egpopout}#3\DefNodes{C\egatn}{\vphantom{lp}\egpopin#4\egpopout} \DefNodes{D\egatn}{\egpopin\vphantom{lp}#5\egpopout}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(D\egatn-tr)(C\egatn-br)(C\egatn-bl)(C\egatn-tl)(C\egatn-tr)(D\egatn-br)(A\egatn-bl)(B\egatn-tl)(B\egatn-tr)(B\egatn-br)(B\egatn-bl)}
+
+\def\scrollscrollalt{\@ifstar\@scrollscrollalt\@@scrollscrollalt}
+\def\@@scrollscrollalt#1#2#3{%
+\ifnum \egatn>0 \ \,\fi\DefNodes{A\egatn}{\egpopin\vphantom{lp}\egpopout} \DefNodes{B\egatn}{\egpopin\vphantom{lp}\egpopout}\egpopin#1\egpopout \,\,\DefNodes{C\egatn}{\egpopin\vphantom{lp}#2\egpopout} \DefNodes{D\egatn}{\egpopin\vphantom{lp}\egpopout}\egpopin\,#3\egpopout\DefNodes{E\egatn}{\egpopin\vphantom{lp}\egpopout}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](C\egatn-tl)(C\egatn-tr)(D\egatn-br)(B\egatn-br)(A\egatn-tl)(E\egatn-tr)(E\egatn-br)(A\egatn-bl)(B\egatn-tl)(D\egatn-tr)(C\egatn-br)(C\egatn-bl)%
+}
+\def\@scrollscrollalt#1#2#3#4#5{% TODO: Reconfigure below IF NEEDED
+\DefNodes{A\egatn}{\egpopin\vphantom{lp}#1\egpopout} \DefNodes{B\egatn}{\vphantom{lp}\egpopin#2\egpopout}#3\DefNodes{C\egatn}{\vphantom{lp}\egpopin#4\egpopout} \DefNodes{D\egatn}{\egpopin\vphantom{lp}#5\egpopout}%
+\psccurve[curvature=0.8 0.5 0.5,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour](A\egatn-tl)(D\egatn-tr)(C\egatn-br)(C\egatn-bl)(C\egatn-tl)(C\egatn-tr)(D\egatn-br)(A\egatn-bl)(B\egatn-tl)(B\egatn-tr)(B\egatn-br)(B\egatn-bl)}
+
+% The nscrolls are drawn with a method that totally mimicks the normal scroll command structure, but the drawing is automated. I could have gone through a slightly different path, but it's perhaps more consistent this way. I'M HOPING THIS EXCUSE ABSOLVES ME OF SOME OF THE QUIRKS IN THE CODE BELOW...
+%
+\newcounter{Egiterscroll}%   This counter keeps track of the number of arguments for iterated loops.
+\setcounter{Egiterscroll}{0}
+\newcounter{Egforloop}%      This second counter is needed so the first argument gets assigned a direction of 0 degrees.
+\setcounter{Egforloop}{0}
+\newcounter{Eganglediv}%     This counter divides the arguments evenly along the circle (separation in degrees of n-division).
+\setcounter{Eganglediv}{0}
+\newcounter{Egangle}%        This saves the final absolute direction (Eganglediv*Egforloop) for each loop.
+\setcounter{Egangle}{0}
+
+\newcommand{\defaultnscrollangle}{180}
+\newcounter{nscrollangle}
+\setcounter{nscrollangle}{\defaultnscrollangle}
+\newcommand{\defaultscrolldistance}{0.5}%  Default distance of the center of each loop from the center of the whole scroll.
+\newcommand{\defaultscrollwidth}{0.2}%     Default width of each loop.
+\newcommand{\nscrolldistance}{\defaultscrolldistance}
+\newcommand{\nscrollwidth}{\defaultscrollwidth}
+\newlength{\Egtolastnode}%             Because LaTeX doesn't exactly do floating (or fixed) point arithmetic easily, we'll have to 
+\setlength{\Egtolastnode}{0pt}%       communicate the widening by _lengths_, whose units get stripped away before they are used.
+
+\newlength{\Egwholewidth}
+\setlength{\Egwholewidth}{0pt}
+\newlength{\Egshiftamount}
+\setlength{\Egshiftamount}{0pt}
+
+\newlength{\Egeee}% OUCH! This is hacky as hell, and there really ought to be a cleaner way to do this.
+
+\newcounter{Egtmpa}% These store directions for the four corners (\DefNodes) of each loop relative to its central axis (\theangle).
+\setcounter{Egtmpa}{0}
+\newcounter{Egtmpb}
+\setcounter{Egtmpb}{0}
+\newcounter{Egtmpc}
+\setcounter{Egtmpc}{0}
+\newcounter{Egtmpd}
+\setcounter{Egtmpd}{0}
+\newcounter{Egtmpx}
+\setcounter{Egtmpx}{0}
+\newcounter{Egtmpy}
+\setcounter{Egtmpy}{0}
+
+\newcommand{\Egexpandcoord}[2]{% These commands allow us to feed the contents of \scrolltokenlist below to \psccurve and draw the cut.
+\expandafter\Egexpandcoordaux\expandafter{#2}{#1}}
+\newcommand{\Egexpandcoordaux}[2]{#2#1}%
+
+\def\nscroll{\@ifstar\@nscroll\@@nscroll}%  Starred version of \nscroll has two arguments and the contents of the
+%                                          second argument goes to the singly cut area in the middle of the graph.
+\def\@@nscroll#1{%
+\addtolength{\Egwholewidth}{\nscrollwidth pt * \real{1.4} + \nscrolldistance pt}%  These commands sets the width for pspicture below
+\def\wholenscrollwidth{\strip@pt\Egwholewidth}%                                   the 1.4 factor is the same as in \isitscaled.
+\addtolength{\Egshiftamount}{\Egwholewidth -0.12pt}% This matches the baselines of scroll text and surrounding text ([shift=*] would NOT quite align them).
+\def\wholeshiftamount{\strip@pt\Egshiftamount}%
+\newtoks\scrolltokenlist% This token list will be populated with the coordinates for the cut of each loop.
+%                         The token is defined here so that the list is cleared with each new use of it.
+\@for \next:=#1\do{% Without this loop we'd have to get the number of arguments from the user, which would be not a little weird.
+\stepcounter{Egiterscroll}% This counter keeps the number of arguments...
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}1-tl)}}\tmp%  The coordinates for the cut of each loop
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}2-tl)}}\tmp% of the scroll are created here.
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}3-tl)}}\tmp%  We need to use \edef instead of normally
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}4-tl)}}\tmp% appending to a token register so that the
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}5-tl)}}\tmp% value of \Egiterscroll expands immediately
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}6-tl)}}\tmp% and correctly to the value it has HERE & NOW.
+}%
+\setcounter{Eganglediv}{360/\the\value{Egiterscroll}}% ...this value spreads the arguments evenly (though in INTEGER increments!) on the unit circle.
+%
+\begin{pspicture}[shift=-\wholeshiftamount](-\wholenscrollwidth,-\wholenscrollwidth)(\wholenscrollwidth,\wholenscrollwidth)% Clears horizontal and vertical space of the width and height of the graph. In a _two-element_ nscroll, this will cause graph area to be too tall (since it's equal to its length). Using the optional scaling commands instead of changing the default prevents this.
+\foreach \nscrollelement in {#1}%    This \foreach -loop goes through the elements in the main argument of \nscroll
+{\expandafter\isitscaled\nscrollelement%   Here we just pass these elements to the \isitscaled[][]{} command defined below that
+%                                         in turn checks whether there are optional scaling commands present in the list elements.
+}%                                   End \foreach -loop
+\ifcolouredcuts% The commands below finally draw the cut.
+\ifodd\the\value{cutdepth}% No need to \advance cutdepth here, since the inloops are obviously doubly-cut and _parity_ is thus preserved.
+\Egexpandcoord{\psccurve[curvature=1 0.8 0.8,arcsep=10pt,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour]}{\the\scrolltokenlist}%
+\else%
+\Egexpandcoord{\psccurve[curvature=1 0.8 0.8,arcsep=10pt,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour]}{\the\scrolltokenlist}%
+\fi%
+\foreach \nscrollelement in {#1}{\expandafter\isitscaled\nscrollelement}% This redrawing is an unfortunate side-effect of the fillcolouring above.
+\else%
+\Egexpandcoord{\psccurve[curvature=1 0.8 0.8,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour]}{\the\scrolltokenlist}% FINALLY the normal cut.
+\fi%
+\end{pspicture}%
+\renewcommand{\nscrolldistance}{\defaultscrolldistance}% A little housekeeping
+\renewcommand{\nscrollwidth}{\defaultscrollwidth}%
+\setcounter{nscrollangle}{\defaultnscrollangle}%
+\setlength{\Egwholewidth}{0pt}%
+\setlength{\Egshiftamount}{0pt}
+\setcounter{Egiterscroll}{0}%
+\setcounter{Eganglediv}{0}%
+\setcounter{Egforloop}{0}%
+}%
+\def\@nscroll#1#2{%                 This code is mostly similar to above, so no comments here...
+\addtolength{\Egwholewidth}{\nscrollwidth pt * \real{1.4} + \nscrolldistance pt}\def\wholenscrollwidth{\strip@pt\Egwholewidth}
+\addtolength{\Egshiftamount}{\Egwholewidth -0.12pt}\def\wholeshiftamount{\strip@pt\Egshiftamount}%
+\newtoks\scrolltokenlist% 
+\@for \next:=#1\do{\stepcounter{Egiterscroll}%
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}1-tl)}}\tmp% 
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}2-tl)}}\tmp%
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}3-tl)}}\tmp%
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}4-tl)}}\tmp%
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}5-tl)}}\tmp%
+\edef\tmp{\scrolltokenlist{\the\scrolltokenlist (\alph{Egiterscroll}6-tl)}}\tmp}%
+\setcounter{Eganglediv}{360/\the\value{Egiterscroll}}%
+\begin{pspicture}[shift=-\wholeshiftamount](-\wholenscrollwidth,-\wholenscrollwidth)(\wholenscrollwidth,\wholenscrollwidth)%
+\foreach \nscrollelement in {#1}{\expandafter\isitscaled\nscrollelement}%
+\ifcolouredcuts\ifodd\the\value{cutdepth}\Egexpandcoord{\psccurve[curvature=1 0.8 0.8,arcsep=10pt,linestyle=none,fillstyle=oefill,fillcolor=\cutxfillcolour]}{\the\scrolltokenlist}\else\Egexpandcoord{\psccurve[curvature=1 0.8 0.8,arcsep=10pt,linestyle=none,fillstyle=eofill,fillcolor=\cutxfillcolour]}{\the\scrolltokenlist}\fi\foreach \nscrollelement in {#1}{\expandafter\isitscaled\nscrollelement}\else\Egexpandcoord{\psccurve[curvature=1 0.8 0.8,arcsep=10pt,linewidth=\cutwidth,linecolor=\cutcolour]}{\the\scrolltokenlist}\fi%
+\rput(0,0){\stepcounter{cutdepth}{\everygraphhook{#2}}\setcounter{cutdepth}{\value{cutdepth}-1}}%      ...except for this line that puts #2 in the singly cut area in the middle. Notice the cutdepth advance for coloured cuts, and the fact that we do this AFTER the cut has been drawn.
+\end{pspicture}\renewcommand{\nscrolldistance}{\defaultscrolldistance}\renewcommand{\nscrollwidth}{\defaultscrollwidth}\setcounter{nscrollangle}{\defaultnscrollangle}\setlength{\Egwholewidth}{0pt}\setlength{\Egshiftamount}{0pt}\setcounter{Egiterscroll}{0}\setcounter{Eganglediv}{0}\setcounter{Egforloop}{0}%
+}
+
+%\newcommand{\proct}[1]{\expandafter\expandafter#1}% Maybe autoregroup the elements in \nscroll, and \expandafter them in \isitscaled? DOESN'T WORK!
+
+\def\isitscaled{%                     These commands below check for the optional scaling commands. 
+\@ifnextchar[%                        Because both the distance and the width of the scroll can be 
+{\@oncescaled}%                      changed, the code is somewhat intricate. Notice that math mode
+{\@oncescaled[\nscrolldistance]}%    messes with the \@ifnextchar-command here, so all the math mode
+}%                                   stuff needs to be put after the optional commands and also grouped
+\def\@oncescaled[#1]{%               because \foreach in turn demands that, so: {...,[x][y]{$z$},...}.
+\@ifnextchar[%                        The interplay of \@ifnextchar and pgffor-loop further requires
+{\@twicescaled{#1}}%                 that all elements in the list have to be regrouped iff they contain 
+{\@twicescaled{#1}[\nscrollwidth]}%  anything but a single character. But we CANNOT add the regrouping 
+}%                                   automatically here, before the \@ifnextchar check?
+\def\@twicescaled#1[#2]#3{%
+\setcounter{Egangle}{\value{Eganglediv}*\value{Egforloop}+\thenscrollangle}%
+\stepcounter{Egforloop}%
+%
+\addtolength{\Egtolastnode}{#2 pt * \real{1.4}}%       The rationale for this bizarre piece of code is explained above when I
+\def\lastnodewidth{\strip@pt\Egtolastnode}%           defined \Egtolastnode. The factor of 1.4 just seems like a good fit.
+%
+\setcounter{Egtmpa}{\the\value{Egangle}+45}%             These counters define the angles for the four 
+\setcounter{Egtmpb}{\the\value{Egangle}+45+90}%         corners of each loop relative to the loop angle.
+\setcounter{Egtmpc}{\the\value{Egangle}+45+90+90}%       Below we also add two more points a bit further (\Egtolastnode)
+\setcounter{Egtmpd}{\the\value{Egangle}+45+90+90+90}%   away so that the point of intersection in the cut is pronounced.
+\setcounter{Egtmpx}{\the\value{Egtmpa}-20}%
+\setcounter{Egtmpy}{\the\value{Egtmpd}+20}%              Again, the value of +/-20 degrees here & above just seems like a good fit.
+%
+\rput(#1;\the\value{Egangle}){{\everygraphhook{#3}}}%                     Here we finally use the non-optional list element of \nscroll.
+%
+\setlength{\Egeee}{1.21pt*\real{#2}}%                  This length is used in \xscroll below to fill a loop, and this formulation
+\addtolength{\Egeee}{1pt*\real{#1}}%                  fills loops of arbitrary size.
+%
+\rput(#1;\the\value{Egangle}){% \rputs don't react to [origin={}], so this line changes the origin for the entire scope (a single loop).
+\rput(\lastnodewidth;\the\value{Egtmpy}){\DefNodes{\alph{Egforloop}1}{}}%
+\rput(#2;\the\value{Egtmpd}){\DefNodes{\alph{Egforloop}5}{}}%
+\rput(#2;\the\value{Egtmpc}){\DefNodes{\alph{Egforloop}4}{}}%
+\rput(#2;\the\value{Egtmpb}){\DefNodes{\alph{Egforloop}3}{}}%
+\rput(#2;\the\value{Egtmpa}){\DefNodes{\alph{Egforloop}2}{}}%
+\rput(\lastnodewidth;\the\value{Egtmpx}){\DefNodes{\alph{Egforloop}6}{}}%
+}%
+}
+
+\newcommand{\xscroll}{% Really craptacularly, kinda, fills _a_ loop.
+\def\sep{\strip@pt\Egeee}% Yeah, this sucks!
+\pscurve[curvature=1 0.8 0.8,arcsep=10pt,linestyle=none,fillstyle=solid,fillcolor=\cutxfillcolour]%
+(\sep;\the\value{Egangle})(\alph{Egforloop}2-tl)(\alph{Egforloop}3-tl)(\alph{Egforloop}4-tl)(\alph{Egforloop}5-tl)(\sep;\the\value{Egangle})%
+}
+
+\newcommand{\vv}{\raisebox{-5.5pt}{\color{white}\huge{$\cdot$}}\kern-6.2pt\raisebox{-5pt}{\sz{\^\ }} \kern-7.5pt}%{\raisebox{-5pt}{\everygraphhook{\^\ }} \kern-8pt}
+
+
+%%
+%% Special hooks that express arities with directions. Not present in Peirce's manuscripts.
+%%
+\newcounter{direction}
+\setcounter{direction}{0}
+\newcounter{cupa}% TODO: There really ought to be a better way to do this simple change. I must missing something!
+\newcounter{cupb}
+\newcounter{subangle}
+\setcounter{subangle}{0}
+\newcounter{subiter}
+\setcounter{subiter}{0}
+\newcounter{itn}
+\setcounter{itn}{0}
+\newcounter{itc}
+\setcounter{itc}{0}
+
+\newcommand{\ahk}[2]{%
+\@for \next:=#1\do{% Without this loop we'd have to get the number of arguments from the user, which would be not a little weird.
+\stepcounter{Egiterscroll}% This counter keeps the number of arguments...
+}%
+\setcounter{Eganglediv}{360/\the\value{Egiterscroll}}% ...this value spreads the arguments evenly on the circle. TODO: This method obviously produces only whole numbers, so 'evenly' is contestable. In this case, this isn't a huge deal, but maybe Post Script would have an efficient way of calculating the exact divisions.
+%
+\begin{pspicture}(-0.6,-0.6)(0.6,0.6)% This clears space for the hook.
+\rput(0,0){#2}%
+\pscircle[linewidth=1pt,linestyle=dotted,dotsep=2pt](0,0){0.35}
+\foreach \arityhookelement in {#1}%    This \foreach -loop goes through the elements in the argument
+{\expandafter\iahk{\arityhookelement}%   Here we simply pass these elements to the the \iahk{} command defined below.
+%        It would've been nice to have iterated lists communicated with [] by \@ifnextchar in \iahk{} already instead 
+%       of a separate \iter{}-command. However \pgffor requires sublists to be grouped anyway and math mode messes 
+%       with \@ifnextchar, so we have the separate command.
+%
+}%                      End \foreach -loop
+\end{pspicture}%
+\setcounter{Egiterscroll}{0}\setcounter{Eganglediv}{0}\setcounter{Egforloop}{0}\setcounter{direction}{0}% A little housekeeping
+}%
+
+\newcommand{\iahk}[1]{%
+{\setcounter{Egangle}{90+(\value{Egiterscroll}-\value{Egforloop})*\value{Eganglediv}}% This command sets the first argument to 12'o clock and spreads the arguments evely around the circle in a clockwise direction. It does give values over 360 degrees, but this doesn't matter, since PsTricks interprets all angle values modulo 360.
+\stepcounter{Egforloop}%
+\rput(0.55;\the\value{Egangle}){\stepcounter{rheme}\footnotesize\Rnode{\therheme}{#1}%
+\ifdebugmode{\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi}%
+\setcounter{cupa}{\the\value{Egangle}-14}%
+\setcounter{cupb}{\the\value{Egangle}+14}%
+\pscurve[curvature=2 1 1,linewidth=0.5pt](0.48;\the\value{cupa})(0.38;\the\value{Egangle})(0.48;\the\value{cupb})%
+}}
+
+\newcommand{\iter}[1]{{%
+\@for \next:=#1\do{\stepcounter{subiter}}
+\ifnum\thesubiter=1\setcounter{itc}{90}\stepcounter{itn}\else
+\setcounter{itc}{180/(\value{subiter}-1)}\fi% Because of the -1 here \ifnum above prevents a div-by-zero in an one-argument \iter{}.
+\foreach \a in {#1}%
+{%
+\setcounter{subangle}{\value{Egangle}+(90-(\value{itc}*\value{itn}))}%  This abstruse looking formula spreads the arguments of \iter
+%                                                                    between the ranges 90°,0°,-90° (90°--270°) which is then added
+%                                                                    to \value{Egangle} so they fill the cup of each \iahk{} evenly.
+\rput(0.13;\the\value{subangle}){\stepcounter{rheme}\tiny\Rnode{\therheme}{\a}%
+\ifdebugmode{\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi}%
+\stepcounter{itn}}%
+}%
+\setcounter{subiter}{0}\setcounter{subangle}{0}\setcounter{itn}{0}\setcounter{itc}{0}}
+
+
+%%
+%% Symbols & operators for linear notation
+%%
+%% For scaling the symbols:
+%%  The scaling value is obtained by checking the \normalsize pt-size value, and calculating its _ratio_ to the pt-size in use.
+%%  The \scalebox -command then uses this ratio (added with \commoncoefficient to \scalebox) to do the scaling. The actual scaling
+%% could also be handled by messing with the x/y/runits in \psset, but the current method also takes care of scaling the \hspaces.
+\newlength{\whiskerswidth}
+\setlength{\whiskerswidth}{28pt}
+
+\newif\ifscaledsymbols
+\scaledsymbolstrue
+\newcommand{\commoncoefficient}{1}
+
+\newcommand*\getcurrentfontsize{\dimexpr\f@size pt\relax}
+\newlength{\scalecoefficient}
+\newlength{\holdsthenormalsize}
+\setlength{\holdsthenormalsize}{\the\getcurrentfontsize}
+\newcommand{\forscale}{\getcurrentfontsize/\real{\strip@pt\holdsthenormalsize}}
+\setlength{\scalecoefficient}{\forscale}%
+\newcommand{\scalesymbol}[1]{%
+\makeatletter\renewcommand{\forscale}{\getcurrentfontsize/\real{\strip@pt\holdsthenormalsize}}\setlength{\scalecoefficient}{\forscale}\makeatother%
+\scalebox{\commoncoefficient}{\scalebox{%
+\ifscaledsymbols%
+\strip@pt\scalecoefficient%
+\else%
+1%
+\fi%
+}{#1}%
+}}%
+
+\newlength{\halfpiwidth}
+\setlength{\halfpiwidth}{\widthof{$\Pi$}/2}
+
+\newcommand{\PPi}{\scalesymbol{\hspace*{\halfpiwidth}\begin{pspicture}(0,0.22)(0,0)%
+\psline[linewidth=0.7pt]{c-}(-0.065,0.015)(-0.065,0.22)%
+\psline[linewidth=0.7pt]{c-}(0.065,0.015)(0.065,0.22)%
+\psline[linewidth=0.7pt]{c-c}(-0.105,0.225)(0.105,0.225)%
+\end{pspicture}\hspace*{\halfpiwidth}}}
+
+\newlength{\halfsigmawidth}
+\setlength{\halfsigmawidth}{\widthof{$\Sigma$}/2}
+
+\newcommand{\PSigma}{\scalesymbol{\hspace*{\halfsigmawidth}\begin{pspicture}(0,0.22)(0,0)%
+\psline[linewidth=0.65pt,linejoin=1]{c-c}%
+(0.0675,0.017)%
+(-0.0675,0.017)%
+(0.0175,0.112)%
+(-0.0675,0.22)%
+(0.0675,0.22)%
+\end{pspicture}%
+\hspace*{\halfsigmawidth}}}
+
+\newcommand{\whiskers}[3]{\begin{pspicture}(0,0.1)(1.4,0.5)%
+\put(0.105,0.08){\stepcounter{rheme}\Rnode{\therheme}}\put(0,0){\everygraphhook{#1}}%
+\ifdebugmode\put(0.1,0.08){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.7,0.26){\stepcounter{rheme}\Rnode{\therheme}}\put(0.6,0.45){\everygraphhook{#2}}%
+\ifdebugmode\put(0.7,0.2){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(1.30,0.08){\stepcounter{rheme}\Rnode{\therheme}}\put(1.2,0){\everygraphhook{#3}}%
+\ifdebugmode\put(1.30,0.08){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+{\psset{xunit=.75pt,yunit=.75pt,runit=.75pt}
+{\newrgbcolor{curcolor}{0 0 0}
+\pscustom[linestyle=none,fillstyle=solid,fillcolor=curcolor]
+{\newpath
+\moveto(3.14478275,6.82186663)
+\curveto(2.88211609,10.60718653)(5.33932936,15.58046641)(9.85966258,14.7653731)
+\curveto(12.93096917,14.87769309)(23.32450224,9.63401323)(25.18247553,13.76615979)
+\lineto(25.88118218,15.44349308)
+\curveto(26.60475549,15.44482641)(26.72794216,15.44122641)(27.35227548,15.44349308)
+\lineto(27.35227548,15.44349308)
+\lineto(27.49055547,15.11171976)
+\lineto(28.05071546,13.76901312)
+\curveto(31.07750205,10.30345321)(39.26522185,13.94282645)(43.37512841,14.7643331)
+\curveto(48.26243495,14.83918643)(50.09048824,11.16022652)(50.09048824,6.8205733)
+\lineto(48.49648828,6.8205733)
+\curveto(48.8676616,9.70206656)(47.05018165,14.14741311)(43.43423507,12.44870649)
+\lineto(43.43423507,12.44870649)
+\lineto(34.3649553,7.91407994)
+\lineto(34.3649553,7.91407994)
+\lineto(34.13578197,7.79870661)
+\curveto(29.70551542,6.96023996)(27.7766888,10.28017321)(26.61726216,13.06358647)
+\curveto(25.47787552,9.59541323)(22.90400892,6.04023998)(19.10190235,7.79787994)
+\lineto(19.10190235,7.79787994)
+\curveto(16.00263576,9.34909323)(12.9023425,10.89822653)(9.80242258,12.44813316)
+\curveto(5.63126269,13.41613313)(4.73966271,10.13725321)(4.73966271,6.81999996)
+\closepath}}}\end{pspicture}}
+
+\newcommand{\whiskersdot}[3]{\begin{pspicture}(0,0.1)(1.4,0.65)%
+\pscircle[linecolor=\bydefaultblack,fillstyle=solid,fillcolor=\bydefaultblack](0.7,0.51){0.11}
+\put(0.105,0.08){\stepcounter{rheme}\Rnode{\therheme}}\put(0,0){\everygraphhook{#1}}%
+\ifdebugmode\put(0.1,0.08){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.7,0.5){\stepcounter{rheme}\Rnode{\therheme}}\put(0.6,0.65){\everygraphhook{#2}}%
+\ifdebugmode\put(0.7,0.5){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(1.30,0.08){\stepcounter{rheme}\Rnode{\therheme}}\put(1.2,0){\everygraphhook{#3}}%
+\ifdebugmode\put(1.30,0.08){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+{\psset{xunit=.75pt,yunit=.75pt,runit=.75pt}
+{\newrgbcolor{curcolor}{0 0 0}
+\pscustom[linestyle=none,fillstyle=solid,fillcolor=curcolor]
+{\newpath
+\moveto(3.14478275,6.82186663)
+\curveto(2.88211609,10.60718653)(5.33932936,15.58046641)(9.85966258,14.7653731)
+\curveto(12.93096917,14.87769309)(23.32450224,9.63401323)(25.18247553,13.76615979)
+\lineto(25.88118218,15.44349308)
+\curveto(26.60475549,15.44482641)(26.72794216,15.44122641)(27.35227548,15.44349308)
+\lineto(27.35227548,15.44349308)
+\lineto(27.49055547,15.11171976)
+\lineto(28.05071546,13.76901312)
+\curveto(31.07750205,10.30345321)(39.26522185,13.94282645)(43.37512841,14.7643331)
+\curveto(48.26243495,14.83918643)(50.09048824,11.16022652)(50.09048824,6.8205733)
+\lineto(48.49648828,6.8205733)
+\curveto(48.8676616,9.70206656)(47.05018165,14.14741311)(43.43423507,12.44870649)
+\lineto(43.43423507,12.44870649)
+\lineto(34.3649553,7.91407994)
+\lineto(34.3649553,7.91407994)
+\lineto(34.13578197,7.79870661)
+\curveto(29.70551542,6.96023996)(27.7766888,10.28017321)(26.61726216,13.06358647)
+\curveto(25.47787552,9.59541323)(22.90400892,6.04023998)(19.10190235,7.79787994)
+\lineto(19.10190235,7.79787994)
+\curveto(16.00263576,9.34909323)(12.9023425,10.89822653)(9.80242258,12.44813316)
+\curveto(5.63126269,13.41613313)(4.73966271,10.13725321)(4.73966271,6.81999996)
+\closepath
+}}}\end{pspicture}}
+
+\newcommand{\inversewhiskers}[3]{\begin{pspicture}(0,0.1)(1.4,0.5)%
+\put(0.105,0.38){\stepcounter{rheme}\Rnode{\therheme}}\put(0,0.5){\everygraphhook{#1}}%
+\ifdebugmode\put(0.1,0.38){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.7,0.18){\stepcounter{rheme}\Rnode{\therheme}}\put(0.6,0.06){\everygraphhook{#2}}%
+\ifdebugmode\put(0.6,-0.1){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(1.30,0.38){\stepcounter{rheme}\Rnode{\therheme}}\put(1.2,0.5){\everygraphhook{#3}}%
+\ifdebugmode\put(1.30,0.38){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+{\psset{xunit=.75pt,yunit=.75pt,runit=.75pt}
+{\newrgbcolor{curcolor}{0 0 0}
+\pscustom[linestyle=none,fillstyle=solid,fillcolor=curcolor]
+{\newpath
+\moveto(3.14478298,18.64193153)
+\curveto(2.88211522,14.85661163)(5.33933881,9.88333175)(9.85969101,10.69842507)
+\curveto(12.9310105,10.58610507)(23.32458723,15.82978494)(25.18256832,11.69763837)
+\lineto(25.8812779,10.02030508)
+\curveto(26.60485426,10.01897175)(26.72804144,10.02257175)(27.35237738,10.02030508)
+\lineto(27.35237738,10.02030508)
+\lineto(27.49065796,10.35207841)
+\lineto(28.0508203,11.69478504)
+\curveto(31.0776196,15.16034495)(39.26537378,11.52097171)(43.37529761,10.69946507)
+\curveto(48.26262468,10.62461173)(50.09068565,14.30357164)(50.09068565,18.64322487)
+\lineto(48.49667899,18.64322487)
+\curveto(48.86785387,15.76173161)(47.05036629,11.31638505)(43.43440452,13.01509167)
+\lineto(43.43440452,13.01509167)
+\lineto(34.36508666,17.54971823)
+\lineto(34.36508666,17.54971823)
+\lineto(34.13591237,17.66509156)
+\curveto(29.7056272,18.5035582)(27.77679248,15.18362495)(26.61736098,12.40021169)
+\curveto(25.47796955,15.86838494)(22.90409214,19.42355818)(19.1019696,17.66591823)
+\lineto(19.1019696,17.66591823)
+\curveto(16.00268999,16.11470493)(12.90238372,14.56557164)(9.80245078,13.01566501)
+\curveto(5.63127336,12.04766503)(4.73966964,15.32654495)(4.73966964,18.6437982)
+\closepath}}}\end{pspicture}}
+
+\newcommand{\inversewhiskersdot}[3]{\begin{pspicture}(0,0.05)(1.4,0.5)%
+\pscircle[linecolor=\bydefaultblack,fillstyle=solid,fillcolor=\bydefaultblack](0.7,0.18){0.11}
+\put(0.105,0.38){\stepcounter{rheme}\Rnode{\therheme}}\put(0,0.5){\everygraphhook{#1}}%
+\ifdebugmode\put(0.1,0.38){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.7,-0.02){\stepcounter{rheme}\Rnode{\therheme}}\put(0.6,-0.14){\everygraphhook{#2}}%
+\ifdebugmode\put(0.6,-0.22){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(1.30,0.38){\stepcounter{rheme}\Rnode{\therheme}}\put(1.2,0.5){\everygraphhook{#3}}%
+\ifdebugmode\put(1.30,0.38){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+{\psset{xunit=.75pt,yunit=.75pt,runit=.75pt}
+{\newrgbcolor{curcolor}{0 0 0}
+\pscustom[linestyle=none,fillstyle=solid,fillcolor=curcolor]
+{\newpath
+\moveto(3.14478298,18.84193153)
+\curveto(2.88211522,15.05661162)(5.33933881,10.08333175)(9.85969101,10.89842506)
+\curveto(12.9310105,10.78610506)(23.32458723,16.02978493)(25.18256832,11.89763837)
+\lineto(25.8812779,10.22030508)
+\curveto(26.60485426,10.21897174)(26.72804144,10.22257174)(27.35237738,10.22030508)
+\lineto(27.35237738,10.22030508)
+\lineto(27.49065796,10.5520784)
+\lineto(28.0508203,11.89478504)
+\curveto(31.0776196,15.36034495)(39.26537378,11.72097171)(43.37529761,10.89946506)
+\curveto(48.26262468,10.82461173)(50.09068565,14.50357164)(50.09068565,18.84322486)
+\lineto(48.49667899,18.84322486)
+\curveto(48.86785387,15.9617316)(47.05036629,11.51638505)(43.43440452,13.21509167)
+\lineto(43.43440452,13.21509167)
+\lineto(34.36508666,17.74971822)
+\lineto(34.36508666,17.74971822)
+\lineto(34.13591237,17.86509155)
+\curveto(29.7056272,18.7035582)(27.77679248,15.38362495)(26.61736098,12.60021168)
+\curveto(25.47796955,16.06838493)(22.90409214,19.62355818)(19.1019696,17.86591822)
+\lineto(19.1019696,17.86591822)
+\curveto(16.00268999,16.31470493)(12.90238372,14.76557163)(9.80245078,13.215665)
+\curveto(5.63127336,12.24766503)(4.73966964,15.52654495)(4.73966964,18.8437982)
+\closepath}}}\end{pspicture}}
+
+\newcommand{\heartright}{\begin{pspicture}(0,-0.1)(0.35,0.1)%\psgrid(0,-0.1)(0.35,0.1)%
+\psline[linecolor=\bydefaultblack,linearc=0.1, linewidth=1.2pt, linejoin=1](0,0.018)(0.35,0.018)% straight line through
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0,0.018)   (0,0.07)   (0.1,0.1)   (0.35,0.018)% upper part
+\psline[linecolor=\bydefaultblack,linearc=0,   linewidth=1.5pt, linejoin=1](0.05,0.018)(0.05,0.04)(0.1,0.05)  (0.25,0.018)% upper part filler
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0,0.018)   (0,-0.03)  (0.1,-0.06) (0.35,0.018)% lower part
+\psline[linecolor=\bydefaultblack,linearc=0,   linewidth=1.5pt, linejoin=1](0.05,0.018)(0.05,-0.02)(0.1,-0.01)(0.25,0.018)% lower part filler
+\put(0,-0.1){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0,-0.09){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.35,-0.1){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0.35,-0.09){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\end{pspicture}}
+
+\newcommand{\heartleft}{\begin{pspicture}(0,-0.1)(0.35,0.1)%\psgrid(0,-0.1)(0.4,0.1)%
+\psline[linecolor=\bydefaultblack,linearc=0.1, linewidth=1.2pt, linejoin=1](0,0.018)(0.35,0.018)% straight line through
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0.35,0.018)(0.35,0.07) (0.25,0.1)  (0,0.018)%   upper part
+\psline[linecolor=\bydefaultblack,linearc=0,   linewidth=1.5pt, linejoin=1](0.3,0.018) (0.3,0.04)  (0.25,0.05) (0.1,0.018)% upper part filler
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0.35,0.018)(0.35,-0.03)(0.25,-0.06)(0,0.018)%   lower part
+\psline[linecolor=\bydefaultblack,linearc=0,   linewidth=1.5pt, linejoin=1](0.3,0.018) (0.3,-0.02) (0.25,-0.01)(0.1,0.018)% lower part filler
+\put(0,-0.09){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0,-0.09){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.35,-0.09){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0.35,-0.09){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\end{pspicture}}
+
+\newcommand{\heartleftnofill}{\begin{pspicture}(0,-0.1)(0.35,0.1)%\psgrid(0,-0.1)(0.4,0.1)%
+%\psline[linearc=0.1, linewidth=1.2pt](0,0.018)(0.35,0.018)% straight line through
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0.35,0.018)(0.35,0.07) (0.25,0.1) (0.17,0.05) (0,0.018)%   upper part
+%\psline[linearc=0,   linewidth=1.5pt](0.3,0.018) (0.3,0.04)  (0.25,0.05) (0.1,0.018)% upper part filler
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0.35,0.018)(0.35,-0.03)(0.25,-0.06)(0.17,-0.01)(0,0.018)%   lower part
+%\psline[linearc=0,   linewidth=1.5pt](0.3,0.018) (0.3,-0.02) (0.25,-0.01)(0.1,0.018)% lower part filler
+\put(0,-0.09){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0,-0.1){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.35,-0.09){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0.35,-0.1){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\end{pspicture}}
+
+\newcommand{\heartdown}{\begin{pspicture}(-0.1,0)(0.1,-0.4)%\psgrid(-0.1,0)(0.1,-0.35)%
+\psline[linecolor=\bydefaultblack,linearc=0.1, linewidth=1.2pt, linejoin=1](0,-0.1) (0,-0.45)% straight line through
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0,-0.1) (0.05,-0.1)  (0.1,-0.2)  (0,-0.45)% righthand part
+\psline[linecolor=\bydefaultblack,linearc=0,   linewidth=1.7pt, linejoin=1](0,-0.15)(0.05,-0.15) (0.05,-0.2) (0,-0.45)% righthand part filler
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0,-0.1) (-0.05,-0.1) (-0.1,-0.2) (0,-0.45)% lefthand part
+\psline[linecolor=\bydefaultblack,linearc=0,   linewidth=1.7pt, linejoin=1](0,-0.15)(-0.05,-0.15)(-0.05,-0.2)(0,-0.45)% lefthand part filler
+\put(0,-0.19){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0,-0.2){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0,-0.55){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0,-0.8){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\end{pspicture}}
+
+\newcommand{\heartup}{\begin{pspicture}(-0.1,0)(0.1,-0.4)%\psgrid(-0.1,0)(0.1,-0.35)%
+\psline[linecolor=\bydefaultblack,linearc=0.1, linewidth=1.2pt, linejoin=1](0,-0.1) (0,-0.45)% straight line through
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0,-0.45) (0.05,-0.45)  (0.1,-0.35)  (0,-0.1)% righthand part
+\psline[linecolor=\bydefaultblack,linearc=0,   linewidth=1.7pt, linejoin=1](0,-0.4)  (0.035,-0.4)  (0.05,-0.35) (0,-0.15)% righthand part filler
+\psline[linecolor=\bydefaultblack,linearc=0.08,linewidth=1.2pt, linejoin=1](0,-0.45) (-0.05,-0.45) (-0.1,-0.35) (0,-0.1)% lefthand part
+\psline[linecolor=\bydefaultblack,linearc=0,   linewidth=1.7pt, linejoin=1](0,-0.4)  (-0.05,-0.4)  (-0.05,-0.35)(0,-0.15)% lefthand part filler
+\put(0,-0.21){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0,-0.22){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0,-0.55){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0,-0.82){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\end{pspicture}}
+
+\newcommand{\norlike}{\begin{pspicture}(-0.14,-0.1)(0.14,0.5)%\psgrid(-0.1,0)(0.1,0.5)%
+\put(-0.11,-0.135){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(-0.2,-0.148){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0,0.38){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(-0.1,0.28){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.11,-0.135){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0.2,-0.148){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\psset{xunit=.75pt,yunit=.75pt,runit=.75pt}
+{\newrgbcolor{curcolor}{0 0 0}
+\pscustom[linestyle=none,fillstyle=solid,fillcolor=curcolor]
+{\newpath
+\moveto(-4.96099996,-1.27573333)
+\lineto(-4.96099996,-0.09708002)
+\curveto(-4.00016414,9.81001921)(-3.00016419,10.81001918)(-0.80241385,15.20551867)
+\curveto(-0.89092051,15.24743867)(-0.97864051,15.29098534)(-1.05917384,15.34562534)
+\curveto(-1.56249383,15.68705199)(-1.89693382,16.26371865)(-1.89693382,16.9109853)
+\curveto(-1.89693382,17.16981196)(-1.84353382,17.41727862)(-1.74720049,17.64302528)
+\curveto(-1.69902716,17.75589194)(-1.64024049,17.86319861)(-1.57193383,17.96385194)
+\curveto(-1.43533383,18.1651586)(-1.2610005,18.33949193)(-1.05969384,18.47609192)
+\curveto(-0.85840051,18.61269192)(-0.62988052,18.71174525)(-0.38496052,18.76255858)
+\curveto(-0.26250719,18.78795858)(-0.1359872,18.80109192)(-0.00657387,18.80109192)
+\curveto(1.02869277,18.80109192)(1.88378609,17.94625194)(1.88378609,16.9109853)
+\curveto(1.88378609,16.26371865)(1.54934609,15.68705199)(1.04602611,15.34562534)
+\curveto(0.96553278,15.29102534)(0.87770611,15.24742534)(0.78925278,15.20551867)
+\curveto(2.99983593,10.81001918)(3.9998359,9.81001921)(4.94758601,-0.09708002)
+\lineto(4.94758601,-1.27573333)
+\lineto(3.35358605,-1.27573333)
+\curveto(3.35358605,-0.99157334)(3.33403938,-0.70908001)(3.32675938,-0.42546668)
+\curveto(1.47337276,1.18289329)(-1.52662716,1.18289329)(-3.34017325,-0.42546668)
+\curveto(-3.34750658,-0.70917334)(-3.36698658,-0.99176)(-3.36698658,-1.276)
+\closepath}}\end{pspicture}}
+
+\newcommand{\inversenorlike}{\begin{pspicture}(-0.14,0)(0.14,0.6)%\psgrid(-0.1,0)(0.1,0.5)%
+\put(-0.11,0.415){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(-0.11,0.315){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0,-0.1){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(-0.1,-0.11){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\put(0.11,0.415){\stepcounter{rheme}\Rnode{\therheme}}%
+\ifdebugmode\put(0.11,0.315){\settowidth{\dbgnolength}{\miniscule\therheme}\raisebox{6pt}{\hspace{-\the\dbgnolength}\miniscule\therheme}}\fi%
+\psset{xunit=.75pt,yunit=.75pt,runit=.75pt}
+{\newrgbcolor{curcolor}{0 0 0}
+\pscustom[linestyle=none,fillstyle=solid,fillcolor=curcolor]
+{\newpath
+\moveto(-0.03457349,0.0722533)
+\curveto(-0.16384016,0.0722533)(-0.29032015,0.08567997)(-0.41269348,0.1110533)
+\curveto(-0.53508015,0.1364133)(-0.65349348,0.17387997)(-0.76634681,0.22198663)
+\curveto(-0.99204014,0.31819997)(-1.1959868,0.4573333)(-1.36765346,0.62875996)
+\curveto(-1.53930679,0.80018662)(-1.67850678,1.00391995)(-1.77493345,1.22953328)
+\curveto(-1.82316011,1.3423466)(-1.86070678,1.4605066)(-1.88613345,1.58291993)
+\curveto(-1.91157345,1.7053466)(-1.92493345,1.83190659)(-1.92493345,1.96130659)
+\curveto(-1.92493345,2.09075992)(-1.91157345,2.21746658)(-1.88613345,2.33995991)
+\curveto(-1.83526678,2.58493324)(-1.73612012,2.81339993)(-1.59941345,3.01469326)
+\curveto(-1.40804012,3.29651992)(-1.14016013,3.52008045)(-0.83041348,3.66677377)
+\curveto(-3.10836004,8.76850698)(-4.55462667,10.19206695)(-4.989,18.96938619)
+\lineto(-4.989,20.14802616)
+\lineto(-3.3949867,20.14802616)
+\curveto(-3.3949867,19.86370617)(-3.37545337,19.58102618)(-3.36817337,19.29725285)
+\curveto(-1.55462679,18.19206621)(1.44537318,18.19206621)(3.29876033,19.29725285)
+\curveto(3.30609366,19.58095951)(3.325587,19.86354617)(3.325587,20.14777283)
+\lineto(4.91958696,20.14777283)
+\lineto(4.91958696,18.96913286)
+\curveto(4.44537364,10.19206695)(3.44537366,9.19206697)(0.76125319,3.66652044)
+\curveto(0.84970653,3.62462711)(0.93753319,3.58102711)(1.01802652,3.52642711)
+\curveto(1.11869319,3.45813378)(1.21239985,3.38043992)(1.29823985,3.29465325)
+\curveto(1.64155984,2.95151993)(1.8557865,2.47887991)(1.8557865,1.96105326)
+\curveto(1.8557865,0.92579995)(0.99951986,0.07199997)(-0.03457349,0.07199997)
+\closepath}}\end{pspicture}}
+
+\newcommand{\Ppropto}{\scalesymbol{\begin{pspicture}(0,0.15)(0,0)%
+\psset{xunit=.6pt,yunit=.6pt,runit=.6pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=black]%
+{\newpath
+\moveto(17.74275669,0.62589678)
+\curveto(14.29941854,1.42821426)(13.83704356,1.69762695)(10.60887717,2.88468439)
+\curveto(8.50714645,1.68455558)(6.07239431,0.6163251)(3.97502186,0.60000955)
+\curveto(2.5116986,0.60000955)(2.04033609,0.74724097)(0.9543611,1.72319931)
+\curveto(-1.4283387,3.86451493)(0.90955677,5.05530779)(5.10140161,5.91624857)
+\curveto(6.777819,6.26055881)(8.13308709,6.14468526)(9.98698313,5.53606132)
+\curveto(11.18274765,6.00437579)(13.83943261,6.94172309)(14.95918979,7.29353083)
+\curveto(18.87312134,8.52321863)(23.00333872,8.28245989)(23.00333872,6.06647125)
+\curveto(23.00333872,5.61477946)(23.0604109,5.39397017)(22.85514119,5.38263144)
+\curveto(22.64746349,5.37116367)(21.82213647,5.02061885)(22.26962399,6.19490602)
+\curveto(22.69618734,7.31428381)(20.6723222,7.32571889)(17.57228087,6.42339863)
+\curveto(16.23843506,6.03515984)(14.88229462,5.247236)(13.38263839,4.42210771)
+\curveto(15.32307181,3.45597225)(17.36459801,2.65327795)(19.62286773,1.92044589)
+\curveto(20.76890787,1.54854416)(22.17132891,1.09404522)(23.35213714,1.04612919)
+\curveto(24.82655309,0.98629545)(25.18904057,1.25531326)(25.36205341,1.56937198)
+\curveto(25.82600359,2.4115531)(26.32337378,1.2737701)(25.86732973,0.95234293)
+\curveto(23.31610011,-0.61246282)(19.98167399,0.10421629)(17.74275669,0.62589678)
+\closepath
+\moveto(3.63124414,2.63848083)
+\curveto(4.93761031,3.12824426)(6.03516921,3.75309514)(7.2774879,4.28874343)
+\curveto(6.72490464,4.52524197)(4.98191394,4.93194964)(4.31975967,4.86620823)
+\curveto(3.46930936,4.78176997)(1.79795999,4.59521432)(1.21359473,3.66267437)
+\curveto(0.6956531,2.83613432)(2.77436139,2.31723088)(3.63124414,2.63848083)
+\closepath
+}}\end{pspicture}\hspace*{16pt}}}
+
+\newcommand{\Pinversepropto}{\scalesymbol{\begin{pspicture}(0,0.20)(0,0)%
+\psset{xunit=.55pt,yunit=.55pt,runit=.55pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=black]%
+{\newpath
+\moveto(1.32947183,0.51259142)
+\curveto(0.60816461,0.741929)(0.25002893,1.28446183)(0.17210765,1.77238163)
+\curveto(0.09418637,2.26030463)(-0.40038098,2.63620491)(0.75089306,2.89394781)
+\curveto(1.90216709,3.1516875)(1.60927009,2.92930148)(1.99852251,1.78941777)
+\curveto(2.41457946,0.57105504)(4.82439498,0.82486726)(5.3177559,0.94871404)
+\curveto(7.55189031,1.86858873)(9.51539163,3.73666332)(10.8015728,5.65129739)
+\lineto(9.64413462,7.32490434)
+\curveto(8.38537369,9.14501954)(7.5416273,10.87229451)(6.51005249,10.83763919)
+\curveto(5.92668707,10.81803386)(5.0444101,10.60094)(3.83793904,9.63974675)
+\curveto(3.32531011,9.23133428)(3.39682058,8.74408401)(2.8532937,7.29103068)
+\curveto(2.72474004,6.94735747)(2.66014558,6.20185495)(1.78421729,6.77062753)
+\curveto(1.07820735,7.22906564)(1.07778993,7.36868959)(1.62140042,8.58233358)
+\curveto(2.3243318,10.15167027)(5.79549757,11.71208524)(6.73895312,11.84289319)
+\curveto(9.09406239,12.16941815)(11.16139927,10.24887365)(13.13948319,8.32764681)
+\curveto(14.26156033,9.14930581)(14.96553061,9.76572705)(15.80718064,10.3895099)
+\curveto(16.64883067,11.01328955)(18.39873571,11.5436171)(20.91858842,10.70398975)
+\curveto(22.47407323,10.18569449)(22.50439743,9.34047065)(22.69956663,6.80913024)
+\curveto(22.88052516,4.46209279)(21.65850085,3.3090876)(19.91535902,2.4525138)
+\curveto(17.01745232,1.02849367)(13.81399901,1.75955807)(12.12017517,3.17451234)
+\curveto(10.82205557,2.17512713)(10.50769682,1.83883475)(9.4120635,1.01958477)
+\curveto(7.61882459,-0.34036884)(3.43618662,-0.15725757)(1.32947183,0.51259142)
+\closepath
+\moveto(20.26711143,4.15167497)
+\curveto(20.82667719,4.41472925)(21.74198691,5.06601403)(21.99317868,5.84196889)
+\curveto(22.56153801,7.5976812)(21.43733536,9.10706144)(19.55711956,9.72662209)
+\curveto(17.36267794,9.72662209)(16.8310847,8.72500405)(14.69300394,6.08298959)
+\curveto(15.81380513,3.91559725)(17.76821592,2.97694373)(20.26711143,4.15167497)
+\closepath
+}}\end{pspicture}\hspace*{13pt}}}
+
+\newcommand{\napierianbase}{\scalesymbol{\begin{pspicture}(0,0.20)(0,0)%
+\psset{xunit=.55pt,yunit=.55pt,runit=.55pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=black]%
+{\newpath
+\moveto(6.91197863,-1.05910023)
+\curveto(3.70608712,-1.03808272)(0.66629253,1.15839398)(0.7433924,5.83636325)
+\curveto(0.82048721,10.5143325)(4.57840238,12.2049015)(7.265449,12.389689)
+\curveto(9.95249562,12.574475)(11.0277825,11.7688945)(11.50905312,11.46785862)
+\curveto(12.69344875,10.727016)(12.2228555,10.3303905)(12.09687587,9.66112663)
+\curveto(11.92192162,8.7316865)(11.08173537,8.993709)(10.61196425,9.71995837)
+\curveto(10.09111988,10.525165)(10.0015325,11.67265375)(7.45619188,11.60559463)
+\curveto(4.91085112,11.53853538)(2.83300775,9.08995838)(2.78936288,5.77369437)
+\curveto(2.74571538,2.45743037)(3.73857775,-0.10177735)(6.9020695,-0.13321622)
+\curveto(10.06556138,-0.16465522)(10.98307187,1.30720825)(10.951667,3.2596155)
+\curveto(10.920257,5.21202312)(9.88424475,7.02993787)(7.682252,5.81380075)
+\curveto(6.37201488,5.09017075)(6.3097735,5.4220505)(6.00741675,5.888545)
+\curveto(5.70506,6.35503938)(5.43254463,6.91414425)(7.58147212,7.41992675)
+\curveto(9.58585412,7.89168825)(12.53830875,6.4117405)(12.68662125,3.28738688)
+\curveto(12.834935,0.16303316)(10.11787012,-1.08011872)(6.91197863,-1.05910023)
+\closepath
+}}\end{pspicture}\hspace*{7pt}}}
+
+\newcommand{\Pratiocircdia}{\scalesymbol{\begin{pspicture}(0,0.20)(0,0)%
+\psset{xunit=.55pt,yunit=.55pt,runit=.55pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=black]%
+{\newpath
+\moveto(6.5223985,-1.05910023)
+\curveto(9.72829,-1.03808272)(12.768085,1.15839398)(12.690985,5.83636325)
+\curveto(12.61389,10.5143325)(8.85597475,12.2049015)(6.16892813,12.389689)
+\curveto(3.4818815,12.574475)(2.39209138,11.7909255)(1.925324,11.46785862)
+\curveto(0.38943443,10.40481325)(0.76482033,9.42606113)(1.01529845,9.16317687)
+\curveto(1.35422012,8.80746838)(2.41122412,8.32001225)(2.82241287,9.71995837)
+\curveto(3.092665,10.64006725)(4.63378238,11.58478025)(6.62259087,11.54701225)
+\curveto(8.61139937,11.50924438)(10.74782525,9.08995838)(10.79147013,5.77369437)
+\curveto(10.83511762,2.45743037)(9.69579937,-0.10177735)(6.53230762,-0.13321622)
+\curveto(3.36881575,-0.16465522)(2.36342662,0.86784043)(2.48271013,3.2596155)
+\curveto(2.60199362,5.65139063)(3.519583,6.97290263)(5.75212513,5.81380075)
+\curveto(7.03307113,5.14875312)(7.2710595,5.27559463)(7.57341625,5.74208912)
+\curveto(7.875773,6.2085835)(8.5583645,7.08989125)(5.852905,7.41992675)
+\curveto(3.80890562,7.66927163)(0.74961258,6.44103162)(0.60130007,3.316678)
+\curveto(0.45298632,0.19232433)(3.316507,-1.08011872)(6.5223985,-1.05910023)
+\closepath
+}}\end{pspicture}\hspace*{7pt}}}
+
+\newcommand{\implicates}{\scalesymbol{\hspace*{2pt}{\begin{pspicture}(0,0.18)(0,0)%
+\psset{xunit=.8pt,yunit=.8pt,runit=.8pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=\bydefaultblack]%
+{\newpath
+\moveto(12.48131713,6.8852)
+\curveto(9.49284187,6.8292)(9.19728262,5.9853)(7.15609513,4.6253)
+\curveto(6.86766363,4.4113)(7.01586975,4.0982)(7.50912663,4.0301)
+\curveto(8.00238363,3.9621)(8.21585525,4.9539)(9.07825425,5.3058)
+\curveto(10.46958613,5.8736)(11.53411713,5.8933)(12.48989612,5.4265)
+\curveto(13.5620525,4.9029)(13.613175,6.9064)(12.48129613,6.8852)
+\closepath
+\moveto(0.27092112,4.8875)
+\curveto(-0.0731171,4.8645)(0.0576495,4.1548)(0.34341312,4.3247)
+\curveto(2.30287938,5.4895)(5.1967635,3.6312)(6.98585612,1.7439)
+\curveto(8.36214862,0.2921)(10.67947313,-0.2325)(12.874845,0.0002)
+\curveto(13.3026625,0.0452)(13.50346125,1.1769)(12.874845,0.9688)
+\curveto(10.83822513,0.2947)(9.68954987,1.8393)(8.02440362,3.1925)
+\curveto(6.37508063,4.5329)(5.55618625,4.9179)(3.65189113,5.0342)
+\curveto(1.74759612,5.1504)(0.77785935,4.9216)(0.27092112,4.8875)
+\closepath
+}}\end{pspicture}\hspace*{12pt}}}}
+
+\newcommand{\cursiveimplicates}{\scalesymbol{\hspace*{2pt}{\begin{pspicture}(0,0.18)(0,0)%
+\psset{xunit=.8pt,yunit=.8pt,runit=.8pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=\bydefaultblack]%
+{\newpath
+\moveto(12.48131713,6.8852)
+\curveto(10.52844088,6.8852)(9.39089975,6.5772885)(8.18651612,5.71267887)
+\curveto(7.89476137,5.50323237)(7.3058375,4.88525525)(6.81009738,4.06634587)
+\curveto(7.526008,4.80093525)(7.9258875,5.06781587)(8.7882865,5.41971587)
+\curveto(10.17961837,5.98751587)(11.43150175,5.53241063)(12.48989612,5.4265)
+\curveto(13.582765,5.31713963)(13.613175,6.9064)(12.48129613,6.8852)
+\closepath
+\moveto(0.63338079,6.10950688)
+\curveto(0.39290246,5.22695963)(0.23370134,4.86936337)(0.03273341,4.303988)
+\curveto(2.85626737,3.80710887)(4.76137912,3.23267425)(6.98585612,1.7439)
+\curveto(8.95195012,0.42805355)(10.52931125,-0.227322)(13.10267625,0.04680196)
+\curveto(13.11105125,0.13322593)(13.10105125,0.19428686)(13.10267625,0.29566064)
+\curveto(12.8617975,0.29170828)(11.9476345,0.3890484)(11.55898637,0.56875311)
+\curveto(9.85278738,1.35767225)(8.82813188,2.5919485)(7.85901263,3.27326625)
+\curveto(4.8658235,5.3775615)(3.40947263,5.54215113)(0.63338079,6.10950688)
+\closepath
+}}\end{pspicture}\hspace*{12pt}}}}
+
+\newcommand{\varsubsumption}{\hspace*{-0.2pt}\raisebox{-0.7pt}{%
+\psset{xunit=.45pt,yunit=.45pt,runit=.45pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=\bydefaultblack]%
+{\newpath
+\moveto(9.83593752,13.32619853)
+\curveto(9.00571772,13.32619853)(8.20718301,13.11009853)(7.43750001,12.67769853)
+\curveto(6.67214101,12.24529853)(6.08266091,11.64969853)(5.67187501,10.88869852)
+\curveto(5.54785191,10.65889852)(5.44985971,10.42669852)(5.36328121,10.19339852)
+\lineto(2.8574219,10.19339852)
+\lineto(2.8574219,9.10349852)
+\lineto(5.09375001,9.10349852)
+\curveto(5.07132901,8.91879852)(5.05664101,8.73379852)(5.05664101,8.54689852)
+\curveto(5.05664101,8.34929852)(5.07117801,8.15369852)(5.09570401,7.95899852)
+\lineto(2.8847656,7.95899852)
+\lineto(2.8847656,6.87299852)
+\lineto(5.36718751,6.87299852)
+\curveto(5.45265851,6.64419852)(5.55060071,6.41609852)(5.67187501,6.19139852)
+\curveto(6.08266091,5.43039852)(6.67214101,4.83629851)(7.43750001,4.40819851)
+\curveto(8.20718301,3.98009851)(9.00571772,3.76559851)(9.83593752,3.76559851)
+\lineto(14.35742202,3.76559851)
+\lineto(14.35742202,4.79689851)
+\lineto(9.83593752,4.79689851)
+\curveto(9.19597632,4.79689851)(8.58067781,4.96819851)(7.98828121,5.29689852)
+\curveto(7.38291261,5.63419852)(6.91959001,6.10399852)(6.59960941,6.70509852)
+\curveto(6.56706241,6.76709852)(6.55252841,6.81389852)(6.52343741,6.87299852)
+\lineto(14.40625002,6.87299852)
+\lineto(14.40625002,7.95899852)
+\lineto(6.14648441,7.95899852)
+\curveto(6.14638111,7.95899852)(6.14658501,7.95899852)(6.14648441,7.95899852)
+\curveto(6.09817141,8.29109852)(6.13437941,8.65989852)(6.12695341,8.99609852)
+\curveto(6.13007341,9.02809852)(6.14575141,9.06709852)(6.15039041,9.09959852)
+\lineto(14.37695302,9.09959852)
+\lineto(14.37695302,10.18949852)
+\lineto(6.51562501,10.18949852)
+\curveto(6.54729401,10.25449852)(6.56400301,10.31219852)(6.59960901,10.37889852)
+\curveto(6.92391361,10.97559852)(7.38723621,11.44359853)(7.98828081,11.78519853)
+\curveto(8.58067741,12.11809853)(9.19597592,12.28669853)(9.83593712,12.29099853)
+\lineto(14.35742202,12.29099853)
+\lineto(14.35742202,13.32229853)
+\closepath
+}}\hspace*{9pt}%
+}}
+
+\newcommand{\aggregate}{\scalesymbol{\hspace*{0.5pt}{\begin{pspicture}(0,0.25)(0,0)%
+\psset{xunit=.8pt,yunit=.8pt,runit=.8pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=\bydefaultblack]%
+{\newpath
+\moveto(5.34375,8.52461288)
+\lineto(4.96875,3.96211288)
+\curveto(4.059647,4.03011288)(2.55153225,3.90011288)(1.66623663,4.82961288)
+\lineto(1.39574725,5.11361288)
+\curveto(1.53816075,5.27101288)(1.78125,5.57711288)(1.78125,5.80581288)
+\curveto(1.78125,6.29461288)(1.36375013,6.71211288)(0.875,6.71211288)
+\curveto(0.38625,6.71211288)(0,6.29461288)(0,5.80581288)
+\curveto(0,5.53011288)(0.09980608,5.26131288)(0.3125,5.11841288)
+\lineto(1.5588685,4.28121287)
+\curveto(2.667678,3.53631288)(3.639123,3.03041287)(4.90625,2.93081287)
+\lineto(4.66856838,-0.12868715)
+\curveto(4.66856838,-0.12868715)(4.25998675,-0.85568715)(5.02885125,-0.89258715)
+\curveto(5.797716,-0.92958715)(5.91882638,-0.22758715)(5.91882638,-0.22758715)
+\lineto(6.101529,2.88211288)
+\curveto(7.42158375,2.95211288)(7.61243137,3.06241288)(8.74857612,3.87521288)
+\lineto(10.3125,4.99391288)
+\curveto(10.593122,5.19461287)(10.84375,5.43981287)(10.84375,5.80631288)
+\curveto(10.84375,6.29511288)(10.4575,6.71261288)(9.96875,6.71261288)
+\curveto(9.48,6.71261288)(9.03786325,6.25811288)(9.03786325,5.76931287)
+\curveto(9.03786325,5.44151287)(9.32923825,5.27161288)(9.4726395,5.11411288)
+\lineto(9.23910538,4.80501288)
+\curveto(8.50839625,3.83781287)(7.08850475,4.02401287)(6.164029,3.96211287)
+\lineto(6.4651185,7.63671288)
+\curveto(6.4651185,7.63671288)(7.30991163,9.43861288)(6.156962,9.16431288)
+\curveto(5.00401238,8.89001288)(5.34375,8.52411288)(5.34375,8.52411288)
+\closepath
+}}\end{pspicture}\hspace*{9pt}}}}
+
+\newcommand{\varaggregate}{\hspace*{1pt}{%
+\psset{xunit=.8pt,yunit=.8pt,runit=.8pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=\bydefaultblack]%
+{\newpath
+\moveto(5.34375,4)
+\lineto(4.96875,3.96211288)
+\curveto(4.059647,4.03011288)(2.55153225,3.90011288)(1.66623663,4.82961288)
+\lineto(1.39574725,5.11361288)
+\curveto(1.53816075,5.27101288)(1.78125,5.57711288)(1.78125,5.80581288)
+\curveto(1.78125,6.29461288)(1.36375013,6.71211288)(0.875,6.71211288)
+\curveto(0.38625,6.71211288)(0,6.29461288)(0,5.80581288)
+\curveto(0,5.53011288)(0.09980608,5.26131288)(0.3125,5.11841288)
+\lineto(1.5588685,4.28121287)
+\curveto(2.667678,3.53631288)(3.639123,3.03041287)(4.90625,2.93081287)
+\lineto(4.66856838,-0.12868715)
+\curveto(4.66856838,-0.12868715)(4.25998675,-0.85568715)(5.02885125,-0.89258715)
+\curveto(5.797716,-0.92958715)(5.91882638,-0.22758715)(5.91882638,-0.22758715)
+\lineto(6.101529,2.88211288)
+\curveto(7.42158375,2.95211288)(7.61243137,3.06241288)(8.74857612,3.87521288)
+\lineto(10.3125,4.99391288)
+\curveto(10.593122,5.19461287)(10.84375,5.43981287)(10.84375,5.80631288)
+\curveto(10.84375,6.29511288)(10.4575,6.71261288)(9.96875,6.71261288)
+\curveto(9.48,6.71261288)(9.03786325,6.25811288)(9.03786325,5.76931287)
+\curveto(9.03786325,5.44151287)(9.32923825,5.27161288)(9.4726395,5.11411288)
+\lineto(9.23910538,4.80501288)
+\curveto(8.50839625,3.83781287)(7.08850475,4.02401287)(6.164029,3.96211287)
+%\lineto(6.4651185,7.63671288)
+%\curveto(6.4651185,7.63671288)(7.30991163,9.43861288)(6.156962,9.16431288)
+%\curveto(5.00401238,8.89001288)(5.34375,8.52411288)(5.34375,8.52411288)
+\closepath
+}}\hspace*{10pt}%
+}}
+
+\newcommand{\fsymbol}{\scalesymbol{\begin{pspicture}(0,0.18)(0,0)%
+\psset{xunit=.8pt,yunit=.8pt,runit=.8pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=\bydefaultblack]%
+{\newpath
+\moveto(4.2577215,6.2376)
+\curveto(3.1037764,5.3783)(3.0586526,4.1977)(3.1285918,2.7219)
+\curveto(2.4573892,2.8351)(1.4625083,3.0917)(1.2981123,3.211)
+\curveto(1.1337163,3.3303)(0.98669871,3.0875)(1.1838876,2.893)
+\curveto(1.3810765,2.6985)(2.5288382,2.1958)(3.25,2.0625)
+\lineto(3.8125,-0.7812)
+\curveto(3.9773052,-1.6095)(3.832852,-2.9047)(3.3007357,-3.5555)
+\curveto(2.2112331,-4.69)(0.61637369,-4.6936)(-0.6426464,-3.7262)
+\curveto(-1.4461339,-3.1089)(-1.6224541,-2.4057)(-1.9375,-1.9997)
+\curveto(-2.1063262,-1.7821)(-2.5893917,-1.9657)(-2.2971999,-2.2656)
+\curveto(-1.4127432,-3.1717)(-1.6165105,-3.3021)(-0.95537191,-4.1025)
+\curveto(-0.22072569,-4.9919)(1.014568,-5.0374)(1.5999446,-5.0318)
+\curveto(2.351737,-5.0218)(3.2568686,-4.5909)(4.1049763,-3.6748)
+\curveto(4.8769422,-2.8408)(5.363779,-1.7766)(5.1418829,-0.663)
+\curveto(5.1418829,-0.663)(4.7992588,1.3448)(4.6664873,2.1147)
+\curveto(5.3176556,2.2314)(6.2440218,2.5777)(6.6664874,2.9795)
+\curveto(6.7144034,3.1374)(6.6913824,3.2479)(6.5537896,3.2105)
+\curveto(6.4161965,3.1735)(5.3898324,2.767)(4.5363687,2.6993)
+\curveto(4.414582,3.2675)(4.40625,3.688)(4.40625,3.688)
+\curveto(4.317356,5.672)(4.5999305,6.3685)(5.0522626,6.1598)
+\curveto(5.4517997,5.9755)(5.4544585,5.8356)(5.7005907,6.0163)
+\curveto(5.8829559,6.1501)(5.8533656,6.2844)(5.7064507,6.3796)
+\curveto(5.6176467,6.4376)(4.8123666,6.6507)(4.2577215,6.2376)
+\closepath
+}}%
+\end{pspicture}\hspace*{6pt}}}
+
+\newcommand{\Paries}{\scalesymbol{\hspace*{2pt}{%
+\psset{xunit=.8pt,yunit=.8pt,runit=.8pt}%
+{\pscustom[linestyle=none,fillstyle=solid,fillcolor=\bydefaultblack]%
+{\newpath
+\moveto(2.1458595,7.21635575)
+\curveto(1.08522484,7.11492575)(0.08369656,6.20282975)(0.00511322,4.55774212)
+\curveto(-0.03390361,3.74088863)(0.15259159,3.00458238)(0.48850755,2.45157925)
+\curveto(0.82442352,1.89846563)(1.33145275,1.53848875)(1.97321875,1.5192635)
+\curveto(3.687103,1.4681065)(3.9826365,2.54825813)(4.77000013,3.1421425)
+\curveto(5.13958962,3.42079862)(4.51916,4.105948)(4.321134,3.45284088)
+\curveto(4.07081975,2.627369)(3.38896413,1.56666375)(1.97321875,1.82996175)
+\curveto(0.62602757,2.08066387)(0.68094117,3.81591138)(0.86831739,4.76491112)
+\curveto(1.034086,5.60452562)(1.75002225,6.24625238)(2.5601975,6.2841505)
+\curveto(3.422215,6.32447937)(4.67734425,5.66452175)(5.63320438,3.7981225)
+\curveto(5.601437,3.69359887)(5.55498013,3.534272)(5.52961987,3.45284088)
+\curveto(5.3209205,2.76515025)(5.1083585,1.97083663)(5.11528187,1.3120945)
+\curveto(5.1187485,0.98272341)(5.20677038,0.66627967)(5.356979,0.4143622)
+\curveto(5.507187,0.16244469)(5.78499125,-0.0022961)(6.11659862,0.0000242)
+\curveto(6.44820675,-0.0022961)(6.7605375,0.16244469)(6.91074613,0.4143622)
+\curveto(7.060956,0.66627967)(7.11445537,0.98272341)(7.11791512,1.3120945)
+\curveto(7.12482075,1.97083663)(6.9468045,2.76515025)(6.73810525,3.45284088)
+\curveto(6.71274775,3.534272)(6.66628662,3.69359887)(6.63452075,3.7981225)
+\curveto(7.5903805,5.66452175)(8.810983,6.32447937)(9.67299937,6.2841505)
+\curveto(10.48317525,6.24625238)(11.23363937,5.60452562)(11.39940775,4.76491112)
+\curveto(11.58678375,3.81591138)(11.64169737,2.08066387)(10.29450638,1.82996175)
+\curveto(8.87876175,1.56666375)(8.1969065,2.627369)(7.94659112,3.45284088)
+\curveto(7.74856512,4.105948)(7.09360725,3.42079862)(7.46319675,3.1421425)
+\curveto(8.2505605,2.54825813)(8.546094,1.4681065)(10.25997825,1.5192635)
+\curveto(10.90174362,1.53848875)(11.44330125,1.89846563)(11.7792175,2.45157925)
+\curveto(12.11513513,3.00458238)(12.30162875,3.74088863)(12.26261188,4.55774212)
+\curveto(12.18402575,6.20282975)(11.14797225,7.11492575)(10.08733738,7.21635575)
+\curveto(8.34778625,7.38297488)(7.26192237,6.69086463)(6.59999262,5.835229)
+\curveto(6.40980037,5.589499)(6.28193288,5.331394)(6.15112688,5.07571987)
+\curveto(6.018942,5.33581363)(5.86129462,5.58507938)(5.6677325,5.835229)
+\curveto(5.00580375,6.69086463)(3.88541288,7.38297488)(2.1458595,7.21635575)
+\closepath
+\moveto(6.15112688,2.72780463)
+\curveto(6.50685212,1.84090025)(6.66347613,1.03189151)(6.15112688,0.96681282)
+\curveto(6.11985438,0.96648136)(6.10916563,0.96272532)(6.08207063,0.96681282)
+\curveto(5.58151162,1.04249857)(5.79492225,1.84255762)(6.15112688,2.72780463)
+\closepath
+}}\hspace*{12pt}%
+}}}
+
+\newcommand{\dragonhead}{\scalesymbol{%
+{\begin{pspicture}(0,0.24)(0,0)%\vphantom{t}%
+\psset{xunit=.65pt,yunit=.65pt,runit=.65pt}%
+\pscustom[linestyle=none,fillstyle=solid,fillcolor=black]%
+{\newpath%
+\moveto(10.60609514,9.73728879)
+\curveto(10.42267514,9.73646879)(10.23665514,9.69168879)(10.06117514,9.60642879)
+\curveto(9.35926514,9.26558879)(8.95005514,8.47773879)(9.81508514,7.78611879)
+\curveto(10.68011514,7.09449879)(11.10074514,7.17103879)(11.07680514,8.15720879)
+\curveto(11.05290514,9.14337879)(9.71669514,8.04251879)(9.75062514,8.73728879)
+\curveto(9.78452514,9.43233879)(11.53083515,9.30928879)(11.54750515,8.01072879)
+\curveto(11.56420515,6.71216879)(10.32375514,6.21805879)(9.14125514,7.15134879)
+\curveto(7.95876514,8.08463879)(6.19810514,9.67788879)(3.96937513,9.60056879)
+\curveto(1.74064513,9.52326879)(0.55725513,8.22199879)(0.61305513,5.36227879)
+\curveto(0.66885513,2.50255878)(1.74062513,1.20127878)(3.96937513,1.12400878)
+\curveto(6.19812514,1.04670878)(7.95875514,2.63992878)(9.14125514,3.57322878)
+\curveto(10.32374514,4.50650878)(11.56416515,4.01240878)(11.54750515,2.71384878)
+\curveto(11.53080515,1.41528878)(9.78449514,1.29223878)(9.75062514,1.98728878)
+\curveto(9.71672514,2.68208878)(11.05293514,1.58118878)(11.07680514,2.56736878)
+\curveto(11.10070514,3.55353878)(10.68010514,3.63007878)(9.81508514,2.93845878)
+\curveto(8.95005514,2.24683878)(9.35926514,1.45898878)(10.06117514,1.11814878)
+\curveto(10.76308514,0.77730878)(11.62705515,1.09104878)(11.86781515,2.21970878)
+\curveto(12.10858515,3.34832878)(12.33828515,3.55606878)(11.20765514,4.26072878)
+\curveto(10.07701514,4.96538879)(9.89691514,4.69364878)(8.36586514,3.47947878)
+\curveto(6.83480514,2.26529878)(5.70716514,1.87970878)(4.66469513,1.91697878)
+\curveto(3.62222513,1.95427878)(2.89929513,2.78988878)(2.69431513,5.17622879)
+\curveto(2.48934513,7.56255879)(3.62223513,8.76837879)(4.66469513,8.80564879)
+\curveto(5.70715514,8.84294879)(6.83481514,8.45731879)(8.36586514,7.24314879)
+\curveto(9.89691514,6.02897879)(10.07702514,5.75918879)(11.20765514,6.46384879)
+\curveto(12.33828515,7.16850879)(12.10858515,7.37625879)(11.86781515,8.50486879)
+\curveto(11.68723515,9.35132879)(11.15636514,9.73974879)(10.60609514,9.73728879)
+\closepath}\end{pspicture}}\hspace*{8pt}}}
+
+\newcommand{\reversedragonhead}{%
+%\kern-2.5pt%
+\reflectbox{\dragonhead}%
+%\hspace*{-1pt}%
+}
+
+\newcommand{\varwedge}{\scalesymbol{\begin{pspicture}(-0.1,0)(0.3,0.3)
+\pscurve[curvature=0.8 0.5 0.5,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0,-0.05)(0.11,0.27)(0.1,0.28)(0.09,0.27)(0.2,-0.05)
+\end{pspicture}}}
+\newcommand{\varinclusion}{\scalesymbol{\begin{pspicture}(0,0)(0.4,0.2)
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0,0.1)(0.25,0.1)
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0.25,0.1)(0.4,0.2)
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0.25,0.1)(0.4,0)
+\end{pspicture}}}
+\newcommand{\weirdone}{\scalesymbol{\begin{pspicture}(0,0)(0.3,0.3)
+\pscurve[curvature=0.8 0.8 0.8,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.155,0.21)(0.15,0.2)(0.15,0.1)(0.2,0)(0.15,-0.07)(0.08,-0.02)(0.08,-0.015)(0.09,-0.014)
+\pscurve[curvature=0.8 0.8 0.8,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.155,0.21)(0.15,0.2)(0.15,0.1)(0.215,0)(0.15,-0.07)(0.08,-0.02)(0.08,-0.015)
+\pscurve[curvature=0.8 0.8 0.8,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.1,0.15)(0.15,0.13)(0.2,0.15)
+\end{pspicture}}}
+\newcommand{\weirdtwo}{\scalesymbol{\begin{pspicture}(0,0)(0.3,0.3)
+\pscurve[curvature=1 1 1,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.1,0.07)(0.175,0.195)(0.15,0.2)(0.15,0.1)(0.18,0)(0.135,-0.07)(0.08,-0.02)(0.08,-0.015)(0.1,0)
+\pscurve[curvature=1 1 1,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.1,0.07)(0.175,0.195)(0.15,0.2)(0.15,0.1)(0.2,0)(0.135,-0.07)(0.08,-0.02)(0.08,-0.015)(0.1,-0.01)
+\end{pspicture}}}
+\newcommand{\weirdthree}{\scalesymbol{\begin{pspicture}(0,0)(0.3,0.3)\raisebox{2pt}{
+\pscurve[curvature=1 1 1,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.21,0.14)(0.2,0.14)(0.1,0.04)(0.05,0.05)(0.1,0.1)(0.15,0.1)(0.18,0)(0.135,-0.07)(0.08,-0.02)(0.08,-0.015)(0.1,0)
+\pscurve[curvature=1 1 1,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.21,0.14)(0.2,0.14)(0.1,0.04)(0.05,0.05)(0.1,0.1)(0.15,0.1)(0.2,0)(0.135,-0.07)(0.08,-0.02)(0.08,-0.015)(0.1,-0.01)}
+\end{pspicture}}}
+\newcommand{\weirdfour}{\scalesymbol{\begin{pspicture}(0,0)(0.3,0.3)\raisebox{2pt}{
+\pscurve[curvature=1 1 1,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.05,0.08)(0.08,0.1)(0.2,0.09)(0.21,0.12)(0.15,0.13)(0.11,0.1)(0.17,-0.01)(0.135,-0.07)(0.08,-0.02)(0.08,-0.015)(0.1,0)
+\pscurve[curvature=1 1 1,linecolor=\bydefaultblack,linearc=0.1,linewidth=0.7pt]{c-c}(0.05,0.08)(0.08,0.1)(0.2,0.09)(0.21,0.12)(0.15,0.13)(0.11,0.1)(0.19,-0.01)(0.135,-0.07)(0.08,-0.02)(0.08,-0.015)(0.1,-0.01)}
+\end{pspicture}}}
+\newcommand{\flatinfty}{\scalesymbol{\begin{pspicture}(-0.1,0)(0.5,0.2)
+\pspolygon[linecolor=\bydefaultblack,linearc=0.024,linewidth=0.45pt](0,0.15)(0.01,0.18)(0.15,0.18)(0.25,0.12)(0.39,0.12)(0.4,0.15)(0.39,0.18)(0.25,0.18)(0.15,0.12)(0.01,0.12)
+\end{pspicture}}}
+
+% Illation-signs, with vinculums.
+%
+\def\ifempty#1{\def\temp{#1}\ifx\temp\empty}% This is a pretty craptacular way to test emptyness, but perhaps suffices here. Tests if the \XXXoverline-commands have an empty argument. This is a syntactically coherent symbol but if the argument has no length, the vinculum all but disappears. Thus in an empty argument, a small space is automatically added.
+
+\newsavebox\TAGbox
+\newlength{\TAGHeight}
+\newlength{\TTAGHeight}
+\newcommand{\croverline}[1]%
+{\scalesymbol{\savebox\TAGbox{\normalsize\ifempty{#1}\vphantom{b}\hspace{3pt}\else#1\fi\hspace*{2pt}}\makebox[0pt][l]{\normalsize\ifempty{#1}\vphantom{b}\hspace{3pt}\else#1\fi}%
+\setlength{\TAGHeight}{\ht\TAGbox+1.5pt}%
+\setlength{\TTAGHeight}{\ht\TAGbox+2.4pt}%
+\rule[\TAGHeight+0.3pt]{\wd\TAGbox}{0pt}%
+\psline[linewidth=0.7pt](-\wd\TAGbox,\TAGHeight)(0,\TAGHeight)%
+\psline[linewidth=0.7pt](-0.04,0)(-0.04,\TTAGHeight)%
+}}
+
+\newlength{\revcsymbollength}
+\setlength{\revcsymbollength}{1pt}
+\newcommand{\reversecroverline}[1]%
+{\scalesymbol{\savebox\TAGbox{\hspace*{2pt}\normalsize\ifempty{#1}\vphantom{b}\hspace{3pt}\else#1\fi}\makebox[0pt][l]{\hspace*{2pt}\normalsize\ifempty{#1}\vphantom{b}\hspace{3pt}\else#1\fi}%
+\setlength{\TAGHeight}{\ht\TAGbox+1.5pt}%
+\setlength{\TTAGHeight}{\ht\TAGbox+2.4pt}%
+\setlength{\revtextlenght}{\wd\TAGbox-\revcsymbollength}%
+\rule[\TAGHeight+0.3pt]{\wd\TAGbox}{0pt}%
+\psline[linewidth=0.7pt](-\wd\TAGbox,\TAGHeight)(0,\TAGHeight)%
+\psline[linewidth=0.7pt](-\revtextlenght,0)(-\revtextlenght,\TTAGHeight)%
+}}
+
+\newcommand{\agoverline}[1]%
+{\scalesymbol{\savebox\TAGbox{\normalsize\ifempty{#1}\vphantom{b}\hspace{1.5pt}\else#1\fi\varaggregate}\makebox[0pt][l]{\normalsize\ifempty{#1}\vphantom{b}\hspace{1.5pt}\else#1\fi\varaggregate}%
+\setlength{\TAGHeight}{\ht\TAGbox+1.2pt}%
+\rule[\TAGHeight+0.3pt]{\wd\TAGbox}{0pt}%
+\psline[linewidth=0.9pt,linearc=0.07,linejoin=2]{-}(-\wd\TAGbox,\TAGHeight)(-0.18,\TAGHeight)%(-0.175,0.3)
+(-0.195,0.1)%
+%\psline[linewidth=0.7pt](-0.04,0)(-0.04,1.2\ht\TAGbox)%
+}}
+
+\newcommand{\inlineagoverline}[1]%
+{\scalesymbol{\savebox\TAGbox{\normalsize\ifempty{#1}\vphantom{a}\hspace{1.5pt}\else#1\fi{\scalebox{0.7}\varaggregate}}\makebox[0pt][l]{\normalsize\ifempty{#1}\vphantom{a}\hspace{1.5pt}\else#1\fi{\scalebox{0.7}\varaggregate}}%
+\setlength{\TAGHeight}{\ht\TAGbox+1.2pt}%
+\rule[1.15\ht\TAGbox]{\wd\TAGbox}{0pt}%
+\psline[linewidth=0.73pt,linearc=0.09]{-}(-\wd\TAGbox,\TAGHeight)(-0.2,\TAGHeight)(-0.122,0.8\TAGHeight)(-0.137,0.07)%
+%\psline[linewidth=0.7pt](-0.04,0)(-0.04,1.2\ht\TAGbox)%
+}}
+
+\newlength{\revtextlenght}
+\newlength{\revsymbollength}
+\newlength{\correvlenght}
+%\settowidth{\revsymbollength}{{\varaggregate}}%
+\settowidth{\revsymbollength}{{\scalebox{0.7}\aggregate}}
+\newcommand{\reverseinlineagoverline}[1]%
+{\scalesymbol{\savebox\TAGbox{{\scalebox{0.7}\varaggregate}\normalsize\ifempty{#1}\vphantom{a}\hspace{1.5pt}\else#1\fi}\makebox[0pt][l]{{\scalebox{0.7}\varaggregate}\normalsize\ifempty{#1}\vphantom{a}\hspace{1.5pt}\else#1\fi}%
+\setlength{\TAGHeight}{\ht\TAGbox+1.2pt}%
+\setlength{\correvlenght}{\wd\TAGbox-3.8pt}%
+\setlength{\revtextlenght}{\wd\TAGbox-\revsymbollength}%
+\rule[1.17\ht\TAGbox]{\wd\TAGbox}{0pt}%
+\psline[linewidth=0.73pt,linearc=0.09]{-}%
+(-\correvlenght,0.07)%
+(-0.99\correvlenght,0.9\TAGHeight)%
+(-\revtextlenght,\TAGHeight)(0,\TAGHeight)%
+}}
+
+\newlength{\revnsymbollength}
+\settowidth{\revnsymbollength}{\aggregate}
+\newcommand{\reverseagoverline}[1]%
+{\scalesymbol{\savebox\TAGbox{\varaggregate\normalsize\ifempty{#1}\vphantom{b}\hspace{1.5pt}\else#1\fi}\makebox[0pt][l]{\varaggregate\normalsize\ifempty{#1}\vphantom{b}\hspace{1.5pt}\else#1\fi}%
+\setlength{\TAGHeight}{\ht\TAGbox+1.2pt}%
+\setlength{\correvlenght}{\wd\TAGbox-5.45pt}%
+\setlength{\revtextlenght}{\wd\TAGbox-\revnsymbollength}%
+\rule[1.2\ht\TAGbox]{\wd\TAGbox}{0pt}%
+\psline[linewidth=0.9pt,linearc=0.09]{-}%
+(-\correvlenght,0.095)%
+(-0.99\correvlenght,0.95\TAGHeight)%
+(-\revtextlenght,\TAGHeight)(0,\TAGHeight)%
+}}
+
+\newlength{\TWidht}
+\newcommand{\cuoverline}[1]%
+{\scalesymbol{\savebox\TAGbox{\normalsize\ifempty{#1}\vphantom{b}\hspace{3pt}\else#1\fi}\makebox[0pt][l]{\normalsize\ifempty{#1}\vphantom{b}\hspace{3pt}\else#1\fi}%
+\setlength{\TAGHeight}{\ht\TAGbox+1.2pt}%
+\setlength{\TTAGHeight}{\ht\TAGbox+0.8pt}%
+\setlength{\TWidht}{\wd\TAGbox+1.2pt}%
+\rule[\TAGHeight+0.2pt]{\wd\TAGbox}{0pt}%
+\psline[linewidth=0.7pt,linearc=0.02]{-}(-\wd\TAGbox,\ht\TAGbox)(-\TWidht,\TTAGHeight)(-\wd\TAGbox,\TAGHeight)(0,\TAGHeight)%
+}}
+
+\newcommand{\reversecuoverline}[1]%
+{\scalesymbol{\savebox\TAGbox{\normalsize\ifempty{#1}\vphantom{b}\hspace{3pt}\else#1\fi}\makebox[0pt][l]{\normalsize\ifempty{#1}\vphantom{b}\hspace{3pt}\else#1\fi}%
+\setlength{\TAGHeight}{\ht\TAGbox+1.2pt}%
+\setlength{\TTAGHeight}{\ht\TAGbox+0.1pt}%
+\setlength{\TWidht}{\wd\TAGbox+1.2pt}%
+\rule[\TAGHeight+0.2pt]{\wd\TAGbox}{0pt}%
+\psline[linewidth=0.7pt,linearc=0.02]{-}(-\wd\TAGbox,\TAGHeight)(0,\TAGHeight)(0.05,\TAGHeight)(0,\TTAGHeight)%
+}}
+
+% Box-X -notation lines, cross and negative space
+\newcommand{\drawboxt}{\begin{pspicture}(0,0)(0.2,0.25)%
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0,0.02)(0.2,0.02)%down
+\end{pspicture}}%
+\newcommand{\drawboxb}{\begin{pspicture}(0,0)(0.2,0.25)%
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0,0.22)(0.2,0.22)%up
+\end{pspicture}}%
+\newcommand{\drawboxl}{\begin{pspicture}(0,0)(0.2,0.25)%
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0,0.02)(0,0.22)%left
+\end{pspicture}}%
+\newcommand{\drawboxr}{\begin{pspicture}(0,0)(0.2,0.25)%
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0.2,0.02)(0.2,0.22)%right
+\end{pspicture}}%
+\newcommand{\drawboxx}{\begin{pspicture}(0,0)(0.2,0.25)%
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0,0.02)(0.2,0.22)%first x
+\psline[linecolor=\bydefaultblack,linearc=0,linewidth=0.7pt]{c-c}(0,0.22)(0.2,0.02)%second x
+\end{pspicture}}% Really just a negative space that matches the width of the above lines exactly.
+\newcommand{\negboxx}{\begin{pspicture}(0,0)(0.2,0.25)\hspace*{-11.37pt}%negative space so that sections of the box can be made to overlap
+\end{pspicture}}%
+
+\def\boxxoperator#1{%
+\scalesymbol{\drawboxx\negboxx% The central cross is always present.
+\def\xopert{t}%   These \def s allow us to
+\def\xoperb{b}% test for bare strings, so
+\def\xoperl{l}% that the user can input bare
+\def\xoperr{r}% characters instead of commands.
+\foreach \xoperator in {#1}{%
+\ifx\xoperator\xopert%
+\drawboxt\negboxx
+\fi% No error or exception handling.
+\ifx\xoperator\xoperb
+\drawboxb\negboxx
+\fi
+\ifx\xoperator\xoperl
+\drawboxl\negboxx
+\fi
+\ifx\xoperator\xoperr
+\drawboxr\negboxx
+\fi
+}%
+\hspace{2pt}
+}}
+
+
+
+\psset{linewidth=1.2pt,linecolor=black}% Set for the ligatures, cut linewidths are set above in the respective definitions.
+
+\endinput
+
+%%
+%% End of file `egpeirce.sty'.
+%%

@@ -1,0 +1,103 @@
+{
+  "metadata": {
+    "format": "EGRF",
+    "version": "3.0",
+    "source": "Sowa 2011, EGIF p. 1",
+    "description": "Simple Negation: There is no phoenix",
+    "complexity_level": "beginner",
+    "logical_pattern": "simple_negation",
+    "test_rationale": "Tests basic negation using single cut; fundamental Alpha pattern for denial",
+    "teaching_purpose": "Introduces concept of cut as negation operator",
+    "citation": "Sowa, John F. (2011). Existential Graphs and EGIF. EGIF specification, p. 1."
+  },
+  "elements": {
+    "sheet": {
+      "element_type": "context",
+      "logical_properties": {
+        "context_type": "sheet",
+        "is_root": true,
+        "nesting_level": 0,
+        "name": "Sheet of Assertion"
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 400,
+          "min_height": 300,
+          "preferred_width": 500,
+          "preferred_height": 350
+        }
+      }
+    },
+    "negation_cut": {
+      "element_type": "context",
+      "logical_properties": {
+        "context_type": "cut",
+        "is_root": false,
+        "nesting_level": 1,
+        "name": "Negation Cut"
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 200,
+          "min_height": 150,
+          "preferred_width": 250,
+          "preferred_height": 180
+        }
+      }
+    },
+    "phoenix_predicate": {
+      "element_type": "predicate",
+      "logical_properties": {
+        "name": "Phoenix",
+        "arity": 1,
+        "connected_entities": ["x1"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 80,
+          "min_height": 40,
+          "preferred_width": 100,
+          "preferred_height": 50
+        }
+      }
+    },
+    "x1": {
+      "element_type": "entity",
+      "logical_properties": {
+        "name": "x",
+        "entity_type": "variable",
+        "connected_predicates": ["phoenix_predicate"]
+      },
+      "layout_constraints": {
+        "size": {
+          "min_width": 10,
+          "min_height": 10,
+          "preferred_width": 10,
+          "preferred_height": 10
+        }
+      }
+    }
+  },
+  "containment": {
+    "sheet": "viewport",
+    "negation_cut": "sheet",
+    "phoenix_predicate": "negation_cut",
+    "x1": "negation_cut"
+  },
+  "connections": [
+    {
+      "entity_id": "x1",
+      "predicate_id": "phoenix_predicate",
+      "role": "arg1"
+    }
+  ],
+  "ligatures": [],
+  "logical_content": {
+    "english": "There is no phoenix",
+    "clif": "(not (exists (x) (Phoenix x)))",
+    "egif": "~[ (Phoenix *x) ]",
+    "logical_form": "¬∃x Phoenix(x)",
+    "semantic_notes": "Basic negation of existential assertion using single cut"
+  }
+}
+

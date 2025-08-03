@@ -262,12 +262,45 @@ class EGIFParser:
     """Parser for EGIF expressions that builds Dau-compliant structures."""
     
     def __init__(self, text: str):
-        self.text = text
+        self.text = self._preprocess_text(text)
         self.tokens = []
         self.position = 0
         self.graph = create_empty_graph()
         self.variable_map = {}  # Maps variable names to vertex IDs
         self.defining_labels = set()  # Track defining labels to prevent duplicates
+    
+    def _preprocess_text(self, text: str) -> str:
+        """Preprocess EGIF text to handle comments and normalize whitespace."""
+        lines = text.split('\n')
+        processed_lines = []
+        
+        for line in lines:
+            # Strip leading/trailing whitespace
+            line = line.strip()
+            
+            # Skip empty lines
+            if not line:
+                continue
+            
+            # Skip comment lines (starting with #)
+            if line.startswith('#'):
+                continue
+            
+            # Remove inline comments (everything after # on a line)
+            if '#' in line:
+                line = line[:line.index('#')].strip()
+                if not line:  # Skip if nothing left after removing comment
+                    continue
+            
+            processed_lines.append(line)
+        
+        # Join with single spaces and normalize whitespace
+        result = ' '.join(processed_lines)
+        
+        # Normalize multiple spaces to single spaces
+        result = re.sub(r'\s+', ' ', result)
+        
+        return result.strip()
         
     def parse(self) -> RelationalGraphWithCuts:
         """Parse EGIF expression into Dau-compliant graph."""

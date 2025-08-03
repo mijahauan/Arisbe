@@ -1,0 +1,7 @@
+# Sowa's Quantification Example
+# Category: scholars
+# Description: Sowa's example of existential quantification
+# Source: John F. Sowa
+# Pattern: quantification
+
+*x (Human x) (Mortal x)

@@ -1,0 +1,41 @@
+# Dau's Ligature Example
+# "∃x(P(x) ∧ ¬Q(x))"
+
+contexts:
+  sheet:
+    type: sheet
+    nesting_level: 0
+  cut:
+    type: cut
+    nesting_level: 1
+    parent: sheet
+
+predicates:
+  p:
+    name: P
+    arity: 1
+    parent: sheet
+  q:
+    name: Q
+    arity: 1
+    parent: cut
+
+entities:
+  x1:
+    name: x
+    parent: sheet
+    connections:
+      - predicate: p
+        role: arg1
+  x2:
+    name: x
+    parent: cut
+    connections:
+      - predicate: q
+        role: arg1
+
+ligatures:
+  - entity1: x1
+    entity2: x2
+    type: identity
+

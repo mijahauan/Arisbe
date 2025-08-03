@@ -1,0 +1,7 @@
+# Peirce's Man-Mortal Implication
+# Category: peirce
+# Description: Peirce's classic example of implication: 'If a man, then mortal'
+# Source: Charles Sanders Peirce
+# Pattern: implication
+
+(Human "Socrates") ~[ (Mortal "Socrates") ]

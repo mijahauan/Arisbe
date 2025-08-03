@@ -1,0 +1,15 @@
+{
+  "id": "roberts_1973_p57_disjunction",
+  "title": "Roberts' Disjunction Example",
+  "description": "Roberts' example of disjunction: 'P or Q'",
+  "source": {
+    "author": "Don D. Roberts",
+    "work": "The Existential Graphs of Charles S. Peirce",
+    "page": 57,
+    "year": 1973
+  },
+  "logical_pattern": "disjunction",
+  "logical_form": "P ∨ Q",
+  "notes": "This example demonstrates how disjunction is represented in existential graphs using double cuts. The formula 'P or Q' is represented as '¬(¬P ∧ ¬Q)'."
+}
+
