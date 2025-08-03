@@ -84,6 +84,32 @@ class CleanDiagramRenderer:
         self.canvas = canvas
         self.theme = theme or RenderingTheme()
     
+    def _hex_to_rgb(self, color: str) -> Tuple[int, int, int]:
+        """Convert color string (hex or name) to RGB tuple."""
+        # Handle common color names
+        color_map = {
+            'black': (0, 0, 0),
+            'white': (255, 255, 255),
+            'red': (255, 0, 0),
+            'green': (0, 255, 0),
+            'blue': (0, 0, 255),
+            'gray': (128, 128, 128),
+            'grey': (128, 128, 128)
+        }
+        
+        if color.lower() in color_map:
+            return color_map[color.lower()]
+        
+        # Handle hex colors
+        if color.startswith('#'):
+            color = color[1:]
+        
+        if len(color) == 6:
+            return tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        
+        # Fallback to black
+        return (0, 0, 0)
+    
     def render_diagram(self, layout_result: LayoutResult, graph: RelationalGraphWithCuts) -> None:
         """
         Main entry point: render complete EG diagram from spatial primitives.
@@ -123,34 +149,43 @@ class CleanDiagramRenderer:
         else:
             points = cut_primitive.curve_points
         
-        self.canvas.draw_curve(
-            points=points,
-            width=self.theme.cut_line_width,
-            color=self.theme.cut_line_color,
-            fill=False
+        from canvas_backend import DrawingStyle
+        style = DrawingStyle(
+            color=self._hex_to_rgb(self.theme.cut_line_color),
+            line_width=self.theme.cut_line_width,
+            fill_color=None
         )
+        self.canvas.draw_curve(points=points, style=style, closed=True)
     
     def _render_vertex(self, vertex_primitive: SpatialPrimitive, graph: RelationalGraphWithCuts) -> None:
         """Render vertex as heavy spot (Dau's convention)."""
         vertex = graph.get_vertex(vertex_primitive.element_id)
         
         # Draw heavy spot
+        from canvas_backend import DrawingStyle
+        style = DrawingStyle(
+            color=self._hex_to_rgb(self.theme.vertex_color),
+            line_width=1.0,
+            fill_color=self._hex_to_rgb(self.theme.vertex_color)
+        )
         self.canvas.draw_circle(
             center=vertex_primitive.position,
             radius=self.theme.vertex_radius,
-            fill_color=self.theme.vertex_color,
-            outline_color=self.theme.vertex_color,
-            outline_width=1.0
+            style=style
         )
         
         # If vertex has a constant label, draw it
         if vertex.label and not vertex.is_generic:
             label_x, label_y = vertex_primitive.position
+            text_style = DrawingStyle(
+                color=self._hex_to_rgb(self.theme.predicate_text_color),
+                font_size=self.theme.predicate_text_size,
+                font_family="Arial"
+            )
             self.canvas.draw_text(
                 position=(label_x, label_y - 20),
                 text=vertex.label,
-                font_size=self.theme.predicate_text_size,
-                color=self.theme.predicate_text_color
+                style=text_style
             )
     
     def _render_edge(self, edge_primitive: SpatialPrimitive, graph: RelationalGraphWithCuts,
@@ -160,11 +195,15 @@ class CleanDiagramRenderer:
         vertex_sequence = graph.nu.get(edge_primitive.element_id, ())
         
         # Draw predicate text
+        text_style = DrawingStyle(
+            color=self._hex_to_rgb(self.theme.predicate_text_color),
+            font_size=self.theme.predicate_text_size,
+            font_family="Arial"
+        )
         self.canvas.draw_text(
             position=edge_primitive.position,
             text=relation_name,
-            font_size=self.theme.predicate_text_size,
-            color=self.theme.predicate_text_color
+            style=text_style
         )
         
         # Draw hooks to incident vertices
