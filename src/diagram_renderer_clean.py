@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple, Protocol
 from layout_engine_clean import SpatialPrimitive, LayoutResult, Coordinate
 from egi_core_dau import RelationalGraphWithCuts, ElementID
+from canvas_backend import DrawingStyle
 
 
 # Canvas abstraction protocol
@@ -210,11 +211,14 @@ class CleanDiagramRenderer:
         if edge_primitive.attachment_points:
             for i, (vertex_key, vertex_pos) in enumerate(edge_primitive.attachment_points.items()):
                 # Draw hook line from predicate to vertex
+                hook_style = DrawingStyle(
+                    color=self._hex_to_rgb(self.theme.hook_line_color),
+                    line_width=self.theme.hook_line_width
+                )
                 self.canvas.draw_line(
                     start=edge_primitive.position,
                     end=vertex_pos,
-                    width=self.theme.hook_line_width,
-                    color=self.theme.hook_line_color
+                    style=hook_style
                 )
                 
                 # For multi-ary predicates, draw argument order labels
@@ -252,11 +256,14 @@ class CleanDiagramRenderer:
                     
                     # Draw heavy line of identity from vertex to predicate
                     # This line can cross cut boundaries
+                    identity_style = DrawingStyle(
+                        color=self._hex_to_rgb(self.theme.identity_line_color),
+                        line_width=self.theme.identity_line_width
+                    )
                     self.canvas.draw_line(
                         start=vertex_primitive.position,
                         end=edge_primitive.position,
-                        width=self.theme.identity_line_width,
-                        color=self.theme.identity_line_color
+                        style=identity_style
                     )
     
     def _calculate_hook_endpoint(self, predicate_pos: Coordinate, vertex_pos: Coordinate) -> Coordinate:

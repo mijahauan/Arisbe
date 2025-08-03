@@ -532,23 +532,42 @@ class CleanLayoutEngine:
         
         # Check for collisions with predicates in same area
         min_distance = 80  # Minimum distance between predicates
+        max_attempts = 10  # Prevent infinite loops
         
-        for existing_edge in existing_edges.values():
-            if existing_edge.parent_area == containing_area:
-                ex_x, ex_y = existing_edge.position
-                distance = math.sqrt((pred_x - ex_x)**2 + (pred_y - ex_y)**2)
-                
-                if distance < min_distance:
-                    # Move away from collision
-                    if pred_x < ex_x:
-                        pred_x = max(x1 + 50, ex_x - min_distance)
-                    else:
-                        pred_x = min(x2 - 50, ex_x + min_distance)
+        for attempt in range(max_attempts):
+            collision_found = False
+            
+            for existing_edge in existing_edges.values():
+                if existing_edge.parent_area == containing_area:
+                    ex_x, ex_y = existing_edge.position
+                    distance = math.sqrt((pred_x - ex_x)**2 + (pred_y - ex_y)**2)
                     
-                    # Also adjust y if needed
-                    if abs(pred_y - ex_y) < 30:
-                        pred_y += 40 if pred_y >= ex_y else -40
+                    if distance < min_distance:
+                        collision_found = True
+                        # Move away from collision with more aggressive adjustment
+                        dx = pred_x - ex_x
+                        dy = pred_y - ex_y
+                        
+                        if abs(dx) < 1 and abs(dy) < 1:
+                            # If positions are nearly identical, use a default offset
+                            pred_x += min_distance
+                            pred_y += 30
+                        else:
+                            # Normalize and scale the displacement vector
+                            length = math.sqrt(dx*dx + dy*dy)
+                            if length > 0:
+                                dx /= length
+                                dy /= length
+                                pred_x = ex_x + dx * min_distance
+                                pred_y = ex_y + dy * min_distance
+                        
+                        # Clamp to bounds
+                        pred_x = max(x1 + 50, min(x2 - 50, pred_x))
                         pred_y = max(y1 + 20, min(y2 - 20, pred_y))
+                        break
+            
+            if not collision_found:
+                break
         
         return (pred_x, pred_y)
     
@@ -579,30 +598,89 @@ class CleanLayoutEngine:
         x1, y1, x2, y2 = available_bounds
         vertex_x, vertex_y = vertex_pos
         
-        # Try positions at different angles and distances from the vertex
+        # IMPROVED: Better separation strategy for multiple predicates on same vertex
         import math
-        angles = [0, 45, 90, 135, 180, 225, 270, 315]  # 8 directions
-        distances = [40, 60, 80, 100]  # Different distances
         
-        for distance in distances:
-            for angle_deg in angles:
+        # Filter existing edges to only those in the same area
+        same_area_edges = {
+            eid: primitive for eid, primitive in existing_edges.items()
+            if primitive.parent_area == containing_area
+        }
+        
+        # Start with larger minimum distance for better separation
+        min_distance = 80  # Increased from 40
+        max_distance = 120
+        angle_step = 45  # Try every 45 degrees for good spread
+        
+        # Try positions in a systematic pattern
+        for distance in range(min_distance, max_distance + 1, 20):
+            for angle_deg in range(0, 360, angle_step):
                 angle_rad = math.radians(angle_deg)
                 pred_x = vertex_x + distance * math.cos(angle_rad)
                 pred_y = vertex_y + distance * math.sin(angle_rad)
                 
-                # Check if position is within bounds
-                if not (x1 <= pred_x <= x2 and y1 <= pred_y <= y2):
+                # Check if position is within bounds with margin
+                margin = 20
+                if not (x1 + margin <= pred_x <= x2 - margin and y1 + margin <= pred_y <= y2 - margin):
                     continue
                 
-                # Check if the line from vertex to predicate would overlap other elements
-                if self._is_line_collision_free(vertex_pos, (pred_x, pred_y), 
-                                              existing_edges, cut_primitives, vertex_primitives):
+                # Check minimum distance to existing predicates in same area
+                min_dist_ok = True
+                for existing_primitive in same_area_edges.values():
+                    dist = math.sqrt((pred_x - existing_primitive.position[0])**2 + 
+                                   (pred_y - existing_primitive.position[1])**2)
+                    if dist < 80:  # Minimum 80 pixels between predicates
+                        min_dist_ok = False
+                        break
+                
+                if min_dist_ok:
+                    # Check if the line from vertex to predicate would overlap other elements
+                    if self._is_line_collision_free(vertex_pos, (pred_x, pred_y), 
+                                                  existing_edges, cut_primitives, vertex_primitives):
+                        return (pred_x, pred_y)
+        
+        # IMPROVED FALLBACK: If strict collision-free fails, try with relaxed constraints
+        print(f"DEBUG: Strict collision-free failed, trying relaxed constraints")
+        
+        # Try again with smaller minimum distance
+        for distance in range(60, 100, 10):  # Smaller distances
+            for angle_deg in range(0, 360, 30):  # More angles
+                angle_rad = math.radians(angle_deg)
+                pred_x = vertex_x + distance * math.cos(angle_rad)
+                pred_y = vertex_y + distance * math.sin(angle_rad)
+                
+                # Check bounds with smaller margin
+                margin = 10
+                if not (x1 + margin <= pred_x <= x2 - margin and y1 + margin <= pred_y <= y2 - margin):
+                    continue
+                
+                # Check relaxed minimum distance (50 pixels instead of 80)
+                min_dist_ok = True
+                for existing_primitive in same_area_edges.values():
+                    dist = math.sqrt((pred_x - existing_primitive.position[0])**2 + 
+                                   (pred_y - existing_primitive.position[1])**2)
+                    if dist < 50:  # Relaxed minimum
+                        min_dist_ok = False
+                        break
+                
+                if min_dist_ok:
                     return (pred_x, pred_y)
         
-        # Fallback: use the old separation method if no collision-free position found
-        return self._calculate_unary_predicate_position_with_separation(
-            vertex_pos, available_bounds, existing_edges, containing_area, 0, 1
-        )
+        # Final fallback: ensure at least some separation
+        print(f"DEBUG: All collision-free attempts failed, using guaranteed separation")
+        num_existing = len(same_area_edges)
+        angle_offset = (num_existing * 90) % 360  # Spread predicates by 90 degrees for better separation
+        angle_rad = math.radians(angle_offset)
+        distance = 90  # Increased guaranteed minimum distance
+        
+        pred_x = vertex_x + distance * math.cos(angle_rad)
+        pred_y = vertex_y + distance * math.sin(angle_rad)
+        
+        # Clamp to bounds
+        pred_x = max(x1 + 10, min(x2 - 10, pred_x))
+        pred_y = max(y1 + 10, min(y2 - 10, pred_y))
+        
+        return (pred_x, pred_y)
     
     def _is_line_collision_free(self, start: Coordinate, end: Coordinate,
                                existing_edges: Dict[ElementID, SpatialPrimitive],

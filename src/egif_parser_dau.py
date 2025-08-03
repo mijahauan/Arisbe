@@ -361,7 +361,7 @@ class EGIFParser:
             
             self.defining_labels.add(var_name)
             vertex = create_vertex(label=None, is_generic=True)
-            self.graph = self.graph.with_vertex(vertex)
+            self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.variable_map[var_name] = vertex.id
             self._advance()
             return vertex.id
@@ -387,7 +387,7 @@ class EGIFParser:
             else:
                 # Create new vertex for this constant
                 vertex = create_vertex(label=constant_value, is_generic=False)
-                self.graph = self.graph.with_vertex(vertex)
+                self.graph = self.graph.with_vertex_in_context(vertex, context_id)
                 self.constant_vertices[constant_value] = vertex.id
                 self._advance()
                 return vertex.id
@@ -428,7 +428,7 @@ class EGIFParser:
             
             self.defining_labels.add(var_name)
             vertex = create_vertex(label=None, is_generic=True)
-            self.graph = self.graph.with_vertex(vertex)
+            self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.variable_map[var_name] = vertex.id
             scroll_vars.append(vertex.id)
             self._advance()
