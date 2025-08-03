@@ -104,7 +104,7 @@ class ElementRenderer:
             self._render_debug_info(layout_element, position)
     
     def render_edge(self, layout_element: LayoutElement, edge: Edge,
-                   context: RenderingContext) -> None:
+                   context: RenderingContext, graph: 'RelationalGraphWithCuts' = None) -> None:
         """Render an edge as relation with proper attachment following Dau's conventions"""
         
         # Determine style
@@ -112,7 +112,7 @@ class ElementRenderer:
         if layout_element.element_id in context.selected_elements:
             style = self.styles['relation_selected']
         
-        # Render connection lines between vertices
+        # Render connection lines between vertices (for multi-ary predicates)
         if layout_element.curve_points and len(layout_element.curve_points) >= 2:
             points = layout_element.curve_points
             
@@ -121,14 +121,21 @@ class ElementRenderer:
                 self.canvas.draw_line(points[i], points[i + 1], self.styles['identity_line'])
         
         # Render relation name with hooks to attachment points
-        if hasattr(edge, 'relation') and edge.relation:
-            center = layout_element.position
-            relation_style = self.styles['relation_sign']
-            self.canvas.draw_text(edge.relation, center, relation_style)
-            
-            # Render hooks to attachment points (Dau convention)
-            if layout_element.attachment_points:
-                self._render_predicate_hooks(center, layout_element.attachment_points)
+        # Use graph.rel mapping to get relation name (Dau's 7th component)
+        center = layout_element.position
+        relation_style = self.styles['relation_sign']
+        
+        if graph and edge.id in graph.rel:
+            # Get actual relation name from graph.rel mapping
+            relation_name = graph.rel[edge.id]
+            self.canvas.draw_text(relation_name, center, relation_style)
+        else:
+            # Fallback for debugging
+            self.canvas.draw_text("[RELATION]", center, relation_style)
+        
+        # Render hooks to attachment points (Dau convention)
+        if layout_element.attachment_points:
+            self._render_predicate_hooks(center, layout_element.attachment_points)
         
         # Selection handles
         if (layout_element.element_id in context.selected_elements and 
@@ -390,7 +397,7 @@ class DiagramRenderer:
         for edge in graph.E:
             if edge.id in layout_result.elements:
                 layout_element = layout_result.elements[edge.id]
-                self.element_renderer.render_edge(layout_element, edge, context)
+                self.element_renderer.render_edge(layout_element, edge, context, graph)
     
     def _render_selection_overlays(self, layout_result: LayoutResult, 
                                   context: RenderingContext) -> None:

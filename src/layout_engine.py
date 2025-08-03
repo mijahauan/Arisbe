@@ -103,10 +103,15 @@ class LayoutEngine:
         
         # Dau convention parameters
         self.vertex_radius = 5.0
-        self.min_vertex_distance = 40.0
-        self.cut_padding = 30.0
+        self.min_vertex_distance = 70.0  # Increased for clear separation
+        self.cut_padding = 50.0  # Increased for clear boundaries
         self.line_thickness = 3.0  # Heavy lines for identity
         self.cut_line_thickness = 1.0  # Fine lines for cuts
+        
+        # Significantly increased spacing for clear selection and manipulation
+        self.predicate_offset_distance = 80.0  # Distance from vertex to predicate
+        self.predicate_spacing = 60.0  # Spacing between multiple predicates
+        self.min_element_separation = 50.0  # Minimum distance between any elements
         
         # Layout quality parameters
         self.preferred_aspect_ratio = 1.2
@@ -275,37 +280,256 @@ class LayoutEngine:
         """Layout edges as relations with proper attachment points following Dau's conventions"""
         edge_layouts = {}
         
+        # Group edges by their incident vertices to handle multiple predicates per vertex
+        vertex_edge_groups = {}
+        for edge in graph.E:
+            vertex_ids = graph.nu.get(edge.id, [])
+            if len(vertex_ids) == 1:
+                # Unary predicate
+                vertex_id = vertex_ids[0]
+                if vertex_id not in vertex_edge_groups:
+                    vertex_edge_groups[vertex_id] = []
+                vertex_edge_groups[vertex_id].append(edge)
+        
         for edge in graph.E:
             # Get vertex positions for this edge
             vertex_positions = []
-            for vertex_id in graph.nu.get(edge.id, []):
+            vertex_ids = graph.nu.get(edge.id, [])
+            for vertex_id in vertex_ids:
                 if vertex_id in all_layouts:
                     vertex_positions.append(all_layouts[vertex_id].position)
             
-            if len(vertex_positions) < 2:
-                continue  # Skip edges without proper connections
+            if len(vertex_positions) < 1:
+                continue  # Skip edges without any vertex connections
             
-            # Calculate edge bounds and attachment points
-            min_x = min(pos[0] for pos in vertex_positions) - 20
-            max_x = max(pos[0] for pos in vertex_positions) + 20
-            min_y = min(pos[1] for pos in vertex_positions) - 20
-            max_y = max(pos[1] for pos in vertex_positions) + 20
-            
-            # Create attachment points for predicate hooks
-            attachment_points = {}
-            for i, pos in enumerate(vertex_positions):
-                attachment_points[f"vertex_{i}"] = pos
-            
-            edge_layouts[edge.id] = LayoutElement(
-                element_id=edge.id,
-                element_type='edge',
-                position=((min_x + max_x) / 2, (min_y + max_y) / 2),
-                bounds=(min_x, min_y, max_x, max_y),
-                attachment_points=attachment_points,
-                curve_points=vertex_positions  # Line segments connecting vertices
-            )
+            if len(vertex_positions) == 1:
+                # Unary predicate - position with proper offset to avoid overlap
+                vertex_pos = vertex_positions[0]
+                vertex_id = vertex_ids[0]
+                
+                # CRITICAL FIX: Find which area contains this edge
+                edge_containing_area = self._find_parent_area(edge.id, graph)
+                
+                # Get available space within the edge's containing area
+                if edge_containing_area and edge_containing_area in all_layouts:
+                    container_bounds = all_layouts[edge_containing_area].bounds
+                    # Inset from container bounds
+                    x1, y1, x2, y2 = container_bounds
+                    available_bounds = (
+                        x1 + self.cut_padding,
+                        y1 + self.cut_padding,
+                        x2 - self.cut_padding,
+                        y2 - self.cut_padding
+                    )
+                else:
+                    # Sheet level - use full canvas
+                    available_bounds = (
+                        self.margin,
+                        self.margin,
+                        self.canvas_width - self.margin,
+                        self.canvas_height - self.margin
+                    )
+                
+                # Calculate predicate position within the correct area
+                predicate_index = vertex_edge_groups[vertex_id].index(edge)
+                predicate_position = self._calculate_predicate_position_in_area(
+                    vertex_pos, predicate_index, len(vertex_edge_groups[vertex_id]), 
+                    available_bounds, all_layouts
+                )
+                
+                # Create bounds around predicate position (not vertex)
+                pred_x, pred_y = predicate_position
+                min_x, max_x = pred_x - 40, pred_x + 40  # Wider for text and selection
+                min_y, max_y = pred_y - 15, pred_y + 15  # Taller for text and selection
+                
+                # Create attachment points for hooks
+                attachment_points = {"vertex_0": vertex_pos}
+                
+                edge_layouts[edge.id] = LayoutElement(
+                    element_id=edge.id,
+                    element_type='edge',
+                    position=predicate_position,
+                    bounds=(min_x, min_y, max_x, max_y),
+                    parent_area=edge_containing_area,  # CRITICAL: Set correct parent area
+                    attachment_points=attachment_points,
+                    curve_points=[vertex_pos]  # For hook rendering
+                )
+            else:
+                # Multi-ary predicate - position between vertices within correct area
+                # CRITICAL FIX: Find which area contains this edge
+                edge_containing_area = self._find_parent_area(edge.id, graph)
+                
+                # Get available space within the edge's containing area
+                if edge_containing_area and edge_containing_area in all_layouts:
+                    container_bounds = all_layouts[edge_containing_area].bounds
+                    # Inset from container bounds
+                    x1, y1, x2, y2 = container_bounds
+                    available_bounds = (
+                        x1 + self.cut_padding,
+                        y1 + self.cut_padding,
+                        x2 - self.cut_padding,
+                        y2 - self.cut_padding
+                    )
+                else:
+                    # Sheet level - use full canvas
+                    available_bounds = (
+                        self.margin,
+                        self.margin,
+                        self.canvas_width - self.margin,
+                        self.canvas_height - self.margin
+                    )
+                
+                # Calculate center position between vertices
+                center_x = sum(pos[0] for pos in vertex_positions) / len(vertex_positions)
+                center_y = sum(pos[1] for pos in vertex_positions) / len(vertex_positions)
+                
+                # Offset slightly to avoid overlap with vertices, within area bounds
+                x1, y1, x2, y2 = available_bounds
+                offset_x = max(x1 + 50, min(x2 - 50, center_x))
+                offset_y = max(y1 + 20, min(y2 - 20, center_y - self.predicate_offset_distance / 2))
+                
+                # Create bounds around predicate position
+                min_x = offset_x - 40
+                max_x = offset_x + 40
+                min_y = offset_y - 15
+                max_y = offset_y + 15
+                
+                # Create attachment points for hooks
+                attachment_points = {}
+                for i, pos in enumerate(vertex_positions):
+                    attachment_points[f"vertex_{i}"] = pos
+                
+                edge_layouts[edge.id] = LayoutElement(
+                    element_id=edge.id,
+                    element_type='edge',
+                    position=(offset_x, offset_y),
+                    bounds=(min_x, min_y, max_x, max_y),
+                    parent_area=edge_containing_area,  # CRITICAL: Set correct parent area
+                    attachment_points=attachment_points,
+                    curve_points=vertex_positions  # Line segments connecting vertices
+                )
         
         return edge_layouts
+    
+    def _calculate_predicate_position(self, vertex_pos: Coordinate, predicate_index: int, 
+                                     total_predicates: int, all_layouts: Dict[ElementID, LayoutElement]) -> Coordinate:
+        """Calculate optimal position for a predicate to avoid overlap with vertex and other elements"""
+        vertex_x, vertex_y = vertex_pos
+        
+        if total_predicates == 1:
+            # Single predicate - position to the right of vertex
+            pred_x = vertex_x + self.predicate_offset_distance
+            pred_y = vertex_y
+        else:
+            # Multiple predicates - arrange in a fan pattern around vertex
+            angle_step = 2 * 3.14159 / total_predicates  # Distribute around circle
+            angle = predicate_index * angle_step
+            
+            # Position at offset distance from vertex
+            import math
+            pred_x = vertex_x + self.predicate_offset_distance * math.cos(angle)
+            pred_y = vertex_y + self.predicate_offset_distance * math.sin(angle)
+        
+        # Check for collisions with existing elements and adjust if necessary
+        pred_x, pred_y = self._avoid_element_collisions(
+            (pred_x, pred_y), all_layouts, exclude_types={'vertex'}
+        )
+        
+        return (pred_x, pred_y)
+    
+    def _calculate_predicate_position_in_area(self, vertex_pos: Coordinate, predicate_index: int,
+                                             total_predicates: int, available_bounds: Bounds,
+                                             all_layouts: Dict[ElementID, LayoutElement]) -> Coordinate:
+        """Calculate predicate position within a specific area (cut or sheet)"""
+        vertex_x, vertex_y = vertex_pos
+        x1, y1, x2, y2 = available_bounds
+        
+        # Ensure vertex is within available bounds (it should be if area containment is correct)
+        if not (x1 <= vertex_x <= x2 and y1 <= vertex_y <= y2):
+            # Vertex is outside the area - this indicates a structural problem
+            # For now, clamp vertex to area bounds
+            vertex_x = max(x1, min(x2, vertex_x))
+            vertex_y = max(y1, min(y2, vertex_y))
+        
+        if total_predicates == 1:
+            # Single predicate - position to the right of vertex, within bounds
+            pred_x = min(vertex_x + self.predicate_offset_distance, x2 - 50)
+            pred_y = vertex_y
+            
+            # Ensure predicate is within area bounds
+            pred_x = max(x1 + 50, min(x2 - 50, pred_x))
+            pred_y = max(y1 + 20, min(y2 - 20, pred_y))
+        else:
+            # Multiple predicates - arrange in a fan pattern around vertex, within bounds
+            angle_step = 2 * 3.14159 / total_predicates
+            angle = predicate_index * angle_step
+            
+            # Calculate initial position
+            import math
+            offset_x = self.predicate_offset_distance * math.cos(angle)
+            offset_y = self.predicate_offset_distance * math.sin(angle)
+            
+            pred_x = vertex_x + offset_x
+            pred_y = vertex_y + offset_y
+            
+            # Clamp to area bounds
+            pred_x = max(x1 + 50, min(x2 - 50, pred_x))
+            pred_y = max(y1 + 20, min(y2 - 20, pred_y))
+        
+        # Check for collisions and adjust if necessary
+        pred_x, pred_y = self._avoid_element_collisions(
+            (pred_x, pred_y), all_layouts, exclude_types={'vertex'}
+        )
+        
+        # Final bounds check after collision avoidance
+        pred_x = max(x1 + 50, min(x2 - 50, pred_x))
+        pred_y = max(y1 + 20, min(y2 - 20, pred_y))
+        
+        return (pred_x, pred_y)
+    
+    def _avoid_element_collisions(self, position: Coordinate, 
+                                 all_layouts: Dict[ElementID, LayoutElement],
+                                 exclude_types: set = None) -> Coordinate:
+        """Adjust position to avoid collisions with existing elements"""
+        if exclude_types is None:
+            exclude_types = set()
+        
+        x, y = position
+        max_attempts = 20
+        attempt = 0
+        
+        while attempt < max_attempts:
+            collision = False
+            
+            # Check for collisions with existing elements
+            for element in all_layouts.values():
+                if element.element_type in exclude_types:
+                    continue
+                    
+                # Calculate distance to element center
+                elem_x, elem_y = element.position
+                distance = ((x - elem_x) ** 2 + (y - elem_y) ** 2) ** 0.5
+                
+                if distance < self.min_element_separation:
+                    collision = True
+                    # Move away from collision
+                    if distance > 0:
+                        # Move in opposite direction
+                        move_x = (x - elem_x) / distance * self.min_element_separation
+                        move_y = (y - elem_y) / distance * self.min_element_separation
+                        x = elem_x + move_x
+                        y = elem_y + move_y
+                    else:
+                        # Same position - move arbitrarily
+                        x += self.min_element_separation
+                    break
+            
+            if not collision:
+                break
+                
+            attempt += 1
+        
+        return (x, y)
     
     # Helper methods for spatial calculations
     

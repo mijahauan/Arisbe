@@ -285,6 +285,7 @@ class EGIFParser:
         self.graph = create_empty_graph()
         self.variable_map = {}
         self.defining_labels = set()
+        self.constant_vertices = {}  # Track vertices for constants to avoid duplicates
         
         # Parse
         self._parse_eg()
@@ -374,12 +375,22 @@ class EGIFParser:
             return self.variable_map[var_name]
             
         elif token.type == TokenType.CONSTANT:
-            # Constant "Socrates"
+            # Constant "Socrates" - reuse existing vertex if already created
             constant_value = token.value[1:-1]  # Remove quotes
-            vertex = create_vertex(label=constant_value, is_generic=False)
-            self.graph = self.graph.with_vertex(vertex)
-            self._advance()
-            return vertex.id
+            
+            # Check if we already have a vertex for this constant
+            if constant_value in self.constant_vertices:
+                # Reuse existing vertex
+                vertex_id = self.constant_vertices[constant_value]
+                self._advance()
+                return vertex_id
+            else:
+                # Create new vertex for this constant
+                vertex = create_vertex(label=constant_value, is_generic=False)
+                self.graph = self.graph.with_vertex(vertex)
+                self.constant_vertices[constant_value] = vertex.id
+                self._advance()
+                return vertex.id
             
         else:
             raise ValueError(f"Invalid argument token: {token.type}")
