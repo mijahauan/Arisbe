@@ -361,6 +361,8 @@ class EGIFParser:
             
             self.defining_labels.add(var_name)
             vertex = create_vertex(label=None, is_generic=True)
+            
+            # Defining variables are assigned to the context where they are first defined
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.variable_map[var_name] = vertex.id
             self._advance()
