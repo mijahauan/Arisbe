@@ -96,6 +96,9 @@ class ContentDrivenLayoutEngine:
         4. Position sheet-level elements outside all cuts
         """
         
+        # Store graph reference for exclusive area allocation
+        self._current_graph = graph
+        
         # Step 1: Build containment hierarchy from graph structure
         hierarchy_levels = self._build_containment_hierarchy_from_graph(graph)
         
@@ -147,15 +150,23 @@ class ContentDrivenLayoutEngine:
                 z_index=self.z_vertices
             )
         
-        # Position cut-contained vertices with proper spacing and nesting
+        # Position cut-contained vertices with proper hierarchical spacing
         cut_areas = [area_id for area_id in vertices_by_area.keys() if not area_id.startswith('sheet_')]
         
-        for i, area_id in enumerate(cut_areas):
+        # Allocate exclusive areas for sibling cuts to ensure no overlaps
+        cut_area_allocations = self._allocate_exclusive_cut_areas(graph, cut_areas)
+        
+        for area_id in cut_areas:
+            if area_id not in vertices_by_area or area_id not in cut_area_allocations:
+                continue
+                
             vertices = vertices_by_area[area_id]
+            allocated_bounds = cut_area_allocations[area_id]
             
-            # Position vertices for this cut area with proper spacing
-            base_x = 400 + (i * 200)  # Spread cut areas horizontally
-            base_y = 300 + (i * 100)  # Slight vertical offset for nesting
+            # Position vertices within the allocated exclusive area for this cut
+            area_x, area_y, area_width, area_height = allocated_bounds
+            base_x = area_x + area_width * 0.3  # Position content within allocated area
+            base_y = area_y + area_height * 0.5  # Center vertically in allocated area
             
             for j, vertex in enumerate(vertices):
                 # Position vertices within the cut area
@@ -176,6 +187,135 @@ class ContentDrivenLayoutEngine:
                 )
         
         return vertex_primitives
+    
+    def _build_cut_containment_hierarchy(self, graph: RelationalGraphWithCuts, cut_areas: List[ElementID]) -> List[List[ElementID]]:
+        """Build hierarchical levels of cuts based on their containment relationships."""
+        if not cut_areas:
+            return []
+        
+        # Build containment relationships from graph.area mapping
+        contains = {}  # parent_cut -> [child_cuts]
+        contained_by = {}  # child_cut -> parent_cut
+        
+        for cut_area in cut_areas:
+            contains[cut_area] = []
+            
+            # Find what this cut contains by looking at graph.area
+            if cut_area in graph.area:
+                contained_elements = graph.area[cut_area]
+                for elem_id in contained_elements:
+                    # Check if this element is another cut
+                    if elem_id in cut_areas:
+                        contains[cut_area].append(elem_id)
+                        contained_by[elem_id] = cut_area
+        
+        # Build levels from innermost (no children) to outermost (not contained by others)
+        levels = []
+        remaining_cuts = set(cut_areas)
+        
+        while remaining_cuts:
+            # Find cuts at current level (innermost remaining cuts - no children remaining)
+            current_level = []
+            for cut_id in list(remaining_cuts):
+                children = contains.get(cut_id, [])
+                # A cut is at current level if none of its children are still remaining
+                if all(child not in remaining_cuts for child in children):
+                    current_level.append(cut_id)
+            
+            if not current_level:
+                # Fallback: take all remaining cuts
+                current_level = list(remaining_cuts)
+            
+            levels.append(current_level)
+            remaining_cuts -= set(current_level)
+        
+        return levels
+    
+    def _allocate_exclusive_cut_areas(self, graph: RelationalGraphWithCuts, cut_areas: List[ElementID]) -> Dict[ElementID, Tuple[float, float, float, float]]:
+        """Allocate exclusive, non-overlapping areas for cuts to ensure proper EG logic.
+        
+        Returns: Dict mapping cut_id -> (x, y, width, height) of allocated area
+        """
+        if not cut_areas:
+            return {}
+        
+        # Build containment hierarchy
+        cut_hierarchy = self._build_cut_containment_hierarchy(graph, cut_areas)
+        
+        # Build parent-child relationships
+        parent_of = {}  # child_cut -> parent_cut
+        children_of = {}  # parent_cut -> [child_cuts]
+        
+        for cut_area in cut_areas:
+            children_of[cut_area] = []
+            if cut_area in graph.area:
+                for elem_id in graph.area[cut_area]:
+                    if elem_id in cut_areas:  # This element is another cut
+                        parent_of[elem_id] = cut_area
+                        children_of[cut_area].append(elem_id)
+        
+        # Allocate areas starting from outermost cuts
+        allocations = {}
+        
+        # Start with sheet-level cuts (outermost)
+        sheet_level_cuts = [cut_id for cut_id in cut_areas if cut_id not in parent_of]
+        
+        # Allocate sheet-level cuts side-by-side
+        canvas_start_x = 100
+        canvas_start_y = 100
+        cut_width = 200
+        cut_height = 150
+        spacing = 50
+        
+        for i, cut_id in enumerate(sheet_level_cuts):
+            x = canvas_start_x + i * (cut_width + spacing)
+            y = canvas_start_y
+            allocations[cut_id] = (x, y, cut_width, cut_height)
+        
+        # Recursively allocate areas for nested cuts
+        def allocate_children(parent_cut_id):
+            if parent_cut_id not in allocations:
+                return
+            
+            parent_x, parent_y, parent_width, parent_height = allocations[parent_cut_id]
+            children = children_of.get(parent_cut_id, [])
+            
+            if not children:
+                return
+            
+            # Allocate exclusive areas within parent for sibling cuts
+            child_padding = 30
+            available_width = parent_width - 2 * child_padding
+            available_height = parent_height - 2 * child_padding
+            
+            if len(children) == 1:
+                # Single child gets most of the parent area
+                child_width = available_width * 0.8
+                child_height = available_height * 0.8
+                child_x = parent_x + child_padding + (available_width - child_width) / 2
+                child_y = parent_y + child_padding + (available_height - child_height) / 2
+                allocations[children[0]] = (child_x, child_y, child_width, child_height)
+            else:
+                # Multiple siblings: divide area horizontally with exclusive regions
+                child_width = available_width / len(children)
+                child_height = available_height * 0.8
+                
+                for i, child_id in enumerate(children):
+                    child_x = parent_x + child_padding + i * child_width
+                    child_y = parent_y + child_padding + (available_height - child_height) / 2
+                    # Ensure no overlap by slightly reducing width if needed
+                    actual_width = child_width * 0.9  # 10% margin between siblings
+                    allocations[child_id] = (child_x, child_y, actual_width, child_height)
+            
+            # Recursively allocate for grandchildren
+            for child_id in children:
+                allocate_children(child_id)
+        
+        # Allocate areas for all nested cuts
+        for cut_id in sheet_level_cuts:
+            allocate_children(cut_id)
+        
+        return allocations
     
     def _position_edges_optimally(self, graph: RelationalGraphWithCuts, 
                                  vertex_primitives: Dict[ElementID, SpatialPrimitive]) -> Dict[ElementID, SpatialPrimitive]:
@@ -350,59 +490,54 @@ class ContentDrivenLayoutEngine:
         return content_groups
     
     def _size_cuts_to_content(self, content_groups: Dict[ElementID, ContentGroup]) -> Dict[ElementID, SpatialPrimitive]:
-        """Size cuts with strict hierarchical, non-overlapping containment."""
+        """Size cuts using pre-allocated exclusive areas to ensure no overlaps."""
         cut_primitives = {}
         
-        # Build cut hierarchy to handle nesting properly
-        cut_hierarchy = self._build_cut_hierarchy(content_groups)
+        # Get the graph from the content groups (we need it for area allocation)
+        # This is a bit of a hack, but we need access to the graph structure
+        sample_group = next(iter(content_groups.values()))
+        if hasattr(self, '_current_graph'):
+            graph = self._current_graph
+        else:
+            # Fallback: we'll need to pass the graph differently
+            # For now, use the old method as fallback
+            return self._size_cuts_to_content_old(content_groups)
         
-        # Process cuts from innermost to outermost to ensure proper nesting
-        processed_cuts = set()
+        # Get cut areas
+        cut_areas = [area_id for area_id in content_groups.keys() if not area_id.startswith('sheet_')]
         
-        def process_cut_level(cuts_at_level):
-            for area_id in cuts_at_level:
-                if area_id in processed_cuts or area_id.startswith('sheet_'):
-                    continue
-                
-                group = content_groups[area_id]
-                
-                # Calculate content bounds including any child cuts already processed
-                content_bounds = self._calculate_hierarchical_bounds(group, cut_primitives)
-                x1, y1, x2, y2 = content_bounds
-                
-                # Add padding around content
-                cut_x1 = x1 - self.cut_padding
-                cut_y1 = y1 - self.cut_padding
-                cut_x2 = x2 + self.cut_padding
-                cut_y2 = y2 + self.cut_padding
-                
-                # Ensure this cut doesn't overlap with sibling cuts
-                cut_bounds = self._ensure_non_overlapping_bounds(
-                    (cut_x1, cut_y1, cut_x2, cut_y2), cut_primitives, area_id
-                )
-                
-                # Cut center and final bounds
-                cut_x1, cut_y1, cut_x2, cut_y2 = cut_bounds
-                center_x = (cut_x1 + cut_x2) / 2
-                center_y = (cut_y1 + cut_y2) / 2
-                
-                # Generate curve points for cut boundary
-                curve_points = self._generate_cut_curve(cut_bounds)
-                
-                cut_primitives[area_id] = SpatialPrimitive(
-                    element_id=area_id,
-                    element_type='cut',
-                    position=(center_x, center_y),
-                    bounds=cut_bounds,
-                    z_index=self.z_cuts,
-                    curve_points=curve_points
-                )
-                
-                processed_cuts.add(area_id)
+        # Allocate exclusive areas for all cuts
+        area_allocations = self._allocate_exclusive_cut_areas(graph, cut_areas)
         
-        # Process cuts level by level (innermost first)
-        for level in reversed(range(len(cut_hierarchy))):
-            process_cut_level(cut_hierarchy[level])
+        # Create cut primitives using the allocated exclusive areas
+        for area_id in cut_areas:
+            if area_id not in area_allocations:
+                continue
+                
+            # Use the pre-allocated exclusive area directly
+            alloc_x, alloc_y, alloc_width, alloc_height = area_allocations[area_id]
+            
+            # Convert allocation to bounds
+            cut_x1 = alloc_x
+            cut_y1 = alloc_y
+            cut_x2 = alloc_x + alloc_width
+            cut_y2 = alloc_y + alloc_height
+            
+            cut_bounds = (cut_x1, cut_y1, cut_x2, cut_y2)
+            center_x = (cut_x1 + cut_x2) / 2
+            center_y = (cut_y1 + cut_y2) / 2
+            
+            # Generate curve points for cut boundary
+            curve_points = self._generate_cut_curve(cut_bounds)
+            
+            cut_primitives[area_id] = SpatialPrimitive(
+                element_id=area_id,
+                element_type='cut',
+                position=(center_x, center_y),
+                bounds=cut_bounds,
+                z_index=self.z_cuts,
+                curve_points=curve_points
+            )
         
         return cut_primitives
     
@@ -485,24 +620,40 @@ class ContentDrivenLayoutEngine:
     def _ensure_non_overlapping_bounds(self, proposed_bounds: Bounds, 
                                       existing_cuts: Dict[ElementID, SpatialPrimitive],
                                       current_area_id: ElementID) -> Bounds:
-        """Ensure cut bounds don't overlap with sibling cuts."""
+        """Ensure cut bounds don't overlap with sibling cuts using improved positioning."""
         x1, y1, x2, y2 = proposed_bounds
+        width = x2 - x1
+        height = y2 - y1
         
-        # Check for overlaps with existing cuts
+        # Find all existing cuts that could potentially overlap
+        overlapping_cuts = []
         for area_id, cut_primitive in existing_cuts.items():
             if area_id == current_area_id:
                 continue
-                
+            
             ex1, ey1, ex2, ey2 = cut_primitive.bounds
             
-            # Check if bounds overlap
+            # Check if bounds would overlap
             if not (x2 < ex1 or x1 > ex2 or y2 < ey1 or y1 > ey2):
-                # Overlap detected - shift this cut to avoid overlap
-                shift_x = max(0, ex2 - x1 + self.cut_padding)
-                x1 += shift_x
-                x2 += shift_x
+                overlapping_cuts.append((area_id, cut_primitive))
         
-        return (x1, y1, x2, y2)
+        # If no overlaps, return original bounds
+        if not overlapping_cuts:
+            return (x1, y1, x2, y2)
+        
+        # Strategy: Position sibling cuts side-by-side with adequate spacing
+        # Calculate how many cuts we need to position (including this one)
+        num_cuts = len(overlapping_cuts) + 1
+        
+        # Find the rightmost position of existing cuts
+        max_right = max(cut_prim.bounds[2] for _, cut_prim in overlapping_cuts)
+        
+        # Position this cut to the right of all existing cuts with padding
+        new_x1 = max_right + self.cut_padding * 2  # Extra spacing between sibling cuts
+        new_x2 = new_x1 + width
+        
+        # Keep the same vertical position
+        return (new_x1, y1, new_x2, y2)
     
     def _generate_cut_curve(self, bounds: Bounds) -> List[Coordinate]:
         """Generate curve points for cut boundary (Dau's circular convention)."""

@@ -22,7 +22,6 @@ import json
 # Core EG components
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from egif_parser_dau import EGIFParser
-from layout_engine_clean import CleanLayoutEngine
 from content_driven_layout import ContentDrivenLayoutEngine
 from diagram_renderer_clean import CleanDiagramRenderer
 from tkinter_backend import TkinterCanvas
@@ -31,6 +30,7 @@ from tkinter_backend import TkinterCanvas
 from eg_transformation_rules import EGTransformationEngine, TransformationRule
 from background_validation_system import create_validation_system, ValidationLevel
 from corpus_loader import CorpusLoader
+from warmup_mode_controller import WarmupModeController, InteractionMode
 
 class IntegratedEGEditor:
     """
@@ -69,11 +69,14 @@ class IntegratedEGEditor:
         self.status_var = tk.StringVar(value="Ready")
         self.validation_text: Optional[tk.Text] = None
         
+        # Warmup mode controller
+        self.warmup_controller: Optional[WarmupModeController] = None
+        
         # Create UI
         self._create_ui()
         
-        # Load example
-        self._load_example()
+        # Load example after UI is fully initialized
+        self.root.after(100, self._load_example)  # Delay to ensure UI is ready
     
     def _create_ui(self):
         """Create the main application UI with hierarchical tabs."""
@@ -294,15 +297,38 @@ class IntegratedEGEditor:
         self.selection_listbox = tk.Listbox(selection_frame, height=3)
         self.selection_listbox.pack(fill=tk.X)
         
+        # Interaction Modes (Enhanced Warmup)
+        modes_frame = ttk.LabelFrame(parent, text="Interaction Mode", padding=10)
+        modes_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        # Mode selection buttons
+        mode_buttons = [
+            ("Select", lambda: self._set_interaction_mode(InteractionMode.SELECT)),
+            ("Add Predicate", lambda: self._set_interaction_mode(InteractionMode.ADD_PREDICATE)),
+            ("Add Vertex", lambda: self._set_interaction_mode(InteractionMode.ADD_VERTEX)),
+            ("Add Cut", lambda: self._set_interaction_mode(InteractionMode.ADD_CUT))
+        ]
+        
+        # Create mode buttons in a grid
+        for i, (text, command) in enumerate(mode_buttons):
+            row = i // 2
+            col = i % 2
+            btn = ttk.Button(modes_frame, text=text, command=command)
+            btn.grid(row=row, column=col, padx=2, pady=2, sticky="ew")
+        
+        # Configure grid weights
+        modes_frame.columnconfigure(0, weight=1)
+        modes_frame.columnconfigure(1, weight=1)
+        
         # Quick actions
         actions_frame = ttk.LabelFrame(parent, text="Quick Actions", padding=10)
         actions_frame.pack(fill=tk.X, pady=(0, 10))
         
         actions = [
-            ("Add Predicate", self._add_predicate),
-            ("Add Line of Identity", self._add_loi),
-            ("Add Cut", self._add_cut),
-            ("Delete Selected", self._delete_selected)
+            ("Select All", self._select_all),
+            ("Clear Selection", self._clear_selection),
+            ("Delete Selected", self._delete_selected),
+            ("Validate Syntax", self._validate_syntax)
         ]
         
         for text, command in actions:
@@ -332,24 +358,60 @@ class IntegratedEGEditor:
         # Create renderer
         self.renderer = CleanDiagramRenderer(self.canvas)
         
-        # Bind canvas events
-        self.canvas.tk_canvas.bind("<Button-1>", self._on_canvas_click)
-        self.canvas.tk_canvas.bind("<B1-Motion>", self._on_canvas_drag)
-        self.canvas.tk_canvas.bind("<ButtonRelease-1>", self._on_canvas_release)
-        self.canvas.tk_canvas.bind("<Control-Button-1>", self._on_canvas_ctrl_click)
-    
+        # Initialize warmup mode controller
+        self.warmup_controller = WarmupModeController(self.canvas, self.layout_engine)
+        
+        # Connect warmup controller callbacks
+        self.warmup_controller.on_graph_changed = self._on_warmup_graph_changed
+        self.warmup_controller.on_selection_changed = self._on_warmup_selection_changed
+        self.warmup_controller.on_status_update = self._update_status
+
+    def _load_example(self):
+        """Load a default example from the corpus."""
+        try:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            example_path = os.path.join(base_dir, "..", "corpus", "corpus", "alpha", "conjunction_pear_orange.egrf")
+            
+            if os.path.exists(example_path):
+                with open(example_path, 'r') as f:
+                    egif_content = f.read().strip()
+                
+                parser = EGIFParser(egif_content)
+                graph = parser.parse()
+                self._set_current_graph(graph, source_file=example_path)
+                
+                self.egif_text.delete(1.0, tk.END)
+                self.egif_text.insert(1.0, egif_content)
+                self._update_status("Loaded default example: conjunction_pear_orange.egrf")
+            else:
+                from egi_core_dau import create_empty_graph
+                self._set_current_graph(create_empty_graph())
+                self._update_status("Default example not found. Started with an empty sheet.")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load example: {str(e)}")
+            from egi_core_dau import create_empty_graph
+            self._set_current_graph(create_empty_graph())
+            self._update_status("Error loading example. Started with an empty sheet.")
+
+    # Warmup Controller Callbacks
+    def _on_warmup_graph_changed(self, new_graph: RelationalGraphWithCuts):
+        """Callback when the graph is changed within the Warmup controller."""
+        self._save_state() # Save previous state for undo
+        self.current_graph = new_graph
+        self._update_display()
+
+    def _on_warmup_selection_changed(self, selection: Set[ElementID]):
+        """Callback when the selection is changed within the Warmup controller."""
+        self.selected_elements = selection
+        self._update_selection_display()
+
     # File operations
     def _new_file(self):
         """Create new empty graph."""
-        
         if self._check_unsaved_changes():
             from egi_core_dau import create_empty_graph
-            self.current_graph = create_empty_graph()
-            self.current_file = None
-            self.selected_elements.clear()
-            self._clear_undo_redo()
-            self._update_display()
-            self._update_status("New file created")
+            self._set_current_graph(create_empty_graph())
     
     def _open_file(self):
         """Open EGIF file."""
@@ -368,16 +430,12 @@ class IntegratedEGEditor:
                     egif_content = f.read().strip()
                 
                 parser = EGIFParser(egif_content)
-                self.current_graph = parser.parse()
-                self.current_file = filename
-                self.selected_elements.clear()
-                self._clear_undo_redo()
+                graph = parser.parse()
+                self._set_current_graph(graph, source_file=filename)
                 
                 # Update EGIF text
                 self.egif_text.delete(1.0, tk.END)
                 self.egif_text.insert(1.0, egif_content)
-                
-                self._update_display()
                 self._update_status(f"Opened: {os.path.basename(filename)}")
                 
             except Exception as e:
@@ -449,24 +507,21 @@ class IntegratedEGEditor:
     def _parse_egif(self):
         """Parse EGIF from text input."""
         
-        egif_content = self.egif_text.get(1.0, tk.END).strip()
-        if not egif_content:
-            messagebox.showwarning("Warning", "No EGIF content to parse")
+        egif_text = self.egif_text.get(1.0, tk.END).strip()
+        if not egif_text:
+            messagebox.showwarning("Warning", "Please enter EGIF text")
             return
         
         try:
-            parser = EGIFParser(egif_content)
-            new_graph = parser.parse()
+            parser = EGIFParser(egif_text)
+            graph = parser.parse()
             
-            self._save_state()  # For undo
-            self.current_graph = new_graph
-            self.selected_elements.clear()
-            
-            self._update_display()
+            self._set_current_graph(graph)
             self._update_status("EGIF parsed successfully")
             
         except Exception as e:
-            messagebox.showerror("Parse Error", f"Failed to parse EGIF: {str(e)}")
+            messagebox.showerror("Parse Error", f"Failed to parse EGIF:\n{str(e)}")
+            self._update_status(f"Parse error: {e}")
     
     def _generate_egif(self):
         """Generate EGIF from current graph."""
@@ -510,7 +565,27 @@ class IntegratedEGEditor:
             
         except Exception as e:
             self._update_status(f"Display error: {str(e)}")
-    
+
+    def _set_current_graph(self, graph: RelationalGraphWithCuts, source_file: Optional[str] = None):
+        """Centralized method to update the current graph and all related components."""
+        self.current_graph = graph
+        self.current_file = source_file
+        self.selected_elements.clear()
+
+        # Critical: Pass the graph to the controller
+        if self.warmup_controller:
+            self.warmup_controller.set_graph(graph)
+
+        # Always update display after setting a new graph
+        self._update_display()
+
+        # Don't add the initial load to the undo stack
+        if hasattr(self, 'undo_stack'): # check if initialized
+             self._clear_undo_redo()
+        else:
+            # Fallback to direct rendering if controller not ready (should not happen in normal flow)
+            self._update_display()
+
     def _update_selection_display(self):
         """Update selection listbox."""
         
@@ -803,8 +878,44 @@ class IntegratedEGEditor:
     
     def _update_status(self, message: str):
         """Update status bar."""
-        
         self.status_var.set(message)
+    
+    # Warmup controller callbacks
+    def _on_warmup_graph_changed(self, graph: RelationalGraphWithCuts):
+        """Handle graph changes from warmup controller."""
+        self.current_graph = graph
+        self._update_validation()
+        self._generate_egif()  # Update EGIF display
+    
+    def _on_warmup_selection_changed(self, selected_elements: Set[ElementID]):
+        """Handle selection changes from warmup controller."""
+        self.selected_elements = selected_elements
+        self._update_selection_display()
+    
+    # Enhanced Warmup mode methods
+    def _set_interaction_mode(self, mode: InteractionMode):
+        """Set interaction mode for warmup controller."""
+        if self.warmup_controller:
+            self.warmup_controller.set_mode(mode)
+    
+    def _validate_syntax(self):
+        """Validate current graph syntax and show results."""
+        if not self.current_graph:
+            self._update_status("No graph to validate")
+            return
+        
+        if self.warmup_controller:
+            issues = self.warmup_controller.validate_syntax()
+        else:
+            issues = ["Warmup controller not available"]
+        
+        if not issues:
+            self._update_status("✅ Graph syntax is valid")
+            messagebox.showinfo("Validation", "Graph syntax is valid!")
+        else:
+            self._update_status(f"❌ Found {len(issues)} syntax issues")
+            issue_text = "\n".join(f"• {issue}" for issue in issues)
+            messagebox.showwarning("Syntax Issues", f"Found syntax issues:\n\n{issue_text}")
     
     def _check_graph_integrity(self, graph):
         """Check if graph has structural integrity issues.
@@ -922,21 +1033,38 @@ class IntegratedEGEditor:
     def _load_example(self):
         """Load example graph."""
         
+        print("DEBUG: _load_example() called")
+        
         # Simple example for testing
         egif_text = "(Human \"Socrates\") ~[ (Mortal \"Socrates\") ]"
         
         try:
-            parser = EGIFParser()
-            graph = parser.parse(egif_text)
+            print("DEBUG: Parsing EGIF...")
+            parser = EGIFParser(egif_text)
+            graph = parser.parse()
+            print(f"DEBUG: Graph parsed successfully: {len(graph.V)} vertices, {len(graph.E)} edges, {len(graph.Cut)} cuts")
             
-            self.current_graph = graph
+            # Use warmup controller to set graph
+            if self.warmup_controller:
+                print("DEBUG: Setting graph via warmup controller")
+                self.warmup_controller.set_graph(graph)
+                print("DEBUG: Graph set in warmup controller")
+            else:
+                print("DEBUG: Warmup controller not available, using direct display")
+                self.current_graph = graph
+                self._update_display()
+            
+            print("DEBUG: Updating EGIF text area")
             self.egif_text.delete(1.0, tk.END)
             self.egif_text.insert(1.0, egif_text)
             
-            self._update_display()
             self._update_status("Example loaded successfully")
+            print("DEBUG: _load_example() completed successfully")
             
         except Exception as e:
+            print(f"DEBUG: Error in _load_example(): {e}")
+            import traceback
+            traceback.print_exc()
             self._update_status(f"Error loading example: {e}")
     
     def run(self):

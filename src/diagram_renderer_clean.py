@@ -296,25 +296,42 @@ class TkinterCanvas:
     def __init__(self, tk_canvas):
         self.tk_canvas = tk_canvas
     
-    def draw_line(self, start: Coordinate, end: Coordinate, width: float, color: str) -> None:
+    def draw_line(self, start: Coordinate, end: Coordinate, width: float = 2.0, color: str = "black", style=None) -> None:
         """Draw a line from start to end."""
+        # Handle style parameter if provided
+        if style is not None:
+            color = f"#{style.color[0]:02x}{style.color[1]:02x}{style.color[2]:02x}" if style.color else color
+            width = style.line_width if hasattr(style, 'line_width') else width
+        
         self.tk_canvas.create_line(
             start[0], start[1], end[0], end[1],
             width=width, fill=color
         )
     
-    def draw_circle(self, center: Coordinate, radius: float, fill_color: str, outline_color: str, outline_width: float) -> None:
+    def draw_circle(self, center: Coordinate, radius: float, fill_color: str = None, outline_color: str = None, outline_width: float = 1.0, style=None) -> None:
         """Draw a circle."""
         x, y = center
+        
+        # Handle style parameter if provided
+        if style is not None:
+            fill_color = f"#{style.fill_color[0]:02x}{style.fill_color[1]:02x}{style.fill_color[2]:02x}" if style.fill_color else fill_color
+            outline_color = f"#{style.color[0]:02x}{style.color[1]:02x}{style.color[2]:02x}" if style.color else outline_color
+            outline_width = style.line_width if hasattr(style, 'line_width') else outline_width
+        
         self.tk_canvas.create_oval(
             x - radius, y - radius, x + radius, y + radius,
-            fill=fill_color, outline=outline_color, width=outline_width
+            fill=fill_color or "white", outline=outline_color or "black", width=outline_width
         )
     
-    def draw_curve(self, points: List[Coordinate], width: float, color: str, fill: bool = False) -> None:
+    def draw_curve(self, points: List[Coordinate], width: float = 2.0, color: str = "black", fill: bool = False, style=None, closed: bool = False) -> None:
         """Draw a curve through points."""
         if len(points) < 2:
             return
+        
+        # Handle style parameter if provided
+        if style is not None:
+            color = f"#{style.color[0]:02x}{style.color[1]:02x}{style.color[2]:02x}" if style.color else color
+            width = style.line_width if hasattr(style, 'line_width') else width
         
         # Flatten points for Tkinter
         flat_points = []
@@ -326,11 +343,17 @@ class TkinterCanvas:
         else:
             self.tk_canvas.create_line(flat_points, width=width, fill=color)
     
-    def draw_text(self, position: Coordinate, text: str, font_size: int, color: str) -> None:
+    def draw_text(self, position: Coordinate, text: str, font_size: int = 12, color: str = "black", style=None) -> None:
         """Draw text at position."""
+        x, y = position
+        
+        # Handle style parameter if provided
+        if style is not None:
+            color = f"#{style.color[0]:02x}{style.color[1]:02x}{style.color[2]:02x}" if style.color else color
+            font_size = style.font_size if hasattr(style, 'font_size') else font_size
+        
         self.tk_canvas.create_text(
-            position[0], position[1],
-            text=text, font=("Arial", font_size), fill=color
+            x, y, text=text, font=("Arial", font_size), fill=color
         )
     
     def clear(self) -> None:
