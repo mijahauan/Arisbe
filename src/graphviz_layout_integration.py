@@ -66,7 +66,11 @@ class GraphvizLayoutIntegration:
         
         # Extract coordinates and create primitives
         node_positions, cluster_bounds = self._extract_coordinates_from_svg(svg_source)
-        primitives = self._create_spatial_primitives(graph, node_positions, cluster_bounds)
+        
+        # CRITICAL FIX: Post-process coordinates to enforce logical area containment
+        corrected_positions = self._correct_area_containment(graph, node_positions, cluster_bounds)
+        
+        primitives = self._create_spatial_primitives(graph, corrected_positions, cluster_bounds)
         
         return GraphvizLayoutResult(
             primitives=primitives,
@@ -84,7 +88,12 @@ class GraphvizLayoutIntegration:
             splines='true', 
             overlap='false',
             sep='0.5',  # Separation between nodes
-            esep='0.3'  # Separation between edges
+            esep='0.3',  # Separation between edges
+            # CRITICAL: Prevent node movement due to edge optimization
+            # This preserves logical area containment in EG semantics
+            concentrate='false',  # Don't merge edges
+            remincross='true',    # Minimize edge crossings but respect constraints
+            constraint='true'     # Respect subgraph constraints
         )
         
         # Process the sheet (root area) and all cuts
@@ -131,7 +140,8 @@ class GraphvizLayoutIntegration:
             # Add contents of this cut
             self._add_area_contents(cluster, graph, cut_id)
             
-            # Process child cuts recursively
+            # Process child cuts recursively - CRITICAL FIX: Pass cluster, not dot
+            # This ensures child cuts are nested INSIDE the parent cut
             for child_id in graph.area.get(cut_id, frozenset()):
                 if child_id in {c.id for c in graph.Cut}:
                     self._process_cut_as_cluster(cluster, graph, child_id)
@@ -187,15 +197,38 @@ class GraphvizLayoutIntegration:
                                 fillcolor='lightyellow',
                                 fontsize='12')
                 
-                # Connect to incident vertices
+                # Connect to incident vertices - CRITICAL: Only connect to vertices in same area
+                # This prevents cross-cluster edges that cause Graphviz to move vertices
                 incident_vertices = graph.get_incident_vertices(element_id)
                 for i, vertex_id in enumerate(incident_vertices):
                     if vertex_id in self.node_mapping:
                         vertex_node = self.node_mapping[vertex_id]
-                        target_graph.edge(pred_name, vertex_node,
-                                        style='dashed',
-                                        arrowhead='none',
-                                        len='1.0')
+                        
+                        # Check if vertex is in the same area as this predicate
+                        vertex_area = self._find_vertex_area(graph, vertex_id)
+                        predicate_area = area_id
+                        
+                        if vertex_area == predicate_area:
+                            # Same area - normal edge
+                            target_graph.edge(pred_name, vertex_node,
+                                            style='dashed',
+                                            arrowhead='none',
+                                            len='1.0')
+                        else:
+                            # Cross-area edge - use special handling to preserve containment
+                            target_graph.edge(pred_name, vertex_node,
+                                            style='dashed',
+                                            arrowhead='none',
+                                            len='1.0',
+                                            constraint='false',  # Don't let this edge move vertices
+                                            weight='0.1')       # Low weight to minimize influence
+    
+    def _find_vertex_area(self, graph: RelationalGraphWithCuts, vertex_id: str) -> str:
+        """Find which area a vertex belongs to."""
+        for area_id, contents in graph.area.items():
+            if vertex_id in contents:
+                return area_id
+        return graph.sheet  # Default to sheet if not found
     
     def _extract_coordinates_from_svg(self, svg_source: str) -> Tuple[Dict[str, Tuple[float, float]], 
                                                                    Dict[str, List[Tuple[float, float]]]]:

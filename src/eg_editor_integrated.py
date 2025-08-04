@@ -22,7 +22,7 @@ import json
 # Core EG components
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from egif_parser_dau import EGIFParser
-from content_driven_layout import ContentDrivenLayoutEngine
+from constraint_layout_integration import ConstraintLayoutIntegration
 from diagram_renderer_clean import CleanDiagramRenderer
 from tkinter_backend import TkinterCanvas
 
@@ -51,7 +51,7 @@ class IntegratedEGEditor:
         self.root.geometry("1400x900")
         
         # Core systems
-        self.layout_engine = ContentDrivenLayoutEngine()
+        self.layout_engine = ConstraintLayoutIntegration()
         self.transformation_engine = EGTransformationEngine()
         self.validation_system = create_validation_system(ValidationLevel.STANDARD)
         self.corpus_loader = CorpusLoader()
