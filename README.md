@@ -1,52 +1,90 @@
 # Arisbe: Existential Graphs Implementation
 
-A research implementation of Charles Sanders Peirce's Existential Graphs based on Frithjof Dau's mathematical formalism. This project provides tools for parsing, manipulating, and visualizing Existential Graph diagrams with a focus on mathematical rigor and educational applications.
+A mathematically rigorous implementation of Charles Sanders Peirce's Existential Graphs based on Frithjof Dau's formal mathematical framework. Arisbe provides a complete pipeline for creating, editing, transforming, and visualizing Existential Graph diagrams with strict adherence to logical formalism and Peircean conventions.
 
 ## Project Status
 
-**Core Foundation: Functional**
-- ✅ EGIF (Existential Graph Interchange Format) parsing and generation
-- ✅ EGI (Existential Graph Instance) data structures following Dau's 6+1 component model
-- ✅ Round-trip conversion between EGIF text and EGI structures
-- ✅ Graphviz-based layout engine for diagram visualization
-- ✅ PySide6-based rendering pipeline
+**Phase 1: Mathematical Foundation - COMPLETE ✅**
+- ✅ **EGIF Compliance**: Full Sowa-compliant EGIF parsing and generation
+- ✅ **EGI Core**: Dau's 6+1 component RelationalGraphWithCuts model
+- ✅ **Round-trip Pipeline**: EGIF ↔ EGI ↔ EGDF with contract validation
+- ✅ **API Contracts**: Strict input/output validation and error handling
+- ✅ **Dual Format Support**: JSON (automation) and YAML (academic) EGDF formats
+- ✅ **Layout Engine**: Graphviz-based hierarchical layout with Dau's conventions
+- ✅ **Mathematical Rigor**: All transformations preserve logical structure
 
-**GUI Application: In Development**
-- 🔄 Interactive diagram editor ("Bullpen") with Warmup and Practice modes
-- 🔄 Transformation rule implementation and validation
-- ❌ Endoporeutic Game framework (planned)
-- ❌ Complete integrated application
+**Phase 2: Interactive GUI - IN DEVELOPMENT 🔄**
+- ✅ **Visual Rendering**: EGI → Diagram rendering with PySide6
+- ✅ **Basic Interaction**: Selection, hover effects, mouse interaction
+- 🔄 **Selection Overlays**: Context-sensitive visual feedback (current focus)
+- 🔄 **Context Actions**: Element-specific operations and transformations
+- ❌ **Dynamic Effects**: Smooth animations and real-time validation
+- ❌ **Mode Switching**: Warmup (compositional) vs Practice (rule-based) modes
+
+**Phase 3: Advanced Features - PLANNED ❌**
+- ❌ **Browser**: Universe of Discourse and corpus exploration
+- ❌ **Endoporeutic Game**: Formal game implementation
+- ❌ **Corpus Integration**: Authoritative examples from Peirce, Dau, Sowa
+- ❌ **Advanced Transformations**: Complete rule set with validation
 
 ## Architecture
 
-### Core Components
+### Phase 1: Mathematical Foundation (Complete)
 
-**Mathematical Foundation:**
+**Core Data Model:**
 - `egi_core_dau.py` - Dau's 6+1 component RelationalGraphWithCuts model
-- `egif_parser_dau.py` - EGIF lexer and parser with syntax validation
-- `egif_generator_dau.py` - EGI to EGIF conversion with proper formatting
+- `egif_parser_dau.py` - Sowa-compliant EGIF lexer and parser
+- `egif_generator_dau.py` - EGI to EGIF conversion with strict label scoping
+- `egdf_parser.py` - EGDF format with dual JSON/YAML support and API contracts
 
-**Visualization Pipeline:**
-- `graphviz_layout_engine_v2.py` - Layout engine using Graphviz DOT with cluster support
-- `pyside6_backend.py` - Professional-quality rendering using PySide6/Qt
-- `diagram_renderer_dau.py` - Diagram rendering with Dau's visual conventions
+**Layout and Rendering Pipeline:**
+- `layout_engine.py` - Abstract layout interface with contract validation
+- `graphviz_layout_engine_v2.py` - Hierarchical layout using Graphviz clusters
+- `pyside6_backend.py` - High-quality vector rendering with Qt
+- `clean_diagram_renderer.py` - Dau convention compliance (heavy lines, fine cuts)
 
-**Interactive Editor:**
-- `eg_editor_integrated.py` - Main editor interface
-- `warmup_mode_controller.py` - Warmup mode for free-form diagram creation
-- `arisbe_gui.py` - GUI framework and application shell
+**Validation and Contracts:**
+- `api_contracts.py` - Comprehensive contract system for all pipeline stages
+- `test_*.py` - Extensive test suites for round-trip and structural validation
+- Contract enforcement prevents regressions and ensures mathematical rigor
 
-### Data Model
+### Phase 2: Interactive GUI (In Development)
 
-Follows Dau's formal definition of Relational Graphs with Cuts:
+**Current GUI Foundation:**
+- `phase2_gui_foundation.py` - Working EGI rendering with basic interaction
+- `arisbe_gui.py` - Main application framework with tab-based architecture
+- Selection system, hover effects, and mouse interaction implemented
+
+**Planned Interactive Components:**
+- Selection overlays with context-sensitive visual feedback
+- Context-sensitive action menus and transformation operations
+- Warmup mode (compositional editing) vs Practice mode (rule-based)
+- Dynamic effects and real-time validation
+
+### Mathematical Foundation
+
+**Dau's 6+1 Component Model:**
+Arisbe implements Dau's formal definition of Relational Graphs with Cuts:
 
 1. **V** - Finite set of vertices (individuals: variables `*x` or constants `"Socrates"`)
 2. **E** - Finite set of edges (relations with specified arity)
-3. **ν** - Nu mapping from edges to vertex sequences (argument structure)
-4. **⊤** - Sheet of assertion (outermost context)
-5. **Cut** - Finite set of cuts (negation contexts)
-6. **area** - Containment mapping (which elements are in which contexts)
-7. **rel** - Relation names mapping (edge labels)
+3. **ν** - Nu mapping from edges to vertex sequences (argument order preservation)
+4. **⊤** - Sheet of assertion (outermost positive context)
+5. **Cut** - Finite set of cuts (negation contexts, fine-drawn closed curves)
+6. **area** - Containment mapping (strict hierarchical nesting)
+7. **rel** - Relation names mapping (predicate labels)
+
+**Key Mathematical Properties:**
+- **Structural Integrity**: All transformations preserve logical equivalence
+- **Argument Order**: ν mapping strictly preserves predicate argument sequences
+- **Area Containment**: Hierarchical nesting with no overlapping cuts
+- **Round-trip Guarantee**: EGIF ↔ EGI ↔ EGDF conversions are lossless
+
+**Visual Conventions (Dau/Peirce):**
+- **Heavy Lines of Identity**: Connect individuals to predicates (4.0pt width)
+- **Fine Cut Boundaries**: Negation contexts as closed curves (1.0pt width)
+- **Identity Spots**: Prominent vertex markers (3.5pt radius)
+- **Hook Connections**: Predicates connect directly to line periphery (1.5pt width)
 
 ## Current Capabilities
 
@@ -202,26 +240,116 @@ regenerated = generate_egif(graph)
 print(f"Original:    {original}")
 print(f"Regenerated: {regenerated}")
 # Should be logically equivalent
-## Development Status and Roadmap
 
-### Completed Components ✅
-- **Core EGI Model**: Dau's 6+1 component RelationalGraphWithCuts implementation
-- **EGIF Parser**: Robust parsing with syntax validation and error reporting
-- **EGIF Generator**: Round-trip conversion maintaining logical equivalence
-- **Layout Engine**: Graphviz-based layout with proper cut containment
-- **Rendering Pipeline**: PySide6-based professional diagram output
-- **Test Coverage**: Comprehensive test suites for core functionality
+## Quick Start
 
-### In Progress 🔄
-- **Interactive Editor**: Bullpen interface with Warmup mode partially implemented
-- **GUI Integration**: Application shell and mode switching framework
-- **Validation System**: Real-time syntax and semantic validation
+### Phase 2 GUI Foundation (Current)
 
-### Planned Features 📋
-- **Practice Mode**: Rule-based transformation interface
-- **Endoporeutic Game**: Educational game framework
-- **Transformation Rules**: Integration of Peirce's canonical rules
-- **Export/Import**: Enhanced file format support
+```bash
+# Launch interactive GUI with EGI rendering
+python phase2_gui_foundation.py
+```
+
+Features:
+- **Visual EGIF Rendering**: Enter EGIF expressions and see diagrams
+- **Interactive Selection**: Click elements, Ctrl+click for multi-select
+- **Real-time Updates**: EGI structure and selection info
+- **Sample Library**: Dropdown with test cases
+
+### Command Line Tools
+
+```bash
+# Parse and validate EGIF
+python src/egif_parser_dau.py
+
+# Test round-trip pipeline
+python test_phase1d_comprehensive.py
+
+# Validate Dau conventions
+python test_dau_convention_validation.py
+```
+
+## Development and Testing
+
+```bash
+# Run comprehensive test suite
+python -m pytest tests/ -v
+
+# Test Phase 1d pipeline
+python test_phase1d_comprehensive.py
+
+# Validate visual rendering
+python validate_qt_dau_rendering.py
+
+# Test API contracts
+python test_api_contracts.py
+```
+
+## Contributing
+
+This is a research project focused on mathematical rigor and educational applications. The codebase emphasizes:
+
+- **Mathematical Correctness**: All implementations follow formal specifications
+- **Educational Value**: Clear documentation and pedagogical design
+- **Code Quality**: Comprehensive testing and clean architecture
+- **Academic Standards**: Proper attribution and reference to source materials
+
+## License
+
+MIT License - See LICENSE file for details.
+
+## References
+
+- Dau, Frithjof. "Mathematical Logic with Diagrams." 2003.
+- Peirce, Charles Sanders. "Existential Graphs." Collected Papers.
+- Sowa, John F. "Existential Graphs: MS 514 by Charles Sanders Peirce." 2007.
+
+## Contact
+
+This project is part of ongoing research in diagrammatic reasoning and logic education.
+
+## Features
+
+### Phase 1: Mathematical Foundation (Complete)
+
+**EGIF Processing:**
+- ✅ Sowa-compliant EGIF parsing with comprehensive syntax validation
+- ✅ Robust error handling and informative error messages
+- ✅ Support for variables (`*x`), constants (`"Socrates"`), and nested cuts
+- ✅ Proper label scoping and variable binding
+
+**EGI Data Model:**
+- ✅ Dau's 6+1 component RelationalGraphWithCuts implementation
+- ✅ Strict argument order preservation in ν mapping
+- ✅ Hierarchical area containment with validation
+- ✅ Contract-enforced structural integrity
+
+**EGDF Format:**
+- ✅ Dual JSON/YAML format support for different use cases
+- ✅ Auto-detection and unified parsing interface
+- ✅ Complete round-trip validation (EGIF ↔ EGI ↔ EGDF)
+- ✅ API contracts prevent data loss and corruption
+
+**Visual Rendering:**
+- ✅ Graphviz-based hierarchical layout engine
+- ✅ Dau/Peirce convention compliance (heavy lines, fine cuts)
+- ✅ Professional-quality PySide6 rendering
+- ✅ Non-overlapping cuts with proper containment
+
+### Phase 2: Interactive GUI (In Development)
+
+**Current Capabilities:**
+- ✅ Real-time EGIF → Diagram rendering
+- ✅ Interactive element selection and hover effects
+- ✅ Multi-select with Ctrl+click
+- ✅ EGI structure inspection and selection feedback
+- 🔄 Selection overlays and context-sensitive actions (in progress)
+
+**Planned Features:**
+- ❌ Warmup mode: Compositional editing with direct EGI manipulation
+- ❌ Practice mode: Rule-based transformations with formal validation
+- ❌ Dynamic effects: Smooth animations and real-time feedback
+- ❌ Undo/redo system with action history
 
 ## Project Structure
 
@@ -295,14 +423,27 @@ This project is part of ongoing research in diagrammatic reasoning and logic edu
 - Transformation validation
 - Undo functionality
 
-### 🔄 Future Enhancements
+### 🔄 Development Roadmap
 
-- Graphical visualization of EGI structures
-- Additional markup syntax for other transformation rules
+**Phase 2: Interactive GUI (Current Focus)**
+- Selection overlays with context-sensitive visual feedback
+- Context-sensitive action menus and transformation operations
+- Warmup mode: Direct manipulation and compositional editing
+- Practice mode: Rule-based transformations with formal validation
+- Dynamic effects and smooth animations
+
+**Phase 3: Advanced Features**
+- Browser: Universe of Discourse and corpus exploration
+- Endoporeutic Game: Complete formal game implementation
+- Corpus Integration: Authoritative examples from Peirce, Dau, Sowa
+- Advanced transformation validation and proof tracking
+
+**Phase 4: Platform and Integration**
+- Web-based interface for broader accessibility
+- Import/export to other logical formats (CLIF, FOPL, LaTeX)
+- Integration with theorem provers and proof assistants
 - Performance optimizations for large graphs
-- Integration with theorem provers
-- Web-based interface
-- Import/export to other logical formats (CLIF, FOPL)
+- Educational modules and guided tutorials
 
 ## Error Handling
 

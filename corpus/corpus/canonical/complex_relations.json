@@ -1,0 +1,15 @@
+{
+  "id": "complex_relations",
+  "title": "Complex Relations Example",
+  "description": "Multiple predicates and cuts - comprehensive test case",
+  "source": {
+    "author": "Canonical Forms",
+    "work": "EGRF v3.0 Corpus",
+    "year": 2023
+  },
+  "logical_pattern": "complex_conjunction",
+  "logical_form": "∃x∃y(Loves(x,y) ∧ ¬(Happy(x) ∧ Sad(y)))",
+  "egif_content": "*x *y (Loves x y) ~[ (Happy x) (Sad y) ]",
+  "notes": "Complex example with multiple variables, binary relation, and negated conjunction. Tests layout engine's ability to handle multiple elements within cuts.",
+  "usage": "testing"
+}

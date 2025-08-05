@@ -1,0 +1,15 @@
+{
+  "id": "nested_cuts",
+  "title": "Nested Cuts Example",
+  "description": "Double-nested cuts with predicate - tests containment logic",
+  "source": {
+    "author": "Canonical Forms",
+    "work": "EGRF v3.0 Corpus",
+    "year": 2023
+  },
+  "logical_pattern": "nested_negation",
+  "logical_form": "¬¬P(x)",
+  "egif_content": "*x ~[ ~[ (P x) ] ]",
+  "notes": "Double negation using nested cuts. Critical test case for containment algorithms - predicate must be inside innermost cut.",
+  "usage": "testing"
+}

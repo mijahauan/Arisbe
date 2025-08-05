@@ -1,0 +1,15 @@
+{
+  "id": "simple_predicate",
+  "title": "Simple Predicate",
+  "description": "Basic predicate with constant - good for testing containment",
+  "source": {
+    "author": "Canonical Forms",
+    "work": "EGRF v3.0 Corpus",
+    "year": 2023
+  },
+  "logical_pattern": "simple_predicate",
+  "logical_form": "Human(\"Socrates\")",
+  "egif_content": "(Human \"Socrates\")",
+  "notes": "Simplest possible EG - single predicate with constant. Perfect for testing basic rendering and containment.",
+  "usage": "testing"
+}

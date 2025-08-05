@@ -4,4 +4,4 @@
 # Source: Charles Sanders Peirce
 # Pattern: implication
 
-(Human "Socrates") ~[ (Mortal "Socrates") ]
+~[ (Human "Socrates") ~[ (Mortal "Socrates") ] ]

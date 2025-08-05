@@ -1,0 +1,17 @@
+{
+  "id": "epg_simple_syllogism",
+  "title": "Simple Syllogism (EPG Starter)",
+  "description": "Classic syllogism setup for endoporeutic game practice",
+  "source": {
+    "author": "Canonical Forms",
+    "work": "EGRF v3.0 Corpus",
+    "year": 2023
+  },
+  "logical_pattern": "syllogism",
+  "logical_form": "∀x(Human(x) → Mortal(x)) ∧ Human(Socrates) ⊢ Mortal(Socrates)",
+  "egif_content": "*x ~[ (Human x) ~[ (Mortal x) ] ] (Human \"Socrates\")",
+  "notes": "Classic syllogism: All humans are mortal, Socrates is human, therefore Socrates is mortal. Good starting position for EPG practice.",
+  "usage": "epg_starter",
+  "difficulty": "beginner",
+  "goal": "Derive (Mortal \"Socrates\") using valid EG transformations"
+}

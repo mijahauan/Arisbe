@@ -32,24 +32,26 @@ class CorpusEGIFGenerator:
             'ligature': self._generate_ligature,
             
             # Specific examples
-            'man_mortal': lambda: '(Human "Socrates") ~[ (Mortal "Socrates") ]',
-            'universal_statement': lambda: '*x (Human x) ~[ (Mortal x) ]',
+            'man_mortal': lambda: '~[ (Human "Socrates") ~[ (Mortal "Socrates") ] ]',  # Proper implication
+            'universal_statement': lambda: '*x ~[ (Human x) ~[ (Mortal x) ] ]',  # Universal implication
         }
     
     def _generate_implication(self, example: CorpusExample) -> str:
-        """Generate EGIF for implication patterns."""
+        """Generate EGIF for implication patterns using double-cut: P → Q ≡ ¬(P ∧ ¬Q)."""
         if 'man' in example.description.lower() and 'mortal' in example.description.lower():
-            return '(Human "Socrates") ~[ (Mortal "Socrates") ]'
+            # Proper implication: "If human then mortal" = ~[ (Human "Socrates") ~[ (Mortal "Socrates") ] ]
+            return '~[ (Human "Socrates") ~[ (Mortal "Socrates") ] ]'
         elif example.logical_form and '→' in example.logical_form:
-            # Try to parse P → Q pattern
+            # Try to parse P → Q pattern and generate double-cut
             parts = example.logical_form.split('→')
             if len(parts) == 2:
                 p = parts[0].strip()
                 q = parts[1].strip()
-                return f'({p} "x") ~[ ({q} "x") ]'
+                # Double-cut for implication: ~[ P ~[ Q ] ]
+                return f'~[ ({p} "x") ~[ ({q} "x") ] ]'
         
-        # Default implication
-        return '(P "x") ~[ (Q "x") ]'
+        # Default implication using proper double-cut structure
+        return '~[ (P "x") ~[ (Q "x") ] ]'
     
     def _generate_conjunction(self, example: CorpusExample) -> str:
         """Generate EGIF for conjunction patterns."""

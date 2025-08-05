@@ -7,8 +7,9 @@ API confusion and integration errors. Every pipeline component should use
 these validators to ensure contract compliance.
 """
 
-from typing import Any, TypeGuard, Dict, Set, Tuple
+from typing import Any, TypeGuard, Dict, Set, Tuple, List, Optional, Union
 from dataclasses import is_dataclass
+from enum import Enum
 import inspect
 
 # API Version Management
@@ -18,6 +19,38 @@ COMPATIBLE_VERSIONS = ["1.0.0"]
 class ContractViolationError(Exception):
     """Raised when a pipeline contract is violated."""
     pass
+
+# Annotation System Contracts
+class AnnotationType(Enum):
+    """Types of annotations that can be applied to EG diagrams."""
+    ARITY_NUMBERING = "arity_numbering"          # Number hooks for n-ary predicates
+    ARGUMENT_LABELS = "argument_labels"          # Label predicate arguments (input/output)
+    VARIABLE_BINDING = "variable_binding"        # Show variable binding relationships
+    LOGICAL_STRUCTURE = "logical_structure"      # Highlight logical patterns
+    CONTAINMENT_AREAS = "containment_areas"      # Show area boundaries explicitly
+    TRANSFORMATION_HINTS = "transformation_hints" # Show available EG rule applications
+
+class AnnotationConfig:
+    """Configuration for annotation rendering."""
+    def __init__(self, 
+                 annotation_type: AnnotationType,
+                 enabled: bool = False,
+                 style_options: Optional[Dict[str, Any]] = None,
+                 target_elements: Optional[Set[str]] = None):
+        self.annotation_type = annotation_type
+        self.enabled = enabled
+        self.style_options = style_options or {}
+        self.target_elements = target_elements  # None means all applicable elements
+
+class AnnotationLayer:
+    """Represents a layer of annotations over a base diagram."""
+    def __init__(self, 
+                 layer_id: str,
+                 annotations: List[AnnotationConfig],
+                 z_order: int = 0):
+        self.layer_id = layer_id
+        self.annotations = annotations
+        self.z_order = z_order  # Higher numbers render on top
 
 def validate_relational_graph_with_cuts(obj: Any) -> TypeGuard[Any]:
     """
@@ -170,6 +203,106 @@ def validate_canvas_drawing_style(style: dict, operation: str) -> None:
                 f"Canvas text style contains invalid keys: {invalid_keys}. "
                 f"Valid keys for text: {valid_keys}"
             )
+
+# Annotation System Validation Functions
+def validate_annotation_config(obj: Any) -> TypeGuard[AnnotationConfig]:
+    """
+    Validate that an object conforms to the AnnotationConfig contract.
+    
+    Required attributes:
+    - annotation_type: AnnotationType
+    - enabled: bool
+    - style_options: Dict[str, Any]
+    - target_elements: Optional[Set[str]]
+    """
+    if not isinstance(obj, AnnotationConfig):
+        raise ContractViolationError(f"Expected AnnotationConfig, got: {type(obj)}")
+    
+    if not isinstance(obj.annotation_type, AnnotationType):
+        raise ContractViolationError(f"annotation_type must be AnnotationType, got: {type(obj.annotation_type)}")
+    
+    if not isinstance(obj.enabled, bool):
+        raise ContractViolationError(f"enabled must be bool, got: {type(obj.enabled)}")
+    
+    if not isinstance(obj.style_options, dict):
+        raise ContractViolationError(f"style_options must be dict, got: {type(obj.style_options)}")
+    
+    if obj.target_elements is not None and not isinstance(obj.target_elements, set):
+        raise ContractViolationError(f"target_elements must be Set[str] or None, got: {type(obj.target_elements)}")
+    
+    return True
+
+def validate_annotation_layer(obj: Any) -> TypeGuard[AnnotationLayer]:
+    """
+    Validate that an object conforms to the AnnotationLayer contract.
+    
+    Required attributes:
+    - layer_id: str
+    - annotations: List[AnnotationConfig]
+    - z_order: int
+    """
+    if not isinstance(obj, AnnotationLayer):
+        raise ContractViolationError(f"Expected AnnotationLayer, got: {type(obj)}")
+    
+    if not isinstance(obj.layer_id, str):
+        raise ContractViolationError(f"layer_id must be str, got: {type(obj.layer_id)}")
+    
+    if not isinstance(obj.annotations, list):
+        raise ContractViolationError(f"annotations must be List[AnnotationConfig], got: {type(obj.annotations)}")
+    
+    for i, annotation in enumerate(obj.annotations):
+        try:
+            validate_annotation_config(annotation)
+        except ContractViolationError as e:
+            raise ContractViolationError(f"Invalid annotation at index {i}: {e}")
+    
+    if not isinstance(obj.z_order, int):
+        raise ContractViolationError(f"z_order must be int, got: {type(obj.z_order)}")
+    
+    return True
+
+def validate_annotated_layout_result(obj: Any) -> TypeGuard[Any]:
+    """
+    Validate that an object conforms to the AnnotatedLayoutResult contract.
+    
+    This extends LayoutResult with annotation layers.
+    
+    Required attributes (from LayoutResult):
+    - primitives: Dict[str, SpatialPrimitive]
+    - canvas_bounds: Tuple[float, float, float, float]
+    - containment_hierarchy: Dict[str, Set[str]]
+    
+    Additional attributes for annotations:
+    - annotation_layers: List[AnnotationLayer]
+    - active_annotations: Set[AnnotationType]
+    """
+    # First validate as standard LayoutResult
+    validate_layout_result(obj)
+    
+    # Then validate annotation-specific attributes
+    if not hasattr(obj, 'annotation_layers'):
+        raise ContractViolationError(f"AnnotatedLayoutResult missing 'annotation_layers' attribute")
+    
+    if not isinstance(obj.annotation_layers, list):
+        raise ContractViolationError(f"annotation_layers must be List[AnnotationLayer], got: {type(obj.annotation_layers)}")
+    
+    for i, layer in enumerate(obj.annotation_layers):
+        try:
+            validate_annotation_layer(layer)
+        except ContractViolationError as e:
+            raise ContractViolationError(f"Invalid annotation layer at index {i}: {e}")
+    
+    if not hasattr(obj, 'active_annotations'):
+        raise ContractViolationError(f"AnnotatedLayoutResult missing 'active_annotations' attribute")
+    
+    if not isinstance(obj.active_annotations, set):
+        raise ContractViolationError(f"active_annotations must be Set[AnnotationType], got: {type(obj.active_annotations)}")
+    
+    for annotation_type in obj.active_annotations:
+        if not isinstance(annotation_type, AnnotationType):
+            raise ContractViolationError(f"active_annotations must contain AnnotationType, got: {type(annotation_type)}")
+    
+    return True
 
 # Decorator for contract enforcement
 def enforce_contracts(input_contracts=None, output_contract=None):
@@ -419,6 +552,51 @@ def validate_full_pipeline(egif: str, graph: Any, layout: Any, canvas: Any) -> b
         return True
     except ContractViolationError:
         return False
+
+# Annotation-aware pipeline validation
+def validate_annotation_to_render_handoff(layout: Any, annotation_layers: List[AnnotationLayer], canvas: Any):
+    """Validate the AnnotatedLayout → Render pipeline handoff."""
+    validate_annotated_layout_result(layout)
+    validate_canvas_interface(canvas)
+    
+    # Validate that annotation layers are compatible with layout
+    for layer in annotation_layers:
+        validate_annotation_layer(layer)
+        
+        # Check that target elements exist in layout
+        for annotation in layer.annotations:
+            if annotation.target_elements:
+                for element_id in annotation.target_elements:
+                    if element_id not in layout.primitives:
+                        raise ContractViolationError(
+                            f"Annotation targets non-existent element: {element_id}"
+                        )
+    
+    print("✓ Annotation → Render handoff validation passed")
+
+def validate_annotated_pipeline(egif: str, graph: Any, layout: Any, 
+                              annotation_layers: List[AnnotationLayer], canvas: Any):
+    """Validate the entire EGIF → EGI → AnnotatedLayout → Render pipeline."""
+    # Standard pipeline validation
+    validate_egif_to_egi_handoff(egif, graph)
+    validate_egi_to_layout_handoff(graph, layout)
+    
+    # Annotation-specific validation
+    validate_annotation_to_render_handoff(layout, annotation_layers, canvas)
+    
+    print("✓ Full annotated pipeline validation passed")
+    
+    # Additional integration checks
+    if hasattr(layout, 'primitives'):
+        primitive_count = len(layout.primitives)
+        element_count = len(graph.V) + len(graph.E) + len(graph.Cut)
+        annotation_count = sum(len(layer.annotations) for layer in annotation_layers)
+        
+        if primitive_count == 0:
+            raise ContractViolationError("Layout has no spatial primitives")
+        
+        print(f"✓ Layout contains {primitive_count} spatial primitives for {element_count} graph elements")
+        print(f"✓ {len(annotation_layers)} annotation layers with {annotation_count} total annotations")
 
 if __name__ == "__main__":
     print("Pipeline Contract Validation Module")

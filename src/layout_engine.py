@@ -303,38 +303,17 @@ class LayoutEngine:
                 continue  # Skip edges without any vertex connections
             
             if len(vertex_positions) == 1:
-                # Unary predicate - position with proper offset to avoid overlap
+                # UNARY PREDICATE - AREA-CENTRIC POSITIONING FIX
+                # Position predicate based on its logical area assignment, not vertex proximity
                 vertex_pos = vertex_positions[0]
                 vertex_id = vertex_ids[0]
                 
-                # CRITICAL FIX: Find which area contains this edge
+                # Find which area contains this edge
                 edge_containing_area = self._find_parent_area(edge.id, graph)
                 
-                # Get available space within the edge's containing area
-                if edge_containing_area and edge_containing_area in all_layouts:
-                    container_bounds = all_layouts[edge_containing_area].bounds
-                    # Inset from container bounds
-                    x1, y1, x2, y2 = container_bounds
-                    available_bounds = (
-                        x1 + self.cut_padding,
-                        y1 + self.cut_padding,
-                        x2 - self.cut_padding,
-                        y2 - self.cut_padding
-                    )
-                else:
-                    # Sheet level - use full canvas
-                    available_bounds = (
-                        self.margin,
-                        self.margin,
-                        self.canvas_width - self.margin,
-                        self.canvas_height - self.margin
-                    )
-                
-                # Calculate predicate position within the correct area
-                predicate_index = vertex_edge_groups[vertex_id].index(edge)
-                predicate_position = self._calculate_predicate_position_in_area(
-                    vertex_pos, predicate_index, len(vertex_edge_groups[vertex_id]), 
-                    available_bounds, all_layouts
+                # CRITICAL: Position predicate within its assigned area bounds
+                predicate_position = self._position_predicate_by_area(
+                    edge, edge_containing_area, all_layouts
                 )
                 
                 # Create bounds around predicate position (not vertex)
@@ -434,6 +413,100 @@ class LayoutEngine:
         pred_x, pred_y = self._avoid_element_collisions(
             (pred_x, pred_y), all_layouts, exclude_types={'vertex'}
         )
+        
+        return (pred_x, pred_y)
+    
+    def _position_predicate_by_area(self, edge, edge_containing_area, all_layouts: Dict[ElementID, LayoutElement]) -> Coordinate:
+        """Position predicate based on its logical area assignment (area-centric approach)"""
+        
+        # Get available space for this area
+        if edge_containing_area and edge_containing_area in all_layouts:
+            container_bounds = all_layouts[edge_containing_area].bounds
+            x1, y1, x2, y2 = container_bounds
+            
+            # Validate and fix container bounds
+            if x2 <= x1 or y2 <= y1:
+                print(f"FIXING: Invalid container bounds for area {edge_containing_area}: {container_bounds}")
+                # Fix invalid bounds by ensuring minimum dimensions
+                center_x = (x1 + x2) / 2
+                center_y = (y1 + y2) / 2
+                min_width = 60  # Minimum cut width
+                min_height = 40  # Minimum cut height
+                
+                x1 = center_x - min_width / 2
+                x2 = center_x + min_width / 2
+                y1 = center_y - min_height / 2
+                y2 = center_y + min_height / 2
+                
+                container_bounds = (x1, y1, x2, y2)
+                print(f"FIXED: Container bounds now: {container_bounds}")
+            
+            # Calculate safe area for predicate placement (for both fixed and valid bounds)
+            width = x2 - x1
+            height = y2 - y1
+            safe_padding = min(width / 6, height / 6, 10)
+            
+            available_bounds = (
+                x1 + safe_padding,
+                y1 + safe_padding,
+                x2 - safe_padding,
+                y2 - safe_padding
+            )
+        else:
+            # Sheet level - use full canvas
+            available_bounds = (
+                self.margin,
+                self.margin,
+                self.canvas_width - self.margin,
+                self.canvas_height - self.margin
+            )
+        
+        # Position predicate within the area bounds
+        ax1, ay1, ax2, ay2 = available_bounds
+        
+        # Validate available bounds
+        if ax2 <= ax1 or ay2 <= ay1:
+            # Use center as fallback
+            return ((ax1 + ax2) / 2, (ay1 + ay2) / 2)
+        
+        # ENHANCED COLLISION AVOIDANCE: Better spacing and separation
+        # Calculate available space for proper spacing
+        available_width = ax2 - ax1
+        available_height = ay2 - ay1
+        
+        # Use larger spacing to prevent overlapping
+        min_predicate_spacing = 60  # Minimum distance between predicates
+        
+        # Position predicate with improved spacing logic
+        if available_width > min_predicate_spacing and available_height > min_predicate_spacing:
+            # Use grid-based positioning for better collision avoidance
+            area_hash = hash(str(edge_containing_area)) if edge_containing_area else hash(str(edge.id))
+            
+            # Create multiple positioning slots within the area
+            slots_x = max(2, int(available_width // min_predicate_spacing))
+            slots_y = max(2, int(available_height // min_predicate_spacing))
+            
+            slot_x = (area_hash % slots_x)
+            slot_y = ((area_hash // slots_x) % slots_y)
+            
+            pred_x = ax1 + (slot_x + 0.5) * (available_width / slots_x)
+            pred_y = ay1 + (slot_y + 0.5) * (available_height / slots_y)
+        else:
+            # Fallback for small areas - use center with small offset
+            pred_x = ax1 + available_width * 0.5
+            pred_y = ay1 + available_height * 0.5
+            
+            # Small random offset to avoid exact overlap
+            area_hash = hash(str(edge_containing_area)) if edge_containing_area else hash(str(edge.id))
+            offset_x = (area_hash % 20) - 10
+            offset_y = ((area_hash // 20) % 20) - 10
+            
+            pred_x += offset_x
+            pred_y += offset_y
+        
+        # Ensure final position is within bounds
+        pred_x = max(ax1 + 5, min(ax2 - 5, pred_x))
+        pred_y = max(ay1 + 5, min(ay2 - 5, pred_y))
         
         return (pred_x, pred_y)
     

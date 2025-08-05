@@ -1,0 +1,17 @@
+{
+  "id": "epg_modus_ponens",
+  "title": "Modus Ponens (EPG Starter)",
+  "description": "Classic modus ponens setup for endoporeutic game practice",
+  "source": {
+    "author": "Canonical Forms",
+    "work": "EGRF v3.0 Corpus",
+    "year": 2023
+  },
+  "logical_pattern": "modus_ponens",
+  "logical_form": "(P → Q) ∧ P ⊢ Q",
+  "egif_content": "~[ (P) ~[ (Q) ] ] (P)",
+  "notes": "Classic modus ponens: If P then Q, and P, therefore Q. Fundamental inference rule practice for EPG.",
+  "usage": "epg_starter",
+  "difficulty": "beginner",
+  "goal": "Derive Q using iteration and deiteration rules"
+}
