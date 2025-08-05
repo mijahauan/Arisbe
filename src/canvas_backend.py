@@ -230,17 +230,10 @@ def get_available_backends() -> List[str]:
     """Get list of available canvas backends"""
     backends = []
     
-    # Test tkinter (should always be available)
+    # Test PySide6 (current primary backend)
     try:
-        import tkinter
-        backends.append("tkinter")
-    except ImportError:
-        pass
-    
-    # Test pygame
-    try:
-        import pygame
-        backends.append("pygame")
+        import PySide6
+        backends.append("pyside6")
     except ImportError:
         pass
     
@@ -249,25 +242,19 @@ def get_available_backends() -> List[str]:
 
 def create_backend(backend_name: str, **kwargs) -> Canvas:
     """Factory function to create a canvas backend."""
-    if backend_name == "tkinter":
-        from tkinter_backend import TkinterCanvas
-        return TkinterCanvas(**kwargs)
-    elif backend_name == "pygame":
-        from pygame_backend import PygameCanvas
-        return PygameCanvas(**kwargs)
-    # Add other backends here
+    if backend_name == "pyside6":
+        from pyside6_backend import PySide6Canvas
+        return PySide6Canvas(**kwargs)
     else:
-        raise ValueError(f"Unknown backend: {backend_name}")
+        raise ValueError(f"Unknown backend: {backend_name}. Available: {get_available_backends()}")
 
 
 def get_optimal_backend() -> CanvasBackend:
     """Get the best available backend for current platform"""
     available = get_available_backends()
     
-    # Prefer pygame for performance
-    if "pygame" in available:
-        return create_backend("pygame")
-    elif "tkinter" in available:
-        return create_backend("tkinter")
+    # Use PySide6 as primary backend
+    if "pyside6" in available:
+        return create_backend("pyside6")
     else:
-        raise RuntimeError("No canvas backend available")
+        raise RuntimeError("No canvas backend available. Please install PySide6.")

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Test the Graphviz rendering integration with a variety of EGIF expressions.
-This validates the complete pipeline across different structural patterns.
+Test the constraint-based rendering integration with a variety of EGIF expressions.
+This validates the complete pipeline across different structural patterns using the Cassowary constraint solver.
 """
 
 import tkinter as tk
 from egif_parser_dau import EGIFParser
-from graphviz_renderer_integration import GraphvizRendererIntegration
+from constraint_layout_engine import create_constraint_based_layout
 from diagram_renderer_clean import CleanDiagramRenderer, TkinterCanvas
 
 def test_egif_expression(egif_text, description, window_title):
@@ -31,31 +31,31 @@ def test_egif_expression(egif_text, description, window_title):
         tk_canvas.pack(expand=True, fill='both')
         canvas = TkinterCanvas(tk_canvas)
         
-        # Create integration and render
-        integration = GraphvizRendererIntegration()
-        success = integration.render_graph(graph, canvas)
+        # Set up rendering pipeline with constraint-based layout
+        renderer = CleanDiagramRenderer(canvas)
         
-        if success:
-            # Add title and description
-            tk_canvas.create_text(450, 30, text=f"✓ {description}", 
-                                font=("Arial", 16, "bold"), fill="darkgreen")
-            tk_canvas.create_text(450, 55, text=f"EGIF: {egif_text}", 
-                                font=("Arial", 11), fill="blue")
-            tk_canvas.create_text(450, 75, text=f"Structure: {len(graph.V)} vertices, {len(graph.E)} predicates, {len(graph.Cut)} cuts", 
-                                font=("Arial", 10), fill="gray")
-            tk_canvas.create_text(450, 670, text="Close window to continue to next test", 
-                                font=("Arial", 10), fill="darkblue")
-            
-            print(f"✓ Rendering successful - showing window")
-            root.mainloop()
-            return True
-            
-        else:
-            print(f"❌ Rendering failed")
-            tk_canvas.create_text(450, 350, text="❌ Rendering Failed", 
-                                font=("Arial", 16, "bold"), fill="red")
-            root.mainloop()
-            return False
+        # Generate layout using constraint solver
+        layout_result = create_constraint_based_layout(graph)
+        
+        # Render the result
+        renderer.render(layout_result.primitives)
+        
+        # Display the result
+        renderer.canvas.show()
+        
+        # Add title and description
+        tk_canvas.create_text(450, 30, text=f"✓ {description}", 
+                            font=("Arial", 16, "bold"), fill="darkgreen")
+        tk_canvas.create_text(450, 55, text=f"EGIF: {egif_text}", 
+                            font=("Arial", 11), fill="blue")
+        tk_canvas.create_text(450, 75, text=f"Structure: {len(graph.V)} vertices, {len(graph.E)} predicates, {len(graph.Cut)} cuts", 
+                            font=("Arial", 10), fill="gray")
+        tk_canvas.create_text(450, 670, text="Close window to continue to next test", 
+                            font=("Arial", 10), fill="darkblue")
+        
+        print(f"✓ Rendering successful - showing window")
+        root.mainloop()
+        return True
             
     except Exception as e:
         print(f"❌ Test failed: {e}")
@@ -64,9 +64,9 @@ def test_egif_expression(egif_text, description, window_title):
         return False
 
 def run_egif_test_suite():
-    """Run comprehensive test suite with various EGIF patterns."""
+    """Run comprehensive test suite with various EGIF patterns using constraint-based layout."""
     
-    print("🚀 Testing Graphviz Integration with Variety of EGIF Expressions")
+    print("🚀 Testing Constraint-Based Layout with Variety of EGIF Expressions")
     
     test_cases = [
         {
@@ -156,7 +156,7 @@ def run_egif_test_suite():
     
     if passed == total:
         print(f"\n🎉 ALL TESTS PASSED!")
-        print(f"Graphviz integration is robust across diverse EGIF patterns")
+        print(f"Constraint-based layout is robust across diverse EGIF patterns")
         print(f"✅ Ready for Step 2: Main Application Integration")
     else:
         print(f"\n⚠️  Some tests failed - need investigation")
@@ -170,8 +170,10 @@ def run_egif_test_suite():
 if __name__ == "__main__":
     passed, total = run_egif_test_suite()
     
-    print(f"\n🔬 Integration Testing Complete")
-    print(f"Result: {passed}/{total} EGIF patterns working correctly")
+    print(f"\n🔬 Constraint-Based Layout Testing Complete")
+    print(f"   {passed} out of {total} tests passed ({passed/total*100:.1f}%)")
     
     if passed == total:
-        print(f"🚀 Ready to proceed with main application integration!")
+        print("✅ All constraint-based layout tests passed successfully!")
+    else:
+        print(f"❌ {total - passed} tests failed - check the output for issues")

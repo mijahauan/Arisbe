@@ -2,8 +2,8 @@
 """
 Test Constraint-Based Layout Integration
 
-This script tests the new constraint-based layout engine against all the 
-problematic EGIF test cases that failed with the Graphviz approach.
+This script tests the constraint-based layout engine with a variety of EGIF test cases
+to ensure proper area containment and visual representation.
 
 Key Test Cases:
 1. Mixed cut and sheet: (Human "Socrates") ~[ (Mortal "Socrates") ]

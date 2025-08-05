@@ -1,0 +1,27 @@
+graph EG {
+    // FIXED: Improved spacing parameters for EG diagrams to prevent overlaps
+    rankdir=TB;         // Top-to-bottom for natural cut nesting
+    overlap=false;      // Prevent overlaps (EG requirement)
+    splines=true;       // Enable curved edge routing
+    nodesep=3.0;        // Large node separation for visual discrimination
+    ranksep=2.5;        // Large rank separation between levels
+    margin=0.5;         // Graph margin
+    pad="0.5,0.5";      // Additional padding around graph
+    sep="+25";          // Minimum separation between elements
+    esep="+15";         // Edge separation from nodes
+    concentrate=false;  // Prevent edge concentration
+    packmode="clust";   // Better cluster packing
+    node [shape=circle, width=0.3, height=0.3, fixedsize=true];
+    edge [arrowhead=none, minlen=3];  // Minimum edge length for spacing
+
+  
+  // Default node styling with proper sizing
+  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
+  edge [fontsize=9, labeldistance=1.5, labelangle=0];
+
+  v_eb0c9648 [label=v_eb0c96, width=0.30, height=0.30, fixedsize=true];
+
+  e_7731bb34 [label="Human", shape=box, fillcolor=lightyellow, width=0.90, height=0.40, fixedsize=true];
+  v_eb0c9648 -- e_7731bb34 [style=bold, penwidth=2, len=1.5];
+
+}

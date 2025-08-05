@@ -176,20 +176,39 @@ class ConstraintBasedLayoutEngine:
     def _add_size_constraints_for_graph(self, graph: RelationalGraphWithCuts):
         """Add minimum size constraints for all elements."""
         
-        # Size constraints for cuts
-        for cut in graph.Cut:
-            self._add_size_constraints(cut.id, min_width=150, min_height=100)
-        
-        # Size constraints for vertices
+        # Calculate appropriate sizes based on element content
         for vertex in graph.V:
-            self._add_size_constraints(vertex.id, min_width=10, min_height=10)
+            # Check if vertex has a label (constant)
+            if vertex.label is not None:
+                # Larger size for labeled vertices to accommodate compact visual unit
+                label_width = len(vertex.label) * 8 + 20  # Estimate text width + padding
+                vertex_width = max(50, label_width)  # Minimum 50px, or text width
+                vertex_height = 35  # Height for dot + label + handles
+            else:
+                # Smaller size for unlabeled vertices (just dot + handles)
+                vertex_width = 40  # Width for handles + dot
+                vertex_height = 20  # Height for dot + small margin
+            
+            self._add_size_constraints(vertex.id, vertex_width, vertex_height)
         
-        # Size constraints for predicates
         for edge in graph.E:
-            # Estimate text width based on relation name
-            relation_name = graph.get_relation_name(edge.id)
-            text_width = max(60, len(relation_name) * 8)
-            self._add_size_constraints(edge.id, min_width=text_width, min_height=25)
+            # Size based on predicate name length
+            if edge.id in graph.rel:
+                predicate_name = graph.rel[edge.id]
+                text_width = len(predicate_name) * 8 + 20  # Estimate width + padding
+                edge_width = max(40, text_width)
+                edge_height = 25  # Height for text + hook space
+            else:
+                edge_width = 40
+                edge_height = 25
+            
+            self._add_size_constraints(edge.id, edge_width, edge_height)
+        
+        for cut in graph.Cut:
+            # Cuts need substantial size to contain other elements
+            cut_width = 100   # Minimum width for containment
+            cut_height = 80   # Minimum height for containment
+            self._add_size_constraints(cut.id, cut_width, cut_height)
     
     def _add_size_constraints(self, element_id: str, min_width: float, min_height: float):
         """Add minimum size constraints for an element."""
@@ -216,14 +235,18 @@ class ConstraintBasedLayoutEngine:
             
             for content_id in contents:
                 if content_id in self.variables:
-                    self._add_containment_constraint(area_id, content_id, margin=15)
+                    # Use larger margin for better visual separation
+                    margin = 25  # Increased from 15 for better padding
+                    self._add_containment_constraint(area_id, content_id, margin=margin)
                     print(f"  {content_id} must be inside {area_id}")
         
         # Ensure cuts are contained in their parent areas
         for cut in graph.Cut:
             parent_area = self.area_hierarchy.get(cut.id)
             if parent_area and parent_area != graph.sheet:
-                self._add_containment_constraint(parent_area, cut.id, margin=20)
+                # Use larger margin for nested cuts
+                margin = 30  # Increased from 20 for better visual hierarchy
+                self._add_containment_constraint(parent_area, cut.id, margin=margin)
                 print(f"  Cut {cut.id} must be inside {parent_area}")
     
     def _add_containment_constraint(self, container_id: str, contained_id: str, margin: float = 10.0):
@@ -247,9 +270,9 @@ class ConstraintBasedLayoutEngine:
             self.constraints.append(constraint)
     
     def _add_non_overlap_constraints(self, graph: RelationalGraphWithCuts):
-        """Add non-overlap constraints for sibling elements in the same area."""
+        """Add comprehensive non-overlap constraints for all elements in the same area."""
         
-        print("🚫 Adding non-overlap constraints...")
+        print("🚫 Adding comprehensive non-overlap constraints...")
         
         # Group elements by their containing area
         area_contents = {}
@@ -267,25 +290,114 @@ class ConstraintBasedLayoutEngine:
                 area_contents[area_id] = []
             area_contents[area_id].extend(contents)
         
-        # Add non-overlap constraints within each area
+        # Add comprehensive non-overlap constraints within each area
         for area_id, contents in area_contents.items():
             elements_in_area = [elem_id for elem_id in contents if elem_id in self.variables]
             
+            print(f"  Processing area {area_id} with {len(elements_in_area)} elements")
+            
             for i, elem1_id in enumerate(elements_in_area):
                 for elem2_id in elements_in_area[i+1:]:
-                    self._add_non_overlap_constraint(elem1_id, elem2_id, min_gap=20)
-                    print(f"  {elem1_id} and {elem2_id} must not overlap in {area_id}")
+                    # Calculate appropriate gap based on element types
+                    min_gap = self._calculate_required_gap(elem1_id, elem2_id)
+                    self._add_comprehensive_non_overlap_constraint(elem1_id, elem2_id, min_gap)
+                    print(f"    {elem1_id} and {elem2_id} must not overlap (gap: {min_gap})")
     
     def _add_non_overlap_constraint(self, elem1_id: str, elem2_id: str, min_gap: float = 20.0):
-        """Add constraint for horizontal separation between two elements."""
+        """Add constraint for proper 2D separation between two elements (prevents overlap)."""
         elem1 = self.variables[elem1_id]
         elem2 = self.variables[elem2_id]
         
-        # Horizontal separation constraint (elem1 to the left of elem2)
-        constraint = elem1['x'] + elem1['width'] + min_gap <= elem2['x']
+        # Special handling for cuts - they must NEVER overlap
+        if 'cut' in elem1_id.lower() and 'cut' in elem2_id.lower():
+            # For cut-to-cut: use much larger gap and REQUIRED strength
+            gap = min_gap * 3  # Even larger gap for cuts
+            
+            # CRITICAL: Use REQUIRED strength for cut non-overlap (cannot be violated)
+            h_constraint = elem1['x'] + elem1['width'] + gap <= elem2['x']
+            self.solver.add_constraint(h_constraint, REQUIRED)  # REQUIRED = cannot be violated
+            self.constraints.append(h_constraint)
+            
+            # Also add vertical separation to ensure complete 2D separation
+            v_gap = gap * 0.7  # Substantial vertical offset
+            v_constraint = elem1['y'] + elem1['height'] + v_gap <= elem2['y']
+            self.solver.add_constraint(v_constraint, REQUIRED)  # REQUIRED = cannot be violated
+            self.constraints.append(v_constraint)
+            
+        else:
+            # For non-cut elements: use original logic with larger gap
+            gap = min_gap * 2 if ('cut' in elem1_id.lower() or 'cut' in elem2_id.lower()) else min_gap
+            
+            # Horizontal separation constraint (elem1 to the left of elem2)
+            h_constraint = elem1['x'] + elem1['width'] + gap <= elem2['x']
+            self.solver.add_constraint(h_constraint, STRONG)
+            self.constraints.append(h_constraint)
+    
+    def _calculate_required_gap(self, elem1_id: str, elem2_id: str) -> float:
+        """Calculate the required gap between two elements based on their types."""
         
-        self.solver.add_constraint(constraint, STRONG)
-        self.constraints.append(constraint)
+        base_gap = 30
+        
+        # Larger gaps for cuts to ensure clear visual separation
+        if 'cut' in elem1_id.lower() or 'cut' in elem2_id.lower():
+            return base_gap * 2  # 60px for cuts
+        
+        # Medium gaps for predicates (text elements need space)
+        if elem1_id.startswith('e_') or elem2_id.startswith('e_'):
+            return base_gap * 1.5  # 45px for predicates
+        
+        # Standard gap for vertices
+        return base_gap  # 30px for vertices
+    
+    def _add_comprehensive_non_overlap_constraint(self, elem1_id: str, elem2_id: str, min_gap: float):
+        """Add comprehensive 2D non-overlap constraints between two elements."""
+        
+        elem1 = self.variables[elem1_id]
+        elem2 = self.variables[elem2_id]
+        
+        # For sibling cuts: enforce strict horizontal separation (side-by-side layout)
+        if 'cut' in elem1_id.lower() and 'cut' in elem2_id.lower():
+            # Check if these are sibling cuts (same parent area)
+            elem1_parent = self.area_hierarchy.get(elem1_id, None)
+            elem2_parent = self.area_hierarchy.get(elem2_id, None)
+            
+            print(f"  DEBUG: Checking cuts {elem1_id} (parent: {elem1_parent}) and {elem2_id} (parent: {elem2_parent})")
+            
+            if elem1_parent == elem2_parent and elem1_parent is not None:
+                # Sibling cuts: enforce strict horizontal separation (REQUIRED)
+                # Place cuts side-by-side with substantial gap
+                large_gap = min_gap * 4  # 120px minimum gap for sibling cuts
+                h_constraint = elem1['x'] + elem1['width'] + large_gap <= elem2['x']
+                self.solver.add_constraint(h_constraint, REQUIRED)
+                self.constraints.append(h_constraint)
+                
+                # Ensure cuts are roughly vertically aligned (same y-level)
+                # This creates a clean side-by-side layout
+                v_alignment = elem1['y'] == elem2['y']
+                self.solver.add_constraint(v_alignment, STRONG)  # Strong preference for alignment
+                self.constraints.append(v_alignment)
+                
+                print(f"  ✅ Added SIBLING CUT separation: {elem1_id} and {elem2_id} (gap: {large_gap}px, aligned)")
+                return  # Skip other constraint logic for sibling cuts
+            else:
+                print(f"  → Not siblings (different parents or None)")
+                # Non-sibling cuts: standard separation
+                h_constraint = elem1['x'] + elem1['width'] + min_gap <= elem2['x']
+                self.solver.add_constraint(h_constraint, REQUIRED)
+                self.constraints.append(h_constraint)
+            
+        else:
+            # For other elements: use STRONG constraints with larger gaps
+            # Horizontal separation
+            h_constraint = elem1['x'] + elem1['width'] + min_gap <= elem2['x']
+            self.solver.add_constraint(h_constraint, STRONG)
+            self.constraints.append(h_constraint)
+            
+            # Add vertical separation for better 2D spacing
+            v_gap = min_gap * 0.6  # Smaller vertical gap
+            v_constraint = elem1['y'] + elem1['height'] + v_gap <= elem2['y']
+            self.solver.add_constraint(v_constraint, MEDIUM)
+            self.constraints.append(v_constraint)
     
     def _add_positioning_preferences(self, graph: RelationalGraphWithCuts):
         """Add soft positioning preferences for better layout."""
@@ -297,6 +409,10 @@ class ConstraintBasedLayoutEngine:
             preferred_x = 300 + i * 50  # Stagger cuts horizontally
             preferred_y = 200 + i * 30  # Stagger cuts vertically
             self._add_position_preference(cut.id, preferred_x, preferred_y, WEAK)
+        
+        # Add collision-aware positioning for vertices and predicates
+        # This prevents lines from crossing cuts inappropriately
+        self._add_collision_aware_positioning(graph)
         
         # Prefer vertices to be spread out
         for i, vertex in enumerate(graph.V):
@@ -322,6 +438,78 @@ class ConstraintBasedLayoutEngine:
         for constraint in constraints:
             self.solver.add_constraint(constraint, strength)
             self.constraints.append(constraint)
+    
+    def _add_collision_aware_positioning(self, graph: RelationalGraphWithCuts):
+        """Add positioning preferences to prevent lines from crossing cuts inappropriately."""
+        
+        print("🚧 Adding collision-aware positioning...")
+        
+        # Strategy: Position connected elements (vertex-predicate pairs) to minimize line crossings
+        # by preferring them to be on the same side of cuts in their area
+        
+        for edge_id in graph.E:
+            if edge_id not in graph.nu or edge_id not in self.variables:
+                continue
+                
+            vertex_sequence = graph.nu[edge_id]
+            edge_area = self._find_predicate_area(graph, edge_id)
+            
+            # For each vertex connected to this edge
+            for vertex_id in vertex_sequence:
+                if vertex_id not in self.variables:
+                    continue
+                    
+                # Find cuts in the same area that could interfere with the connection
+                cuts_in_same_area = []
+                if edge_area == graph.sheet:
+                    # Sheet-level: avoid cuts at sheet level
+                    cuts_in_same_area = [cut.id for cut in graph.Cut 
+                                        if self._find_parent_area(graph, cut.id) == graph.sheet]
+                else:
+                    # Inside a cut: avoid sibling cuts
+                    cuts_in_same_area = [cut.id for cut in graph.Cut 
+                                        if self._find_parent_area(graph, cut.id) == edge_area]
+                
+                # Position vertex and predicate to avoid crossing cuts
+                for cut_id in cuts_in_same_area:
+                    if cut_id in self.variables:
+                        self._add_line_avoidance_preferences(vertex_id, edge_id, cut_id)
+    
+    def _add_line_avoidance_preferences(self, vertex_id: str, edge_id: str, cut_id: str):
+        """Add strong preferences to keep vertex and predicate on the same side of a cut."""
+        
+        # Strategy: ensure vertex and predicate are positioned so their connecting line
+        # doesn't cross through the cut by keeping them on the same side
+        
+        cut_vars = self.variables[cut_id]
+        vertex_vars = self.variables[vertex_id]
+        edge_vars = self.variables[edge_id]
+        
+        # Calculate cut boundaries with safety margin
+        safety_margin = 40  # Larger margin to ensure clear separation
+        
+        # Option 1: Both elements to the left of cut
+        vertex_left = vertex_vars['x'] + vertex_vars['width'] <= cut_vars['x'] - safety_margin
+        edge_left = edge_vars['x'] + edge_vars['width'] <= cut_vars['x'] - safety_margin
+        
+        # Option 2: Both elements to the right of cut  
+        vertex_right = vertex_vars['x'] >= cut_vars['x'] + cut_vars['width'] + safety_margin
+        edge_right = edge_vars['x'] >= cut_vars['x'] + cut_vars['width'] + safety_margin
+        
+        # Prefer left positioning (simpler layout)
+        self.solver.add_constraint(vertex_left, MEDIUM)
+        self.solver.add_constraint(edge_left, MEDIUM)
+        self.constraints.extend([vertex_left, edge_left])
+        
+        # Also add vertical separation to avoid crossing cut vertically
+        vertex_above = vertex_vars['y'] + vertex_vars['height'] <= cut_vars['y'] - safety_margin
+        edge_above = edge_vars['y'] + edge_vars['height'] <= cut_vars['y'] - safety_margin
+        
+        self.solver.add_constraint(vertex_above, WEAK)
+        self.solver.add_constraint(edge_above, WEAK)
+        self.constraints.extend([vertex_above, edge_above])
+        
+        print(f"  Added strong line avoidance preferences for {vertex_id}-{edge_id} around {cut_id}")
     
     def _solve_constraint_system(self) -> Dict[str, Dict[str, float]]:
         """Solve the constraint system and return element positions/sizes."""
@@ -446,11 +634,24 @@ class ConstraintBasedLayoutEngine:
         )
     
     def _find_vertex_area(self, graph: RelationalGraphWithCuts, vertex_id: str) -> str:
-        """Find which area a vertex belongs to."""
-        for area_id, contents in graph.area.items():
-            if vertex_id in contents:
-                return area_id
-        return graph.sheet
+        """Find which area a vertex belongs to based on predicate usage."""
+        # Find all predicates that use this vertex
+        predicate_areas = []
+        for edge_id, vertex_sequence in graph.nu.items():
+            if vertex_id in vertex_sequence:
+                predicate_area = self._find_predicate_area(graph, edge_id)
+                predicate_areas.append(predicate_area)
+        
+        if not predicate_areas:
+            # Vertex not used by any predicates - place at sheet level
+            return graph.sheet
+        
+        if len(predicate_areas) == 1:
+            # Vertex used by only one predicate - same area as predicate
+            return predicate_areas[0]
+        
+        # Vertex used by multiple predicates - find lowest common ancestor area
+        return self._find_lowest_common_ancestor_area(graph, predicate_areas)
     
     def _find_predicate_area(self, graph: RelationalGraphWithCuts, edge_id: str) -> str:
         """Find which area a predicate belongs to."""
@@ -458,6 +659,38 @@ class ConstraintBasedLayoutEngine:
             if edge_id in contents:
                 return area_id
         return graph.sheet
+    
+    def _find_lowest_common_ancestor_area(self, graph: RelationalGraphWithCuts, areas: list) -> str:
+        """Find the lowest common ancestor area for a list of areas."""
+        if not areas:
+            return graph.sheet
+        
+        # Remove duplicates and filter out sheet
+        unique_areas = list(set(areas))
+        
+        # If all predicates are at sheet level, vertex goes to sheet
+        if all(area == graph.sheet for area in unique_areas):
+            return graph.sheet
+        
+        # If predicates are in different cuts, vertex must be at sheet level
+        # (This handles the sibling cuts case: *x ~[ (Human x) ] ~[ (Mortal x) ])
+        cut_areas = [area for area in unique_areas if area != graph.sheet]
+        if len(cut_areas) > 1:
+            # Check if cuts are siblings (same parent) or nested
+            parents = set()
+            for cut_area in cut_areas:
+                parent = self.area_hierarchy.get(cut_area, graph.sheet)
+                parents.add(parent)
+            
+            if len(parents) > 1:
+                # Cuts have different parents - vertex goes to sheet
+                return graph.sheet
+            else:
+                # Cuts have same parent - vertex goes to that parent
+                return list(parents)[0]
+        
+        # Single cut area - vertex goes there
+        return unique_areas[0] if len(unique_areas) == 1 else graph.sheet
 
 
 # Integration function for existing workflow

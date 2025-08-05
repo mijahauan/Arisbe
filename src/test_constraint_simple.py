@@ -18,7 +18,7 @@ from constraint_layout_prototype import ConstraintLayoutEngine, CairoEGRenderer
 
 
 def test_key_cases():
-    """Test the key problematic EGIF cases that failed with Graphviz."""
+    """Test the key EGIF cases that validate the constraint-based layout engine."""
     
     print("🧪 Testing Key Constraint-Based Layout Cases")
     print("=" * 60)

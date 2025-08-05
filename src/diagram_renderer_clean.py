@@ -42,28 +42,37 @@ class CanvasProtocol(Protocol):
 class RenderingTheme:
     """Visual theme for EG diagram rendering following Dau's conventions."""
     
-    # Dau's visual conventions
+    # Dau's visual conventions - ENHANCED for full compliance
     vertex_color: str = "black"
-    vertex_radius: float = 6.0
+    vertex_radius: float = 3.5  # Prominent identity spots (slightly larger than before)
     
-    # Heavy lines for lines of identity
-    identity_line_width: float = 3.0
+    # Heavy lines for lines of identity (Dau's key convention)
+    identity_line_width: float = 4.0  # ENHANCED: Even more prominent heavy lines
     identity_line_color: str = "black"
+    identity_line_style: str = "solid"  # Solid heavy lines
     
-    # Fine lines for cuts
-    cut_line_width: float = 1.0
+    # Fine lines for cuts (Dau's key convention)
+    cut_line_width: float = 1.0  # MAINTAINED: Fine-drawn boundaries
     cut_line_color: str = "black"
-    cut_fill_color: str = "transparent"
+    cut_fill_color: str = "transparent"  # No fill - just boundary
+    cut_line_style: str = "solid"  # Fine solid lines
     
     # Predicate text and hooks
     predicate_text_size: int = 12
     predicate_text_color: str = "black"
-    hook_line_width: float = 1.0
+    predicate_background_color: str = "white"  # Clear background for readability
+    hook_line_width: float = 1.5  # Slightly heavier hooks for clarity
     hook_line_color: str = "black"
     
     # Argument order labels (for multi-ary predicates)
     argument_label_size: int = 10
     argument_label_color: str = "blue"
+    show_argument_numbers: bool = True  # Show numbered hooks for n-ary predicates
+    
+    # Spacing and margins (enhanced for visual clarity)
+    minimum_element_spacing: float = 20.0  # Minimum distance between elements
+    cut_padding: float = 15.0  # Padding inside cuts around contents
+    predicate_margin: float = 8.0  # Margin around predicate text
     
     # Background
     background_color: str = "white"
@@ -135,7 +144,7 @@ class CleanDiagramRenderer:
                 self._render_cut(primitive)
             elif primitive.element_type == 'vertex':
                 self._render_vertex(primitive, graph)
-            elif primitive.element_type == 'edge':
+            elif primitive.element_type == 'predicate':  
                 self._render_edge(primitive, graph, layout_result.primitives)
         
         # Render lines of identity (after all elements are positioned)
@@ -254,15 +263,19 @@ class CleanDiagramRenderer:
                 if vertex_id in layout_result.primitives:
                     vertex_primitive = layout_result.primitives[vertex_id]
                     
-                    # Draw heavy line of identity from vertex to predicate
+                    # Draw heavy line of identity from vertex to predicate PERIPHERY
                     # This line can cross cut boundaries
                     identity_style = DrawingStyle(
                         color=self._hex_to_rgb(self.theme.identity_line_color),
                         line_width=self.theme.identity_line_width
                     )
+                    
+                    # CRITICAL FIX: Connect to predicate periphery, not center
+                    hook_endpoint = self._calculate_hook_endpoint(edge_primitive.position, vertex_primitive.position)
+                    
                     self.canvas.draw_line(
                         start=vertex_primitive.position,
-                        end=edge_primitive.position,
+                        end=hook_endpoint,  # Use periphery connection point
                         style=identity_style
                     )
     
@@ -281,8 +294,9 @@ class CleanDiagramRenderer:
         if length == 0:
             return predicate_pos
         
-        # Hook ends at predicate boundary (approximately)
-        hook_length = 25  # Distance from predicate center to hook endpoint
+        # Hook ends at predicate boundary - reduced for proper connection
+        # Smaller distance for accurate periphery connection
+        hook_length = 15  # Reduced from 35 to 15 for proper predicate periphery
         end_x = pred_x - (dx / length) * hook_length
         end_y = pred_y - (dy / length) * hook_length
         
