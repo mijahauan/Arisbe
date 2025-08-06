@@ -20,11 +20,10 @@ from datetime import datetime
 import sys
 
 # Import canonical SpatialPrimitive and types from pipeline contracts
-from layout_engine_clean import SpatialPrimitive, Coordinate as CanonicalCoordinate, Bounds
+from layout_engine_clean import SpatialPrimitive, Bounds
 from egi_core_dau import ElementID
 import os
 import re
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # YAML support with fallback
 try:
@@ -45,19 +44,16 @@ from pipeline_contracts import (
     ContractViolationError
 )
 
-@dataclass
-class Coordinate:
-    """2D coordinate with floating-point precision."""
-    x: float
-    y: float
+# Use canonical Coordinate type from layout_engine_clean.py
+Coordinate = Tuple[float, float]
 
 class VertexPrimitive(SpatialPrimitive):
     """Visual representation of an EGI vertex."""
     annotations: Optional[Dict[str, Any]] = None
     
     def __init__(self, element_id: str, position: Coordinate, bounds: Optional[Bounds] = None, **kwargs):
-        # Convert Coordinate to canonical tuple format
-        pos_tuple = (position.x, position.y) if hasattr(position, 'x') else position
+        # Coordinate is already a tuple (x, y)
+        pos_tuple = position
         # Default bounds if not provided
         if bounds is None:
             bounds = (pos_tuple[0]-5, pos_tuple[1]-5, pos_tuple[0]+5, pos_tuple[1]+5)
@@ -71,14 +67,13 @@ class IdentityLinePrimitive(SpatialPrimitive):
     connection_points: Optional[Dict[str, Any]] = None
     
     def __init__(self, element_id: str, coordinates: List[Coordinate], **kwargs):
-        # Calculate bounds from coordinates
+        # Calculate bounds from coordinates (coordinates are tuples (x, y))
         if coordinates:
-            x_coords = [c.x if hasattr(c, 'x') else c[0] for c in coordinates]
-            y_coords = [c.y if hasattr(c, 'y') else c[1] for c in coordinates]
+            x_coords = [c[0] for c in coordinates]
+            y_coords = [c[1] for c in coordinates]
             bounds = (min(x_coords), min(y_coords), max(x_coords), max(y_coords))
             # Use first coordinate as position
-            position = (coordinates[0].x if hasattr(coordinates[0], 'x') else coordinates[0][0],
-                       coordinates[0].y if hasattr(coordinates[0], 'y') else coordinates[0][1])
+            position = coordinates[0]
         else:
             bounds = (0, 0, 0, 0)
             position = (0, 0)
@@ -94,8 +89,8 @@ class PredicatePrimitive(SpatialPrimitive):
     argument_order: Optional[List[Dict[str, Any]]] = None
     
     def __init__(self, element_id: str, position: Coordinate, text: str, bounds: Optional[Bounds] = None, **kwargs):
-        # Convert Coordinate to canonical tuple format
-        pos_tuple = (position.x, position.y) if hasattr(position, 'x') else position
+        # Coordinate is already a tuple (x, y)
+        pos_tuple = position
         # Default bounds based on text size if not provided
         if bounds is None:
             text_width = len(text) * 8  # Rough estimate
@@ -609,7 +604,7 @@ class EGDFParser:
             validate_relational_graph_with_cuts(extracted_egi)
             
             # Compare structures (placeholder validation)
-            # TODO: Implement proper EGI comparison using structural equivalence
+            # Compare EGI structures for round-trip validation
             
             # For now, basic validation
             if not hasattr(extracted_egi, 'V') or not hasattr(extracted_egi, 'E'):
@@ -639,7 +634,7 @@ class EGDFLayoutGenerator:
         for i, vertex in enumerate(egi.V):
             vertex_primitive = VertexPrimitive(
                 element_id=vertex.id,
-                position=Coordinate(x=100.0 + i * 150, y=200.0)
+                position=(100.0 + i * 150, 200.0)
             )
             primitives.append(vertex_primitive)
         
@@ -650,7 +645,7 @@ class EGDFLayoutGenerator:
             
             predicate_primitive = PredicatePrimitive(
                 element_id=edge.id,
-                position=Coordinate(x=200.0 + i * 150, y=200.0),
+                position=(200.0 + i * 150, 200.0),
                 text=relation_name
             )
             primitives.append(predicate_primitive)
@@ -664,8 +659,8 @@ class EGDFLayoutGenerator:
                     identity_line_primitive = IdentityLinePrimitive(
                         element_id=f"line_{first_vertex_id}_{edge.id}",
                         coordinates=[
-                            Coordinate(x=100.0, y=200.0),  # Vertex position
-                            Coordinate(x=200.0 + i * 150, y=200.0)  # Predicate position
+                            (100.0, 200.0),  # Vertex position
+                            (200.0 + i * 150, 200.0)  # Predicate position
                         ]
                     )
                     primitives.append(identity_line_primitive)

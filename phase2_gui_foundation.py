@@ -14,14 +14,14 @@ from typing import Dict, List, Optional, Tuple, Set
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 # Phase 1d Foundation - Complete pipeline
-from egif_parser_dau import EGIFParser
-from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
-from layout_engine_clean import SpatialPrimitive, LayoutResult
+from src.egif_parser_dau import EGIFParser
+from src.egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut
+from src.graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from src.layout_engine_clean import SpatialPrimitive, LayoutResult
 from src.egi_diagram_controller import EGIDiagramController
-from corpus_loader import CorpusLoader
-from mode_aware_selection import ModeAwareSelectionSystem, Mode, ActionType, SelectionType
-from annotation_system import (
+from src.corpus_loader import CorpusLoader
+from src.mode_aware_selection import ModeAwareSelectionSystem, Mode, ActionType, SelectionType
+from src.annotation_system import (
     AnnotationManager, AnnotationType, AnnotationPrimitive,
     create_arity_numbering_layer, create_argument_labels_layer
 )
@@ -77,7 +77,7 @@ class EGDiagramWidget(QWidget):
         
     def create_example_egi(self) -> RelationalGraphWithCuts:
         """Create a simple example EGI for testing"""
-        from egi_core_dau import create_empty_graph, create_vertex, create_edge
+        from src.egi_core_dau import create_empty_graph, create_vertex, create_edge
         from frozendict import frozendict
         
         # Create simple example: (Human "Socrates")
@@ -698,7 +698,7 @@ class Phase2GUIFoundation(QMainWindow):
         # Initialize corpus loader
         try:
             sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
-            from corpus_loader import get_corpus_loader
+            from src.corpus_loader import get_corpus_loader
             self.corpus_loader = get_corpus_loader()
             print(f"✓ Corpus loaded with {len(self.corpus_loader.examples)} examples")
         except Exception as e:
