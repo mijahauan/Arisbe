@@ -176,11 +176,9 @@ class LayoutToPySide6Converter:
                 else:
                     continue
                     
-                # Determine if this is an identity line or hook
-                if 'identity' in element_id.lower():
-                    style = create_dau_compliant_style("identity_line")
-                else:
-                    style = create_dau_compliant_style("hook_line")
+                # All lines are identity lines - hooks are invisible positions
+                # Heavy identity lines connect directly to predicate boundary positions
+                style = create_dau_compliant_style("identity_line")
                 
                 command = PySide6DrawingCommand(
                     command_type="line",

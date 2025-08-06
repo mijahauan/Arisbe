@@ -24,11 +24,11 @@ class VisualConvention:
     # Line weights per Dau's formalism
     identity_line_width: float = 4.0      # Heavy lines of identity (thicker)
     cut_line_width: float = 1.5           # Fine-drawn cut curves
-    hook_line_width: float = 1.5          # Predicate attachment hooks
+    # NOTE: Hook lines removed - hooks are invisible positions per Dau formalism
     
     # Sizes and spacing
     identity_spot_radius: float = 3.0     # Identity spots
-    hook_length: float = 12.0             # Predicate hook length
+    # NOTE: hook_length removed - connections are direct to predicate boundary
     argument_label_offset: float = 8.0    # Distance for argument numbers
     
     # Colors (all black per EG conventions)

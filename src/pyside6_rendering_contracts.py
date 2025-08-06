@@ -246,12 +246,8 @@ def create_dau_compliant_style(element_type: str) -> PySide6RenderingStyle:
             fill_color=(0, 0, 0),  # Filled spots
             radius=3.5  # Prominent vertex spots
         )
-    elif element_type == "hook_line":
-        return PySide6RenderingStyle(
-            line_width=1.5,  # Enhanced hook lines
-            line_color=(0, 0, 0),
-            line_style="solid"
-        )
+    # NOTE: hook_line removed - hooks are invisible positions per Dau formalism
+    # Heavy identity lines connect directly to predicate boundary positions
     elif element_type == "predicate_text":
         return PySide6RenderingStyle(
             font_family="Arial",

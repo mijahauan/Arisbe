@@ -61,8 +61,8 @@ class RenderingTheme:
     predicate_text_size: int = 12
     predicate_text_color: str = "black"
     predicate_background_color: str = "white"  # Clear background for readability
-    hook_line_width: float = 1.5  # Slightly heavier hooks for clarity
-    hook_line_color: str = "black"
+    # NOTE: Hook lines removed - hooks are invisible positions per Dau formalism
+    # Heavy identity lines connect directly to predicate boundary positions
     
     # Argument order labels (for multi-ary predicates)
     argument_label_size: int = 10
@@ -217,33 +217,11 @@ class CleanDiagramRenderer:
         )
         
         # Draw hooks to incident vertices
-        if edge_primitive.attachment_points:
-            for i, (vertex_key, vertex_pos) in enumerate(edge_primitive.attachment_points.items()):
-                # Draw hook line from predicate to vertex
-                hook_style = DrawingStyle(
-                    color=self._hex_to_rgb(self.theme.hook_line_color),
-                    line_width=self.theme.hook_line_width
-                )
-                self.canvas.draw_line(
-                    start=edge_primitive.position,
-                    end=vertex_pos,
-                    style=hook_style
-                )
-                
-                # For multi-ary predicates, draw argument order labels
-                if len(edge_primitive.attachment_points) > 1:
-                    # Calculate label position along the hook
-                    pred_x, pred_y = edge_primitive.position
-                    vert_x, vert_y = vertex_pos
-                    label_x = pred_x + 0.3 * (vert_x - pred_x)
-                    label_y = pred_y + 0.3 * (vert_y - pred_y)
-                    
-                    self.canvas.draw_text(
-                        position=(label_x, label_y),
-                        text=str(i + 1),  # 1-based numbering
-                        font_size=self.theme.argument_label_size,
-                        color=self.theme.argument_label_color
-                    )
+        # NOTE: Hook lines removed per Dau formalism - EGI_DIAGRAM_CORRESPONDENCE.md
+        # Heavy identity lines connect directly to predicate boundary positions
+        # Connections are handled by _render_lines_of_identity method
+        
+        # Argument order labels are handled by annotation system when enabled
     
     def _render_lines_of_identity(self, layout_result: LayoutResult, graph: RelationalGraphWithCuts) -> None:
         """
