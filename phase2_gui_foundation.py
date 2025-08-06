@@ -18,13 +18,21 @@ from egif_parser_dau import EGIFParser
 from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut
 from graphviz_layout_engine_v2 import GraphvizLayoutEngine
 from layout_engine_clean import SpatialPrimitive, LayoutResult
-from egdf_parser import EGDFParser
+from src.egi_diagram_controller import EGIDiagramController
+from corpus_loader import CorpusLoader
+from mode_aware_selection import ModeAwareSelectionSystem, Mode, ActionType, SelectionType
+from annotation_system import (
+    AnnotationManager, AnnotationType, AnnotationPrimitive,
+    create_arity_numbering_layer, create_argument_labels_layer
+)
 
 # GUI Components
 try:
-    from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                                   QHBoxLayout, QPushButton, QTextEdit, QLabel, 
-                                   QSplitter, QFrame, QComboBox, QStatusBar)
+    from PySide6.QtWidgets import (
+        QApplication, QMainWindow, QWidget, QVBoxLayout, 
+        QHBoxLayout, QPushButton, QTextEdit, QLabel, 
+        QSplitter, QFrame, QComboBox, QCheckBox, QGroupBox, QStatusBar
+    )
     from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont, QPainterPath
     from PySide6.QtCore import Qt, QPointF, QRectF, QTimer
     PYSIDE6_AVAILABLE = True
@@ -40,50 +48,201 @@ class EGDiagramWidget(QWidget):
         self.setMinimumSize(600, 400)
         self.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         
-        # Current diagram state
-        self.egi: Optional[RelationalGraphWithCuts] = None
-        self.layout_result = None
-        self.spatial_primitives: List[SpatialPrimitive] = []
+        # Initialize with a simple example
+        self.egi = self.create_example_egi()
+        self.layout_engine = GraphvizLayoutEngine()
+        self.spatial_primitives = []
+        self.selection_system = ModeAwareSelectionSystem(Mode.WARMUP)
+        self.annotation_manager = AnnotationManager()
         
-        # Selection state for Phase 2 development
+        # Initialize EGI-diagram controller for proper correspondence
+        self.diagram_controller = EGIDiagramController(self.egi)
+        
+        # Annotation system
+        self.annotation_primitives: List[AnnotationPrimitive] = []
+        self.show_annotations = False
+        
+        # Initialize default annotation layers
+        self._setup_default_annotations()
+        
+        # Mode-aware selection system for Phase 2
+        self.current_mode = Mode.WARMUP
+        
+        # Legacy compatibility (will be removed)
         self.selected_elements: Set[str] = set()
         self.hover_element: Optional[str] = None
         
         # Enable mouse tracking for hover effects
         self.setMouseTracking(True)
         
+    def create_example_egi(self) -> RelationalGraphWithCuts:
+        """Create a simple example EGI for testing"""
+        from egi_core_dau import create_empty_graph, create_vertex, create_edge
+        from frozendict import frozendict
+        
+        # Create simple example: (Human "Socrates")
+        egi = create_empty_graph()
+        
+        # Create vertex for Socrates
+        socrates = create_vertex(label="Socrates", is_generic=False)
+        
+        # Create edge for Human predicate
+        human_edge = create_edge()
+        
+        # Build the EGI using proper constructor
+        egi = RelationalGraphWithCuts(
+            V=frozenset([socrates]),
+            E=frozenset([human_edge]),
+            nu=frozendict({human_edge.id: (socrates.id,)}),
+            sheet=egi.sheet,
+            Cut=frozenset(),
+            area=frozendict({egi.sheet: frozenset([socrates.id, human_edge.id])}),
+            rel=frozendict({human_edge.id: "Human"})
+        )
+        
+        return egi
+    
+    def _setup_default_annotations(self):
+        """Initialize default annotation layers."""
+        # Add arity numbering layer (disabled by default)
+        arity_layer = create_arity_numbering_layer(enabled=False)
+        self.annotation_manager.add_layer(arity_layer)
+        
+        # Add argument labels layer (disabled by default)
+        labels_layer = create_argument_labels_layer(enabled=False)
+        self.annotation_manager.add_layer(labels_layer)
+    
+    def toggle_annotations(self, show: bool):
+        """Toggle annotation display on/off."""
+        self.show_annotations = show
+        self._update_annotations()
+        self.update()  # Trigger repaint
+    
+    def toggle_annotation_type(self, annotation_type: AnnotationType, enabled: bool):
+        """Enable/disable a specific annotation type."""
+        self.annotation_manager.toggle_annotation_type(annotation_type, enabled)
+        if self.show_annotations:
+            self._update_annotations()
+            self.update()  # Trigger repaint
+    
+    def _update_annotations(self):
+        """Update annotation primitives based on current diagram and settings."""
+        if self.egi and self.layout_result and self.show_annotations:
+            self.annotation_primitives = self.annotation_manager.generate_annotations(
+                self.layout_result, self.egi
+            )
+        else:
+            self.annotation_primitives = []
+        
     def set_diagram(self, egi: RelationalGraphWithCuts, spatial_primitives: List[SpatialPrimitive]):
         """Set the diagram to render."""
         self.egi = egi
         self.spatial_primitives = spatial_primitives
-        self.update()  # Trigger repaint
+        
+        # Create a simple layout result for annotation system
+        # TODO: This should come from the actual layout engine
+        self.layout_result = type('LayoutResult', (), {
+            'primitives': {p.element_id: p for p in spatial_primitives}
+        })()
+        
+        # Update selection system with new graph
+        self.selection_system.set_graph(egi)
+        
+        # Update annotations if they're enabled
+        self._update_annotations()
+        
+        # Clear selections (both legacy and new system)
+        self.selected_elements.clear()
+        self.selection_system.clear_selection()
+        self.hover_element = None
+        self.update()
         
     def clear_diagram(self):
         """Clear the current diagram."""
         self.egi = None
-        self.spatial_primitives = []
+        self.spatial_primitives.clear()
+        self.annotation_primitives.clear()
         self.selected_elements.clear()
+        self.selection_system.clear_selection()
         self.hover_element = None
         self.update()
+    
+    def switch_mode(self, new_mode: Mode):
+        """Switch between Warmup and Practice modes."""
+        if new_mode != self.current_mode:
+            self.current_mode = new_mode
+            self.selection_system.switch_mode(new_mode)
+            
+            # Clear legacy selection state
+            self.selected_elements.clear()
+            self.hover_element = None
+            
+            # Trigger repaint to update visual indicators
+            self.update()
+            
+            print(f"Switched to {new_mode.value} mode")
+    
+    def get_current_mode(self) -> Mode:
+        """Get the current interaction mode."""
+        return self.current_mode
+    
+    def get_available_actions(self) -> Set[ActionType]:
+        """Get available actions for current selection."""
+        return self.selection_system.get_available_actions()
         
     def paintEvent(self, event):
         """Render the EG diagram using Dau's conventions."""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        if not self.egi or not self.spatial_primitives:
-            # Draw placeholder text
-            painter.setPen(QColor(150, 150, 150))
-            painter.setFont(QFont("Arial", 12))
-            painter.drawText(self.rect(), Qt.AlignCenter, "Enter EGIF above to render diagram")
+        # Clear background
+        painter.fillRect(self.rect(), QColor(255, 255, 255))
+        
+        if not self.spatial_primitives:
             return
-            
-        # Render spatial primitives following Dau's conventions
+        
+        # Render context backgrounds for Practice mode (Peircean convention)
+        if self.current_mode == Mode.PRACTICE:
+            self._render_context_backgrounds(painter)
+        
+        # Render all spatial primitives
         for primitive in self.spatial_primitives:
             self._render_primitive(painter, primitive)
             
-        # Render selection overlays (Phase 2 foundation)
+        # Render annotations if enabled
+        if self.show_annotations:
+            self._render_annotations(painter)
+            
+        # Render mode-aware selection overlays
         self._render_selection_overlays(painter)
+    
+    def _render_context_backgrounds(self, painter: QPainter):
+        """Render context backgrounds using Peircean convention (Practice mode only)."""
+        if not self.egi:
+            return
+        
+        # Render cut interiors with light gray background (negative contexts)
+        for primitive in self.spatial_primitives:
+            if primitive.element_type == "cut":
+                cut_id = primitive.element_id
+                
+                # Check if this cut represents a negative context
+                if self.egi and cut_id in {c.id for c in self.egi.Cut}:
+                    try:
+                        is_negative = self.egi.is_negative_context(cut_id)
+                        if is_negative:
+                            # Light gray background for negative contexts
+                            x1, y1, x2, y2 = primitive.bounds
+                            painter.setPen(Qt.NoPen)
+                            painter.setBrush(QBrush(QColor(245, 245, 245)))  # Light gray
+                            
+                            # Draw filled rectangle for cut interior
+                            margin = 5  # Small margin inside cut boundary
+                            painter.drawRect(QRectF(x1 + margin, y1 + margin, 
+                                                  x2 - x1 - 2*margin, y2 - y1 - 2*margin))
+                    except Exception as e:
+                        # Skip context polarity check if it fails
+                        pass
             
     def _render_primitive(self, painter: QPainter, primitive: SpatialPrimitive):
         """Render a single spatial primitive following Dau's conventions."""
@@ -107,28 +266,84 @@ class EGDiagramWidget(QWidget):
             
     def _render_vertex(self, painter: QPainter, element_id: str, position: Tuple[float, float], 
                       is_selected: bool, is_hovered: bool):
-        """Render vertex as heavy identity spot with constant name (Dau's convention)."""
+        """Render vertex as standalone Line of Identity (heavy line segment) per Dau's formalism.
+        
+        According to Dau's Transformation Rule 6 (Isolated Vertex), vertices can exist
+        independently of predicates and should be rendered as heavy line segments
+        representing assertions of existence.
+        """
         x, y = position
         
-        # Heavy identity spot - prominent and dark
-        radius = 4.0 if not is_hovered else 5.0
-        color = QColor(0, 0, 0) if not is_selected else QColor(0, 100, 200)
-        
-        painter.setPen(QPen(color, 2))
-        painter.setBrush(QBrush(color))
-        painter.drawEllipse(QPointF(x, y), radius, radius)
-        
-        # FIX 1: Render constant name at vertex if it exists
+        # Get vertex information from EGI
+        vertex = None
         if self.egi:
             vertex = next((v for v in self.egi.V if v.id == element_id), None)
-            if vertex and vertex.label and not vertex.is_generic:
-                # Render constant name below the vertex spot
-                painter.setPen(QPen(color, 1))
-                painter.setFont(QFont("Times", 10))
-                text_rect = painter.fontMetrics().boundingRect(vertex.label)
-                text_x = x - text_rect.width() / 2
-                text_y = y + radius + text_rect.height() + 2
-                painter.drawText(QPointF(text_x, text_y), vertex.label)
+        
+        # Determine line properties based on vertex type and state
+        color = QColor(0, 0, 0) if not is_selected else QColor(0, 100, 200)
+        line_width = 4.0 if not is_hovered else 5.0  # Heavy line per Dau's convention
+        
+        # Calculate line segment dimensions
+        # Standalone LoI should be visible but not too long
+        line_length = 30  # Standard length for standalone LoI
+        
+        # Check if this vertex is connected to predicates via nu mappings
+        has_predicate_connections = False
+        if self.egi:
+            for edge_id, vertex_sequence in self.egi.nu.items():
+                if element_id in vertex_sequence:
+                    has_predicate_connections = True
+                    break
+        
+        # ARCHITECTURAL CORRECTION: Use ligature-aware rendering
+        # Check if this vertex is part of a ligature
+        ligature_id = self.diagram_controller.get_ligature_for_vertex(element_id)
+        
+        if ligature_id:
+            # This vertex is part of a ligature - render as part of connected identity lines
+            ligature = self.diagram_controller.ligatures[ligature_id]
+            
+            # Draw heavy lines to connected predicates
+            painter.setPen(QPen(color, line_width, Qt.SolidLine, Qt.RoundCap))
+            
+            for predicate_id, hook_position in ligature.connected_predicates.items():
+                # Find predicate position
+                predicate_primitive = next((p for p in self.spatial_primitives 
+                                          if p.element_id == predicate_id), None)
+                if predicate_primitive:
+                    px, py = predicate_primitive.position
+                    
+                    # Calculate hook point on predicate periphery
+                    # For now, use center - will be refined for proper hook positioning
+                    painter.drawLine(QPointF(x, y), QPointF(px, py))
+            
+            # Draw identity spot at vertex
+            spot_radius = 3.0
+            painter.setBrush(QBrush(color))
+            painter.drawEllipse(QPointF(x, y), spot_radius, spot_radius)
+            
+        else:
+            # Standalone vertex - render as isolated identity spot
+            spot_radius = 4.0 if not is_hovered else 5.0
+            painter.setPen(QPen(color, 2))
+            painter.setBrush(QBrush(color))
+            painter.drawEllipse(QPointF(x, y), spot_radius, spot_radius)
+        
+        # Render constant name if it exists (for both connected and standalone vertices)
+        if vertex and vertex.label and not vertex.is_generic:
+            painter.setPen(QPen(color, 1))
+            painter.setFont(QFont("Times", 10))
+            text_rect = painter.fontMetrics().boundingRect(vertex.label)
+            text_x = x - text_rect.width() / 2
+            
+            if has_predicate_connections:
+                # For connected vertices, place text below the spot
+                text_y = y + 4.0 + text_rect.height() + 2
+            else:
+                # For standalone LoI, place text below the line
+                text_y = y + line_width/2 + text_rect.height() + 2
+            
+            painter.drawText(QPointF(text_x, text_y), vertex.label)
         
     def _render_edge(self, painter: QPainter, element_id: str, position: Tuple[float, float],
                     bounds: Tuple[float, float, float, float], is_selected: bool, is_hovered: bool):
@@ -157,20 +372,20 @@ class EGDiagramWidget(QWidget):
         text_y = y + text_rect.height() / 4  # Adjust for baseline
         painter.drawText(QPointF(text_x, text_y), relation_name)
         
-        # Draw connection lines to vertices (heavy identity lines)
+        # Draw hooks at predicate boundary (where LoI can attach)
+        # ARCHITECTURAL CORRECTION: Predicates only have hooks, NOT heavy lines
+        # Heavy lines (LoI) are independent and attach TO predicates via these hooks
         if element_id in self.egi.nu:
             vertex_sequence = self.egi.nu[element_id]
             for i, vertex_id in enumerate(vertex_sequence):
-                # Find vertex position
+                # Find vertex position to determine hook direction
                 vertex_primitive = next((p for p in self.spatial_primitives 
                                        if p.element_id == vertex_id), None)
                 if vertex_primitive:
                     vx, vy = vertex_primitive.position
                     
-                    # Find the closest point on predicate boundary to minimize line length
+                    # Calculate hook position on predicate boundary
                     pred_center_x, pred_center_y = x, y
-                    
-                    # Calculate direction from predicate center to vertex
                     dx = vx - pred_center_x
                     dy = vy - pred_center_y
                     distance = (dx*dx + dy*dy)**0.5
@@ -180,26 +395,24 @@ class EGDiagramWidget(QWidget):
                         dx_norm = dx / distance
                         dy_norm = dy / distance
                         
-                        # Find closest boundary point on predicate text boundary
-                        # Use text dimensions + minimal padding for boundary calculation
+                        # Find hook position on predicate text boundary
                         text_half_width = text_rect.width() / 2 + text_padding
                         text_half_height = text_rect.height() / 2 + text_padding
                         
-                        # Calculate intersection with rectangular boundary
-                        # Find which edge of the rectangle the line intersects
+                        # Calculate hook position
                         if abs(dx_norm) > abs(dy_norm):
-                            # Line is more horizontal - intersect with left/right edge
                             hook_x = pred_center_x + (text_half_width if dx_norm > 0 else -text_half_width)
                             hook_y = pred_center_y + dy_norm * text_half_width / abs(dx_norm)
                         else:
-                            # Line is more vertical - intersect with top/bottom edge
                             hook_x = pred_center_x + dx_norm * text_half_height / abs(dy_norm)
                             hook_y = pred_center_y + (text_half_height if dy_norm > 0 else -text_half_height)
                         
-                        # Heavy line of identity (Dau's convention)
-                        line_width = 3.0 if not is_selected else 4.0
-                        painter.setPen(QPen(color, line_width))
-                        painter.drawLine(QPointF(hook_x, hook_y), QPointF(vx, vy))
+                        # Draw small hook indicator (NOT a heavy line)
+                        hook_size = 3
+                        hook_color = QColor(0, 0, 0) if not is_selected else QColor(0, 100, 200)
+                        painter.setPen(QPen(hook_color, 2))
+                        painter.setBrush(QBrush(hook_color))
+                        painter.drawEllipse(QPointF(hook_x, hook_y), hook_size, hook_size)
                     
     def _render_identity_line(self, painter: QPainter, element_id: str, position: Tuple[float, float],
                              bounds: Tuple[float, float, float, float], is_selected: bool, is_hovered: bool):
@@ -226,44 +439,177 @@ class EGDiagramWidget(QWidget):
         
         # Draw as oval (fine-drawn closed curve)
         painter.drawEllipse(QRectF(x1, y1, x2 - x1, y2 - y1))
+    
+    def _render_annotations(self, painter: QPainter):
+        """Render annotation overlays on top of the base diagram."""
+        for annotation in self.annotation_primitives:
+            self._render_annotation_primitive(painter, annotation)
+    
+    def _render_annotation_primitive(self, painter: QPainter, annotation: AnnotationPrimitive):
+        """Render a single annotation primitive."""
+        x, y = annotation.position
+        content = annotation.content
+        style = annotation.style
+        
+        # Set up annotation styling
+        font_size = style.get('font_size', 10)
+        color = QColor(style.get('color', 'blue'))
+        background_color = QColor(style.get('background', 'white'))
+        show_border = style.get('border', True)
+        
+        # Set font
+        font = QFont("Arial", font_size)
+        painter.setFont(font)
+        
+        # Calculate text dimensions
+        text_rect = painter.fontMetrics().boundingRect(content)
+        padding = 2
+        
+        # Background rectangle
+        bg_rect = QRectF(
+            x - text_rect.width()/2 - padding,
+            y - text_rect.height()/2 - padding,
+            text_rect.width() + 2*padding,
+            text_rect.height() + 2*padding
+        )
+        
+        # Draw background
+        if show_border:
+            painter.setPen(QPen(color, 1))
+        else:
+            painter.setPen(QPen(Qt.NoPen))
+        painter.setBrush(QBrush(background_color))
+        painter.drawRoundedRect(bg_rect, 2, 2)
+        
+        # Draw text
+        painter.setPen(QPen(color, 1))
+        painter.setBrush(QBrush(Qt.NoBrush))
+        text_x = x - text_rect.width()/2
+        text_y = y + text_rect.height()/4  # Adjust for baseline
+        painter.drawText(QPointF(text_x, text_y), content)
         
     def _render_selection_overlays(self, painter: QPainter):
-        """Render selection overlays - foundation for Phase 2."""
+        """Render mode-aware selection overlays and hover effects."""
+        # Render hover effect first (underneath selection)
+        if self.hover_element and self.hover_element not in self.selected_elements:
+            hover_primitive = next((p for p in self.spatial_primitives 
+                                  if p.element_id == self.hover_element), None)
+            if hover_primitive:
+                # Light gray hover effect
+                hover_color = QColor(128, 128, 128, 30)
+                hover_border = QColor(128, 128, 128, 100)
+                
+                painter.setPen(QPen(hover_border, 1, Qt.DashLine))
+                painter.setBrush(QBrush(hover_color))
+                
+                x1, y1, x2, y2 = hover_primitive.bounds
+                padding = 2
+                painter.drawRect(QRectF(x1 - padding, y1 - padding, 
+                                      x2 - x1 + 2*padding, y2 - y1 + 2*padding))
+        
+        # Render selection overlays
         if not self.selected_elements:
             return
-            
-        # Simple selection highlight for now
-        painter.setPen(QPen(QColor(0, 100, 200, 100), 2, Qt.DashLine))
-        painter.setBrush(QBrush(Qt.NoBrush))
+        
+        # Mode-aware selection colors
+        if self.current_mode == Mode.WARMUP:
+            # Blue highlights for compositional selections
+            selection_color = QColor(0, 122, 255, 80)  # Blue with transparency
+            border_color = QColor(0, 122, 255, 200)
+        else:  # Practice mode
+            # Green for valid transformations
+            selection_color = QColor(40, 167, 69, 80)  # Green with transparency
+            border_color = QColor(40, 167, 69, 200)
+        
+        painter.setPen(QPen(border_color, 3, Qt.SolidLine))
+        painter.setBrush(QBrush(selection_color))
         
         for element_id in self.selected_elements:
             primitive = next((p for p in self.spatial_primitives 
                             if p.element_id == element_id), None)
             if primitive:
                 x1, y1, x2, y2 = primitive.bounds
-                painter.drawRect(QRectF(x1 - 5, y1 - 5, x2 - x1 + 10, y2 - y1 + 10))
+                element_type = primitive.element_type
+                
+                if element_type == "vertex":
+                    # Enhanced selection for vertices (supports both spots and LoI line segments)
+                    center_x = (x1 + x2) / 2
+                    center_y = (y1 + y2) / 2
+                    
+                    # Check if this vertex has predicate connections (determines rendering type)
+                    has_predicate_connections = False
+                    if self.egi:
+                        for edge_id, vertex_sequence in self.egi.nu.items():
+                            if element_id in vertex_sequence:
+                                has_predicate_connections = True
+                                break
+                    
+                    if has_predicate_connections:
+                        # Connected vertex (rendered as spot): circular selection
+                        radius = max(8, (x2 - x1) / 2 + 4)
+                        painter.drawEllipse(QPointF(center_x, center_y), radius, radius)
+                    else:
+                        # Standalone LoI (rendered as line segment): line-based selection
+                        line_length = 30  # Must match rendering logic
+                        line_start_x = center_x - line_length / 2
+                        line_end_x = center_x + line_length / 2
+                        
+                        # Draw selection overlay around the line segment
+                        padding = 6
+                        painter.drawRect(QRectF(line_start_x - padding, center_y - padding, 
+                                              line_length + 2*padding, 2*padding))
+                    
+                elif element_type == "cut":
+                    # Thick border highlight for cuts
+                    painter.setPen(QPen(border_color, 4, Qt.SolidLine))
+                    painter.setBrush(Qt.NoBrush)  # No fill for cuts
+                    padding = 2
+                    painter.drawRect(QRectF(x1 - padding, y1 - padding, 
+                                          x2 - x1 + 2*padding, y2 - y1 + 2*padding))
+                    painter.setBrush(QBrush(selection_color))  # Restore brush
+                    
+                else:
+                    # Rectangular selection for predicates and other elements
+                    padding = 4
+                    painter.drawRect(QRectF(x1 - padding, y1 - padding, 
+                                          x2 - x1 + 2*padding, y2 - y1 + 2*padding))
                 
     def mousePressEvent(self, event):
-        """Handle mouse clicks for selection (Phase 2 foundation)."""
+        """Handle mouse clicks for mode-aware selection."""
         if event.button() == Qt.LeftButton:
             # Find element at click position
             clicked_element = self._find_element_at_position(event.position().x(), event.position().y())
             
             if clicked_element:
-                if event.modifiers() & Qt.ControlModifier:
-                    # Multi-select with Ctrl
-                    if clicked_element in self.selected_elements:
-                        self.selected_elements.remove(clicked_element)
-                    else:
-                        self.selected_elements.add(clicked_element)
-                else:
-                    # Single select
-                    self.selected_elements = {clicked_element}
+                # Use mode-aware selection system
+                multi_select = bool(event.modifiers() & Qt.ControlModifier)
+                result = self.selection_system.select_element(clicked_element, multi_select)
+                
+                # Update legacy selection state for compatibility
+                self.selected_elements = self.selection_system.selection_state.selected_elements.copy()
+                
+                # Print available actions for debugging
+                available_actions = self.get_available_actions()
+                print(f"✓ Selected {clicked_element} in {self.current_mode.value} mode")
+                print(f"  Available actions: {[action.value for action in available_actions]}")
+                
+                if not result.is_valid:
+                    print(f"⚠ Selection warning: {result.error_message}")
+                    
             else:
                 # Click on empty area - clear selection
+                if self.selected_elements:
+                    print(f"✓ Cleared selection in {self.current_mode.value} mode")
+                self.selection_system.clear_selection()
                 self.selected_elements.clear()
                 
+            # Update visual display and notify parent
             self.update()
+            
+            # Notify parent widget to update selection info
+            parent = self.parent()
+            if parent and hasattr(parent, 'update_selection_info'):
+                parent.update_selection_info()
             
     def mouseMoveEvent(self, event):
         """Handle mouse movement for hover effects."""
@@ -274,11 +620,68 @@ class EGDiagramWidget(QWidget):
             self.update()
             
     def _find_element_at_position(self, x: float, y: float) -> Optional[str]:
-        """Find element at given position - foundation for Phase 2 interaction."""
+        """Find element at given position with robust hit-testing."""
+        # Check each primitive with appropriate hit-testing for element type
         for primitive in self.spatial_primitives:
+            element_type = primitive.element_type
             x1, y1, x2, y2 = primitive.bounds
-            if x1 <= x <= x2 and y1 <= y <= y2:
-                return primitive.element_id
+            
+            if element_type == "vertex":
+                # Enhanced hit-testing for vertices (supports both spots and LoI line segments)
+                center_x = (x1 + x2) / 2
+                center_y = (y1 + y2) / 2
+                
+                # Check if this vertex has predicate connections (determines rendering type)
+                has_predicate_connections = False
+                if self.egi:
+                    for edge_id, vertex_sequence in self.egi.nu.items():
+                        if primitive.element_id in vertex_sequence:
+                            has_predicate_connections = True
+                            break
+                
+                if has_predicate_connections:
+                    # Connected vertex (rendered as spot): use circular hit-testing
+                    radius = max(10, (x2 - x1) / 2 + 5)  # Minimum 10px radius for easy clicking
+                    distance = ((x - center_x)**2 + (y - center_y)**2)**0.5
+                    if distance <= radius:
+                        return primitive.element_id
+                else:
+                    # Standalone LoI (rendered as line segment): use line-based hit-testing
+                    line_length = 30  # Must match rendering logic
+                    line_start_x = center_x - line_length / 2
+                    line_end_x = center_x + line_length / 2
+                    
+                    # Check if click is near the horizontal line segment
+                    if (line_start_x - 5) <= x <= (line_end_x + 5) and abs(y - center_y) <= 8:
+                        return primitive.element_id
+                    
+            elif element_type == "predicate":
+                # For predicates (text), use rectangular bounds with padding
+                padding = 5
+                if (x1 - padding) <= x <= (x2 + padding) and (y1 - padding) <= y <= (y2 + padding):
+                    return primitive.element_id
+                    
+            elif element_type == "cut":
+                # For cuts, check if click is on the boundary (not interior)
+                # This allows selecting the cut itself vs. clicking inside it
+                margin = 10  # Width of selectable boundary
+                # Check if point is within outer bounds but not in inner area
+                if (x1 <= x <= x2 and y1 <= y <= y2):
+                    # Check if we're close to the boundary
+                    dist_to_left = abs(x - x1)
+                    dist_to_right = abs(x - x2)
+                    dist_to_top = abs(y - y1)
+                    dist_to_bottom = abs(y - y2)
+                    
+                    min_dist_to_boundary = min(dist_to_left, dist_to_right, dist_to_top, dist_to_bottom)
+                    if min_dist_to_boundary <= margin:
+                        return primitive.element_id
+                        
+            else:
+                # Default rectangular hit-testing for other elements
+                if x1 <= x <= x2 and y1 <= y <= y2:
+                    return primitive.element_id
+                    
         return None
 
 class Phase2GUIFoundation(QMainWindow):
@@ -291,7 +694,6 @@ class Phase2GUIFoundation(QMainWindow):
         
         # Initialize components
         self.layout_engine = GraphvizLayoutEngine()
-        self.egdf_parser = EGDFParser()
         
         # Initialize corpus loader
         try:
@@ -360,6 +762,21 @@ class Phase2GUIFoundation(QMainWindow):
         clear_btn.clicked.connect(self.clear_diagram)
         controls_layout.addWidget(clear_btn)
         
+        # Mode switching controls
+        controls_layout.addWidget(QLabel("|"))  # Separator
+        controls_layout.addWidget(QLabel("Mode:"))
+        
+        self.mode_warmup_btn = QPushButton("Warmup")
+        self.mode_warmup_btn.setCheckable(True)
+        self.mode_warmup_btn.setChecked(True)  # Default to Warmup
+        self.mode_warmup_btn.clicked.connect(lambda: self.switch_mode(Mode.WARMUP))
+        controls_layout.addWidget(self.mode_warmup_btn)
+        
+        self.mode_practice_btn = QPushButton("Practice")
+        self.mode_practice_btn.setCheckable(True)
+        self.mode_practice_btn.clicked.connect(lambda: self.switch_mode(Mode.PRACTICE))
+        controls_layout.addWidget(self.mode_practice_btn)
+        
         main_layout.addLayout(controls_layout)
         
         # Splitter for diagram and info
@@ -386,20 +803,53 @@ class Phase2GUIFoundation(QMainWindow):
         self.selection_info.setReadOnly(True)
         info_layout.addWidget(self.selection_info)
         
-        info_layout.addWidget(QLabel("Phase 2 Development:"))
-        phase2_info = QTextEdit()
-        phase2_info.setPlainText(
-            "Foundation Ready:\n"
-            "✓ EGI → Visual rendering\n"
-            "✓ Basic selection system\n"
-            "✓ Hover effects\n"
-            "✓ Mouse interaction\n\n"
-            "Next: Selection overlays\n"
-            "Context-sensitive actions\n"
-            "Dynamic effects"
-        )
-        phase2_info.setReadOnly(True)
-        info_layout.addWidget(phase2_info)
+        # Annotation Controls section
+        annotation_group = QGroupBox("Display Annotations:")
+        annotation_layout = QVBoxLayout()
+        
+        # Master annotation toggle
+        self.annotations_checkbox = QCheckBox("Show Annotations")
+        self.annotations_checkbox.toggled.connect(self.on_annotations_toggled)
+        annotation_layout.addWidget(self.annotations_checkbox)
+        
+        # Individual annotation type controls
+        self.arity_checkbox = QCheckBox("Arity Numbering")
+        self.arity_checkbox.toggled.connect(self.on_arity_toggled)
+        self.arity_checkbox.setEnabled(False)  # Disabled until master is enabled
+        annotation_layout.addWidget(self.arity_checkbox)
+        
+        self.labels_checkbox = QCheckBox("Argument Labels")
+        self.labels_checkbox.toggled.connect(self.on_labels_toggled)
+        self.labels_checkbox.setEnabled(False)  # Disabled until master is enabled
+        annotation_layout.addWidget(self.labels_checkbox)
+        
+        annotation_group.setLayout(annotation_layout)
+        info_layout.addWidget(annotation_group)
+        
+        # Phase 2 Development section
+        phase2_group = QGroupBox("Phase 2 Development:")
+        phase2_layout = QVBoxLayout()
+        
+        # Foundation status
+        foundation_label = QLabel("Foundation Ready:")
+        foundation_items = [
+            "✓ EGI → Visual rendering",
+            "✓ Basic selection system", 
+            "✓ Hover effects",
+            "✓ Mouse interaction",
+            "✓ Annotation system integrated"
+        ]
+        for item in foundation_items:
+            phase2_layout.addWidget(QLabel(item))
+        
+        phase2_layout.addWidget(QLabel(""))
+        next_label = QLabel("Next: Selection overlays")
+        phase2_layout.addWidget(next_label)
+        phase2_layout.addWidget(QLabel("Context-sensitive actions"))
+        phase2_layout.addWidget(QLabel("Dynamic effects"))
+        
+        phase2_group.setLayout(phase2_layout)
+        info_layout.addWidget(phase2_group)
         
         splitter.addWidget(info_frame)
         main_layout.addWidget(splitter)
@@ -465,9 +915,33 @@ class Phase2GUIFoundation(QMainWindow):
     def clear_diagram(self):
         """Clear the current diagram."""
         self.diagram_widget.clear_diagram()
-        self.egi_info.clear()
-        self.selection_info.clear()
+        self.update_egi_info(None)
+        self.update_selection_info()
         self.status_bar.showMessage("Diagram cleared")
+    
+    def switch_mode(self, new_mode: Mode):
+        """Switch between Warmup and Practice modes."""
+        # Update button states
+        self.mode_warmup_btn.setChecked(new_mode == Mode.WARMUP)
+        self.mode_practice_btn.setChecked(new_mode == Mode.PRACTICE)
+        
+        # Switch mode in diagram widget
+        self.diagram_widget.switch_mode(new_mode)
+        
+        # Update status bar
+        mode_name = "Warmup" if new_mode == Mode.WARMUP else "Practice"
+        self.status_bar.showMessage(f"Switched to {mode_name} mode")
+        
+        # Update selection info to show available actions
+        self.update_selection_info()
+        
+    def load_egi(self, egi: RelationalGraphWithCuts):
+        """Load a new EGI and update the display"""
+        self.egi = egi
+        # Update the diagram controller with the new EGI
+        self.diagram_controller = EGIDiagramController(self.egi)
+        self._render_diagram()
+        self.update()
         
     def update_egi_info(self, egi: RelationalGraphWithCuts):
         """Update EGI structure information."""
@@ -483,15 +957,26 @@ class Phase2GUIFoundation(QMainWindow):
         self.egi_info.setPlainText(info_text)
         
     def update_selection_info(self):
-        """Update selection information."""
+        """Update selection information with mode-aware details."""
         selected = self.diagram_widget.selected_elements
         hover = self.diagram_widget.hover_element
+        current_mode = self.diagram_widget.get_current_mode()
         
-        info_text = f"Selected: {len(selected)} elements\n"
+        info_text = f"Mode: {current_mode.value.title()}\n"
+        info_text += f"Selected: {len(selected)} elements\n"
+        
         if selected:
             info_text += f"  {', '.join(list(selected)[:3])}\n"
             if len(selected) > 3:
                 info_text += f"  ... and {len(selected) - 3} more\n"
+                
+        # Show available actions for current selection
+        available_actions = self.diagram_widget.get_available_actions()
+        if available_actions:
+            info_text += f"\nAvailable Actions:\n"
+            for action in sorted(available_actions, key=lambda x: x.value):
+                action_name = action.value.replace('_', ' ').title()
+                info_text += f"  • {action_name}\n"
                 
         if hover:
             info_text += f"\nHover: {hover}"
@@ -541,8 +1026,31 @@ class Phase2GUIFoundation(QMainWindow):
     def load_sample_diagram(self):
         """Load the first sample diagram on startup."""
         if self.sample_egifs:
-            self.egif_combo.setCurrentText(self.sample_egifs[0])
+            self.egif_combo.setCurrentText(self.sample_egifs[4])  # Load Loves x y example for arity testing
             self.render_diagram()
+
+    # Annotation control event handlers
+    def on_annotations_toggled(self, checked: bool):
+        """Handle master annotation toggle."""
+        # Enable/disable individual annotation controls
+        self.arity_checkbox.setEnabled(checked)
+        self.labels_checkbox.setEnabled(checked)
+        
+        # Toggle annotation display in diagram widget
+        self.diagram_widget.toggle_annotations(checked)
+        
+        # Update status
+        print(f"Annotations {'enabled' if checked else 'disabled'}")
+    
+    def on_arity_toggled(self, checked: bool):
+        """Handle arity numbering toggle."""
+        self.diagram_widget.toggle_annotation_type(AnnotationType.ARITY_NUMBERING, checked)
+        print(f"Arity numbering {'enabled' if checked else 'disabled'}")
+    
+    def on_labels_toggled(self, checked: bool):
+        """Handle argument labels toggle."""
+        self.diagram_widget.toggle_annotation_type(AnnotationType.ARGUMENT_LABELS, checked)
+        print(f"Argument labels {'enabled' if checked else 'disabled'}")
 
 def main():
     """Run the Phase 2 GUI foundation."""

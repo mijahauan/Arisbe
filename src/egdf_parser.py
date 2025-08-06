@@ -18,6 +18,10 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 from dataclasses import dataclass, asdict
 from datetime import datetime
 import sys
+
+# Import canonical SpatialPrimitive and types from pipeline contracts
+from layout_engine_clean import SpatialPrimitive, Coordinate as CanonicalCoordinate, Bounds
+from egi_core_dau import ElementID
 import os
 import re
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -47,47 +51,61 @@ class Coordinate:
     x: float
     y: float
 
-@dataclass
-class SpatialPrimitive:
-    """Base class for all visual elements in EGDF."""
-    element_id: str  # ID of the EGI element this represents
-    element_type: str  # Type: 'vertex', 'edge', 'cut'
-    position: Tuple[float, float]  # (x, y) coordinates
-    bounds: Tuple[float, float, float, float]  # (x1, y1, x2, y2) bounding box
-    id: Optional[str] = None  # Visual primitive ID
-    style_overrides: Optional[Dict[str, Any]] = None
-
-@dataclass
-class VertexPrimitive:
+class VertexPrimitive(SpatialPrimitive):
     """Visual representation of an EGI vertex."""
-    type: str
-    id: str
-    egi_element_id: str
-    position: Coordinate
-    style_overrides: Optional[Dict[str, Any]] = None
     annotations: Optional[Dict[str, Any]] = None
+    
+    def __init__(self, element_id: str, position: Coordinate, bounds: Optional[Bounds] = None, **kwargs):
+        # Convert Coordinate to canonical tuple format
+        pos_tuple = (position.x, position.y) if hasattr(position, 'x') else position
+        # Default bounds if not provided
+        if bounds is None:
+            bounds = (pos_tuple[0]-5, pos_tuple[1]-5, pos_tuple[0]+5, pos_tuple[1]+5)
+        # Vertices have z_index=1 (above cuts=0, below edges=2)
+        super().__init__(element_id=element_id, element_type='vertex', position=pos_tuple, bounds=bounds, z_index=1)
+        self.annotations = kwargs.get('annotations')
 
-@dataclass
-class IdentityLinePrimitive:
+class IdentityLinePrimitive(SpatialPrimitive):
     """Visual representation of an identity line (heavy line)."""
-    type: str
-    id: str
-    egi_element_id: str
     coordinates: List[Coordinate]
-    style_overrides: Optional[Dict[str, Any]] = None
     connection_points: Optional[Dict[str, Any]] = None
+    
+    def __init__(self, element_id: str, coordinates: List[Coordinate], **kwargs):
+        # Calculate bounds from coordinates
+        if coordinates:
+            x_coords = [c.x if hasattr(c, 'x') else c[0] for c in coordinates]
+            y_coords = [c.y if hasattr(c, 'y') else c[1] for c in coordinates]
+            bounds = (min(x_coords), min(y_coords), max(x_coords), max(y_coords))
+            # Use first coordinate as position
+            position = (coordinates[0].x if hasattr(coordinates[0], 'x') else coordinates[0][0],
+                       coordinates[0].y if hasattr(coordinates[0], 'y') else coordinates[0][1])
+        else:
+            bounds = (0, 0, 0, 0)
+            position = (0, 0)
+        # Identity lines have z_index=2 (same as predicates, above vertices=1 and cuts=0)
+        super().__init__(element_id=element_id, element_type='identity_line', position=position, bounds=bounds, z_index=2)
+        self.coordinates = coordinates
+        self.connection_points = kwargs.get('connection_points')
 
-@dataclass
-class PredicatePrimitive:
+class PredicatePrimitive(SpatialPrimitive):
     """Visual representation of a predicate."""
-    type: str
-    id: str
-    egi_element_id: str
-    position: Coordinate
     text: str
-    style_overrides: Optional[Dict[str, Any]] = None
     bounding_box: Optional[Dict[str, float]] = None
     argument_order: Optional[List[Dict[str, Any]]] = None
+    
+    def __init__(self, element_id: str, position: Coordinate, text: str, bounds: Optional[Bounds] = None, **kwargs):
+        # Convert Coordinate to canonical tuple format
+        pos_tuple = (position.x, position.y) if hasattr(position, 'x') else position
+        # Default bounds based on text size if not provided
+        if bounds is None:
+            text_width = len(text) * 8  # Rough estimate
+            text_height = 16
+            bounds = (pos_tuple[0]-text_width//2, pos_tuple[1]-text_height//2, pos_tuple[0]+text_width//2, pos_tuple[1]+text_height//2)
+        # Predicates have z_index=2 (above vertices=1 and cuts=0)
+        super().__init__(element_id=element_id, element_type='predicate', position=pos_tuple, bounds=bounds, z_index=2)
+        self.text = text
+        self.bounding_box = kwargs.get('bounding_box')
+        self.argument_order = kwargs.get('argument_order')
 
 @dataclass
 class CutPrimitive:
@@ -614,40 +632,43 @@ class EGDFLayoutGenerator:
         self.default_style = StyleTheme()
     
     def generate_layout_from_egi(self, egi: RelationalGraphWithCuts) -> List[SpatialPrimitive]:
-        """Generate spatial primitives from EGI structure."""
+        """Generate spatial primitives from EGI structure using actual element IDs."""
         primitives = []
         
-        # Placeholder layout generation
-        # TODO: Implement proper layout algorithm
+        # Generate primitives for vertices
+        for i, vertex in enumerate(egi.V):
+            vertex_primitive = VertexPrimitive(
+                element_id=vertex.id,
+                position=Coordinate(x=100.0 + i * 150, y=200.0)
+            )
+            primitives.append(vertex_primitive)
         
-        # For now, create simple test layout
-        vertex_primitive = VertexPrimitive(
-            type="vertex",
-            id="vertex_1",
-            egi_element_id="test_vertex",
-            position=Coordinate(x=100.0, y=200.0)
-        )
-        primitives.append(vertex_primitive)
-        
-        predicate_primitive = PredicatePrimitive(
-            type="predicate",
-            id="predicate_1", 
-            egi_element_id="test_predicate",
-            position=Coordinate(x=200.0, y=200.0),
-            text="Human"
-        )
-        primitives.append(predicate_primitive)
-        
-        identity_line_primitive = IdentityLinePrimitive(
-            type="identity_line",
-            id="identity_1",
-            egi_element_id="test_edge",
-            coordinates=[
-                Coordinate(x=100.0, y=200.0),
-                Coordinate(x=200.0, y=200.0)
-            ]
-        )
-        primitives.append(identity_line_primitive)
+        # Generate primitives for edges (predicates)
+        for i, edge in enumerate(egi.E):
+            # Get relation name from EGI
+            relation_name = egi.get_relation_name(edge.id)
+            
+            predicate_primitive = PredicatePrimitive(
+                element_id=edge.id,
+                position=Coordinate(x=200.0 + i * 150, y=200.0),
+                text=relation_name
+            )
+            primitives.append(predicate_primitive)
+            
+            # Generate identity line if edge connects to vertices
+            if edge.id in egi.nu:
+                vertex_sequence = egi.nu[edge.id]
+                if len(vertex_sequence) > 0:
+                    # Create identity line from first vertex to predicate
+                    first_vertex_id = vertex_sequence[0]
+                    identity_line_primitive = IdentityLinePrimitive(
+                        element_id=f"line_{first_vertex_id}_{edge.id}",
+                        coordinates=[
+                            Coordinate(x=100.0, y=200.0),  # Vertex position
+                            Coordinate(x=200.0 + i * 150, y=200.0)  # Predicate position
+                        ]
+                    )
+                    primitives.append(identity_line_primitive)
         
         return primitives
 

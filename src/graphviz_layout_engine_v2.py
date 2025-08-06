@@ -447,14 +447,6 @@ class GraphvizLayoutEngine:
                 width = node.width * 72  # Convert to points
                 height = node.height * 72
                 
-                # Create node primitive
-                node_bounds = (
-                    x - width/2,
-                    y - height/2,
-                    x + width/2,
-                    y + height/2
-                )
-                
                 # Determine element type using EGI mappings (consistent IDs throughout)
                 if node_id in graph.nu:  # This is a predicate edge
                     element_type_name = 'predicate'
@@ -465,6 +457,37 @@ class GraphvizLayoutEngine:
                 else:
                     # Fallback: assume vertex for unknown elements
                     element_type_name = 'vertex'
+                
+                # Create node primitive with bounds that match text rendering
+                if element_type_name == 'predicate':
+                    # For predicates, calculate bounds based on text dimensions
+                    # This matches the text rendering logic in the GUI
+                    relation_name = graph.rel.get(node_id, node_id)
+                    
+                    # Estimate text dimensions (approximate font metrics)
+                    # This should match the actual font metrics used in rendering
+                    char_width = 8  # Approximate character width in pixels
+                    char_height = 12  # Approximate character height in pixels
+                    text_width = len(relation_name) * char_width
+                    text_height = char_height
+                    
+                    # Add padding to match rendering
+                    padding = 4
+                    
+                    node_bounds = (
+                        x - text_width/2 - padding,
+                        y - text_height/2 - padding,
+                        x + text_width/2 + padding,
+                        y + text_height/2 + padding
+                    )
+                else:
+                    # For vertices and cuts, use Graphviz dimensions
+                    node_bounds = (
+                        x - width/2,
+                        y - height/2,
+                        x + width/2,
+                        y + height/2
+                    )
                 
                 # CONSISTENT IDs: Use the same ID throughout (no mapping needed)
                 original_element_id = node_id

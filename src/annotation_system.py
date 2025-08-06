@@ -84,46 +84,53 @@ class AnnotationRenderer:
         """Generate arity numbering annotations for n-ary predicates."""
         primitives = []
         
+        # Generate arity numbering annotations for n-ary predicates
+        
         # Find all predicates (edges) with arity > 1
-        for edge_id in graph.E:
-            if edge_id in graph.nu and len(graph.nu[edge_id]) > 1:
-                # Check if this element should be annotated
-                if (annotation_config.target_elements is None or 
-                    edge_id in annotation_config.target_elements):
-                    
-                    # Get predicate position from layout
-                    if edge_id in layout_result.primitives:
-                        predicate_primitive = layout_result.primitives[edge_id]
-                        pred_x, pred_y = predicate_primitive.position
+        for edge in graph.E:
+            # Extract edge ID from Edge object
+            edge_id = edge.id if hasattr(edge, 'id') else str(edge)
+            
+            if hasattr(graph, 'nu') and edge_id in graph.nu:
+                arity = len(graph.nu[edge_id])
+                if arity > 1:
+                    # Check if this element should be annotated
+                    if (annotation_config.target_elements is None or 
+                        edge_id in annotation_config.target_elements):
                         
-                        # Generate numbered annotations for each argument
-                        vertex_sequence = graph.nu[edge_id]
-                        for i, vertex_id in enumerate(vertex_sequence):
-                            if vertex_id in layout_result.primitives:
-                                vertex_primitive = layout_result.primitives[vertex_id]
-                                vx, vy = vertex_primitive.position
-                                
-                                # Calculate annotation position near the connection point
-                                # Position number halfway between predicate and vertex
-                                ann_x = (pred_x + vx) / 2
-                                ann_y = (pred_y + vy) / 2 - 8  # Slightly above the line
-                                
-                                # Create annotation primitive
-                                annotation = AnnotationPrimitive(
-                                    annotation_id=f"arity_{edge_id}_{i}",
-                                    annotation_type=AnnotationType.ARITY_NUMBERING,
-                                    element_id=edge_id,
-                                    position=(ann_x, ann_y),
-                                    content=str(i + 1),  # 1-based numbering
-                                    style={
-                                        'font_size': 10,
-                                        'color': 'blue',
-                                        'background': 'white',
-                                        'border': True,
-                                        **annotation_config.style_options
-                                    }
-                                )
-                                primitives.append(annotation)
+                        # Get predicate position from layout
+                        if edge_id in layout_result.primitives:
+                            predicate_primitive = layout_result.primitives[edge_id]
+                            pred_x, pred_y = predicate_primitive.position
+                            
+                            # Generate numbered annotations for each argument
+                            vertex_sequence = graph.nu[edge_id]
+                            for i, vertex_id in enumerate(vertex_sequence):
+                                if vertex_id in layout_result.primitives:
+                                    vertex_primitive = layout_result.primitives[vertex_id]
+                                    vx, vy = vertex_primitive.position
+                                    
+                                    # Calculate annotation position near the connection point
+                                    # Position number halfway between predicate and vertex
+                                    ann_x = (pred_x + vx) / 2
+                                    ann_y = (pred_y + vy) / 2 - 8  # Slightly above the line
+                                    
+                                    # Create annotation primitive
+                                    annotation = AnnotationPrimitive(
+                                        annotation_id=f"arity_{edge_id}_{i}",
+                                        annotation_type=AnnotationType.ARITY_NUMBERING,
+                                        element_id=edge_id,
+                                        position=(ann_x, ann_y),
+                                        content=str(i + 1),  # 1-based numbering
+                                        style={
+                                            'font_size': 10,
+                                            'color': 'blue',
+                                            'background': 'white',
+                                            'border': True,
+                                            **annotation_config.style_options
+                                        }
+                                    )
+                                    primitives.append(annotation)
         
         return primitives
     

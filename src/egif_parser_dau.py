@@ -299,31 +299,31 @@ class EGIFParser:
         
         # Normalize multiple spaces to single spaces
         result = re.sub(r'\s+', ' ', result)
-        
+
         return result.strip()
-        
+
     def parse(self) -> RelationalGraphWithCuts:
         """Parse EGIF expression into Dau-compliant graph."""
         # Tokenize
         lexer = EGIFLexer(self.text)
         self.tokens = lexer.tokenize()
-        
+
         # Validate syntax
         validator = EGIFSyntaxValidator(self.tokens)
-        if not validator.validate():
-            raise ValueError("Invalid EGIF syntax")
-        
-        # Reset for parsing
+        validator.validate()
+
+        # Reset position for parsing
         self.position = 0
         self.graph = create_empty_graph()
         self.variable_map = {}
         self.defining_labels = set()
-        self.constant_vertices = {}  # Track vertices for constants to avoid duplicates
-        
-        # Parse
+        self.constant_vertices = {}  # Track constant name -> vertex ID mapping
+
+        # Parse the expression
         self._parse_eg()
-        
+
         return self.graph
+
     
     def _current_token(self) -> Token:
         """Get current token."""
