@@ -1,0 +1,288 @@
+qt.qpa.fonts: Populating font family aliases took 50 ms. Replace uses of missing font family "Times" with one that exists to avoid this cost. 
+/Users/mjh/Sync/GitHub/Arisbe/phase2_gui_foundation.py:1023: DeprecationWarning: Function: 'QMouseEvent.x() const' is marked as deprecated, please check the documentation for more information.
+  x, y = float(event.x()), float(event.y())
+/Users/mjh/Sync/GitHub/Arisbe/phase2_gui_foundation.py:1023: DeprecationWarning: Function: 'QMouseEvent.y() const' is marked as deprecated, please check the documentation for more information.
+  x, y = float(event.x()), float(event.y())
+⚠️  Layout post-processor not available - using basic spacing
+✓ Corpus loaded with 5 examples
+🔍 Ensuring complete element coverage...
+   Graph has 1 vertices, 2 edges, 0 cuts
+   Current primitives: 3 elements
+✅ Complete element coverage ensured: 3 total primitives
+DEBUG: Layout result type: <class 'layout_engine_clean.LayoutResult'>
+DEBUG: Layout result attributes: ['__annotations__', '__class__', '__dataclass_fields__', '__dataclass_params__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__match_args__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'canvas_bounds', 'containment_hierarchy', 'primitives']
+DEBUG: Found 5 spatial primitives
+DEBUG: Primitive 0: v_378307c7 (vertex) at (343.0, 506.44)
+DEBUG: Primitive 1: e_f270caf2 (predicate) at (54.0, 21.6)
+DEBUG: Primitive 2: e_b4bf11dd (predicate) at (632.0, 21.6)
+🔍 Ensuring complete element coverage...
+   Graph has 1 vertices, 2 edges, 0 cuts
+   Current primitives: 3 elements
+✅ Complete element coverage ensured: 3 total primitives
+DEBUG: Layout result type: <class 'layout_engine_clean.LayoutResult'>
+DEBUG: Layout result attributes: ['__annotations__', '__class__', '__dataclass_fields__', '__dataclass_params__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__match_args__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'canvas_bounds', 'containment_hierarchy', 'primitives']
+DEBUG: Found 5 spatial primitives
+DEBUG: Primitive 0: v_baecf455 (vertex) at (343.0, 506.44)
+DEBUG: Primitive 1: e_e9b7f142 (predicate) at (54.0, 21.6)
+DEBUG: Primitive 2: e_79d89b27 (predicate) at (632.0, 21.6)
+Phase 2 GUI Foundation Running:
+✓ EGI → Visual rendering pipeline working
+✓ Basic selection and interaction implemented
+✓ Foundation ready for Phase 2 development
+✓ Try different EGIF expressions from the dropdown
+✓ Corpus integration with import functionality
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_e9b7f142': ('v_baecf455',), 'e_79d89b27': ('v_baecf455',)}
+DEBUG: Vertex connections: {'v_baecf455': ['e_e9b7f142', 'e_79d89b27']}
+DEBUG: All vertices in EGI: [('v_baecf455', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_baecf455', (343.0, 506.44))]
+DEBUG: Processing vertex v_baecf455 with connections: ['e_e9b7f142', 'e_79d89b27']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+✅ Using Graphviz cluster boundary for c_3f5219d1: bounds=(8.0, 416.1, 216.0, 577.05)
+🔍 Ensuring complete element coverage...
+   Graph has 2 vertices, 2 edges, 1 cuts
+   Current primitives: 4 elements
+⚠️  Creating fallback primitive for missing edge: e_76dca7d1
+✅ Complete element coverage ensured: 5 total primitives
+DEBUG: Layout result type: <class 'layout_engine_clean.LayoutResult'>
+DEBUG: Layout result attributes: ['__annotations__', '__class__', '__dataclass_fields__', '__dataclass_params__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__match_args__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'canvas_bounds', 'containment_hierarchy', 'primitives']/Users/mjh/Sync/GitHub/Arisbe/phase2_gui_foundation.py:1023: DeprecationWarning: Function: 'QMouseEvent.x() const' is marked as deprecated, please check the documentation for more information.
+  x, y = float(event.x()), float(event.y())
+/Users/mjh/Sync/GitHub/Arisbe/phase2_gui_foundation.py:1023: DeprecationWarning: Function: 'QMouseEvent.y() const' is marked as deprecated, please check the documentation for more information.
+  x, y = float(event.x()), float(event.y())
+
+DEBUG: Found 6 spatial primitives
+DEBUG: Primitive 0: c_3f5219d1 (cut) at (112.0, 496.575)
+DEBUG: Primitive 1: e_a458fb27 (predicate) at (112.0, 487.7)
+DEBUG: Primitive 2: v_e5b4e5bf (vertex) at (465.0, 487.7)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+✓ Selected branching point v_8c9b98cc
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+✓ Cleared selection in warmup mode
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+DEBUG: Post-processing ligatures from nu mapping: {'e_76dca7d1': ('v_e5b4e5bf', 'v_8c9b98cc'), 'e_a458fb27': ('v_e5b4e5bf',)}
+DEBUG: Vertex connections: {'v_e5b4e5bf': ['e_76dca7d1', 'e_a458fb27'], 'v_8c9b98cc': ['e_76dca7d1']}
+DEBUG: All vertices in EGI: [('v_8c9b98cc', None, True), ('v_e5b4e5bf', None, True)]
+DEBUG: Vertex spatial primitives: [('v_e5b4e5bf', (465.0, 487.7)), ('v_8c9b98cc', (465.0, 10.8))]
+DEBUG: Processing vertex v_e5b4e5bf with connections: ['e_76dca7d1', 'e_a458fb27']
+DEBUG: Processing vertex v_8c9b98cc with connections: ['e_76dca7d1']
+DEBUG: Rendered curved ligature: (263.875, 372.525) to (134.0, 487.7) with branch at (198.9,430.1)
+🔍 Ensuring complete element coverage...
+   Graph has 1 vertices, 2 edges, 0 cuts
+   Current primitives: 3 elements
+✅ Complete element coverage ensured: 3 total primitives
+DEBUG: Layout result type: <class 'layout_engine_clean.LayoutResult'>
+DEBUG: Layout result attributes: ['__annotations__', '__class__', '__dataclass_fields__', '__dataclass_params__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__match_args__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'canvas_bounds', 'containment_hierarchy', 'primitives']
+DEBUG: Found 5 spatial primitives
+DEBUG: Primitive 0: v_392d2322 (vertex) at (343.0, 506.44)
+DEBUG: Primitive 1: e_beb1a4be (predicate) at (54.0, 21.6)
+DEBUG: Primitive 2: e_8c4aaeab (predicate) at (632.0, 21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_beb1a4be': ('v_392d2322',), 'e_8c4aaeab': ('v_392d2322',)}
+DEBUG: Vertex connections: {'v_392d2322': ['e_beb1a4be', 'e_8c4aaeab']}
+DEBUG: All vertices in EGI: [('v_392d2322', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_392d2322', (343.0, 506.44))]
+DEBUG: Processing vertex v_392d2322 with connections: ['e_beb1a4be', 'e_8c4aaeab']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_beb1a4be': ('v_392d2322',), 'e_8c4aaeab': ('v_392d2322',)}
+DEBUG: Vertex connections: {'v_392d2322': ['e_beb1a4be', 'e_8c4aaeab']}
+DEBUG: All vertices in EGI: [('v_392d2322', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_392d2322', (343.0, 506.44))]
+DEBUG: Processing vertex v_392d2322 with connections: ['e_beb1a4be', 'e_8c4aaeab']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_beb1a4be': ('v_392d2322',), 'e_8c4aaeab': ('v_392d2322',)}
+DEBUG: Vertex connections: {'v_392d2322': ['e_beb1a4be', 'e_8c4aaeab']}
+DEBUG: All vertices in EGI: [('v_392d2322', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_392d2322', (343.0, 506.44))]
+DEBUG: Processing vertex v_392d2322 with connections: ['e_beb1a4be', 'e_8c4aaeab']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+✅ Using Graphviz cluster boundary for c_13902c14: bounds=(8.0, 8.0, 294.0, 286.7)
+✅ Using Graphviz cluster boundary for c_59df624b: bounds=(58.0, 58.0, 244.0, 218.95)
+🔍 Ensuring complete element coverage...

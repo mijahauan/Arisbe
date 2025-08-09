@@ -1,0 +1,55 @@
+graph EG {
+    // ENHANCED: Dau convention layout with proper spacing
+    graph [clusterrank=local, compound=true, newrank=true, rankdir=TB,
+           overlap=false, splines=true, concentrate=false];
+    
+    // Enhanced spacing for Dau visual conventions
+    node [shape=circle, width=0.4, height=0.4, fixedsize=true,
+          fontsize=10, margin=0.2];
+    edge [arrowhead=none, len=3.5, minlen=2.5, weight=1.0];
+    
+    // Spacing parameters for visual clarity (compact defaults)
+    nodesep=1.2;        // Compact node separation
+    ranksep=1.0;        // Compact rank separation
+    margin=1.5;         // Keep graph margin modest
+    pad="1.5,1.5";      // Keep padding modest
+    sep="+8";           // Compact minimum separation
+
+  
+  // Default node styling with proper sizing
+  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
+  edge [fontsize=9, labeldistance=1.5, labelangle=0];
+
+  subgraph cluster_c_94fb54a6 {
+    label="Cut c_94fb54";
+    style=rounded;
+    color=black;
+    penwidth=1.5;
+    margin=16.00;  // Padding around cut contents
+    labelloc=top;
+    fontsize=8;
+    // Leverage Graphviz hierarchical layout
+    clusterrank=local;  // Layout this cluster separately
+
+    subgraph cluster_c_e8c6b765 {
+      label="Cut c_e8c6b7";
+      style=rounded;
+      color=black;
+      penwidth=1.5;
+      margin=16.00;  // Padding around cut contents
+      labelloc=top;
+      fontsize=8;
+      // Leverage Graphviz hierarchical layout
+      clusterrank=local;  // Layout this cluster separately
+
+      e_d3a09c76 [label="Mortal", shape=box, fillcolor=lightyellow, width=1.70, height=0.60, fixedsize=true];
+    }
+
+    v_3b202035 [label="", width=0.30, height=0.30, fixedsize=true];
+    e_44056247 [label="Human", shape=box, fillcolor=lightyellow, width=1.50, height=0.60, fixedsize=true];
+  }
+
+  v_3b202035 -- e_44056247 [style=bold, penwidth=2, lhead=cluster_c_94fb54a6, ltail=cluster_c_94fb54a6];
+  v_3b202035 -- e_d3a09c76 [style=bold, penwidth=2, lhead=cluster_c_e8c6b765, ltail=cluster_c_94fb54a6];
+
+}

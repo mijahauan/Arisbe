@@ -7,7 +7,17 @@ API confusion and integration errors. Every pipeline component should use
 these validators to ensure contract compliance.
 """
 
-from typing import Any, TypeGuard, Dict, Set, Tuple, List, Optional, Union
+from typing import Any, Dict, Set, Tuple, List, Optional, Union
+try:
+    from typing import TypeGuard  # Python 3.10+
+except Exception:  # Python 3.9 fallback
+    try:
+        from typing_extensions import TypeGuard  # type: ignore
+    except Exception:
+        # Define a no-op TypeGuard for type checking fallback
+        from typing import Callable  # type: ignore
+        def TypeGuard(x: Any) -> Any:  # type: ignore
+            return x
 from dataclasses import is_dataclass
 from enum import Enum
 import inspect

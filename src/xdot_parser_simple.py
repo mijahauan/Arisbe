@@ -75,53 +75,59 @@ class SimpleXdotParser:
         return clusters
     
     def _extract_nodes(self, content: str) -> List[XdotNode]:
-        """Extract node positions and dimensions."""
-        nodes = []
-        
-        # Use a more robust approach: find all pos="..." attributes first
-        # Then look backwards to find the node name
-        pos_pattern = r'pos="([^"]+)"'
-        
-        for pos_match in re.finditer(pos_pattern, content):
-            pos_str = pos_match.group(1)
-            pos_start = pos_match.start()
-            
-            # Look backwards to find the node name and opening bracket
-            # Search up to 500 characters back
-            search_start = max(0, pos_start - 500)
-            search_region = content[search_start:pos_start]
-            
-            # Find the last node name before this pos attribute
-            node_name_pattern = r'(\w+)\s*\['
-            node_matches = list(re.finditer(node_name_pattern, search_region))
-            
-            if node_matches:
-                node_name = node_matches[-1].group(1)  # Get the last match
-                
-                # Look both backwards and forwards from pos to find width and height
-                # (attributes can appear before or after pos in xdot format)
-                search_end = min(len(content), pos_match.end() + 500)
-                forward_region = content[pos_match.end():search_end]
-                backward_region = content[search_start:pos_match.start()]
-                
-                # Search in both directions
-                width_match = (re.search(r'width=([0-9.]+)', forward_region) or 
-                              re.search(r'width=([0-9.]+)', backward_region))
-                height_match = (re.search(r'height=([0-9.]+)', forward_region) or 
-                               re.search(r'height=([0-9.]+)', backward_region))
-                
-                if width_match and height_match:
-                    try:
-                        width = float(width_match.group(1))
-                        height = float(height_match.group(1))
-                        
-                        # Parse position (comma-separated x,y)
-                        if ',' in pos_str:
-                            x, y = map(float, pos_str.split(','))
-                            nodes.append(XdotNode(node_name, (x, y), width, height))
-                    except ValueError:
-                        continue
-        
+        """Extract node positions and dimensions.
+        Robustly match each node's bracket block and read attributes inside it."""
+        nodes: List[XdotNode] = []
+        # Try to capture global node defaults (xdot emits a shared node block)
+        # Example:
+        # node [ ... height=0.4, ... width=0.4 ];
+        default_width: Optional[float] = None
+        default_height: Optional[float] = None
+        node_defaults_match = re.search(r"\bnode\s*\[(?P<body>[^\]]+)\]", content, re.DOTALL)
+        if node_defaults_match:
+            body = node_defaults_match.group("body")
+            dw = re.search(r"width=([0-9.]+)", body)
+            dh = re.search(r"height=([0-9.]+)", body)
+            if dw:
+                try:
+                    default_width = float(dw.group(1))
+                except ValueError:
+                    default_width = None
+            if dh:
+                try:
+                    default_height = float(dh.group(1))
+                except ValueError:
+                    default_height = None
+        # Match blocks like: <name> [ ... pos="x,y" ... width=h ... height=h ... ]
+        # Use tempered dot to avoid crossing the closing bracket
+        node_block_pattern = re.compile(r'(\w+)\s*\[(?:(?!\]).)*\]', re.DOTALL)
+        for m in node_block_pattern.finditer(content):
+            name = m.group(1)
+            block = m.group(0)
+            pos_m = re.search(r'pos="([0-9.]+),([0-9.]+)"', block)
+            width_m = re.search(r'width=([0-9.]+)', block)
+            height_m = re.search(r'height=([0-9.]+)', block)
+            if not pos_m:
+                continue
+            try:
+                x = float(pos_m.group(1))
+                y = float(pos_m.group(2))
+                if width_m:
+                    width = float(width_m.group(1))
+                elif default_width is not None:
+                    width = default_width
+                else:
+                    # Fallback Graphviz default (inches) if not provided
+                    width = 0.75
+                if height_m:
+                    height = float(height_m.group(1))
+                elif default_height is not None:
+                    height = default_height
+                else:
+                    height = 0.75
+                nodes.append(XdotNode(name, (x, y), width, height))
+            except ValueError:
+                continue
         return nodes
     
     def _extract_edges(self, content: str) -> List[XdotEdge]:

@@ -15,6 +15,12 @@ from typing import Dict, List, Tuple, Optional, Set
 from dataclasses import dataclass
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from layout_engine_clean import LayoutResult, SpatialPrimitive
+from render_geometry import predicate_periphery_point
+from pipeline_contracts import (
+    validate_relational_graph_with_cuts,
+    validate_layout_result,
+    ContractViolationError,
+)
 from pyside6_canvas import PySide6Canvas
 
 
@@ -47,9 +53,11 @@ class DiagramRendererDau:
     
     def __init__(self, conventions: VisualConvention = None):
         self.conv = conventions or VisualConvention()
+        # Per-frame cache of vertex display positions (do not mutate layout primitives)
+        self._vertex_display_pos: Dict[str, Tuple[float, float]] = {}
         
     def render_diagram(self, canvas: PySide6Canvas, graph: RelationalGraphWithCuts, 
-                      layout_result: LayoutResult) -> None:
+                       layout_result: LayoutResult, selected_ids: Optional[Set[str]] = None) -> None:
         """
         Render complete EG diagram with Peirce/Dau visual conventions.
         
@@ -58,22 +66,79 @@ class DiagramRendererDau:
             graph: EGI structure (logical truth)
             layout_result: Spatial coordinates from Graphviz layout engine
         """
+        # Enforce API contracts upfront
+        validate_relational_graph_with_cuts(graph)
+        validate_layout_result(layout_result)
         canvas.clear()
         
-        # Calculate centering offset to properly position diagram
-        offset_x, offset_y = self._calculate_centering_offset(canvas, layout_result)
+        # Compute fit-to-screen transform (scale + offset) to ensure diagram fits the viewport
+        scale, offset_x, offset_y = self._compute_fit_transform(canvas, layout_result)
         
-        # Apply centering offset to all coordinates
-        centered_layout = self._apply_centering_offset(layout_result, offset_x, offset_y)
+        # Apply transform to all coordinates
+        centered_layout = self._apply_transform(layout_result, scale, offset_x, offset_y)
+        # Expose current layout for collision checks during rendering
+        self.current_layout = centered_layout
+        # Reset per-frame overrides
+        self._vertex_display_pos.clear()
         
         # Render in proper layering order (background to foreground)
         self._render_cuts_as_fine_curves(canvas, graph, centered_layout)
         self._render_ligatures_and_identity_lines(canvas, graph, centered_layout)
         self._render_predicates_with_hooks(canvas, graph, centered_layout)
         self._render_identity_spots_and_constants(canvas, graph, centered_layout)
+        # Selection overlay (drawn last)
+        if selected_ids:
+            self._render_selection_overlay(canvas, graph, centered_layout, selected_ids)
         
         # Add diagram metadata
         self._render_diagram_title(canvas, graph)
+
+    def _render_selection_overlay(self, canvas: PySide6Canvas,
+                                  graph: RelationalGraphWithCuts,
+                                  layout_result: LayoutResult,
+                                  selected_ids: Set[str]) -> None:
+        """Render selection halos/boxes for currently selected elements.
+        - Predicates: tight rectangle around text
+        - Vertices: circular halo around vertex position
+        - Cuts: brightened boundary (slightly thicker)
+        """
+        halo_style = {
+            'color': (30, 144, 255),  # dodger blue
+            'width': 2.0
+        }
+        for sid in selected_ids:
+            sprim = layout_result.primitives.get(sid)
+            if not sprim:
+                # It may be a predicate edge id
+                if sid in graph.nu:
+                    # Compute predicate text bounds and draw rectangle halo
+                    pname = graph.rel.get(sid, sid)
+                    ppos = self._find_predicate_position(sid, layout_result)
+                    if not ppos:
+                        continue
+                    pb = self._calculate_predicate_bounds(pname, ppos)
+                    x1, y1, x2, y2 = pb
+                    # draw as rectangular polyline (approx via curve polyline)
+                    canvas.draw_curve([(x1, y1), (x2, y1), (x2, y2), (x1, y2), (x1, y1)], halo_style, closed=False)
+                continue
+            if sprim.element_type == 'predicate' or sid in graph.nu:
+                # Same as above, draw tight rectangle around text
+                pname = graph.rel.get(sid, sid)
+                ppos = self._find_predicate_position(sid, layout_result)
+                if not ppos:
+                    continue
+                pb = self._calculate_predicate_bounds(pname, ppos)
+                x1, y1, x2, y2 = pb
+                canvas.draw_curve([(x1, y1), (x2, y1), (x2, y2), (x1, y2), (x1, y1)], halo_style, closed=False)
+            elif sprim.element_type == 'vertex':
+                cx, cy = sprim.position
+                radius = 14.0
+                canvas.draw_circle((cx, cy), radius, halo_style)
+            elif sprim.element_type == 'cut' and sprim.bounds:
+                x1, y1, x2, y2 = sprim.bounds
+                style = dict(halo_style)
+                style['width'] = self.conv.cut_line_width + 1.0
+                canvas.draw_oval(x1, y1, x2, y2, style)
     
     def _render_cuts_as_fine_curves(self, canvas: PySide6Canvas, graph: RelationalGraphWithCuts,
                                    layout_result: LayoutResult) -> None:
@@ -125,23 +190,142 @@ class DiagramRendererDau:
         
         Must handle branches, junctions, and connections to predicates correctly.
         """
-        # For each vertex, draw heavy lines to connected predicates
+        # For each vertex, draw a single ligature consistent with its degree
         for vertex_id, vertex in graph._vertex_map.items():
             if vertex_id not in layout_result.primitives:
                 continue
-                
-            vertex_primitive = layout_result.primitives[vertex_id]
-            vertex_pos = vertex_primitive.position
-            
-            # Find all predicates connected to this vertex
-            connected_predicates = self._find_vertex_predicates(vertex_id, graph, layout_result)
-            
-            if connected_predicates:
-                # Draw heavy lines of identity to each predicate
-                for i, pred_info in enumerate(connected_predicates):
-                    self._draw_identity_line_to_predicate(
-                        canvas, vertex_pos, pred_info, i, len(connected_predicates)
-                    )
+
+            vprim = layout_result.primitives[vertex_id]
+            vertex_pos = self._vertex_display_pos.get(vertex_id, vprim.position)
+
+            # Collect predicate primitives attached to this vertex via nu, with multiplicity
+            attached_predicates: List[SpatialPrimitive] = []
+            for edge_id, seq in graph.nu.items():
+                # Count how many times this vertex participates in the predicate's ν sequence
+                multiplicity = sum(1 for v in seq if v == vertex_id)
+                if multiplicity > 0:
+                    pprim = layout_result.primitives.get(edge_id)
+                    # Accept either predicate node primitive (canonical) or edge primitive (fallback)
+                    if pprim and pprim.element_type in ('predicate', 'edge'):
+                        # Append once per occurrence to create multiple hooks (e.g., reflexive)
+                        attached_predicates.extend([pprim] * multiplicity)
+
+            if not attached_predicates:
+                continue
+
+            # Compute periphery hook points on predicates
+            hooks: List[Tuple[float, float]] = []
+            if len(attached_predicates) == 2 and all(p.bounds for p in attached_predicates):
+                p1, p2 = attached_predicates
+                b1, b2 = p1.bounds, p2.bounds  # type: ignore
+                c1 = ((b1[0] + b1[2]) * 0.5, (b1[1] + b1[3]) * 0.5)  # type: ignore
+                c2 = ((b2[0] + b2[2]) * 0.5, (b2[1] + b2[3]) * 0.5)  # type: ignore
+
+                if b1 == b2:
+                    # Reflexive case: same predicate twice. Place two distinct hooks on the
+                    # periphery along the side facing the vertex to avoid collapse.
+                    x1, y1, x2, y2 = b1  # type: ignore
+                    # Nearest point on periphery toward the vertex position
+                    hv = predicate_periphery_point(b1, vertex_pos)
+                    hx, hy = hv
+                    eps = 1e-3
+                    spread = 10.0  # separation along the side
+                    # Determine side and create two points along that side
+                    if abs(hy - y1) < eps:  # top edge
+                        a = max(x1, min(x2, hx - spread))
+                        b = max(x1, min(x2, hx + spread))
+                        h1 = (a, y1)
+                        h2 = (b, y1)
+                    elif abs(hy - y2) < eps:  # bottom edge
+                        a = max(x1, min(x2, hx - spread))
+                        b = max(x1, min(x2, hx + spread))
+                        h1 = (a, y2)
+                        h2 = (b, y2)
+                    elif abs(hx - x1) < eps:  # left edge
+                        a = max(y1, min(y2, hy - spread))
+                        b = max(y1, min(y2, hy + spread))
+                        h1 = (x1, a)
+                        h2 = (x1, b)
+                    else:  # right edge (or fallback)
+                        a = max(y1, min(y2, hy - spread))
+                        b = max(y1, min(y2, hy + spread))
+                        h1 = (x2, a)
+                        h2 = (x2, b)
+                    hooks = [h1, h2]
+                else:
+                    # For binary with distinct predicates: aim each hook toward the other predicate's center
+                    h1 = predicate_periphery_point(b1, c2)  # type: ignore
+                    h2 = predicate_periphery_point(b2, c1)  # type: ignore
+                    # Inset hooks slightly toward predicate centers to keep lines inside cuts
+                    inset = 4.0
+                    def inset_point(h, c):
+                        hx, hy = h
+                        cx, cy = c
+                        dx, dy = cx - hx, cy - hy
+                        mag = max((dx*dx + dy*dy) ** 0.5, 1e-6)
+                        return (hx + dx / mag * inset, hy + dy / mag * inset)
+                    hooks = [inset_point(h1, c1), inset_point(h2, c2)]
+            else:
+                for pprim in attached_predicates:
+                    # Delegate to shared geometry helper for consistency across renderers/exporters
+                    if pprim.bounds:
+                        h = predicate_periphery_point(pprim.bounds, vertex_pos)
+                        # Inset slightly toward predicate center
+                        bx1, by1, bx2, by2 = pprim.bounds
+                        pc = ((bx1 + bx2) * 0.5, (by1 + by2) * 0.5)
+                        inset = 4.0
+                        hx, hy = h
+                        dx, dy = pc[0] - hx, pc[1] - hy
+                        mag = max((dx*dx + dy*dy) ** 0.5, 1e-6)
+                        hooks.append((hx + dx / mag * inset, hy + dy / mag * inset))
+                    else:
+                        hooks.append(pprim.position)
+
+            # Drawing style
+            style = {
+                'color': self.conv.line_color,
+                'width': self.conv.identity_line_width
+            }
+
+            deg = len(hooks)
+            if deg == 1:
+                # Free endpoint: extend slightly from the predicate, but keep compact
+                hx, hy = hooks[0]
+                vx, vy = vertex_pos
+                dx, dy = vx - hx, vy - hy
+                mag = max((dx*dx + dy*dy) ** 0.5, 1e-6)
+                ux, uy = dx / mag, dy / mag
+                # Shorter free length to avoid overly long tails
+                free_len = 14.0
+                free_pt = (hx + ux * free_len, hy + uy * free_len)
+                canvas.draw_line((hx, hy), free_pt, style)
+                # Override displayed vertex position (do not mutate primitive)
+                self._vertex_display_pos[vertex_id] = free_pt
+            elif deg == 2:
+                # Single continuous shortest path between two predicate hooks with collision fallback
+                h1, h2 = hooks[0], hooks[1]
+                if self._segment_intersects_any_predicate(h1, h2, graph, layout_result):
+                    # Draw a gentle single-arc curve: control point is midpoint offset along normal
+                    mx = (h1[0] + h2[0]) * 0.5
+                    my = (h1[1] + h2[1]) * 0.5
+                    dx, dy = h2[0] - h1[0], h2[1] - h1[1]
+                    seg_len = max((dx*dx + dy*dy) ** 0.5, 1e-6)
+                    nx, ny = -dy / seg_len, dx / seg_len  # unit normal
+                    # Modest offset for arc height, proportional to segment length but capped
+                    arc_h = min(18.0, seg_len * 0.15)
+                    ctrl = (mx + nx * arc_h, my + ny * arc_h)
+                    canvas.draw_curve([h1, ctrl, h2], style, closed=False)
+                    self._vertex_display_pos[vertex_id] = (mx, my)
+                else:
+                    canvas.draw_line(h1, h2, style)
+                    # Place the vertex spot on the ligature (midpoint of the segment)
+                    mx = (h1[0] + h2[0]) * 0.5
+                    my = (h1[1] + h2[1]) * 0.5
+                    self._vertex_display_pos[vertex_id] = (mx, my)
+            else:
+                # Branching from junction at vertex position to each hook
+                for hp in hooks:
+                    canvas.draw_line(vertex_pos, hp, style)
     
     def _render_predicates_with_hooks(self, canvas: PySide6Canvas,
                                     graph: RelationalGraphWithCuts,
@@ -180,7 +364,7 @@ class DiagramRendererDau:
             # For multi-place predicates, add argument order labels
             if len(vertex_sequence) > 1:
                 self._render_argument_order_labels(
-                    canvas, pred_position, vertex_sequence, graph, layout_result
+                    canvas, pred_position, vertex_sequence, graph, layout_result, pred_bounds
                 )
             
             # Draw hooks connecting to identity lines
@@ -200,33 +384,53 @@ class DiagramRendererDau:
         for vertex_id, vertex in graph._vertex_map.items():
             if vertex_id not in layout_result.primitives:
                 continue
-                
-            vertex_primitive = layout_result.primitives[vertex_id]
-            vertex_pos = vertex_primitive.position
-            
-            # Draw identity spot (small filled circle)
-            canvas.draw_circle(
-                vertex_pos,
-                self.conv.identity_spot_radius,
-                {
-                    'color': self.conv.line_color,
-                    'fill_color': self.conv.line_color
-                }
-            )
-            
-            # Draw constant name if present
+
+            vprim = layout_result.primitives[vertex_id]
+            # Use display override if present (placed on ligature), else layout position
+            vertex_pos = self._vertex_display_pos.get(vertex_id, vprim.position)
+
+            # If constant label exists, draw the label; otherwise draw the identity spot
             if vertex.label:
-                # Position label below the spot to avoid line conflicts
-                label_pos = (vertex_pos[0], vertex_pos[1] + 20)
+                label_offset = (12.0, -12.0)
+                label_pos = (vertex_pos[0] + label_offset[0], vertex_pos[1] + label_offset[1])
                 canvas.draw_text(
                     f'"{vertex.label}"',
                     label_pos,
                     {
                         'color': self.conv.text_color,
                         'font_size': 10,
-                        'bold': False
+                        'bold': False,
+                        'draggable': True
                     }
                 )
+            else:
+                # Draw identity spot at the display position
+                canvas.draw_circle(vertex_pos, self.conv.identity_spot_radius, {
+                    'color': self.conv.line_color,
+                    'width': self.conv.identity_line_width
+                })
+
+    def _predicate_periphery_point(self, predicate_primitive: SpatialPrimitive, toward: Tuple[float, float]) -> Tuple[float, float]:
+        """Deprecated: use render_geometry.predicate_periphery_point. Kept for backward compatibility."""
+        if predicate_primitive.bounds:
+            return predicate_periphery_point(predicate_primitive.bounds, toward)
+        return predicate_primitive.position
+
+    def _segment_intersects_any_predicate(self, a: Tuple[float, float], b: Tuple[float, float],
+                                          graph: RelationalGraphWithCuts,
+                                          layout_result: LayoutResult) -> bool:
+        """Return True if segment AB intersects any predicate text rectangle (with small padding)."""
+        for edge_id in graph.nu.keys():
+            pname = graph.rel.get(edge_id, edge_id)
+            ppos = self._find_predicate_position(edge_id, layout_result)
+            if not ppos:
+                continue
+            x1, y1, x2, y2 = self._calculate_predicate_bounds(pname, ppos)
+            pad = 4.0
+            rect = (x1 - pad, y1 - pad, x2 + pad, y2 + pad)
+            if self._segment_intersects_rect(a, b, rect):
+                return True
+        return False
     
     def _build_cut_hierarchy(self, graph: RelationalGraphWithCuts) -> Dict[str, List[str]]:
         """Build hierarchical structure of cuts for proper nesting."""
@@ -292,13 +496,91 @@ class DiagramRendererDau:
         text_width = len(predicate_name) * char_width
         text_height = char_height
         
-        # Calculate bounds (x1, y1, x2, y2)
-        x1 = position[0] - text_width / 2
-        y1 = position[1] - text_height / 2
-        x2 = position[0] + text_width / 2
-        y2 = position[1] + text_height / 2
+        # Calculate bounds (x1, y1, x2, y2) with a small padding margin
+        padding = 6.0
+        x1 = position[0] - text_width / 2 - padding
+        y1 = position[1] - text_height / 2 - padding
+        x2 = position[0] + text_width / 2 + padding
+        y2 = position[1] + text_height / 2 + padding
         
         return (x1, y1, x2, y2)
+
+    def _generate_hook_points(self, predicate_bounds: Tuple[float, float, float, float], n_args: int) -> List[Tuple[float, float]]:
+        """Generate evenly distributed hook points around a padded text oval.
+        Hooks are placed on the rectangle oval approximation; will later map to a true oval.
+        """
+        x1, y1, x2, y2 = predicate_bounds
+        cx, cy = (x1 + x2) / 2.0, (y1 + y2) / 2.0
+        rx, ry = (x2 - x1) / 2.0, (y2 - y1) / 2.0
+        hooks = []
+        # Place from angle 0..2π clockwise, starting at rightmost
+        for i in range(max(1, n_args)):
+            theta = 2 * math.pi * (i / max(1, n_args))
+            hx = cx + rx * math.cos(theta)
+            hy = cy + ry * math.sin(theta)
+            hooks.append((hx, hy))
+        return hooks
+
+    def _segment_intersects_any_bounds(self, p1: Tuple[float, float], p2: Tuple[float, float],
+                                       layout_result: LayoutResult,
+                                       exclude_ids: Optional[set] = None) -> bool:
+        """Check if segment intersects any predicate/cut bounds."""
+        if exclude_ids is None:
+            exclude_ids = set()
+        for pid, prim in layout_result.primitives.items():
+            if pid in exclude_ids:
+                continue
+            if prim.element_type in ('predicate', 'cut'):
+                bx1, by1, bx2, by2 = prim.bounds
+                if self._segment_intersects_rect(p1, p2, (bx1, by1, bx2, by2)):
+                    return True
+        return False
+
+    def _segment_intersects_rect(self, p1: Tuple[float, float], p2: Tuple[float, float],
+                                 rect: Tuple[float, float, float, float]) -> bool:
+        x1, y1, x2, y2 = rect
+        # Quick reject
+        minx, maxx = min(p1[0], p2[0]), max(p1[0], p2[0])
+        miny, maxy = min(p1[1], p2[1]), max(p1[1], p2[1])
+        if maxx < x1 or minx > x2 or maxy < y1 or miny > y2:
+            # still could intersect if crossing rectangle area; use full test via Cohen–Sutherland
+            pass
+        # Use Liang–Barsky style: if any intersection exists within segment, return True
+        dx = p2[0] - p1[0]
+        dy = p2[1] - p1[1]
+        p = [-dx, dx, -dy, dy]
+        q = [p1[0] - x1, x2 - p1[0], p1[1] - y1, y2 - p1[1]]
+        u1, u2 = 0.0, 1.0
+        for pi, qi in zip(p, q):
+            if pi == 0:
+                if qi < 0:
+                    return False
+                continue
+            t = qi / pi
+            if pi < 0:
+                u1 = max(u1, t)
+            else:
+                u2 = min(u2, t)
+            if u1 > u2:
+                return False
+        # If clipping survives, segment overlaps rect
+        return True
+
+    def _curved_avoidance(self, start: Tuple[float, float], end: Tuple[float, float],
+                           obstacle_center: Tuple[float, float]) -> List[Tuple[float, float]]:
+        """Return a gentle polyline (to be rendered as curve) that bows around an obstacle."""
+        sx, sy = start
+        ex, ey = end
+        cx, cy = obstacle_center
+        mx, my = (sx + ex) / 2.0, (sy + ey) / 2.0
+        # Vector from obstacle to midpoint, normalized
+        vx, vy = mx - cx, my - cy
+        norm = math.hypot(vx, vy) or 1.0
+        vx, vy = vx / norm, vy / norm
+        # Offset control point away from obstacle
+        offset = 20.0
+        ctrl = (mx + vx * offset, my + vy * offset)
+        return [start, ctrl, end]
     
     def _ensure_predicate_within_area(self, edge_id: str, predicate_bounds: Tuple[float, float, float, float],
                                      graph: RelationalGraphWithCuts, layout_result: LayoutResult,
@@ -350,35 +632,47 @@ class DiagramRendererDau:
         return (center_x, center_y)
     
     def _calculate_line_connection_point(self, predicate_bounds: Tuple[float, float, float, float],
-                                        vertex_position: Tuple[float, float]) -> Tuple[float, float]:
-        """Calculate where a line should connect to the predicate boundary."""
+                                        vertex_position: Tuple[float, float],
+                                        margin: float = 3.0) -> Tuple[float, float]:
+        """Calculate the exact intersection of the vertex→predicate-center ray with the
+        predicate's padded boundary, leaving a small collision margin."""
         pred_x1, pred_y1, pred_x2, pred_y2 = predicate_bounds
-        vertex_x, vertex_y = vertex_position
+        vx, vy = vertex_position
+        cx = (pred_x1 + pred_x2) / 2.0
+        cy = (pred_y1 + pred_y2) / 2.0
         
-        # Calculate predicate center
-        pred_center_x = (pred_x1 + pred_x2) / 2
-        pred_center_y = (pred_y1 + pred_y2) / 2
+        # Expand rectangle slightly to get a consistent visual gap
+        rx1, ry1, rx2, ry2 = pred_x1 - margin, pred_y1 - margin, pred_x2 + margin, pred_y2 + margin
         
-        # Calculate direction from vertex to predicate center
-        dx = pred_center_x - vertex_x
-        dy = pred_center_y - vertex_y
-        
-        # Find intersection with predicate boundary
-        if abs(dx) > abs(dy):
-            # Horizontal approach - connect to left or right edge
-            if dx > 0:
-                return (pred_x1, pred_center_y)  # Left edge
+        # Liang–Barsky clipping to find first intersection of segment (v->c) with rect
+        dx = cx - vx
+        dy = cy - vy
+        p = [-dx, dx, -dy, dy]
+        q = [vx - rx1, rx2 - vx, vy - ry1, ry2 - vy]
+        u1, u2 = 0.0, 1.0
+        for pi, qi in zip(p, q):
+            if pi == 0:
+                if qi < 0:
+                    # Parallel and outside — no intersection; fall back to closest point on rect center line
+                    return (max(min(cx, rx2), rx1), max(min(cy, ry2), ry1))
+                else:
+                    continue
+            t = qi / pi
+            if pi < 0:
+                if t > u2:
+                    return (cx, cy)
+                u1 = max(u1, t)
             else:
-                return (pred_x2, pred_center_y)  # Right edge
-        else:
-            # Vertical approach - connect to top or bottom edge
-            if dy > 0:
-                return (pred_center_x, pred_y1)  # Top edge
-            else:
-                return (pred_center_x, pred_y2)  # Bottom edge
+                if t < u1:
+                    return (cx, cy)
+                u2 = min(u2, t)
+        # Intersection point at u1 along (v->c)
+        ix = vx + u1 * dx
+        iy = vy + u1 * dy
+        return (ix, iy)
     
     def _draw_identity_line_to_predicate(self, canvas: PySide6Canvas, vertex_pos: Tuple[float, float],
-                                       pred_info: Dict, line_index: int, total_lines: int) -> None:
+                                        pred_info: Dict, line_index: int, total_lines: int) -> None:
         """Draw a heavy line of identity from vertex to predicate.
         
         CRITICAL: Line must pass through cuts to reach predicates inside cuts,
@@ -415,46 +709,127 @@ class DiagramRendererDau:
                 vertex_pos[1] + dy * 0.9
             )
         
-        # FIXED: Calculate proper line endpoint at predicate periphery
+        # Determine hook point for this argument (distribute evenly)
         predicate_name = pred_info['name']
+        arg_idx = pred_info.get('argument_index', 0)
+        n_args = len(pred_info.get('vertex_sequence', []))
         pred_bounds = self._calculate_predicate_bounds(predicate_name, pred_info['position'])
-        line_endpoint = self._calculate_line_connection_point(pred_bounds, vertex_pos)
+        hooks = self._generate_hook_points(pred_bounds, max(1, n_args))
+        # Choose hook closest in direction to vertex
+        vx, vy = vertex_pos
+        cx = (pred_bounds[0] + pred_bounds[2]) / 2.0
+        cy = (pred_bounds[1] + pred_bounds[3]) / 2.0
+        # Prefer arg_idx but allow fallback to nearest free hook
+        preferred = hooks[arg_idx % len(hooks)]
+        chosen = preferred
+        # If straight segment intersects predicate bounds (text) or other obstacles, keep chosen; we will curve
+        # Compute final endpoint with tiny margin using periphery intersection toward center
+        endpoint = self._calculate_line_connection_point(pred_bounds, vertex_pos, margin=4.0)
         
-        # Draw heavy line of identity to predicate periphery (not center)
-        canvas.draw_line(
-            vertex_pos, line_endpoint,
-            {
-                'color': self.conv.line_color,
-                'width': self.conv.identity_line_width  # FIXED: API mismatch - Now 4.0 (thicker)
-            }
+        # Draw heavy line: straight if collision-free, otherwise a gentle curve around the predicate
+        # Exclude the target predicate primitive id from collision tests
+        exclude = {f"pred_{pred_info.get('edge_id', '')}", pred_info.get('edge_id', '')}
+        if not self._segment_intersects_any_bounds(vertex_pos, endpoint, layout_result=self.current_layout,
+                                                   exclude_ids=exclude):
+            canvas.draw_line(
+                vertex_pos, endpoint,
+                {
+                    'color': self.conv.line_color,
+                    'width': self.conv.identity_line_width
+                }
+            )
+        else:
+            curve_pts = self._curved_avoidance(vertex_pos, endpoint, (cx, cy))
+            canvas.draw_curve(
+                curve_pts,
+                {
+                    'color': self.conv.line_color,
+                    'width': self.conv.identity_line_width
+                },
+                closed=False
+            )
+
+    def _compute_fit_transform(self, canvas: PySide6Canvas, layout_result: LayoutResult,
+                               margin: float = 40.0) -> Tuple[float, float, float]:
+        """Compute scale and offsets to fit the diagram within the canvas with margins."""
+        if not layout_result.primitives:
+            return (1.0, 0.0, 0.0)
+        all_bounds = [p.bounds for p in layout_result.primitives.values() if hasattr(p, 'bounds')]
+        if not all_bounds:
+            return (1.0, 0.0, 0.0)
+        min_x = min(b[0] for b in all_bounds)
+        min_y = min(b[1] for b in all_bounds)
+        max_x = max(b[2] for b in all_bounds)
+        max_y = max(b[3] for b in all_bounds)
+        diagram_w = max(1.0, max_x - min_x)
+        diagram_h = max(1.0, max_y - min_y)
+        scale_x = (canvas.width - 2 * margin) / diagram_w
+        scale_y = (canvas.height - 2 * margin) / diagram_h
+        scale = max(0.1, min(scale_x, scale_y))
+        # Compute offset to center after scaling
+        offset_x = (canvas.width - diagram_w * scale) / 2 - min_x * scale
+        offset_y = (canvas.height - diagram_h * scale) / 2 - min_y * scale
+        return (scale, offset_x, offset_y)
+
+    def _apply_transform(self, layout_result: LayoutResult, scale: float,
+                         offset_x: float, offset_y: float) -> LayoutResult:
+        """Apply scale and translation to all primitives."""
+        transformed = {}
+        for prim_id, primitive in layout_result.primitives.items():
+            px, py = primitive.position
+            bx1, by1, bx2, by2 = primitive.bounds
+            new_position = (px * scale + offset_x, py * scale + offset_y)
+            new_bounds = (
+                bx1 * scale + offset_x,
+                by1 * scale + offset_y,
+                bx2 * scale + offset_x,
+                by2 * scale + offset_y,
+            )
+            transformed[prim_id] = SpatialPrimitive(
+                element_id=primitive.element_id,
+                element_type=primitive.element_type,
+                position=new_position,
+                bounds=new_bounds,
+                z_index=primitive.z_index
+            )
+        return LayoutResult(
+            primitives=transformed,
+            canvas_bounds=layout_result.canvas_bounds,
+            containment_hierarchy=layout_result.containment_hierarchy
         )
     
     def _render_argument_order_labels(self, canvas: PySide6Canvas, pred_position: Tuple[float, float],
                                     vertex_sequence: List[str], graph: RelationalGraphWithCuts,
-                                    layout_result: LayoutResult) -> None:
-        """Render argument order numbers for multi-place predicates."""
+                                    layout_result: LayoutResult, pred_bounds: Tuple[float, float, float, float]) -> None:
+        """Render argument order numbers near the predicate periphery hook points."""
+        x1, y1, x2, y2 = pred_bounds
         for i, vertex_id in enumerate(vertex_sequence):
-            if vertex_id in layout_result.primitives:
-                vertex_pos = layout_result.primitives[vertex_id].position
-                
-                # Calculate position for argument label (midpoint of connection)
-                mid_x = (pred_position[0] + vertex_pos[0]) / 2
-                mid_y = (pred_position[1] + vertex_pos[1]) / 2
-                
-                # Offset slightly to avoid line overlap
-                label_pos = (mid_x + self.conv.argument_label_offset, 
-                           mid_y - self.conv.argument_label_offset)
-                
-                # Draw argument number
-                canvas.draw_text(
-                    str(i + 1),  # 1-indexed argument numbers
-                    label_pos,
-                    {
-                        'color': self.conv.text_color,
-                        'font_size': 8,
-                        'bold': True
-                    }
-                )
+            sprim = layout_result.primitives.get(vertex_id)
+            if not sprim:
+                continue
+            vpos = sprim.position
+            # Periphery hook toward the vertex
+            hook = predicate_periphery_point(pred_bounds, vpos)
+            hx, hy = hook
+            # Determine side and push slightly outward
+            out = 6.0
+            if abs(hx - x1) < 1e-3:
+                label_pos = (hx - out, hy)
+            elif abs(hx - x2) < 1e-3:
+                label_pos = (hx + out, hy)
+            elif abs(hy - y1) < 1e-3:
+                label_pos = (hx, hy - out)
+            else:  # bottom side
+                label_pos = (hx, hy + out)
+            canvas.draw_text(
+                str(i + 1),
+                label_pos,
+                {
+                    'color': self.conv.text_color,
+                    'font_size': 9,
+                    'bold': True
+                }
+            )
     
     def _render_predicate_hooks(self, canvas: PySide6Canvas, pred_position: Tuple[float, float],
                               vertex_sequence: List[str], graph: RelationalGraphWithCuts,

@@ -1,0 +1,57 @@
+graph EG {
+    // ENHANCED: Dau convention layout with proper spacing
+    graph [clusterrank=local, compound=true, newrank=true, rankdir=TB,
+           overlap=false, splines=true, concentrate=false];
+    
+    // Enhanced spacing for Dau visual conventions
+    node [shape=circle, width=0.4, height=0.4, fixedsize=true,
+          fontsize=10, margin=0.2];
+    edge [arrowhead=none, len=3.5, minlen=2.5, weight=1.0];
+    
+    // Spacing parameters for visual clarity (compact defaults)
+    nodesep=1.2;        // Compact node separation
+    ranksep=1.0;        // Compact rank separation
+    margin=1.5;         // Keep graph margin modest
+    pad="1.5,1.5";      // Keep padding modest
+    sep="+8";           // Compact minimum separation
+
+  
+  // Default node styling with proper sizing
+  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
+  edge [fontsize=9, labeldistance=1.5, labelangle=0];
+
+  subgraph cluster_c_f2697bc2 {
+    label="Cut c_f2697b";
+    style=rounded;
+    color=black;
+    penwidth=1.5;
+    margin=16.00;  // Padding around cut contents
+    labelloc=top;
+    fontsize=8;
+    // Leverage Graphviz hierarchical layout
+    clusterrank=local;  // Layout this cluster separately
+
+    subgraph cluster_c_bff9d4f2 {
+      label="Cut c_bff9d4";
+      style=rounded;
+      color=black;
+      penwidth=1.5;
+      margin=16.00;  // Padding around cut contents
+      labelloc=top;
+      fontsize=8;
+      // Leverage Graphviz hierarchical layout
+      clusterrank=local;  // Layout this cluster separately
+
+      e_4e0145f4 [label="Happy", shape=box, fillcolor=lightyellow, width=1.50, height=0.60, fixedsize=true];
+    }
+
+    v_9730b550 [label="", width=0.84, height=0.65, fixedsize=true];
+    v_727db45c [label="", width=0.80, height=0.65, fixedsize=true];
+    e_ef1e1b1f [label="Loves", shape=box, fillcolor=lightyellow, width=1.50, height=0.60, fixedsize=true];
+  }
+
+  v_9730b550 -- e_ef1e1b1f:w [style=bold, penwidth=2, lhead=cluster_c_f2697bc2, ltail=cluster_c_f2697bc2];
+  v_727db45c -- e_ef1e1b1f:e [style=bold, penwidth=2, lhead=cluster_c_f2697bc2, ltail=cluster_c_f2697bc2];
+  v_727db45c -- e_4e0145f4 [style=bold, penwidth=2, lhead=cluster_c_bff9d4f2, ltail=cluster_c_f2697bc2];
+
+}

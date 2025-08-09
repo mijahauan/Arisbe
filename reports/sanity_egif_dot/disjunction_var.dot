@@ -1,0 +1,68 @@
+graph EG {
+    // ENHANCED: Dau convention layout with proper spacing
+    graph [clusterrank=local, compound=true, newrank=true, rankdir=TB,
+           overlap=false, splines=true, concentrate=false];
+    
+    // Enhanced spacing for Dau visual conventions
+    node [shape=circle, width=0.4, height=0.4, fixedsize=true,
+          fontsize=10, margin=0.2];
+    edge [arrowhead=none, len=3.5, minlen=2.5, weight=1.0];
+    
+    // Spacing parameters for visual clarity (compact defaults)
+    nodesep=1.2;        // Compact node separation
+    ranksep=1.0;        // Compact rank separation
+    margin=1.5;         // Keep graph margin modest
+    pad="1.5,1.5";      // Keep padding modest
+    sep="+8";           // Compact minimum separation
+
+  
+  // Default node styling with proper sizing
+  node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
+  edge [fontsize=9, labeldistance=1.5, labelangle=0];
+
+  subgraph cluster_c_74aebf84 {
+    label="Cut c_74aebf";
+    style=rounded;
+    color=black;
+    penwidth=1.5;
+    margin=16.00;  // Padding around cut contents
+    labelloc=top;
+    fontsize=8;
+    // Leverage Graphviz hierarchical layout
+    clusterrank=local;  // Layout this cluster separately
+
+    subgraph cluster_c_3caa4930 {
+      label="Cut c_3caa49";
+      style=rounded;
+      color=black;
+      penwidth=1.5;
+      margin=16.00;  // Padding around cut contents
+      labelloc=top;
+      fontsize=8;
+      // Leverage Graphviz hierarchical layout
+      clusterrank=local;  // Layout this cluster separately
+
+      v_ac4ef6d2 [label="", width=0.30, height=0.30, fixedsize=true];
+      e_81496c69 [label="Human", shape=box, fillcolor=lightyellow, width=1.50, height=0.60, fixedsize=true];
+    }
+
+    subgraph cluster_c_bd712d5c {
+      label="Cut c_bd712d";
+      style=rounded;
+      color=black;
+      penwidth=1.5;
+      margin=16.00;  // Padding around cut contents
+      labelloc=top;
+      fontsize=8;
+      // Leverage Graphviz hierarchical layout
+      clusterrank=local;  // Layout this cluster separately
+
+      e_a41232a3 [label="Immortal", shape=box, fillcolor=lightyellow, width=2.10, height=0.60, fixedsize=true];
+    }
+
+  }
+
+  v_ac4ef6d2 -- e_81496c69 [style=bold, penwidth=2, lhead=cluster_c_3caa4930, ltail=cluster_c_3caa4930];
+  v_ac4ef6d2 -- e_a41232a3 [style=bold, penwidth=2, lhead=cluster_c_bd712d5c, ltail=cluster_c_3caa4930];
+
+}

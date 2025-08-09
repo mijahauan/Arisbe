@@ -1,0 +1,124 @@
+graph EG {
+	graph [_draw_="c 9 -#fffffe00 C 7 -#ffffff P 4 -108 -108 -108 433.3 534 433.3 534 -108 ",
+		bb="0,0,426,325.3",
+		clusterrank=local,
+		compound=true,
+		concentrate=false,
+		margin=1.5,
+		newrank=true,
+		nodesep=1.2,
+		overlap=false,
+		pad="1.5,1.5",
+		rankdir=TB,
+		ranksep=1.0,
+		sep="+8",
+		splines=true,
+		xdotversion=1.7
+	];
+	node [fillcolor=lightblue,
+		fixedsize=true,
+		fontsize=10,
+		height=0.4,
+		label="\N",
+		margin=0.2,
+		shape=circle,
+		style=filled,
+		width=0.4
+	];
+	edge [arrowhead=none,
+		fontsize=9,
+		labelangle=0,
+		labeldistance=1.5,
+		len=3.5,
+		minlen=2.5,
+		weight=1.0
+	];
+	subgraph cluster_c_74aebf84 {
+		graph [_draw_="S 17 -setlinewidth(1.5) c 7 -#000000 B 25 20 8 20 8 406 8 406 8 412 8 418 14 418 20 418 20 418 305.3 418 305.3 418 311.3 412 317.3 \
+406 317.3 406 317.3 20 317.3 20 317.3 14 317.3 8 311.3 8 305.3 8 305.3 8 20 8 20 8 14 14 8 20 8 ",
+			_ldraw_="F 8 11 -Times-Roman c 7 -#000000 T 213 305.7 0 42.75 12 -Cut c_74aebf ",
+			bb="8,8,418,317.3",
+			clusterrank=local,
+			color=black,
+			fontsize=8,
+			label="Cut c_74aebf",
+			labelloc=top,
+			lheight=0.14,
+			lp="213,308.43",
+			lwidth=0.59,
+			margin=16.00,
+			penwidth=1.5,
+			style=rounded
+		];
+		subgraph cluster_c_3caa4930 {
+			graph [_draw_="S 17 -setlinewidth(1.5) c 7 -#000000 B 25 36 24 36 24 152 24 152 24 158 24 164 30 164 36 164 36 164 271.55 164 271.55 164 277.55 \
+158 283.55 152 283.55 152 283.55 36 283.55 36 283.55 30 283.55 24 277.55 24 271.55 24 271.55 24 36 24 36 24 30 30 24 36 24 ",
+				_ldraw_="F 8 11 -Times-Roman c 7 -#000000 T 94 271.95 0 43.5 12 -Cut c_3caa49 ",
+				bb="24,24,164,283.55",
+				clusterrank=local,
+				color=black,
+				fontsize=8,
+				label="Cut c_3caa49",
+				labelloc=top,
+				lheight=0.14,
+				lp="94,274.68",
+				lwidth=0.60,
+				margin=16.00,
+				penwidth=1.5,
+				style=rounded
+			];
+			v_ac4ef6d2	[_draw_="c 7 -#000000 C 7 -#add8e6 E 126 239 10.8 10.8 ",
+				height=0.3,
+				label="",
+				pos="126,239",
+				width=0.3];
+			e_81496c69	[_draw_="c 7 -#000000 C 7 -#ffffe0 P 4 148 83.2 40 83.2 40 40 148 40 ",
+				_ldraw_="F 10 11 -Times-Roman c 7 -#000000 T 94 57.72 0 30 5 -Human ",
+				fillcolor=lightyellow,
+				height=0.6,
+				label=Human,
+				pos="94,61.6",
+				shape=box,
+				width=1.5];
+			v_ac4ef6d2 -- e_81496c69	[_draw_="S 15 -setlinewidth(2) c 7 -#000000 B 4 124.19 228.07 119.12 200.31 104.74 121.49 97.82 83.53 ",
+				lhead=cluster_c_3caa4930,
+				ltail=cluster_c_3caa4930,
+				penwidth=2,
+				pos="124.19,228.07 119.12,200.31 104.74,121.49 97.819,83.533",
+				style=bold];
+		}
+		subgraph cluster_c_bd712d5c {
+			graph [_draw_="S 17 -setlinewidth(1.5) c 7 -#000000 B 25 230 24 230 24 390 24 390 24 396 24 402 30 402 36 402 36 402 104.95 402 104.95 402 110.95 \
+396 116.95 390 116.95 390 116.95 230 116.95 230 116.95 224 116.95 218 110.95 218 104.95 218 104.95 218 36 218 36 218 30 224 24 230 \
+24 ",
+				_ldraw_="F 8 11 -Times-Roman c 7 -#000000 T 310 105.35 0 43.5 12 -Cut c_bd712d ",
+				bb="218,24,402,116.95",
+				clusterrank=local,
+				color=black,
+				fontsize=8,
+				label="Cut c_bd712d",
+				labelloc=top,
+				lheight=0.14,
+				lp="310,108.07",
+				lwidth=0.60,
+				margin=16.00,
+				penwidth=1.5,
+				style=rounded
+			];
+			e_a41232a3	[_draw_="c 7 -#000000 C 7 -#ffffe0 P 4 385.6 83.2 234.4 83.2 234.4 40 385.6 40 ",
+				_ldraw_="F 10 11 -Times-Roman c 7 -#000000 T 310 57.72 0 36.75 8 -Immortal ",
+				fillcolor=lightyellow,
+				height=0.6,
+				label=Immortal,
+				pos="310,61.6",
+				shape=box,
+				width=2.1];
+		}
+		v_ac4ef6d2 -- e_a41232a3	[_draw_="S 15 -setlinewidth(2) c 7 -#000000 B 4 164 201.78 189.68 177.3 224.05 144.53 252.99 116.95 ",
+			lhead=cluster_c_bd712d5c,
+			ltail=cluster_c_3caa4930,
+			penwidth=2,
+			pos="164,201.78 189.68,177.3 224.05,144.53 252.99,116.95",
+			style=bold];
+	}
+}

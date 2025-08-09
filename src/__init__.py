@@ -17,17 +17,17 @@ __author__ = "Arisbe Development Team"
 __description__ = "Dau-Compliant Existential Graphs System"
 
 # Core exports
-from egi_core_dau import (
+from .egi_core_dau import (
     RelationalGraphWithCuts,
     Vertex, Edge, Cut, ElementID,
     create_vertex, create_edge, create_cut,
     create_empty_graph
 )
 
-from egif_parser_dau import parse_egif
-from egif_generator_dau import generate_egif
+from .egif_parser_dau import parse_egif
+from .egif_generator_dau import generate_egif
 
-from egi_transformations_dau import (
+from .egi_transformations_dau import (
     apply_erasure, apply_insertion, apply_iteration, apply_de_iteration,
     apply_double_cut_addition, apply_double_cut_removal,
     apply_isolated_vertex_addition, apply_isolated_vertex_removal,

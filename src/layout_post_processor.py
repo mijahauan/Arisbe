@@ -8,7 +8,7 @@ that cannot be resolved through DOT parameters alone.
 
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
-from layout_result import LayoutResult, LayoutPrimitive
+from layout_engine_clean import LayoutResult, SpatialPrimitive
 
 @dataclass
 class SpacingConstraints:
@@ -39,23 +39,159 @@ class LayoutPostProcessor:
         # Create a copy to modify
         processed_primitives = dict(layout_result.primitives)
         
-        # Step 1: Fix nested cut positioning
+        # Step 1: Strict child containment before any other adjustments
+        processed_primitives = self._enforce_child_containment_strict(processed_primitives)
+
+        # Step 1b: Backward-compatible nested cut positioning (rect-based)
         processed_primitives = self._fix_nested_cuts(processed_primitives)
         
         # Step 2: Enforce sibling cut separation
         processed_primitives = self._enforce_cut_separation(processed_primitives)
-        
-        # Step 3: Ensure adequate padding within cuts
+
+        # Step 3: Nudge predicates inward to avoid crossing cut boundaries
+        processed_primitives = self._nudge_predicates_inside_cuts(processed_primitives)
+
+        # Step 4: Ensure adequate padding within cuts
         processed_primitives = self._enforce_cut_padding(processed_primitives)
-        
-        # Step 4: Adjust element positions to prevent crowding
+
+        # Step 5: Adjust element positions to prevent crowding
         processed_primitives = self._prevent_element_crowding(processed_primitives)
         
         print("✅ Layout post-processing complete")
         
         return LayoutResult(primitives=processed_primitives)
+
+    def _enforce_child_containment_strict(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
+        """Definitively prevent child cuts from touching/overlapping parent boundaries.
+        Strategy (rect-aligned ovals):
+        - Sort cuts by area descending (parents before children).
+        - For each parent, compute inner rect = parent.bounds inset by nested_cut_margin.
+        - For each child whose center lies inside parent, clamp child's rect to be fully
+          contained in inner rect by minimal translation; if too large, shrink to fit
+          (max 7% shrink to avoid distortion). Then de-overlap siblings within the same parent.
+        """
+        cuts = [(k, v) for k, v in primitives.items() if v.element_type == 'cut' and v.bounds]
+        if len(cuts) <= 1:
+            return primitives
+        # Parents first
+        cuts.sort(key=lambda kv: self._calculate_area(kv[1].bounds), reverse=True)
+        margin = self.constraints.nested_cut_margin
+
+        # Map parent -> list of child ids for sibling deoverlap
+        parent_children: Dict[str, List[str]] = {}
+
+        for p_id, p in cuts:
+            px1, py1, px2, py2 = p.bounds
+            inner = (px1 + margin, py1 + margin, px2 - margin, py2 - margin)
+            ix1, iy1, ix2, iy2 = inner
+            # Skip degenerate
+            if ix2 <= ix1 or iy2 <= iy1:
+                continue
+
+            for c_id, c in cuts:
+                if c_id == p_id or not c.bounds:
+                    continue
+                cx1, cy1, cx2, cy2 = c.bounds
+                ccx, ccy = (cx1 + cx2) / 2.0, (cy1 + cy2) / 2.0
+                # Child if center inside parent rect
+                if not (ccx >= px1 and ccx <= px2 and ccy >= py1 and ccy <= py2):
+                    continue
+                parent_children.setdefault(p_id, []).append(c_id)
+
+                # Desired clamped rect preserving size
+                w, h = (cx2 - cx1), (cy2 - cy1)
+                # If larger than inner rect, cap size with small shrink
+                max_w = max(2.0, (ix2 - ix1))
+                max_h = max(2.0, (iy2 - iy1))
+                shrink_w = min(0.07 * w, max(0.0, w - max_w))
+                shrink_h = min(0.07 * h, max(0.0, h - max_h))
+                w_adj = max(2.0, w - shrink_w)
+                h_adj = max(2.0, h - shrink_h)
+                # Clamp center into inner rect allowing half size
+                min_cx = ix1 + w_adj / 2.0
+                max_cx = ix2 - w_adj / 2.0
+                min_cy = iy1 + h_adj / 2.0
+                max_cy = iy2 - h_adj / 2.0
+                new_cx = min(max(ccx, min_cx), max_cx)
+                new_cy = min(max(ccy, min_cy), max_cy)
+                nb = (new_cx - w_adj / 2.0, new_cy - h_adj / 2.0,
+                      new_cx + w_adj / 2.0, new_cy + h_adj / 2.0)
+                primitives[c_id] = SpatialPrimitive(
+                    element_id=c.element_id,
+                    element_type=c.element_type,
+                    position=(new_cx, new_cy),
+                    bounds=nb,
+                    z_index=getattr(c, 'z_index', 0),
+                )
+
+        # De-overlap siblings per parent with small radial offsets
+        for p_id, child_ids in parent_children.items():
+            if len(child_ids) <= 1:
+                continue
+            # Simple iterative push apart up to N passes
+            for _ in range(4):
+                moved = False
+                for i in range(len(child_ids)):
+                    for j in range(i + 1, len(child_ids)):
+                        a = primitives.get(child_ids[i])
+                        b = primitives.get(child_ids[j])
+                        if not a or not b or not a.bounds or not b.bounds:
+                            continue
+                        ax1, ay1, ax2, ay2 = a.bounds
+                        bx1, by1, bx2, by2 = b.bounds
+                        # Check overlap
+                        if ax2 <= bx1 or bx2 <= ax1 or ay2 <= by1 or by2 <= ay1:
+                            continue
+                        # Compute minimal separating vector (prefer horizontal)
+                        overlap_x = min(ax2 - bx1, bx2 - ax1)
+                        overlap_y = min(ay2 - by1, by2 - ay1)
+                        if overlap_x <= overlap_y:
+                            dx = (overlap_x / 2.0) + 2.0
+                            a_off = -dx
+                            b_off = dx
+                            a_nb = (ax1 + a_off, ay1, ax2 + a_off, ay2)
+                            b_nb = (bx1 + b_off, by1, bx2 + b_off, by2)
+                            primitives[a.element_id] = SpatialPrimitive(
+                                element_id=a.element_id,
+                                element_type=a.element_type,
+                                position=((a_nb[0] + a_nb[2]) / 2.0, (a_nb[1] + a_nb[3]) / 2.0),
+                                bounds=a_nb,
+                                z_index=getattr(a, 'z_index', 0),
+                            )
+                            primitives[b.element_id] = SpatialPrimitive(
+                                element_id=b.element_id,
+                                element_type=b.element_type,
+                                position=((b_nb[0] + b_nb[2]) / 2.0, (b_nb[1] + b_nb[3]) / 2.0),
+                                bounds=b_nb,
+                                z_index=getattr(b, 'z_index', 0),
+                            )
+                        else:
+                            dy = (overlap_y / 2.0) + 2.0
+                            a_off = -dy
+                            b_off = dy
+                            a_nb = (ax1, ay1 + a_off, ax2, ay2 + a_off)
+                            b_nb = (bx1, by1 + b_off, bx2, by2 + b_off)
+                            primitives[a.element_id] = SpatialPrimitive(
+                                element_id=a.element_id,
+                                element_type=a.element_type,
+                                position=((a_nb[0] + a_nb[2]) / 2.0, (a_nb[1] + a_nb[3]) / 2.0),
+                                bounds=a_nb,
+                                z_index=getattr(a, 'z_index', 0),
+                            )
+                            primitives[b.element_id] = SpatialPrimitive(
+                                element_id=b.element_id,
+                                element_type=b.element_type,
+                                position=((b_nb[0] + b_nb[2]) / 2.0, (b_nb[1] + b_nb[3]) / 2.0),
+                                bounds=b_nb,
+                                z_index=getattr(b, 'z_index', 0),
+                            )
+                        moved = True
+                if not moved:
+                    break
+
+        return primitives
     
-    def _fix_nested_cuts(self, primitives: Dict[str, LayoutPrimitive]) -> Dict[str, LayoutPrimitive]:
+    def _fix_nested_cuts(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
         """Fix nested cut positioning to ensure proper containment without overlap."""
         
         cuts = [(k, v) for k, v in primitives.items() if v.element_type == 'cut']
@@ -78,24 +214,88 @@ class LayoutPostProcessor:
                     continue
                     
                 if self._is_contained(cut.bounds, parent_cut.bounds):
-                    # This is a nested cut - ensure proper margin
+                    # This is a nested cut - ensure proper margin and shrink if necessary
                     new_bounds = self._adjust_nested_cut_bounds(cut.bounds, parent_cut.bounds)
+                    # If still larger than parent's inner area, shrink to fit
+                    pb = parent_cut.bounds
+                    margin = self.constraints.nested_cut_margin
+                    ax1, ay1, ax2, ay2 = pb[0]+margin, pb[1]+margin, pb[2]-margin, pb[3]-margin
+                    nx1, ny1, nx2, ny2 = new_bounds
+                    if (nx2-nx1) > (ax2-ax1) or (ny2-ny1) > (ay2-ay1):
+                        # Clamp to inner rect (preserve center)
+                        cx = (nx1 + nx2)/2.0
+                        cy = (ny1 + ny2)/2.0
+                        w = min(nx2-nx1, ax2-ax1)
+                        h = min(ny2-ny1, ay2-ay1)
+                        new_bounds = (cx - w/2.0, cy - h/2.0, cx + w/2.0, cy + h/2.0)
                     
                     # Update the cut bounds
-                    primitives[cut_id] = LayoutPrimitive(
+                    primitives[cut_id] = SpatialPrimitive(
                         element_id=cut.element_id,
                         element_type=cut.element_type,
-                        position=cut.position,
+                        position=((new_bounds[0]+new_bounds[2])/2.0, (new_bounds[1]+new_bounds[3])/2.0),
                         bounds=new_bounds,
-                        style=cut.style
+                        z_index=getattr(cut, 'z_index', 0),
                     )
                     
                     print(f"     Adjusted nested cut {cut_id[:8]} within {parent_id[:8]}")
                     break
         
         return primitives
+
+    def _nudge_predicates_inside_cuts(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
+        """Translate predicate boxes inward so they don't overlap cut boundaries.
+        Strategy:
+        - For each predicate, find the smallest cut that contains its center.
+        - Compute an inner rect (cut bounds minus nested_cut_margin).
+        - Clamp predicate center into inner rect and ensure full bounds containment.
+        """
+        cuts = [(k, v) for k, v in primitives.items() if v.element_type == 'cut' and v.bounds]
+        preds = [(k, v) for k, v in primitives.items() if v.element_type == 'predicate' and v.bounds]
+        if not cuts or not preds:
+            return primitives
+
+        # Sort cuts by area ascending to find smallest containing cut first
+        cuts.sort(key=lambda kv: self._calculate_area(kv[1].bounds))
+
+        margin = self.constraints.nested_cut_margin
+
+        for pid, pred in preds:
+            px1, py1, px2, py2 = pred.bounds
+            pcx, pcy = (px1+px2)/2.0, (py1+py2)/2.0
+            pw, ph = (px2 - px1), (py2 - py1)
+            parent_bounds = None
+            for cid, c in cuts:
+                cx1, cy1, cx2, cy2 = c.bounds
+                if pcx >= cx1 and pcy >= cy1 and pcx <= cx2 and pcy <= cy2:
+                    parent_bounds = c.bounds
+                    break
+            if not parent_bounds:
+                continue
+            cx1, cy1, cx2, cy2 = parent_bounds
+            # Inner rect we must fit entirely within
+            ix1, iy1, ix2, iy2 = cx1 + margin, cy1 + margin, cx2 - margin, cy2 - margin
+            if ix2 <= ix1 or iy2 <= iy1:
+                continue
+            # Clamp center into inner rect allowing half predicate size
+            min_cx = ix1 + pw / 2.0
+            max_cx = ix2 - pw / 2.0
+            min_cy = iy1 + ph / 2.0
+            max_cy = iy2 - ph / 2.0
+            new_cx = min(max(pcx, min_cx), max_cx)
+            new_cy = min(max(pcy, min_cy), max_cy)
+            nb = (new_cx - pw/2.0, new_cy - ph/2.0, new_cx + pw/2.0, new_cy + ph/2.0)
+            if nb != pred.bounds:
+                primitives[pid] = SpatialPrimitive(
+                    element_id=pred.element_id,
+                    element_type=pred.element_type,
+                    position=(new_cx, new_cy),
+                    bounds=nb,
+                    z_index=getattr(pred, 'z_index', 0),
+                )
+        return primitives
     
-    def _enforce_cut_separation(self, primitives: Dict[str, LayoutPrimitive]) -> Dict[str, LayoutPrimitive]:
+    def _enforce_cut_separation(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
         """Enforce minimum separation between sibling cuts."""
         
         cuts = [(k, v) for k, v in primitives.items() if v.element_type == 'cut']
@@ -122,20 +322,21 @@ class LayoutPostProcessor:
                     # Move cuts apart
                     new_cut2_bounds = self._move_cut_away(cut1.bounds, cut2.bounds, 
                                                         self.constraints.min_cut_separation)
-                    
-                    primitives[cut2_id] = LayoutPrimitive(
+                    cx = (new_cut2_bounds[0] + new_cut2_bounds[2]) / 2.0
+                    cy = (new_cut2_bounds[1] + new_cut2_bounds[3]) / 2.0
+                    primitives[cut2_id] = SpatialPrimitive(
                         element_id=cut2.element_id,
                         element_type=cut2.element_type,
-                        position=cut2.position,
+                        position=(cx, cy),
                         bounds=new_cut2_bounds,
-                        style=cut2.style
+                        z_index=getattr(cut2, 'z_index', 0),
                     )
                     
                     print(f"     Separated cuts {cut1_id[:8]} and {cut2_id[:8]}")
         
         return primitives
     
-    def _enforce_cut_padding(self, primitives: Dict[str, LayoutPrimitive]) -> Dict[str, LayoutPrimitive]:
+    def _enforce_cut_padding(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
         """Ensure adequate padding within cuts for contained elements."""
         
         cuts = [(k, v) for k, v in primitives.items() if v.element_type == 'cut']
@@ -160,19 +361,21 @@ class LayoutPostProcessor:
                 
                 if self._bounds_area(required_bounds) > self._bounds_area(cut.bounds):
                     # Expand the cut
-                    primitives[cut_id] = LayoutPrimitive(
+                    cx = (required_bounds[0] + required_bounds[2]) / 2.0
+                    cy = (required_bounds[1] + required_bounds[3]) / 2.0
+                    primitives[cut_id] = SpatialPrimitive(
                         element_id=cut.element_id,
                         element_type=cut.element_type,
-                        position=cut.position,
+                        position=(cx, cy),
                         bounds=required_bounds,
-                        style=cut.style
+                        z_index=getattr(cut, 'z_index', 0),
                     )
                     
                     print(f"     Expanded cut {cut_id[:8]} for proper padding")
         
         return primitives
     
-    def _prevent_element_crowding(self, primitives: Dict[str, LayoutPrimitive]) -> Dict[str, LayoutPrimitive]:
+    def _prevent_element_crowding(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
         """Adjust element positions to prevent crowding."""
         
         all_elements = list(primitives.items())
@@ -191,13 +394,14 @@ class LayoutPostProcessor:
                     # Move second element away from first
                     new_bounds = self._move_element_away(elem1.bounds, elem2.bounds,
                                                        self.constraints.min_element_separation)
-                    
-                    primitives[elem2_id] = LayoutPrimitive(
+                    cx = (new_bounds[0] + new_bounds[2]) / 2.0
+                    cy = (new_bounds[1] + new_bounds[3]) / 2.0
+                    primitives[elem2_id] = SpatialPrimitive(
                         element_id=elem2.element_id,
                         element_type=elem2.element_type,
-                        position=elem2.position,
+                        position=(cx, cy),
                         bounds=new_bounds,
-                        style=elem2.style
+                        z_index=getattr(elem2, 'z_index', 0),
                     )
                     
                     adjustments_made += 1
@@ -320,7 +524,7 @@ class LayoutPostProcessor:
         """Move an element away from another to achieve minimum separation."""
         return self._move_cut_away(fixed_bounds, moving_bounds, min_separation)
     
-    def _calculate_required_cut_bounds(self, contained_elements: List[Tuple[str, LayoutPrimitive]],
+    def _calculate_required_cut_bounds(self, contained_elements: List[Tuple[str, SpatialPrimitive]],
                                      padding: float) -> Tuple[float, float, float, float]:
         """Calculate required bounds for a cut to contain elements with padding."""
         if not contained_elements:

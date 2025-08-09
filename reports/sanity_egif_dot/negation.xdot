@@ -1,0 +1,73 @@
+graph EG {
+	graph [_draw_="c 9 -#fffffe00 C 7 -#ffffff P 4 -108 -108 -108 422.43 278 422.43 278 -108 ",
+		bb="0,0,170,314.43",
+		clusterrank=local,
+		compound=true,
+		concentrate=false,
+		margin=1.5,
+		newrank=true,
+		nodesep=1.2,
+		overlap=false,
+		pad="1.5,1.5",
+		rankdir=TB,
+		ranksep=1.0,
+		sep="+8",
+		splines=true,
+		xdotversion=1.7
+	];
+	node [fillcolor=lightblue,
+		fixedsize=true,
+		fontsize=10,
+		height=0.4,
+		label="\N",
+		margin=0.2,
+		shape=circle,
+		style=filled,
+		width=0.4
+	];
+	edge [arrowhead=none,
+		fontsize=9,
+		labelangle=0,
+		labeldistance=1.5,
+		len=3.5,
+		minlen=2.5,
+		weight=1.0
+	];
+	subgraph cluster_c_73f44ac6 {
+		graph [_draw_="S 17 -setlinewidth(1.5) c 7 -#000000 B 25 20 8 20 8 150 8 150 8 156 8 162 14 162 20 162 20 162 294.43 162 294.43 162 300.43 156 \
+306.43 150 306.43 150 306.43 20 306.43 20 306.43 14 306.43 8 300.43 8 294.43 8 294.43 8 20 8 20 8 14 14 8 20 8 ",
+			_ldraw_="F 8 11 -Times-Roman c 7 -#000000 T 85 294.83 0 42.75 12 -Cut c_73f44a ",
+			bb="8,8,162,306.43",
+			clusterrank=local,
+			color=black,
+			fontsize=8,
+			label="Cut c_73f44a",
+			labelloc=top,
+			lheight=0.14,
+			lp="85,297.56",
+			lwidth=0.59,
+			margin=16.00,
+			penwidth=1.5,
+			style=rounded
+		];
+		v_ac4d713f	[_draw_="c 7 -#000000 C 7 -#add8e6 E 85 242.44 30.24 30.24 ",
+			height=0.84,
+			label="",
+			pos="85,242.44",
+			width=0.84];
+		e_f2bee77f	[_draw_="c 7 -#000000 C 7 -#ffffe0 P 4 146.2 67.2 23.8 67.2 23.8 24 146.2 24 ",
+			_ldraw_="F 10 11 -Times-Roman c 7 -#000000 T 85 41.72 0 27.75 6 -Mortal ",
+			fillcolor=lightyellow,
+			height=0.6,
+			label=Mortal,
+			pos="85,45.6",
+			shape=box,
+			width=1.7];
+		v_ac4d713f -- e_f2bee77f	[_draw_="S 15 -setlinewidth(2) c 7 -#000000 B 4 85 211.85 85 172.03 85 102.21 85 67.47 ",
+			lhead=cluster_c_73f44ac6,
+			ltail=cluster_c_73f44ac6,
+			penwidth=2,
+			pos="85,211.85 85,172.03 85,102.21 85,67.466",
+			style=bold];
+	}
+}

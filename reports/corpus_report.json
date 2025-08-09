@@ -1,0 +1,34 @@
+{
+  "results": [
+    {
+      "file": "corpus/corpus/canonical/canonical_implication.egif",
+      "status": "ok",
+      "issues": [],
+      "image": "reports/corpus_visuals/canonical_implication.png"
+    },
+    {
+      "file": "corpus/corpus/peirce/peirce_cp_4_394_man_mortal.egif",
+      "status": "ok",
+      "issues": [],
+      "image": "reports/corpus_visuals/peirce_cp_4_394_man_mortal.png"
+    },
+    {
+      "file": "corpus/corpus/scholars/dau_2006_p112_ligature.egif",
+      "status": "ok",
+      "issues": [],
+      "image": "reports/corpus_visuals/dau_2006_p112_ligature.png"
+    },
+    {
+      "file": "corpus/corpus/scholars/roberts_1973_p57_disjunction.egif",
+      "status": "ok",
+      "issues": [],
+      "image": "reports/corpus_visuals/roberts_1973_p57_disjunction.png"
+    },
+    {
+      "file": "corpus/corpus/scholars/sowa_2011_p356_quantification.egif",
+      "status": "ok",
+      "issues": [],
+      "image": "reports/corpus_visuals/sowa_2011_p356_quantification.png"
+    }
+  ]
+}

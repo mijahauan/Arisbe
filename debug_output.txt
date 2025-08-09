@@ -1,0 +1,101 @@
+qt.qpa.fonts: Populating font family aliases took 50 ms. Replace uses of missing font family "Times" with one that exists to avoid this cost. 
+⚠️  Layout post-processor not available - using basic spacing
+✓ Corpus loaded with 5 examples
+🔍 Ensuring complete element coverage...
+   Graph has 1 vertices, 2 edges, 0 cuts
+   Current primitives: 3 elements
+✅ Complete element coverage ensured: 3 total primitives
+DEBUG: Layout result type: <class 'layout_engine_clean.LayoutResult'>
+DEBUG: Layout result attributes: ['__annotations__', '__class__', '__dataclass_fields__', '__dataclass_params__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__match_args__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'canvas_bounds', 'containment_hierarchy', 'primitives']
+DEBUG: Found 5 spatial primitives
+DEBUG: Primitive 0: v_984bb3be (vertex) at (343.0, 506.44)
+DEBUG: Primitive 1: e_81f4e89c (predicate) at (54.0, 21.6)
+DEBUG: Primitive 2: e_436b527c (predicate) at (632.0, 21.6)
+🔍 Ensuring complete element coverage...
+   Graph has 1 vertices, 2 edges, 0 cuts
+   Current primitives: 3 elements
+✅ Complete element coverage ensured: 3 total primitives
+DEBUG: Layout result type: <class 'layout_engine_clean.LayoutResult'>
+DEBUG: Layout result attributes: ['__annotations__', '__class__', '__dataclass_fields__', '__dataclass_params__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__match_args__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'canvas_bounds', 'containment_hierarchy', 'primitives']
+DEBUG: Found 5 spatial primitives
+DEBUG: Primitive 0: v_04e9aa32 (vertex) at (343.0, 506.44)
+DEBUG: Primitive 1: e_d0f1709b (predicate) at (54.0, 21.6)
+DEBUG: Primitive 2: e_7661fce4 (predicate) at (632.0, 21.6)
+Phase 2 GUI Foundation Running:
+✓ EGI → Visual rendering pipeline working
+✓ Basic selection and interaction implemented
+✓ Foundation ready for Phase 2 development
+✓ Try different EGIF expressions from the dropdown
+✓ Corpus integration with import functionality
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}
+DEBUG: All vertices in EGI: [('v_04e9aa32', 'Socrates', False)]
+DEBUG: Vertex spatial primitives: [('v_04e9aa32', (343.0, 506.44))]
+DEBUG: Processing vertex v_04e9aa32 with connections: ['e_d0f1709b', 'e_7661fce4']
+DEBUG: Rendered constant name 'Socrates' ON ligature line at (344.2,21.6)
+DEBUG: Rendered curved ligature: (77.5, 21.6) to (611.0, 21.6) with branch at (344.2,21.6)
+DEBUG: Post-processing ligatures from nu mapping: {'e_d0f1709b': ('v_04e9aa32',), 'e_7661fce4': ('v_04e9aa32',)}
+DEBUG: Vertex connections: {'v_04e9aa32': ['e_d0f1709b', 'e_7661fce4']}

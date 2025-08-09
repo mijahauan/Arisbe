@@ -148,6 +148,8 @@ class EGCanvasWidget(QWidget):
         super().__init__()
         self.setFixedSize(width, height)
         self.elements = []
+        self._drag_idx = None
+        self._drag_offset = (0.0, 0.0)
         
         # Set white background
         self.setStyleSheet("background-color: white;")
@@ -209,6 +211,46 @@ class EGCanvasWidget(QWidget):
             font = self._create_font(style)
             painter.setFont(font)
             painter.drawText(position, element['text'])
+
+    # --- Interaction: Dragging draggable text elements (e.g., vertex labels) ---
+    def mousePressEvent(self, event):
+        pos = event.position() if hasattr(event, 'position') else event.localPos()
+        x, y = pos.x(), pos.y()
+        # Find topmost draggable element under cursor
+        for idx in reversed(range(len(self.elements))):
+            el = self.elements[idx]
+            if el.get('type') == 'text' and el.get('style', {}).get('draggable', False):
+                bx1, by1, bx2, by2 = self._approx_text_bounds(el)
+                if bx1 <= x <= bx2 and by1 <= y <= by2:
+                    self._drag_idx = idx
+                    ex, ey = el['position']
+                    self._drag_offset = (x - ex, y - ey)
+                    break
+
+    def mouseMoveEvent(self, event):
+        if self._drag_idx is None:
+            return
+        pos = event.position() if hasattr(event, 'position') else event.localPos()
+        x, y = pos.x(), pos.y()
+        el = self.elements[self._drag_idx]
+        dx, dy = self._drag_offset
+        el['position'] = (x - dx, y - dy)
+        self.update()
+
+    def mouseReleaseEvent(self, event):
+        self._drag_idx = None
+        self._drag_offset = (0.0, 0.0)
+
+    def _approx_text_bounds(self, el: dict):
+        text = el.get('text', '')
+        style = el.get('style', {})
+        font_size = style.get('font_size', 12)
+        padding = 6.0
+        w = max(1, int(len(text) * font_size * 0.6))
+        h = int(font_size * 1.2)
+        x, y = el.get('position', (0.0, 0.0))
+        # Approximate as left-aligned baseline; expand padding to compensate
+        return (x - padding, y - h - padding, x + w + padding, y + padding)
     
     def _create_pen(self, style: dict) -> QPen:
         """Create Qt pen from style dictionary."""
