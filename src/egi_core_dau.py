@@ -414,6 +414,39 @@ class RelationalGraphWithCuts:
             rel=self.rel
         )
     
+    def with_vertex_moved_to_context(self, vertex_id: ElementID, new_context_id: ElementID) -> 'RelationalGraphWithCuts':
+        """Return a new graph with the given vertex relocated to a different context.
+        Preserves all other components; validates that vertex exists and context exists.
+        """
+        # Validate vertex exists
+        if vertex_id not in {v.id for v in self.V}:
+            raise ValueError(f"Vertex {vertex_id} not found")
+        # Validate target context exists
+        if new_context_id != self.sheet and new_context_id not in {c.id for c in self.Cut}:
+            raise ValueError(f"Context {new_context_id} does not exist")
+        # If already in target context, return self
+        current_context = self.get_context(vertex_id)
+        if current_context == new_context_id:
+            return self
+        # Update area: remove from old, add to new
+        new_area = dict(self.area)
+        # Remove from current context
+        current_area = new_area.get(current_context, frozenset())
+        if vertex_id in current_area:
+            new_area[current_context] = current_area - {vertex_id}
+        # Add to new context
+        target_area = new_area.get(new_context_id, frozenset())
+        new_area[new_context_id] = target_area | {vertex_id}
+        return RelationalGraphWithCuts(
+            V=self.V,
+            E=self.E,
+            nu=self.nu,
+            sheet=self.sheet,
+            Cut=self.Cut,
+            area=frozendict(new_area),
+            rel=self.rel
+        )
+    
     def without_element(self, element_id: ElementID) -> 'RelationalGraphWithCuts':
         """Create new graph without specified element."""
         if element_id in {v.id for v in self.V}:

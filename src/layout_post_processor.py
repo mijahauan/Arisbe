@@ -34,32 +34,55 @@ class LayoutPostProcessor:
         3. Ensure adequate padding within cuts
         4. Adjust element positions to prevent crowding
         """
+        # If there are no predicates, do not touch the layout. Pure-cut diagrams
+        # should rely entirely on Graphviz cluster containment; any translation risks
+        # violating the containment hierarchy visually.
+        primitives = layout_result.primitives or {}
+        if not any(getattr(p, 'element_type', None) == 'predicate' for p in primitives.values()):
+            # Pure-cut diagrams must be exactly what Graphviz emits. No adjustments.
+            return layout_result
+
         print("🔧 Post-processing layout for spacing fixes...")
         
         # Create a copy to modify
         processed_primitives = dict(layout_result.primitives)
+        hierarchy = getattr(layout_result, 'containment_hierarchy', {}) or {}
         
-        # Step 1: Strict child containment before any other adjustments
-        processed_primitives = self._enforce_child_containment_strict(processed_primitives)
+        # IMPORTANT: Do not mutate cut bounds at all. Graphviz cluster nesting
+        # is the source of truth for containment. We only nudge non-cut elements.
 
-        # Step 1b: Backward-compatible nested cut positioning (rect-based)
-        processed_primitives = self._fix_nested_cuts(processed_primitives)
-        
-        # Step 2: Enforce sibling cut separation
-        processed_primitives = self._enforce_cut_separation(processed_primitives)
-
-        # Step 3: Nudge predicates inward to avoid crossing cut boundaries
+        # Step A: Nudge predicates inward to avoid crossing cut boundaries
         processed_primitives = self._nudge_predicates_inside_cuts(processed_primitives)
 
-        # Step 4: Ensure adequate padding within cuts
-        processed_primitives = self._enforce_cut_padding(processed_primitives)
-
-        # Step 5: Adjust element positions to prevent crowding
+        # Step B: Adjust element positions to prevent crowding (non-cut elements only)
         processed_primitives = self._prevent_element_crowding(processed_primitives)
         
         print("✅ Layout post-processing complete")
         
-        return LayoutResult(primitives=processed_primitives)
+        # Preserve global metadata from the input layout result
+        return LayoutResult(
+            primitives=processed_primitives,
+            canvas_bounds=getattr(layout_result, 'canvas_bounds', None),
+            containment_hierarchy=getattr(layout_result, 'containment_hierarchy', {})
+        )
+
+    @classmethod
+    def canonical(cls) -> "LayoutPostProcessor":
+        """Factory for a deterministic, canonical preset.
+        Values align with Dau-compliant spacing and prior validated theme settings.
+        """
+        return cls(
+            constraints=SpacingConstraints(
+                min_cut_separation=50.0,
+                min_element_separation=25.0,
+                cut_padding=35.0,
+                nested_cut_margin=30.0,
+            )
+        )
+
+    def process_canonical(self, layout_result: LayoutResult) -> LayoutResult:
+        """Wrapper to process with canonical constraints (deterministic)."""
+        return self.process_layout(layout_result)
 
     def _enforce_child_containment_strict(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
         """Definitively prevent child cuts from touching/overlapping parent boundaries.
@@ -295,45 +318,41 @@ class LayoutPostProcessor:
                 )
         return primitives
     
-    def _enforce_cut_separation(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
-        """Enforce minimum separation between sibling cuts."""
-        
-        cuts = [(k, v) for k, v in primitives.items() if v.element_type == 'cut']
-        
-        if len(cuts) < 2:
-            return primitives
-        
-        print(f"   Enforcing separation between {len(cuts)} cuts...")
-        
-        # Check all pairs of cuts for adequate separation
-        for i, (cut1_id, cut1) in enumerate(cuts):
-            for j, (cut2_id, cut2) in enumerate(cuts[i+1:], i+1):
-                if not cut1.bounds or not cut2.bounds:
-                    continue
-                
-                # Skip if one cut is nested inside the other
-                if (self._is_contained(cut1.bounds, cut2.bounds) or 
-                    self._is_contained(cut2.bounds, cut1.bounds)):
-                    continue
-                
-                # Check separation
-                separation = self._calculate_separation(cut1.bounds, cut2.bounds)
-                if separation < self.constraints.min_cut_separation:
-                    # Move cuts apart
-                    new_cut2_bounds = self._move_cut_away(cut1.bounds, cut2.bounds, 
-                                                        self.constraints.min_cut_separation)
-                    cx = (new_cut2_bounds[0] + new_cut2_bounds[2]) / 2.0
-                    cy = (new_cut2_bounds[1] + new_cut2_bounds[3]) / 2.0
-                    primitives[cut2_id] = SpatialPrimitive(
-                        element_id=cut2.element_id,
-                        element_type=cut2.element_type,
-                        position=(cx, cy),
-                        bounds=new_cut2_bounds,
-                        z_index=getattr(cut2, 'z_index', 0),
-                    )
-                    
-                    print(f"     Separated cuts {cut1_id[:8]} and {cut2_id[:8]}")
-        
+    def _enforce_cut_separation(self, primitives: Dict[str, SpatialPrimitive],
+                                hierarchy: Dict[str, set]) -> Dict[str, SpatialPrimitive]:
+        """Enforce minimum separation between true sibling cuts (same parent only)."""
+        # Build siblings: parent -> [cut_ids]
+        siblings: Dict[str, List[str]] = {}
+        cut_ids = {k for k, v in primitives.items() if v.element_type == 'cut'}
+        for parent, contents in hierarchy.items():
+            sibs = [cid for cid in contents if cid in cut_ids]
+            if len(sibs) > 1:
+                siblings[parent] = sibs
+
+        total_pairs = sum(max(0, len(v)-1) for v in siblings.values())
+        if total_pairs:
+            print(f"   Enforcing separation between {sum(len(v) for v in siblings.values())} cuts...")
+
+        for parent, sibs in siblings.items():
+            for i in range(len(sibs)):
+                for j in range(i+1, len(sibs)):
+                    c1_id, c2_id = sibs[i], sibs[j]
+                    c1, c2 = primitives.get(c1_id), primitives.get(c2_id)
+                    if not c1 or not c2 or not c1.bounds or not c2.bounds:
+                        continue
+                    separation = self._calculate_separation(c1.bounds, c2.bounds)
+                    if separation < self.constraints.min_cut_separation:
+                        new_b = self._move_cut_away(c1.bounds, c2.bounds, self.constraints.min_cut_separation)
+                        cx = (new_b[0] + new_b[2]) / 2.0
+                        cy = (new_b[1] + new_b[3]) / 2.0
+                        primitives[c2_id] = SpatialPrimitive(
+                            element_id=c2.element_id,
+                            element_type=c2.element_type,
+                            position=(cx, cy),
+                            bounds=new_b,
+                            z_index=getattr(c2, 'z_index', 0),
+                        )
+                        print(f"     Separated cuts {c1_id[:8]} and {c2_id[:8]}")
         return primitives
     
     def _enforce_cut_padding(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
@@ -376,9 +395,10 @@ class LayoutPostProcessor:
         return primitives
     
     def _prevent_element_crowding(self, primitives: Dict[str, SpatialPrimitive]) -> Dict[str, SpatialPrimitive]:
-        """Adjust element positions to prevent crowding."""
-        
-        all_elements = list(primitives.items())
+        """Adjust element positions to prevent crowding among non-cut elements."""
+        # Ignore cuts (handled separately) and any internal anchors defensively
+        all_elements = [(k, v) for k, v in primitives.items()
+                        if v.element_type != 'cut' and not k.startswith('anchor_')]
         
         print(f"   Preventing crowding among {len(all_elements)} elements...")
         

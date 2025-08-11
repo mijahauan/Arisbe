@@ -10,9 +10,10 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from egif_parser_dau import parse_egif
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from graphviz_layout_engine_v2 import GraphvizLayoutEngine, create_canonical_layout
 from pyside6_backend import PySide6Canvas, PySide6Backend
 from canvas_backend import EGDrawingStyles
+from diagram_renderer_dau import DiagramRendererDau
 
 
 def test_egif_visual_rendering():
@@ -45,7 +46,7 @@ def test_egif_visual_rendering():
     print("🎨 Testing Visual EG Rendering Pipeline")
     print("=" * 50)
     
-    # Initialize layout engine
+    # Initialize layout engine (non-canonical baseline)
     layout_engine = GraphvizLayoutEngine()
     
     for i, test_case in enumerate(test_cases, 1):
@@ -57,13 +58,13 @@ def test_egif_visual_rendering():
             graph = parse_egif(test_case['egif'])
             print(f"   ✅ Parsed: {len(graph.V)} vertices, {len(graph.E)} edges, {len(graph.Cut)} cuts")
             
-            # Step 2: Create Layout
-            layout = layout_engine.create_layout_from_graph(graph)
+            # Step 2: Create Layout (canonical)
+            layout = create_canonical_layout(graph)
             print(f"   ✅ Layout: {len(layout.primitives)} elements positioned")
             
-            # Step 3: Render to PNG
+            # Step 3: Render to PNG (Dau-compliant renderer)
             output_file = f"test_render_{i}_{test_case['name'].lower().replace(' ', '_')}.png"
-            render_layout_to_file(layout, output_file, test_case['name'])
+            render_layout_to_file(graph, layout, output_file, test_case['name'])
             print(f"   ✅ Rendered: {output_file}")
             
         except Exception as e:
@@ -73,50 +74,46 @@ def test_egif_visual_rendering():
     print(f"Check generated PNG files to verify EG diagram correctness.")
 
 
-def render_layout_to_file(layout, filename, title):
-    """Render a layout to PNG file using PySide6."""
-    
-    # Create PySide6 canvas
-    canvas = PySide6Canvas(800, 600, title=f"Arisbe EG: {title}")
-    
-    # Render all layout elements
-    for elem_id, primitive in layout.primitives.items():
-        if primitive.element_type == 'vertex':
-            # Draw vertex as filled circle
-            canvas.draw_circle(
-                primitive.position, 
-                8.0, 
-                EGDrawingStyles.VERTEX_SPOT
-            )
-            
-        elif primitive.element_type == 'predicate':
-            # Draw predicate as text box
-            canvas.draw_text(
-                primitive.relation_name if hasattr(primitive, 'relation_name') else 'Pred',
-                primitive.position,
-                EGDrawingStyles.RELATION_SIGN
-            )
-            
-        elif primitive.element_type == 'cut':
-            # Draw cut as circle/oval
-            if hasattr(primitive, 'bounds') and primitive.bounds:
-                x_min, y_min, x_max, y_max = primitive.bounds
-                width = x_max - x_min
-                height = y_max - y_min
-                center = ((x_min + x_max) / 2, (y_min + y_max) / 2)
-                radius = max(width, height) / 2
-                
-                canvas.draw_circle(
-                    center,
-                    radius,
-                    EGDrawingStyles.CUT_LINE
-                )
-    
-    # Draw lines of identity (nu mapping connections)
-    # This would require additional logic to connect vertices to predicates
-    # based on the nu mapping in the original graph
-    
-    # Save to file
+def _layout_hash(layout) -> str:
+    """Compute a stable, order-independent hash of a LayoutResult."""
+    import hashlib
+    items = []
+    for eid, prim in sorted(layout.primitives.items(), key=lambda kv: str(kv[0])):
+        et = getattr(prim, 'element_type', '')
+        pos = getattr(prim, 'position', None)
+        b = getattr(prim, 'bounds', None)
+        z = getattr(prim, 'z_index', 0)
+        items.append((str(eid), et, pos, b, z))
+    m = hashlib.sha256()
+    for rec in items:
+        m.update(str(rec).encode('utf-8'))
+    # include coarse canvas bounds to catch size drift
+    cb = getattr(layout, 'canvas_bounds', None)
+    m.update(str(cb).encode('utf-8'))
+    return m.hexdigest()
+
+
+def test_canonical_layout_determinism():
+    """Canonical layout must be deterministic for a fixed EGI."""
+    cases = [
+        '(Human "Socrates")',
+        '*x ~[ (Human x) ]',
+        '*x ~[ (P x) ] ~[ (Q x) ]',
+        '*x *y (Loves x y)',
+    ]
+    for egif in cases:
+        g = parse_egif(egif)
+        a = create_canonical_layout(g)
+        b = create_canonical_layout(g)
+        ha = _layout_hash(a)
+        hb = _layout_hash(b)
+        assert ha == hb, f"Canonical layout nondeterministic for: {egif} (\n{ha}\n!=\n{hb}\n)"
+
+
+def render_layout_to_file(egi, layout, filename, title):
+    """Render a layout to PNG file using the Dau-compliant renderer."""
+    canvas = PySide6Canvas(1000, 800, title=f"Arisbe EG: {title}")
+    DiagramRendererDau().render_diagram(canvas, egi, layout, selected_ids=None)
     canvas.save_to_file(filename)
     print(f"   💾 Saved diagram to: {filename}")
 

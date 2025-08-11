@@ -50,6 +50,7 @@ Coordinate = Tuple[float, float]
 class VertexPrimitive(SpatialPrimitive):
     """Visual representation of an EGI vertex."""
     annotations: Optional[Dict[str, Any]] = None
+    provenance: Optional[Dict[str, Any]] = None
     
     def __init__(self, element_id: str, position: Coordinate, bounds: Optional[Bounds] = None, **kwargs):
         # Coordinate is already a tuple (x, y)
@@ -60,11 +61,13 @@ class VertexPrimitive(SpatialPrimitive):
         # Vertices have z_index=1 (above cuts=0, below edges=2)
         super().__init__(element_id=element_id, element_type='vertex', position=pos_tuple, bounds=bounds, z_index=1)
         self.annotations = kwargs.get('annotations')
+        self.provenance = kwargs.get('provenance')
 
 class IdentityLinePrimitive(SpatialPrimitive):
     """Visual representation of an identity line (heavy line)."""
     coordinates: List[Coordinate]
     connection_points: Optional[Dict[str, Any]] = None
+    provenance: Optional[Dict[str, Any]] = None
     
     def __init__(self, element_id: str, coordinates: List[Coordinate], **kwargs):
         # Calculate bounds from coordinates (coordinates are tuples (x, y))
@@ -81,12 +84,14 @@ class IdentityLinePrimitive(SpatialPrimitive):
         super().__init__(element_id=element_id, element_type='identity_line', position=position, bounds=bounds, z_index=2)
         self.coordinates = coordinates
         self.connection_points = kwargs.get('connection_points')
+        self.provenance = kwargs.get('provenance')
 
 class PredicatePrimitive(SpatialPrimitive):
     """Visual representation of a predicate."""
     text: str
     bounding_box: Optional[Dict[str, float]] = None
     argument_order: Optional[List[Dict[str, Any]]] = None
+    provenance: Optional[Dict[str, Any]] = None
     
     def __init__(self, element_id: str, position: Coordinate, text: str, bounds: Optional[Bounds] = None, **kwargs):
         # Coordinate is already a tuple (x, y)
@@ -101,6 +106,7 @@ class PredicatePrimitive(SpatialPrimitive):
         self.text = text
         self.bounding_box = kwargs.get('bounding_box')
         self.argument_order = kwargs.get('argument_order')
+        self.provenance = kwargs.get('provenance')
 
 @dataclass
 class CutPrimitive:
@@ -112,6 +118,7 @@ class CutPrimitive:
     bounds: Dict[str, float]  # x, y, width, height
     style_overrides: Optional[Dict[str, Any]] = None
     containment: Optional[Dict[str, Any]] = None
+    provenance: Optional[Dict[str, Any]] = None
 
 @dataclass
 class CanvasSettings:
@@ -141,6 +148,9 @@ class EGDFMetadata:
     description: Optional[str] = None
     source: Optional[str] = None
     tags: Optional[List[str]] = None
+    created_by: Optional[Dict[str, Any]] = None  # { id, name, email? }
+    generator: Optional[Dict[str, Any]] = None   # { tool, version, run_at }
+    history: Optional[List[Dict[str, Any]]] = None  # [{ author, time, action }]
 
 @dataclass
 class EGDFDocument:
@@ -177,7 +187,10 @@ class EGDFParser:
                         "modified": {"type": ["string", "null"]},
                         "description": {"type": ["string", "null"]},
                         "source": {"type": ["string", "null"]},
-                        "tags": {"type": ["array", "null"], "items": {"type": "string"}}
+                        "tags": {"type": ["array", "null"], "items": {"type": "string"}},
+                        "created_by": {"type": ["object", "null"]},
+                        "generator": {"type": ["object", "null"]},
+                        "history": {"type": ["array", "null"], "items": {"type": "object"}}
                     }
                 },
                 "canonical_egi": {"type": "object"},
@@ -214,7 +227,13 @@ class EGDFParser:
                                 "properties": {
                                     "type": {"type": "string", "enum": ["vertex", "identity_line", "predicate", "cut"]},
                                     "id": {"type": "string"},
-                                    "egi_element_id": {"type": "string"}
+                                    "egi_element_id": {"type": "string"},
+                                    "position": {"type": ["array", "null"]},
+                                    "bounds": {"type": ["array", "object", "null"]},
+                                    "coordinates": {"type": ["array", "null"]},
+                                    "text": {"type": ["string", "null"]},
+                                    "annotations": {"type": ["object", "null"]},
+                                    "provenance": {"type": ["object", "null"]}
                                 }
                             }
                         }

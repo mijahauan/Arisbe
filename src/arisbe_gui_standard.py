@@ -73,8 +73,8 @@ class EGDiagramCanvas(QWidget):
         self.setMinimumSize(800, 600)
         self.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         
-        # Pipeline components (contract-validated)
-        self.layout_engine = GraphvizLayoutEngine()
+        # Pipeline components (contract-validated, canonical)
+        self.layout_engine = GraphvizLayoutEngine(mode="default-nopp")
         self.egdf_generator = EGDFGenerator()
         self.egdf_parser = EGDFParser()
         

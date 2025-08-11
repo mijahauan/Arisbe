@@ -20,8 +20,8 @@ graph EG {
   node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
   edge [fontsize=9, labeldistance=1.5, labelangle=0];
 
-  subgraph cluster_c_2d475c73 {
-    label="Cut c_2d475c";
+  subgraph cluster_c_22e34823 {
+    label="Cut c_22e348";
     style=rounded;
     color=black;
     penwidth=1.5;
@@ -31,8 +31,8 @@ graph EG {
     // Leverage Graphviz hierarchical layout
     clusterrank=local;  // Layout this cluster separately
 
-    subgraph cluster_c_b9fcc9c7 {
-      label="Cut c_b9fcc9";
+    subgraph cluster_c_99a40d95 {
+      label="Cut c_99a40d";
       style=rounded;
       color=black;
       penwidth=1.5;
@@ -42,11 +42,11 @@ graph EG {
       // Leverage Graphviz hierarchical layout
       clusterrank=local;  // Layout this cluster separately
 
-      e_55ab8abc [label="Mortal", shape=box, fillcolor=lightyellow, width=1.70, height=0.60, fixedsize=true];
+      e_ad5a925a [label="Mortal", shape=box, fillcolor=lightyellow, width=1.70, height=0.60, fixedsize=true];
     }
 
-    subgraph cluster_c_b8a41be2 {
-      label="Cut c_b8a41b";
+    subgraph cluster_c_043e9ffd {
+      label="Cut c_043e9f";
       style=rounded;
       color=black;
       penwidth=1.5;
@@ -56,13 +56,13 @@ graph EG {
       // Leverage Graphviz hierarchical layout
       clusterrank=local;  // Layout this cluster separately
 
-      v_d6fc2f3d [label="", width=0.84, height=0.65, fixedsize=true];
-      e_37947ebe [label="Man", shape=box, fillcolor=lightyellow, width=1.20, height=0.60, fixedsize=true];
+      v_862c35ff [label="", width=0.84, height=0.65, fixedsize=true];
+      e_b9040df9 [label="Man", shape=box, fillcolor=lightyellow, width=1.20, height=0.60, fixedsize=true];
     }
 
   }
 
-  v_d6fc2f3d -- e_37947ebe [style=bold, penwidth=2, lhead=cluster_c_b8a41be2, ltail=cluster_c_b8a41be2];
-  v_d6fc2f3d -- e_55ab8abc [style=bold, penwidth=2, lhead=cluster_c_b9fcc9c7, ltail=cluster_c_b8a41be2];
+  v_862c35ff -- e_b9040df9 [style=bold, penwidth=2, lhead=cluster_c_043e9ffd, ltail=cluster_c_043e9ffd];
+  v_862c35ff -- e_ad5a925a [style=bold, penwidth=2, lhead=cluster_c_99a40d95, ltail=cluster_c_043e9ffd];
 
 }

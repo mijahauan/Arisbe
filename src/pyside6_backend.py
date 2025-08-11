@@ -68,6 +68,14 @@ class PySide6Canvas(Canvas):
             'style': style
         })
     
+    def draw_oval(self, x_min: float, y_min: float, x_max: float, y_max: float, style: DrawingStyle):
+        """Draw an oval/ellipse bounded by the given rectangle."""
+        self.canvas_widget.add_element({
+            'type': 'oval',
+            'bounds': (x_min, y_min, x_max, y_max),
+            'style': style
+        })
+    
     def draw_text(self, text: str, position: Coordinate, style: DrawingStyle):
         """Draw text at position."""
         self.canvas_widget.add_element({
@@ -189,6 +197,11 @@ class EGCanvasWidget(QWidget):
             radius = element['radius']
             rect = QRectF(center[0] - radius, center[1] - radius, 
                          radius * 2, radius * 2)
+            painter.drawEllipse(rect)
+        
+        elif element_type == 'oval':
+            x_min, y_min, x_max, y_max = element['bounds']
+            rect = QRectF(x_min, y_min, x_max - x_min, y_max - y_min)
             painter.drawEllipse(rect)
         
         elif element_type == 'text':

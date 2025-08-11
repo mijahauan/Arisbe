@@ -209,7 +209,7 @@ class EGIFSyntaxValidator:
         if self._current_token().type != TokenType.LPAREN:
             raise ValueError("Expected '(' for relation")
         self._advance()
-        
+
         if self._current_token().type != TokenType.RELATION:
             raise ValueError("Expected relation name after '('")
         self._advance()
@@ -257,7 +257,6 @@ class EGIFSyntaxValidator:
             raise ValueError(f"Invalid isolated vertex token: {token.type}")
         self._advance()
 
-
 class EGIFParser:
     """Parser for EGIF expressions that builds Dau-compliant structures."""
     
@@ -268,6 +267,11 @@ class EGIFParser:
         self.graph = create_empty_graph()
         self.variable_map = {}  # Maps variable names to vertex IDs
         self.defining_labels = set()  # Track defining labels to prevent duplicates
+        # New: track definition context for each variable label
+        self.var_def_context: Dict[str, ElementID] = {}
+        # New: track occurrence contexts for LCA hoisting
+        self.var_occ_contexts: Dict[str, Set[ElementID]] = {}
+        self.const_occ_contexts: Dict[str, Set[ElementID]] = {}
     
     def _preprocess_text(self, text: str) -> str:
         """Preprocess EGIF text to handle comments and normalize whitespace."""
@@ -318,9 +322,15 @@ class EGIFParser:
         self.variable_map = {}
         self.defining_labels = set()
         self.constant_vertices = {}  # Track constant name -> vertex ID mapping
+        self.var_def_context = {}
+        self.var_occ_contexts = {}
+        self.const_occ_contexts = {}
 
         # Parse the expression
         self._parse_eg()
+
+        # Post-parse: hoist variables and constants to LCA of their occurrences
+        self._hoist_vertices_to_lca()
 
         return self.graph
 
@@ -398,6 +408,8 @@ class EGIFParser:
             # Defining variables are assigned to the context where they are first defined
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.variable_map[var_name] = vertex.id
+            # Record definition context for scoping checks
+            self.var_def_context[var_name] = context_id
             self._advance()
             return vertex.id
             
@@ -406,6 +418,14 @@ class EGIFParser:
             var_name = token.value
             if var_name not in self.variable_map:
                 raise ValueError(f"Undefined variable {var_name}")
+            # Scope check: declaration context must be an ancestor of current context
+            decl_ctx = self.var_def_context.get(var_name)
+            if decl_ctx is None:
+                raise ValueError(f"Variable {var_name} has no recorded declaration context")
+            if not self._is_ancestor_context(decl_ctx, context_id):
+                raise ValueError(f"Out-of-scope variable {var_name}: declared in unrelated context")
+            # Track occurrence for LCA hoisting
+            self.var_occ_contexts.setdefault(var_name, set()).add(context_id)
             self._advance()
             return self.variable_map[var_name]
             
@@ -417,6 +437,8 @@ class EGIFParser:
             if constant_value in self.constant_vertices:
                 # Reuse existing vertex
                 vertex_id = self.constant_vertices[constant_value]
+                # Track occurrence for LCA hoisting
+                self.const_occ_contexts.setdefault(constant_value, set()).add(context_id)
                 self._advance()
                 return vertex_id
             else:
@@ -424,6 +446,8 @@ class EGIFParser:
                 vertex = create_vertex(label=constant_value, is_generic=False)
                 self.graph = self.graph.with_vertex_in_context(vertex, context_id)
                 self.constant_vertices[constant_value] = vertex.id
+                # Track occurrence for LCA hoisting
+                self.const_occ_contexts.setdefault(constant_value, set()).add(context_id)
                 self._advance()
                 return vertex.id
             
@@ -465,6 +489,7 @@ class EGIFParser:
             vertex = create_vertex(label=None, is_generic=True)
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.variable_map[var_name] = vertex.id
+            self.var_def_context[var_name] = context_id
             scroll_vars.append(vertex.id)
             self._advance()
         
@@ -489,24 +514,121 @@ class EGIFParser:
             vertex = create_vertex(label=None, is_generic=True)
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.variable_map[var_name] = vertex.id
+            self.var_def_context[var_name] = context_id
             
         elif token.type == TokenType.BOUND_VAR:
             # Isolated bound variable x
             var_name = token.value
             if var_name not in self.variable_map:
                 raise ValueError(f"Undefined variable {var_name}")
+            # Scope check for isolated bound occurrence as well
+            decl_ctx = self.var_def_context.get(var_name)
+            if decl_ctx is None:
+                raise ValueError(f"Variable {var_name} has no recorded declaration context")
+            if not self._is_ancestor_context(decl_ctx, context_id):
+                raise ValueError(f"Out-of-scope variable {var_name}: declared in unrelated context")
             # Note: This creates a reference to existing vertex, not a new one
+            # Track occurrence for LCA hoisting
+            self.var_occ_contexts.setdefault(var_name, set()).add(context_id)
             
         elif token.type == TokenType.CONSTANT:
             # Isolated constant "Socrates"
             constant_value = token.value[1:-1]  # Remove quotes
-            vertex = create_vertex(label=constant_value, is_generic=False)
-            self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+            # Reuse or create once, same as relation-argument constants
+            if constant_value in self.constant_vertices:
+                # Existing vertex; just record occurrence
+                self.const_occ_contexts.setdefault(constant_value, set()).add(context_id)
+            else:
+                vertex = create_vertex(label=constant_value, is_generic=False)
+                self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+                self.constant_vertices[constant_value] = vertex.id
+                self.const_occ_contexts.setdefault(constant_value, set()).add(context_id)
             
         else:
             raise ValueError(f"Invalid isolated vertex token: {token.type}")
         
         self._advance()
+    
+    # --- helpers ---
+    def _is_ancestor_context(self, ancestor_ctx: ElementID, ctx: ElementID) -> bool:
+        """Return True if ancestor_ctx is the same as ctx or an ancestor (transitive parent) of ctx."""
+        if ancestor_ctx == ctx:
+            return True
+        # Walk up parents using graph context links
+        current = ctx
+        seen = set()
+        while current is not None and current not in seen:
+            seen.add(current)
+            if current == ancestor_ctx:
+                return True
+            # Stop at sheet which has parent None
+            if current == self.graph.sheet:
+                current = None
+            else:
+                current = self.graph.get_context(current)
+        return False
+
+    def _get_ancestor_chain(self, context_id: ElementID) -> List[ElementID]:
+        """Return list from context up to sheet, inclusive: [ctx, parent, ..., sheet]."""
+        chain = []
+        current = context_id
+        seen = set()
+        while current is not None and current not in seen:
+            chain.append(current)
+            seen.add(current)
+            if current == self.graph.sheet:
+                current = None
+            else:
+                current = self.graph.get_context(current)
+        return chain
+
+    def _compute_lca(self, contexts: Set[ElementID]) -> ElementID:
+        """Compute least common ancestor context of a non-empty set of contexts."""
+        if not contexts:
+            return self.graph.sheet
+        # Build ancestor chains
+        chains = [self._get_ancestor_chain(c) for c in contexts]
+        # Intersect sets of ancestors
+        common = set(chains[0])
+        for ch in chains[1:]:
+            common &= set(ch)
+        if not common:
+            # Should not happen; at minimum sheet is common
+            return self.graph.sheet
+        # Choose the deepest common ancestor (max depth)
+        def depth(ctx: ElementID) -> int:
+            d = 0
+            current = ctx
+            while current != self.graph.sheet:
+                d += 1
+                current = self.graph.get_context(current)
+            return d
+        return max(common, key=depth)
+
+    def _hoist_vertices_to_lca(self):
+        """After parsing, relocate constant vertices to the LCA of their occurrences.
+        Variables remain at their defining context (quantifier area), so lines cross cuts as needed.
+        """
+        # Build ancestor chains for areas
+        def ancestors(area_id: str) -> List[str]:
+            chain = [area_id]
+            cur = area_id
+            while True:
+                parent = self.graph.get_parent_area(cur)
+                if not parent or parent == cur:
+                    break
+                chain.append(parent)
+                cur = parent
+            return chain
+
+        # Constants
+        for name, ctxs in self.const_occ_contexts.items():
+            vertex_id = self.constant_vertices.get(name)
+            if not vertex_id:
+                continue
+            target_ctx = self._compute_lca(ctxs)
+            # Move if needed
+            self.graph = self.graph.with_vertex_moved_to_context(vertex_id, target_ctx)
 
 
 def parse_egif(text: str) -> RelationalGraphWithCuts:

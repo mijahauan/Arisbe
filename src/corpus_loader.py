@@ -99,6 +99,23 @@ class CorpusLoader:
                 if metadata_file.exists():
                     return metadata_file
         return None
+
+    @staticmethod
+    def _normalize_egif_text(text: str) -> str:
+        """Normalize EGIF text by removing comments and blank lines, and trimming whitespace.
+        Supports lines starting with '#' or '//' as comments for corpus sources.
+        """
+        lines = []
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue  # skip blank
+            if stripped.startswith('#') or stripped.startswith('//'):
+                continue  # skip comment
+            lines.append(stripped)
+        # Join with single spaces to avoid accidental newlines affecting parsing
+        normalized = ' '.join(lines).strip()
+        return normalized
     
     def _load_example(self, metadata_path: Path, index_info: Optional[Dict] = None) -> Optional[CorpusExample]:
         """Load a single example from its metadata file."""
@@ -116,7 +133,8 @@ class CorpusLoader:
                 if egif_path.exists():
                     try:
                         with open(egif_path, 'r') as f:
-                            egif_content = f.read().strip()
+                            raw = f.read()
+                        egif_content = self._normalize_egif_text(raw)
                         break
                     except Exception:
                         continue

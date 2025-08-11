@@ -1,0 +1,12 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'>
+  <g>
+    <rect x='241.737' y='31.031' width='270.730' height='295.155' fill='none' stroke='#2c3e50' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <rect x='241.237' y='30.531' width='271.730' height='296.155' fill='none' stroke='#bdc3c7' stroke-width='0.4' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='245.737' y='43.031' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>c_3b0ca837</text>
+    <rect x='294.667' y='78.618' width='164.870' height='82.435' fill='white' stroke='#2c3e50' stroke-width='1.2' shape-rendering='crispEdges'/>
+    <text x='298.667' y='90.618' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Mortal</text>
+    <line x1='377.101' y1='237.382' x2='377.101' y2='161.053' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <circle cx='377.101' cy='237.382' r='4.000' fill='#111' stroke='none'/>
+    <text x='383.101' y='231.382' font-size='10' fill='#111' stroke='white' stroke-width='1' paint-order='stroke fill'>Socrates</text>
+  </g>
+</svg>

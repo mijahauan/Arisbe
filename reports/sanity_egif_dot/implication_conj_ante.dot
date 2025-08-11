@@ -20,8 +20,8 @@ graph EG {
   node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
   edge [fontsize=9, labeldistance=1.5, labelangle=0];
 
-  subgraph cluster_c_85128b22 {
-    label="Cut c_85128b";
+  subgraph cluster_c_ccc0f0b4 {
+    label="Cut c_ccc0f0";
     style=rounded;
     color=black;
     penwidth=1.5;
@@ -31,8 +31,8 @@ graph EG {
     // Leverage Graphviz hierarchical layout
     clusterrank=local;  // Layout this cluster separately
 
-    subgraph cluster_c_49369b8d {
-      label="Cut c_49369b";
+    subgraph cluster_c_8ad4d831 {
+      label="Cut c_8ad4d8";
       style=rounded;
       color=black;
       penwidth=1.5;
@@ -42,11 +42,11 @@ graph EG {
       // Leverage Graphviz hierarchical layout
       clusterrank=local;  // Layout this cluster separately
 
-      e_f58858c2 [label="C", shape=box, fillcolor=lightyellow, width=1.20, height=0.60, fixedsize=true];
+      e_1c801c1e [label="C", shape=box, fillcolor=lightyellow, width=1.20, height=0.60, fixedsize=true];
     }
 
-    e_187a015d [label="A", shape=box, fillcolor=lightyellow, width=1.20, height=0.60, fixedsize=true];
-    e_75865ffd [label="B", shape=box, fillcolor=lightyellow, width=1.20, height=0.60, fixedsize=true];
+    e_a80431b2 [label="A", shape=box, fillcolor=lightyellow, width=1.20, height=0.60, fixedsize=true];
+    e_b72a2946 [label="B", shape=box, fillcolor=lightyellow, width=1.20, height=0.60, fixedsize=true];
   }
 
 

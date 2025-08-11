@@ -20,8 +20,8 @@ graph EG {
   node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
   edge [fontsize=9, labeldistance=1.5, labelangle=0];
 
-  subgraph cluster_c_94fb54a6 {
-    label="Cut c_94fb54";
+  subgraph cluster_c_1d25f8dc {
+    label="Cut c_1d25f8";
     style=rounded;
     color=black;
     penwidth=1.5;
@@ -31,8 +31,8 @@ graph EG {
     // Leverage Graphviz hierarchical layout
     clusterrank=local;  // Layout this cluster separately
 
-    subgraph cluster_c_e8c6b765 {
-      label="Cut c_e8c6b7";
+    subgraph cluster_c_e6d214a4 {
+      label="Cut c_e6d214";
       style=rounded;
       color=black;
       penwidth=1.5;
@@ -42,14 +42,14 @@ graph EG {
       // Leverage Graphviz hierarchical layout
       clusterrank=local;  // Layout this cluster separately
 
-      e_d3a09c76 [label="Mortal", shape=box, fillcolor=lightyellow, width=1.70, height=0.60, fixedsize=true];
+      e_b1c82b94 [label="Mortal", shape=box, fillcolor=lightyellow, width=1.70, height=0.60, fixedsize=true];
     }
 
-    v_3b202035 [label="", width=0.30, height=0.30, fixedsize=true];
-    e_44056247 [label="Human", shape=box, fillcolor=lightyellow, width=1.50, height=0.60, fixedsize=true];
+    v_92374d84 [label="", width=0.30, height=0.30, fixedsize=true];
+    e_666ef322 [label="Human", shape=box, fillcolor=lightyellow, width=1.50, height=0.60, fixedsize=true];
   }
 
-  v_3b202035 -- e_44056247 [style=bold, penwidth=2, lhead=cluster_c_94fb54a6, ltail=cluster_c_94fb54a6];
-  v_3b202035 -- e_d3a09c76 [style=bold, penwidth=2, lhead=cluster_c_e8c6b765, ltail=cluster_c_94fb54a6];
+  v_92374d84 -- e_666ef322 [style=bold, penwidth=2, lhead=cluster_c_1d25f8dc, ltail=cluster_c_1d25f8dc];
+  v_92374d84 -- e_b1c82b94 [style=bold, penwidth=2, lhead=cluster_c_e6d214a4, ltail=cluster_c_1d25f8dc];
 
 }

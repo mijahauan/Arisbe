@@ -1,0 +1,42 @@
+name: Canonical Pipeline CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  canonical:
+    runs-on: ubuntu-latest
+    env:
+      ARISBE_CANONICAL: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest
+
+      - name: Render minimal cuts
+        run: python scripts/render_minimal_cuts.py
+
+      - name: Check rendered overlap
+        run: python scripts/check_rendered_overlap.py
+
+      - name: Strict containment
+        run: |
+          if [ -f scripts/assert_strict_cut_containment.py ]; then python scripts/assert_strict_cut_containment.py; fi
+
+      - name: Canonical invariant unit test
+        run: python -m pytest -q tests/test_canonical_invariant.py

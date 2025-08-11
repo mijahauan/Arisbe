@@ -20,8 +20,8 @@ graph EG {
   node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
   edge [fontsize=9, labeldistance=1.5, labelangle=0];
 
-  subgraph cluster_c_73f44ac6 {
-    label="Cut c_73f44a";
+  subgraph cluster_c_3bc477f3 {
+    label="Cut c_3bc477";
     style=rounded;
     color=black;
     penwidth=1.5;
@@ -31,10 +31,10 @@ graph EG {
     // Leverage Graphviz hierarchical layout
     clusterrank=local;  // Layout this cluster separately
 
-    v_ac4d713f [label="", width=0.84, height=0.65, fixedsize=true];
-    e_f2bee77f [label="Mortal", shape=box, fillcolor=lightyellow, width=1.70, height=0.60, fixedsize=true];
+    v_87ec38d6 [label="", width=0.84, height=0.65, fixedsize=true];
+    e_9e4d1a9f [label="Mortal", shape=box, fillcolor=lightyellow, width=1.70, height=0.60, fixedsize=true];
   }
 
-  v_ac4d713f -- e_f2bee77f [style=bold, penwidth=2, lhead=cluster_c_73f44ac6, ltail=cluster_c_73f44ac6];
+  v_87ec38d6 -- e_9e4d1a9f [style=bold, penwidth=2, lhead=cluster_c_3bc477f3, ltail=cluster_c_3bc477f3];
 
 }

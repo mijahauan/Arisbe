@@ -276,8 +276,8 @@ def render_egif_with_contracts(egif: str, output_path: str,
         graph = parse_egif(egif)
         print(f"   ✅ Parsed: {len(graph.V)} vertices, {len(graph.E)} edges, {len(graph.Cut)} cuts")
         
-        # Generate layout
-        layout_engine = GraphvizLayoutEngine()
+        # Generate layout (canonical, no post-processing)
+        layout_engine = GraphvizLayoutEngine(mode="default-nopp")
         layout_result = layout_engine.create_layout_from_graph(graph)
         print(f"   ✅ Layout: {len(layout_result.primitives)} spatial primitives")
         

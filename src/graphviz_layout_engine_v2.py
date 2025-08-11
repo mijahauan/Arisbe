@@ -63,7 +63,13 @@ class GraphvizLayoutEngine:
     def __init__(self, mode: Optional[str] = None):
         self.dot_executable = "dot"  # Graphviz dot command
         self.temp_dir = tempfile.gettempdir()
-        self.mode = mode or "default"
+        # Default to strict, no post-processing to preserve Graphviz cluster containment exactly
+        import os
+        env_force = os.getenv("ARISBE_CANONICAL")
+        if env_force and env_force != "0":
+            self.mode = "default-nopp"
+        else:
+            self.mode = mode or "default-nopp"
     
     def _sanitize_dot_id(self, element_id: str) -> str:
         """Sanitize element ID for DOT syntax compliance."""
@@ -166,6 +172,34 @@ class GraphvizLayoutEngine:
             # Robust error handling - return empty layout on failure
             print(f"❌ Graphviz layout failed: {e}")
             return self._create_fallback_layout(graph)
+
+    def _assert_canonical_cuts_equal_clusters(self, layout_result: LayoutResult, xdot_output: str) -> None:
+        """Assert that every cut primitive's bounds equal the cluster _bb from xdot."""
+        try:
+            clusters, _, _ = parse_xdot_file(xdot_output)
+        except Exception as e:
+            raise RuntimeError(f"xdot parse failed during invariant check: {e}")
+        # Build map from sanitized cluster name to bb
+        cluster_map: Dict[str, Tuple[float,float,float,float]] = {}
+        for c in clusters:
+            # cluster.name like 'cluster_<sanitized_cut_id>'
+            cid = c.name.replace('cluster_', '')
+            cluster_map[cid] = c.bb
+        # Compare to layout_result primitives
+        mismatches = []
+        for pid, prim in layout_result.primitives.items():
+            if prim.element_type != 'cut' or not prim.bounds:
+                continue
+            # sanitize pid same as DOT generator
+            spid = self._sanitize_dot_id(pid)
+            if spid not in cluster_map:
+                mismatches.append(f"missing cluster for cut {pid} (sanitized {spid})")
+                continue
+            bb = cluster_map[spid]
+            if tuple(round(v,6) for v in prim.bounds) != tuple(round(v,6) for v in bb):
+                mismatches.append(f"cut {pid} bounds {prim.bounds} != cluster {bb}")
+        if mismatches:
+            raise AssertionError("; ".join(mismatches))
 
     def _create_logical_baseline_layout(self, graph: RelationalGraphWithCuts, raw_layout: LayoutResult) -> LayoutResult:
         """Build a deterministic, coherent layout:
@@ -316,14 +350,25 @@ class GraphvizLayoutEngine:
             if child_ids:
                 # compute strip height as max child height + 2*GAP
                 strip_h = max(required_size[cid][1] for cid in child_ids) + 2 * GAP
-                for cid in child_ids:
+                if len(child_ids) == 1:
+                    # center a single child horizontally in the inner width
+                    cid = child_ids[0]
                     cw, ch = required_size[cid]
-                    bx1 = cur_x
+                    inner_w = max(1.0, ix2 - ix1)
+                    bx1 = ix1 + max(GAP, (inner_w - cw) * 0.5)
                     by1 = iy1 + GAP
                     bx2 = bx1 + cw
                     by2 = by1 + ch
                     place_cut(cid, (bx1, by1, bx2, by2))
-                    cur_x = bx2 + GAP
+                else:
+                    for cid in child_ids:
+                        cw, ch = required_size[cid]
+                        bx1 = cur_x
+                        by1 = iy1 + GAP
+                        bx2 = bx1 + cw
+                        by2 = by1 + ch
+                        place_cut(cid, (bx1, by1, bx2, by2))
+                        cur_x = bx2 + GAP
 
             # content rect is remaining vertical space
             content_y1 = iy1 + strip_h
@@ -792,6 +837,7 @@ class GraphvizLayoutEngine:
         validate_relational_graph_with_cuts(graph)
         
         # Generate DOT content
+        # Use original header with spacing to keep deterministic placement
         dot_lines = [
             "graph EG {",
             "    // ENHANCED: Dau convention layout with proper spacing",
@@ -951,19 +997,33 @@ class GraphvizLayoutEngine:
         # Start subgraph cluster with proper spacing attributes
         # If we already parsed cluster bounds on a prior pass we could thread them here.
         # For now, fall back to default adaptive with None (later phases can pass known bounds).
-        cluster_padding = self._calculate_cut_padding(None)
+        # In canonical modes: give parents slightly larger margin than children to enforce strict inset
+        if self.mode in ("default-nopp", "canonical-cuts"):
+            has_children = len(hierarchy.get(cut.id, [])) > 0
+            parent_margin = 12.0
+            leaf_margin = 8.0
+            cluster_padding = parent_margin if has_children else leaf_margin
+        else:
+            cluster_padding = self._calculate_cut_padding(None)
         safe_cut_id = self._sanitize_dot_id(cut.id)
         
         dot_lines.append(f"{indent_str}subgraph cluster_{safe_cut_id} {{")
-        dot_lines.append(f"{indent_str}  label=\"Cut {cut.id[:8]}\";")
+        if self.mode not in ("default-nopp", "canonical-cuts"):
+            dot_lines.append(f"{indent_str}  label=\"Cut {cut.id[:8]}\";")
         dot_lines.append(f"{indent_str}  style=rounded;")
         dot_lines.append(f"{indent_str}  color=black;")
         dot_lines.append(f"{indent_str}  penwidth=1.5;")
         dot_lines.append(f"{indent_str}  margin={cluster_padding:.2f};  // Padding around cut contents")
-        dot_lines.append(f"{indent_str}  labelloc=top;")
-        dot_lines.append(f"{indent_str}  fontsize=8;")
+        if self.mode not in ("default-nopp", "canonical-cuts"):
+            dot_lines.append(f"{indent_str}  labelloc=top;")
+            dot_lines.append(f"{indent_str}  fontsize=8;")
         dot_lines.append(f"{indent_str}  // Leverage Graphviz hierarchical layout")
         dot_lines.append(f"{indent_str}  clusterrank=local;  // Layout this cluster separately")
+        dot_lines.append("")
+
+        # Ensure cluster is realized even when empty: add an invisible anchor node
+        # This forces Graphviz to emit a cluster bounding box in xdot output
+        dot_lines.append(f"{indent_str}  anchor_{safe_cut_id} [label=\"\", shape=point, width=0.01, height=0.01, fixedsize=true, style=invis];")
         dot_lines.append("")
         
         # Add child cuts recursively
@@ -1172,6 +1232,9 @@ class GraphvizLayoutEngine:
             # Process nodes using the proven parser
             for node in nodes:
                 node_id = node.name
+                # Skip internal invisible anchors used to force cluster emission
+                if node_id.startswith('anchor_'):
+                    continue
                 x, y = node.pos
                 width = node.width * 72  # Convert to points
                 height = node.height * 72
@@ -1194,8 +1257,10 @@ class GraphvizLayoutEngine:
                     element_type_name = 'vertex'
                     edge_id_for_pred = None
                 elif node_id in graph._cut_map:
-                    element_type_name = 'cut'
-                    edge_id_for_pred = None
+                    # IMPORTANT: Do not create/overwrite cut primitives from nodes.
+                    # Cut primitives must come exclusively from cluster _bb bounds.
+                    # Skip this node entirely to preserve exact Graphviz cluster boxes.
+                    continue
                 else:
                     # Fallback: assume vertex for unknown elements
                     element_type_name = 'vertex'
@@ -1246,8 +1311,12 @@ class GraphvizLayoutEngine:
                     attachment_points=attachment_points
                 )
 
-                # Store under the canonical EGI ID
-                primitives[original_element_id] = primitive
+                # Store under the canonical EGI ID, but never overwrite an existing cut primitive
+                if original_element_id in primitives and primitives[original_element_id].element_type == 'cut':
+                    # Preserve cluster-derived cut bounds
+                    pass
+                else:
+                    primitives[original_element_id] = primitive
 
                 # Back-compatibility: also store under 'pred_<edge_id>' if Graphviz used that
                 if element_type_name == 'predicate' and is_pred_prefixed:
@@ -1312,20 +1381,33 @@ class GraphvizLayoutEngine:
         # Validate BEFORE post-process to catch upstream issues
         self._validate_presence_and_parent_containment(layout_result, graph, phase="pre-postprocess")
 
+        # In canonical modes, assert cut primitives match xdot cluster _bb exactly
+        if getattr(self, 'mode', None) in ("default_raw", "default-nopp", "canonical-cuts"):
+            try:
+                self._assert_canonical_cuts_equal_clusters(layout_result, xdot_output)
+            except Exception as e:
+                raise AssertionError(f"Canonical invariant failed: {e}")
+
+        # Canonical modes: return raw Graphviz layout immediately with NO mutation
+        if getattr(self, 'mode', None) in ("default_raw", "default-nopp", "canonical-cuts"):
+            return layout_result
+
         # Post-process to enforce Dau-compliant containment and separation
-        try:
-            # Ensure children are strictly inside parent with gap
-            self._separate_children_from_parent(layout_result, graph, gap=30.0)
-            # Separate true siblings within each parent area
-            self._deoverlap_sibling_cuts(layout_result, graph, margin=24.0)
-            # Clamp again to be safe after sibling pushes
-            self._separate_children_from_parent(layout_result, graph, gap=30.0)
-            # Gently center contents inside each cut to reduce offset stress
-            self._center_contents_within_cuts(layout_result, graph, max_shift=24.0)
-            # Final guarantee: predicates lie fully inside their parent cuts
-            self._clamp_predicates_to_parent_cuts(layout_result, graph, margin=16.0)
-        except Exception as e:
-            print(f"⚠️  Post-processing failed (continuing with raw layout): {e}")
+        # SKIP in canonical modes to preserve raw Graphviz cluster bounds exactly
+        if getattr(self, 'mode', None) not in ("default_raw", "default-nopp", "canonical-cuts"):
+            try:
+                # Ensure children are strictly inside parent with gap
+                self._separate_children_from_parent(layout_result, graph, gap=30.0)
+                # Separate true siblings within each parent area
+                self._deoverlap_sibling_cuts(layout_result, graph, margin=24.0)
+                # Clamp again to be safe after sibling pushes
+                self._separate_children_from_parent(layout_result, graph, gap=30.0)
+                # Gently center contents inside each cut to reduce offset stress
+                self._center_contents_within_cuts(layout_result, graph, max_shift=24.0)
+                # Final guarantee: predicates lie fully inside their parent cuts
+                self._clamp_predicates_to_parent_cuts(layout_result, graph, margin=16.0)
+            except Exception as e:
+                print(f"⚠️  Post-processing failed (continuing with raw layout): {e}")
 
         # Validate AFTER post-process to ensure we didn't break containment
         self._validate_presence_and_parent_containment(layout_result, graph, phase="post-postprocess")
@@ -1771,6 +1853,59 @@ def create_graphviz_layout(graph: RelationalGraphWithCuts) -> LayoutResult:
     """Main entry point for Graphviz-based layout generation."""
     engine = GraphvizLayoutEngine()
     return engine.create_layout_from_graph(graph)
+
+
+def create_canonical_layout(graph: RelationalGraphWithCuts, seed: int = 1729) -> LayoutResult:
+    """Deterministic canonical layout entry point.
+    Strategy:
+    - Use GraphvizLayoutEngine with post-processing disabled to avoid double-adjustments
+      (mode="default-nopp").
+    - Apply LayoutPostProcessor.canonical() to enforce fixed spacing constraints.
+    - The 'seed' is reserved for future randomized styles; Graphviz/dot is deterministic
+      for a fixed DOT in our pipeline, so we simply record/accept it here.
+    """
+    # Generate raw layout without engine-level post-processing
+    engine = GraphvizLayoutEngine(mode="default-nopp")
+    base_layout = engine.create_layout_from_graph(graph)
+
+    # Apply canonical deterministic post-processing if available
+    try:
+        from layout_post_processor import LayoutPostProcessor
+        canonical_pp = LayoutPostProcessor.canonical()
+        layout = canonical_pp.process_canonical(base_layout)
+    except Exception as e:
+        print(f"⚠️  Canonical post-processing unavailable ({e}); using base layout")
+        layout = base_layout
+
+    # Normalize primitive bounds to guarantee min<=max ordering
+    try:
+        normalized = {}
+        for pid, prim in layout.primitives.items():
+            x1, y1, x2, y2 = prim.bounds
+            nx1, nx2 = (x1, x2) if x1 <= x2 else (x2, x1)
+            ny1, ny2 = (y1, y2) if y1 <= y2 else (y2, y1)
+            if (nx1, ny1, nx2, ny2) != (x1, y1, x2, y2):
+                # rebuild primitive with normalized bounds; keep position and z-index
+                from pipeline_contracts import SpatialPrimitive
+                normalized[pid] = SpatialPrimitive(
+                    element_id=prim.element_id,
+                    element_type=prim.element_type,
+                    position=prim.position,
+                    bounds=(nx1, ny1, nx2, ny2),
+                    z_index=prim.z_index,
+                )
+            else:
+                normalized[pid] = prim
+        from pipeline_contracts import LayoutResult
+        layout = LayoutResult(
+            primitives=normalized,
+            canvas_bounds=layout.canvas_bounds,
+            containment_hierarchy=layout.containment_hierarchy,
+        )
+    except Exception:
+        pass
+
+    return layout
 
 
 if __name__ == "__main__":

@@ -20,6 +20,6 @@ graph EG {
   node [shape=circle, style=filled, fillcolor=lightblue, fontsize=10];
   edge [fontsize=9, labeldistance=1.5, labelangle=0];
 
-  v_262d71bf -- e_f047c097 [style=bold, penwidth=2];
+  v_1c62543b -- e_09b88d81 [style=bold, penwidth=2];
 
 }

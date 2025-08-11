@@ -1,0 +1,14 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'>
+  <g>
+    <rect x='51.723' y='36.226' width='316.964' height='220.503' fill='none' stroke='#2c3e50' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <rect x='51.223' y='35.726' width='317.964' height='221.503' fill='none' stroke='#bdc3c7' stroke-width='0.4' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='55.723' y='48.226' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>c_f1be50ae</text>
+    <rect x='113.743' y='60.735' width='192.922' height='96.461' fill='white' stroke='#2c3e50' stroke-width='1.2' shape-rendering='crispEdges'/>
+    <text x='117.743' y='72.735' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Immortal</text>
+    <rect x='303.539' y='305.856' width='192.922' height='96.461' fill='white' stroke='#2c3e50' stroke-width='1.2' shape-rendering='crispEdges'/>
+    <text x='307.539' y='317.856' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Human</text>
+    <line x1='400.000' y1='494.211' x2='400.000' y2='402.317' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <line x1='400.000' y1='494.211' x2='233.966' y2='157.195' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <circle cx='400.000' cy='494.211' r='4.000' fill='#111' stroke='none'/>
+  </g>
+</svg>

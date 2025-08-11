@@ -1,0 +1,23 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'>
+  <g>
+    <rect x='16.186' y='237.049' width='767.627' height='125.902' fill='none' stroke='#2c3e50' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <rect x='15.686' y='236.549' width='768.627' height='126.902' fill='none' stroke='#bdc3c7' stroke-width='0.4' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='20.186' y='249.049' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>c_3e638b49</text>
+    <rect x='39.716' y='260.578' width='402.922' height='78.843' fill='rgba(142,68,173,0.06)' stroke='#8e44ad' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <rect x='39.216' y='260.078' width='403.922' height='79.843' fill='none' stroke='#e74c3c' stroke-width='0.6' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='43.716' y='272.578' font-size='10' fill='#8e44ad' stroke='white' stroke-width='1' paint-order='stroke fill'>c_3e638b49/c_5e058b59</text>
+    <rect x='63.245' y='284.108' width='30.373' height='31.784' fill='rgba(22,160,133,0.06)' stroke='#16a085' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <rect x='62.745' y='283.608' width='31.373' height='32.784' fill='none' stroke='#e74c3c' stroke-width='0.6' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='67.245' y='296.108' font-size='10' fill='#16a085' stroke='white' stroke-width='1' paint-order='stroke fill'>c_5e058b59/c_6387808d</text>
+    <rect x='233.833' y='284.108' width='30.373' height='31.784' fill='rgba(22,160,133,0.06)' stroke='#16a085' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <rect x='233.333' y='283.608' width='31.373' height='32.784' fill='none' stroke='#e74c3c' stroke-width='0.6' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='237.833' y='296.108' font-size='10' fill='#16a085' stroke='white' stroke-width='1' paint-order='stroke fill'>c_5e058b59/c_b5028e8b</text>
+    <rect x='575.010' y='284.108' width='30.373' height='31.784' fill='rgba(142,68,173,0.06)' stroke='#8e44ad' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <rect x='574.510' y='283.608' width='31.373' height='32.784' fill='none' stroke='#e74c3c' stroke-width='0.6' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='579.010' y='296.108' font-size='10' fill='#8e44ad' stroke='white' stroke-width='1' paint-order='stroke fill'>c_3e638b49/c_a3f88495</text>
+    <line x1='400.000' y1='300.000' x2='241.176' y2='300.000' stroke='#7f8c8d' stroke-width='1' stroke-dasharray='3,3'/>
+    <line x1='241.176' y1='300.000' x2='78.431' y2='300.000' stroke='#7f8c8d' stroke-width='1' stroke-dasharray='3,3'/>
+    <line x1='241.176' y1='300.000' x2='249.020' y2='300.000' stroke='#7f8c8d' stroke-width='1' stroke-dasharray='3,3'/>
+    <line x1='400.000' y1='300.000' x2='590.196' y2='300.000' stroke='#7f8c8d' stroke-width='1' stroke-dasharray='3,3'/>
+  </g>
+</svg>

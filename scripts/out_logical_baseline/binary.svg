@@ -1,0 +1,12 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'>
+  <g>
+    <rect x='272.063' y='109.724' width='255.874' height='127.937' fill='white' stroke='#2c3e50' stroke-width='1.2' shape-rendering='crispEdges'/>
+    <text x='276.063' y='121.724' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Loves</text>
+    <line x1='526.456' y1='426.308' x2='432.022' y2='237.660' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <line x1='273.544' y1='426.308' x2='367.978' y2='237.660' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <circle cx='273.544' cy='426.308' r='4.000' fill='#111' stroke='none'/>
+    <text x='279.544' y='420.308' font-size='10' fill='#111' stroke='white' stroke-width='1' paint-order='stroke fill'>Plato</text>
+    <circle cx='526.456' cy='426.308' r='4.000' fill='#111' stroke='none'/>
+    <text x='532.456' y='420.308' font-size='10' fill='#111' stroke='white' stroke-width='1' paint-order='stroke fill'>Socrates</text>
+  </g>
+</svg>

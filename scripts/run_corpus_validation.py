@@ -72,7 +72,7 @@ def main():
     out_dir = os.path.join(repo_root, 'reports', 'corpus_visuals')
     ensure_dir(out_dir)
 
-    engine = GraphvizLayoutEngine()
+    engine = GraphvizLayoutEngine(mode="default-nopp")
     renderer = DiagramRendererDau()
 
     results: List[Dict] = []

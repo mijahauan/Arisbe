@@ -17,12 +17,16 @@ class EGIFGenerator:
         self.alphabet = Alphabet()
         self.vertex_labels = {}  # Maps vertex IDs to EGIF labels
         self.used_labels = set()
-        self.defining_vertices = set()  # Track which vertices are defining
+        self.defining_vertices = set()  # legacy flagging (not used for hoisted defs)
+        # Planned defining context per vertex (minimal common ancestor over all uses)
+        self.vertex_def_context: Dict[ElementID, ElementID] = {}
         
     def generate(self) -> str:
         """Generate EGIF expression from graph."""
         # Assign labels to vertices and determine defining occurrences
         self._assign_vertex_labels()
+        # Compute hoisted defining context for each generic vertex
+        self._compute_vertex_def_contexts()
         
         # Generate content for sheet of assertion
         content = self._generate_context_content(self.graph.sheet)
@@ -38,6 +42,69 @@ class EGIFGenerator:
         # CRITICAL FIX: Process vertices in ν mapping order to preserve argument order
         # This ensures the ν mapping order from Dau's formalism is strictly preserved
         self._assign_labels_preserving_nu_order(self.graph.sheet, set())
+
+    # --- New: compute minimal common ancestor (enclosing) context for each vertex ---
+    def _compute_vertex_def_contexts(self) -> None:
+        """For each generic vertex, compute the minimal common ancestor area that contains all
+        its predicate occurrences and assign that as the defining context.
+        We will emit an isolated defining *x in that context.
+        """
+        # Build parent map for contexts (cuts); sheet has parent None
+        parent: Dict[ElementID, Optional[ElementID]] = {}
+        for cut in self.graph.Cut:
+            parent[cut.id] = self.graph.get_context(cut.id)
+        parent[self.graph.sheet] = None  # type: ignore
+
+        def ancestors(ctx: Optional[ElementID]) -> List[Optional[ElementID]]:
+            chain: List[Optional[ElementID]] = []
+            cur = ctx
+            seen = set()
+            while cur is not None and cur not in seen:
+                seen.add(cur)
+                chain.append(cur)
+                cur = parent.get(cur)
+            chain.append(None)
+            return chain
+
+        def lca(ctxs: List[ElementID]) -> ElementID:
+            if not ctxs:
+                return self.graph.sheet
+            a0 = ctxs[0]
+            a0_chain = ancestors(a0)
+            aset = set(a0_chain)
+            for c in ctxs[1:]:
+                c_chain = ancestors(c)
+                # find first common from inner to outer along c_chain
+                pick: Optional[ElementID] = None
+                for cand in c_chain:
+                    if cand in aset:
+                        pick = cand
+                        break
+                if pick is None:
+                    # As a safeguard, use sheet
+                    return self.graph.sheet
+                # tighten aset to ancestors of pick
+                aset = set(ancestors(pick))
+            # The innermost element of aset that is on a0_chain is the LCA; take first of a0_chain in aset
+            for cand in a0_chain:
+                if cand in aset and cand is not None:
+                    return cand
+            return self.graph.sheet
+
+        # Collect contexts of usage for each generic vertex
+        uses_by_vertex: Dict[ElementID, List[ElementID]] = {}
+        for edge_id, vseq in self.graph.nu.items():
+            edge_ctx = self.graph.get_context(edge_id)
+            for vid in vseq:
+                if vid in self.graph._vertex_map:
+                    vobj = self.graph.get_vertex(vid)
+                    if vobj.is_generic:
+                        uses_by_vertex.setdefault(vid, []).append(edge_ctx)
+
+        # Assign definition context
+        self.vertex_def_context.clear()
+        for vid, ctxs in uses_by_vertex.items():
+            self.vertex_def_context[vid] = lca(ctxs)
     
     def _assign_labels_preserving_nu_order(self, context_id: ElementID, processed_vertices: Set[ElementID]):
         """Assign labels while strictly preserving ν mapping argument order."""
@@ -158,6 +225,14 @@ class EGIFGenerator:
         
         content_parts = []
         
+        # Emit isolated defining variables planned for this context
+        for vid, def_ctx in self.vertex_def_context.items():
+            if def_ctx == context_id:
+                # Only emit once; ensure label exists
+                if vid in self.vertex_labels:
+                    label = self.vertex_labels[vid]
+                    content_parts.append(f"*{label}")
+        
         # Generate isolated vertices first
         for element_id in area_elements:
             if element_id in self.graph._vertex_map:
@@ -197,13 +272,8 @@ class EGIFGenerator:
             
             if vertex.is_generic:
                 label = self.vertex_labels[vertex_id]
-                
-                # Check if this vertex is defining in this relation
-                if self._is_defining_occurrence(vertex_id, edge_id):
-                    args.append(f"*{label}")
-                else:
-                    # Bound occurrence
-                    args.append(label)
+                # With hoisting, relation arguments are bound (no star)
+                args.append(label)
             else:
                 # Constant vertex
                 args.append(f'"{vertex.label}"')
@@ -220,54 +290,8 @@ class EGIFGenerator:
             return "~[ ]"
     
     def _is_defining_occurrence(self, vertex_id: ElementID, edge_id: ElementID) -> bool:
-        """Check if vertex occurrence in this relation should be defining."""
-        # Fixed logic for coreference: A vertex is defining in a relation if:
-        # 1. It's a generic vertex, AND
-        # 2. This is the first time we encounter this variable name in this context OR any parent context
-        
-        vertex = self.graph.get_vertex(vertex_id)
-        if not vertex.is_generic:
-            return False
-        
-        # Get the context where this edge appears
-        edge_context = self.graph.get_context(edge_id)
-        
-        # Check current context and all parent contexts for this variable
-        current_context = edge_context
-        while current_context is not None:
-            # Check if this variable appears in any earlier elements in current context
-            context_area = self.graph.get_area(current_context)
-            
-            for element_id in context_area:
-                if element_id == edge_id and current_context == edge_context:
-                    # This is the current edge in the current context - if we haven't found the variable yet, it's defining
-                    break
-                
-                if element_id in self.graph._edge_map:
-                    # Check if this earlier edge uses the same variable
-                    other_vertices = self.graph.get_incident_vertices(element_id)
-                    for other_vertex_id in other_vertices:
-                        if other_vertex_id == vertex_id:
-                            # Same vertex instance - this is bound
-                            return False
-                        
-                        # Check for same variable name (different instances)
-                        if other_vertex_id in self.graph._vertex_map:
-                            other_vertex = self.graph.get_vertex(other_vertex_id)
-                            if (other_vertex.is_generic and 
-                                hasattr(other_vertex, 'label') and
-                                hasattr(vertex, 'label') and
-                                other_vertex.label == vertex.label):
-                                # Same variable name used earlier - this is bound
-                                return False
-            
-            # Move to parent context
-            if current_context == self.graph.sheet:
-                break
-            current_context = self.graph.get_context(current_context)
-        
-        # No earlier use found in this context or any parent context - this is defining
-        return True
+        """With hoisted definitions, relation occurrences are always bound (no star)."""
+        return False
 
 
 def generate_egif(graph: RelationalGraphWithCuts) -> str:

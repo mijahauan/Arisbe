@@ -1,0 +1,105 @@
+graph EG {
+	graph [_draw_="c 9 -#fffffe00 C 7 -#ffffff P 4 -108 -108 -108 469.3 430 469.3 430 -108 ",
+		bb="0,0,322,361.3",
+		clusterrank=local,
+		compound=true,
+		concentrate=false,
+		margin=1.5,
+		newrank=true,
+		nodesep=1.2,
+		overlap=false,
+		pad="1.5,1.5",
+		rankdir=TB,
+		ranksep=1.0,
+		sep="+8",
+		splines=true,
+		xdotversion=1.7
+	];
+	node [fillcolor=lightblue,
+		fixedsize=true,
+		fontsize=10,
+		height=0.4,
+		label="\N",
+		margin=0.2,
+		shape=circle,
+		style=filled,
+		width=0.4
+	];
+	edge [arrowhead=none,
+		fontsize=9,
+		labelangle=0,
+		labeldistance=1.5,
+		len=3.5,
+		minlen=2.5,
+		weight=1.0
+	];
+	subgraph cluster_c_33cd7828 {
+		graph [_draw_="S 17 -setlinewidth(1.5) c 7 -#000000 B 25 20 8 20 8 302 8 302 8 308 8 314 14 314 20 314 20 314 341.3 314 341.3 314 347.3 308 353.3 \
+302 353.3 302 353.3 20 353.3 20 353.3 14 353.3 8 347.3 8 341.3 8 341.3 8 20 8 20 8 14 14 8 20 8 ",
+			_ldraw_="F 8 11 -Times-Roman c 7 -#000000 T 161 341.7 0 43.5 12 -Cut c_33cd78 ",
+			bb="8,8,314,353.3",
+			clusterrank=local,
+			color=black,
+			fontsize=8,
+			label="Cut c_33cd78",
+			labelloc=top,
+			lheight=0.14,
+			lp="161,344.43",
+			lwidth=0.60,
+			margin=16.00,
+			penwidth=1.5,
+			style=rounded
+		];
+		subgraph cluster_c_0ac1a4b8 {
+			graph [_draw_="S 17 -setlinewidth(1.5) c 7 -#000000 B 25 36 24 36 24 130 24 130 24 136 24 142 30 142 36 142 36 142 307.55 142 307.55 142 313.55 \
+136 319.55 130 319.55 130 319.55 36 319.55 36 319.55 30 319.55 24 313.55 24 307.55 24 307.55 24 36 24 36 24 30 30 24 36 24 ",
+				_ldraw_="F 8 11 -Times-Roman c 7 -#000000 T 83 307.95 0 43.5 12 -Cut c_0ac1a4 ",
+				bb="24,24,142,319.55",
+				clusterrank=local,
+				color=black,
+				fontsize=8,
+				label="Cut c_0ac1a4",
+				labelloc=top,
+				lheight=0.14,
+				lp="83,310.68",
+				lwidth=0.60,
+				margin=16.00,
+				penwidth=1.5,
+				style=rounded
+			];
+			v_ae3e8e4d	[_draw_="c 7 -#000000 C 7 -#add8e6 E 93 257 28.8 28.8 ",
+				height=0.8,
+				label="",
+				pos="93,257",
+				width=0.8];
+			e_e2f8ad2a	[_draw_="c 7 -#000000 C 7 -#ffffe0 P 4 126.2 83.2 39.8 83.2 39.8 40 126.2 40 ",
+				_ldraw_="F 10 11 -Times-Roman c 7 -#000000 T 83 57.72 0 5.25 1 -P ",
+				fillcolor=lightyellow,
+				height=0.6,
+				label=P,
+				pos="83,61.6",
+				shape=box,
+				width=1.2];
+			v_ae3e8e4d -- e_e2f8ad2a	[_draw_="S 15 -setlinewidth(2) c 7 -#000000 B 4 91.55 227.88 89.52 188.7 85.89 118.57 84.09 83.61 ",
+				lhead=cluster_c_0ac1a4b8,
+				ltail=cluster_c_0ac1a4b8,
+				penwidth=2,
+				pos="91.546,227.88 89.52,188.7 85.894,118.57 84.086,83.609",
+				style=bold];
+		}
+		e_ee1b8ca4	[_draw_="c 7 -#000000 C 7 -#ffffe0 P 4 298.2 83.2 211.8 83.2 211.8 40 298.2 40 ",
+			_ldraw_="F 10 11 -Times-Roman c 7 -#000000 T 255 57.72 0 7.5 1 -Q ",
+			fillcolor=lightyellow,
+			height=0.6,
+			label=Q,
+			pos="255,61.6",
+			shape=box,
+			width=1.2];
+		v_ae3e8e4d -- e_ee1b8ca4	[_draw_="S 15 -setlinewidth(2) c 7 -#000000 B 4 142 197.51 174.37 158.86 214.86 110.52 237.54 83.45 ",
+			lhead=cluster_c_33cd7828,
+			ltail=cluster_c_0ac1a4b8,
+			penwidth=2,
+			pos="142,197.51 174.37,158.86 214.86,110.52 237.54,83.449",
+			style=bold];
+	}
+}

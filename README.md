@@ -27,6 +27,45 @@ A mathematically rigorous implementation of Charles Sanders Peirce's Existential
 - ❌ **Corpus Integration**: Authoritative examples from Peirce, Dau, Sowa
 - ❌ **Advanced Transformations**: Complete rule set with validation
 
+## Canonical Layout Pipeline (Clean, Deterministic)
+
+Arisbe provides a canonical, deterministic pipeline that preserves Graphviz cluster bounding boxes exactly for cut layout. Use this mode for validation, debugging, and any path where strict containment and non-overlap must be guaranteed.
+
+• __Env guard__: set `ARISBE_CANONICAL=1` to force canonical mode globally.
+
+```bash
+# macOS/Linux (bash/zsh)
+export ARISBE_CANONICAL=1
+
+# Windows (PowerShell)
+$env:ARISBE_CANONICAL=1
+```
+
+• __Engine mode__: Canonical modes are `default-nopp` (and `default_raw`). In these modes, the layout engine:
+  - Parses xdot cluster `_bb` and creates cut primitives strictly from clusters.
+  - Skips any post-processing that could mutate bounds.
+  - Asserts (fail-fast) that every `cut` primitive `bounds` equals its cluster `_bb`.
+
+• __Renderer__: The minimal renderer applies only uniform scale+translate, with inset strokes and debug overlays:
+  - Red dashed hairlines = exact Graphviz `_bb` for each cut (live drift canary)
+  - Subtle fills by depth; no root fill; label halos for readability
+
+• __Core scripts__:
+  - `scripts/render_minimal_cuts.py` → Renders reference cases to `out_minimal/*.svg`
+  - `scripts/print_cut_hierarchy.py` → Verifies parent/child containment from cluster bboxes
+  - `scripts/check_rendered_overlap.py` → Asserts no sibling overlap after the exact SVG transform
+  - `scripts/assert_strict_cut_containment.py` → Asserts strict containment and invariants
+
+Run the checks:
+
+```bash
+python scripts/render_minimal_cuts.py
+python scripts/check_rendered_overlap.py
+python scripts/assert_strict_cut_containment.py  # if present in your branch
+```
+
+These safeguards prevent hidden mutations and ensure the canonical pipeline remains deterministic and auditable.
+
 ## Architecture
 
 ### Phase 1: Mathematical Foundation (Complete)

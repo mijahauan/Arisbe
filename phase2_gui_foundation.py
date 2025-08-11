@@ -17,7 +17,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 # Phase 1d Foundation - Complete pipeline
 from src.egif_parser_dau import EGIFParser
 from src.egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut
-from src.graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from src.graphviz_layout_engine_v2 import GraphvizLayoutEngine, create_canonical_layout
+from src.canonical_qt_renderer import CanonicalQtRenderer
 from src.layout_engine_clean import SpatialPrimitive, LayoutResult
 from src.egi_diagram_controller import EGIDiagramController
 from src.corpus_loader import CorpusLoader
@@ -34,12 +35,95 @@ try:
         QHBoxLayout, QPushButton, QTextEdit, QLabel, 
         QSplitter, QFrame, QComboBox, QCheckBox, QGroupBox, QStatusBar
     )
-    from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont, QMouseEvent, QPainterPath, QFontMetrics, QFontMetricsF
+    from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont, QMouseEvent, QPainterPath, QFontMetrics, QFontMetricsF, QCursor
     from PySide6.QtCore import Qt, QPointF, QRectF, QTimer
     PYSIDE6_AVAILABLE = True
 except ImportError:
     PYSIDE6_AVAILABLE = False
     print("PySide6 not available - install with: pip install PySide6")
+
+if PYSIDE6_AVAILABLE:
+    class QtPainterCanvasAdapter:
+        """Adapter to provide a PySide6Canvas-like API backed by a QPainter.
+        This unifies GUI rendering with the canonical DiagramRendererDau pathway.
+        """
+        def __init__(self, painter: QPainter, width: int, height: int):
+            self._p = painter
+            self._w = width
+            self._h = height
+            # Public attributes expected by DiagramRendererDau._compute_fit_transform
+            self.width = width
+            self.height = height
+
+        # Utility to set pen/brush from style dict
+        def _apply_style(self, style: dict | None):
+            if style is None:
+                style = {}
+            color = style.get('color', (0, 0, 0))
+            width = float(style.get('width', 1.0))
+            fill_color = style.get('fill_color', None)
+            pen = QPen(QColor(*color))
+            pen.setWidthF(width)
+            self._p.setPen(pen)
+            if fill_color is None:
+                self._p.setBrush(Qt.NoBrush)
+            else:
+                self._p.setBrush(QBrush(QColor(*fill_color)))
+
+        def clear(self):
+            self._p.fillRect(0, 0, self._w, self._h, QColor(255, 255, 255))
+
+        def draw_line(self, p1, p2, style=None):
+            self._apply_style(style)
+            self._p.drawLine(p1[0], p1[1], p2[0], p2[1])
+
+        def draw_curve(self, points, style=None, closed=False):
+            # Generic polyline; sufficient for selection halos and gentle curves
+            self._apply_style(style)
+            path = QPainterPath()
+            if not points:
+                return
+            path.moveTo(points[0][0], points[0][1])
+            for (x, y) in points[1:]:
+                path.lineTo(x, y)
+            if closed:
+                path.closeSubpath()
+            self._p.drawPath(path)
+
+        def draw_text(self, text, position, style=None):
+            # Center text at the given (x, y) position (Dau renderer expects centered labels)
+            if style is None:
+                style = {}
+            color = style.get('color', (0, 0, 0))
+            font_family = style.get('font_family', 'Times New Roman')
+            font_size = int(style.get('font_size', 12))
+            bold = bool(style.get('bold', False))
+            self._p.setPen(QColor(*color))
+            font = QFont(font_family, pointSize=font_size)
+            font.setBold(bold)
+            self._p.setFont(font)
+            fm = QFontMetricsF(font)
+            tw = fm.horizontalAdvance(text)
+            th = fm.height()
+            rect = QRectF(position[0] - tw / 2.0,
+                          position[1] - th / 2.0,
+                          tw,
+                          th)
+            self._p.drawText(rect, Qt.AlignCenter, text)
+
+        def draw_circle(self, center, radius, style=None):
+            self._apply_style(style)
+            cx, cy = center
+            r = radius
+            self._p.drawEllipse(QRectF(cx - r, cy - r, 2 * r, 2 * r))
+
+        def draw_oval(self, x1, y1, x2, y2, style=None):
+            self._apply_style(style)
+            self._p.drawEllipse(QRectF(x1, y1, x2 - x1, y2 - y1))
+
+        def save_to_file(self, path: str):
+            # Not used during GUI paint; provided for API completeness
+            pass
 
 class EGDiagramWidget(QWidget):
     """Widget for rendering EG diagrams with interaction support."""
@@ -51,7 +135,8 @@ class EGDiagramWidget(QWidget):
         
         # Initialize with a simple example
         self.egi = self.create_example_egi()
-        self.layout_engine = GraphvizLayoutEngine()
+        # Use canonical logical baseline throughout the GUI
+        self.layout_engine = GraphvizLayoutEngine(mode='logical')
         self.spatial_primitives = []
         self.selection_system = ModeAwareSelectionSystem(Mode.WARMUP)
         self.annotation_manager = AnnotationManager()
@@ -62,6 +147,8 @@ class EGDiagramWidget(QWidget):
         # Annotation system
         self.annotation_primitives: List[AnnotationPrimitive] = []
         self.show_annotations = False
+        # Optional renderer markers at predicate boundary (annotation-controlled)
+        self._draw_argument_markers: bool = False
         
         # Initialize default annotation layers
         self._setup_default_annotations()
@@ -69,9 +156,8 @@ class EGDiagramWidget(QWidget):
         # Mode-aware selection system for Phase 2
         self.current_mode = Mode.WARMUP
         
-        # Legacy compatibility (will be removed)
-        self.selected_elements: Set[str] = set()
-        self.hover_element: Optional[str] = None
+        # Selection/hover state is managed by ModeAwareSelectionSystem
+        # Legacy fields removed in favor of selection_system.selection_state
         
         # Branching point tracking for interactive selection
         self.branching_points = {}  # vertex_id -> (x, y, vertex_name)
@@ -162,6 +248,9 @@ class EGDiagramWidget(QWidget):
     def toggle_annotation_type(self, annotation_type: AnnotationType, enabled: bool):
         """Enable/disable a specific annotation type."""
         self.annotation_manager.toggle_annotation_type(annotation_type, enabled)
+        # Tie predicate-boundary argument markers to arity numbering toggle
+        if annotation_type == AnnotationType.ARITY_NUMBERING:
+            self._draw_argument_markers = bool(enabled)
         if self.show_annotations:
             self._update_annotations()
             self.update()  # Trigger repaint
@@ -192,10 +281,8 @@ class EGDiagramWidget(QWidget):
         # Update annotations if they're enabled
         self._update_annotations()
         
-        # Clear selections (both legacy and new system)
-        self.selected_elements.clear()
+        # Clear selections via selection system
         self.selection_system.clear_selection()
-        self.hover_element = None
         self.update()
         
     def clear_diagram(self):
@@ -203,9 +290,7 @@ class EGDiagramWidget(QWidget):
         self.egi = None
         self.spatial_primitives.clear()
         self.annotation_primitives.clear()
-        self.selected_elements.clear()
         self.selection_system.clear_selection()
-        self.hover_element = None
         self.update()
     
     def switch_mode(self, new_mode: Mode):
@@ -214,9 +299,7 @@ class EGDiagramWidget(QWidget):
             self.current_mode = new_mode
             self.selection_system.switch_mode(new_mode)
             
-            # Clear legacy selection state
-            self.selected_elements = set()
-            self.hover_element = None
+            # Clear drag state
             self.drag_state = None
             
             # Trigger repaint to update visual indicators
@@ -233,49 +316,38 @@ class EGDiagramWidget(QWidget):
         return self.selection_system.get_available_actions()
         
     def paintEvent(self, event):
-        """Render the EG diagram using Dau's conventions."""
+        """Render via the authenticated, canonical, logical renderer."""
+        if not PYSIDE6_AVAILABLE or self.egi is None:
+            return
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        
-        # Clear background
-        painter.fillRect(self.rect(), QColor(255, 255, 255))
-        
-        if not self.spatial_primitives:
-            return
-        
-        # Render context backgrounds for Practice mode (Peircean convention)
-        if self.current_mode == Mode.PRACTICE:
-            self._render_context_backgrounds(painter)
-        
-        # LAYER 1: Render cuts first (background)
-        for primitive in self.spatial_primitives:
-            if primitive.element_type == "cut":
-                self._render_primitive(painter, primitive)
-        
-        # LAYER 2: Render heavy ligatures (middle layer)
-        self._render_simple_working_ligatures(painter)
-        
-        # LAYER 3: Render predicates and vertices on top (foreground)
-        for primitive in self.spatial_primitives:
-            if primitive.element_type in ["predicate", "vertex"]:
-                self._render_primitive(painter, primitive)
-            
-        # Render annotations on top
-        if self.show_annotations:
-            self._render_annotations(painter)
-            
-        # Render mode-aware selection overlays
-        self._render_selection_overlays(painter)
+        try:
+            # Compute a fresh canonical layout
+            layout_result = create_canonical_layout(self.egi)
+            # Delegate to canonical Qt renderer (single source of truth)
+            CanonicalQtRenderer(
+                draw_argument_markers=(self.show_annotations and self._draw_argument_markers)
+            ).render(painter, layout_result, self.egi, (self.width(), self.height()))
 
-        # Draw marquee rectangle if active
-        if self._marquee_active and self._marquee_start and self._marquee_end:
-            x1, y1 = self._marquee_start
-            x2, y2 = self._marquee_end
-            left, top = min(x1, x2), min(y1, y2)
-            w, h = abs(x2 - x1), abs(y2 - y1)
-            painter.setPen(QPen(QColor(30,144,255), 1, Qt.DashLine))
-            painter.setBrush(QBrush(QColor(30,144,255,40)))
-            painter.drawRect(QRectF(left, top, w, h))
+            # Optional: render annotations after core diagram
+            if self.show_annotations:
+                # Ensure annotation primitives are based on latest layout_result
+                self.layout_result = layout_result
+                self._update_annotations()
+                # Draw simple overlays for annotations using painter directly
+                self._render_annotations(painter)
+
+            # Draw marquee rectangle if active (UI overlay)
+            if self._marquee_active and self._marquee_start and self._marquee_end:
+                x1, y1 = self._marquee_start
+                x2, y2 = self._marquee_end
+                left, top = min(x1, x2), min(y1, y2)
+                w, h = abs(x2 - x1), abs(y2 - y1)
+                painter.setPen(QPen(QColor(30,144,255), 1, Qt.DashLine))
+                painter.setBrush(QBrush(QColor(30,144,255,40)))
+                painter.drawRect(QRectF(left, top, w, h))
+        finally:
+            painter.end()
     
     def _render_context_backgrounds(self, painter: QPainter):
         """Render context backgrounds using Peircean convention (Practice mode only)."""
@@ -312,9 +384,10 @@ class EGDiagramWidget(QWidget):
         position = primitive.position
         bounds = primitive.bounds
         
-        # Check if element is selected or hovered
-        is_selected = element_id in self.selected_elements
-        is_hovered = element_id == self.hover_element
+        # Check if element is selected or hovered (via selection system)
+        sel_state = self.selection_system.selection_state
+        is_selected = element_id in sel_state.selected_elements
+        is_hovered = (sel_state.hover_element == element_id)
         
         if element_type == "vertex":
             self._render_vertex(painter, element_id, position, is_selected, is_hovered)
@@ -1620,10 +1693,11 @@ class EGDiagramWidget(QWidget):
         
     def _render_selection_overlays(self, painter: QPainter):
         """Render mode-aware selection overlays and hover effects."""
+        sel_state = self.selection_system.selection_state
         # Render hover effect first (underneath selection)
-        if self.hover_element and self.hover_element not in self.selected_elements:
+        if sel_state.hover_element and sel_state.hover_element not in sel_state.selected_elements:
             hover_primitive = next((p for p in self.spatial_primitives 
-                                  if p.element_id == self.hover_element), None)
+                                  if p.element_id == sel_state.hover_element), None)
             if hover_primitive:
                 # Light gray hover effect
                 hover_color = QColor(128, 128, 128, 30)
@@ -1638,7 +1712,7 @@ class EGDiagramWidget(QWidget):
                                       x2 - x1 + 2*padding, y2 - y1 + 2*padding))
         
         # Render selection overlays
-        if not self.selected_elements:
+        if not sel_state.selected_elements:
             return
         
         # Mode-aware selection colors
@@ -1654,7 +1728,7 @@ class EGDiagramWidget(QWidget):
         painter.setPen(QPen(border_color, 3, Qt.SolidLine))
         painter.setBrush(QBrush(selection_color))
         
-        for element_id in self.selected_elements:
+        for element_id in sel_state.selected_elements:
             primitive = next((p for p in self.spatial_primitives 
                             if p.element_id == element_id), None)
             if primitive:
@@ -1733,7 +1807,7 @@ class EGDiagramWidget(QWidget):
                 else:
                     # Single select
                     self.selected_branching_points = {clicked_branching_point}
-                    self.selected_elements.clear()  # Clear element selection
+                    self.selection_system.clear_selection()  # Clear element selection
                 
                 # Start drag state for branching point
                 self.drag_state = {
@@ -1765,23 +1839,24 @@ class EGDiagramWidget(QWidget):
                 
                 if clicked_element:
                     # Support Cmd (Meta) and Ctrl for toggle-add/remove
-                    if (event.modifiers() & Qt.ControlModifier) or (event.modifiers() & Qt.MetaModifier):
-                        # Multi-select with Ctrl
-                        if clicked_element in self.selected_elements:
-                            self.selected_elements.remove(clicked_element)
-                        else:
-                            self.selected_elements.add(clicked_element)
-                    else:
-                        # Single select
-                        self.selected_elements = {clicked_element}
-                        self.selected_branching_points.clear()  # Clear branching point selection
+                    multi = bool((event.modifiers() & Qt.ControlModifier) or (event.modifiers() & Qt.MetaModifier))
+                    self.selection_system.select_element(clicked_element, multi_select=multi)
                     print(f"✓ Selected element {clicked_element}")
+                    # Begin drag-to-attach if a vertex is selected with no modifiers
+                    if not multi:
+                        # Detect if clicked element is a vertex primitive
+                        prim = next((p for p in self.spatial_primitives if p.element_id == clicked_element), None)
+                        if prim and prim.element_type == 'vertex':
+                            self.drag_state = {
+                                'type': 'attach_from_vertex',
+                                'vertex_id': clicked_element,
+                                'start_pos': (x, y)
+                            }
                 else:
                     # Clear all selections if clicking empty space
-                    if self.selected_elements or self.selected_branching_points:
+                    if self.selection_system.selection_state.selected_elements:
                         print(f"✓ Cleared selection in {self.current_mode.value} mode")
-                    self.selected_elements.clear()
-                    self.selected_branching_points.clear()
+                    self.selection_system.clear_selection()
                     self.drag_state = None
             
             # Update visual display
@@ -1797,6 +1872,34 @@ class EGDiagramWidget(QWidget):
             self._marquee_end = (float(pos.x()), float(pos.y()))
             self.update()
             return
+        # If dragging a vertex for attachment, update cursor feedback only
+        if isinstance(getattr(self, 'drag_state', None), dict) and self.drag_state.get('type') == 'attach_from_vertex':
+            pos = event.position() if hasattr(event, 'position') else event.localPos()
+            x, y = float(pos.x()), float(pos.y())
+            hovered_element = self._find_element_at_position(x, y)
+            if hovered_element and hovered_element in getattr(self.egi, 'nu', {}):
+                self.setCursor(QCursor(Qt.CrossCursor))
+            else:
+                self.setCursor(QCursor(Qt.PointingHandCursor))
+            return
+        # Update hover states when not marquee-selecting
+        pos = event.position() if hasattr(event, 'position') else event.localPos()
+        x, y = float(pos.x()), float(pos.y())
+        # Branching point hover (higher priority)
+        hovered_bp = self._find_branching_point_at_position(x, y)
+        self.hover_branching_point = hovered_bp
+        # Element hover via hit-test
+        hovered_element = self._find_element_at_position(x, y)
+        prev_hover = self.selection_system.selection_state.hover_element
+        if hovered_element != prev_hover:
+            self.selection_system.selection_state.hover_element = hovered_element
+            self.update()
+        # Cursor feedback
+        if hovered_bp or hovered_element:
+            self.setCursor(QCursor(Qt.PointingHandCursor))
+        else:
+            self.setCursor(QCursor(Qt.ArrowCursor))
+        
         super().mouseMoveEvent(event)
     
     def _find_branching_point_at_position(self, x: float, y: float) -> Optional[str]:
@@ -1809,6 +1912,51 @@ class EGDiagramWidget(QWidget):
                 return vertex_id
         
         return None
+
+    def _find_candidates_at_position(self, x: float, y: float) -> List[str]:
+        """Return all selectable element IDs under point (x,y) in priority order.
+        Priority: branching point > vertex > predicate (label bounds) > cut boundary > other.
+        """
+        candidates: List[Tuple[int, str]] = []  # (priority, element_id)
+        # 0) Branching point first
+        bp = self._find_branching_point_at_position(x, y)
+        if bp:
+            candidates.append((0, bp))
+        # 1) Iterate primitives to test
+        for p in self.spatial_primitives:
+            x1, y1, x2, y2 = p.bounds
+            et = p.element_type
+            # Vertex: near small radius around position
+            if et == 'vertex':
+                bx, by = p.position
+                dist = ((x - bx) ** 2 + (y - by) ** 2) ** 0.5
+                if dist <= 8.0:
+                    candidates.append((1, p.element_id))
+                continue
+            # Predicate: prefer label bounds if available
+            if et == 'predicate':
+                rect = self._predicate_text_bounds.get(p.element_id)
+                if rect and rect.adjusted(-3, -3, 3, 3).contains(x, y):
+                    candidates.append((2, p.element_id))
+                    continue
+                # fallback to primitive bounds
+                if x1 <= x <= x2 and y1 <= y <= y2:
+                    candidates.append((3, p.element_id))
+                continue
+            # Cut: boundary proximity only
+            if et == 'cut':
+                if (x1 <= x <= x2 and y1 <= y <= y2):
+                    margin = 10
+                    d = min(abs(x - x1), abs(x - x2), abs(y - y1), abs(y - y2))
+                    if d <= margin:
+                        candidates.append((4, p.element_id))
+                continue
+            # Other types: rectangular hit-test
+            if x1 <= x <= x2 and y1 <= y <= y2:
+                candidates.append((5, p.element_id))
+        # Sort by priority and return IDs
+        candidates.sort(key=lambda t: t[0])
+        return [eid for _, eid in candidates]
             
     def mouseReleaseEvent(self, event: QMouseEvent):
         """Handle mouse release to finalize marquee selection."""
@@ -1822,7 +1970,8 @@ class EGDiagramWidget(QWidget):
             for p in self.spatial_primitives:
                 bx1, by1, bx2, by2 = p.bounds
                 if bx1 >= left and by1 >= top and bx2 <= right and by2 <= bottom:
-                    self.selected_elements.add(p.element_id)
+                    # Add without toggling existing ones
+                    self.selection_system.selection_state.selected_elements.add(p.element_id)
                     added.append(p.element_id)
             if added:
                 print(f"✓ Marquee added {len(added)} elements")
@@ -1831,6 +1980,42 @@ class EGDiagramWidget(QWidget):
             self._marquee_start = None
             self._marquee_end = None
             self.update()
+            return
+        # Handle drop for attach-from-vertex gesture
+        if event.button() == Qt.LeftButton and isinstance(getattr(self, 'drag_state', None), dict):
+            if self.drag_state.get('type') == 'attach_from_vertex':
+                pos = event.position() if hasattr(event, 'position') else event.localPos()
+                dx, dy = float(pos.x()), float(pos.y())
+                drop_id = self._find_element_at_position(dx, dy)
+                vertex_id = self.drag_state.get('vertex_id')
+                self.drag_state = None
+                if drop_id and vertex_id:
+                    # If dropped on a predicate, attach via controller and update EGI
+                    # Recognize predicate by presence in rel mapping or by primitive type
+                    is_pred = False
+                    try:
+                        is_pred = (drop_id in self.egi.rel)
+                    except Exception:
+                        is_pred = False
+                    if not is_pred:
+                        prim = next((p for p in self.spatial_primitives if p.element_id == drop_id), None)
+                        is_pred = bool(prim and prim.element_type == 'predicate')
+                    if is_pred:
+                        # Choose hook_position: prefer first empty slot in ν, else append at end
+                        current = list(self.egi.nu.get(drop_id, ()))
+                        try:
+                            empty_index = current.index(None)
+                            hook_pos = empty_index
+                        except ValueError:
+                            hook_pos = len(current)
+                        ok = self.diagram_controller.attach_loi_to_predicate(vertex_id, drop_id, hook_pos)
+                        if ok:
+                            self.egi = self.diagram_controller.egi
+                            print(f"✓ Attached vertex {vertex_id} to predicate {drop_id} at hook {hook_pos}")
+                            self.update()
+                        else:
+                            print(f"✗ Attach failed for vertex {vertex_id} → {drop_id}")
+                return
 
     def keyPressEvent(self, event):
         """Keyboard shortcuts for selection (Cmd/Ctrl+A selects all in current area)."""
@@ -1843,14 +2028,14 @@ class EGDiagramWidget(QWidget):
             for p in self.spatial_primitives:
                 if area_cut_id:
                     if self._element_inside_cut(p, area_cut_id):
-                        self.selected_elements.add(p.element_id)
+                        self.selection_system.selection_state.selected_elements.add(p.element_id)
                         count += 1
                 else:
                     # Sheet elements = not inside any cut
                     if not self._element_inside_any_cut(p):
-                        self.selected_elements.add(p.element_id)
+                        self.selection_system.selection_state.selected_elements.add(p.element_id)
                         count += 1
-            print(f"✓ Select-all added {count} elements")
+            print(f"✓ Selected {count} elements in current area")
             self.update()
         else:
             super().keyPressEvent(event)
@@ -1884,16 +2069,6 @@ class EGDiagramWidget(QWidget):
         containing.sort(key=lambda t: t[1])
         return containing[0][0]
 
-    def _find_candidates_at_position(self, x: float, y: float) -> List[str]:
-        """Return all candidate element IDs under cursor, ordered by z-index (cuts < edges < vertices/predicates)."""
-        candidates: List[Tuple[int, str]] = []
-        for p in self.spatial_primitives:
-            x1, y1, x2, y2 = p.bounds
-            if x1 - 3 <= x <= x2 + 3 and y1 - 3 <= y <= y2 + 3:
-                z = 0 if p.element_type == "cut" else (1 if p.element_type == "edge" else 2)
-                candidates.append((z, p.element_id))
-        candidates.sort(key=lambda t: (-t[0]))
-        return [eid for _, eid in candidates]
             
     def _find_element_at_position(self, x: float, y: float) -> Optional[str]:
         """Find element at given position with robust hit-testing."""
@@ -2026,28 +2201,23 @@ class Phase2GUIFoundation(QMainWindow):
         # Top controls
         controls_layout = QHBoxLayout()
         
-        # Corpus browser section
-        if self.corpus_loader:
-            controls_layout.addWidget(QLabel("Corpus:"))
-            self.corpus_combo = QComboBox()
-            self.corpus_combo.addItem("Select from corpus...")
-            self._populate_corpus_dropdown()
-            controls_layout.addWidget(self.corpus_combo)
-            
-            import_btn = QPushButton("Import")
-            import_btn.clicked.connect(self.import_corpus_example)
-            controls_layout.addWidget(import_btn)
-            
-            # Separator
-            controls_layout.addWidget(QLabel("|"))
-        
-        # Manual EGIF input
+        # Unified examples dropdown (corpus + built-in) and EGIF editor field
+        controls_layout.addWidget(QLabel("Examples:"))
+        self.examples_combo = QComboBox()
+        self.examples_combo.addItem("Select an example EGIF...")
+        self._populate_examples_dropdown()
+        self.examples_combo.currentIndexChanged.connect(self.on_example_selected)
+        controls_layout.addWidget(self.examples_combo)
+
+        # Separator
+        controls_layout.addWidget(QLabel("|"))
+
+        # EGIF text field (distinct display of the expression to render)
         controls_layout.addWidget(QLabel("EGIF:"))
-        self.egif_combo = QComboBox()
-        self.egif_combo.setEditable(True)
-        self.egif_combo.addItems(self.sample_egifs)
-        self.egif_combo.currentTextChanged.connect(self.on_egif_changed)
-        controls_layout.addWidget(self.egif_combo)
+        self.egif_text = QTextEdit()
+        self.egif_text.setPlaceholderText("Enter or edit EGIF here…")
+        self.egif_text.setFixedHeight(60)
+        controls_layout.addWidget(self.egif_text)
         
         # Render button
         render_btn = QPushButton("Render Diagram")
@@ -2161,14 +2331,17 @@ class Phase2GUIFoundation(QMainWindow):
         self.update_timer.timeout.connect(self.update_selection_info)
         self.update_timer.start(500)  # Update every 500ms
         
-    def on_egif_changed(self, text):
-        """Handle EGIF input change."""
-        if text.strip():
-            self.render_diagram()
+    def on_example_selected(self, index: int):
+        """When the user picks an example, load its EGIF into the text field."""
+        if index <= 0:
+            return
+        egif = self.examples_combo.currentData()
+        if isinstance(egif, str) and egif.strip():
+            self.egif_text.setPlainText(egif)
             
     def render_diagram(self):
         """Render diagram from current EGIF using Phase 1d pipeline."""
-        egif_text = self.egif_combo.currentText().strip()
+        egif_text = self.egif_text.toPlainText().strip()
         
         if not egif_text:
             self.status_bar.showMessage("Enter EGIF to render")
@@ -2181,8 +2354,8 @@ class Phase2GUIFoundation(QMainWindow):
             egif_parser = EGIFParser(egif_text)
             egi = egif_parser.parse()
             
-            # 2. Generate layout using the proper layout engine
-            layout_result = self.layout_engine.create_layout_from_graph(egi)
+            # 2. Generate canonical layout for deterministic rendering
+            layout_result = create_canonical_layout(egi)
             print(f"DEBUG: Layout result type: {type(layout_result)}")
             print(f"DEBUG: Layout result attributes: {dir(layout_result)}")
             
@@ -2255,8 +2428,9 @@ class Phase2GUIFoundation(QMainWindow):
         
     def update_selection_info(self):
         """Update selection information with mode-aware details."""
-        selected = self.diagram_widget.selected_elements
-        hover = self.diagram_widget.hover_element
+        sel_state = self.diagram_widget.selection_system.selection_state
+        selected = sel_state.selected_elements
+        hover = sel_state.hover_element
         current_mode = self.diagram_widget.get_current_mode()
         
         info_text = f"Mode: {current_mode.value.title()}\n"
@@ -2280,53 +2454,31 @@ class Phase2GUIFoundation(QMainWindow):
             
         self.selection_info.setPlainText(info_text)
         
-    def _populate_corpus_dropdown(self):
-        """Populate the corpus dropdown with available examples."""
-        if not self.corpus_loader:
-            return
+    def _populate_examples_dropdown(self):
+        """Populate the unified examples dropdown from corpus and built-ins."""
+        # Add corpus examples first (only those with valid EGIF)
+        if self.corpus_loader:
+            # Sort by category then title
+            examples = sorted(self.corpus_loader.examples.values(), key=lambda e: (e.category, e.title))
+            for ex in examples:
+                if ex.egif_content and ex.egif_content.strip():
+                    display_text = f"[{ex.category}] {ex.title}"
+                    self.examples_combo.addItem(display_text, ex.egif_content)
         
-        # Group examples by category
-        categories = {}
-        for example in self.corpus_loader.examples.values():
-            category = example.category
-            if category not in categories:
-                categories[category] = []
-            categories[category].append(example)
-        
-        # Add examples organized by category
-        for category, examples in sorted(categories.items()):
-            for example in examples:
-                display_text = f"[{category}] {example.title}"
-                self.corpus_combo.addItem(display_text, example.id)
+        # Add built-in sample EGIFs (if any) under a label prefix
+        if self.sample_egifs:
+            for s in self.sample_egifs:
+                display_text = f"[Samples] {s[:40]}"  # preview
+                self.examples_combo.addItem(display_text, s)
     
-    def import_corpus_example(self):
-        """Import the selected corpus example into the EGIF input."""
-        if not self.corpus_loader or self.corpus_combo.currentIndex() == 0:
-            return
-        
-        example_id = self.corpus_combo.currentData()
-        if not example_id:
-            return
-        
-        example = self.corpus_loader.get_example(example_id)
-        if example and example.egif_content:
-            self.egif_combo.setCurrentText(example.egif_content)
-            # Auto-render the imported example
-            self.render_diagram()
-            
-            print(f"✓ Imported corpus example: {example.title}")
-            print(f"  EGIF: {example.egif_content}")
-            print(f"  Description: {example.description}")
-        else:
-            print(f"Warning: No EGIF content found for {example_id}")
+    # import_corpus_example is no longer needed; examples are unified
     
     def load_sample_diagram(self):
         """Load the Socrates sample diagram on startup for branching point testing."""
         if self.sample_egifs:
-            # Load Socrates example for branching point testing
+            # Preload a default example into the EGIF field (no auto-render)
             socrates_egif = '(Human "Socrates") (Mortal "Socrates")'
-            self.egif_combo.setCurrentText(socrates_egif)
-            self.render_diagram()
+            self.egif_text.setPlainText(socrates_egif)
 
     # Annotation control event handlers
     def on_annotations_toggled(self, checked: bool):
