@@ -54,22 +54,18 @@ class GraphvizElement:
 
 class GraphvizLayoutEngine:
     """
-    Robust layout engine using Graphviz as the backend.
+    Graphviz-based layout engine for Existential Graphs.
     
-    This engine translates EGI structures to DOT language, executes Graphviz,
-    and parses the plain text output to produce LayoutResult objects.
+    Converts EGI structures to DOT format, executes Graphviz, and parses
+    the output back into LayoutResult with spatial primitives.
+    
+    Uses canonical mode: preserves exact Graphviz positioning without post-processing.
     """
     
-    def __init__(self, mode: Optional[str] = None):
+    def __init__(self):
+        """Initialize layout engine in canonical mode (preserves exact Graphviz output)."""
         self.dot_executable = "dot"  # Graphviz dot command
         self.temp_dir = tempfile.gettempdir()
-        # Default to strict, no post-processing to preserve Graphviz cluster containment exactly
-        import os
-        env_force = os.getenv("ARISBE_CANONICAL")
-        if env_force and env_force != "0":
-            self.mode = "default-nopp"
-        else:
-            self.mode = mode or "default-nopp"
     
     def _sanitize_dot_id(self, element_id: str) -> str:
         """Sanitize element ID for DOT syntax compliance."""
@@ -155,17 +151,8 @@ class GraphvizLayoutEngine:
             # Step 3: Parse xdot coordinates and cluster boundaries to create LayoutResult
             layout_result = self._parse_xdot_output_to_layout(xdot_output, graph)
 
-            # Optional post-processing. For modes that must preserve Graphviz cluster
-            # containment exactly (e.g., to debug disjunctions), skip post-processing.
-            if self.mode not in ("default_raw", "default-nopp"):
-                # 1) keep children inside parents with a stronger minimum gap
-                self._separate_children_from_parent(layout_result, graph, gap=40.0)
-                # 2) ensure sibling cuts do not overlap after clamping (stronger margin)
-                self._deoverlap_sibling_cuts(layout_result, graph, margin=32.0)
-                # 3) one more clamp to be safe after sibling push
-                self._separate_children_from_parent(layout_result, graph, gap=40.0)
-                # 4) clamp all element centers into their parent areas by inset
-                self._clamp_elements_to_parent_areas(layout_result, graph, inset=16.0)
+            # CANONICAL MODE: Preserve exact Graphviz output without post-processing
+            # This ensures mathematical correctness and Dau-compliant containment
 
             return layout_result
         except Exception as e:
@@ -997,26 +984,19 @@ class GraphvizLayoutEngine:
         # Start subgraph cluster with proper spacing attributes
         # If we already parsed cluster bounds on a prior pass we could thread them here.
         # For now, fall back to default adaptive with None (later phases can pass known bounds).
-        # In canonical modes: give parents slightly larger margin than children to enforce strict inset
-        if self.mode in ("default-nopp", "canonical-cuts"):
-            has_children = len(hierarchy.get(cut.id, [])) > 0
-            parent_margin = 12.0
-            leaf_margin = 8.0
-            cluster_padding = parent_margin if has_children else leaf_margin
-        else:
-            cluster_padding = self._calculate_cut_padding(None)
+        # CANONICAL MODE: Give parents slightly larger margin than children to enforce strict inset
+        has_children = len(hierarchy.get(cut.id, [])) > 0
+        parent_margin = 12.0
+        leaf_margin = 8.0
+        cluster_padding = parent_margin if has_children else leaf_margin
         safe_cut_id = self._sanitize_dot_id(cut.id)
         
         dot_lines.append(f"{indent_str}subgraph cluster_{safe_cut_id} {{")
-        if self.mode not in ("default-nopp", "canonical-cuts"):
-            dot_lines.append(f"{indent_str}  label=\"Cut {cut.id[:8]}\";")
+        # CANONICAL MODE: No cut labels for clean Dau-compliant rendering
         dot_lines.append(f"{indent_str}  style=rounded;")
         dot_lines.append(f"{indent_str}  color=black;")
         dot_lines.append(f"{indent_str}  penwidth=1.5;")
         dot_lines.append(f"{indent_str}  margin={cluster_padding:.2f};  // Padding around cut contents")
-        if self.mode not in ("default-nopp", "canonical-cuts"):
-            dot_lines.append(f"{indent_str}  labelloc=top;")
-            dot_lines.append(f"{indent_str}  fontsize=8;")
         dot_lines.append(f"{indent_str}  // Leverage Graphviz hierarchical layout")
         dot_lines.append(f"{indent_str}  clusterrank=local;  // Layout this cluster separately")
         dot_lines.append("")
@@ -1137,6 +1117,11 @@ class GraphvizLayoutEngine:
                 # Cluster routing across cuts
                 head_cut = self._get_element_parent_cut(edge_id, graph)
                 tail_cut = self._get_element_parent_cut(v, graph)
+                
+                # CRITICAL FIX: Prevent cross-cluster edges from pulling nodes out of clusters
+                if head_cut != tail_cut:  # Cross-cluster edge
+                    attrs.append("constraint=false")  # Don't let this edge displace nodes from clusters
+                
                 # Only apply lhead/ltail for real cut IDs (exclude sheet)
                 if self._is_real_cut_id(head_cut, graph):
                     attrs.append(f"lhead=cluster_{self._sanitize_dot_id(head_cut)}")
@@ -1327,6 +1312,7 @@ class GraphvizLayoutEngine:
             self._assert_no_missing_primitives(graph, primitives)
             
             # Process edges using the proven parser (with error handling)
+            # CRITICAL FIX: Map Graphviz edges back to actual EGI edge IDs
             try:
                 for edge in edges:
                     if hasattr(edge, 'tail') and hasattr(edge, 'head') and hasattr(edge, 'points'):
@@ -1334,27 +1320,53 @@ class GraphvizLayoutEngine:
                         head_id = edge.head
                         edge_points = edge.points
                         
-                        # Create edge primitive if we have valid points
-                        if edge_points and len(edge_points) > 0:
-                            edge_id = f"edge_{tail_id}_{head_id}"
+                        # CRITICAL FIX: Find the actual EGI edge ID that connects these vertices
+                        actual_edge_id = None
+                        
+                        # Look for EGI edge that connects tail_id to head_id (predicate connection)
+                        # In EGI, edges represent predicates, and the Graphviz edge connects vertex to predicate
+                        for egi_edge_id, vertex_sequence in graph.nu.items():
+                            # Check if this predicate (egi_edge_id) connects to the tail vertex
+                            if tail_id in vertex_sequence and head_id == self._sanitize_dot_id(egi_edge_id):
+                                actual_edge_id = egi_edge_id
+                                break
+                            # Also check reverse direction
+                            elif head_id in vertex_sequence and tail_id == self._sanitize_dot_id(egi_edge_id):
+                                actual_edge_id = egi_edge_id
+                                break
+                        
+                        # Create edge primitive only if we found the actual EGI edge ID
+                        if actual_edge_id and edge_points and len(edge_points) > 0:
+                            # CRITICAL FIX: Determine if this is a predicate or identity line
+                            # Predicate edges are in graph.nu and connect to predicate nodes
+                            # Identity lines connect vertex to vertex directly
                             
-                            # Only add if this edge_id doesn't already exist
-                            if edge_id not in primitives:
-                                center_x = sum(p[0] for p in edge_points) / len(edge_points)
-                                center_y = sum(p[1] for p in edge_points) / len(edge_points)
-                                
-                                # CRITICAL FIX: Include Graphviz spline curve points
-                                primitive = SpatialPrimitive(
-                                    element_id=edge_id,
-                                    element_type='edge',
-                                    position=(center_x, center_y),
-                                    bounds=(center_x - 20, center_y - 10, center_x + 20, center_y + 10),
+                            # Check if this edge represents a predicate (edge in nu mapping)
+                            is_predicate_edge = actual_edge_id in graph.nu
+                            
+                            if is_predicate_edge:
+                                # This edge represents a predicate - skip creating identity line
+                                # The predicate primitive should already be created from node processing
+                                continue
+                            else:
+                                # This is a true identity line connecting vertices
+                                # Only add if this edge_id doesn't already exist
+                                if actual_edge_id not in primitives or primitives[actual_edge_id].element_type != 'identity_line':
+                                    center_x = sum(p[0] for p in edge_points) / len(edge_points)
+                                    center_y = sum(p[1] for p in edge_points) / len(edge_points)
+                                    
+                                    # Create identity line primitive with actual EGI edge ID
+                                    primitive = SpatialPrimitive(
+                                        element_id=actual_edge_id,
+                                        element_type='identity_line',
+                                        position=(center_x, center_y),
+                                        bounds=(center_x - 20, center_y - 10, center_x + 20, center_y + 10),
                                     z_index=2,
                                     curve_points=edge_points  # Include Graphviz spline data!
                                 )
                                 
-                                primitives[edge_id] = primitive
-                                print(f"✅ Added edge {edge_id} with {len(edge_points)} spline points")
+                                primitives[actual_edge_id] = primitive
+                                print(f"✅ Added identity line {actual_edge_id} with {len(edge_points)} spline points")
             except Exception as e:
                 print(f"⚠️  Edge processing failed (non-critical): {e}")
                 # Continue - complete element coverage ensures all elements have primitives
@@ -1388,29 +1400,11 @@ class GraphvizLayoutEngine:
             except Exception as e:
                 raise AssertionError(f"Canonical invariant failed: {e}")
 
-        # Canonical modes: return raw Graphviz layout immediately with NO mutation
-        if getattr(self, 'mode', None) in ("default_raw", "default-nopp", "canonical-cuts"):
-            return layout_result
-
-        # Post-process to enforce Dau-compliant containment and separation
-        # SKIP in canonical modes to preserve raw Graphviz cluster bounds exactly
-        if getattr(self, 'mode', None) not in ("default_raw", "default-nopp", "canonical-cuts"):
-            try:
-                # Ensure children are strictly inside parent with gap
-                self._separate_children_from_parent(layout_result, graph, gap=30.0)
-                # Separate true siblings within each parent area
-                self._deoverlap_sibling_cuts(layout_result, graph, margin=24.0)
-                # Clamp again to be safe after sibling pushes
-                self._separate_children_from_parent(layout_result, graph, gap=30.0)
-                # Gently center contents inside each cut to reduce offset stress
-                self._center_contents_within_cuts(layout_result, graph, max_shift=24.0)
-                # Final guarantee: predicates lie fully inside their parent cuts
-                self._clamp_predicates_to_parent_cuts(layout_result, graph, margin=16.0)
-            except Exception as e:
-                print(f"⚠️  Post-processing failed (continuing with raw layout): {e}")
-
-        # Validate AFTER post-process to ensure we didn't break containment
-        self._validate_presence_and_parent_containment(layout_result, graph, phase="post-postprocess")
+        # CANONICAL MODE: Return raw Graphviz layout immediately with NO post-processing
+        # This preserves exact Graphviz cluster bounds and ensures mathematical correctness
+        
+        # Validate the raw layout to ensure structural integrity
+        self._validate_presence_and_parent_containment(layout_result, graph, phase="canonical-raw")
 
         return layout_result
 
@@ -1544,6 +1538,7 @@ class GraphvizLayoutEngine:
             if eid not in prims:
                 violations.append(f"missing predicate primitive: {eid}")
         # Containment: check each element assigned to an area
+        # CRITICAL FIX: Identity lines (ligatures) are allowed to cross cut boundaries per Dau's formalism
         for parent_area, contents in graph.area.items():
             parent_bounds = cut_bounds_map.get(parent_area)
             for eid in contents:
@@ -1552,6 +1547,12 @@ class GraphvizLayoutEngine:
                     violations.append(f"no bounds for {eid} in area {parent_area}")
                     continue
                 if parent_bounds:
+                    # CRITICAL FIX: Skip containment validation for identity lines
+                    # Identity lines (ligatures) must be allowed to cross cut boundaries
+                    # This is correct behavior per Dau's Existential Graph formalism
+                    if sprim.element_type == 'identity_line':
+                        continue  # Identity lines can cross cuts - this is correct!
+                    
                     bx1, by1, bx2, by2 = sprim.bounds
                     px1, py1, px2, py2 = parent_bounds
                     cx = (bx1 + bx2) * 0.5
@@ -1855,57 +1856,8 @@ def create_graphviz_layout(graph: RelationalGraphWithCuts) -> LayoutResult:
     return engine.create_layout_from_graph(graph)
 
 
-def create_canonical_layout(graph: RelationalGraphWithCuts, seed: int = 1729) -> LayoutResult:
-    """Deterministic canonical layout entry point.
-    Strategy:
-    - Use GraphvizLayoutEngine with post-processing disabled to avoid double-adjustments
-      (mode="default-nopp").
-    - Apply LayoutPostProcessor.canonical() to enforce fixed spacing constraints.
-    - The 'seed' is reserved for future randomized styles; Graphviz/dot is deterministic
-      for a fixed DOT in our pipeline, so we simply record/accept it here.
-    """
-    # Generate raw layout without engine-level post-processing
-    engine = GraphvizLayoutEngine(mode="default-nopp")
-    base_layout = engine.create_layout_from_graph(graph)
-
-    # Apply canonical deterministic post-processing if available
-    try:
-        from layout_post_processor import LayoutPostProcessor
-        canonical_pp = LayoutPostProcessor.canonical()
-        layout = canonical_pp.process_canonical(base_layout)
-    except Exception as e:
-        print(f"⚠️  Canonical post-processing unavailable ({e}); using base layout")
-        layout = base_layout
-
-    # Normalize primitive bounds to guarantee min<=max ordering
-    try:
-        normalized = {}
-        for pid, prim in layout.primitives.items():
-            x1, y1, x2, y2 = prim.bounds
-            nx1, nx2 = (x1, x2) if x1 <= x2 else (x2, x1)
-            ny1, ny2 = (y1, y2) if y1 <= y2 else (y2, y1)
-            if (nx1, ny1, nx2, ny2) != (x1, y1, x2, y2):
-                # rebuild primitive with normalized bounds; keep position and z-index
-                from pipeline_contracts import SpatialPrimitive
-                normalized[pid] = SpatialPrimitive(
-                    element_id=prim.element_id,
-                    element_type=prim.element_type,
-                    position=prim.position,
-                    bounds=(nx1, ny1, nx2, ny2),
-                    z_index=prim.z_index,
-                )
-            else:
-                normalized[pid] = prim
-        from pipeline_contracts import LayoutResult
-        layout = LayoutResult(
-            primitives=normalized,
-            canvas_bounds=layout.canvas_bounds,
-            containment_hierarchy=layout.containment_hierarchy,
-        )
-    except Exception:
-        pass
-
-    return layout
+# create_canonical_layout method removed - canonical mode is now the only mode
+# All layout creation uses GraphvizLayoutEngine().create_layout_from_graph() directly
 
 
 if __name__ == "__main__":

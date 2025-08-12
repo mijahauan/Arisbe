@@ -44,21 +44,44 @@ class VisualConvention:
 
 
 class DiagramRendererDau:
-    # Dau-compliant: render vertex spot in its own EGI context (area)
-    spot_on_outermost: bool = False
-    # Cut rendering mode: 'rect' guarantees strict containment; 'oval' is traditional
-    cut_render_mode: str = 'rect'
     """
-    DiagramRenderer implementing Peirce's conventions as formalized by Dau.
+    Dau-compliant Existential Graph renderer.
     
-    Takes layout coordinates from Graphviz and renders proper EG diagrams
-    with correct visual encoding of the abstract EGI model.
+    Renders EGI structures using spatial layout primitives with strict adherence
+    to Dau's formalism: cuts as rounded rectangles, predicates as textual signs,
+    vertices as identity spots, and ligatures as heavy lines.
+    
+    Always preserves exact Graphviz positions without post-processing repositioning.
     """
     
-    def __init__(self, conventions: VisualConvention = None):
-        self.conv = conventions or VisualConvention()
-        # Per-frame cache of vertex display positions (do not mutate layout primitives)
+    def __init__(self):
+        """Initialize Dau-compliant renderer in canonical mode (preserves exact Graphviz positions)."""
+        # Create visual conventions for Dau-compliant rendering
+        self.conv = self._create_visual_conventions()
         self._vertex_display_pos: Dict[str, Tuple[float, float]] = {}
+    
+    def _create_visual_conventions(self):
+        """Create visual conventions object with expected attributes."""
+        class VisualConventions:
+            def __init__(self):
+                # Colors (RGB tuples)
+                self.line_color = (0, 0, 0)  # Black
+                self.cut_color = (0, 0, 0)   # Black
+                self.text_color = (0, 0, 0)  # Black
+                
+                # Line widths
+                self.identity_line_width = 3.0  # Heavy lines for identity
+                self.cut_line_width = 1.5       # Cut boundaries
+                
+                # Sizes
+                self.identity_spot_radius = 3.0  # Vertex spots
+        
+        return VisualConventions()
+        
+    def _set_vertex_display_pos(self, vertex_id: str, position: Tuple[float, float], 
+                               layout_result: LayoutResult) -> None:
+        """CANONICAL MODE: Always preserve exact Graphviz positions."""
+        self._vertex_display_pos[vertex_id] = position
         
     def render_diagram(self, canvas: PySide6Canvas, graph: RelationalGraphWithCuts, 
                        layout_result: LayoutResult, selected_ids: Optional[Set[str]] = None) -> None:
@@ -240,6 +263,15 @@ class DiagramRendererDau:
         for vertex_id, vertex in graph._vertex_map.items():
             # We may not have a vertex primitive from Graphviz; don't skip rendering
             vprim = layout_result.primitives.get(vertex_id)
+            
+            # CANONICAL MODE: Always preserve exact Graphviz positions and render ligatures
+            if vprim:
+                # Store the exact Graphviz position and use it as base_pos for ligature rendering
+                self._set_vertex_display_pos(vertex_id, vprim.position, layout_result)
+                base_pos = vprim.position
+            else:
+                # Establish any existing vertex base position (may be None if not laid out)
+                base_pos = self._vertex_display_pos.get(vertex_id, None)
 
             # Collect predicate bounds attached to this vertex via nu, with multiplicity
             attached_predicate_bounds: List[Tuple[float, float, float, float]] = []
@@ -261,11 +293,10 @@ class DiagramRendererDau:
                 else:
                     raw_pos = self._vertex_display_pos.get(vertex_id, (0.0, 0.0))
                 vertex_pos = self._ensure_vertex_in_area(vertex_id, raw_pos, graph, layout_result)
-                self._vertex_display_pos[vertex_id] = vertex_pos
+                self._set_vertex_display_pos(vertex_id, vertex_pos, layout_result)
                 continue
 
-            # Establish any existing vertex base position (may be None if not laid out)
-            base_pos = self._vertex_display_pos.get(vertex_id, vprim.position if vprim else None)
+
 
             # Compute periphery hook points on predicates
             hooks: List[Tuple[float, float]] = []
@@ -358,9 +389,11 @@ class DiagramRendererDau:
                 # Draw a full heavy line from vertex to the predicate periphery (no stub)
                 hx, hy = hooks[0]
                 endpoint = (hx, hy)
-                if base_pos is None:
-                    # Place spot just outside all cuts along the ray from hook toward sheet
-                    # Use a small outward offset
+                # CANONICAL MODE: Always use exact Graphviz position, never calculate guess positions
+                if base_pos is not None:
+                    vertex_pos = self._ensure_vertex_in_area(vertex_id, base_pos, graph, layout_result)
+                else:
+                    # Fallback only if no Graphviz position available (shouldn't happen in canonical mode)
                     bx1, by1, bx2, by2 = attached_predicate_bounds[0]
                     pc = ((bx1 + bx2) * 0.5, (by1 + by2) * 0.5)
                     dx, dy = (endpoint[0] - pc[0]), (endpoint[1] - pc[1])
@@ -368,10 +401,14 @@ class DiagramRendererDau:
                     ux, uy = dx / mag, dy / mag
                     guess = (endpoint[0] + ux * 20.0, endpoint[1] + uy * 20.0)
                     vertex_pos = self._ensure_vertex_in_area(vertex_id, guess, graph, layout_result)
+                # CANONICAL MODE: Skip depth adjustment on sheet of assertion (target_depth=0)
+                # to preserve exact Graphviz positions
+                if target_depth == 0:
+                    # Keep exact Graphviz position on sheet of assertion
+                    pass
                 else:
-                    vertex_pos = self._ensure_vertex_in_area(vertex_id, base_pos, graph, layout_result)
-                # Adjust spot to lie on desired Dau depth along the drawn segment
-                vertex_pos = self._nearest_point_on_segment_with_depth(vertex_pos, endpoint, layout_result, target_depth)
+                    # Only adjust depth for vertices inside cuts
+                    vertex_pos = self._nearest_point_on_segment_with_depth(vertex_pos, endpoint, layout_result, target_depth)
                 # Use collision-aware straight/curved draw to avoid predicate text
                 if not self._segment_intersects_any_bounds(vertex_pos, endpoint, layout_result=self.current_layout,
                                                            exclude_ids=set()):
@@ -381,7 +418,7 @@ class DiagramRendererDau:
                     canvas.draw_curve(curve_pts, style, closed=False)
                 # Final clamp: keep spot within intended area/canvas
                 vertex_pos = self._finalize_spot_area(vertex_id, vertex_pos, [endpoint], graph, layout_result)
-                self._vertex_display_pos[vertex_id] = vertex_pos
+                self._set_vertex_display_pos(vertex_id, vertex_pos, layout_result)
             elif deg == 2:
                 # Single continuous shortest path between two predicate hooks with collision fallback
                 h1, h2 = hooks[0], hooks[1]
@@ -437,7 +474,7 @@ class DiagramRendererDau:
                     spot = self._finalize_spot_area(vertex_id, spot, hooks, graph, layout_result)
                     # Final clamp: keep spot within intended area/canvas
                     spot = self._finalize_spot_area(vertex_id, spot, [h1, h2], graph, layout_result)
-                    self._vertex_display_pos[vertex_id] = spot
+                    self._set_vertex_display_pos(vertex_id, spot, layout_result)
                 else:
                     canvas.draw_line(h1, h2, style)
                     # Place the vertex spot on the straight segment, but ensure it lies inside the vertex area
@@ -473,7 +510,7 @@ class DiagramRendererDau:
                     else:
                         # Fallback to midpoint if area unknown
                         spot = ( (h1[0]+h2[0])*0.5, (h1[1]+h2[1])*0.5 )
-                    self._vertex_display_pos[vertex_id] = spot
+                    self._set_vertex_display_pos(vertex_id, spot, layout_result)
             else:
                 # Branching from junction at vertex position to each hook
                 # If no base position, pick the average of hooks as junction
@@ -489,7 +526,7 @@ class DiagramRendererDau:
                     canvas.draw_line(vertex_pos, hp, style)
                 # Final clamp: ensure junction lies in intended area
                 vertex_pos = self._finalize_spot_area(vertex_id, vertex_pos, hooks, graph, layout_result)
-                self._vertex_display_pos[vertex_id] = vertex_pos
+                self._set_vertex_display_pos(vertex_id, vertex_pos, layout_result)
     
     def _render_predicates_with_hooks(self, canvas: PySide6Canvas,
                                     graph: RelationalGraphWithCuts,
@@ -564,7 +601,7 @@ class DiagramRendererDau:
                     continue
             vertex_pos = self._ensure_vertex_in_area(vertex_id, raw_pos, graph, layout_result)
             # Persist in case not yet set
-            self._vertex_display_pos[vertex_id] = vertex_pos
+            self._set_vertex_display_pos(vertex_id, vertex_pos, layout_result)
 
             # DEBUG: Report vertex logical area
             try:
@@ -849,24 +886,8 @@ class DiagramRendererDau:
     def _ensure_vertex_in_area(self, vertex_id: str, pos: Tuple[float, float],
                                graph: RelationalGraphWithCuts,
                                layout_result: LayoutResult) -> Tuple[float, float]:
-        """Clamp/display vertex spot inside its logical EGI area from the graph model.
-        Uses `graph.get_area(vertex_id)` (vertex context), not LCA of predicates nor sheet preference.
-        """
-        x, y = pos
-        # Use the vertex's assigned logical area
-        target_area = graph.get_area(vertex_id)
-        if target_area and target_area != graph.sheet and target_area in layout_result.primitives:
-            bx1, by1, bx2, by2 = layout_result.primitives[target_area].bounds
-            pad = 8.0
-            nx = min(max(x, bx1 + pad), bx2 - pad)
-            ny = min(max(y, by1 + pad), by2 - pad)
-            return (nx, ny)
-        # Sheet-level fallback: ensure not inside any cut
-        for pid, prim in layout_result.primitives.items():
-            if prim.element_type == 'cut' and prim.bounds:
-                if self._point_in_rect((x, y), prim.bounds):
-                    return self._nudge_point_outside_rect((x, y), prim.bounds)
-        return (x, y)
+        """CANONICAL MODE: Always preserve exact Graphviz positions without repositioning."""
+        return pos
 
     def _rect_contains(self, outer: Tuple[float, float, float, float], inner: Tuple[float, float, float, float]) -> bool:
         ox1, oy1, ox2, oy2 = outer
@@ -947,12 +968,8 @@ class DiagramRendererDau:
                 pass
             return best
 
-        # Canvas fallback
-        cb = layout_result.canvas_bounds
-        pad = 4.0
-        fx = min(max(vx, cb[0] + pad), cb[2] - pad)
-        fy = min(max(vy, cb[1] + pad), cb[3] - pad)
-        return (fx, fy)
+        # CANONICAL MODE: Never reposition vertices on the sheet - preserve exact Graphviz positions
+        return (vx, vy)
 
     def _build_cut_hierarchy(self, layout_result: LayoutResult) -> Dict[str, Optional[str]]:
         """Derive parent mapping for cuts by bounds containment. Returns {cut_id: parent_cut_or_sheet}.

@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 # Phase 1d Foundation - Complete pipeline
 from src.egif_parser_dau import EGIFParser
 from src.egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut
-from src.graphviz_layout_engine_v2 import GraphvizLayoutEngine, create_canonical_layout
+from src.graphviz_layout_engine_v2 import GraphvizLayoutEngine
 from src.canonical_qt_renderer import CanonicalQtRenderer
 from src.layout_engine_clean import SpatialPrimitive, LayoutResult
 from src.egi_diagram_controller import EGIDiagramController
@@ -135,11 +135,13 @@ class EGDiagramWidget(QWidget):
         
         # Initialize with a simple example
         self.egi = self.create_example_egi()
-        # Use canonical logical baseline throughout the GUI
-        self.layout_engine = GraphvizLayoutEngine(mode='logical')
+        # Use canonical mode throughout the GUI (mode parameter removed in refactoring)
+        self.layout_engine = GraphvizLayoutEngine()
         self.spatial_primitives = []
         self.selection_system = ModeAwareSelectionSystem(Mode.WARMUP)
         self.annotation_manager = AnnotationManager()
+        # Keep latest layout_result for overlays/annotations
+        self.layout_result = None
         
         # Initialize EGI-diagram controller for proper correspondence
         self.diagram_controller = EGIDiagramController(self.egi)
@@ -314,6 +316,50 @@ class EGDiagramWidget(QWidget):
     def get_available_actions(self) -> Set[ActionType]:
         """Get available actions for current selection."""
         return self.selection_system.get_available_actions()
+    
+    # --- Coordinate transforms between layout canvas and widget ---
+    def _compute_transform(self) -> Tuple[float, float, float, float]:
+        """Return (s, s, ox, oy) that maps canvas -> widget with uniform scale and centering.
+        Formula: wx = s*cx + ox, wy = s*cy + oy. Inverse uses (wx-ox)/s.
+        Matches CanonicalQtRenderer's uniform transform so overlays align exactly.
+        """
+        try:
+            cb = getattr(self, 'layout_result', None).canvas_bounds  # type: ignore
+            x1, y1, x2, y2 = cb
+            cw = max(x2 - x1, 1.0)
+            ch = max(y2 - y1, 1.0)
+            W = max(self.width(), 1)
+            H = max(self.height(), 1)
+            s = min(W / cw, H / ch)
+            # world to widget: first translate world so min is at 0, then scale, then center
+            content_w = s * cw
+            content_h = s * ch
+            ox = 0.5 * (W - content_w) - s * x1
+            oy = 0.5 * (H - content_h) - s * y1
+            return s, s, ox, oy
+        except Exception:
+            return 1.0, 1.0, 0.0, 0.0
+    
+    def _canvas_to_widget_pt(self, cx: float, cy: float) -> Tuple[float, float]:
+        sx, sy, tx, ty = self._compute_transform()
+        return sx * cx + tx, sy * cy + ty
+    
+    def _widget_to_canvas_pt(self, wx: float, wy: float) -> Tuple[float, float]:
+        sx, sy, tx, ty = self._compute_transform()
+        # avoid division by zero
+        if sx == 0:
+            sx = 1.0
+        if sy == 0:
+            sy = 1.0
+        return (wx - tx) / sx, (wy - ty) / sy
+    
+    def _canvas_rect_to_widget(self, r: QRectF) -> QRectF:
+        sx, sy, tx, ty = self._compute_transform()
+        wx1 = sx * (r.left() - tx)
+        wy1 = sy * (r.top() - ty)
+        wx2 = sx * (r.right() - tx)
+        wy2 = sy * (r.bottom() - ty)
+        return QRectF(min(wx1, wx2), min(wy1, wy2), abs(wx2 - wx1), abs(wy2 - wy1))
         
     def paintEvent(self, event):
         """Render via the authenticated, canonical, logical renderer."""
@@ -322,20 +368,30 @@ class EGDiagramWidget(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         try:
-            # Compute a fresh canonical layout
-            layout_result = create_canonical_layout(self.egi)
+            # Compute a fresh canonical layout using GraphvizLayoutEngine
+            layout_engine = GraphvizLayoutEngine()
+            layout_result = layout_engine.create_layout_from_graph(self.egi)
             # Delegate to canonical Qt renderer (single source of truth)
             CanonicalQtRenderer(
                 draw_argument_markers=(self.show_annotations and self._draw_argument_markers)
             ).render(painter, layout_result, self.egi, (self.width(), self.height()))
 
+            # Sync spatial primitives and layout cache for overlays/hit-testing
+            try:
+                self.spatial_primitives = list(layout_result.primitives.values())
+            except Exception:
+                self.spatial_primitives = []
+            self.layout_result = layout_result
+
             # Optional: render annotations after core diagram
             if self.show_annotations:
                 # Ensure annotation primitives are based on latest layout_result
-                self.layout_result = layout_result
                 self._update_annotations()
                 # Draw simple overlays for annotations using painter directly
                 self._render_annotations(painter)
+
+            # Draw selection overlays on top of base diagram/annotations
+            self._render_selection_overlays(painter)
 
             # Draw marquee rectangle if active (UI overlay)
             if self._marquee_active and self._marquee_start and self._marquee_end:
@@ -510,6 +566,35 @@ class EGDiagramWidget(QWidget):
             if r.intersects(prect):
                 return True
         return False
+        
+    def _predicate_label_rect(self, edge_id: str, primitive: SpatialPrimitive) -> QRectF:
+        """Return the QRectF of the predicate label for the given edge.
+        Uses cached bounds from rendering when available; otherwise computes
+        a fallback rectangle using the same font metrics as rendering.
+        """
+        # Cached from `_render_edge`
+        rect = self._predicate_text_bounds.get(edge_id)
+        if rect is not None:
+            return rect
+        # Fallback computation
+        if not self.egi or primitive is None or primitive.position is None:
+            return QRectF()
+        relation_name = self.egi.rel.get(edge_id, f"R{edge_id[:4]}")
+        # Match CanonicalQtRenderer defaults (pred_font_family/size and padding)
+        font = QFont("Times New Roman", 12)
+        fm = QFontMetricsF(font)
+        padding_x = 6.0
+        padding_y = 4.0
+        x, y = primitive.position
+        tw = fm.horizontalAdvance(relation_name)
+        th = fm.height()
+        rect = QRectF(x - tw / 2.0 - padding_x,
+                      y - th / 2.0 - padding_y,
+                      tw + 2.0 * padding_x,
+                      th + 2.0 * padding_y)
+        # Store for next time to keep consistency across frame
+        self._predicate_text_bounds[edge_id] = rect
+        return rect
         
     def _render_edge(self, painter: QPainter, element_id: str, position: Tuple[float, float],
                     bounds: Tuple[float, float, float, float], is_selected: bool, is_hovered: bool):
@@ -1694,22 +1779,45 @@ class EGDiagramWidget(QWidget):
     def _render_selection_overlays(self, painter: QPainter):
         """Render mode-aware selection overlays and hover effects."""
         sel_state = self.selection_system.selection_state
-        # Render hover effect first (underneath selection)
+        # Render hover effect first (underneath selection), using per-type halos
         if sel_state.hover_element and sel_state.hover_element not in sel_state.selected_elements:
-            hover_primitive = next((p for p in self.spatial_primitives 
-                                  if p.element_id == sel_state.hover_element), None)
+            hover_primitive = next((p for p in self.spatial_primitives if p.element_id == sel_state.hover_element), None)
             if hover_primitive:
-                # Light gray hover effect
-                hover_color = QColor(128, 128, 128, 30)
-                hover_border = QColor(128, 128, 128, 100)
-                
+                hover_fill = QColor(128, 128, 128, 30)
+                hover_border = QColor(128, 128, 128, 120)
+                painter.setBrush(QBrush(hover_fill))
                 painter.setPen(QPen(hover_border, 1, Qt.DashLine))
-                painter.setBrush(QBrush(hover_color))
-                
-                x1, y1, x2, y2 = hover_primitive.bounds
-                padding = 2
-                painter.drawRect(QRectF(x1 - padding, y1 - padding, 
-                                      x2 - x1 + 2*padding, y2 - y1 + 2*padding))
+
+                et = hover_primitive.element_type
+                if et == 'edge':
+                    return  # ignore edges for hover visuals
+                if et == 'vertex':
+                    cx, cy = hover_primitive.position
+                    wx, wy = self._canvas_to_widget_pt(cx, cy)
+                    painter.drawEllipse(QPointF(wx, wy), 12, 12)
+                elif et == 'predicate':
+                    rect = self._predicate_label_rect(hover_primitive.element_id, hover_primitive)
+                    if rect:
+                        pad = 3
+                        wrect = self._canvas_rect_to_widget(rect).adjusted(-pad, -pad, pad, pad)
+                        painter.drawRoundedRect(wrect, 4, 4)
+                elif et == 'edge' and getattr(hover_primitive, 'curve_points', None):
+                    pts = [self._canvas_to_widget_pt(px, py) for (px, py) in hover_primitive.curve_points]
+                    if len(pts) >= 2:
+                        path = QPainterPath(QPointF(pts[0][0], pts[0][1]))
+                        for (px, py) in pts[1:]:
+                            path.lineTo(QPointF(px, py))
+                        painter.setPen(QPen(QColor(255, 165, 0, 200), 8, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+                        painter.setBrush(Qt.NoBrush)
+                        painter.drawPath(path)
+                elif et == 'cut':
+                    x1, y1, x2, y2 = hover_primitive.bounds
+                    (wx1, wy1) = self._canvas_to_widget_pt(x1, y1)
+                    (wx2, wy2) = self._canvas_to_widget_pt(x2, y2)
+                    pad = 2
+                    painter.drawEllipse(QRectF(min(wx1, wx2) - pad, min(wy1, wy2) - pad,
+                                               abs(wx2 - wx1) + 2*pad, abs(wy2 - wy1) + 2*pad))
+                # Ignore all other primitive types for hover visuals
         
         # Render selection overlays
         if not sel_state.selected_elements:
@@ -1717,165 +1825,142 @@ class EGDiagramWidget(QWidget):
         
         # Mode-aware selection colors
         if self.current_mode == Mode.WARMUP:
-            # Blue highlights for compositional selections
             selection_color = QColor(0, 122, 255, 80)  # Blue with transparency
             border_color = QColor(0, 122, 255, 200)
-        else:  # Practice mode
-            # Green for valid transformations
+        else:
             selection_color = QColor(40, 167, 69, 80)  # Green with transparency
             border_color = QColor(40, 167, 69, 200)
-        
+
         painter.setPen(QPen(border_color, 3, Qt.SolidLine))
         painter.setBrush(QBrush(selection_color))
-        
-        for element_id in sel_state.selected_elements:
-            primitive = next((p for p in self.spatial_primitives 
-                            if p.element_id == element_id), None)
-            if primitive:
-                x1, y1, x2, y2 = primitive.bounds
-                element_type = primitive.element_type
-                
-                if element_type == "vertex":
-                    # Enhanced selection for vertices (supports both spots and LoI line segments)
-                    center_x = (x1 + x2) / 2
-                    center_y = (y1 + y2) / 2
-                    
-                    # Check if this vertex has predicate connections (determines rendering type)
-                    has_predicate_connections = False
-                    if self.egi:
-                        for edge_id, vertex_sequence in self.egi.nu.items():
-                            if element_id in vertex_sequence:
-                                has_predicate_connections = True
-                                break
-                    
-                    if has_predicate_connections:
-                        # Connected vertex (rendered as spot): circular selection
-                        radius = max(8, (x2 - x1) / 2 + 4)
-                        painter.drawEllipse(QPointF(center_x, center_y), radius, radius)
-                    else:
-                        # Standalone LoI (rendered as line segment): line-based selection
-                        line_length = 30  # Must match rendering logic
-                        line_start_x = center_x - line_length / 2
-                        line_end_x = center_x + line_length / 2
-                        
-                        # Draw selection overlay around the line segment
-                        padding = 6
-                        painter.drawRect(QRectF(line_start_x - padding, center_y - padding, 
-                                              line_length + 2*padding, 2*padding))
-                    
-                elif element_type == "cut":
-                    # Thick border highlight for cuts
-                    painter.setPen(QPen(border_color, 4, Qt.SolidLine))
-                    painter.setBrush(Qt.NoBrush)  # No fill for cuts
-                    padding = 2
-                    painter.drawRect(QRectF(x1 - padding, y1 - padding, 
-                                          x2 - x1 + 2*padding, y2 - y1 + 2*padding))
-                    painter.setBrush(QBrush(selection_color))  # Restore brush
-                    
-                else:
-                    # Rectangular selection for predicates and other elements
-                    padding = 4
-                    painter.drawRect(QRectF(x1 - padding, y1 - padding, 
-                                          x2 - x1 + 2*padding, y2 - y1 + 2*padding))
-                
-    def mousePressEvent(self, event: QMouseEvent):
-        """Handle mouse press events for selection and interaction."""
-        if event.button() == Qt.LeftButton:
-            # Convert to float coordinates
-            pos = event.position() if hasattr(event, 'position') else event.localPos()
-            x, y = float(pos.x()), float(pos.y())
 
-            # Shift-drag marquee start
-            if event.modifiers() & Qt.ShiftModifier:
-                self._marquee_active = True
-                self._marquee_start = (x, y)
-                self._marquee_end = (x, y)
-                self.update()
-                return
-            
-            # First check for branching point selection (higher priority)
-            clicked_branching_point = self._find_branching_point_at_position(x, y)
-            
-            if clicked_branching_point:
-                # Handle branching point selection
-                if event.modifiers() & Qt.ControlModifier:
-                    # Multi-select with Ctrl
-                    if clicked_branching_point in self.selected_branching_points:
-                        self.selected_branching_points.remove(clicked_branching_point)
-                    else:
-                        self.selected_branching_points.add(clicked_branching_point)
-                else:
-                    # Single select
-                    self.selected_branching_points = {clicked_branching_point}
-                    self.selection_system.clear_selection()  # Clear element selection
-                
-                # Start drag state for branching point
-                self.drag_state = {
-                    'type': 'branching_point',
-                    'vertex_id': clicked_branching_point,
-                    'start_pos': (x, y)
-                }
-                print(f"✓ Selected branching point {clicked_branching_point}")
-            else:
-                # Check for element selection
-                # Alt-click cycles overlapping candidates deterministically
-                if event.modifiers() & Qt.AltModifier:
-                    px, py = int(x), int(y)
-                    if self._alt_cycle_anchor != (px, py):
-                        # New anchor; recompute candidates and reset index
-                        self._alt_cycle_candidates = self._find_candidates_at_position(x, y)
-                        self._alt_cycle_index = 0
-                        self._alt_cycle_anchor = (px, py)
-                    if self._alt_cycle_candidates:
-                        clicked_element = self._alt_cycle_candidates[self._alt_cycle_index % len(self._alt_cycle_candidates)]
-                        self._alt_cycle_index += 1
-                    else:
-                        clicked_element = None
-                else:
-                    self._alt_cycle_candidates = []
-                    self._alt_cycle_index = 0
-                    self._alt_cycle_anchor = None
-                    clicked_element = self._find_element_at_position(x, y)
-                
-                if clicked_element:
-                    # Support Cmd (Meta) and Ctrl for toggle-add/remove
-                    multi = bool((event.modifiers() & Qt.ControlModifier) or (event.modifiers() & Qt.MetaModifier))
-                    self.selection_system.select_element(clicked_element, multi_select=multi)
-                    print(f"✓ Selected element {clicked_element}")
-                    # Begin drag-to-attach if a vertex is selected with no modifiers
-                    if not multi:
-                        # Detect if clicked element is a vertex primitive
-                        prim = next((p for p in self.spatial_primitives if p.element_id == clicked_element), None)
-                        if prim and prim.element_type == 'vertex':
-                            self.drag_state = {
-                                'type': 'attach_from_vertex',
-                                'vertex_id': clicked_element,
-                                'start_pos': (x, y)
-                            }
-                else:
-                    # Clear all selections if clicking empty space
-                    if self.selection_system.selection_state.selected_elements:
-                        print(f"✓ Cleared selection in {self.current_mode.value} mode")
-                    self.selection_system.clear_selection()
-                    self.drag_state = None
-            
-            # Update visual display
-            self.update()
-        elif event.button() == Qt.RightButton:
-            # TODO: context menu for actions (Milestone 2)
-            pass
+        for element_id in sel_state.selected_elements:
+            primitive = next((p for p in self.spatial_primitives if p.element_id == element_id), None)
+            if not primitive:
+                continue
+            et = primitive.element_type
+            if et == 'edge':
+                continue  # ignore edges for selection visuals
+            x1, y1, x2, y2 = primitive.bounds
+            if et == 'vertex':
+                cx, cy = primitive.position
+                wx, wy = self._canvas_to_widget_pt(cx, cy)
+                painter.drawEllipse(QPointF(wx, wy), 14, 14)
+            elif et == 'predicate':
+                rect = self._predicate_label_rect(element_id, primitive)
+                if rect:
+                    pad = 4
+                    wrect = self._canvas_rect_to_widget(rect).adjusted(-pad, -pad, pad, pad)
+                    painter.drawRoundedRect(wrect, 4, 4)
+            elif et == 'cut':
+                painter.setPen(QPen(border_color, 4, Qt.SolidLine))
+                painter.setBrush(Qt.NoBrush)
+                pad = 3
+                (wx1, wy1) = self._canvas_to_widget_pt(x1, y1)
+                (wx2, wy2) = self._canvas_to_widget_pt(x2, y2)
+                painter.drawEllipse(QRectF(min(wx1, wx2) - pad, min(wy1, wy2) - pad,
+                                           abs(wx2 - wx1) + 2*pad, abs(wy2 - wy1) + 2*pad))
+                painter.setPen(QPen(border_color, 3, Qt.SolidLine))
+                painter.setBrush(QBrush(selection_color))
+            elif et == 'edge' and getattr(primitive, 'curve_points', None):
+                pts = [self._canvas_to_widget_pt(px, py) for (px, py) in primitive.curve_points]
+                if len(pts) >= 2:
+                    path = QPainterPath(QPointF(pts[0][0], pts[0][1]))
+                    for (px, py) in pts[1:]:
+                        path.lineTo(QPointF(px, py))
+                    painter.setPen(QPen(border_color, 8, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+                    painter.setBrush(Qt.NoBrush)
+                    painter.drawPath(path)
+            # Ignore all other primitive types for selection visuals
+
+        # Draw ghost line during attach-from-vertex drag
+        if isinstance(getattr(self, 'drag_state', None), dict) and self.drag_state.get('type') == 'attach_from_vertex':
+            vertex_id = self.drag_state.get('vertex_id')
+            vprim = next((p for p in self.spatial_primitives if p.element_id == vertex_id), None)
+            if vprim and vprim.position and getattr(self, '_last_mouse_widget_pos', None):
+                vx, vy = vprim.position
+                mwx, mwy = self._last_mouse_widget_pos
+                mcx, mcy = self._widget_to_canvas_pt(mwx, mwy)
+                (wvx, wvy) = self._canvas_to_widget_pt(vx, vy)
+                # If hovering a predicate, snap to periphery point for preview
+                drop_id = self._find_element_at_position(mcx, mcy)
+                snap_wx, snap_wy = mwx, mwy
+                if drop_id:
+                    pred_prim = next((p for p in self.spatial_primitives if p.element_id == drop_id and p.element_type == 'predicate'), None)
+                    if pred_prim:
+                        rect = self._predicate_label_rect(pred_prim.element_id, pred_prim)
+                        # Compute intersection of segment (vx,vy)->(rect center) with rect periphery
+                        cx, cy = rect.center().x(), rect.center().y()
+                        rx1, ry1, rx2, ry2 = rect.left(), rect.top(), rect.right(), rect.bottom()
+                        ix, iy = cx, cy
+                        dx, dy = cx - vx, cy - vy
+                        # Avoid zero
+                        if abs(dx) < 1e-6 and abs(dy) < 1e-6:
+                            dx = 1e-6
+                        t_candidates = []
+                        # Intersect with vertical sides
+                        if abs(dx) > 1e-6:
+                            t = (rx1 - vx) / dx
+                            yint = vy + t * dy
+                            if 0.0 <= t <= 1.0 and ry1 <= yint <= ry2:
+                                t_candidates.append((t, rx1, yint))
+                            t = (rx2 - vx) / dx
+                            yint = vy + t * dy
+                            if 0.0 <= t <= 1.0 and ry1 <= yint <= ry2:
+                                t_candidates.append((t, rx2, yint))
+                        # Intersect with horizontal sides
+                        if abs(dy) > 1e-6:
+                            t = (ry1 - vy) / dy
+                            xint = vx + t * dx
+                            if 0.0 <= t <= 1.0 and rx1 <= xint <= rx2:
+                                t_candidates.append((t, xint, ry1))
+                            t = (ry2 - vy) / dy
+                            xint = vx + t * dx
+                            if 0.0 <= t <= 1.0 and rx1 <= xint <= rx2:
+                                t_candidates.append((t, xint, ry2))
+                        if t_candidates:
+                            t_candidates.sort(key=lambda v: v[0])
+                            ix, iy = t_candidates[0][1], t_candidates[0][2]
+                            snap_wx, snap_wy = self._canvas_to_widget_pt(ix, iy)
+                            # Draw snap marker
+                            painter.setPen(QPen(QColor(0, 128, 255, 200), 2))
+                            painter.setBrush(QBrush(QColor(0, 128, 255, 120)))
+                            painter.drawEllipse(QPointF(snap_wx, snap_wy), 5, 5)
+                painter.setPen(QPen(QColor(255, 165, 0, 180), 3, Qt.DashLine, Qt.RoundCap, Qt.RoundJoin))
+                painter.setBrush(Qt.NoBrush)
+                painter.drawLine(QPointF(wvx, wvy), QPointF(snap_wx, snap_wy))
+
+    def mousePressEvent(self, event):
+        """Start drag gestures, including attach-from-vertex."""
+        if event.button() == Qt.LeftButton:
+            pos = event.position() if hasattr(event, 'position') else event.localPos()
+            wx, wy = float(pos.x()), float(pos.y())
+            cx, cy = self._widget_to_canvas_pt(wx, wy)
+            hit_id = self._find_element_at_position(cx, cy)
+            if hit_id:
+                # If clicked a vertex, start attach drag from that vertex
+                prim = next((p for p in self.spatial_primitives if p.element_id == hit_id), None)
+                if prim and prim.element_type == 'vertex':
+                    self.drag_state = {'type': 'attach_from_vertex', 'vertex_id': hit_id}
+                    self._last_mouse_widget_pos = (wx, wy)
+                    self.update()
+                    return
+        super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         """Handle mouse movement for hover effects and marquee updates."""
+        # Track last mouse widget pos for ghost previews
+        pos = event.position() if hasattr(event, 'position') else event.localPos()
+        self._last_mouse_widget_pos = (float(pos.x()), float(pos.y()))
         if self._marquee_active and self._marquee_start:
-            pos = event.position() if hasattr(event, 'position') else event.localPos()
             self._marquee_end = (float(pos.x()), float(pos.y()))
             self.update()
             return
         # If dragging a vertex for attachment, update cursor feedback only
         if isinstance(getattr(self, 'drag_state', None), dict) and self.drag_state.get('type') == 'attach_from_vertex':
-            pos = event.position() if hasattr(event, 'position') else event.localPos()
-            x, y = float(pos.x()), float(pos.y())
+            # Convert to canvas coords for hit-testing
+            wx, wy = float(pos.x()), float(pos.y())
+            x, y = self._widget_to_canvas_pt(wx, wy)
             hovered_element = self._find_element_at_position(x, y)
             if hovered_element and hovered_element in getattr(self.egi, 'nu', {}):
                 self.setCursor(QCursor(Qt.CrossCursor))
@@ -1883,8 +1968,8 @@ class EGDiagramWidget(QWidget):
                 self.setCursor(QCursor(Qt.PointingHandCursor))
             return
         # Update hover states when not marquee-selecting
-        pos = event.position() if hasattr(event, 'position') else event.localPos()
-        x, y = float(pos.x()), float(pos.y())
+        wx, wy = float(pos.x()), float(pos.y())
+        x, y = self._widget_to_canvas_pt(wx, wy)
         # Branching point hover (higher priority)
         hovered_bp = self._find_branching_point_at_position(x, y)
         self.hover_branching_point = hovered_bp
@@ -1903,8 +1988,11 @@ class EGDiagramWidget(QWidget):
         super().mouseMoveEvent(event)
     
     def _find_branching_point_at_position(self, x: float, y: float) -> Optional[str]:
-        """Find branching point at given position for selection."""
-        hit_radius = 8.0  # Slightly larger than visual radius for easier selection
+        """Find branching point at given position for selection.
+        x,y are in canvas coordinates. Hit radius is scaled from 8 screen px to canvas units."""
+        sx, sy, _, _ = self._compute_transform()
+        s = max((sx + sy) * 0.5, 1e-6)
+        hit_radius = 8.0 / s  # convert 8px to canvas units
         
         for vertex_id, (bp_x, bp_y, vertex_name) in self.branching_points.items():
             distance = ((x - bp_x) ** 2 + (y - bp_y) ** 2) ** 0.5
@@ -1946,7 +2034,9 @@ class EGDiagramWidget(QWidget):
             # Cut: boundary proximity only
             if et == 'cut':
                 if (x1 <= x <= x2 and y1 <= y <= y2):
-                    margin = 10
+                    sx, sy, _, _ = self._compute_transform()
+                    s = max((sx + sy) * 0.5, 1e-6)
+                    margin = 10 / s
                     d = min(abs(x - x1), abs(x - x2), abs(y - y1), abs(y - y2))
                     if d <= margin:
                         candidates.append((4, p.element_id))
@@ -1985,8 +2075,9 @@ class EGDiagramWidget(QWidget):
         if event.button() == Qt.LeftButton and isinstance(getattr(self, 'drag_state', None), dict):
             if self.drag_state.get('type') == 'attach_from_vertex':
                 pos = event.position() if hasattr(event, 'position') else event.localPos()
-                dx, dy = float(pos.x()), float(pos.y())
-                drop_id = self._find_element_at_position(dx, dy)
+                wx, wy = float(pos.x()), float(pos.y())
+                cx, cy = self._widget_to_canvas_pt(wx, wy)
+                drop_id = self._find_element_at_position(cx, cy)
                 vertex_id = self.drag_state.get('vertex_id')
                 self.drag_state = None
                 if drop_id and vertex_id:
@@ -2008,17 +2099,48 @@ class EGDiagramWidget(QWidget):
                             hook_pos = empty_index
                         except ValueError:
                             hook_pos = len(current)
-                        ok = self.diagram_controller.attach_loi_to_predicate(vertex_id, drop_id, hook_pos)
+                        # Map UI mode to controller mode string
+                        mode_str = "practice" if getattr(self, 'current_mode', None) and self.current_mode.name.upper() == "PRACTICE" else "playground"
+                        ok, errs = self.diagram_controller.attach_loi_endpoint_transactional(vertex_id, drop_id, hook_pos, mode=mode_str)
                         if ok:
                             self.egi = self.diagram_controller.egi
-                            print(f"✓ Attached vertex {vertex_id} to predicate {drop_id} at hook {hook_pos}")
+                            print(f"✓ Attached vertex {vertex_id} to predicate {drop_id} at hook {hook_pos} [{mode_str}]")
                             self.update()
                         else:
-                            print(f"✗ Attach failed for vertex {vertex_id} → {drop_id}")
+                            print(f"✗ Attach failed for vertex {vertex_id} → {drop_id}: {'; '.join(errs) if errs else 'unknown error'}")
                 return
 
     def keyPressEvent(self, event):
         """Keyboard shortcuts for selection (Cmd/Ctrl+A selects all in current area)."""
+        # Delete selected identity edges (lines of identity) transactionally
+        if event.key() in (Qt.Key_Delete, Qt.Key_Backspace):
+            selected_ids = set(self.selection_system.selection_state.selected_elements)
+            if not selected_ids:
+                return
+            # Filter identity edges only
+            to_delete = []
+            for eid in selected_ids:
+                try:
+                    if self.egi.rel.get(eid) == "=":
+                        to_delete.append(eid)
+                except Exception:
+                    continue
+            if to_delete:
+                mode_str = "practice" if getattr(self, 'current_mode', None) and self.current_mode.name.upper() == "PRACTICE" else "playground"
+                success = 0
+                for edge_id in to_delete:
+                    ok, errs = self.diagram_controller.delete_identity_edge_transactional(edge_id, mode=mode_str)
+                    if ok:
+                        success += 1
+                    else:
+                        print(f"✗ Delete failed for identity edge {edge_id}: {'; '.join(errs) if errs else 'unknown error'}")
+                if success:
+                    self.egi = self.diagram_controller.egi
+                    # Remove deleted ids from selection
+                    self.selection_system.selection_state.selected_elements.difference_update(to_delete)
+                    print(f"✓ Deleted {success} identity edge(s) [{mode_str}]")
+                    self.update()
+            return
         if (event.key() == Qt.Key_A) and ((event.modifiers() & Qt.ControlModifier) or (event.modifiers() & Qt.MetaModifier)):
             # Determine current area: if mouse is inside a cut, select all inside innermost cut; else select all on sheet
             cursor_pos = self.mapFromGlobal(QCursor.pos())
@@ -2069,92 +2191,203 @@ class EGDiagramWidget(QWidget):
         containing.sort(key=lambda t: t[1])
         return containing[0][0]
 
-            
+    def _dist_point_to_seg(self, px: float, py: float, ax: float, ay: float, bx: float, by: float) -> float:
+        """Distance from point P to segment AB in canvas coords."""
+        vx, vy = bx - ax, by - ay
+        wx, wy = px - ax, py - ay
+        denom = vx*vx + vy*vy
+        if denom <= 1e-12:
+            # Degenerate segment
+            dx, dy = px - ax, py - ay
+            return (dx*dx + dy*dy) ** 0.5
+        t = max(0.0, min(1.0, (wx*vx + wy*vy) / denom))
+        cx, cy = ax + t * vx, ay + t * vy
+        dx, dy = px - cx, py - cy
+        return (dx*dx + dy*dy) ** 0.5
+
+    def _edge_hit(self, primitive, x: float, y: float) -> bool:
+        """Return True if (x,y) is within threshold of an edge polyline in canvas coords."""
+        pts = getattr(primitive, 'curve_points', None)
+        if not pts or len(pts) < 2:
+            return False
+        # Convert a 8px screen threshold to canvas units
+        sx, sy, _, _ = self._compute_transform()
+        s = max((sx + sy) * 0.5, 1e-6)
+        thresh = 8.0 / s
+        for (ax, ay), (bx, by) in zip(pts[:-1], pts[1:]):
+            if self._dist_point_to_seg(x, y, ax, ay, bx, by) <= thresh:
+                return True
+        return False
+
     def _find_element_at_position(self, x: float, y: float) -> Optional[str]:
-        """Find element at given position with robust hit-testing."""
-        # Check each primitive with appropriate hit-testing for element type
-        for primitive in self.spatial_primitives:
-            element_type = primitive.element_type
-            x1, y1, x2, y2 = primitive.bounds
-            
-            if element_type == "vertex":
-                # Enhanced hit-testing for vertices (supports both spots and LoI line segments)
-                center_x = (x1 + x2) / 2
-                center_y = (y1 + y2) / 2
+        """Find best element under (x,y) using actual rendered positions.
+        This fixes the issue where spatial primitives have incorrect positions.
+        """
+        # Add occasional debug output
+        if hasattr(self, '_hover_debug_counter'):
+            self._hover_debug_counter += 1
+        else:
+            self._hover_debug_counter = 0
+        
+        debug_this = (self._hover_debug_counter % 50 == 0)  # Every 50th call
+        if debug_this:
+            print(f"DEBUG: Hover test at ({x:.1f}, {y:.1f})")
+        
+        candidates: List[Tuple[float, str]] = []  # (distance, element_id)
+        
+        # Build actual rendered positions (same as renderer uses)
+        vertex_positions: Dict[str, Tuple[float, float]] = {}
+        predicate_positions: Dict[str, Tuple[float, float]] = {}
+        
+        for p in self.spatial_primitives:
+            if p.element_type == "vertex":
+                vertex_positions[p.element_id] = p.position
+            elif p.element_type == "predicate":
+                predicate_positions[p.element_id] = p.position
+        
+        if debug_this:
+            print(f"DEBUG: Found {len(vertex_positions)} vertices, {len(predicate_positions)} predicates")
+        
+        # Test predicates using their label rectangles
+        for p in self.spatial_primitives:
+            if p.element_type == 'predicate':
+                # This is a predicate primitive - use text label rectangle
+                rect = self._predicate_text_bounds.get(p.element_id)
+                if rect is None:
+                    rect = self._predicate_label_rect(p.element_id, p)
+                if rect:
+                    expanded = rect.adjusted(-8, -8, 8, 8)
+                    if expanded.contains(x, y):
+                        relation = self.egi.rel.get(p.element_id, "UNKNOWN")
+                        candidates.append((0.0, p.element_id))
+                        print(f"DEBUG: Found predicate {p.element_id} ({relation})")
+                elif debug_this:
+                    print(f"DEBUG: Predicate {p.element_id} has no rect")
+        
+        # Test ligatures using actual rendered paths (from branching points)
+        for edge_id, vertex_sequence in self.egi.nu.items():
+            if edge_id in predicate_positions:
+                # This is a predicate edge - compute actual ligature paths
+                pred_rect = self._predicate_text_bounds.get(edge_id)
+                if not pred_rect:
+                    continue
                 
-                # Check if this vertex has predicate connections (determines rendering type)
-                has_predicate_connections = False
-                if self.egi:
-                    for edge_id, vertex_sequence in self.egi.nu.items():
-                        if primitive.element_id in vertex_sequence:
-                            has_predicate_connections = True
-                            break
-                
-                if has_predicate_connections:
-                    # Connected vertex (rendered as spot): use circular hit-testing
-                    radius = max(10, (x2 - x1) / 2 + 5)  # Minimum 10px radius for easy clicking
-                    distance = ((x - center_x)**2 + (y - center_y)**2)**0.5
-                    if distance <= radius:
-                        return primitive.element_id
-                else:
-                    # Standalone LoI (rendered as line segment): use line-based hit-testing
-                    line_length = 30  # Must match rendering logic
-                    line_start_x = center_x - line_length / 2
-                    line_end_x = center_x + line_length / 2
-                    
-                    # Check if click is near the horizontal line segment
-                    if (line_start_x - 5) <= x <= (line_end_x + 5) and abs(y - center_y) <= 8:
-                        return primitive.element_id
-                    
-            elif element_type == "predicate":
-                # For predicates (text), calculate precise text bounds for selection
-                # Get the actual relation name to calculate exact text dimensions
-                relation_name = self.egi.rel.get(primitive.element_id, f"R{primitive.element_id[:4]}")
-                
-                # Use same font as rendering to get exact text bounds
-                font = QFont("Times", 11)
-                font_metrics = QFontMetrics(font)
-                text_rect = font_metrics.boundingRect(relation_name)
-                
-                # Calculate actual text position (same as rendering logic)
-                center_x = (x1 + x2) / 2
-                center_y = (y1 + y2) / 2
-                text_x = center_x - text_rect.width() / 2
-                text_y = center_y + text_rect.height() / 4
-                
-                # Create precise selection bounds around the actual text
-                text_left = text_x
-                text_right = text_x + text_rect.width()
-                text_top = text_y - text_rect.height()
-                text_bottom = text_y
-                
-                # Small padding for easier selection
-                padding = 3
-                if (text_left - padding) <= x <= (text_right + padding) and (text_top - padding) <= y <= (text_bottom + padding):
-                    return primitive.element_id
-                    
-            elif element_type == "cut":
-                # For cuts, check if click is on the boundary (not interior)
-                # This allows selecting the cut itself vs. clicking inside it
-                margin = 10  # Width of selectable boundary
-                # Check if point is within outer bounds but not in inner area
-                if (x1 <= x <= x2 and y1 <= y <= y2):
-                    # Check if we're close to the boundary
-                    dist_to_left = abs(x - x1)
-                    dist_to_right = abs(x - x2)
-                    dist_to_top = abs(y - y1)
-                    dist_to_bottom = abs(y - y2)
-                    
-                    min_dist_to_boundary = min(dist_to_left, dist_to_right, dist_to_top, dist_to_bottom)
-                    if min_dist_to_boundary <= margin:
-                        return primitive.element_id
+                # Test each vertex-to-predicate connection
+                for vertex_id in vertex_sequence:
+                    # Use actual branching point position, not spatial primitive position
+                    if vertex_id in self.branching_points:
+                        vx, vy, _ = self.branching_points[vertex_id]
                         
-            else:
-                # Default rectangular hit-testing for other elements
+                        # Compute hook point (same as renderer)
+                        cx, cy = pred_rect.center().x(), pred_rect.center().y()
+                        num_args = len(vertex_sequence)
+                        
+                        if num_args == 2:
+                            idx = list(vertex_sequence).index(vertex_id)
+                            if idx == 0:
+                                hook_x, hook_y = pred_rect.left(), cy
+                            else:
+                                hook_x, hook_y = pred_rect.right(), cy
+                        else:
+                            hook_pt = self._intersect_rect_periphery(pred_rect, QPointF(cx, cy), QPointF(vx, vy))
+                            if hook_pt is None:
+                                continue
+                            hook_x, hook_y = hook_pt.x(), hook_pt.y()
+                        
+                        # Test distance to line segment
+                        d = self._dist_point_to_seg(x, y, vx, vy, hook_x, hook_y)
+                        if d <= 8.0:  # 8px threshold
+                            ligature_id = f"ligature_{vertex_id}_{edge_id}"
+                            candidates.append((d, ligature_id))
+                            print(f"DEBUG: Found ligature {vertex_id}->{edge_id}, distance={d:.1f}")
+                    elif debug_this:
+                        print(f"DEBUG: No branching point for vertex {vertex_id}")
+        
+        # Test cuts
+        sx, sy, _, _ = self._compute_transform()
+        s = max((sx + sy) * 0.5, 1e-6)
+        for p in self.spatial_primitives:
+            if p.element_type == 'cut' and p.bounds:
+                x1, y1, x2, y2 = p.bounds
                 if x1 <= x <= x2 and y1 <= y <= y2:
-                    return primitive.element_id
-                    
+                    d_canvas = min(abs(x - x1), abs(x - x2), abs(y - y1), abs(y - y2))
+                    d_px = d_canvas * s
+                    if d_px <= 14.0:
+                        candidates.append((d_px + 100.0, p.element_id))  # Lower priority
+        
+        if candidates:
+            candidates.sort(key=lambda t: t[0])
+            return candidates[0][1]
         return None
+
+    def _reconstruct_ligature_path(self, ligature_id: str) -> List[Tuple[float, float]]:
+        """Reconstruct the actual ligature path that matches rendering.
+        For synthetic ligature edges like 'edge_v_xxx_e_yyy', extract vertex and predicate
+        and compute the same vertex-to-hook path that the renderer draws.
+        """
+        if not ligature_id.startswith('edge_'):
+            return []
+        
+        # Parse synthetic ligature ID: 'edge_v_xxx_e_yyy' -> vertex_id='v_xxx', predicate_id='e_yyy'
+        parts = ligature_id.split('_')
+        if len(parts) < 4:
+            return []
+        
+        try:
+            vertex_id = f"{parts[1]}_{parts[2]}"  # 'v_xxx'
+            predicate_id = f"{parts[3]}_{parts[4]}"  # 'e_yyy'
+        except IndexError:
+            return []
+        
+        # Debug output (remove after testing)
+        if hasattr(self, '_debug_ligature_counter'):
+            self._debug_ligature_counter += 1
+        else:
+            self._debug_ligature_counter = 0
+        if self._debug_ligature_counter < 3:  # Only first few calls
+            print(f"DEBUG: Reconstructing {ligature_id} -> {vertex_id} to {predicate_id}")
+        
+        # Find vertex position
+        vertex_prim = next((p for p in self.spatial_primitives if p.element_id == vertex_id), None)
+        if not vertex_prim or not vertex_prim.position:
+            return []
+        vx, vy = vertex_prim.position
+        
+        # Find predicate position and compute hook point (same logic as renderer)
+        predicate_prim = next((p for p in self.spatial_primitives if p.element_id == predicate_id), None)
+        if not predicate_prim or not predicate_prim.position:
+            return []
+        
+        # Get predicate label rect (same as renderer)
+        rect = self._predicate_label_rect(predicate_id, predicate_prim)
+        if not rect:
+            return []
+        
+        # Get vertex sequence for this predicate to determine hook position
+        vertex_seq = self.egi.nu.get(predicate_id, ())
+        if vertex_id not in vertex_seq:
+            return []
+        
+        cx, cy = rect.center().x(), rect.center().y()
+        num_args = len(vertex_seq)
+        
+        # Compute hook point (same logic as renderer)
+        if num_args == 2:
+            # Left midpoint for arg 0, right midpoint for arg 1 (ν order)
+            idx = vertex_seq.index(vertex_id)
+            if idx == 0:
+                hook_x, hook_y = rect.left(), cy
+            else:
+                hook_x, hook_y = rect.right(), cy
+        else:
+            # General case: intersect ray center->vertex with rect border
+            hook_pt = self._intersect_rect_periphery(rect, QPointF(cx, cy), QPointF(vx, vy))
+            if hook_pt is None:
+                return []
+            hook_x, hook_y = hook_pt.x(), hook_pt.y()
+        
+        # Return path from vertex to hook (matches renderer)
+        return [(vx, vy), (hook_x, hook_y)]
 
 class Phase2GUIFoundation(QMainWindow):
     """Main window for Phase 2 GUI foundation with working EGI rendering."""
@@ -2355,7 +2588,8 @@ class Phase2GUIFoundation(QMainWindow):
             egi = egif_parser.parse()
             
             # 2. Generate canonical layout for deterministic rendering
-            layout_result = create_canonical_layout(egi)
+            layout_engine = GraphvizLayoutEngine()
+            layout_result = layout_engine.create_layout_from_graph(egi)
             print(f"DEBUG: Layout result type: {type(layout_result)}")
             print(f"DEBUG: Layout result attributes: {dir(layout_result)}")
             

@@ -5,7 +5,7 @@ Implements the correct correspondence between diagrammatic manipulations
 and atomic EGI operations, following Dau's formalism.
 """
 
-from typing import Dict, List, Tuple, Optional, Set
+from typing import Dict, List, Tuple, Optional, Set, Literal
 from dataclasses import dataclass
 from frozendict import frozendict
 
@@ -39,6 +39,123 @@ class EGIDiagramController:
         self.egi = egi
         self.ligatures: Dict[str, LigatureComponent] = {}
         self._build_ligature_map()
+
+    # ------------------------
+    # Transactional operations
+    # ------------------------
+    @dataclass
+    class Transaction:
+        op: str
+        proposed_egi: Optional[RelationalGraphWithCuts] = None
+        errors: List[str] = None
+
+    def begin_transaction(self, op: str) -> "EGIDiagramController.Transaction":
+        return EGIDiagramController.Transaction(op=op, proposed_egi=self.egi, errors=[])
+
+    def _simulate_attach_loi_endpoint(self, tx: "EGIDiagramController.Transaction", loi_vertex_id: str, predicate_id: str, hook_position: int) -> None:
+        """Build a proposed EGI reflecting attaching a ligature endpoint to a predicate hook."""
+        egi = tx.proposed_egi
+        # Basic structural copies
+        new_nu = dict(egi.nu)
+        # Current ν for predicate (edge) – treat as tuple of vertex ids (or None)
+        current = list(new_nu.get(predicate_id, ()))
+        if hook_position >= len(current):
+            current.extend([None] * (hook_position - len(current) + 1))
+        current[hook_position] = loi_vertex_id
+        new_nu[predicate_id] = tuple(current)
+        tx.proposed_egi = egi._replace(nu=frozendict(new_nu))
+
+    def _validate_syntax(self, tx: "EGIDiagramController.Transaction") -> List[str]:
+        """Syntax-only checks that must always hold (Dau formalism constraints at structure level)."""
+        egi = tx.proposed_egi
+        errs: List[str] = []
+        # ν references must be to existing vertices and edges
+        for edge_id, vertex_seq in egi.nu.items():
+            if edge_id not in egi.edges:
+                errs.append(f"ν references non-existent edge: {edge_id}")
+            for v in vertex_seq:
+                if v is not None and v not in egi.vertices:
+                    errs.append(f"ν references non-existent vertex: {v}")
+        # Every edge must have κ label
+        for e in egi.edges:
+            if e not in egi.rel:
+                errs.append(f"Edge missing κ label: {e}")
+        return errs
+
+    def _validate_semantics(self, prev_egi: RelationalGraphWithCuts, next_egi: RelationalGraphWithCuts, op: str) -> List[str]:
+        """Placeholder for Practice Mode rule validation. Returns list of violations."""
+        # TODO: integrate with rule engine (iteration/deiteration, etc.). For now, accept attach as neutral.
+        if op in {"attach_loi_endpoint"}:
+            return []
+        return []
+
+    def commit(self, tx: "EGIDiagramController.Transaction") -> None:
+        self.egi = tx.proposed_egi
+        self._build_ligature_map()
+
+    def rollback(self, tx: "EGIDiagramController.Transaction") -> None:
+        tx.proposed_egi = self.egi
+        tx.errors = []
+
+    def attach_loi_endpoint_transactional(self, loi_vertex_id: str, predicate_id: str, hook_position: int,
+                                           mode: Literal["playground", "practice"] = "playground") -> Tuple[bool, List[str]]:
+        """Perform attach with simulate → validate syntax → (optional) validate semantics → commit."""
+        tx = self.begin_transaction("attach_loi_endpoint")
+        # Quick guards
+        if loi_vertex_id not in self.egi.vertices:
+            return False, [f"Unknown vertex: {loi_vertex_id}"]
+        if predicate_id not in self.egi.edges:
+            return False, [f"Unknown edge (predicate): {predicate_id}"]
+        if self.egi.rel.get(predicate_id, "=") == "=":
+            return False, ["Cannot attach endpoint to identity edge; must attach to predicate edge."]
+        if hook_position < 0:
+            return False, ["Invalid hook position (<0)"]
+
+        # Simulate
+        self._simulate_attach_loi_endpoint(tx, loi_vertex_id, predicate_id, hook_position)
+        # Syntax checks
+        sx_errs = self._validate_syntax(tx)
+        if sx_errs:
+            return False, sx_errs
+        # Semantics in Practice Mode
+        if mode == "practice":
+            sem_errs = self._validate_semantics(self.egi, tx.proposed_egi, tx.op)
+            if sem_errs:
+                return False, sem_errs
+        # Commit
+        self.commit(tx)
+        return True, []
+
+    def delete_identity_edge_transactional(self, identity_edge_id: str,
+                                            mode: Literal["playground", "practice"] = "playground") -> Tuple[bool, List[str]]:
+        """Remove an identity edge (κ='=') from the EGI in a transaction."""
+        if identity_edge_id not in self.egi.edges:
+            return False, [f"Unknown edge: {identity_edge_id}"]
+        if self.egi.rel.get(identity_edge_id) != "=":
+            return False, ["Can only delete identity edges with κ='='"]
+        tx = self.begin_transaction("delete_identity_edge")
+        egi = tx.proposed_egi
+        new_edges = set(egi.edges)
+        new_edges.discard(identity_edge_id)
+        new_rel = dict(egi.rel)
+        new_rel.pop(identity_edge_id, None)
+        new_nu = dict(egi.nu)
+        new_nu.pop(identity_edge_id, None)
+        # Note: vertices remain; components may split into separate ligatures
+        tx.proposed_egi = egi._replace(
+            edges=frozenset(new_edges),
+            rel=frozendict(new_rel),
+            nu=frozendict(new_nu)
+        )
+        sx_errs = self._validate_syntax(tx)
+        if sx_errs:
+            return False, sx_errs
+        if mode == "practice":
+            sem_errs = self._validate_semantics(self.egi, tx.proposed_egi, tx.op)
+            if sem_errs:
+                return False, sem_errs
+        self.commit(tx)
+        return True, []
     
     def _build_ligature_map(self):
         """Build ligature components from current EGI state using Dau-compliant methods"""

@@ -20,7 +20,7 @@ from datetime import datetime
 import sys
 
 # Import canonical SpatialPrimitive and types from pipeline contracts
-from layout_engine_clean import SpatialPrimitive, Bounds
+from layout_engine_clean import SpatialPrimitive, Bounds, LayoutResult
 from egi_core_dau import ElementID
 import os
 import re
@@ -62,6 +62,16 @@ class VertexPrimitive(SpatialPrimitive):
         super().__init__(element_id=element_id, element_type='vertex', position=pos_tuple, bounds=bounds, z_index=1)
         self.annotations = kwargs.get('annotations')
         self.provenance = kwargs.get('provenance')
+    
+    @property
+    def element_id(self) -> str:
+        """Consistent element_id interface."""
+        return super().element_id
+    
+    @property
+    def element_type(self) -> str:
+        """Consistent element_type interface."""
+        return super().element_type
 
 class IdentityLinePrimitive(SpatialPrimitive):
     """Visual representation of an identity line (heavy line)."""
@@ -107,6 +117,16 @@ class PredicatePrimitive(SpatialPrimitive):
         self.bounding_box = kwargs.get('bounding_box')
         self.argument_order = kwargs.get('argument_order')
         self.provenance = kwargs.get('provenance')
+    
+    @property
+    def element_id(self) -> str:
+        """Consistent element_id interface."""
+        return super().element_id
+    
+    @property
+    def element_type(self) -> str:
+        """Consistent element_type interface."""
+        return super().element_type
 
 @dataclass
 class CutPrimitive:
@@ -119,6 +139,16 @@ class CutPrimitive:
     style_overrides: Optional[Dict[str, Any]] = None
     containment: Optional[Dict[str, Any]] = None
     provenance: Optional[Dict[str, Any]] = None
+    
+    @property
+    def element_id(self) -> str:
+        """Consistent element_id interface."""
+        return self.id
+    
+    @property
+    def element_type(self) -> str:
+        """Consistent element_type interface."""
+        return self.type
 
 @dataclass
 class CanvasSettings:
@@ -639,50 +669,125 @@ class EGDFParser:
             return False, errors
 
 class EGDFLayoutGenerator:
-    """Generate spatial primitives from EGI using layout algorithms."""
+    """Generate Dau-compliant spatial primitives from EGI using the formal mapping specification."""
     
     def __init__(self):
         self.default_canvas = CanvasSettings(width=800, height=600)
         self.default_style = StyleTheme()
+        
+        # Use the formal Dau-compliant mapper
+        from dau_compliant_egdf_mapper import DauCompliantEGDFMapper
+        self.dau_mapper = DauCompliantEGDFMapper()
     
     def generate_layout_from_egi(self, egi: RelationalGraphWithCuts) -> List[SpatialPrimitive]:
-        """Generate spatial primitives from EGI structure using actual element IDs."""
+        """
+        Generate Dau-compliant spatial primitives from EGI using the formal mapping specification.
+        
+        This implements the complete pipeline:
+        EGI → Graphviz DOT → xdot output → Dau-compliant EGDF primitives
+        """
+        try:
+            # Step 1: Generate Graphviz layout
+            layout_result = self.dau_mapper.layout_engine.create_layout_from_graph(egi)
+            
+            # Step 2: Get the xdot output from Graphviz
+            xdot_output = self._extract_xdot_from_layout(layout_result, egi)
+            
+            # Step 3: Use DauCompliantEGDFMapper to convert xdot → EGDF
+            dau_primitives = self.dau_mapper.xdot_to_egdf(xdot_output, egi)
+            
+            # Step 4: Validate correspondence
+            if not self.dau_mapper.validate_correspondence(dau_primitives, egi):
+                print("⚠️  Correspondence validation failed, using fallback")
+                return self._generate_fallback_layout(egi)
+            
+            print(f"✅ Generated {len(dau_primitives)} Dau-compliant EGDF primitives")
+            return dau_primitives
+            
+        except Exception as e:
+            print(f"⚠️  Dau-compliant layout generation failed: {e}")
+            return self._generate_fallback_layout(egi)
+    
+    def _extract_xdot_from_layout(self, layout_result: LayoutResult, egi: RelationalGraphWithCuts) -> str:
+        """Extract xdot output from the Graphviz layout process."""
+        try:
+            # Generate DOT from EGI
+            dot_content = self.dau_mapper.layout_engine._generate_dot_from_egi(egi)
+            
+            # Execute Graphviz to get xdot output (use existing method)
+            xdot_output = self.dau_mapper.layout_engine._execute_graphviz(dot_content)
+            
+            return xdot_output
+            
+        except Exception as e:
+            print(f"⚠️  xdot extraction failed: {e}")
+            # Fallback: construct synthetic xdot from layout_result
+            return self._create_synthetic_xdot(layout_result, egi)
+    
+    def _create_synthetic_xdot(self, layout_result: LayoutResult, egi: RelationalGraphWithCuts) -> str:
+        """Create synthetic xdot output from layout result for fallback."""
+        xdot_lines = [
+            'digraph G {',
+            '  graph [bb="0,0,800,600"];'
+        ]
+        
+        # Add clusters (cuts)
+        for primitive in layout_result.primitives:
+            if primitive.element_type == 'cut':
+                bb = f"{primitive.bounds[0]},{primitive.bounds[1]},{primitive.bounds[2]},{primitive.bounds[3]}"
+                xdot_lines.append(f'  subgraph cluster_{primitive.element_id} {{')
+                xdot_lines.append(f'    graph [bb="{bb}"];')
+                xdot_lines.append('  }')
+        
+        # Add nodes
+        for primitive in layout_result.primitives:
+            if primitive.element_type in ['vertex', 'edge']:
+                pos = f"{primitive.position[0]},{primitive.position[1]}"
+                width = primitive.bounds[2] - primitive.bounds[0]
+                height = primitive.bounds[3] - primitive.bounds[1]
+                xdot_lines.append(f'  {primitive.element_id} [pos="{pos}", width="{width/72}", height="{height/72}"];')
+        
+        xdot_lines.append('}')
+        return '\n'.join(xdot_lines)
+    
+    def _generate_fallback_layout(self, egi: RelationalGraphWithCuts) -> List[SpatialPrimitive]:
+        """Generate simple fallback layout when Dau-compliant mapping fails."""
         primitives = []
         
-        # Generate primitives for vertices
+        # Simple grid layout for vertices
         for i, vertex in enumerate(egi.V):
             vertex_primitive = VertexPrimitive(
                 element_id=vertex.id,
-                position=(100.0 + i * 150, 200.0)
+                position=(100.0 + i * 150, 200.0),
+                annotations={'fallback': True}
             )
             primitives.append(vertex_primitive)
         
-        # Generate primitives for edges (predicates)
+        # Simple layout for predicates
         for i, edge in enumerate(egi.E):
-            # Get relation name from EGI
             relation_name = egi.get_relation_name(edge.id)
-            
             predicate_primitive = PredicatePrimitive(
                 element_id=edge.id,
                 position=(200.0 + i * 150, 200.0),
-                text=relation_name
+                text=relation_name,
+                provenance={'fallback': True}
             )
             primitives.append(predicate_primitive)
-            
-            # Generate identity line if edge connects to vertices
-            if edge.id in egi.nu:
-                vertex_sequence = egi.nu[edge.id]
-                if len(vertex_sequence) > 0:
-                    # Create identity line from first vertex to predicate
-                    first_vertex_id = vertex_sequence[0]
-                    identity_line_primitive = IdentityLinePrimitive(
-                        element_id=f"line_{first_vertex_id}_{edge.id}",
-                        coordinates=[
-                            (100.0, 200.0),  # Vertex position
-                            (200.0 + i * 150, 200.0)  # Predicate position
-                        ]
-                    )
-                    primitives.append(identity_line_primitive)
+        
+        # Simple cuts
+        for i, cut in enumerate(egi.Cut):
+            cut_primitive = CutPrimitive(
+                type="cut",
+                id=cut.id,
+                egi_element_id=cut.id,
+                shape="rounded_rectangle",  # Still Dau-compliant
+                bounds={'left': 50 + i * 200, 'top': 150, 'right': 350 + i * 200, 'bottom': 250},
+                provenance={'fallback': True}
+            )
+            primitives.append(cut_primitive)
+        
+        print(f"✅ Generated {len(primitives)} fallback EGDF primitives")
+        return primitives
         
         return primitives
 

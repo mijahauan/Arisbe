@@ -10,7 +10,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 from egif_parser_dau import parse_egif
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine, create_canonical_layout
+from graphviz_layout_engine_v2 import GraphvizLayoutEngine
 from pyside6_backend import PySide6Canvas, PySide6Backend
 from canvas_backend import EGDrawingStyles
 from diagram_renderer_dau import DiagramRendererDau
@@ -59,7 +59,7 @@ def test_egif_visual_rendering():
             print(f"   ✅ Parsed: {len(graph.V)} vertices, {len(graph.E)} edges, {len(graph.Cut)} cuts")
             
             # Step 2: Create Layout (canonical)
-            layout = create_canonical_layout(graph)
+            layout = layout_engine.create_layout_from_graph(graph)
             print(f"   ✅ Layout: {len(layout.primitives)} elements positioned")
             
             # Step 3: Render to PNG (Dau-compliant renderer)
@@ -103,8 +103,9 @@ def test_canonical_layout_determinism():
     ]
     for egif in cases:
         g = parse_egif(egif)
-        a = create_canonical_layout(g)
-        b = create_canonical_layout(g)
+        engine = GraphvizLayoutEngine()
+        a = engine.create_layout_from_graph(g)
+        b = engine.create_layout_from_graph(g)
         ha = _layout_hash(a)
         hb = _layout_hash(b)
         assert ha == hb, f"Canonical layout nondeterministic for: {egif} (\n{ha}\n!=\n{hb}\n)"
@@ -113,7 +114,9 @@ def test_canonical_layout_determinism():
 def render_layout_to_file(egi, layout, filename, title):
     """Render a layout to PNG file using the Dau-compliant renderer."""
     canvas = PySide6Canvas(1000, 800, title=f"Arisbe EG: {title}")
-    DiagramRendererDau().render_diagram(canvas, egi, layout, selected_ids=None)
+    # Create renderer (canonical mode is now the only mode - preserves exact Graphviz positions)
+    renderer = DiagramRendererDau()
+    renderer.render_diagram(canvas, egi, layout, selected_ids=None)
     canvas.save_to_file(filename)
     print(f"   💾 Saved diagram to: {filename}")
 

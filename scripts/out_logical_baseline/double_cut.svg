@@ -1,15 +1,16 @@
 <svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'>
+  <rect x='0' y='0' width='800' height='600' fill='#fafafa'/>
   <g>
-    <rect x='181.378' y='26.861' width='325.871' height='346.960' fill='none' stroke='#2c3e50' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <rect x='181.378' y='26.861' width='325.871' height='346.960' fill='none' stroke='#2c3e50' stroke-width='1.0' rx='14.0' ry='14.0' shape-rendering='geometricPrecision'/>
     <rect x='180.878' y='26.361' width='326.871' height='347.960' fill='none' stroke='#bdc3c7' stroke-width='0.4' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
-    <text x='185.378' y='38.861' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>c_31265947</text>
-    <rect x='227.509' y='72.992' width='233.609' height='254.698' fill='rgba(142,68,173,0.06)' stroke='#8e44ad' stroke-width='1.0' shape-rendering='crispEdges'/>
+    <text x='185.378' y='38.861' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>c_4d8ac042</text>
+    <rect x='227.509' y='72.992' width='233.609' height='254.698' fill='rgba(142,68,173,0.06)' stroke='#8e44ad' stroke-width='1.0' rx='14.0' ry='14.0' shape-rendering='geometricPrecision'/>
     <rect x='227.009' y='72.492' width='234.609' height='255.698' fill='none' stroke='#e74c3c' stroke-width='0.6' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
-    <text x='231.509' y='84.992' font-size='10' fill='#8e44ad' stroke='white' stroke-width='1' paint-order='stroke fill'>c_31265947/c_38b36911</text>
+    <text x='231.509' y='84.992' font-size='10' fill='#8e44ad' stroke='white' stroke-width='1' paint-order='stroke fill'>c_4d8ac042/c_d907f423</text>
     <line x1='344.313' y1='200.340' x2='344.313' y2='200.340' stroke='#7f8c8d' stroke-width='1' stroke-dasharray='3,3'/>
-    <rect x='273.140' y='114.010' width='142.347' height='71.174' fill='white' stroke='#2c3e50' stroke-width='1.2' shape-rendering='crispEdges'/>
-    <text x='277.140' y='126.010' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Mortal</text>
-    <line x1='344.313' y1='251.085' x2='344.313' y2='185.183' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <rect x='317.313' y='138.396' width='54.000' height='22.400' fill='none' stroke='none'/>
+    <text x='344.313' y='149.596' font-size='12' text-anchor='middle' dominant-baseline='middle' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Mortal</text>
+    <path d='M 344.313,251.085 L 344.313,160.796' fill='none' stroke='#111' stroke-width='3' stroke-linecap='round'/>
     <circle cx='344.313' cy='251.085' r='4.000' fill='#111' stroke='none'/>
     <text x='350.313' y='245.085' font-size='10' fill='#111' stroke='white' stroke-width='1' paint-order='stroke fill'>Socrates</text>
   </g>

@@ -40,16 +40,17 @@ except ImportError as e:
 # Complete pipeline imports with contract validation
 from egif_parser_dau import EGIFParser
 from egi_core_dau import RelationalGraphWithCuts
-from egdf_parser import EGDFParser, EGDFGenerator
+from egdf_parser import EGDFParser, EGDFLayoutGenerator
 from graphviz_layout_engine_v2 import GraphvizLayoutEngine
 from layout_engine_clean import SpatialPrimitive, LayoutResult
 from corpus_loader import get_corpus_loader
+from dau_position_corrector import apply_dau_position_corrections
 from pipeline_contracts import (
+    enforce_contracts,
     validate_relational_graph_with_cuts,
     validate_layout_result,
     validate_spatial_primitive,
     validate_full_pipeline,
-    enforce_contracts,
     ContractViolationError
 )
 
@@ -74,8 +75,8 @@ class EGDiagramCanvas(QWidget):
         self.setStyleSheet("background-color: white; border: 1px solid #ccc;")
         
         # Pipeline components (contract-validated, canonical)
-        self.layout_engine = GraphvizLayoutEngine(mode="default-nopp")
-        self.egdf_generator = EGDFGenerator()
+        self.layout_engine = GraphvizLayoutEngine()
+        self.egdf_generator = EGDFLayoutGenerator()
         self.egdf_parser = EGDFParser()
         
         # Current state
@@ -107,17 +108,22 @@ class EGDiagramCanvas(QWidget):
             layout_result = self.layout_engine.create_layout_from_graph(egi)
             validate_layout_result(layout_result)
             
+            # Step 2.5: Apply Dau position corrections
+            corrected_layout = apply_dau_position_corrections(layout_result, egi)
+            validate_layout_result(corrected_layout)
+            
             # Step 3: EGI + Layout → EGDF (with contract validation)
-            egdf_data = self.egdf_generator.generate_from_egi_and_layout(egi, layout_result)
+            layout_primitives = list(corrected_layout.primitives.values())
+            egdf_data = self.egdf_parser.create_egdf_from_egi(egi, layout_primitives)
             
             # Step 4: Validate complete pipeline
-            validate_full_pipeline(egif_text, egi, layout_result, self)
+            validate_full_pipeline(egif_text, egi, corrected_layout, self)
             
             # Update state
             self.current_egi = egi
-            self.current_layout = layout_result
+            self.current_layout = corrected_layout
             self.current_egdf = egdf_data
-            self.spatial_primitives = list(layout_result.primitives.values())
+            self.spatial_primitives = list(corrected_layout.primitives.values())
             
             # Trigger repaint
             self.update()
@@ -135,23 +141,26 @@ class EGDiagramCanvas(QWidget):
     def paintEvent(self, event):
         """Render diagram using PySide6/QPainter exclusively."""
         painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        
-        if not self.spatial_primitives:
-            # Draw placeholder text
-            painter.setPen(QPen(QColor(128, 128, 128), 1))
-            painter.setFont(QFont("Arial", 12))
-            painter.drawText(self.rect(), Qt.AlignCenter, "Load EGIF to display diagram")
-            return
-        
-        # Render all spatial primitives with contract validation
-        for primitive in self.spatial_primitives:
-            try:
-                validate_spatial_primitive(primitive)
-                self._render_primitive(painter, primitive)
-            except ContractViolationError as e:
-                print(f"⚠️  Spatial primitive contract violation: {e}")
-                continue
+        try:
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            if not self.spatial_primitives:
+                # Draw placeholder text
+                painter.setPen(QPen(QColor(128, 128, 128), 1))
+                painter.setFont(QFont("Arial", 12))
+                painter.drawText(self.rect(), Qt.AlignCenter, "Load EGIF to display diagram")
+                return
+            
+            # Render all spatial primitives with contract validation
+            for primitive in self.spatial_primitives:
+                try:
+                    validate_spatial_primitive(primitive)
+                    self._render_primitive(painter, primitive)
+                except ContractViolationError as e:
+                    print(f"⚠️  Spatial primitive contract violation: {e}")
+                    continue
+        finally:
+            painter.end()
     
     def _render_primitive(self, painter: QPainter, primitive: SpatialPrimitive):
         """Render a single spatial primitive following Dau's conventions."""
@@ -225,15 +234,16 @@ class EGDiagramCanvas(QWidget):
         painter.drawLine(QPointF(x1, y1), QPointF(x2, y2))
     
     def _render_cut(self, painter: QPainter, primitive: SpatialPrimitive, color: QColor):
-        """Render cut as oval per Dau's formalism."""
+        """Render cut as rounded rectangle per Dau's formalism."""
         x1, y1, x2, y2 = primitive.bounds
         
         # Cut boundary (thin line, distinct from identity lines)
         painter.setPen(QPen(color, 1, Qt.SolidLine))
         painter.setBrush(QBrush(Qt.NoBrush))  # No fill
         
-        # Draw oval cut
-        painter.drawEllipse(QRectF(x1, y1, x2 - x1, y2 - y1))
+        # Draw rounded rectangle cut with appropriate corner radius
+        corner_radius = 12.0  # Dau-appropriate corner radius
+        painter.drawRoundedRect(QRectF(x1, y1, x2 - x1, y2 - y1), corner_radius, corner_radius)
     
     def mousePressEvent(self, event):
         """Handle mouse clicks for element selection."""

@@ -1,0 +1,19 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'>
+  <rect x='0' y='0' width='800' height='600' fill='#fafafa'/>
+  <g>
+    <rect x='88.299' y='29.208' width='354.981' height='498.522' fill='none' stroke='#2c3e50' stroke-width='1.0' rx='14.0' ry='14.0' shape-rendering='geometricPrecision'/>
+    <rect x='87.799' y='28.708' width='355.981' height='499.522' fill='none' stroke='#bdc3c7' stroke-width='0.4' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='92.299' y='41.208' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>c_c404800d</text>
+    <rect x='138.538' y='79.447' width='254.502' height='176.990' fill='rgba(142,68,173,0.06)' stroke='#8e44ad' stroke-width='1.0' rx='14.0' ry='14.0' shape-rendering='geometricPrecision'/>
+    <rect x='138.038' y='78.947' width='255.502' height='177.990' fill='none' stroke='#e74c3c' stroke-width='0.6' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='142.538' y='91.447' font-size='10' fill='#8e44ad' stroke='white' stroke-width='1' paint-order='stroke fill'>c_c404800d/c_68cf15ff</text>
+    <line x1='265.789' y1='278.469' x2='265.789' y2='167.943' stroke='#7f8c8d' stroke-width='1' stroke-dasharray='3,3'/>
+    <rect x='238.789' y='126.599' width='54.000' height='22.400' fill='none' stroke='none'/>
+    <text x='265.789' y='137.799' font-size='12' text-anchor='middle' dominant-baseline='middle' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Mortal</text>
+    <rect x='242.289' y='322.532' width='47.000' height='22.400' fill='none' stroke='none'/>
+    <text x='265.789' y='333.732' font-size='12' text-anchor='middle' dominant-baseline='middle' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Human</text>
+    <path d='M 265.789,444.258 L 265.789,344.932' fill='none' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <path d='M 265.789,444.258 Q 339.604,296.629 265.789,148.999' fill='none' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <circle cx='265.789' cy='444.258' r='4.000' fill='#111' stroke='none'/>
+  </g>
+</svg>

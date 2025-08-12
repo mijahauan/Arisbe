@@ -21,6 +21,7 @@ CASES: List[Tuple[str, str]] = [
     ("double_cut", '~[ ~[(Mortal "Socrates")] ]'),
     ("across_cut", '(Human *x) ~[(Immortal x)]'),
     ("disj", '~[ ~[(Rained)] ~[(Snowed)] ]'),
+    ("implic", '~[(Human *x) ~[(Mortal x)] ]')
 ]
 
 
