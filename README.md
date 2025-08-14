@@ -1,70 +1,69 @@
-# Arisbe: Existential Graphs Implementation
+# Arisbe EG Works v3.0.0
 
 A mathematically rigorous implementation of Charles Sanders Peirce's Existential Graphs based on Frithjof Dau's formal mathematical framework. Arisbe provides a complete pipeline for creating, editing, transforming, and visualizing Existential Graph diagrams with strict adherence to logical formalism and Peircean conventions.
 
-## Project Status
+## Current Status (January 2025)
 
-**Phase 1: Mathematical Foundation - COMPLETE ✅**
-- ✅ **EGIF Compliance**: Full Sowa-compliant EGIF parsing and generation
-- ✅ **EGI Core**: Dau's 6+1 component RelationalGraphWithCuts model
-- ✅ **Round-trip Pipeline**: EGIF ↔ EGI ↔ EGDF with contract validation
-- ✅ **API Contracts**: Strict input/output validation and error handling
-- ✅ **Dual Format Support**: JSON (automation) and YAML (academic) EGDF formats
-- ✅ **Layout Engine**: Graphviz-based hierarchical layout with Dau's conventions
-- ✅ **Mathematical Rigor**: All transformations preserve logical structure
+**Core Pipeline: COMPLETE ✅**
+- ✅ **EGIF ↔ EGI ↔ EGDF Pipeline**: Full round-trip with validation
+- ✅ **Canonical API**: Version-controlled, extensible architecture
+- ✅ **Dau-Compliant Rendering**: Proper ligatures, cuts, and vertex positioning
+- ✅ **Interactive GUI**: Three-area architecture with Qt Graphics Scene
+- ✅ **Corpus Integration**: Educational examples with visual browser
+- ✅ **Mathematical Foundation**: RelationalGraphWithCuts with containment hierarchy
 
-**Phase 2: Interactive GUI - IN DEVELOPMENT 🔄**
-- ✅ **Visual Rendering**: EGI → Diagram rendering with PySide6
-- ✅ **Basic Interaction**: Selection, hover effects, mouse interaction
-- 🔄 **Selection Overlays**: Context-sensitive visual feedback (current focus)
-- 🔄 **Context Actions**: Element-specific operations and transformations
-- ❌ **Dynamic Effects**: Smooth animations and real-time validation
-- ❌ **Mode Switching**: Warmup (compositional) vs Practice (rule-based) modes
+**Working Features:**
+- ✅ **Browser Area**: Corpus exploration with visual preview
+- ✅ **Graph Preparation**: Interactive editing with drag-and-drop
+- ✅ **Live EGIF Display**: Real-time chiron showing current graph structure
+- ✅ **Annotation System**: Optional arity numbers and identity markers
+- ✅ **Copy Workflow**: Browser → Preparation seamless integration
 
-**Phase 3: Advanced Features - PLANNED ❌**
-- ❌ **Browser**: Universe of Discourse and corpus exploration
-- ❌ **Endoporeutic Game**: Formal game implementation
-- ❌ **Corpus Integration**: Authoritative examples from Peirce, Dau, Sowa
-- ❌ **Advanced Transformations**: Complete rule set with validation
+**In Development:**
+- 🔄 **Area Constraint System**: Shapely-based boundary enforcement for semantic correctness
+- 🔄 **Mode-Aware Editing**: Composition vs Practice mode constraints
+- 🔄 **Visual Optimization**: Side-aware ligature attachment and collision avoidance
 
-## Canonical Layout Pipeline (Clean, Deterministic)
+**Planned Features:**
+- ❌ **Advanced Transformations**: Complete EG transformation rule set
+- ❌ **Endoporeutic Game**: Formal game theory implementation
+- ❌ **Export Formats**: LaTeX, SVG, PNG with publication quality
 
-Arisbe provides a canonical, deterministic pipeline that preserves Graphviz cluster bounding boxes exactly for cut layout. Use this mode for validation, debugging, and any path where strict containment and non-overlap must be guaranteed.
+## Quick Start
 
-• __Env guard__: set `ARISBE_CANONICAL=1` to force canonical mode globally.
-
+### Installation
 ```bash
-# macOS/Linux (bash/zsh)
-export ARISBE_CANONICAL=1
-
-# Windows (PowerShell)
-$env:ARISBE_CANONICAL=1
+git clone https://github.com/mjhaugsdal/Arisbe.git
+cd Arisbe
+pip install -r requirements.txt
 ```
 
-• __Engine mode__: Canonical modes are `default-nopp` (and `default_raw`). In these modes, the layout engine:
-  - Parses xdot cluster `_bb` and creates cut primitives strictly from clusters.
-  - Skips any post-processing that could mutate bounds.
-  - Asserts (fail-fast) that every `cut` primitive `bounds` equals its cluster `_bb`.
-
-• __Renderer__: The minimal renderer applies only uniform scale+translate, with inset strokes and debug overlays:
-  - Red dashed hairlines = exact Graphviz `_bb` for each cut (live drift canary)
-  - Subtle fills by depth; no root fill; label halos for readability
-
-• __Core scripts__:
-  - `scripts/render_minimal_cuts.py` → Renders reference cases to `out_minimal/*.svg`
-  - `scripts/print_cut_hierarchy.py` → Verifies parent/child containment from cluster bboxes
-  - `scripts/check_rendered_overlap.py` → Asserts no sibling overlap after the exact SVG transform
-  - `scripts/assert_strict_cut_containment.py` → Asserts strict containment and invariants
-
-Run the checks:
-
+### Run the Application
 ```bash
-python scripts/render_minimal_cuts.py
-python scripts/check_rendered_overlap.py
-python scripts/assert_strict_cut_containment.py  # if present in your branch
+python arisbe_eg_clean.py
 ```
 
-These safeguards prevent hidden mutations and ensure the canonical pipeline remains deterministic and auditable.
+This launches the three-area interface:
+- **Browser**: Explore corpus examples with visual preview
+- **Graph Preparation**: Interactive editing with Composition/Practice modes  
+- **Endoporeutic Game**: Formal game interface (coming soon)
+
+### Basic Usage
+```python
+from src.canonical import get_canonical_pipeline
+
+# Create pipeline
+pipeline = get_canonical_pipeline()
+
+# Parse EGIF to EGI
+egi = pipeline.parse_egif("[Human Socrates] [Mortal Socrates]")
+
+# Generate EGDF for visualization  
+egdf = pipeline.egi_to_egdf(egi)
+
+# Convert back to EGIF
+egif_output = pipeline.egi_to_egif(egi)
+```
 
 ## Architecture
 
