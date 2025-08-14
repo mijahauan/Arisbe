@@ -183,16 +183,31 @@ class CanonicalEGDFParser:
         egdf_doc = self.egdf_parser.parse_egdf(egdf_content)
         return self.egdf_parser.extract_egi_from_egdf(egdf_doc)
     
-    def generate(self, egi: RelationalGraphWithCuts, layout_primitives: List[Any] = None) -> str:
-        """Generate EGDF content from canonical EGI."""
+    def generate(self, egi: RelationalGraphWithCuts, layout_primitives: List[Any] = None) -> EGDFDocument:
+        """Generate EGDF document from canonical EGI."""
         if layout_primitives is None:
-            # Use basic layout generator if no primitives provided
-            from egdf_parser import EGDFLayoutGenerator
-            layout_gen = EGDFLayoutGenerator()
-            layout_primitives = layout_gen.generate_layout_from_egi(egi)
+            # Use exact same approach as successful render script
+            try:
+                from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+                layout_engine = GraphvizLayoutEngine()
+                layout_result = layout_engine.create_layout_from_graph(egi)
+                
+                # Convert GraphvizLayoutEngine primitives to EGDF format
+                layout_primitives = []
+                for primitive in layout_result.primitives.values():
+                    layout_primitives.append({
+                        'element_id': primitive.element_id,
+                        'element_type': primitive.element_type,
+                        'position': primitive.position,
+                        'bounds': primitive.bounds
+                    })
+                print(f"✓ GraphvizLayoutEngine generated {len(layout_primitives)} spatial primitives (render script approach)")
+            except Exception as e:
+                print(f"⚠ GraphvizLayoutEngine failed: {e}")
+                layout_primitives = self._generate_simple_layout_primitives(egi)
         
         egdf_doc = self.egdf_parser.create_egdf_from_egi(egi, layout_primitives)
-        return self.egdf_parser.egdf_to_json(egdf_doc)
+        return egdf_doc
 
 class CanonicalEGIFGenerator:
     """Canonical wrapper for EGIFGenerator to provide consistent API."""
@@ -213,20 +228,25 @@ CanonicalExtensionRegistry.register_generator("EGDF", CanonicalEGDFParser)
 
 # Export canonical API
 __all__ = [
+    # Version and core info
+    'CANONICAL_API_VERSION',
+    'get_canonical_info',
+    
     # Core classes
     'RelationalGraphWithCuts',
-    'Vertex', 
-    'Edge',
+    'Vertex',
+    'Edge', 
     'Cut',
     'ElementID',
-    'EGIFParser',
-    'EGIFGenerator', 
-    'EGDFParser',
-    'EGDFDocument',
     
-    # Version management
-    'CANONICAL_API_VERSION',
-    'CanonicalAPIVersion',
+    # Parsers and generators
+    'EGIFParser',
+    'CanonicalEGIFGenerator',
+    'CanonicalEGDFParser',
+    
+    # Pipeline
+    'CanonicalPipeline',
+    'get_canonical_pipeline',
     
     # Interfaces
     'CanonicalEGIInterface',
@@ -236,6 +256,131 @@ __all__ = [
     'CanonicalExtensionRegistry',
     'CanonicalExtensionContract'
 ]
+
+class CanonicalPipeline:
+    """
+    Canonical pipeline for EGIF ↔ EGI ↔ EGDF transformations.
+    
+    Provides a unified interface for all canonical operations.
+    """
+    
+    def __init__(self):
+        # Don't instantiate parsers here - create them per operation
+        self.egif_generator = CanonicalEGIFGenerator()
+        self.egdf_parser = CanonicalEGDFParser()
+    
+    def parse_egif(self, egif_content: str) -> RelationalGraphWithCuts:
+        """Parse EGIF to canonical EGI."""
+        parser = EGIFParser(egif_content)
+        return parser.parse()
+    
+    def egi_to_egif(self, egi: RelationalGraphWithCuts) -> str:
+        """Generate EGIF from canonical EGI."""
+        return self.egif_generator.generate(egi)
+    
+    def egi_to_egdf(self, egi: RelationalGraphWithCuts, layout_primitives: List[Any] = None) -> EGDFDocument:
+        """Generate EGDF from canonical EGI."""
+        if layout_primitives is None:
+            # Generate layout primitives using the layout engine
+            layout_primitives = self._generate_layout_primitives(egi)
+        return self.egdf_parser.generate(egi, layout_primitives)
+    
+    def _generate_layout_primitives(self, egi: RelationalGraphWithCuts) -> List[Any]:
+        """Generate layout primitives using the exact working render script approach."""
+        try:
+            # Use the exact same approach as the successful render script
+            from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+            layout_engine = GraphvizLayoutEngine()
+            layout_result = layout_engine.create_layout_from_graph(egi)
+            
+            # Convert GraphvizLayoutEngine primitives to list format
+            layout_primitives = []
+            for primitive in layout_result.primitives.values():
+                layout_primitives.append({
+                    'element_id': primitive.element_id,
+                    'element_type': primitive.element_type,
+                    'position': primitive.position,
+                    'bounds': primitive.bounds
+                })
+            print(f"✓ GraphvizLayoutEngine generated {len(layout_primitives)} spatial primitives (render script approach)")
+            return layout_primitives
+        except Exception as e:
+            print(f"⚠ GraphvizLayoutEngine failed: {e}")
+            return self._generate_simple_layout_primitives(egi)
+    
+    def _generate_simple_layout_primitives(self, egi: RelationalGraphWithCuts) -> List[Any]:
+        """Generate simple layout primitives as fallback."""
+        from dataclasses import dataclass
+        from typing import Tuple
+        
+        @dataclass
+        class SimplePrimitive:
+            element_id: str
+            element_type: str
+            position: Tuple[float, float]
+            bounds: Tuple[float, float, float, float]  # x, y, width, height
+        
+        primitives = []
+        x, y = 50, 50
+        
+        # Layout vertices
+        for vertex in egi.V:
+            primitives.append(SimplePrimitive(
+                element_id=vertex.id,
+                element_type="vertex",
+                position=(x, y),
+                bounds=(x, y, 10, 10)
+            ))
+            x += 50
+        
+        # Layout edges (predicates)
+        x, y = 50, 100
+        for edge in egi.E:
+            primitives.append(SimplePrimitive(
+                element_id=edge.id,
+                element_type="edge",
+                position=(x, y),
+                bounds=(x, y, 80, 30)
+            ))
+            x += 120
+        
+        # Layout cuts
+        x, y = 30, 30
+        for cut in egi.Cut:
+            primitives.append(SimplePrimitive(
+                element_id=cut.id,
+                element_type="cut",
+                position=(x, y),
+                bounds=(x, y, 200, 150)
+            ))
+            x += 50
+            y += 50
+        
+        return primitives
+    
+    def egdf_to_egi(self, egdf_doc: EGDFDocument) -> RelationalGraphWithCuts:
+        """Extract canonical EGI from EGDF."""
+        return self.egdf_parser.egdf_parser.extract_egi_from_egdf(egdf_doc)
+    
+    def egdf_to_egif(self, egdf_doc: EGDFDocument) -> str:
+        """Convert EGDF to EGIF via EGI."""
+        egi = self.egdf_to_egi(egdf_doc)
+        return self.egi_to_egif(egi)
+    
+    def export_egdf(self, egdf_doc: EGDFDocument, format_type: str = "json") -> str:
+        """Export EGDF document to specified format."""
+        if format_type == "json":
+            return egdf_doc.to_json()
+        elif format_type == "yaml":
+            return egdf_doc.to_yaml()
+        else:
+            raise ValueError(f"Unsupported export format: {format_type}")
+
+
+def get_canonical_pipeline() -> CanonicalPipeline:
+    """Get a canonical pipeline instance."""
+    return CanonicalPipeline()
+
 
 def get_canonical_info() -> Dict[str, Any]:
     """Get information about the canonical core."""

@@ -42,6 +42,54 @@
       "description": "Dau's example of ligatures crossing cut boundaries",
       "source": "Dau (2006), p.112",
       "logical_pattern": "ligature"
+    },
+    {
+      "id": "stanford_nested_quantifiers",
+      "category": "scholars",
+      "title": "Stanford Nested Quantifiers",
+      "description": "Nested quantifier scopes: Everyone loves someone",
+      "source": "Stanford Encyclopedia of Philosophy",
+      "logical_pattern": "quantification"
+    },
+    {
+      "id": "peirce_complex_scope",
+      "category": "scholars",
+      "title": "Peirce Complex Scope",
+      "description": "Three-way mixed quantifiers with complex nesting",
+      "source": "Peirce Beta System",
+      "logical_pattern": "quantification"
+    },
+    {
+      "id": "shared_constant_disjunction",
+      "category": "scholars",
+      "title": "Shared Constant Disjunction",
+      "description": "Constant sharing across disjunction cuts",
+      "source": "Challenging Test Cases",
+      "logical_pattern": "disjunction"
+    },
+    {
+      "id": "sibling_cuts_shared_variable",
+      "category": "scholars",
+      "title": "Sibling Cuts Shared Variable",
+      "description": "Variable sharing across sibling cuts",
+      "source": "Challenging Test Cases",
+      "logical_pattern": "disjunction"
+    },
+    {
+      "id": "ternary_relation_challenge",
+      "category": "scholars",
+      "title": "Ternary Relation Challenge",
+      "description": "Three-way relation with complex ligature routing",
+      "source": "Challenging Test Cases",
+      "logical_pattern": "relation"
+    },
+    {
+      "id": "mixed_quantifier_complex",
+      "category": "scholars",
+      "title": "Mixed Quantifier Complex",
+      "description": "Alternating quantifiers with deep nesting",
+      "source": "Challenging Test Cases",
+      "logical_pattern": "quantification"
     }
   ]
 }

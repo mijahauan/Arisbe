@@ -1103,10 +1103,23 @@ class GraphvizLayoutEngine:
           (box with label) and each argument vertex in ν(edge_id) must be connected to
           that node by an edge. This holds for unary and n-ary predicates and across cuts.
         - We do NOT connect vertices to each other; the predicate is not an edge label.
+        
+        FIXED: Handle 0-ary predicates (predicates with no arguments) by ensuring they
+        are preserved in the layout even without connections.
         """
         
         for edge_id, vertex_sequence in graph.nu.items():
             predicate_node_id = self._sanitize_dot_id(edge_id)
+            
+            # Handle 0-ary predicates (no arguments)
+            if len(vertex_sequence) == 0:
+                # For 0-ary predicates, add an invisible edge to prevent Graphviz optimization
+                # This ensures the predicate node appears in the xdot output
+                dot_lines.append(f"  // 0-ary predicate: {edge_id}")
+                # Create invisible self-loop to preserve the node
+                dot_lines.append(f"  {predicate_node_id} -- {predicate_node_id} [style=invis, constraint=false];")
+                continue
+            
             # Connect each argument vertex to the predicate node with distinct ports and cluster routing
             total = len(vertex_sequence)
             for idx, v in enumerate(vertex_sequence):

@@ -28,6 +28,7 @@ class SpatialPrimitive:
     curve_points: Optional[List[Coordinate]] = None  # For cuts and edge hooks
     attachment_points: Optional[Dict[str, Coordinate]] = None  # For edge connections
     parent_area: Optional[ElementID] = None  # Which area contains this element
+    display_name: Optional[str] = None  # Actual display text (predicate name, vertex label)
 
 
 @dataclass(frozen=True)

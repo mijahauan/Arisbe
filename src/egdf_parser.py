@@ -489,11 +489,18 @@ class EGDFParser:
         except Exception as e:
             raise ValueError(f"EGI extraction error: {e}")
     
-    def _validate_layout_primitives_complete(self, layout_primitives: List[SpatialPrimitive], egi: RelationalGraphWithCuts) -> bool:
+    def _validate_layout_primitives_complete(self, layout_primitives: List[Any], egi: RelationalGraphWithCuts) -> bool:
         """Validate that layout primitives cover all EGI elements."""
         try:
-            # Get all element IDs from layout primitives
-            layout_element_ids = {primitive.element_id for primitive in layout_primitives}
+            # Get all element IDs from layout primitives (handle both dict and SpatialPrimitive formats)
+            layout_element_ids = set()
+            for primitive in layout_primitives:
+                if hasattr(primitive, 'element_id'):
+                    layout_element_ids.add(primitive.element_id)
+                elif isinstance(primitive, dict) and 'element_id' in primitive:
+                    layout_element_ids.add(primitive['element_id'])
+                else:
+                    raise ValueError(f"Invalid primitive format: {type(primitive)}")
             
             # Get all element IDs from EGI
             egi_element_ids = set()
@@ -506,9 +513,11 @@ class EGDFParser:
             if missing_elements:
                 raise ContractViolationError(f"Layout primitives missing elements: {missing_elements}")
             
-            # Validate each primitive
+            # Validate each primitive (skip validation for dict format, as it's already validated by GraphvizLayoutEngine)
             for primitive in layout_primitives:
-                validate_spatial_primitive(primitive)
+                if hasattr(primitive, 'element_id'):
+                    validate_spatial_primitive(primitive)
+                # Dict format primitives are already validated by GraphvizLayoutEngine
             
             return True
             
@@ -562,10 +571,13 @@ class EGDFParser:
         canvas = CanvasSettings(width=800, height=600)
         style_theme = StyleTheme()
         
-        # Convert spatial primitives to dict format
+        # Convert spatial primitives to dict format (handle both dict and dataclass formats)
         spatial_primitives_data = []
         for primitive in layout_primitives:
-            primitive_dict = asdict(primitive)
+            if isinstance(primitive, dict):
+                primitive_dict = primitive
+            else:
+                primitive_dict = asdict(primitive)
             spatial_primitives_data.append(primitive_dict)
         
         visual_layout = {

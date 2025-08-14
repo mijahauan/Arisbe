@@ -1,0 +1,22 @@
+# Triadic Relations Examples
+# Source: John Sowa - Conceptual Graph Examples
+# Category: scholars
+# Pattern: triadic
+# Source: Sowa CG Examples
+# Description: Complex triadic relations from Sowa's conceptual graph work
+
+# Example 1: Between relation (triadic)
+# "A person is between a rock and a hard place"
+*x *y *z (Person x) (Rock y) (Place z) (Hard z) (Between y z x)
+
+# Example 2: Giving relation (triadic)
+# "John gives Mary a book"
+*x *y *z (Person x "John") (Person y "Mary") (Book z) (Gives x y z)
+
+# Example 3: Complex triadic with nested cuts
+# "Someone gives everyone something"
+*x ~[ *y ~[ *z (Gives x y z) ] ]
+
+# Example 4: Triadic with shared arguments
+# "John gives Mary the book that Tom wrote"
+*x *y *z *w (Person x "John") (Person y "Mary") (Book z) (Person w "Tom") (Gives x y z) (Writes w z)

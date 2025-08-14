@@ -41,6 +41,7 @@ except ImportError as e:
 from egif_parser_dau import EGIFParser
 from egi_core_dau import RelationalGraphWithCuts
 from egdf_parser import EGDFParser, EGDFLayoutGenerator
+from egdf_area_aware import AreaAwareEGDFGenerator  # NEW: Area-aware EGDF generator
 from graphviz_layout_engine_v2 import GraphvizLayoutEngine
 from layout_engine_clean import SpatialPrimitive, LayoutResult
 from corpus_loader import get_corpus_loader
@@ -76,7 +77,7 @@ class EGDiagramCanvas(QWidget):
         
         # Pipeline components (contract-validated, canonical)
         self.layout_engine = GraphvizLayoutEngine()
-        self.egdf_generator = EGDFLayoutGenerator()
+        self.egdf_generator = AreaAwareEGDFGenerator()  # NEW: Area-aware EGDF with Shapely constraints
         self.egdf_parser = EGDFParser()
         
         # Current state

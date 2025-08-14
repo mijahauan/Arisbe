@@ -1,0 +1,6 @@
+# Peirce Complex Scope Example
+# Tests: Multiple quantifiers with different scopes, complex nesting
+# Pattern: ∃x∀y∃z(R x y z) - Complex three-way relation with mixed quantifiers
+# Challenges: Scope ordering, multiple ligature crossings, deep nesting
+
+*x ~[ *y ~[ *z (Relation x y z) ] ]

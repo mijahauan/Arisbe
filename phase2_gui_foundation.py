@@ -362,19 +362,18 @@ class EGDiagramWidget(QWidget):
         return QRectF(min(wx1, wx2), min(wy1, wy2), abs(wx2 - wx1), abs(wy2 - wy1))
         
     def paintEvent(self, event):
-        """Render via the authenticated, canonical, logical renderer."""
+        """Render via comprehensive Dau-compliant EGDF specification."""
         if not PYSIDE6_AVAILABLE or self.egi is None:
             return
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         try:
-            # Compute a fresh canonical layout using GraphvizLayoutEngine
+            # Compute canonical layout using GraphvizLayoutEngine
             layout_engine = GraphvizLayoutEngine()
             layout_result = layout_engine.create_layout_from_graph(self.egi)
-            # Delegate to canonical Qt renderer (single source of truth)
-            CanonicalQtRenderer(
-                draw_argument_markers=(self.show_annotations and self._draw_argument_markers)
-            ).render(painter, layout_result, self.egi, (self.width(), self.height()))
+            
+            # Use comprehensive Dau-compliant rendering via DiagramRendererDau
+            self._render_with_dau_compliant_specification(painter, layout_result)
 
             # Sync spatial primitives and layout cache for overlays/hit-testing
             try:
@@ -933,571 +932,130 @@ class EGDiagramWidget(QWidget):
         
         return (hook_x, hook_y)
     
-    def _post_process_ligature_layout(self):
-        """Post-process Graphviz layout to handle EG-specific ligature requirements."""
-        ligature_layout = {
-            'ligatures': {},
-            'reserved_spaces': []  # Track reserved space for collision avoidance
-        }
-        
-        # Build vertex-to-predicates mapping
-        vertex_connections = {}
-        for predicate_id, vertex_sequence in self.egi.nu.items():
-            for vertex_id in vertex_sequence:
-                if vertex_id not in vertex_connections:
-                    vertex_connections[vertex_id] = []
-                vertex_connections[vertex_id].append(predicate_id)
-        
-        print(f"DEBUG: Post-processing ligatures from nu mapping: {dict(self.egi.nu)}")
-        print(f"DEBUG: Vertex connections: {vertex_connections}")
-        
-        # Debug: Check all vertices in EGI
-        print(f"DEBUG: All vertices in EGI: {[(v.id, v.label, v.is_generic) for v in self.egi.V]}")
-        
-        # Debug: Check spatial primitives for vertices
-        vertex_primitives = [p for p in self.spatial_primitives if p.element_type == 'vertex']
-        print(f"DEBUG: Vertex spatial primitives: {[(p.element_id, p.position) for p in vertex_primitives]}")
-        
-        # Debug: Check if we have the expected 2 vertices for Loves example
-        if len(self.egi.V) == 2 and len(vertex_connections) < 2:
-            print(f"DEBUG: MISSING VERTEX BUG - EGI has {len(self.egi.V)} vertices but only {len(vertex_connections)} in connection mapping!")
-            missing_vertices = [v.id for v in self.egi.V if v.id not in vertex_connections]
-            print(f"DEBUG: Missing vertices from connection mapping: {missing_vertices}")
-        
-        # Process each ligature for EG-specific requirements
-        for vertex_id, connected_predicates in vertex_connections.items():
-            print(f"DEBUG: Processing vertex {vertex_id} with connections: {connected_predicates}")
-            ligature_info = self._calculate_eg_ligature_layout(
-                vertex_id, connected_predicates, ligature_layout['reserved_spaces']
-            )
-            
-            if ligature_info:
-                ligature_layout['ligatures'][vertex_id] = ligature_info
-                
-                # Reserve space to prevent collisions
-                if ligature_info.get('reserved_space'):
-                    ligature_layout['reserved_spaces'].append(ligature_info['reserved_space'])
-        
-        return ligature_layout
+    # REMOVED: _post_process_ligature_layout() - conflicts with canonical mode
+    # All ligature rendering is now handled by DiagramRendererDau in canonical mode
     
-    def _calculate_eg_ligature_layout(self, vertex_id: str, connected_predicates: list, existing_spaces: list):
-        """Calculate EG-specific ligature layout with collision avoidance."""
-        # Get vertex position from spatial primitives
-        vertex_pos = None
-        for primitive in self.spatial_primitives:
-            if primitive.element_id == vertex_id:
-                vertex_pos = primitive.position
-                break
+    def _render_with_dau_compliant_specification(self, painter: QPainter, layout_result):
+        """
+        Render using comprehensive Dau-compliant EGDF specification.
         
-        if not vertex_pos:
-            print(f"DEBUG: Could not find position for vertex {vertex_id}")
-            return None
+        This method replaces all piecemeal post-processing logic with a single
+        delegation to DiagramRendererDau, which implements the complete canonical
+        mode specification with exact Graphviz position preservation.
+        """
+        # Create a Qt-compatible canvas adapter for DiagramRendererDau
+        canvas_adapter = QtCanvasAdapter(painter, self.width(), self.height())
         
-        vx, vy = vertex_pos
-        num_connections = len(connected_predicates)
+        # Delegate to DiagramRendererDau - comprehensive Dau-compliant implementation
+        from src.diagram_renderer_dau import DiagramRendererDau
+        renderer = DiagramRendererDau()
+        renderer.render_diagram(canvas_adapter, self.egi, layout_result)
+
+
+class QtCanvasAdapter:
+        """
+        Adapter to make DiagramRendererDau work with QPainter.
         
-        # Get vertex constant name if present
-        vertex_name = None
-        if self.egi:
-            vertex = next((v for v in self.egi.V if v.id == vertex_id), None)
-            if vertex and vertex.label and not vertex.is_generic:
-                vertex_name = vertex.label
+        This adapter translates DiagramRendererDau's canvas interface calls
+        to QPainter operations, enabling the comprehensive Dau-compliant
+        specification to work within the Qt GUI.
+        """
         
-        ligature_info = {
-            'vertex_id': vertex_id,
-            'vertex_pos': vertex_pos,
-            'connections': connected_predicates,
-            'vertex_name': vertex_name,
-            'render_type': None,
-            'branch_point': None,
-            'predicate_positions': [],
-            'reserved_space': None
-        }
+        def __init__(self, painter: QPainter, width: int, height: int):
+            self.painter = painter
+            self.width_val = width
+            self.height_val = height
         
-        # Get all predicate positions for this vertex with argument indices for separated hooks
-        pred_positions = []
-        for pred_id in connected_predicates:
-            # Determine argument index for this vertex in this predicate
-            argument_index = self._get_vertex_argument_index(vertex_id, pred_id)
-            pred_pos = self._get_predicate_position(pred_id, vertex_pos, argument_index)
-            if pred_pos:
-                pred_positions.append(pred_pos)
-                print(f"DEBUG: Predicate {pred_id} hook for vertex {vertex_id} (arg {argument_index}): {pred_pos}")
+        def clear(self):
+            """Clear the canvas (no-op for Qt since we're painting over existing content)."""
+            pass
+        
+        def width(self) -> int:
+            return self.width_val
+        
+        def height(self) -> int:
+            return self.height_val
+        
+        def draw_line(self, start, end, style):
+            """Draw a line using QPainter."""
+            pen = QPen(QColor(*style['color']), style['width'])
+            self.painter.setPen(pen)
+            self.painter.drawLine(QPointF(*start), QPointF(*end))
+        
+        def draw_curve(self, points, style, closed=False):
+            """Draw a curve using QPainter."""
+            if len(points) < 2:
+                return
+            
+            pen = QPen(QColor(*style['color']), style['width'])
+            self.painter.setPen(pen)
+            
+            path = QPainterPath()
+            path.moveTo(QPointF(*points[0]))
+            
+            if len(points) == 2:
+                # Simple line
+                path.lineTo(QPointF(*points[1]))
             else:
-                print(f"DEBUG: Could not find position for predicate {pred_id}")
-        
-        ligature_info['predicate_positions'] = pred_positions
-        
-        # Reserve space for constant name if present
-        if vertex_name:
-            font = QFont("Times", 12, QFont.Bold)
-            font_metrics = QFontMetrics(font)
-            text_rect = font_metrics.boundingRect(vertex_name)
+                # Smooth curve through points
+                for i in range(1, len(points)):
+                    path.lineTo(QPointF(*points[i]))
             
-            ligature_info['reserved_space'] = {
-                'type': 'constant_name',
-                'center': vertex_pos,
-                'width': text_rect.width() + 8,
-                'height': text_rect.height() + 8,
-                'element_id': vertex_id
-            }
-        
-        print(f"DEBUG: Ligature layout for {vertex_id}: {num_connections} connections, {len(pred_positions)} predicate positions")
-        
-        return ligature_info
-    
-    # OBSOLETE METHODS REMOVED: _calculate_collision_free_branch_point and _check_space_collision
-    # These methods were used for the old curved ligature system and are no longer needed
-    # The new ligature rendering system uses vertex positions directly per Dau's formalism
-    
-    def _render_processed_ligatures(self, painter: QPainter, ligature_layout):
-        """Render ligatures using Dau's single-object ligature model."""
-        # Set heavy line style for all ligatures
-        painter.setPen(QPen(QColor(0, 0, 0), 4))  # Heavy line (Dau convention)
-        
-        for vertex_id, ligature_info in ligature_layout['ligatures'].items():
-            self._render_single_object_ligature(painter, ligature_info)
-    
-    def _render_single_object_ligature(self, painter: QPainter, ligature_info):
-        """Render a single-object ligature as one continuous line according to Dau's model.
-        
-        KEY PRINCIPLE: Each line of identity is ONE continuous geometric entity.
-        Branch points and constant labels are features ON the line, not separate segments.
-        """
-        vertex_id = ligature_info['vertex_id']
-        vertex_pos = ligature_info['vertex_pos']
-        connected_predicates = ligature_info['connections']
-        vertex_name = ligature_info['vertex_name']
-        predicate_positions = ligature_info['predicate_positions']
-        
-        vx, vy = vertex_pos
-        num_connections = len(connected_predicates)
-        
-        # CRITICAL: Ensure ALL ligatures use heavy line style
-        painter.setPen(QPen(QColor(0, 0, 0), 4))  # Heavy line (Dau convention)
-        
-        print(f"DEBUG: Rendering single continuous ligature for vertex {vertex_id} at ({vx},{vy}) with {num_connections} connections")
-        
-        # Generate the continuous ligature path based on connection pattern
-        ligature_path = self._generate_continuous_ligature_path(vertex_pos, predicate_positions, num_connections)
-        
-        # Render the single continuous line
-        self._draw_continuous_ligature_path(painter, ligature_path)
-        
-        # Render vertex spot and label as features ON the line
-        self._render_vertex_spot(painter, vx, vy, vertex_name, vertex_id)
-        
-        print(f"DEBUG: Rendered continuous ligature with {len(ligature_path)} path points")
-    
-    def _generate_continuous_ligature_path(self, vertex_pos, predicate_positions, num_connections):
-        """Generate a continuous path for the ligature based on connection pattern.
-        
-        Returns a list of points that define the single continuous line of identity.
-        The vertex position is a point ON this line, not a connection between segments.
-        """
-        vx, vy = vertex_pos
-        
-        if num_connections == 0:
-            # Standalone vertex - horizontal line centered on vertex
-            line_length = 40
-            return [(vx - line_length/2, vy), (vx, vy), (vx + line_length/2, vy)]
+            if closed:
+                path.closeSubpath()
             
-        elif num_connections == 1:
-            # Single connection - line from predicate through vertex and extending
-            if predicate_positions:
-                pred_x, pred_y = predicate_positions[0]
-                # Extend line beyond vertex for visual completeness
-                dx = vx - pred_x
-                dy = vy - pred_y
-                length = (dx*dx + dy*dy)**0.5
-                if length > 0:
-                    # Normalize and extend
-                    dx_norm = dx / length
-                    dy_norm = dy / length
-                    extension = 20  # Extension beyond vertex
-                    end_x = vx + dx_norm * extension
-                    end_y = vy + dy_norm * extension
-                    return [(pred_x, pred_y), (vx, vy), (end_x, end_y)]
-                else:
-                    return [(pred_x, pred_y), (vx, vy)]
-            return [(vx, vy)]
+            self.painter.drawPath(path)
+        
+        def draw_circle(self, center, radius, style):
+            """Draw a circle using QPainter."""
+            pen = QPen(QColor(*style['color']), style['width'])
+            self.painter.setPen(pen)
             
-        elif num_connections == 2:
-            # Two connections - use Graphviz-computed spline path for collision-free routing
-            if len(predicate_positions) >= 2:
-                pred1_pos = predicate_positions[0]
-                pred2_pos = predicate_positions[1]
-                
-                # Try to get Graphviz spline path for this ligature
-                spline_path = self._get_graphviz_spline_path(vertex_pos, predicate_positions)
-                if spline_path:
-                    print(f"DEBUG: Using Graphviz spline path with {len(spline_path)} points")
-                    return spline_path
-                else:
-                    # Fallback to direct path if no spline available
-                    print("DEBUG: No Graphviz spline found, using direct path")
-                    return [pred1_pos, (vx, vy), pred2_pos]
-            return [(vx, vy)]
-            
-        else:
-            # 3+ connections - star pattern with vertex as central branching point
-            # Create a path that visits all predicates through the central vertex
-            path = []
-            if predicate_positions:
-                # Start from first predicate, go to vertex, then to each other predicate
-                path.append(predicate_positions[0])
-                path.append((vx, vy))
-                for pred_pos in predicate_positions[1:]:
-                    path.append(pred_pos)
-                    path.append((vx, vy))  # Return to vertex between branches
-            return path
-    
-    def _draw_continuous_ligature_path(self, painter: QPainter, path_points):
-        """Draw a single continuous ligature path.
-        
-        The path represents one geometric entity - a line of identity.
-        """
-        if len(path_points) < 2:
-            return
-            
-        # Draw the continuous path as connected line segments
-        # In the future, this could be enhanced with smooth curves
-        for i in range(len(path_points) - 1):
-            start_point = QPointF(path_points[i][0], path_points[i][1])
-            end_point = QPointF(path_points[i + 1][0], path_points[i + 1][1])
-            painter.drawLine(start_point, end_point)
-            
-        print(f"DEBUG: Drew continuous ligature path with {len(path_points)} points")
-    
-    def _order_path_for_parsimony(self, points):
-        """Order path points to minimize total line length (parsimony principle).
-        
-        For a 3-point path (pred1, vertex, pred2), determine the optimal order.
-        """
-        if len(points) != 3:
-            return points
-            
-        pred1, vertex, pred2 = points
-        
-        # Calculate distances for both possible orderings
-        # Order 1: pred1 -> vertex -> pred2
-        dist1 = self._calculate_distance(pred1, vertex) + self._calculate_distance(vertex, pred2)
-        
-        # Order 2: pred2 -> vertex -> pred1  
-        dist2 = self._calculate_distance(pred2, vertex) + self._calculate_distance(vertex, pred1)
-        
-        # Choose the order with minimum total distance
-        if dist1 <= dist2:
-            return [pred1, vertex, pred2]
-        else:
-            return [pred2, vertex, pred1]
-    
-    def _calculate_distance(self, point1, point2):
-        """Calculate Euclidean distance between two points."""
-        dx = point1[0] - point2[0]
-        dy = point1[1] - point2[1]
-        return (dx*dx + dy*dy)**0.5
-    
-    def _get_graphviz_spline_path(self, vertex_pos, predicate_positions):
-        """Extract Graphviz-computed spline path for ligature routing.
-        
-        Leverages existing Graphviz spline routing instead of custom collision detection.
-        Returns the spline path points if available, None otherwise.
-        """
-        # Check if we have spatial primitives with curve_points from Graphviz
-        if not hasattr(self, 'spatial_primitives') or not self.spatial_primitives:
-            return None
-            
-        # Look for edges that connect to this vertex position
-        vertex_tolerance = 15.0  # Tolerance for matching vertex positions
-        
-        for primitive in self.spatial_primitives:
-            if primitive.element_type == 'edge' and primitive.curve_points:
-                # Check if this edge's curve passes near our vertex
-                for i, curve_point in enumerate(primitive.curve_points):
-                    vx, vy = vertex_pos
-                    cx, cy = curve_point
-                    
-                    # If curve point is near vertex position, this might be our ligature
-                    distance = ((vx - cx)**2 + (vy - cy)**2)**0.5
-                    if distance <= vertex_tolerance:
-                        print(f"DEBUG: Found Graphviz spline for vertex at {vertex_pos}, {len(primitive.curve_points)} points")
-                        return primitive.curve_points
-                        
-        # Alternative: Look for edges that connect the predicates this vertex connects to
-        if len(predicate_positions) >= 2:
-            pred1_pos, pred2_pos = predicate_positions[0], predicate_positions[1]
-            
-            for primitive in self.spatial_primitives:
-                if primitive.element_type == 'edge' and primitive.curve_points:
-                    curve_points = primitive.curve_points
-                    if len(curve_points) >= 2:
-                        # Check if curve endpoints are near our predicate positions
-                        start_point, end_point = curve_points[0], curve_points[-1]
-                        
-                        start_near_pred1 = self._points_near(start_point, pred1_pos, 20.0)
-                        end_near_pred2 = self._points_near(end_point, pred2_pos, 20.0)
-                        start_near_pred2 = self._points_near(start_point, pred2_pos, 20.0)
-                        end_near_pred1 = self._points_near(end_point, pred1_pos, 20.0)
-                        
-                        if (start_near_pred1 and end_near_pred2) or (start_near_pred2 and end_near_pred1):
-                            print(f"DEBUG: Found Graphviz spline connecting predicates, {len(curve_points)} points")
-                            return curve_points
-                            
-        return None
-    
-    def _points_near(self, point1, point2, tolerance):
-        """Check if two points are within tolerance distance."""
-        dx = point1[0] - point2[0]
-        dy = point1[1] - point2[1]
-        return (dx*dx + dy*dy)**0.5 <= tolerance
-    
-    def _generate_collision_free_path(self, start_pos, end_pos, vertex_pos):
-        """Generate a collision-free continuous path that avoids predicate text.
-        
-        Creates a single smooth curve from start to end, with vertex as a point ON the curve,
-        ensuring the path never intersects predicate text boundaries.
-        """
-        sx, sy = start_pos
-        ex, ey = end_pos
-        vx, vy = vertex_pos
-        
-        print(f"DEBUG: Collision check for path from {start_pos} to {end_pos} through vertex {vertex_pos}")
-        
-        # Check if direct line from start to end would intersect any predicate text
-        collision_detected = self._path_intersects_predicates(start_pos, end_pos)
-        print(f"DEBUG: Collision detected: {collision_detected}")
-        
-        if collision_detected:
-            # Generate curved path that avoids predicate text
-            print("DEBUG: Generating curved avoidance path")
-            return self._generate_curved_avoidance_path(start_pos, end_pos, vertex_pos)
-        else:
-            # Direct path is clear - use straight line through vertex if vertex is on the line
-            vertex_on_line = self._point_on_line_segment(vertex_pos, start_pos, end_pos, tolerance=10)
-            print(f"DEBUG: Vertex on direct line: {vertex_on_line}")
-            
-            if vertex_on_line:
-                print("DEBUG: Using direct path through vertex")
-                return [start_pos, vertex_pos, end_pos]
+            if 'fill_color' in style and style['fill_color']:
+                brush = QBrush(QColor(*style['fill_color']))
+                self.painter.setBrush(brush)
             else:
-                # Vertex is not on direct path - create minimal deviation
-                print("DEBUG: Using minimal deviation path")
-                return self._generate_minimal_deviation_path(start_pos, end_pos, vertex_pos)
-    
-    def _path_intersects_predicates(self, start_pos, end_pos):
-        """Check if a direct line path intersects any predicate text boundaries."""
-        if not self.egi:
-            print("DEBUG: No EGI available for collision detection")
-            return False
+                self.painter.setBrush(Qt.NoBrush)
             
-        print(f"DEBUG: Checking {len(self.spatial_primitives)} spatial primitives for collision")
+            cx, cy = center
+            self.painter.drawEllipse(QPointF(cx, cy), radius, radius)
         
-        # Check intersection with all predicate text rectangles
-        for primitive in self.spatial_primitives:
-            if primitive.element_type == 'edge':  # Predicates are stored as edges
-                predicate_name = self.egi.rel.get(primitive.element_id)
-                print(f"DEBUG: Checking predicate {primitive.element_id} = '{predicate_name}' at {primitive.position}")
-                if predicate_name:
-                    intersection = self._line_intersects_text_rectangle(start_pos, end_pos, primitive, predicate_name)
-                    print(f"DEBUG: Line intersects '{predicate_name}': {intersection}")
-                    if intersection:
-                        return True
-        print("DEBUG: No collisions detected")
-        return False
-    
-    def _line_intersects_text_rectangle(self, start_pos, end_pos, predicate_primitive, predicate_name):
-        """Check if a line segment intersects a predicate's text rectangle."""
-        center_x, center_y = predicate_primitive.position
-        
-        # Calculate text bounds
-        font = QFont("Arial", 12)
-        font_metrics = QFontMetrics(font)
-        text_rect = font_metrics.boundingRect(predicate_name)
-        
-        text_width = text_rect.width()
-        text_height = text_rect.height()
-        padding = 8  # Extra padding to ensure clear separation
-        
-        # Define rectangle bounds
-        left = center_x - text_width / 2 - padding
-        right = center_x + text_width / 2 + padding
-        top = center_y - text_height / 2 - padding
-        bottom = center_y + text_height / 2 + padding
-        
-        # Check line-rectangle intersection using standard algorithm
-        return self._line_segment_intersects_rectangle(start_pos, end_pos, left, right, top, bottom)
-    
-    def _line_segment_intersects_rectangle(self, start_pos, end_pos, left, right, top, bottom):
-        """Check if a line segment intersects a rectangle."""
-        x1, y1 = start_pos
-        x2, y2 = end_pos
-        
-        # Check if either endpoint is inside rectangle
-        if (left <= x1 <= right and top <= y1 <= bottom) or (left <= x2 <= right and top <= y2 <= bottom):
-            return True
+        def draw_text(self, text, position, style):
+            """Draw text using QPainter."""
+            font = QFont(style.get('font_family', 'Arial'), style.get('font_size', 12))
+            self.painter.setFont(font)
             
-        # Check intersection with rectangle edges using parametric line equation
-        # Line: P = start + t * (end - start), where 0 <= t <= 1
-        dx = x2 - x1
-        dy = y2 - y1
+            pen = QPen(QColor(*style['color']))
+            self.painter.setPen(pen)
+            
+            self.painter.drawText(QPointF(*position), text)
         
-        # Check intersection with each rectangle edge
-        edges = [
-            (left, top, left, bottom),    # Left edge
-            (right, top, right, bottom),  # Right edge
-            (left, top, right, top),      # Top edge
-            (left, bottom, right, bottom) # Bottom edge
-        ]
-        
-        for edge_x1, edge_y1, edge_x2, edge_y2 in edges:
-            if self._line_segments_intersect((x1, y1), (x2, y2), (edge_x1, edge_y1), (edge_x2, edge_y2)):
-                return True
-                
-        return False
+        def save_to_file(self, filename):
+            """No-op for Qt adapter (saving handled elsewhere)."""
+            pass
     
-    def _line_segments_intersect(self, line1_start, line1_end, line2_start, line2_end):
-        """Check if two line segments intersect."""
-        x1, y1 = line1_start
-        x2, y2 = line1_end
-        x3, y3 = line2_start
-        x4, y4 = line2_end
-        
-        denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-        if abs(denom) < 1e-10:  # Lines are parallel
-            return False
-            
-        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
-        u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
-        
-        return 0 <= t <= 1 and 0 <= u <= 1
+    # REMOVED: All obsolete post-processing methods - replaced by comprehensive DiagramRendererDau
     
-    def _point_on_line_segment(self, point, line_start, line_end, tolerance=5):
-        """Check if a point is approximately on a line segment within tolerance."""
-        px, py = point
-        x1, y1 = line_start
-        x2, y2 = line_end
-        
-        # Calculate distance from point to line segment
-        line_length_sq = (x2 - x1)**2 + (y2 - y1)**2
-        if line_length_sq < 1e-10:
-            return self._calculate_distance(point, line_start) <= tolerance
-            
-        t = max(0, min(1, ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / line_length_sq))
-        closest_x = x1 + t * (x2 - x1)
-        closest_y = y1 + t * (y2 - y1)
-        
-        distance = self._calculate_distance(point, (closest_x, closest_y))
-        return distance <= tolerance
+    # REMOVED: All obsolete post-processing methods - replaced by comprehensive DiagramRendererDau
     
-    def _generate_curved_avoidance_path(self, start_pos, end_pos, vertex_pos):
-        """Generate a curved path that avoids predicate text collisions."""
-        # For now, create a simple arc that goes around obstacles
-        # This can be enhanced with more sophisticated path planning
-        
-        # Calculate midpoint and create an arc
-        mid_x = (start_pos[0] + end_pos[0]) / 2
-        mid_y = (start_pos[1] + end_pos[1]) / 2
-        
-        # Create arc points that avoid collision
-        # Offset perpendicular to the direct line
-        dx = end_pos[0] - start_pos[0]
-        dy = end_pos[1] - start_pos[1]
-        length = (dx*dx + dy*dy)**0.5
-        
-        if length > 0:
-            # Perpendicular offset
-            perp_x = -dy / length
-            perp_y = dx / length
-            
-            # Create arc with sufficient offset to avoid collision
-            offset = 30  # Offset distance
-            arc_point1 = (mid_x + perp_x * offset, mid_y + perp_y * offset)
-            
-            # Include vertex position if it's reasonable
-            vx, vy = vertex_pos
-            if abs(vx - mid_x) < 50 and abs(vy - mid_y) < 50:
-                return [start_pos, arc_point1, vertex_pos, end_pos]
-            else:
-                return [start_pos, arc_point1, end_pos]
-        
-        return [start_pos, vertex_pos, end_pos]
+    def mousePressEvent(self, event):
+        """Start drag gestures, including attach-from-vertex."""
+        if event.button() == Qt.LeftButton:
+            pos = event.position() if hasattr(event, 'position') else event.localPos()
+            wx, wy = float(pos.x()), float(pos.y())
+            cx, cy = self._widget_to_canvas_pt(wx, wy)
+            hit_id = self._find_element_at_position(cx, cy)
+            if hit_id:
+                # If clicked a vertex, start attach drag from that vertex
+                prim = next((p for p in self.spatial_primitives if p.element_id == hit_id), None)
+                if prim and prim.element_type == 'vertex':
+                    self.drag_state = {'type': 'attach_from_vertex', 'vertex_id': hit_id}
+                    self._last_mouse_widget_pos = (wx, wy)
+                    self.update()
+                    return
+        super().mousePressEvent(event)
     
-    def _generate_minimal_deviation_path(self, start_pos, end_pos, vertex_pos):
-        """Generate path with minimal deviation to include vertex position."""
-        # Create a path that includes the vertex with minimal total length
-        return [start_pos, vertex_pos, end_pos]
-    
-    def _render_vertex_spot(self, painter: QPainter, x: float, y: float, vertex_name: str, vertex_id: str = None):
-        """Render vertex spot with constant name according to Dau's conventions.
-        
-        Vertices are mathematically significant points on ligatures where:
-        - Constants names appear (like 'Socrates')
-        - Branching occurs for 3+ connections
-        - Identity assertions are made
-        """
-        # Track vertex position for interactive selection
-        if vertex_id:
-            self.branching_points[vertex_id] = (x, y, vertex_name)
-        
-        # Check if this vertex is selected or hovered
-        is_selected = vertex_id in self.selected_branching_points if vertex_id else False
-        is_hovered = vertex_id == self.hover_branching_point if vertex_id else False
-        
-        # Render constant name if present
-        if vertex_name:
-            text_color = QColor(0, 100, 200) if is_selected else QColor(0, 0, 0)
-            painter.setPen(QPen(text_color, 1))
-            painter.setFont(QFont("Times", 12, QFont.Bold))
-            text_rect = painter.fontMetrics().boundingRect(vertex_name)
-            
-            # Position text near the vertex spot
-            text_x = x - text_rect.width() / 2
-            text_y = y - 8  # Above the vertex spot
-            
-            # Draw white background for text readability
-            bg_margin = 2
-            bg_rect = QRectF(text_x - bg_margin, text_y - text_rect.height() - bg_margin,
-                           text_rect.width() + 2*bg_margin, text_rect.height() + 2*bg_margin)
-            painter.setPen(Qt.NoPen)
-            painter.setBrush(QBrush(QColor(255, 255, 255, 200)))
-            painter.drawRect(bg_rect)
-            
-            # Draw the constant name text
-            painter.setPen(QPen(text_color, 1))
-            painter.setBrush(Qt.NoBrush)
-            painter.drawText(QPointF(text_x, text_y), vertex_name)
-            
-            print(f"DEBUG: Rendered constant name '{vertex_name}' at vertex ({x:.1f},{y:.1f})")
-        
-        # Render selection highlight if selected
-        if is_selected or is_hovered:
-            highlight_color = QColor(0, 150, 255, 100) if is_selected else QColor(100, 100, 100, 50)
-            painter.setPen(QPen(highlight_color, 2))
-            painter.setBrush(QBrush(highlight_color))
-            painter.drawEllipse(QPointF(x, y), 8, 8)
-        
-        # Render mathematically significant vertex spot (Dau convention)
-        # Vertices are always significant points on ligatures
-        painter.setPen(QPen(QColor(0, 0, 0), 1))
-        painter.setBrush(QBrush(QColor(0, 0, 0)))
-        painter.drawEllipse(QPointF(x, y), 3, 3)  # Prominent vertex spot
-        
-        print(f"DEBUG: Rendered vertex spot for {vertex_id} at ({x:.1f},{y:.1f})")
-    
-    def _get_predicate_position(self, predicate_id: str, vertex_position=None, argument_index=None):
-        """Get boundary position of a predicate where ligature should connect (hook position).
-        
-        For n-ary predicates, argument_index determines which hook position to use,
-        ensuring separated connection points for each argument per Dau's conventions.
-        """
-        for primitive in self.spatial_primitives:
-            if primitive.element_id == predicate_id:
-                # Return boundary position with argument-specific hook separation
-                return self._calculate_predicate_boundary_position(primitive, vertex_position, argument_index)
-        return None
-    
-    def _calculate_predicate_boundary_position(self, predicate_primitive, vertex_position=None, argument_index=None):
+    def mouseMoveEvent(self, event):
         """Calculate the boundary position where ligature should connect to predicate.
         
         Implements two key principles:

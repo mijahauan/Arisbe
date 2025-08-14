@@ -1,0 +1,6 @@
+# Sibling Cuts with Shared Variable Challenge
+# Tests: Variable sharing across sibling cuts, parallel ligature routing
+# Pattern: ∃x((P x) ∨ (Q x)) - "Something is either P or Q"
+# Challenges: Vertex at LCA of sibling cuts, ligatures crossing cut boundaries
+
+*x ~[ (P x) ] ~[ (Q x) ]

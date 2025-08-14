@@ -1,0 +1,6 @@
+# Ternary Relation Challenge
+# Tests: Three-way relations, multiple ligature attachments, complex vertex positioning
+# Pattern: ∃x∃y∃z(Between x y z) - "Something is between two other things"
+# Challenges: Three ligatures from one vertex, optimal junction positioning
+
+*x *y *z (Between x y z)

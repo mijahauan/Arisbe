@@ -1,0 +1,22 @@
+# Classical Syllogisms Examples
+# Source: Traditional logic and Peirce's examples
+# Category: scholars
+# Pattern: syllogism
+# Source: Classical Logic
+# Description: Traditional syllogistic forms in EG notation
+
+# Example 1: Barbara syllogism
+# "All men are mortal, Socrates is a man, therefore Socrates is mortal"
+*x (Person x "Socrates") (Man x) ~[ (Man x) ~[ (Mortal x) ] ]
+
+# Example 2: Celarent syllogism  
+# "No reptiles are warm-blooded, all snakes are reptiles, therefore no snakes are warm-blooded"
+*x ~[ (Reptile x) (WarmBlooded x) ] ~[ (Snake x) ~[ (Reptile x) ] ]
+
+# Example 3: Darii syllogism
+# "All rabbits are herbivores, some animals are rabbits, therefore some animals are herbivores"
+*x *y (Animal x) (Rabbit x) (Animal y) (Rabbit y) (Herbivore y) ~[ (Rabbit x) ~[ (Herbivore x) ] ]
+
+# Example 4: Ferio syllogism
+# "No flowers are animals, some plants are flowers, therefore some plants are not animals"
+*x *y (Plant x) (Flower x) (Plant y) ~[ (Flower y) (Animal y) ] ~[ (Flower x) (Animal x) ]

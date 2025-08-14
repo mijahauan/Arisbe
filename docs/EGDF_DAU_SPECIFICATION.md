@@ -20,15 +20,39 @@ This document defines the formal mapping from Graphviz xdot output to Dau-compli
   - Cuts cannot overlap with sibling cuts
   - Cut boundaries define containment for user interactions
 
-### 1.2 Ligatures (Lines of Identity)
-- **Visual**: Heavy continuous lines (8pt width)
-- **xdot Source**: Graphviz edge spline paths
-- **EGDF Mapping**: `IdentityLinePrimitive` with continuous coordinates
-- **EGI Correspondence**: Each ligature represents one individual across contexts
-- **Interactive Constraints**:
-  - Ligatures are single continuous geometric entities
-  - Vertices are points ON ligatures, not connection nodes
-  - Ligatures must not intersect predicate text
+### 1.2 Ligatures (Lines of Identity) - Dau Chapter 16 Specification
+
+**Core Principle**: Ligatures are heavy, continuous lines that represent the identity of individuals across logical contexts.
+
+#### 1.2.1 Visual Properties
+- **Line Weight**: 8pt width (heavy lines per Dau convention)
+- **Color**: Solid black (#000000)
+- **Style**: Continuous, no breaks or gaps
+- **Routing**: Prefer straight lines; use minimal curves only when necessary
+
+#### 1.2.2 Geometric Specification
+- **Junction Points**: When ≥3 ligature segments meet, use a single junction point
+- **Branching**: T-junctions and Y-junctions for shared vertices
+- **Attachment**: Lines terminate at predicate periphery (invisible hook)
+- **Cut Crossing**: Ligatures may cross cut boundaries (identity transcends context)
+
+#### 1.2.3 Routing Algorithm (Dau-Compliant)
+1. **Primary Route**: Direct straight line from vertex to predicate periphery
+2. **Obstacle Avoidance**: Minimal deviation to avoid predicate text intersection
+3. **Cut Respect**: Maintain logical area assignment while allowing boundary crossing
+4. **Junction Optimization**: Minimize total ligature length for shared vertices
+
+#### 1.2.4 EGDF Mapping
+- **xdot Source**: Graphviz edge spline paths + EGI ν mapping
+- **Primitive Type**: `IdentityLinePrimitive`
+- **Coordinates**: Continuous path as `List[Coordinate]`
+- **Metadata**: Junction points, attachment points, routing constraints
+
+#### 1.2.5 Interactive Constraints
+- **Continuity**: Ligatures remain geometrically continuous during manipulation
+- **Identity Preservation**: Vertex movement updates ligature geometry automatically
+- **Attachment Integrity**: Predicate attachment points update with predicate movement
+- **Cut Crossing**: Ligature-cut intersections update with cut resizing
 
 ### 1.3 Vertices (Identity Spots)
 - **Visual**: Small filled circles (6pt radius) with optional constant names

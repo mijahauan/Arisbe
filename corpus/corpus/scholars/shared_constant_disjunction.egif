@@ -1,0 +1,6 @@
+# Shared Constant Disjunction Challenge
+# Tests: Constant sharing across multiple cuts, complex ligature routing
+# Pattern: (Human "Socrates") ∨ (Mortal "Socrates") - Shared constant across disjunction
+# Challenges: Vertex positioning at LCA, ligature crossing cuts properly
+
+(Human "Socrates") ~[ ~[ (Mortal "Socrates") ] ]

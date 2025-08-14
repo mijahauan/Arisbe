@@ -1,0 +1,6 @@
+# Mixed Quantifier Complex Example
+# Tests: Alternating universal/existential quantifiers, deep nesting
+# Pattern: ∀x∃y∀z(P x) ∧ (Q y z) - Mixed quantification with conjunction
+# Challenges: Multiple scopes, ligature routing through nested cuts
+
+*x ~[ *y (P x) ~[ *z (Q y z) ] ]

@@ -1,0 +1,17 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'>
+  <rect x='0' y='0' width='800' height='600' fill='#fafafa'/>
+  <g>
+    <rect x='138.586' y='16.254' width='522.828' height='567.492' fill='none' stroke='#2c3e50' stroke-width='1.0' rx='14.0' ry='14.0' shape-rendering='geometricPrecision'/>
+    <rect x='138.086' y='15.754' width='523.828' height='568.492' fill='none' stroke='#bdc3c7' stroke-width='0.4' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='142.586' y='28.254' font-size='10' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>c_af56dd9f</text>
+    <rect x='162.217' y='39.886' width='319.993' height='520.229' fill='rgba(142,68,173,0.06)' stroke='#8e44ad' stroke-width='1.0' rx='14.0' ry='14.0' shape-rendering='geometricPrecision'/>
+    <rect x='161.717' y='39.386' width='320.993' height='521.229' fill='none' stroke='#e74c3c' stroke-width='0.6' stroke-dasharray='2,2' shape-rendering='crispEdges'/>
+    <text x='166.217' y='51.886' font-size='10' fill='#8e44ad' stroke='white' stroke-width='1' paint-order='stroke fill'>c_af56dd9f/c_f596e93a</text>
+    <line x1='400.000' y1='300.000' x2='322.213' y2='300.000' stroke='#7f8c8d' stroke-width='1' stroke-dasharray='3,3'/>
+    <rect x='319.829' y='86.476' width='54.000' height='22.400' fill='none' stroke='none'/>
+    <text x='346.829' y='97.676' font-size='12' text-anchor='middle' dominant-baseline='middle' fill='#2c3e50' stroke='white' stroke-width='1' paint-order='stroke fill'>Mortal</text>
+    <path d='M 407.877,485.309 L 348.593,108.876' fill='none' stroke='#111' stroke-width='3' stroke-linecap='round'/>
+    <circle cx='407.877' cy='485.309' r='4.000' fill='#111' stroke='none'/>
+    <text x='413.877' y='479.309' font-size='10' fill='#111' stroke='white' stroke-width='1' paint-order='stroke fill'>Socrates</text>
+  </g>
+</svg>

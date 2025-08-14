@@ -40,7 +40,7 @@ def main() -> None:
 
     outdir = args.outdir
     Path(outdir).mkdir(parents=True, exist_ok=True)
-    engine = GraphvizLayoutEngine(mode="logical-baseline")
+    engine = GraphvizLayoutEngine()
     for name, egif in CASES:
         print(f"- {name}: {egif}")
         g = parse_egif(egif)

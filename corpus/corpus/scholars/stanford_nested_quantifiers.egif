@@ -1,0 +1,6 @@
+# Stanford Encyclopedia Example: Nested Quantifiers with Scope
+# Tests: Multiple quantifier scopes, nested cuts, complex ligature routing
+# Source: Stanford Encyclopedia of Philosophy - Peirce's Logic
+# Pattern: ∀x∃y(Loves x y) - "Everyone loves someone"
+
+*x ~[ *y (Loves x y) ]
