@@ -370,9 +370,30 @@ class ArchitecturalIntegritySystem:
         
         return "\n".join(report)
     
-    def enforce_clean_integration(self, file_path: str) -> bool:
-        """Enforce clean integration by checking for violations before allowing changes."""
+    def _validate_serialization_integrity(self) -> List[Any]:
+        """Validate EGDF serialization system integrity."""
         violations = []
+        
+        try:
+            from egdf_structural_lock import EGDFStructuralProtector
+            protector = EGDFStructuralProtector()
+            
+            is_valid, errors = protector.validate_structural_integrity()
+            if not is_valid:
+                for error in errors:
+                    violations.append(type('Violation', (), {'description': f"Serialization integrity: {error}"})())
+        except Exception as e:
+            violations.append(type('Violation', (), {'description': f"Serialization validation failed: {e}"})())
+        
+        return violations
+    
+    def enforce_clean_integration(self, file_path: str) -> bool:
+        violations = []
+        
+        # Add serialization integrity validation
+        serialization_violations = self._validate_serialization_integrity()
+        violations.extend(serialization_violations)
+        
         violations.extend(self.gatekeeper.scan_file_for_violations(file_path))
         violations.extend(self.regression_detector.detect_architectural_regression(file_path))
         

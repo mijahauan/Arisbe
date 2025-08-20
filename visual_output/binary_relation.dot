@@ -1,8 +1,16 @@
 digraph EG {
   rankdir=TB;
-  node [shape=ellipse, style=filled, fillcolor=lightblue];
-  edge [color=darkblue];
+  compound=true;
+  node [fontsize=10];
 
-  "Vertex(id='v_c597dd9c', label=None, is_generic=True)" [label="Vertex(id='v_c597dd9c', label=None, is_generic=True)"];
-  "Vertex(id='v_6bd8952e', label=None, is_generic=True)" [label="Vertex(id='v_6bd8952e', label=None, is_generic=True)"];
+  label="EGIF: *x *y (Loves x y)";
+  labelloc="t";
+  fontsize=12;
+
+  "pred_e_1347eb43" [label="Loves", shape=box, style=filled, fillcolor=lightgreen];
+  "Vertex(id='v_45ecaf24', label=None, is_generic=True)" [label="45ecaf24", shape=ellipse, style=filled, fillcolor=lightblue];
+  "Vertex(id='v_c7a72f29', label=None, is_generic=True)" [label="c7a72f29", shape=ellipse, style=filled, fillcolor=lightblue];
+  // ν mapping connections
+  "pred_e_1347eb43" -> "Vertex(id='v_c7a72f29', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+  "pred_e_1347eb43" -> "Vertex(id='v_45ecaf24', label=None, is_generic=True)" [label="2", color=darkblue, fontsize=8];
 }

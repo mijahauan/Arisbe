@@ -1,13 +1,23 @@
 digraph EG {
   rankdir=TB;
-  node [shape=ellipse, style=filled, fillcolor=lightblue];
-  edge [color=darkblue];
+  compound=true;
+  node [fontsize=10];
 
-  "Vertex(id='v_9a2c242b', label=None, is_generic=True)" [label="Vertex(id='v_9a2c242b', label=None, is_generic=True)"];
-  subgraph cluster_0 {
-    label="Cut c_482d301d";
+  label="EGIF: *x ~[ (P x) ]";
+  labelloc="t";
+  fontsize=12;
+
+  "pred_e_955c842e" [label="P", shape=box, style=filled, fillcolor=lightgreen];
+  "Vertex(id='v_02dd5d20', label=None, is_generic=True)" [label="02dd5d20", shape=ellipse, style=filled, fillcolor=lightblue];
+  subgraph cluster_0_0 {
+    label="Cut";
     style=filled;
     fillcolor=lightgray;
-    "e_16617af9";
+    color=black;
+    penwidth=2;
+    "pred_e_955c842e";
   }
+
+  // ν mapping connections
+  "pred_e_955c842e" -> "Vertex(id='v_02dd5d20', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
 }

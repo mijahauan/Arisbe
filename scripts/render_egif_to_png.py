@@ -23,7 +23,53 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / 'src'))
 
 from egif_parser_dau import EGIFParser
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from canonical import CanonicalPipeline
+from area_based_dau_renderer import AreaBasedDauRenderer
+
+
+def generate_simple_dot_from_egi(egi) -> str:
+    """Generate basic DOT content from EGI for PNG rendering."""
+    dot_lines = [
+        "digraph EG {",
+        "  rankdir=TB;",
+        "  node [shape=box, style=rounded];",
+        "  edge [style=solid];",
+        ""
+    ]
+    
+    # Add predicates as nodes
+    for edge in egi.E:
+        if hasattr(edge, 'relation') and edge.relation != '=':
+            relation_name = edge.relation
+            dot_lines.append(f'  "{edge.id}" [label="{relation_name}"];')
+    
+    # Add vertices as small circles
+    for vertex in egi.V:
+        if hasattr(vertex, 'name') and vertex.name:
+            dot_lines.append(f'  "{vertex.id}" [label="{vertex.name}", shape=circle, width=0.3];')
+    
+    # Add cuts as clusters
+    for i, cut in enumerate(egi.Cut):
+        dot_lines.append(f"  subgraph cluster_{i} {{")
+        dot_lines.append(f'    label="";')
+        dot_lines.append(f'    style=rounded;')
+        
+        # Add elements in this cut
+        if cut.id in egi.area:
+            for element_id in egi.area[cut.id]:
+                dot_lines.append(f'    "{element_id}";')
+        
+        dot_lines.append("  }")
+    
+    # Add identity lines as edges
+    for edge in egi.E:
+        if hasattr(edge, 'relation') and edge.relation == '=':
+            vertices = egi.nu.get(edge.id, [])
+            if len(vertices) >= 2:
+                dot_lines.append(f'  "{vertices[0]}" -- "{vertices[1]}" [style=bold];')
+    
+    dot_lines.append("}")
+    return "\n".join(dot_lines)
 
 
 def run_dot(dot_path: Path, png_path: Path, xdot_path: Path | None = None) -> None:
@@ -57,10 +103,14 @@ def main() -> int:
     # Parse -> EGI
     egi = EGIFParser(egif_text).parse()
 
-    # Generate DOT from EGI using GraphvizLayoutEngine's generator
-    engine = GraphvizLayoutEngine(mode=args.mode)
-    # We intentionally call the internal DOT generator to keep parity with Graphviz rendering
-    dot_str = engine._generate_dot_from_egi(egi)  # noqa: SLF001 (intentional private access)
+    # Generate DOT from EGI using current canonical pipeline
+    pipeline = CanonicalPipeline()
+    
+    # Generate EGDF with layout primitives
+    egdf_doc = pipeline.egi_to_egdf(egi)
+    
+    # Create DOT content from EGI (simplified DOT generation)
+    dot_str = generate_simple_dot_from_egi(egi)
 
     # Determine DOT path
     dot_path = Path(args.dot_out).resolve() if args.dot_out else out_png.with_suffix('.dot')

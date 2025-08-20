@@ -1,0 +1,132 @@
+{
+  "version": "1.0.0",
+  "created_at": 1755705538.7386959,
+  "test_vectors": [
+    {
+      "name": "simple_predicate",
+      "egif_input": "*x (Human x)",
+      "expected_structure": {
+        "vertices": 1,
+        "edges": 1,
+        "cuts": 0
+      },
+      "critical_properties": {
+        "has_vertices": true,
+        "has_edges": true,
+        "has_cuts": false,
+        "vertex_count": 1,
+        "edge_count": 1
+      }
+    },
+    {
+      "name": "nested_cut",
+      "egif_input": "*x (Human x) ~[ (Mortal x) ]",
+      "expected_structure": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 1
+      },
+      "critical_properties": {
+        "has_vertices": true,
+        "has_edges": true,
+        "has_cuts": true,
+        "vertex_count": 1,
+        "edge_count": 2,
+        "cut_count": 1
+      }
+    },
+    {
+      "name": "isolated_vertices",
+      "egif_input": "[*x] [*y] (Knows x y)",
+      "expected_structure": {
+        "vertices": 2,
+        "edges": 1,
+        "cuts": 0
+      },
+      "critical_properties": {
+        "has_vertices": true,
+        "has_edges": true,
+        "has_cuts": false,
+        "vertex_count": 2,
+        "edge_count": 1,
+        "supports_isolated_vertices": true
+      }
+    }
+  ],
+  "validation_results": {
+    "simple_predicate": {
+      "dau_yaml": {
+        "success": true,
+        "round_trip_success": true,
+        "conversion_time": 0.0022840499877929688
+      },
+      "egdf_parser": {
+        "success": true,
+        "original_structure": {
+          "vertices": 1,
+          "edges": 1,
+          "cuts": 0
+        },
+        "roundtrip_structure": {
+          "vertices": 1,
+          "edges": 1,
+          "cuts": 0
+        },
+        "json_size": 1844,
+        "yaml_size": 1314,
+        "spatial_primitives": 2
+      },
+      "overall_success": true
+    },
+    "nested_cut": {
+      "dau_yaml": {
+        "success": true,
+        "round_trip_success": true,
+        "conversion_time": 0.002546072006225586
+      },
+      "egdf_parser": {
+        "success": true,
+        "original_structure": {
+          "vertices": 1,
+          "edges": 2,
+          "cuts": 1
+        },
+        "roundtrip_structure": {
+          "vertices": 1,
+          "edges": 2,
+          "cuts": 1
+        },
+        "json_size": 2668,
+        "yaml_size": 1797,
+        "spatial_primitives": 4
+      },
+      "overall_success": true
+    },
+    "isolated_vertices": {
+      "dau_yaml": {
+        "success": true,
+        "round_trip_success": true,
+        "conversion_time": 0.0022628307342529297
+      },
+      "egdf_parser": {
+        "success": true,
+        "original_structure": {
+          "vertices": 2,
+          "edges": 1,
+          "cuts": 0
+        },
+        "roundtrip_structure": {
+          "vertices": 2,
+          "edges": 1,
+          "cuts": 0
+        },
+        "json_size": 2244,
+        "yaml_size": 1558,
+        "spatial_primitives": 3
+      },
+      "overall_success": true
+    }
+  },
+  "success_count": 3,
+  "total_count": 3
+}

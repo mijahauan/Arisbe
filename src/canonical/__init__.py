@@ -186,25 +186,8 @@ class CanonicalEGDFParser:
     def generate(self, egi: RelationalGraphWithCuts, layout_primitives: List[Any] = None) -> EGDFDocument:
         """Generate EGDF document from canonical EGI."""
         if layout_primitives is None:
-            # Use exact same approach as successful render script
-            try:
-                from graphviz_layout_engine_v2 import GraphvizLayoutEngine
-                layout_engine = GraphvizLayoutEngine()
-                layout_result = layout_engine.create_layout_from_graph(egi)
-                
-                # Convert GraphvizLayoutEngine primitives to EGDF format
-                layout_primitives = []
-                for primitive in layout_result.primitives.values():
-                    layout_primitives.append({
-                        'element_id': primitive.element_id,
-                        'element_type': primitive.element_type,
-                        'position': primitive.position,
-                        'bounds': primitive.bounds
-                    })
-                print(f"✓ GraphvizLayoutEngine generated {len(layout_primitives)} spatial primitives (render script approach)")
-            except Exception as e:
-                print(f"⚠ GraphvizLayoutEngine failed: {e}")
-                layout_primitives = self._generate_simple_layout_primitives(egi)
+            # Generate simple layout primitives as fallback
+            layout_primitives = self._generate_simple_layout_primitives(egi)
         
         egdf_doc = self.egdf_parser.create_egdf_from_egi(egi, layout_primitives)
         return egdf_doc
@@ -286,27 +269,8 @@ class CanonicalPipeline:
         return self.egdf_parser.generate(egi, layout_primitives)
     
     def _generate_layout_primitives(self, egi: RelationalGraphWithCuts) -> List[Any]:
-        """Generate layout primitives using the exact working render script approach."""
-        try:
-            # Use the exact same approach as the successful render script
-            from graphviz_layout_engine_v2 import GraphvizLayoutEngine
-            layout_engine = GraphvizLayoutEngine()
-            layout_result = layout_engine.create_layout_from_graph(egi)
-            
-            # Convert GraphvizLayoutEngine primitives to list format
-            layout_primitives = []
-            for primitive in layout_result.primitives.values():
-                layout_primitives.append({
-                    'element_id': primitive.element_id,
-                    'element_type': primitive.element_type,
-                    'position': primitive.position,
-                    'bounds': primitive.bounds
-                })
-            print(f"✓ GraphvizLayoutEngine generated {len(layout_primitives)} spatial primitives (render script approach)")
-            return layout_primitives
-        except Exception as e:
-            print(f"⚠ GraphvizLayoutEngine failed: {e}")
-            return self._generate_simple_layout_primitives(egi)
+        """Generate layout primitives using simple fallback approach."""
+        return self._generate_simple_layout_primitives(egi)
     
     def _generate_simple_layout_primitives(self, egi: RelationalGraphWithCuts) -> List[Any]:
         """Generate simple layout primitives as fallback."""

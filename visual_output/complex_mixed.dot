@@ -1,0 +1,32 @@
+digraph EG {
+  rankdir=TB;
+  compound=true;
+  node [fontsize=10];
+
+  label="EGIF: *x *y (Human x) (Loves x y) ~[ (Mortal x) (Happy y) ]";
+  labelloc="t";
+  fontsize=12;
+
+  "pred_e_987f6577" [label="Loves", shape=box, style=filled, fillcolor=lightgreen];
+  "pred_e_72138b69" [label="Human", shape=box, style=filled, fillcolor=lightgreen];
+  "pred_e_57798f2b" [label="Happy", shape=box, style=filled, fillcolor=lightgreen];
+  "pred_e_2ed4e084" [label="Mortal", shape=box, style=filled, fillcolor=lightgreen];
+  "Vertex(id='v_b043b825', label=None, is_generic=True)" [label="b043b825", shape=ellipse, style=filled, fillcolor=lightblue];
+  "Vertex(id='v_a6408cfe', label=None, is_generic=True)" [label="a6408cfe", shape=ellipse, style=filled, fillcolor=lightblue];
+  subgraph cluster_0_0 {
+    label="Cut";
+    style=filled;
+    fillcolor=lightgray;
+    color=black;
+    penwidth=2;
+    "pred_e_57798f2b";
+    "pred_e_2ed4e084";
+  }
+
+  // ν mapping connections
+  "pred_e_987f6577" -> "Vertex(id='v_b043b825', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+  "pred_e_987f6577" -> "Vertex(id='v_a6408cfe', label=None, is_generic=True)" [label="2", color=darkblue, fontsize=8];
+  "pred_e_72138b69" -> "Vertex(id='v_b043b825', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+  "pred_e_57798f2b" -> "Vertex(id='v_a6408cfe', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+  "pred_e_2ed4e084" -> "Vertex(id='v_b043b825', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+}
