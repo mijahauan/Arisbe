@@ -1,0 +1,16 @@
+digraph EG {
+  rankdir=TB;
+  compound=true;
+  node [fontsize=10];
+
+  label="EGIF: *x *y (R x y)";
+  labelloc="t";
+  fontsize=12;
+
+  "pred_e_77e474d8" [label="R", shape=box, style=filled, fillcolor=lightgreen];
+  "Vertex(id='v_43d48ab3', label=None, is_generic=True)" [label="43d48ab3", shape=ellipse, style=filled, fillcolor=lightblue];
+  "Vertex(id='v_65d239a9', label=None, is_generic=True)" [label="65d239a9", shape=ellipse, style=filled, fillcolor=lightblue];
+  // ν mapping connections
+  "pred_e_77e474d8" -> "Vertex(id='v_65d239a9', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+  "pred_e_77e474d8" -> "Vertex(id='v_43d48ab3', label=None, is_generic=True)" [label="2", color=darkblue, fontsize=8];
+}

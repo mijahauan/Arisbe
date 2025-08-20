@@ -1,0 +1,9 @@
+digraph EG {
+  rankdir=TB;
+  compound=true;
+  node [fontsize=10];
+
+  "pred_e_22095d6b" [label="P", shape=box, style=filled, fillcolor=lightgreen];
+  "Vertex(id='v_fc3dfb05', label=None, is_generic=True)" [label="fc3dfb05", shape=ellipse, style=filled, fillcolor=lightblue];
+  // ν mapping connections
+}

@@ -1,0 +1,45 @@
+digraph EG {
+  rankdir=TB;
+  compound=true;
+  node [fontsize=10];
+
+  label="EGIF: *x ~[ *y ~[*z ~[(R x y z)]]]";
+  labelloc="t";
+  fontsize=12;
+
+  "pred_e_9b38cc1c" [label="R", shape=box, style=filled, fillcolor=lightgreen];
+  "Vertex(id='v_15703e36', label=None, is_generic=True)" [label="15703e36", shape=ellipse, style=filled, fillcolor=lightblue];
+  "Vertex(id='v_82244778', label=None, is_generic=True)" [label="82244778", shape=ellipse, style=filled, fillcolor=lightblue];
+  "Vertex(id='v_30e12d51', label=None, is_generic=True)" [label="30e12d51", shape=ellipse, style=filled, fillcolor=lightblue];
+  subgraph cluster_0_0 {
+    label="Cut";
+    style=filled;
+    fillcolor=lightgray;
+    color=black;
+    penwidth=2;
+    "Vertex(id='v_15703e36', label=None, is_generic=True)";
+    subgraph cluster_1_0 {
+      label="Cut";
+      style=filled;
+      fillcolor=lightgray;
+      color=black;
+      penwidth=2;
+      "Vertex(id='v_30e12d51', label=None, is_generic=True)";
+      subgraph cluster_2_0 {
+        label="Cut";
+        style=filled;
+        fillcolor=lightgray;
+        color=black;
+        penwidth=2;
+        "pred_e_9b38cc1c";
+      }
+
+    }
+
+  }
+
+  // ν mapping connections
+  "pred_e_9b38cc1c" -> "Vertex(id='v_82244778', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+  "pred_e_9b38cc1c" -> "Vertex(id='v_15703e36', label=None, is_generic=True)" [label="2", color=darkblue, fontsize=8];
+  "pred_e_9b38cc1c" -> "Vertex(id='v_30e12d51', label=None, is_generic=True)" [label="3", color=darkblue, fontsize=8];
+}

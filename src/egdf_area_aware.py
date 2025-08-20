@@ -234,14 +234,20 @@ class AreaAwareEGDFGenerator(DauCompliantEGDFGenerator):
                     # Place vertices directly adjacent to predicate with minimal spacing
                     argument_index = vertex_instance['argument_index']
                     
-                    # Calculate close attachment position based on argument index
-                    # Ensure vertices are clearly inside their area, not on boundaries
+                    # Calculate minimal attachment position with cardinal directions
+                    # Use minimal padding (3.0pt horizontal, 2.0pt vertical) around predicate text
                     if argument_index == 0:
-                        # First argument: attach to left side of predicate, well inside area
-                        vertex_position = (predicate_position[0] - 25, predicate_position[1])
+                        # North attachment: minimal vertical padding above predicate
+                        vertex_position = (predicate_position[0], predicate_position[1] - 8)
+                    elif argument_index == 1:
+                        # East attachment: minimal horizontal padding to right of predicate
+                        vertex_position = (predicate_position[0] + 15, predicate_position[1])
+                    elif argument_index == 2:
+                        # South attachment: minimal vertical padding below predicate
+                        vertex_position = (predicate_position[0], predicate_position[1] + 8)
                     else:
-                        # Additional arguments: attach below predicate with clear spacing
-                        vertex_position = (predicate_position[0] + (argument_index - 1) * 15, predicate_position[1] + 35)
+                        # West attachment: minimal horizontal padding to left of predicate
+                        vertex_position = (predicate_position[0] - 15, predicate_position[1])
                     
                     # Determine area for this vertex instance
                     area_id = self._determine_element_area(vertex, egi)
@@ -383,22 +389,51 @@ class AreaAwareEGDFGenerator(DauCompliantEGDFGenerator):
     def _create_area_aware_ligature(self, identity_id: str,
                                    vertex_positions: List[Coordinate],
                                    vertex_area_ids: List[str]) -> Optional[SpatialPrimitive]:
-        """Create ligature that respects area boundaries and connects clearly."""
+        """Create ligature with rectilinear routing and minimal predicate attachment padding."""
         if len(vertex_positions) < 2:
             return None
         
-        # Create clear, direct ligature connections between vertices
+        # Generate rectilinear paths with minimal 90-degree angles
         curve_points = []
         
         if len(vertex_positions) == 2:
-            # Direct connection between two vertices for clear visual relationship
-            curve_points = [vertex_positions[0], vertex_positions[1]]
+            # Create L-shaped rectilinear path between two vertices
+            start_x, start_y = vertex_positions[0]
+            end_x, end_y = vertex_positions[1]
+            
+            # Calculate shortest rectilinear path
+            dx = abs(end_x - start_x)
+            dy = abs(end_y - start_y)
+            
+            if dx > dy:
+                # Horizontal-first routing (fewer turns for wide spacing)
+                mid_x = end_x
+                mid_y = start_y
+                curve_points = [vertex_positions[0], (mid_x, mid_y), vertex_positions[1]]
+            else:
+                # Vertical-first routing (fewer turns for tall spacing)
+                mid_x = start_x
+                mid_y = end_y
+                curve_points = [vertex_positions[0], (mid_x, mid_y), vertex_positions[1]]
         else:
-            # Multi-vertex ligature: connect all vertices with clear segments
-            # Use a simple star pattern from first vertex to all others for clarity
+            # Multi-vertex ligature: use rectilinear star pattern
             base_vertex = vertex_positions[0]
             for other_vertex in vertex_positions[1:]:
-                curve_points.extend([base_vertex, other_vertex])
+                start_x, start_y = base_vertex
+                end_x, end_y = other_vertex
+                
+                # Add rectilinear segment
+                dx = abs(end_x - start_x)
+                dy = abs(end_y - start_y)
+                
+                if dx > dy:
+                    mid_x = end_x
+                    mid_y = start_y
+                    curve_points.extend([base_vertex, (mid_x, mid_y), other_vertex])
+                else:
+                    mid_x = start_x
+                    mid_y = end_y
+                    curve_points.extend([base_vertex, (mid_x, mid_y), other_vertex])
         
         # Calculate bounds for the ligature
         bounds = self._calculate_path_bounds(curve_points)

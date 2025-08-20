@@ -190,7 +190,7 @@ class EGIFSyntaxValidator:
             self._validate_node()
     
     def _validate_node(self):
-        """Validate a node (relation, cut, scroll, or isolated vertex)."""
+        """Validate a node (relation, cut, or isolated vertex)."""
         token = self._current_token()
         
         if token.type == TokenType.LPAREN:
@@ -198,7 +198,7 @@ class EGIFSyntaxValidator:
         elif token.type == TokenType.LCUT:
             self._validate_cut()
         elif token.type == TokenType.LBRACKET:
-            self._validate_scroll()
+            self._validate_variable_declaration()
         elif token.type in [TokenType.DEFINING_VAR, TokenType.BOUND_VAR, TokenType.CONSTANT]:
             self._validate_isolated_vertex()
         else:
@@ -236,18 +236,20 @@ class EGIFSyntaxValidator:
             raise ValueError("Expected ']' to close cut")
         self._advance()
     
-    def _validate_scroll(self):
-        """Validate scroll (existential quantification) syntax."""
+    
+    def _validate_variable_declaration(self):
+        """Validate variable declaration [*x] syntax per Sowa's EGIF."""
         if self._current_token().type != TokenType.LBRACKET:
-            raise ValueError("Expected '[' for scroll")
+            raise ValueError("Expected '[' for variable declaration")
         self._advance()
         
-        # Validate variable list
-        while self._current_token().type == TokenType.DEFINING_VAR:
-            self._advance()
+        # Expect defining variable
+        if self._current_token().type != TokenType.DEFINING_VAR:
+            raise ValueError("Expected defining variable *x in variable declaration")
+        self._advance()
         
         if self._current_token().type != TokenType.RBRACKET:
-            raise ValueError("Expected ']' to close scroll")
+            raise ValueError("Expected ']' to close variable declaration")
         self._advance()
     
     def _validate_isolated_vertex(self):
@@ -360,7 +362,7 @@ class EGIFParser:
         elif token.type == TokenType.LCUT:
             self._parse_cut(context_id)
         elif token.type == TokenType.LBRACKET:
-            self._parse_scroll(context_id)
+            self._parse_variable_declaration(context_id)
         elif token.type in [TokenType.DEFINING_VAR, TokenType.BOUND_VAR, TokenType.CONSTANT]:
             self._parse_isolated_vertex(context_id)
         else:
@@ -472,33 +474,31 @@ class EGIFParser:
             raise ValueError("Expected ']' to close cut")
         self._advance()
     
-    def _parse_scroll(self, context_id: ElementID):
-        """Parse scroll (existential quantification)."""
+    
+    def _parse_variable_declaration(self, context_id: ElementID):
+        """Parse variable declaration [*x] syntax per Sowa's EGIF."""
         if self._current_token().type != TokenType.LBRACKET:
-            raise ValueError("Expected '[' for scroll")
+            raise ValueError("Expected '[' for variable declaration")
         self._advance()
         
-        # Parse variable declarations
-        scroll_vars = []
-        while self._current_token().type == TokenType.DEFINING_VAR:
-            var_name = self._current_token().value[1:]  # Remove *
-            if var_name in self.defining_labels:
-                raise ValueError(f"Duplicate defining label *{var_name}")
-            
-            self.defining_labels.add(var_name)
-            vertex = create_vertex(label=None, is_generic=True)
-            self.graph = self.graph.with_vertex_in_context(vertex, context_id)
-            self.variable_map[var_name] = vertex.id
-            self.var_def_context[var_name] = context_id
-            scroll_vars.append(vertex.id)
-            self._advance()
+        # Parse defining variable
+        if self._current_token().type != TokenType.DEFINING_VAR:
+            raise ValueError("Expected defining variable *x in variable declaration")
+        
+        var_name = self._current_token().value[1:]  # Remove *
+        if var_name in self.defining_labels:
+            raise ValueError(f"Duplicate defining label *{var_name}")
+        
+        self.defining_labels.add(var_name)
+        vertex = create_vertex(label=None, is_generic=True)
+        self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+        self.variable_map[var_name] = vertex.id
+        self.var_def_context[var_name] = context_id
+        self._advance()
         
         if self._current_token().type != TokenType.RBRACKET:
-            raise ValueError("Expected ']' to close scroll")
+            raise ValueError("Expected ']' to close variable declaration")
         self._advance()
-        
-        # Note: In this implementation, scroll variables are just added to the context
-        # More sophisticated handling would create explicit quantification structures
     
     def _parse_isolated_vertex(self, context_id: ElementID):
         """Parse isolated vertex (heavy dot)."""
@@ -515,39 +515,34 @@ class EGIFParser:
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.variable_map[var_name] = vertex.id
             self.var_def_context[var_name] = context_id
+            self._advance()
+            return vertex.id
             
         elif token.type == TokenType.BOUND_VAR:
-            # Isolated bound variable x
+            # Bound variable x
             var_name = token.value
             if var_name not in self.variable_map:
                 raise ValueError(f"Undefined variable {var_name}")
-            # Scope check for isolated bound occurrence as well
-            decl_ctx = self.var_def_context.get(var_name)
-            if decl_ctx is None:
-                raise ValueError(f"Variable {var_name} has no recorded declaration context")
-            if not self._is_ancestor_context(decl_ctx, context_id):
-                raise ValueError(f"Out-of-scope variable {var_name}: declared in unrelated context")
-            # Note: This creates a reference to existing vertex, not a new one
-            # Track occurrence for LCA hoisting
-            self.var_occ_contexts.setdefault(var_name, set()).add(context_id)
+            
+            vertex_id = self.variable_map[var_name]
+            self._advance()
+            return vertex_id
             
         elif token.type == TokenType.CONSTANT:
             # Isolated constant "Socrates"
             constant_value = token.value[1:-1]  # Remove quotes
-            # Reuse or create once, same as relation-argument constants
-            if constant_value in self.constant_vertices:
-                # Existing vertex; just record occurrence
-                self.const_occ_contexts.setdefault(constant_value, set()).add(context_id)
-            else:
-                vertex = create_vertex(label=constant_value, is_generic=False)
-                self.graph = self.graph.with_vertex_in_context(vertex, context_id)
-                self.constant_vertices[constant_value] = vertex.id
-                self.const_occ_contexts.setdefault(constant_value, set()).add(context_id)
+            vertex = create_vertex(label=constant_value, is_generic=False)
+            self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+            
+            # Track constant occurrences for validation
+            if constant_value not in self.const_occ_contexts:
+                self.const_occ_contexts[constant_value] = set()
+            self.const_occ_contexts[constant_value].add(context_id)
+            self._advance()
+            return vertex.id
             
         else:
             raise ValueError(f"Invalid isolated vertex token: {token.type}")
-        
-        self._advance()
     
     # --- helpers ---
     def _is_ancestor_context(self, ancestor_ctx: ElementID, ctx: ElementID) -> bool:

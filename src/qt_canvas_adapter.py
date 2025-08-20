@@ -24,11 +24,14 @@ class QtCanvasAdapter(QWidget):
     element_clicked = Signal(str, int, int)  # element_id, x, y
     canvas_clicked = Signal(int, int)  # x, y
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         
         # Canvas state
         self.zoom_factor = 1.0
+        self.spatial_primitives = []
+        self.egi = None  # Store EGI reference for z-order calculations
+        self.setMinimumSize(600, 400)
         self.selected_elements = []
         self.diagram_data = None
         self.spatial_primitives = []
@@ -52,10 +55,12 @@ class QtCanvasAdapter(QWidget):
         # Draw background grid
         self._draw_grid(painter)
         
-        # Draw actual diagram if available, otherwise placeholder
+        # Always try to draw spatial primitives if available
         if hasattr(self, 'spatial_primitives') and self.spatial_primitives:
+            print(f"Canvas drawing {len(self.spatial_primitives)} spatial primitives")
             self._draw_egdf_primitives(painter)
         else:
+            print("Canvas has no spatial primitives - drawing placeholder")
             self._draw_placeholder_elements(painter)
         
         painter.end()
@@ -74,52 +79,287 @@ class QtCanvasAdapter(QWidget):
         for y in range(0, height, 20):
             painter.drawLine(0, y, width, y)
     
+    def _get_cut_nesting_depth(self, cut_id):
+        """Calculate nesting depth of a cut based on EGI area mapping."""
+        if not hasattr(self, 'egi') or not self.egi:
+            return 0
+        
+        # Find how deeply this cut is nested by traversing area mappings
+        depth = 0
+        current_areas = set()
+        
+        # Find which areas contain this cut
+        for context_id, area_elements in self.egi.area.items():
+            if cut_id in area_elements:
+                current_areas.add(context_id)
+        
+        # Count nesting levels - cuts contained in other cuts have higher depth
+        for context_id in current_areas:
+            if context_id != self.egi.sheet:  # Not the sheet
+                depth += 1
+        
+        return depth
+    
+    def _get_element_area_depth(self, element_id):
+        """Calculate area depth of an element based on EGI area mapping."""
+        if not hasattr(self, 'egi') or not self.egi:
+            return 0
+        
+        # Find which area this element belongs to
+        for context_id, area_elements in self.egi.area.items():
+            if element_id in area_elements:
+                if context_id == self.egi.sheet:
+                    return 0  # Sheet has lowest depth
+                else:
+                    # Element is in a cut - calculate cut's nesting depth
+                    return self._get_cut_nesting_depth(context_id)
+        
+        return 0
+    
+    def _calculate_cut_bounds(self, cut_id, primitive):
+        """Calculate bounds for a cut to encompass all contained elements."""
+        canvas_width = self.width()
+        canvas_height = self.height()
+        
+        if not hasattr(self, 'egi') or not self.egi:
+            # Fallback to primitive bounds with padding
+            default_bounds = primitive.get('bounds', (0.4, 0.4, 0.6, 0.6))
+            abs_left = default_bounds[0] * canvas_width
+            abs_top = default_bounds[1] * canvas_height  
+            abs_right = default_bounds[2] * canvas_width
+            abs_bottom = default_bounds[3] * canvas_height
+            padding = 20
+            return (abs_left - padding, abs_top - padding, 
+                    abs_right + padding, abs_bottom + padding)
+        
+        # Find all elements in this cut's area
+        contained_elements = self.egi.area.get(cut_id, frozenset())
+        
+        if not contained_elements:
+            # No contained elements, use primitive bounds
+            default_bounds = primitive.get('bounds', (0.4, 0.4, 0.6, 0.6))
+            abs_left = default_bounds[0] * canvas_width
+            abs_top = default_bounds[1] * canvas_height  
+            abs_right = default_bounds[2] * canvas_width
+            abs_bottom = default_bounds[3] * canvas_height
+            padding = 20
+            return (abs_left - padding, abs_top - padding, 
+                    abs_right + padding, abs_bottom + padding)
+        
+        # Calculate bounding box of all contained elements
+        min_x = min_y = float('inf')
+        max_x = max_y = float('-inf')
+        
+        for element_id in contained_elements:
+            # Find this element in spatial primitives
+            for p in self.spatial_primitives:
+                if isinstance(p, dict) and p.get('element_id') == element_id:
+                    bounds = p.get('bounds', (0.5, 0.5, 0.5, 0.5))
+                    min_x = min(min_x, bounds[0] * canvas_width)
+                    min_y = min(min_y, bounds[1] * canvas_height)
+                    max_x = max(max_x, bounds[2] * canvas_width)
+                    max_y = max(max_y, bounds[3] * canvas_height)
+                    break
+        
+        # Add padding around contained elements
+        padding = 30  # pixels
+        if min_x != float('inf'):
+            return (min_x - padding, min_y - padding, 
+                    max_x + padding, max_y + padding)
+        else:
+            # Fallback if no elements found
+            default_bounds = primitive.get('bounds', (0.4, 0.4, 0.6, 0.6))
+            abs_left = default_bounds[0] * canvas_width
+            abs_top = default_bounds[1] * canvas_height  
+            abs_right = default_bounds[2] * canvas_width
+            abs_bottom = default_bounds[3] * canvas_height
+            padding = 20
+            return (abs_left - padding, abs_top - padding, 
+                    abs_right + padding, abs_bottom + padding)
+    
     def _draw_egdf_primitives(self, painter):
-        """Draw EGDF spatial primitives."""
-        # Handle both dictionary and object primitives
-        for primitive in self.spatial_primitives:
+        """Draw EGDF spatial primitives with proper z-order for existential graphs."""
+        canvas_width = self.width()
+        canvas_height = self.height()
+        
+        # Sort primitives by z-order: Sheet (lowest) -> nested cuts -> predicates/vertices -> ligatures -> annotations (highest)
+        def get_z_order(primitive):
             if isinstance(primitive, dict):
                 element_type = primitive.get('element_type', 'unknown')
                 element_id = primitive.get('element_id', 'unknown')
-                position = primitive.get('position', (0, 0))
-                bounds = primitive.get('bounds', (0, 0, 50, 30))
             else:
-                # Object-based primitives
                 element_type = getattr(primitive, 'element_type', 'unknown')
                 element_id = getattr(primitive, 'element_id', 'unknown')
-                position = getattr(primitive, 'position', (0, 0))
-                bounds = getattr(primitive, 'bounds', (0, 0, 50, 30))
             
-            x, y = position
-            if len(bounds) == 4:
-                bx, by, width, height = bounds
+            # Z-order hierarchy
+            if element_id == 'sheet':
+                return 0  # Sheet has lowest z-order
+            elif element_type == 'cut':
+                # More nested cuts have higher z-order (calculated from nesting depth)
+                return 10 + self._get_cut_nesting_depth(element_id)
+            elif element_type in ['predicate', 'vertex']:
+                # Predicates and vertices track their area's z-order
+                return 20 + self._get_element_area_depth(element_id)
+            elif element_type == 'ligature':
+                return 100  # Ligatures have high z-order (can span cuts)
+            elif element_type == 'annotation':
+                return 200  # Annotations have highest z-order
             else:
-                bx, by, width, height = bounds[0], bounds[1], 50, 30
+                return 50  # Default for unknown types
+        
+        sorted_primitives = sorted(self.spatial_primitives, key=get_z_order)
+        
+        # Draw primitives in z-order
+        for primitive in sorted_primitives:
+            if isinstance(primitive, dict):
+                element_type = primitive.get('element_type', 'unknown')
+                element_id = primitive.get('element_id', 'unknown')
+                position = primitive.get('position', (0.5, 0.5))
+                bounds = primitive.get('bounds', (0.4, 0.4, 0.6, 0.6))
+                
+                # Convert relative coordinates to pixels
+                rel_x, rel_y = position
+                canvas_x = rel_x * canvas_width
+                canvas_y = rel_y * canvas_height
+                
+                # Convert bounds
+                if len(bounds) == 4:
+                    rel_left, rel_top, rel_right, rel_bottom = bounds
+                    abs_left = rel_left * canvas_width
+                    abs_top = rel_top * canvas_height
+                    abs_width = (rel_right - rel_left) * canvas_width
+                    abs_height = (rel_bottom - rel_top) * canvas_height
+                else:
+                    abs_left, abs_top, abs_width, abs_height = canvas_x - 25, canvas_y - 15, 50, 30
+                
+                if element_type == 'predicate':
+                    # Draw predicate with clear background and tight boundary for ligature attachment
+                    painter.setBrush(QBrush())  # No fill - clear background
+                    painter.setPen(QPen(QColor(0, 0, 0), 1))  # Thin line for tight boundary
+                    
+                    # Add text first to calculate tight bounds
+                    text_content = primitive.get('text_content', element_id)
+                    font_metrics = painter.fontMetrics()
+                    text_rect = font_metrics.boundingRect(text_content)
+                    
+                    # Calculate tight bounds around text
+                    text_x = int(canvas_x - text_rect.width() / 2)
+                    text_y = int(canvas_y + text_rect.height() / 4)
+                    
+                    # Draw tight rectangle around text
+                    padding = 2
+                    tight_rect = (text_x - padding, text_y - text_rect.height() + padding,
+                                 text_rect.width() + 2*padding, text_rect.height())
+                    painter.drawRect(*tight_rect)
+                    
+                    # Draw text
+                    painter.drawText(text_x, text_y, text_content)
+                    
+                elif element_type == 'vertex':
+                    # Draw vertex as small dot, larger than ligature line width
+                    painter.setBrush(QBrush(QColor(0, 0, 0)))
+                    painter.setPen(QPen(QColor(0, 0, 0), 0))  # No outline
+                    # Use 6x6 pixel size - larger than ligature line width (typically 1-2px)
+                    painter.drawEllipse(int(canvas_x - 3), int(canvas_y - 3), 6, 6)
+                    
+                elif element_type == 'cut':
+                    # Draw cut as rectangle with rounded corners
+                    painter.setBrush(QBrush())  # No fill
+                    painter.setPen(QPen(QColor(0, 0, 0), 2))
+                    # Calculate size to encompass all contained elements
+                    cut_bounds = self._calculate_cut_bounds(element_id, primitive)
+                    
+                    # Draw rounded rectangle for cut
+                    from PySide6.QtCore import QRectF
+                    rect = QRectF(cut_bounds[0], cut_bounds[1], 
+                                 cut_bounds[2] - cut_bounds[0], 
+                                 cut_bounds[3] - cut_bounds[1])
+                    painter.drawRoundedRect(rect, 10, 10)  # 10px corner radius
+    
+    def _draw_single_primitive(self, painter, primitive, canvas_width, canvas_height):
+        """Draw a single primitive element."""
+        if isinstance(primitive, dict):
+            element_type = primitive.get('element_type', 'unknown')
+            element_id = primitive.get('element_id', 'unknown')
+            position = primitive.get('position', (0, 0))
+            bounds = primitive.get('bounds', (0, 0, 0.1, 0.05))
+        else:
+            # Object-based primitives
+            element_type = getattr(primitive, 'element_type', 'unknown')
+            element_id = getattr(primitive, 'element_id', 'unknown')
+            position = getattr(primitive, 'position', (0, 0))
+            bounds = getattr(primitive, 'bounds', (0, 0, 0.1, 0.05))
+            
+            # Check if coordinates are already in pixel space (> 1.0) or relative space (0.0-1.0)
+            rel_x, rel_y = position
+            if rel_x > 1.0 or rel_y > 1.0:
+                # Already in pixel coordinates - use directly
+                canvas_x = rel_x
+                canvas_y = rel_y
+            else:
+                # Relative coordinates - convert to pixels
+                canvas_x = rel_x * canvas_width
+                canvas_y = rel_y * canvas_height
+            
+            # Convert bounds to absolute bounds
+            if len(bounds) == 4:
+                rel_left, rel_top, rel_right, rel_bottom = bounds
+                # Check if bounds are already in pixel space or relative space
+                if rel_left > 1.0 or rel_top > 1.0:
+                    # Already in pixel coordinates
+                    abs_left = rel_left
+                    abs_top = rel_top
+                    abs_width = rel_right - rel_left
+                    abs_height = rel_bottom - rel_top
+                else:
+                    # Relative coordinates - convert to pixels
+                    abs_left = rel_left * canvas_width
+                    abs_top = rel_top * canvas_height
+                    abs_width = (rel_right - rel_left) * canvas_width
+                    abs_height = (rel_bottom - rel_top) * canvas_height
+            else:
+                # Fallback for old format
+                abs_left, abs_top, abs_width, abs_height = canvas_x - 25, canvas_y - 15, 50, 30
             
             if element_type == 'vertex':
-                # Draw vertex as a filled circle
+                # Draw vertex as a filled circle using absolute coordinates
                 painter.setBrush(QBrush(QColor(0, 0, 0)))
                 painter.setPen(QPen(QColor(0, 0, 0), 2))
-                painter.drawEllipse(int(bx), int(by), int(width), int(height))
+                painter.drawEllipse(int(abs_left), int(abs_top), int(abs_width), int(abs_height))
                 
-            elif element_type == 'edge':
-                # Draw edge as a rectangle (predicate box)
+            elif element_type == 'predicate':
+                # Draw predicate as a rectangle (predicate box) using absolute coordinates
                 painter.setBrush(QBrush(QColor(255, 255, 255)))
                 painter.setPen(QPen(QColor(0, 0, 0), 2))
-                painter.drawRect(int(bx), int(by), int(width), int(height))
+                painter.drawRect(int(abs_left), int(abs_top), int(abs_width), int(abs_height))
                 
-                # Add text if available
-                if hasattr(self, 'diagram_data') and hasattr(self.diagram_data, 'egi'):
-                    # Try to get relation name from EGI
-                    painter.drawText(int(bx + 5), int(by + height/2 + 5), f"R_{element_id[-4:]}")
-                else:
-                    painter.drawText(int(bx + 5), int(by + height/2 + 5), "Predicate")
+                # Add predicate text
+                text_content = primitive.get('text_content', primitive.get('text', element_id))
+                painter.drawText(int(abs_left + 5), int(abs_top + abs_height/2 + 5), text_content)
+                
+                # Debug: print coordinate conversion
+                print(f"Element {element_id}: pos=({rel_x:.3f},{rel_y:.3f}) canvas_size=({canvas_width}x{canvas_height}) final_pos=({canvas_x:.1f},{canvas_y:.1f})")
+                print(f"  bounds: {bounds} -> abs_bounds: ({abs_left:.1f},{abs_top:.1f},{abs_width:.1f},{abs_height:.1f})")
                 
             elif element_type == 'cut':
-                # Draw cut as an oval
+                # Draw cut as an oval using absolute coordinates
                 painter.setBrush(QBrush())  # No fill
                 painter.setPen(QPen(QColor(0, 0, 0), 1))
-                painter.drawEllipse(int(bx), int(by), int(width), int(height))
+                painter.drawEllipse(int(abs_left), int(abs_top), int(abs_width), int(abs_height))
+                
+            elif element_type == 'ligature':
+                # Draw ligature as a heavy line using absolute coordinates
+                painter.setPen(QPen(QColor(0, 0, 0), 4))  # Heavy line
+                # For now, draw as a simple line - path data would be in primitive
+                path = getattr(primitive, 'path', None) if hasattr(primitive, 'path') else primitive.get('path', [])
+                if len(path) >= 2:
+                    for i in range(len(path) - 1):
+                        start_x, start_y = path[i]
+                        end_x, end_y = path[i + 1]
+                        painter.drawLine(
+                            int(start_x * canvas_width), int(start_y * canvas_height),
+                            int(end_x * canvas_width), int(end_y * canvas_height)
+                        )
         
 
     

@@ -39,8 +39,8 @@ class DauVisualConventions:
     SELECTION_WIDTH: float = 2.0       # Selection highlights
     HOVER_WIDTH: float = 1.5           # Hover feedback
     
-    # Vertex Properties
-    VERTEX_RADIUS: float = 3.5         # Identity spots
+    # Vertex Properties - Only slightly larger than heavy line width
+    VERTEX_RADIUS: float = 2.5         # Identity spots (slightly larger than 4.0pt heavy line)
     VERTEX_SELECTION_RADIUS: float = 5.0  # Selection feedback
     
     # Typography
@@ -51,7 +51,12 @@ class DauVisualConventions:
     # Spacing and Layout
     SPACING_FACTOR: float = 1.5        # Professional spacing
     MIN_PREDICATE_SPACING: float = 40.0  # Minimum space between predicates
-    MIN_CUT_MARGIN: float = 20.0       # Minimum margin inside cuts
+    MIN_CUT_MARGIN: float = 8.0        # Proper margin inside cuts for element clearance
+    CUT_BOUNDARY_PADDING: float = 2.0  # Small padding around cut boundaries for visual clarity
+    
+    # Predicate Attachment Boundaries - Minimal padding to avoid text overlap
+    PREDICATE_PADDING_X: float = 3.0   # Minimal horizontal padding around predicate text
+    PREDICATE_PADDING_Y: float = 2.0   # Minimal vertical padding around predicate text
     
     # Colors (Academic/Professional Palette)
     IDENTITY_LINE_COLOR: str = "#000000"    # Black heavy lines

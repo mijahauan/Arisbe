@@ -14,6 +14,8 @@ from eg_graphics_items import (
     PredicateGraphicsItem, VertexGraphicsItem, 
     CutGraphicsItem, LigatureGraphicsItem, EGSelectionOverlay
 )
+from connected_element_selection import ConnectedElementSelector, SelectionType, DeletionImpactAnalyzer
+from selection_highlight_controller import SelectionHighlightController, SelectionEventHandler
 
 
 class EGGraphicsSceneRenderer(QGraphicsView):
@@ -48,16 +50,19 @@ class EGGraphicsSceneRenderer(QGraphicsView):
         self.item_to_element: Dict[Any, str] = {}
         self.egi_graph = None
         
-        # EG-specific selection system
+        # Connected element selection system
+        self.selection_controller: Optional[SelectionHighlightController] = None
+        self.selection_handler: Optional[SelectionEventHandler] = None
+        
+        # EG-specific selection system (legacy)
         self.selection_overlay = EGSelectionOverlay()
         self.scene.addItem(self.selection_overlay)
         self.selection_overlay.setVisible(False)
         
         # Track current selection for constraint validation
         self.current_selection: Set[str] = set()
-        self.selection_groups: Dict[str, Set[str]] = {}  # Connected element groups
         self.containment_hierarchy: Dict[str, List[str]] = {}  # cut_id -> [contained_element_ids]
-        self.connected_groups: Dict[str, List[str]] = {}  # group_id -> [element_ids]
+        self.connected_groups: Dict[str, Set[str]] = {}  # element_id -> connected_element_ids
         
         print("🎨 Created EGGraphicsSceneRenderer with Qt scene-graph architecture")
     
@@ -141,6 +146,15 @@ class EGGraphicsSceneRenderer(QGraphicsView):
         # Store EGI reference
         self.egi_graph = egi_graph
         
+        # Initialize connected element selection system
+        if egi_graph:
+            self.selection_controller = SelectionHighlightController(egi_graph)
+            self.selection_handler = SelectionEventHandler(self.selection_controller)
+            
+            # Connect selection signals
+            self.selection_controller.selection_changed.connect(self._on_selection_changed)
+            self.selection_controller.deletion_impact_calculated.connect(self._on_deletion_impact)
+        
         # Phase 1: Create all graphics items
         cuts = []  # Process cuts first for containment hierarchy
         other_items = []
@@ -205,10 +219,21 @@ class EGGraphicsSceneRenderer(QGraphicsView):
         # Create graphics item
         item = PredicateGraphicsItem(element_id, primitive, predicate_name, position)
         
+        # Store parent area for containment hierarchy
+        item._parent_area = primitive.get('parent_area')
+        
+        # Set Z-value based on cut nesting depth
+        cut_depth = self._get_element_cut_depth(element_id)
+        item.setZValue(100 + (cut_depth * 10))
+        
         # Add to scene and track mapping
         self.scene.addItem(item)
         self.element_to_item[element_id] = item
         self.item_to_element[item] = element_id
+        
+        # Register with selection handler
+        if self.selection_handler:
+            self.selection_handler.register_graphics_item(element_id, item, SelectionType.PREDICATE)
     
     def _create_vertex_item(self, primitive: Dict[str, Any]):
         """Create a VertexGraphicsItem from EGDF primitive."""
@@ -225,10 +250,21 @@ class EGGraphicsSceneRenderer(QGraphicsView):
         # Create graphics item with vertex name
         item = VertexGraphicsItem(element_id, primitive, position, vertex_name)
         
+        # Store parent area for containment hierarchy
+        item._parent_area = primitive.get('parent_area')
+        
+        # Set Z-value based on cut nesting depth
+        cut_depth = self._get_element_cut_depth(element_id)
+        item.setZValue(100 + (cut_depth * 10))
+        
         # Add to scene and track mapping
         self.scene.addItem(item)
         self.element_to_item[element_id] = item
         self.item_to_element[item] = element_id
+        
+        # Register with selection handler
+        if self.selection_handler:
+            self.selection_handler.register_graphics_item(element_id, item, SelectionType.VERTEX)
     
     def _create_cut_item(self, primitive: Dict[str, Any]):
         """Create a CutGraphicsItem from EGDF primitive."""
@@ -245,6 +281,10 @@ class EGGraphicsSceneRenderer(QGraphicsView):
         self.scene.addItem(item)
         self.element_to_item[element_id] = item
         self.item_to_element[item] = element_id
+        
+        # Register with selection handler
+        if self.selection_handler:
+            self.selection_handler.register_graphics_item(element_id, item, SelectionType.CUT)
     
     def _create_ligature_item(self, primitive: Dict[str, Any]):
         """Create a LigatureGraphicsItem from EGDF primitive."""
@@ -257,10 +297,17 @@ class EGGraphicsSceneRenderer(QGraphicsView):
         # Create graphics item with full rectilinear path
         item = LigatureGraphicsItem(element_id, primitive, curve_points)
         
+        # Ligatures transcend all cut boundaries - highest z-order
+        item.setZValue(1000)
+        
         # Add to scene and track mapping
         self.scene.addItem(item)
         self.element_to_item[element_id] = item
         self.item_to_element[item] = element_id
+        
+        # Register with selection handler
+        if self.selection_handler:
+            self.selection_handler.register_graphics_item(element_id, item, SelectionType.LIGATURE)
     
     def _create_text_annotation_item(self, primitive: Dict[str, Any]):
         """Create a text annotation item for arity numbers or identity markers."""
@@ -285,47 +332,100 @@ class EGGraphicsSceneRenderer(QGraphicsView):
         item.setFont(font)
         item.setDefaultTextColor(QColor(color))
         
-        # Set high Z-index to render above ligatures
-        item.setZValue(primitive.get('z_index', 3))
+        # Annotations have same z-order as their parent element
+        parent_element_id = primitive.get('parent_element_id')
+        if parent_element_id:
+            parent_cut_depth = self._get_element_cut_depth(parent_element_id)
+            item.setZValue(100 + (parent_cut_depth * 10))
+        else:
+            item.setZValue(primitive.get('z_index', 103))  # Default annotation level
         
         # Add to scene and track mapping
         self.scene.addItem(item)
         self.element_to_item[element_id] = item
         self.item_to_element[item] = element_id
+        
+        # Annotations don't need selection registration
+    
+    def _get_element_cut_depth(self, element_id: str) -> int:
+        """Calculate the nesting depth of an element based on cut containment."""
+        if not self.egi_graph:
+            return 0
+        
+        depth = 0
+        # Find which cuts contain this element
+        for cut_id, area_contents in self.egi_graph.area.items():
+            if element_id in area_contents:
+                # This element is in this cut, so depth increases
+                depth += 1
+                # Recursively check if this cut is nested in other cuts
+                depth += self._get_element_cut_depth(cut_id)
+                break
+        
+        return depth
+    
+    def _create_cut_item(self, primitive: Dict[str, Any]):
+        """Create a CutGraphicsItem from EGDF primitive."""
+        element_id = primitive.get('element_id')
+        bounds = primitive.get('bounds')
+        
+        if not bounds:
+            return
+        
+        # Create graphics item
+        item = CutGraphicsItem(element_id, primitive, bounds)
+        
+        # Cut boundaries render behind their contents
+        cut_depth = self._get_element_cut_depth(element_id)
+        item.setZValue((cut_depth * 10) - 1)  # Just behind contents at this level
+        
+        # Add to scene and track mapping
+        self.scene.addItem(item)
+        self.element_to_item[element_id] = item
+        self.item_to_element[item] = element_id
+        
+        # Register with selection handler
+        if self.selection_handler:
+            self.selection_handler.register_graphics_item(element_id, item, SelectionType.CUT)
     
     def _establish_containment_hierarchy(self):
-        """Establish parent-child relationships for cuts and contained elements."""
-        # This will be implemented based on EGI area relationships
-        # For now, we'll use spatial containment as approximation
-        
+        """Establish parent-child relationships for cuts and contained elements using layout parent_area information."""
+        # Use parent_area from layout result instead of EGI area mapping
         cuts = [item for item in self.element_to_item.values() 
                 if isinstance(item, CutGraphicsItem)]
         
+        # Build mapping of cut_id -> cut_item for quick lookup
+        cut_items = {}
         for cut_item in cuts:
-            cut_bounds = cut_item.boundingRect()
             cut_id = self.item_to_element[cut_item]
-            contained_elements = []
+            cut_items[cut_id] = cut_item
+        
+        # Establish parent-child relationships based on parent_area from primitives
+        for element_id, item in self.element_to_item.items():
+            # Skip cuts themselves - they don't have parents in this context
+            if isinstance(item, CutGraphicsItem):
+                continue
+                
+            # CRITICAL: Never make ligatures children of cuts - they transcend boundaries
+            if isinstance(item, LigatureGraphicsItem):
+                continue  # Ligatures must remain scene children, never cut children
             
-            # Find elements spatially contained within this cut
-            for element_id, item in self.element_to_item.items():
-                if element_id == cut_id or isinstance(item, CutGraphicsItem):
-                    continue  # Skip self and other cuts
+            # Find parent area from the primitive data stored during creation
+            parent_area = getattr(item, '_parent_area', None)
+            if parent_area and parent_area != 'sheet' and parent_area in cut_items:
+                parent_cut_item = cut_items[parent_area]
                 
-                # CRITICAL: Never make ligatures children of cuts - they transcend boundaries
-                if isinstance(item, LigatureGraphicsItem):
-                    continue  # Ligatures must remain scene children, never cut children
+                # Set parent-child relationship in Qt graphics scene
+                item.setParentItem(parent_cut_item)
                 
-                item_bounds = item.boundingRect()
-                item_center = item_bounds.center()
-                
-                # Check if item center is within cut bounds
-                if cut_bounds.contains(item_center):
-                    item.setParentItem(cut_item)
-                    contained_elements.append(element_id)
-            
-            if contained_elements:
-                self.containment_hierarchy[cut_id] = contained_elements
-                print(f"📦 Cut {cut_id} contains: {contained_elements}")
+                # Track containment
+                if parent_area not in self.containment_hierarchy:
+                    self.containment_hierarchy[parent_area] = []
+                self.containment_hierarchy[parent_area].append(element_id)
+        
+        # Report containment results
+        for cut_id, contained_elements in self.containment_hierarchy.items():
+            print(f"📦 Cut {cut_id} contains: {contained_elements}")
     
     def _create_connected_groups(self):
         """Create groups for elements connected by identity lines."""
@@ -387,3 +487,34 @@ class EGGraphicsSceneRenderer(QGraphicsView):
             item = self.element_to_item[element_id]
             item.setSelected(True)
             self.element_selected.emit(element_id)
+    
+    def _on_selection_changed(self, element_id: str, selection_type: str):
+        """Handle selection change from connected element selection system."""
+        print(f"🎯 Selection changed: {element_id} ({selection_type})")
+        
+        # Get selection info for debugging
+        if self.selection_controller:
+            selection_info = self.selection_controller.get_selection_info()
+            if selection_info:
+                print(f"   Connected vertices: {selection_info['connected_vertices']}")
+                print(f"   Connected predicates: {selection_info['connected_predicates']}")
+                print(f"   Affected ligatures: {selection_info['affected_ligatures']}")
+                print(f"   Crossing cuts: {selection_info['crossing_cuts']}")
+    
+    def _on_deletion_impact(self, impact: dict):
+        """Handle deletion impact analysis from connected element selection system."""
+        print(f"💥 Deletion impact analysis:")
+        print(f"   Affected ligatures: {impact.get('affected_ligatures', set())}")
+        print(f"   Orphaned predicates: {impact.get('orphaned_predicates', set())}")
+        print(f"   Orphaned vertices: {impact.get('orphaned_vertices', set())}")
+        print(f"   Cut crossing impact: {impact.get('cut_crossing_impact', set())}")
+    
+    def handle_item_click(self, item):
+        """Handle click on a graphics item to trigger selection highlighting."""
+        if self.selection_handler and hasattr(item, 'element_id'):
+            self.selection_handler.handle_item_selection(item)
+    
+    def handle_item_right_click(self, item):
+        """Handle right-click on a graphics item to show deletion preview."""
+        if self.selection_handler and hasattr(item, 'element_id'):
+            self.selection_handler.handle_deletion_preview(item)

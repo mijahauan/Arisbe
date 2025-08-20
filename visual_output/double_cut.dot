@@ -1,0 +1,19 @@
+digraph EG {
+  rankdir=TB;
+  node [shape=ellipse, style=filled, fillcolor=lightblue];
+  edge [color=darkblue];
+
+  "Vertex(id='v_f2235d87', label=None, is_generic=True)" [label="Vertex(id='v_f2235d87', label=None, is_generic=True)"];
+  subgraph cluster_0 {
+    label="Cut c_ce7284e8";
+    style=filled;
+    fillcolor=lightgray;
+    "c_c49aeb51";
+  }
+  subgraph cluster_1 {
+    label="Cut c_c49aeb51";
+    style=filled;
+    fillcolor=lightgray;
+    "e_e35a167d";
+  }
+}

@@ -2,7 +2,7 @@
 
 A mathematically rigorous implementation of Charles Sanders Peirce's Existential Graphs based on Frithjof Dau's formal mathematical framework. Arisbe provides a complete pipeline for creating, editing, transforming, and visualizing Existential Graph diagrams with strict adherence to logical formalism and Peircean conventions.
 
-## Current Status (January 2025)
+## Current Status (14 August 2025)
 
 **Core Pipeline: COMPLETE ✅**
 - ✅ **EGIF ↔ EGI ↔ EGDF Pipeline**: Full round-trip with validation

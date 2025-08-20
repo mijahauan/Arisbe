@@ -1,0 +1,8 @@
+digraph EG {
+  rankdir=TB;
+  node [shape=ellipse, style=filled, fillcolor=lightblue];
+  edge [color=darkblue];
+
+  "Vertex(id='v_c597dd9c', label=None, is_generic=True)" [label="Vertex(id='v_c597dd9c', label=None, is_generic=True)"];
+  "Vertex(id='v_6bd8952e', label=None, is_generic=True)" [label="Vertex(id='v_6bd8952e', label=None, is_generic=True)"];
+}

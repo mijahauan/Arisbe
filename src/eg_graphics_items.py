@@ -155,7 +155,7 @@ class PredicateGraphicsItem(QGraphicsTextItem):
 class VertexGraphicsItem(QGraphicsEllipseItem):
     """Graphics item for vertex spots with EGI identity."""
     
-    def __init__(self, element_id: str, egi_data: Dict[str, Any], position: tuple, vertex_name: str = None, radius: float = 8.0):
+    def __init__(self, element_id: str, egi_data: Dict[str, Any], position: tuple, vertex_name: str = None, radius: float = 2.5):
         # Create circle at (0,0) in item coordinates - Qt will handle scene positioning
         super().__init__(-radius, -radius, radius * 2, radius * 2)
         
@@ -299,10 +299,8 @@ class LigatureGraphicsItem(QGraphicsPathItem):
         
         self.setPath(path)
         
-        # Set ligature styling using Dau-compliant settings
-        from egdf_dau_canonical import DauVisualConstants
-        constants = DauVisualConstants()
-        pen = QPen(QColor(constants.ligature_color), constants.ligature_width)  # Use Dau-compliant width and color
+        # Set ligature styling using Dau-compliant heavy line width (4.0pt)
+        pen = QPen(QColor(0, 0, 0), 4.0)  # Black heavy lines, 4.0pt width per Dau conventions
         pen.setCapStyle(Qt.RoundCap)  # Rounded line ends
         pen.setJoinStyle(Qt.RoundJoin)  # Rounded corners for L-shapes
         self.setPen(pen)

@@ -1,0 +1,23 @@
+digraph EG {
+  rankdir=TB;
+  compound=true;
+  node [fontsize=10];
+
+  label="EGIF: *x ~[ (B x) ]";
+  labelloc="t";
+  fontsize=12;
+
+  "pred_e_8435b404" [label="B", shape=box, style=filled, fillcolor=lightgreen];
+  "Vertex(id='v_211b5c49', label=None, is_generic=True)" [label="211b5c49", shape=ellipse, style=filled, fillcolor=lightblue];
+  subgraph cluster_0_0 {
+    label="Cut";
+    style=filled;
+    fillcolor=lightgray;
+    color=black;
+    penwidth=2;
+    "pred_e_8435b404";
+  }
+
+  // ν mapping connections
+  "pred_e_8435b404" -> "Vertex(id='v_211b5c49', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+}

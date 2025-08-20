@@ -20,8 +20,19 @@ from datetime import datetime
 import sys
 
 # Import canonical SpatialPrimitive and types from pipeline contracts
-from layout_engine_clean import SpatialPrimitive, Bounds, LayoutResult
+from layout_types import LayoutResult, LayoutElement, Bounds
 from egi_core_dau import ElementID
+
+# Base class for spatial primitives
+@dataclass
+class SpatialPrimitive:
+    """Base class for spatial primitives in EGDF."""
+    element_id: str
+    position: Tuple[float, float]
+    bounds: Optional[Bounds] = None
+    element_type: Optional[str] = None
+    z_index: Optional[int] = None
+    attachment_points: Optional[Dict[str, Tuple[float, float]]] = None
 import os
 import re
 

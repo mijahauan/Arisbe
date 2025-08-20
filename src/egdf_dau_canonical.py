@@ -21,7 +21,7 @@ import math
 
 # Core imports
 from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, ElementID
-from layout_engine_clean import SpatialPrimitive, Coordinate, Bounds, LayoutResult
+from layout_types import LayoutResult, LayoutElement, Coordinate, Bounds
 from pipeline_contracts import enforce_contracts
 
 
@@ -364,7 +364,7 @@ class DauCompliantEGDFGenerator:
     
     def generate_egdf_from_layout(self, 
                                 egi: RelationalGraphWithCuts,
-                                layout_result: LayoutResult) -> List[SpatialPrimitive]:
+                                layout_result: LayoutResult) -> List[LayoutElement]:
         """
         Generate complete Dau-compliant EGDF from EGI and Graphviz layout.
         
@@ -390,7 +390,7 @@ class DauCompliantEGDFGenerator:
     
     def _generate_cut_primitives(self, 
                                egi: RelationalGraphWithCuts,
-                               layout_result: LayoutResult) -> List[SpatialPrimitive]:
+                               layout_result: LayoutResult) -> List[LayoutElement]:
         """Generate cut primitives from layout clusters."""
         primitives = []
         
@@ -398,20 +398,19 @@ class DauCompliantEGDFGenerator:
             cut_id = cut.id if hasattr(cut, 'id') else str(cut)
             # Find corresponding cluster in layout
             cluster_primitive = None
-            for element_id, primitive in layout_result.primitives.items():
+            for primitive in layout_result.elements.values():
                 if (primitive.element_type == 'cut' and 
-                    element_id == cut_id):
+                    primitive.element_id == cut_id):
                     cluster_primitive = primitive
                     break
             
             if cluster_primitive:
                 # Create Dau-compliant cut primitive
-                cut_primitive = SpatialPrimitive(
+                cut_primitive = LayoutElement(
                     element_id=cut_id,
                     element_type='cut',
                     position=cluster_primitive.position,
-                    bounds=cluster_primitive.bounds,
-                    z_index=0  # Cuts are background
+                    bounds=cluster_primitive.bounds
                 )
                 primitives.append(cut_primitive)
         
@@ -419,16 +418,16 @@ class DauCompliantEGDFGenerator:
     
     def _generate_predicate_primitives(self, 
                                      egi: RelationalGraphWithCuts,
-                                     layout_result: LayoutResult) -> List[SpatialPrimitive]:
+                                     layout_result: LayoutResult) -> List[LayoutElement]:
         """Generate predicate primitives from layout nodes."""
         primitives = []
         
         for edge in egi.E:
             # Find corresponding node in layout
             node_primitive = None
-            for element_id, primitive in layout_result.primitives.items():
+            for primitive in layout_result.elements.values():
                 if (primitive.element_type == 'predicate' and 
-                    element_id == edge.id):
+                    primitive.element_id == edge.id):
                     node_primitive = primitive
                     break
             
@@ -441,7 +440,7 @@ class DauCompliantEGDFGenerator:
                     self.constants.predicate_font_size
                 )
                 # Create Dau-compliant predicate primitive with tight bounds
-                pred_primitive = SpatialPrimitive(
+                pred_primitive = LayoutElement(
                     element_id=edge.id,
                     element_type='predicate',
                     position=node_primitive.position,
@@ -456,7 +455,7 @@ class DauCompliantEGDFGenerator:
     def _generate_ligature_system(self, 
                                 egi: RelationalGraphWithCuts,
                                 layout_result: LayoutResult,
-                                predicate_primitives: List[SpatialPrimitive]) -> Tuple[List[SpatialPrimitive], List[SpatialPrimitive]]:
+                                predicate_primitives: List[LayoutElement]) -> Tuple[List[LayoutElement], List[LayoutElement]]:
         """
         Generate complete ligature system per Dau Chapter 16.
         
@@ -483,8 +482,8 @@ class DauCompliantEGDFGenerator:
         # TRUST GRAPHVIZ: Use vertex position from layout if available (respects logical areas)
         for vertex_id, vertex_info in vertex_groups.items():
             vertex_position = None
-            for element_id, primitive in layout_result.primitives.items():
-                if primitive.element_type == 'vertex' and element_id == vertex_id:
+            for primitive in layout_result.elements.values():
+                if primitive.element_type == 'vertex' and primitive.element_id == vertex_id:
                     vertex_position = primitive.position
                     break
             
@@ -533,7 +532,7 @@ class DauCompliantEGDFGenerator:
             constant_name = self._get_constant_name_from_egi(vertex_id, egi)
             
             # Create vertex primitive
-            vertex_primitive = SpatialPrimitive(
+            vertex_primitive = LayoutElement(
                 element_id=vertex_id,
                 element_type='vertex',
                 position=vertex_position,
@@ -554,7 +553,7 @@ class DauCompliantEGDFGenerator:
     def _generate_ligature_annotations(self, ligature_id: str, edge_id: str, 
                                      vertex_id: str, ligature_path: List[Coordinate],
                                      attachment_point: Coordinate, predicate_bounds: Bounds,
-                                     egi: RelationalGraphWithCuts) -> List[SpatialPrimitive]:
+                                     egi: RelationalGraphWithCuts) -> List[LayoutElement]:
         """Generate optional annotations for ligatures (arity numbers, identity markers)."""
         annotations = []
         
@@ -577,7 +576,7 @@ class DauCompliantEGDFGenerator:
             annotation_x = ax + self.constants.arity_annotation_offset
             annotation_y = ay - self.constants.arity_annotation_offset
             
-            arity_annotation = SpatialPrimitive(
+            arity_annotation = LayoutElement(
                 element_id=f"{ligature_id}_arity",
                 element_type='text',
                 position=(annotation_x, annotation_y),
@@ -604,7 +603,7 @@ class DauCompliantEGDFGenerator:
                     # Use the middle point
                     mid_x, mid_y = ligature_path[mid_idx]
                 
-                identity_annotation = SpatialPrimitive(
+                identity_annotation = LayoutElement(
                     element_id=f"{ligature_id}_identity",
                     element_type='text',
                     position=(mid_x, mid_y - 8),  # Slightly above the line
@@ -621,7 +620,7 @@ class DauCompliantEGDFGenerator:
     def _generate_unified_identity_lines(self, egi: RelationalGraphWithCuts, 
                                        vertex_groups: Dict[str, Dict],
                                        predicate_bounds: Dict[str, Bounds],
-                                       layout_result: LayoutResult) -> List[SpatialPrimitive]:
+                                       layout_result: LayoutResult) -> List[LayoutElement]:
         """
         Generate unified identity lines that eliminate visual confusion.
         
@@ -640,8 +639,8 @@ class DauCompliantEGDFGenerator:
                 
             # Get vertex position from layout
             vertex_position = None
-            for element_id, primitive in layout_result.primitives.items():
-                if primitive.element_type == 'vertex' and element_id == vertex_id:
+            for primitive in layout_result.elements.values():
+                if primitive.element_type == 'vertex' and primitive.element_id == vertex_id:
                     vertex_position = primitive.position
                     break
             
@@ -671,9 +670,9 @@ class DauCompliantEGDFGenerator:
                 
                 # Create unified ligature primitive
                 ligature_id = f"identity_line_{vertex_id}_{edge_id}"
-                ligature_primitive = SpatialPrimitive(
+                ligature_primitive = LayoutElement(
                     element_id=ligature_id,
-                    element_type='identity_line',
+                    element_type='ligature',
                     position=ligature_path[0],
                     bounds=self._calculate_path_bounds(ligature_path),
                     z_index=2,  # Ligatures are foreground with predicates

@@ -10,7 +10,7 @@ from typing import Dict, List, Tuple, Optional, Set
 from dataclasses import dataclass
 from pipeline_contracts import ContractViolationError, enforce_contracts
 from egi_core_dau import ElementID, RelationalGraphWithCuts
-from layout_engine import LayoutElement, LayoutResult
+from layout_types import LayoutElement, LayoutResult
 
 
 @dataclass

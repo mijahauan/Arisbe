@@ -99,16 +99,16 @@ class AnnotationRenderer:
                         edge_id in annotation_config.target_elements):
                         
                         # Get predicate position from layout
-                        if edge_id in layout_result.primitives:
-                            predicate_primitive = layout_result.primitives[edge_id]
-                            pred_x, pred_y = predicate_primitive.position
+                        if hasattr(layout_result, 'elements') and edge_id in layout_result.elements:
+                            predicate_element = layout_result.elements[edge_id]
+                            pred_x, pred_y = predicate_element.position
                             
                             # Generate numbered annotations for each argument
                             vertex_sequence = graph.nu[edge_id]
                             for i, vertex_id in enumerate(vertex_sequence):
-                                if vertex_id in layout_result.primitives:
-                                    vertex_primitive = layout_result.primitives[vertex_id]
-                                    vx, vy = vertex_primitive.position
+                                if vertex_id in layout_result.elements:
+                                    vertex_element = layout_result.elements[vertex_id]
+                                    vx, vy = vertex_element.position
                                     
                                     # Calculate annotation position near the connection point
                                     # Position number halfway between predicate and vertex
