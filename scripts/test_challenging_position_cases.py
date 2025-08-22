@@ -15,7 +15,7 @@ src_dir = os.path.join(script_dir, '..', 'src')
 sys.path.insert(0, src_dir)
 
 from egif_parser_dau import EGIFParser
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from layout_phase_implementations import NinePhaseLayoutPipeline
 from dau_position_corrector import apply_dau_position_corrections
 from pipeline_contracts import validate_layout_result
 
@@ -69,7 +69,7 @@ def test_challenging_cases():
         }
     ]
     
-    layout_engine = GraphvizLayoutEngine(mode="default-nopp")
+    pipeline = NinePhaseLayoutPipeline()
     
     for i, test_case in enumerate(challenging_cases, 1):
         print(f"\n{i}. Testing: {test_case['name']}")
@@ -83,7 +83,7 @@ def test_challenging_cases():
             print(f"   ✅ EGI parsed successfully")
             
             # Generate initial layout
-            original_layout = layout_engine.create_layout_from_graph(egi)
+            original_layout = pipeline.execute_pipeline(egi)
             validate_layout_result(original_layout)
             print(f"   ✅ Original layout: {len(original_layout.primitives)} primitives")
             

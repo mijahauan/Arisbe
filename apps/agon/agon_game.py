@@ -34,7 +34,7 @@ except ImportError:
 from egif_parser_dau import EGIFParser
 from egdf_parser import EGDFParser
 from canonical_qt_renderer import CanonicalQtRenderer
-from canonical import CanonicalPipeline
+# CanonicalPipeline removed - using 9-phase pipeline only
 
 class GamePhase(Enum):
     """Phases of the Endoporeutic Game."""
@@ -90,7 +90,27 @@ class AgonGame(QMainWindow):
         # Core components
         self.egif_parser = EGIFParser()
         self.egdf_parser = EGDFParser()
-        self.pipeline = CanonicalPipeline()
+        # Initialize 9-phase layout pipeline (the ONLY pipeline)
+        from layout_phase_implementations import (
+            ElementSizingPhase, ContainerSizingPhase, CollisionDetectionPhase,
+            PredicatePositioningPhase, VertexPositioningPhase, HookAssignmentPhase,
+            RectilinearLigaturePhase, BranchOptimizationPhase, AreaCompactionPhase,
+            PhaseStatus
+        )
+        from spatial_awareness_system import SpatialAwarenessSystem
+        
+        self.spatial_system = SpatialAwarenessSystem()
+        self.layout_phases = [
+            ElementSizingPhase(),
+            ContainerSizingPhase(self.spatial_system),
+            CollisionDetectionPhase(self.spatial_system),
+            PredicatePositioningPhase(self.spatial_system),
+            VertexPositioningPhase(self.spatial_system),
+            HookAssignmentPhase(),
+            RectilinearLigaturePhase(),
+            BranchOptimizationPhase(),
+            AreaCompactionPhase()
+        ]
         self.renderer = CanonicalQtRenderer()
         
         # Game state

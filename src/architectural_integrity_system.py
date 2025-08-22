@@ -63,7 +63,7 @@ class ArchitecturalLineageTracker:
             creation_date=datetime.now(),
             status="current",
             dependencies={"egi_core_dau"},
-            supersedes={"graphviz_layout_engine_v2"}
+            supersedes={"legacy_graphviz_engine"}
         ))
         
         self.register_component(ArchitecturalComponent(
@@ -77,8 +77,8 @@ class ArchitecturalLineageTracker:
         
         # Deprecated Components (Must Not Be Imported)
         self.register_component(ArchitecturalComponent(
-            name="graphviz_layout_engine_v2",
-            file_path="src/graphviz_layout_engine_v2.py",
+            name="legacy_graphviz_engine",
+            file_path="src/legacy_graphviz_engine.py",
             creation_date=datetime(2024, 1, 1),  # Earlier date
             status="deprecated",
             dependencies=set(),
@@ -87,13 +87,13 @@ class ArchitecturalLineageTracker:
         ))
         
         # Failed Patterns (Must Be Avoided)
-        self.add_failed_pattern("incremental_graphviz_wrapper")
-        self.add_failed_pattern("get_graphviz_positions_for_phase")
-        self.add_failed_pattern("get_graphviz_bounds_for_phase")
+        self.add_failed_pattern("legacy_incremental_wrapper")
+        self.add_failed_pattern("legacy_positions_for_phase")
+        self.add_failed_pattern("legacy_bounds_for_phase")
         
         # Deprecated Import Patterns
-        self.add_deprecated_pattern("from.*graphviz_layout_engine_v2.*import")
-        self.add_deprecated_pattern("from.*incremental_graphviz_wrapper.*import")
+        self.add_deprecated_pattern("from.*legacy_graphviz_engine.*import")
+        self.add_deprecated_pattern("from.*legacy_incremental_wrapper.*import")
     
     def register_component(self, component: ArchitecturalComponent):
         """Register a component in the lineage."""
@@ -206,8 +206,7 @@ class IntegrationGatekeeper:
             if line.strip().startswith('from ') or line.strip().startswith('import '):
                 for component_name, component in self.lineage_tracker.components.items():
                     if (component.status == "deprecated" and 
-                        component_name in line and
-                        'graphviz_layout_engine_v2' in line):
+                        component_name in line):
                         
                         replacement = self.lineage_tracker.get_current_replacement(component_name)
                         violations.append(IntegrationViolation(
@@ -272,9 +271,9 @@ class RegressionDetector:
         
         # Specific patterns that indicate regression to old APIs
         deprecated_apis = [
-            "graphviz_layout_engine_v2",
-            "get_graphviz_positions_for_phase", 
-            "get_graphviz_bounds_for_phase"
+            "legacy_graphviz_engine",
+            "legacy_positions_for_phase", 
+            "legacy_bounds_for_phase"
         ]
         
         lines = content.split('\n')

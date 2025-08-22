@@ -1,0 +1,9 @@
+# Modal Logic Example with Necessity and Possibility
+# Category: challenging
+# Description: Demonstrates modal operators using Peirce's Gamma graph extensions
+# Source: Peirce's Gamma System and Modal Extensions
+# Pattern: modal_logic
+
+# "That you are a good girl is possible but not necessary"
+# Possible(P) ∧ ¬Necessary(P)
+(that "You are a good girl" | *p) (possible p) ~[(necessary p)]

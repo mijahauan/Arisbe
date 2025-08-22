@@ -1,0 +1,26 @@
+{
+  "id": "endoporeutic_game_start",
+  "category": "canonical",
+  "title": "Endoporeutic Game Starting Position",
+  "description": "Classic EPG starting position demonstrating quantifier scope ambiguity and multiple transformation paths",
+  "source": {
+    "author": "Canonical EPG Examples",
+    "work": "Endoporeutic Game Theory",
+    "year": 2024,
+    "reference": "Standard EPG positions"
+  },
+  "logical_form": "∃x∀y(Loves(x,y)) ∧ ∀x∃y(Loves(x,y))",
+  "natural_language": "There exists someone who loves everyone, and everyone loves someone",
+  "complexity": {
+    "nesting_depth": 3,
+    "entity_count": 4,
+    "predicate_count": 2,
+    "cut_count": 4
+  },
+  "test_rationale": "Tests quantifier scope interactions and provides rich EPG transformation opportunities",
+  "epg_features": {
+    "is_starting_position": true,
+    "valid_transformations": ["insertion", "deletion", "iteration", "deiteration"],
+    "invalid_transformations": []
+  }
+}

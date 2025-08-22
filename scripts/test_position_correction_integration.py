@@ -15,7 +15,7 @@ src_dir = os.path.join(script_dir, '..', 'src')
 sys.path.insert(0, src_dir)
 
 from egif_parser_dau import EGIFParser
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from layout_phase_implementations import NinePhaseLayoutPipeline
 from dau_position_corrector import apply_dau_position_corrections
 from pipeline_contracts import validate_layout_result
 
@@ -49,7 +49,7 @@ def test_position_correction_integration():
         }
     ]
     
-    layout_engine = GraphvizLayoutEngine(mode="default-nopp")
+    pipeline = NinePhaseLayoutPipeline()
     
     for i, test_case in enumerate(test_cases, 1):
         print(f"\n{i}. Testing: {test_case['name']}")
@@ -62,7 +62,7 @@ def test_position_correction_integration():
             print(f"   ✅ EGI parsed successfully")
             
             # Generate initial layout
-            layout_result = layout_engine.create_layout_from_graph(egi)
+            layout_result = pipeline.execute_pipeline(egi)
             validate_layout_result(layout_result)
             print(f"   ✅ Initial layout generated: {len(layout_result.primitives)} primitives")
             
@@ -120,8 +120,8 @@ def test_specific_positioning_issues():
         parser = EGIFParser(problematic_egif)
         egi = parser.parse()
         
-        layout_engine = GraphvizLayoutEngine(mode="default-nopp")
-        layout_result = layout_engine.create_layout_from_graph(egi)
+        pipeline = NinePhaseLayoutPipeline()
+        layout_result = pipeline.execute_pipeline(egi)
         
         print("Before position correction:")
         for element_id, primitive in layout_result.primitives.items():

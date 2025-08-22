@@ -90,6 +90,62 @@
       "description": "Alternating quantifiers with deep nesting",
       "source": "Challenging Test Cases",
       "logical_pattern": "quantification"
+    },
+    {
+      "id": "peirce_modus_ponens",
+      "category": "peirce",
+      "title": "Peirce's Modus Ponens",
+      "description": "Peirce's demonstration of modus ponens inference rule",
+      "source": "Collected Papers 4.572",
+      "logical_pattern": "inference"
+    },
+    {
+      "id": "sowa_cat_on_mat",
+      "category": "scholars",
+      "title": "Sowa's Cat on Mat Example",
+      "description": "Foundational EGIF example demonstrating basic syntax",
+      "source": "Sowa EGIF-2014",
+      "logical_pattern": "simple_relation"
+    },
+    {
+      "id": "peirce_metalevel_gamma",
+      "category": "peirce",
+      "title": "Peirce's Metalevel Gamma Graph",
+      "description": "Metalevel statements using Gamma graph extensions",
+      "source": "Peirce (1898) Reasoning and Logic of Things",
+      "logical_pattern": "metalevel"
+    },
+    {
+      "id": "dau_theorem_proving",
+      "category": "scholars",
+      "title": "Dau's Theorem Proving Example",
+      "description": "Complex nested quantifier structure for theorem proving",
+      "source": "Dau (2006) Mathematical Logic with Diagrams",
+      "logical_pattern": "theorem_proving"
+    },
+    {
+      "id": "endoporeutic_game_start",
+      "category": "canonical",
+      "title": "Endoporeutic Game Starting Position",
+      "description": "Classic EPG starting position with multiple transformation paths",
+      "source": "Canonical EPG Examples",
+      "logical_pattern": "epg_start"
+    },
+    {
+      "id": "roberts_domain_modeling",
+      "category": "scholars",
+      "title": "Roberts' Domain Modeling Example",
+      "description": "Complex domain model with inheritance and multiple relations",
+      "source": "Roberts (1973)",
+      "logical_pattern": "domain_modeling"
+    },
+    {
+      "id": "modal_logic_example",
+      "category": "challenging",
+      "title": "Modal Logic with Necessity and Possibility",
+      "description": "Modal operators using Peirce's Gamma graph extensions",
+      "source": "Peirce Gamma System",
+      "logical_pattern": "modal_logic"
     }
   ]
 }

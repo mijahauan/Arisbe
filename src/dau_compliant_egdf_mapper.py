@@ -17,13 +17,20 @@ from enum import Enum
 from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut
 from layout_engine_clean import SpatialPrimitive, LayoutResult
 from xdot_parser_simple import SimpleXdotParser, XdotCluster, XdotNode, XdotEdge
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from layout_phase_implementations import (
+    ElementSizingPhase, ContainerSizingPhase, CollisionDetectionPhase,
+    PredicatePositioningPhase, VertexPositioningPhase, HookAssignmentPhase,
+    RectilinearLigaturePhase, BranchOptimizationPhase, AreaCompactionPhase,
+    PhaseStatus
+)
+from spatial_awareness_system import SpatialAwarenessSystem
 
 # EGDF primitive classes
 from egdf_parser import (
     VertexPrimitive, PredicatePrimitive, CutPrimitive, IdentityLinePrimitive,
-    CanvasSettings, StyleTheme
+    CanvasSettings
 )
+from rendering_styles import DauStyle
 
 class InteractionMode(Enum):
     """Interaction modes for constraint enforcement."""
@@ -58,7 +65,7 @@ class DauCompliantEGDFMapper:
     def __init__(self):
         self.layout_engine = GraphvizLayoutEngine()
         self.xdot_parser = SimpleXdotParser()
-        self.default_style = StyleTheme()
+        self.default_style = DauStyle()
         
         # Correspondence tracking
         self._egi_to_visual: Dict[str, str] = {}  # EGI element ID → visual primitive ID

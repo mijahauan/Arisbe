@@ -1,0 +1,10 @@
+# Peirce's Modus Ponens Example
+# Category: peirce
+# Description: Peirce's demonstration of modus ponens inference rule
+# Source: Collected Papers 4.572
+# Pattern: inference
+
+# If P then Q, P, therefore Q
+# Premises: P → Q and P
+# Conclusion: Q
+*x (P x) ~[ (P x) ~[ (Q x) ] ]

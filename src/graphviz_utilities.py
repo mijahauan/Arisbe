@@ -181,24 +181,8 @@ class GraphvizClusterSizer:
             ""
         ]
         
-        # Add clusters (cuts) with size hints
-        for cut in egi.Cut:
-            lines.append(f"  subgraph cluster_{cut.id} {{")
-            lines.append(f"    label=\"{cut.id}\";")
-            lines.append(f"    style=filled;")
-            lines.append(f"    fillcolor=lightgray;")
-            
-            # Add elements in this cut as sizing hints
-            elements_in_cut = egi.area.get(cut.id, frozenset())
-            for element_id in elements_in_cut:
-                if element_id in element_dimensions:
-                    dims = element_dimensions[element_id]
-                    width = dims.get('width', 0.1) * 100  # Scale for DOT
-                    height = dims.get('height', 0.05) * 100
-                    lines.append(f"    \"{element_id}\" [width={width:.2f}, height={height:.2f}];")
-            
-            lines.append("  }")
-            lines.append("")
+        # Generate nested clusters based on EGI containment hierarchy (like PNG script)
+        self._add_nested_clusters(lines, egi, element_dimensions, "  ")
         
         # Add sheet-level elements
         sheet_elements = egi.area.get(egi.sheet, frozenset())
@@ -230,20 +214,52 @@ class GraphvizClusterSizer:
         """Parse cluster bounds from xdot output."""
         cluster_bounds = {}
         
-        # Pattern to match cluster bounds in xdot format
-        cluster_pattern = r'subgraph cluster_(\w+) \{[^}]*_draw_.*?filled.*?(\d+\.?\d*) (\d+\.?\d*) (\d+\.?\d*) (\d+\.?\d*)'
+        # Pattern 1: Clusters with _draw_ attributes (have content)
+        # The _draw_ attribute contains polygon coordinates: P 4 x1 y1 x2 y2 x3 y3 x4 y4
+        cluster_with_draw_pattern = r'subgraph cluster_(\w+) \{[^}]*?_draw_="[^"]*?P 4 ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+) ([\d.]+)'
         
-        for match in re.finditer(cluster_pattern, xdot_output, re.DOTALL):
+        for match in re.finditer(cluster_with_draw_pattern, xdot_output, re.DOTALL):
             cluster_id = match.group(1)
-            x1, y1, x2, y2 = map(float, match.groups()[1:5])
+            # Extract all 8 coordinates (4 corners of rectangle)
+            coords = [float(match.group(i)) for i in range(2, 10)]
+            
+            # Find min/max bounds from the 4 corner points
+            x_coords = [coords[0], coords[2], coords[4], coords[6]]
+            y_coords = [coords[1], coords[3], coords[5], coords[7]]
+            
+            x1, x2 = min(x_coords), max(x_coords)
+            y1, y2 = min(y_coords), max(y_coords)
             
             cluster_bounds[cluster_id] = ClusterBounds(
                 cluster_id=cluster_id,
-                x1=min(x1, x2),
-                y1=min(y1, y2),
-                x2=max(x1, x2),
-                y2=max(y1, y2)
+                x1=x1, y1=y1, x2=x2, y2=y2
             )
+        
+        # Pattern 2: Clusters with bb= attributes (bounding box, for empty clusters)
+        cluster_with_bb_pattern = r'subgraph cluster_(\w+) \{[^}]*?bb="([\d.]+),([\d.]+),([\d.]+),([\d.]+)"'
+        
+        for match in re.finditer(cluster_with_bb_pattern, xdot_output, re.DOTALL):
+            cluster_id = match.group(1)
+            if cluster_id not in cluster_bounds:  # Don't override _draw_ results
+                x1, y1, x2, y2 = map(float, match.groups()[1:5])
+                
+                cluster_bounds[cluster_id] = ClusterBounds(
+                    cluster_id=cluster_id,
+                    x1=x1, y1=y1, x2=x2, y2=y2
+                )
+        
+        # Pattern 3: Extract all cluster names and provide fallback bounds
+        all_cluster_pattern = r'subgraph cluster_(\w+) \{'
+        all_clusters = set(re.findall(all_cluster_pattern, xdot_output))
+        
+        # For any clusters we haven't captured, provide minimal fallback bounds
+        for cluster_id in all_clusters:
+            if cluster_id not in cluster_bounds:
+                # Minimal fallback bounds
+                cluster_bounds[cluster_id] = ClusterBounds(
+                    cluster_id=cluster_id,
+                    x1=50.0, y1=50.0, x2=200.0, y2=150.0
+                )
         
         return cluster_bounds
     
@@ -474,13 +490,24 @@ def get_node_positions(egi: RelationalGraphWithCuts,
 class GraphvizRenderer:
     """Renderer for generating visual diagrams that properly correspond to EGI structures."""
     
-    def generate_dot(self, egi, context, egif_source=None):
+    def generate_dot(self, egi, context, egif_source=None, style=None):
         """Generate DOT representation showing predicates, ν mapping, and spatial containment."""
+        
+        # Apply DauStyle parameters if provided
+        if style is None:
+            from rendering_styles import DauStyle
+            style = DauStyle()
+        
+        # Convert Qt line widths to Graphviz penwidth (approximate conversion)
+        ligature_penwidth = style.ligature_width / 2.0  # 2.0 -> 1.0
+        cut_penwidth = style.cut_line_width / 2.0       # 1.5 -> 0.75
+        
         lines = [
             "digraph EG {",
             "  rankdir=TB;",
             "  compound=true;",
-            "  node [fontsize=10];",
+            f"  node [fontsize=12, fontname=\"Times-Roman\"];",
+            f"  edge [penwidth={ligature_penwidth:.2f}, color=black];",
             ""
         ]
         
@@ -502,12 +529,13 @@ class GraphvizRenderer:
             pred_node_id = f"pred_{e_id.id if hasattr(e_id, 'id') else str(e_id).split('_')[1]}"
             predicate_nodes[e_id] = pred_node_id
             
-            lines.append(f'  "{pred_node_id}" [label="{pred_name}", shape=box, style=filled, fillcolor=lightgreen];')
+            lines.append(f'  "{pred_node_id}" [label="{pred_name}", shape=box, style=rounded, penwidth={cut_penwidth:.2f}, fontname="Times-Roman"];')
         
         # Create vertex nodes with clean labels
         for v_id in egi.V:
             vertex_label = self._get_vertex_label(v_id)
-            lines.append(f'  "{v_id}" [label="{vertex_label}", shape=ellipse, style=filled, fillcolor=lightblue];')
+            vertex_radius_pts = style.vertex_radius * 2  # Convert radius to diameter in points
+            lines.append(f'  "{v_id}" [label="{vertex_label}", shape=circle, width={vertex_radius_pts/72:.3f}, height={vertex_radius_pts/72:.3f}, style=filled, fillcolor=black, fontcolor=white, fontname="Times-Roman"];')
         
         # Add cuts as nested subgraphs with proper containment
         cut_clusters = {}
@@ -515,8 +543,8 @@ class GraphvizRenderer:
         # Build cut hierarchy from area mapping
         cut_hierarchy = self._build_cut_hierarchy(egi)
         
-        # Generate nested cuts
-        self._generate_nested_cuts(egi, cut_hierarchy, predicate_nodes, lines, cut_clusters)
+        # Generate nested cuts with style
+        self._generate_nested_cuts(egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, style=style)
         
         # Add ν mapping connections (predicate-argument relationships)
         lines.append("  // ν mapping connections")
@@ -529,7 +557,7 @@ class GraphvizRenderer:
                     # Find matching vertex object
                     for vertex in egi.V:
                         if vertex.id == arg_vertex_id:
-                            lines.append(f'  "{pred_node}" -> "{vertex}" [label="{i+1}", color=darkblue, fontsize=8];')
+                            lines.append(f'  "{pred_node}" -> "{vertex}" [label="{i+1}", color=black, penwidth={ligature_penwidth:.2f}, fontsize=8, fontname="Times-Roman"];')
                             break
         
         lines.append("}")
@@ -582,7 +610,7 @@ class GraphvizRenderer:
         
         return hierarchy
     
-    def _generate_nested_cuts(self, egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, depth=0):
+    def _generate_nested_cuts(self, egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, style=None, depth=0):
         """Generate nested cut subgraphs with proper containment."""
         # Find root cuts (not contained in other cuts)
         all_child_cuts = set()
@@ -595,16 +623,24 @@ class GraphvizRenderer:
         for i, cut_id in enumerate(root_cuts):
             cluster_name = f"cluster_{depth}_{i}"
             cut_clusters[cut_id] = cluster_name
-            self._generate_cut_subgraph(cut_id, cluster_name, egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, depth)
+            self._generate_cut_subgraph(cut_id, cluster_name, egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, depth, style)
     
-    def _generate_cut_subgraph(self, cut_id, cluster_name, egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, depth):
+    def _generate_cut_subgraph(self, cut_id, cluster_name, egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, depth, style=None):
         """Generate a single cut subgraph with its nested children."""
+        
+        # Apply DauStyle parameters for cuts
+        if style is None:
+            from rendering_styles import DauStyle
+            style = DauStyle()
+        
+        cut_penwidth = style.cut_line_width / 2.0  # Convert to Graphviz penwidth
+        
         lines.append(f"{'  ' * (depth + 1)}subgraph {cluster_name} {{")
-        lines.append(f"{'  ' * (depth + 2)}label=\"Cut\";")
-        lines.append(f"{'  ' * (depth + 2)}style=filled;")
-        lines.append(f"{'  ' * (depth + 2)}fillcolor=lightgray;")
+        lines.append(f"{'  ' * (depth + 2)}label=\"\";")  # No label for clean Dau style
+        lines.append(f"{'  ' * (depth + 2)}style=\"rounded,filled\";")
+        lines.append(f"{'  ' * (depth + 2)}fillcolor=white;")
         lines.append(f"{'  ' * (depth + 2)}color=black;")
-        lines.append(f"{'  ' * (depth + 2)}penwidth=2;")
+        lines.append(f"{'  ' * (depth + 2)}penwidth={cut_penwidth:.2f};")
         
         cut_info = cut_hierarchy[cut_id]
         
@@ -621,7 +657,7 @@ class GraphvizRenderer:
         for j, child_cut_id in enumerate(cut_info['children']):
             child_cluster_name = f"cluster_{depth + 1}_{j}"
             cut_clusters[child_cut_id] = child_cluster_name
-            self._generate_cut_subgraph(child_cut_id, child_cluster_name, egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, depth + 1)
+            self._generate_cut_subgraph(child_cut_id, child_cluster_name, egi, cut_hierarchy, predicate_nodes, lines, cut_clusters, depth + 1, style)
         
         lines.append(f"{'  ' * (depth + 1)}}}")
         lines.append("")

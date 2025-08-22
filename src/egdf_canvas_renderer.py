@@ -19,30 +19,7 @@ from PySide6.QtGui import QPainter, QPen, QBrush, QColor, QFont, QPainterPath
 from PySide6.QtCore import Qt, QPointF, QRectF
 import math
 
-class DauVisualStyle:
-    """Dau-compliant visual styling for Existential Graphs."""
-    
-    def __init__(self):
-        # Heavy identity lines (Dau's key convention)
-        self.identity_line_width = 6.0
-        self.identity_line_color = QColor(0, 0, 0)  # Black
-        
-        # Fine cut boundaries 
-        self.cut_line_width = 1.5
-        self.cut_line_color = QColor(0, 0, 0)  # Black
-        self.cut_fill = None  # No fill
-        
-        # Vertex spots (identity markers)
-        self.vertex_radius = 4.0
-        self.vertex_color = QColor(0, 0, 0)  # Black filled
-        
-        # Predicate text
-        self.predicate_font_family = "Arial"
-        self.predicate_font_size = 12
-        self.predicate_text_color = QColor(0, 0, 0)  # Black
-        
-        # Canvas
-        self.background_color = QColor(255, 255, 255)  # White
+# DauVisualStyle removed - consolidated into rendering_styles.DauStyle
 
 
 class EGDFCanvasRenderer(QWidget):
@@ -62,7 +39,8 @@ class EGDFCanvasRenderer(QWidget):
         self.setFixedSize(width, height)
         
         # Visual style
-        self.style = DauVisualStyle()
+        from rendering_styles import DauStyle
+        self.style = DauStyle()
         
         # EGDF data to render
         self.spatial_primitives: List[Dict[str, Any]] = []

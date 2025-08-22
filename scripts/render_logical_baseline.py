@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import List, Tuple
 import argparse
 
-from egif_parser_dau import parse_egif
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from egif_parser_dau import EGIFParser
+from layout_phase_implementations import NinePhaseLayoutPipeline
 from renderer_minimal_dau import render_layout_to_svg
 
 CASES: List[Tuple[str, str]] = [
@@ -40,11 +40,11 @@ def main() -> None:
 
     outdir = args.outdir
     Path(outdir).mkdir(parents=True, exist_ok=True)
-    engine = GraphvizLayoutEngine()
+    pipeline = NinePhaseLayoutPipeline()
     for name, egif in CASES:
         print(f"- {name}: {egif}")
-        g = parse_egif(egif)
-        layout = engine.create_layout_from_graph(g)
+        g = EGIFParser(egif).parse()
+        layout = pipeline.execute_pipeline(g)
         svg_path = str(Path(outdir) / f"{name}.svg")
         # Pass graph and CLI tunables to draw predicates/vertices/ligatures
         render_layout_to_svg(

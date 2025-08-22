@@ -169,15 +169,7 @@ class CanvasSettings:
     background_color: str = "#ffffff"
     coordinate_system: str = "cartesian"
 
-@dataclass
-class StyleTheme:
-    """Visual style theme for Dau conventions."""
-    name: str = "dau_standard"
-    identity_line_width: float = 8.0
-    vertex_radius: float = 6.0
-    cut_line_width: float = 1.0
-    predicate_font_size: int = 12
-    predicate_font_family: str = "serif"
+# StyleTheme removed - consolidated into rendering_styles.DauStyle
 
 @dataclass
 class EGDFMetadata:
@@ -580,7 +572,8 @@ class EGDFParser:
         
         # Create visual layout
         canvas = CanvasSettings(width=800, height=600)
-        style_theme = StyleTheme()
+        from rendering_styles import DauStyle
+        style_theme = DauStyle()
         
         # Convert spatial primitives to dict format (handle both dict and dataclass formats)
         spatial_primitives_data = []
@@ -588,12 +581,22 @@ class EGDFParser:
             if isinstance(primitive, dict):
                 primitive_dict = primitive
             else:
-                primitive_dict = asdict(primitive)
+                # Check if it's a dataclass instance before calling asdict
+                if hasattr(primitive, '__dataclass_fields__'):
+                    primitive_dict = asdict(primitive)
+                else:
+                    # Convert non-dataclass objects to dict manually
+                    primitive_dict = {
+                        'element_id': getattr(primitive, 'element_id', None),
+                        'element_type': getattr(primitive, 'element_type', None),
+                        'position': getattr(primitive, 'position', None),
+                        'bounds': getattr(primitive, 'bounds', None)
+                    }
             spatial_primitives_data.append(primitive_dict)
         
         visual_layout = {
-            "canvas": asdict(canvas),
-            "style_theme": asdict(style_theme),
+            "canvas": asdict(canvas) if hasattr(canvas, '__dataclass_fields__') else canvas.__dict__,
+            "style_theme": asdict(style_theme) if hasattr(style_theme, '__dataclass_fields__') else style_theme.__dict__,
             "spatial_primitives": spatial_primitives_data
         }
         
@@ -696,7 +699,8 @@ class EGDFLayoutGenerator:
     
     def __init__(self):
         self.default_canvas = CanvasSettings(width=800, height=600)
-        self.default_style = StyleTheme()
+        from rendering_styles import DauStyle
+        self.default_style = DauStyle()
         
         # Use the formal Dau-compliant mapper
         from dau_compliant_egdf_mapper import DauCompliantEGDFMapper

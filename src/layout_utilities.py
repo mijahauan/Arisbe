@@ -356,12 +356,21 @@ class HookPositioning:
         vertex_angles.sort(key=lambda x: x[1])
         
         # Assign to cardinal points in order
-        cardinal_points = [
-            ('E', (predicate_bounds[2], predicate_center[1])),  # East
-            ('S', (predicate_center[0], predicate_bounds[3])),  # South
-            ('W', (predicate_bounds[0], predicate_center[1])),  # West
-            ('N', (predicate_center[0], predicate_bounds[1]))   # North
-        ]
+        if predicate_bounds is None:
+            # Fallback to position-based hooks if no bounds
+            cardinal_points = [
+                ('E', (predicate_center[0] + 25, predicate_center[1])),  # East
+                ('S', (predicate_center[0], predicate_center[1] + 25)),  # South
+                ('W', (predicate_center[0] - 25, predicate_center[1])),  # West
+                ('N', (predicate_center[0], predicate_center[1] - 25))   # North
+            ]
+        else:
+            cardinal_points = [
+                ('E', (predicate_bounds.right, predicate_center[1])),  # East
+                ('S', (predicate_center[0], predicate_bounds.bottom)),  # South
+                ('W', (predicate_bounds.left, predicate_center[1])),  # West
+                ('N', (predicate_center[0], predicate_bounds.top))   # North
+            ]
         
         for i, (vertex_id, _) in enumerate(vertex_angles):
             cardinal_idx = i % len(cardinal_points)

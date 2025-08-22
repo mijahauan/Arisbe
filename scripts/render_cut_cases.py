@@ -17,8 +17,8 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 # Correct imports
-from egif_parser_dau import parse_egif
-from graphviz_layout_engine_v2 import create_canonical_layout
+from egif_parser_dau import EGIFParser
+from layout_phase_implementations import NinePhaseLayoutPipeline
 from pyside6_canvas import PySide6Canvas
 from diagram_renderer_dau import DiagramRendererDau
 
@@ -102,7 +102,7 @@ def main() -> int:
     print("Rendering EGIF cut-only cases with Dau renderer...")
     for name, egif in CASES:
         print(f"- {name}: {egif}")
-        g = parse_egif(egif)
+        g = EGIFParser(egif).parse()
         # Print EGI area hierarchy for diagnostics
         try:
             print("  EGI areas (cuts only):")
@@ -115,7 +115,8 @@ def main() -> int:
                     print(f"    {aid} -> {cut_children}")
         except Exception as e:
             print(f"  (could not print area hierarchy: {e})")
-        layout = create_canonical_layout(g)
+        pipeline = NinePhaseLayoutPipeline()
+        layout = pipeline.execute_pipeline(g)
         canvas = PySide6Canvas(args.width, args.height, title=f"Arisbe EG: {name}")
         DiagramRendererDau().render_diagram(canvas, g, layout, selected_ids=None)
 

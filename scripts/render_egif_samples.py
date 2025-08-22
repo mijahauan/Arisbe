@@ -12,10 +12,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.egif_parser_dau import EGIFLexer, EGIFSyntaxValidator, parse_egif  # type: ignore
-from src.egi_core_dau import RelationalGraphWithCuts  # type: ignore
-from src.graphviz_layout_engine_v2 import GraphvizLayoutEngine  # type: ignore
-from src.layout_post_processor import LayoutPostProcessor  # type: ignore
+from src.egif_parser_dau import EGIFParser  # type: ignore
+from src.layout_phase_implementations import NinePhaseLayoutPipeline  # type: ignore
 from src.diagram_renderer_dau import DiagramRendererDau  # type: ignore
 from src.pyside6_canvas import PySide6Canvas  # type: ignore
 from PySide6.QtWidgets import QApplication  # type: ignore
@@ -23,30 +21,25 @@ from PySide6.QtWidgets import QApplication  # type: ignore
 # Minimal EGIF -> EGI helper using existing parser pieces.
 # If a higher-level parse function exists, replace this logic accordingly.
 
-def parse_egif_to_egi(text: str) -> RelationalGraphWithCuts:
-    lex = EGIFLexer(text)
-    tokens = lex.tokenize()
-    if not EGIFSyntaxValidator(tokens).validate():
-        raise ValueError("Invalid EGIF syntax")
-    return parse_egif(text)
+def parse_egif_to_egi(text: str):
+    parser = EGIFParser(text)
+    return parser.parse()
 
 
 def render_egif_samples(samples: dict[str, str], outdir: Path) -> None:
     outdir.mkdir(parents=True, exist_ok=True)
 
-    engine = GraphvizLayoutEngine()
-    post = LayoutPostProcessor()
+    pipeline = NinePhaseLayoutPipeline()
     renderer = DiagramRendererDau()
 
     for name, egif in samples.items():
-        graph = parse_egif_to_egi(egif)
-        layout = engine.layout(graph)
-        layout2 = post.process_layout(layout)
+        egi = parse_egif_to_egi(egif)
+        layout_result = pipeline.execute_pipeline(egi)
 
         canvas = PySide6Canvas(width=900, height=700, title=f"EGIF {name}")
         # Ensure widgets are realized before grabbing image
         canvas.show()
-        renderer.render_diagram(canvas, graph, layout2)
+        renderer.render_diagram(canvas, egi, layout_result)
         # Process events to ensure paint
         app = QApplication.instance()
         if app is not None:

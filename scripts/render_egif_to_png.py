@@ -25,7 +25,7 @@ sys.path.insert(0, str(REPO_ROOT / 'src'))
 from egif_parser_dau import EGIFParser
 from canonical import CanonicalPipeline
 from area_based_dau_renderer import AreaBasedDauRenderer
-
+from layout_phase_implementations import NinePhaseLayoutPipeline
 
 def generate_simple_dot_from_egi(egi) -> str:
     """Generate basic DOT content from EGI for PNG rendering."""

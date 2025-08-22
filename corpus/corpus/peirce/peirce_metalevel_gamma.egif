@@ -1,0 +1,9 @@
+# Peirce's Metalevel Gamma Graph Example
+# Category: peirce
+# Description: Peirce's 1898 example of metalevel statement using Gamma graphs
+# Source: Peirce (1898) "Reasoning and the Logic of Things"
+# Pattern: metalevel
+
+# "You are a good girl" is much to be wished
+# Using that-operator for metalevel reference
+(that "You are a good girl" | *p) ("is much to be wished" p)

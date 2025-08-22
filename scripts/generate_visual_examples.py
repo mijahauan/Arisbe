@@ -6,7 +6,7 @@ Generates visual Existential Graph examples using the canonical 9-phase pipeline
 and GraphvizRenderer. Creates both SVG and PNG outputs for corpus examples.
 
 This script validates that the PNG generation pipeline is fully functional
-after the graphviz_layout_engine_v2 regression was resolved.
+using the current canonical pipeline and GraphvizRenderer.
 """
 
 import sys

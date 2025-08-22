@@ -1,25 +1,26 @@
 digraph EG {
   rankdir=TB;
   compound=true;
-  node [fontsize=10];
+  node [fontsize=12, fontname="Times-Roman"];
+  edge [penwidth=1.00, color=black];
 
   label="EGIF: *x (Human x) ~[ (Mortal x) ]";
   labelloc="t";
   fontsize=12;
 
-  "pred_e_3f1ea4dc" [label="Human", shape=box, style=filled, fillcolor=lightgreen];
-  "pred_e_1de19ab6" [label="Mortal", shape=box, style=filled, fillcolor=lightgreen];
-  "Vertex(id='v_42533a1a', label=None, is_generic=True)" [label="42533a1a", shape=ellipse, style=filled, fillcolor=lightblue];
+  "pred_e_286ddfdb" [label="Mortal", shape=box, style=rounded, penwidth=0.75, fontname="Times-Roman"];
+  "pred_e_116c1679" [label="Human", shape=box, style=rounded, penwidth=0.75, fontname="Times-Roman"];
+  "Vertex(id='v_d7479172', label=None, is_generic=True)" [label="d7479172", shape=circle, width=0.069, height=0.069, style=filled, fillcolor=black, fontcolor=white, fontname="Times-Roman"];
   subgraph cluster_0_0 {
-    label="Cut";
-    style=filled;
-    fillcolor=lightgray;
+    label="";
+    style="rounded,filled";
+    fillcolor=white;
     color=black;
-    penwidth=2;
-    "pred_e_1de19ab6";
+    penwidth=0.75;
+    "pred_e_286ddfdb";
   }
 
   // ν mapping connections
-  "pred_e_3f1ea4dc" -> "Vertex(id='v_42533a1a', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
-  "pred_e_1de19ab6" -> "Vertex(id='v_42533a1a', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+  "pred_e_286ddfdb" -> "Vertex(id='v_d7479172', label=None, is_generic=True)" [label="1", color=black, penwidth=1.00, fontsize=8, fontname="Times-Roman"];
+  "pred_e_116c1679" -> "Vertex(id='v_d7479172', label=None, is_generic=True)" [label="1", color=black, penwidth=1.00, fontsize=8, fontname="Times-Roman"];
 }

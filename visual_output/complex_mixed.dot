@@ -1,32 +1,33 @@
 digraph EG {
   rankdir=TB;
   compound=true;
-  node [fontsize=10];
+  node [fontsize=12, fontname="Times-Roman"];
+  edge [penwidth=1.00, color=black];
 
   label="EGIF: *x *y (Human x) (Loves x y) ~[ (Mortal x) (Happy y) ]";
   labelloc="t";
   fontsize=12;
 
-  "pred_e_987f6577" [label="Loves", shape=box, style=filled, fillcolor=lightgreen];
-  "pred_e_72138b69" [label="Human", shape=box, style=filled, fillcolor=lightgreen];
-  "pred_e_57798f2b" [label="Happy", shape=box, style=filled, fillcolor=lightgreen];
-  "pred_e_2ed4e084" [label="Mortal", shape=box, style=filled, fillcolor=lightgreen];
-  "Vertex(id='v_b043b825', label=None, is_generic=True)" [label="b043b825", shape=ellipse, style=filled, fillcolor=lightblue];
-  "Vertex(id='v_a6408cfe', label=None, is_generic=True)" [label="a6408cfe", shape=ellipse, style=filled, fillcolor=lightblue];
+  "pred_e_1eb3df68" [label="Loves", shape=box, style=rounded, penwidth=0.75, fontname="Times-Roman"];
+  "pred_e_56686b91" [label="Mortal", shape=box, style=rounded, penwidth=0.75, fontname="Times-Roman"];
+  "pred_e_863fd40c" [label="Human", shape=box, style=rounded, penwidth=0.75, fontname="Times-Roman"];
+  "pred_e_166cf493" [label="Happy", shape=box, style=rounded, penwidth=0.75, fontname="Times-Roman"];
+  "Vertex(id='v_e7da5d5f', label=None, is_generic=True)" [label="e7da5d5f", shape=circle, width=0.069, height=0.069, style=filled, fillcolor=black, fontcolor=white, fontname="Times-Roman"];
+  "Vertex(id='v_c23bd7dc', label=None, is_generic=True)" [label="c23bd7dc", shape=circle, width=0.069, height=0.069, style=filled, fillcolor=black, fontcolor=white, fontname="Times-Roman"];
   subgraph cluster_0_0 {
-    label="Cut";
-    style=filled;
-    fillcolor=lightgray;
+    label="";
+    style="rounded,filled";
+    fillcolor=white;
     color=black;
-    penwidth=2;
-    "pred_e_57798f2b";
-    "pred_e_2ed4e084";
+    penwidth=0.75;
+    "pred_e_166cf493";
+    "pred_e_56686b91";
   }
 
   // ν mapping connections
-  "pred_e_987f6577" -> "Vertex(id='v_b043b825', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
-  "pred_e_987f6577" -> "Vertex(id='v_a6408cfe', label=None, is_generic=True)" [label="2", color=darkblue, fontsize=8];
-  "pred_e_72138b69" -> "Vertex(id='v_b043b825', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
-  "pred_e_57798f2b" -> "Vertex(id='v_a6408cfe', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
-  "pred_e_2ed4e084" -> "Vertex(id='v_b043b825', label=None, is_generic=True)" [label="1", color=darkblue, fontsize=8];
+  "pred_e_1eb3df68" -> "Vertex(id='v_c23bd7dc', label=None, is_generic=True)" [label="1", color=black, penwidth=1.00, fontsize=8, fontname="Times-Roman"];
+  "pred_e_1eb3df68" -> "Vertex(id='v_e7da5d5f', label=None, is_generic=True)" [label="2", color=black, penwidth=1.00, fontsize=8, fontname="Times-Roman"];
+  "pred_e_56686b91" -> "Vertex(id='v_c23bd7dc', label=None, is_generic=True)" [label="1", color=black, penwidth=1.00, fontsize=8, fontname="Times-Roman"];
+  "pred_e_863fd40c" -> "Vertex(id='v_c23bd7dc', label=None, is_generic=True)" [label="1", color=black, penwidth=1.00, fontsize=8, fontname="Times-Roman"];
+  "pred_e_166cf493" -> "Vertex(id='v_e7da5d5f', label=None, is_generic=True)" [label="1", color=black, penwidth=1.00, fontsize=8, fontname="Times-Roman"];
 }

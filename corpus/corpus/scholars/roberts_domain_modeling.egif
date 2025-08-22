@@ -1,0 +1,9 @@
+# Roberts' Domain Modeling Example
+# Category: scholars
+# Description: Complex domain model with inheritance and multiple relations
+# Source: Roberts (1973) "The Existential Graphs of Charles S. Peirce"
+# Pattern: domain_modeling
+
+# "Every professor is a person who teaches courses and has students"
+# ∀x(Professor(x) → (Person(x) ∧ ∃y(Course(y) ∧ Teaches(x,y)) ∧ ∃z(Student(z) ∧ Has(x,z))))
+*x ~[ (Professor x) ~[ (Person x) *y (Course y) (Teaches x y) *z (Student z) (Has x z) ] ]

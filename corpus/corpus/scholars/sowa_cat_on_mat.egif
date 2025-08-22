@@ -1,0 +1,8 @@
+# Sowa's Cat on Mat Example
+# Category: scholars
+# Description: Sowa's classic example from EGIF specification: "A cat is on a mat"
+# Source: Sowa EGIF-2014, Section 2.5
+# Pattern: simple_relation
+
+# "A cat is on a mat"
+*x *y (Cat x) (On x y) (Mat y)

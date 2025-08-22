@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "created_at": 1755705538.7386959,
+  "created_at": 1755876992.8271391,
   "test_vectors": [
     {
       "name": "simple_predicate",
@@ -58,7 +58,7 @@
       "dau_yaml": {
         "success": true,
         "round_trip_success": true,
-        "conversion_time": 0.0022840499877929688
+        "conversion_time": 0.0023207664489746094
       },
       "egdf_parser": {
         "success": true,
@@ -72,8 +72,8 @@
           "edges": 1,
           "cuts": 0
         },
-        "json_size": 1844,
-        "yaml_size": 1314,
+        "json_size": 2594,
+        "yaml_size": 2576,
         "spatial_primitives": 2
       },
       "overall_success": true
@@ -82,7 +82,7 @@
       "dau_yaml": {
         "success": true,
         "round_trip_success": true,
-        "conversion_time": 0.002546072006225586
+        "conversion_time": 0.002502918243408203
       },
       "egdf_parser": {
         "success": true,
@@ -96,8 +96,8 @@
           "edges": 2,
           "cuts": 1
         },
-        "json_size": 2668,
-        "yaml_size": 1797,
+        "json_size": 3418,
+        "yaml_size": 3059,
         "spatial_primitives": 4
       },
       "overall_success": true
@@ -106,7 +106,7 @@
       "dau_yaml": {
         "success": true,
         "round_trip_success": true,
-        "conversion_time": 0.0022628307342529297
+        "conversion_time": 0.0022220611572265625
       },
       "egdf_parser": {
         "success": true,
@@ -120,8 +120,8 @@
           "edges": 1,
           "cuts": 0
         },
-        "json_size": 2244,
-        "yaml_size": 1558,
+        "json_size": 2994,
+        "yaml_size": 2820,
         "spatial_primitives": 3
       },
       "overall_success": true

@@ -1,0 +1,27 @@
+{
+  "id": "dau_theorem_proving",
+  "category": "scholars",
+  "title": "Dau's Theorem Proving Example",
+  "description": "Complex nested quantifier structure demonstrating theorem proving capabilities in EG",
+  "source": {
+    "author": "Frithjof Dau",
+    "work": "Mathematical Logic with Diagrams",
+    "year": 2006,
+    "page": "Chapter on Existential Graph Inference",
+    "publisher": "Logos Verlag Berlin"
+  },
+  "logical_form": "∀x(P(x) → ∃y(Q(x,y) ∧ ∀z(R(y,z) → S(z))))",
+  "natural_language": "For all x, if P(x) then there exists y such that Q(x,y) and for all z, if R(y,z) then S(z)",
+  "complexity": {
+    "nesting_depth": 4,
+    "entity_count": 3,
+    "predicate_count": 4,
+    "cut_count": 5
+  },
+  "test_rationale": "Tests deep nesting, mixed quantifiers, and complex implication chains for theorem proving",
+  "epg_features": {
+    "is_starting_position": true,
+    "valid_transformations": ["insertion", "deletion", "iteration"],
+    "invalid_transformations": []
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "peirce_metalevel_gamma",
+  "category": "peirce",
+  "title": "Peirce's Metalevel Gamma Graph",
+  "description": "Peirce's 1898 example demonstrating metalevel statements about propositions using Gamma graphs",
+  "source": {
+    "author": "Charles Sanders Peirce",
+    "work": "Reasoning and the Logic of Things",
+    "year": 1898,
+    "page": "Cambridge Conferences Lectures",
+    "reference": "Figure 6 in Sowa EGIF-2014"
+  },
+  "logical_form": "that(\"You are a good girl\") ∧ is_much_to_be_wished(that(\"You are a good girl\"))",
+  "natural_language": "That you are a good girl is much to be wished",
+  "complexity": {
+    "nesting_depth": 2,
+    "entity_count": 1,
+    "predicate_count": 2,
+    "cut_count": 0
+  },
+  "test_rationale": "Tests metalevel reasoning and Gamma graph extensions beyond first-order logic",
+  "epg_features": {
+    "is_starting_position": false,
+    "valid_transformations": ["insertion"],
+    "invalid_transformations": ["deletion", "iteration"]
+  }
+}

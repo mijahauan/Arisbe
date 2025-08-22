@@ -19,7 +19,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from egif_parser_dau import EGIFParser
 from egi_core_dau import RelationalGraphWithCuts
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from layout_phase_implementations import NinePhaseLayoutPipeline
 from diagram_renderer_dau import DiagramRendererDau
 from pyside6_canvas import create_qt_canvas
 
@@ -72,7 +72,7 @@ def main():
     out_dir = os.path.join(repo_root, 'reports', 'corpus_visuals')
     ensure_dir(out_dir)
 
-    engine = GraphvizLayoutEngine(mode="default-nopp")
+    pipeline = NinePhaseLayoutPipeline()
     renderer = DiagramRendererDau()
 
     results: List[Dict] = []
@@ -89,7 +89,7 @@ def main():
             with open(path, 'r', encoding='utf-8') as f:
                 egif_text = f.read()
             graph = EGIFParser(egif_text).parse()
-            layout_result = engine.create_layout_from_graph(graph)
+            layout_result = pipeline.execute_pipeline(graph)
             rec["issues"].extend(basic_geometry_checks(graph, layout_result))
             png_path = os.path.join(out_dir, f"{name}.png")
             render_to_png(png_path, renderer, graph, layout_result)

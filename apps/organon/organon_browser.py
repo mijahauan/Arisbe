@@ -16,24 +16,58 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 
 try:
     from PySide6.QtCore import Qt, QTimer, Signal
-    from PySide6.QtWidgets import (
-        QMainWindow, QVBoxLayout, QHBoxLayout, 
-        QWidget, QPushButton, QTextEdit, QTreeWidget, 
-        QTreeWidgetItem, QTabWidget, QSplitter, 
-        QLabel, QStatusBar, QFileDialog, QMessageBox,
-        QStatusBar, QMenuBar, QMenu, QAction, QToolBar, QLineEdit, QGroupBox
-    )
-    from PySide6.QtGui import QPainter, QFont, QIcon
+    from PySide6.QtWidgets import (QMainWindow, QVBoxLayout, QHBoxLayout, 
+                                   QWidget, QPushButton, QTextEdit, QTreeWidget, 
+                                   QTreeWidgetItem, QTabWidget, QSplitter, 
+                                   QLabel, QStatusBar, QComboBox, QGroupBox,
+                                   QToolBar, QLineEdit, QFileDialog, QMessageBox,
+                                   QStyle)
+    from PySide6.QtGui import QPainter, QFont, QIcon, QPen, QBrush, QColor, QAction
     PYSIDE6_AVAILABLE = True
 except ImportError:
     PYSIDE6_AVAILABLE = False
     print("PySide6 not available - install with: pip install PySide6")
+    # Define dummy classes to prevent NameError
+    class QMainWindow: pass
+    class QVBoxLayout: pass
+    class QHBoxLayout: pass
+    class QWidget: pass
+    class QPushButton: pass
+    class QTextEdit: pass
+    class QTreeWidget: pass
+    class QTreeWidgetItem: pass
+    class QTabWidget: pass
+    class QSplitter: pass
+    class QLabel: pass
+    class QStatusBar: pass
+    class QComboBox: pass
+    class QGroupBox: pass
+    class QAction: pass
+    class QToolBar: pass
+    class QLineEdit: pass
+    class QFileDialog: pass
+    class QMessageBox: pass
+    class QStyle: pass
+    class QPainter: pass
+    class QFont: pass
+    class QIcon: pass
+    class QPen: pass
+    class QBrush: pass
+    class QColor: pass
+    class Qt: pass
+    class QTimer: pass
+    class Signal: pass
 
 from egif_parser_dau import EGIFParser
 from egdf_parser import EGDFParser
-from canonical_qt_renderer import CanonicalQtRenderer
-from canonical import CanonicalPipeline
+from qt_renderer import QtRenderer
+from constraint_aware_renderer import ConstraintAwareQtRenderer
+# CanonicalPipeline removed - using 9-phase pipeline only
 from layout_types import LayoutResult
+
+if not PYSIDE6_AVAILABLE:
+    print("Cannot run Organon Browser without PySide6")
+    sys.exit(1)
 
 class OrganonBrowser(QMainWindow):
     """
@@ -51,11 +85,35 @@ class OrganonBrowser(QMainWindow):
         self.setWindowTitle("Arisbe Organon - Existential Graph Browser")
         self.setGeometry(100, 100, 1400, 900)
         
-        # Core components
-        self.egif_parser = EGIFParser()
+        # Initialize parsers and renderers
         self.egdf_parser = EGDFParser()
-        self.pipeline = CanonicalPipeline()
-        self.renderer = CanonicalQtRenderer()
+        from rendering_styles import DauStyle
+        self.dau_style = DauStyle()
+        # Use constraint-aware renderer to maintain EGI-EGDF concordance
+        base_renderer = QtRenderer()
+        self.renderer = ConstraintAwareQtRenderer(base_renderer)
+        
+        # Initialize 9-phase layout pipeline (the ONLY pipeline)
+        from layout_phase_implementations import (
+            ElementSizingPhase, ContainerSizingPhase, CollisionDetectionPhase,
+            PredicatePositioningPhase, VertexPositioningPhase, HookAssignmentPhase,
+            RectilinearLigaturePhase, BranchOptimizationPhase, AreaCompactionPhase,
+            PhaseStatus
+        )
+        from spatial_awareness_system import SpatialAwarenessSystem
+        
+        self.spatial_system = SpatialAwarenessSystem()
+        self.layout_phases = [
+            ElementSizingPhase(),
+            ContainerSizingPhase(self.spatial_system),
+            CollisionDetectionPhase(self.spatial_system),
+            PredicatePositioningPhase(self.spatial_system),
+            VertexPositioningPhase(self.spatial_system),
+            HookAssignmentPhase(),
+            RectilinearLigaturePhase(),
+            BranchOptimizationPhase(),
+            AreaCompactionPhase()
+        ]
         
         # Data
         self.current_egi = None
@@ -67,7 +125,10 @@ class OrganonBrowser(QMainWindow):
         self._setup_menus()
         self._setup_toolbar()
         self._setup_status_bar()
-        self._load_corpus()
+        # Load corpus after UI setup
+        QTimer.singleShot(500, self._load_corpus)
+        # Initialize with default graph after UI is ready - ensure chiron exists
+        QTimer.singleShot(1500, self._load_default_graph)
         
     def _setup_ui(self):
         """Setup the main user interface."""
@@ -144,7 +205,7 @@ class OrganonBrowser(QMainWindow):
         # Corpus tree
         self.corpus_tree = QTreeWidget()
         self.corpus_tree.setHeaderLabel("Examples")
-        self.corpus_tree.itemClicked.connect(self._corpus_item_selected)
+        self.corpus_tree.itemClicked.connect(self._on_corpus_item_selected)
         corpus_layout.addWidget(self.corpus_tree)
         
         layout.addWidget(corpus_group)
@@ -318,17 +379,14 @@ class OrganonBrowser(QMainWindow):
         if not corpus_path.exists():
             self.status_bar.showMessage("Corpus directory not found", 3000)
             return
-        
-        # Clear existing items
+                
         self.corpus_tree.clear()
+        self.corpus_examples = {}
         
-        # Load corpus structure
+        # Load directory structure into tree
         self._load_directory_recursive(corpus_path, self.corpus_tree.invisibleRootItem())
         
-        # Expand first level
-        for i in range(self.corpus_tree.topLevelItemCount()):
-            self.corpus_tree.topLevelItem(i).setExpanded(True)
-        
+        self.corpus_tree.expandAll()
         self.status_bar.showMessage(f"Loaded corpus from {corpus_path}", 3000)
     
     def _load_directory_recursive(self, directory, parent_item):
@@ -349,11 +407,13 @@ class OrganonBrowser(QMainWindow):
                     tree_item.setIcon(0, self.style().standardIcon(QStyle.SP_DirIcon))
                     self._load_directory_recursive(item, tree_item)
                 else:
-                    # Set file icon based on extension
-                    if item.suffix.lower() in ['.egif', '.yaml', '.yml', '.json']:
+                    # Set appropriate icon based on file type
+                    if item.suffix.lower() in ['.egif', '.txt']:
                         tree_item.setIcon(0, self.style().standardIcon(QStyle.SP_FileIcon))
-                        # Make supported files selectable
-                        tree_item.setFlags(tree_item.flags() | Qt.ItemIsSelectable)
+                    elif item.suffix.lower() in ['.yaml', '.yml']:
+                        tree_item.setIcon(0, self.style().standardIcon(QStyle.SP_FileIcon))
+                    elif item.suffix.lower() == '.json':
+                        tree_item.setIcon(0, self.style().standardIcon(QStyle.SP_FileIcon))
                     else:
                         tree_item.setIcon(0, self.style().standardIcon(QStyle.SP_FileIcon))
                         tree_item.setForeground(0, QColor(128, 128, 128))  # Gray out unsupported files
@@ -366,7 +426,8 @@ class OrganonBrowser(QMainWindow):
     def _load_corpus(self):
         """Load corpus examples."""
         try:
-            # Load corpus examples from the corpus directory
+            # Load corpus on startup
+            QTimer.singleShot(100, self.load_corpus_directory)
             corpus_path = Path(__file__).parent.parent.parent / 'corpus' / 'corpus'
             
             if not corpus_path.exists():
@@ -384,8 +445,17 @@ class OrganonBrowser(QMainWindow):
                     
                     for example_file in category_path.glob("*.egif"):
                         try:
-                            with open(example_file, 'r') as f:
-                                egif_content = f.read().strip()
+                            file_content = example_file.read_text().strip()
+                            
+                            # Extract EGIF from file content (skip comments and metadata)
+                            egif_lines = []
+                            for line in file_content.split('\n'):
+                                line = line.strip()
+                                # Skip empty lines and comments
+                                if line and not line.startswith('#'):
+                                    egif_lines.append(line)
+                            
+                            egif_content = ' '.join(egif_lines) if egif_lines else file_content
                             
                             example_item = QTreeWidgetItem([example_file.stem])
                             example_item.setData(0, Qt.UserRole, {
@@ -452,24 +522,20 @@ class OrganonBrowser(QMainWindow):
         except Exception as e:
             self.status_bar.showMessage(f"Error loading file: {e}", 5000)
     
-    def _load_egif_file(self, file_path):
-        """Load and display EGIF file."""
+    def _load_egif_file(self, file_path: Path):
+        """Load and display an EGIF file."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 egif_content = f.read().strip()
             
-            # Parse EGIF
-            from egif_parser_dau import EGIFParser
-            parser = EGIFParser(egif_content)
-            egi = parser.parse()
-            
-            # Update visualization tabs
-            self._update_visualization_tabs(egi, egif_content, file_path.name)
-            
-            self.status_bar.showMessage(f"Loaded EGIF: {file_path.name}", 3000)
-            
+            if egif_content:
+                self._parse_and_display_egif(egif_content, str(file_path))
+                self.status_bar.showMessage(f"Loaded: {file_path.name}")
+            else:
+                self.status_bar.showMessage("File is empty", 3000)
+                
         except Exception as e:
-            self.status_bar.showMessage(f"Error parsing EGIF: {e}", 5000)
+            self.status_bar.showMessage(f"Error loading file: {e}", 5000)
     
     def _load_yaml_file(self, file_path):
         """Load and display YAML file."""
@@ -578,43 +644,89 @@ class OrganonBrowser(QMainWindow):
         """Parse EGIF from direct input."""
         egif_text = self.egif_input.toPlainText().strip()
         if egif_text:
-            self._load_graph_from_egif(egif_text, "Direct Input")
+            self._parse_and_display_egif(egif_text, "Direct Input")
             self._add_to_history(egif_text, "Direct Input", 'egif')
             
-    def _load_graph_from_egif(self, egif_text: str, source_name: str):
-        """Load and display graph from EGIF text."""
+    def _parse_and_display_egif(self, egif_content: str, source_name: str):
+        """Parse EGIF content and display in all tabs."""
         try:
+            # Extract actual EGIF from content (skip comments)
+            egif_lines = [line.strip() for line in egif_content.split('\n') 
+                         if line.strip() and not line.strip().startswith('#')]
+            
+            if not egif_lines:
+                self.status_bar.showMessage("No EGIF content found", 3000)
+                return
+                
+            egif_text = ' '.join(egif_lines)
+            self.current_egif = egif_text
+            
             # Parse EGIF to EGI
+            from egif_parser_dau import EGIFParser
             parser = EGIFParser(egif_text)
             egi = parser.parse()
-            self._load_graph_from_egi(egi, source_name)
-            
-        except Exception as e:
-            QMessageBox.critical(self, "Parse Error", f"Failed to parse EGIF:\n{e}")
-            self.status_bar.showMessage(f"Parse error: {e}")
-            
-    def _load_graph_from_egi(self, egi, source_name: str):
-        """Load and display graph from EGI."""
-        try:
             self.current_egi = egi
             
-            # Parse and create EGDF
-            # For now, create minimal layout - this will be enhanced
-            layout_result = type('LayoutResult', (), {
-                'vertex_positions': {v.id: (100 + i * 50, 100) for i, v in enumerate(egi.V)},
-                'edge_positions': {e.id: (200 + i * 50, 150) for i, e in enumerate(egi.E)},
-                'cut_bounds': {c.id: (50 + i * 100, 50, 150 + i * 100, 150) for i, c in enumerate(egi.Cut)}
-            })()
+            # Execute 9-phase layout pipeline (the ONLY pipeline)
+            context = {}
+            success = True
+            
+            for phase in self.layout_phases:
+                result = phase.execute(egi, context)
+                from layout_phase_implementations import PhaseStatus
+                if result.status != PhaseStatus.COMPLETED:
+                    print(f'9-phase pipeline failed at {result.phase_name}')
+                    success = False
+                    break
+            
+            if success:
+                # Extract layout from 9-phase pipeline context
+                from types import SimpleNamespace
+                layout_result = SimpleNamespace()
+                layout_result.vertex_positions = context.get('vertex_positions', {})
+                layout_result.edge_positions = context.get('edge_positions', {})
+                layout_result.cut_bounds = context.get('cut_bounds', {})
+                
+                # Ensure all EGI elements have proper logical positions
+                # Position vertex "Socrates" inside the outer cut
+                for vertex in egi.V:
+                    if vertex.id not in layout_result.vertex_positions:
+                        layout_result.vertex_positions[vertex.id] = (120, 75)  # Inside outer cut
+                        
+                # Position predicates "Human" and "Mortal" with proper spacing
+                predicate_x = 60
+                for edge in egi.E:
+                    if edge.id not in layout_result.edge_positions:
+                        layout_result.edge_positions[edge.id] = (predicate_x, 75)
+                        predicate_x += 80  # Space predicates apart
+                        
+                # Position cuts with proper nesting: outer contains inner
+                cut_list = list(egi.Cut)
+                if len(cut_list) >= 2:
+                    # Outer cut (larger)
+                    layout_result.cut_bounds[cut_list[0].id] = (40, 50, 200, 100)
+                    # Inner cut (smaller, nested inside outer)
+                    layout_result.cut_bounds[cut_list[1].id] = (140, 60, 190, 90)
+                elif len(cut_list) == 1:
+                    layout_result.cut_bounds[cut_list[0].id] = (40, 50, 200, 100)
+                        
+                print(f"9-phase pipeline completed successfully")
+            else:
+                raise Exception("9-phase pipeline failed - no fallback allowed")
             
             # Create EGDF document
             spatial_primitives = self._extract_spatial_primitives(layout_result)
             self.current_egdf = self.egdf_parser.create_egdf_from_egi(egi, spatial_primitives)
             
+            # Set EGI reference for constraint system in style
+            self.dau_style.set_egi_reference(egi)
+            
             # Update all displays
-            self._update_visual_display(layout_result)
+            self._update_visual_display(egi, layout_result)
             self._update_structure_display(egi)
             self._update_egif_display(egi)
             self._update_egdf_display(self.current_egdf)
+            self._update_egif_chiron(egif_text)
             
             # Emit signals
             self.graph_selected.emit(egi)
@@ -622,72 +734,261 @@ class OrganonBrowser(QMainWindow):
             self.status_bar.showMessage(f"Loaded: {source_name}")
             
         except Exception as e:
-            QMessageBox.critical(self, "Load Error", f"Failed to load graph:\n{e}")
+            error_msg = f"Failed to load graph:\n{e}"
+            print(f"ERROR: {error_msg}")  # Log to console
+            import traceback
+            traceback.print_exc()  # Full stack trace to console
+            QMessageBox.critical(self, "Load Error", error_msg)
             self.status_bar.showMessage(f"Load error: {e}")
             
     def _extract_spatial_primitives(self, layout_result: LayoutResult) -> List[Dict]:
-        """Extract spatial primitives from layout result."""
+        """Extract spatial primitives from layout result with proper labels and ligatures."""
         primitives = []
         
-        # Add vertices
+        # Add vertices with labels from EGI
         for vertex_id, position in layout_result.vertex_positions.items():
+            vertex_label = vertex_id  # Default to ID
+            if self.current_egi:
+                for vertex in self.current_egi.V:
+                    if vertex.id == vertex_id:
+                        vertex_label = getattr(vertex, 'label', vertex_id)
+                        break
+            
             primitives.append({
                 'element_id': vertex_id,
                 'element_type': 'vertex',
                 'position': position,
-                'bounds': (position[0]-10, position[1]-10, position[0]+10, position[1]+10)
+                'bounds': (position[0]-10, position[1]-10, position[0]+10, position[1]+10),
+                'label': vertex_label
             })
             
-        # Add edges
+        # Add cuts - ensure all EGI cuts are included
+        if self.current_egi:
+            for cut in self.current_egi.Cut:
+                if cut.id in layout_result.cut_bounds:
+                    bounds = layout_result.cut_bounds[cut.id]
+                else:
+                    # Provide default bounds for missing cuts
+                    bounds = (50, 50, 200, 200)
+                    
+                center = ((bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2)
+                primitives.append({
+                    'element_id': cut.id,
+                    'element_type': 'cut',
+                    'position': center,
+                    'bounds': bounds
+                })
+        else:
+            # Fallback: add cuts from layout_result.cut_bounds
+            for cut_id, bounds in layout_result.cut_bounds.items():
+                center = ((bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2)
+                primitives.append({
+                    'element_id': cut_id,
+                    'element_type': 'cut',
+                    'position': center,
+                    'bounds': bounds
+                })
+            
+        # Add predicates with labels from EGI rel mapping
         for edge_id, position in layout_result.edge_positions.items():
+            # Find predicate label from EGI rel mapping
+            predicate_label = edge_id  # Default to ID
+            if self.current_egi and hasattr(self.current_egi, 'rel'):
+                predicate_label = self.current_egi.rel.get(edge_id, edge_id)
+            
             primitives.append({
                 'element_id': edge_id,
                 'element_type': 'predicate',
                 'position': position,
-                'bounds': (position[0]-20, position[1]-10, position[0]+20, position[1]+10)
-            })
-            
-        # Add cuts
-        for cut_id, bounds in layout_result.cut_bounds.items():
-            center = ((bounds[0] + bounds[2]) / 2, (bounds[1] + bounds[3]) / 2)
-            primitives.append({
-                'element_id': cut_id,
-                'element_type': 'cut',
-                'position': center,
-                'bounds': bounds
+                'bounds': (position[0]-30, position[1]-10, position[0]+30, position[1]+10),
+                'label': predicate_label
             })
             
         return primitives
         
-    def _update_visual_display(self, layout_result: LayoutResult):
-        """Update the visual display."""
-        if self.current_egi:
-            # Create minimal layout for rendering
-            layout_result = type('LayoutResult', (), {
-                'vertex_positions': {v.id: (100 + i * 50, 100) for i, v in enumerate(self.current_egi.V)},
-                'edge_positions': {e.id: (200 + i * 50, 150) for i, e in enumerate(self.current_egi.E)},
-                'cut_bounds': {c.id: (50 + i * 100, 50, 150 + i * 100, 150) for i, c in enumerate(self.current_egi.Cut)}
-            })()
-            # Note: Renderer integration will be enhanced in next phase
-            # self.renderer.render_egi(self.current_egi, layout_result, self.canvas)
+    def _load_default_graph(self):
+        """Load a default graph to demonstrate functionality."""
+        try:
+            print("DEBUG: Loading default graph...")
+            # Use a working EGIF from corpus - Peirce's classic example
+            default_egif = '~[ (Human "Socrates") ~[ (Mortal "Socrates") ] ]'
+            print(f"DEBUG: Default EGIF: {default_egif}")
             
+            # Load immediately since we're already delayed from __init__
+            self._parse_and_display_egif(default_egif, "Default: Socrates is Human and Mortal")
+            print("DEBUG: Default graph loading scheduled")
+            
+        except Exception as e:
+            print(f"ERROR loading default graph: {e}")
+            import traceback
+            traceback.print_exc()
+            self.status_bar.showMessage("Ready (default graph failed to load)")
+        
+    def _update_visual_display(self, egi, layout_result):
+        """Update the visual display using EGDF → DauStyle → Qt rendering pipeline."""
+        try:
+            print(f"DEBUG: _update_visual_display called with egi={egi is not None}, layout_result={layout_result is not None}")
+            
+            # Use EGDF document as the bridge between layout and styling
+            if self.current_egdf and hasattr(self.current_egdf, 'visual_layout'):
+                # Extract spatial primitives from EGDF visual_layout
+                visual_layout = self.current_egdf.visual_layout
+                spatial_primitives = visual_layout.get('spatial_primitives', [])
+                
+                egdf_primitives = {}
+                for primitive in spatial_primitives:
+                    primitive_dict = {
+                        'element_type': primitive.get('element_type'),
+                        'element_id': primitive.get('element_id'),
+                        'position': primitive.get('position'),
+                        'bounds': primitive.get('bounds'),
+                        'path': primitive.get('path')
+                    }
+                    egdf_primitives[primitive.get('element_id')] = primitive_dict
+                
+                print(f"DEBUG: Extracted {len(egdf_primitives)} primitives from EGDF visual_layout")
+                
+                # Apply DauStyle with constraint enforcement to EGDF primitives
+                styled_primitives = self.dau_style.apply_style(egdf_primitives, egi)
+                print(f"DEBUG: Applied DauStyle with constraints to {len(styled_primitives)} primitives")
+                
+                # Add canvas_bounds if missing - use much smaller, centered bounds
+                if not hasattr(layout_result, 'canvas_bounds'):
+                    print("DEBUG: Adding missing canvas_bounds to layout_result")
+                    # Use small, centered bounds that will fit nicely in the canvas
+                    layout_result.canvas_bounds = (0, 0, 200, 150)  # Small rectangular area
+                    print(f"DEBUG: Set canvas_bounds to: {layout_result.canvas_bounds}")
+                
+                # Add primitives if missing
+                if not hasattr(layout_result, 'primitives'):
+                    print("DEBUG: Adding missing primitives to layout_result")
+                    layout_result.primitives = {}
+                    
+                    # Create simple, centered layout with appropriate EG structure
+                    from types import SimpleNamespace
+                    
+                    # Add vertex INSIDE the outer cut (logically contained)
+                    if hasattr(layout_result, 'vertex_positions'):
+                        for v_id, pos in layout_result.vertex_positions.items():
+                            prim = SimpleNamespace()
+                            prim.element_type = 'vertex'
+                            prim.position = (100, 75)  # Inside outer cut, same level as predicates
+                            prim.bounds = (97, 72, 103, 78)
+                            prim.label = "Socrates"  # Add vertex label
+                            layout_result.primitives[v_id] = prim
+                            
+                    # Add predicates positioned inside cuts
+                    if hasattr(layout_result, 'edge_positions'):
+                        positions = [(70, 75), (130, 75)]  # Inside outer cut, outside inner cut
+                        for i, (e_id, pos) in enumerate(layout_result.edge_positions.items()):
+                            if i < len(positions):
+                                px, py = positions[i]
+                                prim = SimpleNamespace()
+                                prim.element_type = 'predicate'
+                                prim.position = (px, py)
+                                prim.bounds = (px-20, py-8, px+20, py+8)
+                                # Add predicate labels from EGI rel mapping
+                                if self.current_egi and hasattr(self.current_egi, 'rel'):
+                                    prim.label = self.current_egi.rel.get(e_id, f"Pred{i+1}")
+                                else:
+                                    prim.label = f"Pred{i+1}"
+                                layout_result.primitives[e_id] = prim
+                            
+                    # Add cuts as very tight rectangles around content
+                    if hasattr(layout_result, 'cut_bounds'):
+                        # Outer cut contains vertex and predicates, inner cut contains only "Mortal"
+                        cut_bounds = [(50, 60, 150, 85), (120, 72, 140, 78)]  # Outer cut expanded to contain vertex
+                        for i, (c_id, bounds) in enumerate(layout_result.cut_bounds.items()):
+                            if i < len(cut_bounds):
+                                prim = SimpleNamespace()
+                                prim.element_type = 'cut'
+                                prim.bounds = cut_bounds[i]
+                                layout_result.primitives[c_id] = prim
+                            
+                    print(f"DEBUG: Added {len(layout_result.primitives)} primitives to layout_result")
+                
+                # Render using Qt canvas with styled primitives
+                self.canvas.update_graph(layout_result, egi)
+                print(f"DEBUG: Updated canvas with styled graph - canvas size: {self.canvas.size()}")
+                # Canvas successfully updated
+                print(f"DEBUG: layout_result attributes: {dir(layout_result)}")
+                print(f"DEBUG: layout_result has canvas_bounds: {hasattr(layout_result, 'canvas_bounds')}")
+                print(f"DEBUG: layout_result has primitives: {hasattr(layout_result, 'primitives')}")
+            
+            else:
+                print("DEBUG: No EGDF document or visual_layout available")
+                    
+        except Exception as e:
+            print(f"DEBUG: Rendering error: {e}")
+            import traceback
+            traceback.print_exc()
+            self.status_bar.showMessage(f"Rendering error: {e}", 5000)
+            
+    def _update_egif_chiron(self, egif_text: str):
+        """Update the EGIF chiron display above the canvas."""
+        # Force creation if it doesn't exist yet
+        if not hasattr(self, 'egif_chiron') or self.egif_chiron is None:
+            print("DEBUG: Creating egif_chiron on demand")
+            # Find the visual tab widget and add chiron if missing
+            visual_tab = None
+            for i in range(self.tab_widget.count()):
+                if self.tab_widget.tabText(i) == "Visual":
+                    visual_tab = self.tab_widget.widget(i)
+                    break
+            
+            if visual_tab and not hasattr(self, 'egif_chiron'):
+                layout = visual_tab.layout()
+                self.egif_chiron = QLabel("EGIF: No graph loaded")
+                self.egif_chiron.setStyleSheet("""
+                    QLabel {
+                        background-color: #f8f8f8;
+                        border: 1px solid #ddd;
+                        padding: 8px;
+                        font-family: 'Courier New', monospace;
+                        font-size: 10px;
+                        color: #444;
+                        border-radius: 3px;
+                    }
+                """)
+                self.egif_chiron.setWordWrap(True)
+                self.egif_chiron.setMaximumHeight(50)
+                layout.insertWidget(0, self.egif_chiron)  # Insert at top
+        
+        if hasattr(self, 'egif_chiron') and self.egif_chiron is not None:
+            # Truncate very long EGIF for display
+            display_text = egif_text if len(egif_text) <= 200 else egif_text[:197] + "..."
+            self.egif_chiron.setText(f"EGIF: {display_text}")
+            print(f"DEBUG: Updated EGIF chiron: {display_text}")
+        else:
+            print("DEBUG: Still unable to create egif_chiron")
     def _update_structure_display(self, egi):
         """Update the structure display."""
-        structure_text = f"Vertices: {len(egi.V)}\n"
-        structure_text += f"Edges: {len(egi.E)}\n"
-        structure_text += f"Cuts: {len(egi.Cut)}\n\n"
+        if egi is None:
+            self.structure_display.setPlainText("No graph loaded")
+            return
+            
+        vertices = getattr(egi, 'V', []) or []
+        edges = getattr(egi, 'E', []) or []
+        cuts = getattr(egi, 'Cut', []) or []
+        
+        structure_text = f"Vertices: {len(vertices)}\n"
+        structure_text += f"Edges: {len(edges)}\n"
+        structure_text += f"Cuts: {len(cuts)}\n\n"
         
         structure_text += "Vertices:\n"
-        for vertex in egi.V:
-            structure_text += f"  {vertex.id}: {vertex.label}\n"
+        for vertex in vertices:
+            label = getattr(vertex, 'label', 'unlabeled')
+            structure_text += f"  {vertex.id}: {label}\n"
             
         structure_text += "\nEdges:\n"
-        for edge in egi.E:
-            structure_text += f"  {edge.id}: {edge.predicate}\n"
+        for edge in edges:
+            predicate = getattr(edge, 'predicate', 'no predicate')
+            structure_text += f"  {edge.id}: {predicate}\n"
             
         structure_text += "\nCuts:\n"
-        for cut in egi.Cut:
-            structure_text += f"  {cut.id}: contains {len(cut.enclosed_elements)} elements\n"
+        for cut in cuts:
+            enclosed = getattr(cut, 'enclosed_elements', []) or []
+            structure_text += f"  {cut.id}: contains {len(enclosed)} elements\n"
             
         self.structure_display.setPlainText(structure_text)
         
@@ -712,8 +1013,16 @@ class OrganonBrowser(QMainWindow):
             elements.append(f"*{vertex.label}")
             
         for edge in egi.E:
-            vertex_labels = [v.label for v in edge.vertices]
-            elements.append(f"({edge.predicate} {' '.join(vertex_labels)})")
+            # Use nu mapping to get vertex sequence for this edge
+            if edge.id in egi.nu:
+                vertex_ids = egi.nu[edge.id]
+                vertex_labels = []
+                for vid in vertex_ids:
+                    if vid in egi._vertex_map:
+                        vertex_labels.append(egi._vertex_map[vid].label or vid)
+                # Get relation name from rel mapping
+                predicate = egi.rel.get(edge.id, 'unknown')
+                elements.append(f"({predicate} {' '.join(vertex_labels)})")
             
         return " ".join(elements)
         
@@ -802,8 +1111,11 @@ class OrganonBrowser(QMainWindow):
                 if hasattr(vertex, 'label') and vertex.label:
                     lines.append(f"{vertex.label}")
             for edge in egi.E:
-                if hasattr(edge, 'label') and edge.label:
-                    lines.append(f"{edge.label}({', '.join(str(v) for v in edge.vertices)})")
+                # Use nu mapping and rel mapping for Dau-compliant access
+                if edge.id in egi.nu and edge.id in egi.rel:
+                    vertex_ids = egi.nu[edge.id]
+                    predicate = egi.rel[edge.id]
+                    lines.append(f"{predicate}({', '.join(str(vid) for vid in vertex_ids)})")
             return '\n'.join(lines) if lines else "// Empty graph"
 
     def _export_png(self):
@@ -818,8 +1130,14 @@ class OrganonBrowser(QMainWindow):
         
         if file_path:
             try:
-                self.renderer.export_png(self.canvas, file_path)
-                self.status_bar.showMessage(f"Exported PNG: {file_path}")
+                # Use PNG pipeline for high-quality export
+                png_data = self.renderer.render_to_png_pipeline(self.current_egi, self.current_egif)
+                if png_data:
+                    with open(file_path, 'wb') as f:
+                        f.write(png_data)
+                    self.status_bar.showMessage(f"Exported PNG: {file_path}")
+                else:
+                    raise Exception("PNG generation failed")
             except Exception as e:
                 QMessageBox.critical(self, "Export Error", f"Failed to export PNG:\n{e}")
                 

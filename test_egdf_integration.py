@@ -16,7 +16,13 @@ from pathlib import Path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 from egif_parser_dau import EGIFParser
-from layout_phase_implementations import DependencyOrderedPipeline
+from layout_phase_implementations import (
+    ElementSizingPhase, ContainerSizingPhase, CollisionDetectionPhase,
+    PredicatePositioningPhase, VertexPositioningPhase, HookAssignmentPhase,
+    RectilinearLigaturePhase, BranchOptimizationPhase, AreaCompactionPhase,
+    PhaseStatus
+)
+from spatial_awareness_system import SpatialAwarenessSystem
 from egdf_parser import EGDFParser, EGDFMetadata
 from dau_yaml_serializer import DAUYAMLConversionSystem
 
@@ -71,19 +77,68 @@ def test_complete_pipeline_integration():
             print(f"✓ EGI parsed: V={len(egi.V)}, E={len(egi.E)}, Cuts={len(egi.Cut)}")
             
             # Step 2: Run 9-phase layout pipeline
-            pipeline = DependencyOrderedPipeline()
-            layout_result = pipeline.execute_pipeline(egi)
-            print(f"✓ Layout generated: {len(layout_result.elements)} elements")
+            spatial_system = SpatialAwarenessSystem()
+            phases = [
+                ElementSizingPhase(),
+                ContainerSizingPhase(spatial_system),
+                CollisionDetectionPhase(spatial_system),
+                PredicatePositioningPhase(spatial_system),
+                VertexPositioningPhase(spatial_system),
+                HookAssignmentPhase(),
+                RectilinearLigaturePhase(),
+                BranchOptimizationPhase(),
+                AreaCompactionPhase()
+            ]
             
-            # Step 3: Convert layout to EGDF spatial primitives
+            context = {}
+            for i, phase in enumerate(phases):
+                result = phase.execute(egi, context)
+                if result.status != PhaseStatus.COMPLETED:
+                    raise Exception(f"Phase {i+1} ({phase.phase_name}) failed: {result.error_message}")
+            
+            print(f"✓ Layout generated: 9 phases completed")
+            
+            # Step 3: Convert pipeline context to EGDF spatial primitives
             spatial_primitives = []
-            for element_id, element in layout_result.elements.items():
+            
+            # Extract elements from pipeline context
+            element_tracking = context.get('element_tracking', {})
+            relative_bounds = context.get('relative_bounds', {})
+            vertex_elements = context.get('vertex_elements', {})
+            predicate_elements = context.get('predicate_elements', {})
+            
+            # Add cuts from relative_bounds
+            for area_id, bounds in relative_bounds.items():
+                if area_id != 'sheet':
+                    cut_id = area_id.split('_')[-1] if '_' in area_id else area_id
+                    primitive_dict = {
+                        'element_id': cut_id,
+                        'element_type': 'cut',
+                        'position': ((bounds[0] + bounds[2])/2, (bounds[1] + bounds[3])/2),
+                        'bounds': bounds,
+                        'z_index': 0
+                    }
+                    spatial_primitives.append(primitive_dict)
+            
+            # Add vertices
+            for vertex_id, vertex_data in vertex_elements.items():
                 primitive_dict = {
-                    'element_id': element_id,
-                    'element_type': element.element_type,
-                    'position': element.position,
-                    'bounds': element.bounds,
-                    'z_index': getattr(element, 'z_index', 0)
+                    'element_id': vertex_id,
+                    'element_type': 'vertex',
+                    'position': vertex_data.get('relative_position', (0, 0)),
+                    'bounds': vertex_data.get('relative_bounds', (0, 0, 0, 0)),
+                    'z_index': 1
+                }
+                spatial_primitives.append(primitive_dict)
+            
+            # Add predicates
+            for predicate_id, predicate_data in predicate_elements.items():
+                primitive_dict = {
+                    'element_id': predicate_id,
+                    'element_type': 'predicate',
+                    'position': predicate_data.get('relative_position', (0, 0)),
+                    'bounds': predicate_data.get('relative_bounds', (0, 0, 0, 0)),
+                    'z_index': 1
                 }
                 spatial_primitives.append(primitive_dict)
             
@@ -298,3 +353,6 @@ if __name__ == "__main__":
     else:
         print("\n⚠️  INTEGRATION ISSUES DETECTED")
         print("   Some components need attention before full deployment")
+
+if __name__ == "__main__":
+    test_complete_pipeline_integration()

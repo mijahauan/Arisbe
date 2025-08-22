@@ -130,16 +130,19 @@ Arisbe implements Dau's formal definition of Relational Graphs with Cuts:
 
 **Parse EGIF expressions into EGI structures:**
 ```python
-from egif_parser_dau import parse_egif
+from egif_parser_dau import EGIFParser
 
 # Parse basic relations
-graph = parse_egif('(Human "Socrates")')
+parser = EGIFParser('(Human "Socrates")')
+graph = parser.parse()
 
 # Parse with cuts (negation)
-graph = parse_egif('*x ~[ (Mortal x) ]')
+parser = EGIFParser('*x ~[ (Mortal x) ]')
+graph = parser.parse()
 
 # Parse complex nested structures
-graph = parse_egif('*x (Human x) ~[ (Mortal x) ~[ (Wise x) ] ]')
+parser = EGIFParser('*x (Human x) ~[ (Mortal x) ~[ (Wise x) ] ]')
+graph = parser.parse()
 ```
 
 **Generate EGIF from EGI structures:**
@@ -154,18 +157,22 @@ print(egif_text)  # Output: *x (Human x) ~[ (Mortal x) ]
 
 **Create visual diagrams from EGIF:**
 ```python
-from egif_parser_dau import parse_egif
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
-from pyside6_backend import PySide6Renderer
+from egif_parser_dau import EGIFParser
+from layout_phase_implementations import NinePhaseLayoutPipeline
+from diagram_renderer_dau import DiagramRendererDau
+from pyside6_canvas import PySide6Canvas
 
 # Parse and layout
-graph = parse_egif('*x ~[ (Human x) ] ~[ (Mortal x) ]')
-engine = GraphvizLayoutEngine()
-layout = engine.create_layout_from_graph(graph)
+parser = EGIFParser('*x ~[ (Human x) ] ~[ (Mortal x) ]')
+graph = parser.parse()
+pipeline = NinePhaseLayoutPipeline()
+layout = pipeline.execute_pipeline(graph)
 
-# Render to file
-renderer = PySide6Renderer()
-renderer.render_to_file(layout, 'diagram.png')
+# Render to canvas
+canvas = PySide6Canvas(width=800, height=600)
+renderer = DiagramRendererDau()
+renderer.render_diagram(canvas, graph, layout)
+canvas.save_to_file('diagram.png')
 ```
 
 ### Interactive Editor (In Development)

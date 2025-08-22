@@ -14,7 +14,13 @@ from dataclasses import dataclass
 import math
 
 from egi_core_dau import RelationalGraphWithCuts, ElementID
-from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+from layout_phase_implementations import (
+    ElementSizingPhase, ContainerSizingPhase, CollisionDetectionPhase,
+    PredicatePositioningPhase, VertexPositioningPhase, HookAssignmentPhase,
+    RectilinearLigaturePhase, BranchOptimizationPhase, AreaCompactionPhase,
+    PhaseStatus
+)
+from spatial_awareness_system import SpatialAwarenessSystem
 from layout_engine_clean import SpatialPrimitive, LayoutResult  # These types are still valid
 from pipeline_contracts import (
     enforce_contracts, 

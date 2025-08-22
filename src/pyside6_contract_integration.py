@@ -16,7 +16,7 @@ from pyside6_rendering_contracts import (
 )
 from pyside6_canvas import PySide6Canvas
 from diagram_renderer_clean import RenderingTheme
-from graphviz_layout_engine_v2 import LayoutResult
+from layout_engine_clean import LayoutResult
 
 class ContractCompliantPySide6Canvas(PySide6CanvasContract):
     """PySide6Canvas implementation with contract compliance."""
@@ -266,7 +266,13 @@ def render_egif_with_contracts(egif: str, output_path: str,
     try:
         # Import required modules
         from egif_parser_dau import parse_egif
-        from graphviz_layout_engine_v2 import GraphvizLayoutEngine
+        from layout_phase_implementations import (
+            ElementSizingPhase, ContainerSizingPhase, CollisionDetectionPhase,
+            PredicatePositioningPhase, VertexPositioningPhase, HookAssignmentPhase,
+            RectilinearLigaturePhase, BranchOptimizationPhase, AreaCompactionPhase,
+            PhaseStatus
+        )
+        from spatial_awareness_system import SpatialAwarenessSystem
         
         print(f"🔒 Contract-Enforced EGIF Rendering")
         print(f"   EGIF: {egif}")

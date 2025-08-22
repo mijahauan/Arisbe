@@ -17,34 +17,7 @@ except Exception:  # pragma: no cover
     QPainter = object  # type: ignore
 
 
-@dataclass
-class UniformTransform:
-    sx: float
-    sy: float
-    tx: float
-    ty: float
-
-    def apply_point(self, x: float, y: float) -> Tuple[float, float]:
-        return (x * self.sx + self.tx, y * self.sy + self.ty)
-
-    def apply_box(self, b: Tuple[float, float, float, float]) -> Tuple[float, float, float, float]:
-        x1, y1, x2, y2 = b
-        X1, Y1 = self.apply_point(x1, y1)
-        X2, Y2 = self.apply_point(x2, y2)
-        if X1 > X2: X1, X2 = X2, X1
-        if Y1 > Y2: Y1, Y2 = Y2, Y1
-        return (X1, Y1, X2, Y2)
-
-
-def _compute_uniform_transform(world: Tuple[float, float, float, float], canvas: Tuple[int, int]) -> UniformTransform:
-    wx1, wy1, wx2, wy2 = world
-    cw, ch = canvas
-    ww = max(1e-6, wx2 - wx1)
-    wh = max(1e-6, wy2 - wy1)
-    s = min(cw / ww, ch / wh)
-    tx = -wx1 * s + (cw - ww * s) * 0.5
-    ty = -wy1 * s + (ch - wh * s) * 0.5
-    return UniformTransform(s, s, tx, ty)
+# Removed deprecated UniformTransform class - using simple_transform instead
 
 
 def _rect_edge_intersection(x1: float, y1: float, x2: float, y2: float, px: float, py: float) -> Tuple[float, float]:
@@ -159,35 +132,44 @@ def _generate_path(vx: float, vy: float, hx: float, hy: float,
 
 
 class CanonicalQtRenderer:
-    def __init__(self,
-                 stroke_width: float = 1.0,
-                 cut_color: Tuple[int, int, int] = (51, 51, 51),
-                 background_color: Tuple[int, int, int] = (250, 250, 250),
-                 cut_corner_radius: float = 14.0,
-                 pred_font_family: str = "Times New Roman",
-                 pred_font_size: int = 12,
-                 pred_char_width: float = 7.0,
-                 pred_pad_x: float = 6.0,
-                 pred_pad_y: float = 4.0,
-                 draw_argument_markers: bool = False):
-        self.stroke_width = float(stroke_width)
-        self.cut_color = QColor(*cut_color)
-        self.bg_color = QColor(*background_color)
-        self.cut_corner_radius = float(cut_corner_radius)
-        self.pred_font_family = pred_font_family
-        self.pred_font_size = int(pred_font_size)
-        self.pred_char_width = float(pred_char_width)
-        self.pred_pad_x = float(pred_pad_x)
-        self.pred_pad_y = float(pred_pad_y)
-        # When True, draw per-argument boundary markers (small numbered dots)
-        # Default False; annotation overlays should handle argument labels.
-        self.draw_argument_markers = bool(draw_argument_markers)
+    def __init__(self, default_style=None):
+        
+        # Store pipeline components for rendering integration
+        self._graphviz_renderer = None
+        self._pipeline_phases = None
+        self._spatial_system = None
+        
+        # Initialize with DauStyle if no style provided
+        if default_style is None:
+            from rendering_styles import DauStyle
+            default_style = DauStyle()
+        
+        self.default_style = default_style
+        # Add missing attributes from DauStyle for compatibility
+        self.stroke_width = default_style.cut_line_width
+        self.cut_corner_radius = 5.0  # Default corner radius for cuts
+        self.vertex_radius = default_style.vertex_radius
+        self.pred_font_family = default_style.font_family
+        self.pred_font_size = 12
+        self.pred_char_width = 8.0  # Estimated character width for text sizing
+        self.pred_pad_x = default_style.predicate_padding_x
+        self.pred_pad_y = default_style.predicate_padding_y
+        self.draw_argument_markers = False  # Disable argument markers for now
 
     def render(self, painter: QPainter, layout: Any, graph: Any, canvas_px: Tuple[int, int]) -> None:
         cw, ch = canvas_px
-        painter.fillRect(QRectF(0, 0, cw, ch), self.bg_color)
+        print(f"DEBUG: render() called with canvas_px: {canvas_px}")
+        painter.fillRect(QRectF(0, 0, cw, ch), self.default_style.background_color)
+        print(f"DEBUG: Filled background with color: {self.default_style.background_color}")
+        
         if not hasattr(layout, 'canvas_bounds'):
+            print("DEBUG: layout has no canvas_bounds - returning early")
             return
+        
+        if not hasattr(layout, 'primitives'):
+            print("DEBUG: layout has no primitives - returning early")
+            return
+            
         # DEBUG: quick type counts vs graph sizes
         try:
             type_counts: Dict[str, int] = {}
@@ -200,9 +182,36 @@ class CanonicalQtRenderer:
                     verts_preview.append(f"{pid}@({x:.1f},{y:.1f})")
             v_count = len(getattr(graph, 'V', []))
             print(f"CANON DEBUG: graph |V|={v_count}, prim types={type_counts}, vertex prims sample={verts_preview}")
-        except Exception:
-            pass
-        T = _compute_uniform_transform(layout.canvas_bounds, canvas_px)
+        except Exception as e:
+            print(f"DEBUG: Error in primitive analysis: {e}")
+        # Simple direct coordinate mapping instead of complex transform
+        canvas_bounds = layout.canvas_bounds
+        print(f"DEBUG: canvas_bounds: {canvas_bounds}, canvas_px: {canvas_px}")
+        
+        # Create a simple scaling transform that maps canvas_bounds to canvas_px
+        cb_x1, cb_y1, cb_x2, cb_y2 = canvas_bounds
+        canvas_w, canvas_h = canvas_px
+        
+        # Add margins
+        margin = 50
+        draw_w = canvas_w - 2 * margin
+        draw_h = canvas_h - 2 * margin
+        
+        # Scale factors
+        scale_x = draw_w / max(1, cb_x2 - cb_x1)
+        scale_y = draw_h / max(1, cb_y2 - cb_y1)
+        scale = min(scale_x, scale_y)  # Uniform scaling
+        
+        def simple_transform(bounds):
+            x1, y1, x2, y2 = bounds
+            # Translate to origin, scale, then translate to canvas center
+            nx1 = margin + (x1 - cb_x1) * scale
+            ny1 = margin + (y1 - cb_y1) * scale
+            nx2 = margin + (x2 - cb_x1) * scale
+            ny2 = margin + (y2 - cb_y1) * scale
+            return (nx1, ny1, nx2, ny2)
+        
+        print(f"DEBUG: Using scale={scale:.2f}, margin={margin}")
 
         # Collect cut bounds and basic parent map for depth coloring
         cuts: Dict[str, Tuple[float, float, float, float]] = {}
@@ -230,14 +239,15 @@ class CanonicalQtRenderer:
                         best, best_area = j, area
             parent[i] = best
 
-        # palette per depth
-        palette = [QColor(44, 62, 80), QColor(142, 68, 173), QColor(22, 160, 133), QColor(41, 128, 185), QColor(192, 57, 43), QColor(211, 84, 0)]
-        fills = [QColor(44, 62, 80, 15), QColor(142, 68, 173, 15), QColor(22, 160, 133, 15), QColor(41, 128, 185, 15), QColor(192, 57, 43, 15), QColor(211, 84, 0, 15)]
+        # Use DauStyle colors instead of hardcoded palette
+        cut_color = self.default_style.cut_color
+        cut_pen = QPen(cut_color, self.default_style.cut_line_width, Qt.PenStyle.SolidLine)
 
-        # Draw cuts
+        # Draw cuts using simple transform
         for pid in ids:
             b = cuts[pid]
-            X1, Y1, X2, Y2 = T.apply_box(b)
+            X1, Y1, X2, Y2 = simple_transform(b)
+            print(f"DEBUG: Drawing cut {pid} at bounds {b} -> screen ({X1:.1f},{Y1:.1f},{X2:.1f},{Y2:.1f})")
             inset = self.stroke_width * 0.5
             X1i, Y1i = X1 + inset, Y1 + inset
             X2i, Y2i = X2 - inset, Y2 - inset
@@ -249,18 +259,10 @@ class CanonicalQtRenderer:
                 Y1i = Y2i = midy
             w = max(0.0, X2i - X1i)
             h = max(0.0, Y2i - Y1i)
-            depth = 0
-            p = parent[pid]
-            while p is not None:
-                depth += 1
-                p = parent[p]
-            col = palette[depth % len(palette)]
-            is_root = parent[pid] is None
-            fill = Qt.transparent if is_root else fills[depth % len(fills)]
-            pen = QPen(col, self.stroke_width)
-            painter.setPen(pen)
-            painter.setBrush(QBrush(fill))
+            painter.setPen(cut_pen)
+            painter.setBrush(QBrush())
             painter.drawRoundedRect(QRectF(X1i, Y1i, w, h), self.cut_corner_radius, self.cut_corner_radius)
+            print(f"DEBUG: Drew cut rect ({X1i:.1f},{Y1i:.1f}) size {w:.1f}x{h:.1f}")
             # hairline overlay of raw bounds for debugging can be toggled if needed
 
         # Predicates: build tight bounds and draw centered label
@@ -268,30 +270,35 @@ class CanonicalQtRenderer:
         font = QFont(self.pred_font_family, pointSize=self.pred_font_size)
         for pid, prim in layout.primitives.items():
             if getattr(prim, 'element_type', None) == 'predicate' and prim.bounds:
-                bx1, by1, bx2, by2 = T.apply_box(prim.bounds)
+                bx1, by1, bx2, by2 = simple_transform(prim.bounds)
+                # Get proper predicate label from graph.rel mapping
                 label = getattr(graph, 'rel', {}).get(pid, pid[:10])
+                print(f"DEBUG: Predicate {pid} has label '{label}' from rel mapping")
                 text_w = max(1.0, len(label) * self.pred_char_width)
-                text_h = self.pred_font_size * 1.2
-                cx = (bx1 + bx2) * 0.5
-                cy = (by1 + by2) * 0.5
+                text_h = self.pred_font_size + 2.0
+                cx = 0.5 * (bx1 + bx2)
+                cy = 0.5 * (by1 + by2)
                 x1 = cx - text_w * 0.5 - self.pred_pad_x
-                x2 = cx + text_w * 0.5 + self.pred_pad_x
                 y1 = cy - text_h * 0.5 - self.pred_pad_y
+                x2 = cx + text_w * 0.5 + self.pred_pad_x
                 y2 = cy + text_h * 0.5 + self.pred_pad_y
                 pred_bounds[pid] = (x1, y1, x2, y2)
-                # label
-                painter.setPen(QPen(QColor(44, 62, 80), 1))
+                painter.setPen(QPen(self.default_style.predicate_color, self.default_style.predicate_line_width, Qt.PenStyle.SolidLine))
                 painter.setFont(font)
-                rect = QRectF(cx - text_w * 0.5, cy - text_h * 0.5, text_w, text_h)
-                painter.drawText(rect, Qt.AlignCenter, label)
+                painter.drawText(QRectF(x1 + self.pred_pad_x, y1 + self.pred_pad_y, text_w, text_h), Qt.AlignmentFlag.AlignCenter, label)
+                print(f"DEBUG: Drew predicate {pid} '{label}' at ({cx:.1f},{cy:.1f})")
 
         # Vertex positions (with optional readability enhancement for degree-2)
         vert_pos: Dict[str, Tuple[float, float]] = {}
-        # First pass: transformed original positions
+        # First pass: transformed original positions using simple transform
         for pid, prim in layout.primitives.items():
             if getattr(prim, 'element_type', None) == 'vertex' and prim.position:
                 vx, vy = prim.position
-                vert_pos[pid] = T.apply_point(vx, vy)
+                # Apply simple transform to point
+                nx = margin + (vx - cb_x1) * scale
+                ny = margin + (vy - cb_y1) * scale
+                vert_pos[pid] = (nx, ny)
+                print(f"DEBUG: Vertex {pid} at ({vx:.1f},{vy:.1f}) -> screen ({nx:.1f},{ny:.1f})")
 
         # Compute predicate centers in screen space for midpoint calculation
         pred_centers: Dict[str, Tuple[float, float]] = {}
@@ -308,8 +315,10 @@ class CanonicalQtRenderer:
 
         # Helper to get the display bounds of the vertex's logical area (screen space)
         def _area_bounds_for_vertex(vid: str) -> Tuple[float, float, float, float]:
-            # Default to full canvas
-            bx1, by1, bx2, by2 = T.apply_box(getattr(layout, 'canvas_bounds', (0.0, 0.0, float(cw), float(ch))))
+            # Default to full canvas using simple_transform
+            canvas_w, canvas_h = canvas_px
+            default_bounds = getattr(layout, 'canvas_bounds', (0.0, 0.0, float(canvas_w), float(canvas_h)))
+            bx1, by1, bx2, by2 = simple_transform(default_bounds)
             # Try cut membership from graph.area
             try:
                 area_map = getattr(graph, 'area', {})
@@ -321,7 +330,7 @@ class CanonicalQtRenderer:
                         cut_prim = next((p for p in layout.primitives.values()
                                          if getattr(p, 'element_type', None) == 'cut' and getattr(p, 'element_id', None) == area_id and getattr(p, 'bounds', None)), None)
                         if cut_prim and cut_prim.bounds:
-                            return T.apply_box(cut_prim.bounds)
+                            return simple_transform(cut_prim.bounds)
                         break
             except Exception:
                 pass
@@ -378,49 +387,41 @@ class CanonicalQtRenderer:
                     painter.setPen(QPen(QColor(255, 255, 255)))
                     painter.drawText(rect, Qt.AlignCenter, str(idx + 1))
 
-        # Heavy identity lines from ν
+        # Rectilinear ligatures from ν (no hook lines per Dau specification)
         if hasattr(graph, 'nu'):
-            heavy_pen = QPen(QColor(17, 17, 17), 3)
+            ligature_pen = QPen(self.default_style.ligature_color, self.default_style.ligature_line_width, Qt.PenStyle.SolidLine)
             try:
-                heavy_pen.setCapStyle(Qt.RoundCap)
+                ligature_pen.setCapStyle(Qt.RoundCap)
             except Exception:
                 pass
-            painter.setBrush(Qt.NoBrush)
+            
             for edge_id, vseq in graph.nu.items():
                 if edge_id not in pred_bounds:
                     continue
                 rx1, ry1, rx2, ry2 = pred_bounds[edge_id]
-                obstacles = [b for b in all_pred_boxes if b is not pred_bounds[edge_id]]
+                
+                # Draw rectilinear ligatures (right angles only, no curves)
                 for vid in vseq:
                     if vid not in vert_pos:
                         continue
                     vx, vy = vert_pos[vid]
-                    hx, hy = _rect_edge_intersection(rx1, ry1, rx2, ry2, vx, vy)
-                    # Compute inward normal at hook (toward center) for terminal tangent
-                    nx, ny = _rect_normal_at_point(rx1, ry1, rx2, ry2, hx, hy)
-                    inx, iny = -nx, -ny
-                    # Generate a gentle path avoiding other predicates
-                    mid_pts = _generate_path(vx, vy, hx, hy, obstacles)
-                    # Build cubic with last control at hook - normal * t for perpendicular incidence
-                    path = QPainterPath()
-                    path.moveTo(vx, vy)
-                    if len(mid_pts) == 2:
-                        # Straight case: synthesize c1 near vertex and c2 near hook
-                        mx, my = 0.5 * (vx + hx), 0.5 * (vy + hy)
-                        # initial direction control near vertex
-                        c1x, c1y = mx, my
-                        # terminal control aligned with inward normal
-                        t = 16.0
-                        c2x, c2y = hx + inx * t, hy + iny * t
-                        path.cubicTo(c1x, c1y, c2x, c2y, hx, hy)
+                    
+                    # Find closest edge point on predicate rectangle
+                    pred_cx = (rx1 + rx2) * 0.5
+                    pred_cy = (ry1 + ry2) * 0.5
+                    
+                    # Create rectilinear path (horizontal then vertical, or vice versa)
+                    painter.setPen(ligature_pen)
+                    
+                    # Choose path based on relative position
+                    if abs(vx - pred_cx) > abs(vy - pred_cy):
+                        # Horizontal first, then vertical
+                        painter.drawLine(vx, vy, pred_cx, vy)
+                        painter.drawLine(pred_cx, vy, pred_cx, pred_cy)
                     else:
-                        # Use existing middle control as c1, enforce perpendicular at end via c2
-                        c1x, c1y = mid_pts[1]
-                        t = 16.0
-                        c2x, c2y = hx + inx * t, hy + iny * t
-                        path.cubicTo(c1x, c1y, c2x, c2y, hx, hy)
-                    painter.setPen(heavy_pen)
-                    painter.drawPath(path)
+                        # Vertical first, then horizontal  
+                        painter.drawLine(vx, vy, vx, pred_cy)
+                        painter.drawLine(vx, pred_cy, pred_cx, pred_cy)
 
         # Draw vertices on top
         dot_pen = QPen(Qt.NoPen)
@@ -429,7 +430,13 @@ class CanonicalQtRenderer:
         painter.setBrush(dot_brush)
         for pid, prim in layout.primitives.items():
             if getattr(prim, 'element_type', None) == 'vertex' and prim.position:
-                vx, vy = vert_pos.get(pid, T.apply_point(*prim.position))
+                # Use simple transform for fallback position
+                if pid in vert_pos:
+                    vx, vy = vert_pos[pid]
+                else:
+                    px, py = prim.position
+                    vx = margin + (px - cb_x1) * scale
+                    vy = margin + (py - cb_y1) * scale
                 r = 4.0
                 painter.drawEllipse(QRectF(vx - r, vy - r, 2 * r, 2 * r))
                 # constant label if available
@@ -469,3 +476,146 @@ class CanonicalQtRenderer:
                         painter.drawText(rect, Qt.AlignCenter, label)
                 except Exception:
                     pass
+
+    def create_canvas(self):
+        """Create a Qt canvas widget for rendering EG diagrams."""
+        try:
+            from PySide6.QtWidgets import QWidget
+            from PySide6.QtGui import QPaintEvent
+            from PySide6.QtCore import QSize
+            
+            class EGCanvasWidget(QWidget):
+                def __init__(self, renderer):
+                    super().__init__()
+                    self.renderer = renderer
+                    self.current_layout = None
+                    self.current_graph = None
+                    self.current_pixmap = None
+                    self.setMinimumSize(400, 300)
+                
+                def paintEvent(self, event: QPaintEvent):
+                    painter = QPainter(self)
+                    painter.setRenderHint(QPainter.Antialiasing)
+                    
+                    print(f"DEBUG: paintEvent called - pixmap: {self.current_pixmap is not None}, layout: {self.current_layout is not None}, graph: {self.current_graph is not None}")
+                    
+                    if self.current_pixmap:
+                        # Draw the PNG image
+                        painter.fillRect(self.rect(), self.renderer.default_style.background_color)
+                        # Scale pixmap to fit widget while maintaining aspect ratio
+                        scaled_pixmap = self.current_pixmap.scaled(
+                            self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                        # Center the image
+                        x = (self.width() - scaled_pixmap.width()) // 2
+                        y = (self.height() - scaled_pixmap.height()) // 2
+                        painter.drawPixmap(x, y, scaled_pixmap)
+                        print("DEBUG: Drew pixmap to canvas")
+                    elif self.current_layout and self.current_graph:
+                        canvas_size = (self.width(), self.height())
+                        print(f"DEBUG: Calling renderer.render with canvas_size: {canvas_size}")
+                        self.renderer.render(painter, self.current_layout, self.current_graph, canvas_size)
+                        print("DEBUG: Finished renderer.render call")
+                    else:
+                        # Draw placeholder
+                        painter.fillRect(self.rect(), self.renderer.default_style.background_color)
+                        painter.setPen(QPen(QColor(100, 100, 100), 1))
+                        painter.drawText(self.rect(), Qt.AlignCenter, "No graph loaded")
+                        print("DEBUG: Drew placeholder text")
+                
+                def update_graph(self, layout, graph):
+                    """Update the displayed graph and trigger repaint."""
+                    self.current_layout = layout
+                    self.current_graph = graph
+                    self.current_pixmap = None  # Clear pixmap when using layout
+                    self.update()
+                
+                def set_pixmap(self, pixmap):
+                    """Set a pixmap to display (from PNG generation)."""
+                    self.current_pixmap = pixmap
+                    self.current_layout = None  # Clear layout when using pixmap
+                    self.current_graph = None
+                    self.update()
+                
+                def sizeHint(self):
+                    return QSize(600, 400)
+            
+            return EGCanvasWidget(self)
+            
+        except ImportError:
+            # Fallback for when PySide6 is not available
+            return None
+
+    # Removed deprecated render_to_png_pipeline - use proper EGDF rendering instead
+
+    def render_egi_to_canvas(self, egi, layout_result, canvas_widget, style=None):
+        """Render EGI directly to Qt canvas widget using layout primitives with style."""
+        try:
+            # Get canvas dimensions
+            canvas_size = (canvas_widget.width(), canvas_widget.height())
+            
+            # Apply style if provided
+            if style:
+                from rendering_styles import get_style
+                if isinstance(style, str):
+                    style_instance = get_style(style)
+                else:
+                    style_instance = style
+                
+                # Transform EGDF primitives with style
+                styled_primitives = style_instance.apply_style(layout_result.primitives)
+                
+                # Render with styled primitives
+                self._render_styled_primitives(styled_primitives, canvas_widget, canvas_size)
+            else:
+                # Use existing render method for default Dau style
+                from PySide6.QtGui import QPainter, QPixmap
+                
+                pixmap = QPixmap(canvas_size[0], canvas_size[1])
+                pixmap.fill(self.default_style.background_color)
+                
+                painter = QPainter(pixmap)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+                
+                self.render(painter, layout_result, egi, canvas_size)
+                painter.end()
+                
+                # Set pixmap to canvas
+                if hasattr(canvas_widget, 'set_pixmap'):
+                    canvas_widget.set_pixmap(pixmap)
+                elif hasattr(canvas_widget, 'setPixmap'):
+                    canvas_widget.setPixmap(pixmap)
+                else:
+                    print("DEBUG: Canvas widget has no pixmap method")
+                
+        except Exception as e:
+            print(f"Direct Qt rendering error: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _render_styled_primitives(self, styled_primitives, canvas_widget, canvas_size):
+        """Render styled primitives to canvas."""
+        from PySide6.QtGui import QPainter, QPixmap, QPen, QBrush
+        
+        pixmap = QPixmap(canvas_size[0], canvas_size[1])
+        pixmap.fill(self.default_style.background_color)
+        
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Render each styled primitive
+        for primitive_id, styled_primitive in styled_primitives.items():
+            self._draw_styled_primitive(painter, styled_primitive)
+        
+        painter.end()
+        
+        # Set pixmap to canvas
+        if hasattr(canvas_widget, 'set_pixmap'):
+            canvas_widget.set_pixmap(pixmap)
+        elif hasattr(canvas_widget, 'setPixmap'):
+            canvas_widget.setPixmap(pixmap)
+    
+    def _draw_styled_primitive(self, painter, styled_primitive):
+        """Draw a single styled primitive."""
+        # This is a basic implementation - would be expanded based on primitive type
+        # For now, fall back to existing render method
+        pass

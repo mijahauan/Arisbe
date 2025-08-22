@@ -1,0 +1,27 @@
+{
+  "id": "peirce_modus_ponens",
+  "category": "peirce",
+  "title": "Peirce's Modus Ponens",
+  "description": "Peirce's demonstration of the modus ponens inference rule using existential graphs",
+  "source": {
+    "author": "Charles Sanders Peirce",
+    "work": "Collected Papers",
+    "volume": "4.572",
+    "year": 1906,
+    "page": "572"
+  },
+  "logical_form": "((P → Q) ∧ P) → Q",
+  "natural_language": "If P then Q, and P is true, then Q must be true",
+  "complexity": {
+    "nesting_depth": 2,
+    "entity_count": 1,
+    "predicate_count": 2,
+    "cut_count": 2
+  },
+  "test_rationale": "Classic inference rule demonstration, tests double-cut implication and variable binding",
+  "epg_features": {
+    "is_starting_position": true,
+    "valid_transformations": ["insertion", "deletion"],
+    "invalid_transformations": ["deiteration"]
+  }
+}
