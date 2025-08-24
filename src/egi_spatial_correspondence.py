@@ -266,7 +266,8 @@ class SpatialCorrespondenceEngine:
                 if parent_elt and parent_elt.element_type == 'cut':
                     parent_bounds = parent_elt.spatial_bounds
             if parent_bounds:
-                pad_in = 20.0
+                layout_tokens = self.style.resolve(type="layout")
+                pad_in = float(layout_tokens.get("cut_padding", 20.0))
                 nx = parent_bounds.x + pad_in
                 ny = parent_bounds.y + pad_in
                 # Ensure it fits; if too large, clamp to parent minus padding
@@ -277,8 +278,13 @@ class SpatialCorrespondenceEngine:
             def overlaps(a: SpatialBounds, b: SpatialBounds) -> bool:
                 return not (a.x + a.width <= b.x or b.x + b.width <= a.x or
                             a.y + a.height <= b.y or b.y + b.height <= a.y)
-            shift_dx = 40
-            shift_dy = 30
+            layout_tokens = self.style.resolve(type="layout")
+            _ss = layout_tokens.get("sibling_shift", [40.0, 30.0])
+            try:
+                shift_dx = float(_ss[0]) if isinstance(_ss, (list, tuple)) and len(_ss) >= 1 else 40.0
+                shift_dy = float(_ss[1]) if isinstance(_ss, (list, tuple)) and len(_ss) >= 2 else 30.0
+            except Exception:
+                shift_dx, shift_dy = 40.0, 30.0
             guard = 0
             # Only consider overlaps with siblings (same parent area)
             def any_sibling_overlap() -> bool:
@@ -558,12 +564,14 @@ class SpatialCorrespondenceEngine:
                             continue
                         ob = oelem.spatial_bounds
                         # Padding to keep a safe margin around text (forces earlier avoidance)
-                        pad = 6.0
+                        layout_tokens = self.style.resolve(type="layout")
+                        pad = float(layout_tokens.get("label_obstacle_padding", 6.0))
                         label_obs.append((ob.x - pad, ob.y - pad, ob.width + 2 * pad, ob.height + 2 * pad))
                     # Add the target predicate label rect itself as an obstacle so routing
                     # to the approach point never crosses it. Use same padding.
                     ob = e_elem.spatial_bounds
-                    pad = 6.0
+                    layout_tokens = self.style.resolve(type="layout")
+                    pad = float(layout_tokens.get("label_obstacle_padding", 6.0))
                     label_obs.append((ob.x - pad, ob.y - pad, ob.width + 2 * pad, ob.height + 2 * pad))
                 # Build approach point just OUTSIDE the target predicate rect near the hook
                 # so the routed path never crosses the target label box; only the final
@@ -575,7 +583,8 @@ class SpatialCorrespondenceEngine:
                     ux, uy = ux / ulen, uy / ulen
                 else:
                     ux, uy = 1.0, 0.0
-                approach_margin = 4.0
+                layout_tokens = self.style.resolve(type="layout")
+                approach_margin = float(layout_tokens.get("ligature_approach_margin", 4.0))
                 approach_pt = (hook_x + ux * approach_margin, hook_y + uy * approach_margin)
                 # Route to approach point with obstacles
                 seg = self._visibility_route(base, approach_pt, eff_obs + label_obs)
