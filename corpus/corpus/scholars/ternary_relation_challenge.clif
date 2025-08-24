@@ -1,0 +1,9 @@
+# Ternary Relation Challenge
+# Category: scholars
+# Description: Three-way relation with complex ligature routing
+# Source: Challenging Test Cases
+# Pattern: ∃x∃y∃z(Between x y z) - "Something is between two other things"
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
+
+(Between y x z)

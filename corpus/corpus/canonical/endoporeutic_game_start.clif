@@ -1,0 +1,9 @@
+# Endoporeutic Game Starting Position
+# Category: canonical
+# Description: Classic EPG starting position with multiple valid transformation paths
+# Source: Canonical EPG Examples
+# Pattern: epg_start
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
+
+(and (not (not (Loves z u))) (not (not (Loves y x))))

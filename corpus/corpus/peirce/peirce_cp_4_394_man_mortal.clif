@@ -1,2 +1,9 @@
-(forall (x) (if (Man x) (Mortal x)))
+# Peirce's Man-Mortal Implication
+# Category: peirce
+# Description: Peirce's classic example of implication: 'If a man, then mortal'
+# Source: Charles Sanders Peirce
+# Pattern: implication
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
 
+(not (and (Human x) (not (Mortal x))))

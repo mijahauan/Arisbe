@@ -1,2 +1,9 @@
-(exists (x) (and (P x) (Q x)))
+# Sowa's Quantification Example
+# Category: scholars
+# Description: Sowa's example of existential quantification
+# Source: John F. Sowa
+# Pattern: quantification
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
 
+(and (Human x) (Mortal x))

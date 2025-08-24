@@ -6,7 +6,9 @@ PyYAML>=6.0
 frozendict>=2.3.0
 
 # Visualization and GUI dependencies
-PySide6>=6.5.0
+# Choose one: PyQt6 (preferred for Chapter 16 GUI) or PySide6
+PyQt6>=6.5.0
+# PySide6>=6.5.0
 Pillow>=10.0.0
 
 # Layout engine dependencies

@@ -1,2 +1,9 @@
-(exists (x) (and (P x) (not (Q x))))
+# Dau's Ligature Example
+# Category: scholars
+# Description: Dau's example of ligatures crossing cut boundaries
+# Source: Frithjof Dau
+# Pattern: ligature
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
 
+(and (P x) (not (and (R x) (Q x))))

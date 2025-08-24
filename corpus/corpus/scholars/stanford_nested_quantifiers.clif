@@ -1,0 +1,9 @@
+# Stanford Nested Quantifiers
+# Category: scholars
+# Description: Nested quantifier scopes: Everyone loves someone
+# Source: Stanford Encyclopedia of Philosophy - Peirce's Logic
+# Pattern: ∀x∃y(Loves x y) - "Everyone loves someone"
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
+
+(not (Loves y x))

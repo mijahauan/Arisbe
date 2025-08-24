@@ -1,1 +1,9 @@
-(if (Man Socrates) (Mortal Socrates))
+# Canonical Implication
+# Category: canonical
+# Description: Standard form of implication using double-cut: P → Q ≡ ¬(P ∧ ¬Q)
+# Source: Canonical Forms
+# Pattern: implication
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
+
+(not (and (Q x) (not (P x))))

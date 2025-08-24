@@ -1,0 +1,506 @@
+{
+  "name": "EGRF v4.0 Enhanced Corpus",
+  "description": "Enhanced corpus with complete linear form coverage: EGIF, CLIF, and CGIF representations",
+  "version": "2.0.0",
+  "schema_version": "enhanced_v1",
+  "generation_date": "2025-08-22T19:50:59.638656",
+  "linear_forms": {
+    "egif": {
+      "name": "Existential Graph Interchange Format",
+      "description": "Dau-compliant linear form using cuts and quantifiers",
+      "file_extension": ".egif"
+    },
+    "clif": {
+      "name": "Common Logic Interchange Format",
+      "description": "ISO/IEC 24707:2007 compliant logical expressions",
+      "file_extension": ".clif"
+    },
+    "cgif": {
+      "name": "Conceptual Graph Interchange Format",
+      "description": "ISO/IEC 24707:2007 Annex B conceptual graph notation",
+      "file_extension": ".cgif"
+    }
+  },
+  "examples": [
+    {
+      "id": "canonical_implication",
+      "category": "canonical",
+      "title": "Canonical Implication",
+      "description": "Standard form of implication using double-cut: P → Q ≡ ¬(P ∧ ¬Q)",
+      "source": "Canonical Forms",
+      "logical_pattern": "implication",
+      "linear_forms": {
+        "egif": {
+          "content": "~[ ~[ (P \"x\") ] (Q \"x\") ]",
+          "source": "original",
+          "file": "canonical_implication.egif"
+        },
+        "clif": {
+          "content": "(not (and (Q x) (not (P x))))",
+          "source": "generated",
+          "file": "canonical_implication.clif"
+        },
+        "cgif": {
+          "content": "~[[Q: x] ~[[P: x]]]",
+          "source": "generated",
+          "file": "canonical_implication.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "endoporeutic_game_start",
+      "category": "canonical",
+      "title": "Endoporeutic Game Starting Position",
+      "description": "Classic EPG starting position with multiple valid transformation paths",
+      "source": "Canonical EPG Examples",
+      "logical_pattern": "epg_start",
+      "linear_forms": {
+        "egif": {
+          "content": "*x ~[ *y ~[ (Loves x y) ] ] ~[ *z ~[ *w (Loves z w) ] ]",
+          "source": "original",
+          "file": "endoporeutic_game_start.egif"
+        },
+        "clif": {
+          "content": "(and (not (not (Loves z u))) (not (not (Loves y x))))",
+          "source": "generated",
+          "file": "endoporeutic_game_start.clif"
+        },
+        "cgif": {
+          "content": "[*y] ~[[*z] ~[[*u] (Loves ?z ?u)]] ~[[*x] ~[(Loves ?y ?x)]]",
+          "source": "generated",
+          "file": "endoporeutic_game_start.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 4,
+        "edges": 2,
+        "cuts": 4
+      }
+    },
+    {
+      "id": "peirce_cp_4_394_man_mortal",
+      "category": "peirce",
+      "title": "Peirce's Man-Mortal Implication",
+      "description": "Peirce's classic example of implication: 'If a man, then mortal'",
+      "source": "Charles Sanders Peirce",
+      "logical_pattern": "implication",
+      "linear_forms": {
+        "egif": {
+          "content": "~[ (Human \"Socrates\") ~[ (Mortal \"Socrates\") ] ]",
+          "source": "original",
+          "file": "peirce_cp_4_394_man_mortal.egif"
+        },
+        "clif": {
+          "content": "(not (and (Human x) (not (Mortal x))))",
+          "source": "generated",
+          "file": "peirce_cp_4_394_man_mortal.clif"
+        },
+        "cgif": {
+          "content": "~[[Human: Socrates] ~[[Mortal: Socrates]]]",
+          "source": "generated",
+          "file": "peirce_cp_4_394_man_mortal.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "peirce_modus_ponens",
+      "category": "peirce",
+      "title": "Peirce's Modus Ponens",
+      "description": "Peirce's demonstration of modus ponens inference rule",
+      "source": "Collected Papers 4.572",
+      "logical_pattern": "inference",
+      "linear_forms": {
+        "egif": {
+          "content": "*x (P x) ~[ (P x) ~[ (Q x) ] ]",
+          "source": "original",
+          "file": "peirce_modus_ponens.egif"
+        },
+        "clif": {
+          "content": "(and (P x) (not (and (P x) (not (Q x)))))",
+          "source": "generated",
+          "file": "peirce_modus_ponens.clif"
+        },
+        "cgif": {
+          "content": "[P: *x] ~[[P: *x] ~[[Q: *x]]]",
+          "source": "generated",
+          "file": "peirce_modus_ponens.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 3,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "dau_2006_p112_ligature",
+      "category": "scholars",
+      "title": "Dau's Ligature Example",
+      "description": "Dau's example of ligatures crossing cut boundaries",
+      "source": "Frithjof Dau",
+      "logical_pattern": "ligature",
+      "linear_forms": {
+        "egif": {
+          "content": "*x (P x) ~[ (Q x) (R x) ]",
+          "source": "original",
+          "file": "dau_2006_p112_ligature.egif"
+        },
+        "clif": {
+          "content": "(and (P x) (not (and (R x) (Q x))))",
+          "source": "generated",
+          "file": "dau_2006_p112_ligature.clif"
+        },
+        "cgif": {
+          "content": "[P: *x] ~[[R: *x]]",
+          "source": "generated",
+          "file": "dau_2006_p112_ligature.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 3,
+        "cuts": 1
+      }
+    },
+    {
+      "id": "dau_theorem_proving",
+      "category": "scholars",
+      "title": "Dau's Theorem Proving Example",
+      "description": "Complex theorem proving example with nested quantifiers and modal operators",
+      "source": "Dau (2006) \"Mathematical Logic with Diagrams\"",
+      "logical_pattern": "theorem_proving",
+      "linear_forms": {
+        "egif": {
+          "content": "*x ~[ (P x) ~[ *y (Q x y) ~[ *z ~[ (R y z) ~[ (S z) ] ] ] ] ]",
+          "source": "original",
+          "file": "dau_theorem_proving.egif"
+        },
+        "clif": {
+          "content": "(not (and (P x) (not (and (Q x y) (not (not (and (R y z) (not (S z)))))))))",
+          "source": "generated",
+          "file": "dau_theorem_proving.clif"
+        },
+        "cgif": {
+          "content": "[*x] ~[[P: *x] ~[[*y] (Q ?x ?y) ~[[*z] ~[(R ?y ?z) ~[[S: *z]]]]]]",
+          "source": "generated",
+          "file": "dau_theorem_proving.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 3,
+        "edges": 4,
+        "cuts": 5
+      }
+    },
+    {
+      "id": "mixed_quantifier_complex",
+      "category": "scholars",
+      "title": "Mixed Quantifier Complex",
+      "description": "Alternating quantifiers with deep nesting",
+      "source": "Challenging Test Cases",
+      "logical_pattern": "∀x∃y∀z(P x) ∧ (Q y z) - Mixed quantification with conjunction",
+      "linear_forms": {
+        "egif": {
+          "content": "*x ~[ *y (P x) ~[ *z (Q y z) ] ]",
+          "source": "original",
+          "file": "mixed_quantifier_complex.egif"
+        },
+        "clif": {
+          "content": "(not (and (P y) (not (Q x z))))",
+          "source": "generated",
+          "file": "mixed_quantifier_complex.clif"
+        },
+        "cgif": {
+          "content": "[*y] ~[[P: *y] [*x] ~[[*z] (Q ?x ?z)]]",
+          "source": "generated",
+          "file": "mixed_quantifier_complex.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 3,
+        "edges": 2,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "peirce_complex_scope",
+      "category": "scholars",
+      "title": "Peirce Complex Scope",
+      "description": "Three-way mixed quantifiers with complex nesting",
+      "source": "Peirce Beta System",
+      "logical_pattern": "∃x∀y∃z(R x y z) - Complex three-way relation with mixed quantifiers",
+      "linear_forms": {
+        "egif": {
+          "content": "*x ~[ *y ~[ *z (Relation x y z) ] ]",
+          "source": "original",
+          "file": "peirce_complex_scope.egif"
+        },
+        "clif": {
+          "content": "(not (not (Relation y x z)))",
+          "source": "generated",
+          "file": "peirce_complex_scope.clif"
+        },
+        "cgif": {
+          "content": "[*y] ~[[*x] ~[[*z] (Relation ?y ?x ?z)]]",
+          "source": "generated",
+          "file": "peirce_complex_scope.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 3,
+        "edges": 1,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "roberts_1973_p57_disjunction",
+      "category": "scholars",
+      "title": "Roberts' Disjunction Example",
+      "description": "Roberts' example of disjunction: 'P or Q'",
+      "source": "Don D. Roberts",
+      "logical_pattern": "disjunction",
+      "linear_forms": {
+        "egif": {
+          "content": "~[ ~[ (P \"x\") ] ~[ (Q \"x\") ] ]",
+          "source": "original",
+          "file": "roberts_1973_p57_disjunction.egif"
+        },
+        "clif": {
+          "content": "(not (and (not (P x)) (not (Q x))))",
+          "source": "generated",
+          "file": "roberts_1973_p57_disjunction.clif"
+        },
+        "cgif": {
+          "content": "~[[: x] ~[[P: x]] ~[[Q: x]]]",
+          "source": "generated",
+          "file": "roberts_1973_p57_disjunction.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 3
+      }
+    },
+    {
+      "id": "roberts_domain_modeling",
+      "category": "scholars",
+      "title": "Roberts' Domain Modeling Example",
+      "description": "Complex domain model with inheritance and multiple relations",
+      "source": "Roberts (1973) \"The Existential Graphs of Charles S. Peirce\"",
+      "logical_pattern": "domain_modeling",
+      "linear_forms": {
+        "egif": {
+          "content": "*x ~[ (Professor x) ~[ (Person x) *y (Course y) (Teaches x y) *z (Student z) (Has x z) ] ]",
+          "source": "original",
+          "file": "roberts_domain_modeling.egif"
+        },
+        "clif": {
+          "content": "(not (and (Professor x) (not (and (Course z) (Has x y) (Person x) (Teaches x z) (Student y)))))",
+          "source": "generated",
+          "file": "roberts_domain_modeling.clif"
+        },
+        "cgif": {
+          "content": "[*x] ~[[Professor: *x] ~[[Course: *z] [Person: *x] [Student: *y] (Has ?x ?y) (Teaches ?x ?z)]]",
+          "source": "generated",
+          "file": "roberts_domain_modeling.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 3,
+        "edges": 6,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "shared_constant_disjunction",
+      "category": "scholars",
+      "title": "Shared Constant Disjunction",
+      "description": "Constant sharing across disjunction cuts",
+      "source": "Challenging Test Cases",
+      "logical_pattern": "(Human \"Socrates\") ∨ (Mortal \"Socrates\") - Shared constant across disjunction",
+      "linear_forms": {
+        "egif": {
+          "content": "(Human \"Socrates\") ~[ ~[ (Mortal \"Socrates\") ] ]",
+          "source": "original",
+          "file": "shared_constant_disjunction.egif"
+        },
+        "clif": {
+          "content": "(and (Human x) (not (not (Mortal x))))",
+          "source": "generated",
+          "file": "shared_constant_disjunction.clif"
+        },
+        "cgif": {
+          "content": "[Human: Socrates] ~[~[[Mortal: Socrates]]]",
+          "source": "generated",
+          "file": "shared_constant_disjunction.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "sibling_cuts_shared_variable",
+      "category": "scholars",
+      "title": "Sibling Cuts Shared Variable",
+      "description": "Variable sharing across sibling cuts",
+      "source": "Challenging Test Cases",
+      "logical_pattern": "∃x((P x) ∨ (Q x)) - \"Something is either P or Q\"",
+      "linear_forms": {
+        "egif": {
+          "content": "*x ~[ (P x) ] ~[ (Q x) ]",
+          "source": "original",
+          "file": "sibling_cuts_shared_variable.egif"
+        },
+        "clif": {
+          "content": "(and (not (Q x)) (not (P x)))",
+          "source": "generated",
+          "file": "sibling_cuts_shared_variable.clif"
+        },
+        "cgif": {
+          "content": "[*x] ~[[Q: *x]] ~[[P: *x]]",
+          "source": "generated",
+          "file": "sibling_cuts_shared_variable.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "sowa_2011_p356_quantification",
+      "category": "scholars",
+      "title": "Sowa's Quantification Example",
+      "description": "Sowa's example of existential quantification",
+      "source": "John F. Sowa",
+      "logical_pattern": "quantification",
+      "linear_forms": {
+        "egif": {
+          "content": "*x (Human x) (Mortal x)",
+          "source": "original",
+          "file": "sowa_2011_p356_quantification.egif"
+        },
+        "clif": {
+          "content": "(and (Human x) (Mortal x))",
+          "source": "generated",
+          "file": "sowa_2011_p356_quantification.clif"
+        },
+        "cgif": {
+          "content": "[Human: *x]",
+          "source": "generated",
+          "file": "sowa_2011_p356_quantification.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 0
+      }
+    },
+    {
+      "id": "sowa_cat_on_mat",
+      "category": "scholars",
+      "title": "Sowa's Cat on Mat Example",
+      "description": "Sowa's classic example from EGIF specification: \"A cat is on a mat\"",
+      "source": "Sowa EGIF-2014, Section 2.5",
+      "logical_pattern": "simple_relation",
+      "linear_forms": {
+        "egif": {
+          "content": "*x *y (Cat x) (On x y) (Mat y)",
+          "source": "original",
+          "file": "sowa_cat_on_mat.egif"
+        },
+        "clif": {
+          "content": "(and (On x y) (Cat x) (Mat y))",
+          "source": "generated",
+          "file": "sowa_cat_on_mat.clif"
+        },
+        "cgif": {
+          "content": "[Cat: *x] [Mat: *y] (On ?x ?y)",
+          "source": "generated",
+          "file": "sowa_cat_on_mat.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 2,
+        "edges": 3,
+        "cuts": 0
+      }
+    },
+    {
+      "id": "stanford_nested_quantifiers",
+      "category": "scholars",
+      "title": "Stanford Nested Quantifiers",
+      "description": "Nested quantifier scopes: Everyone loves someone",
+      "source": "Stanford Encyclopedia of Philosophy - Peirce's Logic",
+      "logical_pattern": "∀x∃y(Loves x y) - \"Everyone loves someone\"",
+      "linear_forms": {
+        "egif": {
+          "content": "*x ~[ *y (Loves x y) ]",
+          "source": "original",
+          "file": "stanford_nested_quantifiers.egif"
+        },
+        "clif": {
+          "content": "(not (Loves y x))",
+          "source": "generated",
+          "file": "stanford_nested_quantifiers.clif"
+        },
+        "cgif": {
+          "content": "[*y] ~[[*x] (Loves ?y ?x)]",
+          "source": "generated",
+          "file": "stanford_nested_quantifiers.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 2,
+        "edges": 1,
+        "cuts": 1
+      }
+    },
+    {
+      "id": "ternary_relation_challenge",
+      "category": "scholars",
+      "title": "Ternary Relation Challenge",
+      "description": "Three-way relation with complex ligature routing",
+      "source": "Challenging Test Cases",
+      "logical_pattern": "∃x∃y∃z(Between x y z) - \"Something is between two other things\"",
+      "linear_forms": {
+        "egif": {
+          "content": "*x *y *z (Between x y z)",
+          "source": "original",
+          "file": "ternary_relation_challenge.egif"
+        },
+        "clif": {
+          "content": "(Between y x z)",
+          "source": "generated",
+          "file": "ternary_relation_challenge.clif"
+        },
+        "cgif": {
+          "content": "[*y] [*x] [*z] (Between ?y ?x ?z)",
+          "source": "generated",
+          "file": "ternary_relation_challenge.cgif"
+        }
+      },
+      "egi_stats": {
+        "vertices": 3,
+        "edges": 1,
+        "cuts": 0
+      }
+    }
+  ]
+}

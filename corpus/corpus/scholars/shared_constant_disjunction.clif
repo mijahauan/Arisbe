@@ -1,0 +1,9 @@
+# Shared Constant Disjunction
+# Category: scholars
+# Description: Constant sharing across disjunction cuts
+# Source: Challenging Test Cases
+# Pattern: (Human "Socrates") ∨ (Mortal "Socrates") - Shared constant across disjunction
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
+
+(and (Human x) (not (not (Mortal x))))

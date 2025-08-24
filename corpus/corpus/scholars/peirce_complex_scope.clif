@@ -1,0 +1,9 @@
+# Peirce Complex Scope
+# Category: scholars
+# Description: Three-way mixed quantifiers with complex nesting
+# Source: Peirce Beta System
+# Pattern: ∃x∀y∃z(R x y z) - Complex three-way relation with mixed quantifiers
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
+
+(not (not (Relation y x z)))

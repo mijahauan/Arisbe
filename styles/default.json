@@ -1,0 +1,11 @@
+{
+  "global": { "font_family": "Arial", "font_size": 10 },
+  "edge.label_box": { "border_color": "transparent", "border_width": 0, "fill_color": "#FFFFFF", "text_padding": [2, 1] },
+  "edge.label_text": { "estimate_char_width": 6.0, "estimate_height": 14.0, "padding": [2, 1] },
+  "vertex.label_text": { "estimate_char_width": 6.0, "estimate_height": 12.0, "padding": [2, 1], "offset": [-18, -16], "font_size": 9 },
+  "ligature.arm": { "line_color": "#000000", "line_width": 3, "cap": "round", "min_length": 12.0, "border_overlap": 1.0 },
+  "vertex.dot": { "fill_color": "#000000", "border_color": "#000000", "border_width": 1, "radius": 3 },
+  "cut.border": { "line_color": "#000000", "line_width": 1, "radius": 10 },
+  "cut.fill": { "fill_color": "rgba(240,240,240,0.31)" },
+  "debug.hook": { "fill_color": "#DC0000", "radius": 2 }
+}

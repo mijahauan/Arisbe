@@ -12,8 +12,9 @@ from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, ElementID, 
 class EGIFGenerator:
     """Generates EGIF expressions from Dau-compliant graphs with proper variable scoping."""
     
-    def __init__(self, graph: RelationalGraphWithCuts):
-        self.graph = graph
+    def __init__(self, graph: Optional[RelationalGraphWithCuts] = None):
+        # Allow optional graph for legacy API compatibility
+        self.graph = graph  # may be set later via generate_egif()
         self.alphabet = Alphabet()
         self.vertex_labels = {}  # Maps vertex IDs to EGIF labels
         self.used_labels = set()
@@ -23,6 +24,8 @@ class EGIFGenerator:
         
     def generate(self) -> str:
         """Generate EGIF expression from graph."""
+        if self.graph is None:
+            raise TypeError("EGIFGenerator.generate() called without a graph. Provide one in constructor or use generate_egif(graph).")
         # Assign labels to vertices and determine defining occurrences
         self._assign_vertex_labels()
         # Compute hoisted defining context for each generic vertex
@@ -32,6 +35,12 @@ class EGIFGenerator:
         content = self._generate_context_content(self.graph.sheet)
         
         return content.strip()
+
+    # Legacy-friendly instance method used by tests
+    def generate_egif(self, graph: RelationalGraphWithCuts) -> str:
+        """Legacy API: egif_gen.generate_egif(graph) -> str"""
+        self.graph = graph
+        return self.generate()
     
     def _assign_vertex_labels(self):
         """Assign EGIF labels to vertices and determine defining occurrences."""

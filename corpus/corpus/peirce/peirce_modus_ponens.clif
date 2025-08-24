@@ -1,0 +1,9 @@
+# Peirce's Modus Ponens
+# Category: peirce
+# Description: Peirce's demonstration of modus ponens inference rule
+# Source: Collected Papers 4.572
+# Pattern: inference
+# Generated CLIF representation from EGI
+# Generated: 2025-08-22 19:50:59
+
+(and (P x) (not (and (P x) (not (Q x)))))

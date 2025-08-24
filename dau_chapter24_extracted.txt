@@ -1,0 +1,1728 @@
+=== PAGE 8 ===
+8 Contents
+23.3 Examples for EGIs with Constants and Functions . . . . . . . . . . . 253
+24 Vertices with Constants . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 259
+24.1 Syntax and Semantics . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 259
+24.2 Correspondence between vertex-based EGIs and EGIs . . . . . . . . 262
+24.3 Calculus for vertex-based EGIs . . . . . . . . . . . . . . . . . . . . . . . . . . . . 265
+24.4 Ligatures in vertex-based EGIs . . . . . . . . . . . . . . . . . . . . . . . . . . . . 274
+25 Relation Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 281
+25.1 Semi Relation Graph Instances . . . . . . . . . . . . . . . . . . . . . . . . . . . . 285
+25.2 Relation Graph Instances . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 289
+26 Peirce’s Reduction Thesis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 297
+26.1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 297
+26.2 Peircean Algebraic Logic . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 298
+26.3 Graphs for Peircean Algebraic Logic . . . . . . . . . . . . . . . . . . . . . . . 299
+26.4 Peirce’s Reduction Thesis for Relation Graphs . . . . . . . . . . . . . . 309
+26.5 The Contributions of Herzberger and Burch . . . . . . . . . . . . . . . . 314
+Appendix
+Referenced Authors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 319
+Symbols . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 321
+Index . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 323
+References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 329
+
+=== PAGE 143 ===
+12.3 Further Notations for Existential Graph Instances 133
+If a diagram of an EGI is given, we can transform it as
+follows: We draw all edge-lines bold, such that all vertex-
+spots at the end of an edge-line cannot be distinguished
+from this edge-line. For example, for G3we get the right
+diagram of an Peircean EG (the labels of the edges are
+omitted, and this diagram is exactly one of the diagrams
+of Peirce’s Cambridge Lectures):
+lovesobeys
+It is easy to see that the diagrams we obtain this way are precisely the di-
+agrams of non-degenerated existential graphs (including Peirce graphs with
+isolated identity-spots).
+The only problem in the transformation of diagrams of EGIs into Peirce di-
+agrams which can occur are crossing edge-lines. If we draw these edge-lines
+bold, then it would seem that we had intersecting lines of identity. Peirce has
+realized that there may be EGs which cannot be drawn on a plane without the
+intersection of LoIs.3For this reason, he introduced a graphical device called
+‘bridge’, which has to be drawn in this case (see 4.561). For our example with
+intersecting edge-lines above, we draw
+is father of
+is father of
+is mother ofis mother ofAdam Kain
+Eva Abel
+12.3 Further Notations for Existential Graph Instances
+Similar to Alpha, we have to deﬁne subgraphs of EGIs. The basic idea is the
+same like in Alpha, but he notation of subgraphs in Alpha has to be extended
+to Beta in order to capture the extended syntax of Beta, particularly edges
+which do not occur in formal alpha graphs. First of all, if a subgraph con-
+tains an edge, then it has to contain all vertices which are incident with the
+edge, too. Moreover, we distinguish between subgraphs andclosed subgraphs :
+If a subgraph is given such that for each vertex of this subgraph, all incident
+edges belong to the subgraph, too, then the subgraph is called a closed sub-
+graph . The notation of a subgraph will become precise through the following
+deﬁnition.4
+3This is a general problem of mathematical graphs which is extensively investigated
+in graph theory.
+4In this deﬁnition, subgraphs are ﬁrst deﬁned for relational graph with cuts, then
+for EGIs. The reason is that we will slightly extend the syntax for EGIs in Def. 24.1
+by adding a second labeling function. Strictly speaking, the following deﬁnition
+
+=== PAGE 144 ===
+134 12 Syntax for Existential Graphs
+Deﬁnition 12.10 (Subgraphs). LetG:= (V, E, ν, /latticetop, Cut, area )be a rela-
+tional graph with cuts. A graph G/prime:= (V/prime, E/prime, ν/prime,/latticetop/prime, Cut/prime, area/prime)is asub-
+graph of Gin the context /latticetop/primeiﬀ
+•V/prime⊆V,E/prime⊆E,Cut/prime⊆Cut and/latticetop/prime∈Cut∪ {/latticetop} ,
+•ν/prime=ν/vextendsingle/vextendsingle
+E/prime(particularly, the restriction ν/primeofνtoE/primeis well deﬁned),
+•area/prime(/latticetop/prime) =area(/latticetop/prime)∩(V/prime∪E/prime∪Cut/prime)andarea/prime(c/prime) =area(c/prime)for each
+c/prime∈Cut/prime,
+•ctx(x)∈Cut/prime∪ {/latticetop/prime}for each x∈V/prime∪E/prime∪Cut/prime, and
+•Ve/prime⊆V/primefor each edge e/prime∈E/prime.
+If we additionally have Ev/prime⊆E/primefor each vertex v/prime∈V/prime, then G/primeis called
+closed subgraph of Gin the context /latticetop/prime.
+Now let G:= (V, E, ν, /latticetop, Cut, area, κ )be an EGI. We call a graph G/prime:=
+(V/prime, E/prime, ν/prime,/latticetop/prime, Cut/prime, area/prime, κ/prime)asubgraph of Gin the context /latticetop/prime, iﬀ
+(V/prime, E/prime, ν/prime,/latticetop/prime, Cut/prime, area/prime)is a subgraph of (V, E, ν, /latticetop, Cut, area )in the con-
+text/latticetop/primewhich respects the labeling, i.e. if κ/prime=κ/vextendsingle/vextendsingle
+E/primeholds.
+In both cases (relational graph with cuts and EGIs), we write G/prime⊆Gand
+area−1(G/prime) =/latticetop/primeresp. ctx(G/prime) =/latticetop/prime.
+Similar to Alpha (see Lem. 7.10), we get /lessnotequal[c/prime]⊆E/prime∪V/prime∪Cut/primefor each c/prime∈
+Cut/prime. In particular, Cut/primeis an ideal in Cut∪{/latticetop} , but in general, Cut/prime∪{/latticetop/prime}
+isnotan ideal in Cut∪ {/latticetop} (there may be contexts d∈area(/latticetop/prime) which are
+not a element of Cut/prime∪ {/latticetop/prime}).
+A subgraph is, similar to elements of E∪V∪Cut∪ {/latticetop} , placed in a context
+(namely /latticetop/prime). Thus, we will say that the subgraph is directly enclosed by
+/latticetop/prime, and it is enclosed by a context cif and only iﬀ /latticetop/prime≤c. Moreover, we
+can apply Def. 12.4 to subgraphs as well. Hence we we distinguish whether a
+subgraph is evenly or oddly enclosed.
+To get an impression of subgraphs of EGI, an example will be helpful. Consider
+the following graph:
+PR Q
+Q
+of subgraphs cannot be applied to these graphs, but if we deﬁne subgraphs ﬁrst
+for relational graph with cuts, it should be clear how this deﬁnition should be
+modiﬁed for the extended EGIs of Def. 24.1.
+
+=== PAGE 259 ===
+23.2 Extending the Calculus 249
+23.2 Extending the Calculus
+In this section, the calculus is extended in order to capture the speciﬁc prop-
+erties of constants and functions. We start the scrutiny with functions.
+The following EGI holds in a model ( U, I) exactly if Fis interpreted as an
+n-ary (total) function I(F) :Un−1→U:
+GF:=
+n
+n1F
+Fn−1n−1
+1
+1
+n−1Fn
+More precisely: The left subgraph is satisﬁed if Fis interpreted as par-
+tial function (that is, to objects o1, . . . , o n−1exist at most one onwith
+I(F)(o1, . . . , o n)), the right subgraph is satisﬁed if for objects o1, . . . , o n−1
+exist at least one onwith I(F)(o1, . . . , o n). In other words: The left subgraph
+guarantees the uniqueness, the right subgraph the existence of function values.
+According to the last subsection, we have to ﬁnd rules which are sound and
+which enable us to derive each graph GFwith F∈ F.
+Deﬁnition 23.5 (New Rules for Function Names). The calculus for
+existential graph instances over the alphabet C.∪ F.∪ R consists of all rules
+of Defs. 12.14 and 15.2. Moreover, if F∈ F is an n-ary function name, then
+the following additional transformations may be performed:
+•Functional Property Rule (uniqueness of values)
+Leteandfbe two n-ary edges with ν(e) = ( v1, . . . , v n−1, ve),ν(f) =
+(v1, . . . , v n−1, vf),1ctx(e) = ctx(ve),ctx(f) = ctx(vf),2andκ(e) =
+κ(f) = F. Let cbe a context with c≤ctx(e)andc≤ctx(f). Then
+arbitrary identity-links idwithν(id) = ( ve, vf)may be inserted into cor
+erased from c.
+•Total Function Rule (existence of values)
+Letv1, . . . , v n−1be vertices, let cbe a context with c≤ctx(v1), . . . , ctx (vn−1).
+Then we can add a vertex vnand an edge etocwithν(e) = (v1, . . . , v n)
+andκ(e) =F. Vice versa, if vnandeare a vertex and an edge in cwith
+ν(e) = ( v1, . . . , v n)andκ(e) =Fsuch that vnis not incident with any
+other edge, eandvnmay be erased.
+1In Def. 12.1, we deﬁned ve:=vfor edges ewith ν(e) ={(v)}. The notation ve
+andvfcan be understood to be a generalization of Def. 12.1.
+2The conditions ctx(e) =ctx(ve),ctx(f) =ctx(vf) had been added for sake of
+convenience, and to keep this calculus closely related to the forthcoming calculus
+in the next chapter. But the proof of the soundness of this rule does not need this
+conditions, i.e., they could be dismissed. This applies to the forthcoming ’constant
+identity rule’ as well.
+
+=== PAGE 260 ===
+250 23 Adding Constants and Functions
+We have to show that these rules are sound are complete. We start with the
+soundness of the rules.
+Lemma 23.6 (The Total Function Rule is Sound). IfGandG/primeare
+two EGIs over A:= (C,F,R, ar),M:= (U, I)is a relational structure with
+M |=GandG/primeis derived from Gwith the total function rule, then M |=G/prime.
+Proof: Let G/primebe obtained from Gby adding a vertex vnand an edge etoc
+according to the total function rule. We want to apply Lemma 13.8 to c, so
+letrefbe a valuation for the context c.
+Let us ﬁrst assume that we M |=G[c, ref ]. That is, there is an extension ref
+ofreftoV∩area(c) with M |=G[c,ref]. Let o:=I(F)(ref(v1, . . . , ref (vn)).
+Then ref/prime:=ref∪{(vn, o)}is a extended partial valuation for cinG/primewhich
+obviously satisﬁes M |=G[c,ref/prime], as the additional edge condition for ein
+the context cofG/primeholds due to the deﬁnition of ref/prime. Particularly, we obtain
+M |=G/prime[c, ref ].
+Now let us assume M |=G/prime[c, ref ]. That is, there is an extension ref/primeofref
+toV∩area(c) with M |=G/prime[c,ref/prime]. Let ref:=ref/prime\{(vn,ref/prime(vn))}we
+obviously have M |=G[c,ref], thus we conclude M |=G[c, ref ].
+Now Lemma 13.8 yields the lemma. 2
+Lemma 23.7 (The Functional Property Rule is Sound). IfGandG/prime
+are two EGIs over A:= (C,F,R, ar),M:= (U, I)is a relational structure
+withM |=GandG/primeis derived from Gwith the functional property rule, then
+M |=G/prime.
+Proof: Let G/primebe obtained from G/primeby inserting an identity-link idwithν(id) =
+(ve, vf) into c. We set ce:=ctx(e) and cf:=ctx(f). The EGIs GandG/primeare
+isomorphic except for the context c. First note that the contexts ceandcf
+must be comparable. W.l.o.g. we assume ce≥cf≥c.
+We ﬁrst consider the case ce=cf=c. We want to apply Lemma 13.8 to c, so
+letrefcbe a partial valuation for c. InG/primein the context c, we have added the
+edgeid, thus for c, there is one more edge condition to check. So it is suﬃcient
+to show that
+(U, I)|=G[c, ref c] =⇒ (U, I)|=G/prime[c, ref c] (23.6)
+holds. So let ( U, I)|=G[c, ref c]. That is, there is an extension refcofrefcto
+V∩area(c) withG|=G[c,refc], i.e., refcsatisﬁes all edge- and cut-conditions
+inc. Particularly, it satisﬁes the edge-conditions for eandf, that is:
+(refc(v1), . . .ref(vn−1),refc(ve))∈I(κ(e)) and
+(refc(v1), . . .ref(vn−1),refc(vf))∈I(κ(f))
+
+=== PAGE 262 ===
+252 23 Adding Constants and Functions
+It remains to show that Eqn. (23.8) holds. Let us consider an extension reff
+ofrefetoarea(cf)∩V. To prove Eqn. (23.8), it is suﬃcient to show that
+G|=G[cf,reff]⇐⇒ G/prime|=G[cf,reff] (23.9)
+holds for each extension reffofrefftoarea(cf)∩V. Now can perform the
+same inductive argument like in the last case. If reffdoes not satisfy the
+edge-condition for f, we are done. If reffsatisﬁes the edge-condition, we
+have reff(ve) =reff(vf). Now for each extension refcofrefftoarea(c)∩V,
+we again obtain
+G|=G[c, ref c]⇐⇒ G/prime|=G[c, ref c]
+Now from the usual inductive argument we obtain that for each context d
+with cf> d≥cand each extension refdofrefftoarea(d)∩V, we have
+G|=G[d, ref d]⇐⇒ G/prime|=G[d, ref d].
+From this we conclude that Eqn. (23.9), thus Eqn. (23.8), holds. This ﬁnishes
+the proof for the case ce> cf> c.
+Finally, the cases ce> cf=candcf> ce=ccan be handled analogously. 2
+Next, the new rules for constants are introduced. As already been mentioned
+in the introduction of this chapter, it is well-known that functions fwith zero
+arguments correspond to objects in the universe of discourse. For this reason,
+a distinction between constants and function names is, strictly speaking, not
+necessary. So the rules for object names correspond to rules for 1-ary functions
+(i.e. functions fwith dom(f) =∅). Their soundness and completeness can be
+proven analogously to the last section: It is suﬃcient to provide the rules.
+Deﬁnition 23.8 (New Rules for Constant Names). The calculus for
+existential graph instances over the alphabet C.∪ F.∪ R consists of all rules
+of Defs. 12.14, 15.2 and 23.5. Moreover, if C∈ C is a constant name, the
+following additional transformations may be performed:
+•Constant Identity Rule
+Lete, fbe two unary edges with ν(e) = (ve),ν(f) = (vf),ctx(ve) =ctx(e),
+ctx(vf) =ctx(f),and κ(e) =κ(f) =C. Let cbe a context with c≤ctx(e)
+andc≤ctx(f). Then arbitrary identity-links idwithν(id) = (ve, vf)may
+be inserted into cor erased from c.
+•Existence of Constants Rule
+In each context c, we may add a fresh vertex vand an fresh unary edge e
+withν(e) = (v)andκ(e) =C. Vice versa, if vandeare a vertex and an
+edge in cwith ν(e) = ( v)andκ(e) =Fsuch that vis not incident with
+any other edge, eandvmay be erased from c.
+That is: Devices uCmay be inserted into or erased from c.
+
+=== PAGE 265 ===
+23.3 Examples for EGIs with Constants and Functions 255
+Instead of ﬁrst converting f, we can alternatively extend the deﬁnition of Ψ,
+as it was provided on page 206). The extended version of Ψwill be denoted
+byΨext. The original deﬁnition of Ψstarts with the translation of atomar
+subformulas R(α1, . . . , α n). This start is replaced by the following deﬁnition
+ofΨext. In addition to Ψ, we introduce a mapping ΨVwhich assigns to each
+term ta vertex ΨV(t) ofΨ(t) (these vertices so-to-speak correspond to the
+new variables αtwe used in the deﬁnition of Π. Now ΨextandΨVare deﬁned
+for EGIs over extended alphabets as follows:
+Deﬁnition of ΨextandΨV
+•Iftis an atomar term which is a variable α, let Ψext(t) be EGI with
+variables which contains only one vertex v, labeled with α. Let ΨV(t) :=v.
+•Iftis an atomar term which is a constant name C, letΨext(t) be EGI with
+variables which contains only one generic vertex vand an edge e, where e
+which is incident with vand labeled with C. Let ΨV(t) :=v.
+•Lett:=F(t1, . . . , t n), where Fbe a function name with narguments
+and let t1, . . . , t nare terms. To t1, . . . , t n, we have already assigned graphs
+Ψext(t1), . . . , Ψ ext(tn), which contain dedicated vertices ΨV(t1), . . . , Ψ V(tn),
+resp. Then let Ψext(t) be the graph which is obtained as follows:
+We take the juxtaposition of the graphs Ψext(t1), . . . , Ψ ext(tn). To the sheet
+of assertion, we add a fresh vertex vand an ( n+ 1)-ary edge esuch that e
+is labeled with Fand we have e= (ΨV(t1), . . . , Ψ V(tn), v). Let ΨV(t) :=v.
+•Now let f:=R(t1, . . . , t n), where Ris ann-ary relation name and t1, . . . , t n
+are terms. Similarly to the last case, let Ψext(f) be the graph which is
+obtained as follows:
+We take the juxtaposition of the graphs Ψext(t1), . . . , Ψ ext(tn). To the sheet
+of assertion, we add a fresh n-ary edge esuch that eis labeled with Rand
+we have e= (ΨV(t1), . . . , Ψ V(tn)).
+•The remaining cases, ( f1∧f2,¬f,∃α.f) are handled exactly like in the
+original deﬁnition of Ψ.
+It can easily shown by induction over the construction of terms that both
+approaches yield the same graphs, i.e. for each formula fwith terms, we have
+Ψ(Π(f)) =Ψext(f). Moreover, this deﬁnition strictly extends the deﬁnition of
+Ψ, i.e. if fdoes not contain any constant names or function names, we have
+Ψext(f) =Ψ(f).
+To provide an example, let us express that each polynomial of degree 3 has
+a root. The formula in FOis as follows: ∀a, b, c, d ∃x:ax3+b2+cx+d= 0.
+Below, the corresponding EGI is depicted. On the right, the mapping ΨVis
+visualized by labeling for each the subterm tofax3+b2+cx+dthe vertex
+ΨV(t) with t.
+
+=== PAGE 269 ===
+24
+Vertices with Constants
+In the last chapter, we have introduced constants and function names to the
+alphabet. Both kinds of names have been employed as special relation names.
+For function names, as functions are relations with special properties, this
+approach is self-suggesting. For constants, the situation is diﬀerent.
+In symbolic notations of logic, when deﬁning the well-formed formulas, con-
+stants are syntactically treated like variables. The counterparts of variables in
+EGIs1are vertices, which can roughly be understood as existentially quanti-
+ﬁed variables. So another approach to implement constants in EGIs is to label
+the vertices with them. This approach shall be discussed and carried out in
+this chapter. In order to distinguish the EGIs from the last chapter where con-
+stant names are assigned to edges to the EGIs in this chapter where constant
+names are assigned to vertices, we call the EGIs in this chapter vertex-based
+EGIs .
+In the last chapter, we extended the alphabet we consider. Now we extend
+slightly the syntax of graphs, thus we need a diﬀerent approach. In the next
+section 24.1, the syntax and semantics for EGIs is modiﬁed to vertex-based
+EGIs. The correspondence between EGIs and vertex-based EGIs is elabo-
+rated in Sec. 24.2, and based on this section, an adequate (i.e., a sound and
+complete) calculus for vertex-based EGIs is provided in Sec. 24.3. Finally, in
+Sec. 24.4, it is investigated how ligatures are handled in vertex-based EGIs.
+24.1 Syntax and Semantics
+We start with the syntax for vertex-based EGIs. They are based on an alpha-
+bet with constants and function names, as it is deﬁned in Def. 23.1. Moreover,
+we have to introduce a new sign ’ ∗’, called the generic marker .
+1In this chapter, when the terms EGIs and EGs are used, we refer to EGIs and
+EGs over extended alphabets, as they have been deﬁned in the last chapter.
+
+=== PAGE 270 ===
+260 24 Vertices with Constants
+Deﬁnition 24.1 (Vertex-Based Existential Graph Instances). A
+structure G:= (V, E, ν, /latticetop, Cut, area, κ, ρ )is called a vertex-based ex-
+istential graph instance (vertex-based EGI) over an alphabet
+A= (C,F,R, ar), iﬀ
+•(V, E, ν, /latticetop, Cut, area )is a relational graph with cuts and dom. nodes,
+•κ:E→ F.∪ R is a mapping such that |e|=ar(κ(e))for each e∈E, and
+•ρ:V→ {∗}.∪ Cis a mapping.
+We set V∗:={v∈V|ρ(v) =∗}andVC:={v∈V|ρ(v)∈ C}. The vertices
+v∈V∗are called generic vertices , and the vertices v∈VCare called
+constant or object vertices .
+Similar to Defs. 12.7 and 23.2, the system of all vertex-based EGIs over A
+will be denoted by VEGIA.
+Although syntactically (slightly) diﬀerent, there is a close relationship between
+the system EGIA, as is has been been elaborated in the last chapter, and
+VEGIA. This relationship will be investigated and used in the next sections.
+But ﬁrst, the syntactical diﬀerence between EGIs and vertex-based EGIs and
+possible diagrammatic representation of the latter shall be discussed.
+Beginning on page 128, the conventions for diagrammatically depicting EGIs
+have been provided. In these representations, each vertex vhas been repre-
+sented as a bold spot, the vertex-spot of v. Now in vertex-based EGIs, vertices
+are additionally labeled. Thus we have mainly two possibilities to represent
+vertex-based EGIs:
+1. Each vertex vis still drawn as bold spot, but now additionally labeled
+with ρ(v) (this representation was used for EGIs with variables as well).
+For sake of convenience, we can omit the labeling of generic spots.
+2. For a constant vertex v, we use its label ρ(v)instead of the vertex-spot.
+In the following, we will use both methods to represent vertex-based EGIs.
+These two approaches shall be now discussed with an small example.
+Let us consider the sentence ’Socrates is the teacher of Plato, Plato is the
+teacher of Aristotle, and Aristotle is the teacher of somebody’. Let us assume
+that we have an alphabet Awith ’Socrates’, ’Plato’ and ’Aristotle’ as constants
+and ’teacher of’ as 2-ary relation name. We ﬁrst formalize the sentence as EGI
+G1:= (V1, E1, ν1,/latticetop1,∅,∅, κ1). We set:
+V1={v1, v2, v3, v4}
+E1={e1, e2, e3, e4, e5, e6}
+ν1={(e1,(v1)),(e2,(v1, v2)),(e3,(v2)),(e4,(v2, v3)),(e5,(v3)),(e4,(v3, v4))}
+κ1={(e1,Socrates) ,(e2,teacher of),(e3,Plato) ,
+(e4,teacher of),(e5,(Aristotle)) ,(e6,(teacher of))}
+
+=== PAGE 271 ===
+24.1 Syntax and Semantics 261
+The graphical representation of G1is as follows:
+1 1 21
+1Socrates teacher ofPlato
+teacher ofAristotle
+teacher of21
+1 2
+Next, the vertex-based EGI G2:= (V2, E2, ν2,/latticetop2,∅,∅, κ2, ρ2) formalizes the
+sentence as well:
+V2={v1, v2, v3, v4}
+E2={e1, e2, e3}
+ν2={(e1,(v1, v2)),(e2,(v2, v3)),(e3,(v3, v4))}
+κ2={(e1,teacher of),(e2,teacher of),(e3,teacher of)}
+ρ2={(v1,Socrates) ,(v2,Plato) ,(v3,Aristotle) ,(v4,∗)}
+Next, the two graphical representations of G2are provided. Due to the ﬁrst
+convention, G2can be represented as follows:
+1 2teacher of1 2teacher of1 2teacher ofPlato Aristotle * Socrates
+The second convention yields:
+1 2teacher of1 2teacher of1 2teacher of Socrates Plato Aristotle
+Analogously to the deﬁnition of formal EGs as classes of EGIs, we can intro-
+duce formal vertex-based EGs as classes of vertex-based EGIs. When doing so,
+the second convention is appropriate. The corresponding formal vertex-based
+EG will then depicted as follows:
+1 2teacher of Socrates Plato Aristotle1 2teacher of1 2teacher of
+In Sec. 12.3, further notions like subgraph, (partial) isomorphism, juxtaposition
+for EGIs have been formally introduced (see Defs. 12.10, 12.11, 12.12, 12.13).
+Strictly speaking, as we have extended the syntax of EGIs, these notions have
+to be deﬁned for vertex-based EGIs as well. But recall that all deﬁnitions
+had ﬁrst been carried out for relational graphs with cuts, then they had been
+canonically lifted to EGIs by additionally demanding that the structures (like
+subgraphs or juxtapositions) or mappings (like isomorphisms or partial iso-
+morphisms) respect the labeling κ. Analogously, we can for example deﬁne
+subgraphs of vertex-based EGIs as substructures which are subgraphs for the
+underlying relational graphs with cuts and which now respect κandρ. For this
+reason, we will use the terms ’subgraph’, ’isomorphism’ etc for vertex-based
+EGIs as well.
+For ligatures, it is not that obvious how they should be deﬁned for vertex-
+based EGIs, as it is not clear whether ligatures must contain only generic
+vertices, or not. Thus ligatures will be re-deﬁned in this chapter. On the other
+hand, the notation of hooks remains.
+
+=== PAGE 272 ===
+262 24 Vertices with Constants
+Next, we turn to the semantics for vertex-based EGIs. The semantics for EGIs
+was deﬁned in Chpt. 13 and was based on the notion of (partial) valuations
+for EGIs, as they had been deﬁned in Def. 13.2. For vertex-based EGIs, any
+valuation on the vertices has on the constant vertices to coincide with the
+interpretation of the constant names. Thus we have to (slightly) extend the
+notions of valuations as follows:
+Deﬁnition 24.2 (Partial and Total Valuations). Let a vertex-based EGI
+G:= (V, E, ν, /latticetop, Cut, area, κ )be given and let (U, I)be a relational structure
+overA. Each mapping ref:V/prime→UwithVC⊆V/prime⊆Vandref(v) =I(ρ(v))
+for all v∈VCis called a partial valuation of G. IfV/prime=V, then refis
+called (total) valuation of G.
+Letc∈Cut∪ {/latticetop} . IfV/prime⊇ {v∈V∗|v > c}andV/prime∩ {v∈V∗|v≤c}=∅,
+then refis called partial valuation for c. IfV/prime⊇ {v∈V∗|v≥c}and
+V/prime∩ {v∈V∗|v < c}=∅, then ref is called extended partial valuation
+forc.
+All remaining deﬁnition of Chpt. 13 can now be adopted for vertex-based
+EGIs, which yields the formal semantics for vertex-based EGIs. Note that we
+can adopt the lemmata and theorems of Chpt. 13 for vertex-based EGIs as
+well. Particularly, we will use Thms. 13.7 and 13.8 for vertex-based EGIs.
+24.2 Correspondence between vertex-based EGIs and
+EGIs
+For extended EGIs over an alphabet A:= (C,F,R, ar), i.e. for the system
+EGIA, we have developed in the last chapter a sound and complete calculus.
+The ﬁrst step to adopt this calculus for vertex-based EGIs over A, i.e. for the
+system VEGIAis to ﬁnd a reasonable ‘translation’ Ξ:EGIA→ VEGIA.
+Let us consider two simple EGIs. The ﬁrst one is an EGI we have already
+discussed:
+G1:=
+1 1 21
+1Socrates teacher ofPlato
+teacher ofAristotle
+teacher of21
+1 2 .
+In order to consider an example where edge labeled with an element C∈ C
+is enclosed by cut, we consider as second example the following EGI with the
+meaning ’Socrates is the teacher of someone who is not Plato’.
+G2:=
+1 1Socrates teacher of2Plato1
+In EGIs, an edge elabeled with a constant C∈ C is incident with exactly
+one vertex ve. In order to translate extended EGIs to vertex-based EGIs, such
+
+=== PAGE 273 ===
+24.2 Correspondence between vertex-based EGIs and EGIs 263
+edges have to be converted to labeled vertices. One might think that we simply
+ﬁnd a corresponding vertex-based EGI by erasing eand labeling vewith C.
+For the ﬁrst graph, this yields the graph
+GR
+1:=
+1 2teacher of1 2teacher of1 2teacher of Socrates Plato Aristotle
+which is indeed a reasonable translation of G1. But for G2, this translation
+yields
+GR
+2:=
+2teacher of1 Plato Socrates
+thus a graph with a diﬀerent meaning (this graph is, in contrast to G2, not
+satisﬁable). Thus this idea for a translation does not work.
+We see if we want to convert the edge eto a labeled vertex, this vertex has
+to be placed in the same cut as e, thus we cannot use the vertex vefor this
+purpose. Instead, we will place a fresh vertex in the cut of e, labeled with C,
+and which is linked with an identity edge to ve. Informally depicted, we will
+replace an device like
+C
+by
+C*
+(the edge-lines left from veshall indicate that vemay be incident with other
+edges as well, and the segments of cut-lines shall indicate that for an edge
+e= (v) with κ(e) =C, it might happen that ctx(e)< ctx (v) holds).
+This idea will be captured by the mapping Ξ:EGIA→ VEGIA. For our
+examples, we will have
+Ξ(G1) =
+teacher of teacher of2 1 2 2 1Plato Aristotle
+* *Socratesteacher of * 1*
+and
+Ξ(G2) =
+2teacher of* 1* Socrates Plato
+After these examples, the formal deﬁnition of Ξcan be provided.
+Deﬁnition 24.3 (Translation from EGIs to Vertex-Based EGIs). Let
+G:= (V, E, ν, /latticetop, Cut, area, κ )be an EGI over the alphabet (C,F,R, ar). Let
+EC:={e∈e|κ(e)∈ C} . For each e∈EC, let vebe that vertex which
+is incident with e, and let v/prime
+ebe fresh vertex and idean fresh edge. Now let
+Ξ(G) := ( V/prime, E/prime, ν/prime,/latticetop/prime, Cut/prime, area/prime, κ/prime)be the following vertex-based EGI:
+•V/prime:=V.∪ {v/prime
+e|e∈EC},
+
+=== PAGE 274 ===
+264 24 Vertices with Constants
+•E/prime:=E\EC.∪ {ide|e∈EC},
+•ν:=ν/vextendsingle/vextendsingle
+E\EC.∪ {(ide,(ve, v/prime
+e))|e∈EC}
+• /latticetop/prime:=/latticetop
+•Cut/prime:=Cut
+•area/prime(c) :=area(c)\(EC∩area(c)).∪ {v/prime
+e, ide|e∈EC∩area(c)}for each
+c∈Cut/prime∪ {/latticetop/prime}
+•κ/prime:=κ.∪ {(ide,.=)|e∈EC}, and
+•ρ/prime:={(v,∗)|v∈V}.∪ {(v/prime
+e, κ(e))|e∈EC}.
+For any element kofGwhich is not an edge labeled with a constant name, k
+is an element of Ξ(G)as well. We will write Ξ(k)to refer there is a corre-
+sponding element in Ξ(G). Analogously, for any subgraph G0ofG, there exists
+a corresponding subgraph in Ξ(G)which will be denoted by Ξ(G0)(for any
+edge e∈G0labeled with a constant name, v/prime
+eandideare the corresponding
+elements in Ξ(G0)).
+Obviously, if Ξis applied to an EGI G, each constant vertex in Ξ(G) is induced
+by an edge in G, thus it is incident with exactly edge, which is an identity
+edge. But in vertex-based EGIs, a constant vertex is allowed to be incident
+with an arbitrary number of edges (it can even be isolated). For this reason,
+Ξis not surjective. The range of Ξis captured by the following deﬁnition.
+Deﬁnition 24.4 (Vertex-Based EGIs with Separated Constant Ver-
+tices). . LetG:= (V, E, ν, /latticetop, Cut, area, κ )be an vertex-based EGI such that
+for each vertex v∈VC, we have that vis incident with exactly one edge
+e, and ehas the form e= (w, v)and satisﬁes ctx(e) =ctx(v),κ(e) =.=and
+ρ(w) =∗. Then Gis said to have Separated Constant Vertices The sys-
+tem of all vertex-based EGIs with separated constant vertices will be denoted
+byVEGIsp,A.
+The following lemma clariﬁes the relationship between EGIAandVEGIsp,A
+and will be the basis for the forthcoming calculus for vertex-based EGIs. It is
+easily be shown, thus the proof is omitted.
+Lemma 24.5 ( Ξis Meaning-Preserving). The mapping Ξ:EGIA→
+VEGIsp,Ais a bijection, and it is meaning-preserving, i.e. for each model M
+and each EGI Gwe have
+M |=G⇐⇒ M | =Ξ(G).
+Particularly, for H∪ {G} ⊆ EGIAwe have
+H|=G⇐⇒ Ξ[H]|=Ξ(G).
+
+=== PAGE 275 ===
+24.3 Calculus for vertex-based EGIs 265
+24.3 Calculus for vertex-based EGIs
+In this section, we will develop a sound and complete calculus for vertex-based
+EGIs.
+In the last chapter, we extended the calculus of EGIs to EGIs over extended
+alphabets, which now include constants and function names. For developing
+a sound and complete calculus for these extended EGIs, we beneﬁtted of
+interpreting constants and function names as special relations. Thus is was
+more easily to understand the addition of constants and function names as
+a restriction of the class of models, not as syntactical extension of the class
+of EGIs. And due to this understanding, it was easy to develop an adequate
+calculus for extended EGIs by simply adding some rules.
+Now the situation is diﬀerent: We have extended the syntax of EGIs by adding
+the additional function ρ. Moreover, we have seen in the last section that
+there is no a-priori correspondence between extended EGIs and vertex-based
+EGIs, but only between extended EGIs and vertex-based EGIs with separated
+constant vertices . But it is this correspondence which will give rise to an
+adequate calculus for (arbitrary) vertex-based EGIs.
+Of course, we want to take beneﬁt of the adequate calculus for extended EGIs.
+So let us ﬁrst consider some simple syntactical problems we have cope with
+when we want to adopt this calculus.
+1. May the insertion- or erasure-rule be applied to subgraphs which contain
+vertices with constants?
+2. In the deﬁnition of the iteration/deiteration-rule, we hade to use the rela-
+tionΘon vertices (for Θ, see Def 15.1 on page 163), and we need a similar
+relation for vertex-based EGIs as well. We have to investigate whether this
+relation acts only on generic vertices, or on constant vertices as well.
+3. How do we cope with the fact that Ξdoes not map onto (VEGIsp)A, but
+only onto VEGIsp,A?
+We start with the last problem. Via the mapping Ξ, it is easy to ﬁnd an
+adequate calculus for VEGIsp,A, but not for VEGIA. So if we had a rule
+which allows to transform each graph of VEGIAinto a graph of VEGIsp,A
+(and vice versa), then this calculus can be extended to VEGIA. This rule shall
+be provided now.
+Deﬁnition 24.6 (Separating a Constant Vertex). Let a vertex-based
+EGIG:= (V, E, ν, /latticetop, Cut, area, κ )be given. Let v∈VCbe a vertex. Let v/prime
+be a fresh vertex and e/primebe a fresh edge. Furthermore let c:=ctx(v). Now let
+G/prime:= (V/prime, E/prime, ν/prime,/latticetop, Cut, area/prime, κ/prime, ρ/prime)be the graph with
+
+=== PAGE 276 ===
+266 24 Vertices with Constants
+•V/prime:=V.∪ {v/prime},
+•E/prime:=E.∪ {e/prime},
+•ν:=ν.∪ {(e/prime,(v, v/prime))}
+•area/prime(c) :=area(c).∪ {v/prime, e/prime}, and for d∈Cut/prime∪ {/latticetop/prime}withd/negationslash=cwe set
+area/prime(d) :=area(d),
+•κ/prime:=κ.∪ {(e/prime,.=)}, and
+•ρ/prime:=ρ\{(v, ρ(v))} ∪ { (v,∗),(v/prime, ρ(v))}.
+Then we say that G/primeis obtained from Gbyseparating the constant
+vertex v(into vand v/prime)andGis obtained from G/primebydeseparating
+the constant vertex v/prime.
+Informally depicted, the device
+C is replaced by
+*C .
+For example, if the vertex labeled with ’Plato’ is separated, from
+1 2teacher of1 2teacher of1 2teacher of Socrates Plato Aristotle
+we obtain
+teacher of1 2teacher of Socrates Aristotle teacher of1 2 1 212Plato
+First we have to show that this rule is meaning-preserving.
+Lemma 24.7 ((De)Separating a Constant Vertex is Sound). IfGand
+G/primeare two vertex-based EGIs such that G/primeis obtained from Gby separating the
+constant vertex v(into vandv/prime), and if M:= (U, I)is a relational structure,
+we have
+M |=G ⇐⇒ M | =G/prime
+Proof: Let G/primebe obtained from Gby by separating the object vertex vinto
+vandv/prime. Let C:=ρ(v) and c:=ctx(v). We want to apply Lemma 13.8 to c,
+so let refbe a closed partial valuation for the context c.
+Let us ﬁrst assume that we M |=G[c, ref ]. That is, there is an extension refof
+reftoV∩area(c) with M |=G[c,ref]. Then ref/primewithref/prime:=ref∪{(v/prime, C)}
+is an extended valuation for cinG/primewithM |=G/prime[c,ref/prime].
+If we have on the other hand M |=G/prime[c, ref ], then there is an extension ref/prime
+ofreftoV/prime∩area(c) with M |=G[c,ref/prime]. Then ref:=ref/prime\{(v/prime, C}is an
+extended valuation for cinGwithM |=G[c,ref].
+Now Lemma 13.8 yields the lemma. 2
+
+=== PAGE 277 ===
+24.3 Calculus for vertex-based EGIs 267
+As we have just shown that the separating a constant vertex rule is meaning-
+preserving, we now know that we can transform with this rule each vertex-
+based EGI G:= (V, E, ν, /latticetop, Cut, area, κ )∈ VEGIAinto a vertex-based EGI
+Gs∈ VEGIsp,Aby separating each constant vertex v∈VCwhich is not
+already separated (and vice versa, we can transform GsintoG). Particularly,
+forG∈ VEGIsp,Awe have Gs=G. As (de)separating vertices is sound, for
+each vertex-based EGI G:= (V, E, ν, /latticetop, Cut, area, κ )∈ VEGIAand for each
+model M, we have M |=G⇔ M | =Gs. Moreover, we have a meaning-
+preserving bijection mapping Ξ:EGIA→ VEGIsp,A. With these facts, we
+can now deﬁne an adequate calculus for VEGIA.
+To avoid confusion, we use a subscript ’ v’ for any calculus for VEGI , i.e. we
+write /turnstileleftv(’v’ for vertex-based EGI). Similarly, we use a subscript ’ e’ for the
+calculus for EGI (as in the graphs of EGI, edges are used to denote constants,
+we could call them edge-based EGIs, and now ’ e’ stands for ’edge-based’).
+Moreover, for each rule rof the respective calculus, we use ras superscript to
+refer to this speciﬁc rule. For example, we write G/turnstileleftr
+vG/primeiﬀ the vertex-based
+EGIG/primecan be obtained from the vertex-based EGI Gwith the rule r.
+In the following, let A:= (C,F,R, ar) be a ﬁxed alphabet. Now a canonical
+idea to deﬁne a calculus ⊩vforVEGIAis as follows (we use the sign ’ ⊩v’
+instead of ’ /turnstileleftv’, as it will turn out that this calculus will not be used, and the
+sign ’/turnstileleftv’ is reserved for the calculus which will be employed):
+First approach for a calculus for VEGIA:
+1.⊩vcontains the rules ’separating a constant vertex’ and ’deseparating
+a constant vertex’, and
+2. for all Ga,Gb∈ VEGIsp,Aand each rule ⊩r
+eof the calculus for EGIs we
+deﬁne an corresponding rule ⊩r
+vby setting
+Ga⊩r
+vGb:⇐⇒ Ξ−1(Ga)/turnstileleftr
+eΞ−1(Gb)
+The calculus ⊩vis sound and complete: First of all, the rules ’(de)separating
+a constant vertex’ are sound due to Lem. 24.7, and all other rules are sound,
+asΞis due Lem. 24.5 meaning-preserving and as the rules of /turnstilelefteare sound.
+Secondly, the rules of /turnstilelefteare complete on EGIA, and Ξis a bijective mapping
+fromEGIAtoVEGIsp,A. So, for Gv,G/prime
+v∈ VEGIAwithGv|=G/prime
+v, we can
+ﬁnd a proof for Gv⊩vG/prime
+vas follows: First, we derive ( Gv)sfromGv, then
+we can ﬁnd a proof for ( Gv)s⊩v(G/prime
+v)swithin VEGIsp,A, and ﬁnally, G/prime
+vis
+derived from ( G/prime
+v)sby deseparating constant vertices. Thus ⊩vis sound and
+complete, hence we would be done.
+But this calculus is somehow not convenient to be used for vertex-based EGIs,
+as all rules except the rule ’separating a constant vertex’ act only on vertex-
+based EGIs with separated constant vertices. To see an example, consider the
+following vertex-based EGIs.
+
+=== PAGE 278 ===
+268 24 Vertices with Constants
+G1:=
+1 2teacher of1 2teacher of1 2teacher ofPlato Aristotle * Socrates
+G2:=
+1 2teacher ofPlato Socrates
+The general understanding of the erasure-rule is that in positive contexts, we
+can erase parts of a given graph. So we aim that G1⊩era
+vG2is a application
+of the erasure-rule (more precisely: A composition of twoapplications of the
+erasure-rule, namely the erasure of an edge, followed by an erasure of a closed
+subgraph). But so far, this derivation is not allowed, as neither G1norG2has
+separated constant vertices.
+Moreover, we have a speciﬁc peculiarity with the erasure and insertion rule.
+The erasure rule for EGIs allows to erase edges labeled with a constant name
+(and vice versa, the insertion rule allows to insert an edge with a constant
+name). So we would have
+Plato Socrates 1 2teacher of
+⊩era
+v
+Socrates 1 2teacher of*
+as we have
+1 1Socrates teacher of2 1Plato
+/turnstileleftera
+e
+1 1Socrates teacher of2
+So now with the erasure rule, it is possible to ’generalize’ the labels of constant
+vertices to generic markers in positive context (and vice versa, to ’specialize’
+generic vertices to constant vertices in negative contexts). Of course, generaliz-
+ing the labels of vertices in positive contexts must be possible in any complete
+calculus for vertex-based EGIs, but it is not intended that this is a derivation
+with a single application of the erasure-rule .
+We have an approach for a sound and complete calculus for VEGIA, but in
+the light of the purpose of the rules, its rules are too weak, and we have an
+unwanted peculiarity in the erasure- and insertion rule. So we need a diﬀerent
+approach which (roughly) extends our ﬁrst idea and which copes with the
+before mentioned peculiarity.
+The essential methodology for appropriately handling vertex-based EGIs will
+be: Generic and constant vertices are generally not distinguished, except for
+special rules for constants. For example, the erasure-rule simply still allows to
+erase arbitrary subgraphs, no matter whether they contain constant vertices
+or not. The discussion so far will be made fruitful to show that this calculus
+is sound and complete.
+In order to make the idea clear, all rules will be provided for vertex-based
+EGIs as (slightly) reformulated rules for EGIs. As a ﬁrst step, we redeﬁne lig-
+atures and Θfor vertex-based EGIs. The core of the following two deﬁnitions
+directly correspond to Def. 12.8 for ligatures and Def. 15.1 for Θ, but for sake
+of convenience and comprehensibility, and as some notations are added, the
+deﬁnitions of ligatures and Θfor vertex-based EGIs are completely provided.
+
+=== PAGE 279 ===
+24.3 Calculus for vertex-based EGIs 269
+For an EGI ( V, E, ν, /latticetop, Cut, area, κ ), its ligatures had been introduced as sub-
+graphs of ( V, Eid) (strictly speaking, of ( V, Eid, ν/vextendsingle/vextendsingle
+Eid), but the mapping νwas
+for sake of convenience omitted. See page 126). Now for vertex-based EGIs,
+we formally do the same. A ligature may both contain generic and constant
+vertices, and the mapping ρis not part of a ligature. Thus we do not distin-
+guish between generic and constant vertices. Nonetheless, we assign now to
+each ligature the set of labels which occur in it.
+Deﬁnition 24.8 (Ligature). LetG:= (V, E, ν, /latticetop, Cut, area, κ )be an EGI.
+Then we set Lig(G) := ( V, Eid), and Lig(G)is called the ligature-graph
+induced by G.Each connected subgraph of (W, F )ofLig(G)is called a
+ligature of G.
+If(W, F )is a ligature, we set ρ(W, F ) :=ρ(W) :={ρ(w)|w∈W}. The set
+ρ(W, F )is called the a set of labels of (W, F ). If we have ρ(W) ={∗},
+then (W, F )is called a generic ligature .
+Next we deﬁne the relation Θfor vertex-based EGIs. Again, we do not dis-
+tinguish between constant and generic vertices.
+Deﬁnition 24.9 ( Θ).LetG:= (V, E, ν, /latticetop, Cut, area, κ )be an vertex-based
+EGI. On V, a relation Θis deﬁned as follows: Let v, w∈Vbe two vertices.
+We set vΘw iﬀ there exist vertices v1, . . . , v n(n∈N) with
+1. either v=v1andvn=w, orw=v1andvn=v,
+2.ctx(v1)≥ctx(v2)≥. . .≥ctx(vn), and
+3. for each i= 1, . . . , n −1, there exists an identity edge ei={vi, vi+1}
+between viandvi+1withctx(ei) =ctx(vi+1).
+If we have moreover vi∈V∗fori= 1, . . . , n , we write vΘ∗w.
+Please note the following: If G:= (V, E, ν, /latticetop, Cut, area, κ )∈ VEGIA, if
+va, vb∈Vare vertices, and if v/prime
+a, v/prime
+bare the corresponding vertices in Gs, then
+we have vaΘvb⇔v/prime
+aΘ∗v/prime
+b. This shows that extending Θto non-generic ver-
+tices is not necessary. For example, Θwill be used in the iteration/deiteration
+rule, but it will turn out that it would be suﬃcient to consider Θ∗instead.
+Nonetheless, Θis extended as the overall idea of the forthcoming calculus is
+to avoid a too strong distinction between generic and constant vertices.
+On the following two pages, the calculus for vertex-based EGIs is provided. All
+rules are basically the original rules for EGIs (for the transformation rules for
+ligatures and Peirce’s rules for EGIs) resp. the counterparts of the new rules
+(for constants and functions) for extended EGIs, reformulated for vertex-based
+EGIs. Nonetheless, as mentioned above, the calculus is completely listed in
+the well-known semiformal manner. As all rules have already been provided in
+diﬀerent previous chapters of this treatise, their formal deﬁnitions are omitted
+now.
+
+=== PAGE 280 ===
+270 24 Vertices with Constants
+Deﬁnition 24.10 (Calculus for vertex-based EGIs). Let an vertex-
+based EGI G:= (V, E, ν, /latticetop, Cut, area, κ ) over the alphabet A:= (C,F,R, ar)
+be given. Then the following transformations may be carried out:
+•Transformation Rules for Ligatures
+–isomorphism Gmay be substituted by an isomorphic copy of itself.
+–changing the orientation of an identity edge
+Lete∈Eid. Then we may change the orientation of e.
+–adding a generic vertex to a ligature
+Letv∈Vbe a vertex which is attached to a hook ( e, i). Furthermore
+letcbe a context with ctx(v)≥c≥ctx(e). Then the following may be
+done: In c, a new generic vertex v/primeand a new identity-edge between v
+andv/primeis inserted. On ( e, i),vis replaced by v/prime.
+–removing a generic vertex from a ligature
+The rule ‘adding a vertex to a ligature’ may be reversed.
+•Peirce’s Rules for Existential Graphs
+–erasure
+In positive contexts, any directly enclosed edge, isolated vertex, and
+closed subgraph may be erased.
+–insertion
+In negative contexts, any directly enclosed edge, isolated vertex, and
+closed subgraph may be inserted.
+–iteration
+·LetG0:= (V0, E0, ν0,/latticetop0, Cut 0, area 0, κ0) be a (not necessarily
+closed) subgraph of Gand let c≤ctx(G0) be a context such that
+c /∈Cut 0. Then a copy of G0may be inserted into c.
+Moreover, if v∈V0with ctx(v) =ctx(U) is a vertex, and if w∈V0
+withctx(w) =cis a vertex with vΘw, then an identity edge between
+vandwmay be inserted into c.
+·Ifv∈Vis a vertex and c≤ctx(v) a cut, then a new vertex wand
+an identity edge between vandwmay be inserted into c.
+–deiteration
+IfG0is a subgraph of Gwhich could have been inserted by rule of
+iteration, then it may be erased.
+–double cuts
+Double cuts may be inserted or erased.
+
+=== PAGE 281 ===
+24.3 Calculus for vertex-based EGIs 271
+–erasing a vertex
+An isolated vertex may be erased from arbitrary contexts.
+–inserting a vertex
+An isolated vertex may be inserted in arbitrary contexts.
+•Rules for Functions
+–Functional Property Rule (uniqueness of values)
+Leteandfbe two n-ary edges such that ν(e) = ( v1, . . . , v n−1, ve),
+ν(f) = ( v1, . . . , v n−1, vf),ctx(e) = ctx(ve),ctx(f) = ctx(vf), and
+κ(e) =κ(f) =F. Let cbe a context with c≤ctx(e) and c≤ctx(f).
+Then arbitrary identity-links idwith ν(id) = (ve, vf) may be inserted
+intocor erased from c.
+–Total Function Rule (existence of values)
+Letv1, . . . , v n−1be vertices, let c≤ctx(v1), . . . , ctx (vn−1) be a context.
+Then we can add a generic2vertex vnand an edge etocwith ν(e) =
+(v1, . . . , v n) and κ(e) =F. Vice versa, if vnandeare a vertex and an
+edge in cwith ν(e) = ( v1, . . . , v n) and κ(e) =Fsuch that vnis not
+incident with any other edge, eandvnmay be erased.
+•Rules for Constants
+–Constant Identity Rule
+LetC∈ Cbe a constant name. Let v, wbe vertices with ρ(v) =ρ(w) =
+C. Let cbe a context with c≤ctx(v) and c≤ctx(w). Then arbitrary
+identity-links idwith ν(id) = (ve, vf) may be inserted into dor erased
+from c.
+–Existence of Constants Rule
+LetCbe a constant name. In each context c, we may add a fresh vertex
+vwith ρ(v) =C. Vice versa, if vis an isolated vertex with ρ(v) =C v
+may be erased from c.
+–Separating a constant vertex
+Ifv∈VCis a constant vertex, then vmay be separated (see Def. 24.6).
+–Deseparating a constant vertex
+IfGcould be obtained from G/primeby separating a constant vertex vthen
+G/primemay be obtained from Gby deseparating v.
+Similar to the last chapters, for two vertex-based EGIs Ga,Gb, we set Ga∼Gb
+ifGacan be transformed into G−bwith the transformation rules for ligatures,
+and formal vertex-based EGs are the classes of vertex-based EGIs with respect
+to∼. For this reason, it was important that in the rules ’adding a generic
+2Of course, we usually cannot add constant or query vertices with this rule.
+
+=== PAGE 282 ===
+272 24 Vertices with Constants
+vertex to a ligature’ and ’removing a generic vertex from a ligature’, only
+generic vertices are considered.
+We have eventually deﬁned a calculus for vertex-based EGIs which is conve-
+nient, i.e. the general ideas behind the rules for EGIs is adopted for vertex-
+based EGIs. We now have to show that this calculus is adequate.
+Theorem 24.11 ( /turnstileleftvis Sound and Complete for VEGIA).ForH∪
+{G} ⊆ VEGIAwe have
+H|=G ⇐⇒ H/turnstileleftvG
+Proof: The soundness of the rules can be proven analogously to the soundness
+of their counterparts for EGIs. For the only new rule for vertex-based EGIs,
+i.e. for the rule ’(de)separating a constant vertex’, its soundness was proven
+in Lem. 24.7.
+So it remains to show that /turnstileleftvis complete. Due to the discussion for ⊩v, it is
+suﬃcient to show that for vertex-based EGIs with separated constant vertices
+Ga,Gband each rule rof⊩r
+v, we have
+Ga⊩r
+vGb =⇒ Ga/turnstileleftvGb
+That is, as we deﬁned Ga⊩r
+vGb:⇔Ξ−1(Ga)/turnstileleftr
+eΞ−1(Gb), for each rule /turnstileleftr
+e
+for extended EGIs, we have to show
+Ξ−1(Ga)/turnstileleftr
+eΞ−1(Gb) = ⇒ Ga/turnstileleftvGb
+Recall that Ξ:EGIA→ VEGIAis bijective (and meaning-preserving). Thus
+is is suﬃcient to show that for two extended EGIs G1,G2, we have
+G1/turnstileleftr
+eG2 =⇒ Ξ(G1)/turnstileleftvΞ(G2) (24.1)
+In the following, we will show Eqn. (24.1) for each rule. In most (but not in
+all) cases, a derivational step can be canonically carried over from EGIs to
+vertex-based EGIs, i.e., we actually prove the stronger implication
+G1/turnstileleftr
+eG2⇒Ξ(G1)/turnstileleftr
+vΞ(G2) (24.2)
+•isomorphism, changing the orientation of an identity edge, adding
+a vertex to a ligature, removing a vertex from a ligature
+For these rules, it is easy to see that Eqn. (24.2) holds.
+•erasure/insertion
+Due to symmetry reasons, it is suﬃcient to consider the erasure rule. era-
+sure. We have three cases to distinguish: The erasure of a subgraph of G1,
+the erasure of an edge of G1, and the erasure of an isolated vertex of G1.
+
+=== PAGE 283 ===
+24.3 Calculus for vertex-based EGIs 273
+LetG0be a closed subgraph of G1in a positive context, and G2is derived
+fromG1by erasing G0. Then there is a corresponding subgraph Ξ(G0) in
+Ξ(G1), the erasure rule of /turnstileleftvallows to erase Ξ(G0) from Ξ(GR
+1), which
+yields Ξ(GR
+2). Thus Eqn. (24.2) is shown. As isolated vertices are closed
+subgraphs, the erasure of an isolated vertex in G1can be transferred to
+the erasure of the corresponding isolated vertex in Ξ(G1) as well.
+Now let ebe an edge in G1in an isolated vertex. If eis not labeled with
+a constant name, then there exists a corresponding edge Ξ(e) inΞ(G1),
+which can be erased with the erasure rule of /turnstileleftv, i.e. Eqn. (24.2) holds.
+So it remains to consider the edges elabeled with an C∈ C. Let ebe
+incident with ve, letv/prime
+eandidebe the fresh vertex and fresh identity edge
+which correspond to einΞ(G1) (see Def. 24.3). Then we can ﬁrst erase ide
+inΞ(G1), then we can erase the (now) isolated vertex v/prime
+e, and we obtain
+Ξ(G2). So Eqn. (24.1) (but not Eqn. (24.2)) holds.
+Informally depicted, this procedure can be represented as follows:
+C
+/bracehtipupleft/bracehtipdownright/bracehtipdownleft/bracehtipupright
+G1Ξ−→
+C*
+/bracehtipupleft/bracehtipdownright/bracehtipdownleft/bracehtipupright
+Ξ(G1)/turnstileleftera
+v
+C* /turnstileleftera
+v
+*
+/bracehtipupleft/bracehtipdownright/bracehtipdownleft/bracehtipupright
+Ξ(G2)
+•iteration/deiteration
+LetG0:= (V,E,ν,/latticetop,Cut ,area ,κ)0 be a subgraph of G1and let c≤ctx(G0)
+be a context such that c /∈Cut 0, andG2is obtained from G1by iterat-
+ingG0intoc. Then there is a corresponding subgraph Ξ(G0) inΞ(G1).
+Moreover, if If v∈V0with ctx(v) =ctx(U) is a vertex, and if w∈V0with
+ctx(w) =cis a vertex with vΘw, then we have Ξ(v)ΘΞ(w) as well (we
+even have Ξ(v)Θ∗Ξ(w), i.e., as already mentioned, it would have been suf-
+ﬁcient to consider Θ∗instead of Θ). So we see that Ξ(G2) can be obtained
+from Ξ(G1) with the iteration rule of /turnstileleftv, i.e., Eqn. (24.2) holds.
+Analogously, if v∈Vis a vertex, if c≤ctx(v) is a cut, and if G2is
+obtained from G1by inserting a new vertex wand an identity edge between
+vandwintocwith the second clause of the iteration-rule, then Ξ(G2)
+can be obtained from Ξ(G1) by iterating a copy of Ξ(v) into Ξ(c). Thus
+Eqn. (24.2) holds again.
+•double cut, erasing a vertex, inserting a vertex, Functional Prop-
+erty Rule, total function rule
+For these rules it is straightforward to see that Eqn. (24.1) holds.
+•Constant Identity Rule
+LetG1be an EGI, let Cbe a constant name, let e, fbe two unary edges
+with ν(e) = ( ve),ν(f) = ( vf),ctx(ve) =ctx(e),ctx(vf) =ctx(f), and
+
+=== PAGE 284 ===
+274 24 Vertices with Constants
+κ(e) =κ(f) =C, letcbe a context with c≤ctx(e) and c≤ctx(f), and
+letG2be obtained from G1by inserting an identity edge idintoc.
+Using the notation from Def. 24.3, let v/prime
+e,idebe the vertex labeled with C
+letidebe the identity edge between veandv/prime
+einXi(G1) which substitute
+ve, and let v/prime
+f,idfbe the corresponding elements for vf. The constant
+identity rule allows to add an identity edge id/prime= (v/prime
+e, v/prime
+f) between v/prime
+eand
+v/prime
+finXi(G1) toc. Now we separate the vertices v/prime
+eandv/prime
+f, replace v/prime
+e
+byveon the hook ( id/prime,1) and replace v/prime
+fbyvfon the hook ( id/prime,2) with
+Lem. 16.1, and ﬁnally we deseparate the vertices v/prime
+eandv/prime
+f. The graph we
+obtain is Ξ(G2).
+Informally depicted with an example, the derivation
+C C
+/turnstilelefte
+C C
+with EGIs is replaced by the following derivation with vertex-based EGIs:
+*C
+*C
+/bracehtipupleft /bracehtipdownright/bracehtipdownleft /bracehtipupright
+Ξ(G1)/turnstileleftv
+**C
+**C /turnstileleftv
+* ** *C C
+/turnstileleftv
+**C
+**C /turnstileleftv
+*C
+*C
+/bracehtipupleft /bracehtipdownright/bracehtipdownleft /bracehtipupright
+Ξ(G2)
+The erasure of an identity edge is done analogously.
+•Existence of Constants Rule :
+IfG2is obtained from G1by inserting into a context ca fresh vertex v
+and an fresh unary edge ewith ν(e) = ( v) and κ(e) =C, we can derive
+Ξ(G2) from Ξ(G1) by ﬁrst inserting a constant vertex vwith ρ(v) =C
+intocand then by separating v.
+The erasure of a vertex labeled with Cis proven analogously. 2
+24.4 Ligatures in vertex-based EGIs
+In Sec. 16.1, several lemmata had been provided which improved the handling
+of ligatures. These lemmata had been derived rules, as they have been proven
+with the iteration- and deiteration-rules of the calculus. Now the question
+
+=== PAGE 285 ===
+24.4 Ligatures in vertex-based EGIs 275
+arises how the results of Sec. 16.1 can be transferred to vertex-based EGIs,
+where ligatures may contain constant vertices as well.
+All rules of the calculus for vertex-based EGIs, particularly the iteration- and
+deiteration-rule, are extensions of the corresponding rules for EGIs. That is,
+each rule which can be applied to EGIs over an alphabet without constant- or
+function names can be applied to vertex-based EGIs as well. Thus it is easy
+to see that the lemmata of Sec. 16.1 can be applied to generic ligatures. More-
+over, iﬀ we have a ligature with constant vertices, we can separate all these
+vertices, and in the resulting graph, the resulting ligature (i.e. the ligature
+which contains exactly the same vertices and edges, without the fresh vertices
+and edges we added) is then a generic ligature. In this respect, we can adopt
+the results of Sec. 16.1 for arbitrary ligatures.
+On the other hand, the iteration and deiteration rule rely on the relation Θ.
+In Def. 24.9 of Θfor vertex-based EGIs, which extends Def. 15.1 of Θfor
+EGIs, generic and constant vertices are not distinguished, thus we can adopt
+the proofs of Sec. 16.1 for arbitrary ligatures in vertex-based EGIs. But in
+these proofs, no application of the iteration or deiteration rule changes the set
+of labels of the ligature. So, roughly speaking, we can change a ligature with
+the results of Sec. 16.1, as long as we do not change the set of its labels.
+For the sake of convenience, for each lemma of Sec. 16.1, a corresponding
+lemma for vertex-based EGIs is given. But before we do so, a few new results
+for ligatures in vertex-based EGIs are provided.
+On page 268, when we discussed the ﬁrst approach for a calculus for vertex-
+based EGIs, we have seen that it must be possible to ’generalize’ the labels
+of constant vertices to generic markers in positive context (and vice versa,
+to ’specialize’ generic vertices to constant vertices in negative contexts). This
+can now easily be proven with the calculus for vertex-based EGIs.
+Lemma 24.12 (Generalizing and Specializing the Labels of Vertices).
+LetG:= (V, E, ν, /latticetop, Cut, area, κ )be an vertex-based EGI. If v∈VCis a
+positively enclosed vertex, then the label from vmay be changed to ∗. Vice
+versa, if v∈V∗is a negatively enclosed vertex, then the label of vmay be
+changed to a constant name c∈ C.
+Proof: Let G/primebe obtained from Gby generalizing the label of the positively
+enclosed v∈VC. Then G/primecan be derived from Gby ﬁrst separating v, and then
+by erasing the fresh edge e/primeand the fresh vertex v/prime. The proof for specializing
+a label for a negatively enclosed vertex is done analogously. 2
+Secondly, it is possible to ’(de)iterate constant labels’.
+Lemma 24.13 ((De)Iterating Constant Labels). Let a vertex-based EGI
+G:= (V, E, ν, /latticetop, Cut, area, κ )be given, let v∈VCwithC:=ρ(v), letw∈V
+withctx(v)≥ctx(w)andvΘw . Ifρ(w) =C, then we can change the label of
+wto∗. Vice versa, if ρ(w) =∗, then we can change the label of wtoC.
+
+=== PAGE 286 ===
+276 24 Vertices with Constants
+Proof: Let G/primebe obtained from Gby changing the label from wfrom Cto∗.
+ThenG/primecan be derived from Gas follows: First, vis iterated into ctx(w). As
+we have vΘw, we can add an with an identity edge e/primeto between v/primeandw.
+NowG/primecan be derived from this graph by deseparating v/prime.
+The second proposition of the lemma is proven analogously. 2
+Next, an example for the last two lemmata is provided. We assume that C, D
+are constant names and P, Q, R, S, T are relation names.
+R S P1 1 2 2 1Q1 1T
+DC
+Lm.24.12
+/turnstileleft
+R S P1 1 2 2 1Q1 1TD C
+DLm.24.13
+/turnstileleft
+Q1 1TD C
+R S P1 1 2 2 1 D D
+From the last lemma, we immediately obtain the following corollary.
+Corollary 24.14 (Rearranging Labels of a Ligature in a Context). Let
+G:= (V, E, ν, /latticetop, Cut, area, κ )be an vertex-based EGI. Let (W, F )be a ligature
+which is placed in a context c, i.e., ctx(w) =c=ctx(f)for all w∈Wand
+f∈F. LetG/primebe obtained from Gby rearranging the labels of (W, F ), i.e. we
+haveG:= (V, E, ν, /latticetop, Cut, area, κ, ρ/prime)with ρ/prime/vextendsingle/vextendsingle
+V\W=ρandρ/prime(W) =ρ(W).
+ThenGandG/primeare equivalent.
+Next, the results of Sec. 16.1 (Lem. 16.1, Lem. 16.2, Lem. 16.3 and Def. 16.4)
+are revised for vertex-based EGIs. The diﬀerences of the ongoing lemmata
+to their counterparts in Sec. 16.1 are, if any, only minor and emphasized by
+underlining them. For sake of convenience, the lemmata as such are given,
+but the formal deﬁnitions for the transformations, as well as the proofs, are
+omitted, as they are canonical extensions of the deﬁnitions and proofs in
+Sec. 16.1.
+We start with Lemma 16.1. In this lemma, the set of vertices ρ(W) of the
+considered ligature ( W, F ) does not change, thus this lemma can be directly
+adopted for vertex-based EGIs. That is, we obtain:
+Lemma 24.15 (Moving Branches along a Ligature in a Context). Let
+G:= (V, E, ν, /latticetop, Cut, area, κ )be a vertex-based EGI, let va, vbbe two vertices
+withc:=ctx(va) =ctx(vb)andvaΘvb, and let ebe an edge such that the hook
+(e, i)is attached to va. LetG/prime:= (V, E, ν/prime,/latticetop, Cut, area, κ )be obtained from
+Gby replacing vabyvbon the hook (e, i). Then GandG/primeare syntactically
+equivalent.
+Lemma 16.2 allowed to extend or restrict ligatures. More precisely: To a given
+vertex vof a ligature, new vertices can be attached with identity links, and
+this transformation can be reversed. For EGIVs, we have to take care that
+the new vertices are labeled the same as v.
+
+=== PAGE 287 ===
+24.4 Ligatures in vertex-based EGIs 277
+Lemma 24.16 (Extending or Restricting a Ligature in a Context).
+Let a vertex-based EGI G:= (V, E, ν, /latticetop, Cut, area, κ )be given with a vertex
+v∈V. Let V/primebe a set of fresh vertices and E/primebe be a set of fresh edges.
+LetG/prime:= (V/prime, E/prime, ν/prime,/latticetop/prime, Cut/prime, area/prime, κ/prime)be obtained from Gsuch that all fresh
+vertices and edges are placed in the context ctx(v), all fresh edges are iden-
+tity edges between the vertices of {v}.∪V/primesuch that we have vΘv/primefor each
+v/prime∈V/prime, and we have ρ(v/prime) =ρ(v)for all fresh vertices . Then GandG/primeare
+syntactically equivalent.
+Lemma 16.1 and Lemma 16.2 allowed retract a ligature in a context to a single
+vertex (and vice versa). This is for vertex-based EGIs not possible any more:
+A ligature ( W, F ) such that ρ(W) contains more than one constant name
+cannot be retracted to a single vertex. But if all vertices of Ware labeled the
+same, retracting to a single vertex is still allowed.
+Lemma 24.17 (Retracting a Ligature in a Context). Let a vertex-based
+EGIG:= (V, E, ν, /latticetop, Cut, area, κ )be given, let (W, F )be a ligature which is
+placed in a context cand which satisﬁes |ρ(W)|= 1. LetG/primebe obtained from
+Gby retracting (W, F )tow0. Then GandG/primeare syntactically equivalent.
+In Def. 16.4, we have summarized the diﬀerent possibilities to rearrange a
+ligature in a context, and we concluded from the preceeding lemmata that
+rearranging a ligature in a context yields equivalent graphs.
+For vertex-based EGIs, we ﬁrst redeﬁne the rearranging of ligatures in the
+well-known semi-formal manner. The formal elaboration of this deﬁnition is
+a canonical extension of Def. 16.4.
+Deﬁnition 24.18 (Rearranging Ligatures in a Context). Let a vertex-
+based EGI G:= (V, E, ν, /latticetop, Cut, area, κ )over an alphabet A:= (C,F,R, ar)
+be given, let (W, F )be a ligature which is placed in a context c. LetG/primebe
+obtained from Gas follows: The ligature (W, F )is replaced by a new ligature
+(W/prime, F/prime)withρ(W)∩ C=ρ(W/prime)∩ C, i.e., all vertices of Wand all edges of f
+are removed from c, the vertices of W/primeand edges of E/primeare inserted into c, if
+an edge e∈E\Fwas incident with a vertex w∈Wof the ligature, it is now
+connected to a vertex w/prime∈W/primeof the new ligature. We say that G/primeis obtained
+fromGbyrearranging the ligature (W, F )(to(W/prime, F/prime)).
+For EGIs, is was a direct conclusion from Lem. 16.1–16.3 that rearranging a
+ligature in a context is a meaning-preserving transformation. For vertex-based
+EGIs, we have to spend a little further eﬀort to prove a corresponding result.
+Theorem 24.19 (Rearranging Ligatures in a Context). LetG/primebe ob-
+tained from Gby rearranging the ligature (W, F )to(W/prime, F/prime). Then GandG/prime
+are equivalent.
+
+=== PAGE 288 ===
+278 24 Vertices with Constants
+Proof: Note that ρ(W)∩ C =ρ(W/prime)∩ C is equivalent to ρ(W)\{∗} =
+ρ(W/prime)\{∗}. Let us assume ∗/∈ρ(W). Then by separating wintowandw/prime
+and by setting W/prime:=W∪ {w/prime},F/prime:=F∪ {(w, w/prime)}, we obtain an equivalent
+graph with a new ligature ( W/prime, F/prime) which now satisﬁes ρ(W/prime) =ρ(W).∪ {∗} .
+So w.l.o.g. we assume ∗ ∈ρ(W).
+Forρ(W) ={∗}, we can directly adopt the argumentation after Def. 16.4 to
+show that GandG/primeare equivalent: First retract ( W, F ) to a single vertex
+w0∈Wand then extend w0to the new ligature ( W/prime, F/prime). But generally, for
+ρ(W)/supersetnoteql{∗}, we cannot retract ( W, F ) to a single vertex. Instead, we retract
+(W, F ) to the following ’minimal’ ligature:
+C1 Cn
+Here, C1, . . . , C nis an enumeration of the constant names in ρ(W), and the
+edges below the vertex spot shall be the (former) edges between vertices of
+Wand vertices of V\W. More formally, we assign to Ga vertex-based EGI
+Gras follows: First, for each C∈ρ(W)\{∗}, letwCbe a fresh vertex, and
+letw∗∈Wbe an arbitrary generic vertex (the reason not to choose a fresh
+vertex w∗is a simple matter of convenience: It eases the ongoing proof). For
+each C∈ρ(W)\{∗}, letfCbe a fresh edge. Let Wr:={wr|C∈ρ(W)}and
+Fr:={fr|C∈ρ(W)}. NowGris deﬁned as follows:
+•Vr:=V\W∪Wr
+•Er:=E\F∪Fr
+•Forνris deﬁned as follows:
+– For e∈E\F,ν(e) = ( v1, . . . , v n), let νr(e) := ( v/prime
+1, . . . , v/prime
+n), where
+v/prime
+i:=vi, ifvi/∈W, and v/prime
+i=w∗, ifvi∈W.
+– For fr∈Fr, letνr(fr) := ( w∗, wr).
+• /latticetop r:=/latticetopandCut r:=Cut
+•area r(d) :=/braceleftbiggarea(d) for d/negationslash=c
+area(c)\(W∪F)∪(Wr∪Fr) for d=c.
+•κr:=κ/vextendsingle/vextendsingle
+E\F∪Fr× {.=}
+•ρ:=ρ/vextendsingle/vextendsingle
+V\W∪ {(wr, C)|C∈ρ(W})
+We can transform GrintoGwith the following steps:
+1. With L. 24.13, we can transform GintoG1:= (V, E, ν, /latticetop, Cut, area, κ, ρ 1)
+such that for each C∈ρ1(W), there is exactly one vertex w∈Wwith
+ρ1(w) =C.
+2. Let w∗be an arbitrary vertex w∈Wwith ρ1(w) =∗. Now for each
+C∈ρ1(W)\{∗}, the vertex w∈Wwith ρ1(w) =Cis separated into
+
+=== PAGE 289 ===
+24.4 Ligatures in vertex-based EGIs 279
+wandwC. The identity-link added by the separation shall be denoted
+fC. For Wr:={wC|C∈ρ(W)}andFr:={fC|C∈ρ(W)}, we
+obtain a vertex-based EGI G2:= (V2, E2, ν2,/latticetop, Cut, area 2, κ2, ρ2) with
+V2=V∪WrandE2=E∪Fr. In this graph, ( W∪Wr, F∪Fr) is a
+ligature, having ( W, F ) as sub-ligature which satisﬁes ρ1(W) ={∗}.
+3. Finally, ( W, F ) is retracted to w∗with Lemma 24.17.
+The resulting graph is Gr, and as all steps can be carried out in both direc-
+tions, we obtain that GandGrare equivalent.
+We can similarly obtain a graph G/prime
+rfromG/primeby retracting the ligature
+(W/prime, F/prime). Thus the graphs GrandG/prime
+rare isomorphic, thus we obtain that
+GandG/primeare equivalent. 2
+
+=== PAGE 300 ===
+290 25 Relation Graphs
+the rules of the calculus, and it is exempliﬁed with one graph. Then the formal
+deﬁnition is given.
+1. Our example is the graph
+1S2?11 1?21 1R2?11 1?2 P
+In the diagram, for unary edges, we omit to label the edge-line with 1.
+2. For each ? i∈FV(G), we add a new vertex v?iand a new edge e?iwith
+ν(e?i) = (v?i) and κ(e?i) =?ito the sheet of assertion. Within the calculus,
+this is done with the existence of constants rule.
+1S2?11 1?21?1
+1 1R2?11?2
+1 1?2 P
+3. For each edge ewith κ(e) =?iande/negationslash=e?ifor a ? i∈FV(G), we use the
+rule ’adding a vertex to a ligature’ to add a new vertex wetoctx(e). The
+new identity edge between v(e) (the vertex incident with einG) and we
+will be denoted id1
+e.
+1?1
+1?2
+1?2 P1 1?12R1 1S2?11?21
+4. For each edge ewith κ(e) =?iande/negationslash=e?ifor a ? i∈FV(G), an identity
+linkid2
+ebetween v?iandweis added to ctx(e) with the constant identity
+rule.
+1?1
+1?2
+1?2 P1 1?12R1 1S2?11?21
+5. Finally, each edge ewithκ(e) =?ifor a ? i∈FV(G) and e/negationslash=e?iis removed.
+Within the calculus, this can be done as follows: First, an new vertex w/prime
+e
+and a new identity-link id/prime
+ebetween weandw/prime
+eis added to to ctx(e) with
+the rule ’adding a vertex to a ligature’. Then the subgraph consisting of
+eandw/prime
+eis deiterated, and in this deiteration, the identity-link id/prime
+eis
+removed as well.
+1?1
+1?2
+1S2 2R1P1
+
+=== PAGE 301 ===
+25.2 Relation Graph Instances 291
+Now the formal deﬁnition of the normalization of a semi RGI is provided.
+Deﬁnition 25.10 ( norm (G)).LetG:= (V, E, ν, /latticetop, Cut, area, κ )be a semi
+RGI.
+•For each ?i∈FV(G), letv?ibe a fresh vertex and e?ibe a fresh edge.
+•For each ?i∈FV(G)ande∈E?i, let let webe a fresh vertex and id1
+e,id2
+e
+be fresh edges. We set Wn:={we|e∈E?},F1
+n:={id1
+e|e∈E?}and
+F2
+n:={id2
+e|e∈E?}.
+Now we deﬁne norm (G) := ( Vn, En, νn,/latticetopn, Cut n, area n, κn)as follows (note
+thatv(e)in the deﬁnition of νnis the vertex incident with einG):
+•Vn:=V.∪Wn.∪ {v?i|?i∈FV(G)}
+•En:=E\E?.∪F1
+n.∪F2
+n.∪ {e?i|?i∈FV(G)}
+•νn:=ν/vextendsingle/vextendsingle
+E\E?.∪ {(we, v(e)),(we, v?i)|e∈E?}
+• /latticetop n:=/latticetop,
+•Cut n:=Cut,
+•area nis deﬁned as follows: For c∈Cut we set
+area n(c) :=area(c)\(E?∩area(c)).∪ {we, id1
+e, id2
+e|e∈E?∩area(c)},and
+area n(/latticetop) :=area(/latticetop)\(E?∩area(/latticetop)).∪ {we, id1
+e, id2
+e|e∈E?∩area(/latticetop)}
+.∪ {v?i, e?i|?i∈FV(G)}
+•κn:=κ/vextendsingle/vextendsingle
+E\E?.∪ {(id1
+e,.=)|id1
+e∈F1
+n}.∪ {(id2
+e,.=)|id2
+e∈F2
+n}
+norm (G)is called the normalization of G.
+As we have seen, in the transformation of Gto its normalization we used only
+rules of the calculus which can be carried out in both directions. Thus we
+immediately obtain the following lemma:
+Lemma 25.11 ( Gandnorm (G) are Equivalent). LetGbe a semi RGI.
+Then norm (G)is an RGI which is syntactically equivalent to G.
+Without proof
+Due to Lemma 25.11, the full system of semi RGIs is semantically equivalent
+to the restricted system of RGIs. Moreover, it is clear that the calculus is still
+sound, if consider the restricted system of RGIs. But if we apply one of the
+rules iteration/deiteration, erasure/insertion, or the constant identity rule to
+a normed RGI, we might obtain an semi RGI which is not normed. Thus it
+is not clear that the calculus is still complete. The next theorem shows that
+that we do not loose the completeness of the calculus.
+
+=== PAGE 302 ===
+292 25 Relation Graphs
+Theorem 25.12 (Completeness of /turnstileleft?for RGIs). LetG,G/primebe two semi
+RGIs such that G/primeis derived from Gby applying one of the rules of the
+calculus /turnstileleft?. Then we have norm (Ga)/turnstileleft?norm (Gb), where the proof contains
+only RGIs. That is, the calculus /turnstileleft?is complete for RGIs.
+Proof: First of all, if ris one of the rules ’isomorphism’, ’changing the orienta-
+tion of an identity edge’, ’adding a vertex to a ligature’ and ’removing a vertex
+from a ligature’, ’double cuts’, ’erasing a vertex’ and ’inserting a vertex’, ’func-
+tional property rule’, ’total function rule’, and the ’constant identity rule’,2
+and if we have G/turnstileleftr
+?G/prime, it is easy to see that we have norm (G)/turnstileleftr
+?norm (G/prime)
+as well.
+It remains to consider the rules ’erasure’ and ’insertion’, ’iteration’ and ’deit-
+eration’, and the existence of constants rule. First of all, we use the notation
+of Def. 25.10. Moreover, in the ongoing proof, we will split and merge vertices
+(see Def. 16.6). In Lemma 16.7, we have shown that splitting or merging ver-
+tices transforms a graph in a syntactically equivalent graph by providing a
+formal proof for the transformation. It can easily be checked that if we start
+with a normed graph, all graphs in this proof are normed as well. So we are
+allowed to apply Lemma 16.7 in the ongoing proof.
+We start with the pair ’erasure’ and ’insertion’. Due to the symmetry of the
+calculus, it is suﬃcient to prove this theorem only for the erasure rule.
+Let ﬁrst G/primebe obtained from Gby erasing the edge e. Ife /∈E?, we have
+norm (G)/turnstileleft?norm (G/prime) as well. So let ebe an edge with κ(e) =?i. Innorm (G),
+we ﬁrst erase id1
+e, then id2
+e, and then we. Ifeis the only edge in Gwith κ(e) =
+?i, we furthermore erase the (now closed) subgraph consisting of v?iande?i.
+The resulting graph is norm (G), thus we again have norm (G)/turnstileleft?norm (G/prime).
+Now let G/primebe obtained from Gby erasing the closed subgraph edge Gs:=
+(V s, Es, νs, /latticetops, Cuts, areas, κs ) (particularly, /latticetopsis the context of Gs). We
+provide a formal proof for norm (G)/turnstileleft?norm (G/prime), which will be illustrated
+by an example.
+Our example is given below. The subgraph is indicated by a dotted subgraph-
+line.
+2Recall that constants are treated like 1-ary functions, and the constant identity
+rule and the existence of constants rule are the counterparts of the functional
+property rule and the total function rule. So one might think that if we have
+norm (G)/turnstileleftr
+?norm (G) for the rules for functions, this should hold trivially for
+the rules for constants as well. But on the other hand, as query vertices are
+exactly treated like constant vertices, and as query vertices are aﬀected by the
+normalization of graphs, we have to take care for the constant rules. And in fact,
+it turns out that the existence of constants rule has to be treated separately.
+
+=== PAGE 305 ===
+25.2 Relation Graph Instances 295
+Now the subgraph Gi
+sis iterated into dsimilar to the iteration of Gs(partic-
+ularly, if in iteration of Gsan identity edge it added between a vertex v∈Vs
+and its copy v/prime, we do the same in the iteration of Gi
+s). Moreover, for each
+vertex w?ifor an ? i∈FV(Gs), we add an identity-link id/prime
+?ibetween w?iand
+its copy w/prime
+?i.
+P?1
+R21S
+R21
+For each ? i∈FV(Gs), we merge w/prime
+?iintow?i.
+P?1
+R21S
+R21
+For each ? i∈FV(Gs), we merge w?iintov?i.
+P?1
+S
+R21R21
+We obtain norm (G/prime), thus we are done.
+After proving the theorem for the iteration and deiteration rule, we ﬁnally
+prove this theorem for the existence of constants rule. We prove the theorem
+for adding a fresh vertex vand an fresh unary edge ewith ν(e) = ( v) and
+κ(e) =Cto a context c, where Cis a constant name. We distinguish three
+cases.
+•C∈ C(i.e., Cis no query marker). Then we have norm (G)/turnstileleft?norm (G/prime)
+as well.
+•C=?ifor an i∈N, and ? i /∈FV(G). We obtain norm (G/prime) from norm (G)
+as follows: First, we add with the existence of constants rule. a new vertex
+v?iand a new edge e?iwith ν(e?i) = (v?i) and κ(e?i) =?ito the sheet of
+assertion. Then v?iis iterated into c. The copy of v?ishall be denoted we.
+During the iteration, an identity edge id2
+eis added between v?iandwe.
+Finally, weis iterated into c. The copy of weshall be denoted v. During
+the iteration, an identity edge id1
+eis added between weandv. The graph
+we obtain is norm (G/prime).
+
+=== PAGE 318 ===
+308 26 Peirce’s Reduction Thesis
+Gcis not normed, particularly not a PAL−.=3-GI). We have RM,Gc=¬RM,G.
+Now we show that Gcand¬Gare syntactically, thus semantically, equivalent,
+by providing a proof for Gc/turnstileleft?¬Gwhich uses only rules which can be carried
+out in both directions. The transformation is similar (but not identical) to
+the normalization of an RGIs (see Def. 25.9).
+1. Our example is the graph
+G:=
+2?1 ?3 R1?2 , thus Gc=
+2?1 ?3 R1?2
+For each ? i∈FV(Gc), the edge of Gclabeled with ? iis denoted e?i, and
+the vertex incident with e?iis denoted v?i.
+For the following steps, please note that as Gis a PAL−.=3-GI, each vertex
+v?iofV?belongs either to T3(Vc) or to T4(Vc) (we use the notation of
+the proof of Lem. 26.6).
+2. For each ? i∈FV(Gc), we add a new vertex w?iand a new edge f?iwith
+ν(f?i) = (v?i) and κ(f?i) =?ito the sheet of assertion. Within the calculus,
+this is done with the existence of constants rule.
+2?1?1
+?3 R1?2?3 ?2
+3. For each vertex v?iwith v?i∈T4(Vc), we erase the subgraph consisting
+ofv?iande?ifrom/latticetop(recall that /latticetopis acutinGc).
+2?1
+?3 R1?2?2 ?3
+4. For each vertex v?iwith v?i∈T3(Vc), we add an new identity edge id?i
+between w?iandv?ito/latticetop.
+2?1
+?3 R1?2?2 ?3
+5. Similarly to the ﬁfth step in the normalization of a graph, for each ? iwith
+v?i∈T3(Vc), the edge e?iis deiterated from /latticetop.
+?12R1?2 ?3
+6. Finally, for each ? iwithv?i∈T3(Vc), the identity edge id?iand the vertex
+v?iis erased with the rule ’removing a vertex from a ligature’.
+?12R1?3 ?2
+The last graph is (isomorphic to) ¬G, thus we are done. 2
+
+=== PAGE 334 ===
+324 Index
+Vertex-Based Existential Graph
+Instances, 272
+Conclusion, 14
+Conjunction, 9, 10, 12, 206
+Connect, 127
+Connected, 127
+Consistent, 86
+Constant Name, 102, 245,285
+Rules, 252
+Constant Vertex, 260
+Context, 66, 67, 125, 150
+Existential Graph Instance, 124
+Formal Alpha Graphs, 63
+Negative, 72,125, 150
+Ordering, 65,125
+Positive, 72,125, 150
+Convention No. Zero, 44
+Cut, 8, 36
+Alpha, 62
+Existential Graph Instance, 124
+Formal Alpha Graphs, 63
+Cut Condition, 191
+Classical Evaluation, 142
+Endoporeutic Evaluation, 143
+Existential Graph Instance with
+Variables, 213
+Formal Alpha Graphs, 75
+Isomorphism, 136
+Cut-And-Paste-Theorem, 80
+Cut-Line, 128, 128–133
+Cuts, 111–121
+Cycle, 127
+Deduction, 31
+Deduction Theorem, 80
+Degenerated Graph, 117, 120, 121
+Deiterating Constant Labels, 275
+Delta, 8
+Derive
+Existential Graph Instance, 167
+First Order Logic, 202
+Formal Alpha Graphs, 79
+Diagram, 17–18, 21, 35, 39–53
+Barwise and Etchemendy, 2
+Chemistry, 282
+Existential Graph Instances, 128–133,
+229–240
+Formal Alpha graphs, 61–62, 68,
+67–70Formal Existential Graph, 132–133,
+229–240
+Vertex-Based Existential Graph
+Instance, 260–261
+Diagrammatic Reasoning, 1, 2, 17, 25
+Directly Enclosed, 134
+Alpha, 65
+Existential Graph Instance, 125
+Dominating Nodes, 125, 143
+Double Cut, 10, 13, 159–161
+Edge, 109–110
+Existential Graph Instance, 124
+Pending, 285
+Edge Condition, 191
+Classical Evaluation, 142
+Endoporeutic Evaluation, 143
+Existential Graph Instance with
+Variables, 213
+Isomorphism, 136
+Edge-Line, 129, 128–133
+Enclosed, 128, 134, 231
+Alpha, 62, 65
+Directly, 134
+Evenly, 10, 72,125, 134
+Existential Graph Instance, 125, 125
+Oddly, 10, 72,125, 134
+Endoporeutic Evaluation, 143,213
+Endoporeutic Method, 9, 142, 143,213
+Erasure, 33
+Euclidean Plane, 45, 46
+Euler Circles, 1
+Evaluation, 143,213
+Classical, 142
+Equivalence, 144
+First Order Logic, 201
+Formal Alpha Graphs, 75
+Propositional Logic, 92
+Evenly Enclosed, seeEnclosed
+Existential Graph, 210
+Existential Graph Instance, 126,
+126–133
+Representation, 128–133
+Existential Graph Instance (extended),
+246
+Existential Graph Instance with
+Variables, 206
+
+=== PAGE 335 ===
+Index 325
+First Order Logic, 2, 8, 49, 142,
+197–203, 210
+Firstness, 18, 297
+Forest, 127
+Formal Existential Graph, 139
+Formula
+Structure, 200
+Formulas, 49
+Equivalence Relation, 210
+First Order Logic, 197
+Propositional Logic, 91
+Subformula Occurrences, 199
+Universal Closure, 218
+Free Ride, 21
+Fresh, 138
+Function Name, 245,285
+Rules, 249
+Gamma, 2, 8, 14–16
+Generalizing Labels of Vertices, 275
+Generic Marker, 206
+Generic Vertex, 206, 260
+Grapheus, 37
+Graphist, 37
+Heavily Drawn Line, 97, 105
+Crossing a Cut, 111–121
+Heavily Marked Point, 98, 99, 107,
+161–162
+On a Cut, 112
+Herzberger Graph, 315
+Hook, 108, 108,128
+Attached to, 128
+Replaced on, 128, 169
+Hypostatic Abstraction, 15, 316
+Hypothetical Universe, 28, 29, 34, 37
+Icon, 18, 19, 20
+Identity, 97–100, 104, 109, 111–117,
+126, 179, 183, 203, 245,285
+Identity Spot, 99, 100, 106, 107
+On a Cut, 112
+Identity-Edge, 126, 129
+Implication, 28, 36
+Index, 18, 19
+Induction, 30
+Inductive Deﬁnition, 63, 309
+Informal Deﬁnition, 6
+Interpretant, 19, 20Interpretation, 141
+Isomorphism, 68,135
+Except Cuts, 71,136, 145
+Partial, 71,136, 145
+Iterating Constant Labels, 275
+Iteration, 33
+Join of Relatives, seeRelatives
+Judgement, 8
+Juxtaposition, 9, 35, 81, 206
+Existential Graph Instance, 136
+Formal Alpha Graphs, 73
+Knowledge, 27
+Leaf, 127
+Ligature, 12, 98–107, 127, 169–187, 269
+Calculus, 153,155, 150–159
+Crossing a Cut, 111–121
+Extending or Restricting, 172, 277
+Generic, 269
+Idiotic, 100
+Joining, 184
+Rearranging, 174, 277
+Retracting, 173, 174, 181, 277
+Separating, 183–187
+Single-Object, 179, 180, 181, 184–187
+Vertex-Based Existential Graph
+Instances, 274–279
+Ligature-Graph, 127,269
+Line of Identity, 11, 35, 98–107
+’Crossing a Cut’, 111–121
+Logic, 26
+Loop, 127
+Loose End, 103, 155, 282
+Mathematical Reasoning, 1, 2, 17, 27,
+29, 32
+Medad, 8
+Merging two Vertices, 175, 176
+Meta-Level Proposition, 15
+Modal Logic, 3, 15
+Model, 28
+Beta, 201
+Existential Graph Instance, 141
+extended Existential Graph Instance,
+246
+Formal Alpha Graphs, 75
+Relational, 141,246
+Modus Ponens, 10, 218
+
+=== PAGE 337 ===
+Index 327
+Formal Existential Graphs, 148
+Semi Relation Graph Instance, 284, 285
+Semiotics, 17–23, 26
+Sep, 8, 44
+Separated Constant Vertices
+seeVertex, 317
+Sheet of Assertion, 8, 10, 34, 124
+Existential Graph Instance, 124
+Formal Alpha Graphs, 63
+Sign, 23, 17–23, 27
+Single-Object Ligature, 179, 180, 181,
+184–187
+Soundness
+Constant Vertex Rule, 266
+Existential Graph Instance, 196,
+189–196
+First Order Logic, 203
+Formal Alpha Graphs, 85, 83–85
+Function Rule, 250
+Main Lemma for Alpha, 83
+Main Lemma for Beta, 145, 147
+Relation Graph Instances, 291
+Semi Relation Graph Instances, 288
+Transformation Rules for Ligatures,
+147
+Vertex-Based Existential Graph
+Instances, 272
+Specializing Labels of Vertices, 275
+Splitting a Vertex, 175, 176
+Standard-Form, 208, 227
+Standardization, 208
+Star, 183
+Subformulas
+First Order Logic, 197
+Subgraph, 42, 127,134, 134–135
+Alpha, 70, 70–71
+Beta, 134, 134–135
+Calculus, 151–152
+Closed, 134
+Existential Graph Instance, 134
+Representation, 230–235
+Subgraph-Line, 232, 233, 234
+Substitutions, 199
+Syllogism, 13, 29
+Symbol, 7, 18, 19, 27
+Symbolic Logic, 1, 2, 7, 48–51
+Syntactical Entailment, 218, 226
+Existential Graph Instance, 167
+First Order Logic, 202Formal Alpha Graphs, 79
+Teridentity, 99, 101–103, 117, 157, 174,
+184, 299, 309–310
+Terms, 197, 253–258
+Thirdness, 18, 297
+Tinctures, 15
+Token, 23, 45
+Token-Structure, 45
+Total Valuation, seeValuation
+Transformation Rules, 32, 33
+Transformation Rules for Ligatures,
+138, 147
+Translation, 263
+Translations, 91–95, 205–215
+Meaning-Preserving, 94, 212, 213,
+215, 264
+Truth Values, 28,75
+Type, 23, 45
+Type-Equivalence, 46
+Type-Structure, 45
+Type-Token Issue, 23
+Universal Language, 37
+Universe of Discourse, 16, 34, 141
+Valid, 75, 92, 201
+Valuation
+Extended Partial, 142,212,262
+First Order Logic, 201
+Partial, 75,142, 145, 212,262
+Total, 75,142,212,262
+Variable Vertex, 206
+Variables, 197, 201, 205, 206
+Bound, 197
+Free, 197
+Venn Diagrams, 1
+Vertex, 109
+Existential Graph Instance, 124
+Formal Alpha Graphs, 63
+Generic, 206, 271
+Separated Constant, 264
+Variable, 206
+Vertex Condition
+Formal Alpha Graphs Graphs, 75
+Vertex-Based Existential Graph
+Instances, 259, 260
+with Separated Constant Vertices,
+264
+Vertex-Spot, 128, 128–133
+
+=== PAGE 340 ===
+330 References
+[Bur94b] Robert W. Burch. Game theoretical semantics for peirce’s existential
+graphs. Synthese , 99:361–375, 1994.
+[Bur97a] Robert W. Burch. Peirce on the application of relations to relations. In
+Houser et al. [HRE97].
+[Bur97b] Robert W. Burch. Peirce’s reduction thesis. In Houser et al. [HRE97].
+[Bur97c] Robert W. Burch. A tarski-style semantics for peirce’s beta graphs. In
+Brunning and Forster [BF97].
+[CM92] M. Chein and M.-L. Mugnier. Conceptual graphs: Fundamental notions.
+Revue d’Intelligence Artiﬁciell , 6:365–406, 1992.
+[CM95] M. Chein and M.-L. Mugnier. Conceptual graphs are also graphs. Techni-
+cal report, LIRMM, Universit´ e Montpellier II, 1995. Rapport de Recherche
+95003.
+[Dau03a] Frithjof Dau. Concept graphs without negations: Standardmodels and
+standardgraphs. In de Moor et al. [dMLG03], pages 243–256. This paper is
+a part of [Dau03b] as well.
+[Dau03b] Frithjof Dau. The Logic System of Concept Graphs with Negations and
+its Relationship to Predicate Logic , volume 2892 of LNAI . Springer, Berlin –
+Heidelberg – New York, November 2003.
+[Dau04a] Frithjof Dau. Background knowledge in concept graphs. In Eklund
+[Ekl04], pages 156–171.
+[Dau04b] Frithjof Dau. Query graphs with cuts: Mathematical foundations. In
+Blackwell et al. [BMS04], pages 32–50.
+[Dau04c] Frithjof Dau. Types and tokens for logic with diagrams: A mathematical
+approach. In Karl Erich Wolﬀ, Heather D. Pfeiﬀer, and Harry S. Delugach,
+editors, Conceptual Structures at Work: 12th International Conference on
+Conceptual Structures , volume 3127 of Lecture Notes in Computer Science ,
+pages 62–93. Springer, Berlin – Heidelberg – New York, 2004.
+[Dau06a] Frithjof Dau. Fixing shin’s reading algorithm for peirce’s existential
+graphs. In Dave Barker-Plummer, Richard Cox, and Nik Swoboda, editors,
+Diagrams , volume 4045 of LNAI , pages 88–92. Springer, Berlin – Heidelberg
+– New York, 2006.
+[Dau06b] Frithjof Dau. The role of existential graphs in peirce’s philosophy. In
+Peter Øhrstrøm, Henrik Sch¨ arfe, and Pascal Hitzler, editors, ICCS , pages
+28–41. Aalborg University Press, 2006.
+[Dau06c] Frithjof Dau. Some notes on proofs with alpha graphs. In Øhrstrøm et al.
+[ØSH06], pages 172–188.
+[Dev91] K. Devlin. Logic and Information . Cambridge University Press, Cambridge,
+1991.
+[DHC03] Frithjof Dau and Joachim Hereth Correia. Nested concept graphs: Math-
+ematical foundations and applications for databases. In Ganter and de Moor
+[GdM03], pages 125–142.
+[DHC06] Frithjof Dau and Joachim Hereth Correia. Two instances of peirce’s re-
+duction thesis. In Rokia Missaoui and J¨ urg Schmid, editors, ICFCA , volume
+3874 of Lecture Notes in Computer Science , pages 105–118. Springer, 2006.
+[Dip04] Randall Dipert. Peirce’s deductive logic: Its development, inﬂuence, and
+philosphical signiﬁcance. In Cheryl L. Misak, editor, The Cambridge Com-
+panion to Peirce , pages 287–324. Cambridge University Press, Cambridge,
+2004.
+

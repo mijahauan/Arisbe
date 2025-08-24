@@ -1,0 +1,120 @@
+{
+  "name": "EGRF v4.0 Enhanced Corpus",
+  "description": "Enhanced corpus with complete linear form coverage: EGIF, CLIF, and CGIF representations for each existential graph",
+  "version": "2.0.0",
+  "schema_version": "enhanced_v1",
+  "linear_forms": {
+    "egif": {
+      "name": "Existential Graph Interchange Format",
+      "description": "Dau-compliant linear form using cuts and quantifiers",
+      "file_extension": ".egif"
+    },
+    "clif": {
+      "name": "Common Logic Interchange Format", 
+      "description": "ISO/IEC 24707:2007 compliant logical expressions",
+      "file_extension": ".clif"
+    },
+    "cgif": {
+      "name": "Conceptual Graph Interchange Format",
+      "description": "ISO/IEC 24707:2007 Annex B conceptual graph notation",
+      "file_extension": ".cgif"
+    }
+  },
+  "generation_metadata": {
+    "generated_by": "Arisbe EGI-centric architecture",
+    "generation_date": "2025-08-22",
+    "parser_versions": {
+      "egif_parser": "dau_v1.0",
+      "clif_parser": "dau_v1.0", 
+      "cgif_parser": "dau_v1.0"
+    },
+    "generator_versions": {
+      "egif_generator": "dau_v1.0",
+      "clif_generator": "dau_v1.0",
+      "cgif_generator": "dau_v1.0"
+    }
+  },
+  "examples": [
+    {
+      "id": "peirce_cp_4_394_man_mortal",
+      "category": "peirce",
+      "title": "Peirce's Man-Mortal Implication",
+      "description": "Peirce's classic example of implication: 'If a man, then mortal'",
+      "source": "Collected Papers 4.394",
+      "logical_pattern": "implication",
+      "linear_forms": {
+        "egif": {
+          "content": "~[ (Human \"Socrates\") ~[ (Mortal \"Socrates\") ] ]",
+          "source": "original"
+        },
+        "clif": {
+          "content": "(not (and (Human x) (not (Mortal x))))",
+          "source": "generated"
+        },
+        "cgif": {
+          "content": "~[[Human: Socrates] ~[[Mortal: Socrates]]]",
+          "source": "generated"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "canonical_implication",
+      "category": "canonical",
+      "title": "Canonical Implication",
+      "description": "Standard form of implication using double-cut",
+      "source": "Canonical Forms",
+      "logical_pattern": "implication",
+      "linear_forms": {
+        "egif": {
+          "content": "~[ ~[ (P \"x\") ] (Q \"x\") ]",
+          "source": "original"
+        },
+        "clif": {
+          "content": "(not (and (Q x) (not (P x))))",
+          "source": "generated"
+        },
+        "cgif": {
+          "content": "~[[Q: x] ~[[P: x]]]",
+          "source": "generated"
+        }
+      },
+      "egi_stats": {
+        "vertices": 1,
+        "edges": 2,
+        "cuts": 2
+      }
+    },
+    {
+      "id": "sowa_cat_on_mat",
+      "category": "scholars",
+      "title": "Sowa's Cat on Mat Example",
+      "description": "Foundational EGIF example demonstrating basic syntax",
+      "source": "Sowa EGIF-2014",
+      "logical_pattern": "simple_relation",
+      "linear_forms": {
+        "egif": {
+          "content": "*x *y (Cat x) (On x y) (Mat y)",
+          "source": "original"
+        },
+        "clif": {
+          "content": "(and (Cat x) (Mat y) (On x y))",
+          "source": "generated"
+        },
+        "cgif": {
+          "content": "[Cat: *x] [Mat: *y] (On ?x ?y)",
+          "source": "generated"
+        }
+      },
+      "egi_stats": {
+        "vertices": 2,
+        "edges": 3,
+        "cuts": 0
+      }
+    }
+  ]
+}
