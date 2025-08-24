@@ -1,0 +1,104 @@
+Source: Common_Logic_final.pdf
+Characters: 214414
+
+== CLIF-related snippets ==
+Importing and identification on a network ........................................................................................16
+Satisfaction, validity and entailment..................................................................................................18
+Sequence markers, recursion and argument lists: discussion ......................................................18
+Special cases and translations between dialects ............................................................................19
+Conformance........................................................................................................................................20
+Dialect conformance ...........................................................................................................................20
+Application conformance....................................................................................................................22
+Network conformance .........................................................................................................................22
+(normative)        Common Logic Interchange Format (CLIF) ....................................................23
+CLIF conformance ...............................................................................................................................32
+(normative)  Conceptual Graph Interchange Format (CGIF) .....................................................33
+CGIF conformance...............................................................................................................................51
+(normative)       eXtended Common Logic Markup Language (XCL)........................................54
+XCL Conformance................................................................................................................................72
+Figure 1 — Structure of a text and the taxonomy of the phrase category text .................................................. 10
+Figure B.1 — CG display form for John is going to Boston by bus...................................................................  33
+Figure B.2 — CG display form for “If a cat is on a mat, then it is a happy pet” ................................................  34
+Figure B.3 — CL functions represented by actor nodes ...................................................................................  35
+Table A.2 — Mapping from additional CLIF forms to core CLIF forms
+Foreword
+ISO  (the  International  Organization  for  Standardization)  and  IEC  (the  International  Electrotechnical
+Commission) form the specialized system for worldwide standardization. National bodies that are members of
+ISO  or  IEC  participate  in  the  development  of  International  Standards  through  technical  committees
+established  by  the  respective  organization  to  deal  with  particular  fields  of  technical  activity.  ISO  and  IEC
+technical committees collaborate  in fields of mutual interest. Other international organizations, governmental
+and  non-governmental,  in  liaison  with  ISO  and  IEC,  also  take  part  in  the  work.  In  the  field  of  information
+technology, ISO and IEC have established a joint technical committee, ISO/IEC JTC 1.
+International Standards are drafted in accordance with the rules given in the ISO/IEC Directives, Part 2.
+The  main  task  of  the  joint  technical  committee  is  to  prepare  International  Standards.  Draft  International
+Standards adopted by the joint technical committee are circulated to national bodies for voting. Publication as
+an International Standard requires approval by at least 75 % of the national bodies casting a vote.
+rights. ISO and IEC shall not be held responsible for identifying any or all such patent rights.
+ISO/IEC 24707  was  prepared  by  Joint  Technical  Committee  ISO/IEC JTC 1,  Information  technology,
+Subcommittee SC 32, Data management and interchange.
+Common  Logic  is  a  logic  framework  intended  for  information  exchange  and  transmission.  The  framework
+allows  for  a  variety  of  different  syntactic  forms,  called  dialects,  all  expressible  within  a  common  XML-based
+permits  'higher-order'  constructions  such  as  quantification  over  classes  or  relations  while  preserving  a  firstorder model theory, and a semantics which allows theories to describe intensional entities such as classes or
+properties.  It  also  fixes  the  meanings  of  a  few  conventions  in  widespread  use,  such  as  numerals  to  denote
+integers and quotation marks to denote character strings, and has provision for the use of datatypes and for
+naming, importing and transmitting content on the World Wide Web using XML.
+INTERNATIONAL STANDARD
+Information technology — Common Logic (CL): a framework for
+This  International  Standard  specifies  a family  of  logic  languages  designed  for  use  in  the  representation  and
+interchange of information and data among disparate computer systems.
+The following features are essential to the design of this International Standard:
+•  Languages  in  the  family  have  declarative  semantics.  It  is  possible  to  understand  the  meaning  of
+expressions  in  these  languages  without  appeal  to  an  interpreter  for  manipulating  those
+•  Languages  in  the  family  are  logically  comprehensive  —  at  its  most  general,  they  provide  for  the
+expression of arbitrary first-order logical sentences.
+Interchange of information among heterogeneous computer systems.
+The following are within the scope of this International Standard:
+representation of information in ontologies and knowledge bases;
+specification of expressions that are the input or output of inference engines;
+formal interpretations of the symbols in the language.
+The following are outside the scope of this International Standard:
+the specification of proof theory or inference rules;
+specification of translators between the notations of heterogeneous computer systems;
+“universe of discourse” and individuals in the “real world”.
+International Standard. The purpose is to facilitate interchange of first-order logic-based information between
+Issues  relating  to  computability  using  this  International  Standard  (efficiency,  optimization,  etc.)  are  not
+2  Normative references
+The  following  referenced  documents  are  indispensable  for  the  application  of  this  document.  For  dated
+references,  only  the  edition  cited  applies.  For  undated  references,  the  latest  edition  of  the  referenced
+ISO/IEC 2382-15:1999, Information technology — Vocabulary — Part 15: Programming languages
+ISO/IEC 10646:2003, Information technology — Universal Multiple-Octet Coded Character Set (UCS)
+ISO/IEC 14977:1996, Information technology — Syntactic metalanguage — Extended BNF
+3  Terms and definitions
+For the purposes of this document, the following terms and definitions apply.
+atom
+sentence form which has no subsentences as syntactic components
+NOTE
+Can be either an equation, or an atomic sentence consisting of a predicate applied to an argument sequence.
+any sentence which is assumed to be true, from which others are derived, or by which they are entailed
+NOTE
+Common Logic Interchange Format
+NOTE
+to  distinguish  it  from  the  commonly  used  KIF  dialects.  No  assumptions  are  made  in  this  International  Standard  with
+respect to KIF semantics; in particular, no equivalence between CLIF and KIF is intended.
+graphical or textual display of symbols arranged according to the style of conceptual graph theory
+Conceptual Graph Interchange Format
+text version of conceptual graphs whose rules of formation conform to Annex B of this International Standard
+NOTE
+exactly the same structure and semantics as an equivalent conceptual graph.
+Sometimes  may  refer  to  an  example  of  a  character  string  that  conforms  to  Annex  B.  Intended  to  convey
+conceptual graph theory
+form of first-order logic which represents existential quantification and conjunction via the assertion of logical
+constructs called concepts and relations, which are arranged in an abstract or visually displayed graph
+NOTE
+Conceptual graph theory was introduced by John Sowa [1].
+denotation
+relationship holding between a name or expression and the thing to which it refers
+NOTE
+Also used, with “of,” to mean the entity being named, i.e. the referent of a name or expression.
+NOTE
+language (see 7.1 for further details).
+A dialect may be textual or graphical or possibly some other form. A dialect by definition is also a conforming
+NOTE
+universe of discourse may be denoted by two or more distinct names.
+NOTE
+NOTE

@@ -1,0 +1,104 @@
+Source: EGIF-Sowa.pdf
+Characters: 35743
+
+== CGIF-related snippets ==
+the name of a relation type.  The line attached to the name asserts “There exists a phoenix.”  For the other
+two EGs, Peirce (NEM 3:163) explained, “To deny that there is any phoenix, we shade that assertion which
+we deny as a whole [EG in the middle].  Thus what I have just scribed means ‘It is false that there is a
+phoenix.’  But the [EG on the right] only means ‘There is something that is not identical with any phoenix’.”
+~[ (phoenix *x) ]
+[*x]  ~[ (phoenix x) ]
+(monadic relation) and a defining label *x. The defining label represents the beginning of a line of identity in
+enclose the negated subgraph:  ~[  ]. For the EG on the right, the beginning of the line of identity is outside
+the shaded oval. Since there is no relation outside the negation, the defining label is contained in a
+coreference node [*x] in front of the negation. Inside the parentheses of the relation, the label x without an
+zero) is unshaded. As Peirce said, “The graph [on the left] asserts that it thunders without lightning... a denial
+shades the unshaded and unshades the shaded. Consequently [the graph on the right] means ‘If it thunders, it
+(thunder *x)  ~[ (lightning x) ]
+~[ (thunder *x)  ~[ (lightning x) ] ]
+[If  (thunder *x)  [Then (lightning x) ] ]
+Peirce continued, “A graph may be complex or indivisible. Thus [Figure 3 shows] a graph instance composed
+node [x y z], which shows that that three lines of identity refer to the same individual. Peirce called such a
+following table:
+(male *x) (human *y) (African *z) [x y z]
+of a single relation followed by its list of arguments, which Peirce called logical subjects. In EGs, an N-adic
+relation has N pegs, each of which is attached to a line of identity for its logical subject. In EGIF, each atom
+is represented by a pair of parentheses that enclose a relation name followed by a list of defining labels or
+Peirce represented a proposition as a relation with zero pegs. He called it a medad; the prefix me- comes from
+the Greek μη for not. In EGIF, a proposition p is represented as a relation with no logical subjects:  (p). In
+early versions of EGs, Peirce distinguished two subsets:  Alpha for propositional logic and Beta for firstorder logic. By treating medads as relations, he avoided the need to distinguish Alpha from Beta. The same
+Peirce:  “Every indivisible graph instance must be wholly contained in a single area. The line of identity may
+with two copies of —is— would break the line into three segments:  man—is—is—African.  This EG may be
+calculus:
+The two copies of the dyad is are equivalent to two coreference nodes [x *y]  [y *z], which may be replaced by
+a single coreference node [x *y *z]. Since all three labels are coreferent, the bound label x may replace all
+he showed, EGs have only two explicit operators:  a line to represent the existential quantifier and an oval to
+[If (p) [Then (q) ] ]
+~[ ~[ (p) ] ~[ (q) ] ]
+[If (A *x) [Then (B x) ] ]
+medads (p) and (q) are enclosed in parentheses because they are represented as relations with zero logical
+[*x] [*y] ~[ [x y] ]
+[*x] [*y] ~[ (is x y) ]
+(P *x) (P *y) ~[ (is x y) ]
+semantics, the grammar rules in Section 2.3 specify two extensions to EGIF:  (1) functions and (2) bound
+labels as names of relations or functions. EG relations, by themselves, can represent functions. But treating
+computation. The option of bound labels as names of relations and functions goes beyond first-order logic,
+• A digit is any of the ten decimal digits:  0, 1, 2, 3, 4, 5, 6, 7, 8, 9.
+Section B.2 of ISO/IEC 24707:
+Identifiers and enclosed names are case sensitive:  the identifier Apple is distinct from apple. But an identifier
+is considered identical to the enclosed name with the same case and spelling:  Apple is identical to "Apple",
+following two EGIF statements are semantically identical:
+~[(mother*x)~[(woman x)]]
+~     [    (   mother  *   x )  ~  [    (  woman  x   ) ]        ]
+nest of two negations may be written with the first negation ~[ replaced by [If and the second negation
+replaced by [Then:
+[If  (mother *x)  [Then  (woman x) ] ]
+~[ EG ], where EG represents an existential graph as a set of nodes (possibly empty). Some of the nodes in the
+2. A coreference node consists of a left bracket [, one or more names, and a right bracket ]. A defining
+Coreference Node  =  '[', Name, {Name}, ']';
+Double Negation  =  '~', '[', Negation, ']'   |   '[', 'If', '[' 'Then', EG, ']' ']';
+8. A negation consists of a tilde ~, a left bracket [, an existential graph, and a right bracket ].
+Negation  =  '~', '[', EG, ']';
+9. A node is a coreference node, a relation, a function, a negation, or a scroll.
+10.A relation consists of a left parenthesis (, a type label, zero or more names, and a right parenthesis ).
+11.A scroll consists of a left bracket [, the letters If, an EG, a left bracket [, the letters Then, an EG, and
+two right brackets ] ]. Syntactically, a scroll is an optional notation for replacing the tilde in two
+Scroll  =  '[', 'If', EG, '[', 'Then', EG, ']', ']';
+with its defining label determines the type of some relation or function.
+from that area:  every bound label with the identifier x that occurs in this inner area shall be bound to
+are distinct. To specify multiple names as synonyms, put them in a coreference node:
+["John Q. Public" John_Q_Public JohnQPublic JQPublic JQP]
+Peirce treated functions as special special cases of relations. He didn’t have a notation that distinguished
+them from ordinary relations. In EGIF, a function may be considered a kind of relation for which the value
+Peirce did not introduce an EG notation for proper names or constants. Instead, he used monadic relations,
+such as —Alexander or —is Alexander. This relation would be true of anyone named Alexander. In EGIF, a
+name:
+input peg for the context and an output peg for the person of that name:  (Alexander c | *p). Although Peirce
+The EBNF rules for relation and function allow a bound label to be the type label. That option supports the
+feature of Common Logic that allows quantified variables to refer to functions and relations. As an example,
+consider the sentence “There is family relation between any two members of the same family.” To translate
+that sentence to any version logic, restate it with explicit variables F, R, x, and y: “For any family F and any
+two members x and y of F, there is a family relation R that is true of x and y.” That sentence may be translated
+to the following EGIF:
+[If  (family *F)  (memberOf *x F)  (memberOf *y F)
+[Then  (familyRelation *R)  (R x y) ] ]
+The expression (familyRelation *R) asserts that there exists a family relation R, and the next expression uses R
+and second-intentional logic for quantifiers that range over relations. In that article, he used second
+intentional logic to define equality x=y by a statement that for every relation R, R(x) if and only if R(y). Ernst
+logic. As early as 1898, he used the following example of a metalevel statement in EGs:
+Figure 6: A metalevel existential graph by Peirce (1898)
+from the field of assertions.” Since Peirce allowed blanks to occur in the names of relations, the English
+sentence "You are a good girl" may be treated as an enclosed name of a relation with no pegs. In Common
+Logic, a relation with zero arguments (or zero pegs in EGs) represents a proposition. The line of identity
+name that refers to the proposition stated by the EG:
+With the that-operator, Figure 6 could be represented by the following EGIF:
+identifiers such as Possible or Necessary for relations applied to propositions. The following EGIF says
+(that "You are a good girl" | *p)  (possible p)  ~[(necessary p)]
+But its syntax is simpler. As an example, “A cat is on a mat” would be translated to the following EGIF:
+the beginning of the area in which it occurs. Then replace each defining label inside a relation node with a
+original:
+[*x] [*y] (Cat x) (On x y) (Mat y)
+To derive a logically equivalent CGIF sentence, place a question mark ? in front of every bound label:
+[*x] [*y] (Cat ?x) (On ?x ?y) (Mat ?y)
+the quantifier and an explicit Boolean operator and for the implicit conjunction:
+http://www.ihmc.us/users/phayes/IKL/SPEC/SPEC.html (accessed 15 November 2009).
