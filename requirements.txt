@@ -17,6 +17,9 @@ graphviz>=0.20.0
 # Computational geometry dependencies
 shapely>=2.0.0
 
+# Text extraction for PDF references
+pdfminer.six>=20231228
+
 # Development and testing dependencies (uncomment for development)
 # pytest>=7.0.0
 # pytest-cov>=4.0.0
