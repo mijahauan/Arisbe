@@ -1,0 +1,20 @@
+# Byte-compiled / cache
+__pycache__/
+*.pyc
+
+# Test cache
+.pytest_cache/
+
+# OS files
+.DS_Store
+
+# Generated artifacts
+*.cgif
+clean_egi_output.json
+corpus_conversion_results.json
+corpus_demo_results.json
+
+debug_output.txt
+
+# Local docs/scripts to ignore
+INSTALL_QT_GUI.md
