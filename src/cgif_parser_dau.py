@@ -232,7 +232,9 @@ class CGIFParser:
         self.tokens = []
         self.position = 0
         self.current_token = None
-        self.coreference_labels = {}  # Maps defining labels to bound labels
+        self.coreference_labels = {}  # Maps defining labels to bound labels (reserved for future use)
+        # Track created vertices by label -> vertex_id to prevent duplicate insertions
+        self._label_to_vertex_id = {}
         
     def parse(self) -> RelationalGraphWithCuts:
         """Parse CGIF text into EGI structure."""
@@ -450,8 +452,12 @@ class CGIFParser:
             if 'defining_label' in node.attributes:
                 # [Type: *x] - create vertex with defining label (generic)
                 vertex_id = f"v_{node.attributes['defining_label']}"
-                vertex = Vertex(id=vertex_id, label=None, is_generic=True)
-                egi = egi.with_vertex_in_context(vertex, area_id)
+                # Only create vertex if it does not already exist
+                if vertex_id not in egi._vertex_map:
+                    vertex = Vertex(id=vertex_id, label=None, is_generic=True)
+                    egi = egi.with_vertex_in_context(vertex, area_id)
+                # Track mapping for reuse
+                self._label_to_vertex_id[node.attributes['defining_label']] = vertex_id
                 # Create type relation edge attached to the vertex
                 type_edge_id = f"e_{node.value}_{len(egi.E)}"
                 type_edge = Edge(id=type_edge_id)
@@ -462,8 +468,9 @@ class CGIFParser:
                 # [Type: John] - create constant vertex and type relation
                 const_name = node.attributes['constant']
                 vertex_id = f"v_{const_name}"
-                vertex = Vertex(id=vertex_id, label=const_name, is_generic=False)
-                egi = egi.with_vertex_in_context(vertex, area_id)
+                if vertex_id not in egi._vertex_map:
+                    vertex = Vertex(id=vertex_id, label=const_name, is_generic=False)
+                    egi = egi.with_vertex_in_context(vertex, area_id)
                 # Create type relation edge
                 type_edge_id = f"e_{node.value}_{len(egi.E)}"
                 type_edge = Edge(id=type_edge_id)
@@ -473,8 +480,11 @@ class CGIFParser:
         if node.type == 'existential_concept':
             # [*x] - create generic vertex
             vertex_id = f"v_{node.value}"
-            vertex = Vertex(id=vertex_id, label=None, is_generic=True)
-            egi = egi.with_vertex_in_context(vertex, area_id)
+            if vertex_id not in egi._vertex_map:
+                vertex = Vertex(id=vertex_id, label=None, is_generic=True)
+                egi = egi.with_vertex_in_context(vertex, area_id)
+            # Track mapping for reuse
+            self._label_to_vertex_id[node.value] = vertex_id
             return egi
         
         if node.type == 'relation':
