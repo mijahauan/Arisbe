@@ -1,0 +1,1 @@
+(thunder *x)  ~[ (lightning x) ]

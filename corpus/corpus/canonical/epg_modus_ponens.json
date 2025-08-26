@@ -13,5 +13,11 @@
   "notes": "Classic modus ponens: If P then Q, and P, therefore Q. Fundamental inference rule practice for EPG.",
   "usage": "epg_starter",
   "difficulty": "beginner",
-  "goal": "Derive Q using iteration and deiteration rules"
+  "goal": "Derive Q using iteration and deiteration rules",
+  "authority_level": "medium",
+  "provenance_notes": "Derived from Canonical Forms EGRF v3.0 Corpus",
+  "topic_tags": [
+    "quantifiers",
+    "relations"
+  ]
 }

@@ -8,6 +8,7 @@ on the canvas, ensuring every pixel belongs to exactly one logical area.
 from typing import Dict, List, Tuple, Set, Optional
 from dataclasses import dataclass
 import math
+import os
 
 @dataclass
 class SpatialRegion:
@@ -132,7 +133,8 @@ class SpatialRegionManager:
         self.logical_area_to_region[cut_logical_area_id] = cut_region_id
         parent_region.child_region_ids.add(cut_region_id)
         
-        print(f"DEBUG: Created cut region {cut_region_id} at ({cut_x}, {cut_y}, {cut_width}, {cut_height}) within parent {parent_region_id}")
+        if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+            print(f"DEBUG: Created cut region {cut_region_id} at ({cut_x}, {cut_y}, {cut_width}, {cut_height}) within parent {parent_region_id}")
         
         return cut_region_id
     
@@ -200,7 +202,8 @@ class SpatialRegionManager:
         # Update region bounds
         region.bounds = (new_x, new_y, new_width, new_height)
         
-        print(f"DEBUG: Adjusted region {region.region_id} to ({new_x}, {new_y}, {new_width}, {new_height})")
+        if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+            print(f"DEBUG: Adjusted region {region.region_id} to ({new_x}, {new_y}, {new_width}, {new_height})")
     
     def get_all_regions(self) -> Dict[str, SpatialRegion]:
         """Get all spatial regions."""

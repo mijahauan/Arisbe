@@ -1,9 +1,1 @@
-# Dau's Theorem Proving Example
-# Category: scholars
-# Description: Complex theorem proving example with nested quantifiers and modal operators
-# Source: Dau (2006) "Mathematical Logic with Diagrams"
-# Pattern: theorem_proving
-# Generated CLIF representation from EGI
-# Generated: 2025-08-22 19:50:59
 
-(not (and (P x) (not (and (Q x y) (not (not (and (R y z) (not (S z)))))))))

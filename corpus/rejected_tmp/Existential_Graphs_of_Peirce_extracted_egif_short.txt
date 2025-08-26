@@ -1,0 +1,1 @@
+(x) ( x is a man::) ~ (y) (y is a city::) x has seen y))

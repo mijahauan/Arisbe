@@ -1,9 +1,1 @@
-# Roberts' Domain Modeling Example
-# Category: scholars
-# Description: Complex domain model with inheritance and multiple relations
-# Source: Roberts (1973) "The Existential Graphs of Charles S. Peirce"
-# Pattern: domain_modeling
-# Generated CLIF representation from EGI
-# Generated: 2025-08-22 19:50:59
 
-(not (and (Professor x) (not (and (Course z) (Has x y) (Person x) (Teaches x z) (Student y)))))

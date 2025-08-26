@@ -1,0 +1,1 @@
+\pstextpath[c](0,0){\psline[linearc=.18,linestyle=none]

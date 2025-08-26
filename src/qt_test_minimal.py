@@ -4,12 +4,12 @@ Minimal Qt test to verify basic functionality.
 """
 
 import sys
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
+from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                             QWidget, QPushButton, QGraphicsView, QGraphicsScene, 
                             QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsTextItem,
                             QLabel)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPen, QBrush, QColor, QFont
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPen, QBrush, QColor, QFont
 
 
 class MinimalEGIWindow(QMainWindow):
@@ -228,7 +228,7 @@ class MinimalEGIWindow(QMainWindow):
         cut_id = command.get('cut_id', 'cut')
         
         # Draw cut boundary with thin solid line and rounded corners
-        from PyQt6.QtWidgets import QGraphicsRectItem
+        from PySide6.QtWidgets import QGraphicsRectItem
         rect = QGraphicsRectItem(
             bounds.get('x', 0), bounds.get('y', 0),
             bounds.get('width', 100), bounds.get('height', 100)
@@ -239,9 +239,9 @@ class MinimalEGIWindow(QMainWindow):
         rect.setPen(pen)
         
         # Add rounded corners
-        from PyQt6.QtCore import QRectF
-        from PyQt6.QtWidgets import QGraphicsPathItem
-        from PyQt6.QtGui import QPainterPath
+        from PySide6.QtCore import QRectF
+        from PySide6.QtWidgets import QGraphicsPathItem
+        from PySide6.QtGui import QPainterPath
         
         # Create rounded rectangle path
         path = QPainterPath()
@@ -268,7 +268,7 @@ class MinimalEGIWindow(QMainWindow):
         if len(path_points) < 2:
             return
         
-        from PyQt6.QtWidgets import QGraphicsLineItem
+        from PySide6.QtWidgets import QGraphicsLineItem
         
         # Draw heavy lines for ligatures (Peirce convention)
         start_point = path_points[0]
@@ -315,26 +315,11 @@ class MinimalEGIWindow(QMainWindow):
 
 
 def main():
-    """Main entry point."""
-    print("Starting minimal Qt EGI test...")
-    
-    app = QApplication(sys.argv)
-    
-    try:
-        window = MinimalEGIWindow()
-        window.show()
-        
-        print("Window created and shown")
-        print("Starting event loop...")
-        
-        sys.exit(app.exec())
-        
-    except Exception as e:
-        print(f"Error: {e}")
-        import traceback
-        traceback.print_exc()
-        sys.exit(1)
+    """Temporarily disabled GUI demo."""
+    print("qt_test_minimal.py is temporarily disabled while the headless EGI↔spatial adapter is stabilized."
+          " Run the headless tests (pytest) instead.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -1,0 +1,46 @@
+Gentzen, Gerhard (1935) Untersuchungen über das logische Schließen, translated as Investigations into logical
+deduction in The Collected Papers of Gerhard Gentzen, ed. and translated by M. E. Szabo, Amsterdam: NorthHolland, 1969, pp. 68-131.
+Hayes, Patrick, & Chris Menzel (2001) A semantics for the Knowledge Interchange Format, Proc. IJCAI 2001
+Workshop on the IEEE Standard Upper Ontology, Seattle: IJCAI.
+Hayes, Patrick, & Chris Menzel (2006) IKL Specification Document,
+http://www.ihmc.us/users/phayes/IKL/SPEC/SPEC.html
+Hays, David G. (1964) Dependency theory: a formalism and some observations, Language 40:4, 511-525.
+Hintikka, Jaakko (1973) Logic, Language Games, and Information, Oxford: Clarendon Press.  For a summary and
+review of the many variations of logic games,  http://plato.stanford.edu/entries/logic-games/
+Hilpinen, Risto (1982) On C. S. Peirce’s theory of the proposition: Peirce as a precursor of game-theoretical
+semantics, The Monist 65, 182-88.
+Houser, Nathan (2005) Peirce in the 21st century, Transactions of the Charles S. Peirce Society 41:4, p. 729.
+ISO/IEC (2007) Common Logic (CL) — A Framework for a family of Logic-Based Languages, IS 24707, Geneva:
+International Organisation for Standardisation.  http://standards.iso.org/ittf/PubliclyAvailableStandards/index.html
+Johnson-Laird, Philip N. (1983) Mental Models, Cambridge, MA: Harvard University Press.  For related publications,
+http://mentalmodels.princeton.edu/publications/
+Johnson-Laird, Philip N. (2002) Peirce, logic diagrams, and the elementary operations of reasoning, Thinking and
+Reasoning 8:2, 69-95.  http://mentalmodels.princeton.edu/papers/2002peirce.pdf
+Kamp, Hans (1981) A theory of truth and semantic representation, in Formal Methods in the Study of Language, ed.
+by J. A. G. Groenendijk, T. M. V. Janssen, & M. B. J. Stokhof, Amsterdam: Mathematical Centre Tracts, pp. 277-322.
+For related publications, http://www.ims.uni-stuttgart.de/institut/mitarbeiter/hans/
+Kamp, Hans, & Uwe Reyle (1993) From Discourse to Logic, Dordrecht: Kluwer.
+Kamp, Hans, & Uwe Reyle (1996) A calculus for first order Discourse Representation Structures, Journal of Logic,
+Language, and Information 5:3-4, 297-348.
+Knuth, Donald E., & Ronald W. Moore (1975), An analysis of alpha-beta pruning, Artificial Intelligence 6:4, 293-326.
+Majumdar, Arun K., & John F. Sowa (2009) Two paradigms are better than one and multiple paradigms are even
+better, in S. Rudolph, F. Dau, and S.O. Kuznetsov, eds., Proceedings of ICCS'09, LNAI 5662, Berlin: Springer, pp. 3247.  http://www.jfsowa.com/pubs/paradigm.pdf
+Levinson, R. A., & G. Ellis (1992) Multilevel hierarchical retrieval, Knowledge Based Systems 5:3, pp. 233-244.
+Peano, Giuseppe (1889) Aritmetices principia nova methoda exposita, Torino: Bocca.
+Peirce, Charles Sanders (1870) Description of a notation for the logic of relatives, reprinted in Writings of Charles S.
+Peirce, Bloomington: Indiana University Press, vol. 2, pp. 359-429.
+Peirce, Charles Sanders (1880) On the algebra of logic, American Journal of Mathematics 3, 15-57.
+Peirce, Charles Sanders (1885) On the algebra of logic, American Journal of Mathematics 7, 180-202.
+Peirce, Charles Sanders (1898) Reasoning and the Logic of Things, The Cambridge Conferences Lectures of 1898, ed.
+by K. L. Ketner, Cambridge, MA: Harvard University Press, 1992.
+Peirce, Charles Sanders (1902) Vague, in J. M. Baldwin, ed., Dictionary of Philosophy and Psychology, New York:
+MacMillan, p. 748.   For a quotation and discussion, http://plato.stanford.edu/entries/vagueness/
+Peirce, Charles Sanders (1906) Manuscripts on existential graphs, Collected Papers of Charles Sanders Peirce, vol. 4,
+Harvard University Press, Cambridge, MA, pp. 320-410.
+Peirce, Charles Sanders (1911) Letter to J. H. Kehler, in Peirce (NEM) 3:159–210.
+Peirce, Charles Sanders (CP) Collected Papers of C. S. Peirce, ed. by C. Hartshorne, P. Weiss, & A. Burks, 8 vols.,
+Cambridge, MA: Harvard University Press, 1931-1958.
+Peirce, Charles Sanders (NEM) The New Elements of Mathematics, edited by Carolyn Eisele, 4 vols., The Hague:
+Mouton & Co., 1976.
+Perlis, Alan J. (1982) Epigrams in Programming, SIGPLAN Notices, Sept. 1982, ACM.
+http://www.cs.yale.edu/homes/perlis-alan/quotes.html

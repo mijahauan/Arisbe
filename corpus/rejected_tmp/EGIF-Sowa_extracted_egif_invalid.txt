@@ -1,0 +1,4 @@
+An area is a space where existential graphs may be drawn or asserted. The outermost area on which EGs may
+be asserted is called the sheet of assertion (SA). The SA may be cut or fenced off by oval enclosures, which
+are areas that contain nested EGs. For propositional and first-order logic (Peirce’s Alpha and Beta graphs),
+the only oval enclosures are used to represent negations. In EGIF, the area 

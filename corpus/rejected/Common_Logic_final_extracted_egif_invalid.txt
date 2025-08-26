@@ -1,0 +1,4 @@
+<text dialect="http://purl.org/xcl/1.0/#dialect-clif">
+    (forall ex:romanceNovel ((x man)) (exists ((y woman))
+    (and (loves x y) (not (loves y x))) ))
+  </text>

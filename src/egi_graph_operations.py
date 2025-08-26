@@ -6,8 +6,10 @@ are performed on complete graphs, never on individual elements.
 """
 
 from typing import Dict, Set, List, Optional, Tuple, Any
+import os
 from egi_logical_areas import EGILogicalSystem, EGIGraph, LogicalArea
 from egi_spatial_correspondence import SpatialCorrespondenceEngine as EGISpatialCorrespondence, SpatialBounds
+from egi_adapter import logical_to_relational_graph
 
 
 class EGIGraphOperations:
@@ -83,14 +85,16 @@ class EGIGraphOperations:
                 break
         
         if not predicate_graph or not vertex_graph:
-            print(f"DEBUG: Binding failed - predicate_graph: {predicate_graph is not None}, vertex_graph: {vertex_graph is not None}")
+            if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+                print(f"DEBUG: Binding failed - predicate_graph: {predicate_graph is not None}, vertex_graph: {vertex_graph is not None}")
             return False
         
         # Update predicate graph's nu mapping to include the vertex
         predicate_graph.nu_mapping[edge_id] = predicate_graph.nu_mapping.get(edge_id, set())
         predicate_graph.nu_mapping[edge_id].add(vertex_id)
         
-        print(f"DEBUG: Bound {vertex_id} to {edge_id}, nu_mapping: {predicate_graph.nu_mapping}")
+        if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+            print(f"DEBUG: Bound {vertex_id} to {edge_id}, nu_mapping: {predicate_graph.nu_mapping}")
         return True
     
     def conjoin_graphs_in_area(self, graph1_id: str, graph2_id: str, 
@@ -230,9 +234,10 @@ class EGISystemController:
     
     def __init__(self, sheet_id: str, canvas_bounds: SpatialBounds):
         self.logical_system = EGILogicalSystem(sheet_id)
-        self.spatial_correspondence = EGISpatialCorrespondence(
-            self.logical_system, canvas_bounds
-        )
+        # Build a RelationalGraphWithCuts view for the spatial engine via adapter
+        # Keep canvas_bounds for future sizing; not passed to engine.
+        rgc = logical_to_relational_graph(self.logical_system)
+        self.spatial_correspondence = EGISpatialCorrespondence(rgc)
         self.graph_operations = EGIGraphOperations(self.logical_system)
         self.presentation_adapters = []
     
@@ -277,7 +282,10 @@ class EGISystemController:
     
     def get_complete_layout(self) -> Dict[str, Any]:
         """Get complete spatial layout for rendering."""
-        layout = self.spatial_correspondence.generate_complete_spatial_layout()
+        # Refresh spatial engine with current logical state before generating layout
+        rgc = logical_to_relational_graph(self.logical_system)
+        self.spatial_correspondence = EGISpatialCorrespondence(rgc)
+        layout = self.spatial_correspondence.generate_spatial_layout()
         
         # Add linear graph replica for debugging
         layout['linear_replica'] = self._generate_linear_replica()

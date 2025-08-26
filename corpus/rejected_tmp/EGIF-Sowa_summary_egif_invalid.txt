@@ -1,0 +1,3 @@
+~[ replaced by [If and the second negation
+replaced by [Then:
+[If  (mother *x)  [Then  (woman x) ]

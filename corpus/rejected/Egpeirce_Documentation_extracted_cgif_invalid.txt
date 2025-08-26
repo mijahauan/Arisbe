@@ -1,0 +1,3 @@
+[linewidth=\ligaturewidth,linecolor=\licolour,
+
+angleA=45,angleB=180]

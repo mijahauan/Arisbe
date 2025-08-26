@@ -1,0 +1,7 @@
+{
+  "title": "harvest_eg2cg_extracted_cgif",
+  "source_file": "eg2cg_extracted.txt",
+  "kind": "cgif",
+  "category": "challenging",
+  "description": "Harvested from derived docs; review for correctness."
+}

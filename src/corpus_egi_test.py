@@ -12,11 +12,11 @@ import os
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
+from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                             QWidget, QPushButton, QListWidget, QGraphicsView, 
                             QGraphicsScene, QTextEdit, QSplitter, QLabel)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 
 # Add src to path for imports
 sys.path.append(str(Path(__file__).parent))
@@ -268,8 +268,8 @@ class CorpusEGITestWindow(QMainWindow):
         
     def render_egi_vertex(self, command):
         """Render EGI vertex as Peircean spot (no ID label)."""
-        from PyQt6.QtWidgets import QGraphicsEllipseItem
-        from PyQt6.QtGui import QPen, QBrush, QColor
+        from PySide6.QtWidgets import QGraphicsEllipseItem
+        from PySide6.QtGui import QPen, QBrush, QColor
         
         position = command.get('position', {})
         # vertex_id available in command but intentionally not displayed
@@ -285,8 +285,8 @@ class CorpusEGITestWindow(QMainWindow):
         
     def render_egi_predicate(self, command):
         """Render EGI predicate with Peircean styling."""
-        from PyQt6.QtWidgets import QGraphicsRectItem, QGraphicsTextItem
-        from PyQt6.QtGui import QPen, QBrush, QColor, QFont
+        from PySide6.QtWidgets import QGraphicsRectItem, QGraphicsTextItem
+        from PySide6.QtGui import QPen, QBrush, QColor, QFont
         
         position = command.get('position', {})
         edge_id = command.get('edge_id', 'predicate')
@@ -347,9 +347,9 @@ class CorpusEGITestWindow(QMainWindow):
         
     def render_egi_cut(self, command):
         """Render EGI cut with Peircean thin solid line and rounded corners."""
-        from PyQt6.QtWidgets import QGraphicsPathItem
-        from PyQt6.QtGui import QPen, QBrush, QColor, QPainterPath
-        from PyQt6.QtCore import QRectF
+        from PySide6.QtWidgets import QGraphicsPathItem
+        from PySide6.QtGui import QPen, QBrush, QColor, QPainterPath
+        from PySide6.QtCore import QRectF
         
         bounds = command.get('bounds', {})
         cut_id = command.get('cut_id')
@@ -394,8 +394,8 @@ class CorpusEGITestWindow(QMainWindow):
         
     def render_egi_ligature(self, command):
         """Render EGI ligature with Peircean heavy line styling."""
-        from PyQt6.QtWidgets import QGraphicsLineItem
-        from PyQt6.QtGui import QPen, QColor
+        from PySide6.QtWidgets import QGraphicsLineItem
+        from PySide6.QtGui import QPen, QColor
         
         path_points = command.get('path_points', [])
         
@@ -417,14 +417,11 @@ class CorpusEGITestWindow(QMainWindow):
 
 
 def main():
-    """Main function to run the corpus EGI test system."""
-    app = QApplication(sys.argv)
-    
-    window = CorpusEGITestWindow()
-    window.show()
-    
-    sys.exit(app.exec())
+    """Temporarily disabled GUI corpus demo."""
+    print("corpus_egi_test.py is temporarily disabled while the headless EGI↔spatial adapter is stabilized."
+          " Run the headless tests (pytest) instead.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

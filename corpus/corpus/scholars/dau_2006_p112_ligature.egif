@@ -1,7 +1,1 @@
-# Dau's Ligature Example
-# Category: scholars
-# Description: Dau's example of ligatures crossing cut boundaries
-# Source: Frithjof Dau
-# Pattern: ligature
-
 *x (P x) ~[ (Q x) (R x) ]

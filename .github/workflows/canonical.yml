@@ -40,3 +40,9 @@ jobs:
 
       - name: Canonical invariant unit test
         run: python -m pytest -q tests/test_canonical_invariant.py
+
+      - name: Validate corpus linear forms against goldens
+        run: |
+          if [ -f tools/validate_corpus_linear_forms.py ]; then 
+            python tools/validate_corpus_linear_forms.py --sets canonical --roundtrip egif; 
+          fi

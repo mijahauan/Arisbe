@@ -121,51 +121,75 @@ class EGIFGenerator:
         area_elements = self.graph.get_area(context_id)
         
         # CRITICAL: Process edges first to establish ν mapping order for vertices
+        # Deterministic ordering: sort edges by (relation name, incident vertex IDs)
+        sorted_edges: List[ElementID] = []
         for element_id in area_elements:
             if element_id in self.graph._edge_map:
-                # Get the exact ν mapping order for this edge
-                vertex_sequence = self.graph.get_incident_vertices(element_id)
-                
-                # Process vertices in exact ν mapping order
-                for vertex_id in vertex_sequence:
-                    if vertex_id not in processed_vertices and vertex_id in self.graph._vertex_map:
-                        vertex = self.graph.get_vertex(vertex_id)
-                        
-                        if vertex.is_generic:
-                            if vertex_id not in self.vertex_labels:
-                                # First occurrence - assign fresh label and mark as defining
-                                label = self.alphabet.get_fresh_name()
-                                self.vertex_labels[vertex_id] = label
-                                self.used_labels.add(label)
-                                self.defining_vertices.add(vertex_id)
-                            # If already labeled, this is a bound occurrence (don't mark as defining)
-                        else:
-                            # Constant vertex - use its label
-                            self.vertex_labels[vertex_id] = f'"{vertex.label}"'
-                        
-                        processed_vertices.add(vertex_id)
+                sorted_edges.append(element_id)
+        def _edge_key(eid: ElementID) -> Tuple[str, Tuple[ElementID, ...]]:
+            rel_name = self.graph.get_relation_name(eid)
+            vseq = self.graph.get_incident_vertices(eid)
+            return (rel_name, tuple(vseq))
+        for element_id in sorted(sorted_edges, key=_edge_key):
+            # Get the exact ν mapping order for this edge
+            vertex_sequence = self.graph.get_incident_vertices(element_id)
+            
+            # Process vertices in exact ν mapping order
+            for vertex_id in vertex_sequence:
+                if vertex_id not in processed_vertices and vertex_id in self.graph._vertex_map:
+                    vertex = self.graph.get_vertex(vertex_id)
+                    
+                    if vertex.is_generic:
+                        if vertex_id not in self.vertex_labels:
+                            # First occurrence - assign fresh label and mark as defining
+                            label = self.alphabet.get_fresh_name()
+                            self.vertex_labels[vertex_id] = label
+                            self.used_labels.add(label)
+                            self.defining_vertices.add(vertex_id)
+                        # If already labeled, this is a bound occurrence (don't mark as defining)
+                    else:
+                        # Constant vertex - use its label
+                        self.vertex_labels[vertex_id] = f'"{vertex.label}"'
+                    
+                    processed_vertices.add(vertex_id)
         
         # Process isolated vertices in this area
+        # Deterministic: sort isolated vertices by (is_generic, constant label or id)
+        isolated_vertices: List[ElementID] = []
         for element_id in area_elements:
             if element_id in self.graph._vertex_map and element_id not in processed_vertices:
-                vertex = self.graph.get_vertex(element_id)
-                
-                if vertex.is_generic:
-                    # Isolated generic vertex - assign fresh label and mark as defining
-                    label = self.alphabet.get_fresh_name()
-                    self.vertex_labels[element_id] = label
-                    self.used_labels.add(label)
-                    self.defining_vertices.add(element_id)
-                else:
-                    # Isolated constant vertex - use its label
-                    self.vertex_labels[element_id] = f'"{vertex.label}"'
-                
-                processed_vertices.add(element_id)
+                isolated_vertices.append(element_id)
+        def _vertex_key(vid: ElementID) -> Tuple[int, str]:
+            v = self.graph.get_vertex(vid)
+            if v.is_generic:
+                # If label already assigned use it, else use id as fallback
+                lbl = self.vertex_labels.get(vid, vid)
+                return (0, lbl)
+            else:
+                return (1, v.label or vid)
+        for element_id in sorted(isolated_vertices, key=_vertex_key):
+            vertex = self.graph.get_vertex(element_id)
+            
+            if vertex.is_generic:
+                # Isolated generic vertex - assign fresh label and mark as defining
+                label = self.alphabet.get_fresh_name()
+                self.vertex_labels[element_id] = label
+                self.used_labels.add(label)
+                self.defining_vertices.add(element_id)
+            else:
+                # Isolated constant vertex - use its label
+                self.vertex_labels[element_id] = f'"{vertex.label}"'
+            
+            processed_vertices.add(element_id)
         
         # Process cuts in this area recursively
+        # Deterministic: sort cuts by ID
+        cut_ids: List[ElementID] = []
         for element_id in area_elements:
             if element_id in self.graph._cut_map:
-                self._assign_labels_preserving_nu_order(element_id, processed_vertices)
+                cut_ids.append(element_id)
+        for element_id in sorted(cut_ids):
+            self._assign_labels_preserving_nu_order(element_id, processed_vertices)
     
     def _assign_labels_recursive(self, context_id: ElementID, processed_vertices: Set[ElementID]):
         """Recursively assign labels and track defining occurrences."""
@@ -235,37 +259,61 @@ class EGIFGenerator:
         content_parts = []
         
         # Emit isolated defining variables planned for this context
+        # Deterministic: emit planned definitions in order of their labels
+        planned_defs = []
         for vid, def_ctx in self.vertex_def_context.items():
-            if def_ctx == context_id:
-                # Only emit once; ensure label exists
-                if vid in self.vertex_labels:
-                    label = self.vertex_labels[vid]
-                    content_parts.append(f"*{label}")
+            if def_ctx == context_id and vid in self.vertex_labels:
+                planned_defs.append((self.vertex_labels[vid], vid))
+        for label, vid in sorted(planned_defs, key=lambda x: x[0]):
+            content_parts.append(f"*{label}")
         
         # Generate isolated vertices first
+        isolated_ids: List[ElementID] = []
         for element_id in area_elements:
-            if element_id in self.graph._vertex_map:
-                vertex = self.graph.get_vertex(element_id)
-                if self.graph.is_vertex_isolated(element_id):
-                    if vertex.is_generic:
-                        # Generic isolated vertex - always defining
-                        label = self.vertex_labels[element_id]
-                        content_parts.append(f"*{label}")
-                    else:
-                        # Constant isolated vertex
-                        content_parts.append(f'"{vertex.label}"')
+            if element_id in self.graph._vertex_map and self.graph.is_vertex_isolated(element_id):
+                isolated_ids.append(element_id)
+        def _iso_key(vid: ElementID) -> Tuple[int, str]:
+            v = self.graph.get_vertex(vid)
+            if v.is_generic:
+                return (0, self.vertex_labels.get(vid, vid))
+            else:
+                return (1, v.label or vid)
+        for element_id in sorted(isolated_ids, key=_iso_key):
+            vertex = self.graph.get_vertex(element_id)
+            if vertex.is_generic:
+                # Generic isolated vertex - always defining
+                label = self.vertex_labels[element_id]
+                content_parts.append(f"*{label}")
+            else:
+                # Constant isolated vertex
+                content_parts.append(f'"{vertex.label}"')
         
         # Generate relations
+        edge_ids: List[ElementID] = []
         for element_id in area_elements:
             if element_id in self.graph._edge_map:
-                relation_egif = self._generate_relation(element_id)
-                content_parts.append(relation_egif)
+                edge_ids.append(element_id)
+        def _edge_out_key(eid: ElementID) -> Tuple[str, Tuple[str, ...]]:
+            name = self.graph.get_relation_name(eid)
+            vseq = self.graph.get_incident_vertices(eid)
+            # Map to argument strings as they would appear
+            arg_labels: List[str] = []
+            for vid in vseq:
+                v = self.graph.get_vertex(vid)
+                if v.is_generic:
+                    arg_labels.append(self.vertex_labels[vid])
+                else:
+                    arg_labels.append(f'"{v.label}"')
+            return (name, tuple(arg_labels))
+        for element_id in sorted(edge_ids, key=_edge_out_key):
+            relation_egif = self._generate_relation(element_id)
+            content_parts.append(relation_egif)
         
         # Generate cuts
-        for element_id in area_elements:
-            if element_id in self.graph._cut_map:
-                cut_egif = self._generate_cut(element_id)
-                content_parts.append(cut_egif)
+        cut_ids = [eid for eid in area_elements if eid in self.graph._cut_map]
+        for element_id in sorted(cut_ids):
+            cut_egif = self._generate_cut(element_id)
+            content_parts.append(cut_egif)
         
         return " ".join(content_parts)
     
@@ -287,7 +335,10 @@ class EGIFGenerator:
                 # Constant vertex
                 args.append(f'"{vertex.label}"')
         
-        return f"({relation_name} {' '.join(args)})"
+        if args:
+            return f"({relation_name} {' '.join(args)})"
+        # Nullary predicate (medad): no trailing space
+        return f"({relation_name})"
     
     def _generate_cut(self, cut_id: ElementID) -> str:
         """Generate EGIF for a cut."""

@@ -18,6 +18,7 @@ from copy import deepcopy
 import dataclasses
 import uuid
 from frozendict import frozendict
+import os
 
 from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, create_empty_graph
 
@@ -58,11 +59,13 @@ class InsertVertex(EGIOperation):
     def apply(self, egi: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
         # Coerce literal 'sheet' to actual sheet ID
         target_area = egi.sheet if (self.area_id is None or self.area_id == 'sheet') else self.area_id
-        print(f"DEBUG: InsertVertex.apply() - vertex_id: {self.vertex_id}, area_id: {target_area}")
+        if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+            print(f"DEBUG: InsertVertex.apply() - vertex_id: {self.vertex_id}, area_id: {target_area}")
         # Delegate to core helper to preserve invariants
         new_egi = egi.with_vertex_in_context(Vertex(id=self.vertex_id), target_area)
-        print(f"DEBUG: New EGI vertices: {[v.id for v in new_egi.V]}")
-        print(f"DEBUG: New EGI area coverage: {dict(new_egi.area)}")
+        if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+            print(f"DEBUG: New EGI vertices: {[v.id for v in new_egi.V]}")
+            print(f"DEBUG: New EGI area coverage: {dict(new_egi.area)}")
         return new_egi
 
 
@@ -101,11 +104,13 @@ class InsertCut(EGIOperation):
     def apply(self, egi: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
         # Coerce literal 'sheet' to actual sheet ID
         target_parent = egi.sheet if (self.parent_area is None or self.parent_area == 'sheet') else self.parent_area
-        print(f"DEBUG: InsertCut.apply() - cut_id: {self.cut_id}, parent_area: {target_parent}")
+        if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+            print(f"DEBUG: InsertCut.apply() - cut_id: {self.cut_id}, parent_area: {target_parent}")
         # Delegate to core helper to preserve invariants
         new_egi = egi.with_cut(Cut(id=self.cut_id), context_id=target_parent)
-        print(f"DEBUG: New EGI cuts: {[c.id for c in new_egi.Cut]}")
-        print(f"DEBUG: New EGI area coverage: {dict(new_egi.area)}")
+        if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+            print(f"DEBUG: New EGI cuts: {[c.id for c in new_egi.Cut]}")
+            print(f"DEBUG: New EGI area coverage: {dict(new_egi.area)}")
         return new_egi
 
 
@@ -471,6 +476,49 @@ class EGISystem:
     
     def delete_element(self, element_id: str) -> OperationResult:
         return self.repository.apply(DeleteElement(element_id))
+
+    # --- Loading / replacing EGI from linear forms ---
+    def replace_egi(self, new_egi: RelationalGraphWithCuts) -> None:
+        """Replace the current EGI with a new immutable graph."""
+        self.repository.egi = new_egi
+        self.repository._notify_observers()
+
+    def load_egif(self, text: str) -> RelationalGraphWithCuts:
+        """Parse EGIF text and replace current EGI."""
+        from egif_parser_dau import parse_egif
+        egi = parse_egif(text)
+        self.replace_egi(egi)
+        return egi
+
+    def load_cgif(self, text: str) -> RelationalGraphWithCuts:
+        """Parse CGIF text and replace current EGI."""
+        from cgif_parser_dau import parse_cgif
+        egi = parse_cgif(text)
+        self.replace_egi(egi)
+        return egi
+
+    def load_linear(self, text: str, format_hint: Optional[str] = None) -> RelationalGraphWithCuts:
+        """Load a linear form (EGIF or CGIF) and replace current EGI.
+        - If format_hint is 'egif' or 'cgif', use that parser directly.
+        - If 'auto' or None, try EGIF first, then CGIF.
+        """
+        fmt = (format_hint or 'auto').lower()
+        if fmt == 'egif':
+            return self.load_egif(text)
+        if fmt == 'cgif':
+            return self.load_cgif(text)
+
+        # Auto-detect by trying EGIF then CGIF
+        last_err = None
+        try:
+            return self.load_egif(text)
+        except Exception as e1:
+            last_err = e1
+            try:
+                return self.load_cgif(text)
+            except Exception as e2:
+                # Raise combined error
+                raise ValueError(f"Failed to parse as EGIF ({e1}) or CGIF ({e2})") from e2
 
 
 # Factory

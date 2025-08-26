@@ -82,9 +82,23 @@ class QtCorrespondenceIntegration:
             if element.element_type == "edge":
                 cmd["relation_name"] = current_egi.rel.get(element_id, "Unknown")
                 cmd["role"] = "edge.label_box"
+                # Optional superscript bounds for arity
+                try:
+                    sup = getattr(element, 'edge_sup_bounds', None)
+                    if sup is not None:
+                        cmd["edge_sup_bounds"] = {"x": sup.x, "y": sup.y, "width": sup.width, "height": sup.height}
+                except Exception:
+                    pass
             elif element.element_type == "vertex":
                 cmd["vertex_name"] = element_id
                 cmd["role"] = "vertex.dot"
+                # Optional superscript bounds for variable label
+                try:
+                    sup = getattr(element, 'vertex_sup_bounds', None)
+                    if sup is not None:
+                        cmd["vertex_sup_bounds"] = {"x": sup.x, "y": sup.y, "width": sup.width, "height": sup.height}
+                except Exception:
+                    pass
             elif element.element_type == "cut":
                 cmd["role"] = "cut.border"
 

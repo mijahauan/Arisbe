@@ -13,5 +13,11 @@
   "notes": "Classic syllogism: All humans are mortal, Socrates is human, therefore Socrates is mortal. Good starting position for EPG practice.",
   "usage": "epg_starter",
   "difficulty": "beginner",
-  "goal": "Derive (Mortal \"Socrates\") using valid EG transformations"
+  "goal": "Derive (Mortal \"Socrates\") using valid EG transformations",
+  "authority_level": "medium",
+  "provenance_notes": "Derived from Canonical Forms EGRF v3.0 Corpus",
+  "topic_tags": [
+    "quantifiers",
+    "relations"
+  ]
 }

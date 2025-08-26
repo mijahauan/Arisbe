@@ -1,0 +1,5 @@
+== CGIF-related snippets ==
+logical, linguistic, and cognitive requirements:  a formal semantics defined by the ISO standard for
+in thought.”  Some philosophers and psychologists agree:  Peirce’s diagrams and rules are a good
+Existential graphs and the conceptual graphs based on them are formally defined, but they follow the
+logic:  1 for truth; 0 for falsehood; + for or; × for and; and − for not.

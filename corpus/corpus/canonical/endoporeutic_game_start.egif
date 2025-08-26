@@ -1,9 +1,1 @@
-# Endoporeutic Game Starting Position
-# Category: canonical
-# Description: Classic EPG starting position with multiple valid transformation paths
-# Source: Canonical EPG Examples
-# Pattern: epg_start
 
-# "There exists someone who loves everyone, and everyone loves someone"
-# ∃x∀y(Loves(x,y)) ∧ ∀x∃y(Loves(x,y))
-*x ~[ *y ~[ (Loves x y) ] ] ~[ *z ~[ *w (Loves z w) ] ]

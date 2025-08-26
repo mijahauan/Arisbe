@@ -267,8 +267,11 @@ class EGIFParser:
         self.tokens = []
         self.position = 0
         self.graph = create_empty_graph()
-        self.variable_map = {}  # Maps variable names to vertex IDs
-        self.defining_labels = set()  # Track defining labels to prevent duplicates
+        self.variable_map = {}  # Maps variable names to current (top) vertex IDs
+        # Per Sowa: duplicates are only illegal within the same area; allow shadowing across areas
+        self.defs_in_area: Dict[ElementID, Set[str]] = {}
+        # Shadowing stack: var name -> list of (def_area, vertex_id) from outer to inner
+        self.var_stack: Dict[str, List[Tuple[ElementID, ElementID]]] = {}
         # New: track definition context for each variable label
         self.var_def_context: Dict[str, ElementID] = {}
         # New: track occurrence contexts for LCA hoisting
@@ -305,7 +308,7 @@ class EGIFParser:
         
         # Normalize multiple spaces to single spaces
         result = re.sub(r'\s+', ' ', result)
-
+        
         return result.strip()
 
     def parse(self) -> RelationalGraphWithCuts:
@@ -322,7 +325,8 @@ class EGIFParser:
         self.position = 0
         self.graph = create_empty_graph()
         self.variable_map = {}
-        self.defining_labels = set()
+        self.defs_in_area = {}
+        self.var_stack = {}
         self.constant_vertices = {}  # Track constant name -> vertex ID mapping
         self.var_def_context = {}
         self.var_occ_contexts = {}
@@ -393,7 +397,7 @@ class EGIFParser:
         # Create edge
         edge = create_edge()
         self.graph = self.graph.with_edge(edge, tuple(vertex_ids), relation_name, context_id)
-    
+
     def _parse_argument(self, context_id: ElementID) -> ElementID:
         """Parse relation argument and return vertex ID."""
         token = self._current_token()
@@ -401,16 +405,18 @@ class EGIFParser:
         if token.type == TokenType.DEFINING_VAR:
             # Defining variable *x
             var_name = token.value[1:]  # Remove *
-            if var_name in self.defining_labels:
-                raise ValueError(f"Duplicate defining label *{var_name}")
-            
-            self.defining_labels.add(var_name)
+            # Initialize area set
+            self.defs_in_area.setdefault(context_id, set())
+            if var_name in self.defs_in_area[context_id]:
+                raise ValueError(f"Duplicate defining label *{var_name} in same area")
+            self.defs_in_area[context_id].add(var_name)
             vertex = create_vertex(label=None, is_generic=True)
             
             # Defining variables are assigned to the context where they are first defined
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+            # Push onto shadowing stack and update current mappings
+            self.var_stack.setdefault(var_name, []).append((context_id, vertex.id))
             self.variable_map[var_name] = vertex.id
-            # Record definition context for scoping checks
             self.var_def_context[var_name] = context_id
             self._advance()
             return vertex.id
@@ -465,6 +471,8 @@ class EGIFParser:
         # Create cut
         cut = create_cut()
         self.graph = self.graph.with_cut(cut, context_id)
+        # Prepare area definition set for this cut
+        self.defs_in_area.setdefault(cut.id, set())
         
         # Parse cut contents
         while self._current_token().type not in [TokenType.RBRACKET, TokenType.EOF]:
@@ -473,6 +481,8 @@ class EGIFParser:
         if self._current_token().type != TokenType.RBRACKET:
             raise ValueError("Expected ']' to close cut")
         self._advance()
+        # On exiting the cut area, pop any shadowed variables defined in this area
+        self._pop_area_vars(cut.id)
     
     
     def _parse_variable_declaration(self, context_id: ElementID):
@@ -486,12 +496,13 @@ class EGIFParser:
             raise ValueError("Expected defining variable *x in variable declaration")
         
         var_name = self._current_token().value[1:]  # Remove *
-        if var_name in self.defining_labels:
-            raise ValueError(f"Duplicate defining label *{var_name}")
-        
-        self.defining_labels.add(var_name)
+        self.defs_in_area.setdefault(context_id, set())
+        if var_name in self.defs_in_area[context_id]:
+            raise ValueError(f"Duplicate defining label *{var_name} in same area")
+        self.defs_in_area[context_id].add(var_name)
         vertex = create_vertex(label=None, is_generic=True)
         self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+        self.var_stack.setdefault(var_name, []).append((context_id, vertex.id))
         self.variable_map[var_name] = vertex.id
         self.var_def_context[var_name] = context_id
         self._advance()
@@ -507,12 +518,13 @@ class EGIFParser:
         if token.type == TokenType.DEFINING_VAR:
             # Isolated defining variable *x
             var_name = token.value[1:]  # Remove *
-            if var_name in self.defining_labels:
-                raise ValueError(f"Duplicate defining label *{var_name}")
-            
-            self.defining_labels.add(var_name)
+            self.defs_in_area.setdefault(context_id, set())
+            if var_name in self.defs_in_area[context_id]:
+                raise ValueError(f"Duplicate defining label *{var_name} in same area")
+            self.defs_in_area[context_id].add(var_name)
             vertex = create_vertex(label=None, is_generic=True)
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+            self.var_stack.setdefault(var_name, []).append((context_id, vertex.id))
             self.variable_map[var_name] = vertex.id
             self.var_def_context[var_name] = context_id
             self._advance()
@@ -523,7 +535,14 @@ class EGIFParser:
             var_name = token.value
             if var_name not in self.variable_map:
                 raise ValueError(f"Undefined variable {var_name}")
-            
+            # Scope check: declaration context must be an ancestor of current context
+            decl_ctx = self.var_def_context.get(var_name)
+            if decl_ctx is None:
+                raise ValueError(f"Variable {var_name} has no recorded declaration context")
+            if not self._is_ancestor_context(decl_ctx, context_id):
+                raise ValueError(f"Out-of-scope variable {var_name}: declared in unrelated context")
+            # Track occurrence for LCA (symmetry with arguments; variables stay at def area)
+            self.var_occ_contexts.setdefault(var_name, set()).add(context_id)
             vertex_id = self.variable_map[var_name]
             self._advance()
             return vertex_id
@@ -543,6 +562,31 @@ class EGIFParser:
             
         else:
             raise ValueError(f"Invalid isolated vertex token: {token.type}")
+
+    def _pop_area_vars(self, area_id: ElementID) -> None:
+        """Pop shadowed variable definitions that were defined in the given area, restoring outer bindings."""
+        # Remove from defs_in_area
+        # And unwind var_stack, variable_map, var_def_context appropriately
+        to_remove: List[Tuple[str, ElementID]] = []
+        area_defs = self.defs_in_area.get(area_id, set())
+        for var_name in list(self.var_stack.keys()):
+            stack = self.var_stack[var_name]
+            while stack and stack[-1][0] == area_id:
+                _, vid = stack.pop()
+                to_remove.append((var_name, vid))
+            if not stack:
+                # No outer binding remains
+                self.var_stack.pop(var_name, None)
+                self.variable_map.pop(var_name, None)
+                self.var_def_context.pop(var_name, None)
+            else:
+                # Restore outer binding
+                outer_area, outer_vid = stack[-1]
+                self.variable_map[var_name] = outer_vid
+                self.var_def_context[var_name] = outer_area
+        # Clear area defs set
+        if area_id in self.defs_in_area:
+            self.defs_in_area[area_id].clear()
     
     # --- helpers ---
     def _is_ancestor_context(self, ancestor_ctx: ElementID, ctx: ElementID) -> bool:

@@ -1,0 +1,2 @@
+[If  (family *F)  (memberOf *x F)  (memberOf *y F)
+          [Then  (familyRelation *R)  (R x y) ] ]

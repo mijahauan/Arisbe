@@ -1,0 +1,40 @@
+{
+  "id": "sowa_cat_on_mat",
+  "category": "scholars",
+  "title": "Sowa's Cat on Mat Example",
+  "description": "Sowa's foundational example demonstrating EGIF syntax and semantics",
+  "source": {
+    "author": "John F. Sowa",
+    "work": "EGIF Specification",
+    "year": 2014,
+    "page": "Section 2.5",
+    "url": "http://www.jfsowa.com/egif/"
+  },
+  "logical_form": "∃x∃y (Cat(x) ∧ On(x,y) ∧ Mat(y))",
+  "natural_language": "A cat is on a mat",
+  "complexity": {
+    "nesting_depth": 1,
+    "entity_count": 2,
+    "predicate_count": 3,
+    "cut_count": 0
+  },
+  "test_rationale": "Fundamental EGIF example, tests basic existential quantification and relational structure",
+  "epg_features": {
+    "is_starting_position": true,
+    "valid_transformations": [
+      "insertion",
+      "iteration"
+    ],
+    "invalid_transformations": [
+      "deletion"
+    ]
+  },
+  "authority_level": "high",
+  "difficulty": "easy",
+  "provenance_notes": "Derived from John F. Sowa EGIF Specification",
+  "topic_tags": [
+    "basic",
+    "ground",
+    "relation"
+  ]
+}

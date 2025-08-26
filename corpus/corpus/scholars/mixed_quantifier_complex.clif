@@ -1,9 +1,1 @@
-# Mixed Quantifier Complex
-# Category: scholars
-# Description: Alternating quantifiers with deep nesting
-# Source: Challenging Test Cases
-# Pattern: ∀x∃y∀z(P x) ∧ (Q y z) - Mixed quantification with conjunction
-# Generated CLIF representation from EGI
-# Generated: 2025-08-22 19:50:59
 
-(not (and (P y) (not (Q x z))))

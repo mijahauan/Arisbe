@@ -1,0 +1,101 @@
+== CLIF-related snippets ==
+Semantics and Calculus for Formal Alpha Graphs . . . . . . . . . 75
+8.1 Semantics for Formal Alpha Graphs . . . . . . . . . . . . . . . . . . . . . . . 75
+8.3 Calculus for Alpha Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 78
+8.4 Some Simple Theorems . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 80
+Soundness and Completeness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 83
+11.1 Lines of Identities and Ligatures . . . . . . . . . . . . . . . . . . . . . . . . . . . 98
+11.4 Border cases: LoI touching or crossing on a Cut . . . . . . . . . . . . . 117
+12.3 Further Notations for Existential Graph Instances . . . . . . . . . . . 133
+12.4 Formal Existential Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 137
+13 Semantics for Existential Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . 141
+13.1 Semantics for Existential Graph Instances . . . . . . . . . . . . . . . . . . 141
+13.2 Semantics for Existential Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . 145
+14 Getting Closer to the Calculus for Beta . . . . . . . . . . . . . . . . . . . . 149
+14.1 Erasure and Insertion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 150
+14.2 Iteration and Deiteration . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 152
+14.4 Inserting and Deleting a Heavy Dot . . . . . . . . . . . . . . . . . . . . . . . . 161
+15 Calculus for Formal Existential Graphs . . . . . . . . . . . . . . . . . . . . 163
+16 Improving the Handling of Ligatures . . . . . . . . . . . . . . . . . . . . . . 169
+16.1 Derived Rules For Ligatures . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 169
+18 First Order Logic . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 197
+19.1 Deﬁnition of Φ and Ψ . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 205
+19.2 Semantical Equivalence between Graphs and Formulas . . . . . . . 211
+20 Syntactical Equivalence to F O and Completeness . . . . . . . . . . 217
+20.2 Identity of G and Ψ (Φ(G)) and Completeness of ‘ . . . . . . . . . . . 227
+21 Working with Diagrams of Peirce’s Graphs . . . . . . . . . . . . . . . . 229
+23 Adding Constants and Functions . . . . . . . . . . . . . . . . . . . . . . . . . . 245
+23.3 Examples for EGIs with Constants and Functions . . . . . . . . . . . 253
+24.2 Correspondence between vertex-based EGIs and EGIs . . . . . . . . 262
+24.3 Calculus for vertex-based EGIs . . . . . . . . . . . . . . . . . . . . . . . . . . . . 265
+26.3 Graphs for Peircean Algebraic Logic . . . . . . . . . . . . . . . . . . . . . . . 299
+26.4 Peirce’s Reduction Thesis for Relation Graphs . . . . . . . . . . . . . . 309
+26.5 The Contributions of Herzberger and Burch . . . . . . . . . . . . . . . . 314
+Referenced Authors . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 319
+The research ﬁeld of diagrammatic reasoning investigates all forms of human
+reasoning and argumentation wherever diagrams are involved. This research
+area is constituted from multiple disciplines, including cognitive science and
+psychology as well as computer science, artiﬁcial intelligence, logic and mathematics. But it should not be overlooked that there has been until today a
+long-standing prejudice against non-symbolic representation in mathematics
+and logic. Without doubt diagrams are often used in mathematical reasoning,
+but usually only as illustrations or thought aids. Diagrams, many mathematicians say, are not rigorous enough to be used in a proof, or may even mislead
+... it is dispensable as a proof-theoretic device; indeed ... it has no
+proper place in a proof as such. For the proof is a syntactic object
+consisting only of sentences arranged in a ﬁnite and inspectable area.
+Nonetheless, there exist some diagrammatic systems which were designed for
+mathematical reasoning. Well-known examples are Euler circles and Venn diagrams. More important to us, at the dawn of modern logic, two diagrammatic
+systems had been invented in order to formalize logic. The ﬁrst system is
+Frege’s Begriﬀsschrift, where Frege attempted to provide a formal universal
+Sanders Peirce, which he used to study and describe logical argumentation.
+But none of these systems is used in contemporary mathematical logic. In contrast: For more than a century, linear symbolic representation systems (i.e.,
+formal languages which are composed of signs which are a priori meaningless,
+and which are therefore manipulated by means of purely formal rules) have
+been the exclusive subject for formal logic. There are only a few logicians who
+have done research on formal, but non-symbolic logic. The most important
+ones are without doubt Barwise and Etchemendy. They say that
+there is no principle distinction between inference formalisms that use
+text and those that use diagrams. One can have rigorous, logically
+sound (and complete) formal systems based on diagrams.
+Barwise and Etchemendy 1994, quotation adopted from [Shi02a]
+This treatise advocates this view that rigor formal logic can be carried out
+by means of manipulating diagrams. In order to do this, the systems of existential graphs is elaborated in a manner which suits the needs and rigor of
+contemporary mathematics.
+There are good reasons for choosing Peirce’s EGs for the purpose of this
+treatise. Peirce had been a philosopher and mathematician who devoted his
+life to the investigation of reasoning and the growth of knowledge. He was
+particularly interested in the exploration of mathematical reasoning, and EGs
+are designed as an instrument for the investigation of such reasoning.
+Before he invented EGs at the end of the 19th century, Peirce contributed
+Thus, Peirce was very familiar with both approaches –the diagrammatic and
+the symbolic– to logic. As he was interested in an instrument for the investigation of logic (which has to be distinguished from the investigation and
+and disadvantages, of these two approaches to a large extent. Particularly, he
+elaborated a comprehensive theory of what he already called diagrammatic
+reasoning, and he considered his diagrammatic system of EGs to be far more
+perfect for the investigation of mathematical reasoning than the symbolic approach he developed as well. His philosophical considerations, his arguments
+for his preference of the diagrammatic approach to logic, will give us valuable
+and Gamma. These parts presuppose and are built upon each other, i.e.
+Beta builds upon Alpha, and Gamma builds upon Alpha and Beta. As EGs
+are an instrument for the investigation of mathematical reasoning, it is not
+surprising that the diﬀerent parts of EGs correspond to speciﬁc fragments of
+mathematical logic. It is well accepted that Alpha corresponds to propositional
+logic, and Beta corresponds to ﬁrst-order predicate logic.2 The part Gamma
+1 For example, he invented, independently from Frege, together with his student
+O. H. Mitchell a notation for existential and universal quantiﬁcation. According
+to Putnam [Put82], Frege discovered the quantiﬁer four years before Mitchell, but
+priority; but Peirce and his students discovered it in the eﬀective sense.’
+2 Later, it will be discussed in more detail how far the arguments by these authors
+1.1 The Purpose and the Structure of this Treatise
+is more complicated: It contains features of higher order and modal logic, the
+possibilty to express self-reference, and other features. Due to its complexity, it
+was not completed by Peirce. The majority of works which deal with Gamma
+deal only with the fragment of Gamma which corresponds to modal logic.
+The formal mathematical logic we use nowadays emerged at the beginning
+of the 20th century. Russell’s and Whitehead’s
+landmark work Principia
+published in the years 1910–1912. It is obvious that Peirce’s works can by no
+means satisfy the needs and criteria of present mathematical logic. His contributions to symbolic logic found their place in the development of modern
+formal logic, but his system of EGs received no attention during this process.
+Thus, in order to prove mathematically that Alpha and Beta correspond to
+propositional and ﬁrst order predicate logic, respectively, the system of EGs
+has ﬁrst to be be reworked and reformulated as a precise theory of mathematical logic. Then the correspondence to the symbolic logic we use nowadays
+can be mathematically formulated and proven.

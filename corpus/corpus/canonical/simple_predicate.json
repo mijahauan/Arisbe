@@ -11,5 +11,12 @@
   "logical_form": "Human(\"Socrates\")",
   "egif_content": "(Human \"Socrates\")",
   "notes": "Simplest possible EG - single predicate with constant. Perfect for testing basic rendering and containment.",
-  "usage": "testing"
+  "usage": "testing",
+  "authority_level": "medium",
+  "difficulty": "easy",
+  "provenance_notes": "Derived from Canonical Forms EGRF v3.0 Corpus",
+  "topic_tags": [
+    "quantifiers",
+    "relations"
+  ]
 }

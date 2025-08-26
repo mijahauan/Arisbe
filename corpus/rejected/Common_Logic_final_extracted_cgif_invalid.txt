@@ -1,0 +1,4 @@
+[*Quotient] [*Remainder]
+   [[@every*x1] [@every*x2] [@every*x3] [@every*x4]
+   [Equiv: [Iff: (IntegerDivide ?x1 ?x2 | ?x3 ?x4)]
+           [Iff: (#?Quotient ?x1 ?x2 | ?x3) (#?Remainder ?x1 ?x2 | ?x4)]]]

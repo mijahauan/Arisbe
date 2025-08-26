@@ -1,0 +1,4 @@
+Figure B.1  and its representation  in CGIF  illustrate the extended syntax  of CGIF, which  adds type labels on
+concepts and several other syntactic extensions to the core syntax. To convert the extensions of Figure B.1 to
+the core CGIF, the type labels in the concept nodes are replaced by relations linked to the nodes. The concept
+[Go:*x], for example, becomes an untyped concept [*x] and a conce

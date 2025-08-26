@@ -11,5 +11,13 @@
   "logical_form": "¬¬P(x)",
   "egif_content": "*x ~[ ~[ (P x) ] ]",
   "notes": "Double negation using nested cuts. Critical test case for containment algorithms - predicate must be inside innermost cut.",
-  "usage": "testing"
+  "usage": "testing",
+  "authority_level": "medium",
+  "difficulty": "hard",
+  "provenance_notes": "Derived from Canonical Forms EGRF v3.0 Corpus",
+  "topic_tags": [
+    "nesting",
+    "quantifiers",
+    "scope"
+  ]
 }

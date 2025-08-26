@@ -1,0 +1,2 @@
+(due to the way LATEX implements
+its counters)

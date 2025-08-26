@@ -1,0 +1,101 @@
+== CGIF-related snippets ==
+LIBRARY OF CONGRESS CATALOG CARD NUMBER: 73-85776
+clarify some logical or mathematical or philosophical concept. The exposi
+On a sheet dated December 23, 1872, Parsons wrote:" 'Ben dell'lntelletto'
+2.4 The First System: The Entitative Graphs
+2.5 The Second System: The Existential Graphs
+calculus, is not even optimistic about the analytical value of the graphs:
+might open possibilities of analysis superior to: those afforded by the alge
+gically as it were, to confirm one's faith in the algebraic approach [Quine
+(1934),552].
+logic of quantifiers after 1891 (Berry [1952], 158·59, 165). Now if Berry
+becomes looser: sometimes it rambles, at other times it becomes excessively
+disjointed" (Gallie [1952], 55). The tendencies, he says, are even plainer
+ed with his thought, are obscure to a degree [Gallie (1952),55-56].
+There is a hint of this in Thomas A. Goudge's The Thoughto[C. S. Peirce.
+algebras, and he views the system as complicated and cumbersome:
+increase in their positive results[Goudge (1950), 120].
+of his diagrams" (Gardner [1958], 58). Besides, Peirce's papers on the
+approaching an exposition of the graphs:
+Let [the student] read these permissions and the commentary as he would
+The writer has a dear friend .[William James?] of most active and agile
+simple have, who always understand when they are not scared [Ms 280, pp.
+23-24].
+from the following passage, written in 1898:
+symbols used to algebraic sym~ols, but [would] include some graphical
+to the problems of comparing frameworks" (WeDs [1959], 210).
+originally read as follows: "Such men are intellectual petit crevls, nice to have
+logic as a kind of analysis:
+:. S isP
+"is really a diagram of the relations of S, M, and P. The fact that the middle
+they do not resemble the objects or relationships they represent. Peirce took
+to represent algebraic invariants (Murphey [1961], 196-197). It is very
+Peirce's letter (Ms L 294) begins as follows:
+once benefactor and lover of something' looks like this: (3x)(3y)[B(xy).
+l.(xy)], where the dot represents conjunction. This formula can be read
+of this expression is ~x~ybxy2yx>O;inPrincipia notation, (3X) (3y)[B(xy).
+L(yx)].) Fig. 2 means 'something is a lover of itself (that is, ~x2xx>O or
+(3x)[L(xx)]). Fig. 3 means 'everything is a lover of itself (that is, "x2xx>0
+or (\fx)[L(xx)]). In this system, to draw a bar through a line is to make it a
+"x"y(2XY +bxy)>O or ('fxX'fy)[L(xy)VB(xy)]-the wedge V in the latter
+follOWing quotation appears to be an attempt to do so:
+the development of his system of graphs:
+possible, but I failed to appreciate its merits [Ms 498, pp. 1-2].
+rience with the Memoir in this way: "The paper is so difficult that I was at
+6 The revisions were published in Kempe (1887) and were prefaced by this comment:
+ty which that necessary matter exhibits" (Kempe [1886], 2). In order to
+Kempe's system represent 'units': the entities in terms of which the mind, in
+relationships, arrangements, algebraical expressions, operators, operations,
+&c., &c" (Kempe [1886], 2). The lines, or bonds, connect certain of the
+spots-"one to one" (Kempe [1897], 457)-in order to divide the spots
+representing the units under consideration into two sets: one set whose
+to represent "any relationship in the nature of a 'connexion', but simply to
+work upon any branch of the stecheology of relations that has ever been
+Peirce:
+I note that lines may be treated as monads [This is not Kempe's proce
+dure.] & so a new graph made & the question is whether there would be any
+advantage in this [Ms 714, p. 1].
+1892. Consider in the first place the following remark:
+not in a situation to draw up a statement of my researches [3.418].
+compounds and chemical compounds:
+__", "X loves X", or something loves itself [3.421].
+express, is nothing but a special variety of connection [Ms 410, pp. 11-13].
+comment by Peirce:. "This diagram has been very obviously suggested by the
+connections or relations between these spots; but, as was pointed out above,
+way. Rather, he meant to represent relations by appropriate spots, since
+these relations when considered by the mind are units, and units were to be
+represented by spots (Kempe [1897],454,457).
+later that same year (Kempe [1897]). Peirce's last words on this minor
+'mode of junction', or 'dyadic relation', is nothing more nor less than a class
+distinguish certain pairs from others, they do represent a dyadiC relation of
+THE FIRST SYSTEM: THE ENTITATIVE GRAPHS
+logic of relatives (3.456). He began by defming the tenn 'relation', and in
+tution of matter. "A chemical atom is quite like a relative [tenn] in having a
+diagram for ammonia (Fig. 6): 11
+:J
+the letter to Mitchell and in the 1892 introduction to the logic of relatives:
+this: a line whose outennost part or extremity (least enclosed part) occurs
+With these conventions in mind, let us consider the following graphs:
+THE SECOND SYSTEM: THE EXISTENTIAL GRAPHS
+tism written by Peirce in 1905 or 1906:
+Graphs", in [3.456-552]; but the ink was hardly dry on the sheets ... when
+::::J
+quite heavily: -
+but the rule for EG is the reverse of that used for the entitative graphs: a
+Consider the following graphs:
+written in 1897, which begins:
+proposition down asserts it [Ms 488].
+of the one system "expresses an entitative relation", and the fundamental
+symbol of the other "expresses the relation of existence" (Ms 485, p. 1).
+The Alpha part of EG is the foundation of the entire system: the Beta part
+upon both Alpha and Beta. Alpha is concerned with the relationship
+only three basic symbols, or types of symbols, in Alpha: the sheet of asser
+he is, rather, concerned with certain relations that hold between them
+between form and matter: the formal logician is interested only in the form
+of (that is, the truth relations between) propositions; the matter of the
+is a graph, even if nothing is written on it: "If the sheet be blank, this blank,
+and he frequently illustrated it with the following example: The word 'the'
+We already have the fmt two conventions in hand: Cl. The sheet of
+sheet:
+conjunction. In another place Peirce puts it this way: "If different graphs
+import:

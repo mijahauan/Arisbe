@@ -1,0 +1,7 @@
+~[ and the inner ~[.
+
+(e) Double negation:  A double negation in any area may be erased.
+
+With adaptations for the variations in syntax, these same rules can be applied to EGs, CGs, and DRS
+in either CGIF or the original graph notations.  They can even be applied to the algebraic notation and
+controlled natural languages.  In EGs, the operation of inserting a link between two lines has the effect

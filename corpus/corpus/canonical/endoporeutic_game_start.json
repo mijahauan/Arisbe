@@ -20,7 +20,19 @@
   "test_rationale": "Tests quantifier scope interactions and provides rich EPG transformation opportunities",
   "epg_features": {
     "is_starting_position": true,
-    "valid_transformations": ["insertion", "deletion", "iteration", "deiteration"],
+    "valid_transformations": [
+      "insertion",
+      "deletion",
+      "iteration",
+      "deiteration"
+    ],
     "invalid_transformations": []
-  }
+  },
+  "authority_level": "medium",
+  "difficulty": "medium",
+  "provenance_notes": "Derived from Canonical EPG Examples Endoporeutic Game Theory",
+  "topic_tags": [
+    "quantifiers",
+    "relations"
+  ]
 }

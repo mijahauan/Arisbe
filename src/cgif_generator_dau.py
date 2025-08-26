@@ -27,6 +27,8 @@ class CGIFGenerator:
         self.used_labels = set()
         self.label_counter = 0
         self.type_relations = set()  # Track which relations are type relations
+        # Planned defining context per generic vertex (minimal common ancestor over all uses)
+        self.vertex_def_context: Dict[str, str] = {}
         
     def generate(self) -> str:
         """Generate CGIF expression from graph."""
@@ -37,6 +39,8 @@ class CGIFGenerator:
         
         # Assign coreference labels to vertices
         self._assign_vertex_labels()
+        # Compute hoisted defining contexts (LCA of uses) for generic vertices
+        self._compute_vertex_def_contexts()
         
         # Generate CGIF for sheet area (top level)
         cgif_expr = self._generate_area_expression(self.graph.sheet)
@@ -61,21 +65,71 @@ class CGIFGenerator:
                     self.type_relations.add(edge.id)
     
     def _assign_vertex_labels(self):
-        """Assign CGIF coreference labels to vertices."""
+        """Assign CGIF coreference labels to vertices, preserving ν order like EGIF."""
         self.vertex_labels = {}
         self.used_labels = set()
         self.label_counter = 0
-        
-        # Assign labels to all vertices
-        for vertex in self.graph.V:
-            if vertex.id not in self.vertex_labels:
-                if vertex.is_generic:
-                    label = self._get_next_variable_label()
-                    self.vertex_labels[vertex.id] = f"*{label}"
-                else:
-                    # Constants use their label directly
-                    self.vertex_labels[vertex.id] = vertex.label or vertex.id
-                self.used_labels.add(self.vertex_labels[vertex.id])
+
+        processed: Set[str] = set()
+
+        def assign_in_context(ctx_id: str) -> None:
+            # Visit edges first in deterministic order, then isolated vertices, then cuts
+            area = self.graph.area.get(ctx_id, set())
+
+            # Edges sorted by (predicate, ν vertex ids)
+            edge_ids: List[str] = [eid for eid in area if any(e.id == eid for e in self.graph.E)]
+            def _edge_key(eid: str) -> Tuple[str, Tuple[str, ...]]:
+                pred = self.graph.rel.get(eid, "")
+                vseq = tuple(self.graph.nu.get(eid, []))
+                return (pred, vseq)
+            for eid in sorted(edge_ids, key=_edge_key):
+                vseq = self.graph.nu.get(eid, [])
+                for vid in vseq:
+                    v = next((vx for vx in self.graph.V if vx.id == vid), None)
+                    if v is None:
+                        continue
+                    if v.is_generic:
+                        if vid not in self.vertex_labels:
+                            lab = self._get_next_variable_label()
+                            self.vertex_labels[vid] = f"*{lab}"
+                            self.used_labels.add(self.vertex_labels[vid])
+                        processed.add(vid)
+                    else:
+                        # Constants don't need a variable label
+                        processed.add(vid)
+
+            # Isolated vertices (generic first deterministically, then constants)
+            vertex_ids: List[str] = [vid for vid in area if any(v.id == vid for v in self.graph.V)]
+            # consider isolated if it doesn't appear in any ν of edges in this area
+            incident_in_area: Set[str] = set()
+            for eid in edge_ids:
+                incident_in_area.update(self.graph.nu.get(eid, []))
+            isolated = [vid for vid in vertex_ids if vid not in incident_in_area]
+            def _vertex_key(vid: str) -> Tuple[int, str]:
+                v = next((vx for vx in self.graph.V if vx.id == vid), None)
+                if v is None:
+                    return (2, vid)
+                if v.is_generic:
+                    # Use assigned label if any as sort key; else fallback to id
+                    return (0, self.vertex_labels.get(vid, vid))
+                return (1, v.label or vid)
+            for vid in sorted(isolated, key=_vertex_key):
+                v = next((vx for vx in self.graph.V if vx.id == vid), None)
+                if v is None:
+                    continue
+                if v.is_generic and vid not in self.vertex_labels:
+                    lab = self._get_next_variable_label()
+                    self.vertex_labels[vid] = f"*{lab}"
+                    self.used_labels.add(self.vertex_labels[vid])
+                processed.add(vid)
+
+            # Recurse into cuts deterministically
+            cut_ids: List[str] = [cid for cid in area if any(c.id == cid for c in self.graph.Cut)]
+            for cid in sorted(cut_ids):
+                assign_in_context(cid)
+
+        # Start at sheet
+        assign_in_context(self.graph.sheet)
     
     def _get_next_variable_label(self) -> str:
         """Get next available variable label."""
@@ -114,6 +168,64 @@ class CGIFGenerator:
                 elements['cuts'].append(element_id)
         
         return elements
+
+    # --- LCA-based definition planning (mirrors EGIF) ---
+    def _compute_vertex_def_contexts(self) -> None:
+        """For each generic vertex, compute the minimal common ancestor area that contains all
+        its predicate occurrences and assign that as the defining context. We'll emit an
+        untyped defining concept [*x] in that context.
+        """
+        # Build parent map for contexts (cuts); sheet has parent None
+        parent: Dict[str, Optional[str]] = {}
+        for cut in self.graph.Cut:
+            parent[cut.id] = self.graph.get_context(cut.id)
+        parent[self.graph.sheet] = None  # type: ignore
+
+        def ancestors(ctx: Optional[str]) -> List[Optional[str]]:
+            chain: List[Optional[str]] = []
+            cur = ctx
+            seen = set()
+            while cur is not None and cur not in seen:
+                seen.add(cur)
+                chain.append(cur)
+                cur = parent.get(cur)
+            chain.append(None)
+            return chain
+
+        def lca(ctxs: List[str]) -> str:
+            if not ctxs:
+                return self.graph.sheet
+            a0 = ctxs[0]
+            a0_chain = ancestors(a0)
+            aset = set(a0_chain)
+            for c in ctxs[1:]:
+                c_chain = ancestors(c)
+                pick: Optional[str] = None
+                for cand in c_chain:
+                    if cand in aset:
+                        pick = cand
+                        break
+                if pick is None:
+                    return self.graph.sheet
+                aset = set(ancestors(pick))
+            for cand in a0_chain:
+                if cand in aset and cand is not None:
+                    return cand
+            return self.graph.sheet
+
+        # Collect contexts of usage for each generic vertex (via ν on edges)
+        uses_by_vertex: Dict[str, List[str]] = {}
+        for edge_id, vseq in self.graph.nu.items():
+            edge_ctx = self.graph.get_context(edge_id)
+            for vid in vseq:
+                vobj = next((v for v in self.graph.V if v.id == vid), None)
+                if vobj is not None and vobj.is_generic:
+                    uses_by_vertex.setdefault(vid, []).append(edge_ctx)
+
+        # Assign definition context
+        self.vertex_def_context.clear()
+        for vid, ctxs in uses_by_vertex.items():
+            self.vertex_def_context[vid] = lca(ctxs)
     
     def _generate_area_expression(self, area_id: str) -> str:
         """Generate CGIF expression for area content."""
@@ -121,26 +233,86 @@ class CGIFGenerator:
         
         cgif_parts = []
         
-        # Generate typed concepts for ALL edges (treating all as type relations)
+        # Emit planned untyped defining concepts [*x] for this area (deterministically by label)
+        planned_defs: List[Tuple[str, str]] = []
+        for vid, def_ctx in self.vertex_def_context.items():
+            if def_ctx == area_id and vid in self.vertex_labels:
+                planned_defs.append((self.vertex_labels[vid], vid))
+        for label, vid in sorted(planned_defs, key=lambda x: x[0]):
+            # label already includes leading '*'
+            cgif_parts.append(f"[{label}]")
+        
+        # Generate typed concepts for monadic edges (type relations)
         processed_vertices = set()
-        for edge_id in elements['edges']:
+        monadic_edges = [eid for eid in elements['edges'] if len(self.graph.nu.get(eid, [])) == 1]
+        def _typed_key(eid: str) -> tuple:
+            type_name = self.graph.rel.get(eid, "")
+            vseq = self.graph.nu.get(eid, [])
+            vid = vseq[0] if vseq else ""
+            v = next((vx for vx in self.graph.V if vx.id == vid), None)
+            vlabel = ""
+            if v is not None:
+                vlabel = (self.vertex_labels.get(vid, vid) if v.is_generic else (v.label or vid))
+            return (type_name, vlabel, eid)
+        for edge_id in sorted(monadic_edges, key=_typed_key):
             vertex_sequence = self.graph.nu.get(edge_id, [])
-            if len(vertex_sequence) == 1:
-                vertex_id = vertex_sequence[0]
-                concept = self._generate_typed_concept(edge_id, vertex_id)
-                if concept:
-                    cgif_parts.append(concept)
-                    processed_vertices.add(vertex_id)
-        
-        # Generate concepts for vertices without type relations
-        for vertex_id in elements['vertices']:
-            if vertex_id not in processed_vertices:
-                concept = self._generate_untyped_concept(vertex_id)
-                if concept:
-                    cgif_parts.append(concept)
-        
+            vertex_id = vertex_sequence[0]
+            concept = self._generate_typed_concept(edge_id, vertex_id)
+            if concept:
+                cgif_parts.append(concept)
+                processed_vertices.add(vertex_id)
+
+        # Generate concepts for vertices without type relations.
+        # IMPORTANT: Generic vertices are emitted only via planned LCA-based defs above,
+        # so here we include ONLY constants (non-generic) that are present without a type relation.
+        remaining_vertices = []
+        for vid in elements['vertices']:
+            if vid in processed_vertices:
+                continue
+            v = next((vx for vx in self.graph.V if vx.id == vid), None)
+            if v is None:
+                continue
+            if v.is_generic:
+                # Skip generic vertices here; they are handled by planned_defs
+                continue
+            remaining_vertices.append(vid)
+        def _vertex_key(vid: str) -> tuple:
+            v = next((vx for vx in self.graph.V if vx.id == vid), None)
+            if v is None:
+                return (2, vid)
+            if v.is_generic:
+                return (0, self.vertex_labels.get(vid, vid), vid)
+            else:
+                return (1, v.label or vid, vid)
+        for vertex_id in sorted(remaining_vertices, key=_vertex_key):
+            concept = self._generate_untyped_concept(vertex_id)
+            if concept:
+                cgif_parts.append(concept)
+
+        # Generate multi-argument relations (arity >= 2)
+        poly_edges = [eid for eid in elements['edges'] if len(self.graph.nu.get(eid, [])) >= 2]
+        def _rel_key(eid: str) -> tuple:
+            pred = self.graph.rel.get(eid, "")
+            vseq = self.graph.nu.get(eid, [])
+            arg_labels: List[str] = []
+            for vid in vseq:
+                v = next((vx for vx in self.graph.V if vx.id == vid), None)
+                if v is None:
+                    arg_labels.append(vid)
+                elif v.is_generic:
+                    lab = self.vertex_labels.get(vid, vid)
+                    # normalize generic to bound form for sorting without punctuation
+                    arg_labels.append(lab.lstrip("*?"))
+                else:
+                    arg_labels.append(v.label or vid)
+            return (pred, tuple(arg_labels), eid)
+        for edge_id in sorted(poly_edges, key=_rel_key):
+            rel = self._generate_relation(edge_id)
+            if rel:
+                cgif_parts.append(rel)
+
         # Generate negations from cuts
-        for cut_id in elements['cuts']:
+        for cut_id in sorted(elements['cuts']):
             negation = self._generate_cut_expression(cut_id)
             if negation:
                 cgif_parts.append(negation)

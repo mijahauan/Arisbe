@@ -1,0 +1,101 @@
+== CGIF-related snippets ==
+logical, linguistic, and cognitive requirements:  a formal semantics defined by the ISO standard for
+in thought.”  Some philosophers and psychologists agree:  Peirce’s diagrams and rules are a good
+Existential graphs and the conceptual graphs based on them are formally defined, but they follow the
+logic:  1 for truth; 0 for falsehood; + for or; × for and; and − for not.  Thirty years later, Gottlob Frege
+added n-adic relations to Boolean algebra in 1870, introduced quantifiers in 1880, and extended the
+identical.  Since Boolean algebra cannot represent the details of relations and quantifiers, it can only
+represent the full proposition by a single unanalyzed letter p.  For his relational algebra of 1870,
+Peirce invented a notation for the details at the word and phrase level:  Cati for a cat i, Matj for a mat j,
+Σ for repeated addition and Π for repeated multiplication could be adapted to logic:  the existential
+there exists something j, i is a cat, i is on j, and j is a mat:
+domination of the word over the human spirit by laying bare the misconceptions that through the use
+of language often almost unavoidably arise concerning the relations between concepts.”  For his
+Begriffsschrift (concept writing), Frege used only the operators that occur in his rules of inference:
+The character strings name the relations; the two bars, which Peirce called lines of identity, represent
+some cat is black. This is equivalent to saying No cat is black.  An oval that negates only the relation
+operators of first-order logic.  One more feature is needed to represent full FOL with equality:  the
+option of connecting two or more lines.  Figure 4 shows the pattern for either-or:  two or more white
+the effect of a universal quantifier:  Everything is either a cat or a dog. That same EG could also be
+contains a line x attached to the monadic relation God. The shaded area contains a line y and another
+copy of the relation God. The white area nested two levels deep contains a third line z that is connected
+As these examples show, EGs are based on three graphic elements:  lines of identity that show
+existence and connectivity, character strings that name relations, and ovals that negate the enclosed
+No special symbols are needed for other operators because their graphic patterns can be seen directly:
+If-then:  A shaded area with a nested white area can be seen and read as if... then....
+• Either-or:  A shaded area with two or more nested white areas can be seen and read as either...
+• Some and every:  A line with its outermost point in a white area can be read as some or
+of nesting.  He later added shading to heighten the contrast and make the diagrams more iconic:  each
+relations, and functions while retaining a first-order style of proof theory. The Interoperable Knowledge
+affected his thinking:
+linguistics.  Figure 6 shows Tesnière’s graph for an epigram by Voltaire about a certain literary critic:
+but emphasized concepts rather than words.  Figure 7 shows a conceptual dependency graph for the
+kinds of arrows:
+He also replaced the words eat and greedily with labels for the concept types Ingest and Greedy. The
+subscript on Dog1 indicates coreference:  the bone went into the same dog that ingested it.
+for the agent-act relation and an arrow marked with
+Figure 7.  A Schankian conceptual dependency graph
+defines the concepts Truck and Trailer Truck as subtypes of Vehicle.
+Figure 8.  Truck and Trailer Truck concepts defined in KL-ONE
+The double arrows in the middle of Figure 8 show a branch of a concept hierarchy with Vehicle as a
+supertype of Truck, which is a supertype of Trailer Truck.  The concept Truck is defined as a subtype
+The concept Trailer Truck is a subtype of Truck, which inherits all the roles of Truck and adds a new
+the verb:  Every truck is a vehicle. The roles can be stated in universally quantified sentences with has
+as the verb:  Every truck has a cargo capacity, which is a volume measure.  That complex sentence
+could be split in two to fit the Aristotelian patterns:  Every truck has a cargo capacity and Every cargo
+hierarchy:  No vehicle is an animal and Some vehicle is not a truck.
+The restriction arrow in Figure 8 requires a sentence pattern that goes beyond Aristotle:  Every trailer
+colleagues also developed hybrid systems.  They used conceptual dependency graphs to represent NL
+translated to the following formula in Peirce-Peano algebra:
+Kamp’s primitives are the same as Peirce’s:  the default and operator is omitted, and the default
+oval to extend into the then oval. For DRS, Kamp made an equivalent assumption:  the quantifiers for x
+same algebraic formula and the same Conceptual Graph Interchange Format (CGIF):
+~[ [*x] [*y] (farmer ?x) (donkey ?y) (owns ?x ?y) ~[ (beats ?x ?y) ] ]
+represent EG ovals or DRS boxes.  The symbols [*x] and [*y] represent existential quantifiers; they
+represent full first-order logic with equality, only one more feature is needed:  a coreference node that
+shows a ligature of two or more lines. For example, the following CGIF represents the EG in Figure 5:
+[*x] (God ?x) ~[ [*y] (God ?y) ~[ [?x ?y] ] ]
+The coreference node [?x ?y] maps to the equality x=y in DRS. But a coreference node can contain any
+number of bound labels:  [?x ?y ?z] is the equivalent of two equalities, x=y and y=z.
+The display form of conceptual graphs uses nested boxes instead of ovals.  As in CGIF, a ~ symbol in
+front of a box indicates negation.  Figure 10 shows two conceptual graphs that are logically equivalent
+called concept nodes, represent existential quantifiers.  In CGIF, they map to [*x] and [*y]. The ovals
+represent relations, and the lines show connections between concept and relation nodes.  With these
+typed concept nodes that restrict the domain of the quantifiers by the monadic relations Farmer and
+Donkey.  In a typed algebraic notation, they map to the restricted existential quantifiers ( x:Farmer)
+and ( y:Donkey).   In CGIF, they map to [Farmer *x] and [Donkey *y].  Following are the typed
+algebra and the typed CGIF statements:
+~( x:Farmer)( y:Donkey)(Owns(x,y)
+~[ [Farmer *x] [Donkey *y] (Owns ?x ?y) ~[ (Beats ?x ?y) ] ]
+The CGs in Figure 10 represent the verbs owns and beats as dyadic relations.  Those relations, which
+their participants by the linguistic case relations or thematic roles.  To enhance readability, the type
+labels If and Then can be used as synonyms for the ~ symbols that mark negated contexts. The relations
+Figure 11.  CG with case relations shown explicitly
+Following is the CGIF for Figure 11:
+[If [Farmer *x] [Own *y] [Donkey *z] (Expr ?y ?x) (Thme ?y ?z)
+[Then [Beat *w] (Agnt ?w ?x) (Ptnt ?w ?y) ] ]
+semantics:
+representation.  For readability, graphs show relationships at a glance that are harder to see in linear
+valence for the number of arguments of a relation.  By applying algorithms for chemical graphs to
+conceptual graphs, Levinson and Ellis (1992) implemented the first type hierarchy that could support
+Each transformation has one of three semantic effects:  equivalence, specialization, or generalization.
+equivalent to the original:  u⊃v and v⊃u. Equivalent graphs are true in the same models.
+original:  v⊃u. Specialization rules monotonically decrease the set of models in which the result
+implied by the original:  u⊃v. Generalization rules monotonically increase the set of models
+arrow represents two applications of the copy rule. One application copies the Agnt relation, and a
+second copies the subgraph →(Thme)→[Mouse]. The dotted line connecting the two [Mouse] concepts
+is a coreference link, which indicates that both concepts refer to the same individual. The up arrow
+redundant copies. Following is the CGIF for both graphs:
+[Cat: Yojo] [Chase: *x] [Mouse: *y] (Agent ?x Yojo) (Thme ?x ?y)
+[Cat: Yojo] [Chase: *x] [Mouse: *y] [Mouse: ?y]
+is transformed to the CG for The cat Yojo is chasing a mouse.  In the first step, the concept [Cat] is
+restricted by referent to [Cat: Yojo], which says that there exists a cat named Yojo.  In the second step,
+the concept [Animal] is restricted by type to [Mouse].  The more specialized graph implies the more
+general one:  if the cat Yojo is chasing a mouse, then a cat is chasing an animal.  To show that the
+bottom graph v implies the top graph u, let c be a concept of u that is being restricted to a more
+specialized concept d, and let u be c∧w, where w is the remaining information in u.  By hypothesis,
+The join rule overlays the two identical copies of the concept [Mouse] to form a single CG for the
+Following are the CGIF sentences that represent the graphs in Figure 14:
+[Cat: Yojo] [Chase: *x] [Mouse: *y] (Agent ?x Yojo) (Thme ?x ?y)
+[Mouse: *z] [Brown: *w] (Attr ?z ?w)
+[Cat: Yojo] [Chase: *x] [Mouse: *y] (Agent ?x Yojo) (Thme ?x ?y)

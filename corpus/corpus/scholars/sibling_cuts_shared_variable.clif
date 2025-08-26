@@ -1,9 +1,1 @@
-# Sibling Cuts Shared Variable
-# Category: scholars
-# Description: Variable sharing across sibling cuts
-# Source: Challenging Test Cases
-# Pattern: ∃x((P x) ∨ (Q x)) - "Something is either P or Q"
-# Generated CLIF representation from EGI
-# Generated: 2025-08-22 19:50:59
 
-(and (not (Q x)) (not (P x)))

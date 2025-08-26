@@ -11,5 +11,12 @@
   "logical_form": "∃x∃y(Loves(x,y) ∧ ¬(Happy(x) ∧ Sad(y)))",
   "egif_content": "*x *y (Loves x y) ~[ (Happy x) (Sad y) ]",
   "notes": "Complex example with multiple variables, binary relation, and negated conjunction. Tests layout engine's ability to handle multiple elements within cuts.",
-  "usage": "testing"
+  "usage": "testing",
+  "authority_level": "medium",
+  "difficulty": "hard",
+  "provenance_notes": "Derived from Canonical Forms EGRF v3.0 Corpus",
+  "topic_tags": [
+    "quantifiers",
+    "relations"
+  ]
 }

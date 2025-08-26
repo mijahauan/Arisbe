@@ -1,0 +1,7 @@
+\scaledsymbols (boolean), 23
+\scroll, 7, 16
+\scrollstretch (rational), 21
+\setstretch (rational), 6, 15
+\shk, 12
+\sligature, 9
+\strut, 1, 5, 8, 15

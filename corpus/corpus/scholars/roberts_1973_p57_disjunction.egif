@@ -1,7 +1,1 @@
-# Roberts' Disjunction Example
-# Category: scholars
-# Description: Roberts' example of disjunction: 'P or Q'
-# Source: Don D. Roberts
-# Pattern: disjunction
-
-~[ ~[ (P "x") ] ~[ (Q "x") ] ]
+~[ ~[ (Q "x") ] ~[ (P "x") ] ]

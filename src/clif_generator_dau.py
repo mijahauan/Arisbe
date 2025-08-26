@@ -51,17 +51,63 @@ class CLIFGenerator:
         return self.generate()
     
     def _assign_vertex_labels(self):
-        """Assign CLIF variable names to vertices."""
+        """Assign CLIF variable names to vertices, preserving ν order like EGIF/CGIF."""
         self.vertex_labels = {}
         self.used_labels = set()
         self.variable_counter = 0
-        
-        # Assign labels to all vertices
-        for vertex in self.graph.V:
-            if vertex.id not in self.vertex_labels:
-                label = self._get_next_variable_name()
-                self.vertex_labels[vertex.id] = label
-                self.used_labels.add(label)
+
+        processed: Set[str] = set()
+
+        def assign_in_context(ctx_id: str) -> None:
+            area = self.graph.area.get(ctx_id, set())
+
+            # Edges sorted by (predicate, ν vertex ids)
+            edge_ids: List[str] = [eid for eid in area if any(e.id == eid for e in self.graph.E)]
+            def _edge_key(eid: str) -> tuple:
+                pred = self.graph.rel.get(eid, "")
+                vseq = tuple(self.graph.nu.get(eid, []))
+                return (pred, vseq)
+            for eid in sorted(edge_ids, key=_edge_key):
+                vseq = self.graph.nu.get(eid, [])
+                for vid in vseq:
+                    v = next((vx for vx in self.graph.V if vx.id == vid), None)
+                    if v is None:
+                        continue
+                    if v.is_generic and vid not in self.vertex_labels:
+                        label = self._get_next_variable_name()
+                        self.vertex_labels[vid] = label
+                        self.used_labels.add(label)
+                    processed.add(vid)
+
+            # Isolated vertices: ensure generics get labels too
+            vertex_ids: List[str] = [vid for vid in area if any(v.id == vid for v in self.graph.V)]
+            incident_in_area: Set[str] = set()
+            for eid in edge_ids:
+                incident_in_area.update(self.graph.nu.get(eid, []))
+            isolated = [vid for vid in vertex_ids if vid not in incident_in_area]
+            def _vertex_key(vid: str) -> tuple:
+                v = next((vx for vx in self.graph.V if vx.id == vid), None)
+                if v is None:
+                    return (2, vid)
+                if v.is_generic:
+                    return (0, self.vertex_labels.get(vid, vid))
+                return (1, v.label or vid)
+            for vid in sorted(isolated, key=_vertex_key):
+                v = next((vx for vx in self.graph.V if vx.id == vid), None)
+                if v is None:
+                    continue
+                if v.is_generic and vid not in self.vertex_labels:
+                    label = self._get_next_variable_name()
+                    self.vertex_labels[vid] = label
+                    self.used_labels.add(label)
+                processed.add(vid)
+
+            # Recurse into cuts deterministically
+            cut_ids: List[str] = [cid for cid in area if any(c.id == cid for c in self.graph.Cut)]
+            for cid in sorted(cut_ids):
+                assign_in_context(cid)
+
+        assign_in_context(self.graph.sheet)
     
     def _get_next_variable_name(self) -> str:
         """Get next available variable name."""
@@ -107,14 +153,22 @@ class CLIFGenerator:
         
         # Generate atomic formulas from edges
         atomic_formulas = []
-        for edge_id in elements['edges']:
+        def _edge_key(eid: str) -> tuple:
+            pred = self.graph.rel.get(eid, "")
+            vseq = self.graph.nu.get(eid, [])
+            arg_labels: List[str] = []
+            for vid in vseq:
+                lab = self.vertex_labels.get(vid, vid)
+                arg_labels.append(lab)
+            return (pred, tuple(arg_labels), eid)
+        for edge_id in sorted(elements['edges'], key=_edge_key):
             formula = self._generate_atomic_formula(edge_id)
             if formula:
                 atomic_formulas.append(formula)
         
         # Generate negations from cuts
         negations = []
-        for cut_id in elements['cuts']:
+        for cut_id in sorted(elements['cuts']):
             negation = self._generate_cut_expression(cut_id)
             if negation:
                 negations.append(negation)
@@ -145,11 +199,16 @@ class CLIFGenerator:
         arguments = []
         
         for vertex_id in vertex_sequence:
-            if vertex_id in self.vertex_labels:
-                arguments.append(self.vertex_labels[vertex_id])
-            else:
-                # Use vertex ID as constant if no label assigned
+            v = next((vx for vx in self.graph.V if vx.id == vertex_id), None)
+            if v is None:
                 arguments.append(vertex_id)
+                continue
+            if v.is_generic:
+                # Use the assigned variable label
+                arguments.append(self.vertex_labels.get(vertex_id, vertex_id))
+            else:
+                # Use constant name directly
+                arguments.append(v.label or vertex_id)
         
         if arguments:
             return f"({predicate} {' '.join(arguments)})"

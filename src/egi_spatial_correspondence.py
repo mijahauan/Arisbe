@@ -27,6 +27,10 @@ import math
 from enum import Enum
 
 from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut
+try:
+    from routing.visibility_router import PyVisVisibilityRouter  # optional
+except Exception:  # pragma: no cover
+    PyVisVisibilityRouter = None  # type: ignore
 from styling.style_manager import create_style_manager
 
 
@@ -105,6 +109,40 @@ class SpatialElement:
     is_branching_point: bool = False
     parent_ligature: Optional[str] = None
     relation_name: Optional[str] = None
+    # Optional annotation/superscript bounds
+    vertex_sup_bounds: Optional[SpatialBounds] = None  # for variable labels near vertex
+    edge_sup_bounds: Optional[SpatialBounds] = None    # for arity superscript near predicate
+
+
+# --- Staged layout scaffolding: logical layout -> canvas fit -> optimize ---
+@dataclass
+class LogicalArea:
+    """Unitless logical area with containment relation and estimated size."""
+    id: str
+    parent: Optional[str]
+    children: List[str] = field(default_factory=list)
+    est_width: float = 1.0
+    est_height: float = 1.0
+
+
+@dataclass
+class LogicalElement:
+    """Unitless logical element (vertex or predicate) placed within a logical area."""
+    id: str
+    kind: str  # 'vertex' | 'edge'
+    area_id: str
+    est_width: float = 1.0
+    est_height: float = 1.0
+    x: float = 0.0
+    y: float = 0.0
+
+
+@dataclass
+class LogicalLayout:
+    """Complete logical layout: areas, elements, and logical ligature endpoints."""
+    areas: Dict[str, LogicalArea] = field(default_factory=dict)
+    elements: Dict[str, LogicalElement] = field(default_factory=dict)
+    ligature_endpoints: List[Tuple[str, str]] = field(default_factory=list)  # (vertex_id, edge_id)
 
 
 @dataclass
@@ -183,9 +221,21 @@ class SpatialCorrespondenceEngine:
         self.correspondence = CorrespondenceMapping({}, {}, {}, {})
         self.styling_integration_point = None  # Reserved for future styling system
         self.style = create_style_manager()
+        # Optional pyvisgraph router
+        self._pv_router = None
+        try:
+            if PyVisVisibilityRouter is not None:
+                self._pv_router = PyVisVisibilityRouter(pad=0.0)
+        except Exception:
+            self._pv_router = None
+        # Feature flag: 'direct' (current behavior) or 'staged' (logical -> fit)
+        self.layout_mode: str = 'direct'
     
     def generate_spatial_layout(self) -> Dict[str, SpatialElement]:
         """Generate spatial layout from EGI with Chapter 16 ligature handling."""
+        # If staged mode is enabled, run experimental pipeline
+        if getattr(self, 'layout_mode', 'direct') == 'staged':
+            return self.generate_spatial_layout_staged()
         layout = {}
         
         # Phase 1: Generate cut areas (define containment)
@@ -200,6 +250,8 @@ class SpatialCorrespondenceEngine:
         self._position_predicates(layout)
         # Phase 3b: Snap ligature endpoints to predicate centers now that predicates have bounds
         self._snap_ligatures_to_predicates(layout)
+        # Phase 3c: Compute superscript annotation bounds (variable labels and arity)
+        self._position_superscripts(layout)
         
         # Phase 4: Apply styling (RESERVED INTEGRATION POINT)
         layout = self._apply_styling_system(layout)
@@ -208,6 +260,178 @@ class SpatialCorrespondenceEngine:
         self._validate_chapter16_compliance(layout)
         
         return layout
+
+    # --- New staged pipeline entrypoint (opt-in) ---
+    def generate_spatial_layout_staged(self, canvas_size: Tuple[int, int] = (1200, 800)) -> Dict[str, SpatialElement]:
+        """Experimental staged pipeline: logical layout -> canvas fit -> optimize.
+        Currently returns the same result as generate_spatial_layout while we
+        implement the staged steps incrementally.
+        """
+        # Build logical layout (placeholder)
+        logical = self.build_logical_layout()
+        # Fit to canvas to compute area mappings and transforms (placeholder)
+        area_mappings, transforms = self.fit_to_canvas(logical, canvas_size)
+        # If fitter provided area mappings, seed correspondence so downstream uses them
+        if area_mappings:
+            self.correspondence.area_mappings.update(area_mappings)
+        # Fall back to existing direct pipeline for now
+        return self.generate_spatial_layout()
+
+    # --- Staged pipeline helpers (placeholders to be filled in) ---
+    def build_logical_layout(self) -> LogicalLayout:
+        """Construct a unitless logical layout. Placeholder: builds the area tree and
+        records element membership with rough size estimates; no positions yet."""
+        ll = LogicalLayout()
+        # Areas: sheet is implicit parent
+        # Build parent links from existing EGI cut structure
+        for c in self.egi.Cut:
+            parent = self._determine_cut_parent_area(c.id)
+            la = LogicalArea(id=c.id, parent=parent)
+            ll.areas[c.id] = la
+        # Populate children lists
+        for a in ll.areas.values():
+            if a.parent in ll.areas:
+                ll.areas[a.parent].children.append(a.id)
+        # Elements: vertices and edges with rough size estimates
+        ts_edge = self.style.resolve(type="edge", role="edge.label_text")
+        est_char_w = float(ts_edge.get("estimate_char_width", 6.0))
+        est_h_txt = float(ts_edge.get("estimate_height", 14.0))
+        pad = ts_edge.get("padding", [2, 1])
+        try:
+            pad_x = float(pad[0]) if isinstance(pad, (list, tuple)) and len(pad) >= 1 else 2.0
+            pad_y = float(pad[1]) if isinstance(pad, (list, tuple)) and len(pad) >= 2 else 1.0
+        except Exception:
+            pad_x, pad_y = 2.0, 1.0
+        for v in self.egi.V:
+            area_id = self._determine_vertex_area(v.id)
+            ll.elements[v.id] = LogicalElement(id=v.id, kind='vertex', area_id=area_id, est_width=10.0, est_height=10.0)
+        for e in self.egi.E:
+            area_id = self._determine_element_area(e.id)
+            label = self.egi.rel.get(e.id, "") if hasattr(self.egi, 'rel') else ""
+            est_w = max(18.0, est_char_w * len(label) + 2 * pad_x)
+            est_h = est_h_txt + 2 * pad_y
+            ll.elements[e.id] = LogicalElement(id=e.id, kind='edge', area_id=area_id, est_width=est_w, est_height=est_h)
+        # Ligature endpoints: connect each vertex to its incident edges
+        for e in self.egi.E:
+            for vid in self.egi.nu.get(e.id, ()):  # type: ignore[attr-defined]
+                ll.ligature_endpoints.append((vid, e.id))
+        return ll
+
+    def fit_to_canvas(self, logical_layout: LogicalLayout, canvas_size: Tuple[int, int]) -> Tuple[Dict[str, SpatialBounds], Dict[str, Tuple[float, float, float, float]]]:
+        """Compute area rectangles and per-area affine transforms from logical space to canvas.
+        Produces precomputed area rectangles respecting containment and rough proportionality
+        to content. This is a first-pass heuristic; later iterations can refine packing.
+        """
+        area_mappings: Dict[str, SpatialBounds] = {}
+        transforms: Dict[str, Tuple[float, float, float, float]] = {}
+
+        # Build index of elements per area
+        elems_in_area: Dict[str, List[LogicalElement]] = {}
+        for el in logical_layout.elements.values():
+            elems_in_area.setdefault(el.area_id, []).append(el)
+
+        # Recursive size calculation using area ~ sum(element areas) + sum(child areas)
+        layout_tokens = self.style.resolve(type="layout")
+        pad_in = float(layout_tokens.get("cut_padding", 20.0))
+        gap = float(layout_tokens.get("cut_child_gap", 12.0))
+        min_w, min_h = 80.0, 60.0
+
+        computed_size: Dict[str, Tuple[float, float]] = {}
+
+        def size_area(aid: str) -> Tuple[float, float]:
+            if aid in computed_size:
+                return computed_size[aid]
+            # Content area from elements
+            els = elems_in_area.get(aid, [])
+            elem_area = 0.0
+            max_elem_w = 0.0
+            max_elem_h = 0.0
+            for el in els:
+                elem_area += max(1.0, el.est_width) * max(1.0, el.est_height)
+                max_elem_w = max(max_elem_w, el.est_width)
+                max_elem_h = max(max_elem_h, el.est_height)
+            # Children
+            children = logical_layout.areas.get(aid, LogicalArea(aid, None)).children
+            child_sizes: List[Tuple[float, float]] = []
+            for cid in children:
+                cw, ch = size_area(cid)
+                child_sizes.append((cw, ch))
+            child_area = sum(cw * ch for cw, ch in child_sizes)
+            max_child_w = max((cw for cw, _ in child_sizes), default=0.0)
+            max_child_h = max((ch for _, ch in child_sizes), default=0.0)
+            total_area = elem_area + child_area
+            # Heuristic square-ish box
+            inner_w = max(math.sqrt(total_area) if total_area > 0 else 0.0, max_elem_w, max_child_w)
+            inner_h = max((total_area / inner_w) if inner_w > 0 else 0.0, max_elem_h, max_child_h)
+            inner_w = max(inner_w, min_w - 2 * pad_in)
+            inner_h = max(inner_h, min_h - 2 * pad_in)
+            w = inner_w + 2 * pad_in
+            h = inner_h + 2 * pad_in
+            computed_size[aid] = (w, h)
+            return w, h
+
+        # Compute sizes bottom-up
+        for aid in logical_layout.areas.keys():
+            size_area(aid)
+
+        # Determine top-level cuts (direct children of sheet)
+        top_levels = [a.id for a in logical_layout.areas.values() if a.parent == self.egi.sheet]
+        # Pack top-levels horizontally into a logical canvas, then scale to target canvas
+        x_cursor = 20.0
+        y_cursor = 20.0
+        row_height = 0.0
+        logical_canvas_w = 0.0
+        logical_canvas_h = 0.0
+        max_row_w = 1000.0  # arbitrary logical row width before wrap
+        for aid in top_levels:
+            w, h = computed_size[aid]
+            if x_cursor + w > max_row_w and x_cursor > 20.0:
+                # wrap
+                x_cursor = 20.0
+                y_cursor += row_height + gap
+                row_height = 0.0
+            area_mappings[aid] = SpatialBounds(x_cursor, y_cursor, w, h)
+            x_cursor += w + gap
+            row_height = max(row_height, h)
+            logical_canvas_w = max(logical_canvas_w, x_cursor)
+            logical_canvas_h = max(logical_canvas_h, y_cursor + row_height)
+
+        # Place children within their parent interiors stacked vertically
+        def place_children(aid: str):
+            parent_bounds = area_mappings.get(aid)
+            if not parent_bounds:
+                return
+            inner_x = parent_bounds.x + pad_in
+            inner_y = parent_bounds.y + pad_in
+            inner_w = max(0.0, parent_bounds.width - 2 * pad_in)
+            # Stack
+            cy = inner_y
+            for cid in logical_layout.areas.get(aid, LogicalArea(aid, None)).children:
+                cw, ch = computed_size[cid]
+                # Clamp child to parent's inner width
+                cw = min(cw, inner_w)
+                area_mappings[cid] = SpatialBounds(inner_x, cy, cw, ch)
+                cy += ch + gap
+                place_children(cid)
+
+        for aid in top_levels:
+            place_children(aid)
+
+        # Compute scale to fit target canvas
+        canvas_w, canvas_h = float(canvas_size[0]), float(canvas_size[1])
+        used_w = max((b.x + b.width for b in area_mappings.values()), default=1.0) + 20.0
+        used_h = max((b.y + b.height for b in area_mappings.values()), default=1.0) + 20.0
+        sx = canvas_w / used_w if used_w > 0 else 1.0
+        sy = canvas_h / used_h if used_h > 0 else 1.0
+        s = min(1.0, sx, sy)  # do not upscale above 1.0 for now
+
+        # Apply scaling
+        for aid, b in list(area_mappings.items()):
+            nb = SpatialBounds(b.x * s, b.y * s, b.width * s, b.height * s)
+            area_mappings[aid] = nb
+            transforms[aid] = (s, s, 0.0, 0.0)
+
+        return area_mappings, transforms
     
     def _generate_cut_areas(self, layout: Dict[str, SpatialElement]):
         """Generate spatial areas for cuts with proper nesting."""
@@ -234,32 +458,39 @@ class SpatialCorrespondenceEngine:
             # Check if cut has any content
             cut_contents = self.egi.area.get(cut.id, frozenset())
             
-            # Position cut with minimum default size
-            cut_x = 100 + i * 300
-            cut_y = 80
-            
-            # Context-driven size estimate based on contents
-            base_w, base_h = 150, 100
-            add_w, add_h = 0, 0
-            for elem_id in cut_contents:
-                if elem_id in {e.id for e in self.egi.E}:
-                    add_w += 90
-                    add_h = max(add_h, 30)
-                elif elem_id in {v.id for v in self.egi.V}:
-                    add_w += 20
-                    add_h = max(add_h, 20)
-                elif elem_id in {c.id for c in self.egi.Cut}:
-                    add_w += 160
-                    add_h = max(add_h, 110)
-            pad_w, pad_h = 40, 30
-            cut_width = max(base_w, base_w + add_w) + pad_w
-            cut_height = max(base_h, base_h + add_h) + pad_h
-            
-            # Default bounds before potential nesting placement
-            bounds = SpatialBounds(cut_x, cut_y, cut_width, cut_height)
+            # If staged fitter provided bounds, use them; else compute default
+            pre_bounds = self.correspondence.area_mappings.get(cut.id)
+            if pre_bounds:
+                bounds = pre_bounds
+            else:
+                # Position cut with minimum default size
+                cut_x = 100 + i * 300
+                cut_y = 80
+                # Context-driven size estimate based on contents
+                base_w, base_h = 150, 100
+                add_w, add_h = 0, 0
+                for elem_id in cut_contents:
+                    if elem_id in {e.id for e in self.egi.E}:
+                        add_w += 90
+                        add_h = max(add_h, 30)
+                    elif elem_id in {v.id for v in self.egi.V}:
+                        add_w += 20
+                        add_h = max(add_h, 20)
+                    elif elem_id in {c.id for c in self.egi.Cut}:
+                        add_w += 160
+                        add_h = max(add_h, 110)
+                pad_w, pad_h = 40, 30
+                cut_width = max(base_w, base_w + add_w) + pad_w
+                cut_height = max(base_h, base_h + add_h) + pad_h
+                # Default bounds before potential nesting placement
+                bounds = SpatialBounds(cut_x, cut_y, cut_width, cut_height)
             # If this cut has a parent cut with known bounds, nest it inside with padding
             parent_area = self._determine_cut_parent_area(cut.id)
-            parent_bounds = self.correspondence.area_mappings.get(parent_area) if parent_area != self.egi.sheet else None
+            # Only consult precomputed mappings when staged fitter is active
+            if getattr(self, 'layout_mode', 'direct') == 'staged' and parent_area != self.egi.sheet:
+                parent_bounds = self.correspondence.area_mappings.get(parent_area)
+            else:
+                parent_bounds = None
             if not parent_bounds and parent_area != self.egi.sheet:
                 # Fallback: use already-placed layout for parent in this pass
                 parent_elt = layout.get(parent_area)
@@ -329,36 +560,59 @@ class SpatialCorrespondenceEngine:
         for ligature_id, vertex_ids in ligatures.items():
             # Create continuous path for ligature
             path_points = self._generate_ligature_path(vertex_ids, layout)
-            
-            # Add central vertex as a visible dot/spot
+
+            # Ensure every vertex participating in the ligature is rendered as a visible dot/spot
+            # This fixes the GUI symptom where only one vertex was shown.
             if vertex_ids:
-                vertex_id = vertex_ids[0]
-                # Choose same safe central position used for routing so the dot sits on the ligature
-                logical_area = self._determine_ligature_area(vertex_ids)
-                center_pos = self._pick_safe_point_in_area(logical_area, layout, (200, 200))
-                
-                # Create vertex element for visualization
-                vertex_bounds = SpatialBounds(center_pos[0] - 5, center_pos[1] - 5, 10, 10)
-                # Clamp inside logical area for spatial exclusion
-                vertex_bounds = self._clamp_bounds_into_area(vertex_bounds, logical_area)
-                vertex_bounds = self._avoid_child_cut_holes(vertex_bounds, logical_area, layout)
-                layout[vertex_id] = SpatialElement(
-                    element_id=vertex_id,
-                    element_type='vertex',
-                    logical_area=logical_area,
-                    spatial_bounds=vertex_bounds
-                )
-                # Update correspondence maps for vertex
-                self.correspondence.egi_to_spatial[vertex_id] = vertex_id
-                self.correspondence.spatial_to_egi[vertex_id] = vertex_id
-            
+                for vertex_id in vertex_ids:
+                    # Skip if this vertex was already created earlier in the pipeline
+                    if vertex_id in layout:
+                        continue
+                    # Seed new vertex positions uniquely within their logical area to avoid overlap.
+                    # Use a golden-angle spiral around the area's center based on how many vertices
+                    # are already placed in that area.
+                    logical_area = self._determine_vertex_area(vertex_id)
+                    area_bounds = self.correspondence.area_mappings.get(logical_area)
+                    if area_bounds:
+                        cx, cy = area_bounds.center()
+                    else:
+                        cx, cy = (200.0, 200.0)
+                    # Count existing vertices in this area to pick a unique angle/radius
+                    placed_in_area = 0
+                    for _eid, _elem in layout.items():
+                        if getattr(_elem, 'element_type', '') != 'vertex':
+                            continue
+                        if getattr(_elem, 'logical_area', None) == logical_area:
+                            placed_in_area += 1
+                    # Golden angle in radians ~ 137.507764°
+                    golden = 2.399963229728653
+                    k = placed_in_area
+                    base_radius = 36.0
+                    radius_growth = 10.0
+                    r = base_radius + radius_growth * k
+                    ang = golden * k
+                    seed = (cx + r * math.cos(ang), cy + r * math.sin(ang))
+                    center_pos = self._pick_safe_point_in_area(logical_area, layout, seed)
+                    vertex_bounds = SpatialBounds(center_pos[0] - 5, center_pos[1] - 5, 10, 10)
+                    vertex_bounds = self._clamp_bounds_into_area(vertex_bounds, logical_area)
+                    vertex_bounds = self._avoid_child_cut_holes(vertex_bounds, logical_area, layout)
+                    layout[vertex_id] = SpatialElement(
+                        element_id=vertex_id,
+                        element_type='vertex',
+                        logical_area=logical_area,
+                        spatial_bounds=vertex_bounds
+                    )
+                    # Update correspondence maps for vertex
+                    self.correspondence.egi_to_spatial[vertex_id] = vertex_id
+                    self.correspondence.spatial_to_egi[vertex_id] = vertex_id
+
             # Create branching points for constant vertices
             branching_points = []
             for i, vertex_id in enumerate(vertex_ids):
                 # Position branching point along ligature path
                 position_ratio = i / max(1, len(vertex_ids) - 1)
                 spatial_pos = self._interpolate_path(path_points, position_ratio)
-                
+
                 branch_point = BranchingPoint(
                     ligature_id=ligature_id,
                     position_on_ligature=position_ratio,
@@ -366,7 +620,7 @@ class SpatialCorrespondenceEngine:
                     constant_label=self._get_vertex_constant_label(vertex_id)
                 )
                 branching_points.append(branch_point)
-            
+
             # Create ligature geometry
             ligature_geometry = LigatureGeometry(
                 ligature_id=ligature_id,
@@ -374,7 +628,7 @@ class SpatialCorrespondenceEngine:
                 spatial_path=path_points,
                 branching_points=branching_points
             )
-            
+
             # Add to layout
             lig_area = self._determine_ligature_area(vertex_ids)
             # Compute bounds excluding child holes inside lig_area
@@ -386,7 +640,7 @@ class SpatialCorrespondenceEngine:
                 spatial_bounds=bounds,
                 ligature_geometry=ligature_geometry
             )
-            
+
             # Update correspondence
             self.correspondence.ligature_mappings[ligature_id] = ligature_geometry
     
@@ -403,35 +657,30 @@ class SpatialCorrespondenceEngine:
             if edge.id in layout:
                 continue  # Already positioned
 
-            connected_vertices = self.egi.nu.get(edge.id, ())
-            if not connected_vertices:
-                continue
-
-            v_id = connected_vertices[0]
-            group = vertex_to_edges.get(v_id, [])
-            # Stable order based on insertion order of EGI edges
-            n = max(1, len(group))
-            try:
-                i = group.index(edge.id)
-            except ValueError:
-                i = 0
-
-            # Base at the vertex center if available, else safe area center
-            base_x, base_y = 200.0, 200.0
-            v_elem = layout.get(v_id)
-            if v_elem and v_elem.spatial_bounds:
-                base_x, base_y = v_elem.spatial_bounds.center()
-            else:
-                v_area = self._determine_vertex_area(v_id)
-                base_x, base_y = self._pick_safe_point_in_area(v_area, layout, (base_x, base_y))
-
-            # Match the ligature star: equally spaced angles
-            angle = (2 * math.pi * i) / n
-            radius = 80.0
-            px = base_x + radius * math.cos(angle)
-            py = base_y + radius * math.sin(angle)
-
+            connected_vertices = tuple(self.egi.nu.get(edge.id, ()))
+            # Arity-aware: handle 0-ary and n-ary uniformly
             logical_area = self._determine_element_area(edge.id)
+            if not connected_vertices:
+                # 0-ary predicate: pick a safe point in its logical area
+                cx, cy = self._pick_safe_point_in_area(logical_area, layout, (200.0, 200.0))
+            else:
+                # Centroid of all argument vertices (use their centers if present, else safe points)
+                pts: List[Tuple[float, float]] = []
+                for vid in connected_vertices:
+                    ve = layout.get(vid)
+                    if ve and ve.spatial_bounds:
+                        pts.append(ve.spatial_bounds.center())
+                    else:
+                        v_area = self._determine_vertex_area(vid)
+                        pts.append(self._pick_safe_point_in_area(v_area, layout, (200.0, 200.0)))
+                sx = sum(p[0] for p in pts)
+                sy = sum(p[1] for p in pts)
+                cx, cy = (sx / max(1, len(pts)), sy / max(1, len(pts)))
+
+            # Initial offset from centroid to avoid sitting on top of vertices
+            init_radius = 80.0
+            px = cx + init_radius
+            py = cy
             px, py = self._pick_safe_point_in_area(logical_area, layout, (px, py))
 
             # Tight bounds estimation based on label length using style tokens
@@ -450,6 +699,46 @@ class SpatialCorrespondenceEngine:
             bounds = SpatialBounds(px - est_w / 2.0, py - est_h / 2.0, est_w, est_h)
             bounds = self._clamp_bounds_into_area(bounds, logical_area)
             bounds = self._avoid_child_cut_holes(bounds, logical_area, layout)
+            # Collision avoidance: keep predicate bounds from overlapping vertex spot
+            # and other predicate labels already placed in the same area.
+            def rects_overlap(a: SpatialBounds, b: SpatialBounds, margin: float = 0.0) -> bool:
+                return not (a.x + a.width <= b.x - margin or b.x + b.width <= a.x - margin or
+                            a.y + a.height <= b.y - margin or b.y + b.height <= a.y - margin)
+            # Gather obstacles: all argument vertex spots and existing predicate labels in same area
+            obstacles: List[SpatialBounds] = []
+            for vid in connected_vertices:
+                ve = layout.get(vid)
+                if ve and ve.spatial_bounds:
+                    obstacles.append(ve.spatial_bounds)
+            for oid, oelem in layout.items():
+                if getattr(oelem, 'element_type', '') != 'edge':
+                    continue
+                # Same logical area only
+                if self._determine_element_area(oid) != logical_area:
+                    continue
+                obstacles.append(oelem.spatial_bounds)
+            # Iteratively push label outward from base if overlapping any obstacle
+            guard = 0
+            layout_tokens = self.style.resolve(type="layout")
+            step = float(layout_tokens.get("predicate_separation_step", 12.0))
+            sep_margin = float(layout_tokens.get("predicate_separation_margin", 2.0))
+            while any(rects_overlap(bounds, ob, sep_margin) for ob in obstacles):
+                # Push further along the radial from base toward current label center
+                rcx, rcy = bounds.center()
+                vx, vy = cx, cy
+                dx, dy = rcx - vx, rcy - vy
+                d = math.hypot(dx, dy)
+                if d < 1e-6:
+                    dx, dy, d = 1.0, 0.0, 1.0
+                ux, uy = dx / d, dy / d
+                rcx, rcy = rcx + ux * step, rcy + uy * step
+                # Rebuild bounds around the new center
+                bounds = SpatialBounds(rcx - est_w / 2.0, rcy - est_h / 2.0, est_w, est_h)
+                bounds = self._clamp_bounds_into_area(bounds, logical_area)
+                bounds = self._avoid_child_cut_holes(bounds, logical_area, layout)
+                guard += 1
+                if guard > 50:
+                    break
             # Final fit: if assigned to a cut, force bounds to be fully contained within that cut
             cut_b = self.correspondence.area_mappings.get(logical_area)
             if cut_b:
@@ -496,19 +785,19 @@ class SpatialCorrespondenceEngine:
             geom = elt.ligature_geometry
             if not geom.vertices:
                 continue
-            v_id = geom.vertices[0]
-            v_elem = layout.get(v_id)
-            if not v_elem or not v_elem.spatial_bounds:
+            # We will create arms from EVERY vertex on the ligature to predicates
+            # incident to that vertex. Keep path continuous by inserting the base
+            # point before each vertex's arm set.
+            bases: List[Tuple[str, Tuple[float, float]]] = []
+            for v_id in geom.vertices:
+                v_elem = layout.get(v_id)
+                if v_elem and v_elem.spatial_bounds:
+                    bases.append((v_id, v_elem.spatial_bounds.center()))
+            if not bases:
                 continue
-            base = v_elem.spatial_bounds.center()
 
-            # Collect predicate hooks on the label border and route from base to each
-            connected = vertex_to_edges.get(v_id, [])
-            if not connected:
-                continue
-
-            # Build obstacle list for the vertex's area
-            lig_area = self._determine_ligature_area([v_id])
+            # Build obstacle list for the ligature's area (use first vertex)
+            lig_area = self._determine_ligature_area([geom.vertices[0]])
             obstacles: List[Tuple[float, float, float, float]] = []
             for c in self.egi.Cut:
                 parent = self._determine_cut_parent_area(c.id)
@@ -517,99 +806,865 @@ class SpatialCorrespondenceEngine:
                     if b:
                         obstacles.append((b.x, b.y, b.width, b.height))
 
-            new_path: List[Tuple[float, float]] = [base]
-            for eid in connected:
-                e_elem = layout.get(eid)
-                if not e_elem:
+            # We now create ONE LIGATURE PER (vertex, edge) PAIR. For each connected predicate,
+            # build a dedicated path from the vertex base to the predicate hook (with routing),
+            # and emit it as its own SpatialElement. Finally, remove the original combined ligature.
+            created_any = False
+            for v_id, base in bases:
+                connected = vertex_to_edges.get(v_id, [])
+                if not connected:
                     continue
-                # Compute hook point on predicate border toward the vertex base
-                hook_x, hook_y = self._compute_border_hook(e_elem.spatial_bounds, base)
-                ex, ey = hook_x, hook_y
-                # Small inward offset so stroke visually meets/overlaps the border
-                ls = self.style.resolve(type="ligature", role="ligature.arm")
-                eps_in = float(ls.get("border_overlap", 1.0))
-                # Move the hook slightly inward toward the predicate label center
-                rcx, rcy = e_elem.spatial_bounds.center()
-                ix, iy = (rcx - ex, rcy - ey)
-                ilen = math.hypot(ix, iy)
-                if ilen > 1e-6 and eps_in > 0:
-                    ex += (ix / ilen) * eps_in
-                    ey += (iy / ilen) * eps_in
-                vx, vy = base
-                dx, dy = (ex - vx, ey - vy)
-                d0 = math.hypot(dx, dy)
-                # Note: we no longer push outward along arm direction here; inward border_overlap
-                # already guarantees a visual contact with the label box.
-                # Guarantee minimal visible arm length
-                min_len = float(ls.get("min_length", 12.0))
-                dist = math.hypot(ex - vx, ey - vy)
-                if dist < min_len and dist > 1e-6:
-                    ux, uy = (ex - vx) / dist, (ey - vy) / dist
-                    ex, ey = ex + ux * (min_len - dist), ey + uy * (min_len - dist)
-                # Same-area avoidance only
-                edge_area = self._determine_element_area(eid)
-                eff_obs = obstacles if edge_area == lig_area else []
-                # Also avoid other predicate label rectangles in the same area
-                label_obs: List[Tuple[float, float, float, float]] = []
-                if edge_area == lig_area:
-                    # Add other predicates in same area as obstacles
+                for eid in connected:
+                    e_elem = layout.get(eid)
+                    if not e_elem:
+                        continue
+                    # Compute unique hook on predicate boundary
+                    vseq = tuple(self.egi.nu.get(eid, ()))
+                    try:
+                        arg_index = vseq.index(v_id)
+                    except ValueError:
+                        arg_index = 0
+                    arity = max(1, len(vseq))
+                    hook_x, hook_y = self._hook_point_for_edge_argument(e_elem.spatial_bounds, arg_index, arity)
+                    ex, ey = hook_x, hook_y
+                    # Inward nudge
+                    ls = self.style.resolve(type="ligature", role="ligature.arm")
+                    eps_in = float(ls.get("border_overlap", 1.0))
+                    rcx, rcy = e_elem.spatial_bounds.center()
+                    ix, iy = (rcx - ex, rcy - ey)
+                    ilen = math.hypot(ix, iy)
+                    if ilen > 1e-6 and eps_in > 0:
+                        ex += (ix / ilen) * eps_in
+                        ey += (iy / ilen) * eps_in
+                    # Minimal visible length
+                    min_len = float(ls.get("min_length", 12.0))
+                    dist = math.hypot(ex - base[0], ey - base[1])
+                    if dist < min_len and dist > 1e-6:
+                        ux, uy = (ex - base[0]) / dist, (ey - base[1]) / dist
+                        ex, ey = ex + ux * (min_len - dist), ey + uy * (min_len - dist)
+                    # Obstacles
+                    lig_area = self._determine_ligature_area([v_id])
+                    edge_area = self._determine_element_area(eid)
+                    eff_obs = obstacles if edge_area == lig_area else []
+                    label_obs: List[Tuple[float, float, float, float]] = []
+                    if edge_area == lig_area:
+                        for oid, oelem in layout.items():
+                            if oid == eid:
+                                continue
+                            if getattr(oelem, 'element_type', '') != 'edge':
+                                continue
+                            if self._determine_element_area(oid) != edge_area:
+                                continue
+                            ob = oelem.spatial_bounds
+                            pad = float(self.style.resolve(type="layout").get("label_obstacle_padding", 6.0))
+                            label_obs.append((ob.x - pad, ob.y - pad, ob.width + 2 * pad, ob.height + 2 * pad))
+                        ob = e_elem.spatial_bounds
+                        pad = float(self.style.resolve(type="layout").get("label_obstacle_padding", 6.0))
+                        label_obs.append((ob.x - pad, ob.y - pad, ob.width + 2 * pad, ob.height + 2 * pad))
+                    # Approach point near hook
+                    ux, uy = hook_x - rcx, hook_y - rcy
+                    ulen = math.hypot(ux, uy)
+                    if ulen > 1e-6:
+                        ux, uy = ux / ulen, uy / ulen
+                    else:
+                        ux, uy = 1.0, 0.0
+                    approach_margin = float(self.style.resolve(type="layout").get("ligature_approach_margin", 4.0))
+                    approach_pt = (hook_x + ux * approach_margin, hook_y + uy * approach_margin)
+                    if edge_area != lig_area:
+                        cut_b = self.correspondence.area_mappings.get(edge_area)
+                        if cut_b:
+                            ax, ay = approach_pt
+                            ax = min(max(ax, cut_b.x + 1.0), cut_b.x + cut_b.width - 1.0)
+                            ay = min(max(ay, cut_b.y + 1.0), cut_b.y + cut_b.height - 1.0)
+                            approach_pt = (ax, ay)
+                    # Route base -> approach with visibility avoiding obstacles and forbidding leaving area
+                    # Build boundary walls around lig_area so the path stays inside, and child cuts are holes
+                    area_bounds = self.correspondence.area_mappings.get(lig_area)
+                    area_walls: List[Tuple[float, float, float, float]] = []
+                    if area_bounds:
+                        ax, ay, aw, ah = area_bounds.x, area_bounds.y, area_bounds.width, area_bounds.height
+                        BIG = 100000.0
+                        # Left wall
+                        area_walls.append((ax - BIG, ay - BIG, BIG, ah + 2 * BIG))
+                        # Right wall
+                        area_walls.append((ax + aw, ay - BIG, BIG, ah + 2 * BIG))
+                        # Top wall
+                        area_walls.append((ax - BIG, ay - BIG, aw + 2 * BIG, BIG))
+                        # Bottom wall
+                        area_walls.append((ax - BIG, ay + ah, aw + 2 * BIG, BIG))
+                    # Route with combined obstacles
+                    arm_path = self._visibility_route(base, approach_pt, label_obs + eff_obs + area_walls)
+                    if (not arm_path) and (edge_area != lig_area):
+                        arm_path = [base, approach_pt]
+                    if not arm_path:
+                        continue
+                    # Ensure the path starts from base and ends at hook point
+                    if arm_path[0] != base:
+                        arm_path = [base] + arm_path
+                    if arm_path[-1] != (ex, ey):
+                        arm_path = arm_path + [(ex, ey)]
+                    # Post-process this small path with the same repair routine used below
+                    # but localized to this path; reuse the existing repair section by
+                    # temporarily assigning and running the same logic on 'arm_path'.
+                    # Build global rect lists once
+                    raw_label_rects_all: List[Tuple[float, float, float, float]] = []
+                    label_rects: List[Tuple[float, float, float, float]] = []
                     for oid, oelem in layout.items():
-                        if oid == eid:
-                            continue
                         if getattr(oelem, 'element_type', '') != 'edge':
                             continue
-                        # Only consider label boxes in same area
-                        o_area = self._determine_element_area(oid)
-                        if o_area != edge_area:
-                            continue
                         ob = oelem.spatial_bounds
-                        # Padding to keep a safe margin around text (forces earlier avoidance)
-                        layout_tokens = self.style.resolve(type="layout")
-                        pad = float(layout_tokens.get("label_obstacle_padding", 6.0))
-                        label_obs.append((ob.x - pad, ob.y - pad, ob.width + 2 * pad, ob.height + 2 * pad))
-                    # Add the target predicate label rect itself as an obstacle so routing
-                    # to the approach point never crosses it. Use same padding.
-                    ob = e_elem.spatial_bounds
-                    layout_tokens = self.style.resolve(type="layout")
-                    pad = float(layout_tokens.get("label_obstacle_padding", 6.0))
-                    label_obs.append((ob.x - pad, ob.y - pad, ob.width + 2 * pad, ob.height + 2 * pad))
-                # Build approach point just OUTSIDE the target predicate rect near the hook
-                # so the routed path never crosses the target label box; only the final
-                # short segment will enter it.
-                rcx, rcy = e_elem.spatial_bounds.center()
-                ux, uy = hook_x - rcx, hook_y - rcy
-                ulen = math.hypot(ux, uy)
-                if ulen > 1e-6:
-                    ux, uy = ux / ulen, uy / ulen
-                else:
-                    ux, uy = 1.0, 0.0
-                layout_tokens = self.style.resolve(type="layout")
-                approach_margin = float(layout_tokens.get("ligature_approach_margin", 4.0))
-                approach_pt = (hook_x + ux * approach_margin, hook_y + uy * approach_margin)
-                # Route to approach point with obstacles
-                seg = self._visibility_route(base, approach_pt, eff_obs + label_obs)
-                # Ensure the path draws an arm from base to hook, then returns to base
-                if seg:
-                    # If last point already equals first, skip duplicate
-                    if new_path and new_path[-1] == seg[0]:
-                        new_path.extend(seg[1:])
-                    else:
-                        new_path.extend(seg)
-                    # Append final short segment into the label box (inward overlap)
-                    if new_path[-1] != (ex, ey):
-                        new_path.append((ex, ey))
-                    # Return to base to start next arm as a separate stroke in the same path
-                    if new_path[-1] != base:
-                        new_path.append(base)
+                        raw_label_rects_all.append((ob.x, ob.y, ob.width, ob.height))
+                        pad = float(self.style.resolve(type="layout").get("label_obstacle_padding", 6.0))
+                        label_rects.append((ob.x - pad, ob.y - pad, ob.width + 2 * pad, ob.height + 2 * pad))
+                    raw_cut_rects_all: List[Tuple[float, float, float, float]] = []
+                    for c in self.egi.Cut:
+                        b = self.correspondence.area_mappings.get(c.id)
+                        if b:
+                            raw_cut_rects_all.append((b.x, b.y, b.width, b.height))
+                    def _pt_in_rect(p: Tuple[float, float], r: Tuple[float, float, float, float]) -> bool:
+                        rx, ry, rw, rh = r
+                        return (rx < p[0] < rx + rw) and (ry < p[1] < ry + rh)
+                    def _pt_on_rect_border(p: Tuple[float, float], r: Tuple[float, float, float, float]) -> bool:
+                        rx, ry, rw, rh = r
+                        on_left = abs(p[0] - rx) < 1e-6 and (ry - 1e-6) <= p[1] <= (ry + rh + 1e-6)
+                        on_right = abs(p[0] - (rx + rw)) < 1e-6 and (ry - 1e-6) <= p[1] <= (ry + rh + 1e-6)
+                        on_top = abs(p[1] - ry) < 1e-6 and (rx - 1e-6) <= p[0] <= (rx + rw + 1e-6)
+                        on_bottom = abs(p[1] - (ry + rh)) < 1e-6 and (rx - 1e-6) <= p[0] <= (rx + rw + 1e-6)
+                        return on_left or on_right or on_top or on_bottom
+                    def _seg_still_crosses(path: List[Tuple[float, float]]) -> bool:
+                        for j in range(1, len(path)):
+                            pa = path[j-1]
+                            pb = path[j]
+                            for rr in raw_label_rects_all:
+                                if self._segment_intersects_rect(pa, pb, rr):
+                                    ain = _pt_in_rect(pa, rr) or _pt_on_rect_border(pa, rr)
+                                    bin = _pt_in_rect(pb, rr) or _pt_on_rect_border(pb, rr)
+                                    if not (ain ^ bin):
+                                        return True
+                            for rr in raw_cut_rects_all:
+                                if self._segment_intersects_rect(pa, pb, rr):
+                                    ain = _pt_in_rect(pa, rr) or _pt_on_rect_border(pa, rr)
+                                    bin = _pt_in_rect(pb, rr) or _pt_on_rect_border(pb, rr)
+                                    if not (ain ^ bin):
+                                        return True
+                        return False
+                    # Robust re-route to clean pass-throughs (labels and cuts)
+                    base_pad = float(self.style.resolve(type="layout").get("label_obstacle_padding", 6.0))
+                    padded_cuts = [(x - base_pad, y - base_pad, w + 2 * base_pad, h + 2 * base_pad) for (x, y, w, h) in raw_cut_rects_all]
+                    repaired = [arm_path[0]]
+                    for i in range(1, len(arm_path)):
+                        a, bpt = repaired[-1], arm_path[i]
+                        # Detect true pass-throughs of any label rect
+                        offending_rect: Optional[Tuple[float, float, float, float]] = None
+                        crosses = False
+                        for rr in raw_label_rects_all:
+                            if self._segment_intersects_rect(a, bpt, rr):
+                                ain = _pt_in_rect(a, rr) or _pt_on_rect_border(a, rr)
+                                bin = _pt_in_rect(bpt, rr) or _pt_on_rect_border(bpt, rr)
+                                if not (ain ^ bin):
+                                    crosses = True
+                                    offending_rect = rr
+                                    break
+                        if not crosses:
+                            repaired.append(bpt)
+                            continue
+                        # 1) Try visibility route around padded obstacles (labels + cuts)
+                        seg2 = self._visibility_route(a, bpt, label_rects + padded_cuts)
+                        def _seg_still_crosses(path: List[Tuple[float, float]]) -> bool:
+                            for j in range(1, len(path)):
+                                pa, pb = path[j-1], path[j]
+                                for rr in raw_label_rects_all:
+                                    if self._segment_intersects_rect(pa, pb, rr):
+                                        ain = _pt_in_rect(pa, rr) or _pt_on_rect_border(pa, rr)
+                                        bin = _pt_in_rect(pb, rr) or _pt_on_rect_border(pb, rr)
+                                        if not (ain ^ bin):
+                                            return True
+                                for rr in raw_cut_rects_all:
+                                    if self._segment_intersects_rect(pa, pb, rr):
+                                        ain = _pt_in_rect(pa, rr) or _pt_on_rect_border(pa, rr)
+                                        bin = _pt_in_rect(pb, rr) or _pt_on_rect_border(pb, rr)
+                                        if not (ain ^ bin):
+                                            return True
+                            return False
+                        if seg2 and not _seg_still_crosses(seg2):
+                            if repaired[-1] == seg2[0]:
+                                repaired.extend(seg2[1:])
+                            else:
+                                repaired.extend(seg2)
+                            continue
+                        # 2) Corner detours around the offending rect with extra padding
+                        if offending_rect is not None:
+                            rx, ry, rw, rh = offending_rect
+                            pad_try = max(base_pad, 12.0)
+                            def build_padded_rects(extra: float) -> List[Tuple[float, float, float, float]]:
+                                out: List[Tuple[float, float, float, float]] = []
+                                for rr in raw_label_rects_all:
+                                    x, y, w, h = rr
+                                    p = base_pad + extra
+                                    out.append((x - p, y - p, w + 2 * p, h + 2 * p))
+                                for rr in raw_cut_rects_all:
+                                    x, y, w, h = rr
+                                    p = base_pad + extra
+                                    out.append((x - p, y - p, w + 2 * p, h + 2 * p))
+                                return out
+                            label_rects_padded = build_padded_rects(pad_try - base_pad)
+                            candidates = [
+                                (rx - pad_try, ry - pad_try),
+                                (rx + rw + pad_try, ry - pad_try),
+                                (rx + rw + pad_try, ry + rh + pad_try),
+                                (rx - pad_try, ry + rh + pad_try),
+                            ]
+                            success = False
+                            for c in candidates:
+                                det1 = self._visibility_route(a, c, label_rects_padded)
+                                det2 = self._visibility_route(c, bpt, label_rects_padded)
+                                if det1 and det2 and not _seg_still_crosses(det1) and not _seg_still_crosses(det2):
+                                    if repaired[-1] == det1[0]:
+                                        repaired.extend(det1[1:])
+                                    else:
+                                        repaired.extend(det1)
+                                    if repaired[-1] == det2[0]:
+                                        repaired.extend(det2[1:])
+                                    else:
+                                        repaired.extend(det2)
+                                    success = True
+                                    break
+                            if not success:
+                                # 3) L-shaped fallback detours
+                                heavy_extra = max(24.0 - base_pad, 12.0)
+                                label_rects_heavy = build_padded_rects(heavy_extra)
+                                dx, dy = bpt[0] - a[0], bpt[1] - a[1]
+                                L = math.hypot(dx, dy) or 1.0
+                                nx, ny = -dy / L, dx / L
+                                offset = pad_try
+                                waypoints = [
+                                    (a[0] + nx * offset, a[1] + ny * offset),
+                                    (a[0] - nx * offset, a[1] - ny * offset),
+                                ]
+                                lsuccess = False
+                                for w in waypoints:
+                                    det1 = self._visibility_route(a, w, label_rects_heavy)
+                                    det2 = self._visibility_route(w, bpt, label_rects_heavy)
+                                    if det1 and det2 and not _seg_still_crosses(det1) and not _seg_still_crosses(det2):
+                                        if repaired[-1] == det1[0]:
+                                            repaired.extend(det1[1:])
+                                        else:
+                                            repaired.extend(det1)
+                                        if repaired[-1] == det2[0]:
+                                            repaired.extend(det2[1:])
+                                        else:
+                                            repaired.extend(det2)
+                                        lsuccess = True
+                                        break
+                                if lsuccess:
+                                    continue
+                        # Give up this segment; keep original to avoid infinite loops
+                        repaired.append(bpt)
+                    arm_path = repaired
+                    # Fail-closed validation: the arm must remain within its logical area.
+                    # If the edge is in a child cut, allow the final waypoint to enter that child.
+                    try:
+                        if edge_area == lig_area:
+                            self._assert_path_within_area(arm_path, lig_area)
+                        else:
+                            self._assert_path_within_area(arm_path, lig_area, allowed_child=edge_area, allow_last_inside_child=True)
+                    except AssertionError:
+                        # If invalid, attempt one more route with heavier label padding; else re-raise
+                        heavy_pad = float(self.style.resolve(type="layout").get("label_obstacle_padding", 6.0)) * 2.0
+                        heavy_labels = []
+                        for oid, oelem in layout.items():
+                            if getattr(oelem, 'element_type', '') == 'edge':
+                                ob = oelem.spatial_bounds
+                                heavy_labels.append((ob.x - heavy_pad, ob.y - heavy_pad, ob.width + 2 * heavy_pad, ob.height + 2 * heavy_pad))
+                        retry = self._visibility_route(base, approach_pt, heavy_labels + area_walls)
+                        if retry:
+                            if retry[0] != base:
+                                retry = [base] + retry
+                            if retry[-1] != (ex, ey):
+                                retry = retry + [(ex, ey)]
+                            if edge_area == lig_area:
+                                self._assert_path_within_area(retry, lig_area)
+                            else:
+                                self._assert_path_within_area(retry, lig_area, allowed_child=edge_area, allow_last_inside_child=True)
+                            arm_path = retry
+                        else:
+                            # Fail-closed: raise explicit error
+                            raise
+                    # Emit spatial element for this pair
+                    new_id = f"{lid}__{v_id}__{eid}"
+                    lg = LigatureGeometry(ligature_id=new_id, vertices=[v_id], spatial_path=arm_path, branching_points=[])
+                    new_bounds = self._ligature_bounds_excluding_children(lig_area, arm_path, layout)
+                    layout[new_id] = SpatialElement(element_id=new_id, element_type='ligature', logical_area=lig_area, spatial_bounds=new_bounds, ligature_geometry=lg)
+                    self.correspondence.ligature_mappings[new_id] = lg
+                    created_any = True
 
-            if not new_path:
+            # Optional vertex-side trunk consolidation: share base->hub segment across
+            # ligatures that connect to the same vertex (predicate independence preserved).
+            if created_any:
+                layout_tokens = self.style.resolve(type="layout")
+                enable_branch = bool(layout_tokens.get("enable_vertex_branch_consolidation", False))
+                if enable_branch:
+                    # Group newly created ligatures by vertex id
+                    base_by_vertex: Dict[str, Tuple[float, float]] = {vid: b for vid, b in bases}
+                    for v_id, base in base_by_vertex.items():
+                        # Collect ligature IDs created for this vertex
+                        created_ids: List[str] = []
+                        for eid in vertex_to_edges.get(v_id, []):
+                            nid = f"{lid}__{v_id}__{eid}"
+                            if nid in self.correspondence.ligature_mappings:
+                                created_ids.append(nid)
+                        if len(created_ids) <= 1:
+                            continue
+                        # Determine hub direction by averaging initial arm directions
+                        avg_dx = 0.0
+                        avg_dy = 0.0
+                        samples = 0
+                        for nid in created_ids:
+                            geom_i = self.correspondence.ligature_mappings.get(nid)
+                            if not geom_i or not geom_i.spatial_path or len(geom_i.spatial_path) < 2:
+                                continue
+                            p0, p1 = geom_i.spatial_path[0], geom_i.spatial_path[1]
+                            dx, dy = (p1[0] - p0[0], p1[1] - p0[1])
+                            L = math.hypot(dx, dy)
+                            if L > 1e-6:
+                                avg_dx += dx / L
+                                avg_dy += dy / L
+                                samples += 1
+                        if samples == 0:
+                            continue
+                        avg_dx /= samples
+                        avg_dy /= samples
+                        norm = math.hypot(avg_dx, avg_dy) or 1.0
+                        avg_dx /= norm
+                        avg_dy /= norm
+                        trunk_len = float(layout_tokens.get("ligature_trunk_offset", 12.0))
+                        hub = (base[0] + avg_dx * trunk_len, base[1] + avg_dy * trunk_len)
+                        # Clamp hub into the correct area (avoid leaving ligature area)
+                        v_area = self._determine_ligature_area([v_id])
+                        area_bounds = self.correspondence.area_mappings.get(v_area)
+                        if area_bounds:
+                            hx = min(max(hub[0], area_bounds.x + 1.0), area_bounds.x + area_bounds.width - 1.0)
+                            hy = min(max(hub[1], area_bounds.y + 1.0), area_bounds.y + area_bounds.height - 1.0)
+                            hub = (hx, hy)
+                        # Build obstacles in vertex area
+                        label_obs_v: List[Tuple[float, float, float, float]] = []
+                        pad_v = float(layout_tokens.get("label_obstacle_padding", 6.0))
+                        for oid, oelem in layout.items():
+                            if getattr(oelem, 'element_type', '') != 'edge':
+                                continue
+                            if self._determine_element_area(oid) != v_area:
+                                continue
+                            ob = oelem.spatial_bounds
+                            label_obs_v.append((ob.x - pad_v, ob.y - pad_v, ob.width + 2 * pad_v, ob.height + 2 * pad_v))
+                        # Add child cut holes in this area as obstacles
+                        cut_obs_v: List[Tuple[float, float, float, float]] = []
+                        for c in self.egi.Cut:
+                            parent = self._determine_cut_parent_area(c.id)
+                            if parent == v_area:
+                                b = self.correspondence.area_mappings.get(c.id)
+                                if b:
+                                    cut_obs_v.append((b.x, b.y, b.width, b.height))
+                        # Route base -> hub with visibility avoiding obstacles and forbidding leaving area
+                        # Build boundary walls around v_area so the path stays inside, and child cuts are holes
+                        area_walls_v: List[Tuple[float, float, float, float]] = []
+                        if area_bounds:
+                            ax, ay, aw, ah = area_bounds.x, area_bounds.y, area_bounds.width, area_bounds.height
+                            BIG = 100000.0
+                            # Left wall
+                            area_walls_v.append((ax - BIG, ay - BIG, BIG, ah + 2 * BIG))
+                            # Right wall
+                            area_walls_v.append((ax + aw, ay - BIG, BIG, ah + 2 * BIG))
+                            # Top wall
+                            area_walls_v.append((ax - BIG, ay - BIG, aw + 2 * BIG, BIG))
+                            # Bottom wall
+                            area_walls_v.append((ax - BIG, ay + ah, aw + 2 * BIG, BIG))
+                        b2h = self._visibility_route(base, hub, label_obs_v + cut_obs_v + area_walls_v) or [base, hub]
+                        # Update each per-pair ligature path to include shared trunk and reroute from hub
+                        for nid in created_ids:
+                            geom_i = self.correspondence.ligature_mappings.get(nid)
+                            if not geom_i or not geom_i.spatial_path or len(geom_i.spatial_path) < 2:
+                                continue
+                            old = geom_i.spatial_path
+                            # Ensure first point equals base
+                            if old[0] != base:
+                                # connect to old[0] first
+                                conn = self._visibility_route(base, old[0], label_obs_v + cut_obs_v + area_walls_v) or [base, old[0]]
+                                prefix = conn
+                            else:
+                                prefix = []
+                            # Build new path: base->hub trunk, then hub->old[1], then rest
+                            newp: List[Tuple[float, float]] = []
+                            newp.append(base)
+                            # append b2h without duplicating base
+                            if b2h[0] == base:
+                                newp.extend(b2h[1:])
+                            else:
+                                newp.extend(b2h)
+                            # If we added a prefix connector, include it after hub (rare)
+                            if prefix:
+                                # connect hub to start of prefix if needed
+                                hub_to_pref = self._visibility_route(newp[-1], prefix[0], label_obs_v + cut_obs_v + area_walls_v)
+                                if hub_to_pref:
+                                    if newp[-1] == hub_to_pref[0]:
+                                        newp.extend(hub_to_pref[1:])
+                                    else:
+                                        newp.extend(hub_to_pref)
+                                newp.extend(prefix[1:])
+                            # Connect from hub to old[1]
+                            target_after_hub = old[1]
+                            hub_to_first = self._visibility_route(newp[-1], target_after_hub, label_obs_v + cut_obs_v + area_walls_v)
+                            if hub_to_first:
+                                if newp[-1] == hub_to_first[0]:
+                                    newp.extend(hub_to_first[1:])
+                                else:
+                                    newp.extend(hub_to_first)
+                            # Append the rest of the existing path
+                            newp.extend(old[2:])
+                            # Final repair using existing pass-through fixer for per-pair arms
+                            # Reuse the local repair approach: collect rects (already above in this function)
+                            raw_label_rects_all: List[Tuple[float, float, float, float]] = []
+                            label_rects_all: List[Tuple[float, float, float, float]] = []
+                            for oid, oelem in layout.items():
+                                if getattr(oelem, 'element_type', '') != 'edge':
+                                    continue
+                                ob = oelem.spatial_bounds
+                                raw_label_rects_all.append((ob.x, ob.y, ob.width, ob.height))
+                                label_rects_all.append((ob.x - pad_v, ob.y - pad_v, ob.width + 2 * pad_v, ob.height + 2 * pad_v))
+                            raw_cut_rects_all: List[Tuple[float, float, float, float]] = []
+                            for c in self.egi.Cut:
+                                b = self.correspondence.area_mappings.get(c.id)
+                                if b:
+                                    raw_cut_rects_all.append((b.x, b.y, b.width, b.height))
+                            def _pt_in_rect2(p: Tuple[float, float], r: Tuple[float, float, float, float]) -> bool:
+                                rx, ry, rw, rh = r
+                                return (rx < p[0] < rx + rw) and (ry < p[1] < ry + rh)
+                            def _pt_on_border2(p: Tuple[float, float], r: Tuple[float, float, float, float]) -> bool:
+                                rx, ry, rw, rh = r
+                                on_left = abs(p[0] - rx) < 1e-6 and (ry - 1e-6) <= p[1] <= (ry + rh + 1e-6)
+                                on_right = abs(p[0] - (rx + rw)) < 1e-6 and (ry - 1e-6) <= p[1] <= (ry + rh + 1e-6)
+                                on_top = abs(p[1] - ry) < 1e-6 and (rx - 1e-6) <= p[0] <= (rx + rw + 1e-6)
+                                on_bottom = abs(p[1] - (ry + rh)) < 1e-6 and (rx - 1e-6) <= p[0] <= (rx + rw + 1e-6)
+                                return on_left or on_right or on_top or on_bottom
+                            def _pass_through(a: Tuple[float, float], bpt: Tuple[float, float]) -> bool:
+                                for rr in raw_label_rects_all + raw_cut_rects_all:
+                                    if self._segment_intersects_rect(a, bpt, rr):
+                                        ain = _pt_in_rect2(a, rr) or _pt_on_border2(a, rr)
+                                        binv = _pt_in_rect2(bpt, rr) or _pt_on_border2(bpt, rr)
+                                        if not (ain ^ binv):
+                                            return True
+                                return False
+                            repaired = [newp[0]]
+                            for i in range(1, len(newp)):
+                                a, bpt = repaired[-1], newp[i]
+                                if _pass_through(a, bpt):
+                                    seg2 = self._visibility_route(a, bpt, label_rects_all + cut_obs_v + area_walls_v)
+                                    if seg2:
+                                        if repaired[-1] == seg2[0]:
+                                            repaired.extend(seg2[1:])
+                                        else:
+                                            repaired.extend(seg2)
+                                    else:
+                                        repaired.append(bpt)
+                                else:
+                                    repaired.append(bpt)
+                            # Fail-closed validation: ensure consolidated path remains in area
+                            self._assert_path_within_area(repaired, v_area)
+                            # Update geometry and bounds
+                            geom_i.spatial_path = repaired
+                            nb = self._ligature_bounds_excluding_children(v_area, repaired, layout)
+                            layout[nid].spatial_bounds = nb
+                            try:
+                                bp = BranchingPoint(ligature_id=nid, position_on_ligature=0.05, spatial_position=hub, constant_label=self._get_vertex_constant_label(v_id))
+                                geom_i.branching_points.append(bp)
+                            except Exception:
+                                pass
+                            new_bounds_i = self._ligature_bounds_excluding_children(v_area, repaired, layout)
+                            se = layout.get(nid)
+                            if se:
+                                se.spatial_bounds = new_bounds_i
+                                se.ligature_geometry = geom_i
+                                self.correspondence.ligature_mappings[nid] = geom_i
+
+            # Remove the original combined ligature element if we created per-pair ligatures
+            if created_any:
+                layout.pop(lid, None)
+                self.correspondence.ligature_mappings.pop(lid, None)
                 continue
 
-            # Update geometry and bounds
-            geom.spatial_path = new_path
-            lig_area = self._determine_ligature_area([v_id])
-            nb = self._ligature_bounds_excluding_children(lig_area, new_path, layout)
+            # Fallback (should not happen): if nothing created, keep old path logic for safety
+            new_path: List[Tuple[float, float]] = []
+            # Post-process: repair any segment that intersects a predicate label rect.
+            lig_area = self._determine_ligature_area([geom.vertices[0]])
+            # Build raw and padded label rects for ALL predicate labels across areas,
+            # and include ALL cut rectangles as additional obstacles to avoid.
+            raw_label_rects_all: List[Tuple[float, float, float, float]] = []
+            label_rects: List[Tuple[float, float, float, float]] = []
+            for oid, oelem in layout.items():
+                if getattr(oelem, 'element_type', '') != 'edge':
+                    continue
+                ob = oelem.spatial_bounds
+                raw_label_rects_all.append((ob.x, ob.y, ob.width, ob.height))
+                layout_tokens = self.style.resolve(type="layout")
+                pad = float(layout_tokens.get("label_obstacle_padding", 6.0))
+                label_rects.append((ob.x - pad, ob.y - pad, ob.width + 2 * pad, ob.height + 2 * pad))
+            # All cut rects (used as obstacles during post-processing)
+            raw_cut_rects_all: List[Tuple[float, float, float, float]] = []
+            for c in self.egi.Cut:
+                b = self.correspondence.area_mappings.get(c.id)
+                if b:
+                    raw_cut_rects_all.append((b.x, b.y, b.width, b.height))
+            # Local helpers to mirror test semantics
+            def _pt_in_rect(p: Tuple[float, float], r: Tuple[float, float, float, float]) -> bool:
+                rx, ry, rw, rh = r
+                return (rx < p[0] < rx + rw) and (ry < p[1] < ry + rh)
+            def _pt_on_rect_border(p: Tuple[float, float], r: Tuple[float, float, float, float]) -> bool:
+                rx, ry, rw, rh = r
+                on_left = abs(p[0] - rx) < 1e-6 and (ry - 1e-6) <= p[1] <= (ry + rh + 1e-6)
+                on_right = abs(p[0] - (rx + rw)) < 1e-6 and (ry - 1e-6) <= p[1] <= (ry + rh + 1e-6)
+                on_top = abs(p[1] - ry) < 1e-6 and (rx - 1e-6) <= p[0] <= (rx + rw + 1e-6)
+                on_bottom = abs(p[1] - (ry + rh)) < 1e-6 and (rx - 1e-6) <= p[0] <= (rx + rw + 1e-6)
+                return on_left or on_right or on_top or on_bottom
+            # Iterate repair up to a few passes to remove cascading crossings
+            passes = 0
+            path_in = new_path
+            while passes < 6:
+                repaired: List[Tuple[float, float]] = []
+                any_fixed = False
+                for i, pt in enumerate(path_in):
+                    if i == 0:
+                        repaired.append(pt)
+                        continue
+                    a = repaired[-1]
+                    b = pt
+                    # Check intersection against unpadded rects (test uses raw); reroute only
+                    # true pass-throughs (both endpoints outside but segment cuts the rect).
+                    crosses = False
+                    offending_rect: Optional[Tuple[float, float, float, float]] = None
+                    # Track whether we successfully replaced this segment with a detour
+                    detoured = False
+                    for rect in raw_label_rects_all:
+                        if self._segment_intersects_rect(a, b, rect):
+                            a_in = _pt_in_rect(a, rect) or _pt_on_rect_border(a, rect)
+                            b_in = _pt_in_rect(b, rect) or _pt_on_rect_border(b, rect)
+                            if not (a_in ^ b_in):
+                                crosses = True
+                                offending_rect = rect
+                                break
+                    if crosses:
+                        # Rerouting policy:
+                        # - A reroute is accepted ONLY if it eliminates true pass-throughs of any
+                        #   predicate label rectangle. A pass-through means a segment intersects a
+                        #   label rect while both endpoints are outside that rect. Touching or entering
+                        #   from one side and stopping inside is permitted (endpoints on/inside allowed).
+                        # - Try a direct visibility route first, then corner-detours using padded
+                        #   rectangles, then a last-resort L-shaped detour. Each candidate path is
+                        #   validated with `_seg_still_crosses()` before acceptance.
+                        # Only mark any_fixed if we actually change the segment
+                        modified = False
+                        # Attempt a direct visibility-route around current label and cut obstacles.
+                        # Important: we only accept reroutes that truly eliminate pass-throughs
+                        # (segments that cut across a label rect while both endpoints lie outside).
+                        # Build combined padded obstacles (labels + cuts)
+                        layout_tokens = self.style.resolve(type="layout")
+                        base_pad = float(layout_tokens.get("label_obstacle_padding", 6.0))
+                        padded_cuts = [(x - base_pad, y - base_pad, w + 2 * base_pad, h + 2 * base_pad) for (x, y, w, h) in raw_cut_rects_all]
+                        seg = self._visibility_route(a, b, label_rects + padded_cuts)
+                        # Validate that the rerouted seg no longer performs a true pass-through
+                        def _seg_still_crosses(path: List[Tuple[float, float]]) -> bool:
+                            for j in range(1, len(path)):
+                                pa = path[j-1]
+                                pb = path[j]
+                                # Check against label rects
+                                for rr in raw_label_rects_all:
+                                    if self._segment_intersects_rect(pa, pb, rr):
+                                        ain = _pt_in_rect(pa, rr) or _pt_on_rect_border(pa, rr)
+                                        bin = _pt_in_rect(pb, rr) or _pt_on_rect_border(pb, rr)
+                                        if not (ain ^ bin):
+                                            return True
+                                # Also ensure we do not pass through any cut rectangle
+                                for rr in raw_cut_rects_all:
+                                    if self._segment_intersects_rect(pa, pb, rr):
+                                        ain = _pt_in_rect(pa, rr) or _pt_on_rect_border(pa, rr)
+                                        bin = _pt_in_rect(pb, rr) or _pt_on_rect_border(pb, rr)
+                                        if not (ain ^ bin):
+                                            return True
+                            return False
+                        if seg and not _seg_still_crosses(seg):
+                            if repaired and repaired[-1] == seg[0]:
+                                repaired.extend(seg[1:])
+                            else:
+                                repaired.extend(seg)
+                            # We handled the crossing by rerouting this segment; proceed to next pass
+                            any_fixed = True
+                            detoured = True
+                            break
+                        # Fallback: try routing via a corner outside the offending rect (and padded rects).
+                        # We again only accept detours that avoid true pass-throughs.
+                        detoured = False
+                        if offending_rect is not None:
+                            rx, ry, rw, rh = offending_rect
+                            layout_tokens = self.style.resolve(type="layout")
+                            base_pad = float(layout_tokens.get("label_obstacle_padding", 6.0))
+                            pad_try = max(base_pad, 12.0)
+                            def build_padded_rects(extra: float) -> List[Tuple[float, float, float, float]]:
+                                out: List[Tuple[float, float, float, float]] = []
+                                # Include labels
+                                for rr in raw_label_rects_all:
+                                    x, y, w, h = rr
+                                    p = base_pad + extra
+                                    out.append((x - p, y - p, w + 2 * p, h + 2 * p))
+                                # Include cuts
+                                for rr in raw_cut_rects_all:
+                                    x, y, w, h = rr
+                                    p = base_pad + extra
+                                    out.append((x - p, y - p, w + 2 * p, h + 2 * p))
+                                return out
+                            # First attempt with moderately increased padding
+                            label_rects_padded = build_padded_rects(pad_try - base_pad)
+                            candidates = [
+                                (rx - pad_try, ry - pad_try),
+                                (rx + rw + pad_try, ry - pad_try),
+                                (rx + rw + pad_try, ry + rh + pad_try),
+                                (rx - pad_try, ry + rh + pad_try),
+                            ]
+                            success = False
+                            for c in candidates:
+                                det1 = self._visibility_route(a, c, label_rects_padded)
+                                det2 = self._visibility_route(c, b, label_rects_padded)
+                                if det1 and det2 and not _seg_still_crosses(det1) and not _seg_still_crosses(det2):
+                                    any_fixed = True
+                                    if repaired[-1] == det1[0]:
+                                        repaired.extend(det1[1:])
+                                    else:
+                                        repaired.extend(det1)
+                                    if repaired[-1] == det2[0]:
+                                        repaired.extend(det2[1:])
+                                    else:
+                                        repaired.extend(det2)
+                                    success = True
+                                    break
+                            if not success:
+                                # Retry with heavy padding to strongly repel path from labels.
+                                heavy_extra = max(24.0 - base_pad, 12.0)
+                                label_rects_heavy = build_padded_rects(heavy_extra)
+                                for c in candidates:
+                                    det1 = self._visibility_route(a, c, label_rects_heavy)
+                                    det2 = self._visibility_route(c, b, label_rects_heavy)
+                                    if det1 and det2 and not _seg_still_crosses(det1) and not _seg_still_crosses(det2):
+                                        any_fixed = True
+                                        if repaired[-1] == det1[0]:
+                                            repaired.extend(det1[1:])
+                                        else:
+                                            repaired.extend(det1)
+                                        if repaired[-1] == det2[0]:
+                                            repaired.extend(det2[1:])
+                                        else:
+                                            repaired.extend(det2)
+                                        success = True
+                                        break
+                            if not success:
+                                # As a last resort, try an L-shaped detour: from a, step perpendicular by
+                                # an offset, then route to b. Accept only if both legs avoid pass-throughs.
+                                dx, dy = b[0] - a[0], b[1] - a[1]
+                                L = math.hypot(dx, dy) or 1.0
+                                nx, ny = -dy / L, dx / L
+                                offset = pad_try
+                                waypoints = [
+                                    (a[0] + nx * offset, a[1] + ny * offset),
+                                    (a[0] - nx * offset, a[1] - ny * offset),
+                                ]
+                                for w in waypoints:
+                                    det1 = self._visibility_route(a, w, label_rects_heavy)
+                                    det2 = self._visibility_route(w, b, label_rects_heavy)
+                                    if det1 and det2 and not _seg_still_crosses(det1) and not _seg_still_crosses(det2):
+                                        any_fixed = True
+                                        if repaired[-1] == det1[0]:
+                                            repaired.extend(det1[1:])
+                                        else:
+                                            repaired.extend(det1)
+                                        if repaired[-1] == det2[0]:
+                                            repaired.extend(det2[1:])
+                                        else:
+                                            repaired.extend(det2)
+                                        success = True
+                                        break
+                                if not success:
+                                    # Give up this segment (keep original); tests will surface the issue.
+                                    # Do not mark detoured/any_fixed so we can continue scanning later segments.
+                                    pass
+                        # Only break early if we actually modified the path
+                        if any_fixed:
+                            detoured = True
+                            break
+                        if not detoured:
+                            repaired.append(b)
+                    else:
+                        repaired.append(b)
+                path_out = repaired
+                passes += 1
+                if not any_fixed:
+                    break
+                path_in = path_out
+            # Update geometry and bounds using the final repaired path
+            geom.spatial_path = path_out
+            # Use the area of the first vertex to determine child-hole exclusions
+            nb = self._ligature_bounds_excluding_children(lig_area, path_out, layout)
             elt.spatial_bounds = nb
+
+    def _hook_point_for_edge_argument(self, bounds: SpatialBounds, index: int, arity: int) -> Tuple[float, float]:
+        """Return a unique point on the rectangle boundary of a predicate label box
+        for the given argument index in ν(edge). We distribute hooks evenly along
+        the rectangle's perimeter, offsetting by half a slot to avoid corners.
+        """
+        # Guard
+        if arity <= 0:
+            return bounds.center()
+        # Perimeter parameter t in [0, P)
+        P = 2.0 * (bounds.width + bounds.height)
+        if P <= 0.0:
+            return bounds.center()
+        # Half-slot offset prevents hooks sitting exactly on corners
+        slot = P / float(arity)
+        t = (index + 0.5) * slot
+        # Reduce t modulo perimeter
+        t = t % P
+        x0, y0, w, h = bounds.x, bounds.y, bounds.width, bounds.height
+        # Map t along rectangle: top edge (left->right), right edge (top->bottom),
+        # bottom edge (right->left), left edge (bottom->top)
+        if t <= w:
+            return (x0 + t, y0)
+        t -= w
+        if t <= h:
+            return (x0 + w, y0 + t)
+        t -= h
+        if t <= w:
+            return (x0 + w - t, y0 + h)
+        t -= w
+        # Left edge
+        return (x0, y0 + h - t)
+
+    def _position_superscripts(self, layout: Dict[str, SpatialElement]) -> None:
+        """Compute collision-avoided positions for:
+        - vertex variable label superscripts (small text near vertex dot)
+        - predicate arity superscripts (small text near the edge label box top-right)
+        Bounds are estimated using style tokens and adjusted to avoid overlaps with
+        nearby obstacles in the same logical area and to stay out of child cut holes.
+        """
+        # Style tokens for estimation
+        vts = self.style.resolve(type="vertex", role="vertex.superscript_text")
+        v_est_w = float(vts.get("estimate_char_width", 5.0))
+        v_est_h = float(vts.get("estimate_height", 10.0))
+        ets = self.style.resolve(type="edge", role="edge.superscript_text")
+        e_est_w = float(ets.get("estimate_char_width", 4.0))
+        e_est_h = float(ets.get("estimate_height", 9.0))
+        layout_tokens = self.style.resolve(type="layout")
+        step = float(layout_tokens.get("predicate_separation_step", 12.0))
+        sep_margin = float(layout_tokens.get("predicate_separation_margin", 2.0))
+
+        # Helper for overlap test
+        def rects_overlap(a: SpatialBounds, b: SpatialBounds, margin: float = 0.0) -> bool:
+            return not (a.x + a.width <= b.x - margin or b.x + b.width <= a.x - margin or
+                        a.y + a.height <= b.y - margin or b.y + b.height <= a.y - margin)
+
+        # Build quick lookup for area bounds and child cut holes per area
+        area_children: Dict[str, List[SpatialBounds]] = {}
+        for c in self.egi.Cut:
+            parent = self._determine_cut_parent_area(c.id)
+            if not parent:
+                continue
+            b = self.correspondence.area_mappings.get(c.id)
+            if b:
+                area_children.setdefault(parent, []).append(b)
+
+        # Vertex superscripts near the vertex dot, avoid edge labels in same area
+        for vid, v_elem in list(layout.items()):
+            if v_elem.element_type != 'vertex' or not v_elem.spatial_bounds:
+                continue
+            area_id = v_elem.logical_area
+            cx, cy = v_elem.spatial_bounds.center()
+            # Base offset direction: top-right by default
+            off = vts.get("offset", [-18, -16])
+            try:
+                base_dx, base_dy = float(off[0]), float(off[1])
+            except Exception:
+                base_dx, base_dy = -12.0, -10.0
+            # Estimate a small one or two character superscript box
+            est_w = max(10.0, v_est_w * 2.0)
+            est_h = max(8.0, v_est_h)
+            bounds = SpatialBounds(cx + base_dx, cy + base_dy, est_w, est_h)
+            # Gather obstacles: vertex spot, predicate labels in same area, and other vertex supers if placed
+            obstacles: List[SpatialBounds] = [v_elem.spatial_bounds]
+            for oid, oelem in layout.items():
+                if oid == vid:
+                    continue
+                if getattr(oelem, 'element_type', '') == 'edge' and self._determine_element_area(oid) == area_id:
+                    obstacles.append(oelem.spatial_bounds)
+                if getattr(oelem, 'element_type', '') == 'vertex' and self._determine_element_area(oid) == area_id and getattr(oelem, 'vertex_sup_bounds', None):
+                    obstacles.append(oelem.vertex_sup_bounds)  # type: ignore[arg-type]
+            # Push diagonally outward until no overlap
+            guard = 0
+            while any(rects_overlap(bounds, ob, sep_margin) for ob in obstacles):
+                # Move further away from the vertex center along the offset direction
+                bx, by = bounds.center()
+                dx, dy = (bx - cx, by - cy)
+                d = math.hypot(dx, dy)
+                if d < 1e-6:
+                    dx, dy, d = 1.0, -1.0, math.sqrt(2.0)
+                ux, uy = dx / d, dy / d
+                nbx, nby = bx + ux * step * 0.6, by + uy * step * 0.6
+                bounds = SpatialBounds(nbx - est_w / 2.0, nby - est_h / 2.0, est_w, est_h)
+                # Keep inside area and outside child holes if applicable
+                bounds = self._clamp_bounds_into_area(bounds, area_id)
+                bounds = self._avoid_child_cut_holes(bounds, area_id, layout)
+                guard += 1
+                if guard > 40:
+                    break
+            v_elem.vertex_sup_bounds = bounds
+
+        # Edge arity superscripts: near top-right of edge label box, avoid other labels
+        for eid, e_elem in list(layout.items()):
+            if e_elem.element_type != 'edge' or not e_elem.spatial_bounds:
+                continue
+            area_id = e_elem.logical_area
+            ex, ey, ew, eh = (e_elem.spatial_bounds.x, e_elem.spatial_bounds.y,
+                               e_elem.spatial_bounds.width, e_elem.spatial_bounds.height)
+            # Target initial pos: a little above-right corner
+            init_x = ex + ew + 2.0
+            init_y = ey - e_est_h - 2.0
+            est_w = max(8.0, e_est_w * 2.0)
+            est_h = max(6.0, e_est_h)
+            bounds = SpatialBounds(init_x, init_y, est_w, est_h)
+            # Obstacles: this edge label, other edge labels in same area, vertex spots, existing edge supers
+            obstacles: List[SpatialBounds] = [e_elem.spatial_bounds]
+            for oid, oelem in layout.items():
+                if oid == eid:
+                    continue
+                if getattr(oelem, 'element_type', '') == 'edge' and self._determine_element_area(oid) == area_id:
+                    obstacles.append(oelem.spatial_bounds)
+                    if getattr(oelem, 'edge_sup_bounds', None):
+                        obstacles.append(oelem.edge_sup_bounds)  # type: ignore[arg-type]
+                if getattr(oelem, 'element_type', '') == 'vertex' and self._determine_element_area(oid) == area_id:
+                    obstacles.append(oelem.spatial_bounds)
+                    if getattr(oelem, 'vertex_sup_bounds', None):
+                        obstacles.append(oelem.vertex_sup_bounds)  # type: ignore[arg-type]
+            # Push outward from the edge label center towards the corner direction
+            guard = 0
+            rcx, rcy = e_elem.spatial_bounds.center()
+            while any(rects_overlap(bounds, ob, sep_margin) for ob in obstacles):
+                bx, by = bounds.center()
+                dx, dy = (bx - rcx, by - rcy)
+                d = math.hypot(dx, dy)
+                if d < 1e-6:
+                    dx, dy, d = 1.0, -1.0, math.sqrt(2.0)
+                ux, uy = dx / d, dy / d
+                nbx, nby = bx + ux * step * 0.6, by + uy * step * 0.6
+                bounds = SpatialBounds(nbx - est_w / 2.0, nby - est_h / 2.0, est_w, est_h)
+                bounds = self._clamp_bounds_into_area(bounds, area_id)
+                bounds = self._avoid_child_cut_holes(bounds, area_id, layout)
+                guard += 1
+                if guard > 40:
+                    break
+            e_elem.edge_sup_bounds = bounds
 
     def _ligature_bounds_excluding_children(self, lig_area: str, path_points: List[Tuple[float, float]], layout: Dict[str, SpatialElement]) -> SpatialBounds:
         """Compute a ligature bounds rectangle inside lig_area excluding child cut holes.
@@ -658,6 +1713,58 @@ class SpatialCorrespondenceEngine:
         # Clamp to area in case numerical tolerances push us out
         nx = min(max(min_x, area_b.x), area_b.x + area_b.width - w)
         ny = min(max(min_y, area_b.y), area_b.y + area_b.height - h)
+
+        # Post-process: ensure the bounds do NOT overlap any child cut rectangle.
+        def rects_overlap(ax: float, ay: float, aw: float, ah: float, b: SpatialBounds) -> bool:
+            return not (ax + aw <= b.x or b.x + b.width <= ax or ay + ah <= b.y or b.y + b.height <= ay)
+
+        guard = 0
+        eps = 0.5  # minimal separation from child borders
+        while any(rects_overlap(nx, ny, w, h, cb) for cb in child_bounds) and guard < 12:
+            for cb in child_bounds:
+                if not rects_overlap(nx, ny, w, h, cb):
+                    continue
+                # Compute overlap extents on each side
+                right_overlap = (nx + w) - cb.x  # >0 if our right intrudes into child's left
+                left_overlap = (cb.x + cb.width) - nx  # >0 if our left intrudes into child's right
+                top_overlap = (cb.y + cb.height) - ny  # >0 if our top intrudes into child's bottom
+                bottom_overlap = (ny + h) - cb.y  # >0 if our bottom intrudes into child's top
+
+                # Determine minimal adjustment axis to resolve overlap
+                # We consider four potential nudges/shrinks; pick the smallest movement that resolves.
+                candidates: List[Tuple[float, str]] = []
+                if right_overlap > 0 and nx < cb.x:
+                    candidates.append((right_overlap + eps, 'shrink_right'))
+                if left_overlap > 0 and nx >= cb.x:
+                    candidates.append((left_overlap + eps, 'shift_right'))
+                if bottom_overlap > 0 and ny < cb.y:
+                    candidates.append((bottom_overlap + eps, 'shrink_bottom'))
+                if top_overlap > 0 and ny >= cb.y:
+                    candidates.append((top_overlap + eps, 'shift_down'))
+                if not candidates:
+                    # Fallback: shrink slightly
+                    w = max(1.0, w - eps)
+                    h = max(1.0, h - eps)
+                else:
+                    candidates.sort(key=lambda t: t[0])
+                    _, action = candidates[0]
+                    if action == 'shrink_right':
+                        # Reduce width so right edge sits just to the left of child
+                        new_w = max(1.0, cb.x - nx - eps)
+                        w = min(w, new_w)
+                    elif action == 'shift_right':
+                        # Move bounds to the right of child
+                        nx = cb.x + cb.width + eps
+                    elif action == 'shrink_bottom':
+                        new_h = max(1.0, cb.y - ny - eps)
+                        h = min(h, new_h)
+                    elif action == 'shift_down':
+                        ny = cb.y + cb.height + eps
+                # Re-clamp into area after adjustment
+                nx = min(max(nx, area_b.x), area_b.x + max(0.0, area_b.width - w))
+                ny = min(max(ny, area_b.y), area_b.y + max(0.0, area_b.height - h))
+            guard += 1
+
         return SpatialBounds(nx, ny, w, h)
 
     def _compute_border_hook(self, rect: 'SpatialBounds', from_pt: Tuple[float, float]) -> Tuple[float, float]:
@@ -929,10 +2036,10 @@ class SpatialCorrespondenceEngine:
                     vertex_to_edges[vertex_id] = []
                 vertex_to_edges[vertex_id].append(edge.id)
         
-        # Create ligatures for vertices connected to multiple edges
+        # Create ligatures for vertices connected to at least one edge
         ligature_counter = 1
         for vertex_id, connected_edges in vertex_to_edges.items():
-            if len(connected_edges) > 1:  # Vertex appears in multiple relations
+            if len(connected_edges) >= 1:  # Vertex participates in at least one relation
                 ligature_id = f"ligature_{ligature_counter}"
                 ligatures[ligature_id] = [vertex_id]  # The shared vertex
                 ligature_counter += 1
@@ -1003,37 +2110,47 @@ class SpatialCorrespondenceEngine:
                 dest_bounds = self.correspondence.area_mappings.get(edge_area)
                 if dest_bounds:
                     pred = dest_bounds.center()
-            # For same-area, ensure target is outside child cuts too
-            if eff_obstacles:
-                pred = self._pick_safe_point_in_area(vertex_area, layout, pred)
-            # Route from center to predicate target using effective obstacles
-            segment_path = self._visibility_route((base_x, base_y), pred, eff_obstacles)
+                    # Insert explicit boundary waypoint at the cut border to preserve the crossing
+                    hit = self._segment_rect_intersection_point(
+                        (base_x, base_y), pred, (dest_bounds.x, dest_bounds.y, dest_bounds.width, dest_bounds.height)
+                    )
+                    if hit is not None:
+                        segment_path = [(base_x, base_y), hit, pred]
+                    else:
+                        segment_path = [(base_x, base_y), pred]
+                else:
+                    # No bounds yet; fallback to straight segment
+                    segment_path = [(base_x, base_y), pred]
+            else:
+                # For same-area, ensure target is outside child cuts too
+                if eff_obstacles:
+                    pred = self._pick_safe_point_in_area(vertex_area, layout, pred)
+                # Route from center to predicate target using effective obstacles
+                segment_path = self._visibility_route((base_x, base_y), pred, eff_obstacles)
             path_points.extend(segment_path)
         
-        # Optional debug: obstacles and path
-        if os.environ.get('ARISBE_DEBUG_ROUTING') == '1':
-            try:
-                print('[DEBUG] lig_area=', lig_area)
-                print('[DEBUG] obstacles=', obstacles)
-                print('[DEBUG] path_points(before ensure)=', path_points)
-            except Exception:
-                pass
+        # Debug logging removed for quiet output by default. Use ARISBE_DEBUG_ROUTING to re-enable locally.
         # Ensure we have at least a basic path
         if not path_points:
             path_points = [(base_x, base_y), (base_x + 50, base_y)]
-        if os.environ.get('ARISBE_DEBUG_ROUTING') == '1':
-            try:
-                print('[DEBUG] path_points(final)=', path_points)
-            except Exception:
-                pass
+        # Debug logging removed for quiet output by default. Use ARISBE_DEBUG_ROUTING to re-enable locally.
         
         return path_points
 
     # --- Routing helpers to avoid cut rectangles ---
     def _visibility_route(self, start: Tuple[float, float], end: Tuple[float, float],
                           obstacles: List[Tuple[float, float, float, float]]) -> List[Tuple[float, float]]:
-        """Route a polyline from start to end avoiding rectangular obstacles using
-        a simple visibility-graph with padded obstacle corners."""
+        """Route a polyline from start to end avoiding rectangular obstacles.
+        Prefer pyvisgraph if available; otherwise use built-in light visibility routing.
+        """
+        # First, try pyvisgraph-backed router if available
+        try:
+            if self._pv_router is not None:
+                routed = self._pv_router.route(start, end, obstacles)
+                if routed:
+                    return routed
+        except Exception:
+            pass
         if not any(self._segment_intersects_rect(start, end, r) for r in obstacles):
             return [start, end]
         pad = 18.0
@@ -1124,6 +2241,38 @@ class SpatialCorrespondenceEngine:
         if o3 == 0 and on_seg(q1, q2, p1): return True
         if o4 == 0 and on_seg(q1, q2, p2): return True
         return (o1 > 0) != (o2 > 0) and (o3 > 0) != (o4 > 0)
+
+    def _segment_rect_intersection_point(self, p1: Tuple[float, float], p2: Tuple[float, float],
+                                         rect: Tuple[float, float, float, float]) -> Tuple[float, float] | None:
+        """Return a single intersection point of segment p1-p2 with rectangle rect if any.
+        Chooses the first edge that intersects.
+        """
+        x, y, w, h = rect
+        rx1, ry1, rx2, ry2 = x, y, x + w, y + h
+        edges = [((rx1, ry1), (rx2, ry1)), ((rx2, ry1), (rx2, ry2)), ((rx2, ry2), (rx1, ry2)), ((rx1, ry2), (rx1, ry1))]
+        for a, b in edges:
+            pt = self._segment_intersection_point(p1, p2, a, b)
+            if pt is not None:
+                return pt
+        return None
+
+    def _segment_intersection_point(self, p1: Tuple[float, float], p2: Tuple[float, float],
+                                    q1: Tuple[float, float], q2: Tuple[float, float]) -> Tuple[float, float] | None:
+        """Compute intersection point of segments p1-p2 and q1-q2 if they intersect; else None."""
+        x1, y1 = p1
+        x2, y2 = p2
+        x3, y3 = q1
+        x4, y4 = q2
+        denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        if denom == 0:
+            return None
+        t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+        u = ((x1 - x3) * (y1 - y2) - (y1 - y3) * (x1 - x2)) / denom
+        if 0.0 <= t <= 1.0 and 0.0 <= u <= 1.0:
+            ix = x1 + t * (x2 - x1)
+            iy = y1 + t * (y2 - y1)
+            return (ix, iy)
+        return None
     
     def _interpolate_path(self, path: List[Tuple[float, float]], position: float) -> Tuple[float, float]:
         """Interpolate position along path."""
@@ -1399,6 +2548,53 @@ class SpatialCorrespondenceEngine:
                     adjusted = SpatialBounds(adjusted.x, adjusted.y + step, adjusted.width, adjusted.height)
                 guard += 1
         return adjusted
+    
+    def _assert_path_within_area(self, path: List[Tuple[float, float]], area_id: str, *, allowed_child: Optional[str] = None, allow_last_inside_child: bool = False) -> None:
+        """Fail-closed validator: assert that every point of the polyline lies within
+        the logical area bounds (if any) and outside the interiors of all child cuts of that area.
+
+        Points on borders are allowed within a small epsilon.
+        Raises AssertionError on violation.
+        """
+        if not path:
+            raise AssertionError("Empty path is invalid for area validation")
+        eps = 1e-6
+        eps_area = 0.5  # allow tiny overshoot when checking area bounds
+        # Area bounds (may be None for sheet)
+        area_bounds = self.correspondence.area_mappings.get(area_id)
+        # Collect child cut rects (direct children only) and track mapping from id -> rect
+        child_rects: List[Tuple[str, SpatialBounds]] = []
+        for c in self.egi.Cut:
+            if self._determine_cut_parent_area(c.id) == area_id:
+                b = self.correspondence.area_mappings.get(c.id)
+                if b:
+                    child_rects.append((c.id, b))
+        def point_in_rect_strict(px: float, py: float, r: SpatialBounds) -> bool:
+            return (r.x + eps < px < r.x + r.width - eps) and (r.y + eps < py < r.y + r.height - eps)
+        def point_in_rect_with_border(px: float, py: float, r: SpatialBounds) -> bool:
+            return (r.x - eps_area <= px <= r.x + r.width + eps_area) and (r.y - eps_area <= py <= r.y + r.height + eps_area)
+        # Check each waypoint
+        for idx, (px, py) in enumerate(path):
+            # Must be inside area bounds if area is bounded
+            if area_bounds is not None and not point_in_rect_with_border(px, py, area_bounds):
+                # If we have an allowed child, and the point is inside that child (with border), accept
+                if allow_last_inside_child and allowed_child is not None:
+                    for cid, r in child_rects:
+                        if cid == allowed_child and point_in_rect_with_border(px, py, r):
+                            break
+                    else:
+                        raise AssertionError("Path leaves its logical area bounds")
+                else:
+                    raise AssertionError("Path leaves its logical area bounds")
+            # Must not be strictly inside any child cut
+            for cid, r in child_rects:
+                inside = point_in_rect_strict(px, py, r)
+                if not inside:
+                    continue
+                # Allow entering a specific child cut if configured
+                if allow_last_inside_child and allowed_child is not None and cid == allowed_child:
+                    continue
+                raise AssertionError("Path enters child cut interior")
     
     def _extend_ligature(self, ligature_id: str, new_vertex_id: str) -> bool:
         """Extend ligature with new vertex per Lemma 16.2."""

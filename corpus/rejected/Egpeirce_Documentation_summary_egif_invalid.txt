@@ -1,0 +1,101 @@
+== CGIF-related snippets ==
+\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=10,angleB=135]{3}{5}
+\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=-10,angleB=225]{4}{7}
+\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=315,angleB=45]{5}{6}
+\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=225,angleB=45]{6}{4}
+\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=315,angleB=135]{-b}{3}{6}
+\nccurve[linewidth=\ligaturewidth,linecolor=\licolour,angleA=315,angleB=45]{b-}{6}{7}
+=45]{-g}{5}{6}
+=45]{g-}{6}{4}
+135]{3}{6}
+=45]{6}{7}
+2 Pronounced ["lA:tEX]/["leıtEX], roughly
+An {\it example} graph: \cut{ <space> }
+An example graph:
+reserved special characters. They are: #, $, %, &, {, }, \, ^, _ and ~. If
+The most interesting special character is the backslash: \ . Among
+by using the brackets to deﬁne the argument: \textit{italicize}.
+Generally speaking, then, a full LATEX command follows the form:
+\commandname[<opt. arg1>,<opt. arg2>,. . . ]{<arg1>}{<arg2>} . . . {<arg8>}.
+Both match the dimensions of their argument exactly: \vphantom{}
+halved unless you set it to another value, e.g. \begin{inline}[0.3]. . .
+should specify space even inside an empty cut: \cut{}, \cut{ \ \ }.
+Cuts can be nested arbitrarily many times by simply nesting the commands: \cut{\cut{<text>}}.
+be declared at every level. So: \ontop{\cut{A}\\ \cut{B}\\ \cut{C}}
+but when nested: \cut{\ontop{A\\ \cut{\ontop{B\\ \cut{C}}}}}
+draws a small scroll. For the vertically aligned, use: \vscroll{A}{B}.
+commands: \inversescroll{}{} and \inversevscroll{}{}.
+scroll exists as well: \longvscroll{Antecedent}{The consequent}.
+accepts one nonempty argument and the inloops are fed as a commaseparated list: \nscroll{A,B}, \nscroll{A,B,C}, \nscroll{A,B,C,D}.
+Unfortunately, if the list elements contain (1) more than one character, (2) any commands or (3) math mode code, they must be regrouped twice: {{ . . . }} (see the code examples in the margin). This
+\pgffor-loop interacting. To any TEXnicians reading this: it would
+\nscroll{A,B,[0.75][0.52]
+\nscroll{A,B,[0.67][0.42]
+iterated scrolls have an unexpected side-effect: see the ‘third point’
+So, for the α-system, there are the following basic commands:
+\begin[]{inline} ... \end{inline}
+other in the middle: \hk{A} \ontop{\hk{B}\\\hk{C}} \hk{D}.
+The ligatures of the example graph are drawn with the commands:
+\li[-]{1}{2}
+\li[-g]{1}{2}
+\li[-]{1}{2}
+\li[-g]{1}{2}
+\li[-g]{1}{2}
+\li[-]{2}{3}
+\li[-]{2}{3}
+\li[g-]{2}{3}
+\li[g-]{2}{3}
+\li[g-g]{2}{3}
+proofs. Therefore the shorthands accept an optional argument [-g],
+[g-] or [g-g] that leaves a small gap before the hook. The placement
+alter the interpretation of the graph. Peirce solved this in two ways:
+carets to denote the overlap point. The optional arguments [-b]
+and [-xb]—which behave otherwise similarly to a gap—draw them.
+curve methods available in PSTricks:
+from the letter to the ligature or to the letter from the ligature are:
+{\pscurve[variableLW,startLW=0.1pt,endLW=1.3pt](0.16,0.17)(0.09,0.16)(0.05,0.092)(-0.01,0.075) \ }
+\newcommand{\lifroml}{\pscurve[variableLW,startLW=0.1pt,endLW=1.3pt](0.00,0.03)(0.023,0.065)(0.07,0.08)(0.11,0.075) \ }
+right next to the cut (or scroll): \hk{}\cut{<text>}. To stop a ligature at the top or bottom of a cut, ﬁrst use the inline environment to
+The counter can be manually reset by: \setcounter{rheme}{<z>}.
+For the β-system, there are thus the commands:
+part of γ-graphs are the commands \dbcut{}:
+\ncut{}:
+, \pcut{}:
+Peirce’s manuscripts:
+By default, the command does nothing and it’s deﬁnition is:
+\newcommand{\everygraphhook}[1]{#1}
+changthe inline-environment:
+and the graph is inline, \begin{inline}[0.33] is declared—the 0.33
+this the ﬁnal downright curve would look strange:
+\begin{inline}[0.33]\hk{A} \ \,\raisebox{2pt}{\hk{}} \ontop{
+The ligature is drawn with:
+This example highlights a difﬁculty: the code is necessarily linear,
+curved: the lone hook could have been replaced with two ontop. &c.
+Alternatively you could add a \vphantom{b} to the ﬁrst cut: a
+ontopr automatically aligns the rightmost hooks:
+leftmost lis are drawn with an alternative argument [c-], which
+and automatically identiﬁes the six points as: <ref>-tl, <ref>-tr,
+\DefNodes{A}{Ω}: ΩA-tl
+In a simple connect-the-dots kind of way, the cut is drawn with:
+\psccurve[curvature=1 0 0](A-tl)(A-tr)(D-br)(C-bl)(B-bl)(B-br)(C-br)(D-bl)
+mentioned above: (A-\egatn-tr)(D\egatn-br) . . . See e.g. page 20.
+altered to make the intersection points more distinct:
+\psccurve[curvature=1 0.5 0.5](A-mr)(C-br)(C-bl)(C-tl)(C-tr)(C-br)
+Linestretch is set to 0.5, ontopl takes care of initial alignment:
+The cut is deﬁned by the sequence: (A-bl)(A-br)(E-br)(E-bl)
+\pspolygon[linearc=0.18]
+\psccurve[curvature=1 0 0]
+\psccurve[curvature=0.6 -1 -1]
+line with it:
+a continuous-looking line:
+The command for the zigzag curve in the longscroll is:
+\pstextpath[c](0,0){\psline[linearc=.18,linestyle=none]
+For the normal scroll, replace the \psline with a \pscurve[curvatu
+re=1 0 0,arcsep=10pt,linestyle=none].
+made to emanate from the middle of the line (with the [c] option).
+This is an ugly hack: it does the trick, albeit not very elegantly.
+to be at -0.26,-0.32, so \psccurve[curvature=1 0 0,linewidth=.2
+pt,fillstyle=solid,fillcolor=black](-0.26,-0.32)(C\egatn-bl)
+(B\egatn-ml)(B\egatn-mr)(C\egatn-br)(-0.26,-0.32) ﬁlls the cut:
+deﬁned. The \nccurve[]{}{} command does this.
+The bridged parts of the example are drawn with the commands:

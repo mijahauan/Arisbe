@@ -2,6 +2,88 @@
 
 A mathematically rigorous implementation of Charles Sanders Peirce's Existential Graphs based on Frithjof Dau's formal mathematical framework. Arisbe provides a complete pipeline for creating, editing, transforming, and visualizing Existential Graph diagrams with strict adherence to logical formalism and Peircean conventions.
 
+## State of Affairs (25 August 2025)
+
+This project is in an intentional refocus phase toward a strict layered architecture and a lighter, more responsive GUI sandbox for interaction research:
+
+- **Architecture (refined):**
+  - EGI (canonical logic, immutable) → Layout/Spatial → Rendering → Interaction.
+  - Meaning-preserving edits are presentation deltas; meaning-changing edits are explicit EGI ops.
+  - Ligatures are single continuous lines; same-area ligatures avoid collisions; cross-area ligatures may cross cuts.
+- **Working GUI (sandbox):** `tools/drawing_editor.py`
+  - Add cuts/vertices/predicates, delete selections, attach ligatures.
+  - Drag and resize cuts with 8 handles; constraints: cuts must be nested or disjoint.
+  - Interaction throttling and deferred validation to prevent stalls; stdout logs for actions to diagnose hangs.
+- **Three components roadmap:**
+  - **Organon (Browser):** canonical EGDF viewing of EGI.
+  - **Ergasterion (Workshop):** composition/practice with constraint enforcement and Chapter 16 transformations.
+  - **Agon (Endoporeutic Game):** gameplay built on legal meaning-preserving moves.
+
+This section supersedes older references to legacy GUI entry points and mixed-concern modules; the new sandbox is the primary surface for interactive work.
+
+### Architecture (Layered Model)
+
+```mermaid
+flowchart TD
+    A[EGI: Canonical Logical Graph\nV, E, ν, ⊤, Cuts, area, rel\n(immutable)] --> B[Layout/Spatial\nCompute positions/sizes\nsubject to constraints]
+    B --> C[Rendering\nQt/PySide6 drawing\nstyles applied]
+    C --> D[Interaction\nUser actions\n(meaning-preserving vs EGI ops)]
+
+    subgraph Principles
+      P1[Ligatures are single continuous lines]
+      P2[Same-area ligatures avoid collisions]
+      P3[Cross-area ligatures may cross cuts]
+      P4[Cuts: nested or disjoint; no partial overlaps]
+    end
+
+    B -. respects .-> P4
+    C -. respects .-> P1
+    C -. respects .-> P2
+    C -. respects .-> P3
+
+    subgraph Tooling
+      T1[tools/drawing_editor.py\nInteraction sandbox]
+      T2[src/routing/visibility_router.py]
+      T3[src/styling/style_manager.py]
+      T4[src/export/tikz_exporter.py]
+    end
+
+    D --> T1
+    B --> T2
+    C --> T3
+    C --> T4
+```
+
+### Components Roadmap
+
+#### Organon (Browser)
+
+- **Goal**: Deterministic, canonical viewing of EGIs via EGDF.
+- **Scope**: Read-only; ensures logical-visual fidelity without editing side-effects.
+- **Current**: Preview scaffolding exists; canonicalization planned (EGDF generator).
+- **Near-term milestones**:
+  - EGDF generator from EGI with invariants and hashes.
+  - Read-only browser pane rendering canonical diagrams.
+  - Corpus browser wired to canonical views.
+
+#### Ergasterion (Workshop)
+
+- **Current**: `tools/drawing_editor.py` supports adding cuts/vertices/predicates, ligatures, deletion; drag/resize with constraints, throttled interactions, stdout diagnostics.
+- **Near-term milestones**:
+  - Full EGI↔spatial Correspondence Layer API with validators.
+  - Collision-aware ligature routing (single-curve, same-area avoidance).
+  - Presentation delta storage and replay.
+  - Chapter 16 transform palette (meaning-preserving/revealing) with legality checks.
+
+#### Agon (Endoporeutic Game)
+
+- **Goal**: Play based on Chapter 16 legal moves and goals; track proofs and strategies.
+- **Foundation**: Constraint-enforced edits, single-line ligature principle, and diagnostics.
+- **Near-term milestones**:
+  - Formal move set and legality engine over EGI.
+  - Turn/score mechanics and UI affordances for legal moves.
+  - Integration with Ergasterion’s transform palette.
+
 ## Current Status (14 August 2025)
 
 **Core Pipeline: COMPLETE ✅**
@@ -33,14 +115,14 @@ A mathematically rigorous implementation of Charles Sanders Peirce's Existential
 
 ### Installation
 ```bash
-git clone https://github.com/mjhaugsdal/Arisbe.git
+git clone https://github.com/mjhauan/Arisbe.git
 cd Arisbe
 pip install -r requirements.txt
 ```
 
 ### Run the Application
 ```bash
-python arisbe_eg_clean.py
+python tools/drawing_editor.py
 ```
 
 This launches the three-area interface:
@@ -314,6 +396,27 @@ python test_phase1d_comprehensive.py
 python test_dau_convention_validation.py
 ```
 
+### Corpus conversion and validation (goldens)
+
+Tools in `tools/` provide deterministic conversion and corpus checks for EGIF/CGIF/CLIF linear forms.
+
+```bash
+# Convert between EGIF/CGIF/CLIF (auto-detects by extension unless --from provided)
+python tools/convert_linear_form.py --in corpus/corpus/canonical/sowa_cat_on_mat.egif --to cgif --stdout
+
+# Validate the corpus against goldens (canonical and scholars)
+# Fails on any mismatch between regenerated output and files in-place
+python tools/validate_corpus_linear_forms.py
+
+# Rewrite goldens in-place to current deterministic output (use with care)
+# Default target is 'canonical'; pass 'scholars' or 'all' to broaden scope
+python tools/rewrite_linear_goldens.py            # canonical only
+python tools/rewrite_linear_goldens.py scholars   # only scholars
+python tools/rewrite_linear_goldens.py all        # canonical + scholars
+```
+
+CI runs `tools/validate_corpus_linear_forms.py` on every push/PR (see `.github/workflows/canonical.yml`). Any mismatch will fail the job to preserve deterministic goldens.
+
 ## Development and Testing
 
 ```bash
@@ -328,6 +431,61 @@ python validate_qt_dau_rendering.py
 
 # Test API contracts
 python test_api_contracts.py
+```
+
+### Temporary note: GUI demos disabled
+
+The Qt demo entry points `src/qt_test_minimal.py` and `src/corpus_egi_test.py` are temporarily disabled while the headless EGI↔spatial adapter is stabilized. Please run the headless tests instead:
+
+```bash
+pytest -q
+```
+
+### Drawing → EGI (headless)
+
+Arisbe supports constructing a Dau-compliant EGI from simple drawing primitives using `drawing_to_relational_graph()` in `src/drawing_to_egi_adapter.py`.
+
+Schema (JSON):
+
+```json
+{
+  "sheet_id": "S",
+  "cuts": [ { "id": "c1", "parent_id": "S" } ],
+  "vertices": [ { "id": "v1", "area_id": "c1" } ],
+  "predicates": [ { "id": "e1", "name": "P", "area_id": "c1" } ],
+  "ligatures": [ { "edge_id": "e1", "vertex_ids": ["v1"] } ]
+}
+```
+
+- `area_id` must be either `sheet_id` or a cut id.
+- `parent_id` must be `sheet_id` or a cut id.
+
+CLI helper:
+
+```bash
+python tools/drawing_to_egi.py --input example_drawing.json --layout
+```
+
+This prints a summary of V, E, Cut, area containment, and optionally attempts a headless spatial layout.
+
+## Debug Logging
+
+To keep output quiet by default, debug prints are gated behind environment variables:
+
+- ARISBE_DEBUG_EGI=1: Enables EGI/region debug logs in `src/egi_system.py`, `src/egi_graph_operations.py`, and `src/spatial_region_manager.py`.
+- ARISBE_DEBUG_ROUTING=1: Enables routing diagnostics in `src/egi_spatial_correspondence.py`.
+
+Examples:
+
+```bash
+# Enable EGI debug logs for one run
+ARISBE_DEBUG_EGI=1 python -m pytest -q
+
+# Enable routing diagnostics for scene generation
+ARISBE_DEBUG_ROUTING=1 python arisbe_eg_clean.py
+
+# Combine both
+ARISBE_DEBUG_EGI=1 ARISBE_DEBUG_ROUTING=1 python -m pytest -q
 ```
 
 ## Contributing

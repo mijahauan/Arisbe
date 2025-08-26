@@ -1,0 +1,39 @@
+{
+  "id": "roberts_domain_modeling",
+  "category": "scholars",
+  "title": "Roberts' Domain Modeling Example",
+  "description": "Complex domain model demonstrating inheritance, multiple relations, and professional hierarchies",
+  "source": {
+    "author": "Don D. Roberts",
+    "work": "The Existential Graphs of Charles S. Peirce",
+    "year": 1973,
+    "page": "Chapter on Complex Relations",
+    "publisher": "Mouton, The Hague"
+  },
+  "logical_form": "∀x(Professor(x) → (Person(x) ∧ ∃y(Course(y) ∧ Teaches(x,y)) ∧ ∃z(Student(z) ∧ Has(x,z))))",
+  "natural_language": "Every professor is a person who teaches courses and has students",
+  "complexity": {
+    "nesting_depth": 2,
+    "entity_count": 3,
+    "predicate_count": 6,
+    "cut_count": 2
+  },
+  "test_rationale": "Tests domain modeling capabilities, multiple existential quantifiers, and complex conjunctions",
+  "epg_features": {
+    "is_starting_position": true,
+    "valid_transformations": [
+      "insertion",
+      "iteration"
+    ],
+    "invalid_transformations": [
+      "deletion"
+    ]
+  },
+  "authority_level": "high",
+  "difficulty": "medium",
+  "provenance_notes": "Derived from Don D. Roberts The Existential Graphs of Charles S. Peirce",
+  "topic_tags": [
+    "roles",
+    "typing"
+  ]
+}

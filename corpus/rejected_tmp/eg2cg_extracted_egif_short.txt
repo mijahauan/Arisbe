@@ -1,0 +1,1 @@
+(exists ((p Proposition)) (and (p) (= p (that (not (p))))))

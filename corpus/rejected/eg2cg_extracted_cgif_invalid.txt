@@ -1,0 +1,1 @@
+[@*u [Farmer ?u] [Donkey *v] (Owns ?u ?v): @every*x] (Beats ?x ?v)
