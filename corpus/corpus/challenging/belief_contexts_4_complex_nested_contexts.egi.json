@@ -1,0 +1,171 @@
+{
+  "Cut": [
+    {
+      "id": "c_17b4bf37"
+    },
+    {
+      "id": "c_1fe912ec"
+    },
+    {
+      "id": "c_6db007d6"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_3f66615c"
+    },
+    {
+      "id": "e_6a55afe2"
+    },
+    {
+      "id": "e_77ce1860"
+    },
+    {
+      "id": "e_7c2940d1"
+    },
+    {
+      "id": "e_88baac31"
+    },
+    {
+      "id": "e_c64564be"
+    },
+    {
+      "id": "e_d20d8a86"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_4b202f29",
+      "is_generic": false,
+      "label": "Bob"
+    },
+    {
+      "id": "v_8457426d",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_b5238fe7",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_b936a071",
+      "is_generic": false,
+      "label": "Alice"
+    },
+    {
+      "id": "v_e4e94f27",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_e6a0da39",
+      "is_generic": false,
+      "label": "Carol"
+    },
+    {
+      "id": "v_f5d57925",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Alice",
+      "Bob",
+      "Carol"
+    ],
+    "F": [],
+    "R": [
+      "Believes",
+      "Knows",
+      "Person",
+      "Thinks",
+      "Truth"
+    ],
+    "ar": {
+      "Alice": 1,
+      "Believes": 1,
+      "Bob": 1,
+      "Carol": 1,
+      "Knows": 2,
+      "Person": 2,
+      "Thinks": 1,
+      "Truth": 1
+    }
+  },
+  "area": {
+    "c_17b4bf37": [
+      "e_77ce1860"
+    ],
+    "c_1fe912ec": [
+      "c_6db007d6",
+      "e_6a55afe2"
+    ],
+    "c_6db007d6": [
+      "c_17b4bf37",
+      "e_3f66615c"
+    ],
+    "sheet_8704aa32": [
+      "c_1fe912ec",
+      "e_7c2940d1",
+      "e_88baac31",
+      "e_c64564be",
+      "e_d20d8a86",
+      "v_4b202f29",
+      "v_8457426d",
+      "v_b5238fe7",
+      "v_b936a071",
+      "v_e4e94f27",
+      "v_e6a0da39",
+      "v_f5d57925"
+    ]
+  },
+  "nu": {
+    "e_3f66615c": [
+      "v_b5238fe7"
+    ],
+    "e_6a55afe2": [
+      "v_f5d57925"
+    ],
+    "e_77ce1860": [
+      "v_e4e94f27",
+      "v_8457426d"
+    ],
+    "e_7c2940d1": [
+      "v_8457426d"
+    ],
+    "e_88baac31": [
+      "v_e4e94f27",
+      "v_e6a0da39"
+    ],
+    "e_c64564be": [
+      "v_f5d57925",
+      "v_b936a071"
+    ],
+    "e_d20d8a86": [
+      "v_b5238fe7",
+      "v_4b202f29"
+    ]
+  },
+  "rel": {
+    "e_3f66615c": "Believes",
+    "e_6a55afe2": "Thinks",
+    "e_77ce1860": "Knows",
+    "e_7c2940d1": "Truth",
+    "e_88baac31": "Person",
+    "e_c64564be": "Person",
+    "e_d20d8a86": "Person"
+  },
+  "rho": {
+    "v_4b202f29": "Bob",
+    "v_8457426d": null,
+    "v_b5238fe7": null,
+    "v_b936a071": "Alice",
+    "v_e4e94f27": null,
+    "v_e6a0da39": "Carol",
+    "v_f5d57925": null
+  },
+  "sheet": "sheet_8704aa32"
+}

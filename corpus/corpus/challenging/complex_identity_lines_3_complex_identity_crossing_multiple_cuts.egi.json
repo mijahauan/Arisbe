@@ -1,0 +1,93 @@
+{
+  "Cut": [
+    {
+      "id": "c_a25c4993"
+    },
+    {
+      "id": "c_d42029be"
+    },
+    {
+      "id": "c_d7f3d06a"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_5ad15e4a"
+    },
+    {
+      "id": "e_a5420feb"
+    },
+    {
+      "id": "e_c582b746"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_17e3da4f",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_638c4a46",
+      "is_generic": false,
+      "label": "John"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "John"
+    ],
+    "F": [],
+    "R": [
+      "Happy",
+      "Person",
+      "Sad"
+    ],
+    "ar": {
+      "Happy": 1,
+      "John": 1,
+      "Person": 2,
+      "Sad": 1
+    }
+  },
+  "area": {
+    "c_a25c4993": [
+      "e_5ad15e4a"
+    ],
+    "c_d42029be": [
+      "c_a25c4993",
+      "c_d7f3d06a"
+    ],
+    "c_d7f3d06a": [
+      "e_c582b746"
+    ],
+    "sheet_66c893cc": [
+      "c_d42029be",
+      "e_a5420feb",
+      "v_17e3da4f",
+      "v_638c4a46"
+    ]
+  },
+  "nu": {
+    "e_5ad15e4a": [
+      "v_17e3da4f"
+    ],
+    "e_a5420feb": [
+      "v_17e3da4f",
+      "v_638c4a46"
+    ],
+    "e_c582b746": [
+      "v_17e3da4f"
+    ]
+  },
+  "rel": {
+    "e_5ad15e4a": "Happy",
+    "e_a5420feb": "Person",
+    "e_c582b746": "Sad"
+  },
+  "rho": {
+    "v_17e3da4f": null,
+    "v_638c4a46": "John"
+  },
+  "sheet": "sheet_66c893cc"
+}

@@ -20,7 +20,7 @@ import uuid
 from frozendict import frozendict
 import os
 
-from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, create_empty_graph
+from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, AlphabetDAU, create_empty_graph
 
 
 @dataclass
@@ -159,6 +159,83 @@ class DeleteElement(EGIOperation):
     def apply(self, egi: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
         # Delegate to immutable helper on the core graph
         return egi.without_element(self.element_id)
+
+
+class RenameVertex(EGIOperation):
+    """Rename a vertex as constant or variable, updating rho and alphabet.
+    - If is_constant: set rho[vid]=name, ensure name ∈ C and ar(name)=1, set vertex non-generic with label=name
+    - If not is_constant: set rho[vid]=None, set vertex generic with no label (do not remove name from C)
+    """
+    def __init__(self, vertex_id: str, new_text: str, is_constant: bool):
+        self.vertex_id = vertex_id
+        self.new_text = new_text
+        self.is_constant = is_constant
+
+    @staticmethod
+    def _unquote(s: str) -> str:
+        s = s.strip()
+        if len(s) >= 2 and ((s[0] == '"' and s[-1] == '"') or (s[0] == "'" and s[-1] == "'")):
+            return s[1:-1]
+        return s
+
+    def validate(self, egi: RelationalGraphWithCuts) -> bool:
+        # Vertex must exist
+        return any(v.id == self.vertex_id for v in egi.V)
+
+    def apply(self, egi: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
+        if not any(v.id == self.vertex_id for v in egi.V):
+            raise ValueError(f"Vertex {self.vertex_id} not found")
+
+        new_name = self._unquote(self.new_text)
+
+        # Prepare updated vertex set
+        old_v = next(v for v in egi.V if v.id == self.vertex_id)
+        if self.is_constant:
+            # Disjointness: constant name must not collide with relation names
+            alph = egi.alphabet or AlphabetDAU()
+            if new_name in (alph.R or frozenset()) or new_name in (alph.F or frozenset()):
+                raise ValueError(f"Constant '{new_name}' collides with relation/function names in Alphabet")
+            # Build new vertex as non-generic with label
+            new_vertex = Vertex(id=old_v.id, label=new_name, is_generic=False)
+        else:
+            # Variable: generic with no label
+            new_vertex = Vertex(id=old_v.id, label=None, is_generic=True)
+
+        new_V = frozenset((new_vertex if v.id == self.vertex_id else v) for v in egi.V)
+
+        # Update rho
+        new_rho = dict(egi.rho)
+        new_rho[self.vertex_id] = new_name if self.is_constant else None
+
+        # Update alphabet: ensure constants include new_name and ar(new_name)=1 when constant
+        if egi.alphabet is None:
+            alph = AlphabetDAU()
+        else:
+            alph = egi.alphabet
+
+        if self.is_constant:
+            new_C = set(alph.C)
+            new_C.add(new_name)
+            new_ar = dict(alph.ar)
+            if new_ar.get(new_name, 1) != 1:
+                new_ar[new_name] = 1
+            new_alphabet = AlphabetDAU(C=frozenset(new_C), F=alph.F, R=alph.R, ar=frozendict(new_ar)).with_defaults()
+        else:
+            # Keep alphabet unchanged to remain stable
+            new_alphabet = alph
+
+        # Return new graph (core will validate)
+        return RelationalGraphWithCuts(
+            V=new_V,
+            E=egi.E,
+            nu=egi.nu,
+            sheet=egi.sheet,
+            Cut=egi.Cut,
+            area=egi.area,
+            rel=egi.rel,
+            alphabet=new_alphabet,
+            rho=frozendict(new_rho)
+        )
 
 
 class VisualConformanceValidator:
@@ -476,6 +553,10 @@ class EGISystem:
     
     def delete_element(self, element_id: str) -> OperationResult:
         return self.repository.apply(DeleteElement(element_id))
+
+    def rename_vertex(self, vertex_id: str, new_text: str, is_constant: bool) -> OperationResult:
+        """Rename vertex and set/unset as constant with alphabet/rho updates."""
+        return self.repository.apply(RenameVertex(vertex_id, new_text, is_constant))
 
     # --- Loading / replacing EGI from linear forms ---
     def replace_egi(self, new_egi: RelationalGraphWithCuts) -> None:

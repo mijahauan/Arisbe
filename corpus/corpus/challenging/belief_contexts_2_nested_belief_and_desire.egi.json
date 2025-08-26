@@ -1,0 +1,146 @@
+{
+  "Cut": [
+    {
+      "id": "c_30a100f0"
+    },
+    {
+      "id": "c_486bcb87"
+    },
+    {
+      "id": "c_cbed8d13"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_35cb82cc"
+    },
+    {
+      "id": "e_4a6ea758"
+    },
+    {
+      "id": "e_4ede70eb"
+    },
+    {
+      "id": "e_5f1e338f"
+    },
+    {
+      "id": "e_792abfc6"
+    },
+    {
+      "id": "e_de8ef773"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_31e3d8ba",
+      "is_generic": false,
+      "label": "Tom"
+    },
+    {
+      "id": "v_6babaf7f",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_b994b8c8",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_c0d0aa63",
+      "is_generic": false,
+      "label": "Mary"
+    },
+    {
+      "id": "v_eeda8d2d",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Mary",
+      "Tom"
+    ],
+    "F": [],
+    "R": [
+      "Believes",
+      "Marries",
+      "Person",
+      "Sailor",
+      "Wants"
+    ],
+    "ar": {
+      "Believes": 1,
+      "Marries": 2,
+      "Mary": 1,
+      "Person": 2,
+      "Sailor": 1,
+      "Tom": 1,
+      "Wants": 1
+    }
+  },
+  "area": {
+    "c_30a100f0": [
+      "c_486bcb87",
+      "e_5f1e338f"
+    ],
+    "c_486bcb87": [
+      "c_cbed8d13",
+      "e_4ede70eb"
+    ],
+    "c_cbed8d13": [
+      "e_792abfc6"
+    ],
+    "sheet_c9df5cec": [
+      "c_30a100f0",
+      "e_35cb82cc",
+      "e_4a6ea758",
+      "e_de8ef773",
+      "v_31e3d8ba",
+      "v_6babaf7f",
+      "v_b994b8c8",
+      "v_c0d0aa63",
+      "v_eeda8d2d"
+    ]
+  },
+  "nu": {
+    "e_35cb82cc": [
+      "v_6babaf7f",
+      "v_c0d0aa63"
+    ],
+    "e_4a6ea758": [
+      "v_eeda8d2d"
+    ],
+    "e_4ede70eb": [
+      "v_6babaf7f"
+    ],
+    "e_5f1e338f": [
+      "v_b994b8c8"
+    ],
+    "e_792abfc6": [
+      "v_6babaf7f",
+      "v_eeda8d2d"
+    ],
+    "e_de8ef773": [
+      "v_b994b8c8",
+      "v_31e3d8ba"
+    ]
+  },
+  "rel": {
+    "e_35cb82cc": "Person",
+    "e_4a6ea758": "Sailor",
+    "e_4ede70eb": "Wants",
+    "e_5f1e338f": "Believes",
+    "e_792abfc6": "Marries",
+    "e_de8ef773": "Person"
+  },
+  "rho": {
+    "v_31e3d8ba": "Tom",
+    "v_6babaf7f": null,
+    "v_b994b8c8": null,
+    "v_c0d0aa63": "Mary",
+    "v_eeda8d2d": null
+  },
+  "sheet": "sheet_c9df5cec"
+}

@@ -106,14 +106,24 @@ class EGIFGenerator:
             edge_ctx = self.graph.get_context(edge_id)
             for vid in vseq:
                 if vid in self.graph._vertex_map:
-                    vobj = self.graph.get_vertex(vid)
-                    if vobj.is_generic:
+                    # Treat as generic if not labeled as a constant in rho
+                    if not self._is_constant_vertex(vid):
                         uses_by_vertex.setdefault(vid, []).append(edge_ctx)
 
-        # Assign definition context
+        # Assign definition context, respecting vertex placement
+        # Include the vertex's own context among its usage contexts so that
+        # a vertex drawn on the sheet but used inside a cut is defined on
+        # the least common ancestor of (vertex_area, all use areas) — i.e.,
+        # the sheet in that case — instead of being pulled inside the cut.
         self.vertex_def_context.clear()
         for vid, ctxs in uses_by_vertex.items():
-            self.vertex_def_context[vid] = lca(ctxs)
+            v_area = self.graph.get_context(vid)
+            # Some graphs may return None for sheet; normalize to sheet id
+            v_area = v_area if v_area is not None else self.graph.sheet
+            all_ctxs = list(ctxs)
+            if v_area is not None:
+                all_ctxs.append(v_area)
+            self.vertex_def_context[vid] = lca(all_ctxs)
     
     def _assign_labels_preserving_nu_order(self, context_id: ElementID, processed_vertices: Set[ElementID]):
         """Assign labels while strictly preserving ν mapping argument order."""
@@ -137,9 +147,7 @@ class EGIFGenerator:
             # Process vertices in exact ν mapping order
             for vertex_id in vertex_sequence:
                 if vertex_id not in processed_vertices and vertex_id in self.graph._vertex_map:
-                    vertex = self.graph.get_vertex(vertex_id)
-                    
-                    if vertex.is_generic:
+                    if not self._is_constant_vertex(vertex_id):
                         if vertex_id not in self.vertex_labels:
                             # First occurrence - assign fresh label and mark as defining
                             label = self.alphabet.get_fresh_name()
@@ -148,8 +156,9 @@ class EGIFGenerator:
                             self.defining_vertices.add(vertex_id)
                         # If already labeled, this is a bound occurrence (don't mark as defining)
                     else:
-                        # Constant vertex - use its label
-                        self.vertex_labels[vertex_id] = f'"{vertex.label}"'
+                        # Constant vertex - use its rho label
+                        cname = self._constant_name(vertex_id)
+                        self.vertex_labels[vertex_id] = f'"{cname}"'
                     
                     processed_vertices.add(vertex_id)
         
@@ -160,17 +169,15 @@ class EGIFGenerator:
             if element_id in self.graph._vertex_map and element_id not in processed_vertices:
                 isolated_vertices.append(element_id)
         def _vertex_key(vid: ElementID) -> Tuple[int, str]:
-            v = self.graph.get_vertex(vid)
-            if v.is_generic:
+            if not self._is_constant_vertex(vid):
                 # If label already assigned use it, else use id as fallback
                 lbl = self.vertex_labels.get(vid, vid)
                 return (0, lbl)
             else:
-                return (1, v.label or vid)
+                cname = self._constant_name(vid) or vid
+                return (1, cname)
         for element_id in sorted(isolated_vertices, key=_vertex_key):
-            vertex = self.graph.get_vertex(element_id)
-            
-            if vertex.is_generic:
+            if not self._is_constant_vertex(element_id):
                 # Isolated generic vertex - assign fresh label and mark as defining
                 label = self.alphabet.get_fresh_name()
                 self.vertex_labels[element_id] = label
@@ -178,7 +185,8 @@ class EGIFGenerator:
                 self.defining_vertices.add(element_id)
             else:
                 # Isolated constant vertex - use its label
-                self.vertex_labels[element_id] = f'"{vertex.label}"'
+                cname = self._constant_name(element_id)
+                self.vertex_labels[element_id] = f'"{cname}"'
             
             processed_vertices.add(element_id)
         
@@ -299,11 +307,10 @@ class EGIFGenerator:
             # Map to argument strings as they would appear
             arg_labels: List[str] = []
             for vid in vseq:
-                v = self.graph.get_vertex(vid)
-                if v.is_generic:
+                if not self._is_constant_vertex(vid):
                     arg_labels.append(self.vertex_labels[vid])
                 else:
-                    arg_labels.append(f'"{v.label}"')
+                    arg_labels.append(f'"{self._constant_name(vid)}"')
             return (name, tuple(arg_labels))
         for element_id in sorted(edge_ids, key=_edge_out_key):
             relation_egif = self._generate_relation(element_id)
@@ -325,15 +332,13 @@ class EGIFGenerator:
         # Generate arguments
         args = []
         for vertex_id in vertex_sequence:
-            vertex = self.graph.get_vertex(vertex_id)
-            
-            if vertex.is_generic:
+            if not self._is_constant_vertex(vertex_id):
                 label = self.vertex_labels[vertex_id]
                 # With hoisting, relation arguments are bound (no star)
                 args.append(label)
             else:
                 # Constant vertex
-                args.append(f'"{vertex.label}"')
+                args.append(f'"{self._constant_name(vertex_id)}"')
         
         if args:
             return f"({relation_name} {' '.join(args)})"
@@ -352,6 +357,30 @@ class EGIFGenerator:
     def _is_defining_occurrence(self, vertex_id: ElementID, edge_id: ElementID) -> bool:
         """With hoisted definitions, relation occurrences are always bound (no star)."""
         return False
+
+    # --- Helpers for constant handling via rho (with legacy fallback) ---
+    def _is_constant_vertex(self, vertex_id: ElementID) -> bool:
+        """Return True if the vertex is labeled as a constant via rho, or, for legacy graphs,
+        if the Vertex object is non-generic (has label/is_generic=False)."""
+        # Prefer rho if present
+        try:
+            if hasattr(self.graph, 'rho') and vertex_id in self.graph.rho:
+                return self.graph.rho[vertex_id] is not None
+        except Exception:
+            pass
+        # Legacy fallback
+        v = self.graph.get_vertex(vertex_id)
+        return not getattr(v, 'is_generic', True)
+
+    def _constant_name(self, vertex_id: ElementID) -> Optional[str]:
+        """Return the constant name for a vertex from rho if available, else from legacy Vertex.label."""
+        try:
+            if hasattr(self.graph, 'rho') and vertex_id in self.graph.rho:
+                return self.graph.rho[vertex_id]
+        except Exception:
+            pass
+        v = self.graph.get_vertex(vertex_id)
+        return getattr(v, 'label', None)
 
 
 def generate_egif(graph: RelationalGraphWithCuts) -> str:

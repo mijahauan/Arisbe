@@ -1,0 +1,82 @@
+{
+  "Cut": [
+    {
+      "id": "c_04015d64"
+    },
+    {
+      "id": "c_513d7610"
+    },
+    {
+      "id": "c_f1b52be3"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_4615a442"
+    },
+    {
+      "id": "e_ab9977ab"
+    },
+    {
+      "id": "e_d6be1d1b"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_7ddca6d7",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Dies",
+      "Man",
+      "Mortal"
+    ],
+    "ar": {
+      "Dies": 1,
+      "Man": 1,
+      "Mortal": 1
+    }
+  },
+  "area": {
+    "c_04015d64": [
+      "c_f1b52be3",
+      "e_d6be1d1b"
+    ],
+    "c_513d7610": [
+      "e_4615a442"
+    ],
+    "c_f1b52be3": [
+      "c_513d7610",
+      "e_ab9977ab"
+    ],
+    "sheet_da675b53": [
+      "c_04015d64",
+      "v_7ddca6d7"
+    ]
+  },
+  "nu": {
+    "e_4615a442": [
+      "v_7ddca6d7"
+    ],
+    "e_ab9977ab": [
+      "v_7ddca6d7"
+    ],
+    "e_d6be1d1b": [
+      "v_7ddca6d7"
+    ]
+  },
+  "rel": {
+    "e_4615a442": "Dies",
+    "e_ab9977ab": "Mortal",
+    "e_d6be1d1b": "Man"
+  },
+  "rho": {
+    "v_7ddca6d7": null
+  },
+  "sheet": "sheet_da675b53"
+}

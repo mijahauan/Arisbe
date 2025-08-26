@@ -62,6 +62,9 @@ class VertexItem:
     pos: QPointF
     area_id: str
     gfx: QGraphicsEllipseItem
+    label: Optional[str] = None  # textual label
+    label_kind: Optional[str] = None  # "constant" | "name"
+    gfx_label: Optional[QGraphicsTextItem] = None
 
 
 @dataclass
@@ -81,6 +84,7 @@ class DrawingModel:
     vertices: Dict[str, VertexItem] = field(default_factory=dict)
     predicates: Dict[str, PredicateItem] = field(default_factory=dict)
     ligatures: Dict[str, List[str]] = field(default_factory=dict)  # edge_id -> [vertex_id]
+    predicate_outputs: Dict[str, str] = field(default_factory=dict)  # edge_id -> vertex_id
 
     def to_schema(self) -> Dict:
         return {
@@ -89,7 +93,12 @@ class DrawingModel:
                 {"id": c.id, "parent_id": c.parent_id} for c in self.cuts.values()
             ],
             "vertices": [
-                {"id": v.id, "area_id": v.area_id} for v in self.vertices.values()
+                {
+                    **{"id": v.id, "area_id": v.area_id},
+                    **({"label": v.label} if v.label else {}),
+                    **({"label_kind": v.label_kind} if v.label_kind else {}),
+                }
+                for v in self.vertices.values()
             ],
             "predicates": [
                 {"id": p.id, "name": p.name, "area_id": p.area_id} for p in self.predicates.values()
@@ -97,6 +106,7 @@ class DrawingModel:
             "ligatures": [
                 {"edge_id": e, "vertex_ids": vids} for e, vids in self.ligatures.items()
             ],
+            "predicate_outputs": self.predicate_outputs,
         }
 
     @classmethod
@@ -125,7 +135,20 @@ class DrawingModel:
             gfx.setFlag(QGraphicsItem.ItemIsMovable, True)
             gfx.setFlag(QGraphicsItem.ItemIsSelectable, True)
             scene.addItem(gfx)
-            model.vertices[vid] = VertexItem(id=vid, pos=pos, area_id=v["area_id"], gfx=gfx)
+            vx = VertexItem(id=vid, pos=pos, area_id=v["area_id"], gfx=gfx)
+            # Optional label rendering as child so it follows movement
+            lbl = v.get("label")
+            if lbl:
+                vx.label = lbl
+                vx.label_kind = v.get("label_kind")
+                txt = QGraphicsTextItem(lbl)
+                txt.setDefaultTextColor(QColor(20, 20, 20))
+                txt.setPos(QPointF(6, -8))
+                txt.setFlag(QGraphicsItem.ItemIsSelectable, False)
+                txt.setFlag(QGraphicsItem.ItemIsMovable, False)
+                txt.setParentItem(gfx)
+                vx.gfx_label = txt
+            model.vertices[vid] = vx
         # Predicates
         for p in schema.get("predicates", []):
             eid = p["id"]
@@ -155,6 +178,10 @@ class DrawingModel:
         for lig in schema.get("ligatures", []):
             lig_map.setdefault(lig["edge_id"], []).extend(lig.get("vertex_ids", []))
         model.ligatures = lig_map
+        # Predicate outputs
+        po = schema.get("predicate_outputs", {})
+        if isinstance(po, dict):
+            model.predicate_outputs = {str(k): str(v) for k, v in po.items()}
         return model
 
 
@@ -176,14 +203,23 @@ class DrawingEditor(QMainWindow):
         self.scene = QGraphicsScene(self)
         self.scene.setSceneRect(0, 0, 900, 600)
         self.view = QGraphicsView(self.scene)
+        # Use a safer update mode to avoid residual trails during interactive resizes
+        try:
+            from PySide6.QtWidgets import QGraphicsView as _QV
+            self.view.setViewportUpdateMode(_QV.BoundingRectViewportUpdate)
+        except Exception:
+            pass
         self.setCentralWidget(self.view)
 
         self.model = DrawingModel()
         # Visual ligature lines
         self._ligature_lines: List[QGraphicsLineItem] = []
+        # Ligature drag state (vertex -> predicate)
+        self._ligature_drag_from_vid: Optional[str] = None
+        self._ligature_drag_line: Optional[QGraphicsLineItem] = None
         self._ligature_refresh_pending: bool = False
         self._suppress_scene_change: bool = False
-        self._show_ligatures: bool = False
+        self._show_ligatures: bool = True
         # Z-order refresh debounce
         self._zorder_refresh_pending: bool = False
         # Interaction throttle: suppress heavy refresh during drag
@@ -194,6 +230,7 @@ class DrawingEditor(QMainWindow):
 
         # Temp vars for interactions
         self._drag_start: Optional[QPointF] = None
+        self._cut_preview_item: Optional[QGraphicsRectItem] = None
         self._pending_predicate_name: Optional[str] = None
         self._ligature_edge: Optional[str] = None
 
@@ -203,6 +240,8 @@ class DrawingEditor(QMainWindow):
         self._build_toolbar()
         # Initial preview
         self._update_preview()
+        # With ligatures on by default, schedule an initial refresh
+        self._schedule_ligature_refresh()
         # Keep visuals and z-order in sync with movements
         self.scene.changed.connect(self._on_scene_changed)
         # Selection visuals
@@ -232,15 +271,26 @@ class DrawingEditor(QMainWindow):
             return a
 
         self.act_select = make_action("Select", True, lambda: self._set_mode(Mode.SELECT))
+        # Legacy add-mode actions are kept for internal use only but hidden from the toolbar UI.
         self.act_add_cut = make_action("Add Cut", True, lambda: self._set_mode(Mode.ADD_CUT))
         self.act_add_vertex = make_action("Add Vertex", True, lambda: self._set_mode(Mode.ADD_VERTEX))
         self.act_add_pred = make_action("Add Predicate", True, lambda: self._set_mode(Mode.ADD_PREDICATE))
         self.act_ligature = make_action("Ligature", True, lambda: self._set_mode(Mode.LIGATURE))
+        # Hide these buttons to move to context-menu based insertion
+        try:
+            self.act_add_cut.setVisible(False)
+            self.act_add_vertex.setVisible(False)
+            self.act_add_pred.setVisible(False)
+            self.act_ligature.setVisible(False)
+        except Exception:
+            pass
 
         tb.addSeparator()
         make_action("New", False, self.on_new)
         make_action("Save", False, self.on_save)
         make_action("Load", False, self.on_load)
+        # Import EGIF text into the current scene (populate cuts/vertices/predicates)
+        make_action("Import EGIF→Scene", False, self.on_import_egif_to_scene)
         make_action("Export EGI", False, self.on_export_egi)
 
         tb.addSeparator()
@@ -250,9 +300,13 @@ class DrawingEditor(QMainWindow):
         self.act_auto.setChecked(False)
         tb.addAction(self.act_auto)
 
-        # Toggle: Show Ligatures (visual only)
+        # Toggle: Show Ligatures (visual only) — hidden now that we show by default
         self.act_show_ligs = make_action("Show Ligatures", True, self._toggle_show_ligatures)
-        self.act_show_ligs.setChecked(False)
+        self.act_show_ligs.setChecked(True)
+        try:
+            self.act_show_ligs.setVisible(False)
+        except Exception:
+            pass
         tb.addAction(self.act_show_ligs)
 
         # Quick access: Delete selected
@@ -267,17 +321,24 @@ class DrawingEditor(QMainWindow):
         self.view.viewport().installEventFilter(self)
 
     def _set_mode(self, mode: str) -> None:
-        for act in [self.act_select, self.act_add_cut, self.act_add_vertex, self.act_add_pred, self.act_ligature]:
-            act.setChecked(False)
+        # Internal mode setter; UI now uses context menus for add actions.
+        try:
+            for act in [self.act_select, self.act_add_cut, self.act_add_vertex, self.act_add_pred, self.act_ligature]:
+                act.setChecked(False)
+        except Exception:
+            pass
         self.mode = mode
-        mapping = {
-            Mode.SELECT: self.act_select,
-            Mode.ADD_CUT: self.act_add_cut,
-            Mode.ADD_VERTEX: self.act_add_vertex,
-            Mode.ADD_PREDICATE: self.act_add_pred,
-            Mode.LIGATURE: self.act_ligature,
-        }
-        mapping[self.mode].setChecked(True)
+        try:
+            mapping = {
+                Mode.SELECT: self.act_select,
+                Mode.ADD_CUT: self.act_add_cut,
+                Mode.ADD_VERTEX: self.act_add_vertex,
+                Mode.ADD_PREDICATE: self.act_add_pred,
+                Mode.LIGATURE: self.act_ligature,
+            }
+            mapping[self.mode].setChecked(True)
+        except Exception:
+            pass
         self.statusBar().showMessage(f"Mode: {self.mode}")
 
     def _build_preview_dock(self) -> None:
@@ -294,12 +355,32 @@ class DrawingEditor(QMainWindow):
         # Directly set tabs as dock widget content
         self.preview_dock.setWidget(tabs)
         self.addDockWidget(Qt.RightDockWidgetArea, self.preview_dock)
+
+        # Separate dock for corpus guidance EGIF so preview remains the drawing's meaning
+        self.corpus_dock = QDockWidget("Corpus Guide", self)
+        self.corpus_dock.setObjectName("corpusDock")
+        # Tabs: show both the loaded corpus EGI JSON and its EGIF text
+        corpus_tabs = QTabWidget(self.corpus_dock)
+        self.txt_corpus_egi_json = QTextEdit()
+        self.txt_corpus_egi_json.setReadOnly(True)
+        self.txt_corpus_egif = QTextEdit()
+        self.txt_corpus_egif.setReadOnly(True)
+        corpus_tabs.addTab(self.txt_corpus_egi_json, "Corpus EGI (JSON)")
+        corpus_tabs.addTab(self.txt_corpus_egif, "Corpus EGIF")
+        self.corpus_dock.setWidget(corpus_tabs)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.corpus_dock)
+        # Tabify with the preview dock so they share the right side cleanly
+        try:
+            self.tabifyDockWidget(self.preview_dock, self.corpus_dock)
+        except Exception:
+            pass
         # Click-to-select from JSON: react to cursor changes
         self.txt_egi.cursorPositionChanged.connect(self._on_egi_cursor_moved)
 
     def _schedule_preview(self) -> None:
         if self.act_auto.isChecked():
-            QTimer.singleShot(0, self._update_preview)
+            # Debounce preview a bit to avoid thrashing during edits
+            QTimer.singleShot(60, self._update_preview)
 
     def _update_preview(self) -> None:
         try:
@@ -362,7 +443,7 @@ class DrawingEditor(QMainWindow):
             finally:
                 self._ligature_refresh_pending = False
         # Throttle slightly to coalesce bursts of scene changes
-        QTimer.singleShot(30, do_refresh)
+        QTimer.singleShot(80, do_refresh)
 
     def _schedule_zorder_refresh(self) -> None:
         if self._suppress_scene_change:
@@ -375,15 +456,17 @@ class DrawingEditor(QMainWindow):
                 self._update_z_order()
             finally:
                 self._zorder_refresh_pending = False
-        QTimer.singleShot(30, do_refresh)
+        QTimer.singleShot(80, do_refresh)
 
     def _refresh_ligature_visuals(self) -> None:
         # Rebuild simple straight lines from predicates to vertices
         self._suppress_scene_change = True
         try:
             self._clear_ligature_visuals()
-            pen = QPen(QColor(80, 80, 200, 160), 1)
-            pen.setCosmetic(True)
+            base_pen = QPen(QColor(80, 80, 200, 160), 1)
+            base_pen.setCosmetic(True)
+            out_pen = QPen(QColor(40, 150, 60, 220), 2)
+            out_pen.setCosmetic(True)
             parent_map = self._compute_parent_map()
             for edge_id, vids in self.model.ligatures.items():
                 p = self.model.predicates.get(edge_id)
@@ -401,8 +484,17 @@ class DrawingEditor(QMainWindow):
                         continue
                     v_center = v.gfx.scenePos()
                     line = QGraphicsLineItem(p_center.x(), p_center.y(), v_center.x(), v_center.y())
+                    # Store identifiers on the line for hit testing of existing ligatures
+                    try:
+                        line.setData(0, edge_id)
+                        line.setData(1, vid)
+                    except Exception:
+                        pass
                     line.setZValue(depth * 10.0)  # behind predicate(+1) and vertex(+2)
-                    line.setPen(pen)
+                    if self.model.predicate_outputs.get(edge_id) == vid:
+                        line.setPen(out_pen)
+                    else:
+                        line.setPen(base_pen)
                     self.scene.addItem(line)
                     self._ligature_lines.append(line)
         finally:
@@ -482,6 +574,18 @@ class DrawingEditor(QMainWindow):
             self._delete_selected_items()
             event.accept()
             return
+        # Cancel ligature drag with Esc
+        if key == Qt.Key_Escape and self._ligature_drag_from_vid is not None:
+            if self._ligature_drag_line is not None:
+                try:
+                    self.scene.removeItem(self._ligature_drag_line)
+                except Exception:
+                    pass
+            self._ligature_drag_line = None
+            self._ligature_drag_from_vid = None
+            self.statusBar().showMessage("Ligature drag canceled")
+            event.accept()
+            return
         super().keyPressEvent(event)
 
     def _delete_selected_items(self) -> None:
@@ -489,74 +593,97 @@ class DrawingEditor(QMainWindow):
         items = list(self.scene.selectedItems())
         if not items:
             return
-        # Helper to find ids
-        remove_vertices: List[str] = []
-        remove_predicates: List[str] = []
-        remove_cuts: List[str] = []
-        for it in items:
-            # Predicate rect
-            for pid, p in self.model.predicates.items():
-                if it is p.gfx_rect or it is p.gfx_text:
-                    remove_predicates.append(pid)
-                    break
-            # Vertex
-            for vid, v in self.model.vertices.items():
-                if it is v.gfx:
-                    remove_vertices.append(vid)
-                    break
-            # Cut
-            for cid, c in self.model.cuts.items():
-                if it is c.gfx:
-                    remove_cuts.append(cid)
-                    break
+        # Batch heavy updates during bulk delete
+        self.begin_interaction()
+        try:
+            # Helper to find ids
+            remove_vertices: List[str] = []
+            remove_predicates: List[str] = []
+            remove_cuts: List[str] = []
+            for it in items:
+                # Predicate rect
+                for pid, p in self.model.predicates.items():
+                    if it is p.gfx_rect or it is p.gfx_text:
+                        remove_predicates.append(pid)
+                        break
+                # Vertex
+                for vid, v in self.model.vertices.items():
+                    if it is v.gfx:
+                        remove_vertices.append(vid)
+                        break
+                # Cut
+                for cid, c in self.model.cuts.items():
+                    if it is c.gfx:
+                        remove_cuts.append(cid)
+                        break
 
-        # Deduplicate
-        remove_vertices = list(dict.fromkeys(remove_vertices))
-        remove_predicates = list(dict.fromkeys(remove_predicates))
-        remove_cuts = list(dict.fromkeys(remove_cuts))
+            # Deduplicate
+            remove_vertices = list(dict.fromkeys(remove_vertices))
+            remove_predicates = list(dict.fromkeys(remove_predicates))
+            remove_cuts = list(dict.fromkeys(remove_cuts))
 
-        # Remove ligatures referencing removed items
-        if remove_vertices or remove_predicates:
-            new_ligs: Dict[str, List[str]] = {}
-            for eid, vids in self.model.ligatures.items():
-                if eid in remove_predicates:
-                    continue  # drop entire mapping
-                kept = [v for v in vids if v not in remove_vertices]
-                if kept:
-                    new_ligs[eid] = kept
-            self.model.ligatures = new_ligs
+            # Remove ligatures and predicate_outputs referencing removed items
+            if remove_vertices or remove_predicates:
+                # Ligatures
+                new_ligs: Dict[str, List[str]] = {}
+                for eid, vids in self.model.ligatures.items():
+                    if eid in remove_predicates:
+                        continue  # drop entire mapping
+                    kept = [v for v in vids if v not in remove_vertices]
+                    if kept:
+                        new_ligs[eid] = kept
+                self.model.ligatures = new_ligs
+                # Predicate outputs
+                new_outputs: Dict[str, str] = {}
+                for eid, out_vid in self.model.predicate_outputs.items():
+                    if eid in remove_predicates:
+                        continue  # predicate itself removed
+                    if out_vid in remove_vertices:
+                        continue  # output vertex removed
+                    new_outputs[eid] = out_vid
+                self.model.predicate_outputs = new_outputs
 
-        # Remove graphics and model entries
-        for vid in remove_vertices:
-            v = self.model.vertices.pop(vid, None)
-            if v is not None:
-                self.scene.removeItem(v.gfx)
-        for pid in remove_predicates:
-            p = self.model.predicates.pop(pid, None)
-            if p is not None:
-                # Removing rect also removes child text
-                self.scene.removeItem(p.gfx_rect)
-        for cid in remove_cuts:
-            c = self.model.cuts.pop(cid, None)
-            if c is not None:
-                self.scene.removeItem(c.gfx)
+            # Remove graphics and model entries
+            for vid in remove_vertices:
+                v = self.model.vertices.pop(vid, None)
+                if v is not None:
+                    if v.gfx_label is not None:
+                        try:
+                            v.gfx_label.setParentItem(None)
+                            self.scene.removeItem(v.gfx_label)
+                        except Exception:
+                            pass
+                        v.gfx_label = None
+                    self.scene.removeItem(v.gfx)
+            for pid in remove_predicates:
+                p = self.model.predicates.pop(pid, None)
+                if p is not None:
+                    # Removing rect also removes child text
+                    self.scene.removeItem(p.gfx_rect)
+            for cid in remove_cuts:
+                c = self.model.cuts.pop(cid, None)
+                if c is not None:
+                    self.scene.removeItem(c.gfx)
 
-        # Refresh visuals and preview
-        self._clear_ligature_visuals()
-        self._schedule_ligature_refresh()
-        self._schedule_zorder_refresh()
-        self._schedule_preview()
-        if remove_vertices or remove_predicates or remove_cuts:
-            self._log(
-                f"DELETE vertices={remove_vertices} predicates={remove_predicates} cuts={remove_cuts}"
-            )
+            # Refresh visuals and preview
+            self._clear_ligature_visuals()
+            self._schedule_ligature_refresh()
+            self._schedule_zorder_refresh()
+            self._schedule_preview()
+            if remove_vertices or remove_predicates or remove_cuts:
+                self._log(
+                    f"DELETE vertices={remove_vertices} predicates={remove_predicates} cuts={remove_cuts}"
+                )
+        finally:
+            self.end_interaction()
 
-    # Helper to fetch cut id for a given graphics item
     def _id_for_cut_item(self, item: QGraphicsRectItem) -> str:
         for cid, c in self.model.cuts.items():
             if c.gfx is item:
                 return cid
         return "?"
+
+
 
     # ----- Z-order helpers -----
     def _compute_parent_map(self) -> Dict[str, Optional[str]]:
@@ -674,9 +801,11 @@ class DrawingEditor(QMainWindow):
             if ignore_item is not None and c.gfx is ignore_item:
                 continue
             other = self._scene_rect_for_item(c.gfx)
-            if not self._rects_intersect(new_rect, other):
+            # Use a small epsilon to avoid false positives from rounding/pen widths
+            if not self._rects_intersect(new_rect, other, eps=0.5):
                 continue  # disjoint ok
-            if self._rect_contains(new_rect, other) or self._rect_contains(other, new_rect):
+            # Allow slight tolerance when checking containment as well
+            if self._rect_contains(new_rect, other, eps=0.5) or self._rect_contains(other, new_rect, eps=0.5):
                 continue  # nesting ok
             return False  # partial overlap -> invalid
         return True
@@ -708,6 +837,19 @@ class DrawingEditor(QMainWindow):
                     return vid
         return None
 
+    def _hit_ligature_vertex(self, pos: QPointF) -> Optional[str]:
+        # If right-clicking on a ligature line, treat as if clicking the vertex connected by that line
+        items = self.scene.items(pos)
+        for it in items:
+            if isinstance(it, QGraphicsLineItem) and it in self._ligature_lines:
+                try:
+                    vid = it.data(1)
+                    if isinstance(vid, str):
+                        return vid
+                except Exception:
+                    pass
+        return None
+
     def _current_area_for_add(self, pos: QPointF) -> str:
         # If user clicked inside a cut, use that cut; else sheet
         cid = self._hit_cut(pos)
@@ -720,38 +862,135 @@ class DrawingEditor(QMainWindow):
         if obj == self.view.viewport():
             if event.type() == QEvent.MouseButtonPress:
                 scene_pos = self.view.mapToScene(event.position().toPoint())
+                # Right-click context menus
+                if event.button() == Qt.RightButton:
+                    # Prefer vertex; else allow starting from existing ligature line
+                    vid = self._hit_vertex(scene_pos) or self._hit_ligature_vertex(scene_pos)
+                    if vid:
+                        self._show_vertex_menu(scene_pos, vid)
+                        return True
+                    pid = self._hit_predicate(scene_pos)
+                    if pid:
+                        self._show_predicate_menu(scene_pos, pid)
+                        return True
+                    # Otherwise, show canvas-level menu for add actions
+                    self._show_canvas_menu(scene_pos)
+                    return True
+                # If currently dragging a ligature, consume other presses to avoid conflicts
+                if self._ligature_drag_from_vid is not None:
+                    return True
                 if self.mode == Mode.ADD_CUT:
-                    self._drag_start = scene_pos
+                    # Allow starting a nested cut inside an existing cut, but not when pressing on
+                    # a vertex or predicate (to avoid moving them). Starting over a cut rect is OK.
+                    hit_items = self.scene.items(scene_pos)
+                    should_start = True
+                    for it in hit_items:
+                        # Block if clicking a vertex or predicate
+                        for vid, v in self.model.vertices.items():
+                            if it is v.gfx:
+                                should_start = False
+                                break
+                        if not should_start:
+                            break
+                        for pid, p in self.model.predicates.items():
+                            if it is p.gfx_rect or it is p.gfx_text:
+                                should_start = False
+                                break
+                        if not should_start:
+                            break
+                    if should_start:
+                        # When starting a cut, consume the press so existing cuts don't move
+                        if self._drag_start is None:
+                            # Suppress heavy scene-changed work during the drag of the preview rect
+                            self.begin_interaction()
+                            self._drag_start = scene_pos
+                            # Create a lightweight dashed preview rect
+                            try:
+                                prev = QGraphicsRectItem(QRectF(scene_pos, scene_pos))
+                                pen = QPen(QColor(50, 120, 220, 180), 1, Qt.DashLine)
+                                pen.setCosmetic(True)
+                                prev.setPen(pen)
+                                prev.setBrush(QBrush(Qt.transparent))
+                                prev.setZValue(9999)
+                                self.scene.addItem(prev)
+                                self._cut_preview_item = prev
+                            except Exception:
+                                self._cut_preview_item = None
+                        return True
+                    else:
+                        # Let normal interaction proceed (e.g., selecting/moving items)
+                        return False
                 elif self.mode == Mode.ADD_VERTEX:
                     self._add_vertex(scene_pos)
                     self._schedule_preview()
+                    # Return to baseline select mode after a single add
+                    self._set_mode(Mode.SELECT)
                 elif self.mode == Mode.ADD_PREDICATE:
                     self._add_predicate(scene_pos)
                     self._schedule_preview()
-                elif self.mode == Mode.LIGATURE:
-                    self._handle_ligature_click(scene_pos)
-                    self._schedule_preview()
-                    self._schedule_ligature_refresh()
-                return False
-            elif event.type() == QEvent.ContextMenu:
-                # Show context menu with Delete when selection is non-empty
-                if self.scene.selectedItems():
-                    menu = QMenu(self)
-                    act_del = menu.addAction("Delete")
-                    act = menu.exec(event.globalPos())
-                    if act is act_del:
-                        self._delete_selected_items()
-                        return True
+                    # Return to baseline select mode after a single add
+                    self._set_mode(Mode.SELECT)
                 return False
             elif event.type() == QEvent.MouseMove:
+                # Update temporary ligature line during drag
+                if self._ligature_drag_from_vid is not None and self._ligature_drag_line is not None:
+                    scene_pos = self.view.mapToScene(event.position().toPoint())
+                    v = self.model.vertices.get(self._ligature_drag_from_vid)
+                    if v is not None:
+                        p1 = v.gfx.scenePos()
+                        self._ligature_drag_line.setLine(p1.x(), p1.y(), scene_pos.x(), scene_pos.y())
+                    return True
+                # Update cut preview rect while dragging
+                if self.mode == Mode.ADD_CUT and self._drag_start is not None and self._cut_preview_item is not None:
+                    scene_pos = self.view.mapToScene(event.position().toPoint())
+                    rect = QRectF(self._drag_start, scene_pos).normalized()
+                    try:
+                        self._cut_preview_item.setRect(rect)
+                    except Exception:
+                        pass
+                    return True
                 return False
             elif event.type() == QEvent.MouseButtonRelease:
+                scene_pos = self.view.mapToScene(event.position().toPoint())
+                # Finish ligature drag on mouse release
+                if self._ligature_drag_from_vid is not None:
+                    try:
+                        pid = self._hit_predicate(scene_pos)
+                        if pid is not None:
+                            # Commit ligature vid -> pid (edge maps to list of vids)
+                            vids = self.model.ligatures.setdefault(pid, [])
+                            if self._ligature_drag_from_vid not in vids:
+                                vids.append(self._ligature_drag_from_vid)
+                            self.statusBar().showMessage(f"Ligature added: {pid} <- {self._ligature_drag_from_vid}")
+                            self._schedule_ligature_refresh()
+                            self._schedule_preview()
+                    finally:
+                        # Cleanup temp line/state
+                        if self._ligature_drag_line is not None:
+                            try:
+                                self.scene.removeItem(self._ligature_drag_line)
+                            except Exception:
+                                pass
+                        self._ligature_drag_line = None
+                        self._ligature_drag_from_vid = None
+                    return True
                 if self.mode == Mode.ADD_CUT and self._drag_start is not None:
                     scene_pos = self.view.mapToScene(event.position().toPoint())
                     self._finish_cut(self._drag_start, scene_pos)
                     self._drag_start = None
+                    # Remove preview item
+                    if self._cut_preview_item is not None:
+                        try:
+                            self.scene.removeItem(self._cut_preview_item)
+                        except Exception:
+                            pass
+                        self._cut_preview_item = None
+                    # Re-enable updates that were suppressed during the drag
+                    self.end_interaction()
                     self._schedule_preview()
                     self._schedule_ligature_refresh()
+                    # Return to baseline select mode after finishing the cut
+                    self._set_mode(Mode.SELECT)
                 return False
         return super().eventFilter(obj, event)
 
@@ -759,21 +998,36 @@ class DrawingEditor(QMainWindow):
     def _finish_cut(self, start: QPointF, end: QPointF) -> None:
         rect = QRectF(start, end).normalized()
         cid = self._generate_id("c")
-        parent = self._current_area_for_add(start)
+        # Choose parent based on the final rect center, not the mouse-down point
+        try:
+            parent_map = self._compute_parent_map()
+            parent = self._resolve_area_position(rect.center(), parent_map)
+        except Exception:
+            # Fallback to start-based heuristic if anything goes wrong
+            parent = self._current_area_for_add(start)
         # Validate syntactic constraint: no partial overlaps
         self._log(f"ADD_CUT attempt id={cid} rect={rect}")
         if not self._is_valid_cut_scene_rect(rect):
             self._log(f"ADD_CUT invalid id={cid} reason=partial_overlap")
             self.statusBar().showMessage("Invalid cut: cuts must be nested or disjoint (no partial overlaps).")
             return
-        gfx = CutRectItem(rect, self)
-        gfx.setPen(QPen(QColor(0, 0, 0), 1))
-        gfx.setBrush(QBrush(QColor(240, 240, 240, 60)))
-        gfx.setFlag(QGraphicsItem.ItemIsMovable, True)
-        gfx.setFlag(QGraphicsItem.ItemIsSelectable, True)
-        self.scene.addItem(gfx)
-        self.model.cuts[cid] = CutItem(id=cid, rect=rect, parent_id=parent, gfx=gfx)
-        self._log(f"ADD_CUT ok id={cid} parent={parent}")
+        # Batch updates during add to avoid heavy recompute mid-operation
+        self.begin_interaction()
+        try:
+            gfx = CutRectItem(rect, self)
+            gfx.setPen(QPen(QColor(0, 0, 0), 1))
+            gfx.setBrush(QBrush(QColor(240, 240, 240, 60)))
+            gfx.setFlag(QGraphicsItem.ItemIsMovable, True)
+            gfx.setFlag(QGraphicsItem.ItemIsSelectable, True)
+            self.scene.addItem(gfx)
+            self.model.cuts[cid] = CutItem(id=cid, rect=rect, parent_id=parent, gfx=gfx)
+            self._log(f"ADD_CUT ok id={cid} parent={parent}")
+            # Schedule post-add refreshes
+            self._schedule_zorder_refresh()
+            self._schedule_ligature_refresh()
+            self._schedule_preview()
+        finally:
+            self.end_interaction()
 
     def _add_vertex(self, pos: QPointF) -> None:
         vid = self._generate_id("v")
@@ -816,6 +1070,205 @@ class DrawingEditor(QMainWindow):
         )
         self._schedule_ligature_refresh()
 
+    # ----- Context menus -----
+    def _show_canvas_menu(self, scene_pos: QPointF) -> None:
+        menu = QMenu(self)
+        act_add_vertex = menu.addAction("Add Vertex here")
+        act_add_pred = menu.addAction("Add Predicate here")
+        act_add_cut = menu.addAction("Start Cut here (then drag)")
+        chosen = menu.exec(self.view.mapToGlobal(self.view.mapFromScene(scene_pos)))
+        if chosen is act_add_vertex:
+            self._add_vertex(scene_pos)
+            self._schedule_preview()
+        elif chosen is act_add_pred:
+            self._add_predicate(scene_pos)
+            self._schedule_preview()
+        elif chosen is act_add_cut:
+            # Arm a cut starting at this position; user will drag to size and release to create
+            self._set_mode(Mode.ADD_CUT)
+            self._drag_start = scene_pos
+            self.statusBar().showMessage("Cut armed: drag to define rectangle, release to create.")
+    def _show_vertex_menu(self, scene_pos: QPointF, vid: str) -> None:
+        menu = QMenu(self)
+        # Edit name/label
+        act_edit_name = menu.addAction("Edit vertex name…")
+        # Start ligature drag
+        act_drag = menu.addAction(f"Drag ligature from {vid}")
+        # Delete vertex
+        # Dynamic actions for existing connections
+        connected_preds = [pid for pid, vids in self.model.ligatures.items() if vid in vids]
+        if connected_preds:
+            menu.addSeparator()
+            # Remove ligature entries
+            remove_actions = {}
+            for pid in connected_preds:
+                a = menu.addAction(f"Remove ligature to {pid}")
+                remove_actions[a] = pid
+            # Set output per predicate
+            menu.addSeparator()
+            setout_actions = {}
+            for pid in connected_preds:
+                label = f"Set as output of {pid}"
+                a = menu.addAction(label)
+                setout_actions[a] = pid
+            # Clear output for any predicate where this vid is current output
+            clearout_actions = {}
+            for pid in connected_preds:
+                if self.model.predicate_outputs.get(pid) == vid:
+                    a = menu.addAction(f"Clear output of {pid}")
+                    clearout_actions[a] = pid
+        menu.addSeparator()
+        act_del = menu.addAction("Delete vertex")
+        chosen = menu.exec(self.view.mapToGlobal(self.view.mapFromScene(scene_pos)))
+        if chosen is act_edit_name:
+            v = self.model.vertices.get(vid)
+            if v is None:
+                return
+            current = v.label or ""
+            text, ok = QInputDialog.getText(self, "Edit Vertex Name", "Name (leave blank to clear):", text=current)
+            if ok:
+                new_label = text.strip()
+                if not new_label:
+                    # Clear label
+                    v.label = None
+                    v.label_kind = None
+                    if v.gfx_label is not None:
+                        try:
+                            v.gfx_label.setParentItem(None)
+                            self.scene.removeItem(v.gfx_label)
+                        except Exception:
+                            pass
+                        v.gfx_label = None
+                else:
+                    v.label = new_label
+                    # Treat user-provided vertex name as a constant identifier
+                    v.label_kind = "constant"
+                    if v.gfx_label is None:
+                        txt = QGraphicsTextItem(new_label)
+                        txt.setDefaultTextColor(QColor(20, 20, 20))
+                        txt.setPos(QPointF(6, -8))
+                        txt.setFlag(QGraphicsItem.ItemIsSelectable, False)
+                        txt.setFlag(QGraphicsItem.ItemIsMovable, False)
+                        txt.setParentItem(v.gfx)
+                        v.gfx_label = txt
+                    else:
+                        v.gfx_label.setPlainText(new_label)
+                self._schedule_preview()
+                self._schedule_ligature_refresh()
+        elif chosen is act_drag:
+            v = self.model.vertices.get(vid)
+            if v is None:
+                return
+            # Create temporary line following mouse
+            p1 = v.gfx.scenePos()
+            tmp = QGraphicsLineItem(p1.x(), p1.y(), p1.x(), p1.y())
+            pen = QPen(QColor(120, 120, 220, 200), 1)
+            pen.setCosmetic(True)
+            tmp.setPen(pen)
+            tmp.setZValue(99999)
+            self.scene.addItem(tmp)
+            self._ligature_drag_from_vid = vid
+            self._ligature_drag_line = tmp
+            self.statusBar().showMessage("Drag to a predicate to add ligature; release to drop. Press Esc to cancel.")
+        elif 'remove_actions' in locals() and chosen in remove_actions:
+            pid = remove_actions[chosen]
+            try:
+                self.model.ligatures[pid] = [v for v in self.model.ligatures.get(pid, []) if v != vid]
+                if not self.model.ligatures[pid]:
+                    del self.model.ligatures[pid]
+            except Exception:
+                pass
+            # If removed the output, clear it
+            if self.model.predicate_outputs.get(pid) == vid:
+                try:
+                    del self.model.predicate_outputs[pid]
+                except Exception:
+                    pass
+            self._schedule_ligature_refresh()
+            self._schedule_preview()
+        elif 'setout_actions' in locals() and chosen in setout_actions:
+            pid = setout_actions[chosen]
+            # Ensure the ligature exists
+            vids = self.model.ligatures.setdefault(pid, [])
+            if vid not in vids:
+                vids.append(vid)
+            self.model.predicate_outputs[pid] = vid
+            self._schedule_ligature_refresh()
+            self._schedule_preview()
+        elif 'clearout_actions' in locals() and chosen in clearout_actions:
+            pid = clearout_actions[chosen]
+            try:
+                del self.model.predicate_outputs[pid]
+            except Exception:
+                pass
+            self._schedule_ligature_refresh()
+            self._schedule_preview()
+        elif chosen is act_del:
+            # Select and delete via existing pipeline
+            self.scene.clearSelection()
+            v = self.model.vertices.get(vid)
+            if v is not None:
+                v.gfx.setSelected(True)
+            self._delete_selected_items()
+
+    def _show_predicate_menu(self, scene_pos: QPointF, pid: str) -> None:
+        menu = QMenu(self)
+        # Show ligature management for this predicate
+        vids = list(self.model.ligatures.get(pid, []))
+        remove_actions = {}
+        setout_actions = {}
+        clearout_action = None
+        if vids:
+            menu.addSection(f"Predicate {pid}")
+            for vid in vids:
+                a = menu.addAction(f"Remove ligature from {vid}")
+                remove_actions[a] = vid
+            menu.addSeparator()
+            for vid in vids:
+                a = menu.addAction(f"Set output to {vid}")
+                setout_actions[a] = vid
+            if self.model.predicate_outputs.get(pid):
+                clearout_action = menu.addAction("Clear output")
+            menu.addSeparator()
+        act_del = menu.addAction("Delete predicate")
+        chosen = menu.exec(self.view.mapToGlobal(self.view.mapFromScene(scene_pos)))
+        if chosen in remove_actions:
+            vid = remove_actions[chosen]
+            self.model.ligatures[pid] = [v for v in self.model.ligatures.get(pid, []) if v != vid]
+            if not self.model.ligatures[pid]:
+                try:
+                    del self.model.ligatures[pid]
+                except Exception:
+                    pass
+            if self.model.predicate_outputs.get(pid) == vid:
+                try:
+                    del self.model.predicate_outputs[pid]
+                except Exception:
+                    pass
+            self._schedule_ligature_refresh()
+            self._schedule_preview()
+        elif chosen in setout_actions:
+            vid = setout_actions[chosen]
+            vids = self.model.ligatures.setdefault(pid, [])
+            if vid not in vids:
+                vids.append(vid)
+            self.model.predicate_outputs[pid] = vid
+            self._schedule_ligature_refresh()
+            self._schedule_preview()
+        elif clearout_action is not None and chosen is clearout_action:
+            try:
+                del self.model.predicate_outputs[pid]
+            except Exception:
+                pass
+            self._schedule_ligature_refresh()
+            self._schedule_preview()
+        elif chosen is act_del:
+            self.scene.clearSelection()
+            p = self.model.predicates.get(pid)
+            if p is not None:
+                p.gfx_rect.setSelected(True)
+            self._delete_selected_items()
+
     def _handle_ligature_click(self, pos: QPointF) -> None:
         if self._ligature_edge is None:
             pid = self._hit_predicate(pos)
@@ -854,33 +1307,230 @@ class DrawingEditor(QMainWindow):
             self._update_preview()
 
     def on_load(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "Load Drawing", "", "JSON (*.json)")
+        # Allow loading drawing schema JSON, corpus JSON (with EGIF), or plain EGIF
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Load Drawing or EGIF",
+            "",
+            "JSON (*.json);;EGIF (*.egif *.txt);;All Files (*)",
+        )
         if not path:
             return
+        p = Path(path)
+        text = None
+        data = None
         try:
-            data = json.loads(Path(path).read_text())
+            if p.suffix.lower() == ".json":
+                data = json.loads(p.read_text())
+            else:
+                text = p.read_text().strip()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to read JSON: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to read file: {e}\nPath: {path}")
             return
-        # Clear scene and model
-        self.scene.clear()
-        self.model = DrawingModel.from_schema(self.scene, data)
-        # Replace plain rect items with constrained ones for future moves
-        for cid, c in list(self.model.cuts.items()):
-            old_item = c.gfx
-            rect = self._scene_rect_for_item(old_item)
-            new_item = CutRectItem(rect, self)
-            new_item.setPen(old_item.pen())
-            new_item.setBrush(old_item.brush())
-            new_item.setFlag(QGraphicsItem.ItemIsMovable, True)
-            new_item.setFlag(QGraphicsItem.ItemIsSelectable, True)
-            self.scene.addItem(new_item)
-            self.scene.removeItem(old_item)
-            self.model.cuts[cid].gfx = new_item
-        QMessageBox.information(self, "Loaded", f"Loaded drawing from {path}")
-        if self.act_auto.isChecked():
-            self._update_preview()
-        self._schedule_ligature_refresh()
+
+        # Case 1: Drawing schema JSON (our sandbox format)
+        if isinstance(data, dict) and any(k in data for k in ("cuts", "vertices", "predicates", "ligatures")):
+            self.scene.clear()
+            self.model = DrawingModel.from_schema(self.scene, data)
+            # Replace plain rect items with constrained ones for future moves
+            for cid, c in list(self.model.cuts.items()):
+                old_item = c.gfx
+                rect = self._scene_rect_for_item(old_item)
+                new_item = CutRectItem(rect, self)
+                new_item.setPen(old_item.pen())
+                new_item.setBrush(old_item.brush())
+                new_item.setFlag(QGraphicsItem.ItemIsMovable, True)
+                new_item.setFlag(QGraphicsItem.ItemIsSelectable, True)
+                self.scene.addItem(new_item)
+                self.scene.removeItem(old_item)
+                self.model.cuts[cid].gfx = new_item
+            QMessageBox.information(self, "Loaded", f"Loaded drawing from {path}")
+            if self.act_auto.isChecked():
+                self._update_preview()
+            self._schedule_ligature_refresh()
+            return
+
+        # Case 2: Corpus JSON entry with EGIF content
+        if isinstance(data, dict):
+            egif_text = data.get("egif_content") or data.get("egif") or data.get("eg_graph")
+            # Populate Corpus Guide JSON view with the raw corpus entry
+            try:
+                if hasattr(self, "txt_corpus_egi_json") and self.txt_corpus_egi_json is not None:
+                    self.txt_corpus_egi_json.setPlainText(json.dumps(data, indent=2))
+            except Exception:
+                pass
+            if egif_text:
+                # Only update the Corpus Guide EGIF preview as guidance; keep Preview focused on current drawing
+                if hasattr(self, "txt_corpus_egif") and self.txt_corpus_egif is not None:
+                    self.txt_corpus_egif.setPlainText(str(egif_text))
+                else:
+                    # Fallback if corpus dock not present
+                    self.txt_egif.setPlainText(str(egif_text))
+                QMessageBox.information(self, "Loaded EGIF", f"Loaded EGIF from corpus entry: {data.get('id', p.name)}")
+                return
+
+        # Case 3: Plain EGIF text file
+        if isinstance(text, str) and text:
+            if hasattr(self, "txt_corpus_egif") and self.txt_corpus_egif is not None:
+                self.txt_corpus_egif.setPlainText(text)
+            else:
+                self.txt_egif.setPlainText(text)
+            QMessageBox.information(self, "Loaded EGIF", f"Loaded EGIF text from {path}")
+            return
+
+        QMessageBox.warning(self, "Unrecognized File", "File did not match drawing schema or contain EGIF content.")
+
+    def on_import_egif_to_scene(self) -> None:
+        """Import EGIF text and populate the scene (cuts/vertices/predicates/ligatures).
+        Sources:
+        - If Corpus Guide EGIF dock has content, default to that text (confirm overwrite).
+        - Otherwise, prompt to open an EGIF text file.
+        """
+        # Prefer corpus guide text if present
+        egif_text: Optional[str] = None
+        if hasattr(self, "txt_corpus_egif") and self.txt_corpus_egif is not None:
+            egif_text = self.txt_corpus_egif.toPlainText().strip() or None
+
+        if not egif_text:
+            path, _ = QFileDialog.getOpenFileName(
+                self,
+                "Import EGIF to Scene",
+                "",
+                "EGIF (*.egif *.txt);;All Files (*)",
+            )
+            if not path:
+                return
+            try:
+                egif_text = Path(path).read_text().strip()
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Failed to read EGIF: {e}")
+                return
+
+        if not egif_text:
+            QMessageBox.warning(self, "No EGIF", "No EGIF text available to import.")
+            return
+
+        # Parse EGIF to RelationalGraphWithCuts
+        try:
+            from egif_parser_dau import parse_egif
+            rgc = parse_egif(egif_text)
+        except Exception as e:
+            QMessageBox.critical(self, "Parse Error", f"Failed to parse EGIF: {e}")
+            return
+
+        # Convert graph to our drawing schema (area relationships only; positions auto)
+        try:
+            schema = self._schema_from_relational_graph(rgc)
+        except Exception as e:
+            QMessageBox.critical(self, "Conversion Error", f"Failed to convert graph: {e}")
+            return
+
+        # Populate scene with batching to prevent stalls
+        self.begin_interaction()
+        try:
+            self.scene.clear()
+            self.model = DrawingModel.from_schema(self.scene, schema)
+            # Replace plain rects with constrained CutRectItem instances
+            for cid, c in list(self.model.cuts.items()):
+                old_item = c.gfx
+                rect = self._scene_rect_for_item(old_item)
+                new_item = CutRectItem(rect, self)
+                new_item.setPen(old_item.pen())
+                new_item.setBrush(old_item.brush())
+                new_item.setFlag(QGraphicsItem.ItemIsMovable, True)
+                new_item.setFlag(QGraphicsItem.ItemIsSelectable, True)
+                self.scene.addItem(new_item)
+                self.scene.removeItem(old_item)
+                self.model.cuts[cid].gfx = new_item
+            self._schedule_zorder_refresh()
+            self._schedule_ligature_refresh()
+            self._schedule_preview()
+        finally:
+            self.end_interaction()
+
+        QMessageBox.information(self, "Imported", "EGIF imported into the scene.")
+
+    def _schema_from_relational_graph(self, rgc) -> Dict:
+        """Build a drawing schema dict from a RelationalGraphWithCuts (no positions).
+        - Cuts: id and parent_id via rgc.get_context(cut.id) or sheet.
+        - Vertices: id with area_id from rgc.get_context(vertex.id).
+        - Predicates (edges): id, name (relation), area_id from rgc.get_context(edge.id).
+        - Ligatures: from rgc.nu edge -> vertex sequence.
+        """
+        try:
+            sheet_id = getattr(rgc, "sheet", "S")
+        except Exception:
+            sheet_id = "S"
+
+        # Cuts
+        cuts = []
+        try:
+            for cut in getattr(rgc, "Cut", []):
+                cid = getattr(cut, "id", None)
+                if not cid:
+                    continue
+                try:
+                    parent = rgc.get_context(cid)
+                except Exception:
+                    parent = sheet_id
+                cuts.append({"id": cid, "parent_id": parent or sheet_id})
+        except Exception:
+            cuts = []
+
+        # Vertices
+        vertices = []
+        try:
+            for v in getattr(rgc, "V", []):
+                vid = getattr(v, "id", None)
+                if not vid:
+                    continue
+                try:
+                    area = rgc.get_context(vid)
+                except Exception:
+                    area = sheet_id
+                vertices.append({"id": vid, "area_id": area or sheet_id})
+        except Exception:
+            vertices = []
+
+        # Predicates (edges)
+        predicates = []
+        try:
+            for e in getattr(rgc, "E", []):
+                eid = getattr(e, "id", None)
+                if not eid:
+                    continue
+                try:
+                    name = rgc.get_relation_name(eid)
+                except Exception:
+                    name = eid
+                try:
+                    area = rgc.get_context(eid)
+                except Exception:
+                    area = sheet_id
+                predicates.append({"id": eid, "name": name, "area_id": area or sheet_id})
+        except Exception:
+            predicates = []
+
+        # Ligatures from nu mapping
+        ligatures = []
+        try:
+            nu_map = getattr(rgc, "nu", {})
+            for eid, vseq in nu_map.items():
+                try:
+                    vids = list(vseq)
+                except Exception:
+                    vids = [v for v in vseq]
+                ligatures.append({"edge_id": eid, "vertex_ids": vids})
+        except Exception:
+            ligatures = []
+
+        return {
+            "sheet_id": sheet_id,
+            "cuts": cuts,
+            "vertices": vertices,
+            "predicates": predicates,
+            "ligatures": ligatures,
+        }
 
     def on_export_egi(self) -> None:
         try:
@@ -978,7 +1628,12 @@ class DrawingEditor(QMainWindow):
 
         vertices = []
         for v in self.model.vertices.values():
-            vertices.append({"id": v.id, "area_id": resolve_area(v.pos)})
+            entry = {"id": v.id, "area_id": resolve_area(v.pos)}
+            if v.label:
+                entry["label"] = v.label
+                if v.label_kind:
+                    entry["label_kind"] = v.label_kind
+            vertices.append(entry)
         predicates = []
         for p in self.model.predicates.values():
             predicates.append({"id": p.id, "name": p.name, "area_id": resolve_area(p.pos)})
@@ -989,13 +1644,16 @@ class DrawingEditor(QMainWindow):
 
         ligatures = [{"edge_id": e, "vertex_ids": vids} for e, vids in self.model.ligatures.items()]
 
-        return {
+        schema = {
             "sheet_id": self.model.sheet_id,
             "cuts": cuts,
             "vertices": vertices,
             "predicates": predicates,
             "ligatures": ligatures,
         }
+        if self.model.predicate_outputs:
+            schema["predicate_outputs"] = dict(self.model.predicate_outputs)
+        return schema
 
 
 class CutRectItem(QGraphicsRectItem):
@@ -1042,7 +1700,13 @@ class CutRectItem(QGraphicsRectItem):
             if not self._editor._is_valid_cut_scene_rect(new_scene_rect, ignore_item=self):
                 # revert to previous valid pos
                 if self._press_pos is not None:
-                    self.setPos(self._press_pos)
+                    # Suppress scene change handlers during snap-back to avoid cascades
+                    prev = getattr(self._editor, "_suppress_scene_change", False)
+                    self._editor._suppress_scene_change = True
+                    try:
+                        self.setPos(self._press_pos)
+                    finally:
+                        self._editor._suppress_scene_change = prev
                 try:
                     cid = self._editor._id_for_cut_item(self)
                     self._editor._log(f"CUT_DRAG end id={cid} result=invalid snap_back=1")
@@ -1165,7 +1829,8 @@ class CutHandleItem(QGraphicsRectItem):
             self._cut._editor._log(f"CUT_RESIZE begin id={cid} pos=({sp.x():.1f},{sp.y():.1f}) rect={self._start_rect} handle={self.role}")
         except Exception:
             pass
-        super().mousePressEvent(event)
+        # Consume to avoid propagating to parent (which would start a move)
+        event.accept()
 
     def mouseMoveEvent(self, event):
         if self._start_rect is None:
@@ -1197,10 +1862,11 @@ class CutHandleItem(QGraphicsRectItem):
         # Apply without validation during drag for performance
         self._cut.setRect(r)
         self._cut._update_handles()
-        super().mouseMoveEvent(event)
+        event.accept()
 
     def mouseReleaseEvent(self, event):
-        super().mouseReleaseEvent(event)
+        # Consume release, then validate and end interaction
+        event.accept()
         # Validate final rect; revert if invalid
         try:
             r = self._cut.rect()
@@ -1209,8 +1875,14 @@ class CutHandleItem(QGraphicsRectItem):
             new_scene_rect = QRectF(tl, br).normalized()
             if not self._cut._editor._is_valid_cut_scene_rect(new_scene_rect, ignore_item=self._cut):
                 if self._start_rect is not None:
-                    self._cut.setRect(self._start_rect)
-                    self._cut._update_handles()
+                    # Suppress scene change handlers during snap-back to avoid cascades
+                    prev = getattr(self._cut._editor, "_suppress_scene_change", False)
+                    self._cut._editor._suppress_scene_change = True
+                    try:
+                        self._cut.setRect(self._start_rect)
+                        self._cut._update_handles()
+                    finally:
+                        self._cut._editor._suppress_scene_change = prev
                 try:
                     cid = self._cut._editor._id_for_cut_item(self._cut)
                     self._cut._editor._log(f"CUT_RESIZE end id={cid} result=invalid snap_back=1")
@@ -1225,6 +1897,7 @@ class CutHandleItem(QGraphicsRectItem):
                 except Exception:
                     pass
         finally:
+            # End throttling
             try:
                 self._cut._editor.end_interaction()
             except Exception:

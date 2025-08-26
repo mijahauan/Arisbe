@@ -1,38 +1,81 @@
 {
-  "id": "endoporeutic_game_start",
+  "alphabet_summary": {
+    "C_count": 0,
+    "F_count": 0,
+    "R_count": 0,
+    "arities": {}
+  },
+  "authority_level": "medium",
   "category": "canonical",
-  "title": "Endoporeutic Game Starting Position",
-  "description": "Classic EPG starting position demonstrating quantifier scope ambiguity and multiple transformation paths",
-  "source": {
-    "author": "Canonical EPG Examples",
-    "work": "Endoporeutic Game Theory",
-    "year": 2024,
-    "reference": "Standard EPG positions"
-  },
-  "logical_form": "∃x∀y(Loves(x,y)) ∧ ∀x∃y(Loves(x,y))",
-  "natural_language": "There exists someone who loves everyone, and everyone loves someone",
   "complexity": {
-    "nesting_depth": 3,
-    "entity_count": 4,
-    "predicate_count": 2,
-    "cut_count": 4
+    "cut_count": 0,
+    "edge_count": 0,
+    "nesting_depth": 0,
+    "predicate_count": 0,
+    "vertex_count": 0
   },
-  "test_rationale": "Tests quantifier scope interactions and provides rich EPG transformation opportunities",
+  "description": "Classic EPG starting position demonstrating quantifier scope ambiguity and multiple transformation paths",
+  "difficulty": "medium",
   "epg_features": {
+    "invalid_transformations": [],
     "is_starting_position": true,
     "valid_transformations": [
       "insertion",
       "deletion",
       "iteration",
       "deiteration"
-    ],
-    "invalid_transformations": []
+    ]
   },
-  "authority_level": "medium",
-  "difficulty": "medium",
+  "id": "endoporeutic_game_start",
+  "logical_form": "∃x∀y(Loves(x,y)) ∧ ∀x∃y(Loves(x,y))",
+  "natural_language": "There exists someone who loves everyone, and everyone loves someone",
   "provenance_notes": "Derived from Canonical EPG Examples Endoporeutic Game Theory",
+  "representations": {
+    "egi": {
+      "hash": "678bd6f391b9e92afcf631c9fd92fb5cb38addead3ac39d4318bba0cbede858d",
+      "path": "endoporeutic_game_start.egi.json"
+    },
+    "linear_forms": {
+      "cgif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      },
+      "clif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      },
+      "egif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      }
+    }
+  },
+  "schema_version": "1.0",
+  "source": {
+    "author": "Canonical EPG Examples",
+    "reference": "Standard EPG positions",
+    "work": "Endoporeutic Game Theory",
+    "year": 2024
+  },
+  "tags": [
+    "quantifiers",
+    "relations"
+  ],
+  "test_rationale": "Tests quantifier scope interactions and provides rich EPG transformation opportunities",
+  "title": "Endoporeutic Game Starting Position",
   "topic_tags": [
     "quantifiers",
     "relations"
-  ]
+  ],
+  "validation_status": {
+    "egi_validated": true,
+    "replicas_validated": {
+      "cgif": true,
+      "clif": true,
+      "egif": true
+    }
+  }
 }

@@ -1,0 +1,102 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_Agent_3"
+    },
+    {
+      "id": "e_Cat_0"
+    },
+    {
+      "id": "e_Chase_1"
+    },
+    {
+      "id": "e_Mouse_2"
+    },
+    {
+      "id": "e_Thme_4"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_Yojo",
+      "is_generic": false,
+      "label": "Yojo"
+    },
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Yojo"
+    ],
+    "F": [],
+    "R": [
+      "Agent",
+      "Cat",
+      "Chase",
+      "Mouse",
+      "Thme"
+    ],
+    "ar": {
+      "Agent": 2,
+      "Cat": 1,
+      "Chase": 1,
+      "Mouse": 1,
+      "Thme": 2,
+      "Yojo": 1
+    }
+  },
+  "area": {
+    "sheet_ef782c2b": [
+      "e_Agent_3",
+      "e_Cat_0",
+      "e_Chase_1",
+      "e_Mouse_2",
+      "e_Thme_4",
+      "v_Yojo",
+      "v_x",
+      "v_y"
+    ]
+  },
+  "nu": {
+    "e_Agent_3": [
+      "v_x",
+      "v_Yojo"
+    ],
+    "e_Cat_0": [
+      "v_Yojo"
+    ],
+    "e_Chase_1": [
+      "v_x"
+    ],
+    "e_Mouse_2": [
+      "v_y"
+    ],
+    "e_Thme_4": [
+      "v_x",
+      "v_y"
+    ]
+  },
+  "rel": {
+    "e_Agent_3": "Agent",
+    "e_Cat_0": "Cat",
+    "e_Chase_1": "Chase",
+    "e_Mouse_2": "Mouse",
+    "e_Thme_4": "Thme"
+  },
+  "rho": {
+    "v_Yojo": "Yojo",
+    "v_x": null,
+    "v_y": null
+  },
+  "sheet": "sheet_ef782c2b"
+}

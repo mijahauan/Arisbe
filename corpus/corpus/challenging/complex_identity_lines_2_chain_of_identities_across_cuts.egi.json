@@ -1,0 +1,76 @@
+{
+  "Cut": [
+    {
+      "id": "c_0436dee5"
+    },
+    {
+      "id": "c_b110f6dc"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_15fffaab"
+    },
+    {
+      "id": "e_35ead93d"
+    },
+    {
+      "id": "e_d26877ee"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_8ff8bc35",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Finite",
+      "Human",
+      "Mortal"
+    ],
+    "ar": {
+      "Finite": 1,
+      "Human": 1,
+      "Mortal": 1
+    }
+  },
+  "area": {
+    "c_0436dee5": [
+      "c_b110f6dc",
+      "e_d26877ee"
+    ],
+    "c_b110f6dc": [
+      "e_15fffaab"
+    ],
+    "sheet_9476c1bd": [
+      "c_0436dee5",
+      "e_35ead93d",
+      "v_8ff8bc35"
+    ]
+  },
+  "nu": {
+    "e_15fffaab": [
+      "v_8ff8bc35"
+    ],
+    "e_35ead93d": [
+      "v_8ff8bc35"
+    ],
+    "e_d26877ee": [
+      "v_8ff8bc35"
+    ]
+  },
+  "rel": {
+    "e_15fffaab": "Finite",
+    "e_35ead93d": "Human",
+    "e_d26877ee": "Mortal"
+  },
+  "rho": {
+    "v_8ff8bc35": null
+  },
+  "sheet": "sheet_9476c1bd"
+}

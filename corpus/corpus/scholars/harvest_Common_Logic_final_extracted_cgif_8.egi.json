@@ -1,0 +1,43 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_Integer_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Integer"
+    ],
+    "ar": {
+      "Integer": 1
+    }
+  },
+  "area": {
+    "sheet_38091acc": [
+      "e_Integer_0",
+      "v_x"
+    ]
+  },
+  "nu": {
+    "e_Integer_0": [
+      "v_x"
+    ]
+  },
+  "rel": {
+    "e_Integer_0": "Integer"
+  },
+  "rho": {
+    "v_x": null
+  },
+  "sheet": "sheet_38091acc"
+}

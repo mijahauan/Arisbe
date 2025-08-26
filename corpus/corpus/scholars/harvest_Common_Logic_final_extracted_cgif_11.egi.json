@@ -1,0 +1,46 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_City_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_Boston",
+      "is_generic": false,
+      "label": "Boston"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Boston"
+    ],
+    "F": [],
+    "R": [
+      "City"
+    ],
+    "ar": {
+      "Boston": 1,
+      "City": 1
+    }
+  },
+  "area": {
+    "sheet_5f5ef5eb": [
+      "e_City_0",
+      "v_Boston"
+    ]
+  },
+  "nu": {
+    "e_City_0": [
+      "v_Boston"
+    ]
+  },
+  "rel": {
+    "e_City_0": "City"
+  },
+  "rho": {
+    "v_Boston": "Boston"
+  },
+  "sheet": "sheet_5f5ef5eb"
+}

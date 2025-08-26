@@ -1,21 +1,70 @@
 {
-  "id": "sowa_2011_p356_quantification",
-  "title": "Sowa's Quantification Example",
+  "alphabet_summary": {
+    "C_count": 0,
+    "F_count": 0,
+    "R_count": 0,
+    "arities": {}
+  },
+  "authority_level": "high",
+  "complexity": {
+    "cut_count": 0,
+    "edge_count": 0,
+    "nesting_depth": 0,
+    "predicate_count": 0,
+    "vertex_count": 0
+  },
   "description": "Sowa's example of existential quantification",
+  "difficulty": "medium",
+  "id": "sowa_2011_p356_quantification",
+  "logical_form": "∃x(P(x) ∧ Q(x))",
+  "logical_pattern": "quantification",
+  "notes": "This example demonstrates how existential quantification is represented in existential graphs using lines of identity. The formula '∃x(P(x) ∧ Q(x))' is represented by a line of identity connecting the predicates P and Q.",
+  "provenance_notes": "Derived from John F. Sowa Peirce's Tutorial on Existential Graphs",
+  "representations": {
+    "egi": {
+      "hash": "8ec225155103af786b6caaaf3d23548e1b6614cea87e50083b7b426d9505149f",
+      "path": "sowa_2011_p356_quantification.egi.json"
+    },
+    "linear_forms": {
+      "cgif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      },
+      "clif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      },
+      "egif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      }
+    }
+  },
+  "schema_version": "1.0",
   "source": {
     "author": "John F. Sowa",
-    "work": "Peirce's Tutorial on Existential Graphs",
     "page": 356,
+    "work": "Peirce's Tutorial on Existential Graphs",
     "year": 2011
   },
-  "logical_pattern": "quantification",
-  "logical_form": "∃x(P(x) ∧ Q(x))",
-  "notes": "This example demonstrates how existential quantification is represented in existential graphs using lines of identity. The formula '∃x(P(x) ∧ Q(x))' is represented by a line of identity connecting the predicates P and Q.",
-  "authority_level": "high",
-  "difficulty": "medium",
-  "provenance_notes": "Derived from John F. Sowa Peirce's Tutorial on Existential Graphs",
+  "tags": [
+    "quantifiers",
+    "relations"
+  ],
+  "title": "Sowa's Quantification Example",
   "topic_tags": [
     "quantifiers",
     "relations"
-  ]
+  ],
+  "validation_status": {
+    "egi_validated": true,
+    "replicas_validated": {
+      "cgif": true,
+      "clif": true,
+      "egif": true
+    }
+  }
 }

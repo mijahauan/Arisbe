@@ -1,0 +1,46 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_9b4649ac"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_91433fe7",
+      "is_generic": false,
+      "label": "Erasure"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Erasure"
+    ],
+    "F": [],
+    "R": [
+      "see"
+    ],
+    "ar": {
+      "Erasure": 1,
+      "see": 1
+    }
+  },
+  "area": {
+    "sheet_50d9f134": [
+      "e_9b4649ac",
+      "v_91433fe7"
+    ]
+  },
+  "nu": {
+    "e_9b4649ac": [
+      "v_91433fe7"
+    ]
+  },
+  "rel": {
+    "e_9b4649ac": "see"
+  },
+  "rho": {
+    "v_91433fe7": "Erasure"
+  },
+  "sheet": "sheet_50d9f134"
+}

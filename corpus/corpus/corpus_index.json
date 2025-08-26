@@ -4,149 +4,1472 @@
   "version": "1.0.0",
   "examples": [
     {
-      "id": "peirce_cp_4_394_man_mortal",
-      "category": "peirce",
-      "title": "Peirce's Man-Mortal Implication",
-      "description": "Peirce's classic example of implication: 'If a man, then mortal'",
-      "source": "Collected Papers 4.394",
-      "logical_pattern": "implication"
-    },
-    {
       "id": "canonical_implication",
       "category": "canonical",
       "title": "Canonical Implication",
       "description": "Standard form of implication using double-cut",
-      "source": "Canonical Forms",
-      "logical_pattern": "implication"
+      "source": "Canonical Forms, EGRF v3.0 Corpus, 2023",
+      "logical_pattern": "implication",
+      "tags": [
+        "quantifiers",
+        "relations"
+      ],
+      "path": "corpus/corpus/canonical/canonical_implication.json"
+    },
+    {
+      "id": "complex_relations",
+      "category": "canonical",
+      "title": "Complex Relations Example",
+      "description": "Multiple predicates and cuts - comprehensive test case",
+      "source": "Canonical Forms, EGRF v3.0 Corpus, 2023",
+      "logical_pattern": "complex_conjunction",
+      "tags": [
+        "quantifiers",
+        "relations"
+      ],
+      "path": "corpus/corpus/canonical/complex_relations.json"
+    },
+    {
+      "id": "endoporeutic_game_start",
+      "category": "canonical",
+      "title": "Endoporeutic Game Starting Position",
+      "description": "Classic EPG starting position demonstrating quantifier scope ambiguity and multiple transformation paths",
+      "source": "Canonical EPG Examples, Endoporeutic Game Theory, 2024",
+      "logical_pattern": null,
+      "tags": [
+        "quantifiers",
+        "relations"
+      ],
+      "path": "corpus/corpus/canonical/endoporeutic_game_start.json"
+    },
+    {
+      "id": "epg_modus_ponens",
+      "category": "canonical",
+      "title": "Modus Ponens (EPG Starter)",
+      "description": "Classic modus ponens setup for endoporeutic game practice",
+      "source": "Canonical Forms, EGRF v3.0 Corpus, 2023",
+      "logical_pattern": "modus_ponens",
+      "tags": [
+        "quantifiers",
+        "relations"
+      ],
+      "path": "corpus/corpus/canonical/epg_modus_ponens.json"
+    },
+    {
+      "id": "epg_simple_syllogism",
+      "category": "canonical",
+      "title": "Simple Syllogism (EPG Starter)",
+      "description": "Classic syllogism setup for endoporeutic game practice",
+      "source": "Canonical Forms, EGRF v3.0 Corpus, 2023",
+      "logical_pattern": "syllogism",
+      "tags": [
+        "quantifiers",
+        "relations"
+      ],
+      "path": "corpus/corpus/canonical/epg_simple_syllogism.json"
+    },
+    {
+      "id": "nested_cuts",
+      "category": "canonical",
+      "title": "Nested Cuts Example",
+      "description": "Double-nested cuts with predicate - tests containment logic",
+      "source": "Canonical Forms, EGRF v3.0 Corpus, 2023",
+      "logical_pattern": "nested_negation",
+      "tags": [
+        "nesting",
+        "quantifiers",
+        "scope"
+      ],
+      "path": "corpus/corpus/canonical/nested_cuts.json"
     },
     {
       "id": "roberts_1973_p57_disjunction",
-      "category": "scholars",
+      "category": "canonical",
       "title": "Roberts' Disjunction Example",
       "description": "Roberts' example of disjunction: 'P or Q'",
-      "source": "Roberts (1973), p.57",
-      "logical_pattern": "disjunction"
+      "source": "Don D. Roberts, The Existential Graphs of Charles S. Peirce, 1973, p.57",
+      "logical_pattern": "disjunction",
+      "tags": [
+        "boolean",
+        "disjunction"
+      ],
+      "path": "corpus/corpus/canonical/roberts_1973_p57_disjunction.json"
+    },
+    {
+      "id": "simple_predicate",
+      "category": "canonical",
+      "title": "Simple Predicate",
+      "description": "Basic predicate with constant - good for testing containment",
+      "source": "Canonical Forms, EGRF v3.0 Corpus, 2023",
+      "logical_pattern": "simple_predicate",
+      "tags": [
+        "quantifiers",
+        "relations"
+      ],
+      "path": "corpus/corpus/canonical/simple_predicate.json"
     },
     {
       "id": "sowa_2011_p356_quantification",
-      "category": "scholars",
+      "category": "canonical",
       "title": "Sowa's Quantification Example",
       "description": "Sowa's example of existential quantification",
-      "source": "Sowa (2011), p.356",
-      "logical_pattern": "quantification"
+      "source": "John F. Sowa, Peirce's Tutorial on Existential Graphs, 2011, p.356",
+      "logical_pattern": "quantification",
+      "tags": [
+        "quantifiers",
+        "relations"
+      ],
+      "path": "corpus/corpus/canonical/sowa_2011_p356_quantification.json"
+    },
+    {
+      "id": "belief_contexts_1_simple_belief",
+      "category": "challenging",
+      "title": "1: Simple belief",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/belief_contexts_1_simple_belief.json"
+    },
+    {
+      "id": "belief_contexts_2_nested_belief_and_desire",
+      "category": "challenging",
+      "title": "2: Nested belief and desire",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/belief_contexts_2_nested_belief_and_desire.json"
+    },
+    {
+      "id": "belief_contexts_3_doubt_context",
+      "category": "challenging",
+      "title": "3: Doubt context",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/belief_contexts_3_doubt_context.json"
+    },
+    {
+      "id": "belief_contexts_4_complex_nested_contexts",
+      "category": "challenging",
+      "title": "4: Complex nested contexts",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/belief_contexts_4_complex_nested_contexts.json"
+    },
+    {
+      "id": "classical_syllogisms_1_barbara_syllogism",
+      "category": "challenging",
+      "title": "1: Barbara syllogism",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/classical_syllogisms_1_barbara_syllogism.json"
+    },
+    {
+      "id": "classical_syllogisms_2_celarent_syllogism",
+      "category": "challenging",
+      "title": "2: Celarent syllogism",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/classical_syllogisms_2_celarent_syllogism.json"
+    },
+    {
+      "id": "classical_syllogisms_3_darii_syllogism",
+      "category": "challenging",
+      "title": "3: Darii syllogism",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/classical_syllogisms_3_darii_syllogism.json"
+    },
+    {
+      "id": "classical_syllogisms_4_ferio_syllogism",
+      "category": "challenging",
+      "title": "4: Ferio syllogism",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/classical_syllogisms_4_ferio_syllogism.json"
+    },
+    {
+      "id": "complex_identity_lines_1_multiple_shared_identities",
+      "category": "challenging",
+      "title": "1: Multiple shared identities",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_identity_lines_1_multiple_shared_identities.json"
+    },
+    {
+      "id": "complex_identity_lines_2_chain_of_identities_across_cuts",
+      "category": "challenging",
+      "title": "2: Chain of identities across cuts",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_identity_lines_2_chain_of_identities_across_cuts.json"
+    },
+    {
+      "id": "complex_identity_lines_3_complex_identity_crossing_multiple_cuts",
+      "category": "challenging",
+      "title": "3: Complex identity crossing multiple cuts",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_identity_lines_3_complex_identity_crossing_multiple_cuts.json"
+    },
+    {
+      "id": "complex_identity_lines_4_star_pattern_one_vertex_connected_to_many_predicates",
+      "category": "challenging",
+      "title": "4: Star pattern - one vertex connected to many predicates",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_identity_lines_4_star_pattern_one_vertex_connected_to_many_predicates.json"
+    },
+    {
+      "id": "complex_identity_lines_5_complex_crossing_pattern",
+      "category": "challenging",
+      "title": "5: Complex crossing pattern",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_identity_lines_5_complex_crossing_pattern.json"
+    },
+    {
+      "id": "complex_quantification_1_multiple_quantifiers_with_different_scopes",
+      "category": "challenging",
+      "title": "1: Multiple quantifiers with different scopes",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_quantification_1_multiple_quantifiers_with_different_scopes.json"
+    },
+    {
+      "id": "complex_quantification_2_reversed_quantifier_scope",
+      "category": "challenging",
+      "title": "2: Reversed quantifier scope",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_quantification_2_reversed_quantifier_scope.json"
+    },
+    {
+      "id": "complex_quantification_3_complex_nested_quantification",
+      "category": "challenging",
+      "title": "3: Complex nested quantification",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_quantification_3_complex_nested_quantification.json"
+    },
+    {
+      "id": "complex_quantification_4_existential_over_universal",
+      "category": "challenging",
+      "title": "4: Existential over universal",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/complex_quantification_4_existential_over_universal.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_quality/harvest_Common_Logic_final_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_1",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_1",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_quality/harvest_Common_Logic_final_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_10",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_10.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_11",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_11.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_12",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_12.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_13",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_13.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_14",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_14.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_2",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_2.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_3",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_3.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_4",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_4.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_5",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_5.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_6",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_6.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_7",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_7.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_8",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_8.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_cgif_9",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_cgif_9.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif_1",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif_1.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif_2",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif_2.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif_3",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif_3.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif_4",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif_4.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif_5",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif_5.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif_6",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif_6.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif_7",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif_7.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_extracted_egif_8",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_extracted_egif_8.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_summary_cgif",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_summary_cgif.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_summary_cgif_1",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_summary_cgif_1.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_summary_cgif_2",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_summary_cgif_2.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_summary_cgif_3",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_summary_cgif_3.json"
+    },
+    {
+      "id": "harvest_Common_Logic_final_summary_cgif_4",
+      "category": "challenging",
+      "title": "harvest_Common_Logic_final_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Common_Logic_final_summary_cgif_4.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_extracted_cgif",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_extracted_cgif_1",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_extracted_cgif_2",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_extracted_cgif_2.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_extracted_cgif_3",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_extracted_cgif_3.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_extracted_cgif_4",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_extracted_cgif_4.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_summary_cgif",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_summary_cgif.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_summary_cgif_1",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_summary_cgif_1.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_summary_cgif_2",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_summary_cgif_2.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_summary_cgif_3",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_summary_cgif_3.json"
+    },
+    {
+      "id": "harvest_Egpeirce_Documentation_summary_cgif_4",
+      "category": "challenging",
+      "title": "harvest_Egpeirce_Documentation_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Egpeirce_Documentation_summary_cgif_4.json"
+    },
+    {
+      "id": "harvest_Existential_Graphs_of_Peirce_extracted_cgif",
+      "category": "challenging",
+      "title": "harvest_Existential_Graphs_of_Peirce_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_quality/harvest_Existential_Graphs_of_Peirce_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_Existential_Graphs_of_Peirce_extracted_cgif_1",
+      "category": "challenging",
+      "title": "harvest_Existential_Graphs_of_Peirce_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_quality/harvest_Existential_Graphs_of_Peirce_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_Existential_Graphs_of_Peirce_extracted_egif",
+      "category": "challenging",
+      "title": "harvest_Existential_Graphs_of_Peirce_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Existential_Graphs_of_Peirce_extracted_egif.json"
+    },
+    {
+      "id": "harvest_Existential_Graphs_of_Peirce_extracted_egif_1",
+      "category": "challenging",
+      "title": "harvest_Existential_Graphs_of_Peirce_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Existential_Graphs_of_Peirce_extracted_egif_1.json"
+    },
+    {
+      "id": "harvest_Existential_Graphs_of_Peirce_extracted_egif_2",
+      "category": "challenging",
+      "title": "harvest_Existential_Graphs_of_Peirce_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Existential_Graphs_of_Peirce_extracted_egif_2.json"
+    },
+    {
+      "id": "harvest_Existential_Graphs_of_Peirce_extracted_egif_3",
+      "category": "challenging",
+      "title": "harvest_Existential_Graphs_of_Peirce_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_Existential_Graphs_of_Peirce_extracted_egif_3.json"
+    },
+    {
+      "id": "harvest_eg2cg_extracted_cgif",
+      "category": "challenging",
+      "title": "harvest_eg2cg_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_eg2cg_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_eg2cg_extracted_cgif",
+      "category": "challenging",
+      "title": "harvest_eg2cg_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_quality/harvest_eg2cg_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_eg2cg_extracted_cgif_1",
+      "category": "challenging",
+      "title": "harvest_eg2cg_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_eg2cg_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_eg2cg_extracted_cgif_1",
+      "category": "challenging",
+      "title": "harvest_eg2cg_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_quality/harvest_eg2cg_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_eg2cg_extracted_cgif_2",
+      "category": "challenging",
+      "title": "harvest_eg2cg_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_eg2cg_extracted_cgif_2.json"
+    },
+    {
+      "id": "harvest_eg2cg_extracted_cgif_3",
+      "category": "challenging",
+      "title": "harvest_eg2cg_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_eg2cg_extracted_cgif_3.json"
+    },
+    {
+      "id": "harvest_eg2cg_extracted_cgif_4",
+      "category": "challenging",
+      "title": "harvest_eg2cg_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_eg2cg_extracted_cgif_4.json"
+    },
+    {
+      "id": "harvest_mathematical_logic_with_diagrams_extracted_egif",
+      "category": "challenging",
+      "title": "harvest_mathematical_logic_with_diagrams_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_mathematical_logic_with_diagrams_extracted_egif.json"
+    },
+    {
+      "id": "harvest_mathematical_logic_with_diagrams_extracted_egif_1",
+      "category": "challenging",
+      "title": "harvest_mathematical_logic_with_diagrams_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_mathematical_logic_with_diagrams_extracted_egif_1.json"
+    },
+    {
+      "id": "harvest_mathematical_logic_with_diagrams_extracted_egif_2",
+      "category": "challenging",
+      "title": "harvest_mathematical_logic_with_diagrams_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_mathematical_logic_with_diagrams_extracted_egif_2.json"
+    },
+    {
+      "id": "triadic_relations_1_between_relation_triadic",
+      "category": "challenging",
+      "title": "1: Between relation (triadic)",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/triadic_relations_1_between_relation_triadic.json"
+    },
+    {
+      "id": "triadic_relations_2_giving_relation_triadic",
+      "category": "challenging",
+      "title": "2: Giving relation (triadic)",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/triadic_relations_2_giving_relation_triadic.json"
+    },
+    {
+      "id": "triadic_relations_3_complex_triadic_with_nested_cuts",
+      "category": "challenging",
+      "title": "3: Complex triadic with nested cuts",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/triadic_relations_3_complex_triadic_with_nested_cuts.json"
+    },
+    {
+      "id": "triadic_relations_4_triadic_with_shared_arguments",
+      "category": "challenging",
+      "title": "4: Triadic with shared arguments",
+      "description": "",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/challenging/triadic_relations_4_triadic_with_shared_arguments.json"
+    },
+    {
+      "id": "corpus_enhanced_index",
+      "category": "corpus",
+      "title": null,
+      "description": "Enhanced corpus with complete linear form coverage: EGIF, CLIF, and CGIF representations",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/corpus_enhanced_index.json"
+    },
+    {
+      "id": "peirce_cp_4_394_man_mortal",
+      "category": "peirce",
+      "title": "Peirce's Man-Mortal Implication",
+      "description": "Peirce's classic example of implication: 'If a man, then mortal'",
+      "source": "Charles Sanders Peirce, Collected Papers, 1903",
+      "logical_pattern": "implication",
+      "tags": [],
+      "path": "corpus/corpus/peirce/peirce_cp_4_394_man_mortal.json"
+    },
+    {
+      "id": "peirce_modus_ponens",
+      "category": "peirce",
+      "title": "Peirce's Modus Ponens",
+      "description": "Peirce's demonstration of the modus ponens inference rule using existential graphs",
+      "source": "Charles Sanders Peirce, Collected Papers, 1906, p.572",
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/peirce/peirce_modus_ponens.json"
     },
     {
       "id": "dau_2006_p112_ligature",
       "category": "scholars",
       "title": "Dau's Ligature Example",
       "description": "Dau's example of ligatures crossing cut boundaries",
-      "source": "Dau (2006), p.112",
-      "logical_pattern": "ligature"
-    },
-    {
-      "id": "stanford_nested_quantifiers",
-      "category": "scholars",
-      "title": "Stanford Nested Quantifiers",
-      "description": "Nested quantifier scopes: Everyone loves someone",
-      "source": "Stanford Encyclopedia of Philosophy",
-      "logical_pattern": "quantification"
-    },
-    {
-      "id": "peirce_complex_scope",
-      "category": "scholars",
-      "title": "Peirce Complex Scope",
-      "description": "Three-way mixed quantifiers with complex nesting",
-      "source": "Peirce Beta System",
-      "logical_pattern": "quantification"
-    },
-    {
-      "id": "shared_constant_disjunction",
-      "category": "scholars",
-      "title": "Shared Constant Disjunction",
-      "description": "Constant sharing across disjunction cuts",
-      "source": "Challenging Test Cases",
-      "logical_pattern": "disjunction"
-    },
-    {
-      "id": "sibling_cuts_shared_variable",
-      "category": "scholars",
-      "title": "Sibling Cuts Shared Variable",
-      "description": "Variable sharing across sibling cuts",
-      "source": "Challenging Test Cases",
-      "logical_pattern": "disjunction"
-    },
-    {
-      "id": "ternary_relation_challenge",
-      "category": "scholars",
-      "title": "Ternary Relation Challenge",
-      "description": "Three-way relation with complex ligature routing",
-      "source": "Challenging Test Cases",
-      "logical_pattern": "relation"
-    },
-    {
-      "id": "mixed_quantifier_complex",
-      "category": "scholars",
-      "title": "Mixed Quantifier Complex",
-      "description": "Alternating quantifiers with deep nesting",
-      "source": "Challenging Test Cases",
-      "logical_pattern": "quantification"
-    },
-    {
-      "id": "peirce_modus_ponens",
-      "category": "peirce",
-      "title": "Peirce's Modus Ponens",
-      "description": "Peirce's demonstration of modus ponens inference rule",
-      "source": "Collected Papers 4.572",
-      "logical_pattern": "inference"
-    },
-    {
-      "id": "sowa_cat_on_mat",
-      "category": "scholars",
-      "title": "Sowa's Cat on Mat Example",
-      "description": "Foundational EGIF example demonstrating basic syntax",
-      "source": "Sowa EGIF-2014",
-      "logical_pattern": "simple_relation"
-    },
-    {
-      "id": "peirce_metalevel_gamma",
-      "category": "peirce",
-      "title": "Peirce's Metalevel Gamma Graph",
-      "description": "Metalevel statements using Gamma graph extensions",
-      "source": "Peirce (1898) Reasoning and Logic of Things",
-      "logical_pattern": "metalevel"
+      "source": "Frithjof Dau, Mathematical Logic with Diagrams, 2006, p.112",
+      "logical_pattern": "ligature",
+      "tags": [],
+      "path": "corpus/corpus/scholars/dau_2006_p112_ligature.json"
     },
     {
       "id": "dau_theorem_proving",
       "category": "scholars",
       "title": "Dau's Theorem Proving Example",
-      "description": "Complex nested quantifier structure for theorem proving",
-      "source": "Dau (2006) Mathematical Logic with Diagrams",
-      "logical_pattern": "theorem_proving"
+      "description": "Complex nested quantifier structure demonstrating theorem proving capabilities in EG",
+      "source": "Frithjof Dau, Mathematical Logic with Diagrams, 2006, p.Chapter on Existential Graph Inference",
+      "logical_pattern": null,
+      "tags": [
+        "derivation",
+        "reasoning"
+      ],
+      "path": "corpus/corpus/canonical/dau_theorem_proving.json"
     },
     {
-      "id": "endoporeutic_game_start",
-      "category": "canonical",
-      "title": "Endoporeutic Game Starting Position",
-      "description": "Classic EPG starting position with multiple transformation paths",
-      "source": "Canonical EPG Examples",
-      "logical_pattern": "epg_start"
+      "id": "dau_theorem_proving",
+      "category": "scholars",
+      "title": "Dau's Theorem Proving Example",
+      "description": "Complex nested quantifier structure demonstrating theorem proving capabilities in EG",
+      "source": "Frithjof Dau, Mathematical Logic with Diagrams, 2006, p.Chapter on Existential Graph Inference",
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/dau_theorem_proving.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_smoke/harvest_EGIF-Sowa_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_quality/harvest_EGIF-Sowa_extracted_cgif.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_1",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_smoke/harvest_EGIF-Sowa_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_1",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_1",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_quality/harvest_EGIF-Sowa_extracted_cgif_1.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_2",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_smoke/harvest_EGIF-Sowa_extracted_cgif_2.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_2",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_cgif_2.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_3",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_cgif_3.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_4",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_cgif_4.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_5",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_cgif_5.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_6",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_cgif_6.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_cgif_7",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_cgif_7.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_smoke/harvest_EGIF-Sowa_extracted_egif.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_1",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_smoke/harvest_EGIF-Sowa_extracted_egif_1.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_1",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_1.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_10",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_10.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_11",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_11.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_12",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_12.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_2",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/tmp_smoke/harvest_EGIF-Sowa_extracted_egif_2.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_2",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_2.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_3",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_3.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_4",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_4.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_5",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_5.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_6",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_6.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_7",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_7.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_8",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_8.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_extracted_egif_9",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_extracted_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_extracted_egif_9.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_cgif",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_cgif.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_cgif_1",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_cgif_1.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_cgif_2",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_cgif_2.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_cgif_3",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_cgif_3.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_cgif_4",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_cgif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_cgif_4.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_1",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_1.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_2",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_2.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_3",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_3.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_4",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_4.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_5",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_5.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_6",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_6.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_7",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_7.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_8",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_8.json"
+    },
+    {
+      "id": "harvest_EGIF-Sowa_summary_egif_9",
+      "category": "scholars",
+      "title": "harvest_EGIF-Sowa_summary_egif",
+      "description": "Harvested from derived docs; review for correctness.",
+      "source": null,
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/harvest_EGIF-Sowa_summary_egif_9.json"
+    },
+    {
+      "id": "roberts_1973_p57_disjunction",
+      "category": "scholars",
+      "title": "Roberts' Disjunction Example",
+      "description": "Roberts' example of disjunction: 'P or Q'",
+      "source": "Don D. Roberts, The Existential Graphs of Charles S. Peirce, 1973, p.57",
+      "logical_pattern": "disjunction",
+      "tags": [],
+      "path": "corpus/corpus/scholars/roberts_1973_p57_disjunction.json"
     },
     {
       "id": "roberts_domain_modeling",
       "category": "scholars",
       "title": "Roberts' Domain Modeling Example",
-      "description": "Complex domain model with inheritance and multiple relations",
-      "source": "Roberts (1973)",
-      "logical_pattern": "domain_modeling"
+      "description": "Complex domain model demonstrating inheritance, multiple relations, and professional hierarchies",
+      "source": "Don D. Roberts, The Existential Graphs of Charles S. Peirce, 1973, p.Chapter on Complex Relations",
+      "logical_pattern": null,
+      "tags": [
+        "roles",
+        "typing"
+      ],
+      "path": "corpus/corpus/canonical/roberts_domain_modeling.json"
     },
     {
-      "id": "modal_logic_example",
-      "category": "challenging",
-      "title": "Modal Logic with Necessity and Possibility",
-      "description": "Modal operators using Peirce's Gamma graph extensions",
-      "source": "Peirce Gamma System",
-      "logical_pattern": "modal_logic"
+      "id": "roberts_domain_modeling",
+      "category": "scholars",
+      "title": "Roberts' Domain Modeling Example",
+      "description": "Complex domain model demonstrating inheritance, multiple relations, and professional hierarchies",
+      "source": "Don D. Roberts, The Existential Graphs of Charles S. Peirce, 1973, p.Chapter on Complex Relations",
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/roberts_domain_modeling.json"
+    },
+    {
+      "id": "sowa_2011_p356_quantification",
+      "category": "scholars",
+      "title": "Sowa's Quantification Example",
+      "description": "Sowa's example of existential quantification",
+      "source": "John F. Sowa, Peirce's Tutorial on Existential Graphs, 2011, p.356",
+      "logical_pattern": "quantification",
+      "tags": [],
+      "path": "corpus/corpus/scholars/sowa_2011_p356_quantification.json"
+    },
+    {
+      "id": "sowa_cat_on_mat",
+      "category": "scholars",
+      "title": "Sowa's Cat on Mat Example",
+      "description": "Sowa's foundational example demonstrating EGIF syntax and semantics",
+      "source": "John F. Sowa, EGIF Specification, 2014, p.Section 2.5",
+      "logical_pattern": null,
+      "tags": [
+        "basic",
+        "ground",
+        "relation"
+      ],
+      "path": "corpus/corpus/canonical/sowa_cat_on_mat.json"
+    },
+    {
+      "id": "sowa_cat_on_mat",
+      "category": "scholars",
+      "title": "Sowa's Cat on Mat Example",
+      "description": "Sowa's foundational example demonstrating EGIF syntax and semantics",
+      "source": "John F. Sowa, EGIF Specification, 2014, p.Section 2.5",
+      "logical_pattern": null,
+      "tags": [],
+      "path": "corpus/corpus/scholars/sowa_cat_on_mat.json"
     }
   ]
 }
-

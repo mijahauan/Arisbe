@@ -17,8 +17,9 @@ from enum import Enum
 from egi_core_dau import (
     RelationalGraphWithCuts, Vertex, Edge, Cut,
     create_empty_graph, create_vertex, create_edge, create_cut,
-    ElementID, VertexSequence, RelationName
+    ElementID, VertexSequence, RelationName, AlphabetDAU
 )
+from frozendict import frozendict
 
 
 class TokenType(Enum):
@@ -337,6 +338,8 @@ class EGIFParser:
 
         # Post-parse: hoist variables and constants to LCA of their occurrences
         self._hoist_vertices_to_lca()
+        # Populate AlphabetDAU and rho mapping for constants
+        self.graph = self._finalize_alphabet_and_rho(self.graph)
 
         return self.graph
 
@@ -668,6 +671,40 @@ class EGIFParser:
             target_ctx = self._compute_lca(ctxs)
             # Move if needed
             self.graph = self.graph.with_vertex_moved_to_context(vertex_id, target_ctx)
+
+    def _finalize_alphabet_and_rho(self, graph: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
+        """Compute AlphabetDAU (C,F,R,ar) and rho from the parsed graph, and return
+        a new graph with these fields set. Functions (F) are not inferred from EGIF currently.
+        """
+        # Constants from non-generic vertices with labels
+        constants: Set[str] = set()
+        rho_map: Dict[str, Optional[str]] = {}
+        for v in graph.V:
+            if not getattr(v, 'is_generic', True) and getattr(v, 'label', None):
+                constants.add(v.label)  # type: ignore
+                rho_map[v.id] = v.label  # type: ignore
+            else:
+                rho_map[v.id] = None
+        # Relation names and arities from rel and nu
+        relation_names: Set[str] = set()
+        ar_map: Dict[str, int] = {}
+        for eid, name in graph.rel.items():
+            relation_names.add(name)
+            ar_map[name] = max(ar_map.get(name, 0), len(graph.nu.get(eid, tuple())))
+        alphabet = AlphabetDAU(C=frozenset(constants), F=frozenset(), R=frozenset(relation_names), ar=frozendict(ar_map)).with_defaults()
+
+        # Build and return new graph with alphabet and rho
+        return RelationalGraphWithCuts(
+            V=graph.V,
+            E=graph.E,
+            nu=graph.nu,
+            sheet=graph.sheet,
+            Cut=graph.Cut,
+            area=graph.area,
+            rel=graph.rel,
+            alphabet=alphabet,
+            rho=frozendict(rho_map),
+        )
 
 
 def parse_egif(text: str) -> RelationalGraphWithCuts:

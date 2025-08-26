@@ -1,0 +1,87 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_see_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_code",
+      "is_generic": false,
+      "label": "code"
+    },
+    {
+      "id": "v_examples",
+      "is_generic": false,
+      "label": "examples"
+    },
+    {
+      "id": "v_in",
+      "is_generic": false,
+      "label": "in"
+    },
+    {
+      "id": "v_margin",
+      "is_generic": false,
+      "label": "margin"
+    },
+    {
+      "id": "v_the",
+      "is_generic": false,
+      "label": "the"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "code",
+      "examples",
+      "in",
+      "margin",
+      "the"
+    ],
+    "F": [],
+    "R": [
+      "see"
+    ],
+    "ar": {
+      "code": 1,
+      "examples": 1,
+      "in": 1,
+      "margin": 1,
+      "see": 6,
+      "the": 1
+    }
+  },
+  "area": {
+    "sheet_09b33a79": [
+      "e_see_0",
+      "v_code",
+      "v_examples",
+      "v_in",
+      "v_margin",
+      "v_the"
+    ]
+  },
+  "nu": {
+    "e_see_0": [
+      "v_the",
+      "v_code",
+      "v_examples",
+      "v_in",
+      "v_the",
+      "v_margin"
+    ]
+  },
+  "rel": {
+    "e_see_0": "see"
+  },
+  "rho": {
+    "v_code": "code",
+    "v_examples": "examples",
+    "v_in": "in",
+    "v_margin": "margin",
+    "v_the": "the"
+  },
+  "sheet": "sheet_09b33a79"
+}

@@ -1,20 +1,73 @@
 {
-  "id": "canonical_implication",
-  "title": "Canonical Implication",
+  "alphabet_summary": {
+    "C_count": 1,
+    "F_count": 0,
+    "R_count": 2,
+    "arities": {
+      "P": 1,
+      "Q": 1,
+      "x": 1
+    }
+  },
+  "authority_level": "medium",
+  "complexity": {
+    "cut_count": 2,
+    "edge_count": 2,
+    "nesting_depth": 2,
+    "predicate_count": 2,
+    "vertex_count": 1
+  },
   "description": "Standard form of implication using double-cut",
+  "difficulty": "medium",
+  "id": "canonical_implication",
+  "logical_form": "P → Q",
+  "logical_pattern": "implication",
+  "notes": "This is the canonical form of implication in existential graphs, using the double-cut pattern. It represents 'If P, then Q' as '¬(P ∧ ¬Q)'.",
+  "provenance_notes": "Derived from Canonical Forms EGRF v3.0 Corpus",
+  "representations": {
+    "egi": {
+      "hash": "6940f28e24dae49bd467d65c12fed6c96ecbe24badad67fa99f790ca54a61b9f",
+      "path": "canonical_implication.egi.json"
+    },
+    "linear_forms": {
+      "cgif": {
+        "hash": "72590313be8dab2e422a2d957c13f5cb5f4ea58c9b6849d8ee956340d0b6be55",
+        "text": "~[[Q: x] ~[[P: x]]]",
+        "validated": true
+      },
+      "clif": {
+        "hash": "d707b2442a95d69149836a2263ffb3c827ad958dc93eac016de51d811c3b997a",
+        "text": "(not (and (Q \"x\") (not (P \"x\"))))",
+        "validated": true
+      },
+      "egif": {
+        "hash": "277a219a34ada6c3608f47a08b91f8edb72be733de61346b9cddd6e45f4dcdfd",
+        "text": "~[ (Q \"x\") ~[ (P \"x\") ] ]",
+        "validated": true
+      }
+    }
+  },
+  "schema_version": "1.0",
   "source": {
     "author": "Canonical Forms",
     "work": "EGRF v3.0 Corpus",
     "year": 2023
   },
-  "logical_pattern": "implication",
-  "logical_form": "P → Q",
-  "notes": "This is the canonical form of implication in existential graphs, using the double-cut pattern. It represents 'If P, then Q' as '¬(P ∧ ¬Q)'.",
-  "authority_level": "medium",
-  "difficulty": "medium",
-  "provenance_notes": "Derived from Canonical Forms EGRF v3.0 Corpus",
+  "tags": [
+    "quantifiers",
+    "relations"
+  ],
+  "title": "Canonical Implication",
   "topic_tags": [
     "quantifiers",
     "relations"
-  ]
+  ],
+  "validation_status": {
+    "egi_validated": true,
+    "replicas_validated": {
+      "cgif": true,
+      "clif": true,
+      "egif": true
+    }
+  }
 }

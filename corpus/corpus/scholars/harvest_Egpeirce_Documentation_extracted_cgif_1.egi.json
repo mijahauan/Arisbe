@@ -1,0 +1,96 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_see_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_a",
+      "is_generic": false,
+      "label": "a"
+    },
+    {
+      "id": "v_case",
+      "is_generic": false,
+      "label": "case"
+    },
+    {
+      "id": "v_crude",
+      "is_generic": false,
+      "label": "crude"
+    },
+    {
+      "id": "v_error",
+      "is_generic": false,
+      "label": "error"
+    },
+    {
+      "id": "v_for",
+      "is_generic": false,
+      "label": "for"
+    },
+    {
+      "id": "v_page",
+      "is_generic": false,
+      "label": "page"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "a",
+      "case",
+      "crude",
+      "error",
+      "for",
+      "page"
+    ],
+    "F": [],
+    "R": [
+      "see"
+    ],
+    "ar": {
+      "a": 1,
+      "case": 1,
+      "crude": 1,
+      "error": 1,
+      "for": 1,
+      "page": 1,
+      "see": 6
+    }
+  },
+  "area": {
+    "sheet_967715e6": [
+      "e_see_0",
+      "v_a",
+      "v_case",
+      "v_crude",
+      "v_error",
+      "v_for",
+      "v_page"
+    ]
+  },
+  "nu": {
+    "e_see_0": [
+      "v_page",
+      "v_for",
+      "v_a",
+      "v_crude",
+      "v_error",
+      "v_case"
+    ]
+  },
+  "rel": {
+    "e_see_0": "see"
+  },
+  "rho": {
+    "v_a": "a",
+    "v_case": "case",
+    "v_crude": "crude",
+    "v_error": "error",
+    "v_for": "for",
+    "v_page": "page"
+  },
+  "sheet": "sheet_967715e6"
+}

@@ -1,0 +1,71 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_Cat_0"
+    },
+    {
+      "id": "e_Mat_2"
+    },
+    {
+      "id": "e_On_1"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Cat",
+      "Mat",
+      "On"
+    ],
+    "ar": {
+      "Cat": 1,
+      "Mat": 1,
+      "On": 2
+    }
+  },
+  "area": {
+    "sheet_4843483c": [
+      "e_Cat_0",
+      "e_Mat_2",
+      "e_On_1",
+      "v_x",
+      "v_y"
+    ]
+  },
+  "nu": {
+    "e_Cat_0": [
+      "v_x"
+    ],
+    "e_Mat_2": [
+      "v_y"
+    ],
+    "e_On_1": [
+      "v_x",
+      "v_y"
+    ]
+  },
+  "rel": {
+    "e_Cat_0": "Cat",
+    "e_Mat_2": "Mat",
+    "e_On_1": "On"
+  },
+  "rho": {
+    "v_x": null,
+    "v_y": null
+  },
+  "sheet": "sheet_4843483c"
+}

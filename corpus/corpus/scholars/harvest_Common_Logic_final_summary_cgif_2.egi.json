@@ -1,0 +1,56 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_efficiency,_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_etc.",
+      "is_generic": false,
+      "label": "etc."
+    },
+    {
+      "id": "v_optimization,",
+      "is_generic": false,
+      "label": "optimization,"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "etc.",
+      "optimization,"
+    ],
+    "F": [],
+    "R": [
+      "efficiency,"
+    ],
+    "ar": {
+      "efficiency,": 2,
+      "etc.": 1,
+      "optimization,": 1
+    }
+  },
+  "area": {
+    "sheet_8314cd9e": [
+      "e_efficiency,_0",
+      "v_etc.",
+      "v_optimization,"
+    ]
+  },
+  "nu": {
+    "e_efficiency,_0": [
+      "v_optimization,",
+      "v_etc."
+    ]
+  },
+  "rel": {
+    "e_efficiency,_0": "efficiency,"
+  },
+  "rho": {
+    "v_etc.": "etc.",
+    "v_optimization,": "optimization,"
+  },
+  "sheet": "sheet_8314cd9e"
+}

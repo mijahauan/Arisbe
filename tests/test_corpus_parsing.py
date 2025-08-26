@@ -4,6 +4,7 @@ import pytest
 
 from src.egif_parser_dau import parse_egif
 from src.cgif_parser_dau import parse_cgif
+from src.clif_parser_dau import parse_clif
 
 CORPUS_ROOT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'corpus', 'corpus')
 
@@ -18,6 +19,7 @@ def _list_files(patterns):
 
 egif_files = _list_files(['*.egif'])
 cgif_files = _list_files(['*.cgif'])
+clif_files = _list_files(['*.clif'])
 
 
 @pytest.mark.parametrize('path', egif_files)
@@ -63,6 +65,26 @@ def test_parse_all_egif_corpus_examples(path):
         _ = list(graph.V)
         _ = list(graph.E)
         _ = list(graph.Cut)
+
+
+@pytest.mark.parametrize('path', clif_files)
+def test_parse_all_clif_corpus_examples(path):
+    with open(path, 'r', encoding='utf-8') as f:
+        text = f.read()
+    # Skip empty or whitespace-only placeholder files
+    if not text.strip():
+        pytest.skip(f"Empty CLIF corpus file: {path}")
+    graph = parse_clif(text)
+    # Basic invariants
+    assert hasattr(graph, 'V')
+    assert hasattr(graph, 'E')
+    assert hasattr(graph, 'Cut')
+    assert hasattr(graph, 'sheet')
+    assert graph.sheet is not None
+    # Ensure collections are iterable
+    _ = list(graph.V)
+    _ = list(graph.E)
+    _ = list(graph.Cut)
 
 
 @pytest.mark.parametrize('path', cgif_files)

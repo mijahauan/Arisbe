@@ -1,0 +1,46 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_5c09b05f"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_e8e0b46e",
+      "is_generic": false,
+      "label": "Logic of relatives"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Logic of relatives"
+    ],
+    "F": [],
+    "R": [
+      "see"
+    ],
+    "ar": {
+      "Logic of relatives": 1,
+      "see": 1
+    }
+  },
+  "area": {
+    "sheet_8ac1b87f": [
+      "e_5c09b05f",
+      "v_e8e0b46e"
+    ]
+  },
+  "nu": {
+    "e_5c09b05f": [
+      "v_e8e0b46e"
+    ]
+  },
+  "rel": {
+    "e_5c09b05f": "see"
+  },
+  "rho": {
+    "v_e8e0b46e": "Logic of relatives"
+  },
+  "sheet": "sheet_8ac1b87f"
+}

@@ -1,0 +1,99 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_22355879"
+    },
+    {
+      "id": "e_4d5972db"
+    },
+    {
+      "id": "e_7f436ad8"
+    },
+    {
+      "id": "e_bfe7aafd"
+    },
+    {
+      "id": "e_f1ba7b7d"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_30a30cf6",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_cd59b3ff",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_e4fa750a",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Between",
+      "Hard",
+      "Person",
+      "Place",
+      "Rock"
+    ],
+    "ar": {
+      "Between": 3,
+      "Hard": 1,
+      "Person": 1,
+      "Place": 1,
+      "Rock": 1
+    }
+  },
+  "area": {
+    "sheet_9f3f8771": [
+      "e_22355879",
+      "e_4d5972db",
+      "e_7f436ad8",
+      "e_bfe7aafd",
+      "e_f1ba7b7d",
+      "v_30a30cf6",
+      "v_cd59b3ff",
+      "v_e4fa750a"
+    ]
+  },
+  "nu": {
+    "e_22355879": [
+      "v_30a30cf6"
+    ],
+    "e_4d5972db": [
+      "v_cd59b3ff"
+    ],
+    "e_7f436ad8": [
+      "v_30a30cf6"
+    ],
+    "e_bfe7aafd": [
+      "v_cd59b3ff",
+      "v_30a30cf6",
+      "v_e4fa750a"
+    ],
+    "e_f1ba7b7d": [
+      "v_e4fa750a"
+    ]
+  },
+  "rel": {
+    "e_22355879": "Place",
+    "e_4d5972db": "Rock",
+    "e_7f436ad8": "Hard",
+    "e_bfe7aafd": "Between",
+    "e_f1ba7b7d": "Person"
+  },
+  "rho": {
+    "v_30a30cf6": null,
+    "v_cd59b3ff": null,
+    "v_e4fa750a": null
+  },
+  "sheet": "sheet_9f3f8771"
+}

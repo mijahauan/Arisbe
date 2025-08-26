@@ -1,0 +1,112 @@
+{
+  "Cut": [
+    {
+      "id": "c_9aeeaa31"
+    },
+    {
+      "id": "c_da7022c7"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_0b38a0a0"
+    },
+    {
+      "id": "e_b7898e56"
+    },
+    {
+      "id": "e_d30d71ff"
+    },
+    {
+      "id": "e_d6d34b21"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_026827c9",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_7c51bb65",
+      "is_generic": false,
+      "label": "Tom"
+    },
+    {
+      "id": "v_927a4176",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_9edeaa83",
+      "is_generic": false,
+      "label": "Mary"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Mary",
+      "Tom"
+    ],
+    "F": [],
+    "R": [
+      "Believes",
+      "Happy",
+      "Person"
+    ],
+    "ar": {
+      "Believes": 1,
+      "Happy": 1,
+      "Mary": 1,
+      "Person": 2,
+      "Tom": 1
+    }
+  },
+  "area": {
+    "c_9aeeaa31": [
+      "c_da7022c7",
+      "e_d30d71ff"
+    ],
+    "c_da7022c7": [
+      "e_b7898e56"
+    ],
+    "sheet_237a2860": [
+      "c_9aeeaa31",
+      "e_0b38a0a0",
+      "e_d6d34b21",
+      "v_026827c9",
+      "v_7c51bb65",
+      "v_927a4176",
+      "v_9edeaa83"
+    ]
+  },
+  "nu": {
+    "e_0b38a0a0": [
+      "v_927a4176",
+      "v_9edeaa83"
+    ],
+    "e_b7898e56": [
+      "v_927a4176"
+    ],
+    "e_d30d71ff": [
+      "v_026827c9"
+    ],
+    "e_d6d34b21": [
+      "v_026827c9",
+      "v_7c51bb65"
+    ]
+  },
+  "rel": {
+    "e_0b38a0a0": "Person",
+    "e_b7898e56": "Happy",
+    "e_d30d71ff": "Believes",
+    "e_d6d34b21": "Person"
+  },
+  "rho": {
+    "v_026827c9": null,
+    "v_7c51bb65": "Tom",
+    "v_927a4176": null,
+    "v_9edeaa83": "Mary"
+  },
+  "sheet": "sheet_237a2860"
+}

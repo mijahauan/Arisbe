@@ -1,0 +1,99 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_33e3e69c"
+    },
+    {
+      "id": "e_72e9af16"
+    },
+    {
+      "id": "e_b0fef40d"
+    },
+    {
+      "id": "e_becee04b"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_43a7587a",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_8171ac51",
+      "is_generic": false,
+      "label": "Mary"
+    },
+    {
+      "id": "v_e842d8ee",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_efbc8719",
+      "is_generic": false,
+      "label": "John"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "John",
+      "Mary"
+    ],
+    "F": [],
+    "R": [
+      "Loves",
+      "Person"
+    ],
+    "ar": {
+      "John": 1,
+      "Loves": 2,
+      "Mary": 1,
+      "Person": 2
+    }
+  },
+  "area": {
+    "sheet_44d966c4": [
+      "e_33e3e69c",
+      "e_72e9af16",
+      "e_b0fef40d",
+      "e_becee04b",
+      "v_43a7587a",
+      "v_8171ac51",
+      "v_e842d8ee",
+      "v_efbc8719"
+    ]
+  },
+  "nu": {
+    "e_33e3e69c": [
+      "v_e842d8ee",
+      "v_43a7587a"
+    ],
+    "e_72e9af16": [
+      "v_43a7587a",
+      "v_e842d8ee"
+    ],
+    "e_b0fef40d": [
+      "v_e842d8ee",
+      "v_efbc8719"
+    ],
+    "e_becee04b": [
+      "v_43a7587a",
+      "v_8171ac51"
+    ]
+  },
+  "rel": {
+    "e_33e3e69c": "Loves",
+    "e_72e9af16": "Loves",
+    "e_b0fef40d": "Person",
+    "e_becee04b": "Person"
+  },
+  "rho": {
+    "v_43a7587a": null,
+    "v_8171ac51": "Mary",
+    "v_e842d8ee": null,
+    "v_efbc8719": "John"
+  },
+  "sheet": "sheet_44d966c4"
+}

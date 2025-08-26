@@ -1,39 +1,89 @@
 {
-  "id": "roberts_domain_modeling",
+  "alphabet_summary": {
+    "C_count": 0,
+    "F_count": 0,
+    "R_count": 6,
+    "arities": {
+      "Course": 1,
+      "Has": 2,
+      "Person": 1,
+      "Professor": 1,
+      "Student": 1,
+      "Teaches": 2
+    }
+  },
+  "authority_level": "high",
   "category": "scholars",
-  "title": "Roberts' Domain Modeling Example",
-  "description": "Complex domain model demonstrating inheritance, multiple relations, and professional hierarchies",
-  "source": {
-    "author": "Don D. Roberts",
-    "work": "The Existential Graphs of Charles S. Peirce",
-    "year": 1973,
-    "page": "Chapter on Complex Relations",
-    "publisher": "Mouton, The Hague"
-  },
-  "logical_form": "∀x(Professor(x) → (Person(x) ∧ ∃y(Course(y) ∧ Teaches(x,y)) ∧ ∃z(Student(z) ∧ Has(x,z))))",
-  "natural_language": "Every professor is a person who teaches courses and has students",
   "complexity": {
+    "cut_count": 2,
+    "edge_count": 6,
     "nesting_depth": 2,
-    "entity_count": 3,
     "predicate_count": 6,
-    "cut_count": 2
+    "vertex_count": 3
   },
-  "test_rationale": "Tests domain modeling capabilities, multiple existential quantifiers, and complex conjunctions",
+  "description": "Complex domain model demonstrating inheritance, multiple relations, and professional hierarchies",
+  "difficulty": "medium",
   "epg_features": {
+    "invalid_transformations": [
+      "deletion"
+    ],
     "is_starting_position": true,
     "valid_transformations": [
       "insertion",
       "iteration"
-    ],
-    "invalid_transformations": [
-      "deletion"
     ]
   },
-  "authority_level": "high",
-  "difficulty": "medium",
+  "id": "roberts_domain_modeling",
+  "logical_form": "∀x(Professor(x) → (Person(x) ∧ ∃y(Course(y) ∧ Teaches(x,y)) ∧ ∃z(Student(z) ∧ Has(x,z))))",
+  "natural_language": "Every professor is a person who teaches courses and has students",
   "provenance_notes": "Derived from Don D. Roberts The Existential Graphs of Charles S. Peirce",
+  "representations": {
+    "egi": {
+      "hash": "da8315238c1b2a35f6dec11f5e698d105570e2902da85c411abd1c1f1a375815",
+      "path": "roberts_domain_modeling.egi.json"
+    },
+    "linear_forms": {
+      "cgif": {
+        "hash": "09d66992be29dc127247108ab45631cb58444d62c713cbc71f075db1d6060bb5",
+        "text": "~[[*x] [Professor: *x] ~[[*y] [*z] [Course: *y] [Person: *x] [Student: *z] (Has ?x ?z) (Teaches ?x ?y)]]",
+        "validated": true
+      },
+      "clif": {
+        "hash": "9f49096d2fdcc468f460522e98fdd55df6038b2a58776d326a0ed58d234339db",
+        "text": "(not (and (Professor x) (not (and (Course y) (Has x z) (Person x) (Student z) (Teaches x y)))))",
+        "validated": true
+      },
+      "egif": {
+        "hash": "b337d81960cb56b120495ba24ccaf2a06be0e3fc78a8840387224e74ece67f81",
+        "text": "~[ *x (Professor x) ~[ *y *z (Course y) (Has x z) (Person x) (Student z) (Teaches x y) ] ]",
+        "validated": true
+      }
+    }
+  },
+  "schema_version": "1.0",
+  "source": {
+    "author": "Don D. Roberts",
+    "page": "Chapter on Complex Relations",
+    "publisher": "Mouton, The Hague",
+    "work": "The Existential Graphs of Charles S. Peirce",
+    "year": 1973
+  },
+  "tags": [
+    "roles",
+    "typing"
+  ],
+  "test_rationale": "Tests domain modeling capabilities, multiple existential quantifiers, and complex conjunctions",
+  "title": "Roberts' Domain Modeling Example",
   "topic_tags": [
     "roles",
     "typing"
-  ]
+  ],
+  "validation_status": {
+    "egi_validated": true,
+    "replicas_validated": {
+      "cgif": true,
+      "clif": true,
+      "egif": true
+    }
+  }
 }

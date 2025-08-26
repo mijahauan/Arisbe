@@ -1,0 +1,46 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_Person_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_John",
+      "is_generic": false,
+      "label": "John"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "John"
+    ],
+    "F": [],
+    "R": [
+      "Person"
+    ],
+    "ar": {
+      "John": 1,
+      "Person": 1
+    }
+  },
+  "area": {
+    "sheet_974ba9dd": [
+      "e_Person_0",
+      "v_John"
+    ]
+  },
+  "nu": {
+    "e_Person_0": [
+      "v_John"
+    ]
+  },
+  "rel": {
+    "e_Person_0": "Person"
+  },
+  "rho": {
+    "v_John": "John"
+  },
+  "sheet": "sheet_974ba9dd"
+}

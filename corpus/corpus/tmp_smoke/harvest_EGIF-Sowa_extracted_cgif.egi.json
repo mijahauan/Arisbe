@@ -1,0 +1,50 @@
+{
+  "Cut": [
+    {
+      "id": "c_neg_0"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_phoenix_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "phoenix"
+    ],
+    "ar": {
+      "phoenix": 1
+    }
+  },
+  "area": {
+    "c_neg_0": [
+      "e_phoenix_0"
+    ],
+    "sheet_2bb53b8d": [
+      "c_neg_0",
+      "v_x"
+    ]
+  },
+  "nu": {
+    "e_phoenix_0": [
+      "v_x"
+    ]
+  },
+  "rel": {
+    "e_phoenix_0": "phoenix"
+  },
+  "rho": {
+    "v_x": null
+  },
+  "sheet": "sheet_2bb53b8d"
+}

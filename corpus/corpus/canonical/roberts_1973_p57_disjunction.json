@@ -1,21 +1,70 @@
 {
-  "id": "roberts_1973_p57_disjunction",
-  "title": "Roberts' Disjunction Example",
+  "alphabet_summary": {
+    "C_count": 0,
+    "F_count": 0,
+    "R_count": 0,
+    "arities": {}
+  },
+  "authority_level": "high",
+  "complexity": {
+    "cut_count": 0,
+    "edge_count": 0,
+    "nesting_depth": 0,
+    "predicate_count": 0,
+    "vertex_count": 0
+  },
   "description": "Roberts' example of disjunction: 'P or Q'",
+  "difficulty": "medium",
+  "id": "roberts_1973_p57_disjunction",
+  "logical_form": "P ∨ Q",
+  "logical_pattern": "disjunction",
+  "notes": "This example demonstrates how disjunction is represented in existential graphs using double cuts. The formula 'P or Q' is represented as '¬(¬P ∧ ¬Q)'.",
+  "provenance_notes": "Derived from Don D. Roberts The Existential Graphs of Charles S. Peirce",
+  "representations": {
+    "egi": {
+      "hash": "a445c3e04c6829f553d7254b00bf7d0e47df1811d3168d005eaf884a7910c9a0",
+      "path": "roberts_1973_p57_disjunction.egi.json"
+    },
+    "linear_forms": {
+      "cgif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      },
+      "clif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      },
+      "egif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      }
+    }
+  },
+  "schema_version": "1.0",
   "source": {
     "author": "Don D. Roberts",
-    "work": "The Existential Graphs of Charles S. Peirce",
     "page": 57,
+    "work": "The Existential Graphs of Charles S. Peirce",
     "year": 1973
   },
-  "logical_pattern": "disjunction",
-  "logical_form": "P ∨ Q",
-  "notes": "This example demonstrates how disjunction is represented in existential graphs using double cuts. The formula 'P or Q' is represented as '¬(¬P ∧ ¬Q)'.",
-  "authority_level": "high",
-  "difficulty": "medium",
-  "provenance_notes": "Derived from Don D. Roberts The Existential Graphs of Charles S. Peirce",
+  "tags": [
+    "boolean",
+    "disjunction"
+  ],
+  "title": "Roberts' Disjunction Example",
   "topic_tags": [
     "boolean",
     "disjunction"
-  ]
+  ],
+  "validation_status": {
+    "egi_validated": true,
+    "replicas_validated": {
+      "cgif": true,
+      "clif": true,
+      "egif": true
+    }
+  }
 }

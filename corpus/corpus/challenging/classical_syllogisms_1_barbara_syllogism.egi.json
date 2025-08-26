@@ -1,0 +1,95 @@
+{
+  "Cut": [
+    {
+      "id": "c_76dd8489"
+    },
+    {
+      "id": "c_ea5d99d3"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_3234eaac"
+    },
+    {
+      "id": "e_ac728e4e"
+    },
+    {
+      "id": "e_b38293e5"
+    },
+    {
+      "id": "e_fc31bcea"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_09991f0f",
+      "is_generic": false,
+      "label": "Socrates"
+    },
+    {
+      "id": "v_d85df9d4",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Socrates"
+    ],
+    "F": [],
+    "R": [
+      "Man",
+      "Mortal",
+      "Person"
+    ],
+    "ar": {
+      "Man": 1,
+      "Mortal": 1,
+      "Person": 2,
+      "Socrates": 1
+    }
+  },
+  "area": {
+    "c_76dd8489": [
+      "c_ea5d99d3",
+      "e_ac728e4e"
+    ],
+    "c_ea5d99d3": [
+      "e_3234eaac"
+    ],
+    "sheet_f8081a7b": [
+      "c_76dd8489",
+      "e_b38293e5",
+      "e_fc31bcea",
+      "v_09991f0f",
+      "v_d85df9d4"
+    ]
+  },
+  "nu": {
+    "e_3234eaac": [
+      "v_d85df9d4"
+    ],
+    "e_ac728e4e": [
+      "v_d85df9d4"
+    ],
+    "e_b38293e5": [
+      "v_d85df9d4",
+      "v_09991f0f"
+    ],
+    "e_fc31bcea": [
+      "v_d85df9d4"
+    ]
+  },
+  "rel": {
+    "e_3234eaac": "Mortal",
+    "e_ac728e4e": "Man",
+    "e_b38293e5": "Person",
+    "e_fc31bcea": "Man"
+  },
+  "rho": {
+    "v_09991f0f": "Socrates",
+    "v_d85df9d4": null
+  },
+  "sheet": "sheet_f8081a7b"
+}

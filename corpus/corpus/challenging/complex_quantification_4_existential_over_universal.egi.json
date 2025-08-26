@@ -1,0 +1,53 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_2fc01382"
+    },
+    {
+      "id": "e_5429ae5c"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_b77fff3b",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Good",
+      "Ugly"
+    ],
+    "ar": {
+      "Good": 1,
+      "Ugly": 1
+    }
+  },
+  "area": {
+    "sheet_00ed2241": [
+      "e_2fc01382",
+      "e_5429ae5c",
+      "v_b77fff3b"
+    ]
+  },
+  "nu": {
+    "e_2fc01382": [
+      "v_b77fff3b"
+    ],
+    "e_5429ae5c": [
+      "v_b77fff3b"
+    ]
+  },
+  "rel": {
+    "e_2fc01382": "Ugly",
+    "e_5429ae5c": "Good"
+  },
+  "rho": {
+    "v_b77fff3b": null
+  },
+  "sheet": "sheet_00ed2241"
+}

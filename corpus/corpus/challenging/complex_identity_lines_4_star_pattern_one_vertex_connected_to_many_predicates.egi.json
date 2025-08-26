@@ -1,0 +1,94 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_2903cbe1"
+    },
+    {
+      "id": "e_c0ba5d35"
+    },
+    {
+      "id": "e_c4fd9038"
+    },
+    {
+      "id": "e_eee22d9b"
+    },
+    {
+      "id": "e_ffc16593"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_646939be",
+      "is_generic": false,
+      "label": "Socrates"
+    },
+    {
+      "id": "v_a5bcf3e4",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Socrates"
+    ],
+    "F": [],
+    "R": [
+      "Greek",
+      "Human",
+      "Mortal",
+      "Person",
+      "Wise"
+    ],
+    "ar": {
+      "Greek": 1,
+      "Human": 1,
+      "Mortal": 1,
+      "Person": 2,
+      "Socrates": 1,
+      "Wise": 1
+    }
+  },
+  "area": {
+    "sheet_497434e9": [
+      "e_2903cbe1",
+      "e_c0ba5d35",
+      "e_c4fd9038",
+      "e_eee22d9b",
+      "e_ffc16593",
+      "v_646939be",
+      "v_a5bcf3e4"
+    ]
+  },
+  "nu": {
+    "e_2903cbe1": [
+      "v_a5bcf3e4"
+    ],
+    "e_c0ba5d35": [
+      "v_a5bcf3e4"
+    ],
+    "e_c4fd9038": [
+      "v_a5bcf3e4"
+    ],
+    "e_eee22d9b": [
+      "v_a5bcf3e4"
+    ],
+    "e_ffc16593": [
+      "v_a5bcf3e4",
+      "v_646939be"
+    ]
+  },
+  "rel": {
+    "e_2903cbe1": "Human",
+    "e_c0ba5d35": "Mortal",
+    "e_c4fd9038": "Greek",
+    "e_eee22d9b": "Wise",
+    "e_ffc16593": "Person"
+  },
+  "rho": {
+    "v_646939be": "Socrates",
+    "v_a5bcf3e4": null
+  },
+  "sheet": "sheet_497434e9"
+}

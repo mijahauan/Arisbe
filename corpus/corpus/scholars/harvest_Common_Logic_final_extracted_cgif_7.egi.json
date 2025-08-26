@@ -1,0 +1,43 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_Relation_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Relation"
+    ],
+    "ar": {
+      "Relation": 1
+    }
+  },
+  "area": {
+    "sheet_297df1d2": [
+      "e_Relation_0",
+      "v_x"
+    ]
+  },
+  "nu": {
+    "e_Relation_0": [
+      "v_x"
+    ]
+  },
+  "rel": {
+    "e_Relation_0": "Relation"
+  },
+  "rho": {
+    "v_x": null
+  },
+  "sheet": "sheet_297df1d2"
+}

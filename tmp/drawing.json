@@ -1,0 +1,35 @@
+{
+  "sheet_id": "S",
+  "cuts": [
+    {
+      "id": "c_ba4e4e",
+      "parent_id": "S"
+    }
+  ],
+  "vertices": [
+    {
+      "id": "v_79cd6f",
+      "area_id": "S"
+    },
+    {
+      "id": "v_8ddfbb",
+      "area_id": "S"
+    }
+  ],
+  "predicates": [
+    {
+      "id": "e_031d69",
+      "name": "=",
+      "area_id": "c_ba4e4e"
+    }
+  ],
+  "ligatures": [
+    {
+      "edge_id": "e_031d69",
+      "vertex_ids": [
+        "v_79cd6f",
+        "v_8ddfbb"
+      ]
+    }
+  ]
+}

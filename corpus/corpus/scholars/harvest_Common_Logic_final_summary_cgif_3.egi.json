@@ -1,0 +1,66 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_see_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_details",
+      "is_generic": false,
+      "label": "details"
+    },
+    {
+      "id": "v_for",
+      "is_generic": false,
+      "label": "for"
+    },
+    {
+      "id": "v_further",
+      "is_generic": false,
+      "label": "further"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "details",
+      "for",
+      "further"
+    ],
+    "F": [],
+    "R": [
+      "see"
+    ],
+    "ar": {
+      "details": 1,
+      "for": 1,
+      "further": 1,
+      "see": 3
+    }
+  },
+  "area": {
+    "sheet_e67855e4": [
+      "e_see_0",
+      "v_details",
+      "v_for",
+      "v_further"
+    ]
+  },
+  "nu": {
+    "e_see_0": [
+      "v_for",
+      "v_further",
+      "v_details"
+    ]
+  },
+  "rel": {
+    "e_see_0": "see"
+  },
+  "rho": {
+    "v_details": "details",
+    "v_for": "for",
+    "v_further": "further"
+  },
+  "sheet": "sheet_e67855e4"
+}

@@ -1,0 +1,122 @@
+{
+  "Cut": [
+    {
+      "id": "c_380dda65"
+    },
+    {
+      "id": "c_88398a3b"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_0bd2fbab"
+    },
+    {
+      "id": "e_19724e85"
+    },
+    {
+      "id": "e_6df951c3"
+    },
+    {
+      "id": "e_7f446263"
+    },
+    {
+      "id": "e_ac7474e1"
+    },
+    {
+      "id": "e_b684ca49"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_671e53f3",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_695264d5",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_903cccb4",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Course",
+      "Has",
+      "Person",
+      "Professor",
+      "Student",
+      "Teaches"
+    ],
+    "ar": {
+      "Course": 1,
+      "Has": 2,
+      "Person": 1,
+      "Professor": 1,
+      "Student": 1,
+      "Teaches": 2
+    }
+  },
+  "area": {
+    "c_380dda65": [
+      "e_0bd2fbab",
+      "e_19724e85",
+      "e_6df951c3",
+      "e_7f446263",
+      "e_b684ca49",
+      "v_671e53f3",
+      "v_695264d5"
+    ],
+    "c_88398a3b": [
+      "c_380dda65",
+      "e_ac7474e1",
+      "v_903cccb4"
+    ],
+    "sheet_b10f55b9": [
+      "c_88398a3b"
+    ]
+  },
+  "nu": {
+    "e_0bd2fbab": [
+      "v_903cccb4"
+    ],
+    "e_19724e85": [
+      "v_671e53f3"
+    ],
+    "e_6df951c3": [
+      "v_695264d5"
+    ],
+    "e_7f446263": [
+      "v_903cccb4",
+      "v_671e53f3"
+    ],
+    "e_ac7474e1": [
+      "v_903cccb4"
+    ],
+    "e_b684ca49": [
+      "v_903cccb4",
+      "v_695264d5"
+    ]
+  },
+  "rel": {
+    "e_0bd2fbab": "Person",
+    "e_19724e85": "Course",
+    "e_6df951c3": "Student",
+    "e_7f446263": "Teaches",
+    "e_ac7474e1": "Professor",
+    "e_b684ca49": "Has"
+  },
+  "rho": {
+    "v_671e53f3": null,
+    "v_695264d5": null,
+    "v_903cccb4": null
+  },
+  "sheet": "sheet_b10f55b9"
+}

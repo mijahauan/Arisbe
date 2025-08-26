@@ -1,0 +1,92 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_Pedro_0"
+    },
+    {
+      "id": "e_beats_3"
+    },
+    {
+      "id": "e_donkey_1"
+    },
+    {
+      "id": "e_farmer_2"
+    },
+    {
+      "id": "e_owns_4"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Pedro",
+      "beats",
+      "donkey",
+      "farmer",
+      "owns"
+    ],
+    "ar": {
+      "Pedro": 1,
+      "beats": 2,
+      "donkey": 1,
+      "farmer": 1,
+      "owns": 2
+    }
+  },
+  "area": {
+    "sheet_d993bf4f": [
+      "e_Pedro_0",
+      "e_beats_3",
+      "e_donkey_1",
+      "e_farmer_2",
+      "e_owns_4",
+      "v_x",
+      "v_y"
+    ]
+  },
+  "nu": {
+    "e_Pedro_0": [
+      "v_x"
+    ],
+    "e_beats_3": [
+      "v_x",
+      "v_y"
+    ],
+    "e_donkey_1": [
+      "v_y"
+    ],
+    "e_farmer_2": [
+      "v_x"
+    ],
+    "e_owns_4": [
+      "v_x",
+      "v_y"
+    ]
+  },
+  "rel": {
+    "e_Pedro_0": "Pedro",
+    "e_beats_3": "beats",
+    "e_donkey_1": "donkey",
+    "e_farmer_2": "farmer",
+    "e_owns_4": "owns"
+  },
+  "rho": {
+    "v_x": null,
+    "v_y": null
+  },
+  "sheet": "sheet_d993bf4f"
+}

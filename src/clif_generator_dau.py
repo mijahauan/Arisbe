@@ -73,7 +73,8 @@ class CLIFGenerator:
                     v = next((vx for vx in self.graph.V if vx.id == vid), None)
                     if v is None:
                         continue
-                    if v.is_generic and vid not in self.vertex_labels:
+                    # Only assign labels to generic (variable) vertices
+                    if self._is_variable_vertex(vid) and vid not in self.vertex_labels:
                         label = self._get_next_variable_name()
                         self.vertex_labels[vid] = label
                         self.used_labels.add(label)
@@ -96,7 +97,7 @@ class CLIFGenerator:
                 v = next((vx for vx in self.graph.V if vx.id == vid), None)
                 if v is None:
                     continue
-                if v.is_generic and vid not in self.vertex_labels:
+                if self._is_variable_vertex(vid) and vid not in self.vertex_labels:
                     label = self._get_next_variable_name()
                     self.vertex_labels[vid] = label
                     self.used_labels.add(label)
@@ -190,7 +191,14 @@ class CLIFGenerator:
             return ""
         
         predicate = self.graph.rel[edge_id]
-        
+        # Arity validation if alphabet is present
+        alph = getattr(self.graph, 'alphabet', None)
+        if alph is not None and hasattr(alph, 'ar') and predicate in alph.ar:
+            expected = alph.ar[predicate]
+            got = len(self.graph.nu.get(edge_id, []))
+            if got != expected:
+                raise ValueError(f"Arity mismatch for relation '{predicate}': expected {expected}, got {got}")
+
         # Get vertex arguments
         if edge_id not in self.graph.nu:
             return f"({predicate})"
@@ -199,16 +207,12 @@ class CLIFGenerator:
         arguments = []
         
         for vertex_id in vertex_sequence:
-            v = next((vx for vx in self.graph.V if vx.id == vertex_id), None)
-            if v is None:
-                arguments.append(vertex_id)
-                continue
-            if v.is_generic:
-                # Use the assigned variable label
-                arguments.append(self.vertex_labels.get(vertex_id, vertex_id))
+            is_const, const_name = self._constant_name_for_vertex(vertex_id)
+            if is_const:
+                arguments.append(self._format_constant(const_name))
             else:
-                # Use constant name directly
-                arguments.append(v.label or vertex_id)
+                # Variable: use assigned variable label, fallback to vertex id
+                arguments.append(self.vertex_labels.get(vertex_id, vertex_id))
         
         if arguments:
             return f"({predicate} {' '.join(arguments)})"
@@ -241,6 +245,65 @@ class CLIFGenerator:
             free_vars.update(self._get_free_variables(cut_id))
         
         return free_vars
+
+    # --- Helpers for constants and identifiers ---
+    def _is_variable_vertex(self, vid: str) -> bool:
+        """Return True if the vertex should be treated as a variable (generic) in output.
+        Prefers rho/alphabet when available; falls back to legacy is_generic flag.
+        """
+        # If rho maps to a constant name, it's not a variable
+        rho = getattr(self.graph, 'rho', None)
+        if rho is not None:
+            const_name = rho.get(vid, None)
+            if const_name is not None:
+                return False
+        # Otherwise use vertex flag
+        v = next((vx for vx in self.graph.V if vx.id == vid), None)
+        if v is None:
+            return False
+        return getattr(v, 'is_generic', False)
+
+    def _constant_name_for_vertex(self, vid: str) -> Tuple[bool, str]:
+        """Resolve if a vertex is a constant and return its name.
+        Priority: rho mapping > non-generic vertex label in alphabet.C > non-generic vertex label.
+        Returns (is_constant, name_if_constant).
+        """
+        # rho mapping
+        rho = getattr(self.graph, 'rho', None)
+        if rho is not None:
+            name = rho.get(vid, None)
+            if name is not None:
+                return True, name
+        # Check vertex
+        v = next((vx for vx in self.graph.V if vx.id == vid), None)
+        if v is None:
+            return False, ""
+        if not getattr(v, 'is_generic', True) and getattr(v, 'label', None):
+            # If alphabet exists and label is declared constant, use it
+            alph = getattr(self.graph, 'alphabet', None)
+            if alph is not None and hasattr(alph, 'C') and v.label in alph.C:
+                return True, v.label  # type: ignore[arg-type]
+            # Otherwise, still treat labeled non-generic as constant for backward-compat
+            return True, v.label  # type: ignore[return-value]
+        return False, ""
+
+    def _format_constant(self, name: str) -> str:
+        """Format a constant for CLIF output. Always quote for consistency with Dau handling."""
+        # Always quote with double quotes; escape embedded quotes
+        escaped = name.replace('"', '\\"')
+        return f'"{escaped}"'
+
+    def _is_simple_identifier(self, s: str) -> bool:
+        if not s:
+            return False
+        # CLIF identifiers: start with letter/underscore, then letters/digits/_/-
+        first = s[0]
+        if not (first.isalpha() or first == '_'):
+            return False
+        for ch in s[1:]:
+            if not (ch.isalnum() or ch in ['_', '-']):
+                return False
+        return True
     
     def generate_with_quantification(self) -> str:
         """Generate CLIF with explicit quantification."""

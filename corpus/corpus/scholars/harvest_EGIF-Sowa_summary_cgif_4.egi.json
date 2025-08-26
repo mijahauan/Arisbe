@@ -1,0 +1,46 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_monadic_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_relation",
+      "is_generic": false,
+      "label": "relation"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "relation"
+    ],
+    "F": [],
+    "R": [
+      "monadic"
+    ],
+    "ar": {
+      "monadic": 1,
+      "relation": 1
+    }
+  },
+  "area": {
+    "sheet_345ad914": [
+      "e_monadic_0",
+      "v_relation"
+    ]
+  },
+  "nu": {
+    "e_monadic_0": [
+      "v_relation"
+    ]
+  },
+  "rel": {
+    "e_monadic_0": "monadic"
+  },
+  "rho": {
+    "v_relation": "relation"
+  },
+  "sheet": "sheet_345ad914"
+}

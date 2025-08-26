@@ -1,0 +1,166 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_and_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_.ps",
+      "is_generic": false,
+      "label": ".ps"
+    },
+    {
+      "id": "v_PStoPDF",
+      "is_generic": false,
+      "label": "PStoPDF"
+    },
+    {
+      "id": "v_documents",
+      "is_generic": false,
+      "label": "documents"
+    },
+    {
+      "id": "v_ensuing",
+      "is_generic": false,
+      "label": "ensuing"
+    },
+    {
+      "id": "v_if",
+      "is_generic": false,
+      "label": "if"
+    },
+    {
+      "id": "v_on",
+      "is_generic": false,
+      "label": "on"
+    },
+    {
+      "id": "v_pdf",
+      "is_generic": false,
+      "label": "pdf"
+    },
+    {
+      "id": "v_produce",
+      "is_generic": false,
+      "label": "produce"
+    },
+    {
+      "id": "v_the",
+      "is_generic": false,
+      "label": "the"
+    },
+    {
+      "id": "v_to",
+      "is_generic": false,
+      "label": "to"
+    },
+    {
+      "id": "v_want",
+      "is_generic": false,
+      "label": "want"
+    },
+    {
+      "id": "v_you",
+      "is_generic": false,
+      "label": "you"
+    },
+    {
+      "id": "v_\ufb01le",
+      "is_generic": false,
+      "label": "\ufb01le"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      ".ps",
+      "PStoPDF",
+      "documents",
+      "ensuing",
+      "if",
+      "on",
+      "pdf",
+      "produce",
+      "the",
+      "to",
+      "want",
+      "you",
+      "\ufb01le"
+    ],
+    "F": [],
+    "R": [
+      "and"
+    ],
+    "ar": {
+      ".ps": 1,
+      "PStoPDF": 1,
+      "and": 13,
+      "documents": 1,
+      "ensuing": 1,
+      "if": 1,
+      "on": 1,
+      "pdf": 1,
+      "produce": 1,
+      "the": 1,
+      "to": 1,
+      "want": 1,
+      "you": 1,
+      "\ufb01le": 1
+    }
+  },
+  "area": {
+    "sheet_bac2d2c4": [
+      "e_and_0",
+      "v_.ps",
+      "v_PStoPDF",
+      "v_documents",
+      "v_ensuing",
+      "v_if",
+      "v_on",
+      "v_pdf",
+      "v_produce",
+      "v_the",
+      "v_to",
+      "v_want",
+      "v_you",
+      "v_\ufb01le"
+    ]
+  },
+  "nu": {
+    "e_and_0": [
+      "v_PStoPDF",
+      "v_on",
+      "v_the",
+      "v_ensuing",
+      "v_.ps",
+      "v_\ufb01le",
+      "v_if",
+      "v_you",
+      "v_want",
+      "v_to",
+      "v_produce",
+      "v_pdf",
+      "v_documents"
+    ]
+  },
+  "rel": {
+    "e_and_0": "and"
+  },
+  "rho": {
+    "v_.ps": ".ps",
+    "v_PStoPDF": "PStoPDF",
+    "v_documents": "documents",
+    "v_ensuing": "ensuing",
+    "v_if": "if",
+    "v_on": "on",
+    "v_pdf": "pdf",
+    "v_produce": "produce",
+    "v_the": "the",
+    "v_to": "to",
+    "v_want": "want",
+    "v_you": "you",
+    "v_\ufb01le": "\ufb01le"
+  },
+  "sheet": "sheet_bac2d2c4"
+}

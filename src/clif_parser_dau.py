@@ -28,6 +28,8 @@ from egi_core_dau import (
     create_empty_graph, create_vertex, create_edge, create_cut,
     ElementID, VertexSequence, RelationName
 )
+from egi_core_dau import AlphabetDAU
+from frozendict import frozendict
 
 
 class CLIFTokenType(Enum):
@@ -83,6 +85,8 @@ class CLIFLexer:
                 self.position += 1
             elif char == ';' and self.position + 1 < len(self.text) and self.text[self.position + 1] == ';':
                 self._read_comment()
+            elif char == '"':
+                self._read_quoted_identifier()
             else:
                 self._read_identifier()
         
@@ -128,6 +132,27 @@ class CLIFLexer:
         
         self.tokens.append(CLIFToken(token_type, identifier, start))
 
+    def _read_quoted_identifier(self):
+        """Read a double-quoted identifier and unquote it (supports simple escape of \" inside)."""
+        start = self.position
+        # skip opening quote
+        self.position += 1
+        buf = []
+        while self.position < len(self.text):
+            ch = self.text[self.position]
+            if ch == '\\' and self.position + 1 < len(self.text) and self.text[self.position + 1] == '"':
+                buf.append('"')
+                self.position += 2
+                continue
+            if ch == '"':
+                # closing quote
+                self.position += 1
+                break
+            buf.append(ch)
+            self.position += 1
+        identifier = ''.join(buf)
+        self.tokens.append(CLIFToken(CLIFTokenType.IDENTIFIER, identifier, start))
+
 
 @dataclass
 class CLIFParseNode:
@@ -163,6 +188,8 @@ class CLIFParser:
         # Convert parse tree to EGI immutably
         egi = create_empty_graph()
         egi = self._convert_to_egi(parse_tree, egi, egi.sheet)
+        # Populate AlphabetDAU and rho
+        egi = self._finalize_alphabet_and_rho(egi)
         return egi
     
     def _advance(self):
@@ -342,6 +369,55 @@ class CLIFParser:
             return egi
         
         return egi
+
+    def _finalize_alphabet_and_rho(self, graph: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
+        """Compute AlphabetDAU and rho from the graph, excluding relation-name collisions from constants."""
+        # Relation names and arities from edges
+        relation_names: Set[str] = set()
+        ar_map: Dict[str, int] = {}
+        for eid, name in graph.rel.items():
+            relation_names.add(name)
+            ar_map[name] = max(ar_map.get(name, 0), len(graph.nu.get(eid, tuple())))
+
+        # Candidate constants from non-generic vertex labels
+        candidate_constants: Set[str] = set()
+        for v in graph.V:
+            if not getattr(v, 'is_generic', True) and getattr(v, 'label', None):
+                candidate_constants.add(v.label)  # type: ignore[arg-type]
+
+        # Disjoint constants
+        constants: Set[str] = {c for c in candidate_constants if c not in relation_names}
+
+        # rho: only map vertices labeled with names in constants; others None
+        rho_map: Dict[str, Optional[str]] = {}
+        for v in graph.V:
+            if not getattr(v, 'is_generic', True) and getattr(v, 'label', None) and v.label in constants:  # type: ignore[attr-defined]
+                rho_map[v.id] = v.label  # type: ignore[assignment]
+            else:
+                rho_map[v.id] = None
+
+        # ar(c) = 1 for constants
+        for c in constants:
+            ar_map[c] = 1
+
+        alphabet = AlphabetDAU(
+            C=frozenset(constants),
+            F=frozenset(),
+            R=frozenset(relation_names),
+            ar=frozendict(ar_map),
+        ).with_defaults()
+
+        return RelationalGraphWithCuts(
+            V=graph.V,
+            E=graph.E,
+            Cut=graph.Cut,
+            area=graph.area,
+            nu=graph.nu,
+            rel=graph.rel,
+            sheet=graph.sheet,
+            alphabet=alphabet,
+            rho=frozendict(rho_map),
+        )
 
 
 # Factory function

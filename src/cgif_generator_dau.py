@@ -29,11 +29,17 @@ class CGIFGenerator:
         self.type_relations = set()  # Track which relations are type relations
         # Planned defining context per generic vertex (minimal common ancestor over all uses)
         self.vertex_def_context: Dict[str, str] = {}
+        # Cache for constant detection
+        self._rho = None
+        self._alphabet = None
         
     def generate(self) -> str:
         """Generate CGIF expression from graph."""
         if self.graph is None:
             raise TypeError("CGIFGenerator.generate() called without a graph. Provide one in constructor or use generate_cgif(graph).")
+        # Cache helpers
+        self._rho = getattr(self.graph, 'rho', None)
+        self._alphabet = getattr(self.graph, 'alphabet', None)
         # Identify type relations (monadic relations on vertices)
         self._identify_type_relations()
         
@@ -142,6 +148,50 @@ class CGIFGenerator:
         
         self.label_counter += 1
         return var
+
+    # --- Helpers for constants and arity ---
+    def _is_constant_vertex(self, vid: str) -> bool:
+        """Decide if vertex is a constant using rho when available, else legacy flags."""
+        v = next((vx for vx in self.graph.V if vx.id == vid), None)
+        if v is None:
+            return False
+        if self._rho is not None:
+            cname = self._rho.get(vid)  # type: ignore[attr-defined]
+            return cname is not None
+        return not v.is_generic and bool(v.label)
+
+    def _get_constant_name(self, vid: str) -> Optional[str]:
+        v = next((vx for vx in self.graph.V if vx.id == vid), None)
+        if v is None:
+            return None
+        if self._rho is not None:
+            return self._rho.get(vid)  # type: ignore[attr-defined]
+        return v.label
+
+    def _format_constant(self, name: str) -> str:
+        """Format constant for CGIF output: bare identifier if simple; otherwise quoted."""
+        if name is None:
+            return ''
+        if name and self._is_simple_identifier(name):
+            return name
+        # escape quotes and backslashes
+        esc = name.replace('\\', '\\\\').replace('"', '\\"')
+        return f'"{esc}"'
+
+    @staticmethod
+    def _is_simple_identifier(name: str) -> bool:
+        import re
+        return re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', name) is not None
+
+    def _validate_edge_arity(self, edge_id: str) -> None:
+        if self._alphabet is None:
+            return
+        pred = self.graph.rel.get(edge_id, '')
+        if pred in self._alphabet.ar:  # type: ignore[attr-defined]
+            expected = self._alphabet.ar[pred]  # type: ignore[index]
+            got = len(self.graph.nu.get(edge_id, []))
+            if got != expected:
+                raise ValueError(f"Arity mismatch for '{pred}': expected {expected}, got {got} (edge {edge_id})")
     
     def _get_area_elements(self, area_id: str) -> Dict[str, List[str]]:
         """Get elements in specified area, categorized by type."""
@@ -332,11 +382,12 @@ class CGIFGenerator:
         if not vertex:
             return ""
         
-        if vertex.is_generic:
+        if not self._is_constant_vertex(vertex_id):
             return f"[{type_name}: {vertex_label}]"
         else:
-            # For constants, use the constant name directly
-            return f"[{type_name}: {vertex.label or vertex_id}]"
+            # For constants, use the constant name (quoted if needed)
+            cname = self._get_constant_name(vertex_id) or vertex.label or vertex_id
+            return f"[{type_name}: {self._format_constant(cname)}]"
     
     def _generate_untyped_concept(self, vertex_id: str) -> str:
         """Generate untyped concept [*x] or [: John]."""
@@ -344,12 +395,13 @@ class CGIFGenerator:
         if not vertex:
             return ""
         
-        if vertex.is_generic:
+        if not self._is_constant_vertex(vertex_id):
             vertex_label = self.vertex_labels.get(vertex_id, vertex_id)
             return f"[{vertex_label}]"
         else:
             # Constant concept
-            return f"[: {vertex.label or vertex_id}]"
+            cname = self._get_constant_name(vertex_id) or vertex.label or vertex_id
+            return f"[: {self._format_constant(cname)}]"
     
     def _generate_relation(self, edge_id: str) -> str:
         """Generate relation (Predicate ?x ?y)."""
@@ -362,13 +414,15 @@ class CGIFGenerator:
         if edge_id not in self.graph.nu:
             return f"({predicate})"
         
+        # Arity validation if alphabet is available
+        self._validate_edge_arity(edge_id)
         vertex_sequence = self.graph.nu[edge_id]
         arguments = []
         
         for vertex_id in vertex_sequence:
             vertex = next((v for v in self.graph.V if v.id == vertex_id), None)
             if vertex:
-                if vertex.is_generic:
+                if not self._is_constant_vertex(vertex_id):
                     # Use bound label for generic vertices
                     label = self.vertex_labels.get(vertex_id, vertex_id)
                     if label.startswith('*'):
@@ -377,8 +431,9 @@ class CGIFGenerator:
                         bound_label = '?' + label
                     arguments.append(bound_label)
                 else:
-                    # Use constant name directly
-                    arguments.append(vertex.label or vertex_id)
+                    # Use constant name (quoted if needed)
+                    cname = self._get_constant_name(vertex_id) or vertex.label or vertex_id
+                    arguments.append(self._format_constant(cname))
             else:
                 arguments.append(vertex_id)
         

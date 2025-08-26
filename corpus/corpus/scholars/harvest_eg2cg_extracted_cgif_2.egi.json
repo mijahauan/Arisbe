@@ -1,0 +1,95 @@
+{
+  "Cut": [
+    {
+      "id": "c_neg_0"
+    },
+    {
+      "id": "c_neg_1"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_beats_3"
+    },
+    {
+      "id": "e_donkey_0"
+    },
+    {
+      "id": "e_farmer_1"
+    },
+    {
+      "id": "e_owns_2"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "beats",
+      "donkey",
+      "farmer",
+      "owns"
+    ],
+    "ar": {
+      "beats": 2,
+      "donkey": 1,
+      "farmer": 1,
+      "owns": 2
+    }
+  },
+  "area": {
+    "c_neg_0": [
+      "c_neg_1",
+      "e_donkey_0",
+      "e_farmer_1",
+      "e_owns_2",
+      "v_x",
+      "v_y"
+    ],
+    "c_neg_1": [
+      "e_beats_3"
+    ],
+    "sheet_147376cc": [
+      "c_neg_0"
+    ]
+  },
+  "nu": {
+    "e_beats_3": [
+      "v_y",
+      "v_x"
+    ],
+    "e_donkey_0": [
+      "v_x"
+    ],
+    "e_farmer_1": [
+      "v_y"
+    ],
+    "e_owns_2": [
+      "v_y",
+      "v_x"
+    ]
+  },
+  "rel": {
+    "e_beats_3": "beats",
+    "e_donkey_0": "donkey",
+    "e_farmer_1": "farmer",
+    "e_owns_2": "owns"
+  },
+  "rho": {
+    "v_x": null,
+    "v_y": null
+  },
+  "sheet": "sheet_147376cc"
+}

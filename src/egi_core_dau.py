@@ -80,6 +80,12 @@ class RelationalGraphWithCuts:
     # 7th component for relation names
     rel: frozendict[ElementID, RelationName]               # Component 7: relation mapping
     
+    # Optional Dau Alphabet (C, F, R, ar) and rho mapping for constants-on-vertices
+    # These are optional to maintain backward compatibility. If provided (non-empty),
+    # additional validations will be enforced.
+    alphabet: Optional['AlphabetDAU'] = None
+    rho: frozendict[ElementID, Optional[str]] = frozendict()  # vertex_id -> constant name or None
+    
     # Derived mappings for efficiency
     _vertex_map: frozendict[ElementID, Vertex] = None
     _edge_map: frozendict[ElementID, Edge] = None
@@ -98,6 +104,8 @@ class RelationalGraphWithCuts:
         
         # Validate Dau's constraints
         self._validate_dau_constraints()
+        # Validate optional AlphabetDAU / rho if present
+        self._validate_alphabet_and_rho()
     
     def _validate_dau_constraints(self):
         """Validate all constraints from Dau's Definition 12.1."""
@@ -187,6 +195,35 @@ class RelationalGraphWithCuts:
                     return True
         
         return False
+
+    def _validate_alphabet_and_rho(self):
+        """If an AlphabetDAU is provided, validate arities, membership, and rho labels.
+        This keeps the core backward compatible by making these checks conditional.
+        """
+        if self.alphabet is None:
+            return
+        alph = self.alphabet
+        # Ensure ar(c)==1 for all c in C
+        for c in alph.C:
+            if alph.ar.get(c, 1) != 1:
+                raise ValueError(f"Alphabet arity for constant '{c}' must be 1, got {alph.ar.get(c)}")
+        # All rel names used by edges must be declared in C ∪ F ∪ R
+        declared = alph.C | alph.F | alph.R
+        for edge_id, name in self.rel.items():
+            if name not in declared:
+                raise ValueError(f"Relation name '{name}' (edge {edge_id}) not in Alphabet (C∪F∪R)")
+            # If arity is known, enforce |ν(e)| == ar(name)
+            if name in alph.ar:
+                expected = alph.ar[name]
+                got = len(self.nu.get(edge_id, tuple()))
+                if got != expected:
+                    raise ValueError(f"Arity mismatch for '{name}': expected {expected}, got {got} (edge {edge_id})")
+        # Validate rho: vertex ids must exist; labels must be constants in C or None
+        for vid, const_name in self.rho.items():
+            if vid not in self._vertex_map:
+                raise ValueError(f"rho refers to unknown vertex '{vid}'")
+            if const_name is not None and const_name not in alph.C:
+                raise ValueError(f"rho assigns '{const_name}' to {vid}, but it is not in Alphabet.C")
     
     # Core access methods
     
@@ -352,7 +389,9 @@ class RelationalGraphWithCuts:
             sheet=self.sheet,
             Cut=self.Cut,
             area=frozendict(new_area),
-            rel=self.rel
+            rel=self.rel,
+            alphabet=self.alphabet,
+            rho=self.rho
         )
     
     def with_edge(self, edge: Edge, vertex_sequence: VertexSequence, 
@@ -385,7 +424,9 @@ class RelationalGraphWithCuts:
             sheet=self.sheet,
             Cut=self.Cut,
             area=frozendict(new_area),
-            rel=frozendict(new_rel)
+            rel=frozendict(new_rel),
+            alphabet=self.alphabet,
+            rho=self.rho
         )
     
     def with_cut(self, cut: Cut, context_id: ElementID = None) -> 'RelationalGraphWithCuts':
@@ -411,7 +452,9 @@ class RelationalGraphWithCuts:
             sheet=self.sheet,
             Cut=new_Cut,
             area=frozendict(new_area),
-            rel=self.rel
+            rel=self.rel,
+            alphabet=self.alphabet,
+            rho=self.rho
         )
     
     def with_vertex_moved_to_context(self, vertex_id: ElementID, new_context_id: ElementID) -> 'RelationalGraphWithCuts':
@@ -444,7 +487,9 @@ class RelationalGraphWithCuts:
             sheet=self.sheet,
             Cut=self.Cut,
             area=frozendict(new_area),
-            rel=self.rel
+            rel=self.rel,
+            alphabet=self.alphabet,
+            rho=self.rho
         )
     
     def without_element(self, element_id: ElementID) -> 'RelationalGraphWithCuts':
@@ -475,7 +520,9 @@ class RelationalGraphWithCuts:
             sheet=self.sheet,
             Cut=self.Cut,
             area=frozendict(new_area),
-            rel=self.rel
+            rel=self.rel,
+            alphabet=self.alphabet,
+            rho=self.rho
         )
     
     def _without_edge(self, edge_id: ElementID) -> 'RelationalGraphWithCuts':
@@ -497,7 +544,9 @@ class RelationalGraphWithCuts:
             sheet=self.sheet,
             Cut=self.Cut,
             area=frozendict(new_area),
-            rel=new_rel
+            rel=new_rel,
+            alphabet=self.alphabet,
+            rho=self.rho
         )
     
     def _without_cut(self, cut_id: ElementID) -> 'RelationalGraphWithCuts':
@@ -526,7 +575,9 @@ class RelationalGraphWithCuts:
             sheet=self.sheet,
             Cut=new_Cut,
             area=frozendict(new_area),
-            rel=self.rel
+            rel=self.rel,
+            alphabet=self.alphabet,
+            rho=self.rho
         )
 
 
@@ -541,7 +592,9 @@ def create_empty_graph() -> RelationalGraphWithCuts:
         sheet=sheet_id,
         Cut=frozenset(),
         area=frozendict({sheet_id: frozenset()}),
-        rel=frozendict()
+        rel=frozendict(),
+        alphabet=None,
+        rho=frozendict()
     )
 
 
@@ -589,6 +642,25 @@ class Alphabet:
     def reserve_name(self, name: str):
         """Reserve a variable name."""
         self.used_names.add(name)
+
+
+@dataclass(frozen=True)
+class AlphabetDAU:
+    """Dau's Alphabet (C, F, R, ar). Use with RelationalGraphWithCuts to enable
+    arity and membership validations. Set ar(c)=1 implicitly for c∈C unless provided.
+    """
+    C: FrozenSet[str] = frozenset()
+    F: FrozenSet[str] = frozenset()
+    R: FrozenSet[str] = frozenset()
+    ar: frozendict[str, int] = frozendict()
+
+    def with_defaults(self) -> 'AlphabetDAU':
+        """Return a copy where all constants have arity 1 in ar if not already set."""
+        updated = dict(self.ar)
+        for c in self.C:
+            if c not in updated:
+                updated[c] = 1
+        return AlphabetDAU(C=self.C, F=self.F, R=self.R, ar=frozendict(updated))
 
 
 if __name__ == "__main__":

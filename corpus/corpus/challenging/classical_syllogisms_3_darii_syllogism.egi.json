@@ -1,0 +1,115 @@
+{
+  "Cut": [
+    {
+      "id": "c_92078db9"
+    },
+    {
+      "id": "c_b9006cb5"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_32fb1fe5"
+    },
+    {
+      "id": "e_36fa87f5"
+    },
+    {
+      "id": "e_55ffc2d8"
+    },
+    {
+      "id": "e_5dad7166"
+    },
+    {
+      "id": "e_dc6beb3f"
+    },
+    {
+      "id": "e_e63fc293"
+    },
+    {
+      "id": "e_ec1e803d"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_6530e1ca",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_d572728c",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Animal",
+      "Herbivore",
+      "Rabbit"
+    ],
+    "ar": {
+      "Animal": 1,
+      "Herbivore": 1,
+      "Rabbit": 1
+    }
+  },
+  "area": {
+    "c_92078db9": [
+      "c_b9006cb5",
+      "e_dc6beb3f"
+    ],
+    "c_b9006cb5": [
+      "e_e63fc293"
+    ],
+    "sheet_02123112": [
+      "c_92078db9",
+      "e_32fb1fe5",
+      "e_36fa87f5",
+      "e_55ffc2d8",
+      "e_5dad7166",
+      "e_ec1e803d",
+      "v_6530e1ca",
+      "v_d572728c"
+    ]
+  },
+  "nu": {
+    "e_32fb1fe5": [
+      "v_d572728c"
+    ],
+    "e_36fa87f5": [
+      "v_d572728c"
+    ],
+    "e_55ffc2d8": [
+      "v_6530e1ca"
+    ],
+    "e_5dad7166": [
+      "v_d572728c"
+    ],
+    "e_dc6beb3f": [
+      "v_6530e1ca"
+    ],
+    "e_e63fc293": [
+      "v_6530e1ca"
+    ],
+    "e_ec1e803d": [
+      "v_6530e1ca"
+    ]
+  },
+  "rel": {
+    "e_32fb1fe5": "Rabbit",
+    "e_36fa87f5": "Herbivore",
+    "e_55ffc2d8": "Rabbit",
+    "e_5dad7166": "Animal",
+    "e_dc6beb3f": "Rabbit",
+    "e_e63fc293": "Herbivore",
+    "e_ec1e803d": "Animal"
+  },
+  "rho": {
+    "v_6530e1ca": null,
+    "v_d572728c": null
+  },
+  "sheet": "sheet_02123112"
+}

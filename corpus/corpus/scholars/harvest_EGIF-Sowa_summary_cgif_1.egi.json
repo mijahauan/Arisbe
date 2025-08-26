@@ -1,0 +1,46 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_lightning_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": false,
+      "label": "x"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "x"
+    ],
+    "F": [],
+    "R": [
+      "lightning"
+    ],
+    "ar": {
+      "lightning": 1,
+      "x": 1
+    }
+  },
+  "area": {
+    "sheet_992de79b": [
+      "e_lightning_0",
+      "v_x"
+    ]
+  },
+  "nu": {
+    "e_lightning_0": [
+      "v_x"
+    ]
+  },
+  "rel": {
+    "e_lightning_0": "lightning"
+  },
+  "rho": {
+    "v_x": "x"
+  },
+  "sheet": "sheet_992de79b"
+}

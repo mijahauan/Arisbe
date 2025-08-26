@@ -1,38 +1,81 @@
 {
-  "id": "dau_theorem_proving",
+  "alphabet_summary": {
+    "C_count": 0,
+    "F_count": 0,
+    "R_count": 0,
+    "arities": {}
+  },
+  "authority_level": "high",
   "category": "scholars",
-  "title": "Dau's Theorem Proving Example",
-  "description": "Complex nested quantifier structure demonstrating theorem proving capabilities in EG",
-  "source": {
-    "author": "Frithjof Dau",
-    "work": "Mathematical Logic with Diagrams",
-    "year": 2006,
-    "page": "Chapter on Existential Graph Inference",
-    "publisher": "Logos Verlag Berlin"
-  },
-  "logical_form": "∀x(P(x) → ∃y(Q(x,y) ∧ ∀z(R(y,z) → S(z))))",
-  "natural_language": "For all x, if P(x) then there exists y such that Q(x,y) and for all z, if R(y,z) then S(z)",
   "complexity": {
-    "nesting_depth": 4,
-    "entity_count": 3,
-    "predicate_count": 4,
-    "cut_count": 5
+    "cut_count": 0,
+    "edge_count": 0,
+    "nesting_depth": 0,
+    "predicate_count": 0,
+    "vertex_count": 0
   },
-  "test_rationale": "Tests deep nesting, mixed quantifiers, and complex implication chains for theorem proving",
+  "description": "Complex nested quantifier structure demonstrating theorem proving capabilities in EG",
+  "difficulty": "medium",
   "epg_features": {
+    "invalid_transformations": [],
     "is_starting_position": true,
     "valid_transformations": [
       "insertion",
       "deletion",
       "iteration"
-    ],
-    "invalid_transformations": []
+    ]
   },
-  "authority_level": "high",
-  "difficulty": "medium",
+  "id": "dau_theorem_proving",
+  "logical_form": "∀x(P(x) → ∃y(Q(x,y) ∧ ∀z(R(y,z) → S(z))))",
+  "natural_language": "For all x, if P(x) then there exists y such that Q(x,y) and for all z, if R(y,z) then S(z)",
   "provenance_notes": "Derived from Frithjof Dau Mathematical Logic with Diagrams",
+  "representations": {
+    "egi": {
+      "hash": "cf7ed0c59be757fe5519e94329ccc44b471a4f92caab3d0dde65026f3e897b2c",
+      "path": "dau_theorem_proving.egi.json"
+    },
+    "linear_forms": {
+      "cgif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      },
+      "clif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      },
+      "egif": {
+        "hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "text": "",
+        "validated": true
+      }
+    }
+  },
+  "schema_version": "1.0",
+  "source": {
+    "author": "Frithjof Dau",
+    "page": "Chapter on Existential Graph Inference",
+    "publisher": "Logos Verlag Berlin",
+    "work": "Mathematical Logic with Diagrams",
+    "year": 2006
+  },
+  "tags": [
+    "derivation",
+    "reasoning"
+  ],
+  "test_rationale": "Tests deep nesting, mixed quantifiers, and complex implication chains for theorem proving",
+  "title": "Dau's Theorem Proving Example",
   "topic_tags": [
     "derivation",
     "reasoning"
-  ]
+  ],
+  "validation_status": {
+    "egi_validated": true,
+    "replicas_validated": {
+      "cgif": true,
+      "clif": true,
+      "egif": true
+    }
+  }
 }

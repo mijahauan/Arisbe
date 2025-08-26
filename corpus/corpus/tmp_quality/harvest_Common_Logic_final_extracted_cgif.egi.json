@@ -1,0 +1,74 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_Cat_0"
+    },
+    {
+      "id": "e_Mat_1"
+    },
+    {
+      "id": "e_On_2"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_Yojo",
+      "is_generic": false,
+      "label": "Yojo"
+    },
+    {
+      "id": "v_g00719",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Yojo"
+    ],
+    "F": [],
+    "R": [
+      "Cat",
+      "Mat",
+      "On"
+    ],
+    "ar": {
+      "Cat": 1,
+      "Mat": 1,
+      "On": 2,
+      "Yojo": 1
+    }
+  },
+  "area": {
+    "sheet_0515cdce": [
+      "e_Cat_0",
+      "e_Mat_1",
+      "e_On_2",
+      "v_Yojo",
+      "v_g00719"
+    ]
+  },
+  "nu": {
+    "e_Cat_0": [
+      "v_Yojo"
+    ],
+    "e_Mat_1": [
+      "v_g00719"
+    ],
+    "e_On_2": [
+      "v_Yojo",
+      "v_g00719"
+    ]
+  },
+  "rel": {
+    "e_Cat_0": "Cat",
+    "e_Mat_1": "Mat",
+    "e_On_2": "On"
+  },
+  "rho": {
+    "v_Yojo": "Yojo",
+    "v_g00719": null
+  },
+  "sheet": "sheet_0515cdce"
+}

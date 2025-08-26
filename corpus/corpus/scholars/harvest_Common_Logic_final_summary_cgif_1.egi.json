@@ -1,0 +1,66 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_the_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_Commission",
+      "is_generic": false,
+      "label": "Commission"
+    },
+    {
+      "id": "v_Electrotechnical",
+      "is_generic": false,
+      "label": "Electrotechnical"
+    },
+    {
+      "id": "v_International",
+      "is_generic": false,
+      "label": "International"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Commission",
+      "Electrotechnical",
+      "International"
+    ],
+    "F": [],
+    "R": [
+      "the"
+    ],
+    "ar": {
+      "Commission": 1,
+      "Electrotechnical": 1,
+      "International": 1,
+      "the": 3
+    }
+  },
+  "area": {
+    "sheet_1aba0b82": [
+      "e_the_0",
+      "v_Commission",
+      "v_Electrotechnical",
+      "v_International"
+    ]
+  },
+  "nu": {
+    "e_the_0": [
+      "v_International",
+      "v_Electrotechnical",
+      "v_Commission"
+    ]
+  },
+  "rel": {
+    "e_the_0": "the"
+  },
+  "rho": {
+    "v_Commission": "Commission",
+    "v_Electrotechnical": "Electrotechnical",
+    "v_International": "International"
+  },
+  "sheet": "sheet_1aba0b82"
+}

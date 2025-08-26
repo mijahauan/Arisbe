@@ -1,0 +1,76 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_the_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_International",
+      "is_generic": false,
+      "label": "International"
+    },
+    {
+      "id": "v_Organization",
+      "is_generic": false,
+      "label": "Organization"
+    },
+    {
+      "id": "v_Standardization",
+      "is_generic": false,
+      "label": "Standardization"
+    },
+    {
+      "id": "v_for",
+      "is_generic": false,
+      "label": "for"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "International",
+      "Organization",
+      "Standardization",
+      "for"
+    ],
+    "F": [],
+    "R": [
+      "the"
+    ],
+    "ar": {
+      "International": 1,
+      "Organization": 1,
+      "Standardization": 1,
+      "for": 1,
+      "the": 4
+    }
+  },
+  "area": {
+    "sheet_cb214e5d": [
+      "e_the_0",
+      "v_International",
+      "v_Organization",
+      "v_Standardization",
+      "v_for"
+    ]
+  },
+  "nu": {
+    "e_the_0": [
+      "v_International",
+      "v_Organization",
+      "v_for",
+      "v_Standardization"
+    ]
+  },
+  "rel": {
+    "e_the_0": "the"
+  },
+  "rho": {
+    "v_International": "International",
+    "v_Organization": "Organization",
+    "v_Standardization": "Standardization",
+    "v_for": "for"
+  },
+  "sheet": "sheet_cb214e5d"
+}

@@ -1,0 +1,144 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_0e7b0b96"
+    },
+    {
+      "id": "e_13574e25"
+    },
+    {
+      "id": "e_36dbf4f5"
+    },
+    {
+      "id": "e_6359842b"
+    },
+    {
+      "id": "e_a3b7dea2"
+    },
+    {
+      "id": "e_e5bc3a36"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_1244c78c",
+      "is_generic": false,
+      "label": "John"
+    },
+    {
+      "id": "v_373e3049",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_403ba7e2",
+      "is_generic": false,
+      "label": "Tom"
+    },
+    {
+      "id": "v_47cb7e17",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_7eb78a7d",
+      "is_generic": false,
+      "label": "Mary"
+    },
+    {
+      "id": "v_b2c1662e",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_f3019682",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "John",
+      "Mary",
+      "Tom"
+    ],
+    "F": [],
+    "R": [
+      "Book",
+      "Gives",
+      "Person",
+      "Writes"
+    ],
+    "ar": {
+      "Book": 1,
+      "Gives": 3,
+      "John": 1,
+      "Mary": 1,
+      "Person": 2,
+      "Tom": 1,
+      "Writes": 2
+    }
+  },
+  "area": {
+    "sheet_5ab81500": [
+      "e_0e7b0b96",
+      "e_13574e25",
+      "e_36dbf4f5",
+      "e_6359842b",
+      "e_a3b7dea2",
+      "e_e5bc3a36",
+      "v_1244c78c",
+      "v_373e3049",
+      "v_403ba7e2",
+      "v_47cb7e17",
+      "v_7eb78a7d",
+      "v_b2c1662e",
+      "v_f3019682"
+    ]
+  },
+  "nu": {
+    "e_0e7b0b96": [
+      "v_f3019682",
+      "v_1244c78c"
+    ],
+    "e_13574e25": [
+      "v_373e3049",
+      "v_403ba7e2"
+    ],
+    "e_36dbf4f5": [
+      "v_373e3049",
+      "v_b2c1662e"
+    ],
+    "e_6359842b": [
+      "v_f3019682",
+      "v_47cb7e17",
+      "v_b2c1662e"
+    ],
+    "e_a3b7dea2": [
+      "v_b2c1662e"
+    ],
+    "e_e5bc3a36": [
+      "v_47cb7e17",
+      "v_7eb78a7d"
+    ]
+  },
+  "rel": {
+    "e_0e7b0b96": "Person",
+    "e_13574e25": "Person",
+    "e_36dbf4f5": "Writes",
+    "e_6359842b": "Gives",
+    "e_a3b7dea2": "Book",
+    "e_e5bc3a36": "Person"
+  },
+  "rho": {
+    "v_1244c78c": "John",
+    "v_373e3049": null,
+    "v_403ba7e2": "Tom",
+    "v_47cb7e17": null,
+    "v_7eb78a7d": "Mary",
+    "v_b2c1662e": null,
+    "v_f3019682": null
+  },
+  "sheet": "sheet_5ab81500"
+}

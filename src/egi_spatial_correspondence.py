@@ -443,9 +443,15 @@ class SpatialCorrespondenceEngine:
             depth = 0
             cur = cut_id
             seen = set()
+            # Put a hard cap to avoid pathological hierarchies causing long walks
+            MAX_DEPTH = 256
             while True:
                 if cur in seen:
-                    break
+                    # Detected a cycle in parent references; return current depth as a fallback
+                    return depth
+                if depth >= MAX_DEPTH:
+                    # Defensive cap
+                    return depth
                 seen.add(cur)
                 parent = self._determine_cut_parent_area(cur)
                 if parent == self.egi.sheet or parent is None:
@@ -501,9 +507,54 @@ class SpatialCorrespondenceEngine:
                 pad_in = float(layout_tokens.get("cut_padding", 20.0))
                 nx = parent_bounds.x + pad_in
                 ny = parent_bounds.y + pad_in
-                # Ensure it fits; if too large, clamp to parent minus padding
-                nwidth = min(cut_width, max(10.0, parent_bounds.width - 2 * pad_in))
-                nheight = min(cut_height, max(10.0, parent_bounds.height - 2 * pad_in))
+                # If child desired size exceeds parent's inner size, expand parent to fit
+                parent_inner_w = max(0.0, parent_bounds.width - 2 * pad_in)
+                parent_inner_h = max(0.0, parent_bounds.height - 2 * pad_in)
+                need_expand_w = cut_width > parent_inner_w
+                need_expand_h = cut_height > parent_inner_h
+                if need_expand_w or need_expand_h:
+                    # Grow parent minimally to accommodate child + padding
+                    new_parent_w = parent_bounds.width
+                    new_parent_h = parent_bounds.height
+                    if need_expand_w:
+                        delta_w = (cut_width - parent_inner_w)
+                        new_parent_w = parent_bounds.width + max(0.0, delta_w)
+                    if need_expand_h:
+                        delta_h = (cut_height - parent_inner_h)
+                        new_parent_h = parent_bounds.height + max(0.0, delta_h)
+                    new_parent_bounds = SpatialBounds(parent_bounds.x, parent_bounds.y, new_parent_w, new_parent_h)
+                    # Update parent in current layout if present
+                    parent_elt = layout.get(parent_area)
+                    if parent_elt and getattr(parent_elt, 'element_type', None) == 'cut':
+                        layout[parent_area] = SpatialElement(
+                            element_id=parent_elt.element_id,
+                            element_type=parent_elt.element_type,
+                            logical_area=parent_elt.logical_area,
+                            spatial_bounds=new_parent_bounds
+                        )
+                    # Update correspondence mapping for parent area
+                    self.correspondence.area_mappings[parent_area] = new_parent_bounds
+                    # Update placed_bounds entry for the parent so sibling overlap checks see new size
+                    updated_pb: List[Tuple[SpatialBounds, Optional[str]]] = []
+                    for pb, pb_parent in placed_bounds:
+                        if pb is parent_bounds and pb_parent == self._determine_cut_parent_area(parent_area):
+                            updated_pb.append((new_parent_bounds, pb_parent))
+                        else:
+                            # If this tuple corresponds directly to the parent itself (parent id as element), keep same parent tag
+                            if pb is parent_bounds and pb_parent == self._determine_cut_parent_area(parent_area):
+                                updated_pb.append((new_parent_bounds, pb_parent))
+                            else:
+                                updated_pb.append((pb, pb_parent))
+                    placed_bounds = updated_pb
+                    parent_bounds = new_parent_bounds
+                    # Recompute child anchor after parent expansion
+                    nx = parent_bounds.x + pad_in
+                    ny = parent_bounds.y + pad_in
+                    parent_inner_w = max(0.0, parent_bounds.width - 2 * pad_in)
+                    parent_inner_h = max(0.0, parent_bounds.height - 2 * pad_in)
+                # Place child at requested size, clamped only by updated parent inner size (should now fit)
+                nwidth = min(cut_width, max(10.0, parent_inner_w))
+                nheight = min(cut_height, max(10.0, parent_inner_h))
                 bounds = SpatialBounds(nx, ny, nwidth, nheight)
             # Avoid overlaps with previously placed sibling cuts (simple shifting)
             def overlaps(a: SpatialBounds, b: SpatialBounds) -> bool:
@@ -537,6 +588,8 @@ class SpatialCorrespondenceEngine:
                     bounds = SpatialBounds(bounds.x + shift_dx, bounds.y + shift_dy, bounds.width, bounds.height)
                 guard += 1
                 if guard > 50:
+                    if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+                        print(f"DEBUG: Sibling-overlap shift guard tripped for cut {cut.id} in parent {parent_area}; bounds={bounds}")
                     break
             placed_bounds.append((bounds, parent_area))
             

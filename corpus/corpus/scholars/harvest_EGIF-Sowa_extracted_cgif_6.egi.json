@@ -1,0 +1,58 @@
+{
+  "Cut": [
+    {
+      "id": "c_neg_0"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_is_0"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "is"
+    ],
+    "ar": {
+      "is": 2
+    }
+  },
+  "area": {
+    "c_neg_0": [
+      "e_is_0",
+      "v_x",
+      "v_y"
+    ],
+    "sheet_058b4ad9": [
+      "c_neg_0"
+    ]
+  },
+  "nu": {
+    "e_is_0": [
+      "v_x",
+      "v_y"
+    ]
+  },
+  "rel": {
+    "e_is_0": "is"
+  },
+  "rho": {
+    "v_x": null,
+    "v_y": null
+  },
+  "sheet": "sheet_058b4ad9"
+}

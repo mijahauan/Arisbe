@@ -1,0 +1,81 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_Pedro_0"
+    },
+    {
+      "id": "e_donkey_3"
+    },
+    {
+      "id": "e_farmer_1"
+    },
+    {
+      "id": "e_owns_2"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_x",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_z",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Pedro",
+      "donkey",
+      "farmer",
+      "owns"
+    ],
+    "ar": {
+      "Pedro": 1,
+      "donkey": 1,
+      "farmer": 1,
+      "owns": 2
+    }
+  },
+  "area": {
+    "sheet_1f417ed4": [
+      "e_Pedro_0",
+      "e_donkey_3",
+      "e_farmer_1",
+      "e_owns_2",
+      "v_x",
+      "v_z"
+    ]
+  },
+  "nu": {
+    "e_Pedro_0": [
+      "v_x"
+    ],
+    "e_donkey_3": [
+      "v_z"
+    ],
+    "e_farmer_1": [
+      "v_x"
+    ],
+    "e_owns_2": [
+      "v_x",
+      "v_z"
+    ]
+  },
+  "rel": {
+    "e_Pedro_0": "Pedro",
+    "e_donkey_3": "donkey",
+    "e_farmer_1": "farmer",
+    "e_owns_2": "owns"
+  },
+  "rho": {
+    "v_x": null,
+    "v_z": null
+  },
+  "sheet": "sheet_1f417ed4"
+}
