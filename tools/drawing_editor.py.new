@@ -46,6 +46,18 @@ from PySide6.QtWidgets import (
     QMenu,
 )
 
+# Add src directory to path for integration modules
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+# Import integration modules (with fallback if not available)
+try:
+    from drawing_editor_integration import integrate_drawing_editor
+    from practice_mode_integration import integrate_practice_mode
+    INTEGRATION_AVAILABLE = True
+except ImportError as e:
+    print(f"Integration modules not available: {e}")
+    INTEGRATION_AVAILABLE = False
+
 
 # ---------- Data schema (in-memory) ----------
 @dataclass
@@ -247,6 +259,20 @@ class DrawingEditor(QMainWindow):
         # Selection visuals
         self.scene.selectionChanged.connect(self._on_selection_changed)
 
+        # Initialize integration modules if available
+        if INTEGRATION_AVAILABLE:
+            try:
+                self.integration = integrate_drawing_editor(self)
+                self.practice_mode = integrate_practice_mode(self)
+                print("✓ Ergasterion integration modules loaded successfully")
+            except Exception as e:
+                print(f"Warning: Failed to initialize integration modules: {e}")
+                self.integration = None
+                self.practice_mode = None
+        else:
+            self.integration = None
+            self.practice_mode = None
+
     # ----- Stdout logging -----
     def _log(self, msg: str) -> None:
         try:
@@ -418,6 +444,22 @@ class DrawingEditor(QMainWindow):
 
     def _on_selection_changed(self) -> None:
         self._apply_selection_styles()
+        
+        # Notify practice mode about selection changes
+        if hasattr(self, 'practice_mode') and self.practice_mode:
+            try:
+                selected_items = self.scene.selectedItems()
+                selected_ids = []
+                for item in selected_items:
+                    # Try to get ID from different item types
+                    if hasattr(item, 'id'):
+                        selected_ids.append(item.id)
+                    elif hasattr(item, '_id'):
+                        selected_ids.append(item._id)
+                
+                self.practice_mode.update_selection(selected_ids)
+            except Exception as e:
+                print(f"Warning: Failed to update practice mode selection: {e}")
     def _clear_ligature_visuals(self) -> None:
         for line in self._ligature_lines:
             try:
@@ -701,19 +743,6 @@ class DrawingEditor(QMainWindow):
             return (rect.x() - eps <= pt.x() <= rect.x() + rect.width() + eps and
                     rect.y() - eps <= pt.y() <= rect.y() + rect.height() + eps)
 
-        # --- PATCH: Avoid recursion/loop on parent_map while building ---
-        # First, collect all possible containment relationships
-        cut_centers = {cid: c.rect.center() for cid, c in self.model.cuts.items()}
-        for cid, c in self.model.cuts.items():
-            parent: Optional[str] = None
-            for oid, oc in self.model.cuts.items():
-                if oid == cid:
-                    continue
-                if point_in_rect(cut_centers[cid], oc.rect):
-                    parent = oid
-            parent_map[cid] = parent if parent is not None else self.model.sheet_id
-        return parent_map
-        # --- END PATCH ---        
         for cid, c in self.model.cuts.items():
             center = c.rect.center()
             parent: Optional[str] = None
@@ -740,17 +769,9 @@ class DrawingEditor(QMainWindow):
             return 0
         depth = 1
         pid = parent_map.get(area_id)
-        seen = set()
         while pid is not None and pid in self.model.cuts:
-            if pid in seen:
-                # Cycle detected, break to avoid infinite loop
-                break
-            seen.add(pid)
             depth += 1
             pid = parent_map.get(pid)
-            if depth > 100:
-                # Defensive: break if depth is unreasonably high
-                break
         return depth
 
     def _resolve_area_position(self, pos: QPointF, parent_map: Dict[str, Optional[str]]) -> str:
@@ -1610,14 +1631,24 @@ class DrawingEditor(QMainWindow):
         # Compute cut nesting depths and parent mapping
         cut_ids = list(self.model.cuts.keys())
         parent_map: Dict[str, Optional[str]] = {}
-        cut_centers = {cid: c.rect.center() for cid, c in self.model.cuts.items()}
         for cid, c in self.model.cuts.items():
+            # Parent is the deepest other cut whose rect contains this rect's center; else sheet
+            center = c.rect.center()
             parent: Optional[str] = None
+            best_depth = -1
             for oid, oc in self.model.cuts.items():
                 if oid == cid:
                     continue
-                if point_in_rect(cut_centers[cid], oc.rect):
-                    parent = oid
+                if point_in_rect(center, oc.rect):
+                    # depth approximated by containment chain length via current parent_map
+                    depth = 1
+                    pid = parent_map.get(oid)
+                    while pid is not None:
+                        depth += 1
+                        pid = parent_map.get(pid)
+                    if depth > best_depth:
+                        best_depth = depth
+                        parent = oid
             parent_map[cid] = parent if parent is not None else self.model.sheet_id
 
         # Determine area for vertices/predicates by their position
@@ -1628,17 +1659,9 @@ class DrawingEditor(QMainWindow):
                     # depth = distance to sheet via parent_map
                     depth = 1
                     pid = parent_map.get(cid)
-                    seen = set()
                     while pid is not None and pid in self.model.cuts:
-                        if pid in seen:
-                            # Cycle detected, break to avoid infinite loop
-                            break
-                        seen.add(pid)
                         depth += 1
                         pid = parent_map.get(pid)
-                        if depth > 100:
-                            # Defensive: break if depth is unreasonably high
-                            break
                     inside.append((depth, cid))
             if inside:
                 inside.sort()
@@ -1673,6 +1696,44 @@ class DrawingEditor(QMainWindow):
         if self.model.predicate_outputs:
             schema["predicate_outputs"] = dict(self.model.predicate_outputs)
         return schema
+
+    # ----- Integration helper methods -----
+    def get_current_egi(self):
+        """Provide the current EGI for transformation rules."""
+        # This is a placeholder - you'll need to implement conversion from DrawingModel to EGI
+        # The drawing_to_egi_adapter.drawing_to_relational_graph() function can be used
+        try:
+            from drawing_to_egi_adapter import drawing_to_relational_graph
+            schema = self.to_schema()
+            return drawing_to_relational_graph(schema)
+        except ImportError:
+            print("Warning: drawing_to_egi_adapter not available")
+            return None
+        except Exception as e:
+            print(f"Warning: Failed to convert to EGI: {e}")
+            return None
+
+    def apply_transformation_result(self, result):
+        """Apply the result of a transformation."""
+        if result.success and result.modified_graph:
+            print(f"Transformation successful: {result.changes_description}")
+            # TODO: Implement loading EGI back into the drawing model
+            # This would require converting from EGI back to drawing schema
+            # and updating the model and scene accordingly
+            self.statusBar().showMessage(f"Transformation applied: {result.changes_description}")
+        else:
+            error_msg = "Transformation failed"
+            if result.validation_result and result.validation_result.errors:
+                error_msg += ": " + "; ".join(result.validation_result.errors)
+            self.statusBar().showMessage(error_msg)
+
+    def set_practice_mode(self, enabled):
+        """Set practice mode state."""
+        # Optional: modify editor behavior when practice mode is active
+        if enabled:
+            self.statusBar().showMessage("Practice mode enabled - select elements to see applicable transformation rules")
+        else:
+            self.statusBar().showMessage("Practice mode disabled")
 
 
 class CutRectItem(QGraphicsRectItem):
