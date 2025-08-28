@@ -1,0 +1,25 @@
+{
+  "egdf": { "version": "0.1", "generator": "example", "created": "2025-08-27T00:00:00Z" },
+  "egi_ref": {
+    "inline": {
+      "sheet": "S",
+      "V": ["v1"],
+      "E": ["e1"],
+      "Cut": ["c1"],
+      "nu": {"e1": ["v1"]},
+      "rel": {"e1": "P"},
+      "area": {"S": ["c1"], "c1": ["v1", "e1"]},
+      "rho": {"v1": null},
+      "alphabet": {"C": [], "F": [], "R": ["P"], "ar": {"P": 1}}
+    }
+  },
+  "layout": {
+    "units": "pt",
+    "cuts": {"c1": {"x": 100, "y": 80, "w": 240, "h": 160}},
+    "vertices": {"v1": {"x": 180, "y": 140}},
+    "predicates": {"e1": {"text": "P", "x": 220, "y": 120, "w": 24, "h": 12}},
+    "ligatures": {"e1": {"area": "c1", "path": {"kind": "spline", "points": [[220,126],[200,135],[180,140]]}}}
+  },
+  "styles": {"imports": ["dau-classic@1.0"], "variables": {}, "rules": []},
+  "deltas": []
+}

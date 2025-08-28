@@ -46,6 +46,34 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
     for eid in edge_ids:
         nu_map.setdefault(eid, tuple())
 
+    # --- Early validation: cut parent references and cycles ---
+    # Build explicit parent map from the drawing; default parent is sheet
+    parent_map: Dict[str, Optional[str]] = {}
+    for c in drawing.get("cuts", []):
+        cid = c.get("id")
+        if not cid:
+            continue
+        pid = c.get("parent_id") or sheet_id
+        parent_map[cid] = pid
+
+    # Validate parent references exist and detect cycles
+    for cid, pid in parent_map.items():
+        # Parent must be sheet or another known cut
+        if pid is not None and pid != sheet_id and pid not in cut_ids:
+            raise ValueError(f"Invalid parent_id '{pid}' for cut '{cid}': not in cuts and not sheet")
+        # Cycle detection by walking up to sheet
+        seen: Set[str] = set([cid])
+        cur = pid
+        steps = 0
+        while cur is not None and cur != sheet_id:
+            if cur in seen:
+                raise ValueError(f"Cycle detected in cut parentage: '{cid}' -> ... -> '{cur}'")
+            seen.add(cur)
+            cur = parent_map.get(cur)
+            steps += 1
+            if steps > len(cut_ids) + 1:
+                raise ValueError("Unreasonable cut nesting depth; possible cycle or corrupted parent map")
+
     # Build area containment mapping: area_id -> frozenset(child_ids)
     area: Dict[str, Set[str]] = {sheet_id: set()}
     for c in drawing.get("cuts", []):

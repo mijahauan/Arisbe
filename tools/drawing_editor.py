@@ -21,7 +21,7 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from PySide6.QtCore import QPointF, QRectF, Qt, QTimer
 from PySide6.QtGui import QAction, QPen, QBrush, QColor, QKeySequence
@@ -44,7 +44,31 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QWidget,
     QMenu,
+    QLabel,
 )
+
+## Ensure repository src/ is importable
+try:
+    REPO_ROOT = Path(__file__).resolve().parents[1]
+    SRC_DIR = REPO_ROOT / "src"
+    if str(SRC_DIR) not in sys.path:
+        sys.path.insert(0, str(SRC_DIR))
+except Exception:
+    pass
+
+# EGDF adapter (platform-independent export)
+try:
+    from egdf_adapter import drawing_to_egdf_document
+except Exception:
+    drawing_to_egdf_document = None  # type: ignore[assignment]
+
+# EGI/EGIF conversion utilities
+try:
+    from drawing_to_egi_adapter import drawing_to_relational_graph
+    from egif_generator_dau import generate_egif
+except Exception:
+    drawing_to_relational_graph = None  # type: ignore[assignment]
+    generate_egif = None  # type: ignore[assignment]
 
 
 # ---------- Data schema (in-memory) ----------
@@ -128,7 +152,7 @@ class DrawingModel:
         for v in schema.get("vertices", []):
             vid = v["id"]
             pos = QPointF(120 + 15 * len(model.vertices), 120)
-            gfx = QGraphicsEllipseItem(-4, -4, 8, 8)
+            gfx = VertexGfxItem(-4, -4, 8, 8, editor=None)  # editor set after model/editor constructed
             gfx.setBrush(QBrush(QColor(0, 0, 0)))
             gfx.setPen(QPen(QColor(0, 0, 0), 2))
             gfx.setPos(pos)
@@ -156,7 +180,7 @@ class DrawingModel:
             pos = QPointF(200 + 20 * len(model.predicates), 120)
             text = QGraphicsTextItem(name)
             rect = text.boundingRect().adjusted(-4, -2, 4, 2)
-            rect_item = QGraphicsRectItem(rect)
+            rect_item = PredicateRectItem(rect, editor=None)  # editor set after model/editor constructed
             rect_item.setBrush(QBrush(QColor(255, 255, 255)))
             rect_item.setPen(QPen(QColor(0, 0, 0, 60), 0))
             group_pos = pos
@@ -198,7 +222,7 @@ class DrawingEditor(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("Arisbe Drawing Tool (minimal)")
-        self.resize(1000, 700)
+        self.resize(1200, 800)
 
         self.scene = QGraphicsScene(self)
         self.scene.setSceneRect(0, 0, 900, 600)
@@ -217,13 +241,23 @@ class DrawingEditor(QMainWindow):
         # Ligature drag state (vertex -> predicate)
         self._ligature_drag_from_vid: Optional[str] = None
         self._ligature_drag_line: Optional[QGraphicsLineItem] = None
-        self._ligature_refresh_pending: bool = False
-        self._suppress_scene_change: bool = False
+        self._ligature_refresh_pending = False
+        self._zorder_refresh_pending = False
+        self._interaction_active = False
+        # Visual toggles and guards
         self._show_ligatures: bool = True
-        # Z-order refresh debounce
-        self._zorder_refresh_pending: bool = False
-        # Interaction throttle: suppress heavy refresh during drag
-        self._interaction_active: bool = False
+        self._suppress_scene_change: bool = False
+        # Style/profile selection for deltas authoring and reader mode
+        self.current_style_path: Optional[str] = None
+        self.current_style_id: Optional[str] = None  # e.g., "dau-classic@1.0"
+        # Ergasterion app modes
+        self.erg_mode: str = "composition"  # or "practice"
+        self.semantic_guardrails: bool = False
+        # EGI lock: when True, semantic guardrails apply (no area reassignment)
+        self.egi_locked: bool = False
+        # Puzzle Mode state: when arranging pieces to match a parsed EGI
+        self.puzzle_mode_active: bool = False
+        self._target_egi_meta: Optional[Dict[str, Any]] = None  # {'kind': 'egif_text'|'egi_inline', 'payload': ...}
 
         self.mode: str = Mode.SELECT
         self.active_parent_area: Optional[str] = None  # If a cut is selected before adding, that becomes parent/area
@@ -236,16 +270,27 @@ class DrawingEditor(QMainWindow):
 
         # Preview UI (dock)
         self._build_preview_dock()
+        # Corpus guidance dock
+        self._build_corpus_dock()
         # Toolbar
         self._build_toolbar()
+        # Persistent status banner
+        try:
+            self.status_mode_label = QLabel()
+            self.status_egi_label = QLabel()
+            self.statusBar().addPermanentWidget(self.status_mode_label, 0)
+            self.statusBar().addPermanentWidget(self.status_egi_label, 0)
+            self._refresh_status_banner()
+        except Exception:
+            pass
         # Initial preview
         self._update_preview()
-        # With ligatures on by default, schedule an initial refresh
-        self._schedule_ligature_refresh()
         # Keep visuals and z-order in sync with movements
         self.scene.changed.connect(self._on_scene_changed)
         # Selection visuals
         self.scene.selectionChanged.connect(self._on_selection_changed)
+        # Inject editor backrefs into gfx subclasses now that editor exists
+        self._inject_editor_backrefs_for_model()
 
     # ----- Stdout logging -----
     def _log(self, msg: str) -> None:
@@ -292,12 +337,37 @@ class DrawingEditor(QMainWindow):
         # Import EGIF text into the current scene (populate cuts/vertices/predicates)
         make_action("Import EGIF→Scene", False, self.on_import_egif_to_scene)
         make_action("Export EGI", False, self.on_export_egi)
+        # Platform-independent EGDF export (logic + layout/styles/deltas)
+        make_action("Export EGDF", False, self.on_export_egdf)
+
+        tb.addSeparator()
+        make_action("Select Style", False, self.on_select_style)
+        make_action("Save Layout Deltas", False, self.on_save_layout_deltas)
+
+        tb.addSeparator()
+        # Ergasterion modes
+        self.act_mode_composition = make_action("Composition Mode", True, self._set_mode_composition)
+        self.act_mode_composition.setChecked(True)
+        self.act_mode_practice = make_action("Practice Mode", True, self._set_mode_practice)
+        self.act_mode_practice.setChecked(False)
+        tb.addAction(self.act_mode_composition)
+        tb.addAction(self.act_mode_practice)
+
+        tb.addSeparator()
+        # EGI lock toggle
+        self.act_egi_lock = make_action("EGI Locked", True, self._toggle_egi_lock)
+        self.act_egi_lock.setChecked(False)
+        tb.addAction(self.act_egi_lock)
+
+        # Validate & Lock (Puzzle Mode)
+        self.act_validate_lock = make_action("Validate & Lock EGI", False, self._validate_and_lock_egi)
+        tb.addAction(self.act_validate_lock)
 
         tb.addSeparator()
         self.act_preview = make_action("Preview", False, self._update_preview)
         self.act_auto = make_action("Auto Preview", True, None)
-        # Default off to reduce startup load; you can enable it any time
-        self.act_auto.setChecked(False)
+        # Default on so preview/selection sync works immediately
+        self.act_auto.setChecked(True)
         tb.addAction(self.act_auto)
 
         # Toggle: Show Ligatures (visual only) — hidden now that we show by default
@@ -339,10 +409,10 @@ class DrawingEditor(QMainWindow):
             mapping[self.mode].setChecked(True)
         except Exception:
             pass
-        self.statusBar().showMessage(f"Mode: {self.mode}")
+        self._refresh_status_banner()
 
     def _build_preview_dock(self) -> None:
-        self.preview_dock = QDockWidget("Preview", self)
+        self.preview_dock = QDockWidget("Meaning (Current EGI)", self)
         self.preview_dock.setObjectName("previewDock")
         tabs = QTabWidget(self.preview_dock)
         self.txt_egi = QTextEdit()
@@ -355,9 +425,12 @@ class DrawingEditor(QMainWindow):
         # Directly set tabs as dock widget content
         self.preview_dock.setWidget(tabs)
         self.addDockWidget(Qt.RightDockWidgetArea, self.preview_dock)
+        # Click-to-select from JSON: react to cursor changes
+        self.txt_egi.cursorPositionChanged.connect(self._on_egi_cursor_moved)
+        # Note: Corpus dock is built in _build_corpus_dock()
 
-        # Separate dock for corpus guidance EGIF so preview remains the drawing's meaning
-        self.corpus_dock = QDockWidget("Corpus Guide", self)
+    def _build_corpus_dock(self) -> None:
+        self.corpus_dock = QDockWidget("Guide (Target EGI)", self)
         self.corpus_dock.setObjectName("corpusDock")
         # Tabs: show both the loaded corpus EGI JSON and its EGIF text
         corpus_tabs = QTabWidget(self.corpus_dock)
@@ -369,13 +442,11 @@ class DrawingEditor(QMainWindow):
         corpus_tabs.addTab(self.txt_corpus_egif, "Corpus EGIF")
         self.corpus_dock.setWidget(corpus_tabs)
         self.addDockWidget(Qt.RightDockWidgetArea, self.corpus_dock)
-        # Tabify with the preview dock so they share the right side cleanly
+        # Split vertically so both Preview and Guide are visible concurrently
         try:
-            self.tabifyDockWidget(self.preview_dock, self.corpus_dock)
+            self.splitDockWidget(self.preview_dock, self.corpus_dock, Qt.Vertical)
         except Exception:
             pass
-        # Click-to-select from JSON: react to cursor changes
-        self.txt_egi.cursorPositionChanged.connect(self._on_egi_cursor_moved)
 
     def _schedule_preview(self) -> None:
         if self.act_auto.isChecked():
@@ -384,18 +455,18 @@ class DrawingEditor(QMainWindow):
 
     def _update_preview(self) -> None:
         try:
+            # Always gather and show current scene schema
             schema = self._gather_schema_from_scene()
-            # Pretty JSON
             self.txt_egi.setPlainText(json.dumps(schema, indent=2))
-            # Build EGIF via adapter + generator
-            try:
-                from drawing_to_egi_adapter import drawing_to_relational_graph
-                from egif_generator_dau import generate_egif
-                rgc = drawing_to_relational_graph(schema)
-                egif = generate_egif(rgc)
-            except Exception as e:
-                egif = f"<EGIF generation error>\n{e}"
-            self.txt_egif.setPlainText(egif)
+            # Validate but do not clear previews on failure
+            ok, msg = self._validate_syntactic_constraints()
+            # Try EGIF generation regardless; generator will handle failures and return ""
+            egif_text = self._schema_to_egif(schema)
+            self.txt_egif.setPlainText(egif_text or "")
+            if ok:
+                self.statusBar().showMessage("Preview updated.")
+            else:
+                self.statusBar().showMessage(f"Syntactic validation failed: {msg} (preview shows current scene)")
         except Exception as e:
             self.txt_egi.setPlainText(f"<Preview error>\n{e}")
             self.txt_egif.setPlainText("")
@@ -418,6 +489,25 @@ class DrawingEditor(QMainWindow):
 
     def _on_selection_changed(self) -> None:
         self._apply_selection_styles()
+        try:
+            items = self.scene.selectedItems()
+        except Exception:
+            items = []
+        for it in items:
+            eid = self._id_for_item(it)
+            if not eid:
+                continue
+            # Flash in current meaning (Preview)
+            try:
+                self._flash_in_editor(self.txt_egi, eid)
+            except Exception:
+                pass
+            # Also try to flash in target corpus views (if present)
+            try:
+                if hasattr(self, 'txt_corpus_egi_json') and self.txt_corpus_egi_json is not None:
+                    self._flash_in_editor(self.txt_corpus_egi_json, eid)
+            except Exception:
+                pass
     def _clear_ligature_visuals(self) -> None:
         for line in self._ligature_lines:
             try:
@@ -509,6 +599,8 @@ class DrawingEditor(QMainWindow):
         self._interaction_active = False
         self._schedule_ligature_refresh()
         self._schedule_zorder_refresh()
+        # Also refresh the semantic preview (EGI/EGIF) after moves/resizes
+        self._schedule_preview()
 
     # ----- Selection visuals and JSON mapping -----
     def _apply_selection_styles(self) -> None:
@@ -531,6 +623,22 @@ class DrawingEditor(QMainWindow):
             pen.setWidthF(3.0 if sel else 2.0)
             pen.setColor(QColor(50, 120, 220) if sel else QColor(0, 0, 0))
             v.gfx.setPen(pen)
+        # If exactly one element is selected, flash its id in the JSON preview
+        try:
+            selected_ids: List[str] = []
+            for cid, c in self.model.cuts.items():
+                if c.gfx.isSelected():
+                    selected_ids.append(cid)
+            for vid, v in self.model.vertices.items():
+                if v.gfx.isSelected():
+                    selected_ids.append(vid)
+            for pid, p in self.model.predicates.items():
+                if p.gfx_rect.isSelected():
+                    selected_ids.append(pid)
+            if len(selected_ids) == 1:
+                self._flash_highlight_in_json(selected_ids[0])
+        except Exception:
+            pass
 
     def _on_egi_cursor_moved(self) -> None:
         # Get word under cursor and try to select corresponding item
@@ -683,11 +791,9 @@ class DrawingEditor(QMainWindow):
                 return cid
         return "?"
 
-
-
     # ----- Z-order helpers -----
     def _compute_parent_map(self) -> Dict[str, Optional[str]]:
-        # Map each cut to its parent cut or sheet
+        # Map each cut to its parent cut or sheet using FULL RECT CONTAINMENT
         parent_map: Dict[str, Optional[str]] = {}
         # Ensure current rects are up to date
         for c in self.model.cuts.values():
@@ -696,42 +802,41 @@ class DrawingEditor(QMainWindow):
             br = c.gfx.mapToScene(r.bottomRight())
             c.rect = QRectF(tl, br).normalized()
 
-        def point_in_rect(pt: QPointF, rect: QRectF) -> bool:
-            eps = 0.1
-            return (rect.x() - eps <= pt.x() <= rect.x() + rect.width() + eps and
-                    rect.y() - eps <= pt.y() <= rect.y() + rect.height() + eps)
+        def rect_fully_inside(inner: QRectF, outer: QRectF, eps: float = 0.5) -> bool:
+            return (
+                outer.left() - eps <= inner.left() and
+                outer.top() - eps <= inner.top() and
+                outer.right() + eps >= inner.right() and
+                outer.bottom() + eps >= inner.bottom()
+            )
 
-        # --- PATCH: Avoid recursion/loop on parent_map while building ---
-        # First, collect all possible containment relationships
-        cut_centers = {cid: c.rect.center() for cid, c in self.model.cuts.items()}
+        # Choose the smallest fully containing cut as parent; otherwise sheet
         for cid, c in self.model.cuts.items():
-            parent: Optional[str] = None
+            candidates: List[Tuple[float, str]] = []
             for oid, oc in self.model.cuts.items():
                 if oid == cid:
                     continue
-                if point_in_rect(cut_centers[cid], oc.rect):
-                    parent = oid
-            parent_map[cid] = parent if parent is not None else self.model.sheet_id
-        return parent_map
-        # --- END PATCH ---        
-        for cid, c in self.model.cuts.items():
-            center = c.rect.center()
-            parent: Optional[str] = None
-            best_depth = -1
-            for oid, oc in self.model.cuts.items():
-                if oid == cid:
-                    continue
-                if point_in_rect(center, oc.rect):
-                    # approximate depth by chain length using current parent_map
-                    depth = 1
-                    pid = parent_map.get(oid)
-                    while pid is not None:
-                        depth += 1
-                        pid = parent_map.get(pid)
-                    if depth > best_depth:
-                        best_depth = depth
-                        parent = oid
-            parent_map[cid] = parent if parent is not None else self.model.sheet_id
+                if rect_fully_inside(c.rect, oc.rect):
+                    candidates.append((oc.rect.width() * oc.rect.height(), oid))
+            if candidates:
+                candidates.sort()
+                parent_map[cid] = candidates[0][1]
+            else:
+                parent_map[cid] = self.model.sheet_id
+
+        # Defensive: break cycles by promoting to sheet
+        for cid in list(parent_map.keys()):
+            seen = set()
+            pid = parent_map.get(cid)
+            steps = 0
+            while pid is not None and pid in self.model.cuts:
+                if pid in seen or steps > 100:
+                    parent_map[cid] = self.model.sheet_id
+                    break
+                seen.add(pid)
+                pid = parent_map.get(pid)
+                steps += 1
+
         return parent_map
 
     def _area_depth(self, area_id: Optional[str], parent_map: Dict[str, Optional[str]]) -> int:
@@ -815,6 +920,86 @@ class DrawingEditor(QMainWindow):
         ar.adjust(-eps, -eps, eps, eps)
         br.adjust(-eps, -eps, eps, eps)
         return ar.intersects(br)
+
+    # ----- Element placement guardrails -----
+    def _parent_map_current(self) -> Dict[str, Optional[str]]:
+        return self._compute_parent_map()
+
+    def _cut_rect(self, cid: str) -> Optional[QRectF]:
+        c = self.model.cuts.get(cid)
+        if not c:
+            return None
+        r = c.gfx.rect()
+        tl = c.gfx.mapToScene(r.topLeft())
+        br = c.gfx.mapToScene(r.bottomRight())
+        return QRectF(tl, br).normalized()
+
+    def _descendants_of(self, cid: str, parent_map: Dict[str, Optional[str]]) -> List[str]:
+        kids = {}
+        for k, p in parent_map.items():
+            kids.setdefault(p, []).append(k)
+        out: List[str] = []
+        stack = [cid]
+        while stack:
+            x = stack.pop()
+            for ch in kids.get(x, []):
+                out.append(ch)
+                stack.append(ch)
+        return out
+
+    def _is_point_allowed_in_area(self, pt: QPointF, area_id: str, parent_map: Optional[Dict[str, Optional[str]]] = None) -> bool:
+        pm = parent_map or self._parent_map_current()
+        # Sheet: point must not be inside any cut
+        if area_id == self.model.sheet_id:
+            for cid in self.model.cuts.keys():
+                cr = self._cut_rect(cid)
+                if cr and cr.contains(pt):
+                    return False
+            return True
+        # Within a cut: point must be inside that cut and not inside any of its descendants
+        cr = self._cut_rect(area_id)
+        if cr is None or not cr.contains(pt):
+            return False
+        for dcid in self._descendants_of(area_id, pm):
+            dcr = self._cut_rect(dcid)
+            if dcr and dcr.contains(pt):
+                return False
+        return True
+
+    def _is_rect_allowed_in_area(self, rect: QRectF, area_id: str, parent_map: Optional[Dict[str, Optional[str]]] = None) -> bool:
+        # Validate by testing rect corners and center
+        pts = [rect.topLeft(), rect.topRight(), rect.bottomLeft(), rect.bottomRight(), rect.center()]
+        return all(self._is_point_allowed_in_area(p, area_id, parent_map) for p in pts)
+
+    def _element_area_id(self, item: QGraphicsItem) -> Optional[str]:
+        # Lookup the model element and return its declared area_id
+        for v in self.model.vertices.values():
+            if v.gfx is item:
+                return v.area_id
+        for p in self.model.predicates.values():
+            if p.gfx_rect is item:
+                return p.area_id
+        return None
+
+    def _area_id_at_point(self, pt: QPointF) -> str:
+        # Determine area from current cut geometry: choose deepest cut containing point, else sheet
+        best: Optional[Tuple[int, str]] = None
+        # Precompute parent map for depth calculation
+        pm = self._parent_map_current()
+        def depth_of(cid: str) -> int:
+            d = 0
+            pid = pm.get(cid)
+            while pid and pid in self.model.cuts:
+                d += 1
+                pid = pm.get(pid)
+            return d
+        for cid in self.model.cuts.keys():
+            cr = self._cut_rect(cid)
+            if cr and cr.contains(pt):
+                dep = depth_of(cid)
+                if best is None or dep > best[0]:
+                    best = (dep, cid)
+        return best[1] if best else self.model.sheet_id
 
     def _is_valid_cut_scene_rect(self, new_rect: QRectF, ignore_item: Optional[QGraphicsRectItem] = None) -> bool:
         # Valid if disjoint from every other cut OR fully contains OR fully contained by that cut.
@@ -1353,19 +1538,15 @@ class DrawingEditor(QMainWindow):
         if isinstance(data, dict) and any(k in data for k in ("cuts", "vertices", "predicates", "ligatures")):
             self.scene.clear()
             self.model = DrawingModel.from_schema(self.scene, data)
-            # Replace plain rect items with constrained ones for future moves
-            for cid, c in list(self.model.cuts.items()):
-                old_item = c.gfx
-                rect = self._scene_rect_for_item(old_item)
-                new_item = CutRectItem(rect, self)
-                new_item.setPen(old_item.pen())
-                new_item.setBrush(old_item.brush())
-                new_item.setFlag(QGraphicsItem.ItemIsMovable, True)
-                new_item.setFlag(QGraphicsItem.ItemIsSelectable, True)
-                self.scene.addItem(new_item)
-                self.scene.removeItem(old_item)
-                self.model.cuts[cid].gfx = new_item
+            # Replace plain rect items with constrained ones and do hierarchical placement
+            self._rebuild_cuts_with_constraints_and_place()
             QMessageBox.information(self, "Loaded", f"Loaded drawing from {path}")
+            # Scratch drawing schema: unlock EGI
+            self.egi_locked = False
+            if hasattr(self, 'act_egi_lock'):
+                self.act_egi_lock.setChecked(False)
+            self.statusBar().showMessage("EGI unlocked (syntactic guardrails only).")
+            self._refresh_status_banner()
             if self.act_auto.isChecked():
                 self._update_preview()
             self._schedule_ligature_refresh()
@@ -1381,22 +1562,120 @@ class DrawingEditor(QMainWindow):
             except Exception:
                 pass
             if egif_text:
-                # Only update the Corpus Guide EGIF preview as guidance; keep Preview focused on current drawing
+                # Update Corpus Guide EGIF preview
                 if hasattr(self, "txt_corpus_egif") and self.txt_corpus_egif is not None:
                     self.txt_corpus_egif.setPlainText(str(egif_text))
                 else:
                     # Fallback if corpus dock not present
                     self.txt_egif.setPlainText(str(egif_text))
+                # Parse EGIF and populate scene so Preview reflects current meaning
+                try:
+                    from egif_parser_dau import parse_egif
+                    rgc = parse_egif(str(egif_text))
+                except Exception as e:
+                    QMessageBox.critical(self, "Parse Error", f"Failed to parse EGIF from corpus entry: {e}")
+                    return
+                try:
+                    schema = self._schema_from_relational_graph(rgc)
+                except Exception as e:
+                    QMessageBox.critical(self, "Conversion Error", f"Failed to convert parsed EGIF to scene schema: {e}")
+                    return
+                self.begin_interaction()
+                try:
+                    self.scene.clear()
+                    self.model = DrawingModel.from_schema(self.scene, schema)
+                    self._inject_editor_backrefs_for_model()
+                    self._rebuild_cuts_with_constraints_and_place()
+                    self._schedule_zorder_refresh()
+                    self._schedule_ligature_refresh()
+                    if self.act_auto.isChecked():
+                        self._update_preview()
+                finally:
+                    self.end_interaction()
                 QMessageBox.information(self, "Loaded EGIF", f"Loaded EGIF from corpus entry: {data.get('id', p.name)}")
+                # Puzzle Mode semantics on external load: syntactic-only until Validate & Lock
+                self.egi_locked = False
+                self.puzzle_mode_active = True
+                self._target_egi_meta = {"kind": "egif_text", "payload": str(egif_text)}
+                if hasattr(self, 'act_egi_lock'):
+                    self.act_egi_lock.setChecked(False)
+                self.statusBar().showMessage("Puzzle Mode: syntactic-only. Arrange to match EGI, then Validate & Lock.")
+                self._refresh_status_banner()
                 return
 
-        # Case 3: Plain EGIF text file
+        # Case 3: EGI JSON (inline) => convert to drawing schema and place
+        if isinstance(data, dict) and all(k in data for k in ("V", "E", "Cut", "area", "nu")):
+            try:
+                schema = self._schema_from_egi_inline(data)
+            except Exception as e:
+                QMessageBox.critical(self, "EGI JSON Error", f"Failed to interpret EGI JSON: {e}")
+                return
+            self.scene.clear()
+            self.model = DrawingModel.from_schema(self.scene, schema)
+            self._rebuild_cuts_with_constraints_and_place()
+            QMessageBox.information(self, "Loaded", f"Loaded EGI and built scene from {path}")
+            # Populate Guide panels with the target EGI (JSON and EGIF)
+            try:
+                if hasattr(self, "txt_corpus_egi_json") and self.txt_corpus_egi_json is not None:
+                    self.txt_corpus_egi_json.setPlainText(json.dumps(data, indent=2))
+                if hasattr(self, "txt_corpus_egif") and self.txt_corpus_egif is not None:
+                    guide_egif = self._schema_to_egif(schema)
+                    self.txt_corpus_egif.setPlainText(guide_egif or "")
+            except Exception:
+                pass
+            # Inline EGI for Puzzle Mode: unlock and activate puzzle state
+            self.egi_locked = False
+            self.puzzle_mode_active = True
+            self._target_egi_meta = {"kind": "egi_inline", "payload": data}
+            if hasattr(self, 'act_egi_lock'):
+                self.act_egi_lock.setChecked(False)
+            self.statusBar().showMessage("Puzzle Mode: syntactic-only. Arrange to match EGI, then Validate & Lock.")
+            self._refresh_status_banner()
+            if self.act_auto.isChecked():
+                self._update_preview()
+            self._schedule_ligature_refresh()
+            return
+
+        # Case 4: Plain EGIF text file
         if isinstance(text, str) and text:
+            # Populate Guide EGIF
             if hasattr(self, "txt_corpus_egif") and self.txt_corpus_egif is not None:
                 self.txt_corpus_egif.setPlainText(text)
             else:
                 self.txt_egif.setPlainText(text)
+            # Parse EGIF and populate scene
+            try:
+                from egif_parser_dau import parse_egif
+                rgc = parse_egif(text)
+            except Exception as e:
+                QMessageBox.critical(self, "Parse Error", f"Failed to parse EGIF text: {e}")
+                return
+            try:
+                schema = self._schema_from_relational_graph(rgc)
+            except Exception as e:
+                QMessageBox.critical(self, "Conversion Error", f"Failed to convert parsed EGIF to scene schema: {e}")
+                return
+            self.begin_interaction()
+            try:
+                self.scene.clear()
+                self.model = DrawingModel.from_schema(self.scene, schema)
+                self._inject_editor_backrefs_for_model()
+                self._rebuild_cuts_with_constraints_and_place()
+                self._schedule_zorder_refresh()
+                self._schedule_ligature_refresh()
+                if self.act_auto.isChecked():
+                    self._update_preview()
+            finally:
+                self.end_interaction()
             QMessageBox.information(self, "Loaded EGIF", f"Loaded EGIF text from {path}")
+            # Puzzle Mode semantics
+            self.egi_locked = False
+            self.puzzle_mode_active = True
+            self._target_egi_meta = {"kind": "egif_text", "payload": text}
+            if hasattr(self, 'act_egi_lock'):
+                self.act_egi_lock.setChecked(False)
+            self.statusBar().showMessage("Puzzle Mode: syntactic-only. Arrange to match EGI, then Validate & Lock.")
+            self._refresh_status_banner()
             return
 
         QMessageBox.warning(self, "Unrecognized File", "File did not match drawing schema or contain EGIF content.")
@@ -1451,18 +1730,8 @@ class DrawingEditor(QMainWindow):
         try:
             self.scene.clear()
             self.model = DrawingModel.from_schema(self.scene, schema)
-            # Replace plain rects with constrained CutRectItem instances
-            for cid, c in list(self.model.cuts.items()):
-                old_item = c.gfx
-                rect = self._scene_rect_for_item(old_item)
-                new_item = CutRectItem(rect, self)
-                new_item.setPen(old_item.pen())
-                new_item.setBrush(old_item.brush())
-                new_item.setFlag(QGraphicsItem.ItemIsMovable, True)
-                new_item.setFlag(QGraphicsItem.ItemIsSelectable, True)
-                self.scene.addItem(new_item)
-                self.scene.removeItem(old_item)
-                self.model.cuts[cid].gfx = new_item
+            # Replace plain rects with constrained CutRectItem instances and place hierarchically
+            self._rebuild_cuts_with_constraints_and_place()
             self._schedule_zorder_refresh()
             self._schedule_ligature_refresh()
             self._schedule_preview()
@@ -1553,6 +1822,30 @@ class DrawingEditor(QMainWindow):
             "ligatures": ligatures,
         }
 
+    def _inject_editor_backrefs_for_model(self) -> None:
+        """Ensure all gfx items carry a reference back to this editor after model (re)loads."""
+        try:
+            for v in self.model.vertices.values():
+                if isinstance(v.gfx, VertexGfxItem):
+                    v.gfx._editor = self
+        except Exception:
+            pass
+        try:
+            for p in self.model.predicates.values():
+                if isinstance(p.gfx_rect, PredicateRectItem):
+                    p.gfx_rect._editor = self
+        except Exception:
+            pass
+        try:
+            for c in self.model.cuts.values():
+                # Some cut items may be specialized and accept _editor backref
+                try:
+                    setattr(c.gfx, "_editor", self)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
     def on_export_egi(self) -> None:
         try:
             schema = self._gather_schema_from_scene()
@@ -1585,6 +1878,128 @@ class DrawingEditor(QMainWindow):
             if self.act_auto.isChecked():
                 self._update_preview()
 
+    # ----- Ergasterion Modes -----
+    def _set_mode_composition(self) -> None:
+        self.erg_mode = "composition"
+        self.semantic_guardrails = False
+        # Do not auto-lock; scratch composition typically starts unlocked
+        self.act_mode_composition.setChecked(True)
+        self.act_mode_practice.setChecked(False)
+        self.statusBar().showMessage("Ergasterion: Composition Mode (semantic guardrails off)")
+        self._refresh_status_banner()
+
+    def _set_mode_practice(self) -> None:
+        self.erg_mode = "practice"
+        self.semantic_guardrails = True
+        # Practice mode assumes meaning is fixed
+        self.egi_locked = True
+        self.act_egi_lock.setChecked(True)
+        self.act_mode_composition.setChecked(False)
+        self.act_mode_practice.setChecked(True)
+        self.statusBar().showMessage("Ergasterion: Practice Mode (semantic guardrails on)")
+        self._refresh_status_banner()
+
+    def _toggle_egi_lock(self) -> None:
+        self.egi_locked = not self.egi_locked
+        self.act_egi_lock.setChecked(self.egi_locked)
+        lock_state = "locked" if self.egi_locked else "unlocked"
+        self.statusBar().showMessage(f"EGI {lock_state}: {'semantic guardrails on' if self.egi_locked else 'semantic guardrails off'}")
+        self._refresh_status_banner()
+
+    def _validate_and_lock_egi(self) -> None:
+        # Basic structural validation stub; can be extended to full EGI comparison
+        ok = True
+        msg = "Locked EGI."
+        try:
+            if self._target_egi_meta:
+                kind = self._target_egi_meta.get('kind')
+                if kind == 'egi_inline':
+                    target = self._target_egi_meta.get('payload') or {}
+                    # Compare basic counts
+                    schema = self._gather_schema_from_scene()
+                    v_ok = len(schema.get('vertices', [])) == len(target.get('V', []))
+                    p_ok = len(schema.get('predicates', [])) == len(target.get('E', []))  # E may represent predicates/edges depending on inline format
+                    c_ok = len(schema.get('cuts', [])) == len(target.get('Cut', []))
+                    ok = v_ok and c_ok  # predicates mapping may differ; keep minimal
+                    if not ok:
+                        msg = "Locked with warnings: counts differ from target EGI."
+                else:
+                    # For EGIF text, skip strict validation for now
+                    msg = "Locked EGI (validation deferred for EGIF text)."
+        except Exception as e:
+            ok = False
+            msg = f"Validation failed: {e}. You can still lock manually from the toggle."
+
+        if ok or True:
+            self.egi_locked = True
+            self.act_egi_lock.setChecked(True)
+            self.puzzle_mode_active = False
+            self.statusBar().showMessage(msg)
+            self._refresh_status_banner()
+
+    def _refresh_status_banner(self) -> None:
+        try:
+            mode_str = f"Mode: {self.erg_mode}/{self.mode}"
+            if hasattr(self, 'status_mode_label'):
+                self.status_mode_label.setText(mode_str)
+            if hasattr(self, 'status_egi_label'):
+                if self.puzzle_mode_active and not self.egi_locked:
+                    egi_str = "EGI: Puzzle (unlocked)"
+                else:
+                    egi_str = f"EGI: {'Locked' if self.egi_locked else 'Unlocked'}"
+                self.status_egi_label.setText(egi_str)
+        except Exception:
+            pass
+
+    def on_export_egdf(self) -> None:
+        if drawing_to_egdf_document is None:
+            QMessageBox.critical(self, "Unavailable", "EGDF adapter not available (missing src.egdf_adapter).")
+            return
+        # Choose output path/format
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export EGDF",
+            "drawing.egdf.json",
+            "EGDF JSON (*.json);;EGDF YAML (*.yaml *.yml)"
+        )
+        if not path:
+            return
+        try:
+            # Gather platform-independent drawing schema and a neutral layout snapshot
+            drawing_schema = self._gather_schema_from_scene()
+            layout = self._gather_layout_from_scene()
+            # Include current style snapshot if selected
+            styles: Dict[str, Any] = {}
+            if self.current_style_path:
+                try:
+                    styles[self.current_style_id or Path(self.current_style_path).stem] = json.loads(Path(self.current_style_path).read_text())
+                except Exception as e:
+                    print(f"[EGDF] Warning: failed reading style {self.current_style_path}: {e}")
+            # Include current layout deltas
+            deltas: List[Dict[str, Any]] = self._derive_deltas_from_layout(layout)
+            # Minimal header metadata
+            created = datetime.now().isoformat(timespec="seconds")
+            doc = drawing_to_egdf_document(
+                drawing=drawing_schema,
+                layout=layout,
+                styles=styles,
+                deltas=deltas,
+                version="0.1",
+                generator="arisbe-drawing-editor",
+                created=created,
+            )
+            p = Path(path)
+            if p.suffix.lower() in (".yaml", ".yml"):
+                p.write_text(doc.to_yaml())
+            else:
+                p.write_text(doc.to_json(indent=2))
+            QMessageBox.information(self, "Exported", f"EGDF exported to {path}")
+        except Exception as e:
+            QMessageBox.critical(self, "EGDF Export Error", str(e))
+        finally:
+            if self.act_auto.isChecked():
+                self._update_preview()
+
     # Gather schema reflecting current positions and nesting
     def _gather_schema_from_scene(self) -> Dict:
         # Update rects and positions from gfx items
@@ -1607,18 +2022,44 @@ class DrawingEditor(QMainWindow):
             return (rect.x() - eps <= pt.x() <= rect.x() + rect.width() + eps and
                     rect.y() - eps <= pt.y() <= rect.y() + rect.height() + eps)
 
-        # Compute cut nesting depths and parent mapping
-        cut_ids = list(self.model.cuts.keys())
+        # Compute cut parent mapping using FULL RECTANGLE CONTAINMENT (not center-point)
+        def rect_fully_inside(inner: QRectF, outer: QRectF, eps: float = 0.5) -> bool:
+            # True if "inner" lies completely within "outer" (with a small tolerance)
+            return (
+                outer.left() - eps <= inner.left() and
+                outer.top() - eps <= inner.top() and
+                outer.right() + eps >= inner.right() and
+                outer.bottom() + eps >= inner.bottom()
+            )
+
+        # For each cut, choose the SMALLEST fully containing cut as its parent; otherwise parent is sheet
         parent_map: Dict[str, Optional[str]] = {}
-        cut_centers = {cid: c.rect.center() for cid, c in self.model.cuts.items()}
         for cid, c in self.model.cuts.items():
-            parent: Optional[str] = None
+            candidates: List[Tuple[float, str]] = []  # (area, id)
             for oid, oc in self.model.cuts.items():
                 if oid == cid:
                     continue
-                if point_in_rect(cut_centers[cid], oc.rect):
-                    parent = oid
-            parent_map[cid] = parent if parent is not None else self.model.sheet_id
+                if rect_fully_inside(c.rect, oc.rect):
+                    candidates.append((oc.rect.width() * oc.rect.height(), oid))
+            if candidates:
+                candidates.sort()  # smallest area first
+                parent_map[cid] = candidates[0][1]
+            else:
+                parent_map[cid] = self.model.sheet_id
+
+        # Defensive: break any accidental cycles by promoting offending cuts to sheet
+        for cid in list(parent_map.keys()):
+            seen = set()
+            pid = parent_map.get(cid)
+            steps = 0
+            while pid is not None and pid in self.model.cuts:
+                if pid in seen or steps > 100:
+                    # Cycle or unreasonable depth detected; promote to sheet
+                    parent_map[cid] = self.model.sheet_id
+                    break
+                seen.add(pid)
+                pid = parent_map.get(pid)
+                steps += 1
 
         # Determine area for vertices/predicates by their position
         def resolve_area(pos: QPointF) -> str:
@@ -1661,7 +2102,15 @@ class DrawingEditor(QMainWindow):
         for cid, c in self.model.cuts.items():
             cuts.append({"id": cid, "parent_id": parent_map.get(cid, self.model.sheet_id)})
 
-        ligatures = [{"edge_id": e, "vertex_ids": vids} for e, vids in self.model.ligatures.items()]
+        # Sanitize ligatures: drop references to missing edges/vertices
+        ligatures = []
+        existing_edges = set(self.model.predicates.keys())
+        existing_vertices = set(self.model.vertices.keys())
+        for e, vids in self.model.ligatures.items():
+            if e not in existing_edges:
+                continue
+            clean_vids = [vid for vid in vids if vid in existing_vertices]
+            ligatures.append({"edge_id": e, "vertex_ids": clean_vids})
 
         schema = {
             "sheet_id": self.model.sheet_id,
@@ -1673,6 +2122,504 @@ class DrawingEditor(QMainWindow):
         if self.model.predicate_outputs:
             schema["predicate_outputs"] = dict(self.model.predicate_outputs)
         return schema
+
+    def _gather_layout_from_scene(self) -> Dict:
+        """Produce a platform-neutral layout snapshot for EGDF.layout.
+        Units are in scene pixels (px). Only geometry is captured — no Qt-specific fields.
+        """
+        # Ensure rect/pos caches are up-to-date
+        for c in self.model.cuts.values():
+            r = c.gfx.rect()
+            tl = c.gfx.mapToScene(r.topLeft())
+            br = c.gfx.mapToScene(r.bottomRight())
+            c.rect = QRectF(tl, br).normalized()
+        for v in self.model.vertices.values():
+            v.pos = v.gfx.scenePos()
+        for p in self.model.predicates.values():
+            p.pos = p.gfx_rect.scenePos()
+
+        cuts: Dict[str, Dict[str, float]] = {}
+        for cid, c in self.model.cuts.items():
+            rect = c.rect
+            cuts[cid] = {"x": rect.x(), "y": rect.y(), "w": rect.width(), "h": rect.height()}
+
+        vertices: Dict[str, Dict[str, float]] = {}
+        for vid, v in self.model.vertices.items():
+            vertices[vid] = {"x": v.pos.x(), "y": v.pos.y()}
+
+        predicates: Dict[str, Dict[str, float]] = {}
+        for pid, p in self.model.predicates.items():
+            # Use the predicate rect's scene bounding box for width/height
+            r = p.gfx_rect.sceneBoundingRect()
+            predicates[pid] = {
+                "text": p.gfx_text.toPlainText() or p.id,
+                "x": r.x(),
+                "y": r.y(),
+                "w": r.width(),
+                "h": r.height(),
+            }
+
+        # Ligature layout is optional; omit paths for now (renderers may route automatically)
+        layout: Dict[str, Any] = {
+            "units": "px",
+            "cuts": cuts,
+            "vertices": vertices,
+            "predicates": predicates,
+        }
+        return layout
+
+    # ----- Style selection and layout deltas -----
+    def on_select_style(self) -> None:
+        # Choose a style JSON file (e.g., docs/styles/dau-classic@1.0.json)
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Style",
+            "docs/styles",
+            "Style JSON (*.json);;All Files (*)",
+        )
+        if not path:
+            return
+        self.current_style_path = path
+        # Derive a human id from filename (without extension)
+        try:
+            self.current_style_id = Path(path).stem
+        except Exception:
+            self.current_style_id = path
+        self.statusBar().showMessage(f"Style selected: {self.current_style_id}")
+
+    def on_save_layout_deltas(self) -> None:
+        # Build deltas-only doc from current layout
+        layout = self._gather_layout_from_scene()
+        deltas = self._derive_deltas_from_layout(layout)
+        style_id = self.current_style_id or "unknown-style@0"
+        # Choose save path
+        default_name = f"drawing.layout.{style_id}.json"
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Layout Deltas",
+            default_name,
+            "JSON (*.json)"
+        )
+        if not path:
+            return
+        doc = {
+            "egdf_deltas": {"version": "0.1", "generator": "arisbe"},
+            "style_ref": {"id": style_id, **({"path": self.current_style_path} if self.current_style_path else {})},
+            "deltas": deltas,
+        }
+        try:
+            Path(path).write_text(json.dumps(doc, indent=2))
+        except Exception as e:
+            QMessageBox.critical(self, "Save Error", f"Failed to save deltas: {e}")
+            return
+        QMessageBox.information(self, "Saved", f"Layout deltas saved to {path}")
+
+    def _derive_deltas_from_layout(self, layout: Dict[str, Any]) -> List[Dict[str, Any]]:
+        # Convert a layout snapshot into a sequence of deltas ops.
+        ops: List[Dict[str, Any]] = []
+        for cid, r in layout.get("cuts", {}).items():
+            ops.append({
+                "op": "set_rect", "id": cid,
+                "x": r.get("x", 0.0), "y": r.get("y", 0.0),
+                "w": r.get("w", 0.0), "h": r.get("h", 0.0),
+            })
+        for vid, v in layout.get("vertices", {}).items():
+            ops.append({
+                "op": "set_position", "id": vid,
+                "x": v.get("x", 0.0), "y": v.get("y", 0.0),
+            })
+        for pid, r in layout.get("predicates", {}).items():
+            ops.append({
+                "op": "set_rect", "id": pid,
+                "x": r.get("x", 0.0), "y": r.get("y", 0.0),
+                "w": r.get("w", 0.0), "h": r.get("h", 0.0),
+            })
+        # Ligature routing could be added later as route ops
+        return ops
+
+    # ----- Placement and conversions -----
+    def _rebuild_cuts_with_constraints_and_place(self) -> None:
+        """Swap raw cut rects to `CutRectItem`, set tooltips, and arrange:
+        - Children are nested within parents with padding
+        - Siblings are placed disjointly with simple tiling to avoid overlap
+        Ensures initial scene respects syntactic constraints (nested or disjoint).
+        """
+        # Build parent map from model
+        parent: Dict[str, Optional[str]] = {cid: c.parent_id for cid, c in self.model.cuts.items()}
+        # Create CutRectItem for each cut and store mutable rect we will set
+        cut_rects: Dict[str, QRectF] = {}
+        for cid, c in list(self.model.cuts.items()):
+            old_item = c.gfx
+            rect = self._scene_rect_for_item(old_item)
+            new_item = CutRectItem(rect, self)
+            new_item.setPen(old_item.pen())
+            new_item.setBrush(old_item.brush())
+            new_item.setFlag(QGraphicsItem.ItemIsMovable, True)
+            new_item.setFlag(QGraphicsItem.ItemIsSelectable, True)
+            new_item.setToolTip(f"Cut: {cid}")
+            self.scene.addItem(new_item)
+            try:
+                self.scene.removeItem(old_item)
+            except Exception:
+                pass
+            self.model.cuts[cid].gfx = new_item
+            cut_rects[cid] = rect
+
+        # Define base rects
+        sheet_rect = QRectF(40, 40, 820, 520)
+        # Place root-level cuts (parent == sheet or None) in non-overlapping grid
+        roots = [cid for cid, pid in parent.items() if not pid or pid == self.model.sheet_id]
+        x, y = 60.0, 60.0
+        col_w, row_h = 260.0, 180.0
+        for idx, cid in enumerate(roots):
+            rx = x + (idx % 3) * col_w
+            ry = y + (idx // 3) * row_h
+            cut_rects[cid] = QRectF(rx, ry, 220.0, 140.0)
+
+        # Recursively place children within parents with padding and tiling
+        def place_children(pid: str, level: int = 0) -> None:
+            children = [cid for cid, p in parent.items() if p == pid and cid != pid]
+            if not children:
+                return
+            prect = cut_rects.get(pid, QRectF(60, 60, 240, 160))
+            pad = 16.0
+            inner = QRectF(prect.x() + pad, prect.y() + pad, max(40.0, prect.width() - 2 * pad), max(40.0, prect.height() - 2 * pad))
+            cols = max(1, int(inner.width() // 120.0))
+            cx, cy = inner.x(), inner.y()
+            cw, ch = 180.0, 120.0
+            for i, cid in enumerate(children):
+                col = i % cols
+                row = i // cols
+                rx = cx + col * (cw + 8.0)
+                ry = cy + row * (ch + 8.0)
+                # Ensure it stays within parent bounds
+                if rx + cw > inner.right():
+                    rx = inner.right() - cw
+                if ry + ch > inner.bottom():
+                    ry = inner.bottom() - ch
+                cut_rects[cid] = QRectF(rx, ry, cw, ch)
+                place_children(cid, level + 1)
+
+        for root in roots:
+            place_children(root)
+
+        # Apply rects back to graphics
+        for cid, c in self.model.cuts.items():
+            if cid in cut_rects:
+                c.gfx.setRect(cut_rects[cid])
+            c.gfx.setToolTip(f"Cut: {cid}")
+
+        # Set tooltips for vertices and predicates
+        for vid, v in self.model.vertices.items():
+            v.gfx.setToolTip(f"Vertex: {vid}")
+        for pid, p in self.model.predicates.items():
+            p.gfx_rect.setToolTip(f"Predicate: {pid} [{p.name}]")
+
+    def _schema_to_egif(self, schema: Dict) -> str:
+        """Convert our drawing schema to EGIF text using Dau-compliant generator.
+        Returns empty string on failure.
+        """
+        try:
+            if drawing_to_relational_graph is None or generate_egif is None:
+                self.statusBar().showMessage("EGIF generator unavailable (imports failed)")
+                return ""
+            graph = drawing_to_relational_graph(schema)
+            return generate_egif(graph) or ""
+        except Exception as e:
+            # Surface error to user and console so issues after edits are diagnosable
+            try:
+                print("[EGIF] generation error:", e)
+            except Exception:
+                pass
+            try:
+                self.statusBar().showMessage(f"EGIF generation failed: {e}")
+            except Exception:
+                pass
+            return ""
+
+    def _schema_from_egi_inline(self, inline: Dict) -> Dict:
+        """Convert an EGI inline JSON object to our drawing schema.
+        - Cuts come from inline["Cut"] with hierarchy implied by inline["area"] entries that are cuts.
+        - Vertices and predicates (edges) areas from inline["area"].
+        """
+        def _norm_id(x: Any) -> str:
+            if isinstance(x, str):
+                return x
+            # Fallback: stable stringification
+            return json.dumps(x, sort_keys=True)
+
+        def _norm_id_list(xs: Any) -> List[str]:
+            if not isinstance(xs, list):
+                return []
+            return [_norm_id(x) for x in xs]
+
+        def _norm_area(a: Any) -> Dict[str, List[str]]:
+            out: Dict[str, List[str]] = {}
+            if isinstance(a, dict):
+                for k, v in a.items():
+                    out[_norm_id(k)] = _norm_id_list(v)
+            return out
+
+        def _norm_map_list(m: Any) -> Dict[str, List[str]]:
+            out: Dict[str, List[str]] = {}
+            if isinstance(m, dict):
+                for k, v in m.items():
+                    out[_norm_id(k)] = _norm_id_list(v)
+            return out
+
+        def _norm_map_str(m: Any) -> Dict[str, str]:
+            out: Dict[str, str] = {}
+            if isinstance(m, dict):
+                for k, v in m.items():
+                    out[_norm_id(k)] = _norm_id(v)
+            return out
+
+        sheet_id = _norm_id(inline.get("sheet", "S"))
+        area: Dict[str, List[str]] = _norm_area(inline.get("area", {}))
+        rel: Dict[str, str] = _norm_map_str(inline.get("rel", {}))
+        nu: Dict[str, List[str]] = _norm_map_list(inline.get("nu", {}))
+        cuts_ids = _norm_id_list(inline.get("Cut", []))
+        cuts_set = set(cuts_ids)
+
+        # Build parent map for cuts: for each cut, find which area lists it (parent)
+        parent_map: Dict[str, Optional[str]] = {}
+        for cut in cuts_set:
+            parent = sheet_id
+            for a, elems in area.items():
+                if cut in elems:
+                    parent = a
+                    break
+            parent_map[cut] = parent
+
+        cuts = [{"id": c, "parent_id": parent_map.get(c, sheet_id)} for c in cuts_set]
+
+        vertices = []
+        for v in inline.get("V", []):
+            vid = _norm_id(v)
+            v_area = sheet_id
+            for a, elems in area.items():
+                if vid in elems:
+                    v_area = a
+                    break
+            vertices.append({"id": vid, "area_id": v_area})
+
+        predicates = []
+        for e in inline.get("E", []):
+            eid = _norm_id(e)
+            e_area = sheet_id
+            for a, elems in area.items():
+                if eid in elems:
+                    e_area = a
+                    break
+            predicates.append({"id": eid, "name": rel.get(eid, eid), "area_id": e_area})
+
+        ligatures = [{"edge_id": _norm_id(e), "vertex_ids": _norm_id_list(vs)} for e, vs in nu.items()]
+
+        return {"sheet_id": sheet_id, "cuts": cuts, "vertices": vertices, "predicates": predicates, "ligatures": ligatures}
+
+    # ----- Selection -> JSON preview highlight -----
+    def _flash_highlight_in_json(self, element_id: str) -> None:
+        """Find and temporarily highlight the first occurrence of element_id in `self.txt_egi` JSON."""
+        try:
+            edit = self.txt_egi
+            text = edit.toPlainText()
+            idx = text.find(element_id)
+            if idx < 0:
+                return
+            cursor = edit.textCursor()
+            cursor.setPosition(idx)
+            cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(element_id))
+            edit.setTextCursor(cursor)
+            fmt = cursor.charFormat()
+            fmt.setBackground(QColor(255, 240, 140))
+            cursor.mergeCharFormat(fmt)
+            # Clear highlight shortly after
+            def clear():
+                cursor2 = edit.textCursor()
+                cursor2.setPosition(idx)
+                cursor2.movePosition(cursor2.Right, cursor2.KeepAnchor, len(element_id))
+                fmt2 = cursor2.charFormat()
+                fmt2.setBackground(QColor(255, 255, 255))
+                cursor2.mergeCharFormat(fmt2)
+            QTimer.singleShot(900, clear)
+        except Exception:
+            pass
+
+    def _flash_in_editor(self, edit: QTextEdit, element_id: str) -> None:
+        try:
+            text = edit.toPlainText()
+            idx = text.find(element_id)
+            if idx < 0:
+                return
+            cursor = edit.textCursor()
+            cursor.setPosition(idx)
+            cursor.movePosition(cursor.Right, cursor.KeepAnchor, len(element_id))
+            edit.setTextCursor(cursor)
+            fmt = cursor.charFormat()
+            fmt.setBackground(QColor(255, 240, 140))
+            cursor.mergeCharFormat(fmt)
+            def clear():
+                cursor2 = edit.textCursor()
+                cursor2.setPosition(idx)
+                cursor2.movePosition(cursor2.Right, cursor2.KeepAnchor, len(element_id))
+                fmt2 = cursor2.charFormat()
+                fmt2.setBackground(QColor(255, 255, 255))
+                cursor2.mergeCharFormat(fmt2)
+            QTimer.singleShot(900, clear)
+        except Exception:
+            pass
+
+    def _id_for_item(self, item: QGraphicsItem) -> Optional[str]:
+        # Reverse lookup over model; small sizes expected
+        for cid, c in self.model.cuts.items():
+            if c.gfx is item:
+                return cid
+        for vid, v in self.model.vertices.items():
+            if v.gfx is item:
+                return vid
+        for pid, p in self.model.predicates.items():
+            if p.gfx_rect is item:
+                return pid
+        return None
+
+    def _id_for_cut_item(self, item: QGraphicsItem) -> Optional[str]:
+        for cid, c in self.model.cuts.items():
+            if c.gfx is item:
+                return cid
+        return None
+
+    def _parent_map_current(self) -> Dict[str, Optional[str]]:
+        # Determine nesting by scene-rect containment
+        rects: Dict[str, QRectF] = {}
+        for cid, c in self.model.cuts.items():
+            r = c.gfx.rect()
+            tl = c.gfx.mapToScene(r.topLeft())
+            br = c.gfx.mapToScene(r.bottomRight())
+            rects[cid] = QRectF(tl, br).normalized()
+        parent: Dict[str, Optional[str]] = {cid: None for cid in rects}
+        for cid, r in rects.items():
+            best: Optional[Tuple[str, float]] = None
+            for other_id, orc in rects.items():
+                if other_id == cid:
+                    continue
+                if orc.contains(r):
+                    area = orc.width() * orc.height()
+                    if best is None or area < best[1]:
+                        best = (other_id, area)
+            parent[cid] = best[0] if best else None
+        return parent
+
+    def _is_valid_cut_scene_rect(self, new_rect: QRectF, ignore_item: Optional[QGraphicsItem] = None) -> bool:
+        # Check new_rect against other cuts: must be nested or disjoint
+        for cid, c in self.model.cuts.items():
+            if ignore_item is not None and c.gfx is ignore_item:
+                continue
+            r = c.gfx.rect()
+            tl = c.gfx.mapToScene(r.topLeft())
+            br = c.gfx.mapToScene(r.bottomRight())
+            other = QRectF(tl, br).normalized()
+            if new_rect.intersects(other):
+                # allow if one contains the other (with small epsilon)
+                def contains(a: QRectF, b: QRectF, eps: float = 0.5) -> bool:
+                    return (a.left()-eps <= b.left() and a.top()-eps <= b.top() and a.right()+eps >= b.right() and a.bottom()+eps >= b.bottom())
+                if not (contains(new_rect, other) or contains(other, new_rect)):
+                    return False
+        return True
+
+    def _area_id_at_point(self, pos: QPointF) -> str:
+        # deepest cut containing the point, else sheet
+        best_id = self.model.sheet_id
+        best_area = None
+        for cid, c in self.model.cuts.items():
+            r = c.gfx.rect()
+            sb = c.gfx.mapToScene(r).boundingRect()
+            if sb.contains(pos):
+                area = sb.width() * sb.height()
+                if best_area is None or area < best_area:
+                    best_area = area
+                    best_id = cid
+        return best_id
+
+    def _element_area_id(self, item: QGraphicsItem) -> Optional[str]:
+        for vid, v in self.model.vertices.items():
+            if v.gfx is item:
+                return v.area_id
+        for pid, p in self.model.predicates.items():
+            if p.gfx_rect is item:
+                return p.area_id
+        return None
+
+    def _is_point_allowed_in_area(self, pos: QPointF, area_id: str, parent_map: Optional[Dict[str, Optional[str]]] = None) -> bool:
+        if area_id == self.model.sheet_id or not area_id:
+            return True
+        c = self.model.cuts.get(area_id)
+        if not c:
+            return True
+        r = c.gfx.rect()
+        sb = c.gfx.mapToScene(r).boundingRect()
+        return sb.contains(pos)
+
+    def _is_rect_allowed_in_area(self, rect: QRectF, area_id: str, parent_map: Optional[Dict[str, Optional[str]]] = None) -> bool:
+        if area_id == self.model.sheet_id or not area_id:
+            return True
+        c = self.model.cuts.get(area_id)
+        if not c:
+            return True
+        r = c.gfx.rect()
+        sb = c.gfx.mapToScene(r).boundingRect()
+        return sb.contains(rect)
+
+    def _validate_syntactic_constraints(self) -> Tuple[bool, str]:
+        # Validate cuts: nested or disjoint
+        cuts = list(self.model.cuts.values())
+        rects: Dict[str, QRectF] = {}
+        for c in cuts:
+            r = c.gfx.rect()
+            tl = c.gfx.mapToScene(r.topLeft())
+            br = c.gfx.mapToScene(r.bottomRight())
+            rects[c.id] = QRectF(tl, br).normalized()
+        def nested(a: QRectF, b: QRectF, eps: float = 0.5) -> bool:
+            return (b.left()-eps <= a.left() and b.top()-eps <= a.top() and b.right()+eps >= a.right() and b.bottom()+eps >= a.bottom())
+        def disjoint(a: QRectF, b: QRectF) -> bool:
+            return not a.intersects(b)
+        ids = list(rects.keys())
+        for i in range(len(ids)):
+            for j in range(i+1, len(ids)):
+                a, b = rects[ids[i]], rects[ids[j]]
+                if not (nested(a, b) or nested(b, a) or disjoint(a, b)):
+                    return False, f"Cuts overlap improperly: {ids[i]} vs {ids[j]}"
+        # Validate vertices/predicates inside their declared area cut.
+        # Behavior is mode-aware:
+        # - When locked (strict), out-of-area is an error.
+        # - When unlocked (composition), treat out-of-area as informational only.
+        area_map = self._compute_parent_map()
+        allowed = {cid: rects.get(cid) for cid in rects}
+        out_of_area_issues: List[str] = []
+        # Check vertices
+        for vid, v in self.model.vertices.items():
+            aid = v.area_id
+            if aid and aid in allowed:
+                r = allowed[aid]
+                if r and not r.contains(v.gfx.scenePos()):
+                    if self.egi_locked:
+                        return False, f"Vertex {vid} outside area {aid}"
+                    else:
+                        out_of_area_issues.append(f"vertex {vid}->area {aid}")
+        # Predicates by their area rect using their name box position
+        for pid, p in self.model.predicates.items():
+            aid = p.area_id
+            if aid and aid in allowed:
+                r = allowed[aid]
+                pos = p.gfx_rect.sceneBoundingRect().center()
+                if r and not r.contains(pos):
+                    if self.egi_locked:
+                        return False, f"Predicate {pid} outside area {aid}"
+                    else:
+                        out_of_area_issues.append(f"predicate {pid}->{aid}")
+        if out_of_area_issues:
+            # In unlocked mode, report informationally but do not fail
+            return True, "unlocked: area checks informational; out-of-area: " + ", ".join(out_of_area_issues)
+        return True, "ok"
 
 
 class CutRectItem(QGraphicsRectItem):
@@ -1774,9 +2721,8 @@ class CutRectItem(QGraphicsRectItem):
                     self._last_valid_scene_rect = new_scene_rect
         return super().itemChange(change, value)
 
-    # ----- Resize handles helpers -----
+    # ----- Resize handles helpers (for cuts) -----
     def _create_handles(self) -> None:
-        # Lazily import type to avoid forward ref issues in type checkers
         roles = [
             "nw", "n", "ne",
             "e",
@@ -1793,7 +2739,6 @@ class CutRectItem(QGraphicsRectItem):
         r = self.rect()
         s = 8.0  # handle size
         half = s / 2.0
-        # Corner/edge centers in local coords
         points = {
             "nw": QPointF(r.left(), r.top()),
             "n": QPointF(r.center().x(), r.top()),
@@ -1807,6 +2752,142 @@ class CutRectItem(QGraphicsRectItem):
         for h in self._handles:
             c = points[h.role]
             h.setRect(QRectF(c.x() - half, c.y() - half, s, s))
+
+
+class VertexGfxItem(QGraphicsEllipseItem):
+    def __init__(self, x: float, y: float, w: float, h: float, editor: Optional["DrawingEditor"]) -> None:
+        super().__init__(x, y, w, h)
+        self._editor = editor
+        self._press_pos: Optional[QPointF] = None
+
+    def mousePressEvent(self, event):
+        try:
+            self._editor.begin_interaction()
+        except Exception:
+            pass
+        self._press_pos = self.scenePos()
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+        # If editor reference isn't injected yet, skip post-move validation gracefully
+        if not getattr(self, "_editor", None):
+            return
+        try:
+            pm = self._editor._parent_map_current()
+            pos = self.scenePos()
+            area_id = self._editor._element_area_id(self)
+            if area_id is None:
+                return
+            allowed = self._editor._is_point_allowed_in_area(pos, area_id, pm)
+            if not allowed:
+                # If unlocked, allow area reassignment to the area at the drop point
+                if not self._editor.egi_locked:
+                    new_area = self._editor._area_id_at_point(pos)
+                    if self._editor._is_point_allowed_in_area(pos, new_area, pm):
+                        # Update model area_id
+                        for vid, v in self._editor.model.vertices.items():
+                            if v.gfx is self:
+                                v.area_id = new_area
+                                break
+                        self._editor.statusBar().showMessage(f"Vertex moved to area '{new_area}'.")
+                        return
+                # Locked: snap back
+                prev = getattr(self._editor, "_suppress_scene_change", False)
+                self._editor._suppress_scene_change = True
+                try:
+                    if self._press_pos is not None:
+                        self.setPos(self._press_pos)
+                finally:
+                    self._editor._suppress_scene_change = prev
+                self._editor.statusBar().showMessage("Invalid move: point cannot enter forbidden areas.")
+        finally:
+            try:
+                self._editor.end_interaction()
+            except Exception:
+                pass
+
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemPositionChange and getattr(self, "_editor", None) and not self._editor._interaction_active:
+            new_pos = value
+            area_id = self._editor._element_area_id(self)
+            if area_id is not None:
+                if not self._editor._is_point_allowed_in_area(new_pos, area_id):
+                    return self.pos()
+        return super().itemChange(change, value)
+
+
+class PredicateRectItem(QGraphicsRectItem):
+    def __init__(self, rect: QRectF, editor: Optional["DrawingEditor"]) -> None:
+        super().__init__(rect)
+        self._editor = editor
+        self._press_pos: Optional[QPointF] = None
+
+    def mousePressEvent(self, event):
+        try:
+            self._editor.begin_interaction()
+        except Exception:
+            pass
+        self._press_pos = self.scenePos()
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        super().mouseReleaseEvent(event)
+        # If editor reference isn't injected yet, skip post-move validation gracefully
+        if not getattr(self, "_editor", None):
+            return
+        try:
+            pm = self._editor._parent_map_current()
+            # Compute new rect in scene coords
+            r = self.rect()
+            tl = self.mapToScene(r.topLeft())
+            br = self.mapToScene(r.bottomRight())
+            new_rect = QRectF(tl, br).normalized()
+            area_id = self._editor._element_area_id(self)
+            if area_id is None:
+                return
+            allowed = self._editor._is_rect_allowed_in_area(new_rect, area_id, pm)
+            if not allowed:
+                # If unlocked, allow area reassignment to the area at rect center
+                if not self._editor.egi_locked:
+                    center = new_rect.center()
+                    new_area = self._editor._area_id_at_point(center)
+                    if self._editor._is_rect_allowed_in_area(new_rect, new_area, pm):
+                        # Update model area_id
+                        for pid, p in self._editor.model.predicates.items():
+                            if p.gfx_rect is self:
+                                p.area_id = new_area
+                                break
+                        self._editor.statusBar().showMessage(f"Predicate moved to area '{new_area}'.")
+                        return
+                # Locked: snap back
+                prev = getattr(self._editor, "_suppress_scene_change", False)
+                self._editor._suppress_scene_change = True
+                try:
+                    if self._press_pos is not None:
+                        self.setPos(self._press_pos)
+                finally:
+                    self._editor._suppress_scene_change = prev
+                self._editor.statusBar().showMessage("Invalid move: element cannot enter forbidden areas.")
+        finally:
+            try:
+                self._editor.end_interaction()
+            except Exception:
+                pass
+
+    def itemChange(self, change, value):
+        if change == QGraphicsItem.ItemPositionChange and not self._editor._interaction_active:
+            new_pos = value
+            # Approximate new rect at new_pos by translating current local rect
+            r = self.rect()
+            tl_scene = self.mapToScene(r.topLeft()) + (new_pos - self.pos())
+            br_scene = self.mapToScene(r.bottomRight()) + (new_pos - self.pos())
+            new_rect = QRectF(tl_scene, br_scene).normalized()
+            area_id = self._editor._element_area_id(self)
+            if area_id is not None:
+                if not self._editor._is_rect_allowed_in_area(new_rect, area_id):
+                    return self.pos()
+        return super().itemChange(change, value)
 
 
 class CutHandleItem(QGraphicsRectItem):

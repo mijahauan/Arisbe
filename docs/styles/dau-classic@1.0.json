@@ -1,0 +1,16 @@
+{
+  "variables": {
+    "color.ink": "#000000",
+    "color.cut.fill": "#F6F6F6",
+    "stroke.cut.width": 1.2,
+    "stroke.ligature.width": 1.5,
+    "font.family": "Times New Roman",
+    "font.size.pt": 12
+  },
+  "rules": [
+    { "select": "Cut", "stroke": {"width": "var(stroke.cut.width)", "color": "var(color.ink)"}, "fill": {"color": "var(color.cut.fill)", "alpha": 0.25} },
+    { "select": "Vertex", "stroke": {"width": 2, "color": "var(color.ink)"}, "fill": {"color": "var(color.ink)"} },
+    { "select": "Predicate", "text": {"family": "var(font.family)", "size": "var(font.size.pt)", "color": "var(color.ink)"} },
+    { "select": "Ligature", "stroke": {"width": "var(stroke.ligature.width)", "color": "var(color.ink)"} }
+  ]
+}

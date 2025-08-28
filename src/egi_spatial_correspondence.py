@@ -490,6 +490,11 @@ class SpatialCorrespondenceEngine:
                 cut_height = max(base_h, base_h + add_h) + pad_h
                 # Default bounds before potential nesting placement
                 bounds = SpatialBounds(cut_x, cut_y, cut_width, cut_height)
+            if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+                try:
+                    print(f"DEBUG: Cut {cut.id} initial size estimate width={bounds.width:.1f} height={bounds.height:.1f} (contents={len(cut_contents)})")
+                except Exception:
+                    pass
             # If this cut has a parent cut with known bounds, nest it inside with padding
             parent_area = self._determine_cut_parent_area(cut.id)
             # Only consult precomputed mappings when staged fitter is active
@@ -512,6 +517,11 @@ class SpatialCorrespondenceEngine:
                 parent_inner_h = max(0.0, parent_bounds.height - 2 * pad_in)
                 need_expand_w = cut_width > parent_inner_w
                 need_expand_h = cut_height > parent_inner_h
+                if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+                    try:
+                        print(f"DEBUG: Considering nesting cut {cut.id} into parent {parent_area}; parent_inner=({parent_inner_w:.1f},{parent_inner_h:.1f}) child_req=({cut_width:.1f},{cut_height:.1f}) expand_w={need_expand_w} expand_h={need_expand_h}")
+                    except Exception:
+                        pass
                 if need_expand_w or need_expand_h:
                     # Grow parent minimally to accommodate child + padding
                     new_parent_w = parent_bounds.width
@@ -522,6 +532,11 @@ class SpatialCorrespondenceEngine:
                     if need_expand_h:
                         delta_h = (cut_height - parent_inner_h)
                         new_parent_h = parent_bounds.height + max(0.0, delta_h)
+                    if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+                        try:
+                            print(f"DEBUG: Expanding parent {parent_area} from ({parent_bounds.width:.1f},{parent_bounds.height:.1f}) to ({new_parent_w:.1f},{new_parent_h:.1f}) for child {cut.id}")
+                        except Exception:
+                            pass
                     new_parent_bounds = SpatialBounds(parent_bounds.x, parent_bounds.y, new_parent_w, new_parent_h)
                     # Update parent in current layout if present
                     parent_elt = layout.get(parent_area)
@@ -591,6 +606,12 @@ class SpatialCorrespondenceEngine:
                     if os.environ.get('ARISBE_DEBUG_EGI') == '1':
                         print(f"DEBUG: Sibling-overlap shift guard tripped for cut {cut.id} in parent {parent_area}; bounds={bounds}")
                     break
+            if os.environ.get('ARISBE_DEBUG_EGI') == '1':
+                try:
+                    pb_desc = f"parent={parent_area}" if parent_area else "parent=None"
+                    print(f"DEBUG: Final bounds for cut {cut.id}: (x={bounds.x:.1f}, y={bounds.y:.1f}, w={bounds.width:.1f}, h={bounds.height:.1f}) {pb_desc}")
+                except Exception:
+                    pass
             placed_bounds.append((bounds, parent_area))
             
             layout[cut.id] = SpatialElement(
