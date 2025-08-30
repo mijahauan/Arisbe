@@ -1,0 +1,121 @@
+{
+  "egdf": {
+    "version": "0.1",
+    "generator": "arisbe-drawing-editor",
+    "created": "2025-08-29T05:51:56"
+  },
+  "egi_ref": {
+    "inline": {
+      "sheet": "S",
+      "V": [
+        "v_eccde3"
+      ],
+      "E": [
+        "e_aa21a6"
+      ],
+      "Cut": [
+        "c_4183b1",
+        "c_bbe2dc"
+      ],
+      "nu": {
+        "e_aa21a6": [
+          "v_eccde3"
+        ]
+      },
+      "rel": {
+        "e_aa21a6": "P"
+      },
+      "area": {
+        "S": [
+          "c_bbe2dc"
+        ],
+        "c_4183b1": [
+          "e_aa21a6"
+        ],
+        "c_bbe2dc": [
+          "c_4183b1",
+          "v_eccde3"
+        ]
+      },
+      "rho": {
+        "v_eccde3": null
+      },
+      "alphabet": {
+        "C": [],
+        "F": [],
+        "R": [
+          "P"
+        ],
+        "ar": {
+          "P": 1
+        }
+      }
+    },
+    "hash": "sha256:079b64c3d5f02b0dfb0be13936d4ce1672b3eb1f4b4fa9aa2f83089810c55801"
+  },
+  "layout": {
+    "units": "px",
+    "cuts": {
+      "c_4183b1": {
+        "x": 370.0,
+        "y": 116.0,
+        "w": 41.0,
+        "h": 38.0
+      },
+      "c_bbe2dc": {
+        "x": 305.0,
+        "y": 9.0,
+        "w": 172.0,
+        "h": 156.0
+      }
+    },
+    "vertices": {
+      "v_eccde3": {
+        "x": 391.0,
+        "y": 32.0
+      }
+    },
+    "predicates": {
+      "e_aa21a6": {
+        "text": "P",
+        "x": 379.0,
+        "y": 121.0,
+        "w": 24.09375,
+        "h": 28.0
+      }
+    }
+  },
+  "styles": {},
+  "deltas": [
+    {
+      "op": "set_rect",
+      "id": "c_4183b1",
+      "x": 370.0,
+      "y": 116.0,
+      "w": 41.0,
+      "h": 38.0
+    },
+    {
+      "op": "set_rect",
+      "id": "c_bbe2dc",
+      "x": 305.0,
+      "y": 9.0,
+      "w": 172.0,
+      "h": 156.0
+    },
+    {
+      "op": "set_position",
+      "id": "v_eccde3",
+      "x": 391.0,
+      "y": 32.0
+    },
+    {
+      "op": "set_rect",
+      "id": "e_aa21a6",
+      "x": 379.0,
+      "y": 121.0,
+      "w": 24.09375,
+      "h": 28.0
+    }
+  ]
+}

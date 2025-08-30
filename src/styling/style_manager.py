@@ -44,6 +44,18 @@ class StyleManager:
                 "cut.fill": {"fill_color": "rgba(240,240,240,0.31)"},
             }
 
+    @property
+    def theme_path(self) -> str:
+        """Return the absolute path to the currently loaded theme JSON."""
+        return self._theme_path
+
+    def set_theme_path(self, path: str) -> None:
+        """Set a new theme path and load it immediately."""
+        if not path:
+            return
+        self._theme_path = path
+        self.reload()
+
     def resolve(self, *, type: str, role: Optional[str] = None, state: Optional[str] = None) -> Dict[str, Any]:
         """Resolve style tokens using precedence: (type.role.state) > (type.role) > (role) > (type) > global."""
         result: Dict[str, Any] = {}
@@ -68,6 +80,12 @@ class StyleManager:
             if isinstance(tokens, dict):
                 result.update(tokens)
         return result
+
+    def reload(self) -> None:
+        """Public method to reload the current theme file from disk.
+        Safe to call from a file watcher callback. Falls back to defaults on error.
+        """
+        self._load_theme()
 
 
 def create_style_manager(theme_path: Optional[str] = None) -> StyleManager:

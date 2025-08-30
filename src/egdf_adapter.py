@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Set, Tuple
-from frozendict import frozendict
 
-from src.egdf_parser import EGDFDocument, EGIInlineSchema
+# Import relative to being executed with repo/src on sys.path
+from egdf_parser import EGDFDocument, EGIInlineSchema
 
 
 def drawing_to_egdf_document(

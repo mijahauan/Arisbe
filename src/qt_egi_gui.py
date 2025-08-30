@@ -10,7 +10,11 @@ Integrates with EGISystem and QtCorrespondenceIntegration to generate a scene.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, DefaultDict
+from typing import Any, Dict, List, DefaultDict, Optional
+import json
+from pathlib import Path
+import hashlib
+from datetime import datetime, timezone
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -40,6 +44,8 @@ from PySide6.QtGui import QPen, QBrush, QColor, QFont, QPainterPath
 from egi_system import create_egi_system, EGISystem
 from qt_correspondence_integration import create_qt_correspondence_integration
 from styling.style_manager import create_style_manager
+from frozendict import frozendict
+from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, AlphabetDAU
 
 
 # --- Utilities ---
@@ -190,12 +196,18 @@ class EGIControlPanel(QWidget):
         export_btn = QPushButton("Export TikZ (stub)")
         export_btn.clicked.connect(self.main_window.export_tikz)
         layout.addWidget(export_btn)
+        open_egi_btn = QPushButton("Open EGI…")
+        open_egi_btn.clicked.connect(self.main_window.open_egi_file)
+        layout.addWidget(open_egi_btn)
         open_btn = QPushButton("Open Linear Form…")
         open_btn.clicked.connect(self.main_window.open_linear_form_file)
         layout.addWidget(open_btn)
         paste_btn = QPushButton("Paste Linear Form…")
         paste_btn.clicked.connect(self.main_window.paste_linear_form)
         layout.addWidget(paste_btn)
+        save_egdf_btn = QPushButton("Save EGDF beside source…")
+        save_egdf_btn.clicked.connect(self.main_window.save_egdf_to_sibling)
+        layout.addWidget(save_egdf_btn)
         # Toggles row
         self.chk_show_vars = QCheckBox("Show variable labels (*x → x)")
         self.chk_show_vars.setChecked(False)
@@ -233,6 +245,9 @@ class EGIMainWindow(QMainWindow):
         self._show_variable_labels: bool = False
         self._show_arity: bool = False
         self._vertex_var_labels: dict[str, str] = {}
+        # File tracking
+        self._current_source_path: Optional[Path] = None
+        self._last_saved_egdf_path: Optional[Path] = None
 
         # Central layout
         central = QWidget()
@@ -283,8 +298,135 @@ class EGIMainWindow(QMainWindow):
             ext = fname.split('.')[-1].lower() if '.' in fname else None
             fmt_hint = 'egif' if ext == 'egif' else ('cgif' if ext == 'cgif' else None)
             self._load_linear_and_refresh(text, fmt_hint)
+            # Track source path for sibling saves (base without forcing EGDF name)
+            self._current_source_path = Path(fname)
         except Exception as e:
             QMessageBox.critical(self, "File Error", f"Failed to read file:\n{e}")
+
+    def open_egi_file(self):
+        """Open an EGI JSON file (<name>.egi.json) and display it."""
+        fname, _ = QFileDialog.getOpenFileName(self, "Open EGI JSON", "", "EGI JSON (*.egi.json);;All Files (*)")
+        if not fname:
+            return
+        try:
+            self._load_egi_json(Path(fname))
+            self._current_source_path = Path(fname)
+            self.refresh_scene()
+            self._update_chiron_contents()
+        except Exception as e:
+            QMessageBox.critical(self, "File Error", f"Failed to load EGI JSON:\n{e}")
+
+    def _load_egi_json(self, path: Path) -> None:
+        """Read an EGI JSON as produced by tools/migrate_corpus_to_egi and replace current EGI."""
+        data = json.loads(path.read_text(encoding="utf-8"))
+        # Basic required fields with defaults
+        sheet: str = data.get("sheet") or "sheet"
+        # Vertices
+        V = []
+        for v in data.get("V", []):
+            vid = v.get("id")
+            if not vid:
+                continue
+            V.append(Vertex(id=vid, label=v.get("label"), is_generic=bool(v.get("is_generic", True))))
+        # Edges
+        E = [Edge(id=e.get("id")) for e in data.get("E", []) if e.get("id")]
+        # Cuts
+        CutSet = [Cut(id=c.get("id")) for c in data.get("Cut", []) if c.get("id")]
+        # Maps
+        nu = frozendict({k: tuple(v) for k, v in (data.get("nu") or {}).items()})
+        rel = frozendict(dict(data.get("rel") or {}))
+        area = frozendict({k: frozenset(v) for k, v in (data.get("area") or {}).items()})
+        rho = frozendict(dict(data.get("rho") or {}))
+        # Alphabet
+        alph_data = data.get("alphabet")
+        if alph_data:
+            alph = AlphabetDAU(
+                C=frozenset(alph_data.get("C") or []),
+                F=frozenset(alph_data.get("F") or []),
+                R=frozenset(alph_data.get("R") or []),
+                ar=frozendict(alph_data.get("ar") or {}),
+            ).with_defaults()
+        else:
+            alph = AlphabetDAU().with_defaults()
+        # Build immutable graph
+        graph = RelationalGraphWithCuts(
+            V=frozenset(V),
+            E=frozenset(E),
+            nu=nu,
+            sheet=sheet,
+            Cut=frozenset(CutSet),
+            area=area,
+            rel=rel,
+            alphabet=alph,
+            rho=rho,
+        )
+        self.egi_system.replace_egi(graph)
+
+    def save_egdf_to_sibling(self):
+        """Save current EGI's EGDF document as <basename>.egdf.json next to current source."""
+        base: Optional[Path] = self._current_source_path
+        if not base:
+            QMessageBox.information(self, "No Source", "No source file tracked yet. Open a linear form or EGI JSON first.")
+            return
+        # Compute sibling path: if source endswith .egi.json, replace with .egdf.json; else append .egdf.json
+        name = base.name
+        if name.endswith(".egi.json"):
+            out = base.with_name(name[:-9] + ".egdf.json")
+        else:
+            stem = base.stem
+            out = base.with_name(stem + ".egdf.json")
+        try:
+            doc = self.egi_system.to_egdf()
+            # Compose header with integrity and reproducibility
+            egi_norm = self._normalized_egi_dict()
+            egi_json = json.dumps(egi_norm, sort_keys=True, separators=(",", ":"))
+            egi_checksum = hashlib.sha256(egi_json.encode("utf-8")).hexdigest()
+            style_path = getattr(self.style, "theme_path", "")
+            style_id = Path(style_path).stem if style_path else "default"
+            now_iso = datetime.now(timezone.utc).isoformat()
+            header = {
+                "version": "0.1",
+                "generator": "arisbe",
+                "updated": now_iso,
+                "egi_checksum": egi_checksum,
+                "style_id": style_id,
+            }
+            # Inject or update header
+            if isinstance(doc, dict):
+                if "header" in doc and isinstance(doc["header"], dict):
+                    doc["header"].update(header)
+                else:
+                    doc["header"] = header
+            out.write_text(json.dumps(doc, indent=2, sort_keys=False), encoding="utf-8")
+            self._last_saved_egdf_path = out
+            QMessageBox.information(self, "Saved", f"EGDF saved to:\n{out}")
+        except Exception as e:
+            QMessageBox.critical(self, "Save Error", f"Failed to save EGDF:\n{e}")
+
+    def _normalized_egi_dict(self) -> Dict[str, Any]:
+        """Produce a stable JSON-able dict of current EGI for checksumming.
+        Mirrors tools/migrate_corpus_to_egi.py::egi_to_dict ordering.
+        """
+        egi = self.egi_system.get_egi()
+        def _sorted_set(iterable):
+            return sorted(list(iterable))
+        payload: Dict[str, Any] = {
+            "sheet": egi.sheet,
+            "V": [{"id": v.id, "label": v.label, "is_generic": v.is_generic} for v in sorted(egi.V, key=lambda x: x.id)],
+            "E": [{"id": e.id} for e in sorted(egi.E, key=lambda x: x.id)],
+            "Cut": [{"id": c.id} for c in sorted(egi.Cut, key=lambda x: x.id)],
+            "nu": {k: list(v) for k, v in sorted(egi.nu.items())},
+            "rel": dict(sorted(egi.rel.items())),
+            "area": {k: _sorted_set(v) for k, v in sorted(egi.area.items())},
+            "alphabet": None if egi.alphabet is None else {
+                "C": _sorted_set(egi.alphabet.C),
+                "F": _sorted_set(egi.alphabet.F),
+                "R": _sorted_set(egi.alphabet.R),
+                "ar": dict(egi.alphabet.ar),
+            },
+            "rho": {k: v for k, v in sorted(egi.rho.items())},
+        }
+        return payload
 
     def paste_linear_form(self):
         """Paste EGIF/CGIF text and display it."""
@@ -525,16 +667,36 @@ class EGIMainWindow(QMainWindow):
             fill = _qcolor(s.get("fill_color", "#000000"))
             border_color = _qcolor(s.get("border_color", "#000000"))
             border_w = float(s.get("border_width", 1))
-            spot = QGraphicsEllipseItem(x + w / 2 - radius, y + h / 2 - radius, 2 * radius, 2 * radius)
-            spot.setBrush(QBrush(fill))
-            spot.setPen(QPen(border_color, border_w))
-            self.scene.addItem(spot)
-            spot.setZValue(10)
-            self._register_item(cmd.get("element_id", ""), "vertex", spot)
+            vid = cmd.get("element_id", "")
+            v_center_x, v_center_y = x + w / 2, y + h / 2
+
+            # Determine constant rendering mode
+            vobj = None
+            try:
+                vobj = self.egi_system.get_egi().get_vertex(vid)
+            except Exception:
+                vobj = None
+            constant_mode = "spot_label"
+            if vobj is not None and not getattr(vobj, 'is_generic', True):
+                vconst = self.style.resolve(type="vertex", role="vertex.constant")
+                constant_mode = str(vconst.get("mode", "spot_label")).lower()
+
+            drew_spot = False
+            if not (vobj is not None and not getattr(vobj, 'is_generic', True) and constant_mode == "label_only"):
+                # Draw spot for generic or constant in spot_label mode
+                spot = QGraphicsEllipseItem(v_center_x - radius, v_center_y - radius, 2 * radius, 2 * radius)
+                spot.setBrush(QBrush(fill))
+                spot.setPen(QPen(border_color, border_w))
+                self.scene.addItem(spot)
+                spot.setZValue(10)
+                self._register_item(vid, "vertex", spot)
+                try:
+                    spot.setData(2, "vertex.dot")
+                except Exception:
+                    pass
+                drew_spot = True
             # Optional vertex label rendering (variable superscript or constant label)
             try:
-                vid = cmd.get("element_id", "")
-                vobj = self.egi_system.get_egi().get_vertex(vid)
                 label_text: str | None = None
                 if vobj.is_generic:
                     if self._show_variable_labels:
@@ -574,9 +736,18 @@ class EGIMainWindow(QMainWindow):
                             pass
                         cx, cy = x + w / 2, y + h / 2
                         vtext.setPos(cx + tx_off, cy + ty_off)
+                    # Position text: for constant label_only, center on vertex; else offset from spot
+                    if vobj is not None and not getattr(vobj, 'is_generic', True) and constant_mode == "label_only":
+                        # Center text on the vertex center
+                        rect = vtext.boundingRect()
+                        vtext.setPos(v_center_x - rect.width() / 2, v_center_y - rect.height() / 2)
                     self.scene.addItem(vtext)
                     vtext.setZValue(11)
                     self._register_item(vid, "vertex", vtext)
+                    try:
+                        vtext.setData(2, "vertex.label")
+                    except Exception:
+                        pass
             except Exception:
                 pass
         elif typ == "edge":
@@ -662,7 +833,10 @@ class EGIMainWindow(QMainWindow):
                         path.moveTo(base_x, base_y)
                     else:
                         path.lineTo(x1, y1)
-                s = self.style.resolve(type="ligature", role=role)
+                # Use identity edge styling per Dau (ligatures are identity lines)
+                s = self.style.resolve(type="edge", role="edge.identity")
+                if not s:
+                    s = self.style.resolve(type="ligature", role=role)
                 pen = QPen(_qcolor(s.get("line_color", "#000000")), float(s.get("line_width", 3)))
                 try:
                     from PySide6.QtCore import Qt as QtCoreQt
@@ -673,11 +847,19 @@ class EGIMainWindow(QMainWindow):
                         pen.setCapStyle(QtCoreQt.PenCapStyle.SquareCap)
                     else:
                         pen.setCapStyle(QtCoreQt.PenCapStyle.FlatCap)
+                    # Optional dash pattern
+                    dash = s.get("dash")
+                    if isinstance(dash, (list, tuple)) and len(dash) >= 2:
+                        pen.setDashPattern([float(d) for d in dash])
                 except Exception:
                     pass
                 path_item = self.scene.addPath(path, pen)
                 path_item.setZValue(5)
                 self._register_item(cmd.get("element_id", ""), "ligature", path_item)
+                try:
+                    path_item.setData(2, "edge.identity")
+                except Exception:
+                    pass
 
                 # Optional: draw small markers at hook endpoints to aid debugging visibility
                 import os

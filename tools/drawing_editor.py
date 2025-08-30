@@ -23,13 +23,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from PySide6.QtCore import QPointF, QRectF, Qt, QTimer
-from PySide6.QtGui import QAction, QPen, QBrush, QColor, QKeySequence
+from PySide6.QtCore import QPointF, QRectF, Qt, QTimer, QLineF
+from PySide6.QtGui import QAction, QPen, QBrush, QColor, QKeySequence, QPainterPath
 from PySide6.QtWidgets import (
     QApplication,
     QGraphicsEllipseItem,
     QGraphicsItem,
     QGraphicsLineItem,
+    QGraphicsPathItem,
     QGraphicsRectItem,
     QGraphicsScene,
     QGraphicsTextItem,
@@ -56,11 +57,31 @@ try:
 except Exception:
     pass
 
+# Optional: theming
+try:
+    import os
+    from styling.style_manager import create_style_manager
+except Exception:
+    os = None  # type: ignore[assignment]
+    create_style_manager = None  # type: ignore[assignment]
+
 # EGDF adapter (platform-independent export)
 try:
     from egdf_adapter import drawing_to_egdf_document
-except Exception:
+except Exception as _egdf_import_exc:  # log the reason for visibility
+    try:
+        import traceback
+        print("[EGDF] Adapter import failed:")
+        traceback.print_exc()
+    except Exception:
+        pass
     drawing_to_egdf_document = None  # type: ignore[assignment]
+
+# EGDF parser (to load EGDF docs)
+try:
+    from egdf_parser import EGDFDocument
+except Exception:
+    EGDFDocument = None  # type: ignore[assignment]
 
 # EGI/EGIF conversion utilities
 try:
@@ -69,6 +90,12 @@ try:
 except Exception:
     drawing_to_relational_graph = None  # type: ignore[assignment]
     generate_egif = None  # type: ignore[assignment]
+
+# Platform-agnostic constraint/validation controller
+try:
+    from controller import constraint_engine
+except Exception:
+    constraint_engine = None  # type: ignore[assignment]
 
 
 # ---------- Data schema (in-memory) ----------
@@ -141,8 +168,10 @@ class DrawingModel:
             rid = c["id"]
             # Place dummy rects; users can adjust later. For now, auto-grid.
             rect = QRectF(50 + 30 * len(model.cuts), 50 + 30 * len(model.cuts), 240, 160)
-            gfx = QGraphicsRectItem(rect)
-            gfx.setPen(QPen(QColor(0, 0, 0), 1))
+            gfx = CutRectItem(rect, editor=None)  # editor injected after editor constructed
+            pen = QPen(QColor(0, 0, 0), 1)
+            pen.setJoinStyle(Qt.RoundJoin)
+            gfx.setPen(pen)
             gfx.setBrush(QBrush(QColor(240, 240, 240, 60)))
             gfx.setFlag(QGraphicsItem.ItemIsMovable, True)
             gfx.setFlag(QGraphicsItem.ItemIsSelectable, True)
@@ -181,8 +210,9 @@ class DrawingModel:
             text = QGraphicsTextItem(name)
             rect = text.boundingRect().adjusted(-4, -2, 4, 2)
             rect_item = PredicateRectItem(rect, editor=None)  # editor set after model/editor constructed
-            rect_item.setBrush(QBrush(QColor(255, 255, 255)))
-            rect_item.setPen(QPen(QColor(0, 0, 0, 60), 0))
+            # Transparent background and no border; ligatures will anchor to this rect's border
+            rect_item.setBrush(Qt.NoBrush)
+            rect_item.setPen(QPen(QColor(0, 0, 0, 0), 0))
             group_pos = pos
             rect_item.setPos(group_pos)
             # Parent text to rect so they move together
@@ -236,20 +266,32 @@ class DrawingEditor(QMainWindow):
         self.setCentralWidget(self.view)
 
         self.model = DrawingModel()
-        # Visual ligature lines
-        self._ligature_lines: List[QGraphicsLineItem] = []
+        # Visual ligature paths (single item per predicate-vertex link)
+        self._ligature_items: List[QGraphicsPathItem] = []
         # Ligature drag state (vertex -> predicate)
         self._ligature_drag_from_vid: Optional[str] = None
-        self._ligature_drag_line: Optional[QGraphicsLineItem] = None
+        self._ligature_drag_path: Optional[QGraphicsPathItem] = None
         self._ligature_refresh_pending = False
         self._zorder_refresh_pending = False
         self._interaction_active = False
+        # Debounce timer handle for auto-importing EGIF from the Corpus EGIF editor
+        self._egif_autoload_pending: bool = False
         # Visual toggles and guards
         self._show_ligatures: bool = True
         self._suppress_scene_change: bool = False
         # Style/profile selection for deltas authoring and reader mode
         self.current_style_path: Optional[str] = None
         self.current_style_id: Optional[str] = None  # e.g., "dau-classic@1.0"
+        # Theme manager (if available)
+        self.styles = None
+        try:
+            if create_style_manager is not None:
+                env_path = None
+                if os is not None:
+                    env_path = os.environ.get("ARISBE_THEME")
+                self.styles = create_style_manager(env_path)
+        except Exception:
+            self.styles = None
         # Ergasterion app modes
         self.erg_mode: str = "composition"  # or "practice"
         self.semantic_guardrails: bool = False
@@ -291,6 +333,168 @@ class DrawingEditor(QMainWindow):
         self.scene.selectionChanged.connect(self._on_selection_changed)
         # Inject editor backrefs into gfx subclasses now that editor exists
         self._inject_editor_backrefs_for_model()
+        # Initial theme application (no-op if no items yet)
+        try:
+            self._apply_theme_styles()
+        except Exception:
+            pass
+
+    # ----- Public mode API (for embedding shells) -----
+    def set_composition_mode(self) -> None:
+        """External toggle: set Composition Mode (unlocked)."""
+        try:
+            self._set_mode_composition()
+        except Exception:
+            # Fallback: ensure flags are consistent
+            self.erg_mode = "composition"
+            self.egi_locked = False
+            try:
+                self._refresh_status_banner()
+            except Exception:
+                pass
+
+    def set_practice_mode(self) -> None:
+        """External toggle: set Practice Mode (locked)."""
+        try:
+            self._set_mode_practice()
+        except Exception:
+            self.erg_mode = "practice"
+            self.egi_locked = True
+            try:
+                self._refresh_status_banner()
+            except Exception:
+                pass
+
+    # ----- Internal mode toggles -----
+    def _set_mode_composition(self) -> None:
+        """Switch to Composition (unlocked) and update UI state."""
+        self.erg_mode = "composition"
+        self.egi_locked = False
+        try:
+            # Sync toolbar checks if present
+            if hasattr(self, 'act_mode_composition') and self.act_mode_composition is not None:
+                self.act_mode_composition.setChecked(True)
+            if hasattr(self, 'act_mode_practice') and self.act_mode_practice is not None:
+                self.act_mode_practice.setChecked(False)
+            if hasattr(self, 'act_egi_lock') and self.act_egi_lock is not None:
+                self.act_egi_lock.setChecked(False)
+        except Exception:
+            pass
+        self._set_mode(Mode.SELECT)
+        self.statusBar().showMessage("Composition Mode (EGI unlocked)")
+        self._refresh_status_banner()
+
+    def _set_mode_practice(self) -> None:
+        """Switch to Practice (locked) and update UI state."""
+        self.erg_mode = "practice"
+        self.egi_locked = True
+        try:
+            # Sync toolbar checks if present
+            if hasattr(self, 'act_mode_composition') and self.act_mode_composition is not None:
+                self.act_mode_composition.setChecked(False)
+            if hasattr(self, 'act_mode_practice') and self.act_mode_practice is not None:
+                self.act_mode_practice.setChecked(True)
+            if hasattr(self, 'act_egi_lock') and self.act_egi_lock is not None:
+                self.act_egi_lock.setChecked(True)
+        except Exception:
+            pass
+        # Ensure items are guarded by constraint-enforcing gfx classes
+        try:
+            self._ensure_guarded_items()
+        except Exception:
+            pass
+        self._set_mode(Mode.SELECT)
+        self.statusBar().showMessage("Practice Mode (EGI locked)")
+        self._refresh_status_banner()
+
+    def _ensure_guarded_items(self) -> None:
+        """Swap raw QGraphics* items to constraint-aware gfx items where needed.
+        - Cuts -> CutRectItem
+        - Vertices -> VertexGfxItem
+        - Predicates -> PredicateRectItem
+        Safe to call multiple times.
+        """
+        # Cuts
+        try:
+            self._rebuild_cuts_with_constraints_and_place()
+        except Exception:
+            pass
+        # Vertices
+        for vid, v in list(self.model.vertices.items()):
+            if not isinstance(v.gfx, VertexGfxItem):
+                pos = v.gfx.scenePos()
+                try:
+                    self.scene.removeItem(v.gfx)
+                except Exception:
+                    pass
+                new_v = VertexGfxItem(-4, -4, 8, 8, self)
+                new_v.setBrush(QBrush(QColor(0, 0, 0)))
+                new_v.setPen(QPen(QColor(0, 0, 0), 2))
+                new_v.setPos(pos)
+                new_v.setFlag(QGraphicsItem.ItemIsMovable, True)
+                new_v.setFlag(QGraphicsItem.ItemIsSelectable, True)
+                self.scene.addItem(new_v)
+                self.model.vertices[vid].gfx = new_v
+        # Predicates
+        for pid, p in list(self.model.predicates.items()):
+            if not isinstance(p.gfx_rect, PredicateRectItem):
+                # Compute rect in local and scene pos
+                r = p.gfx_rect.rect()
+                scene_pos = p.gfx_rect.scenePos()
+                try:
+                    self.scene.removeItem(p.gfx_rect)
+                except Exception:
+                    pass
+                new_rect = PredicateRectItem(r, self)
+                new_rect.setBrush(Qt.NoBrush)
+                new_rect.setPen(QPen(QColor(0, 0, 0, 0), 0))
+                new_rect.setPos(scene_pos)
+                # Recreate text child
+                label = QGraphicsTextItem(p.name)
+                label.setParentItem(new_rect)
+                label.setPos(4, 2)
+                # Flags
+                new_rect.setFlag(QGraphicsItem.ItemIsMovable, True)
+                new_rect.setFlag(QGraphicsItem.ItemIsSelectable, True)
+                label.setFlag(QGraphicsItem.ItemIsMovable, False)
+                label.setFlag(QGraphicsItem.ItemIsSelectable, False)
+                self.scene.addItem(new_rect)
+                self.model.predicates[pid].gfx_rect = new_rect
+                self.model.predicates[pid].gfx_text = label
+
+    # ----- Utilities -----
+    def _parse_qcolor(self, value: Any) -> QColor:
+        """Convert common color encodings to QColor.
+        Supports names, hex (#RRGGBB[AA]), and 'rgba(r,g,b,a)' with a in [0,1] or [0,255].
+        Falls back to black fully transparent if invalid.
+        """
+        try:
+            if isinstance(value, QColor):
+                return value
+            if isinstance(value, (tuple, list)) and len(value) in (3, 4):
+                r, g, b = int(value[0]), int(value[1]), int(value[2])
+                a = value[3] if len(value) == 4 else 255
+                a = int(max(0, min(255, a if a > 1 else round(float(a) * 255))))
+                return QColor(r, g, b, a)
+            if isinstance(value, str):
+                s = value.strip()
+                if s.lower().startswith("rgba(") and s.endswith(")"):
+                    inner = s[5:-1]
+                    parts = [p.strip() for p in inner.split(",")]
+                    if len(parts) == 4:
+                        r = int(float(parts[0]))
+                        g = int(float(parts[1]))
+                        b = int(float(parts[2]))
+                        raw_a = float(parts[3])
+                        a = int(max(0, min(255, raw_a if raw_a > 1 else round(raw_a * 255))))
+                        return QColor(r, g, b, a)
+                # QColor can parse names and hex
+                qc = QColor(s)
+                if qc.isValid():
+                    return qc
+        except Exception:
+            pass
+        return QColor(0, 0, 0, 0)
 
     # ----- Stdout logging -----
     def _log(self, msg: str) -> None:
@@ -437,7 +641,20 @@ class DrawingEditor(QMainWindow):
         self.txt_corpus_egi_json = QTextEdit()
         self.txt_corpus_egi_json.setReadOnly(True)
         self.txt_corpus_egif = QTextEdit()
-        self.txt_corpus_egif.setReadOnly(True)
+        # Make editable so users can paste/type EGIF to initialize a scene
+        try:
+            self.txt_corpus_egif.setReadOnly(False)
+            self.txt_corpus_egif.setPlaceholderText(
+                "Paste or type EGIF here, then click 'Import EGIF→Scene' in the toolbar to build the diagram."
+            )
+        except Exception:
+            # Fallback if placeholder not supported in environment
+            self.txt_corpus_egif.setReadOnly(False)
+        # Auto-parse on edit (debounced) to seed puzzle scene
+        try:
+            self.txt_corpus_egif.textChanged.connect(self._on_corpus_egif_changed)
+        except Exception:
+            pass
         corpus_tabs.addTab(self.txt_corpus_egi_json, "Corpus EGI (JSON)")
         corpus_tabs.addTab(self.txt_corpus_egif, "Corpus EGIF")
         self.corpus_dock.setWidget(corpus_tabs)
@@ -509,17 +726,17 @@ class DrawingEditor(QMainWindow):
             except Exception:
                 pass
     def _clear_ligature_visuals(self) -> None:
-        for line in self._ligature_lines:
+        for line in self._ligature_items:
             try:
                 self.scene.removeItem(line)
             except Exception:
                 pass
-        self._ligature_lines.clear()
+        self._ligature_items.clear()
 
     def _schedule_ligature_refresh(self) -> None:
         if not self._show_ligatures:
             # Keep visuals cleared when disabled
-            if self._ligature_lines:
+            if self._ligature_items:
                 self._clear_ligature_visuals()
             return
         if self._suppress_scene_change:
@@ -549,58 +766,484 @@ class DrawingEditor(QMainWindow):
         QTimer.singleShot(80, do_refresh)
 
     def _refresh_ligature_visuals(self) -> None:
-        # Rebuild simple straight lines from predicates to vertices
+        # Rebuild paths from predicates to vertices, honoring style-driven path mode
         self._suppress_scene_change = True
         try:
             self._clear_ligature_visuals()
-            base_pen = QPen(QColor(80, 80, 200, 160), 1)
-            base_pen.setCosmetic(True)
-            out_pen = QPen(QColor(40, 150, 60, 220), 2)
-            out_pen.setCosmetic(True)
+            # Style-aware pens (fallback to legacy if style manager unavailable)
+            if self.styles is not None:
+                s = self.styles.resolve(type="edge", role="edge.identity")
+                line_color = self._parse_qcolor(s.get("line_color", "#000000"))
+                line_width = float(s.get("line_width", 3.5))
+                base_pen = QPen(line_color, line_width)
+                base_pen.setCosmetic(True)
+                out_pen = QPen(QColor(40, 150, 60, 220), max(2.0, line_width))
+                out_pen.setCosmetic(True)
+                # Ligature path mode
+                try:
+                    s_path = self.styles.resolve(type="ligature", role="ligature.path")
+                except Exception:
+                    s_path = {}
+            else:
+                base_pen = QPen(QColor(80, 80, 200, 160), 1)
+                base_pen.setCosmetic(True)
+                out_pen = QPen(QColor(40, 150, 60, 220), 2)
+                out_pen.setCosmetic(True)
+                s_path = {}
+            mode = str(s_path.get("mode", "straight")).lower()
+            curvature = float(s_path.get("curvature", 0.35))
+            ortho_bias = str(s_path.get("orthogonal_bias", "h_first")).lower()
+            # Length of the trunk from the vertex to the first junction point for branching
+            try:
+                trunk_len = float(s_path.get("trunk_length", 24.0))
+            except Exception:
+                trunk_len = 24.0
             parent_map = self._compute_parent_map()
-            for edge_id, vids in self.model.ligatures.items():
-                p = self.model.predicates.get(edge_id)
-                if p is None:
-                    continue
-                # Anchor at center of predicate rect
-                rect = p.gfx_rect.sceneBoundingRect()
-                p_center = rect.center()
-                # z baseline from area depth
-                p_area = self._resolve_area_position(p_center, parent_map)
-                depth = self._area_depth(p_area, parent_map)
+            # Build inverse map: vertex -> list[predicate_id]
+            v_to_ps: Dict[str, List[str]] = {}
+            for pid, vids in self.model.ligatures.items():
                 for vid in vids:
-                    v = self.model.vertices.get(vid)
-                    if v is None:
+                    v_to_ps.setdefault(vid, []).append(pid)
+
+            for vid, pids in v_to_ps.items():
+                v = self.model.vertices.get(vid)
+                if v is None:
+                    continue
+                v_center = v.gfx.scenePos()
+                # Determine z from vertex area
+                v_area = self._resolve_area_position(v_center, parent_map)
+                depth = self._area_depth(v_area, parent_map)
+
+                # Collect predicate centers for this vertex
+                p_centers: List[Tuple[str, QPointF]] = []
+                for pid in pids:
+                    p = self.model.predicates.get(pid)
+                    if p is None:
                         continue
-                    v_center = v.gfx.scenePos()
-                    line = QGraphicsLineItem(p_center.x(), p_center.y(), v_center.x(), v_center.y())
-                    # Store identifiers on the line for hit testing of existing ligatures
+                    rect = p.gfx_rect.sceneBoundingRect()
+                    p_centers.append((pid, rect.center()))
+                if not p_centers:
+                    continue
+
+                # Single connection: simple segment from vertex to predicate border
+                if len(p_centers) == 1:
+                    pid, pc = p_centers[0]
+                    # Anchor at predicate border in direction from vertex
+                    p_rect = self.model.predicates[pid].gfx_rect.sceneBoundingRect()
+                    pc = self._rect_border_anchor(p_rect, v_center)
+                    path = QPainterPath(v_center)
+                    if mode == "orthogonal":
+                        self._build_orthogonal_path(path, v_center, pc, ortho_bias)
+                    elif mode == "curved":
+                        self._build_curved_path(path, v_center, pc, curvature)
+                    else:
+                        path.lineTo(pc)
+                    item = QGraphicsPathItem(path)
                     try:
-                        line.setData(0, edge_id)
-                        line.setData(1, vid)
+                        item.setData(0, pid)
+                        item.setData(1, vid)
                     except Exception:
                         pass
-                    line.setZValue(depth * 10.0)  # behind predicate(+1) and vertex(+2)
-                    if self.model.predicate_outputs.get(edge_id) == vid:
-                        line.setPen(out_pen)
+                    item.setZValue(depth * 10.0)
+                    if self.model.predicate_outputs.get(pid) == vid:
+                        item.setPen(out_pen)
                     else:
-                        line.setPen(base_pen)
-                    self.scene.addItem(line)
-                    self._ligature_lines.append(line)
+                        item.setPen(base_pen)
+                    self.scene.addItem(item)
+                    self._ligature_items.append(item)
+                    continue
+
+                # Multiple connections: build a trunk to a junction, then branch to each predicate border
+                # Junction heuristic: in direction of centroid of predicate centers, at length = trunk_len
+                cx = sum(pc.x() for _, pc in p_centers) / float(len(p_centers))
+                cy = sum(pc.y() for _, pc in p_centers) / float(len(p_centers))
+                dirx = cx - v_center.x()
+                diry = cy - v_center.y()
+                dlen = (dirx * dirx + diry * diry) ** 0.5
+                if dlen < 1e-6:
+                    jx, jy = v_center.x(), v_center.y()
+                else:
+                    jx = v_center.x() + dirx / dlen * trunk_len
+                    jy = v_center.y() + diry / dlen * trunk_len
+                junction = QPointF(jx, jy)
+
+                path = QPainterPath(v_center)
+                # Trunk
+                if mode == "orthogonal":
+                    self._build_orthogonal_path(path, v_center, junction, ortho_bias)
+                elif mode == "curved":
+                    self._build_curved_path(path, v_center, junction, curvature)
+                else:
+                    path.lineTo(junction)
+                # Branches from junction to each predicate
+                for pid, pc in p_centers:
+                    # Anchor at predicate border from junction
+                    p_rect = self.model.predicates[pid].gfx_rect.sceneBoundingRect()
+                    pc = self._rect_border_anchor(p_rect, junction)
+                    path.moveTo(junction)
+                    if mode == "orthogonal":
+                        self._build_orthogonal_path(path, junction, pc, ortho_bias)
+                    elif mode == "curved":
+                        self._build_curved_path(path, junction, pc, curvature)
+                    else:
+                        path.lineTo(pc)
+
+                item = QGraphicsPathItem(path)
+                try:
+                    # Store primary identifiers: vid on 1, and a comma-joined pid list on 0
+                    item.setData(1, vid)
+                    item.setData(0, ",".join(pids))
+                except Exception:
+                    pass
+                item.setZValue(depth * 10.0)
+                # If any predicate marks this vertex as output, highlight the whole ligature
+                highlight = any(self.model.predicate_outputs.get(pid) == vid for pid in pids)
+                item.setPen(out_pen if highlight else base_pen)
+                self.scene.addItem(item)
+                self._ligature_items.append(item)
         finally:
             self._suppress_scene_change = False
+
+    def _build_orthogonal_path(self, path: QPainterPath, a: QPointF, b: QPointF, bias: str = "h_first") -> None:
+        """Add an orthogonal elbow between a and b to the given path.
+        bias: 'h_first' for horizontal-then-vertical, else vertical-then-horizontal.
+        """
+        if bias == "v_first":
+            mid = QPointF(a.x(), b.y())
+        else:
+            mid = QPointF(b.x(), a.y())
+        path.lineTo(mid)
+        path.lineTo(b)
+
+    def _rect_border_anchor(self, scene_rect: QRectF, from_point: QPointF) -> QPointF:
+        """Return the intersection point of the line from from_point to the rect center with the rect border.
+        If no intersection is found (degenerate), return the rect center.
+        Inputs are in scene coordinates.
+        """
+        center = scene_rect.center()
+        ray = QLineF(from_point, center)
+        # Construct scene-space edges
+        tl = scene_rect.topLeft()
+        tr = scene_rect.topRight()
+        bl = scene_rect.bottomLeft()
+        br = scene_rect.bottomRight()
+        edges = [
+            QLineF(tl, tr),  # top
+            QLineF(tr, br),  # right
+            QLineF(br, bl),  # bottom
+            QLineF(bl, tl),  # left
+        ]
+        best_pt: Optional[QPointF] = None
+        for edge in edges:
+            res = ray.intersects(edge)
+            # PySide6 returns a tuple (IntersectionType, QPointF)
+            try:
+                itype, ipt = res
+            except Exception:
+                # Older bindings may require passing a QPointF by ref; fallback to center
+                continue
+            if itype == QLineF.IntersectionType.BoundedIntersection:
+                best_pt = ipt
+                break
+        return best_pt if best_pt is not None else center
+
+    def _build_curved_path(self, path: QPainterPath, a: QPointF, b: QPointF, curvature: float = 0.35) -> None:
+        """Add a gentle quadratic Bezier curve from a to b. Curvature in [0..1]."""
+        # Control point: offset perpendicular to the chord by curvature * chord_length * 0.5
+        dx = b.x() - a.x()
+        dy = b.y() - a.y()
+        mx = (a.x() + b.x()) * 0.5
+        my = (a.y() + b.y()) * 0.5
+        # Perpendicular vector (normalized)
+        length = max(1e-6, (dx*dx + dy*dy) ** 0.5)
+        nx = -dy / length
+        ny = dx / length
+        offset = curvature * 0.5 * length
+        cx = mx + nx * offset
+        cy = my + ny * offset
+        path.quadTo(QPointF(cx, cy), b)
+
+    def _apply_theme_styles(self) -> None:
+        """Apply basic style tokens to existing scene items.
+        Minimal initial pass: cut borders/fill and predicate rect fill/border.
+        Ligatures are styled in _refresh_ligature_visuals().
+        """
+        if self.styles is None:
+            return
+        # Scene background
+        try:
+            s_scene = self.styles.resolve(type="scene", role="scene.background")
+            bg = self._parse_qcolor(s_scene.get("color", "#FFFFFF"))
+            self.view.setBackgroundBrush(QBrush(bg))
+        except Exception:
+            pass
+        # Cuts
+        try:
+            s_border = self.styles.resolve(type="cut", role="cut.border")
+            s_fill_odd = self.styles.resolve(type="cut", role="cut.fill.odd")
+        except Exception:
+            s_border, s_fill_odd = {}, {}
+        for cid, c in self.model.cuts.items():
+            pen = c.gfx.pen()
+            try:
+                color = self._parse_qcolor(s_border.get("line_color", "#000000"))
+                width = float(s_border.get("line_width", 1))
+                pen.setColor(color)
+                pen.setWidthF(width)
+                c.gfx.setPen(pen)
+            except Exception:
+                pass
+            try:
+                fill = s_fill_odd.get("fill_color", "rgba(0,0,0,0)")
+                c.gfx.setBrush(QBrush(self._parse_qcolor(fill)))
+            except Exception:
+                pass
+        # Predicates (background only)
+        try:
+            s_edge_even = self.styles.resolve(type="edge", role="edge.fill.even")
+        except Exception:
+            s_edge_even = {}
+        for pid, p in self.model.predicates.items():
+            try:
+                fill = s_edge_even.get("fill_color", "transparent")
+                p.gfx_rect.setBrush(QBrush(self._parse_qcolor(fill)))
+                pen = p.gfx_rect.pen()
+                pen.setColor(self._parse_qcolor(s_edge_even.get("border_color", "transparent")))
+                pen.setWidthF(float(s_edge_even.get("border_width", 0)))
+                p.gfx_rect.setPen(pen)
+            except Exception:
+                pass
+        # Rebuild ligature visuals with new pens
+        self._schedule_ligature_refresh()
 
     # ----- Interaction throttle helpers -----
     def begin_interaction(self) -> None:
         self._interaction_active = True
+        # Snapshot positions to allow snap-back in locked mode
+        try:
+            self._pre_interaction_positions = {
+                "vertices": {vid: v.gfx.scenePos() for vid, v in self.model.vertices.items()},
+                "predicates": {pid: p.gfx_rect.scenePos() for pid, p in self.model.predicates.items()},
+                "cuts": {cid: c.gfx.sceneBoundingRect() for cid, c in self.model.cuts.items()},
+            }
+        except Exception:
+            self._pre_interaction_positions = {"vertices": {}, "predicates": {}, "cuts": {}}
 
     def end_interaction(self) -> None:
         # End of a drag/manipulation: re-enable updates and do one refresh
         self._interaction_active = False
         self._schedule_ligature_refresh()
         self._schedule_zorder_refresh()
+        # In unlocked mode, auto-reassign areas based on current positions
+        try:
+            if not self.egi_locked and constraint_engine is not None:
+                changes = self._auto_reassign_areas_unlocked()
+                # Surface a brief status message about reassignment
+                if changes:
+                    self.statusBar().showMessage("Reassigned: " + ", ".join(changes), 1500)
+            elif self.egi_locked:
+                # Locked mode: delegate move planning to controller (meaning-preserving)
+                if constraint_engine is not None:
+                    self._locked_mode_plan_and_apply_move()
+                else:
+                    # Fallback: Snap-back any items that violate their declared area
+                    offenders_v, offenders_p = self._find_out_of_area_items()
+                    if offenders_v or offenders_p:
+                        for vid in offenders_v:
+                            pos = self._pre_interaction_positions.get("vertices", {}).get(vid)
+                            if pos is not None:
+                                self.model.vertices[vid].gfx.setPos(pos)
+                        for pid in offenders_p:
+                            pos = self._pre_interaction_positions.get("predicates", {}).get(pid)
+                            if pos is not None:
+                                self.model.predicates[pid].gfx_rect.setPos(pos)
+                        self.statusBar().showMessage("Locked: invalid drop outside declared area; snapped back.", 1500)
+        except Exception:
+            # Fail-open: do not block the UI if reassignment has issues
+            pass
         # Also refresh the semantic preview (EGI/EGIF) after moves/resizes
         self._schedule_preview()
+
+    def _locked_mode_plan_and_apply_move(self) -> None:
+        """Detect a single-anchor move, delegate to controller.plan_move, apply or snap back."""
+        try:
+            # Detect anchor: exactly one of cut/vertex/predicate moved
+            moved_cuts = []
+            for cid, c in self.model.cuts.items():
+                before = self._pre_interaction_positions.get("cuts", {}).get(cid)
+                r = c.gfx.sceneBoundingRect()
+                if before is not None and (abs(before.x() - r.x()) > 0.1 or abs(before.y() - r.y()) > 0.1):
+                    moved_cuts.append((cid, before, r))
+            moved_vertices = []
+            for vid, v in self.model.vertices.items():
+                before = self._pre_interaction_positions.get("vertices", {}).get(vid)
+                now = v.gfx.scenePos()
+                if before is not None and (abs(before.x() - now.x()) > 0.1 or abs(before.y() - now.y()) > 0.1):
+                    moved_vertices.append((vid, before, now))
+            moved_predicates = []
+            for pid, p in self.model.predicates.items():
+                before = self._pre_interaction_positions.get("predicates", {}).get(pid)
+                now = p.gfx_rect.scenePos()
+                if before is not None and (abs(before.x() - now.x()) > 0.1 or abs(before.y() - now.y()) > 0.1):
+                    moved_predicates.append((pid, before, now))
+
+            # Only handle simple case: exactly one anchor moved
+            anchors = [("cut",) + t for t in moved_cuts] + [("vertex",) + t for t in moved_vertices] + [("predicate",) + t for t in moved_predicates]
+            if len(anchors) != 1:
+                # Defer to simple snap-back checks
+                offenders_v, offenders_p = self._find_out_of_area_items()
+                if offenders_v or offenders_p:
+                    for vid in offenders_v:
+                        pos = self._pre_interaction_positions.get("vertices", {}).get(vid)
+                        if pos is not None:
+                            self.model.vertices[vid].gfx.setPos(pos)
+                    for pid in offenders_p:
+                        pos = self._pre_interaction_positions.get("predicates", {}).get(pid)
+                        if pos is not None:
+                            self.model.predicates[pid].gfx_rect.setPos(pos)
+                    self.statusBar().showMessage("Locked: invalid drop outside declared area; snapped back.", 1500)
+                return
+
+            kind, item_id, before, after = anchors[0]
+            if kind == "cut":
+                dx, dy = after.x() - before.x(), after.y() - before.y()
+                selection = {"cuts": [item_id], "vertices": [], "predicates": []}
+            elif kind == "vertex":
+                dx, dy = after.x() - before.x(), after.y() - before.y()
+                selection = {"cuts": [], "vertices": [item_id], "predicates": []}
+            else:  # predicate
+                dx, dy = after.x() - before.x(), after.y() - before.y()
+                selection = {"cuts": [], "vertices": [], "predicates": [item_id]}
+
+            # Build DTO and call controller
+            dto = self._model_to_dto()
+            subgraph = constraint_engine.select_subgraph(dto, selection)
+            status, reason, changes = constraint_engine.plan_move(dto, subgraph, {"dx": float(dx), "dy": float(dy)}, locked=True)
+            if status in ("ok", "adjusted") and changes:
+                self._apply_layout_changes(changes)
+                self.statusBar().showMessage("Locked: move applied (meaning-preserving).", 1200)
+            else:
+                # Revert anchor
+                if kind == "cut":
+                    c = self.model.cuts[item_id]
+                    # Move back by -dx,-dy
+                    c.gfx.moveBy(-dx, -dy)
+                elif kind == "vertex":
+                    self.model.vertices[item_id].gfx.setPos(before)
+                else:
+                    self.model.predicates[item_id].gfx_rect.setPos(before)
+                self.statusBar().showMessage(f"Locked: move rejected ({reason}); snapped back.", 2000)
+        except Exception as e:
+            # Safety: do not block UI
+            print(f"[LockedMove] error: {e}")
+            pass
+
+    def _apply_layout_changes(self, changes: Dict[str, Any]) -> None:
+        """Apply controller-proposed geometry changes to scene items."""
+        # Cuts
+        for cid, upd in changes.items():
+            if cid in self.model.cuts and "rect" in upd:
+                x, y, w, h = upd["rect"]
+                # Move by delta to preserve size without recomputing local rect
+                cur = self.model.cuts[cid].gfx.sceneBoundingRect()
+                self.model.cuts[cid].gfx.moveBy(x - cur.x(), y - cur.y())
+        # Vertices
+        for vid, upd in changes.items():
+            if vid in self.model.vertices and "pos" in upd:
+                px, py = upd["pos"]
+                self.model.vertices[vid].gfx.setPos(px, py)
+        # Predicates
+        for pid, upd in changes.items():
+            if pid in self.model.predicates and "rect" in upd:
+                rx, ry, rw, rh = upd["rect"]
+                # Move rect to (rx,ry)
+                self.model.predicates[pid].gfx_rect.setPos(rx, ry)
+
+    # ----- DTO adapter for controller -----
+    def _model_to_dto(self) -> Dict[str, Any]:
+        """Translate current scene/model to controller DTO (no Qt types)."""
+        # Cuts: use scene-rects
+        cuts: Dict[str, Dict[str, Any]] = {}
+        for cid, c in self.model.cuts.items():
+            r = c.gfx.rect()
+            tl = c.gfx.mapToScene(r.topLeft())
+            br = c.gfx.mapToScene(r.bottomRight())
+            x, y = tl.x(), tl.y()
+            w, h = (br.x() - tl.x()), (br.y() - tl.y())
+            cuts[cid] = {"rect": (float(x), float(y), float(w), float(h)), "parent_id": c.parent_id}
+        # Vertices: scenePos
+        vertices: Dict[str, Dict[str, Any]] = {}
+        for vid, v in self.model.vertices.items():
+            sp = v.gfx.scenePos()
+            vertices[vid] = {"pos": (float(sp.x()), float(sp.y())), "area_id": v.area_id}
+        # Predicates: sceneBoundingRect
+        predicates: Dict[str, Dict[str, Any]] = {}
+        for pid, p in self.model.predicates.items():
+            rb = p.gfx_rect.sceneBoundingRect()
+            predicates[pid] = {"rect": (float(rb.x()), float(rb.y()), float(rb.width()), float(rb.height())), "area_id": p.area_id}
+        # Ligatures: direct copy
+        ligs: Dict[str, List[str]] = {str(e): [str(v) for v in vs] for e, vs in self.model.ligatures.items()}
+        return {
+            "sheet_id": self.model.sheet_id,
+            "cuts": cuts,
+            "vertices": vertices,
+            "predicates": predicates,
+            "ligatures": ligs,
+        }
+
+    def _auto_reassign_areas_unlocked(self) -> List[str]:
+        """When composition (unlocked), update model area_ids based on positions.
+        Uses controller.suggest_area_for_point() for deterministic assignment.
+        """
+        if constraint_engine is None:
+            return []
+        dto = self._model_to_dto()
+        sheet_id = self.model.sheet_id
+        changes: List[str] = []
+        # Reassign vertices by scene position
+        for vid, v in self.model.vertices.items():
+            sp = v.gfx.scenePos()
+            new_area = constraint_engine.suggest_area_for_point(dto, (float(sp.x()), float(sp.y())), sheet_id)
+            if new_area and new_area != v.area_id:
+                v.area_id = new_area
+                changes.append(f"{vid}->{new_area}")
+        # Reassign predicates by center of their rect
+        for pid, p in self.model.predicates.items():
+            rb = p.gfx_rect.sceneBoundingRect()
+            cx, cy = float(rb.center().x()), float(rb.center().y())
+            new_area = constraint_engine.suggest_area_for_point(dto, (cx, cy), sheet_id)
+            if new_area and new_area != p.area_id:
+                p.area_id = new_area
+                changes.append(f"{pid}->{new_area}")
+        return changes
+
+    def _find_out_of_area_items(self) -> Tuple[List[str], List[str]]:
+        """Return (vertex_ids, predicate_ids) currently outside their declared areas.
+        GUI-only helper used for snap-back in locked mode.
+        """
+        # Build cut rects in scene coords
+        rects: Dict[str, QRectF] = {}
+        for cid, c in self.model.cuts.items():
+            r = c.gfx.rect()
+            tl = c.gfx.mapToScene(r.topLeft())
+            br = c.gfx.mapToScene(r.bottomRight())
+            rects[cid] = QRectF(tl, br).normalized()
+        v_off: List[str] = []
+        p_off: List[str] = []
+        # Check vertices
+        for vid, v in self.model.vertices.items():
+            aid = v.area_id
+            if aid and aid in rects:
+                if not rects[aid].contains(v.gfx.scenePos()):
+                    v_off.append(vid)
+        # Check predicates by rect center
+        for pid, p in self.model.predicates.items():
+            aid = p.area_id
+            if aid and aid in rects:
+                center = p.gfx_rect.sceneBoundingRect().center()
+                if not rects[aid].contains(center):
+                    p_off.append(pid)
+        return v_off, p_off
 
     # ----- Selection visuals and JSON mapping -----
     def _apply_selection_styles(self) -> None:
@@ -684,12 +1327,12 @@ class DrawingEditor(QMainWindow):
             return
         # Cancel ligature drag with Esc
         if key == Qt.Key_Escape and self._ligature_drag_from_vid is not None:
-            if self._ligature_drag_line is not None:
+            if self._ligature_drag_path is not None:
                 try:
-                    self.scene.removeItem(self._ligature_drag_line)
+                    self.scene.removeItem(self._ligature_drag_path)
                 except Exception:
                     pass
-            self._ligature_drag_line = None
+            self._ligature_drag_path = None
             self._ligature_drag_from_vid = None
             self.statusBar().showMessage("Ligature drag canceled")
             event.accept()
@@ -698,6 +1341,9 @@ class DrawingEditor(QMainWindow):
 
     def _delete_selected_items(self) -> None:
         # Remove selected vertices/predicates/cuts; update model and ligatures
+        if self.egi_locked:
+            self.statusBar().showMessage("Practice/Locked: deletion is disabled.", 1500)
+            return
         items = list(self.scene.selectedItems())
         if not items:
             return
@@ -895,8 +1541,8 @@ class DrawingEditor(QMainWindow):
                 area = self._resolve_area_position(v.gfx.scenePos(), parent_map)
                 depth = self._area_depth(area, parent_map)
                 v.gfx.setZValue(depth * 10.0 + 2.0)
-            # Also update ligature lines if present
-            if self._ligature_lines:
+            # Also update ligature paths if present
+            if self._ligature_items:
                 self._refresh_ligature_visuals()
         finally:
             self._suppress_scene_change = False
@@ -972,7 +1618,7 @@ class DrawingEditor(QMainWindow):
         return all(self._is_point_allowed_in_area(p, area_id, parent_map) for p in pts)
 
     def _element_area_id(self, item: QGraphicsItem) -> Optional[str]:
-        # Lookup the model element and return its declared area_id
+        # Return the assigned area_id for a vertex or predicate graphics item
         for v in self.model.vertices.values():
             if v.gfx is item:
                 return v.area_id
@@ -981,50 +1627,22 @@ class DrawingEditor(QMainWindow):
                 return p.area_id
         return None
 
-    def _area_id_at_point(self, pt: QPointF) -> str:
-        # Determine area from current cut geometry: choose deepest cut containing point, else sheet
-        best: Optional[Tuple[int, str]] = None
-        # Precompute parent map for depth calculation
-        pm = self._parent_map_current()
-        def depth_of(cid: str) -> int:
-            d = 0
-            pid = pm.get(cid)
-            while pid and pid in self.model.cuts:
-                d += 1
-                pid = pm.get(pid)
-            return d
-        for cid in self.model.cuts.keys():
-            cr = self._cut_rect(cid)
-            if cr and cr.contains(pt):
-                dep = depth_of(cid)
-                if best is None or dep > best[0]:
-                    best = (dep, cid)
-        return best[1] if best else self.model.sheet_id
-
-    def _is_valid_cut_scene_rect(self, new_rect: QRectF, ignore_item: Optional[QGraphicsRectItem] = None) -> bool:
-        # Valid if disjoint from every other cut OR fully contains OR fully contained by that cut.
-        for cid, c in self.model.cuts.items():
-            if ignore_item is not None and c.gfx is ignore_item:
-                continue
-            other = self._scene_rect_for_item(c.gfx)
-            # Use a small epsilon to avoid false positives from rounding/pen widths
-            if not self._rects_intersect(new_rect, other, eps=0.5):
-                continue  # disjoint ok
-            # Allow slight tolerance when checking containment as well
-            if self._rect_contains(new_rect, other, eps=0.5) or self._rect_contains(other, new_rect, eps=0.5):
-                continue  # nesting ok
-            return False  # partial overlap -> invalid
-        return True
     def _generate_id(self, prefix: str) -> str:
+        # Generate short unique IDs with a stable prefix
         return f"{prefix}_{uuid.uuid4().hex[:6]}"
 
     def _hit_cut(self, pos: QPointF) -> Optional[str]:
-        # Return topmost cut id containing pos
+        """Return the topmost cut ID whose rect contains the scene position."""
         items = self.scene.items(pos)
         for it in items:
             for cid, c in self.model.cuts.items():
-                if it is c.gfx and c.gfx.contains(c.gfx.mapFromScene(pos)):
-                    return cid
+                if it is c.gfx:
+                    try:
+                        if c.gfx.contains(c.gfx.mapFromScene(pos)):
+                            return cid
+                    except Exception:
+                        # Fallback to identity match if contains() not reliable
+                        return cid
         return None
 
     def _hit_predicate(self, pos: QPointF) -> Optional[str]:
@@ -1047,7 +1665,7 @@ class DrawingEditor(QMainWindow):
         # If right-clicking on a ligature line, treat as if clicking the vertex connected by that line
         items = self.scene.items(pos)
         for it in items:
-            if isinstance(it, QGraphicsLineItem) and it in self._ligature_lines:
+            if isinstance(it, QGraphicsPathItem) and it in self._ligature_items:
                 try:
                     vid = it.data(1)
                     if isinstance(vid, str):
@@ -1086,6 +1704,11 @@ class DrawingEditor(QMainWindow):
                 if self._ligature_drag_from_vid is not None:
                     return True
                 if self.mode == Mode.ADD_CUT:
+                    # In locked mode, prevent starting a new cut
+                    if self.egi_locked:
+                        self._set_mode(Mode.SELECT)
+                        self.statusBar().showMessage("Practice/Locked: adding cuts is disabled.", 1500)
+                        return True
                     # Allow starting a nested cut inside an existing cut, but not when pressing on
                     # a vertex or predicate (to avoid moving them). Starting over a cut rect is OK.
                     hit_items = self.scene.items(scene_pos)
@@ -1127,11 +1750,19 @@ class DrawingEditor(QMainWindow):
                         # Let normal interaction proceed (e.g., selecting/moving items)
                         return False
                 elif self.mode == Mode.ADD_VERTEX:
+                    if self.egi_locked:
+                        self._set_mode(Mode.SELECT)
+                        self.statusBar().showMessage("Practice/Locked: adding vertices is disabled.", 1500)
+                        return True
                     self._add_vertex(scene_pos)
                     self._schedule_preview()
                     # Return to baseline select mode after a single add
                     self._set_mode(Mode.SELECT)
                 elif self.mode == Mode.ADD_PREDICATE:
+                    if self.egi_locked:
+                        self._set_mode(Mode.SELECT)
+                        self.statusBar().showMessage("Practice/Locked: adding predicates is disabled.", 1500)
+                        return True
                     self._add_predicate(scene_pos)
                     self._schedule_preview()
                     # Return to baseline select mode after a single add
@@ -1139,12 +1770,17 @@ class DrawingEditor(QMainWindow):
                 return False
             elif event.type() == QEvent.MouseMove:
                 # Update temporary ligature line during drag
-                if self._ligature_drag_from_vid is not None and self._ligature_drag_line is not None:
+                if self._ligature_drag_from_vid is not None and self._ligature_drag_path is not None:
                     scene_pos = self.view.mapToScene(event.position().toPoint())
                     v = self.model.vertices.get(self._ligature_drag_from_vid)
                     if v is not None:
                         p1 = v.gfx.scenePos()
-                        self._ligature_drag_line.setLine(p1.x(), p1.y(), scene_pos.x(), scene_pos.y())
+                        p = QPainterPath(p1)
+                        p.lineTo(scene_pos)
+                        try:
+                            self._ligature_drag_path.setPath(p)
+                        except Exception:
+                            pass
                     return True
                 # Update cut preview rect while dragging
                 if self.mode == Mode.ADD_CUT and self._drag_start is not None and self._cut_preview_item is not None:
@@ -1172,12 +1808,12 @@ class DrawingEditor(QMainWindow):
                             self._schedule_preview()
                     finally:
                         # Cleanup temp line/state
-                        if self._ligature_drag_line is not None:
+                        if self._ligature_drag_path is not None:
                             try:
-                                self.scene.removeItem(self._ligature_drag_line)
+                                self.scene.removeItem(self._ligature_drag_path)
                             except Exception:
                                 pass
-                        self._ligature_drag_line = None
+                        self._ligature_drag_path = None
                         self._ligature_drag_from_vid = None
                     return True
                 if self.mode == Mode.ADD_CUT and self._drag_start is not None:
@@ -1205,9 +1841,10 @@ class DrawingEditor(QMainWindow):
         rect = QRectF(start, end).normalized()
         cid = self._generate_id("c")
         # Choose parent based on the final rect center, not the mouse-down point
+        center = rect.center()
         try:
             parent_map = self._compute_parent_map()
-            parent = self._resolve_area_position(rect.center(), parent_map)
+            parent = self._resolve_area_position(center, parent_map)
         except Exception:
             # Fallback to start-based heuristic if anything goes wrong
             parent = self._current_area_for_add(start)
@@ -1221,8 +1858,13 @@ class DrawingEditor(QMainWindow):
         self.begin_interaction()
         try:
             gfx = CutRectItem(rect, self)
-            gfx.setPen(QPen(QColor(0, 0, 0), 1))
-            gfx.setBrush(QBrush(QColor(240, 240, 240, 60)))
+            pen = QPen(QColor(0, 0, 0), 2)
+            try:
+                pen.setJoinStyle(Qt.RoundJoin)
+            except Exception:
+                pass
+            gfx.setPen(pen)
+            gfx.setBrush(QBrush(QColor(255, 255, 255, 0)))
             gfx.setFlag(QGraphicsItem.ItemIsMovable, True)
             gfx.setFlag(QGraphicsItem.ItemIsSelectable, True)
             self.scene.addItem(gfx)
@@ -1239,7 +1881,7 @@ class DrawingEditor(QMainWindow):
         vid = self._generate_id("v")
         area = self._current_area_for_add(pos)
         self._log(f"ADD_VERTEX id={vid} pos=({pos.x():.1f},{pos.y():.1f}) area={area}")
-        gfx = QGraphicsEllipseItem(-4, -4, 8, 8)
+        gfx = VertexGfxItem(-4, -4, 8, 8, self)
         gfx.setBrush(QBrush(QColor(0, 0, 0)))
         gfx.setPen(QPen(QColor(0, 0, 0), 2))
         gfx.setPos(pos)
@@ -1258,9 +1900,9 @@ class DrawingEditor(QMainWindow):
         self._log(f"ADD_PREDICATE id={eid} name={text} pos=({pos.x():.1f},{pos.y():.1f}) area={area}")
         label = QGraphicsTextItem(text)
         rect = label.boundingRect().adjusted(-4, -2, 4, 2)
-        rect_item = QGraphicsRectItem(rect)
-        rect_item.setBrush(QBrush(QColor(255, 255, 255)))
-        rect_item.setPen(QPen(QColor(0, 0, 0, 60), 0))
+        rect_item = PredicateRectItem(rect, self)
+        rect_item.setBrush(Qt.NoBrush)
+        rect_item.setPen(QPen(QColor(0, 0, 0, 0), 0))
         rect_item.setPos(pos)
         # Parent text to rect so they move together
         label.setParentItem(rect_item)
@@ -1278,6 +1920,10 @@ class DrawingEditor(QMainWindow):
 
     # ----- Context menus -----
     def _show_canvas_menu(self, scene_pos: QPointF) -> None:
+        # In locked mode, block authoring operations
+        if self.egi_locked:
+            self.statusBar().showMessage("Practice/Locked: add operations are disabled.", 1500)
+            return
         menu = QMenu(self)
         act_add_vertex = menu.addAction("Add Vertex here")
         act_add_pred = menu.addAction("Add Predicate here")
@@ -1362,26 +2008,31 @@ class DrawingEditor(QMainWindow):
                 self._schedule_preview()
                 self._schedule_ligature_refresh()
         elif chosen is act_drag:
+            # Start a temporary visual from this vertex to the cursor; finalize on release
             v = self.model.vertices.get(vid)
             if v is None:
                 return
-            # Create temporary line following mouse
-            p1 = v.gfx.scenePos()
-            tmp = QGraphicsLineItem(p1.x(), p1.y(), p1.x(), p1.y())
-            pen = QPen(QColor(120, 120, 220, 200), 1)
-            pen.setCosmetic(True)
-            tmp.setPen(pen)
+            tmp = QGraphicsPathItem()
+            tmp.setPen(QPen(QColor(50, 120, 220, 180), 1, Qt.DashLine))
+            p = v.gfx.scenePos()
+            path = QPainterPath(p)
+            path.lineTo(p)
+            try:
+                tmp.setPath(path)
+            except Exception:
+                pass
             tmp.setZValue(99999)
             self.scene.addItem(tmp)
             self._ligature_drag_from_vid = vid
-            self._ligature_drag_line = tmp
+            self._ligature_drag_path = tmp
             self.statusBar().showMessage("Drag to a predicate to add ligature; release to drop. Press Esc to cancel.")
         elif 'remove_actions' in locals() and chosen in remove_actions:
             pid = remove_actions[chosen]
+            # Remove vid from pid's ligature list
             try:
-                self.model.ligatures[pid] = [v for v in self.model.ligatures.get(pid, []) if v != vid]
-                if not self.model.ligatures[pid]:
-                    del self.model.ligatures[pid]
+                vids = self.model.ligatures.get(pid, [])
+                self.model.ligatures[pid] = [x for x in vids if x != vid]
+                self._schedule_ligature_refresh()
             except Exception:
                 pass
             # If removed the output, clear it
@@ -1518,7 +2169,7 @@ class DrawingEditor(QMainWindow):
             self,
             "Load Drawing or EGIF",
             "",
-            "JSON (*.json);;EGIF (*.egif *.txt);;All Files (*)",
+            "JSON (*.json);;EGDF YAML (*.yaml *.yml);;EGIF (*.egif *.txt);;All Files (*)",
         )
         if not path:
             return
@@ -1528,10 +2179,84 @@ class DrawingEditor(QMainWindow):
         try:
             if p.suffix.lower() == ".json":
                 data = json.loads(p.read_text())
+            elif p.suffix.lower() in (".yaml", ".yml"):
+                text = p.read_text()
             else:
                 text = p.read_text().strip()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to read file: {e}\nPath: {path}")
+            return
+
+        # Case 0: EGDF (JSON/YAML)
+        if (isinstance(data, dict) and ("egdf" in data or "egi_ref" in data)) or (isinstance(text, str) and ("egdf:" in text or "egi_ref:" in text)):
+            if EGDFDocument is None:
+                QMessageBox.critical(self, "Unavailable", "EGDF parser not available (missing src.egdf_parser).")
+                return
+            try:
+                if isinstance(data, dict):
+                    doc = EGDFDocument.from_dict(data)
+                else:
+                    # YAML or JSON string
+                    if p.suffix.lower() in (".yaml", ".yml"):
+                        doc = EGDFDocument.from_yaml(text or "")
+                    else:
+                        doc = EGDFDocument.from_json(text or "")
+            except Exception as e:
+                QMessageBox.critical(self, "EGDF Error", f"Failed to parse EGDF: {e}")
+                return
+
+            # Build drawing schema from inline EGI and populate scene
+            inline = doc.egi_ref.get("inline") if isinstance(doc.egi_ref, dict) else None
+            if not inline:
+                QMessageBox.critical(self, "EGDF Error", "EGDF missing inline EGI (egi_ref.inline)")
+                return
+            try:
+                schema = self._schema_from_egi_inline(inline)  # type: ignore[arg-type]
+            except Exception as e:
+                QMessageBox.critical(self, "EGDF Error", f"Failed to convert EGI inline to scene schema: {e}")
+                return
+
+            self.begin_interaction()
+            try:
+                self.scene.clear()
+                self.model = DrawingModel.from_schema(self.scene, schema)
+                self._inject_editor_backrefs_for_model()
+                self._rebuild_cuts_with_constraints_and_place()
+                # Apply layout and then deltas to restore positions/sizes
+                try:
+                    self._apply_egdf_layout(doc.layout)
+                except Exception as e:
+                    print(f"[EGDF] layout apply warning: {e}")
+                try:
+                    self._apply_egdf_deltas(doc.deltas or [])
+                except Exception as e:
+                    print(f"[EGDF] deltas apply warning: {e}")
+                self._schedule_zorder_refresh()
+                self._schedule_ligature_refresh()
+                if self.act_auto.isChecked():
+                    self._update_preview()
+            finally:
+                self.end_interaction()
+
+            # Populate Guide panels with target EGI (JSON and EGIF) for reference
+            try:
+                if hasattr(self, "txt_corpus_egi_json") and self.txt_corpus_egi_json is not None:
+                    self.txt_corpus_egi_json.setPlainText(json.dumps(inline, indent=2))
+                if hasattr(self, "txt_corpus_egif") and self.txt_corpus_egif is not None:
+                    guide_egif = self._schema_to_egif(schema)
+                    self.txt_corpus_egif.setPlainText(guide_egif or "")
+            except Exception:
+                pass
+
+            QMessageBox.information(self, "Loaded EGDF", f"Loaded EGDF from {path}")
+            # Treat EGDF load as puzzle target unlocked until user validates
+            self.egi_locked = False
+            self.puzzle_mode_active = True
+            self._target_egi_meta = {"kind": "egi_inline", "payload": inline}
+            if hasattr(self, 'act_egi_lock'):
+                self.act_egi_lock.setChecked(False)
+            self.statusBar().showMessage("Puzzle Mode: syntactic-only. Arrange to match EGI, then Validate & Lock.")
+            self._refresh_status_banner()
             return
 
         # Case 1: Drawing schema JSON (our sandbox format)
@@ -1680,6 +2405,125 @@ class DrawingEditor(QMainWindow):
 
         QMessageBox.warning(self, "Unrecognized File", "File did not match drawing schema or contain EGIF content.")
 
+    def _apply_egdf_layout(self, layout: Dict[str, Any]) -> None:
+        """Apply EGDF.layout positions/sizes to current scene items.
+        Expects coordinates in scene units (px).
+        """
+        if not isinstance(layout, dict):
+            return
+        # Cuts
+        for cid, r in layout.get("cuts", {}).items():
+            c = self.model.cuts.get(cid)
+            if not c:
+                continue
+            try:
+                x = float(r.get("x", 0.0)); y = float(r.get("y", 0.0))
+                w = float(r.get("w", c.gfx.rect().width()))
+                h = float(r.get("h", c.gfx.rect().height()))
+            except Exception:
+                continue
+            c.gfx.setRect(QRectF(x, y, w, h))
+        # Vertices
+        for vid, v in layout.get("vertices", {}).items():
+            vx = self.model.vertices.get(vid)
+            if not vx:
+                continue
+            try:
+                x = float(v.get("x", vx.gfx.scenePos().x()))
+                y = float(v.get("y", vx.gfx.scenePos().y()))
+            except Exception:
+                continue
+            vx.gfx.setPos(QPointF(x, y))
+            vx.pos = QPointF(x, y)
+        # Predicates
+        for pid, r in layout.get("predicates", {}).items():
+            p = self.model.predicates.get(pid)
+            if not p:
+                continue
+            try:
+                x = float(r.get("x", p.gfx_rect.scenePos().x()))
+                y = float(r.get("y", p.gfx_rect.scenePos().y()))
+                w = float(r.get("w", p.gfx_rect.rect().width()))
+                h = float(r.get("h", p.gfx_rect.rect().height()))
+            except Exception:
+                continue
+            # Update text if provided
+            try:
+                txt = r.get("text")
+                if isinstance(txt, str) and txt:
+                    p.gfx_text.setPlainText(txt)
+                    p.name = txt
+            except Exception:
+                pass
+            p.gfx_rect.setRect(QRectF(0, 0, w, h))
+            p.gfx_rect.setPos(QPointF(x, y))
+            p.pos = QPointF(x, y)
+        # Refresh visuals derived from geometry
+        self._schedule_ligature_refresh()
+
+    def _apply_egdf_deltas(self, deltas: List[Dict[str, Any]]) -> None:
+        """Apply EGDF.deltas to the scene. Supports set_rect, set_position, translate.
+        Unknown ops are ignored with a console note.
+        """
+        if not isinstance(deltas, list):
+            return
+        for d in deltas:
+            if not isinstance(d, dict):
+                continue
+            op = d.get("op")
+            if op == "set_rect":
+                _id = d.get("id")
+                if not isinstance(_id, str):
+                    continue
+                x = float(d.get("x", 0.0)); y = float(d.get("y", 0.0))
+                w = float(d.get("w", 0.0)); h = float(d.get("h", 0.0))
+                if _id in self.model.cuts:
+                    self.model.cuts[_id].gfx.setRect(QRectF(x, y, w, h))
+                elif _id in self.model.predicates:
+                    pr = self.model.predicates[_id]
+                    pr.gfx_rect.setRect(QRectF(0, 0, w, h))
+                    pr.gfx_rect.setPos(QPointF(x, y))
+                    pr.pos = QPointF(x, y)
+            elif op == "set_position":
+                _id = d.get("id")
+                if not isinstance(_id, str):
+                    continue
+                x = float(d.get("x", 0.0)); y = float(d.get("y", 0.0))
+                if _id in self.model.vertices:
+                    self.model.vertices[_id].gfx.setPos(QPointF(x, y))
+                    self.model.vertices[_id].pos = QPointF(x, y)
+                elif _id in self.model.predicates:
+                    pr = self.model.predicates[_id]
+                    pr.gfx_rect.setPos(QPointF(x, y))
+                    pr.pos = QPointF(x, y)
+            elif op == "translate":
+                # Move any known element by dx,dy
+                _id = d.get("id") or d.get("edge_id")
+                if not isinstance(_id, str):
+                    continue
+                dx = float(d.get("dx", 0.0)); dy = float(d.get("dy", 0.0))
+                if _id in self.model.vertices:
+                    item = self.model.vertices[_id]
+                    cur = item.gfx.scenePos()
+                    item.gfx.setPos(QPointF(cur.x() + dx, cur.y() + dy))
+                    item.pos = item.gfx.scenePos()
+                elif _id in self.model.predicates:
+                    pr = self.model.predicates[_id]
+                    cur = pr.gfx_rect.scenePos()
+                    pr.gfx_rect.setPos(QPointF(cur.x() + dx, cur.y() + dy))
+                    pr.pos = pr.gfx_rect.scenePos()
+                elif _id in self.model.cuts:
+                    c = self.model.cuts[_id]
+                    r = c.gfx.rect()
+                    c.gfx.setRect(QRectF(r.x() + dx, r.y() + dy, r.width(), r.height()))
+            else:
+                try:
+                    print(f"[EGDF] Unknown delta op ignored: {op}")
+                except Exception:
+                    pass
+        # Reflect changes in previews/visuals
+        self._schedule_ligature_refresh()
+
     def on_import_egif_to_scene(self) -> None:
         """Import EGIF text and populate the scene (cuts/vertices/predicates/ligatures).
         Sources:
@@ -1732,13 +2576,171 @@ class DrawingEditor(QMainWindow):
             self.model = DrawingModel.from_schema(self.scene, schema)
             # Replace plain rects with constrained CutRectItem instances and place hierarchically
             self._rebuild_cuts_with_constraints_and_place()
+            # Apply proposed layout from SpatialCorrespondenceEngine
+            try:
+                from egi_spatial_correspondence import SpatialCorrespondenceEngine
+                from drawing_to_egi_adapter import drawing_to_relational_graph as _d2r
+                rgc_layout = _d2r(schema)
+                eng = SpatialCorrespondenceEngine(rgc_layout)
+                layout = eng.generate_spatial_layout()
+                self._apply_proposed_layout(layout)
+            except Exception as _e:
+                # Non-fatal: keep default auto positions
+                try:
+                    print(f"[EGI] Proposed layout unavailable: {_e}")
+                except Exception:
+                    pass
             self._schedule_zorder_refresh()
             self._schedule_ligature_refresh()
             self._schedule_preview()
         finally:
             self.end_interaction()
 
+        # Enter Puzzle Mode semantics when importing EGIF
+        try:
+            self.egi_locked = False
+            self.puzzle_mode_active = True
+            self._target_egi_meta = {"kind": "egif_text", "payload": str(egif_text)}
+            if hasattr(self, 'act_egi_lock'):
+                self.act_egi_lock.setChecked(False)
+            self.statusBar().showMessage("Puzzle Mode: syntactic-only. Arrange to match EGI, then Validate & Lock.")
+            # Also show EGIF in the Guide tab
+            if hasattr(self, "txt_corpus_egif") and self.txt_corpus_egif is not None:
+                self.txt_corpus_egif.setPlainText(str(egif_text))
+        except Exception:
+            pass
         QMessageBox.information(self, "Imported", "EGIF imported into the scene.")
+
+    def _apply_proposed_layout(self, layout: Dict[str, Any]) -> None:
+        """Apply SpatialCorrespondenceEngine layout to current scene elements.
+        Expects a dict of SpatialElement with element_type and spatial_bounds.
+        """
+        try:
+            # Cuts: set rectangles to proposed bounds
+            for cid, cut in self.model.cuts.items():
+                le = layout.get(cid)
+                if not le:
+                    continue
+                b = getattr(le, 'spatial_bounds', None)
+                if not b:
+                    continue
+                rect = QRectF(float(b.x), float(b.y), float(b.width), float(b.height))
+                try:
+                    cut.gfx.setRect(rect)
+                except Exception:
+                    pass
+                cut.rect = rect
+            # Vertices: center points from bounds
+            for vid, v in self.model.vertices.items():
+                le = layout.get(vid)
+                if not le:
+                    continue
+                b = getattr(le, 'spatial_bounds', None)
+                if not b:
+                    continue
+                cx = float(b.x) + float(b.width) / 2.0
+                cy = float(b.y) + float(b.height) / 2.0
+                try:
+                    v.gfx.setPos(QPointF(cx, cy))
+                except Exception:
+                    pass
+                v.pos = QPointF(cx, cy)
+            # Predicates: place rects by top-left bounds
+            for eid, p in self.model.predicates.items():
+                le = layout.get(eid)
+                if not le:
+                    continue
+                b = getattr(le, 'spatial_bounds', None)
+                if not b:
+                    continue
+                try:
+                    p.gfx_rect.setPos(QPointF(float(b.x), float(b.y)))
+                except Exception:
+                    pass
+                p.pos = QPointF(float(b.x), float(b.y))
+        finally:
+            # Ensure visuals (ligatures/z-order) refresh after placement
+            self._schedule_ligature_refresh()
+            self._schedule_zorder_refresh()
+
+    def _on_corpus_egif_changed(self) -> None:
+        """Debounce auto-import when EGIF text is edited in the Corpus dock."""
+        if self._egif_autoload_pending:
+            return
+        self._egif_autoload_pending = True
+        def do_autoload():
+            try:
+                self._maybe_autoload_corpus_egif()
+            finally:
+                self._egif_autoload_pending = False
+        QTimer.singleShot(700, do_autoload)
+
+    def _scene_is_nonempty(self) -> bool:
+        try:
+            return bool(self.model.vertices or self.model.predicates or self.model.cuts)
+        except Exception:
+            return False
+
+    def _maybe_autoload_corpus_egif(self) -> None:
+        """If there is valid EGIF text in the Corpus editor, parse and populate scene (Puzzle mode)."""
+        try:
+            if not hasattr(self, "txt_corpus_egif") or self.txt_corpus_egif is None:
+                return
+            egif_text = self.txt_corpus_egif.toPlainText().strip()
+            if not egif_text or len(egif_text) < 6:
+                return
+            # Try to parse; if fails, do nothing (user may still be typing)
+            try:
+                from egif_parser_dau import parse_egif
+                rgc = parse_egif(egif_text)
+            except Exception:
+                return
+            # Confirm replacing non-empty scenes
+            if self._scene_is_nonempty():
+                try:
+                    res = QMessageBox.question(self, "Replace Scene?", "Replace current scene with EGIF from Corpus tab?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                    if res != QMessageBox.Yes:
+                        return
+                except Exception:
+                    pass
+            # Convert and populate
+            try:
+                schema = self._schema_from_relational_graph(rgc)
+            except Exception as e:
+                QMessageBox.critical(self, "Conversion Error", f"Failed to convert EGIF: {e}")
+                return
+            self.begin_interaction()
+            try:
+                self.scene.clear()
+                self.model = DrawingModel.from_schema(self.scene, schema)
+                self._rebuild_cuts_with_constraints_and_place()
+                # Proposed layout
+                try:
+                    from egi_spatial_correspondence import SpatialCorrespondenceEngine
+                    eng = SpatialCorrespondenceEngine(rgc)
+                    layout = eng.generate_spatial_layout()
+                    self._apply_proposed_layout(layout)
+                except Exception:
+                    pass
+                # Update Guide JSON from inline schema built from rgc to assist user
+                try:
+                    inline = self._egi_inline_from_schema(schema)
+                    if hasattr(self, 'txt_corpus_egi_json') and self.txt_corpus_egi_json is not None:
+                        self.txt_corpus_egi_json.setPlainText(json.dumps(inline, indent=2))
+                except Exception:
+                    pass
+                # Enter Puzzle mode
+                self.egi_locked = False
+                self.puzzle_mode_active = True
+                self._target_egi_meta = {"kind": "egif_text", "payload": str(egif_text)}
+                if hasattr(self, 'act_egi_lock'):
+                    self.act_egi_lock.setChecked(False)
+                self.statusBar().showMessage("Puzzle Mode: syntactic-only. Arrange to match EGI, then Validate & Lock.")
+                self._schedule_preview()
+            finally:
+                self.end_interaction()
+        except Exception:
+            pass
 
     def _schema_from_relational_graph(self, rgc) -> Dict:
         """Build a drawing schema dict from a RelationalGraphWithCuts (no positions).
@@ -2185,6 +3187,13 @@ class DrawingEditor(QMainWindow):
             self.current_style_id = Path(path).stem
         except Exception:
             self.current_style_id = path
+        # Recreate style manager with selected path and apply to scene
+        try:
+            if create_style_manager is not None:
+                self.styles = create_style_manager(self.current_style_path)
+        except Exception:
+            self.styles = None
+        self._apply_theme_styles()
         self.statusBar().showMessage(f"Style selected: {self.current_style_id}")
 
     def on_save_layout_deltas(self) -> None:
@@ -2343,9 +3352,15 @@ class DrawingEditor(QMainWindow):
         - Vertices and predicates (edges) areas from inline["area"].
         """
         def _norm_id(x: Any) -> str:
-            if isinstance(x, str):
-                return x
-            # Fallback: stable stringification
+            # Common shapes: "id" may be provided directly as string or wrapped in an object {"id": str}
+            try:
+                if isinstance(x, dict) and isinstance(x.get("id"), str):
+                    return x["id"]
+                if isinstance(x, str):
+                    return x
+            except Exception:
+                pass
+            # Fallback: stable stringification (should rarely be needed)
             return json.dumps(x, sort_keys=True)
 
         def _norm_id_list(xs: Any) -> List[str]:
@@ -2401,7 +3416,24 @@ class DrawingEditor(QMainWindow):
                 if vid in elems:
                     v_area = a
                     break
-            vertices.append({"id": vid, "area_id": v_area})
+            # Carry label information when available (EGI may provide is_generic/label)
+            label_kind = None
+            label_val = None
+            try:
+                if isinstance(v, dict):
+                    is_generic = v.get("is_generic")
+                    lbl = v.get("label")
+                    if lbl is not None and is_generic is False:
+                        label_kind = "constant"
+                        label_val = lbl
+            except Exception:
+                pass
+            v_entry = {"id": vid, "area_id": v_area}
+            if label_kind is not None:
+                v_entry["label_kind"] = label_kind
+            if label_val is not None:
+                v_entry["label"] = label_val
+            vertices.append(v_entry)
 
         predicates = []
         for e in inline.get("E", []):
@@ -2540,86 +3572,19 @@ class DrawingEditor(QMainWindow):
                     best_id = cid
         return best_id
 
-    def _element_area_id(self, item: QGraphicsItem) -> Optional[str]:
-        for vid, v in self.model.vertices.items():
-            if v.gfx is item:
-                return v.area_id
-        for pid, p in self.model.predicates.items():
-            if p.gfx_rect is item:
-                return p.area_id
-        return None
-
-    def _is_point_allowed_in_area(self, pos: QPointF, area_id: str, parent_map: Optional[Dict[str, Optional[str]]] = None) -> bool:
-        if area_id == self.model.sheet_id or not area_id:
-            return True
-        c = self.model.cuts.get(area_id)
-        if not c:
-            return True
-        r = c.gfx.rect()
-        sb = c.gfx.mapToScene(r).boundingRect()
-        return sb.contains(pos)
-
-    def _is_rect_allowed_in_area(self, rect: QRectF, area_id: str, parent_map: Optional[Dict[str, Optional[str]]] = None) -> bool:
-        if area_id == self.model.sheet_id or not area_id:
-            return True
-        c = self.model.cuts.get(area_id)
-        if not c:
-            return True
-        r = c.gfx.rect()
-        sb = c.gfx.mapToScene(r).boundingRect()
-        return sb.contains(rect)
+    # (duplicate area guardrail methods removed; earlier robust implementations are authoritative)
 
     def _validate_syntactic_constraints(self) -> Tuple[bool, str]:
-        # Validate cuts: nested or disjoint
-        cuts = list(self.model.cuts.values())
-        rects: Dict[str, QRectF] = {}
-        for c in cuts:
-            r = c.gfx.rect()
-            tl = c.gfx.mapToScene(r.topLeft())
-            br = c.gfx.mapToScene(r.bottomRight())
-            rects[c.id] = QRectF(tl, br).normalized()
-        def nested(a: QRectF, b: QRectF, eps: float = 0.5) -> bool:
-            return (b.left()-eps <= a.left() and b.top()-eps <= a.top() and b.right()+eps >= a.right() and b.bottom()+eps >= a.bottom())
-        def disjoint(a: QRectF, b: QRectF) -> bool:
-            return not a.intersects(b)
-        ids = list(rects.keys())
-        for i in range(len(ids)):
-            for j in range(i+1, len(ids)):
-                a, b = rects[ids[i]], rects[ids[j]]
-                if not (nested(a, b) or nested(b, a) or disjoint(a, b)):
-                    return False, f"Cuts overlap improperly: {ids[i]} vs {ids[j]}"
-        # Validate vertices/predicates inside their declared area cut.
-        # Behavior is mode-aware:
-        # - When locked (strict), out-of-area is an error.
-        # - When unlocked (composition), treat out-of-area as informational only.
-        area_map = self._compute_parent_map()
-        allowed = {cid: rects.get(cid) for cid in rects}
-        out_of_area_issues: List[str] = []
-        # Check vertices
-        for vid, v in self.model.vertices.items():
-            aid = v.area_id
-            if aid and aid in allowed:
-                r = allowed[aid]
-                if r and not r.contains(v.gfx.scenePos()):
-                    if self.egi_locked:
-                        return False, f"Vertex {vid} outside area {aid}"
-                    else:
-                        out_of_area_issues.append(f"vertex {vid}->area {aid}")
-        # Predicates by their area rect using their name box position
-        for pid, p in self.model.predicates.items():
-            aid = p.area_id
-            if aid and aid in allowed:
-                r = allowed[aid]
-                pos = p.gfx_rect.sceneBoundingRect().center()
-                if r and not r.contains(pos):
-                    if self.egi_locked:
-                        return False, f"Predicate {pid} outside area {aid}"
-                    else:
-                        out_of_area_issues.append(f"predicate {pid}->{aid}")
-        if out_of_area_issues:
-            # In unlocked mode, report informationally but do not fail
-            return True, "unlocked: area checks informational; out-of-area: " + ", ".join(out_of_area_issues)
-        return True, "ok"
+        """Delegate validation to the platform-agnostic controller."""
+        try:
+            if constraint_engine is None:
+                # Fallback: treat as ok but flag missing controller
+                return True, "controller unavailable"
+            dto = self._model_to_dto()
+            ok, msg, _info = constraint_engine.validate_syntax(dto, self.egi_locked)
+            return ok, msg
+        except Exception as e:
+            return False, f"controller validation error: {e}"
 
 
 class CutRectItem(QGraphicsRectItem):
@@ -2629,15 +3594,92 @@ class CutRectItem(QGraphicsRectItem):
         self._editor = editor
         self._last_valid_scene_rect: QRectF = QRectF()
         self._press_pos: Optional[QPointF] = None
+        # While a handle is dragging, we suppress movement of the cut itself
+        self._resizing: bool = False
+        self._resize_role: Optional[str] = None  # one of roles used by handles: nw,n,ne,e,se,s,sw,w
+        self._resize_start_rect: Optional[QRectF] = None
+        # Ensure child handles receive their own events (no parent pre-handling)
+        try:
+            self.setHandlesChildEvents(False)
+        except Exception:
+            pass
+        try:
+            self.setAcceptHoverEvents(True)
+        except Exception:
+            pass
         # Create resize handles (8 grips)
         self._handles: List["CutHandleItem"] = []
         self._create_handles()
         self._update_handles()
 
+    def paint(self, painter, option, widget=None):
+        # Draw rounded rectangle using style radius; clamp radius to half of width/height so
+        # very small cuts appear circular per Dau style intent.
+        r = self.rect()
+        # Resolve radius from style; fallback to 8
+        radius = 8.0
+        try:
+            if getattr(self, "_editor", None) and getattr(self._editor, "styles", None):
+                s = self._editor.styles.resolve(type="cut", role="cut.border")
+                radius = float(s.get("radius", radius))
+        except Exception:
+            pass
+        # Clamp radius so corners meet smoothly even when tiny
+        max_rx = max(0.0, min(radius, r.width() / 2.0))
+        max_ry = max(0.0, min(radius, r.height() / 2.0))
+        # Ensure nice joins
+        pen = QPen(self.pen())
+        try:
+            pen.setJoinStyle(Qt.RoundJoin)
+        except Exception:
+            pass
+        painter.setPen(pen)
+        painter.setBrush(self.brush())
+        painter.drawRoundedRect(r, max_rx, max_ry)
+
     def mousePressEvent(self, event):
         # Start of drag/manipulation; suppress heavy refresh work
         try:
             self._editor.begin_interaction()
+        except Exception:
+            pass
+        # Hit-test for edge-based resize: if near an edge/corner, start resize mode
+        try:
+            local = event.pos()
+            r = self.rect()
+            m = 8.0  # margin for edge hit
+            roles = {
+                "nw": QRectF(r.left()-m, r.top()-m, 2*m, 2*m),
+                "ne": QRectF(r.right()-m, r.top()-m, 2*m, 2*m),
+                "sw": QRectF(r.left()-m, r.bottom()-m, 2*m, 2*m),
+                "se": QRectF(r.right()-m, r.bottom()-m, 2*m, 2*m),
+                "n": QRectF(r.left()+m, r.top()-m, max(0.0, r.width()-2*m), 2*m),
+                "s": QRectF(r.left()+m, r.bottom()-m, max(0.0, r.width()-2*m), 2*m),
+                "w": QRectF(r.left()-m, r.top()+m, 2*m, max(0.0, r.height()-2*m)),
+                "e": QRectF(r.right()-m, r.top()+m, 2*m, max(0.0, r.height()-2*m)),
+            }
+            role_hit: Optional[str] = None
+            # Prefer corners before edges
+            for key in ("nw","ne","sw","se","n","s","w","e"):
+                if roles[key].contains(local):
+                    role_hit = key
+                    break
+            if role_hit is not None:
+                self._resizing = True
+                self._resize_role = role_hit
+                self._resize_start_rect = QRectF(r)
+                # Prevent movement while resizing
+                self.setFlag(QGraphicsItem.ItemIsMovable, False)
+                # Keep handles visible
+                self.setSelected(True)
+                self._update_handles()
+                # Ensure all subsequent mouse moves are delivered here
+                try:
+                    self.grabMouse()
+                except Exception:
+                    pass
+                event.accept()
+                return
         except Exception:
             pass
         # Record current valid rect and position
@@ -2655,7 +3697,12 @@ class CutRectItem(QGraphicsRectItem):
         super().mousePressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        super().mouseReleaseEvent(event)
+        # If we were in edge-resize mode, finalize resize first
+        if getattr(self, "_resizing", False) and self._resize_role is not None:
+            event.accept()
+            # Validate as below after computing new scene rect
+        else:
+            super().mouseReleaseEvent(event)
         # End of drag/manipulation; do one consolidated refresh
         try:
             # Validate final position; if invalid, snap back
@@ -2671,6 +3718,10 @@ class CutRectItem(QGraphicsRectItem):
                     self._editor._suppress_scene_change = True
                     try:
                         self.setPos(self._press_pos)
+                        # If resizing, also revert rect
+                        if getattr(self, "_resize_start_rect", None) is not None:
+                            self.setRect(self._resize_start_rect)
+                            self._update_handles()
                     finally:
                         self._editor._suppress_scene_change = prev
                 try:
@@ -2693,9 +3744,64 @@ class CutRectItem(QGraphicsRectItem):
                 self._editor.end_interaction()
             except Exception:
                 pass
+        # Clear resize state, restore movability
+        if getattr(self, "_resizing", False):
+            self._resizing = False
+            self._resize_role = None
+            self._resize_start_rect = None
+            self.setFlag(QGraphicsItem.ItemIsMovable, True)
+            try:
+                self.ungrabMouse()
+            except Exception:
+                pass
+
+    def hoverMoveEvent(self, event):
+        # Update cursor when near edges/corners for discoverability
+        try:
+            local = event.pos()
+            r = self.rect()
+            m = 8.0
+            def near(p: QPointF, q: QPointF, eps: float) -> bool:
+                return abs(p.x()-q.x()) <= eps and abs(p.y()-q.y()) <= eps
+            # Build hit boxes like in press
+            roles = {
+                "nw": QRectF(r.left()-m, r.top()-m, 2*m, 2*m),
+                "ne": QRectF(r.right()-m, r.top()-m, 2*m, 2*m),
+                "sw": QRectF(r.left()-m, r.bottom()-m, 2*m, 2*m),
+                "se": QRectF(r.right()-m, r.bottom()-m, 2*m, 2*m),
+                "n": QRectF(r.left()+m, r.top()-m, max(0.0, r.width()-2*m), 2*m),
+                "s": QRectF(r.left()+m, r.bottom()-m, max(0.0, r.width()-2*m), 2*m),
+                "w": QRectF(r.left()-m, r.top()+m, 2*m, max(0.0, r.height()-2*m)),
+                "e": QRectF(r.right()-m, r.top()+m, 2*m, max(0.0, r.height()-2*m)),
+            }
+            role_hit: Optional[str] = None
+            for key in ("nw","ne","sw","se","n","s","w","e"):
+                if roles[key].contains(local):
+                    role_hit = key
+                    break
+            cursor_map = {
+                "nw": Qt.SizeFDiagCursor,
+                "se": Qt.SizeFDiagCursor,
+                "ne": Qt.SizeBDiagCursor,
+                "sw": Qt.SizeBDiagCursor,
+                "n": Qt.SizeVerCursor,
+                "s": Qt.SizeVerCursor,
+                "e": Qt.SizeHorCursor,
+                "w": Qt.SizeHorCursor,
+            }
+            if role_hit is not None:
+                self.setCursor(cursor_map[role_hit])
+            else:
+                self.unsetCursor()
+        except Exception:
+            pass
+        super().hoverMoveEvent(event)
 
     def itemChange(self, change, value):
         if change == QGraphicsItem.ItemPositionChange:
+            # If currently resizing via a handle, veto position changes
+            if getattr(self, "_resizing", False):
+                return self.pos()
             # Proposed new top-left position (in parent coords). Compute scene rect at that pos.
             new_pos = value
             # Temporarily compute scene rect by translating current rect to new pos relative to parent
@@ -2719,7 +3825,54 @@ class CutRectItem(QGraphicsRectItem):
                     return self.pos()  # veto move when not dragging
                 else:
                     self._last_valid_scene_rect = new_scene_rect
+        elif change == QGraphicsItem.ItemSelectedHasChanged:
+            # Toggle resize handle visibility based on selection state
+            try:
+                selected = bool(value)
+            except Exception:
+                selected = False
+            # If a resize is in progress, keep handles visible regardless of selection flips
+            force_visible = bool(getattr(self, "_resizing", False))
+            for h in getattr(self, "_handles", []):
+                try:
+                    h.setVisible(selected or force_visible)
+                except Exception:
+                    pass
         return super().itemChange(change, value)
+
+    def mouseMoveEvent(self, event):
+        # Handle edge-based resize when active
+        if getattr(self, "_resizing", False) and self._resize_role is not None:
+            try:
+                start_r = self._resize_start_rect or QRectF(self.rect())
+                local_pt = event.pos()
+                r = QRectF(start_r)
+                min_w, min_h = 20.0, 20.0
+                if self._resize_role in ("nw", "w", "sw"):
+                    r.setLeft(local_pt.x())
+                if self._resize_role in ("ne", "e", "se"):
+                    r.setRight(local_pt.x())
+                if self._resize_role in ("nw", "n", "ne"):
+                    r.setTop(local_pt.y())
+                if self._resize_role in ("sw", "s", "se"):
+                    r.setBottom(local_pt.y())
+                r = r.normalized()
+                if r.width() < min_w:
+                    cx = r.center().x()
+                    r.setLeft(cx - min_w / 2.0)
+                    r.setRight(cx + min_w / 2.0)
+                if r.height() < min_h:
+                    cy = r.center().y()
+                    r.setTop(cy - min_h / 2.0)
+                    r.setBottom(cy + min_h / 2.0)
+                self.setRect(r)
+                self._update_handles()
+                event.accept()
+                return
+            except Exception:
+                pass
+        # Otherwise, allow normal move behavior
+        super().mouseMoveEvent(event)
 
     # ----- Resize handles helpers (for cuts) -----
     def _create_handles(self) -> None:
@@ -2732,12 +3885,18 @@ class CutRectItem(QGraphicsRectItem):
         for role in roles:
             h = CutHandleItem(self, role)
             self._handles.append(h)
+        # Start hidden; they will be shown when the cut is selected
+        for h in self._handles:
+            try:
+                h.setVisible(False)
+            except Exception:
+                pass
 
     def _update_handles(self) -> None:
         if not self._handles:
             return
         r = self.rect()
-        s = 8.0  # handle size
+        s = 12.0  # handle size (increased for easier hit-testing)
         half = s / 2.0
         points = {
             "nw": QPointF(r.left(), r.top()),
@@ -2751,7 +3910,12 @@ class CutRectItem(QGraphicsRectItem):
         }
         for h in self._handles:
             c = points[h.role]
-            h.setRect(QRectF(c.x() - half, c.y() - half, s, s))
+            # Place the handle at the corner point and use a small local rect centered at origin
+            try:
+                h.setPos(c)
+            except Exception:
+                pass
+            h.setRect(QRectF(-half, -half, s, s))
 
 
 class VertexGfxItem(QGraphicsEllipseItem):
@@ -2759,6 +3923,11 @@ class VertexGfxItem(QGraphicsEllipseItem):
         super().__init__(x, y, w, h)
         self._editor = editor
         self._press_pos: Optional[QPointF] = None
+        # Ensure we receive ItemPositionChange during drags
+        try:
+            self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+        except Exception:
+            pass
 
     def mousePressEvent(self, event):
         try:
@@ -2808,12 +3977,17 @@ class VertexGfxItem(QGraphicsEllipseItem):
                 pass
 
     def itemChange(self, change, value):
-        if change == QGraphicsItem.ItemPositionChange and getattr(self, "_editor", None) and not self._editor._interaction_active:
-            new_pos = value
-            area_id = self._editor._element_area_id(self)
-            if area_id is not None:
-                if not self._editor._is_point_allowed_in_area(new_pos, area_id):
-                    return self.pos()
+        if change == QGraphicsItem.ItemPositionChange and getattr(self, "_editor", None):
+            if self._editor.egi_locked:
+                try:
+                    delta = value - self.pos()
+                except Exception:
+                    delta = QPointF(0.0, 0.0)
+                new_scene_pos = self.scenePos() + delta
+                area_id = self._editor._element_area_id(self)
+                if area_id is not None:
+                    if not self._editor._is_point_allowed_in_area(new_scene_pos, area_id):
+                        return self.pos()
         return super().itemChange(change, value)
 
 
@@ -2822,6 +3996,24 @@ class PredicateRectItem(QGraphicsRectItem):
         super().__init__(rect)
         self._editor = editor
         self._press_pos: Optional[QPointF] = None
+        # Ensure we receive ItemPositionChange during drags
+        try:
+            self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
+        except Exception:
+            pass
+
+    def paint(self, painter, option, widget=None):
+        """Do not draw any visible border or fill, even when selected.
+        Keep hit-testing via shape() but suppress visuals to ensure
+        predicate boundaries are invisible.
+        """
+        try:
+            painter.save()
+            painter.setPen(QPen(QColor(0, 0, 0, 0), 0))
+            painter.setBrush(Qt.NoBrush)
+            # Intentionally do not call super().paint to avoid selection outline
+        finally:
+            painter.restore()
 
     def mousePressEvent(self, event):
         try:
@@ -2876,17 +4068,17 @@ class PredicateRectItem(QGraphicsRectItem):
                 pass
 
     def itemChange(self, change, value):
-        if change == QGraphicsItem.ItemPositionChange and not self._editor._interaction_active:
-            new_pos = value
-            # Approximate new rect at new_pos by translating current local rect
-            r = self.rect()
-            tl_scene = self.mapToScene(r.topLeft()) + (new_pos - self.pos())
-            br_scene = self.mapToScene(r.bottomRight()) + (new_pos - self.pos())
-            new_rect = QRectF(tl_scene, br_scene).normalized()
-            area_id = self._editor._element_area_id(self)
-            if area_id is not None:
-                if not self._editor._is_rect_allowed_in_area(new_rect, area_id):
-                    return self.pos()
+        if change == QGraphicsItem.ItemPositionChange and getattr(self, "_editor", None):
+            if self._editor.egi_locked:
+                new_pos = value
+                r = self.rect()
+                tl_scene = self.mapToScene(r.topLeft()) + (new_pos - self.pos())
+                br_scene = self.mapToScene(r.bottomRight()) + (new_pos - self.pos())
+                new_rect = QRectF(tl_scene, br_scene).normalized()
+                area_id = self._editor._element_area_id(self)
+                if area_id is not None:
+                    if not self._editor._is_rect_allowed_in_area(new_rect, area_id):
+                        return self.pos()
         return super().itemChange(change, value)
 
 
@@ -2902,6 +4094,7 @@ class CutHandleItem(QGraphicsRectItem):
         self.setFlag(QGraphicsItem.ItemIsMovable, False)
         self.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.setAcceptedMouseButtons(Qt.LeftButton)
+        self.setAcceptHoverEvents(True)
         # Cursor shape
         cursors = {
             "nw": Qt.SizeFDiagCursor,
@@ -2922,11 +4115,29 @@ class CutHandleItem(QGraphicsRectItem):
             self._cut._editor.begin_interaction()
         except Exception:
             pass
+        # Ensure parent cut stays selected during resize so handles remain visible
+        try:
+            self._cut.setSelected(True)
+            # Mark resizing state on the cut for visibility logic
+            setattr(self._cut, "_resizing", True)
+        except Exception:
+            pass
+        # Prevent parent cut from moving during resize
+        try:
+            self._prev_cut_movable = self._cut.flags() & QGraphicsItem.ItemIsMovable
+            self._cut.setFlag(QGraphicsItem.ItemIsMovable, False)
+        except Exception:
+            pass
         self._start_rect = QRectF(self._cut.rect())
         try:
             cid = self._cut._editor._id_for_cut_item(self._cut)
             sp = self._cut.scenePos()
             self._cut._editor._log(f"CUT_RESIZE begin id={cid} pos=({sp.x():.1f},{sp.y():.1f}) rect={self._start_rect} handle={self.role}")
+        except Exception:
+            pass
+        # Proactively grab mouse so all subsequent move events are delivered to this handle
+        try:
+            self.grabMouse()
         except Exception:
             pass
         # Consume to avoid propagating to parent (which would start a move)
@@ -2967,6 +4178,24 @@ class CutHandleItem(QGraphicsRectItem):
     def mouseReleaseEvent(self, event):
         # Consume release, then validate and end interaction
         event.accept()
+        # Release the grab so other items can receive events again
+        try:
+            self.ungrabMouse()
+        except Exception:
+            pass
+        # Restore parent cut movability after resize
+        try:
+            want_movable = bool(getattr(self, "_prev_cut_movable", True))
+            self._cut.setFlag(QGraphicsItem.ItemIsMovable, want_movable)
+        except Exception:
+            pass
+        # Clear resizing state and ensure handles visibility updates follow selection
+        try:
+            setattr(self._cut, "_resizing", False)
+            # Trigger a small handles refresh
+            self._cut._update_handles()
+        except Exception:
+            pass
         # Validate final rect; revert if invalid
         try:
             r = self._cut.rect()

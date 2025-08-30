@@ -19,8 +19,12 @@
   "vertex.label_text": { "estimate_char_width": 6.0, "estimate_height": 12.0, "padding": [2, 1], "offset": [-18, -16], "font_size": 9 },
   "vertex.superscript_text": { "estimate_char_width": 5.0, "estimate_height": 10.0, "font_size": 8, "color": "#CC0000", "offset": [-12, -12] },
 
+  "vertex.constant": { "mode": "spot_label" },
+
   "ligature.arm": { "line_color": "#000000", "line_width": 3, "cap": "round", "min_length": 12.0, "border_overlap": 1.0 },
   "ligature.arm.selected": { "line_color": "#1E88E5", "line_width": 3 },
+
+  "edge.identity": { "line_color": "#000000", "line_width": 4, "cap": "round" },
 
   "vertex.dot": { "fill_color": "#000000", "border_color": "#000000", "border_width": 1, "radius": 3 },
   "vertex.dot.selected": { "fill_color": "#1E88E5" },
@@ -32,6 +36,8 @@
 
   "edge.fill.odd": { "fill_color": "rgba(0,0,0,0.08)", "border_color": "transparent", "border_width": 0 },
   "edge.fill.even": { "fill_color": "transparent", "border_color": "transparent", "border_width": 0 },
+
+  "predicate.box": { "border_color": "transparent", "border_width": 0, "fill_color": "transparent" },
 
   "chiron.container": { "background": "#F7F7F7", "border_color": "#DDDDDD", "border_width": 1 },
   "chiron.title": { "font_size": 11, "font_weight": "bold", "color": "#333333" },

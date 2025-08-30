@@ -1,0 +1,30 @@
+{
+  "global": { "font_family": "Times New Roman", "font_size": 12 },
+
+  "scene.background": { "color": "#FFFFFF" },
+
+  "edge.label_box": { "border_color": "transparent", "border_width": 0, "fill_color": "#FFFFFF", "text_padding": [2, 1] },
+  "edge.label_text": { "estimate_char_width": 6.2, "estimate_height": 14.0 },
+
+  "vertex.label_text": { "estimate_char_width": 6.0, "estimate_height": 12.0, "padding": [2, 1], "offset": [8, -10], "font_size": 11 },
+  "vertex.superscript_text": { "estimate_char_width": 5.0, "estimate_height": 10.0, "font_size": 9, "color": "#000000", "offset": [10, -12] },
+
+  "vertex.constant": { "mode": "label_only" },
+
+  "edge.identity": { "line_color": "#000000", "line_width": 3.5, "cap": "round" },
+
+  "ligature.path": { "mode": "straight", "curvature": 0.35, "orthogonal_bias": "h_first" },
+
+  "ligature.arm": { "line_color": "#000000", "line_width": 2, "cap": "round", "min_length": 12.0, "border_overlap": 1.0 },
+
+  "vertex.dot": { "fill_color": "#000000", "border_color": "#000000", "border_width": 1, "radius": 2.5 },
+
+  "cut.border": { "line_color": "#000000", "line_width": 1, "radius": 8 },
+  "cut.fill.odd": { "fill_color": "rgba(0,0,0,0.08)" },
+  "cut.fill.even": { "fill_color": "transparent" },
+
+  "edge.fill.odd": { "fill_color": "rgba(0,0,0,0.06)", "border_color": "transparent", "border_width": 0 },
+  "edge.fill.even": { "fill_color": "transparent", "border_color": "transparent", "border_width": 0 }
+  ,
+  "predicate.box": { "border_color": "transparent", "border_width": 0, "fill_color": "transparent" }
+}
