@@ -105,6 +105,24 @@ class QtCorrespondenceIntegration:
             if element.element_type == "ligature":
                 if getattr(element, "ligature_geometry", None):
                     cmd["path_points"] = element.ligature_geometry.spatial_path
+                    # Optional stylistic metadata for advanced rendering/export
+                    lg = element.ligature_geometry
+                    if getattr(lg, "path_style", None):
+                        cmd["path_style"] = lg.path_style
+                    if getattr(lg, "stroke", None):
+                        cmd["stroke"] = lg.stroke
+                    if getattr(lg, "cap", None):
+                        cmd["cap"] = lg.cap
+                    if getattr(lg, "join", None):
+                        cmd["join"] = lg.join
+                    if getattr(lg, "zigzag_amp", None) is not None:
+                        cmd["zigzag_amp"] = lg.zigzag_amp
+                    if getattr(lg, "zigzag_period", None) is not None:
+                        cmd["zigzag_period"] = lg.zigzag_period
+                    if getattr(lg, "smooth_radius", None) is not None:
+                        cmd["smooth_radius"] = lg.smooth_radius
+                    if getattr(lg, "bridges", None):
+                        cmd["bridges"] = list(lg.bridges)
                 cmd["role"] = "ligature.arm"
                 ligature_commands.append(cmd)
                 continue

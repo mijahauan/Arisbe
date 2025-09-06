@@ -1,0 +1,28 @@
+{
+  "Cut": [],
+  "E": [],
+  "V": [
+    {
+      "id": "v_3eb46ef3",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [],
+    "ar": {}
+  },
+  "area": {
+    "sheet_0193aa33": [
+      "v_3eb46ef3"
+    ]
+  },
+  "nu": {},
+  "rel": {},
+  "rho": {
+    "v_3eb46ef3": null
+  },
+  "sheet": "sheet_0193aa33"
+}

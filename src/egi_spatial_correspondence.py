@@ -87,6 +87,16 @@ class LigatureGeometry:
     vertices: List[str]  # Vertex IDs in this ligature
     spatial_path: List[Tuple[float, float]]  # Continuous path waypoints
     branching_points: List[BranchingPoint]
+    # Optional styling and path-shape metadata (backward-compatible defaults)
+    path_style: Optional[str] = None            # 'straight' | 'rectilinear' | 'curved' | 'zigzag'
+    stroke: Optional[str] = None                # 'solid' | 'dashed'
+    cap: Optional[str] = None                   # 'round' | 'square' | 'butt'
+    join: Optional[str] = None                  # 'round' | 'miter' | 'bevel'
+    zigzag_amp: Optional[float] = None          # amplitude in px
+    zigzag_period: Optional[float] = None       # period in px
+    smooth_radius: Optional[float] = None       # corner smoothing radius for curved
+    # Bridge markers: world coordinates where this ligature should show an underpass gap
+    bridges: List[Tuple[float, float]] = field(default_factory=list)
     
     def validate_chapter16_constraints(self) -> bool:
         """Validate ligature satisfies Chapter 16 mathematical constraints."""
@@ -250,6 +260,8 @@ class SpatialCorrespondenceEngine:
         self._position_predicates(layout)
         # Phase 3b: Snap ligature endpoints to predicate centers now that predicates have bounds
         self._snap_ligatures_to_predicates(layout)
+        # Phase 3b.1: Compute bridge markers for unavoidable ligature–ligature crossings
+        self._compute_ligature_bridges(layout)
         # Phase 3c: Compute superscript annotation bounds (variable labels and arity)
         self._position_superscripts(layout)
         
@@ -700,7 +712,15 @@ class SpatialCorrespondenceEngine:
                 ligature_id=ligature_id,
                 vertices=vertex_ids,
                 spatial_path=path_points,
-                branching_points=branching_points
+                branching_points=branching_points,
+                path_style=None,
+                stroke=None,
+                cap=None,
+                join=None,
+                zigzag_amp=None,
+                zigzag_period=None,
+                smooth_radius=None,
+                bridges=[]
             )
 
             # Add to layout
@@ -1166,7 +1186,20 @@ class SpatialCorrespondenceEngine:
                             raise
                     # Emit spatial element for this pair
                     new_id = f"{lid}__{v_id}__{eid}"
-                    lg = LigatureGeometry(ligature_id=new_id, vertices=[v_id], spatial_path=arm_path, branching_points=[])
+                    lg = LigatureGeometry(
+                        ligature_id=new_id,
+                        vertices=[v_id],
+                        spatial_path=arm_path,
+                        branching_points=[],
+                        path_style=None,
+                        stroke=None,
+                        cap=None,
+                        join=None,
+                        zigzag_amp=None,
+                        zigzag_period=None,
+                        smooth_radius=None,
+                        bridges=[]
+                    )
                     new_bounds = self._ligature_bounds_excluding_children(lig_area, arm_path, layout)
                     layout[new_id] = SpatialElement(element_id=new_id, element_type='ligature', logical_area=lig_area, spatial_bounds=new_bounds, ligature_geometry=lg)
                     self.correspondence.ligature_mappings[new_id] = lg
@@ -2251,14 +2284,16 @@ class SpatialCorrespondenceEngine:
                     d = math.hypot(nodes[i][0] - nodes[j][0], nodes[i][1] - nodes[j][1])
                     nbrs[i].append((j, d))
                     nbrs[j].append((i, d))
-        # A*
+        # A* with iteration limit to prevent infinite loops
         def h(i: int) -> float:
             return math.hypot(nodes[i][0] - nodes[1][0], nodes[i][1] - nodes[1][1])
         start_idx, goal_idx = 0, 1
         best = {start_idx: 0.0}
         prev: Dict[int, int] = {}
         pq = [(h(start_idx), 0.0, start_idx, -1)]
-        while pq:
+        max_iterations = 1000  # Prevent infinite loops
+        iteration_count = 0
+        while pq and iteration_count < max_iterations:
             _, g, u, p = heapq.heappop(pq)
             if u in prev:
                 continue
@@ -2270,6 +2305,7 @@ class SpatialCorrespondenceEngine:
                 if ng < best.get(v, float('inf')):
                     best[v] = ng
                     heapq.heappush(pq, (ng + h(v), ng, v, u))
+            iteration_count += 1
         if goal_idx not in prev:
             # Fallback: straight segment
             return [start, end]
@@ -2287,6 +2323,51 @@ class SpatialCorrespondenceEngine:
             if not compact or compact[-1] != pt:
                 compact.append(pt)
         return compact
+
+    def _compute_ligature_bridges(self, layout: Dict[str, SpatialElement]) -> None:
+        """Detect ligature–ligature crossings and assign bridge markers to one of the two
+        ligatures involved (we mark the later/longer one as underpass to create a visual bridge).
+
+        Bridge markers are stored as world coordinates in LigatureGeometry.bridges.
+        """
+        # Collect ligature elements grouped by logical area (same-area crossings matter visually)
+        by_area: Dict[str, List[SpatialElement]] = {}
+        for se in layout.values():
+            if se.element_type == 'ligature' and getattr(se, 'ligature_geometry', None):
+                by_area.setdefault(se.logical_area, []).append(se)
+
+        def segs(path: List[Tuple[float, float]]) -> List[Tuple[Tuple[float, float], Tuple[float, float]]]:
+            return list(zip(path, path[1:])) if len(path) >= 2 else []
+
+        for area_id, ligs in by_area.items():
+            n = len(ligs)
+            for i in range(n):
+                for j in range(i + 1, n):
+                    a = ligs[i].ligature_geometry  # type: ignore[attr-defined]
+                    b = ligs[j].ligature_geometry  # type: ignore[attr-defined]
+                    if not a or not b:
+                        continue
+                    # Skip if identical object
+                    if a is b:
+                        continue
+                    # Check all segment pairs for intersection
+                    for (p1, p2) in segs(a.spatial_path):
+                        for (q1, q2) in segs(b.spatial_path):
+                            ipt = self._segment_intersection_point(p1, p2, q1, q2)
+                            if ipt is None:
+                                continue
+                            # Assign underpass deterministically: choose the ligature with longer total length to get the bridge
+                            def path_len(path: List[Tuple[float, float]]) -> float:
+                                s = 0.0
+                                for u, v in zip(path, path[1:]):
+                                    s += math.hypot(u[0]-v[0], u[1]-v[1])
+                                return s
+                            la = path_len(a.spatial_path)
+                            lb = path_len(b.spatial_path)
+                            under = a if la >= lb else b
+                            # Avoid duplicate markers very close by
+                            if not any(math.hypot(ipt[0]-bx, ipt[1]-by) < 1.0 for (bx, by) in under.bridges):
+                                under.bridges.append(ipt)
 
     def _segment_intersects_rect(self, p1: Tuple[float, float], p2: Tuple[float, float],
                                  rect: Tuple[float, float, float, float]) -> bool:

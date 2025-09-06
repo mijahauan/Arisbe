@@ -1,0 +1,43 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_f25aed81"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_19bc023f",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "phoenix"
+    ],
+    "ar": {
+      "phoenix": 1
+    }
+  },
+  "area": {
+    "sheet_2a99e20d": [
+      "e_f25aed81",
+      "v_19bc023f"
+    ]
+  },
+  "nu": {
+    "e_f25aed81": [
+      "v_19bc023f"
+    ]
+  },
+  "rel": {
+    "e_f25aed81": "phoenix"
+  },
+  "rho": {
+    "v_19bc023f": null
+  },
+  "sheet": "sheet_2a99e20d"
+}

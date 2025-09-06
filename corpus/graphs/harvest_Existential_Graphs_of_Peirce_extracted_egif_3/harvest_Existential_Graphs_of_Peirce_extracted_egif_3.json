@@ -1,0 +1,28 @@
+{
+  "id": "harvest_Existential_Graphs_of_Peirce_extracted_egif_3",
+  "title": "harvest_Existential_Graphs_of_Peirce_extracted_egif_3",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.083203+00:00",
+  "updated": "2025-08-31T12:15:29.083947+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "harvest_Existential_Graphs_of_Peirce_extracted_egif_3.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "(see \"Logic of relatives\")",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(see \"Logic of relatives\")",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[see: \"Logic of relatives\"]",
+      "source": "generated"
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_1154bae3"
+    },
+    {
+      "id": "e_8d3b75d9"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_7e182313",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Human",
+      "Mortal"
+    ],
+    "ar": {
+      "Human": 1,
+      "Mortal": 1
+    }
+  },
+  "area": {
+    "sheet_10aeffaa": [
+      "e_1154bae3",
+      "e_8d3b75d9",
+      "v_7e182313"
+    ]
+  },
+  "nu": {
+    "e_1154bae3": [
+      "v_7e182313"
+    ],
+    "e_8d3b75d9": [
+      "v_7e182313"
+    ]
+  },
+  "rel": {
+    "e_1154bae3": "Human",
+    "e_8d3b75d9": "Mortal"
+  },
+  "rho": {
+    "v_7e182313": null
+  },
+  "sheet": "sheet_10aeffaa"
+}

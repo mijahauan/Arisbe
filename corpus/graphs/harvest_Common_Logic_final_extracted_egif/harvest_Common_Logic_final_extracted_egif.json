@@ -1,0 +1,28 @@
+{
+  "id": "harvest_Common_Logic_final_extracted_egif",
+  "title": "harvest_Common_Logic_final_extracted_egif",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.034047+00:00",
+  "updated": "2025-08-31T12:15:29.034698+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "harvest_Common_Logic_final_extracted_egif.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "~[ \", ?cm?, CG(?x?), ?ecm?, \" ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "~[[: \", ?cm?, CG(?x?), ?ecm?, \"]]",
+      "source": "generated"
+    }
+  }
+}

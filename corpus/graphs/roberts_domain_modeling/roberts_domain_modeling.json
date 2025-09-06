@@ -1,0 +1,28 @@
+{
+  "id": "roberts_domain_modeling",
+  "title": "roberts_domain_modeling",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.093910+00:00",
+  "updated": "2025-08-31T12:15:29.094918+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "roberts_domain_modeling.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "~[ *x (Professor x) ~[ *y *z (Course y) (Has x z) (Person x) (Student z) (Teaches x y) ] ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(not (and (Professor x) (not (and (Course y) (Has x z) (Person x) (Student z) (Teaches x y)))))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "~[[*x] [Professor: *x] ~[[*y] [*z] [Course: *y] [Person: *x] [Student: *z] (Has ?x ?z) (Teaches ?x ?y)]]",
+      "source": "generated"
+    }
+  }
+}

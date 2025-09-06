@@ -14,8 +14,48 @@ Updated: 2025-08-30
 
 ## Architecture
 
-Layered model:
-1. EGI (canonical logic) → 2. Spatial Layout → 3. EGDF/Rendering → 4. Interaction
+### Modular Constraint Architecture
+
+The system implements syntactic and semantic constraints through a layered approach with clear separation of concerns:
+
+**1. Data Layer - EGI Core (`egi_core_dau.py`)**
+- **Pure Mathematical Constraints**: Immutable EGI structures enforce fundamental graph theory rules
+- **Structural Invariants**: RelationalGraphWithCuts ensures ν mappings, area containment, and alphabet consistency
+- **Type Safety**: Vertex, Edge, Cut objects with proper relationships
+
+**2. Coordination Layer - DiagramCoordinator (`src/diagram_coordinator.py`)**
+- **Constraint Orchestration Hub**: Mode-based constraint switching between workflows
+- **Syntactic Constraints**: Cut overlap prevention, proper nesting, ligature connectivity
+- **Semantic Constraints**: Area containment rules, spatial exclusion zones, logical consistency
+- **EGI-EGDF Synchronization**: Maintains logical-spatial correspondence
+
+**3. Interaction Layer - InteractionHandler (`src/interaction_handler.py`)**
+- **Constraint-Aware Input Processing**: Mode management for different constraint levels
+- **Pre-validation**: Filters user actions before they reach the model
+- **Workflow-based Rules**: Different constraints for Composition vs Practice modes
+
+**4. Rendering Layer - SharedDiagramRenderer (`src/shared_diagram_renderer.py`)**
+- **Real-time Constraint Enforcement**: Immediate validation at interaction points
+- **Visual Feedback**: Prevents invalid moves, shows constraint violations
+- **Cut Overlap Prevention**: Validates position changes before allowing moves
+
+### Constraint Flow Through Layers
+
+**User Interaction → Constraint Validation Flow:**
+1. **User Action** (drag cut, move vertex) →
+2. **Rendering Layer** (immediate validation, reject invalid moves) →
+3. **Interaction Layer** (mode-based filtering, constraint context) →
+4. **Coordination Layer** (EGI synchronization, spatial correspondence) →
+5. **Data Layer** (mathematical validation, structural integrity)
+
+### Constraint Types by Layer
+
+- **Rendering Layer**: Cut overlap prevention, resize constraints, visual feedback
+- **Interaction Layer**: Mode-specific rules, user action filtering, context-aware validation
+- **Coordination Layer**: Area containment rules, spatial exclusion zones, EGI-EGDF correspondence
+- **Data Layer**: Graph theory constraints, EG formalism rules, immutable structure guarantees
+
+### Legacy Architecture Components
 
 Key components:
 - Logical layer: `src/egi_core_dau.py`, `src/egif_parser_dau.py`, `src/egif_generator_dau.py`, `src/cgif_*`, `src/clif_*`
@@ -27,10 +67,14 @@ Key components:
 - Export: `src/export/tikz_exporter.py`
 - Interactive sandbox: `tools/drawing_editor.py`, `tools/drawing_to_egi.py`
 
-Principles:
-- Context vs Area: cut size requirements from context; positioning constraints from area bounds.
-- Spatial exclusion: child cuts carve forbidden zones from parent areas; enforced via containment and z-order depth.
-- Ligature rules (Dau Chapter 16): same-area ligatures avoid collisions; cross-area connections may cross cuts; visual single-curve entity.
+### Core Principles
+
+- **Separation of Concerns**: Each layer handles its appropriate constraint level
+- **Mode-based Flexibility**: Different constraint sets for different workflows (EGI-only, EGI+EGDF, brand new)
+- **Real-time Validation**: Immediate feedback at interaction points
+- **Constraint Composition**: Multiple layers contribute to validation
+- **Spatial Exclusion**: Child cuts carve forbidden zones from parent areas; enforced via containment and z-order depth
+- **Ligature Rules** (Dau Chapter 16): Same-area ligatures avoid collisions; cross-area connections may cross cuts; visual single-curve entity
 
 ## Project structure
 

@@ -1,0 +1,28 @@
+{
+  "id": "stanford_nested_quantifiers",
+  "title": "stanford_nested_quantifiers",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.101689+00:00",
+  "updated": "2025-08-31T12:15:29.102697+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "stanford_nested_quantifiers.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "~[ *x *y (Loves x y) ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(not (Loves x y))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "~[[*x] [*y] (Loves ?x ?y)]",
+      "source": "generated"
+    }
+  }
+}

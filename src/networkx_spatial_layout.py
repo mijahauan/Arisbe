@@ -104,8 +104,21 @@ class NetworkXEGILayoutEngine:
     def _compute_graphviz_layout(self, G: nx.DiGraph) -> GraphvizLayoutResult:
         """Use Graphviz to compute hierarchical layout with clusters."""
         try:
-            # Use NetworkX's Graphviz interface for layout with proper area separation
-            pos = nx_agraph.graphviz_layout(G, prog='dot')
+            # Add timeout and iteration limits to prevent infinite loops
+            import signal
+            
+            def timeout_handler(signum, frame):
+                raise TimeoutError("Graphviz layout computation timed out")
+            
+            # Set 5 second timeout for layout computation
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(5)
+            
+            try:
+                # Use NetworkX's Graphviz interface for layout with proper area separation
+                pos = nx_agraph.graphviz_layout(G, prog='dot')
+            finally:
+                signal.alarm(0)  # Cancel timeout
             
             # Scale and separate positions to avoid overlaps
             pos = self._scale_and_separate_positions(pos, G)
@@ -122,7 +135,7 @@ class NetworkXEGILayoutEngine:
                 edge_paths=edge_paths
             )
             
-        except Exception as e:
+        except (Exception, TimeoutError) as e:
             print(f"Graphviz layout failed: {e}, using manual layout")
             # Fallback to manual area-aware layout
             pos = self._create_manual_area_layout(G)

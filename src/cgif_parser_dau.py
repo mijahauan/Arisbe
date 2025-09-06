@@ -18,7 +18,7 @@ Maps to EGI as:
 """
 
 import re
-from typing import List, Dict, Set, Optional, Tuple, Union, Any
+from typing import Dict, List, Set, Tuple, Optional, Tuple, Union, Any
 from dataclasses import dataclass
 from enum import Enum
 

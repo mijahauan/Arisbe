@@ -1,0 +1,28 @@
+{
+  "id": "harvest_Existential_Graphs_of_Peirce_extracted_egif",
+  "title": "harvest_Existential_Graphs_of_Peirce_extracted_egif",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.078922+00:00",
+  "updated": "2025-08-31T12:15:29.079790+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "harvest_Existential_Graphs_of_Peirce_extracted_egif.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "(see \"Erasure\")",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(see \"Erasure\")",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[see: Erasure]",
+      "source": "generated"
+    }
+  }
+}

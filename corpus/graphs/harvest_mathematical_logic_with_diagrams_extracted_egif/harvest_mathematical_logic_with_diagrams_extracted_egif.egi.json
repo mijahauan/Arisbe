@@ -1,0 +1,28 @@
+{
+  "Cut": [],
+  "E": [],
+  "V": [
+    {
+      "id": "v_12f2e155",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [],
+    "ar": {}
+  },
+  "area": {
+    "sheet_e5152939": [
+      "v_12f2e155"
+    ]
+  },
+  "nu": {},
+  "rel": {},
+  "rho": {
+    "v_12f2e155": null
+  },
+  "sheet": "sheet_e5152939"
+}

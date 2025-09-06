@@ -2,13 +2,17 @@
 Platform-agnostic constraint/validation engine for EGI drawings.
 Operates on plain DTOs and has no GUI dependencies.
 
+Implements corrected syntactic vs semantic constraint separation:
+- Syntactic: Spatial overlap prevention, cut nesting, ligature bridges
+- Semantic: Area containment, logical structure preservation
+
 DTO schema:
 {
   'sheet_id': str,
   'cuts': { id: {'rect': (x,y,w,h), 'parent_id': Optional[str]} },
-  'vertices': { id: {'pos': (x,y), 'area_id': str} },
-  'predicates': { id: {'rect': (x,y,w,h), 'area_id': str} },
-  'ligatures': { edge_id: [vertex_ids] },
+  'vertices': { id: {'pos': (x,y), 'radius': float, 'area_id': str, 'name': Optional[str]} },
+  'predicates': { id: {'rect': (x,y,w,h), 'area_id': str, 'text': str} },
+  'ligatures': { edge_id: {'path': [(x,y)...], 'width': float, 'vertices': [ids]} },
 }
 """
 from __future__ import annotations
@@ -49,57 +53,226 @@ def _rect_contains_point(r: Rect, p: Point) -> bool:
     return (x <= px <= x + w) and (y <= py <= y + h)
 
 
-def validate_syntax(dto: Dict[str, Any], egi_locked: bool) -> Tuple[bool, str, Dict[str, Any]]:
-    """Validate syntactic constraints for the given DTO.
-    Returns (ok, msg, info). In unlocked mode, out-of-area is informational.
+def validate_syntactic_constraints(dto: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
+    """Validate syntactic constraints: spatial overlap prevention and cut nesting.
+    Returns (ok, msg, info). Syntactic constraints are always enforced.
     """
+    # 1. Cut nesting validation - cuts must be nested or disjoint
     cuts = dto.get("cuts", {})
-    # Build rects map
-    rects: Dict[str, Rect] = {}
+    cut_rects: Dict[str, Rect] = {}
     for cid, c in cuts.items():
         r = c.get("rect", (0.0, 0.0, 0.0, 0.0))
-        rects[cid] = _rect_to_scene(r)
+        cut_rects[cid] = _rect_to_scene(r)
 
-    # Cuts must be nested or disjoint
-    ids = list(rects.keys())
-    for i in range(len(ids)):
-        for j in range(i + 1, len(ids)):
-            a, b = rects[ids[i]], rects[ids[j]]
+    # Check all cut pairs for proper nesting or disjoint placement
+    cut_ids = list(cut_rects.keys())
+    for i in range(len(cut_ids)):
+        for j in range(i + 1, len(cut_ids)):
+            a, b = cut_rects[cut_ids[i]], cut_rects[cut_ids[j]]
             if not (_rect_contains(b, a) or _rect_contains(a, b) or not _rect_intersects(a, b)):
-                return False, f"Cuts overlap improperly: {ids[i]} vs {ids[j]}", {}
+                return False, f"SYNTACTIC VIOLATION: Cut lines overlap - {cut_ids[i]} vs {cut_ids[j]}", {}
 
-    # Area containment checks
-    allowed = rects
-    out_of_area: List[str] = []
+    # 2. Spatial overlap validation - no element spatial extents can traverse each other
+    violations = _check_spatial_overlaps(dto)
+    if violations:
+        return False, f"SYNTACTIC VIOLATION: {violations[0]}", {"violations": violations}
 
-    # Vertices: point-in-rect
+    # 3. Ligature bridge validation - check for non-planar crossings
+    bridge_info = _check_ligature_crossings(dto)
+    
+    return True, "Syntactic constraints satisfied", {"bridges_needed": bridge_info}
+
+
+def validate_semantic_constraints(dto: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
+    """Validate semantic constraints: area containment and logical structure.
+    Returns (ok, msg, info). Only enforced when semantic mode is active.
+    """
+    cuts = dto.get("cuts", {})
+    cut_rects: Dict[str, Rect] = {}
+    for cid, c in cuts.items():
+        r = c.get("rect", (0.0, 0.0, 0.0, 0.0))
+        cut_rects[cid] = _rect_to_scene(r)
+
+    violations: List[str] = []
+
+    # Area containment - vertices must be within their assigned areas
     for vid, v in dto.get("vertices", {}).items():
         aid = v.get("area_id")
-        if aid and aid in allowed:
-            r = allowed[aid]
+        if aid and aid in cut_rects:
+            area_rect = cut_rects[aid]
             pos = v.get("pos", (0.0, 0.0))
-            if not _rect_contains_point(r, pos):
-                if egi_locked:
-                    return False, f"Vertex {vid} outside area {aid}", {}
-                else:
-                    out_of_area.append(f"vertex {vid}->{aid}")
+            if not _rect_contains_point(area_rect, pos):
+                violations.append(f"Vertex {vid} outside assigned area {aid}")
 
-    # Predicates: center-point-in-rect (approx)
+    # Area containment - predicates must be within their assigned areas
     for pid, p in dto.get("predicates", {}).items():
         aid = p.get("area_id")
-        if aid and aid in allowed:
-            r = allowed[aid]
-            rx, ry, rw, rh = p.get("rect", (0.0, 0.0, 0.0, 0.0))
-            center = (rx + rw / 2.0, ry + rh / 2.0)
-            if not _rect_contains_point(r, center):
-                if egi_locked:
-                    return False, f"Predicate {pid} outside area {aid}", {}
-                else:
-                    out_of_area.append(f"predicate {pid}->{aid}")
+        if aid and aid in cut_rects:
+            area_rect = cut_rects[aid]
+            px, py, pw, ph = p.get("rect", (0.0, 0.0, 0.0, 0.0))
+            center = (px + pw / 2.0, py + ph / 2.0)
+            if not _rect_contains_point(area_rect, center):
+                violations.append(f"Predicate {pid} outside assigned area {aid}")
 
-    if out_of_area:
-        return True, "unlocked: area checks informational", {"out_of_area": out_of_area}
-    return True, "ok", {}
+    # Ligature area constraints - single-area ligatures cannot cross cuts
+    ligature_violations = _check_ligature_area_constraints(dto)
+    violations.extend(ligature_violations)
+
+    if violations:
+        return False, f"SEMANTIC VIOLATION: {violations[0]}", {"violations": violations}
+    
+    return True, "Semantic constraints satisfied", {}
+
+
+def _check_spatial_overlaps(dto: Dict[str, Any]) -> List[str]:
+    """Check for spatial overlaps between element extents with padding."""
+    violations = []
+    
+    # Get all element bounds with padding
+    element_bounds = _get_all_element_bounds_with_padding(dto)
+    
+    # Check all pairs for overlap
+    elements = list(element_bounds.keys())
+    for i in range(len(elements)):
+        for j in range(i + 1, len(elements)):
+            elem_a, elem_b = elements[i], elements[j]
+            bounds_a, bounds_b = element_bounds[elem_a], element_bounds[elem_b]
+            
+            if _rect_intersects(bounds_a, bounds_b):
+                violations.append(f"Spatial overlap between {elem_a} and {elem_b}")
+    
+    return violations
+
+
+def _get_all_element_bounds_with_padding(dto: Dict[str, Any]) -> Dict[str, Rect]:
+    """Get bounding rectangles for all elements including padding."""
+    PADDING = 3.0  # pixels of padding around each element
+    bounds = {}
+    
+    # Vertices - circular bounds with padding, expanded for optional name text
+    for vid, v in dto.get("vertices", {}).items():
+        x, y = v.get("pos", (0.0, 0.0))
+        radius = v.get("radius", 4.0)
+        name = v.get("name")
+        
+        if name:
+            # Estimate text bounds (rough approximation: 8px per character, 12px height)
+            text_width = len(name) * 8.0
+            text_height = 12.0
+            # Position text below vertex dot
+            total_width = max(radius * 2, text_width) + 2 * PADDING
+            total_height = radius * 2 + text_height + 2 * PADDING
+            bounds[f"vertex_{vid}"] = (x - total_width/2, y - radius - PADDING, total_width, total_height)
+        else:
+            # Just the dot with padding
+            total_radius = radius + PADDING
+            bounds[f"vertex_{vid}"] = (x - total_radius, y - total_radius, total_radius * 2, total_radius * 2)
+    
+    # Predicates - rectangular bounds with padding
+    for pid, p in dto.get("predicates", {}).items():
+        px, py, pw, ph = p.get("rect", (0.0, 0.0, 0.0, 0.0))
+        bounds[f"predicate_{pid}"] = (px - PADDING, py - PADDING, pw + 2*PADDING, ph + 2*PADDING)
+    
+    # Ligatures - path bounds with width and padding
+    for lid, lig in dto.get("ligatures", {}).items():
+        path = lig.get("path", [])
+        width = lig.get("width", 2.0) + PADDING
+        if len(path) >= 2:
+            bounds[f"ligature_{lid}"] = _calculate_path_bounds(path, width)
+    
+    # Cuts - rectangular bounds (no padding, they define boundaries)
+    for cid, c in dto.get("cuts", {}).items():
+        cx, cy, cw, ch = c.get("rect", (0.0, 0.0, 0.0, 0.0))
+        bounds[f"cut_{cid}"] = (cx, cy, cw, ch)
+    
+    return bounds
+
+
+def _calculate_path_bounds(path: List[Tuple[float, float]], width: float) -> Rect:
+    """Calculate bounding rectangle for a ligature path with given width."""
+    if not path:
+        return (0.0, 0.0, 0.0, 0.0)
+    
+    xs = [p[0] for p in path]
+    ys = [p[1] for p in path]
+    
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
+    
+    half_width = width / 2.0
+    return (min_x - half_width, min_y - half_width, 
+            max_x - min_x + width, max_y - min_y + width)
+
+
+def _check_ligature_crossings(dto: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Check for ligature-to-ligature crossings that need bridge icons."""
+    ligatures = dto.get("ligatures", {})
+    bridges_needed = []
+    
+    lig_ids = list(ligatures.keys())
+    for i in range(len(lig_ids)):
+        for j in range(i + 1, len(lig_ids)):
+            lig_a, lig_b = ligatures[lig_ids[i]], ligatures[lig_ids[j]]
+            path_a = lig_a.get("path", [])
+            path_b = lig_b.get("path", [])
+            
+            crossing_point = _find_path_intersection(path_a, path_b)
+            if crossing_point:
+                bridges_needed.append({
+                    "ligature_a": lig_ids[i],
+                    "ligature_b": lig_ids[j],
+                    "crossing_point": crossing_point,
+                    "bridge_needed": True
+                })
+    
+    return bridges_needed
+
+
+def _find_path_intersection(path_a: List[Tuple[float, float]], 
+                           path_b: List[Tuple[float, float]]) -> Optional[Tuple[float, float]]:
+    """Find intersection point between two ligature paths."""
+    # Simplified intersection detection - check each segment pair
+    for i in range(len(path_a) - 1):
+        for j in range(len(path_b) - 1):
+            seg_a = (path_a[i], path_a[i + 1])
+            seg_b = (path_b[j], path_b[j + 1])
+            
+            intersection = _line_segment_intersection(seg_a, seg_b)
+            if intersection:
+                return intersection
+    
+    return None
+
+
+def _line_segment_intersection(seg_a: Tuple[Point, Point], 
+                              seg_b: Tuple[Point, Point]) -> Optional[Point]:
+    """Calculate intersection point of two line segments."""
+    (x1, y1), (x2, y2) = seg_a
+    (x3, y3), (x4, y4) = seg_b
+    
+    denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    if abs(denom) < 1e-10:  # Parallel lines
+        return None
+    
+    t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom
+    u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom
+    
+    if 0 <= t <= 1 and 0 <= u <= 1:  # Intersection within both segments
+        ix = x1 + t * (x2 - x1)
+        iy = y1 + t * (y2 - y1)
+        return (ix, iy)
+    
+    return None
+
+
+def _check_ligature_area_constraints(dto: Dict[str, Any]) -> List[str]:
+    """Check semantic constraint: single-area ligatures cannot cross cuts."""
+    violations = []
+    
+    # This would need more complex implementation based on actual ligature-area relationships
+    # For now, return empty list as placeholder
+    
+    return violations
 
 
 def suggest_area_for_point(dto: Dict[str, Any], pos: Point, sheet_id: str) -> str:
@@ -116,6 +289,8 @@ def suggest_area_for_point(dto: Dict[str, Any], pos: Point, sheet_id: str) -> st
                 best_area = area
                 best = cid
     return best
+
+
 
 
 # ---------------- Locked-aware move planning APIs -----------------

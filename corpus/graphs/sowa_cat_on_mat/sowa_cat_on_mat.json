@@ -1,0 +1,34 @@
+{
+  "id": "sowa_cat_on_mat",
+  "title": "sowa_cat_on_mat",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.100103+00:00",
+  "updated": "2025-09-04T01:40:23.701642+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "sowa_cat_on_mat.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x *y (Cat x) (Mat y) (On x y)",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(and (Cat x) (Mat y) (On x y))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[*x] [*y] [Cat: *x] [Mat: *y] (On ?x ?y)",
+      "source": "generated"
+    }
+  },
+  "description": null,
+  "source": null,
+  "logical_pattern": null,
+  "logical_form": null,
+  "natural_language_form": null,
+  "notes": null
+}

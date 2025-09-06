@@ -170,6 +170,7 @@ class EGIController:
             adapter.render_scene(render_commands)
             
             # Update linear forms
+            self.egi_system.get_state()  # Get state for side effects
             egif = self.egi_system.to_egif()
             clif = self.egi_system.to_clif()
             cgif = self.egi_system.to_cgif()
@@ -179,14 +180,27 @@ class EGIController:
         """Generate spatial layout that respects logical area assignments with validation."""
         current_egi = self.egi_system.get_egi()
         
-        # Try NetworkX + Graphviz layout first
+        # Try NetworkX + Graphviz layout first (with safeguards)
         if self.use_networkx_layout:
             try:
                 print("Using NetworkX + Graphviz layout engine...")
                 area_bounds = self._get_initial_area_bounds(current_egi)
-                layout = self.networkx_engine.generate_layout(current_egi, area_bounds)
-                return layout
-            except Exception as e:
+                
+                # Add timeout protection for layout generation
+                import signal
+                def _handle_sigint(self, signum, _frame):
+                    raise TimeoutError("Layout generation timed out")
+                
+                signal.signal(signal.SIGALRM, _handle_sigint)
+                signal.alarm(10)  # 10 second timeout for entire layout
+                
+                try:
+                    layout = self.networkx_engine.generate_layout(current_egi, area_bounds)
+                    return layout
+                finally:
+                    signal.alarm(0)  # Cancel timeout
+                    
+            except (Exception, TimeoutError) as e:
                 print(f"NetworkX layout failed: {e}")
                 print("Rolling back to original layout engine...")
                 self.use_networkx_layout = False
@@ -368,7 +382,7 @@ class EGIController:
     
     def _line_intersects_rectangle(self, p1: Tuple[float, float], p2: Tuple[float, float], 
                                  bounds) -> bool:
-        """Check if line segment intersects rectangle using proper line-rectangle intersection."""
+        """Check line intersection with rectangle using proper line-rectangle intersection."""
         x1, y1 = p1
         x2, y2 = p2
         rect_x = bounds.x

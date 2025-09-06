@@ -1,0 +1,28 @@
+{
+  "id": "harvest_EGIF-Sowa_summary_egif_3",
+  "title": "harvest_EGIF-Sowa_summary_egif_3",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.068164+00:00",
+  "updated": "2025-08-31T12:15:29.068992+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "harvest_EGIF-Sowa_summary_egif_3.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x (African x)",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(African x)",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[*x] [African: *x]",
+      "source": "generated"
+    }
+  }
+}

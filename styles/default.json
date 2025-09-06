@@ -29,7 +29,7 @@
   "vertex.dot": { "fill_color": "#000000", "border_color": "#000000", "border_width": 1, "radius": 3 },
   "vertex.dot.selected": { "fill_color": "#1E88E5" },
 
-  "cut.border": { "line_color": "#000000", "line_width": 1, "radius": 10 },
+  "cut.border": { "border_color": "#000000", "border_width": 2, "fill_color": "transparent", "corner_radius": 15 },
   "cut.border.selected": { "line_color": "#1E88E5", "line_width": 2 },
   "cut.fill.odd": { "fill_color": "rgba(0,0,0,0.08)" },
   "cut.fill.even": { "fill_color": "transparent" },

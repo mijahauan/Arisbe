@@ -1,0 +1,28 @@
+{
+  "id": "shared_constant_disjunction",
+  "title": "shared_constant_disjunction",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.095578+00:00",
+  "updated": "2025-08-31T12:15:29.096431+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "shared_constant_disjunction.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "(Human \"Socrates\") ~[ ~[ (Mortal \"Socrates\") ] ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(and (Human \"Socrates\") (not (not (Mortal \"Socrates\"))))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[Human: Socrates] ~[~[[Mortal: Socrates]]]",
+      "source": "generated"
+    }
+  }
+}

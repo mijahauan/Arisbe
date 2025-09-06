@@ -617,6 +617,49 @@ class TransformationEngine:
         return suggestions
 
 
+def identify_double_negatives(dto: Dict[str, Any], sheet_id: str) -> List[str]:
+    """Identify cuts that are double negatives (empty cuts not on sheet of assertion).
+    
+    Returns list of cut IDs that are double negatives and can be deleted.
+    A double negative is a cut that:
+    1. Is not the sheet of assertion
+    2. Contains no vertices
+    3. Contains no predicates  
+    4. Contains no child cuts
+    
+    This function supports the double cut erasure transformation rule.
+    """
+    double_negatives = []
+    cuts = dto.get("cuts", {})
+    vertices = dto.get("vertices", {})
+    predicates = dto.get("predicates", {})
+    
+    for cid, cut in cuts.items():
+        # Skip sheet of assertion
+        if cid == sheet_id:
+            continue
+            
+        # Check if cut contains any vertices
+        has_vertices = any(v.get("area_id") == cid for v in vertices.values())
+        if has_vertices:
+            continue
+            
+        # Check if cut contains any predicates
+        has_predicates = any(p.get("area_id") == cid for p in predicates.values())
+        if has_predicates:
+            continue
+            
+        # Check if cut contains any child cuts
+        has_child_cuts = any(c.get("parent_id") == cid for c in cuts.values())
+        if has_child_cuts:
+            continue
+            
+        # This is a double negative
+        double_negatives.append(cid)
+        
+    return double_negatives
+
+
 # Global transformation engine instance
 _transformation_engine = None
 

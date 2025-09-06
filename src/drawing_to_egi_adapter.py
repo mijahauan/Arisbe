@@ -23,17 +23,67 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
     # Default sheet id if absent
     sheet_id: str = drawing.get("sheet_id") or "sheet"
 
-    # Collect basic sets
-    cut_ids: Set[str] = {c.get("id") for c in drawing.get("cuts", []) if c.get("id")}
-    vertex_ids: Set[str] = {v.get("id") for v in drawing.get("vertices", []) if v.get("id")}
-    edge_ids: Set[str] = {p.get("id") for p in drawing.get("predicates", []) if p.get("id")}
+    # Collect basic sets - handle both dict and list formats
+    cuts_data = drawing.get("cuts", [])
+    if isinstance(cuts_data, dict):
+        cut_ids: Set[str] = set(cuts_data.keys())
+    else:
+        cut_ids: Set[str] = {c.get("id") for c in cuts_data if isinstance(c, dict) and c.get("id")}
+    
+    vertices_data = drawing.get("vertices", [])
+    if isinstance(vertices_data, dict):
+        vertex_ids: Set[str] = set(vertices_data.keys())
+    else:
+        vertex_ids: Set[str] = {v.get("id") for v in vertices_data if isinstance(v, dict) and v.get("id")}
+    
+    predicates_data = drawing.get("predicates", [])
+    if isinstance(predicates_data, dict):
+        edge_ids: Set[str] = set(predicates_data.keys())
+    else:
+        edge_ids: Set[str] = {p.get("id") for p in predicates_data if isinstance(p, dict) and p.get("id")}
 
-    V = tuple(Vertex(vid) for vid in sorted(vertex_ids))
+    # Build vertices with proper label and is_generic properties
+    vertex_objects = []
+    for vid in sorted(vertex_ids):
+        # Find the vertex data in the drawing schema
+        vertex_data = None
+        vertices_data = drawing.get("vertices", [])
+        if isinstance(vertices_data, dict):
+            vertex_data = vertices_data.get(vid, {})
+        else:
+            for v in vertices_data:
+                if isinstance(v, dict) and v.get("id") == vid:
+                    vertex_data = v
+                    break
+        
+        if vertex_data:
+            lk = vertex_data.get("label_kind")
+            lbl = vertex_data.get("label")
+            if lk == "constant" and lbl:
+                # Named constant vertex
+                vertex_objects.append(Vertex(id=vid, label=lbl, is_generic=False))
+            else:
+                # Generic vertex
+                vertex_objects.append(Vertex(id=vid, label=None, is_generic=True))
+        else:
+            # Fallback: treat as generic vertex
+            vertex_objects.append(Vertex(id=vid, label=None, is_generic=True))
+    
+    V = tuple(vertex_objects)
     E = tuple(Edge(eid) for eid in sorted(edge_ids))
     CutSet = tuple(Cut(cid) for cid in sorted(cut_ids))
 
     # Build rel mapping (edge -> name)
-    rel_dict: Dict[str, str] = {p.get("id"): p.get("name", p.get("id")) for p in drawing.get("predicates", []) if p.get("id")}
+    predicates_data = drawing.get("predicates", [])
+    rel_dict: Dict[str, str] = {}
+    if isinstance(predicates_data, dict):
+        for pid, pdata in predicates_data.items():
+            if isinstance(pdata, dict):
+                rel_dict[pid] = pdata.get("name", pdata.get("text", pid))
+            else:
+                rel_dict[pid] = pid
+    else:
+        rel_dict = {p.get("id"): p.get("name", p.get("id")) for p in predicates_data if isinstance(p, dict) and p.get("id")}
 
     # Build nu mapping (edge -> tuple(vertices))
     nu_map: Dict[str, Tuple[str, ...]] = {}
@@ -49,12 +99,23 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
     # --- Early validation: cut parent references and cycles ---
     # Build explicit parent map from the drawing; default parent is sheet
     parent_map: Dict[str, Optional[str]] = {}
-    for c in drawing.get("cuts", []):
-        cid = c.get("id")
-        if not cid:
-            continue
-        pid = c.get("parent_id") or sheet_id
-        parent_map[cid] = pid
+    cuts_data = drawing.get("cuts", [])
+    if isinstance(cuts_data, dict):
+        for cid, cdata in cuts_data.items():
+            if isinstance(cdata, dict):
+                pid = cdata.get("parent_id") or sheet_id
+            else:
+                pid = sheet_id
+            parent_map[cid] = pid
+    else:
+        for c in cuts_data:
+            if not isinstance(c, dict):
+                continue
+            cid = c.get("id")
+            if not cid:
+                continue
+            pid = c.get("parent_id") or sheet_id
+            parent_map[cid] = pid
 
     # Validate parent references exist and detect cycles
     for cid, pid in parent_map.items():
@@ -76,46 +137,96 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
 
     # Build area containment mapping: area_id -> frozenset(child_ids)
     area: Dict[str, Set[str]] = {sheet_id: set()}
-    for c in drawing.get("cuts", []):
-        cid = c.get("id")
-        if not cid:
-            continue
-        area.setdefault(cid, set())
+    cuts_data = drawing.get("cuts", [])
+    if isinstance(cuts_data, dict):
+        for cid in cuts_data.keys():
+            area.setdefault(cid, set())
+    else:
+        for c in cuts_data:
+            if isinstance(c, dict):
+                cid = c.get("id")
+                if cid:
+                    area.setdefault(cid, set())
+    
     # Add child cuts under their parents; default to sheet
-    for c in drawing.get("cuts", []):
-        cid = c.get("id")
-        if not cid:
-            continue
-        parent = c.get("parent_id") or sheet_id
-        area.setdefault(parent, set()).add(cid)
+    if isinstance(cuts_data, dict):
+        for cid, cdata in cuts_data.items():
+            if isinstance(cdata, dict):
+                parent = cdata.get("parent_id") or sheet_id
+            else:
+                parent = sheet_id
+            area.setdefault(parent, set()).add(cid)
+    else:
+        for c in cuts_data:
+            if isinstance(c, dict):
+                cid = c.get("id")
+                if cid:
+                    parent = c.get("parent_id") or sheet_id
+                    area.setdefault(parent, set()).add(cid)
+    
     # Place vertices and edges into their declared areas
-    for v in drawing.get("vertices", []):
-        vid = v.get("id")
-        if not vid:
-            continue
-        area_id = v.get("area_id") or sheet_id
-        area.setdefault(area_id, set()).add(vid)
-    for p in drawing.get("predicates", []):
-        pid = p.get("id")
-        if not pid:
-            continue
-        area_id = p.get("area_id") or sheet_id
-        area.setdefault(area_id, set()).add(pid)
+    vertices_data = drawing.get("vertices", [])
+    if isinstance(vertices_data, dict):
+        for vid, vdata in vertices_data.items():
+            if isinstance(vdata, dict):
+                area_id = vdata.get("area_id") or sheet_id
+            else:
+                area_id = sheet_id
+            area.setdefault(area_id, set()).add(vid)
+    else:
+        for v in vertices_data:
+            if isinstance(v, dict):
+                vid = v.get("id")
+                if vid:
+                    area_id = v.get("area_id") or sheet_id
+                    area.setdefault(area_id, set()).add(vid)
+    
+    predicates_data = drawing.get("predicates", [])
+    if isinstance(predicates_data, dict):
+        for pid, pdata in predicates_data.items():
+            if isinstance(pdata, dict):
+                area_id = pdata.get("area_id") or sheet_id
+            else:
+                area_id = sheet_id
+            area.setdefault(area_id, set()).add(pid)
+    else:
+        for p in predicates_data:
+            if isinstance(p, dict):
+                pid = p.get("id")
+                if pid:
+                    area_id = p.get("area_id") or sheet_id
+                    area.setdefault(area_id, set()).add(pid)
 
     # Compute AlphabetDAU and rho (constants on vertices) if available in drawing
     # Constants set C from vertices with label_kind == 'constant'
     constants: Set[str] = set()
     rho_map: Dict[str, Optional[str]] = {}
-    for v in drawing.get("vertices", []):
-        vid = v["id"]
-        lk = v.get("label_kind")
-        lbl = v.get("label")
-        if lk == "constant" and lbl:
-            constants.add(lbl)
-            rho_map[vid] = lbl
-        else:
-            # explicit None for generic
-            rho_map[vid] = None
+    vertices_data = drawing.get("vertices", [])
+    if isinstance(vertices_data, dict):
+        for vid, vdata in vertices_data.items():
+            if isinstance(vdata, dict):
+                lk = vdata.get("label_kind")
+                lbl = vdata.get("label")
+                if lk == "constant" and lbl:
+                    constants.add(lbl)
+                    rho_map[vid] = lbl
+                else:
+                    rho_map[vid] = None
+            else:
+                rho_map[vid] = None
+    else:
+        for v in vertices_data:
+            if isinstance(v, dict):
+                vid = v.get("id")
+                if vid:
+                    lk = v.get("label_kind")
+                    lbl = v.get("label")
+                    if lk == "constant" and lbl:
+                        constants.add(lbl)
+                        rho_map[vid] = lbl
+                    else:
+                        # explicit None for generic
+                        rho_map[vid] = None
 
     # Relation names (R) from predicates; functions (F) not represented in drawing yet
     relation_names: Set[str] = set(rel_dict.values())

@@ -1,0 +1,39 @@
+{
+  "Cut": [
+    {
+      "id": "c_b0e97b43"
+    }
+  ],
+  "E": [],
+  "V": [
+    {
+      "id": "v_dd33d100",
+      "is_generic": false,
+      "label": ", ?cm?, CG(?x?), ?ecm?, "
+    }
+  ],
+  "alphabet": {
+    "C": [
+      ", ?cm?, CG(?x?), ?ecm?, "
+    ],
+    "F": [],
+    "R": [],
+    "ar": {
+      ", ?cm?, CG(?x?), ?ecm?, ": 1
+    }
+  },
+  "area": {
+    "c_b0e97b43": [
+      "v_dd33d100"
+    ],
+    "sheet_0f3a09e3": [
+      "c_b0e97b43"
+    ]
+  },
+  "nu": {},
+  "rel": {},
+  "rho": {
+    "v_dd33d100": ", ?cm?, CG(?x?), ?ecm?, "
+  },
+  "sheet": "sheet_0f3a09e3"
+}

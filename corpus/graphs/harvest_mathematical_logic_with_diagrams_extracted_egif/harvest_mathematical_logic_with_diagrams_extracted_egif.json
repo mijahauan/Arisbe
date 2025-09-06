@@ -1,0 +1,28 @@
+{
+  "id": "harvest_mathematical_logic_with_diagrams_extracted_egif",
+  "title": "harvest_mathematical_logic_with_diagrams_extracted_egif",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.084675+00:00",
+  "updated": "2025-08-31T12:15:29.085461+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "harvest_mathematical_logic_with_diagrams_extracted_egif.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "",
+      "source": "generated"
+    }
+  }
+}

@@ -10,7 +10,7 @@ This implementation replaces the previous "Context" model with Dau's formal:
 """
 
 from dataclasses import dataclass
-from typing import FrozenSet, Dict, Set, List, Optional, Tuple, Union, Any
+from typing import Dict, List, Set, Tuple, Optional, Any, FrozenSet
 from frozendict import frozendict
 import uuid
 from abc import ABC, abstractmethod

@@ -1,0 +1,14 @@
+{
+  "id": "test",
+  "title": "test",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-30T21:27:11.732319+00:00",
+  "updated": "2025-08-30T21:27:11.732319+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  }
+}

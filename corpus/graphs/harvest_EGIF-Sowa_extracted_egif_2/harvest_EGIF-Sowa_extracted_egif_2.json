@@ -1,0 +1,28 @@
+{
+  "id": "harvest_EGIF-Sowa_extracted_egif_2",
+  "title": "harvest_EGIF-Sowa_extracted_egif_2",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.052327+00:00",
+  "updated": "2025-08-31T12:15:29.107621+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "harvest_EGIF-Sowa_extracted_egif_2.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x (family x)",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(family x)",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[*x] [family: *x]",
+      "source": "generated"
+    }
+  }
+}

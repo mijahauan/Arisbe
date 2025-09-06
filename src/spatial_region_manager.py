@@ -68,18 +68,18 @@ class SpatialRegionManager:
         self.regions: Dict[str, SpatialRegion] = {}
         self.logical_area_to_region: Dict[str, str] = {}
         
-        # Create root region for sheet_main
+        # Create root region for sheet
         self._create_root_region()
     
     def _create_root_region(self):
         """Create the root spatial region covering the entire canvas."""
         root_region = SpatialRegion(
-            region_id="region_sheet_main",
-            logical_area_id="sheet_main",
+            region_id="region_sheet",
+            logical_area_id="sheet",
             bounds=(0, 0, self.canvas_width, self.canvas_height)
         )
-        self.regions["region_sheet_main"] = root_region
-        self.logical_area_to_region["sheet_main"] = "region_sheet_main"
+        self.regions["region_sheet"] = root_region
+        self.logical_area_to_region["sheet"] = "region_sheet"
     
     def create_cut_region(self, cut_logical_area_id: str, 
                          parent_logical_area_id: str,
@@ -155,7 +155,7 @@ class SpatialRegionManager:
                 containing_regions.append(region)
         
         if not containing_regions:
-            return "sheet_main"  # Fallback to root
+            return "sheet"  # Fallback to root
         
         # Return the region with the most specific (deepest) logical area
         # This is the region with the most ancestors in the hierarchy

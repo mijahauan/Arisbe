@@ -1,0 +1,43 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_09456b7b"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_cea61b75",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "African"
+    ],
+    "ar": {
+      "African": 1
+    }
+  },
+  "area": {
+    "sheet_645fba53": [
+      "e_09456b7b",
+      "v_cea61b75"
+    ]
+  },
+  "nu": {
+    "e_09456b7b": [
+      "v_cea61b75"
+    ]
+  },
+  "rel": {
+    "e_09456b7b": "African"
+  },
+  "rho": {
+    "v_cea61b75": null
+  },
+  "sheet": "sheet_645fba53"
+}

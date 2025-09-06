@@ -1,0 +1,28 @@
+{
+  "id": "ternary_relation_challenge",
+  "title": "ternary_relation_challenge",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.103239+00:00",
+  "updated": "2025-08-31T12:15:29.104146+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "ternary_relation_challenge.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x *y *z (Between x y z)",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(Between x y z)",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[*x] [*y] [*z] (Between ?x ?y ?z)",
+      "source": "generated"
+    }
+  }
+}

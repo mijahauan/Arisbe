@@ -1,0 +1,28 @@
+{
+  "id": "dau_theorem_proving",
+  "title": "dau_theorem_proving",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.032217+00:00",
+  "updated": "2025-08-31T12:15:29.033415+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "dau_theorem_proving.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "~[ *x (P x) ~[ *y (Q x y) ~[ ~[ *z (R y z) ~[ (S z) ] ] ] ] ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(not (and (P x) (not (and (Q x y) (not (not (and (R y z) (not (S z)))))))))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "~[[*x] [P: *x] ~[[*y] (Q ?x ?y) ~[~[[*z] (R ?y ?z) ~[[S: *z]]]]]]",
+      "source": "generated"
+    }
+  }
+}

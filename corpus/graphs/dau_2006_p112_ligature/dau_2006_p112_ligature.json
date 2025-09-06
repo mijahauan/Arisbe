@@ -1,0 +1,28 @@
+{
+  "id": "dau_2006_p112_ligature",
+  "title": "dau_2006_p112_ligature",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.030619+00:00",
+  "updated": "2025-08-31T12:15:29.031322+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "dau_2006_p112_ligature.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x (P x) ~[ (Q x) (R x) ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(and (P x) (not (and (Q x) (R x))))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[*x] [P: *x] ~[[Q: *x] [R: *x]]",
+      "source": "generated"
+    }
+  }
+}

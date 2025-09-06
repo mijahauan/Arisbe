@@ -1,12 +1,12 @@
 # Arisbe: Working Plan
 
-Last updated: 2025-08-26 (local)
+Last updated: 2025-09-06 (current architecture)
 
 ## Purpose
-Re-establish a concise, actionable plan that aligns code, tests, and docs to the layered architecture for Existential Graphs (EG) based on Dau’s formalism. This plan is for day-to-day execution and progress tracking.
+Re-establish a concise, actionable plan that aligns code, tests, and docs to the layered architecture for Existential Graphs (EG) based on Dau's formalism. This plan is for day-to-day execution and progress tracking.
 
 ## One-paragraph summary
-Arisbe implements an immutable EGI core (V, E, ν, ⊤, Cut, area, rel) with deterministic EGDF projection and an interaction layer. Rendering follows Dau/Peirce conventions: heavy lines of identity, fine cuts, and proper ligature handling. The current focus is a lighter sandbox GUI (`tools/drawing_editor.py`) backed by a clean EGI↔Spatial correspondence layer that enforces area membership, cut nesting, and collision-safe single-curve ligatures. The broader app targets three sub‑apps: Organon (Browser), Ergasterion (Workshop), and Agon (Endoporeutic Game).
+Arisbe implements an immutable EGI core (V, E, ν, ⊤, Cut, area, rel) with deterministic EGDF projection and a modular interaction layer. Rendering follows Dau/Peirce conventions: heavy lines of identity, fine cuts, and proper ligature handling. The current focus is the refactored sandbox GUI (`tools/drawing_editor_refactored.py`) backed by a robust DiagramCoordinator with mode-based validation (Composition/Practice) and a clean EGI↔Spatial correspondence layer that enforces area membership, cut nesting, and collision-safe single-curve ligatures. The broader app targets three sub‑apps: Organon (Browser), Ergasterion (Workshop), and Agon (Endoporeutic Game).
 
 ## Architecture (from README + docs)
 - EGI (canonical logic, immutable) → Layout/Spatial → Rendering → Interaction.
@@ -16,7 +16,9 @@ Arisbe implements an immutable EGI core (V, E, ν, ⊤, Cut, area, rel) with det
   - `src/egi_spatial_correspondence.py`, `src/spatial_region_manager.py`
   - `src/routing/visibility_router.py`, `src/styling/style_manager.py`
   - `src/export/tikz_exporter.py`
-  - Sandbox GUI: `tools/drawing_editor.py`
+  - Current GUI: `tools/drawing_editor_refactored.py`
+  - Coordination layer: `src/diagram_coordinator.py`
+  - Interaction handler: `src/interaction_handler.py`
 - Key docs: `docs/EGI_SPATIAL_CORRESPONDENCE.md`, `docs/CHAPTER16_COMPLIANCE_CHECKLIST.md`, corpus under `corpus/`.
 
 ## Guiding principles (operational)
@@ -26,25 +28,45 @@ Arisbe implements an immutable EGI core (V, E, ν, ⊤, Cut, area, rel) with det
 - Context-based sizing: cut size driven by its logical context; positioning constrained by the parent area bounds.
 
 ## Current status (observed)
+- **ISSUE**: Basic drawing functionality is broken - cannot actually create diagrams
 - README describes full EGIF↔EGI↔EGDF pipeline and Qt rendering with Dau-compliant styling.
-- Interaction sandbox exists: `tools/drawing_editor.py` (add/edit cuts, vertices, predicates, ligatures; resize/drag with constraints; deletion; throttled interactions).
+- Modular interaction system: `tools/drawing_editor_refactored.py` with DiagramCoordinator providing mode-based validation (Composition/Practice modes).
+- Interactive features implemented but not functional: add/edit cuts, vertices, predicates, ligatures; resize/drag with constraints; deletion; context menus; visual selection feedback.
+- User-drawn ligature system with semantic validation hooks and identity connection tracking.
 - Spatial correspondence design documented in `docs/EGI_SPATIAL_CORRESPONDENCE.md`.
 - Rich test suite under `tests/` for ligature routing, spatial exclusion, Chapter 16 compliance, and adapters.
 
+## Key Requirements from User Specification
+- **Constraint Hierarchy**: Syntactic (always ON) vs Semantic (Practice Mode only)
+  - Syntactic: prevent overlaps, enforce cut nesting, ligature collision avoidance
+  - Semantic: area containment, prevent meaning changes, name/arity protection
+- **Selection System**: Mode-dependent behavior
+  - Composition Mode: full editing with repositioning, naming, deletion
+  - Practice Mode: meaning-preserving repositioning only, transformation rule support
+- **Multi-element Selection**: drag rectangle and alt/cmd-click for proper subgraphs
+- **Proper Subgraph Definition**: Individual elements or cut+context groups for transformations
+
 ## Objectives (near-term)
-1. Solidify EGI↔Spatial Correspondence API with validations and deterministic outputs.
-2. Enforce ligature path rules: single-curve, same-area collision avoidance, cross-area legality.
-3. Establish canonical EGDF projection and wire to a read-only Organon pane.
-4. Add selection overlays and context-sensitive actions in sandbox GUI.
-5. Begin Chapter 16 transformation palette with legality checks (Practice mode groundwork).
+1. **CRITICAL**: Fix basic drawing functionality - ensure elements can actually be created and positioned
+2. **HIGH**: Implement constraint hierarchy separation (syntactic vs semantic)
+3. **HIGH**: Add multi-element selection system (drag rectangle, alt/cmd-click)
+4. **HIGH**: Create mode-aware context menus for Composition vs Practice modes
+5. ✅ Solidify EGI↔Spatial Correspondence API with validations and deterministic outputs.
+6. ✅ Enforce ligature path rules: single-curve, same-area collision avoidance, cross-area legality.
+7. ✅ Add selection overlays and context-sensitive actions in sandbox GUI.
+8. Establish canonical EGDF projection and wire to a read-only Organon pane.
+9. Implement constraint enforcement (stop-movement) for invalid operations.
+10. Add Practice Mode confirmation dialog for mode transitions.
+11. Create 6-button transformation rule interface for Practice Mode.
 
 ## Milestones
 - Milestone 1: Robust EGIF↔EGI↔EGDF round‑trip and canonicalization
   - Validate round-trip on corpus and ensure deterministic EGDF docs.
   - Files: `src/egdf_parser.py`, projection in `src/egi_system.py`.
-- Milestone 2: Selection overlays + context actions (Ergasterion)
-  - Overlays for cuts, predicates, ligatures; selection-driven operations.
-  - File: `tools/drawing_editor.py` (UI), hooks into correspondence layer.
+- Milestone 2: ✅ Selection overlays + context actions (Ergasterion)
+  - ✅ Overlays for cuts, predicates, ligatures; selection-driven operations.
+  - ✅ Context menus with edit, delete, resize, ligature operations.
+  - File: `tools/drawing_editor_refactored.py` (UI), hooks into correspondence layer.
 - Milestone 3: Background validation + transformation legality
   - Syntactic constraints, Chapter 16 ligature ops, real-time checks.
   - Files: `src/egi_graph_operations.py`, `src/egi_spatial_correspondence.py`.
@@ -77,7 +99,8 @@ Arisbe implements an immutable EGI core (V, E, ν, ⊤, Cut, area, rel) with det
 
 ## Runbook (quick)
 - Install deps: `pip install -r requirements.txt`
-- Launch sandbox GUI: `python tools/drawing_editor.py`
+- Launch current GUI: `python tools/drawing_editor_refactored.py`
+- Launch legacy GUI: `python tools/drawing_editor.py` (deprecated)
 - Headless drawing→EGI check: `python tools/drawing_to_egi.py --input tmp/drawing.json --layout`
 - Validate corpus linear forms: `python tools/validate_corpus_linear_forms.py`
 
@@ -90,6 +113,7 @@ Arisbe implements an immutable EGI core (V, E, ν, ⊤, Cut, area, rel) with det
 - Logical core: `src/egi_core_dau.py`, `src/egif_parser_dau.py`, `src/egif_generator_dau.py`
 - Correspondence + spatial: `src/egi_spatial_correspondence.py`, `src/spatial_region_manager.py`, `src/routing/visibility_router.py`
 - Projection: `src/egdf_parser.py`, `src/egi_system.py`
-- GUI sandbox: `tools/drawing_editor.py`
+- Current GUI: `tools/drawing_editor_refactored.py`
+- Coordination layer: `src/diagram_coordinator.py`
 - Docs: `docs/EGI_SPATIAL_CORRESPONDENCE.md`, `docs/CHAPTER16_COMPLIANCE_CHECKLIST.md`
 - Tests: `tests/` (ligature routing, spatial exclusion, Chapter 16, adapters)

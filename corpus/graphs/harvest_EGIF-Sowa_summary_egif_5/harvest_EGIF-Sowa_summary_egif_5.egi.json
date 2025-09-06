@@ -1,0 +1,50 @@
+{
+  "Cut": [
+    {
+      "id": "c_1f97665e"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_f032e557"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_7529f10c",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "phoenix"
+    ],
+    "ar": {
+      "phoenix": 1
+    }
+  },
+  "area": {
+    "c_1f97665e": [
+      "e_f032e557",
+      "v_7529f10c"
+    ],
+    "sheet_b0b31b6f": [
+      "c_1f97665e"
+    ]
+  },
+  "nu": {
+    "e_f032e557": [
+      "v_7529f10c"
+    ]
+  },
+  "rel": {
+    "e_f032e557": "phoenix"
+  },
+  "rho": {
+    "v_7529f10c": null
+  },
+  "sheet": "sheet_b0b31b6f"
+}

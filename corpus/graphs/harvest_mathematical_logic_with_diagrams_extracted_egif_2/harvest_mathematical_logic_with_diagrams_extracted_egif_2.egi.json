@@ -1,0 +1,28 @@
+{
+  "Cut": [],
+  "E": [],
+  "V": [
+    {
+      "id": "v_e7588d72",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [],
+    "ar": {}
+  },
+  "area": {
+    "sheet_22540d42": [
+      "v_e7588d72"
+    ]
+  },
+  "nu": {},
+  "rel": {},
+  "rho": {
+    "v_e7588d72": null
+  },
+  "sheet": "sheet_22540d42"
+}
