@@ -1,19 +1,18 @@
 """
-DiagramCoordinator - Clean DTO-only version
+DiagramCoordinator - DTO-only version without legacy schema confusion.
 
-This replaces the legacy DiagramCoordinator with a clean implementation that uses
-only the EGI DTO system and eliminates all legacy schema confusion.
+This is a cleaned up version that uses only the EGI DTO system and eliminates
+the legacy current_drawing_schema that was causing data format confusion.
 """
 
 from typing import Dict, List, Set, Tuple, Optional, Any, Union
 from dataclasses import dataclass
 from enum import Enum
 import uuid
-
-# Import DTO classes
 from egi_dto import EGIStateDTO, VertexDTO, EdgeDTO, CutDTO, SpatialInfo
 
-# Import other required classes
+from PySide6.QtCore import QPointF
+from PySide6.QtWidgets import QGraphicsScene
 from styling.style_manager import StyleManager
 
 
@@ -34,9 +33,9 @@ class ValidationMode(Enum):
 
 
 class DiagramCoordinator:
-    """Clean DTO-only DiagramCoordinator without legacy schema confusion."""
+    """DTO-only DiagramCoordinator without legacy schema confusion."""
     
-    def __init__(self, scene, style_manager: StyleManager):
+    def __init__(self, scene: QGraphicsScene, style_manager: StyleManager):
         self.scene = scene
         self.style_manager = style_manager
         self.validation_mode = ValidationMode.COMPOSITION
@@ -50,8 +49,6 @@ class DiagramCoordinator:
             nu_mapping={},
             area_mapping={"sheet": set()}
         )
-        
-        print("Clean DTO-only DiagramCoordinator initialized")
     
     # --- Core Element Creation Methods ---
     
@@ -206,20 +203,14 @@ class DiagramCoordinator:
             area_mapping={"sheet": set()}
         )
         print("Cleared all diagram elements")
-    
-    # --- Legacy Compatibility Methods (minimal implementation) ---
-    
-    def get_current_drawing_schema(self):
-        """Legacy compatibility - returns DTO data in old format."""
-        print("WARNING: get_current_drawing_schema called - this is legacy compatibility")
-        return {
-            "vertices": list(self.egi_state.vertices.values()),
-            "predicates": list(self.egi_state.edges.values()),
-            "cuts": list(self.egi_state.cuts.values()),
-            "ligatures": list(self.egi_state.ligatures.values())
-        }
 
 
-# For backward compatibility, export the Point2D class
-__all__ = ['DiagramCoordinator', 'Point2D', 'ValidationMode']
+# Example usage
+if __name__ == "__main__":
+    print("DTO-only DiagramCoordinator")
+    print("Features:")
+    print("- Uses only EGI DTO system")
+    print("- No legacy schema confusion")
+    print("- Clean, consistent data structures")
+    print("- Proper type safety with dataclasses")
 

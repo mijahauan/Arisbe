@@ -43,86 +43,32 @@ class ConstraintViolationMessage(QGraphicsTextItem):
             self.scene().removeItem(self)
 
 
-class ImprovedResizeHandle(QGraphicsRectItem):
-    """Enhanced resize handle that properly resizes parent cuts."""
+class ResizeHandle(QGraphicsRectItem):
+    """Resize handle for cuts that actually resizes the parent."""
     
-    def __init__(self, x, y, w, h, parent_cut, handle_type="bottom-right"):
+    def __init__(self, x, y, w, h, parent_cut):
         super().__init__(x, y, w, h, parent_cut)
         self.parent_cut = parent_cut
-        self.handle_type = handle_type
+        self.setFlag(QGraphicsItem.ItemIsMovable, True)
+        self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
         
-        # Style the handle
-        self.setPen(QPen(QColor(100, 100, 100), 1))
-        self.setBrush(QBrush(QColor(200, 200, 200, 128)))
-        
-        # Make it interactive
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
-        self.setZValue(1000)  # Always on top
-        
-        # Set cursor
-        self.setCursor(Qt.CursorShape.SizeFDiagCursor)
-    
     def itemChange(self, change, value):
-        """Handle resize by updating parent cut dimensions."""
-        if change == QGraphicsItem.GraphicsItemChange.ItemPositionChange and self.parent_cut:
-            new_pos = value
+        """Handle resize handle movement to resize parent cut."""
+        if change == QGraphicsItem.GraphicsItemChange.ItemPositionHasChanged and self.parent_cut:
+            # Get handle position in parent's coordinate system
+            handle_pos = self.pos()
             parent_rect = self.parent_cut.rect()
-            parent_pos = self.parent_cut.pos()
             
-            # Calculate new dimensions based on handle position
-            if self.handle_type == "bottom-right":
-                # Handle position is relative to parent
-                handle_scene_pos = parent_pos + new_pos
-                
-                # Calculate new width and height
-                new_width = max(50, handle_scene_pos.x() - parent_pos.x())
-                new_height = max(50, handle_scene_pos.y() - parent_pos.y())
-                
-                # Validate the new size doesn't cause invalid overlaps
-                new_rect = QRectF(parent_pos.x(), parent_pos.y(), new_width, new_height)
-                if self._validate_resize(new_rect):
-                    # Update parent cut rectangle
-                    self.parent_cut.setRect(QRectF(0, 0, new_width, new_height))
-                    
-                    # Update handle position to stay at bottom-right corner
-                    return QPointF(new_width - self.rect().width()/2, 
-                                 new_height - self.rect().height()/2)
-                else:
-                    # Reject the resize
-                    return self.pos()
-        
+            # Calculate new cut size based on handle position
+            # Handle is positioned at bottom-right corner
+            new_width = max(50, handle_pos.x() + self.rect().width()/2)
+            new_height = max(50, handle_pos.y() + self.rect().height()/2)
+            
+            # Update parent cut rectangle, keeping top-left corner fixed
+            new_rect = QRectF(parent_rect.x(), parent_rect.y(), new_width, new_height)
+            self.parent_cut.setRect(new_rect)
+            
         return super().itemChange(change, value)
-    
-    def _validate_resize(self, new_rect):
-        """Validate that the new cut size doesn't create invalid overlaps."""
-        if not self.scene():
-            return True
-        
-        # Check against all other cuts
-        for item in self.scene().items():
-            if (hasattr(item, 'cut_id') and 
-                item != self.parent_cut and 
-                hasattr(item, 'sceneBoundingRect')):
-                
-                other_rect = item.sceneBoundingRect()
-                
-                if new_rect.intersects(other_rect):
-                    # Check if it's proper nesting (one fully contains the other)
-                    margin = 5.0  # Small margin for easier nesting
-                    new_rect_expanded = new_rect.adjusted(-margin, -margin, margin, margin)
-                    other_rect_expanded = other_rect.adjusted(-margin, -margin, margin, margin)
-                    
-                    if not (new_rect_expanded.contains(other_rect) or 
-                           other_rect_expanded.contains(new_rect)):
-                        # Partial overlap - not allowed
-                        return False
-        
-        return True
-
-
-# Keep the old ResizeHandle for backward compatibility
-ResizeHandle = ImprovedResizeHandle
 
 
 class InteractiveVertex(QGraphicsEllipseItem):
@@ -181,7 +127,7 @@ class InteractivePredicate(QGraphicsTextItem):
         # Draw selection outline if selected
         if self.isSelected():
             selection_pen = QPen(QColor("#1E88E5"), 2)
-            selection_pen.setStyle(selection_pen.PenStyle.DashLine)
+            selection_pen.setStyle(Qt.PenStyle.DashLine)
             painter.setPen(selection_pen)
             painter.setBrush(QBrush())
             # Draw rectangle around text
@@ -259,120 +205,85 @@ class StyledCutItem(QGraphicsRectItem):
         self.validation_mode = validation_mode  # "composition" or "practice"
         self.nesting_depth = nesting_depth
         
-        # Apply nesting-aware styling
-        self._apply_nesting_style()
+        # Apply basic styling (no apply_cut_style method exists)
+        self.setPen(QPen(QColor("black"), 1))
+        self.setBrush(QBrush(QColor("transparent")))
         
         if interactive:
-            self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, True)
-            self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
-            self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
+            self.setFlag(QGraphicsItem.ItemIsMovable, True)
+            self.setFlag(QGraphicsItem.ItemIsSelectable, True)
+            self.setFlag(QGraphicsItem.ItemSendsGeometryChanges, True)
             self.setAcceptHoverEvents(True)
             
         self.resize_mode = False
-        print(f"DEBUG: Created enhanced StyledCutItem {cut_id} with interactive={interactive}, validation_mode={validation_mode}, depth={nesting_depth}")
+        print(f"DEBUG: Created StyledCutItem {cut_id} with interactive={interactive}, validation_mode={validation_mode}, depth={nesting_depth}")
         
-        # Enhanced resize handles
+        # No permanent resize handles - use hover cursor instead
         self.resize_handles = []
-        
-        # Track last position for moving contained elements
-        self._last_position = self.pos()
-    
-    def _apply_nesting_style(self):
-        """Apply visual styling based on nesting depth."""
-        # Different colors/styles for different nesting levels
-        colors = [
-            QColor(0, 0, 0),      # Level 0: Black
-            QColor(100, 0, 0),    # Level 1: Dark red
-            QColor(0, 100, 0),    # Level 2: Dark green
-            QColor(0, 0, 100),    # Level 3: Dark blue
-            QColor(100, 100, 0),  # Level 4: Dark yellow
-        ]
-        
-        color_index = self.nesting_depth % len(colors)
-        pen_color = colors[color_index]
-        
-        # Thicker lines for deeper nesting
-        line_width = 1 + self.nesting_depth
-        
-        self.setPen(QPen(pen_color, line_width))
-        self.setBrush(QBrush(QColor("transparent")))
     
     def hoverEnterEvent(self, event):
-        """Show resize handles when hovering."""
+        """Show resize cursor when hovering over bottom-right corner."""
         print(f"DEBUG: Cut {self.cut_id} hoverEnterEvent - interactive={self.interactive}")
-        if self.interactive:
-            self._show_resize_handles()
+        if not self.interactive:
+            return super().hoverEnterEvent(event)
+            
+        # Check if hovering near bottom-right corner for resize
+        pos = event.pos()
+        rect = self.rect()
+        corner_size = 20  # Resize area size
+        
+        if (pos.x() > rect.right() - corner_size and 
+            pos.y() > rect.bottom() - corner_size):
+            self.setCursor(Qt.SizeFDiagCursor)  # Diagonal resize cursor
+            self.resize_mode = True
+        else:
+            self.setCursor(Qt.ArrowCursor)
+            self.resize_mode = False
+            
         super().hoverEnterEvent(event)
     
+    def hoverMoveEvent(self, event):
+        """Update cursor based on hover position."""
+        if not self.interactive:
+            return super().hoverMoveEvent(event)
+            
+        # Check if hovering near bottom-right corner for resize
+        pos = event.pos()
+        rect = self.rect()
+        corner_size = 20  # Resize area size
+        
+        if (pos.x() > rect.right() - corner_size and 
+            pos.y() > rect.bottom() - corner_size):
+            self.setCursor(Qt.SizeFDiagCursor)  # Diagonal resize cursor
+            self.resize_mode = True
+        else:
+            self.setCursor(Qt.ArrowCursor)
+            self.resize_mode = False
+            
+        super().hoverMoveEvent(event)
+    
     def hoverLeaveEvent(self, event):
-        """Hide resize handles when not hovering."""
+        """Reset cursor when leaving cut."""
         if self.interactive:
-            self._hide_resize_handles()
+            self.setCursor(Qt.ArrowCursor)
+            self.resize_mode = False
         super().hoverLeaveEvent(event)
     
-    def _show_resize_handles(self):
-        """Show resize handles at corners."""
-        if self.resize_handles:
-            return  # Already showing
-        
-        rect = self.rect()
-        handle_size = 8
-        
-        # Bottom-right handle
-        handle = ImprovedResizeHandle(
-            rect.right() - handle_size/2,
-            rect.bottom() - handle_size/2,
-            handle_size, handle_size,
-            self, "bottom-right"
-        )
-        
-        self.resize_handles.append(handle)
-        if self.scene():
-            self.scene().addItem(handle)
-    
-    def _hide_resize_handles(self):
-        """Hide resize handles."""
-        for handle in self.resize_handles:
-            if self.scene():
-                self.scene().removeItem(handle)
-        self.resize_handles.clear()
-    
     def itemChange(self, change, value):
-        """Enhanced position validation with proper nesting support."""
+        """Validate cut position and handle position changes."""
         if change == QGraphicsItem.GraphicsItemChange.ItemPositionChange:
+            # Validate position before allowing move
             new_pos = value
             if not self._validate_position(new_pos):
                 return self.pos()  # Reject the move
         elif change == QGraphicsItem.GraphicsItemChange.ItemPositionHasChanged:
+            # Position changed successfully - move contained elements with the cut
             self._move_contained_elements()
-            self._update_nesting_depth()
         elif change == QGraphicsItem.GraphicsItemChange.ItemSceneHasChanged:
             # Scene changed
             pass
         
         return super().itemChange(change, value)
-    
-    def _update_nesting_depth(self):
-        """Update nesting depth based on current position."""
-        if not self.scene():
-            return
-        
-        depth = 0
-        current_rect = self.sceneBoundingRect()
-        
-        # Count how many cuts contain this one
-        for item in self.scene().items():
-            if (hasattr(item, 'cut_id') and 
-                item != self and 
-                hasattr(item, 'sceneBoundingRect')):
-                
-                other_rect = item.sceneBoundingRect()
-                if other_rect.contains(current_rect):
-                    depth += 1
-        
-        if depth != self.nesting_depth:
-            self.nesting_depth = depth
-            self._apply_nesting_style()
     
     def _validate_position(self, new_pos):
         """Validate cut position against syntactic and semantic constraints."""

@@ -1,10 +1,19 @@
 """
 Platform-agnostic constraint/validation engine for EGI drawings.
-Operates on plain DTOs and has no GUI dependencies.
+Implements the exact constraint policy specified:
 
-Implements corrected syntactic vs semantic constraint separation:
-- Syntactic: Spatial overlap prevention, cut nesting, ligature bridges
-- Semantic: Area containment, logical structure preservation
+PERMISSIVE MODE (syntactic constraints only):
+- Free drag during movement
+- Snap back on invalid drop (cuts overlap or elements superimposed)
+- Allow renaming vertices and predicates
+- Allow re-ordering arity
+
+STRICT MODE (semantic constraints ON):
+- Option 2: Automatic adjustments during drag/insertion
+  - Parent elements adjust (cuts expand, elements move away)
+  - Area elements move away from encroaching elements
+- Prohibit renaming
+- Prohibit re-ordering arity
 
 DTO schema:
 {
@@ -18,17 +27,33 @@ DTO schema:
 from __future__ import annotations
 
 from typing import Dict, Tuple, Optional, List, Any
+from enum import Enum
 
 Rect = Tuple[float, float, float, float]
 Point = Tuple[float, float]
 
 
+class ConstraintMode(Enum):
+    """Constraint modes matching the specified policy."""
+    PERMISSIVE = "permissive"  # Syntactic only - free drag, snap back on invalid drop
+    STRICT = "strict"          # Semantic ON - automatic adjustments, prohibit renaming
+
+
+class ValidationResult:
+    """Result of constraint validation."""
+    def __init__(self, valid: bool, message: str = "", adjustments: Optional[Dict[str, Any]] = None):
+        self.valid = valid
+        self.message = message
+        self.adjustments = adjustments or {}
+
+
 def _rect_to_scene(rect: Rect) -> Rect:
-    # Rect is already in absolute coords in DTO
+    """Convert rect to scene coordinates (already absolute in DTO)."""
     return rect
 
 
 def _rect_contains(a: Rect, b: Rect, eps: float = 0.5) -> bool:
+    """Check if rect a fully contains rect b with epsilon tolerance."""
     ax, ay, aw, ah = a
     bx, by, bw, bh = b
     return (
@@ -40,6 +65,7 @@ def _rect_contains(a: Rect, b: Rect, eps: float = 0.5) -> bool:
 
 
 def _rect_intersects(a: Rect, b: Rect) -> bool:
+    """Check if two rectangles intersect."""
     ax, ay, aw, ah = a
     bx, by, bw, bh = b
     return not (
@@ -48,16 +74,162 @@ def _rect_intersects(a: Rect, b: Rect) -> bool:
 
 
 def _rect_contains_point(r: Rect, p: Point) -> bool:
+    """Check if rectangle contains point."""
     x, y, w, h = r
     px, py = p
     return (x <= px <= x + w) and (y <= py <= y + h)
 
 
-def validate_syntactic_constraints(dto: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
-    """Validate syntactic constraints: spatial overlap prevention and cut nesting.
-    Returns (ok, msg, info). Syntactic constraints are always enforced.
+def _expand_rect_to_contain(parent: Rect, child: Rect, margin: float = 10.0) -> Rect:
+    """Expand parent rectangle to fully contain child with margin."""
+    px, py, pw, ph = parent
+    cx, cy, cw, ch = child
+    
+    # Calculate required bounds
+    new_left = min(px, cx - margin)
+    new_top = min(py, cy - margin)
+    new_right = max(px + pw, cx + cw + margin)
+    new_bottom = max(py + ph, cy + ch + margin)
+    
+    return (new_left, new_top, new_right - new_left, new_bottom - new_top)
+
+
+def _move_elements_away(elements: List[Dict[str, Any]], obstacle: Rect, min_distance: float = 15.0) -> Dict[str, Any]:
+    """Move elements away from an obstacle rectangle."""
+    adjustments = {}
+    
+    for elem in elements:
+        elem_id = elem.get('id')
+        elem_type = elem.get('type')
+        
+        if elem_type == 'vertex':
+            pos = elem.get('pos', (0.0, 0.0))
+            if _point_too_close_to_rect(pos, obstacle, min_distance):
+                new_pos = _push_point_away_from_rect(pos, obstacle, min_distance)
+                adjustments[elem_id] = {'pos': new_pos}
+                
+        elif elem_type == 'predicate':
+            rect = elem.get('rect', (0.0, 0.0, 0.0, 0.0))
+            if _rect_too_close_to_rect(rect, obstacle, min_distance):
+                new_rect = _push_rect_away_from_rect(rect, obstacle, min_distance)
+                adjustments[elem_id] = {'rect': new_rect}
+                
+        elif elem_type == 'cut':
+            rect = elem.get('rect', (0.0, 0.0, 0.0, 0.0))
+            if _rect_too_close_to_rect(rect, obstacle, min_distance):
+                new_rect = _push_rect_away_from_rect(rect, obstacle, min_distance)
+                adjustments[elem_id] = {'rect': new_rect}
+    
+    return adjustments
+
+
+def _point_too_close_to_rect(point: Point, rect: Rect, min_distance: float) -> bool:
+    """Check if point is too close to rectangle."""
+    px, py = point
+    rx, ry, rw, rh = rect
+    
+    # Find closest point on rectangle to the point
+    closest_x = max(rx, min(px, rx + rw))
+    closest_y = max(ry, min(py, ry + rh))
+    
+    # Calculate distance
+    dx = px - closest_x
+    dy = py - closest_y
+    distance = (dx * dx + dy * dy) ** 0.5
+    
+    return distance < min_distance
+
+
+def _rect_too_close_to_rect(rect1: Rect, rect2: Rect, min_distance: float) -> bool:
+    """Check if two rectangles are too close."""
+    return _rect_intersects(rect1, rect2) or _rect_distance(rect1, rect2) < min_distance
+
+
+def _rect_distance(rect1: Rect, rect2: Rect) -> float:
+    """Calculate minimum distance between two rectangles."""
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    
+    # Calculate separation on each axis
+    dx = max(0, max(x1 - (x2 + w2), x2 - (x1 + w1)))
+    dy = max(0, max(y1 - (y2 + h2), y2 - (y1 + h1)))
+    
+    return (dx * dx + dy * dy) ** 0.5
+
+
+def _push_point_away_from_rect(point: Point, rect: Rect, min_distance: float) -> Point:
+    """Push point away from rectangle to maintain minimum distance."""
+    px, py = point
+    rx, ry, rw, rh = rect
+    
+    # Find direction to push
+    center_x = rx + rw / 2
+    center_y = ry + rh / 2
+    
+    dx = px - center_x
+    dy = py - center_y
+    
+    if dx == 0 and dy == 0:
+        # Point is at center, push up
+        return (px, ry - min_distance)
+    
+    # Normalize direction and push
+    length = (dx * dx + dy * dy) ** 0.5
+    if length > 0:
+        dx /= length
+        dy /= length
+    
+    # Push to minimum distance from rectangle edge
+    push_distance = min_distance + max(rw, rh) / 2
+    return (center_x + dx * push_distance, center_y + dy * push_distance)
+
+
+def _push_rect_away_from_rect(rect1: Rect, rect2: Rect, min_distance: float) -> Rect:
+    """Push rect1 away from rect2 to maintain minimum distance."""
+    x1, y1, w1, h1 = rect1
+    x2, y2, w2, h2 = rect2
+    
+    # Calculate centers
+    c1x, c1y = x1 + w1 / 2, y1 + h1 / 2
+    c2x, c2y = x2 + w2 / 2, y2 + h2 / 2
+    
+    # Direction from rect2 to rect1
+    dx = c1x - c2x
+    dy = c1y - c2y
+    
+    if dx == 0 and dy == 0:
+        # Overlapping centers, push up
+        new_y = y2 - h1 - min_distance
+        return (x1, new_y, w1, h1)
+    
+    # Normalize direction
+    length = (dx * dx + dy * dy) ** 0.5
+    if length > 0:
+        dx /= length
+        dy /= length
+    
+    # Calculate required separation
+    required_distance = min_distance + (w1 + w2) / 2 + (h1 + h2) / 2
+    
+    # New center position
+    new_c1x = c2x + dx * required_distance
+    new_c1y = c2y + dy * required_distance
+    
+    # Convert back to rect coordinates
+    new_x = new_c1x - w1 / 2
+    new_y = new_c1y - h1 / 2
+    
+    return (new_x, new_y, w1, h1)
+
+
+def validate_syntactic_constraints(dto: Dict[str, Any]) -> ValidationResult:
     """
-    # 1. Cut nesting validation - cuts must be nested or disjoint
+    Validate syntactic constraints (always enforced in both modes):
+    - Cuts must be nested or disjoint (no partial overlaps)
+    - No element spatial overlaps
+    - Ligature bridge validation
+    """
+    # 1. Cut nesting validation
     cuts = dto.get("cuts", {})
     cut_rects: Dict[str, Rect] = {}
     for cid, c in cuts.items():
@@ -70,22 +242,27 @@ def validate_syntactic_constraints(dto: Dict[str, Any]) -> Tuple[bool, str, Dict
         for j in range(i + 1, len(cut_ids)):
             a, b = cut_rects[cut_ids[i]], cut_rects[cut_ids[j]]
             if not (_rect_contains(b, a) or _rect_contains(a, b) or not _rect_intersects(a, b)):
-                return False, f"SYNTACTIC VIOLATION: Cut lines overlap - {cut_ids[i]} vs {cut_ids[j]}", {}
+                return ValidationResult(
+                    False, 
+                    f"SYNTACTIC VIOLATION: Cuts partially overlap - {cut_ids[i]} vs {cut_ids[j]}"
+                )
 
-    # 2. Spatial overlap validation - no element spatial extents can traverse each other
+    # 2. Spatial overlap validation
     violations = _check_spatial_overlaps(dto)
     if violations:
-        return False, f"SYNTACTIC VIOLATION: {violations[0]}", {"violations": violations}
+        return ValidationResult(False, f"SYNTACTIC VIOLATION: {violations[0]}")
 
-    # 3. Ligature bridge validation - check for non-planar crossings
+    # 3. Ligature bridge validation
     bridge_info = _check_ligature_crossings(dto)
     
-    return True, "Syntactic constraints satisfied", {"bridges_needed": bridge_info}
+    return ValidationResult(True, "Syntactic constraints satisfied", {"bridges_needed": bridge_info})
 
 
-def validate_semantic_constraints(dto: Dict[str, Any]) -> Tuple[bool, str, Dict[str, Any]]:
-    """Validate semantic constraints: area containment and logical structure.
-    Returns (ok, msg, info). Only enforced when semantic mode is active.
+def validate_semantic_constraints(dto: Dict[str, Any]) -> ValidationResult:
+    """
+    Validate semantic constraints (only enforced in STRICT mode):
+    - Area containment (elements must be in assigned areas)
+    - Logical structure preservation
     """
     cuts = dto.get("cuts", {})
     cut_rects: Dict[str, Rect] = {}
@@ -114,14 +291,183 @@ def validate_semantic_constraints(dto: Dict[str, Any]) -> Tuple[bool, str, Dict[
             if not _rect_contains_point(area_rect, center):
                 violations.append(f"Predicate {pid} outside assigned area {aid}")
 
-    # Ligature area constraints - single-area ligatures cannot cross cuts
-    ligature_violations = _check_ligature_area_constraints(dto)
-    violations.extend(ligature_violations)
-
     if violations:
-        return False, f"SEMANTIC VIOLATION: {violations[0]}", {"violations": violations}
+        return ValidationResult(False, f"SEMANTIC VIOLATION: {violations[0]}", {"violations": violations})
     
-    return True, "Semantic constraints satisfied", {}
+    return ValidationResult(True, "Semantic constraints satisfied")
+
+
+def validate_movement_permissive(dto: Dict[str, Any], element_id: str, element_type: str, 
+                                new_position: Any) -> ValidationResult:
+    """
+    PERMISSIVE MODE movement validation:
+    - Allow free drag during movement
+    - Validate on drop, return snap-back if invalid
+    """
+    # Create trial DTO with new position
+    trial_dto = dict(dto)
+    trial_dto['cuts'] = {k: dict(v) for k, v in dto.get('cuts', {}).items()}
+    trial_dto['vertices'] = {k: dict(v) for k, v in dto.get('vertices', {}).items()}
+    trial_dto['predicates'] = {k: dict(v) for k, v in dto.get('predicates', {}).items()}
+    
+    # Apply new position
+    if element_type == 'vertex' and element_id in trial_dto['vertices']:
+        trial_dto['vertices'][element_id]['pos'] = new_position
+    elif element_type == 'predicate' and element_id in trial_dto['predicates']:
+        trial_dto['predicates'][element_id]['rect'] = new_position
+    elif element_type == 'cut' and element_id in trial_dto['cuts']:
+        trial_dto['cuts'][element_id]['rect'] = new_position
+    
+    # Validate syntactic constraints only
+    result = validate_syntactic_constraints(trial_dto)
+    
+    if not result.valid:
+        # Return original position for snap-back
+        original_position = None
+        if element_type == 'vertex' and element_id in dto['vertices']:
+            original_position = dto['vertices'][element_id].get('pos')
+        elif element_type == 'predicate' and element_id in dto['predicates']:
+            original_position = dto['predicates'][element_id].get('rect')
+        elif element_type == 'cut' and element_id in dto['cuts']:
+            original_position = dto['cuts'][element_id].get('rect')
+        
+        return ValidationResult(
+            False, 
+            f"Invalid drop: {result.message}. Snapping back to original position.",
+            {element_id: {element_type: original_position}}
+        )
+    
+    return ValidationResult(True, "Movement allowed")
+
+
+def validate_movement_strict(dto: Dict[str, Any], element_id: str, element_type: str, 
+                           new_position: Any) -> ValidationResult:
+    """
+    STRICT MODE movement validation:
+    - Option 2: Automatic adjustments to accommodate movement
+    - Parent elements adjust (cuts expand, elements move away)
+    - Area elements move away from encroaching elements
+    """
+    # Create trial DTO with new position
+    trial_dto = dict(dto)
+    trial_dto['cuts'] = {k: dict(v) for k, v in dto.get('cuts', {}).items()}
+    trial_dto['vertices'] = {k: dict(v) for k, v in dto.get('vertices', {}).items()}
+    trial_dto['predicates'] = {k: dict(v) for k, v in dto.get('predicates', {}).items()}
+    
+    # Apply new position
+    if element_type == 'vertex' and element_id in trial_dto['vertices']:
+        trial_dto['vertices'][element_id]['pos'] = new_position
+    elif element_type == 'predicate' and element_id in trial_dto['predicates']:
+        trial_dto['predicates'][element_id]['rect'] = new_position
+    elif element_type == 'cut' and element_id in trial_dto['cuts']:
+        trial_dto['cuts'][element_id]['rect'] = new_position
+    
+    adjustments = {}
+    
+    # Get the moved element's new bounds
+    moved_element_bounds = None
+    if element_type == 'vertex':
+        x, y = new_position
+        radius = trial_dto['vertices'][element_id].get('radius', 4.0)
+        moved_element_bounds = (x - radius, y - radius, radius * 2, radius * 2)
+    elif element_type == 'predicate':
+        moved_element_bounds = new_position
+    elif element_type == 'cut':
+        moved_element_bounds = new_position
+    
+    if moved_element_bounds:
+        # Find elements that need to move away
+        elements_to_adjust = []
+        
+        # Check vertices
+        for vid, v in trial_dto['vertices'].items():
+            if vid != element_id:
+                pos = v.get('pos', (0.0, 0.0))
+                if _point_too_close_to_rect(pos, moved_element_bounds, 15.0):
+                    elements_to_adjust.append({
+                        'id': vid, 'type': 'vertex', 'pos': pos
+                    })
+        
+        # Check predicates
+        for pid, p in trial_dto['predicates'].items():
+            if pid != element_id:
+                rect = p.get('rect', (0.0, 0.0, 0.0, 0.0))
+                if _rect_too_close_to_rect(rect, moved_element_bounds, 10.0):
+                    elements_to_adjust.append({
+                        'id': pid, 'type': 'predicate', 'rect': rect
+                    })
+        
+        # Check cuts
+        for cid, c in trial_dto['cuts'].items():
+            if cid != element_id:
+                rect = c.get('rect', (0.0, 0.0, 0.0, 0.0))
+                if _rect_too_close_to_rect(rect, moved_element_bounds, 10.0):
+                    elements_to_adjust.append({
+                        'id': cid, 'type': 'cut', 'rect': rect
+                    })
+        
+        # Calculate adjustments to move elements away
+        element_adjustments = _move_elements_away(elements_to_adjust, moved_element_bounds)
+        adjustments.update(element_adjustments)
+        
+        # Check if parent cuts need to expand
+        if element_type in ['vertex', 'predicate']:
+            area_id = None
+            if element_type == 'vertex':
+                area_id = trial_dto['vertices'][element_id].get('area_id')
+            else:
+                area_id = trial_dto['predicates'][element_id].get('area_id')
+            
+            if area_id and area_id in trial_dto['cuts']:
+                parent_rect = trial_dto['cuts'][area_id].get('rect', (0.0, 0.0, 0.0, 0.0))
+                if not _rect_contains_point(parent_rect, new_position if element_type == 'vertex' else (new_position[0] + new_position[2]/2, new_position[1] + new_position[3]/2)):
+                    # Expand parent cut
+                    expanded_rect = _expand_rect_to_contain(parent_rect, moved_element_bounds)
+                    adjustments[area_id] = {'rect': expanded_rect}
+    
+    # Apply adjustments to trial DTO and validate
+    for adj_id, adj_data in adjustments.items():
+        if adj_id in trial_dto['vertices'] and 'pos' in adj_data:
+            trial_dto['vertices'][adj_id]['pos'] = adj_data['pos']
+        elif adj_id in trial_dto['predicates'] and 'rect' in adj_data:
+            trial_dto['predicates'][adj_id]['rect'] = adj_data['rect']
+        elif adj_id in trial_dto['cuts'] and 'rect' in adj_data:
+            trial_dto['cuts'][adj_id]['rect'] = adj_data['rect']
+    
+    # Validate both syntactic and semantic constraints
+    syntactic_result = validate_syntactic_constraints(trial_dto)
+    if not syntactic_result.valid:
+        return ValidationResult(False, f"Automatic adjustment failed: {syntactic_result.message}")
+    
+    semantic_result = validate_semantic_constraints(trial_dto)
+    if not semantic_result.valid:
+        return ValidationResult(False, f"Automatic adjustment failed: {semantic_result.message}")
+    
+    return ValidationResult(True, "Movement allowed with automatic adjustments", adjustments)
+
+
+def validate_naming_change(mode: ConstraintMode, element_type: str, element_id: str, new_name: str) -> ValidationResult:
+    """
+    Validate naming changes based on constraint mode:
+    - PERMISSIVE: Allow renaming
+    - STRICT: Prohibit renaming
+    """
+    if mode == ConstraintMode.STRICT:
+        return ValidationResult(False, "Renaming prohibited in STRICT mode")
+    
+    return ValidationResult(True, "Renaming allowed in PERMISSIVE mode")
+
+
+def validate_arity_change(mode: ConstraintMode, predicate_id: str, new_arity: int) -> ValidationResult:
+    """
+    Validate arity changes based on constraint mode:
+    - PERMISSIVE: Allow arity reordering
+    - STRICT: Prohibit arity reordering
+    """
+    if mode == ConstraintMode.STRICT:
+        return ValidationResult(False, "Arity reordering prohibited in STRICT mode")
+    
+    return ValidationResult(True, "Arity reordering allowed in PERMISSIVE mode")
 
 
 def _check_spatial_overlaps(dto: Dict[str, Any]) -> List[str]:
@@ -149,24 +495,12 @@ def _get_all_element_bounds_with_padding(dto: Dict[str, Any]) -> Dict[str, Rect]
     PADDING = 3.0  # pixels of padding around each element
     bounds = {}
     
-    # Vertices - circular bounds with padding, expanded for optional name text
+    # Vertices - circular bounds with padding
     for vid, v in dto.get("vertices", {}).items():
         x, y = v.get("pos", (0.0, 0.0))
         radius = v.get("radius", 4.0)
-        name = v.get("name")
-        
-        if name:
-            # Estimate text bounds (rough approximation: 8px per character, 12px height)
-            text_width = len(name) * 8.0
-            text_height = 12.0
-            # Position text below vertex dot
-            total_width = max(radius * 2, text_width) + 2 * PADDING
-            total_height = radius * 2 + text_height + 2 * PADDING
-            bounds[f"vertex_{vid}"] = (x - total_width/2, y - radius - PADDING, total_width, total_height)
-        else:
-            # Just the dot with padding
-            total_radius = radius + PADDING
-            bounds[f"vertex_{vid}"] = (x - total_radius, y - total_radius, total_radius * 2, total_radius * 2)
+        total_radius = radius + PADDING
+        bounds[f"vertex_{vid}"] = (x - total_radius, y - total_radius, total_radius * 2, total_radius * 2)
     
     # Predicates - rectangular bounds with padding
     for pid, p in dto.get("predicates", {}).items():
@@ -231,7 +565,6 @@ def _check_ligature_crossings(dto: Dict[str, Any]) -> List[Dict[str, Any]]:
 def _find_path_intersection(path_a: List[Tuple[float, float]], 
                            path_b: List[Tuple[float, float]]) -> Optional[Tuple[float, float]]:
     """Find intersection point between two ligature paths."""
-    # Simplified intersection detection - check each segment pair
     for i in range(len(path_a) - 1):
         for j in range(len(path_b) - 1):
             seg_a = (path_a[i], path_a[i + 1])
@@ -265,20 +598,8 @@ def _line_segment_intersection(seg_a: Tuple[Point, Point],
     return None
 
 
-def _check_ligature_area_constraints(dto: Dict[str, Any]) -> List[str]:
-    """Check semantic constraint: single-area ligatures cannot cross cuts."""
-    violations = []
-    
-    # This would need more complex implementation based on actual ligature-area relationships
-    # For now, return empty list as placeholder
-    
-    return violations
-
-
 def suggest_area_for_point(dto: Dict[str, Any], pos: Point, sheet_id: str) -> str:
-    """Pick the deepest cut whose rect contains the point, else sheet.
-    Deterministic and independent from GUI.
-    """
+    """Pick the deepest cut whose rect contains the point, else sheet."""
     best = sheet_id
     best_area = None
     for cid, c in dto.get("cuts", {}).items():
@@ -290,191 +611,3 @@ def suggest_area_for_point(dto: Dict[str, Any], pos: Point, sheet_id: str) -> st
                 best = cid
     return best
 
-
-
-
-# ---------------- Locked-aware move planning APIs -----------------
-
-def select_subgraph(dto: Dict[str, Any], selection: Dict[str, List[str]]) -> Dict[str, Any]:
-    """Build a canonical subgraph descriptor from selection ids.
-    selection = { 'cuts': [...], 'vertices': [...], 'predicates': [...] }
-
-    If a cut is selected, include its full subtree (cuts + vertices + predicates contained).
-    """
-    sel_cuts = set(selection.get('cuts', []))
-    sel_vertices = set(selection.get('vertices', []))
-    sel_predicates = set(selection.get('predicates', []))
-
-    cuts = dto.get('cuts', {})
-    vertices = dto.get('vertices', {})
-    predicates = dto.get('predicates', {})
-
-    # Compute containment tree for cuts
-    # Parent relation is provided in dto['cuts'][cid]['parent_id']
-    parent = {cid: c.get('parent_id') for cid, c in cuts.items()}
-
-    # Build children index
-    children: Dict[Optional[str], List[str]] = {}
-    for cid, pid in parent.items():
-        children.setdefault(pid, []).append(cid)
-
-    def gather_cut_subtree(root: str, acc: set):
-        if root in acc:
-            return
-        acc.add(root)
-        for ch in children.get(root, []):
-            gather_cut_subtree(ch, acc)
-
-    # Start with explicitly selected ids
-    all_cuts = set()
-    for cid in sel_cuts:
-        if cid in cuts:
-            gather_cut_subtree(cid, all_cuts)
-
-    # If no cut selected, keep as-is
-    if not all_cuts:
-        all_cuts = sel_cuts
-
-    # Include elements that live in any selected cut
-    # (This captures subtree contents when a cut is selected.)
-    all_vertices = set(sel_vertices)
-    for vid, v in vertices.items():
-        if v.get('area_id') in all_cuts:
-            all_vertices.add(vid)
-
-    all_predicates = set(sel_predicates)
-    for pid, p in predicates.items():
-        if p.get('area_id') in all_cuts:
-            all_predicates.add(pid)
-
-    return {
-        'cuts': sorted(all_cuts),
-        'vertices': sorted(all_vertices),
-        'predicates': sorted(all_predicates),
-    }
-
-
-def plan_move(dto: Dict[str, Any], subgraph: Dict[str, List[str]], transform: Dict[str, float], locked: bool) -> Tuple[str, str, Dict[str, Any]]:
-    """Plan a movement for a selected subgraph.
-    transform: {'dx': float, 'dy': float}
-    Returns (status, reason, layout_changes) where status in {'ok','adjusted','reject'}.
-    layout_changes maps ids to their new geometry (for cuts: rect, for vertices: pos, for predicates: rect).
-    """
-    dx = float(transform.get('dx', 0.0))
-    dy = float(transform.get('dy', 0.0))
-    if dx == 0.0 and dy == 0.0:
-        return 'ok', 'no-op', {}
-
-    cuts = dto.get('cuts', {})
-    vertices = dto.get('vertices', {})
-    predicates = dto.get('predicates', {})
-
-    sel_cuts = set(subgraph.get('cuts', []))
-    sel_vertices = set(subgraph.get('vertices', []))
-    sel_predicates = set(subgraph.get('predicates', []))
-
-    # Build proposed changes by applying dx,dy
-    changes: Dict[str, Any] = {}
-
-    def move_rect(r: Rect) -> Rect:
-        x, y, w, h = r
-        return (x + dx, y + dy, w, h)
-
-    for cid in sel_cuts:
-        if cid in cuts:
-            changes[cid] = {'rect': move_rect(cuts[cid].get('rect', (0.0, 0.0, 0.0, 0.0)))}
-
-    for vid in sel_vertices:
-        if vid in vertices:
-            px, py = vertices[vid].get('pos', (0.0, 0.0))
-            changes[vid] = {'pos': (px + dx, py + dy)}
-
-    for pid in sel_predicates:
-        if pid in predicates:
-            changes.setdefault(pid, {})
-            rx, ry, rw, rh = predicates[pid].get('rect', (0.0, 0.0, 0.0, 0.0))
-            changes[pid]['rect'] = (rx + dx, ry + dy, rw, rh)
-
-    # Apply proposed changes to a shallow copy of dto for validation
-    trial = {
-        'sheet_id': dto.get('sheet_id'),
-        'cuts': {k: dict(v) for k, v in cuts.items()},
-        'vertices': {k: dict(v) for k, v in vertices.items()},
-        'predicates': {k: dict(v) for k, v in predicates.items()},
-        'ligatures': {k: list(v) for k, v in dto.get('ligatures', {}).items()},
-    }
-
-    for cid, upd in changes.items():
-        if cid in trial['cuts'] and 'rect' in upd:
-            trial['cuts'][cid]['rect'] = upd['rect']
-        elif cid in trial['vertices'] and 'pos' in upd:
-            trial['vertices'][cid]['pos'] = upd['pos']
-        elif cid in trial['predicates'] and 'rect' in upd:
-            trial['predicates'][cid]['rect'] = upd['rect']
-
-    # Locked: require that area_ids remain the same for moved elements
-    if locked:
-        # Build rects map for areas
-        area_rects: Dict[str, Rect] = {}
-        for aid, c in trial['cuts'].items():
-            area_rects[aid] = c.get('rect', (0.0, 0.0, 0.0, 0.0))
-
-        # Check moved vertices
-        for vid in sel_vertices:
-            v = trial['vertices'].get(vid, {})
-            aid = v.get('area_id')
-            if aid in area_rects:
-                pos = v.get('pos', (0.0, 0.0))
-                if not _rect_contains_point(area_rects[aid], pos):
-                    return 'reject', f'vertex {vid} would leave area {aid}', {}
-
-        # Check moved predicates (center-in-rect)
-        for pid in sel_predicates:
-            p = trial['predicates'].get(pid, {})
-            aid = p.get('area_id')
-            if aid in area_rects:
-                rx, ry, rw, rh = p.get('rect', (0.0, 0.0, 0.0, 0.0))
-                center = (rx + rw / 2.0, ry + rh / 2.0)
-                if not _rect_contains_point(area_rects[aid], center):
-                    return 'reject', f'predicate {pid} would leave area {aid}', {}
-
-        # Check moved cuts remain within their parent cuts (or sheet is unconstrained)
-        for cid in sel_cuts:
-            c = trial['cuts'].get(cid, {})
-            pid = c.get('parent_id')
-            if pid is None or pid == trial.get('sheet_id'):
-                # No parent rect to constrain against
-                continue
-            parent_rect = trial['cuts'].get(pid, {}).get('rect', (0.0, 0.0, 0.0, 0.0))
-            if not _rect_contains(parent_rect, c.get('rect', (0.0, 0.0, 0.0, 0.0))):
-                return 'reject', f'cut {cid} would leave parent {pid}', {}
-
-    # Global validation (nesting/disjoint + area checks under locked flag)
-    ok, msg, _info = validate_syntax(trial, locked)
-    if not ok:
-        return 'reject', msg, {}
-
-    return 'ok', 'planned', changes
-
-
-def commit_move(dto: Dict[str, Any], changes: Dict[str, Any]) -> Dict[str, Any]:
-    """Apply layout changes to DTO immutably and return the updated DTO."""
-    cuts = {k: dict(v) for k, v in dto.get('cuts', {}).items()}
-    vertices = {k: dict(v) for k, v in dto.get('vertices', {}).items()}
-    predicates = {k: dict(v) for k, v in dto.get('predicates', {}).items()}
-
-    for cid, upd in changes.items():
-        if cid in cuts and 'rect' in upd:
-            cuts[cid]['rect'] = upd['rect']
-        elif cid in vertices and 'pos' in upd:
-            vertices[cid]['pos'] = upd['pos']
-        elif cid in predicates and 'rect' in upd:
-            predicates[cid]['rect'] = upd['rect']
-
-    return {
-        'sheet_id': dto.get('sheet_id'),
-        'cuts': cuts,
-        'vertices': vertices,
-        'predicates': predicates,
-        'ligatures': {k: list(v) for k, v in dto.get('ligatures', {}).items()},
-    }
