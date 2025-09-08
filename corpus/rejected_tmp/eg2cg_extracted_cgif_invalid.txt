@@ -1,1 +1,0 @@
-~[ [Farmer *x] [Donkey *y] (Owns ?x ?y) ~[ (Beats ?x ?y) ] ]
