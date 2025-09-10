@@ -1,0 +1,281 @@
+{
+  "validation_summary": {
+    "timestamp": "2025-09-09T10:37:44.585171",
+    "total_rules_tested": 6,
+    "rules_passing": 6,
+    "overall_success_rate": 1.0
+  },
+  "rule_details": {
+    "DC+": {
+      "rule_name": "DC+",
+      "description": "Double Cut Insertion - can be applied in any area to enclose any subgraph",
+      "precondition_checks": [],
+      "postcondition_checks": [],
+      "test_results": {
+        "dc_plus_empty": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        },
+        "dc_plus_single_vertex": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        },
+        "dc_plus_multiple": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        }
+      },
+      "overall_valid": true,
+      "issues": []
+    },
+    "DC-": {
+      "rule_name": "DC-",
+      "description": "Double Cut Erasure - requires identifying double cut pattern",
+      "precondition_checks": [],
+      "postcondition_checks": [],
+      "test_results": {
+        "dc_minus_basic": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        }
+      },
+      "overall_valid": true,
+      "issues": []
+    },
+    "INS": {
+      "rule_name": "INS",
+      "description": "Insertion - requires graph to insert and negative area",
+      "precondition_checks": [],
+      "postcondition_checks": [],
+      "test_results": {
+        "ins_negative_area": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        },
+        "ins_positive_failure": {
+          "passed": true,
+          "steps_successful": "0/1",
+          "errors": [
+            "Step 1: Insertion only allowed in negatively-enclosed areas (odd nesting depth)"
+          ]
+        }
+      },
+      "overall_valid": true,
+      "issues": []
+    },
+    "ERA": {
+      "rule_name": "ERA",
+      "description": "Erasure - requires positive area and subgraph to erase",
+      "precondition_checks": [],
+      "postcondition_checks": [],
+      "test_results": {
+        "era_positive_area": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        },
+        "era_with_edge": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        }
+      },
+      "overall_valid": true,
+      "issues": []
+    },
+    "IT+": {
+      "rule_name": "IT+",
+      "description": "Iteration - requires subgraph and designated area",
+      "precondition_checks": [],
+      "postcondition_checks": [],
+      "test_results": {
+        "it_plus_vertex": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        },
+        "it_plus_relation": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        }
+      },
+      "overall_valid": true,
+      "issues": []
+    },
+    "IT-": {
+      "rule_name": "IT-",
+      "description": "Deiteration - requires duplicate subgraph identification",
+      "precondition_checks": [],
+      "postcondition_checks": [],
+      "test_results": {
+        "it_minus_vertex": {
+          "passed": true,
+          "steps_successful": "1/1",
+          "errors": []
+        }
+      },
+      "overall_valid": true,
+      "issues": []
+    }
+  },
+  "critical_issues": [],
+  "recommendations": [],
+  "test_coverage": {
+    "DC+": {
+      "expected": 5,
+      "actual": 3,
+      "coverage_percent": 60.0
+    },
+    "DC-": {
+      "expected": 4,
+      "actual": 1,
+      "coverage_percent": 25.0
+    },
+    "INS": {
+      "expected": 4,
+      "actual": 2,
+      "coverage_percent": 50.0
+    },
+    "ERA": {
+      "expected": 4,
+      "actual": 2,
+      "coverage_percent": 50.0
+    },
+    "IT+": {
+      "expected": 4,
+      "actual": 2,
+      "coverage_percent": 50.0
+    },
+    "IT-": {
+      "expected": 4,
+      "actual": 1,
+      "coverage_percent": 25.0
+    }
+  },
+  "validation_criteria": {
+    "DC+": {
+      "description": "Double Cut Insertion - can be applied in any area to enclose any subgraph",
+      "preconditions": [
+        "Valid area",
+        "Valid subgraph selection"
+      ],
+      "postconditions": [
+        "Two new cuts created",
+        "Subgraph enclosed",
+        "Area mapping updated"
+      ],
+      "critical_tests": [
+        "empty_area",
+        "single_element",
+        "multiple_elements"
+      ],
+      "edge_cases": [
+        "nested_cuts",
+        "complex_subgraphs"
+      ]
+    },
+    "DC-": {
+      "description": "Double Cut Erasure - requires identifying double cut pattern",
+      "preconditions": [
+        "Single cut selected",
+        "Contains only one inner cut",
+        "Inner cut is empty"
+      ],
+      "postconditions": [
+        "Both cuts removed",
+        "Area mapping cleaned up"
+      ],
+      "critical_tests": [
+        "basic_double_cut",
+        "nested_context"
+      ],
+      "edge_cases": [
+        "non_empty_inner",
+        "multiple_inner_elements"
+      ]
+    },
+    "INS": {
+      "description": "Insertion - requires graph to insert and negative area",
+      "preconditions": [
+        "Negatively-enclosed area",
+        "Valid graph to insert"
+      ],
+      "postconditions": [
+        "Elements added to EGI",
+        "Area mapping updated"
+      ],
+      "critical_tests": [
+        "negative_area_insertion",
+        "positive_area_rejection"
+      ],
+      "edge_cases": [
+        "complex_graphs",
+        "nested_negative_areas"
+      ]
+    },
+    "ERA": {
+      "description": "Erasure - requires positive area and subgraph to erase",
+      "preconditions": [
+        "Positively-enclosed area",
+        "Subgraph exists in area"
+      ],
+      "postconditions": [
+        "Elements removed from EGI",
+        "Area mapping updated"
+      ],
+      "critical_tests": [
+        "positive_area_erasure",
+        "edge_erasure"
+      ],
+      "edge_cases": [
+        "connected_components",
+        "orphaned_edges"
+      ]
+    },
+    "IT+": {
+      "description": "Iteration - requires subgraph and designated area",
+      "preconditions": [
+        "Valid subgraph",
+        "Appropriate target area"
+      ],
+      "postconditions": [
+        "Subgraph copied",
+        "New elements created",
+        "Mappings preserved"
+      ],
+      "critical_tests": [
+        "vertex_iteration",
+        "edge_iteration"
+      ],
+      "edge_cases": [
+        "complex_subgraphs",
+        "cross_area_iteration"
+      ]
+    },
+    "IT-": {
+      "description": "Deiteration - requires duplicate subgraph identification",
+      "preconditions": [
+        "Duplicate subgraph exists",
+        "Proper containment relationship"
+      ],
+      "postconditions": [
+        "One duplicate removed",
+        "Original preserved"
+      ],
+      "critical_tests": [
+        "simple_deiteration",
+        "complex_duplicates"
+      ],
+      "edge_cases": [
+        "partial_duplicates",
+        "nested_duplicates"
+      ]
+    }
+  }
+}

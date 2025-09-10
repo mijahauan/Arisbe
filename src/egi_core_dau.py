@@ -627,10 +627,11 @@ class Alphabet:
     def get_fresh_name(self) -> str:
         """Get fresh variable name."""
         while True:
-            if self.counter < 26:
+            if self.counter < 3:  # Only use x, y, z
                 name = chr(ord('x') + self.counter)
             else:
-                name = f"x{self.counter - 25}"
+                # After z, use x1, x2, x3, etc.
+                name = f"x{self.counter - 2}"
             
             if name not in self.used_names:
                 self.used_names.add(name)

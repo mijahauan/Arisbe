@@ -48,9 +48,9 @@ class EGIFGenerator:
         self.used_labels = set()
         self.defining_vertices = set()
         
-        # CRITICAL FIX: Process vertices in ν mapping order to preserve argument order
-        # This ensures the ν mapping order from Dau's formalism is strictly preserved
-        self._assign_labels_preserving_nu_order(self.graph.sheet, set())
+        # Process all vertices to assign labels
+        processed_vertices = set()
+        self._assign_labels_preserving_nu_order(self.graph.sheet, processed_vertices)
 
     # --- New: compute minimal common ancestor (enclosing) context for each vertex ---
     def _compute_vertex_def_contexts(self) -> None:
