@@ -625,18 +625,201 @@ class DeiterationRule(FormalTransformationRule):
         if not context.selected_subgraph:
             return False, "Must select a subgraph to deiterate"
         
-        # Use proper subgraph isomorphism checking
-        try:
-            from subgraph_isomorphism import ITMinusValidator
-            validator = ITMinusValidator(context.source_egi)
-            can_deiterate, error_msg = validator.can_deiterate(
-                context.selected_subgraph, 
-                context.target_area
-            )
-            return can_deiterate, error_msg
-        except ImportError:
-            # Fallback to simplified check if subgraph_isomorphism not available
-            return True, None
+        # Use simplified deiteration validation that works correctly
+        # The complex ITMinusValidator has issues with recognizing valid candidates
+        return self._check_deiteration_candidates(context)
+    
+    def _check_deiteration_candidates(self, context: TransformationContext) -> Tuple[bool, Optional[str]]:
+        """Check if the selected elements could have been the result of iteration per Dau's formalism."""
+        from src.graph_isomorphism_engine import IsomorphismValidator
+        
+        egi = context.source_egi
+        selected_subgraph = context.selected_subgraph
+        target_area = context.target_area
+        
+        # Build nesting hierarchy (nest of cuts) from target area to sheet
+        nesting_hierarchy = self._get_nesting_hierarchy(egi, target_area)
+        
+        # Use the isomorphism engine for rigorous structural validation
+        validator = IsomorphismValidator()
+        return validator.validate_deiteration_candidate(
+            egi, selected_subgraph, target_area, nesting_hierarchy
+        )
+    
+    def _get_nesting_hierarchy(self, egi: RelationalGraphWithCuts, target_area: ElementID) -> List[ElementID]:
+        """Get ordered list of areas from target_area up to sheet (nest of cuts)."""
+        hierarchy = [target_area]
+        current_area = target_area
+        
+        # Walk up the nesting chain to sheet
+        while current_area != egi.sheet:
+            # Find which area contains current_area
+            parent_area = None
+            for area_id, contents in egi.area.items():
+                if current_area in contents:
+                    parent_area = area_id
+                    break
+            
+            if parent_area is None:
+                break
+                
+            hierarchy.append(parent_area)
+            current_area = parent_area
+        
+        return hierarchy
+    
+    def _contains_identical_subgraph(self, egi: RelationalGraphWithCuts, 
+                                   selected_subgraph: FrozenSet[ElementID],
+                                   search_area: ElementID, 
+                                   target_area: ElementID) -> bool:
+        """Check if search_area contains a structurally identical subgraph to selected_subgraph."""
+        
+        area_contents = egi.area.get(search_area, frozenset())
+        
+        # For complete structural identity, we need to find a mapping from selected_subgraph
+        # elements to area_contents elements that preserves all structural relationships
+        
+        # Generate all possible mappings of selected elements to area elements
+        selected_elements = list(selected_subgraph)
+        area_elements = list(area_contents)
+        
+        # Try all possible mappings of selected elements to area elements
+        from itertools import permutations
+        
+        for mapping_elements in permutations(area_elements, len(selected_elements)):
+            mapping = dict(zip(selected_elements, mapping_elements))
+            
+            if self._is_valid_structural_mapping(egi, selected_subgraph, mapping, search_area):
+                return True
+        
+        return False
+    
+    def _is_valid_structural_mapping(self, egi: RelationalGraphWithCuts,
+                                   selected_subgraph: FrozenSet[ElementID],
+                                   mapping: Dict[ElementID, ElementID],
+                                   search_area: ElementID) -> bool:
+        """Check if mapping preserves all structural relationships per Dau's isomorphism requirements."""
+        
+        # Verify all mapped elements are actually in the search area
+        for mapped_element in mapping.values():
+            if mapped_element not in egi.area.get(search_area, frozenset()):
+                return False
+        
+        # Check structural preservation for each element type
+        for original_id, mapped_id in mapping.items():
+            
+            # Vertex structural identity
+            if self._is_vertex(egi, original_id):
+                if not self._is_vertex(egi, mapped_id):
+                    return False
+                
+                orig_vertex = self._get_vertex(egi, original_id)
+                mapped_vertex = self._get_vertex(egi, mapped_id)
+                
+                # Must have identical properties
+                if (orig_vertex.label != mapped_vertex.label or 
+                    orig_vertex.is_generic != mapped_vertex.is_generic):
+                    return False
+            
+            # Edge structural identity
+            elif self._is_edge(egi, original_id):
+                if not self._is_edge(egi, mapped_id):
+                    return False
+                
+                # Must have same relation name (κ mapping)
+                orig_relation = egi.rel.get(original_id, "")
+                mapped_relation = egi.rel.get(mapped_id, "")
+                if orig_relation != mapped_relation:
+                    return False
+                
+                # Must have structurally equivalent vertex sequences (ν mapping)
+                orig_sequence = egi.nu.get(original_id, ())
+                mapped_sequence = egi.nu.get(mapped_id, ())
+                
+                if not self._sequences_structurally_equivalent(orig_sequence, mapped_sequence, mapping):
+                    return False
+            
+            # Cut structural identity
+            elif self._is_cut(egi, original_id):
+                if not self._is_cut(egi, mapped_id):
+                    return False
+                
+                # Cut contents must be structurally equivalent
+                orig_contents = egi.area.get(original_id, frozenset())
+                mapped_contents = egi.area.get(mapped_id, frozenset())
+                
+                if not self._cut_contents_structurally_equivalent(orig_contents, mapped_contents, mapping):
+                    return False
+        
+        return True
+    
+    def _is_vertex(self, egi: RelationalGraphWithCuts, element_id: ElementID) -> bool:
+        """Check if element is a vertex."""
+        return any(v.id == element_id for v in egi.V)
+    
+    def _is_edge(self, egi: RelationalGraphWithCuts, element_id: ElementID) -> bool:
+        """Check if element is an edge."""
+        return any(e.id == element_id for e in egi.E)
+    
+    def _is_cut(self, egi: RelationalGraphWithCuts, element_id: ElementID) -> bool:
+        """Check if element is a cut."""
+        return any(c.id == element_id for c in egi.Cut)
+    
+    def _get_vertex(self, egi: RelationalGraphWithCuts, element_id: ElementID) -> Vertex:
+        """Get vertex by ID."""
+        for v in egi.V:
+            if v.id == element_id:
+                return v
+        raise ValueError(f"Vertex {element_id} not found")
+    
+    def _get_edge(self, egi: RelationalGraphWithCuts, element_id: ElementID) -> Edge:
+        """Get edge by ID."""
+        for e in egi.E:
+            if e.id == element_id:
+                return e
+        raise ValueError(f"Edge {element_id} not found")
+    
+    def _get_cut(self, egi: RelationalGraphWithCuts, element_id: ElementID) -> Cut:
+        """Get cut by ID."""
+        for c in egi.Cut:
+            if c.id == element_id:
+                return c
+        raise ValueError(f"Cut {element_id} not found")
+    
+    def _sequences_structurally_equivalent(self, seq1: Tuple[ElementID, ...], 
+                                         seq2: Tuple[ElementID, ...], 
+                                         mapping: Dict[ElementID, ElementID]) -> bool:
+        """Check if vertex sequences are structurally equivalent under mapping."""
+        if len(seq1) != len(seq2):
+            return False
+        
+        for i, (orig_vertex_id, mapped_vertex_id) in enumerate(zip(seq1, seq2)):
+            # If original vertex is in our mapping, check if it maps correctly
+            if orig_vertex_id in mapping:
+                if mapping[orig_vertex_id] != mapped_vertex_id:
+                    return False
+            # If not in mapping, vertices should be identical
+            elif orig_vertex_id != mapped_vertex_id:
+                return False
+        
+        return True
+    
+    def _cut_contents_structurally_equivalent(self, contents1: FrozenSet[ElementID],
+                                            contents2: FrozenSet[ElementID],
+                                            mapping: Dict[ElementID, ElementID]) -> bool:
+        """Check if cut contents are structurally equivalent under mapping."""
+        if len(contents1) != len(contents2):
+            return False
+        
+        # All elements in contents1 should map to elements in contents2
+        mapped_contents1 = set()
+        for element_id in contents1:
+            if element_id in mapping:
+                mapped_contents1.add(mapping[element_id])
+            else:
+                mapped_contents1.add(element_id)
+        
+        return mapped_contents1 == set(contents2)
     
     def apply_transformation(self, context: TransformationContext) -> TransformationResult:
         """Apply IT- by removing one instance of the duplicated subgraph."""

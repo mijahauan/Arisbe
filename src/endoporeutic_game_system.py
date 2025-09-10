@@ -14,6 +14,7 @@ from egif_transformation_interface import EGIFTransformationInterface, Transform
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from egif_parser_dau import parse_egif
 from egif_generator_dau import generate_egif
+from graph_isomorphism_engine import GraphIsomorphismEngine, IsomorphismValidator
 
 
 class GameState(Enum):
@@ -156,25 +157,29 @@ class EndoporeuticGame:
     5. Game resolves when claim is proven, disproven, or abandoned
     """
     
-    def __init__(self, game_id: str, domain_model: DomainModel, 
-                 proposer_id: str, skeptic_id: str, umpire_id: Optional[str],
-                 engine: EndoporeuticGameEngine):
-        self.game_id = game_id
+    def __init__(self, domain_model: 'DomainModel'):
+        """Initialize game with domain model."""
+        self.game_id = f"game_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.domain_model = domain_model
-        self.proposer_id = proposer_id
-        self.skeptic_id = skeptic_id
-        self.umpire_id = umpire_id
-        self.engine = engine
-        
         self.state = GameState.SETUP
         self.moves: List[GameMove] = []
         self.current_claim: Optional[str] = None
-        self.proof_context: Optional[ProofContext] = None
+        self.proof_context: Optional['ProofContext'] = None
+        self.engine = EndoporeuticGameEngine()
+        self.isomorphism_validator = IsomorphismValidator()
         
-        self.metadata = {
-            "created": datetime.now().isoformat(),
-            "last_activity": datetime.now().isoformat()
-        }
+        # Initialize composition context for proof attempts
+        self.composition_context = StandardCompositionContexts.create_basic_context()
+        
+        # Set up proof context with domain
+        self.proof_context = ProofContext(
+            context_id=f"proof_{self.game_id}",
+            domain_model=self.domain_model,
+            composition_context=self.composition_context,
+            current_state=self.domain_model.domain_egi
+        )
+        
+        self.state = GameState.DOMAIN_ESTABLISHED
         
         # Initialize the game context
         self._initialize_game_context()
@@ -269,7 +274,7 @@ class EndoporeuticGame:
     def attempt_proof_step(self, player: PlayerRole, transformation_rule: str,
                           target_area: str, operation_details: Dict[str, Any],
                           description: str = "") -> bool:
-        """Attempt a proof step using EG transformations."""
+        """Attempt a proof step using EG transformations with isomorphism validation."""
         
         if self.state not in [GameState.CHALLENGING, GameState.PROOF_ATTEMPT, GameState.DISPROOF_ATTEMPT]:
             raise ValueError(f"Cannot make proof moves in state {self.state}")
@@ -295,6 +300,22 @@ class EndoporeuticGame:
             )
             
             if response.success:
+                # Validate isomorphism for proof steps that require it
+                if self._requires_isomorphism_validation(transformation_rule):
+                    if not self._validate_proof_step_isomorphism(response, operation_details):
+                        self._record_move(
+                            player=player,
+                            move_type="proof_step",
+                            content={
+                                "transformation_rule": transformation_rule,
+                                "operation_details": operation_details,
+                                "error": "Isomorphism validation failed"
+                            },
+                            description=f"Invalid proof step: {description}",
+                            is_valid=False
+                        )
+                        return False
+                
                 # Update proof context
                 self.proof_context.current_state = response.result_egi
                 
@@ -354,6 +375,57 @@ class EndoporeuticGame:
                 validation_notes=str(e)
             )
             return False
+    
+    def _requires_isomorphism_validation(self, transformation_rule: str) -> bool:
+        """Check if transformation rule requires isomorphism validation."""
+        # IT- (deiteration) requires isomorphism validation
+        # IT+ (iteration) may also require validation in some contexts
+        return transformation_rule in ["IT-", "IT+"]
+    
+    def _validate_proof_step_isomorphism(self, response, operation_details: Dict[str, Any]) -> bool:
+        """Validate isomorphism requirements for proof steps."""
+        if not response.result_egi or not self.proof_context:
+            return False
+        
+        # For IT- operations, validate that the removed subgraph had an isomorphic counterpart
+        if "selected_subgraph" in operation_details:
+            selected_elements = operation_details["selected_subgraph"]
+            target_area = operation_details.get("target_area", "sheet")
+            
+            # Use isomorphism validator to check deiteration validity
+            nesting_hierarchy = self._get_nesting_hierarchy(self.proof_context.current_state, target_area)
+            is_valid, error = self.isomorphism_validator.validate_deiteration_candidate(
+                self.proof_context.current_state,
+                frozenset(selected_elements),
+                target_area,
+                nesting_hierarchy
+            )
+            
+            return is_valid
+        
+        return True  # No specific validation needed
+    
+    def _get_nesting_hierarchy(self, egi: RelationalGraphWithCuts, target_area: str) -> List[str]:
+        """Get nesting hierarchy for area validation."""
+        hierarchy = [target_area]
+        current_area = target_area
+        
+        # Walk up the nesting chain to sheet
+        while current_area != egi.sheet:
+            # Find which area contains current_area
+            parent_area = None
+            for area_id, contents in egi.area.items():
+                if current_area in contents:
+                    parent_area = area_id
+                    break
+            
+            if parent_area is None:
+                break
+                
+            hierarchy.append(parent_area)
+            current_area = parent_area
+        
+        return hierarchy
     
     def declare_victory(self, player: PlayerRole, victory_reason: str) -> bool:
         """Player declares victory with reasoning."""
