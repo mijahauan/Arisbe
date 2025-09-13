@@ -1,0 +1,28 @@
+{
+  "id": "mixed_quantifier_complex",
+  "title": "mixed_quantifier_complex",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.088966+00:00",
+  "updated": "2025-08-31T12:15:29.090104+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "mixed_quantifier_complex.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "~[ *x (P x) ~[ *y *z (Q y z) ] ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(not (and (P x) (not (Q y z))))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "~[[*x] [P: *x] ~[[*y] [*z] (Q ?y ?z)]]",
+      "source": "generated"
+    }
+  }
+}

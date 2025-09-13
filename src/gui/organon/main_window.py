@@ -18,7 +18,7 @@ from egi_core_dau import (
     RelationalGraphWithCuts, Vertex, Edge, Cut, AlphabetDAU
 )
 from egi_system import create_egi_system
-from egdf_parser import EGDFDocument
+from egi_dto import EGIStateDTO, egi_to_dto
 import corpus_index as cidx
 
 from .corpus_panel import CorpusPanel
@@ -252,20 +252,18 @@ class OrganonMainWindow(QMainWindow):
         # Load info panel (will detect EGI state and set read-only accordingly)
         self.info_panel.load_graph_dir(gdir)
         
-        # Load diagram if EGDF exists
-        latest = self._find_latest_egdf(gdir)
-        self._cur.latest_egdf_path = latest
-        
-        if latest and latest.exists():
-            # Load and display the diagram using proper DiagramViewer
+        # Load diagram from EGI if available (read-only display)
+        if self._cur.graph is not None:
+            # Convert EGI to DTO for read-only display
             try:
-                self.diagram_viewer.load_egdf_path(latest)
+                from egi_dto import egi_to_dto
+                egi_dto = egi_to_dto(self._cur.graph)
+                self.diagram_viewer.load_egi_dto_readonly(egi_dto)
             except Exception as e:
-                print(f"Warning: Failed to load EGDF: {e}")
-                # If loading fails, clear the viewer
+                print(f"Warning: Failed to convert EGI to DTO for display: {e}")
                 self.diagram_viewer.clear()
         else:
-            # No EGDF exists - clear the viewer (empty state)
+            # No EGI exists - clear the viewer (empty state)
             self.diagram_viewer.clear()
         
         # Update status & handoff visibility
@@ -282,9 +280,15 @@ class OrganonMainWindow(QMainWindow):
         )
 
     def _update_handoff_visibility(self) -> None:
-        # Always allow Ergasterion access when a graph is loaded (for creation or editing)
-        self.btn_open_erg.setEnabled(self._cur.graph_dir is not None)
-
+        """Show/hide handoff button based on EGI availability."""
+        has_egi = self._cur.graph is not None
+        self.btn_open_erg.setVisible(has_egi)
+        
+        if has_egi:
+            self.btn_open_erg.setText("Edit in Ergasterion")
+            self.btn_open_erg.setToolTip("Open this graph in Ergasterion for interactive editing, styling, and transformation practice")
+        else:
+            self.btn_open_erg.setToolTip("No EGI available for editing")
 
     # --- Helpers ---
     def _read_egi_json(self, gdir: Path) -> Optional[RelationalGraphWithCuts]:
@@ -435,6 +439,26 @@ class OrganonMainWindow(QMainWindow):
         return None
 
     # --- Handoff ---
+    def _build_handoff_payload(self, style_id: str = "default") -> Dict[str, Any]:
+        """Build EGI DTO payload for handoff to Ergasterion."""
+        if not self._cur.graph:
+            print("[Organon] No graph available for handoff")
+            return {"egi_dto": None, "style_id": style_id}
+        
+        # Convert current graph to standardized DTO
+        egi_dto = egi_to_dto(self._cur.graph)
+        
+        payload = {
+            "source_path": str(self._cur.graph_dir) if self._cur.graph_dir else "",
+            "graph_dir": str(self._cur.graph_dir) if self._cur.graph_dir else "",
+            "egi_dto": egi_dto,
+            "style_id": style_id,
+        }
+        
+        element_count = len(egi_dto.vertices) + len(egi_dto.edges) + len(egi_dto.cuts)
+        print(f"[Organon] EGI DTO payload created with {element_count} elements")
+        return payload
+
     def _on_open_in_ergasterion(self) -> None:
         if not self._cur.graph_dir:
             try:
@@ -442,69 +466,21 @@ class OrganonMainWindow(QMainWindow):
             except Exception:
                 pass
             return
-        payload = self._build_ergasterion_payload()
-        self.edit_in_ergasterion.emit(payload)
-
-    def _build_ergasterion_payload(self) -> Dict[str, Any]:
-        style_id = "default"
-        egdf_doc = None
-        inline: Dict[str, Any] = {}
         
-        print(f"[Organon] Building payload - graph_dir: {self._cur.graph_dir}, graph: {self._cur.graph is not None}")
-        
-        # Load EGDF first to check for inline EGI
-        if self._cur.latest_egdf_path and self._cur.latest_egdf_path.exists():
+        try:
+            # Build DTO payload
+            payload = self._build_handoff_payload()
+            
+            # Launch Ergasterion with payload
+            from arisbe_home import launch_ergasterion_with_payload
+            launch_ergasterion_with_payload(payload)
+            
+        except Exception as e:
+            print(f"[Organon] Error launching Ergasterion: {e}")
             try:
-                egdf_content = self._cur.latest_egdf_path.read_text(encoding="utf-8")
-                egdf_doc = EGDFDocument.from_json(egdf_content).to_dict()
-                
-                # Use EGDF's inline EGI if available (ensures ID consistency)
-                egdf_inline = egdf_doc.get("egi_ref", {}).get("inline")
-                if egdf_inline:
-                    inline = egdf_inline
-                    print(f"[Organon] Using EGDF inline EGI for ID consistency")
-                else:
-                    print(f"[Organon] EGDF missing inline EGI, falling back to graph EGI")
-                    
-                print(f"[Organon] Successfully loaded EGDF from {self._cur.latest_egdf_path}")
-            except Exception as e:
-                print(f"[Organon] Failed to load EGDF from {self._cur.latest_egdf_path}: {e}")
-                egdf_doc = None
-        else:
-            print(f"[Organon] No EGDF path found: latest_egdf_path={self._cur.latest_egdf_path}")
-        
-        # Fallback: compose inline EGI dict from current graph if no EGDF inline
-        if not inline and self._cur.graph:
-            g = self._cur.graph
-            inline = {
-                "sheet": g.sheet,
-                "V": [{"id": v.id, "label": v.label, "is_generic": v.is_generic} for v in g.V],
-                "E": [{"id": e.id} for e in g.E],
-                "Cut": [{"id": c.id} for c in g.Cut],
-                "nu": {eid: list(g.nu.get(eid, ())) for eid in (e.id for e in g.E)},
-                "rel": dict(g.rel),
-                "area": {k: list(v) for k, v in g.area.items()},
-                "alphabet": {
-                    "C": list(g.alphabet.C),
-                    "F": list(g.alphabet.F),
-                    "R": list(g.alphabet.R),
-                    "ar": dict(g.alphabet.ar),
-                },
-                "rho": dict(g.rho),
-            }
-            print(f"[Organon] Using graph EGI as fallback")
-        else:
-            print(f"[Organon] No EGI data available - inline: {bool(inline)}, graph: {self._cur.graph is not None}")
-        
-        payload = {
-            "source_path": str(self._cur.graph_dir) if self._cur.graph_dir else "",
-            "graph_dir": str(self._cur.graph_dir) if self._cur.graph_dir else "",
-            "egi": inline,
-            "egdf": egdf_doc,
-            "style_id": style_id,
-        }
-        print(f"[Organon] Payload created with {len(inline)} EGI entries, EGDF: {egdf_doc is not None}")
-        return payload
+                QMessageBox.critical(self, "Launch Error", f"Failed to launch Ergasterion: {e}")
+            except Exception:
+                pass
 
     def _on_egi_created(self, egi: RelationalGraphWithCuts) -> None:
         """Handle new EGI created from linear form input."""

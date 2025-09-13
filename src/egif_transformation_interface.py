@@ -106,43 +106,47 @@ class EGIFTransformationInterface:
     
     def _calculate_area_polarity(self, egi: RelationalGraphWithCuts, area_id: str) -> Tuple[str, int]:
         """Calculate polarity and nesting depth for an area."""
-        # Check if this is a cut area or the sheet
+        # Use hierarchical index if available (integral to EGI logic)
+        if egi.hierarchical_index:
+            nesting_depth = egi.hierarchical_index.get_nesting_level(area_id)
+            if nesting_depth is not None:
+                polarity = egi.hierarchical_index.get_polarity(area_id)
+                return polarity, nesting_depth
+        
+        # Fallback to manual calculation only if hierarchical index unavailable
         is_cut_area = any(cut.id == area_id for cut in egi.Cut)
         
         if is_cut_area:
-            # Count the number of cuts that enclose this cut
-            enclosing_cuts = 0
-            current_area = area_id
-            
-            # Traverse up the containment hierarchy
-            while True:
-                # Find which area contains the current area
-                containing_area = None
-                for area_candidate, contents in egi.area.items():
-                    if current_area in contents:
-                        containing_area = area_candidate
-                        break
-                
-                if containing_area is None or containing_area == egi.sheet:
-                    # Reached the sheet - we're done
-                    break
-                
-                # If the containing area is a cut, increment enclosing cuts count
-                if any(cut.id == containing_area for cut in egi.Cut):
-                    enclosing_cuts += 1
-                    current_area = containing_area
-                else:
-                    # Containing area is the sheet
-                    break
-            
-            # Depth = number of enclosing cuts (the cut area itself doesn't add to depth)
-            nesting_depth = enclosing_cuts
+            nesting_depth = self._manual_depth_calculation(egi, area_id)
         else:
             # Sheet area has depth 0
             nesting_depth = 0
         
         polarity = "positive" if nesting_depth % 2 == 0 else "negative"
         return polarity, nesting_depth
+    
+    def _manual_depth_calculation(self, egi: RelationalGraphWithCuts, area_id: str) -> int:
+        """Manual depth calculation fallback when R-tree not available."""
+        nesting_depth = 0
+        current_area = area_id
+        
+        # Traverse up the containment hierarchy
+        while current_area != egi.sheet:
+            # Find which area contains the current area
+            containing_area = None
+            for area_candidate, contents in egi.area.items():
+                if current_area in contents:
+                    containing_area = area_candidate
+                    break
+            
+            if containing_area is None:
+                break
+            
+            # Each step up increases the nesting depth
+            nesting_depth += 1
+            current_area = containing_area
+            
+        return nesting_depth
     
     def create_insertion_subgraph(self, relation_spec: str) -> FrozenSet[ElementID]:
         """

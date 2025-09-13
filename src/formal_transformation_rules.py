@@ -11,7 +11,8 @@ from enum import Enum
 
 from egi_core_dau import RelationalGraphWithCuts, ElementID, Vertex, Edge, Cut
 from frozendict import frozendict
-from level_polarity_adjustment import LevelPolarityAdjuster
+from legacy.level_polarity_adjustment import LevelPolarityAdjuster
+from graph_isomorphism_engine import IsomorphismValidator
 
 
 class AreaPolarity(Enum):
@@ -56,6 +57,20 @@ class FormalTransformationRule(ABC):
     def apply_transformation(self, context: TransformationContext) -> TransformationResult:
         """Apply the transformation rule to create a new EGI."""
         pass
+    
+    def is_closed_subgraph(self, egi: RelationalGraphWithCuts, subgraph: FrozenSet[ElementID]) -> bool:
+        """Check if subgraph is closed per Dau's Definition (no external connections)."""
+        # A subgraph is closed if no edge in the subgraph has a vertex outside the subgraph
+        subgraph_edges = {e_id for e_id in subgraph if any(e.id == e_id for e in egi.E)}
+        
+        for edge_id in subgraph_edges:
+            vertex_sequence = egi.nu.get(edge_id, ())
+            for vertex_id in vertex_sequence:
+                # If edge connects to vertex outside subgraph, it's not closed
+                if vertex_id not in subgraph:
+                    return False
+        
+        return True
     
     def calculate_area_polarity(self, egi: RelationalGraphWithCuts, area_id: ElementID) -> Tuple[AreaPolarity, int]:
         """Calculate the polarity and nesting depth of an area."""
@@ -298,7 +313,7 @@ class InsertionRule(FormalTransformationRule):
     
     def check_preconditions(self, context: TransformationContext) -> Tuple[bool, Optional[str]]:
         """
-        INS requires a graph to insert and a negatively-enclosed area to insert it.
+        INS requires a CLOSED graph to insert and a negatively-enclosed area to insert it.
         """
         if context.area_polarity != AreaPolarity.NEGATIVE:
             return False, "Insertion only allowed in negatively-enclosed areas (odd nesting depth)"
@@ -306,6 +321,10 @@ class InsertionRule(FormalTransformationRule):
         # Verify target area exists
         if context.target_area not in context.source_egi.area:
             return False, f"Target area {context.target_area} does not exist"
+        
+        # CRITICAL: Check if subgraph to insert is closed per Dau's requirement
+        if context.selected_subgraph and not self.is_closed_subgraph(context.source_egi, context.selected_subgraph):
+            return False, "Insertion only applies to closed subgraphs (no external edge connections)"
         
         return True, None
     
@@ -414,7 +433,7 @@ class ErasureRule(FormalTransformationRule):
     
     def check_preconditions(self, context: TransformationContext) -> Tuple[bool, Optional[str]]:
         """
-        ERA requires a positively-enclosed area and a subgraph therein to erase.
+        ERA requires a positively-enclosed area and a CLOSED subgraph therein to erase.
         """
         if context.area_polarity != AreaPolarity.POSITIVE:
             return False, "Erasure only allowed in positively-enclosed areas (even nesting depth)"
@@ -438,6 +457,10 @@ class ErasureRule(FormalTransformationRule):
         elements_in_target = context.selected_subgraph.intersection(area_contents)
         if elements_in_target != context.selected_subgraph:
             return False, "Selected subgraph contains elements not in target area"
+        
+        # CRITICAL: Check if subgraph is closed per Dau's requirement
+        if not self.is_closed_subgraph(context.source_egi, context.selected_subgraph):
+            return False, "Erasure only applies to closed subgraphs (no external edge connections)"
         
         return True, None
     
@@ -625,14 +648,28 @@ class DeiterationRule(FormalTransformationRule):
         if not context.selected_subgraph:
             return False, "Must select a subgraph to deiterate"
         
-        # Use simplified deiteration validation that works correctly
-        # The complex ITMinusValidator has issues with recognizing valid candidates
-        return self._check_deiteration_candidates(context)
+        # Use the sophisticated isomorphism engine for proper Dau compliance
+        return self._check_deiteration_with_isomorphism_engine(context)
     
-    def _check_deiteration_candidates(self, context: TransformationContext) -> Tuple[bool, Optional[str]]:
-        """Check if the selected elements could have been the result of iteration per Dau's formalism."""
-        from src.graph_isomorphism_engine import IsomorphismValidator
+    def _check_deiteration_with_isomorphism_engine(self, context: TransformationContext) -> Tuple[bool, Optional[str]]:
+        """Check deiteration validity using the sophisticated isomorphism engine."""
+        egi = context.source_egi
+        selected_subgraph = context.selected_subgraph
+        target_area = context.target_area
         
+        # Build nesting hierarchy from target area to sheet
+        nesting_hierarchy = self._get_nesting_hierarchy(egi, target_area)
+        
+        # Use IsomorphismValidator for rigorous structural checking
+        validator = IsomorphismValidator()
+        is_valid, error_message = validator.validate_deiteration_candidate(
+            egi, selected_subgraph, target_area, nesting_hierarchy
+        )
+        
+        return is_valid, error_message
+    
+    def _basic_deiteration_validation(self, context: TransformationContext) -> Tuple[bool, Optional[str]]:
+        """Basic deiteration validation fallback when isomorphism engine unavailable."""
         egi = context.source_egi
         selected_subgraph = context.selected_subgraph
         target_area = context.target_area
@@ -640,11 +677,17 @@ class DeiterationRule(FormalTransformationRule):
         # Build nesting hierarchy (nest of cuts) from target area to sheet
         nesting_hierarchy = self._get_nesting_hierarchy(egi, target_area)
         
-        # Use the isomorphism engine for rigorous structural validation
-        validator = IsomorphismValidator()
-        return validator.validate_deiteration_candidate(
-            egi, selected_subgraph, target_area, nesting_hierarchy
-        )
+        # Search for structurally identical subgraph in nesting hierarchy
+        for search_area in nesting_hierarchy:
+            # Skip target area itself (can't deiterate against self)
+            if search_area == target_area:
+                continue
+                
+            # Check if this area contains a structurally identical subgraph
+            if self._contains_identical_subgraph(egi, selected_subgraph, search_area, target_area):
+                return True, None
+        
+        return False, "No structurally identical subgraph found in nest of cuts that could have been iteration source"
     
     def _get_nesting_hierarchy(self, egi: RelationalGraphWithCuts, target_area: ElementID) -> List[ElementID]:
         """Get ordered list of areas from target_area up to sheet (nest of cuts)."""
@@ -852,6 +895,71 @@ class DeiterationRule(FormalTransformationRule):
             return TransformationResult(False, None, str(e), {})
 
 
+class HeavyDotInsertionRule(FormalTransformationRule):
+    """Heavy Dot Insertion Rule - Insert individual vertex in negative context"""
+    
+    def get_rule_name(self) -> str:
+        return "HEAVY_DOT (Heavy Dot Insertion)"
+    
+    def check_preconditions(self, context: TransformationContext) -> Tuple[bool, Optional[str]]:
+        """
+        Heavy dot insertion requires a negatively-enclosed area.
+        """
+        if context.area_polarity != AreaPolarity.NEGATIVE:
+            return False, "Heavy dot insertion only allowed in negatively-enclosed areas (odd nesting depth)"
+        
+        # Verify target area exists
+        if context.target_area not in context.source_egi.area:
+            return False, f"Target area {context.target_area} does not exist"
+        
+        return True, None
+    
+    def apply_transformation(self, context: TransformationContext) -> TransformationResult:
+        """Apply heavy dot insertion by adding a single vertex to the negative area."""
+        precondition_ok, error_msg = self.check_preconditions(context)
+        if not precondition_ok:
+            return TransformationResult(False, None, error_msg, {})
+        
+        try:
+            egi = context.source_egi
+            
+            # Create a new vertex (heavy dot)
+            heavy_dot_id = ElementID("heavy_dot_vertex")
+            heavy_dot_vertex = Vertex(heavy_dot_id)
+            
+            # Add vertex to EGI
+            new_vertices = egi.V | {heavy_dot_vertex}
+            
+            # Update area mapping
+            new_area_mapping = dict(egi.area)
+            current_area_contents = new_area_mapping.get(context.target_area, frozenset())
+            new_area_mapping[context.target_area] = current_area_contents | frozenset([heavy_dot_id])
+            
+            result_egi = RelationalGraphWithCuts(
+                V=new_vertices,
+                E=egi.E,
+                nu=egi.nu,
+                sheet=egi.sheet,
+                Cut=egi.Cut,
+                area=frozendict(new_area_mapping),
+                rel=egi.rel
+            )
+            
+            return TransformationResult(
+                success=True,
+                result_egi=result_egi,
+                error_message=None,
+                changes_made={
+                    "rule": "HEAVY_DOT",
+                    "inserted_vertex": str(heavy_dot_id),
+                    "target_area": str(context.target_area)
+                }
+            )
+            
+        except Exception as e:
+            return TransformationResult(False, None, str(e), {})
+
+
 class FormalTransformationEngine:
     """Engine for applying formal EG transformation rules."""
     
@@ -862,7 +970,8 @@ class FormalTransformationEngine:
             "INS": InsertionRule(),
             "ERA": ErasureRule(),
             "IT+": IterationRule(),
-            "IT-": DeiterationRule()
+            "IT-": DeiterationRule(),
+            "HEAVY_DOT": HeavyDotInsertionRule()
         }
         self.polarity_adjuster = LevelPolarityAdjuster()
     

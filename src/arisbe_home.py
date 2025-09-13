@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
 # Add src directory to path
 sys.path.append(str(Path(__file__).parent))
 
-from organon.main_window import OrganonMainWindow
+from gui.organon.main_window import OrganonMainWindow
 from organon_ergasterion_protocol import GraphHandoffPackage, OrganonErgasterionBridge
 
 
@@ -438,7 +438,7 @@ class IntegratedArisbeWindow(QWidget):
     def _enter_library(self, options: dict):
         """Enter the Library (Organon)."""
         if not hasattr(self, 'organon_widget') or self.organon_widget is None:
-            from src.organon.main_window import OrganonMainWindow
+            from organon.main_window import OrganonMainWindow
             self.organon_widget = OrganonMainWindow()
             
             # Connect handoff signal
@@ -457,8 +457,15 @@ class IntegratedArisbeWindow(QWidget):
     def _enter_workshop(self, options: dict):
         """Enter the Workshop (Ergasterion)."""
         if not hasattr(self, 'ergasterion_widget') or self.ergasterion_widget is None:
-            from tools.drawing_editor_refactored import RefactoredDrawingEditor
-            self.ergasterion_widget = RefactoredDrawingEditor()
+            import sys
+            import os
+            # Add tools directory to path
+            tools_dir = os.path.join(os.path.dirname(__file__), '..', 'tools')
+            if tools_dir not in sys.path:
+                sys.path.insert(0, tools_dir)
+            
+            from drawing_editor_refactored import ErgasterionDrawingEditor
+            self.ergasterion_widget = ErgasterionDrawingEditor()
             
             # Handle any handoff payload
             handoff_payload = options.get("handoff_payload")
@@ -468,12 +475,11 @@ class IntegratedArisbeWindow(QWidget):
                 if graph_dir:
                     self.ergasterion_widget.set_current_graph_dir(graph_dir)
                 
-                # Load EGI and EGDF data if available
-                egi_data = handoff_payload.get("egi")
-                egdf_data = handoff_payload.get("egdf")
+                # Load EGI DTO if available
+                egi_dto = handoff_payload.get("egi_dto")
                 
-                if egi_data or egdf_data:
-                    self.ergasterion_widget.load_handoff_data(egi_data, egdf_data)
+                if egi_dto:
+                    self.ergasterion_widget.load_egi_dto(egi_dto)
             
             self.stacked_widget.addWidget(self.ergasterion_widget)
         
@@ -484,3 +490,48 @@ class IntegratedArisbeWindow(QWidget):
         """Handle handoff from Library to Workshop."""
         # Launch Workshop with handoff data
         self._enter_workshop({"handoff_payload": payload})
+
+
+def launch_ergasterion_with_payload(payload: dict):
+    """Launch Ergasterion with handoff payload."""
+    from PySide6.QtWidgets import QApplication
+    import sys
+    
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
+    
+    # Create and show Ergasterion with payload
+    from tools.drawing_editor_refactored import ErgasterionDrawingEditor
+    ergasterion = ErgasterionDrawingEditor()
+    
+    # Handle handoff payload
+    graph_dir = payload.get("graph_dir")
+    if graph_dir:
+        ergasterion.set_current_graph_dir(graph_dir)
+    
+    egi_dto = payload.get("egi_dto")
+    if egi_dto:
+        ergasterion.load_egi_dto(egi_dto)
+    
+    ergasterion.show()
+    return ergasterion
+
+
+def main():
+    """Main entry point for Arisbe home."""
+    from PySide6.QtWidgets import QApplication
+    import sys
+    
+    app = QApplication(sys.argv)
+    
+    # Create and show the main window
+    window = IntegratedArisbeWindow()
+    window.show()
+    
+    # Run the application
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()

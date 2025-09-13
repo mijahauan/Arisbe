@@ -1,0 +1,111 @@
+{
+  "global": { 
+    "font_family": "serif", 
+    "font_size": 11,
+    "description": "Authentic reproduction of Peirce's handwritten EG conventions"
+  },
+
+  "scene.background": { "color": "#FEFEFE" },
+
+  "layout": {
+    "cut_padding": 15.0,
+    "sibling_shift": [35.0, 25.0],
+    "label_obstacle_padding": 8.0,
+    "ligature_approach_margin": 6.0,
+    "organic_spacing": true
+  },
+
+  "vertex.dot": { 
+    "fill_color": "#000000", 
+    "border_color": "#000000", 
+    "border_width": 0.8, 
+    "radius": 2.0,
+    "style": "slightly_irregular"
+  },
+
+  "vertex.label_text": { 
+    "estimate_char_width": 6.5, 
+    "estimate_height": 13.0, 
+    "padding": [3, 2], 
+    "offset": [12, -8], 
+    "font_size": 11,
+    "font_style": "handwritten_serif",
+    "color": "#1a1a1a"
+  },
+
+  "vertex.constant": { "mode": "label_only" },
+
+  "ligature.arm": { 
+    "line_color": "#000000", 
+    "line_width": 1.8, 
+    "cap": "round", 
+    "min_length": 15.0, 
+    "border_overlap": 2.0,
+    "style": "hand_drawn",
+    "slight_curve": 0.15
+  },
+
+  "ligature.path": { 
+    "mode": "organic", 
+    "curvature": 0.25, 
+    "orthogonal_bias": "natural",
+    "hand_drawn_variation": 0.8
+  },
+
+  "edge.identity": { 
+    "line_color": "#000000", 
+    "line_width": 2.2, 
+    "cap": "round",
+    "style": "hand_drawn"
+  },
+
+  "cut.border": { 
+    "line_color": "#000000", 
+    "line_width": 1.5, 
+    "radius": 12,
+    "style": "hand_drawn_oval",
+    "irregularity": 0.6
+  },
+
+  "cut.fill.odd": { 
+    "fill_color": "rgba(0,0,0,0.04)",
+    "texture": "paper_grain"
+  },
+  "cut.fill.even": { 
+    "fill_color": "transparent" 
+  },
+
+  "edge.fill.odd": { 
+    "fill_color": "rgba(0,0,0,0.03)", 
+    "border_color": "transparent", 
+    "border_width": 0 
+  },
+  "edge.fill.even": { 
+    "fill_color": "transparent", 
+    "border_color": "transparent", 
+    "border_width": 0 
+  },
+
+  "predicate.box": { 
+    "border_color": "transparent", 
+    "border_width": 0, 
+    "fill_color": "transparent",
+    "text_style": "handwritten_serif"
+  },
+
+  "peirce_conventions": {
+    "prefer_oval_cuts": true,
+    "organic_ligature_routing": true,
+    "handwritten_text_style": true,
+    "paper_texture_background": true,
+    "slight_line_irregularity": true,
+    "natural_spacing_variation": true
+  },
+
+  "rendering_hints": {
+    "anti_aliasing": "high",
+    "line_smoothing": "natural",
+    "text_rendering": "historical_serif",
+    "background_texture": "subtle_paper"
+  }
+}

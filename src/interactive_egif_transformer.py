@@ -86,16 +86,23 @@ class InteractiveEGIFTransformer:
                 "description": "Main sheet of assertion (positive area)"
             }
             
-            # Cut areas
-            for i, cut in enumerate(egi.Cut):
+            # Cut areas - sort by depth for consistent labeling
+            cuts_with_depth = []
+            for cut in egi.Cut:
                 cut_contents = egi.area.get(cut.id, frozenset())
                 polarity, depth = self.interface._calculate_area_polarity(egi, cut.id)
+                cuts_with_depth.append((cut, polarity, depth, len(cut_contents)))
+            
+            # Sort by depth to ensure consistent ordering
+            cuts_with_depth.sort(key=lambda x: x[2])  # Sort by depth
+            
+            for i, (cut, polarity, depth, element_count) in enumerate(cuts_with_depth):
                 areas[f"cut_{i}"] = {
                     "id": str(cut.id),
                     "type": "cut",
                     "polarity": polarity,
                     "depth": depth,
-                    "element_count": len(cut_contents),
+                    "element_count": element_count,
                     "description": f"Cut area (depth {depth}, {polarity} polarity)"
                 }
             

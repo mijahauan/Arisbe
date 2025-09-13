@@ -1,0 +1,41 @@
+{
+  "history_id": "8d0f9d43-225d-43ed-a582-aafc6b3818ed",
+  "checkpoint_name": "checkpoint_20250910_133628",
+  "created_timestamp": "2025-09-10T13:36:28.797337",
+  "base_step": 0,
+  "current_step": 0,
+  "recent_states": {
+    "de501ee9-b3ea-44f6-84ef-f6a63043b694": {
+      "state_id": "de501ee9-b3ea-44f6-84ef-f6a63043b694",
+      "timestamp": "2025-09-10T18:36:28.797120+00:00",
+      "step_number": 0,
+      "description": "Session: Peirce Man-Mortal Test",
+      "egi_data": {
+        "sheet": "sheet_e7921d2e",
+        "V": [],
+        "E": [],
+        "Cut": [],
+        "nu": {},
+        "rel": {},
+        "area": {
+          "sheet_e7921d2e": []
+        },
+        "alphabet": {
+          "C": [],
+          "F": [],
+          "R": [],
+          "ar": {}
+        },
+        "rho": {}
+      },
+      "active_domain_contexts": [],
+      "linear_forms": {},
+      "diagram_metadata": {},
+      "natural_language_summary": null,
+      "metadata": {
+        "is_initial": true
+      }
+    }
+  },
+  "recent_transformations": {}
+}

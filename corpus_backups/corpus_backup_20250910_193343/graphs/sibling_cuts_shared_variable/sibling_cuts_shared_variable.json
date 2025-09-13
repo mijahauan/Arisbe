@@ -1,0 +1,28 @@
+{
+  "id": "sibling_cuts_shared_variable",
+  "title": "sibling_cuts_shared_variable",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.097039+00:00",
+  "updated": "2025-08-31T12:15:29.098070+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "sibling_cuts_shared_variable.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x ~[ (P x) ] ~[ (Q x) ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(and (not (P x)) (not (Q x)))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[*x] ~[[P: *x]] ~[[Q: *x]]",
+      "source": "generated"
+    }
+  }
+}

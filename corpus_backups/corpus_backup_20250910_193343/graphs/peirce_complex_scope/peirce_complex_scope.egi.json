@@ -1,0 +1,72 @@
+{
+  "Cut": [
+    {
+      "id": "c_742d9728"
+    },
+    {
+      "id": "c_ddf23bda"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_67fb0d36"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_4aa9a2f6",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_c363987f",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_e37d44e0",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [],
+    "F": [],
+    "R": [
+      "Relation"
+    ],
+    "ar": {
+      "Relation": 3
+    }
+  },
+  "area": {
+    "c_742d9728": [
+      "c_ddf23bda"
+    ],
+    "c_ddf23bda": [
+      "e_67fb0d36",
+      "v_4aa9a2f6",
+      "v_c363987f",
+      "v_e37d44e0"
+    ],
+    "sheet_0fb9bbb0": [
+      "c_742d9728"
+    ]
+  },
+  "nu": {
+    "e_67fb0d36": [
+      "v_c363987f",
+      "v_4aa9a2f6",
+      "v_e37d44e0"
+    ]
+  },
+  "rel": {
+    "e_67fb0d36": "Relation"
+  },
+  "rho": {
+    "v_4aa9a2f6": null,
+    "v_c363987f": null,
+    "v_e37d44e0": null
+  },
+  "sheet": "sheet_0fb9bbb0"
+}

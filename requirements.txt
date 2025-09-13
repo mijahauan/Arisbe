@@ -20,6 +20,9 @@ pyvisgraph>=0.2.2
 rectpack>=0.2.2
 numpy<2.0.0
 
+# Spatial indexing for hierarchical EGI operations
+rtree>=1.0.0
+
 # Text extraction for PDF references
 pdfminer.six>=20231228
 

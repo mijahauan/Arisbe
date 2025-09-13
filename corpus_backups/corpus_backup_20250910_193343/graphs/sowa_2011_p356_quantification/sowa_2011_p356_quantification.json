@@ -1,0 +1,28 @@
+{
+  "id": "sowa_2011_p356_quantification",
+  "title": "sowa_2011_p356_quantification",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.098656+00:00",
+  "updated": "2025-08-31T12:15:29.099578+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "sowa_2011_p356_quantification.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x (Human x) (Mortal x)",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(and (Human x) (Mortal x))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[*x] [Human: *x] [Mortal: *x]",
+      "source": "generated"
+    }
+  }
+}

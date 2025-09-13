@@ -1,0 +1,34 @@
+{
+  "id": "peirce_cp_4_394_man_mortal",
+  "title": "peirce_cp_4_394_man_mortal",
+  "category": "peirce",
+  "tags": [],
+  "created": "2025-08-31T12:15:29.026934+00:00",
+  "updated": "2025-09-04T21:50:00.384800+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "peirce_cp_4_394_man_mortal.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "~[ (Human \"Socrates\") ~[ (Mortal \"Socrates\") ] ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(not (and (Human \"Socrates\") (not (Mortal \"Socrates\"))))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "~[[Human: Socrates] ~[[Mortal: Socrates]]]",
+      "source": "generated"
+    }
+  },
+  "description": "Peirce's classic example of implication: 'If a man, then mortal'",
+  "source": "Charles Sanders Peirce",
+  "logical_pattern": "implication",
+  "logical_form": null,
+  "natural_language_form": null,
+  "notes": null
+}

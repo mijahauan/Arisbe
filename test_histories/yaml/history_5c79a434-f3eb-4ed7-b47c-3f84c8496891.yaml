@@ -1,0 +1,77 @@
+format_version: '1.0'
+history_metadata:
+  history_id: 5c79a434-f3eb-4ed7-b47c-3f84c8496891
+  created_timestamp: '2025-09-10T18:49:42.748224+00:00'
+  current_state_id: 2ff4269c-04c0-485e-b4d0-a937de4e93c7
+  current_branch_id: eac18a86-5d32-4064-b724-56c714e7c062
+  compression_threshold: 100
+states:
+  2ff4269c-04c0-485e-b4d0-a937de4e93c7:
+    state_id: 2ff4269c-04c0-485e-b4d0-a937de4e93c7
+    timestamp: '2025-09-10T18:49:42.748224+00:00'
+    step_number: 0
+    description: 'Session: Peirce Man-Mortal Test'
+    egi_data:
+      sheet: sheet_a2ece473
+      V: []
+      E: []
+      Cut: []
+      nu: {}
+      rel: {}
+      area:
+        sheet_a2ece473: []
+      alphabet:
+        C: []
+        F: []
+        R: []
+        ar: {}
+      rho: {}
+    active_domain_contexts: []
+    linear_forms: {}
+    diagram_metadata: {}
+    natural_language_summary: null
+    metadata:
+      is_initial: true
+transformations: {}
+branches:
+  38ddd399-750b-442e-9b5d-0380e586b7ba:
+    branch_id: 38ddd399-750b-442e-9b5d-0380e586b7ba
+    branch_type: linear
+    parent_state_id: 2ff4269c-04c0-485e-b4d0-a937de4e93c7
+    created_timestamp: '2025-09-10T18:49:42.748224+00:00'
+    description: Main transformation sequence
+    is_active: true
+    metadata:
+      is_main: true
+  eac18a86-5d32-4064-b724-56c714e7c062:
+    branch_id: eac18a86-5d32-4064-b724-56c714e7c062
+    branch_type: exploration
+    parent_state_id: 2ff4269c-04c0-485e-b4d0-a937de4e93c7
+    created_timestamp: '2025-09-10T18:49:42.748971+00:00'
+    description: Testing alternative transformations
+    is_active: true
+    metadata: {}
+domain_model:
+  ontology_references: {}
+  domain_contexts: {}
+  semantic_annotations: {}
+collaboration_metadata:
+  session_id: 0bbdaa55-9ecd-4059-a9b9-609846b4a265
+  participants: []
+  access_permissions: {}
+  conflict_resolution_strategy: manual
+navigation_indices:
+  state_sequence:
+  - 2ff4269c-04c0-485e-b4d0-a937de4e93c7
+  step_sequence: []
+  state_to_incoming_step:
+    2ff4269c-04c0-485e-b4d0-a937de4e93c7: null
+  state_to_outgoing_steps:
+    2ff4269c-04c0-485e-b4d0-a937de4e93c7: []
+  step_to_branch: {}
+compressed_states: {}
+_description: EGI Transformation History - Human Readable Export
+_format_info:
+  version: '1.0'
+  exported_timestamp: '2025-09-10T13:49:42.749208'
+  note: This is a human-readable export. Use JSON format for programmatic loading.

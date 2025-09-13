@@ -86,6 +86,10 @@ class RelationalGraphWithCuts:
     alphabet: Optional['AlphabetDAU'] = None
     rho: frozendict[ElementID, Optional[str]] = frozendict()  # vertex_id -> constant name or None
     
+    # Hierarchical index for efficient nesting operations
+    # This is integral to EGI logic, not just spatial representation
+    hierarchical_index: Optional['HierarchicalIndex'] = None
+    
     # Derived mappings for efficiency
     _vertex_map: frozendict[ElementID, Vertex] = None
     _edge_map: frozendict[ElementID, Edge] = None
@@ -102,10 +106,61 @@ class RelationalGraphWithCuts:
         object.__setattr__(self, '_edge_map', frozendict(edge_map))
         object.__setattr__(self, '_cut_map', frozendict(cut_map))
         
+        # Initialize hierarchical index if not provided
+        if object.__getattribute__(self, 'hierarchical_index') is None:
+            from hierarchical_index import HierarchicalIndex
+            hierarchical_index = HierarchicalIndex()
+            
+            # Add sheet first
+            hierarchical_index.add_area(self.sheet)
+            
+            # Add all cut areas with proper nesting
+            # This requires analyzing the area mapping to determine parent-child relationships
+            self._build_hierarchical_index(hierarchical_index)
+            
+            object.__setattr__(self, 'hierarchical_index', hierarchical_index)
+        
         # Validate Dau's constraints
         self._validate_dau_constraints()
         # Validate optional AlphabetDAU / rho if present
         self._validate_alphabet_and_rho()
+    
+    def _build_hierarchical_index(self, hierarchical_index):
+        """Build hierarchical index from area mapping."""
+        # Find containment relationships from area mapping
+        # area[parent] contains child means child is nested in parent
+        
+        # Build parent-child relationships
+        child_to_parent = {}
+        for parent_area, contents in self.area.items():
+            for element_id in contents:
+                if element_id in {c.id for c in self.Cut}:
+                    # This element is a cut, so it's a child area
+                    child_to_parent[element_id] = parent_area
+        
+        # Add areas in order: sheet first, then by nesting level
+        added_areas = {self.sheet}
+        
+        # Keep adding areas until all cuts are processed
+        remaining_cuts = {c.id for c in self.Cut}
+        
+        while remaining_cuts:
+            # Find cuts whose parents are already added
+            ready_to_add = []
+            for cut_id in remaining_cuts:
+                parent = child_to_parent.get(cut_id, self.sheet)
+                if parent in added_areas:
+                    ready_to_add.append((cut_id, parent))
+            
+            if not ready_to_add:
+                # This shouldn't happen with valid area mappings
+                break
+            
+            # Add the ready cuts
+            for cut_id, parent in ready_to_add:
+                hierarchical_index.add_area(cut_id, parent)
+                added_areas.add(cut_id)
+                remaining_cuts.remove(cut_id)
     
     def _validate_dau_constraints(self):
         """Validate all constraints from Dau's Definition 12.1."""
@@ -320,6 +375,139 @@ class RelationalGraphWithCuts:
         """Check if context is negative (evenly enclosed cut)."""
         return not self.is_positive_context(context_id)
     
+    # Hook operations (Definition 12.9)
+    
+    def get_hooks(self, edge_id: ElementID) -> List[Tuple[ElementID, int]]:
+        """Get all hooks for an edge as (edge_id, position) pairs."""
+        if edge_id not in self.nu:
+            raise ValueError(f"Edge {edge_id} not found")
+        vertex_seq = self.nu[edge_id]
+        return [(edge_id, i+1) for i in range(len(vertex_seq))]  # 1-indexed as per Dau
+    
+    def get_vertex_at_hook(self, edge_id: ElementID, position: int) -> ElementID:
+        """Get vertex attached to hook (edge_id, position)."""
+        if edge_id not in self.nu:
+            raise ValueError(f"Edge {edge_id} not found")
+        vertex_seq = self.nu[edge_id]
+        if position < 1 or position > len(vertex_seq):
+            raise ValueError(f"Invalid hook position {position} for edge {edge_id}")
+        return vertex_seq[position - 1]  # Convert to 0-indexed
+    
+    def get_vertex_hooks(self, vertex_id: ElementID) -> List[Tuple[ElementID, int]]:
+        """Get all hooks that vertex is attached to."""
+        hooks = []
+        for edge_id, vertex_seq in self.nu.items():
+            for i, vid in enumerate(vertex_seq):
+                if vid == vertex_id:
+                    hooks.append((edge_id, i+1))  # 1-indexed
+        return hooks
+    
+    def is_branching_point(self, vertex_id: ElementID) -> bool:
+        """Check if vertex is a branching point (attached to more than 2 hooks)."""
+        return len(self.get_vertex_hooks(vertex_id)) > 2
+    
+    def get_branch_count(self, vertex_id: ElementID) -> int:
+        """Get number of branches (hooks) for vertex."""
+        return len(self.get_vertex_hooks(vertex_id))
+    
+    def replace_vertex_on_hook(self, edge_id: ElementID, position: int, 
+                              new_vertex_id: ElementID) -> 'RelationalGraphWithCuts':
+        """Replace vertex on hook (edge_id, position) with new vertex (Definition 12.9)."""
+        if edge_id not in self.nu:
+            raise ValueError(f"Edge {edge_id} not found")
+        if new_vertex_id not in {v.id for v in self.V}:
+            raise ValueError(f"New vertex {new_vertex_id} not found")
+        
+        vertex_seq = list(self.nu[edge_id])
+        if position < 1 or position > len(vertex_seq):
+            raise ValueError(f"Invalid hook position {position}")
+        
+        # Check dominating nodes constraint
+        edge_context = self.get_context(edge_id)
+        new_vertex_context = self.get_context(new_vertex_id)
+        if not self._context_dominates(edge_context, new_vertex_context):
+            raise ValueError(f"Dominating nodes constraint violated: ctx({edge_id}) ≰ ctx({new_vertex_id})")
+        
+        vertex_seq[position - 1] = new_vertex_id
+        new_nu = dict(self.nu)
+        new_nu[edge_id] = tuple(vertex_seq)
+        
+        return RelationalGraphWithCuts(
+            V=self.V, E=self.E, nu=frozendict(new_nu), sheet=self.sheet,
+            Cut=self.Cut, area=self.area, rel=self.rel,
+            alphabet=self.alphabet, rho=self.rho
+        )
+
+    # Ligature operations (Definition 12.8)
+    
+    def get_identity_edges(self) -> FrozenSet[ElementID]:
+        """Get all identity edges (edges with relation name '=')."""
+        return frozenset(edge_id for edge_id, rel_name in self.rel.items() if rel_name == "=")
+    
+    def get_ligature_graph(self) -> Tuple[FrozenSet[ElementID], FrozenSet[Tuple[ElementID, ElementID]]]:
+        """Get ligature graph (V, Eid) as vertex set and edge pairs."""
+        identity_edges = self.get_identity_edges()
+        edge_pairs = set()
+        
+        for edge_id in identity_edges:
+            vertex_seq = self.nu[edge_id]
+            if len(vertex_seq) == 2:
+                # Use unordered representation as Dau suggests: e = {v1, v2}
+                v1, v2 = vertex_seq
+                edge_pairs.add((min(v1, v2), max(v1, v2)))  # Canonical ordering
+        
+        vertex_ids = {v.id for v in self.V}
+        return vertex_ids, frozenset(edge_pairs)
+    
+    def get_identity_edge_as_set(self, edge_id: ElementID) -> FrozenSet[ElementID]:
+        """Get identity edge as unordered set {v1, v2} per Dau's suggestion."""
+        if edge_id not in self.get_identity_edges():
+            raise ValueError(f"Edge {edge_id} is not an identity edge")
+        
+        vertex_seq = self.nu[edge_id]
+        if len(vertex_seq) != 2:
+            raise ValueError(f"Identity edge {edge_id} must be binary")
+        
+        return frozenset(vertex_seq)
+    
+    def get_ligatures(self) -> List[FrozenSet[ElementID]]:
+        """Get all ligatures as connected components of identity edges."""
+        vertex_ids, edge_pairs = self.get_ligature_graph()
+        
+        # Build adjacency list
+        adjacency = {vid: set() for vid in vertex_ids}
+        for v1, v2 in edge_pairs:
+            adjacency[v1].add(v2)
+            adjacency[v2].add(v1)
+        
+        # Find connected components using DFS
+        visited = set()
+        ligatures = []
+        
+        for vertex_id in vertex_ids:
+            if vertex_id not in visited:
+                component = set()
+                stack = [vertex_id]
+                
+                while stack:
+                    current = stack.pop()
+                    if current not in visited:
+                        visited.add(current)
+                        component.add(current)
+                        stack.extend(adjacency[current] - visited)
+                
+                ligatures.append(frozenset(component))
+        
+        return ligatures
+    
+    def get_vertex_ligature(self, vertex_id: ElementID) -> FrozenSet[ElementID]:
+        """Get the ligature containing the specified vertex."""
+        ligatures = self.get_ligatures()
+        for ligature in ligatures:
+            if vertex_id in ligature:
+                return ligature
+        return frozenset({vertex_id})  # Isolated vertex is its own ligature
+
     # Utility methods
     
     def is_vertex_isolated(self, vertex_id: ElementID) -> bool:
@@ -427,6 +615,179 @@ class RelationalGraphWithCuts:
             rel=frozendict(new_rel),
             alphabet=self.alphabet,
             rho=self.rho
+        )
+    
+    # Transformation Rules (Definition 12.14)
+    
+    def apply_isomorphism(self, vertex_mapping: Dict[ElementID, ElementID],
+                         edge_mapping: Dict[ElementID, ElementID],
+                         cut_mapping: Dict[ElementID, ElementID]) -> 'RelationalGraphWithCuts':
+        """Apply isomorphism transformation (Definition 12.14)."""
+        # Create new vertices with mapped IDs
+        new_vertices = set()
+        for v in self.V:
+            new_id = vertex_mapping.get(v.id, v.id)
+            new_vertices.add(Vertex(id=new_id, label=v.label, is_generic=v.is_generic))
+        
+        # Create new edges with mapped IDs
+        new_edges = set()
+        for e in self.E:
+            new_id = edge_mapping.get(e.id, e.id)
+            new_edges.add(Edge(id=new_id))
+        
+        # Create new cuts with mapped IDs
+        new_cuts = set()
+        for c in self.Cut:
+            new_id = cut_mapping.get(c.id, c.id)
+            new_cuts.add(Cut(id=new_id))
+        
+        # Map ν function
+        new_nu = {}
+        for edge_id, vertex_seq in self.nu.items():
+            new_edge_id = edge_mapping.get(edge_id, edge_id)
+            new_vertex_seq = tuple(vertex_mapping.get(vid, vid) for vid in vertex_seq)
+            new_nu[new_edge_id] = new_vertex_seq
+        
+        # Map area function
+        new_area = {}
+        sheet_mapped = cut_mapping.get(self.sheet, self.sheet) if self.sheet in cut_mapping else self.sheet
+        for context_id, elements in self.area.items():
+            new_context_id = cut_mapping.get(context_id, context_id) if context_id != self.sheet else sheet_mapped
+            new_elements = set()
+            for elem_id in elements:
+                if elem_id in vertex_mapping:
+                    new_elements.add(vertex_mapping[elem_id])
+                elif elem_id in edge_mapping:
+                    new_elements.add(edge_mapping[elem_id])
+                elif elem_id in cut_mapping:
+                    new_elements.add(cut_mapping[elem_id])
+                else:
+                    new_elements.add(elem_id)
+            new_area[new_context_id] = frozenset(new_elements)
+        
+        # Map rel function
+        new_rel = {}
+        for edge_id, rel_name in self.rel.items():
+            new_edge_id = edge_mapping.get(edge_id, edge_id)
+            new_rel[new_edge_id] = rel_name
+        
+        # Map rho function
+        new_rho = {}
+        for vertex_id, const_name in self.rho.items():
+            new_vertex_id = vertex_mapping.get(vertex_id, vertex_id)
+            new_rho[new_vertex_id] = const_name
+        
+        return RelationalGraphWithCuts(
+            V=frozenset(new_vertices),
+            E=frozenset(new_edges),
+            nu=frozendict(new_nu),
+            sheet=sheet_mapped,
+            Cut=frozenset(new_cuts),
+            area=frozendict(new_area),
+            rel=frozendict(new_rel),
+            alphabet=self.alphabet,
+            rho=frozendict(new_rho)
+        )
+    
+    def change_identity_edge_orientation(self, edge_id: ElementID) -> 'RelationalGraphWithCuts':
+        """Change orientation of identity edge (Definition 12.14)."""
+        if edge_id not in self.rel or self.rel[edge_id] != "=":
+            raise ValueError(f"Edge {edge_id} is not an identity edge")
+        
+        vertex_seq = self.nu[edge_id]
+        if len(vertex_seq) != 2:
+            raise ValueError(f"Identity edge {edge_id} must be binary")
+        
+        # Reverse the vertex sequence
+        new_vertex_seq = (vertex_seq[1], vertex_seq[0])
+        new_nu = dict(self.nu)
+        new_nu[edge_id] = new_vertex_seq
+        
+        return RelationalGraphWithCuts(
+            V=self.V, E=self.E, nu=frozendict(new_nu), sheet=self.sheet,
+            Cut=self.Cut, area=self.area, rel=self.rel,
+            alphabet=self.alphabet, rho=self.rho
+        )
+    
+    def add_vertex_to_ligature(self, edge_id: ElementID, hook_position: int,
+                              new_vertex: Vertex, context_id: ElementID) -> 'RelationalGraphWithCuts':
+        """Add vertex to ligature (Definition 12.14)."""
+        if edge_id not in self.nu:
+            raise ValueError(f"Edge {edge_id} not found")
+        
+        vertex_seq = self.nu[edge_id]
+        if hook_position < 1 or hook_position > len(vertex_seq):
+            raise ValueError(f"Invalid hook position {hook_position}")
+        
+        old_vertex_id = vertex_seq[hook_position - 1]
+        
+        # Validate context constraint: ctx(old_vertex) ≥ context ≥ ctx(edge)
+        old_vertex_context = self.get_context(old_vertex_id)
+        edge_context = self.get_context(edge_id)
+        if not (self._context_dominates(context_id, old_vertex_context) and 
+                self._context_dominates(edge_context, context_id)):
+            raise ValueError("Context constraint violated for ligature transformation")
+        
+        # Add new vertex to specified context
+        graph_with_vertex = self.with_vertex_in_context(new_vertex, context_id)
+        
+        # Create new identity edge between old vertex and new vertex
+        import uuid
+        identity_edge = Edge(id=f"id_edge_{uuid.uuid4().hex[:8]}")
+        graph_with_identity = graph_with_vertex.with_edge(
+            identity_edge, (old_vertex_id, new_vertex.id), "=", context_id
+        )
+        
+        # Replace old vertex with new vertex on the hook
+        return graph_with_identity.replace_vertex_on_hook(edge_id, hook_position, new_vertex.id)
+    
+    def remove_vertex_from_ligature(self, vertex_id: ElementID) -> 'RelationalGraphWithCuts':
+        """Remove vertex from ligature (reverse of add_vertex_to_ligature)."""
+        # Find identity edges connected to this vertex
+        identity_edges = []
+        for edge_id in self.get_identity_edges():
+            vertex_seq = self.nu[edge_id]
+            if vertex_id in vertex_seq:
+                identity_edges.append(edge_id)
+        
+        if len(identity_edges) != 1:
+            raise ValueError(f"Vertex {vertex_id} must be connected to exactly one identity edge for removal")
+        
+        identity_edge_id = identity_edges[0]
+        vertex_seq = self.nu[identity_edge_id]
+        other_vertex_id = vertex_seq[1] if vertex_seq[0] == vertex_id else vertex_seq[0]
+        
+        # Find all non-identity edges connected to vertex_id and redirect to other_vertex_id
+        new_nu = dict(self.nu)
+        for edge_id, seq in self.nu.items():
+            if edge_id != identity_edge_id:  # Skip the identity edge we're removing
+                new_seq = tuple(other_vertex_id if vid == vertex_id else vid for vid in seq)
+                if new_seq != seq:
+                    new_nu[edge_id] = new_seq
+        
+        # Remove the identity edge
+        del new_nu[identity_edge_id]
+        
+        # Remove vertex and identity edge from areas
+        new_area = {}
+        for context_id, elements in self.area.items():
+            new_elements = elements - {vertex_id, identity_edge_id}
+            new_area[context_id] = new_elements
+        
+        # Remove from other mappings
+        new_rel = {eid: name for eid, name in self.rel.items() if eid != identity_edge_id}
+        new_rho = {vid: name for vid, name in self.rho.items() if vid != vertex_id}
+        
+        return RelationalGraphWithCuts(
+            V=frozenset(v for v in self.V if v.id != vertex_id),
+            E=frozenset(e for e in self.E if e.id != identity_edge_id),
+            nu=frozendict(new_nu),
+            sheet=self.sheet,
+            Cut=self.Cut,
+            area=frozendict(new_area),
+            rel=frozendict(new_rel),
+            alphabet=self.alphabet,
+            rho=frozendict(new_rho)
         )
     
     def with_cut(self, cut: Cut, context_id: ElementID = None) -> 'RelationalGraphWithCuts':

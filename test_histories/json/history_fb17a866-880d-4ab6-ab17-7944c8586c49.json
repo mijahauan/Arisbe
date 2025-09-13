@@ -1,0 +1,91 @@
+{
+  "format_version": "1.0",
+  "history_metadata": {
+    "history_id": "fb17a866-880d-4ab6-ab17-7944c8586c49",
+    "created_timestamp": "2025-09-10T18:50:19.770011+00:00",
+    "current_state_id": "dccffc1d-1fdb-4077-8a6b-5dc884f73180",
+    "current_branch_id": "948cc404-2a56-4184-9495-53bd2451d80a",
+    "compression_threshold": 100
+  },
+  "states": {
+    "dccffc1d-1fdb-4077-8a6b-5dc884f73180": {
+      "state_id": "dccffc1d-1fdb-4077-8a6b-5dc884f73180",
+      "timestamp": "2025-09-10T18:50:19.770011+00:00",
+      "step_number": 0,
+      "description": "Session: Peirce Man-Mortal Test",
+      "egi_data": {
+        "sheet": "sheet_bbf3aa08",
+        "V": [],
+        "E": [],
+        "Cut": [],
+        "nu": {},
+        "rel": {},
+        "area": {
+          "sheet_bbf3aa08": []
+        },
+        "alphabet": {
+          "C": [],
+          "F": [],
+          "R": [],
+          "ar": {}
+        },
+        "rho": {}
+      },
+      "active_domain_contexts": [],
+      "linear_forms": {},
+      "diagram_metadata": {},
+      "natural_language_summary": null,
+      "metadata": {
+        "is_initial": true
+      }
+    }
+  },
+  "transformations": {},
+  "branches": {
+    "c860842c-7063-45f0-ad96-b99b81ed4247": {
+      "branch_id": "c860842c-7063-45f0-ad96-b99b81ed4247",
+      "branch_type": "linear",
+      "parent_state_id": "dccffc1d-1fdb-4077-8a6b-5dc884f73180",
+      "created_timestamp": "2025-09-10T18:50:19.770011+00:00",
+      "description": "Main transformation sequence",
+      "is_active": true,
+      "metadata": {
+        "is_main": true
+      }
+    },
+    "948cc404-2a56-4184-9495-53bd2451d80a": {
+      "branch_id": "948cc404-2a56-4184-9495-53bd2451d80a",
+      "branch_type": "exploration",
+      "parent_state_id": "dccffc1d-1fdb-4077-8a6b-5dc884f73180",
+      "created_timestamp": "2025-09-10T18:50:19.770849+00:00",
+      "description": "Testing alternative transformations",
+      "is_active": true,
+      "metadata": {}
+    }
+  },
+  "domain_model": {
+    "ontology_references": {},
+    "domain_contexts": {},
+    "semantic_annotations": {}
+  },
+  "collaboration_metadata": {
+    "session_id": "1fb7a9a1-0db8-43f2-81f0-aa9d75cc6ac4",
+    "participants": [],
+    "access_permissions": {},
+    "conflict_resolution_strategy": "manual"
+  },
+  "navigation_indices": {
+    "state_sequence": [
+      "dccffc1d-1fdb-4077-8a6b-5dc884f73180"
+    ],
+    "step_sequence": [],
+    "state_to_incoming_step": {
+      "dccffc1d-1fdb-4077-8a6b-5dc884f73180": null
+    },
+    "state_to_outgoing_steps": {
+      "dccffc1d-1fdb-4077-8a6b-5dc884f73180": []
+    },
+    "step_to_branch": {}
+  },
+  "compressed_states": {}
+}

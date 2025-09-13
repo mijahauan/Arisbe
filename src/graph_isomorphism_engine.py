@@ -14,7 +14,7 @@ in Beta Existential Graphs.
 from typing import Dict, List, Set, FrozenSet, Tuple, Optional, Iterator
 from dataclasses import dataclass
 from itertools import permutations
-from src.egi_core_dau import (
+from egi_core_dau import (
     RelationalGraphWithCuts, Vertex, Edge, Cut, ElementID
 )
 

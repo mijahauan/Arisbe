@@ -1,0 +1,28 @@
+{
+  "id": "peirce_complex_scope",
+  "title": "peirce_complex_scope",
+  "category": null,
+  "tags": [],
+  "created": "2025-08-31T12:15:29.090718+00:00",
+  "updated": "2025-08-31T12:15:29.091612+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "peirce_complex_scope.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "~[ ~[ *x *y *z (Relation x y z) ] ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(not (not (Relation x y z)))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "~[~[[*x] [*y] [*z] (Relation ?x ?y ?z)]]",
+      "source": "generated"
+    }
+  }
+}

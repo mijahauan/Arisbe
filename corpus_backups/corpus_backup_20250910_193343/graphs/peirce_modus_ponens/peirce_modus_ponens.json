@@ -1,0 +1,31 @@
+{
+  "id": "peirce_modus_ponens",
+  "title": "peirce_modus_ponens",
+  "category": "peirce",
+  "tags": [],
+  "created": "2025-08-31T12:15:29.029230+00:00",
+  "updated": "2025-08-31T12:15:29.029949+00:00",
+  "status": "draft",
+  "links": {
+    "egi": "peirce_modus_ponens.egi.json",
+    "egdf_dir": "EGDF/",
+    "exports_dir": "EXPORTS/"
+  },
+  "linear_forms": {
+    "egif": {
+      "content": "*x (P x) ~[ (P x) ~[ (Q x) ] ]",
+      "source": "generated"
+    },
+    "clif": {
+      "content": "(and (P x) (not (and (P x) (not (Q x)))))",
+      "source": "generated"
+    },
+    "cgif": {
+      "content": "[*x] [P: *x] ~[[P: *x] ~[[Q: *x]]]",
+      "source": "generated"
+    }
+  },
+  "description": "Peirce's demonstration of modus ponens inference rule",
+  "source": "Collected Papers 4.572",
+  "logical_pattern": "inference"
+}

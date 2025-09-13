@@ -1,0 +1,69 @@
+{
+  "Cut": [
+    {
+      "id": "c_3583ead5"
+    },
+    {
+      "id": "c_be5bf208"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_a5748591"
+    },
+    {
+      "id": "e_ec99e888"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_8564030c",
+      "is_generic": false,
+      "label": "Socrates"
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Socrates"
+    ],
+    "F": [],
+    "R": [
+      "Human",
+      "Mortal"
+    ],
+    "ar": {
+      "Human": 1,
+      "Mortal": 1,
+      "Socrates": 1
+    }
+  },
+  "area": {
+    "c_3583ead5": [
+      "e_ec99e888"
+    ],
+    "c_be5bf208": [
+      "c_3583ead5"
+    ],
+    "sheet_39e0e47a": [
+      "c_be5bf208",
+      "e_a5748591",
+      "v_8564030c"
+    ]
+  },
+  "nu": {
+    "e_a5748591": [
+      "v_8564030c"
+    ],
+    "e_ec99e888": [
+      "v_8564030c"
+    ]
+  },
+  "rel": {
+    "e_a5748591": "Human",
+    "e_ec99e888": "Mortal"
+  },
+  "rho": {
+    "v_8564030c": "Socrates"
+  },
+  "sheet": "sheet_39e0e47a"
+}

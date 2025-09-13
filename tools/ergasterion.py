@@ -12,15 +12,15 @@ from pathlib import Path
 # Add src directory to path
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from drawing_editor_refactored import RefactoredDrawingEditor
-from organon_ergasterion_protocol import GraphHandoffPackage, OrganonErgasterionBridge
+from gui.ergasterion_editor import ErgasterionEditor
+from legacy.organon_ergasterion_protocol import GraphHandoffPackage, OrganonErgasterionBridge
 from PySide6.QtWidgets import QApplication
 
 
 def launch_ergasterion_standalone():
     """Launch Ergasterion in standalone mode."""
     app = QApplication(sys.argv)
-    editor = RefactoredDrawingEditor()
+    editor = ErgasterionEditor()
     editor.show()
     return app.exec()
 
@@ -28,7 +28,7 @@ def launch_ergasterion_standalone():
 def launch_ergasterion_with_handoff(package: GraphHandoffPackage):
     """Launch Ergasterion with a handoff package from Organon."""
     app = QApplication(sys.argv)
-    editor = RefactoredDrawingEditor()
+    editor = ErgasterionEditor()
     
     # Initialize with handoff package
     success = editor.launch_with_handoff(package)
