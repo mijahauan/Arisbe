@@ -6,11 +6,18 @@ Updated: 2025-08-30
 
 ## Overview
 
-- EGI is the canonical source of truth.
-- EGIF/CGIF/CLIF are linear forms that round-trip to/from EGI.
-- EGDF is the canonical drawn-form spec for rendering/persistence.
-- GUI interactions are meaning-preserving (presentation deltas) unless explicitly invoking EGI operations.
-- Ligatures are single continuous lines; same-area ligatures avoid collisions; cross-area ligatures can cross cuts; rendering order: Cuts → Predicates → Vertices → Ligatures.
+**Arisbe Existential Graphs are living logical systems** - complete universes of discourse that extend beyond simple diagrams or linear expressions. An EG encompasses synchronic forms (current structures, rules, sequences), diachronic history (complete transformation provenance), and interactive components (Endoporeutic Game dialog, fact introduction, pattern discovery).
+
+**Two Implementation Levels:**
+- **Exemplar Graphs (Organon)**: Restricted examples from textbooks/articles for scholarly reference
+- **Comprehensive Systems (Agon)**: Complete justified ways of reasoning about worlds through dynamic transformation
+
+**Technical Foundation:**
+- EGI is the canonical source of truth for the mathematical structure
+- EGIF/CGIF/CLIF are linear forms that round-trip to/from EGI
+- EGDF is the canonical drawn-form spec for rendering/persistence
+- GUI interactions are meaning-preserving (presentation deltas) unless explicitly invoking EGI operations
+- Ligatures are single continuous lines; same-area ligatures avoid collisions; cross-area ligatures can cross cuts; rendering order: Cuts → Predicates → Vertices → Ligatures
 
 ## Architecture
 

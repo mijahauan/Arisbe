@@ -1,7 +1,8 @@
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Dict, List, Optional, Set, Tuple
+
 from frozendict import frozendict
 
-from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, AlphabetDAU
+from egi_core_dau import AlphabetDAU, Cut, Edge, RelationalGraphWithCuts, Vertex
 
 
 def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
@@ -28,19 +29,25 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
     if isinstance(cuts_data, dict):
         cut_ids: Set[str] = set(cuts_data.keys())
     else:
-        cut_ids: Set[str] = {c.get("id") for c in cuts_data if isinstance(c, dict) and c.get("id")}
-    
+        cut_ids: Set[str] = {
+            c.get("id") for c in cuts_data if isinstance(c, dict) and c.get("id")
+        }
+
     vertices_data = drawing.get("vertices", [])
     if isinstance(vertices_data, dict):
         vertex_ids: Set[str] = set(vertices_data.keys())
     else:
-        vertex_ids: Set[str] = {v.get("id") for v in vertices_data if isinstance(v, dict) and v.get("id")}
-    
+        vertex_ids: Set[str] = {
+            v.get("id") for v in vertices_data if isinstance(v, dict) and v.get("id")
+        }
+
     predicates_data = drawing.get("predicates", [])
     if isinstance(predicates_data, dict):
         edge_ids: Set[str] = set(predicates_data.keys())
     else:
-        edge_ids: Set[str] = {p.get("id") for p in predicates_data if isinstance(p, dict) and p.get("id")}
+        edge_ids: Set[str] = {
+            p.get("id") for p in predicates_data if isinstance(p, dict) and p.get("id")
+        }
 
     # Build vertices with proper label and is_generic properties
     vertex_objects = []
@@ -55,7 +62,7 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
                 if isinstance(v, dict) and v.get("id") == vid:
                     vertex_data = v
                     break
-        
+
         if vertex_data:
             lk = vertex_data.get("label_kind")
             lbl = vertex_data.get("label")
@@ -68,7 +75,7 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
         else:
             # Fallback: treat as generic vertex
             vertex_objects.append(Vertex(id=vid, label=None, is_generic=True))
-    
+
     V = tuple(vertex_objects)
     E = tuple(Edge(eid) for eid in sorted(edge_ids))
     CutSet = tuple(Cut(cid) for cid in sorted(cut_ids))
@@ -83,7 +90,11 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
             else:
                 rel_dict[pid] = pid
     else:
-        rel_dict = {p.get("id"): p.get("name", p.get("id")) for p in predicates_data if isinstance(p, dict) and p.get("id")}
+        rel_dict = {
+            p.get("id"): p.get("name", p.get("id"))
+            for p in predicates_data
+            if isinstance(p, dict) and p.get("id")
+        }
 
     # Build nu mapping (edge -> tuple(vertices))
     nu_map: Dict[str, Tuple[str, ...]] = {}
@@ -121,19 +132,25 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
     for cid, pid in parent_map.items():
         # Parent must be sheet or another known cut
         if pid is not None and pid != sheet_id and pid not in cut_ids:
-            raise ValueError(f"Invalid parent_id '{pid}' for cut '{cid}': not in cuts and not sheet")
+            raise ValueError(
+                f"Invalid parent_id '{pid}' for cut '{cid}': not in cuts and not sheet"
+            )
         # Cycle detection by walking up to sheet
         seen: Set[str] = set([cid])
         cur = pid
         steps = 0
         while cur is not None and cur != sheet_id:
             if cur in seen:
-                raise ValueError(f"Cycle detected in cut parentage: '{cid}' -> ... -> '{cur}'")
+                raise ValueError(
+                    f"Cycle detected in cut parentage: '{cid}' -> ... -> '{cur}'"
+                )
             seen.add(cur)
             cur = parent_map.get(cur)
             steps += 1
             if steps > len(cut_ids) + 1:
-                raise ValueError("Unreasonable cut nesting depth; possible cycle or corrupted parent map")
+                raise ValueError(
+                    "Unreasonable cut nesting depth; possible cycle or corrupted parent map"
+                )
 
     # Build area containment mapping: area_id -> frozenset(child_ids)
     area: Dict[str, Set[str]] = {sheet_id: set()}
@@ -147,7 +164,7 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
                 cid = c.get("id")
                 if cid:
                     area.setdefault(cid, set())
-    
+
     # Add child cuts under their parents; default to sheet
     if isinstance(cuts_data, dict):
         for cid, cdata in cuts_data.items():
@@ -163,7 +180,7 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
                 if cid:
                     parent = c.get("parent_id") or sheet_id
                     area.setdefault(parent, set()).add(cid)
-    
+
     # Place vertices and edges into their declared areas
     vertices_data = drawing.get("vertices", [])
     if isinstance(vertices_data, dict):
@@ -180,7 +197,7 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
                 if vid:
                     area_id = v.get("area_id") or sheet_id
                     area.setdefault(area_id, set()).add(vid)
-    
+
     predicates_data = drawing.get("predicates", [])
     if isinstance(predicates_data, dict):
         for pid, pdata in predicates_data.items():
@@ -237,7 +254,12 @@ def drawing_to_relational_graph(drawing: Dict) -> RelationalGraphWithCuts:
     for eid, name in rel_dict.items():
         ar_map[name] = max(ar_map.get(name, 0), len(nu_map.get(eid, ())))
 
-    alphabet = AlphabetDAU(C=frozenset(constants), F=frozenset(function_names), R=frozenset(relation_names), ar=frozendict(ar_map)).with_defaults()
+    alphabet = AlphabetDAU(
+        C=frozenset(constants),
+        F=frozenset(function_names),
+        R=frozenset(relation_names),
+        ar=frozendict(ar_map),
+    ).with_defaults()
 
     # Freeze mappings
     nu = frozendict({k: tuple(v) for k, v in nu_map.items()})

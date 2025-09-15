@@ -8,24 +8,29 @@ This is a minimal scaffold that supports vertices, predicates (edges), cuts, and
 from __future__ import annotations
 
 from typing import Any, Dict, List, Tuple
+
 from styling.style_manager import create_style_manager
 
 
 def _tikz_header() -> str:
-    return "\n".join([
-        "\\documentclass[tikz]{standalone}",
-        "\\usepackage{tikz}",
-        "\\begin{document}",
-        "\\begin{tikzpicture}[x=1pt,y=1pt]",
-    ])
+    return "\n".join(
+        [
+            "\\documentclass[tikz]{standalone}",
+            "\\usepackage{tikz}",
+            "\\begin{document}",
+            "\\begin{tikzpicture}[x=1pt,y=1pt]",
+        ]
+    )
 
 
 def _tikz_footer() -> str:
-    return "\n".join([
-        "\\end{tikzpicture}",
-        "\\end{document}",
-        "",
-    ])
+    return "\n".join(
+        [
+            "\\end{tikzpicture}",
+            "\\end{document}",
+            "",
+        ]
+    )
 
 
 def _escape_text(s: str) -> str:
@@ -119,7 +124,7 @@ def _emit_ligature(cmd: Dict[str, Any], styles) -> str:
     if len(pts) < 2:
         return "% ligature with insufficient points"
     path_parts = [f"( {pts[0][0]:.2f} , {pts[0][1]:.2f} )"]
-    for (x, y) in pts[1:]:
+    for x, y in pts[1:]:
         path_parts.append(f"-- ( {x:.2f} , {y:.2f} )")
     path = " ".join(path_parts)
     s = styles.resolve(type="ligature", role=cmd.get("role"))
@@ -134,7 +139,9 @@ def _emit_ligature(cmd: Dict[str, Any], styles) -> str:
     return f"\\draw[line width={lw:.2f}pt,line cap={cap_opt}] {path};"
 
 
-def generate_tikz(render_commands: List[Dict[str, Any]], standalone: bool = True) -> str:
+def generate_tikz(
+    render_commands: List[Dict[str, Any]], standalone: bool = True
+) -> str:
     """Generate TikZ from Arisbe render commands.
 
     If standalone is True, returns a full LaTeX document; otherwise returns only the tikzpicture body.
@@ -161,6 +168,14 @@ def generate_tikz(render_commands: List[Dict[str, Any]], standalone: bool = True
     body = "\n".join(body_lines) + "\n"
 
     if not standalone:
-        return "\n".join(["% tikzpicture", "\\begin{tikzpicture}[x=1pt,y=1pt]", body, "\\end{tikzpicture}", ""]) 
+        return "\n".join(
+            [
+                "% tikzpicture",
+                "\\begin{tikzpicture}[x=1pt,y=1pt]",
+                body,
+                "\\end{tikzpicture}",
+                "",
+            ]
+        )
 
     return "\n".join([_tikz_header(), body, _tikz_footer()])

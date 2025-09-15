@@ -29,7 +29,9 @@ def summarize(rgc):
 def main():
     ap = argparse.ArgumentParser(description="Drawing → EGI converter")
     ap.add_argument("--input", required=True, help="Path to drawing JSON file")
-    ap.add_argument("--layout", action="store_true", help="Attempt headless spatial layout")
+    ap.add_argument(
+        "--layout", action="store_true", help="Attempt headless spatial layout"
+    )
     args = ap.parse_args()
 
     data = json.loads(Path(args.input).read_text())

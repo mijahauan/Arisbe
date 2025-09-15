@@ -1,0 +1,47 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Coherence: Context Check",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "tools/context_awareness_system.py",
+        "--check",
+        "${input:taskDescription}"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always"
+      }
+    },
+    {
+      "label": "Coherence: Quality Check",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "tools/quality_gate_system.py",
+        "--check"
+      ],
+      "group": "test"
+    },
+    {
+      "label": "Coherence: Smart Commit",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "tools/smart_commit.py"
+      ],
+      "group": "build"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "taskDescription",
+      "description": "Describe the task you're working on",
+      "default": "",
+      "type": "promptString"
+    }
+  ]
+}

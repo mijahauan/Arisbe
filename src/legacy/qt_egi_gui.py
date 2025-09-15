@@ -10,47 +10,51 @@ Integrates with EGISystem and QtCorrespondenceIntegration to generate a scene.
 """
 from __future__ import annotations
 
-from typing import Any, Dict, List, DefaultDict, Optional
-import json
-from pathlib import Path
 import hashlib
-from datetime import datetime, timezone
-import sys
+import json
 
 # Enforce PySide6 and block PyQt6 before any Qt import to avoid mixed bindings
-import os as _os, sys as _sys
+import os as _os
+import sys
+import sys as _sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, DefaultDict, Dict, List, Optional
+
 _os.environ.setdefault("QT_API", "pyside6")
 if "PyQt6" in _sys.modules:
     _sys.modules["PyQt6"] = None  # type: ignore[assignment]
 
+from time import monotonic
+
+from PySide6.QtCore import QLineF, QPointF, QRectF, QSizeF, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QWidget,
-    QGraphicsView,
-    QGraphicsScene,
+    QCheckBox,
+    QComboBox,
+    QDockWidget,
+    QFileDialog,
+    QFormLayout,
     QGraphicsEllipseItem,
     QGraphicsLineItem,
     QGraphicsRectItem,
+    QGraphicsScene,
     QGraphicsTextItem,
-    QVBoxLayout,
+    QGraphicsView,
     QHBoxLayout,
-    QPushButton,
-    QFileDialog,
-    QMessageBox,
     QInputDialog,
-    QDockWidget,
-    QComboBox,
-    QPlainTextEdit,
-    QToolButton,
-    QCheckBox,
     QLabel,
-    QFormLayout,
     QListWidget,
     QListWidgetItem,
+    QMainWindow,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
 )
-from PySide6.QtCore import Qt, QRectF, QPointF, QLineF, QSizeF, QTimer, Signal
-from time import monotonic
+
 
 # --- Module-level helpers ----------------------------------------------------
 def _egi_loader_dispatch(main: "EGIMainWindow", path: Path) -> None:
@@ -73,12 +77,22 @@ def _egi_loader_dispatch(main: "EGIMainWindow", path: Path) -> None:
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         sheet: str = data.get("sheet") or "sheet"
-        V = [Vertex(id=v.get("id"), label=v.get("label"), is_generic=bool(v.get("is_generic", True))) for v in (data.get("V") or []) if v.get("id")]
+        V = [
+            Vertex(
+                id=v.get("id"),
+                label=v.get("label"),
+                is_generic=bool(v.get("is_generic", True)),
+            )
+            for v in (data.get("V") or [])
+            if v.get("id")
+        ]
         E = [Edge(id=e.get("id")) for e in (data.get("E") or []) if e.get("id")]
         CutSet = [Cut(id=c.get("id")) for c in (data.get("Cut") or []) if c.get("id")]
         nu = frozendict({k: tuple(v) for k, v in (data.get("nu") or {}).items()})
         rel = frozendict(dict(data.get("rel") or {}))
-        area = frozendict({k: frozenset(v) for k, v in (data.get("area") or {}).items()})
+        area = frozendict(
+            {k: frozenset(v) for k, v in (data.get("area") or {}).items()}
+        )
         rho = frozendict(dict(data.get("rho") or {}))
         alph_data = data.get("alphabet") or {}
         alph = AlphabetDAU(
@@ -102,20 +116,26 @@ def _egi_loader_dispatch(main: "EGIMainWindow", path: Path) -> None:
         return None
     except Exception:
         # Nothing found: emit clearer diagnostics
-        available = [name for name in ("_safe_load_egi_json", "load_egi_json", "_load_egi_json") if hasattr(main, name)]
+        available = [
+            name
+            for name in ("_safe_load_egi_json", "load_egi_json", "_load_egi_json")
+            if hasattr(main, name)
+        ]
         raise AttributeError(
             f"No EGI JSON loader available on this EGIMainWindow instance (checked: {', '.join(available) or 'none'})"
         )
-from PySide6.QtGui import QPen, QBrush, QColor, QFont, QPainterPath
 
-from egi_system import create_egi_system, EGISystem
-from qt_correspondence_integration import create_qt_correspondence_integration
-from styling.style_manager import create_style_manager
+
 from egdf_parser import EGDFDocument
 from frozendict import frozendict
-from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, AlphabetDAU
-from export.tikz_exporter import generate_tikz
+from PySide6.QtGui import QBrush, QColor, QFont, QPainterPath, QPen
+from qt_correspondence_integration import create_qt_correspondence_integration
+
 import corpus_index as cidx
+from egi_core_dau import AlphabetDAU, Cut, Edge, RelationalGraphWithCuts, Vertex
+from egi_system import EGISystem, create_egi_system
+from export.tikz_exporter import generate_tikz
+from styling.style_manager import create_style_manager
 
 # Optional: embed the known-good DrawingEditor as a preview
 try:
@@ -168,6 +188,7 @@ def _qcolor(value) -> QColor:
         pass
     return QColor(0, 0, 0, 0)
 
+
 # --- Minimal graphics items ---
 class BranchingPointItem(QGraphicsEllipseItem):
     def __init__(self, x: float, y: float, r: float = 6.0):
@@ -198,7 +219,7 @@ class CutItem(QGraphicsRectItem):
 
 # --- View and control panel ---
 class EGIGraphicsView(QGraphicsView):
-    def __init__(self, scene: QGraphicsScene, main_window: 'EGIMainWindow'):
+    def __init__(self, scene: QGraphicsScene, main_window: "EGIMainWindow"):
         super().__init__(scene)
         self.main_window = main_window
         self.setRenderHints(self.renderHints())
@@ -213,13 +234,13 @@ class EGIGraphicsView(QGraphicsView):
         if event.button() == event.MouseButton.RightButton:
             scene_pos = self.mapToScene(event.position().toPoint())
             items = self.scene().items(scene_pos)
-            
+
             # Find the best item under cursor
             precedence = {"vertex": 0, "edge": 1, "ligature": 2, "cut": 3}
             best = None
             best_rank = 999
             best_item = None
-            
+
             for it in items:
                 try:
                     etype = it.data(1)
@@ -233,13 +254,17 @@ class EGIGraphicsView(QGraphicsView):
                     best_rank = rank
                     best = (str(eid), str(etype))
                     best_item = it
-            
+
             if best:
-                self._show_context_menu(event.globalPosition().toPoint(), best[0], best[1], best_item)
+                self._show_context_menu(
+                    event.globalPosition().toPoint(), best[0], best[1], best_item
+                )
             else:
-                self._show_canvas_context_menu(event.globalPosition().toPoint(), scene_pos)
+                self._show_canvas_context_menu(
+                    event.globalPosition().toPoint(), scene_pos
+                )
             return
-        
+
         # Handle left-click selection
         scene_pos = self.mapToScene(event.position().toPoint())
         items = self.scene().items(scene_pos)
@@ -267,130 +292,162 @@ class EGIGraphicsView(QGraphicsView):
 
         # Continue default behavior
         super().mousePressEvent(event)
-    
+
     def _show_context_menu(self, global_pos, element_id, element_type, item):
         """Show context menu for diagram elements."""
         from PySide6.QtWidgets import QMenu
-        
+
         menu = QMenu()
-        
+
         if element_type == "vertex":
             menu.addAction("Edit Vertex Name", lambda: self._edit_vertex(element_id))
             menu.addAction("Delete Vertex", lambda: self._delete_vertex(element_id))
-            menu.addAction("Extend Ligature from Vertex", lambda: self._start_ligature_from_vertex(element_id))
+            menu.addAction(
+                "Extend Ligature from Vertex",
+                lambda: self._start_ligature_from_vertex(element_id),
+            )
         elif element_type == "edge":
-            menu.addAction("Edit Predicate Text", lambda: self._edit_predicate(element_id))
-            menu.addAction("Delete Predicate", lambda: self._delete_predicate(element_id))
-            menu.addAction("Draw Ligature to Vertex", lambda: self._start_ligature_from_predicate(element_id))
+            menu.addAction(
+                "Edit Predicate Text", lambda: self._edit_predicate(element_id)
+            )
+            menu.addAction(
+                "Delete Predicate", lambda: self._delete_predicate(element_id)
+            )
+            menu.addAction(
+                "Draw Ligature to Vertex",
+                lambda: self._start_ligature_from_predicate(element_id),
+            )
         elif element_type == "cut":
             menu.addAction("Delete Cut", lambda: self._delete_cut(element_id))
             menu.addAction("Resize Cut", lambda: self._resize_cut(element_id))
-        
+
         menu.exec(global_pos)
-    
+
     def _show_canvas_context_menu(self, global_pos, scene_pos):
         """Show context menu for empty canvas."""
         from PySide6.QtWidgets import QMenu
-        
+
         menu = QMenu()
         menu.addAction("Add Vertex", lambda: self._add_vertex_at_position(scene_pos))
-        menu.addAction("Add Predicate", lambda: self._add_predicate_at_position(scene_pos))
+        menu.addAction(
+            "Add Predicate", lambda: self._add_predicate_at_position(scene_pos)
+        )
         menu.addAction("Add Cut", lambda: self._add_cut_at_position(scene_pos))
-        
+
         menu.exec(global_pos)
-    
+
     def _edit_vertex(self, vertex_id):
         """Edit vertex name."""
         from PySide6.QtWidgets import QInputDialog
-        
+
         current_name = ""
         # Get current name from main window if available
-        if hasattr(self.main_window, 'get_vertex_name'):
+        if hasattr(self.main_window, "get_vertex_name"):
             current_name = self.main_window.get_vertex_name(vertex_id) or ""
-        
-        name, ok = QInputDialog.getText(self, "Edit Vertex", 
-                                       f"Enter name for vertex {vertex_id}:", 
-                                       text=current_name)
+
+        name, ok = QInputDialog.getText(
+            self,
+            "Edit Vertex",
+            f"Enter name for vertex {vertex_id}:",
+            text=current_name,
+        )
         if ok:
-            if hasattr(self.main_window, 'update_vertex_name'):
+            if hasattr(self.main_window, "update_vertex_name"):
                 self.main_window.update_vertex_name(vertex_id, name)
-    
+
     def _delete_vertex(self, vertex_id):
         """Delete vertex."""
-        if hasattr(self.main_window, 'delete_vertex'):
+        if hasattr(self.main_window, "delete_vertex"):
             self.main_window.delete_vertex(vertex_id)
-    
+
     def _edit_predicate(self, predicate_id):
         """Edit predicate text."""
         from PySide6.QtWidgets import QInputDialog
-        
+
         current_text = ""
-        if hasattr(self.main_window, 'get_predicate_text'):
+        if hasattr(self.main_window, "get_predicate_text"):
             current_text = self.main_window.get_predicate_text(predicate_id) or ""
-        
-        text, ok = QInputDialog.getText(self, "Edit Predicate", 
-                                       f"Enter text for predicate {predicate_id}:", 
-                                       text=current_text)
+
+        text, ok = QInputDialog.getText(
+            self,
+            "Edit Predicate",
+            f"Enter text for predicate {predicate_id}:",
+            text=current_text,
+        )
         if ok:
-            if hasattr(self.main_window, 'update_predicate_text'):
+            if hasattr(self.main_window, "update_predicate_text"):
                 self.main_window.update_predicate_text(predicate_id, text)
-    
+
     def _delete_predicate(self, predicate_id):
         """Delete predicate."""
-        if hasattr(self.main_window, 'delete_predicate'):
+        if hasattr(self.main_window, "delete_predicate"):
             self.main_window.delete_predicate(predicate_id)
-    
+
     def _delete_cut(self, cut_id):
         """Delete cut."""
-        if hasattr(self.main_window, 'delete_cut'):
+        if hasattr(self.main_window, "delete_cut"):
             self.main_window.delete_cut(cut_id)
-    
+
     def _resize_cut(self, cut_id):
         """Resize cut."""
         from PySide6.QtWidgets import QInputDialog
-        
-        width, ok1 = QInputDialog.getDouble(self, "Resize Cut", "Enter new width:", 150, 10, 1000, 1)
+
+        width, ok1 = QInputDialog.getDouble(
+            self, "Resize Cut", "Enter new width:", 150, 10, 1000, 1
+        )
         if not ok1:
             return
-        
-        height, ok2 = QInputDialog.getDouble(self, "Resize Cut", "Enter new height:", 100, 10, 1000, 1)
+
+        height, ok2 = QInputDialog.getDouble(
+            self, "Resize Cut", "Enter new height:", 100, 10, 1000, 1
+        )
         if not ok2:
             return
-        
-        if hasattr(self.main_window, 'resize_cut'):
+
+        if hasattr(self.main_window, "resize_cut"):
             self.main_window.resize_cut(cut_id, width, height)
-    
+
     def _add_vertex_at_position(self, scene_pos):
         """Add vertex at position."""
-        if hasattr(self.main_window, 'add_vertex_at_position'):
+        if hasattr(self.main_window, "add_vertex_at_position"):
             self.main_window.add_vertex_at_position(scene_pos.x(), scene_pos.y())
-    
+
     def _add_predicate_at_position(self, scene_pos):
         """Add predicate at position."""
         from PySide6.QtWidgets import QInputDialog
-        
+
         text, ok = QInputDialog.getText(self, "Add Predicate", "Enter predicate text:")
         if ok and text:
-            if hasattr(self.main_window, 'add_predicate_at_position'):
-                self.main_window.add_predicate_at_position(scene_pos.x(), scene_pos.y(), text)
-    
+            if hasattr(self.main_window, "add_predicate_at_position"):
+                self.main_window.add_predicate_at_position(
+                    scene_pos.x(), scene_pos.y(), text
+                )
+
     def _add_cut_at_position(self, scene_pos):
         """Add cut at position."""
-        if hasattr(self.main_window, 'add_cut_at_position'):
+        if hasattr(self.main_window, "add_cut_at_position"):
             self.main_window.add_cut_at_position(scene_pos.x(), scene_pos.y())
-    
+
     def _start_ligature_from_vertex(self, vertex_id):
         """Start ligature drawing from vertex."""
         # For now, show info message - full implementation would require ligature drawing mode
         from PySide6.QtWidgets import QMessageBox
-        QMessageBox.information(self, "Ligature Drawing", 
-                              f"Ligature drawing from vertex {vertex_id} - feature in development")
-    
+
+        QMessageBox.information(
+            self,
+            "Ligature Drawing",
+            f"Ligature drawing from vertex {vertex_id} - feature in development",
+        )
+
     def _start_ligature_from_predicate(self, predicate_id):
         """Start ligature drawing from predicate."""
         from PySide6.QtWidgets import QMessageBox
-        QMessageBox.information(self, "Ligature Drawing", 
-                              f"Ligature drawing from predicate {predicate_id} - feature in development")
+
+        QMessageBox.information(
+            self,
+            "Ligature Drawing",
+            f"Ligature drawing from predicate {predicate_id} - feature in development",
+        )
 
     def mouseMoveEvent(self, event):
         # Basic throttle to prevent excessive processing on tiny/continuous movements
@@ -439,7 +496,7 @@ class EGIGraphicsView(QGraphicsView):
 
 
 class EGIControlPanel(QWidget):
-    def __init__(self, main_window: 'EGIMainWindow'):
+    def __init__(self, main_window: "EGIMainWindow"):
         super().__init__()
         self.main_window = main_window
         layout = QVBoxLayout(self)
@@ -450,12 +507,18 @@ class EGIControlPanel(QWidget):
         # Toggles row
         self.chk_show_vars = QCheckBox("Show variable labels (*x → x)")
         self.chk_show_vars.setChecked(False)
-        self.chk_show_vars.stateChanged.connect(lambda _: self.main_window.set_show_variable_labels(self.chk_show_vars.isChecked()))
+        self.chk_show_vars.stateChanged.connect(
+            lambda _: self.main_window.set_show_variable_labels(
+                self.chk_show_vars.isChecked()
+            )
+        )
         layout.addWidget(self.chk_show_vars)
 
         self.chk_show_arity = QCheckBox("Show relation arity (R → R/n)")
         self.chk_show_arity.setChecked(False)
-        self.chk_show_arity.stateChanged.connect(lambda _: self.main_window.set_show_arity(self.chk_show_arity.isChecked()))
+        self.chk_show_arity.stateChanged.connect(
+            lambda _: self.main_window.set_show_arity(self.chk_show_arity.isChecked())
+        )
         layout.addWidget(self.chk_show_arity)
         # No Corpus quick actions here; avoid duplicates with left Corpus dock
         layout.addStretch()
@@ -465,6 +528,7 @@ class EGIControlPanel(QWidget):
 class EGIMainWindow(QMainWindow):
     # In-app handoff signal: emit payload dict for Ergasterion
     edit_in_ergasterion = Signal(dict)
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Arisbe – Organon")
@@ -502,11 +566,12 @@ class EGIMainWindow(QMainWindow):
         # Minimal runtime banner to help diagnose import/source mismatches
         try:
             import inspect
+
             mod_file = inspect.getsourcefile(type(self)) or "(unknown)"
             print(f"[Organon] EGIMainWindow from: {mod_file}")
         except Exception:
             pass
-        
+
         # Scene and view
         self.scene = QGraphicsScene()
         self.scene.setSceneRect(0, 0, 800, 600)
@@ -522,31 +587,87 @@ class EGIMainWindow(QMainWindow):
         menubar = self.menuBar()
         file_menu = menubar.addMenu("File")
         act_open_corpus = file_menu.addAction("Open Selected (Corpus)…")
-        act_open_corpus.triggered.connect(lambda: (getattr(self, "_open_selected_corpus_action", self._inline_open_selected_corpus)()))
+        act_open_corpus.triggered.connect(
+            lambda: (
+                getattr(
+                    self,
+                    "_open_selected_corpus_action",
+                    self._inline_open_selected_corpus,
+                )()
+            )
+        )
         act_reload = file_menu.addAction("Reload")
-        act_reload.triggered.connect(lambda: (getattr(self, "reload_current_source", lambda: QMessageBox.information(self, "No Source", "No source file to reload."))()))
+        act_reload.triggered.connect(
+            lambda: (
+                getattr(
+                    self,
+                    "reload_current_source",
+                    lambda: QMessageBox.information(
+                        self, "No Source", "No source file to reload."
+                    ),
+                )()
+            )
+        )
         file_menu.addSeparator()
         act_save_egdf = file_menu.addAction("Save EGDF beside source…")
-        act_save_egdf.triggered.connect(lambda: (getattr(self, "save_egdf_to_sibling", self._inline_save_egdf_beside)()))
+        act_save_egdf.triggered.connect(
+            lambda: (
+                getattr(self, "save_egdf_to_sibling", self._inline_save_egdf_beside)()
+            )
+        )
 
         # Graph menu (Corpus-aware operations)
         graph_menu = menubar.addMenu("Graph")
         act_new = graph_menu.addAction("New…")
-        act_new.triggered.connect(lambda: (getattr(self, "on_corpus_new", self._inline_corpus_new)()))
+        act_new.triggered.connect(
+            lambda: (getattr(self, "on_corpus_new", self._inline_corpus_new)())
+        )
         act_open_sel = graph_menu.addAction("Open Selected")
-        act_open_sel.triggered.connect(lambda: (getattr(self, "_open_selected_corpus_action", self._inline_open_selected_corpus)()))
+        act_open_sel.triggered.connect(
+            lambda: (
+                getattr(
+                    self,
+                    "_open_selected_corpus_action",
+                    self._inline_open_selected_corpus,
+                )()
+            )
+        )
         graph_menu.addSeparator()
         act_save_corpus = graph_menu.addAction("Save to Corpus")
         act_save_corpus.triggered.connect(
-            lambda: (getattr(self, "graph_save_to_corpus", lambda: QMessageBox.information(self, "Corpus", "Save to Corpus not available."))())
+            lambda: (
+                getattr(
+                    self,
+                    "graph_save_to_corpus",
+                    lambda: QMessageBox.information(
+                        self, "Corpus", "Save to Corpus not available."
+                    ),
+                )()
+            )
         )
         act_save_egdf_corpus = graph_menu.addAction("Save EGDF to Corpus")
         act_save_egdf_corpus.triggered.connect(
-            lambda: (getattr(self, "graph_save_egdf_to_corpus", lambda: QMessageBox.information(self, "Corpus", "Save EGDF to Corpus not available."))())
+            lambda: (
+                getattr(
+                    self,
+                    "graph_save_egdf_to_corpus",
+                    lambda: QMessageBox.information(
+                        self, "Corpus", "Save EGDF to Corpus not available."
+                    ),
+                )()
+            )
         )
         act_export_tikz_corpus = graph_menu.addAction("Export TikZ to Corpus")
         act_export_tikz_corpus.triggered.connect(
-            lambda: (getattr(self, "graph_export_tikz_to_corpus", lambda: QMessageBox.information(self, "Corpus", "Export TikZ to Corpus not available."))())
+            lambda: (
+                getattr(
+                    self,
+                    "graph_export_tikz_to_corpus",
+                    lambda: QMessageBox.information(
+                        self, "Corpus", "Export TikZ to Corpus not available."
+                    ),
+                )()
+            )
         )
 
         # Graph Info dock
@@ -554,7 +675,7 @@ class EGIMainWindow(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.graph_info_dock)
 
         # Optional: Preview dock powered by DrawingEditor (read-only/embedded)
-        if '_DrawingEditor' in globals() and _DrawingEditor is not None:
+        if "_DrawingEditor" in globals() and _DrawingEditor is not None:
             try:
                 self.preview_dock = PreviewDock(self)
                 self.addDockWidget(Qt.RightDockWidgetArea, self.preview_dock)
@@ -572,9 +693,12 @@ class EGIMainWindow(QMainWindow):
         except Exception as e:
             # Do not swallow: surface errors to help diagnose why Corpus dock is missing
             import traceback
+
             tb = traceback.format_exc()
             try:
-                QMessageBox.warning(self, "Organon", f"Failed to initialize Corpus dock: {e}\n{tb}")
+                QMessageBox.warning(
+                    self, "Organon", f"Failed to initialize Corpus dock: {e}\n{tb}"
+                )
             except Exception:
                 print(f"Failed to initialize Corpus dock: {e}\n{tb}")
 
@@ -592,48 +716,68 @@ class EGIMainWindow(QMainWindow):
             pass
         # Ensure an emitter exists even in legacy builds to prevent crashes
         if not hasattr(self, "_emit_command"):
+
             def _no_emit_command(cmd):
                 return
+
             try:
                 # attach as bound method
                 setattr(self, "_emit_command", _no_emit_command)
             except Exception:
                 pass
+
         # --- Minimal core methods to guarantee availability during init ---
         def _clear_scene_min():
             try:
-                if hasattr(self, 'scene'):
+                if hasattr(self, "scene"):
                     self.scene.clear()
                 self._items_by_element.clear()
                 self._selected_id = None
             except Exception:
                 pass
-        if not hasattr(self, 'clear_scene'):
-            setattr(self, 'clear_scene', _clear_scene_min)
+
+        if not hasattr(self, "clear_scene"):
+            setattr(self, "clear_scene", _clear_scene_min)
 
         def _update_graph_info_min():
             try:
                 egi = self.egi_system.get_egi()
-                v_count = len(egi.V); e_count = len(egi.E); c_count = len(egi.Cut)
+                v_count = len(egi.V)
+                e_count = len(egi.E)
+                c_count = len(egi.Cut)
             except Exception:
                 v_count = e_count = c_count = 0
-            src = str(self._current_source_path) if getattr(self, '_current_source_path', None) else "(none)"
-            egdf = getattr(self, '_current_egdf_doc', None)
-            has_layout = bool(getattr(egdf, 'layout', None)) if egdf else False
-            has_styles = bool(getattr(egdf, 'styles', None)) if egdf else False
-            has_deltas = bool(getattr(egdf, 'deltas', None)) if egdf else False
+            src = (
+                str(self._current_source_path)
+                if getattr(self, "_current_source_path", None)
+                else "(none)"
+            )
+            egdf = getattr(self, "_current_egdf_doc", None)
+            has_layout = bool(getattr(egdf, "layout", None)) if egdf else False
+            has_styles = bool(getattr(egdf, "styles", None)) if egdf else False
+            has_deltas = bool(getattr(egdf, "deltas", None)) if egdf else False
             try:
-                self.graph_info_dock.update_info(v_count, e_count, c_count, src, bool(egdf), has_layout, has_styles, has_deltas)
+                self.graph_info_dock.update_info(
+                    v_count,
+                    e_count,
+                    c_count,
+                    src,
+                    bool(egdf),
+                    has_layout,
+                    has_styles,
+                    has_deltas,
+                )
             except Exception:
                 pass
             # Update preview if present
             try:
-                if hasattr(self, '_update_preview'):
+                if hasattr(self, "_update_preview"):
                     self._update_preview()
             except Exception:
                 pass
-        if not hasattr(self, '_update_graph_info'):
-            setattr(self, '_update_graph_info', _update_graph_info_min)
+
+        if not hasattr(self, "_update_graph_info"):
+            setattr(self, "_update_graph_info", _update_graph_info_min)
 
         def _refresh_scene_min():
             try:
@@ -644,8 +788,9 @@ class EGIMainWindow(QMainWindow):
                 self._update_graph_info()
             except Exception:
                 pass
-        if not hasattr(self, 'refresh_scene'):
-            setattr(self, 'refresh_scene', _refresh_scene_min)
+
+        if not hasattr(self, "refresh_scene"):
+            setattr(self, "refresh_scene", _refresh_scene_min)
         # Initial paint and info using minimal stubs (real implementations defined later in class)
         self.refresh_scene()
         self._update_graph_info()
@@ -706,13 +851,17 @@ class EGIMainWindow(QMainWindow):
             self._refresh_corpus_list()
         except Exception as e:
             try:
-                QMessageBox.critical(self, "Corpus Error", f"Failed to create graph directory:\n{e}")
+                QMessageBox.critical(
+                    self, "Corpus Error", f"Failed to create graph directory:\n{e}"
+                )
             except Exception:
                 pass
 
     def _open_selected_corpus_action(self):
         try:
-            if hasattr(self, 'on_corpus_open_selected') and callable(getattr(self, 'on_corpus_open_selected')):
+            if hasattr(self, "on_corpus_open_selected") and callable(
+                getattr(self, "on_corpus_open_selected")
+            ):
                 return self.on_corpus_open_selected()
         except Exception:
             pass
@@ -721,10 +870,14 @@ class EGIMainWindow(QMainWindow):
     def _inline_open_selected_corpus(self):
         try:
             entry = None
-            if hasattr(self, 'corpus_dock') and hasattr(self.corpus_dock, 'current_entry'):
+            if hasattr(self, "corpus_dock") and hasattr(
+                self.corpus_dock, "current_entry"
+            ):
                 entry = self.corpus_dock.current_entry()
             if not entry:
-                QMessageBox.information(self, "Corpus", "Select a graph in the Corpus list.")
+                QMessageBox.information(
+                    self, "Corpus", "Select a graph in the Corpus list."
+                )
                 return
             gdir = (cidx.REPO_ROOT / entry.get("path")).resolve()
             egi_path = cidx.graph_paths(gdir)["egi"]
@@ -740,7 +893,9 @@ class EGIMainWindow(QMainWindow):
             self.refresh_scene()
         except Exception as e:
             try:
-                QMessageBox.critical(self, "Open Error", f"Failed to open selected graph:\n{e}")
+                QMessageBox.critical(
+                    self, "Open Error", f"Failed to open selected graph:\n{e}"
+                )
             except Exception:
                 pass
 
@@ -748,9 +903,11 @@ class EGIMainWindow(QMainWindow):
         # Fallback for creating new graph when on_corpus_new is unavailable
         return self.on_corpus_new()
 
+
 class CorpusDock(QDockWidget):
     """Dock listing corpus graphs from index.json."""
-    def __init__(self, main: 'EGIMainWindow'):
+
+    def __init__(self, main: "EGIMainWindow"):
         super().__init__("Corpus")
         self._main = main
         self._entries: list[dict] = []
@@ -758,16 +915,28 @@ class CorpusDock(QDockWidget):
         self.setWidget(w)
         v = QVBoxLayout(w)
         self.list = QListWidget()
-        self.list.itemDoubleClicked.connect(lambda _: (getattr(self._main, "_open_selected_corpus_action", (lambda: None))()))
+        self.list.itemDoubleClicked.connect(
+            lambda _: (
+                getattr(self._main, "_open_selected_corpus_action", (lambda: None))()
+            )
+        )
         v.addWidget(self.list)
         # minimal footer actions
         btns = QHBoxLayout()
         btn_refresh = QPushButton("Refresh")
         btn_new = QPushButton("New…")
         btn_open = QPushButton("Open Selected")
-        btn_refresh.clicked.connect(lambda: (getattr(self._main, "_refresh_corpus_list", (lambda: None))()))
-        btn_new.clicked.connect(lambda: (getattr(self._main, "on_corpus_new", (lambda: None))()))
-        btn_open.clicked.connect(lambda: (getattr(self._main, "_open_selected_corpus_action", (lambda: None))()))
+        btn_refresh.clicked.connect(
+            lambda: (getattr(self._main, "_refresh_corpus_list", (lambda: None))())
+        )
+        btn_new.clicked.connect(
+            lambda: (getattr(self._main, "on_corpus_new", (lambda: None))())
+        )
+        btn_open.clicked.connect(
+            lambda: (
+                getattr(self._main, "_open_selected_corpus_action", (lambda: None))()
+            )
+        )
         btns.addWidget(btn_refresh)
         btns.addWidget(btn_new)
         btns.addWidget(btn_open)
@@ -831,12 +1000,16 @@ class CorpusDock(QDockWidget):
             self.refresh_scene()
             self._refresh_corpus_list()
         except Exception as e:
-            QMessageBox.critical(self, "Corpus Error", f"Failed to create graph directory:\n{e}")
+            QMessageBox.critical(
+                self, "Corpus Error", f"Failed to create graph directory:\n{e}"
+            )
 
     def on_corpus_open_selected(self):
         entry = self.corpus_dock.current_entry()
         if not entry:
-            QMessageBox.information(self, "Corpus", "Select a graph in the Corpus list.")
+            QMessageBox.information(
+                self, "Corpus", "Select a graph in the Corpus list."
+            )
             return
         try:
             gdir = (cidx.REPO_ROOT / entry.get("path")).resolve()
@@ -852,7 +1025,9 @@ class CorpusDock(QDockWidget):
             self._current_graph_dir = gdir
             self.refresh_scene()
         except Exception as e:
-            QMessageBox.critical(self, "Open Error", f"Failed to open selected graph:\n{e}")
+            QMessageBox.critical(
+                self, "Open Error", f"Failed to open selected graph:\n{e}"
+            )
 
     def _inline_corpus_new(self):
         """Inline fallback for creating a new corpus graph directory and loading it."""
@@ -875,13 +1050,19 @@ class CorpusDock(QDockWidget):
             self.refresh_scene()
             self._refresh_corpus_list()
         except Exception as e:
-            QMessageBox.critical(self, "Corpus Error", f"Failed to create graph directory:\n{e}")
+            QMessageBox.critical(
+                self, "Corpus Error", f"Failed to create graph directory:\n{e}"
+            )
 
     def _inline_save_egdf_beside(self):
         """Inline fallback for saving EGDF next to the current source file."""
         base: Optional[Path] = self._current_source_path
         if not base:
-            QMessageBox.information(self, "No Source", "No source file tracked yet. Open a linear form or EGI JSON first.")
+            QMessageBox.information(
+                self,
+                "No Source",
+                "No source file tracked yet. Open a linear form or EGI JSON first.",
+            )
             return
         name = base.name
         if name.endswith(".egi.json"):
@@ -908,7 +1089,9 @@ class CorpusDock(QDockWidget):
                     doc["header"] = header
             out.write_text(json.dumps(doc, indent=2, sort_keys=False), encoding="utf-8")
             self._last_saved_egdf_path = out
-            QMessageBox.information(self, "Saved", f"EGDF saved beside source at:\n{out}")
+            QMessageBox.information(
+                self, "Saved", f"EGDF saved beside source at:\n{out}"
+            )
         except Exception as e:
             QMessageBox.critical(self, "Save Error", f"Failed to save EGDF:\n{e}")
 
@@ -917,14 +1100,20 @@ class CorpusDock(QDockWidget):
         Falls back to inline logic if on_corpus_open_selected is unavailable.
         """
         try:
-            if hasattr(self, 'on_corpus_open_selected') and callable(getattr(self, 'on_corpus_open_selected')):
+            if hasattr(self, "on_corpus_open_selected") and callable(
+                getattr(self, "on_corpus_open_selected")
+            ):
                 return self.on_corpus_open_selected()
             # Fallback behavior
             entry = None
-            if hasattr(self, 'corpus_dock') and hasattr(self.corpus_dock, 'current_entry'):
+            if hasattr(self, "corpus_dock") and hasattr(
+                self.corpus_dock, "current_entry"
+            ):
                 entry = self.corpus_dock.current_entry()
             if not entry:
-                QMessageBox.information(self, "Corpus", "Select a graph in the Corpus list.")
+                QMessageBox.information(
+                    self, "Corpus", "Select a graph in the Corpus list."
+                )
                 return
             gdir = (cidx.REPO_ROOT / entry.get("path")).resolve()
             egi_path = cidx.graph_paths(gdir)["egi"]
@@ -939,16 +1128,22 @@ class CorpusDock(QDockWidget):
             self._current_graph_dir = gdir
             self.refresh_scene()
         except Exception as e:
-            QMessageBox.critical(self, "Open Error", f"Failed to open selected graph:\n{e}")
+            QMessageBox.critical(
+                self, "Open Error", f"Failed to open selected graph:\n{e}"
+            )
 
     def _inline_open_selected_corpus(self):
         """Inline fallback used by menu/dock lambdas to open selected corpus entry."""
         try:
             entry = None
-            if hasattr(self, 'corpus_dock') and hasattr(self.corpus_dock, 'current_entry'):
+            if hasattr(self, "corpus_dock") and hasattr(
+                self.corpus_dock, "current_entry"
+            ):
                 entry = self.corpus_dock.current_entry()
             if not entry:
-                QMessageBox.information(self, "Corpus", "Select a graph in the Corpus list.")
+                QMessageBox.information(
+                    self, "Corpus", "Select a graph in the Corpus list."
+                )
                 return
             gdir = (cidx.REPO_ROOT / entry.get("path")).resolve()
             egi_path = cidx.graph_paths(gdir)["egi"]
@@ -963,11 +1158,17 @@ class CorpusDock(QDockWidget):
             self._current_graph_dir = gdir
             self.refresh_scene()
         except Exception as e:
-            QMessageBox.critical(self, "Open Error", f"Failed to open selected graph:\n{e}")
+            QMessageBox.critical(
+                self, "Open Error", f"Failed to open selected graph:\n{e}"
+            )
 
     def graph_save_to_corpus(self):
         if not self._current_graph_dir:
-            QMessageBox.information(self, "Corpus", "No active corpus graph. Use Graph → New or Open Selected.")
+            QMessageBox.information(
+                self,
+                "Corpus",
+                "No active corpus graph. Use Graph → New or Open Selected.",
+            )
             return
         try:
             egi_norm = self._normalized_egi_dict()
@@ -988,13 +1189,19 @@ class CorpusDock(QDockWidget):
             cidx.upsert_entry(entry)
             self._current_source_path = egi_path
             self._refresh_corpus_list()
-            QMessageBox.information(self, "Saved", f"EGI saved to corpus at:\n{egi_path}")
+            QMessageBox.information(
+                self, "Saved", f"EGI saved to corpus at:\n{egi_path}"
+            )
         except Exception as e:
             QMessageBox.critical(self, "Save Error", f"Failed to save to corpus:\n{e}")
 
     def graph_export_tikz_to_corpus(self):
         if not self._current_graph_dir:
-            QMessageBox.information(self, "Corpus", "No active corpus graph. Use Graph → New or Open Selected.")
+            QMessageBox.information(
+                self,
+                "Corpus",
+                "No active corpus graph. Use Graph → New or Open Selected.",
+            )
             return
         try:
             scene_data = self.qt_integration.generate_qt_scene()
@@ -1005,13 +1212,21 @@ class CorpusDock(QDockWidget):
             tikz_text = generate_tikz(cmds, standalone=True)
             out = cidx.export_path(self._current_graph_dir, "tikz", ext="tex")
             out.write_text(tikz_text, encoding="utf-8")
-            QMessageBox.information(self, "Export", f"TikZ exported to corpus at:\n{out}")
+            QMessageBox.information(
+                self, "Export", f"TikZ exported to corpus at:\n{out}"
+            )
         except Exception as e:
-            QMessageBox.critical(self, "Export Error", f"Failed to export TikZ to corpus:\n{e}")
+            QMessageBox.critical(
+                self, "Export Error", f"Failed to export TikZ to corpus:\n{e}"
+            )
 
     def graph_save_egdf_to_corpus(self):
         if not self._current_graph_dir:
-            QMessageBox.information(self, "Corpus", "No active corpus graph. Use Graph → New or Open Selected.")
+            QMessageBox.information(
+                self,
+                "Corpus",
+                "No active corpus graph. Use Graph → New or Open Selected.",
+            )
             return
         try:
             doc = self.egi_system.to_egdf()
@@ -1039,7 +1254,9 @@ class CorpusDock(QDockWidget):
             out.write_text(json.dumps(doc, indent=2, sort_keys=False), encoding="utf-8")
             QMessageBox.information(self, "Saved", f"EGDF saved to corpus at:\n{out}")
         except Exception as e:
-            QMessageBox.critical(self, "Save Error", f"Failed to save EGDF to corpus:\n{e}")
+            QMessageBox.critical(
+                self, "Save Error", f"Failed to save EGDF to corpus:\n{e}"
+            )
 
     def _load_linear_and_refresh(self, text: str, format_hint: str | None = None):
         try:
@@ -1048,20 +1265,27 @@ class CorpusDock(QDockWidget):
             self.refresh_scene()
             self._safe_update_chiron_contents()
         except Exception as e:
-            QMessageBox.critical(self, "Import Error", f"Failed to load linear form: {e}")
+            QMessageBox.critical(
+                self, "Import Error", f"Failed to load linear form: {e}"
+            )
 
     def open_linear_form_file(self):
         """Open a file containing EGIF/CGIF and display it."""
         # Note: both .egif and .cgif supported; also allow any text file
-        fname, _ = QFileDialog.getOpenFileName(self, "Open Linear Form", "", "Linear Forms (*.egif *.cgif *.txt);;All Files (*)")
+        fname, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open Linear Form",
+            "",
+            "Linear Forms (*.egif *.cgif *.txt);;All Files (*)",
+        )
         if not fname:
             return
         try:
-            with open(fname, 'r', encoding='utf-8') as f:
+            with open(fname, "r", encoding="utf-8") as f:
                 text = f.read()
             # Hint by extension if available
-            ext = fname.split('.')[-1].lower() if '.' in fname else None
-            fmt_hint = 'egif' if ext == 'egif' else ('cgif' if ext == 'cgif' else None)
+            ext = fname.split(".")[-1].lower() if "." in fname else None
+            fmt_hint = "egif" if ext == "egif" else ("cgif" if ext == "cgif" else None)
             self._load_linear_and_refresh(text, fmt_hint)
             # Track source path for sibling saves (base without forcing EGDF name)
             self._current_source_path = Path(fname)
@@ -1138,20 +1362,30 @@ class CorpusDock(QDockWidget):
     def _on_file_open_menu(self):
         """Robust dispatcher for File→Open to accommodate build variants."""
         try:
-            if hasattr(self, 'open_graph_file') and callable(getattr(self, 'open_graph_file')):
+            if hasattr(self, "open_graph_file") and callable(
+                getattr(self, "open_graph_file")
+            ):
                 return self.open_graph_file()
             # Fallbacks present in older builds
-            if hasattr(self, 'open_egi_file') and callable(getattr(self, 'open_egi_file')):
+            if hasattr(self, "open_egi_file") and callable(
+                getattr(self, "open_egi_file")
+            ):
                 return self.open_egi_file()
-            if hasattr(self, 'open_linear_form_file') and callable(getattr(self, 'open_linear_form_file')):
+            if hasattr(self, "open_linear_form_file") and callable(
+                getattr(self, "open_linear_form_file")
+            ):
                 return self.open_linear_form_file()
-            QMessageBox.information(self, "Open", "No compatible open dialog available in this build.")
+            QMessageBox.information(
+                self, "Open", "No compatible open dialog available in this build."
+            )
         except Exception as e:
             QMessageBox.critical(self, "Open Error", f"Failed to open:\n{e}")
 
     def open_egi_file(self):
         """Open an EGI JSON file (<name>.egi.json) and display it."""
-        fname, _ = QFileDialog.getOpenFileName(self, "Open EGI JSON", "", "EGI JSON (*.egi.json);;All Files (*)")
+        fname, _ = QFileDialog.getOpenFileName(
+            self, "Open EGI JSON", "", "EGI JSON (*.egi.json);;All Files (*)"
+        )
         if not fname:
             return
         try:
@@ -1171,12 +1405,20 @@ class CorpusDock(QDockWidget):
             vid = v.get("id")
             if not vid:
                 continue
-            V.append(Vertex(id=vid, label=v.get("label"), is_generic=bool(v.get("is_generic", True))))
+            V.append(
+                Vertex(
+                    id=vid,
+                    label=v.get("label"),
+                    is_generic=bool(v.get("is_generic", True)),
+                )
+            )
         E = [Edge(id=e.get("id")) for e in data.get("E", []) if e.get("id")]
         CutSet = [Cut(id=c.get("id")) for c in data.get("Cut", []) if c.get("id")]
         nu = frozendict({k: tuple(v) for k, v in (data.get("nu") or {}).items()})
         rel = frozendict(dict(data.get("rel") or {}))
-        area = frozendict({k: frozenset(v) for k, v in (data.get("area") or {}).items()})
+        area = frozendict(
+            {k: frozenset(v) for k, v in (data.get("area") or {}).items()}
+        )
         rho = frozendict(dict(data.get("rho") or {}))
         alph_data = data.get("alphabet")
         if alph_data:
@@ -1217,7 +1459,9 @@ class CorpusDock(QDockWidget):
             fn = getattr(self, name, None)
             if callable(fn):
                 return fn(path)
-        raise AttributeError("No EGI JSON loader available on this EGIMainWindow instance")
+        raise AttributeError(
+            "No EGI JSON loader available on this EGIMainWindow instance"
+        )
 
     def _load_egi_inline_dict(self, inline: Dict[str, Any]) -> None:
         """Load an EGI object from an EGDF egi_ref.inline dict."""
@@ -1235,7 +1479,9 @@ class CorpusDock(QDockWidget):
         CutSet = [Cut(id=cid) for cid in inline.get("Cut", [])]
         nu = frozendict({k: tuple(v) for k, v in (inline.get("nu") or {}).items()})
         rel = frozendict(dict(inline.get("rel") or {}))
-        area = frozendict({k: frozenset(v) for k, v in (inline.get("area") or {}).items()})
+        area = frozendict(
+            {k: frozenset(v) for k, v in (inline.get("area") or {}).items()}
+        )
         rho = frozendict(dict(inline.get("rho") or {}))
         alph_data = inline.get("alphabet") or {}
         alph = AlphabetDAU(
@@ -1272,7 +1518,9 @@ class CorpusDock(QDockWidget):
         egi_ref = doc.egi_ref
         inline = egi_ref.get("inline") if isinstance(egi_ref, dict) else None
         if not inline:
-            raise ValueError("EGDF egi_ref.inline missing; external uri not supported here")
+            raise ValueError(
+                "EGDF egi_ref.inline missing; external uri not supported here"
+            )
         # Load graph and retain EGDF
         self._load_egi_inline_dict(inline)
         self._current_egdf_doc = doc
@@ -1282,7 +1530,11 @@ class CorpusDock(QDockWidget):
         """Save current EGI's EGDF document as <basename>.egdf.json next to current source."""
         base: Optional[Path] = self._current_source_path
         if not base:
-            QMessageBox.information(self, "No Source", "No source file tracked yet. Open a linear form or EGI JSON first.")
+            QMessageBox.information(
+                self,
+                "No Source",
+                "No source file tracked yet. Open a linear form or EGI JSON first.",
+            )
             return
         # Compute sibling path: if source endswith .egi.json, replace with .egdf.json; else append .egdf.json
         name = base.name
@@ -1324,29 +1576,40 @@ class CorpusDock(QDockWidget):
         Mirrors tools/migrate_corpus_to_egi.py::egi_to_dict ordering.
         """
         egi = self.egi_system.get_egi()
+
         def _sorted_set(iterable):
             return sorted(list(iterable))
+
         payload: Dict[str, Any] = {
             "sheet": egi.sheet,
-            "V": [{"id": v.id, "label": v.label, "is_generic": v.is_generic} for v in sorted(egi.V, key=lambda x: x.id)],
+            "V": [
+                {"id": v.id, "label": v.label, "is_generic": v.is_generic}
+                for v in sorted(egi.V, key=lambda x: x.id)
+            ],
             "E": [{"id": e.id} for e in sorted(egi.E, key=lambda x: x.id)],
             "Cut": [{"id": c.id} for c in sorted(egi.Cut, key=lambda x: x.id)],
             "nu": {k: list(v) for k, v in sorted(egi.nu.items())},
             "rel": dict(sorted(egi.rel.items())),
             "area": {k: _sorted_set(v) for k, v in sorted(egi.area.items())},
-            "alphabet": None if egi.alphabet is None else {
-                "C": _sorted_set(egi.alphabet.C),
-                "F": _sorted_set(egi.alphabet.F),
-                "R": _sorted_set(egi.alphabet.R),
-                "ar": dict(egi.alphabet.ar),
-            },
+            "alphabet": (
+                None
+                if egi.alphabet is None
+                else {
+                    "C": _sorted_set(egi.alphabet.C),
+                    "F": _sorted_set(egi.alphabet.F),
+                    "R": _sorted_set(egi.alphabet.R),
+                    "ar": dict(egi.alphabet.ar),
+                }
+            ),
             "rho": {k: v for k, v in sorted(egi.rho.items())},
         }
         return payload
 
     def paste_linear_form(self):
         """Paste EGIF/CGIF text and display it."""
-        text, ok = QInputDialog.getMultiLineText(self, "Paste Linear Form", "Enter EGIF or CGIF:")
+        text, ok = QInputDialog.getMultiLineText(
+            self, "Paste Linear Form", "Enter EGIF or CGIF:"
+        )
         if not ok or not text.strip():
             return
         self._load_linear_and_refresh(text, None)
@@ -1377,6 +1640,7 @@ class CorpusDock(QDockWidget):
         if self._show_variable_labels:
             try:
                 from egif_generator_dau import EGIFGenerator
+
                 gen = EGIFGenerator(self.egi_system.get_egi())
                 # generate() assigns labels internally
                 _ = gen.generate()
@@ -1391,6 +1655,7 @@ class CorpusDock(QDockWidget):
         else:
             # No emitter available; draw directly into the QGraphicsScene (minimal fallback)
             cmds = scene_data.get("render_commands", [])
+
             def _register(it, eid: str, etype: str):
                 try:
                     it.setData(0, eid)
@@ -1410,13 +1675,15 @@ class CorpusDock(QDockWidget):
                 etype = str(cmd.get("type", ""))
                 eid = str(cmd.get("element_id", ""))
                 b = cmd.get("bounds", {}) or {}
-                x = float(b.get("x", 0.0)); y = float(b.get("y", 0.0))
-                w = float(b.get("width", 0.0)); h = float(b.get("height", 0.0))
+                x = float(b.get("x", 0.0))
+                y = float(b.get("y", 0.0))
+                w = float(b.get("width", 0.0))
+                h = float(b.get("height", 0.0))
                 try:
                     if etype == "vertex":
                         # Draw a dot for the vertex
                         r = max(4.0, min(w, h, 8.0))
-                        cx, cy = x + w/2.0, y + h/2.0
+                        cx, cy = x + w / 2.0, y + h / 2.0
                         dot = BranchingPointItem(cx, cy, r)
                         _register(dot, eid, "vertex")
                         # Optional superscript label for variable name
@@ -1424,7 +1691,8 @@ class CorpusDock(QDockWidget):
                             label = self._vertex_var_labels.get(eid)
                             if label:
                                 sup = cmd.get("vertex_sup_bounds") or {}
-                                sx = float(sup.get("x", cx + 8.0)); sy = float(sup.get("y", cy - 8.0))
+                                sx = float(sup.get("x", cx + 8.0))
+                                sy = float(sup.get("y", cy - 8.0))
                                 txt = QGraphicsTextItem(label)
                                 txt.setDefaultTextColor(QColor(80, 80, 80))
                                 txt.setPos(sx, sy)
@@ -1432,13 +1700,14 @@ class CorpusDock(QDockWidget):
                     elif etype == "edge":
                         # Draw relation label box as text centered in bounds
                         rel = cmd.get("relation_name") or "?"
-                        cx, cy = x + w/2.0, y + h/2.0
+                        cx, cy = x + w / 2.0, y + h / 2.0
                         lbl = PredicateItem(str(rel), cx, cy)
                         _register(lbl, eid, "edge")
                         # Optional arity superscript
                         if self._show_arity and "edge_sup_bounds" in cmd:
                             sup = cmd.get("edge_sup_bounds") or {}
-                            sx = float(sup.get("x", cx + 8.0)); sy = float(sup.get("y", cy - 8.0))
+                            sx = float(sup.get("x", cx + 8.0))
+                            sy = float(sup.get("y", cy - 8.0))
                             arity = None
                             try:
                                 arity = self.egi_system.get_egi().alphabet.ar.get(rel)
@@ -1461,8 +1730,11 @@ class CorpusDock(QDockWidget):
                         pts = cmd.get("path_points") or []
                         if isinstance(pts, list) and len(pts) >= 2:
                             for i in range(len(pts) - 1):
-                                (x1, y1) = pts[i]; (x2, y2) = pts[i+1]
-                                line = QGraphicsLineItem(QLineF(float(x1), float(y1), float(x2), float(y2)))
+                                (x1, y1) = pts[i]
+                                (x2, y2) = pts[i + 1]
+                                line = QGraphicsLineItem(
+                                    QLineF(float(x1), float(y1), float(x2), float(y2))
+                                )
                                 line.setPen(QPen(QColor(0, 0, 0), 1))
                                 _register(line, eid, "ligature")
                         # else: ignore empty path
@@ -1476,7 +1748,9 @@ class CorpusDock(QDockWidget):
         """Safely update Chiron dock contents if the dock has been initialized."""
         try:
             # Ensure attributes exist before calling
-            if hasattr(self, '_update_chiron_contents') and hasattr(self, 'chiron_left'):
+            if hasattr(self, "_update_chiron_contents") and hasattr(
+                self, "chiron_left"
+            ):
                 self._update_chiron_contents()
         except Exception:
             pass
@@ -1502,7 +1776,9 @@ class CorpusDock(QDockWidget):
                     stem = stem[:-5]
                 default_name = str(self._current_source_path.with_name(f"{stem}.tex"))
 
-            fname, _ = QFileDialog.getSaveFileName(self, "Export TikZ", default_name, "LaTeX (*.tex);;All Files (*)")
+            fname, _ = QFileDialog.getSaveFileName(
+                self, "Export TikZ", default_name, "LaTeX (*.tex);;All Files (*)"
+            )
             if not fname:
                 return
             Path(fname).write_text(tikz_text, encoding="utf-8")
@@ -1524,7 +1800,16 @@ class CorpusDock(QDockWidget):
         has_layout = bool(getattr(egdf, "layout", None)) if egdf else False
         has_styles = bool(getattr(egdf, "styles", None)) if egdf else False
         has_deltas = bool(getattr(egdf, "deltas", None)) if egdf else False
-        self.graph_info_dock.update_info(v_count, e_count, c_count, src, bool(egdf), has_layout, has_styles, has_deltas)
+        self.graph_info_dock.update_info(
+            v_count,
+            e_count,
+            c_count,
+            src,
+            bool(egdf),
+            has_layout,
+            has_styles,
+            has_deltas,
+        )
 
     def on_open_in_ergasterion(self):
         """In-app handoff: emit payload and let unified app switch to Ergasterion tab."""
@@ -1532,7 +1817,9 @@ class CorpusDock(QDockWidget):
             payload = self._build_ergasterion_payload()
             self.edit_in_ergasterion.emit(payload)
         except Exception as e:
-            QMessageBox.critical(self, "Handoff Error", f"Failed to prepare Ergasterion payload:\n{e}")
+            QMessageBox.critical(
+                self, "Handoff Error", f"Failed to prepare Ergasterion payload:\n{e}"
+            )
 
     def _build_ergasterion_payload(self) -> Dict[str, Any]:
         """Compose a stable payload for Ergasterion and the Organon preview."""
@@ -1551,7 +1838,9 @@ class CorpusDock(QDockWidget):
         style_path = getattr(self.style, "theme_path", "")
         style_id = Path(style_path).stem if style_path else "default"
         payload: Dict[str, Any] = {
-            "source_path": str(self._current_source_path) if self._current_source_path else "",
+            "source_path": (
+                str(self._current_source_path) if self._current_source_path else ""
+            ),
             "egi": egi_inline,
             "egdf": egdf_doc,
             "mode": mode,
@@ -1562,7 +1851,10 @@ class CorpusDock(QDockWidget):
     def _update_preview(self) -> None:
         """Push current payload into embedded preview if available."""
         try:
-            if hasattr(self, 'preview_dock') and getattr(self, 'preview_dock', None) is not None:
+            if (
+                hasattr(self, "preview_dock")
+                and getattr(self, "preview_dock", None) is not None
+            ):
                 try:
                     self.preview_dock.load_from_main()
                 except Exception:
@@ -1573,7 +1865,8 @@ class CorpusDock(QDockWidget):
 
 class GraphInfoDock(QDockWidget):
     """Dock showing graph metadata, source, EGDF flags, and quick actions."""
-    def __init__(self, main: 'EGIMainWindow'):
+
+    def __init__(self, main: "EGIMainWindow"):
         super().__init__("Graph Info")
         self._main = main
         w = QWidget()
@@ -1591,7 +1884,9 @@ class GraphInfoDock(QDockWidget):
         try:
             has_handoff = hasattr(self._main, "on_open_in_ergasterion")
             has_signal = hasattr(self._main, "edit_in_ergasterion")
-            self.lbl_diag = QLabel(f"handoff: {'yes' if has_handoff else 'no'} | signal: {'yes' if has_signal else 'no'}")
+            self.lbl_diag = QLabel(
+                f"handoff: {'yes' if has_handoff else 'no'} | signal: {'yes' if has_signal else 'no'}"
+            )
             form.addRow("Diag:", self.lbl_diag)
         except Exception:
             pass
@@ -1604,11 +1899,27 @@ class GraphInfoDock(QDockWidget):
         btn_open.clicked.connect(self._on_open_clicked)
         btn_reload = QPushButton("Reload")
         btn_reload.clicked.connect(
-            lambda: (getattr(self._main, "reload_current_source", lambda: QMessageBox.information(self._main, "No Source", "No source file to reload."))())
+            lambda: (
+                getattr(
+                    self._main,
+                    "reload_current_source",
+                    lambda: QMessageBox.information(
+                        self._main, "No Source", "No source file to reload."
+                    ),
+                )()
+            )
         )
         btn_save = QPushButton("Save As EGDF…")
         btn_save.clicked.connect(
-            lambda: (getattr(self._main, "save_egdf_to_sibling", lambda: QMessageBox.information(self._main, "Save", "Save EGDF beside source not available."))())
+            lambda: (
+                getattr(
+                    self._main,
+                    "save_egdf_to_sibling",
+                    lambda: QMessageBox.information(
+                        self._main, "Save", "Save EGDF beside source not available."
+                    ),
+                )()
+            )
         )
         btns.addWidget(btn_open)
         btns.addWidget(btn_reload)
@@ -1621,20 +1932,34 @@ class GraphInfoDock(QDockWidget):
             has_handoff = hasattr(self._main, "on_open_in_ergasterion")
             has_signal = hasattr(self._main, "edit_in_ergasterion")
             try:
-                print(f"[GraphInfoDock] Open clicked | handoff:{has_handoff} signal:{has_signal} main_cls:{type(self._main).__name__}")
+                print(
+                    f"[GraphInfoDock] Open clicked | handoff:{has_handoff} signal:{has_signal} main_cls:{type(self._main).__name__}"
+                )
             except Exception:
                 pass
             if has_handoff:
                 return self._main.on_open_in_ergasterion()
             else:
-                QMessageBox.information(self._main, "Ergasterion", "Handoff not available.")
+                QMessageBox.information(
+                    self._main, "Ergasterion", "Handoff not available."
+                )
         except Exception as e:
             try:
                 QMessageBox.critical(self._main, "Ergasterion", f"Open failed: {e}")
             except Exception:
                 pass
 
-    def update_info(self, v_count: int, e_count: int, c_count: int, source: str, has_egdf: bool, has_layout: bool, has_styles: bool, has_deltas: bool):
+    def update_info(
+        self,
+        v_count: int,
+        e_count: int,
+        c_count: int,
+        source: str,
+        has_egdf: bool,
+        has_layout: bool,
+        has_styles: bool,
+        has_deltas: bool,
+    ):
         try:
             self.lbl_counts.setText(f"V: {v_count}  E: {e_count}  Cut: {c_count}")
             self.lbl_source.setText(source)
@@ -1656,7 +1981,8 @@ class GraphInfoDock(QDockWidget):
 
     def _set_item_highlight(self, item: Any, element_type: str, on: bool):
         # Apply style tokens from StyleManager using selected/normal states
-        from PySide6.QtGui import QPen, QBrush, QColor
+        from PySide6.QtGui import QBrush, QColor, QPen
+
         try:
             role_map = {
                 "vertex": "vertex.dot",
@@ -1665,16 +1991,20 @@ class GraphInfoDock(QDockWidget):
                 "cut": "cut.border",
             }
             role = role_map.get(element_type, element_type)
-            tokens = self.style.resolve(type=element_type, role=role, state=("selected" if on else None))
+            tokens = self.style.resolve(
+                type=element_type, role=role, state=("selected" if on else None)
+            )
 
             # Pens
-            pen_color = QColor(tokens.get("line_color", tokens.get("border_color", "#000000")))
+            pen_color = QColor(
+                tokens.get("line_color", tokens.get("border_color", "#000000"))
+            )
             pen_w = float(tokens.get("line_width", tokens.get("border_width", 1)))
-            if hasattr(item, 'setPen'):
+            if hasattr(item, "setPen"):
                 item.setPen(QPen(pen_color, pen_w))
 
             # Brushes (do not change cut fill on selection; spec says border emphasis only)
-            if element_type != "cut" and hasattr(item, 'setBrush'):
+            if element_type != "cut" and hasattr(item, "setBrush"):
                 brush_color = tokens.get("fill_color")
                 if brush_color:
                     item.setBrush(QBrush(QColor(brush_color)))
@@ -1687,7 +2017,7 @@ class GraphInfoDock(QDockWidget):
         # Turn off highlight for all previously selected element IDs
         for sid in list(self._selected_ids):
             for it in self._items_by_element.get(sid, []):
-                etype = it.data(1) if hasattr(it, 'data') else None
+                etype = it.data(1) if hasattr(it, "data") else None
                 if etype:
                     self._set_item_highlight(it, str(etype), False)
         self._selected_ids.clear()
@@ -1704,7 +2034,7 @@ class GraphInfoDock(QDockWidget):
         connected_ids = self._compute_connected_ids(element_id)
         for sid in connected_ids:
             for it in self._items_by_element.get(sid, []):
-                etype = it.data(1) if hasattr(it, 'data') else None
+                etype = it.data(1) if hasattr(it, "data") else None
                 if etype:
                     self._set_item_highlight(it, str(etype), True)
         # Track selection state
@@ -1715,10 +2045,10 @@ class GraphInfoDock(QDockWidget):
         if not self._hover_id:
             return
         for it in self._items_by_element.get(self._hover_id, []):
-            etype = it.data(1) if hasattr(it, 'data') else None
+            etype = it.data(1) if hasattr(it, "data") else None
             if etype:
                 # turn off hover by reapplying selected state if selected, else normal
-                is_selected = (self._selected_id == self._hover_id)
+                is_selected = self._selected_id == self._hover_id
                 self._set_item_highlight(it, str(etype), is_selected)
         self._hover_id = None
 
@@ -1729,7 +2059,7 @@ class GraphInfoDock(QDockWidget):
         self.clear_hover()
         # apply hover style only if not selected (selected takes precedence)
         for it in self._items_by_element.get(element_id, []):
-            etype = it.data(1) if hasattr(it, 'data') else None
+            etype = it.data(1) if hasattr(it, "data") else None
             if not etype:
                 continue
             if self._selected_id == element_id or element_id in self._selected_ids:
@@ -1741,7 +2071,8 @@ class GraphInfoDock(QDockWidget):
         self._hover_id = element_id
 
     def _apply_item_state(self, item: Any, element_type: str, state: str | None):
-        from PySide6.QtGui import QPen, QBrush, QColor
+        from PySide6.QtGui import QBrush, QColor, QPen
+
         role_map = {
             "vertex": "vertex.dot",
             "edge": "edge.label_box",
@@ -1750,11 +2081,13 @@ class GraphInfoDock(QDockWidget):
         }
         role = role_map.get(element_type, element_type)
         tokens = self.style.resolve(type=element_type, role=role, state=state)
-        pen_color = QColor(tokens.get("line_color", tokens.get("border_color", "#000000")))
+        pen_color = QColor(
+            tokens.get("line_color", tokens.get("border_color", "#000000"))
+        )
         pen_w = float(tokens.get("line_width", tokens.get("border_width", 1)))
-        if hasattr(item, 'setPen'):
+        if hasattr(item, "setPen"):
             item.setPen(QPen(pen_color, pen_w))
-        if element_type != "cut" and hasattr(item, 'setBrush'):
+        if element_type != "cut" and hasattr(item, "setBrush"):
             brush_color = tokens.get("fill_color")
             if brush_color:
                 item.setBrush(QBrush(QColor(brush_color)))
@@ -1825,7 +2158,12 @@ class GraphInfoDock(QDockWidget):
         typ = cmd.get("type")
         role = cmd.get("role")
         b = cmd.get("bounds", {})
-        x, y, w, h = b.get("x", 0.0), b.get("y", 0.0), b.get("width", 0.0), b.get("height", 0.0)
+        x, y, w, h = (
+            b.get("x", 0.0),
+            b.get("y", 0.0),
+            b.get("width", 0.0),
+            b.get("height", 0.0),
+        )
 
         if typ == "vertex":
             # Draw small spot and label
@@ -1844,14 +2182,20 @@ class GraphInfoDock(QDockWidget):
             except Exception:
                 vobj = None
             constant_mode = "spot_label"
-            if vobj is not None and not getattr(vobj, 'is_generic', True):
+            if vobj is not None and not getattr(vobj, "is_generic", True):
                 vconst = self.style.resolve(type="vertex", role="vertex.constant")
                 constant_mode = str(vconst.get("mode", "spot_label")).lower()
 
             drew_spot = False
-            if not (vobj is not None and not getattr(vobj, 'is_generic', True) and constant_mode == "label_only"):
+            if not (
+                vobj is not None
+                and not getattr(vobj, "is_generic", True)
+                and constant_mode == "label_only"
+            ):
                 # Draw spot for generic or constant in spot_label mode
-                spot = QGraphicsEllipseItem(v_center_x - radius, v_center_y - radius, 2 * radius, 2 * radius)
+                spot = QGraphicsEllipseItem(
+                    v_center_x - radius, v_center_y - radius, 2 * radius, 2 * radius
+                )
                 spot.setBrush(QBrush(fill))
                 spot.setPen(QPen(border_color, border_w))
                 self.scene.addItem(spot)
@@ -1874,10 +2218,16 @@ class GraphInfoDock(QDockWidget):
                 if label_text:
                     # For generic variable labels, prefer superscript styling and bounds from engine
                     sup_b = cmd.get("vertex_sup_bounds") if vobj.is_generic else None
-                    role_for_style = "vertex.superscript_text" if vobj.is_generic else "vertex.label_text"
+                    role_for_style = (
+                        "vertex.superscript_text"
+                        if vobj.is_generic
+                        else "vertex.label_text"
+                    )
                     tstyle = self.style.resolve(type="vertex", role=role_for_style)
                     font_family = tstyle.get("font_family", "Arial")
-                    base_sz = int(tstyle.get("font_size", tstyle.get("estimate_height", 12)))
+                    base_sz = int(
+                        tstyle.get("font_size", tstyle.get("estimate_height", 12))
+                    )
                     font_size = base_sz
                     vtext = QGraphicsTextItem(str(label_text))
                     vtext.setFont(QFont(font_family, font_size))
@@ -1886,6 +2236,7 @@ class GraphInfoDock(QDockWidget):
                         color = tstyle.get("color")
                         if color:
                             from PySide6.QtGui import QColor as _QColor
+
                             vtext.setDefaultTextColor(_QColor(color))
                     except Exception:
                         pass
@@ -1904,10 +2255,17 @@ class GraphInfoDock(QDockWidget):
                         cx, cy = x + w / 2, y + h / 2
                         vtext.setPos(cx + tx_off, cy + ty_off)
                     # Position text: for constant label_only, center on vertex; else offset from spot
-                    if vobj is not None and not getattr(vobj, 'is_generic', True) and constant_mode == "label_only":
+                    if (
+                        vobj is not None
+                        and not getattr(vobj, "is_generic", True)
+                        and constant_mode == "label_only"
+                    ):
                         # Center text on the vertex center
                         rect = vtext.boundingRect()
-                        vtext.setPos(v_center_x - rect.width() / 2, v_center_y - rect.height() / 2)
+                        vtext.setPos(
+                            v_center_x - rect.width() / 2,
+                            v_center_y - rect.height() / 2,
+                        )
                     self.scene.addItem(vtext)
                     vtext.setZValue(11)
                     self._register_item(vid, "vertex", vtext)
@@ -1936,7 +2294,9 @@ class GraphInfoDock(QDockWidget):
             label_txt = cmd.get("relation_name", "")
             text = QGraphicsTextItem(label_txt)
             g = self.style.resolve(type="edge", role="edge.label_text")
-            text.setFont(QFont(g.get("font_family", "Arial"), int(g.get("font_size", 10))))
+            text.setFont(
+                QFont(g.get("font_family", "Arial"), int(g.get("font_size", 10)))
+            )
             rect = text.boundingRect()
             tx = x + (w - rect.width()) / 2
             ty = y + (h - rect.height()) / 2
@@ -1951,11 +2311,19 @@ class GraphInfoDock(QDockWidget):
                     sup_b = cmd.get("edge_sup_bounds")
                     if sup_b and isinstance(sup_b, dict):
                         egi = self.egi_system.get_egi()
-                        arity = len(egi.get_incident_vertices(cmd.get("element_id", "")))
+                        arity = len(
+                            egi.get_incident_vertices(cmd.get("element_id", ""))
+                        )
                         sup_txt = f"/{arity}"
-                        sstyle = self.style.resolve(type="edge", role="edge.superscript_text")
+                        sstyle = self.style.resolve(
+                            type="edge", role="edge.superscript_text"
+                        )
                         sfam = sstyle.get("font_family", g.get("font_family", "Arial"))
-                        ss = int(sstyle.get("font_size", max(8, int(g.get("font_size", 10)) - 2)))
+                        ss = int(
+                            sstyle.get(
+                                "font_size", max(8, int(g.get("font_size", 10)) - 2)
+                            )
+                        )
                         sup_item = QGraphicsTextItem(sup_txt)
                         sup_item.setFont(QFont(sfam, ss))
                         # Apply text color if provided
@@ -1963,10 +2331,13 @@ class GraphInfoDock(QDockWidget):
                             color = sstyle.get("color")
                             if color:
                                 from PySide6.QtGui import QColor as _QColor
+
                                 sup_item.setDefaultTextColor(_QColor(color))
                         except Exception:
                             pass
-                        sup_item.setPos(float(sup_b.get("x", x + w)), float(sup_b.get("y", y)))
+                        sup_item.setPos(
+                            float(sup_b.get("x", x + w)), float(sup_b.get("y", y))
+                        )
                         self.scene.addItem(sup_item)
                         sup_item.setZValue(8)
                         self._register_item(cmd.get("element_id", ""), "edge", sup_item)
@@ -1976,21 +2347,27 @@ class GraphInfoDock(QDockWidget):
             # Rounded rectangle cut
             s_border = self.style.resolve(type="cut", role=role)
             ap = int(cmd.get("area_parity", 0))
-            s_fill = self.style.resolve(type="cut", role=("cut.fill.odd" if ap == 1 else "cut.fill.even"))
+            s_fill = self.style.resolve(
+                type="cut", role=("cut.fill.odd" if ap == 1 else "cut.fill.even")
+            )
             line_color = _qcolor(s_border.get("line_color", "#000000"))
             line_w = float(s_border.get("line_width", 1))
             radius = float(s_border.get("radius", 10))
             fill_color = _qcolor(s_fill.get("fill_color", "transparent"))
             path = QPainterPath()
             path.addRoundedRect(QRectF(x, y, w, h), radius, radius)
-            path_item = self.scene.addPath(path, QPen(line_color, line_w), QBrush(fill_color))
+            path_item = self.scene.addPath(
+                path, QPen(line_color, line_w), QBrush(fill_color)
+            )
             path_item.setZValue(-1)
             self._register_item(cmd.get("element_id", ""), "cut", path_item)
         elif typ == "ligature":
             pts = cmd.get("path_points", []) or []
             if len(pts) >= 2:
                 # Resolve style (edge.identity fallback -> ligature.arm)
-                s = self.style.resolve(type="edge", role="edge.identity") or self.style.resolve(type="ligature", role=role)
+                s = self.style.resolve(
+                    type="edge", role="edge.identity"
+                ) or self.style.resolve(type="ligature", role=role)
                 line_color = _qcolor(s.get("line_color", "#000000"))
                 line_w = float(s.get("line_width", 3))
 
@@ -2004,6 +2381,7 @@ class GraphInfoDock(QDockWidget):
                 pen = QPen(line_color, line_w)
                 try:
                     from PySide6.QtCore import Qt as QtCoreQt
+
                     # Cap from command override or style
                     cap_val = (cmd.get("cap") or s.get("cap", "round")).lower()
                     if cap_val == "round":
@@ -2028,8 +2406,12 @@ class GraphInfoDock(QDockWidget):
                     pass
 
                 # Build path based on style
-                path_style = (cmd.get("path_style") or s.get("path_style", "straight")).lower()
-                smooth_r = float(cmd.get("smooth_radius", s.get("smooth_radius", 0)) or 0)
+                path_style = (
+                    cmd.get("path_style") or s.get("path_style", "straight")
+                ).lower()
+                smooth_r = float(
+                    cmd.get("smooth_radius", s.get("smooth_radius", 0)) or 0
+                )
                 zig_amp = cmd.get("zigzag_amp", s.get("zigzag_amp"))
                 zig_per = cmd.get("zigzag_period", s.get("zigzag_period"))
 
@@ -2040,7 +2422,7 @@ class GraphInfoDock(QDockWidget):
                         return p
                     lx, ly = points[0]
                     p.moveTo(lx, ly)
-                    for (x1, y1) in points[1:]:
+                    for x1, y1 in points[1:]:
                         if (x1, y1) == (lx, ly):
                             # skip zero-length segment; keep path continuous
                             continue
@@ -2053,20 +2435,21 @@ class GraphInfoDock(QDockWidget):
                         return _polyline_to_path(points)
                     p = QPainterPath()
                     p.moveTo(*points[0])
-                    for i in range(1, len(points)-1):
-                        x0, y0 = points[i-1]
+                    for i in range(1, len(points) - 1):
+                        x0, y0 = points[i - 1]
                         x1, y1 = points[i]
-                        x2, y2 = points[i+1]
+                        x2, y2 = points[i + 1]
                         # Vectors
                         from math import hypot
+
                         v1x, v1y = x1 - x0, y1 - y0
                         v2x, v2y = x2 - x1, y2 - y1
                         len1 = hypot(v1x, v1y) or 1.0
                         len2 = hypot(v2x, v2y) or 1.0
-                        r = min(radius, len1/2, len2/2)
+                        r = min(radius, len1 / 2, len2 / 2)
                         # Points near the corner
-                        p1x, p1y = x1 - v1x/len1 * r, y1 - v1y/len1 * r
-                        p2x, p2y = x1 + v2x/len2 * r, y1 + v2y/len2 * r
+                        p1x, p1y = x1 - v1x / len1 * r, y1 - v1y / len1 * r
+                        p2x, p2y = x1 + v2x / len2 * r, y1 + v2y / len2 * r
                         p.lineTo(p1x, p1y)
                         # Use quadratic curve through the corner point
                         p.quadTo(x1, y1, p2x, p2y)
@@ -2078,6 +2461,7 @@ class GraphInfoDock(QDockWidget):
                     if not amp or not period or period <= 0:
                         return points
                     from math import hypot
+
                     out = [points[0]]
                     phase = 1.0
                     for a, b in zip(points, points[1:]):
@@ -2087,13 +2471,13 @@ class GraphInfoDock(QDockWidget):
                         seg_len = hypot(dx, dy)
                         if seg_len == 0:
                             continue
-                        nx, ny = -dy/seg_len, dx/seg_len  # left normal
+                        nx, ny = -dy / seg_len, dx / seg_len  # left normal
                         t = 0.0
                         while t + period < seg_len:
                             t += period
-                            px = ax + dx * (t/seg_len)
-                            py = ay + dy * (t/seg_len)
-                            out.append((px + phase*amp*nx, py + phase*amp*ny))
+                            px = ax + dx * (t / seg_len)
+                            py = ay + dy * (t / seg_len)
+                            out.append((px + phase * amp * nx, py + phase * amp * ny))
                             phase *= -1.0
                         out.append((bx, by))
                     return out
@@ -2101,7 +2485,9 @@ class GraphInfoDock(QDockWidget):
                 if path_style == "curved":
                     path = _rounded_path(pts, smooth_r if smooth_r > 0 else 8.0)
                 elif path_style == "zigzag":
-                    zpts = _zigzag_points(pts, float(zig_amp or 6.0), float(zig_per or 12.0))
+                    zpts = _zigzag_points(
+                        pts, float(zig_amp or 6.0), float(zig_per or 12.0)
+                    )
                     path = _polyline_to_path(zpts)
                 else:
                     path = _polyline_to_path(pts)
@@ -2120,8 +2506,10 @@ class GraphInfoDock(QDockWidget):
                     # Use a small circle filled with background to punch a gap
                     gap_r = max(2.0, line_w * 0.6)
                     bg = QColor(255, 255, 255)
-                    for (bx, by) in bridges:
-                        hole = QGraphicsEllipseItem(bx - gap_r/2, by - gap_r/2, gap_r, gap_r)
+                    for bx, by in bridges:
+                        hole = QGraphicsEllipseItem(
+                            bx - gap_r / 2, by - gap_r / 2, gap_r, gap_r
+                        )
                         hole.setBrush(QBrush(bg))
                         hole.setPen(QPen(bg, 0))
                         hole.setZValue(6)  # above the ligature to appear as a gap
@@ -2129,7 +2517,8 @@ class GraphInfoDock(QDockWidget):
 
                 # Optional: debug hook markers
                 import os
-                if os.environ.get('ARISBE_DEBUG_HOOKS') == '1':
+
+                if os.environ.get("ARISBE_DEBUG_HOOKS") == "1":
                     base_pt = pts[0]
                     for i, (hx, hy) in enumerate(pts[1:], start=1):
                         is_base = (hx, hy) == base_pt
@@ -2235,6 +2624,7 @@ class GraphInfoDock(QDockWidget):
 
         # Write to project-local file
         import os
+
         out_path = os.path.join(os.getcwd(), "arisbe_export.tex")
         try:
             with open(out_path, "w", encoding="utf-8") as f:
@@ -2246,6 +2636,7 @@ class GraphInfoDock(QDockWidget):
 
 def main():
     import sys
+
     app = QApplication(sys.argv)
     win = EGIMainWindow()
     win.show()
@@ -2254,4 +2645,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

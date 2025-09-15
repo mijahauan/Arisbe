@@ -4,16 +4,25 @@ from typing import Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QTabWidget, QTextEdit, QMessageBox
+    QHBoxLayout,
+    QMessageBox,
+    QPushButton,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
+from cgif_generator_dau import CGIFGenerator, generate_cgif
+from cgif_parser_dau import CGIFParser
+from clif_generator_dau import (
+    CLIFGenerator,
+    generate_clif,
+    generate_clif_with_quantification,
+)
 from egi_core_dau import RelationalGraphWithCuts
 from egif_generator_dau import EGIFGenerator, generate_egif
-from cgif_generator_dau import CGIFGenerator, generate_cgif
-from clif_generator_dau import CLIFGenerator, generate_clif, generate_clif_with_quantification
 from egif_parser_dau import EGIFParser
-from cgif_parser_dau import CGIFParser
 
 
 class LinearFormsPanel(QWidget):
@@ -33,9 +42,12 @@ class LinearFormsPanel(QWidget):
         v.addWidget(self.tabs)
 
         # Read-only editors
-        self.egif_display = QTextEdit(); self.egif_display.setReadOnly(True)
-        self.cgif_display = QTextEdit(); self.cgif_display.setReadOnly(True)
-        self.clif_display = QTextEdit(); self.clif_display.setReadOnly(True)
+        self.egif_display = QTextEdit()
+        self.egif_display.setReadOnly(True)
+        self.cgif_display = QTextEdit()
+        self.cgif_display.setReadOnly(True)
+        self.clif_display = QTextEdit()
+        self.clif_display.setReadOnly(True)
 
         self.tabs.addTab(self.egif_display, "EGIF")
         self.tabs.addTab(self.cgif_display, "CGIF")
@@ -52,7 +64,7 @@ class LinearFormsPanel(QWidget):
 
         self.btn_generate.clicked.connect(self._on_generate)
         self.btn_copy.clicked.connect(self._on_copy_current)
-        
+
         self._set_enabled(False)
 
     def clear(self) -> None:
@@ -71,7 +83,6 @@ class LinearFormsPanel(QWidget):
         self.tabs.setEnabled(enabled)
         self.btn_generate.setEnabled(enabled)
         self.btn_copy.setEnabled(enabled)
-
 
     def _on_generate(self) -> None:
         if not self._graph:
@@ -96,7 +107,8 @@ class LinearFormsPanel(QWidget):
         w = self.tabs.currentWidget()
         label = self.tabs.tabText(self.tabs.currentIndex())
         if isinstance(w, QTextEdit):
-            w.selectAll(); w.copy()
+            w.selectAll()
+            w.copy()
             self.copied.emit(label)
         else:
             try:

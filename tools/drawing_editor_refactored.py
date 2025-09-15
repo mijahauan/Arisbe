@@ -9,37 +9,55 @@ This version:
 - Allows movement across cut boundaries in Permissive mode
 """
 
-import sys
 import os
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+import sys
 import traceback
 import uuid
-from typing import Optional, Dict, Any, List, Set, Tuple
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from PySide6.QtCore import Qt, QPointF, QRectF, QSizeF, Signal
-from PySide6.QtGui import QAction, QKeySequence, QPen, QBrush, QColor, QPainter, QFont
+from PySide6.QtCore import QPointF, QRectF, QSizeF, Qt, Signal
+from PySide6.QtGui import QAction, QBrush, QColor, QFont, QKeySequence, QPainter, QPen
 
 # Add src to path for imports first
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
-                               QWidget, QGraphicsView, QGraphicsScene, QMenuBar, 
-                               QMenu, QToolBar, QStatusBar, QDockWidget, QLabel,
-                               QPushButton, QGroupBox, QInputDialog, QMessageBox,
-                               QGraphicsItem, QGraphicsEllipseItem, QGraphicsTextItem,
-                               QGraphicsRectItem)
-
-from diagram_coordinator import DiagramCoordinator
-from egi_dto import EGIStateDTO, VertexDTO, EdgeDTO, CutDTO, SpatialInfo
-from interactive_transformer_with_history import InteractiveTransformerWithHistory
-from shared_diagram_renderer import SharedDiagramRenderer
-from styling.style_manager import StyleManager
-from controller.constraint_engine import (
-    ConstraintMode, ValidationResult,
-    validate_syntactic_constraints, validate_semantic_constraints
+from PySide6.QtWidgets import (
+    QApplication,
+    QDockWidget,
+    QGraphicsEllipseItem,
+    QGraphicsItem,
+    QGraphicsRectItem,
+    QGraphicsScene,
+    QGraphicsTextItem,
+    QGraphicsView,
+    QGroupBox,
+    QHBoxLayout,
+    QInputDialog,
+    QLabel,
+    QMainWindow,
+    QMenu,
+    QMenuBar,
+    QMessageBox,
+    QPushButton,
+    QStatusBar,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
+from shared_diagram_renderer import SharedDiagramRenderer
+
+from controller.constraint_engine import (
+    ConstraintMode,
+    ValidationResult,
+    validate_semantic_constraints,
+    validate_syntactic_constraints,
+)
+from diagram_coordinator import DiagramCoordinator
+from egi_dto import CutDTO, EdgeDTO, EGIStateDTO, SpatialInfo, VertexDTO
+from interactive_transformer_with_history import InteractiveTransformerWithHistory
+from styling.style_manager import StyleManager
 
 print("All imports successful")
 
@@ -528,8 +546,9 @@ class ErgasterionDrawingEditor(QMainWindow):
         self.coordinator.load_egi_dto(egi_dto)
         
         # Convert DTO back to EGI for transformation system
-        from egi_dto import dto_to_egi
         from datetime import datetime
+
+        from egi_dto import dto_to_egi
         egi = dto_to_egi(egi_dto)
         
         # Create transformation session

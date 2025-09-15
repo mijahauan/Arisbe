@@ -1,0 +1,48 @@
+rules:
+- name: "egi_core_operations"
+  description: "EGI operations should use Dau-compliant core (V, E, ν, ⊤, Cut, area, rel)"
+  trigger_keywords: ["egi", "graph", "vertex", "edge", "cut", "area"]
+  existing_solution: "src/egi_core_dau.py"
+  severity: "warning"
+
+- name: "spatial_correspondence"
+  description: "Spatial layout should use established EGI↔Spatial correspondence"
+  trigger_keywords: ["layout", "spatial", "positioning", "coordinates"]
+  existing_solution: "src/egi_spatial_correspondence.py"
+  severity: "warning"
+
+- name: "ligature_routing"
+  description: "Ligature paths should use visibility router with collision avoidance"
+  trigger_keywords: ["ligature", "routing", "path", "connection"]
+  existing_solution: "src/routing/visibility_router.py"
+  severity: "warning"
+
+- name: "transformation_rules"
+  description: "Transformation operations should use formal Dau Chapter 21 rules"
+  trigger_keywords: ["transformation", "rule", "iteration", "deiteration", "insertion", "erasure"]
+  existing_solution: "src/formal_transformation_rules.py"
+  severity: "warning"
+
+- name: "polarity_calculation"
+  description: "Area polarity should use O(1) HierarchicalIndex lookups"
+  trigger_keywords: ["polarity", "nesting", "cut depth", "area calculation"]
+  existing_solution: "src/hierarchical_index.py"
+  severity: "error"
+
+- name: "gui_coordination"
+  description: "GUI interactions should use DiagramCoordinator with mode-based validation"
+  trigger_keywords: ["gui", "interaction", "drawing", "editor", "mode"]
+  existing_solution: "src/diagram_coordinator.py"
+  severity: "warning"
+
+- name: "egif_parsing"
+  description: "EGIF format handling should use Dau-compliant parser/generator"
+  trigger_keywords: ["egif", "parsing", "format", "serialization"]
+  existing_solution: "src/egif_parser_dau.py"
+  severity: "warning"
+
+- name: "quality_gates"
+  description: "Quality checks should use integrated quality gate system"
+  trigger_keywords: ["quality", "testing", "coverage", "style", "dead code"]
+  existing_solution: "tools/quality_gate_system.py"
+  severity: "info"

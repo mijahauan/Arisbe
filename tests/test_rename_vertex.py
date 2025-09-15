@@ -1,7 +1,7 @@
 import pytest
 
-from src.egi_system import EGISystem
 from src.egi_core_dau import AlphabetDAU
+from src.egi_system import EGISystem
 
 
 def test_rename_vertex_to_constant_updates_rho_and_alphabet():
@@ -33,9 +33,9 @@ def test_rename_vertex_to_variable_clears_label_and_rho_but_keeps_alphabet():
     v_id = "v_test2"
     sys.insert_vertex(v_id)
     # set constant first
-    sys.rename_vertex(v_id, 'Socrates', is_constant=True)
+    sys.rename_vertex(v_id, "Socrates", is_constant=True)
     # then switch to variable
-    res = sys.rename_vertex(v_id, 'ignored', is_constant=False)
+    res = sys.rename_vertex(v_id, "ignored", is_constant=False)
     assert res.success
 
     egi = sys.get_egi()
@@ -54,24 +54,26 @@ def test_rename_vertex_constant_collides_with_relation_name():
     # Replace EGI with same structure but with an alphabet containing R={'P'}
     egi = sys.get_egi()
     alph = AlphabetDAU(C=frozenset(), F=frozenset(), R=frozenset({"P"}))
-    sys.replace_egi(type(egi)(
-        V=egi.V,
-        E=egi.E,
-        nu=egi.nu,
-        sheet=egi.sheet,
-        Cut=egi.Cut,
-        area=egi.area,
-        rel=egi.rel,
-        alphabet=alph,
-        rho=egi.rho
-    ))
+    sys.replace_egi(
+        type(egi)(
+            V=egi.V,
+            E=egi.E,
+            nu=egi.nu,
+            sheet=egi.sheet,
+            Cut=egi.Cut,
+            area=egi.area,
+            rel=egi.rel,
+            alphabet=alph,
+            rho=egi.rho,
+        )
+    )
 
     v_id = "v_test3"
     sys.insert_vertex(v_id)
     # Attempt to set constant name 'P' should fail
-    res = sys.rename_vertex(v_id, 'P', is_constant=True)
+    res = sys.rename_vertex(v_id, "P", is_constant=True)
     assert res.success is False or res.error is not None
     if res.success:
         # If repository-level validate allowed, the core apply should raise
         with pytest.raises(ValueError):
-            sys.rename_vertex(v_id, 'P', is_constant=True)
+            sys.rename_vertex(v_id, "P", is_constant=True)

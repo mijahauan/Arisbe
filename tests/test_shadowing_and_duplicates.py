@@ -1,9 +1,9 @@
 import pytest
 
-from egif_parser_dau import parse_egif
-from egif_generator_dau import generate_egif
 from cgif_generator_dau import generate_cgif
 from clif_generator_dau import generate_clif
+from egif_generator_dau import generate_egif
+from egif_parser_dau import parse_egif
 
 
 def test_shadowing_allows_inner_redefinition():

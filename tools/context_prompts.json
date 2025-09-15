@@ -1,0 +1,111 @@
+{
+  "prompts": [
+    {
+      "trigger_keywords": [
+        "polarity",
+        "positive",
+        "negative",
+        "area polarity"
+      ],
+      "check_commands": [
+        "python tools/function_lookup.py \"polarity\"",
+        "grep -n \"get_polarity\\|calculate.*polarity\" src/*.py"
+      ],
+      "message": "\ud83d\udd0d BEFORE implementing polarity calculation: Check existing HierarchicalIndex.get_polarity() O(1) solution",
+      "priority": "high"
+    },
+    {
+      "trigger_keywords": [
+        "hierarchy",
+        "nesting",
+        "containment",
+        "depth",
+        "level"
+      ],
+      "check_commands": [
+        "python tools/function_lookup.py \"hierarchy\"",
+        "python tools/architectural_mapper.py | grep -i hierarchy"
+      ],
+      "message": "\ud83d\udd0d BEFORE implementing hierarchy/nesting: Check existing HierarchicalIndex and spatial indexing solutions",
+      "priority": "high"
+    },
+    {
+      "trigger_keywords": [
+        "transformation",
+        "rule",
+        "apply",
+        "transform"
+      ],
+      "check_commands": [
+        "python tools/pattern_catalog.py | grep -A5 \"Transformation\"",
+        "python tools/function_lookup.py \"transformation\""
+      ],
+      "message": "\ud83d\udd0d BEFORE implementing transformation: Check formal_transformation_rules.py and transformation wizard patterns",
+      "priority": "high"
+    },
+    {
+      "trigger_keywords": [
+        "spatial",
+        "bounds",
+        "containment",
+        "region",
+        "area"
+      ],
+      "check_commands": [
+        "python tools/function_lookup.py \"spatial\"",
+        "ls src/legacy/*spatial* src/legacy/*rtree*"
+      ],
+      "message": "\ud83d\udd0d BEFORE implementing spatial operations: Check R-tree indexing in legacy/ directory",
+      "priority": "medium"
+    },
+    {
+      "trigger_keywords": [
+        "gui",
+        "dialog",
+        "wizard",
+        "interface",
+        "user"
+      ],
+      "check_commands": [
+        "python tools/pattern_catalog.py | grep -A5 \"User Interface\"",
+        "find src/gui -name \"*.py\" | head -5"
+      ],
+      "message": "\ud83d\udd0d BEFORE implementing GUI: Check existing PySide6 patterns and transformation wizard system",
+      "priority": "medium"
+    },
+    {
+      "trigger_keywords": [
+        "performance",
+        "efficient",
+        "fast",
+        "o(1)",
+        "lookup"
+      ],
+      "check_commands": [
+        "python tools/function_lookup.py --o1",
+        "python tools/pattern_catalog.py | grep -A3 \"Performance\""
+      ],
+      "message": "\ud83d\udd0d BEFORE optimizing: Check existing O(1) solutions and performance patterns",
+      "priority": "high"
+    },
+    {
+      "trigger_keywords": [
+        "index",
+        "search",
+        "find",
+        "lookup",
+        "query"
+      ],
+      "check_commands": [
+        "python tools/semantic_code_analyzer.py | grep -A5 \"cluster\"",
+        "python tools/function_lookup.py \"index\""
+      ],
+      "message": "\ud83d\udd0d BEFORE implementing indexing: Check existing indexing systems (HierarchicalIndex, R-tree, corpus index)",
+      "priority": "medium"
+    }
+  ],
+  "metadata": {
+    "total_prompts": 7,
+    "high_priority": 4
+  }
+}

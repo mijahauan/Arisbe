@@ -13,29 +13,40 @@ Key responsibilities:
 4. Support both Composition Mode (syntax only) and Practice Mode (syntax + semantics)
 """
 
-from typing import Dict, List, Set, Tuple, Optional, Any, Union
-from dataclasses import dataclass
-from enum import Enum
 import uuid
-from egi_dto import EGIStateDTO, VertexDTO, EdgeDTO, CutDTO, SpatialInfo, from_drawing_schema, to_constraint_engine_format
-
-from PySide6.QtCore import QPointF
-from PySide6.QtWidgets import QGraphicsScene
-from frozendict import frozendict
-
-from shared_diagram_renderer import SharedDiagramRenderer
-from drawing_to_egi_adapter import drawing_to_relational_graph
-from egi_spatial_correspondence import create_spatial_correspondence_engine
-from diagram_data_contract import DiagramDataContract, DiagramState
-from styling.style_manager import StyleManager
-from egdf_parser import EGDFDocument
-from spatial_logical_alignment import create_spatial_alignment_engine, SpatialElement, SpatialBounds
-from spatial_region_manager import SpatialRegionManager
-from coordinate_negotiator import CoordinateNegotiator, QtRenderingBackend
 
 # Define LigatureGeometry class for type hints
 from dataclasses import dataclass
-from typing import List, Tuple
+from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
+from coordinate_negotiator import CoordinateNegotiator, QtRenderingBackend
+from egdf_parser import EGDFDocument
+from frozendict import frozendict
+from PySide6.QtCore import QPointF
+from PySide6.QtWidgets import QGraphicsScene
+from shared_diagram_renderer import SharedDiagramRenderer
+from spatial_logical_alignment import (
+    SpatialBounds,
+    SpatialElement,
+    create_spatial_alignment_engine,
+)
+from spatial_region_manager import SpatialRegionManager
+
+from diagram_data_contract import DiagramDataContract, DiagramState
+from drawing_to_egi_adapter import drawing_to_relational_graph
+from egi_dto import (
+    CutDTO,
+    EdgeDTO,
+    EGIStateDTO,
+    SpatialInfo,
+    VertexDTO,
+    from_drawing_schema,
+    to_constraint_engine_format,
+)
+from egi_spatial_correspondence import create_spatial_correspondence_engine
+from styling.style_manager import StyleManager
+
 
 @dataclass
 class LigatureGeometry:
@@ -183,7 +194,7 @@ class DiagramCoordinator:
         self.current_drawing_schema["vertices"].append(vertex_data)
         
         # Also add to diagram_state for rendering
-        from diagram_data_contract import VertexElement, ElementPosition
+        from diagram_data_contract import ElementPosition, VertexElement
         self.diagram_state.vertices[vertex_id] = VertexElement(
             id=vertex_id,
             position=ElementPosition(position.x, position.y),
@@ -222,7 +233,7 @@ class DiagramCoordinator:
         self.current_drawing_schema["predicates"].append(predicate_data)
         
         # Also add to diagram_state for rendering
-        from diagram_data_contract import PredicateElement, ElementPosition
+        from diagram_data_contract import ElementPosition, PredicateElement
         self.diagram_state.predicates[predicate_id] = PredicateElement(
             id=predicate_id,
             name=name,
@@ -663,7 +674,14 @@ class DiagramCoordinator:
     
     def _convert_egi_to_diagram_state(self, egi: Any) -> None:
         """Convert EGI to diagram state for rendering."""
-        from diagram_data_contract import DiagramState, VertexElement, PredicateElement, CutElement, ElementPosition, ElementSize
+        from diagram_data_contract import (
+            CutElement,
+            DiagramState,
+            ElementPosition,
+            ElementSize,
+            PredicateElement,
+            VertexElement,
+        )
         
         vertices = {}
         predicates = {}
@@ -1627,8 +1645,14 @@ class DiagramCoordinator:
     
     def _sync_drawing_schema_to_diagram_state(self):
         """Update diagram state from current drawing schema for rendering."""
-        from diagram_data_contract import DiagramDataContract, VertexData, PredicateData, CutData, Point2D
-        
+        from diagram_data_contract import (
+            CutData,
+            DiagramDataContract,
+            Point2D,
+            PredicateData,
+            VertexData,
+        )
+
         # Convert vertices from drawing schema to diagram state
         diagram_vertices = {}
         for vertex in self.current_drawing_schema.get("vertices", []):
@@ -1789,8 +1813,14 @@ class DiagramCoordinator:
 
 def _sync_drawing_schema_to_diagram_state(self):
     """Update diagram state from current drawing schema for rendering."""
-    from diagram_data_contract import DiagramDataContract, VertexData, PredicateData, CutData, Point2D
-    
+    from diagram_data_contract import (
+        CutData,
+        DiagramDataContract,
+        Point2D,
+        PredicateData,
+        VertexData,
+    )
+
     # Convert vertices from drawing schema to diagram state
     diagram_vertices = {}
     for vertex in self.current_drawing_schema.get("vertices", []):
@@ -1920,7 +1950,7 @@ def create_element_at_click(self, scene_x: float, scene_y: float, element_type: 
         })
         
         # Add to diagram_state for rendering at exact position
-        from diagram_data_contract import VertexElement, ElementPosition
+        from diagram_data_contract import ElementPosition, VertexElement
         self.diagram_state.vertices[vertex_id] = VertexElement(
             id=vertex_id,
             position=ElementPosition(x, y),
@@ -1933,9 +1963,9 @@ def create_element_at_click(self, scene_x: float, scene_y: float, element_type: 
         style = self.style_manager.resolve(type="vertex", role="dot")
         radius = float(style.get("radius", 8))
         
-        from PySide6.QtWidgets import QGraphicsEllipseItem
         from PySide6.QtCore import QRectF
-        from PySide6.QtGui import QPen, QBrush, QColor
+        from PySide6.QtGui import QBrush, QColor, QPen
+        from PySide6.QtWidgets import QGraphicsEllipseItem
         
         dot = QGraphicsEllipseItem(QRectF(x - radius, y - radius, radius * 2, radius * 2))
         
@@ -1998,7 +2028,7 @@ def create_element_at_click(self, scene_x: float, scene_y: float, element_type: 
         })
         
         # Add to diagram_state for rendering at exact position
-        from diagram_data_contract import PredicateElement, ElementPosition
+        from diagram_data_contract import ElementPosition, PredicateElement
         self.diagram_state.predicates[predicate_id] = PredicateElement(
             id=predicate_id,
             name=name,
@@ -2009,8 +2039,8 @@ def create_element_at_click(self, scene_x: float, scene_y: float, element_type: 
         # Render with styling at exact position - no repositioning
         style = self.style_manager.resolve(type="predicate", role="text")
         
+        from PySide6.QtGui import QColor, QFont
         from PySide6.QtWidgets import QGraphicsTextItem
-        from PySide6.QtGui import QFont, QColor
         
         text_item = QGraphicsTextItem(name)
         text_item.setPos(x, y)
@@ -2082,10 +2112,10 @@ def create_element_at_click(self, scene_x: float, scene_y: float, element_type: 
         # Render with styling at exact position - no repositioning
         style = self.style_manager.resolve(type="cut", role="border")
         
-        from PySide6.QtWidgets import QGraphicsRectItem
         from PySide6.QtCore import QRectF
-        from PySide6.QtGui import QPen, QBrush, QColor
-        
+        from PySide6.QtGui import QBrush, QColor, QPen
+        from PySide6.QtWidgets import QGraphicsRectItem
+
         # Apply styling with proper key names
         border_color = QColor(style.get("border_color", style.get("line_color", "#000000")))
         border_width = float(style.get("border_width", style.get("line_width", 2)))
@@ -2252,10 +2282,10 @@ def create_element_at_click(self, scene_x: float, scene_y: float, element_type: 
     
     def _create_ligature_visual(self, source_id: str, target_id: str, source_type: str, target_type: str):
         """Create visual ligature line between two elements."""
-        from PySide6.QtWidgets import QGraphicsLineItem
-        from PySide6.QtGui import QPen, QColor
         from PySide6.QtCore import QLineF
-        
+        from PySide6.QtGui import QColor, QPen
+        from PySide6.QtWidgets import QGraphicsLineItem
+
         # Find source and target items in the scene
         source_item = None
         target_item = None
@@ -2384,7 +2414,7 @@ def create_element_at_click(self, scene_x: float, scene_y: float, element_type: 
         """Validate element placement using constraint engine."""
         try:
             from controller.constraint_engine import validate_syntactic_constraints
-            
+
             # Build DTO with proposed element for validation
             dto = self._build_constraint_dto_with_element(x, y, element_type, area_id)
             

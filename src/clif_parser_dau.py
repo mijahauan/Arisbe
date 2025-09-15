@@ -19,38 +19,49 @@ Maps to EGI as:
 """
 
 import re
-from typing import Dict, List, Set, Tuple, Optional, Tuple, Union, Any
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
+
+from frozendict import frozendict
 
 from egi_core_dau import (
-    RelationalGraphWithCuts, Vertex, Edge, Cut,
-    create_empty_graph, create_vertex, create_edge, create_cut,
-    ElementID, VertexSequence, RelationName
+    AlphabetDAU,
+    Cut,
+    Edge,
+    ElementID,
+    RelationalGraphWithCuts,
+    RelationName,
+    Vertex,
+    VertexSequence,
+    create_cut,
+    create_edge,
+    create_empty_graph,
+    create_vertex,
 )
-from egi_core_dau import AlphabetDAU
-from frozendict import frozendict
 
 
 class CLIFTokenType(Enum):
     """Token types for CLIF lexical analysis."""
-    LPAREN = "LPAREN"           # (
-    RPAREN = "RPAREN"           # )
-    IDENTIFIER = "IDENTIFIER"    # predicate names, variables
-    FORALL = "FORALL"           # forall
-    EXISTS = "EXISTS"           # exists  
-    NOT = "NOT"                 # not
-    AND = "AND"                 # and
-    OR = "OR"                   # or
-    IFF = "IFF"                 # iff
-    IF = "IF"                   # if
-    COMMENT = "COMMENT"         # ;; comment
+
+    LPAREN = "LPAREN"  # (
+    RPAREN = "RPAREN"  # )
+    IDENTIFIER = "IDENTIFIER"  # predicate names, variables
+    FORALL = "FORALL"  # forall
+    EXISTS = "EXISTS"  # exists
+    NOT = "NOT"  # not
+    AND = "AND"  # and
+    OR = "OR"  # or
+    IFF = "IFF"  # iff
+    IF = "IF"  # if
+    COMMENT = "COMMENT"  # ;; comment
     EOF = "EOF"
 
 
 @dataclass
 class CLIFToken:
     """CLIF token with type and value."""
+
     type: CLIFTokenType
     value: str
     position: int
@@ -58,78 +69,82 @@ class CLIFToken:
 
 class CLIFLexer:
     """Lexical analyzer for CLIF expressions."""
-    
+
     def __init__(self, text: str):
         self.text = text.strip()
         self.position = 0
         self.tokens = []
-        
+
     def tokenize(self) -> List[CLIFToken]:
         """Convert CLIF text into tokens."""
         self.tokens = []
         self.position = 0
-        
+
         while self.position < len(self.text):
             self._skip_whitespace()
-            
+
             if self.position >= len(self.text):
                 break
-                
+
             char = self.text[self.position]
-            
-            if char == '(':
-                self.tokens.append(CLIFToken(CLIFTokenType.LPAREN, '(', self.position))
+
+            if char == "(":
+                self.tokens.append(CLIFToken(CLIFTokenType.LPAREN, "(", self.position))
                 self.position += 1
-            elif char == ')':
-                self.tokens.append(CLIFToken(CLIFTokenType.RPAREN, ')', self.position))
+            elif char == ")":
+                self.tokens.append(CLIFToken(CLIFTokenType.RPAREN, ")", self.position))
                 self.position += 1
-            elif char == ';' and self.position + 1 < len(self.text) and self.text[self.position + 1] == ';':
+            elif (
+                char == ";"
+                and self.position + 1 < len(self.text)
+                and self.text[self.position + 1] == ";"
+            ):
                 self._read_comment()
             elif char == '"':
                 self._read_quoted_identifier()
             else:
                 self._read_identifier()
-        
-        self.tokens.append(CLIFToken(CLIFTokenType.EOF, '', self.position))
+
+        self.tokens.append(CLIFToken(CLIFTokenType.EOF, "", self.position))
         return self.tokens
-    
+
     def _skip_whitespace(self):
         """Skip whitespace characters."""
-        while (self.position < len(self.text) and 
-               self.text[self.position] in ' \t\n\r'):
+        while self.position < len(self.text) and self.text[self.position] in " \t\n\r":
             self.position += 1
-    
+
     def _read_comment(self):
         """Read comment starting with ;;"""
         start = self.position
-        while (self.position < len(self.text) and 
-               self.text[self.position] != '\n'):
+        while self.position < len(self.text) and self.text[self.position] != "\n":
             self.position += 1
-        comment_text = self.text[start:self.position]
+        comment_text = self.text[start : self.position]
         self.tokens.append(CLIFToken(CLIFTokenType.COMMENT, comment_text, start))
-    
+
     def _read_identifier(self):
         """Read identifier (predicate name, variable, keyword)."""
         start = self.position
-        
+
         # Read identifier characters
-        while (self.position < len(self.text) and 
-               self.text[self.position] not in ' \t\n\r()'):
+        while (
+            self.position < len(self.text)
+            and self.text[self.position] not in " \t\n\r()"
+        ):
             self.position += 1
-        
-        identifier = self.text[start:self.position]
-        
+
+        identifier = self.text[start : self.position]
+
         # Check for keywords
         token_type = {
-            'forall': CLIFTokenType.FORALL,
-            'exists': CLIFTokenType.EXISTS,
-            'not': CLIFTokenType.NOT,
-            'and': CLIFTokenType.AND,
-            'or': CLIFTokenType.OR,
-            'iff': CLIFTokenType.IFF,
-            'if': CLIFTokenType.IF
+            "forall": CLIFTokenType.FORALL,
+            "exists": CLIFTokenType.EXISTS,
+            "not": CLIFTokenType.NOT,
+            "and": CLIFTokenType.AND,
+            "or": CLIFTokenType.OR,
+            "iff": CLIFTokenType.IFF,
+            "if": CLIFTokenType.IF,
         }.get(identifier.lower(), CLIFTokenType.IDENTIFIER)
-        
+
         self.tokens.append(CLIFToken(token_type, identifier, start))
 
     def _read_quoted_identifier(self):
@@ -140,7 +155,11 @@ class CLIFLexer:
         buf = []
         while self.position < len(self.text):
             ch = self.text[self.position]
-            if ch == '\\' and self.position + 1 < len(self.text) and self.text[self.position + 1] == '"':
+            if (
+                ch == "\\"
+                and self.position + 1 < len(self.text)
+                and self.text[self.position + 1] == '"'
+            ):
                 buf.append('"')
                 self.position += 2
                 continue
@@ -150,17 +169,18 @@ class CLIFLexer:
                 break
             buf.append(ch)
             self.position += 1
-        identifier = ''.join(buf)
+        identifier = "".join(buf)
         self.tokens.append(CLIFToken(CLIFTokenType.IDENTIFIER, identifier, start))
 
 
 @dataclass
 class CLIFParseNode:
     """Node in CLIF parse tree."""
+
     type: str
     value: Optional[str] = None
-    children: List['CLIFParseNode'] = None
-    
+    children: List["CLIFParseNode"] = None
+
     def __post_init__(self):
         if self.children is None:
             self.children = []
@@ -168,44 +188,46 @@ class CLIFParseNode:
 
 class CLIFParser:
     """Parser for CLIF expressions."""
-    
+
     def __init__(self, text: str):
         self.text = text
         self.lexer = CLIFLexer(text)
         self.tokens = []
         self.position = 0
         self.current_token = None
-        
+
     def parse(self) -> RelationalGraphWithCuts:
         """Parse CLIF text into EGI structure."""
         self.tokens = self.lexer.tokenize()
         self.position = 0
         self.current_token = self.tokens[0] if self.tokens else None
-        
+
         # Parse the CLIF expression
         parse_tree = self._parse_expression()
-        
+
         # Convert parse tree to EGI immutably
         egi = create_empty_graph()
         egi = self._convert_to_egi(parse_tree, egi, egi.sheet)
         # Populate AlphabetDAU and rho
         egi = self._finalize_alphabet_and_rho(egi)
         return egi
-    
+
     def _advance(self):
         """Move to next token."""
         if self.position < len(self.tokens) - 1:
             self.position += 1
             self.current_token = self.tokens[self.position]
-    
+
     def _expect(self, token_type: CLIFTokenType) -> CLIFToken:
         """Expect specific token type."""
         if self.current_token.type != token_type:
-            raise ValueError(f"Expected {token_type}, got {self.current_token.type} at position {self.current_token.position}")
+            raise ValueError(
+                f"Expected {token_type}, got {self.current_token.type} at position {self.current_token.position}"
+            )
         token = self.current_token
         self._advance()
         return token
-    
+
     def _parse_expression(self) -> CLIFParseNode:
         """Parse a CLIF expression."""
         if self.current_token.type == CLIFTokenType.LPAREN:
@@ -214,18 +236,20 @@ class CLIFParser:
             # Simple identifier (constant)
             token = self.current_token
             self._advance()
-            return CLIFParseNode('constant', token.value)
+            return CLIFParseNode("constant", token.value)
         else:
-            raise ValueError(f"Unexpected token {self.current_token.type} at position {self.current_token.position}")
-    
+            raise ValueError(
+                f"Unexpected token {self.current_token.type} at position {self.current_token.position}"
+            )
+
     def _parse_compound_expression(self) -> CLIFParseNode:
         """Parse compound expression starting with (."""
         self._expect(CLIFTokenType.LPAREN)
-        
+
         if self.current_token.type == CLIFTokenType.FORALL:
-            return self._parse_quantification('forall')
+            return self._parse_quantification("forall")
         elif self.current_token.type == CLIFTokenType.EXISTS:
-            return self._parse_quantification('exists')
+            return self._parse_quantification("exists")
         elif self.current_token.type == CLIFTokenType.NOT:
             return self._parse_negation()
         elif self.current_token.type == CLIFTokenType.AND:
@@ -235,12 +259,14 @@ class CLIFParser:
         elif self.current_token.type == CLIFTokenType.IDENTIFIER:
             return self._parse_atomic_formula()
         else:
-            raise ValueError(f"Unexpected token in compound expression: {self.current_token.type}")
-    
+            raise ValueError(
+                f"Unexpected token in compound expression: {self.current_token.type}"
+            )
+
     def _parse_quantification(self, quantifier: str) -> CLIFParseNode:
         """Parse forall or exists quantification."""
         self._advance()  # Skip quantifier
-        
+
         # Parse variable list (x) or (x y z)
         self._expect(CLIFTokenType.LPAREN)
         variables = []
@@ -248,81 +274,90 @@ class CLIFParser:
             variables.append(self.current_token.value)
             self._advance()
         self._expect(CLIFTokenType.RPAREN)
-        
+
         # Parse body
         body = self._parse_expression()
-        
+
         self._expect(CLIFTokenType.RPAREN)
-        
+
         node = CLIFParseNode(quantifier)
-        node.children = [CLIFParseNode('variables', None, [CLIFParseNode('variable', var) for var in variables]), body]
+        node.children = [
+            CLIFParseNode(
+                "variables", None, [CLIFParseNode("variable", var) for var in variables]
+            ),
+            body,
+        ]
         return node
-    
+
     def _parse_negation(self) -> CLIFParseNode:
         """Parse negation (not ...)."""
         self._advance()  # Skip 'not'
-        
+
         body = self._parse_expression()
         self._expect(CLIFTokenType.RPAREN)
-        
-        node = CLIFParseNode('not')
+
+        node = CLIFParseNode("not")
         node.children = [body]
         return node
-    
+
     def _parse_conjunction(self) -> CLIFParseNode:
         """Parse conjunction (and ...)."""
         self._advance()  # Skip 'and'
-        
+
         conjuncts = []
         while self.current_token.type != CLIFTokenType.RPAREN:
             conjuncts.append(self._parse_expression())
-        
+
         self._expect(CLIFTokenType.RPAREN)
-        
-        node = CLIFParseNode('and')
+
+        node = CLIFParseNode("and")
         node.children = conjuncts
         return node
-    
+
     def _parse_disjunction(self) -> CLIFParseNode:
         """Parse disjunction (or ...)."""
         self._advance()  # Skip 'or'
-        
+
         disjuncts = []
         while self.current_token.type != CLIFTokenType.RPAREN:
             disjuncts.append(self._parse_expression())
-        
+
         self._expect(CLIFTokenType.RPAREN)
-        
-        node = CLIFParseNode('or')
+
+        node = CLIFParseNode("or")
         node.children = disjuncts
         return node
-    
+
     def _parse_atomic_formula(self) -> CLIFParseNode:
         """Parse atomic formula (P x y)."""
         predicate = self.current_token.value
         self._advance()
-        
+
         arguments = []
         while self.current_token.type == CLIFTokenType.IDENTIFIER:
             arguments.append(self.current_token.value)
             self._advance()
-        
+
         self._expect(CLIFTokenType.RPAREN)
-        
-        node = CLIFParseNode('atomic')
+
+        node = CLIFParseNode("atomic")
         node.value = predicate
-        node.children = [CLIFParseNode('argument', arg) for arg in arguments]
+        node.children = [CLIFParseNode("argument", arg) for arg in arguments]
         return node
-    
-    def _convert_to_egi(self, node: CLIFParseNode, egi: RelationalGraphWithCuts, area_id: str) -> RelationalGraphWithCuts:
+
+    def _convert_to_egi(
+        self, node: CLIFParseNode, egi: RelationalGraphWithCuts, area_id: str
+    ) -> RelationalGraphWithCuts:
         """Convert parse tree node to EGI elements immutably and return updated egi."""
-        if node.type == 'atomic':
+        if node.type == "atomic":
             # Create vertices for arguments
             vertex_ids = []
             for arg_node in node.children:
                 vertex_id = f"v_{arg_node.value}"
                 if not any(v.id == vertex_id for v in egi.V):
-                    vertex = Vertex(id=vertex_id, label=arg_node.value, is_generic=False)
+                    vertex = Vertex(
+                        id=vertex_id, label=arg_node.value, is_generic=False
+                    )
                     egi = egi.with_vertex_in_context(vertex, area_id)
                 vertex_ids.append(vertex_id)
             # Create edge for predicate in same area
@@ -330,8 +365,8 @@ class CLIFParser:
             edge = Edge(id=edge_id)
             egi = egi.with_edge(edge, tuple(vertex_ids), node.value, context_id=area_id)
             return egi
-        
-        if node.type == 'not':
+
+        if node.type == "not":
             # Create cut for negation
             cut_id = f"c_not_{len(egi.Cut)}"
             cut = Cut(id=cut_id)
@@ -340,14 +375,14 @@ class CLIFParser:
             for child in node.children:
                 egi = self._convert_to_egi(child, egi, cut_id)
             return egi
-        
-        if node.type == 'and':
+
+        if node.type == "and":
             # Conjunction - all children in same area
             for child in node.children:
                 egi = self._convert_to_egi(child, egi, area_id)
             return egi
-        
-        if node.type == 'or':
+
+        if node.type == "or":
             # Disjunction - convert to negation normal form using cuts
             outer_cut_id = f"c_or_outer_{len(egi.Cut)}"
             outer_cut = Cut(id=outer_cut_id)
@@ -360,17 +395,19 @@ class CLIFParser:
                 # Process child in inner cut
                 egi = self._convert_to_egi(child, egi, inner_cut_id)
             return egi
-        
-        if node.type == 'forall':
+
+        if node.type == "forall":
             # Universal quantification - process variables and body (ignore variable scoping for now)
             for child in node.children:
-                if child.type != 'variables':
+                if child.type != "variables":
                     egi = self._convert_to_egi(child, egi, area_id)
             return egi
-        
+
         return egi
 
-    def _finalize_alphabet_and_rho(self, graph: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
+    def _finalize_alphabet_and_rho(
+        self, graph: RelationalGraphWithCuts
+    ) -> RelationalGraphWithCuts:
         """Compute AlphabetDAU and rho from the graph, excluding relation-name collisions from constants."""
         # Relation names and arities from edges
         relation_names: Set[str] = set()
@@ -382,16 +419,18 @@ class CLIFParser:
         # Candidate constants from non-generic vertex labels
         candidate_constants: Set[str] = set()
         for v in graph.V:
-            if not getattr(v, 'is_generic', True) and getattr(v, 'label', None):
+            if not getattr(v, "is_generic", True) and getattr(v, "label", None):
                 candidate_constants.add(v.label)  # type: ignore[arg-type]
 
         # Disjoint constants
-        constants: Set[str] = {c for c in candidate_constants if c not in relation_names}
+        constants: Set[str] = {
+            c for c in candidate_constants if c not in relation_names
+        }
 
         # rho: only map vertices labeled with names in constants; others None
         rho_map: Dict[str, Optional[str]] = {}
         for v in graph.V:
-            if not getattr(v, 'is_generic', True) and getattr(v, 'label', None) and v.label in constants:  # type: ignore[attr-defined]
+            if not getattr(v, "is_generic", True) and getattr(v, "label", None) and v.label in constants:  # type: ignore[attr-defined]
                 rho_map[v.id] = v.label  # type: ignore[assignment]
             else:
                 rho_map[v.id] = None

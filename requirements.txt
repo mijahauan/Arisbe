@@ -1,6 +1,9 @@
 # Arisbe - Existential Graph Implementation
 # Core dependencies for EGIF parsing, EGI structures, and diagram visualization
-
+#
+# IMPORTANT: Use conda environment 'CGIF' which has the correct package versions
+# To activate: conda activate CGIF
+#
 # Core dependencies
 PyYAML>=6.0
 frozendict>=2.3.0
@@ -25,6 +28,9 @@ rtree>=1.0.0
 
 # Text extraction for PDF references
 pdfminer.six>=20231228
+
+# Network and graph analysis for semantic code analysis
+networkx>=3.0
 
 # Development and testing dependencies (uncomment for development)
 # pytest>=7.0.0

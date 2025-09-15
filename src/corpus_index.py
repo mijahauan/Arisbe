@@ -14,12 +14,12 @@ Layout:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
-from pathlib import Path
-from typing import List, Dict, Any, Optional
 import json
 import os
+from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Repository-relative paths
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -53,11 +53,7 @@ def load_index() -> Dict[str, Any]:
         except Exception:
             pass
     # default empty index
-    idx = {
-        "name": "Arisbe Corpus",
-        "version": "0.1",
-        "entries": []
-    }
+    idx = {"name": "Arisbe Corpus", "version": "0.1", "entries": []}
     save_index(idx)
     return idx
 
@@ -86,7 +82,12 @@ def upsert_entry(entry: Dict[str, Any]) -> None:
     save_index(idx)
 
 
-def create_graph_dir(graph_id: str, title: Optional[str] = None, category: Optional[str] = None, tags: Optional[List[str]] = None) -> Path:
+def create_graph_dir(
+    graph_id: str,
+    title: Optional[str] = None,
+    category: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+) -> Path:
     _ensure_dirs()
     safe_id = graph_id.strip()
     if not safe_id:
@@ -110,18 +111,30 @@ def create_graph_dir(graph_id: str, title: Optional[str] = None, category: Optio
             "links": {
                 "egi": f"{safe_id}.egi.json",
                 "egdf_dir": "EGDF/",
-                "exports_dir": "EXPORTS/"
-            }
+                "exports_dir": "EXPORTS/",
+            },
         }
         info_path.write_text(json.dumps(info, indent=2), encoding="utf-8")
     # initialize empty egi.json if missing
     egi_path = gdir / f"{safe_id}.egi.json"
     if not egi_path.exists():
-        egi_path.write_text(json.dumps({
-            "sheet": "sheet",
-            "V": [], "E": [], "Cut": [],
-            "nu": {}, "rel": {}, "area": {}, "alphabet": None, "rho": {}
-        }, indent=2), encoding="utf-8")
+        egi_path.write_text(
+            json.dumps(
+                {
+                    "sheet": "sheet",
+                    "V": [],
+                    "E": [],
+                    "Cut": [],
+                    "nu": {},
+                    "rel": {},
+                    "area": {},
+                    "alphabet": None,
+                    "rho": {},
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
     # upsert into index
     entry = {
         "id": safe_id,
@@ -160,7 +173,9 @@ def graph_paths(gdir: Path) -> Dict[str, Path]:
     }
 
 
-def export_path(gdir: Path, kind: str, version_hint: Optional[str] = None, ext: str = "") -> Path:
+def export_path(
+    gdir: Path, kind: str, version_hint: Optional[str] = None, ext: str = ""
+) -> Path:
     p = graph_paths(gdir)["exports_dir"]
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     version = version_hint or ts
@@ -168,7 +183,9 @@ def export_path(gdir: Path, kind: str, version_hint: Optional[str] = None, ext: 
     return p / name
 
 
-def egdf_path(gdir: Path, style_id: str, author: str = "auto", version_hint: Optional[str] = None) -> Path:
+def egdf_path(
+    gdir: Path, style_id: str, author: str = "auto", version_hint: Optional[str] = None
+) -> Path:
     p = graph_paths(gdir)["egdf_dir"]
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     version = version_hint or ts

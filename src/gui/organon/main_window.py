@@ -1,41 +1,54 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Dict, Any, List
-
-import os
+from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
 from PySide6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QDockWidget, QMessageBox, QToolBar, QGraphicsItem, QGraphicsView, QGraphicsScene,
-    QGraphicsRectItem, QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsLineItem
+    QDockWidget,
+    QGraphicsEllipseItem,
+    QGraphicsItem,
+    QGraphicsLineItem,
+    QGraphicsRectItem,
+    QGraphicsScene,
+    QGraphicsTextItem,
+    QGraphicsView,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
-from PySide6.QtGui import QPainter, QPen, QBrush, QColor
 
-from egi_core_dau import (
-    RelationalGraphWithCuts, Vertex, Edge, Cut, AlphabetDAU
-)
-from egi_system import create_egi_system
-from egi_dto import EGIStateDTO, egi_to_dto
 import corpus_index as cidx
+from egi_core_dau import AlphabetDAU, Cut, Edge, RelationalGraphWithCuts, Vertex
+from egi_dto import EGIStateDTO, egi_to_dto
+from egi_system import create_egi_system
 
 from .corpus_panel import CorpusPanel
+from .diagram_viewer import DiagramViewer
 from .info_panel import InfoPanel
 from .linear_forms_panel import LinearFormsPanel
-from .diagram_viewer import DiagramViewer
 
 # Prefer the working renderer from tools/drawing_editor in embedded mode
 try:
     # Ensure tools/ is on sys.path for DrawingEditor import
-    import sys
     import os
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+    import sys
+
+    repo_root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+    )
     tools_dir = os.path.join(repo_root, "tools")
     if tools_dir not in sys.path:
         sys.path.insert(0, tools_dir)
-    
+
     from drawing_editor import DrawingEditor
 except Exception:
     DrawingEditor = None  # type: ignore
@@ -141,25 +154,26 @@ class OrganonMainWindow(QMainWindow):
     def _on_new_graph(self) -> None:
         """Create new graph and launch Ergasterion for de novo diagram creation."""
         from PySide6.QtWidgets import QInputDialog
-        
+
         # Get graph title from user
         title, ok = QInputDialog.getText(
-            self, 
-            "New Graph", 
+            self,
+            "New Graph",
             "Enter a title for the new graph:",
-            text="New Existential Graph"
+            text="New Existential Graph",
         )
-        
+
         if not ok or not title.strip():
             return
-            
+
         # Create unique graph ID from title
         import re
-        base_id = re.sub(r'[^a-zA-Z0-9_]', '_', title.strip().lower())
-        base_id = re.sub(r'_+', '_', base_id).strip('_')
+
+        base_id = re.sub(r"[^a-zA-Z0-9_]", "_", title.strip().lower())
+        base_id = re.sub(r"_+", "_", base_id).strip("_")
         if not base_id:
             base_id = "new_graph"
-            
+
         # Find unique ID
         i = 1
         while True:
@@ -168,17 +182,17 @@ class OrganonMainWindow(QMainWindow):
             if not gdir.exists():
                 break
             i += 1
-        
+
         try:
             # Create graph directory structure
             gdir.mkdir(parents=True, exist_ok=True)
             (gdir / "EGDF").mkdir(exist_ok=True)
             (gdir / "EXPORTS").mkdir(exist_ok=True)
-            
+
             # Create initial metadata file
             import json
             from datetime import datetime
-            
+
             metadata = {
                 "id": gid,
                 "title": title.strip(),
@@ -190,30 +204,30 @@ class OrganonMainWindow(QMainWindow):
                 "links": {
                     "egi": f"{gid}.egi.json",
                     "egdf_dir": "EGDF/",
-                    "exports_dir": "EXPORTS/"
+                    "exports_dir": "EXPORTS/",
                 },
-                "linear_forms": {}
+                "linear_forms": {},
             }
-            
+
             metadata_path = gdir / f"{gid}.json"
-            with open(metadata_path, 'w') as f:
+            with open(metadata_path, "w") as f:
                 json.dump(metadata, f, indent=2)
-            
+
             # Update corpus index
             relative_path = f"corpus/graphs/{gid}"
             self.corpus_panel.add_graph_to_index(gid, title.strip(), relative_path)
-            
+
             # Update current state
             self._cur.graph_dir = gdir
             self._cur.graph = None  # No EGI yet
             self._cur.latest_egdf_path = None
-            
+
             # Refresh corpus and UI
             self._refresh_corpus()
-            
+
             # Automatically launch Ergasterion for diagram creation
             self._on_open_in_ergasterion()
-            
+
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to create new graph: {e}")
 
@@ -232,11 +246,11 @@ class OrganonMainWindow(QMainWindow):
     def _load_graph_dir(self, gdir: Path) -> None:
         """Load graph directory with EGI-first logic."""
         self._cur = Current(graph_dir=gdir, graph=None, latest_egdf_path=None)
-        
+
         # EGI-first loading: check for <graph>.egi.json
         egi_path = cidx.graph_paths(gdir)["egi"]
         egi_exists = egi_path.exists() and egi_path.stat().st_size > 0
-        
+
         if egi_exists:
             # EGI exists: load it and derive linear forms
             self._cur.graph = self._read_egi_json(gdir)
@@ -248,15 +262,16 @@ class OrganonMainWindow(QMainWindow):
             # No EGI: prepare for creation via linear form input or Ergasterion
             self._cur.graph = None
             self.forms_panel.clear()  # Switch to input mode
-        
+
         # Load info panel (will detect EGI state and set read-only accordingly)
         self.info_panel.load_graph_dir(gdir)
-        
+
         # Load diagram from EGI if available (read-only display)
         if self._cur.graph is not None:
             # Convert EGI to DTO for read-only display
             try:
                 from egi_dto import egi_to_dto
+
                 egi_dto = egi_to_dto(self._cur.graph)
                 self.diagram_viewer.load_egi_dto_readonly(egi_dto)
             except Exception as e:
@@ -265,7 +280,7 @@ class OrganonMainWindow(QMainWindow):
         else:
             # No EGI exists - clear the viewer (empty state)
             self.diagram_viewer.clear()
-        
+
         # Update status & handoff visibility
         self._update_status()
         self._update_handoff_visibility()
@@ -283,10 +298,12 @@ class OrganonMainWindow(QMainWindow):
         """Show/hide handoff button based on EGI availability."""
         has_egi = self._cur.graph is not None
         self.btn_open_erg.setVisible(has_egi)
-        
+
         if has_egi:
             self.btn_open_erg.setText("Edit in Ergasterion")
-            self.btn_open_erg.setToolTip("Open this graph in Ergasterion for interactive editing, styling, and transformation practice")
+            self.btn_open_erg.setToolTip(
+                "Open this graph in Ergasterion for interactive editing, styling, and transformation practice"
+            )
         else:
             self.btn_open_erg.setToolTip("No EGI available for editing")
 
@@ -297,6 +314,7 @@ class OrganonMainWindow(QMainWindow):
             data = None
             if egi_path.exists():
                 import json
+
                 data = json.loads(egi_path.read_text(encoding="utf-8"))
             if not data:
                 return None
@@ -304,19 +322,21 @@ class OrganonMainWindow(QMainWindow):
             sheet: str = data.get("sheet") or "sheet"
             V = []
             rho_map = data.get("rho") or {}
-            
+
             # Handle V as list of objects with id, label, is_generic
             for v_obj in data.get("V", []):
                 if isinstance(v_obj, dict):
                     vid = v_obj.get("id")
                     label = v_obj.get("label") or rho_map.get(vid)
-                    is_generic = v_obj.get("is_generic", True if label is None else False)
+                    is_generic = v_obj.get(
+                        "is_generic", True if label is None else False
+                    )
                 else:
                     vid = v_obj
                     label = rho_map.get(vid)
                     is_generic = True if label is None else False
                 V.append(Vertex(id=vid, label=label, is_generic=is_generic))
-            
+
             # Handle E as list of objects with id
             E = []
             for e_obj in data.get("E", []):
@@ -324,7 +344,7 @@ class OrganonMainWindow(QMainWindow):
                     E.append(Edge(id=e_obj.get("id")))
                 else:
                     E.append(Edge(id=e_obj))
-            
+
             # Handle Cut as list of objects with id
             CutSet = []
             for c_obj in data.get("Cut", []):
@@ -333,9 +353,12 @@ class OrganonMainWindow(QMainWindow):
                 else:
                     CutSet.append(Cut(id=c_obj))
             from frozendict import frozendict
+
             nu = frozendict({k: tuple(v) for k, v in (data.get("nu") or {}).items()})
             rel = frozendict(dict(data.get("rel") or {}))
-            area = frozendict({k: frozenset(v) for k, v in (data.get("area") or {}).items()})
+            area = frozendict(
+                {k: frozenset(v) for k, v in (data.get("area") or {}).items()}
+            )
             rho = frozendict(dict(rho_map))
             alph_data = data.get("alphabet") or {}
             alph = AlphabetDAU(
@@ -365,77 +388,91 @@ class OrganonMainWindow(QMainWindow):
         if not egdf_dir.exists():
             return None
         try:
-            candidates: List[Path] = [p for p in egdf_dir.iterdir() if p.name.lower().endswith(".json")]
+            candidates: List[Path] = [
+                p for p in egdf_dir.iterdir() if p.name.lower().endswith(".json")
+            ]
         except Exception:
             candidates = []
         if not candidates:
             return None
-        
+
         # If only one EGDF, return it
         if len(candidates) == 1:
             return candidates[0]
-        
+
         # Multiple EGDFs - show selection dialog
         return self._select_egdf_dialog(candidates)
-    
+
     def _select_egdf_dialog(self, candidates: List[Path]) -> Optional[Path]:
         """Show dialog to select which EGDF to display when multiple exist."""
-        from PySide6.QtWidgets import QDialog, QVBoxLayout, QListWidget, QListWidgetItem, QPushButton, QHBoxLayout, QLabel
-        
+        from PySide6.QtWidgets import (
+            QDialog,
+            QHBoxLayout,
+            QLabel,
+            QListWidget,
+            QListWidgetItem,
+            QPushButton,
+            QVBoxLayout,
+        )
+
         dialog = QDialog(self)
         dialog.setWindowTitle("Select Diagram")
         dialog.setModal(True)
         dialog.resize(400, 300)
-        
+
         layout = QVBoxLayout(dialog)
         layout.addWidget(QLabel("Multiple diagrams found. Select one to display:"))
-        
+
         # List of EGDF files with readable names
         list_widget = QListWidget()
         for path in sorted(candidates, key=lambda p: p.stat().st_mtime, reverse=True):
             # Extract style info from filename if available
             name = path.stem
-            if '@' in name:
+            if "@" in name:
                 # Format: style@author@version
-                parts = name.split('@')
-                display_name = f"{parts[0]} (by {parts[1]}, v{parts[2]})" if len(parts) >= 3 else name
+                parts = name.split("@")
+                display_name = (
+                    f"{parts[0]} (by {parts[1]}, v{parts[2]})"
+                    if len(parts) >= 3
+                    else name
+                )
             else:
                 display_name = name
-            
+
             item = QListWidgetItem(display_name)
             item.setData(Qt.UserRole, path)
             list_widget.addItem(item)
-        
+
         # Select first item by default
         if list_widget.count() > 0:
             list_widget.setCurrentRow(0)
-        
+
         layout.addWidget(list_widget)
-        
+
         # Buttons
         button_layout = QHBoxLayout()
         ok_btn = QPushButton("Select")
         cancel_btn = QPushButton("Cancel")
-        
+
         def on_ok():
             dialog.accept()
-        
+
         def on_cancel():
             dialog.reject()
-        
+
         ok_btn.clicked.connect(on_ok)
         cancel_btn.clicked.connect(on_cancel)
-        
+
         button_layout.addWidget(ok_btn)
         button_layout.addWidget(cancel_btn)
         layout.addLayout(button_layout)
-        
+
         # Show dialog and return selection
         if dialog.exec() == QDialog.Accepted:
             current_item = list_widget.currentItem()
             if current_item:
                 return current_item.data(Qt.UserRole)
-        
+
         return None
 
     # --- Handoff ---
@@ -444,17 +481,17 @@ class OrganonMainWindow(QMainWindow):
         if not self._cur.graph:
             print("[Organon] No graph available for handoff")
             return {"egi_dto": None, "style_id": style_id}
-        
+
         # Convert current graph to standardized DTO
         egi_dto = egi_to_dto(self._cur.graph)
-        
+
         payload = {
             "source_path": str(self._cur.graph_dir) if self._cur.graph_dir else "",
             "graph_dir": str(self._cur.graph_dir) if self._cur.graph_dir else "",
             "egi_dto": egi_dto,
             "style_id": style_id,
         }
-        
+
         element_count = len(egi_dto.vertices) + len(egi_dto.edges) + len(egi_dto.cuts)
         print(f"[Organon] EGI DTO payload created with {element_count} elements")
         return payload
@@ -466,19 +503,22 @@ class OrganonMainWindow(QMainWindow):
             except Exception:
                 pass
             return
-        
+
         try:
             # Build DTO payload
             payload = self._build_handoff_payload()
-            
+
             # Launch Ergasterion with payload
             from arisbe_home import launch_ergasterion_with_payload
+
             launch_ergasterion_with_payload(payload)
-            
+
         except Exception as e:
             print(f"[Organon] Error launching Ergasterion: {e}")
             try:
-                QMessageBox.critical(self, "Launch Error", f"Failed to launch Ergasterion: {e}")
+                QMessageBox.critical(
+                    self, "Launch Error", f"Failed to launch Ergasterion: {e}"
+                )
             except Exception:
                 pass
 
@@ -486,45 +526,46 @@ class OrganonMainWindow(QMainWindow):
         """Handle new EGI created from linear form input."""
         if not self._cur.graph_dir:
             return
-        
+
         try:
             # Save EGI to <graph_id>.egi.json
             egi_path = cidx.graph_paths(self._cur.graph_dir)["egi"]
             egi_data = self._egi_to_json_dict(egi)
             import json
+
             egi_path.write_text(json.dumps(egi_data, indent=2), encoding="utf-8")
-            
+
             # Update current state
             self._cur.graph = egi
-            
+
             # Update metadata with generated linear forms
             try:
-                from egif_generator_dau import generate_egif
                 from cgif_generator_dau import generate_cgif
                 from clif_generator_dau import generate_clif
-                
+                from egif_generator_dau import generate_egif
+
                 linear_forms = {
                     "egif": {"content": generate_egif(egi), "source": "generated"},
                     "cgif": {"content": generate_cgif(egi), "source": "generated"},
                     "clif": {"content": generate_clif(egi), "source": "generated"},
                 }
-                
+
                 # Update graph metadata
                 info = cidx.read_info(self._cur.graph_dir)
                 info["linear_forms"] = linear_forms
                 cidx.write_info(self._cur.graph_dir, info)
-                
+
             except Exception:
                 pass  # Continue even if linear form generation fails
-            
+
             # Refresh all panels
             self.info_panel.load_graph_dir(self._cur.graph_dir)
             self.forms_panel.set_graph(egi)
             self._refresh_corpus()
-            
+
             # Update status
             self._update_status()
-            
+
         except Exception as e:
             try:
                 QMessageBox.critical(self, "Save Error", f"Failed to save EGI: {e}")
@@ -555,9 +596,11 @@ class OrganonMainWindow(QMainWindow):
         try:
             egdf_content = payload.get("egdf", {})
             if not egdf_content:
-                QMessageBox.warning(self, "Import Error", "No EGDF content in Ergasterion payload.")
+                QMessageBox.warning(
+                    self, "Import Error", "No EGDF content in Ergasterion payload."
+                )
                 return
-            
+
             if self._cur.graph_dir:
                 # Existing graph: add EGDF replica without modifying EGI
                 self._add_egdf_replica(egdf_content)
@@ -565,20 +608,24 @@ class OrganonMainWindow(QMainWindow):
                 # New graph: create from EGIF
                 egif_content = payload.get("egif", "")
                 if not egif_content:
-                    QMessageBox.warning(self, "Import Error", "No EGIF content for new graph.")
+                    QMessageBox.warning(
+                        self, "Import Error", "No EGIF content for new graph."
+                    )
                     return
-                
+
                 from egif_parser_dau import EGIFParser
+
                 parser = EGIFParser(egif_content)
                 egi = parser.parse()
-                
+
                 # Create new graph directory
                 import time
+
                 graph_id = f"ergasterion_graph_{int(time.time())}"
                 graph_dir = cidx.CORPUS_GRAPHS_DIR / graph_id
                 graph_dir.mkdir(exist_ok=True)
                 self._cur.graph_dir = graph_dir
-                
+
                 # Create initial metadata
                 info = {
                     "id": graph_id,
@@ -588,24 +635,30 @@ class OrganonMainWindow(QMainWindow):
                     "status": "draft",
                 }
                 cidx.write_info(graph_dir, info)
-                
+
                 # Save EGDF for new graph
                 try:
                     import json
+
                     egdf_path = cidx.graph_paths(self._cur.graph_dir)["egdf"]
-                    egdf_path.write_text(json.dumps(egdf_content, indent=2), encoding="utf-8")
+                    egdf_path.write_text(
+                        json.dumps(egdf_content, indent=2), encoding="utf-8"
+                    )
                 except Exception as e:
                     print(f"Warning: Failed to save EGDF: {e}")
-                
+
                 # Process as if created via linear form input
                 self._on_egi_created(egi)
-                
+
                 # Refresh the viewer to show the new diagram
                 self._load_graph_dir(self._cur.graph_dir)
-        
+
         except Exception as e:
-            QMessageBox.critical(self, "Import Error", f"Failed to process diagram from Ergasterion: {e}")
+            QMessageBox.critical(
+                self, "Import Error", f"Failed to process diagram from Ergasterion: {e}"
+            )
             import traceback
+
             traceback.print_exc()
 
     def _add_egdf_replica(self, egdf_content: dict) -> None:
@@ -613,28 +666,30 @@ class OrganonMainWindow(QMainWindow):
         try:
             import json
             from datetime import datetime
-            
+
             # Ensure EGDF subdirectory exists
             egdf_dir = self._cur.graph_dir / "EGDF"
             egdf_dir.mkdir(exist_ok=True)
-            
+
             # Generate unique EGDF filename with timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             egdf_filename = f"diagram_{timestamp}.egdf.json"
             egdf_path = egdf_dir / egdf_filename
-            
+
             # Save EGDF file in proper subdirectory
-            with open(egdf_path, 'w', encoding='utf-8') as f:
+            with open(egdf_path, "w", encoding="utf-8") as f:
                 json.dump(egdf_content, f, indent=2)
-            
+
             # Refresh the diagram viewer to show new EGDF
             self._load_graph_dir(self._cur.graph_dir)
-            
+
             QMessageBox.information(
-                self, 
-                "Diagram Added", 
-                f"Diagram replica saved as EGDF/{egdf_filename}\nExisting EGI preserved."
+                self,
+                "Diagram Added",
+                f"Diagram replica saved as EGDF/{egdf_filename}\nExisting EGI preserved.",
             )
-            
+
         except Exception as e:
-            QMessageBox.critical(self, "Save Error", f"Failed to save diagram replica: {e}")
+            QMessageBox.critical(
+                self, "Save Error", f"Failed to save diagram replica: {e}"
+            )

@@ -2,7 +2,7 @@
 """
 Agon - The Arisbe Reasoning and Game Interface
 
-This is the main entry point for Agon, the reasoning component of the 
+This is the main entry point for Agon, the reasoning component of the
 three-part Arisbe UX architecture (Organon/Ergasterion/Agon).
 """
 
@@ -12,8 +12,9 @@ from pathlib import Path
 # Add src directory to path
 sys.path.append(str(Path(__file__).parent.parent / "src"))
 
-from gui.agon_interface import AgonInterface
 from PySide6.QtWidgets import QApplication
+
+from gui.agon_interface import AgonInterface
 
 
 def launch_agon_standalone():

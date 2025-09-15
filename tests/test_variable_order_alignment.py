@@ -1,11 +1,11 @@
 import re
 
-from egif_parser_dau import parse_egif
+from cgif_generator_dau import generate_cgif
 from cgif_parser_dau import parse_cgif
+from clif_generator_dau import generate_clif
 from clif_parser_dau import parse_clif
 from egif_generator_dau import generate_egif
-from cgif_generator_dau import generate_cgif
-from clif_generator_dau import generate_clif
+from egif_parser_dau import parse_egif
 
 
 def _extract_relation_args_from_egif(text: str):
@@ -24,7 +24,7 @@ def _extract_relation_args_from_cgif(text: str):
     # strip leading '?' from variables and quotes from constants
     cleaned = []
     for a in args:
-        a = a.lstrip('?')
+        a = a.lstrip("?")
         a = a.strip('"')
         cleaned.append(a)
     return cleaned
@@ -39,7 +39,7 @@ def _extract_relation_args_from_clif(text: str):
 
 
 def _normalize_ws(s: str) -> str:
-    return ' '.join(s.split())
+    return " ".join(s.split())
 
 
 def _extract_args_for_pred_egif(text: str, pred: str):
@@ -50,7 +50,7 @@ def _extract_args_for_pred_egif(text: str, pred: str):
     # strip quotes and leading * from defining occurrences
     cleaned = []
     for a in args:
-        a = a.lstrip('*')
+        a = a.lstrip("*")
         a = a.strip('"')
         cleaned.append(a)
     return cleaned
@@ -72,7 +72,12 @@ def test_nu_order_alignment_nested_cuts():
 
     # They should align in order
     assert egif_args == cgif_args == clif_args, (
-        egif_args, cgif_args, clif_args, egif_out, cgif_out, clif_out
+        egif_args,
+        cgif_args,
+        clif_args,
+        egif_out,
+        cgif_out,
+        clif_out,
     )
 
 
@@ -92,10 +97,10 @@ def test_round_trip_stability_simple():
     egif_from_clif = generate_egif(graph_clif)
 
     # Both contain relations P and Q
-    assert 'P' in egif_from_cgif and 'Q' in egif_from_cgif
-    assert 'P' in egif_from_clif and 'Q' in egif_from_clif
+    assert "P" in egif_from_cgif and "Q" in egif_from_cgif
+    assert "P" in egif_from_clif and "Q" in egif_from_clif
 
     # ν-order alignment for predicate P across round-trips (ignore quoting/def markers)
-    args_cgif_P = _extract_args_for_pred_egif(egif_from_cgif, 'P')
-    args_clif_P = _extract_args_for_pred_egif(egif_from_clif, 'P')
+    args_cgif_P = _extract_args_for_pred_egif(egif_from_cgif, "P")
+    args_clif_P = _extract_args_for_pred_egif(egif_from_clif, "P")
     assert args_cgif_P == args_clif_P

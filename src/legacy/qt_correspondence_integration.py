@@ -7,8 +7,8 @@ Qt-friendly render elements, and a factory tied to the current EGI system.
 from dataclasses import dataclass
 from typing import Any, Dict, List, Tuple
 
-from egi_system import EGISystem
 from egi_spatial_correspondence import create_spatial_correspondence_engine
+from egi_system import EGISystem
 
 
 @dataclass
@@ -57,7 +57,7 @@ class QtCorrespondenceIntegration:
             while current and current not in visited and current != sheet:
                 visited.add(current)
                 # If current is a cut id, it's a level
-                if any(getattr(c, 'id', None) == current for c in self.engine.egi.Cut):
+                if any(getattr(c, "id", None) == current for c in self.engine.egi.Cut):
                     parity ^= 1
                 try:
                     parent = self.engine._determine_cut_parent_area(current)  # type: ignore[attr-defined]
@@ -76,7 +76,9 @@ class QtCorrespondenceIntegration:
                     "width": element.spatial_bounds.width,
                     "height": element.spatial_bounds.height,
                 },
-                "area_parity": _area_parity(getattr(element, 'logical_area', self.engine.egi.sheet)),
+                "area_parity": _area_parity(
+                    getattr(element, "logical_area", self.engine.egi.sheet)
+                ),
             }
 
             if element.element_type == "edge":
@@ -84,9 +86,14 @@ class QtCorrespondenceIntegration:
                 cmd["role"] = "edge.label_box"
                 # Optional superscript bounds for arity
                 try:
-                    sup = getattr(element, 'edge_sup_bounds', None)
+                    sup = getattr(element, "edge_sup_bounds", None)
                     if sup is not None:
-                        cmd["edge_sup_bounds"] = {"x": sup.x, "y": sup.y, "width": sup.width, "height": sup.height}
+                        cmd["edge_sup_bounds"] = {
+                            "x": sup.x,
+                            "y": sup.y,
+                            "width": sup.width,
+                            "height": sup.height,
+                        }
                 except Exception:
                     pass
             elif element.element_type == "vertex":
@@ -94,9 +101,14 @@ class QtCorrespondenceIntegration:
                 cmd["role"] = "vertex.dot"
                 # Optional superscript bounds for variable label
                 try:
-                    sup = getattr(element, 'vertex_sup_bounds', None)
+                    sup = getattr(element, "vertex_sup_bounds", None)
                     if sup is not None:
-                        cmd["vertex_sup_bounds"] = {"x": sup.x, "y": sup.y, "width": sup.width, "height": sup.height}
+                        cmd["vertex_sup_bounds"] = {
+                            "x": sup.x,
+                            "y": sup.y,
+                            "width": sup.width,
+                            "height": sup.height,
+                        }
                 except Exception:
                     pass
             elif element.element_type == "cut":
@@ -140,5 +152,7 @@ class QtCorrespondenceIntegration:
         }
 
 
-def create_qt_correspondence_integration(egi_system: EGISystem) -> QtCorrespondenceIntegration:
+def create_qt_correspondence_integration(
+    egi_system: EGISystem,
+) -> QtCorrespondenceIntegration:
     return QtCorrespondenceIntegration(egi_system)

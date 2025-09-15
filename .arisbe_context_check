@@ -1,0 +1,41 @@
+# Arisbe Pre-Development Context Checklist
+
+Before starting any development task, run through this checklist:
+
+## 1. Search Existing Solutions
+```bash
+# Search for existing functions related to your task
+python tools/function_lookup.py "your task keywords"
+
+# Check quality and coherence status
+python tools/quality_gate_system.py --check
+```
+
+## 2. Check Standard Interfaces
+- [ ] Polarity calculation? → Use `HierarchicalIndex.get_polarity()`
+- [ ] Transformation logic? → Use `TransformationContext` from `integration_interfaces.py`
+- [ ] History tracking? → Use `HistoryTracker` protocol
+- [ ] Quality monitoring? → Use `quality_gate_system.py`
+
+## 3. Review Architecture Documentation
+- [ ] Check `ARCHITECTURE_MAP.md` for system overview
+- [ ] Review `INTEGRATION_PLAN.md` for connection patterns
+- [ ] Consult `CODEBASE_COHERENCE_FRAMEWORK.md` for standards
+
+## 4. Run Context Awareness Check
+```bash
+# Get context-aware recommendations for your task
+python tools/context_awareness_system.py --check "your task description"
+```
+
+## 5. Verify No Duplication
+- [ ] Search codebase for similar implementations
+- [ ] Check `coherence_analysis.json` for orphaned code that might be relevant
+- [ ] Review `function_index.json` for existing solutions
+
+## 6. Follow Integration Standards
+- [ ] Use standardized interfaces from `integration_interfaces.py`
+- [ ] Follow naming conventions from coherence analysis
+- [ ] Ensure new code connects to existing systems
+
+## Remember: The goal is to INTEGRATE and REUSE, not to CREATE and DUPLICATE!

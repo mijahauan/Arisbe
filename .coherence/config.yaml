@@ -1,0 +1,35 @@
+context:
+  custom_rules: []
+  keywords:
+    - "egi"
+    - "dau"
+    - "existential_graphs"
+    - "ligature"
+    - "polarity"
+    - "transformation"
+    - "cut"
+    - "spatial_correspondence"
+    - "chapter21"
+    - "peirce"
+git:
+  auto_commit_interval: 900
+  branch_prefix: feature/
+  checkpoint_prefix: checkpoint/
+project:
+  exclude_dirs:
+  - .git
+  - __pycache__
+  - node_modules
+  - .venv
+  - venv
+  language: python
+  name: Arisbe
+  source_dirs:
+  - src
+  test_dirs:
+  - tests
+quality:
+  complexity_threshold: 10
+  coverage_threshold: 80
+  dead_code_threshold: 5
+  style_threshold: 90

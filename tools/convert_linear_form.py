@@ -26,13 +26,14 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-# Parsers / Generators
-from egif_parser_dau import parse_egif  # type: ignore
+from cgif_generator_dau import generate_cgif  # type: ignore
 from cgif_parser_dau import parse_cgif  # type: ignore
+from clif_generator_dau import generate_clif  # type: ignore
 from clif_parser_dau import parse_clif  # type: ignore
 from egif_generator_dau import generate_egif  # type: ignore
-from cgif_generator_dau import generate_cgif  # type: ignore
-from clif_generator_dau import generate_clif  # type: ignore
+
+# Parsers / Generators
+from egif_parser_dau import parse_egif  # type: ignore
 
 KIND_EXT = {
     "egif": ".egif",
@@ -66,13 +67,15 @@ def preprocess(text: str, kind: str, strip_comments: bool) -> str:
         lines = []
         for line in text.splitlines():
             s = line.strip()
-            if s and not s.startswith('#'):
+            if s and not s.startswith("#"):
                 lines.append(s)
-        return ' '.join(lines)
+        return " ".join(lines)
     return text
 
 
-def convert(text: str, src_kind: str, dst_kind: str, strip_comments: bool = True) -> str:
+def convert(
+    text: str, src_kind: str, dst_kind: str, strip_comments: bool = True
+) -> str:
     if src_kind not in PARSERS:
         raise ValueError(f"Unsupported source kind: {src_kind}")
     if dst_kind not in GENERATORS:
@@ -83,13 +86,47 @@ def convert(text: str, src_kind: str, dst_kind: str, strip_comments: bool = True
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Convert between EGIF/CGIF/CLIF via EGI core")
-    ap.add_argument("--in", "-i", dest="inp", required=False, help="Input file path (or omit to read stdin)")
-    ap.add_argument("--from", "-f", dest="src_kind", choices=["egif", "cgif", "clif"], help="Input kind (auto-detect by extension if omitted)")
-    ap.add_argument("--to", "-t", dest="dst_kind", required=True, choices=["egif", "cgif", "clif"], help="Output kind")
-    ap.add_argument("--out", "-o", dest="outp", help="Output file path (default: beside input with new extension)")
-    ap.add_argument("--stdout", action="store_true", help="Write converted content to stdout instead of a file")
-    ap.add_argument("--no-strip-comments", action="store_true", help="Do not strip EGIF comments before parsing")
+    ap = argparse.ArgumentParser(
+        description="Convert between EGIF/CGIF/CLIF via EGI core"
+    )
+    ap.add_argument(
+        "--in",
+        "-i",
+        dest="inp",
+        required=False,
+        help="Input file path (or omit to read stdin)",
+    )
+    ap.add_argument(
+        "--from",
+        "-f",
+        dest="src_kind",
+        choices=["egif", "cgif", "clif"],
+        help="Input kind (auto-detect by extension if omitted)",
+    )
+    ap.add_argument(
+        "--to",
+        "-t",
+        dest="dst_kind",
+        required=True,
+        choices=["egif", "cgif", "clif"],
+        help="Output kind",
+    )
+    ap.add_argument(
+        "--out",
+        "-o",
+        dest="outp",
+        help="Output file path (default: beside input with new extension)",
+    )
+    ap.add_argument(
+        "--stdout",
+        action="store_true",
+        help="Write converted content to stdout instead of a file",
+    )
+    ap.add_argument(
+        "--no-strip-comments",
+        action="store_true",
+        help="Do not strip EGIF comments before parsing",
+    )
     args = ap.parse_args()
 
     # Read input
@@ -106,14 +143,19 @@ def main() -> int:
     else:
         # stdin mode requires explicit kind
         if not args.src_kind:
-            print("Reading stdin: you must specify --from {egif|cgif|clif}", file=sys.stderr)
+            print(
+                "Reading stdin: you must specify --from {egif|cgif|clif}",
+                file=sys.stderr,
+            )
             return 2
         src_kind = args.src_kind
         inp_text = sys.stdin.read()
 
     # Perform conversion
     try:
-        converted = convert(inp_text, src_kind, args.dst_kind, strip_comments=not args.no_strip_comments)
+        converted = convert(
+            inp_text, src_kind, args.dst_kind, strip_comments=not args.no_strip_comments
+        )
     except Exception as e:
         print(f"Conversion failed: {e}", file=sys.stderr)
         return 1
@@ -130,7 +172,9 @@ def main() -> int:
         # beside input
         out_ext = KIND_EXT[args.dst_kind]
         out_path = in_path.with_suffix(out_ext)
-    out_path.write_text(converted if converted.endswith("\n") else converted + "\n", encoding="utf-8")
+    out_path.write_text(
+        converted if converted.endswith("\n") else converted + "\n", encoding="utf-8"
+    )
     print(f"Wrote: {out_path}")
     return 0
 

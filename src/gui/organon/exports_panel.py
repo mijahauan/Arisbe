@@ -1,12 +1,19 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QTextEdit, QFileDialog, QMessageBox, QCheckBox, QLabel
+    QCheckBox,
+    QFileDialog,
+    QHBoxLayout,
+    QLabel,
+    QMessageBox,
+    QPushButton,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
 
 from export.tikz_exporter import generate_tikz
@@ -25,7 +32,8 @@ class ExportsPanel(QWidget):
         self._render_commands: List[Dict[str, Any]] = []
 
         v = QVBoxLayout(self)
-        self.output = QTextEdit(); self.output.setReadOnly(True)
+        self.output = QTextEdit()
+        self.output.setReadOnly(True)
         v.addWidget(self.output)
 
         hb = QHBoxLayout()
@@ -68,7 +76,9 @@ class ExportsPanel(QWidget):
         if not self._render_commands:
             return
         try:
-            text = generate_tikz(self._render_commands, standalone=self.chk_standalone.isChecked())
+            text = generate_tikz(
+                self._render_commands, standalone=self.chk_standalone.isChecked()
+            )
         except Exception as e:
             text = f"TikZ error: {e}"
         self.output.setPlainText(text)
@@ -77,7 +87,9 @@ class ExportsPanel(QWidget):
         if not self.output.toPlainText().strip():
             return
         try:
-            path, _ = QFileDialog.getSaveFileName(self, "Save TikZ", "diagram.tex", "TeX Files (*.tex)")
+            path, _ = QFileDialog.getSaveFileName(
+                self, "Save TikZ", "diagram.tex", "TeX Files (*.tex)"
+            )
         except Exception:
             path = ""
         if not path:

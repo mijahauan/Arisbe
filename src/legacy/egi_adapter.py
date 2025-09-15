@@ -2,13 +2,14 @@
 Adapter to convert EGILogicalSystem (logical areas model) into
 Dau's RelationalGraphWithCuts structure consumed by the spatial engine.
 """
-from typing import Dict, FrozenSet, Iterable, Set, Tuple
+
 from dataclasses import dataclass
+from typing import Dict, FrozenSet, Iterable, Set, Tuple
 
 from frozendict import frozendict
 
-from egi_logical_areas import EGILogicalSystem, EGIGraph
-from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut
+from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
+from egi_logical_areas import EGIGraph, EGILogicalSystem
 
 
 def _collect_area_elements(sys: EGILogicalSystem, area_id: str) -> Set[str]:
