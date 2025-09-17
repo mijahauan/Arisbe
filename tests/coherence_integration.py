@@ -13,6 +13,11 @@ from typing import Dict, List, Tuple, Any
 from .test_egi_integrity_suite import EGIIntegrityTestSuite, EGIIntegrityReporter
 from .test_specifications_dau import ALL_TEST_SPECIFICATIONS, get_tests_by_priority
 
+# Import core formalism integration
+from src.core_dau_formalism import get_dau_formalism_manager
+from src.dau_chapters_integration import get_dau_chapters_manager
+from src.coherence_registry import get_coherence_registry
+
 
 class CoherenceEGIValidator:
     """EGI validation component for the coherence framework."""
@@ -22,6 +27,118 @@ class CoherenceEGIValidator:
         self.coherence_dir = self.project_root / ".coherence"
         self.test_results_file = self.coherence_dir / "egi_test_results.json"
         self.integrity_report_file = self.coherence_dir / "egi_integrity_report.txt"
+        
+        # Initialize integrated core formalism components
+        self.core_manager = get_dau_formalism_manager()
+        self.chapters_manager = get_dau_chapters_manager()
+        self.registry = get_coherence_registry()
+    
+    def run_comprehensive_validation(self) -> Dict[str, Any]:
+        """Run comprehensive EGI validation including all test categories and core formalism integration."""
+        print("🔍 Running Comprehensive EGI Validation...")
+        
+        results = {
+            "timestamp": self._get_timestamp(),
+            "validation_categories": {},
+            "core_formalism_status": {},
+            "chapters_integration": {},
+            "registry_status": {},
+            "overall_success": True,
+            "summary": {}
+        }
+        
+        try:
+            # Run traditional test categories
+            logical_equiv_results = self.run_logical_equivalence_tests()
+            transformation_results = self.run_transformation_soundness_tests()
+            translation_results = self.run_translation_fidelity_tests()
+            dau_compliance_results = self.run_dau_compliance_tests()
+            
+            results["validation_categories"] = {
+                "logical_equivalence": logical_equiv_results,
+                "transformation_soundness": transformation_results,
+                "translation_fidelity": translation_results,
+                "dau_compliance": dau_compliance_results
+            }
+            
+            # Validate core formalism integration
+            print("🔧 Validating Core Dau Formalism Integration...")
+            core_status = self.core_manager.get_comprehensive_status()
+            results["core_formalism_status"] = core_status
+            
+            # Validate chapters integration
+            print("📚 Validating Dau Chapters 11-21 Integration...")
+            if self.core_manager.current_state.egi:
+                chapters_validation = self.chapters_manager.validate_full_integration(
+                    self.core_manager.current_state.egi,
+                    self.core_manager.current_state.linear_forms,
+                    self.core_manager.current_state.transformation_history
+                )
+                results["chapters_integration"] = {
+                    "overall_compliant": chapters_validation.overall_compliant,
+                    "chapter_results": {k.value: v.compliant for k, v in chapters_validation.chapter_results.items()},
+                    "cross_chapter_consistency": chapters_validation.cross_chapter_consistency,
+                    "integration_errors": chapters_validation.integration_errors
+                }
+            else:
+                results["chapters_integration"] = {"status": "no_egi_available"}
+            
+            # Validate registry status
+            print("📋 Validating Coherence Registry...")
+            registry_status = self.registry.get_quick_reference()
+            results["registry_status"] = registry_status
+            
+            # Calculate overall success
+            category_success = [
+                logical_equiv_results.get("success", False),
+                transformation_results.get("success", False),
+                translation_results.get("success", False),
+                dau_compliance_results.get("success", False)
+            ]
+            
+            core_health = core_status.get("component_health", {})
+            core_success = all(core_health.values()) if core_health else False
+            
+            chapters_success = results["chapters_integration"].get("overall_compliant", False)
+            
+            results["overall_success"] = (
+                all(category_success) and 
+                core_success and 
+                chapters_success
+            )
+            
+            # Generate comprehensive summary
+            total_tests = sum([
+                logical_equiv_results.get("tests_run", 0),
+                transformation_results.get("tests_run", 0),
+                translation_results.get("tests_run", 0),
+                dau_compliance_results.get("tests_run", 0)
+            ])
+            
+            passed_tests = sum([
+                logical_equiv_results.get("tests_passed", 0),
+                transformation_results.get("tests_passed", 0),
+                translation_results.get("tests_passed", 0),
+                dau_compliance_results.get("tests_passed", 0)
+            ])
+            
+            results["summary"] = {
+                "total_tests": total_tests,
+                "passed_tests": passed_tests,
+                "success_rate": (passed_tests / total_tests * 100) if total_tests > 0 else 0,
+                "categories_passed": sum(category_success),
+                "total_categories": len(category_success),
+                "core_formalism_integrated": core_success,
+                "chapters_integrated": chapters_success,
+                "registry_functions": registry_status.get("total_functions", 0),
+                "registry_components": registry_status.get("total_components", 0)
+            }
+            
+        except Exception as e:
+            results["error"] = str(e)
+            results["overall_success"] = False
+        
+        return results
     
     def run_egi_validation(self, priority_filter: str = None) -> Dict[str, Any]:
         """Run EGI validation tests with optional priority filtering."""

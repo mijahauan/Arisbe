@@ -21,11 +21,6 @@ import corpus_index as cidx
 
 
 @dataclass
-class GraphInfo:
-    graph_dir: Path
-    info: Dict[str, Any]
-
-
 class InfoPanel(QWidget):
     saved = Signal(dict)  # emits updated info dict
     discarded = Signal()

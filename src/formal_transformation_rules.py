@@ -13,7 +13,7 @@ from frozendict import frozendict
 
 from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 from graph_isomorphism_engine import IsomorphismValidator
-from legacy.level_polarity_adjustment import LevelPolarityAdjuster
+# from legacy.level_polarity_adjustment import LevelPolarityAdjuster  # Legacy component removed
 
 
 class AreaPolarity(Enum):

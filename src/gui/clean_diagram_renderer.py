@@ -1,31 +1,20 @@
 """
-Clean EGI → Qt Diagram Renderer
+Clean Diagram Renderer
 
-Pure implementation using only Dau's formalism from egi_core_dau.py
-and dau_diagram_correspondence.py. No legacy code contamination.
-
-Architecture:
-EGI (Dau 6+1 components) → DiagramRepresentation → Qt Graphics Items
-
-This renderer focuses solely on the logical → visual correspondence
-without spatial layout algorithms or legacy EGDF dependencies.
+Pure PySide6 renderer for EGI diagrams using Dau's authentic visual style.
+Implements Chapter 21 compliant rendering with precise visual fidelity.
 """
 
 import json
 from typing import Dict, List, Optional, Tuple
 
-from PySide6.QtCore import QPointF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QPen
-from PySide6.QtWidgets import (
-    QGraphicsEllipseItem,
-    QGraphicsLineItem,
-    QGraphicsRectItem,
-    QGraphicsScene,
-    QGraphicsTextItem,
-)
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsItem, QGraphicsRectItem, QGraphicsScene, QGraphicsTextItem
 
+from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
+from gui.dau_visual_style import DAU_STYLE, DauLayoutPrinciples
 from dau_diagram_correspondence import (
-    CutLine,
     DauDiagramCorrespondence,
     DiagramRepresentation,
     EdgeLine,

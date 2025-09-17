@@ -24,7 +24,7 @@ from enhanced_transformation_history import (
     ProofExportFormat,
 )
 
-from domain_ontology_model import DomainModelManager
+# from domain_ontology_model import DomainModelManager  # Removed orphaned dependency
 from egi_core_dau import ElementID
 from egi_transformation_history import (
     HistoryBranch,
@@ -383,10 +383,11 @@ class HistoryPersistenceManager:
         }
 
     def _serialize_domain_model(
-        self, domain_manager: DomainModelManager
+        self, domain_manager: Any
     ) -> Dict[str, Any]:
         """Serialize domain model manager."""
-        return domain_manager.export_domain_model_data()
+        # Placeholder for future domain model integration
+        return {}
 
     def _serialize_context(self, context) -> Dict[str, Any]:
         """Serialize transformation context."""

@@ -26,7 +26,7 @@ from PySide6.QtWidgets import (
 )
 
 from egi_core_dau import RelationalGraphWithCuts
-from gui.clean_diagram_renderer import CleanDiagramRenderer
+from gui.style_aware_renderer import StyleAwareRenderer
 
 
 class CleanEGIViewer(QWidget):
@@ -48,7 +48,7 @@ class CleanEGIViewer(QWidget):
         super().__init__(parent)
         self.read_only = read_only
         self.current_egi = None
-        self.renderer = CleanDiagramRenderer()
+        self.renderer = StyleAwareRenderer()
 
         self._setup_ui()
         self._connect_signals()

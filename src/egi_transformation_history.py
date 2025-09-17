@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from frozendict import frozendict
 
-from domain_ontology_model import DomainModelManager, SemanticAnnotation
+# from domain_ontology_model import DomainModelManager, SemanticAnnotation  # Removed orphaned dependency
 from egi_core_dau import ElementID, RelationalGraphWithCuts
 from formal_transformation_rules import TransformationContext, TransformationResult
 
@@ -51,7 +51,7 @@ class StateSnapshot:
     description: str
 
     # Domain model and semantic context
-    domain_model: Optional[DomainModelManager] = None
+    domain_model: Optional[Any] = None  # Placeholder for future domain model integration
     active_domain_contexts: Set[str] = field(default_factory=set)
 
     # Linear and diagrammatic forms for reference
@@ -482,39 +482,3 @@ class EGITransformationHistory:
         }
 
 
-class HistoryViewer:
-    """Utility class for viewing and analyzing transformation histories."""
-
-    def __init__(self, history: EGITransformationHistory):
-        self.history = history
-
-    def get_state_diff(self, state_id_1: str, state_id_2: str) -> Dict[str, Any]:
-        """Get structural differences between two states."""
-        state1 = self.history.get_state(state_id_1)
-        state2 = self.history.get_state(state_id_2)
-
-        if not state1 or not state2:
-            return {"error": "Invalid state IDs"}
-
-        # Compare EGI structures
-        egi1, egi2 = state1.egi, state2.egi
-
-        return {
-            "vertices_added": len(egi2.V) - len(egi1.V),
-            "edges_added": len(egi2.E) - len(egi1.E),
-            "cuts_added": len(egi2.Cut) - len(egi1.Cut),
-            "step_difference": state2.step_number - state1.step_number,
-            "time_difference": (state2.timestamp - state1.timestamp).total_seconds(),
-        }
-
-    def get_transformation_tree(self) -> Dict[str, Any]:
-        """Get a tree representation of the transformation history."""
-        # Simplified tree structure for now
-        return {
-            "root_state": (
-                self.history.state_sequence[0] if self.history.state_sequence else None
-            ),
-            "linear_sequence": self.history.state_sequence,
-            "branches": list(self.history.branches.keys()),
-            "total_states": len(self.history.states),
-        }

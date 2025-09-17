@@ -18,7 +18,7 @@ from formal_transformation_rules import (
     TransformationResult,
 )
 from graph_isomorphism_engine import GraphIsomorphismEngine, IsomorphismValidator
-from legacy.level_polarity_adjustment import LevelPolarityAdjuster
+# from legacy.level_polarity_adjustment import LevelPolarityAdjuster  # Legacy component removed
 from ligature_manipulation_rules import LigatureManipulationEngine
 from syntactic_equivalence_checker import (
     SyntacticEquivalenceChecker,

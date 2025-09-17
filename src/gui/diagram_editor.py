@@ -75,18 +75,6 @@ class RelationElement(CanvasElement):
 
 
 @dataclass
-class EdgeElement(CanvasElement):
-    """Visual edge element."""
-
-    relation_id: str = ""
-    vertex_id: str = ""
-    position_number: int = 1
-
-    def __post_init__(self):
-        self.element_type = ElementType.EDGE
-
-
-@dataclass
 class CutElement(CanvasElement):
     """Visual cut element."""
 

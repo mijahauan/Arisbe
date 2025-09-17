@@ -410,7 +410,7 @@ class EGIFGenerator:
         return not getattr(v, "is_generic", True)
 
     def _constant_name(self, vertex_id: ElementID) -> Optional[str]:
-        """Return the constant name for a vertex from rho if available, else from legacy Vertex.label."""
+        """Return the constant name for a vertex from rho if available, else from Vertex.label."""
         try:
             if hasattr(self.graph, "rho") and vertex_id in self.graph.rho:
                 return self.graph.rho[vertex_id]

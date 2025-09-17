@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Protocol
 
-from egi_core_dau import EGI
+from egi_core_dau import RelationalGraphWithCuts
 from formal_transformation_rules import (
     AreaPolarity,
     TransformationContext,
@@ -46,7 +46,7 @@ class HistoryTracker(Protocol):
     """Standard interface for transformation history tracking."""
 
     def record_transformation(
-        self, before: EGI, after: EGI, rule: str, context: Dict[str, Any]
+        self, before: RelationalGraphWithCuts, after: RelationalGraphWithCuts, rule: str, context: Dict[str, Any]
     ) -> None:
         """Record a transformation in the history."""
         ...
@@ -63,7 +63,7 @@ class HistoryTracker(Protocol):
 class TheoremValidator(Protocol):
     """Interface for Dau theorem correspondence validation."""
 
-    def validate_theorem_compliance(self, egi: EGI) -> bool:
+    def validate_theorem_compliance(self, egi: RelationalGraphWithCuts) -> bool:
         """Validate EGI against Dau's theoretical requirements."""
         ...
 
@@ -75,11 +75,11 @@ class TheoremValidator(Protocol):
 class CorpusManager(Protocol):
     """Standard interface for corpus management."""
 
-    def add_egi(self, egi: EGI, metadata: Dict[str, Any]) -> str:
+    def add_egi(self, egi: RelationalGraphWithCuts, metadata: Dict[str, Any]) -> str:
         """Add EGI to corpus and return unique identifier."""
         ...
 
-    def get_egi(self, identifier: str) -> Optional[EGI]:
+    def get_egi(self, identifier: str) -> Optional[RelationalGraphWithCuts]:
         """Retrieve EGI by identifier."""
         ...
 
@@ -106,8 +106,8 @@ class IntegrationManager:
         self.context = context
 
     def validate_and_transform(
-        self, egi: EGI, transformation_rule: str, target_area: str
-    ) -> Optional[EGI]:
+        self, egi: RelationalGraphWithCuts, transformation_rule: str, target_area: str
+    ) -> Optional[RelationalGraphWithCuts]:
         """Perform validated transformation with full integration."""
         # Create transformation context
         polarity = self.context.polarity_provider.get_polarity(target_area)
@@ -149,11 +149,11 @@ class IntegrationManager:
                 if not self.context.theorem_validator.validate_theorem_compliance(
                     result_egi
                 ):
-                    print("Warning: Result EGI may not comply with Dau's theorems")
+                    print("Warning: Result RelationalGraphWithCuts may not comply with Dau's theorems")
 
         return result_egi
 
-    def _apply_transformation(self, context: TransformationContext) -> Optional[EGI]:
+    def _apply_transformation(self, context: TransformationContext) -> Optional[RelationalGraphWithCuts]:
         """Apply the actual transformation - to be implemented by specific engines."""
         # This is where we would delegate to the appropriate transformation engine
         # based on the transformation rule

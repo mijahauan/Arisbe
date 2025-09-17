@@ -17,7 +17,7 @@ from enhanced_transformation_history import (
     ProofExportFormat,
 )
 
-from domain_ontology_model import DomainModelManager, OntologyReference, OntologyType
+# from domain_ontology_model import DomainModelManager, OntologyReference, OntologyType  # Removed orphaned dependency
 from egi_core_dau import ElementID, RelationalGraphWithCuts
 from egi_transformation_history import LogicalProvenance
 from egif_transformation_interface import TransformationRequest

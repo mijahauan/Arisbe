@@ -35,6 +35,7 @@ from .corpus_panel import CorpusPanel
 from .diagram_viewer import DiagramViewer
 from .info_panel import InfoPanel
 from .linear_forms_panel import LinearFormsPanel
+from .serialization_panel import SerializationPanel
 
 # Prefer the working renderer from tools/drawing_editor in embedded mode
 try:
@@ -106,6 +107,7 @@ class OrganonMainWindow(QMainWindow):
         self._init_corpus_dock()
         self._init_info_dock()
         self._init_linear_forms_dock()
+        self._init_serialization_dock()
 
         # Load corpus on startup but without heavy processing
         self._corpus_loaded = False
@@ -138,6 +140,12 @@ class OrganonMainWindow(QMainWindow):
         self.forms_panel = LinearFormsPanel(self)
         self.forms_dock.setWidget(self.forms_panel)
         self.addDockWidget(Qt.RightDockWidgetArea, self.forms_dock)
+
+    def _init_serialization_dock(self) -> None:
+        self.serialization_dock = QDockWidget("Serialization", self)
+        self.serialization_panel = SerializationPanel(self)
+        self.serialization_dock.setWidget(self.serialization_panel)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.serialization_dock)
 
     # --- Corpus operations ---
     def _refresh_corpus(self) -> None:
@@ -277,9 +285,13 @@ class OrganonMainWindow(QMainWindow):
             except Exception as e:
                 print(f"Warning: Failed to convert EGI to DTO for display: {e}")
                 self.diagram_viewer.clear()
+            
+            # Update serialization panel with current EGI
+            self.serialization_panel.set_graph(self._cur.graph)
         else:
-            # No EGI exists - clear the viewer (empty state)
+            # No EGI exists - clear the viewer and serialization panel
             self.diagram_viewer.clear()
+            self.serialization_panel.clear()
 
         # Update status & handoff visibility
         self._update_status()

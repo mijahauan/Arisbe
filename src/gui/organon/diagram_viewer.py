@@ -19,17 +19,21 @@ from PySide6.QtWidgets import (
 
 from egi_dto import EGIStateDTO
 from gui.clean_egi_viewer import CleanEGIViewer
+from chapter21_diagram_engine import UniversalEGIEngine, InteractionMode
 
 
 class DiagramViewer(QWidget):
     """
-    Clean EGI diagram viewer for Organon using pure Dau formalism.
+    Enhanced EGI diagram viewer for Organon with Chapter 21 rendering.
     """
 
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
 
-        # Use clean EGI viewer in read-only mode
+        # Initialize Chapter 21 diagram engine for Organon mode
+        self.engine = UniversalEGIEngine(InteractionMode.ORGANON)
+        
+        # Use clean EGI viewer in read-only mode with Chapter 21 rendering
         layout = QVBoxLayout(self)
         self.clean_viewer = CleanEGIViewer(read_only=True, parent=self)
         layout.addWidget(self.clean_viewer)
@@ -47,18 +51,32 @@ class DiagramViewer(QWidget):
         self.clear()
 
     def load_egi_dto_readonly(self, egi_dto: EGIStateDTO) -> None:
-        """Load EGI DTO for read-only display in Organon using clean renderer."""
+        """Load EGI DTO for read-only display in Organon using Chapter 21 engine."""
         print(
-            f"[DiagramViewer] Loading EGI DTO with clean renderer: {len(egi_dto.vertices)} vertices, {len(egi_dto.edges)} edges, {len(egi_dto.cuts)} cuts"
+            f"[DiagramViewer] Loading EGI DTO with Chapter 21 engine: {len(egi_dto.vertices)} vertices, {len(egi_dto.edges)} edges, {len(egi_dto.cuts)} cuts"
         )
 
         # Convert EGI DTO to RelationalGraphWithCuts
         egi = self._convert_dto_to_egi(egi_dto)
 
-        # Load using clean viewer
-        self.clean_viewer.load_egi(egi)
+        # Use Chapter 21 engine to create optimized view for Organon
+        from chapter21_diagram_engine import ViewSpecification
+        
+        view_spec = ViewSpecification(
+            focus_elements=set(egi_dto.vertices.keys()) | set(egi_dto.edges.keys()) | set(egi_dto.cuts.keys()),
+            context_radius=1,
+            detail_level=1,
+            interaction_mode=self.diagram_engine.interaction_mode,
+            show_subgraph_hints=False  # Read-only mode
+        )
+        
+        # Generate view using Chapter 21 engine
+        view_result = self.diagram_engine.create_view(egi, view_spec)
+        
+        # Render using clean viewer with Chapter 21 layout
+        self.clean_viewer.load_egi_with_layout(egi, view_result.layout_positions)
 
-        print("[DiagramViewer] EGI DTO loaded using clean renderer")
+        print("[DiagramViewer] EGI DTO loaded using Chapter 21 engine")
 
     def _convert_dto_to_egi(self, egi_dto: EGIStateDTO):
         """Convert EGI DTO to RelationalGraphWithCuts for clean rendering."""
