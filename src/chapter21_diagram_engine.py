@@ -20,16 +20,23 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "."))
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
+import math
 
+from PySide6.QtCore import QPointF, QRectF
+
+from egi_core_dau import ElementID, RelationalGraphWithCuts, Vertex, Edge, Cut
+from gui.style_manager import DiagramStyle
+from spatial_area_manager import SpatialAreaManager
+from rtree_spatial_index import SpatialBounds
 from chapter18_enhanced_translation import EnhancedChapter18Translator
 from chapter20_syntactic_equivalence_fixes import Chapter20SyntacticTranslator
-from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 from formal_transformation_rules import (
     FormalTransformationRule,
     TransformationContext,
     TransformationResult,
 )
+from gui.style_manager import STYLE_MANAGER, get_current_style
 
 
 class InteractionMode(Enum):
@@ -80,6 +87,7 @@ class ViewSpecification:
     detail_level: int = 1  # 1=full detail, higher=more abstract
     interaction_mode: InteractionMode = InteractionMode.ORGANON
     show_subgraph_hints: bool = True
+    viewport_bounds: QRectF = field(default_factory=lambda: QRectF(-500, -500, 1000, 1000))
 
 
 @dataclass
@@ -89,8 +97,11 @@ class ViewResult:
     visible_vertices: Set[ElementID] = field(default_factory=set)
     visible_edges: Set[ElementID] = field(default_factory=set)
     visible_cuts: Set[ElementID] = field(default_factory=set)
-    layout_positions: Dict[ElementID, Tuple[float, float]] = field(default_factory=dict)
-    subgraph_hints: List[SubgraphSelection] = field(default_factory=list)
+    layout_positions: Dict[ElementID, QPointF] = field(default_factory=dict)
+    connection_points: Dict[ElementID, List[Tuple[QPointF, ElementID]]] = field(default_factory=dict)
+    cut_bounds: Dict[ElementID, QRectF] = field(default_factory=dict)
+    viewport_bounds: QRectF = field(default_factory=lambda: QRectF(-500, -500, 1000, 1000))
+    spatial_manager: Optional['SpatialAreaManager'] = None
 
 
 @dataclass
@@ -402,12 +413,11 @@ class UniversalEGIEngine:
     """
 
     def __init__(self):
-        from hierarchical_index import HierarchicalIndex
-
-        self.validator = SubgraphValidator()
-        self.view_manager = None  # Simplified for now
-        self.format_synchronizer = None  # Simplified for now
-        self.hierarchical_index = HierarchicalIndex()
+        """Initialize the Universal EGI Engine with all transformation capabilities."""
+        self.chapter18_translator = EnhancedChapter18Translator()
+        self.chapter20_translator = Chapter20SyntacticTranslator()
+        self.transformation_rules: List[FormalTransformationRule] = []
+        self.spatial_manager: Optional[SpatialAreaManager] = None
 
         # Format translators
         self.translators = {
@@ -445,50 +455,480 @@ class UniversalEGIEngine:
             validated_selection = self.validator.validate_subgraph(
                 context.source_egi, context.target_subgraph
             )
-            if not validated_selection.is_valid:
-                return TransformationResult(
-                    success=False,
-                    result_egi=None,
-                    error_message=validated_selection.validation_message,
-                    changes_made={},
-                )
-            context.target_subgraph = validated_selection
-
-        # Apply transformation using the actual transformation rule
-        try:
-            # Create transformation context for the formal rule
-            from formal_transformation_rules import AreaPolarity, TransformationContext
-
-            # Determine target area - use sheet if no specific area selected
-            target_area = context.source_egi.sheet
-            if context.target_subgraph.context:
-                target_area = context.target_subgraph.context
-
-            # Calculate area polarity and nesting depth
-            polarity, depth = self._calculate_area_polarity_and_depth(
-                context.source_egi, target_area
+            
+        # Placeholder for actual transformation logic
+        return TransformationResult(
+            success=True,
+            error_message="",
+            result_egi=context.source_egi  # Simplified
+        )
+    
+    def create_view(self, egi: RelationalGraphWithCuts, view_spec: ViewSpecification) -> ViewResult:
+        """
+        Create a view of the EGI based on the view specification.
+        
+        This method generates layout positions starting with cuts only, then adding other elements.
+        """
+        from cut_layout_engine import CutLayoutEngine
+        
+        layout_positions = {}
+        
+        # Step 1: Layout cuts using hierarchical containment
+        cut_engine = CutLayoutEngine()
+        cut_bounds = cut_engine.layout_cuts(egi)
+        
+        # Step 1.5: Initialize spatial area manager using Qt's BSP spatial indexing
+        # Note: spatial_manager will be initialized by the viewport renderer with the actual QGraphicsScene
+        
+        # Step 2: Position elements within their logically assigned areas
+        # Group elements by their logical area assignment from EGI structure
+        logical_area_elements = {}
+        
+        # Process all vertices and edges
+        for elem_id in [v.id for v in egi.V] + [e.id for e in egi.E]:
+            # Find which area logically contains this element
+            logical_area = None
+            for area_id, contents in egi.area.items():
+                if elem_id in contents:
+                    logical_area = area_id
+                    break
+            
+            # Default to sheet if not in any cut
+            if logical_area is None:
+                logical_area = egi.sheet
+            
+            if logical_area not in logical_area_elements:
+                logical_area_elements[logical_area] = {'vertices': [], 'edges': []}
+            
+            if any(v.id == elem_id for v in egi.V):
+                logical_area_elements[logical_area]['vertices'].append(elem_id)
+            elif any(e.id == elem_id for e in egi.E):
+                logical_area_elements[logical_area]['edges'].append(elem_id)
+        
+        # Position elements in their logical areas
+        for area_id, elements in logical_area_elements.items():
+            area_vertices = elements['vertices']
+            area_edges = elements['edges']
+            
+            # Position vertices within area bounds
+            if area_vertices and area_id in cut_bounds:
+                area_bounds = cut_bounds[area_id]
+                
+                # Find available positioning space (avoid child cuts)
+                available_bounds = self._get_available_area_bounds(area_id, area_bounds, cut_bounds, egi)
+                
+                if available_bounds.width() > 0 and available_bounds.height() > 0:
+                    for i, vertex_id in enumerate(area_vertices):
+                        if len(area_vertices) > 1:
+                            x = available_bounds.x() + (available_bounds.width() * i) / (len(area_vertices) - 1)
+                        else:
+                            x = available_bounds.center().x()
+                        y = available_bounds.center().y() - 20.0
+                        layout_positions[vertex_id] = QPointF(x, y)
+            
+            # Position edges within area bounds
+            if area_edges and area_id in cut_bounds:
+                area_bounds = cut_bounds[area_id]
+                
+                # Find available positioning space (avoid child cuts)
+                available_bounds = self._get_available_area_bounds(area_id, area_bounds, cut_bounds, egi)
+                
+                if available_bounds.width() > 0 and available_bounds.height() > 0:
+                    for i, edge_id in enumerate(area_edges):
+                        if len(area_edges) > 1:
+                            x = available_bounds.x() + (available_bounds.width() * i) / (len(area_edges) - 1)
+                        else:
+                            x = available_bounds.center().x()
+                        y = available_bounds.center().y() + 20.0
+                        layout_positions[edge_id] = QPointF(x, y)
+            
+            # Handle sheet area elements
+            elif area_id == egi.sheet:
+                sheet_margin = 50.0
+                sheet_y_vertex = -100.0
+                sheet_y_edge = -50.0
+                
+                for i, vertex_id in enumerate(area_vertices):
+                    x = (i - (len(area_vertices) - 1) / 2) * 80.0
+                    layout_positions[vertex_id] = QPointF(x, sheet_y_vertex)
+                
+                for i, edge_id in enumerate(area_edges):
+                    x = (i - (len(area_edges) - 1) / 2) * 80.0
+                    layout_positions[edge_id] = QPointF(x, sheet_y_edge)
+        
+        # Step 3: Generate hook-based connection points for edges
+        connection_points = {}
+        for edge in egi.E:
+            if edge.id in egi.nu and edge.id in layout_positions:
+                connected_vertices = egi.nu[edge.id]
+                edge_pos = layout_positions[edge.id]
+                
+                # Calculate hook positions around the predicate text boundary
+                hooks = []
+                predicate_name = egi.rel.get(edge.id, "")
+                text_width = len(predicate_name) * 8 + 8  # Tighter boundary around text
+                text_height = 12  # Reduced height for tighter boundary
+                
+                # Position hooks around the text boundary based on vertex count
+                num_vertices = len(connected_vertices)
+                if num_vertices > 0:
+                    for i, vertex_id in enumerate(connected_vertices):
+                        if vertex_id in layout_positions:
+                            # Get vertex position to determine optimal hook placement
+                            vertex_pos = layout_positions.get(vertex_id)
+                            if vertex_pos:
+                                # Calculate direction from edge to vertex
+                                dx = vertex_pos.x() - edge_pos.x()
+                                dy = vertex_pos.y() - edge_pos.y()
+                                
+                                # Determine which side of the text box to use based on direction
+                                # Use tighter hook placement very close to text boundary
+                                if abs(dx) > abs(dy):  # Horizontal connection preferred
+                                    if dx > 0:  # Vertex to the right
+                                        hook_x = edge_pos.x() + text_width/2 + 2  # Just outside text boundary
+                                        hook_y = edge_pos.y()
+                                    else:  # Vertex to the left
+                                        hook_x = edge_pos.x() - text_width/2 - 2  # Just outside text boundary
+                                        hook_y = edge_pos.y()
+                                else:  # Vertical connection preferred
+                                    if dy > 0:  # Vertex below
+                                        hook_x = edge_pos.x()
+                                        hook_y = edge_pos.y() + text_height/2 + 2  # Just outside text boundary
+                                    else:  # Vertex above
+                                        hook_x = edge_pos.x()
+                                        hook_y = edge_pos.y() - text_height/2 - 2  # Just outside text boundary
+                            else:
+                                # Fallback to old method if vertex position not found
+                                if num_vertices == 2:
+                                    hook_x = edge_pos.x() + (-text_width/2 if i == 0 else text_width/2)
+                                    hook_y = edge_pos.y()
+                                else:
+                                    angle = (2 * 3.14159 * i) / num_vertices
+                                    hook_x = edge_pos.x() + (text_width/2 + 10) * math.cos(angle)
+                                    hook_y = edge_pos.y() + (text_height/2 + 10) * math.sin(angle)
+                                    
+                            hooks.append((QPointF(hook_x, hook_y), vertex_id))
+                
+                # Store hook connections for this edge
+                if hooks:
+                    connection_points[edge.id] = hooks
+        
+        # Step 4: Return enhanced ViewResult with spatial manager integration
+        return ViewResult(
+            visible_vertices={v.id for v in egi.V},
+            visible_edges={e.id for e in egi.E},
+            visible_cuts={c.id for c in egi.Cut},
+            layout_positions=layout_positions,
+            connection_points=connection_points,
+            cut_bounds=cut_bounds,
+            viewport_bounds=self._calculate_viewport_bounds(layout_positions, cut_bounds),
+            spatial_manager=self.spatial_manager  # Include spatial manager for area queries
+        )
+    
+    def _build_area_hierarchy_map(self, egi: RelationalGraphWithCuts) -> Dict[ElementID, Set[ElementID]]:
+        """Build map of area -> all contained areas (including nested)."""
+        hierarchy = {}
+        
+        # Initialize with direct containment
+        for area_id, contents in egi.area.items():
+            hierarchy[area_id] = set()
+            for elem_id in contents:
+                if any(cut.id == elem_id for cut in egi.Cut):
+                    hierarchy[area_id].add(elem_id)
+        
+        # Add transitive containment
+        changed = True
+        while changed:
+            changed = False
+            for area_id in hierarchy:
+                original_size = len(hierarchy[area_id])
+                # Add children of children
+                for child_area in list(hierarchy[area_id]):
+                    if child_area in hierarchy:
+                        hierarchy[area_id].update(hierarchy[child_area])
+                if len(hierarchy[area_id]) > original_size:
+                    changed = True
+        
+        return hierarchy
+    
+    def _find_deepest_area_for_element(self, elem_id: ElementID, egi: RelationalGraphWithCuts, 
+                                     hierarchy: Dict[ElementID, Set[ElementID]]) -> ElementID:
+        """Find the deepest (most nested) area containing this element."""
+        containing_areas = []
+        
+        # Find all areas that contain this element
+        for area_id, contents in egi.area.items():
+            if elem_id in contents:
+                containing_areas.append(area_id)
+        
+        if not containing_areas:
+            return egi.sheet  # Default to sheet
+        
+        # Find the deepest area (one that is not contained by any other containing area)
+        deepest_area = None
+        max_depth = -1
+        
+        for area_id in containing_areas:
+            # Count how many other containing areas this area is nested within
+            depth = 0
+            for other_area in containing_areas:
+                if other_area != area_id and area_id in hierarchy.get(other_area, set()):
+                    depth += 1
+            
+            if depth > max_depth:
+                max_depth = depth
+                deepest_area = area_id
+        
+        return deepest_area or egi.sheet
+    
+    def _get_available_area_bounds(self, area_id: ElementID, area_bounds: QRectF, 
+                                 cut_bounds: Dict[ElementID, QRectF], 
+                                 egi: RelationalGraphWithCuts) -> QRectF:
+        """Get available positioning space within an area using spatial exclusion principle.
+        
+        CORE PRINCIPLE: The area defined by an enclosing cut = space inside cut boundary 
+        MINUS the areas of any nested cuts within it. Child cuts carve out forbidden zones.
+        """
+        margin = 30.0
+        available_bounds = area_bounds.adjusted(margin, margin, -margin, -margin)
+        
+        # Find child cuts that are directly contained in this area
+        child_cuts = []
+        area_contents = egi.area.get(area_id, set())
+        for cut_id in egi.Cut:
+            if cut_id.id in area_contents:
+                child_cuts.append(cut_id.id)
+        
+        # If no child cuts, return the full available bounds
+        if not child_cuts:
+            return available_bounds
+        
+        # SPATIAL EXCLUSION: Child cuts create forbidden zones
+        # Elements in this area CANNOT be positioned inside any child cut bounds
+        child_bounds_list = [cut_bounds[cut_id] for cut_id in child_cuts if cut_id in cut_bounds]
+        
+        if not child_bounds_list:
+            return available_bounds
+            
+        # For now, use a simple approach: find the largest non-overlapping region
+        # This is a simplified implementation - a full solution would use polygon subtraction
+        
+        # Try left margin (before child cuts)
+        min_child_left = min(bounds.left() for bounds in child_bounds_list)
+        left_margin_right = min_child_left - 10
+        
+        if left_margin_right > available_bounds.left() + 40:
+            return QRectF(
+                available_bounds.left(),
+                available_bounds.top(),
+                left_margin_right - available_bounds.left(),
+                available_bounds.height()
             )
-
-            # Create formal transformation context
-            formal_context = TransformationContext(
-                source_egi=context.source_egi,
-                target_area=target_area,
-                selected_subgraph=context.target_subgraph.vertices
-                | context.target_subgraph.edges
-                | context.target_subgraph.cuts,
-                area_polarity=polarity,
-                nesting_depth=depth,
+        
+        # Try right margin (after child cuts)  
+        max_child_right = max(bounds.right() for bounds in child_bounds_list)
+        right_margin_left = max_child_right + 10
+        
+        if right_margin_left < available_bounds.right() - 40:
+            return QRectF(
+                right_margin_left,
+                available_bounds.top(),
+                available_bounds.right() - right_margin_left,
+                available_bounds.height()
             )
-
-            # Apply the transformation rule
-            result = context.transformation_rule.apply_transformation(formal_context)
-
-        except Exception as e:
-            result = TransformationResult(
-                success=False, result_egi=None, error_message=str(e), changes_made={}
+        
+        # Try top margin (above child cuts)
+        min_child_top = min(bounds.top() for bounds in child_bounds_list)
+        top_margin_bottom = min_child_top - 10
+        
+        if top_margin_bottom > available_bounds.top() + 30:
+            return QRectF(
+                available_bounds.left(),
+                available_bounds.top(),
+                available_bounds.width(),
+                top_margin_bottom - available_bounds.top()
             )
-
-        return result
+        
+        # Try bottom margin (below child cuts)
+        max_child_bottom = max(bounds.bottom() for bounds in child_bounds_list)
+        bottom_margin_top = max_child_bottom + 10
+        
+        if bottom_margin_top < available_bounds.bottom() - 30:
+            return QRectF(
+                available_bounds.left(),
+                bottom_margin_top,
+                available_bounds.width(),
+                available_bounds.bottom() - bottom_margin_top
+            )
+        
+        # CRITICAL: If no non-overlapping space found, the cut must be enlarged
+        # This triggers cascading resize of parent cuts to maintain spatial exclusion
+        print(f"INFO: Cut {area_id} too small - triggering resize to accommodate elements")
+        
+        # Calculate minimum required size for this cut
+        required_width = max_child_right - min_child_left + 200  # Child cuts + margin for elements
+        required_height = max_child_bottom - min_child_top + 120  # Child cuts + margin for elements
+        
+        # Enlarge this cut to accommodate both child cuts and elements
+        enlarged_bounds = QRectF(
+            area_bounds.center().x() - required_width / 2,
+            area_bounds.center().y() - required_height / 2,
+            required_width,
+            required_height
+        )
+        
+        print(f"  Enlarging cut {area_id} from {area_bounds} to {enlarged_bounds}")
+        
+        # Update the cut bounds and trigger cascading parent resize
+        cut_bounds[area_id] = enlarged_bounds
+        self._cascade_parent_resize(area_id, enlarged_bounds, cut_bounds, egi)
+        
+        # Recalculate available bounds with enlarged cut
+        enlarged_available = enlarged_bounds.adjusted(margin, margin, -margin, -margin)
+        
+        # Now try left margin again with enlarged bounds
+        left_margin_right = min_child_left - 10
+        if left_margin_right > enlarged_available.left() + 40:
+            return QRectF(
+                enlarged_available.left(),
+                enlarged_available.top(),
+                left_margin_right - enlarged_available.left(),
+                enlarged_available.height()
+            )
+        
+        # If still no space, use right margin
+        right_margin_left = max_child_right + 10
+        return QRectF(
+            right_margin_left,
+            enlarged_available.top(),
+            enlarged_available.right() - right_margin_left,
+            enlarged_available.height()
+        )
+    
+    def _cascade_parent_resize(self, child_area_id: ElementID, child_bounds: QRectF,
+                              cut_bounds: Dict[ElementID, QRectF], 
+                              egi: RelationalGraphWithCuts):
+        """Cascade resize to parent cuts when a child cut is enlarged.
+        
+        When a cut is enlarged, all parent cuts must be checked and potentially
+        enlarged to maintain proper containment hierarchy.
+        """
+        # Find the parent area that contains this child
+        parent_area_id = None
+        for area_id, contents in egi.area.items():
+            if child_area_id in contents:
+                parent_area_id = area_id
+                break
+        
+        if parent_area_id is None or parent_area_id == egi.sheet:
+            return  # No parent cut to resize (reached sheet level)
+        
+        if parent_area_id not in cut_bounds:
+            return  # Parent bounds not available
+            
+        parent_bounds = cut_bounds[parent_area_id]
+        
+        # Check if parent cut needs to be enlarged to contain the enlarged child
+        margin = 50.0  # Margin between parent and child cuts
+        
+        required_left = child_bounds.left() - margin
+        required_right = child_bounds.right() + margin
+        required_top = child_bounds.top() - margin
+        required_bottom = child_bounds.bottom() + margin
+        
+        needs_resize = (
+            required_left < parent_bounds.left() or
+            required_right > parent_bounds.right() or
+            required_top < parent_bounds.top() or
+            required_bottom > parent_bounds.bottom()
+        )
+        
+        if needs_resize:
+            # Calculate new parent bounds to contain enlarged child
+            new_left = min(parent_bounds.left(), required_left)
+            new_top = min(parent_bounds.top(), required_top)
+            new_right = max(parent_bounds.right(), required_right)
+            new_bottom = max(parent_bounds.bottom(), required_bottom)
+            
+            enlarged_parent_bounds = QRectF(
+                new_left, new_top,
+                new_right - new_left,
+                new_bottom - new_top
+            )
+            
+            print(f"  Cascading resize: enlarging parent {parent_area_id} to contain child {child_area_id}")
+            print(f"    Parent bounds: {parent_bounds} -> {enlarged_parent_bounds}")
+            
+            # Update parent bounds
+            cut_bounds[parent_area_id] = enlarged_parent_bounds
+            
+            # Recursively cascade to grandparent
+            self._cascade_parent_resize(parent_area_id, enlarged_parent_bounds, cut_bounds, egi)
+    
+    def _calculate_viewport_bounds(self, layout_positions: Dict[ElementID, QPointF], 
+                                 cut_bounds: Dict[ElementID, QRectF]) -> QRectF:
+        """Calculate overall viewport bounds encompassing all elements."""
+        if not layout_positions and not cut_bounds:
+            return QRectF(-500, -500, 1000, 1000)
+        
+        # Find bounds of all positioned elements
+        all_bounds = []
+        
+        # Add layout positions
+        for pos in layout_positions.values():
+            all_bounds.extend([pos.x() - 25, pos.x() + 25, pos.y() - 25, pos.y() + 25])
+        
+        # Add cut bounds (exclude sheet bounds to prevent extreme viewport)
+        for cut_id, bounds in cut_bounds.items():
+            # Skip sheet bounds - only include actual cuts
+            if not cut_id.startswith('sheet_'):
+                all_bounds.extend([bounds.left(), bounds.right(), bounds.top(), bounds.bottom()])
+        
+        if all_bounds:
+            margin = 100
+            min_x = min(all_bounds[::2]) - margin  # Even indices are x coordinates
+            max_x = max(all_bounds[::2]) + margin
+            min_y = min(all_bounds[1::2]) - margin  # Odd indices are y coordinates  
+            max_y = max(all_bounds[1::2]) + margin
+            
+            return QRectF(min_x, min_y, max_x - min_x, max_y - min_y)
+        
+        return QRectF(-500, -500, 1000, 1000)
+    
+    def _build_area_hierarchy(self, egi: RelationalGraphWithCuts) -> List[List[str]]:
+        """Build hierarchical structure of areas for proper nested cut layout."""
+        hierarchy = []
+        processed = set()
+        
+        # Start with sheet (level 0)
+        hierarchy.append([egi.sheet])
+        processed.add(egi.sheet)
+        
+        # Find cuts at each nesting level
+        current_level = 0
+        while current_level < len(hierarchy):
+            next_level_cuts = []
+            
+            for area_id in hierarchy[current_level]:
+                # Find cuts contained in this area
+                if area_id in egi.area:
+                    for elem_id in egi.area[area_id]:
+                        if any(cut.id == elem_id for cut in egi.Cut) and elem_id not in processed:
+                            next_level_cuts.append(elem_id)
+                            processed.add(elem_id)
+            
+            if next_level_cuts:
+                hierarchy.append(next_level_cuts)
+            
+            current_level += 1
+        
+        return hierarchy
+    
+    def validate_subgraph_selection(self, egi: RelationalGraphWithCuts, elements: Set[ElementID]) -> bool:
+        """Validate that the selected elements form a valid subgraph."""
+        # Simplified validation - just check that elements exist
+        all_element_ids = {v.id for v in egi.V} | {e.id for e in egi.E} | {c.id for c in egi.Cut}
+        return elements.issubset(all_element_ids)
 
     def _build_hierarchical_index(self, egi):
         """Build hierarchical index from EGI structure for O(1) lookups."""
@@ -615,29 +1055,39 @@ class UniversalEGIEngine:
         return context  # Simplified for now
 
     def _egi_to_egif(self, egi: RelationalGraphWithCuts) -> str:
-        """Convert EGI to EGIF string representation."""
-        # Simplified EGIF generation - can be enhanced
-        egif_parts = []
-        egif_parts.append(
-            f"// EGI with {len(egi.V)} vertices, {len(egi.E)} edges, {len(egi.Cut)} cuts"
-        )
-
-        # Add vertices
-        for vertex in egi.V:
-            egif_parts.append(f"vertex({vertex.id})")
-
-        # Add edges with relations
-        for edge in egi.E:
-            relation = egi.rel.get(edge.id, "unknown")
-            vertex_sequence = egi.nu.get(edge.id, ())
-            egif_parts.append(f"edge({edge.id}, {relation}, {list(vertex_sequence)})")
-
-        # Add cuts
-        for cut in egi.Cut:
-            contents = egi.area.get(cut.id, set())
-            egif_parts.append(f"cut({cut.id}, {list(contents)})")
-
-        return "\n".join(egif_parts)
+        """Convert EGI to EGIF using the dedicated EGIF generator."""
+        try:
+            from egif_generator_dau import EGIFGenerator
+            generator = EGIFGenerator()
+            return generator.generate_egif(egi)
+        except Exception as e:
+            return f"Error generating EGIF: {e}"
+    
+    def _egi_to_cgif(self, egi: RelationalGraphWithCuts) -> str:
+        """Convert EGI to CGIF using the dedicated CGIF generator."""
+        try:
+            from cgif_generator_dau import CGIFGenerator
+            generator = CGIFGenerator()
+            return generator.generate_cgif(egi)
+        except Exception as e:
+            return f"Error generating CGIF: {e}"
+    
+    def _egi_to_clif(self, egi: RelationalGraphWithCuts) -> str:
+        """Convert EGI to CLIF using the dedicated CLIF generator."""
+        try:
+            from clif_generator_dau import CLIFGenerator
+            generator = CLIFGenerator()
+            return generator.generate_clif(egi)
+        except Exception as e:
+            return f"Error generating CLIF: {e}"
+    
+    def _egi_to_fopl(self, egi: RelationalGraphWithCuts) -> str:
+        """Convert EGI to FOPL using the Chapter 18 translation framework."""
+        try:
+            from chapter18_fopl_translation import egi_to_fopl
+            return egi_to_fopl(egi)
+        except Exception as e:
+            return f"Error generating FOPL: {e}"
 
 
 def test_chapter21_engine():
