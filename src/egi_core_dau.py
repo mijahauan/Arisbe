@@ -431,6 +431,13 @@ class RelationalGraphWithCuts:
     def get_branch_count(self, vertex_id: ElementID) -> int:
         """Get number of branches (hooks) for vertex."""
         return len(self.get_vertex_hooks(vertex_id))
+    
+    def get_all_elements(self) -> FrozenSet[ElementID]:
+        """Get all element IDs in the EGI (vertices, edges, cuts)."""
+        vertex_ids = {v.id for v in self.V}
+        edge_ids = {e.id for e in self.E}
+        cut_ids = {c.id for c in self.Cut}
+        return frozenset(vertex_ids | edge_ids | cut_ids)
 
     def replace_vertex_on_hook(
         self, edge_id: ElementID, position: int, new_vertex_id: ElementID
