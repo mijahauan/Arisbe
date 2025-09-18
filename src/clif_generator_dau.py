@@ -54,10 +54,18 @@ class CLIFGenerator:
         return self.generate()
 
     def _assign_vertex_labels(self):
-        """Assign CLIF variable names to vertices, preserving ν order like EGIF/CGIF."""
+        """Assign CLIF variable names to vertices, preserving semantic names when available."""
         self.vertex_labels = {}
         self.used_labels = set()
         self.variable_counter = 0
+        
+        # First, use semantic variable names from the EGI if available
+        if hasattr(self.graph, 'variable_names') and self.graph.variable_names:
+            for vertex_id, var_name in self.graph.variable_names.items():
+                self.vertex_labels[vertex_id] = var_name
+                self.used_labels.add(var_name)
+            # If we have semantic names, we're done - don't generate new ones
+            return
 
         processed: Set[str] = set()
 
@@ -324,6 +332,9 @@ class CLIFGenerator:
             raise TypeError(
                 "CLIFGenerator.generate_with_quantification() requires a graph."
             )
+        # Assign variable names to vertices
+        self._assign_vertex_labels()
+        
         # Get all free variables in sheet
         free_vars = self._get_free_variables(self.graph.sheet)
 

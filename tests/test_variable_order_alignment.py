@@ -31,10 +31,10 @@ def _extract_relation_args_from_cgif(text: str):
 
 
 def _extract_relation_args_from_clif(text: str):
-    # Find first relation (Predicate a b c)
-    m = re.search(r"\(([A-Za-z_][A-Za-z0-9_-]*)\s+([^()]+)\)", text)
-    assert m, f"No relation found in CLIF: {text}"
-    args = m.group(2).strip().split()
+    # Find Relation predicate specifically (Relation a b c)
+    m = re.search(r"\(Relation\s+([^()]+)\)", text)
+    assert m, f"Relation predicate not found in CLIF: {text}"
+    args = m.group(1).strip().split()
     return [a.strip('"') for a in args]
 
 

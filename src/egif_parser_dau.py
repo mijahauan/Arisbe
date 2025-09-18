@@ -10,10 +10,9 @@ Key improvements over previous parser:
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Dict, List, Optional, Set, Tuple, Union
-
 from frozendict import frozendict
 
 from egi_core_dau import (
@@ -327,6 +326,8 @@ class EGIFParser:
         # New: track occurrence contexts for LCA hoisting
         self.var_occ_contexts: Dict[str, Set[ElementID]] = {}
         self.const_occ_contexts: Dict[str, Set[ElementID]] = {}
+        # Preserve all variable name mappings created during parsing
+        self.all_variable_names = {}  # Maps vertex_id -> variable_name for all variables
 
     def _preprocess_text(self, text: str) -> str:
         """Preprocess EGIF text to handle comments and normalize whitespace."""
@@ -385,12 +386,9 @@ class EGIFParser:
         # Parse the expression
         self._parse_eg()
 
-        # Post-parse: hoist variables and constants to LCA of their occurrences
-        self._hoist_vertices_to_lca()
-        # Populate AlphabetDAU and rho mapping for constants
-        self.graph = self._finalize_alphabet_and_rho(self.graph)
-
-        return self.graph
+        # Add variable name mapping to preserve semantic names
+        final_graph = replace(self.graph, variable_names=frozendict(self.all_variable_names))
+        return final_graph
 
     def _current_token(self) -> Token:
         """Get current token."""
@@ -481,6 +479,8 @@ class EGIFParser:
             self.var_stack.setdefault(var_name, []).append((context_id, vertex.id))
             self.variable_map[var_name] = vertex.id
             self.var_def_context[var_name] = context_id
+            # Store in permanent mapping for final graph
+            self.all_variable_names[vertex.id] = var_name
             self._advance()
             return vertex.id
 
@@ -575,6 +575,8 @@ class EGIFParser:
         self.var_stack.setdefault(var_name, []).append((context_id, vertex.id))
         self.variable_map[var_name] = vertex.id
         self.var_def_context[var_name] = context_id
+        # Store in permanent mapping for final graph
+        self.all_variable_names[vertex.id] = var_name
         self._advance()
 
         if self._current_token().type != TokenType.RBRACKET:
@@ -597,6 +599,8 @@ class EGIFParser:
             self.var_stack.setdefault(var_name, []).append((context_id, vertex.id))
             self.variable_map[var_name] = vertex.id
             self.var_def_context[var_name] = context_id
+            # Store in permanent mapping for final graph
+            self.all_variable_names[vertex.id] = var_name
             self._advance()
             return vertex.id
 

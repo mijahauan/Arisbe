@@ -90,6 +90,10 @@ class RelationalGraphWithCuts:
     rho: frozendict[ElementID, Optional[str]] = (
         frozendict()
     )  # vertex_id -> constant name or None
+    
+    # Variable name mapping for preserving semantic names across translations
+    # Maps vertex_id -> variable name (e.g., "x", "y", "z") for generic vertices
+    variable_names: frozendict[ElementID, str] = frozendict()
 
     # Hierarchical index for efficient nesting operations
     # This is integral to EGI logic, not just spatial representation
