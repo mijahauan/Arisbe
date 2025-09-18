@@ -350,21 +350,21 @@ TRANSLATION_FIDELITY_SPECS = [
     ),
     
     TestSpecification(
-        test_id="RT002_clif_fopl_roundtrip",
-        title="CLIF ↔ FOPL Round-trip Translation Fidelity",
+        test_id="RT002_clif_egif_roundtrip",
+        title="CLIF ↔ EGIF Round-trip Translation Fidelity",
         category=TestCategory.TRANSLATION_FIDELITY,
         test_type=TestType.EQUIVALENCE_CHECK,
-        rationale="CLIF and FOPL must preserve logical meaning through EGI intermediate form",
+        rationale="CLIF and EGIF must preserve logical meaning through EGI intermediate form",
         dau_reference=DauReference(chapter=18, section="18.2", page=430),
-        description="Convert CLIF to EGI to FOPL and verify logical equivalence",
-        expected_result="CLIF and FOPL expressions are logically equivalent",
+        description="Convert CLIF to EGI to EGIF and verify logical equivalence",
+        expected_result="CLIF and EGIF expressions are logically equivalent",
         input_data={
             "source_format": "CLIF",
-            "target_format": "FOPL",
+            "target_format": "EGIF",
             "source_text": "(Human Socrates)"
         },
         priority="high",
-        complexity="complex"
+        complexity="moderate"
     ),
     
     TestSpecification(

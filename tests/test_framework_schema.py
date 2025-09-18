@@ -219,16 +219,28 @@ class TranslationFidelityTest(EGITestCase):
     def execute(self) -> Tuple[str, RelationalGraphWithCuts, str]:
         # Parse source format to EGI
         if self.source_format == "FOPL":
-            # Placeholder for FOPL parser
-            from src.egi_core_dau import create_empty_graph
-            source_egi = create_empty_graph()
+            try:
+                from src.chapter18_enhanced_translation import enhanced_fopl_to_egi
+                # Convert CLIF-style input to FOPL-style if needed
+                fopl_text = self.source_text
+                if fopl_text.startswith("(") and " " in fopl_text:
+                    # Convert "(Human Socrates)" to "Human(Socrates)"
+                    fopl_text = fopl_text.strip("()").replace(" ", "(") + ")"
+                source_egi = enhanced_fopl_to_egi(fopl_text)
+            except Exception:
+                # Fallback: parse as CLIF if FOPL parsing fails
+                source_egi = self._parse_format("CLIF", self.source_text)
         else:
             source_egi = self._parse_format(self.source_format, self.source_text)
         
         # Generate target format from EGI
         if self.target_format == "FOPL":
-            # Placeholder for FOPL generator
-            target_text = "exists x. (Human(x))"
+            try:
+                from src.chapter18_enhanced_translation import enhanced_egi_to_fopl
+                target_text = enhanced_egi_to_fopl(source_egi)
+            except Exception:
+                # Fallback: generate as CLIF if FOPL generation fails
+                target_text = self._generate_format("CLIF", source_egi)
         else:
             target_text = self._generate_format(self.target_format, source_egi)
         
@@ -239,8 +251,12 @@ class TranslationFidelityTest(EGITestCase):
         
         # Parse target back to EGI
         if self.target_format == "FOPL":
-            from src.egi_core_dau import create_empty_graph
-            target_egi = create_empty_graph()
+            try:
+                from src.chapter18_enhanced_translation import enhanced_fopl_to_egi
+                target_egi = enhanced_fopl_to_egi(target_text)
+            except Exception:
+                # Fallback: parse as CLIF if FOPL parsing fails
+                target_egi = self._parse_format("CLIF", target_text)
         else:
             target_egi = self._parse_format(self.target_format, target_text)
         

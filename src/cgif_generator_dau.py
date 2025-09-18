@@ -168,7 +168,7 @@ class CGIFGenerator:
         v = next((vx for vx in self.graph.V if vx.id == vid), None)
         if v is None:
             return False
-        if self._rho is not None:
+        if self._rho is not None and self._rho:  # Check if rho exists and is not empty
             cname = self._rho.get(vid)  # type: ignore[attr-defined]
             return cname is not None
         return not v.is_generic and bool(v.label)
@@ -177,7 +177,7 @@ class CGIFGenerator:
         v = next((vx for vx in self.graph.V if vx.id == vid), None)
         if v is None:
             return None
-        if self._rho is not None:
+        if self._rho is not None and self._rho:  # Check if rho exists and is not empty
             return self._rho.get(vid)  # type: ignore[attr-defined]
         return v.label
 
