@@ -104,8 +104,8 @@ class CGIFGenerator:
                     if v.is_generic:
                         if vid not in self.vertex_labels:
                             lab = self._get_next_variable_label()
-                            self.vertex_labels[vid] = f"*{lab}"
-                            self.used_labels.add(self.vertex_labels[vid])
+                            self.vertex_labels[vid] = lab
+                            self.used_labels.add(lab)
                         processed.add(vid)
                     else:
                         # Constants don't need a variable label
@@ -136,8 +136,8 @@ class CGIFGenerator:
                     continue
                 if v.is_generic and vid not in self.vertex_labels:
                     lab = self._get_next_variable_label()
-                    self.vertex_labels[vid] = f"*{lab}"
-                    self.used_labels.add(self.vertex_labels[vid])
+                    self.vertex_labels[vid] = lab
+                    self.used_labels.add(lab)
                 processed.add(vid)
 
             # Recurse into cuts deterministically
@@ -302,7 +302,7 @@ class CGIFGenerator:
                 planned_defs.append((self.vertex_labels[vid], vid))
         for label, vid in sorted(planned_defs, key=lambda x: x[0]):
             # label already includes leading '*'
-            cgif_parts.append(f"[{label}]")
+            cgif_parts.append(f"[* {label}]")
 
         # Generate typed concepts for monadic edges (type relations)
         processed_vertices = set()
@@ -409,7 +409,11 @@ class CGIFGenerator:
             return ""
 
         if not self._is_constant_vertex(vertex_id):
-            return f"[{type_name}: {vertex_label}]"
+            # Check if this is the defining context for the vertex
+            if self.vertex_def_context.get(vertex_id) == self.graph.get_context(edge_id):
+                return f"[{type_name}: *{vertex_label}]"
+            else:
+                return f"[{type_name}: ?{vertex_label}]"
         else:
             # For constants, use the constant name (quoted if needed)
             cname = self._get_constant_name(vertex_id) or vertex.label or vertex_id
@@ -423,7 +427,7 @@ class CGIFGenerator:
 
         if not self._is_constant_vertex(vertex_id):
             vertex_label = self.vertex_labels.get(vertex_id, vertex_id)
-            return f"[{vertex_label}]"
+            return f"[* {vertex_label}]"
         else:
             # Constant concept
             cname = self._get_constant_name(vertex_id) or vertex.label or vertex_id
@@ -451,11 +455,7 @@ class CGIFGenerator:
                 if not self._is_constant_vertex(vertex_id):
                     # Use bound label for generic vertices
                     label = self.vertex_labels.get(vertex_id, vertex_id)
-                    if label.startswith("*"):
-                        bound_label = "?" + label[1:]  # Convert *x to ?x
-                    else:
-                        bound_label = "?" + label
-                    arguments.append(bound_label)
+                    arguments.append(f"?{label}")
                 else:
                     # Use constant name (quoted if needed)
                     cname = (

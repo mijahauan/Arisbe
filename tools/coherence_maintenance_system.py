@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Dict, List, Optional, Set, Tuple
 
-from coherence_analyzer import CoherenceAnalyzer
+from .coherence_analyzer import CoherenceAnalyzer
 from function_index_generator import FunctionIndexGenerator
 from semantic_code_analyzer import SemanticCodeAnalyzer
 

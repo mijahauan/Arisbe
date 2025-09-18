@@ -355,9 +355,24 @@ class CLIFParser:
             for arg_node in node.children:
                 vertex_id = f"v_{arg_node.value}"
                 if not any(v.id == vertex_id for v in egi.V):
-                    vertex = Vertex(
-                        id=vertex_id, label=arg_node.value, is_generic=False
+                    # Determine if this is a constant or variable
+                    # In CLIF, quoted strings and capitalized identifiers are typically constants
+                    # Lowercase identifiers are typically variables
+                    is_constant = (
+                        arg_node.value and 
+                        (arg_node.value[0].isupper() or arg_node.value.startswith('"'))
                     )
+                    
+                    if is_constant:
+                        # Constants have label and is_generic=False
+                        vertex = Vertex(
+                            id=vertex_id, label=arg_node.value, is_generic=False
+                        )
+                    else:
+                        # Variables have label=None and is_generic=True
+                        vertex = Vertex(
+                            id=vertex_id, label=None, is_generic=True
+                        )
                     egi = egi.with_vertex_in_context(vertex, area_id)
                 vertex_ids.append(vertex_id)
             # Create edge for predicate in same area
@@ -371,9 +386,9 @@ class CLIFParser:
             cut_id = f"c_not_{len(egi.Cut)}"
             cut = Cut(id=cut_id)
             egi = egi.with_cut(cut, context_id=area_id)
-            # Process negated content in cut
+            # Process negated content in the new cut's area
             for child in node.children:
-                egi = self._convert_to_egi(child, egi, cut_id)
+                egi = self._convert_to_egi(child, egi, area_id=cut.id)
             return egi
 
         if node.type == "and":

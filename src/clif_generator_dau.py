@@ -343,9 +343,10 @@ class CLIFGenerator:
 
 # Factory function
 def generate_clif(egi: RelationalGraphWithCuts) -> str:
-    """Generate CLIF expression from EGI structure."""
+    """Generate CLIF expression from EGI structure with quantification."""
     generator = CLIFGenerator(egi)
-    return generator.generate()
+    # Default to quantified generation for consistency
+    return generator.generate_with_quantification()
 
 
 def generate_clif_with_quantification(egi: RelationalGraphWithCuts) -> str:

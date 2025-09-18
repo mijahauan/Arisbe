@@ -575,12 +575,19 @@ class ViewportRenderer(QObject):
         
         items_added = 0
         
-        # Phase 1: Render cuts (background)
+
+        # Phase 1: Render cuts (background) with Peirce shading
         for element_data in cuts:
             renderable = self._create_renderable_element(element_data)
             if renderable:
                 visual_item = self._get_visual_item(renderable)
                 if visual_item:
+                    # Check for Peirce shading convention
+                    area_id = renderable.element_id
+                    depth = view_result.area_depths.get(area_id, 0)
+                    if depth % 2 != 0: # Oddly-enclosed areas are shaded
+                        visual_item.setBrush(QBrush(QColor(220, 220, 220))) # Light gray
+                    
                     scene.addItem(visual_item)
                     items_added += 1
                     self._register_element(renderable)
@@ -645,35 +652,39 @@ class ViewportRenderer(QObject):
         return self._get_visual_item(renderable)
     
     def _create_ligature_items(self, element_data: Dict[str, Any]) -> List:
-        """Create ligature visual items for an edge."""
+        """Create ligature visual items for an edge using waypoint data."""
+        from PySide6.QtWidgets import QGraphicsPathItem
+        from PySide6.QtGui import QPainterPath, QPen, QColor
+
         ligature_items = []
-        connection_points = element_data.get('connection_points', [])
-        
-        if connection_points and self.current_view_result:
-            print(f"DEBUG: Creating ligatures for {element_data['element_id']}")
-            for hook_point, vertex_id in connection_points:
-                if vertex_id in self.current_view_result.layout_positions:
-                    vertex_pos = self.current_view_result.layout_positions[vertex_id]
-                    
-                    # Create ligature line
-                    from PySide6.QtWidgets import QGraphicsLineItem
-                    from PySide6.QtGui import QPen, QColor
-                    
-                    ligature = QGraphicsLineItem(
-                        hook_point.x(), hook_point.y(),
-                        vertex_pos.x(), vertex_pos.y()
-                    )
-                    
-                    # Style ligature with depth-based z-order
-                    pen = QPen(QColor("black"))
-                    pen.setWidth(1)
-                    ligature.setPen(pen)
-                    ligature_z_order = self._calculate_ligature_z_order(connection_points)
-                    ligature.setZValue(ligature_z_order)
-                    
-                    ligature_items.append(ligature)
-                    print(f"DEBUG: Created ligature from {hook_point} to {vertex_pos}")
-        
+        ligature_data = element_data.get('connection_points', [])
+
+        if ligature_data and self.current_view_result:
+            # The connection_points from the new engine is a list of tuples:
+            # ( (list_of_waypoints, vertex_id), ... )
+            for path_data, vertex_id in ligature_data:
+                if not path_data or len(path_data) < 2:
+                    continue
+
+                # The path_data is now a list of QPointF waypoints
+                waypoints = path_data
+                
+                path = QPainterPath(waypoints[0])
+                for i in range(1, len(waypoints)):
+                    path.lineTo(waypoints[i])
+
+                ligature_item = QGraphicsPathItem(path)
+                
+                pen = QPen(QColor("black"))
+                pen.setWidth(1)
+                ligature_item.setPen(pen)
+
+                # Use the z-order calculation from before
+                ligature_z_order = self._calculate_ligature_z_order([(None, vertex_id)])
+                ligature_item.setZValue(ligature_z_order)
+                
+                ligature_items.append(ligature_item)
+
         return ligature_items
     
     def _calculate_area_depths(self, egi: RelationalGraphWithCuts) -> Dict[ElementID, int]:

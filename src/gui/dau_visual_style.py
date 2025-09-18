@@ -5,7 +5,7 @@ Based on analysis of authentic diagrams from Dau's treatise.
 Defines precise styling parameters for Chapter 21 compliant rendering.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Tuple
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPen, QBrush, QFont
@@ -17,33 +17,33 @@ class DauVisualStyle:
     
     # Cut styling (rounded rectangles)
     cut_line_width: float = 2.0
-    cut_color: QColor = QColor(0, 0, 0)  # Pure black
+    cut_color: QColor = field(default_factory=lambda: QColor(0, 0, 0))  # Pure black
     cut_corner_radius: float = 8.0
     cut_padding: float = 20.0  # Generous padding around contents
     cut_nesting_margin: float = 15.0  # Space between nested cuts
     
     # Ligature styling (connection lines)
     ligature_line_width: float = 2.0
-    ligature_color: QColor = QColor(0, 0, 0)  # Pure black
+    ligature_color: QColor = field(default_factory=lambda: QColor(0, 0, 0))  # Pure black
     ligature_style: Qt.PenStyle = Qt.SolidLine
     ligature_connection_type: str = "orthogonal"  # Right-angle connections
     
     # Vertex styling (circles)
     vertex_radius: float = 8.0
     vertex_line_width: float = 2.0
-    vertex_color: QColor = QColor(0, 0, 0)  # Pure black outline
-    vertex_fill: QColor = QColor(255, 255, 255)  # White fill
+    vertex_color: QColor = field(default_factory=lambda: QColor(0, 0, 0))  # Pure black outline
+    vertex_fill: QColor = field(default_factory=lambda: QColor(255, 255, 255))  # White fill
     
     # Predicate styling (horizontal lines)
     predicate_line_width: float = 3.0
     predicate_length: float = 40.0
-    predicate_color: QColor = QColor(0, 0, 0)  # Pure black
+    predicate_color: QColor = field(default_factory=lambda: QColor(0, 0, 0))  # Pure black
     
     # Label styling
     label_font_family: str = "Arial"
     label_font_size: int = 12
     label_font_weight: int = QFont.Weight.Normal
-    label_color: QColor = QColor(0, 0, 0)  # Pure black
+    label_color: QColor = field(default_factory=lambda: QColor(0, 0, 0))  # Pure black
     label_offset: float = 15.0  # Distance from element
     
     # Branch point styling (star pattern with arity)
@@ -57,7 +57,7 @@ class DauVisualStyle:
     diagram_margin: float = 30.0  # Margin around entire diagram
     
     # Sheet/background
-    sheet_color: QColor = QColor(255, 255, 255)  # Pure white
+    sheet_color: QColor = field(default_factory=lambda: QColor(255, 255, 255))  # Pure white
     
     def get_cut_pen(self) -> QPen:
         """Get QPen for drawing cuts."""

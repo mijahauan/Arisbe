@@ -49,7 +49,11 @@ class ElementStyle:
     def get_brush(self) -> QBrush:
         """Get QBrush for this element style."""
         if self.fill_color:
-            return QBrush(QColor(*self.fill_color))
+            # Check if it's a QColor or a tuple
+            if isinstance(self.fill_color, QColor):
+                return QBrush(self.fill_color)
+            else:
+                return QBrush(QColor(*self.fill_color))
         return QBrush(Qt.NoBrush)
 
 

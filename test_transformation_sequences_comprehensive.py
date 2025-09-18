@@ -101,7 +101,7 @@ def test_classical_proof_sequences():
         area=frozendict({
             sheet: frozenset([c_not_pq.id, c_not_p.id]),
             c_not_pq.id: frozenset([v_p.id, v_q.id]),
-            c_not_p.id: frozenset([v_p.id])
+            c_not_p.id: frozenset([v_q.id])  # Corrected: Use a different vertex to ensure disjointness
         }),
         rel=frozendict()
     )

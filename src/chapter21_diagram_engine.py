@@ -23,9 +23,11 @@ from enum import Enum
 from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
 import math
 
-from PySide6.QtCore import QPointF, QRectF
+from PySide6.QtCore import QPointF, QRectF, QSizeF, QLineF
+from obstacle_aware_ligature_router import ObstacleAwareLigatureRouter, LigatureRoute
 
 from egi_core_dau import ElementID, RelationalGraphWithCuts, Vertex, Edge, Cut
+from containment_hierarchy_engine import ALURect
 from gui.style_manager import DiagramStyle
 from spatial_area_manager import SpatialAreaManager
 from rtree_spatial_index import SpatialBounds
@@ -90,6 +92,35 @@ class ViewSpecification:
     viewport_bounds: QRectF = field(default_factory=lambda: QRectF(-500, -500, 1000, 1000))
 
 
+from PySide6.QtGui import QPainterPath
+from shapely.geometry import Polygon
+
+
+def convert_polygon_to_path(polygon: Polygon) -> QPainterPath:
+    """Convert a shapely Polygon (with holes) to a QPainterPath."""
+    path = QPainterPath()
+    if not polygon or polygon.is_empty:
+        return path
+
+    # Add the exterior ring
+    exterior_coords = polygon.exterior.coords
+    path.moveTo(QPointF(exterior_coords[0][0], exterior_coords[0][1]))
+    for i in range(1, len(exterior_coords)):
+        path.lineTo(QPointF(exterior_coords[i][0], exterior_coords[i][1]))
+    path.closeSubpath()
+
+    # Add interior rings (holes)
+    for interior in polygon.interiors:
+        interior_path = QPainterPath()
+        interior_coords = interior.coords
+        interior_path.moveTo(QPointF(interior_coords[0][0], interior_coords[0][1]))
+        for i in range(1, len(interior_coords)):
+            interior_path.lineTo(QPointF(interior_coords[i][0], interior_coords[i][1]))
+        interior_path.closeSubpath()
+        path.addPath(interior_path)
+
+    return path
+
 @dataclass
 class ViewResult:
     """Result of creating a view of an EGI."""
@@ -102,6 +133,8 @@ class ViewResult:
     cut_bounds: Dict[ElementID, QRectF] = field(default_factory=dict)
     viewport_bounds: QRectF = field(default_factory=lambda: QRectF(-500, -500, 1000, 1000))
     spatial_manager: Optional['SpatialAreaManager'] = None
+    highlighted_area_path: Optional[QPainterPath] = None
+    area_depths: Dict[ElementID, int] = field(default_factory=dict)
 
 
 @dataclass
@@ -467,153 +500,54 @@ class UniversalEGIEngine:
         """
         Create a view of the EGI based on the view specification.
         
-        This method generates layout positions starting with cuts only, then adding other elements.
+        Uses the new two-phase layout system for proper Dau Chapter 21 compliance:
+        Phase 1: Containment hierarchy with guaranteed spatial exclusion
+        Phase 2: Ligature optimization for visual clarity
         """
-        from cut_layout_engine import CutLayoutEngine
+        from two_phase_layout_controller import TwoPhaseLayoutController
+        from alu_coordinate_system import ViewContext
+        from PySide6.QtCore import QSizeF
         
-        layout_positions = {}
+        # Create two-phase layout controller
+        layout_controller = TwoPhaseLayoutController()
         
-        # Step 1: Layout cuts using hierarchical containment
-        cut_engine = CutLayoutEngine()
-        cut_bounds = cut_engine.layout_cuts(egi)
+        # Determine available size (default for now, should come from view_spec)
+        available_size = QSizeF(800, 600)  # Default viewport size
+        view_context = ViewContext.SCREEN  # Default to screen rendering
         
-        # Step 1.5: Initialize spatial area manager using Qt's BSP spatial indexing
-        # Note: spatial_manager will be initialized by the viewport renderer with the actual QGraphicsScene
+        # Generate complete two-phase layout
+        cut_bounds, element_positions, alu_element_sizes, scale_factor = layout_controller.create_layout(
+            egi, available_size, view_context
+        )
         
-        # Step 2: Position elements within their logically assigned areas
-        # Group elements by their logical area assignment from EGI structure
-        logical_area_elements = {}
+        # Use optimized positions from two-phase layout system
+        layout_positions = element_positions.copy()
         
-        # Process all vertices and edges
-        for elem_id in [v.id for v in egi.V] + [e.id for e in egi.E]:
-            # Find which area logically contains this element
-            logical_area = None
-            for area_id, contents in egi.area.items():
-                if elem_id in contents:
-                    logical_area = area_id
-                    break
-            
-            # Default to sheet if not in any cut
-            if logical_area is None:
-                logical_area = egi.sheet
-            
-            if logical_area not in logical_area_elements:
-                logical_area_elements[logical_area] = {'vertices': [], 'edges': []}
-            
-            if any(v.id == elem_id for v in egi.V):
-                logical_area_elements[logical_area]['vertices'].append(elem_id)
-            elif any(e.id == elem_id for e in egi.E):
-                logical_area_elements[logical_area]['edges'].append(elem_id)
+        print(f"Two-phase layout complete:")
+        print(f"  📐 Scale factor: {scale_factor:.1f} pixels/ALU")
+        print(f"  🏗️  Cut bounds: {len(cut_bounds)} areas")
+        print(f"  📍 Element positions: {len(layout_positions)} elements")
         
-        # Position elements in their logical areas
-        for area_id, elements in logical_area_elements.items():
-            area_vertices = elements['vertices']
-            area_edges = elements['edges']
-            
-            # Position vertices within area bounds
-            if area_vertices and area_id in cut_bounds:
-                area_bounds = cut_bounds[area_id]
-                
-                # Find available positioning space (avoid child cuts)
-                available_bounds = self._get_available_area_bounds(area_id, area_bounds, cut_bounds, egi)
-                
-                if available_bounds.width() > 0 and available_bounds.height() > 0:
-                    for i, vertex_id in enumerate(area_vertices):
-                        if len(area_vertices) > 1:
-                            x = available_bounds.x() + (available_bounds.width() * i) / (len(area_vertices) - 1)
-                        else:
-                            x = available_bounds.center().x()
-                        y = available_bounds.center().y() - 20.0
-                        layout_positions[vertex_id] = QPointF(x, y)
-            
-            # Position edges within area bounds
-            if area_edges and area_id in cut_bounds:
-                area_bounds = cut_bounds[area_id]
-                
-                # Find available positioning space (avoid child cuts)
-                available_bounds = self._get_available_area_bounds(area_id, area_bounds, cut_bounds, egi)
-                
-                if available_bounds.width() > 0 and available_bounds.height() > 0:
-                    for i, edge_id in enumerate(area_edges):
-                        if len(area_edges) > 1:
-                            x = available_bounds.x() + (available_bounds.width() * i) / (len(area_edges) - 1)
-                        else:
-                            x = available_bounds.center().x()
-                        y = available_bounds.center().y() + 20.0
-                        layout_positions[edge_id] = QPointF(x, y)
-            
-            # Handle sheet area elements
-            elif area_id == egi.sheet:
-                sheet_margin = 50.0
-                sheet_y_vertex = -100.0
-                sheet_y_edge = -50.0
-                
-                for i, vertex_id in enumerate(area_vertices):
-                    x = (i - (len(area_vertices) - 1) / 2) * 80.0
-                    layout_positions[vertex_id] = QPointF(x, sheet_y_vertex)
-                
-                for i, edge_id in enumerate(area_edges):
-                    x = (i - (len(area_edges) - 1) / 2) * 80.0
-                    layout_positions[edge_id] = QPointF(x, sheet_y_edge)
+        # Step 3: Refine positions and generate ligature hooks directly
+        final_positions, connection_points = self._refine_positions_and_generate_hooks(
+            egi, layout_positions, alu_element_sizes, scale_factor
+        )
+        layout_positions = final_positions
         
-        # Step 3: Generate hook-based connection points for edges
-        connection_points = {}
-        for edge in egi.E:
-            if edge.id in egi.nu and edge.id in layout_positions:
-                connected_vertices = egi.nu[edge.id]
-                edge_pos = layout_positions[edge.id]
-                
-                # Calculate hook positions around the predicate text boundary
-                hooks = []
-                predicate_name = egi.rel.get(edge.id, "")
-                text_width = len(predicate_name) * 8 + 8  # Tighter boundary around text
-                text_height = 12  # Reduced height for tighter boundary
-                
-                # Position hooks around the text boundary based on vertex count
-                num_vertices = len(connected_vertices)
-                if num_vertices > 0:
-                    for i, vertex_id in enumerate(connected_vertices):
-                        if vertex_id in layout_positions:
-                            # Get vertex position to determine optimal hook placement
-                            vertex_pos = layout_positions.get(vertex_id)
-                            if vertex_pos:
-                                # Calculate direction from edge to vertex
-                                dx = vertex_pos.x() - edge_pos.x()
-                                dy = vertex_pos.y() - edge_pos.y()
-                                
-                                # Determine which side of the text box to use based on direction
-                                # Use tighter hook placement very close to text boundary
-                                if abs(dx) > abs(dy):  # Horizontal connection preferred
-                                    if dx > 0:  # Vertex to the right
-                                        hook_x = edge_pos.x() + text_width/2 + 2  # Just outside text boundary
-                                        hook_y = edge_pos.y()
-                                    else:  # Vertex to the left
-                                        hook_x = edge_pos.x() - text_width/2 - 2  # Just outside text boundary
-                                        hook_y = edge_pos.y()
-                                else:  # Vertical connection preferred
-                                    if dy > 0:  # Vertex below
-                                        hook_x = edge_pos.x()
-                                        hook_y = edge_pos.y() + text_height/2 + 2  # Just outside text boundary
-                                    else:  # Vertex above
-                                        hook_x = edge_pos.x()
-                                        hook_y = edge_pos.y() - text_height/2 - 2  # Just outside text boundary
-                            else:
-                                # Fallback to old method if vertex position not found
-                                if num_vertices == 2:
-                                    hook_x = edge_pos.x() + (-text_width/2 if i == 0 else text_width/2)
-                                    hook_y = edge_pos.y()
-                                else:
-                                    angle = (2 * 3.14159 * i) / num_vertices
-                                    hook_x = edge_pos.x() + (text_width/2 + 10) * math.cos(angle)
-                                    hook_y = edge_pos.y() + (text_height/2 + 10) * math.sin(angle)
-                                    
-                            hooks.append((QPointF(hook_x, hook_y), vertex_id))
-                
-                # Store hook connections for this edge
-                if hooks:
-                    connection_points[edge.id] = hooks
-        
-        # Step 4: Return enhanced ViewResult with spatial manager integration
+        # Step 4: (Highlighting) Get the true polygon for the sheet of assertion
+        highlighted_path = None
+        coordinator = layout_controller.authoritative_coordinator
+        true_sheet_polygon = coordinator.get_true_area_polygon(egi.sheet, egi)
+
+        if true_sheet_polygon:
+            # Convert to a drawable path and scale it to device coordinates
+            scaled_polygon = layout_controller.alu_system.scale_polygon(true_sheet_polygon, scale_factor)
+            highlighted_path = convert_polygon_to_path(scaled_polygon)
+
+        # Step 5: Calculate area depths for Peirce shading
+        area_depths = self._calculate_area_depths(egi)
+
+        # Step 6: Return enhanced ViewResult
         return ViewResult(
             visible_vertices={v.id for v in egi.V},
             visible_edges={e.id for e in egi.E},
@@ -622,7 +556,9 @@ class UniversalEGIEngine:
             connection_points=connection_points,
             cut_bounds=cut_bounds,
             viewport_bounds=self._calculate_viewport_bounds(layout_positions, cut_bounds),
-            spatial_manager=self.spatial_manager  # Include spatial manager for area queries
+            spatial_manager=self.spatial_manager,  # Include spatial manager for area queries
+            highlighted_area_path=highlighted_path,
+            area_depths=area_depths
         )
     
     def _build_area_hierarchy_map(self, egi: RelationalGraphWithCuts) -> Dict[ElementID, Set[ElementID]]:
@@ -805,6 +741,100 @@ class UniversalEGIEngine:
             enlarged_available.height()
         )
     
+    def _calculate_area_depths(self, egi: RelationalGraphWithCuts) -> Dict[ElementID, int]:
+        """Calculate the nesting depth of each area (cut)."""
+        depths = {}
+
+        def find_depth(area_id: ElementID, current_depth: int):
+            if area_id in depths:
+                return
+            depths[area_id] = current_depth
+            
+            # Find cuts nested inside this area
+            for element_id in egi.area.get(area_id, set()):
+                if any(c.id == element_id for c in egi.Cut):
+                    find_depth(element_id, current_depth + 1)
+
+        # Start traversal from the sheet of assertion (depth 0)
+        find_depth(egi.sheet, 0)
+        return depths
+
+    def _refine_positions_and_generate_hooks(self, egi: RelationalGraphWithCuts, 
+                                                 initial_positions: Dict[ElementID, QPointF], 
+                                                 element_sizes: Dict[ElementID, ALURect], 
+                                                 scale_factor: float) -> Tuple[Dict[ElementID, QPointF], Dict[ElementID, List[Tuple[QPointF, ElementID]]]]:
+        """Refine positions and generate hooks in a single pass."""
+        optimized_positions = dict(initial_positions)
+
+        # 1. Refine vertex positions based on connections
+        for vertex in egi.V:
+            vertex_area = egi.get_context(vertex.id)
+            connected_predicates = [edge_id for edge_id, v_seq in egi.nu.items() if vertex.id in v_seq and egi.get_context(edge_id) == vertex_area]
+
+            if len(connected_predicates) == 2:
+                p1_pos = optimized_positions[connected_predicates[0]]
+                p2_pos = optimized_positions[connected_predicates[1]]
+                midpoint = QPointF((p1_pos.x() + p2_pos.x()) / 2, (p1_pos.y() + p2_pos.y()) / 2)
+                optimized_positions[vertex.id] = midpoint
+            elif len(connected_predicates) > 2:
+                centroid_x, centroid_y = 0, 0
+                for pred_id in connected_predicates:
+                    pred_pos = optimized_positions[pred_id]
+                    centroid_x += pred_pos.x()
+                    centroid_y += pred_pos.y()
+                optimized_positions[vertex.id] = QPointF(centroid_x / len(connected_predicates), centroid_y / len(connected_predicates))
+
+        # 2. Generate unique hooks for each ligature on predicate boundaries
+        connection_points = {}
+        for edge_id, vertex_sequence in egi.nu.items():
+            if edge_id not in optimized_positions: continue
+            
+            predicate_pos = optimized_positions[edge_id]
+            alu_size = element_sizes[edge_id]
+            scaled_size = QSizeF(alu_size.width * scale_factor, alu_size.height * scale_factor)
+            predicate_rect = QRectF(predicate_pos - QPointF(scaled_size.width() / 2, scaled_size.height() / 2), scaled_size)
+
+            hooks = []
+            for vertex_id in vertex_sequence:
+                if vertex_id not in optimized_positions: continue
+                vertex_pos = optimized_positions[vertex_id]
+                
+                # Find intersection of line from predicate center to vertex with predicate rect
+                line = QLineF(predicate_pos, vertex_pos)
+                
+                # Create lines for each side of the rectangle
+                top = QLineF(predicate_rect.topLeft(), predicate_rect.topRight())
+                bottom = QLineF(predicate_rect.bottomLeft(), predicate_rect.bottomRight())
+                left = QLineF(predicate_rect.topLeft(), predicate_rect.bottomLeft())
+                right = QLineF(predicate_rect.topRight(), predicate_rect.bottomRight())
+
+                intersect_point = None
+                intersection_type, point = line.intersects(top)
+                if intersection_type == QLineF.BoundedIntersection:
+                    intersect_point = point
+                else:
+                    intersection_type, point = line.intersects(bottom)
+                    if intersection_type == QLineF.BoundedIntersection:
+                        intersect_point = point
+                    else:
+                        intersection_type, point = line.intersects(left)
+                        if intersection_type == QLineF.BoundedIntersection:
+                            intersect_point = point
+                        else:
+                            intersection_type, point = line.intersects(right)
+                            if intersection_type == QLineF.BoundedIntersection:
+                                intersect_point = point
+
+                if intersect_point is None:
+                    # Default to center if no intersection found (should not happen)
+                    intersect_point = predicate_pos
+
+                hooks.append(([intersect_point, vertex_pos], vertex_id))
+
+            connection_points[edge_id] = hooks
+
+        return optimized_positions, connection_points
+
     def _cascade_parent_resize(self, child_area_id: ElementID, child_bounds: QRectF,
                               cut_bounds: Dict[ElementID, QRectF], 
                               egi: RelationalGraphWithCuts):

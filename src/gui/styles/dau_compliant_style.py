@@ -74,7 +74,7 @@ class DauCompliantStyle(DiagramStyle):
             font_family="Arial",
             font_size=12,
             font_weight=QFont.Weight.Normal,
-            color=QColor(0, 0, 0)  # Pure black
+            color=(0, 0, 0)  # Pure black
         )
     
     def get_layout_style(self) -> LayoutStyle:

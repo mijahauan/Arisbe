@@ -132,6 +132,7 @@ class InteractiveEGIViewer(QWidget):
     egi_loaded = Signal(RelationalGraphWithCuts)
     selection_changed = Signal(list)  # List of selected element IDs
     transformation_applied = Signal(str, TransformationResult)
+    status_message_changed = Signal(str)  # Emits status updates
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -756,10 +757,10 @@ FOPL (First-Order Predicate Logic)
                     # Update status
                     import os
                     example_name = os.path.basename(os.path.dirname(file_path))
-                    self.status_label.setText(f"{example_name} loaded from corpus")
+                    self.status_message_changed.emit(f"{example_name} loaded from corpus")
                     
                 except Exception as e:
-                    self.status_label.setText(f"Error loading {display_name}: {e}")
+                    self.status_message_changed.emit(f"Error loading {display_name}: {e}")
                     print(f"Error loading corpus example: {e}")
             
     def _update_selection_info(self, selected_elements: List[str]):

@@ -159,13 +159,6 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         try:
             egi = context.source_egi
 
-            # Apply polarity adjustment for DC+ (moves content 2 levels further from level 0)
-            polarity_adjuster = LevelPolarityAdjuster()
-            adjustment = polarity_adjuster.calculate_adjustment(
-                "DC+",
-                source_context_depth=context.nesting_depth,
-                target_context_depth=context.nesting_depth + 2,
-            )
 
             # Create two new cuts for the double cut
             outer_cut_id = ElementID("dc_outer")
@@ -224,7 +217,6 @@ class DoubleCutInsertionRule(FormalTransformationRule):
                     "outer_cut": str(outer_cut_id),
                     "inner_cut": str(inner_cut_id),
                     "enclosed_elements": [str(e) for e in elements_to_enclose],
-                    "polarity_adjustment": adjustment.depth_change,
                 },
             )
 
@@ -393,15 +385,6 @@ class InsertionRule(FormalTransformationRule):
                 relation_name = context.insertion_relation_name
                 vertex_sequence = context.insertion_vertex_sequence
 
-                # Apply polarity adjustment if needed
-                # For INS, we're inserting into target_area with nesting_depth
-                # The inserted content needs to be adjusted for the target context
-                polarity_adjuster = LevelPolarityAdjuster()
-                adjustment = polarity_adjuster.calculate_adjustment(
-                    "INS",
-                    source_context_depth=0,  # New content starts at depth 0
-                    target_context_depth=context.nesting_depth,
-                )
 
                 # Create any missing vertices first
                 for vertex_id in vertex_sequence:
@@ -1110,7 +1093,6 @@ class FormalTransformationEngine:
             "IT-": DeiterationRule(),
             "HEAVY_DOT": HeavyDotInsertionRule(),
         }
-        self.polarity_adjuster = LevelPolarityAdjuster()
 
     def apply_rule(
         self,

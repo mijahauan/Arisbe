@@ -38,21 +38,6 @@ class TestMainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
         
-        # Test controls
-        controls_layout = QHBoxLayout()
-        
-        self.load_simple_btn = QPushButton("Load Simple Example")
-        self.load_complex_btn = QPushButton("Load Complex Example")
-        self.load_peirce_btn = QPushButton("Load Peirce Example")
-        self.test_styles_btn = QPushButton("Test All Styles")
-        
-        controls_layout.addWidget(self.load_simple_btn)
-        controls_layout.addWidget(self.load_complex_btn)
-        controls_layout.addWidget(self.load_peirce_btn)
-        controls_layout.addWidget(self.test_styles_btn)
-        controls_layout.addStretch()
-        
-        layout.addLayout(controls_layout)
         
         # Status label
         self.status_label = QLabel("Ready to test interactive viewer")
@@ -63,13 +48,10 @@ class TestMainWindow(QMainWindow):
         layout.addWidget(self.viewer)
         
         # Connect signals
-        self.load_simple_btn.clicked.connect(self.load_simple_example)
-        self.load_complex_btn.clicked.connect(self.load_complex_example)
-        self.load_peirce_btn.clicked.connect(self.load_peirce_example)
-        self.test_styles_btn.clicked.connect(self.test_all_styles)
         
         self.viewer.egi_loaded.connect(self.on_egi_loaded)
         self.viewer.selection_changed.connect(self.on_selection_changed)
+        self.viewer.status_message_changed.connect(self.status_label.setText)
         
         # Initialize styles
         self.initialize_styles()
