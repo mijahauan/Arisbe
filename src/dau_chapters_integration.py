@@ -29,9 +29,9 @@ from .dau_semantic_evaluation_engine import SemanticEvaluationEngine
 from .enhanced_dau_compliance_engine import EnhancedDauComplianceEngine
 from .chapter17_soundness_evaluation import Chapter17SoundnessEvaluator
 from .chapter18_fopl_translation import Chapter18FOPLTranslator
-from .chapter20_syntactic_equivalence_fixes import SyntacticEquivalenceChecker
-from .chapter21_transformation_sequences import TransformationSequenceManager
-from .dau_theorem_correspondence_tests import DauTheoremCorrespondenceValidator
+from .chapter20_syntactic_equivalence_fixes import Chapter20SyntacticTranslator
+from .chapter21_transformation_sequences import TransformationSequenceEngine
+# from .dau_theorem_correspondence_tests import DauTheoremCorrespondenceValidator  # Module not found
 
 # Core components
 from .egi_core_dau import RelationalGraphWithCuts
@@ -107,16 +107,16 @@ class DauChaptersIntegrationManager:
         self.chapter19_evaluator = SemanticEvaluationEngine()
         
         # Chapter 20: Syntactic equivalence
-        self.chapter20_checker = SyntacticEquivalenceChecker()
+        self.chapter20_checker = Chapter20SyntacticTranslator()
         
         # Chapter 21: Complete transformation system
-        self.chapter21_manager = TransformationSequenceManager()
+        self.chapter21_manager = TransformationSequenceEngine()
         
         # Enhanced compliance engine (covers multiple chapters)
         self.compliance_engine = EnhancedDauComplianceEngine()
         
         # Theorem correspondence validator
-        self.theorem_validator = DauTheoremCorrespondenceValidator()
+        # self.theorem_validator = DauTheoremCorrespondenceValidator()  # Module not available
     
     def _init_cross_chapter_rules(self):
         """Initialize rules for cross-chapter consistency validation."""
