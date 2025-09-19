@@ -653,25 +653,33 @@ class Chapter18FOPLTranslator:
         """
         Φ: Translate EGI to FOPL formula (inverse of Ψ).
 
-        Generates FOPL formula from EGI structure following Dau's framework.
+        Implements the inverse translation from EGI back to FOPL.
         """
-        # Generate variable names for vertices
-        self._assign_variables_to_vertices(egi)
+        # Reset variable mappings
+        self.vertex_variable_map = {}
+        self.variable_vertex_map = {}
+
+        # Assign variable names to vertices
+        var_counter = 0
+        for vertex in egi.V:
+            if vertex.is_generic:
+                var_name = f"x{var_counter}"
+            else:
+                var_name = vertex.label or f"c{var_counter}"
+            self.vertex_variable_map[vertex.id] = var_name
+            var_counter += 1
 
         # Translate sheet area
         formula = self._translate_area_to_fopl(egi, egi.sheet)
-
         return formula
 
-    def _assign_variables_to_vertices(self, egi: RelationalGraphWithCuts):
-        """Assign variable names to vertices for Φ translation."""
-        self.vertex_variable_map = {}
-        var_counter = 1
-
-        for vertex in egi.V:
-            var_name = f"x{var_counter}"
-            self.vertex_variable_map[vertex.id] = var_name
-            var_counter += 1
+    def egi_to_fopl(self, egi: RelationalGraphWithCuts) -> str:
+        """
+        Convenience method for EGI to FOPL translation.
+        
+        This method provides the interface expected by the test suite.
+        """
+        return self.phi_translate(egi)
 
     def _translate_area_to_fopl(
         self, egi: RelationalGraphWithCuts, area_id: ElementID

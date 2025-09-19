@@ -28,17 +28,17 @@ from src.egi_core_dau import (
     ElementID
 )
 from src.ligature_manipulation_rules import (
-    LigatureManipulationEngine,
     MoveBranchesAlongLigatureRule,
-    MergeLigaturesRule,
-    SplitLigatureRule,
-    LigatureValidationResult
+    ExtendRestrictLigatureRule,
+    RetractLigatureRule,
+    LigatureRearrangementRule
 )
 from src.ligature_optimization_engine import (
     LigatureOptimizationEngine,
-    OptimizationResult,
-    LigatureConstraint,
-    OptimizationMetrics
+    LigatureConnection,
+    ElementPosition,
+    PredicateHook,
+    CompassDirection
 )
 from src.ligature_aware_positioning_engine import (
     LigatureAwarePositioningEngine,
