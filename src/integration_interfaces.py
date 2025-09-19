@@ -76,15 +76,31 @@ class CorpusManager(Protocol):
     """Standard interface for corpus management."""
 
     def add_egi(self, egi: RelationalGraphWithCuts, metadata: Dict[str, Any]) -> str:
-        """Add EGI to corpus and return unique identifier."""
+        """Add EGI to corpus and return ID."""
         ...
 
-    def get_egi(self, identifier: str) -> Optional[RelationalGraphWithCuts]:
-        """Retrieve EGI by identifier."""
+    def search_corpus(self, query: str) -> List[Dict[str, Any]]:
+        """Search corpus and return matching items."""
         ...
 
-    def search_corpus(self, query: Dict[str, Any]) -> List[str]:
-        """Search corpus and return matching identifiers."""
+    def get_egi(self, egi_id: str) -> Optional[RelationalGraphWithCuts]:
+        """Retrieve EGI by ID."""
+        ...
+
+
+class ExportManager(Protocol):
+    """Standard interface for export management."""
+
+    def export_egi(self, egi: RelationalGraphWithCuts, format_type: str) -> Dict[str, Any]:
+        """Export EGI to specified format."""
+        ...
+
+    def validate_export(self, export_data: Dict[str, Any]) -> bool:
+        """Validate export data."""
+        ...
+
+    def get_supported_formats(self) -> List[str]:
+        """Get list of supported export formats."""
         ...
 
 

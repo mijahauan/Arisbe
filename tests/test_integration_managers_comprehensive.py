@@ -29,14 +29,12 @@ from src.integrated_export_manager import (
     IntegratedExportManager,
     ExportFormat,
     ExportResult,
-    ExportValidationResult,
 )
 from src.integrated_view_manager import (
     IntegratedViewManager,
     ViewType,
     ViewConfiguration,
-    ViewResult,
-    ViewGenerationResult,
+    GeneratedView,
 )
 from src.core_dau_formalism import CoreDauFormalismManager, LinearFormat
 from src.integration_interfaces import IntegrationManager, IntegrationContext
