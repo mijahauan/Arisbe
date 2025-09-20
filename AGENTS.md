@@ -90,7 +90,14 @@ result = rule.apply_transformation(context)
 - **Dau Chapter 16-17**: Ligature algorithms and soundness
 - **Dau Chapter 18**: Linear format parsing/generation
 - **Dau Chapter 20**: Syntactic equivalence checking
+- **Dau Chapter 21**: Diagram interaction architecture (see LAYOUT_ENGINE_ARCHITECTURE_PLAN.md)
 - **Complete validation**: 100% comprehensive coverage achieved
+
+## 🏗️ Layout Engine Architecture
+- **Critical architectural plan**: See `LAYOUT_ENGINE_ARCHITECTURE_PLAN.md`
+- **Solves containment/overlapping problems**: Layout Engine bridges EGI logic and visual rendering
+- **Three-layer architecture**: EGI → Layout Engine → Renderer with DiagramController
+- **Advanced viewing capabilities**: Panning, zooming, animation, collapse/expand without EGI corruption
 
 ## 🚀 Production Readiness
 - **Enterprise-grade**: All performance benchmarks passing
