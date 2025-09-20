@@ -4,7 +4,17 @@
 
 A mathematically rigorous implementation of Charles S. Peirce's Existential Graphs based on Frithjof Dau's formal framework. Arisbe provides a complete ecosystem for creating, validating, transforming, and visualizing logical reasoning through interactive diagrams.
 
-Updated: 2025-09-15
+## 🔒 **COHERENCE FRAMEWORK ACTIVE**
+
+**Arisbe includes a comprehensive coherence framework with:**
+- **📚 Complete API Documentation** - No more guessing at function signatures! See `ARISBE_CORE_API_REFERENCE.md`
+- **🛡️ Core Protection** - 16 validated modules protected from unauthorized changes
+- **🧪 87 Validated Tests** - Mathematical foundation thoroughly tested and verified
+- **📊 Quality Monitoring** - Daily dashboard and automated quality gates
+
+**→ New to the codebase? Read `COHERENCE_FRAMEWORK_REMINDER.md` first!**
+
+Updated: 2025-09-20
 
 ## Overview
 
