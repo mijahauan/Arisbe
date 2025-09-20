@@ -7,10 +7,24 @@ import sys
 import os
 
 def run_quality_checks():
-    """Run basic quality checks without the full coherence framework."""
-    print("Running basic quality checks...")
+    """Run basic quality checks with core protection enforcement."""
+    print("Running enhanced quality checks with core protection...")
     
-    # Run core working tests only (not the broken integration tests)
+    # Step 1: Core Protection Check
+    print("🔒 Enforcing core protection...")
+    try:
+        protection_result = subprocess.run([sys.executable, "tools/core_protection_system.py"], 
+                                         capture_output=True, text=True)
+        if protection_result.returncode != 0:
+            print("❌ Core protection check failed")
+            print(protection_result.stdout)
+            return False
+        else:
+            print("✅ Core protection check passed")
+    except Exception as e:
+        print(f"⚠️  Core protection system unavailable: {e}")
+    
+    # Step 2: Run core working tests only (not the broken integration tests)
     print("🧪 Running core tests...")
     core_test_files = [
         "tests/test_egi_core_comprehensive.py",
