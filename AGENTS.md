@@ -18,7 +18,8 @@
 - **Core tests**: `python -m pytest tests/test_*_comprehensive.py tests/test_*_working.py`
 - **Layout engine tests**: `python -m pytest tests/test_layout_engine_ironclad.py tests/test_layout_engine_styled.py`
 - **Style system tests**: `python -m pytest tests/test_style_integration.py`
-- **Expected results**: 180+ passing, 0 failing, 62 properly skipped
+- **Readability optimization tests**: `python -m pytest tests/test_readability_optimizer.py`
+- **Expected results**: 190+ passing, 0 failing, 62 properly skipped
 
 ## 🏗️ Build and Development
 - **Environment**: `conda activate CGIF` (Python 3.12.10)
@@ -98,11 +99,12 @@ result = rule.apply_transformation(context)
 ## 🏗️ Layout Engine Architecture
 - **Iron-clad layout engine**: `src/layout_engine_ironclad.py` - Production-ready with guaranteed spatial-logical correspondence
 - **Style-aware layout engine**: `src/layout_engine_styled.py` - Extends iron-clad with style-aware spatial calculations
+- **Readability optimizer**: `src/readability_optimizer.py` - Logic-indifferent optimizations for visual clarity
 - **No break points**: Spatial arrangement exactly matches EGI area mapping with mathematical precision
 - **Sibling cut handling**: Properly separates cuts that share the same parent area (no superimposition)
 - **Complete corpus validation**: Handles 14/15 Arisbe corpus graphs with 93.3% success rate
 - **Platform-independent DTO**: Clean separation between layout logic and rendering technology
-- **Four-layer architecture**: EGI → Style-Aware Layout Engine → LayoutDTO → Renderer with guaranteed correspondence
+- **Five-layer architecture**: EGI → Style-Aware Layout Engine → Readability Optimizer → LayoutDTO → Renderer
 
 ## 🎨 Style System Architecture
 - **JSON-based styles**: Platform-independent style definitions in `styles/` directory
@@ -113,6 +115,15 @@ result = rule.apply_transformation(context)
 - **Optional features**: Arity numbers, variable labels, alternating shading
 - **Transformation support**: Double cut highlighting, isomorphic matching, collapsed contexts
 - **Complete documentation**: `docs/STYLE_SYSTEM_GUIDE.md` - User and developer guide
+
+## 🔧 Readability Optimization System
+- **Logic-indifferent optimizations**: Improve visual clarity without affecting logical structure
+- **Collision avoidance**: Automatic detection and resolution of element overlaps
+- **Spacing optimization**: Force-directed adjustment for uniform element distribution
+- **Three optimization levels**: Minimal, Standard, Aggressive with configurable constraints
+- **Iron-clad preservation**: All optimizations maintain spatial-logical correspondence
+- **Style-aware constraints**: Optimization parameters derived from active style specification
+- **Comprehensive testing**: `tests/test_readability_optimizer.py` - Full test coverage
 
 ## 🚀 Production Readiness
 - **Enterprise-grade**: All performance benchmarks passing

@@ -94,7 +94,8 @@ class StyleAwareLayoutEngine(LayoutEngineIronClad):
     
     def compute_layout(self, egi: RelationalGraphWithCuts, 
                       distribution: Optional[ElementDistribution] = None,
-                      ligature_routing: Optional[LigatureRouting] = None) -> LayoutDTO:
+                      ligature_routing: Optional[LigatureRouting] = None,
+                      optimize_readability: bool = True) -> LayoutDTO:
         """
         Compute style-aware layout with optional distribution and routing specs.
         
@@ -129,7 +130,11 @@ class StyleAwareLayoutEngine(LayoutEngineIronClad):
         # Step 7: Validate (iron-clad guarantee)
         self._validate_layout(egi, vertex_positions, predicate_positions, cut_bounds, area_hierarchy)
         
-        return LayoutDTO(
+        # Step 5: Generate style hints for rendering
+        style_hints = self._generate_style_aware_hints(egi)
+        
+        # Create initial layout
+        layout = LayoutDTO(
             vertex_positions=vertex_positions,
             predicate_positions=predicate_positions,
             cut_bounds=cut_bounds,
@@ -137,8 +142,14 @@ class StyleAwareLayoutEngine(LayoutEngineIronClad):
             area_hierarchy=area_hierarchy,
             containment_depth=containment_depth,
             viewport_bounds=viewport_bounds,
-            style_hints=self._generate_style_aware_hints(egi)
+            style_hints=style_hints
         )
+        
+        # Step 6: Apply readability optimization if requested
+        if optimize_readability:
+            layout = self._apply_readability_optimization(layout, egi)
+        
+        return layout
     
     def _allocate_style_aware_zones(self, egi: RelationalGraphWithCuts,
                                    area_hierarchy: Dict[ElementID, Set[ElementID]],
@@ -556,3 +567,29 @@ class StyleAwareLayoutEngine(LayoutEngineIronClad):
         })
         
         return base_hints
+    
+    def _apply_readability_optimization(self, layout: LayoutDTO, egi: RelationalGraphWithCuts) -> LayoutDTO:
+        """Apply readability optimization to the layout"""
+        
+        # Import here to avoid circular dependencies
+        try:
+            from readability_optimizer import ReadabilityOptimizer, OptimizationLevel
+            
+            # Create optimizer with style-aware constraints
+            from readability_optimizer import OptimizationConstraints
+            constraints = OptimizationConstraints(
+                min_element_spacing=self.style_spec.element_spacing * 0.5,
+                preferred_element_spacing=self.style_spec.element_spacing,
+                max_displacement=self.style_spec.element_spacing * 2.0
+            )
+            
+            optimizer = ReadabilityOptimizer(constraints)
+            
+            # Apply standard optimization level
+            optimized_layout = optimizer.optimize_layout(layout, egi, OptimizationLevel.STANDARD)
+            
+            return optimized_layout
+            
+        except ImportError:
+            # Readability optimizer not available, return original layout
+            return layout

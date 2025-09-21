@@ -215,7 +215,7 @@ class TestStyleAwareLayoutEngine(unittest.TestCase):
             row_spacing=40.0
         )
         
-        layout = engine.compute_layout(egi, distribution=distribution)
+        layout = engine.compute_layout(egi, distribution=distribution, optimize_readability=False)
         
         # Should have all predicates positioned
         self.assertEqual(len(layout.predicate_positions), 4)
