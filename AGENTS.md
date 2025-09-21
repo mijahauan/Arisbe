@@ -6,6 +6,14 @@
 - **Check protection status**: `python tools/core_protection_system.py --report`
 - **Override protection** (authorized changes only): `export ARISBE_CORE_OVERRIDE=true`
 
+## 📚 Living Documentation System
+- **Auto-updating documentation**: Documentation stays current with codebase changes
+- **Context awareness system**: `tools/context_awareness_system.py` prevents reinvention
+- **Persistent memory integration**: Critical framework awareness stored in memory system
+- **Framework amnesia recovery**: `FRAMEWORK_AMNESIA_RECOVERY.md` for complete context recovery
+- **Pre-development checklist**: `.arisbe_context_check` mandatory before development
+- **IDE integration**: VS Code tasks for instant context checks
+
 ## 📚 API Discovery Protocol
 - **NEVER guess function signatures** - Use `ARISBE_CORE_API_REFERENCE.md` for exact signatures
 - **Complete API documentation**: 57 classes, 19 functions fully documented
@@ -36,7 +44,9 @@
 ## 🧠 Context Recovery (Framework Amnesia)
 - **Forgot the framework?** Read `COHERENCE_FRAMEWORK_REMINDER.md` first
 - **Complete recovery guide**: `FRAMEWORK_AMNESIA_RECOVERY.md`
+- **Persistent context system**: `PERSISTENT_CONTEXT_SYSTEM.md` for complete workflow
 - **Automated reminders**: `python tools/coherence_reminder_system.py`
+- **Context awareness check**: `python tools/context_awareness_system.py --check "task"`
 - **Quick status**: `python tools/core_protection_system.py --report`
 
 ## 🔧 Essential Tools
@@ -44,6 +54,8 @@
 - **Core protection check**: `python tools/core_protection_system.py`
 - **API documentation generator**: `python tools/extract_core_api.py`
 - **Coherence reminders**: `python tools/coherence_reminder_system.py`
+- **Context awareness system**: `python tools/context_awareness_system.py`
+- **Living documentation generator**: `python tools/living_documentation_generator.py`
 
 ## 📊 Quality Gates
 - **Pre-commit hooks**: Automatically run quality checks
@@ -76,11 +88,27 @@ context = TransformationContext(source_egi=egi, target_area="sheet", ...)
 result = rule.apply_transformation(context)
 ```
 
+## 🔄 Living Documentation Workflow
+- **Before development**: `python tools/context_awareness_system.py --check "task"`
+- **Check existing solutions**: `grep -i "function_name" ARISBE_CORE_API_REFERENCE.md`
+- **Verify no duplication**: Review `.arisbe_context_check` checklist
+- **Use IDE integration**: VS Code tasks for instant context checks
+- **Weekly maintenance**: `python tools/living_documentation_generator.py`
+- **Context preservation**: Critical solutions stored in persistent memory system
+
+## 🚨 Context Drift Prevention
+- **Multiple protection layers**: Memory system, keyword triggers, pre-dev checklist
+- **Automatic detection**: Context awareness system catches reinvention attempts
+- **Persistent reminders**: Always-visible files that can't be ignored
+- **IDE integration**: One-click context checks and function lookup
+- **Living documentation**: Solution catalog stays current automatically
+
 ## ⚠️ Critical Warnings
 - **DO NOT** modify files in protected core modules without authorization
 - **DO NOT** bypass quality gates unless using "WIP:" commit prefix
 - **DO NOT** guess at function signatures - they are documented
 - **DO NOT** ignore failing core tests - they indicate real mathematical issues
+- **DO NOT** reinvent existing solutions - use context awareness system first
 
 ## 🏆 Success Indicators
 - All 87 core tests passing
