@@ -1,0 +1,172 @@
+{
+  "style_name": "sowa-compliant",
+  "version": "1.0.0",
+  "description": "Conceptual graph conventions with oval cuts following Sowa's style",
+  
+  "global": {
+    "font_family": "Arial",
+    "font_size": 10,
+    "font_weight": "normal",
+    "background_color": "#FFFFFF"
+  },
+  
+  "layout": {
+    "element_spacing": 45.0,
+    "cut_padding": 25.0,
+    "sibling_spacing": 35.0,
+    "diagram_margin": 30.0,
+    "text_margin": 6.0,
+    "ligature_clearance": 12.0,
+    "grid_snap": true,
+    "alignment_grid_size": 15.0,
+    "organic_variation": false
+  },
+  
+  "vertex": {
+    "radius": 4.0,
+    "fill_color": "#000000",
+    "border_color": "#000000",
+    "border_width": 1,
+    "rendering_mode": "dot_and_label",
+    "style": "regular",
+    "label_font_size": 10,
+    "label_color": "#000000",
+    "label_offset": [10, -12],
+    "label_padding": [2, 1],
+    "superscript_font_size": 8,
+    "superscript_color": "#000000",
+    "superscript_offset": [12, -14]
+  },
+  
+  "predicate": {
+    "identity_line_width": 3.0,
+    "identity_line_color": "#000000",
+    "identity_cap_style": "round",
+    "label_box_background": "#FFFFFF",
+    "label_box_border_color": "#000000",
+    "label_box_border_width": 1,
+    "label_box_padding": [3, 2],
+    "label_font_size": 10,
+    "label_color": "#000000",
+    "char_width_estimate": 6.0,
+    "height_estimate": 12.0,
+    "even_polarity_fill": "transparent",
+    "odd_polarity_fill": "rgba(0,100,200,0.08)"
+  },
+  
+  "cut": {
+    "shape": "oval",
+    "corner_radius": 0,
+    "line_width": 2.5,
+    "line_color": "#000000",
+    "even_polarity_fill": "transparent",
+    "odd_polarity_fill": "rgba(0,100,200,0.1)",
+    "nesting_margin": 20.0,
+    "depth_indication": true,
+    "hand_drawn_variation": 0.0
+  },
+  
+  "ligature": {
+    "line_width": 2.5,
+    "color": "#000000",
+    "cap_style": "round",
+    "routing_mode": "manhattan",
+    "curvature": 0.0,
+    "orthogonal_bias": "h_first",
+    "min_length": 15.0,
+    "border_overlap": 1.5,
+    "approach_margin": 8.0,
+    "hand_drawn_variation": 0.0
+  },
+  
+  "alternating_shading": {
+    "enabled": true,
+    "even_polarity_color": "transparent",
+    "odd_polarity_color": "rgba(0,100,200,0.1)",
+    "start_level": 0,
+    "fade_with_depth": true,
+    "opacity_step": 0.03
+  },
+  
+  "arity_numbers": {
+    "enabled": true,
+    "font_size": 8,
+    "color": "#0066CC",
+    "position": "top_right",
+    "offset": [2, -2],
+    "background_color": "#FFFFFF",
+    "border_radius": 3,
+    "padding": [2, 2]
+  },
+  
+  "variable_labels": {
+    "enabled": true,
+    "font_size": 9,
+    "color": "#CC6600",
+    "position": "bottom_left",
+    "offset": [-8, 8],
+    "prefix": "?",
+    "format": "subscript",
+    "show_for": ["unnamed_vertices", "generic_only"]
+  },
+  
+  "double_cut_highlight": {
+    "enabled": false,
+    "border_color": "#FF4500",
+    "border_width": 3,
+    "border_style": "solid",
+    "fill_color": "rgba(255,69,0,0.2)",
+    "animation": "pulse",
+    "label": {
+      "text": "DC",
+      "font_size": 9,
+      "color": "#FF4500",
+      "position": "top_right"
+    }
+  },
+  
+  "isomorphic_highlight": {
+    "enabled": false,
+    "primary_color": "#32CD32",
+    "secondary_color": "#98FB98",
+    "border_width": 2.5,
+    "border_style": "solid",
+    "fill_opacity": 0.25,
+    "connection_lines": {
+      "enabled": true,
+      "color": "#32CD32",
+      "width": 1.5,
+      "style": "dashed"
+    }
+  },
+  
+  "collapsed_context": {
+    "enabled": false,
+    "indicator_symbol": "▼",
+    "indicator_color": "#666666",
+    "indicator_size": 18,
+    "background_color": "rgba(150,150,150,0.4)",
+    "border_color": "#666666",
+    "border_style": "solid",
+    "tooltip_text": "Collapsed context (depth {level}+)"
+  },
+  
+  "visual_hierarchy": {
+    "emphasis_scale": 1.3,
+    "highlight_color": "#FFFF00",
+    "selection_color": "#0066CC",
+    "selection_width": 3,
+    "hover_color": "#ADD8E6",
+    "hover_opacity": 0.8
+  },
+  
+  "rendering_hints": {
+    "anti_aliasing": "medium",
+    "line_smoothing": "mechanical",
+    "vector_precision": 0.1,
+    "raster_fallback": true,
+    "drop_shadow": true,
+    "texture": "none",
+    "hand_drawn_variation": 0.0
+  }
+}

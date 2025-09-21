@@ -1,0 +1,172 @@
+{
+  "style_name": "dau-compliant",
+  "version": "1.0.0",
+  "description": "Mathematical precision based on Dau's treatise - default style",
+  
+  "global": {
+    "font_family": "Times New Roman",
+    "font_size": 12,
+    "font_weight": "normal",
+    "background_color": "#FFFFFF"
+  },
+  
+  "layout": {
+    "element_spacing": 40.0,
+    "cut_padding": 20.0,
+    "sibling_spacing": 30.0,
+    "diagram_margin": 25.0,
+    "text_margin": 5.0,
+    "ligature_clearance": 10.0,
+    "grid_snap": false,
+    "alignment_grid_size": 10.0,
+    "organic_variation": false
+  },
+  
+  "vertex": {
+    "radius": 3.0,
+    "fill_color": "#000000",
+    "border_color": "#000000",
+    "border_width": 0,
+    "rendering_mode": "dot_and_label",
+    "style": "regular",
+    "label_font_size": 11,
+    "label_color": "#000000",
+    "label_offset": [8, -10],
+    "label_padding": [2, 1],
+    "superscript_font_size": 9,
+    "superscript_color": "#000000",
+    "superscript_offset": [10, -12]
+  },
+  
+  "predicate": {
+    "identity_line_width": 3.5,
+    "identity_line_color": "#000000",
+    "identity_cap_style": "round",
+    "label_box_background": "#FFFFFF",
+    "label_box_border_color": "transparent",
+    "label_box_border_width": 0,
+    "label_box_padding": [2, 1],
+    "label_font_size": 12,
+    "label_color": "#000000",
+    "char_width_estimate": 6.2,
+    "height_estimate": 14.0,
+    "even_polarity_fill": "transparent",
+    "odd_polarity_fill": "rgba(0,0,0,0.06)"
+  },
+  
+  "cut": {
+    "shape": "rounded_rectangle",
+    "corner_radius": 8,
+    "line_width": 2.0,
+    "line_color": "#000000",
+    "even_polarity_fill": "transparent",
+    "odd_polarity_fill": "rgba(0,0,0,0.08)",
+    "nesting_margin": 15.0,
+    "depth_indication": false,
+    "hand_drawn_variation": 0.0
+  },
+  
+  "ligature": {
+    "line_width": 2.0,
+    "color": "#000000",
+    "cap_style": "round",
+    "routing_mode": "orthogonal",
+    "curvature": 0.35,
+    "orthogonal_bias": "h_first",
+    "min_length": 12.0,
+    "border_overlap": 1.0,
+    "approach_margin": 4.0,
+    "hand_drawn_variation": 0.0
+  },
+  
+  "alternating_shading": {
+    "enabled": true,
+    "even_polarity_color": "transparent",
+    "odd_polarity_color": "rgba(0,0,0,0.08)",
+    "start_level": 0,
+    "fade_with_depth": false,
+    "opacity_step": 0.02
+  },
+  
+  "arity_numbers": {
+    "enabled": false,
+    "font_size": 8,
+    "color": "#666666",
+    "position": "top_right",
+    "offset": [2, -2],
+    "background_color": "#FFFFFF",
+    "border_radius": 2,
+    "padding": [1, 2]
+  },
+  
+  "variable_labels": {
+    "enabled": false,
+    "font_size": 9,
+    "color": "#0066CC",
+    "position": "bottom_left",
+    "offset": [-5, 5],
+    "prefix": "",
+    "format": "subscript",
+    "show_for": ["unnamed_vertices"]
+  },
+  
+  "double_cut_highlight": {
+    "enabled": false,
+    "border_color": "#FF6600",
+    "border_width": 3,
+    "border_style": "dashed",
+    "fill_color": "rgba(255,102,0,0.15)",
+    "animation": "none",
+    "label": {
+      "text": "DC",
+      "font_size": 8,
+      "color": "#FF6600",
+      "position": "top_left"
+    }
+  },
+  
+  "isomorphic_highlight": {
+    "enabled": false,
+    "primary_color": "#00AA00",
+    "secondary_color": "#66DD66",
+    "border_width": 2,
+    "border_style": "solid",
+    "fill_opacity": 0.2,
+    "connection_lines": {
+      "enabled": true,
+      "color": "#00AA00",
+      "width": 1,
+      "style": "dotted"
+    }
+  },
+  
+  "collapsed_context": {
+    "enabled": false,
+    "indicator_symbol": "⋯",
+    "indicator_color": "#999999",
+    "indicator_size": 16,
+    "background_color": "rgba(200,200,200,0.3)",
+    "border_color": "#999999",
+    "border_style": "dotted",
+    "tooltip_text": "Collapsed context (depth {level}+)"
+  },
+  
+  "visual_hierarchy": {
+    "emphasis_scale": 1.2,
+    "highlight_color": "#FFD700",
+    "selection_color": "#1E88E5",
+    "selection_width": 2,
+    "hover_color": "#87CEEB",
+    "hover_opacity": 0.7
+  },
+  
+  "rendering_hints": {
+    "anti_aliasing": "high",
+    "line_smoothing": "mechanical",
+    "vector_precision": 0.1,
+    "raster_fallback": false,
+    "drop_shadow": false,
+    "texture": "none",
+    "hand_drawn_variation": 0.0
+  }
+}

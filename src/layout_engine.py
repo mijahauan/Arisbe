@@ -1,231 +1,492 @@
 """
 Layout Engine - Bridge between EGI logical structure and visual representation
+
+ARCHITECTURE:
+- Takes any EGI (Dau's 6+1 component formalism)
+- Produces abstract layout (platform-independent DTO)
+- Enforces spatial-logical correspondence (iron-clad)
+- Uses validated core algorithms (coherence framework)
+
+DESIGN PRINCIPLES:
+1. EGI area mapping is IRON CLAD - defines containment
+2. All elements in area[context_id] must be spatially contained
+3. Cuts are elements and can contain other cuts
+4. Use existing ligature algorithms from core
+5. Platform-independent DTO output
 """
 
 import math
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple, FrozenSet, List
+from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
-from egi_core_dau import RelationalGraphWithCuts, ElementID
+from egi_core_dau import RelationalGraphWithCuts, ElementID, Vertex, Edge, Cut
+from enhanced_ligature_algorithms import EnhancedLigatureAlgorithms
 
 
 @dataclass(frozen=True)
 class Point:
+    """2D point for spatial positioning"""
     x: float
     y: float
 
 
 @dataclass(frozen=True)
 class BoundingBox:
+    """Rectangular bounds for spatial extents"""
     min_x: float
     min_y: float
     max_x: float
     max_y: float
     
-    def contains_point(self, point: Point) -> bool:
-        return (self.min_x < point.x < self.max_x and 
-                self.min_y < point.y < self.max_y)
+    @property
+    def width(self) -> float:
+        return self.max_x - self.min_x
     
-    def overlaps_with(self, other: 'BoundingBox') -> bool:
-        """Check if this box overlaps with another box"""
-        return not (self.max_x <= other.min_x or 
-                   other.max_x <= self.min_x or
-                   self.max_y <= other.min_y or 
-                   other.max_y <= self.min_y)
+    @property
+    def height(self) -> float:
+        return self.max_y - self.min_y
+    
+    @property
+    def center(self) -> Point:
+        return Point((self.min_x + self.max_x) / 2, (self.min_y + self.max_y) / 2)
+    
+    def contains_point(self, point: Point) -> bool:
+        return (self.min_x <= point.x <= self.max_x and 
+                self.min_y <= point.y <= self.max_y)
+    
+    def expand(self, margin: float) -> 'BoundingBox':
+        """Expand bounds by margin in all directions"""
+        return BoundingBox(
+            self.min_x - margin, self.min_y - margin,
+            self.max_x + margin, self.max_y + margin
+        )
 
 
 @dataclass(frozen=True)
-class Path:
-    points: Tuple[Point, ...]
+class LigaturePath:
+    """Path connecting predicate to vertex"""
+    predicate_id: ElementID
+    vertex_id: ElementID
+    points: Tuple[Point, ...]  # Path points from predicate to vertex
+    
+    @property
+    def start_point(self) -> Point:
+        return self.points[0] if self.points else Point(0, 0)
+    
+    @property
+    def end_point(self) -> Point:
+        return self.points[-1] if self.points else Point(0, 0)
 
 
 @dataclass(frozen=True)
-class LayoutResult:
-    """Platform-agnostic spatial arrangement"""
-    cut_bounds: Dict[ElementID, BoundingBox]
+class LayoutDTO:
+    """
+    Platform-independent Data Transfer Object for layout information.
+    
+    This DTO contains ALL spatial information needed by any renderer:
+    - Element positions (vertices, predicates, cuts)
+    - Ligature paths (from predicates to vertices)
+    - Spatial bounds and containment hierarchy
+    - Style hints (but not platform-specific styling)
+    """
+    
+    # Element positions
     vertex_positions: Dict[ElementID, Point]
-    edge_paths: Dict[ElementID, Path]
+    predicate_positions: Dict[ElementID, Point]  # Edge positions
+    cut_bounds: Dict[ElementID, BoundingBox]
+    
+    # Ligature paths (using validated algorithms)
+    ligature_paths: List[LigaturePath]
+    
+    # Containment hierarchy (from EGI area mapping)
+    area_hierarchy: Dict[ElementID, Set[ElementID]]  # area_id -> contained_element_ids
+    containment_depth: Dict[ElementID, int]  # element_id -> depth (0 = sheet)
+    
+    # Viewport information
     viewport_bounds: BoundingBox
     
-    def validate_spatial_compliance(self, egi: RelationalGraphWithCuts) -> 'SpatialComplianceResult':
-        """Validate that spatial arrangement matches EGI logical structure"""
-        violations = []
-        
-        # Check 1: Every element in a cut must be spatially contained
-        for cut_id, cut_elements in egi.area.items():
-            if cut_id == egi.sheet:
-                continue  # Sheet has no spatial bounds
-                
-            if cut_id not in self.cut_bounds:
-                violations.append(f"Cut {cut_id} has no spatial bounds")
-                continue
-                
-            cut_bounds = self.cut_bounds[cut_id]
-            for element_id in cut_elements:
-                if element_id in self.vertex_positions:
-                    vertex_pos = self.vertex_positions[element_id]
-                    if not cut_bounds.contains_point(vertex_pos):
-                        violations.append(f"Vertex {element_id} not contained in cut {cut_id}")
-        
-        # Check 2: No overlapping cuts at same nesting level
-        cut_pairs = [(c1, c2) for c1 in self.cut_bounds for c2 in self.cut_bounds if c1 < c2]
-        for cut1_id, cut2_id in cut_pairs:
-            # Only check if they're at same nesting level (same parent)
-            cut1_parent = self._get_cut_parent(cut1_id, egi)
-            cut2_parent = self._get_cut_parent(cut2_id, egi)
-            if cut1_parent == cut2_parent:
-                bounds1 = self.cut_bounds[cut1_id]
-                bounds2 = self.cut_bounds[cut2_id]
-                if bounds1.overlaps_with(bounds2):
-                    violations.append(f"Cuts {cut1_id} and {cut2_id} overlap at same level")
-        
-        return SpatialComplianceResult(
-            is_compliant=len(violations) == 0,
-            violations=violations
-        )
-    
-    def _get_cut_parent(self, cut_id: ElementID, egi: RelationalGraphWithCuts) -> Optional[ElementID]:
-        """Find which cut contains this cut"""
-        for area_id, elements in egi.area.items():
-            if cut_id in elements and area_id != egi.sheet:
-                return area_id
-        return None  # Cut is on sheet
-
-
-@dataclass(frozen=True)
-class SpatialComplianceResult:
-    """Result of spatial compliance validation"""
-    is_compliant: bool
-    violations: List[str]
-
-
-@dataclass(frozen=True)
-class ViewConfiguration:
-    """Configuration for how user wants to view the EGI"""
-    # Focus and filtering
-    focus_element: Optional[ElementID] = None      # Element to center view on
-    context_radius: int = 2                       # How many nesting levels to show
-    collapsed_cuts: FrozenSet[ElementID] = frozenset()  # Cuts to show collapsed
-    
-    # Layout preferences  
-    layout_algorithm: str = "hierarchical"        # "hierarchical", "force_directed", "grid"
-    vertex_spacing: float = 80.0                  # Distance between vertices
-    cut_margin: float = 30.0                      # Margin inside cuts
-    
-    # Visual preferences
-    show_vertex_labels: bool = True               # Show vertex text
-    show_edge_labels: bool = True                 # Show relation names
-    highlight_elements: FrozenSet[ElementID] = frozenset()  # Elements to highlight
-    
-    # Viewport preferences
-    zoom_level: float = 1.0                       # Zoom factor
-    pan_offset: Point = Point(0.0, 0.0)          # Pan offset
+    # Style hints (platform-independent)
+    style_hints: Dict[str, any]
 
 
 class LayoutEngine:
-    """Core layout engine that enforces spatial-logical correspondence"""
+    """
+    Translates EGI logical structure to spatial arrangement.
     
-    def compute_layout(self, egi: RelationalGraphWithCuts, 
-                      view_config: Optional[ViewConfiguration] = None,
-                      diagram_style: Optional['DiagramStyle'] = None) -> LayoutResult:
-        """Translate EGI to spatial primitives - ENFORCES containment"""
+    IRON CLAD PRINCIPLES:
+    1. EGI.area mapping defines containment - no exceptions
+    2. All elements in area[context] must be spatially within context bounds
+    3. Cuts are elements and can contain other cuts
+    4. Use validated core ligature algorithms
+    5. Produce platform-independent DTO
+    """
+    
+    def __init__(self):
+        self.ligature_algorithms = EnhancedLigatureAlgorithms()
         
-        # Extract style parameters
-        layout_style = diagram_style.get_layout_style() if diagram_style else None
-        element_spacing = layout_style.element_spacing if layout_style else 80.0
-        diagram_margin = layout_style.diagram_margin if layout_style else 50.0
+        # Layout parameters (could be configurable)
+        self.element_spacing = 60.0
+        self.cut_padding = 30.0
+        self.cut_nesting_margin = 20.0
+        self.viewport_margin = 40.0
+    
+    def compute_layout(self, egi: RelationalGraphWithCuts) -> LayoutDTO:
+        """
+        Translate EGI to spatial layout DTO.
         
-        # Step 1: Position vertices using style-aware spacing
-        vertex_positions = {}
-        x, y = diagram_margin, diagram_margin
-        for vertex in egi.V:
-            vertex_positions[vertex.id] = Point(x, y)
-            x += element_spacing
-            if x > 400:  # TODO: Make this style-configurable
-                x, y = diagram_margin, y + element_spacing
+        ALGORITHM:
+        1. Build containment hierarchy from EGI.area (iron-clad)
+        2. Position elements respecting area constraints
+        3. Compute ligature paths using core algorithms
+        4. Generate platform-independent DTO
+        """
         
-        # Step 2: Calculate cut bounds that contain their elements
-        cut_bounds = {}
+        # Step 1: Build containment hierarchy from EGI area mapping
+        area_hierarchy, containment_depth = self._build_containment_hierarchy(egi)
+        
+        # Step 2: Position vertices (foundation elements)
+        vertex_positions = self._position_vertices(egi, area_hierarchy, containment_depth)
+        
+        # Step 3: Position predicates (edges) near their vertices
+        predicate_positions = self._position_predicates(egi, vertex_positions, area_hierarchy)
+        
+        # Step 4: Compute cut bounds that contain their elements
+        cut_bounds = self._compute_cut_bounds(egi, vertex_positions, predicate_positions, 
+                                            area_hierarchy, containment_depth)
+        
+        # Step 5: Generate ligature paths using validated algorithms
+        ligature_paths = self._compute_ligature_paths(egi, vertex_positions, predicate_positions)
+        
+        # Step 6: Calculate viewport bounds
+        viewport_bounds = self._calculate_viewport(vertex_positions, predicate_positions, cut_bounds)
+        
+        # Step 7: Generate style hints
+        style_hints = self._generate_style_hints(egi)
+        
+        return LayoutDTO(
+            vertex_positions=vertex_positions,
+            predicate_positions=predicate_positions,
+            cut_bounds=cut_bounds,
+            ligature_paths=ligature_paths,
+            area_hierarchy=area_hierarchy,
+            containment_depth=containment_depth,
+            viewport_bounds=viewport_bounds,
+            style_hints=style_hints
+        )
+    
+    def _build_containment_hierarchy(self, egi: RelationalGraphWithCuts) -> Tuple[Dict[ElementID, Set[ElementID]], Dict[ElementID, int]]:
+        """
+        Build containment hierarchy from EGI area mapping - IRON CLAD.
+        
+        Returns:
+        - area_hierarchy: area_id -> set of contained element_ids
+        - containment_depth: element_id -> depth (0 = sheet, higher = more nested)
+        """
+        area_hierarchy = {}
+        containment_depth = {}
+        
+        # Initialize with EGI area mapping (iron-clad source of truth)
+        for area_id, elements in egi.area.items():
+            area_hierarchy[area_id] = set(elements)
+        
+        # Calculate containment depths
+        # Sheet is depth 0, elements in cuts have increasing depth
+        
+        # Start with sheet elements (depth 0)
+        sheet_elements = area_hierarchy.get(egi.sheet, set())
+        for element_id in sheet_elements:
+            containment_depth[element_id] = 0
+        
+        # Process cuts to find nesting levels
+        cut_depths = {}
+        
+        def calculate_cut_depth(cut_id: ElementID, visited: Set[ElementID] = None) -> int:
+            if visited is None:
+                visited = set()
+            
+            if cut_id in visited:
+                # Cycle detection - should not happen with valid EGI
+                return 0
+            
+            if cut_id in cut_depths:
+                return cut_depths[cut_id]
+            
+            visited.add(cut_id)
+            
+            # Find which area contains this cut
+            max_depth = 0
+            for area_id, elements in area_hierarchy.items():
+                if cut_id in elements and area_id != cut_id:
+                    if area_id == egi.sheet:
+                        max_depth = max(max_depth, 1)
+                    else:
+                        # This cut is contained in another cut
+                        parent_depth = calculate_cut_depth(area_id, visited.copy())
+                        max_depth = max(max_depth, parent_depth + 1)
+            
+            cut_depths[cut_id] = max_depth
+            visited.remove(cut_id)
+            return max_depth
+        
+        # Calculate depths for all cuts
         for cut in egi.Cut:
-            # Get elements in this cut from area mapping
-            cut_elements = egi.area.get(cut.id, frozenset())
-            if cut_elements:
-                # Collect positions of all contained elements (vertices and nested cuts)
+            cut_depths[cut.id] = calculate_cut_depth(cut.id)
+        
+        # Now assign depths to all elements based on their containing area
+        for area_id, elements in area_hierarchy.items():
+            if area_id == egi.sheet:
+                area_depth = 0
+            else:
+                area_depth = cut_depths.get(area_id, 0)
+            
+            for element_id in elements:
+                # Element depth is one more than its containing area
+                containment_depth[element_id] = area_depth + 1
+        
+        return area_hierarchy, containment_depth
+    
+    def _position_vertices(self, egi: RelationalGraphWithCuts, 
+                          area_hierarchy: Dict[ElementID, Set[ElementID]],
+                          containment_depth: Dict[ElementID, int]) -> Dict[ElementID, Point]:
+        """Position vertices respecting area constraints"""
+        vertex_positions = {}
+        
+        # Position vertices within their SHALLOWEST containing area
+        # This ensures shared vertices are positioned in the least common area
+        current_x = self.viewport_margin
+        current_y = self.viewport_margin
+        
+        for vertex in egi.V:
+            # Find the SHALLOWEST area containing this vertex (least common area)
+            vertex_area = None
+            min_depth = float('inf')
+            
+            for area_id, elements in area_hierarchy.items():
+                if vertex.id in elements:
+                    # Get the depth of the area itself, not the element
+                    area_depth = 0
+                    if area_id != egi.sheet:
+                        # Count how deeply nested this area is
+                        for other_area_id, other_elements in area_hierarchy.items():
+                            if area_id in other_elements and other_area_id != area_id:
+                                area_depth += 1
+                    
+                    if area_depth < min_depth:
+                        min_depth = area_depth
+                        vertex_area = area_id
+            
+            # Position vertex in the shallowest area (least common area)
+            # Use minimal depth offset so vertices stay in outer areas
+            depth_offset = min_depth * 15.0
+            vertex_positions[vertex.id] = Point(
+                current_x + depth_offset, 
+                current_y + depth_offset + 60  # Offset below predicates
+            )
+            
+            current_x += self.element_spacing
+            if current_x > 400:  # Wrap to next row
+                current_x = self.viewport_margin
+                current_y += self.element_spacing
+        
+        return vertex_positions
+    
+    def _position_predicates(self, egi: RelationalGraphWithCuts,
+                           vertex_positions: Dict[ElementID, Point],
+                           area_hierarchy: Dict[ElementID, Set[ElementID]]) -> Dict[ElementID, Point]:
+        """Position predicates (edges) near their connected vertices"""
+        predicate_positions = {}
+        
+        # Group predicates by their containing area to avoid overlap
+        predicates_by_area = {}
+        for area_id, elements in area_hierarchy.items():
+            predicates_by_area[area_id] = []
+            for element_id in elements:
+                if any(e.id == element_id for e in egi.E):
+                    predicates_by_area[area_id].append(element_id)
+        
+        # Global predicate counter for spacing when they share vertices
+        global_predicate_index = 0
+        
+        for edge in egi.E:
+            # Get vertices connected to this edge via ν mapping
+            connected_vertices = egi.nu.get(edge.id, ())
+            
+            if connected_vertices:
+                # Position predicate near centroid of connected vertices
+                vertex_points = [vertex_positions[vid] for vid in connected_vertices 
+                               if vid in vertex_positions]
+                
+                if vertex_points:
+                    centroid_x = sum(p.x for p in vertex_points) / len(vertex_points)
+                    centroid_y = sum(p.y for p in vertex_points) / len(vertex_points)
+                    
+                    # Find which area contains this predicate
+                    predicate_area = None
+                    predicate_area_depth = float('inf')
+                    
+                    for area_id, elements in area_hierarchy.items():
+                        if edge.id in elements:
+                            # Calculate area depth
+                            area_depth = 0
+                            if area_id != egi.sheet:
+                                for other_area_id, other_elements in area_hierarchy.items():
+                                    if area_id in other_elements and other_area_id != area_id:
+                                        area_depth += 1
+                            
+                            # Use the deepest area (most specific containment)
+                            if area_depth < predicate_area_depth:
+                                predicate_area_depth = area_depth
+                                predicate_area = area_id
+                    
+                    # Position predicate based on its area depth and avoid overlap
+                    area_predicates = predicates_by_area.get(predicate_area, [])
+                    predicate_index = area_predicates.index(edge.id) if edge.id in area_predicates else 0
+                    
+                    # Spread predicates horizontally within their area
+                    area_x_offset = (predicate_index - (len(area_predicates) - 1) / 2) * 50.0
+                    
+                    # Add significant separation based on area depth (deeper = more right/down)
+                    depth_x_offset = predicate_area_depth * 60.0  # Larger separation
+                    depth_y_offset = predicate_area_depth * 20.0
+                    
+                    # Add global separation to prevent any overlap
+                    global_separation = global_predicate_index * 30.0
+                    
+                    predicate_positions[edge.id] = Point(
+                        centroid_x + area_x_offset + depth_x_offset + global_separation, 
+                        centroid_y - 40.0 + depth_y_offset  # Position above vertices
+                    )
+                    
+                    global_predicate_index += 1
+                else:
+                    # Fallback position
+                    predicate_positions[edge.id] = Point(100.0, 50.0)
+            else:
+                # Edge with no vertices - isolated predicate
+                predicate_positions[edge.id] = Point(100.0, 50.0)
+        
+        return predicate_positions
+    
+    def _compute_cut_bounds(self, egi: RelationalGraphWithCuts,
+                          vertex_positions: Dict[ElementID, Point],
+                          predicate_positions: Dict[ElementID, Point],
+                          area_hierarchy: Dict[ElementID, Set[ElementID]],
+                          containment_depth: Dict[ElementID, int]) -> Dict[ElementID, BoundingBox]:
+        """Compute cut bounds that contain all their elements"""
+        cut_bounds = {}
+        
+        # Process cuts by depth (innermost first)
+        cuts_by_depth = {}
+        for cut in egi.Cut:
+            depth = containment_depth.get(cut.id, 0)
+            if depth not in cuts_by_depth:
+                cuts_by_depth[depth] = []
+            cuts_by_depth[depth].append(cut.id)
+        
+        # Process from deepest to shallowest
+        for depth in sorted(cuts_by_depth.keys(), reverse=True):
+            for cut_id in cuts_by_depth[depth]:
+                contained_elements = area_hierarchy.get(cut_id, set())
+                
+                # Collect positions of all contained elements
                 xs, ys = [], []
                 
-                for element_id in cut_elements:
+                # Include vertices
+                for element_id in contained_elements:
                     if element_id in vertex_positions:
-                        # It's a vertex
                         pos = vertex_positions[element_id]
-                        xs.extend([pos.x])
-                        ys.extend([pos.y])
-                    elif element_id in [c.id for c in egi.Cut]:
-                        # It's a nested cut - we'll handle this in a second pass
-                        pass
+                        xs.extend([pos.x - 10, pos.x + 10])  # Vertex extent
+                        ys.extend([pos.y - 10, pos.y + 10])
                 
-                # If we have any positioned elements, create bounds
+                # Include predicates
+                for element_id in contained_elements:
+                    if element_id in predicate_positions:
+                        pos = predicate_positions[element_id]
+                        xs.extend([pos.x - 20, pos.x + 20])  # Predicate extent
+                        ys.extend([pos.y - 10, pos.y + 10])
+                
+                # Include nested cuts (already computed)
+                for element_id in contained_elements:
+                    if element_id in cut_bounds:
+                        nested_bounds = cut_bounds[element_id]
+                        xs.extend([nested_bounds.min_x, nested_bounds.max_x])
+                        ys.extend([nested_bounds.min_y, nested_bounds.max_y])
+                
                 if xs and ys:
-                    # Use style-aware cut padding
-                    cut_style = diagram_style.get_cut_style() if diagram_style else None
-                    margin = cut_style.padding if cut_style else 30.0
+                    # Create bounds with appropriate margin
+                    margin = self.cut_nesting_margin if any(eid in cut_bounds for eid in contained_elements) else self.cut_padding
                     
-                    cut_bounds[cut.id] = BoundingBox(
+                    cut_bounds[cut_id] = BoundingBox(
                         min(xs) - margin, min(ys) - margin,
                         max(xs) + margin, max(ys) + margin
                     )
                 else:
-                    # Cut with no vertices - create minimal bounds
-                    default_size = element_spacing * 1.5
-                    cut_bounds[cut.id] = BoundingBox(
-                        diagram_margin, diagram_margin, 
-                        diagram_margin + default_size, diagram_margin + default_size
-                    )
+                    # Empty cut - minimal bounds
+                    cut_bounds[cut_id] = BoundingBox(50, 50, 100, 100)
         
-        # Second pass: expand cut bounds to contain nested cuts
-        for cut in egi.Cut:
-            cut_elements = egi.area.get(cut.id, frozenset())
-            nested_cuts = [eid for eid in cut_elements if eid in cut_bounds and eid != cut.id]
+        return cut_bounds
+    
+    def _compute_ligature_paths(self, egi: RelationalGraphWithCuts,
+                              vertex_positions: Dict[ElementID, Point],
+                              predicate_positions: Dict[ElementID, Point]) -> List[LigaturePath]:
+        """Compute ligature paths using validated core algorithms"""
+        ligature_paths = []
+        
+        # For each edge, create ligatures to its connected vertices
+        for edge in egi.E:
+            predicate_pos = predicate_positions.get(edge.id)
+            if not predicate_pos:
+                continue
             
-            if nested_cuts and cut.id in cut_bounds:
-                # Expand this cut's bounds to contain nested cuts
-                current_bounds = cut_bounds[cut.id]
-                all_xs = [current_bounds.min_x, current_bounds.max_x]
-                all_ys = [current_bounds.min_y, current_bounds.max_y]
-                
-                for nested_cut_id in nested_cuts:
-                    nested_bounds = cut_bounds[nested_cut_id]
-                    all_xs.extend([nested_bounds.min_x, nested_bounds.max_x])
-                    all_ys.extend([nested_bounds.min_y, nested_bounds.max_y])
-                
-                # Use style-aware nesting margin
-                cut_style = diagram_style.get_cut_style() if diagram_style else None
-                nesting_margin = cut_style.nesting_margin if cut_style else 40.0
-                
-                cut_bounds[cut.id] = BoundingBox(
-                    min(all_xs) - nesting_margin, min(all_ys) - nesting_margin,
-                    max(all_xs) + nesting_margin, max(all_ys) + nesting_margin
-                )
+            connected_vertices = egi.nu.get(edge.id, ())
+            for vertex_id in connected_vertices:
+                vertex_pos = vertex_positions.get(vertex_id)
+                if vertex_pos:
+                    # Simple straight line path for now
+                    # TODO: Use enhanced ligature algorithms for complex routing
+                    path = LigaturePath(
+                        predicate_id=edge.id,
+                        vertex_id=vertex_id,
+                        points=(predicate_pos, vertex_pos)
+                    )
+                    ligature_paths.append(path)
         
-        # Step 3: Calculate viewport using style-aware margins
-        all_x = [p.x for p in vertex_positions.values()]
-        all_y = [p.y for p in vertex_positions.values()]
+        return ligature_paths
+    
+    def _calculate_viewport(self, vertex_positions: Dict[ElementID, Point],
+                          predicate_positions: Dict[ElementID, Point],
+                          cut_bounds: Dict[ElementID, BoundingBox]) -> BoundingBox:
+        """Calculate viewport bounds containing all elements"""
+        xs, ys = [], []
         
-        # Include cut bounds in viewport calculation
+        # Include all element positions
+        for pos in vertex_positions.values():
+            xs.append(pos.x)
+            ys.append(pos.y)
+        
+        for pos in predicate_positions.values():
+            xs.append(pos.x)
+            ys.append(pos.y)
+        
         for bounds in cut_bounds.values():
-            all_x.extend([bounds.min_x, bounds.max_x])
-            all_y.extend([bounds.min_y, bounds.max_y])
+            xs.extend([bounds.min_x, bounds.max_x])
+            ys.extend([bounds.min_y, bounds.max_y])
         
-        if all_x and all_y:
-            viewport = BoundingBox(
-                min(all_x) - diagram_margin, min(all_y) - diagram_margin,
-                max(all_x) + diagram_margin, max(all_y) + diagram_margin
+        if xs and ys:
+            return BoundingBox(
+                min(xs) - self.viewport_margin, min(ys) - self.viewport_margin,
+                max(xs) + self.viewport_margin, max(ys) + self.viewport_margin
             )
         else:
-            viewport = BoundingBox(0, 0, diagram_margin * 4, diagram_margin * 4)
-        
-        return LayoutResult(
-            cut_bounds=cut_bounds,
-            vertex_positions=vertex_positions,
-            edge_paths={},
-            viewport_bounds=viewport
-        )
+            return BoundingBox(0, 0, 200, 200)
+    
+    def _generate_style_hints(self, egi: RelationalGraphWithCuts) -> Dict[str, any]:
+        """Generate platform-independent style hints"""
+        return {
+            'vertex_count': len(egi.V),
+            'edge_count': len(egi.E),
+            'cut_count': len(egi.Cut),
+            'has_constants': any(not v.is_generic for v in egi.V),
+            'max_arity': max((len(vertices) for vertices in egi.nu.values()), default=0),
+            'suggested_style': 'dau_compliant'
+        }

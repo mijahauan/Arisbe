@@ -1,111 +1,172 @@
 {
-  "global": { 
-    "font_family": "serif", 
+  "style_name": "peirce-authentic",
+  "version": "1.0.0",
+  "description": "Authentic reproduction of Peirce's hand-drawn EG conventions",
+  
+  "global": {
+    "font_family": "serif",
     "font_size": 11,
-    "description": "Authentic reproduction of Peirce's handwritten EG conventions"
+    "font_weight": "normal",
+    "background_color": "#FEFEFE"
   },
-
-  "scene.background": { "color": "#FEFEFE" },
-
+  
   "layout": {
+    "element_spacing": 35.0,
     "cut_padding": 15.0,
-    "sibling_shift": [35.0, 25.0],
-    "label_obstacle_padding": 8.0,
-    "ligature_approach_margin": 6.0,
-    "organic_spacing": true
+    "sibling_spacing": 25.0,
+    "diagram_margin": 20.0,
+    "text_margin": 8.0,
+    "ligature_clearance": 6.0,
+    "grid_snap": false,
+    "alignment_grid_size": 5.0,
+    "organic_variation": true
   },
-
-  "vertex.dot": { 
-    "fill_color": "#000000", 
-    "border_color": "#000000", 
-    "border_width": 0.8, 
+  
+  "vertex": {
     "radius": 2.0,
-    "style": "slightly_irregular"
+    "fill_color": "#000000",
+    "border_color": "#000000",
+    "border_width": 0.8,
+    "rendering_mode": "label_only",
+    "style": "slightly_irregular",
+    "label_font_size": 11,
+    "label_color": "#1a1a1a",
+    "label_offset": [12, -8],
+    "label_padding": [3, 2],
+    "superscript_font_size": 9,
+    "superscript_color": "#1a1a1a",
+    "superscript_offset": [14, -10]
   },
-
-  "vertex.label_text": { 
-    "estimate_char_width": 6.5, 
-    "estimate_height": 13.0, 
-    "padding": [3, 2], 
-    "offset": [12, -8], 
-    "font_size": 11,
-    "font_style": "handwritten_serif",
-    "color": "#1a1a1a"
+  
+  "predicate": {
+    "identity_line_width": 2.2,
+    "identity_line_color": "#000000",
+    "identity_cap_style": "round",
+    "label_box_background": "transparent",
+    "label_box_border_color": "transparent",
+    "label_box_border_width": 0,
+    "label_box_padding": [3, 2],
+    "label_font_size": 11,
+    "label_color": "#1a1a1a",
+    "char_width_estimate": 6.5,
+    "height_estimate": 13.0,
+    "even_polarity_fill": "transparent",
+    "odd_polarity_fill": "rgba(0,0,0,0.03)"
   },
-
-  "vertex.constant": { "mode": "label_only" },
-
-  "ligature.arm": { 
-    "line_color": "#000000", 
-    "line_width": 1.8, 
-    "cap": "round", 
-    "min_length": 15.0, 
-    "border_overlap": 2.0,
-    "style": "hand_drawn",
-    "slight_curve": 0.15
+  
+  "cut": {
+    "shape": "oval",
+    "corner_radius": 12,
+    "line_width": 1.5,
+    "line_color": "#000000",
+    "even_polarity_fill": "transparent",
+    "odd_polarity_fill": "rgba(0,0,0,0.04)",
+    "nesting_margin": 12.0,
+    "depth_indication": false,
+    "hand_drawn_variation": 0.6
   },
-
-  "ligature.path": { 
-    "mode": "organic", 
-    "curvature": 0.25, 
+  
+  "ligature": {
+    "line_width": 1.8,
+    "color": "#000000",
+    "cap_style": "round",
+    "routing_mode": "organic",
+    "curvature": 0.25,
     "orthogonal_bias": "natural",
+    "min_length": 15.0,
+    "border_overlap": 2.0,
+    "approach_margin": 6.0,
     "hand_drawn_variation": 0.8
   },
-
-  "edge.identity": { 
-    "line_color": "#000000", 
-    "line_width": 2.2, 
-    "cap": "round",
-    "style": "hand_drawn"
+  
+  "alternating_shading": {
+    "enabled": true,
+    "even_polarity_color": "transparent",
+    "odd_polarity_color": "rgba(0,0,0,0.04)",
+    "start_level": 0,
+    "fade_with_depth": false,
+    "opacity_step": 0.01
   },
-
-  "cut.border": { 
-    "line_color": "#000000", 
-    "line_width": 1.5, 
-    "radius": 12,
-    "style": "hand_drawn_oval",
-    "irregularity": 0.6
+  
+  "arity_numbers": {
+    "enabled": false,
+    "font_size": 7,
+    "color": "#666666",
+    "position": "top_right",
+    "offset": [3, -3],
+    "background_color": "#FEFEFE",
+    "border_radius": 1,
+    "padding": [1, 1]
   },
-
-  "cut.fill.odd": { 
-    "fill_color": "rgba(0,0,0,0.04)",
-    "texture": "paper_grain"
+  
+  "variable_labels": {
+    "enabled": false,
+    "font_size": 8,
+    "color": "#4A4A4A",
+    "position": "bottom_left",
+    "offset": [-6, 6],
+    "prefix": "",
+    "format": "subscript",
+    "show_for": ["unnamed_vertices"]
   },
-  "cut.fill.even": { 
-    "fill_color": "transparent" 
+  
+  "double_cut_highlight": {
+    "enabled": false,
+    "border_color": "#CC6600",
+    "border_width": 2,
+    "border_style": "dashed",
+    "fill_color": "rgba(204,102,0,0.12)",
+    "animation": "none",
+    "label": {
+      "text": "DC",
+      "font_size": 7,
+      "color": "#CC6600",
+      "position": "top_left"
+    }
   },
-
-  "edge.fill.odd": { 
-    "fill_color": "rgba(0,0,0,0.03)", 
-    "border_color": "transparent", 
-    "border_width": 0 
+  
+  "isomorphic_highlight": {
+    "enabled": false,
+    "primary_color": "#228B22",
+    "secondary_color": "#90EE90",
+    "border_width": 1.5,
+    "border_style": "solid",
+    "fill_opacity": 0.15,
+    "connection_lines": {
+      "enabled": true,
+      "color": "#228B22",
+      "width": 0.8,
+      "style": "dotted"
+    }
   },
-  "edge.fill.even": { 
-    "fill_color": "transparent", 
-    "border_color": "transparent", 
-    "border_width": 0 
+  
+  "collapsed_context": {
+    "enabled": false,
+    "indicator_symbol": "…",
+    "indicator_color": "#8B8B8B",
+    "indicator_size": 14,
+    "background_color": "rgba(180,180,180,0.25)",
+    "border_color": "#8B8B8B",
+    "border_style": "dotted",
+    "tooltip_text": "Collapsed context (depth {level}+)"
   },
-
-  "predicate.box": { 
-    "border_color": "transparent", 
-    "border_width": 0, 
-    "fill_color": "transparent",
-    "text_style": "handwritten_serif"
+  
+  "visual_hierarchy": {
+    "emphasis_scale": 1.15,
+    "highlight_color": "#F5DEB3",
+    "selection_color": "#4682B4",
+    "selection_width": 1.5,
+    "hover_color": "#E6E6FA",
+    "hover_opacity": 0.6
   },
-
-  "peirce_conventions": {
-    "prefer_oval_cuts": true,
-    "organic_ligature_routing": true,
-    "handwritten_text_style": true,
-    "paper_texture_background": true,
-    "slight_line_irregularity": true,
-    "natural_spacing_variation": true
-  },
-
+  
   "rendering_hints": {
     "anti_aliasing": "high",
     "line_smoothing": "natural",
-    "text_rendering": "historical_serif",
-    "background_texture": "subtle_paper"
+    "vector_precision": 0.2,
+    "raster_fallback": false,
+    "drop_shadow": false,
+    "texture": "subtle_paper",
+    "hand_drawn_variation": 0.6
   }
 }

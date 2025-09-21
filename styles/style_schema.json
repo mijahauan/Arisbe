@@ -1,0 +1,247 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Arisbe EG Style Definition Schema",
+  "description": "Platform-independent style specification for Existential Graph rendering",
+  "type": "object",
+  
+  "required": ["style_name", "version", "global", "layout", "vertex", "cut", "ligature"],
+  
+  "properties": {
+    "style_name": {
+      "type": "string",
+      "description": "Unique identifier for this style"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version number"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of the style"
+    },
+    
+    "global": {
+      "type": "object",
+      "required": ["font_family", "font_size", "background_color"],
+      "properties": {
+        "font_family": {"type": "string"},
+        "font_size": {"type": "number", "minimum": 6},
+        "font_weight": {"type": "string", "enum": ["normal", "bold", "light"]},
+        "background_color": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$|^rgba?\\("},
+        "canvas_color": {"type": "string"}
+      }
+    },
+    
+    "layout": {
+      "type": "object",
+      "required": ["element_spacing", "cut_padding", "sibling_spacing"],
+      "properties": {
+        "element_spacing": {"type": "number", "minimum": 10},
+        "cut_padding": {"type": "number", "minimum": 5},
+        "sibling_spacing": {"type": "number", "minimum": 10},
+        "diagram_margin": {"type": "number", "minimum": 0},
+        "text_margin": {"type": "number", "minimum": 0},
+        "ligature_clearance": {"type": "number", "minimum": 0},
+        "grid_snap": {"type": "boolean"},
+        "alignment_grid_size": {"type": "number"},
+        "organic_variation": {"type": "boolean"}
+      }
+    },
+    
+    "vertex": {
+      "type": "object",
+      "required": ["radius", "fill_color"],
+      "properties": {
+        "radius": {"type": "number", "minimum": 1},
+        "fill_color": {"type": "string"},
+        "border_color": {"type": "string"},
+        "border_width": {"type": "number", "minimum": 0},
+        "rendering_mode": {"type": "string", "enum": ["dot_only", "label_only", "dot_and_label"]},
+        "style": {"type": "string", "enum": ["regular", "slightly_irregular", "hand_drawn"]},
+        "label_font_size": {"type": "number"},
+        "label_color": {"type": "string"},
+        "label_offset": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "label_padding": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "superscript_font_size": {"type": "number"},
+        "superscript_color": {"type": "string"},
+        "superscript_offset": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+      }
+    },
+    
+    "predicate": {
+      "type": "object",
+      "properties": {
+        "identity_line_width": {"type": "number", "minimum": 0.5},
+        "identity_line_color": {"type": "string"},
+        "identity_cap_style": {"type": "string", "enum": ["round", "square", "butt"]},
+        "label_box_background": {"type": "string"},
+        "label_box_border_color": {"type": "string"},
+        "label_box_border_width": {"type": "number"},
+        "label_box_padding": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "label_font_size": {"type": "number"},
+        "label_color": {"type": "string"},
+        "char_width_estimate": {"type": "number"},
+        "height_estimate": {"type": "number"},
+        "even_polarity_fill": {"type": "string", "description": "Fill color for predicates in even polarity areas"},
+        "odd_polarity_fill": {"type": "string", "description": "Fill color for predicates in odd polarity areas"}
+      }
+    },
+    
+    "cut": {
+      "type": "object",
+      "required": ["shape", "line_width", "line_color"],
+      "properties": {
+        "shape": {"type": "string", "enum": ["rectangle", "rounded_rectangle", "oval", "circle"]},
+        "corner_radius": {"type": "number", "minimum": 0},
+        "line_width": {"type": "number", "minimum": 0.5},
+        "line_color": {"type": "string"},
+        "even_polarity_fill": {"type": "string", "description": "Fill color for even polarity cuts (positive contexts)"},
+        "odd_polarity_fill": {"type": "string", "description": "Fill color for odd polarity cuts (negative contexts)"},
+        "nesting_margin": {"type": "number"},
+        "depth_indication": {"type": "boolean"},
+        "hand_drawn_variation": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    
+    "ligature": {
+      "type": "object",
+      "required": ["line_width", "color"],
+      "properties": {
+        "line_width": {"type": "number", "minimum": 0.5},
+        "color": {"type": "string"},
+        "cap_style": {"type": "string", "enum": ["round", "square", "butt"]},
+        "routing_mode": {"type": "string", "enum": ["direct", "orthogonal", "manhattan", "bezier", "organic"]},
+        "curvature": {"type": "number", "minimum": 0, "maximum": 1},
+        "orthogonal_bias": {"type": "string", "enum": ["h_first", "v_first", "natural"]},
+        "min_length": {"type": "number", "minimum": 5},
+        "border_overlap": {"type": "number"},
+        "approach_margin": {"type": "number"},
+        "hand_drawn_variation": {"type": "number", "minimum": 0, "maximum": 1},
+        "gap_style": {"type": "string"},
+        "bridge_style": {"type": "string"}
+      }
+    },
+    
+    "alternating_shading": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "even_polarity_color": {"type": "string", "description": "Color for even polarity areas (positive contexts) - typically white/unshaded"},
+        "odd_polarity_color": {"type": "string", "description": "Color for odd polarity areas (negative contexts) - typically light gray"},
+        "start_level": {"type": "integer", "minimum": 0},
+        "fade_with_depth": {"type": "boolean"},
+        "opacity_step": {"type": "number", "minimum": 0, "maximum": 0.1}
+      }
+    },
+    
+    "arity_numbers": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "font_size": {"type": "number", "minimum": 6},
+        "color": {"type": "string"},
+        "position": {"type": "string", "enum": ["top_left", "top_right", "bottom_left", "bottom_right"]},
+        "offset": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "background_color": {"type": "string"},
+        "border_radius": {"type": "number"},
+        "padding": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+      }
+    },
+    
+    "variable_labels": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "font_size": {"type": "number", "minimum": 6},
+        "color": {"type": "string"},
+        "position": {"type": "string", "enum": ["top_left", "top_right", "bottom_left", "bottom_right"]},
+        "offset": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "prefix": {"type": "string"},
+        "format": {"type": "string", "enum": ["normal", "subscript", "superscript"]},
+        "show_for": {"type": "array", "items": {"type": "string", "enum": ["unnamed_vertices", "all_vertices", "generic_only"]}}
+      }
+    },
+    
+    "double_cut_highlight": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "border_color": {"type": "string"},
+        "border_width": {"type": "number"},
+        "border_style": {"type": "string", "enum": ["solid", "dashed", "dotted"]},
+        "fill_color": {"type": "string"},
+        "animation": {"type": "string", "enum": ["none", "pulse", "glow"]},
+        "label": {
+          "type": "object",
+          "properties": {
+            "text": {"type": "string"},
+            "font_size": {"type": "number"},
+            "color": {"type": "string"},
+            "position": {"type": "string", "enum": ["top_left", "top_right", "bottom_left", "bottom_right"]}
+          }
+        }
+      }
+    },
+    
+    "isomorphic_highlight": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "primary_color": {"type": "string"},
+        "secondary_color": {"type": "string"},
+        "border_width": {"type": "number"},
+        "border_style": {"type": "string", "enum": ["solid", "dashed", "dotted"]},
+        "fill_opacity": {"type": "number", "minimum": 0, "maximum": 1},
+        "connection_lines": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "color": {"type": "string"},
+            "width": {"type": "number"},
+            "style": {"type": "string", "enum": ["solid", "dashed", "dotted"]}
+          }
+        }
+      }
+    },
+    
+    "collapsed_context": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "indicator_symbol": {"type": "string"},
+        "indicator_color": {"type": "string"},
+        "indicator_size": {"type": "number"},
+        "background_color": {"type": "string"},
+        "border_color": {"type": "string"},
+        "border_style": {"type": "string", "enum": ["solid", "dashed", "dotted"]},
+        "tooltip_text": {"type": "string"}
+      }
+    },
+    
+    "visual_hierarchy": {
+      "type": "object",
+      "properties": {
+        "emphasis_scale": {"type": "number", "minimum": 1.0},
+        "highlight_color": {"type": "string"},
+        "selection_color": {"type": "string"},
+        "selection_width": {"type": "number"},
+        "hover_color": {"type": "string"},
+        "hover_opacity": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    
+    "rendering_hints": {
+      "type": "object",
+      "properties": {
+        "anti_aliasing": {"type": "string", "enum": ["none", "low", "medium", "high"]},
+        "line_smoothing": {"type": "string", "enum": ["none", "natural", "mechanical"]},
+        "vector_precision": {"type": "number", "minimum": 0.1},
+        "raster_fallback": {"type": "boolean"},
+        "drop_shadow": {"type": "boolean"},
+        "texture": {"type": "string"},
+        "hand_drawn_variation": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    }
+  }
+}
