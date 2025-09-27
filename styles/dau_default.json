@@ -1,0 +1,46 @@
+{
+  "name": "Dau Treatise Default",
+  "layout": {
+    "engine": "neato",
+    "graphviz_attrs": {
+      "graph": {
+        "sep": "0.6",
+        "splines": "true",
+        "overlap": "false"
+      },
+      "node": {
+        "fontname": "Times-Roman",
+        "fontsize": "12"
+      },
+      "edge": {}
+    }
+  },
+  "geometry": {
+    "padding": {
+      "area": 15,
+      "label": 5
+    },
+    "port_style": "boundary_midpoint"
+  },
+  "rendering": {
+    "cuts": {
+      "shape": "rounded_rectangle",
+      "stroke_width": 1.0,
+      "odd_fill": "rgba(240, 240, 240, 0.5)",
+      "even_fill": "transparent",
+      "double_cut_stroke_width": 2.0
+    },
+    "ligatures": {
+      "stroke_width": 2.5,
+      "color": "black"
+    },
+    "labels": {
+      "font_color": "black"
+    }
+  },
+  "annotations": {
+    "show_vertex_variables": false,
+    "highlight_double_cuts": false,
+    "show_connection_ports": true
+  }
+}

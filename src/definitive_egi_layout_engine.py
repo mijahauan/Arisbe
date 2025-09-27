@@ -11,7 +11,7 @@ import json
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Optional, Tuple, Set, Any
 from pathlib import Path
 from collections import defaultdict
 
@@ -26,6 +26,7 @@ except ImportError as e:
 
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from area_aware_pathfinder import AreaAwareGrid, AreaAwareFinder
+from style_specification import StyleSpecification, RenderableAnnotation, load_default_dau_style
 
 
 # --- DTO Structure ---
@@ -52,6 +53,7 @@ class RenderableArea:
     parent_id: Optional[str]
     rect: Rect
     is_sheet: bool = False
+    style: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -59,6 +61,15 @@ class RenderableVertex:
     id: str
     parent_area_id: str
     pos: Tuple[float, float]
+    style: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ConnectionPort:
+    """A connection port on an EdgeLabel's bounding box"""
+    port_id: int  # Index in the vertex sequence (0-based)
+    position: Tuple[float, float]  # Absolute coordinates
+    direction: str  # Cardinal/intercardinal direction (N, E, S, W, NE, NW, SE, SW)
 
 
 @dataclass
@@ -67,6 +78,8 @@ class RenderableEdgeLabel:
     parent_area_id: str
     rect: Rect
     label: str
+    connection_ports: List[ConnectionPort] = field(default_factory=list)
+    style: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -75,6 +88,7 @@ class RenderableLigature:
     end_edge_id: str
     end_hook_index: int
     path_points: List[Tuple[float, float]]
+    style: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -83,6 +97,7 @@ class LayoutDTO:
     vertices: List[RenderableVertex] = field(default_factory=list)
     edge_labels: List[RenderableEdgeLabel] = field(default_factory=list)
     ligatures: List[RenderableLigature] = field(default_factory=list)
+    annotations: List[RenderableAnnotation] = field(default_factory=list)
 
 
 class DefinitiveEGILayoutEngine:
@@ -92,54 +107,88 @@ class DefinitiveEGILayoutEngine:
         self.grid_resolution = 2
         self.cut_padding = 15
         
-    def generate_layout(self, egi: RelationalGraphWithCuts) -> LayoutDTO:
-        """Main orchestration method for three-step layout"""
+    def generate_layout(self, egi: RelationalGraphWithCuts, style: Optional[StyleSpecification] = None) -> LayoutDTO:
+        """Main orchestration method for three-step layout with styling support"""
         
-        # Step 1: Unified Force-Directed Layout (neato)
-        content_positions = self._unified_force_directed_layout(egi)
+        # Use default style if none provided
+        if style is None:
+            style = load_default_dau_style()
         
-        # Step 2: Bottom-Up Bounding Box Calculation
-        area_bounds = self._calculate_bounding_boxes(egi, content_positions)
+        # Step 1: Unified Force-Directed Layout (with style-aware graphviz attributes)
+        content_positions = self._unified_force_directed_layout(egi, style)
+        
+        # Step 2: Bottom-Up Bounding Box Calculation (with style-aware padding)
+        area_bounds = self._calculate_bounding_boxes(egi, content_positions, style)
         
         # Step 3: Area-Aware Ligature Routing (A*)
         dto = self._create_dto_from_positions(egi, content_positions, area_bounds)
-        self._area_aware_ligature_routing(egi, dto)
+        self._area_aware_ligature_routing(egi, dto, style)
+        
+        # Step 4: Apply aesthetic styles to DTO
+        self._apply_aesthetic_styles(dto, egi, style)
         
         return dto
     
-    def _unified_force_directed_layout(self, egi: RelationalGraphWithCuts) -> Dict:
+    def _unified_force_directed_layout(self, egi: RelationalGraphWithCuts, style: StyleSpecification) -> Dict:
         """Step 1: Use neato to position all vertices and edge labels together"""
         
-        # Generate DOT string with all content (NO containers)
-        dot_string = self._generate_unified_dot(egi)
+        # Generate DOT string with all content (NO containers) using style
+        dot_string = self._generate_unified_dot(egi, style)
         
-        # Execute neato layout engine
-        neato_result = self._execute_graphviz_layout(dot_string, engine='neato')
+        # Execute layout engine using style-specified engine
+        layout_engine = style.get('layout', {}).get('engine', 'neato')
+        neato_result = self._execute_graphviz_layout(dot_string, engine=layout_engine)
         
         # Parse positions for all content
         positions = self._parse_content_positions(egi, neato_result)
         
         return positions
     
-    def _generate_unified_dot(self, egi: RelationalGraphWithCuts) -> str:
-        """Generate DOT string for unified force-directed layout"""
+    def _generate_unified_dot(self, egi: RelationalGraphWithCuts, style: StyleSpecification) -> str:
+        """Generate DOT string for unified force-directed layout with style attributes"""
         
         lines = ["graph UnifiedLayout {"]
-        lines.append("  overlap=false;")
-        lines.append("  splines=true;")
-        lines.append("  sep=\"+20\";")
-        lines.append("  esep=\"+10\";")
+        
+        # Apply graph-level attributes from style
+        graphviz_attrs = style.get('layout', {}).get('graphviz_attrs', {})
+        graph_attrs = graphviz_attrs.get('graph', {})
+        
+        # Set default attributes with style overrides
+        default_graph_attrs = {
+            "overlap": "false",
+            "splines": "true", 
+            "sep": "0.6",
+            "esep": "0.3"
+        }
+        default_graph_attrs.update(graph_attrs)
+        
+        for attr, value in default_graph_attrs.items():
+            lines.append(f"  {attr}=\"{value}\";")
+        
+        # Get node attributes from style
+        node_attrs = graphviz_attrs.get('node', {})
+        default_node_attrs = {
+            "fontname": "Times-Roman",
+            "fontsize": "12"
+        }
+        default_node_attrs.update(node_attrs)
         
         # Add all vertices as point nodes
         for vertex in egi.V:
             vertex_name = vertex.id.replace('-', '_')
             lines.append(f"  {vertex_name} [shape=point, width=0.15, height=0.15];")
         
-        # Add all edges as text label nodes
+        # Add all edges as text label nodes with style attributes
         for edge in egi.E:
             edge_name = edge.id.replace('-', '_')
             relation_name = egi.rel.get(edge.id, "?")
-            lines.append(f"  {edge_name} [shape=plaintext, label=\"{relation_name}\"];")
+            
+            # Build node attribute string
+            node_attr_strs = [f"shape=plaintext", f"label=\"{relation_name}\""]
+            for attr, value in default_node_attrs.items():
+                node_attr_strs.append(f"{attr}=\"{value}\"")
+            
+            lines.append(f"  {edge_name} [{', '.join(node_attr_strs)}];")
         
         # Add connections (ligatures)
         for edge_id, vertex_sequence in egi.nu.items():
@@ -192,23 +241,26 @@ class DefinitiveEGILayoutEngine:
         
         return positions
     
-    def _calculate_bounding_boxes(self, egi: RelationalGraphWithCuts, positions: Dict) -> Dict:
-        """Step 2: Calculate container boundaries bottom-up"""
+    def _calculate_bounding_boxes(self, egi: RelationalGraphWithCuts, positions: Dict, style: StyleSpecification) -> Dict:
+        """Step 2: Calculate container boundaries bottom-up with style-aware padding"""
         
         hierarchy = self._build_cut_hierarchy(egi)
         area_bounds = {}
+        
+        # Get padding from style
+        area_padding = style.get('geometry', {}).get('padding', {}).get('area', 15)
         
         # Process cuts in bottom-up order
         cut_order = self._get_bottom_up_cut_order(egi, hierarchy)
         
         for cut_id in cut_order:
             area_bounds[cut_id] = self._calculate_cut_bounding_box(
-                egi, cut_id, positions, area_bounds, hierarchy
+                egi, cut_id, positions, area_bounds, hierarchy, area_padding
             )
         
         # Calculate sheet bounding box
         area_bounds[egi.sheet] = self._calculate_sheet_bounding_box(
-            egi, positions, area_bounds
+            egi, positions, area_bounds, area_padding
         )
         
         return area_bounds
@@ -263,8 +315,8 @@ class DefinitiveEGILayoutEngine:
         return order
     
     def _calculate_cut_bounding_box(self, egi: RelationalGraphWithCuts, cut_id: str, 
-                                  positions: Dict, area_bounds: Dict, hierarchy: Dict) -> Rect:
-        """Calculate bounding box for a single cut"""
+                                  positions: Dict, area_bounds: Dict, hierarchy: Dict, padding: float) -> Rect:
+        """Calculate bounding box for a single cut with style-aware padding"""
         
         rects_to_include = []
         
@@ -288,17 +340,17 @@ class DefinitiveEGILayoutEngine:
         if not rects_to_include:
             return Rect(0, 0, 50, 30)
         
-        # Calculate union and add padding
+        # Calculate union and add style-aware padding
         bounding_box = rects_to_include[0]
         for rect in rects_to_include[1:]:
             bounding_box = bounding_box.union(rect)
         
-        return Rect(bounding_box.x - self.cut_padding, bounding_box.y - self.cut_padding,
-                   bounding_box.width + 2 * self.cut_padding, 
-                   bounding_box.height + 2 * self.cut_padding)
+        return Rect(bounding_box.x - padding, bounding_box.y - padding,
+                   bounding_box.width + 2 * padding, 
+                   bounding_box.height + 2 * padding)
     
     def _calculate_sheet_bounding_box(self, egi: RelationalGraphWithCuts, 
-                                    positions: Dict, area_bounds: Dict) -> Rect:
+                                    positions: Dict, area_bounds: Dict, padding: float) -> Rect:
         """Calculate bounding box for the sheet"""
         
         rects_to_include = []
@@ -352,16 +404,25 @@ class DefinitiveEGILayoutEngine:
         
         # Create edge labels
         for edge_id, pos_data in positions['edge_labels'].items():
+            # Create tight bounding box around text
+            rect = Rect(pos_data['x'] - pos_data['width']/2, pos_data['y'] - pos_data['height']/2,
+                       pos_data['width'], pos_data['height'])
+            
+            # Calculate connection ports based on nu mapping and vertex positions
+            vertex_sequence = egi.nu.get(edge_id, [])
+            connection_ports = self._calculate_connection_ports_with_vertices(
+                rect, vertex_sequence, positions['vertices']
+            )
+            
             edge_label = RenderableEdgeLabel(
                 id=edge_id, parent_area_id=pos_data['parent_area_id'],
-                rect=Rect(pos_data['x'] - pos_data['width']/2, pos_data['y'] - pos_data['height']/2,
-                         pos_data['width'], pos_data['height']),
-                label=pos_data['label'])
+                rect=rect, label=pos_data['label'],
+                connection_ports=connection_ports)
             dto.edge_labels.append(edge_label)
         
         return dto
     
-    def _area_aware_ligature_routing(self, egi: RelationalGraphWithCuts, dto: LayoutDTO):
+    def _area_aware_ligature_routing(self, egi: RelationalGraphWithCuts, dto: LayoutDTO, style: StyleSpecification):
         """Step 3: Route ligatures with area-aware A* pathfinding"""
         
         # Build area-aware collision map
@@ -377,13 +438,19 @@ class DefinitiveEGILayoutEngine:
             if not edge_label:
                 continue
             
+            # Find nearest port for each vertex to avoid crossings
+            vertex_port_assignments = self._assign_nearest_ports(vertex_sequence, edge_label, dto.vertices)
+            
             for hook_index, vertex_id in enumerate(vertex_sequence):
                 vertex = next((v for v in dto.vertices if v.id == vertex_id), None)
                 if not vertex:
                     continue
                 
-                path_points = self._calculate_area_aware_path(
-                    vertex, edge_label, area_grid, grid_bounds, hierarchy
+                # Use the nearest port assignment instead of sequence index
+                target_port = vertex_port_assignments.get(vertex_id)
+                
+                path_points = self._calculate_area_aware_path_to_port(
+                    vertex, edge_label, target_port, area_grid, grid_bounds, hierarchy
                 )
                 
                 if path_points:
@@ -577,3 +644,364 @@ class DefinitiveEGILayoutEngine:
             for x in range(start_x, end_x + 1):
                 if 0 <= y < len(matrix) and 0 <= x < len(matrix[0]):
                     matrix[y][x] = 0
+    
+    def _apply_aesthetic_styles(self, dto: LayoutDTO, egi: RelationalGraphWithCuts, style: StyleSpecification):
+        """Step 4: Apply aesthetic styles to DTO elements"""
+        
+        # Apply cut styling based on nesting depth
+        self._apply_cut_styles(dto, egi, style)
+        
+        # Apply ligature styling
+        self._apply_ligature_styles(dto, style)
+        
+        # Apply label styling
+        self._apply_label_styles(dto, style)
+        
+        # Generate annotations if requested
+        self._generate_annotations(dto, egi, style)
+    
+    def _apply_cut_styles(self, dto: LayoutDTO, egi: RelationalGraphWithCuts, style: StyleSpecification):
+        """Apply styling to cut areas based on nesting depth and polarity"""
+        
+        cut_config = style.get('rendering', {}).get('cuts', {})
+        
+        # Calculate nesting depths
+        area_depths = self._calculate_area_depths(egi)
+        
+        for area in dto.areas:
+            depth = area_depths.get(area.id, 0)
+            
+            # Apply base styling
+            area.style.update({
+                'shape': cut_config.get('shape', 'rounded_rectangle'),
+                'stroke_width': cut_config.get('stroke_width', 1.0)
+            })
+            
+            # Apply polarity-based fill (even = positive, odd = negative)
+            if depth % 2 == 0:  # Even depth (positive area)
+                area.style['fill'] = cut_config.get('even_fill', 'transparent')
+            else:  # Odd depth (negative area)
+                area.style['fill'] = cut_config.get('odd_fill', 'rgba(240, 240, 240, 0.5)')
+            
+            # Check for double cuts and apply special styling
+            if self._is_double_cut(egi, area.id) and style.get('annotations', {}).get('highlight_double_cuts', False):
+                area.style['stroke_width'] = cut_config.get('double_cut_stroke_width', 2.0)
+    
+    def _apply_ligature_styles(self, dto: LayoutDTO, style: StyleSpecification):
+        """Apply styling to ligatures"""
+        
+        ligature_config = style.get('rendering', {}).get('ligatures', {})
+        
+        for ligature in dto.ligatures:
+            ligature.style.update({
+                'stroke_width': ligature_config.get('stroke_width', 2.5),
+                'color': ligature_config.get('color', 'black')
+            })
+    
+    def _apply_label_styles(self, dto: LayoutDTO, style: StyleSpecification):
+        """Apply styling to labels"""
+        
+        label_config = style.get('rendering', {}).get('labels', {})
+        
+        for label in dto.edge_labels:
+            label.style.update({
+                'font_color': label_config.get('font_color', 'black')
+            })
+    
+    def _generate_annotations(self, dto: LayoutDTO, egi: RelationalGraphWithCuts, style: StyleSpecification):
+        """Generate annotations based on style configuration"""
+        
+        annotation_config = style.get('annotations', {})
+        
+        # Generate vertex variable annotations if requested
+        if annotation_config.get('show_vertex_variables', False):
+            self._generate_vertex_variable_annotations(dto, egi)
+        
+        # Generate double cut highlights if requested
+        if annotation_config.get('highlight_double_cuts', False):
+            self._generate_double_cut_annotations(dto, egi)
+    
+    def _calculate_area_depths(self, egi: RelationalGraphWithCuts) -> Dict[str, int]:
+        """Calculate nesting depth for each area"""
+        
+        depths = {egi.sheet: 0}  # Sheet is at depth 0
+        hierarchy = self._build_cut_hierarchy(egi)
+        
+        # Process areas in topological order
+        def calculate_depth(area_id: str) -> int:
+            if area_id in depths:
+                return depths[area_id]
+            
+            parent_id = hierarchy[area_id]['parent']
+            if parent_id is None:
+                depths[area_id] = 0
+            else:
+                depths[area_id] = calculate_depth(parent_id) + 1
+            
+            return depths[area_id]
+        
+        for area_id in hierarchy:
+            calculate_depth(area_id)
+        
+        return depths
+    
+    def _is_double_cut(self, egi: RelationalGraphWithCuts, area_id: str) -> bool:
+        """Check if an area is part of a double cut pattern"""
+        
+        hierarchy = self._build_cut_hierarchy(egi)
+        
+        # Check if this area has exactly one child that contains no elements
+        children = hierarchy[area_id]['children']
+        if len(children) == 1:
+            child_id = next(iter(children))
+            child_elements = hierarchy[child_id]['elements']
+            child_children = hierarchy[child_id]['children']
+            
+            # Double cut: outer cut contains only inner cut, inner cut is empty or minimal
+            return len(child_elements) == 0 and len(child_children) == 0
+        
+        return False
+    
+    def _generate_vertex_variable_annotations(self, dto: LayoutDTO, egi: RelationalGraphWithCuts):
+        """Generate annotations showing vertex variables"""
+        
+        for vertex in dto.vertices:
+            # Get vertex variable name if it exists
+            vertex_obj = next((v for v in egi.V if v.id == vertex.id), None)
+            if vertex_obj and hasattr(vertex_obj, 'variable') and vertex_obj.variable:
+                annotation = RenderableAnnotation(
+                    id=f"var_{vertex.id}",
+                    parent_area_id=vertex.parent_area_id,
+                    annotation_type="vertex_variable",
+                    position=(vertex.pos[0] + 10, vertex.pos[1] - 10),
+                    text=vertex_obj.variable,
+                    style={'font_size': 10, 'font_color': 'blue'}
+                )
+                dto.annotations.append(annotation)
+    
+    def _generate_double_cut_annotations(self, dto: LayoutDTO, egi: RelationalGraphWithCuts):
+        """Generate annotations highlighting double cuts"""
+        
+        for area in dto.areas:
+            if self._is_double_cut(egi, area.id):
+                annotation = RenderableAnnotation(
+                    id=f"dc_{area.id}",
+                    parent_area_id=area.parent_id or egi.sheet,
+                    annotation_type="double_cut_highlight",
+                    position=(area.rect.x + area.rect.width + 5, area.rect.y),
+                    text="DC",
+                    style={'font_size': 8, 'font_color': 'red', 'font_weight': 'bold'}
+                )
+                dto.annotations.append(annotation)
+    
+    def _calculate_connection_ports(self, rect: Rect, num_hooks: int) -> List[ConnectionPort]:
+        """Calculate connection ports on EdgeLabel bounding box based on number of hooks"""
+        
+        if num_hooks == 0:
+            return []
+        
+        ports = []
+        center_x = rect.x + rect.width / 2
+        center_y = rect.y + rect.height / 2
+        
+        # Define cardinal and intercardinal directions
+        directions = {
+            'N': (center_x, rect.y),                           # North (top)
+            'E': (rect.x + rect.width, center_y),              # East (right)  
+            'S': (center_x, rect.y + rect.height),             # South (bottom)
+            'W': (rect.x, center_y),                           # West (left)
+            'NE': (rect.x + rect.width, rect.y),               # Northeast (top-right)
+            'NW': (rect.x, rect.y),                            # Northwest (top-left)
+            'SE': (rect.x + rect.width, rect.y + rect.height), # Southeast (bottom-right)
+            'SW': (rect.x, rect.y + rect.height)               # Southwest (bottom-left)
+        }
+        
+        if num_hooks == 1:
+            # Single hook: use West as default (will be optimized later with vertex positions)
+            ports.append(ConnectionPort(port_id=0, position=directions['W'], direction='W'))
+            
+        elif num_hooks == 2:
+            # Two hooks: opposite sides (West and East)
+            ports.append(ConnectionPort(port_id=0, position=directions['W'], direction='W'))
+            ports.append(ConnectionPort(port_id=1, position=directions['E'], direction='E'))
+            
+        elif num_hooks == 3:
+            # Three hooks: W, N, E
+            ports.append(ConnectionPort(port_id=0, position=directions['W'], direction='W'))
+            ports.append(ConnectionPort(port_id=1, position=directions['N'], direction='N'))
+            ports.append(ConnectionPort(port_id=2, position=directions['E'], direction='E'))
+            
+        elif num_hooks == 4:
+            # Four hooks: all cardinal directions
+            ports.append(ConnectionPort(port_id=0, position=directions['W'], direction='W'))
+            ports.append(ConnectionPort(port_id=1, position=directions['N'], direction='N'))
+            ports.append(ConnectionPort(port_id=2, position=directions['E'], direction='E'))
+            ports.append(ConnectionPort(port_id=3, position=directions['S'], direction='S'))
+            
+        elif num_hooks >= 5:
+            # Five or more hooks: use all 8 directions, cycling as needed
+            direction_order = ['W', 'N', 'E', 'S', 'NW', 'NE', 'SE', 'SW']
+            for i in range(num_hooks):
+                direction = direction_order[i % len(direction_order)]
+                ports.append(ConnectionPort(port_id=i, position=directions[direction], direction=direction))
+        
+        return ports
+    
+    def _calculate_connection_ports_with_vertices(self, rect: Rect, vertex_sequence, vertex_positions):
+        """Calculate connection ports considering actual vertex positions for optimal placement"""
+        
+        num_hooks = len(vertex_sequence)
+        if num_hooks == 0:
+            return []
+        
+        # For unary predicates, choose the best single port based on vertex position
+        if num_hooks == 1:
+            vertex_id = vertex_sequence[0]
+            if vertex_id in vertex_positions:
+                vertex_pos = (vertex_positions[vertex_id]['x'], vertex_positions[vertex_id]['y'])
+                best_direction = self._find_best_port_direction(rect, vertex_pos)
+                
+                center_x = rect.x + rect.width / 2
+                center_y = rect.y + rect.height / 2
+                
+                directions = {
+                    'N': (center_x, rect.y),
+                    'E': (rect.x + rect.width, center_y),
+                    'S': (center_x, rect.y + rect.height),
+                    'W': (rect.x, center_y)
+                }
+                
+                return [ConnectionPort(port_id=0, position=directions[best_direction], direction=best_direction)]
+        
+        # For multi-arity predicates, use the standard approach
+        return self._calculate_connection_ports(rect, num_hooks)
+    
+    def _find_best_port_direction(self, rect: Rect, vertex_pos):
+        """Find the best port direction for a single vertex"""
+        
+        center_x = rect.x + rect.width / 2
+        center_y = rect.y + rect.height / 2
+        
+        # Calculate relative position of vertex to label center
+        dx = vertex_pos[0] - center_x
+        dy = vertex_pos[1] - center_y
+        
+        # Choose port based on which side the vertex is closest to
+        if abs(dx) > abs(dy):
+            # Vertex is more to the left or right
+            return 'W' if dx < 0 else 'E'
+        else:
+            # Vertex is more above or below
+            return 'N' if dy < 0 else 'S'
+    
+    def _calculate_area_aware_path_to_port(self, vertex, edge_label, target_port, area_grid, grid_bounds, hierarchy):
+        """Calculate path using area-aware A* pathfinding to a specific connection port"""
+        
+        # If no target port specified, fall back to center of edge label
+        if target_port is None:
+            return self._calculate_area_aware_path(vertex, edge_label, area_grid, grid_bounds, hierarchy)
+        
+        # Convert positions to grid coordinates
+        start_x = int((vertex.pos[0] - grid_bounds.x) * self.grid_resolution)
+        start_y = int((vertex.pos[1] - grid_bounds.y) * self.grid_resolution)
+        target_x = int((target_port.position[0] - grid_bounds.x) * self.grid_resolution)
+        target_y = int((target_port.position[1] - grid_bounds.y) * self.grid_resolution)
+        
+        # Clamp to grid bounds
+        start_x = max(0, min(start_x, area_grid.width - 1))
+        start_y = max(0, min(start_y, area_grid.height - 1))
+        target_x = max(0, min(target_x, area_grid.width - 1))
+        target_y = max(0, min(target_y, area_grid.height - 1))
+        
+        # Calculate legal corridor
+        legal_areas = self._calculate_legal_corridor(
+            vertex.parent_area_id, edge_label.parent_area_id, hierarchy
+        )
+        
+        # Use area-aware finder
+        finder = AreaAwareFinder(legal_areas)
+        
+        try:
+            start_node = area_grid.node(start_x, start_y)
+            end_node = area_grid.node(target_x, target_y)
+            path, runs = finder.find_path(start_node, end_node, area_grid)
+            
+            if not path:
+                # Fallback to direct line if pathfinding fails
+                return [vertex.pos, target_port.position]
+            
+            # Convert path back to world coordinates
+            world_path = []
+            for node in path:
+                world_x = node.x / self.grid_resolution + grid_bounds.x
+                world_y = node.y / self.grid_resolution + grid_bounds.y
+                world_path.append((world_x, world_y))
+            
+            return world_path
+            
+        except Exception as e:
+            # Fallback to direct line if pathfinding fails
+            return [vertex.pos, target_port.position]
+    
+    def _assign_nearest_ports(self, vertex_sequence, edge_label, all_vertices):
+        """Assign each vertex to its nearest available connection port to minimize crossings"""
+        
+        if not edge_label.connection_ports:
+            return {}
+        
+        # Get vertex objects for the sequence
+        vertices = []
+        for vertex_id in vertex_sequence:
+            vertex = next((v for v in all_vertices if v.id == vertex_id), None)
+            if vertex:
+                vertices.append(vertex)
+        
+        if not vertices:
+            return {}
+        
+        # Calculate distances from each vertex to each port
+        vertex_port_distances = {}
+        for vertex in vertices:
+            vertex_port_distances[vertex.id] = {}
+            for port in edge_label.connection_ports:
+                distance = self._calculate_distance(vertex.pos, port.position)
+                vertex_port_distances[vertex.id][port.port_id] = distance
+        
+        # Use greedy assignment that minimizes total crossing potential
+        assignments = {}
+        used_ports = set()
+        
+        # Sort vertices by their distance to the nearest available port
+        vertex_distances = []
+        for vertex in vertices:
+            min_distance = float('inf')
+            for port in edge_label.connection_ports:
+                if port.port_id not in used_ports:
+                    distance = vertex_port_distances[vertex.id][port.port_id]
+                    min_distance = min(min_distance, distance)
+            vertex_distances.append((vertex, min_distance))
+        
+        # Sort by minimum distance (closest vertices get priority)
+        vertex_distances.sort(key=lambda x: x[1])
+        
+        # Assign each vertex to its nearest available port
+        for vertex, _ in vertex_distances:
+            best_port = None
+            best_distance = float('inf')
+            
+            for port in edge_label.connection_ports:
+                if port.port_id not in used_ports:
+                    distance = vertex_port_distances[vertex.id][port.port_id]
+                    if distance < best_distance:
+                        best_distance = distance
+                        best_port = port
+            
+            if best_port:
+                assignments[vertex.id] = best_port
+                used_ports.add(best_port.port_id)
+        
+        return assignments
+    
+    def _calculate_distance(self, pos1, pos2):
+        """Calculate Euclidean distance between two points"""
+        return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
