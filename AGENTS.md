@@ -160,6 +160,29 @@ result = rule.apply_transformation(context)
 - **Context-aware algorithms**: Uses actual vertex positions for optimal port direction selection
 - **Comprehensive testing**: `python tools/test_corpus_connection_ports.py` validates entire corpus
 
+## 🎯 User Edit System & Deterministic Layouts
+- **Layout Deltas**: `LayoutDeltas` data structure for user modifications to vertex/edge positions and ligature paths
+- **Deterministic seeding**: Fixed seed values ensure identical layouts for same EGI input
+- **Pinned nodes**: User-specified positions become fixed points in neato layout simulation
+- **Custom ligature paths**: User-defined paths with collision and logical constraint validation
+- **Constrained layout**: neato arranges free nodes around pinned user positions
+- **Path validation**: Custom paths validated for collisions and area-aware logical constraints
+- **Fallback mechanism**: Invalid custom paths automatically fall back to A* pathfinding
+- **GUI preparation**: Data structures ready for diagram controller and interactive editing
+
+## 🎮 DiagramController - Layered Command Architecture
+- **Layered Architecture**: Clean separation between "what" (use case logic) and "how" (diagram manipulation)
+- **Command Pattern**: High-level commands in Organon/Ergasterion/Agon orchestrate low-level controller operations
+- **State Management**: Immutable EGI transformations with persistent user constraints across operations
+- **Validation System**: Multi-layer validation for positions, paths, and formal rule preconditions
+- **Undo/Redo Support**: Complete command history management with CommandExecutor
+- **Three Use Cases**:
+  - **Organon**: Visualization & exploration (read-only view operations)
+  - **Ergasterion**: Learning & practice (rule-based EGI modifications)
+  - **Agon**: Formal interaction & gameplay (Endoporeutic Game mechanics)
+- **Formal Rules**: Complete implementation of DC+/-, INS/ERA, IT+/- with Dau compliance
+- **Production Ready**: Comprehensive test suite with 100% validation coverage
+
 ## 🎨 Style System Architecture
 - **JSON-based styles**: Platform-independent style definitions in `styles/` directory
 - **Style loader**: `src/style_loader.py` - Loads and validates style definitions

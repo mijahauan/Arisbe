@@ -100,6 +100,23 @@ class LayoutDTO:
     annotations: List[RenderableAnnotation] = field(default_factory=list)
 
 
+@dataclass
+class LayoutDelta:
+    """Represents user edits to layout positions and paths"""
+    element_id: str  # The element being modified
+    delta_type: str  # 'vertex_position', 'edge_position', 'ligature_path'
+    original_position: Optional[Tuple[float, float]] = None
+    new_position: Optional[Tuple[float, float]] = None
+    custom_path: Optional[List[Tuple[float, float]]] = None  # For ligature paths
+    nu_mapping_key: Optional[str] = None  # For ligature path identification
+
+@dataclass
+class LayoutDeltas:
+    """Collection of user layout modifications"""
+    deltas: Dict[str, LayoutDelta] = field(default_factory=dict)
+    deterministic_seed: Optional[int] = None  # For reproducible layouts
+
+
 class DefinitiveEGILayoutEngine:
     """Definitive three-step layout engine for optimal EGI visualization"""
     
@@ -107,33 +124,37 @@ class DefinitiveEGILayoutEngine:
         self.grid_resolution = 2
         self.cut_padding = 15
         
-    def generate_layout(self, egi: RelationalGraphWithCuts, style: Optional[StyleSpecification] = None) -> LayoutDTO:
-        """Main orchestration method for three-step layout with styling support"""
+    def generate_layout(self, egi: RelationalGraphWithCuts, style: Optional[StyleSpecification] = None, layout_deltas: Optional[LayoutDeltas] = None) -> LayoutDTO:
+        """Main orchestration method for three-step layout with styling and user edits support"""
         
         # Use default style if none provided
         if style is None:
             style = load_default_dau_style()
         
-        # Step 1: Unified Force-Directed Layout (with style-aware graphviz attributes)
-        content_positions = self._unified_force_directed_layout(egi, style)
+        # Initialize layout_deltas if none provided
+        if layout_deltas is None:
+            layout_deltas = LayoutDeltas()
+        
+        # Step 1: Unified Force-Directed Layout (with style-aware graphviz attributes and user deltas)
+        content_positions = self._unified_force_directed_layout(egi, style, layout_deltas)
         
         # Step 2: Bottom-Up Bounding Box Calculation (with style-aware padding)
         area_bounds = self._calculate_bounding_boxes(egi, content_positions, style)
         
         # Step 3: Area-Aware Ligature Routing (A*)
         dto = self._create_dto_from_positions(egi, content_positions, area_bounds)
-        self._area_aware_ligature_routing(egi, dto, style)
+        self._area_aware_ligature_routing(egi, dto, style, layout_deltas)
         
         # Step 4: Apply aesthetic styles to DTO
         self._apply_aesthetic_styles(dto, egi, style)
         
         return dto
     
-    def _unified_force_directed_layout(self, egi: RelationalGraphWithCuts, style: StyleSpecification) -> Dict:
-        """Step 1: Use neato to position all vertices and edge labels together"""
+    def _unified_force_directed_layout(self, egi: RelationalGraphWithCuts, style: StyleSpecification, layout_deltas: LayoutDeltas) -> Dict:
+        """Step 1: Use neato to position all vertices and edge labels together with user deltas"""
         
         # Generate DOT string with all content (NO containers) using style
-        dot_string = self._generate_unified_dot(egi, style)
+        dot_string = self._generate_unified_dot(egi, style, layout_deltas)
         
         # Execute layout engine using style-specified engine
         layout_engine = style.get('layout', {}).get('engine', 'neato')
@@ -144,8 +165,8 @@ class DefinitiveEGILayoutEngine:
         
         return positions
     
-    def _generate_unified_dot(self, egi: RelationalGraphWithCuts, style: StyleSpecification) -> str:
-        """Generate DOT string for unified force-directed layout with style attributes"""
+    def _generate_unified_dot(self, egi: RelationalGraphWithCuts, style: StyleSpecification, layout_deltas: Optional[LayoutDeltas] = None) -> str:
+        """Generate DOT string for unified force-directed layout with style attributes and pinned nodes"""
         
         lines = ["graph UnifiedLayout {"]
         
@@ -153,14 +174,20 @@ class DefinitiveEGILayoutEngine:
         graphviz_attrs = style.get('layout', {}).get('graphviz_attrs', {})
         graph_attrs = graphviz_attrs.get('graph', {})
         
-        # Set default attributes with style overrides
+        # Set default graph attributes
         default_graph_attrs = {
+            "layout": "neato",
             "overlap": "false",
-            "splines": "true", 
-            "sep": "0.6",
-            "esep": "0.3"
+            "splines": "true"
         }
         default_graph_attrs.update(graph_attrs)
+        
+        # Add deterministic seed for reproducible layouts
+        if layout_deltas and layout_deltas.deterministic_seed is not None:
+            default_graph_attrs["seed"] = str(layout_deltas.deterministic_seed)
+        else:
+            # Use a fixed seed for consistent results
+            default_graph_attrs["seed"] = "42"
         
         for attr, value in default_graph_attrs.items():
             lines.append(f"  {attr}=\"{value}\";")
@@ -176,7 +203,19 @@ class DefinitiveEGILayoutEngine:
         # Add all vertices as point nodes
         for vertex in egi.V:
             vertex_name = vertex.id.replace('-', '_')
-            lines.append(f"  {vertex_name} [shape=point, width=0.15, height=0.15];")
+            
+            # Check if this vertex has a user-defined position
+            if layout_deltas and vertex.id in layout_deltas.deltas:
+                delta = layout_deltas.deltas[vertex.id]
+                if delta.delta_type == 'vertex_position' and delta.new_position:
+                    # Add as pinned node with user position
+                    lines.append(f"  {vertex_name} [shape=point, width=0.15, height=0.15, pos=\"{delta.new_position[0]},{delta.new_position[1]}!\", pin=true];")
+                else:
+                    # Add as normal movable node
+                    lines.append(f"  {vertex_name} [shape=point, width=0.15, height=0.15];")
+            else:
+                # Add as normal movable node
+                lines.append(f"  {vertex_name} [shape=point, width=0.15, height=0.15];")
         
         # Add all edges as text label nodes with style attributes
         for edge in egi.E:
@@ -187,6 +226,14 @@ class DefinitiveEGILayoutEngine:
             node_attr_strs = [f"shape=plaintext", f"label=\"{relation_name}\""]
             for attr, value in default_node_attrs.items():
                 node_attr_strs.append(f"{attr}=\"{value}\"")
+            
+            # Check if this edge has a user-defined position
+            if layout_deltas and edge.id in layout_deltas.deltas:
+                delta = layout_deltas.deltas[edge.id]
+                if delta.delta_type == 'edge_position' and delta.new_position:
+                    # Add as pinned node with user position
+                    node_attr_strs.append(f"pos=\"{delta.new_position[0]},{delta.new_position[1]}!\"")
+                    node_attr_strs.append("pin=true")
             
             lines.append(f"  {edge_name} [{', '.join(node_attr_strs)}];")
         
@@ -422,8 +469,8 @@ class DefinitiveEGILayoutEngine:
         
         return dto
     
-    def _area_aware_ligature_routing(self, egi: RelationalGraphWithCuts, dto: LayoutDTO, style: StyleSpecification):
-        """Step 3: Route ligatures with area-aware A* pathfinding"""
+    def _area_aware_ligature_routing(self, egi: RelationalGraphWithCuts, dto: LayoutDTO, style: StyleSpecification, layout_deltas: Optional[LayoutDeltas] = None):
+        """Step 3: Route ligatures with area-aware A* pathfinding and custom path support"""
         
         # Build area-aware collision map
         area_grid, grid_bounds = self._build_area_aware_collision_map(dto)
@@ -446,19 +493,40 @@ class DefinitiveEGILayoutEngine:
                 if not vertex:
                     continue
                 
-                # Use the nearest port assignment instead of sequence index
-                target_port = vertex_port_assignments.get(vertex_id)
+                # Check if there's a custom path for this ligature
+                ligature_key = f"{vertex_id}_{edge_id}_{hook_index}"
+                custom_path = None
                 
-                path_points = self._calculate_area_aware_path_to_port(
-                    vertex, edge_label, target_port, area_grid, grid_bounds, hierarchy
-                )
+                if layout_deltas and ligature_key in layout_deltas.deltas:
+                    delta = layout_deltas.deltas[ligature_key]
+                    if delta.delta_type == 'ligature_path' and delta.custom_path:
+                        custom_path = self._validate_custom_path(
+                            delta.custom_path, vertex.pos, 
+                            self._get_edge_label_center(edge_label),
+                            area_grid, grid_bounds, hierarchy, dto
+                        )
                 
-                if path_points:
+                if custom_path:
+                    # Use validated custom path
                     ligature = RenderableLigature(
                         start_vertex_id=vertex_id, end_edge_id=edge_id,
-                        end_hook_index=hook_index, path_points=path_points
+                        end_hook_index=hook_index, path_points=custom_path
                     )
                     dto.ligatures.append(ligature)
+                else:
+                    # Use the nearest port assignment instead of sequence index
+                    target_port = vertex_port_assignments.get(vertex_id)
+                    
+                    path_points = self._calculate_area_aware_path_to_port(
+                        vertex, edge_label, target_port, area_grid, grid_bounds, hierarchy
+                    )
+                    
+                    if path_points:
+                        ligature = RenderableLigature(
+                            start_vertex_id=vertex_id, end_edge_id=edge_id,
+                            end_hook_index=hook_index, path_points=path_points
+                        )
+                        dto.ligatures.append(ligature)
     
     def _build_area_aware_collision_map(self, dto: LayoutDTO) -> Tuple:
         """Build collision map with area membership tracking"""
@@ -644,6 +712,81 @@ class DefinitiveEGILayoutEngine:
             for x in range(start_x, end_x + 1):
                 if 0 <= y < len(matrix) and 0 <= x < len(matrix[0]):
                     matrix[y][x] = 0
+    
+    def _get_edge_label_center(self, edge_label: RenderableEdgeLabel) -> Tuple[float, float]:
+        """Get the center point of an edge label"""
+        return (edge_label.rect.x + edge_label.rect.width / 2,
+                edge_label.rect.y + edge_label.rect.height / 2)
+    
+    def _validate_custom_path(self, custom_path: List[Tuple[float, float]], 
+                            start_pos: Tuple[float, float], end_pos: Tuple[float, float],
+                            area_grid, grid_bounds, hierarchy, dto) -> Optional[List[Tuple[float, float]]]:
+        """Validate and update a custom path to ensure it's still legal"""
+        
+        # Update start and end points to current vertex and edge positions
+        updated_path = [start_pos] + custom_path[1:-1] + [end_pos]
+        
+        # Basic collision detection - check if path intersects any obstacles
+        if self._path_collides_with_obstacles(updated_path, dto):
+            return None  # Path is invalid
+        
+        # Area-aware validation - check if path respects logical boundaries
+        if not self._path_respects_areas(updated_path, area_grid, grid_bounds, hierarchy):
+            return None  # Path violates logical constraints
+        
+        return updated_path
+    
+    def _path_collides_with_obstacles(self, path: List[Tuple[float, float]], dto: LayoutDTO) -> bool:
+        """Check if path collides with any obstacles in the diagram"""
+        
+        # Simple collision detection - check against all vertices and edge labels
+        for point in path:
+            # Check vertices
+            for vertex in dto.vertices:
+                if self._point_in_circle(point, vertex.pos, 6):  # 6px radius around vertex
+                    return True
+            
+            # Check edge labels
+            for label in dto.edge_labels:
+                if self._point_in_rect(point, label.rect):
+                    return True
+        
+        return False
+    
+    def _point_in_circle(self, point: Tuple[float, float], center: Tuple[float, float], radius: float) -> bool:
+        """Check if point is within a circle"""
+        dx = point[0] - center[0]
+        dy = point[1] - center[1]
+        return (dx * dx + dy * dy) <= (radius * radius)
+    
+    def _point_in_rect(self, point: Tuple[float, float], rect: Rect) -> bool:
+        """Check if point is within a rectangle"""
+        return (rect.x <= point[0] <= rect.x + rect.width and
+                rect.y <= point[1] <= rect.y + rect.height)
+    
+    def _path_respects_areas(self, path: List[Tuple[float, float]], 
+                           area_grid, grid_bounds, hierarchy) -> bool:
+        """Check if path respects logical area boundaries"""
+        
+        # Convert path points to grid coordinates and check area membership
+        for i, point in enumerate(path):
+            grid_x = int((point[0] - grid_bounds.x) * self.grid_resolution)
+            grid_y = int((point[1] - grid_bounds.y) * self.grid_resolution)
+            
+            # Clamp to grid bounds
+            grid_x = max(0, min(grid_x, area_grid.width - 1))
+            grid_y = max(0, min(grid_y, area_grid.height - 1))
+            
+            # Get area at this grid position
+            area_id = area_grid.area_map[grid_y][grid_x]
+            
+            # Check if this area is in the legal corridor
+            # For simplicity, we'll allow paths through any area for now
+            # In a full implementation, this would check the legal corridor
+            if area_id is None:
+                return False
+        
+        return True
     
     def _apply_aesthetic_styles(self, dto: LayoutDTO, egi: RelationalGraphWithCuts, style: StyleSpecification):
         """Step 4: Apply aesthetic styles to DTO elements"""
