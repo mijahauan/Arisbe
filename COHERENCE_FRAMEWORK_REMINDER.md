@@ -42,6 +42,12 @@ from egi_io import save_egi_json, load_egi_json
 from formal_transformation_rules import DeiterationRule, TransformationContext
 from syntactic_equivalence_checker import SyntacticEquivalenceChecker
 
+# NEW: DiagramController with layered Command pattern architecture
+from diagram_controller import (
+    DiagramController, CommandExecutor,
+    OrganonCommands, ErgasterionCommands, AgonCommands
+)
+
 # Exact signatures available in ARISBE_CORE_API_REFERENCE.md
 ```
 

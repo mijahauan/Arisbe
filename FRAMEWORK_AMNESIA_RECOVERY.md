@@ -75,27 +75,35 @@ grep -E "^##### \`" ARISBE_CORE_API_REFERENCE.md
 # Shows all documented functions
 ```
 
-### **Scenario 2: "How do I create an EGI?"**
+### **Scenario 2: "How do I use DiagramController?"**
+```bash
+# Solution: Check the implementation guide
+open DIAGRAM_CONTROLLER_IMPLEMENTATION.md
+# Or check layered architecture details
+open DIAGRAM_CONTROLLER_LAYERED_ARCHITECTURE.md
+```
+
+### **Scenario 3: "How do I create an EGI?"**
 ```bash
 # Solution: Check usage guide
 grep -A 10 "Creating a Basic EGI" CORE_API_USAGE_GUIDE.md
 ```
 
-### **Scenario 3: "What's safe to modify?"**
+### **Scenario 4: "What's safe to modify?"**
 ```bash
 # Solution: Check protection status
 python tools/core_protection_system.py --report
 # Shows 16 protected modules vs modifiable code
 ```
 
-### **Scenario 4: "Are tests passing?"**
+### **Scenario 5: "Are tests passing?"**
 ```bash
 # Solution: Check quality dashboard
 python tools/daily_quality_dashboard.py
 # Shows current test status: 87 core tests should be passing
 ```
 
-### **Scenario 5: "What imports do I need?"**
+### **Scenario 6: "What imports do I need?"**
 ```bash
 # Solution: Search API docs for your use case
 grep -B 2 -A 5 "create_vertex" ARISBE_CORE_API_REFERENCE.md
