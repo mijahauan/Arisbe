@@ -114,14 +114,14 @@ class OrganonMode(QWidget):
             self,
             "Load EGI",
             str(Path.home()),
-            "EGI Files (*.json);;All Files (*)"
+            "EGI Files (*.json *.egi.json);;All Files (*)"
         )
         
         if not file_path:
             return
         
         try:
-            # Load EGI
+            # Load EGI (handles both standalone and entity formats)
             egi = load_egi_json(file_path)
             
             # Load into controller
@@ -145,9 +145,11 @@ class OrganonMode(QWidget):
             self.export_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
             
-            # Show success
+            # Show success (shorter message)
             file_name = Path(file_path).name
-            QMessageBox.information(self, "Success", f"Loaded: {file_name}")
+            parent = self.window()
+            if hasattr(parent, 'status_bar'):
+                parent.status_bar.showMessage(f"Loaded: {file_name}", 3000)
             
         except Exception as e:
             QMessageBox.critical(
