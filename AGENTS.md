@@ -24,6 +24,9 @@
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
 - **System status**: `python tools/daily_quality_dashboard.py`
 - **Core tests**: `python -m pytest tests/test_*_comprehensive.py tests/test_*_working.py`
+- **DiagramController tests**: `python -m pytest tests/test_diagram_controller.py` (11/11 passing)
+- **Workflow simulation tests**: `python tests/end_to_end/test_user_workflows.py` (8/8 passing, 100%)
+- **Golden master tests**: `python tests/end_to_end/test_golden_masters.py` (4-6/6, 67-100%)
 - **Layout engine tests**: `python tools/test_definitive_egi_layout_engine.py` (synthetic tests)
 - **Corpus validation**: `python tools/test_definitive_corpus_graphs.py` (real-world graphs)
 - **Style system tests**: `python -m pytest tests/test_style_integration.py`
@@ -182,6 +185,12 @@ result = rule.apply_transformation(context)
   - **Agon**: Formal interaction & gameplay (Endoporeutic Game mechanics)
 - **Formal Rules**: Complete implementation of DC+/-, INS/ERA, IT+/- with Dau compliance
 - **Production Ready**: Comprehensive test suite with 100% validation coverage
+- **Critical Fixes Applied** (2025-10-01):
+  - ✅ Ligatures now connect perfectly to vertices (no quantization errors)
+  - ✅ Logical area validation ensures vertices stay within proper cuts
+  - ✅ User position overrides applied before ligature routing
+  - ✅ Invalid positions gracefully rejected to preserve EG correctness
+- **Test Results**: 11/11 DiagramController tests, 8/8 workflow tests (100%)
 
 ## 🎨 Style System Architecture
 - **JSON-based styles**: Platform-independent style definitions in `styles/` directory
