@@ -1,0 +1,78 @@
+{
+  "areas": [
+    {
+      "index": 0,
+      "is_sheet": true,
+      "rect": {
+        "height": 109.57,
+        "width": 239.38,
+        "x": -16.6,
+        "y": -16.6
+      }
+    }
+  ],
+  "counts": {
+    "areas": 1,
+    "edges": 1,
+    "ligatures": 2,
+    "vertices": 2
+  },
+  "edge_labels": [
+    {
+      "index": 0,
+      "label": "Loves",
+      "rect": {
+        "height": 12,
+        "width": 40,
+        "x": 77.83,
+        "y": 47.77
+      }
+    }
+  ],
+  "ligatures": [
+    {
+      "end_hook_index": 1,
+      "index": 0,
+      "path_points": [
+        [
+          200.78,
+          70.97
+        ],
+        [
+          117.83,
+          53.77
+        ]
+      ]
+    },
+    {
+      "end_hook_index": 0,
+      "index": 1,
+      "path_points": [
+        [
+          5.4,
+          5.4
+        ],
+        [
+          77.83,
+          53.77
+        ]
+      ]
+    }
+  ],
+  "vertices": [
+    {
+      "index": 0,
+      "pos": [
+        5.4,
+        5.4
+      ]
+    },
+    {
+      "index": 1,
+      "pos": [
+        200.78,
+        70.97
+      ]
+    }
+  ]
+}

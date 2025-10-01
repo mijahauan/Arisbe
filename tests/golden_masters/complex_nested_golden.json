@@ -1,0 +1,101 @@
+{
+  "areas": [
+    {
+      "index": 0,
+      "is_sheet": true,
+      "rect": {
+        "height": 162.53,
+        "width": 110.41,
+        "x": -12.0,
+        "y": -23.0
+      }
+    },
+    {
+      "index": 1,
+      "is_sheet": false,
+      "rect": {
+        "height": 122.53,
+        "width": 70.41,
+        "x": 8.0,
+        "y": -3.0
+      }
+    },
+    {
+      "index": 2,
+      "is_sheet": false,
+      "rect": {
+        "height": 42,
+        "width": 38,
+        "x": 25.41,
+        "y": 62.53
+      }
+    }
+  ],
+  "counts": {
+    "areas": 3,
+    "edges": 2,
+    "ligatures": 2,
+    "vertices": 1
+  },
+  "edge_labels": [
+    {
+      "index": 0,
+      "label": "P",
+      "rect": {
+        "height": 12,
+        "width": 8,
+        "x": 23.0,
+        "y": 12.0
+      }
+    },
+    {
+      "index": 1,
+      "label": "Q",
+      "rect": {
+        "height": 12,
+        "width": 8,
+        "x": 40.41,
+        "y": 77.53
+      }
+    }
+  ],
+  "ligatures": [
+    {
+      "end_hook_index": 0,
+      "index": 0,
+      "path_points": [
+        [
+          40.85,
+          49.4
+        ],
+        [
+          27.0,
+          24.0
+        ]
+      ]
+    },
+    {
+      "end_hook_index": 0,
+      "index": 1,
+      "path_points": [
+        [
+          40.85,
+          49.4
+        ],
+        [
+          44.41,
+          77.53
+        ]
+      ]
+    }
+  ],
+  "vertices": [
+    {
+      "index": 0,
+      "pos": [
+        40.85,
+        49.4
+      ]
+    }
+  ]
+}

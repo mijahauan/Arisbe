@@ -1,0 +1,57 @@
+{
+  "areas": [
+    {
+      "index": 0,
+      "is_sheet": true,
+      "rect": {
+        "height": 64.54,
+        "width": 177.58,
+        "x": 3.0,
+        "y": -16.6
+      }
+    }
+  ],
+  "counts": {
+    "areas": 1,
+    "edges": 1,
+    "ligatures": 1,
+    "vertices": 1
+  },
+  "edge_labels": [
+    {
+      "index": 0,
+      "label": "P",
+      "rect": {
+        "height": 12,
+        "width": 8,
+        "x": 23.0,
+        "y": 15.94
+      }
+    }
+  ],
+  "ligatures": [
+    {
+      "end_hook_index": 0,
+      "index": 0,
+      "path_points": [
+        [
+          158.58,
+          5.4
+        ],
+        [
+          31.0,
+          21.94
+        ]
+      ]
+    }
+  ],
+  "vertices": [
+    {
+      "index": 0,
+      "pos": [
+        158.58,
+        5.4
+      ]
+    }
+  ]
+}

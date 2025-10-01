@@ -148,6 +148,9 @@ class DefinitiveEGILayoutEngine:
         # Step 4: Apply aesthetic styles to DTO
         self._apply_aesthetic_styles(dto, egi, style)
         
+        # Step 5: Apply user position overrides (AFTER layout, to ensure exact positions)
+        self._apply_user_position_overrides(dto, layout_deltas)
+        
         return dto
     
     def _unified_force_directed_layout(self, egi: RelationalGraphWithCuts, style: StyleSpecification, layout_deltas: LayoutDeltas) -> Dict:
@@ -189,6 +192,9 @@ class DefinitiveEGILayoutEngine:
             # Use a fixed seed for consistent results
             default_graph_attrs["seed"] = "42"
         
+        # Force deterministic initial placement
+        default_graph_attrs["start"] = "random42"  # Use fixed random seed for initial positions
+        
         for attr, value in default_graph_attrs.items():
             lines.append(f"  {attr}=\"{value}\";")
         
@@ -200,9 +206,9 @@ class DefinitiveEGILayoutEngine:
         }
         default_node_attrs.update(node_attrs)
         
-        # Add all vertices as point nodes
-        for vertex in egi.V:
-            vertex_name = vertex.id.replace('-', '_')
+        # Add all vertices as point nodes (sorted for determinism)
+        for vertex in sorted(egi.V, key=lambda v: v.id):
+            vertex_name = vertex.id  # IDs already use underscores
             
             # Check if this vertex has a user-defined position
             if layout_deltas and vertex.id in layout_deltas.deltas:
@@ -217,9 +223,10 @@ class DefinitiveEGILayoutEngine:
                 # Add as normal movable node
                 lines.append(f"  {vertex_name} [shape=point, width=0.15, height=0.15];")
         
-        # Add all edges as text label nodes with style attributes
-        for edge in egi.E:
-            edge_name = edge.id.replace('-', '_')
+        # Add all edges as text label nodes with style attributes (sorted for determinism)
+        # Sort by relation name first, then ID for stable ordering
+        for edge in sorted(egi.E, key=lambda e: (egi.rel.get(e.id, ""), e.id)):
+            edge_name = edge.id  # IDs already use underscores
             relation_name = egi.rel.get(edge.id, "?")
             
             # Build node attribute string
@@ -265,7 +272,8 @@ class DefinitiveEGILayoutEngine:
             y = float(pos_parts[1])
             
             # Determine if this is a vertex or edge
-            element_id = name  # Keep original name with underscores
+            # DOT uses underscores in names, need to match back to original IDs
+            element_id = name
             
             if any(v.id == element_id for v in egi.V):
                 # This is a vertex
@@ -316,7 +324,7 @@ class DefinitiveEGILayoutEngine:
         """Build parent-child relationships for cuts"""
         
         hierarchy = {}
-        all_containers = {egi.sheet} | {cut.id for cut in egi.Cut}
+        all_containers = {egi.sheet} | {cut.id for cut in sorted(egi.Cut, key=lambda c: c.id)}
         
         for container_id in all_containers:
             hierarchy[container_id] = {
@@ -324,7 +332,7 @@ class DefinitiveEGILayoutEngine:
                 'is_sheet': container_id == egi.sheet
             }
         
-        for container_id, elements in egi.area.items():
+        for container_id, elements in sorted(egi.area.items()):
             if container_id not in hierarchy:
                 continue
                 
@@ -340,7 +348,7 @@ class DefinitiveEGILayoutEngine:
     def _get_bottom_up_cut_order(self, egi: RelationalGraphWithCuts, hierarchy: Dict) -> List[str]:
         """Get cuts in bottom-up processing order"""
         
-        remaining_cuts = {cut.id for cut in egi.Cut}
+        remaining_cuts = {cut.id for cut in sorted(egi.Cut, key=lambda c: c.id)}
         processed = set()
         order = []
         
@@ -412,8 +420,8 @@ class DefinitiveEGILayoutEngine:
                             pos['width'], pos['height'])
             rects_to_include.append(label_rect)
         
-        # Include all cut bounding boxes
-        for cut in egi.Cut:
+        # Include all cut bounding boxes (sorted for determinism)
+        for cut in sorted(egi.Cut, key=lambda c: c.id):
             if cut.id in area_bounds:
                 rects_to_include.append(area_bounds[cut.id])
         
@@ -476,8 +484,8 @@ class DefinitiveEGILayoutEngine:
         area_grid, grid_bounds = self._build_area_aware_collision_map(dto)
         hierarchy = self._build_cut_hierarchy(egi)
         
-        # Route each ligature
-        for edge_id, vertex_sequence in egi.nu.items():
+        # Route each ligature (sorted for determinism)
+        for edge_id, vertex_sequence in sorted(egi.nu.items()):
             if not vertex_sequence:
                 continue
             
@@ -674,7 +682,7 @@ class DefinitiveEGILayoutEngine:
     
     def _find_element_area(self, egi: RelationalGraphWithCuts, element_id: str) -> str:
         """Find which area contains an element"""
-        for container_id, elements in egi.area.items():
+        for container_id, elements in sorted(egi.area.items()):
             if element_id in elements:
                 return container_id
         return egi.sheet
@@ -788,6 +796,36 @@ class DefinitiveEGILayoutEngine:
         
         return True
     
+    def _apply_user_position_overrides(self, dto: LayoutDTO, layout_deltas: Optional[LayoutDeltas]):
+        """
+        Apply user-specified position overrides to the DTO.
+        This ensures exact positions are used, overriding any layout engine suggestions.
+        """
+        if not layout_deltas or not layout_deltas.deltas:
+            return
+        
+        for element_id, delta in layout_deltas.deltas.items():
+            if delta.delta_type == 'vertex_position' and delta.new_position:
+                # Find and update vertex position
+                for vertex in dto.vertices:
+                    if vertex.id == element_id:
+                        vertex.pos = delta.new_position
+                        break
+            elif delta.delta_type == 'edge_position' and delta.new_position:
+                # Find and update edge label position
+                for edge_label in dto.edge_labels:
+                    if edge_label.id == element_id:
+                        # Update rect center to new position
+                        width = edge_label.rect.width
+                        height = edge_label.rect.height
+                        edge_label.rect = Rect(
+                            delta.new_position[0] - width/2,
+                            delta.new_position[1] - height/2,
+                            width,
+                            height
+                        )
+                        break
+    
     def _apply_aesthetic_styles(self, dto: LayoutDTO, egi: RelationalGraphWithCuts, style: StyleSpecification):
         """Step 4: Apply aesthetic styles to DTO elements"""
         
@@ -811,7 +849,7 @@ class DefinitiveEGILayoutEngine:
         # Calculate nesting depths
         area_depths = self._calculate_area_depths(egi)
         
-        for area in dto.areas:
+        for area in sorted(dto.areas, key=lambda a: a.id):
             depth = area_depths.get(area.id, 0)
             
             # Apply base styling
@@ -925,7 +963,7 @@ class DefinitiveEGILayoutEngine:
     def _generate_double_cut_annotations(self, dto: LayoutDTO, egi: RelationalGraphWithCuts):
         """Generate annotations highlighting double cuts"""
         
-        for area in dto.areas:
+        for area in sorted(dto.areas, key=lambda a: a.id):
             if self._is_double_cut(egi, area.id):
                 annotation = RenderableAnnotation(
                     id=f"dc_{area.id}",

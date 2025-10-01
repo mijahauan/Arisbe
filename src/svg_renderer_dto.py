@@ -3,7 +3,7 @@ SVG Renderer for New Layout Engine DTO
 """
 
 import xml.etree.ElementTree as ET
-from layout_engine import LayoutDTO, Point, BoundingBox
+from layout_engine_ironclad import LayoutDTO, Point, BoundingBox
 from egi_core_dau import RelationalGraphWithCuts
 from pathlib import Path
 
@@ -12,7 +12,14 @@ class SVGRendererDTO:
     """Renders LayoutDTO to SVG"""
     
     def render_to_svg(self, layout: LayoutDTO, egi: RelationalGraphWithCuts, title: str = "EG Diagram", egif: str = "") -> str:
-        """Convert LayoutDTO to SVG string"""
+        """Convert LayoutDTO to SVG string with style awareness"""
+        
+        # Extract style information from layout hints
+        style_hints = layout.style_hints or {}
+        font_family = style_hints.get('font_family', 'Arial')
+        font_size = style_hints.get('font_size', 12)
+        vertex_radius = style_hints.get('vertex_radius', 3.0)
+        cut_shape = style_hints.get('cut_shape', 'rectangle')
         
         # Create SVG with viewport bounds + space for EGIF at bottom
         viewport = layout.viewport_bounds
@@ -52,14 +59,23 @@ class SVGRendererDTO:
             "font-size": "10", "fill": "gray"
         }).text = style_info
         
-        # Render cuts first (background) - thinner lines than ligatures
+        # Render cuts first (background) - style-aware
         for cut_id, bounds in layout.cut_bounds.items():
-            ET.SubElement(svg, "rect", {
+            cut_attrs = {
                 "x": str(bounds.min_x + center_x), "y": str(bounds.min_y + center_y),
                 "width": str(bounds.width), "height": str(bounds.height),
-                "fill": "none", "stroke": "black", "stroke-width": "1.5",  # Thinner than ligatures
-                "rx": "8.0", "ry": "8.0"
-            })
+                "fill": "none", "stroke": "black", "stroke-width": "1.5"
+            }
+            
+            # Apply cut shape styling
+            if cut_shape == "oval":
+                cut_attrs["rx"] = str(bounds.width / 2)
+                cut_attrs["ry"] = str(bounds.height / 2)
+            else:  # rectangle
+                cut_attrs["rx"] = "8.0"
+                cut_attrs["ry"] = "8.0"
+            
+            ET.SubElement(svg, "rect", cut_attrs)
         
         # Render ligature paths - thicker than cuts
         for path in layout.ligature_paths:
@@ -71,32 +87,32 @@ class SVGRendererDTO:
                     "fill": "none", "stroke": "black", "stroke-width": "2.0"  # Thicker than cuts
                 })
         
-        # Render predicates (edges)
+        # Render predicates (edges) - style-aware
         for pred_id, pos in layout.predicate_positions.items():
             relation_name = egi.rel.get(pred_id, "?")
             ET.SubElement(svg, "text", {
                 "x": str(pos.x + center_x), "y": str(pos.y + center_y),
-                "text-anchor": "middle", "font-size": "12",
-                "font-family": "Arial", "fill": "black"
+                "text-anchor": "middle", "font-size": str(font_size),
+                "font-family": font_family, "fill": "black"
             }).text = relation_name
         
-        # Render vertices
+        # Render vertices - style-aware
         for vertex_id, pos in layout.vertex_positions.items():
             # Find vertex info
             vertex = next((v for v in egi.V if v.id == vertex_id), None)
             if vertex:
                 if vertex.is_generic:
-                    # Generic vertex - small black dot (just noticeably larger than ligature)
+                    # Generic vertex - style-aware radius
                     ET.SubElement(svg, "circle", {
                         "cx": str(pos.x + center_x), "cy": str(pos.y + center_y),
-                        "r": "3.0", "fill": "black", "stroke": "none"  # Smaller radius
+                        "r": str(vertex_radius), "fill": "black", "stroke": "none"
                     })
                 else:
-                    # Constant vertex - label
+                    # Constant vertex - style-aware label
                     ET.SubElement(svg, "text", {
                         "x": str(pos.x + center_x), "y": str(pos.y + center_y + 4),
-                        "text-anchor": "middle", "font-size": "10",
-                        "font-family": "Arial", "fill": "blue"
+                        "text-anchor": "middle", "font-size": str(font_size - 2),
+                        "font-family": font_family, "fill": "blue"
                     }).text = vertex.label or "?"
         
         # Add EGIF at bottom
