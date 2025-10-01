@@ -41,3 +41,4 @@ networkx>=3.0
 # Note: Standard library modules used: abc, dataclasses, enum, math, os, sys, threading, typing
 # Note: Graphviz system package required (brew install graphviz / apt-get install graphviz)
 # Note: Obsolete dependencies removed: pygame, tkinter backends, cassowary constraint solver
+pathfinding>=1.0.0
