@@ -25,7 +25,13 @@
 - **After**: 7/8 (87.5%) - aesthetic adjustments working!
 - ✅ Position updates now persist correctly
 - ✅ Manual repositioning functional
+- ✅ **SVG outputs generated** for visual sanity-checking
 - 🟡 One test failure (undo/redo edge case) - not blocking
+
+**SVG Outputs**: Tests now generate SVG files in `test_outputs/workflow_tests/` for visual verification of:
+- Loaded graphs
+- User-adjusted positions
+- Transformations with preserved aesthetics
 
 ---
 
