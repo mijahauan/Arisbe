@@ -161,6 +161,21 @@ class MainWindow(QMainWindow):
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.close)
         
+        # View menu
+        view_menu = menu_bar.addMenu("&View")
+        
+        # Theme submenu
+        theme_menu = view_menu.addMenu("&Theme")
+        
+        light_action = theme_menu.addAction("☀️ Light Mode")
+        light_action.triggered.connect(lambda: self._set_theme("light"))
+        
+        dark_action = theme_menu.addAction("🌙 Dark Mode")
+        dark_action.triggered.connect(lambda: self._set_theme("dark"))
+        
+        system_action = theme_menu.addAction("💻 System Default")
+        system_action.triggered.connect(lambda: self._set_theme("system"))
+        
         # Help menu
         help_menu = menu_bar.addMenu("&Help")
         about_action = help_menu.addAction("&About Arisbe")
@@ -195,6 +210,110 @@ class MainWindow(QMainWindow):
             "Open Graph",
             "Graph loading will be implemented in Phase 2 (Organon)."
         )
+    
+    def _set_theme(self, theme: str):
+        """
+        Set the application theme.
+        
+        Args:
+            theme: "light", "dark", or "system"
+        """
+        app = self.window().windowHandle().screen().name()  # Get QApplication instance
+        from PySide6.QtWidgets import QApplication
+        
+        if theme == "light":
+            # Light theme - clean, minimal stylesheet
+            QApplication.instance().setStyleSheet("""
+                QMainWindow, QWidget {
+                    background-color: #ffffff;
+                    color: #000000;
+                }
+                QTabWidget::pane {
+                    border: 1px solid #cccccc;
+                    background-color: #ffffff;
+                }
+                QTabBar::tab {
+                    background-color: #f0f0f0;
+                    color: #000000;
+                    padding: 8px 16px;
+                    margin-right: 2px;
+                }
+                QTabBar::tab:selected {
+                    background-color: #ffffff;
+                    border-bottom: 2px solid #0078d4;
+                }
+                QMenuBar {
+                    background-color: #f0f0f0;
+                    color: #000000;
+                }
+                QMenuBar::item:selected {
+                    background-color: #e0e0e0;
+                }
+                QMenu {
+                    background-color: #ffffff;
+                    color: #000000;
+                    border: 1px solid #cccccc;
+                }
+                QMenu::item:selected {
+                    background-color: #e0e0e0;
+                }
+                QStatusBar {
+                    background-color: #f0f0f0;
+                    color: #000000;
+                }
+            """)
+            self.status_bar.showMessage("☀️ Switched to Light Mode")
+            
+        elif theme == "dark":
+            # Dark theme - modern dark style
+            QApplication.instance().setStyleSheet("""
+                QMainWindow, QWidget {
+                    background-color: #2b2b2b;
+                    color: #ffffff;
+                }
+                QTabWidget::pane {
+                    border: 1px solid #3c3c3c;
+                    background-color: #2b2b2b;
+                }
+                QTabBar::tab {
+                    background-color: #3c3c3c;
+                    color: #ffffff;
+                    padding: 8px 16px;
+                    margin-right: 2px;
+                }
+                QTabBar::tab:selected {
+                    background-color: #2b2b2b;
+                    border-bottom: 2px solid #0078d4;
+                }
+                QMenuBar {
+                    background-color: #3c3c3c;
+                    color: #ffffff;
+                }
+                QMenuBar::item:selected {
+                    background-color: #4c4c4c;
+                }
+                QMenu {
+                    background-color: #2b2b2b;
+                    color: #ffffff;
+                    border: 1px solid #3c3c3c;
+                }
+                QMenu::item:selected {
+                    background-color: #3c3c3c;
+                }
+                QStatusBar {
+                    background-color: #3c3c3c;
+                    color: #ffffff;
+                }
+                QLabel {
+                    color: #ffffff;
+                }
+            """)
+            self.status_bar.showMessage("🌙 Switched to Dark Mode")
+            
+        else:  # system
+            # Clear custom stylesheet to use system default
+            QApplication.instance().setStyleSheet("")
+            self.status_bar.showMessage("💻 Using System Default Theme")
     
     def _on_about(self):
         """Show about dialog."""
