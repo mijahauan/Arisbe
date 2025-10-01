@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from layout_dto import LayoutDTO
+from definitive_egi_layout_engine import LayoutDTO
 from graphviz_svg_renderer import GraphvizSVGRenderer
 from egif_generator_dau import generate_egif
 from egi_core_dau import RelationalGraphWithCuts

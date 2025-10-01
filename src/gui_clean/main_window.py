@@ -84,22 +84,12 @@ class MainWindow(QMainWindow):
         self.mode_tabs.addTab(self.agon_widget, "⚔️ Agon (Reason)")
     
     def _create_organon_widget(self) -> QWidget:
-        """Create the Organon mode widget (placeholder for now)."""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
+        """Create the Organon mode widget."""
+        from organon.organon_mode import OrganonMode
         
-        label = QLabel("📚 Organon Mode - Exploration & Corpus Management")
-        label.setAlignment(Qt.AlignCenter)
-        label.setStyleSheet("font-size: 16pt; padding: 20px;")
-        layout.addWidget(label)
-        
-        status = QLabel("Coming soon: Corpus browser, diagram viewer, export tools")
-        status.setAlignment(Qt.AlignCenter)
-        status.setStyleSheet("color: gray;")
-        layout.addWidget(status)
-        
-        layout.addStretch()
-        return widget
+        organon = OrganonMode(self.diagram_controller)
+        organon.edit_in_ergasterion.connect(self._on_edit_in_ergasterion)
+        return organon
     
     def _create_ergasterion_widget(self) -> QWidget:
         """Create the Ergasterion mode widget (placeholder for now)."""
@@ -192,6 +182,12 @@ class MainWindow(QMainWindow):
         modes = ["Organon", "Ergasterion", "Agon"]
         if 0 <= index < len(modes):
             self.status_bar.showMessage(f"Switched to {modes[index]} mode")
+    
+    def _on_edit_in_ergasterion(self, egi):
+        """Handle request to edit EGI in Ergasterion."""
+        # Switch to Ergasterion tab
+        self.mode_tabs.setCurrentIndex(1)
+        # Note: When Ergasterion is implemented, it will receive the EGI
     
     def _on_new_graph(self):
         """Create a new empty graph."""
