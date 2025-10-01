@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 sys.path.insert(0, str(Path(__file__).parent.parent / 'fixtures'))
 
-from diagram_controller import DiagramController, CommandExecutor
+from diagram_controller import DiagramController, CommandExecutor, UpdatePositionCommand
 from egif_parser_dau import parse_egif
 from egif_generator_dau import generate_egif
 from test_egis import get_test_egi
@@ -194,16 +194,18 @@ class UserWorkflowTests:
         initial_vertex_pos = initial_dto.vertices[0].pos
         vertex_id = initial_dto.vertices[0].id
         
-        # Step 2: User makes first change (small offset to stay in bounds)
+        # Step 2: User makes first change (small offset to stay in bounds) using CommandExecutor
         pos1 = (initial_vertex_pos[0] + 10, initial_vertex_pos[1] + 5)
-        success1 = self.controller.update_element_position(vertex_id, pos1)
+        cmd1 = UpdatePositionCommand(vertex_id, pos1)
+        success1 = self.executor.execute_command(cmd1)
         assert success1, f"First position update should succeed for {pos1}"
         
-        # Step 3: User makes second change (another small offset)
+        # Step 3: User makes second change (another small offset) using CommandExecutor
         dto_after_first = self.controller.get_renderable_dto()
         current_vertex = next(v for v in dto_after_first.vertices if v.id == vertex_id)
         pos2 = (current_vertex.pos[0] + 10, current_vertex.pos[1] + 5)
-        success2 = self.controller.update_element_position(vertex_id, pos2)
+        cmd2 = UpdatePositionCommand(vertex_id, pos2)
+        success2 = self.executor.execute_command(cmd2)
         assert success2, f"Second position update should succeed for {pos2}"
         
         dto_after_changes = self.controller.get_renderable_dto()
@@ -211,25 +213,25 @@ class UserWorkflowTests:
         assert changed_vertex.pos == pos2, f"Should be at second position {pos2}, got {changed_vertex.pos}"
         
         # Step 4: User undoes once
-        undo_success = self.controller.undo_last_command()
+        undo_success = self.executor.undo_last_command()
         assert undo_success, "Undo should succeed"
         dto_after_undo = self.controller.get_renderable_dto()
         undone_vertex = next(v for v in dto_after_undo.vertices if v.id == vertex_id)
-        assert undone_vertex.pos == pos1, "Should be back at first position"
+        assert undone_vertex.pos == pos1, f"Should be back at first position {pos1}, got {undone_vertex.pos}"
         
         # Step 5: User undoes again
-        undo_success = self.controller.undo_last_command()
+        undo_success = self.executor.undo_last_command()
         assert undo_success, "Second undo should succeed"
         dto_after_undo2 = self.controller.get_renderable_dto()
         undone_vertex2 = next(v for v in dto_after_undo2.vertices if v.id == vertex_id)
-        # Should be back at original position
+        # Should be back at original position (or close to it)
         
         # Step 6: User redoes one change
-        redo_success = self.controller.redo_last_command()
+        redo_success = self.executor.redo_last_undo()
         assert redo_success, "Redo should succeed"
         dto_after_redo = self.controller.get_renderable_dto()
         redone_vertex = next(v for v in dto_after_redo.vertices if v.id == vertex_id)
-        assert redone_vertex.pos == pos1, "Should be at first position again"
+        assert redone_vertex.pos == pos1, f"Should be at first position {pos1} again, got {redone_vertex.pos}"
         
         return True
     
