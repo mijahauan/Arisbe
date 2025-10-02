@@ -173,15 +173,15 @@ class MainWindow(QMainWindow):
     
     def _setup_status_bar(self):
         """Create the status bar."""
-        self.status_bar = QStatusBar()
-        self.setStatusBar(self.status_bar)
-        self.status_bar.showMessage("Ready - No graph loaded")
+        status_bar = QStatusBar()
+        self.setStatusBar(status_bar)
+        status_bar.showMessage("Ready - No graph loaded")
     
     def _on_mode_changed(self, index: int):
         """Handle mode tab change."""
         modes = ["Organon", "Ergasterion", "Agon"]
         if 0 <= index < len(modes):
-            self.status_bar.showMessage(f"Switched to {modes[index]} mode")
+            self.statusBar().showMessage(f"Switched to {modes[index]} mode")
     
     def _on_edit_in_ergasterion(self, egi):
         """Handle request to edit EGI in Ergasterion."""
@@ -258,7 +258,7 @@ class MainWindow(QMainWindow):
                     color: #000000;
                 }
             """)
-            self.status_bar.showMessage("☀️ Switched to Light Mode")
+            self.statusBar().showMessage("☀️ Switched to Light Mode")
             
         elif theme == "dark":
             # Dark theme - modern dark style
@@ -304,12 +304,12 @@ class MainWindow(QMainWindow):
                     color: #ffffff;
                 }
             """)
-            self.status_bar.showMessage("🌙 Switched to Dark Mode")
+            self.statusBar().showMessage("🌙 Switched to Dark Mode")
             
         else:  # system
             # Clear custom stylesheet to use system default
             QApplication.instance().setStyleSheet("")
-            self.status_bar.showMessage("💻 Using System Default Theme")
+            self.statusBar().showMessage("💻 Using System Default Theme")
     
     def _on_about(self):
         """Show about dialog."""

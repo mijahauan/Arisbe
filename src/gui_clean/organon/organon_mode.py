@@ -157,9 +157,9 @@ class OrganonMode(QWidget):
             
             # Show success
             parent = self.window()
-            if hasattr(parent, 'status_bar'):
+            if hasattr(parent, 'statusBar'):
                 status = "Historical" if entity.is_historical else "Standalone"
-                parent.status_bar.showMessage(f"Loaded {status}: {entity.name}", 3000)
+                parent.statusBar().showMessage(f"Loaded {status}: {entity.name}", 3000)
         
         except Exception as e:
             QMessageBox.critical(
@@ -209,8 +209,8 @@ class OrganonMode(QWidget):
             # Show success (shorter message)
             file_name = Path(file_path).name
             parent = self.window()
-            if hasattr(parent, 'status_bar'):
-                parent.status_bar.showMessage(f"Loaded: {file_name}", 3000)
+            if hasattr(parent, 'statusBar'):
+                parent.statusBar().showMessage(f"Loaded: {file_name}", 3000)
             
         except Exception as e:
             QMessageBox.critical(
