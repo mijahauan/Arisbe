@@ -27,6 +27,14 @@ from .integration_interfaces import (
     IntegrationManager, IntegrationContext
 )
 
+# New components added 2025-10-01 to 2025-10-02
+from .diagram_controller import DiagramController, CommandExecutor
+from .definitive_egi_layout_engine import DefinitiveEGILayoutEngine, LayoutDTO
+from .graphviz_svg_renderer import GraphvizSVGRenderer
+from .graph_entity import GraphEntity, EntityMetadata, EntityType, EntityCategory
+from .entity_storage import EntityStorageManager, LRUCache
+from .style_loader import StyleLoader, StyleSpecification
+
 
 class ComponentCategory(Enum):
     """Categories of registered components."""
@@ -41,6 +49,12 @@ class ComponentCategory(Enum):
     VIEW_MANAGEMENT = "view_management"
     SPATIAL_LAYOUT = "spatial_layout"
     EXPORT_MANAGEMENT = "export_management"
+    # Added 2025-10-02
+    DIAGRAM_CONTROL = "diagram_control"
+    ENTITY_STORAGE = "entity_storage"
+    GUI_COMPONENT = "gui_component"
+    RENDERING = "rendering"
+    STYLE_SYSTEM = "style_system"
 
 
 class FunctionType(Enum):
