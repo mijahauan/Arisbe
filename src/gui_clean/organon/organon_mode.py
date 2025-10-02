@@ -61,13 +61,30 @@ class OrganonMode(QWidget):
     
     def _setup_ui(self):
         """Create the Organon UI."""
-        layout = QVBoxLayout(self)
+        layout = QHBoxLayout(self)  # Changed to horizontal for sidebar
+        
+        # Left: Corpus browser sidebar
+        from organon.corpus_browser import CorpusBrowserWidget
+        
+        # Use corpus directory if it exists
+        corpus_path = Path(__file__).parent.parent.parent.parent / "corpus" / "graphs"
+        if not corpus_path.exists():
+            corpus_path.mkdir(parents=True, exist_ok=True)
+        
+        self.corpus_browser = CorpusBrowserWidget(corpus_path)
+        self.corpus_browser.entity_selected.connect(self._on_load_from_corpus)
+        self.corpus_browser.setMaximumWidth(300)
+        layout.addWidget(self.corpus_browser)
+        
+        # Right: Main viewing area
+        main_area = QVBoxLayout()
         
         # Top: Action bar
         action_bar = QHBoxLayout()
         
-        self.load_btn = QPushButton("📂 Load EGI...")
+        self.load_btn = QPushButton("📂 Load File...")
         self.load_btn.clicked.connect(self._on_load_egi)
+        self.load_btn.setToolTip("Load EGI from any file")
         action_bar.addWidget(self.load_btn)
         
         self.export_btn = QPushButton("💾 Export SVG...")
@@ -82,7 +99,7 @@ class OrganonMode(QWidget):
         self.edit_btn.setEnabled(False)
         action_bar.addWidget(self.edit_btn)
         
-        layout.addLayout(action_bar)
+        main_area.addLayout(action_bar)
         
         # Main content: Canvas + EGIF panel
         content = QHBoxLayout()
@@ -105,7 +122,51 @@ class OrganonMode(QWidget):
         
         content.addLayout(egif_panel, stretch=1)
         
-        layout.addLayout(content)
+        main_area.addLayout(content)
+        layout.addLayout(main_area)
+    
+    def _on_load_from_corpus(self, entity_name: str):
+        """Load entity from corpus."""
+        try:
+            from entity_storage import EntityStorageManager
+            
+            # Get corpus path (same as browser)
+            corpus_path = Path(__file__).parent.parent.parent.parent / "corpus" / "graphs"
+            storage = EntityStorageManager(corpus_path)
+            
+            # Load entity
+            entity = storage.load_entity(entity_name)
+            
+            # Load into controller
+            self.controller.load_egi(entity.current_egi)
+            
+            # Get renderable DTO
+            dto = self.controller.get_renderable_dto()
+            
+            # Display
+            self.canvas.display_dto(dto, entity.current_egi)
+            
+            # Display EGIF
+            egif = entity.get_current_egif()
+            self.egif_text.setPlainText(egif)
+            
+            # Update state
+            self._current_file = None  # Loaded from corpus, not file
+            self.export_btn.setEnabled(True)
+            self.edit_btn.setEnabled(True)
+            
+            # Show success
+            parent = self.window()
+            if hasattr(parent, 'status_bar'):
+                status = "Historical" if entity.is_historical else "Standalone"
+                parent.status_bar.showMessage(f"Loaded {status}: {entity.name}", 3000)
+        
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error Loading Entity",
+                f"Failed to load entity from corpus:\n\n{str(e)}"
+            )
     
     def _on_load_egi(self):
         """Load an EGI file."""
