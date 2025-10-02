@@ -26,7 +26,8 @@ except ImportError as e:
 
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from area_aware_pathfinder import AreaAwareGrid, AreaAwareFinder
-from style_specification import StyleSpecification, RenderableAnnotation, load_default_dau_style
+from style_loader import StyleLoader, StyleSpecification
+from style_specification import RenderableAnnotation
 
 
 # --- DTO Structure ---
@@ -129,7 +130,8 @@ class DefinitiveEGILayoutEngine:
         
         # Use default style if none provided
         if style is None:
-            style = load_default_dau_style()
+            style_loader = StyleLoader()
+            style = style_loader.load_default_style()
         
         # Initialize layout_deltas if none provided
         if layout_deltas is None:
@@ -161,7 +163,7 @@ class DefinitiveEGILayoutEngine:
         dot_string = self._generate_unified_dot(egi, style, layout_deltas)
         
         # Execute layout engine using style-specified engine
-        layout_engine = style.get('layout', {}).get('engine', 'neato')
+        layout_engine = style.raw_style_data.get('layout', {}).get('engine', 'neato')
         neato_result = self._execute_graphviz_layout(dot_string, engine=layout_engine)
         
         # Parse positions for all content
@@ -175,7 +177,7 @@ class DefinitiveEGILayoutEngine:
         lines = ["graph UnifiedLayout {"]
         
         # Apply graph-level attributes from style
-        graphviz_attrs = style.get('layout', {}).get('graphviz_attrs', {})
+        graphviz_attrs = style.raw_style_data.get('layout', {}).get('graphviz_attrs', {})
         graph_attrs = graphviz_attrs.get('graph', {})
         
         # Set default graph attributes
@@ -304,7 +306,7 @@ class DefinitiveEGILayoutEngine:
         area_bounds = {}
         
         # Get padding from style
-        area_padding = style.get('geometry', {}).get('padding', {}).get('area', 15)
+        area_padding = style.raw_style_data.get('geometry', {}).get('padding', {}).get('area', 15)
         
         # Process cuts in bottom-up order
         cut_order = self._get_bottom_up_cut_order(egi, hierarchy)
@@ -911,62 +913,56 @@ class DefinitiveEGILayoutEngine:
     def _apply_cut_styles(self, dto: LayoutDTO, egi: RelationalGraphWithCuts, style: StyleSpecification):
         """Apply styling to cut areas based on nesting depth and polarity"""
         
-        cut_config = style.get('rendering', {}).get('cuts', {})
-        
         # Calculate nesting depths
         area_depths = self._calculate_area_depths(egi)
         
         for area in sorted(dto.areas, key=lambda a: a.id):
             depth = area_depths.get(area.id, 0)
             
-            # Apply base styling
+            # Apply base styling from StyleSpecification
             area.style.update({
-                'shape': cut_config.get('shape', 'rounded_rectangle'),
-                'stroke_width': cut_config.get('stroke_width', 1.0)
+                'shape': style.cut_shape,
+                'stroke_width': style.cut_line_width
             })
             
             # Apply polarity-based fill (even = positive, odd = negative)
             if depth % 2 == 0:  # Even depth (positive area)
-                area.style['fill'] = cut_config.get('even_fill', 'transparent')
+                area.style['fill'] = style.even_polarity_fill
             else:  # Odd depth (negative area)
-                area.style['fill'] = cut_config.get('odd_fill', 'rgba(240, 240, 240, 0.5)')
+                area.style['fill'] = style.odd_polarity_fill
             
             # Check for double cuts and apply special styling
-            if self._is_double_cut(egi, area.id) and style.get('annotations', {}).get('highlight_double_cuts', False):
-                area.style['stroke_width'] = cut_config.get('double_cut_stroke_width', 2.0)
+            if self._is_double_cut(egi, area.id) and style.double_cut_highlight_enabled:
+                area.style['stroke_width'] = style.cut_line_width * 1.5
     
     def _apply_ligature_styles(self, dto: LayoutDTO, style: StyleSpecification):
         """Apply styling to ligatures"""
         
-        ligature_config = style.get('rendering', {}).get('ligatures', {})
-        
         for ligature in dto.ligatures:
             ligature.style.update({
-                'stroke_width': ligature_config.get('stroke_width', 2.5),
-                'color': ligature_config.get('color', 'black')
+                'stroke_width': style.ligature_line_width,
+                'color': 'black'  # Ligatures are always black
             })
     
     def _apply_label_styles(self, dto: LayoutDTO, style: StyleSpecification):
         """Apply styling to labels"""
         
-        label_config = style.get('rendering', {}).get('labels', {})
-        
         for label in dto.edge_labels:
             label.style.update({
-                'font_color': label_config.get('font_color', 'black')
+                'font_color': 'black',  # Labels are always black
+                'font_family': style.font_family,
+                'font_size': style.font_size
             })
     
     def _generate_annotations(self, dto: LayoutDTO, egi: RelationalGraphWithCuts, style: StyleSpecification):
         """Generate annotations based on style configuration"""
         
-        annotation_config = style.get('annotations', {})
-        
         # Generate vertex variable annotations if requested
-        if annotation_config.get('show_vertex_variables', False):
+        if style.variable_labels_enabled:
             self._generate_vertex_variable_annotations(dto, egi)
         
         # Generate double cut highlights if requested
-        if annotation_config.get('highlight_double_cuts', False):
+        if style.double_cut_highlight_enabled:
             self._generate_double_cut_annotations(dto, egi)
     
     def _calculate_area_depths(self, egi: RelationalGraphWithCuts) -> Dict[str, int]:

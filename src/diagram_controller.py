@@ -29,7 +29,7 @@ from definitive_egi_layout_engine import (
 )
 
 # Style system
-from style_specification import StyleSpecification, load_default_dau_style
+from style_loader import StyleLoader, StyleSpecification
 
 # Formal transformation rules
 from formal_transformation_rules import (
@@ -66,6 +66,7 @@ class DiagramController:
     def __init__(self):
         """Initialize the diagram controller with default components."""
         self.layout_engine = DefinitiveEGILayoutEngine()
+        self.style_loader = StyleLoader()
         self.current_style: Optional[StyleSpecification] = None
         self.layout_deltas: Dict[str, LayoutDelta] = {}
         self.current_dto: Optional[LayoutDTO] = None
@@ -103,7 +104,7 @@ class DiagramController:
 
             # Set the new model and style
             self.egi_model = egi
-            self.current_style = style or load_default_dau_style()
+            self.current_style = style or self.style_loader.load_default_style()
 
             # Clear all user constraints (fresh start)
             self.layout_deltas = {}
