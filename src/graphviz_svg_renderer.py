@@ -61,8 +61,11 @@ class GraphvizSVGRenderer:
         offset_y = 60
         
         # Render areas (cuts only, not sheet) with styling
-        for area in dto.areas:
-            if not area.is_sheet:
+        # Sort by area size (largest first) to ensure proper z-order
+        areas_to_render = [a for a in dto.areas if not a.is_sheet]
+        areas_to_render.sort(key=lambda a: a.rect.width * a.rect.height, reverse=True)
+        
+        for area in areas_to_render:
                 # Get styling from area or use defaults
                 fill_value = area.style.get('fill', 'none')
                 stroke_width = str(area.style.get('stroke_width', 1.5))
@@ -197,16 +200,21 @@ class GraphvizSVGRenderer:
         
         SVG doesn't support rgba() directly, so we need to split it.
         
+        For proper polarity alternation with nested cuts:
+        - 'transparent' renders as WHITE (opaque) to hide shaded cuts behind
+        - rgba() splits into color + opacity
+        
         Examples:
-            'transparent' -> ('none', None)
+            'transparent' -> ('white', None)  # Opaque white hides background
             'rgba(0,0,0,0.08)' -> ('black', 0.08)
             'rgba(240,240,240,0.5)' -> ('rgb(240,240,240)', 0.5)
             'black' -> ('black', None)
         """
         import re
         
+        # CRITICAL: 'transparent' must become opaque white to hide nested shading
         if fill_value == 'transparent' or fill_value == 'none':
-            return ('none', None)
+            return ('white', None)  # Opaque white, not transparent!
         
         # Match rgba(r,g,b,a) format
         rgba_match = re.match(r'rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\)', fill_value)
