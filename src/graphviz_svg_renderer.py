@@ -68,6 +68,9 @@ class GraphvizSVGRenderer:
                 stroke_width = str(area.style.get('stroke_width', 1.5))
                 shape = area.style.get('shape', 'rounded_rectangle')
                 
+                # DEBUG: Print fill value
+                print(f"DEBUG SVG Renderer: Area {area.id} fill='{fill}'")
+                
                 # Apply shape-specific attributes
                 rect_attrs = {
                     "x": str(area.rect.x + offset_x),
