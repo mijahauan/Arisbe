@@ -1,0 +1,15 @@
+{
+  "entity_id": "entity_90d52a3a",
+  "entity_type": "standalone",
+  "name": "stanford_nested_quantifiers",
+  "description": "Stanford Nested Quantifiers",
+  "category": "user_created",
+  "created": "2025-08-31T07:15:29.101854",
+  "last_modified": "2025-08-31T07:15:29.102532",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null
+}

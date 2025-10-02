@@ -1,0 +1,15 @@
+{
+  "entity_id": "entity_bcd36171",
+  "entity_type": "standalone",
+  "name": "sibling_cuts_shared_variable",
+  "description": "Sibling Cuts Shared Variable",
+  "category": "user_created",
+  "created": "2025-08-31T07:15:29.097252",
+  "last_modified": "2025-08-31T07:15:29.097882",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null
+}

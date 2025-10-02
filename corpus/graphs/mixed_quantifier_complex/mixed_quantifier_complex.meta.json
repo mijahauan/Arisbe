@@ -1,0 +1,15 @@
+{
+  "entity_id": "entity_0bbaf2ad",
+  "entity_type": "standalone",
+  "name": "mixed_quantifier_complex",
+  "description": "Mixed Quantifier Complex",
+  "category": "user_created",
+  "created": "2025-08-31T07:15:29.089160",
+  "last_modified": "2025-08-31T07:15:29.089807",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null
+}

@@ -1,0 +1,15 @@
+{
+  "entity_id": "entity_26954ea5",
+  "entity_type": "standalone",
+  "name": "peirce_modus_ponens",
+  "description": "Peirce Modus Ponens",
+  "category": "peirce",
+  "created": "2025-08-31T07:15:29.029394",
+  "last_modified": "2025-08-31T07:15:29.029747",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null
+}

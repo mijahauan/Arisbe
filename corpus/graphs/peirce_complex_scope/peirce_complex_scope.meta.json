@@ -1,0 +1,15 @@
+{
+  "entity_id": "entity_22229a1a",
+  "entity_type": "standalone",
+  "name": "peirce_complex_scope",
+  "description": "Peirce Complex Scope",
+  "category": "peirce",
+  "created": "2025-08-31T07:15:29.090891",
+  "last_modified": "2025-08-31T07:15:29.091433",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null
+}
