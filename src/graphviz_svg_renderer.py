@@ -64,12 +64,12 @@ class GraphvizSVGRenderer:
         for area in dto.areas:
             if not area.is_sheet:
                 # Get styling from area or use defaults
-                fill = area.style.get('fill', 'none')
+                fill_value = area.style.get('fill', 'none')
                 stroke_width = str(area.style.get('stroke_width', 1.5))
                 shape = area.style.get('shape', 'rounded_rectangle')
                 
-                # DEBUG: Print fill value
-                print(f"DEBUG SVG Renderer: Area {area.id} fill='{fill}'")
+                # Convert rgba() to SVG-compatible format
+                fill, opacity = self._parse_fill_value(fill_value)
                 
                 # Apply shape-specific attributes
                 rect_attrs = {
@@ -81,6 +81,10 @@ class GraphvizSVGRenderer:
                     "stroke": "black",
                     "stroke-width": stroke_width
                 }
+                
+                # Add opacity if specified
+                if opacity is not None:
+                    rect_attrs["fill-opacity"] = str(opacity)
                 
                 if shape == 'rounded_rectangle':
                     rect_attrs.update({"rx": "8.0", "ry": "8.0"})
@@ -186,6 +190,38 @@ class GraphvizSVGRenderer:
         
         # Convert to string
         return ET.tostring(svg, encoding='unicode')
+    
+    def _parse_fill_value(self, fill_value: str) -> tuple:
+        """
+        Parse fill value and return (color, opacity) for SVG.
+        
+        SVG doesn't support rgba() directly, so we need to split it.
+        
+        Examples:
+            'transparent' -> ('none', None)
+            'rgba(0,0,0,0.08)' -> ('black', 0.08)
+            'rgba(240,240,240,0.5)' -> ('rgb(240,240,240)', 0.5)
+            'black' -> ('black', None)
+        """
+        import re
+        
+        if fill_value == 'transparent' or fill_value == 'none':
+            return ('none', None)
+        
+        # Match rgba(r,g,b,a) format
+        rgba_match = re.match(r'rgba\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\)', fill_value)
+        if rgba_match:
+            r, g, b, a = rgba_match.groups()
+            # If it's pure black/white, use color name
+            if r == '0' and g == '0' and b == '0':
+                return ('black', float(a))
+            elif r == '255' and g == '255' and b == '255':
+                return ('white', float(a))
+            else:
+                return (f'rgb({r},{g},{b})', float(a))
+        
+        # No rgba, return as-is
+        return (fill_value, None)
     
     def save_svg(self, dto: LayoutDTO, title: str, egif: str, 
                  filename: str, output_dir: str = "test_outputs", style: Optional[dict] = None) -> Path:
