@@ -12,9 +12,20 @@ from entity_storage import EntityStorageManager
 corpus_path = Path("corpus/graphs")
 storage = EntityStorageManager(corpus_path)
 
-# Try Roberts domain modeling example (what user is looking at)
-entity = storage.load_entity("roberts_domain_modeling")
+# Check the "shared_constant_disjunction" from user's screenshot
+entity = storage.load_entity("shared_constant_disjunction")
 egi = entity.current_egi
+
+print(f"=== EGIF ===")
+print(entity.get_current_egif())
+print()
+print(f"=== Expected Structure from EGIF ===")
+print("EGIF: (Human \"Socrates\") ~[ ~[ (Mortal \"Socrates\") ] ]")
+print("Should mean:")
+print("  SHEET: Human edge, vertex 'Socrates', first cut")
+print("  First cut: second cut")
+print("  Second cut: Mortal edge")
+print()
 
 print("=== EGI Structure ===")
 print(f"Vertices: {[v.id for v in egi.V]}")
@@ -24,7 +35,25 @@ print()
 
 print("=== Area Assignments ===")
 for area_id, elements in sorted(egi.area.items()):
-    print(f"{area_id}: {list(elements)}")
+    # Translate element IDs to readable names
+    readable = []
+    for elem_id in elements:
+        # Check if it's an edge
+        edge = next((e for e in egi.E if e.id == elem_id), None)
+        if edge:
+            rel_name = egi.rel.get(elem_id, "?")
+            readable.append(f"{rel_name}({elem_id[:8]})")
+        # Check if it's a vertex
+        elif any(v.id == elem_id for v in egi.V):
+            readable.append(f"vertex({elem_id[:8]})")
+        # Check if it's a cut
+        elif any(c.id == elem_id for c in egi.Cut):
+            readable.append(f"cut({elem_id[:8]})")
+        else:
+            readable.append(elem_id[:8])
+    
+    area_name = "SHEET" if area_id == egi.sheet else f"cut({area_id[:8]})"
+    print(f"{area_name}: {readable}")
 print()
 
 print("=== Nu Mapping (edge -> vertices) ===")
