@@ -1256,3 +1256,285 @@ class DefinitiveEGILayoutEngine:
     def _calculate_distance(self, pos1, pos2):
         """Calculate Euclidean distance between two points"""
         return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
+    
+    # ========== HIERARCHICAL PER-AREA LAYOUT (NEW ARCHITECTURE) ==========
+    
+    def _hierarchical_layout(self, egi: RelationalGraphWithCuts, style: StyleSpecification, layout_deltas: LayoutDeltas) -> Dict:
+        """
+        NEW ARCHITECTURE: Layout elements hierarchically, respecting area membership.
+        
+        Principle: Area membership constrains positioning from the start.
+        Each area is laid out in its own local coordinate space, making area
+        violations architecturally impossible.
+        
+        Returns: content_positions dict with global coordinates
+        """
+        # Build area hierarchy (parent-child relationships)
+        hierarchy = self._build_area_hierarchy(egi)
+        
+        # Layout each area in bottom-up order (innermost first)
+        local_layouts = {}  # area_id -> {element_id: (x, y), bounds: Rect}
+        
+        for area_id in self._bottom_up_order(hierarchy, egi):
+            local_layouts[area_id] = self._layout_single_area(
+                area_id, egi, style, layout_deltas
+            )
+        
+        # Position areas within their parents (top-down)
+        area_global_positions = self._position_areas_in_parents(
+            local_layouts, hierarchy, egi, style
+        )
+        
+        # Transform all local coordinates to global
+        content_positions = self._transform_to_global(
+            local_layouts, area_global_positions, egi
+        )
+        
+        return content_positions
+    
+    def _build_area_hierarchy(self, egi: RelationalGraphWithCuts) -> Dict:
+        """Build parent-child relationships between areas"""
+        hierarchy = {area_id: [] for area_id in egi.area.keys()}
+        
+        # Find parent of each cut
+        for cut in egi.Cut:
+            parent = self._find_parent_area(cut.id, egi)
+            if parent:
+                hierarchy[parent].append(cut.id)
+        
+        return hierarchy
+    
+    def _find_parent_area(self, cut_id: str, egi: RelationalGraphWithCuts) -> Optional[str]:
+        """Find which area contains this cut"""
+        for area_id, elements in egi.area.items():
+            if cut_id in elements:
+                return area_id
+        return None
+    
+    def _bottom_up_order(self, hierarchy: Dict, egi: RelationalGraphWithCuts) -> List[str]:
+        """Return areas in bottom-up order (leaves first, root last)"""
+        visited = set()
+        order = []
+        
+        def visit(area_id):
+            if area_id in visited:
+                return
+            visited.add(area_id)
+            
+            # Visit children first (bottom-up)
+            for child_id in hierarchy.get(area_id, []):
+                visit(child_id)
+            
+            order.append(area_id)
+        
+        # Start from all leaf nodes
+        for area_id in egi.area.keys():
+            if area_id not in visited:
+                visit(area_id)
+        
+        return order
+    
+    def _layout_single_area(self, area_id: str, egi: RelationalGraphWithCuts, 
+                           style: StyleSpecification, layout_deltas: LayoutDeltas) -> Dict:
+        """
+        Layout elements within a single area using local coordinate space.
+        
+        Returns: {
+            'positions': {element_id: (x, y)},  # Local coordinates
+            'bounds': Rect  # Bounding box in local space
+        }
+        """
+        # Get elements assigned to THIS area only
+        elements = egi.area.get(area_id, frozenset())
+        
+        # Separate into vertices, edges, and child cuts
+        vertices = [v for v in egi.V if v.id in elements]
+        edges = [e for e in egi.E if e.id in elements]
+        child_cuts = [c for c in egi.Cut if c.id in elements]
+        
+        # Generate DOT for this area's elements only
+        dot_string = self._generate_area_dot(
+            area_id, vertices, edges, egi, style, layout_deltas
+        )
+        
+        # Execute Graphviz in local space
+        layout_engine = style.raw_style_data.get('layout', {}).get('engine', 'neato')
+        try:
+            result = self._execute_graphviz_layout(dot_string, engine=layout_engine)
+        except Exception as e:
+            # Fall back to simple positioning if Graphviz fails
+            return self._fallback_simple_layout(vertices, edges, style)
+        
+        # Parse positions (in local coordinates)
+        positions = {}
+        for node_id, node_data in result.get('nodes', {}).items():
+            if 'pos' in node_data:
+                pos_str = node_data['pos']
+                x, y = map(float, pos_str.split(','))
+                positions[node_id] = (x, y)
+        
+        # Calculate bounding box with padding
+        bounds = self._calculate_local_bounds(positions, vertices, edges, egi, style)
+        
+        return {'positions': positions, 'bounds': bounds}
+    
+    def _generate_area_dot(self, area_id: str, vertices: List, edges: List,
+                          egi: RelationalGraphWithCuts, style: StyleSpecification,
+                          layout_deltas: LayoutDeltas) -> str:
+        """Generate DOT string for a single area's elements"""
+        lines = [f"graph Area_{area_id[:8]} {{"]
+        
+        # Graph-level attributes from style
+        layout_engine = style.raw_style_data.get('layout', {}).get('engine', 'neato')
+        graphviz_attrs = style.raw_style_data.get('layout', {}).get('graphviz_attrs', {})
+        
+        for key, value in graphviz_attrs.items():
+            lines.append(f"  {key}={value};")
+        
+        # Add vertices
+        for vertex in vertices:
+            # Check for user position delta
+            if layout_deltas and vertex.id in layout_deltas.deltas:
+                delta = layout_deltas.deltas[vertex.id]
+                if delta.delta_type == 'vertex_position' and delta.new_position:
+                    # Pin this vertex to user-specified position
+                    x, y = delta.new_position
+                    lines.append(f'  {vertex.id} [shape=point, width=0.15, height=0.15, pos="{x},{y}!", pin=true];')
+                    continue
+            
+            # Normal vertex (let Graphviz position it)
+            lines.append(f'  {vertex.id} [shape=point, width=0.15, height=0.15];')
+        
+        # Add edge labels as nodes
+        for edge in edges:
+            edge_id = edge.id
+            relation_name = egi.rel.get(edge_id, "Relation")
+            
+            # Check for user position delta
+            if layout_deltas and edge_id in layout_deltas.deltas:
+                delta = layout_deltas.deltas[edge_id]
+                if delta.delta_type == 'edge_position' and delta.new_position:
+                    x, y = delta.new_position
+                    lines.append(f'  {edge_id} [shape=box, label="{relation_name}", pos="{x},{y}!", pin=true];')
+                    continue
+            
+            # Normal edge label
+            lines.append(f'  {edge_id} [shape=box, label="{relation_name}"];')
+        
+        # Add ligatures as edges (for force-directed positioning)
+        for edge in edges:
+            vertex_seq = egi.nu.get(edge.id, tuple())
+            for vertex_id in vertex_seq:
+                if vertex_id in [v.id for v in vertices]:  # Only if vertex is in same area
+                    lines.append(f'  {vertex_id} -- {edge.id};')
+        
+        lines.append("}")
+        return "\n".join(lines)
+    
+    def _calculate_local_bounds(self, positions: Dict, vertices: List, edges: List,
+                               egi: RelationalGraphWithCuts, style: StyleSpecification) -> Rect:
+        """Calculate bounding box for elements in local space"""
+        if not positions:
+            return Rect(0, 0, 100, 100)  # Default minimal bounds
+        
+        # Get padding from style
+        padding = style.raw_style_data.get('geometry', {}).get('padding', {}).get('area', 15)
+        
+        # Find bounding box of all positions
+        xs = [pos[0] for pos in positions.values()]
+        ys = [pos[1] for pos in positions.values()]
+        
+        min_x, max_x = min(xs), max(xs)
+        min_y, max_y = min(ys), max(ys)
+        
+        # Add padding
+        return Rect(
+            min_x - padding,
+            min_y - padding,
+            (max_x - min_x) + 2 * padding,
+            (max_y - min_y) + 2 * padding
+        )
+    
+    def _fallback_simple_layout(self, vertices: List, edges: List, style: StyleSpecification) -> Dict:
+        """Simple grid layout if Graphviz fails"""
+        positions = {}
+        padding = 50
+        
+        # Simple grid layout
+        for i, vertex in enumerate(vertices):
+            positions[vertex.id] = (padding + i * padding, padding)
+        
+        for i, edge in enumerate(edges):
+            positions[edge.id] = (padding + i * padding, padding * 2)
+        
+        bounds = Rect(0, 0, max(len(vertices), len(edges)) * padding + padding, padding * 3)
+        return {'positions': positions, 'bounds': bounds}
+    
+    def _position_areas_in_parents(self, local_layouts: Dict, hierarchy: Dict,
+                                   egi: RelationalGraphWithCuts, style: StyleSpecification) -> Dict:
+        """
+        Position each area within its parent's coordinate space.
+        Returns: {area_id: (x_offset, y_offset)}
+        """
+        area_positions = {egi.sheet: (0, 0)}  # Sheet starts at origin
+        padding = style.raw_style_data.get('geometry', {}).get('padding', {}).get('area', 15)
+        
+        # Top-down: position children within parents
+        def position_children(parent_id):
+            if parent_id not in hierarchy:
+                return
+            
+            parent_offset = area_positions.get(parent_id, (0, 0))
+            x_offset = parent_offset[0] + padding
+            y_offset = parent_offset[1] + padding
+            
+            for child_id in hierarchy[parent_id]:
+                # Position child at offset within parent
+                area_positions[child_id] = (x_offset, y_offset)
+                
+                # If this child has children, position them
+                position_children(child_id)
+                
+                # Stack children vertically (simple layout)
+                if child_id in local_layouts:
+                    y_offset += local_layouts[child_id]['bounds'].height + padding
+        
+        position_children(egi.sheet)
+        return area_positions
+    
+    def _transform_to_global(self, local_layouts: Dict, area_positions: Dict,
+                            egi: RelationalGraphWithCuts) -> Dict:
+        """Transform all local coordinates to global coordinate system"""
+        content_positions = {'vertices': {}, 'edge_labels': {}}
+        
+        for area_id, layout in local_layouts.items():
+            area_offset = area_positions.get(area_id, (0, 0))
+            
+            for element_id, local_pos in layout['positions'].items():
+                # Transform to global
+                global_x = area_offset[0] + local_pos[0]
+                global_y = area_offset[1] + local_pos[1]
+                
+                # Determine element type and store
+                if any(v.id == element_id for v in egi.V):
+                    content_positions['vertices'][element_id] = {
+                        'x': global_x,
+                        'y': global_y,
+                        'parent_area_id': area_id
+                    }
+                elif any(e.id == element_id for e in egi.E):
+                    relation_name = egi.rel.get(element_id, "Relation")
+                    # Estimate text dimensions
+                    text_width = len(relation_name) * 8 + 20
+                    text_height = 25
+                    
+                    content_positions['edge_labels'][element_id] = {
+                        'x': global_x,
+                        'y': global_y,
+                        'width': text_width,
+                        'height': text_height,
+                        'label': relation_name,
+                        'parent_area_id': area_id
+                    }
+        
+        return content_positions
