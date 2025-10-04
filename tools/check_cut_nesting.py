@@ -74,7 +74,7 @@ def check_cut_nesting(egi, dto):
     return issues
 
 def calculate_legal_corridor(vertex_area, edge_area, egi):
-    """Calculate legal corridor between two areas"""
+    """Calculate legal corridor between two areas (includes all ancestors)"""
     # Build parent relationships
     parents = {}
     for area_id, elements in egi.area.items():
@@ -92,12 +92,13 @@ def calculate_legal_corridor(vertex_area, edge_area, egi):
         return path
     
     if vertex_area == edge_area:
-        return {vertex_area}
+        # Same area - include all ancestors (being inside parent cuts is legal)
+        return set(path_to_root(vertex_area))
     
     path_v = path_to_root(vertex_area)
     path_e = path_to_root(edge_area)
     
-    # Legal corridor is the union of both paths
+    # Legal corridor is the union of both paths (includes all ancestors)
     return set(path_v) | set(path_e)
 
 def check_ligature_crossings(egi, dto):

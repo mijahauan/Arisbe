@@ -137,6 +137,10 @@ class DefinitiveEGILayoutEngine:
         if layout_deltas is None:
             layout_deltas = LayoutDeltas()
         
+        # Handle empty graphs
+        if not egi.area or egi.sheet not in egi.area:
+            return LayoutDTO()  # Return empty DTO
+        
         # NEW APPROACH: Bottom-up layout with cuts as rectangular elements
         # Step 1: Build area hierarchy
         hierarchy = self._build_area_hierarchy_v2(egi)
