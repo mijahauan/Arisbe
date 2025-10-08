@@ -87,19 +87,33 @@ save_egi_json(egi, "filename.json")
 loaded_egi = load_egi_json("filename.json")
 ```
 
-### Definitive Layout Engine
+### Definitive Three-Pass Layout Engine
 ```python
-from definitive_egi_layout_engine import DefinitiveEGILayoutEngine
-from graphviz_svg_renderer import GraphvizSVGRenderer
+from definitive_three_pass_engine import DefinitiveThreePassEngine
+from style_loader import StyleLoader
 
-layout_engine = DefinitiveEGILayoutEngine()
-svg_renderer = GraphvizSVGRenderer()
+# Load style
+style_loader = StyleLoader()
+style = style_loader.load_default_style()
 
-# Generate layout DTO
-dto = layout_engine.generate_layout(egi)
+# Generate layout with three-pass engine
+engine = DefinitiveThreePassEngine()
+dto = engine.generate_layout(egi, style, output_path_prefix)
+```
 
-# Render to SVG
-svg_path = svg_renderer.save_svg(dto, "Graph Title", "Description", "filename")
+### GUI Style Management
+```python
+from gui.style_manager import STYLE_MANAGER, get_current_style, DiagramStyle
+
+# Load and use style in GUI
+style = STYLE_MANAGER.load_default_style()
+
+# Get current style
+current = get_current_style()
+
+# Access style properties
+vertex_radius = current.vertex_radius
+cut_padding = current.cut_padding
 ```
 
 ### Transformation Rules
