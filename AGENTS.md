@@ -147,10 +147,23 @@ result = rule.apply_transformation(context)
 - **Complete validation**: 100% comprehensive coverage achieved
 
 ## 🏗️ Layout Engine Architecture
-- **Definitive EGI Layout Engine**: `src/definitive_egi_layout_engine.py` - Production-ready three-step approach
+- **Definitive Three-Pass Engine**: `src/definitive_three_pass_engine.py` - Production-ready hybrid layout
+- **Three-step pipeline**: Graphviz containers → D3 force content → A* ligature routing
+  - **Pass 1**: Graphviz neato for cut hierarchy and boundaries (with ports)
+  - **Pass 2**: D3 force simulation for element positioning within cuts
+  - **Pass 3**: Area-aware A* pathfinding for ligature routing
+- **D3 Layout Worker**: `src/d3_layout_worker.js` - Node.js worker for force simulation
+  - Port link detection via ID pattern matching
+  - Adaptive centering (disabled for port-connected nodes)
+  - Obstacle ejection for spatial/logical correspondence
+  - Force parameters: port links (50.0 strength, 5px dist), normal links (4.0, 30/50px)
 - **Area-Aware Pathfinder**: `src/area_aware_pathfinder.py` - Legal corridor A* pathfinding for ligatures
 - **Graphviz SVG Renderer**: `src/graphviz_svg_renderer.py` - Clean SVG output with mathematical precision
-- **Three-step pipeline**: Unified force-directed layout → Bottom-up bounding boxes → Area-aware ligature routing
+- **Test corpus**: `python tools/test_definitive_corpus.py` - Validates all 14 graphs
+- **Known issues**:
+  - Port link force (50.0) too strong vs normal links (4.0) - causes elements to drift apart
+  - Elements with both port and normal links prioritize ports over same-cut relationships
+  - Needs force balancing in future iteration
 
 ## 🔌 Connection Port System
 - **Pre-defined connection ports**: EdgeLabel bounding boxes have numbered ports mirroring ν mapping
