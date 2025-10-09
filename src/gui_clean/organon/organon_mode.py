@@ -37,8 +37,9 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from common.diagram_canvas import DiagramCanvas
 
-# Import metadata panel
+# Import organon components
 from organon.metadata_panel import MetadataPanel
+from organon.history_timeline import HistoryTimeline
 
 
 class OrganonMode(QWidget):
@@ -105,6 +106,11 @@ class OrganonMode(QWidget):
         
         main_area.addLayout(action_bar)
         
+        # History Timeline (shown only for historical entities)
+        self.history_timeline = HistoryTimeline()
+        self.history_timeline.state_selected.connect(self._on_state_selected)
+        main_area.addWidget(self.history_timeline)
+        
         # Main content: Canvas + Right Sidebar
         content = QHBoxLayout()
         
@@ -168,6 +174,9 @@ class OrganonMode(QWidget):
             # Update metadata panel
             self.metadata_panel.update_metadata(entity)
             
+            # Update history timeline
+            self.history_timeline.update_history(entity)
+            
             # Update state
             self._current_file = None  # Loaded from corpus, not file
             self._current_entity = entity  # Store entity for history navigation
@@ -220,8 +229,9 @@ class OrganonMode(QWidget):
             except Exception as e:
                 self.egif_text.setPlainText(f"[EGIF generation failed: {e}]")
             
-            # Clear metadata panel (file load has no entity metadata)
+            # Clear metadata panel and timeline (file load has no entity metadata)
             self.metadata_panel.clear()
+            self.history_timeline.hide()
             
             # Update state
             self._current_file = Path(file_path)
@@ -292,6 +302,55 @@ class OrganonMode(QWidget):
                 self,
                 "Export Error",
                 f"Failed to export SVG:\n\n{str(e)}"
+            )
+    
+    def _on_state_selected(self, state_id: str):
+        """
+        Navigate to selected historical state.
+        
+        Args:
+            state_id: The state ID to navigate to
+        """
+        if not self._current_entity or not self._current_entity.is_historical:
+            return
+        
+        try:
+            # Get state snapshot
+            state = self._current_entity.get_state(state_id)
+            
+            # Load state's EGI into controller
+            self.controller.load_egi(state.egi)
+            
+            # Get renderable DTO
+            dto = self.controller.get_renderable_dto()
+            
+            # Display
+            self.canvas.display_dto(dto, state.egi)
+            
+            # Update EGIF (use cached if available)
+            egif = state.linear_forms.get("egif")
+            if not egif:
+                egif = generate_egif(state.egi)
+            self.egif_text.setPlainText(egif)
+            
+            # Update history timeline to highlight new current state
+            # (This will re-render with the selected state as current)
+            self._current_entity.history.current_state_id = state_id
+            self.history_timeline.update_history(self._current_entity)
+            
+            # Show state info
+            parent = self.window()
+            if hasattr(parent, 'statusBar'):
+                parent.statusBar().showMessage(
+                    f"Viewing State {state.step_number + 1}: {state.description}",
+                    5000
+                )
+        
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error Navigating State",
+                f"Failed to navigate to state:\n\n{str(e)}"
             )
     
     def _on_edit_in_ergasterion(self):
