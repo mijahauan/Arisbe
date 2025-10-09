@@ -19,9 +19,11 @@ from egi_core_dau import RelationalGraphWithCuts, ElementID, Vertex, Edge, Cut
 
 # Layout and styling
 from definitive_egi_layout_engine import (
-    DefinitiveEGILayoutEngine,
     LayoutDeltas,
     LayoutDelta,
+)
+from definitive_three_pass_engine import (
+    DefinitiveThreePassEngine,
     LayoutDTO,
     RenderableVertex,
     RenderableEdgeLabel,
@@ -65,7 +67,7 @@ class DiagramController:
 
     def __init__(self):
         """Initialize the diagram controller with default components."""
-        self.layout_engine = DefinitiveEGILayoutEngine()
+        self.layout_engine = DefinitiveThreePassEngine()
         self.style_loader = StyleLoader()
         self.current_style: Optional[StyleSpecification] = None
         self.layout_deltas: Dict[str, LayoutDelta] = {}

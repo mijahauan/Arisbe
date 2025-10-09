@@ -11,7 +11,7 @@ import json
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass, field
 
 from egi_core_dau import RelationalGraphWithCuts
@@ -61,6 +61,7 @@ class RenderableVertex:
     parent_area_id: str
     pos: Tuple[float, float]
     label: str = ""
+    style: Dict = field(default_factory=dict)  # For highlighting and visual effects
 
 
 @dataclass
@@ -70,6 +71,7 @@ class RenderableEdgeLabel:
     rect: Rect
     label: str
     connection_ports: List[ConnectionPort] = field(default_factory=list)
+    style: Dict = field(default_factory=dict)  # For highlighting and visual effects
 
 
 @dataclass
@@ -78,6 +80,7 @@ class RenderableLigature:
     end_edge_id: str
     end_hook_index: int
     path_points: List[Tuple[float, float]]
+    style: Dict = field(default_factory=dict)  # For highlighting and visual effects
 
 
 @dataclass
@@ -86,6 +89,7 @@ class LayoutDTO:
     vertices: List[RenderableVertex] = field(default_factory=list)
     edge_labels: List[RenderableEdgeLabel] = field(default_factory=list)
     ligatures: List[RenderableLigature] = field(default_factory=list)
+    annotations: List[Any] = field(default_factory=list)  # For comments, labels, etc.
 
 
 @dataclass
