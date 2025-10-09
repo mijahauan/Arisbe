@@ -343,7 +343,8 @@ function layoutContent(payload) {
     
     const positions = {};
     for (const node of simNodes) {
-        if (!node.fx && !node.fy && node.type !== 'obstacle') {
+        // Include all nodes except obstacles (pinned nodes should be returned!)
+        if (node.type !== 'obstacle' && node.type !== 'port') {
             positions[node.id] = {
                 x: node.x,
                 y: node.y

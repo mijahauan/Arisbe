@@ -53,6 +53,7 @@ class RenderableArea:
     parent_id: Optional[str]
     rect: Rect
     is_sheet: bool = False
+    style: Dict = field(default_factory=dict)  # For highlighting and visual effects
 
 
 @dataclass
