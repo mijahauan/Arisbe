@@ -1,0 +1,30 @@
+<svg width="396.0" height="408.94" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ *x (P x) ~[ *y (Q x y) ~[ ~[ *z (R y z) ~[ (S z) ] ] ] ] ]</text>
+<g transform="translate(0, 30)">
+<polyline points="236.19784704533848,158.2306401547179 208.0,222.46804087283317" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="92.040394175342,40.698222157826564 107.21877691166253,105.54460231675478" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="306.25674373978893,80.15698514555014 107.21877691166253,105.54460231675478" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="92.040394175342,40.698222157826564 41.0,38.0" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="306.25674373978893,80.15698514555014 272.7171067476892,167.039671560643" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="236.19784704533848,158.2306401547179 272.7171067476892,167.039671560643" fill="none" stroke="#666" stroke-width="2"/>
+<rect x="8.0" y="8.0" width="380.0" height="352.94" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<rect x="72.0" y="55.81" width="296.0" height="285.13" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<rect x="138.0" y="95.63" width="210.0" height="225.31" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<rect x="158.0" y="115.63" width="150.0" height="185.31" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<rect x="178.0" y="173.45" width="64.0" height="107.49000000000001" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<circle cx="92.040394175342" cy="40.698222157826564" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="92.040394175342" y="44.698222157826564" text-anchor="middle" font-size="12">*</text>
+<circle cx="236.19784704533848" cy="158.2306401547179" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="236.19784704533848" y="162.2306401547179" text-anchor="middle" font-size="12">*</text>
+<circle cx="306.25674373978893" cy="80.15698514555014" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="306.25674373978893" y="84.15698514555014" text-anchor="middle" font-size="12">*</text>
+<rect x="188.0" y="210.46804087283317" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="208.0" y="226.46804087283317" text-anchor="middle" font-size="12">S</text>
+<rect x="87.21877691166253" y="93.54460231675478" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="107.21877691166253" y="109.54460231675478" text-anchor="middle" font-size="12">Q</text>
+<rect x="21.0" y="26.0" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="41.0" y="42.0" text-anchor="middle" font-size="12">P</text>
+<rect x="252.71710674768917" y="155.039671560643" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="272.7171067476892" y="171.039671560643" text-anchor="middle" font-size="12">R</text>
+</g>
+</svg>

@@ -1,0 +1,33 @@
+<svg width="522.0" height="232.38" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ *x (Professor x) ~[ *y *z (Course y) (Has x z) (Person x) (Student z) (Teaches x y) ] ]</text>
+<g transform="translate(0, 30)">
+<polyline points="100.5408730468189,75.63424995802721 326.6582994648772,106.17824555256007" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="379.30376507731324,76.47651644677369 326.6582994648772,106.17824555256007" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="195.44522863819734,105.87656072245642 170.23925521461902,134.38" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="379.30376507731324,76.47651644677369 372.21086573982177,126.79265902765769" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="100.5408730468189,75.63424995802721 45.69098372449868,143.28429049257582" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="100.5408730468189,75.63424995802721 238.69835540983695,88.37694139102706" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="195.44522863819734,105.87656072245642 238.69835540983695,88.37694139102706" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="100.5408730468189,75.63424995802721 147.93211265321386,89.62405704902827" fill="none" stroke="#666" stroke-width="2"/>
+<rect x="8.0" y="8.0" width="506.0" height="176.38" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<rect x="116.0" y="55.81999999999999" width="378.0" height="108.56" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<circle cx="100.5408730468189" cy="75.63424995802721" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="100.5408730468189" y="79.63424995802721" text-anchor="middle" font-size="12">*</text>
+<circle cx="379.30376507731324" cy="76.47651644677369" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="379.30376507731324" y="80.47651644677369" text-anchor="middle" font-size="12">*</text>
+<circle cx="195.44522863819734" cy="105.87656072245642" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="195.44522863819734" y="109.87656072245642" text-anchor="middle" font-size="12">*</text>
+<rect x="298.6582994648772" y="94.17824555256007" width="56" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="326.6582994648772" y="110.17824555256007" text-anchor="middle" font-size="12">Teaches</text>
+<rect x="142.23925521461902" y="122.38" width="56" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="170.23925521461902" y="138.38" text-anchor="middle" font-size="12">Student</text>
+<rect x="348.21086573982177" y="114.79265902765769" width="48" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="372.21086573982177" y="130.7926590276577" text-anchor="middle" font-size="12">Course</text>
+<rect x="9.690983724498679" y="131.28429049257582" width="72" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="45.69098372449868" y="147.28429049257582" text-anchor="middle" font-size="12">Professor</text>
+<rect x="218.69835540983695" y="76.37694139102706" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="238.69835540983695" y="92.37694139102706" text-anchor="middle" font-size="12">Has</text>
+<rect x="123.93211265321386" y="77.62405704902827" width="48" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="147.93211265321386" y="93.62405704902827" text-anchor="middle" font-size="12">Person</text>
+</g>
+</svg>

@@ -1,0 +1,14 @@
+<svg width="104.0" height="155.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ *x *y (Loves x y) ]</text>
+<g transform="translate(0, 30)">
+<polyline points="32.640482693627234,30.100608978962814 48.027561111058205,77.63" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="81.0,40.32805532334291 48.027561111058205,77.63" fill="none" stroke="#666" stroke-width="2"/>
+<rect x="8.0" y="8.0" width="88.0" height="99.63" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<circle cx="81.0" cy="40.32805532334291" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="81.0" y="44.32805532334291" text-anchor="middle" font-size="12">*</text>
+<circle cx="32.640482693627234" cy="30.100608978962814" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="32.640482693627234" y="34.10060897896281" text-anchor="middle" font-size="12">*</text>
+<rect x="28.027561111058205" y="65.63" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="48.027561111058205" y="81.63" text-anchor="middle" font-size="12">Loves</text>
+</g>
+</svg>

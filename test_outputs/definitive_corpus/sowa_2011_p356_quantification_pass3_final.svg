@@ -1,0 +1,13 @@
+<svg width="212.0" height="171.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: *x (Human x) (Mortal x)</text>
+<g transform="translate(0, 30)">
+<polyline points="112.99771539493503,79.26206231225257 130.3089190492315,32.45810570521861" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="112.99771539493503,79.26206231225257 63.6400610728131,85.11383258457104" fill="none" stroke="#666" stroke-width="2"/>
+<circle cx="112.99771539493503" cy="79.26206231225257" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="112.99771539493503" y="83.26206231225257" text-anchor="middle" font-size="12">*</text>
+<rect x="110.30891904923149" y="20.458105705218607" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="130.3089190492315" y="36.45810570521861" text-anchor="middle" font-size="12">Human</text>
+<rect x="39.6400610728131" y="73.11383258457104" width="48" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="63.6400610728131" y="89.11383258457104" text-anchor="middle" font-size="12">Mortal</text>
+</g>
+</svg>

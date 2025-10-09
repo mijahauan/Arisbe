@@ -28,25 +28,13 @@ from egi_core_dau import RelationalGraphWithCuts, ElementID
 from area_aware_pathfinder import AreaAwareGrid, AreaAwareFinder
 from style_loader import StyleLoader, StyleSpecification
 from style_specification import RenderableAnnotation
+from constrained_force_layout import ConstrainedForceLayout, Rect
+from d3_layout_engine import D3LayoutEngine
+from tulip_layout_engine import TulipLayoutEngine
 
 
 # --- DTO Structure ---
-
-@dataclass
-class Rect:
-    x: float
-    y: float
-    width: float
-    height: float
-    
-    def union(self, other: 'Rect') -> 'Rect':
-        """Return the union (bounding box) of two rectangles"""
-        min_x = min(self.x, other.x)
-        min_y = min(self.y, other.y)
-        max_x = max(self.x + self.width, other.x + other.width)
-        max_y = max(self.y + self.height, other.y + other.height)
-        return Rect(min_x, min_y, max_x - min_x, max_y - min_y)
-
+# Note: Using Rect from constrained_force_layout
 
 @dataclass
 class RenderableArea:
@@ -62,6 +50,7 @@ class RenderableVertex:
     id: str
     parent_area_id: str
     pos: Tuple[float, float]
+    label: str = ""  # Vertex label (constant or generic variable)
     style: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -141,15 +130,35 @@ class DefinitiveEGILayoutEngine:
         if not egi.area or egi.sheet not in egi.area:
             return LayoutDTO()  # Return empty DTO
         
-        # NEW APPROACH: Bottom-up layout with cuts as rectangular elements
-        # Step 1: Build area hierarchy
+        # D3 FORCE-DIRECTED LAYOUT WITH HARD CONTAINMENT
+        # Build area hierarchy
         hierarchy = self._build_area_hierarchy_v2(egi)
         
-        # Step 2: Layout each area bottom-up (innermost first)
-        area_layouts = self._bottom_up_area_layout(egi, hierarchy, style, layout_deltas)
+        # PASS 1: Position nodes with hard containment constraints
+        # Try D3 first (hard containment forces), then fallbacks
+        area_bounds = self._calculate_area_sizes_bottom_up(egi, hierarchy)
         
-        # Step 3: Transform local coordinates to global
-        global_positions, area_bounds = self._transform_to_global_coords(egi, hierarchy, area_layouts)
+        try:
+            # D3 with custom containment and exclusion forces (PREFERRED)
+            d3_engine = D3LayoutEngine()
+            global_positions, area_bounds = d3_engine.generate_layout(egi, hierarchy, area_bounds, iterations=500)
+            # print("Using D3 layout with hard containment forces")
+        except RuntimeError as e:
+            # print(f"D3 unavailable: {e}")
+            try:
+                # Fallback to Tulip (suboptimal - no hard containment)
+                tulip_engine = TulipLayoutEngine()
+                global_positions, area_bounds = tulip_engine.generate_layout(egi, hierarchy, area_bounds)
+                # print("Using Tulip layout (containment not guaranteed)")
+            except RuntimeError as e2:
+                # Final fallback to Python
+                # print(f"Tulip unavailable: {e2}")
+                # print("Using Python force layout (final fallback)")
+                force_layout = ConstrainedForceLayout(egi, hierarchy)
+                global_positions, area_bounds = force_layout.generate_layout(iterations=200)
+        
+        # PASS 2: Inflate container boundaries for ligature routing space
+        area_bounds = self._inflate_containers_for_routing(area_bounds, style)
         
         # Step 4: Create DTO from positioned elements
         dto = self._create_dto_from_positions(egi, global_positions, area_bounds)
@@ -446,6 +455,257 @@ class DefinitiveEGILayoutEngine:
                    bounding_box.width + 2 * sheet_padding, 
                    bounding_box.height + 2 * sheet_padding)
     
+    def _transform_local_to_global(self, local_positions: Dict, local_area_bounds: Dict,
+                                   hierarchy: Dict, sheet_id: str) -> Tuple[Dict, Dict]:
+        """
+        Transform LOCAL coordinates to GLOBAL coordinates based on hierarchy.
+        
+        Each area was laid out in its own LOCAL space (0,0 origin).
+        We walk the hierarchy and accumulate offsets.
+        """
+        global_positions = {'vertices': {}, 'edge_labels': {}}
+        global_area_bounds = {}
+        
+        # Calculate global offset for each area
+        area_offsets = {}
+        
+        def calculate_offset(area_id, parent_offset=(0, 0)):
+            """Recursively calculate global offset for each area"""
+            area_offsets[area_id] = parent_offset
+            
+            # Transform area bounds to global
+            local_bounds = local_area_bounds.get(area_id)
+            if local_bounds:
+                global_area_bounds[area_id] = Rect(
+                    parent_offset[0],  # Global X
+                    parent_offset[1],  # Global Y
+                    local_bounds.width,
+                    local_bounds.height
+                )
+            
+            # Recurse to children
+            # Each child gets offset: parent_offset + padding + (spacing * child_index)
+            children = hierarchy.get(area_id, {}).get('children', [])
+            for i, child_id in enumerate(children):
+                # Sibling spacing: offset each sibling to avoid overlap
+                spacing = 150  # Pixels between siblings
+                child_offset_x = parent_offset[0] + 25 + (i % 2) * spacing  # Grid layout
+                child_offset_y = parent_offset[1] + 25 + (i // 2) * spacing
+                calculate_offset(child_id, (child_offset_x, child_offset_y))
+        
+        # Start from sheet
+        calculate_offset(sheet_id, (0, 0))
+        
+        # Transform vertex positions
+        for vertex_id, pos_data in local_positions['vertices'].items():
+            area_id = pos_data['parent_area_id']
+            offset = area_offsets.get(area_id, (0, 0))
+            
+            global_positions['vertices'][vertex_id] = {
+                'x': pos_data['x'] + offset[0],
+                'y': pos_data['y'] + offset[1],
+                'parent_area_id': area_id
+            }
+        
+        # Transform edge label positions
+        for edge_id, pos_data in local_positions['edge_labels'].items():
+            area_id = pos_data['parent_area_id']
+            offset = area_offsets.get(area_id, (0, 0))
+            
+            global_positions['edge_labels'][edge_id] = {
+                'x': pos_data['x'] + offset[0],
+                'y': pos_data['y'] + offset[1],
+                'width': pos_data['width'],
+                'height': pos_data['height'],
+                'label': pos_data['label'],
+                'parent_area_id': area_id
+            }
+        
+        return global_positions, global_area_bounds
+    
+    def _enforce_spatial_exclusion(self, global_positions: Dict, global_area_bounds: Dict,
+                                   hierarchy: Dict) -> Dict:
+        """
+        Enforce spatial exclusion: parent elements cannot be inside child cut bounds.
+        
+        Child cuts "carve out" forbidden zones from their parent areas.
+        Move any parent elements that collide with child cuts.
+        """
+        corrected_positions = {'vertices': {}, 'edge_labels': {}}
+        
+        # Build map of area_id -> list of child cut bounds
+        child_cuts = {}
+        for area_id in hierarchy.keys():
+            children = hierarchy[area_id]['children']
+            child_cuts[area_id] = [global_area_bounds[child_id] for child_id in children 
+                                   if child_id in global_area_bounds]
+        
+        # Check and fix vertex positions
+        for vertex_id, pos_data in global_positions['vertices'].items():
+            x, y = pos_data['x'], pos_data['y']
+            parent_area_id = pos_data['parent_area_id']
+            parent_rect = global_area_bounds.get(parent_area_id)
+            
+            # Check if vertex is inside any child cut
+            collision = False
+            for child_rect in child_cuts.get(parent_area_id, []):
+                if (x >= child_rect.x and x <= child_rect.x + child_rect.width and
+                    y >= child_rect.y and y <= child_rect.y + child_rect.height):
+                    collision = True
+                    # Move to safe position: above the cut
+                    y = child_rect.y - 20
+                    x = child_rect.x + child_rect.width / 2
+                    break
+            
+            # CRITICAL: Use hard clamp to ensure containment
+            x, y = self._clamp_to_parent_bounds(x, y, parent_rect, 'vertex')
+            
+            corrected_positions['vertices'][vertex_id] = {
+                'x': x, 'y': y, 'parent_area_id': parent_area_id
+            }
+        
+        # Check and fix edge label positions (check full bounding box, not just center)
+        for edge_id, pos_data in global_positions['edge_labels'].items():
+            x, y = pos_data['x'], pos_data['y']
+            width, height = pos_data['width'], pos_data['height']
+            parent_area_id = pos_data['parent_area_id']
+            
+            # Calculate edge label bounding box
+            label_x1 = x - width / 2
+            label_y1 = y - height / 2
+            label_x2 = x + width / 2
+            label_y2 = y + height / 2
+            
+            # Check if edge label bounding box overlaps any child cut
+            collision = False
+            for child_rect in child_cuts.get(parent_area_id, []):
+                # Check if bounding boxes overlap
+                if not (label_x2 <= child_rect.x or label_x1 >= child_rect.x + child_rect.width or
+                        label_y2 <= child_rect.y or label_y1 >= child_rect.y + child_rect.height):
+                    collision = True
+                    # Move to safe position: above the cut
+                    y = child_rect.y - 20
+                    x = child_rect.x + child_rect.width / 2
+                    break
+            
+            # CRITICAL: Use hard clamp to ensure containment
+            parent_rect = global_area_bounds.get(parent_area_id)
+            x, y = self._clamp_to_parent_bounds(x, y, parent_rect, 'edge_label', width, height)
+            
+            corrected_positions['edge_labels'][edge_id] = {
+                'x': x, 'y': y,
+                'width': pos_data['width'],
+                'height': pos_data['height'],
+                'label': pos_data['label'],
+                'parent_area_id': parent_area_id
+            }
+        
+        return corrected_positions
+    
+    def _clamp_to_parent_bounds(self, x: float, y: float, parent_rect, 
+                                element_type: str = 'vertex', width: float = 0, height: float = 0) -> tuple:
+        """
+        HARD CLAMP: Ensure element position is ALWAYS within parent bounds.
+        This is the single source of truth for containment enforcement.
+        
+        Returns: (clamped_x, clamped_y)
+        """
+        if not parent_rect:
+            return (x, y)
+        
+        if element_type == 'vertex':
+            # Vertex: account for label rendered 10px above
+            margin_left = 10
+            margin_right = 10
+            margin_top = 20  # Extra for label above
+            margin_bottom = 10
+            
+            clamped_x = max(parent_rect.x + margin_left, 
+                           min(parent_rect.x + parent_rect.width - margin_right, x))
+            clamped_y = max(parent_rect.y + margin_top, 
+                           min(parent_rect.y + parent_rect.height - margin_bottom, y))
+            
+        else:  # edge_label
+            # Edge label: full bounding box must fit
+            margin = 10
+            
+            # Clamp center so full box stays within bounds
+            clamped_x = max(parent_rect.x + margin + width/2,
+                           min(parent_rect.x + parent_rect.width - margin - width/2, x))
+            clamped_y = max(parent_rect.y + margin + height/2,
+                           min(parent_rect.y + parent_rect.height - margin - height/2, y))
+        
+        return (clamped_x, clamped_y)
+    
+    def _enforce_minimum_spacing(self, global_positions: Dict, global_area_bounds: Dict,
+                                egi: RelationalGraphWithCuts) -> Dict:
+        """
+        Enforce minimum spacing between vertices and edge labels.
+        
+        Ensures ligatures have adequate length for visibility by maintaining
+        minimum 40px separation between connected elements.
+        """
+        MIN_SPACING = 40  # Minimum pixels between vertex and edge label
+        
+        corrected_positions = {'vertices': {}, 'edge_labels': {}}
+        
+        # First pass: copy all positions
+        corrected_positions['vertices'] = dict(global_positions['vertices'])
+        corrected_positions['edge_labels'] = dict(global_positions['edge_labels'])
+        
+        # For each edge, enforce spacing from ALL connected vertices
+        for edge_id, vertices in egi.nu.items():
+            if edge_id not in corrected_positions['edge_labels']:
+                continue
+            
+            edge_data = corrected_positions['edge_labels'][edge_id]
+            edge_area = edge_data['parent_area_id']
+            
+            # Collect all push forces from vertices that are too close
+            total_push_x = 0.0
+            total_push_y = 0.0
+            num_pushes = 0
+            
+            for vertex_id in vertices:
+                if vertex_id not in corrected_positions['vertices']:
+                    continue
+                
+                vertex_data = corrected_positions['vertices'][vertex_id]
+                vertex_x, vertex_y = vertex_data['x'], vertex_data['y']
+                
+                # Calculate distance from vertex to edge
+                dx = edge_data['x'] - vertex_x
+                dy = edge_data['y'] - vertex_y
+                dist = (dx*dx + dy*dy)**0.5
+                
+                # If too close, accumulate push force
+                if dist < MIN_SPACING and dist > 0.1:
+                    # Push direction (away from vertex)
+                    push_strength = (MIN_SPACING - dist) / dist
+                    total_push_x += dx * push_strength
+                    total_push_y += dy * push_strength
+                    num_pushes += 1
+            
+            # Apply cumulative push if any vertices were too close
+            if num_pushes > 0:
+                proposed_x = edge_data['x'] + total_push_x
+                proposed_y = edge_data['y'] + total_push_y
+                
+                # CRITICAL: Hard clamp to parent bounds - NEVER allow violations
+                parent_rect = global_area_bounds.get(edge_area)
+                width = edge_data['width']
+                height = edge_data['height']
+                
+                final_x, final_y = self._clamp_to_parent_bounds(
+                    proposed_x, proposed_y, parent_rect, 'edge_label', width, height
+                )
+                
+                # Update position (always safe due to hard clamp)
+                corrected_positions['edge_labels'][edge_id]['x'] = final_x
+                corrected_positions['edge_labels'][edge_id]['y'] = final_y
+        
+        return corrected_positions
+    
     def _create_dto_from_positions(self, egi: RelationalGraphWithCuts, 
                                  positions: Dict, area_bounds: Dict) -> LayoutDTO:
         """Create DTO from calculated positions and bounds"""
@@ -453,21 +713,44 @@ class DefinitiveEGILayoutEngine:
         dto = LayoutDTO()
         hierarchy = self._build_cut_hierarchy(egi)
         
-        # Create areas
-        for area_id, rect in area_bounds.items():
+        # CRITICAL: Transform LOCAL coordinates to GLOBAL based on hierarchy
+        global_positions, global_area_bounds = self._transform_local_to_global(
+            positions, area_bounds, hierarchy, egi.sheet
+        )
+        
+        # CRITICAL: Enforce spatial exclusion - parent elements cannot be inside child cuts
+        global_positions = self._enforce_spatial_exclusion(
+            global_positions, global_area_bounds, hierarchy
+        )
+        
+        # CRITICAL: Enforce minimum spacing between vertices and edge labels
+        global_positions = self._enforce_minimum_spacing(
+            global_positions, global_area_bounds, egi
+        )
+        
+        # Create areas (now with global bounds)
+        for area_id, rect in global_area_bounds.items():
             parent_id = hierarchy[area_id]['parent'] if area_id != egi.sheet else None
             area = RenderableArea(id=area_id, parent_id=parent_id, rect=rect,
                                 is_sheet=(area_id == egi.sheet))
             dto.areas.append(area)
         
-        # Create vertices
-        for vertex_id, pos_data in positions['vertices'].items():
-            vertex = RenderableVertex(id=vertex_id, parent_area_id=pos_data['parent_area_id'],
-                                    pos=(pos_data['x'], pos_data['y']))
+        # Create vertices (now with global positions)
+        for vertex_id, pos_data in global_positions['vertices'].items():
+            # Get vertex label from EGI
+            vertex_obj = next((v for v in egi.V if v.id == vertex_id), None)
+            label = vertex_obj.label if vertex_obj else ""
+            
+            vertex = RenderableVertex(
+                id=vertex_id, 
+                parent_area_id=pos_data['parent_area_id'],
+                pos=(pos_data['x'], pos_data['y']),
+                label=label
+            )
             dto.vertices.append(vertex)
         
-        # Create edge labels
-        for edge_id, pos_data in positions['edge_labels'].items():
+        # Create edge labels (now with global positions)
+        for edge_id, pos_data in global_positions['edge_labels'].items():
             # Create tight bounding box around text
             rect = Rect(pos_data['x'] - pos_data['width']/2, pos_data['y'] - pos_data['height']/2,
                        pos_data['width'], pos_data['height'])
@@ -475,7 +758,7 @@ class DefinitiveEGILayoutEngine:
             # Calculate connection ports based on nu mapping and vertex positions
             vertex_sequence = egi.nu.get(edge_id, [])
             connection_ports = self._calculate_connection_ports_with_vertices(
-                rect, vertex_sequence, positions['vertices']
+                rect, vertex_sequence, global_positions['vertices']
             )
             
             edge_label = RenderableEdgeLabel(
@@ -542,14 +825,36 @@ class DefinitiveEGILayoutEngine:
                     )
                     
                     if path_points:
+                        # CRITICAL FIX: Ensure ligature is visible (minimum 30px)
+                        if len(path_points) >= 2:
+                            dx = path_points[-1][0] - path_points[0][0]
+                            dy = path_points[-1][1] - path_points[0][1]
+                            dist = (dx*dx + dy*dy)**0.5
+                            if dist < 30.0:
+                                # Make ligature visible by extending toward edge label center
+                                edge_cx = edge_label.rect.x + edge_label.rect.width / 2
+                                edge_cy = edge_label.rect.y + edge_label.rect.height / 2
+                                dir_x = edge_cx - vertex.pos[0]
+                                dir_y = edge_cy - vertex.pos[1]
+                                dir_len = (dir_x*dir_x + dir_y*dir_y)**0.5
+                                if dir_len > 0.1:
+                                    scale = 30.0 / dir_len
+                                    path_points = [vertex.pos, (vertex.pos[0] + dir_x * scale,
+                                                               vertex.pos[1] + dir_y * scale)]
+                        
                         ligature = RenderableLigature(
                             start_vertex_id=vertex_id, end_edge_id=edge_id,
                             end_hook_index=hook_index, path_points=path_points
                         )
                         dto.ligatures.append(ligature)
     
-    def _build_area_aware_collision_map(self, dto: LayoutDTO) -> Tuple:
-        """Build collision map with area membership tracking"""
+    def _build_area_aware_collision_map(self, dto: LayoutDTO, forbidden_areas: Optional[Set[str]] = None) -> Tuple:
+        """
+        Build collision map with area membership tracking.
+        
+        If forbidden_areas is provided, mark those areas as hard obstacles
+        to prevent ligatures from passing through them (e.g., sibling cuts).
+        """
         
         all_rects = [area.rect for area in dto.areas]
         if not all_rects:
@@ -574,8 +879,14 @@ class DefinitiveEGILayoutEngine:
         for area in sorted_areas:
             self._mark_area_in_grid(area_map, area, grid_bounds)
         
-        # Mark obstacles: vertices and edge labels only
-        # Cuts are NOT hard obstacles - legal corridor determines crossing permission
+        # CRITICAL: Mark forbidden areas (sibling cuts) as obstacles
+        if forbidden_areas:
+            for area in dto.areas:
+                if area.id in forbidden_areas:
+                    # Mark the entire interior of this area as unwalkable
+                    self._mark_rect_as_obstacle(walkable_matrix, area.rect, grid_bounds)
+        
+        # Mark vertices and edge labels as obstacles
         for vertex in dto.vertices:
             vertex_rect = Rect(vertex.pos[0] - 3, vertex.pos[1] - 3, 6, 6)
             self._mark_rect_as_obstacle(walkable_matrix, vertex_rect, grid_bounds)
@@ -600,12 +911,12 @@ class DefinitiveEGILayoutEngine:
         target_x = max(0, min(target_x, area_grid.width - 1))
         target_y = max(0, min(target_y, area_grid.height - 1))
         
-        # Calculate legal corridor
-        legal_areas = self._calculate_legal_corridor(
+        # Calculate legal corridor and forbidden areas
+        legal_areas, forbidden_areas = self._calculate_legal_corridor(
             vertex.parent_area_id, edge_label.parent_area_id, hierarchy
         )
         
-        # Use area-aware finder
+        # Use area-aware finder with legal corridor
         finder = AreaAwareFinder(legal_areas)
         
         try:
@@ -633,8 +944,26 @@ class DefinitiveEGILayoutEngine:
             # CRITICAL FIX: Ensure path starts at exact vertex position and ends at exact target
             # The A* grid path may have quantization errors
             if world_path:
-                world_path[0] = vertex.pos  # Force exact start position
-                world_path[-1] = target_world  # Force exact end position
+                if len(world_path) == 1:
+                    # Single point - expand to 2-point path
+                    world_path = [vertex.pos, target_world]
+                else:
+                    world_path[0] = vertex.pos  # Force exact start position
+                    world_path[-1] = target_world  # Force exact end position
+            
+            # WORKAROUND: If ligature is too short (< 3px), offset the target slightly
+            # This happens when D3 places elements too close together
+            if len(world_path) >= 2:
+                dx = world_path[-1][0] - world_path[0][0]
+                dy = world_path[-1][1] - world_path[0][1]
+                dist = (dx*dx + dy*dy)**0.5
+                if dist < 3.0:
+                    # Offset target by minimum 10 pixels in the direction of the edge label center
+                    offset_x = dx if abs(dx) > 0.1 else 0
+                    offset_y = dy if abs(dy) > 0.1 else 10  # Default down if vertical
+                    scale = 10.0 / max(dist, 0.1)
+                    world_path[-1] = (world_path[-1][0] + offset_x * scale,
+                                     world_path[-1][1] + offset_y * scale)
             
             return world_path
             
@@ -642,18 +971,27 @@ class DefinitiveEGILayoutEngine:
             return [vertex.pos, (edge_label.rect.x + edge_label.rect.width/2,
                                edge_label.rect.y + edge_label.rect.height/2)]
     
-    def _calculate_legal_corridor(self, area_a: str, area_b: str, hierarchy: Dict) -> Set[str]:
-        """Calculate legal corridor for path between two areas"""
+    def _calculate_legal_corridor(self, area_a: str, area_b: str, hierarchy: Dict) -> Tuple[Set[str], Set[str]]:
+        """
+        Calculate legal corridor for path between two areas.
+        
+        CRITICAL: Sibling cuts are FORBIDDEN. A ligature cannot pass through
+        the interior of a sibling cut to reach its target.
+        
+        Returns: (corridor_areas, forbidden_areas)
+        """
         
         if area_a == area_b:
-            return {area_a}
+            all_areas = set(hierarchy.keys())
+            return {area_a}, all_areas - {area_a}
         
         path_a = self._get_path_to_root(area_a, hierarchy)
         path_b = self._get_path_to_root(area_b, hierarchy)
         
         common_ancestors = set(path_a) & set(path_b)
         if not common_ancestors:
-            return set(hierarchy.keys())
+            all_areas = set(hierarchy.keys())
+            return all_areas, set()
         
         lca = min(common_ancestors, key=lambda x: len(self._get_path_to_root(x, hierarchy)))
         
@@ -671,7 +1009,13 @@ class DefinitiveEGILayoutEngine:
             current = hierarchy[current]['parent']
         
         corridor.add(lca)
-        return corridor
+        
+        # CRITICAL: Build forbidden set - all areas NOT in the corridor
+        # This includes sibling cuts that should block the path
+        all_areas = set(hierarchy.keys())
+        forbidden = all_areas - corridor
+        
+        return corridor, forbidden
     
     def _get_path_to_root(self, area_id: str, hierarchy: Dict) -> List[str]:
         """Get path from area to root"""
@@ -1193,12 +1537,12 @@ class DefinitiveEGILayoutEngine:
         target_x = max(0, min(target_x, area_grid.width - 1))
         target_y = max(0, min(target_y, area_grid.height - 1))
         
-        # Calculate legal corridor
-        legal_areas = self._calculate_legal_corridor(
+        # Calculate legal corridor and forbidden areas
+        legal_areas, forbidden_areas = self._calculate_legal_corridor(
             vertex.parent_area_id, edge_label.parent_area_id, hierarchy
         )
         
-        # Use area-aware finder
+        # Use area-aware finder with legal corridor
         finder = AreaAwareFinder(legal_areas)
         
         try:
@@ -1207,7 +1551,8 @@ class DefinitiveEGILayoutEngine:
             path, runs = finder.find_path(start_node, end_node, area_grid)
             
             if not path:
-                # Fallback to direct line if pathfinding fails
+                # TEMPORARY: Allow fallback to test compact packing
+                # TODO: Fix pathfinding to prevent illegal crossings
                 return [vertex.pos, target_port.position]
             
             # Convert path back to world coordinates
@@ -1220,14 +1565,37 @@ class DefinitiveEGILayoutEngine:
             # CRITICAL FIX: Ensure path starts at exact vertex position and ends at exact port position
             # The A* grid path may have quantization errors
             if world_path:
-                world_path[0] = vertex.pos  # Force exact start position
-                if target_port:
-                    world_path[-1] = target_port.position  # Force exact end position
+                if len(world_path) == 1:
+                    # Single point - expand to 2-point path
+                    world_path = [vertex.pos, target_port.position if target_port else vertex.pos]
+                else:
+                    world_path[0] = vertex.pos  # Force exact start position
+                    if target_port:
+                        world_path[-1] = target_port.position  # Force exact end position
+            
+            # WORKAROUND: If ligature is too short (< 3px), offset the target slightly
+            # This happens when D3 places elements too close together
+            if len(world_path) >= 2:
+                dx = world_path[-1][0] - world_path[0][0]
+                dy = world_path[-1][1] - world_path[0][1]
+                dist = (dx*dx + dy*dy)**0.5
+                if dist < 3.0 and target_port:
+                    # Offset target by minimum 10 pixels toward the edge label center
+                    edge_center_x = edge_label.rect.x + edge_label.rect.width / 2
+                    edge_center_y = edge_label.rect.y + edge_label.rect.height / 2
+                    dir_x = edge_center_x - vertex.pos[0]
+                    dir_y = edge_center_y - vertex.pos[1]
+                    dir_len = (dir_x*dir_x + dir_y*dir_y)**0.5
+                    if dir_len > 0.1:
+                        scale = 10.0 / dir_len
+                        world_path[-1] = (vertex.pos[0] + dir_x * scale,
+                                         vertex.pos[1] + dir_y * scale)
             
             return world_path
             
         except Exception as e:
-            # Fallback to direct line if pathfinding fails
+            # TEMPORARY: Fallback to test compact packing
+            # TODO: Fix pathfinding properly
             return [vertex.pos, target_port.position]
     
     def _assign_nearest_ports(self, vertex_sequence, edge_label, all_vertices):
@@ -1293,7 +1661,510 @@ class DefinitiveEGILayoutEngine:
         """Calculate Euclidean distance between two points"""
         return ((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2) ** 0.5
     
-    # ========== BOTTOM-UP LAYOUT WITH CUTS AS POSITIONED RECTANGLES ==========
+    def _ligature_aware_repositioning(self, egi: RelationalGraphWithCuts, 
+                                     global_positions: Dict, area_bounds: Dict,
+                                     hierarchy: Dict) -> Dict:
+        """
+        Pass 2: Optimize element positions within areas based on ligature connectivity.
+        
+        After Neato provides readable initial spacing, this pass repositions elements
+        to minimize ligature lengths, position elements near boundaries for external
+        connections, and prepare for proper ligature routing.
+        
+        Constraint: Elements must stay within their assigned area boundaries.
+        """
+        # Build ligature connectivity map
+        ligature_connections = self._build_ligature_connectivity_map(egi, global_positions)
+        
+        # For each area (except sheet), optimize element positions
+        for area_id, bounds in area_bounds.items():
+            if area_id == egi.sheet:
+                continue  # Don't reposition sheet elements for now
+            
+            # Get elements in this area
+            area_vertices = [v_id for v_id in hierarchy[area_id]['vertices']]
+            area_edges = [e_id for e_id in hierarchy[area_id]['edges']]
+            area_elements = area_vertices + area_edges
+            
+            if len(area_elements) <= 1:
+                continue  # Single element, no repositioning needed
+            
+            # Try to optimize positions for this area
+            self._optimize_area_positions(
+                area_id, area_elements, global_positions, 
+                bounds, ligature_connections, egi
+            )
+        
+        return global_positions
+    
+    def _build_ligature_connectivity_map(self, egi: RelationalGraphWithCuts, 
+                                         global_positions: Dict) -> Dict:
+        """Build map of ligature connections with positions for optimization"""
+        connections = {}
+        
+        # For each edge, get its connected vertices
+        for edge_id, vertex_sequence in egi.nu.items():
+            if edge_id not in connections:
+                connections[edge_id] = {
+                    'type': 'edge',
+                    'connects_to': [],
+                    'position': global_positions['edge_labels'].get(edge_id, {}).get('x'), 
+                }
+            
+            for vertex_id in vertex_sequence:
+                if vertex_id not in connections:
+                    connections[vertex_id] = {
+                        'type': 'vertex',
+                        'connects_to': [],
+                        'position': global_positions['vertices'].get(vertex_id, {})
+                    }
+                
+                # Record bidirectional connection
+                connections[edge_id]['connects_to'].append(vertex_id)
+                connections[vertex_id]['connects_to'].append(edge_id)
+        
+        return connections
+    
+    def _optimize_area_positions(self, area_id: str, elements: list, 
+                                 global_positions: Dict, area_bounds: Rect,
+                                 ligature_connections: Dict, egi: RelationalGraphWithCuts):
+        """
+        Optimize element positions within an area to minimize ligature costs.
+        
+        Uses simple greedy algorithm:
+        1. For elements with external connections, move toward boundary in that direction
+        2. Try position swaps to reduce total ligature length
+        3. Ensure all positions stay within area bounds
+        """
+        # Calculate current total ligature cost
+        def calculate_area_ligature_cost():
+            total_cost = 0
+            for elem_id in elements:
+                if elem_id not in ligature_connections:
+                    continue
+                
+                elem_pos = self._get_element_position(elem_id, global_positions)
+                if not elem_pos:
+                    continue
+                
+                for connected_id in ligature_connections[elem_id]['connects_to']:
+                    connected_pos = self._get_element_position(connected_id, global_positions)
+                    if connected_pos:
+                        total_cost += self._calculate_distance(elem_pos, connected_pos)
+            
+            return total_cost
+        
+        initial_cost = calculate_area_ligature_cost()
+        
+        # Strategy 1: Move elements with external connections toward area boundaries
+        for elem_id in elements:
+            if elem_id not in ligature_connections:
+                continue
+            
+            elem_pos = self._get_element_position(elem_id, global_positions)
+            if not elem_pos:
+                continue
+            
+            # Find external connections (elements outside this area)
+            external_connections = []
+            for connected_id in ligature_connections[elem_id]['connects_to']:
+                connected_pos = self._get_element_position(connected_id, global_positions)
+                if connected_pos:
+                    # Check if connected element is in a different area
+                    connected_area = self._get_element_area(connected_id, global_positions)
+                    if connected_area != area_id:
+                        external_connections.append(connected_pos)
+            
+            # If has external connections, nudge toward their average direction
+            if external_connections:
+                avg_external_x = sum(p[0] for p in external_connections) / len(external_connections)
+                avg_external_y = sum(p[1] for p in external_connections) / len(external_connections)
+                
+                # Nudge current position toward external average (within bounds)
+                nudge_factor = 0.3  # Move 30% toward external connections
+                new_x = elem_pos[0] + nudge_factor * (avg_external_x - elem_pos[0])
+                new_y = elem_pos[1] + nudge_factor * (avg_external_y - elem_pos[1])
+                
+                # Ensure within area bounds
+                new_x = max(area_bounds.x + 10, min(new_x, area_bounds.x + area_bounds.width - 10))
+                new_y = max(area_bounds.y + 10, min(new_y, area_bounds.y + area_bounds.height - 10))
+                
+                # Update position
+                self._set_element_position(elem_id, (new_x, new_y), global_positions)
+        
+        # Check if optimization improved
+        final_cost = calculate_area_ligature_cost()
+        improvement = ((initial_cost - final_cost) / initial_cost * 100) if initial_cost > 0 else 0
+        
+        if improvement > 1:  # More than 1% improvement
+            pass  # Keep optimized positions
+        # If optimization didn't help much, positions stay as adjusted
+    
+    def _get_element_position(self, elem_id: str, global_positions: Dict):
+        """Get position of element (vertex or edge)"""
+        if elem_id in global_positions['vertices']:
+            pos_data = global_positions['vertices'][elem_id]
+            return (pos_data['x'], pos_data['y'])
+        elif elem_id in global_positions['edge_labels']:
+            pos_data = global_positions['edge_labels'][elem_id]
+            return (pos_data['x'], pos_data['y'])
+        return None
+    
+    def _set_element_position(self, elem_id: str, new_pos: tuple, global_positions: Dict):
+        """Set position of element (vertex or edge)"""
+        if elem_id in global_positions['vertices']:
+            global_positions['vertices'][elem_id]['x'] = new_pos[0]
+            global_positions['vertices'][elem_id]['y'] = new_pos[1]
+        elif elem_id in global_positions['edge_labels']:
+            global_positions['edge_labels'][elem_id]['x'] = new_pos[0]
+            global_positions['edge_labels'][elem_id]['y'] = new_pos[1]
+    
+    def _get_element_area(self, elem_id: str, global_positions: Dict):
+        """Get area ID of element"""
+        if elem_id in global_positions['vertices']:
+            return global_positions['vertices'][elem_id].get('parent_area_id')
+        elif elem_id in global_positions['edge_labels']:
+            return global_positions['edge_labels'][elem_id].get('parent_area_id')
+        return None
+    
+    # ========== CORRECTED PIPELINE: dot→inflate→route ==========
+    
+    def _complete_structural_layout(self, egi: RelationalGraphWithCuts,
+                                    hierarchy: Dict, style: StyleSpecification,
+                                    layout_deltas: LayoutDeltas) -> tuple:
+        """
+        PASS 1: Complete structural layout using Graphviz dot.
+        
+        Includes EVERYTHING in single dot pass:
+        - Cuts as clusters (hierarchy)
+        - Edge labels as nodes (anchors)
+        - Vertices as small nodes (inside correct clusters)
+        
+        Returns: (global_positions dict, area_bounds dict)
+        """
+        # Build complete DOT digraph with ALL elements
+        dot_lines = ["digraph Structure {"]
+        dot_lines.append("  rankdir=TB;")
+        dot_lines.append("  overlap=false;")
+        
+        # Generate cluster structure with ALL content
+        def add_cluster_with_content(area_id, indent=1):
+            indent_str = "  " * indent
+            
+            if area_id == egi.sheet:
+                # Sheet is root - add children and content at root level
+                for child_id in hierarchy[area_id]['children']:
+                    add_cluster_with_content(child_id, indent)
+                
+                # Add vertices directly on sheet
+                for v_id in hierarchy[area_id]['vertices']:
+                    # Check for pinned position
+                    if layout_deltas and v_id in layout_deltas.deltas:
+                        delta = layout_deltas.deltas[v_id]
+                        if delta.delta_type == 'vertex_position':
+                            x, y = delta.new_position
+                            dot_lines.append(f'{indent_str}"{v_id}" [shape=point, width=0.1, pin=true, pos="{x},{y}!"];')
+                            continue
+                    dot_lines.append(f'{indent_str}"{v_id}" [shape=point, width=0.1];')
+                
+                # Add edge labels directly on sheet
+                for e_id in hierarchy[area_id]['edges']:
+                    rel_name = egi.rel.get(e_id, "?")
+                    dot_lines.append(f'{indent_str}"{e_id}" [shape=plaintext, label="{rel_name}"];')
+                    
+            else:
+                # Regular cut - create cluster
+                dot_lines.append(f'{indent_str}subgraph cluster_{area_id} {{')
+                dot_lines.append(f'{indent_str}  label="";')
+                dot_lines.append(f'{indent_str}  style=rounded;')
+                
+                # Add child cuts recursively
+                for child_id in hierarchy[area_id]['children']:
+                    add_cluster_with_content(child_id, indent + 1)
+                
+                # Add vertices in this cut
+                for v_id in hierarchy[area_id]['vertices']:
+                    if layout_deltas and v_id in layout_deltas.deltas:
+                        delta = layout_deltas.deltas[v_id]
+                        if delta.delta_type == 'vertex_position':
+                            x, y = delta.new_position
+                            dot_lines.append(f'{indent_str}  "{v_id}" [shape=point, width=0.1, pin=true, pos="{x},{y}!"];')
+                            continue
+                    dot_lines.append(f'{indent_str}  "{v_id}" [shape=point, width=0.1];')
+                
+                # Add edge labels in this cut
+                for e_id in hierarchy[area_id]['edges']:
+                    rel_name = egi.rel.get(e_id, "?")
+                    dot_lines.append(f'{indent_str}  "{e_id}" [shape=plaintext, label="{rel_name}"];')
+                
+                dot_lines.append(f'{indent_str}}}')
+        
+        # Build complete structure
+        add_cluster_with_content(egi.sheet)
+        
+        dot_lines.append("}")
+        dot_string = "\n".join(dot_lines)
+        
+        # Execute Graphviz dot
+        try:
+            result = self._execute_graphviz_layout(dot_string, engine='dot')
+        except Exception as e:
+            print(f"Graphviz dot failed: {e}")
+            # Fallback: create simple stacked layout
+            return self._fallback_container_layout(hierarchy, egi)
+        
+        # Parse results: cluster bounds AND element positions
+        area_bounds = {}
+        global_positions = {'vertices': {}, 'edge_labels': {}}
+        
+        if 'objects' in result:
+            for obj in result['objects']:
+                obj_name = obj.get('name', '')
+                
+                # Parse cluster bounding boxes
+                if 'bb' in obj and obj_name.startswith('cluster_'):
+                    area_id = obj_name.replace('cluster_', '')
+                    bb_parts = obj['bb'].split(',')
+                    if len(bb_parts) == 4:
+                        x1, y1, x2, y2 = map(float, bb_parts)
+                        area_bounds[area_id] = Rect(x1, y1, x2 - x1, y2 - y1)
+                
+                # Parse vertex positions
+                elif 'pos' in obj:
+                    pos_str = obj['pos']
+                    x, y = map(float, pos_str.split(','))
+                    
+                    # Determine which area this element belongs to
+                    parent_area = None
+                    for area_id, area_info in hierarchy.items():
+                        if obj_name in area_info['vertices']:
+                            parent_area = area_id
+                            global_positions['vertices'][obj_name] = {
+                                'x': x, 'y': y, 'parent_area_id': area_id
+                            }
+                            break
+                        elif obj_name in area_info['edges']:
+                            parent_area = area_id
+                            rel_name = egi.rel.get(obj_name, "?")
+                            global_positions['edge_labels'][obj_name] = {
+                                'x': x, 'y': y,
+                                'width': len(rel_name) * 8,
+                                'height': 12,
+                                'label': rel_name,
+                                'parent_area_id': area_id
+                            }
+                            break
+        
+        # Calculate sheet bounds
+        if area_bounds:
+            sheet_rect = list(area_bounds.values())[0]
+            for rect in list(area_bounds.values())[1:]:
+                sheet_rect = sheet_rect.union(rect)
+            area_bounds[egi.sheet] = sheet_rect
+        else:
+            # No cuts - calculate from content positions
+            if global_positions['vertices'] or global_positions['edge_labels']:
+                all_x = []
+                all_y = []
+                for v in global_positions['vertices'].values():
+                    all_x.append(v['x'])
+                    all_y.append(v['y'])
+                for e in global_positions['edge_labels'].values():
+                    all_x.append(e['x'])
+                    all_y.append(e['y'])
+                area_bounds[egi.sheet] = Rect(
+                    min(all_x) - 50, min(all_y) - 50,
+                    max(all_x) - min(all_x) + 100, max(all_y) - min(all_y) + 100
+                )
+            else:
+                area_bounds[egi.sheet] = Rect(0, 0, 200, 200)
+        
+        return global_positions, area_bounds
+    
+    def _fallback_container_layout(self, hierarchy: Dict, egi: RelationalGraphWithCuts) -> tuple:
+        """Fallback: simple stacked container layout if dot fails"""
+        area_bounds = {}
+        global_positions = {'vertices': {}, 'edge_labels': {}}
+        
+        # Simple top-to-bottom stacking with content
+        y_offset = 20
+        for area_id in hierarchy.keys():
+            if area_id == egi.sheet:
+                continue
+            
+            # Estimate size and position content in grid
+            vertices = hierarchy[area_id]['vertices']
+            edges = hierarchy[area_id]['edges']
+            
+            width = max(100, (len(vertices) + len(edges)) * 40)
+            height = max(80, (len(vertices) + len(edges)) * 30)
+            
+            area_bounds[area_id] = Rect(20, y_offset, width, height)
+            
+            # Position content in simple grid
+            x_offset = 30
+            for v_id in vertices:
+                global_positions['vertices'][v_id] = {
+                    'x': x_offset, 'y': y_offset + 40, 'parent_area_id': area_id
+                }
+                x_offset += 40
+            
+            for e_id in edges:
+                rel_name = egi.rel.get(e_id, "?")
+                global_positions['edge_labels'][e_id] = {
+                    'x': x_offset, 'y': y_offset + 40,
+                    'width': len(rel_name) * 8, 'height': 12,
+                    'label': rel_name, 'parent_area_id': area_id
+                }
+                x_offset += 60
+            
+            y_offset += height + 20
+        
+        # Sheet content
+        x_offset = 20
+        for v_id in hierarchy[egi.sheet]['vertices']:
+            global_positions['vertices'][v_id] = {
+                'x': x_offset, 'y': 20, 'parent_area_id': egi.sheet
+            }
+            x_offset += 40
+        
+        for e_id in hierarchy[egi.sheet]['edges']:
+            rel_name = egi.rel.get(e_id, "?")
+            global_positions['edge_labels'][e_id] = {
+                'x': x_offset, 'y': 20,
+                'width': len(rel_name) * 8, 'height': 12,
+                'label': rel_name, 'parent_area_id': egi.sheet
+            }
+            x_offset += 60
+        
+        # Sheet encompasses all
+        if area_bounds:
+            sheet_rect = list(area_bounds.values())[0]
+            for rect in list(area_bounds.values())[1:]:
+                sheet_rect = sheet_rect.union(rect)
+            area_bounds[egi.sheet] = Rect(
+                sheet_rect.x - 20, sheet_rect.y - 20,
+                sheet_rect.width + 40, sheet_rect.height + 40
+            )
+        else:
+            area_bounds[egi.sheet] = Rect(0, 0, 200, 200)
+        
+        return global_positions, area_bounds
+    
+    def _inflate_containers_for_routing(self, area_bounds: Dict, style: StyleSpecification) -> Dict:
+        """
+        PASS 2: Inflate SHEET boundary for ligature routing space.
+        
+        CRITICAL: Only inflate the SHEET, NOT the cuts!
+        Cuts must keep their tight bounds to preserve exclusive containment.
+        Elements positioned outside cuts must stay outside after inflation.
+        """
+        inflated_bounds = {}
+        
+        # Get padding from style or use default
+        padding = style.raw_style_data.get('geometry', {}).get('padding', {}).get('ligature_space', 30)
+        
+        for area_id, rect in area_bounds.items():
+            # Only inflate the sheet - cuts stay at tight bounds
+            if area_id.startswith('sheet'):
+                # Inflate sheet for routing space
+                inflated_bounds[area_id] = Rect(
+                    rect.x - padding,
+                    rect.y - padding,
+                    rect.width + 2 * padding,
+                    rect.height + 2 * padding
+                )
+            else:
+                # Cuts keep exact bounds - no inflation
+                inflated_bounds[area_id] = rect
+        
+        return inflated_bounds
+    
+    # ========== AREA SIZE CALCULATION ==========
+    
+    def _calculate_area_sizes_bottom_up(self, egi: RelationalGraphWithCuts, hierarchy: Dict) -> Dict:
+        """
+        Calculate area sizes bottom-up to guarantee containment.
+        
+        HARD CONTAINMENT: Parents sized to fit children + own content + margins.
+        This establishes the feasible space before D3 optimizes positions.
+        """
+        area_sizes = {}
+        
+        def calculate_size(area_id):
+            """Recursive size calculation from leaves up"""
+            if area_id in area_sizes:
+                return area_sizes[area_id]
+            
+            info = hierarchy[area_id]
+            n_vertices = len(info['vertices'])
+            n_edges = len(info['edges'])
+            
+            # Base size for direct content
+            content_width = max(100, (n_vertices + n_edges) * 60)
+            content_height = max(80, (n_vertices + n_edges) * 40)
+            
+            # Calculate children sizes recursively
+            if info['children']:
+                child_heights = []
+                max_child_width = 0
+                
+                for child_id in info['children']:
+                    child_w, child_h = calculate_size(child_id)
+                    child_heights.append(child_h)
+                    max_child_width = max(max_child_width, child_w)
+                
+                # Size to fit children stacked + margins
+                child_margin = 30
+                total_child_height = sum(child_heights) + len(child_heights) * 10 + child_margin * 2
+                width = max(content_width, max_child_width + child_margin * 2)
+                height = max(content_height, total_child_height + content_height)
+            else:
+                width = content_width
+                height = content_height
+            
+            area_sizes[area_id] = (width, height)
+            return (width, height)
+        
+        # Calculate all sizes
+        calculate_size(egi.sheet)
+        
+        # Now position areas hierarchically (top-down)
+        area_bounds = {}
+        
+        def position_area(area_id, parent_rect=None):
+            """Position areas top-down within parent"""
+            width, height = area_sizes[area_id]
+            
+            if area_id == egi.sheet:
+                # Sheet at origin
+                area_bounds[area_id] = Rect(0, 0, width, height)
+                
+                # Position child cuts
+                child_y = 20
+                for child_id in hierarchy[area_id]['children']:
+                    child_w, child_h = area_sizes[child_id]
+                    child_rect = Rect(20, child_y, child_w, child_h)
+                    area_bounds[child_id] = child_rect
+                    position_area(child_id, child_rect)
+                    child_y += child_h + 10
+            else:
+                # Non-sheet area - position children within it
+                if parent_rect and hierarchy[area_id]['children']:
+                    child_x = parent_rect.x + 15
+                    child_y = parent_rect.y + 15
+                    
+                    for child_id in hierarchy[area_id]['children']:
+                        child_w, child_h = area_sizes[child_id]
+                        child_rect = Rect(child_x, child_y, child_w, child_h)
+                        area_bounds[child_id] = child_rect
+                        position_area(child_id, child_rect)
+                        child_y += child_h + 10
+        
+        position_area(egi.sheet)
+        return area_bounds
+    
+    # ========== AREA HIERARCHY ==========
     
     def _build_area_hierarchy_v2(self, egi: RelationalGraphWithCuts) -> Dict:
         """Build parent-child relationships for areas"""
@@ -1406,12 +2277,13 @@ class DefinitiveEGILayoutEngine:
                     f'height={height_inches:.2f}, fixedsize=true, label=""];'
                 )
         
-        # Add ligatures (edges between vertices and edge labels)
-        for e_id in edge_ids:
-            if e_id in egi.nu:
-                for v_id in egi.nu[e_id]:
-                    if v_id in vertex_ids:  # Only connect if vertex is in same area
-                        dot_lines.append(f'  "{v_id}" -- "{e_id}";')
+        # DO NOT add ligatures to Graphviz!
+        # Graphviz solves PACKING problem: arrange N boxes in minimal rectangle
+        # Ligature routing is separate problem: connect elements respecting area boundaries
+        # Adding ligatures here causes:
+        # 1. Excessive spacing (spring forces push elements apart)
+        # 2. Wrong optimization (trying to make nice ligature layout, not compact packing)
+        # 3. Missing cross-area connections (only sees same-area ligatures)
         
         dot_lines.append("}")
         dot_string = "\n".join(dot_lines)

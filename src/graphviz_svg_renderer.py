@@ -55,44 +55,56 @@ class GraphvizSVGRenderer:
             "x": "10", "y": "35",
             "font-size": "10", "fill": "gray"
         }).text = stats
-        
         # Offset for content
         offset_x = 40
         offset_y = 60
         
-        # Render areas (cuts only, not sheet) with styling
-        # Sort by area size (largest first) to ensure proper z-order
+        # Render cuts (sorted by nesting depth for proper layering)
+        # Parent cuts must be drawn BEFORE their children
         areas_to_render = [a for a in dto.areas if not a.is_sheet]
-        areas_to_render.sort(key=lambda a: a.rect.width * a.rect.height, reverse=True)
+        
+        # Calculate nesting depth for each area
+        def get_depth(area):
+            depth = 0
+            current = area
+            while current.parent_id:
+                depth += 1
+                current = next((a for a in dto.areas if a.id == current.parent_id), None)
+                if not current:
+                    break
+            return depth
+        
+        # Sort by depth (shallowest first), then by size for same-level cuts
+        areas_to_render.sort(key=lambda a: (get_depth(a), -(a.rect.width * a.rect.height)))
         
         for area in areas_to_render:
-                # Get styling from area or use defaults
-                fill_value = area.style.get('fill', 'none')
-                stroke_width = str(area.style.get('stroke_width', 1.5))
-                shape = area.style.get('shape', 'rounded_rectangle')
-                
-                # Convert rgba() to SVG-compatible format
-                fill, opacity = self._parse_fill_value(fill_value)
-                
-                # Apply shape-specific attributes
-                rect_attrs = {
-                    "x": str(area.rect.x + offset_x),
-                    "y": str(area.rect.y + offset_y),
-                    "width": str(area.rect.width),
-                    "height": str(area.rect.height),
-                    "fill": fill,
-                    "stroke": "black",
-                    "stroke-width": stroke_width
-                }
-                
-                # Add opacity if specified
-                if opacity is not None:
-                    rect_attrs["fill-opacity"] = str(opacity)
-                
-                if shape == 'rounded_rectangle':
-                    rect_attrs.update({"rx": "8.0", "ry": "8.0"})
-                
-                ET.SubElement(svg, "rect", rect_attrs)
+            # Get styling from area or use defaults
+            fill_value = area.style.get('fill', 'none')
+            stroke_width = str(area.style.get('stroke_width', 1.5))
+            shape = area.style.get('shape', 'rounded_rectangle')
+            
+            # Convert rgba() to SVG-compatible format
+            fill, opacity = self._parse_fill_value(fill_value)
+            
+            # Apply shape-specific attributes
+            rect_attrs = {
+                "x": str(area.rect.x + offset_x),
+                "y": str(area.rect.y + offset_y),
+                "width": str(area.rect.width),
+                "height": str(area.rect.height),
+                "fill": fill,
+                "stroke": "black",
+                "stroke-width": stroke_width
+            }
+            
+            # Add opacity if specified
+            if opacity is not None:
+                rect_attrs["fill-opacity"] = str(opacity)
+            
+            if shape == 'rounded_rectangle':
+                rect_attrs.update({"rx": "8.0", "ry": "8.0"})
+            
+            ET.SubElement(svg, "rect", rect_attrs)
         
         # Render ligatures (behind text) with styling
         for ligature in dto.ligatures:
@@ -133,7 +145,14 @@ class GraphvizSVGRenderer:
             }).text = edge_label.label
             
             # Render connection ports if enabled in style
-            show_ports = style and style.get('annotations', {}).get('show_connection_ports', False)
+            show_ports = False
+            if style:
+                # Handle both dict and StyleSpecification
+                if hasattr(style, 'annotations'):
+                    show_ports = getattr(style.annotations, 'show_connection_ports', False)
+                elif isinstance(style, dict):
+                    show_ports = style.get('annotations', {}).get('show_connection_ports', False)
+            
             if show_ports:
                 for port in edge_label.connection_ports:
                     ET.SubElement(svg, "circle", {
@@ -163,6 +182,17 @@ class GraphvizSVGRenderer:
                 "fill": "black",
                 "stroke": "none"
             })
+            
+            # Render vertex label if present (skip "None" and empty strings)
+            if vertex.label and vertex.label != "None":
+                ET.SubElement(svg, "text", {
+                    "x": str(vertex.pos[0] + offset_x),
+                    "y": str(vertex.pos[1] + offset_y - 10),  # Above the vertex
+                    "text-anchor": "middle",
+                    "font-size": "12",
+                    "font-family": "Times New Roman",
+                    "fill": "black"
+                }).text = vertex.label
         
         # Render annotations
         for annotation in dto.annotations:

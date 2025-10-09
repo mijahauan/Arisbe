@@ -1,0 +1,11 @@
+<svg width="522.0" height="232.38" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ *x (Professor x) ~[ *y *z (Course y) (Has x z) (Person x) (Student z) (Teaches x y) ] ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="522.0" height="192.38" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<text x="5" y="15" font-size="10" fill="lightgray">Sheet (unbounded)</text>
+<rect x="8.0" y="8.0" width="506.0" height="176.38" fill="none" stroke="blue" stroke-width="2"/>
+<text x="13.0" y="23.0" font-size="10" fill="gray">c_8025a3</text>
+<rect x="116.0" y="55.81999999999999" width="378.0" height="108.56" fill="none" stroke="blue" stroke-width="2"/>
+<text x="121.0" y="70.82" font-size="10" fill="gray">c_b11e7d</text>
+</g>
+</svg>

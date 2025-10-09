@@ -1,0 +1,17 @@
+<svg width="396.0" height="408.94" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ *x (P x) ~[ *y (Q x y) ~[ ~[ *z (R y z) ~[ (S z) ] ] ] ] ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="396.0" height="368.94" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<text x="5" y="15" font-size="10" fill="lightgray">Sheet (unbounded)</text>
+<rect x="8.0" y="8.0" width="380.0" height="352.94" fill="none" stroke="blue" stroke-width="2"/>
+<text x="13.0" y="23.0" font-size="10" fill="gray">c_2cc617</text>
+<rect x="72.0" y="55.81" width="296.0" height="285.13" fill="none" stroke="blue" stroke-width="2"/>
+<text x="77.0" y="70.81" font-size="10" fill="gray">c_8b47ec</text>
+<rect x="138.0" y="95.63" width="210.0" height="225.31" fill="none" stroke="blue" stroke-width="2"/>
+<text x="143.0" y="110.63" font-size="10" fill="gray">c_3197b9</text>
+<rect x="158.0" y="115.63" width="150.0" height="185.31" fill="none" stroke="blue" stroke-width="2"/>
+<text x="163.0" y="130.63" font-size="10" fill="gray">c_a53b68</text>
+<rect x="178.0" y="173.45" width="64.0" height="107.49000000000001" fill="none" stroke="blue" stroke-width="2"/>
+<text x="183.0" y="188.45" font-size="10" fill="gray">c_a0ab05</text>
+</g>
+</svg>

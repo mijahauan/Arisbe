@@ -1,0 +1,12 @@
+{
+  "name": "arisbe-layout",
+  "version": "1.0.0",
+  "description": "D3.js force layout bridge for Arisbe EGI diagrams",
+  "main": "src/d3_layout_bridge.js",
+  "dependencies": {
+    "d3-force": "^3.0.0"
+  },
+  "scripts": {
+    "install-deps": "npm install"
+  }
+}

@@ -1,0 +1,19 @@
+<svg width="318.12" height="171.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: *x *y (Cat x) (Mat y) (On x y)</text>
+<g transform="translate(0, 30)">
+<polyline points="204.70945366774387,103.38217408677912 157.2116585445373,101.63" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="118.27897179966047,75.44361511126867 157.2116585445373,101.63" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="118.27897179966047,75.44361511126867 104.77545457762675,30.0" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="204.70945366774387,103.38217408677912 193.74266887407805,54.37769051983793" fill="none" stroke="#666" stroke-width="2"/>
+<circle cx="118.27897179966047" cy="75.44361511126867" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="118.27897179966047" y="79.44361511126867" text-anchor="middle" font-size="12">*</text>
+<circle cx="204.70945366774387" cy="103.38217408677912" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="204.70945366774387" y="107.38217408677912" text-anchor="middle" font-size="12">*</text>
+<rect x="137.2116585445373" y="89.63" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="157.2116585445373" y="105.63" text-anchor="middle" font-size="12">On</text>
+<rect x="84.77545457762675" y="18" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="104.77545457762675" y="34.0" text-anchor="middle" font-size="12">Mat</text>
+<rect x="173.74266887407805" y="42.37769051983793" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="193.74266887407805" y="58.37769051983793" text-anchor="middle" font-size="12">Cat</text>
+</g>
+</svg>

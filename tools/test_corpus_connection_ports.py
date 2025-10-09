@@ -16,8 +16,70 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from definitive_egi_layout_engine import DefinitiveEGILayoutEngine
 from graphviz_svg_renderer import GraphvizSVGRenderer
-from style_specification import load_default_dau_style
+from style_loader import StyleLoader
 from egi_io import load_egi_json
+
+
+def check_cut_overlaps(dto):
+    """
+    Check for cut violations:
+    1. Sibling cuts overlapping (INVALID)
+    2. Child cuts extending beyond parent bounds (INVALID)
+    """
+    cuts = {}
+    for area in dto.areas:
+        if not area.is_sheet:
+            r = area.rect
+            cuts[area.id] = {
+                'id': area.id,
+                'x1': r.x, 'y1': r.y,
+                'x2': r.x + r.width, 'y2': r.y + r.height,
+                'parent': area.parent_id
+            }
+    
+    if len(cuts) < 2:
+        return 0
+    
+    violations = 0
+    
+    # Helper: Check if cut1 is ancestor of cut2
+    def is_ancestor(cut1_id, cut2_id):
+        current = cut2_id
+        while current:
+            if current == cut1_id:
+                return True
+            current = cuts.get(current, {}).get('parent')
+        return False
+    
+    # Check 1: Sibling overlaps (but allow ancestor-descendant overlaps)
+    cut_list = list(cuts.values())
+    for i in range(len(cut_list)):
+        for j in range(i+1, len(cut_list)):
+            c1, c2 = cut_list[i], cut_list[j]
+            
+            # Skip ancestor-descendant pairs (nesting is OK)
+            if is_ancestor(c1['id'], c2['id']) or is_ancestor(c2['id'], c1['id']):
+                continue
+            
+            # Check if siblings overlap
+            if not (c1['x2'] <= c2['x1'] or c2['x2'] <= c1['x1'] or
+                    c1['y2'] <= c2['y1'] or c2['y2'] <= c1['y1']):
+                violations += 1
+    
+    # Check 2: Parent-child containment
+    for cut_id, cut in cuts.items():
+        if cut['parent'] and cut['parent'] in cuts:
+            parent = cuts[cut['parent']]
+            
+            # Child must be INSIDE parent (with tolerance for rendering)
+            tolerance = 2  # Allow 2px rendering error
+            if not (cut['x1'] >= parent['x1'] - tolerance and
+                    cut['x2'] <= parent['x2'] + tolerance and
+                    cut['y1'] >= parent['y1'] - tolerance and
+                    cut['y2'] <= parent['y2'] + tolerance):
+                violations += 1
+    
+    return violations
 
 
 def test_entire_corpus():
@@ -28,7 +90,8 @@ def test_entire_corpus():
     
     layout_engine = DefinitiveEGILayoutEngine()
     svg_renderer = GraphvizSVGRenderer()
-    style = load_default_dau_style()
+    style_loader = StyleLoader()
+    style = style_loader.load_default_style()
     
     # Find all corpus graphs
     corpus_dir = Path(__file__).parent.parent / 'corpus' / 'graphs'
@@ -76,20 +139,33 @@ def test_entire_corpus():
     # Process each graph
     for i, graph_info in enumerate(all_graphs, 1):
         graph_name = graph_info['name']
-        print(f"🧪 [{i:2d}/{len(all_graphs)}] Testing: {graph_name}")
+        print(f"🧪 [{i:2d}/{len(all_graphs)}] Testing: {graph_name}", end='', flush=True)
         
         try:
+            graph_start = time.time()
+            
             # Load EGI
             egi = load_egi_json(str(graph_info['path']))
             
             # Generate layout with connection ports
             dto = layout_engine.generate_layout(egi, style)
             
+            graph_elapsed = time.time() - graph_start
+            print(f" ({graph_elapsed:.1f}s)")
+            
             # Analyze the results
             graph_stats = analyze_graph_results(egi, dto, graph_name)
             
-            # Update global statistics
-            results['successful'] += 1
+            # CRITICAL: Check for cut overlaps (the actual correctness test!)
+            cut_overlaps = check_cut_overlaps(dto)
+            graph_stats['cut_overlaps'] = cut_overlaps
+            
+            if cut_overlaps > 0:
+                print(f"   ❌ LAYOUT FAILURE: {cut_overlaps} cut overlaps detected!")
+                results['failed'] += 1
+                failed_graphs.append({'name': graph_name, 'error': f'{cut_overlaps} cut overlaps'})
+            else:
+                results['successful'] += 1
             results['total_vertices'] += graph_stats['vertices']
             results['total_edges'] += graph_stats['edges']
             results['total_ports'] += graph_stats['total_ports']
@@ -102,11 +178,15 @@ def test_entire_corpus():
             # Store port statistics
             port_statistics[graph_name] = graph_stats
             
-            # Generate SVG
+            # Generate SVG with actual EGIF
+            from egif_generator_dau import EGIFGenerator
+            egif_gen = EGIFGenerator(egi)
+            egif = egif_gen.generate()
+            
             svg_path = svg_renderer.save_svg(
                 dto,
                 f"Corpus Test - {graph_name}",
-                f"Connection port validation for {graph_name}",
+                egif,
                 f"corpus_test_{graph_name.lower()}",
                 "test_outputs/corpus_connection_ports",
                 style

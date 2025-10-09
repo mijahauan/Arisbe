@@ -1,0 +1,26 @@
+<svg width="522.0" height="232.38" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ *x (Professor x) ~[ *y *z (Course y) (Has x z) (Person x) (Student z) (Teaches x y) ] ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="522.0" height="192.38" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<rect x="8.0" y="8.0" width="506.0" height="176.38" fill="none" stroke="lightgray"/>
+<rect x="116.0" y="55.81999999999999" width="378.0" height="108.56" fill="none" stroke="lightgray"/>
+<circle cx="326.6582994648772" cy="106.17824555256007" r="5" fill="red"/>
+<text x="334.6582994648772" y="110.17824555256007" font-size="8" fill="gray">e_2668</text>
+<circle cx="372.21086573982177" cy="126.79265902765769" r="5" fill="red"/>
+<text x="380.21086573982177" y="130.7926590276577" font-size="8" fill="gray">e_4823</text>
+<circle cx="147.93211265321386" cy="89.62405704902827" r="5" fill="red"/>
+<text x="155.93211265321386" y="93.62405704902827" font-size="8" fill="gray">e_9cff</text>
+<circle cx="170.23925521461902" cy="134.38" r="5" fill="red"/>
+<text x="178.23925521461902" y="138.38" font-size="8" fill="gray">e_3ee3</text>
+<circle cx="195.44522863819734" cy="105.87656072245642" r="5" fill="red"/>
+<text x="203.44522863819734" y="109.87656072245642" font-size="8" fill="gray">v_af41</text>
+<circle cx="379.30376507731324" cy="76.47651644677369" r="5" fill="red"/>
+<text x="387.30376507731324" y="80.47651644677369" font-size="8" fill="gray">v_81ae</text>
+<circle cx="238.69835540983695" cy="88.37694139102706" r="5" fill="red"/>
+<text x="246.69835540983695" y="92.37694139102706" font-size="8" fill="gray">e_8b4e</text>
+<circle cx="45.69098372449868" cy="143.28429049257582" r="5" fill="red"/>
+<text x="53.69098372449868" y="147.28429049257582" font-size="8" fill="gray">e_84c6</text>
+<circle cx="100.5408730468189" cy="75.63424995802721" r="5" fill="red"/>
+<text x="108.5408730468189" y="79.63424995802721" font-size="8" fill="gray">v_3d8d</text>
+</g>
+</svg>

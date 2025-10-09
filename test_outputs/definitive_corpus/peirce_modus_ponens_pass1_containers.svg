@@ -1,0 +1,11 @@
+<svg width="220.12" height="204.38" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: *x (P x) ~[ (P x) ~[ (Q x) ] ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="220.12" height="164.38" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<text x="5" y="15" font-size="10" fill="lightgray">Sheet (unbounded)</text>
+<rect x="44.125" y="28.889999999999986" width="167.995" height="127.49000000000001" fill="none" stroke="blue" stroke-width="2"/>
+<text x="49.125" y="43.889999999999986" font-size="10" fill="gray">c_6ea5bf</text>
+<rect x="64.125" y="75.63" width="83.995" height="60.75" fill="none" stroke="blue" stroke-width="2"/>
+<text x="69.125" y="90.63" font-size="10" fill="gray">c_e3fd5b</text>
+</g>
+</svg>

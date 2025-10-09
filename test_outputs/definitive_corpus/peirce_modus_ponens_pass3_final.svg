@@ -1,0 +1,18 @@
+<svg width="220.12" height="204.38" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: *x (P x) ~[ (P x) ~[ (Q x) ] ]</text>
+<g transform="translate(0, 30)">
+<polyline points="63.571707088757115,15 118.12,106.00500000798417" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="63.571707088757115,15 30.0,119.11652839252804" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="63.571707088757115,15 171.76025276918577,75.16665953378921" fill="none" stroke="#666" stroke-width="2"/>
+<rect x="44.125" y="28.889999999999986" width="167.995" height="127.49000000000001" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<rect x="64.125" y="75.63" width="83.995" height="60.75" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<circle cx="63.571707088757115" cy="15" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="63.571707088757115" y="19" text-anchor="middle" font-size="12">*</text>
+<rect x="98.12" y="94.00500000798417" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="118.12" y="110.00500000798417" text-anchor="middle" font-size="12">Q</text>
+<rect x="10.0" y="107.11652839252804" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="30.0" y="123.11652839252804" text-anchor="middle" font-size="12">P</text>
+<rect x="151.76025276918577" y="63.166659533789215" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="171.76025276918577" y="79.16665953378921" text-anchor="middle" font-size="12">P</text>
+</g>
+</svg>

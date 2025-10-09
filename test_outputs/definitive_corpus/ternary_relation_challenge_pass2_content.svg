@@ -1,0 +1,14 @@
+<svg width="224.88" height="171.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: *x *y *z (Between x y z)</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="224.88" height="131.63" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<circle cx="159.89109968250028" cy="68.78196318732968" r="5" fill="red"/>
+<text x="167.89109968250028" y="72.78196318732968" font-size="8" fill="gray">v_15be</text>
+<circle cx="110.162015915066" cy="72.29367853959003" r="5" fill="red"/>
+<text x="118.162015915066" y="76.29367853959003" font-size="8" fill="gray">e_03a7</text>
+<circle cx="62.128693685056156" cy="85.36732047766444" r="5" fill="red"/>
+<text x="70.12869368505616" y="89.36732047766444" font-size="8" fill="gray">v_c66e</text>
+<circle cx="123.76559873542323" cy="24.12916654614629" r="5" fill="red"/>
+<text x="131.76559873542323" y="28.12916654614629" font-size="8" fill="gray">v_624f</text>
+</g>
+</svg>

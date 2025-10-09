@@ -37,6 +37,9 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from common.diagram_canvas import DiagramCanvas
 
+# Import metadata panel
+from organon.metadata_panel import MetadataPanel
+
 
 class OrganonMode(QWidget):
     """
@@ -56,6 +59,7 @@ class OrganonMode(QWidget):
         
         self.controller = diagram_controller
         self._current_file: Optional[Path] = None
+        self._current_entity: Optional['GraphEntity'] = None  # Track loaded entity
         
         self._setup_ui()
     
@@ -101,14 +105,23 @@ class OrganonMode(QWidget):
         
         main_area.addLayout(action_bar)
         
-        # Main content: Canvas + EGIF panel
+        # Main content: Canvas + Right Sidebar
         content = QHBoxLayout()
         
-        # Left: Diagram canvas
+        # Center: Diagram canvas
         self.canvas = DiagramCanvas()
         content.addWidget(self.canvas, stretch=3)
         
-        # Right: EGIF panel
+        # Right Sidebar: Metadata + EGIF panels
+        right_sidebar = QVBoxLayout()
+        right_sidebar.setSpacing(10)
+        
+        # Metadata Panel
+        self.metadata_panel = MetadataPanel()
+        self.metadata_panel.setMaximumWidth(350)
+        right_sidebar.addWidget(self.metadata_panel, stretch=1)
+        
+        # EGIF Panel
         egif_panel = QVBoxLayout()
         egif_label = QLabel("📝 EGIF (Linear Form)")
         egif_label.setStyleSheet("font-weight: bold; padding: 5px;")
@@ -120,7 +133,9 @@ class OrganonMode(QWidget):
         self.egif_text.setPlaceholderText("EGIF will appear here when a graph is loaded...")
         egif_panel.addWidget(self.egif_text)
         
-        content.addLayout(egif_panel, stretch=1)
+        right_sidebar.addLayout(egif_panel, stretch=1)
+        
+        content.addLayout(right_sidebar, stretch=1)
         
         main_area.addLayout(content)
         layout.addLayout(main_area)
@@ -150,8 +165,12 @@ class OrganonMode(QWidget):
             egif = entity.get_current_egif()
             self.egif_text.setPlainText(egif)
             
+            # Update metadata panel
+            self.metadata_panel.update_metadata(entity)
+            
             # Update state
             self._current_file = None  # Loaded from corpus, not file
+            self._current_entity = entity  # Store entity for history navigation
             self.export_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
             
@@ -201,8 +220,12 @@ class OrganonMode(QWidget):
             except Exception as e:
                 self.egif_text.setPlainText(f"[EGIF generation failed: {e}]")
             
+            # Clear metadata panel (file load has no entity metadata)
+            self.metadata_panel.clear()
+            
             # Update state
             self._current_file = Path(file_path)
+            self._current_entity = None  # No entity for file loads
             self.export_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
             

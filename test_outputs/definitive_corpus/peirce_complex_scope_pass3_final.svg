@@ -1,0 +1,18 @@
+<svg width="158.0" height="195.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ ~[ *x *y *z (Relation x y z) ] ]</text>
+<g transform="translate(0, 30)">
+<polyline points="43.0,52.401855640904444 69.10409162689785,95.00285699998712" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="92.74679675798126,50.72393355901622 69.10409162689785,95.00285699998712" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="115.0,112.63 69.10409162689785,95.00285699998712" fill="none" stroke="#666" stroke-width="2"/>
+<rect x="8.0" y="8.0" width="142.0" height="139.63" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<rect x="28.0" y="28.0" width="102.0" height="99.63" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<circle cx="92.74679675798126" cy="50.72393355901622" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="92.74679675798126" y="54.72393355901622" text-anchor="middle" font-size="12">*</text>
+<circle cx="43.0" cy="52.401855640904444" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="43.0" y="56.401855640904444" text-anchor="middle" font-size="12">*</text>
+<circle cx="115.0" cy="112.63" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="115.0" y="116.63" text-anchor="middle" font-size="12">*</text>
+<rect x="37.104091626897855" y="83.00285699998712" width="64" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="69.10409162689785" y="99.00285699998712" text-anchor="middle" font-size="12">Relation</text>
+</g>
+</svg>

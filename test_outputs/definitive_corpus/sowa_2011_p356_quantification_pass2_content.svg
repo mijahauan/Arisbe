@@ -1,0 +1,12 @@
+<svg width="212.0" height="171.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: *x (Human x) (Mortal x)</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="212.0" height="131.63" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<circle cx="63.6400610728131" cy="85.11383258457104" r="5" fill="red"/>
+<text x="71.6400610728131" y="89.11383258457104" font-size="8" fill="gray">e_8d3b</text>
+<circle cx="112.99771539493503" cy="79.26206231225257" r="5" fill="red"/>
+<text x="120.99771539493503" y="83.26206231225257" font-size="8" fill="gray">v_7e18</text>
+<circle cx="130.3089190492315" cy="32.45810570521861" r="5" fill="red"/>
+<text x="138.3089190492315" y="36.45810570521861" font-size="8" fill="gray">e_1154</text>
+</g>
+</svg>

@@ -1,0 +1,13 @@
+<svg width="104.0" height="155.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ *x *y (Loves x y) ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="104.0" height="115.63" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<rect x="8.0" y="8.0" width="88.0" height="99.63" fill="none" stroke="lightgray"/>
+<circle cx="32.640482693627234" cy="30.100608978962814" r="5" fill="red"/>
+<text x="40.640482693627234" y="34.10060897896281" font-size="8" fill="gray">v_9eb7</text>
+<circle cx="48.027561111058205" cy="77.63" r="5" fill="red"/>
+<text x="56.027561111058205" y="81.63" font-size="8" fill="gray">e_677d</text>
+<circle cx="81.0" cy="40.32805532334291" r="5" fill="red"/>
+<text x="89.0" y="44.32805532334291" font-size="8" fill="gray">v_b390</text>
+</g>
+</svg>

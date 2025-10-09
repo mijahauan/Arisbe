@@ -2,7 +2,7 @@
   "global": { "font_family": "Arial", "font_size": 10 },
 
   "layout": {
-    "cut_padding": 20.0,
+    "cut_padding": 35.0,
     "sibling_shift": [40.0, 30.0],
     "label_obstacle_padding": 6.0,
     "ligature_approach_margin": 4.0,

@@ -16,7 +16,10 @@ class AreaAwareNode(Node):
     """Custom A* node that tracks which area it belongs to"""
     
     def __init__(self, x: int, y: int, walkable: bool = True, area_id: str = None):
-        super().__init__(x, y, walkable)
+        super().__init__()
+        self.x = x  # Store coordinates explicitly
+        self.y = y
+        self.walkable = walkable
         self.area_id = area_id
 
 
@@ -30,7 +33,9 @@ class AreaAwareGrid(Grid):
     def node(self, x: int, y: int) -> AreaAwareNode:
         """Get node with area information"""
         if 0 <= x < self.width and 0 <= y < self.height:
-            walkable = self.matrix[y][x] == 1
+            # Get walkability from parent Grid's nodes array
+            parent_node = super().node(x, y)
+            walkable = parent_node.walkable if parent_node else False
             area_id = self.area_map[y][x] if self.area_map else None
             return AreaAwareNode(x, y, walkable, area_id)
         return AreaAwareNode(x, y, False)

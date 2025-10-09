@@ -1,0 +1,16 @@
+<svg width="224.88" height="171.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: *x *y *z (Between x y z)</text>
+<g transform="translate(0, 30)">
+<polyline points="62.128693685056156,85.36732047766444 110.162015915066,72.29367853959003" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="123.76559873542323,24.12916654614629 110.162015915066,72.29367853959003" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="159.89109968250028,68.78196318732968 110.162015915066,72.29367853959003" fill="none" stroke="#666" stroke-width="2"/>
+<circle cx="159.89109968250028" cy="68.78196318732968" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="159.89109968250028" y="72.78196318732968" text-anchor="middle" font-size="12">*</text>
+<circle cx="62.128693685056156" cy="85.36732047766444" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="62.128693685056156" y="89.36732047766444" text-anchor="middle" font-size="12">*</text>
+<circle cx="123.76559873542323" cy="24.12916654614629" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="123.76559873542323" y="28.12916654614629" text-anchor="middle" font-size="12">*</text>
+<rect x="82.162015915066" y="60.29367853959003" width="56" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="110.162015915066" y="76.29367853959003" text-anchor="middle" font-size="12">Between</text>
+</g>
+</svg>

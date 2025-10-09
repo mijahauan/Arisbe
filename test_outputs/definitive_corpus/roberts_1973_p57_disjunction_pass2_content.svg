@@ -1,0 +1,15 @@
+<svg width="206.0" height="212.35" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ ~[ (P "x") ] ~[ (Q "x") ] ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="206.0" height="172.35" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<rect x="8.0" y="8.0" width="190.0" height="156.35" fill="none" stroke="lightgray"/>
+<rect x="28.0" y="46.879999999999995" width="64.0" height="97.47" fill="none" stroke="lightgray"/>
+<rect x="112.0" y="46.879999999999995" width="66.0" height="97.47" fill="none" stroke="lightgray"/>
+<circle cx="58.0" cy="95.88803669787795" r="5" fill="red"/>
+<text x="66.0" y="99.88803669787795" font-size="8" fill="gray">e_e796</text>
+<circle cx="148.0" cy="95.24348139673737" r="5" fill="red"/>
+<text x="156.0" y="99.24348139673737" font-size="8" fill="gray">e_a751</text>
+<circle cx="102.4999063868795" cy="45.46766472782521" r="5" fill="red"/>
+<text x="110.4999063868795" y="49.46766472782521" font-size="8" fill="gray">v_40e0</text>
+</g>
+</svg>
