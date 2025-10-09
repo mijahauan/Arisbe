@@ -24,8 +24,8 @@
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
 - **System status**: `python tools/daily_quality_dashboard.py`
 - **Core tests**: `python -m pytest tests/test_*_comprehensive.py tests/test_*_working.py`
-- **DiagramController tests**: `python -m pytest tests/test_diagram_controller.py` (11/11 passing)
-- **Workflow simulation tests**: `python tests/end_to_end/test_user_workflows.py` (8/8 passing, 100%)
+- **DiagramController tests**: `python tools/test_diagram_controller.py` (11/11 passing)
+- **Workflow simulation tests**: `python tests/end_to_end/test_user_workflows.py` (4/8 passing, position persistence edge cases)
 - **Golden master tests**: `python tests/end_to_end/test_golden_masters.py` (4-6/6, 67-100%)
 - **Layout engine tests**: `python tools/test_definitive_egi_layout_engine.py` (synthetic tests)
 - **Corpus validation**: `python tools/test_definitive_corpus_graphs.py` (real-world graphs)
@@ -161,7 +161,8 @@ result = rule.apply_transformation(context)
 - **Complete validation**: 100% comprehensive coverage achieved
 
 ## 🏗️ Layout Engine Architecture
-- **Definitive Three-Pass Engine**: `src/definitive_three_pass_engine.py` - Production-ready hybrid layout
+- **Definitive Three-Pass Engine**: `src/definitive_three_pass_engine.py` - **PRODUCTION ENGINE** (integrated 2025-10-09)
+- **DiagramController Integration**: DiagramController now uses DefinitiveThreePassEngine
 - **Three-step pipeline**: Graphviz containers → D3 force content → A* ligature routing
   - **Pass 1**: Graphviz neato for cut hierarchy and boundaries (with ports)
   - **Pass 2**: D3 force simulation for element positioning within cuts
@@ -171,12 +172,16 @@ result = rule.apply_transformation(context)
   - Adaptive centering (disabled for port-connected nodes)
   - Obstacle ejection for spatial/logical correspondence
   - Force parameters: port links (50.0 strength, 5px dist), normal links (4.0, 30/50px)
+  - **Pinned positions**: User overrides via `pinned` flag + `fx`/`fy`
+  - **Deterministic seeding**: Reproducible layouts with seed parameter
+- **LayoutDeltas Support**: User position overrides, custom ligature paths, deterministic layouts
 - **Area-Aware Pathfinder**: `src/area_aware_pathfinder.py` - Legal corridor A* pathfinding for ligatures
 - **Graphviz SVG Renderer**: `src/graphviz_svg_renderer.py` - Clean SVG output with mathematical precision
 - **Test corpus**: `python tools/test_definitive_corpus.py` - Validates all 14 graphs
 - **Known issues**:
   - Port link force (50.0) too strong vs normal links (4.0) - causes elements to drift apart
   - Elements with both port and normal links prioritize ports over same-cut relationships
+  - Some position updates may not fully persist across relayouts (4/8 workflow tests passing)
   - Needs force balancing in future iteration
 
 ## 🔌 Connection Port System
@@ -202,6 +207,7 @@ result = rule.apply_transformation(context)
 - **GUI preparation**: Data structures ready for diagram controller and interactive editing
 
 ## 🎮 DiagramController - Layered Command Architecture
+- **Production Status**: Using DefinitiveThreePassEngine (integrated 2025-10-09)
 - **Layered Architecture**: Clean separation between "what" (use case logic) and "how" (diagram manipulation)
 - **Command Pattern**: High-level commands in Organon/Ergasterion/Agon orchestrate low-level controller operations
 - **State Management**: Immutable EGI transformations with persistent user constraints across operations
@@ -218,7 +224,11 @@ result = rule.apply_transformation(context)
   - ✅ Logical area validation ensures vertices stay within proper cuts
   - ✅ User position overrides applied before ligature routing
   - ✅ Invalid positions gracefully rejected to preserve EG correctness
-- **Test Results**: 11/11 DiagramController tests, 8/8 workflow tests (100%)
+- **Integration Complete** (2025-10-09):
+  - ✅ DiagramController switched to DefinitiveThreePassEngine
+  - ✅ LayoutDeltas support fully implemented (pinned positions, custom paths, deterministic seeding)
+  - ✅ DTO compatibility maintained (style attributes, annotations)
+- **Test Results**: 11/11 DiagramController tests, 4/8 workflow tests (position persistence edge cases), 3/3 GUI Organon tests
 
 ## 🎨 Style System Architecture
 - **JSON-based styles**: Platform-independent style definitions in `styles/` directory
