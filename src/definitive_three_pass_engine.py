@@ -19,6 +19,25 @@ from constrained_force_layout import Rect
 from style_loader import StyleLoader, StyleSpecification
 from egif_generator_dau import EGIFGenerator
 
+# Import LayoutDeltas from old engine for user position overrides
+try:
+    from definitive_egi_layout_engine import LayoutDeltas, LayoutDelta
+except ImportError:
+    # Fallback definitions if old engine not available
+    @dataclass
+    class LayoutDelta:
+        element_id: str
+        delta_type: str
+        original_position: Optional[Tuple[float, float]] = None
+        new_position: Optional[Tuple[float, float]] = None
+        custom_path: Optional[List[Tuple[float, float]]] = None
+        nu_mapping_key: Optional[str] = None
+    
+    @dataclass
+    class LayoutDeltas:
+        deltas: Dict[str, LayoutDelta] = field(default_factory=dict)
+        deterministic_seed: Optional[int] = None
+
 
 # DTO Classes
 @dataclass
@@ -85,10 +104,12 @@ class DefinitiveThreePassEngine:
         self.element_positions: Dict[str, Tuple[float, float]] = {}
         self.port_nodes: Dict[str, PortNode] = {}
         self.element_to_cut: Dict[str, str] = {}
+        self.layout_deltas: Optional[LayoutDeltas] = None
         
     def generate_layout(self, 
                        egi: RelationalGraphWithCuts,
                        style: Optional[StyleSpecification] = None,
+                       layout_deltas: Optional[LayoutDeltas] = None,
                        debug_prefix: Optional[str] = None) -> LayoutDTO:
         """Execute three-pass layout generation."""
         print("=" * 70)
@@ -101,6 +122,7 @@ class DefinitiveThreePassEngine:
         self.element_positions.clear()
         self.port_nodes.clear()
         self.element_to_cut.clear()
+        self.layout_deltas = layout_deltas
         
         # Load style if not provided
         if style is None:
@@ -672,6 +694,24 @@ class DefinitiveThreePassEngine:
                     node['y'] = gv_y - bounds.y
                 payload['nodes'].append(node)
         
+        # Apply user position overrides from LayoutDeltas (pinned positions)
+        if self.layout_deltas:
+            for delta in self.layout_deltas.deltas.values():
+                if delta.delta_type in ('vertex_position', 'edge_position') and delta.new_position:
+                    # Find the node in the payload
+                    for node in payload['nodes']:
+                        if node['id'] == delta.element_id:
+                            # Transform to cut-local coordinates
+                            node['x'] = delta.new_position[0] - bounds.x
+                            node['y'] = delta.new_position[1] - bounds.y
+                            # Mark as pinned (D3 will use fx/fy)
+                            node['pinned'] = True
+                            break
+        
+        # Add deterministic seed if specified
+        if self.layout_deltas and self.layout_deltas.deterministic_seed is not None:
+            payload['seed'] = self.layout_deltas.deterministic_seed
+        
         # Add child obstacles
         for child in hierarchy[cut_id]['children']:
             cb = self.area_bounds[child]
@@ -830,7 +870,7 @@ class DefinitiveThreePassEngine:
                     connection_ports=ports
                 ))
         
-        # Add ligatures (simple paths for now)
+        # Add ligatures (simple paths for now, with custom path support)
         for edge_id, vertices in egi.nu.items():
             edge_obj = next((e for e in dto.edge_labels if e.id == edge_id), None)
             if not edge_obj:
@@ -842,11 +882,28 @@ class DefinitiveThreePassEngine:
                     e_pos = (edge_obj.rect.x + edge_obj.rect.width/2,
                             edge_obj.rect.y + edge_obj.rect.height/2)
                     
+                    # Check for custom ligature path from LayoutDeltas
+                    custom_path = None
+                    ligature_key = f"{v_id}_to_{edge_id}"
+                    
+                    if self.layout_deltas:
+                        for delta in self.layout_deltas.deltas.values():
+                            if (delta.delta_type == 'ligature_path' and 
+                                delta.nu_mapping_key == ligature_key and 
+                                delta.custom_path):
+                                # TODO: Validate custom path doesn't cross obstacles
+                                # For now, use it if provided
+                                custom_path = delta.custom_path
+                                break
+                    
+                    # Use custom path if available, otherwise straight line
+                    path_points = custom_path if custom_path else [v_pos, e_pos]
+                    
                     dto.ligatures.append(RenderableLigature(
                         start_vertex_id=v_id,
                         end_edge_id=edge_id,
                         end_hook_index=hook_idx,
-                        path_points=[v_pos, e_pos]  # Direct for now
+                        path_points=path_points
                     ))
         
         print(f"  ✅ {len(dto.ligatures)} ligatures routed")

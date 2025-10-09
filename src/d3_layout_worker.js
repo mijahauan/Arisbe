@@ -33,7 +33,14 @@ process.stdin.on('end', () => {
 });
 
 function layoutContent(payload) {
-    const { bounds, nodes, links, obstacles, portNodes } = payload;
+    const { bounds, nodes, links, obstacles, portNodes, seed } = payload;
+    
+    // Seeded random number generator for deterministic layouts
+    let randomSeed = seed !== undefined ? seed : Date.now();
+    function seededRandom() {
+        const x = Math.sin(randomSeed++) * 10000;
+        return x - Math.floor(x);
+    }
     
     // Build simulation nodes
     const simNodes = [];
@@ -44,29 +51,52 @@ function layoutContent(payload) {
         const node = nodes[i];
         let x, y;
         
-        if (portNodes.length > 0) {
+        // Check if this node has a user-defined pinned position
+        if (node.pinned && node.x !== undefined && node.y !== undefined) {
+            // User override - use exact position and mark as fixed
+            x = node.x;
+            y = node.y;
+        } else if (node.x !== undefined && node.y !== undefined) {
+            // Graphviz hint position (use as starting point, not fixed)
+            x = node.x;
+            y = node.y;
+        } else if (portNodes.length > 0) {
             // Place near the first port node (likely connection point)
             const port = portNodes[0];
-            // Offset from port to avoid exact overlap
-            const offsetAngle = (i / nodes.length) * 2 * Math.PI;
+            // Offset from port to avoid exact overlap (use seeded random for determinism)
+            const offsetAngle = seed !== undefined ? 
+                (i / nodes.length) * 2 * Math.PI : 
+                seededRandom() * 2 * Math.PI;
             const offsetDist = 40;
             x = port.x + offsetDist * Math.cos(offsetAngle);
             y = port.y + offsetDist * Math.sin(offsetAngle);
         } else {
-            // No ports - spread in circle
-            const angle = (i / nodes.length) * 2 * Math.PI;
+            // No ports - spread in circle (deterministic if seed provided)
+            const angle = seed !== undefined ? 
+                (i / nodes.length) * 2 * Math.PI : 
+                seededRandom() * 2 * Math.PI;
             const radius = Math.min(bounds.width, bounds.height) * 0.2;
             x = bounds.width / 2 + radius * Math.cos(angle);
             y = bounds.height / 2 + radius * Math.sin(angle);
         }
         
-        simNodes.push({
+        const simNode = {
             id: node.id,
             type: node.type,
             label: node.label,
+            width: node.width,
+            height: node.height,
             x: x,
             y: y
-        });
+        };
+        
+        // If pinned, mark as fixed for D3 (fx/fy)
+        if (node.pinned) {
+            simNode.fx = x;
+            simNode.fy = y;
+        }
+        
+        simNodes.push(simNode);
     }
     
     // Add pinned port nodes
