@@ -1,0 +1,16 @@
+<svg width="158.0" height="195.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ ~[ *x *y *z (Relation x y z) ] ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="158.0" height="155.63" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<rect x="8.0" y="8.0" width="142.0" height="139.63" fill="none" stroke="lightgray"/>
+<rect x="28.0" y="28.0" width="102.0" height="99.63" fill="none" stroke="lightgray"/>
+<circle cx="82.68647723255873" cy="65.36747483500929" r="5" fill="red"/>
+<text x="90.68647723255873" y="69.36747483500929" font-size="8" fill="gray">e_67fb</text>
+<circle cx="59.566398127129425" cy="109.87389082378485" r="5" fill="red"/>
+<text x="67.56639812712942" y="113.87389082378485" font-size="8" fill="gray">v_4aa9</text>
+<circle cx="36.878593159250315" cy="45.83983757457405" r="5" fill="red"/>
+<text x="44.878593159250315" y="49.83983757457405" font-size="8" fill="gray">v_e37d</text>
+<circle cx="121.91810849060776" cy="96.213482828575" r="5" fill="red"/>
+<text x="129.91810849060778" y="100.213482828575" font-size="8" fill="gray">v_c363</text>
+</g>
+</svg>

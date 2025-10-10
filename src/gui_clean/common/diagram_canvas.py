@@ -17,8 +17,8 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from definitive_egi_layout_engine import LayoutDTO
-from graphviz_svg_renderer import GraphvizSVGRenderer
+from unified_d3_engine import LayoutDTO
+from simple_svg_renderer import SimpleSVGRenderer
 from egif_generator_dau import generate_egif
 from egi_core_dau import RelationalGraphWithCuts
 
@@ -38,8 +38,8 @@ class DiagramCanvas(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         
-        # SVG renderer (production-ready)
-        self._renderer = GraphvizSVGRenderer()
+        # SVG renderer (works with unified DTO)
+        self._renderer = SimpleSVGRenderer()
         
         # SVG display widget
         self._svg_widget = QSvgWidget()
@@ -62,6 +62,11 @@ class DiagramCanvas(QWidget):
             dto: The layout to display
             egi: Optional EGI for EGIF generation in title
         """
+        if dto is None:
+            print("ERROR: display_dto received None for dto")
+            self.clear()
+            return
+        
         self._current_dto = dto
         self._current_egi = egi
         
@@ -77,7 +82,8 @@ class DiagramCanvas(QWidget):
         svg_content = self._renderer.render_to_svg(
             dto,
             title="Existential Graph",
-            egif=egif
+            egif=egif,
+            egi=egi  # Pass EGI for labels
         )
         
         # Display

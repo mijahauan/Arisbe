@@ -87,7 +87,7 @@ def test_diagram_controller():
     
     # Get DTO
     dto = controller.get_renderable_dto()
-    print(f"  ✅ Generated LayoutDTO ({len(dto.vertices)} vertices)")
+    print(f"  ✅ Generated LayoutDTO ({len(dto.vertex_positions)} vertices, {len(dto.predicate_positions)} predicates)")
     
     print()
     return True

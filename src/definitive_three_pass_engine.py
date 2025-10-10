@@ -643,26 +643,65 @@ class DefinitiveThreePassEngine:
     # === PASS 2 ===
     
     def _pass2_content(self, egi: RelationalGraphWithCuts):
-        """Position content using d3-force worker."""
+        """
+        TRUE RECURSIVE BOTTOM-UP content layout.
+        
+        CRITICAL ARCHITECTURE:
+        1. Layout innermost (leaf) cuts FIRST
+        2. Child cuts are treated as large fixed obstacles in parent
+        3. No Graphviz hints - d3-force discovers optimal positions
+        4. Returns final bounding box for each cut (for future dynamic sizing)
+        """
         hierarchy = self._build_hierarchy(egi)
         
-        def layout_recursive(cut_id: str):
-            for child in hierarchy[cut_id]['children']:
-                layout_recursive(child)
+        def layout_recursive(cut_id: str) -> Optional[Rect]:
+            """
+            Layout cut content recursively (bottom-up).
+            
+            Returns:
+                Final bounding box of cut's content (currently fixed from Pass 1)
+            """
+            # FIRST: Recursively layout all children (BOTTOM-UP)
+            child_boxes = {}
+            for child_id in hierarchy[cut_id]['children']:
+                child_box = layout_recursive(child_id)
+                if child_box:
+                    child_boxes[child_id] = child_box
+            
+            # THEN: Layout this cut's own content
+            # (with children as fixed obstacles)
             
             # Handle empty graphs (no area entry for sheet)
             if cut_id not in egi.area:
-                return
+                return self.area_bounds.get(cut_id)
             
             content = [e for e in egi.area[cut_id] if e.startswith(('v_', 'e_'))]
-            if content:
-                self._layout_cut(egi, cut_id, hierarchy)
+            
+            # Skip if no content and no children
+            if not content and not child_boxes:
+                return self.area_bounds.get(cut_id)
+            
+            # Layout this cut WITH child boxes as obstacles
+            self._layout_cut(egi, cut_id, child_boxes)
+            
+            # Return final bounding box (currently from Pass 1, but could be dynamic)
+            return self.area_bounds.get(cut_id)
         
+        # Start recursion from sheet (root)
         layout_recursive(egi.sheet)
-        print(f"  ✅ {len(self.element_positions)} elements positioned")
+        print(f"  ✅ {len(self.element_positions)} elements positioned (bottom-up)")
     
-    def _layout_cut(self, egi: RelationalGraphWithCuts, cut_id: str, hierarchy: Dict):
-        """Layout one cut's content with d3 worker."""
+    def _layout_cut(self, egi: RelationalGraphWithCuts, cut_id: str, child_boxes: Dict[str, Rect]):
+        """
+        Layout one cut's content with d3-force worker.
+        
+        CRITICAL: Child cuts treated as large fixed obstacles.
+        
+        Args:
+            egi: The EGI graph
+            cut_id: The cut to layout
+            child_boxes: Dict mapping child cut IDs to their final bounding boxes
+        """
         bounds = self.area_bounds[cut_id]
         payload = {
             'bounds': {'x': bounds.x, 'y': bounds.y, 'width': bounds.width, 'height': bounds.height},
@@ -707,15 +746,15 @@ class DefinitiveThreePassEngine:
         if self.layout_deltas and self.layout_deltas.deterministic_seed is not None:
             payload['seed'] = self.layout_deltas.deterministic_seed
         
-        # Add child obstacles
-        for child in hierarchy[cut_id]['children']:
-            cb = self.area_bounds[child]
+        # Add child cuts as obstacles (BOTTOM-UP: children already laid out)
+        # These are treated as large fixed nodes that content must avoid
+        for child_id, child_box in child_boxes.items():
             payload['obstacles'].append({
-                'id': child,
-                'x': cb.x - bounds.x + cb.width/2,
-                'y': cb.y - bounds.y + cb.height/2,
-                'width': cb.width,
-                'height': cb.height
+                'id': child_id,
+                'x': child_box.x - bounds.x + child_box.width/2,
+                'y': child_box.y - bounds.y + child_box.height/2,
+                'width': child_box.width,
+                'height': child_box.height
             })
         
         # PORT PAIRS: The critical insight!
@@ -723,7 +762,7 @@ class DefinitiveThreePassEngine:
         # - External port: visible in parent's space (on outer side of boundary)
         # - Internal port (ghost): visible in child's space (just inside boundary)
         
-        child_ids = hierarchy[cut_id]['children']
+        child_ids = list(child_boxes.keys())
         
         # 1. Internal ports: For ligatures entering THIS cut from parent
         #    These are "ghost" ports just inside this cut's boundary

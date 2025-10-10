@@ -1,0 +1,15 @@
+<svg width="222.0" height="232.38" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ (Human "Socrates") ~[ (Mortal "Socrates") ] ]</text>
+<g transform="translate(0, 30)">
+<polyline points="113.88184537468467,47.943202036036205 77.82660265348734,50.17614067629775" fill="none" stroke="#666" stroke-width="2"/>
+<polyline points="113.88184537468467,47.943202036036205 165.4,78.81652700157319" fill="none" stroke="#666" stroke-width="2"/>
+<rect x="8.0" y="8.0" width="206.0" height="176.38" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<rect x="104.0" y="56.889999999999986" width="90.0" height="107.49000000000001" fill="none" stroke="blue" stroke-width="2" rx="8"/>
+<circle cx="113.88184537468467" cy="47.943202036036205" r="3.0" fill="white" stroke="black" stroke-width="2"/>
+<text x="113.88184537468467" y="51.943202036036205" text-anchor="middle" font-size="12">Socrates</text>
+<rect x="57.82660265348734" y="38.17614067629775" width="40" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="77.82660265348734" y="54.17614067629775" text-anchor="middle" font-size="12">Human</text>
+<rect x="141.4" y="66.81652700157319" width="48" height="24" fill="white" stroke="black" stroke-width="2"/>
+<text x="165.4" y="82.81652700157319" text-anchor="middle" font-size="12">Mortal</text>
+</g>
+</svg>

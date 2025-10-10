@@ -22,13 +22,8 @@ from definitive_egi_layout_engine import (
     LayoutDeltas,
     LayoutDelta,
 )
-from definitive_three_pass_engine import (
-    DefinitiveThreePassEngine,
-    LayoutDTO,
-    RenderableVertex,
-    RenderableEdgeLabel,
-    RenderableLigature
-)
+# Using unified D3 engine (single simulation - definitive architecture)
+from unified_d3_engine import UnifiedD3Engine, LayoutDTO
 
 # Style system
 from style_loader import StyleLoader, StyleSpecification
@@ -67,7 +62,7 @@ class DiagramController:
 
     def __init__(self):
         """Initialize the diagram controller with default components."""
-        self.layout_engine = DefinitiveThreePassEngine()
+        self.layout_engine = UnifiedD3Engine()  # Using unified D3 engine (single simulation)
         self.style_loader = StyleLoader()
         self.current_style: Optional[StyleSpecification] = None
         self.layout_deltas: Dict[str, LayoutDelta] = {}
@@ -100,9 +95,14 @@ class DiagramController:
             True if successfully loaded, False otherwise
         """
         try:
+            print(f"DiagramController.load_egi: Starting with {len(egi.V)}V, {len(egi.E)}E, {len(egi.Cut)}C")
+            
             # Validate the EGI model
             if not self._validate_egi_model(egi):
+                print("DiagramController.load_egi: Validation FAILED")
                 return False
+
+            print("DiagramController.load_egi: Validation passed")
 
             # Set the new model and style
             self.egi_model = egi
@@ -111,13 +111,17 @@ class DiagramController:
             # Clear all user constraints (fresh start)
             self.layout_deltas = {}
 
+            print("DiagramController.load_egi: Calling _trigger_full_relayout")
             # Generate initial layout
             self._trigger_full_relayout()
 
+            print(f"DiagramController.load_egi: SUCCESS, dto={self.current_dto is not None}")
             return True
 
         except Exception as e:
-            print(f"Failed to load EGI: {e}")
+            print(f"DiagramController.load_egi: EXCEPTION - {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def get_renderable_dto(self) -> Optional[LayoutDTO]:
@@ -280,21 +284,32 @@ class DiagramController:
     # === INTERNAL METHODS ===
 
     def _trigger_full_relayout(self):
-        """Trigger complete re-layout after logical changes."""
+        """
+        Trigger complete re-layout after logical changes.
+        
+        SIMPLIFIED: Just call the unified D3 engine once with all context.
+        The engine handles everything: sizing, positioning, containment.
+        """
         if not self.egi_model or not self.current_style:
             return
 
-        # Convert layout_deltas dict to LayoutDeltas object
-        deltas_obj = LayoutDeltas()
-        deltas_obj.deltas = self.layout_deltas
-        deltas_obj.deterministic_seed = 42  # Consistent layouts
-
-        # Generate new layout
-        self.current_dto = self.layout_engine.generate_layout(
-            self.egi_model,
-            self.current_style,
-            deltas_obj
-        )
+        try:
+            # Single call to unified D3 engine - it does everything
+            self.current_dto = self.layout_engine.generate_layout(
+                egi=self.egi_model,
+                style=self.current_style,
+                layout_deltas=self.layout_deltas  # Pass user constraints
+            )
+            
+            if self.current_dto is None:
+                print("ERROR: Layout engine returned None")
+                return
+            
+        except Exception as e:
+            print(f"ERROR in _trigger_full_relayout: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     def _trigger_fast_update(self):
         """Trigger fast update for aesthetic changes only."""
