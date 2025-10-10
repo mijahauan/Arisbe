@@ -310,24 +310,45 @@ class MetadataPanel(QWidget):
         if not egi.Cut:
             return 0
         
-        # Build parent-child relationships
-        cut_children = {}
-        for cut_id in egi.Cut:
-            children = [c for c in egi.Cut if egi.kappa.get(c) == cut_id]
-            cut_children[cut_id] = children
+        # Use hierarchical index if available
+        if egi.hierarchical_index:
+            max_depth = 0
+            for cut in egi.Cut:
+                depth = egi.hierarchical_index.get_nesting_level(cut.id)
+                max_depth = max(max_depth, depth)
+            return max_depth
         
-        # Find root cuts (parent is sheet)
-        root_cuts = [c for c in egi.Cut if egi.kappa.get(c) == egi.sheet]
+        # Fallback: Build parent-child relationships from area mapping
+        # Find which area contains each cut
+        cut_parent = {}
+        for area_id, elements in egi.area.items():
+            for element_id in elements:
+                # Check if element is a cut
+                if any(c.id == element_id for c in egi.Cut):
+                    cut_parent[element_id] = area_id
         
-        # Calculate depth recursively
-        def depth_from(cut_id: str, current_depth: int) -> int:
-            children = cut_children.get(cut_id, [])
-            if not children:
-                return current_depth
-            return max(depth_from(child, current_depth + 1) for child in children)
+        # Find root cuts (contained in sheet)
+        root_cuts = []
+        for cut in egi.Cut:
+            parent = cut_parent.get(cut.id)
+            if parent == egi.sheet:
+                root_cuts.append(cut.id)
         
         if not root_cuts:
             return 0
+        
+        # Calculate depth recursively
+        def depth_from(cut_id: str, current_depth: int) -> int:
+            # Find children of this cut
+            children = []
+            for other_cut in egi.Cut:
+                parent = cut_parent.get(other_cut.id)
+                if parent == cut_id:
+                    children.append(other_cut.id)
+            
+            if not children:
+                return current_depth
+            return max(depth_from(child, current_depth + 1) for child in children)
         
         return max(depth_from(root, 1) for root in root_cuts)
     
