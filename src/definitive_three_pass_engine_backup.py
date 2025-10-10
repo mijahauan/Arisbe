@@ -1,27 +1,10 @@
 #!/usr/bin/env python3
 """
-Definitive Three-Pass EGI Layout Engine (PARTIALLY CORRECTED)
+Definitive Three-Pass EGI Layout Engine
 
-ARCHITECTURAL STATUS:
-Phase 1 Fixes Applied (2025-01-10):
-- ✅ Graphviz node positions now DISCARDED (not used as d3 hints)
-- ✅ d3-force discovers optimal positions from scratch
-- ⏳ Port calculation still in dot input (should be geometric post-Pass 1)
-- ⏳ Pass 2 not yet fully recursive bottom-up
-
-Pass 1: Graphviz dot - Container sizing
-    - Input: Full hierarchy with ALL nodes (for sizing estimation)
-    - Output: Container geometry (KEPT), node positions (DISCARDED)
-    - Port nodes: Currently in dot input (TODO: calculate geometrically after)
-
-Pass 2: d3-force - Content positioning
-    - NO Graphviz hints used (CORRECTED)
-    - Currently: Independent per-cut layout
-    - TODO: True recursive bottom-up (child sizes inform parent)
-
-Pass 3: A* pathfinding - Ligature routing
-    - Simple straight-line routing
-    - TODO: Full area-aware A* with validation
+Pass 1: Graphviz dot - Container hierarchy and port calculation
+Pass 2: d3-force - Content positioning with custom containment  
+Pass 3: A* pathfinding - Ligature routing with obstacle avoidance
 """
 
 import json
@@ -205,7 +188,7 @@ class DefinitiveThreePassEngine:
             )
             layout_json = json.loads(result.stdout)
             self._parse_dot_output(layout_json, egi)
-            # REMOVED: _extract_graphviz_positions - we DISCARD node positions from dot!
+            self._extract_graphviz_positions(layout_json, egi)  # NEW: Extract element positions
             print(f"  ✅ {len(self.area_bounds)} containers, {len(self.port_nodes)} ports")
         finally:
             Path(dot_file).unlink()
@@ -316,6 +299,23 @@ class DefinitiveThreePassEngine:
         
         lines.append("}")
         return "\n".join(lines)
+    
+    def _extract_graphviz_positions(self, layout_json: Dict, egi: RelationalGraphWithCuts):
+        """Extract element positions from Graphviz JSON output."""
+        self.graphviz_positions = {}
+        
+        # Extract node positions from Graphviz output
+        for obj in layout_json.get('objects', []):
+            node_id = obj.get('name')
+            if node_id and node_id.startswith(('v_', 'e_')):
+                # Graphviz positions are in points, convert to our coordinate system
+                pos = obj.get('pos')
+                if pos:
+                    coords = pos.split(',')
+                    if len(coords) == 2:
+                        x = float(coords[0])
+                        y = float(coords[1])
+                        self.graphviz_positions[node_id] = (x, y)
     
     def _parse_dot_output(self, layout_json: Dict, egi: RelationalGraphWithCuts):
         """Extract container bounds AND port positions from DOT output."""
@@ -678,7 +678,12 @@ class DefinitiveThreePassEngine:
                 # Add actual dimensions from style for spatial/logical correspondence
                 node['width'] = self.style.vertex_radius * 2
                 node['height'] = self.style.vertex_radius * 2
-                # NO Graphviz hints! Let d3-force discover optimal position from scratch
+                # Add Graphviz position as starting hint (if available)
+                if elem_id in self.graphviz_positions:
+                    gv_x, gv_y = self.graphviz_positions[elem_id]
+                    # Transform to cut-local coordinates
+                    node['x'] = gv_x - bounds.x
+                    node['y'] = gv_y - bounds.y
                 payload['nodes'].append(node)
             elif elem_id.startswith('e_'):
                 node = {'id': elem_id, 'type': 'edge_label'}
@@ -686,7 +691,12 @@ class DefinitiveThreePassEngine:
                 label = egi.rel.get(elem_id, '?')
                 node['width'] = len(label) * self.style.predicate_char_width + 2 * self.style.text_margin
                 node['height'] = self.style.predicate_height
-                # NO Graphviz hints! Let d3-force discover optimal position from scratch
+                # Add Graphviz position as starting hint (if available)
+                if elem_id in self.graphviz_positions:
+                    gv_x, gv_y = self.graphviz_positions[elem_id]
+                    # Transform to cut-local coordinates
+                    node['x'] = gv_x - bounds.x
+                    node['y'] = gv_y - bounds.y
                 payload['nodes'].append(node)
         
         # Apply user position overrides from LayoutDeltas (pinned positions)
