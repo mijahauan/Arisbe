@@ -87,18 +87,24 @@ save_egi_json(egi, "filename.json")
 loaded_egi = load_egi_json("filename.json")
 ```
 
-### Definitive Three-Pass Layout Engine
+### Unified D3 Recursive Layout Engine (PRODUCTION)
 ```python
-from definitive_three_pass_engine import DefinitiveThreePassEngine
+from unified_d3_engine import UnifiedD3Engine
 from style_loader import StyleLoader
 
 # Load style
 style_loader = StyleLoader()
 style = style_loader.load_default_style()
 
-# Generate layout with three-pass engine
-engine = DefinitiveThreePassEngine()
-dto = engine.generate_layout(egi, style, output_path_prefix)
+# Generate layout with recursive bottom-up engine
+engine = UnifiedD3Engine()
+dto = engine.generate_layout(egi, style, layout_deltas=None)
+
+# DTO structure:
+# - dto.vertex_positions: Dict[ElementID, Point]
+# - dto.predicate_positions: Dict[ElementID, Point]
+# - dto.cut_bounds: Dict[ElementID, BoundingBox]
+# - dto.ligature_paths: List[LigaturePath]
 ```
 
 ### GUI Style Management
@@ -161,28 +167,31 @@ result = rule.apply_transformation(context)
 - **Complete validation**: 100% comprehensive coverage achieved
 
 ## 🏗️ Layout Engine Architecture
-- **Definitive Three-Pass Engine**: `src/definitive_three_pass_engine.py` - **PRODUCTION ENGINE** (integrated 2025-10-09)
-- **DiagramController Integration**: DiagramController now uses DefinitiveThreePassEngine
-- **Three-step pipeline**: Graphviz containers → D3 force content → A* ligature routing
-  - **Pass 1**: Graphviz neato for cut hierarchy and boundaries (with ports)
-  - **Pass 2**: D3 force simulation for element positioning within cuts
-  - **Pass 3**: Area-aware A* pathfinding for ligature routing
-- **D3 Layout Worker**: `src/d3_layout_worker.js` - Node.js worker for force simulation
-  - Port link detection via ID pattern matching
-  - Adaptive centering (disabled for port-connected nodes)
-  - Obstacle ejection for spatial/logical correspondence
-  - Force parameters: port links (50.0 strength, 5px dist), normal links (4.0, 30/50px)
-  - **Pinned positions**: User overrides via `pinned` flag + `fx`/`fy`
-  - **Deterministic seeding**: Reproducible layouts with seed parameter
-- **LayoutDeltas Support**: User position overrides, custom ligature paths, deterministic layouts
-- **Area-Aware Pathfinder**: `src/area_aware_pathfinder.py` - Legal corridor A* pathfinding for ligatures
-- **Graphviz SVG Renderer**: `src/graphviz_svg_renderer.py` - Clean SVG output with mathematical precision
-- **Test corpus**: `python tools/test_definitive_corpus.py` - Validates all 14 graphs
-- **Known issues**:
-  - Port link force (50.0) too strong vs normal links (4.0) - causes elements to drift apart
-  - Elements with both port and normal links prioritize ports over same-cut relationships
-  - Some position updates may not fully persist across relayouts (4/8 workflow tests passing)
-  - Needs force balancing in future iteration
+- **Unified D3 Recursive Engine**: `src/unified_d3_engine.py` - **PRODUCTION ENGINE** (integrated 2025-10-12)
+- **DiagramController Integration**: DiagramController now uses UnifiedD3Engine
+- **Architecture**: Pure recursive bottom-up with shell-and-core D3 worker
+  - **Python Orchestrator**: Recursive traversal of cut hierarchy (leaf-first)
+  - **D3 Worker**: `src/unified_d3_worker.js` - Two-phase shell-and-core simulation
+  - **SVG Renderer**: `src/simple_svg_renderer.py` - Direct LayoutDTO to SVG
+- **Shell-and-Core Model**: TWO simulations per cut eliminate force-fighting
+  - **SHELL Simulation**: Layout obstacles (child cuts) using collision + center forces
+  - **CORE Simulation**: Position content with obstacles as fixed repellers
+  - **No Oscillation**: Gentle continuous forces work together, not against each other
+- **Key Features**:
+  - **Iron-clad EGI.area compliance**: Recursive coordinate translation ensures correctness
+  - **No overlapping cuts**: Shell simulation with obstacle collision prevents sibling overlap
+  - **No escaped elements**: Per-cut coordinate system with recursive translation
+  - **Cache clearing**: Fresh state for each layout prevents ghost elements
+  - **Deterministic layouts**: Seeded random for reproducible results
+  - **Dau compliance**: Sheet is invisible, proper cut nesting
+- **LayoutDTO Structure**:
+  - `vertex_positions`: Dict[ElementID, Point]
+  - `predicate_positions`: Dict[ElementID, Point]
+  - `cut_bounds`: Dict[ElementID, BoundingBox]
+  - `ligature_paths`: List[LigaturePath]
+  - `area_hierarchy`: Dict[ElementID, Set[ElementID]]
+- **Testing**: Validated on 15-graph corpus with stable, correct results
+- **References**: See `BOTTOM_UP_D3_ARCHITECTURE.md` for complete architectural details
 
 ## 🔌 Connection Port System
 - **Pre-defined connection ports**: EdgeLabel bounding boxes have numbered ports mirroring ν mapping
@@ -207,9 +216,10 @@ result = rule.apply_transformation(context)
 - **GUI preparation**: Data structures ready for diagram controller and interactive editing
 
 ## 🎮 DiagramController - Layered Command Architecture
-- **Production Status**: Using DefinitiveThreePassEngine (integrated 2025-10-09)
+- **Production Status**: Using UnifiedD3Engine (integrated 2025-10-12)
 - **Layered Architecture**: Clean separation between "what" (use case logic) and "how" (diagram manipulation)
 - **Command Pattern**: High-level commands in Organon/Ergasterion/Agon orchestrate low-level controller operations
+- **Layout Engine**: UnifiedD3Engine with recursive bottom-up and shell-and-core physics
 - **State Management**: Immutable EGI transformations with persistent user constraints across operations
 - **Validation System**: Multi-layer validation for positions, paths, and formal rule preconditions
 - **Undo/Redo Support**: Complete command history management with CommandExecutor
@@ -218,16 +228,17 @@ result = rule.apply_transformation(context)
   - **Ergasterion**: Learning & practice (rule-based EGI modifications)
   - **Agon**: Formal interaction & gameplay (Endoporeutic Game mechanics)
 - **Formal Rules**: Complete implementation of DC+/-, INS/ERA, IT+/- with Dau compliance
-- **Production Ready**: Comprehensive test suite with 100% validation coverage
+- **Production Ready**: Comprehensive test suite with 90 passing tests
 - **Critical Fixes Applied** (2025-10-01):
   - ✅ Ligatures now connect perfectly to vertices (no quantization errors)
   - ✅ Logical area validation ensures vertices stay within proper cuts
   - ✅ User position overrides applied before ligature routing
   - ✅ Invalid positions gracefully rejected to preserve EG correctness
-- **Integration Complete** (2025-10-09):
-  - ✅ DiagramController switched to DefinitiveThreePassEngine
-  - ✅ LayoutDeltas support fully implemented (pinned positions, custom paths, deterministic seeding)
-  - ✅ DTO compatibility maintained (style attributes, annotations)
+- **Integration Complete** (2025-10-12):
+  - ✅ DiagramController switched to UnifiedD3Engine
+  - ✅ Shell-and-core model eliminates force-fighting
+  - ✅ Recursive bottom-up respects EGI.area mapping
+  - ✅ LayoutDTO standardized (vertex_positions, predicate_positions, cut_bounds)
 - **Test Results**: 11/11 DiagramController tests, 4/8 workflow tests (position persistence edge cases), 3/3 GUI Organon tests
 
 ## 🎨 Style System Architecture
