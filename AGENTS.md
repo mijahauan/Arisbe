@@ -2,7 +2,7 @@
 
 ## 🔒 Core Protection System
 - **16 protected core modules** - Cannot be modified without explicit authorization
-- **87 core tests** must always pass - These validate the mathematical foundation
+- **90 core tests** must always pass - These validate the mathematical foundation
 - **Check protection status**: `python tools/core_protection_system.py --report`
 - **Override protection** (authorized changes only): `export ARISBE_CORE_OVERRIDE=true`
 
@@ -23,24 +23,15 @@
 ## 🧪 Testing Requirements
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
 - **System status**: `python tools/daily_quality_dashboard.py`
-- **Core tests**: `python -m pytest tests/test_*_comprehensive.py tests/test_*_working.py`
-- **DiagramController tests**: `python tools/test_diagram_controller.py` (11/11 passing)
-- **Workflow simulation tests**: `python tests/end_to_end/test_user_workflows.py` (4/8 passing, position persistence edge cases)
-- **Golden master tests**: `python tests/end_to_end/test_golden_masters.py` (4-6/6, 67-100%)
-- **Layout engine tests**: `python tools/test_definitive_egi_layout_engine.py` (synthetic tests)
-- **Corpus validation**: `python tools/test_definitive_corpus_graphs.py` (real-world graphs)
-- **Style system tests**: `python -m pytest tests/test_style_integration.py`
-- **Readability optimization tests**: `python -m pytest tests/test_readability_optimizer.py`
-- **Connection port tests**: `python tools/test_connection_ports.py` (port configuration validation)
-- **Corpus connection port tests**: `python tools/test_corpus_connection_ports.py` (full corpus validation)
-- **GUI Organon tests**: `python tools/test_gui_organon.py` (GUI smoke tests, 3/3 passing)
-- **Expected results**: 190+ passing, 0 failing, 62 properly skipped
+- **Core tests**: `python -m pytest tests/` (90/90 passing)
+- **GUI Organon tests**: `python tools/test_gui_organon.py` (3/3 passing)
+- **Expected results**: 90 core tests passing, 0 failing
 
 ## 🏗️ Build and Development
 - **Environment**: `conda activate CGIF` (Python 3.12.10)
 - **Dependencies**: See `requirements.txt`
 - **Core modules location**: `src/` directory (16 protected modules)
-- **Test location**: `tests/` directory (87 core validation tests)
+- **Test location**: `tests/` directory (90 core validation tests)
 
 ## 📋 Code Style and Conventions
 - **Import pattern**: `from module_name import function_name` (not `from src.module_name`)
@@ -153,7 +144,7 @@ result = rule.apply_transformation(context)
 - **DO NOT** reinvent existing solutions - use context awareness system first
 
 ## 🏆 Success Indicators
-- All 87 core tests passing
+- All 90 core tests passing
 - Quality dashboard shows "EXCELLENT" status
 - Core protection system shows "CLEAN" status
 - Zero syntax errors across all source files
@@ -163,7 +154,7 @@ result = rule.apply_transformation(context)
 - **Dau Chapter 16-17**: Ligature algorithms and soundness
 - **Dau Chapter 18**: Linear format parsing/generation
 - **Dau Chapter 20**: Syntactic equivalence checking
-- **Dau Chapter 21**: Diagram interaction architecture (see LAYOUT_ENGINE_ARCHITECTURE_PLAN.md)
+- **Dau Chapter 21**: Diagram interaction architecture (see BOTTOM_UP_D3_ARCHITECTURE.md)
 - **Complete validation**: 100% comprehensive coverage achieved
 
 ## 🏗️ Layout Engine Architecture
@@ -193,27 +184,11 @@ result = rule.apply_transformation(context)
 - **Testing**: Validated on 15-graph corpus with stable, correct results
 - **References**: See `BOTTOM_UP_D3_ARCHITECTURE.md` for complete architectural details
 
-## 🔌 Connection Port System
-- **Pre-defined connection ports**: EdgeLabel bounding boxes have numbered ports mirroring ν mapping
-- **Optimal port assignment**: Vertices connect to nearest available ports to minimize crossings
-- **Smart port creation**: Unary predicates choose optimal direction (N/S/E/W) based on vertex position
-- **Mathematical precision**: Perfect ν mapping correspondence with visual optimization
-- **Production validation**: 100% success rate across entire 15-graph corpus with zero crossing issues
-- **Port placement logic**: Systematic cardinal/intercardinal directions based on predicate arity
-- **Visual quality**: Eliminates ligature crossings and text obstruction for professional diagrams
-- **Two-level optimization**: Smart port creation + nearest port assignment for maximum effectiveness
-- **Context-aware algorithms**: Uses actual vertex positions for optimal port direction selection
-- **Comprehensive testing**: `python tools/test_corpus_connection_ports.py` validates entire corpus
-
 ## 🎯 User Edit System & Deterministic Layouts
-- **Layout Deltas**: `LayoutDeltas` data structure for user modifications to vertex/edge positions and ligature paths
+- **Layout Deltas**: Support for user modifications to vertex/edge positions (planned)
 - **Deterministic seeding**: Fixed seed values ensure identical layouts for same EGI input
-- **Pinned nodes**: User-specified positions become fixed points in neato layout simulation
-- **Custom ligature paths**: User-defined paths with collision and logical constraint validation
-- **Constrained layout**: neato arranges free nodes around pinned user positions
-- **Path validation**: Custom paths validated for collisions and area-aware logical constraints
-- **Fallback mechanism**: Invalid custom paths automatically fall back to A* pathfinding
-- **GUI preparation**: Data structures ready for diagram controller and interactive editing
+- **Pinned nodes**: User-specified positions can be fixed in D3 simulation (supported via fx/fy)
+- **Extensible architecture**: LayoutDTO structure ready for future interactive editing features
 
 ## 🎮 DiagramController - Layered Command Architecture
 - **Production Status**: Using UnifiedD3Engine (integrated 2025-10-12)
@@ -239,7 +214,7 @@ result = rule.apply_transformation(context)
   - ✅ Shell-and-core model eliminates force-fighting
   - ✅ Recursive bottom-up respects EGI.area mapping
   - ✅ LayoutDTO standardized (vertex_positions, predicate_positions, cut_bounds)
-- **Test Results**: 11/11 DiagramController tests, 4/8 workflow tests (position persistence edge cases), 3/3 GUI Organon tests
+- **Test Results**: 90/90 core tests passing, 3/3 GUI Organon tests passing
 
 ## 🎨 Style System Architecture
 - **JSON-based styles**: Platform-independent style definitions in `styles/` directory
@@ -250,15 +225,6 @@ result = rule.apply_transformation(context)
 - **Optional features**: Arity numbers, variable labels, alternating shading
 - **Transformation support**: Double cut highlighting, isomorphic matching, collapsed contexts
 - **Complete documentation**: `docs/STYLE_SYSTEM_GUIDE.md` - User and developer guide
-
-## 🔧 Readability Optimization System
-- **Logic-indifferent optimizations**: Improve visual clarity without affecting logical structure
-- **Collision avoidance**: Automatic detection and resolution of element overlaps
-- **Spacing optimization**: Force-directed adjustment for uniform element distribution
-- **Three optimization levels**: Minimal, Standard, Aggressive with configurable constraints
-- **Iron-clad preservation**: All optimizations maintain spatial-logical correspondence
-- **Style-aware constraints**: Optimization parameters derived from active style specification
-- **Comprehensive testing**: `tests/test_readability_optimizer.py` - Full test coverage
 
 ## 🖥️ GUI Implementation - Three-Mode Architecture
 - **Status**: Phase 1 Complete - Organon Functional (2025-10-02)
