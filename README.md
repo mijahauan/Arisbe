@@ -105,11 +105,15 @@ The system is built around the integrated management system with mathematically 
 - **Coherence Registry**: `src/coherence_registry.py` (Component discovery)
 
 **Layout Engine and Visualization:**
-- **Definitive EGI Layout Engine**: `src/definitive_egi_layout_engine.py` (Production-ready layout system)
-- **Connection Port System**: Pre-defined ports on EdgeLabel bounding boxes with optimal assignment
-- **Graphviz SVG Renderer**: `src/graphviz_svg_renderer.py` (Clean SVG output with mathematical precision)
+- **Unified D3 Recursive Layout Engine**: `src/unified_d3_engine.py` (Production engine as of 2025-10-12)
+  - Pure recursive bottom-up traversal with shell-and-core D3 worker
+  - Two-phase simulation eliminates force-fighting (SHELL arranges cuts, CORE positions content)
+  - Iron-clad EGI.area compliance through recursive coordinate translation
+  - See `BOTTOM_UP_D3_ARCHITECTURE.md` for complete details
+- **D3 Worker**: `src/unified_d3_worker.js` (Shell-and-core physics simulation)
+- **SVG Renderer**: `src/simple_svg_renderer.py` (Direct LayoutDTO → SVG rendering)
 - **Style System**: `src/style_specification.py`, `styles/` (Customizable visual styling)
-- **Area-Aware Pathfinding**: A* ligature routing respecting EGI containment hierarchy
+- **Layout DTO Adapter**: `src/layout_dto_adapter.py` (Compatibility bridge for existing GUI)
 
 **Active GUI Development:**
 - **Chapter 21 Integration**: `src/chapter21_gui_integration.py`
@@ -171,15 +175,15 @@ The system is built around the integrated management system with mathematically 
 - CoherenceRegistry: Component discovery and documentation system
 
 **Testing and Quality Assurance:**
-- **DiagramController**: 11/11 tests passing (100%)
-- **Workflow Simulations**: 8/8 tests passing (100%)
-- **Core Tests**: 87/87 tests passing (100%)
-- **Golden Masters**: 4-6/6 tests passing (67-100%, Graphviz non-determinism)
+- **Core Tests**: 90/90 tests passing (100%) - Mathematical foundation validated
+- **GUI Tests**: 3/3 Organon tests passing (100%)
+- **Quality Gates**: All passing with core protection active
+- **Layout Engine**: Validated on 15-graph corpus with stable results
 - Comprehensive test suites covering logical equivalence and transformation soundness
-- Coherence framework with automated validation
+- Coherence framework with automated validation and API documentation
 - CI/CD pipeline with canonical invariant testing
 - Quality metrics and compliance reporting
-- **Status**: Production-ready for GUI development
+- **Status**: Production-ready with definitive layout architecture
 
 **Spatial and Visual Systems:**
 - NetworkX + Graphviz spatial layout engine
@@ -188,11 +192,12 @@ The system is built around the integrated management system with mathematically 
 - Ligature rendering with collision avoidance
 - Proper rendering order: Cuts → Predicates → Vertices → Ligatures
 
-### ✅ DiagramController - Layered Command Architecture (2025-09-30)
+### ✅ DiagramController - Layered Command Architecture (Updated 2025-10-12)
 
 **Revolutionary GUI Foundation:**
 - **Layered Architecture**: Clean separation between "what" (use case logic) and "how" (diagram manipulation)
 - **Command Pattern**: High-level commands in Organon/Ergasterion/Agon orchestrate low-level controller operations
+- **Layout Engine**: Now using **UnifiedD3Engine** with recursive bottom-up and shell-and-core physics
 - **State Management**: Immutable EGI transformations with persistent user constraints across operations
 - **Validation System**: Multi-layer validation for positions, paths, and formal rule preconditions
 - **Undo/Redo Support**: Complete command history management with CommandExecutor
@@ -201,16 +206,16 @@ The system is built around the integrated management system with mathematically 
   - **Ergasterion**: Learning & practice (rule-based EGI modifications)
   - **Agon**: Formal interaction & gameplay (Endoporeutic Game mechanics)
 - **Formal Rules**: Complete implementation of DC+/-, INS/ERA, IT+/- with Dau compliance
-- **Production Ready**: Comprehensive test suite with 100% validation coverage
-- **Test Results** (2025-10-01): 11/11 DiagramController tests, 8/8 workflow tests (100%)
-- **Critical Fixes**: Ligatures connect perfectly, logical area validation working, aesthetics preserved when valid
+- **Production Ready**: Comprehensive test suite with 90 core tests passing
+- **Test Results** (2025-10-12): 90/90 core tests passing, 3/3 GUI Organon tests
 
 **Technical Achievements:**
-- Immutable EGI transformation pipeline with mathematical rigor
-- Persistent user constraints that survive logical transformations
-- Sophisticated validation system preventing invalid operations
-- Command pattern architecture enabling complex undo/redo operations
-- Clean separation enabling independent development of GUI components
+- **Definitive layout engine**: Shell-and-core model eliminates force-fighting
+- **EGI.area compliance**: Recursive coordinate translation ensures correctness  
+- **Immutable EGI pipeline**: Mathematical rigor in all transformations
+- **Persistent constraints**: User preferences survive logical transformations
+- **Command pattern architecture**: Enabling complex undo/redo operations
+- **Clean separation**: Independent development of GUI components
 
 ### 🔧 Current Development Focus
 
@@ -271,16 +276,16 @@ python tools/drawing_to_egi.py --input tmp/drawing.json --layout
 
 ### Comprehensive Test Suite
 
-**DiagramController and Workflow Testing:**
+**GUI and Layout Engine Testing:**
 ```bash
-# DiagramController tests (11/11 passing)
-python -m pytest tests/test_diagram_controller.py
+# GUI Organon tests (3/3 passing)
+python tools/test_gui_organon.py
 
-# User workflow simulations (8/8 passing, 100%)
-python tests/end_to_end/test_user_workflows.py
+# Core test suite (90/90 passing)
+python -m pytest tests/ -v
 
-# Golden master tests (4-6/6, 67-100%)
-python tests/end_to_end/test_golden_masters.py
+# Quality gates (automated on commit)
+python tools/quality_gate_system.py
 ```
 
 **Integration Testing:**
