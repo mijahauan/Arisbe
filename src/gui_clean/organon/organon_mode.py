@@ -159,10 +159,18 @@ class OrganonMode(QWidget):
             entity = storage.load_entity(entity_name)
             
             # Load into controller
-            self.controller.load_egi(entity.current_egi)
+            print(f"Loading EGI into controller: {len(entity.current_egi.V)}V, {len(entity.current_egi.E)}E")
+            success = self.controller.load_egi(entity.current_egi)
+            
+            if not success:
+                raise Exception("Controller failed to load EGI")
             
             # Get renderable DTO
             dto = self.controller.get_renderable_dto()
+            print(f"Got DTO from controller: {dto}")
+            
+            if dto is None:
+                raise Exception("Controller returned None for DTO")
             
             # Display
             self.canvas.display_dto(dto, entity.current_egi)

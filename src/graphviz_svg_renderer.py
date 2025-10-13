@@ -28,10 +28,12 @@ class GraphvizSVGRenderer:
             else:
                 svg_width, svg_height = 400, 300
         
-        # Create SVG root
+        # Create SVG root with viewBox for proper scaling
         svg = ET.Element("svg", {
-            "width": str(svg_width),
-            "height": str(svg_height),
+            "width": "100%",
+            "height": "100%",
+            "viewBox": f"0 0 {svg_width} {svg_height}",
+            "preserveAspectRatio": "xMidYMid meet",
             "xmlns": "http://www.w3.org/2000/svg"
         })
         

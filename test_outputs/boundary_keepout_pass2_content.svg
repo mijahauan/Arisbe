@@ -1,0 +1,14 @@
+<svg width="222.0" height="175.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ (Human "Socrates") ~[ (Mortal "Socrates") ] ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="222.0" height="135.63" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<rect x="8.0" y="8.0" width="206.0" height="119.63" fill="none" stroke="lightgray"/>
+<rect x="104.0" y="46.879999999999995" width="90.0" height="60.75" fill="none" stroke="lightgray"/>
+<circle cx="162.30541092211817" cy="82.65417915907767" r="5" fill="red"/>
+<text x="170.30541092211817" y="86.65417915907767" font-size="8" fill="gray">e_cdc0</text>
+<circle cx="188.5" cy="20.0" r="5" fill="red"/>
+<text x="196.5" y="24.0" font-size="8" fill="gray">e_2a5e</text>
+<circle cx="157.1961780609526" cy="16.0" r="5" fill="red"/>
+<text x="165.1961780609526" y="20.0" font-size="8" fill="gray">v_0599</text>
+</g>
+</svg>

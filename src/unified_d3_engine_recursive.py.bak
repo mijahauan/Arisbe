@@ -13,7 +13,6 @@ Date: 2025-10-12
 
 import json
 import subprocess
-import math
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Set
 from dataclasses import dataclass
@@ -156,32 +155,12 @@ class UnifiedD3Engine:
         """Calculate sizes for all non-cut elements."""
         for v in egi.V:
             radius = style.vertex_radius
-            circle_size = radius * 2
-            
-            # Account for vertex label text BESIDE the spot (not below)
-            label = v.label or ""
-            if label:
-                # Estimate text dimensions (6.2px per char per style)
-                text_width = len(label) * 6.2
-                text_height = 14
-                # Label appears BESIDE vertex (to the right)
-                # Width = circle + gap + text
-                width = circle_size + 8 + text_width + 4  # 8px gap, 4px right margin
-                # Height = max of circle and text
-                height = max(circle_size, text_height)
-            else:
-                width = circle_size
-                height = circle_size
-            
-            self.element_sizes[v.id] = (width, height)
+            self.element_sizes[v.id] = (radius * 2, radius * 2)
         
         for e in egi.E:
             label = egi.get_relation_name(e.id)
-            # Tight boundary around text (Dau style - minimal padding)
-            char_width = style.predicate_char_width
-            text_height = style.predicate_height
-            width = len(label) * char_width + 6  # 3px padding each side
-            height = text_height + 4  # 2px padding top/bottom
+            width = max(50, len(label) * 8 + 20)
+            height = max(30, 16 + 10)
             self.element_sizes[e.id] = (width, height)
     
     def _build_cut_hierarchy(self, egi: RelationalGraphWithCuts) -> Dict[ElementID, List[ElementID]]:
@@ -481,75 +460,6 @@ class UnifiedD3Engine:
         
         return {'positions': positions, 'bbox': bbox}
     
-    def _circle_boundary_point(self, cx: float, cy: float, radius: float,
-                              target_x: float, target_y: float) -> Tuple[float, float]:
-        """Calculate point on circle boundary toward target."""
-        dx = target_x - cx
-        dy = target_y - cy
-        distance = math.sqrt(dx * dx + dy * dy)
-        if distance == 0:
-            return cx + radius, cy
-        # Unit vector toward target
-        ux = dx / distance
-        uy = dy / distance
-        # Point on boundary
-        return cx + ux * radius, cy + uy * radius
-    
-    def _rect_boundary_point(self, rect_cx: float, rect_cy: float, 
-                            rect_w: float, rect_h: float,
-                            target_x: float, target_y: float) -> Tuple[float, float]:
-        """Calculate point on rectangle boundary toward target (from center)."""
-        dx = target_x - rect_cx
-        dy = target_y - rect_cy
-        
-        if dx == 0 and dy == 0:
-            return rect_cx, rect_cy
-        
-        # Find intersection with rectangle edges
-        half_w = rect_w / 2
-        half_h = rect_h / 2
-        
-        # Determine which edge the ray intersects
-        # Use parametric ray: P = center + t * direction
-        # Check intersection with all 4 edges, pick closest
-        
-        t_min = float('inf')
-        result = (rect_cx, rect_cy)
-        
-        # Right edge (x = cx + half_w)
-        if dx > 0:
-            t = half_w / dx
-            y = rect_cy + t * dy
-            if abs(y - rect_cy) <= half_h and t < t_min:
-                t_min = t
-                result = (rect_cx + half_w, y)
-        
-        # Left edge (x = cx - half_w)
-        if dx < 0:
-            t = -half_w / dx
-            y = rect_cy + t * dy
-            if abs(y - rect_cy) <= half_h and t < t_min:
-                t_min = t
-                result = (rect_cx - half_w, y)
-        
-        # Top edge (y = cy - half_h)
-        if dy < 0:
-            t = -half_h / dy
-            x = rect_cx + t * dx
-            if abs(x - rect_cx) <= half_w and t < t_min:
-                t_min = t
-                result = (x, rect_cy - half_h)
-        
-        # Bottom edge (y = cy + half_h)
-        if dy > 0:
-            t = half_h / dy
-            x = rect_cx + t * dx
-            if abs(x - rect_cx) <= half_w and t < t_min:
-                t_min = t
-                result = (x, rect_cy + half_h)
-        
-        return result
-    
     def _build_dto(
         self,
         egi: RelationalGraphWithCuts,
@@ -570,37 +480,21 @@ class UnifiedD3Engine:
             if e.id in self.element_positions
         }
         
-        # Build ligature paths with proper connection points
-        # Predicate end: boundary (creates hook)
-        # Vertex end: CENTER (ligature extends through vertex spot)
+        # Build ligature paths
         ligature_paths = []
         for e in egi.E:
             if e.id not in predicate_positions:
                 continue
-            e_pos = predicate_positions[e.id]
-            e_size = self.element_sizes.get(e.id, (40, 20))
+            ex, ey = predicate_positions[e.id].x, predicate_positions[e.id].y
             
             for v_id in egi.get_incident_vertices(e.id):
-                if v_id not in vertex_positions:
-                    continue
-                    
-                v_pos = vertex_positions[v_id]
-                
-                # Predicate end: boundary point (for hook attachment)
-                e_boundary = self._rect_boundary_point(
-                    e_pos.x, e_pos.y, e_size[0], e_size[1],
-                    v_pos.x, v_pos.y
-                )
-                
-                # Vertex end: CENTER (ligature continues through vertex spot)
-                # This creates visual continuity - spot renders on top of line
-                
-                ligature_paths.append(LigaturePath(
-                    predicate_id=e.id,
-                    vertex_id=v_id,
-                    points=(Point(e_boundary[0], e_boundary[1]), 
-                           Point(v_pos.x, v_pos.y))  # CENTER, not boundary!
-                ))
+                if v_id in vertex_positions:
+                    vx, vy = vertex_positions[v_id].x, vertex_positions[v_id].y
+                    ligature_paths.append(LigaturePath(
+                        predicate_id=e.id,
+                        vertex_id=v_id,
+                        points=(Point(ex, ey), Point(vx, vy))
+                    ))
         
         # Area hierarchy
         area_hierarchy = {

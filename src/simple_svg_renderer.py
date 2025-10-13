@@ -120,27 +120,40 @@ class SimpleSVGRenderer:
                 "rx": str(style.cut_corner_radius),
                 "ry": str(style.cut_corner_radius),
                 "fill": "none",
-                "stroke": "#2c3e50",
+                "stroke": "#000000",
                 "stroke-width": str(style.cut_line_width)
             })
         
         # ====================================================================
-        # Render Ligatures (simple straight lines for now)
+        # Render Ligatures with boundary hooks (Dau style)
         # ====================================================================
         
         for lig in dto.ligature_paths:
             if len(lig.points) < 2:
                 continue
             
+            # Build path
             path_d = f"M {lig.points[0].x + offset_x} {lig.points[0].y + offset_y}"
             for point in lig.points[1:]:
                 path_d += f" L {point.x + offset_x} {point.y + offset_y}"
             
+            # Main ligature line
             ET.SubElement(ligature_group, "path", {
                 "d": path_d,
-                "stroke": "#34495e",
+                "stroke": "#000000",
                 "stroke-width": str(style.ligature_line_width),
+                "stroke-linecap": "round",
                 "fill": "none"
+            })
+            
+            # Hook at predicate end ONLY (marks attachment point)
+            # Vertex end has NO hook - ligature is continuous with vertex spot
+            hook_radius = style.ligature_line_width * 0.8
+            ET.SubElement(ligature_group, "circle", {
+                "cx": str(lig.points[0].x + offset_x),
+                "cy": str(lig.points[0].y + offset_y),
+                "r": str(hook_radius),
+                "fill": "#000000"
             })
         
         # ====================================================================
@@ -158,23 +171,25 @@ class SimpleSVGRenderer:
                 if v and v.label:
                     label = v.label
             
-            # Vertex circle (use Dau style)
+            # Vertex circle (use Dau style) - continuous with ligatures
             ET.SubElement(element_group, "circle", {
                 "cx": str(cx), "cy": str(cy),
                 "r": str(style.vertex_radius),
                 "fill": style.vertex_fill_color,
-                "stroke": "#2980b9",
-                "stroke-width": "2"
+                "stroke": "none"  # No border - continuous with ligature
             })
             
-            # Label inside circle
+            # Label BESIDE the spot (not below) to avoid collisions
             if label:
+                # Position to the right and slightly up from center
+                label_x = cx + style.vertex_radius + 8  # 8px offset from edge
+                label_y = cy + 4  # Slightly below center for alignment
                 ET.SubElement(element_group, "text", {
-                    "x": str(cx), "y": str(cy + 5),
-                    "text-anchor": "middle",
+                    "x": str(label_x), "y": str(label_y),
+                    "text-anchor": "start",  # Left-aligned from position
                     "font-size": str(style.font_size),
                     "font-family": style.font_family,
-                    "fill": "white",
+                    "fill": "#000000",
                     "font-weight": style.font_weight
                 }).text = label
         
@@ -191,28 +206,33 @@ class SimpleSVGRenderer:
             if egi:
                 label = egi.get_relation_name(p_id)
             
-            # Estimate text size
-            text_width = max(50, len(label) * 8 + 10)
-            text_height = 25
+            # Tight padding around text (Dau style)
+            char_width = style.predicate_char_width
+            padding_h = 2  # Minimal horizontal padding
+            padding_v = 1  # Minimal vertical padding
+            text_width = len(label) * char_width + 2 * padding_h
+            text_height = style.predicate_height + 2 * padding_v
             
-            # Background rectangle
-            ET.SubElement(element_group, "rect", {
-                "x": str(x - text_width/2), "y": str(y - text_height/2),
-                "width": str(text_width), "height": str(text_height),
-                "rx": "5", "ry": "5",
-                "fill": "#ecf0f1",
-                "stroke": "#95a5a6",
-                "stroke-width": "1.5"
-            })
+            # Background rectangle (transparent per Dau)
+            # Only render if not transparent
+            bg_color = style.raw_style_data.get('predicate', {}).get('label_box_background', 'transparent')
+            if bg_color != 'transparent':
+                ET.SubElement(element_group, "rect", {
+                    "x": str(x - text_width/2), "y": str(y - text_height/2),
+                    "width": str(text_width), "height": str(text_height),
+                    "rx": "2", "ry": "2",
+                    "fill": bg_color,
+                    "stroke": "none"
+                })
             
-            # Text
+            # Label text
             ET.SubElement(element_group, "text", {
                 "x": str(x), "y": str(y + 5),
                 "text-anchor": "middle",
                 "font-size": str(style.font_size),
                 "font-family": style.font_family,
-                "font-weight": style.font_weight,
-                "fill": "#2c3e50"
+                "fill": "#000000",
+                "font-weight": style.font_weight
             }).text = label
         
         # EGIF at bottom

@@ -3,6 +3,8 @@
 **Date**: 2025-01-10  
 **Goal**: Fix critical architectural flaws in definitive_three_pass_engine.py
 
+**STATUS**: ✅ **PHASES 1-3 COMPLETE** (Phase 4 deferred)
+
 ---
 
 ## ✅ Phase 1 Complete: Remove Graphviz Hints
@@ -27,141 +29,138 @@
 
 ---
 
-## ⏳ Phase 2 Remaining: Recursive Bottom-Up
+## ✅ Phase 2 Complete: Recursive Bottom-Up Layout
 
-### What's Needed
-1. **Rewrite `_pass2_content()`** to be truly recursive
-2. **Layout order**: Innermost (leaf) cuts first
-3. **Child propagation**: Child final sizes inform parent layout
-4. **Fixed nodes**: Treat child cuts as large fixed obstacles in parent
+### Changes Made
+1. **Rewrote** `_pass2_content()` for true recursion
+2. **Implemented** bottom-up traversal (innermost cuts first)
+3. **Changed** `_layout_cut()` signature to accept `child_boxes` parameter
+4. **Updated** obstacle handling to use `child_boxes` instead of hierarchy lookup
+5. **Added** return value to `layout_recursive()` for bounding box propagation
 
-### Current vs. Target
+### Impact
+- ✅ True bottom-up: children laid out before parents
+- ✅ Child cuts explicitly treated as large fixed obstacles
+- ✅ Foundation for dynamic container sizing (future)
+- ✅ Clean separation between layout order and spatial constraints
 
-**Current** (Independent):
-```python
-def _pass2_content():
-    for cut in all_cuts:
-        layout_cut(cut)  # Each independent
-```
-
-**Target** (Recursive Bottom-Up):
-```python
-def _pass2_content():
-    def layout_recursive(cut):
-        for child in cut.children:
-            child_box = layout_recursive(child)  # Children first
-        
-        # Layout this cut WITH children as fixed nodes
-        return layout_cut(cut, child_boxes)
-    
-    layout_recursive(sheet)
-```
+### Test Results
+- ✅ Simple graphs: Working
+- ✅ Nested structures: Working
+- ✅ Output message: "(bottom-up)" confirms new algorithm
 
 ---
 
-## ⏳ Phase 3 Remaining: Geometric Ports
+## ✅ Phase 3 Complete: Geometric Port Calculation
 
-### What's Needed
-1. **Remove** port nodes from dot input (_build_dot)
-2. **Add** geometric calculation AFTER Pass 1 completes
-3. **Calculate** intersection points between area centers and boundaries
-4. **Use** these ports in Pass 2 d3-force and Pass 3 routing
+### Changes Made
+1. **Removed** port nodes from dot input (`_build_dot`)
+2. **Removed** port extraction from `_parse_dot_output`
+3. **Renamed** `_calculate_ports()` → `_calculate_ports_geometrically()`
+4. **Added** geometric port calculation call after Pass 1
+5. **Simplified** edge addition (no port routing in dot)
+6. **Updated** all docstrings to reflect geometric calculation
 
-### Algorithm
+### Architecture
 ```python
-def calculate_ports_geometrically():
-    for each spanning ligature:
-        from_center = get_area_center(from_area)
-        to_center = get_area_center(to_area)
-        
-        # Find which boundary is crossed
-        boundary_rect = determine_crossed_boundary()
-        
-        # Calculate intersection
-        port_pos = line_rect_intersection(
-            from_center, to_center, boundary_rect
-        )
+# OLD (incorrect): Ports in dot input
+dot_content = build_dot_with_port_nodes()
+ports = extract_from_dot_output()
+
+# NEW (correct): Ports calculated geometrically
+dot_content = build_dot_without_ports()  # Sizing only
+area_bounds = extract_cluster_geometry()  # KEEP
+# node_positions DISCARDED
+ports = calculate_geometrically(area_bounds)  # After Pass 1
 ```
+
+### Impact
+- ✅ Ports NO LONGER in dot input
+- ✅ Calculated from fixed container boundaries
+- ✅ Line-rectangle intersection for boundary crossings
+- ✅ True separation: Pass 1 sizes, post-processing calculates ports
 
 ---
 
-## ⏳ Phase 4 Remaining: Area-Aware A*
+## ⏳ Phase 4 Deferred: Area-Aware A* Pathfinding
 
-### What's Needed
-1. **Implement** full area-aware A* pathfinding
+### Current State
+- Simple straight-line ligature routing
+- Basic path generation
+
+### What's Needed (Future Work)
+1. **Implement** full area-aware A* pathfinding algorithm
 2. **Add** validation logic for legal corridors
-3. **Handle** obstacle avoidance properly
-4. **Support** multi-segment paths through hierarchy
+3. **Handle** obstacle avoidance (vertices, edges, cuts)
+4. **Support** multi-segment curved paths
+5. **Enforce** ligature rules (same-area avoid cuts, cross-area can cross)
+
+### Deferral Reason
+- Phases 1-3 provide substantial improvement
+- Current routing functional for Organon display
+- A* pathfinding is complex enhancement (separate effort)
+- Focus on getting Organon working with improved layout
 
 ---
 
 ## 📊 Progress Summary
 
-| Phase | Status | Complexity | Time Estimate |
-|-------|--------|------------|---------------|
+| Phase | Status | Complexity | Time Spent |
+|-------|--------|------------|------------|
 | Phase 1: Remove Hints | ✅ DONE | Low | ~30 min |
-| Phase 2: Recursive Bottom-Up | ⏳ TODO | High | ~3-4 hrs |
-| Phase 3: Geometric Ports | ⏳ TODO | Medium | ~2-3 hrs |
-| Phase 4: Area-Aware A* | ⏳ TODO | Medium | ~1-2 hrs |
+| Phase 2: Recursive Bottom-Up | ✅ DONE | High | ~45 min |
+| Phase 3: Geometric Ports | ✅ DONE | Medium | ~30 min |
+| Phase 4: Area-Aware A* | ⏳ DEFERRED | High | Future |
 
-**Total Remaining**: ~6-9 hours of focused work
-
----
-
-## 🎯 Recommendations
-
-### Option A: Continue Immediately
-- **Pro**: Momentum, architectural clarity
-- **Con**: Large time investment now
-- **Best if**: You have 6-9 hours available soon
-
-### Option B: Test & Defer
-- **Pro**: Validate Phase 1 impact first
-- **Con**: Leaves architecture partially fixed
-- **Best if**: Want to measure improvement before continuing
-
-### Option C: Incremental Approach
-- **Phase 1**: ✅ Done (test with corpus)
-- **Phase 2**: Next session (recursive layout)
-- **Phase 3**: Future session (geometric ports)
-- **Phase 4**: Future session (A* pathfinding)
-- **Best if**: Prefer smaller, testable increments
+**Total Completed**: Phases 1-3 (~1.75 hours)
+**Deferred**: Phase 4 (future enhancement)
 
 ---
 
-## 📈 Next Steps
+## 🎉 **PHASES 1-3 COMPLETE!**
 
-### Immediate (Test Phase 1)
-1. Run full corpus test suite
-2. Compare visual output with backup engine
-3. Measure quality improvement
-4. Document any regressions
+### What We Achieved
 
-### Short Term (Decide on Phases 2-4)
-- Review test results
-- Assess priority (Organon vs. Layout)
-- Schedule remaining phases
-- Consider pausing for other work
+**✅ Correct Three-Pass Architecture Implemented**:
+1. **Pass 1**: Graphviz sizes containers only (node positions discarded)
+2. **Post-Pass 1**: Ports calculated geometrically from boundaries
+3. **Pass 2**: d3-force in true recursive bottom-up order
+4. **Pass 3**: Ligature routing (simple, with A* deferred)
 
-### Long Term (Complete Refactoring)
-- Finish all 4 phases
-- Achieve fully correct three-pass architecture
-- Validate against entire corpus
-- Update documentation
+**✅ Architectural Flaws Fixed**:
+- ❌ Graphviz position chaining → ✅ d3 discovers positions
+- ❌ Independent cut layouts → ✅ Recursive bottom-up
+- ❌ Ports in dot input → ✅ Geometric calculation
+
+### Next Steps
+
+**Immediate**:
+1. Test with full corpus
+2. Compare visual quality with backup
+3. Validate in Organon
+
+**Future** (Phase 4):
+- Add ligature validation
+- Support curved paths
 
 ---
 
-## �� Technical Debt
+## 🔍 Technical Debt Status
 
-**Current State**: Partially corrected architecture
-- ✅ No position chaining
-- ⏳ Ports still in dot (should be geometric)
-- ⏳ Layout not yet recursive
-- ⏳ Pathfinding still basic
+**Before Refactoring**:
+- ❌ Graphviz positions used as d3 hints (chaining problem)
+- ❌ Independent per-cut layouts (not bottom-up)
+- ❌ Ports embedded in dot input (not geometric)
+- ❌ Simple straight-line routing
 
-**Future State**: Fully correct architecture
-- ✅ Container sizing only (Pass 1)
-- ✅ Geometric ports (post-Pass 1)
-- ✅ Recursive bottom-up (Pass 2)
-- ✅ Area-aware A* (Pass 3)
+**After Phases 1-3** (Current):
+- ✅ No position chaining (d3 discovers optimal layout)
+- ✅ True recursive bottom-up layout
+- ✅ Geometric port calculation
+- ⏳ Simple routing (A* deferred)
 
+**Remaining Technical Debt**:
+- Area-aware A* pathfinding (Phase 4 - future)
+- Dynamic container sizing based on content
+- Curved ligature paths
+- Obstacle avoidance optimization

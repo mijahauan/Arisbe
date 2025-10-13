@@ -1,0 +1,11 @@
+<svg width="222.0" height="175.63" xmlns="http://www.w3.org/2000/svg">
+<text x="10" y="20" font-family="monospace" font-size="12">EGIF: ~[ (Human "Socrates") ~[ (Mortal "Socrates") ] ]</text>
+<g transform="translate(0, 30)">
+<rect x="0" y="0" width="222.0" height="135.63" fill="none" stroke="lightgray" stroke-width="1" stroke-dasharray="5,5"/>
+<text x="5" y="15" font-size="10" fill="lightgray">Sheet (unbounded)</text>
+<rect x="8.0" y="8.0" width="206.0" height="119.63" fill="none" stroke="blue" stroke-width="2"/>
+<text x="13.0" y="23.0" font-size="10" fill="gray">c_abe14f</text>
+<rect x="104.0" y="46.879999999999995" width="90.0" height="60.75" fill="none" stroke="blue" stroke-width="2"/>
+<text x="109.0" y="61.879999999999995" font-size="10" fill="gray">c_ddf31f</text>
+</g>
+</svg>

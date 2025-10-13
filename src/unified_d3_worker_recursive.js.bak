@@ -125,28 +125,19 @@ function layoutSingleCut(payload) {
     const coreSim = d3.forceSimulation(coreNodes)
         .force('link', d3.forceLink(coreLinks)
             .id(d => d.id)
-            .distance(d => 30)  // Realistic distance that accounts for other forces
-            .strength(0.5)  // Moderate - allows geometric optimization within constraints
+            .distance(40)
+            .strength(0.5)
         )
         .force('collision', d3.forceCollide()
-            .radius(d => {
-                const baseRadius = Math.sqrt(d.width * d.width + d.height * d.height) / 2;
-                // Both vertices and predicates need buffer for clean separation
-                return baseRadius + 10;
-            })
-            .strength(0.6)  // Softer to allow link forces to work
+            .radius(d => Math.sqrt(d.width * d.width + d.height * d.height) / 2 + 5)
+            .strength(0.8)
             .iterations(3)
-        )
-        .force('charge', d3.forceManyBody()
-            .strength(-50)  // Gentle repulsion helps spread elements
-            .distanceMax(150)
         )
         .force('walls', forceWalls(bounds, margin))
         .force('obstacleAvoidance', forceObstacleAvoidance(fixedObstacles));
     
     coreSim.stop();
-    // More iterations for better convergence
-    for (let i = 0; i < 500; ++i) coreSim.tick();
+    for (let i = 0; i < 300; ++i) coreSim.tick();
     
     console.error(`  CORE: Complete`);
     
@@ -234,15 +225,11 @@ function forceObstacleAvoidance(fixedObstacles) {
                 // Calculate minimum safe distance (sum of half-sizes)
                 const nodeRadius = Math.sqrt(node.width * node.width + node.height * node.height) / 2;
                 const obstRadius = Math.sqrt(obstacle.width * obstacle.width + obstacle.height * obstacle.height) / 2;
-                const minDist = nodeRadius + obstRadius + 30;  // 30px buffer for clear separation
+                const minDist = nodeRadius + obstRadius + 10;  // 10px buffer
                 
-                // If too close, apply EXTREMELY STRONG repulsive force
-                // This MUST dominate all other forces to prevent area violations
+                // If too close, apply repulsive force
                 if (dist < minDist) {
-                    // Non-linear force: exponentially stronger when very close
-                    const overlap = (minDist - dist) / minDist;
-                    // Exponential growth makes this force absolutely dominant
-                    const strength = 5.0 * Math.exp(3 * overlap);  // Exponential explosion near boundary
+                    const strength = 0.5 * alpha;  // Gentle, continuous force
                     const force = strength * (minDist - dist) / dist;
                     
                     node.vx += dx * force;

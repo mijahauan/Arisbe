@@ -23,7 +23,7 @@
   },
   
   "vertex": {
-    "radius": 3.0,
+    "radius": 3.5,
     "fill_color": "#000000",
     "border_color": "#000000",
     "border_width": 0,
@@ -39,13 +39,13 @@
   },
   
   "predicate": {
-    "identity_line_width": 3.5,
+    "identity_line_width": 2.5,
     "identity_line_color": "#000000",
     "identity_cap_style": "round",
-    "label_box_background": "#FFFFFF",
+    "label_box_background": "transparent",
     "label_box_border_color": "transparent",
     "label_box_border_width": 0,
-    "label_box_padding": [2, 1],
+    "label_box_padding": [1, 0],
     "label_font_size": 12,
     "label_color": "#000000",
     "char_width_estimate": 6.2,
@@ -57,7 +57,7 @@
   "cut": {
     "shape": "rounded_rectangle",
     "corner_radius": 8,
-    "line_width": 2.0,
+    "line_width": 1.5,
     "line_color": "#000000",
     "even_polarity_fill": "transparent",
     "odd_polarity_fill": "rgba(0,0,0,0.08)",
@@ -67,7 +67,7 @@
   },
   
   "ligature": {
-    "line_width": 2.0,
+    "line_width": 2.5,
     "color": "#000000",
     "cap_style": "round",
     "routing_mode": "orthogonal",

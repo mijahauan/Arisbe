@@ -1,0 +1,343 @@
+#!/usr/bin/env node
+
+/**
+ * Unified D3 Layout Worker - DEFINITIVE SIMPLE VERSION
+ * 
+ * THREE FORCES, ZERO CONFLICTS:
+ * 1. Link (attraction)
+ * 2. Collision (repulsion)
+ * 3. Walls (containment)
+ * 
+ * NO competing forces, NO post-processing complexity
+ * Just a dumb physics engine that finds the lowest energy state
+ * 
+ * Author: Final simplification
+ * Date: 2025-10-12
+ */
+
+const d3 = require('d3-force');
+
+// Read input from stdin
+let inputData = '';
+process.stdin.on('data', chunk => { inputData += chunk; });
+process.stdin.on('end', () => {
+    try {
+        const payload = JSON.parse(inputData);
+        const result = layoutSingleCut(payload);
+        console.log(JSON.stringify(result));
+    } catch (error) {
+        console.error(`D3 Worker ERROR: ${error.message}`);
+        console.error(error.stack);
+        process.exit(1);
+    }
+});
+
+/**
+ * Layout a single cut's contents - DEFINITIVE CONTAINMENT
+ */
+function layoutSingleCut(payload) {
+    const { content, obstacles, links, bounds, seed } = payload;
+    
+    // Seeded random for determinism
+    let randomSeed = seed !== undefined ? seed : Date.now();
+    function seededRandom() {
+        const x = Math.sin(randomSeed++) * 10000;
+        return x - Math.floor(x);
+    }
+    
+    const centerX = bounds.width / 2;
+    const centerY = bounds.height / 2;
+    
+    // Calculate container bounds with margin
+    const margin = 30;
+    const containerBounds = {
+        minX: margin,
+        minY: margin,
+        maxX: bounds.width - margin,
+        maxY: bounds.height - margin
+    };
+    
+    // ========================================================================
+    // PREPARE SIMULATION NODES
+    // ========================================================================
+    
+    const simNodes = [];
+    const contentNodes = [];  // Track content separately from obstacles
+    
+    // Add content with random initial positions
+    for (const node of content) {
+        const spread = 80;
+        const simNode = {
+            id: node.id,
+            type: node.type,
+            label: node.label,
+            width: node.width || 30,
+            height: node.height || 30,
+            x: centerX + (seededRandom() - 0.5) * spread,
+            y: centerY + (seededRandom() - 0.5) * spread,
+            fx: node.fx,  // Respect pinned positions
+            fy: node.fy,
+            container: containerBounds  // CRITICAL: Each node knows its container
+        };
+        simNodes.push(simNode);
+        contentNodes.push(simNode);
+    }
+    
+    // Add obstacles with random initial positions
+    const obstacleNodes = [];
+    for (const obstacle of obstacles) {
+        const spread = 60;
+        const obstacleNode = {
+            id: obstacle.id,
+            type: 'obstacle',
+            width: obstacle.width,
+            height: obstacle.height,
+            x: centerX + (seededRandom() - 0.5) * spread,
+            y: centerY + (seededRandom() - 0.5) * spread,
+            container: containerBounds
+        };
+        simNodes.push(obstacleNode);
+        obstacleNodes.push(obstacleNode);
+    }
+    
+    // Build links
+    const simLinks = links.map(link => ({
+        source: link.source,
+        target: link.target
+    }));
+    
+    // ========================================================================
+    // FOUR FORCES - DEFINITIVE CONTAINMENT
+    // ========================================================================
+    
+    const simulation = d3.forceSimulation(simNodes)
+        
+        // FORCE 1: Link attraction (the only pull)
+        .force('link', d3.forceLink(simLinks)
+            .id(d => d.id)
+            .distance(40)
+            .strength(0.5)
+        )
+        
+        // FORCE 2: Collision repulsion (between content)
+        .force('collision', d3.forceCollide()
+            .radius(d => {
+                if (d.type === 'obstacle') return 0;  // Obstacles handled separately
+                const diag = Math.sqrt(d.width * d.width + d.height * d.height);
+                return diag / 2 + 5;
+            })
+            .strength(0.8)
+            .iterations(3)
+        )
+        
+        // FORCE 3: Per-node containment (irrevocable bind to container)
+        .force('perNodeContainment', forcePerNodeContainment())
+        
+        // FORCE 4: Rectangular obstacle ejection (hard walls for child cuts)
+        .force('obstacleEjection', forceObstacleEjection(contentNodes, obstacleNodes));
+    
+    // Run to equilibrium
+    simulation.stop();
+    
+    for (let i = 0; i < 300; ++i) {
+        simulation.tick();
+    }
+    
+    // ========================================================================
+    // EXTRACT RESULTS - Just measure what happened
+    // ========================================================================
+    
+    const positions = {};
+    
+    for (const node of simNodes) {
+        positions[node.id] = {
+            x: node.x,
+            y: node.y
+        };
+    }
+    
+    // Calculate tight bbox (simple measurement)
+    const bbox = calculateTightBbox(simNodes);
+    
+    return { positions, bbox };
+}
+
+/**
+ * Per-Node Containment Force - DEFINITIVE SOLUTION
+ * 
+ * Each node is clamped to its SPECIFIC container, not a global boundary.
+ * This is the "irrevocable bind" that prevents elements from escaping their cuts.
+ */
+function forcePerNodeContainment() {
+    let nodes;
+    
+    function force() {
+        for (const node of nodes) {
+            if (node.fx !== undefined) continue;  // Don't constrain pinned
+            if (!node.container) continue;  // Skip if no container defined
+            
+            const hw = node.width / 2;
+            const hh = node.height / 2;
+            const container = node.container;
+            
+            // HARD clamping to THIS node's specific container
+            if (node.x - hw < container.minX) node.x = container.minX + hw;
+            if (node.x + hw > container.maxX) node.x = container.maxX - hw;
+            if (node.y - hh < container.minY) node.y = container.minY + hh;
+            if (node.y + hh > container.maxY) node.y = container.maxY - hh;
+        }
+    }
+    
+    force.initialize = function(_) {
+        nodes = _;
+    };
+    
+    return force;
+}
+
+/**
+ * Rectangular Obstacle Ejection Force - HARD WALLS FOR CHILD CUTS
+ * 
+ * Uses proper rectangular collision detection, not circular approximation.
+ * Handles TWO cases:
+ * 1. Content vs obstacles - prevent content from overlapping child cuts
+ * 2. Obstacle vs obstacle - prevent sibling cuts from overlapping each other
+ */
+function forceObstacleEjection(contentNodes, obstacleNodes) {
+    function force() {
+        // CASE 1: Content vs obstacles (content cannot overlap child cuts)
+        for (const content of contentNodes) {
+            if (content.fx !== undefined) continue;  // Don't move pinned
+            
+            const cHW = content.width / 2;
+            const cHH = content.height / 2;
+            const cLeft = content.x - cHW;
+            const cRight = content.x + cHW;
+            const cTop = content.y - cHH;
+            const cBottom = content.y + cHH;
+            
+            for (const obstacle of obstacleNodes) {
+                const oHW = obstacle.width / 2;
+                const oHH = obstacle.height / 2;
+                const oLeft = obstacle.x - oHW;
+                const oRight = obstacle.x + oHW;
+                const oTop = obstacle.y - oHH;
+                const oBottom = obstacle.y + oHH;
+                
+                // Check for rectangular overlap
+                const overlapX = cRight > oLeft && cLeft < oRight;
+                const overlapY = cBottom > oTop && cTop < oBottom;
+                
+                if (overlapX && overlapY) {
+                    // Calculate overlap amounts on each side
+                    const overlapLeft = cRight - oLeft;
+                    const overlapRight = oRight - cLeft;
+                    const overlapTop = cBottom - oTop;
+                    const overlapBottom = oBottom - cTop;
+                    
+                    // Find minimum overlap (shortest ejection path)
+                    const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+                    
+                    // Eject content along shortest path
+                    if (minOverlap === overlapLeft) {
+                        content.x -= overlapLeft + 1;
+                    } else if (minOverlap === overlapRight) {
+                        content.x += overlapRight + 1;
+                    } else if (minOverlap === overlapTop) {
+                        content.y -= overlapTop + 1;
+                    } else {
+                        content.y += overlapBottom + 1;
+                    }
+                }
+            }
+        }
+        
+        // CASE 2: Obstacle vs obstacle (sibling cuts cannot overlap)
+        for (let i = 0; i < obstacleNodes.length; i++) {
+            for (let j = i + 1; j < obstacleNodes.length; j++) {
+                const obstA = obstacleNodes[i];
+                const obstB = obstacleNodes[j];
+                
+                const aHW = obstA.width / 2;
+                const aHH = obstA.height / 2;
+                const aLeft = obstA.x - aHW;
+                const aRight = obstA.x + aHW;
+                const aTop = obstA.y - aHH;
+                const aBottom = obstA.y + aHH;
+                
+                const bHW = obstB.width / 2;
+                const bHH = obstB.height / 2;
+                const bLeft = obstB.x - bHW;
+                const bRight = obstB.x + bHW;
+                const bTop = obstB.y - bHH;
+                const bBottom = obstB.y + bHH;
+                
+                // Check for overlap
+                const overlapX = aRight > bLeft && aLeft < bRight;
+                const overlapY = aBottom > bTop && aTop < bBottom;
+                
+                if (overlapX && overlapY) {
+                    // Calculate overlap amounts
+                    const overlapLeft = aRight - bLeft;
+                    const overlapRight = bRight - aLeft;
+                    const overlapTop = aBottom - bTop;
+                    const overlapBottom = bBottom - aTop;
+                    
+                    const minOverlap = Math.min(overlapLeft, overlapRight, overlapTop, overlapBottom);
+                    
+                    // Push both obstacles apart (each moves half the distance)
+                    const pushDist = (minOverlap + 2) / 2;
+                    
+                    if (minOverlap === overlapLeft) {
+                        obstA.x -= pushDist;
+                        obstB.x += pushDist;
+                    } else if (minOverlap === overlapRight) {
+                        obstA.x += pushDist;
+                        obstB.x -= pushDist;
+                    } else if (minOverlap === overlapTop) {
+                        obstA.y -= pushDist;
+                        obstB.y += pushDist;
+                    } else {
+                        obstA.y += pushDist;
+                        obstB.y -= pushDist;
+                    }
+                }
+            }
+        }
+    }
+    
+    force.initialize = function() {};
+    
+    return force;
+}
+
+/**
+ * Calculate tight bbox - Include all elements (content + obstacles)
+ * 
+ * The parent bbox must encompass child cuts (obstacles) so they nest visually.
+ */
+function calculateTightBbox(nodes) {
+    let min_x = Infinity;
+    let min_y = Infinity;
+    let max_x = -Infinity;
+    let max_y = -Infinity;
+    
+    for (const node of nodes) {
+        const hw = (node.width || 30) / 2;
+        const hh = (node.height || 30) / 2;
+        
+        min_x = Math.min(min_x, node.x - hw);
+        min_y = Math.min(min_y, node.y - hh);
+        max_x = Math.max(max_x, node.x + hw);
+        max_y = Math.max(max_y, node.y + hh);
+    }
+    
+    // Add padding
+    const padding = 25;
+    min_x -= padding;
+    min_y -= padding;
+    max_x += padding;
+    max_y += padding;
+    
+    return { min_x, min_y, max_x, max_y };
+}

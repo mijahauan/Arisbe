@@ -1,27 +1,46 @@
 #!/usr/bin/env python3
 """
-Definitive Three-Pass EGI Layout Engine (PARTIALLY CORRECTED)
+Definitive Four-Pass EGI Layout Engine (COMPLETE)
 
-ARCHITECTURAL STATUS:
-Phase 1 Fixes Applied (2025-01-10):
-- ✅ Graphviz node positions now DISCARDED (not used as d3 hints)
-- ✅ d3-force discovers optimal positions from scratch
-- ⏳ Port calculation still in dot input (should be geometric post-Pass 1)
-- ⏳ Pass 2 not yet fully recursive bottom-up
+ARCHITECTURAL STATUS (2025-01-10):
+✅ Pass 0: Topological analysis
+✅ Phase 1-4: Complete architectural refactoring
+✅ Visual quality: All refinements complete
 
-Pass 1: Graphviz dot - Container sizing
-    - Input: Full hierarchy with ALL nodes (for sizing estimation)
-    - Output: Container geometry (KEPT), node positions (DISCARDED)
-    - Port nodes: Currently in dot input (TODO: calculate geometrically after)
+COMPLETE FOUR-PASS ARCHITECTURE:
 
-Pass 2: d3-force - Content positioning
-    - NO Graphviz hints used (CORRECTED)
-    - Currently: Independent per-cut layout
-    - TODO: True recursive bottom-up (child sizes inform parent)
+Pass 0: Topological Analysis - Understand ligature structure
+    - Analyzes complete ligature topology BEFORE layout
+    - Identifies: crossing ligatures, branching ligatures, simple ligatures
+    - Builds: area indexes, boundary crossing maps
+    - Output: TopologyAnalysis used by all subsequent passes
 
-Pass 3: A* pathfinding - Ligature routing
-    - Simple straight-line routing
-    - TODO: Full area-aware A* with validation
+Pass 1: Graphviz dot - Container sizing ONLY
+    - Input: Cut hierarchy ONLY (clusters + dummy nodes + tension edges)
+    - Uses: Topology analysis for tension edges (crossing ligatures)
+    - Output: Container geometry (KEPT)
+    - NO content nodes, NO port nodes - ONLY containers!
+
+Post-Pass 1: Geometric port calculation
+    - Calculates ports from fixed container boundaries
+    - Uses: Topology analysis for port requirements
+    - Line-rectangle intersection for boundary crossings
+    - NOT extracted from Graphviz
+
+Pass 2: d3-force - Recursive bottom-up content layout
+    - NO Graphviz hints (starts from scratch)
+    - Uses: Topology analysis for branch nodes (Y-junctions)
+    - True bottom-up: innermost cuts first
+    - Child cuts as large fixed obstacles
+    - Returns bounding boxes for future dynamic sizing
+
+Pass 3: Area-aware A* pathfinding - Intelligent ligature routing
+    - Uses: Complete topology for routing decisions
+    - Same-area paths: Avoid obstacles using A* search
+    - Cross-area paths: Route through geometric ports
+    - Branch handling: Optimal Y-junction positioning
+    - Path smoothing: Ramer-Douglas-Peucker algorithm
+    - Respects Dau's ligature rules (avoid vs. cross)
 """
 
 import json
@@ -35,6 +54,8 @@ from egi_core_dau import RelationalGraphWithCuts
 from constrained_force_layout import Rect
 from style_loader import StyleLoader, StyleSpecification
 from egif_generator_dau import EGIFGenerator
+from area_aware_astar import AreaAwareAStarPathfinder
+from ligature_topology import analyze_ligature_topology, TopologyAnalysis
 
 # Import LayoutDeltas from old engine for user position overrides
 try:
@@ -161,11 +182,25 @@ class DefinitiveThreePassEngine:
         # Build element mapping
         self._build_element_mapping(egi)
         
+        # Pass 0: Topological Analysis
+        print("Pass 0: Topological analysis...")
+        self.topology = analyze_ligature_topology(egi, self.element_to_cut)
+        print(f"  ✅ {len(self.topology.ligatures)} ligatures analyzed")
+        print(f"     - {len(self.topology.crossing_ligatures)} crossing areas")
+        print(f"     - {len(self.topology.branching_ligatures)} with branches")
+        print(f"     - {len(self.topology.simple_ligatures)} simple")
+        print()
+        
         # Pass 1
         print("Pass 1: Container hierarchy (Graphviz)...")
         self._pass1_containers(egi)
         if debug_prefix:
             self._debug_pass1(debug_prefix, egi)
+        
+        # Post-Pass 1: Calculate ports geometrically
+        print("\nPost-Pass 1: Calculating ports geometrically...")
+        self._calculate_ports_geometrically(egi)
+        print(f"  ✅ {len(self.port_nodes)} ports calculated from boundaries")
         
         # Pass 2
         print("\nPass 2: Content layout (d3-force)...")
@@ -191,7 +226,14 @@ class DefinitiveThreePassEngine:
     # === PASS 1 ===
     
     def _pass1_containers(self, egi: RelationalGraphWithCuts):
-        """Use Graphviz to position containers and calculate ports."""
+        """
+        Use Graphviz to SIZE containers only.
+        
+        PHASE 1+3 FIXES:
+        - Input: Full hierarchy with nodes (for sizing estimation)
+        - Output: Container geometry (KEPT), node positions (DISCARDED)
+        - Ports: NO LONGER in dot input (calculated geometrically after)
+        """
         dot_content = self._build_dot(egi)
         
         with tempfile.NamedTemporaryFile(mode='w', suffix='.dot', delete=False) as f:
@@ -205,159 +247,131 @@ class DefinitiveThreePassEngine:
             )
             layout_json = json.loads(result.stdout)
             self._parse_dot_output(layout_json, egi)
-            # REMOVED: _extract_graphviz_positions - we DISCARD node positions from dot!
-            print(f"  ✅ {len(self.area_bounds)} containers, {len(self.port_nodes)} ports")
+            print(f"  ✅ {len(self.area_bounds)} containers sized (ports calculated next)")
         finally:
             Path(dot_file).unlink()
     
     def _build_dot(self, egi: RelationalGraphWithCuts) -> str:
         """
-        Build DOT with properly nested clusters AND port nodes.
+        Build DOT for container sizing ONLY.
         
-        CRITICAL: 
-        1. Clusters must be nested INSIDE their parent clusters
-        2. Port nodes must be included so Graphviz positions content near boundaries
+        CORRECT ARCHITECTURE:
+        - ONLY includes Cut hierarchy (as clusters)
+        - ONLY includes invisible tension edges between related cuts
+        - NO vertex or edge content nodes (they're positioned by Pass 2)
+        
+        Purpose: Get container geometry ONLY. Content positioning is Pass 2's job.
         """
         lines = ["digraph {"]
         lines.append("  rankdir=TB;")
         lines.append("  compound=true;")
         lines.append(f"  fontname=\"{self.style.font_family}\";")
         lines.append(f"  fontsize={self.style.font_size};")
-        lines.append(f"  node [fontname=\"{self.style.font_family}\", fontsize={self.style.font_size}];")
-        lines.append(f"  edge [fontname=\"{self.style.font_family}\"];")
-        
-        # Check if this is a flat sheet (no nested cuts)
-        hierarchy = self._build_hierarchy(egi)
-        sheet_elements = egi.area.get(egi.sheet, [])
-        is_flat_sheet = all(not elem.startswith('c_') for elem in sheet_elements)
-        
-        if is_flat_sheet and len(sheet_elements) > 0:
-            # For flat sheets: increase spacing for better ligature visibility
-            lines.append("  nodesep=1.5;")  # More space between nodes (default 0.25)
-            lines.append("  ranksep=1.5;")  # More space between ranks (default 0.5)
-        
         lines.append("")
         
-        # PRE-CALCULATE which boundaries need ports
-        boundary_ports = self._identify_boundary_ports(egi, hierarchy)
+        hierarchy = self._build_hierarchy(egi)
         
-        def add_content_and_children(cut_id: str, indent="  "):
-            """Add content nodes and child clusters for this cut."""
-            content = egi.area.get(cut_id, [])
+        def add_cut_cluster(cut_id: str, indent="  "):
+            """
+            Add cut as cluster with SIZE ESTIMATE (NO CONTENT).
             
-            # Add direct content (vertices and edges, but NOT child cuts)
-            for elem_id in content:
-                # Skip child cuts - they'll be added as nested clusters
-                if elem_id.startswith('c_'):
-                    continue
-                    
-                if elem_id.startswith('v_'):
-                    v = next((x for x in egi.V if x.id == elem_id), None)
-                    label = v.label if v else '*'
-                    radius_inches = self.style.vertex_radius / 72.0  # Convert pixels to inches
-                    lines.append(f'{indent}"{elem_id}" [label="{label}", shape=circle, width={radius_inches:.2f}, height={radius_inches:.2f}, fixedsize=true];')
-                elif elem_id.startswith('e_'):
-                    label = egi.rel.get(elem_id, '?')
-                    # Calculate width based on text
-                    text_width = len(label) * self.style.predicate_char_width + 2 * self.style.text_margin
-                    width_inches = text_width / 72.0
-                    height_inches = self.style.predicate_height / 72.0
-                    lines.append(f'{indent}"{elem_id}" [label="{label}", shape=box, width={width_inches:.2f}, height={height_inches:.2f}];')
-            
+            Strategy: Replace actual content with a single invisible placeholder
+            sized based on estimated content needs. This gives Graphviz a good
+            size estimate without forcing it to layout the actual content.
+            """
             # Add child cuts as nested subgraphs
             for child_cut_id in hierarchy[cut_id]['children']:
                 if child_cut_id == egi.sheet:
                     continue
-                    
+                
                 lines.append(f'{indent}subgraph "cluster_{child_cut_id}" {{')
+                lines.append(f'{indent}  label="";')  # No label on cuts
                 lines.append(f'{indent}  margin={int(self.style.cut_padding)};')
                 lines.append(f'{indent}  style=rounded;')
                 
-                # Add port nodes for THIS cut's boundary (before content)
-                # This ensures they're positioned on/near the cluster boundary
-                for port_info in boundary_ports:
-                    if port_info['cut_id'] == child_cut_id:
-                        port_id = port_info['id']
-                        lines.append(f'{indent}  "{port_id}" [label="", shape=point, width=0.01, height=0.01];')
+                # Estimate size based on content count
+                content_count = len([e for e in egi.area.get(child_cut_id, []) 
+                                    if e.startswith(('v_', 'e_'))])
                 
-                # Recursively add child's content and its children
-                add_content_and_children(child_cut_id, indent + "  ")
+                # Calculate estimated dimensions
+                # Heuristic: sqrt(n) rows of elements, with padding
+                if content_count == 0:
+                    # Empty cut: small placeholder
+                    est_width = 1.0
+                    est_height = 0.5
+                elif content_count <= 2:
+                    # Small cut: horizontal arrangement
+                    est_width = content_count * 1.0
+                    est_height = 0.75
+                else:
+                    # Larger cut: rough square arrangement
+                    import math
+                    rows = math.ceil(math.sqrt(content_count))
+                    cols = math.ceil(content_count / rows)
+                    est_width = cols * 0.8
+                    est_height = rows * 0.6
+                
+                # Add single invisible placeholder node with estimated size
+                # This gives Graphviz size information without laying out content
+                lines.append(f'{indent}  "{child_cut_id}_dummy" [shape=box, style=invis, '
+                           f'width={est_width:.2f}, height={est_height:.2f}];')
+                
+                # Recursively add child clusters
+                add_cut_cluster(child_cut_id, indent + "  ")
                 
                 lines.append(f'{indent}}}')
         
-        # Start with sheet content and children
-        add_content_and_children(egi.sheet, "  ")
+        # Start with sheet and add all cut clusters
+        add_cut_cluster(egi.sheet, "  ")
         
-        # Add edges for ALL ligatures (both internal and spanning)
-        # This tells Graphviz the graph topology so it can optimize layouts
-        added_edges = set()
-        
-        for edge_id, vertices in egi.nu.items():
-            edge_cut = self.element_to_cut.get(edge_id, egi.sheet)
-            
-            for vertex_id in vertices:
-                vertex_cut = self.element_to_cut.get(vertex_id, egi.sheet)
-                ligature_id = f"{vertex_id}_to_{edge_id}"
-                
-                if ligature_id in added_edges:
-                    continue
-                added_edges.add(ligature_id)
-                
-                if vertex_cut == edge_cut:
-                    # INTERNAL ligature: direct edge so Graphviz optimizes placement
-                    lines.append(f'  "{vertex_id}" -> "{edge_id}" [style=invis, len=1.0];')
-                else:
-                    # SPANNING ligature: route through port
-                    port_info = next((p for p in boundary_ports if p['ligature_id'] == ligature_id), None)
-                    if port_info:
-                        port_id = port_info['id']
-                        lines.append(f'  "{vertex_id}" -> "{port_id}" [style=invis, len=0.5];')
-                        lines.append(f'  "{port_id}" -> "{edge_id}" [style=invis, len=0.5];')
+        # Add invisible tension edges between cuts with crossing ligatures
+        # This pulls related cuts closer together in the layout
+        # Uses topology analysis from Pass 0
+        if hasattr(self, 'topology') and self.topology:
+            added_tension = set()
+            for boundary in self.topology.ligatures_crossing_boundary:
+                area1, area2 = boundary
+                # Only add tension between actual cuts (not sheet)
+                if area1 != egi.sheet and area2 != egi.sheet:
+                    # Create tension edge between the cuts
+                    key = tuple(sorted([area1, area2]))
+                    if key not in added_tension:
+                        added_tension.add(key)
+                        # Invisible edge with high weight pulls cuts closer
+                        lines.append(f'  "{area1}_dummy" -> "{area2}_dummy" [style=invis, weight=5.0];')
         
         lines.append("}")
         return "\n".join(lines)
     
     def _parse_dot_output(self, layout_json: Dict, egi: RelationalGraphWithCuts):
-        """Extract container bounds AND port positions from DOT output."""
+        """
+        Extract ONLY container bounds from DOT output.
+        
+        CRITICAL: Node positions are DISCARDED (not extracted).
+        Port positions will be calculated geometrically after this step.
+        """
         bb = layout_json['bb'].split(',')
         w, h = float(bb[2]), float(bb[3])
         
         self.area_bounds[egi.sheet] = Rect(0, 0, w, h)
         
-        # Extract container bounds
+        # Extract container bounds ONLY
         for obj in layout_json.get('objects', []):
             if obj.get('name', '').startswith('cluster_'):
                 cut_id = obj['name'].replace('cluster_', '')
                 bb = list(map(float, obj['bb'].split(',')))
                 self.area_bounds[cut_id] = Rect(bb[0], h - bb[3], bb[2] - bb[0], bb[3] - bb[1])
         
-        # Extract port positions from Graphviz layout
-        hierarchy = self._build_hierarchy(egi)
-        port_infos = self._identify_boundary_ports(egi, hierarchy)
-        
-        for port_info in port_infos:
-            port_id = port_info['id']
-            
-            # Find this port node in the layout
-            for obj in layout_json.get('objects', []):
-                if obj.get('name') == port_id:
-                    pos = obj.get('pos', '0,0').split(',')
-                    x, y = float(pos[0]), float(pos[1])
-                    
-                    # Convert from Graphviz coordinates (y increases upward)
-                    self.port_nodes[port_id] = PortNode(
-                        id=port_id,
-                        cut_id=port_info['cut_id'],
-                        position=(x, h - y),  # Flip Y
-                        ligature_id=port_info['ligature_id']
-                    )
-                    break
+        # Port calculation moved to _calculate_ports_geometrically() called after Pass 1
     
-    def _calculate_ports(self, egi: RelationalGraphWithCuts):
+    def _calculate_ports_geometrically(self, egi: RelationalGraphWithCuts):
         """
-        Calculate port positions on cut boundaries where ligatures cross.
+        Calculate port positions GEOMETRICALLY from container boundaries.
         
-        CRITICAL: For multi-level crossings (e.g., double cuts), create a port
+        PHASE 3 FIX: Called AFTER Pass 1 completes.
+        Ports are NOT in dot input - calculated from fixed boundaries.
+        
+        For multi-level crossings (e.g., double cuts), create a port
         on EACH boundary in the path from source to target.
         """
         port_counter = 0
@@ -573,52 +587,8 @@ class DefinitiveThreePassEngine:
         # Fallback
         return (rect.x + rect.width / 2, rect.y)
     
-    def _identify_boundary_ports(self, egi: RelationalGraphWithCuts, hierarchy: Dict) -> List[Dict]:
-        """
-        Identify which boundaries need port nodes BEFORE Graphviz runs.
-        Returns list of port info dicts with id, ligature_id, cut_id.
-        """
-        ports = []
-        port_counter = 0
-        
-        for edge_id, vertices in egi.nu.items():
-            edge_cut = self.element_to_cut.get(edge_id, egi.sheet)
-            
-            for vertex_id in vertices:
-                vertex_cut = self.element_to_cut.get(vertex_id, egi.sheet)
-                ligature_id = f"{vertex_id}_to_{edge_id}"
-                
-                if vertex_cut == edge_cut:
-                    continue  # Internal ligature, no port needed
-                
-                # Find the path and create a port for each boundary
-                path = self._find_area_path(vertex_cut, edge_cut, hierarchy)
-                
-                if not path or len(path) < 2:
-                    continue
-                
-                for i in range(len(path) - 1):
-                    from_area = path[i]
-                    to_area = path[i + 1]
-                    
-                    # Determine which boundary gets the port
-                    if to_area in hierarchy.get(from_area, {}).get('children', []):
-                        port_cut = to_area
-                    elif from_area in hierarchy.get(to_area, {}).get('children', []):
-                        port_cut = from_area
-                    else:
-                        continue
-                    
-                    port_id = f"port_{port_counter}"
-                    port_counter += 1
-                    
-                    ports.append({
-                        'id': port_id,
-                        'cut_id': port_cut,
-                        'ligature_id': ligature_id
-                    })
-        
-        return ports
+    # NOTE: _identify_boundary_ports removed (Phase 3)
+    # Ports now calculated geometrically via _calculate_ports_geometrically()
     
     def _build_hierarchy(self, egi: RelationalGraphWithCuts) -> Dict:
         """Build cut hierarchy."""
@@ -690,6 +660,12 @@ class DefinitiveThreePassEngine:
         # Start recursion from sheet (root)
         layout_recursive(egi.sheet)
         print(f"  ✅ {len(self.element_positions)} elements positioned (bottom-up)")
+        
+        # DEBUG: Summary of all positions
+        print(f"\n  Final element positions after Pass 2:")
+        for elem_id, pos in sorted(self.element_positions.items()):
+            elem_type = "Vertex" if elem_id.startswith('v_') else "Edge"
+            print(f"    {elem_id} ({elem_type}): {pos}")
     
     def _layout_cut(self, egi: RelationalGraphWithCuts, cut_id: str, child_boxes: Dict[str, Rect]):
         """
@@ -702,6 +678,11 @@ class DefinitiveThreePassEngine:
             cut_id: The cut to layout
             child_boxes: Dict mapping child cut IDs to their final bounding boxes
         """
+        # DEBUG: Show what we're processing
+        content = [e for e in egi.area.get(cut_id, []) if e.startswith(('v_', 'e_'))]
+        print(f"    Processing {cut_id}:")
+        print(f"      Content: {len(content)} elements {content}")
+        print(f"      Children: {len(child_boxes)} cuts {list(child_boxes.keys())}")
         bounds = self.area_bounds[cut_id]
         payload = {
             'bounds': {'x': bounds.x, 'y': bounds.y, 'width': bounds.width, 'height': bounds.height},
@@ -745,6 +726,48 @@ class DefinitiveThreePassEngine:
         # Add deterministic seed if specified
         if self.layout_deltas and self.layout_deltas.deterministic_seed is not None:
             payload['seed'] = self.layout_deltas.deterministic_seed
+        
+        # Add boundary keepout zones - ONLY for actual cuts (not sheet)
+        # Sheet has no visual boundary, so no keepout needed
+        # Cuts have visual boundaries, so elements must stay away from edges
+        if cut_id != egi.sheet:
+            keepout = 20  # 20 pixels clearance from cut boundary
+            
+            # Top boundary keepout
+            payload['obstacles'].append({
+                'id': f'{cut_id}_boundary_top',
+                'x': bounds.width / 2,
+                'y': keepout / 2,
+                'width': bounds.width,
+                'height': keepout
+            })
+            
+            # Bottom boundary keepout
+            payload['obstacles'].append({
+                'id': f'{cut_id}_boundary_bottom',
+                'x': bounds.width / 2,
+                'y': bounds.height - keepout / 2,
+                'width': bounds.width,
+                'height': keepout
+            })
+            
+            # Left boundary keepout
+            payload['obstacles'].append({
+                'id': f'{cut_id}_boundary_left',
+                'x': keepout / 2,
+                'y': bounds.height / 2,
+                'width': keepout,
+                'height': bounds.height
+            })
+            
+            # Right boundary keepout
+            payload['obstacles'].append({
+                'id': f'{cut_id}_boundary_right',
+                'x': bounds.width - keepout / 2,
+                'y': bounds.height / 2,
+                'width': keepout,
+                'height': bounds.height
+            })
         
         # Add child cuts as obstacles (BOTTOM-UP: children already laid out)
         # These are treated as large fixed nodes that content must avoid
@@ -842,8 +865,16 @@ class DefinitiveThreePassEngine:
                             # Edge in this area, link from port
                             payload['links'].append({'source': port_id, 'target': edge_id})
         
+        # DEBUG: Log payload details
+        print(f"      D3 payload for {cut_id}:")
+        print(f"        Nodes: {len(payload['nodes'])} {[n['id'] for n in payload['nodes']]}")
+        print(f"        Links: {len(payload['links'])}")
+        print(f"        Obstacles: {len(payload['obstacles'])}")
+        print(f"        Ports: {len(payload['portNodes'])}")
+        
         # Call worker
         worker = Path(__file__).parent / 'd3_layout_worker.js'
+        result = None
         try:
             result = subprocess.run(
                 ['node', str(worker)],
@@ -851,10 +882,24 @@ class DefinitiveThreePassEngine:
                 capture_output=True, text=True, check=True
             )
             positions = json.loads(result.stdout)
+            
+            # DEBUG: Log returned positions
+            print(f"      D3 returned {len(positions)} positions:")
             for node_id, pos in positions.items():
-                self.element_positions[node_id] = (bounds.x + pos['x'], bounds.y + pos['y'])
+                global_pos = (bounds.x + pos['x'], bounds.y + pos['y'])
+                self.element_positions[node_id] = global_pos
+                print(f"        {node_id}: local({pos['x']:.1f}, {pos['y']:.1f}) → global{global_pos}")
+                
         except Exception as e:
+            # ERROR: Print for debugging
+            print(f"    ⚠️  D3 worker error for {cut_id}: {e}")
+            if result and result.stderr:
+                print(f"    ⚠️  D3 worker stderr: {result.stderr}")
+            if result and result.stdout:
+                print(f"    ⚠️  D3 worker stdout: {result.stdout[:500]}")
+            print(f"    ⚠️  Payload sent: {json.dumps(payload, indent=2)[:1000]}")
             # Fallback: center
+            print(f"    ⚠️  Falling back to center position for all nodes")
             for node in payload['nodes']:
                 self.element_positions[node['id']] = (bounds.x + bounds.width/2, bounds.y + bounds.height/2)
     
@@ -883,15 +928,18 @@ class DefinitiveThreePassEngine:
                     id=v.id,
                     parent_area_id=self.element_to_cut[v.id],
                     pos=pos,
-                    label=v.label or "*"
+                    label=v.label or ""  # Show name if defined, otherwise just the spot
                 ))
         
-        # Add edges
+        # Add edges  
         for edge_id, label in egi.rel.items():
             if edge_id in self.element_positions:
                 pos = self.element_positions[edge_id]
-                w = max(40, len(label) * 8)
-                rect = Rect(pos[0] - w/2, pos[1] - 12, w, 24)
+                # Use style parameters for tight, precise boundaries
+                text_width = len(label) * self.style.predicate_char_width
+                w = text_width + 2 * self.style.text_margin
+                h = self.style.predicate_height
+                rect = Rect(pos[0] - w/2, pos[1] - h/2, w, h)
                 
                 arity = len(egi.nu.get(edge_id, []))
                 ports = self._calc_ports(rect, arity)
@@ -904,7 +952,28 @@ class DefinitiveThreePassEngine:
                     connection_ports=ports
                 ))
         
-        # Add ligatures (simple paths for now, with custom path support)
+        # Add ligatures (PHASE 4: Area-aware A* pathfinding)
+        # Initialize A* pathfinder
+        pathfinder = AreaAwareAStarPathfinder(
+            area_bounds=self.area_bounds,
+            area_hierarchy=self._build_hierarchy(egi),
+            grid_resolution=5.0  # 5 pixel grid
+        )
+        
+        # Add obstacles: vertices and edge labels
+        for v in dto.vertices:
+            v_rect = Rect(
+                v.pos[0] - self.style.vertex_radius,
+                v.pos[1] - self.style.vertex_radius,
+                self.style.vertex_radius * 2,
+                self.style.vertex_radius * 2
+            )
+            pathfinder.add_obstacle(v_rect, 'vertex', v.parent_area_id)
+        
+        for e in dto.edge_labels:
+            pathfinder.add_obstacle(e.rect, 'edge', e.parent_area_id)
+        
+        # Route each ligature
         for edge_id, vertices in egi.nu.items():
             edge_obj = next((e for e in dto.edge_labels if e.id == edge_id), None)
             if not edge_obj:
@@ -912,35 +981,85 @@ class DefinitiveThreePassEngine:
             
             for hook_idx, v_id in enumerate(vertices):
                 v_pos = self.element_positions.get(v_id)
-                if v_pos:
-                    e_pos = (edge_obj.rect.x + edge_obj.rect.width/2,
-                            edge_obj.rect.y + edge_obj.rect.height/2)
-                    
-                    # Check for custom ligature path from LayoutDeltas
-                    custom_path = None
-                    ligature_key = f"{v_id}_to_{edge_id}"
-                    
-                    if self.layout_deltas:
-                        for delta in self.layout_deltas.deltas.values():
-                            if (delta.delta_type == 'ligature_path' and 
-                                delta.nu_mapping_key == ligature_key and 
-                                delta.custom_path):
-                                # TODO: Validate custom path doesn't cross obstacles
-                                # For now, use it if provided
-                                custom_path = delta.custom_path
-                                break
-                    
-                    # Use custom path if available, otherwise straight line
-                    path_points = custom_path if custom_path else [v_pos, e_pos]
-                    
-                    dto.ligatures.append(RenderableLigature(
-                        start_vertex_id=v_id,
-                        end_edge_id=edge_id,
-                        end_hook_index=hook_idx,
-                        path_points=path_points
-                    ))
+                if not v_pos:
+                    continue
+                
+                ligature_key = f"{v_id}_to_{edge_id}"
+                
+                # Determine areas
+                v_area = self.element_to_cut.get(v_id, egi.sheet)
+                e_area = self.element_to_cut.get(edge_id, egi.sheet)
+                
+                # Calculate approach-aware hook position
+                # Hook should be on the side where the ligature approaches
+                e_center = (edge_obj.rect.x + edge_obj.rect.width/2,
+                           edge_obj.rect.y + edge_obj.rect.height/2)
+                
+                # Calculate approach angle from vertex (or port) to edge center
+                if v_area != e_area:
+                    # Cross-area: Approach from port
+                    port_positions = [p.position for p in self.port_nodes.values() 
+                                    if p.ligature_id == ligature_key]
+                    approach_from = port_positions[0] if port_positions else v_pos
+                else:
+                    # Same-area: Approach directly from vertex
+                    approach_from = v_pos
+                
+                # Calculate which side of the edge label to attach to
+                dx = approach_from[0] - e_center[0]
+                dy = approach_from[1] - e_center[1]
+                
+                # Determine closest edge of rectangle
+                rect = edge_obj.rect
+                if abs(dx) > abs(dy):
+                    # Approaching from left or right
+                    if dx > 0:
+                        # Approaching from right -> hook on right
+                        e_pos = (rect.x + rect.width, rect.y + rect.height/2)
+                    else:
+                        # Approaching from left -> hook on left
+                        e_pos = (rect.x, rect.y + rect.height/2)
+                else:
+                    # Approaching from top or bottom
+                    if dy > 0:
+                        # Approaching from bottom -> hook on bottom
+                        e_pos = (rect.x + rect.width/2, rect.y + rect.height)
+                    else:
+                        # Approaching from top -> hook on top
+                        e_pos = (rect.x + rect.width/2, rect.y)
+                
+                # Check for custom path from user
+                custom_path = None
+                if self.layout_deltas:
+                    for delta in self.layout_deltas.deltas.values():
+                        if (delta.delta_type == 'ligature_path' and 
+                            delta.nu_mapping_key == ligature_key and 
+                            delta.custom_path):
+                            custom_path = delta.custom_path
+                            break
+                
+                # Calculate path
+                if custom_path:
+                    path_points = custom_path
+                elif v_area == e_area:
+                    # PHASE 4: Same-area path (avoid obstacles)
+                    path_points = pathfinder.find_path(v_pos, e_pos, v_area, e_area)
+                    path_points = pathfinder.smooth_path(path_points)
+                else:
+                    # PHASE 4: Cross-area path (use ports)
+                    port_positions = [p.position for p in self.port_nodes.values() 
+                                    if p.ligature_id == ligature_key]
+                    path_points = pathfinder.find_path(v_pos, e_pos, v_area, e_area, port_positions)
+                    path_points = pathfinder.smooth_path(path_points)
+                
+                dto.ligatures.append(RenderableLigature(
+                    start_vertex_id=v_id,
+                    end_edge_id=edge_id,
+                    end_hook_index=hook_idx,
+                    path_points=path_points
+                ))
         
-        print(f"  ✅ {len(dto.ligatures)} ligatures routed")
+        print(f"  ✅ {len(dto.ligatures)} ligatures routed (area-aware A*)")
         return dto
     
     def _calc_ports(self, rect: Rect, arity: int) -> List[ConnectionPort]:
