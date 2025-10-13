@@ -259,9 +259,18 @@ result = rule.apply_transformation(context)
 - **Corpus**: 15 graphs (3 Peirce, 6 Scholars, 6 User/Test)
 - **Test**: `python tools/test_gui_organon.py` (3/3 passing)
 
-### Ergasterion Mode (⏳ Phase 2)
+### Ergasterion Mode (✅ Phase 1 Complete, 🔄 Phase 2 In Progress)
 - **Purpose**: Interactive editing and transformation practice
-- **Planned**: Element palette, transformation panel, undo/redo, session management
+- **Phase 1 Complete** (2025-10-13):
+  - Interactive canvas with mouse interaction
+  - Element selection (single and multi-select with Ctrl)
+  - Drag-and-drop repositioning with validation
+  - Transformation toolbar (DC+/-, INS, ERA, IT+/-)
+  - File operations (New, Load, Save)
+  - Organon ↔ Ergasterion handoff
+- **Phase 2 Planned**: Visual selection indicators, hover feedback, undo/redo UI
+- **Phase 3 Planned**: Element palette, cut creation, practice mode tutorials
+- **Status**: `ERGASTERION_PHASE1_COMPLETE.md` for details
 
 ### Agon Mode (⏳ Phase 3)
 - **Purpose**: Formal reasoning and Endoporeutic Game
@@ -278,7 +287,11 @@ result = rule.apply_transformation(context)
 - **Mathematical correctness**: Comprehensive validation complete
 - **API stability**: Protected core ensures no breaking changes
 - **Quality assurance**: Automated monitoring and enforcement
-- **GUI Phase 1**: Organon functional and production-ready
+- **GUI Status**:
+  - ✅ **Organon**: Functional and production-ready (corpus browser, visualization, export)
+  - ✅ **Ergasterion Phase 1**: Interactive canvas complete (selection, drag-drop, transformations)
+  - 🔄 **Ergasterion Phase 2-3**: Visual feedback and element creation (planned)
+  - ⏳ **Agon**: Future development
 
 ---
 
