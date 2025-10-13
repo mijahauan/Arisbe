@@ -366,9 +366,3 @@ class OrganonMode(QWidget):
         egi = self.controller.get_egi_model()
         if egi:
             self.edit_in_ergasterion.emit(egi)
-            QMessageBox.information(
-                self,
-                "Ergasterion",
-                "Ergasterion mode will be implemented in Phase 3.\n\n"
-                "This will allow interactive editing of the diagram."
-            )
