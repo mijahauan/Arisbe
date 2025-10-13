@@ -92,7 +92,15 @@ class MainWindow(QMainWindow):
         return organon
     
     def _create_ergasterion_widget(self) -> QWidget:
-        """Create the Ergasterion mode widget (placeholder for now)."""
+        """Create the Ergasterion mode widget."""
+        from ergasterion.ergasterion_mode import ErgasterionMode
+        
+        ergasterion = ErgasterionMode(self.diagram_controller)
+        ergasterion.save_to_organon.connect(self._on_save_to_organon)
+        return ergasterion
+    
+    def _on_save_to_organon_old(self) -> QWidget:
+        """Create the Ergasterion mode widget (OLD PLACEHOLDER)."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
         
@@ -187,7 +195,18 @@ class MainWindow(QMainWindow):
         """Handle request to edit EGI in Ergasterion."""
         # Switch to Ergasterion tab
         self.mode_tabs.setCurrentIndex(1)
-        # Note: When Ergasterion is implemented, it will receive the EGI
+        
+        # Load EGI into Ergasterion
+        ergasterion_widget = self.mode_tabs.widget(1)
+        if hasattr(ergasterion_widget, 'load_egi_for_editing'):
+            ergasterion_widget.load_egi_for_editing(egi)
+            self.statusBar().showMessage("Graph loaded in Ergasterion for editing")
+    
+    def _on_save_to_organon(self, egi):
+        """Handle save from Ergasterion back to Organon."""
+        # Switch back to Organon tab
+        self.mode_tabs.setCurrentIndex(0)
+        self.statusBar().showMessage("Returned to Organon")
     
     def _on_new_graph(self):
         """Create a new empty graph."""
