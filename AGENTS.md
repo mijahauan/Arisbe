@@ -158,16 +158,17 @@ result = rule.apply_transformation(context)
 - **Complete validation**: 100% comprehensive coverage achieved
 
 ## 🏗️ Layout Engine Architecture
-- **Unified D3 Recursive Engine**: `src/unified_d3_engine.py` - **PRODUCTION ENGINE** (integrated 2025-10-12)
+- **Unified D3 Recursive Engine**: `src/unified_d3_engine.py` - **PRODUCTION ENGINE** (integrated 2025-10-12, refined 2025-10-12)
 - **DiagramController Integration**: DiagramController now uses UnifiedD3Engine
 - **Architecture**: Pure recursive bottom-up with shell-and-core D3 worker
   - **Python Orchestrator**: Recursive traversal of cut hierarchy (leaf-first)
-  - **D3 Worker**: `src/unified_d3_worker.js` - Two-phase shell-and-core simulation
-  - **SVG Renderer**: `src/simple_svg_renderer.py` - Direct LayoutDTO to SVG
-- **Shell-and-Core Model**: TWO simulations per cut eliminate force-fighting
+  - **D3 Worker**: `src/unified_d3_worker.js` - Two-phase shell-and-core simulation with force optimization
+  - **SVG Renderer**: `src/simple_svg_renderer.py` - Direct LayoutDTO to SVG with Dau-compliant styling
+- **Shell-and-Core Model**: TWO simulations per cut with balanced force hierarchy
   - **SHELL Simulation**: Layout obstacles (child cuts) using collision + center forces
-  - **CORE Simulation**: Position content with obstacles as fixed repellers
-  - **No Oscillation**: Gentle continuous forces work together, not against each other
+  - **CORE Simulation**: Position content with obstacles as exponential repellers
+  - **Force Balance**: Exponential obstacle avoidance > charge repulsion > link/collision forces
+  - **Area Correctness**: Hard boundaries prevent elements from escaping proper cuts
 - **Key Features**:
   - **Iron-clad EGI.area compliance**: Recursive coordinate translation ensures correctness
   - **No overlapping cuts**: Shell simulation with obstacle collision prevents sibling overlap
@@ -214,6 +215,16 @@ result = rule.apply_transformation(context)
   - ✅ Shell-and-core model eliminates force-fighting
   - ✅ Recursive bottom-up respects EGI.area mapping
   - ✅ LayoutDTO standardized (vertex_positions, predicate_positions, cut_bounds)
+- **Dau-Compliant Styling** (2025-10-12):
+  - ✅ Proper line weight hierarchy: cut (1.5px) < ligature (2.5px) < vertex diameter (7px)
+  - ✅ Transparent predicate backgrounds with minimal padding
+  - ✅ Ligatures connect at predicate boundaries and vertex centers
+  - ✅ Vertex spots continuous with ligatures (no boundary hook)
+  - ✅ Vertex labels positioned beside spots to avoid collisions
+  - ✅ Boundary calculations in LayoutDTO (not renderer)
+  - ✅ Exponential obstacle forces enforce hard cut boundaries
+  - ✅ Charge forces improve geometric distribution
+- **Known Limitations**: Layout not always optimal for complex graphs, but functional for MVP
 - **Test Results**: 90/90 core tests passing, 3/3 GUI Organon tests passing
 
 ## 🎨 Style System Architecture
