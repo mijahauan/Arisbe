@@ -9,9 +9,9 @@ Adds mouse interaction capabilities:
 """
 
 from typing import Optional, Set, List, Tuple
-from PySide6.QtCore import Qt, Signal, QPointF
+from PySide6.QtCore import Qt, Signal, QPointF, QRect
 from PySide6.QtGui import QMouseEvent, QPainter, QColor, QPen
-from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsEllipseItem
+from PySide6.QtWidgets import QWidget
 
 import sys
 from pathlib import Path
@@ -59,30 +59,38 @@ class InteractiveDiagramCanvas(DiagramCanvas):
         self._drag_element_start_pos: Optional[Tuple[float, float]] = None
         
         # Enable mouse tracking for hover effects
+        self.setMouseTracking(True)
         self._svg_widget.setMouseTracking(True)
-        
-        # Install event filter to intercept mouse events
-        self._svg_widget.installEventFilter(self)
     
-    def eventFilter(self, obj, event):
-        """Intercept mouse events on the SVG widget."""
-        if obj == self._svg_widget:
-            if event.type() == event.Type.MouseButtonPress:
-                return self._handle_mouse_press(event)
-            elif event.type() == event.Type.MouseMove:
-                return self._handle_mouse_move(event)
-            elif event.type() == event.Type.MouseButtonRelease:
-                return self._handle_mouse_release(event)
-        
-        return super().eventFilter(obj, event)
+    def mousePressEvent(self, event: QMouseEvent):
+        """Handle mouse press - start selection or drag."""
+        if event.button() == Qt.LeftButton:
+            if self._handle_mouse_press(event):
+                event.accept()
+                return
+        super().mousePressEvent(event)
+    
+    def mouseMoveEvent(self, event: QMouseEvent):
+        """Handle mouse move - drag or hover."""
+        if self._handle_mouse_move(event):
+            event.accept()
+            return
+        super().mouseMoveEvent(event)
+    
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        """Handle mouse release - complete drag."""
+        if event.button() == Qt.LeftButton:
+            if self._handle_mouse_release(event):
+                event.accept()
+                return
+        super().mouseReleaseEvent(event)
     
     def _handle_mouse_press(self, event: QMouseEvent) -> bool:
         """Handle mouse press - start selection or drag."""
-        if event.button() != Qt.LeftButton:
-            return False
-        
         # Get element at mouse position
-        element_id = self._get_element_at_pos(event.position())
+        pos = event.position()
+        print(f"Mouse press at ({pos.x():.1f}, {pos.y():.1f})")  # Debug
+        element_id = self._get_element_at_pos(pos)
         
         if element_id:
             # Check for multi-select (Ctrl/Cmd key)
@@ -178,19 +186,36 @@ class InteractiveDiagramCanvas(DiagramCanvas):
         Returns the closest element within a threshold.
         """
         if not self._current_dto:
+            print("  No DTO available")
             return None
         
-        # Convert screen pos to SVG coordinates
-        # (This is simplified - real implementation needs proper coordinate mapping)
-        x, y = pos.x(), pos.y()
+        # Get widget and SVG dimensions for coordinate mapping
+        widget_width = self._svg_widget.width()
+        widget_height = self._svg_widget.height()
         
-        # Check vertices (10px radius hit zone)
+        # Get viewport bounds from DTO
+        vb = self._current_dto.viewport_bounds
+        svg_width = vb.max_x - vb.min_x
+        svg_height = vb.max_y - vb.min_y
+        
+        # Calculate scale factors
+        scale_x = svg_width / widget_width if widget_width > 0 else 1.0
+        scale_y = svg_height / widget_height if widget_height > 0 else 1.0
+        
+        # Transform widget coordinates to SVG coordinates
+        svg_x = vb.min_x + pos.x() * scale_x
+        svg_y = vb.min_y + pos.y() * scale_y
+        
+        print(f"  Widget: ({pos.x():.1f}, {pos.y():.1f}) -> SVG: ({svg_x:.1f}, {svg_y:.1f})")
+        print(f"  Scale: {scale_x:.2f}x, {scale_y:.2f}x")
+        
+        # Check vertices (15px radius hit zone in SVG coordinates)
         closest_vertex = None
-        min_dist = 15  # Hit threshold in pixels
+        min_dist = 15 * max(scale_x, scale_y)  # Hit threshold scaled to SVG space
         
         for vertex_id, point in self._current_dto.vertex_positions.items():
-            dx = x - point.x
-            dy = y - point.y
+            dx = svg_x - point.x
+            dy = svg_y - point.y
             dist = (dx*dx + dy*dy) ** 0.5
             
             if dist < min_dist:
@@ -198,17 +223,20 @@ class InteractiveDiagramCanvas(DiagramCanvas):
                 closest_vertex = vertex_id
         
         if closest_vertex:
+            print(f"  Found vertex: {closest_vertex}")
             return closest_vertex
         
-        # Check predicates (rectangular hit zone)
+        # Check predicates (rectangular hit zone in SVG coordinates)
         for pred_id, point in self._current_dto.predicate_positions.items():
             # Use approximate text bounds (will refine later)
-            width = 50  # Approximate
-            height = 20  # Approximate
+            width = 50 * scale_x  # Scaled to SVG space
+            height = 20 * scale_y  # Scaled to SVG space
             
-            if (abs(x - point.x) < width/2 and abs(y - point.y) < height/2):
+            if (abs(svg_x - point.x) < width/2 and abs(svg_y - point.y) < height/2):
+                print(f"  Found predicate: {pred_id}")
                 return pred_id
         
+        print("  No element found")
         return None
     
     def _get_element_position(self, element_id: str) -> Optional[Tuple[float, float]]:
