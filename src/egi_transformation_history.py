@@ -168,11 +168,15 @@ class EGITransformationHistory:
         self.transformations: Dict[str, TransformationStep] = {}
         self.branches: Dict[str, HistoryBranch] = {}
 
-        # Navigation indices
-        self.state_sequence: List[str] = []  # Linear sequence of state IDs
-        self.step_sequence: List[str] = []  # Linear sequence of step IDs
+        # Navigation indices (linear - deprecated but kept for compatibility)
+        self.state_sequence: List[str] = []  # DEPRECATED: Use DAG traversal
+        self.step_sequence: List[str] = []  # DEPRECATED: Use DAG traversal
         self.current_state_id: str = ""
         self.current_branch_id: str = ""
+
+        # DAG structure
+        self.root_state_id: Optional[str] = None  # Root of the DAG
+        self.branch_points: Set[str] = set()  # States with multiple outgoing edges
 
         # Relationship indices for efficient queries
         self.state_to_incoming_step: Dict[str, Optional[str]] = {}
@@ -212,6 +216,9 @@ class EGITransformationHistory:
         self.state_sequence.append(initial_state_id)
         self.current_state_id = initial_state_id
         self.current_branch_id = main_branch_id
+        
+        # Set as root of DAG
+        self.root_state_id = initial_state_id
 
         # Initialize indices
         self.state_to_incoming_step[initial_state_id] = None
@@ -274,15 +281,19 @@ class EGITransformationHistory:
         self.states[new_state_id] = new_state
         self.transformations[step_id] = transformation_step
 
-        # Update sequences and indices
+        # Update sequences (deprecated but kept for backward compatibility)
         self.state_sequence.append(new_state_id)
         self.step_sequence.append(step_id)
 
-        # Update relationship indices
+        # Update DAG structure
         self.state_to_incoming_step[new_state_id] = step_id
         self.state_to_outgoing_steps[new_state_id] = []
         self.state_to_outgoing_steps[self.current_state_id].append(step_id)
         self.step_to_branch[step_id] = self.current_branch_id
+        
+        # Track branch points (states with multiple outgoing edges)
+        if len(self.state_to_outgoing_steps[self.current_state_id]) > 1:
+            self.branch_points.add(self.current_state_id)
 
         # Update current state
         self.current_state_id = new_state_id
@@ -300,49 +311,77 @@ class EGITransformationHistory:
     def get_transformation_sequence(
         self, from_state_id: str, to_state_id: str
     ) -> TransformationSequence:
-        """Get the sequence of transformations between two states."""
-        # Find path between states (simplified - assumes linear path for now)
-        from_step_num = self.states[from_state_id].step_number
-        to_step_num = self.states[to_state_id].step_number
-
-        if from_step_num > to_step_num:
-            # Reverse direction not yet implemented
+        """Get the sequence of transformations between two states using BFS."""
+        # Use breadth-first search to find path in DAG
+        path = self._find_path_bfs(from_state_id, to_state_id)
+        
+        if path is None:
             return TransformationSequence(
                 from_state_id=from_state_id,
                 to_state_id=to_state_id,
                 steps=[],
                 total_steps=0,
                 is_valid_path=False,
-                logical_summary="Reverse path not implemented",
+                logical_summary="No path found between states",
             )
-
-        # Get steps in sequence
+        
+        # Convert state path to transformation steps
         steps = []
-        current_state = from_state_id
-
-        while current_state != to_state_id:
-            outgoing_steps = self.state_to_outgoing_steps.get(current_state, [])
-            if not outgoing_steps:
-                break
-
-            # Take first outgoing step (linear assumption)
-            step_id = outgoing_steps[0]
-            step = self.transformations[step_id]
-            steps.append(step)
-            current_state = step.to_state_id
-
-        is_valid = current_state == to_state_id
-
+        for i in range(len(path) - 1):
+            current_state = path[i]
+            next_state = path[i + 1]
+            
+            # Find the step that connects these states
+            step_id = self._find_step_between_states(current_state, next_state)
+            if step_id:
+                steps.append(self.transformations[step_id])
+        
         return TransformationSequence(
             from_state_id=from_state_id,
             to_state_id=to_state_id,
             steps=steps,
             total_steps=len(steps),
-            is_valid_path=is_valid,
-            logical_summary=(
-                self._generate_sequence_summary(steps) if is_valid else None
-            ),
+            is_valid_path=True,
+            logical_summary=self._generate_sequence_summary(steps),
         )
+    
+    def _find_path_bfs(self, from_state_id: str, to_state_id: str) -> Optional[List[str]]:
+        """Find shortest path between states using breadth-first search."""
+        if from_state_id == to_state_id:
+            return [from_state_id]
+        
+        from collections import deque
+        
+        queue = deque([(from_state_id, [from_state_id])])
+        visited = {from_state_id}
+        
+        while queue:
+            current_state, path = queue.popleft()
+            
+            # Explore all outgoing edges
+            for step_id in self.state_to_outgoing_steps.get(current_state, []):
+                step = self.transformations.get(step_id)
+                if not step:
+                    continue
+                
+                next_state = step.to_state_id
+                
+                if next_state == to_state_id:
+                    return path + [next_state]
+                
+                if next_state not in visited:
+                    visited.add(next_state)
+                    queue.append((next_state, path + [next_state]))
+        
+        return None  # No path found
+    
+    def _find_step_between_states(self, from_state: str, to_state: str) -> Optional[str]:
+        """Find the step ID that connects two adjacent states."""
+        for step_id in self.state_to_outgoing_steps.get(from_state, []):
+            step = self.transformations.get(step_id)
+            if step and step.to_state_id == to_state:
+                return step_id
+        return None
 
     def rollback_to_state(
         self, target_state_id: str, create_branch: bool = True
@@ -431,6 +470,148 @@ class EGITransformationHistory:
                 summary_parts.append(f"{rule} (×{count})")
 
         return " → ".join(summary_parts)
+    
+    # ===== DAG-Specific Methods =====
+    
+    def create_branch_from_state(
+        self, 
+        source_state_id: str, 
+        branch_type: HistoryBranchType = HistoryBranchType.EXPLORATION,
+        description: str = "New exploration branch"
+    ) -> str:
+        """
+        Create a new branch from an existing state.
+        This allows exploring alternative transformation paths.
+        
+        Args:
+            source_state_id: The state to branch from
+            branch_type: Type of branch being created
+            description: Description of this branch
+            
+        Returns:
+            The branch_id of the newly created branch
+        """
+        if source_state_id not in self.states:
+            raise ValueError(f"State {source_state_id} not found")
+        
+        # Create new branch
+        branch_id = str(uuid.uuid4())
+        branch = HistoryBranch(
+            branch_id=branch_id,
+            branch_type=branch_type,
+            parent_state_id=source_state_id,
+            created_timestamp=datetime.now(timezone.utc),
+            description=description,
+            metadata=frozendict({"source_state": source_state_id}),
+        )
+        
+        self.branches[branch_id] = branch
+        
+        # Switch to this branch
+        self.current_state_id = source_state_id
+        self.current_branch_id = branch_id
+        
+        return branch_id
+    
+    def get_all_paths_from_root(self, target_state_id: str) -> List[List[str]]:
+        """
+        Get all paths from root to target state (supports multiple paths in DAG).
+        
+        Returns:
+            List of paths, where each path is a list of state IDs
+        """
+        if not self.root_state_id:
+            return []
+        
+        if target_state_id == self.root_state_id:
+            return [[self.root_state_id]]
+        
+        all_paths = []
+        self._find_all_paths_dfs(self.root_state_id, target_state_id, [], all_paths, set())
+        return all_paths
+    
+    def _find_all_paths_dfs(
+        self, 
+        current: str, 
+        target: str, 
+        path: List[str], 
+        all_paths: List[List[str]],
+        visited: Set[str]
+    ):
+        """DFS to find all paths from current to target."""
+        if current in visited:
+            return  # Cycle detection
+        
+        path = path + [current]
+        visited = visited | {current}
+        
+        if current == target:
+            all_paths.append(path)
+            return
+        
+        for step_id in self.state_to_outgoing_steps.get(current, []):
+            step = self.transformations.get(step_id)
+            if step:
+                self._find_all_paths_dfs(step.to_state_id, target, path, all_paths, visited)
+    
+    def get_child_states(self, state_id: str) -> List[str]:
+        """Get all immediate child states (direct descendants in DAG)."""
+        child_states = []
+        for step_id in self.state_to_outgoing_steps.get(state_id, []):
+            step = self.transformations.get(step_id)
+            if step:
+                child_states.append(step.to_state_id)
+        return child_states
+    
+    def get_all_branches(self) -> List[HistoryBranch]:
+        """Get all branches in the history."""
+        return list(self.branches.values())
+    
+    def get_active_branches(self) -> List[HistoryBranch]:
+        """Get all active (non-merged) branches."""
+        return [b for b in self.branches.values() if b.is_active]
+    
+    def is_branch_point(self, state_id: str) -> bool:
+        """Check if a state is a branch point (has multiple outgoing edges)."""
+        return state_id in self.branch_points
+    
+    def get_branch_points(self) -> List[str]:
+        """Get all branch point state IDs."""
+        return list(self.branch_points)
+    
+    def get_dag_statistics(self) -> Dict[str, Any]:
+        """Get statistics about the DAG structure."""
+        return {
+            "total_states": len(self.states),
+            "total_transformations": len(self.transformations),
+            "total_branches": len(self.branches),
+            "active_branches": len(self.get_active_branches()),
+            "branch_points": len(self.branch_points),
+            "root_state_id": self.root_state_id,
+            "current_state_id": self.current_state_id,
+            "max_depth": self._calculate_max_depth(),
+        }
+    
+    def _calculate_max_depth(self) -> int:
+        """Calculate maximum depth of the DAG from root."""
+        if not self.root_state_id:
+            return 0
+        
+        max_depth = 0
+        visited = set()
+        
+        def dfs_depth(state_id: str, depth: int):
+            nonlocal max_depth
+            if state_id in visited:
+                return
+            visited.add(state_id)
+            max_depth = max(max_depth, depth)
+            
+            for child in self.get_child_states(state_id):
+                dfs_depth(child, depth + 1)
+        
+        dfs_depth(self.root_state_id, 0)
+        return max_depth
 
     def export_history_data(self) -> Dict[str, Any]:
         """Export complete history data for persistence."""
@@ -439,6 +620,9 @@ class EGITransformationHistory:
             "created_timestamp": self.created_timestamp.isoformat(),
             "current_state_id": self.current_state_id,
             "current_branch_id": self.current_branch_id,
+            "root_state_id": self.root_state_id,
+            "branch_points": list(self.branch_points),
+            "dag_statistics": self.get_dag_statistics(),
             "states": {
                 sid: {
                     "state_id": s.state_id,
@@ -459,7 +643,7 @@ class EGITransformationHistory:
                     "timestamp": t.timestamp.isoformat(),
                     "status": t.status.value,
                     "user_annotation": t.user_annotation,
-                    "logical_justification": t.logical_justification,
+                    "logical_provenance": str(t.logical_provenance) if t.logical_provenance else None,
                     "metadata": dict(t.metadata),
                 }
                 for tid, t in self.transformations.items()
