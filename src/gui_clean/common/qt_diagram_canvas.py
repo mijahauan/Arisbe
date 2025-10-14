@@ -68,15 +68,16 @@ class QtDiagramCanvas(QWidget):
         # Track previous positions for drag detection
         self._element_positions: dict = {}
     
-    def display_dto(self, dto: LayoutDTO, egi: Optional[RelationalGraphWithCuts] = None):
+    def display_dto(self, dto: LayoutDTO, egi: Optional[RelationalGraphWithCuts] = None, fit_to_view: bool = False):
         """
         Display a LayoutDTO as interactive Qt graphics.
         
         Args:
             dto: The layout to display
             egi: Optional EGI for labels
+            fit_to_view: If True, rescale view to fit entire diagram (default: False to preserve zoom/pan)
         """
-        print(f"QtDiagramCanvas.display_dto called with dto={dto is not None}, egi={egi is not None}")
+        print(f"QtDiagramCanvas.display_dto called with dto={dto is not None}, egi={egi is not None}, fit_to_view={fit_to_view}")
         
         if dto is None:
             print("ERROR: display_dto received None for dto")
@@ -112,8 +113,14 @@ class QtDiagramCanvas(QWidget):
                 item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
                 self._element_positions[item.element_id] = (item.pos().x(), item.pos().y())
         
-        # Fit in view with some padding
-        self.view.fitInView(scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+        # Only fit in view if explicitly requested (e.g., initial load)
+        # This preserves user's zoom/pan state during interactive edits
+        if fit_to_view:
+            self.view.fitInView(scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+            print("Fitted diagram to view")
+        else:
+            print("Preserved current zoom/pan (not fitting to view)")
+        
         print("QtDiagramCanvas.display_dto complete")
     
     def _on_selection_changed(self):

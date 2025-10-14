@@ -192,8 +192,8 @@ class OrganonMode(QWidget):
             if dto is None:
                 raise Exception("Controller returned None for DTO")
             
-            # Display
-            self.canvas.display_dto(dto, uod.current_egi)
+            # Display (fit_to_view=True for initial load)
+            self.canvas.display_dto(dto, uod.current_egi, fit_to_view=True)
             
             # Display EGIF
             egif = uod.get_current_egif()
@@ -277,8 +277,8 @@ class OrganonMode(QWidget):
             # Get renderable DTO
             dto = self.controller.get_renderable_dto()
             
-            # Display
-            self.canvas.display_dto(dto, egi)
+            # Display (fit_to_view=True for new file load)
+            self.canvas.display_dto(dto, egi, fit_to_view=True)
             
             # Generate and display EGIF
             try:
@@ -465,8 +465,8 @@ class OrganonMode(QWidget):
             # Get renderable DTO
             dto = self.controller.get_renderable_dto()
             
-            # Display
-            self.canvas.display_dto(dto, state.egi)
+            # Display (fit_to_view=True for state navigation)
+            self.canvas.display_dto(dto, state.egi, fit_to_view=True)
             
             # Update EGIF (use cached if available)
             egif = state.linear_forms.get("egif")

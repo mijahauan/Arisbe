@@ -562,10 +562,11 @@ class ErgasterionMode(QWidget):
         if success:
             # FAST PATH: Controller already updated DTO, just refresh display
             # No relayout needed - this is a logic-indifferent aesthetic change
+            # fit_to_view=False to preserve zoom/pan and manual positioning
             dto = self.controller.current_dto
             egi = self.controller.egi_model
             if dto and egi:
-                self.canvas.display_dto(dto, egi)
+                self.canvas.display_dto(dto, egi, fit_to_view=False)
             self._show_status(f"Moved {element_id} to ({new_pos[0]:.1f}, {new_pos[1]:.1f})")
         else:
             # Position rejected - revert by redisplaying current DTO
@@ -573,7 +574,7 @@ class ErgasterionMode(QWidget):
             dto = self.controller.current_dto
             egi = self.controller.egi_model
             if dto and egi:
-                self.canvas.display_dto(dto, egi)
+                self.canvas.display_dto(dto, egi, fit_to_view=False)
     
     def _on_apply_rule(self, rule_name: str):
         """Apply a transformation rule and record in UoD history if historical."""
@@ -639,7 +640,8 @@ class ErgasterionMode(QWidget):
         print(f"=== dto={dto is not None}, egi={egi is not None} ===")
         if dto and egi:
             print("=== Calling canvas.display_dto ===")
-            self.canvas.display_dto(dto, egi)
+            # fit_to_view=True for initial loads and full relayouts
+            self.canvas.display_dto(dto, egi, fit_to_view=True)
             
             # Update EGIF
             try:
