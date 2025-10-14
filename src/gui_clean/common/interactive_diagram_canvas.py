@@ -91,6 +91,7 @@ class InteractiveDiagramCanvas(DiagramCanvas):
         pos = event.position()
         print(f"Mouse press at ({pos.x():.1f}, {pos.y():.1f})")  # Debug
         element_id = self._get_element_at_pos(pos)
+        print(f"  -> element_id result: {element_id}")  # Debug
         
         if element_id:
             # Check for multi-select (Ctrl/Cmd key)
@@ -107,6 +108,7 @@ class InteractiveDiagramCanvas(DiagramCanvas):
             else:
                 # Single selection + start drag
                 self._selected_elements = {element_id}
+                print(f"✓ Emitting element_selected signal: {element_id}")
                 self.element_selected.emit(element_id)
                 
                 # Prepare for drag
@@ -185,8 +187,9 @@ class InteractiveDiagramCanvas(DiagramCanvas):
         Uses simple hit testing on vertex/predicate positions.
         Returns the closest element within a threshold.
         """
+        print(f"  _get_element_at_pos called with pos=({pos.x():.1f}, {pos.y():.1f})")
         if not self._current_dto:
-            print("  No DTO available")
+            print("  No DTO available - returning None")
             return None
         
         # Get widget and SVG dimensions for coordinate mapping

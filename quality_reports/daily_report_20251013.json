@@ -1,0 +1,37 @@
+{
+  "report_date": "2025-10-13",
+  "report_timestamp": "2025-10-13T21:41:16.167189",
+  "overall_status": "EXCELLENT",
+  "test_metrics": {
+    "timestamp": "2025-10-13T21:41:02.371344",
+    "total_tests": 3,
+    "passed_tests": 0,
+    "failed_tests": 0,
+    "skipped_tests": 0,
+    "error_tests": 3,
+    "test_duration": 1.23,
+    "failing_test_details": [],
+    "performance_data": {},
+    "coverage_data": {},
+    "test_output": "============================= test session starts ==============================\nplatform darwin -- Python 3.11.8, pytest-7.4.3, pluggy-1.6.0 -- /Users/mjh/anaconda3/bin/python\ncachedir: .pytest_cache\nhypothesis profile 'default' -> database=DirectoryBasedExampleDatabase(PosixPath('/Users/mjh/Sync/GitHub/Arisbe/.hypothesis/examples'))\nrootdir: /Users/mjh/Sync/GitHub/Arisbe\nplugins: hypothesis-6.88.1, anyio-4.9.0\ncollecting ... collected 289 items / 3 errors\n\n==================================== ERRORS ====================================\n___________ ERROR collecting tests/test_layout_corpus_validation.py ____________\nImportError while importing test module '/Users/mjh/Sync/GitHub/Arisbe/tests/test_layout_corpus_validation.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n../../../anaconda3/lib/python3.11/importlib/__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\ntests/test_layout_corpus_validation.py:12: in <module>\n    from src.gui.styles.dau_compliant_style import DauCompliantStyle\nE   ModuleNotFoundError: No module named 'src.gui.styles'\n___________ ERROR collecting tests/test_layout_ligature_rendering.py ___________\nImportError while importing test module '/Users/mjh/Sync/GitHub/Arisbe/tests/test_layout_ligature_rendering.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n../../../anaconda3/lib/python3.11/importlib/__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\ntests/test_layout_ligature_rendering.py:15: in <module>\n    from gui.styles.dau_compliant_style import DauCompliantStyle\nE   ModuleNotFoundError: No module named 'gui.styles'\n_______________ ERROR collecting tests/test_layout_validation.py _______________\nImportError while importing test module '/Users/mjh/Sync/GitHub/Arisbe/tests/test_layout_validation.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\n../../../anaconda3/lib/python3.11/importlib/__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\ntests/test_layout_validation.py:4: in <module>\n    from src.layout_engine import LayoutEngine, LayoutResult\nE   ImportError: cannot import name 'LayoutResult' from 'src.layout_engine' (/Users/mjh/Sync/GitHub/Arisbe/src/layout_engine.py)\n=============================== warnings summary ===============================\ntests/test_framework_schema.py:17\n  /Users/mjh/Sync/GitHub/Arisbe/tests/test_framework_schema.py:17: PytestCollectionWarning: cannot collect test class 'TestCategory' because it has a __init__ constructor (from: tests/test_framework_schema.py)\n    class TestCategory(Enum):\n\ntests/test_framework_schema.py:27\n  /Users/mjh/Sync/GitHub/Arisbe/tests/test_framework_schema.py:27: PytestCollectionWarning: cannot collect test class 'TestType' because it has a __init__ constructor (from: tests/test_framework_schema.py)\n    class TestType(Enum):\n\ntests/test_framework_schema.py:59\n  /Users/mjh/Sync/GitHub/Arisbe/tests/test_framework_schema.py:59: PytestCollectionWarning: cannot collect test class 'TestSpecification' because it has a __init__ constructor (from: tests/test_framework_schema.py)\n    @dataclass\n\ntests/test_framework_schema.py:59\n  /Users/mjh/Sync/GitHub/Arisbe/tests/test_framework_schema.py:59: PytestCollectionWarning: cannot collect test class 'TestSpecification' because it has a __init__ constructor (from: tests/test_specifications_dau.py)\n    @dataclass\n\ntests/test_framework_schema.py:17\n  /Users/mjh/Sync/GitHub/Arisbe/tests/test_framework_schema.py:17: PytestCollectionWarning: cannot collect test class 'TestCategory' because it has a __init__ constructor (from: tests/test_specifications_dau.py)\n    class TestCategory(Enum):\n\ntests/test_framework_schema.py:27\n  /Users/mjh/Sync/GitHub/Arisbe/tests/test_framework_schema.py:27: PytestCollectionWarning: cannot collect test class 'TestType' because it has a __init__ constructor (from: tests/test_specifications_dau.py)\n    class TestType(Enum):\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n=========================== short test summary info ============================\nERROR tests/test_layout_corpus_validation.py\nERROR tests/test_layout_ligature_rendering.py\nERROR tests/test_layout_validation.py\n!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!\n======================== 6 warnings, 3 errors in 1.23s =========================\n",
+    "test_errors": "",
+    "return_code": 2
+  },
+  "quality_metrics": {
+    "timestamp": "2025-10-13T21:41:02.371663",
+    "syntax_errors": [],
+    "complexity_issues": [],
+    "style_violations": [],
+    "security_issues": []
+  },
+  "performance_metrics": {
+    "timestamp": "2025-10-13T21:41:16.166839",
+    "performance_tests_passed": 20,
+    "performance_tests_failed": 0,
+    "performance_duration": 8.59,
+    "performance_status": "EXCELLENT"
+  },
+  "recommendations": [
+    "Maintain current quality standards"
+  ]
+}

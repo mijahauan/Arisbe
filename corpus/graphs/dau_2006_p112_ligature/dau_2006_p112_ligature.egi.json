@@ -47,6 +47,36 @@
       "v_6a13f489"
     ]
   },
+  "layout_deltas": {
+    "e_4ae14afa": {
+      "position": [
+        252.09535961226808,
+        214.87916029034767
+      ],
+      "type": "edge_position"
+    },
+    "e_ba153df6": {
+      "position": [
+        329.29863940739494,
+        321.5168156995697
+      ],
+      "type": "edge_position"
+    },
+    "e_e6785427": {
+      "position": [
+        338.5573988327309,
+        214.3662568556
+      ],
+      "type": "edge_position"
+    },
+    "v_6a13f489": {
+      "position": [
+        304.7179448043264,
+        320.99559808215463
+      ],
+      "type": "vertex_position"
+    }
+  },
   "nu": {
     "e_4ae14afa": [
       "v_6a13f489"

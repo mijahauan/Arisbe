@@ -90,13 +90,16 @@ class UnifiedD3Engine:
     2. Find leaf cuts (no child cuts)
     3. Layout leaves first (call D3 with simple content only)
     4. Work up hierarchy: layout each parent with child cuts as obstacles
-    5. Assemble final LayoutDTO
     """
     
     def __init__(self):
+        """Initialize layout engine."""
+        # Caches for bottom-up recursive layout
         self.element_sizes: Dict[ElementID, Tuple[float, float]] = {}
         self.element_positions: Dict[ElementID, Point] = {}
         self.cut_bboxes: Dict[ElementID, BoundingBox] = {}
+        # User constraints (pinned positions)
+        self.layout_deltas: Optional[Dict] = None
     
     def generate_layout(
         self,
@@ -120,10 +123,15 @@ class UnifiedD3Engine:
         self.element_positions.clear()
         self.cut_bboxes.clear()
         
+        # Store layout deltas for this layout pass
+        self.layout_deltas = layout_deltas or {}
+        
         print("\n" + "="*70)
         print("DEFINITIVE RECURSIVE D3 LAYOUT ENGINE")
         print("="*70)
         print(f"Input: {len(egi.V)}V, {len(egi.E)}E, {len(egi.Cut)}C")
+        if self.layout_deltas:
+            print(f"User constraints: {len(self.layout_deltas)} pinned positions")
         
         # Step 1: Calculate element sizes
         print("\nStep 1: Calculating element sizes...")

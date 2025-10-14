@@ -270,14 +270,18 @@ class UniverseOfDiscourse:
     @property
     def is_standalone(self) -> bool:
         """
-        Check if UoD is standalone (static, no history).
+        Check if UoD is standalone (static, no history tracking).
         
         Returns True for literature imports and canonical patterns that
-        have no transformation history.
+        have no transformation history tracking.
+        
+        A UoD is standalone if:
+        1. It has NO history object, AND
+        2. Its type is STANDALONE
         """
         return (
             self.history is None 
-            or len(self.history.states) <= 1
+            and self.metadata.uod_type == UoDType.STANDALONE
         )
     
     @property
@@ -287,10 +291,14 @@ class UniverseOfDiscourse:
         
         Returns True for active inquiry sessions, proofs, games, etc.
         that track complete diachronic evolution.
+        
+        A UoD is historical if:
+        1. It has a history object (even with just initial state), OR
+        2. Its type is HISTORICAL
         """
         return (
             self.history is not None 
-            and len(self.history.states) > 1
+            or self.metadata.uod_type == UoDType.HISTORICAL
         )
     
     @property
@@ -469,36 +477,25 @@ class UniverseOfDiscourse:
             - Adds initial StateSnapshot
             - Updates metadata to HISTORICAL type
         """
-        if self.is_historical:
-            return  # Already historical, no-op
+        if self.history is not None:
+            return  # Already has history, no-op
         
-        import uuid
-        
-        # Create initial state snapshot
-        state_id = f"state_{uuid.uuid4().hex[:8]}"
-        snapshot = StateSnapshot(
-            state_id=state_id,
-            egi=self.current_egi,
-            timestamp=datetime.now(),
-            step_number=0,
-            description=initial_description,
-            linear_forms={
-                "egif": self.get_current_egif(),
-            },
-            diagram_metadata={
-                "layout_deltas": self.current_layout_deltas or {}
-            }
-        )
-        
-        # Create history with initial state
+        # Create history (EGITransformationHistory creates initial state internally)
         self.history = EGITransformationHistory(
-            history_id=f"history_{self.uod_id}",
-            initial_state=snapshot
+            initial_egi=self.current_egi,
+            description=initial_description
         )
+        
+        # Update initial state with layout deltas
+        if self.current_layout_deltas:
+            initial_state = self.history.get_current_state()
+            if initial_state.diagram_metadata is None:
+                initial_state.diagram_metadata = {}
+            initial_state.diagram_metadata["layout_deltas"] = self.current_layout_deltas
         
         # Update metadata
         self.metadata.uod_type = UoDType.HISTORICAL
-        self.metadata.current_state_id = state_id
+        self.metadata.current_state_id = self.history.current_state_id
         self.metadata.total_states = 1
         self.metadata.last_modified = datetime.now()
     

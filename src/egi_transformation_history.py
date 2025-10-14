@@ -223,7 +223,6 @@ class EGITransformationHistory:
         context: TransformationContext,
         result: TransformationResult,
         user_annotation: Optional[str] = None,
-        logical_justification: Optional[str] = None,
     ) -> str:
         """Add a transformation step and create new state."""
 
@@ -240,7 +239,6 @@ class EGITransformationHistory:
                 timestamp=datetime.now(timezone.utc),
                 status=TransformationStatus.FAILED,
                 user_annotation=user_annotation,
-                logical_justification=logical_justification,
             )
             self.transformations[step_id] = failed_step
             return step_id
@@ -270,7 +268,6 @@ class EGITransformationHistory:
             timestamp=datetime.now(timezone.utc),
             status=TransformationStatus.APPLIED,
             user_annotation=user_annotation,
-            logical_justification=logical_justification,
         )
 
         # Store new state and transformation
