@@ -191,16 +191,26 @@ class MainWindow(QMainWindow):
         if 0 <= index < len(modes):
             self.statusBar().showMessage(f"Switched to {modes[index]} mode")
     
-    def _on_edit_in_ergasterion(self, egi):
+    def _on_edit_in_ergasterion(self, data):
         """Handle request to edit EGI in Ergasterion."""
+        # Handle tuple format (EGI, source UoD)
+        if isinstance(data, tuple):
+            egi, source_uod = data
+        else:
+            egi = data
+            source_uod = None
+        
         # Switch to Ergasterion tab
         self.mode_tabs.setCurrentIndex(1)
         
         # Load EGI into Ergasterion
         ergasterion_widget = self.mode_tabs.widget(1)
         if hasattr(ergasterion_widget, 'load_egi_for_editing'):
-            ergasterion_widget.load_egi_for_editing(egi)
-            self.statusBar().showMessage("Graph loaded in Ergasterion for editing")
+            ergasterion_widget.load_egi_for_editing(egi, source_uod)
+            if source_uod:
+                self.statusBar().showMessage(f"Loaded '{source_uod.name}' for practice in Ergasterion")
+            else:
+                self.statusBar().showMessage("Graph loaded in Ergasterion for editing")
     
     def _on_save_to_organon(self, egi):
         """Handle save from Ergasterion back to Organon."""

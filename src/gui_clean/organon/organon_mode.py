@@ -497,5 +497,6 @@ class OrganonMode(QWidget):
     def _on_edit_in_ergasterion(self):
         """Signal that user wants to edit in Ergasterion."""
         egi = self.controller.get_egi_model()
-        if egi:
-            self.edit_in_ergasterion.emit(egi)
+        if egi and self._current_uod:
+            # Emit tuple of (EGI, source UoD)
+            self.edit_in_ergasterion.emit((egi, self._current_uod))

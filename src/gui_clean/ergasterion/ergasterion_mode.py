@@ -34,6 +34,14 @@ from diagram_controller import DiagramController
 from egi_core_dau import RelationalGraphWithCuts
 from egi_io import load_egi_json
 from egif_generator_dau import generate_egif
+from corpus_service import CorpusService
+from universe_of_discourse import (
+    UniverseOfDiscourse,
+    UoDMetadata,
+    UoDType,
+    UoDCategory,
+)
+from datetime import datetime
 
 # Import Qt-based interactive canvas
 from gui_clean.common.qt_diagram_canvas import QtDiagramCanvas
@@ -57,6 +65,11 @@ class ErgasterionMode(QWidget):
         
         self.controller = diagram_controller
         self._current_file: Optional[Path] = None
+        self._current_uod: Optional[UniverseOfDiscourse] = None  # Current practice session
+        
+        # Initialize CorpusService
+        corpus_root = Path(__file__).parent.parent.parent.parent / "corpus"
+        self.corpus = CorpusService(corpus_root)
         
         self._setup_ui()
         self._connect_signals()
@@ -135,6 +148,13 @@ class ErgasterionMode(QWidget):
         toolbar_layout.addWidget(self.redo_btn)
         
         toolbar_layout.addStretch()
+        
+        # Save to Corpus
+        self.save_to_corpus_btn = QPushButton("💾 Save to Corpus")
+        self.save_to_corpus_btn.clicked.connect(self._on_save_to_corpus)
+        self.save_to_corpus_btn.setEnabled(False)
+        self.save_to_corpus_btn.setToolTip("Save practice session to corpus")
+        toolbar_layout.addWidget(self.save_to_corpus_btn)
         
         # Return to Organon
         self.return_btn = QPushButton("📚 Return to Organon")
@@ -254,11 +274,30 @@ class ErgasterionMode(QWidget):
         self.canvas.selection_cleared.connect(self._on_selection_cleared)
     
     def _on_new_graph(self):
-        """Create a new empty graph."""
+        """Create a new practice session (empty UoD)."""
         from egi_core_dau import create_empty_graph
+        import uuid
         
         # Create empty EGI
         egi = create_empty_graph()
+        
+        # Create new practice session UoD
+        metadata = UoDMetadata(
+            uod_id=f"practice_{uuid.uuid4().hex[:8]}",
+            uod_type=UoDType.STANDALONE,
+            name=f"Practice Session {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            description="Isolated practice session",
+            category=UoDCategory.PRACTICE_SESSION,
+            created=datetime.now(),
+            last_modified=datetime.now(),
+            authors=["Current User"],
+        )
+        
+        self._current_uod = UniverseOfDiscourse(
+            metadata=metadata,
+            current_egi=egi,
+            history=None
+        )
         
         # Load into controller
         self.controller.load_egi(egi)
@@ -268,9 +307,10 @@ class ErgasterionMode(QWidget):
         
         self._current_file = None
         self.save_btn.setEnabled(True)
+        self.save_to_corpus_btn.setEnabled(True)
         self.return_btn.setEnabled(True)
         
-        self._show_status("Created new empty graph")
+        self._show_status("Created new practice session")
     
     def _on_load_egi(self):
         """Load an EGI file for editing."""
@@ -412,8 +452,77 @@ class ErgasterionMode(QWidget):
         # TODO: Implement with CommandExecutor
         self._show_status("Redo: Not yet implemented")
     
+    def _on_save_to_corpus(self):
+        """Save current practice session to corpus."""
+        if not self._current_uod:
+            QMessageBox.warning(
+                self,
+                "No Practice Session",
+                "Create or load a practice session first."
+            )
+            return
+        
+        # Update UoD with current EGI
+        egi = self.controller.get_egi_model()
+        if egi:
+            self._current_uod.current_egi = egi
+            
+            # Update layout deltas
+            if self.controller.layout_deltas:
+                deltas_dict = {}
+                for element_id, delta in self.controller.layout_deltas.items():
+                    deltas_dict[element_id] = {
+                        'type': delta.delta_type,
+                        'position': list(delta.new_position)
+                    }
+                self._current_uod.current_layout_deltas = deltas_dict
+            
+            # Update metadata
+            self._current_uod.metadata.last_modified = datetime.now()
+            
+            # Save to corpus
+            try:
+                self.corpus.save_uod(self._current_uod)
+                self._show_status(f"Saved practice session: {self._current_uod.name}")
+                
+                # Offer to promote to historical
+                reply = QMessageBox.question(
+                    self,
+                    "Promote to Historical?",
+                    f"Practice session '{self._current_uod.name}' saved.\n\n"
+                    "Would you like to promote it to historical tracking\n"
+                    "to record transformation history?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                )
+                
+                if reply == QMessageBox.StandardButton.Yes:
+                    self._current_uod.promote_to_historical("Initial practice state")
+                    self.corpus.save_uod(self._current_uod)
+                    self._show_status(f"Promoted to historical: {self._current_uod.name}")
+                    
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Error Saving",
+                    f"Failed to save to corpus:\n\n{str(e)}"
+                )
+    
     def _on_return_to_organon(self):
         """Return to Organon mode."""
+        # Ask to save if there are unsaved changes
+        if self._current_uod and self.controller.get_egi_model():
+            reply = QMessageBox.question(
+                self,
+                "Save Before Returning?",
+                "Do you want to save this practice session to the corpus?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
+            )
+            
+            if reply == QMessageBox.StandardButton.Cancel:
+                return
+            elif reply == QMessageBox.StandardButton.Yes:
+                self._on_save_to_corpus()
+        
         egi = self.controller.get_egi_model()
         if egi:
             self.save_to_organon.emit(egi)
@@ -467,7 +576,7 @@ class ErgasterionMode(QWidget):
                 self.canvas.display_dto(dto, egi)
     
     def _on_apply_rule(self, rule_name: str):
-        """Apply a transformation rule."""
+        """Apply a transformation rule and record in UoD history if historical."""
         selection = self.canvas.get_selected_elements()
         
         if not selection:
@@ -482,6 +591,18 @@ class ErgasterionMode(QWidget):
         success = self.controller.apply_formal_rule(rule_name, selection, target_area)
         
         if success:
+            # Update UoD with new EGI
+            if self._current_uod:
+                new_egi = self.controller.get_egi_model()
+                self._current_uod.current_egi = new_egi
+                self._current_uod.metadata.last_modified = datetime.now()
+                
+                # If historical, record transformation
+                if self._current_uod.is_historical:
+                    # TODO: Record transformation in history
+                    # This would require TransformationContext and TransformationResult
+                    pass
+            
             # Refresh display
             self._refresh_display()
             self.validation_label.setText(f"✓ Applied {rule_name}")
@@ -533,18 +654,51 @@ class ErgasterionMode(QWidget):
         if hasattr(parent, 'statusBar'):
             parent.statusBar().showMessage(message, 3000 if not error else 5000)
     
-    def load_egi_for_editing(self, egi: RelationalGraphWithCuts):
+    def load_egi_for_editing(self, egi: RelationalGraphWithCuts, source_uod: Optional[UniverseOfDiscourse] = None):
         """
         Load an EGI from Organon for editing.
         
         Args:
             egi: The EGI to load
+            source_uod: Optional source UoD (creates derived practice session)
         """
+        import uuid
+        
         print(f"=== Ergasterion.load_egi_for_editing called with {len(egi.V)}V, {len(egi.E)}E ===")
+        
+        # Create new practice session
+        if source_uod:
+            name = f"Practice: {source_uod.name}"
+            description = f"Practice session derived from {source_uod.uod_id}"
+            related_uods = [source_uod.uod_id]
+        else:
+            name = f"Practice Session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            description = "Practice session from Organon"
+            related_uods = []
+        
+        metadata = UoDMetadata(
+            uod_id=f"practice_{uuid.uuid4().hex[:8]}",
+            uod_type=UoDType.STANDALONE,
+            name=name,
+            description=description,
+            category=UoDCategory.PRACTICE_SESSION,
+            created=datetime.now(),
+            last_modified=datetime.now(),
+            authors=["Current User"],
+            related_uods=related_uods,
+        )
+        
+        self._current_uod = UniverseOfDiscourse(
+            metadata=metadata,
+            current_egi=egi,
+            history=None
+        )
+        
         self.controller.load_egi(egi)
         print("=== Calling _refresh_display ===")
         self._refresh_display()
         self._current_file = None
         self.save_btn.setEnabled(True)
+        self.save_to_corpus_btn.setEnabled(True)
         self.return_btn.setEnabled(True)
-        self._show_status("Loaded graph from Organon")
+        self._show_status("Loaded graph from Organon for practice")
