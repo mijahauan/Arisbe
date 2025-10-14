@@ -33,24 +33,27 @@
 ## 2. Import/Export System
 
 ### Import Formats
-**Status**: ❌ Not implemented
-- [ ] **EGIF** (Extended Graph Interchange Format)
-- [ ] **CGIF** (Conceptual Graph Interchange Format)
-- [ ] **JSON** (Raw EGI data)
-- [ ] **CLIF** (Common Logic Interchange Format)
-- [ ] **Literature Import** (from existing corpus)
+**Status**: ⚠️ Parsers exist, GUI integration needed
+- [ ] **EGIF** (Extended Graph Interchange Format) - ✅ Parser ready
+- [ ] **CGIF** (Conceptual Graph Interchange Format) - ✅ Parser ready
+- [ ] **CLIF** (Common Logic Interchange Format) - ✅ Parser ready
+- [ ] **FOPL** (First-Order Predicate Logic - Dau Ch.18) - ✅ Translator ready
+- [ ] **JSON** (Full UoD with metadata) - ✅ CorpusService ready
+- [ ] **JSON** (EGI only) - ✅ egi_io ready
 - [ ] **Batch Import** (multiple files)
 
 ### Export Formats
-**Status**: ⚠️ Partially implemented (SVG only)
-- [x] **SVG** (Scalable Vector Graphics) - diagram only
-- [ ] **EGIF** (Linear form of current state)
-- [ ] **CGIF** (Conceptual Graphs format)
-- [ ] **JSON** (Full UoD with metadata + history)
-- [ ] **JSON** (Current EGI only)
-- [ ] **PDF** (Rendered diagram + metadata)
-- [ ] **LaTeX** (For academic papers)
-- [ ] **History Export** (All states + transformations)
+**Status**: ⚠️ Generators exist, GUI integration needed
+- [x] **SVG** (Scalable Vector Graphics) - ✅ Working in GUI
+- [ ] **EGIF** (Linear form of current state) - ✅ Generator ready
+- [ ] **CGIF** (Conceptual Graphs format) - ✅ Generator ready
+- [ ] **CLIF** (Common Logic format) - ✅ Generator ready
+- [ ] **FOPL** (First-Order Predicate Logic) - ✅ Translator ready
+- [ ] **JSON** (Full UoD with metadata + history) - ✅ CorpusService ready
+- [ ] **JSON** (Current EGI only) - ✅ egi_io ready
+- [ ] **PDF** (Rendered diagram + metadata) - Future
+- [ ] **LaTeX** (For academic papers) - Future
+- [ ] **History Export** (All states + transformations) - ✅ Data model ready
 
 ### Import/Export UI
 - [ ] Import dialog with format selection
