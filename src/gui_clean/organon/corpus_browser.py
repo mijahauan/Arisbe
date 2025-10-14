@@ -24,30 +24,30 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from entity_storage import EntityStorageManager
-from graph_entity import EntityCategory, EntityMetadata
+from corpus_service import CorpusService
+from universe_of_discourse import UoDCategory, UoDMetadata, UniverseOfDiscourse
 
 
 class CorpusBrowserWidget(QWidget):
     """
-    Corpus browser for selecting graph entities.
+    Corpus browser for selecting Universes of Discourse.
     
     Features:
-    - List all entities in corpus
-    - Filter by category
+    - List all UoDs in corpus
+    - Filter by category (static/dynamic)
     - Search by name/description
-    - Show entity metadata
-    - Signal when entity selected
+    - Show UoD metadata
+    - Signal when UoD selected
     """
     
-    # Signal emitted when user selects an entity
-    entity_selected = Signal(str)  # entity_name
+    # Signal emitted when user selects a UoD
+    entity_selected = Signal(str)  # uod_id
     
     def __init__(self, corpus_path: Path, parent: Optional[QWidget] = None):
         super().__init__(parent)
         
-        self.storage = EntityStorageManager(corpus_path)
-        self._current_entities: list[str] = []
+        self.corpus = CorpusService(corpus_path)
+        self._current_uods: list[dict] = []
         
         self._setup_ui()
         self._refresh_list()
@@ -59,15 +59,14 @@ class CorpusBrowserWidget(QWidget):
         # Top controls
         controls = QHBoxLayout()
         
-        # Category filter
-        controls.addWidget(QLabel("Category:"))
-        self.category_combo = QComboBox()
-        self.category_combo.addItem("All", None)
-        for category in EntityCategory:
-            display_name = category.value.replace("_", " ").title()
-            self.category_combo.addItem(display_name, category)
-        self.category_combo.currentIndexChanged.connect(self._on_filter_changed)
-        controls.addWidget(self.category_combo)
+        # Type filter
+        controls.addWidget(QLabel("Type:"))
+        self.type_combo = QComboBox()
+        self.type_combo.addItem("All", None)
+        self.type_combo.addItem("📚 Static (Literature)", "static")
+        self.type_combo.addItem("🔬 Dynamic (Reasoning)", "dynamic")
+        self.type_combo.currentIndexChanged.connect(self._on_filter_changed)
+        controls.addWidget(self.type_combo)
         
         # Search box
         controls.addWidget(QLabel("Search:"))
@@ -108,42 +107,49 @@ class CorpusBrowserWidget(QWidget):
         layout.addWidget(self.load_btn)
     
     def _refresh_list(self):
-        """Refresh the entity list."""
+        """Refresh the UoD list."""
         # Get current filter
-        category = self.category_combo.currentData()
+        type_filter = self.type_combo.currentData()
         
-        # Load entities
-        self._current_entities = self.storage.list_entities(category=category)
+        # Build filter kwargs
+        kwargs = {}
+        if type_filter == "static":
+            kwargs["is_static"] = True
+        elif type_filter == "dynamic":
+            kwargs["is_dynamic"] = True
+        
+        # Load UoDs from index (fast, no full loading)
+        self._current_uods = self.corpus.list_uods(**kwargs)
         
         # Apply search filter
         search_term = self.search_box.text().lower()
         if search_term:
-            self._current_entities = [
-                name for name in self._current_entities
-                if search_term in name.lower()
+            self._current_uods = [
+                uod for uod in self._current_uods
+                if search_term in uod.get("name", "").lower()
             ]
         
         # Update list
         self.entity_list.clear()
-        for entity_name in self._current_entities:
-            # Load metadata (fast, cached)
+        for uod_metadata in self._current_uods:
             try:
-                metadata = self.storage.load_entity_metadata(entity_name)
+                uod_id = uod_metadata.get("uod_id")
+                name = uod_metadata.get("name", uod_id)
                 
                 # Create list item
-                item = QListWidgetItem(entity_name)
+                item = QListWidgetItem(name)
                 
                 # Add icon based on type
-                icon = "📄" if metadata.entity_type.value == "standalone" else "📚"
-                item.setText(f"{icon} {entity_name}")
+                is_static = uod_metadata.get("is_static", False)
+                icon = "📚" if is_static else "🔬"
+                item.setText(f"{icon} {name}")
                 
-                # Store metadata for later
-                item.setData(Qt.UserRole, metadata)
+                # Store full metadata for later
+                item.setData(Qt.UserRole, uod_metadata)
                 
                 self.entity_list.addItem(item)
             except Exception as e:
-                # Skip entities that fail to load metadata
-                print(f"Warning: Failed to load metadata for {entity_name}: {e}")
+                print(f"Warning: Failed to display UoD: {e}")
                 continue
     
     def _on_filter_changed(self):
@@ -155,63 +161,67 @@ class CorpusBrowserWidget(QWidget):
         self._refresh_list()
     
     def _on_selection_changed(self, current: QListWidgetItem, previous: QListWidgetItem):
-        """Handle entity selection change."""
+        """Handle UoD selection change."""
         if current is None:
             self.info_text.clear()
             self.load_btn.setEnabled(False)
             return
         
-        # Get metadata
-        metadata: EntityMetadata = current.data(Qt.UserRole)
+        # Get metadata dict
+        metadata: dict = current.data(Qt.UserRole)
         
         # Display info
-        info = self._format_entity_info(metadata)
+        info = self._format_uod_info(metadata)
         self.info_text.setHtml(info)
         
         self.load_btn.setEnabled(True)
     
     def _on_item_double_clicked(self, item: QListWidgetItem):
         """Handle double-click (load immediately)."""
-        metadata: EntityMetadata = item.data(Qt.UserRole)
-        self.entity_selected.emit(metadata.name)
+        metadata: dict = item.data(Qt.UserRole)
+        self.entity_selected.emit(metadata.get("uod_id"))
     
     def _on_load_clicked(self):
         """Handle load button click."""
         current = self.entity_list.currentItem()
         if current:
-            metadata: EntityMetadata = current.data(Qt.UserRole)
-            self.entity_selected.emit(metadata.name)
+            metadata: dict = current.data(Qt.UserRole)
+            self.entity_selected.emit(metadata.get("uod_id"))
     
-    def _format_entity_info(self, metadata: EntityMetadata) -> str:
-        """Format entity metadata as HTML."""
-        type_label = "Standalone" if metadata.entity_type.value == "standalone" else "Historical"
-        category_label = metadata.category.value.replace("_", " ").title()
+    def _format_uod_info(self, metadata: dict) -> str:
+        """Format UoD metadata as HTML."""
+        name = metadata.get("name", "Unnamed")
+        is_static = metadata.get("is_static", False)
+        is_dynamic = metadata.get("is_dynamic", False)
+        category = metadata.get("category", "unknown").replace("_", " ").title()
+        
+        type_label = "Static (Literature)" if is_static else "Dynamic (Reasoning)"
         
         html = f"""
-        <p><b>Name:</b> {metadata.name}</p>
+        <p><b>Name:</b> {name}</p>
         <p><b>Type:</b> {type_label}</p>
-        <p><b>Category:</b> {category_label}</p>
+        <p><b>Category:</b> {category}</p>
         """
         
-        if metadata.description:
-            html += f"<p><b>Description:</b> {metadata.description}</p>"
+        if is_dynamic:
+            total_states = metadata.get("total_states", 0)
+            total_transformations = metadata.get("total_transformations", 0)
+            html += f"<p><b>States:</b> {total_states} | <b>Transformations:</b> {total_transformations}</p>"
         
-        if metadata.entity_type.value == "historical":
-            html += f"<p><b>States:</b> {metadata.total_states} | <b>Transformations:</b> {metadata.total_transformations}</p>"
-        
-        if metadata.source_citation:
-            html += f"<p><b>Source:</b> {metadata.source_citation}</p>"
-        
-        if metadata.tags:
-            tags = ", ".join(sorted(metadata.tags))
+        if metadata.get("tags"):
+            tags = ", ".join(sorted(metadata.get("tags", [])))
             html += f"<p><b>Tags:</b> {tags}</p>"
+        
+        if metadata.get("authors"):
+            authors = ", ".join(metadata.get("authors", []))
+            html += f"<p><b>Authors:</b> {authors}</p>"
         
         return html
     
-    def get_selected_entity_name(self) -> Optional[str]:
-        """Get currently selected entity name."""
+    def get_selected_uod_id(self) -> Optional[str]:
+        """Get currently selected UoD ID."""
         current = self.entity_list.currentItem()
         if current:
-            metadata: EntityMetadata = current.data(Qt.UserRole)
-            return metadata.name
+            metadata: dict = current.data(Qt.UserRole)
+            return metadata.get("uod_id")
         return None

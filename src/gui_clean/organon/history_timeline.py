@@ -24,7 +24,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from graph_entity import GraphEntity
+from universe_of_discourse import UniverseOfDiscourse
 from egi_transformation_history import TransformationStep
 
 
@@ -175,7 +175,7 @@ class HistoryTimeline(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         
-        self._current_entity: Optional[GraphEntity] = None
+        self._current_uod: Optional[UniverseOfDiscourse] = None
         self._timeline_items = []
         
         self._setup_ui()
@@ -212,26 +212,26 @@ class HistoryTimeline(QWidget):
         # Initially hidden (shown when historical entity loaded)
         self.hide()
     
-    def update_history(self, entity: GraphEntity):
+    def update_history(self, uod: UniverseOfDiscourse):
         """
-        Update timeline with entity history.
+        Update timeline with UoD history.
         
         Args:
-            entity: The graph entity with history to display
+            uod: The Universe of Discourse with history to display
         """
-        self._current_entity = entity
+        self._current_uod = uod
         
         # Clear existing timeline
         self.clear()
         
-        # Only show for historical entities
-        if not entity.is_historical:
+        # Only show for historical UoDs
+        if not uod.is_historical:
             self.hide()
             return
         
         self.show()
         
-        history = entity.history
+        history = uod.history
         if not history or not history.state_sequence:
             self.hide()
             return

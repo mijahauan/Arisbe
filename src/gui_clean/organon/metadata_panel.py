@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from graph_entity import GraphEntity
+from universe_of_discourse import UniverseOfDiscourse
 
 
 class MetadataPanel(QWidget):
@@ -41,7 +41,7 @@ class MetadataPanel(QWidget):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._setup_ui()
-        self._current_entity: Optional[GraphEntity] = None
+        self._current_uod: Optional[UniverseOfDiscourse] = None
     
     def _setup_ui(self):
         """Create the metadata panel UI."""
@@ -51,7 +51,7 @@ class MetadataPanel(QWidget):
         main_layout.setSpacing(10)
         
         # Title
-        title = QLabel("📋 Entity Metadata")
+        title = QLabel("📋 Universe of Discourse Metadata")
         title.setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px;")
         main_layout.addWidget(title)
         
@@ -199,23 +199,23 @@ class MetadataPanel(QWidget):
         
         return group
     
-    def update_metadata(self, entity: GraphEntity):
+    def update_metadata(self, uod: UniverseOfDiscourse):
         """
-        Update display with entity metadata.
+        Update display with UoD metadata.
         
         Args:
-            entity: The graph entity to display
+            uod: The Universe of Discourse to display
         """
-        self._current_entity = entity
-        metadata = entity.metadata
+        self._current_uod = uod
+        metadata = uod.metadata
         
         # Basic Info
         self.name_label.setText(metadata.name or "Untitled")
         self.description_label.setText(metadata.description or "No description")
         
         # Type & Category
-        entity_type_text = self._format_entity_type(entity)
-        self.type_label.setText(entity_type_text)
+        uod_type_text = self._format_uod_type(uod)
+        self.type_label.setText(uod_type_text)
         
         category_text = metadata.category.value.replace("_", " ").title()
         self.category_label.setText(category_text)
@@ -227,18 +227,18 @@ class MetadataPanel(QWidget):
         else:
             self.tags_label.setText("(none)")
         
-        # History (only for historical entities)
-        if entity.is_historical:
+        # History (only for historical UoDs)
+        if uod.is_historical:
             self.history_group.setVisible(True)
             self.history_group.setHidden(False)  # Explicitly unhide
             self.states_label.setText(str(metadata.total_states))
             self.transformations_label.setText(str(metadata.total_transformations))
             
             # Find current state number
-            if entity.history:
+            if uod.history:
                 current_num = 1
                 if metadata.current_state_id:
-                    for i, state_id in enumerate(entity.history.state_sequence):
+                    for i, state_id in enumerate(uod.history.state_sequence):
                         if state_id == metadata.current_state_id:
                             current_num = i + 1
                             break
@@ -269,14 +269,18 @@ class MetadataPanel(QWidget):
             self.citation_label.setText("(none)")
         
         # Complexity Metrics
-        self._update_complexity_metrics(entity.current_egi)
+        self._update_complexity_metrics(uod.current_egi)
     
-    def _format_entity_type(self, entity: GraphEntity) -> str:
-        """Format entity type with icon and text."""
-        if entity.is_historical:
-            return "📜 Historical (Transformation Sequence)"
+    def _format_uod_type(self, uod: UniverseOfDiscourse) -> str:
+        """Format UoD type with icon and text."""
+        if uod.is_static:
+            return "📚 Static (Literature Import)"
+        elif uod.is_dynamic and uod.is_historical:
+            return "🔬 Dynamic (Active Reasoning with History)"
+        elif uod.is_dynamic:
+            return "🔬 Dynamic (Active Reasoning)"
         else:
-            return "📄 Standalone (Single State)"
+            return "📄 Standalone"
     
     def _format_timestamp(self, dt: datetime) -> str:
         """Format timestamp for display."""
@@ -354,9 +358,9 @@ class MetadataPanel(QWidget):
     
     def clear(self):
         """Clear all metadata displays."""
-        self._current_entity = None
+        self._current_uod = None
         
-        self.name_label.setText("(no entity loaded)")
+        self.name_label.setText("(no UoD loaded)")
         self.description_label.setText("")
         self.type_label.setText("")
         self.category_label.setText("")

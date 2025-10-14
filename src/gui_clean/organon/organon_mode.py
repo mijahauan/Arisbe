@@ -60,7 +60,12 @@ class OrganonMode(QWidget):
         
         self.controller = diagram_controller
         self._current_file: Optional[Path] = None
-        self._current_entity: Optional['GraphEntity'] = None  # Track loaded entity
+        self._current_uod: Optional['UniverseOfDiscourse'] = None  # Track loaded UoD
+        
+        # Initialize CorpusService
+        from corpus_service import CorpusService
+        corpus_root = Path(__file__).parent.parent.parent.parent / "corpus"
+        self.corpus = CorpusService(corpus_root)
         
         self._setup_ui()
     
@@ -71,12 +76,10 @@ class OrganonMode(QWidget):
         # Left: Corpus browser sidebar
         from organon.corpus_browser import CorpusBrowserWidget
         
-        # Use corpus directory if it exists
-        corpus_path = Path(__file__).parent.parent.parent.parent / "corpus" / "graphs"
-        if not corpus_path.exists():
-            corpus_path.mkdir(parents=True, exist_ok=True)
+        # Use corpus root directory
+        corpus_root = Path(__file__).parent.parent.parent.parent / "corpus"
         
-        self.corpus_browser = CorpusBrowserWidget(corpus_path)
+        self.corpus_browser = CorpusBrowserWidget(corpus_root)
         self.corpus_browser.entity_selected.connect(self._on_load_from_corpus)
         self.corpus_browser.setMaximumWidth(300)
         layout.addWidget(self.corpus_browser)
@@ -152,24 +155,35 @@ class OrganonMode(QWidget):
         main_area.addLayout(content)
         layout.addLayout(main_area)
     
-    def _on_load_from_corpus(self, entity_name: str):
-        """Load entity from corpus."""
+    def _on_load_from_corpus(self, uod_id: str):
+        """Load UoD from corpus."""
         try:
-            from entity_storage import EntityStorageManager
+            # Load UoD
+            uod = self.corpus.load_uod(uod_id, load_history=True)
             
-            # Get corpus path (same as browser)
-            corpus_path = Path(__file__).parent.parent.parent.parent / "corpus" / "graphs"
-            storage = EntityStorageManager(corpus_path)
-            
-            # Load entity
-            entity = storage.load_entity(entity_name)
+            if uod is None:
+                raise Exception(f"UoD not found: {uod_id}")
             
             # Load into controller
-            print(f"Loading EGI into controller: {len(entity.current_egi.V)}V, {len(entity.current_egi.E)}E")
-            success = self.controller.load_egi(entity.current_egi)
+            print(f"Loading EGI into controller: {len(uod.current_egi.V)}V, {len(uod.current_egi.E)}E")
+            success = self.controller.load_egi(uod.current_egi)
             
             if not success:
                 raise Exception("Controller failed to load EGI")
+            
+            # Restore layout deltas if present
+            if uod.current_layout_deltas:
+                print(f"=== Restoring layout deltas from UoD (Organon) ===")
+                from definitive_egi_layout_engine import LayoutDelta
+                for element_id, delta_data in uod.current_layout_deltas.items():
+                    if isinstance(delta_data, dict) and 'type' in delta_data and 'position' in delta_data:
+                        delta = LayoutDelta(
+                            element_id=element_id,
+                            delta_type=delta_data['type'],
+                            new_position=tuple(delta_data['position'])
+                        )
+                        self.controller.layout_deltas[element_id] = delta
+                self.controller._trigger_fast_update()
             
             # Get renderable DTO
             dto = self.controller.get_renderable_dto()
@@ -179,21 +193,21 @@ class OrganonMode(QWidget):
                 raise Exception("Controller returned None for DTO")
             
             # Display
-            self.canvas.display_dto(dto, entity.current_egi)
+            self.canvas.display_dto(dto, uod.current_egi)
             
             # Display EGIF
-            egif = entity.get_current_egif()
+            egif = uod.get_current_egif()
             self.egif_text.setPlainText(egif)
             
             # Update metadata panel
-            self.metadata_panel.update_metadata(entity)
+            self.metadata_panel.update_metadata(uod)
             
             # Update history timeline
-            self.history_timeline.update_history(entity)
+            self.history_timeline.update_history(uod)
             
             # Update state
             self._current_file = None  # Loaded from corpus, not file
-            self._current_entity = entity  # Store entity for history navigation
+            self._current_uod = uod  # Store UoD for history navigation
             self.save_btn.setEnabled(True)
             self.export_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
@@ -201,14 +215,15 @@ class OrganonMode(QWidget):
             # Show success
             parent = self.window()
             if hasattr(parent, 'statusBar'):
-                status = "Historical" if entity.is_historical else "Standalone"
-                parent.statusBar().showMessage(f"Loaded {status}: {entity.name}", 3000)
+                status = "Historical" if uod.is_historical else "Standalone"
+                type_label = "Static" if uod.is_static else "Dynamic"
+                parent.statusBar().showMessage(f"Loaded {type_label} {status}: {uod.name}", 3000)
         
         except Exception as e:
             QMessageBox.critical(
                 self,
-                "Error Loading Entity",
-                f"Failed to load entity from corpus:\n\n{str(e)}"
+                "Error Loading UoD",
+                f"Failed to load UoD from corpus:\n\n{str(e)}"
             )
     
     def _on_load_egi(self):
@@ -272,13 +287,13 @@ class OrganonMode(QWidget):
             except Exception as e:
                 self.egif_text.setPlainText(f"[EGIF generation failed: {e}]")
             
-            # Clear metadata panel and timeline (file load has no entity metadata)
+            # Clear metadata panel and timeline (file load has no UoD metadata)
             self.metadata_panel.clear()
             self.history_timeline.hide()
             
             # Update state
             self._current_file = Path(file_path)
-            self._current_entity = None  # No entity for file loads
+            self._current_uod = None  # No UoD for file loads
             self.save_btn.setEnabled(True)
             self.export_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
@@ -424,15 +439,28 @@ class OrganonMode(QWidget):
         Args:
             state_id: The state ID to navigate to
         """
-        if not self._current_entity or not self._current_entity.is_historical:
+        if not self._current_uod or not self._current_uod.is_historical:
             return
         
         try:
             # Get state snapshot
-            state = self._current_entity.get_state(state_id)
+            state = self._current_uod.get_state(state_id)
             
             # Load state's EGI into controller
             self.controller.load_egi(state.egi)
+            
+            # Restore layout deltas from this state if present
+            if state.diagram_metadata and 'layout_deltas' in state.diagram_metadata:
+                from definitive_egi_layout_engine import LayoutDelta
+                for element_id, delta_data in state.diagram_metadata['layout_deltas'].items():
+                    if isinstance(delta_data, dict) and 'type' in delta_data and 'position' in delta_data:
+                        delta = LayoutDelta(
+                            element_id=element_id,
+                            delta_type=delta_data['type'],
+                            new_position=tuple(delta_data['position'])
+                        )
+                        self.controller.layout_deltas[element_id] = delta
+                self.controller._trigger_fast_update()
             
             # Get renderable DTO
             dto = self.controller.get_renderable_dto()
@@ -448,8 +476,8 @@ class OrganonMode(QWidget):
             
             # Update history timeline to highlight new current state
             # (This will re-render with the selected state as current)
-            self._current_entity.history.current_state_id = state_id
-            self.history_timeline.update_history(self._current_entity)
+            self._current_uod.history.current_state_id = state_id
+            self.history_timeline.update_history(self._current_uod)
             
             # Show state info
             parent = self.window()
