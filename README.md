@@ -4,6 +4,20 @@
 
 A mathematically rigorous implementation of Charles S. Peirce's Existential Graphs based on Frithjof Dau's formal framework. Arisbe provides a complete ecosystem for creating, validating, transforming, and visualizing logical reasoning through interactive diagrams.
 
+---
+
+## 🌟 **Project Vision** (Read First)
+
+**What**: Complete implementation of Dau's formalism for Peirce's Existential Graphs  
+**Who**: Researchers, logicians, and students working with diagrammatic reasoning  
+**Why**: First modern, rigorous implementation of a historically significant visual logic system
+
+👉 **Full vision**: [PRODUCT_VISION.md](PRODUCT_VISION.md) - Our guiding star  
+👉 **AI assistance**: [AI_CONDUCT_GUIDELINES.md](AI_CONDUCT_GUIDELINES.md) - Professional standards  
+👉 **Current plan**: [CURRENT_PLAN.md](CURRENT_PLAN.md) - What we're working on now
+
+---
+
 ## 🔒 **COHERENCE FRAMEWORK ACTIVE**
 
 **Arisbe includes a comprehensive coherence framework with:**

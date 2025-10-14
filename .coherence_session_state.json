@@ -1,0 +1,138 @@
+{
+  "last_updated": "2025-10-13T22:25:00",
+  "framework_version": "1.0.0",
+  
+  "_comment_product_vision": "=== GUIDING STAR ===",
+  "product_vision": {
+    "document": "PRODUCT_VISION.md",
+    "what": "Complete implementation of Dau's formalism for Peirce's Existential Graphs",
+    "who": "Researchers, logicians, students working with diagrammatic reasoning",
+    "why": "First modern, rigorous implementation of historically significant visual logic system",
+    "reminder": "READ PRODUCT_VISION.md FIRST when context is lost"
+  },
+  
+  "_comment_current_plan": "=== ACTIVE WORK ===",
+  "current_plan": {
+    "document": "CURRENT_PLAN.md",
+    "phase": "Coherence Framework Implementation",
+    "objective": "Establish meta-framework for context persistence and code quality",
+    "status": "Phase 0 Complete (Foundation Docs), Phase 1 In Progress",
+    "last_reviewed": "2025-10-13"
+  },
+  
+  "_comment_recent_work": "=== LATEST ACCOMPLISHMENTS ===",
+  "recent_accomplishments": [
+    "2025-10-13: Created PRODUCT_VISION.md - Guiding star document",
+    "2025-10-13: Created AI_CONDUCT_GUIDELINES.md - Professional standards",
+    "2025-10-13: Implemented diachronic delta workflow with area validation",
+    "2025-10-13: Layout deltas persist through save/load cycles",
+    "2025-10-13: Area containment validation prevents logical violations"
+  ],
+  
+  "_comment_active_tasks": "=== CURRENT TASK LIST ===",
+  "active_tasks": {
+    "high_priority": [
+      "Complete coherence framework Phase 1 (session state automation)",
+      "Create CURRENT_PLAN.md with task tracking",
+      "Create WHAT_WORKS_NOW.md component index"
+    ],
+    "medium_priority": [
+      "Test diachronic workflow on full corpus (51 graphs)",
+      "Implement session state auto-update on commits"
+    ],
+    "low_priority": []
+  },
+  
+  "_comment_removed_tasks": "=== NO LONGER NEEDED ===",
+  "tasks_removed": [
+    "Manual position override system (replaced by diachronic deltas)",
+    "Separate layout delta storage format (integrated in JSON)",
+    "Legacy layout engine cleanup (superseded by unified_d3_engine)"
+  ],
+  
+  "_comment_components": "=== CODEBASE STATUS ===",
+  "active_components": {
+    "production_tier1": {
+      "description": "Use these - production quality",
+      "modules": [
+        "src/unified_d3_engine.py - Recursive bottom-up layout generation",
+        "src/diagram_controller.py - EGI manipulation with diachronic state",
+        "src/egi_core_dau.py - Immutable EGI data model (PROTECTED)",
+        "src/egi_io.py - JSON serialization with layout deltas (PROTECTED)"
+      ]
+    },
+    "stable_tier2": {
+      "description": "Safe to use - stable implementations",
+      "modules": [
+        "src/gui_clean/organon/ - Corpus browsing and visualization",
+        "src/gui_clean/ergasterion/ - Interactive editing mode",
+        "src/formal_transformation_rules.py - DC±, INS/ERA, IT± (PROTECTED)",
+        "src/qt_diagram_renderer.py - Dau-compliant SVG rendering"
+      ]
+    },
+    "experimental_tier3": {
+      "description": "Under development - use with caution",
+      "modules": []
+    },
+    "not_integrated": {
+      "description": "Important but not used in Arisbe",
+      "modules": [
+        "coherence_framework/ - Standalone PyPI package for any project (NOT integrated in Arisbe yet)"
+      ]
+    },
+    "deprecated_tier4": {
+      "description": "Do not use - superseded",
+      "modules": [
+        "src/definitive_egi_layout_engine.py - Superseded by unified_d3_engine"
+      ]
+    }
+  },
+  
+  "_comment_testing": "=== TEST STATUS ===",
+  "test_status": {
+    "core_tests": "90/90 passing (100%)",
+    "gui_tests": "3/3 passing (Organon mode)",
+    "coverage": "Not measured - needs coverage.py integration",
+    "last_test_run": "2025-10-13"
+  },
+  
+  "_comment_reminders": "=== CRITICAL CONTEXT ===",
+  "critical_reminders": [
+    "ALWAYS read PRODUCT_VISION.md when starting a session",
+    "ALWAYS follow AI_CONDUCT_GUIDELINES.md - no hyperbole",
+    "EGI model is IMMUTABLE - use .with_* methods, never mutate",
+    "Diachronic state model: State = (EGI, LayoutDeltas)",
+    "90/90 core tests MUST stay passing - mathematical foundation",
+    "Dau's formalism is NON-NEGOTIABLE - no shortcuts",
+    "16 core modules are PROTECTED - explicit authorization to modify",
+    "coherence_framework/ is SEPARATE package - not used in Arisbe"
+  ],
+  
+  "_comment_next_review": "=== MAINTENANCE ===",
+  "next_plan_review": "2025-10-20",
+  "next_architecture_review": "2025-11-01",
+  "next_test_validation": "2025-10-15",
+  
+  "_comment_known_issues": "=== BUGS AND LIMITATIONS ===",
+  "known_issues": {
+    "bugs": [],
+    "limitations": [
+      "Layout not always optimal for complex graphs (functional but suboptimal)",
+      "No coverage measurement integrated yet",
+      "Corpus validation incomplete (14/51 graphs tested)"
+    ],
+    "technical_debt": [
+      "50+ documentation files in root - needs organization",
+      "Multiple test_debug_*.py files - archaeological cleanup needed",
+      "API documentation covers only 16/171 modules (9%)"
+    ]
+  },
+  
+  "_comment_session_metadata": "=== SYSTEM INFO ===",
+  "session_metadata": {
+    "python_version": "3.12.10",
+    "environment": "conda CGIF",
+    "git_branch": "main",
+    "last_commit": "9c2e81e - Update AGENTS.md with diachronic delta workflow documentation"
+  }
+}
