@@ -1,49 +1,149 @@
-# Arisbe: Existential Graphs, Dau-compliant
+# Arisbe: Universes of Discourse
+**Peirce's "Moving Pictures of Thought" Made Real**
 
-**A pragmatic application that brings to life Peirce's vision of "moving pictures of the intellect"**
-
-A mathematically rigorous implementation of Charles S. Peirce's Existential Graphs based on Frithjof Dau's formal framework. Arisbe provides a complete ecosystem for creating, validating, transforming, and visualizing logical reasoning through interactive diagrams.
+A formal reasoning environment implementing Charles S. Peirce's Existential Graphs through Frithjof Dau's rigorous framework. Arisbe elevates logical diagrams from static notation to **living processes of inquiry** - complete universes of discourse where justification, transformation, and meaning unfold through dialogue and formal rules.
 
 ---
 
-## 🌟 **Project Vision** (Read First)
+## 🎯 **Philosophical Foundation** (Read First)
+
+### The Paradigm Shift
+
+**Traditional View**: An Existential Graph (EG) is a **static diagram** to be edited and analyzed.
+
+**Arisbe's View**: The fundamental entity is the **Universe of Discourse (UoD)** - the complete **diachronic process** of logical reasoning. A single EG diagram is merely a **synchronic snapshot** within this larger evolution.
+
+**Analogy**:
+- **EGI** = A photograph (one frame)
+- **Universe of Discourse** = The entire film (coherent sequence)
+
+👉 **Complete philosophy**: [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)
+
+### What is a Universe of Discourse?
+
+A **UoD** is the complete logical environment consisting of:
+
+1. **The Transformation History** (the recorded log)
+   - Sequence of valid rule applications
+   - Complete provenance tracking
+   - Branching and exploration paths
+
+2. **The Synchronic States** (the frames)
+   - `(EGI_Model, LayoutDeltas)` at each point in time
+   - Complete logical structure + visual presentation
+
+3. **The In-forming Events** (what drives evolution)
+   - **Assertions**: Introducing new facts
+   - **Abductions**: Proposing explanatory hypotheses
+   - **Deductions**: Applying formal transformation rules
+   - **User edits**: Visual presentation refinements
+
+**Result**: Arisbe is not a diagram editor, but a **logical reasoning environment** where inquiry, justification, and transformation are first-class citizens.
+
+---
+
+## 🏛️ **Three-Module Architecture**
+
+Arisbe mirrors the process of scientific inquiry through three integrated modules:
+
+### Organon 🏛️ (The Archive)
+**Greek**: ὄργανον - "tool" or "instrument"
+
+The **library and archives** for universes of discourse.
+
+**Capabilities**:
+- Navigate transformation history (timeline, undo/redo)
+- Explore any historical state
+- Import literature examples
+- Export proofs, diagrams, sequences
+- Search and browse corpus
+
+**Metaphor**: The published proceedings and library - read, cite, export
+
+### Ergasterion 🔬 (The Workshop)
+**Greek**: ἐργαστήριον - "workshop"
+
+The **private sandbox** for creation and practice.
+
+**Capabilities**:
+- Draft new graphs from scratch
+- Practice transformation rules safely
+- Experiment without affecting main UoD
+- Promote completed work to Agon for validation
+
+**Metaphor**: Researcher's private lab - run experiments, refine ideas
+
+### Agon ⚔️ (The Arena)
+**Greek**: ἀγών - "contest" or "struggle"
+
+The **core reasoning engine** and referee.
+
+**Capabilities**:
+- Validate logical changes through **Endoporeutic Game**
+- Record transformations in UoD history
+- Advance the diachronic process
+- Enforce Dau formalism compliance
+
+**Metaphor**: Conference room - formal presentation, justification, official record
+
+**The Endoporeutic Game**: New facts aren't passively accepted - they must be **defended** in a dialogical contest:
+- **Graphist** (user): Asserts graph, must defend
+- **Grapheus** (system): Challenges assertion, tries to falsify
+- Reading **outside-in** (endoporeutic method)
+- Victory → assertion accepted into UoD
+
+---
+
+## 🌟 **Project Status**
 
 **What**: Complete implementation of Dau's formalism for Peirce's Existential Graphs  
 **Who**: Researchers, logicians, and students working with diagrammatic reasoning  
-**Why**: First modern, rigorous implementation of a historically significant visual logic system
+**Why**: First modern, rigorous implementation of EG as a **process-oriented logic system**
 
-👉 **Full vision**: [PRODUCT_VISION.md](PRODUCT_VISION.md) - Our guiding star  
-👉 **AI assistance**: [AI_CONDUCT_GUIDELINES.md](AI_CONDUCT_GUIDELINES.md) - Professional standards  
-👉 **Current plan**: [CURRENT_PLAN.md](CURRENT_PLAN.md) - What we're working on now
+👉 **Full vision**: [PRODUCT_VISION.md](PRODUCT_VISION.md)  
+👉 **Current plan**: [CURRENT_PLAN.md](CURRENT_PLAN.md)  
+👉 **AI assistance**: [AI_CONDUCT_GUIDELINES.md](AI_CONDUCT_GUIDELINES.md)
 
 ---
 
 ## 🔒 **COHERENCE FRAMEWORK ACTIVE**
 
-**Arisbe includes a comprehensive coherence framework with:**
-- **📚 Complete API Documentation** - No more guessing at function signatures! See `ARISBE_CORE_API_REFERENCE.md`
-- **🛡️ Core Protection** - 16 validated modules protected from unauthorized changes
-- **🧪 87 Validated Tests** - Mathematical foundation thoroughly tested and verified
-- **📊 Quality Monitoring** - Daily dashboard and automated quality gates
+**Arisbe includes a comprehensive coherence framework:**
+- **📚 Complete API Documentation** - `ARISBE_CORE_API_REFERENCE.md`
+- **🛡️ Core Protection** - 16 validated modules, 90 passing tests
+- **📊 Quality Monitoring** - Automated quality gates and daily dashboard
+- **🧠 Context Recovery** - `COHERENCE_FRAMEWORK_REMINDER.md`
 
-**→ New to the codebase? Read `COHERENCE_FRAMEWORK_REMINDER.md` first!**
+**→ New to the codebase? Read `AGENTS.md` for complete development guidelines!**
 
-Updated: 2025-09-20
+Updated: 2025-10-14
 
-## Overview
+---
 
-**Arisbe Existential Graphs are living logical systems** - complete universes of discourse that extend beyond simple diagrams or linear expressions. An EG encompasses synchronic forms (current structures, rules, sequences), diachronic history (complete transformation provenance), and interactive components (Endoporeutic Game dialog, fact introduction, pattern discovery).
+## 📐 **Technical Foundation**
 
-**Two Implementation Levels:**
-- **Exemplar Graphs (Organon)**: Restricted examples from textbooks/articles for scholarly reference
-- **Comprehensive Systems (Agon)**: Complete justified ways of reasoning about worlds through dynamic transformation
+**Data Model**:
+- **UoD**: Universe of Discourse (the fundamental entity)
+- **EGI**: Existential Graph Instance (synchronic snapshot)
+- **State**: `(EGI_Model, LayoutDeltas)` pair (structure + presentation)
+- **History**: Complete transformation log with provenance
 
-**Technical Foundation:**
-- EGI is the canonical source of truth for the mathematical structure
-- EGIF/CGIF/CLIF are linear forms that round-trip to/from EGI
-- EGDF is the canonical drawn-form spec for rendering/persistence
-- GUI interactions are meaning-preserving (presentation deltas) unless explicitly invoking EGI operations
-- Ligatures are single continuous lines; same-area ligatures avoid collisions; cross-area ligatures can cross cuts; rendering order: Cuts → Predicates → Vertices → Ligatures
+**Linear Forms**:
+- **EGIF**: Dau's existential graph interchange format
+- **CGIF**: Conceptual graph interchange format  
+- **CLIF**: Common logic interchange format
+- All round-trip to/from EGI
+
+**Visual System**:
+- Cuts (negation boundaries)
+- Predicates (relations)
+- Vertices (individuals, constants, variables)
+- Ligatures (identity lines connecting vertices)
+
+**Rules**:
+- Same-area ligatures **avoid** cut collisions
+- Cross-area ligatures **can cross** cut boundaries
+- Rendering: Cuts → Predicates → Vertices → Ligatures
 
 ## Architecture
 

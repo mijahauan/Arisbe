@@ -121,6 +121,43 @@ context = TransformationContext(source_egi=egi, target_area="sheet", ...)
 result = rule.apply_transformation(context)
 ```
 
+### Corpus Management (⚠️ INTERIM - CONSOLIDATION PENDING)
+**Current Status**: Multiple overlapping systems (see `DATA_PERSISTENCE_MODEL_SUMMARY.md`)  
+**Quick Reference**: `CORPUS_API_QUICK_REFERENCE.md`
+
+**For Organon (Read-Only)**:
+```python
+from corpus_index import load_index, graph_paths
+from egi_io import load_egi_json
+
+# Browse corpus
+index = load_index()
+graph_id = index['entries'][0]['id']
+
+# Load EGI
+gdir = Path(f"corpus/graphs/{graph_id}")
+paths = graph_paths(gdir)
+egi = load_egi_json(paths['egi'])
+```
+
+**For Ergasterion/Agon (With History)**:
+```python
+from graph_entity import GraphEntity, EntityMetadata, EntityType, EntityCategory
+
+# Create entity with history support
+entity = GraphEntity(metadata=metadata, current_egi=egi)
+entity.promote_to_historical("Initial state")
+
+# Access history
+entity.history.add_transformation(...)
+```
+
+**⚠️ IMPORTANT**: 
+- **Current corpus**: Uses `corpus_index.py` (15 graphs, directory-per-graph)
+- **Recommended model**: `GraphEntity` (unified diachronic-synchronic)
+- **Future**: `CorpusService` consolidation (1 week estimated)
+- **See documentation**: `DATA_PERSISTENCE_MODEL_SUMMARY.md` for complete analysis
+
 ## 🔄 Living Documentation Workflow
 - **Before development**: `python tools/context_awareness_system.py --check "task"`
 - **Check existing solutions**: `grep -i "function_name" ARISBE_CORE_API_REFERENCE.md`
