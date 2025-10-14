@@ -121,42 +121,43 @@ context = TransformationContext(source_egi=egi, target_area="sheet", ...)
 result = rule.apply_transformation(context)
 ```
 
-### Corpus Management (⚠️ INTERIM - CONSOLIDATION PENDING)
-**Current Status**: Multiple overlapping systems (see `DATA_PERSISTENCE_MODEL_SUMMARY.md`)  
-**Quick Reference**: `CORPUS_API_QUICK_REFERENCE.md`
+### Corpus Management (✅ PRODUCTION - IMPLEMENTED 2025-10-14)
+**Current Status**: Unified CorpusService API (fully tested and integrated)  
+**Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`
 
-**For Organon (Read-Only)**:
+**For Organon (Browse & Load UoDs)**:
 ```python
-from corpus_index import load_index, graph_paths
-from egi_io import load_egi_json
+from corpus_service import CorpusService
 
-# Browse corpus
-index = load_index()
-graph_id = index['entries'][0]['id']
+# Initialize
+corpus = CorpusService(Path("corpus"))
 
-# Load EGI
-gdir = Path(f"corpus/graphs/{graph_id}")
-paths = graph_paths(gdir)
-egi = load_egi_json(paths['egi'])
+# Browse UoDs (fast, index-based)
+uods = corpus.list_uods(is_static=True)  # Literature
+uods = corpus.list_uods(is_dynamic=True) # Active reasoning
+
+# Load UoD with history
+uod = corpus.load_uod(uod_id, load_history=True)
 ```
 
 **For Ergasterion/Agon (With History)**:
 ```python
-from graph_entity import GraphEntity, EntityMetadata, EntityType, EntityCategory
+from universe_of_discourse import UniverseOfDiscourse, UoDMetadata, UoDType, UoDCategory
 
-# Create entity with history support
-entity = GraphEntity(metadata=metadata, current_egi=egi)
-entity.promote_to_historical("Initial state")
+# Create UoD with history support
+uod = UniverseOfDiscourse(metadata=metadata, current_egi=egi)
+uod.promote_to_historical("Initial state")
 
 # Access history
-entity.history.add_transformation(...)
+uod.history.add_transformation(...)
 ```
 
-**⚠️ IMPORTANT**: 
-- **Current corpus**: Uses `corpus_index.py` (15 graphs, directory-per-graph)
-- **Recommended model**: `GraphEntity` (unified diachronic-synchronic)
-- **Future**: `CorpusService` consolidation (1 week estimated)
-- **See documentation**: `DATA_PERSISTENCE_MODEL_SUMMARY.md` for complete analysis
+**✅ IMPLEMENTED (2025-10-14)**: 
+- **Universe of Discourse**: Fundamental entity is now the UoD (diachronic process), not static EGI
+- **CorpusService**: Unified API for corpus management (implemented and tested)
+- **Organon Integration**: Fully integrated with UoD model
+- **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (zero breaking changes)
+- **See documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md` for complete philosophy
 
 ## 🔄 Living Documentation Workflow
 - **Before development**: `python tools/context_awareness_system.py --check "task"`
@@ -345,11 +346,13 @@ egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
 - **Launch**: `python src/gui_clean/main_application.py`
 - **Architecture**: Clean implementation, zero legacy dependencies
 
-### Unified Entity Model
-- **GraphEntity**: Synchronic (current state) + Diachronic (transformation history)
-- **EntityStorage**: Hybrid snapshots + deltas, JSONL streaming, LRU caching
-- **Categories**: Peirce, Scholars, Canonical, EPG, Theorem Proving, Domain Modeling, User Created
-- **Scalability**: Designed for 1000+ states, currently handles 15 corpus graphs
+### Universe of Discourse Model (✅ PRODUCTION 2025-10-14)
+- **UniverseOfDiscourse**: Synchronic (current state) + Diachronic (transformation history) + LayoutDeltas
+- **CorpusService**: Unified API with index-based browsing, lazy loading, efficient storage
+- **Categories**: Static (Literature, Canonical) vs Dynamic (Inquiry, Theorem Proof, EPG Session, Practice)
+- **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (all old code works unchanged)
+- **Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`
+- **Scalability**: Designed for 1000+ states, fast index-based corpus browsing
 
 ### Organon Mode (✅ Functional)
 - **Purpose**: Exploration and corpus management (read-only)
