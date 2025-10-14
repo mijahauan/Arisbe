@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-10-14T17:10:09",
+  "last_updated": "2025-10-14T18:03:18",
   "framework_version": "1.0.0",
   "_comment_product_vision": "=== GUIDING STAR ===",
   "product_vision": {
@@ -19,11 +19,11 @@
   },
   "_comment_recent_work": "=== LATEST ACCOMPLISHMENTS ===",
   "recent_accomplishments": [
+    "2025-10-14: Fix Ergasterion drag-and-drop: preserve manual element positioning",
     "2025-10-14: Rebuild corpus index to remove duplicates",
     "2025-10-14: Fix containment validation to prevent movement into child cuts",
     "2025-10-14: Fix remaining LITERATURE category reference in old format loader",
-    "2025-10-14: Migrate corpus to UoD format and create migration tool",
-    "2025-10-14: Fix CorpusService backward compatibility with old corpus format"
+    "2025-10-14: Migrate corpus to UoD format and create migration tool"
   ],
   "_comment_active_tasks": "=== CURRENT TASK LIST ===",
   "active_tasks": {
@@ -122,6 +122,6 @@
     "python_version": "3.12.10",
     "environment": "conda CGIF",
     "git_branch": "main",
-    "last_commit": "d7fbc06"
+    "last_commit": "7b90e3d"
   }
 }

@@ -54,13 +54,14 @@ class DiagramCanvas(QWidget):
         self._current_dto: Optional[LayoutDTO] = None
         self._current_egi: Optional[RelationalGraphWithCuts] = None
     
-    def display_dto(self, dto: LayoutDTO, egi: Optional[RelationalGraphWithCuts] = None):
+    def display_dto(self, dto: LayoutDTO, egi: Optional[RelationalGraphWithCuts] = None, fit_to_view: bool = False):
         """
         Display a LayoutDTO as SVG.
         
         Args:
             dto: The layout to display
             egi: Optional EGI for EGIF generation in title
+            fit_to_view: Ignored for SVG rendering (SVG auto-scales). Kept for API consistency with QtDiagramCanvas.
         """
         if dto is None:
             print("ERROR: display_dto received None for dto")
