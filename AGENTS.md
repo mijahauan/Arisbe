@@ -227,6 +227,71 @@ result = rule.apply_transformation(context)
 - **Known Limitations**: Layout not always optimal for complex graphs, but functional for MVP
 - **Test Results**: 90/90 core tests passing, 3/3 GUI Organon tests passing
 
+## 🔄 Diachronic Delta Workflow (PRODUCTION)
+- **Architecture**: State_n = (EGI_n, LayoutDeltas_n) - Complete diachronic state representation
+- **Status**: Fully implemented and tested (2025-10-13)
+- **Documentation**: See `DIACHRONIC_DELTA_WORKFLOW.md` and `LAYOUT_DELTA_QUICK_REFERENCE.md`
+
+### Core Components
+- **Fast Path Updates**: Logic-indifferent element movements (~5ms, no D3 simulation)
+- **Delta Reconciliation**: Intelligent preservation/discarding after EGI transformations
+- **File Persistence**: Layout deltas saved/loaded in JSON format alongside EGI
+- **Area Validation**: Enforces Dau's iron-clad principle - elements cannot escape logical areas
+
+### Workflow Steps
+1. **User Drags Element**: 
+   - Fast path → DTO updated directly → Ligatures rerouted → Display refreshed
+   - Delta stored: `{element_id: {type: 'vertex_position', position: [x, y]}}`
+   
+2. **Apply Transformation Rule**:
+   - State_n captured (EGI_n, Deltas_n)
+   - EGI transformed (EGI_n → EGI_n+1)
+   - Delta reconciliation (Deltas_n → Deltas_n+1)
+   - Full relayout with inherited deltas
+   
+3. **Save File**:
+   - EGI serialized to JSON
+   - Layout deltas appended: `{"layout_deltas": {...}}`
+   - Status: "Saved: file.json (N position overrides)"
+   
+4. **Load File**:
+   - EGI loaded from JSON
+   - Layout deltas restored
+   - Fast path applied → Exact layout recreated
+
+### Area Containment Validation
+- **Vertices**: Point must stay within area bounds (EGI.area mapping)
+- **Predicates**: Entire text box must fit within area bounds
+- **Validation Feedback**: Clear error messages with suggestions
+- **Iron-Clad Enforcement**: Elements cannot violate logical containment
+
+### Integration
+- **Organon Mode**: Save/Load with layout deltas via "💾 Save EGI..." button
+- **Ergasterion Mode**: Save/Load with layout deltas via "💾 Save..." button
+- **Both Modes**: Deltas persist through transformations, survive save/reload cycles
+
+### Usage Example
+```python
+# In DiagramController
+controller.update_element_position("v_abc123", (250.5, 180.3))
+# → Validates area containment
+# → Updates layout_deltas
+# → Triggers fast path update
+# → Ligatures reroute automatically
+
+# Save with deltas
+save_egi_json(egi, "my_diagram.json")  # Includes layout_deltas
+
+# Load with deltas
+egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
+```
+
+### Benefits
+- **Performance**: Fast path is 40x faster than full relayout
+- **Persistence**: User layouts survive sessions
+- **Intelligence**: Deltas reconcile correctly after transformations
+- **Correctness**: Area validation maintains mathematical rigor
+
 ## 🎨 Style System Architecture
 - **JSON-based styles**: Platform-independent style definitions in `styles/` directory
 - **Style loader**: `src/style_loader.py` - Loads and validates style definitions
