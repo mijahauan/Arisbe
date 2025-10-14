@@ -23,7 +23,7 @@ from definitive_egi_layout_engine import (
     LayoutDelta,
 )
 # Using unified D3 engine (single simulation - definitive architecture)
-from unified_d3_engine import UnifiedD3Engine, LayoutDTO
+from unified_d3_engine import UnifiedD3Engine, LayoutDTO, Point, LigaturePath
 
 # Style system
 from style_loader import StyleLoader, StyleSpecification
@@ -32,6 +32,7 @@ from style_loader import StyleLoader, StyleSpecification
 from formal_transformation_rules import (
     FormalTransformationRule,
     TransformationContext,
+    TransformationResult,
     AreaPolarity,
     DoubleCutInsertionRule,
     DoubleCutErasureRule,
@@ -48,6 +49,23 @@ class ValidationResult:
     is_valid: bool
     error_message: Optional[str] = None
     suggested_fix: Optional[str] = None
+
+
+@dataclass
+class DiagramState:
+    """
+    A single state in the diachronic sequence of a Universe of Discourse.
+    
+    Each state is a pair: (EGI_n, LayoutDeltas_n)
+    - EGI_n: The logical structure at this point in the transformation sequence
+    - LayoutDeltas_n: User aesthetic constraints applied to this state
+    
+    The deltas from state n become the starting point for state n+1 after reconciliation.
+    """
+    state_index: int
+    egi: RelationalGraphWithCuts
+    deltas: Dict[str, LayoutDelta]
+    description: str = ""  # e.g., "Applied DC+ transformation"
 
 
 class DiagramController:
@@ -70,6 +88,9 @@ class DiagramController:
 
         # EGI model state
         self.egi_model: Optional[RelationalGraphWithCuts] = None
+        
+        # Diachronic sequence tracking (optional - for advanced workflows)
+        self.transformation_history: Optional[Any] = None  # EGITransformationHistory when enabled
 
         # Formal transformation rules
         self._transformation_rules: Dict[str, FormalTransformationRule] = {
@@ -82,6 +103,38 @@ class DiagramController:
         }
 
     # === PUBLIC API: STATE & VIEW MANAGEMENT ===
+
+    def enable_transformation_history(self, initial_description: str = "Initial state"):
+        """
+        Enable transformation history tracking with layout deltas.
+        
+        This enables the diachronic workflow where each state is tracked as
+        (EGI_n, LayoutDeltas_n) with delta reconciliation across transformations.
+        """
+        from egi_transformation_history import EGITransformationHistory
+        
+        if not self.egi_model:
+            print("Cannot enable history: No EGI model loaded")
+            return False
+        
+        self.transformation_history = EGITransformationHistory(
+            initial_egi=self.egi_model,
+            description=initial_description
+        )
+        
+        # Store initial layout deltas in the first state
+        initial_state = self.transformation_history.get_current_state()
+        if hasattr(initial_state, 'diagram_metadata'):
+            initial_state.diagram_metadata['layout_deltas'] = {
+                elem_id: {
+                    'type': delta.delta_type,
+                    'position': list(delta.new_position)
+                }
+                for elem_id, delta in self.layout_deltas.items()
+            }
+        
+        print(f"✓ Transformation history enabled (State_0 with {len(self.layout_deltas)} deltas)")
+        return True
 
     def load_egi(self, egi: RelationalGraphWithCuts, style: Optional[StyleSpecification] = None) -> bool:
         """
@@ -197,16 +250,32 @@ class DiagramController:
             print(f"Transformation failed: {result.error_message}")
             return False
 
-        # Update model and trigger re-layout
+        # === DIACHRONIC DELTA WORKFLOW ===
+        # State_n = (EGI_n, Deltas_n) → State_n+1 = (EGI_n+1, Deltas_n+1)
+        
+        # Step 1: Capture current state before transformation
+        old_egi = self.egi_model
+        old_deltas = dict(self.layout_deltas)  # Copy current deltas
+        
+        # Step 2: Apply logical transformation (EGI_n → EGI_n+1)
         self.egi_model = result.result_egi
 
-        # Preserve user constraints that are still valid after transformation
+        # Step 3: Delta reconciliation (Deltas_n → Deltas_n+1)
+        # Discard deltas for deleted elements, preserve deltas for surviving elements
         self._preserve_valid_constraints()
+        
+        # Step 4: Record transformation in history (if enabled)
+        if self.transformation_history:
+            self._record_transformation_with_deltas(
+                rule_name, context, result, old_deltas, self.layout_deltas
+            )
 
-        # Trigger full re-layout with preserved constraints
+        # Step 5: Trigger layout with reconciled deltas
+        # The layout engine will use the inherited deltas as starting constraints
         self._trigger_full_relayout()
 
         print(f"Successfully applied {rule_name} transformation")
+        print(f"  Deltas: {len(old_deltas)} → {len(self.layout_deltas)} (reconciled)")
         return True
 
     # === PUBLIC API: AESTHETIC ADJUSTMENT COMMANDS ===
@@ -312,13 +381,184 @@ class DiagramController:
             raise
 
     def _trigger_fast_update(self):
-        """Trigger fast update for aesthetic changes only."""
+        """
+        Fast path: Update DTO directly without re-layout.
+        Only updates positions and recalculates affected ligatures.
+        """
         if not self.current_dto:
+            print("WARNING: _trigger_fast_update called but current_dto is None")
             return
-
-        # For now, we'll do a full re-layout for simplicity
-        # In a more optimized implementation, we could selectively update only affected elements
-        self._trigger_full_relayout()
+        
+        if not self.egi_model:
+            print("WARNING: _trigger_fast_update called but egi_model is None")
+            return
+        
+        if not self.layout_deltas:
+            print("INFO: _trigger_fast_update called but no layout_deltas to apply")
+            return
+        
+        print(f"=== FAST PATH: Applying {len(self.layout_deltas)} layout deltas ===")
+        
+        # Update positions in DTO from layout_deltas
+        for element_id, delta in self.layout_deltas.items():
+            if delta.delta_type == 'vertex_position' and element_id in self.current_dto.vertex_positions:
+                old_pos = self.current_dto.vertex_positions[element_id]
+                new_pos = Point(x=delta.new_position[0], y=delta.new_position[1])
+                self.current_dto.vertex_positions[element_id] = new_pos
+                print(f"  Updated vertex {element_id}: {old_pos} -> {new_pos}")
+                
+                # Recalculate ligatures connected to this vertex
+                self._recalculate_ligatures_for_vertex(element_id)
+                
+            elif delta.delta_type == 'edge_position' and element_id in self.current_dto.predicate_positions:
+                old_pos = self.current_dto.predicate_positions[element_id]
+                new_pos = Point(x=delta.new_position[0], y=delta.new_position[1])
+                self.current_dto.predicate_positions[element_id] = new_pos
+                print(f"  Updated predicate {element_id}: {old_pos} -> {new_pos}")
+                
+                # Recalculate ligatures connected to this predicate
+                self._recalculate_ligatures_for_predicate(element_id)
+        
+        print("=== Fast update complete ===")
+    
+    def _recalculate_ligatures_for_vertex(self, vertex_id: str):
+        """Recalculate all ligatures connected to a vertex."""
+        vertex_pos = self.current_dto.vertex_positions.get(vertex_id)
+        if not vertex_pos:
+            return
+        
+        # Update ligature paths that connect to this vertex
+        updated_paths = []
+        for lig_path in self.current_dto.ligature_paths:
+            if lig_path.vertex_id == vertex_id:
+                # Recalculate: from predicate BOUNDARY to vertex center
+                pred_pos = self.current_dto.predicate_positions.get(lig_path.predicate_id)
+                if pred_pos:
+                    # Calculate attachment point at predicate boundary
+                    # Predicate text box dimensions from style
+                    pred_label = self._get_predicate_label(lig_path.predicate_id)
+                    char_width = self.current_style.predicate_char_width
+                    pred_height = self.current_style.predicate_height
+                    pred_width = len(pred_label) * char_width
+                    
+                    # Add small padding for visual breathing room (2px)
+                    hook_padding = 2.0
+                    
+                    # Calculate boundary point on predicate box closest to vertex
+                    boundary_point = self._calculate_boundary_point(
+                        pred_pos, pred_width + hook_padding, pred_height + hook_padding, vertex_pos
+                    )
+                    
+                    updated_path = LigaturePath(
+                        predicate_id=lig_path.predicate_id,
+                        vertex_id=vertex_id,
+                        points=(boundary_point, vertex_pos)
+                    )
+                    updated_paths.append(updated_path)
+                    print(f"    Rerouted ligature {lig_path.predicate_id} -> {vertex_id}")
+            else:
+                updated_paths.append(lig_path)
+        
+        self.current_dto.ligature_paths = updated_paths
+    
+    def _recalculate_ligatures_for_predicate(self, predicate_id: str):
+        """Recalculate all ligatures connected to a predicate."""
+        pred_pos = self.current_dto.predicate_positions.get(predicate_id)
+        if not pred_pos:
+            return
+        
+        # Get predicate dimensions
+        pred_label = self._get_predicate_label(predicate_id)
+        char_width = self.current_style.predicate_char_width
+        pred_height = self.current_style.predicate_height
+        pred_width = len(pred_label) * char_width
+        
+        # Add small padding for visual breathing room (2px)
+        hook_padding = 2.0
+        
+        # Update ligature paths that connect from this predicate
+        updated_paths = []
+        for lig_path in self.current_dto.ligature_paths:
+            if lig_path.predicate_id == predicate_id:
+                # Recalculate: from predicate BOUNDARY to vertex center
+                vertex_pos = self.current_dto.vertex_positions.get(lig_path.vertex_id)
+                if vertex_pos:
+                    # Calculate attachment point at predicate boundary
+                    boundary_point = self._calculate_boundary_point(
+                        pred_pos, pred_width + hook_padding, pred_height + hook_padding, vertex_pos
+                    )
+                    
+                    updated_path = LigaturePath(
+                        predicate_id=predicate_id,
+                        vertex_id=lig_path.vertex_id,
+                        points=(boundary_point, vertex_pos)
+                    )
+                    updated_paths.append(updated_path)
+                    print(f"    Rerouted ligature {predicate_id} -> {lig_path.vertex_id}")
+            else:
+                updated_paths.append(lig_path)
+        
+        self.current_dto.ligature_paths = updated_paths
+    
+    def _get_predicate_label(self, predicate_id: str) -> str:
+        """Get the label text for a predicate."""
+        if not self.egi_model:
+            return "?"
+        return self.egi_model.get_relation_name(predicate_id)
+    
+    def _calculate_boundary_point(
+        self, 
+        box_center: Point, 
+        box_width: float, 
+        box_height: float, 
+        target_point: Point
+    ) -> Point:
+        """
+        Calculate the point on a box's boundary closest to a target point.
+        Box is centered at box_center with given width and height.
+        """
+        # Calculate box boundaries
+        left = box_center.x - box_width / 2
+        right = box_center.x + box_width / 2
+        top = box_center.y - box_height / 2
+        bottom = box_center.y + box_height / 2
+        
+        # Direction from box center to target
+        dx = target_point.x - box_center.x
+        dy = target_point.y - box_center.y
+        
+        # Find intersection with box boundary
+        # Calculate which edge the ray hits first
+        if dx == 0 and dy == 0:
+            # Target is at box center, use right edge
+            return Point(x=right, y=box_center.y)
+        
+        # Calculate intersection with each edge
+        t_left = (left - box_center.x) / dx if dx != 0 else float('inf')
+        t_right = (right - box_center.x) / dx if dx != 0 else float('inf')
+        t_top = (top - box_center.y) / dy if dy != 0 else float('inf')
+        t_bottom = (bottom - box_center.y) / dy if dy != 0 else float('inf')
+        
+        # Find the closest positive intersection
+        t = float('inf')
+        if t_right > 0 and t_right < t:
+            t = t_right
+        if t_left > 0 and t_left < t:
+            t = t_left
+        if t_bottom > 0 and t_bottom < t:
+            t = t_bottom
+        if t_top > 0 and t_top < t:
+            t = t_top
+        
+        if t == float('inf'):
+            # Fallback to box center
+            return box_center
+        
+        # Calculate intersection point
+        return Point(
+            x=box_center.x + t * dx,
+            y=box_center.y + t * dy
+        )
 
     def _preserve_valid_constraints(self):
         """Preserve user constraints that are still valid after transformation."""
@@ -358,6 +598,67 @@ class DiagramController:
         if not self.egi_model:
             return False
         return any(v.id == element_id for v in self.egi_model.V)
+    
+    def _record_transformation_with_deltas(
+        self, 
+        rule_name: str,
+        context: TransformationContext,
+        result: TransformationResult,
+        old_deltas: Dict[str, LayoutDelta],
+        new_deltas: Dict[str, LayoutDelta]
+    ):
+        """
+        Record transformation in history with layout delta information.
+        
+        This implements the diachronic workflow where each state includes both
+        the logical structure (EGI) and aesthetic constraints (layout deltas).
+        
+        The history records:
+        - State_n: (EGI_n, Deltas_n) - before transformation
+        - State_n+1: (EGI_n+1, Deltas_n+1) - after transformation + reconciliation
+        """
+        if not self.transformation_history:
+            return
+        
+        # Serialize layout deltas for storage
+        deltas_metadata = {
+            'before_deltas': {
+                elem_id: {
+                    'type': delta.delta_type,
+                    'position': list(delta.new_position)
+                }
+                for elem_id, delta in old_deltas.items()
+            },
+            'after_deltas': {
+                elem_id: {
+                    'type': delta.delta_type,
+                    'position': list(delta.new_position)
+                }
+                for elem_id, delta in new_deltas.items()
+            },
+            'deltas_preserved': len(new_deltas),
+            'deltas_discarded': len(old_deltas) - len(new_deltas),
+            'affected_elements': list(result.changes_made.get('affected_elements', []))
+        }
+        
+        # Add transformation to history
+        # The EGITransformationHistory will store this in StateSnapshot.diagram_metadata
+        self.transformation_history.add_transformation(
+            rule_name=rule_name,
+            context=context,
+            result=result,
+            user_annotation=f"Applied {rule_name} with {len(new_deltas)} layout constraints",
+            logical_justification=None  # Could be added for proof tracking
+        )
+        
+        # Update the current state's diagram metadata with layout deltas
+        current_state = self.transformation_history.get_current_state()
+        if hasattr(current_state, 'diagram_metadata'):
+            current_state.diagram_metadata['layout_deltas'] = deltas_metadata['after_deltas']
+            current_state.diagram_metadata['delta_reconciliation'] = {
+                'preserved': deltas_metadata['deltas_preserved'],
+                'discarded': deltas_metadata['deltas_discarded']
+            }
 
     def _is_edge_element(self, element_id: str) -> bool:
         """Check if element is an edge."""
@@ -430,42 +731,20 @@ class DiagramController:
 
         # Find the element in current DTO
         if self._is_vertex_element(element_id):
-            element = next((v for v in self.current_dto.vertices if v.id == element_id), None)
-            if not element:
+            # Check if vertex exists in LayoutDTO
+            if element_id not in self.current_dto.vertex_positions:
                 return ValidationResult(False, f"Vertex {element_id} not found in current layout")
-
-            # Get the logical area containing this vertex
-            logical_area = self._find_logical_area_for_element(element_id)
-            if not logical_area:
-                return ValidationResult(False, f"Cannot determine logical area for vertex {element_id}")
-
-            # Check if new position is within the logical area's bounds (with some padding)
-            padding = 50  # pixels
-            if not self._point_in_rect_with_padding(new_position, logical_area.rect, padding):
-                return ValidationResult(
-                    False,
-                    f"Position ({new_position[0]}, {new_position[1]}) is outside logical area bounds",
-                    "Try moving the element closer to its original logical area"
-                )
+            
+            # Validate area containment
+            return self._validate_area_containment(element_id, new_position, 'vertex')
 
         elif self._is_edge_element(element_id):
-            element = next((e for e in self.current_dto.edge_labels if e.id == element_id), None)
-            if not element:
+            # Check if predicate exists in LayoutDTO
+            if element_id not in self.current_dto.predicate_positions:
                 return ValidationResult(False, f"Edge {element_id} not found in current layout")
-
-            # Get the logical area containing this edge
-            logical_area = self._find_logical_area_for_element(element_id)
-            if not logical_area:
-                return ValidationResult(False, f"Cannot determine logical area for edge {element_id}")
-
-            # Check if new position is within the logical area's bounds (with some padding)
-            padding = 30  # pixels
-            if not self._point_in_rect_with_padding(new_position, logical_area.rect, padding):
-                return ValidationResult(
-                    False,
-                    f"Position ({new_position[0]}, {new_position[1]}) is outside logical area bounds",
-                    "Try moving the edge closer to its original logical area"
-                )
+            
+            # Validate area containment
+            return self._validate_area_containment(element_id, new_position, 'predicate')
 
         else:
             return ValidationResult(False, f"Element {element_id} is not a movable element")
@@ -520,6 +799,71 @@ class DiagramController:
                 "Ensure the path stays within appropriate logical areas"
             )
 
+        return ValidationResult(True)
+    
+    def _validate_area_containment(self, element_id: str, new_position: Tuple[float, float], 
+                                   element_type: str) -> ValidationResult:
+        """
+        Validate that element stays within its logical area (EGI.area mapping).
+        
+        This enforces Dau's iron-clad principle: elements cannot escape their assigned areas.
+        """
+        if not self.egi_model or not self.current_dto:
+            return ValidationResult(True)  # Can't validate without EGI
+        
+        # Find which area this element belongs to in the EGI
+        element_area_id = None
+        for area_id, elements in self.egi_model.area.items():
+            if element_id in elements:
+                element_area_id = area_id
+                break
+        
+        if not element_area_id:
+            # Element not in any area (shouldn't happen, but allow it)
+            return ValidationResult(True)
+        
+        # Get the bounding box for this area from the DTO
+        if element_area_id not in self.current_dto.cut_bounds:
+            # Area has no bounds yet (maybe sheet) - allow movement
+            return ValidationResult(True)
+        
+        area_bounds = self.current_dto.cut_bounds[element_area_id]
+        
+        # Check if new position is within area bounds
+        x, y = new_position
+        
+        # For vertices: point must be inside
+        if element_type == 'vertex':
+            if not (area_bounds.min_x <= x <= area_bounds.max_x and
+                    area_bounds.min_y <= y <= area_bounds.max_y):
+                return ValidationResult(
+                    False,
+                    f"Vertex cannot be moved outside its logical area",
+                    f"Keep vertex within the bounds of its containing cut"
+                )
+        
+        # For predicates: center must be inside (with small tolerance for text width)
+        elif element_type == 'predicate':
+            # Get predicate dimensions from style
+            pred_label = self._get_predicate_label(element_id)
+            char_width = self.current_style.predicate_char_width if self.current_style else 6.2
+            pred_width = len(pred_label) * char_width
+            pred_height = self.current_style.predicate_height if self.current_style else 14.0
+            
+            # Check if predicate box fits within area
+            pred_min_x = x - pred_width / 2
+            pred_max_x = x + pred_width / 2
+            pred_min_y = y - pred_height / 2
+            pred_max_y = y + pred_height / 2
+            
+            if not (area_bounds.min_x <= pred_min_x and pred_max_x <= area_bounds.max_x and
+                    area_bounds.min_y <= pred_min_y and pred_max_y <= area_bounds.max_y):
+                return ValidationResult(
+                    False,
+                    f"Predicate cannot be moved outside its logical area",
+                    f"Keep predicate fully within the bounds of its containing cut"
+                )
+        
         return ValidationResult(True)
 
     def _find_logical_area_for_element(self, element_id: str) -> Optional[Any]:

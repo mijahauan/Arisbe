@@ -35,8 +35,8 @@ from egi_core_dau import RelationalGraphWithCuts
 from egi_io import load_egi_json
 from egif_generator_dau import generate_egif
 
-# Import interactive canvas
-from gui_clean.common.interactive_diagram_canvas import InteractiveDiagramCanvas
+# Import Qt-based interactive canvas
+from gui_clean.common.qt_diagram_canvas import QtDiagramCanvas
 
 
 class ErgasterionMode(QWidget):
@@ -72,8 +72,8 @@ class ErgasterionMode(QWidget):
         # Main content: Canvas + Right panels
         content = QHBoxLayout()
         
-        # Left: Interactive diagram canvas
-        self.canvas = InteractiveDiagramCanvas()
+        # Left: Interactive diagram canvas (Qt-based)
+        self.canvas = QtDiagramCanvas()
         content.addWidget(self.canvas, stretch=3)
         
         # Right: Control panels
@@ -285,11 +285,44 @@ class ErgasterionMode(QWidget):
             return
         
         try:
-            # Load EGI
-            egi = load_egi_json(file_path)
+            import json
+            from egi_io import from_dict
+            from definitive_egi_layout_engine import LayoutDelta
+            
+            # Load JSON
+            file_content = Path(file_path).read_text(encoding="utf-8")
+            data = json.loads(file_content)
+            
+            # Extract EGI
+            egi = from_dict(data)
             
             # Load into controller
             self.controller.load_egi(egi)
+            
+            # Restore layout deltas if present
+            if 'layout_deltas' in data:
+                print(f"=== Restoring layout deltas from file ===")
+                deltas_dict = data['layout_deltas']
+                print(f"  Found {len(deltas_dict)} deltas in file")
+                
+                for element_id, delta_data in deltas_dict.items():
+                    delta = LayoutDelta(
+                        element_id=element_id,
+                        delta_type=delta_data['type'],
+                        new_position=tuple(delta_data['position'])
+                    )
+                    self.controller.layout_deltas[element_id] = delta
+                    print(f"  Restored delta: {element_id} -> {delta.new_position}")
+                
+                print(f"=== Deltas restored, triggering fast update ===")
+                # Trigger fast update to apply deltas
+                self.controller._trigger_fast_update()
+                
+                delta_count = len(deltas_dict)
+                status_msg = f"Loaded: {Path(file_path).name} ({delta_count} position overrides)"
+            else:
+                print("=== No layout_deltas found in file ===")
+                status_msg = f"Loaded: {Path(file_path).name}"
             
             # Display
             self._refresh_display()
@@ -298,7 +331,7 @@ class ErgasterionMode(QWidget):
             self.save_btn.setEnabled(True)
             self.return_btn.setEnabled(True)
             
-            self._show_status(f"Loaded: {Path(file_path).name}")
+            self._show_status(status_msg)
             
         except Exception as e:
             QMessageBox.critical(
@@ -308,8 +341,8 @@ class ErgasterionMode(QWidget):
             )
     
     def _on_save_egi(self):
-        """Save current EGI to file."""
-        egi = self.controller.get_egi_model()
+        """Save current EGI to file with layout deltas."""
+        egi = self.controller.egi_model
         if not egi:
             return
         
@@ -326,11 +359,41 @@ class ErgasterionMode(QWidget):
             return
         
         try:
-            from egi_io import save_egi_json
-            save_egi_json(egi, file_path)
+            import json
+            from egi_io import to_dict
+            
+            # Build payload with EGI and layout deltas
+            payload = to_dict(egi)
+            
+            print(f"=== Saving EGI with layout deltas ===")
+            print(f"  Current layout_deltas: {len(self.controller.layout_deltas)}")
+            
+            # Add layout deltas (user position overrides)
+            if self.controller.layout_deltas:
+                deltas_dict = {}
+                for element_id, delta in self.controller.layout_deltas.items():
+                    deltas_dict[element_id] = {
+                        'type': delta.delta_type,
+                        'position': list(delta.new_position)
+                    }
+                    print(f"  Saving delta: {element_id} -> {delta.new_position}")
+                payload['layout_deltas'] = deltas_dict
+                print(f"  Total deltas saved: {len(deltas_dict)}")
+            else:
+                print("  No layout deltas to save")
+            
+            # Save to file
+            Path(file_path).write_text(
+                json.dumps(payload, indent=2, sort_keys=True),
+                encoding="utf-8"
+            )
             
             self._current_file = Path(file_path)
-            self._show_status(f"Saved: {Path(file_path).name}")
+            delta_count = len(self.controller.layout_deltas)
+            status_msg = f"Saved: {Path(file_path).name}"
+            if delta_count > 0:
+                status_msg += f" ({delta_count} position overrides)"
+            self._show_status(status_msg)
             
         except Exception as e:
             QMessageBox.critical(
@@ -358,6 +421,7 @@ class ErgasterionMode(QWidget):
     
     def _on_element_selected(self, element_id: str):
         """Handle single element selection."""
+        print(f"✓ Handler received element_selected: {element_id}")
         self.selection_list.clear()
         self.selection_list.addItem(element_id)
         self._update_transformation_buttons()
@@ -382,19 +446,25 @@ class ErgasterionMode(QWidget):
         self.canvas.clear_selection()
     
     def _on_element_moved(self, element_id: str, new_pos: Tuple[float, float]):
-        """Handle element drag completed."""
-        # Update position through controller (with validation)
+        """Handle element drag completed - FAST PATH."""
+        # Update position through controller (with validation and DTO update)
         success = self.controller.update_element_position(element_id, new_pos)
         
         if success:
-            # Refresh display
-            self._refresh_display()
+            # FAST PATH: Controller already updated DTO, just refresh display
+            # No relayout needed - this is a logic-indifferent aesthetic change
+            dto = self.controller.current_dto
+            egi = self.controller.egi_model
+            if dto and egi:
+                self.canvas.display_dto(dto, egi)
             self._show_status(f"Moved {element_id} to ({new_pos[0]:.1f}, {new_pos[1]:.1f})")
         else:
-            # Position rejected - show error
+            # Position rejected - revert by redisplaying current DTO
             self._show_status(f"Invalid position for {element_id}", error=True)
-            # Revert display
-            self._refresh_display()
+            dto = self.controller.current_dto
+            egi = self.controller.egi_model
+            if dto and egi:
+                self.canvas.display_dto(dto, egi)
     
     def _on_apply_rule(self, rule_name: str):
         """Apply a transformation rule."""
@@ -441,10 +511,13 @@ class ErgasterionMode(QWidget):
     
     def _refresh_display(self):
         """Refresh the diagram display."""
+        print("=== _refresh_display called ===")
         dto = self.controller.get_renderable_dto()
         egi = self.controller.get_egi_model()
         
+        print(f"=== dto={dto is not None}, egi={egi is not None} ===")
         if dto and egi:
+            print("=== Calling canvas.display_dto ===")
             self.canvas.display_dto(dto, egi)
             
             # Update EGIF
@@ -467,7 +540,9 @@ class ErgasterionMode(QWidget):
         Args:
             egi: The EGI to load
         """
+        print(f"=== Ergasterion.load_egi_for_editing called with {len(egi.V)}V, {len(egi.E)}E ===")
         self.controller.load_egi(egi)
+        print("=== Calling _refresh_display ===")
         self._refresh_display()
         self._current_file = None
         self.save_btn.setEnabled(True)

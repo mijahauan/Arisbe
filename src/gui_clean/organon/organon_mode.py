@@ -92,7 +92,13 @@ class OrganonMode(QWidget):
         self.load_btn.setToolTip("Load EGI from any file")
         action_bar.addWidget(self.load_btn)
         
-        self.export_btn = QPushButton("💾 Export SVG...")
+        self.save_btn = QPushButton("💾 Save EGI...")
+        self.save_btn.clicked.connect(self._on_save_egi)
+        self.save_btn.setEnabled(False)
+        self.save_btn.setToolTip("Save EGI with layout customizations")
+        action_bar.addWidget(self.save_btn)
+        
+        self.export_btn = QPushButton("📤 Export SVG...")
         self.export_btn.clicked.connect(self._on_export_svg)
         self.export_btn.setEnabled(False)
         action_bar.addWidget(self.export_btn)
@@ -188,6 +194,7 @@ class OrganonMode(QWidget):
             # Update state
             self._current_file = None  # Loaded from corpus, not file
             self._current_entity = entity  # Store entity for history navigation
+            self.save_btn.setEnabled(True)
             self.export_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
             
@@ -218,11 +225,39 @@ class OrganonMode(QWidget):
             return
         
         try:
+            import json
+            from definitive_egi_layout_engine import LayoutDelta
+            
+            # Load JSON file
+            file_content = Path(file_path).read_text(encoding="utf-8")
+            data = json.loads(file_content)
+            
             # Load EGI (handles both standalone and entity formats)
             egi = load_egi_json(file_path)
             
             # Load into controller
             self.controller.load_egi(egi)
+            
+            # Restore layout deltas if present
+            if 'layout_deltas' in data:
+                print(f"=== Restoring layout deltas from file (Organon) ===")
+                deltas_dict = data['layout_deltas']
+                print(f"  Found {len(deltas_dict)} deltas in file")
+                
+                for element_id, delta_data in deltas_dict.items():
+                    delta = LayoutDelta(
+                        element_id=element_id,
+                        delta_type=delta_data['type'],
+                        new_position=tuple(delta_data['position'])
+                    )
+                    self.controller.layout_deltas[element_id] = delta
+                    print(f"  Restored delta: {element_id} -> {delta.new_position}")
+                
+                print(f"=== Deltas restored, triggering fast update ===")
+                # Trigger fast update to apply deltas
+                self.controller._trigger_fast_update()
+            else:
+                print("=== No layout_deltas found in file (Organon) ===")
             
             # Get renderable DTO
             dto = self.controller.get_renderable_dto()
@@ -244,20 +279,90 @@ class OrganonMode(QWidget):
             # Update state
             self._current_file = Path(file_path)
             self._current_entity = None  # No entity for file loads
+            self.save_btn.setEnabled(True)
             self.export_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
             
             # Show success (shorter message)
             file_name = Path(file_path).name
+            status_msg = f"Loaded: {file_name}"
+            if 'layout_deltas' in data and data['layout_deltas']:
+                delta_count = len(data['layout_deltas'])
+                status_msg += f" ({delta_count} position overrides)"
             parent = self.window()
             if hasattr(parent, 'statusBar'):
-                parent.statusBar().showMessage(f"Loaded: {file_name}", 3000)
+                parent.statusBar().showMessage(status_msg, 3000)
             
         except Exception as e:
             QMessageBox.critical(
                 self,
                 "Error Loading EGI",
                 f"Failed to load EGI file:\n\n{str(e)}"
+            )
+    
+    def _on_save_egi(self):
+        """Save current EGI with layout deltas."""
+        egi = self.controller.egi_model
+        if not egi:
+            return
+        
+        # Get save location
+        default_path = str(self._current_file) if self._current_file else str(Path.home() / "untitled.egi.json")
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save EGI",
+            default_path,
+            "EGI Files (*.json *.egi.json);;All Files (*)"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            import json
+            from egi_io import to_dict
+            
+            # Build payload with EGI and layout deltas
+            payload = to_dict(egi)
+            
+            print(f"=== Saving EGI with layout deltas (Organon) ===")
+            print(f"  Current layout_deltas: {len(self.controller.layout_deltas)}")
+            
+            # Add layout deltas (user position overrides)
+            if self.controller.layout_deltas:
+                deltas_dict = {}
+                for element_id, delta in self.controller.layout_deltas.items():
+                    deltas_dict[element_id] = {
+                        'type': delta.delta_type,
+                        'position': list(delta.new_position)
+                    }
+                    print(f"  Saving delta: {element_id} -> {delta.new_position}")
+                payload['layout_deltas'] = deltas_dict
+                print(f"  Total deltas saved: {len(deltas_dict)}")
+            else:
+                print("  No layout deltas to save")
+            
+            # Save to file
+            Path(file_path).write_text(
+                json.dumps(payload, indent=2, sort_keys=True),
+                encoding="utf-8"
+            )
+            
+            self._current_file = Path(file_path)
+            delta_count = len(self.controller.layout_deltas)
+            status_msg = f"Saved: {Path(file_path).name}"
+            if delta_count > 0:
+                status_msg += f" ({delta_count} position overrides)"
+            
+            parent = self.window()
+            if hasattr(parent, 'statusBar'):
+                parent.statusBar().showMessage(status_msg, 3000)
+            
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Error Saving EGI",
+                f"Failed to save EGI file:\n\n{str(e)}"
             )
     
     def _on_export_svg(self):
