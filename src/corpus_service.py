@@ -307,6 +307,80 @@ class CorpusService:
         """Check if UoD exists in corpus."""
         return self.get_uod_metadata(uod_id) is not None
     
+    def _load_uod_old_format(self, uod_id: str, uod_path: Path) -> Optional[UniverseOfDiscourse]:
+        """
+        Load UoD from old corpus format.
+        
+        Old format:
+        - {uod_id}.meta.json
+        - {uod_id}.egi.json
+        - {uod_id}.json (full entity data)
+        """
+        from datetime import datetime
+        
+        # Try to find meta file
+        meta_file = uod_path / f"{uod_id}.meta.json"
+        egi_file = uod_path / f"{uod_id}.egi.json"
+        
+        if not meta_file.exists() or not egi_file.exists():
+            return None
+        
+        # Load metadata
+        with open(meta_file, 'r', encoding='utf-8') as f:
+            old_meta = json.load(f)
+        
+        # Convert old metadata to new UoDMetadata
+        created = old_meta.get("created", "")
+        last_modified = old_meta.get("last_modified", "")
+        
+        # Parse dates
+        try:
+            created_dt = datetime.fromisoformat(created) if created else datetime.now()
+        except:
+            created_dt = datetime.now()
+        
+        try:
+            modified_dt = datetime.fromisoformat(last_modified) if last_modified else datetime.now()
+        except:
+            modified_dt = datetime.now()
+        
+        # Map old category to new category
+        old_category = old_meta.get("category", "literature")
+        category_map = {
+            "peirce": UoDCategory.LITERATURE,
+            "literature": UoDCategory.LITERATURE,
+            None: UoDCategory.LITERATURE,
+        }
+        category = category_map.get(old_category, UoDCategory.LITERATURE)
+        
+        metadata = UoDMetadata(
+            uod_id=uod_id,
+            uod_type=UoDType.STANDALONE,
+            name=old_meta.get("name", uod_id),
+            description=old_meta.get("description", ""),
+            category=category,
+            created=created_dt,
+            last_modified=modified_dt,
+            authors=old_meta.get("authors", []),
+            tags=set(old_meta.get("tags", [])),
+            source_citation=old_meta.get("source_citation"),
+            total_states=old_meta.get("total_states", 1),
+            total_transformations=old_meta.get("total_transformations", 0),
+        )
+        
+        # Load EGI
+        current_egi = load_egi_json(str(egi_file))
+        
+        # Create UoD (no history for old format)
+        uod = UniverseOfDiscourse(
+            metadata=metadata,
+            current_egi=current_egi,
+            current_layout_deltas=None,
+            history=None
+        )
+        
+        return uod
+    
     def load_uod(
         self,
         uod_id: str,
@@ -314,6 +388,8 @@ class CorpusService:
     ) -> Optional[UniverseOfDiscourse]:
         """
         Load UoD from corpus.
+        
+        Handles both old and new corpus formats.
         
         Args:
             uod_id: UoD identifier
@@ -330,12 +406,14 @@ class CorpusService:
         if not uod_path.exists():
             return None
         
+        # Check if this is old or new format
         files = self._get_uod_files(uod_path)
         
-        # Load metadata
+        # If new format files don't exist, try old format
         if not files["meta"].exists():
-            return None
+            return self._load_uod_old_format(uod_id, uod_path)
         
+        # Load from new format
         with open(files["meta"], 'r', encoding='utf-8') as f:
             meta_data = json.load(f)
             metadata = UoDMetadata.from_dict(meta_data)

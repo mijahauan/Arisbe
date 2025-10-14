@@ -1,0 +1,18 @@
+{
+  "uod_id": "ternary_relation_challenge",
+  "uod_type": "standalone",
+  "name": "ternary_relation_challenge",
+  "description": "Ternary Relation Challenge",
+  "category": "literature_example",
+  "created": "2025-08-31T07:15:29.103390",
+  "last_modified": "2025-08-31T07:15:29.104007",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null
+}

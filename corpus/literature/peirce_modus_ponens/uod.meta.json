@@ -1,0 +1,18 @@
+{
+  "uod_id": "peirce_modus_ponens",
+  "uod_type": "standalone",
+  "name": "peirce_modus_ponens",
+  "description": "Peirce Modus Ponens",
+  "category": "literature_example",
+  "created": "2025-08-31T07:15:29.029394",
+  "last_modified": "2025-08-31T07:15:29.029747",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null
+}

@@ -1,0 +1,18 @@
+{
+  "uod_id": "roberts_domain_modeling",
+  "uod_type": "standalone",
+  "name": "roberts_domain_modeling",
+  "description": "Roberts Domain Modeling",
+  "category": "literature_example",
+  "created": "2025-08-31T07:15:29.094072",
+  "last_modified": "2025-08-31T07:15:29.094676",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null
+}

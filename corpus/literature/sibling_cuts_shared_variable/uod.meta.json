@@ -1,0 +1,18 @@
+{
+  "uod_id": "sibling_cuts_shared_variable",
+  "uod_type": "standalone",
+  "name": "sibling_cuts_shared_variable",
+  "description": "Sibling Cuts Shared Variable",
+  "category": "literature_example",
+  "created": "2025-08-31T07:15:29.097252",
+  "last_modified": "2025-08-31T07:15:29.097882",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null
+}
