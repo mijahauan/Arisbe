@@ -123,7 +123,7 @@ result = rule.apply_transformation(context)
 
 ### Corpus Management (✅ PRODUCTION - IMPLEMENTED 2025-10-14)
 **Current Status**: Unified CorpusService API (fully tested and integrated)  
-**Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`
+**Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`, `DAG_HISTORY_ARCHITECTURE.md`
 
 **For Organon (Browse & Load UoDs)**:
 ```python
@@ -140,24 +140,34 @@ uods = corpus.list_uods(is_dynamic=True) # Active reasoning
 uod = corpus.load_uod(uod_id, load_history=True)
 ```
 
-**For Ergasterion/Agon (With History)**:
+**For Ergasterion/Agon (With DAG History)**:
 ```python
 from universe_of_discourse import UniverseOfDiscourse, UoDMetadata, UoDType, UoDCategory
+from egi_transformation_history import HistoryBranchType
 
 # Create UoD with history support
 uod = UniverseOfDiscourse(metadata=metadata, current_egi=egi)
 uod.promote_to_historical("Initial state")
 
-# Access history
-uod.history.add_transformation(...)
+# Add transformations (linear or branching)
+uod.history.add_transformation(rule_name, context, result)
+
+# Branch from any historical state
+branch_id = uod.history.create_branch_from_state(
+    source_state_id,
+    HistoryBranchType.EXPLORATION,
+    "Alternative approach"
+)
 ```
 
 **✅ IMPLEMENTED (2025-10-14)**: 
 - **Universe of Discourse**: Fundamental entity is now the UoD (diachronic process), not static EGI
+- **DAG-Based History**: Branching transformation history for realistic inquiry workflows
 - **CorpusService**: Unified API for corpus management (implemented and tested)
-- **Organon Integration**: Fully integrated with UoD model
+- **Organon Integration**: Basic viewing integrated (~40% complete, needs import/export)
+- **Ergasterion Integration**: Foundation integrated (untested, needs validation)
 - **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (zero breaking changes)
-- **See documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md` for complete philosophy
+- **See documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `DAG_HISTORY_ARCHITECTURE.md`
 
 ## 🔄 Living Documentation Workflow
 - **Before development**: `python tools/context_awareness_system.py --check "task"`
@@ -347,35 +357,121 @@ egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
 - **Architecture**: Clean implementation, zero legacy dependencies
 
 ### Universe of Discourse Model (✅ PRODUCTION 2025-10-14)
-- **UniverseOfDiscourse**: Synchronic (current state) + Diachronic (transformation history) + LayoutDeltas
+- **UniverseOfDiscourse**: Synchronic (current state) + Diachronic (DAG history) + LayoutDeltas
+- **DAG-Based History**: Branching transformation history (not linear sequences)
 - **CorpusService**: Unified API with index-based browsing, lazy loading, efficient storage
 - **Categories**: Static (Literature, Canonical) vs Dynamic (Inquiry, Theorem Proof, EPG Session, Practice)
 - **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (all old code works unchanged)
-- **Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`
-- **Scalability**: Designed for 1000+ states, fast index-based corpus browsing
+- **Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`, `DAG_HISTORY_ARCHITECTURE.md`
+- **Scalability**: Designed for 1000+ states, DAG supports branching exploration
 
-### Organon Mode (✅ Functional)
-- **Purpose**: Exploration and corpus management (read-only)
-- **Corpus Browser**: Category filtering, real-time search, metadata display
-- **Diagram Display**: SVG rendering via DiagramController
-- **EGIF Panel**: Linear form display
-- **Export**: SVG output
-- **Theme Support**: Light/Dark/System modes
-- **Corpus**: 15 graphs (3 Peirce, 6 Scholars, 6 User/Test)
-- **Test**: `python tools/test_gui_organon.py` (3/3 passing)
+### DAG-Based Transformation History (✅ PRODUCTION 2025-10-14)
+**Current Status**: Fully implemented and tested  
+**Documentation**: `DAG_HISTORY_ARCHITECTURE.md`
 
-### Ergasterion Mode (✅ Phase 1 Complete, 🔄 Phase 2 In Progress)
+**Key Features**:
+- Branch from any historical state (not just linear sequences)
+- Multiple transformation paths in single UoD
+- Branch point detection and tracking
+- Path finding (BFS for shortest, DFS for all paths)
+- DAG statistics and analysis
+- 100% backward compatible with linear history
+
+**API Patterns**:
+```python
+from egi_transformation_history import EGITransformationHistory, HistoryBranchType
+
+# Create history (backward compatible)
+history = EGITransformationHistory(initial_egi, "Initial state")
+
+# Add transformations (works linearly or with branching)
+history.add_transformation(rule_name, context, result)
+
+# Branch from any state
+branch_id = history.create_branch_from_state(
+    source_state_id,
+    HistoryBranchType.EXPLORATION,
+    "Try alternative approach"
+)
+
+# Query DAG structure
+paths = history.get_all_paths_from_root(target_state_id)
+children = history.get_child_states(state_id)
+is_branch = history.is_branch_point(state_id)
+stats = history.get_dag_statistics()
+
+# Find paths between states
+sequence = history.get_transformation_sequence(from_state, to_state)
+```
+
+**Use Cases**:
+- **Theorem Proving**: Explore multiple proof strategies
+- **Learning**: Try "what if?" without losing original work
+- **Collaboration**: Multiple researchers, shared UoD
+- **Real Inquiry**: Branching reflects actual reasoning
+
+**Performance**:
+- Add transformation: O(1)
+- Create branch: O(1)
+- Find shortest path: O(V + E)
+- Efficient for 10-1000 states
+
+**Testing**: `tools/test_history_dag.py` (5/5 tests passing)
+
+### Organon Mode (⚠️ ~40% Complete - 2025-10-14)
+- **Purpose**: Exploration and corpus management
+- **Status**: Basic viewing works, needs import/export and metadata editing
+- **Documentation**: `ORGANON_COMPLETE_SPECIFICATION.md` (full feature list)
+
+**✅ Implemented**:
+- Corpus browser with static/dynamic filtering
+- Load and display UoDs (EGI + metadata + history)
+- Metadata panel (read-only)
+- History timeline with time-travel navigation
+- SVG export only
+- Theme support (Light/Dark/System)
+
+**❌ Missing Critical Features**:
+- Import system (EGIF, CGIF, JSON) - 0% done
+- Export system (EGIF, CGIF, full JSON) - need all formats
+- Metadata editing - read-only only
+- State comparison across history - not implemented
+- Corpus search/filter - basic only
+- UoD operations (delete, duplicate, rename) - not implemented
+
+**Priority Next Steps**:
+1. EGIF import (for literature)
+2. Full export (EGIF, CGIF, JSON with metadata)
+3. Metadata edit dialog
+4. State comparison views
+
+### Ergasterion Mode (⚠️ Foundation Integrated, Untested - 2025-10-14)
 - **Purpose**: Interactive editing and transformation practice
-- **Phase 1 Complete** (2025-10-13):
-  - Interactive canvas with mouse interaction
-  - Element selection (single and multi-select with Ctrl)
-  - Drag-and-drop repositioning with validation
-  - Transformation toolbar (DC+/-, INS, ERA, IT+/-)
-  - File operations (New, Load, Save)
-  - Organon ↔ Ergasterion handoff
-- **Phase 2 Planned**: Visual selection indicators, hover feedback, undo/redo UI
-- **Phase 3 Planned**: Element palette, cut creation, practice mode tutorials
-- **Status**: `ERGASTERION_PHASE1_COMPLETE.md` for details
+- **Status**: UoD integration complete, needs testing and refinement
+
+**✅ Implemented**:
+- Interactive canvas with mouse interaction
+- Element selection (single and multi-select with Ctrl)
+- Drag-and-drop repositioning with validation
+- Transformation toolbar (DC+/-, INS, ERA, IT+/-)
+- File operations (New, Load, Save)
+- UoD integration (creates practice sessions)
+- Save to Corpus with promotion to historical
+- Organon → Ergasterion handoff with source UoD tracking
+
+**⚠️ Needs Testing**:
+- Transformation rule application
+- History tracking in practice sessions
+- Save/load workflow
+- Layout delta preservation
+- Error handling
+
+**🔄 Future Enhancements**:
+- Visual selection indicators, hover feedback
+- Undo/redo UI (CommandExecutor integration)
+- Element palette, cut creation
+- Practice mode tutorials
+- DAG branching UI ("Branch from here" button)
 
 ### Agon Mode (⏳ Phase 3)
 - **Purpose**: Formal reasoning and Endoporeutic Game
@@ -392,11 +488,12 @@ egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
 - **Mathematical correctness**: Comprehensive validation complete
 - **API stability**: Protected core ensures no breaking changes
 - **Quality assurance**: Automated monitoring and enforcement
-- **GUI Status**:
-  - ✅ **Organon**: Functional and production-ready (corpus browser, visualization, export)
-  - ✅ **Ergasterion Phase 1**: Interactive canvas complete (selection, drag-drop, transformations)
-  - 🔄 **Ergasterion Phase 2-3**: Visual feedback and element creation (planned)
+- **Core Architecture**: UoD model + DAG history + CorpusService (✅ Production)
+- **GUI Status** (2025-10-14):
+  - ⚠️ **Organon**: ~40% complete (viewing works, needs import/export/metadata editing)
+  - ⚠️ **Ergasterion**: Foundation integrated (needs testing and refinement)
   - ⏳ **Agon**: Future development
+- **Test Coverage**: 106/106 tests passing (90 core + 8 UoD + 8 CorpusService)
 
 ---
 
