@@ -809,6 +809,7 @@ class DiagramController:
         This enforces Dau's iron-clad principle: elements cannot escape their assigned areas.
         """
         if not self.egi_model or not self.current_dto:
+            print(f"  [VALIDATION] No EGI or DTO - allowing move")
             return ValidationResult(True)  # Can't validate without EGI
         
         # Find which area this element belongs to in the EGI
@@ -818,13 +819,18 @@ class DiagramController:
                 element_area_id = area_id
                 break
         
+        print(f"  [VALIDATION] Element {element_id} belongs to area: {element_area_id}")
+        
         if not element_area_id:
             # Element not in any area (shouldn't happen, but allow it)
+            print(f"  [VALIDATION] Element not in any area - allowing move")
             return ValidationResult(True)
         
         # Get the bounding box for this area from the DTO
         if element_area_id not in self.current_dto.cut_bounds:
             # Area has no bounds yet (maybe sheet) - allow movement
+            print(f"  [VALIDATION] Area {element_area_id} has no bounds in DTO - allowing move")
+            print(f"  [VALIDATION] Available cut_bounds: {list(self.current_dto.cut_bounds.keys())}")
             return ValidationResult(True)
         
         area_bounds = self.current_dto.cut_bounds[element_area_id]
@@ -832,10 +838,33 @@ class DiagramController:
         # Check if new position is within area bounds
         x, y = new_position
         
-        # For vertices: point must be inside
+        print(f"  [VALIDATION] Area bounds: ({area_bounds.min_x}, {area_bounds.min_y}) to ({area_bounds.max_x}, {area_bounds.max_y})")
+        print(f"  [VALIDATION] New position: ({x}, {y})")
+        
+        # CRITICAL: Check if new position enters any child cuts (where element doesn't belong)
+        # Find all child cuts of this area
+        child_cuts = self.egi_model.area.get(element_area_id, frozenset())
+        for child_id in child_cuts:
+            # Is this a cut?
+            if any(cut.id == child_id for cut in self.egi_model.Cut):
+                # Check if new position is inside this child cut
+                if child_id in self.current_dto.cut_bounds:
+                    child_bounds = self.current_dto.cut_bounds[child_id]
+                    if (child_bounds.min_x <= x <= child_bounds.max_x and
+                        child_bounds.min_y <= y <= child_bounds.max_y):
+                        print(f"  [VALIDATION] BLOCKED: Position is inside child cut {child_id}")
+                        return ValidationResult(
+                            False,
+                            f"Element cannot be moved into nested cut {child_id}",
+                            f"Element must stay in its assigned area, not enter child cuts"
+                        )
+        
+        # For vertices: point must be inside parent area
         if element_type == 'vertex':
-            if not (area_bounds.min_x <= x <= area_bounds.max_x and
-                    area_bounds.min_y <= y <= area_bounds.max_y):
+            within_bounds = (area_bounds.min_x <= x <= area_bounds.max_x and
+                           area_bounds.min_y <= y <= area_bounds.max_y)
+            print(f"  [VALIDATION] Vertex within bounds: {within_bounds}")
+            if not within_bounds:
                 return ValidationResult(
                     False,
                     f"Vertex cannot be moved outside its logical area",
