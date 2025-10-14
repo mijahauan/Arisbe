@@ -193,6 +193,17 @@ egi = load_egi_json("filename.json")
 save_egi_json(egi, "filename.json")
 ```
 
+**LaTeX/TikZ (Academic Publication Format)**:
+```python
+from export.tikz_exporter import generate_tikz
+
+# Export as standalone LaTeX document
+latex_content = generate_tikz(render_commands, standalone=True)
+
+# Export as TikZ picture only (for inclusion in documents)
+tikz_picture = generate_tikz(render_commands, standalone=False)
+```
+
 **Testing**: All formats tested with:
 - ✅ Corpus parsing (57+ EGIF, 40+ CGIF, 35+ CLIF examples)
 - ✅ Round-trip stability (parse → generate → parse)

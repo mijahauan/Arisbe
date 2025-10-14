@@ -69,11 +69,32 @@ class CorpusIndex:
     @staticmethod
     def from_dict(data: dict) -> 'CorpusIndex':
         """Deserialize from dictionary."""
+        # Handle both old and new index formats
+        corpus_name = data.get("corpus_name", data.get("name", "Arisbe Corpus"))
+        
+        # Handle old format (list of entries) vs new format
+        universes = data.get("universes", data.get("entries", []))
+        
+        # Handle missing last_updated
+        last_updated_str = data.get("last_updated")
+        if last_updated_str:
+            last_updated = datetime.fromisoformat(last_updated_str)
+        else:
+            last_updated = datetime.now()
+        
+        # Handle version string - default to LEGACY for unknown versions
+        version_str = data.get("version", "legacy")
+        try:
+            version = CorpusVersion(version_str)
+        except ValueError:
+            # Unknown version (like "0.1"), treat as legacy
+            version = CorpusVersion.LEGACY
+        
         return CorpusIndex(
-            corpus_name=data["corpus_name"],
-            version=CorpusVersion(data.get("version", "legacy")),
-            universes=data["universes"],
-            last_updated=datetime.fromisoformat(data["last_updated"]),
+            corpus_name=corpus_name,
+            version=version,
+            universes=universes,
+            last_updated=last_updated,
         )
 
 
@@ -204,6 +225,35 @@ class CorpusService:
     
     # ===== Core Operations =====
     
+    def _normalize_entry(self, entry: Dict) -> Dict:
+        """
+        Normalize old corpus format to new format.
+        
+        Old format: id, title, category, path
+        New format: uod_id, name, category, is_static, is_dynamic, path
+        """
+        # If already has uod_id, assume it's new format
+        if "uod_id" in entry:
+            return entry
+        
+        # Translate old format to new format
+        normalized = {
+            "uod_id": entry.get("id", entry.get("uod_id", "unknown")),
+            "name": entry.get("title", entry.get("name", "Untitled")),
+            "category": entry.get("category", "literature"),
+            "path": entry.get("path", ""),
+            # For old corpus, everything is static literature
+            "is_static": True,
+            "is_dynamic": False,
+            "uod_type": "standalone",
+            "created": entry.get("updated", entry.get("created", "")),
+            "last_modified": entry.get("updated", entry.get("last_modified", "")),
+            "authors": entry.get("authors", []),
+            "tags": entry.get("tags", []),
+        }
+        
+        return normalized
+    
     def list_uods(
         self,
         category: Optional[UoDCategory] = None,
@@ -221,7 +271,8 @@ class CorpusService:
         Returns:
             List of lightweight UoD metadata dicts
         """
-        results = self._index.universes
+        # Normalize all entries to new format
+        results = [self._normalize_entry(u) for u in self._index.universes]
         
         if category is not None:
             results = [u for u in results if u.get("category") == category.value]
@@ -245,8 +296,11 @@ class CorpusService:
             Metadata dict or None if not found
         """
         for entry in self._index.universes:
-            if entry.get("uod_id") == uod_id:
-                return entry
+            # Normalize entry first
+            normalized = self._normalize_entry(entry)
+            # Check both old "id" and new "uod_id"
+            if normalized.get("uod_id") == uod_id or entry.get("id") == uod_id:
+                return normalized
         return None
     
     def uod_exists(self, uod_id: str) -> bool:
