@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-10-14T15:07:32",
+  "last_updated": "2025-10-14T15:14:54",
   "framework_version": "1.0.0",
   "_comment_product_vision": "=== GUIDING STAR ===",
   "product_vision": {
@@ -19,11 +19,11 @@
   },
   "_comment_recent_work": "=== LATEST ACCOMPLISHMENTS ===",
   "recent_accomplishments": [
+    "2025-10-14: Migrate corpus to UoD format and create migration tool",
     "2025-10-14: Fix CorpusService backward compatibility with old corpus format",
     "2025-10-14: Add battle-tested import/export modules to coherence framework",
     "2025-10-14: Document complete format support: EGIF, CGIF, CLIF, FOPL, JSON, SVG",
-    "2025-10-14: Update coherence framework with DAG history and honest status assessment",
-    "2025-10-14: Implement DAG-based transformation history for branching UoD development"
+    "2025-10-14: Update coherence framework with DAG history and honest status assessment"
   ],
   "_comment_active_tasks": "=== CURRENT TASK LIST ===",
   "active_tasks": {
@@ -122,6 +122,6 @@
     "python_version": "3.12.10",
     "environment": "conda CGIF",
     "git_branch": "main",
-    "last_commit": "9765bf5"
+    "last_commit": "4e99b3d"
   }
 }

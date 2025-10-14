@@ -347,11 +347,11 @@ class CorpusService:
         # Map old category to new category
         old_category = old_meta.get("category", "literature")
         category_map = {
-            "peirce": UoDCategory.LITERATURE,
-            "literature": UoDCategory.LITERATURE,
-            None: UoDCategory.LITERATURE,
+            "peirce": UoDCategory.LITERATURE_EXAMPLE,
+            "literature": UoDCategory.LITERATURE_EXAMPLE,
+            None: UoDCategory.LITERATURE_EXAMPLE,
         }
-        category = category_map.get(old_category, UoDCategory.LITERATURE)
+        category = category_map.get(old_category, UoDCategory.LITERATURE_EXAMPLE)
         
         metadata = UoDMetadata(
             uod_id=uod_id,
