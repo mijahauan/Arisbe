@@ -211,7 +211,24 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/ternary_relation_challenge"
+    },
+    {
+      "uod_id": "practice_43480df3",
+      "name": "Practice: sowa_cat_on_mat",
+      "category": "practice_session",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2025-10-14T19:21:24.366286",
+      "last_modified": "2025-10-14T19:22:20.685485",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [
+        "Current User"
+      ],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/universes/practice_43480df3"
     }
   ],
-  "last_updated": "2025-10-14T15:43:41.018958"
+  "last_updated": "2025-10-14T19:22:20.686413"
 }

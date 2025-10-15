@@ -662,39 +662,41 @@ class ErgasterionMode(QWidget):
         
         Args:
             egi: The EGI to load
-            source_uod: Optional source UoD (creates derived practice session)
+            source_uod: Optional source UoD (if provided, edit it directly; otherwise create new practice session)
         """
         import uuid
         
         print(f"=== Ergasterion.load_egi_for_editing called with {len(egi.V)}V, {len(egi.E)}E ===")
         
-        # Create new practice session
+        # If source UoD provided, edit it directly
         if source_uod:
-            name = f"Practice: {source_uod.name}"
-            description = f"Practice session derived from {source_uod.uod_id}"
-            related_uods = [source_uod.uod_id]
+            print(f"=== Editing existing UoD: {source_uod.uod_id} ===")
+            self._current_uod = source_uod
+            # Update the EGI in case it changed
+            self._current_uod.current_egi = egi
         else:
+            # Create new practice session (no source provided)
+            print("=== Creating new practice session ===")
             name = f"Practice Session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
             description = "Practice session from Organon"
-            related_uods = []
-        
-        metadata = UoDMetadata(
-            uod_id=f"practice_{uuid.uuid4().hex[:8]}",
-            uod_type=UoDType.STANDALONE,
-            name=name,
-            description=description,
-            category=UoDCategory.PRACTICE_SESSION,
-            created=datetime.now(),
-            last_modified=datetime.now(),
-            authors=["Current User"],
-            related_uods=related_uods,
-        )
-        
-        self._current_uod = UniverseOfDiscourse(
-            metadata=metadata,
-            current_egi=egi,
-            history=None
-        )
+            
+            metadata = UoDMetadata(
+                uod_id=f"practice_{uuid.uuid4().hex[:8]}",
+                uod_type=UoDType.STANDALONE,
+                name=name,
+                description=description,
+                category=UoDCategory.PRACTICE_SESSION,
+                created=datetime.now(),
+                last_modified=datetime.now(),
+                authors=["Current User"],
+                related_uods=[],
+            )
+            
+            self._current_uod = UniverseOfDiscourse(
+                metadata=metadata,
+                current_egi=egi,
+                history=None
+            )
         
         self.controller.load_egi(egi)
         print("=== Calling _refresh_display ===")
