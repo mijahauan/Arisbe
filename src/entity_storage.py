@@ -65,27 +65,27 @@ class EntityStorageManager:
     - Efficient for 1000+ states
     """
     
-    def __init__(self, corpus_root: Path, snapshot_interval: int = 10):
+    def __init__(self, tomos_root: Path, snapshot_interval: int = 10):
         """
         Initialize storage manager.
         
         Args:
-            corpus_root: Root directory for corpus (e.g., corpus/graphs/)
+            tomos_root: Root directory for tomos (e.g., corpus/graphs/)
             snapshot_interval: Full snapshot every N states
         """
-        self.corpus_root = Path(corpus_root)
+        self.tomos_root = Path(tomos_root)
         self.snapshot_interval = snapshot_interval
         
         # Caching
         self.state_cache = LRUCache(capacity=5)
         self.metadata_cache: Dict[str, EntityMetadata] = {}
         
-        # Ensure corpus root exists
-        self.corpus_root.mkdir(parents=True, exist_ok=True)
+        # Ensure tomos root exists
+        self.tomos_root.mkdir(parents=True, exist_ok=True)
     
     def get_entity_dir(self, entity_name: str) -> Path:
         """Get directory for entity."""
-        return self.corpus_root / entity_name
+        return self.tomos_root / entity_name
     
     def get_entity_paths(self, entity_name: str) -> Dict[str, Path]:
         """Get all file paths for an entity."""
@@ -99,13 +99,13 @@ class EntityStorageManager:
         }
     
     def entity_exists(self, entity_name: str) -> bool:
-        """Check if entity exists in corpus."""
+        """Check if entity exists in tomos."""
         paths = self.get_entity_paths(entity_name)
         return paths["meta"].exists() and paths["egi"].exists()
     
     def save_entity(self, entity: GraphEntity) -> Path:
         """
-        Save entity to corpus.
+        Save entity to tomos.
         
         Args:
             entity: Entity to save
@@ -137,7 +137,7 @@ class EntityStorageManager:
     
     def load_entity(self, entity_name: str, load_full_history: bool = False) -> GraphEntity:
         """
-        Load entity from corpus.
+        Load entity from tomos.
         
         Args:
             entity_name: Name of entity to load
@@ -193,7 +193,7 @@ class EntityStorageManager:
     
     def list_entities(self, category: Optional[EntityCategory] = None) -> List[str]:
         """
-        List all entities in corpus.
+        List all entities in tomos.
         
         Args:
             category: Optional category filter
@@ -203,10 +203,10 @@ class EntityStorageManager:
         """
         entities = []
         
-        if not self.corpus_root.exists():
+        if not self.tomos_root.exists():
             return entities
         
-        for entity_dir in self.corpus_root.iterdir():
+        for entity_dir in self.tomos_root.iterdir():
             if not entity_dir.is_dir():
                 continue
             

@@ -10,7 +10,7 @@ This guide provides comprehensive testing instructions for the new Existential G
 
 **Test Files**:
 - `test_double_cuts.egdf.json` - Contains a proper double cut structure
-- `corpus/graphs/sowa_cat_on_mat/EGDF/diagram_20250902_202811.egdf.json` - No cuts (should show no double cuts)
+- `tomos/graphs/sowa_cat_on_mat/EGDF/diagram_20250902_202811.egdf.json` - No cuts (should show no double cuts)
 
 **Test Steps**:
 1. Launch drawing editor: `python tools/drawing_editor_refactored.py`
@@ -23,7 +23,7 @@ This guide provides comprehensive testing instructions for the new Existential G
 **Purpose**: Display small numbers showing predicate arity near each predicate.
 
 **Test Steps**:
-1. Load `corpus/graphs/sowa_cat_on_mat/EGDF/diagram_20250902_202811.egdf.json`
+1. Load `tomos/graphs/sowa_cat_on_mat/EGDF/diagram_20250902_202811.egdf.json`
 2. Click "Arity" toggle in Annotations toolbar
 3. **Expected**: 
    - "On" predicate shows "2" (binary relation)

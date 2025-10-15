@@ -213,7 +213,7 @@ Pass 3: A* Pathfinding
 
 ### Testing
 15. ✅ `test_pass0_topology.py` - Pass 0 validation
-16. ✅ `test_refactored_corpus.py` - Corpus testing
+16. ✅ `test_refactored_corpus.py` - Tomos testing
 
 ---
 

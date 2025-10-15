@@ -1,1 +1,1 @@
-"""Organon module - Exploration and corpus management."""
+"""Organon module - Exploration and tomos management."""

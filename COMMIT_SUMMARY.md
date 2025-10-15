@@ -15,7 +15,7 @@ Implemented production-ready layout engine with **guaranteed spatial-logical cor
 - **Handles complex cases**: `roberts_1973_p57_disjunction`, `sibling_cuts_shared_variable`
 - **Maintains containment** while preventing overlaps
 
-### **Complete Corpus Support**
+### **Complete Tomos Support**
 - **14/15 graphs processed** successfully (93.3% success rate)
 - **All EGI structures handled**: Nested cuts, shared vertices, complex ligatures
 - **Production validation** across diverse mathematical structures
@@ -28,11 +28,11 @@ Implemented production-ready layout engine with **guaranteed spatial-logical cor
 
 ### **Comprehensive Testing**
 - `tests/test_layout_engine_ironclad.py` - Complete test suite validating iron-clad guarantees
-- **6 test cases** covering: guarantees, sibling cuts, containment, corpus compatibility, DTO structure, break points
+- **6 test cases** covering: guarantees, sibling cuts, containment, tomos compatibility, DTO structure, break points
 
 ### **Generated Outputs**
-- `test_outputs/final_complete_corpus/` - 14 validated SVG diagrams with EGIF comparison
-- `test_outputs/ironclad_corpus/` - Complete corpus rendered with iron-clad engine
+- `test_outputs/final_complete_tomos/` - 14 validated SVG diagrams with EGIF comparison
+- `test_outputs/ironclad_tomos/` - Complete tomos rendered with iron-clad engine
 - `test_outputs/fixed_sibling_cuts/` - Specific fixes for sibling cut cases
 
 ## 🔧 **TECHNICAL INNOVATIONS**
@@ -73,13 +73,13 @@ class LayoutDTO:
 - ✅ **Iron-clad guarantees**: All elements positioned, spatial correspondence maintained
 - ✅ **Sibling cut separation**: No more superimposition, proper side-by-side positioning
 - ✅ **Nested cut containment**: Proper hierarchical spatial relationships
-- ✅ **Corpus compatibility**: 93.3% success rate across complete Arisbe corpus
+- ✅ **Tomos compatibility**: 93.3% success rate across complete Arisbe corpus
 - ✅ **DTO structure**: Complete platform-independent data transfer object
 - ✅ **No break points**: Algorithm cannot fail spatial-logical correspondence
 
 ### **Quality Metrics**
 - **Test Results**: 6/6 iron-clad tests passing
-- **Corpus Coverage**: 14/15 graphs successfully processed
+- **Tomos Coverage**: 14/15 graphs successfully processed
 - **Error Rate**: 0% - no violations detected
 - **Performance**: Excellent - all benchmarks passing
 
@@ -103,14 +103,14 @@ class LayoutDTO:
 ### **AGENTS.md Updates**
 - Added iron-clad layout engine documentation
 - Updated testing requirements to include layout engine tests
-- Documented sibling cut handling and corpus validation
+- Documented sibling cut handling and tomos validation
 - Added production readiness indicators
 
 ### **Testing Integration**
 - New test suite: `test_layout_engine_ironclad.py`
 - Quality dashboard integration
 - Automated validation of iron-clad guarantees
-- Corpus compatibility testing
+- Tomos compatibility testing
 
 ## 🎉 **ACHIEVEMENT SUMMARY**
 
@@ -122,7 +122,7 @@ The iron-clad layout engine represents a **complete solution** to the spatial-lo
 4. **Provides mathematical guarantees** of spatial-logical correspondence
 5. **Ready for production deployment** with comprehensive testing and documentation
 
-This implementation establishes Arisbe as having a **mathematically sound, production-ready** layout engine for Existential Graphs with guaranteed correctness and complete corpus support.
+This implementation establishes Arisbe as having a **mathematically sound, production-ready** layout engine for Existential Graphs with guaranteed correctness and complete tomos support.
 
 ---
 
@@ -130,10 +130,10 @@ This implementation establishes Arisbe as having a **mathematically sound, produ
 
 - Implement production-ready layout engine with no break points
 - Fix sibling cut superimposition with proper separation algorithm  
-- Achieve 93.3% corpus compatibility (14/15 graphs)
+- Achieve 93.3% tomos compatibility (14/15 graphs)
 - Add comprehensive test suite with iron-clad guarantees
 - Update coherence framework documentation
-- Generate complete corpus SVG outputs with EGIF comparison
+- Generate complete tomos SVG outputs with EGIF comparison
 
 Closes: Layout engine spatial-logical correspondence issues
-Validates: Complete Arisbe corpus mathematical structures`
+Validates: Complete Arisbe tomos mathematical structures`

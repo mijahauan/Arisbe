@@ -74,7 +74,7 @@ Arisbe provides the **first production-quality implementation** that:
 ### 4. Practical Usability
 - **Interactive performance** - Fast enough for real-time use
 - **Intuitive interface** - Researchers can focus on logic, not software
-- **Robust corpus handling** - Works with published EG literature
+- **Robust tomos handling** - Works with published EG literature
 
 ---
 
@@ -88,14 +88,14 @@ Arisbe provides the **first production-quality implementation** that:
 - [x] Layout engine with Dau-compliant rendering
 
 ### Phase 2: GUI Implementation (IN PROGRESS 🟡)
-- [x] Organon mode - Corpus browsing and visualization
+- [x] Organon mode - Tomos browsing and visualization
 - [x] Ergasterion mode - Interactive editing and learning
 - [x] Diachronic delta workflow - User layout persistence
 - [ ] Transformation UI - Visual rule application
 - [ ] Agon mode - Endoporeutic Game implementation
 
 ### Phase 3: Production Readiness (PLANNED 📋)
-- [ ] Complete corpus validation (51 published graphs)
+- [ ] Complete tomos validation (51 published graphs)
 - [ ] Performance optimization for complex graphs
 - [ ] Documentation and user guide
 - [ ] Academic publication describing the system
@@ -128,7 +128,7 @@ Arisbe provides the **first production-quality implementation** that:
 
 **Phase**: GUI Development - Diachronic Delta Workflow  
 **Last Major Milestone**: Area containment validation with layout delta persistence  
-**Next Milestone**: Corpus validation and transformation UI  
+**Next Milestone**: Tomos validation and transformation UI  
 **Overall Progress**: ~70% complete (foundation solid, GUI progressing)
 
 ---

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test the definitive three-pass layout engine on the entire corpus.
+Test the definitive three-pass layout engine on the entire tomos.
 """
 
 import sys
@@ -13,8 +13,8 @@ from style_loader import StyleLoader
 import traceback
 
 def main():
-    """Test on entire corpus with debug output."""
-    storage = EntityStorageManager(Path('corpus/graphs'))
+    """Test on entire tomos with debug output."""
+    storage = EntityStorageManager(Path('tomos/graphs'))
     engine = DefinitiveThreePassEngine()
     style = StyleLoader().load_default_style()
     
@@ -22,7 +22,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # Get all graphs (directories containing entity files)
-    corpus_path = Path('corpus/graphs')
+    corpus_path = Path('tomos/graphs')
     all_graphs = sorted([p.name for p in corpus_path.iterdir() 
                         if p.is_dir() and not p.name.startswith('.')])
     

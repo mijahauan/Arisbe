@@ -29,9 +29,9 @@
 
 ### Battle-Tested Import/Export Infrastructure
 **Status**: ✅ PRODUCTION - Comprehensive test coverage across corpus
-- **EGIF**: Tested on 57+ corpus examples (parse → generate → parse)
-- **CGIF**: Tested on 40+ corpus examples (ISO/IEC standard compliance)
-- **CLIF**: Tested on 35+ corpus examples (Common Logic standard)
+- **EGIF**: Tested on 57+ tomos examples (parse → generate → parse)
+- **CGIF**: Tested on 40+ tomos examples (ISO/IEC standard compliance)
+- **CLIF**: Tested on 35+ tomos examples (Common Logic standard)
 - **FOPL**: Round-trip translation tests (Φ/Ψ bidirectional)
 - **Round-trip**: All formats tested for stability and variable preservation
 - **Test files**: `test_corpus_parsing.py`, `test_variable_order_alignment.py`, `test_variable_name_consistency.py`
@@ -130,8 +130,8 @@ context = TransformationContext(source_egi=egi, target_area="sheet", ...)
 result = rule.apply_transformation(context)
 ```
 
-### Import/Export - Battle-Tested Production Modules (✅ 57+ corpus examples tested)
-**Status**: ✅ PRODUCTION - All parsers/generators validated across extensive corpus  
+### Import/Export - Battle-Tested Production Modules (✅ 57+ tomos examples tested)
+**Status**: ✅ PRODUCTION - All parsers/generators validated across extensive tomos  
 **Documentation**: `IMPORT_EXPORT_FORMATS.md` for complete reference
 
 **EGIF (Extended Graph Interchange Format)**:
@@ -205,23 +205,23 @@ tikz_picture = generate_tikz(render_commands, standalone=False)
 ```
 
 **Testing**: All formats tested with:
-- ✅ Corpus parsing (57+ EGIF, 40+ CGIF, 35+ CLIF examples)
+- ✅ Tomos parsing (57+ EGIF, 40+ CGIF, 35+ CLIF examples)
 - ✅ Round-trip stability (parse → generate → parse)
 - ✅ Variable name preservation
 - ✅ Variable order alignment across formats
 - ✅ Nested cut handling
 - ✅ Mixed constants and variables
 
-### Corpus Management (✅ PRODUCTION - IMPLEMENTED 2025-10-14)
-**Current Status**: Unified CorpusService API (fully tested and integrated)  
+### Tomos Management (✅ PRODUCTION - IMPLEMENTED 2025-10-14)
+**Current Status**: Unified TomosService API (fully tested and integrated)  
 **Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`, `DAG_HISTORY_ARCHITECTURE.md`
 
 **For Organon (Browse & Load UoDs)**:
 ```python
-from corpus_service import CorpusService
+from tomos_service import TomosService
 
 # Initialize
-corpus = CorpusService(Path("corpus"))
+corpus = TomosService(Path("corpus"))
 
 # Browse UoDs (fast, index-based)
 uods = corpus.list_uods(is_static=True)  # Literature
@@ -254,7 +254,7 @@ branch_id = uod.history.create_branch_from_state(
 **✅ IMPLEMENTED (2025-10-14)**: 
 - **Universe of Discourse**: Fundamental entity is now the UoD (diachronic process), not static EGI
 - **DAG-Based History**: Branching transformation history for realistic inquiry workflows
-- **CorpusService**: Unified API for corpus management (implemented and tested)
+- **TomosService**: Unified API for tomos management (implemented and tested)
 - **Organon Integration**: Basic viewing integrated (~40% complete, needs import/export)
 - **Ergasterion Integration**: Foundation integrated (untested, needs validation)
 - **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (zero breaking changes)
@@ -321,7 +321,7 @@ branch_id = uod.history.create_branch_from_state(
   - `cut_bounds`: Dict[ElementID, BoundingBox]
   - `ligature_paths`: List[LigaturePath]
   - `area_hierarchy`: Dict[ElementID, Set[ElementID]]
-- **Testing**: Validated on 15-graph corpus with stable, correct results
+- **Testing**: Validated on 15-graph tomos with stable, correct results
 - **References**: See `BOTTOM_UP_D3_ARCHITECTURE.md` for complete architectural details
 
 ## 🎯 User Edit System & Deterministic Layouts
@@ -450,7 +450,7 @@ egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
 ### Universe of Discourse Model (✅ PRODUCTION 2025-10-14)
 - **UniverseOfDiscourse**: Synchronic (current state) + Diachronic (DAG history) + LayoutDeltas
 - **DAG-Based History**: Branching transformation history (not linear sequences)
-- **CorpusService**: Unified API with index-based browsing, lazy loading, efficient storage
+- **TomosService**: Unified API with index-based browsing, lazy loading, efficient storage
 - **Categories**: Static (Literature, Canonical) vs Dynamic (Inquiry, Theorem Proof, EPG Session, Practice)
 - **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (all old code works unchanged)
 - **Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`, `DAG_HISTORY_ARCHITECTURE.md`
@@ -510,12 +510,12 @@ sequence = history.get_transformation_sequence(from_state, to_state)
 **Testing**: `tools/test_history_dag.py` (5/5 tests passing)
 
 ### Organon Mode (⚠️ ~40% Complete - 2025-10-14)
-- **Purpose**: Exploration and corpus management
+- **Purpose**: Exploration and tomos management
 - **Status**: Basic viewing works, needs import/export and metadata editing
 - **Documentation**: `ORGANON_COMPLETE_SPECIFICATION.md` (full feature list)
 
 **✅ Implemented**:
-- Corpus browser with static/dynamic filtering
+- Tomos browser with static/dynamic filtering
 - Load and display UoDs (EGI + metadata + history)
 - Metadata panel (read-only)
 - History timeline with time-travel navigation
@@ -527,7 +527,7 @@ sequence = history.get_transformation_sequence(from_state, to_state)
 - Export system (EGIF, CGIF, full JSON) - need all formats
 - Metadata editing - read-only only
 - State comparison across history - not implemented
-- Corpus search/filter - basic only
+- Tomos search/filter - basic only
 - UoD operations (delete, duplicate, rename) - not implemented
 
 **Priority Next Steps**:
@@ -547,7 +547,7 @@ sequence = history.get_transformation_sequence(from_state, to_state)
 - Transformation toolbar (DC+/-, INS, ERA, IT+/-)
 - File operations (New, Load, Save)
 - UoD integration (creates practice sessions)
-- Save to Corpus with promotion to historical
+- Save to Tomos with promotion to historical
 - Organon → Ergasterion handoff with source UoD tracking
 
 **⚠️ Needs Testing**:
@@ -579,12 +579,12 @@ sequence = history.get_transformation_sequence(from_state, to_state)
 - **Mathematical correctness**: Comprehensive validation complete
 - **API stability**: Protected core ensures no breaking changes
 - **Quality assurance**: Automated monitoring and enforcement
-- **Core Architecture**: UoD model + DAG history + CorpusService (✅ Production)
+- **Core Architecture**: UoD model + DAG history + TomosService (✅ Production)
 - **GUI Status** (2025-10-14):
   - ⚠️ **Organon**: ~40% complete (viewing works, needs import/export/metadata editing)
   - ⚠️ **Ergasterion**: Foundation integrated (needs testing and refinement)
   - ⏳ **Agon**: Future development
-- **Test Coverage**: 106/106 tests passing (90 core + 8 UoD + 8 CorpusService)
+- **Test Coverage**: 106/106 tests passing (90 core + 8 UoD + 8 TomosService)
 
 ---
 

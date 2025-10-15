@@ -315,9 +315,9 @@ class ArisbeHomeWidget(QWidget):
         organon_room = WorkingRoom(
             room_name="organon",
             title="Organon",
-            description="Your personal library and study for browsing the corpus of existential graphs. "
+            description="Your personal library and study for browsing the tomos of existential graphs. "
             "Explore your collection, view existing diagrams, and select items for deeper work.",
-            help_text="Start here to browse your knowledge corpus. Use the three-panel interface to "
+            help_text="Start here to browse your knowledge tomos. Use the three-panel interface to "
             "navigate folders, preview graphs, and launch editing or practice sessions.",
             room_type="library",
         )
@@ -578,14 +578,14 @@ class IntegratedArisbeWindow(QWidget):
         
         <h4>🏠 The Three Working Rooms</h4>
         <ul>
-        <li><b>📚 Organon (Library)</b>: Browse your corpus of existential graphs, explore collections, and select items for deeper work.</li>
+        <li><b>📚 Organon (Library)</b>: Browse your tomos of existential graphs, explore collections, and select items for deeper work.</li>
         <li><b>🔨 Ergasterion (Workshop)</b>: Create new diagrams, edit existing ones, and practice transformation rules with constraint validation.</li>
         <li><b>🏆 Agon (Game Room)</b>: Coming soon - compete in logical challenges and endoporeutic games.</li>
         </ul>
         
         <h4>🚀 Quick Start</h4>
         <ol>
-        <li>Click <b>"🚪 Enter Organon"</b> to browse your graph corpus</li>
+        <li>Click <b>"🚪 Enter Organon"</b> to browse your graph tomos</li>
         <li>Select a graph from the tree view to see its linear forms</li>
         <li>Use the "Edit in Ergasterion" button to open graphs for editing</li>
         <li>Create new graphs directly in Ergasterion workshop</li>
@@ -604,7 +604,7 @@ class IntegratedArisbeWindow(QWidget):
         
         <h4>Features</h4>
         <ul>
-        <li><b>Corpus Tree</b>: Navigate your graph collections organized by categories</li>
+        <li><b>Tomos Tree</b>: Navigate your graph collections organized by categories</li>
         <li><b>Graph Preview</b>: View selected graphs with metadata and descriptions</li>
         <li><b>Linear Forms</b>: See EGIF, CGIF, and CLIF representations of your graphs</li>
         <li><b>Search & Filter</b>: Find specific graphs by title, category, or content</li>
@@ -612,7 +612,7 @@ class IntegratedArisbeWindow(QWidget):
         
         <h4>Workflow</h4>
         <ol>
-        <li>Browse the corpus tree on the left to find graphs of interest</li>
+        <li>Browse the tomos tree on the left to find graphs of interest</li>
         <li>Click on any graph to load it in the preview panel</li>
         <li>Review the linear forms to understand the logical structure</li>
         <li>Use "Edit in Ergasterion" to open graphs for modification</li>
@@ -671,7 +671,7 @@ class IntegratedArisbeWindow(QWidget):
         
         <h4>File Locations</h4>
         <ul>
-        <li><b>Corpus:</b> <code>corpus/</code> - Your graph collections</li>
+        <li><b>Corpus:</b> <code>tomos/</code> - Your graph tomos</li>
         <li><b>Styles:</b> <code>styles/</code> - Visual styling definitions</li>
         <li><b>Tests:</b> <code>tests/</code> - Validation and testing</li>
         </ul>

@@ -15,7 +15,7 @@ from egif_generator_dau import EGIFGenerator
 
 def generate_svgs():
     """Generate SVGs for all graphs."""
-    storage = EntityStorageManager(Path('corpus/graphs'))
+    storage = EntityStorageManager(Path('tomos/graphs'))
     engine = ThreePassLayoutEngine()
     renderer = GraphvizSVGRenderer()
     style = StyleLoader().load_default_style()
@@ -23,7 +23,7 @@ def generate_svgs():
     output_dir = Path('test_outputs/three_pass_svgs')
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    corpus_dir = Path('corpus/graphs')
+    corpus_dir = Path('tomos/graphs')
     
     print("Generating SVGs with three-pass layout engine...")
     print()

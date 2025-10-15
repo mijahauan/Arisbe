@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Test the three-pass layout engine on the entire corpus.
+Test the three-pass layout engine on the entire tomos.
 """
 
 import sys
@@ -11,11 +11,11 @@ from entity_storage import EntityStorageManager
 from three_pass_layout_engine import ThreePassLayoutEngine
 
 def test_corpus():
-    """Test on entire corpus."""
-    storage = EntityStorageManager(Path('corpus/graphs'))
+    """Test on entire tomos."""
+    storage = EntityStorageManager(Path('tomos/graphs'))
     engine = ThreePassLayoutEngine()
     
-    corpus_dir = Path('corpus/graphs')
+    corpus_dir = Path('tomos/graphs')
     
     print("=" * 70)
     print("THREE-PASS LAYOUT ENGINE - CORPUS TEST")

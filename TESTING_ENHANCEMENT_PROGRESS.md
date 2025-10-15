@@ -185,7 +185,7 @@ We've completed ~40% of the comprehensive testing plan. We have two paths forwar
 2. ❌ **EGI Transformation Unit Tests** - Complex API makes this challenging
 3. ❌ **Mock-based Controller Tests** - Would improve isolation
 4. ❌ **Style Integration Tests** - Would validate style system
-5. ❌ **Corpus Tests** - Would test all 32 real-world graphs
+5. ❌ **Tomos Tests** - Would test all 32 real-world graphs
 
 ### **Overall Coverage:**
 - **Core Functionality**: 80% covered (DiagramController + basic workflow)
@@ -239,7 +239,7 @@ We've completed ~40% of the comprehensive testing plan. We have two paths forwar
 ### **Long-term Goals:**
 - ⏸️ 90%+ code coverage
 - ⏸️ 100% deterministic behavior
-- ⏸️ All corpus graphs tested
+- ⏸️ All tomos graphs tested
 - ⏸️ Complete transformation rule tests
 
 ---

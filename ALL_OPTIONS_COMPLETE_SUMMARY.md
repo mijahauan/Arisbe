@@ -248,7 +248,7 @@ Completed **all 4 options** in sequence after finishing Phase 2 of the coherence
 
 **Integration Points**:
 - GUI development (deferred but ready)
-- Corpus system (20% coverage, needs tests)
+- Tomos system (20% coverage, needs tests)
 - Transformation system (17% coverage, priority)
 
 **Monitoring Progress**:

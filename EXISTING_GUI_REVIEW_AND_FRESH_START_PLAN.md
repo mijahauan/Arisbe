@@ -12,7 +12,7 @@
 
 ```python
 # Line 29-32: Legacy imports
-import corpus_index as cidx
+import tomos_index as cidx
 from egi_core_dau import AlphabetDAU, Cut, Edge, RelationalGraphWithCuts, Vertex
 from egi_dto import EGIStateDTO, egi_to_dto
 from egi_system import create_egi_system
@@ -30,7 +30,7 @@ except Exception:
 
 ### **Problems Identified** ❌
 
-1. **`corpus_index`** - Unknown legacy module, not in our architecture
+1. **`tomos_index`** - Unknown legacy module, not in our architecture
 2. **`egi_dto`** and **`egi_system`** - Legacy abstractions we don't need (we have DiagramController)
 3. **`drawing_editor`** from tools/ - Runtime path manipulation is fragile
 4. **No DiagramController** - Doesn't use our production-ready architecture
@@ -67,7 +67,7 @@ except Exception:
 ### **Rationale**
 
 **Why Not Refactor**:
-1. Too many legacy dependencies (corpus_index, egi_dto, egi_system, drawing_editor)
+1. Too many legacy dependencies (tomos_index, egi_dto, egi_system, drawing_editor)
 2. No use of our production-ready DiagramController
 3. Manual rendering logic duplicates our tested systems
 4. Runtime path hacking is fragile
@@ -90,7 +90,7 @@ except Exception:
 Main Window
 ├── Toolbar (mode switcher, actions)
 ├── Dock Widgets (can be repositioned)
-│   ├── Left: Corpus Browser / Element Palette
+│   ├── Left: Tomos Browser / Element Palette
 │   ├── Right: Properties / EGIF / Metadata
 │   └── Bottom: History Timeline / Undo Stack
 └── Central: Diagram Canvas
@@ -174,7 +174,7 @@ New GUI Application
 ├── StyleLoader (visual themes)
 └── Core EGI (egi_core_dau, egif_parser_dau, etc.)
 
-❌ NO corpus_index
+❌ NO tomos_index
 ❌ NO egi_dto
 ❌ NO egi_system
 ❌ NO drawing_editor
@@ -338,7 +338,7 @@ if success:
 3. Implement `MetadataPanel` (properties)
 4. Add navigation controls (pan/zoom)
 5. Implement `ExportDialog` (SVG/PDF/LaTeX)
-6. Wire up corpus loading from disk
+6. Wire up tomos loading from disk
 
 **Outcome**: Complete Organon module (exploration)
 
@@ -475,7 +475,7 @@ if success:
 
 ```python
 # ❌ DO NOT IMPORT:
-import corpus_index
+import tomos_index
 from egi_dto import *
 from egi_system import *
 from drawing_editor import *

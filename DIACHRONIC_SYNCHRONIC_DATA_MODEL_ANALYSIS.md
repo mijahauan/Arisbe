@@ -67,7 +67,7 @@ class StateSnapshot:
 - Hierarchical index required
 
 **❌ Gaps**:
-- No direct link to corpus storage
+- No direct link to tomos storage
 - Domain model integration incomplete
 - Missing layout deltas (aesthetic adjustments)
 
@@ -123,7 +123,7 @@ class EGITransformationHistory:
 **❌ Gaps**:
 - Not integrated with DiagramController
 - No LayoutDeltas persistence
-- No corpus linkage
+- No tomos linkage
 
 ---
 
@@ -146,7 +146,7 @@ class HistoryPersistenceManager:
 - Complete serialization
 
 **❌ Gaps**:
-- No corpus integration
+- No tomos integration
 - Separate from `.egi.json` files
 - No sync with DiagramController state
 
@@ -197,7 +197,7 @@ class InteractiveTransformerWithHistory:
 **❌ Gaps**:
 - No DiagramController integration
 - No LayoutDeltas
-- No corpus integration
+- No tomos integration
 - EGIF-focused (not EGI-first)
 
 ---
@@ -213,7 +213,7 @@ class InteractiveTransformerWithHistory:
 
 **Needed**: Unified model
 - Single entity represents both aspects
-- Corpus stores both static AND historical graphs
+- Tomos stores both static AND historical graphs
 - GUI can switch between views seamlessly
 
 ---
@@ -232,15 +232,15 @@ class InteractiveTransformerWithHistory:
 
 ---
 
-### **3. No Corpus Integration**
+### **3. No Tomos Integration**
 
 **Current**: History files separate from corpus
-- `.egi.json` in `corpus/graphs/`
+- `.egi.json` in `tomos/graphs/`
 - `.history.json` in `histories/`
 - No linkage
 
-**Needed**: History as first-class corpus citizen
-- `corpus/graphs/[name]/[name].history.json`
+**Needed**: History as first-class tomos citizen
+- `tomos/graphs/[name]/[name].history.json`
 - Stand-alone EGIs can become historical
 - Historical graphs can export current state
 
@@ -293,8 +293,8 @@ class GraphEntity:
     # Diachronic aspect (for historical entities)
     history: Optional[EGITransformationHistory]
     
-    # Corpus location
-    corpus_path: Path  # corpus/graphs/[name]/
+    # Tomos location
+    corpus_path: Path  # tomos/graphs/[name]/
     
     # Multiple representations
     egif: str
@@ -319,7 +319,7 @@ class GraphEntity:
 ### **Storage Structure**
 
 ```
-corpus/graphs/[graph_name]/
+tomos/graphs/[graph_name]/
 ├── [graph_name].meta.json          # Entity metadata
 ├── [graph_name].egi.json           # Current state (always present)
 ├── [graph_name].history.json       # Transformation history (if historical)
@@ -507,7 +507,7 @@ if outcome == "contingent":
 1. Create `GraphEntity` class
 2. Extend `StateSnapshot` to include LayoutDeltas
 3. Extend `TransformationStep` to include layout changes
-4. Create unified corpus manager
+4. Create unified tomos manager
 
 **Files to Create/Modify**:
 - `graph_entity.py` - NEW: Unified entity model
@@ -530,13 +530,13 @@ if outcome == "contingent":
 
 ---
 
-### **Phase 3: Corpus Integration**
+### **Phase 3: Tomos Integration**
 
 **Tasks**:
-1. New corpus structure (.meta.json, .history.json, .layout.json)
+1. New tomos structure (.meta.json, .history.json, .layout.json)
 2. Migration tool for existing .egi.json files
 3. Import/export for historical entities
-4. Corpus browser shows both types
+4. Tomos browser shows both types
 
 **Files to Create/Modify**:
 - `corpus_structure.py` - NEW: Storage format
@@ -574,7 +574,7 @@ if outcome == "contingent":
    - View historical states (if available)
    - Export current state
 
-3. **Corpus Browser**:
+3. **Tomos Browser**:
    - Show entity type (standalone vs historical)
    - Display metadata (steps, transformations)
    - Filter by category
@@ -639,7 +639,7 @@ GraphEntity = Synchronic State + Diachronic History
 
 **Don't rebuild**, extend:
 - ✅ `egi_transformation_history.py` - ADD LayoutDeltas
-- ✅ `history_persistence.py` - ADD corpus integration
+- ✅ `history_persistence.py` - ADD tomos integration
 - ✅ NEW `graph_entity.py` - Wrap both aspects
 - ✅ NEW `corpus_manager_unified.py` - Handle both types
 
@@ -670,7 +670,7 @@ GraphEntity = Synchronic State + Diachronic History
 
 **Vision**:
 - GraphEntity = Synchronic + Diachronic
-- Corpus stores both static and historical
+- Tomos stores both static and historical
 - GUI seamlessly switches views
 - Complete "moving picture of thought"
 
@@ -680,4 +680,4 @@ GraphEntity = Synchronic State + Diachronic History
 3. Integrate DiagramController
 4. Full diachronic-synchronic unity
 
-**The existing infrastructure is solid - we just need to connect it to the corpus and DiagramController!**
+**The existing infrastructure is solid - we just need to connect it to the tomos and DiagramController!**

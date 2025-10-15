@@ -1,6 +1,6 @@
 """
 EGI Loader for Dau-compliant JSON format.
-Converts corpus JSON files to RelationalGraphWithCuts instances.
+Converts tomos JSON files to RelationalGraphWithCuts instances.
 """
 
 import json
@@ -14,7 +14,7 @@ from egi_core_dau import (
 
 
 def load_egi_from_json(file_path: str) -> RelationalGraphWithCuts:
-    """Load EGI from JSON file in corpus format."""
+    """Load EGI from JSON file in tomos format."""
     with open(file_path, 'r') as f:
         data = json.load(f)
     
@@ -171,23 +171,23 @@ def save_egi_to_json(egi: RelationalGraphWithCuts, file_path: str):
         json.dump(data, f, indent=2)
 
 
-# Convenience functions for common corpus files
+# Convenience functions for common tomos files
 def load_dau_ligature_example() -> RelationalGraphWithCuts:
     """Load the Dau 2006 p112 ligature example."""
     return load_egi_from_json(
-        "/Users/mjh/Sync/GitHub/Arisbe/corpus/graphs/dau_2006_p112_ligature/dau_2006_p112_ligature.egi.json"
+        "/Users/mjh/Sync/GitHub/Arisbe/tomos/graphs/dau_2006_p112_ligature/dau_2006_p112_ligature.egi.json"
     )
 
 
 def load_peirce_modus_ponens() -> RelationalGraphWithCuts:
     """Load the Peirce modus ponens example."""
     return load_egi_from_json(
-        "/Users/mjh/Sync/GitHub/Arisbe/corpus/graphs/peirce_modus_ponens/peirce_modus_ponens.egi.json"
+        "/Users/mjh/Sync/GitHub/Arisbe/tomos/graphs/peirce_modus_ponens/peirce_modus_ponens.egi.json"
     )
 
 
 def load_mixed_quantifier_complex() -> RelationalGraphWithCuts:
     """Load the mixed quantifier complex example."""
     return load_egi_from_json(
-        "/Users/mjh/Sync/GitHub/Arisbe/corpus/graphs/mixed_quantifier_complex/mixed_quantifier_complex.egi.json"
+        "/Users/mjh/Sync/GitHub/Arisbe/tomos/graphs/mixed_quantifier_complex/mixed_quantifier_complex.egi.json"
     )

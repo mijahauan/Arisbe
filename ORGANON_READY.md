@@ -18,7 +18,7 @@ Then click the **"📚 Organon (Explore)"** tab!
 
 ## ✨ WHAT'S WORKING
 
-### **Corpus Browser** (Left Sidebar)
+### **Tomos Browser** (Left Sidebar)
 - ✅ Browse 15 existential graphs from corpus
 - ✅ Filter by category dropdown:
   - Peirce (3 graphs)
@@ -124,7 +124,7 @@ EntityMetadata:
 
 ### Storage System
 ```
-corpus/graphs/[entity_name]/
+tomos/graphs/[entity_name]/
 ├── [entity_name].meta.json    # Metadata
 ├── [entity_name].egi.json     # Current EGI
 ├── [entity_name].history.jsonl # History (if historical)
@@ -132,7 +132,7 @@ corpus/graphs/[entity_name]/
 ```
 
 ### GUI Components
-- **CorpusBrowserWidget**: Sidebar for browsing
+- **TomosBrowserWidget**: Sidebar for browsing
 - **DiagramCanvas**: SVG display widget
 - **OrganonMode**: Main Organon interface
 - **MainWindow**: Three-mode tab system
@@ -165,7 +165,7 @@ python tools/test_gui_organon.py
 
 **Results**: 3/3 tests passing ✅
 - Imports: All GUI components
-- Corpus Access: 15 entities loaded
+- Tomos Access: 15 entities loaded
 - DiagramController: Rendering functional
 
 ### Core Tests
@@ -186,7 +186,7 @@ python -m pytest tests/test_*_comprehensive.py
 from entity_storage import EntityStorageManager
 from graph_entity import EntityCategory
 
-storage = EntityStorageManager("corpus/graphs")
+storage = EntityStorageManager("tomos/graphs")
 entity = storage.create_standalone_entity(
     name="my_new_graph",
     egi=my_egi,
@@ -197,7 +197,7 @@ storage.save_entity(entity)
 ```
 
 **Option 2**: Manual
-1. Create directory: `corpus/graphs/my_graph/`
+1. Create directory: `tomos/graphs/my_graph/`
 2. Save EGI: `my_graph.egi.json`
 3. Run migration: `python tools/migrate_corpus_to_entities.py`
 
@@ -335,7 +335,7 @@ python tools/migrate_corpus_to_entities.py
 
 ✅ **Functional**: All core features working  
 ✅ **Tested**: 100% smoke test pass rate  
-✅ **Populated**: 15 real graphs in corpus  
+✅ **Populated**: 15 real graphs in tomos  
 ✅ **Documented**: Complete user guide  
 ✅ **Performant**: <50ms entity load  
 ✅ **Maintainable**: Clean architecture  
@@ -348,7 +348,7 @@ python tools/migrate_corpus_to_entities.py
 **Organon is production-ready for exploration and viewing!**
 
 Users can now:
-- Browse a curated corpus of existential graphs
+- Browse a curated tomos of existential graphs
 - View Peirce's original examples
 - Study scholar interpretations
 - Explore complex logical structures

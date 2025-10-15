@@ -6,7 +6,7 @@ Zero legacy dependencies.
 
 Modules:
 - common: Shared components (canvas, panels)
-- organon: Exploration and corpus management
+- organon: Exploration and tomos management
 - ergasterion: Interactive editing and practice
 - agon: Formal reasoning and Endoporeutic Game
 """

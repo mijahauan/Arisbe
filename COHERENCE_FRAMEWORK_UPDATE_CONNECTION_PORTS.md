@@ -4,7 +4,7 @@
 
 **Date**: 2025-09-26  
 **Enhancement**: Connection Port System with Optimal Port Assignment  
-**Status**: ✅ PRODUCTION READY - 100% Corpus Validation Complete
+**Status**: ✅ PRODUCTION READY - 100% Tomos Validation Complete
 
 ## **🎯 ENHANCEMENT SUMMARY**
 
@@ -59,11 +59,11 @@ class RenderableEdgeLabel:
 
 ## **📊 VALIDATION RESULTS**
 
-### **Comprehensive Corpus Testing**
+### **Comprehensive Tomos Testing**
 ```
 🌍 COMPREHENSIVE CORPUS CONNECTION PORT TEST
 =======================================================
-📚 Found 15 corpus graphs to test
+📚 Found 15 tomos graphs to test
 
 🎯 OVERALL PERFORMANCE:
    Total graphs tested: 15
@@ -126,7 +126,7 @@ class RenderableEdgeLabel:
 ### **Testing Framework**
 - `tools/test_connection_ports.py` - Comprehensive port configuration testing
 - `tools/test_nearest_port_assignment.py` - Crossing elimination validation
-- `tools/test_corpus_connection_ports.py` - Full corpus validation
+- `tools/test_corpus_connection_ports.py` - Full tomos validation
 - `tools/debug_port_assignment.py` - Debugging and analysis tools
 
 ### **Documentation**
@@ -193,7 +193,7 @@ class RenderableEdgeLabel:
 The Connection Port System represents a major enhancement to the Arisbe EGI Layout Engine, transforming it from approximate center-connections to mathematically precise, visually optimized port-based connections. 
 
 **Key Achievements:**
-- **100% corpus validation** with zero crossing issues
+- **100% tomos validation** with zero crossing issues
 - **Perfect mathematical precision** maintaining ν mapping correspondence
 - **Professional visual quality** suitable for academic publication
 - **Production-ready implementation** with comprehensive testing

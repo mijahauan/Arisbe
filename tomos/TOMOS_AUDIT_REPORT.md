@@ -1,8 +1,8 @@
-# Arisbe Corpus Audit Report
+# Arisbe Tomos Audit Report
 
 ## Executive Summary
 
-The current corpus contains 50 entries with significant quality issues:
+The current tomos contains 50 entries with significant quality issues:
 - **1 empty test entry** (completely useless)
 - **35+ auto-harvested fragments** with corrupted/malformed content
 - **8-12 potentially valuable entries** needing proper attribution
@@ -86,7 +86,7 @@ These were automatically extracted from academic papers but contain corrupted da
 
 ### Phase 1: Immediate Cleanup
 1. **Delete 36 useless entries** (test + all harvested fragments)
-2. **Update corpus index** to remove deleted entries
+2. **Update tomos index** to remove deleted entries
 3. **Backup current corpus** before deletion
 
 ### Phase 2: Attribution and Enhancement
@@ -128,4 +128,4 @@ Current entries use inconsistent naming:
 **After Cleanup:** 14 entries (100% educational value)
 **Improvement:** 3.6x quality density increase
 
-This cleanup will transform the corpus from a collection of auto-generated fragments into a curated educational resource aligned with Arisbe's pedagogical mission.
+This cleanup will transform the tomos from a collection of auto-generated fragments into a curated educational resource aligned with Arisbe's pedagogical mission.

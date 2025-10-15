@@ -32,7 +32,7 @@
 
 **Results:**
 - ✅ **Integration manager instantiation:** All 4 managers instantiate successfully
-- ✅ **Corpus management validation:** Add/retrieve/search operations tested
+- ✅ **Tomos management validation:** Add/retrieve/search operations tested
 - ✅ **Export management validation:** Multi-format export and validation tested
 - ✅ **View management validation:** View generation and configuration tested
 - ✅ **Core formalism manager validation:** Format support and validation tested
@@ -42,7 +42,7 @@
 **Technical Validation:**
 - **4 Integration Managers:** All managers operational in CGIF environment
 - **7 Test Categories:** Complete coverage of integration manager functionality
-- **Workflow Integration:** End-to-end workflows from corpus → export → view
+- **Workflow Integration:** End-to-end workflows from tomos → export → view
 - **Performance Characteristics:** Bulk operations tested (50 EGIs, multiple formats)
 
 **Files Created:**

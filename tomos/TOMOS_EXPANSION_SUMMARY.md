@@ -1,8 +1,8 @@
-# Arisbe Corpus Expansion Summary
+# Arisbe Tomos Expansion Summary
 
 ## Overview
 
-Successfully expanded the Arisbe Existential Graphs corpus from **5 examples** to **17 examples** (12 new entries), providing comprehensive coverage of Peirce's Existential Graph patterns for testing and teaching purposes.
+Successfully expanded the Arisbe Existential Graphs tomos from **5 examples** to **17 examples** (12 new entries), providing comprehensive coverage of Peirce's Existential Graph patterns for testing and teaching purposes.
 
 ## Expansion Results
 
@@ -19,26 +19,26 @@ Successfully expanded the Arisbe Existential Graphs corpus from **5 examples** t
 - **8 logical patterns** covered
 - **100% validation success** rate
 
-## New Corpus Entries
+## New Tomos Entries
 
 ### Alpha Level (Propositional Logic) - 3 New Examples
 
 #### 1. Simple Assertion: A pear is ripe
-- **File**: `corpus/corpus/alpha/simple_assertion_pear.egrf`
+- **File**: `tomos/tomos/alpha/simple_assertion_pear.egrf`
 - **Source**: Roberts 1973, p. 32
 - **Pattern**: Basic existential assertion with conjunction
 - **CLIF**: `(exists (x) (and (Pear x) (Ripe x)))`
 - **Teaching Purpose**: Introduces sheet of assertion and basic predicate scribing
 
 #### 2. Simple Negation: There is no phoenix  
-- **File**: `corpus/corpus/alpha/simple_negation_phoenix.egrf`
+- **File**: `tomos/tomos/alpha/simple_negation_phoenix.egrf`
 - **Source**: Sowa 2011, EGIF p. 1
 - **Pattern**: Simple negation using single cut
 - **CLIF**: `(not (exists (x) (Phoenix x)))`
 - **Teaching Purpose**: Introduces cut as negation operator
 
 #### 3. Basic Conjunction: A pear is ripe and oranges have red pulp
-- **File**: `corpus/corpus/alpha/conjunction_pear_orange.egrf`
+- **File**: `tomos/tomos/alpha/conjunction_pear_orange.egrf`
 - **Source**: Roberts 1973, pp. 33-34
 - **Pattern**: Multiple assertions on sheet (conjunction)
 - **CLIF**: `(and (exists (x) (and (Pear x) (Ripe x))) (exists (y z) (and (Orange y) (PulpOf z y) (Red z))))`
@@ -47,28 +47,28 @@ Successfully expanded the Arisbe Existential Graphs corpus from **5 examples** t
 ### Beta Level (Predicate Logic) - 4 New Examples
 
 #### 4. Universal Conditional: If it thunders, it lightens
-- **File**: `corpus/corpus/beta/thunder_lightning_implication.egrf`
+- **File**: `tomos/tomos/beta/thunder_lightning_implication.egrf`
 - **Source**: Sowa 2011, EGIF p. 2
 - **Pattern**: Universal conditional using double cut (scroll)
 - **CLIF**: `(forall (x) (if (Thunder x) (Lightning x)))`
 - **Teaching Purpose**: Demonstrates double negation creating universal quantification
 
 #### 5. Complex Identity: There is a male African human
-- **File**: `corpus/corpus/beta/male_african_human.egrf`
+- **File**: `tomos/tomos/beta/male_african_human.egrf`
 - **Source**: Sowa 2011, EGIF p. 3
 - **Pattern**: Complex identity with multiple predicates (teridentity)
 - **CLIF**: `(exists (x) (and (Male x) (Human x) (African x)))`
 - **Teaching Purpose**: Shows line of identity connecting multiple predicates
 
 #### 6. Existential with Negation: Something is not a phoenix
-- **File**: `corpus/corpus/beta/existential_with_negation.egrf`
+- **File**: `tomos/tomos/beta/existential_with_negation.egrf`
 - **Source**: Sowa 2011, EGIF p. 1
 - **Pattern**: Existential quantification with negation
 - **CLIF**: `(exists (x) (not (Phoenix x)))`
 - **Teaching Purpose**: Demonstrates scope of quantification vs negation
 
 #### 7. Conjunction with Negation: It thunders without lightning
-- **File**: `corpus/corpus/beta/thunder_without_lightning.egrf`
+- **File**: `tomos/tomos/beta/thunder_without_lightning.egrf`
 - **Source**: Sowa 2011, EGIF p. 2
 - **Pattern**: Mixed assertion/negation
 - **CLIF**: `(exists (x) (and (Thunder x) (not (Lightning x))))`
@@ -207,7 +207,7 @@ Successfully expanded the Arisbe Existential Graphs corpus from **5 examples** t
 ## Impact Assessment
 
 ### Quantitative Improvements
-- **340% increase** in corpus size (5 → 17 examples)
+- **340% increase** in tomos size (5 → 17 examples)
 - **8 logical patterns** now covered (vs 2 previously)
 - **3 complexity levels** established (vs 1 previously)
 - **100% validation** success rate achieved
@@ -226,7 +226,7 @@ Successfully expanded the Arisbe Existential Graphs corpus from **5 examples** t
 
 ## Conclusion
 
-The corpus expansion successfully transforms the Arisbe system from having minimal examples to providing a comprehensive, well-structured collection of Existential Graph patterns. The new corpus supports both educational progression and thorough system testing, with clear pathways for future expansion based on additional primary sources.
+The tomos expansion successfully transforms the Arisbe system from having minimal examples to providing a comprehensive, well-structured collection of Existential Graph patterns. The new tomos supports both educational progression and thorough system testing, with clear pathways for future expansion based on additional primary sources.
 
 The expansion establishes Arisbe as having one of the most complete digital collections of Peirce's Existential Graph examples, suitable for research, education, and computational implementation of Peirce's logical system.
 

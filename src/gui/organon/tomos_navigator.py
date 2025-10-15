@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Corpus Navigator for the Organon module.
+Tomos Navigator for the Organon module.
 Provides exploration and navigation of EGI collections and universes of discourse.
 """
 
@@ -26,7 +26,7 @@ from egi_core_dau import RelationalGraphWithCuts
 
 @dataclass
 class CorpusEntry:
-    """Entry in the corpus index."""
+    """Entry in the tomos index."""
 
     entry_id: str
     title: str
@@ -52,11 +52,11 @@ class UniverseOfDiscourse:
 
 
 class CorpusNavigator:
-    """Navigator for exploring EGI corpus and universes of discourse."""
+    """Navigator for exploring EGI tomos and universes of discourse."""
 
-    def __init__(self, master, corpus_root: str = "corpus"):
+    def __init__(self, master, tomos_root: str = "corpus"):
         self.master = master
-        self.corpus_root = Path(corpus_root)
+        self.tomos_root = Path(tomos_root)
 
         # Data structures
         self.entries: Dict[str, CorpusEntry] = {}
@@ -72,7 +72,7 @@ class CorpusNavigator:
         self.load_corpus_index()
 
     def setup_ui(self):
-        """Create the corpus navigator interface."""
+        """Create the tomos navigator interface."""
         # Main container
         main_frame = ttk.Frame(self.master)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -104,7 +104,7 @@ class CorpusNavigator:
         content_frame.pack(fill=tk.BOTH, expand=True)
 
         # Left panel - Tree view
-        tree_frame = ttk.LabelFrame(content_frame, text="Corpus Structure")
+        tree_frame = ttk.LabelFrame(content_frame, text="Tomos Structure")
         tree_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 5))
 
         # Tree with scrollbars
@@ -177,10 +177,10 @@ class CorpusNavigator:
         )
 
     def load_corpus_index(self):
-        """Load the corpus index from disk."""
+        """Load the tomos index from disk."""
         try:
             # Load universes
-            universes_file = self.corpus_root / "universes.json"
+            universes_file = self.tomos_root / "universes.json"
             if universes_file.exists():
                 with open(universes_file, "r") as f:
                     universes_data = json.load(f)
@@ -189,7 +189,7 @@ class CorpusNavigator:
                         self.universes[universe.universe_id] = universe
 
             # Load entries index
-            index_file = self.corpus_root / "index.json"
+            index_file = self.tomos_root / "index.json"
             if index_file.exists():
                 with open(index_file, "r") as f:
                     entries_data = json.load(f)
@@ -209,13 +209,13 @@ class CorpusNavigator:
             self.populate_tree()
 
         except Exception as e:
-            messagebox.showerror("Load Error", f"Failed to load corpus index: {e}")
+            messagebox.showerror("Load Error", f"Failed to load tomos index: {e}")
 
     def save_corpus_index(self):
-        """Save the corpus index to disk."""
+        """Save the tomos index to disk."""
         try:
-            # Ensure corpus directory exists
-            self.corpus_root.mkdir(parents=True, exist_ok=True)
+            # Ensure tomos directory exists
+            self.tomos_root.mkdir(parents=True, exist_ok=True)
 
             # Save universes
             universes_data = []
@@ -230,7 +230,7 @@ class CorpusNavigator:
                 }
                 universes_data.append(universe_dict)
 
-            with open(self.corpus_root / "universes.json", "w") as f:
+            with open(self.tomos_root / "universes.json", "w") as f:
                 json.dump(universes_data, f, indent=2)
 
             # Save entries index
@@ -249,14 +249,14 @@ class CorpusNavigator:
                 }
                 entries_data.append(entry_dict)
 
-            with open(self.corpus_root / "index.json", "w") as f:
+            with open(self.tomos_root / "index.json", "w") as f:
                 json.dump(entries_data, f, indent=2)
 
         except Exception as e:
-            messagebox.showerror("Save Error", f"Failed to save corpus index: {e}")
+            messagebox.showerror("Save Error", f"Failed to save tomos index: {e}")
 
     def populate_tree(self):
-        """Populate the tree view with corpus structure."""
+        """Populate the tree view with tomos structure."""
         # Clear existing items
         for item in self.tree.get_children():
             self.tree.delete(item)
@@ -398,7 +398,7 @@ class CorpusNavigator:
         pass
 
     def refresh_corpus(self):
-        """Refresh the corpus from disk."""
+        """Refresh the tomos from disk."""
         self.load_corpus_index()
 
     def create_universe(self):
@@ -420,7 +420,7 @@ class CorpusNavigator:
             self.populate_tree()
 
     def import_egi(self):
-        """Import an EGI file into the corpus."""
+        """Import an EGI file into the tomos."""
         file_path = filedialog.askopenfilename(
             title="Import EGI",
             filetypes=[
@@ -573,9 +573,9 @@ class UniverseDialog:
 
 
 def main():
-    """Run the corpus navigator."""
+    """Run the tomos navigator."""
     root = tk.Tk()
-    root.title("Arisbe - Corpus Navigator (Organon)")
+    root.title("Arisbe - Tomos Navigator (Organon)")
     root.geometry("1000x700")
 
     app = CorpusNavigator(root)

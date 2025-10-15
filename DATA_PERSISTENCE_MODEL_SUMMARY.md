@@ -2,7 +2,7 @@
 **Universe of Discourse Storage for Organon/Ergasterion/Agon**
 
 **Date**: 2025-10-14  
-**Purpose**: Define UoD-centric data model and corpus organization
+**Purpose**: Define UoD-centric data model and tomos organization
 
 ---
 
@@ -18,7 +18,7 @@
 
 **Impact**: 
 - Unclear which system to use for Organon/Ergasterion/Agon
-- Corpus organized around graphs, not UoDs
+- Tomos organized around graphs, not UoDs
 - No unified diachronic history model
 
 **Recommendation**: Consolidate to single UoD-centric persistence model before proceeding.
@@ -29,15 +29,15 @@
 
 ## Current Persistence Systems (4 Found)
 
-### 1. **corpus_index.py** - Directory-Per-Graph Storage ✅ **IN USE**
+### 1. **tomos_index.py** - Directory-Per-Graph Storage ✅ **IN USE**
 
-**Location**: `src/corpus_index.py`  
-**Storage**: `corpus/graphs/<graph_id>/`  
+**Location**: `src/tomos_index.py`  
+**Storage**: `tomos/graphs/<graph_id>/`  
 **Status**: **Currently active in corpus**
 
 **Storage Structure**:
 ```
-corpus/
+tomos/
   index.json                    # Lightweight index for browsing
   graphs/
     <graph_id>/
@@ -62,7 +62,7 @@ class CorpusEntry:
 ```
 
 **Key Functions**:
-- `load_index()` - Load lightweight corpus index
+- `load_index()` - Load lightweight tomos index
 - `create_graph_dir(graph_id, title, category, tags)` - Create new graph
 - `graph_paths(gdir)` - Get all file paths for graph
 - `read_info(gdir)` / `write_info(gdir, info)` - Metadata management
@@ -80,10 +80,10 @@ class CorpusEntry:
 
 ---
 
-### 2. **integrated_corpus_manager.py** - Full-Featured Corpus Manager
+### 2. **integrated_corpus_manager.py** - Full-Featured Tomos Manager
 
 **Location**: `src/integrated_corpus_manager.py`  
-**Storage**: Configurable corpus root (default: `corpus/`)  
+**Storage**: Configurable tomos root (default: `tomos/`)  
 **Status**: **Implemented but not actively used**
 
 **Data Model**:
@@ -143,14 +143,14 @@ class CorpusItem:
 - ❌ Not currently used
 - ❌ More complex than needed for simple use cases
 - ❌ No transformation history support
-- ❌ Unclear relationship to corpus_index.py
+- ❌ Unclear relationship to tomos_index.py
 
 ---
 
 ### 3. **entity_storage.py** - Hybrid Snapshots + Deltas
 
 **Location**: `src/entity_storage.py`  
-**Storage**: Configurable corpus root (default: `corpus/graphs/`)  
+**Storage**: Configurable tomos root (default: `tomos/graphs/`)  
 **Status**: **Implemented for GraphEntity, not actively used**
 
 **Data Model**:
@@ -165,7 +165,7 @@ class GraphEntity:
 
 **Storage Structure**:
 ```
-corpus/graphs/
+tomos/graphs/
   <entity_name>/
     <entity_name>.meta.json      # Entity metadata
     <entity_name>.egi.json        # Current EGI state
@@ -198,7 +198,7 @@ corpus/graphs/
 **Weaknesses**:
 - ❌ Not currently used
 - ❌ History loading not fully implemented (returns None)
-- ❌ Duplicates functionality of corpus_index.py
+- ❌ Duplicates functionality of tomos_index.py
 
 ---
 
@@ -242,8 +242,8 @@ histories/
 - ✅ Academic workflow support (YAML)
 
 **Weaknesses**:
-- ❌ Separate from corpus storage
-- ❌ Not integrated with corpus_index or entity_storage
+- ❌ Separate from tomos storage
+- ❌ Not integrated with tomos_index or entity_storage
 - ❌ Unclear usage pattern for Organon/Ergasterion/Agon
 
 ---
@@ -339,11 +339,11 @@ class GraphEntity:
 
 ---
 
-## Current Actual Usage (Based on Corpus Inspection)
+## Current Actual Usage (Based on Tomos Inspection)
 
-**Active System**: `corpus_index.py`
+**Active System**: `tomos_index.py`
 
-**Corpus Statistics**:
+**Tomos Statistics**:
 - **Total graphs**: 15 (as of inspection)
 - **Storage format**: Directory per graph
 - **Files per graph**:
@@ -385,7 +385,7 @@ class CorpusManager(Protocol):
 
 **Implementations**:
 - ✅ `IntegratedCorpusManager` implements this
-- ❌ `corpus_index.py` does NOT implement this protocol
+- ❌ `tomos_index.py` does NOT implement this protocol
 - ❌ `EntityStorageManager` does NOT implement this protocol
 
 **Result**: Interface fragmentation
@@ -395,7 +395,7 @@ class CorpusManager(Protocol):
 ## Problems Identified
 
 ### 1. **Multiple Overlapping Systems**
-- `corpus_index.py` - Actually in use
+- `tomos_index.py` - Actually in use
 - `integrated_corpus_manager.py` - Implemented but unused
 - `entity_storage.py` - Implemented but unused
 - `history_persistence.py` - Separate history storage
@@ -404,35 +404,35 @@ class CorpusManager(Protocol):
 
 ### 2. **No Unified Interface**
 - Different APIs for same operations
-- `corpus_index.py` doesn't implement `CorpusManager` protocol
+- `tomos_index.py` doesn't implement `CorpusManager` protocol
 - Inconsistent return types and error handling
 
 **Impact**: Hard to write code that works across systems
 
 ### 3. **Transformation History Not Integrated**
 - `history_persistence.py` stores in separate `histories/` directory
-- Not connected to corpus graphs
+- Not connected to tomos graphs
 - Unclear how Ergasterion/Agon should track transformations
 
-**Impact**: Can't easily link corpus graphs to transformation sessions
+**Impact**: Can't easily link tomos graphs to transformation sessions
 
 ### 4. **Metadata Inconsistency**
-- `corpus_index.py`: Minimal metadata (title, category, tags)
+- `tomos_index.py`: Minimal metadata (title, category, tags)
 - `integrated_corpus_manager.py`: Rich metadata (validation, quality, difficulty)
 - `entity_storage.py`: Medium metadata (EntityMetadata)
 
 **Impact**: Can't rely on consistent metadata across graphs
 
 ### 5. **No Validation Integration**
-- Current corpus (corpus_index.py) has no validation
+- Current tomos (tomos_index.py) has no validation
 - `integrated_corpus_manager.py` has validation but isn't used
-- Quality unknown for existing corpus graphs
+- Quality unknown for existing tomos graphs
 
 **Impact**: May have invalid graphs in corpus
 
 ### 6. **Unclear Storage Location**
-- Is it `corpus/graphs/` or `corpus/` root?
-- Are histories in `histories/` or `corpus/graphs/<id>/`?
+- Is it `tomos/graphs/` or `tomos/` root?
+- Are histories in `histories/` or `tomos/graphs/<id>/`?
 - Are EGDF documents part of graph or separate?
 
 **Impact**: Confusing file organization
@@ -443,21 +443,21 @@ class CorpusManager(Protocol):
 
 ### **Recommended Unified Model**
 
-**Use**: `GraphEntity` + `corpus_index.py` storage pattern
+**Use**: `GraphEntity` + `tomos_index.py` storage pattern
 
 **Rationale**:
 1. `GraphEntity` provides unified diachronic/synchronic model
-2. `corpus_index.py` storage pattern is simple and already in use
+2. `tomos_index.py` storage pattern is simple and already in use
 3. Combine best of both: rich model + simple storage
 
 ### **Proposed Architecture**
 
 ```
-corpus/
+tomos/
   index.json                     # Lightweight index (keep)
   graphs/
     <graph_id>/
-      # Core files (corpus_index.py pattern)
+      # Core files (tomos_index.py pattern)
       <graph_id>.egi.json        # Canonical EGI (source of truth)
       <graph_id>.meta.json       # EntityMetadata (from GraphEntity)
       
@@ -465,7 +465,7 @@ corpus/
       <graph_id>.history.jsonl   # Transformation history (entity_storage.py pattern)
       snapshots/                 # State snapshots (entity_storage.py pattern)
       
-      # Derived artifacts (corpus_index.py pattern)
+      # Derived artifacts (tomos_index.py pattern)
       EGDF/                      # EGDF documents
       EXPORTS/                   # Exports
 ```
@@ -478,12 +478,12 @@ corpus/
 
 ### **Unified API**
 
-**Create single CorpusService**:
+**Create single TomosService**:
 ```python
-class CorpusService:
-    """Unified corpus management for Organon/Ergasterion/Agon."""
+class TomosService:
+    """Unified tomos management for Organon/Ergasterion/Agon."""
     
-    # Basic operations (from corpus_index.py)
+    # Basic operations (from tomos_index.py)
     def list_graphs(self, category: Optional[EntityCategory] = None) -> List[str]
     def get_graph(self, graph_id: str) -> GraphEntity
     def save_graph(self, entity: GraphEntity) -> None
@@ -504,7 +504,7 @@ class CorpusService:
 ```
 
 **Implementation Strategy**:
-1. Use `corpus_index.py` file organization
+1. Use `tomos_index.py` file organization
 2. Use `GraphEntity` data model
 3. Use `entity_storage.py` history patterns
 4. Use `integrated_corpus_manager.py` validation/search logic
@@ -525,7 +525,7 @@ class CorpusService:
 
 **Recommended**:
 ```python
-corpus = CorpusService()
+corpus = TomosService()
 
 # Browse
 graphs = corpus.list_graphs(category=EntityCategory.PEIRCE)
@@ -551,7 +551,7 @@ egif = entity.get_current_egif()
 
 **Recommended**:
 ```python
-corpus = CorpusService()
+corpus = TomosService()
 
 # Start practice session
 entity = corpus.get_graph(base_graph_id)
@@ -578,7 +578,7 @@ corpus.export_proof(entity.entity_id, initial_state_id, final_state_id)
 
 **Recommended**:
 ```python
-corpus = CorpusService()
+corpus = TomosService()
 
 # Create EPG position
 entity = corpus.create_graph(
@@ -599,28 +599,28 @@ corpus.save_graph(entity)
 
 ## Migration Plan
 
-### Phase 1: Create Unified CorpusService
+### Phase 1: Create Unified TomosService
 
 **Tasks**:
-1. Create `src/corpus_service.py`
-2. Implement basic operations using `corpus_index.py` + `egi_io.py`
+1. Create `src/tomos_service.py`
+2. Implement basic operations using `tomos_index.py` + `egi_io.py`
 3. Add `GraphEntity` support
 4. Add tests
 
 **Files to create**:
-- `src/corpus_service.py` - Unified service
-- `tests/test_corpus_service.py` - Tests
+- `src/tomos_service.py` - Unified service
+- `tests/test_tomos_service.py` - Tests
 
 ### Phase 2: Integrate History Support
 
 **Tasks**:
-1. Add history methods to CorpusService
+1. Add history methods to TomosService
 2. Integrate `entity_storage.py` snapshot patterns
 3. Integrate `history_persistence.py` export formats
 4. Test round-trip: save history → load history
 
 **Files to modify**:
-- `src/corpus_service.py` - Add history methods
+- `src/tomos_service.py` - Add history methods
 - `src/entity_storage.py` - Fix history loading (currently returns None)
 
 ### Phase 3: Add Validation & Search
@@ -629,10 +629,10 @@ corpus.save_graph(entity)
 1. Add validation methods from `integrated_corpus_manager.py`
 2. Add search methods
 3. Add quality metrics
-4. Migrate validation cache to corpus service
+4. Migrate validation cache to tomos service
 
 **Files to modify**:
-- `src/corpus_service.py` - Add validation/search
+- `src/tomos_service.py` - Add validation/search
 
 ### Phase 4: Migrate Existing Corpus
 
@@ -648,7 +648,7 @@ corpus.save_graph(entity)
 ### Phase 5: Update GUI Components
 
 **Tasks**:
-1. Update Organon to use CorpusService
+1. Update Organon to use TomosService
 2. Implement Ergasterion with history support
 3. Implement Agon with branch support
 
@@ -661,7 +661,7 @@ corpus.save_graph(entity)
 
 **Tasks**:
 1. Mark `integrated_corpus_manager.py` as deprecated
-2. Keep `corpus_index.py` utilities for backward compat
+2. Keep `tomos_index.py` utilities for backward compat
 3. Keep `entity_storage.py` utilities (used internally)
 4. Keep `history_persistence.py` (used internally)
 
@@ -670,12 +670,12 @@ corpus.save_graph(entity)
 ## Success Criteria
 
 ### Unified Model
-- [ ] Single `CorpusService` API
+- [ ] Single `TomosService` API
 - [ ] All operations use `GraphEntity` model
 - [ ] Consistent storage pattern across corpus
 
 ### Data Integrity
-- [ ] All existing corpus graphs validated
+- [ ] All existing tomos graphs validated
 - [ ] No data loss during migration
 - [ ] Round-trip save/load preserves all data
 
@@ -714,7 +714,7 @@ corpus.save_graph(entity)
 **Recommendation**: One canonical `<graph_id>.egi.json`, variants in `variants/` subdirectory
 
 ### Q4: Validation Results Storage
-**Current**: Not stored in corpus_index.py system  
+**Current**: Not stored in tomos_index.py system  
 **Question**: Should validation results be cached?  
 **Recommendation**: Cache in `<graph_id>.meta.json`, refresh on EGI change
 
@@ -729,7 +729,7 @@ corpus.save_graph(entity)
 
 ### Before Ergasterion/Agon Development:
 
-1. **Create CorpusService** (2-3 days)
+1. **Create TomosService** (2-3 days)
    - Implement Phase 1 (basic operations)
    - Test with existing corpus
 
@@ -742,16 +742,16 @@ corpus.save_graph(entity)
    - Create usage examples for Organon/Ergasterion/Agon
 
 4. **Update AGENTS.md** (1 hour)
-   - Document unified corpus model
+   - Document unified tomos model
    - Add to development guidelines
 
 **Total Estimated Time**: 1 week
 
 ### After Consolidation:
 
-- Proceed with Ergasterion development using CorpusService
-- Proceed with Agon development using CorpusService
-- Migrate existing tools to use CorpusService
+- Proceed with Ergasterion development using TomosService
+- Proceed with Agon development using TomosService
+- Migrate existing tools to use TomosService
 
 ---
 
@@ -759,7 +759,7 @@ corpus.save_graph(entity)
 
 **Current State**: Fragmented (4 overlapping systems)
 
-**Recommended State**: Unified CorpusService using GraphEntity model
+**Recommended State**: Unified TomosService using GraphEntity model
 
 **Key Benefits**:
 - ✅ Single API for all components
@@ -769,7 +769,7 @@ corpus.save_graph(entity)
 - ✅ Clear migration path
 
 **Blocking Issue for Ergasterion/Agon**: 
-Without unified corpus model, each component would need to pick a system and potentially fragment further.
+Without unified tomos model, each component would need to pick a system and potentially fragment further.
 
 **Recommendation**: 
 **Spend 1 week consolidating before proceeding** with Ergasterion/Agon development. This will prevent future integration problems and make development faster.

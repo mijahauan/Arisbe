@@ -20,9 +20,9 @@ from egi_io import load_egi_json
 
 
 def load_test_egi():
-    """Load a test EGI from the corpus for styling demonstration"""
+    """Load a test EGI from the tomos for styling demonstration"""
     
-    # Try to load a simple corpus graph
+    # Try to load a simple tomos graph
     corpus_dir = Path(__file__).parent.parent / 'corpus' / 'graphs'
     
     # Look for a simple graph to use as test case
@@ -35,14 +35,14 @@ def load_test_egi():
             if egi_files:
                 try:
                     egi = load_egi_json(str(egi_files[0]))
-                    print(f"   📁 Loaded corpus graph: {graph_name}")
+                    print(f"   📁 Loaded tomos graph: {graph_name}")
                     return egi
                 except Exception as e:
                     print(f"   ⚠️  Failed to load {graph_name}: {e}")
                     continue
     
-    # If no corpus graph available, create a minimal test case
-    print("   ⚠️  No corpus graphs available, creating minimal test case")
+    # If no tomos graph available, create a minimal test case
+    print("   ⚠️  No tomos graphs available, creating minimal test case")
     from egi_core_dau import create_empty_graph, create_vertex, create_edge
     
     egi = create_empty_graph()

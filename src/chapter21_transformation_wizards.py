@@ -708,7 +708,7 @@ Proceed with transformation? (Y/N):"""
         display += "=" * 50 + "\n\n"
         display += "Select source for subgraph insertion:\n\n"
         display += "1. From current graph (copy existing elements)\n"
-        display += "2. From corpus (select from saved graphs)\n"
+        display += "2. From tomos (select from saved graphs)\n"
         display += "3. Create new (specify structure manually)\n\n"
         display += "Enter your choice (1-3): "
         return display

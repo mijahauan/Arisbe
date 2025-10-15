@@ -264,7 +264,7 @@ def serialize_dto_for_comparison(dto):
 
 def test_golden_master_simple_graph():
     """Test layout stability for simple graph."""
-    egi = load_egi_json("corpus/simple_example.json")
+    egi = load_egi_json("tomos/simple_example.json")
     controller = DiagramController()
     controller.load_egi(egi)
     
@@ -289,9 +289,9 @@ def test_golden_master_simple_graph():
     )
 
 def test_golden_master_corpus():
-    """Test all corpus graphs against golden masters."""
+    """Test all tomos graphs against golden masters."""
     for corpus_file in Path("corpus").glob("*.json"):
-        # Load and test each corpus graph
+        # Load and test each tomos graph
         # Compare against golden master
         pass
 ```
@@ -300,7 +300,7 @@ def test_golden_master_corpus():
 - Simple graphs (1-2 vertices, 1 predicate)
 - Complex nested structures (3-4 levels of cuts)
 - Large graphs (10+ vertices)
-- All corpus examples (15 graphs)
+- All tomos examples (15 graphs)
 
 ---
 
@@ -372,7 +372,7 @@ def test_workflow_logical_proof():
 def test_workflow_aesthetic_adjustments():
     """Simulate user making multiple aesthetic adjustments."""
     controller = DiagramController()
-    egi = load_egi_json("corpus/complex_example.json")
+    egi = load_egi_json("tomos/complex_example.json")
     controller.load_egi(egi)
     
     initial_dto = controller.current_dto
@@ -448,14 +448,14 @@ Before GUI development begins, we should have:
 
 ### **Test Coverage Metrics:**
 - ✅ All 6 transformation rules tested in isolation
-- ✅ 15+ golden master tests (one per corpus graph + extras)
+- ✅ 15+ golden master tests (one per tomos graph + extras)
 - ✅ 10+ user workflow simulations
 - ✅ Controller unit tests with >90% code coverage (mocked)
 - ✅ Style integration tests covering major variations
 
 ### **Quality Metrics:**
 - ✅ 100% of tests passing
-- ✅ Golden masters established for all corpus graphs
+- ✅ Golden masters established for all tomos graphs
 - ✅ No regressions detected
 - ✅ All realistic user workflows validated
 
@@ -498,7 +498,7 @@ tests/
 If we want to move forward with GUI but mitigate risk, implement **at minimum**:
 
 1. **Golden Master Tests** (1-2 days)
-   - Create golden masters for 15 corpus graphs
+   - Create golden masters for 15 tomos graphs
    - Detect layout regressions automatically
 
 2. **Basic User Workflow Tests** (1 day)

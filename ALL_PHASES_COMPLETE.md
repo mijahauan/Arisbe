@@ -129,7 +129,7 @@ path = pathfinder.smooth_path(path)
 7. `ALL_PHASES_COMPLETE.md` - This comprehensive summary ✅
 
 ### **Testing**
-8. `test_refactored_corpus.py` - Corpus validation script ✅
+8. `test_refactored_corpus.py` - Tomos validation script ✅
 
 ---
 
@@ -199,8 +199,8 @@ test_smoothing_removes_collinear()
 test_smoothing_preserves_corners()
 ```
 
-### **Corpus Validation**
-- Test all 15 corpus graphs
+### **Tomos Validation**
+- Test all 15 tomos graphs
 - Verify no ligature-obstacle collisions
 - Check cross-area paths use ports correctly
 - Validate path smoothness
@@ -390,4 +390,4 @@ Your architectural analysis was exceptional. The four critical flaws you identif
 
 ---
 
-**Next**: Test with full corpus in Organon and enjoy the improved layout quality! 🎉
+**Next**: Test with full tomos in Organon and enjoy the improved layout quality! 🎉

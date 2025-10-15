@@ -12,7 +12,7 @@ from definitive_three_pass_engine import DefinitiveThreePassEngine
 
 def main():
     """Test on a few graphs with debug output."""
-    storage = EntityStorageManager(Path('corpus/graphs'))
+    storage = EntityStorageManager(Path('tomos/graphs'))
     engine = DefinitiveThreePassEngine()
     
     output_dir = Path('test_outputs/definitive_three_pass')

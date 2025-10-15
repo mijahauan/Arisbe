@@ -256,14 +256,14 @@ class CoherenceMaintenanceSystem:
         return violations
 
     def validate_corpus_integration(self, rule: IntegrationRule) -> List[str]:
-        """Validate corpus manager integration."""
+        """Validate tomos manager integration."""
         violations = []
 
         corpus_file = os.path.join(self.project_root, "src", "corpus_integration.py")
         gui_files = self._find_gui_files()
 
         if os.path.exists(corpus_file) and gui_files:
-            # Check if corpus manager is used in any GUI file
+            # Check if tomos manager is used in any GUI file
             connected = False
             for gui_file in gui_files:
                 if self._files_are_connected(corpus_file, gui_file):

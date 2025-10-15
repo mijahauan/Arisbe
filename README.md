@@ -155,7 +155,7 @@ Arisbe features a unified architecture built around three core integrated manage
 - Centralized EGI library management with Dau formalism compliance
 - Multi-format support (EGIF, CGIF, CLIF, FOPL, JSON)
 - Advanced search, categorization, and quality metrics
-- Educational corpus organization and validation
+- Educational tomos organization and validation
 
 **IntegratedViewManager** (`src/integrated_view_manager.py`)
 - Unified view generation system for all visualization needs
@@ -194,7 +194,7 @@ The system is built around the integrated management system with mathematically 
 
 **Integrated Management Layer:**
 - **CoreDauFormalismManager**: Central coordination of all mathematical operations
-- **IntegratedCorpusManager**: Validated corpus management with search and categorization
+- **IntegratedCorpusManager**: Validated tomos management with search and categorization
 - **IntegratedViewManager**: Unified view generation with caching and export
 - **IntegratedExportManager**: Multi-format export with quality guarantees
 - **CoherenceRegistry**: Component discovery and documentation system
@@ -213,7 +213,7 @@ The system is built around the integrated management system with mathematically 
 
 **Integrated Management System:**
 - **Core Manager**: `src/core_dau_formalism.py` (Central coordination hub)
-- **Corpus Manager**: `src/integrated_corpus_manager.py` (EGI library management)
+- **Tomos Manager**: `src/integrated_corpus_manager.py` (EGI library management)
 - **View Manager**: `src/integrated_view_manager.py` (Unified visualization)
 - **Export Manager**: `src/integrated_export_manager.py` (Multi-format export)
 - **Coherence Registry**: `src/coherence_registry.py` (Component discovery)
@@ -266,8 +266,8 @@ The system is built around the integrated management system with mathematically 
   - GUI/rendering: `qt_egi_gui.py`, `arisbe_unified_app.py`, `routing/visibility_router.py`, `styling/style_manager.py`, `export/tikz_exporter.py`, `controller/constraint_engine.py`
   - Legacy/demo: `qt_test_minimal.py`, `qt_correspondence_integration.py`, `spatial_logical_alignment.py`, `corpus_egi_test.py`
 - `tools/`: interactive sandbox and converters (`drawing_editor.py`, `drawing_to_egi.py`, etc.)
-- `docs/`: derived corpus text, references, examples, styles
-- `corpus/`: canonical and challenging examples
+- `docs/`: derived tomos text, references, examples, styles
+- `tomos/`: canonical and challenging examples
 - `tests/`: comprehensive unit/integration tests
 
 ## Current State
@@ -282,7 +282,7 @@ The system is built around the integrated management system with mathematically 
 - Hierarchical indexing for efficient cut nesting and polarity
 
 **Integrated Management System:**
-- IntegratedCorpusManager: Complete corpus management with validation
+- IntegratedCorpusManager: Complete tomos management with validation
 - IntegratedViewManager: Unified view generation and caching
 - IntegratedExportManager: Multi-format export with quality guarantees
 - CoreDauFormalismManager: Central coordination of all operations
@@ -292,7 +292,7 @@ The system is built around the integrated management system with mathematically 
 - **Core Tests**: 90/90 tests passing (100%) - Mathematical foundation validated
 - **GUI Tests**: 3/3 Organon tests passing (100%)
 - **Quality Gates**: All passing with core protection active
-- **Layout Engine**: Validated on 15-graph corpus with stable results
+- **Layout Engine**: Validated on 15-graph tomos with stable results
 - Comprehensive test suites covering logical equivalence and transformation soundness
 - Coherence framework with automated validation and API documentation
 - CI/CD pipeline with canonical invariant testing
@@ -484,7 +484,7 @@ python tests/coherence_integration.py
 ### For Students & Educators
 - Interactive tutorials showing EG transformations step-by-step
 - Visual comparison between different logical representations
-- Educational corpus with graded examples
+- Educational tomos with graded examples
 - Assignment creation with automatic validation
 
 ### For Software Developers
@@ -494,7 +494,7 @@ python tests/coherence_integration.py
 - RESTful APIs for web-based applications
 
 ### For Knowledge Engineers
-- Large-scale corpus management with search and categorization
+- Large-scale tomos management with search and categorization
 - Quality metrics and validation reporting
 - System integration with knowledge bases and theorem provers
 - Bridge between diagrammatic and symbolic reasoning
@@ -507,7 +507,7 @@ python tests/coherence_integration.py
 - **Import Resolution**: Fix remaining dependency issues for full system stability
 
 ### Short-term Goals (Q1 2026)
-- **Organon Browser**: Read-only corpus browser with canonical views
+- **Organon Browser**: Read-only tomos browser with canonical views
 - **Ergasterion Workshop**: Interactive editor with practice modes
 - **CLI Tools**: Command-line interface for batch operations
 

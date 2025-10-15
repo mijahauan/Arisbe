@@ -19,7 +19,7 @@ from graphviz_svg_renderer import GraphvizSVGRenderer
 # Test graphs
 test_graphs = ['peirce_modus_ponens', 'mixed_quantifier_complex', 'dau_2006_p112_ligature']
 
-storage = EntityStorageManager(Path('corpus/graphs'))
+storage = EntityStorageManager(Path('tomos/graphs'))
 layout_engine = DefinitiveEGILayoutEngine()
 style = StyleLoader().load_default_style()
 renderer = GraphvizSVGRenderer()

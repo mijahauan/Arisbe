@@ -73,7 +73,7 @@ class StyleSpecification(TypedDict):
 ```
 🎨 TESTING STYLED EGI LAYOUT ENGINE
 ==================================================
-   📁 Loaded corpus graph: sowa_cat_on_mat
+   📁 Loaded tomos graph: sowa_cat_on_mat
 ✅ Loaded test EGI: 2 vertices, 3 edges, 0 cuts
 
 🧪 Test 1: Default Dau Treatise Style ✅
@@ -200,6 +200,6 @@ The Styled EGI Layout Engine successfully implements a "smart engine, simple spe
 4. **Enables polarity-based rendering** following Dau's formalism
 5. **Includes annotation system** for enhanced educational diagrams
 
-The refactoring preserves all the excellent performance characteristics of the original definitive engine (97.6% layout quality, 93.3% corpus success rate) while adding comprehensive styling capabilities that make EGI diagrams more accessible and visually appealing.
+The refactoring preserves all the excellent performance characteristics of the original definitive engine (97.6% layout quality, 93.3% tomos success rate) while adding comprehensive styling capabilities that make EGI diagrams more accessible and visually appealing.
 
 **The styled layout engine is now production-ready for academic, educational, and research applications!** 🚀

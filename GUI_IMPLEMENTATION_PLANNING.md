@@ -9,7 +9,7 @@
 ## 📋 EXECUTIVE SUMMARY
 
 We have three major functional areas to implement:
-1. **Organon**: Exploration & corpus management (read-only visualization)
+1. **Organon**: Exploration & tomos management (read-only visualization)
 2. **Ergasterion**: Composition, editing, and practice (interactive authoring)
 3. **Agon**: Formal reasoning & Endoporeutic Game (gameplay/validation)
 
@@ -21,7 +21,7 @@ We have three major functional areas to implement:
 
 ## 🎯 THE THREE AREAS: DETAILED BREAKDOWN
 
-### **1. ORGANON** (Exploration & Corpus Management)
+### **1. ORGANON** (Exploration & Tomos Management)
 
 **Purpose**: Navigate, examine, and organize existing knowledge structures
 
@@ -35,7 +35,7 @@ We have three major functional areas to implement:
 
 **Core Components Needed**:
 ```
-├── Corpus Browser (Tree/List view)
+├── Tomos Browser (Tree/List view)
 ├── Diagram Viewer (Read-only canvas)
 ├── Metadata Panel (Properties display)
 ├── Export Dialog (Format selection)
@@ -50,7 +50,7 @@ We have three major functional areas to implement:
 
 **Complexity**: 🟢 **LOW** - Mostly display logic, no state mutations
 
-**Dependencies**: SVG renderer, corpus storage system
+**Dependencies**: SVG renderer, tomos storage system
 
 ---
 
@@ -75,7 +75,7 @@ We have three major functional areas to implement:
 ├── Properties Panel (Element configuration)
 ├── Style Selector (Theme chooser)
 ├── Undo/Redo Controls (History navigation)
-└── Save Dialog (Corpus integration)
+└── Save Dialog (Tomos integration)
 ```
 
 **DiagramController Integration**:
@@ -181,7 +181,7 @@ Arisbe Agon (standalone app)
 #### **Specialized Components**
 
 **Organon-Specific**:
-- Corpus browser/search
+- Tomos browser/search
 - History timeline
 - Export wizard
 - Read-only canvas
@@ -224,7 +224,7 @@ Outcome: Can load EGI and see it rendered
 Goal: Full read-only exploration
 
 Add:
-├── Corpus Browser
+├── Tomos Browser
 ├── Navigation controls (pan/zoom)
 ├── Metadata display
 ├── Search functionality
@@ -440,7 +440,7 @@ Agon (multiple hypotheses) → Agon (compare) → Organon (export paper)
 1. **Existing GUI Code**: Check `src/gui/` directory
 2. **Qt Integration**: Any existing PyQt code?
 3. **Canvas Implementations**: Prior diagram display code?
-4. **Corpus Management**: Storage/retrieval systems?
+4. **Tomos Management**: Storage/retrieval systems?
 5. **Export Systems**: LaTeX, SVG generation?
 
 ### **What We Already Have** ✅
@@ -526,7 +526,7 @@ Agon (multiple hypotheses) → Agon (compare) → Organon (export paper)
 **We should investigate**:
 - Existing GUI code
 - Qt setup and dependencies
-- Corpus storage system
+- Tomos storage system
 - Export infrastructure
 
 **Recommendation**: Let's review existing GUI code first, then make informed decisions about framework and approach.

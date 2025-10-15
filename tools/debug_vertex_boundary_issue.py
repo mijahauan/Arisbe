@@ -12,7 +12,7 @@ from entity_storage import EntityStorageManager
 from definitive_egi_layout_engine import DefinitiveEGILayoutEngine
 from style_loader import StyleLoader
 
-storage = EntityStorageManager(Path('corpus/graphs'))
+storage = EntityStorageManager(Path('tomos/graphs'))
 entity = storage.load_entity('shared_constant_disjunction')
 egi = entity.current_egi
 

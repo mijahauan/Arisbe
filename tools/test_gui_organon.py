@@ -21,8 +21,8 @@ def test_imports():
     from gui_clean.common.diagram_canvas import DiagramCanvas
     print("  ✅ DiagramCanvas")
     
-    from gui_clean.organon.corpus_browser import CorpusBrowserWidget
-    print("  ✅ CorpusBrowserWidget")
+    from gui_clean.organon.tomos_browser import TomosBrowserWidget
+    print("  ✅ TomosBrowserWidget")
     
     from gui_clean.organon.organon_mode import OrganonMode
     print("  ✅ OrganonMode")
@@ -35,8 +35,8 @@ def test_imports():
 
 
 def test_corpus_access():
-    """Test corpus access."""
-    print("🔍 Testing corpus access...")
+    """Test tomos access."""
+    print("🔍 Testing tomos access...")
     
     from entity_storage import EntityStorageManager
     from pathlib import Path
@@ -102,7 +102,7 @@ def main():
     
     tests = [
         ("Imports", test_imports),
-        ("Corpus Access", test_corpus_access),
+        ("Tomos Access", test_corpus_access),
         ("DiagramController", test_diagram_controller),
     ]
     

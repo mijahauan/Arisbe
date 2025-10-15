@@ -168,12 +168,12 @@ Arisbe is a sophisticated system for creating, editing, and analyzing Existentia
 
 #### 1. ORGANON (Ὄργανον) - "Tool/Instrument"
 **Location**: `src/organon/main_window.py`
-**Purpose**: Knowledge corpus management and graph origination
+**Purpose**: Knowledge tomos management and graph origination
 
 **Core Functions**:
 - Linear form parsing (EGIF, CGIF, CLIF) into canonical EGI
 - Graph origination for new diagram development
-- Corpus storage in JSON/YAML formats
+- Tomos storage in JSON/YAML formats
 - Metadata management and editing
 - Read-only visualization of EG diagrams
 - Universe of Discourse views ("moving pictures of thought")
@@ -268,7 +268,7 @@ Arisbe is a sophisticated system for creating, editing, and analyzing Existentia
    - Include style references
    - Generate content hashes
 3. **File Output**: Write modular or bundled EGDF format
-4. **Corpus Integration**: Update corpus index if saving to collection
+4. **Tomos Integration**: Update tomos index if saving to collection
 
 #### Handoff to Organon:
 1. **Export Package**: Create GraphHandoffPackage with EGDF data

@@ -34,7 +34,7 @@ from diagram_controller import DiagramController
 from egi_core_dau import RelationalGraphWithCuts
 from egi_io import load_egi_json
 from egif_generator_dau import generate_egif
-from corpus_service import CorpusService
+from tomos_service import TomosService
 from universe_of_discourse import (
     UniverseOfDiscourse,
     UoDMetadata,
@@ -67,9 +67,9 @@ class ErgasterionMode(QWidget):
         self._current_file: Optional[Path] = None
         self._current_uod: Optional[UniverseOfDiscourse] = None  # Current practice session
         
-        # Initialize CorpusService
-        corpus_root = Path(__file__).parent.parent.parent.parent / "corpus"
-        self.corpus = CorpusService(corpus_root)
+        # Initialize TomosService
+        tomos_root = Path(__file__).parent.parent.parent.parent / "tomos"
+        self.tomos = TomosService(tomos_root)
         
         self._setup_ui()
         self._connect_signals()
@@ -149,11 +149,11 @@ class ErgasterionMode(QWidget):
         
         toolbar_layout.addStretch()
         
-        # Save to Corpus
-        self.save_to_corpus_btn = QPushButton("💾 Save to Corpus")
+        # Save to Tomos
+        self.save_to_corpus_btn = QPushButton("💾 Save to Tomos")
         self.save_to_corpus_btn.clicked.connect(self._on_save_to_corpus)
         self.save_to_corpus_btn.setEnabled(False)
-        self.save_to_corpus_btn.setToolTip("Save practice session to corpus")
+        self.save_to_corpus_btn.setToolTip("Save practice session to tomos")
         toolbar_layout.addWidget(self.save_to_corpus_btn)
         
         # Return to Organon
@@ -453,7 +453,7 @@ class ErgasterionMode(QWidget):
         self._show_status("Redo: Not yet implemented")
     
     def _on_save_to_corpus(self):
-        """Save current practice session to corpus."""
+        """Save current practice session to tomos."""
         if not self._current_uod:
             QMessageBox.warning(
                 self,
@@ -482,7 +482,7 @@ class ErgasterionMode(QWidget):
             
             # Save to corpus
             try:
-                self.corpus.save_uod(self._current_uod)
+                self.tomos.save_uod(self._current_uod)
                 self._show_status(f"Saved practice session: {self._current_uod.name}")
                 
                 # Offer to promote to historical
@@ -497,14 +497,14 @@ class ErgasterionMode(QWidget):
                 
                 if reply == QMessageBox.StandardButton.Yes:
                     self._current_uod.promote_to_historical("Initial practice state")
-                    self.corpus.save_uod(self._current_uod)
+                    self.tomos.save_uod(self._current_uod)
                     self._show_status(f"Promoted to historical: {self._current_uod.name}")
                     
             except Exception as e:
                 QMessageBox.critical(
                     self,
                     "Error Saving",
-                    f"Failed to save to corpus:\n\n{str(e)}"
+                    f"Failed to save to tomos:\n\n{str(e)}"
                 )
     
     def _on_return_to_organon(self):
@@ -514,7 +514,7 @@ class ErgasterionMode(QWidget):
             reply = QMessageBox.question(
                 self,
                 "Save Before Returning?",
-                "Do you want to save this practice session to the corpus?",
+                "Do you want to save this practice session to the tomos?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
             )
             

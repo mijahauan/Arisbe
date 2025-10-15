@@ -1,9 +1,9 @@
-# Corpus Research Findings from References
+# Tomos Research Findings from References
 
 ## Overview
 This document captures examples and patterns found in the reference materials for expanding the Arisbe corpus.
 
-## Current Corpus Status
+## Current Tomos Status
 - **Existing entries**: 5 examples
   - 1 canonical (canonical_implication)
   - 1 Peirce primary (peirce_cp_4_394_man_mortal)
@@ -42,7 +42,7 @@ This document captures examples and patterns found in the reference materials fo
 3. **Sowa**: EGIF specification - modern interpretations
 4. **Mathematical Logic with Diagrams**: formal system development
 
-## Patterns for Corpus Expansion
+## Patterns for Tomos Expansion
 
 ### Alpha Level Examples Needed:
 1. **Simple Assertions**: Basic predicate statements
@@ -162,7 +162,7 @@ This document captures examples and patterns found in the reference materials fo
 #### Ligatures Semiotica v2.pdf  
 **Status**: Need to examine for line of identity examples
 
-## Priority Examples for Corpus Expansion
+## Priority Examples for Tomos Expansion
 
 ### Immediate Additions (Alpha Level):
 1. **Simple Assertion**: "A pear is ripe"
@@ -184,7 +184,7 @@ This document captures examples and patterns found in the reference materials fo
 3. **Abstractions**: Lambda-like constructs
 4. **Tinctured Graphs**: From Roberts Chapter 6
 
-## Corpus Entry Format Requirements
+## Tomos Entry Format Requirements
 
 Based on existing `peirce_cp_4_394_man_mortal.egrf`:
 

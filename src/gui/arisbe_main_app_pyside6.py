@@ -57,9 +57,9 @@ from chapter21_transformation_wizards import (
 )
 from clif_generator_dau import generate_clif
 
-# Import corpus management
-# Import corpus management
-from corpus_index import CorpusEntry, graph_paths, list_entries, load_index, read_info
+# Import tomos management
+# Import tomos management
+from tomos_index import CorpusEntry, graph_paths, list_entries, load_index, read_info
 
 # Import linear forms generation
 from egi_core_dau import RelationalGraphWithCuts
@@ -155,7 +155,7 @@ class LinearFormDisplay(QWidget):
 
 
 class OrganonTab(QWidget):
-    """Library/Browser tab for exploring the corpus."""
+    """Library/Browser tab for exploring the tomos."""
 
     egi_selected = Signal(object, str)  # EGI data, title
     transfer_to_ergasterion = Signal(object, str)  # EGI data, title
@@ -173,7 +173,7 @@ class OrganonTab(QWidget):
         layout.setSpacing(5)
 
         # Compact header
-        header = QLabel("📚 Organon - Corpus Library")
+        header = QLabel("📚 Organon - Tomos Library")
         header.setFont(QFont("Arial", 12, QFont.Bold))
         header.setMaximumHeight(30)
         layout.addWidget(header)
@@ -188,7 +188,7 @@ class OrganonTab(QWidget):
         left_layout.setContentsMargins(5, 5, 5, 5)
         left_layout.setSpacing(3)
 
-        browse_label = QLabel("Browse Corpus:")
+        browse_label = QLabel("Browse Tomos:")
         browse_label.setMaximumHeight(20)
         left_layout.addWidget(browse_label)
 
@@ -244,9 +244,9 @@ class OrganonTab(QWidget):
         splitter.setSizes([280, 820])
 
     def load_corpus_data(self):
-        """Load corpus data from index into tree widget."""
+        """Load tomos data from index into tree widget."""
         try:
-            # Load corpus index
+            # Load tomos index
             index = load_index()
             entries = list_entries(index)
 
@@ -290,7 +290,7 @@ class OrganonTab(QWidget):
                 cat_item.setExpanded(True)
 
         except Exception as e:
-            print(f"Could not load corpus data: {e}")
+            print(f"Could not load tomos data: {e}")
             # Add error item
             error_item = QTreeWidgetItem(self.egi_tree)
             error_item.setText(0, f"Error loading corpus: {e}")
@@ -469,13 +469,13 @@ class OrganonTab(QWidget):
 
     def receive_from_ergasterion(self, egi_data, title):
         """Receive transformed EGI from Ergasterion for saving."""
-        # Add the transformed EGI to the corpus data
+        # Add the transformed EGI to the tomos data
         # For now, just show a confirmation - in full implementation this would save to corpus
         QMessageBox.information(
             self,
             "EGI Received",
             f"Transformed EGI '{title}' received from Ergasterion.\n\n"
-            f"In full implementation, this would be saved to the corpus with transformation history.",
+            f"In full implementation, this would be saved to the tomos with transformation history.",
         )
 
 

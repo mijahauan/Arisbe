@@ -47,14 +47,14 @@ Arisbe implements a three-module architecture reflecting the complete cycle of l
 - **Interactive Demos**: Web-based EGI explorers
 - **Data Exchange**: Standard formats for tool interoperability
 
-#### g) Corpus Organization
+#### g) Tomos Organization
 - **Universe Index**: Catalog of EGI universes of discourse
 - **Search and Filter**: Find EGIs by content, structure, or metadata
 - **Collections**: Thematic groupings of related EGIs
 - **Version Management**: Track evolution of EGI families
 
 ### UI Components
-- **Navigator Panel**: Tree view of corpus structure
+- **Navigator Panel**: Tree view of tomos structure
 - **Timeline Viewer**: Interactive history visualization
 - **Metadata Editor**: Rich text and structured data entry
 - **Export Wizard**: Guided generation of output products
@@ -198,7 +198,7 @@ Contingent → Accept as Hypothesis → Inductive Phase OR New Hypothesis
 
 ### Phase 3: Organon Development
 - History visualization system
-- Corpus management interface
+- Tomos management interface
 - Export and rendering pipeline
 - Metadata and annotation systems
 

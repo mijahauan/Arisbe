@@ -1,5 +1,5 @@
 """
-Corpus Panel for Organon - provides browsing interface for graph collections.
+Tomos Panel for Organon - provides browsing interface for graph collections.
 """
 
 import json
@@ -27,7 +27,7 @@ from PySide6.QtWidgets import (
 
 class CorpusPanel(QWidget):
     """
-    Panel for browsing and managing graph corpus.
+    Panel for browsing and managing graph tomos.
     Provides tree view of collections and individual graphs.
     """
 
@@ -43,15 +43,15 @@ class CorpusPanel(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.corpus_path = "corpus"
-        self.index_path = "corpus/index.json"
+        self.tomos_path = "corpus"
+        self.index_path = "tomos/index.json"
         self.current_graphs = {}
 
         self._setup_ui()
         self._load_corpus()
 
     def _setup_ui(self):
-        """Set up the corpus browsing interface."""
+        """Set up the tomos browsing interface."""
         layout = QVBoxLayout(self)
 
         # Search bar
@@ -67,7 +67,7 @@ class CorpusPanel(QWidget):
         layout.addWidget(splitter)
 
         # Left panel: Graph tree
-        left_panel = QGroupBox("Corpus Browser")
+        left_panel = QGroupBox("Tomos Browser")
         left_layout = QVBoxLayout(left_panel)
 
         self.graph_tree = QTreeWidget()
@@ -109,14 +109,14 @@ class CorpusPanel(QWidget):
         splitter.setSizes([400, 300])
 
     def _load_corpus(self):
-        """Load corpus from index.json file."""
+        """Load tomos from index.json file."""
         self.graph_tree.clear()
         self.current_graphs.clear()
 
         import os
 
         if not os.path.exists(self.index_path):
-            print(f"Corpus index not found at {self.index_path}")
+            print(f"Tomos index not found at {self.index_path}")
             return
 
         try:
@@ -145,7 +145,7 @@ class CorpusPanel(QWidget):
                 self.graph_tree.addTopLevelItem(item)
 
         except Exception as e:
-            print(f"Failed to load corpus index: {e}")
+            print(f"Failed to load tomos index: {e}")
 
     def _get_graph_type_from_entry(self, entry: Dict[str, Any]) -> str:
         """Determine graph type from index entry."""
@@ -215,7 +215,7 @@ class CorpusPanel(QWidget):
             # Emit entry_selected signal for Organon main_window compatibility
             entry_data = {
                 "id": graph_id,
-                "path": graph_data.get("path", f"corpus/graphs/{graph_id}"),
+                "path": graph_data.get("path", f"tomos/graphs/{graph_id}"),
                 "title": graph_data.get("title", graph_id),
             }
             self.entry_selected.emit(entry_data)
@@ -291,11 +291,11 @@ class CorpusPanel(QWidget):
         return self.current_graphs.get(graph_id)
 
     def refresh_corpus(self):
-        """Refresh the corpus display."""
+        """Refresh the tomos display."""
         self._load_corpus()
 
     def add_graph_to_index(self, graph_id: str, title: str, path: str):
-        """Add a new graph entry to the corpus index."""
+        """Add a new graph entry to the tomos index."""
         try:
             # Load current index
             import os
@@ -339,10 +339,10 @@ class CorpusPanel(QWidget):
             self._load_corpus()
 
         except Exception as e:
-            print(f"Failed to update corpus index: {e}")
+            print(f"Failed to update tomos index: {e}")
 
     def populate(self, entries: List[Dict[str, Any]]):
-        """Populate corpus panel with entries (for Organon main_window compatibility)."""
+        """Populate tomos panel with entries (for Organon main_window compatibility)."""
         self.graph_tree.clear()
         self.current_graphs.clear()
 

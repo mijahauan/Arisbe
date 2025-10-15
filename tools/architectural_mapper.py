@@ -128,10 +128,10 @@ class ArchitecturalMapper:
                 ],
             },
             "corpus_integration": {
-                "purpose": "Corpus management and persistence",
+                "purpose": "Tomos management and persistence",
                 "responsibilities": [
                     "Graph storage and retrieval",
-                    "Corpus indexing",
+                    "Tomos indexing",
                     "File system integration",
                     "Metadata management",
                 ],

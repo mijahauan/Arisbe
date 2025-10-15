@@ -18,7 +18,7 @@ def test_deterministic_seeding():
     print("DETERMINISTIC SEEDING TEST")
     print("="*70)
     
-    storage = EntityStorageManager(Path("corpus/graphs"))
+    storage = EntityStorageManager(Path("tomos/graphs"))
     entity = storage.load_entity("peirce_modus_ponens")
     egi = entity.current_egi
     style = StyleLoader().load_default_style()
@@ -69,7 +69,7 @@ def test_different_seeds():
     print("DIFFERENT SEEDS TEST")
     print("="*70)
     
-    storage = EntityStorageManager(Path("corpus/graphs"))
+    storage = EntityStorageManager(Path("tomos/graphs"))
     entity = storage.load_entity("peirce_modus_ponens")
     egi = entity.current_egi
     style = StyleLoader().load_default_style()

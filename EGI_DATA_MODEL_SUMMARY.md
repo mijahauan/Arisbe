@@ -44,7 +44,7 @@ class RelationalGraphWithCuts:
 
 ### **JSON Format** (Primary Storage)
 
-**Location**: `corpus/graphs/[graph_name]/[graph_name].egi.json`
+**Location**: `tomos/graphs/[graph_name]/[graph_name].egi.json`
 
 **Schema**:
 ```json
@@ -100,9 +100,9 @@ egi = load_egi_json("path/to/file.json")
 ### **Directory Structure**
 
 ```
-corpus/
+tomos/
 ├── index.json                    # Corpus-wide metadata index
-├── README.md                     # Corpus documentation
+├── README.md                     # Tomos documentation
 └── graphs/                       # Individual graph directories
     ├── peirce_cp_4_394_man_mortal/
     │   ├── peirce_cp_4_394_man_mortal.egi.json  # EGI data
@@ -122,7 +122,7 @@ corpus/
 5. **Theorem Proving** - Complex mathematical proofs
 6. **Domain Modeling** - Real-world application examples
 
-### **Current Corpus Size**
+### **Current Tomos Size**
 
 - **~30+ graphs** in various stages of development
 - Each graph has:
@@ -159,7 +159,7 @@ egi = parse_egif(egif)
 ```python
 from egi_io import load_egi_json
 
-egi = load_egi_json("corpus/graphs/example/example.egi.json")
+egi = load_egi_json("tomos/graphs/example/example.egi.json")
 ```
 
 ### **2. Manipulation**
@@ -236,14 +236,14 @@ svg_content = renderer.render_to_svg(dto)
 ```python
 from egi_io import save_egi_json
 
-save_egi_json(egi, "corpus/graphs/my_graph/my_graph.egi.json")
+save_egi_json(egi, "tomos/graphs/my_graph/my_graph.egi.json")
 ```
 
-**Corpus Integration**:
-1. Create graph directory: `corpus/graphs/my_graph/`
+**Tomos Integration**:
+1. Create graph directory: `tomos/graphs/my_graph/`
 2. Save EGI: `my_graph.egi.json`
 3. Create subdirectories: `EGDF/`, `EXPORTS/`
-4. Update `corpus/index.json` with metadata
+4. Update `tomos/index.json` with metadata
 
 ---
 
@@ -312,7 +312,7 @@ class DiagramController:
 
 ## 📊 METADATA & INDEXING
 
-### **Corpus Index** (`corpus/index.json`)
+### **Tomos Index** (`tomos/index.json`)
 
 ```json
 {
@@ -396,7 +396,7 @@ EGI → Layout → Display  (deterministic)
 
 ```python
 # Load from corpus
-egi = load_egi_json("corpus/graphs/example/example.egi.json")
+egi = load_egi_json("tomos/graphs/example/example.egi.json")
 
 # Display via DiagramController
 controller.load_egi(egi)
@@ -422,7 +422,7 @@ success = controller.apply_formal_rule('DC+', [v_id, e_id], area_id)
 
 # Save modified EGI
 modified_egi = controller.get_egi_model()
-save_egi_json(modified_egi, "corpus/graphs/modified/modified.egi.json")
+save_egi_json(modified_egi, "tomos/graphs/modified/modified.egi.json")
 ```
 
 ### **Agon Mode** (Game)
@@ -439,7 +439,7 @@ outcome = analyze_egi(controller.get_egi_model())  # Contingent/Tautology/Contra
 
 # Archive result
 if outcome == "contingent":
-    save_egi_json(controller.get_egi_model(), f"corpus/hypotheses/{id}.egi.json")
+    save_egi_json(controller.get_egi_model(), f"tomos/hypotheses/{id}.egi.json")
 ```
 
 ---
@@ -452,9 +452,9 @@ if outcome == "contingent":
 - Self-contained, no external dependencies
 
 ### **How is it stored?**
-- Primary: JSON files in `corpus/graphs/`
+- Primary: JSON files in `tomos/graphs/`
 - Structure: Nested directories per graph
-- Metadata: `corpus/index.json` for corpus-wide indexing
+- Metadata: `tomos/index.json` for corpus-wide indexing
 
 ### **How is it manipulated?**
 - Immutable operations (`.with_*()` methods)

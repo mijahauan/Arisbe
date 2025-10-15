@@ -62,7 +62,7 @@ def debug_calc_path(self, vertex, edge_label, target_port, area_grid, grid_bound
 DefinitiveEGILayoutEngine._calculate_area_aware_path_to_port = debug_calc_path
 
 # Test
-storage = EntityStorageManager(Path('corpus/graphs'))
+storage = EntityStorageManager(Path('tomos/graphs'))
 layout_engine = DefinitiveEGILayoutEngine()
 style_loader = StyleLoader()
 style = style_loader.load_default_style()

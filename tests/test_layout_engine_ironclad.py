@@ -2,7 +2,7 @@
 Comprehensive tests for Iron-Clad Layout Engine
 
 Tests the production-ready layout engine that guarantees spatial-logical correspondence
-with no break points. Validates against complete Arisbe corpus.
+with no break points. Validates against complete Arisbe tomos.
 """
 
 import unittest
@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from layout_engine_ironclad import LayoutEngineIronClad, LayoutDTO
 from egif_parser_dau import parse_egif
-from corpus_index import load_index
+from tomos_index import load_index
 import json
 
 
@@ -136,7 +136,7 @@ class TestLayoutEngineIronClad(unittest.TestCase):
         try:
             corpus_index = load_index()
         except:
-            self.skipTest("Corpus index not available")
+            self.skipTest("Tomos index not available")
         
         success_count = 0
         total_count = 0

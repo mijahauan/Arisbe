@@ -50,7 +50,7 @@ class FormalTransformationRule:
 **Integration Points**:
 - Connect to transformation validation pipeline
 - Use for soundness verification in GUI
-- Integrate with corpus validation
+- Integrate with tomos validation
 
 ### Phase 3: Unify Data Persistence Models (MEDIUM PRIORITY)
 
@@ -63,7 +63,7 @@ class FormalTransformationRule:
 
 **Solution**: Create unified `HistoryManager` that all systems use
 
-#### 3.2 Integrate Corpus Management
+#### 3.2 Integrate Tomos Management
 **Problem**: `CorpusManager` and related classes have no integration
 **Solution**:
 - Connect to GUI `Organon` tab
@@ -113,7 +113,7 @@ class LegacyPolarityAdapter:
 1. **Week 1**: Standardize polarity interfaces
 2. **Week 2**: Connect Dau theorem tests
 3. **Week 3**: Unify history systems
-4. **Week 4**: Integrate corpus management
+4. **Week 4**: Integrate tomos management
 
 ## Coherence Maintenance System
 

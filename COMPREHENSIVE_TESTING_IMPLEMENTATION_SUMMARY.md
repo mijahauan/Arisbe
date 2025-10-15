@@ -38,7 +38,7 @@ We have successfully implemented comprehensive test suites for all the major unt
 - End-to-end workflow testing
 
 **Key Tests:**
-- `test_corpus_manager_add_and_retrieve_egi()` - Full corpus workflow
+- `test_corpus_manager_add_and_retrieve_egi()` - Full tomos workflow
 - `test_export_manager_all_formats()` - Multi-format export validation
 - `test_view_manager_generate_all_view_types()` - Complete view generation
 - `test_integration_manager_workflow()` - End-to-end integration

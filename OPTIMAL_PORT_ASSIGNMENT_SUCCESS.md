@@ -170,7 +170,7 @@ Result: Complex multi-arity predicate handled perfectly
 ### **Developer Experience**
 - **Automatic optimization**: No API changes required
 - **Transparent enhancement**: Existing code gets better results automatically
-- **Comprehensive testing**: Validated with real corpus graphs
+- **Comprehensive testing**: Validated with real tomos graphs
 - **Robust implementation**: Handles edge cases gracefully
 
 ### **Mathematical Integrity**

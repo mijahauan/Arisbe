@@ -30,7 +30,7 @@ Use these - production quality
 
 Safe to use - stable implementations
 
-- **`src/gui_clean/organon/ - Corpus browsing and visualization`**
+- **`src/gui_clean/organon/ - Tomos browsing and visualization`**
 - **`src/gui_clean/ergasterion/ - Interactive editing mode`**
 - **`src/formal_transformation_rules.py - DC±, INS/ERA, IT± (PROTECTED)`**
 - **`src/qt_diagram_renderer.py - Dau-compliant SVG rendering`**

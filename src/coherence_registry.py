@@ -323,7 +323,7 @@ class CoherenceRegistry:
                 name="IntegratedCorpusManager",
                 component_class=IntegratedCorpusManager,
                 category=ComponentCategory.CORPUS_MANAGEMENT,
-                description="Integrated corpus manager with full Dau formalism compliance and validation",
+                description="Integrated tomos manager with full Dau formalism compliance and validation",
                 key_methods=["add_egi", "get_egi", "search_corpus", "load_from_filesystem", "get_corpus_statistics"],
                 dau_chapter_refs=["All chapters"],
                 usage_examples=[
@@ -333,13 +333,13 @@ class CoherenceRegistry:
                 ]
             )
             
-            # Register corpus manager functions
+            # Register tomos manager functions
             self.register_function(
                 name="get_integrated_corpus_manager",
                 function=get_integrated_corpus_manager,
                 category=ComponentCategory.CORPUS_MANAGEMENT,
                 function_type=FunctionType.FACTORY,
-                description="Get global integrated corpus manager instance",
+                description="Get global integrated tomos manager instance",
                 parameters=[],
                 return_type=IntegratedCorpusManager,
                 examples=["manager = get_integrated_corpus_manager()"]

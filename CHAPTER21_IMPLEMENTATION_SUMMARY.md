@@ -25,7 +25,7 @@ Successfully implement, test, and integrate Frithjof Dau's Chapter 21 existentia
 
 ### 4. **Comprehensive Testing**
 - **Core Functionality Tests** (`test_chapter21_no_qt.py`): 100% pass rate on non-GUI components
-- **Real EGI Data Tests** (`test_real_egi_data.py`): 100% success loading and testing corpus EGI files
+- **Real EGI Data Tests** (`test_real_egi_data.py`): 100% success loading and testing tomos EGI files
 - **Transformation Validation** (`test_transformation_validation.py`): 75% success rate on individual transformation rules
 - **Sequence Testing** (`test_transformation_sequences_comprehensive.py`): 12.1% success rate on complex multi-step transformations
 - **Comprehensive Integration** (`test_chapter21_comprehensive.py`): Full end-to-end workflow validation
@@ -83,7 +83,7 @@ Successfully implement, test, and integrate Frithjof Dau's Chapter 21 existentia
 
 ### **Fully Functional Components**
 1. **EGI Engine**: Complete transformation and format synchronization
-2. **Organon Integration**: Read-only exploration with real EGI corpus data
+2. **Organon Integration**: Read-only exploration with real EGI tomos data
 3. **Transformation Wizards**: Step-by-step guided transformations
 4. **History Management**: Complete sequence tracking and replay
 5. **GUI Framework**: Mode-specific interfaces ready for Qt rendering
@@ -117,7 +117,7 @@ Successfully implement, test, and integrate Frithjof Dau's Chapter 21 existentia
 
 - ✅ **Implements Dau's Chapter 21 formalism** with theoretical rigor
 - ✅ **Integrates with existing Arisbe architecture** seamlessly
-- ✅ **Handles real EGI corpus data** with 100% success
+- ✅ **Handles real EGI tomos data** with 100% success
 - ✅ **Provides transformation wizards** for guided EG manipulation
 - ✅ **Maintains immutable EGI architecture** throughout
 - ✅ **Supports multi-step transformation sequences** with history tracking

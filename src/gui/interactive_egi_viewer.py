@@ -242,15 +242,15 @@ class InteractiveEGIViewer(QWidget):
         
         layout.addWidget(render_group)
         
-        # Corpus selection - make it more compact
-        corpus_label = QLabel("Corpus Examples:")
+        # Tomos selection - make it more compact
+        corpus_label = QLabel("Tomos Examples:")
         layout.addWidget(corpus_label)
         
-        self.corpus_combo = QComboBox()
-        self.corpus_combo.addItem("Select from corpus...", "")
-        layout.addWidget(self.corpus_combo)
+        self.tomos_combo = QComboBox()
+        self.tomos_combo.addItem("Select from tomos...", "")
+        layout.addWidget(self.tomos_combo)
         
-        # Load corpus examples
+        # Load tomos examples
         self._populate_corpus_examples()
         
         # Load buttons
@@ -375,8 +375,8 @@ class InteractiveEGIViewer(QWidget):
         self.zoom_reset_btn.clicked.connect(self._on_zoom_reset)
         self.fit_view_btn.clicked.connect(self._on_fit_to_view)
         
-        # Corpus selection
-        self.corpus_combo.currentTextChanged.connect(self._on_corpus_selection)
+        # Tomos selection
+        self.tomos_combo.currentTextChanged.connect(self._on_corpus_selection)
         
         # Graphics view
         self.graphics_view.viewport_changed.connect(self._on_viewport_changed)
@@ -716,13 +716,13 @@ FOPL (First-Order Predicate Logic)
             print("DEBUG: Fit to view - using default rect")
     
     def _populate_corpus_examples(self):
-        """Populate the corpus selection dropdown with available examples."""
+        """Populate the tomos selection dropdown with available examples."""
         import os
-        corpus_path = "corpus/graphs"
+        corpus_path = "tomos/graphs"
         
         if os.path.exists(corpus_path):
             try:
-                # Get all directories in the corpus
+                # Get all directories in the tomos
                 examples = []
                 for item in os.listdir(corpus_path):
                     item_path = os.path.join(corpus_path, item)
@@ -739,15 +739,15 @@ FOPL (First-Order Predicate Logic)
                 
                 # Add to combo box
                 for display_name, file_path in examples:
-                    self.corpus_combo.addItem(display_name, file_path)
+                    self.tomos_combo.addItem(display_name, file_path)
                     
             except Exception as e:
-                print(f"Error loading corpus examples: {e}")
+                print(f"Error loading tomos examples: {e}")
     
     def _on_corpus_selection(self, display_name: str):
-        """Handle corpus example selection."""
-        if display_name and display_name != "Select from corpus...":
-            file_path = self.corpus_combo.currentData()
+        """Handle tomos example selection."""
+        if display_name and display_name != "Select from tomos...":
+            file_path = self.tomos_combo.currentData()
             if file_path:
                 try:
                     from egi_loader import load_egi_from_json
@@ -761,7 +761,7 @@ FOPL (First-Order Predicate Logic)
                     
                 except Exception as e:
                     self.status_message_changed.emit(f"Error loading {display_name}: {e}")
-                    print(f"Error loading corpus example: {e}")
+                    print(f"Error loading tomos example: {e}")
             
     def _update_selection_info(self, selected_elements: List[str]):
         """Update selection information display."""

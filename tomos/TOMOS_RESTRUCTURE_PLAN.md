@@ -1,7 +1,7 @@
-# Arisbe Corpus Restructure Plan
+# Arisbe Tomos Restructure Plan
 
 ## Overview
-Restructure the corpus to align with the new persistence model and provide high-quality educational/canonical examples for Arisbe users.
+Restructure the tomos to align with the new persistence model and provide high-quality educational/canonical examples for Arisbe users.
 
 ## Current Issues
 1. **Low-quality entries**: Test graphs, auto-harvested fragments, generic placeholders
@@ -43,7 +43,7 @@ Each retained entry must have:
 
 ### Required Structure
 ```
-corpus/graphs/{category}/{entry_id}/
+tomos/graphs/{category}/{entry_id}/
 ├── {entry_id}.json           # Complete metadata
 ├── {entry_id}.egi.json       # EGI structure
 ├── EGDF/                     # Visual representations
@@ -105,10 +105,10 @@ corpus/graphs/{category}/{entry_id}/
 1. Test all entries in Arisbe
 2. Verify transformations work correctly
 3. Validate educational progressions
-4. Update corpus documentation
+4. Update tomos documentation
 
 ## Success Criteria
-- Corpus reduced to ~15-20 high-quality entries
+- Tomos reduced to ~15-20 high-quality entries
 - All entries have complete attribution
 - 100% compliance with new persistence model
 - Clear educational progression paths

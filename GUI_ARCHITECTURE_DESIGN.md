@@ -213,7 +213,7 @@ With the successful completion of the fresh Dau-compliant diagram correspondence
 
 ### Phase 4: Polish & Testing (1-2 weeks)
 - User experience refinement
-- Comprehensive testing with corpus examples
+- Comprehensive testing with tomos examples
 - Documentation and tutorials
 - Performance benchmarking
 
@@ -238,7 +238,7 @@ With the successful completion of the fresh Dau-compliant diagram correspondence
 - Preservation of logical equivalence
 - Complete transformation provenance
 - Proof export capability
-- Corpus example compatibility
+- Tomos example compatibility
 
 ## Risk Mitigation
 

@@ -190,7 +190,7 @@ for hook_index, vertex_id in enumerate(vertex_sequence):
 - ✅ **Efficient algorithm** with O(n²) complexity
 - ✅ **Robust implementation** with conflict avoidance
 - ✅ **Seamless integration** with existing codebase
-- ✅ **Comprehensive testing** with real corpus graphs
+- ✅ **Comprehensive testing** with real tomos graphs
 
 ### **Visual Quality**
 - ✅ **Professional diagrams** suitable for academic use

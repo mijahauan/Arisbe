@@ -35,13 +35,13 @@
 4. Apply Phase 2 refactoring
 5. Test Pass 2 (recursive layout)
 6. Apply Phase 3 enhancements
-7. Full corpus validation
+7. Full tomos validation
 
 ## Testing Plan
 
 - Simple flat sheet (no cuts)
 - One cut with content
 - Nested cuts (2-3 levels)
-- Full corpus (15 graphs)
+- Full tomos (15 graphs)
 - Compare with previous output
 

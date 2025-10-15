@@ -176,9 +176,9 @@ class ArisbeHome(QMainWindow):
             "Organon",
             "📚 Organon",
             "Explore and examine existential graphs. View synchronic diagrams, "
-            "diachronic histories, and corpus materials.",
+            "diachronic histories, and tomos materials.",
             "The Organon provides read-only exploration of EG diagrams and their "
-            "transformation histories. Browse the corpus, examine metadata, "
+            "transformation histories. Browse the tomos, examine metadata, "
             "export to various formats, and study the logical structure.",
             "library",
         )

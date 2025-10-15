@@ -1,7 +1,7 @@
 """
-Integrated Corpus Manager
+Integrated Tomos Manager
 
-This module provides a Dau formalism-compliant corpus management system that integrates
+This module provides a Dau formalism-compliant tomos management system that integrates
 with the core formalism manager to provide validated EGI loading, storage, and retrieval.
 """
 
@@ -20,7 +20,7 @@ from .integration_interfaces import CorpusManager as CorpusManagerProtocol
 
 
 class CorpusCategory(Enum):
-    """Categories of corpus items."""
+    """Categories of tomos items."""
     PEIRCE = "peirce"
     SCHOLARS = "scholars"
     CANONICAL = "canonical"
@@ -31,7 +31,7 @@ class CorpusCategory(Enum):
 
 
 class CorpusFormat(Enum):
-    """Supported corpus formats."""
+    """Supported tomos formats."""
     EGIF = "egif"
     CGIF = "cgif"
     CLIF = "clif"
@@ -41,7 +41,7 @@ class CorpusFormat(Enum):
 
 @dataclass
 class CorpusItem:
-    """Represents a validated corpus item with full Dau formalism compliance."""
+    """Represents a validated tomos item with full Dau formalism compliance."""
     
     id: str
     title: str
@@ -74,7 +74,7 @@ class CorpusItem:
 
 @dataclass
 class CorpusSearchResult:
-    """Result of corpus search operation."""
+    """Result of tomos search operation."""
     items: List[CorpusItem]
     total_count: int
     categories: Dict[CorpusCategory, int]
@@ -83,23 +83,23 @@ class CorpusSearchResult:
 
 class IntegratedCorpusManager(CorpusManagerProtocol):
     """
-    Integrated corpus manager that provides Dau formalism-compliant corpus management.
+    Integrated tomos manager that provides Dau formalism-compliant tomos management.
     
     Features:
-    - Full validation of all corpus items against Dau formalism
+    - Full validation of all tomos items against Dau formalism
     - Multi-format support (EGIF, CGIF, CLIF, FOPL)
     - Chapter compliance checking
     - Advanced search and filtering
     - Quality metrics and educational categorization
     """
     
-    def __init__(self, corpus_root: Path = None, core_manager: CoreDauFormalismManager = None):
+    def __init__(self, tomos_root: Path = None, core_manager: CoreDauFormalismManager = None):
         self.logger = logging.getLogger(__name__)
         
         # Initialize paths
-        self.corpus_root = corpus_root or Path("corpus")
-        self.index_file = self.corpus_root / "corpus_index.json"
-        self.validation_cache_file = self.corpus_root / "validation_cache.json"
+        self.tomos_root = tomos_root or Path("corpus")
+        self.index_file = self.tomos_root / "corpus_index.json"
+        self.validation_cache_file = self.tomos_root / "validation_cache.json"
         
         # Initialize core formalism integration
         self.core_manager = core_manager or get_dau_formalism_manager()
@@ -120,7 +120,7 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
     # ========================================================================
     
     def add_egi(self, egi: RelationalGraphWithCuts, metadata: Dict[str, Any]) -> str:
-        """Add EGI to corpus with full validation."""
+        """Add EGI to tomos with full validation."""
         try:
             # Generate unique ID
             item_id = self._generate_item_id(metadata.get("title", "untitled"))
@@ -142,7 +142,7 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
             # Calculate quality metrics
             complexity_score = self._calculate_complexity_score(egi)
             
-            # Create corpus item
+            # Create tomos item
             item = CorpusItem(
                 id=item_id,
                 title=metadata.get("title", item_id),
@@ -204,7 +204,7 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
             return None
     
     def remove_egi(self, item_id: str) -> bool:
-        """Remove EGI from corpus."""
+        """Remove EGI from tomos."""
         if item_id in self.items:
             del self.items[item_id]
             if item_id in self.validation_cache:
@@ -225,11 +225,11 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
         return list(self.items.keys())
     
     # ========================================================================
-    # Enhanced Corpus Management
+    # Enhanced Tomos Management
     # ========================================================================
     
     def load_from_filesystem(self, force_revalidation: bool = False) -> Dict[str, Any]:
-        """Load corpus items from filesystem with full validation."""
+        """Load tomos items from filesystem with full validation."""
         results = {
             "loaded": 0,
             "validated": 0,
@@ -237,11 +237,11 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
             "errors": []
         }
         
-        if not self.corpus_root.exists():
-            self.corpus_root.mkdir(parents=True, exist_ok=True)
+        if not self.tomos_root.exists():
+            self.tomos_root.mkdir(parents=True, exist_ok=True)
             return results
         
-        # Scan for corpus files
+        # Scan for tomos files
         for file_path in self._scan_corpus_files():
             try:
                 item = self._load_corpus_file(file_path, force_revalidation)
@@ -255,19 +255,19 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
             except Exception as e:
                 results["failed"] += 1
                 results["errors"].append(f"Failed to load {file_path}: {e}")
-                self.logger.error(f"Failed to load corpus file {file_path}: {e}")
+                self.logger.error(f"Failed to load tomos file {file_path}: {e}")
         
         # Save updated index
         self._save_corpus_index()
         
-        self.logger.info(f"Loaded {results['loaded']} corpus items, {results['validated']} validated")
+        self.logger.info(f"Loaded {results['loaded']} tomos items, {results['validated']} validated")
         return results
     
     def search_corpus(self, query: str = "", category: Optional[CorpusCategory] = None,
                      min_complexity: Optional[float] = None, max_complexity: Optional[float] = None,
                      difficulty_level: Optional[str] = None, 
                      chapter_compliance: Optional[List[str]] = None) -> CorpusSearchResult:
-        """Advanced corpus search with multiple filters."""
+        """Advanced tomos search with multiple filters."""
         
         filtered_items = []
         
@@ -319,7 +319,7 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
         )
     
     def get_corpus_statistics(self) -> Dict[str, Any]:
-        """Get comprehensive corpus statistics."""
+        """Get comprehensive tomos statistics."""
         stats = {
             "total_items": len(self.items),
             "categories": {},
@@ -379,10 +379,10 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
         return stats
     
     def export_corpus_item(self, item_id: str, format_type: LinearFormat, output_path: Optional[Path] = None) -> str:
-        """Export corpus item in specified format."""
+        """Export tomos item in specified format."""
         item = self.items.get(item_id)
         if not item:
-            raise ValueError(f"Corpus item not found: {item_id}")
+            raise ValueError(f"Tomos item not found: {item_id}")
         
         # Get EGI
         egi = self.get_egi(item_id)
@@ -400,10 +400,10 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
         return content
     
     def validate_corpus_item(self, item_id: str, force_revalidation: bool = False) -> Dict[str, Any]:
-        """Validate specific corpus item against current Dau formalism."""
+        """Validate specific tomos item against current Dau formalism."""
         item = self.items.get(item_id)
         if not item:
-            raise ValueError(f"Corpus item not found: {item_id}")
+            raise ValueError(f"Tomos item not found: {item_id}")
         
         # Check cache
         if not force_revalidation and item_id in self.validation_cache:
@@ -438,16 +438,16 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
     # ========================================================================
     
     def _scan_corpus_files(self) -> List[Path]:
-        """Scan corpus directory for supported files."""
+        """Scan tomos directory for supported files."""
         files = []
         
         for ext in [".egif", ".cgif", ".clif", ".fopl", ".json"]:
-            files.extend(self.corpus_root.rglob(f"*{ext}"))
+            files.extend(self.tomos_root.rglob(f"*{ext}"))
         
         return files
     
     def _load_corpus_file(self, file_path: Path, force_revalidation: bool = False) -> Optional[CorpusItem]:
-        """Load and validate a single corpus file."""
+        """Load and validate a single tomos file."""
         try:
             # Determine format
             format_type = CorpusFormat(file_path.suffix[1:])  # Remove dot
@@ -506,7 +506,7 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
             return item
             
         except Exception as e:
-            self.logger.error(f"Failed to load corpus file {file_path}: {e}")
+            self.logger.error(f"Failed to load tomos file {file_path}: {e}")
             return None
     
     def _validate_chapter_compliance(self, egi: RelationalGraphWithCuts) -> Dict[str, bool]:
@@ -650,7 +650,7 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
         return f"{base_id}_{counter}"
     
     def _load_corpus_index(self):
-        """Load corpus index from file."""
+        """Load tomos index from file."""
         if not self.index_file.exists():
             return
         
@@ -663,12 +663,12 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
                 self.items[item.id] = item
                 
         except Exception as e:
-            self.logger.error(f"Failed to load corpus index: {e}")
+            self.logger.error(f"Failed to load tomos index: {e}")
     
     def _save_corpus_index(self):
-        """Save corpus index to file."""
+        """Save tomos index to file."""
         try:
-            self.corpus_root.mkdir(parents=True, exist_ok=True)
+            self.tomos_root.mkdir(parents=True, exist_ok=True)
             
             data = {
                 "version": "1.0",
@@ -693,7 +693,7 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
                 json.dump(data, f, indent=2)
                 
         except Exception as e:
-            self.logger.error(f"Failed to save corpus index: {e}")
+            self.logger.error(f"Failed to save tomos index: {e}")
     
     def _load_validation_cache(self):
         """Load validation cache from file."""
@@ -733,13 +733,13 @@ class IntegratedCorpusManager(CorpusManagerProtocol):
 _global_corpus_manager: Optional[IntegratedCorpusManager] = None
 
 def get_integrated_corpus_manager() -> IntegratedCorpusManager:
-    """Get the global integrated corpus manager instance."""
+    """Get the global integrated tomos manager instance."""
     global _global_corpus_manager
     if _global_corpus_manager is None:
         _global_corpus_manager = IntegratedCorpusManager()
     return _global_corpus_manager
 
 def reset_corpus_manager():
-    """Reset global corpus manager (for testing)."""
+    """Reset global tomos manager (for testing)."""
     global _global_corpus_manager
     _global_corpus_manager = None

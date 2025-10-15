@@ -51,7 +51,7 @@
 - GraphEntity (completed Oct 2)
 - EntityStorage (completed Oct 2)
 - EntityMetadata
-- OrganonMode, CorpusBrowserWidget
+- OrganonMode, TomosBrowserWidget
 - All GUI components (Oct 2)
 - DefinitiveEGILayoutEngine (older)
 - GraphvizSVGRenderer (older)

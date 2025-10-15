@@ -1,7 +1,7 @@
 """
-Test Suite for CorpusService
+Test Suite for TomosService
 
-Validates the unified corpus management API:
+Validates the unified tomos management API:
 1. Creating and managing corpus
 2. Saving and loading UoDs
 3. Searching and filtering
@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from datetime import datetime
-from corpus_service import CorpusService, CorpusVersion
+from tomos_service import TomosService, TomosVersion
 from universe_of_discourse import (
     UniverseOfDiscourse,
     UoDMetadata,
@@ -27,32 +27,32 @@ import shutil
 
 
 def test_corpus_initialization():
-    """Test CorpusService initialization."""
+    """Test TomosService initialization."""
     print("=" * 70)
-    print("TEST 1: CorpusService Initialization")
+    print("TEST 1: TomosService Initialization")
     print("=" * 70)
     
     # Create temporary corpus
     with tempfile.TemporaryDirectory() as tmpdir:
-        corpus_root = Path(tmpdir) / "test_corpus"
+        tomos_root = Path(tmpdir) / "test_corpus"
         
         # Initialize service
-        corpus = CorpusService(corpus_root)
+        tomos = TomosService(tomos_root)
         
         # Verify directories created
-        assert corpus.corpus_root.exists(), "Corpus root should exist"
-        assert corpus.universes_dir.exists(), "Universes dir should exist"
-        assert corpus.literature_dir.exists(), "Literature dir should exist"
-        assert corpus.index_path.exists(), "Index file should exist"
+        assert tomos.tomos_root.exists(), "Tomos root should exist"
+        assert tomos.universes_dir.exists(), "Universes dir should exist"
+        assert tomos.literature_dir.exists(), "Literature dir should exist"
+        assert tomos.index_path.exists(), "Index file should exist"
         
         # Verify index
-        assert corpus._index is not None, "Index should be loaded"
-        assert corpus._index.corpus_name == "Arisbe Corpus"
-        assert corpus._index.version == CorpusVersion.V2
+        assert tomos._index is not None, "Index should be loaded"
+        assert tomos._index.corpus_name == "Arisbe Corpus"
+        assert tomos._index.version == TomosVersion.V2
         assert len(corpus._index.universes) == 0, "Should start empty"
         
-        print(f"✅ CorpusService initialized successfully")
-        print(f"   - Root: {corpus.corpus_root}")
+        print(f"✅ TomosService initialized successfully")
+        print(f"   - Root: {corpus.tomos_root}")
         print(f"   - Version: {corpus._index.version.value}")
         print(f"   - UoDs: {len(corpus._index.universes)}")
         print()
@@ -65,8 +65,8 @@ def test_save_and_load_static_uod():
     print("=" * 70)
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        corpus_root = Path(tmpdir) / "test_corpus"
-        corpus = CorpusService(corpus_root)
+        tomos_root = Path(tmpdir) / "test_corpus"
+        tomos = TomosService(tomos_root)
         
         # Create static UoD
         egi = create_empty_graph()
@@ -93,7 +93,7 @@ def test_save_and_load_static_uod():
         )
         
         # Save UoD
-        corpus.save_uod(uod)
+        tomos.save_uod(uod)
         
         print(f"✅ Saved static UoD: {uod.name}")
         print(f"   - ID: {uod.uod_id}")
@@ -101,10 +101,10 @@ def test_save_and_load_static_uod():
         
         # Verify in index
         assert len(corpus._index.universes) == 1, "Should have 1 UoD in index"
-        assert corpus.uod_exists("peirce_001"), "UoD should exist"
+        assert tomos.uod_exists("peirce_001"), "UoD should exist"
         
         # Load UoD
-        loaded = corpus.load_uod("peirce_001", load_history=False)
+        loaded = tomos.load_uod("peirce_001", load_history=False)
         
         assert loaded is not None, "Should load successfully"
         assert loaded.uod_id == "peirce_001"
@@ -126,8 +126,8 @@ def test_save_and_load_dynamic_uod():
     print("=" * 70)
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        corpus_root = Path(tmpdir) / "test_corpus"
-        corpus = CorpusService(corpus_root)
+        tomos_root = Path(tmpdir) / "test_corpus"
+        tomos = TomosService(tomos_root)
         
         # Create dynamic UoD
         egi = create_empty_graph()
@@ -157,7 +157,7 @@ def test_save_and_load_dynamic_uod():
         uod.promote_to_historical("Initial state")
         
         # Save UoD
-        corpus.save_uod(uod)
+        tomos.save_uod(uod)
         
         print(f"✅ Saved dynamic UoD: {uod.name}")
         print(f"   - ID: {uod.uod_id}")
@@ -165,7 +165,7 @@ def test_save_and_load_dynamic_uod():
         print(f"   - is_historical: {uod.is_historical}")
         
         # Load UoD
-        loaded = corpus.load_uod("inquiry_001")
+        loaded = tomos.load_uod("inquiry_001")
         
         assert loaded is not None, "Should load successfully"
         assert loaded.uod_id == "inquiry_001"
@@ -187,8 +187,8 @@ def test_list_and_filter():
     print("=" * 70)
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        corpus_root = Path(tmpdir) / "test_corpus"
-        corpus = CorpusService(corpus_root)
+        tomos_root = Path(tmpdir) / "test_corpus"
+        tomos = TomosService(tomos_root)
         
         # Create multiple UoDs
         for i in range(5):
@@ -223,28 +223,28 @@ def test_list_and_filter():
                 history=None
             )
             
-            corpus.save_uod(uod)
+            tomos.save_uod(uod)
         
         # List all
-        all_uods = corpus.list_uods()
+        all_uods = tomos.list_uods()
         assert len(all_uods) == 5, "Should have 5 UoDs"
         print(f"✅ Total UoDs: {len(all_uods)}")
         
         # Filter by category
-        lit_uods = corpus.list_uods(category=UoDCategory.LITERATURE_EXAMPLE)
+        lit_uods = tomos.list_uods(category=UoDCategory.LITERATURE_EXAMPLE)
         assert len(lit_uods) == 3, "Should have 3 literature UoDs"
         print(f"✅ Literature UoDs: {len(lit_uods)}")
         
-        inq_uods = corpus.list_uods(category=UoDCategory.ACTIVE_INQUIRY)
+        inq_uods = tomos.list_uods(category=UoDCategory.ACTIVE_INQUIRY)
         assert len(inq_uods) == 2, "Should have 2 inquiry UoDs"
         print(f"✅ Inquiry UoDs: {len(inq_uods)}")
         
         # Filter by static/dynamic
-        static_uods = corpus.list_uods(is_static=True)
+        static_uods = tomos.list_uods(is_static=True)
         assert len(static_uods) == 3, "Should have 3 static UoDs"
         print(f"✅ Static UoDs: {len(static_uods)}")
         
-        dynamic_uods = corpus.list_uods(is_dynamic=True)
+        dynamic_uods = tomos.list_uods(is_dynamic=True)
         assert len(dynamic_uods) == 2, "Should have 2 dynamic UoDs"
         print(f"✅ Dynamic UoDs: {len(dynamic_uods)}")
         print()
@@ -257,8 +257,8 @@ def test_search():
     print("=" * 70)
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        corpus_root = Path(tmpdir) / "test_corpus"
-        corpus = CorpusService(corpus_root)
+        tomos_root = Path(tmpdir) / "test_corpus"
+        tomos = TomosService(tomos_root)
         
         # Create test UoDs
         test_data = [
@@ -284,25 +284,25 @@ def test_search():
                 current_egi=egi,
                 history=None
             )
-            corpus.save_uod(uod)
+            tomos.save_uod(uod)
         
         # Search by query
-        results = corpus.search(query="modus")
+        results = tomos.search(query="modus")
         assert len(results) == 2, "Should find 2 'modus' UoDs"
         print(f"✅ Search 'modus': {len(results)} results")
         
         # Search by category
-        results = corpus.search(category=UoDCategory.LITERATURE_EXAMPLE)
+        results = tomos.search(category=UoDCategory.LITERATURE_EXAMPLE)
         assert len(results) == 2, "Should find 2 literature UoDs"
         print(f"✅ Search category=LITERATURE: {len(results)} results")
         
         # Search by tags
-        results = corpus.search(tags={"peirce"})
+        results = tomos.search(tags={"peirce"})
         assert len(results) == 2, "Should find 2 UoDs with 'peirce' tag"
         print(f"✅ Search tags={'peirce'}: {len(results)} results")
         
         # Combined search
-        results = corpus.search(
+        results = tomos.search(
             query="ponens",
             category=UoDCategory.LITERATURE_EXAMPLE,
             tags={"logic"}
@@ -319,8 +319,8 @@ def test_import_literature():
     print("=" * 70)
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        corpus_root = Path(tmpdir) / "test_corpus"
-        corpus = CorpusService(corpus_root)
+        tomos_root = Path(tmpdir) / "test_corpus"
+        tomos = TomosService(tomos_root)
         
         # Create EGI to import
         egi = create_empty_graph()
@@ -328,7 +328,7 @@ def test_import_literature():
         egi = egi.with_vertex(vertex)
         
         # Import
-        uod = corpus.import_literature(
+        uod = tomos.import_literature(
             egi=egi,
             name="Socrates is Mortal",
             source_citation="Aristotle, Prior Analytics",
@@ -347,10 +347,10 @@ def test_import_literature():
         print(f"   - Tags: {uod.metadata.tags}")
         
         # Verify it's in corpus
-        assert corpus.uod_exists(uod.uod_id), "Should exist in corpus"
+        assert tomos.uod_exists(uod.uod_id), "Should exist in corpus"
         
         # Verify can be loaded
-        loaded = corpus.load_uod(uod.uod_id)
+        loaded = tomos.load_uod(uod.uod_id)
         assert loaded is not None
         assert loaded.name == "Socrates is Mortal"
         print(f"✅ Literature can be loaded from corpus")
@@ -364,8 +364,8 @@ def test_delete_uod():
     print("=" * 70)
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        corpus_root = Path(tmpdir) / "test_corpus"
-        corpus = CorpusService(corpus_root)
+        tomos_root = Path(tmpdir) / "test_corpus"
+        tomos = TomosService(tomos_root)
         
         # Create UoD
         egi = create_empty_graph()
@@ -383,16 +383,16 @@ def test_delete_uod():
             current_egi=egi,
             history=None
         )
-        corpus.save_uod(uod)
+        tomos.save_uod(uod)
         
-        assert corpus.uod_exists("temp_001"), "Should exist before deletion"
+        assert tomos.uod_exists("temp_001"), "Should exist before deletion"
         assert len(corpus.list_uods()) == 1
         
         # Delete
-        success = corpus.delete_uod("temp_001")
+        success = tomos.delete_uod("temp_001")
         assert success, "Deletion should succeed"
         
-        assert not corpus.uod_exists("temp_001"), "Should not exist after deletion"
+        assert not tomos.uod_exists("temp_001"), "Should not exist after deletion"
         assert len(corpus.list_uods()) == 0, "Should be empty"
         
         print(f"✅ UoD deleted successfully")
@@ -401,14 +401,14 @@ def test_delete_uod():
 
 
 def test_statistics():
-    """Test corpus statistics."""
+    """Test tomos statistics."""
     print("=" * 70)
-    print("TEST 8: Corpus Statistics")
+    print("TEST 8: Tomos Statistics")
     print("=" * 70)
     
     with tempfile.TemporaryDirectory() as tmpdir:
-        corpus_root = Path(tmpdir) / "test_corpus"
-        corpus = CorpusService(corpus_root)
+        tomos_root = Path(tmpdir) / "test_corpus"
+        tomos = TomosService(tomos_root)
         
         # Create diverse UoDs
         categories = [
@@ -434,17 +434,17 @@ def test_statistics():
                 current_egi=egi,
                 history=None
             )
-            corpus.save_uod(uod)
+            tomos.save_uod(uod)
         
         # Get statistics
-        stats = corpus.get_statistics()
+        stats = tomos.get_statistics()
         
         assert stats["total_uods"] == 4, "Should have 4 UoDs"
         assert stats["static_uods"] == 2, "Should have 2 static"
         assert stats["dynamic_uods"] == 2, "Should have 2 dynamic"
         assert stats["corpus_version"] == "v2"
         
-        print(f"✅ Corpus statistics:")
+        print(f"✅ Tomos statistics:")
         print(f"   - Total UoDs: {stats['total_uods']}")
         print(f"   - Static: {stats['static_uods']}")
         print(f"   - Dynamic: {stats['dynamic_uods']}")
@@ -476,16 +476,16 @@ def main():
         print("=" * 70)
         print()
         print("Summary:")
-        print(f"   ✅ CorpusService initialization")
+        print(f"   ✅ TomosService initialization")
         print(f"   ✅ Save and load static UoDs (literature)")
         print(f"   ✅ Save and load dynamic UoDs (with history)")
         print(f"   ✅ List and filter UoDs")
         print(f"   ✅ Search UoDs (query, category, tags)")
         print(f"   ✅ Import literature examples")
         print(f"   ✅ Delete UoDs")
-        print(f"   ✅ Corpus statistics")
+        print(f"   ✅ Tomos statistics")
         print()
-        print("CorpusService is working correctly!")
+        print("TomosService is working correctly!")
         print("Ready to integrate with Organon/Ergasterion/Agon")
         print()
         

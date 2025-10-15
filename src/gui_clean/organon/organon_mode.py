@@ -1,8 +1,8 @@
 """
-Organon Mode - Exploration and corpus management.
+Organon Mode - Exploration and tomos management.
 
 Provides read-only visualization of EGI diagrams with:
-- Corpus browser (file tree)
+- Tomos browser (file tree)
 - Diagram viewer (SVG display)
 - EGIF panel (linear form)
 - Metadata panel (properties)
@@ -44,7 +44,7 @@ from organon.history_timeline import HistoryTimeline
 
 class OrganonMode(QWidget):
     """
-    Organon mode widget - Exploration and corpus management.
+    Organon mode widget - Exploration and tomos management.
     
     Layout:
     - Top: Action buttons (Load, Export, etc.)
@@ -62,10 +62,10 @@ class OrganonMode(QWidget):
         self._current_file: Optional[Path] = None
         self._current_uod: Optional['UniverseOfDiscourse'] = None  # Track loaded UoD
         
-        # Initialize CorpusService
-        from corpus_service import CorpusService
-        corpus_root = Path(__file__).parent.parent.parent.parent / "corpus"
-        self.corpus = CorpusService(corpus_root)
+        # Initialize TomosService
+        from tomos_service import TomosService
+        tomos_root = Path(__file__).parent.parent.parent.parent / "tomos"
+        self.tomos = TomosService(tomos_root)
         
         self._setup_ui()
     
@@ -73,16 +73,16 @@ class OrganonMode(QWidget):
         """Create the Organon UI."""
         layout = QHBoxLayout(self)  # Changed to horizontal for sidebar
         
-        # Left: Corpus browser sidebar
-        from organon.corpus_browser import CorpusBrowserWidget
+        # Left: Tomos browser sidebar
+        from organon.corpus_browser import TomosBrowserWidget
         
-        # Use corpus root directory
-        corpus_root = Path(__file__).parent.parent.parent.parent / "corpus"
+        # Use tomos root directory
+        tomos_root = Path(__file__).parent.parent.parent.parent / "tomos"
         
-        self.corpus_browser = CorpusBrowserWidget(corpus_root)
-        self.corpus_browser.entity_selected.connect(self._on_load_from_corpus)
-        self.corpus_browser.setMaximumWidth(300)
-        layout.addWidget(self.corpus_browser)
+        self.tomos_browser = TomosBrowserWidget(tomos_root)
+        self.tomos_browser.entity_selected.connect(self._on_load_from_corpus)
+        self.tomos_browser.setMaximumWidth(300)
+        layout.addWidget(self.tomos_browser)
         
         # Right: Main viewing area
         main_area = QVBoxLayout()
@@ -156,10 +156,10 @@ class OrganonMode(QWidget):
         layout.addLayout(main_area)
     
     def _on_load_from_corpus(self, uod_id: str):
-        """Load UoD from corpus."""
+        """Load UoD from tomos."""
         try:
             # Load UoD
-            uod = self.corpus.load_uod(uod_id, load_history=True)
+            uod = self.tomos.load_uod(uod_id, load_history=True)
             
             if uod is None:
                 raise Exception(f"UoD not found: {uod_id}")
@@ -206,7 +206,7 @@ class OrganonMode(QWidget):
             self.history_timeline.update_history(uod)
             
             # Update state
-            self._current_file = None  # Loaded from corpus, not file
+            self._current_file = None  # Loaded from tomos, not file
             self._current_uod = uod  # Store UoD for history navigation
             self.save_btn.setEnabled(True)
             self.export_btn.setEnabled(True)
@@ -223,7 +223,7 @@ class OrganonMode(QWidget):
             QMessageBox.critical(
                 self,
                 "Error Loading UoD",
-                f"Failed to load UoD from corpus:\n\n{str(e)}"
+                f"Failed to load UoD from tomos:\n\n{str(e)}"
             )
     
     def _on_load_egi(self):

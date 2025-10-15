@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Corpus Index utilities for directory-per-graph storage.
+Tomos Index utilities for directory-per-graph storage.
 
 Layout:
-- corpus/
+- tomos/
   - index.json                # lightweight listing for fast browsing
   - graphs/
     - <graph_id>/
@@ -23,9 +23,9 @@ from typing import Any, Dict, List, Optional
 
 # Repository-relative paths
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CORPUS_ROOT = REPO_ROOT / "corpus"
-GRAPH_ROOT = CORPUS_ROOT / "graphs"
-INDEX_PATH = CORPUS_ROOT / "index.json"
+TOMOS_ROOT = REPO_ROOT / "tomos"
+GRAPH_ROOT = TOMOS_ROOT / "graphs"
+INDEX_PATH = TOMOS_ROOT / "index.json"
 
 
 @dataclass
@@ -41,7 +41,7 @@ class CorpusEntry:
 
 
 def _ensure_dirs() -> None:
-    CORPUS_ROOT.mkdir(parents=True, exist_ok=True)
+    TOMOS_ROOT.mkdir(parents=True, exist_ok=True)
     GRAPH_ROOT.mkdir(parents=True, exist_ok=True)
 
 
@@ -53,7 +53,7 @@ def load_index() -> Dict[str, Any]:
         except Exception:
             pass
     # default empty index
-    idx = {"name": "Arisbe Corpus", "version": "0.1", "entries": []}
+    idx = {"name": "Arisbe Tomos", "version": "0.1", "entries": []}
     save_index(idx)
     return idx
 

@@ -1,5 +1,5 @@
 """
-Layout Engine Corpus Validation Tests
+Layout Engine Tomos Validation Tests
 """
 
 import pytest
@@ -122,7 +122,7 @@ class TestCorpusLayoutValidation:
             total_count += 1
             print(f"\n[{total_count}/15] Testing: {graph_id}")
             
-            # Load the EGIF from the corpus entry
+            # Load the EGIF from the tomos entry
             graph_path = Path(entry['path'])
             json_file = graph_path / f"{graph_id}.json"
             
@@ -154,7 +154,7 @@ class TestCorpusLayoutValidation:
                     except Exception as e:
                         print(f"  ❌ FAILED: {e}")
                         # Still assert to fail the test
-                        raise AssertionError(f"Corpus graph {graph_id} failed: {e}")
+                        raise AssertionError(f"Tomos graph {graph_id} failed: {e}")
                 else:
                     print(f"  ⚠️  No EGIF found - skipping")
             else:

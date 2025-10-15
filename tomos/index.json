@@ -1,6 +1,6 @@
 {
-  "corpus_name": "Arisbe Corpus",
-  "version": "legacy",
+  "tomos_name": "Arisbe Tomos",
+  "version": "v2",
   "universes": [
     {
       "uod_id": "dau_2006_p112_ligature",
@@ -15,7 +15,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/dau_2006_p112_ligature"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/dau_2006_p112_ligature"
     },
     {
       "uod_id": "dau_theorem_proving",
@@ -30,7 +30,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/dau_theorem_proving"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/dau_theorem_proving"
     },
     {
       "uod_id": "mixed_quantifier_complex",
@@ -45,7 +45,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/mixed_quantifier_complex"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/mixed_quantifier_complex"
     },
     {
       "uod_id": "peirce_complex_scope",
@@ -60,7 +60,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/peirce_complex_scope"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/peirce_complex_scope"
     },
     {
       "uod_id": "peirce_cp_4_394_man_mortal",
@@ -75,7 +75,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/peirce_cp_4_394_man_mortal"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/peirce_cp_4_394_man_mortal"
     },
     {
       "uod_id": "peirce_modus_ponens",
@@ -90,7 +90,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/peirce_modus_ponens"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/peirce_modus_ponens"
     },
     {
       "uod_id": "roberts_1973_p57_disjunction",
@@ -105,7 +105,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/roberts_1973_p57_disjunction"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/roberts_1973_p57_disjunction"
     },
     {
       "uod_id": "roberts_domain_modeling",
@@ -120,7 +120,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/roberts_domain_modeling"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/roberts_domain_modeling"
     },
     {
       "uod_id": "shared_constant_disjunction",
@@ -135,7 +135,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/shared_constant_disjunction"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/shared_constant_disjunction"
     },
     {
       "uod_id": "sibling_cuts_shared_variable",
@@ -150,7 +150,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/sibling_cuts_shared_variable"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/sibling_cuts_shared_variable"
     },
     {
       "uod_id": "sowa_2011_p356_quantification",
@@ -165,7 +165,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/sowa_2011_p356_quantification"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/sowa_2011_p356_quantification"
     },
     {
       "uod_id": "sowa_cat_on_mat",
@@ -180,7 +180,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/sowa_cat_on_mat"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/sowa_cat_on_mat"
     },
     {
       "uod_id": "stanford_nested_quantifiers",
@@ -195,7 +195,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/stanford_nested_quantifiers"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/stanford_nested_quantifiers"
     },
     {
       "uod_id": "ternary_relation_challenge",
@@ -210,7 +210,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/literature/ternary_relation_challenge"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/ternary_relation_challenge"
     },
     {
       "uod_id": "practice_43480df3",
@@ -227,8 +227,8 @@
         "Current User"
       ],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/corpus/universes/practice_43480df3"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/practice_43480df3"
     }
   ],
-  "last_updated": "2025-10-14T19:22:20.686413"
+  "last_updated": "2025-10-14T21:42:50.563631"
 }

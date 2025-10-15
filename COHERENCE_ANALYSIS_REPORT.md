@@ -99,7 +99,7 @@
 **Integration Suggestions**:
 - Review for potential consolidation or removal
 
-### corpus_integration.CorpusManager._load_corpus_index (function)
+### corpus_integration.CorpusManager._load_tomos_index (function)
 **Location**: /Users/mjh/Sync/GitHub/Arisbe/src/corpus_integration.py:54
 **Reason**: No incoming references found
 **Integration Suggestions**:
@@ -3040,8 +3040,8 @@
 **Integration Suggestions**:
 - Review for potential consolidation or removal
 
-### corpus_index.CorpusEntry (class)
-**Location**: /Users/mjh/Sync/GitHub/Arisbe/src/corpus_index.py:32
+### tomos_index.CorpusEntry (class)
+**Location**: /Users/mjh/Sync/GitHub/Arisbe/src/tomos_index.py:32
 **Reason**: No incoming references found
 **Integration Suggestions**:
 - Review for potential consolidation or removal
@@ -15766,13 +15766,13 @@
 **Integration Suggestions**:
 - Review for potential consolidation or removal
 
-### gui.organon.corpus_navigator.CorpusNavigator.load_corpus_index (function)
+### gui.organon.corpus_navigator.CorpusNavigator.load_tomos_index (function)
 **Location**: /Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_navigator.py:153
 **Reason**: No incoming references found
 **Integration Suggestions**:
 - Review for potential consolidation or removal
 
-### gui.organon.corpus_navigator.CorpusNavigator.save_corpus_index (function)
+### gui.organon.corpus_navigator.CorpusNavigator.save_tomos_index (function)
 **Location**: /Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_navigator.py:184
 **Reason**: No incoming references found
 **Integration Suggestions**:

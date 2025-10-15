@@ -65,7 +65,7 @@ class Current:
 class OrganonMainWindow(QMainWindow):
     """
     Clean Organon implementation meeting the spec:
-    1) Corpus panel for search/select/new
+    1) Tomos panel for search/select/new
     2) Read-only diagram preview from EGDF (if present); otherwise offer handoff
     3) Editable graph metadata (id/title/category/tags)
     4) Generated linear forms (EGIF/CGIF/CLIF) from the EGI source of truth
@@ -109,22 +109,22 @@ class OrganonMainWindow(QMainWindow):
         self._init_linear_forms_dock()
         self._init_serialization_dock()
 
-        # Load corpus on startup but without heavy processing
+        # Load tomos on startup but without heavy processing
         self._corpus_loaded = False
         self._refresh_corpus()
         self._update_handoff_visibility()
 
     # --- Docks ---
     def _init_corpus_dock(self) -> None:
-        self.corpus_dock = QDockWidget("Corpus", self)
-        self.corpus_panel = CorpusPanel(self)
-        self.corpus_panel.entry_selected.connect(self._on_entry_selected)
-        self.corpus_panel.refresh_requested.connect(self._refresh_corpus)
-        self.corpus_panel.new_requested.connect(self._on_new_graph)
-        self.corpus_dock.setWidget(self.corpus_panel)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.corpus_dock)
+        self.tomos_dock = QDockWidget("Corpus", self)
+        self.tomos_panel = CorpusPanel(self)
+        self.tomos_panel.entry_selected.connect(self._on_entry_selected)
+        self.tomos_panel.refresh_requested.connect(self._refresh_corpus)
+        self.tomos_panel.new_requested.connect(self._on_new_graph)
+        self.tomos_dock.setWidget(self.tomos_panel)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.tomos_dock)
         try:
-            self.resizeDocks([self.corpus_dock], [280], Qt.Horizontal)
+            self.resizeDocks([self.tomos_dock], [280], Qt.Horizontal)
         except Exception:
             pass
 
@@ -147,10 +147,10 @@ class OrganonMainWindow(QMainWindow):
         self.serialization_dock.setWidget(self.serialization_panel)
         self.addDockWidget(Qt.RightDockWidgetArea, self.serialization_dock)
 
-    # --- Corpus operations ---
+    # --- Tomos operations ---
     def _refresh_corpus(self) -> None:
-        """Refresh corpus display."""
-        self.corpus_panel.refresh_corpus()
+        """Refresh tomos display."""
+        self.tomos_panel.refresh_corpus()
 
     def refresh_current_graph(self) -> None:
         """Refresh the current graph display after external changes."""
@@ -221,16 +221,16 @@ class OrganonMainWindow(QMainWindow):
             with open(metadata_path, "w") as f:
                 json.dump(metadata, f, indent=2)
 
-            # Update corpus index
-            relative_path = f"corpus/graphs/{gid}"
-            self.corpus_panel.add_graph_to_index(gid, title.strip(), relative_path)
+            # Update tomos index
+            relative_path = f"tomos/graphs/{gid}"
+            self.tomos_panel.add_graph_to_index(gid, title.strip(), relative_path)
 
             # Update current state
             self._cur.graph_dir = gdir
             self._cur.graph = None  # No EGI yet
             self._cur.latest_egdf_path = None
 
-            # Refresh corpus and UI
+            # Refresh tomos and UI
             self._refresh_corpus()
 
             # Automatically launch Ergasterion for diagram creation

@@ -73,14 +73,14 @@ class TheoremValidator(Protocol):
 
 
 class CorpusManager(Protocol):
-    """Standard interface for corpus management."""
+    """Standard interface for tomos management."""
 
     def add_egi(self, egi: RelationalGraphWithCuts, metadata: Dict[str, Any]) -> str:
-        """Add EGI to corpus and return ID."""
+        """Add EGI to tomos and return ID."""
         ...
 
     def search_corpus(self, query: str) -> List[Dict[str, Any]]:
-        """Search corpus and return matching items."""
+        """Search tomos and return matching items."""
         ...
 
     def get_egi(self, egi_id: str) -> Optional[RelationalGraphWithCuts]:

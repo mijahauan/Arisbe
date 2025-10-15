@@ -334,7 +334,7 @@ class GoldenMasterTests:
 
 
 def test_corpus_graphs():
-    """Test all graphs in the corpus directory against golden masters."""
+    """Test all graphs in the tomos directory against golden masters."""
     corpus_dir = Path(__file__).parent.parent.parent / "corpus" / "graphs"
     if not corpus_dir.exists():
         return []
@@ -346,7 +346,7 @@ def test_corpus_graphs():
         test_name = f"corpus_{corpus_file.stem}"
         
         try:
-            # Load corpus EGI
+            # Load tomos EGI
             egi = load_egi_json(str(corpus_file))
             controller.load_egi(egi)
             dto = controller.current_dto
@@ -405,8 +405,8 @@ def run_all_golden_master_tests(update_masters: bool = False):
         except Exception as e:
             print(f"   💥 {method_name}: {e}")
     
-    # Test corpus graphs
-    print(f"\n📚 Testing corpus graphs...")
+    # Test tomos graphs
+    print(f"\n📚 Testing tomos graphs...")
     corpus_results = test_corpus_graphs()
     for test_name, passed, result in corpus_results:
         total_tests += 1

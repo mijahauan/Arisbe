@@ -140,9 +140,9 @@ save_egi_json(egi, "filename.json")
 
 **Parser/Generator**:
 ```python
-from corpus_service import CorpusService
+from tomos_service import TomosService
 
-corpus = CorpusService(corpus_root)
+corpus = TomosService(corpus_root)
 
 # Import
 uod = corpus.load_uod(uod_id, load_history=True)
@@ -168,7 +168,7 @@ corpus.save_uod(uod)
 ```
 
 **Use Cases**:
-- Complete corpus storage
+- Complete tomos storage
 - Metadata preservation
 - History tracking
 - Layout persistence
@@ -254,7 +254,7 @@ tikz_picture = generate_tikz(render_commands, standalone=False)
 3. Format auto-detected from extension
 4. Content parsed to EGI
 5. UoD created with metadata (literature category)
-6. Saved to corpus via CorpusService
+6. Saved to tomos via TomosService
 
 ### Export Workflow
 1. User selects UoD
@@ -311,17 +311,17 @@ Import Universe of Discourse
 # In Organon
 from import_export_manager import ImportExportManager
 
-manager = ImportExportManager(corpus_service)
+manager = ImportExportManager(tomos_service)
 uod = manager.import_uod()  # Shows file dialog
 if uod:
-    corpus_service.save_uod(uod)
-    # UoD now in corpus with literature category
+    tomos_service.save_uod(uod)
+    # UoD now in tomos with literature category
 ```
 
 ### Export to Multiple Formats
 ```python
 # Export current UoD
-manager = ImportExportManager(corpus_service)
+manager = ImportExportManager(tomos_service)
 
 # EGIF
 manager.export_uod(uod, format='egif', file_path='output.egif')
@@ -374,7 +374,7 @@ manager.export_uod(uod, format='uod_json', file_path='output.uod.json')
 - `src/clif_generator_dau.py` - CLIF export
 - `src/chapter18_fopl_translation.py` - FOPL bidirectional
 - `src/egi_io.py` - JSON EGI I/O
-- `src/corpus_service.py` - Full UoD I/O
+- `src/tomos_service.py` - Full UoD I/O
 - `src/simple_svg_renderer.py` - SVG export
 - `src/export/tikz_exporter.py` - LaTeX/TikZ export
 

@@ -265,7 +265,7 @@ class GraphEntityCache:
 ### **Tier 2: Working Set (Fast File Access)**
 
 ```
-corpus/graphs/[name]/
+tomos/graphs/[name]/
 ├── [name].meta.json          # Metadata (always loaded)
 ├── [name].current.json       # Current state (always loaded)
 ├── [name].history.jsonl      # Streaming history format ⭐ NEW
@@ -295,7 +295,7 @@ corpus/graphs/[name]/
 ### **Tier 3: Archive (Compressed Storage)**
 
 ```
-corpus/graphs/[name]/
+tomos/graphs/[name]/
 └── archive/
     ├── states_000-099.json.gz    # Compressed batch
     ├── states_100-199.json.gz

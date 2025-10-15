@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Migrate old corpus format to new UoD format.
+Migrate old tomos format to new UoD format.
 
 Old format (corpus/graphs/{id}/):
 - {id}.meta.json
@@ -24,17 +24,17 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from corpus_service import CorpusService
+from tomos_service import TomosService
 from universe_of_discourse import UniverseOfDiscourse, UoDMetadata, UoDType, UoDCategory
 from egi_io import load_egi_json
 
 
-def migrate_corpus(corpus_root: Path, dry_run: bool = False):
+def migrate_corpus(tomos_root: Path, dry_run: bool = False):
     """
-    Migrate old corpus to new UoD format.
+    Migrate old tomos to new UoD format.
     
     Args:
-        corpus_root: Root directory of corpus
+        tomos_root: Root directory of corpus
         dry_run: If True, only report what would be migrated
     """
     print("=" * 70)
@@ -43,9 +43,9 @@ def migrate_corpus(corpus_root: Path, dry_run: bool = False):
     print()
     
     # Locate old corpus
-    old_graphs_dir = corpus_root / "graphs"
+    old_graphs_dir = tomos_root / "graphs"
     if not old_graphs_dir.exists():
-        print(f"❌ Old corpus not found at: {old_graphs_dir}")
+        print(f"❌ Old tomos not found at: {old_graphs_dir}")
         return
     
     # Get all graph directories
@@ -58,8 +58,8 @@ def migrate_corpus(corpus_root: Path, dry_run: bool = False):
         print("🔍 DRY RUN - No changes will be made")
         print()
     
-    # Initialize CorpusService for new format
-    corpus = CorpusService(corpus_root)
+    # Initialize TomosService for new format
+    tomos = TomosService(tomos_root)
     
     migrated_count = 0
     skipped_count = 0
@@ -148,7 +148,7 @@ def migrate_corpus(corpus_root: Path, dry_run: bool = False):
             
             if not dry_run:
                 # Save in new format
-                corpus.save_uod(uod)
+                tomos.save_uod(uod)
                 print(f"   💾 Saved to new format")
             
             migrated_count += 1
@@ -175,7 +175,7 @@ def migrate_corpus(corpus_root: Path, dry_run: bool = False):
     else:
         print("✅ Migration complete!")
         print()
-        print("New corpus structure:")
+        print("New tomos structure:")
         print(f"   Literature: {corpus.literature_dir}")
         print(f"   Dynamic: {corpus.universes_dir}")
         print()
@@ -188,13 +188,13 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(
-        description="Migrate old corpus to new UoD format"
+        description="Migrate old tomos to new UoD format"
     )
     parser.add_argument(
         "--corpus",
         type=Path,
         default=Path(__file__).parent.parent / "corpus",
-        help="Corpus root directory (default: ../corpus)"
+        help="Tomos root directory (default: ../corpus)"
     )
     parser.add_argument(
         "--dry-run",

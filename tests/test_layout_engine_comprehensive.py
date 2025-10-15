@@ -3,7 +3,7 @@ Comprehensive Layout Engine Tests
 
 Tests the new layout engine against:
 1. The problematic case that was missing predicates
-2. Complete corpus validation
+2. Complete tomos validation
 3. Platform-independent DTO structure
 4. Iron-clad area mapping compliance
 """
@@ -11,7 +11,7 @@ Tests the new layout engine against:
 import pytest
 from src.layout_engine import LayoutEngine, LayoutDTO
 from src.egif_parser_dau import parse_egif
-from src.corpus_index import load_index
+from src.tomos_index import load_index
 import json
 from pathlib import Path
 
@@ -87,7 +87,7 @@ class TestLayoutEngineComprehensive:
         print("✅ Area mapping compliance is iron-clad!")
     
     def test_corpus_compatibility(self):
-        """Test against a subset of corpus graphs"""
+        """Test against a subset of tomos graphs"""
         corpus_index = load_index()
         test_cases = [
             'peirce_cp_4_394_man_mortal',
@@ -126,10 +126,10 @@ class TestLayoutEngineComprehensive:
                         
                     except Exception as e:
                         print(f"❌ {graph_id}: Failed - {e}")
-                        raise AssertionError(f"Corpus graph {graph_id} failed: {e}")
+                        raise AssertionError(f"Tomos graph {graph_id} failed: {e}")
         
         assert success_count == len(test_cases), f"Expected {len(test_cases)} successes, got {success_count}"
-        print(f"✅ Corpus compatibility: {success_count}/{len(test_cases)} graphs processed!")
+        print(f"✅ Tomos compatibility: {success_count}/{len(test_cases)} graphs processed!")
     
     def test_ligature_path_generation(self):
         """Test that ligature paths are generated correctly"""

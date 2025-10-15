@@ -152,7 +152,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Metaphor**: The library and archives - holds published proceedings, enables reading, citation, export
 
 **User Actions**:
-- Browse corpus of UoDs
+- Browse tomos of UoDs
 - Open historical UoD for inspection
 - Navigate transformation history
 - Export current state or proof sequence
@@ -361,7 +361,7 @@ class UniverseOfDiscourse:
     source_citation: Optional[str] = None  # For literature imports
     related_uods: List[str] = field(default_factory=list)  # Links to other UoDs
     
-    # Corpus storage
+    # Tomos storage
     corpus_path: Optional[Path] = None
 ```
 
@@ -406,11 +406,11 @@ class UoDCategory(Enum):
 
 ---
 
-## Corpus Organization
+## Tomos Organization
 
 ### Current Structure (Fragmented)
 ```
-corpus/
+tomos/
   graphs/
     <graph_id>/              # Confusing name - not just a graph
       <graph_id>.egi.json    # Single EGI
@@ -421,8 +421,8 @@ corpus/
 
 ### Recommended Structure (UoD-Centric)
 ```
-corpus/
-  index.json                         # Corpus index
+tomos/
+  index.json                         # Tomos index
   
   universes/                         # Main UoD storage
     <uod_id>/
@@ -480,7 +480,7 @@ corpus/
       "authors": ["user_123"],
       "tags": ["propositional", "inference"],
       "is_static": false,
-      "path": "corpus/universes/inquiry_001"
+      "path": "tomos/universes/inquiry_001"
     },
     {
       "uod_id": "peirce_modus_ponens",
@@ -492,7 +492,7 @@ corpus/
       "total_transformations": 0,
       "source_citation": "Peirce CP 4.394",
       "is_static": true,
-      "path": "corpus/literature/peirce_modus_ponens"
+      "path": "tomos/literature/peirce_modus_ponens"
     }
   ]
 }
@@ -581,7 +581,7 @@ corpus/
 - ✅ Document philosophical foundation (this document)
 - ✅ Identify gaps in current model
 - ✅ Design `UniverseOfDiscourse` model
-- ✅ Refine corpus structure
+- ✅ Refine tomos structure
 
 ### Phase 2: Model Refactoring (1-2 days)
 - Rename `GraphEntity` → `UniverseOfDiscourse`
@@ -590,16 +590,16 @@ corpus/
 - Enhance metadata for UoD identity
 
 ### Phase 3: Storage Migration (2-3 days)
-- Implement new corpus structure (`universes/`)
+- Implement new tomos structure (`universes/`)
 - Migrate existing graphs → UoDs
-- Update `CorpusService` for UoD-centric operations
+- Update `TomosService` for UoD-centric operations
 - Maintain backward compatibility for literature imports
 
 ### Phase 4: Module Integration (3-4 days)
 - Update Organon for UoD browsing and history navigation
 - Implement Ergasterion isolation and promotion workflow
 - Implement Agon validation and history recording
-- Connect all three modules through unified `CorpusService`
+- Connect all three modules through unified `TomosService`
 
 ### Phase 5: Endoporeutic Game (5-7 days)
 - Implement game logic in Agon
@@ -631,8 +631,8 @@ corpus/
 - [ ] History is complete audit trail
 - [ ] Static vs. dynamic UoDs clearly distinguished
 
-### Corpus Organization
-- [ ] Corpus organized around UoDs, not isolated EGIs
+### Tomos Organization
+- [ ] Tomos organized around UoDs, not isolated EGIs
 - [ ] Efficient storage (JSONL streaming, snapshots)
 - [ ] Fast browsing (lightweight index)
 - [ ] Literature imports have clear identity

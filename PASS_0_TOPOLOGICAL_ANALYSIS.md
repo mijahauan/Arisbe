@@ -343,7 +343,7 @@ def test_branching_ligature():
 
 ### Integration Tests
 
-Load corpus graphs and verify:
+Load tomos graphs and verify:
 - Topology correctly identified for all ligatures
 - Crossing count matches expected
 - Branching identified where appropriate

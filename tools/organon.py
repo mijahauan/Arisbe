@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Organon CLI: corpus management for Arisbe.
+Organon CLI: tomos management for Arisbe.
 
 Subcommands:
-  - new:      Create a new corpus entry skeleton (metadata + optional EGI).
+  - new:      Create a new tomos entry skeleton (metadata + optional EGI).
   - enrich:   Enrich metadata from adjacent EGI (replicas, metrics).
-  - validate: Validate corpus entries for schema/EGI presence.
+  - validate: Validate tomos entries for schema/EGI presence.
   - reindex:  Rebuild corpus_index.json from per-entry metadata.
   - migrate:  Convert legacy linear/drawing entries to EGI (.egi.json).
 
@@ -13,7 +13,7 @@ Examples:
   # Create a new entry skeleton under canonical/
   python tools/organon.py new --dir corpus/corpus/canonical --id example_entry --title "Example"
 
-  # Enrich, validate, and reindex the corpus
+  # Enrich, validate, and reindex the tomos
   python tools/organon.py enrich --root corpus/corpus --write
   python tools/organon.py validate --root corpus/corpus
   python tools/organon.py reindex --root corpus/corpus --out corpus/corpus/corpus_index.json
@@ -142,12 +142,12 @@ def cmd_migrate(args: argparse.Namespace) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        prog="organon", description="Organon CLI - corpus management for Arisbe"
+        prog="organon", description="Organon CLI - tomos management for Arisbe"
     )
     sub = p.add_subparsers(dest="cmd", required=True)
 
     # new
-    pn = sub.add_parser("new", help="Create a new corpus entry skeleton")
+    pn = sub.add_parser("new", help="Create a new tomos entry skeleton")
     pn.add_argument(
         "--dir", required=True, help="Target directory (e.g., corpus/corpus/canonical)"
     )
@@ -172,7 +172,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     # enrich
     pe = sub.add_parser("enrich", help="Enrich metadata from adjacent EGIs")
-    pe.add_argument("--root", default="corpus/corpus")
+    pe.add_argument("--root", default="tomos/corpus")
     pe.add_argument("--write", action="store_true")
     pe.add_argument(
         "--include",
@@ -189,8 +189,8 @@ def build_parser() -> argparse.ArgumentParser:
     pe.set_defaults(func=cmd_enrich)
 
     # validate
-    pv = sub.add_parser("validate", help="Validate corpus entries")
-    pv.add_argument("--root", default="corpus/corpus")
+    pv = sub.add_parser("validate", help="Validate tomos entries")
+    pv.add_argument("--root", default="tomos/corpus")
     pv.add_argument(
         "--include",
         action="append",
@@ -207,13 +207,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     # reindex
     pr = sub.add_parser("reindex", help="Rebuild corpus_index.json")
-    pr.add_argument("--root", default="corpus/corpus")
+    pr.add_argument("--root", default="tomos/corpus")
     pr.add_argument("--out")
     pr.set_defaults(func=cmd_reindex)
 
     # migrate
     pm = sub.add_parser("migrate", help="Convert legacy entries to EGI (.egi.json)")
-    pm.add_argument("--root", default="corpus/corpus")
+    pm.add_argument("--root", default="tomos/corpus")
     pm.add_argument("--overwrite", action="store_true")
     pm.set_defaults(func=cmd_migrate)
 

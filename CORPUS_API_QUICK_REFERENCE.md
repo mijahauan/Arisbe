@@ -1,4 +1,4 @@
-# Corpus API Quick Reference
+# Tomos API Quick Reference
 **For Organon/Ergasterion/Agon Development**
 
 ---
@@ -9,7 +9,7 @@
 
 **For Organon (Read-Only Viewing)**:
 ```python
-from corpus_index import load_index, graph_paths, read_info
+from tomos_index import load_index, graph_paths, read_info
 from egi_io import load_egi_json
 
 # Browse corpus
@@ -18,7 +18,7 @@ for entry in index['entries']:
     print(entry['id'], entry['title'])
 
 # Load graph
-gdir = Path(f"corpus/graphs/{graph_id}")
+gdir = Path(f"tomos/graphs/{graph_id}")
 paths = graph_paths(gdir)
 egi = load_egi_json(paths['egi'])
 info = read_info(gdir)
@@ -53,10 +53,10 @@ entity.history.add_transformation(...)
 
 ## Current Storage Locations
 
-### Corpus Root
+### Tomos Root
 ```
-corpus/
-  index.json           # Lightweight corpus index
+tomos/
+  index.json           # Lightweight tomos index
   graphs/              # One directory per graph
     <graph_id>/
       <graph_id>.egi.json      # Canonical EGI (use this!)
@@ -66,17 +66,17 @@ corpus/
 ```
 
 ### Important Files
-- **Canonical EGI**: `corpus/graphs/<graph_id>/<graph_id>.egi.json` ← **SOURCE OF TRUTH**
-- **Metadata**: `corpus/graphs/<graph_id>/<graph_id>.json`
-- **Index**: `corpus/index.json` ← For browsing
+- **Canonical EGI**: `tomos/graphs/<graph_id>/<graph_id>.egi.json` ← **SOURCE OF TRUTH**
+- **Metadata**: `tomos/graphs/<graph_id>/<graph_id>.json`
+- **Index**: `tomos/index.json` ← For browsing
 
 ---
 
-## Current Working Functions (corpus_index.py)
+## Current Working Functions (tomos_index.py)
 
 ### Load Index
 ```python
-from corpus_index import load_index
+from tomos_index import load_index
 
 index = load_index()
 # Returns: {
@@ -90,7 +90,7 @@ index = load_index()
 
 ### Create New Graph
 ```python
-from corpus_index import create_graph_dir
+from tomos_index import create_graph_dir
 
 gdir = create_graph_dir(
     graph_id="my_new_graph",
@@ -98,26 +98,26 @@ gdir = create_graph_dir(
     category="user_created",
     tags=["tag1", "tag2"]
 )
-# Creates: corpus/graphs/my_new_graph/ with subdirectories
+# Creates: tomos/graphs/my_new_graph/ with subdirectories
 # Returns: Path to graph directory
 ```
 
 ### Get Graph Paths
 ```python
-from corpus_index import graph_paths
+from tomos_index import graph_paths
 
 paths = graph_paths(gdir)
 # Returns: {
-#   'egi': Path('corpus/graphs/<id>/<id>.egi.json'),
-#   'info': Path('corpus/graphs/<id>/<id>.json'),
-#   'egdf_dir': Path('corpus/graphs/<id>/EGDF/'),
-#   'exports_dir': Path('corpus/graphs/<id>/EXPORTS/')
+#   'egi': Path('tomos/graphs/<id>/<id>.egi.json'),
+#   'info': Path('tomos/graphs/<id>/<id>.json'),
+#   'egdf_dir': Path('tomos/graphs/<id>/EGDF/'),
+#   'exports_dir': Path('tomos/graphs/<id>/EXPORTS/')
 # }
 ```
 
 ### Read/Write Metadata
 ```python
-from corpus_index import read_info, write_info
+from tomos_index import read_info, write_info
 
 # Read
 info = read_info(gdir)
@@ -135,14 +135,14 @@ write_info(gdir, info_dict)
 ```python
 from egi_io import save_egi_json
 
-save_egi_json(egi, "corpus/graphs/my_graph/my_graph.egi.json")
+save_egi_json(egi, "tomos/graphs/my_graph/my_graph.egi.json")
 ```
 
 ### Load EGI
 ```python
 from egi_io import load_egi_json
 
-egi = load_egi_json("corpus/graphs/my_graph/my_graph.egi.json")
+egi = load_egi_json("tomos/graphs/my_graph/my_graph.egi.json")
 # Returns: RelationalGraphWithCuts
 ```
 
@@ -238,14 +238,14 @@ if entity.is_historical:
 
 ## Recommended Consolidated API (FUTURE)
 
-### CorpusService (Not Yet Implemented)
+### TomosService (Not Yet Implemented)
 
 **Proposed unified API for all components**:
 
 ```python
-from corpus_service import CorpusService
+from tomos_service import TomosService
 
-corpus = CorpusService()
+corpus = TomosService()
 
 # === ORGANON: Browse & View ===
 
@@ -311,7 +311,7 @@ stats = corpus.get_statistics()
 
 ### Pattern 1: Browse and View (Organon)
 ```python
-from corpus_index import load_index, graph_paths
+from tomos_index import load_index, graph_paths
 from egi_io import load_egi_json
 
 # 1. Load index
@@ -322,7 +322,7 @@ entry = index['entries'][0]
 graph_id = entry['id']
 
 # 3. Load EGI
-gdir = Path(f"corpus/graphs/{graph_id}")
+gdir = Path(f"tomos/graphs/{graph_id}")
 paths = graph_paths(gdir)
 egi = load_egi_json(paths['egi'])
 
@@ -332,7 +332,7 @@ egi = load_egi_json(paths['egi'])
 
 ### Pattern 2: Create New Graph
 ```python
-from corpus_index import create_graph_dir, graph_paths, upsert_entry
+from tomos_index import create_graph_dir, graph_paths, upsert_entry
 from egi_io import save_egi_json
 from egi_core_dau import create_empty_graph
 
@@ -365,7 +365,7 @@ from datetime import datetime
 import uuid
 
 # 1. Load existing EGI
-egi = load_egi_json("corpus/graphs/base_graph/base_graph.egi.json")
+egi = load_egi_json("tomos/graphs/base_graph/base_graph.egi.json")
 
 # 2. Create entity with history
 metadata = EntityMetadata(
@@ -415,7 +415,7 @@ proof_path = persistence.export_proof_sequence(
 
 ## File Naming Conventions
 
-### Current Convention (corpus_index.py)
+### Current Convention (tomos_index.py)
 ```
 <graph_id>.egi.json      # Canonical EGI
 <graph_id>.json          # Metadata
@@ -445,7 +445,7 @@ EXPORTS/                   # Exports
 ## Data Validation
 
 ### Current: No Automatic Validation
-- Graphs in corpus are NOT automatically validated
+- Graphs in tomos are NOT automatically validated
 - Use `integrated_corpus_manager.py` for validation (manual)
 
 ### Recommended: Validate on Load
@@ -478,11 +478,11 @@ else:
 **Solution**: Use `history_persistence.py` for full history persistence (interim)
 
 ### 4. Index Out of Sync
-**Problem**: `corpus/index.json` may not reflect actual graph directories  
+**Problem**: `tomos/index.json` may not reflect actual graph directories  
 **Solution**: Use `upsert_entry()` to update index after creating/modifying graphs
 
 ### 5. No Transaction Support
-**Problem**: Partial failures can leave corpus in inconsistent state  
+**Problem**: Partial failures can leave tomos in inconsistent state  
 **Solution**: Manually implement rollback or use file system snapshots
 
 ---
@@ -491,17 +491,17 @@ else:
 
 ### Current → Future Transition
 
-**When CorpusService is implemented**:
+**When TomosService is implemented**:
 
-1. **Replace** direct `corpus_index.py` calls with `CorpusService` methods
+1. **Replace** direct `tomos_index.py` calls with `TomosService` methods
 2. **Keep** `GraphEntity` model (it's the foundation)
 3. **Keep** `egi_io.py` for low-level serialization
-4. **Migrate** custom history management to `CorpusService.save_graph()`
+4. **Migrate** custom history management to `TomosService.save_graph()`
 
 **Backward Compatibility**:
-- Old corpus structure will be migrated automatically
+- Old tomos structure will be migrated automatically
 - Migration script will add `EntityMetadata` to existing graphs
-- `corpus_index.py` utilities will remain for backward compat
+- `tomos_index.py` utilities will remain for backward compat
 
 ---
 
@@ -514,4 +514,4 @@ else:
 ---
 
 **Last Updated**: 2025-10-14  
-**Status**: Interim guidance - CorpusService implementation pending
+**Status**: Interim guidance - TomosService implementation pending

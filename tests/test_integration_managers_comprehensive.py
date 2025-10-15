@@ -111,7 +111,7 @@ class TestIntegrationManagersComprehensive:
     # ==================== CORPUS MANAGER TESTS ====================
 
     def test_corpus_manager_add_and_retrieve_egi(self):
-        """Test adding and retrieving EGI from corpus manager."""
+        """Test adding and retrieving EGI from tomos manager."""
         # Skip complex integration test due to circular dependencies
         pytest.skip("Integration manager has complex dependencies - testing basic EGI operations instead")
         
@@ -146,7 +146,7 @@ class TestIntegrationManagersComprehensive:
         assert retrieved_metadata["category"] == CorpusCategory.TESTS.value
 
     def test_corpus_manager_search_functionality(self):
-        """Test corpus search capabilities."""
+        """Test tomos search capabilities."""
         self._check_skip_integration()
         
         # Add multiple EGIs with different metadata
@@ -180,7 +180,7 @@ class TestIntegrationManagersComprehensive:
         assert len(title_results) >= 5
 
     def test_corpus_manager_validation(self):
-        """Test corpus validation functionality."""
+        """Test tomos validation functionality."""
         # Add valid EGI
         valid_metadata = {
             "title": "Valid EGI",
@@ -195,7 +195,7 @@ class TestIntegrationManagersComprehensive:
         assert egi_id in [item.egi_id for item in validation_result.validated_items]
 
     def test_corpus_manager_categories(self):
-        """Test corpus category management."""
+        """Test tomos category management."""
         # Get available categories
         categories = self.corpus_manager.get_categories()
         assert CorpusCategory.TESTS in categories
@@ -533,7 +533,7 @@ class TestIntegrationManagersComprehensive:
 
     def test_cross_manager_communication(self):
         """Test communication between different managers."""
-        # Add EGI to corpus via corpus manager
+        # Add EGI to tomos via tomos manager
         metadata = {"title": "Cross-manager test", "category": CorpusCategory.TESTS.value}
         egi_id = self.corpus_manager.add_egi(self.test_egi, metadata)
         

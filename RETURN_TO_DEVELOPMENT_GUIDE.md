@@ -139,7 +139,7 @@ python tools/integrate_coverage_measurement.py --html
 
 2. **Data Management Components**:
    - Solidify through thorough testing and iterative improvement
-   - EGI-based corpus system
+   - EGI-based tomos system
    - YAML serialization
    - Constraint system
 
@@ -328,7 +328,7 @@ dto = engine.generate_layout(egi, style)
 - GUI components in `src/gui_clean/` (0% coverage)
 - Deferred per strategic focus
 
-### Corpus System
+### Tomos System
 
 **Current**:
 - `integrated_corpus_manager.py` (20% coverage)
@@ -338,7 +338,7 @@ dto = engine.generate_layout(egi, style)
 **Needs**:
 - More tests
 - Validation of diachronic workflow
-- Stress testing on 51 corpus graphs
+- Stress testing on 51 tomos graphs
 
 ### Transformation System
 
@@ -494,7 +494,7 @@ python tools/quality_gate_system.py
 🎯 Transformation system tests growing
 🎯 Subgraph isomorphism implemented
 🎯 Composition contexts working
-🎯 Corpus validation passing
+🎯 Tomos validation passing
 
 ---
 
@@ -534,13 +534,13 @@ Based on strategic priorities:
 
 ### Week 4: Data Management
 
-**Goal**: Solidify corpus system and YAML serialization
+**Goal**: Solidify tomos system and YAML serialization
 
 **Files**:
 - `src/integrated_corpus_manager.py` (currently 20% coverage)
-- Test diachronic workflow on corpus graphs
+- Test diachronic workflow on tomos graphs
 
-**Success**: Reliable data persistence and corpus validation
+**Success**: Reliable data persistence and tomos validation
 
 ---
 

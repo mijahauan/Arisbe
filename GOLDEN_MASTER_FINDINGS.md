@@ -111,7 +111,7 @@ Even with non-determinism, we've gained:
 - ✅ Nested cuts (2+ levels)
 - ✅ Complex structures
 - ✅ Multiple predicates
-- ⏸️ Corpus graphs (not yet tested due to path issues)
+- ⏸️ Tomos graphs (not yet tested due to path issues)
 
 ### **Success Rate:**
 - Average: ~60-80% pass rate across runs

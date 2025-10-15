@@ -117,8 +117,8 @@ AI assistants now have immediate context recovery and clear conduct expectations
 
 ## 🔮 Future Phases (Backlog)
 
-### Option A: Corpus Validation
-Test diachronic workflow on all 51 corpus graphs
+### Option A: Tomos Validation
+Test diachronic workflow on all 51 tomos graphs
 - Validates layout persistence
 - Stress tests area containment
 - Identifies edge cases

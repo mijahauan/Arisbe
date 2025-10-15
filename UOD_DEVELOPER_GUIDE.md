@@ -91,7 +91,7 @@ class EGITransformationHistory:
 
 #### Load UoD for Browsing
 ```python
-from corpus_index import load_index, graph_paths
+from tomos_index import load_index, graph_paths
 from egi_io import load_egi_json
 from graph_entity import GraphEntity
 
@@ -100,7 +100,7 @@ index = load_index()
 uod_entry = index['entries'][0]
 
 # Load metadata only (fast)
-gdir = Path(f"corpus/graphs/{uod_entry['id']}")
+gdir = Path(f"tomos/graphs/{uod_entry['id']}")
 info = read_info(gdir)
 
 # Load full UoD
@@ -190,7 +190,7 @@ practice_entity = GraphEntity(
 #### Copy Literature Example
 ```python
 # Load literature example
-literature_egi = load_egi_json("corpus/literature/peirce_modus_ponens.egi.json")
+literature_egi = load_egi_json("tomos/literature/peirce_modus_ponens.egi.json")
 
 # Create practice copy
 practice_entity = GraphEntity(
@@ -260,9 +260,9 @@ if is_valid:
 
 #### Load Active UoD
 ```python
-from corpus_service import CorpusService  # Future unified API
+from tomos_service import TomosService  # Future unified API
 
-corpus = CorpusService()
+corpus = TomosService()
 uod = corpus.get_graph(uod_id)
 
 # Ensure it has history
@@ -359,14 +359,14 @@ else:
 
 ---
 
-## Corpus Operations
+## Tomos Operations
 
 ### Current API (Interim)
 
-**Location**: `src/corpus_index.py`
+**Location**: `src/tomos_index.py`
 
 ```python
-from corpus_index import (
+from tomos_index import (
     load_index,
     create_graph_dir,
     graph_paths,
@@ -419,14 +419,14 @@ entry = {
 upsert_entry(entry)
 ```
 
-### Future API (CorpusService)
+### Future API (TomosService)
 
-**Location**: `src/corpus_service.py` (to be created)
+**Location**: `src/tomos_service.py` (to be created)
 
 ```python
-from corpus_service import CorpusService
+from tomos_service import TomosService
 
-corpus = CorpusService()
+corpus = TomosService()
 
 # List UoDs
 all_uods = corpus.list_graphs()
@@ -470,7 +470,7 @@ index = load_index()
 lit_entry = [e for e in index['entries'] if e['category'] == 'peirce'][0]
 
 # 2. Load EGI
-gdir = Path(f"corpus/literature/{lit_entry['id']}")
+gdir = Path(f"tomos/literature/{lit_entry['id']}")
 paths = graph_paths(gdir)
 egi = load_egi_json(paths['egi'])
 
@@ -686,12 +686,12 @@ uod = UniverseOfDiscourse(metadata=..., current_egi=egi, history=None)
 # Same interface, better name
 ```
 
-### Corpus Migration
-When `CorpusService` is implemented:
+### Tomos Migration
+When `TomosService` is implemented:
 1. Existing graphs will be migrated to UoD structure
 2. Static literature imports remain standalone
 3. User-created graphs get history tracking
-4. New corpus structure: `corpus/universes/`
+4. New tomos structure: `tomos/universes/`
 
 ---
 
@@ -714,11 +714,11 @@ When `CorpusService` is implemented:
 1. Read `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md` for philosophy
 2. Use current `GraphEntity` as interim UoD model
 3. Follow patterns in this guide
-4. Prepare for `CorpusService` unified API
+4. Prepare for `TomosService` unified API
 
 ### For Implementation
 1. Phase 1: Refactor `GraphEntity` → `UniverseOfDiscourse`
-2. Phase 2: Implement `CorpusService` unified API
+2. Phase 2: Implement `TomosService` unified API
 3. Phase 3: Build Ergasterion module with isolation
 4. Phase 4: Build Agon module with Endoporeutic Game
 5. Phase 5: Update Organon for UoD-centric browsing
@@ -729,6 +729,6 @@ When `CorpusService` is implemented:
 **Status**: Developer Guide  
 **See Also**: 
 - `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md` - Complete philosophical foundation
-- `DATA_PERSISTENCE_MODEL_SUMMARY.md` - Storage and corpus organization
+- `DATA_PERSISTENCE_MODEL_SUMMARY.md` - Storage and tomos organization
 - `CORPUS_API_QUICK_REFERENCE.md` - Current interim APIs
 - `AGENTS.md` - Development guidelines

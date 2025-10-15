@@ -239,11 +239,11 @@ class UoDCategory(Enum):
 
 ---
 
-## Corpus Organization
+## Tomos Organization
 
 ### Current Structure (Graph-Centric)
 ```
-corpus/
+tomos/
   graphs/
     <graph_id>/
       <graph_id>.egi.json
@@ -260,8 +260,8 @@ corpus/
 
 ### Recommended Structure (UoD-Centric)
 ```
-corpus/
-  index.json                         # Corpus index
+tomos/
+  index.json                         # Tomos index
   
   universes/                         # Main UoD storage
     <uod_id>/
@@ -319,7 +319,7 @@ corpus/
 - ✅ `UOD_DEVELOPER_GUIDE.md` - How to work with UoDs
 - ✅ `UOD_REFACTORING_SUMMARY.md` - This document
 - ✅ Updated `README.md` - UoD paradigm front and center
-- ✅ Updated `AGENTS.md` - Corpus management section
+- ✅ Updated `AGENTS.md` - Tomos management section
 - ✅ Updated `DATA_PERSISTENCE_MODEL_SUMMARY.md` - UoD-centric analysis
 
 **Status**: Documentation complete. Ready for implementation.
@@ -362,9 +362,9 @@ corpus/
 **Duration**: 2-3 days
 
 **Tasks**:
-1. Implement new corpus structure
-   - `corpus/universes/` directory
-   - `corpus/literature/` for static imports
+1. Implement new tomos structure
+   - `tomos/universes/` directory
+   - `tomos/literature/` for static imports
    - Update `index.json` format
 
 2. Create migration script
@@ -372,23 +372,23 @@ corpus/
    - Add metadata for all graphs
    - Validate integrity
 
-3. Update `CorpusService` (to be created)
+3. Update `TomosService` (to be created)
    - Unified API for UoD operations
    - Replace fragmented systems
    - Efficient lazy loading
 
 4. Maintain backward compatibility
-   - Support old corpus structure temporarily
+   - Support old tomos structure temporarily
    - Gradual migration path
 
 **Files to create**:
-- `src/corpus_service.py` - Unified corpus API
+- `src/tomos_service.py` - Unified tomos API
 - `tools/migrate_to_uod_corpus.py` - Migration script
 
 **Files to modify**:
-- `src/corpus_index.py` - Update for new structure
-- `src/entity_storage.py` - Integrate with CorpusService
-- `src/integrated_corpus_manager.py` - Delegate to CorpusService
+- `src/tomos_index.py` - Update for new structure
+- `src/entity_storage.py` - Integrate with TomosService
+- `src/integrated_corpus_manager.py` - Delegate to TomosService
 
 ---
 
@@ -415,7 +415,7 @@ corpus/
 4. **Cross-module integration**
    - Workflow: Ergasterion → Agon → Organon
    - Data flow: Practice → Validate → Archive
-   - Unified `CorpusService` usage
+   - Unified `TomosService` usage
 
 **Files to modify**:
 - `src/gui_clean/organon/*` - UoD browsing
@@ -515,8 +515,8 @@ corpus/
 - [ ] History is complete audit trail
 - [ ] Static vs. dynamic UoDs clearly distinguished
 
-### Corpus Organization
-- [ ] Corpus organized around UoDs, not isolated EGIs
+### Tomos Organization
+- [ ] Tomos organized around UoDs, not isolated EGIs
 - [ ] Efficient storage (JSONL streaming, snapshots)
 - [ ] Fast browsing (lightweight index)
 - [ ] Literature imports have clear identity
@@ -559,12 +559,12 @@ corpus/
 ### 5. **Static vs. Dynamic UoDs**
 ✅ **Decision**: Literature imports are static (no history), user UoDs are dynamic (full history)  
 **Rationale**: Different use cases, different requirements  
-**Impact**: Corpus organization separates `literature/` and `universes/`
+**Impact**: Tomos organization separates `literature/` and `universes/`
 
 ### 6. **UoD-Centric Corpus**
-✅ **Decision**: Corpus organized around UoDs, not graphs  
+✅ **Decision**: Tomos organized around UoDs, not graphs  
 **Rationale**: Reflects fundamental entity paradigm  
-**Impact**: Directory structure: `corpus/universes/<uod_id>/`
+**Impact**: Directory structure: `tomos/universes/<uod_id>/`
 
 ---
 
@@ -614,13 +614,13 @@ corpus/
 
 ### Backward Compatibility
 - Keep `GraphEntity` as alias during transition
-- Support old corpus structure temporarily
+- Support old tomos structure temporarily
 - Migration script handles existing data
 
 ### New Capabilities
 - Complete history tracking (was incomplete)
 - LayoutDeltas in states (was missing)
-- Unified CorpusService API (was fragmented)
+- Unified TomosService API (was fragmented)
 - Three-module workflow (Ergasterion and Agon are new)
 - Endoporeutic Game (completely new)
 
@@ -686,7 +686,7 @@ find src -name "*.py" -exec sed -i '' 's/EntityCategory/UoDCategory/g' {} \;
 2. ✅ **Defined Universe of Discourse** as fundamental entity
 3. ✅ **Designed three-module architecture** (Organon, Ergasterion, Agon)
 4. ✅ **Mapped complete workflows** for each module
-5. ✅ **Specified data model** and corpus organization
+5. ✅ **Specified data model** and tomos organization
 6. ✅ **Created implementation plan** with concrete phases
 7. ✅ **Documented everything** comprehensively
 
@@ -724,5 +724,5 @@ Arisbe will not be a diagram editor, but a **formal reasoning environment** wher
 - [CORPUS_API_QUICK_REFERENCE.md](CORPUS_API_QUICK_REFERENCE.md) - Current APIs
 
 **Technical Analysis**:
-- [DATA_PERSISTENCE_MODEL_SUMMARY.md](DATA_PERSISTENCE_MODEL_SUMMARY.md) - Corpus organization
+- [DATA_PERSISTENCE_MODEL_SUMMARY.md](DATA_PERSISTENCE_MODEL_SUMMARY.md) - Tomos organization
 - [DIACHRONIC_DELTA_WORKFLOW.md](DIACHRONIC_DELTA_WORKFLOW.md) - LayoutDeltas system

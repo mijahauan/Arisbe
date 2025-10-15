@@ -100,7 +100,7 @@ class ContextMemorySystem:
                     'python tools/semantic_code_analyzer.py | grep -A5 "cluster"',
                     'python tools/function_lookup.py "index"',
                 ],
-                message="🔍 BEFORE implementing indexing: Check existing indexing systems (HierarchicalIndex, R-tree, corpus index)",
+                message="🔍 BEFORE implementing indexing: Check existing indexing systems (HierarchicalIndex, R-tree, tomos index)",
                 priority="medium",
             ),
         ]

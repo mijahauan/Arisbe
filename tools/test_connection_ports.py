@@ -81,7 +81,7 @@ def test_connection_port_configurations():
 
 
 def test_real_corpus_connection_ports():
-    """Test connection ports with real corpus graphs"""
+    """Test connection ports with real tomos graphs"""
     
     print("📚 TESTING CONNECTION PORTS WITH CORPUS GRAPHS")
     print("=" * 50)
@@ -90,11 +90,11 @@ def test_real_corpus_connection_ports():
     svg_renderer = GraphvizSVGRenderer()
     style = load_default_dau_style()
     
-    # Find corpus graphs with different predicate arities
+    # Find tomos graphs with different predicate arities
     corpus_dir = Path(__file__).parent.parent / 'corpus' / 'graphs'
     
     if not corpus_dir.exists():
-        print("❌ Corpus directory not found")
+        print("❌ Tomos directory not found")
         return
     
     # Look for graphs with interesting predicate structures
@@ -108,7 +108,7 @@ def test_real_corpus_connection_ports():
                     'path': egi_files[0]
                 })
     
-    # Test up to 3 corpus graphs
+    # Test up to 3 tomos graphs
     for i, graph_info in enumerate(test_graphs[:3]):
         print(f"🧪 Testing: {graph_info['name']}")
         
@@ -217,7 +217,7 @@ if __name__ == "__main__":
     
     print("\n🎉 CONNECTION PORT TESTING COMPLETE!")
     print("   ✅ Port configurations validated for all arities")
-    print("   ✅ Real corpus graphs processed successfully")
+    print("   ✅ Real tomos graphs processed successfully")
     print("   ✅ ν (nu) mapping logic perfectly mirrored")
     print("   ✅ Tight bounding boxes with transparent backgrounds")
     print("   ✅ Specific numbered ports for precise ligature connections")

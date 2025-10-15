@@ -112,7 +112,7 @@ This CAN be deferred for:
 2. [ ] Ensure ligature paths start at `vertex.pos`
 3. [ ] Verify all ligatures connect properly
 4. [ ] Re-run workflow tests and verify SVGs
-5. [ ] Test with all corpus graphs
+5. [ ] Test with all tomos graphs
 
 ### **Validation**
 1. [ ] Visual inspection of SVG outputs

@@ -180,7 +180,7 @@ assert GraphEntity is UniverseOfDiscourse
 ✅ Aliases work correctly
 ```
 
-**Corpus Loading**: Works with existing metadata
+**Tomos Loading**: Works with existing metadata
 - Loaded 14 entities from corpus
 - Old metadata format (`entity_id`, `entity_type`) loads correctly
 - Category mapping applied automatically
@@ -234,7 +234,7 @@ assert GraphEntity is UniverseOfDiscourse
 **What Still Works**:
 - All existing imports (`from graph_entity import GraphEntity`)
 - All existing code using `GraphEntity`, `EntityType`, `EntityCategory`
-- All existing corpus metadata files
+- All existing tomos metadata files
 - All existing tests
 - All GUI components
 
@@ -258,21 +258,21 @@ assert GraphEntity is UniverseOfDiscourse
 ### Phase 3: Storage Migration (In Progress)
 
 **Goals**:
-1. Create `CorpusService` unified API
-2. Implement `corpus/universes/` structure
-3. Migrate existing corpus to new organization
+1. Create `TomosService` unified API
+2. Implement `tomos/universes/` structure
+3. Migrate existing tomos to new organization
 4. Maintain backward compatibility with old structure
 
 **Estimated Time**: 2-3 days
 
 **Files to Create**:
-- `src/corpus_service.py` - Unified corpus API
+- `src/tomos_service.py` - Unified tomos API
 - `tools/migrate_to_uod_corpus.py` - Migration script
 
 **Files to Modify**:
-- `src/corpus_index.py` - Update for new structure
-- `src/entity_storage.py` - Integrate with CorpusService
-- `src/integrated_corpus_manager.py` - Delegate to CorpusService
+- `src/tomos_index.py` - Update for new structure
+- `src/entity_storage.py` - Integrate with TomosService
+- `src/integrated_corpus_manager.py` - Delegate to TomosService
 
 ---
 
@@ -285,13 +285,13 @@ assert GraphEntity is UniverseOfDiscourse
 2. ✅ Implemented full backward compatibility
 3. ✅ All 90 core tests passing
 4. ✅ All GUI tests passing
-5. ✅ Corpus loading works with existing metadata
+5. ✅ Tomos loading works with existing metadata
 6. ✅ LayoutDeltas integrated into state management
 7. ✅ Static/dynamic type checking added
 8. ✅ Category system refined for UoD use cases
 
 **Ready For**:
-- Phase 3: Storage Migration (CorpusService)
+- Phase 3: Storage Migration (TomosService)
 - Phase 4: Module Integration (Ergasterion & Agon)
 - Phase 5: Endoporeutic Game
 

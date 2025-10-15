@@ -58,7 +58,7 @@ class MockIntegrationContext:
 
 
 class MockCorpusManager:
-    """Mock corpus manager for communication testing."""
+    """Mock tomos manager for communication testing."""
     
     def __init__(self, context: MockIntegrationContext):
         self.context = context
@@ -66,7 +66,7 @@ class MockCorpusManager:
         self.context.register_manager("corpus", self)
     
     def add_egi(self, egi: RelationalGraphWithCuts, metadata: Dict[str, Any]) -> str:
-        """Add EGI to corpus and notify other managers."""
+        """Add EGI to tomos and notify other managers."""
         egi_id = str(uuid.uuid4())
         self.corpus[egi_id] = {"egi": egi, "metadata": metadata}
         
@@ -82,12 +82,12 @@ class MockCorpusManager:
         return egi_id
     
     def get_egi(self, egi_id: str) -> Optional[RelationalGraphWithCuts]:
-        """Get EGI from corpus."""
+        """Get EGI from tomos."""
         self.context.log_event(f"Corpus: Retrieved EGI {egi_id}")
         return self.corpus.get(egi_id, {}).get("egi")
     
     def search_corpus(self, query: str) -> List[Dict[str, Any]]:
-        """Search corpus."""
+        """Search tomos."""
         self.context.log_event(f"Corpus: Searched for '{query}'")
         return list(self.corpus.values())
 
@@ -116,7 +116,7 @@ class MockExportManager:
         return export_data
     
     def on_egi_added(self, egi_id: str, egi: RelationalGraphWithCuts):
-        """Handle notification of new EGI from corpus manager."""
+        """Handle notification of new EGI from tomos manager."""
         self.context.log_event(f"Export: Notified of new EGI {egi_id}")
         
         # Auto-export to default format
@@ -198,7 +198,7 @@ class TestCrossManagerCommunication:
         export_manager = MockExportManager(self.integration_context)
         view_manager = MockViewManager(self.integration_context)
         
-        # Test 1: Corpus → Export data flow
+        # Test 1: Tomos → Export data flow
         try:
             # Add EGI to corpus
             egi_id = corpus_manager.add_egi(self.test_egi, {"title": "Test EGI"})
@@ -207,10 +207,10 @@ class TestCrossManagerCommunication:
             cached_exports = export_manager.get_cached_exports()
             assert len(cached_exports) > 0, "Export manager should have auto-exported"
             
-            print("✅ Corpus → Export data flow working")
+            print("✅ Tomos → Export data flow working")
             
         except Exception as e:
-            print(f"⚠️  Corpus → Export data flow: {e}")
+            print(f"⚠️  Tomos → Export data flow: {e}")
         
         # Test 2: Export → View data flow
         try:
@@ -231,7 +231,7 @@ class TestCrossManagerCommunication:
         try:
             initial_event_count = len(self.integration_context.event_log)
             
-            # Trigger complete chain: Corpus add → Export → View
+            # Trigger complete chain: Tomos add → Export → View
             egi_id = corpus_manager.add_egi(self.test_egi, {"title": "Chain Test"})
             
             # Verify all managers participated
@@ -259,7 +259,7 @@ class TestCrossManagerCommunication:
         
         # Test 1: Shared state updates
         try:
-            # Set shared state from corpus manager
+            # Set shared state from tomos manager
             egi_id = corpus_manager.add_egi(self.test_egi, {"title": "Shared State Test"})
             
             # Verify shared state was updated
@@ -365,11 +365,11 @@ class TestCrossManagerCommunication:
             corpus_events = [e for e in events if "Corpus:" in e]
             export_events = [e for e in events if "Export:" in e]
             
-            # Corpus events should come before export events
+            # Tomos events should come before export events
             if corpus_events and export_events:
                 corpus_index = events.index(corpus_events[0])
                 export_index = events.index(export_events[0])
-                assert corpus_index < export_index, "Corpus events should precede export events"
+                assert corpus_index < export_index, "Tomos events should precede export events"
                 
             print("✅ Event ordering and causality preserved")
             
@@ -388,7 +388,7 @@ class TestCrossManagerCommunication:
         try:
             corpus_manager = MockCorpusManager(self.integration_context)
             
-            # Simulate error in corpus manager
+            # Simulate error in tomos manager
             try:
                 # This should not crash other managers
                 corpus_manager.add_egi(None, {"title": "Error Test"})
@@ -413,9 +413,9 @@ class TestCrossManagerCommunication:
             # Remove export manager from context to simulate failure
             del self.integration_context.manager_registry["export"]
             
-            # Corpus manager should still work without export manager
+            # Tomos manager should still work without export manager
             egi_id = corpus_manager.add_egi(self.test_egi, {"title": "Degradation Test"})
-            assert egi_id is not None, "Corpus manager should work without export manager"
+            assert egi_id is not None, "Tomos manager should work without export manager"
             
             print("✅ Graceful degradation working")
             

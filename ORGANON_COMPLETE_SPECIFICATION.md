@@ -38,7 +38,7 @@
 - [ ] **CGIF** (Conceptual Graph Interchange Format) - ✅ Parser ready
 - [ ] **CLIF** (Common Logic Interchange Format) - ✅ Parser ready
 - [ ] **FOPL** (First-Order Predicate Logic - Dau Ch.18) - ✅ Translator ready
-- [ ] **JSON** (Full UoD with metadata) - ✅ CorpusService ready
+- [ ] **JSON** (Full UoD with metadata) - ✅ TomosService ready
 - [ ] **JSON** (EGI only) - ✅ egi_io ready
 - [ ] **Batch Import** (multiple files)
 
@@ -49,7 +49,7 @@
 - [ ] **CGIF** (Conceptual Graphs format) - ✅ Generator ready
 - [ ] **CLIF** (Common Logic format) - ✅ Generator ready
 - [ ] **FOPL** (First-Order Predicate Logic) - ✅ Translator ready
-- [ ] **JSON** (Full UoD with metadata + history) - ✅ CorpusService ready
+- [ ] **JSON** (Full UoD with metadata + history) - ✅ TomosService ready
 - [ ] **JSON** (Current EGI only) - ✅ egi_io ready
 - [ ] **PDF** (Rendered diagram + metadata) - Future
 - [ ] **LaTeX** (For academic papers) - Future
@@ -98,11 +98,11 @@
 
 ---
 
-## 4. Corpus Management
+## 4. Tomos Management
 
 ### UoD Operations
 **Status**: ⚠️ Partially implemented
-- [x] Browse corpus (list UoDs)
+- [x] Browse tomos (list UoDs)
 - [x] Load UoD
 - [x] Filter by type (static/dynamic)
 - [ ] Search UoDs (by name, tags, author)
@@ -112,7 +112,7 @@
 - [ ] Archive/unarchive
 - [ ] Export multiple UoDs
 
-### Corpus Statistics
+### Tomos Statistics
 **Status**: ❌ Not implemented
 - [ ] Total UoDs count
 - [ ] Static vs. Dynamic counts
@@ -203,7 +203,7 @@
 
 ### Navigation
 **Status**: ⚠️ Basic navigation working
-- [x] Corpus browser sidebar
+- [x] Tomos browser sidebar
 - [x] Metadata panel
 - [x] History timeline (for historical UoDs)
 - [ ] Breadcrumb navigation
@@ -265,7 +265,7 @@
 
 ### Phase 4a.2: Core Enhancement
 **Priority: MEDIUM**
-1. **Search & Filter**: Corpus search
+1. **Search & Filter**: Tomos search
 2. **UoD Operations**: Delete, duplicate, rename
 3. **Visualization Options**: Layout controls
 4. **Transformation Analysis**: View details
@@ -296,7 +296,7 @@
 ### Manual Tests
 - [ ] UI responsiveness
 - [ ] Error handling
-- [ ] Large corpus performance
+- [ ] Large tomos performance
 - [ ] Export format correctness
 
 ---
@@ -326,7 +326,7 @@ Organon is **COMPLETE** when:
 | Export | 20% | EGIF, CGIF, JSON |
 | Metadata | 50% | Edit capability |
 | History | 40% | Comparison, analysis |
-| Corpus Mgmt | 30% | Search, operations |
+| Tomos Mgmt | 30% | Search, operations |
 | Visualization | 60% | Layout options |
 | Integration | 30% | Agon, feedback |
 | UX | 40% | Shortcuts, help |
@@ -352,9 +352,9 @@ Organon is **COMPLETE** when:
    - Transformation details
    - Export history
 
-4. **Corpus Operations**
+4. **Tomos Operations**
    - Search and filter
    - Delete with confirmation
    - Duplicate UoD
 
-This will bring Organon to ~70% completion and provide the essential tools for corpus management.
+This will bring Organon to ~70% completion and provide the essential tools for tomos management.

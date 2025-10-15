@@ -275,7 +275,7 @@ class EntityStorageManager:
         Initialize storage manager.
         
         Args:
-            corpus_root: Root directory (e.g., corpus/graphs/)
+            corpus_root: Root directory (e.g., tomos/graphs/)
             snapshot_interval: Full snapshot every N states
         """
     
@@ -358,7 +358,7 @@ class StyleSpecification:
 
 ### **OrganonMode** (`src/gui_clean/organon/organon_mode.py`)
 
-**Purpose**: Exploration and corpus management mode
+**Purpose**: Exploration and tomos management mode
 
 ```python
 class OrganonMode(QWidget):
@@ -374,16 +374,16 @@ class OrganonMode(QWidget):
 
 ---
 
-### **CorpusBrowserWidget** (`src/gui_clean/organon/corpus_browser.py`)
+### **TomosBrowserWidget** (`src/gui_clean/organon/corpus_browser.py`)
 
 **Purpose**: Browse and select entities from corpus
 
 ```python
-class CorpusBrowserWidget(QWidget):
+class TomosBrowserWidget(QWidget):
     entity_selected = Signal(str)  # Emits entity_name
     
     def __init__(self, corpus_path: Path, parent: Optional[QWidget] = None):
-        """Initialize browser with corpus path."""
+        """Initialize browser with tomos path."""
     
     def get_selected_entity_name(self) -> Optional[str]:
         """Get currently selected entity name."""
@@ -480,7 +480,7 @@ svg = renderer.render_to_svg(dto)
 
 ### **EntityStorage ↔ GUI**
 ```python
-storage = EntityStorageManager("corpus/graphs")
+storage = EntityStorageManager("tomos/graphs")
 entity = storage.load_entity("graph_name")
 controller.load_egi(entity.current_egi)
 ```
@@ -492,7 +492,7 @@ controller.load_egi(entity.current_egi)
 ### **Load and Display EGI**
 ```python
 # Load from corpus
-storage = EntityStorageManager("corpus/graphs")
+storage = EntityStorageManager("tomos/graphs")
 entity = storage.load_entity("peirce_cp_4_394_man_mortal")
 
 # Display via controller
@@ -529,7 +529,7 @@ vertex = create_vertex(label="Socrates", is_generic=False)
 egi = egi.with_vertex(vertex)
 
 # Store as entity
-storage = EntityStorageManager("corpus/graphs")
+storage = EntityStorageManager("tomos/graphs")
 entity = storage.create_standalone_entity(
     name="my_graph",
     egi=egi,

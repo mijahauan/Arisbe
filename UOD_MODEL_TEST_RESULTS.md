@@ -132,7 +132,7 @@ Created comprehensive test suite in `tools/test_universe_of_discourse.py` with 8
 **Verified**:
 - ✅ All mappings work correctly
 - ✅ from_dict() handles old field names (`entity_id`, `entity_type`)
-- ✅ Corpus compatibility maintained
+- ✅ Tomos compatibility maintained
 
 **Result**: **PASS** ✅
 
@@ -325,8 +325,8 @@ The UniverseOfDiscourse model is thoroughly tested and working correctly. All fe
 - Type checking system
 
 **Next**: Phase 3 - Storage Migration
-- Implement CorpusService
-- Create `corpus/universes/` structure
+- Implement TomosService
+- Create `tomos/universes/` structure
 - Migration tools for existing corpus
 
 ---

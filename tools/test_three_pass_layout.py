@@ -12,7 +12,7 @@ from three_pass_layout_engine import ThreePassLayoutEngine
 
 def test_simple_graph():
     """Test on peirce_cp_4_394_man_mortal (simple case)."""
-    storage = EntityStorageManager(Path('corpus/graphs'))
+    storage = EntityStorageManager(Path('tomos/graphs'))
     engine = ThreePassLayoutEngine()
     
     print("Loading peirce_cp_4_394_man_mortal...")

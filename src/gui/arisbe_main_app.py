@@ -51,12 +51,12 @@ sys.path.append(str(Path(__file__).parent.parent))
 from chapter21_transformation_sequences import TransformationSequenceEngine
 from egi_core_dau import RelationalGraphWithCuts
 
-# Import corpus management
+# Import tomos management
 try:
-    from corpus_index import list_entries, load_index
+    from tomos_index import list_entries, load_index
     from corpus_integration import CorpusIntegration, CorpusItem, CorpusManager
 except ImportError:
-    # Create dummy classes if corpus modules not available
+    # Create dummy classes if tomos modules not available
     class CorpusManager:
         def get_categories(self):
             return []
@@ -157,7 +157,7 @@ class LinearFormDisplay(QWidget):
 
 
 class OrganonTab(QWidget):
-    """Organon: Graph browsing and exploration of existing EGI corpus."""
+    """Organon: Graph browsing and exploration of existing EGI tomos."""
 
     egi_selected = pyqtSignal(RelationalGraphWithCuts, str)
 
@@ -220,7 +220,7 @@ class OrganonTab(QWidget):
         left_layout.addLayout(ingestion_buttons)
 
         # Browser
-        browser_label = QLabel("EGI Corpus Browser")
+        browser_label = QLabel("EGI Tomos Browser")
         browser_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
         left_layout.addWidget(browser_label)
 
@@ -297,17 +297,17 @@ class OrganonTab(QWidget):
         # Initialize view mode
         self.current_view_mode = "synchronic"
         self.current_egi_name = None
-        self.corpus_manager = None
-        self.corpus_integration = None
+        self.tomos_manager = None
+        self.tomos_integration = None
         self.filtered_items = []
 
     def populate_egi_tree(self):
-        """Populate tree with actual corpus data."""
-        # Load corpus manager
-        self.corpus_manager = CorpusManager()
-        self.corpus_integration = CorpusIntegration(self.corpus_manager)
+        """Populate tree with actual tomos data."""
+        # Load tomos manager
+        self.tomos_manager = CorpusManager()
+        self.tomos_integration = CorpusIntegration(self.tomos_manager)
 
-        # Load corpus index
+        # Load tomos index
         corpus_index = load_index()
         corpus_entries = list_entries(corpus_index)
 
@@ -319,7 +319,7 @@ class OrganonTab(QWidget):
                 categories[category] = []
             categories[category].append(entry)
 
-        # Add corpus items by category
+        # Add tomos items by category
         for category_name in sorted(categories.keys()):
             category_item = QTreeWidgetItem([category_name])
             category_item.setData(
@@ -336,9 +336,9 @@ class OrganonTab(QWidget):
                 )
                 category_item.addChild(child_item)
 
-        # Add corpus manager items
-        for category in self.corpus_manager.get_categories():
-            items = self.corpus_manager.get_items_by_category(category)
+        # Add tomos manager items
+        for category in self.tomos_manager.get_categories():
+            items = self.tomos_manager.get_items_by_category(category)
             if items:
                 category_item = QTreeWidgetItem([category.value.title()])
                 category_item.setData(
@@ -384,17 +384,17 @@ class OrganonTab(QWidget):
             return
 
         if item_data["type"] == "entry":
-            # Load from corpus index
+            # Load from tomos index
             entry = item_data["entry"]
             self.display_corpus_entry(entry)
 
         elif item_data["type"] == "corpus_item":
-            # Load from corpus manager
+            # Load from tomos manager
             corpus_item = item_data["item"]
             self.display_corpus_item(corpus_item)
 
             # Try to parse to EGI and emit signal
-            egi = self.corpus_manager.parse_item_to_egi(corpus_item.id)
+            egi = self.tomos_manager.parse_item_to_egi(corpus_item.id)
             if egi:
                 self.egi_selected.emit(egi, corpus_item.title)
 
@@ -443,25 +443,25 @@ class OrganonTab(QWidget):
                         )
 
     def load_corpus(self):
-        """Refresh corpus from directory."""
+        """Refresh tomos from directory."""
         try:
-            # Reload corpus data
-            self.corpus_manager = CorpusManager()
-            self.corpus_integration = CorpusIntegration(self.corpus_manager)
+            # Reload tomos data
+            self.tomos_manager = CorpusManager()
+            self.tomos_integration = CorpusIntegration(self.tomos_manager)
 
             # Update category filter
             self.category_filter.clear()
             self.category_filter.addItem("All Categories")
-            for category in self.corpus_manager.get_categories():
+            for category in self.tomos_manager.get_categories():
                 self.category_filter.addItem(category.value.title())
 
             # Repopulate tree
             self.populate_egi_tree()
 
             # Show statistics
-            stats = self.corpus_manager.get_statistics()
+            stats = self.tomos_manager.get_statistics()
             self.linear_display.display_area.setPlainText(
-                f"Corpus Refreshed\n\n"
+                f"Tomos Refreshed\n\n"
                 f"Total Items: {stats['total_items']}\n"
                 f"Categories: {', '.join(stats['by_category'].keys())}\n"
                 f"Formats: EGIF({stats['by_format']['egif']}), "
@@ -474,7 +474,7 @@ class OrganonTab(QWidget):
             from PyQt6.QtWidgets import QMessageBox
 
             QMessageBox.warning(
-                self, "Corpus Load Error", f"Failed to load corpus: {e}"
+                self, "Tomos Load Error", f"Failed to load corpus: {e}"
             )
 
     def export_egi(self):
@@ -653,7 +653,7 @@ class OrganonTab(QWidget):
         """Handle search text changes."""
         search_term = self.search_box.text().strip()
         if len(search_term) >= 2:
-            # Filter corpus tree based on search term
+            # Filter tomos tree based on search term
             self.filter_corpus_tree(search_term)
         elif len(search_term) == 0:
             # Show all items when search is cleared
@@ -671,12 +671,12 @@ class OrganonTab(QWidget):
         self.update_display_options(show_metadata)
 
     def filter_corpus_tree(self, search_term: str):
-        """Filter corpus tree by search term."""
+        """Filter tomos tree by search term."""
         # TODO: Implement search filtering
         pass
 
     def filter_by_category(self, category: str):
-        """Filter corpus by category."""
+        """Filter tomos by category."""
         # TODO: Implement category filtering
         pass
 
@@ -706,24 +706,24 @@ class OrganonTab(QWidget):
             # TODO: Implement EGI import
 
     def load_corpus(self):
-        """Load/refresh the corpus."""
-        self.linear_display.display_area.append("\n🔄 Refreshing corpus...\n")
+        """Load/refresh the tomos."""
+        self.linear_display.display_area.append("\n🔄 Refreshing tomos...\n")
         self.populate_corpus_tree()
 
     def populate_egi_tree(self):
-        """Populate the EGI tree widget with actual corpus data."""
+        """Populate the EGI tree widget with actual tomos data."""
         self.egi_tree.clear()
 
         try:
             import json
             from pathlib import Path
 
-            # Load corpus index
-            corpus_root = Path(__file__).parent.parent.parent / "corpus"
-            index_path = corpus_root / "index.json"
+            # Load tomos index
+            tomos_root = Path(__file__).parent.parent.parent / "corpus"
+            index_path = tomos_root / "index.json"
 
             if not index_path.exists():
-                # Fallback to sample entries if corpus not available
+                # Fallback to sample entries if tomos not available
                 self._populate_sample_entries()
                 return
 
@@ -775,7 +775,7 @@ class OrganonTab(QWidget):
         self.egi_tree.expandAll()
 
     def populate_corpus_tree(self):
-        """Populate corpus tree (alias for populate_egi_tree)."""
+        """Populate tomos tree (alias for populate_egi_tree)."""
         self.populate_egi_tree()
 
     def on_egi_selected(self, item, column):
@@ -796,17 +796,17 @@ class OrganonTab(QWidget):
                 )
 
     def _load_and_display_egi(self, egi_name):
-        """Load EGI data from corpus and display linear forms."""
+        """Load EGI data from tomos and display linear forms."""
         import json
         import os
         from pathlib import Path
 
-        # Load corpus index to find the EGI
-        corpus_root = Path(__file__).parent.parent.parent / "corpus"
-        index_path = corpus_root / "index.json"
+        # Load tomos index to find the EGI
+        tomos_root = Path(__file__).parent.parent.parent / "corpus"
+        index_path = tomos_root / "index.json"
 
         if not index_path.exists():
-            raise FileNotFoundError(f"Corpus index not found at {index_path}")
+            raise FileNotFoundError(f"Tomos index not found at {index_path}")
 
         with open(index_path, "r") as f:
             corpus_index = json.load(f)
@@ -823,7 +823,7 @@ class OrganonTab(QWidget):
 
         # Load the EGI JSON file
         egi_path = Path(egi_entry["path"]) / f"{egi_name}.egi.json"
-        full_egi_path = corpus_root.parent / egi_path
+        full_egi_path = tomos_root.parent / egi_path
 
         if not full_egi_path.exists():
             raise FileNotFoundError(f"EGI file not found at {full_egi_path}")
@@ -887,7 +887,7 @@ class OrganonTab(QWidget):
         # TODO: Implement export functionality
 
     def display_corpus_entry(self, entry: Dict[str, Any]):
-        """Display a corpus index entry."""
+        """Display a tomos index entry."""
         content = f"=== {entry.get('title', entry['id'])} ===\n\n"
         content += f"ID: {entry['id']}\n"
         content += f"Category: {entry.get('category', 'Uncategorized')}\n"
@@ -941,7 +941,7 @@ class OrganonTab(QWidget):
         self.annotation_area.setPlainText(f"Notes for {self.current_egi_name}:\n\n")
 
     def display_corpus_item(self, item: CorpusItem):
-        """Display a corpus manager item."""
+        """Display a tomos manager item."""
         content = f"=== {item.title} ===\n\n"
         content += f"ID: {item.id}\n"
         content += f"Category: {item.category.value}\n"
@@ -1739,7 +1739,7 @@ class AgonTab(QWidget):
         welcome += "   3. Apply transformations within game rules\n"
         welcome += "   4. Build towards logical conclusions\n\n"
         welcome += "📚 Integration: Completed graphs can be sent back\n"
-        welcome += "   to Organon for corpus integration\n\n"
+        welcome += "   to Organon for tomos integration\n\n"
         welcome += "Ready to begin formal reasoning!\n"
 
         self.linear_display.display_area.setPlainText(welcome)

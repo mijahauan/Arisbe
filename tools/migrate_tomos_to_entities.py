@@ -1,5 +1,5 @@
 """
-Migrate existing corpus graphs to entity format.
+Migrate existing tomos graphs to entity format.
 
 Adds .meta.json files to existing .egi.json files.
 """
@@ -45,23 +45,23 @@ def generate_description(name: str) -> str:
     return " ".join(word.capitalize() for word in words)
 
 
-def migrate_corpus(corpus_root: Path, dry_run: bool = False):
+def migrate_corpus(tomos_root: Path, dry_run: bool = False):
     """
-    Migrate existing corpus to entity format.
+    Migrate existing tomos to entity format.
     
     Args:
-        corpus_root: Root corpus directory
+        tomos_root: Root tomos directory
         dry_run: If True, just report what would be done
     """
     migrated = 0
     skipped = 0
     errors = []
     
-    print(f"📂 Scanning corpus: {corpus_root}")
+    print(f"📂 Scanning corpus: {tomos_root}")
     print()
     
     # Find all .egi.json files
-    for egi_file in corpus_root.rglob("*.egi.json"):
+    for egi_file in tomos_root.rglob("*.egi.json"):
         # Remove .egi.json to get entity name
         # e.g., "peirce_cp_4_394_man_mortal.egi.json" -> "peirce_cp_4_394_man_mortal"
         entity_name = egi_file.name.replace(".egi.json", "")
@@ -141,12 +141,12 @@ def main():
     """Run migration."""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Migrate corpus to entity format")
+    parser = argparse.ArgumentParser(description="Migrate tomos to entity format")
     parser.add_argument(
         "--corpus",
         type=Path,
         default=Path(__file__).parent.parent / "corpus" / "graphs",
-        help="Corpus root directory"
+        help="Tomos root directory"
     )
     parser.add_argument(
         "--dry-run",
@@ -157,7 +157,7 @@ def main():
     args = parser.parse_args()
     
     if not args.corpus.exists():
-        print(f"❌ Corpus directory not found: {args.corpus}")
+        print(f"❌ Tomos directory not found: {args.corpus}")
         return 1
     
     if args.dry_run:

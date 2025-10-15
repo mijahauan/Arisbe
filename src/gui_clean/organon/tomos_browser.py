@@ -1,5 +1,5 @@
 """
-Corpus Browser Widget - Navigate and select graph entities from corpus.
+Tomos Browser Widget - Navigate and select graph entities from tomos.
 
 Displays available entities with metadata, category filtering, and search.
 """
@@ -24,16 +24,16 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from corpus_service import CorpusService
+from tomos_service import TomosService
 from universe_of_discourse import UoDCategory, UoDMetadata, UniverseOfDiscourse
 
 
-class CorpusBrowserWidget(QWidget):
+class TomosBrowserWidget(QWidget):
     """
-    Corpus browser for selecting Universes of Discourse.
+    Tomos browser for selecting Universes of Discourse.
     
     Features:
-    - List all UoDs in corpus
+    - List all UoDs in tomos
     - Filter by category (static/dynamic)
     - Search by name/description
     - Show UoD metadata
@@ -46,7 +46,7 @@ class CorpusBrowserWidget(QWidget):
     def __init__(self, corpus_path: Path, parent: Optional[QWidget] = None):
         super().__init__(parent)
         
-        self.corpus = CorpusService(corpus_path)
+        self.tomos = TomosService(corpus_path)
         self._current_uods: list[dict] = []
         
         self._setup_ui()
@@ -119,7 +119,7 @@ class CorpusBrowserWidget(QWidget):
             kwargs["is_dynamic"] = True
         
         # Load UoDs from index (fast, no full loading)
-        self._current_uods = self.corpus.list_uods(**kwargs)
+        self._current_uods = self.tomos.list_uods(**kwargs)
         
         # Apply search filter
         search_term = self.search_box.text().lower()

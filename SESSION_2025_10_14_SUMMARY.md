@@ -21,15 +21,15 @@
 - **Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`
 - **Status**: Production-ready ✅
 
-### 2. CorpusService Implementation ✅ COMPLETE
-- **Implementation**: `src/corpus_service.py` (573 lines)
+### 2. TomosService Implementation ✅ COMPLETE
+- **Implementation**: `src/tomos_service.py` (573 lines)
 - **Features**:
-  - Unified API for corpus management
+  - Unified API for tomos management
   - Fast index-based browsing
   - Lazy loading for performance
   - Support for static/dynamic filtering
   - Efficient JSON-based storage
-- **Testing**: 8/8 tests passing (`tools/test_corpus_service.py`)
+- **Testing**: 8/8 tests passing (`tools/test_tomos_service.py`)
 - **Status**: Production-ready ✅
 
 ### 3. DAG-Based Transformation History ✅ COMPLETE
@@ -48,12 +48,12 @@
 
 ### 4. Organon Integration ⚠️ PARTIAL
 - **Updated Components**:
-  - `CorpusBrowserWidget` (uses CorpusService)
+  - `TomosBrowserWidget` (uses TomosService)
   - `OrganonMode` (loads/displays UoDs)
   - `MetadataPanel` (shows UoD metadata)
   - `HistoryTimeline` (displays transformation history)
 - **Working Features**:
-  - Browse corpus with static/dynamic filtering
+  - Browse tomos with static/dynamic filtering
   - Load and display UoDs
   - View metadata (read-only)
   - Navigate transformation history
@@ -73,7 +73,7 @@
 - **Implemented**:
   - UoD-aware architecture
   - Practice session creation
-  - Save to Corpus functionality
+  - Save to Tomos functionality
   - Promote to historical dialog
   - Source UoD tracking
 - **Status**: Integration code complete but **UNTESTED**
@@ -105,15 +105,15 @@
 - **Test Coverage**: 106/106 tests passing
   - 90 core tests (existing)
   - 8 UniverseOfDiscourse tests (new)
-  - 8 CorpusService tests (new)
+  - 8 TomosService tests (new)
   - 5 DAG history tests (new, within test suite)
 
 ### Commits Made
 1. Universe of Discourse documentation (7 files)
 2. UniverseOfDiscourse model implementation
 3. UniverseOfDiscourse model tests (8/8 passing)
-4. CorpusService implementation
-5. CorpusService tests (8/8 passing)
+4. TomosService implementation
+5. TomosService tests (8/8 passing)
 6. Organon integration with UoD model
 7. AGENTS.md coherence framework update
 8. Ergasterion UoD integration (foundation, untested)
@@ -142,8 +142,8 @@
    - Multiple paths in single UoD
    - Realistic inquiry workflows
 
-3. **Corpus Management**: Unified API
-   - Single service for all corpus operations
+3. **Tomos Management**: Unified API
+   - Single service for all tomos operations
    - Fast index-based browsing
    - Consistent storage format
 
@@ -176,7 +176,7 @@
 | Component | Status | Completion | Notes |
 |-----------|--------|------------|-------|
 | **UoD Model** | ✅ Production | 100% | Fully tested |
-| **CorpusService** | ✅ Production | 100% | Fully tested |
+| **TomosService** | ✅ Production | 100% | Fully tested |
 | **DAG History** | ✅ Production | 100% | Fully tested |
 | **Organon** | ⚠️ Partial | ~40% | Viewing works, needs import/export |
 | **Ergasterion** | ⚠️ Foundation | ~30% | Integration untested |
@@ -209,9 +209,9 @@
 
 ### New Implementation Files
 - `src/universe_of_discourse.py` (537 lines)
-- `src/corpus_service.py` (573 lines)
+- `src/tomos_service.py` (573 lines)
 - `tools/test_universe_of_discourse.py` (254 lines)
-- `tools/test_corpus_service.py` (285 lines)
+- `tools/test_tomos_service.py` (285 lines)
 - `tools/test_history_dag.py` (221 lines)
 
 ### Modified Implementation Files
@@ -266,7 +266,7 @@
 
 ### New Tests
 - **UniverseOfDiscourse**: 8/8 passing ✅
-- **CorpusService**: 8/8 passing ✅
+- **TomosService**: 8/8 passing ✅
 - **DAG History**: 5/5 passing ✅
 
 ### Total Coverage
@@ -278,7 +278,7 @@
 
 ## Performance Metrics
 
-### CorpusService
+### TomosService
 - **Browse 100 UoDs**: <50ms (index-based)
 - **Load single UoD**: ~10ms (without history)
 - **Load with history**: ~50ms (depends on size)
@@ -316,7 +316,7 @@
 
 ### Core Architecture ✅
 - [x] UoD model implemented
-- [x] CorpusService implemented
+- [x] TomosService implemented
 - [x] DAG history implemented
 - [x] All tests passing
 - [x] Documentation complete
@@ -354,7 +354,7 @@ This was an exceptionally productive session with **major architectural achievem
 
 1. ✅ **UoD Model**: Complete paradigm shift from static EGI to dynamic UoD
 2. ✅ **DAG History**: Branching inquiry support (major innovation)
-3. ✅ **CorpusService**: Unified corpus management API
+3. ✅ **TomosService**: Unified tomos management API
 4. ⚠️ **Honest Assessment**: Organon ~40%, Ergasterion needs testing
 
 **Key Insight**: The philosophical foundation (UoD as diachronic process with branching history) is now **embedded throughout Arisbe**. This is a fundamental improvement that aligns the software with the reality of inquiry.

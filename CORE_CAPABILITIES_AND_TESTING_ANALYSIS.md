@@ -175,7 +175,7 @@
 **HIGH RISK (Inadequately Tested):**
 - Data persistence
 - Integration interfaces
-- Corpus management
+- Tomos management
 - View management
 - Export management
 - Error handling

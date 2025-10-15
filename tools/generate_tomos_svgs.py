@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate SVGs for entire corpus with bottom-up layout"""
+"""Generate SVGs for entire tomos with bottom-up layout"""
 
 import sys
 sys.path.insert(0, 'src')
@@ -10,7 +10,7 @@ from definitive_egi_layout_engine import DefinitiveEGILayoutEngine
 from graphviz_svg_renderer import GraphvizSVGRenderer
 from style_loader import StyleLoader
 
-storage = EntityStorageManager(Path('corpus/graphs'))
+storage = EntityStorageManager(Path('tomos/graphs'))
 layout_engine = DefinitiveEGILayoutEngine()
 renderer = GraphvizSVGRenderer()
 style = StyleLoader().load_default_style()
@@ -19,7 +19,7 @@ output_dir = Path("test_outputs/corpus_bottom_up_verified")
 output_dir.mkdir(parents=True, exist_ok=True)
 
 entities = storage.list_entities()
-print(f"Generating SVGs for {len(entities)} corpus graphs...")
+print(f"Generating SVGs for {len(entities)} tomos graphs...")
 print(f"Output directory: {output_dir}")
 print()
 

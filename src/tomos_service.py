@@ -1,7 +1,7 @@
 """
-CorpusService - Unified API for Universe of Discourse Corpus Management
+TomosService - Unified API for Universe of Discourse Tomos Management
 
-This service provides a clean, UoD-centric interface for all corpus operations,
+This service provides a clean, UoD-centric interface for all tomos operations,
 consolidating the previously fragmented systems (corpus_index, entity_storage,
 integrated_corpus_manager).
 
@@ -10,14 +10,14 @@ Key Features:
 - Support for both static (literature) and dynamic (reasoning) UoDs
 - History tracking integration
 - Efficient lazy loading
-- Migration support from old corpus structure
+- Migration support from old tomos structure
 - Backward compatibility during transition
 
 Architecture:
-- Single unified API for all corpus operations
+- Single unified API for all tomos operations
 - Delegates to appropriate storage backends
 - Abstracts storage details from consumers
-- Supports future corpus reorganization
+- Supports future tomos reorganization
 
 See: UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md for philosophical foundation
 """
@@ -39,38 +39,38 @@ from egi_io import load_egi_json, save_egi_json
 import json
 
 
-class CorpusVersion(Enum):
-    """Corpus structure version."""
-    LEGACY = "legacy"  # Old corpus/graphs/ structure
-    V2 = "v2"          # New corpus/universes/ structure
+class TomosVersion(Enum):
+    """Tomos structure version."""
+    LEGACY = "legacy"  # Old tomos/graphs/ structure
+    V2 = "v2"          # New tomos/universes/ structure
 
 
 @dataclass
-class CorpusIndex:
+class TomosIndex:
     """
-    Lightweight index of all UoDs in corpus.
+    Lightweight index of all UoDs in tomos.
     
     Provides fast browsing without loading full UoDs.
     """
-    corpus_name: str
-    version: CorpusVersion
+    tomos_name: str
+    version: TomosVersion
     universes: List[Dict]  # Lightweight metadata for each UoD
     last_updated: datetime
     
     def to_dict(self) -> dict:
         """Serialize to dictionary."""
         return {
-            "corpus_name": self.corpus_name,
+            "tomos_name": self.tomos_name,
             "version": self.version.value,
             "universes": self.universes,
             "last_updated": self.last_updated.isoformat(),
         }
     
     @staticmethod
-    def from_dict(data: dict) -> 'CorpusIndex':
+    def from_dict(data: dict) -> 'TomosIndex':
         """Deserialize from dictionary."""
-        # Handle both old and new index formats
-        corpus_name = data.get("corpus_name", data.get("name", "Arisbe Corpus"))
+        # Handle both old and new index formats (corpus_name → tomos_name)
+        tomos_name = data.get("tomos_name", data.get("corpus_name", data.get("name", "Arisbe Tomos")))
         
         # Handle old format (list of entries) vs new format
         universes = data.get("universes", data.get("entries", []))
@@ -85,90 +85,90 @@ class CorpusIndex:
         # Handle version string - default to LEGACY for unknown versions
         version_str = data.get("version", "legacy")
         try:
-            version = CorpusVersion(version_str)
+            version = TomosVersion(version_str)
         except ValueError:
             # Unknown version (like "0.1"), treat as legacy
-            version = CorpusVersion.LEGACY
+            version = TomosVersion.LEGACY
         
-        return CorpusIndex(
-            corpus_name=corpus_name,
+        return TomosIndex(
+            tomos_name=tomos_name,
             version=version,
             universes=universes,
             last_updated=last_updated,
         )
 
 
-class CorpusService:
+class TomosService:
     """
-    Unified service for Universe of Discourse corpus management.
+    Unified service for Universe of Discourse tomos management.
     
     Provides high-level operations for:
     - Listing and browsing UoDs
     - Loading and saving UoDs
     - Searching and filtering
     - Import/export operations
-    - Migration from old corpus structure
+    - Migration from old tomos structure
     
     Usage:
-        corpus = CorpusService(corpus_root)
+        tomos = TomosService(tomos_root)
         
         # List all UoDs
-        uods = corpus.list_uods()
+        uods = tomos.list_uods()
         
         # Load specific UoD
-        uod = corpus.load_uod("inquiry_001")
+        uod = tomos.load_uod("inquiry_001")
         
         # Save UoD (with history)
-        corpus.save_uod(uod)
+        tomos.save_uod(uod)
         
         # Search
-        results = corpus.search(query="modus ponens", category=UoDCategory.LITERATURE_EXAMPLE)
+        results = tomos.search(query="modus ponens", category=UoDCategory.LITERATURE_EXAMPLE)
     """
     
-    def __init__(self, corpus_root: Path):
+    def __init__(self, tomos_root: Path):
         """
-        Initialize CorpusService.
+        Initialize TomosService.
         
         Args:
-            corpus_root: Root directory of corpus (e.g., "corpus/")
+            tomos_root: Root directory of tomos (e.g., "tomos/")
         """
-        self.corpus_root = Path(corpus_root)
-        self.corpus_root.mkdir(parents=True, exist_ok=True)
+        self.tomos_root = Path(tomos_root)
+        self.tomos_root.mkdir(parents=True, exist_ok=True)
         
         # Paths
-        self.index_path = self.corpus_root / "index.json"
-        self.universes_dir = self.corpus_root / "universes"
-        self.literature_dir = self.corpus_root / "literature"
-        self.legacy_graphs_dir = self.corpus_root / "graphs"
+        self.index_path = self.tomos_root / "index.json"
+        self.universes_dir = self.tomos_root / "universes"
+        self.literature_dir = self.tomos_root / "literature"
+        self.legacy_graphs_dir = self.tomos_root / "graphs"
         
         # Create directories
         self.universes_dir.mkdir(exist_ok=True)
         self.literature_dir.mkdir(exist_ok=True)
         
         # Load or create index
-        self._index: Optional[CorpusIndex] = None
+        self._index: Optional[TomosIndex] = None
         self._load_index()
     
     # ===== Index Management =====
     
     def _load_index(self):
-        """Load corpus index from disk."""
+        """Load tomos index from disk."""
         if self.index_path.exists():
             with open(self.index_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                self._index = CorpusIndex.from_dict(data)
+                self._index = TomosIndex.from_dict(data)
         else:
             # Create new index
-            self._index = CorpusIndex(
-                corpus_name="Arisbe Corpus",
-                version=CorpusVersion.V2,
+            self._index = TomosIndex(
+                tomos_name="Arisbe Tomos",
+                version=TomosVersion.V2,
                 universes=[],
                 last_updated=datetime.now()
             )
             self._save_index()
     
     def _save_index(self):
-        """Save corpus index to disk."""
+        """Save tomos index to disk."""
         self._index.last_updated = datetime.now()
         with open(self.index_path, 'w', encoding='utf-8') as f:
             json.dump(self._index.to_dict(), f, indent=2)
@@ -227,7 +227,7 @@ class CorpusService:
     
     def _normalize_entry(self, entry: Dict) -> Dict:
         """
-        Normalize old corpus format to new format.
+        Normalize old tomos format to new format.
         
         Old format: id, title, category, path
         New format: uod_id, name, category, is_static, is_dynamic, path
@@ -242,7 +242,7 @@ class CorpusService:
             "name": entry.get("title", entry.get("name", "Untitled")),
             "category": entry.get("category", "literature"),
             "path": entry.get("path", ""),
-            # For old corpus, everything is static literature
+            # For old tomos format, everything is static literature
             "is_static": True,
             "is_dynamic": False,
             "uod_type": "standalone",
@@ -261,7 +261,7 @@ class CorpusService:
         is_dynamic: Optional[bool] = None,
     ) -> List[Dict]:
         """
-        List all UoDs in corpus.
+        List all UoDs in tomos.
         
         Args:
             category: Filter by category (optional)
@@ -304,12 +304,12 @@ class CorpusService:
         return None
     
     def uod_exists(self, uod_id: str) -> bool:
-        """Check if UoD exists in corpus."""
+        """Check if UoD exists in tomos."""
         return self.get_uod_metadata(uod_id) is not None
     
     def _load_uod_old_format(self, uod_id: str, uod_path: Path) -> Optional[UniverseOfDiscourse]:
         """
-        Load UoD from old corpus format.
+        Load UoD from old tomos format.
         
         Old format:
         - {uod_id}.meta.json
@@ -387,9 +387,9 @@ class CorpusService:
         load_history: bool = True
     ) -> Optional[UniverseOfDiscourse]:
         """
-        Load UoD from corpus.
+        Load UoD from tomos.
         
-        Handles both old and new corpus formats.
+        Handles both old and new tomos formats.
         
         Args:
             uod_id: UoD identifier
@@ -450,7 +450,7 @@ class CorpusService:
     
     def save_uod(self, uod: UniverseOfDiscourse):
         """
-        Save UoD to corpus.
+        Save UoD to tomos.
         
         Saves:
         - Metadata
@@ -497,7 +497,7 @@ class CorpusService:
     
     def delete_uod(self, uod_id: str) -> bool:
         """
-        Delete UoD from corpus.
+        Delete UoD from tomos.
         
         Args:
             uod_id: UoD identifier
@@ -533,7 +533,7 @@ class CorpusService:
         author: Optional[str] = None,
     ) -> List[Dict]:
         """
-        Search UoDs in corpus.
+        Search UoDs in tomos.
         
         Args:
             query: Search in name and description (optional)
@@ -664,7 +664,7 @@ class CorpusService:
     
     def get_statistics(self) -> Dict:
         """
-        Get corpus statistics.
+        Get tomos statistics.
         
         Returns:
             Dictionary with statistics

@@ -25,7 +25,7 @@
 - ✅ Engine still functional
 - ✅ Generates valid DTOs
 - ✅ No regressions in basic functionality
-- ⏳ Visual quality needs corpus validation
+- ⏳ Visual quality needs tomos validation
 
 ---
 

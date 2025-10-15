@@ -108,7 +108,7 @@ Result: Content determines container size
 
 ### Standalone Tests (`test_bottom_up_engine.py`)
 
-All corpus graphs passed:
+All tomos graphs passed:
 
 **Graph 1: `dau_2006_p112_ligature`**
 ```
@@ -210,7 +210,7 @@ self.layout_engine = DefinitiveThreePassEngine()
 1. ✅ Standalone testing (COMPLETE)
 2. ✅ GUI integration (COMPLETE)
 3. 🔄 GUI validation (IN PROGRESS)
-4. ⏳ Load problematic corpus graphs in Organon
+4. ⏳ Load problematic tomos graphs in Organon
 
 ### Medium Term
 1. Implement ligature routing (A* pathfinding)

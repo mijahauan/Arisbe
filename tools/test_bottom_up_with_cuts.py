@@ -11,7 +11,7 @@ from graphviz_svg_renderer import GraphvizSVGRenderer
 from style_loader import StyleLoader
 
 # Test on the problematic graph
-storage = EntityStorageManager(Path('corpus/graphs'))
+storage = EntityStorageManager(Path('tomos/graphs'))
 layout_engine = DefinitiveEGILayoutEngine()
 style_loader = StyleLoader()
 style = style_loader.load_default_style()

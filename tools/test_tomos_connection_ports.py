@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Corpus Test for Connection Port System
+Comprehensive Tomos Test for Connection Port System
 
 Tests the optimized connection port system across the entire corpus
 to validate consistent performance and visual quality.
@@ -93,11 +93,11 @@ def test_entire_corpus():
     style_loader = StyleLoader()
     style = style_loader.load_default_style()
     
-    # Find all corpus graphs
+    # Find all tomos graphs
     corpus_dir = Path(__file__).parent.parent / 'corpus' / 'graphs'
     
     if not corpus_dir.exists():
-        print("❌ Corpus directory not found")
+        print("❌ Tomos directory not found")
         return
     
     # Collect all EGI files
@@ -112,7 +112,7 @@ def test_entire_corpus():
                     'dir': graph_dir
                 })
     
-    print(f"📚 Found {len(all_graphs)} corpus graphs to test")
+    print(f"📚 Found {len(all_graphs)} tomos graphs to test")
     print()
     
     # Test results tracking
@@ -185,7 +185,7 @@ def test_entire_corpus():
             
             svg_path = svg_renderer.save_svg(
                 dto,
-                f"Corpus Test - {graph_name}",
+                f"Tomos Test - {graph_name}",
                 egif,
                 f"corpus_test_{graph_name.lower()}",
                 "test_outputs/corpus_connection_ports",

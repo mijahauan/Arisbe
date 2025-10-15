@@ -198,8 +198,8 @@ The session involved **7 major iterations**, each addressing critical flaws iden
 - **GUI tests**: 3/3 passing ✅  
 - **Quality gates**: All passing ✅
 
-### **Corpus Validation**
-- 15-graph corpus loaded and tested
+### **Tomos Validation**
+- 15-graph tomos loaded and tested
 - Simple to complex nested structures
 - Stable, deterministic layouts
 - Proper EGI.area compliance

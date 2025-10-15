@@ -8,7 +8,7 @@ validation identified in the coverage plan.
 Test Categories:
 1. Integration manager instantiation and functionality
 2. Cross-manager communication and coordination
-3. Corpus management comprehensive validation
+3. Tomos management comprehensive validation
 4. Export management comprehensive validation
 5. View management comprehensive validation
 6. Core formalism manager validation
@@ -80,7 +80,7 @@ class TestIntegrationManagersPhase3:
         """
         print("\n🧪 Testing integration manager instantiation...")
         
-        # Test 1: Corpus Manager instantiation
+        # Test 1: Tomos Manager instantiation
         try:
             corpus_manager = IntegratedCorpusManager()
             assert corpus_manager is not None
@@ -118,16 +118,16 @@ class TestIntegrationManagersPhase3:
 
     def test_corpus_management_comprehensive_validation(self):
         """
-        Test corpus management comprehensive validation.
+        Test tomos management comprehensive validation.
         
-        Tests corpus operations, search, and data integrity.
+        Tests tomos operations, search, and data integrity.
         """
-        print("\n🧪 Testing corpus management comprehensive validation...")
+        print("\n🧪 Testing tomos management comprehensive validation...")
         
         try:
             corpus_manager = IntegratedCorpusManager()
             
-            # Test 1: Basic corpus operations
+            # Test 1: Basic tomos operations
             try:
                 # Add EGI to corpus
                 metadata = {
@@ -136,45 +136,45 @@ class TestIntegrationManagersPhase3:
                     "category": "test"
                 }
                 
-                # Check if corpus manager has add_egi method
+                # Check if tomos manager has add_egi method
                 if hasattr(corpus_manager, 'add_egi'):
                     egi_id = corpus_manager.add_egi(self.test_egi, metadata)
                     assert egi_id is not None
-                    print("✅ EGI added to corpus successfully")
+                    print("✅ EGI added to tomos successfully")
                 else:
-                    print("⚠️  Corpus manager add_egi method not available")
+                    print("⚠️  Tomos manager add_egi method not available")
                 
             except Exception as e:
-                print(f"⚠️  Corpus add operation: {e}")
+                print(f"⚠️  Tomos add operation: {e}")
             
-            # Test 2: Corpus search functionality
+            # Test 2: Tomos search functionality
             try:
                 if hasattr(corpus_manager, 'search_corpus'):
                     search_results = corpus_manager.search_corpus("test")
-                    print(f"✅ Corpus search completed: {len(search_results) if search_results else 0} results")
+                    print(f"✅ Tomos search completed: {len(search_results) if search_results else 0} results")
                 else:
-                    print("⚠️  Corpus manager search_corpus method not available")
+                    print("⚠️  Tomos manager search_corpus method not available")
                 
             except Exception as e:
-                print(f"⚠️  Corpus search operation: {e}")
+                print(f"⚠️  Tomos search operation: {e}")
             
-            # Test 3: Corpus retrieval functionality
+            # Test 3: Tomos retrieval functionality
             try:
                 if hasattr(corpus_manager, 'get_egi') and 'egi_id' in locals():
                     retrieved_egi = corpus_manager.get_egi(egi_id)
                     if retrieved_egi:
                         assert len(retrieved_egi.V) == len(self.test_egi.V)
-                        print("✅ EGI retrieved from corpus successfully")
+                        print("✅ EGI retrieved from tomos successfully")
                     else:
                         print("⚠️  EGI retrieval returned None")
                 else:
-                    print("⚠️  Corpus manager get_egi method not available or no EGI ID")
+                    print("⚠️  Tomos manager get_egi method not available or no EGI ID")
                 
             except Exception as e:
-                print(f"⚠️  Corpus retrieval operation: {e}")
+                print(f"⚠️  Tomos retrieval operation: {e}")
                 
         except Exception as e:
-            print(f"⚠️  Corpus manager comprehensive test: {e}")
+            print(f"⚠️  Tomos manager comprehensive test: {e}")
 
     def test_export_management_comprehensive_validation(self):
         """
@@ -372,7 +372,7 @@ class TestIntegrationManagersPhase3:
             
             print("✅ All managers initialized for coordination test")
             
-            # Test 1: Corpus → Export workflow
+            # Test 1: Tomos → Export workflow
             try:
                 # Add EGI to corpus
                 if hasattr(corpus_manager, 'add_egi'):
@@ -385,16 +385,16 @@ class TestIntegrationManagersPhase3:
                         # Export retrieved EGI
                         if retrieved_egi and hasattr(export_manager, 'export_egi'):
                             export_result = export_manager.export_egi(retrieved_egi, "EGIF")
-                            print("✅ Corpus → Export workflow successful")
+                            print("✅ Tomos → Export workflow successful")
                         else:
                             print("⚠️  Export step in workflow failed")
                     else:
                         print("⚠️  Retrieval step in workflow failed")
                 else:
-                    print("⚠️  Corpus add step in workflow failed")
+                    print("⚠️  Tomos add step in workflow failed")
                 
             except Exception as e:
-                print(f"⚠️  Corpus → Export workflow: {e}")
+                print(f"⚠️  Tomos → Export workflow: {e}")
             
             # Test 2: Core → View workflow
             try:
@@ -423,7 +423,7 @@ class TestIntegrationManagersPhase3:
             
             # Test 3: End-to-end integration workflow
             try:
-                # Complete workflow: Core validation → Corpus storage → View generation → Export
+                # Complete workflow: Core validation → Tomos storage → View generation → Export
                 workflow_success = True
                 workflow_steps = []
                 
@@ -434,11 +434,11 @@ class TestIntegrationManagersPhase3:
                     else:
                         workflow_success = False
                 
-                # Step 2: Corpus storage
+                # Step 2: Tomos storage
                 if workflow_success and hasattr(corpus_manager, 'add_egi'):
                     egi_id = corpus_manager.add_egi(self.test_egi, {"workflow": "end-to-end"})
                     if egi_id:
-                        workflow_steps.append("Corpus storage")
+                        workflow_steps.append("Tomos storage")
                     else:
                         workflow_success = False
                 
@@ -484,7 +484,7 @@ class TestIntegrationManagersPhase3:
         print("\n🧪 Testing performance and scalability validation...")
         
         try:
-            # Test 1: Bulk corpus operations
+            # Test 1: Bulk tomos operations
             corpus_manager = IntegratedCorpusManager()
             
             if hasattr(corpus_manager, 'add_egi'):
@@ -504,9 +504,9 @@ class TestIntegrationManagersPhase3:
                         pass  # Continue with performance test
                 
                 add_time = time.time() - start_time
-                print(f"✅ Bulk corpus operations: {len(egi_ids)} EGIs added in {add_time:.3f}s")
+                print(f"✅ Bulk tomos operations: {len(egi_ids)} EGIs added in {add_time:.3f}s")
             else:
-                print("⚠️  Corpus manager bulk operations not available")
+                print("⚠️  Tomos manager bulk operations not available")
             
             # Test 2: Export performance
             export_manager = IntegratedExportManager()
@@ -589,7 +589,7 @@ class TestIntegrationManagersPhase3:
         print("="*60)
         print("📊 INTEGRATION MANAGERS COVERAGE ACHIEVED:")
         print("   • Integration manager instantiation: 100%")
-        print("   • Corpus management validation: 100%")
+        print("   • Tomos management validation: 100%")
         print("   • Export management validation: 100%")
         print("   • View management validation: 100%")
         print("   • Core formalism manager validation: 100%")

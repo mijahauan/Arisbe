@@ -38,15 +38,15 @@ class InteractiveEGIFTransformer:
         self.current_egif = None
         self.current_egi = None
         self.analysis = None
-        self.corpus_files = self._discover_corpus_files()
+        self.tomos_files = self._discover_tomos_files()
 
-    def _discover_corpus_files(self) -> List[Dict[str, str]]:
-        """Discover available corpus EGIF files."""
-        corpus_dir = Path("/Users/mjh/Sync/GitHub/Arisbe/corpus/graphs")
+    def _discover_tomos_files(self) -> List[Dict[str, str]]:
+        """Discover available tomos EGIF files."""
+        tomos_dir = Path("/Users/mjh/Sync/GitHub/Arisbe/tomos/graphs")
         files = []
 
-        if corpus_dir.exists():
-            for graph_dir in corpus_dir.iterdir():
+        if tomos_dir.exists():
+            for graph_dir in tomos_dir.iterdir():
                 if graph_dir.is_dir():
                     json_file = graph_dir / f"{graph_dir.name}.json"
                     if json_file.exists():
@@ -241,7 +241,7 @@ class InteractiveEGIFTransformer:
         print("=" * 40)
 
         categories = {}
-        for file_info in self.corpus_files:
+        for file_info in self.tomos_files:
             category = file_info["category"]
             if category not in categories:
                 categories[category] = []

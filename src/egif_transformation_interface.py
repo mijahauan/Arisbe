@@ -1,5 +1,5 @@
 """
-EGIF Transformation Interface - Parse corpus EGIFs, apply transformations, generate new EGIFs.
+EGIF Transformation Interface - Parse tomos EGIFs, apply transformations, generate new EGIFs.
 Uses existing egif_parser_dau.py and formal_transformation_rules.py.
 """
 
@@ -47,7 +47,7 @@ class EGIFTransformationInterface:
         self.egif_generator = EGIFGenerator()
 
     def load_corpus_egif(self, corpus_path: str) -> Tuple[str, Dict[str, Any]]:
-        """Load EGIF from corpus JSON file."""
+        """Load EGIF from tomos JSON file."""
         with open(corpus_path, "r") as f:
             corpus_data = json.load(f)
 
@@ -465,12 +465,12 @@ class EGIFTransformationInterface:
         operation_details: Dict[str, Any],
         description: str = "",
     ) -> TransformationResponse:
-        """Demonstrate transformation on a corpus EGIF."""
+        """Demonstrate transformation on a tomos EGIF."""
 
         print(f"🔄 EGIF Transformation Demonstration")
         print("=" * 40)
 
-        # Load corpus EGIF
+        # Load tomos EGIF
         try:
             egif_content, corpus_data = self.load_corpus_egif(corpus_path)
             print(f"📁 Loaded: {corpus_data.get('title', 'Unknown')}")
@@ -478,7 +478,7 @@ class EGIFTransformationInterface:
             print(f"🧮 Original EGIF: {egif_content}")
 
         except Exception as e:
-            print(f"❌ Error loading corpus: {e}")
+            print(f"❌ Error loading tomos: {e}")
             return TransformationResponse(False, "", None, None, None, None, str(e))
 
         # Create transformation request
@@ -532,7 +532,7 @@ def demonstrate_socrates_example():
     interface = EGIFTransformationInterface()
 
     # The example from the user
-    corpus_path = "/Users/mjh/Sync/GitHub/Arisbe/corpus/graphs/peirce_cp_4_394_man_mortal/peirce_cp_4_394_man_mortal.json"
+    corpus_path = "/Users/mjh/Sync/GitHub/Arisbe/tomos/graphs/peirce_cp_4_394_man_mortal/peirce_cp_4_394_man_mortal.json"
 
     response = interface.demonstrate_transformation(
         corpus_path=corpus_path,

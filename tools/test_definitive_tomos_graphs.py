@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Test Definitive EGI Layout Engine with Actual Corpus Graphs
+Test Definitive EGI Layout Engine with Actual Tomos Graphs
 
-Tests the definitive three-step layout engine using real graphs from the Arisbe corpus.
+Tests the definitive three-step layout engine using real graphs from the Arisbe tomos.
 This provides validation on actual EGI examples rather than synthetic test cases.
 """
 
@@ -20,7 +20,7 @@ from egi_io import load_egi_json
 
 
 def test_definitive_corpus_graphs():
-    """Test the definitive layout engine with actual corpus graphs"""
+    """Test the definitive layout engine with actual tomos graphs"""
     
     print("🚀 TESTING DEFINITIVE EGI LAYOUT ENGINE - CORPUS GRAPHS")
     print("=" * 70)
@@ -29,11 +29,11 @@ def test_definitive_corpus_graphs():
     layout_engine = DefinitiveEGILayoutEngine()
     svg_renderer = GraphvizSVGRenderer()
     
-    # Find all corpus graphs
+    # Find all tomos graphs
     corpus_dir = Path(__file__).parent.parent / 'corpus' / 'graphs'
     
     if not corpus_dir.exists():
-        print(f"❌ Corpus directory not found: {corpus_dir}")
+        print(f"❌ Tomos directory not found: {corpus_dir}")
         return False
     
     # Collect all .egi.json files
@@ -45,14 +45,14 @@ def test_definitive_corpus_graphs():
                 corpus_graphs.append({
                     'name': graph_dir.name,
                     'path': egi_files[0],
-                    'description': f"Corpus graph: {graph_dir.name}"
+                    'description': f"Tomos graph: {graph_dir.name}"
                 })
     
     if not corpus_graphs:
         print(f"❌ No .egi.json files found in {corpus_dir}")
         return False
     
-    print(f"\n📚 Found {len(corpus_graphs)} corpus graphs")
+    print(f"\n📚 Found {len(corpus_graphs)} tomos graphs")
     print(f"📚 Testing definitive pipeline: neato → bottom-up → area-aware A*")
     print()
     
@@ -88,7 +88,7 @@ def test_definitive_corpus_graphs():
             # Generate SVG
             svg_path = svg_renderer.save_svg(
                 dto, 
-                f"Corpus Graph - {graph_info['name']}", 
+                f"Tomos Graph - {graph_info['name']}", 
                 description,
                 f"corpus_{graph_info['name'].lower()}",
                 "test_outputs/corpus_layouts"
@@ -123,19 +123,19 @@ def test_definitive_corpus_graphs():
     print("🎯 CORPUS TEST SUMMARY:")
     successful = sum(1 for r in results if r['success'])
     total = len(results)
-    print(f"   Total corpus graphs: {total}")
+    print(f"   Total tomos graphs: {total}")
     print(f"   Successful layouts: {successful}")
     print(f"   Failed layouts: {total - successful}")
     print(f"   Success rate: {successful/total*100:.1f}%")
     
     if successful < total:
-        print("   ⚠️  Some corpus graphs failed - check output for details")
+        print("   ⚠️  Some tomos graphs failed - check output for details")
         print("   📋 Failed graphs:")
         for result in results:
             if not result['success']:
                 print(f"      • {result['name']}: {result['issues'][0] if result['issues'] else 'Unknown error'}")
     else:
-        print("   🎉 All corpus graphs processed successfully!")
+        print("   🎉 All tomos graphs processed successfully!")
     
     # Advanced analysis
     if successful > 0:
@@ -175,7 +175,7 @@ def generate_egi_description(egi):
 
 
 def validate_corpus_dto(dto, egi, graph_info):
-    """Validate DTO structure for corpus graphs"""
+    """Validate DTO structure for tomos graphs"""
     issues = []
     
     # Check basic structure
@@ -239,7 +239,7 @@ def validate_corpus_dto(dto, egi, graph_info):
 
 
 def check_corpus_containment(dto, egi):
-    """Check containment correctness for corpus graphs"""
+    """Check containment correctness for tomos graphs"""
     issues = []
     
     # Build area rectangles lookup
@@ -268,7 +268,7 @@ def check_corpus_containment(dto, egi):
 
 
 def print_corpus_dto_details(dto):
-    """Print DTO details for corpus graphs"""
+    """Print DTO details for tomos graphs"""
     
     print(f"   📊 Layout Results:")
     print(f"      Areas: {len(dto.areas)} | Vertices: {len(dto.vertices)} | Edge Labels: {len(dto.edge_labels)} | Ligatures: {len(dto.ligatures)}")
@@ -301,7 +301,7 @@ def print_corpus_dto_details(dto):
 
 
 def analyze_corpus_layout_quality(results):
-    """Analyze layout quality across corpus graphs"""
+    """Analyze layout quality across tomos graphs"""
     
     successful_results = [r for r in results if r['success'] and r['dto']]
     
@@ -349,13 +349,13 @@ def analyze_corpus_layout_quality(results):
         overall_score = (avg_2d_score + avg_positioning_score) / 2
         
         if overall_score > 0.7:
-            print(f"      🎉 EXCELLENT corpus layout quality! ({overall_score*100:.1f}%)")
+            print(f"      🎉 EXCELLENT tomos layout quality! ({overall_score*100:.1f}%)")
         elif overall_score > 0.5:
-            print(f"      ✅ GOOD corpus layout quality ({overall_score*100:.1f}%)")
+            print(f"      ✅ GOOD tomos layout quality ({overall_score*100:.1f}%)")
         elif overall_score > 0.3:
-            print(f"      ⚠️  FAIR corpus layout quality ({overall_score*100:.1f}%)")
+            print(f"      ⚠️  FAIR tomos layout quality ({overall_score*100:.1f}%)")
         else:
-            print(f"      ❌ POOR corpus layout quality ({overall_score*100:.1f}%)")
+            print(f"      ❌ POOR tomos layout quality ({overall_score*100:.1f}%)")
     
     # Analyze ligature routing efficiency
     total_ligatures = 0
@@ -380,7 +380,7 @@ def analyze_corpus_layout_quality(results):
 
 
 def analyze_corpus_complexity(results):
-    """Analyze the complexity distribution of corpus graphs"""
+    """Analyze the complexity distribution of tomos graphs"""
     
     successful_results = [r for r in results if r['success']]
     

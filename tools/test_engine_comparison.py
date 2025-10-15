@@ -21,7 +21,7 @@ def compare_engines(entity_name: str):
     print(f"{'='*70}\n")
     
     # Load graph
-    storage = EntityStorageManager(Path("corpus/graphs"))
+    storage = EntityStorageManager(Path("tomos/graphs"))
     entity = storage.load_entity(entity_name)
     egi = entity.current_egi
     style = StyleLoader().load_default_style()
@@ -87,7 +87,7 @@ def compare_engines(entity_name: str):
 
 
 def run_comparison_suite():
-    """Run comparison on representative corpus graphs."""
+    """Run comparison on representative tomos graphs."""
     test_graphs = [
         # Simple
         "peirce_modus_ponens",

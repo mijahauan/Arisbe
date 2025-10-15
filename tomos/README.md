@@ -1,19 +1,19 @@
 # Existential Graphs Corpus
 
-This directory contains a curated corpus of Existential Graphs (EG) examples for testing and validation of the EGRF v3.0 implementation.
+This directory contains a curated tomos of Existential Graphs (EG) examples for testing and validation of the EGRF v3.0 implementation.
 
-## Corpus Structure
+## Tomos Structure
 
-Each example in the corpus consists of multiple files with the same base name but different extensions:
+Each example in the tomos consists of multiple files with the same base name but different extensions:
 
 - `.json` - Metadata and annotations about the example
 - `.eg-hg` - EG-HG (Existential Graph Hypergraph) representation
 - `.clif` - Common Logic Interchange Format representation
 - `.egrf` - Existential Graph Rendering Format (v3.0) representation
 
-## Corpus Categories
+## Tomos Categories
 
-The corpus is organized into four categories:
+The tomos is organized into four categories:
 
 1. **peirce/** - Examples directly from Peirce's writings
 2. **scholars/** - Examples from secondary literature by EG scholars
@@ -22,7 +22,7 @@ The corpus is organized into four categories:
 
 ## Minimal Viable Corpus
 
-The initial minimal viable corpus consists of 20 examples:
+The initial minimal viable tomos consists of 20 examples:
 
 - 5 examples from Peirce's writings
 - 5 examples from secondary literature
@@ -64,7 +64,7 @@ Each `.json` metadata file contains:
 
 ## Usage
 
-The corpus is used for:
+The tomos is used for:
 
 1. Testing the EGRF v3.0 implementation
 2. Validating the EG-HG to EGRF converter
@@ -74,12 +74,12 @@ The corpus is used for:
 
 ## Contributing
 
-To add a new example to the corpus:
+To add a new example to the tomos:
 
 1. Create a new `.json` metadata file
 2. Create the corresponding `.eg-hg`, `.clif`, and `.egrf` files
 3. Ensure all files follow the established formats
-4. Update the corpus index in `corpus_index.json`
+4. Update the tomos index in `corpus_index.json`
 
 ## References
 

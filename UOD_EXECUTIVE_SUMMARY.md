@@ -117,12 +117,12 @@
    - Philosophical foundation emphasized
 
 5. **[AGENTS.md](AGENTS.md)** - Updated
-   - Corpus management section added
+   - Tomos management section added
    - References to UoD documentation
 
 6. **[DATA_PERSISTENCE_MODEL_SUMMARY.md](DATA_PERSISTENCE_MODEL_SUMMARY.md)** - Updated
    - UoD-centric analysis
-   - Corpus organization recommendations
+   - Tomos organization recommendations
 
 ---
 
@@ -167,7 +167,7 @@ class EGITransformationHistory:
 ### What Needs Work ⚠️
 
 1. **Naming**: `GraphEntity` should be `UniverseOfDiscourse`
-2. **Storage**: Corpus organized around "graphs", not UoDs
+2. **Storage**: Tomos organized around "graphs", not UoDs
 3. **Modules**: Ergasterion and Agon don't exist yet
 4. **Game**: Endoporeutic Game not implemented
 5. **LayoutDeltas**: Not included in StateSnapshots yet
@@ -191,8 +191,8 @@ class EGITransformationHistory:
 ### Phase 3: Storage Migration
 **Duration**: 2-3 days  
 **Tasks**:
-- Implement `corpus/universes/` structure
-- Create `CorpusService` unified API
+- Implement `tomos/universes/` structure
+- Create `TomosService` unified API
 - Migration script for existing corpus
 - Backward compatibility
 
@@ -238,7 +238,7 @@ Organon (archive), Ergasterion (workshop), Agon (arena)
 ### 4. Justification Through Game ✅
 Endoporeutic Game as referee, not passive acceptance
 
-### 5. UoD-Centric Corpus ✅
+### 5. UoD-Centric Tomos ✅
 Organized around universes, not isolated graphs
 
 ---
@@ -285,9 +285,9 @@ class UoDCategory(Enum):
     PUBLISHED_ARGUMENT = "published_argument"
 ```
 
-### Corpus Structure
+### Tomos Structure
 ```
-corpus/
+tomos/
   universes/           # Dynamic UoDs with full history
     <uod_id>/
       current.egi.json
@@ -345,8 +345,8 @@ corpus/
 ### For Implementation (If Proceeding)
 1. **Phase 2**: Rename `GraphEntity` → `UniverseOfDiscourse`
 2. **Phase 2**: Add `LayoutDeltas` to `StateSnapshot`
-3. **Phase 3**: Create `CorpusService` unified API
-4. **Phase 3**: Implement `corpus/universes/` structure
+3. **Phase 3**: Create `TomosService` unified API
+4. **Phase 3**: Implement `tomos/universes/` structure
 
 ---
 
@@ -360,7 +360,7 @@ corpus/
 
 ### Technical (Pending)
 - [ ] `UniverseOfDiscourse` model implemented
-- [ ] Corpus organized around UoDs
+- [ ] Tomos organized around UoDs
 - [ ] Complete history tracking working
 - [ ] LayoutDeltas in states
 

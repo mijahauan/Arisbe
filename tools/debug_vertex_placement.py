@@ -9,7 +9,7 @@ from egi_io import load_egi_json
 from entity_storage import EntityStorageManager
 
 # Load the Socrates example
-corpus_path = Path("corpus/graphs")
+corpus_path = Path("tomos/graphs")
 storage = EntityStorageManager(corpus_path)
 
 # Try Roberts domain modeling example (what user is looking at)

@@ -9,7 +9,7 @@ from entity_storage import EntityStorageManager
 from definitive_egi_layout_engine import DefinitiveEGILayoutEngine
 from style_loader import StyleLoader
 
-storage = EntityStorageManager(Path('corpus/graphs'))
+storage = EntityStorageManager(Path('tomos/graphs'))
 layout_engine = DefinitiveEGILayoutEngine()
 style_loader = StyleLoader()
 style = style_loader.load_default_style()

@@ -75,14 +75,14 @@ def test_performance_o1_access():
 
 ### 2.1 EGIF Translation (`src/egif_parser_dau.py`, `src/egif_generator_dau.py`)
 **Current Coverage:**
-- ✅ `test_parse_all_egif_corpus_examples` - Corpus parsing
+- ✅ `test_parse_all_egif_corpus_examples` - Tomos parsing
 - ✅ Round-trip tests in integrity suite
 
 **Status:** ✅ GOOD COVERAGE
 
 ### 2.2 CGIF Translation (`src/cgif_parser_dau.py`, `src/cgif_generator_dau.py`)
 **Current Coverage:**
-- ✅ `test_parse_all_cgif_corpus_examples` - Corpus parsing
+- ✅ `test_parse_all_cgif_corpus_examples` - Tomos parsing
 - ✅ Round-trip tests in integrity suite
 
 **Status:** ✅ GOOD COVERAGE
@@ -208,13 +208,13 @@ def test_manager_lifecycle_management():
 
 ### 5.2 Integrated Managers
 **Current Coverage:**
-- ❌ NO DEDICATED TESTS for integrated corpus/view/export managers
+- ❌ NO DEDICATED TESTS for integrated tomos/view/export managers
 
 **MISSING TESTS NEEDED:**
 ```python
 # test_integrated_managers_comprehensive.py
 def test_corpus_manager_reliability():
-    """Test integrated corpus manager functionality"""
+    """Test integrated tomos manager functionality"""
     
 def test_view_manager_consistency():
     """Test integrated view manager consistency"""

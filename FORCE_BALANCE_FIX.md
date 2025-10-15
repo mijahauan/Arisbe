@@ -176,7 +176,7 @@ All five components work together for optimal layouts.
 
 **Test Before Committing**:
 1. Launch Organon: `KMP_DUPLICATE_LIB_OK=TRUE python src/gui_clean/main_application.py`
-2. Load graphs from corpus browser
+2. Load graphs from tomos browser
 3. Verify `*x` and `Professor` are close together
 4. Check other graphs for quality
 5. If satisfied, commit all changes

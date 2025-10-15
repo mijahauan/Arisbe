@@ -12,12 +12,12 @@ from style_loader import StyleLoader
 # Import checking functions
 exec(open('tools/check_cut_nesting.py').read().split('# Test graphs')[0])
 
-storage = EntityStorageManager(Path('corpus/graphs'))
+storage = EntityStorageManager(Path('tomos/graphs'))
 layout_engine = DefinitiveEGILayoutEngine()
 style = StyleLoader().load_default_style()
 
 entities = storage.list_entities()
-print(f"Verifying logical correctness of {len(entities)} corpus graphs...")
+print(f"Verifying logical correctness of {len(entities)} tomos graphs...")
 print()
 
 all_passed = True

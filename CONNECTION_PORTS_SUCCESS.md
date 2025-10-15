@@ -41,7 +41,7 @@ The EGI Layout Engine now features pre-defined connection ports on EdgeLabel bou
 
 ### **Testing Framework**
 - `tools/test_connection_ports.py` - Comprehensive port configuration testing
-- Validates port logic for arities 1-8 with real corpus graphs
+- Validates port logic for arities 1-8 with real tomos graphs
 - Demonstrates positioning logic and ν mapping correspondence
 
 ## **🧪 VALIDATION RESULTS**
@@ -58,7 +58,7 @@ The EGI Layout Engine now features pre-defined connection ports on EdgeLabel bou
 🧪 Octary predicate (8 hooks)   ✅ 8 ports: All cardinal + intercardinal
 ```
 
-### **Corpus Graph Validation**
+### **Tomos Graph Validation**
 ```
 📚 TESTING CONNECTION PORTS WITH CORPUS GRAPHS
 ==================================================
@@ -191,7 +191,7 @@ svg_path = svg_renderer.save_svg(dto, title, description, filename, output_dir, 
 - ✅ **Debugging support**: Optional port visualization for development
 
 ### **Technical Robustness**
-- ✅ **Comprehensive testing**: All arities validated with real corpus graphs
+- ✅ **Comprehensive testing**: All arities validated with real tomos graphs
 - ✅ **Error handling**: Graceful fallbacks for edge cases
 - ✅ **Performance optimized**: Minimal computational overhead
 - ✅ **Style integration**: Seamlessly integrated with existing styling system

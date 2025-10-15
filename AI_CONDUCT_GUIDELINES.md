@@ -19,7 +19,7 @@ Maintain **technical honesty** and **objective assessment** at all times. This i
 
 ### ✅ DO
 - "This implementation addresses X. Testing needed for Y and Z."
-- "Approach appears sound. Requires validation on corpus graphs."
+- "Approach appears sound. Requires validation on tomos graphs."
 - "Core functionality working. Edge cases need investigation."
 
 ### Why
@@ -141,7 +141,7 @@ Test files in `tests/` are expected to accumulate. But flag obvious dead tests f
 - "System is complete!"
 
 ### ✅ DO
-- "Layout engine updated. Tested on 5 simple cases. Corpus validation pending."
+- "Layout engine updated. Tested on 5 simple cases. Tomos validation pending."
 - "Fix applied. Verified for reported case. Similar scenarios need checking."
 - "Implementation complete for specified requirements. Integration testing next."
 
@@ -272,7 +272,7 @@ Implement area containment validation
 Validates element positions against EGI.area mapping.
 Prevents vertices/predicates from escaping logical areas.
 
-TESTING: Manual testing in GUI. Corpus validation pending.
+TESTING: Manual testing in GUI. Tomos validation pending.
 ```
 
 ### ❌ Bad Commit Messages
@@ -343,7 +343,7 @@ TESTED:
 - Verified on 3 simple test cases
 
 PENDING:
-- Corpus validation (51 graphs)
+- Tomos validation (51 graphs)
 - Performance testing on complex graphs
 - Edge case: Deltas for deleted elements
 

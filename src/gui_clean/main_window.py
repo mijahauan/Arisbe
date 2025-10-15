@@ -2,7 +2,7 @@
 MainWindow - Top-level application window with mode switcher.
 
 Provides three modes:
-- Organon: Exploration and corpus management
+- Organon: Exploration and tomos management
 - Ergasterion: Interactive editing and practice
 - Agon: Formal reasoning and gameplay
 """
@@ -353,7 +353,7 @@ class MainWindow(QMainWindow):
             "<hr>"
             "<p><b>Three Modes:</b></p>"
             "<ul>"
-            "<li>📚 <b>Organon</b>: Exploration and corpus management</li>"
+            "<li>📚 <b>Organon</b>: Exploration and tomos management</li>"
             "<li>🔨 <b>Ergasterion</b>: Interactive editing and practice</li>"
             "<li>⚔️ <b>Agon</b>: Formal reasoning and gameplay</li>"
             "</ul>"

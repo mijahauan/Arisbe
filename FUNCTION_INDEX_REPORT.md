@@ -1,8 +1,8 @@
 # Arisbe Function Index Report
 
 ## O(1) Complexity Solutions
-- **_load_corpus_index** (/Users/mjh/Sync/GitHub/Arisbe/src/corpus_integration.py:54)
-  Load corpus items from the filesystem
+- **_load_tomos_index** (/Users/mjh/Sync/GitHub/Arisbe/src/corpus_integration.py:54)
+  Load tomos items from the filesystem
 - **_finalize_alphabet_and_rho** (/Users/mjh/Sync/GitHub/Arisbe/src/cgif_parser_dau.py:533)
   Compute AlphabetDAU (C,F,R,ar) and rho mapping from the parsed graph
 - **_constant_name_for_vertex** (/Users/mjh/Sync/GitHub/Arisbe/src/clif_generator_dau.py:266)
@@ -25,8 +25,8 @@ if the Vertex object is non-generic (has label/is_generic=False)
   Build hierarchical index from area mapping
 - **with_defaults** (/Users/mjh/Sync/GitHub/Arisbe/src/egi_core_dau.py:1019)
   Return a copy where all constants have arity 1 in ar if not already set
-- **load_index** (/Users/mjh/Sync/GitHub/Arisbe/src/corpus_index.py:48)
-- **save_index** (/Users/mjh/Sync/GitHub/Arisbe/src/corpus_index.py:65)
+- **load_index** (/Users/mjh/Sync/GitHub/Arisbe/src/tomos_index.py:48)
+- **save_index** (/Users/mjh/Sync/GitHub/Arisbe/src/tomos_index.py:65)
 - **_finalize_alphabet_and_rho** (/Users/mjh/Sync/GitHub/Arisbe/src/clif_parser_dau.py:373)
   Compute AlphabetDAU and rho from the graph, excluding relation-name collisions from constants
 - **rename_vertex** (/Users/mjh/Sync/GitHub/Arisbe/src/egi_system.py:557)
@@ -65,22 +65,22 @@ if the Vertex object is non-generic (has label/is_generic=False)
 - **get_statistics** (/Users/mjh/Sync/GitHub/Arisbe/src/hierarchical_index.py:182)
   Get statistics about the hierarchical index
 - **load_corpus_data** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/arisbe_main_app_pyside6.py:220)
-  Load corpus data from index into tree widget
+  Load tomos data from index into tree widget
 - **load_index** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/arisbe_main_app.py:55)
 - **display_corpus_entry** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/arisbe_main_app.py:827)
-  Display a corpus index entry
-- **load_corpus_index** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_navigator.py:153)
-  Load the corpus index from disk
-- **save_corpus_index** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_navigator.py:184)
-  Save the corpus index to disk
+  Display a tomos index entry
+- **load_tomos_index** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_navigator.py:153)
+  Load the tomos index from disk
+- **save_tomos_index** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_navigator.py:184)
+  Save the tomos index to disk
 - **_load_corpus** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_panel.py:100)
-  Load corpus from index
+  Load tomos from index
 - **_get_graph_type_from_entry** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_panel.py:138)
   Determine graph type from index entry
 - **_get_graph_status_from_entry** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_panel.py:156)
   Determine graph status from index entry
 - **add_graph_to_index** (/Users/mjh/Sync/GitHub/Arisbe/src/gui/organon/corpus_panel.py:281)
-  Add a new graph entry to the corpus index
+  Add a new graph entry to the tomos index
 
 ## Polarity Calculation Functions
 - **calculate_area_polarity** (/Users/mjh/Sync/GitHub/Arisbe/src/formal_transformation_rules.py:75)

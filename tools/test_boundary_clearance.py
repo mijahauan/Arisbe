@@ -9,7 +9,7 @@ from entity_storage import EntityStorageManager
 from diagram_controller import DiagramController
 from graphviz_svg_renderer import GraphvizSVGRenderer
 
-storage = EntityStorageManager(Path('corpus/graphs'))
+storage = EntityStorageManager(Path('tomos/graphs'))
 controller = DiagramController()
 
 # Test the problematic graph

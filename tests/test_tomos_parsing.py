@@ -76,7 +76,7 @@ def test_parse_all_clif_corpus_examples(path):
         text = f.read()
     # Skip empty or whitespace-only placeholder files
     if not text.strip():
-        pytest.skip(f"Empty CLIF corpus file: {path}")
+        pytest.skip(f"Empty CLIF tomos file: {path}")
     graph = parse_clif(text)
     # Basic invariants
     assert hasattr(graph, "V")

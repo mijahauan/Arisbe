@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Arisbe Corpus Cleanup Script
+Arisbe Tomos Cleanup Script
 
-Removes low-quality entries from the corpus based on the audit report:
+Removes low-quality entries from the tomos based on the audit report:
 - Test/debug entries
 - Auto-harvested fragments with corrupted content
 - Malformed or incomplete entries
 
-Updates the corpus index.json to reflect removals.
+Updates the tomos index.json to reflect removals.
 """
 
 import argparse
@@ -67,7 +67,7 @@ ENTRIES_TO_REMOVE = [
 
 
 def backup_corpus(corpus_dir: Path, backup_dir: Path):
-    """Create a backup of the current corpus before cleanup."""
+    """Create a backup of the current tomos before cleanup."""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = backup_dir / f"corpus_backup_{timestamp}"
 
@@ -77,19 +77,19 @@ def backup_corpus(corpus_dir: Path, backup_dir: Path):
 
 
 def load_corpus_index(index_path: Path) -> dict:
-    """Load the corpus index.json file."""
+    """Load the tomos index.json file."""
     with open(index_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_corpus_index(index_path: Path, index_data: dict):
-    """Save the updated corpus index.json file."""
+    """Save the updated tomos index.json file."""
     with open(index_path, "w", encoding="utf-8") as f:
         json.dump(index_data, f, indent=2, ensure_ascii=False)
 
 
 def remove_entry_directory(graphs_dir: Path, entry_id: str) -> bool:
-    """Remove an entry's directory from the corpus."""
+    """Remove an entry's directory from the tomos."""
     entry_path = graphs_dir / entry_id
     if entry_path.exists():
         print(f"  Removing directory: {entry_path}")
@@ -106,10 +106,10 @@ def cleanup_corpus(corpus_dir: Path, dry_run: bool = False):
     graphs_dir = corpus_dir / "graphs"
 
     if not index_path.exists():
-        raise FileNotFoundError(f"Corpus index not found: {index_path}")
+        raise FileNotFoundError(f"Tomos index not found: {index_path}")
 
     # Load current index
-    print("Loading corpus index...")
+    print("Loading tomos index...")
     index_data = load_corpus_index(index_path)
     original_count = len(index_data["entries"])
 
@@ -145,7 +145,7 @@ def cleanup_corpus(corpus_dir: Path, dry_run: bool = False):
 
     # Save updated index
     if not dry_run:
-        print(f"\nUpdating corpus index...")
+        print(f"\nUpdating tomos index...")
         save_corpus_index(index_path, index_data)
         print("Cleanup completed successfully!")
     else:
@@ -160,7 +160,7 @@ def main():
         "--corpus-dir",
         type=Path,
         default=Path(__file__).parent.parent / "corpus",
-        help="Path to corpus directory",
+        help="Path to tomos directory",
     )
     parser.add_argument(
         "--backup-dir",
@@ -185,11 +185,11 @@ def main():
     backup_dir = args.backup_dir.resolve()
 
     if not corpus_dir.exists():
-        print(f"Error: Corpus directory not found: {corpus_dir}")
+        print(f"Error: Tomos directory not found: {corpus_dir}")
         return 1
 
-    print(f"Arisbe Corpus Cleanup")
-    print(f"Corpus directory: {corpus_dir}")
+    print(f"Arisbe Tomos Cleanup")
+    print(f"Tomos directory: {corpus_dir}")
     print(f"Backup directory: {backup_dir}")
     print(f"Mode: {'DRY RUN' if args.dry_run else 'LIVE CLEANUP'}")
 
@@ -204,7 +204,7 @@ def main():
         removed, kept = cleanup_corpus(corpus_dir, dry_run=args.dry_run)
 
         if not args.dry_run:
-            print(f"\nCorpus cleanup completed!")
+            print(f"\nTomos cleanup completed!")
             print(f"Next steps:")
             print(f"1. Review retained entries for attribution needs")
             print(f"2. Add proper citations and metadata")

@@ -33,7 +33,7 @@ This plan implements Dau's Chapter 21 diagram formalization within Arisbe's thre
 - **Zoom and pan** through large EGI structures
 - **Semantic search highlighting** in diagram form
 - **Cross-reference visualization** between related EGIs
-- **Corpus browsing** with diagram thumbnails
+- **Tomos browsing** with diagram thumbnails
 
 ### Ergasterion Mode: Creative Workshop
 **Purpose**: Create new facts, hypotheses, abductions, explanations
