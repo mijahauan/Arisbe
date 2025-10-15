@@ -843,16 +843,29 @@ class DiagramController:
         
         # CRITICAL: Check if new position enters any child cuts (where element doesn't belong)
         # Find all child cuts of this area
+        # Use a small inset tolerance to avoid blocking movements near cut boundaries
+        boundary_tolerance = 2.0  # pixels of grace at cut boundaries
+        
         child_cuts = self.egi_model.area.get(element_area_id, frozenset())
+        print(f"  [VALIDATION] Checking {len([c for c in child_cuts if any(cut.id == c for cut in self.egi_model.Cut)])} child cuts")
+        
         for child_id in child_cuts:
             # Is this a cut?
             if any(cut.id == child_id for cut in self.egi_model.Cut):
-                # Check if new position is inside this child cut
+                # Check if new position is inside this child cut (with tolerance)
                 if child_id in self.current_dto.cut_bounds:
                     child_bounds = self.current_dto.cut_bounds[child_id]
-                    if (child_bounds.min_x <= x <= child_bounds.max_x and
-                        child_bounds.min_y <= y <= child_bounds.max_y):
+                    # Apply inward tolerance - only block if clearly inside the cut
+                    inset_min_x = child_bounds.min_x + boundary_tolerance
+                    inset_max_x = child_bounds.max_x - boundary_tolerance
+                    inset_min_y = child_bounds.min_y + boundary_tolerance
+                    inset_max_y = child_bounds.max_y - boundary_tolerance
+                    
+                    if (inset_min_x <= x <= inset_max_x and
+                        inset_min_y <= y <= inset_max_y):
                         print(f"  [VALIDATION] BLOCKED: Position is inside child cut {child_id}")
+                        print(f"     Child bounds: ({child_bounds.min_x}, {child_bounds.min_y}) to ({child_bounds.max_x}, {child_bounds.max_y})")
+                        print(f"     Inset bounds (tolerance={boundary_tolerance}): ({inset_min_x}, {inset_min_y}) to ({inset_max_x}, {inset_max_y})")
                         return ValidationResult(
                             False,
                             f"Element cannot be moved into nested cut {child_id}",
