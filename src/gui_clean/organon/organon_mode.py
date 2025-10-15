@@ -500,3 +500,73 @@ class OrganonMode(QWidget):
         if egi and self._current_uod:
             # Emit tuple of (EGI, source UoD)
             self.edit_in_ergasterion.emit((egi, self._current_uod))
+    
+    def handle_modified_uod_from_ergasterion(self, modified_uod):
+        """
+        Handle modified UoD returned from Ergasterion.
+        
+        Prompts user to save changes to tomos.
+        """
+        from tomos_service import TomosService
+        from datetime import datetime
+        
+        reply = QMessageBox.question(
+            self,
+            "Save Modifications?",
+            f"Save modifications to '{modified_uod.name}' to the tomos?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.Yes
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                # Initialize tomos service
+                tomos_root = Path(__file__).parent.parent.parent.parent / "tomos"
+                tomos = TomosService(tomos_root)
+                
+                # Update last modified time
+                modified_uod.metadata.last_modified = datetime.now()
+                
+                # Save to tomos
+                tomos.save_uod(modified_uod)
+                
+                # Reload the UoD to see changes
+                self._current_uod = tomos.load_uod(modified_uod.uod_id)
+                if self._current_uod:
+                    # Reload in display
+                    self.controller.load_egi(self._current_uod.current_egi)
+                    
+                    # Restore layout deltas if present
+                    if self._current_uod.current_layout_deltas:
+                        from definitive_egi_layout_engine import LayoutDelta
+                        for element_id, delta_data in self._current_uod.current_layout_deltas.items():
+                            if isinstance(delta_data, dict) and 'type' in delta_data and 'position' in delta_data:
+                                delta = LayoutDelta(
+                                    element_id=element_id,
+                                    delta_type=delta_data['type'],
+                                    new_position=tuple(delta_data['position'])
+                                )
+                                self.controller.layout_deltas[element_id] = delta
+                        self.controller._trigger_fast_update()
+                    
+                    dto = self.controller.get_renderable_dto()
+                    self.canvas.display_dto(dto, self._current_uod.current_egi, fit_to_view=True)
+                    
+                    # Update panels
+                    egif = generate_egif(self._current_uod.current_egi)
+                    self.egif_text.setPlainText(egif)
+                    self.metadata_panel.update_metadata(self._current_uod)
+                    self.history_timeline.update_history(self._current_uod)
+                
+                QMessageBox.information(
+                    self,
+                    "Saved",
+                    f"Successfully saved modifications to '{modified_uod.name}'"
+                )
+                
+            except Exception as e:
+                QMessageBox.critical(
+                    self,
+                    "Error Saving",
+                    f"Failed to save modifications:\n\n{str(e)}"
+                )

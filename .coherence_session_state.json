@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-10-14T21:51:16",
+  "last_updated": "2025-10-14T21:57:59",
   "framework_version": "1.0.0",
   "_comment_product_vision": "=== GUIDING STAR ===",
   "product_vision": {
@@ -19,11 +19,11 @@
   },
   "_comment_recent_work": "=== LATEST ACCOMPLISHMENTS ===",
   "recent_accomplishments": [
+    "2025-10-14: Rename corpus \u2192 tomos throughout codebase",
     "2025-10-14: Fix Ergasterion to edit original UoD instead of creating copies",
     "2025-10-14: Add boundary tolerance to containment validation",
     "2025-10-14: Add fit_to_view parameter to DiagramCanvas for API consistency",
-    "2025-10-14: Fix Ergasterion drag-and-drop: preserve manual element positioning",
-    "2025-10-14: Rebuild corpus index to remove duplicates"
+    "2025-10-14: Fix Ergasterion drag-and-drop: preserve manual element positioning"
   ],
   "_comment_active_tasks": "=== CURRENT TASK LIST ===",
   "active_tasks": {
@@ -122,6 +122,6 @@
     "python_version": "3.12.10",
     "environment": "conda CGIF",
     "git_branch": "main",
-    "last_commit": "3894bcb"
+    "last_commit": "b24ce9d"
   }
 }

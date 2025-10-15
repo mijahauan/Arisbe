@@ -96,7 +96,8 @@ class MainWindow(QMainWindow):
         from ergasterion.ergasterion_mode import ErgasterionMode
         
         ergasterion = ErgasterionMode(self.diagram_controller)
-        ergasterion.save_to_organon.connect(self._on_save_to_organon)
+        ergasterion.uod_modified.connect(self._on_uod_modified_from_ergasterion)
+        ergasterion.cancelled.connect(self._on_ergasterion_cancelled)
         return ergasterion
     
     def _on_save_to_organon_old(self) -> QWidget:
@@ -212,11 +213,24 @@ class MainWindow(QMainWindow):
             else:
                 self.statusBar().showMessage("Graph loaded in Ergasterion for editing")
     
-    def _on_save_to_organon(self, egi):
-        """Handle save from Ergasterion back to Organon."""
+    def _on_uod_modified_from_ergasterion(self, modified_uod):
+        """Handle modified UoD returned from Ergasterion."""
         # Switch back to Organon tab
         self.mode_tabs.setCurrentIndex(0)
-        self.statusBar().showMessage("Returned to Organon")
+        
+        # Pass the modified UoD to Organon for saving
+        organon_widget = self.mode_tabs.widget(0)
+        if hasattr(organon_widget, 'handle_modified_uod_from_ergasterion'):
+            organon_widget.handle_modified_uod_from_ergasterion(modified_uod)
+            self.statusBar().showMessage(f"Returned to Organon with modifications to '{modified_uod.name}'")
+        else:
+            self.statusBar().showMessage("Returned to Organon")
+    
+    def _on_ergasterion_cancelled(self):
+        """Handle cancellation from Ergasterion."""
+        # Switch back to Organon tab without changes
+        self.mode_tabs.setCurrentIndex(0)
+        self.statusBar().showMessage("Returned to Organon (no changes)")
     
     def _on_new_graph(self):
         """Create a new empty graph."""

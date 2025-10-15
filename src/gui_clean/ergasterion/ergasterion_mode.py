@@ -34,7 +34,6 @@ from diagram_controller import DiagramController
 from egi_core_dau import RelationalGraphWithCuts
 from egi_io import load_egi_json
 from egif_generator_dau import generate_egif
-from tomos_service import TomosService
 from universe_of_discourse import (
     UniverseOfDiscourse,
     UoDMetadata,
@@ -57,8 +56,9 @@ class ErgasterionMode(QWidget):
     - Right: Transformation panel + Selection info + EGIF
     """
     
-    # Signal when returning to Organon
-    save_to_organon = Signal(object)  # Emits EGI
+    # Signals
+    uod_modified = Signal(object)  # Emits modified UoD to Organon
+    cancelled = Signal()  # Emits when user cancels without saving
     
     def __init__(self, diagram_controller: DiagramController, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -66,10 +66,7 @@ class ErgasterionMode(QWidget):
         self.controller = diagram_controller
         self._current_file: Optional[Path] = None
         self._current_uod: Optional[UniverseOfDiscourse] = None  # Current practice session
-        
-        # Initialize TomosService
-        tomos_root = Path(__file__).parent.parent.parent.parent / "tomos"
-        self.tomos = TomosService(tomos_root)
+        self._has_unsaved_changes: bool = False
         
         self._setup_ui()
         self._connect_signals()
@@ -149,17 +146,11 @@ class ErgasterionMode(QWidget):
         
         toolbar_layout.addStretch()
         
-        # Save to Tomos
-        self.save_to_corpus_btn = QPushButton("💾 Save to Tomos")
-        self.save_to_corpus_btn.clicked.connect(self._on_save_to_corpus)
-        self.save_to_corpus_btn.setEnabled(False)
-        self.save_to_corpus_btn.setToolTip("Save practice session to tomos")
-        toolbar_layout.addWidget(self.save_to_corpus_btn)
-        
-        # Return to Organon
+        # Return to Organon with changes
         self.return_btn = QPushButton("📚 Return to Organon")
         self.return_btn.clicked.connect(self._on_return_to_organon)
         self.return_btn.setEnabled(False)
+        self.return_btn.setToolTip("Return modified UoD to Organon for saving")
         toolbar_layout.addWidget(self.return_btn)
         
         return toolbar
@@ -307,8 +298,8 @@ class ErgasterionMode(QWidget):
         
         self._current_file = None
         self.save_btn.setEnabled(True)
-        self.save_to_corpus_btn.setEnabled(True)
         self.return_btn.setEnabled(True)
+        self._has_unsaved_changes = False
         
         self._show_status("Created new practice session")
     
@@ -452,15 +443,10 @@ class ErgasterionMode(QWidget):
         # TODO: Implement with CommandExecutor
         self._show_status("Redo: Not yet implemented")
     
-    def _on_save_to_corpus(self):
-        """Save current practice session to tomos."""
+    def _prepare_modified_uod(self) -> Optional[UniverseOfDiscourse]:
+        """Prepare the current UoD with modifications for return to Organon."""
         if not self._current_uod:
-            QMessageBox.warning(
-                self,
-                "No Practice Session",
-                "Create or load a practice session first."
-            )
-            return
+            return None
         
         # Update UoD with current EGI
         egi = self.controller.get_egi_model()
@@ -479,54 +465,38 @@ class ErgasterionMode(QWidget):
             
             # Update metadata
             self._current_uod.metadata.last_modified = datetime.now()
-            
-            # Save to corpus
-            try:
-                self.tomos.save_uod(self._current_uod)
-                self._show_status(f"Saved practice session: {self._current_uod.name}")
-                
-                # Offer to promote to historical
-                reply = QMessageBox.question(
-                    self,
-                    "Promote to Historical?",
-                    f"Practice session '{self._current_uod.name}' saved.\n\n"
-                    "Would you like to promote it to historical tracking\n"
-                    "to record transformation history?",
-                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-                )
-                
-                if reply == QMessageBox.StandardButton.Yes:
-                    self._current_uod.promote_to_historical("Initial practice state")
-                    self.tomos.save_uod(self._current_uod)
-                    self._show_status(f"Promoted to historical: {self._current_uod.name}")
-                    
-            except Exception as e:
-                QMessageBox.critical(
-                    self,
-                    "Error Saving",
-                    f"Failed to save to tomos:\n\n{str(e)}"
-                )
+        
+        return self._current_uod
     
     def _on_return_to_organon(self):
-        """Return to Organon mode."""
-        # Ask to save if there are unsaved changes
-        if self._current_uod and self.controller.get_egi_model():
+        """Return modified UoD to Organon."""
+        if not self._current_uod:
+            self.cancelled.emit()
+            return
+        
+        # Check if there are changes
+        if self._has_unsaved_changes or self.controller.get_egi_model():
             reply = QMessageBox.question(
                 self,
-                "Save Before Returning?",
-                "Do you want to save this practice session to the tomos?",
+                "Return to Organon?",
+                "Return this UoD to Organon for saving?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
             )
             
             if reply == QMessageBox.StandardButton.Cancel:
                 return
-            elif reply == QMessageBox.StandardButton.Yes:
-                self._on_save_to_corpus()
+            elif reply == QMessageBox.StandardButton.No:
+                self.cancelled.emit()
+                return
         
-        egi = self.controller.get_egi_model()
-        if egi:
-            self.save_to_organon.emit(egi)
-            self._show_status("Switched to Organon mode")
+        # Prepare modified UoD
+        modified_uod = self._prepare_modified_uod()
+        if modified_uod:
+            self.uod_modified.emit(modified_uod)
+            self._has_unsaved_changes = False
+            self._show_status("Returned to Organon with modifications")
+        else:
+            self.cancelled.emit()
     
     def _on_element_selected(self, element_id: str):
         """Handle single element selection."""
@@ -592,6 +562,9 @@ class ErgasterionMode(QWidget):
         success = self.controller.apply_formal_rule(rule_name, selection, target_area)
         
         if success:
+            # Mark as modified
+            self._has_unsaved_changes = True
+            
             # Update UoD with new EGI
             if self._current_uod:
                 new_egi = self.controller.get_egi_model()
@@ -703,6 +676,6 @@ class ErgasterionMode(QWidget):
         self._refresh_display()
         self._current_file = None
         self.save_btn.setEnabled(True)
-        self.save_to_corpus_btn.setEnabled(True)
         self.return_btn.setEnabled(True)
+        self._has_unsaved_changes = False
         self._show_status("Loaded graph from Organon for practice")
