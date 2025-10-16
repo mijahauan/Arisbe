@@ -14,8 +14,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from typing import Optional, List, Tuple
+from enum import Enum
 
 from PySide6.QtCore import Qt, Signal
+
+class WorkflowMode(Enum):
+    """Ergasterion workflow modes."""
+    EDIT_EXISTING = "edit"      # Editing UoD from Organon
+    CREATE_NEW = "create"        # Creating new diagram
+    ISOLATED_PRACTICE = "practice"  # Just practicing, no destination
 from PySide6.QtWidgets import (
     QFileDialog,
     QGroupBox,
@@ -57,7 +64,9 @@ class ErgasterionMode(QWidget):
     """
     
     # Signals
-    uod_modified = Signal(object)  # Emits modified UoD to Organon
+    uod_modified = Signal(object)  # Emits modified UoD to Organon (edit mode)
+    new_uod_created = Signal(object)  # Emits new UoD to Organon for addition to tomos
+    send_to_agon = Signal(object)  # Emits UoD to Agon for EPG
     cancelled = Signal()  # Emits when user cancels without saving
     
     def __init__(self, diagram_controller: DiagramController, parent: Optional[QWidget] = None):
@@ -65,7 +74,8 @@ class ErgasterionMode(QWidget):
         
         self.controller = diagram_controller
         self._current_file: Optional[Path] = None
-        self._current_uod: Optional[UniverseOfDiscourse] = None  # Current practice session
+        self._current_uod: Optional[UniverseOfDiscourse] = None  # Current UoD
+        self._workflow_mode: WorkflowMode = WorkflowMode.ISOLATED_PRACTICE
         self._has_unsaved_changes: bool = False
         
         self._setup_ui()
@@ -115,19 +125,8 @@ class ErgasterionMode(QWidget):
         # File operations
         self.new_btn = QPushButton("📄 New")
         self.new_btn.clicked.connect(self._on_new_graph)
-        self.new_btn.setToolTip("Create empty graph")
+        self.new_btn.setToolTip("Create empty graph for practice")
         toolbar_layout.addWidget(self.new_btn)
-        
-        self.load_btn = QPushButton("📂 Load...")
-        self.load_btn.clicked.connect(self._on_load_egi)
-        self.load_btn.setToolTip("Load EGI from file")
-        toolbar_layout.addWidget(self.load_btn)
-        
-        self.save_btn = QPushButton("💾 Save...")
-        self.save_btn.clicked.connect(self._on_save_egi)
-        self.save_btn.setEnabled(False)
-        self.save_btn.setToolTip("Save EGI to file")
-        toolbar_layout.addWidget(self.save_btn)
         
         toolbar_layout.addSpacing(20)
         
@@ -146,12 +145,34 @@ class ErgasterionMode(QWidget):
         
         toolbar_layout.addStretch()
         
-        # Return to Organon with changes
-        self.return_btn = QPushButton("📚 Return to Organon")
-        self.return_btn.clicked.connect(self._on_return_to_organon)
-        self.return_btn.setEnabled(False)
-        self.return_btn.setToolTip("Return modified UoD to Organon for saving")
-        toolbar_layout.addWidget(self.return_btn)
+        # Workflow mode indicator
+        self.mode_label = QLabel()
+        self.mode_label.setStyleSheet("color: #666; font-size: 10px; padding: 5px;")
+        toolbar_layout.addWidget(self.mode_label)
+        
+        toolbar_layout.addSpacing(10)
+        
+        # Destination buttons (visibility depends on workflow mode)
+        self.return_to_organon_btn = QPushButton("📚 Return to Organon")
+        self.return_to_organon_btn.clicked.connect(self._on_return_to_organon)
+        self.return_to_organon_btn.setEnabled(False)
+        self.return_to_organon_btn.setToolTip("Return modified UoD to Organon")
+        self.return_to_organon_btn.setVisible(False)
+        toolbar_layout.addWidget(self.return_to_organon_btn)
+        
+        self.send_to_organon_btn = QPushButton("📚 Send to Organon")
+        self.send_to_organon_btn.clicked.connect(self._on_send_to_organon)
+        self.send_to_organon_btn.setEnabled(False)
+        self.send_to_organon_btn.setToolTip("Add this new diagram to the tomos")
+        self.send_to_organon_btn.setVisible(False)
+        toolbar_layout.addWidget(self.send_to_organon_btn)
+        
+        self.send_to_agon_btn = QPushButton("⚔️ Send to Agon")
+        self.send_to_agon_btn.clicked.connect(self._on_send_to_agon)
+        self.send_to_agon_btn.setEnabled(False)
+        self.send_to_agon_btn.setToolTip("Use this diagram in the Endoporeutic Game")
+        self.send_to_agon_btn.setVisible(False)
+        toolbar_layout.addWidget(self.send_to_agon_btn)
         
         return toolbar
     
@@ -264,6 +285,35 @@ class ErgasterionMode(QWidget):
         self.canvas.element_moved.connect(self._on_element_moved)
         self.canvas.selection_cleared.connect(self._on_selection_cleared)
     
+    def _update_workflow_ui(self):
+        """Update toolbar buttons based on current workflow mode."""
+        # Hide all destination buttons first
+        self.return_to_organon_btn.setVisible(False)
+        self.send_to_organon_btn.setVisible(False)
+        self.send_to_agon_btn.setVisible(False)
+        
+        if self._workflow_mode == WorkflowMode.EDIT_EXISTING:
+            # Editing existing UoD from Organon
+            self.mode_label.setText("Mode: Editing")
+            self.return_to_organon_btn.setVisible(True)
+            self.return_to_organon_btn.setEnabled(True)
+            
+        elif self._workflow_mode == WorkflowMode.CREATE_NEW:
+            # Creating new diagram
+            self.mode_label.setText("Mode: Creating New")
+            self.send_to_organon_btn.setVisible(True)
+            self.send_to_organon_btn.setEnabled(True)
+            self.send_to_agon_btn.setVisible(True)
+            self.send_to_agon_btn.setEnabled(True)
+            
+        elif self._workflow_mode == WorkflowMode.ISOLATED_PRACTICE:
+            # Just practicing
+            self.mode_label.setText("Mode: Practice")
+            self.send_to_organon_btn.setVisible(True)
+            self.send_to_organon_btn.setEnabled(True)
+            self.send_to_agon_btn.setVisible(True)
+            self.send_to_agon_btn.setEnabled(True)
+    
     def _on_new_graph(self):
         """Create a new practice session (empty UoD)."""
         from egi_core_dau import create_empty_graph
@@ -293,145 +343,20 @@ class ErgasterionMode(QWidget):
         # Load into controller
         self.controller.load_egi(egi)
         
+        # Set workflow mode
+        self._workflow_mode = WorkflowMode.CREATE_NEW
+        self._update_workflow_ui()
+        
         # Display
         self._refresh_display()
         
         self._current_file = None
-        self.save_btn.setEnabled(True)
-        self.return_btn.setEnabled(True)
         self._has_unsaved_changes = False
         
-        self._show_status("Created new practice session")
+        self._show_status("Created new diagram - ready to send to Organon or Agon")
     
-    def _on_load_egi(self):
-        """Load an EGI file for editing."""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Load EGI",
-            str(Path.home()),
-            "EGI Files (*.json *.egi.json);;All Files (*)"
-        )
-        
-        if not file_path:
-            return
-        
-        try:
-            import json
-            from egi_io import from_dict
-            from definitive_egi_layout_engine import LayoutDelta
-            
-            # Load JSON
-            file_content = Path(file_path).read_text(encoding="utf-8")
-            data = json.loads(file_content)
-            
-            # Extract EGI
-            egi = from_dict(data)
-            
-            # Load into controller
-            self.controller.load_egi(egi)
-            
-            # Restore layout deltas if present
-            if 'layout_deltas' in data:
-                print(f"=== Restoring layout deltas from file ===")
-                deltas_dict = data['layout_deltas']
-                print(f"  Found {len(deltas_dict)} deltas in file")
-                
-                for element_id, delta_data in deltas_dict.items():
-                    delta = LayoutDelta(
-                        element_id=element_id,
-                        delta_type=delta_data['type'],
-                        new_position=tuple(delta_data['position'])
-                    )
-                    self.controller.layout_deltas[element_id] = delta
-                    print(f"  Restored delta: {element_id} -> {delta.new_position}")
-                
-                print(f"=== Deltas restored, triggering fast update ===")
-                # Trigger fast update to apply deltas
-                self.controller._trigger_fast_update()
-                
-                delta_count = len(deltas_dict)
-                status_msg = f"Loaded: {Path(file_path).name} ({delta_count} position overrides)"
-            else:
-                print("=== No layout_deltas found in file ===")
-                status_msg = f"Loaded: {Path(file_path).name}"
-            
-            # Display
-            self._refresh_display()
-            
-            self._current_file = Path(file_path)
-            self.save_btn.setEnabled(True)
-            self.return_btn.setEnabled(True)
-            
-            self._show_status(status_msg)
-            
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Error Loading EGI",
-                f"Failed to load EGI file:\n\n{str(e)}"
-            )
-    
-    def _on_save_egi(self):
-        """Save current EGI to file with layout deltas."""
-        egi = self.controller.egi_model
-        if not egi:
-            return
-        
-        # Get save location
-        default_path = str(self._current_file) if self._current_file else str(Path.home() / "untitled.egi.json")
-        file_path, _ = QFileDialog.getSaveFileName(
-            self,
-            "Save EGI",
-            default_path,
-            "EGI Files (*.json *.egi.json);;All Files (*)"
-        )
-        
-        if not file_path:
-            return
-        
-        try:
-            import json
-            from egi_io import to_dict
-            
-            # Build payload with EGI and layout deltas
-            payload = to_dict(egi)
-            
-            print(f"=== Saving EGI with layout deltas ===")
-            print(f"  Current layout_deltas: {len(self.controller.layout_deltas)}")
-            
-            # Add layout deltas (user position overrides)
-            if self.controller.layout_deltas:
-                deltas_dict = {}
-                for element_id, delta in self.controller.layout_deltas.items():
-                    deltas_dict[element_id] = {
-                        'type': delta.delta_type,
-                        'position': list(delta.new_position)
-                    }
-                    print(f"  Saving delta: {element_id} -> {delta.new_position}")
-                payload['layout_deltas'] = deltas_dict
-                print(f"  Total deltas saved: {len(deltas_dict)}")
-            else:
-                print("  No layout deltas to save")
-            
-            # Save to file
-            Path(file_path).write_text(
-                json.dumps(payload, indent=2, sort_keys=True),
-                encoding="utf-8"
-            )
-            
-            self._current_file = Path(file_path)
-            delta_count = len(self.controller.layout_deltas)
-            status_msg = f"Saved: {Path(file_path).name}"
-            if delta_count > 0:
-                status_msg += f" ({delta_count} position overrides)"
-            self._show_status(status_msg)
-            
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Error Saving EGI",
-                f"Failed to save EGI file:\n\n{str(e)}"
-            )
+    # File operations removed - Organon manages all tomos I/O
+    # Ergasterion receives UoDs from Organon and returns them modified
     
     def _on_undo(self):
         """Undo last action."""
@@ -469,34 +394,64 @@ class ErgasterionMode(QWidget):
         return self._current_uod
     
     def _on_return_to_organon(self):
-        """Return modified UoD to Organon."""
+        """Return modified UoD to Organon (for EDIT_EXISTING mode)."""
         if not self._current_uod:
             self.cancelled.emit()
             return
         
-        # Check if there are changes
-        if self._has_unsaved_changes or self.controller.get_egi_model():
-            reply = QMessageBox.question(
-                self,
-                "Return to Organon?",
-                "Return this UoD to Organon for saving?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
-            )
-            
-            if reply == QMessageBox.StandardButton.Cancel:
-                return
-            elif reply == QMessageBox.StandardButton.No:
-                self.cancelled.emit()
-                return
+        # Confirm return
+        reply = QMessageBox.question(
+            self,
+            "Return to Organon?",
+            f"Return modifications to '{self._current_uod.name}' to Organon for saving?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.No:
+            return
         
         # Prepare modified UoD
         modified_uod = self._prepare_modified_uod()
         if modified_uod:
             self.uod_modified.emit(modified_uod)
             self._has_unsaved_changes = False
-            self._show_status("Returned to Organon with modifications")
+            self._show_status("Returned modifications to Organon")
         else:
             self.cancelled.emit()
+    
+    def _on_send_to_organon(self):
+        """Send new UoD to Organon for addition to tomos (for CREATE_NEW mode)."""
+        if not self._current_uod:
+            QMessageBox.warning(
+                self,
+                "No Diagram",
+                "Create a diagram first before sending to Organon."
+            )
+            return
+        
+        # Prepare UoD
+        uod = self._prepare_modified_uod()
+        if uod:
+            self.new_uod_created.emit(uod)
+            self._has_unsaved_changes = False
+            self._show_status("Sent new diagram to Organon for addition to tomos")
+    
+    def _on_send_to_agon(self):
+        """Send UoD to Agon for use in Endoporeutic Game."""
+        if not self._current_uod:
+            QMessageBox.warning(
+                self,
+                "No Diagram",
+                "Create a diagram first before sending to Agon."
+            )
+            return
+        
+        # Prepare UoD
+        uod = self._prepare_modified_uod()
+        if uod:
+            self.send_to_agon.emit(uod)
+            self._has_unsaved_changes = False
+            self._show_status("Sent diagram to Agon for Endoporeutic Game")
     
     def _on_element_selected(self, element_id: str):
         """Handle single element selection."""
@@ -647,6 +602,8 @@ class ErgasterionMode(QWidget):
             self._current_uod = source_uod
             # Update the EGI in case it changed
             self._current_uod.current_egi = egi
+            # Set EDIT mode
+            self._workflow_mode = WorkflowMode.EDIT_EXISTING
         else:
             # Create new practice session (no source provided)
             print("=== Creating new practice session ===")
@@ -670,12 +627,17 @@ class ErgasterionMode(QWidget):
                 current_egi=egi,
                 history=None
             )
+            # Set PRACTICE mode
+            self._workflow_mode = WorkflowMode.ISOLATED_PRACTICE
+        
+        # Update UI based on mode
+        self._update_workflow_ui()
         
         self.controller.load_egi(egi)
         print("=== Calling _refresh_display ===")
         self._refresh_display()
         self._current_file = None
-        self.save_btn.setEnabled(True)
-        self.return_btn.setEnabled(True)
         self._has_unsaved_changes = False
-        self._show_status("Loaded graph from Organon for practice")
+        
+        mode_name = "editing" if source_uod else "practice"
+        self._show_status(f"Loaded graph from Organon for {mode_name}")

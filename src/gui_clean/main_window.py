@@ -97,6 +97,8 @@ class MainWindow(QMainWindow):
         
         ergasterion = ErgasterionMode(self.diagram_controller)
         ergasterion.uod_modified.connect(self._on_uod_modified_from_ergasterion)
+        ergasterion.new_uod_created.connect(self._on_new_uod_from_ergasterion)
+        ergasterion.send_to_agon.connect(self._on_send_to_agon_from_ergasterion)
         ergasterion.cancelled.connect(self._on_ergasterion_cancelled)
         return ergasterion
     
@@ -225,6 +227,41 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage(f"Returned to Organon with modifications to '{modified_uod.name}'")
         else:
             self.statusBar().showMessage("Returned to Organon")
+    
+    def _on_new_uod_from_ergasterion(self, new_uod):
+        """Handle new UoD created in Ergasterion to be added to tomos."""
+        # Switch back to Organon tab
+        self.mode_tabs.setCurrentIndex(0)
+        
+        # Pass the new UoD to Organon for addition to tomos
+        organon_widget = self.mode_tabs.widget(0)
+        if hasattr(organon_widget, 'handle_new_uod_from_ergasterion'):
+            organon_widget.handle_new_uod_from_ergasterion(new_uod)
+            self.statusBar().showMessage(f"New diagram '{new_uod.name}' ready to add to tomos")
+        else:
+            self.statusBar().showMessage("Returned to Organon with new diagram")
+    
+    def _on_send_to_agon_from_ergasterion(self, uod):
+        """Handle UoD sent to Agon for Endoporeutic Game."""
+        # Switch to Agon tab
+        self.mode_tabs.setCurrentIndex(2)
+        
+        # Pass UoD to Agon (when Agon is implemented)
+        agon_widget = self.mode_tabs.widget(2)
+        if hasattr(agon_widget, 'load_uod_for_game'):
+            agon_widget.load_uod_for_game(uod)
+            self.statusBar().showMessage(f"Loaded '{uod.name}' in Agon for Endoporeutic Game")
+        else:
+            # Agon not yet implemented
+            self.mode_tabs.setCurrentIndex(0)  # Go back to Organon
+            QMessageBox.information(
+                self,
+                "Agon Coming Soon",
+                f"Agon mode is not yet implemented.\n\n"
+                f"The diagram '{uod.name}' is ready to use in the\n"
+                f"Endoporeutic Game once Agon is complete."
+            )
+            self.statusBar().showMessage("Agon mode coming soon")
     
     def _on_ergasterion_cancelled(self):
         """Handle cancellation from Ergasterion."""

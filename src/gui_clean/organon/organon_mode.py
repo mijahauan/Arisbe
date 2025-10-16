@@ -74,7 +74,7 @@ class OrganonMode(QWidget):
         layout = QHBoxLayout(self)  # Changed to horizontal for sidebar
         
         # Left: Tomos browser sidebar
-        from organon.corpus_browser import TomosBrowserWidget
+        from organon.tomos_browser import TomosBrowserWidget
         
         # Use tomos root directory
         tomos_root = Path(__file__).parent.parent.parent.parent / "tomos"
