@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from typing import Optional, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
 
 from PySide6.QtCore import Qt, Signal
@@ -828,20 +828,68 @@ class ErgasterionMode(QWidget):
             self.validation_label.setStyleSheet("color: red; font-size: 10px; padding: 5px;")
             self._show_status(f"Cannot apply {rule_name}", error=True)
     
-    def _get_target_area_from_selection(self, selection: List[str]) -> tuple[str, str]:
+    def _check_selection_closure(self, selection: List[str], polarity: str) -> Dict[str, Any]:
+        """
+        Check if selection forms a closed subgraph for INS/ERA.
+        
+        Returns:
+            Dict with keys: is_valid, message, added_count
+        """
+        from subgraph_closure_validator import SubgraphClosureValidator
+        
+        egi = self.controller.get_egi_model()
+        if not egi or not selection:
+            return {'is_valid': True, 'message': '', 'added_count': 0}
+        
+        # Only validate for INS/ERA contexts
+        if polarity not in ["positive", "negative"]:
+            return {'is_valid': True, 'message': '', 'added_count': 0}
+        
+        try:
+            validator = SubgraphClosureValidator(egi)
+            analysis = validator.analyze_closure(frozenset(selection), allow_expansion=True)
+            
+            if analysis.is_closed:
+                if analysis.added_elements:
+                    count = len(analysis.added_elements)
+                    return {
+                        'is_valid': True,
+                        'message': f'✓ Closure (+{count})',
+                        'added_count': count
+                    }
+                else:
+                    return {
+                        'is_valid': True,
+                        'message': '✓ Closed',
+                        'added_count': 0
+                    }
+            else:
+                return {
+                    'is_valid': False,
+                    'message': '✗ Not closed',
+                    'added_count': 0
+                }
+        except Exception as e:
+            # If validation fails, be conservative
+            return {
+                'is_valid': False,
+                'message': f'✗ Validation error',
+                'added_count': 0
+            }
+    
+    def _get_target_area_from_selection(self, selection: List[str]) -> Tuple[str, str]:
         """
         Determine target area and polarity from selection.
         
         Returns:
-            (target_area_id, polarity) where polarity is "positive" or "negative"
+            Tuple of (area_id, polarity) where polarity is "positive" or "negative"
         """
-        if not selection or not self.controller.get_egi_model():
-            egi = self.controller.get_egi_model()
-            if egi:
-                return egi.sheet, "positive"
-            return "sheet", "positive"
+        if not selection:
+            return None, "positive"
         
         egi = self.controller.get_egi_model()
+        if not egi:
+            return None, "positive"
         
         # If a cut is selected, use that cut as the target area
         for elem_id in selection:
@@ -889,20 +937,38 @@ class ErgasterionMode(QWidget):
         has_cut_selected = any(elem_id.startswith('cut_') for elem_id in selection)
         self.dc_erase_btn.setEnabled(has_cut_selected)
         
-        # INS only in negative areas (odd polarity)
-        self.ins_btn.setEnabled(polarity == "negative")
+        # Check closure for INS/ERA
+        closure_status = self._check_selection_closure(selection, polarity)
         
-        # ERA only in positive areas (even polarity)
-        self.era_btn.setEnabled(polarity == "positive")
+        # INS only in negative areas (odd polarity) with closed subgraph
+        self.ins_btn.setEnabled(polarity == "negative" and closure_status['is_valid'])
+        
+        # ERA only in positive areas (even polarity) with closed subgraph
+        self.era_btn.setEnabled(polarity == "positive" and closure_status['is_valid'])
         
         # IT+/IT- available with selection (controller will validate isomorphism)
         self.iter_insert_btn.setEnabled(has_selection)
         self.iter_erase_btn.setEnabled(has_selection)
         
-        # Show context info
+        # Show context info with closure status
         area_name = "sheet" if target_area == self.controller.get_egi_model().sheet else target_area
-        self.validation_label.setText(f"ℹ️ Context: {area_name} ({polarity})")
-        self.validation_label.setStyleSheet("color: #666; font-size: 10px; padding: 5px;")
+        status_text = f"ℹ️ Context: {area_name} ({polarity})"
+        
+        if closure_status['message']:
+            status_text += f" | {closure_status['message']}"
+            
+        self.validation_label.setText(status_text)
+        
+        # Color code based on closure status
+        if closure_status['added_count'] > 0:
+            # Expanded to closure
+            self.validation_label.setStyleSheet("color: #0066cc; font-size: 10px; padding: 5px;")
+        elif not closure_status['is_valid']:
+            # Invalid closure
+            self.validation_label.setStyleSheet("color: #cc6600; font-size: 10px; padding: 5px;")
+        else:
+            # Normal
+            self.validation_label.setStyleSheet("color: #666; font-size: 10px; padding: 5px;")
     
     def _refresh_display(self):
         """Refresh the diagram display."""
