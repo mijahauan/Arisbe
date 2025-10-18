@@ -56,7 +56,7 @@ class WorkingRoom(QFrame):
         room_colors = {
             "library": "#8B4513",  # Brown - Organon (library/study)
             "workshop": "#228B22",  # Forest Green - Ergasterion (workshop)
-            "gameroom": "#B22222",  # Fire Brick - Agon (game room)
+            "drawingroom": "#4B0082",  # Indigo - Agon (drawing room for discourse)
         }
 
         color = room_colors.get(room_type, "#696969")
@@ -186,13 +186,22 @@ class WorkingRoom(QFrame):
             painter.setPen(QPen(QColor(color).darker(120), 2))
             painter.drawRect(20, 10, 6, 20)  # Handle
             painter.drawRect(14, 8, 18, 8)  # Head
-        elif self.room_type == "gameroom":
-            # Trophy icon for Agon
+        elif self.room_type == "drawingroom":
+            # Speech/Conversation bubbles for Agon (discourse and dialogue)
             painter.setBrush(QBrush(QColor(color)))
             painter.setPen(QPen(QColor(color).darker(120), 2))
-            painter.drawEllipse(16, 8, 20, 16)  # Cup
-            painter.drawRect(24, 24, 4, 12)  # Stem
-            painter.drawRect(18, 36, 16, 4)  # Base
+            # Left bubble
+            painter.drawEllipse(8, 12, 20, 16)
+            # Small connector
+            painter.drawPolygon([
+                (12, 26), (10, 30), (16, 28)
+            ])
+            # Right bubble (slightly offset)
+            painter.drawEllipse(22, 8, 18, 14)
+            # Small connector
+            painter.drawPolygon([
+                (36, 20), (42, 24), (38, 22)
+            ])
         else:
             # Default circle
             painter.setBrush(QBrush(QColor(color)))
@@ -276,8 +285,9 @@ class ArisbeHomeWidget(QWidget):
         # Introduction text
         intro_text = QLabel(
             "Welcome to your intellectual home. Named after Charles Sanders Peirce's residence "
-            "in northeast New Jersey, this house contains three specialized working rooms "
-            "for your Existential Graph inquiry. Choose which room to enter:"
+            "in Milford, Pennsylvania, this house contains three interconnected working rooms "
+            "for your Existential Graph inquiry. Each room interacts with the others, "
+            "forming a triangle of exploration, creation, and discourse. Choose which room to enter:"
         )
         intro_text.setWordWrap(True)
         intro_text.setAlignment(Qt.AlignCenter)
@@ -288,7 +298,7 @@ class ArisbeHomeWidget(QWidget):
         header_layout.addLayout(house_title_layout)
         header_layout.addWidget(intro_text)
 
-        # Rooms container
+        # Rooms container with triangular layout
         rooms_scroll = QScrollArea()
         rooms_scroll.setWidgetResizable(True)
         rooms_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
@@ -298,9 +308,19 @@ class ArisbeHomeWidget(QWidget):
         )  # Warm background
 
         rooms_widget = QWidget()
-        self.rooms_layout = QHBoxLayout(rooms_widget)
+        # Triangular layout: Organon and Ergasterion at top, Agon at bottom
+        self.rooms_layout = QVBoxLayout(rooms_widget)
         self.rooms_layout.setAlignment(Qt.AlignCenter)
-        self.rooms_layout.setSpacing(25)
+        self.rooms_layout.setSpacing(30)
+        
+        # Top row container (Organon and Ergasterion)
+        self.top_row_layout = QHBoxLayout()
+        self.top_row_layout.setAlignment(Qt.AlignCenter)
+        self.top_row_layout.setSpacing(40)
+        
+        # Bottom row container (Agon centered)
+        self.bottom_row_layout = QHBoxLayout()
+        self.bottom_row_layout.setAlignment(Qt.AlignCenter)
 
         rooms_scroll.setWidget(rooms_widget)
 
@@ -333,15 +353,15 @@ class ArisbeHomeWidget(QWidget):
             room_type="workshop",
         )
 
-        # Agon - Game Room
+        # Agon - Drawing Room
         agon_room = WorkingRoom(
             room_name="agon",
             title="Agon",
-            description="Your competition space for logical challenges and endoporeutic games. "
-            "Test your understanding through structured exercises and friendly competition.",
-            help_text="Coming soon: Interactive games and challenges to test your mastery of existential "
-            "graph logic and transformation rules. Compete with others or challenge yourself.",
-            room_type="gameroom",
+            description="Your drawing room for logical discourse and endoporeutic engagement. "
+            "A space for reasoned dialogue, testing propositions, and engaging in the give-and-take of logical inquiry.",
+            help_text="The drawing room for intellectual conversation through Existential Graphs. "
+            "Engage in endoporeutic games where propositions are tested through structured logical dialogue.",
+            room_type="drawingroom",
         )
 
         # Connect signals
@@ -349,10 +369,19 @@ class ArisbeHomeWidget(QWidget):
         ergasterion_room.room_entered.connect(self._handle_room_selection)
         agon_room.room_entered.connect(self._handle_room_selection)
 
-        # Add to layout
-        self.rooms_layout.addWidget(organon_room)
-        self.rooms_layout.addWidget(ergasterion_room)
-        self.rooms_layout.addWidget(agon_room)
+        # Add to triangular layout
+        # Top row: Organon (left) and Ergasterion (right)
+        self.top_row_layout.addWidget(organon_room)
+        self.top_row_layout.addWidget(ergasterion_room)
+        
+        # Bottom row: Agon (centered)
+        self.bottom_row_layout.addStretch()
+        self.bottom_row_layout.addWidget(agon_room)
+        self.bottom_row_layout.addStretch()
+        
+        # Add rows to main layout
+        self.rooms_layout.addLayout(self.top_row_layout)
+        self.rooms_layout.addLayout(self.bottom_row_layout)
 
     def _handle_room_selection(self, room_name: str):
         """Handle selection of a working room."""
