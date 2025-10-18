@@ -2,9 +2,10 @@
 
 ## 🔒 Core Protection System
 - **16 protected core modules** - Cannot be modified without explicit authorization
-- **90 core tests** must always pass - These validate the mathematical foundation
+- **87 core tests** must always pass - These validate the mathematical foundation
+- **Qt-dependent tests** excluded from automatic quality gate (run manually to avoid hangs)
 - **Check protection status**: `python tools/core_protection_system.py --report`
-- **Override protection** (authorized changes only): `export ARISBE_CORE_OVERRIDE=true`
+- **Override protection** (authorized changes only): `touch .core_modification_authorized`
 
 ## 📚 Living Documentation System
 - **Auto-updating documentation**: Documentation stays current with codebase changes
@@ -23,9 +24,11 @@
 ## 🧪 Testing Requirements
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
 - **System status**: `python tools/daily_quality_dashboard.py`
-- **Core tests**: `python -m pytest tests/` (90/90 passing)
+- **Core tests**: `python -m pytest tests/` (87/87 passing)
+- **Qt-dependent tests**: Run manually (excluded from automatic checks due to collection hangs)
 - **GUI Organon tests**: `python tools/test_gui_organon.py` (3/3 passing)
-- **Expected results**: 90 core tests passing, 0 failing
+- **Expected results**: 87 core tests passing, 0 failing
+- **Timeout protection**: 120s timeout prevents infinite hangs on Qt import issues
 
 ### Battle-Tested Import/Export Infrastructure
 **Status**: ✅ PRODUCTION - Comprehensive test coverage across corpus
