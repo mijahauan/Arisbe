@@ -13,6 +13,7 @@ from frozendict import frozendict
 
 from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 from graph_isomorphism_engine import IsomorphismValidator
+from subgraph_closure_validator import SubgraphClosureValidator
 # from legacy.level_polarity_adjustment import LevelPolarityAdjuster  # Legacy component removed
 
 
@@ -349,13 +350,23 @@ class InsertionRule(FormalTransformationRule):
             return False, f"Target area {context.target_area} does not exist"
 
         # CRITICAL: Check if subgraph to insert is closed per Dau's requirement
-        if context.selected_subgraph and not self.is_closed_subgraph(
-            context.source_egi, context.selected_subgraph
-        ):
-            return (
-                False,
-                "Insertion only applies to closed subgraphs (no external edge connections)",
-            )
+        # Use comprehensive closure validator
+        if context.selected_subgraph:
+            validator = SubgraphClosureValidator(context.source_egi)
+            analysis = validator.analyze_closure(context.selected_subgraph, allow_expansion=True)
+            
+            if not analysis.is_closed:
+                # Show detailed violations
+                violations_desc = "\n  ".join(v.description for v in analysis.violations[:3])
+                return (
+                    False,
+                    f"Insertion requires closed subgraph:\n  {violations_desc}",
+                )
+            
+            # Store expanded subgraph for use in transformation
+            # Note: We'll use analysis.closed_subgraph
+            if hasattr(context, '__dict__'):
+                context.__dict__['expanded_subgraph'] = analysis.closed_subgraph
 
         return True, None
 
@@ -369,6 +380,9 @@ class InsertionRule(FormalTransformationRule):
 
         try:
             egi = context.source_egi
+            
+            # Use expanded subgraph if available (from closure validation)
+            selected_elements = getattr(context, 'expanded_subgraph', context.selected_subgraph)
 
             # Handle insertion of subgraph elements
             new_vertices = set(egi.V)
@@ -480,25 +494,29 @@ class ErasureRule(FormalTransformationRule):
         # Verify selected subgraph exists in the area
         area_contents = context.source_egi.area.get(context.target_area, frozenset())
 
-        # For cut erasure, we need to expand the selected subgraph to include cut contents
-        expanded_subgraph = set(context.selected_subgraph)
-        for element_id in context.selected_subgraph:
-            # If this element is a cut, include all its contents
-            if element_id in context.source_egi.area:
-                cut_contents = context.source_egi.area.get(element_id, frozenset())
-                expanded_subgraph.update(cut_contents)
-
-        # Check if the expanded subgraph (excluding cut contents) is in the target area
+        # Check if the selected subgraph is in the target area
         elements_in_target = context.selected_subgraph.intersection(area_contents)
         if elements_in_target != context.selected_subgraph:
             return False, "Selected subgraph contains elements not in target area"
 
         # CRITICAL: Check if subgraph is closed per Dau's requirement
-        if not self.is_closed_subgraph(context.source_egi, context.selected_subgraph):
-            return (
-                False,
-                "Erasure only applies to closed subgraphs (no external edge connections)",
-            )
+        # Use comprehensive closure validator with automatic expansion
+        if context.selected_subgraph:
+            validator = SubgraphClosureValidator(context.source_egi)
+            analysis = validator.analyze_closure(context.selected_subgraph, allow_expansion=True)
+            
+            if not analysis.is_closed:
+                # Show detailed violations
+                violations_desc = "\n  ".join(v.description for v in analysis.violations[:3])
+                return (
+                    False,
+                    f"Erasure requires closed subgraph:\n  {violations_desc}",
+                )
+            
+            # Store expanded subgraph for use in transformation
+            # This includes cuts with their contents automatically
+            if hasattr(context, '__dict__'):
+                context.__dict__['expanded_subgraph'] = analysis.closed_subgraph
 
         return True, None
 
@@ -513,13 +531,9 @@ class ErasureRule(FormalTransformationRule):
         try:
             egi = context.source_egi
 
-            # Expand selected subgraph to include cut contents
-            expanded_subgraph = set(context.selected_subgraph)
-            for element_id in context.selected_subgraph:
-                # If this element is a cut, include all its contents
-                if element_id in egi.area:
-                    cut_contents = egi.area.get(element_id, frozenset())
-                    expanded_subgraph.update(cut_contents)
+            # Use expanded subgraph from closure validation
+            # This already includes cut contents and all necessary closure elements
+            expanded_subgraph = set(getattr(context, 'expanded_subgraph', context.selected_subgraph))
 
             # Remove vertices and edges from the EGI
             new_vertices = frozenset(v for v in egi.V if v.id not in expanded_subgraph)
