@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPixmap
+from PySide6.QtCore import QPoint, QSize, Qt, Signal
+from PySide6.QtGui import QBrush, QColor, QFont, QPainter, QPen, QPixmap, QPolygon
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -192,16 +192,18 @@ class WorkingRoom(QFrame):
             painter.setPen(QPen(QColor(color).darker(120), 2))
             # Left bubble
             painter.drawEllipse(8, 12, 20, 16)
-            # Small connector
-            painter.drawPolygon([
-                (12, 26), (10, 30), (16, 28)
+            # Small connector (using QPolygon with QPoint objects)
+            left_connector = QPolygon([
+                QPoint(12, 26), QPoint(10, 30), QPoint(16, 28)
             ])
+            painter.drawPolygon(left_connector)
             # Right bubble (slightly offset)
             painter.drawEllipse(22, 8, 18, 14)
-            # Small connector
-            painter.drawPolygon([
-                (36, 20), (42, 24), (38, 22)
+            # Small connector (using QPolygon with QPoint objects)
+            right_connector = QPolygon([
+                QPoint(36, 20), QPoint(42, 24), QPoint(38, 22)
             ])
+            painter.drawPolygon(right_connector)
         else:
             # Default circle
             painter.setBrush(QBrush(QColor(color)))
