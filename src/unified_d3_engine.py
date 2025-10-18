@@ -379,9 +379,9 @@ class UnifiedD3Engine:
             }
             if v.id in layout_deltas:
                 delta = layout_deltas[v.id]
-                if hasattr(delta, 'position') and delta.position:
-                    node['fx'] = delta.position[0]
-                    node['fy'] = delta.position[1]
+                if hasattr(delta, 'new_position') and delta.new_position:
+                    node['fx'] = delta.new_position[0]
+                    node['fy'] = delta.new_position[1]
             content_nodes.append(node)
         
         # Add predicates
@@ -396,9 +396,9 @@ class UnifiedD3Engine:
             }
             if e.id in layout_deltas:
                 delta = layout_deltas[e.id]
-                if hasattr(delta, 'position') and delta.position:
-                    node['fx'] = delta.position[0]
-                    node['fy'] = delta.position[1]
+                if hasattr(delta, 'new_position') and delta.new_position:
+                    node['fx'] = delta.new_position[0]
+                    node['fy'] = delta.new_position[1]
             content_nodes.append(node)
         
         # Add child cuts as fixed-size obstacles
@@ -474,12 +474,25 @@ class UnifiedD3Engine:
         
         # Convert bbox
         bbox_data = output['bbox']
-        bbox = BoundingBox(
-            min_x=bbox_data['min_x'],
-            min_y=bbox_data['min_y'],
-            max_x=bbox_data['max_x'],
-            max_y=bbox_data['max_y']
-        )
+        
+        # Handle empty cuts - D3 returns None values if no content
+        # Give empty cuts a minimum size for visibility
+        if bbox_data['min_x'] is None or bbox_data['max_x'] is None:
+            # Empty cut - use default minimum size
+            min_size = 100.0
+            bbox = BoundingBox(
+                min_x=-min_size / 2,
+                min_y=-min_size / 2,
+                max_x=min_size / 2,
+                max_y=min_size / 2
+            )
+        else:
+            bbox = BoundingBox(
+                min_x=bbox_data['min_x'],
+                min_y=bbox_data['min_y'],
+                max_x=bbox_data['max_x'],
+                max_y=bbox_data['max_y']
+            )
         
         # Convert positions
         positions = {

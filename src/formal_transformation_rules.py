@@ -157,12 +157,12 @@ class DoubleCutInsertionRule(FormalTransformationRule):
             return TransformationResult(False, None, error_msg, {})
 
         try:
+            import uuid
             egi = context.source_egi
 
-
-            # Create two new cuts for the double cut
-            outer_cut_id = ElementID("dc_outer")
-            inner_cut_id = ElementID("dc_inner")
+            # Create two new cuts with unique IDs
+            outer_cut_id = ElementID(f"cut_{uuid.uuid4().hex[:8]}")
+            inner_cut_id = ElementID(f"cut_{uuid.uuid4().hex[:8]}")
 
             outer_cut = Cut(outer_cut_id)
             inner_cut = Cut(inner_cut_id)

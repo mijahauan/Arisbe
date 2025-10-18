@@ -1,6 +1,6 @@
 # Arisbe Core API Reference
 
-**Last Updated**: 2025-10-18 09:21:59  
+**Last Updated**: 2025-10-18 09:23:37  
 **Auto-Generated**: This file is automatically regenerated when core modules change
 
 ---
