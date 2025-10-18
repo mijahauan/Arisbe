@@ -1,6 +1,6 @@
 # Arisbe Core API Reference
 
-**Last Updated**: 2025-10-14 19:08:22  
+**Last Updated**: 2025-10-18 09:21:59  
 **Auto-Generated**: This file is automatically regenerated when core modules change
 
 ---
@@ -61,7 +61,7 @@ Manages the complete application state and coordinates between:
 **Methods**:
 
 - `__init__(self)`
-  Initialize the diagram controller with default components.
+  Initialize the diagram controller.
 
 - `enable_transformation_history(self, initial_description)`
   Enable transformation history tracking with layout deltas.
@@ -111,6 +111,28 @@ Manages the complete application state and coordinates between:
   
   Returns:
       True if position updated, False if validation failed
+
+- `update_cut_position(self, cut_id, delta)`
+  Update position of a cut and all its contents (container movement).
+  
+  This should ONLY be called for user-initiated drags, not layout engine repositioning.
+  
+  Args:
+      cut_id: ID of cut to move
+      delta: (dx, dy) movement delta
+      
+  Returns:
+      True if position updated successfully
+
+- `update_cut_size(self, cut_id, new_size)`
+  Update the size of a cut after user resize.
+  
+  Args:
+      cut_id: ID of cut to resize
+      new_size: (width, height) new dimensions
+      
+  Returns:
+      True if size updated successfully
 
 - `update_ligature_path(self, ligature_key, new_path)`
   Update custom path for a ligature with validation.
@@ -172,6 +194,9 @@ Manages the complete application state and coordinates between:
 
 - `_validate_egi_model(self, egi)`
   Validate that EGI model is well-formed.
+  
+  Returns:
+      None if valid, error message string if invalid
 
 - `_calculate_area_polarity(self, area_id)`
   Calculate polarity and nesting depth of an area.

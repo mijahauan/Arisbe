@@ -23,7 +23,7 @@ from definitive_egi_layout_engine import (
     LayoutDelta,
 )
 # Using unified D3 engine (single simulation - definitive architecture)
-from unified_d3_engine import UnifiedD3Engine, LayoutDTO, Point, LigaturePath
+from unified_d3_engine import UnifiedD3Engine, LayoutDTO, Point, LigaturePath, BoundingBox
 
 # Style system
 from style_loader import StyleLoader, StyleSpecification
@@ -79,20 +79,21 @@ class DiagramController:
     """
 
     def __init__(self):
-        """Initialize the diagram controller with default components."""
-        self.layout_engine = UnifiedD3Engine()  # Using unified D3 engine (single simulation)
-        self.style_loader = StyleLoader()
+        """Initialize the diagram controller."""
+        self.egi_model: Optional[RelationalGraphWithCuts] = None
+        self.current_dto: Optional[LayoutDTO] = None
         self.current_style: Optional[StyleSpecification] = None
         self.layout_deltas: Dict[str, LayoutDelta] = {}
-        self.current_dto: Optional[LayoutDTO] = None
-
-        # EGI model state
-        self.egi_model: Optional[RelationalGraphWithCuts] = None
+        self.last_error: Optional[str] = None  # Store last error for UI display
         
-        # Diachronic sequence tracking (optional - for advanced workflows)
+        # Transformation history (diachronic workflow)
         self.transformation_history: Optional[Any] = None  # EGITransformationHistory when enabled
-
-        # Formal transformation rules
+        
+        # Initialize components
+        self.layout_engine = UnifiedD3Engine()  # Using unified D3 engine (single simulation)
+        self.style_loader = StyleLoader()
+        
+        # Initialize transformation rules
         self._transformation_rules: Dict[str, FormalTransformationRule] = {
             "DC+": DoubleCutInsertionRule(),
             "DC-": DoubleCutErasureRule(),
@@ -151,9 +152,13 @@ class DiagramController:
             print(f"DiagramController.load_egi: Starting with {len(egi.V)}V, {len(egi.E)}E, {len(egi.Cut)}C")
             
             # Validate the EGI model
-            if not self._validate_egi_model(egi):
-                print("DiagramController.load_egi: Validation FAILED")
+            validation_error = self._validate_egi_model(egi)
+            if validation_error:
+                self.last_error = f"EGI validation failed: {validation_error}"
+                print(f"DiagramController.load_egi: {self.last_error}")
                 return False
+            
+            self.last_error = None  # Clear previous errors
 
             print("DiagramController.load_egi: Validation passed")
 
@@ -172,6 +177,7 @@ class DiagramController:
             return True
 
         except Exception as e:
+            self.last_error = f"Failed to load EGI: {str(e)}"
             print(f"DiagramController.load_egi: EXCEPTION - {e}")
             import traceback
             traceback.print_exc()
@@ -218,6 +224,11 @@ class DiagramController:
 
         # Convert to frozenset for consistency
         selected_subgraph = frozenset(selection_ids)
+        
+        print(f"=== APPLYING TRANSFORMATION ===")
+        print(f"Rule: {rule_name}")
+        print(f"Selection IDs: {list(selection_ids)}")
+        print(f"Target area: {target_area}")
 
         # Determine target area
         if target_area is None:
@@ -237,45 +248,68 @@ class DiagramController:
 
         # Validate preconditions
         rule = self._transformation_rules[rule_name]
+        print(f"=== Checking preconditions for {rule_name} ===")
+        print(f"  Target area: {target_area}")
+        print(f"  Area polarity: {polarity}")
+        print(f"  Selection: {selection_ids}")
+        
         is_valid, error_msg = rule.check_preconditions(context)
 
         if not is_valid:
-            print(f"Rule validation failed: {error_msg}")
+            print(f"✗ Rule validation FAILED: {error_msg}")
             return False
+        
+        print(f"✓ Preconditions passed")
 
         # Apply transformation
         result = rule.apply_transformation(context)
 
         if not result.success:
-            print(f"Transformation failed: {result.error_message}")
+            print(f"✗ Transformation failed: {result.error_message}")
             return False
-
+        
+        print(f"Successfully applied {rule_name} transformation")
+        
+        # DEBUG: Check EGI area mapping before/after
+        print("=== EGI AREA MAPPING ===")
+        print(f"BEFORE - Areas: {dict(self.egi_model.area)}")
+        print(f"AFTER  - Areas: {dict(result.result_egi.area)}")
+        
         # === DIACHRONIC DELTA WORKFLOW ===
-        # State_n = (EGI_n, Deltas_n) → State_n+1 = (EGI_n+1, Deltas_n+1)
+        # CRITICAL: Deltas are RELATIVE to natural positions calculated by layout engine.
+        # When transformation changes structure, natural positions change.
+        # We must preserve ABSOLUTE positions, not relative deltas.
         
-        # Step 1: Capture current state before transformation
-        old_egi = self.egi_model
-        old_deltas = dict(self.layout_deltas)  # Copy current deltas
+        # Step 1: Preserve deltas for elements that still exist
+        # Simply filter out deltas for deleted elements
+        print(f"=== DELTA PRESERVATION ===")
+        print(f"Deltas before transformation: {list(self.layout_deltas.keys())}")
         
-        # Step 2: Apply logical transformation (EGI_n → EGI_n+1)
+        old_deltas = dict(self.layout_deltas)
+        
+        # Step 2: Update EGI model
         self.egi_model = result.result_egi
 
-        # Step 3: Delta reconciliation (Deltas_n → Deltas_n+1)
-        # Discard deltas for deleted elements, preserve deltas for surviving elements
+        # Step 3: Filter deltas - keep only those for elements that still exist
         self._preserve_valid_constraints()
         
-        # Step 4: Record transformation in history (if enabled)
+        print(f"Deltas after preservation: {list(self.layout_deltas.keys())}")
+        
+        # Step 4: Trigger layout with preserved deltas
+        # The layout engine will:
+        # - Position existing elements at their delta-specified positions
+        # - Position new cuts (from DC+) to contain their contents
+        # - Calculate natural positions for any new elements
+        print(f"=== Triggering layout with {len(self.layout_deltas)} preserved deltas ===")
+        self._trigger_full_relayout()
+        
+        # Step 6: Record transformation in history (if enabled)
         if self.transformation_history:
             self._record_transformation_with_deltas(
                 rule_name, context, result, old_deltas, self.layout_deltas
             )
 
-        # Step 5: Trigger layout with reconciled deltas
-        # The layout engine will use the inherited deltas as starting constraints
-        self._trigger_full_relayout()
-
-        print(f"Successfully applied {rule_name} transformation")
-        print(f"  Deltas: {len(old_deltas)} → {len(self.layout_deltas)} (reconciled)")
+        print(f"✓ Transformation complete: preserved {len(self.layout_deltas)} absolute positions")
         return True
 
     # === PUBLIC API: AESTHETIC ADJUSTMENT COMMANDS ===
@@ -312,6 +346,149 @@ class DiagramController:
         # Trigger fast update (no full re-layout needed)
         self._trigger_fast_update()
 
+        return True
+    
+    def update_cut_position(self, cut_id: str, delta: Tuple[float, float]) -> bool:
+        """
+        Update position of a cut and all its contents (container movement).
+        
+        This should ONLY be called for user-initiated drags, not layout engine repositioning.
+        
+        Args:
+            cut_id: ID of cut to move
+            delta: (dx, dy) movement delta
+            
+        Returns:
+            True if position updated successfully
+        """
+        if not self.current_dto or not self.egi_model:
+            return False
+        
+        dx, dy = delta
+        
+        print(f"=== Updating cut {cut_id} position by delta ({dx}, {dy}) ===")
+        
+        # Get all elements contained in this cut (recursively)
+        def get_all_contents(area_id: str) -> set:
+            """Recursively get all elements in an area and its sub-areas."""
+            contents = set()
+            area_contents = self.egi_model.area.get(area_id, frozenset())
+            
+            for elem_id in area_contents:
+                contents.add(elem_id)
+                # If element is a cut, recursively get its contents
+                if any(c.id == elem_id for c in self.egi_model.Cut):
+                    contents.update(get_all_contents(elem_id))
+            
+            return contents
+        
+        all_contents = get_all_contents(cut_id)
+        print(f"  Moving {len(all_contents)} contained elements")
+        
+        # Apply delta to all contents
+        for elem_id in all_contents:
+            if elem_id in self.current_dto.vertex_positions:
+                old_pos = self.current_dto.vertex_positions[elem_id]
+                new_pos = (old_pos.x + dx, old_pos.y + dy)
+                print(f"    Moving vertex {elem_id}: ({old_pos.x}, {old_pos.y}) → ({new_pos[0]}, {new_pos[1]})")
+                # Update position without validation (container movement)
+                self.layout_deltas[elem_id] = LayoutDelta(
+                    element_id=elem_id,
+                    delta_type='vertex_position',
+                    new_position=new_pos
+                )
+            elif elem_id in self.current_dto.predicate_positions:
+                old_pos = self.current_dto.predicate_positions[elem_id]
+                new_pos = (old_pos.x + dx, old_pos.y + dy)
+                print(f"    Moving predicate {elem_id}: ({old_pos.x}, {old_pos.y}) → ({new_pos[0]}, {new_pos[1]})")
+                self.layout_deltas[elem_id] = LayoutDelta(
+                    element_id=elem_id,
+                    delta_type='edge_position',
+                    new_position=new_pos
+                )
+            # Also handle nested cuts
+            elif elem_id in self.current_dto.cut_bounds:
+                # Cuts will be repositioned when layout is triggered
+                print(f"    Moving nested cut {elem_id}")
+                pass
+        
+        print(f"  Total layout deltas after cut move: {len(self.layout_deltas)}")
+        
+        # CRITICAL: Also update the cut bounds in the DTO
+        # The cut rectangle itself needs to move by the same delta
+        if cut_id in self.current_dto.cut_bounds:
+            old_bounds = self.current_dto.cut_bounds[cut_id]
+            new_bounds = BoundingBox(
+                min_x=old_bounds.min_x + dx,
+                min_y=old_bounds.min_y + dy,
+                max_x=old_bounds.max_x + dx,
+                max_y=old_bounds.max_y + dy
+            )
+            self.current_dto.cut_bounds[cut_id] = new_bounds
+            print(f"  Updated cut bounds: {old_bounds} → {new_bounds}")
+            
+            # Also update any nested cut bounds recursively
+            for nested_cut_id in all_contents:
+                if nested_cut_id in self.current_dto.cut_bounds:
+                    old_bounds = self.current_dto.cut_bounds[nested_cut_id]
+                    new_bounds = BoundingBox(
+                        min_x=old_bounds.min_x + dx,
+                        min_y=old_bounds.min_y + dy,
+                        max_x=old_bounds.max_x + dx,
+                        max_y=old_bounds.max_y + dy
+                    )
+                    self.current_dto.cut_bounds[nested_cut_id] = new_bounds
+                    print(f"  Updated nested cut {nested_cut_id} bounds")
+        
+        # Trigger fast update to apply all deltas
+        self._trigger_fast_update()
+        
+        return True
+    
+    def update_cut_size(self, cut_id: str, new_size: Tuple[float, float]) -> bool:
+        """
+        Update the size of a cut after user resize.
+        
+        Args:
+            cut_id: ID of cut to resize
+            new_size: (width, height) new dimensions
+            
+        Returns:
+            True if size updated successfully
+        """
+        if not self.current_dto or not self.egi_model:
+            return False
+        
+        w, h = new_size
+        print(f"=== Updating cut {cut_id} size to ({w}, {h}) ===")
+        
+        # Get current cut bounds
+        if cut_id not in self.current_dto.cut_bounds:
+            print(f"  Cut {cut_id} not found in cut_bounds")
+            return False
+        
+        old_bounds = self.current_dto.cut_bounds[cut_id]
+        
+        # Update cut bounds - keep top-left corner, adjust bottom-right
+        # (Resize from top-left anchor point)
+        new_bounds = BoundingBox(
+            min_x=old_bounds.min_x,
+            min_y=old_bounds.min_y,
+            max_x=old_bounds.min_x + w,
+            max_y=old_bounds.min_y + h
+        )
+        
+        self.current_dto.cut_bounds[cut_id] = new_bounds
+        print(f"  Updated cut bounds: {old_bounds} → {new_bounds}")
+        
+        # Store cut size constraint in layout deltas (so layout engine respects it)
+        self.layout_deltas[cut_id] = LayoutDelta(
+            element_id=cut_id,
+            delta_type='cut_size',
+            new_position=None,  # Not used for cut size
+            custom_data={'width': w, 'height': h}
+        )
+        
         return True
 
     def update_ligature_path(self, ligature_key: str, new_path: List[Tuple[float, float]]) -> bool:
@@ -373,6 +550,12 @@ class DiagramController:
             if self.current_dto is None:
                 print("ERROR: Layout engine returned None")
                 return
+            
+            # DEBUG: Check layout output
+            print("=== LAYOUT ENGINE OUTPUT ===")
+            print(f"Vertex positions: {self.current_dto.vertex_positions}")
+            print(f"Predicate positions: {self.current_dto.predicate_positions}")
+            print(f"Cut bounds: {self.current_dto.cut_bounds}")
             
         except Exception as e:
             print(f"ERROR in _trigger_full_relayout: {e}")
@@ -562,7 +745,7 @@ class DiagramController:
 
     def _preserve_valid_constraints(self):
         """Preserve user constraints that are still valid after transformation."""
-        if not self.current_dto:
+        if not self.current_dto or not self.egi_model:
             return
 
         valid_deltas = {}
@@ -570,8 +753,11 @@ class DiagramController:
         for element_id, delta in self.layout_deltas.items():
             # Check if element still exists in the new model
             if self._element_exists_in_model(element_id):
+                # PRESERVE ALL DELTAS - even if element moved to different area
+                # The position constraint is still valid, just in a different context
                 valid_deltas[element_id] = delta
 
+        print(f"  Preserved {len(valid_deltas)} deltas")
         self.layout_deltas = valid_deltas
 
     def _element_exists_in_model(self, element_id: str) -> bool:
@@ -674,20 +860,41 @@ class DiagramController:
 
     # === VALIDATION METHODS ===
 
-    def _validate_egi_model(self, egi: RelationalGraphWithCuts) -> bool:
-        """Validate that EGI model is well-formed."""
+    def _validate_egi_model(self, egi: RelationalGraphWithCuts) -> Optional[str]:
+        """Validate that EGI model is well-formed.
+        
+        Returns:
+            None if valid, error message string if invalid
+        """
         try:
-            # The EGI constructor already validates most constraints
-            # We just need to ensure it has the required components
-            if not egi.V or not egi.E:
-                print("EGI must contain vertices and edges")
-                return False
+            # The EGI constructor already validates Dau's formal constraints in __post_init__
+            # Empty graphs (no vertices/edges) are mathematically valid
+            # A graph with just a sheet, or sheet + cuts, is valid for composition
+            
+            # Verify basic structure exists
+            if not hasattr(egi, 'sheet'):
+                return "EGI missing 'sheet' component"
+            
+            if not hasattr(egi, 'area'):
+                return "EGI missing 'area' mapping"
+            
+            if not hasattr(egi, 'V'):
+                return "EGI missing 'V' (vertices) component"
+            
+            if not hasattr(egi, 'E'):
+                return "EGI missing 'E' (edges) component"
+            
+            if not hasattr(egi, 'Cut'):
+                return "EGI missing 'Cut' component"
+            
+            # Verify sheet is in area mapping
+            if egi.sheet not in egi.area:
+                return f"Sheet '{egi.sheet}' not found in area mapping"
 
-            return True
+            return None  # Valid
 
         except Exception as e:
-            print(f"EGI validation failed: {e}")
-            return False
+            return f"Validation exception: {str(e)}"
 
     def _calculate_area_polarity(self, area_id: ElementID) -> Tuple[AreaPolarity, int]:
         """Calculate polarity and nesting depth of an area."""
@@ -828,7 +1035,7 @@ class DiagramController:
         
         # Get the bounding box for this area from the DTO
         if element_area_id not in self.current_dto.cut_bounds:
-            # Area has no bounds yet (maybe sheet) - allow movement
+            # Area has no bounds yet - allow movement
             print(f"  [VALIDATION] Area {element_area_id} has no bounds in DTO - allowing move")
             print(f"  [VALIDATION] Available cut_bounds: {list(self.current_dto.cut_bounds.keys())}")
             return ValidationResult(True)
@@ -838,8 +1045,14 @@ class DiagramController:
         # Check if new position is within area bounds
         x, y = new_position
         
-        print(f"  [VALIDATION] Area bounds: ({area_bounds.min_x}, {area_bounds.min_y}) to ({area_bounds.max_x}, {area_bounds.max_y})")
-        print(f"  [VALIDATION] New position: ({x}, {y})")
+        # Sheet allows free movement (no boundary), but still check child cuts
+        is_sheet = (element_area_id == self.current_dto.sheet_id)
+        
+        if not is_sheet:
+            print(f"  [VALIDATION] Area bounds: ({area_bounds.min_x}, {area_bounds.min_y}) to ({area_bounds.max_x}, {area_bounds.max_y})")
+            print(f"  [VALIDATION] New position: ({x}, {y})")
+        else:
+            print(f"  [VALIDATION] Element on sheet - checking child cuts only")
         
         # CRITICAL: Check if new position enters any child cuts (where element doesn't belong)
         # Find all child cuts of this area
@@ -872,8 +1085,8 @@ class DiagramController:
                             f"Element must stay in its assigned area, not enter child cuts"
                         )
         
-        # For vertices: point must be inside parent area
-        if element_type == 'vertex':
+        # For vertices: point must be inside parent area (unless on sheet)
+        if element_type == 'vertex' and not is_sheet:
             within_bounds = (area_bounds.min_x <= x <= area_bounds.max_x and
                            area_bounds.min_y <= y <= area_bounds.max_y)
             print(f"  [VALIDATION] Vertex within bounds: {within_bounds}")
@@ -884,8 +1097,8 @@ class DiagramController:
                     f"Keep vertex within the bounds of its containing cut"
                 )
         
-        # For predicates: center must be inside (with small tolerance for text width)
-        elif element_type == 'predicate':
+        # For predicates: center must be inside (with small tolerance for text width, unless on sheet)
+        elif element_type == 'predicate' and not is_sheet:
             # Get predicate dimensions from style
             pred_label = self._get_predicate_label(element_id)
             char_width = self.current_style.predicate_char_width if self.current_style else 6.2

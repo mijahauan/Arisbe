@@ -24,6 +24,8 @@ class WorkflowMode(Enum):
     CREATE_NEW = "create"        # Creating new diagram
     ISOLATED_PRACTICE = "practice"  # Just practicing, no destination
 from PySide6.QtWidgets import (
+    QButtonGroup,
+    QDialog,
     QFileDialog,
     QGroupBox,
     QHBoxLayout,
@@ -31,6 +33,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QMessageBox,
     QPushButton,
+    QRadioButton,
     QTextEdit,
     QToolBar,
     QVBoxLayout,
@@ -51,6 +54,120 @@ from datetime import datetime
 
 # Import Qt-based interactive canvas
 from gui_clean.common.qt_diagram_canvas import QtDiagramCanvas
+
+
+class StartingContextDialog(QDialog):
+    """Dialog for selecting starting context when creating new diagrams."""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Create New Diagram")
+        self.setModal(True)
+        self.setMinimumWidth(450)
+        
+        self._setup_ui()
+    
+    def _setup_ui(self):
+        """Create the dialog UI."""
+        layout = QVBoxLayout(self)
+        
+        # Title
+        title = QLabel("Choose Starting Context:")
+        title.setStyleSheet("font-size: 14px; font-weight: bold; padding: 10px;")
+        layout.addWidget(title)
+        
+        # Radio button group
+        self.button_group = QButtonGroup(self)
+        
+        # Option 1: Empty Sheet
+        self.empty_radio = QRadioButton("Empty Sheet")
+        self.button_group.addButton(self.empty_radio)
+        layout.addWidget(self.empty_radio)
+        
+        empty_desc = QLabel(
+            "   Start with bare sheet of assertion.\n"
+            "   Apply DC+ to create context, or assert vertex."
+        )
+        empty_desc.setStyleSheet("color: #666; font-size: 11px; padding-left: 20px;")
+        layout.addWidget(empty_desc)
+        
+        layout.addSpacing(10)
+        
+        # Option 2: Double Cut (Recommended)
+        self.double_cut_radio = QRadioButton("Double Cut (Recommended)")
+        self.double_cut_radio.setChecked(True)  # Default
+        self.button_group.addButton(self.double_cut_radio)
+        layout.addWidget(self.double_cut_radio)
+        
+        dc_desc = QLabel(
+            "   Sheet with double cut already in place.\n"
+            "   Standard starting point for composition.\n"
+            "   Inner area is negative context (INS enabled)."
+        )
+        dc_desc.setStyleSheet("color: #666; font-size: 11px; padding-left: 20px;")
+        layout.addWidget(dc_desc)
+        
+        layout.addSpacing(10)
+        
+        # Option 3: Composition Context (Future)
+        self.composition_radio = QRadioButton("Composition Context")
+        self.composition_radio.setEnabled(False)  # Not yet implemented
+        self.button_group.addButton(self.composition_radio)
+        layout.addWidget(self.composition_radio)
+        
+        comp_desc = QLabel(
+            "   Select from predefined composition contexts.\n"
+            "   (Coming soon - requires context selection workflow)"
+        )
+        comp_desc.setStyleSheet("color: #999; font-size: 11px; padding-left: 20px; font-style: italic;")
+        layout.addWidget(comp_desc)
+        
+        layout.addSpacing(20)
+        
+        # Info about formal rules
+        info = QLabel(
+            "ℹ️  All actions follow formal transformation rules.\n"
+            "   Sheet allows: DC+ (double cut) and adding vertices.\n"
+            "   Negative contexts (inside cuts) allow: INS (insertion)."
+        )
+        info.setStyleSheet(
+            "background-color: #f0f8ff; "
+            "border: 1px solid #b0d4f1; "
+            "border-radius: 4px; "
+            "padding: 10px; "
+            "font-size: 10px; "
+            "color: #333;"
+        )
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        layout.addSpacing(20)
+        
+        # Buttons
+        button_layout = QHBoxLayout()
+        button_layout.addStretch()
+        
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        button_layout.addWidget(cancel_btn)
+        
+        create_btn = QPushButton("Create")
+        create_btn.setDefault(True)
+        create_btn.clicked.connect(self.accept)
+        button_layout.addWidget(create_btn)
+        
+        layout.addLayout(button_layout)
+    
+    def get_selected_context(self) -> str:
+        """Get the selected context type."""
+        if self.empty_radio.isChecked():
+            return "empty"
+        elif self.double_cut_radio.isChecked():
+            return "double_cut"
+        elif self.composition_radio.isChecked():
+            return "composition"
+        else:
+            return "double_cut"  # Default
 
 
 class ErgasterionMode(QWidget):
@@ -142,6 +259,33 @@ class ErgasterionMode(QWidget):
         self.redo_btn.setEnabled(False)
         self.redo_btn.setToolTip("Redo undone action")
         toolbar_layout.addWidget(self.redo_btn)
+        
+        toolbar_layout.addSpacing(20)
+        
+        # View controls
+        self.zoom_in_btn = QPushButton("🔍+")
+        self.zoom_in_btn.clicked.connect(self._on_zoom_in)
+        self.zoom_in_btn.setToolTip("Zoom in (or use mouse wheel)")
+        self.zoom_in_btn.setMaximumWidth(45)
+        toolbar_layout.addWidget(self.zoom_in_btn)
+        
+        self.zoom_out_btn = QPushButton("🔍−")
+        self.zoom_out_btn.clicked.connect(self._on_zoom_out)
+        self.zoom_out_btn.setToolTip("Zoom out (or use mouse wheel)")
+        self.zoom_out_btn.setMaximumWidth(45)
+        toolbar_layout.addWidget(self.zoom_out_btn)
+        
+        self.reset_zoom_btn = QPushButton("⟲ Fit")
+        self.reset_zoom_btn.clicked.connect(self._on_reset_zoom)
+        self.reset_zoom_btn.setToolTip("Reset zoom to fit entire diagram")
+        self.reset_zoom_btn.setMaximumWidth(55)
+        toolbar_layout.addWidget(self.reset_zoom_btn)
+        
+        # Add help text for pan
+        pan_label = QLabel("Pan: Space+Drag")
+        pan_label.setStyleSheet("color: #888; font-size: 9px; padding: 0px 10px;")
+        pan_label.setToolTip("Hold Space and drag to pan the view, or use middle mouse button")
+        toolbar_layout.addWidget(pan_label)
         
         toolbar_layout.addStretch()
         
@@ -283,6 +427,8 @@ class ErgasterionMode(QWidget):
         self.canvas.element_selected.connect(self._on_element_selected)
         self.canvas.elements_selected.connect(self._on_elements_selected)
         self.canvas.element_moved.connect(self._on_element_moved)
+        self.canvas.cut_moved.connect(self._on_cut_moved)
+        self.canvas.cut_resized.connect(self._on_cut_resized)
         self.canvas.selection_cleared.connect(self._on_selection_cleared)
     
     def _update_workflow_ui(self):
@@ -315,19 +461,45 @@ class ErgasterionMode(QWidget):
             self.send_to_agon_btn.setEnabled(True)
     
     def _on_new_graph(self):
-        """Create a new practice session (empty UoD)."""
-        from egi_core_dau import create_empty_graph
+        """Create a new diagram with user-selected starting context."""
+        # Show context selection dialog
+        dialog = StartingContextDialog(self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            context_type = dialog.get_selected_context()
+            self._create_new_graph_with_context(context_type)
+    
+    def _create_new_graph_with_context(self, context_type: str):
+        """Create a new graph with the specified starting context."""
+        from egi_core_dau import RelationalGraphWithCuts
         import uuid
         
-        # Create empty EGI
-        egi = create_empty_graph()
+        # Build EGI based on context type
+        if context_type == "empty":
+            # Empty sheet - user applies DC+ or adds vertex manually
+            egi = self._create_empty_sheet()
+            description = "Empty sheet of assertion"
+            
+        elif context_type == "double_cut":
+            # Sheet with one double cut (standard starting point)
+            egi = self._create_with_double_cut()
+            description = "Sheet with double cut for composition"
+            
+        elif context_type == "composition":
+            # Future: Let user select from composition contexts
+            # For now, same as double cut
+            egi = self._create_with_double_cut()
+            description = "Composition context (double cut)"
+            
+        else:
+            self._show_status(f"Unknown context type: {context_type}", error=True)
+            return
         
         # Create new practice session UoD
         metadata = UoDMetadata(
-            uod_id=f"practice_{uuid.uuid4().hex[:8]}",
+            uod_id=f"new_{uuid.uuid4().hex[:8]}",
             uod_type=UoDType.STANDALONE,
-            name=f"Practice Session {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-            description="Isolated practice session",
+            name=f"New Diagram {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            description=description,
             category=UoDCategory.PRACTICE_SESSION,
             created=datetime.now(),
             last_modified=datetime.now(),
@@ -341,7 +513,16 @@ class ErgasterionMode(QWidget):
         )
         
         # Load into controller
-        self.controller.load_egi(egi)
+        if not self.controller.load_egi(egi):
+            # Load failed - show error to user
+            error_msg = self.controller.last_error or "Unknown validation error"
+            QMessageBox.critical(
+                self,
+                "Cannot Create Diagram",
+                f"Failed to create new diagram:\n\n{error_msg}"
+            )
+            self._show_status(f"Failed to create diagram", error=True)
+            return
         
         # Set workflow mode
         self._workflow_mode = WorkflowMode.CREATE_NEW
@@ -353,7 +534,41 @@ class ErgasterionMode(QWidget):
         self._current_file = None
         self._has_unsaved_changes = False
         
-        self._show_status("Created new diagram - ready to send to Organon or Agon")
+        self._show_status(f"Created new diagram: {description}")
+    
+    def _create_empty_sheet(self) -> RelationalGraphWithCuts:
+        """Create empty sheet of assertion."""
+        from egi_core_dau import create_empty_graph
+        return create_empty_graph()
+    
+    def _create_with_double_cut(self) -> RelationalGraphWithCuts:
+        """Create sheet with double cut (negative context for composition)."""
+        from egi_core_dau import RelationalGraphWithCuts, Cut as EGICut
+        from frozendict import frozendict
+        import uuid
+        
+        sheet_id = f"sheet_{uuid.uuid4().hex[:8]}"
+        outer_cut_id = f"cut_{uuid.uuid4().hex[:8]}"
+        inner_cut_id = f"cut_{uuid.uuid4().hex[:8]}"
+        
+        outer_cut = EGICut(id=outer_cut_id)
+        inner_cut = EGICut(id=inner_cut_id)
+        
+        return RelationalGraphWithCuts(
+            V=frozenset(),
+            E=frozenset(),
+            nu=frozendict(),
+            sheet=sheet_id,
+            Cut=frozenset([outer_cut, inner_cut]),
+            area=frozendict({
+                sheet_id: frozenset([outer_cut_id]),
+                outer_cut_id: frozenset([inner_cut_id]),
+                inner_cut_id: frozenset()
+            }),
+            rel=frozendict(),
+            alphabet=None,
+            rho=frozendict()
+        )
     
     # File operations removed - Organon manages all tomos I/O
     # Ergasterion receives UoDs from Organon and returns them modified
@@ -367,6 +582,19 @@ class ErgasterionMode(QWidget):
         """Redo last undone action."""
         # TODO: Implement with CommandExecutor
         self._show_status("Redo: Not yet implemented")
+    
+    def _on_zoom_in(self):
+        """Zoom in."""
+        self.canvas.zoom_in()
+    
+    def _on_zoom_out(self):
+        """Zoom out."""
+        self.canvas.zoom_out()
+    
+    def _on_reset_zoom(self):
+        """Reset zoom to fit entire diagram."""
+        self.canvas.reset_zoom()
+        self._show_status("Zoom reset")
     
     def _prepare_modified_uod(self) -> Optional[UniverseOfDiscourse]:
         """Prepare the current UoD with modifications for return to Organon."""
@@ -481,25 +709,80 @@ class ErgasterionMode(QWidget):
     
     def _on_element_moved(self, element_id: str, new_pos: Tuple[float, float]):
         """Handle element drag completed - FAST PATH."""
+        print(f"=== _on_element_moved: {element_id} to {new_pos} ===")
+        
         # Update position through controller (with validation and DTO update)
         success = self.controller.update_element_position(element_id, new_pos)
         
         if success:
+            print(f"✓ Position update accepted")
             # FAST PATH: Controller already updated DTO, just refresh display
             # No relayout needed - this is a logic-indifferent aesthetic change
             # fit_to_view=False to preserve zoom/pan and manual positioning
             dto = self.controller.current_dto
             egi = self.controller.egi_model
+            
+            # Verify the DTO was actually updated
+            if element_id in dto.vertex_positions:
+                dto_pos = dto.vertex_positions[element_id]
+                print(f"  DTO vertex position: ({dto_pos.x}, {dto_pos.y})")
+            elif element_id in dto.predicate_positions:
+                dto_pos = dto.predicate_positions[element_id]
+                print(f"  DTO predicate position: ({dto_pos.x}, {dto_pos.y})")
+            
             if dto and egi:
                 self.canvas.display_dto(dto, egi, fit_to_view=False)
             self._show_status(f"Moved {element_id} to ({new_pos[0]:.1f}, {new_pos[1]:.1f})")
         else:
+            print(f"✗ Position update REJECTED")
             # Position rejected - revert by redisplaying current DTO
             self._show_status(f"Invalid position for {element_id}", error=True)
             dto = self.controller.current_dto
             egi = self.controller.egi_model
             if dto and egi:
                 self.canvas.display_dto(dto, egi, fit_to_view=False)
+    
+    def _on_cut_moved(self, cut_id: str, delta: Tuple[float, float]):
+        """Handle cut drag - move all contents with the cut (container movement)."""
+        print(f"=== _on_cut_moved: {cut_id} by delta {delta} ===")
+        
+        # Update cut position through controller
+        success = self.controller.update_cut_position(cut_id, delta)
+        
+        if success:
+            print(f"✓ Cut movement applied")
+            # Refresh display
+            dto = self.controller.current_dto
+            egi = self.controller.egi_model
+            if dto and egi:
+                self.canvas.display_dto(dto, egi, fit_to_view=False)
+            
+            dx, dy = delta
+            self._show_status(f"Moved cut {cut_id} by ({dx:.1f}, {dy:.1f})")
+        else:
+            print(f"✗ Cut movement FAILED")
+            self._show_status(f"Failed to move cut {cut_id}", error=True)
+    
+    def _on_cut_resized(self, cut_id: str, new_size: Tuple[float, float]):
+        """Handle cut resize - update cut bounds."""
+        print(f"=== _on_cut_resized: {cut_id} to size {new_size} ===")
+        
+        # Update cut size through controller
+        success = self.controller.update_cut_size(cut_id, new_size)
+        
+        if success:
+            print(f"✓ Cut resize applied")
+            # Refresh display
+            dto = self.controller.current_dto
+            egi = self.controller.egi_model
+            if dto and egi:
+                self.canvas.display_dto(dto, egi, fit_to_view=False)
+            
+            w, h = new_size
+            self._show_status(f"Resized cut {cut_id} to ({w:.1f} × {h:.1f})")
+        else:
+            print(f"✗ Cut resize FAILED")
+            self._show_status(f"Failed to resize cut {cut_id}", error=True)
     
     def _on_apply_rule(self, rule_name: str):
         """Apply a transformation rule and record in UoD history if historical."""
@@ -510,8 +793,10 @@ class ErgasterionMode(QWidget):
             self.validation_label.setStyleSheet("color: orange; font-size: 10px; padding: 5px;")
             return
         
-        # Determine target area (sheet for now - will add area selection later)
-        target_area = "sheet"  # TODO: Get from context or user selection
+        # Determine target area from selection
+        target_area, polarity = self._get_target_area_from_selection(selection)
+        
+        print(f"Applying {rule_name} to selection {selection} in area {target_area} ({polarity})")
         
         # Apply rule through controller
         success = self.controller.apply_formal_rule(rule_name, selection, target_area)
@@ -543,21 +828,81 @@ class ErgasterionMode(QWidget):
             self.validation_label.setStyleSheet("color: red; font-size: 10px; padding: 5px;")
             self._show_status(f"Cannot apply {rule_name}", error=True)
     
-    def _update_transformation_buttons(self):
-        """Enable/disable transformation buttons based on selection."""
-        has_selection = bool(self.canvas.get_selected_elements())
+    def _get_target_area_from_selection(self, selection: List[str]) -> tuple[str, str]:
+        """
+        Determine target area and polarity from selection.
         
-        # Enable all buttons if there's a selection
-        # (Controller will validate specific rules)
-        self.dc_insert_btn.setEnabled(has_selection)
-        self.dc_erase_btn.setEnabled(has_selection)
-        self.ins_btn.setEnabled(has_selection)
-        self.era_btn.setEnabled(has_selection)
+        Returns:
+            (target_area_id, polarity) where polarity is "positive" or "negative"
+        """
+        if not selection or not self.controller.get_egi_model():
+            egi = self.controller.get_egi_model()
+            if egi:
+                return egi.sheet, "positive"
+            return "sheet", "positive"
+        
+        egi = self.controller.get_egi_model()
+        
+        # If a cut is selected, use that cut as the target area
+        for elem_id in selection:
+            if elem_id.startswith('cut_'):
+                polarity, _ = self.controller._calculate_area_polarity(elem_id)
+                polarity_str = "positive" if polarity.value == "positive" else "negative"
+                return elem_id, polarity_str
+        
+        # Otherwise, find which area contains the selected elements
+        for elem_id in selection:
+            # Check which area this element belongs to
+            for area_id, contents in egi.area.items():
+                if elem_id in contents:
+                    polarity, _ = self.controller._calculate_area_polarity(area_id)
+                    polarity_str = "positive" if polarity.value == "positive" else "negative"
+                    return area_id, polarity_str
+        
+        # Default to sheet (positive)
+        return egi.sheet, "positive"
+    
+    def _update_transformation_buttons(self):
+        """Enable/disable transformation buttons based on selection and area polarity."""
+        selection = self.canvas.get_selected_elements()
+        has_selection = bool(selection)
+        
+        if not has_selection:
+            # No selection - disable all
+            self.dc_insert_btn.setEnabled(False)
+            self.dc_erase_btn.setEnabled(False)
+            self.ins_btn.setEnabled(False)
+            self.era_btn.setEnabled(False)
+            self.iter_insert_btn.setEnabled(False)
+            self.iter_erase_btn.setEnabled(False)
+            self.validation_label.setText("")
+            return
+        
+        # Determine target area from selection
+        target_area, polarity = self._get_target_area_from_selection(selection)
+        
+        # Enable buttons based on area polarity and selection
+        # DC+ always available (can wrap anything)
+        self.dc_insert_btn.setEnabled(True)
+        
+        # DC- requires selecting a cut (specifically double cut in practice)
+        has_cut_selected = any(elem_id.startswith('cut_') for elem_id in selection)
+        self.dc_erase_btn.setEnabled(has_cut_selected)
+        
+        # INS only in negative areas (odd polarity)
+        self.ins_btn.setEnabled(polarity == "negative")
+        
+        # ERA only in positive areas (even polarity)
+        self.era_btn.setEnabled(polarity == "positive")
+        
+        # IT+/IT- available with selection (controller will validate isomorphism)
         self.iter_insert_btn.setEnabled(has_selection)
         self.iter_erase_btn.setEnabled(has_selection)
         
-        # Clear validation message when selection changes
-        self.validation_label.setText("")
+        # Show context info
+        area_name = "sheet" if target_area == self.controller.get_egi_model().sheet else target_area
+        self.validation_label.setText(f"ℹ️ Context: {area_name} ({polarity})")
+        self.validation_label.setStyleSheet("color: #666; font-size: 10px; padding: 5px;")
     
     def _refresh_display(self):
         """Refresh the diagram display."""
@@ -633,7 +978,18 @@ class ErgasterionMode(QWidget):
         # Update UI based on mode
         self._update_workflow_ui()
         
-        self.controller.load_egi(egi)
+        # Load into controller
+        if not self.controller.load_egi(egi):
+            # Load failed - show error to user
+            error_msg = self.controller.last_error or "Unknown validation error"
+            QMessageBox.critical(
+                self,
+                "Cannot Load Diagram",
+                f"Failed to load diagram from Organon:\n\n{error_msg}"
+            )
+            self._show_status(f"Failed to load diagram", error=True)
+            return
+        
         print("=== Calling _refresh_display ===")
         self._refresh_display()
         self._current_file = None
