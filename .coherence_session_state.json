@@ -1,5 +1,5 @@
 {
-  "last_updated": "2025-10-18T09:28:36",
+  "last_updated": "2025-10-18T10:20:12",
   "framework_version": "1.0.0",
   "_comment_product_vision": "=== GUIDING STAR ===",
   "product_vision": {
@@ -19,11 +19,11 @@
   },
   "_comment_recent_work": "=== LATEST ACCOMPLISHMENTS ===",
   "recent_accomplishments": [
+    "2025-10-18: docs: Add comprehensive changelog for viewport controls and bug fixes",
     "2025-10-18: CORE: Fix critical DC+ ID collision and layout delta bugs",
     "2025-10-18: Fix coherence framework: add timeout for test collection hangs",
     "2025-10-15: WIP: Implement clear workflow system in Ergasterion",
-    "2025-10-14: Phase 1: Centralize tomos management in Organon",
-    "2025-10-14: Rename corpus \u2192 tomos throughout codebase"
+    "2025-10-14: Phase 1: Centralize tomos management in Organon"
   ],
   "_comment_active_tasks": "=== CURRENT TASK LIST ===",
   "active_tasks": {
@@ -122,6 +122,6 @@
     "python_version": "3.12.10",
     "environment": "conda CGIF",
     "git_branch": "main",
-    "last_commit": "cf2ae7b"
+    "last_commit": "8544f52"
   }
 }
