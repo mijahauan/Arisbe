@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
     
     def _create_organon_widget(self) -> QWidget:
         """Create the Organon mode widget."""
-        from organon.organon_mode import OrganonMode
+        from gui_clean.organon.organon_mode import OrganonMode
         
         organon = OrganonMode(self.diagram_controller)
         organon.edit_in_ergasterion.connect(self._on_edit_in_ergasterion)
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
     
     def _create_ergasterion_widget(self) -> QWidget:
         """Create the Ergasterion mode widget."""
-        from ergasterion.ergasterion_mode import ErgasterionMode
+        from gui_clean.ergasterion.ergasterion_mode import ErgasterionMode
         
         ergasterion = ErgasterionMode(self.diagram_controller)
         ergasterion.uod_modified.connect(self._on_uod_modified_from_ergasterion)

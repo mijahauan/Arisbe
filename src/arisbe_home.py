@@ -511,17 +511,17 @@ class IntegratedArisbeWindow(QWidget):
     def _enter_library(self, options: dict):
         """Enter the Library (Organon) - using current development."""
         if not hasattr(self, "main_app_widget") or self.main_app_widget is None:
-            from gui.arisbe_main_app_pyside6 import ArisbeMainWindow
+            from gui_clean.main_window import MainWindow
 
-            self.main_app_widget = ArisbeMainWindow()
+            self.main_app_widget = MainWindow()
 
             # Start with Organon tab (index 0)
-            self.main_app_widget.tab_widget.setCurrentIndex(0)
+            self.main_app_widget.mode_tabs.setCurrentIndex(0)
 
             self.stacked_widget.addWidget(self.main_app_widget)
 
         # Switch to Organon tab
-        self.main_app_widget.tab_widget.setCurrentIndex(0)
+        self.main_app_widget.mode_tabs.setCurrentIndex(0)
 
         self.stacked_widget.setCurrentWidget(self.main_app_widget)
         self.current_room_label.setText("📚 Organon")
@@ -529,37 +529,37 @@ class IntegratedArisbeWindow(QWidget):
     def _enter_workshop(self, options: dict):
         """Enter the Workshop (Ergasterion) - using current development."""
         if not hasattr(self, "main_app_widget") or self.main_app_widget is None:
-            from gui.arisbe_main_app_pyside6 import ArisbeMainWindow
+            from gui_clean.main_window import MainWindow
 
-            self.main_app_widget = ArisbeMainWindow()
+            self.main_app_widget = MainWindow()
 
             # Start with Ergasterion tab (index 1)
-            self.main_app_widget.tab_widget.setCurrentIndex(1)
+            self.main_app_widget.mode_tabs.setCurrentIndex(1)
 
             self.stacked_widget.addWidget(self.main_app_widget)
 
         # Switch to Ergasterion tab
-        self.main_app_widget.tab_widget.setCurrentIndex(1)
+        self.main_app_widget.mode_tabs.setCurrentIndex(1)
 
         self.stacked_widget.setCurrentWidget(self.main_app_widget)
         self.current_room_label.setText("🔨 Ergasterion")
 
     def _enter_agon(self, options: dict):
-        """Enter the Agon (Game Room) - using current development."""
+        """Enter the Agon (Drawing Room) - using current development."""
         if not hasattr(self, "main_app_widget") or self.main_app_widget is None:
-            from gui.arisbe_main_app_pyside6 import ArisbeMainWindow
+            from gui_clean.main_window import MainWindow
 
-            self.main_app_widget = ArisbeMainWindow()
+            self.main_app_widget = MainWindow()
 
             # Start with Agon tab (index 2)
-            self.main_app_widget.tab_widget.setCurrentIndex(2)
+            self.main_app_widget.mode_tabs.setCurrentIndex(2)
 
             self.stacked_widget.addWidget(self.main_app_widget)
 
         # Switch to Agon tab (index 2)
-        self.main_app_widget.tab_widget.setCurrentIndex(2)
+        self.main_app_widget.mode_tabs.setCurrentIndex(2)
         self.stacked_widget.setCurrentWidget(self.main_app_widget)
-        self.current_room_label.setText("🏆 Agon")
+        self.current_room_label.setText("💬 Agon")
 
     def _handle_library_to_workshop_handoff(self, payload: dict):
         """Handle handoff from Library to Workshop."""
