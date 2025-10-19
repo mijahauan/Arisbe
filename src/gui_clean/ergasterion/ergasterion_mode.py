@@ -350,19 +350,44 @@ class ErgasterionMode(QWidget):
         
         layout.addLayout(dc_layout)
         
+        # Clipboard section
+        clipboard_label = QLabel("Insertion Clipboard:")
+        clipboard_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        layout.addWidget(clipboard_label)
+        
+        clipboard_layout = QHBoxLayout()
+        
+        self.add_to_clipboard_btn = QPushButton("📋 Add to Clipboard")
+        self.add_to_clipboard_btn.clicked.connect(self._on_add_to_clipboard)
+        self.add_to_clipboard_btn.setEnabled(False)
+        self.add_to_clipboard_btn.setToolTip("Add selected closed subgraph to insertion clipboard")
+        clipboard_layout.addWidget(self.add_to_clipboard_btn)
+        
+        self.browse_clipboard_btn = QPushButton("🔍 Browse")
+        self.browse_clipboard_btn.clicked.connect(self._on_browse_clipboard)
+        self.browse_clipboard_btn.setToolTip("Browse insertion clipboard")
+        self.browse_clipboard_btn.setMaximumWidth(80)
+        clipboard_layout.addWidget(self.browse_clipboard_btn)
+        
+        layout.addLayout(clipboard_layout)
+        
         # Insertion/Erasure
+        ins_era_label = QLabel("Formal Rules:")
+        ins_era_label.setStyleSheet("font-weight: bold; margin-top: 10px;")
+        layout.addWidget(ins_era_label)
+        
         ins_era_layout = QHBoxLayout()
         
         self.ins_btn = QPushButton("INS")
-        self.ins_btn.clicked.connect(lambda: self._on_apply_rule("INS"))
+        self.ins_btn.clicked.connect(self._on_start_ins_workflow)
         self.ins_btn.setEnabled(False)
-        self.ins_btn.setToolTip("Insert subgraph (even area)")
+        self.ins_btn.setToolTip("Insert subgraph from clipboard (negative area)")
         ins_era_layout.addWidget(self.ins_btn)
         
         self.era_btn = QPushButton("ERA")
         self.era_btn.clicked.connect(lambda: self._on_apply_rule("ERA"))
         self.era_btn.setEnabled(False)
-        self.era_btn.setToolTip("Erase subgraph (odd area)")
+        self.era_btn.setToolTip("Erase subgraph (positive area)")
         ins_era_layout.addWidget(self.era_btn)
         
         layout.addLayout(ins_era_layout)
@@ -916,9 +941,10 @@ class ErgasterionMode(QWidget):
         has_selection = bool(selection)
         
         if not has_selection:
-            # No selection - disable all
+            # No selection - disable all transformation buttons
             self.dc_insert_btn.setEnabled(False)
             self.dc_erase_btn.setEnabled(False)
+            self.add_to_clipboard_btn.setEnabled(False)
             self.ins_btn.setEnabled(False)
             self.era_btn.setEnabled(False)
             self.iter_insert_btn.setEnabled(False)
@@ -937,11 +963,15 @@ class ErgasterionMode(QWidget):
         has_cut_selected = any(elem_id.startswith('cut_') for elem_id in selection)
         self.dc_erase_btn.setEnabled(has_cut_selected)
         
-        # Check closure for INS/ERA
+        # Check closure for INS/ERA and clipboard
         closure_status = self._check_selection_closure(selection, polarity)
         
-        # INS only in negative areas (odd polarity) with closed subgraph
-        self.ins_btn.setEnabled(polarity == "negative" and closure_status['is_valid'])
+        # Clipboard button: enabled if selection forms closed subgraph (any polarity)
+        self.add_to_clipboard_btn.setEnabled(closure_status['is_valid'])
+        
+        # INS: now starts workflow (always enabled when something selected)
+        # Actual insertion happens after clipboard selection + target selection
+        self.ins_btn.setEnabled(True)  # Changed: always enabled with selection
         
         # ERA only in positive areas (even polarity) with closed subgraph
         self.era_btn.setEnabled(polarity == "positive" and closure_status['is_valid'])
@@ -994,6 +1024,119 @@ class ErgasterionMode(QWidget):
         parent = self.window()
         if hasattr(parent, 'statusBar'):
             parent.statusBar().showMessage(message, 3000 if not error else 5000)
+    
+    def _on_add_to_clipboard(self):
+        """Add current selection to insertion clipboard."""
+        from insertion_clipboard import get_insertion_clipboard
+        from PySide6.QtWidgets import QInputDialog
+        
+        selection = self.canvas.get_selected_elements()
+        if not selection:
+            self._show_status("No elements selected", error=True)
+            return
+        
+        egi = self.controller.get_egi_model()
+        if not egi:
+            self._show_status("No graph loaded", error=True)
+            return
+        
+        # Get clipboard
+        clipboard = get_insertion_clipboard()
+        
+        # Ask for name (optional)
+        name, ok = QInputDialog.getText(
+            self,
+            "Add to Insertion Clipboard",
+            "Enter a name for this subgraph (optional):",
+            text=f"Subgraph {len(clipboard.get_all_entries()) + 1}"
+        )
+        
+        if not ok:
+            return  # User cancelled
+        
+        # Add to clipboard (will validate automatically)
+        success, message, entry = clipboard.add_entry(
+            subgraph_elements=frozenset(selection),
+            source_egi=egi,
+            name=name or None,
+            description=""
+        )
+        
+        if success:
+            self.validation_label.setText(message)
+            self.validation_label.setStyleSheet("color: green; font-size: 10px; padding: 5px;")
+            self._show_status(message)
+        else:
+            self.validation_label.setText(f"✗ {message}")
+            self.validation_label.setStyleSheet("color: red; font-size: 10px; padding: 5px;")
+            self._show_status(f"Cannot add to clipboard: {message}", error=True)
+    
+    def _on_browse_clipboard(self):
+        """Browse insertion clipboard."""
+        from gui_clean.insertion_clipboard_dialog import InsertionClipboardDialog
+        from insertion_clipboard import get_insertion_clipboard
+        
+        clipboard = get_insertion_clipboard()
+        dialog = InsertionClipboardDialog(clipboard, parent=self)
+        
+        # Just show for browsing (user can remove entries)
+        dialog.exec()
+        
+        # No action needed - user browses only
+        # Actual insertion happens via INS button workflow
+    
+    def _on_start_ins_workflow(self):
+        """Start the INS workflow: select from clipboard, then select target."""
+        from gui_clean.insertion_clipboard_dialog import InsertionClipboardDialog
+        from insertion_clipboard import get_insertion_clipboard
+        from PySide6.QtWidgets import QMessageBox
+        
+        # Step 1: User selects from clipboard
+        clipboard = get_insertion_clipboard()
+        
+        if not clipboard.get_all_entries():
+            QMessageBox.information(
+                self,
+                "Insertion Clipboard Empty",
+                "The insertion clipboard is empty.\n\n"
+                "Please add a closed subgraph to the clipboard first using "
+                "'📋 Add to Clipboard'."
+            )
+            return
+        
+        dialog = InsertionClipboardDialog(clipboard, parent=self)
+        result = dialog.exec()
+        
+        if result != QDialog.Accepted:
+            return  # User cancelled
+        
+        selected_entry = dialog.get_selected_entry()
+        if not selected_entry:
+            return
+        
+        # Store selected entry for step 2
+        self._pending_ins_entry = selected_entry
+        
+        # Step 2: Indicate that user should select target
+        self.validation_label.setText(
+            f"📋 Selected: {selected_entry.name}\n"
+            f"👉 Now click on a CUT (negative area) to select insertion target"
+        )
+        self.validation_label.setStyleSheet("color: blue; font-size: 10px; padding: 5px;")
+        
+        # Enable special mode where clicking on cut finalizes INS
+        self._awaiting_ins_target = True
+        self.canvas.setCursor(Qt.CrossCursor)
+        
+        # TODO: Connect to canvas click event to detect cut selection
+        # For now, show message that this is pending implementation
+        QMessageBox.information(
+            self,
+            "Select Target Cut",
+            f"Selected subgraph: {selected_entry.name}\n\n"
+            f"Next: Click on a cut (negative area) to complete insertion.\n\n"
+            f"Note: Target selection UI pending implementation."
+        )
     
     def load_egi_for_editing(self, egi: RelationalGraphWithCuts, source_uod: Optional[UniverseOfDiscourse] = None):
         """
