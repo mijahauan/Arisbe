@@ -55,7 +55,7 @@ class InteractiveGraphicsItem:
 class InteractiveVertexItem(QGraphicsEllipseItem, InteractiveGraphicsItem):
     """Interactive vertex (draggable circle with label)."""
     
-    def __init__(self, vertex_id: str, position: Point, radius: float, label: str):
+    def __init__(self, vertex_id: str, position: Point, radius: float, label: str, rendering_mode: str = "dot_and_label"):
         # Initialize graphics item
         super().__init__(-radius, -radius, radius*2, radius*2)
         # Set up interactive properties
@@ -64,15 +64,28 @@ class InteractiveVertexItem(QGraphicsEllipseItem, InteractiveGraphicsItem):
         # Set position
         self.setPos(position.x, position.y)
         
-        # Style - match ligature width (2.5)
-        pen = QPen(QColor("#000000"))
-        pen.setWidth(2.5)
-        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-        self.setPen(pen)
-        self.setBrush(QBrush(QColor("#000000")))
+        # DEBUG: Print rendering mode
+        print(f"[InteractiveVertexItem] Creating vertex '{label}' with rendering_mode='{rendering_mode}'")
         
-        # Label
-        if label:
+        # Style - only show dot if rendering_mode includes "dot"
+        show_dot = rendering_mode in ["dot_only", "dot_and_label"]
+        print(f"[InteractiveVertexItem] show_dot={show_dot}")
+        
+        if show_dot:
+            # Draw visible dot (Dau style)
+            pen = QPen(QColor("#000000"))
+            pen.setWidth(2.5)
+            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+            self.setPen(pen)
+            self.setBrush(QBrush(QColor("#000000")))
+        else:
+            # No visible dot (Peirce/Sowa style) - just invisible hitbox
+            pen = QPen(Qt.PenStyle.NoPen)
+            self.setPen(pen)
+            self.setBrush(QBrush(Qt.BrushStyle.NoBrush))
+        
+        # Label (shown in all modes except dot_only)
+        if label and rendering_mode != "dot_only":
             self.label_item = QGraphicsTextItem(label, self)
             font = QFont("Times New Roman", 11)
             self.label_item.setFont(font)
@@ -135,23 +148,69 @@ class InteractivePredicateItem(QGraphicsTextItem, InteractiveGraphicsItem):
 class LigaturePathItem(QGraphicsPathItem):
     """Non-interactive ligature path (visual only)."""
     
-    def __init__(self, points: list):
+    def __init__(self, points: list, cap_style: str = "butt", line_width: float = 2.5):
         super().__init__()
+        
+        # DEBUG: Print cap_style being used
+        print(f"[LigaturePathItem] Creating ligature with cap_style='{cap_style}'")
+        print(f"  Points type: {type(points)}, count: {len(points) if hasattr(points, '__len__') else 'N/A'}")
+        
+        try:
+            if len(points) > 0:
+                print(f"  Start: ({points[0].x:.1f}, {points[0].y:.1f})")
+                if len(points) > 1:
+                    print(f"  End: ({points[-1].x:.1f}, {points[-1].y:.1f})")
+                if len(points) > 2:
+                    print(f"  WARNING: Multi-segment path with {len(points)} points!")
+        except Exception as e:
+            print(f"  ERROR accessing points: {e}")
         
         # Create path from points
         path = QPainterPath()
-        if points:
-            path.moveTo(points[0].x, points[0].y)
-            for point in points[1:]:
-                path.lineTo(point.x, point.y)
+        if points and len(points) > 0:
+            try:
+                path.moveTo(points[0].x, points[0].y)
+                for point in points[1:]:
+                    path.lineTo(point.x, point.y)
+                print(f"  Path created successfully with {len(points)} segments")
+            except Exception as e:
+                print(f"  ERROR creating path: {e}")
+        else:
+            print(f"  WARNING: Empty points list! No path created.")
         
         self.setPath(path)
         
         # Style
         pen = QPen(QColor("#000000"))
-        pen.setWidth(2.5)
-        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        pen.setWidth(line_width)
+        
+        # Set cap style based on style specification
+        if cap_style == "round":
+            print(f"[LigaturePathItem] Setting RoundCap (will create dots!)")
+            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        elif cap_style == "square":
+            print(f"[LigaturePathItem] Setting SquareCap")
+            pen.setCapStyle(Qt.PenCapStyle.SquareCap)
+        else:  # "butt" or default
+            print(f"[LigaturePathItem] Setting FlatCap (no dots)")
+            pen.setCapStyle(Qt.PenCapStyle.FlatCap)
+        
+        # CRITICAL: Set join style to prevent rounded corners at line segments
+        pen.setJoinStyle(Qt.PenJoinStyle.MiterJoin)
+        
+        # Disable cosmetic pen (so width scales with zoom)
+        pen.setCosmetic(False)
+        
         self.setPen(pen)
+        
+        # DEBUG: Verify pen settings
+        actual_cap = self.pen().capStyle()
+        cap_names = {
+            Qt.PenCapStyle.FlatCap: "FlatCap",
+            Qt.PenCapStyle.RoundCap: "RoundCap",
+            Qt.PenCapStyle.SquareCap: "SquareCap"
+        }
+        print(f"[LigaturePathItem] Final pen cap style: {cap_names.get(actual_cap, 'Unknown')}")
         
         # Not selectable/movable
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, False)
@@ -453,8 +512,17 @@ class QtDiagramRenderer:
                 self.cut_items[cut_id] = cut_item
         
         # 2. Render ligatures (middle layer)
-        for ligature in dto.ligature_paths:
-            ligature_item = LigaturePathItem(ligature.points)
+        # Get ligature style from raw_style_data
+        ligature_cap_style = style.raw_style_data.get('ligature', {}).get('cap_style', 'butt')
+        ligature_line_width = style.ligature_line_width
+        
+        print(f"[QtDiagramRenderer] Style: {style.style_name}, cap_style from raw_style_data: '{ligature_cap_style}'")
+        print(f"[QtDiagramRenderer] Rendering {len(dto.ligature_paths)} ligatures")
+        
+        for idx, ligature in enumerate(dto.ligature_paths):
+            print(f"[QtDiagramRenderer] Ligature {idx}: predicate={ligature.predicate_id}, vertex={ligature.vertex_id}")
+            print(f"  Points object: {ligature.points}, type: {type(ligature.points)}")
+            ligature_item = LigaturePathItem(ligature.points, ligature_cap_style, ligature_line_width)
             scene.addItem(ligature_item)
             self.ligature_items.append(ligature_item)
         
@@ -469,7 +537,8 @@ class QtDiagramRenderer:
                 vertex_id,
                 point,
                 style.vertex_radius,
-                label
+                label,
+                style.vertex_rendering_mode
             )
             vertex_item.setZValue(1000.0)  # Always above cuts
             scene.addItem(vertex_item)

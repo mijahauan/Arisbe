@@ -11,8 +11,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from datetime import datetime
 from typing import Optional
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
+    QComboBox,
     QFormLayout,
     QGroupBox,
     QLabel,
@@ -36,7 +37,11 @@ class MetadataPanel(QWidget):
     - Created/modified timestamps
     - History statistics (if historical)
     - Complexity metrics
+    - Visual style selector
     """
+    
+    # Signals
+    style_changed = Signal(str)  # Emits new style name when user changes style
     
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
@@ -68,6 +73,10 @@ class MetadataPanel(QWidget):
         # Basic Info Section
         self.basic_group = self._create_basic_info_group()
         container_layout.addWidget(self.basic_group)
+        
+        # Visual Style Section
+        self.style_group = self._create_style_group()
+        container_layout.addWidget(self.style_group)
         
         # Type & Category Section
         self.type_group = self._create_type_category_group()
@@ -110,6 +119,58 @@ class MetadataPanel(QWidget):
         self.description_label.setWordWrap(True)
         self.description_label.setStyleSheet("color: #666;")
         layout.addRow("Description:", self.description_label)
+        
+        return group
+    
+    def _create_style_group(self) -> QGroupBox:
+        """Create visual style selector group."""
+        group = QGroupBox("🎨 Visual Style")
+        layout = QVBoxLayout(group)
+        layout.setSpacing(5)
+        
+        # Style selector combo box
+        self.style_combo = QComboBox()
+        self.style_combo.setToolTip("Select rendering style for this diagram")
+        
+        # Populate with available styles
+        try:
+            from style_loader import StyleLoader
+            loader = StyleLoader()
+            available_styles = loader.list_available_styles()
+            
+            # Add styles with friendly display names
+            for style_file in available_styles:
+                # Remove .json extension if present
+                style_name = style_file.replace('.json', '')
+                
+                # Create friendly display name
+                if 'dau' in style_name.lower():
+                    display_name = f"📐 {style_name} (Mathematical)"
+                elif 'peirce' in style_name.lower():
+                    display_name = f"✍️ {style_name} (Peirce)"
+                elif 'sowa' in style_name.lower():
+                    display_name = f"🔷 {style_name} (Sowa CG)"
+                else:
+                    display_name = style_name
+                
+                self.style_combo.addItem(display_name, style_name)
+        except Exception as e:
+            # Fallback if style loader fails
+            self.style_combo.addItem("dau-compliant@1.0", "dau-compliant@1.0")
+            self.style_combo.addItem("peirce-authentic@1.0", "peirce-authentic@1.0")
+            self.style_combo.addItem("sowa-compliant@1.0", "sowa-compliant@1.0")
+            print(f"Warning: Could not load styles dynamically: {e}")
+        
+        # Connect signal
+        self.style_combo.currentIndexChanged.connect(self._on_style_combo_changed)
+        
+        layout.addWidget(self.style_combo)
+        
+        # Add help text
+        help_label = QLabel("Changes how the diagram is rendered")
+        help_label.setStyleSheet("color: #888; font-size: 9px; font-style: italic;")
+        help_label.setWordWrap(True)
+        layout.addWidget(help_label)
         
         return group
     
@@ -270,6 +331,9 @@ class MetadataPanel(QWidget):
         
         # Complexity Metrics
         self._update_complexity_metrics(uod.current_egi)
+        
+        # Set current style in combo box
+        self._set_current_style(metadata.style_name)
     
     def _format_uod_type(self, uod: UniverseOfDiscourse) -> str:
         """Format UoD type with icon and text."""
@@ -356,6 +420,32 @@ class MetadataPanel(QWidget):
         
         return max(depth_from(root, 1) for root in root_cuts)
     
+    def _on_style_combo_changed(self, index: int):
+        """Handle style selection change."""
+        if index < 0:
+            return
+        
+        # Get actual style name from combo box data
+        new_style = self.style_combo.itemData(index)
+        
+        if new_style and self._current_uod:
+            # Emit signal (organon_mode will handle reload)
+            self.style_changed.emit(new_style)
+    
+    def _set_current_style(self, style_name: str):
+        """Set the current style in the combo box without triggering signal."""
+        # Block signals temporarily to avoid triggering reload
+        self.style_combo.blockSignals(True)
+        
+        # Find matching style in combo box
+        for i in range(self.style_combo.count()):
+            if self.style_combo.itemData(i) == style_name:
+                self.style_combo.setCurrentIndex(i)
+                break
+        
+        # Re-enable signals
+        self.style_combo.blockSignals(False)
+    
     def clear(self):
         """Clear all metadata displays."""
         self._current_uod = None
@@ -376,5 +466,10 @@ class MetadataPanel(QWidget):
         self.edges_label.setText("")
         self.cuts_label.setText("")
         self.depth_label.setText("")
+        
+        # Reset style combo to default
+        self.style_combo.blockSignals(True)
+        self.style_combo.setCurrentIndex(0)  # Default to first style
+        self.style_combo.blockSignals(False)
         
         self.history_group.setVisible(False)

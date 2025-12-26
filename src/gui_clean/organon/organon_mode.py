@@ -101,10 +101,15 @@ class OrganonMode(QWidget):
         self.save_btn.setToolTip("Save EGI with layout customizations")
         action_bar.addWidget(self.save_btn)
         
-        self.export_btn = QPushButton("📤 Export SVG...")
-        self.export_btn.clicked.connect(self._on_export_svg)
-        self.export_btn.setEnabled(False)
-        action_bar.addWidget(self.export_btn)
+        self.export_svg_btn = QPushButton("📤 Export SVG...")
+        self.export_svg_btn.clicked.connect(self._on_export_svg)
+        self.export_svg_btn.setEnabled(False)
+        action_bar.addWidget(self.export_svg_btn)
+        
+        self.export_latex_btn = QPushButton("📄 Export LaTeX...")
+        self.export_latex_btn.clicked.connect(self._on_export_latex)
+        self.export_latex_btn.setEnabled(False)
+        action_bar.addWidget(self.export_latex_btn)
         
         action_bar.addStretch()
         
@@ -134,6 +139,7 @@ class OrganonMode(QWidget):
         # Metadata Panel
         self.metadata_panel = MetadataPanel()
         self.metadata_panel.setMaximumWidth(350)
+        self.metadata_panel.style_changed.connect(self._on_style_changed)
         right_sidebar.addWidget(self.metadata_panel, stretch=1)
         
         # EGIF Panel
@@ -164,9 +170,16 @@ class OrganonMode(QWidget):
             if uod is None:
                 raise Exception(f"UoD not found: {uod_id}")
             
-            # Load into controller
+            # Load style from UoD metadata
+            from style_loader import StyleLoader
+            style_loader = StyleLoader()
+            style_name = uod.metadata.style_name if uod.metadata else "dau-compliant@1.0"
+            print(f"Loading style: {style_name}")
+            style_spec = style_loader.load_style(style_name)
+            
+            # Load into controller WITH STYLE
             print(f"Loading EGI into controller: {len(uod.current_egi.V)}V, {len(uod.current_egi.E)}E")
-            success = self.controller.load_egi(uod.current_egi)
+            success = self.controller.load_egi(uod.current_egi, style=style_spec)
             
             if not success:
                 raise Exception("Controller failed to load EGI")
@@ -209,7 +222,8 @@ class OrganonMode(QWidget):
             self._current_file = None  # Loaded from tomos, not file
             self._current_uod = uod  # Store UoD for history navigation
             self.save_btn.setEnabled(True)
-            self.export_btn.setEnabled(True)
+            self.export_svg_btn.setEnabled(True)
+            self.export_latex_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
             
             # Show success
@@ -295,7 +309,8 @@ class OrganonMode(QWidget):
             self._current_file = Path(file_path)
             self._current_uod = None  # No UoD for file loads
             self.save_btn.setEnabled(True)
-            self.export_btn.setEnabled(True)
+            self.export_svg_btn.setEnabled(True)
+            self.export_latex_btn.setEnabled(True)
             self.edit_btn.setEnabled(True)
             
             # Show success (shorter message)
@@ -430,6 +445,106 @@ class OrganonMode(QWidget):
                 self,
                 "Export Error",
                 f"Failed to export SVG:\n\n{str(e)}"
+            )
+    
+    def _on_export_latex(self):
+        """Export current diagram as LaTeX/TikZ."""
+        if not self._current_file and not self._current_uod:
+            return
+        
+        # Get save location
+        default_name = self._current_file.stem if self._current_file else self._current_uod.name
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export LaTeX",
+            f"{default_name}.tex",
+            "LaTeX Files (*.tex);;All Files (*)"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            # Get current DTO and EGI
+            dto = self.controller.get_renderable_dto()
+            egi = self.controller.get_egi_model()
+            
+            if not dto or not egi:
+                QMessageBox.warning(self, "Warning", "No diagram to export")
+                return
+            
+            # Convert to TikZ
+            from export.dto_to_tikz_adapter import export_dto_to_tikz
+            
+            latex_content = export_dto_to_tikz(dto, egi, standalone=True)
+            
+            # Save
+            Path(file_path).write_text(latex_content, encoding='utf-8')
+            
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Exported to LaTeX:\n{file_path}\n\nCompile with:\n  pdflatex {Path(file_path).name}"
+            )
+            
+        except Exception as e:
+            import traceback
+            QMessageBox.critical(
+                self,
+                "Export Error",
+                f"Failed to export LaTeX:\n\n{str(e)}\n\n{traceback.format_exc()}"
+            )
+    
+    def _on_style_changed(self, new_style: str):
+        """
+        Handle style change from metadata panel.
+        
+        Updates the UoD metadata and reloads the diagram with new style.
+        """
+        if not self._current_uod:
+            return
+        
+        try:
+            # Update UoD metadata
+            self._current_uod.metadata.style_name = new_style
+            
+            # Load style
+            from style_loader import StyleLoader
+            loader = StyleLoader()
+            style = loader.load_style(new_style)
+            
+            # Save current layout deltas (user positions)
+            saved_deltas = self.controller.layout_deltas.copy()
+            
+            # Reload diagram with new style (this clears deltas)
+            self.controller.load_egi(
+                self._current_uod.current_egi,
+                style=style
+            )
+            
+            # Restore saved layout deltas
+            self.controller.layout_deltas = saved_deltas
+            
+            # Trigger layout with preserved positions
+            if saved_deltas:
+                self.controller._trigger_full_relayout()
+            
+            # Get new DTO and display
+            dto = self.controller.get_renderable_dto()
+            if dto:
+                self.canvas.display_dto(dto, self._current_uod.current_egi, fit_to_view=False)
+            
+            # Show success message in status bar
+            parent = self.window()
+            if hasattr(parent, 'statusBar'):
+                parent.statusBar().showMessage(f"Style changed to: {new_style}", 3000)
+            
+        except Exception as e:
+            import traceback
+            QMessageBox.critical(
+                self,
+                "Style Error",
+                f"Failed to change style:\n\n{str(e)}\n\n{traceback.format_exc()}"
             )
     
     def _on_state_selected(self, state_id: str):

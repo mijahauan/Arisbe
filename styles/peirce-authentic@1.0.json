@@ -1,7 +1,7 @@
 {
   "style_name": "peirce-authentic",
   "version": "1.0.0",
-  "description": "Authentic reproduction of Peirce's hand-drawn EG conventions",
+  "description": "Authentic reproduction of Peirce's hand-drawn EG conventions (based on egpeirce.sty LaTeX package by Jukka Nikulainen)",
   
   "global": {
     "font_family": "serif",
@@ -67,9 +67,9 @@
   },
   
   "ligature": {
-    "line_width": 1.8,
+    "line_width": 2.0,
     "color": "#000000",
-    "cap_style": "round",
+    "cap_style": "butt",
     "routing_mode": "organic",
     "curvature": 0.25,
     "orthogonal_bias": "natural",

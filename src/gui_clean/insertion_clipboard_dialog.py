@@ -164,12 +164,15 @@ class InsertionClipboardDialog(QDialog):
     
     def _load_entries(self):
         """Load entries from clipboard into list."""
+        print(f"[Dialog] _load_entries called, clipboard instance: {id(self.clipboard)}")
         self.entry_list.clear()
         
         entries = self.clipboard.get_all_entries()
+        print(f"[Dialog] Retrieved {len(entries)} entries from clipboard")
         
         if not entries:
             # Show empty state
+            print("[Dialog] No entries - showing empty state")
             item = QListWidgetItem("No entries in clipboard")
             item.setFlags(Qt.NoItemFlags)  # Not selectable
             self.entry_list.addItem(item)

@@ -245,6 +245,18 @@ class ErgasterionMode(QWidget):
         self.new_btn.setToolTip("Create empty graph for practice")
         toolbar_layout.addWidget(self.new_btn)
         
+        self.export_svg_btn = QPushButton("📤 SVG")
+        self.export_svg_btn.clicked.connect(self._on_export_svg)
+        self.export_svg_btn.setEnabled(False)
+        self.export_svg_btn.setToolTip("Export diagram as SVG")
+        toolbar_layout.addWidget(self.export_svg_btn)
+        
+        self.export_latex_btn = QPushButton("📄 LaTeX")
+        self.export_latex_btn.clicked.connect(self._on_export_latex)
+        self.export_latex_btn.setEnabled(False)
+        self.export_latex_btn.setToolTip("Export diagram as LaTeX/TikZ")
+        toolbar_layout.addWidget(self.export_latex_btn)
+        
         toolbar_layout.addSpacing(20)
         
         # Undo/Redo
@@ -772,11 +784,13 @@ class ErgasterionMode(QWidget):
         print(f"=== _on_cut_moved: {cut_id} by delta {delta} ===")
         
         # Update cut position through controller
+        # This updates both the cut bounds AND all contained elements via _trigger_fast_update
         success = self.controller.update_cut_position(cut_id, delta)
         
         if success:
             print(f"✓ Cut movement applied")
-            # Refresh display
+            # Refresh display to show moved contents
+            # TODO: This recreates entire scene - ideally should only update affected items
             dto = self.controller.current_dto
             egi = self.controller.egi_model
             if dto and egi:
@@ -784,30 +798,38 @@ class ErgasterionMode(QWidget):
             
             dx, dy = delta
             self._show_status(f"Moved cut {cut_id} by ({dx:.1f}, {dy:.1f})")
+            self._has_unsaved_changes = True  # Mark as modified
         else:
             print(f"✗ Cut movement FAILED")
             self._show_status(f"Failed to move cut {cut_id}", error=True)
     
     def _on_cut_resized(self, cut_id: str, new_size: Tuple[float, float]):
-        """Handle cut resize - update cut bounds."""
+        """Handle cut resize - update cut bounds with validation."""
         print(f"=== _on_cut_resized: {cut_id} to size {new_size} ===")
         
-        # Update cut size through controller
+        # Validate and update cut size through controller
         success = self.controller.update_cut_size(cut_id, new_size)
         
         if success:
-            print(f"✓ Cut resize applied")
-            # Refresh display
+            print(f"✓ Cut resize applied to DTO")
+            # NOTE: Do NOT call display_dto here! 
+            # The canvas has already visually resized the cut.
+            # Calling display_dto would redraw everything and reset positions.
+            
+            w, h = new_size
+            self._show_status(f"Resized cut {cut_id} to ({w:.1f} × {h:.1f})")
+            self._has_unsaved_changes = True  # Mark as modified
+        else:
+            print(f"✗ Cut resize REJECTED - would violate containment")
+            # Resize rejected - revert visual state by redrawing from DTO
             dto = self.controller.current_dto
             egi = self.controller.egi_model
             if dto and egi:
                 self.canvas.display_dto(dto, egi, fit_to_view=False)
             
-            w, h = new_size
-            self._show_status(f"Resized cut {cut_id} to ({w:.1f} × {h:.1f})")
-        else:
-            print(f"✗ Cut resize FAILED")
-            self._show_status(f"Failed to resize cut {cut_id}", error=True)
+            self._show_status(f"Cannot resize cut - contents would extend outside", error=True)
+            self.validation_label.setText("⚠️ Cut too small for contents (including ligatures)")
+            self.validation_label.setStyleSheet("color: orange; font-size: 10px; padding: 5px;")
     
     def _on_apply_rule(self, rule_name: str):
         """Apply a transformation rule and record in UoD history if historical."""
@@ -1012,6 +1034,10 @@ class ErgasterionMode(QWidget):
             # fit_to_view=True for initial loads and full relayouts
             self.canvas.display_dto(dto, egi, fit_to_view=True)
             
+            # Enable export buttons when diagram is loaded
+            self.export_svg_btn.setEnabled(True)
+            self.export_latex_btn.setEnabled(True)
+            
             # Update EGIF
             try:
                 egif = generate_egif(egi)
@@ -1187,8 +1213,15 @@ class ErgasterionMode(QWidget):
         # Update UI based on mode
         self._update_workflow_ui()
         
-        # Load into controller
-        if not self.controller.load_egi(egi):
+        # Load style from UoD metadata
+        from style_loader import StyleLoader
+        style_loader = StyleLoader()
+        style_name = self._current_uod.metadata.style_name if self._current_uod.metadata else "dau-compliant@1.0"
+        print(f"Loading style: {style_name}")
+        style_spec = style_loader.load_style(style_name)
+        
+        # Load into controller WITH STYLE
+        if not self.controller.load_egi(egi, style=style_spec):
             # Load failed - show error to user
             error_msg = self.controller.last_error or "Unknown validation error"
             QMessageBox.critical(
@@ -1206,3 +1239,95 @@ class ErgasterionMode(QWidget):
         
         mode_name = "editing" if source_uod else "practice"
         self._show_status(f"Loaded graph from Organon for {mode_name}")
+    
+    def _on_export_svg(self):
+        """Export current diagram as SVG."""
+        dto = self.controller.get_renderable_dto()
+        egi = self.controller.get_egi_model()
+        
+        if not dto or not egi:
+            QMessageBox.warning(self, "Warning", "No diagram to export")
+            return
+        
+        # Get save location
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export SVG",
+            "diagram.svg",
+            "SVG Files (*.svg);;All Files (*)"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            # Render to SVG
+            from graphviz_svg_renderer import GraphvizSVGRenderer
+            renderer = GraphvizSVGRenderer()
+            
+            egif = generate_egif(egi)
+            svg_content = renderer.render_to_svg(
+                dto,
+                title="Ergasterion Diagram",
+                egif=egif
+            )
+            
+            # Save
+            Path(file_path).write_text(svg_content, encoding='utf-8')
+            
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Exported to:\n{file_path}"
+            )
+            
+        except Exception as e:
+            import traceback
+            QMessageBox.critical(
+                self,
+                "Export Error",
+                f"Failed to export SVG:\n\n{str(e)}\n\n{traceback.format_exc()}"
+            )
+    
+    def _on_export_latex(self):
+        """Export current diagram as LaTeX/TikZ."""
+        dto = self.controller.get_renderable_dto()
+        egi = self.controller.get_egi_model()
+        
+        if not dto or not egi:
+            QMessageBox.warning(self, "Warning", "No diagram to export")
+            return
+        
+        # Get save location
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export LaTeX",
+            "diagram.tex",
+            "LaTeX Files (*.tex);;All Files (*)"
+        )
+        
+        if not file_path:
+            return
+        
+        try:
+            # Convert to TikZ
+            from export.dto_to_tikz_adapter import export_dto_to_tikz
+            
+            latex_content = export_dto_to_tikz(dto, egi, standalone=True)
+            
+            # Save
+            Path(file_path).write_text(latex_content, encoding='utf-8')
+            
+            QMessageBox.information(
+                self,
+                "Success",
+                f"Exported to LaTeX:\n{file_path}\n\nCompile with:\n  pdflatex {Path(file_path).name}"
+            )
+            
+        except Exception as e:
+            import traceback
+            QMessageBox.critical(
+                self,
+                "Export Error",
+                f"Failed to export LaTeX:\n\n{str(e)}\n\n{traceback.format_exc()}"
+            )

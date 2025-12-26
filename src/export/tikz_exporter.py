@@ -43,14 +43,35 @@ def _emit_vertex(cmd: Dict[str, Any], styles) -> str:
     x = float(b.get("x", 0.0)) + float(b.get("width", 0.0)) / 2.0
     y = float(b.get("y", 0.0)) + float(b.get("height", 0.0)) / 2.0
     label = cmd.get("vertex_name") or cmd.get("element_id", "")
+    rendering_mode = cmd.get("rendering_mode", "dot_and_label")
+    
     s = styles.resolve(type="vertex", role="vertex.label")
     fs = float(s.get("font_size", styles.resolve(type="global").get("font_size", 10)))
     baselineskip = fs + 2
-    return (
-        f"\\fill ( {x:.2f} , {y:.2f} ) circle [radius=2pt] "
-        f"node[anchor=west,font=\\fontsize{{{fs:.0f}}}{{{baselineskip:.0f}}}\\selectfont] "
-        f"{{ {_escape_text(label)} }};"
-    )
+    
+    # Only draw dot if rendering_mode includes "dot"
+    show_dot = rendering_mode in ["dot_only", "dot_and_label"]
+    show_label = rendering_mode != "dot_only"
+    
+    if show_dot and show_label:
+        # Dau style: dot + label
+        return (
+            f"\\fill ( {x:.2f} , {y:.2f} ) circle [radius=2pt] "
+            f"node[anchor=west,font=\\fontsize{{{fs:.0f}}}{{{baselineskip:.0f}}}\\selectfont] "
+            f"{{ {_escape_text(label)} }};"
+        )
+    elif show_dot:
+        # Dot only (no label)
+        return f"\\fill ( {x:.2f} , {y:.2f} ) circle [radius=2pt];"
+    elif show_label:
+        # Peirce/Sowa style: label only (no dot)
+        return (
+            f"\\node[anchor=west,font=\\fontsize{{{fs:.0f}}}{{{baselineskip:.0f}}}\\selectfont] "
+            f"at ( {x:.2f} , {y:.2f} ) {{ {_escape_text(label)} }};"
+        )
+    else:
+        # Neither (shouldn't happen)
+        return ""
 
 
 def _emit_predicate(cmd: Dict[str, Any], styles) -> str:

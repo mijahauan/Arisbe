@@ -69,7 +69,7 @@
   "ligature": {
     "line_width": 2.5,
     "color": "#000000",
-    "cap_style": "round",
+    "cap_style": "butt",
     "routing_mode": "orthogonal",
     "curvature": 0.35,
     "orthogonal_bias": "h_first",

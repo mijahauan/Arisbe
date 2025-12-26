@@ -14,7 +14,7 @@ from typing import FrozenSet, Optional, List, Dict
 from pathlib import Path
 import json
 
-from egi_model import RelationalGraphWithCuts, ElementID
+from egi_core_dau import RelationalGraphWithCuts, ElementID
 from subgraph_closure_validator import SubgraphClosureValidator
 
 
@@ -99,6 +99,9 @@ class InsertionClipboard:
         Returns:
             (success, message, entry) tuple
         """
+        print(f"[Clipboard {id(self)}] add_entry called with {len(subgraph_elements)} elements")
+        print(f"[Clipboard {id(self)}] Current entries before add: {len(self.entries)}")
+        
         # Validate closure
         validator = SubgraphClosureValidator(source_egi)
         analysis = validator.analyze_closure(subgraph_elements, allow_expansion=True)
@@ -131,9 +134,12 @@ class InsertionClipboard:
         self.entries.append(entry)
         self._next_id += 1
         
+        print(f"[Clipboard {id(self)}] Entry added! Total entries now: {len(self.entries)}")
+        
         # Persist if storage enabled
         if self.storage_path:
             self._save_to_disk()
+            print(f"[Clipboard {id(self)}] Saved to disk: {self.storage_path}")
         
         added_count = len(final_elements) - len(subgraph_elements)
         if added_count > 0:
@@ -141,6 +147,7 @@ class InsertionClipboard:
         else:
             msg = f"✓ Added to clipboard: {name}"
         
+        print(f"[Clipboard {id(self)}] Returning success: {msg}")
         return (True, msg, entry)
     
     def remove_entry(self, entry_id: str) -> bool:
@@ -163,6 +170,7 @@ class InsertionClipboard:
     
     def get_all_entries(self) -> List[ClipboardEntry]:
         """Get all clipboard entries."""
+        print(f"[Clipboard {id(self)}] get_all_entries called, returning {len(self.entries)} entries")
         return self.entries.copy()
     
     def clear(self):
@@ -213,4 +221,7 @@ def get_insertion_clipboard() -> InsertionClipboard:
         # Use user's home directory for persistent storage
         storage_path = Path.home() / ".arisbe" / "insertion_clipboard.json"
         _global_clipboard = InsertionClipboard(storage_path)
+        print(f"[ClipboardSingleton] Created new instance {id(_global_clipboard)}")
+    else:
+        print(f"[ClipboardSingleton] Returning existing instance {id(_global_clipboard)} with {len(_global_clipboard.entries)} entries")
     return _global_clipboard

@@ -42,6 +42,7 @@ class StyleSpecification:
     
     # Visual properties
     vertex_fill_color: str
+    vertex_rendering_mode: str
     cut_shape: str
     cut_corner_radius: float
     cut_line_width: float
@@ -109,6 +110,7 @@ class StyleSpecification:
             
             # Visual properties
             vertex_fill_color=data['vertex']['fill_color'],
+            vertex_rendering_mode=data['vertex'].get('rendering_mode', 'dot_and_label'),
             cut_shape=data['cut']['shape'],
             cut_corner_radius=data['cut'].get('corner_radius', 0),
             cut_line_width=data['cut']['line_width'],

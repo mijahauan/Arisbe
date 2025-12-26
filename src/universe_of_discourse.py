@@ -108,6 +108,9 @@ class UoDMetadata:
     domain_contexts: Set[str] = field(default_factory=set)  # Domain contexts
     natural_language_summary: Optional[str] = None          # NL summary
     
+    # Rendering and presentation
+    style_name: str = "dau-compliant@1.0"  # Visual style for rendering (dau/peirce/sowa)
+    
     # ===== Backward Compatibility Properties =====
     
     @property
@@ -141,6 +144,7 @@ class UoDMetadata:
             "related_uods": self.related_uods,
             "domain_contexts": list(self.domain_contexts),
             "natural_language_summary": self.natural_language_summary,
+            "style_name": self.style_name,
         }
     
     @staticmethod
@@ -194,6 +198,7 @@ class UoDMetadata:
             related_uods=data.get("related_uods", []),
             domain_contexts=set(data.get("domain_contexts", [])),
             natural_language_summary=data.get("natural_language_summary"),
+            style_name=data.get("style_name", "dau-compliant@1.0"),
         )
 
 

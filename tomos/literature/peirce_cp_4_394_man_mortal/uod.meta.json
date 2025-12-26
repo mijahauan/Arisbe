@@ -5,7 +5,7 @@
   "description": "Peirce Cp 4 394 Man Mortal",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.027562",
-  "last_modified": "2025-08-31T07:15:29.028141",
+  "last_modified": "2025-10-22T04:56:08.085086",
   "current_state_id": null,
   "total_states": 1,
   "total_transformations": 0,
@@ -14,5 +14,6 @@
   "source_citation": null,
   "related_uods": [],
   "domain_contexts": [],
-  "natural_language_summary": null
+  "natural_language_summary": null,
+  "style_name": "peirce-authentic@1.0"
 }

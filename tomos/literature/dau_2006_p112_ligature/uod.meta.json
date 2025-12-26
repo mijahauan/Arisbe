@@ -5,7 +5,7 @@
   "description": "Dau 2006 P112 Ligature",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.030775",
-  "last_modified": "2025-08-31T07:15:29.031158",
+  "last_modified": "2025-10-21T08:58:04.621911",
   "current_state_id": null,
   "total_states": 1,
   "total_transformations": 0,
@@ -14,5 +14,6 @@
   "source_citation": null,
   "related_uods": [],
   "domain_contexts": [],
-  "natural_language_summary": null
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
 }

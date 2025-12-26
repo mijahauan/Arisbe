@@ -1,6 +1,6 @@
 # Arisbe Core API Reference
 
-**Last Updated**: 2025-10-18 09:23:37  
+**Last Updated**: 2025-12-26 07:28:14  
 **Auto-Generated**: This file is automatically regenerated when core modules change
 
 ---
@@ -127,12 +127,14 @@ Manages the complete application state and coordinates between:
 - `update_cut_size(self, cut_id, new_size)`
   Update the size of a cut after user resize.
   
+  Validates that new size can contain all elements AND their ligatures.
+  
   Args:
       cut_id: ID of cut to resize
       new_size: (width, height) new dimensions
       
   Returns:
-      True if size updated successfully
+      True if size updated successfully, False if resize would violate containment
 
 - `update_ligature_path(self, ligature_key, new_path)`
   Update custom path for a ligature with validation.

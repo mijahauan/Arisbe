@@ -3,21 +3,6 @@
   "version": "v2",
   "universes": [
     {
-      "uod_id": "dau_2006_p112_ligature",
-      "name": "dau_2006_p112_ligature",
-      "category": "literature_example",
-      "uod_type": "standalone",
-      "is_static": true,
-      "is_dynamic": false,
-      "created": "2025-08-31T07:15:29.030775",
-      "last_modified": "2025-08-31T07:15:29.031158",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/dau_2006_p112_ligature"
-    },
-    {
       "uod_id": "dau_theorem_proving",
       "name": "dau_theorem_proving",
       "category": "literature_example",
@@ -33,21 +18,6 @@
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/dau_theorem_proving"
     },
     {
-      "uod_id": "mixed_quantifier_complex",
-      "name": "mixed_quantifier_complex",
-      "category": "literature_example",
-      "uod_type": "standalone",
-      "is_static": true,
-      "is_dynamic": false,
-      "created": "2025-08-31T07:15:29.089160",
-      "last_modified": "2025-08-31T07:15:29.089807",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/mixed_quantifier_complex"
-    },
-    {
       "uod_id": "peirce_complex_scope",
       "name": "peirce_complex_scope",
       "category": "literature_example",
@@ -61,21 +31,6 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/peirce_complex_scope"
-    },
-    {
-      "uod_id": "peirce_cp_4_394_man_mortal",
-      "name": "peirce_cp_4_394_man_mortal",
-      "category": "literature_example",
-      "uod_type": "standalone",
-      "is_static": true,
-      "is_dynamic": false,
-      "created": "2025-08-31T07:15:29.027562",
-      "last_modified": "2025-08-31T07:15:29.028141",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/peirce_cp_4_394_man_mortal"
     },
     {
       "uod_id": "peirce_modus_ponens",
@@ -168,21 +123,6 @@
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/sowa_2011_p356_quantification"
     },
     {
-      "uod_id": "sowa_cat_on_mat",
-      "name": "sowa_cat_on_mat",
-      "category": "literature_example",
-      "uod_type": "standalone",
-      "is_static": true,
-      "is_dynamic": false,
-      "created": "2025-08-31T07:15:29.100251",
-      "last_modified": "2025-08-31T07:15:29.100832",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/sowa_cat_on_mat"
-    },
-    {
       "uod_id": "stanford_nested_quantifiers",
       "name": "stanford_nested_quantifiers",
       "category": "literature_example",
@@ -228,7 +168,67 @@
       ],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/practice_43480df3"
+    },
+    {
+      "uod_id": "dau_2006_p112_ligature",
+      "name": "dau_2006_p112_ligature",
+      "category": "literature_example",
+      "uod_type": "standalone",
+      "is_static": true,
+      "is_dynamic": false,
+      "created": "2025-08-31T07:15:29.030775",
+      "last_modified": "2025-10-21T08:58:04.621911",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/dau_2006_p112_ligature"
+    },
+    {
+      "uod_id": "sowa_cat_on_mat",
+      "name": "sowa_cat_on_mat",
+      "category": "literature_example",
+      "uod_type": "standalone",
+      "is_static": true,
+      "is_dynamic": false,
+      "created": "2025-08-31T07:15:29.100251",
+      "last_modified": "2025-10-21T18:56:17.932364",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/sowa_cat_on_mat"
+    },
+    {
+      "uod_id": "mixed_quantifier_complex",
+      "name": "mixed_quantifier_complex",
+      "category": "literature_example",
+      "uod_type": "standalone",
+      "is_static": true,
+      "is_dynamic": false,
+      "created": "2025-08-31T07:15:29.089160",
+      "last_modified": "2025-10-21T19:07:25.571204",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/mixed_quantifier_complex"
+    },
+    {
+      "uod_id": "peirce_cp_4_394_man_mortal",
+      "name": "peirce_cp_4_394_man_mortal",
+      "category": "literature_example",
+      "uod_type": "standalone",
+      "is_static": true,
+      "is_dynamic": false,
+      "created": "2025-08-31T07:15:29.027562",
+      "last_modified": "2025-10-22T04:56:08.085086",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/peirce_cp_4_394_man_mortal"
     }
   ],
-  "last_updated": "2025-10-14T21:42:50.563631"
+  "last_updated": "2025-10-22T04:56:08.086239"
 }

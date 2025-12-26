@@ -449,18 +449,20 @@ class DiagramController:
         """
         Update the size of a cut after user resize.
         
+        Validates that new size can contain all elements AND their ligatures.
+        
         Args:
             cut_id: ID of cut to resize
             new_size: (width, height) new dimensions
             
         Returns:
-            True if size updated successfully
+            True if size updated successfully, False if resize would violate containment
         """
         if not self.current_dto or not self.egi_model:
             return False
         
         w, h = new_size
-        print(f"=== Updating cut {cut_id} size to ({w}, {h}) ===")
+        print(f"=== Validating cut {cut_id} resize to ({w}, {h}) ===")
         
         # Get current cut bounds
         if cut_id not in self.current_dto.cut_bounds:
@@ -469,8 +471,7 @@ class DiagramController:
         
         old_bounds = self.current_dto.cut_bounds[cut_id]
         
-        # Update cut bounds - keep top-left corner, adjust bottom-right
-        # (Resize from top-left anchor point)
+        # Calculate new bounds - keep top-left corner, adjust bottom-right
         new_bounds = BoundingBox(
             min_x=old_bounds.min_x,
             min_y=old_bounds.min_y,
@@ -478,6 +479,60 @@ class DiagramController:
             max_y=old_bounds.min_y + h
         )
         
+        # VALIDATION: Check that all contained elements fit within new bounds
+        cut_contents = self.egi_model.area.get(cut_id, frozenset())
+        
+        # Add padding for visual clarity (elements shouldn't touch edges)
+        padding = 10.0
+        content_bounds = BoundingBox(
+            min_x=new_bounds.min_x + padding,
+            min_y=new_bounds.min_y + padding,
+            max_x=new_bounds.max_x - padding,
+            max_y=new_bounds.max_y - padding
+        )
+        
+        # Check vertices
+        for elem_id in cut_contents:
+            if elem_id in self.current_dto.vertex_positions:
+                pos = self.current_dto.vertex_positions[elem_id]
+                if not (content_bounds.min_x <= pos.x <= content_bounds.max_x and
+                        content_bounds.min_y <= pos.y <= content_bounds.max_y):
+                    print(f"  REJECT: Vertex {elem_id} at ({pos.x}, {pos.y}) outside new bounds")
+                    return False
+            
+            # Check predicates (edges)
+            elif elem_id in self.current_dto.predicate_positions:
+                pos = self.current_dto.predicate_positions[elem_id]
+                # Predicates have width/height - check bounds
+                pred_label = self._get_predicate_label(elem_id)
+                pred_width = len(pred_label) * self.current_style.predicate_char_width
+                pred_height = self.current_style.predicate_height
+                
+                if not (content_bounds.min_x <= pos.x and 
+                        pos.x + pred_width <= content_bounds.max_x and
+                        content_bounds.min_y <= pos.y and
+                        pos.y + pred_height <= content_bounds.max_y):
+                    print(f"  REJECT: Predicate {elem_id} at ({pos.x}, {pos.y}) outside new bounds")
+                    return False
+        
+        # Check ligatures connecting elements inside this cut
+        # Ligatures must be entirely within the cut bounds
+        for lig_path in self.current_dto.ligature_paths:
+            # Check if both endpoints are in this cut
+            pred_in_cut = lig_path.predicate_id in cut_contents
+            vertex_in_cut = lig_path.vertex_id in cut_contents
+            
+            if pred_in_cut and vertex_in_cut:
+                # Both ends in cut - entire ligature must fit
+                for point in lig_path.points:
+                    if not (content_bounds.min_x <= point.x <= content_bounds.max_x and
+                            content_bounds.min_y <= point.y <= content_bounds.max_y):
+                        print(f"  REJECT: Ligature {lig_path.predicate_id}→{lig_path.vertex_id} extends outside new bounds")
+                        return False
+        
+        print(f"  ✓ Validation passed - all contents fit within new bounds")
+        
+        # Update cut bounds
         self.current_dto.cut_bounds[cut_id] = new_bounds
         print(f"  Updated cut bounds: {old_bounds} → {new_bounds}")
         

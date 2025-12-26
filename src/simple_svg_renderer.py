@@ -125,8 +125,11 @@ class SimpleSVGRenderer:
             })
         
         # ====================================================================
-        # Render Ligatures with boundary hooks (Dau style)
+        # Render Ligatures (line of identity)
         # ====================================================================
+        
+        # Get cap style from style specification
+        ligature_cap_style = style.raw_style_data.get('ligature', {}).get('cap_style', 'butt')
         
         for lig in dto.ligature_paths:
             if len(lig.points) < 2:
@@ -137,23 +140,13 @@ class SimpleSVGRenderer:
             for point in lig.points[1:]:
                 path_d += f" L {point.x + offset_x} {point.y + offset_y}"
             
-            # Main ligature line
+            # Main ligature line - no hooks, cap style from style spec
             ET.SubElement(ligature_group, "path", {
                 "d": path_d,
                 "stroke": "#000000",
                 "stroke-width": str(style.ligature_line_width),
-                "stroke-linecap": "round",
+                "stroke-linecap": ligature_cap_style,
                 "fill": "none"
-            })
-            
-            # Hook at predicate end ONLY (marks attachment point)
-            # Vertex end has NO hook - ligature is continuous with vertex spot
-            hook_radius = style.ligature_line_width * 0.8
-            ET.SubElement(ligature_group, "circle", {
-                "cx": str(lig.points[0].x + offset_x),
-                "cy": str(lig.points[0].y + offset_y),
-                "r": str(hook_radius),
-                "fill": "#000000"
             })
         
         # ====================================================================
@@ -171,16 +164,18 @@ class SimpleSVGRenderer:
                 if v and v.label:
                     label = v.label
             
-            # Vertex circle (use Dau style) - continuous with ligatures
-            ET.SubElement(element_group, "circle", {
-                "cx": str(cx), "cy": str(cy),
-                "r": str(style.vertex_radius),
-                "fill": style.vertex_fill_color,
-                "stroke": "none"  # No border - continuous with ligature
-            })
+            # Vertex circle - only draw if rendering_mode includes "dot"
+            show_dot = style.vertex_rendering_mode in ["dot_only", "dot_and_label"]
+            if show_dot:
+                ET.SubElement(element_group, "circle", {
+                    "cx": str(cx), "cy": str(cy),
+                    "r": str(style.vertex_radius),
+                    "fill": style.vertex_fill_color,
+                    "stroke": "none"  # No border - continuous with ligature
+                })
             
-            # Label BESIDE the spot (not below) to avoid collisions
-            if label:
+            # Label - shown in all modes except dot_only
+            if label and style.vertex_rendering_mode != "dot_only":
                 # Position to the right and slightly up from center
                 label_x = cx + style.vertex_radius + 8  # 8px offset from edge
                 label_y = cy + 4  # Slightly below center for alignment
