@@ -7,13 +7,22 @@ serving as the foundation for:
 2. Endoporeutic Game proof verification
 3. General structural equivalence checking
 
-The implementation follows Dau's formal requirements for structural identity
-in Beta Existential Graphs.
+Implementation uses NetworkX VF2 (Vento-Foggia) algorithm, which is polynomial
+in the number of nodes in practice — replacing the previous O(n!) enumeration.
+
+EGI subgraphs are encoded as NetworkX MultiDiGraphs:
+  - Vertices     → nodes with ntype='v', label, is_generic
+  - Edges (n-ary)→ nodes with ntype='e', rel, arity
+  - Cuts         → nodes with ntype='c'
+  - ν(e, pos)=v  → MultiDiGraph edge e→v with etype='nu', pos=pos
+  - area(c) ∋ x  → MultiDiGraph edge c→x with etype='contains'
 """
 
 from dataclasses import dataclass
-from itertools import permutations
 from typing import Dict, FrozenSet, Iterator, List, Optional, Set, Tuple
+
+import networkx as nx
+from networkx.algorithms.isomorphism import MultiDiGraphMatcher
 
 from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 
@@ -49,12 +58,116 @@ class GraphIsomorphismEngine:
     """
     Engine for testing structural isomorphism between EGI subgraphs.
 
+    Uses NetworkX VF2 (polynomial) instead of O(n!) permutation enumeration.
+
     Implements Dau's requirements for structural identity:
     - Vertex identity: same label and generic status
-    - Edge identity: same relation name (κ) and vertex sequence structure (ν)
-    - Cut identity: same internal structure recursively
-    - Preservation of all structural relationships
+    - Edge identity: same relation name (κ) and ordered vertex sequence (ν)
+    - Cut identity: same containment structure recursively
     """
+
+    # ------------------------------------------------------------------
+    # NetworkX graph encoding
+    # ------------------------------------------------------------------
+
+    def _build_nx_graph(
+        self,
+        egi: RelationalGraphWithCuts,
+        subgraph_ids: FrozenSet[ElementID],
+    ) -> nx.MultiDiGraph:
+        """
+        Encode an EGI subgraph as a NetworkX MultiDiGraph.
+
+        Nodes carry structural attributes; edges carry relation type and
+        position in ν sequences so VF2 can enforce ordering.
+        """
+        G = nx.MultiDiGraph()
+        v_ids = {v.id for v in egi.V}
+        e_ids = {e.id for e in egi.E}
+        c_ids = {c.id for c in egi.Cut}
+
+        for elem_id in subgraph_ids:
+            if elem_id in v_ids:
+                v = next(v for v in egi.V if v.id == elem_id)
+                G.add_node(elem_id, ntype="v", label=v.label, is_generic=v.is_generic)
+            elif elem_id in e_ids:
+                G.add_node(
+                    elem_id,
+                    ntype="e",
+                    rel=egi.rel.get(elem_id, ""),
+                    arity=len(egi.nu.get(elem_id, ())),
+                )
+            elif elem_id in c_ids:
+                G.add_node(elem_id, ntype="c", label=None, is_generic=False)
+            else:
+                raise ValueError(f"Unknown element ID: {elem_id}")
+
+        # ν edges: edge_node → vertex_node with position
+        for elem_id in subgraph_ids:
+            if elem_id in e_ids:
+                for pos, vid in enumerate(egi.nu.get(elem_id, ())):
+                    if vid in subgraph_ids:
+                        G.add_edge(elem_id, vid, etype="nu", pos=pos)
+
+        # Containment edges: cut_node → contained_element
+        for elem_id in subgraph_ids:
+            if elem_id in c_ids:
+                for contained_id in egi.area.get(elem_id, frozenset()):
+                    if contained_id in subgraph_ids:
+                        G.add_edge(elem_id, contained_id, etype="contains", pos=0)
+
+        return G
+
+    @staticmethod
+    def _node_match(n1: dict, n2: dict) -> bool:
+        """VF2 node compatibility: same element type and attributes."""
+        if n1["ntype"] != n2["ntype"]:
+            return False
+        if n1["ntype"] == "v":
+            return n1["label"] == n2["label"] and n1["is_generic"] == n2["is_generic"]
+        if n1["ntype"] == "e":
+            return n1["rel"] == n2["rel"] and n1["arity"] == n2["arity"]
+        return True  # cuts: structural match only
+
+    @staticmethod
+    def _edge_match(e1_dict: dict, e2_dict: dict) -> bool:
+        """
+        VF2 edge compatibility for MultiDiGraph.
+        e1_dict / e2_dict are {key: attrs} dicts for all parallel edges.
+        Edges match if they have the same multiset of (etype, pos) pairs.
+        """
+        sig1 = tuple(sorted((d["etype"], d.get("pos", 0)) for d in e1_dict.values()))
+        sig2 = tuple(sorted((d["etype"], d.get("pos", 0)) for d in e2_dict.values()))
+        return sig1 == sig2
+
+    def _mapping_from_nx(
+        self,
+        nx_mapping: Dict,  # G1_node_id -> G2_node_id
+        egi1: RelationalGraphWithCuts,
+        egi2: RelationalGraphWithCuts,
+    ) -> IsomorphismMapping:
+        """Convert a raw NetworkX node mapping to IsomorphismMapping."""
+        v_ids1 = {v.id for v in egi1.V}
+        e_ids1 = {e.id for e in egi1.E}
+        c_ids1 = {c.id for c in egi1.Cut}
+
+        vertex_mapping: Dict[ElementID, ElementID] = {}
+        edge_mapping: Dict[ElementID, ElementID] = {}
+        cut_mapping: Dict[ElementID, ElementID] = {}
+
+        for orig, mapped in nx_mapping.items():
+            if orig in v_ids1:
+                vertex_mapping[orig] = mapped
+            elif orig in e_ids1:
+                edge_mapping[orig] = mapped
+            elif orig in c_ids1:
+                cut_mapping[orig] = mapped
+
+        return IsomorphismMapping(vertex_mapping, edge_mapping, cut_mapping)
+
+    # ------------------------------------------------------------------
+    # Public API (unchanged)
+    # ------------------------------------------------------------------
 
     def test_subgraph_isomorphism(
         self,
@@ -64,46 +177,24 @@ class GraphIsomorphismEngine:
     ) -> IsomorphismResult:
         """
         Test if two subgraphs within the same EGI are structurally isomorphic.
-
-        Args:
-            egi: The EGI containing both subgraphs
-            subgraph1: First subgraph element IDs
-            subgraph2: Second subgraph element IDs
-
-        Returns:
-            IsomorphismResult indicating if isomorphic and the mapping if so
+        Uses NetworkX VF2 (polynomial) instead of O(n!) permutation.
         """
-        # Basic size check
         if len(subgraph1) != len(subgraph2):
             return IsomorphismResult(False, None, "Different number of elements")
-
-        # Empty subgraphs are trivially isomorphic
         if len(subgraph1) == 0:
             return IsomorphismResult(True, IsomorphismMapping({}, {}, {}), None)
 
-        # Categorize elements by type
-        sg1_vertices, sg1_edges, sg1_cuts = self._categorize_elements(egi, subgraph1)
-        sg2_vertices, sg2_edges, sg2_cuts = self._categorize_elements(egi, subgraph2)
+        G1 = self._build_nx_graph(egi, subgraph1)
+        G2 = self._build_nx_graph(egi, subgraph2)
+        gm = MultiDiGraphMatcher(G1, G2, self._node_match, self._edge_match)
 
-        # Must have same number of each element type
-        if (
-            len(sg1_vertices) != len(sg2_vertices)
-            or len(sg1_edges) != len(sg2_edges)
-            or len(sg1_cuts) != len(sg2_cuts)
-        ):
-            return IsomorphismResult(
-                False, None, "Different element type distributions"
-            )
+        if not gm.is_isomorphic():
+            return IsomorphismResult(False, None, "No valid structural mapping found")
 
-        # Try all possible mappings
-        for mapping in self._generate_possible_mappings(
-            sg1_vertices, sg1_edges, sg1_cuts, sg2_vertices, sg2_edges, sg2_cuts
-        ):
-
-            if self._validate_structural_mapping(egi, mapping):
-                return IsomorphismResult(True, mapping, None)
-
-        return IsomorphismResult(False, None, "No valid structural mapping found")
+        nx_mapping = next(gm.isomorphisms_iter())
+        return IsomorphismResult(
+            True, self._mapping_from_nx(nx_mapping, egi, egi), None
+        )
 
     def test_cross_egi_isomorphism(
         self,
@@ -116,37 +207,22 @@ class GraphIsomorphismEngine:
         Test isomorphism between subgraphs in different EGIs.
         Used for Endoporeutic Game proof validation.
         """
-        # Basic size check
         if len(subgraph1) != len(subgraph2):
             return IsomorphismResult(False, None, "Different number of elements")
-
-        # Empty subgraphs are trivially isomorphic
         if len(subgraph1) == 0:
             return IsomorphismResult(True, IsomorphismMapping({}, {}, {}), None)
 
-        # Categorize elements in both EGIs
-        sg1_vertices, sg1_edges, sg1_cuts = self._categorize_elements(egi1, subgraph1)
-        sg2_vertices, sg2_edges, sg2_cuts = self._categorize_elements(egi2, subgraph2)
+        G1 = self._build_nx_graph(egi1, subgraph1)
+        G2 = self._build_nx_graph(egi2, subgraph2)
+        gm = MultiDiGraphMatcher(G1, G2, self._node_match, self._edge_match)
 
-        # Must have same number of each element type
-        if (
-            len(sg1_vertices) != len(sg2_vertices)
-            or len(sg1_edges) != len(sg2_edges)
-            or len(sg1_cuts) != len(sg2_cuts)
-        ):
-            return IsomorphismResult(
-                False, None, "Different element type distributions"
-            )
+        if not gm.is_isomorphic():
+            return IsomorphismResult(False, None, "No valid structural mapping found")
 
-        # Try all possible mappings
-        for mapping in self._generate_possible_mappings(
-            sg1_vertices, sg1_edges, sg1_cuts, sg2_vertices, sg2_edges, sg2_cuts
-        ):
-
-            if self._validate_cross_egi_mapping(egi1, egi2, mapping):
-                return IsomorphismResult(True, mapping, None)
-
-        return IsomorphismResult(False, None, "No valid structural mapping found")
+        nx_mapping = next(gm.isomorphisms_iter())
+        return IsomorphismResult(
+            True, self._mapping_from_nx(nx_mapping, egi1, egi2), None
+        )
 
     def find_isomorphic_subgraphs(
         self,
@@ -158,205 +234,59 @@ class GraphIsomorphismEngine:
         Find all subgraphs isomorphic to target_subgraph within specified areas.
         Used for IT- deiteration validation.
 
+        Uses VF2 subgraph isomorphism: embeds target as a sub-pattern of each
+        area graph rather than enumerating all same-size combinations.
+
         Returns:
             List of (area_id, matching_subgraph, mapping) tuples
         """
+        if not target_subgraph:
+            return []
+
+        G_target = self._build_nx_graph(egi, target_subgraph)
         matches = []
 
         for area_id in search_areas:
             area_contents = egi.area.get(area_id, frozenset())
+            if len(area_contents) < len(target_subgraph):
+                continue
 
-            # Find all possible subgraphs of the same size
-            for candidate_subgraph in self._generate_subgraphs_of_size(
-                area_contents, len(target_subgraph)
-            ):
+            G_area = self._build_nx_graph(egi, area_contents)
+            gm = MultiDiGraphMatcher(G_area, G_target, self._node_match, self._edge_match)
 
-                result = self.test_subgraph_isomorphism(
-                    egi, target_subgraph, candidate_subgraph
-                )
-                if result.is_isomorphic:
-                    matches.append((area_id, candidate_subgraph, result.mapping))
+            for nx_mapping in gm.subgraph_isomorphisms_iter():
+                # nx_mapping: area_node -> target_node  (area is the "bigger" graph)
+                # Reverse: target_node -> area_node
+                reverse = {v: k for k, v in nx_mapping.items()}
+                matched_ids = frozenset(reverse[t] for t in target_subgraph if t in reverse)
+                if len(matched_ids) == len(target_subgraph):
+                    iso_mapping = self._mapping_from_nx(reverse, egi, egi)
+                    matches.append((area_id, matched_ids, iso_mapping))
 
         return matches
+
+    # ------------------------------------------------------------------
+    # Legacy helpers retained for any external callers
+    # ------------------------------------------------------------------
 
     def _categorize_elements(
         self, egi: RelationalGraphWithCuts, elements: FrozenSet[ElementID]
     ) -> Tuple[List[ElementID], List[ElementID], List[ElementID]]:
         """Categorize elements into vertices, edges, and cuts."""
-        vertices = []
-        edges = []
-        cuts = []
-
-        vertex_ids = {v.id for v in egi.V}
-        edge_ids = {e.id for e in egi.E}
-        cut_ids = {c.id for c in egi.Cut}
-
-        for element_id in elements:
-            if element_id in vertex_ids:
-                vertices.append(element_id)
-            elif element_id in edge_ids:
-                edges.append(element_id)
-            elif element_id in cut_ids:
-                cuts.append(element_id)
+        v_ids = {v.id for v in egi.V}
+        e_ids = {e.id for e in egi.E}
+        c_ids = {c.id for c in egi.Cut}
+        vertices, edges, cuts = [], [], []
+        for eid in elements:
+            if eid in v_ids:
+                vertices.append(eid)
+            elif eid in e_ids:
+                edges.append(eid)
+            elif eid in c_ids:
+                cuts.append(eid)
             else:
-                raise ValueError(f"Unknown element ID: {element_id}")
-
+                raise ValueError(f"Unknown element ID: {eid}")
         return vertices, edges, cuts
-
-    def _generate_possible_mappings(
-        self,
-        sg1_vertices: List[ElementID],
-        sg1_edges: List[ElementID],
-        sg1_cuts: List[ElementID],
-        sg2_vertices: List[ElementID],
-        sg2_edges: List[ElementID],
-        sg2_cuts: List[ElementID],
-    ) -> Iterator[IsomorphismMapping]:
-        """Generate all possible mappings between categorized elements."""
-
-        # Generate all permutations for each element type
-        for vertex_perm in permutations(sg2_vertices):
-            vertex_mapping = dict(zip(sg1_vertices, vertex_perm))
-
-            for edge_perm in permutations(sg2_edges):
-                edge_mapping = dict(zip(sg1_edges, edge_perm))
-
-                for cut_perm in permutations(sg2_cuts):
-                    cut_mapping = dict(zip(sg1_cuts, cut_perm))
-
-                    yield IsomorphismMapping(vertex_mapping, edge_mapping, cut_mapping)
-
-    def _validate_structural_mapping(
-        self, egi: RelationalGraphWithCuts, mapping: IsomorphismMapping
-    ) -> bool:
-        """Validate that mapping preserves all structural relationships within single EGI."""
-
-        # Validate vertex structural identity
-        for orig_v_id, mapped_v_id in mapping.vertex_mapping.items():
-            if not self._vertices_structurally_identical(
-                egi, orig_v_id, egi, mapped_v_id
-            ):
-                return False
-
-        # Validate edge structural identity
-        for orig_e_id, mapped_e_id in mapping.edge_mapping.items():
-            if not self._edges_structurally_identical(
-                egi, orig_e_id, egi, mapped_e_id, mapping
-            ):
-                return False
-
-        # Validate cut structural identity
-        for orig_c_id, mapped_c_id in mapping.cut_mapping.items():
-            if not self._cuts_structurally_identical(
-                egi, orig_c_id, egi, mapped_c_id, mapping
-            ):
-                return False
-
-        return True
-
-    def _validate_cross_egi_mapping(
-        self,
-        egi1: RelationalGraphWithCuts,
-        egi2: RelationalGraphWithCuts,
-        mapping: IsomorphismMapping,
-    ) -> bool:
-        """Validate mapping between elements in different EGIs."""
-
-        # Validate vertex structural identity across EGIs
-        for orig_v_id, mapped_v_id in mapping.vertex_mapping.items():
-            if not self._vertices_structurally_identical(
-                egi1, orig_v_id, egi2, mapped_v_id
-            ):
-                return False
-
-        # Validate edge structural identity across EGIs
-        for orig_e_id, mapped_e_id in mapping.edge_mapping.items():
-            if not self._edges_structurally_identical(
-                egi1, orig_e_id, egi2, mapped_e_id, mapping
-            ):
-                return False
-
-        # Validate cut structural identity across EGIs
-        for orig_c_id, mapped_c_id in mapping.cut_mapping.items():
-            if not self._cuts_structurally_identical(
-                egi1, orig_c_id, egi2, mapped_c_id, mapping
-            ):
-                return False
-
-        return True
-
-    def _vertices_structurally_identical(
-        self,
-        egi1: RelationalGraphWithCuts,
-        v1_id: ElementID,
-        egi2: RelationalGraphWithCuts,
-        v2_id: ElementID,
-    ) -> bool:
-        """Check if two vertices are structurally identical per Dau's requirements."""
-
-        v1 = self._get_vertex_by_id(egi1, v1_id)
-        v2 = self._get_vertex_by_id(egi2, v2_id)
-
-        # Must have identical label and generic status
-        return v1.label == v2.label and v1.is_generic == v2.is_generic
-
-    def _edges_structurally_identical(
-        self,
-        egi1: RelationalGraphWithCuts,
-        e1_id: ElementID,
-        egi2: RelationalGraphWithCuts,
-        e2_id: ElementID,
-        mapping: IsomorphismMapping,
-    ) -> bool:
-        """Check if two edges are structurally identical per Dau's requirements."""
-
-        # Must have same relation name (κ mapping)
-        rel1 = egi1.rel.get(e1_id, "")
-        rel2 = egi2.rel.get(e2_id, "")
-        if rel1 != rel2:
-            return False
-
-        # Must have structurally equivalent vertex sequences (ν mapping)
-        seq1 = egi1.nu.get(e1_id, ())
-        seq2 = egi2.nu.get(e2_id, ())
-
-        if len(seq1) != len(seq2):
-            return False
-
-        # Check that vertex sequences map correctly
-        complete_mapping = mapping.complete_mapping
-        for v1_id, v2_id in zip(seq1, seq2):
-            expected_v2_id = complete_mapping.get(v1_id)
-            if expected_v2_id != v2_id:
-                return False
-
-        return True
-
-    def _cuts_structurally_identical(
-        self,
-        egi1: RelationalGraphWithCuts,
-        c1_id: ElementID,
-        egi2: RelationalGraphWithCuts,
-        c2_id: ElementID,
-        mapping: IsomorphismMapping,
-    ) -> bool:
-        """Check if two cuts are structurally identical per Dau's requirements."""
-
-        # Get cut contents
-        contents1 = egi1.area.get(c1_id, frozenset())
-        contents2 = egi2.area.get(c2_id, frozenset())
-
-        if len(contents1) != len(contents2):
-            return False
-
-        # Check that all contents map correctly
-        complete_mapping = mapping.complete_mapping
-        for element1_id in contents1:
-            expected_element2_id = complete_mapping.get(element1_id)
-            if expected_element2_id not in contents2:
-                return False
-
-        return True
 
     def _get_vertex_by_id(
         self, egi: RelationalGraphWithCuts, vertex_id: ElementID
@@ -366,15 +296,6 @@ class GraphIsomorphismEngine:
             if v.id == vertex_id:
                 return v
         raise ValueError(f"Vertex {vertex_id} not found")
-
-    def _generate_subgraphs_of_size(
-        self, elements: FrozenSet[ElementID], size: int
-    ) -> Iterator[FrozenSet[ElementID]]:
-        """Generate all possible subgraphs of specified size from element set."""
-        from itertools import combinations
-
-        for combo in combinations(elements, size):
-            yield frozenset(combo)
 
 
 class IsomorphismValidator:
