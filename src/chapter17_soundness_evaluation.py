@@ -214,27 +214,30 @@ class Chapter17SoundnessEvaluator:
         """
         Verify that if M ⊨ G then M ⊨ G' (model preservation).
 
-        Implements the core soundness property from Dau's Lemma 17.1-17.3.
-        For ligature transformations, this is automatically satisfied if:
-        1. Identity edges are properly maintained
-        2. Context structure is preserved
-        3. No semantic information is lost
+        Uses Z3 semantic equivalence as a proxy: if G ≡ G', then every model
+        satisfying G also satisfies G'.  Falls back to structural checks when
+        Z3 is unavailable or times out.
         """
-        # For Dau's ligature rules, model preservation is guaranteed by construction
-        # if the transformation rules are correctly implemented
-
-        # Check basic structural consistency
         try:
-            # Verify EGI structural integrity
+            # Structural integrity first (cheap)
             if not self._verify_egi_integrity(transformed_egi):
                 return False
-
-            # Check that context nesting is preserved
             if not self._verify_context_preservation(original_egi, transformed_egi):
                 return False
 
-            # For ligature transformations, if the rule is correctly applied,
-            # model preservation follows from Dau's theoretical results
+            # Z3 equivalence implies model preservation
+            from z3_semantic_validator import Z3_AVAILABLE, are_semantically_equivalent
+
+            if Z3_AVAILABLE:
+                result = are_semantically_equivalent(
+                    original_egi, transformed_egi, timeout_ms=8000
+                )
+                if result.value is True:
+                    return True   # G ≡ G' ⟹ M ⊨ G → M ⊨ G'
+                if result.value is False:
+                    return False  # countermodel exists
+                # Unknown: trust the structural check already passed
+
             return True
 
         except Exception:
@@ -281,23 +284,28 @@ class Chapter17SoundnessEvaluator:
         """
         Verify semantic equivalence between original and transformed EGI.
 
-        For Dau's ligature transformations, semantic equivalence is guaranteed
-        by the formal properties of the rules (Lemmas 16.1-16.7).
+        Uses Z3 to check G ≡ G' (i.e. ¬(G ↔ G') is UNSAT).
+        Falls back to structural integrity check if Z3 is unavailable or
+        times out.
         """
-        # For correctly implemented Dau ligature rules, semantic equivalence
-        # is guaranteed by construction. We verify basic consistency:
-
         try:
-            # Basic structural checks
-            if not self._verify_egi_integrity(transformed_egi):
-                return False
+            from z3_semantic_validator import Z3_AVAILABLE, are_semantically_equivalent
 
-            # For ligature transformations, semantic equivalence follows
-            # from Dau's theoretical framework if rules are correctly applied
-            return True
+            if Z3_AVAILABLE:
+                result = are_semantically_equivalent(
+                    original_egi, transformed_egi, timeout_ms=8000
+                )
+                if result.value is True:
+                    return True
+                if result.value is False:
+                    return False
+                # result.value is None (timeout/unknown): fall through to structural check
+
+            # Structural fallback: verify EGI integrity
+            return self._verify_egi_integrity(transformed_egi)
 
         except Exception:
-            return False
+            return self._verify_egi_integrity(transformed_egi)
 
     def _verify_ligature_properties(
         self,
