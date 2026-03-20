@@ -11,15 +11,14 @@
 - **Auto-updating documentation**: Documentation stays current with codebase changes
 - **Context awareness system**: `tools/context_awareness_system.py` prevents reinvention
 - **Persistent memory integration**: Critical framework awareness stored in memory system
-- **Framework amnesia recovery**: `FRAMEWORK_AMNESIA_RECOVERY.md` for complete context recovery
-- **Pre-development checklist**: `.arisbe_context_check` mandatory before development
+- **Framework amnesia recovery**: `docs/context/FRAMEWORK_AMNESIA_RECOVERY.md` for complete context recovery
 - **IDE integration**: VS Code tasks for instant context checks
 
 ## 📚 API Discovery Protocol
-- **NEVER guess function signatures** - Use `ARISBE_CORE_API_REFERENCE.md` for exact signatures
+- **NEVER guess function signatures** - Use `docs/ARISBE_CORE_API_REFERENCE.md` for exact signatures
 - **Complete API documentation**: 57 classes, 19 functions fully documented
-- **Usage patterns**: See `CORE_API_USAGE_GUIDE.md` for common development patterns
-- **Quick function lookup**: `grep -i "function_name" ARISBE_CORE_API_REFERENCE.md`
+- **Usage patterns**: See `docs/CORE_API_USAGE_GUIDE.md` for common development patterns
+- **Quick function lookup**: `grep -i "function_name" docs/ARISBE_CORE_API_REFERENCE.md`
 
 ## 🧪 Testing Requirements
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
@@ -52,9 +51,9 @@
 - **Documentation**: Follow existing docstring patterns
 
 ## 🧠 Context Recovery (Framework Amnesia)
-- **Forgot the framework?** Read `COHERENCE_FRAMEWORK_REMINDER.md` first
-- **Complete recovery guide**: `FRAMEWORK_AMNESIA_RECOVERY.md`
-- **Persistent context system**: `PERSISTENT_CONTEXT_SYSTEM.md` for complete workflow
+- **Forgot the framework?** Read `docs/context/COHERENCE_FRAMEWORK_REMINDER.md` first
+- **Complete recovery guide**: `docs/context/FRAMEWORK_AMNESIA_RECOVERY.md`
+- **Persistent context system**: `docs/context/PERSISTENT_CONTEXT_SYSTEM.md` for complete workflow
 - **Automated reminders**: `python tools/coherence_reminder_system.py`
 - **Context awareness check**: `python tools/context_awareness_system.py --check "task"`
 - **Quick status**: `python tools/core_protection_system.py --report`
@@ -135,7 +134,7 @@ result = rule.apply_transformation(context)
 
 ### Import/Export - Battle-Tested Production Modules (✅ 57+ tomos examples tested)
 **Status**: ✅ PRODUCTION - All parsers/generators validated across extensive tomos  
-**Documentation**: `IMPORT_EXPORT_FORMATS.md` for complete reference
+**Documentation**: `docs/IMPORT_EXPORT_FORMATS.md` for complete reference
 
 **EGIF (Extended Graph Interchange Format)**:
 ```python
@@ -217,7 +216,7 @@ tikz_picture = generate_tikz(render_commands, standalone=False)
 
 ### Tomos Management (✅ PRODUCTION - IMPLEMENTED 2025-10-14)
 **Current Status**: Unified TomosService API (fully tested and integrated)  
-**Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`, `DAG_HISTORY_ARCHITECTURE.md`
+**Documentation**: `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `docs/UOD_DEVELOPER_GUIDE.md`, `docs/DAG_HISTORY_ARCHITECTURE.md`
 
 **For Organon (Browse & Load UoDs)**:
 ```python
@@ -261,12 +260,11 @@ branch_id = uod.history.create_branch_from_state(
 - **Organon Integration**: Basic viewing integrated (~40% complete, needs import/export)
 - **Ergasterion Integration**: Foundation integrated (untested, needs validation)
 - **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (zero breaking changes)
-- **See documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `DAG_HISTORY_ARCHITECTURE.md`
+- **See documentation**: `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `docs/DAG_HISTORY_ARCHITECTURE.md`
 
 ## 🔄 Living Documentation Workflow
 - **Before development**: `python tools/context_awareness_system.py --check "task"`
-- **Check existing solutions**: `grep -i "function_name" ARISBE_CORE_API_REFERENCE.md`
-- **Verify no duplication**: Review `.arisbe_context_check` checklist
+- **Check existing solutions**: `grep -i "function_name" docs/ARISBE_CORE_API_REFERENCE.md`
 - **Use IDE integration**: VS Code tasks for instant context checks
 - **Weekly maintenance**: `python tools/living_documentation_generator.py`
 - **Context preservation**: Critical solutions stored in persistent memory system
@@ -456,12 +454,12 @@ egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
 - **TomosService**: Unified API with index-based browsing, lazy loading, efficient storage
 - **Categories**: Static (Literature, Canonical) vs Dynamic (Inquiry, Theorem Proof, EPG Session, Practice)
 - **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (all old code works unchanged)
-- **Documentation**: `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `UOD_DEVELOPER_GUIDE.md`, `DAG_HISTORY_ARCHITECTURE.md`
+- **Documentation**: `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `docs/UOD_DEVELOPER_GUIDE.md`, `docs/DAG_HISTORY_ARCHITECTURE.md`
 - **Scalability**: Designed for 1000+ states, DAG supports branching exploration
 
 ### DAG-Based Transformation History (✅ PRODUCTION 2025-10-14)
 **Current Status**: Fully implemented and tested  
-**Documentation**: `DAG_HISTORY_ARCHITECTURE.md`
+**Documentation**: `docs/DAG_HISTORY_ARCHITECTURE.md`
 
 **Key Features**:
 - Branch from any historical state (not just linear sequences)
