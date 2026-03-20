@@ -588,90 +588,271 @@ class ErasureRule(FormalTransformationRule):
 
 
 class IterationRule(FormalTransformationRule):
-    """IT+ - Iteration Rule"""
+    """IT+ - Iteration Rule
+
+    A subgraph in area A may be copied into any area B where B is enclosed
+    by A (i.e., B is at a deeper nesting level than A, or B == A).
+    Copied elements receive fresh UUID-based IDs and preserve all attributes.
+    Cut interiors are duplicated recursively.
+    """
 
     def get_rule_name(self) -> str:
         return "IT+ (Iteration)"
+
+    # ------------------------------------------------------------------
+    # Area nesting helpers
+    # ------------------------------------------------------------------
+
+    def _find_source_area(
+        self, egi: RelationalGraphWithCuts, selected_subgraph: FrozenSet[ElementID]
+    ) -> ElementID:
+        """Return the area that directly contains the most selected elements."""
+        best_area = egi.sheet
+        best_count = 0
+        for area_id, contents in egi.area.items():
+            count = sum(1 for eid in selected_subgraph if eid in contents)
+            if count > best_count:
+                best_count = count
+                best_area = area_id
+        return best_area
+
+    def _ancestry_chain(
+        self, egi: RelationalGraphWithCuts, area_id: ElementID
+    ) -> List[ElementID]:
+        """Return the path from the sheet down to area_id (inclusive)."""
+        if area_id == egi.sheet:
+            return [egi.sheet]
+        chain = [area_id]
+        current = area_id
+        visited: Set[ElementID] = set()
+        while current != egi.sheet:
+            if current in visited:
+                break
+            visited.add(current)
+            parent = next(
+                (pid for pid, contents in egi.area.items() if current in contents),
+                None,
+            )
+            if parent is None:
+                break
+            chain.append(parent)
+            current = parent
+        chain.reverse()
+        return chain
+
+    def _is_enclosed_by(
+        self,
+        egi: RelationalGraphWithCuts,
+        candidate: ElementID,
+        encloser: ElementID,
+    ) -> bool:
+        """Return True if candidate is enclosed within encloser (or is equal)."""
+        if candidate == encloser:
+            return True
+        return encloser in self._ancestry_chain(egi, candidate)
+
+    # ------------------------------------------------------------------
+    # Recursive cut copy
+    # ------------------------------------------------------------------
+
+    def _copy_cut_recursive(
+        self,
+        egi: RelationalGraphWithCuts,
+        cut_id: ElementID,
+        new_vertices: Set,
+        new_edges: Set,
+        new_cuts: Set,
+        new_nu: Dict,
+        new_rel: Dict,
+        new_area_mapping: Dict,
+        element_mapping: Dict,
+    ) -> ElementID:
+        """
+        Recursively copy a cut and all its contents.
+        Returns the new cut's ID.  Reuses element_mapping so that vertices
+        referenced by multiple edges are only duplicated once.
+        """
+        import uuid
+
+        if cut_id in element_mapping:
+            return element_mapping[cut_id]
+
+        copy_cut_id = ElementID(f"c_{uuid.uuid4().hex[:8]}")
+        element_mapping[cut_id] = copy_cut_id
+        new_cuts.add(Cut(copy_cut_id))
+
+        original_contents = egi.area.get(cut_id, frozenset())
+        new_cut_contents: Set[ElementID] = set()
+
+        for elem_id in original_contents:
+            # Vertex?
+            v_match = next((v for v in egi.V if v.id == elem_id), None)
+            if v_match is not None:
+                if elem_id not in element_mapping:
+                    new_v_id = ElementID(f"v_{uuid.uuid4().hex[:8]}")
+                    element_mapping[elem_id] = new_v_id
+                    new_vertices.add(
+                        Vertex(
+                            id=new_v_id,
+                            label=v_match.label,
+                            is_generic=v_match.is_generic,
+                        )
+                    )
+                new_cut_contents.add(element_mapping[elem_id])
+                continue
+
+            # Edge?
+            e_match = next((e for e in egi.E if e.id == elem_id), None)
+            if e_match is not None:
+                if elem_id not in element_mapping:
+                    new_e_id = ElementID(f"e_{uuid.uuid4().hex[:8]}")
+                    element_mapping[elem_id] = new_e_id
+                    new_edges.add(Edge(new_e_id))
+                    if elem_id in egi.nu:
+                        new_nu[new_e_id] = tuple(
+                            element_mapping.get(vid, vid)
+                            for vid in egi.nu[elem_id]
+                        )
+                    if elem_id in egi.rel:
+                        new_rel[new_e_id] = egi.rel[elem_id]
+                new_cut_contents.add(element_mapping[elem_id])
+                continue
+
+            # Nested cut?
+            c_match = next((c for c in egi.Cut if c.id == elem_id), None)
+            if c_match is not None:
+                inner_copy_id = self._copy_cut_recursive(
+                    egi=egi,
+                    cut_id=elem_id,
+                    new_vertices=new_vertices,
+                    new_edges=new_edges,
+                    new_cuts=new_cuts,
+                    new_nu=new_nu,
+                    new_rel=new_rel,
+                    new_area_mapping=new_area_mapping,
+                    element_mapping=element_mapping,
+                )
+                new_cut_contents.add(inner_copy_id)
+
+        new_area_mapping[copy_cut_id] = frozenset(new_cut_contents)
+        return copy_cut_id
+
+    # ------------------------------------------------------------------
+    # Preconditions and transformation
+    # ------------------------------------------------------------------
 
     def check_preconditions(
         self, context: TransformationContext
     ) -> Tuple[bool, Optional[str]]:
         """
-        IT+ requires a selected subgraph and a properly designated area
-        (the same area or area nested in the same) in which to iterate it.
+        IT+ requires:
+        - A non-empty selected subgraph
+        - A valid target (destination) area
+        - The destination area must be enclosed by (or equal to) the source area
         """
-        # Verify selected subgraph exists
         if not context.selected_subgraph:
             return False, "Must select a subgraph to iterate"
 
-        # Verify target area exists
-        if context.target_area not in context.source_egi.area:
+        egi = context.source_egi
+        if context.target_area not in egi.area:
             return False, f"Target area {context.target_area} does not exist"
 
-        # For now, we'll allow iteration in any area
-        # Full implementation would check nesting relationships
+        source_area = self._find_source_area(egi, context.selected_subgraph)
+        if not self._is_enclosed_by(egi, context.target_area, source_area):
+            return False, (
+                f"IT+ requires the destination to be enclosed by the source area. "
+                f"Source: {source_area}, Destination: {context.target_area}"
+            )
 
         return True, None
 
     def apply_transformation(
         self, context: TransformationContext
     ) -> TransformationResult:
-        """Apply IT+ by copying the selected subgraph to the designated area."""
+        """Apply IT+ by copying the selected subgraph into the target area."""
+        import uuid
+
         precondition_ok, error_msg = self.check_preconditions(context)
         if not precondition_ok:
             return TransformationResult(False, None, error_msg, {})
 
         try:
             egi = context.source_egi
+            source_area = self._find_source_area(egi, context.selected_subgraph)
 
-            # Create copies of the selected elements with new IDs
-            new_vertices = set(egi.V)
-            new_edges = set(egi.E)
-            new_cuts = set(egi.Cut)
-            new_nu = dict(egi.nu)
-            new_rel = dict(egi.rel)
+            new_vertices: Set = set(egi.V)
+            new_edges: Set = set(egi.E)
+            new_cuts: Set = set(egi.Cut)
+            new_nu: Dict = dict(egi.nu)
+            new_rel: Dict = dict(egi.rel)
+            new_area_mapping: Dict = dict(egi.area)
+            element_mapping: Dict = {}
 
-            copied_elements = set()
-            element_mapping = {}  # Original ID -> Copy ID
+            # Only copy elements that are DIRECTLY in the source area
+            # (elements inside selected cuts are handled recursively)
+            source_direct = egi.area.get(source_area, frozenset())
+            top_level_copies: Set[ElementID] = set()
 
-            # Copy vertices
-            for vertex in egi.V:
-                if vertex.id in context.selected_subgraph:
-                    copy_id = ElementID(f"{vertex.id}_copy")
-                    copy_vertex = Vertex(copy_id)
-                    new_vertices.add(copy_vertex)
-                    copied_elements.add(copy_id)
-                    element_mapping[vertex.id] = copy_id
-
-            # Copy edges and update nu mapping
-            for edge in egi.E:
-                if edge.id in context.selected_subgraph:
-                    copy_id = ElementID(f"{edge.id}_copy")
-                    copy_edge = Edge(copy_id)
-                    new_edges.add(copy_edge)
-                    copied_elements.add(copy_id)
-                    element_mapping[edge.id] = copy_id
-
-                    # Update nu mapping for copied edge
-                    if edge.id in egi.nu:
-                        original_sequence = egi.nu[edge.id]
-                        # Map vertex IDs in the sequence
-                        new_sequence = tuple(
-                            element_mapping.get(vid, vid) for vid in original_sequence
+            for elem_id in context.selected_subgraph & source_direct:
+                # Vertex?
+                v_match = next((v for v in egi.V if v.id == elem_id), None)
+                if v_match is not None:
+                    new_v_id = ElementID(f"v_{uuid.uuid4().hex[:8]}")
+                    element_mapping[elem_id] = new_v_id
+                    new_vertices.add(
+                        Vertex(
+                            id=new_v_id,
+                            label=v_match.label,
+                            is_generic=v_match.is_generic,
                         )
-                        new_nu[copy_id] = new_sequence
+                    )
+                    top_level_copies.add(new_v_id)
+                    continue
 
-                    # Update rel mapping
-                    if edge.id in egi.rel:
-                        new_rel[copy_id] = egi.rel[edge.id]
+                # Edge?
+                e_match = next((e for e in egi.E if e.id == elem_id), None)
+                if e_match is not None:
+                    new_e_id = ElementID(f"e_{uuid.uuid4().hex[:8]}")
+                    element_mapping[elem_id] = new_e_id
+                    new_edges.add(Edge(new_e_id))
+                    top_level_copies.add(new_e_id)
+                    if elem_id in egi.nu:
+                        new_nu[new_e_id] = tuple(
+                            element_mapping.get(vid, vid)
+                            for vid in egi.nu[elem_id]
+                        )
+                    if elem_id in egi.rel:
+                        new_rel[new_e_id] = egi.rel[elem_id]
+                    continue
 
-            # Update area mapping
-            new_area_mapping = dict(egi.area)
-            current_area_contents = new_area_mapping.get(
-                context.target_area, frozenset()
-            )
-            new_area_mapping[context.target_area] = current_area_contents | frozenset(
-                copied_elements
+                # Cut?
+                c_match = next((c for c in egi.Cut if c.id == elem_id), None)
+                if c_match is not None:
+                    copy_cut_id = self._copy_cut_recursive(
+                        egi=egi,
+                        cut_id=elem_id,
+                        new_vertices=new_vertices,
+                        new_edges=new_edges,
+                        new_cuts=new_cuts,
+                        new_nu=new_nu,
+                        new_rel=new_rel,
+                        new_area_mapping=new_area_mapping,
+                        element_mapping=element_mapping,
+                    )
+                    top_level_copies.add(copy_cut_id)
+
+            # Fix up edge nu mappings now that element_mapping is complete
+            # (edges copied before their referenced vertices were mapped)
+            for orig_e_id, copy_e_id in list(element_mapping.items()):
+                if any(copy_e_id == e.id for e in new_edges) and orig_e_id in egi.nu:
+                    new_nu[copy_e_id] = tuple(
+                        element_mapping.get(vid, vid) for vid in egi.nu[orig_e_id]
+                    )
+
+            # Add top-level copies to the destination area
+            dest_contents = new_area_mapping.get(context.target_area, frozenset())
+            new_area_mapping[context.target_area] = (
+                dest_contents | frozenset(top_level_copies)
             )
 
             result_egi = RelationalGraphWithCuts(
@@ -690,7 +871,7 @@ class IterationRule(FormalTransformationRule):
                 error_message=None,
                 changes_made={
                     "rule": "IT+",
-                    "copied_elements": list(copied_elements),
+                    "copied_elements": [str(v) for v in top_level_copies],
                     "target_area": str(context.target_area),
                     "element_mapping": {
                         str(k): str(v) for k, v in element_mapping.items()
