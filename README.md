@@ -17,7 +17,7 @@ A formal reasoning environment implementing Charles S. Peirce's Existential Grap
 - **EGI** = A photograph (one frame)
 - **Universe of Discourse** = The entire film (coherent sequence)
 
-👉 **Complete philosophy**: [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)
+👉 **Complete philosophy**: [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)
 
 ### What is a Universe of Discourse?
 
@@ -26,7 +26,7 @@ A **UoD** is the complete logical environment consisting of:
 1. **The Transformation History** (the recorded log)
    - Sequence of valid rule applications
    - Complete provenance tracking
-   - Branching and exploration paths
+   - Branching and exploration paths (DAG-based)
 
 2. **The Synchronic States** (the frames)
    - `(EGI_Model, LayoutDeltas)` at each point in time
@@ -86,11 +86,11 @@ The **core reasoning engine** and referee.
 
 **Metaphor**: Conference room - formal presentation, justification, official record
 
-**The Endoporeutic Game**: New facts aren't passively accepted - they must be **defended** in a dialogical contest:
-- **Graphist** (user): Asserts graph, must defend
-- **Grapheus** (system): Challenges assertion, tries to falsify
-- Reading **outside-in** (endoporeutic method)
-- Victory → assertion accepted into UoD
+**The Endoporeutic Game** *(implemented)*: New facts are defended in a two-player dialogical contest:
+- **Proposer**: Defends the graph; moves in negative (odd-depth) areas using INS, IT+, DC±
+- **Skeptic**: Challenges the assertion; moves in positive (even-depth) areas using ERA, IT-, DC±
+- Reading proceeds **outside-in** (endoporeutic method)
+- Skeptic conceding, or Proposer reaching the goal graph, ends the game
 
 ---
 
@@ -100,23 +100,19 @@ The **core reasoning engine** and referee.
 **Who**: Researchers, logicians, and students working with diagrammatic reasoning  
 **Why**: First modern, rigorous implementation of EG as a **process-oriented logic system**
 
-👉 **Full vision**: [PRODUCT_VISION.md](PRODUCT_VISION.md)  
-👉 **Current plan**: [CURRENT_PLAN.md](CURRENT_PLAN.md)  
+👉 **Full vision**: [PRODUCT_VISION.md](docs/PRODUCT_VISION.md)  
 👉 **AI assistance**: [AI_CONDUCT_GUIDELINES.md](AI_CONDUCT_GUIDELINES.md)
 
 ---
 
-## 🔒 **COHERENCE FRAMEWORK ACTIVE**
+## 🔒 **Development Guidelines**
 
-**Arisbe includes a comprehensive coherence framework:**
-- **📚 Complete API Documentation** - `ARISBE_CORE_API_REFERENCE.md`
-- **🛡️ Core Protection** - 16 validated modules, 90 passing tests
-- **📊 Quality Monitoring** - Automated quality gates and daily dashboard
-- **🧠 Context Recovery** - `COHERENCE_FRAMEWORK_REMINDER.md`
+- **📚 API Documentation**: `docs/ARISBE_CORE_API_REFERENCE.md`
+- **🛡️ Core Protection**: 16 validated modules, 151 passing tests
+- **📊 Quality Monitoring**: Automated quality gates and daily dashboard
+- **🧠 Context Recovery**: `docs/context/COHERENCE_FRAMEWORK_REMINDER.md`
 
-**→ New to the codebase? Read `AGENTS.md` for complete development guidelines!**
-
-Updated: 2025-10-14
+**→ New to the codebase? Read `AGENTS.md` for complete development guidelines.**
 
 ---
 
@@ -126,13 +122,13 @@ Updated: 2025-10-14
 - **UoD**: Universe of Discourse (the fundamental entity)
 - **EGI**: Existential Graph Instance (synchronic snapshot)
 - **State**: `(EGI_Model, LayoutDeltas)` pair (structure + presentation)
-- **History**: Complete transformation log with provenance
+- **History**: DAG-based transformation log with branching and provenance
 
-**Linear Forms**:
+**Linear Forms** (all round-trip to/from EGI):
 - **EGIF**: Dau's existential graph interchange format
-- **CGIF**: Conceptual graph interchange format  
+- **CGIF**: Conceptual graph interchange format
 - **CLIF**: Common logic interchange format
-- All round-trip to/from EGI
+- **FOPL**: First-order predicate logic (Dau Chapter 18 Φ/Ψ translations)
 
 **Visual System**:
 - Cuts (negation boundaries)
@@ -140,389 +136,308 @@ Updated: 2025-10-14
 - Vertices (individuals, constants, variables)
 - Ligatures (identity lines connecting vertices)
 
-**Rules**:
-- Same-area ligatures **avoid** cut collisions
-- Cross-area ligatures **can cross** cut boundaries
-- Rendering: Cuts → Predicates → Vertices → Ligatures
+**Transformation Rules** (Dau formalism, all implemented):
+- **ERA / INS**: Erasure and insertion (polarity-controlled)
+- **IT+ / IT-**: Iteration and deiteration
+- **DC+ / DC-**: Double cut insertion and erasure
 
-## Architecture
+---
 
-### Integrated Management System
+## 🏗️ Architecture
 
-Arisbe features a unified architecture built around three core integrated managers that provide consistent, validated access to all system functionality:
+### Core Source Modules (`src/`)
 
-**IntegratedCorpusManager** (`src/integrated_corpus_manager.py`)
-- Centralized EGI library management with Dau formalism compliance
-- Multi-format support (EGIF, CGIF, CLIF, FOPL, JSON)
-- Advanced search, categorization, and quality metrics
-- Educational tomos organization and validation
+**EGI Data Model:**
+- `egi_core_dau.py` — `RelationalGraphWithCuts` with 6+1 component architecture (V, E, ν, sheet, Cut, area, rel)
+- `egi_io.py` — JSON persistence with layout delta preservation
+- `egi_transformation_history.py` — DAG-based transformation history with branching
 
-**IntegratedViewManager** (`src/integrated_view_manager.py`)
-- Unified view generation system for all visualization needs
-- Multiple view types: Overview, Detailed, Hierarchical, Spatial, Transformation
-- Configurable zoom levels and focus filtering
-- View caching and export capabilities
+**Transformation Engine:**
+- `formal_transformation_rules.py` — All six Dau rules (ERA, INS, IT+, IT-, DC+, DC-) with precondition validation
+- `hierarchical_index.py` — O(1) polarity and nesting-depth lookup
+- `chapter17_soundness_evaluation.py` — Soundness evaluation framework (Z3-backed)
+- `ligature_manipulation_rules.py` — Chapter 16/17 ligature rules
+- `vertex_splitting_merging_rules.py` — Vertex split/merge operations
+- `enhanced_ligature_algorithms.py` — Ligature detection and manipulation
 
-**IntegratedExportManager** (`src/integrated_export_manager.py`)
-- Comprehensive export system with validation guarantees
-- Quality levels: Draft, Standard, Publication, Archival
-- Round-trip fidelity across all linear forms
-- Export history tracking and batch processing
+**Linear Forms:**
+- `egif_parser_dau.py` / `egif_generator_dau.py` — EGIF (57+ tomos examples validated)
+- `cgif_parser_dau.py` / `cgif_generator_dau.py` — CGIF ISO/IEC standard (40+ examples)
+- `clif_parser_dau.py` / `clif_generator_dau.py` — CLIF Common Logic standard (35+ examples)
+- `chapter18_fopl_translation.py` — FOPL ↔ EGI (Φ/Ψ translations, Dau Chapter 18)
 
-**CoreDauFormalismManager** (`src/core_dau_formalism.py`)
-- Central coordination hub for all mathematical operations
-- Transformation rule engine with validation
-- Chapter-specific compliance checking
-- Integration with all specialized managers
+**Semantic Validation:**
+- `z3_semantic_validator.py` — Z3 SMT-solver based semantic equivalence checking
+  - `are_semantically_equivalent(G, G')`: UNSAT of ¬(G ↔ G')
+  - `is_satisfiable(G)`, `is_tautology(G)`
+  - `Z3Result` with True/False/None (timeout) values
 
-**CoherenceRegistry** (`src/coherence_registry.py`)
-- Centralized discovery system for all components
-- Function and interface registration
-- Metadata and usage documentation
-- Development coherence framework
+**Endoporeutic Game (Agon):**
+- `endoporeutic_game.py` — Game engine with `Player` enum, `GameState`, polarity-based move validation
+- `game_repl.py` — Interactive REPL (`cmd.Cmd`) for two-player play
+- `proof_serializer.py` — Transformation history serialized as JSON proof notation
 
-### Current Active Architecture
+**Graph Operations:**
+- `graph_isomorphism_engine.py` — NetworkX VF2 `MultiDiGraphMatcher` for goal detection
+- `syntactic_equivalence_checker.py` — Chapter 20 syntactic equivalence
+- `chapter20_syntactic_equivalence_fixes.py` — Equivalence edge cases
+- `subgraph_closure_validator.py` — INS/ERA closure validation
 
-The system is built around the integrated management system with mathematically rigorous core components:
+**Corpus and UoD Management:**
+- `universe_of_discourse.py` — `UniverseOfDiscourse` entity (synchronic + diachronic + layout)
+- `tomos_service.py` — Unified API for corpus browsing and UoD loading
+- `tomos_index.py` — Index-based fast corpus navigation
 
-**Core Mathematical Foundation:**
-- **EGI Data Structures** (`egi_core_dau.py`): RelationalGraphWithCuts with 6+1 components
-- **Transformation Rules** (`formal_transformation_rules.py`): IT+, IT-, INS, ERA, DC+, DC-
-- **Linear Form System**: Round-trip translation between EGIF, CGIF, CLIF, FOPL
-- **Hierarchical Indexing** (`hierarchical_index.py`): O(1) polarity and nesting calculations
-- **Semantic Evaluation** (`dau_semantic_evaluation_engine.py`): Chapter-specific compliance
+**Layout and Visualization:**
+- `unified_d3_engine.py` — Recursive bottom-up D3 layout engine (production)
+- `simple_svg_renderer.py` — Direct LayoutDTO → SVG rendering
+- `style_specification.py` / `style_loader.py` — Declarative visual style system
+- `diagram_controller.py` — GUI coordination layer
 
-**Integrated Management Layer:**
-- **CoreDauFormalismManager**: Central coordination of all mathematical operations
-- **IntegratedCorpusManager**: Validated tomos management with search and categorization
-- **IntegratedViewManager**: Unified view generation with caching and export
-- **IntegratedExportManager**: Multi-format export with quality guarantees
-- **CoherenceRegistry**: Component discovery and documentation system
-
-### Active Components (Coherence Registry Validated)
-
-**Core Mathematical Foundation:**
-- **EGI Core**: `src/egi_core_dau.py` (RelationalGraphWithCuts, Vertex, Edge, Cut)
-- **Transformation System**: `src/formal_transformation_rules.py` (All 6 Dau transformation rules)
-- **Linear Form Parsers**: `src/egif_parser_dau.py`, `src/cgif_parser_dau.py`, `src/clif_parser_dau.py`
-- **Linear Form Generators**: `src/egif_generator_dau.py`, `src/cgif_generator_dau.py`, `src/clif_generator_dau.py`
-- **Hierarchical Indexing**: `src/hierarchical_index.py` (O(1) polarity calculations)
-- **Semantic Evaluation**: `src/dau_semantic_evaluation_engine.py`
-- **Chapter Compliance**: `src/enhanced_dau_compliance_engine.py`
-- **FOPL Translation**: `src/chapter18_fopl_translation.py`
-
-**Integrated Management System:**
-- **Core Manager**: `src/core_dau_formalism.py` (Central coordination hub)
-- **Tomos Manager**: `src/integrated_corpus_manager.py` (EGI library management)
-- **View Manager**: `src/integrated_view_manager.py` (Unified visualization)
-- **Export Manager**: `src/integrated_export_manager.py` (Multi-format export)
-- **Coherence Registry**: `src/coherence_registry.py` (Component discovery)
-
-**Layout Engine and Visualization:**
-- **Unified D3 Recursive Layout Engine**: `src/unified_d3_engine.py` (Production engine as of 2025-10-12)
-  - Pure recursive bottom-up traversal with shell-and-core D3 worker
-  - Two-phase simulation eliminates force-fighting (SHELL arranges cuts, CORE positions content)
-  - Iron-clad EGI.area compliance through recursive coordinate translation
-  - See `BOTTOM_UP_D3_ARCHITECTURE.md` for complete details
-- **D3 Worker**: `src/unified_d3_worker.js` (Shell-and-core physics simulation)
-- **SVG Renderer**: `src/simple_svg_renderer.py` (Direct LayoutDTO → SVG rendering)
-- **Style System**: `src/style_specification.py`, `styles/` (Customizable visual styling)
-- **Layout DTO Adapter**: `src/layout_dto_adapter.py` (Compatibility bridge for existing GUI)
-
-**Active GUI Development:**
-- **Chapter 21 Integration**: `src/chapter21_gui_integration.py`
-- **Transformation Wizards**: `src/chapter21_transformation_wizards.py`
-- **Diagram Panel**: `src/gui/organon/chapter21_diagram_panel.py`
-- **Wizard Dialog**: `src/gui/transformation_wizard_dialog.py`
-
-**Testing and Validation:**
-- **Integration Tests**: `test_*_integration.py` (Comprehensive validation)
-- **Chapter Tests**: `test_chapter*_*.py` (Chapter-specific compliance)
-- **Coherence Framework**: `.coherence/`, `coherence_framework/`
-
-### Legacy Components (Deprecated)
-
-**Note**: The following components are deprecated and maintained for reference only:
-- Constraint architecture system (`src/legacy/`)
-- Fragmented drawing code (`src/diagram_coordinator.py`, `src/legacy/interaction_handler.py`)
+**Utilities:**
+- `dau_formalism_validator.py` — Cross-chapter Dau compliance checking
+- `insertion_clipboard.py` — Persistent INS workflow clipboard
+- `egi_validity_analyzer.py` — Structural EGI integrity checking
+- `nary_identity_relations.py` — N-ary identity/ligature relations
+- `theta_relation.py` — Θ-relation for ligature equivalence classes
+- `single_object_ligature_detector.py` — Single-object ligature detection
 
 ### Core Principles
 
-- **Mathematical Rigor**: All operations validated against Dau's formal specifications
-- **Integrated Management**: Unified APIs through coherent manager interfaces
-- **Component Discovery**: Coherence registry enables systematic access to all functionality
-- **Round-trip Fidelity**: Guaranteed preservation across all linear form translations
-- **Chapter Compliance**: Explicit validation against specific Dau chapters
-- **Transformation Soundness**: All rule applications mathematically verified
-- **Coherence Framework**: Documentation and code maintained in sync through registry
+- **EGI as single source of truth**: All visual changes are presentation deltas
+- **Immutable transformations**: All EGI operations produce new immutable instances
+- **Round-trip fidelity**: Guaranteed across all linear format translations
+- **Mathematical rigor**: All rules validated against Dau's formal specifications
+- **Semantic grounding**: Z3-verified equivalence for transformation soundness
 
-## Project structure
+---
 
-- `src/`
-  - Canonical logic: `egi_core_dau.py`, `egi_system.py`, `egi_graph_operations.py`, `transformation_rules.py`
-  - Linear forms: `egif_parser_dau.py`, `egif_generator_dau.py`, `cgif_parser_dau.py`, `cgif_generator_dau.py`, `clif_parser_dau.py`, `clif_generator_dau.py`, `chapter18_fopl_translation.py`
-  - Controllers/coordination: `egi_controller.py`, `egi_adapter.py`, `egi_io.py`, `corpus_integration.py`
-  - Spatial/layout/validation: `networkx_spatial_layout.py`, `logic_spatial_validator.py`, `egi_spatial_correspondence.py`, `spatial_region_manager.py`, `egi_logical_areas.py`
-  - GUI/rendering: `qt_egi_gui.py`, `arisbe_unified_app.py`, `routing/visibility_router.py`, `styling/style_manager.py`, `export/tikz_exporter.py`, `controller/constraint_engine.py`
-  - Legacy/demo: `qt_test_minimal.py`, `qt_correspondence_integration.py`, `spatial_logical_alignment.py`, `corpus_egi_test.py`
-- `tools/`: interactive sandbox and converters (`drawing_editor.py`, `drawing_to_egi.py`, etc.)
-- `docs/`: derived tomos text, references, examples, styles
-- `tomos/`: canonical and challenging examples
-- `tests/`: comprehensive unit/integration tests
+## 📁 Project Structure
 
-## Current State
+```
+src/                  Core logic and engine (38 production modules)
+tests/                Pytest test suite (151 passing)
+tools/                Quality tools, demos, and utilities
+docs/                 Architecture documentation
+docs/context/         AI-assist context and recovery guides
+tomos/                Canonical example corpus (87 items)
+corpus/               Active working corpus
+archive/              Archived legacy components
+styles/               Visual style specifications (JSON)
+```
 
-### ✅ Completed Integration (2025-09-15)
+---
 
-**Core Mathematical Foundation:**
-- Complete Dau-compliant EGI data structures with 6+1 component architecture
-- All transformation rules implemented (IT+, IT-, INS, ERA, DC+, DC-)
-- Round-trip translation pipeline: EGIF ↔ CGIF ↔ CLIF ↔ FOPL ↔ EGI
-- Chapter-specific compliance engines (Chapters 11-21)
-- Hierarchical indexing for efficient cut nesting and polarity
+## 🚀 Quick Start
 
-**Integrated Management System:**
-- IntegratedCorpusManager: Complete tomos management with validation
-- IntegratedViewManager: Unified view generation and caching
-- IntegratedExportManager: Multi-format export with quality guarantees
-- CoreDauFormalismManager: Central coordination of all operations
-- CoherenceRegistry: Component discovery and documentation system
+### Install
 
-**Testing and Quality Assurance:**
-- **Core Tests**: 90/90 tests passing (100%) - Mathematical foundation validated
-- **GUI Tests**: 3/3 Organon tests passing (100%)
-- **Quality Gates**: All passing with core protection active
-- **Layout Engine**: Validated on 15-graph tomos with stable results
-- Comprehensive test suites covering logical equivalence and transformation soundness
-- Coherence framework with automated validation and API documentation
-- CI/CD pipeline with canonical invariant testing
-- Quality metrics and compliance reporting
-- **Status**: Production-ready with definitive layout architecture
-
-**Spatial and Visual Systems:**
-- NetworkX + Graphviz spatial layout engine
-- Logic-spatial concordance validation
-- EGDF specification compliance
-- Ligature rendering with collision avoidance
-- Proper rendering order: Cuts → Predicates → Vertices → Ligatures
-
-### ✅ DiagramController - Layered Command Architecture (Updated 2025-10-12)
-
-**Revolutionary GUI Foundation:**
-- **Layered Architecture**: Clean separation between "what" (use case logic) and "how" (diagram manipulation)
-- **Command Pattern**: High-level commands in Organon/Ergasterion/Agon orchestrate low-level controller operations
-- **Layout Engine**: Now using **UnifiedD3Engine** with recursive bottom-up and shell-and-core physics
-- **State Management**: Immutable EGI transformations with persistent user constraints across operations
-- **Validation System**: Multi-layer validation for positions, paths, and formal rule preconditions
-- **Undo/Redo Support**: Complete command history management with CommandExecutor
-- **Three Use Cases**:
-  - **Organon**: Visualization & exploration (read-only view operations)
-  - **Ergasterion**: Learning & practice (rule-based EGI modifications)
-  - **Agon**: Formal interaction & gameplay (Endoporeutic Game mechanics)
-- **Formal Rules**: Complete implementation of DC+/-, INS/ERA, IT+/- with Dau compliance
-- **Production Ready**: Comprehensive test suite with 90 core tests passing
-- **Test Results** (2025-10-12): 90/90 core tests passing, 3/3 GUI Organon tests
-
-**Technical Achievements:**
-- **Definitive layout engine**: Shell-and-core model eliminates force-fighting
-- **EGI.area compliance**: Recursive coordinate translation ensures correctness  
-- **Immutable EGI pipeline**: Mathematical rigor in all transformations
-- **Persistent constraints**: User preferences survive logical transformations
-- **Command pattern architecture**: Enabling complex undo/redo operations
-- **Clean separation**: Independent development of GUI components
-
-### 🔧 Current Development Focus
-
-**GUI and Interactive Systems:**
-- Chapter 21 diagram panel and transformation wizards
-- Interactive constraint enforcement
-- Real-time validation and visual feedback
-- Selection and highlighting improvements
-
-**Known Technical Debt:**
-- Import dependency resolution for some specialized modules
-- Qt containment visualization refinements
-- Interactive constraint consistency at edit-time
-- Enhanced spatial correspondence under dynamic edits
-
-## Sub-applications
-
-- Organon (Browser): canonical EGDF viewing of EGI, read-only. Status: foundation in place; extend EGDF generator and browser views.
-- Ergasterion (Workshop): interactive editor (Bullpen) with Warmup/Practice modes. Status: Qt GUI and sandbox present; constraints and selection system under active work.
-- Agon (Endoporeutic Game): gameplay built on formal, legal, meaning-preserving moves. Status: design staged; depends on robust constraints and transformation legality.
-
-## Quick start
-
-Install
 ```bash
+conda activate CGIF   # Python 3.12; see requirements.txt
 pip install -r requirements.txt
 ```
 
-Run the interactive sandbox (recommended for quick trials)
+### Launch the Qt GUI
+
 ```bash
-python tools/drawing_editor.py
+python arisbe.py
 ```
 
-Run the Qt GUI
+### Play the Endoporeutic Game (REPL)
+
 ```bash
-python src/arisbe_unified_app.py
-# or
-python src/qt_egi_gui.py
+conda run -n CGIF python -c "
+import sys; sys.path.insert(0, 'src')
+from game_repl import ArisbeGameREPL
+ArisbeGameREPL().cmdloop()
+"
 ```
 
-Parse and layout from EGIF in code
+### Parse and work with EGI in code
+
 ```python
-from src.egif_parser_dau import EGIFParser
-from src.egi_controller import EGIController
-from src.networkx_spatial_layout import compute_layout
+import sys; sys.path.insert(0, 'src')
+from egif_parser_dau import parse_egif
+from egif_generator_dau import generate_egif
+from formal_transformation_rules import DoubleCutInsertionRule, TransformationContext, AreaPolarity
 
-egi = EGIFParser('*x (Human x) ~[ (Mortal x) ]').parse()
-layout = compute_layout(egi)
-# feed into GUI or exporter as needed
+egi = parse_egif('*x (Human x) ~[ (Mortal x) ]')
+
+ctx = TransformationContext(
+    source_egi=egi,
+    target_area=egi.sheet,
+    selected_subgraph=frozenset(),
+    area_polarity=AreaPolarity.POSITIVE,
+    nesting_depth=0,
+)
+result = DoubleCutInsertionRule().apply_transformation(ctx)
+print(generate_egif(result.result_egi))
 ```
 
-Convert a drawing JSON to EGI
-```bash
-python tools/drawing_to_egi.py --input tmp/drawing.json --layout
+### Z3 semantic validation
+
+```python
+from z3_semantic_validator import are_semantically_equivalent
+from egif_parser_dau import parse_egif
+
+g1 = parse_egif('*x (Human x)')
+g2 = parse_egif('~[~[*x (Human x)]]')   # double-cut equivalent
+r = are_semantically_equivalent(g1, g2)
+print(r)   # Z3Result(YES: ...)
 ```
 
-## Testing and Validation
+---
 
-### Comprehensive Test Suite
+## 🧪 Testing
 
-**GUI and Layout Engine Testing:**
-```bash
-# GUI Organon tests (3/3 passing)
-python tools/test_gui_organon.py
-
-# Core test suite (90/90 passing)
-python -m pytest tests/ -v
-
-# Quality gates (automated on commit)
-python tools/quality_gate_system.py
-```
-
-**Integration Testing:**
-```bash
-# Core integration validation
-python test_final_integration.py
-
-# Comprehensive manager testing
-python test_integrated_managers.py
-
-# Working integration demo
-python test_working_integration.py
-```
-
-**Chapter-Specific Testing:**
-```bash
-# Chapter 18 FOPL translation
-python test_chapter18_translation_consistency.py
-
-# Chapter 20 syntactic equivalence
-python test_chapter20_syntactic_equivalence.py
-
-# Chapter 21 comprehensive testing
-python test_chapter21_comprehensive.py
-```
-
-**Core Mathematical Testing:**
-```bash
-# Full test suite
-python -m pytest tests/ -v
-
-# Canonical invariant testing
-python -m pytest tests/test_canonical_invariant.py
-
-# Round-trip translation validation
-python test_complete_round_trip_translations.py
-```
-
-**GUI and Interactive Testing:**
-```bash
-# Minimal GUI demos
-python src/qt_test_minimal.py
-
-# Interactive transformation testing
-python test_transformation_sequences_comprehensive.py
-```
-
-### Coherence Framework Validation
+### Core suite
 
 ```bash
-# Coherence analysis
-python tools/coherence_analyzer.py
+# Full test suite (151 passing)
+conda run -n CGIF python -m pytest tests/ -q
 
-# Integration compliance
-python tests/coherence_integration.py
+# With verbose output
+conda run -n CGIF python -m pytest tests/ -v
 ```
 
-## EGDF integrity and style metadata
+### Quality and protection
 
-- EGDF files include a header with:
-  - egi_checksum: deterministic hash of normalized EGI
-  - style_id: current theme identifier
-  - updated: UTC ISO timestamp
-- On load, mismatches can be surfaced for user awareness in future iterations.
+```bash
+# Quality gate
+conda run -n CGIF python tools/quality_gate_system.py
 
-## Development notes
+# Core protection status
+conda run -n CGIF python tools/core_protection_system.py --report
 
-- EGI as single source of truth; visual edits default to presentation deltas.
-- Cuts determine spatial exclusion; child cuts create forbidden zones for parent-level elements.
-- Same-area ligatures must avoid collisions; cross-area ligatures may cross cuts per EGI mappings.
-- Rendering order is fixed to preserve legibility and correctness.
-- Integrity monitoring is always-on to prevent regressions and contamination.
+# Daily dashboard
+conda run -n CGIF python tools/daily_quality_dashboard.py
+```
 
-## What Users Can Do with Arisbe
+### Demos and integration scripts
+
+```bash
+# Syllogism proof demo
+conda run -n CGIF python tools/demo_syllogism_proof.py
+
+# Round-trip translation demo
+conda run -n CGIF python tools/demo_round_trip_translations.py
+```
+
+---
+
+## 🗺️ Sub-application Status
+
+| Module | Status | Notes |
+|---|---|---|
+| **Organon** (Archive/browser) | Foundation in place | Qt GUI entry; corpus browsing via `TomosService` |
+| **Ergasterion** (Workshop) | Foundation in place | Interactive editor; constraint system under development |
+| **Agon** (Endoporeutic Game) | ✅ **Implemented** | `endoporeutic_game.py` + `game_repl.py`; Z3-validated |
+
+---
+
+## 📊 Current State (March 2026)
+
+### ✅ Completed
+
+**Mathematical Core:**
+- Complete Dau-compliant EGI data structures (6+1 component `RelationalGraphWithCuts`)
+- All six transformation rules (ERA, INS, IT+, IT-, DC+, DC-) with precondition validation
+- Round-trip translation: EGIF ↔ CGIF ↔ CLIF ↔ FOPL ↔ EGI (57+ / 40+ / 35+ tomos validated)
+- Hierarchical indexing for O(1) polarity and nesting calculations
+- Chapter 17 ligature rules (move branches, extend/retract, split/merge vertices)
+- Chapter 18 FOPL ↔ EGI (Φ/Ψ translations)
+- Chapter 20 syntactic equivalence checking
+- NetworkX VF2 graph isomorphism (replaces O(n!) permutation engine)
+
+**Semantic Validation:**
+- Z3 SMT-solver integration (`z3_semantic_validator.py`)
+- Semantic equivalence verified: DC+ soundness confirmed (∃x.Human(x) ≡ ¬¬∃x.Human(x))
+- `chapter17_soundness_evaluation.py` backed by real Z3 calls
+
+**Endoporeutic Game (Agon):**
+- Full game engine with `Player.PROPOSER` / `Player.SKEPTIC` role model
+- Polarity-based move permissions enforced
+- EGIF-based insertion with fresh-UUID element merging
+- Goal detection via graph isomorphism
+- Interactive REPL with save/load via `ProofSerializer`
+- Transformation history as serializable proof notation
+
+**UoD and Corpus:**
+- `UniverseOfDiscourse` as fundamental entity (synchronic + DAG history + layout)
+- `TomosService` unified corpus API
+- DAG-based transformation history with branching
+
+**Testing:**
+- 151 tests passing (87 core + extended suite)
+- Quality gates and core protection active
+
+### 🔧 In Progress / Next
+
+- Ergasterion interactive editor (constraint enforcement, selection system)
+- Organon browser completeness (import/export integration)
+- GUI integration of Endoporeutic Game (currently REPL only)
+
+---
+
+## 📖 Development Notes
+
+- EGI is the single source of truth; visual edits are presentation deltas (`LayoutDeltas`)
+- Cuts determine spatial exclusion; child cuts create forbidden zones for parent-level elements
+- Same-area ligatures must avoid cut collisions; cross-area ligatures may cross cut boundaries per EGI mappings
+- Rendering order is fixed: Cuts → Predicates → Vertices → Ligatures
+- Import pattern: `from module_name import ...` (not `from src.module_name import ...`)
+
+---
+
+## 👥 What Users Can Do with Arisbe
 
 ### For Logic Researchers & Academics
-- Create publication-quality Existential Graph diagrams
-- Apply formal transformation rules with mathematical validation
-- Verify logical equivalences across multiple representation formats
-- Export to academic formats (LaTeX/TikZ, SVG, PDF)
+- Apply all six formal transformation rules with mathematical validation and Z3 soundness verification
+- Verify logical equivalences across EGIF, CGIF, CLIF, FOPL representations
+- Play the Endoporeutic Game as a formal proof procedure
+- Serialize transformation sequences as proof notation (JSON)
+- Export to academic formats (LaTeX/TikZ, SVG)
 
 ### For Students & Educators
-- Interactive tutorials showing EG transformations step-by-step
-- Visual comparison between different logical representations
-- Educational tomos with graded examples
-- Assignment creation with automatic validation
+- Interactive REPL for step-by-step EG transformation practice
+- Visual comparison between logical representation formats
+- Educational tomos with 87+ canonical examples
+- Game-based proof exploration through the Endoporeutic Game
 
 ### For Software Developers
 - Programmatic EGI creation, validation, and transformation APIs
-- Batch processing of large logic corpora
-- Integration with other formal methods tools
-- RESTful APIs for web-based applications
+- Z3-backed semantic validation for transformation soundness
+- Batch processing of logic corpora via `TomosService`
+- Round-trip translation pipeline between all supported linear forms
 
 ### For Knowledge Engineers
-- Large-scale tomos management with search and categorization
-- Quality metrics and validation reporting
-- System integration with knowledge bases and theorem provers
-- Bridge between diagrammatic and symbolic reasoning
+- Large-scale corpus management with `TomosService`
+- DAG-based transformation history for branching inquiry workflows
+- Bridge between diagrammatic (EGI) and symbolic (FOPL/CLIF) reasoning
 
-## Development Roadmap
+---
 
-### Immediate Priorities (Q4 2025)
-- **GUI Completion**: Finish Chapter 21 diagram panel and transformation wizards
-- **Interactive Constraints**: Real-time validation and constraint enforcement
-- **Import Resolution**: Fix remaining dependency issues for full system stability
+## 🗓️ Development Roadmap
 
-### Short-term Goals (Q1 2026)
-- **Organon Browser**: Read-only tomos browser with canonical views
-- **Ergasterion Workshop**: Interactive editor with practice modes
-- **CLI Tools**: Command-line interface for batch operations
+### Current Focus (Q1–Q2 2026)
+- **Ergasterion completion**: Full interactive editor with real-time constraint enforcement
+- **Organon browser**: Complete import/export integration, full corpus navigation
+- **GUI for Agon**: Qt-based Endoporeutic Game interface (REPL currently available)
 
-### Medium-term Vision (2026)
-- **Agon Game System**: Endoporeutic Game implementation
-- **Web Interface**: Browser-based EG editor and viewer
-- **Advanced Visualization**: 3D cuts and animated transformations
+### Medium-term (2026)
+- **Web interface**: Browser-based EG editor and viewer
+- **Collaborative editing**: Shared UoD sessions
+- **Advanced visualization**: Animated transformation sequences
 
-### Long-term Goals
-- **Collaborative Editing**: Real-time multi-user EG development
-- **Machine Learning Integration**: Pattern recognition in logical structures
-- **Educational Platform**: Complete learning management system for EG theory
+### Long-term
+- **Educational platform**: Complete learning management system for EG theory
+- **Machine learning integration**: Pattern recognition in logical transformation sequences
+- **Theorem prover bridge**: Integration with Coq/Lean via CLIF
 
-## References
+---
 
-- Dau, Frithjof. Mathematical Logic with Diagrams (2003).
-- Peirce, C. S. Existential Graphs (Collected Papers).
-- Sowa, J. F. Existential Graphs: MS 514 by Charles Sanders Peirce (2007).
+## 📚 References
+
+- Dau, Frithjof. *Mathematical Logic with Diagrams* (2003).
+- Peirce, C. S. *Existential Graphs* (Collected Papers).
+- Sowa, J. F. *Existential Graphs: MS 514 by Charles Sanders Peirce* (2007).
