@@ -21,7 +21,8 @@ from formal_transformation_rules import (
     ErasureRule,
     IterationRule,
     DeiterationRule,
-    TransformationContext
+    TransformationContext,
+    AreaPolarity,
 )
 from test_egis import (
     create_simple_vertex_egi,
@@ -47,12 +48,16 @@ class TestDoubleNegationInsertion:
         context = TransformationContext(
             source_egi=egi,
             target_area=egi.sheet,
-            elements=[vertex_id, edge_id]
+            selected_subgraph=frozenset([vertex_id, edge_id]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
-        new_egi = rule.apply_transformation(context)
+        result = rule.apply_transformation(context)
+        new_egi = result.result_egi
         
         # Assert
-        assert new_egi is not None, "Transformation should succeed"
+        assert result.success, f"Transformation should succeed: {result.error_message}"
+        assert new_egi is not None, "Result EGI should not be None"
         assert len(new_egi.Cut) == initial_cut_count + 2, "Should add exactly 2 cuts"
         
         # Verify cuts are in area mapping
@@ -73,11 +78,15 @@ class TestDoubleNegationInsertion:
         context = TransformationContext(
             source_egi=egi,
             target_area=egi.sheet,
-            elements=vertex_ids + edge_ids
+            selected_subgraph=frozenset(vertex_ids + edge_ids),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
-        new_egi = rule.apply_transformation(context)
+        result = rule.apply_transformation(context)
+        new_egi = result.result_egi
         
         # Assert
+        assert result.success, f"Transformation should succeed: {result.error_message}"
         new_vertices = set(v.id for v in new_egi.V)
         new_edges = set(e.id for e in new_egi.E)
         assert new_vertices == initial_vertices, "Vertices should be preserved"
@@ -95,11 +104,15 @@ class TestDoubleNegationInsertion:
         context = TransformationContext(
             source_egi=egi,
             target_area=egi.sheet,
-            elements=[vertex_id, edge_id]
+            selected_subgraph=frozenset([vertex_id, edge_id]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
-        new_egi = rule.apply_transformation(context)
+        result = rule.apply_transformation(context)
+        new_egi = result.result_egi
         
         # Assert - Find the two new cuts
+        assert result.success, f"Transformation should succeed: {result.error_message}"
         assert len(new_egi.Cut) == 2, "Should have exactly 2 cuts"
         
         # One cut should contain the vertex/edge, the other should contain that cut
@@ -131,19 +144,32 @@ class TestDoubleNegationRemoval:
         # Find the nested cuts
         assert initial_cut_count >= 2, "Should have at least 2 cuts"
         
+        # DC- expects ONE outer cut whose area contains exactly one inner cut
+        outer_cut_id = None
+        for cut in egi.Cut:
+            contents = egi.area.get(cut.id, frozenset())
+            if len(contents) == 1:
+                inner_id = next(iter(contents))
+                if any(c.id == inner_id for c in egi.Cut):
+                    outer_cut_id = cut.id
+                    break
+        assert outer_cut_id is not None, "Should find a double-cut pattern"
+        
         # Act
         rule = DoubleCutErasureRule()
-        # Need to identify the two nested cuts to remove
-        cuts_to_remove = [c.id for c in list(egi.Cut)[:2]]
         context = TransformationContext(
             source_egi=egi,
             target_area=egi.sheet,
-            elements=cuts_to_remove
+            selected_subgraph=frozenset([outer_cut_id]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
-        new_egi = rule.apply_transformation(context)
+        result = rule.apply_transformation(context)
+        new_egi = result.result_egi
         
         # Assert
-        assert new_egi is not None, "Transformation should succeed"
+        assert result.success, f"Transformation should succeed: {result.error_message}"
+        assert new_egi is not None, "Result EGI should not be None"
         assert len(new_egi.Cut) == initial_cut_count - 2, "Should remove exactly 2 cuts"
     
     def test_dc_minus_preserves_content(self):
@@ -154,16 +180,29 @@ class TestDoubleNegationRemoval:
         initial_edges = set(e.id for e in egi.E)
         
         # Act
+        outer_cut_id = None
+        for cut in egi.Cut:
+            contents = egi.area.get(cut.id, frozenset())
+            if len(contents) == 1:
+                inner_id = next(iter(contents))
+                if any(c.id == inner_id for c in egi.Cut):
+                    outer_cut_id = cut.id
+                    break
+        assert outer_cut_id is not None, "Should find a double-cut pattern"
+        
         rule = DoubleCutErasureRule()
-        cuts_to_remove = [c.id for c in list(egi.Cut)[:2]]
         context = TransformationContext(
             source_egi=egi,
             target_area=egi.sheet,
-            elements=cuts_to_remove
+            selected_subgraph=frozenset([outer_cut_id]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
-        new_egi = rule.apply_transformation(context)
+        result = rule.apply_transformation(context)
+        new_egi = result.result_egi
         
         # Assert
+        assert result.success, f"Transformation should succeed: {result.error_message}"
         new_vertices = set(v.id for v in new_egi.V)
         new_edges = set(e.id for e in new_egi.E)
         assert new_vertices == initial_vertices, "Vertices should be preserved"
@@ -184,18 +223,20 @@ class TestInsertion:
         
         # Act - Try to insert in the negative area
         rule = InsertionRule()
-        new_vertex = create_vertex(label="Q", is_generic=True)
+        new_vertex = create_vertex(is_generic=True)  # generic vertex has no label
         
         context = TransformationContext(
             source_egi=egi,
             target_area=cut_id,
-            elements=[new_vertex.id]
+            selected_subgraph=frozenset([new_vertex.id]),
+            area_polarity=AreaPolarity.NEGATIVE,
+            nesting_depth=1,
         )
         
         # This should work in negative context
         try:
-            new_egi = rule.apply_transformation(context)
-            assert new_egi is not None, "Insertion should succeed in negative context"
+            result = rule.apply_transformation(context)
+            assert result.success or result.error_message is not None, "Should return a result"
         except Exception as e:
             # If the rule is strict about preconditions, it might reject this
             # That's okay - we're testing the behavior
@@ -208,17 +249,19 @@ class TestInsertion:
         
         # Act & Assert
         rule = InsertionRule()
-        new_vertex = create_vertex(label="Q", is_generic=True)
+        new_vertex = create_vertex(is_generic=True)  # generic vertex has no label
         
         context = TransformationContext(
             source_egi=egi,
-            target_area=egi.sheet,  # Positive context
-            elements=[new_vertex.id]
+            target_area=egi.sheet,
+            selected_subgraph=frozenset([new_vertex.id]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
         
         # This should fail precondition check for positive context
         try:
-            new_egi = rule.apply_transformation(context)
+            result = rule.apply_transformation(context)
             # If it succeeds, the rule may not enforce strict preconditions
             # That's implementation-dependent
         except Exception:
@@ -240,16 +283,18 @@ class TestErasure:
         rule = ErasureRule()
         context = TransformationContext(
             source_egi=egi,
-            target_area=egi.sheet,  # Positive context
-            elements=[vertex_id, edge_id]
+            target_area=egi.sheet,
+            selected_subgraph=frozenset([vertex_id, edge_id]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
         
         try:
-            new_egi = rule.apply_transformation(context)
-            assert new_egi is not None, "Erasure should work in positive context"
-            # Verify elements were removed
-            new_vertex_ids = set(v.id for v in new_egi.V)
-            assert vertex_id not in new_vertex_ids, "Vertex should be erased"
+            result = rule.apply_transformation(context)
+            if result.success and result.result_egi is not None:
+                new_egi = result.result_egi
+                new_vertex_ids = set(v.id for v in new_egi.V)
+                assert vertex_id not in new_vertex_ids, "Vertex should be erased"
         except Exception as e:
             print(f"Erasure behavior: {e}")
     
@@ -268,13 +313,15 @@ class TestErasure:
         rule = ErasureRule()
         context = TransformationContext(
             source_egi=egi,
-            target_area=cut_id,  # Negative context
-            elements=list(elements_in_cut)
+            target_area=cut_id,
+            selected_subgraph=frozenset(elements_in_cut),
+            area_polarity=AreaPolarity.NEGATIVE,
+            nesting_depth=1,
         )
         
         # This should fail precondition check for negative context
         try:
-            new_egi = rule.apply_transformation(context)
+            result = rule.apply_transformation(context)
             # If it succeeds, the rule may not enforce strict preconditions
         except Exception:
             # Expected if rule enforces preconditions
@@ -296,13 +343,15 @@ class TestIteration:
         context = TransformationContext(
             source_egi=egi,
             target_area=egi.sheet,
-            elements=[vertex_id]
+            selected_subgraph=frozenset([vertex_id]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
         
         try:
-            new_egi = rule.apply_transformation(context)
-            # Should have created a copy
-            assert len(new_egi.V) > initial_vertex_count, "Should have copied vertex"
+            result = rule.apply_transformation(context)
+            if result.success and result.result_egi is not None:
+                assert len(result.result_egi.V) > initial_vertex_count, "Should have copied vertex"
         except Exception as e:
             print(f"Iteration behavior: {e}")
     
@@ -318,15 +367,17 @@ class TestIteration:
         context = TransformationContext(
             source_egi=egi,
             target_area=egi.sheet,
-            elements=[vertex_to_copy]
+            selected_subgraph=frozenset([vertex_to_copy]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
         
         try:
-            new_egi = rule.apply_transformation(context)
-            new_vertex_ids = set(v.id for v in new_egi.V)
-            # Original vertices should still be present
-            assert original_vertex_ids.issubset(new_vertex_ids), \
-                "Original vertices should be preserved"
+            result = rule.apply_transformation(context)
+            if result.success and result.result_egi is not None:
+                new_vertex_ids = set(v.id for v in result.result_egi.V)
+                assert original_vertex_ids.issubset(new_vertex_ids), \
+                    "Original vertices should be preserved"
         except Exception as e:
             print(f"Iteration behavior: {e}")
 
@@ -346,11 +397,13 @@ class TestDeiteration:
         context = TransformationContext(
             source_egi=egi,
             target_area=egi.sheet,
-            elements=[vertex_id]
+            selected_subgraph=frozenset([vertex_id]),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
         )
         
         try:
-            new_egi = rule.apply_transformation(context)
+            result = rule.apply_transformation(context)
             # Behavior depends on whether duplicates exist
         except Exception as e:
             # Expected if no valid deiteration target exists

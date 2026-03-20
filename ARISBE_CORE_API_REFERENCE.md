@@ -1,6 +1,6 @@
 # Arisbe Core API Reference
 
-**Last Updated**: 2025-12-26 07:28:14  
+**Last Updated**: 2026-03-20 09:17:38  
 **Auto-Generated**: This file is automatically regenerated when core modules change
 
 ---
@@ -32,6 +32,16 @@ Architecture:
 - Use Case Logic (The "What"): High-level commands in Organon/Ergasterion/Agon
 
 ### Classes
+
+#### `LayoutDelta`
+
+Represents a user-defined positional or path override for a single element.
+
+
+#### `LayoutDeltas`
+
+Collection of user layout overrides for a single EGI state.
+
 
 #### `ValidationResult`
 

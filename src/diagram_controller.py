@@ -18,12 +18,25 @@ from dataclasses import dataclass, field
 from egi_core_dau import RelationalGraphWithCuts, ElementID, Vertex, Edge, Cut
 
 # Layout and styling
-from definitive_egi_layout_engine import (
-    LayoutDeltas,
-    LayoutDelta,
-)
-# Using unified D3 engine (single simulation - definitive architecture)
 from unified_d3_engine import UnifiedD3Engine, LayoutDTO, Point, LigaturePath, BoundingBox
+
+
+@dataclass
+class LayoutDelta:
+    """Represents a user-defined positional or path override for a single element."""
+    element_id: str
+    delta_type: str  # 'vertex_position', 'edge_position', 'cut_size', 'ligature_path'
+    original_position: Optional[Tuple[float, float]] = None
+    new_position: Optional[Tuple[float, float]] = None
+    custom_path: Optional[List[Tuple[float, float]]] = None
+    nu_mapping_key: Optional[str] = None
+
+
+@dataclass
+class LayoutDeltas:
+    """Collection of user layout overrides for a single EGI state."""
+    deltas: Dict[str, LayoutDelta] = field(default_factory=dict)
+    deterministic_seed: Optional[int] = None
 
 # Style system
 from style_loader import StyleLoader, StyleSpecification
