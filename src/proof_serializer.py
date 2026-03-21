@@ -182,10 +182,16 @@ class ProofSerializer:
                 error_message=None,
                 changes_made={"restored_from_json": True},
             )
+            user_annotation: Optional[str] = None
+            if step_id_orig and step_id_orig in data["transformations"]:
+                user_annotation = data["transformations"][step_id_orig].get(
+                    "user_annotation"
+                )
             new_step_id = history.add_transformation(
                 rule_name=rule_name,
                 context=stub_context,
                 result=stub_result,
+                user_annotation=user_annotation,
             )
             id_map[orig_to] = history.current_state_id
 
