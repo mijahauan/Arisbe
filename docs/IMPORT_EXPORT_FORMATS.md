@@ -25,6 +25,7 @@ egif_text = generate_egif(egi)
 ```
 
 **Use Cases**:
+
 - Literature imports
 - Canonical examples
 - Textual representation
@@ -50,6 +51,7 @@ cgif_text = generate_cgif(egi)
 ```
 
 **Use Cases**:
+
 - Interoperability with CG systems
 - ISO standard compliance
 - Academic exchange
@@ -63,6 +65,7 @@ cgif_text = generate_cgif(egi)
 **File Extension**: `.clif`
 
 **Parser/Generator**:
+
 ```python
 from clif_parser_dau import parse_clif
 from clif_generator_dau import generate_clif, generate_clif_with_quantification
@@ -76,6 +79,7 @@ clif_text = generate_clif_with_quantification(egi)  # Explicit form
 ```
 
 **Use Cases**:
+
 - Common Logic ecosystem integration
 - ISO standard interchange
 - Formal semantics
@@ -89,6 +93,7 @@ clif_text = generate_clif_with_quantification(egi)  # Explicit form
 **File Extension**: `.fopl` or `.fol`
 
 **Parser/Generator**:
+
 ```python
 from chapter18_fopl_translation import fopl_to_egi, egi_to_fopl
 
@@ -100,6 +105,7 @@ fopl_text = egi_to_fopl(egi)
 ```
 
 **Use Cases**:
+
 - Traditional logic representation
 - Automated theorem provers
 - Educational contexts
@@ -115,6 +121,7 @@ fopl_text = egi_to_fopl(egi)
 **File Extension**: `.json` or `.egi.json`
 
 **Parser/Generator**:
+
 ```python
 from egi_io import load_egi_json, save_egi_json
 
@@ -126,6 +133,7 @@ save_egi_json(egi, "filename.json")
 ```
 
 **Use Cases**:
+
 - Native storage format
 - Internal use
 - Layout delta persistence
@@ -139,6 +147,7 @@ save_egi_json(egi, "filename.json")
 **File Extension**: `.uod.json` or `.json`
 
 **Parser/Generator**:
+
 ```python
 from tomos_service import TomosService
 
@@ -152,6 +161,7 @@ corpus.save_uod(uod)
 ```
 
 **Structure**:
+
 ```json
 {
   "metadata": {
@@ -168,6 +178,7 @@ corpus.save_uod(uod)
 ```
 
 **Use Cases**:
+
 - Complete tomos storage
 - Metadata preservation
 - History tracking
@@ -181,6 +192,7 @@ corpus.save_uod(uod)
 **File Extension**: `.svg`
 
 **Generator**:
+
 ```python
 from simple_svg_renderer import SimpleSVGRenderer
 
@@ -189,6 +201,7 @@ svg_content = renderer.render_to_svg_string(dto, egi, style)
 ```
 
 **Use Cases**:
+
 - Publications
 - Presentations
 - Web display
@@ -204,6 +217,7 @@ svg_content = renderer.render_to_svg_string(dto, egi, style)
 **File Extension**: `.tex`
 
 **Generator**:
+
 ```python
 from export.tikz_exporter import generate_tikz
 
@@ -215,19 +229,22 @@ tikz_picture = generate_tikz(render_commands, standalone=False)
 ```
 
 **Use Cases**:
+
 - Academic papers
 - LaTeX documents
 - High-quality publications
 - Vector graphics in papers
 
 **Features**:
+
 - Standalone LaTeX document or TikZ picture only
 - Vertices, predicates, cuts, ligatures
 - Proper parity shading (even/odd areas)
 - Style-aware rendering
 - Text escaping for LaTeX
 
-**Note**: LaTeX/TikZ is export-only (visual representation, not data)
+**Note**: 
+LaTeX/TikZ is export-only (visual representation, not data)
 
 ---
 
@@ -307,6 +324,7 @@ Import Universe of Discourse
 ## Usage Examples
 
 ### Import Literature (EGIF)
+
 ```python
 # In Organon
 from import_export_manager import ImportExportManager
@@ -319,6 +337,7 @@ if uod:
 ```
 
 ### Export to Multiple Formats
+
 ```python
 # Export current UoD
 manager = ImportExportManager(tomos_service)
@@ -383,6 +402,7 @@ manager.export_uod(uod, format='uod_json', file_path='output.uod.json')
 ## Summary
 
 Arisbe supports **8 formats** for interoperability:
+
 - **4 textual linear formats**: EGIF, CGIF, CLIF, FOPL
 - **2 JSON formats**: EGI-only, Full UoD
 - **2 visual formats**: SVG, LaTeX/TikZ

@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "history_id": "69764cdb-cb0f-4048-a577-af913def4190",
+  "created_timestamp": "2026-03-21T16:17:06.020161+00:00",
+  "current_state_id": "299271ee-d03f-4a4c-9797-5fa991588996",
+  "root_state_id": "9285af0b-d37e-4a30-ae7a-585876125a68",
+  "state_sequence": [
+    "9285af0b-d37e-4a30-ae7a-585876125a68",
+    "77205fb4-96a1-403e-8e4a-178451eaf689",
+    "120ddfce-f46f-4e87-a9c5-b08a36ea9010",
+    "299271ee-d03f-4a4c-9797-5fa991588996"
+  ],
+  "branch_points": [],
+  "states": {
+    "9285af0b-d37e-4a30-ae7a-585876125a68": {
+      "state_id": "9285af0b-d37e-4a30-ae7a-585876125a68",
+      "step_number": 0,
+      "description": "Premise: ∀x.Human(x) → Mortal(x)",
+      "timestamp": "2026-03-21T16:17:06.020161+00:00",
+      "egif": "*x (Human x) ~[ (Mortal x) ]",
+      "metadata": {
+        "is_initial": true
+      }
+    },
+    "77205fb4-96a1-403e-8e4a-178451eaf689": {
+      "state_id": "77205fb4-96a1-403e-8e4a-178451eaf689",
+      "step_number": 1,
+      "description": "After DC+ (Double Cut Insertion)",
+      "timestamp": "2026-03-21T16:17:06.020238+00:00",
+      "egif": "~[ ~[ *x (Human x) ~[ (Mortal x) ] ] ]",
+      "metadata": {
+        "rule": "DC+",
+        "outer_cut": "cut_b95185c8",
+        "inner_cut": "cut_6cb2909a",
+        "enclosed_elements": [
+          "c_37ce5672",
+          "e_9308fc1d",
+          "v_04f9787c"
+        ]
+      }
+    },
+    "120ddfce-f46f-4e87-a9c5-b08a36ea9010": {
+      "state_id": "120ddfce-f46f-4e87-a9c5-b08a36ea9010",
+      "step_number": 2,
+      "description": "After DC+ (Double Cut Insertion)",
+      "timestamp": "2026-03-21T16:17:06.020333+00:00",
+      "egif": "~[ ~[ ~[ ~[ *x (Human x) ~[ (Mortal x) ] ] ] ] ]",
+      "metadata": {
+        "rule": "DC+",
+        "outer_cut": "cut_5ba90456",
+        "inner_cut": "cut_1e9ca3a5",
+        "enclosed_elements": [
+          "cut_b95185c8"
+        ]
+      }
+    },
+    "299271ee-d03f-4a4c-9797-5fa991588996": {
+      "state_id": "299271ee-d03f-4a4c-9797-5fa991588996",
+      "step_number": 3,
+      "description": "After DC+ (Double Cut Insertion)",
+      "timestamp": "2026-03-21T16:17:06.020448+00:00",
+      "egif": "~[ ~[ ~[ ~[ ~[ ~[ *x (Human x) ~[ (Mortal x) ] ] ] ] ] ] ]",
+      "metadata": {
+        "rule": "DC+",
+        "outer_cut": "cut_6c5a7469",
+        "inner_cut": "cut_00389e83",
+        "enclosed_elements": [
+          "cut_5ba90456"
+        ]
+      }
+    }
+  },
+  "transformations": {
+    "26f5c3ce-e783-4377-8336-024df9190854": {
+      "step_id": "26f5c3ce-e783-4377-8336-024df9190854",
+      "rule_name": "DC+ (Double Cut Insertion)",
+      "from_state_id": "9285af0b-d37e-4a30-ae7a-585876125a68",
+      "to_state_id": "77205fb4-96a1-403e-8e4a-178451eaf689",
+      "timestamp": "2026-03-21T16:17:06.020244+00:00",
+      "status": "applied",
+      "user_annotation": "Dau Theorem 12.3.1 — DC+ in positive context",
+      "metadata": {}
+    },
+    "116d5730-58fe-4884-a807-40e2eaa2b82c": {
+      "step_id": "116d5730-58fe-4884-a807-40e2eaa2b82c",
+      "rule_name": "DC+ (Double Cut Insertion)",
+      "from_state_id": "77205fb4-96a1-403e-8e4a-178451eaf689",
+      "to_state_id": "120ddfce-f46f-4e87-a9c5-b08a36ea9010",
+      "timestamp": "2026-03-21T16:17:06.020339+00:00",
+      "status": "applied",
+      "user_annotation": "Prepare for deiteration step",
+      "metadata": {}
+    },
+    "0b8e6839-e5be-4848-9ec0-039c08990271": {
+      "step_id": "0b8e6839-e5be-4848-9ec0-039c08990271",
+      "rule_name": "DC+ (Double Cut Insertion)",
+      "from_state_id": "120ddfce-f46f-4e87-a9c5-b08a36ea9010",
+      "to_state_id": "299271ee-d03f-4a4c-9797-5fa991588996",
+      "timestamp": "2026-03-21T16:17:06.020453+00:00",
+      "status": "applied",
+      "user_annotation": "Wrap for subsequent IT+ application",
+      "metadata": {}
+    }
+  }
+}

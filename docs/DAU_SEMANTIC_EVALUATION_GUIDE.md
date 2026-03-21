@@ -9,6 +9,7 @@ This guide documents the implementation of Frithjof Dau's Chapter 13 semantic ev
 ### 1. RelationalStructure (Definition 13.1)
 
 Represents a mathematical model with:
+
 - **Universe of Discourse**: Set of objects that can be referenced
 - **Interpretation Function**: Maps relation names to actual relations
 
@@ -24,6 +25,7 @@ print(f"Relations: {list(model.interpretation.keys())}")
 ### 2. Valuation (Definition 13.2)
 
 Maps vertices to objects in the universe:
+
 - **Partial Valuation**: Maps some vertices to objects
 - **Total Valuation**: Maps all vertices to objects
 
@@ -128,6 +130,7 @@ The semantic evaluation engine integrates seamlessly with existing Arisbe compon
 ## Testing and Validation
 
 Comprehensive test suite covers:
+
 - ✅ Relational structure creation and validation
 - ✅ Valuation properties and extensions
 - ✅ Classical evaluation correctness
@@ -138,6 +141,7 @@ Comprehensive test suite covers:
 - ✅ Error handling for invalid inputs
 
 Run tests:
+
 ```bash
 python src/dau_semantic_evaluation_tests.py
 ```

@@ -10,10 +10,10 @@ All archived files are preserved in git history and organized into:
 ```
 archive/
 ├── documentation/          # Historical documentation (65+ files)
-├── debug_scripts/          # Debug scripts (13 files)
-├── test_scripts/           # Root-level test scripts (46 files)
-├── analysis_artifacts/     # Large analysis files (15+ files)
-└── deprecated_code/        # Backup/deprecated code (5 files)
+├── debug\_scripts/          # Debug scripts (13 files)
+├── test\_scripts/           # Root-level test scripts (46 files)
+├── analysis\_artifacts/     # Large analysis files (15+ files)
+└── deprecated\_code/        # Backup/deprecated code (5 files)
 ```
 
 ## What Was Archived
@@ -21,219 +21,235 @@ archive/
 ### 1. Historical Documentation (archive/documentation/)
 
 **Phase & Session Reports**:
-- ALL_PHASES_COMPLETE.md
-- ALL_OPTIONS_COMPLETE_SUMMARY.md
-- PHASE_1_COMPLETION_REPORT.md through PHASE_6_COMPLETION_REPORT.md
-- PHASE1_COMPLETION_SUMMARY.md, PHASE2_COMPLETION_SUMMARY.md
-- PHASES_1_2_3_COMPLETE.md
-- SESSION_2025_10_14_SUMMARY.md
-- SESSION_SUMMARY_2025_10_12.md
-- TESTING_SESSION_2025_10_01_COMPLETE.md
-- TESTING_SESSION_COMPLETE.md
-- COMMIT_SUMMARY.md, COMMIT_SUMMARY_2025_09_30.md
-- STATUS_REPORT_2025_10_15.md
+
+- ALL\_PHASES\_COMPLETE.md
+- ALL\_OPTIONS\_COMPLETE\_SUMMARY.md
+- PHASE\_1\_COMPLETION\_REPORT.md through PHASE\_6\_COMPLETION\_REPORT.md
+- PHASE1\_COMPLETION\_SUMMARY.md, PHASE2\_COMPLETION\_SUMMARY.md
+- PHASES\_1\_2\_3\_COMPLETE.md
+- SESSION\_2025\_10\_14\_SUMMARY.md
+- SESSION\_SUMMARY\_2025\_10\_12.md
+- TESTING\_SESSION\_2025\_10\_01\_COMPLETE.md
+- TESTING\_SESSION\_COMPLETE.md
+- COMMIT\_SUMMARY.md, COMMIT\_SUMMARY\_2025\_09\_30.md
+- STATUS\_REPORT\_2025\_10\_15.md
 
 **Implementation Success Reports**:
-- BOTTOM_UP_ENGINE_FIXES.md
-- BOTTOM_UP_ENGINE_INTEGRATION.md
-- BOTTOM_UP_SPREADING_FIXES.md
-- CHAPTER18_TRANSLATION_CONSISTENCY_REPORT.md
-- CHAPTER20_SYNTACTIC_EQUIVALENCE_REPORT.md
-- CHAPTER21_IMPLEMENTATION_SUMMARY.md
-- COMPLETE_REFACTORING_SUMMARY.md
-- COMPLETE_ROUND_TRIP_REPORT.md
-- COMPREHENSIVE_TESTING_FINAL_REPORT.md
-- COMPREHENSIVE_TESTING_IMPLEMENTATION_SUMMARY.md
-- CONNECTION_PORTS_SUCCESS.md
-- ERGASTERION_PHASE1_COMPLETE.md
-- FORCE_BALANCE_FIX.md
-- HOOK_AND_SIZING_FIXES.md
-- IMPLEMENTATION_SUMMARY.md
-- LIGATURE_BUG_FOUND.md
-- NEAREST_PORT_ASSIGNMENT_SUCCESS.md
-- OPTIMAL_PORT_ASSIGNMENT_SUCCESS.md
-- SEQUENTIAL_LAYOUT_ENGINE_SUCCESS.md
-- STYLED_LAYOUT_ENGINE_SUCCESS.md
-- TESTING_FIXES_COMPLETE.md
-- USER_EDIT_SYSTEM_SUCCESS.md
-- VISUAL_QUALITY_FIXES.md
-- WORKFLOW_TEST_FINDINGS.md
+
+- BOTTOM\_UP\_ENGINE\_FIXES.md
+- BOTTOM\_UP\_ENGINE\_INTEGRATION.md
+- BOTTOM\_UP\_SPREADING\_FIXES.md
+- CHAPTER18\_TRANSLATION\_CONSISTENCY\_REPORT.md
+- CHAPTER20\_SYNTACTIC\_EQUIVALENCE\_REPORT.md
+- CHAPTER21\_IMPLEMENTATION\_SUMMARY.md
+- COMPLETE\_REFACTORING\_SUMMARY.md
+- COMPLETE\_ROUND\_TRIP\_REPORT.md
+- COMPREHENSIVE\_TESTING\_FINAL\_REPORT.md
+- COMPREHENSIVE\_TESTING\_IMPLEMENTATION\_SUMMARY.md
+- CONNECTION\_PORTS\_SUCCESS.md
+- ERGASTERION\_PHASE1\_COMPLETE.md
+- FORCE\_BALANCE\_FIX.md
+- HOOK\_AND\_SIZING\_FIXES.md
+- IMPLEMENTATION\_SUMMARY.md
+- LIGATURE\_BUG\_FOUND.md
+- NEAREST\_PORT\_ASSIGNMENT\_SUCCESS.md
+- OPTIMAL\_PORT\_ASSIGNMENT\_SUCCESS.md
+- SEQUENTIAL\_LAYOUT\_ENGINE\_SUCCESS.md
+- STYLED\_LAYOUT\_ENGINE\_SUCCESS.md
+- TESTING\_FIXES\_COMPLETE.md
+- USER\_EDIT\_SYSTEM\_SUCCESS.md
+- VISUAL\_QUALITY\_FIXES.md
+- WORKFLOW\_TEST\_FINDINGS.md
 
 **Coherence Framework Evolution**:
-- COHERENCE_FRAMEWORK_100_PERCENT_COMPLETE.md
-- COHERENCE_FRAMEWORK_ANALYSIS_2025.md
-- COHERENCE_FRAMEWORK_COMPLETE_EXPLANATION.md
-- COHERENCE_FRAMEWORK_IMPLEMENTATION.md
-- COHERENCE_FRAMEWORK_MAINTENANCE_GAP_ANALYSIS.md
-- COHERENCE_FRAMEWORK_SUCCESS_SUMMARY.md
-- COHERENCE_FRAMEWORK_UPDATE_2025-10-18.md
-- COHERENCE_FRAMEWORK_UPDATE_CONNECTION_PORTS.md
-- COHERENCE_IMPLEMENTATION_SUMMARY.md
+
+- COHERENCE\_FRAMEWORK\_100\_PERCENT\_COMPLETE.md
+- COHERENCE\_FRAMEWORK\_ANALYSIS\_2025.md
+- COHERENCE\_FRAMEWORK\_COMPLETE\_EXPLANATION.md
+- COHERENCE\_FRAMEWORK\_IMPLEMENTATION.md
+- COHERENCE\_FRAMEWORK\_MAINTENANCE\_GAP\_ANALYSIS.md
+- COHERENCE\_FRAMEWORK\_SUCCESS\_SUMMARY.md
+- COHERENCE\_FRAMEWORK\_UPDATE\_2025-10-18.md
+- COHERENCE\_FRAMEWORK\_UPDATE\_CONNECTION\_PORTS.md
+- COHERENCE\_IMPLEMENTATION\_SUMMARY.md
 
 **Architecture Evolution**:
-- BOTTOM_UP_DETERMINISM_AND_CUTS.md
-- BOTTOM_UP_FINAL_ARCHITECTURE.md
-- COMPREHENSIVE_ARCHITECTURE_SUMMARY.md
-- CRITICAL_ARCHITECTURE_FIX.md
-- D3_FORCE_REFACTORING_SUMMARY.md
-- D3_WORKER_SIMPLIFICATION.md
-- DIAGRAM_CONTROLLER_IMPLEMENTATION.md
-- DIAGRAM_CONTROLLER_LAYERED_ARCHITECTURE.md
-- DIAGRAM_CONTROLLER_TEST_RESULTS.md
-- FINAL_ARCHITECTURE_SUMMARY.md
-- LAYOUT_ENGINE_REFACTORING_STATUS.md
-- UNIFIED_D3_ARCHITECTURE.md
-- UNIFIED_SIMULATION_ARCHITECTURE.md
+
+- BOTTOM\_UP\_DETERMINISM\_AND\_CUTS.md
+- BOTTOM\_UP\_FINAL\_ARCHITECTURE.md
+- COMPREHENSIVE\_ARCHITECTURE\_SUMMARY.md
+- CRITICAL\_ARCHITECTURE\_FIX.md
+- D3\_FORCE\_REFACTORING\_SUMMARY.md
+- D3\_WORKER\_SIMPLIFICATION.md
+- DIAGRAM\_CONTROLLER\_IMPLEMENTATION.md
+- DIAGRAM\_CONTROLLER\_LAYERED\_ARCHITECTURE.md
+- DIAGRAM\_CONTROLLER\_TEST\_RESULTS.md
+- FINAL\_ARCHITECTURE\_SUMMARY.md
+- LAYOUT\_ENGINE\_REFACTORING\_STATUS.md
+- UNIFIED\_D3\_ARCHITECTURE.md
+- UNIFIED\_SIMULATION\_ARCHITECTURE.md
 
 **Planning & Analysis**:
-- ANNOTATION_SYSTEM_TEST_GUIDE.md
-- CODE_CLEANUP_CANDIDATES.md
-- COMPREHENSIVE_TEST_COVERAGE_PLAN.md
-- CORE_CAPABILITIES_AND_COHERENCE_ANALYSIS.md
-- CORE_CAPABILITIES_AND_TESTING_ANALYSIS.md
-- COVERAGE_BASELINE_REPORT.md
-- DOCUMENTATION_DRIFT_FIX_PLAN.md
-- DOCUMENTATION_REVIEW_2025_10_12.md
-- EXISTING_GUI_REVIEW_AND_FRESH_START_PLAN.md
-- FOUNDATION_ASSESSMENT.md
-- FOUNDATION_REPAIR_PLAN.md
-- FOUNDATION_STATUS_UPDATE.md
-- GOLDEN_MASTER_FINDINGS.md
-- INTEGRATION_PLAN.md
-- PASS_0_TOPOLOGICAL_ANALYSIS.md
-- REALISTIC_COMPREHENSIVE_TESTING_ROADMAP.md
-- REFACTORING_PLAN.md
-- TESTING_ENHANCEMENT_PLAN.md
-- TESTING_ENHANCEMENT_PROGRESS.md
+
+- ANNOTATION\_SYSTEM\_TEST\_GUIDE.md
+- CODE\_CLEANUP\_CANDIDATES.md
+- COMPREHENSIVE\_TEST\_COVERAGE\_PLAN.md
+- CORE\_CAPABILITIES\_AND\_COHERENCE\_ANALYSIS.md
+- CORE\_CAPABILITIES\_AND\_TESTING\_ANALYSIS.md
+- COVERAGE\_BASELINE\_REPORT.md
+- DOCUMENTATION\_DRIFT\_FIX\_PLAN.md
+- DOCUMENTATION\_REVIEW\_2025\_10\_12.md
+- EXISTING\_GUI\_REVIEW\_AND\_FRESH\_START\_PLAN.md
+- FOUNDATION\_ASSESSMENT.md
+- FOUNDATION\_REPAIR\_PLAN.md
+- FOUNDATION\_STATUS\_UPDATE.md
+- GOLDEN\_MASTER\_FINDINGS.md
+- INTEGRATION\_PLAN.md
+- PASS\_0\_TOPOLOGICAL\_ANALYSIS.md
+- REALISTIC\_COMPREHENSIVE\_TESTING\_ROADMAP.md
+- REFACTORING\_PLAN.md
+- TESTING\_ENHANCEMENT\_PLAN.md
+- TESTING\_ENHANCEMENT\_PROGRESS.md
 
 **Data Model Evolution**:
-- DIACHRONIC_SYNCHRONIC_DATA_MODEL_ANALYSIS.md
-- UOD_EXECUTIVE_SUMMARY.md
-- UOD_MODEL_TEST_RESULTS.md
-- UOD_REFACTORING_SUMMARY.md
+
+- DIACHRONIC\_SYNCHRONIC\_DATA\_MODEL\_ANALYSIS.md
+- UOD\_EXECUTIVE\_SUMMARY.md
+- UOD\_MODEL\_TEST\_RESULTS.md
+- UOD\_REFACTORING\_SUMMARY.md
 
 **Miscellaneous**:
-- FOPL_EGI_TRANSLATION_VERIFICATION_REPORT.md
-- PHASE_2_LAYOUT_COMPLETION_REPORT.md
-- WHAT_WORKS_NOW.md
-- QUALITY_REPORT.md
-- GIT_RECOVERY_SYSTEM_SUMMARY.md
 
-### 2. Debug Scripts (archive/debug_scripts/)
+- FOPL\_EGI\_TRANSLATION\_VERIFICATION\_REPORT.md
+- PHASE\_2\_LAYOUT\_COMPLETION\_REPORT.md
+- WHAT\_WORKS\_NOW.md
+- QUALITY\_REPORT.md
+- GIT\_RECOVERY\_SYSTEM\_SUMMARY.md
+
+### 2. Debug Scripts (archive/debug\_scripts/)
 
 All one-off debugging scripts from root directory:
-- debug_area_polarity.py
-- debug_composition_area.py
-- debug_composition_ins.py
-- debug_d3_payload.py
-- debug_deep_context.py
-- debug_egi_structure.py
-- debug_egif_corruption.py
-- debug_ins_mapping.py
-- debug_ins_variables.py
-- debug_port_links.py
-- debug_theoretical_verification.py
-- debug_variable_mapping.py
-- debug_vertex_sequence.py
 
-### 3. Root-Level Test Scripts (archive/test_scripts/)
+- debug\_area\_polarity.py
+- debug\_composition\_area.py
+- debug\_composition\_ins.py
+- debug\_d3\_payload.py
+- debug\_deep\_context.py
+- debug\_egi\_structure.py
+- debug\_egif\_corruption.py
+- debug\_ins\_mapping.py
+- debug\_ins\_variables.py
+- debug\_port\_links.py
+- debug\_theoretical\_verification.py
+- debug\_variable\_mapping.py
+- debug\_vertex\_sequence.py
+
+### 3. Root-Level Test Scripts (archive/test\_scripts/)
 
 Test files that were in root (tests/ directory remains active):
-- test_bottom_up_engine.py
-- test_chapter16_compliance.py
-- test_chapter18_translation_consistency.py
-- test_chapter20_syntactic_equivalence.py
-- test_chapter21_comprehensive.py
-- test_chapter21_no_qt.py
-- test_classical_syllogism_proof.py
-- test_coherence_integration.py
-- test_coherence_registry_complete.py
-- test_complete_round_trip_translations.py
-- test_comprehensive_integration.py
-- test_core_architecture.py
-- test_cut_layout_complex.py
-- test_dau_chapter19_theoretical_verification.py
-- test_dau_correspondence.py
-- test_dau_theoretical_compliance.py
-- test_debug_svg.py
-- test_dto_handoff.py
-- test_dynamic_transformations.py
-- test_final_integration.py
-- test_fixed_ins_transformation.py
-- test_force_balance.py
-- test_full_svg_pipeline.py
-- test_hierarchical_areas.py
-- test_ins_wizard_cut_flow.py
-- test_integrated_managers.py
-- test_interactive_viewer.py
-- test_linear_forms.py
-- test_nu_mapping_preservation.py
-- test_organon_display.py
-- test_organon_integration.py
-- test_pass0_topology.py
-- test_polarity_fix.py
-- test_real_egi_data.py
-- test_refactored_corpus.py
-- test_simple_viewer.py
-- test_simplified_integration.py
-- test_simplified_round_trip_demo.py
-- test_svg_rendering.py
-- test_transformation_sequences_comprehensive.py
-- test_transformation_validation.py
-- test_unified_engine.py
-- test_unified_engine_full.py
-- test_unified_with_cuts.py
-- test_unified_worker.py
-- test_working_integration.py
 
-### 4. Large Analysis Artifacts (archive/analysis_artifacts/)
+- test\_bottom\_up\_engine.py
+- test\_chapter16\_compliance.py
+- test\_chapter18\_translation\_consistency.py
+- test\_chapter20\_syntactic\_equivalence.py
+- test\_chapter21\_comprehensive.py
+- test\_chapter21\_no\_qt.py
+- test\_classical\_syllogism\_proof.py
+- test\_coherence\_integration.py
+- test\_coherence\_registry\_complete.py
+- test\_complete\_round\_trip\_translations.py
+- test\_comprehensive\_integration.py
+- test\_core\_architecture.py
+- test\_cut\_layout\_complex.py
+- test\_dau\_chapter19\_theoretical\_verification.py
+- test\_dau\_correspondence.py
+- test\_dau\_theoretical\_compliance.py
+- test\_debug\_svg.py
+- test\_dto\_handoff.py
+- test\_dynamic\_transformations.py
+- test\_final\_integration.py
+- test\_fixed\_ins\_transformation.py
+- test\_force\_balance.py
+- test\_full\_svg\_pipeline.py
+- test\_hierarchical\_areas.py
+- test\_ins\_wizard\_cut\_flow.py
+- test\_integrated\_managers.py
+- test\_interactive\_viewer.py
+- test\_linear\_forms.py
+- test\_nu\_mapping\_preservation.py
+- test\_organon\_display.py
+- test\_organon\_integration.py
+- test\_pass0\_topology.py
+- test\_polarity\_fix.py
+- test\_real\_egi\_data.py
+- test\_refactored\_corpus.py
+- test\_simple\_viewer.py
+- test\_simplified\_integration.py
+- test\_simplified\_round\_trip\_demo.py
+- test\_svg\_rendering.py
+- test\_transformation\_sequences\_comprehensive.py
+- test\_transformation\_validation.py
+- test\_unified\_engine.py
+- test\_unified\_engine\_full.py
+- test\_unified\_with\_cuts.py
+- test\_unified\_worker.py
+- test\_working\_integration.py
+
+### 4. Large Analysis Artifacts (archive/analysis\_artifacts/)
 
 **Large JSON Files**:
-- COHERENCE_ANALYSIS_REPORT.md (753KB)
-- ARISBE_CORE_API_REFERENCE.json (222KB)
-- coherence_analysis.json (1MB)
-- function_index.json (1MB)
-- semantic_knowledge_graph.json (6.3MB)
-- transformation_validation_report.json (7KB)
+
+- COHERENCE\_ANALYSIS\_REPORT.md (753KB)
+- ARISBE\_CORE\_API\_REFERENCE.json (222KB)
+- coherence\_analysis.json (1MB)
+- function\_index.json (1MB)
+- semantic\_knowledge\_graph.json (6.3MB)
+- transformation\_validation\_report.json (7KB)
 
 **Analysis Scripts**:
-- analyze_codebase_orphans.py
-- cleanup_orphaned_classes.py
-- check_all_overlaps.py
-- simple_debug.py
-- example_transformation_history.py
-- integration_demo.py
-- working_integration_demo.py
+
+- analyze\_codebase\_orphans.py
+- cleanup\_orphaned\_classes.py
+- check\_all\_overlaps.py
+- simple\_debug.py
+- example\_transformation\_history.py
+- integration\_demo.py
+- working\_integration\_demo.py
 
 **Miscellaneous Artifacts**:
-- clean_egi_output.json
-- test_clipboard_debug.py
-- test_exactly_three_things_detailed.svg
-- test_output.svg
-- transformed_6.egif
 
-### 5. Deprecated Code (archive/deprecated_code/)
+- clean\_egi\_output.json
+- test\_clipboard\_debug.py
+- test\_exactly\_three\_things\_detailed.svg
+- test\_output.svg
+- transformed\_6.egif
+
+### 5. Deprecated Code (archive/deprecated\_code/)
 
 **Backup Files from src/**:
-- diagram_coordinator.py.backup (109KB)
-- unified_d3_engine_recursive.py.bak
-- unified_d3_worker_ejection.js.bak
-- unified_d3_worker_recursive.js.bak
-- definitive_three_pass_engine_backup.py
+
+- diagram\_coordinator.py.backup (109KB)
+- unified\_d3\_engine\_recursive.py.bak
+- unified\_d3\_worker\_ejection.js.bak
+- unified\_d3\_worker\_recursive.js.bak
+- definitive\_three\_pass\_engine\_backup.py
 
 **Removed**:
-- src/egi_spatial_correspondence.py (empty file - deleted)
+
+- src/egi\_spatial\_correspondence.py (empty file - deleted)
 
 ## What Remains Active
 
 ### Essential Documentation (30+ files)
-- README.md, AGENTS.md, CURRENT_PLAN.md
-- PRODUCT_VISION.md, AI_CONDUCT_GUIDELINES.md
-- Architecture docs (UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md, etc.)
-- API docs (ARISBE_CORE_API_REFERENCE.md, etc.)
-- Framework docs (COHERENCE_FRAMEWORK_REMINDER.md, etc.)
+
+- README.md, AGENTS.md, CURRENT\_PLAN.md
+- PRODUCT\_VISION.md, AI\_CONDUCT\_GUIDELINES.md
+- Architecture docs (UNIVERSE\_OF\_DISCOURSE\_ARCHITECTURE.md, etc.)
+- API docs (ARISBE\_CORE\_API\_REFERENCE.md, etc.)
+- Framework docs (COHERENCE\_FRAMEWORK\_REMINDER.md, etc.)
 
 ### Active Directories
+
 - **src/** - All production code (177 files)
 - **tests/** - Active test suite (58 files)
 - **tools/** - Development tools (88 files)
@@ -256,10 +272,10 @@ All archived files remain in git history and can be accessed:
 
 ```bash
 # View archived file
-git show HEAD:archive/documentation/PHASE_1_COMPLETION_REPORT.md
+git show HEAD:archive/documentation/PHASE\_1\_COMPLETION\_REPORT.md
 
 # Restore archived file if needed
-git checkout HEAD -- archive/documentation/PHASE_1_COMPLETION_REPORT.md
+git checkout HEAD -- archive/documentation/PHASE\_1\_COMPLETION\_REPORT.md
 ```
 
 ## Notes

@@ -7,12 +7,14 @@ The Universe of Discourse (UoD) history model now supports **branching developme
 ## Why DAG Instead of Linear?
 
 **Linear History Limitations:**
+
 - Real inquiry involves exploration and backtracking
 - Alternative proof paths cannot be represented
 - "What if?" scenarios require creating separate UoDs
 - No way to compare different approaches from same starting point
 
 **DAG Benefits:**
+
 - Branch from any historical state
 - Explore multiple transformation paths
 - Keep all explorations in one UoD
@@ -172,6 +174,7 @@ compare_approaches(branch_a, branch_b)
 ## Backward Compatibility
 
 **100% backward compatible** with existing linear history:
+
 - Linear sequences still work exactly as before
 - `state_sequence` and `step_sequence` maintained for compatibility
 - New DAG features are opt-in (use branching methods explicitly)
@@ -182,12 +185,14 @@ compare_approaches(branch_a, branch_b)
 ### Path Finding
 
 **Breadth-First Search (BFS)** finds shortest path between states:
+
 ```python
 def _find_path_bfs(from_state, to_state) -> List[str]:
     # Returns shortest path or None if no path exists
 ```
 
 **Depth-First Search (DFS)** finds all paths:
+
 ```python
 def get_all_paths_from_root(target_state) -> List[List[str]]:
     # Returns all possible paths from root to target
@@ -196,6 +201,7 @@ def get_all_paths_from_root(target_state) -> List[List[str]]:
 ### Branch Point Detection
 
 Automatically tracked when states gain multiple children:
+
 ```python
 # When adding transformation
 if len(state_to_outgoing_steps[current_state]) > 1:
@@ -205,6 +211,7 @@ if len(state_to_outgoing_steps[current_state]) > 1:
 ### Cycle Prevention
 
 DAG structure prevents cycles:
+
 - Each state has at most one incoming edge (from parent)
 - Multiple outgoing edges allowed (branching)
 - Path finding includes cycle detection
@@ -244,6 +251,7 @@ History Timeline:
 ```
 
 Features:
+
 - Visual DAG representation
 - Branch point indicators
 - Navigate any path
@@ -259,6 +267,7 @@ Features:
 ## Testing
 
 Comprehensive test suite validates:
+
 - ✅ Linear history (backward compatibility)
 - ✅ Branching from any state
 - ✅ Multiple paths through DAG
@@ -272,6 +281,7 @@ Test coverage: `tools/test_history_dag.py`
 ## Performance
 
 **Time Complexity:**
+
 - Add transformation: O(1)
 - Create branch: O(1)
 - Find shortest path: O(V + E) BFS
@@ -280,9 +290,11 @@ Test coverage: `tools/test_history_dag.py`
 - Check branch point: O(1)
 
 **Space Complexity:**
+
 - O(V + E) where V = states, E = transformations
 
 **Scalability:**
+
 - Efficient for typical inquiry (10-100 states)
 - Handles complex proofs (100-1000 states)
 - Path finding optimized for DAG structure

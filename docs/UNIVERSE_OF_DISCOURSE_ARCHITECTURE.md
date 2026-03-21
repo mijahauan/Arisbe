@@ -37,6 +37,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 
 ### Definition
 **Universe of Discourse (UoD)**: The complete, evolving logical environment consisting of:
+
 1. **The transformation history** (the recorded sequence of justified rule applications)
 2. **The synchronic states** (EGI + LayoutDeltas at each point in time)
 3. **The in-forming events** (user actions that drive evolution)
@@ -68,6 +69,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Implementation**: `EGITransformationHistory` with `TransformationStep` records
 
 **Contains**:
+
 - Rule applications (IT+, IT-, DC+, DC-, INS, ERA)
 - Provenance tracking (who, when, why)
 - Logical justifications
@@ -82,6 +84,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Implementation**: `StateSnapshot` containing `(EGI_Model, LayoutDeltas)`
 
 **Each state captures**:
+
 - **EGI**: Logical structure (RelationalGraphWithCuts)
 - **LayoutDeltas**: User-specified visual presentation preferences
 - **Linear forms**: EGIF, CGIF, CLIF representations
@@ -130,6 +133,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Role**: Interface to the UoD's history and external world
 
 **Responsibilities**:
+
 1. **History Navigation**
    - Move back/forward through timeline (undo/redo)
    - Jump to specific historical states
@@ -152,6 +156,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Metaphor**: The library and archives - holds published proceedings, enables reading, citation, export
 
 **User Actions**:
+
 - Browse tomos of UoDs
 - Open historical UoD for inspection
 - Navigate transformation history
@@ -163,6 +168,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Role**: Private sandbox for creation and practice
 
 **Responsibilities**:
+
 1. **Draft New Graphs**
    - Create EGI from scratch
    - Build complex facts or hypotheses
@@ -184,6 +190,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Metaphor**: Researcher's private lab - run experiments, work out ideas on whiteboard
 
 **User Actions**:
+
 - Start new practice session
 - Load example as starting point
 - Apply transformations experimentally
@@ -200,6 +207,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Role**: Core reasoning engine and referee
 
 **Responsibilities**:
+
 1. **Validate Logical Changes**
    - Accept proposed facts from Ergasterion
    - Validate transformation rule applications
@@ -221,6 +229,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 **Metaphor**: Official conference room - researcher presents validated findings, formally added to record
 
 **The Endoporeutic Game**:
+
 - **Graphist** (Defender/User): Asserts a graph, must defend it
 - **Grapheus** (Challenger/System): Attempts to falsify by finding counterexample
 - **Game board**: Sheet of Assertion with proposed graph
@@ -231,6 +240,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 - **Outcome**: If Graphist wins → assertion accepted into UoD
 
 **User Actions**:
+
 - Propose new fact (from Ergasterion)
 - Accept Endoporeutic Game challenge
 - Defend assertion with counter-moves
@@ -308,6 +318,7 @@ class GraphEntity:
 ```
 
 **Observations**:
+
 - Already has synchronic (`current_egi`) and diachronic (`history`) aspects
 - `EntityCategory.UNIVERSE` already exists
 - Name "GraphEntity" is misleading - it's really a UoD
@@ -389,6 +400,7 @@ class UoDCategory(Enum):
 ### Key Distinctions
 
 **Static UoD** (from literature):
+
 - Single EGI state
 - No transformation history
 - Category: `LITERATURE_EXAMPLE`, `CANONICAL_PATTERN`
@@ -397,6 +409,7 @@ class UoDCategory(Enum):
 - Can be copied to Ergasterion for practice
 
 **Dynamic UoD** (active reasoning):
+
 - Complete transformation history
 - Multiple states (timeline)
 - Category: `ACTIVE_INQUIRY`, `THEOREM_PROOF`, etc.
@@ -505,6 +518,7 @@ tomos/
 ### Organon (Archive & Publishing)
 
 **Read Operations**:
+
 - Load UoD index for browsing
 - Load UoD metadata (fast, no EGI load)
 - Load specific synchronic state (EGI + Deltas)
@@ -512,11 +526,13 @@ tomos/
 - Access specific historical state
 
 **Write Operations**:
+
 - Export current state (SVG, PDF, LaTeX)
 - Export proof sequence (YAML, formal proof)
 - Export entire UoD (archival format)
 
 **Data Model Needs**:
+
 - Lightweight index for fast browsing
 - Lazy loading of history (don't load all states at once)
 - Efficient state navigation (jump to arbitrary point)
@@ -525,21 +541,25 @@ tomos/
 ### Ergasterion (Workshop)
 
 **Isolation Requirements**:
+
 - Completely separate from main corpus
 - Ephemeral storage (can be discarded)
 - No automatic history tracking
 - Optional: Save as new UoD for later
 
 **Read Operations**:
+
 - Import literature example as starting point
 - Copy state from existing UoD
 - Load saved practice session
 
 **Write Operations**:
+
 - Save practice session (optional)
 - Promote to Agon (triggers UoD creation or update)
 
 **Data Model Needs**:
+
 - Temporary workspace storage
 - Import/copy utilities
 - Promotion mechanism → Agon validation
@@ -548,18 +568,21 @@ tomos/
 ### Agon (Core Reasoning Engine)
 
 **Primary Responsibility**:
+
 - Advance the UoD's diachronic history
 - Validate all logical changes
 - Record transformation steps
 - Create new synchronic states
 
 **Read Operations**:
+
 - Load active UoD
 - Access current state
 - Query transformation history
 - Check game state (Endoporeutic Game)
 
 **Write Operations**:
+
 - Record new transformation step
 - Create new state snapshot
 - Update current state pointer
@@ -567,6 +590,7 @@ tomos/
 - Merge branches (after validation)
 
 **Data Model Needs**:
+
 - Transactional state updates (atomic)
 - Efficient history append (streaming JSONL)
 - Snapshot strategy (balance between full states and deltas)
@@ -656,6 +680,7 @@ tomos/
 > "Consider what effects, that might conceivably have practical bearings, we conceive the object of our conception to have. Then, our conception of these effects is the whole of our conception of the object."
 
 **Application to UoD**:
+
 - The "object" is not a static diagram, but the **process of inquiry**
 - Its "effects" are the **justified transformations** that advance understanding
 - Its "practical bearings" are the **actions** users can take (assert, challenge, defend)
@@ -663,16 +688,19 @@ tomos/
 
 ### Abduction, Deduction, Induction
 **Abduction** (Ergasterion):
+
 - Propose hypothesis that explains observations
 - Draft new graph structure
 - Prepare for challenge
 
 **Deduction** (Agon):
+
 - Apply formal rules to derive consequences
 - Truth-preserving transformations
 - Recorded in UoD history
 
 **Induction** (Future extension):
+
 - Generalize from multiple UoDs
 - Discover patterns across reasoning sessions
 - Meta-level learning
@@ -681,6 +709,7 @@ tomos/
 From Peirce: Read the graph from **outside to inside** (ἔνδον = "within", πορεύω = "to go")
 
 **Implementation**:
+
 - Start at Sheet of Assertion (outermost)
 - Work inward through nested cuts
 - Apply rules at each level of nesting
@@ -696,6 +725,7 @@ This method embodies the **dialogical nature of inquiry** - truth emerges throug
 By establishing the **Universe of Discourse** as the fundamental entity, Arisbe transcends the limitations of diagram editors and becomes a **true logical reasoning environment**.
 
 **Key Achievements**:
+
 1. **Philosophical rigor**: Aligns with Peirce's pragmatism and dialogical inquiry
 2. **Architectural clarity**: Three modules with distinct, coherent responsibilities
 3. **Data model fidelity**: Captures both synchronic and diachronic aspects
@@ -703,10 +733,12 @@ By establishing the **Universe of Discourse** as the fundamental entity, Arisbe 
 5. **Historical provenance**: Complete audit trail of reasoning process
 
 **The Paradigm Shift**:
+
 - **Before**: EGI is a static diagram to be edited
 - **After**: UoD is a dynamic process; EGI is a frame in that process
 
 **The Result**:
+
 A system that honors Peirce's vision of "moving pictures of thought" - not merely rendering static diagrams, but supporting the **living process of logical inquiry**.
 
 ---

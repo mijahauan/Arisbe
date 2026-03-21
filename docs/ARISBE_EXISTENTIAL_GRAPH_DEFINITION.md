@@ -29,12 +29,14 @@ An **Arisbe Existential Graph** extends far beyond simple diagrams or EGIF expre
 **Purpose**: Capture and index restricted, isolated examples
 
 **Characteristics**:
+
 - Static snapshots from textbooks, articles, classroom demonstrations
 - Illustrative examples for reference and study
 - Limited scope, focused on specific logical patterns
 - Historical preservation of EG literature
 
 **Organon Capabilities**:
+
 - Import and catalog exemplar graphs
 - Annotate with scholarly citations and context
 - Export in multiple formats for academic use
@@ -45,12 +47,14 @@ An **Arisbe Existential Graph** extends far beyond simple diagrams or EGIF expre
 **Purpose**: Build entire justified ways of talking and thinking about worlds
 
 **Characteristics**:
+
 - **Living Logical Systems**: Dynamic, evolving reasoning environments
 - **Complete Universe of Discourse**: Comprehensive logical frameworks
 - **Justified Reasoning**: Every assertion backed by transformation provenance
 - **World Modeling**: Represent and reason about any imaginable world
 
 **Agon Capabilities**:
+
 - Endoporeutic Game implementation for formal reasoning
 - Dynamic fact introduction and pattern discovery
 - Comprehensive transformation history tracking

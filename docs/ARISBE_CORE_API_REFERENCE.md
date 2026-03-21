@@ -64,6 +64,7 @@ The deltas from state n become the starting point for state n+1 after reconcilia
 Central controller for EGI diagramming application.
 
 Manages the complete application state and coordinates between:
+
 - EGI model (logical structure)
 - Layout engine (visual layout with user constraints)
 - GUI (user interactions and rendering)
@@ -455,6 +456,7 @@ Dau-compliant Existential Graph Instance (EGI) core implementation.
 Follows Frithjof Dau's exact 6+1 component definition from "Mathematical Logic with Diagrams".
 
 This implementation replaces the previous "Context" model with Dau's formal:
+
 - 6-component Relational Graph with Cuts: (V, E, ν, ⊤, Cut, area)
 - 7th component: rel mapping for relation names
 - Proper area/context distinction for diagram generation
@@ -486,6 +488,7 @@ Cut in Dau's formalism - represents negation context.
 Dau's exact 6+1 component definition of Relational Graph with Cuts.
 
 Components (Definition 12.1):
+
 1. V - finite set of vertices
 2. E - finite set of edges
 3. ν - mapping from edges to vertex sequences
@@ -495,6 +498,7 @@ Components (Definition 12.1):
 7. rel - mapping from edges to relation names (7th component)
 
 Constraints:
+
 - V, E, Cut are pairwise disjoint
 - ⊤ ∉ V ∪ E ∪ Cut
 - area satisfies all formal constraints from Definition 12.1
@@ -737,6 +741,7 @@ egi_to_dict.
 Unified D3 Layout Engine - DEFINITIVE RECURSIVE ARCHITECTURE
 
 PURE BOTTOM-UP RECURSION:
+
 - Python orchestrates recursive traversal of cut hierarchy
 - Each D3 call solves ONE cut's layout (simple, self-contained)
 - Child cuts become fixed-size obstacles in parent simulations
@@ -780,6 +785,7 @@ Platform-independent layout result.
 Definitive Recursive Bottom-Up Layout Engine.
 
 ARCHITECTURE:
+
 1. Build cut hierarchy from EGI.area
 2. Find leaf cuts (no child cuts)
 3. Layout leaves first (call D3 with simple content only)
@@ -859,6 +865,7 @@ from module_name import ClassName
 
 ### Immutability
 EGI model is immutable. Use `.with_*()` methods:
+
 ```python
 # Correct
 new_egi = egi.with_vertex(vertex)
@@ -869,6 +876,7 @@ egi.add_vertex(vertex)  # No such method
 
 ### Error Handling
 Always check return values and handle None cases:
+
 ```python
 result = transform_egi(egi, rule)
 if result is None:

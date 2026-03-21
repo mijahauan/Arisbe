@@ -17,6 +17,7 @@ The graphical interface is not merely a renderer of logical structures. Followin
 **Location**: `src/gui_clean/organon/`
 
 **Core functions**:
+
 - Browse the tomos (corpus) of EGI graphs by category and metadata
 - Import EGIs from linear forms (EGIF, CGIF, CLIF, FOPL)
 - View diagrams in multiple styles (Dau, Peirce, Sowa)
@@ -48,6 +49,7 @@ uod = corpus.load_uod(uod_id, load_history=True)
 **Location**: `src/gui_clean/ergasterion/`
 
 **Core functions**:
+
 - Build EGI graphs from scratch using DC+ as the primary composition rule
 - Apply any of the six transformation rules to a working graph
 - Practice derivations with step-by-step undo/redo
@@ -91,6 +93,7 @@ result = InsertionRule().apply_transformation(context)
 **Location**: `src/gui_clean/agon/` (GUI wrapper), `src/endoporeutic_game.py` (engine — pending)
 
 **Core functions**:
+
 - Load a domain model (Universe of Discourse) as an EGIF
 - Propose an assertion (another EGIF) to be tested against the domain
 - Play the Endoporeutic Game: Proposer (Graphist) and Skeptic (Grapheus) alternate moves
@@ -98,6 +101,7 @@ result = InsertionRule().apply_transformation(context)
 - Classify outcomes: tautology, contradiction, or contingent (hypothesis)
 
 **Game structure**:
+
 - **Proposer** seeks to prove their assertion is true in the domain
 - **Skeptic** seeks to find a counter-model
 - In positive contexts, Skeptic chooses the rule; in negative contexts, Proposer chooses
@@ -125,6 +129,7 @@ The single source of truth for all logical content. All three modes read from an
 ### DiagramController (`diagram_controller.py`)
 
 Central coordinator shared across all three modes. Manages:
+
 - Current EGI and layout DTO
 - Transformation history (diachronic workflow)
 - User-defined layout deltas (aesthetic overrides)
@@ -137,6 +142,7 @@ Corpus management shared across Organon and Agon. Provides fast index-based brow
 ### Style System (`style_loader.py`, `style_specification.py`)
 
 Three styles selectable across all modes:
+
 - **Dau**: Mathematical — vertex dots, precise labeling
 - **Peirce**: Authentic — lines of identity, minimal decoration
 - **Sowa**: Conceptual graph — CG-style boxes and ovals

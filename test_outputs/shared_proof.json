@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "history_id": "11c086c8-c6d7-4bb3-9257-536771bdb849",
+  "created_timestamp": "2026-03-21T16:17:06.024717+00:00",
+  "current_state_id": "8cfd2fa8-4f81-43dd-88a0-c8cfa6db8af1",
+  "root_state_id": "362411ee-36b8-4cf9-a532-593c2ab8930a",
+  "state_sequence": [
+    "362411ee-36b8-4cf9-a532-593c2ab8930a",
+    "9be7a114-fcbe-4c61-ab3b-da26abc8d173",
+    "8cfd2fa8-4f81-43dd-88a0-c8cfa6db8af1"
+  ],
+  "branch_points": [],
+  "states": {
+    "362411ee-36b8-4cf9-a532-593c2ab8930a": {
+      "state_id": "362411ee-36b8-4cf9-a532-593c2ab8930a",
+      "step_number": 0,
+      "description": "Relational graph R(x,y)",
+      "timestamp": "2026-03-21T16:17:06.024717+00:00",
+      "egif": "*x *y (R x y)",
+      "metadata": {
+        "is_initial": true
+      }
+    },
+    "9be7a114-fcbe-4c61-ab3b-da26abc8d173": {
+      "state_id": "9be7a114-fcbe-4c61-ab3b-da26abc8d173",
+      "step_number": 1,
+      "description": "After DC+ (Double Cut Insertion)",
+      "timestamp": "2026-03-21T16:17:06.024780+00:00",
+      "egif": "~[ ~[ *x *y (R x y) ] ]",
+      "metadata": {
+        "rule": "DC+",
+        "outer_cut": "cut_610dcd96",
+        "inner_cut": "cut_2ce9be7c",
+        "enclosed_elements": [
+          "v_739c0c2b",
+          "v_a154f3ea",
+          "e_57a32f63"
+        ]
+      }
+    },
+    "8cfd2fa8-4f81-43dd-88a0-c8cfa6db8af1": {
+      "state_id": "8cfd2fa8-4f81-43dd-88a0-c8cfa6db8af1",
+      "step_number": 2,
+      "description": "After DC+ (Double Cut Insertion)",
+      "timestamp": "2026-03-21T16:17:06.024855+00:00",
+      "egif": "~[ ~[ ~[ ~[ *x *y (R x y) ] ] ] ]",
+      "metadata": {
+        "rule": "DC+",
+        "outer_cut": "cut_237144c9",
+        "inner_cut": "cut_c3e6bde5",
+        "enclosed_elements": [
+          "cut_610dcd96"
+        ]
+      }
+    }
+  },
+  "transformations": {
+    "3677fc50-eeab-47ea-850b-4646c140c02e": {
+      "step_id": "3677fc50-eeab-47ea-850b-4646c140c02e",
+      "rule_name": "DC+ (Double Cut Insertion)",
+      "from_state_id": "362411ee-36b8-4cf9-a532-593c2ab8930a",
+      "to_state_id": "9be7a114-fcbe-4c61-ab3b-da26abc8d173",
+      "timestamp": "2026-03-21T16:17:06.024786+00:00",
+      "status": "applied",
+      "user_annotation": "Wrap for iteration",
+      "metadata": {}
+    },
+    "dfb1e601-2cb4-43c8-a91a-f61594f81bda": {
+      "step_id": "dfb1e601-2cb4-43c8-a91a-f61594f81bda",
+      "rule_name": "DC+ (Double Cut Insertion)",
+      "from_state_id": "9be7a114-fcbe-4c61-ab3b-da26abc8d173",
+      "to_state_id": "8cfd2fa8-4f81-43dd-88a0-c8cfa6db8af1",
+      "timestamp": "2026-03-21T16:17:06.024861+00:00",
+      "status": "applied",
+      "user_annotation": null,
+      "metadata": {}
+    }
+  }
+}

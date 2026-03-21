@@ -17,7 +17,7 @@ A formal reasoning environment implementing Charles S. Peirce's Existential Grap
 - **EGI** = A photograph (one frame)
 - **Universe of Discourse** = The entire film (coherent sequence)
 
-👉 **Complete philosophy**: [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)
+👉 **Complete philosophy**: [UNIVERSE\_OF\_DISCOURSE\_ARCHITECTURE.md](docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)
 
 ### What is a Universe of Discourse?
 
@@ -79,6 +79,7 @@ The **private sandbox** for creation and practice.
 The **core reasoning engine** and referee.
 
 **Capabilities**:
+
 - Validate logical changes through **Endoporeutic Game**
 - Record transformations in UoD history
 - Advance the diachronic process
@@ -87,6 +88,7 @@ The **core reasoning engine** and referee.
 **Metaphor**: Conference room - formal presentation, justification, official record
 
 **The Endoporeutic Game** *(implemented)*: New facts are defended in a two-player dialogical contest:
+
 - **Proposer**: Defends the graph; moves in negative (odd-depth) areas using INS, IT+, DC±
 - **Skeptic**: Challenges the assertion; moves in positive (even-depth) areas using ERA, IT-, DC±
 - Reading proceeds **outside-in** (endoporeutic method)
@@ -119,24 +121,28 @@ The **core reasoning engine** and referee.
 ## 📐 **Technical Foundation**
 
 **Data Model**:
+
 - **UoD**: Universe of Discourse (the fundamental entity)
 - **EGI**: Existential Graph Instance (synchronic snapshot)
 - **State**: `(EGI_Model, LayoutDeltas)` pair (structure + presentation)
 - **History**: DAG-based transformation log with branching and provenance
 
 **Linear Forms** (all round-trip to/from EGI):
+
 - **EGIF**: Dau's existential graph interchange format
 - **CGIF**: Conceptual graph interchange format
 - **CLIF**: Common logic interchange format
 - **FOPL**: First-order predicate logic (Dau Chapter 18 Φ/Ψ translations)
 
 **Visual System**:
+
 - Cuts (negation boundaries)
 - Predicates (relations)
 - Vertices (individuals, constants, variables)
 - Ligatures (identity lines connecting vertices)
 
 **Transformation Rules** (Dau formalism, all implemented):
+
 - **ERA / INS**: Erasure and insertion (polarity-controlled)
 - **IT+ / IT-**: Iteration and deiteration
 - **DC+ / DC-**: Double cut insertion and erasure
@@ -148,11 +154,13 @@ The **core reasoning engine** and referee.
 ### Core Source Modules (`src/`)
 
 **EGI Data Model:**
+
 - `egi_core_dau.py` — `RelationalGraphWithCuts` with 6+1 component architecture (V, E, ν, sheet, Cut, area, rel)
 - `egi_io.py` — JSON persistence with layout delta preservation
 - `egi_transformation_history.py` — DAG-based transformation history with branching
 
 **Transformation Engine:**
+
 - `formal_transformation_rules.py` — All six Dau rules (ERA, INS, IT+, IT-, DC+, DC-) with precondition validation
 - `hierarchical_index.py` — O(1) polarity and nesting-depth lookup
 - `chapter17_soundness_evaluation.py` — Soundness evaluation framework (Z3-backed)
@@ -161,40 +169,47 @@ The **core reasoning engine** and referee.
 - `enhanced_ligature_algorithms.py` — Ligature detection and manipulation
 
 **Linear Forms:**
+
 - `egif_parser_dau.py` / `egif_generator_dau.py` — EGIF (57+ tomos examples validated)
 - `cgif_parser_dau.py` / `cgif_generator_dau.py` — CGIF ISO/IEC standard (40+ examples)
 - `clif_parser_dau.py` / `clif_generator_dau.py` — CLIF Common Logic standard (35+ examples)
 - `chapter18_fopl_translation.py` — FOPL ↔ EGI (Φ/Ψ translations, Dau Chapter 18)
 
 **Semantic Validation:**
+
 - `z3_semantic_validator.py` — Z3 SMT-solver based semantic equivalence checking
   - `are_semantically_equivalent(G, G')`: UNSAT of ¬(G ↔ G')
   - `is_satisfiable(G)`, `is_tautology(G)`
   - `Z3Result` with True/False/None (timeout) values
 
 **Endoporeutic Game (Agon):**
+
 - `endoporeutic_game.py` — Game engine with `Player` enum, `GameState`, polarity-based move validation
 - `game_repl.py` — Interactive REPL (`cmd.Cmd`) for two-player play
 - `proof_serializer.py` — Transformation history serialized as JSON proof notation
 
 **Graph Operations:**
+
 - `graph_isomorphism_engine.py` — NetworkX VF2 `MultiDiGraphMatcher` for goal detection
 - `syntactic_equivalence_checker.py` — Chapter 20 syntactic equivalence
 - `chapter20_syntactic_equivalence_fixes.py` — Equivalence edge cases
 - `subgraph_closure_validator.py` — INS/ERA closure validation
 
 **Corpus and UoD Management:**
+
 - `universe_of_discourse.py` — `UniverseOfDiscourse` entity (synchronic + diachronic + layout)
 - `tomos_service.py` — Unified API for corpus browsing and UoD loading
 - `tomos_index.py` — Index-based fast corpus navigation
 
 **Layout and Visualization:**
+
 - `unified_d3_engine.py` — Recursive bottom-up D3 layout engine (production)
 - `simple_svg_renderer.py` — Direct LayoutDTO → SVG rendering
 - `style_specification.py` / `style_loader.py` — Declarative visual style system
 - `diagram_controller.py` — GUI coordination layer
 
 **Utilities:**
+
 - `dau_formalism_validator.py` — Cross-chapter Dau compliance checking
 - `insertion_clipboard.py` — Persistent INS workflow clipboard
 - `egi_validity_analyzer.py` — Structural EGI integrity checking
@@ -340,6 +355,7 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 ### ✅ Completed
 
 **Mathematical Core:**
+
 - Complete Dau-compliant EGI data structures (6+1 component `RelationalGraphWithCuts`)
 - All six transformation rules (ERA, INS, IT+, IT-, DC+, DC-) with precondition validation
 - Round-trip translation: EGIF ↔ CGIF ↔ CLIF ↔ FOPL ↔ EGI (57+ / 40+ / 35+ tomos validated)
@@ -350,11 +366,13 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 - NetworkX VF2 graph isomorphism (replaces O(n!) permutation engine)
 
 **Semantic Validation:**
+
 - Z3 SMT-solver integration (`z3_semantic_validator.py`)
 - Semantic equivalence verified: DC+ soundness confirmed (∃x.Human(x) ≡ ¬¬∃x.Human(x))
 - `chapter17_soundness_evaluation.py` backed by real Z3 calls
 
 **Endoporeutic Game (Agon):**
+
 - Full game engine with `Player.PROPOSER` / `Player.SKEPTIC` role model
 - Polarity-based move permissions enforced
 - EGIF-based insertion with fresh-UUID element merging
@@ -363,11 +381,13 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 - Transformation history as serializable proof notation
 
 **UoD and Corpus:**
+
 - `UniverseOfDiscourse` as fundamental entity (synchronic + DAG history + layout)
 - `TomosService` unified corpus API
 - DAG-based transformation history with branching
 
 **Testing:**
+
 - 151 tests passing (87 core + extended suite)
 - Quality gates and core protection active
 
@@ -392,6 +412,7 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 ## 👥 What Users Can Do with Arisbe
 
 ### For Logic Researchers & Academics
+
 - Apply all six formal transformation rules with mathematical validation and Z3 soundness verification
 - Verify logical equivalences across EGIF, CGIF, CLIF, FOPL representations
 - Play the Endoporeutic Game as a formal proof procedure
@@ -399,18 +420,21 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 - Export to academic formats (LaTeX/TikZ, SVG)
 
 ### For Students & Educators
+
 - Interactive REPL for step-by-step EG transformation practice
 - Visual comparison between logical representation formats
 - Educational tomos with 87+ canonical examples
 - Game-based proof exploration through the Endoporeutic Game
 
 ### For Software Developers
+
 - Programmatic EGI creation, validation, and transformation APIs
 - Z3-backed semantic validation for transformation soundness
 - Batch processing of logic corpora via `TomosService`
 - Round-trip translation pipeline between all supported linear forms
 
 ### For Knowledge Engineers
+
 - Large-scale corpus management with `TomosService`
 - DAG-based transformation history for branching inquiry workflows
 - Bridge between diagrammatic (EGI) and symbolic (FOPL/CLIF) reasoning

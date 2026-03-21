@@ -10,6 +10,7 @@
 Arisbe implements Frithjof Dau's complete formalization of Peirce's Existential Graphs (EGI) as a rigorous computational system. The mathematical core is complete and thoroughly tested. A housecleaning in March 2026 removed ~100 legacy files, leaving a clean, production-quality `src/` with ~40 modules and 151 passing tests.
 
 **Current focus areas:**
+
 - Fix the IT+ transformation rule (known bugs in attribute copying and preconditions)
 - Replace the O(n!) isomorphism engine with NetworkX
 - Complete EGIF as a version-controllable proof notation
@@ -116,6 +117,7 @@ Implements the framework for Dau Chapter 17 soundness proofs. **Currently mostly
 **151 tests passing, 0 failing, 3 skipped** (as of 2026-03-20 after housecleaning).
 
 Key test files:
+
 - `tests/test_corpus_parsing.py` — EGIF/CGIF/CLIF round-trip across 100+ tomos examples
 - `tests/test_variable_order_alignment.py` — variable name preservation
 - `tests/test_variable_name_consistency.py` — semantic variable names across formats
@@ -211,6 +213,7 @@ gui_clean/agon/                  # Game interface (stub, pending game engine)
 **File**: `src/formal_transformation_rules.py`, `IterationRule` class
 
 Required fixes:
+
 1. Use `uuid.uuid4()` for copied element IDs (not `_copy` suffix)
 2. Copy vertex attributes: `label`, `is_generic`
 3. Properly duplicate cut interiors (recursive area copy)
@@ -241,6 +244,7 @@ Install `z3-solver` and implement real semantic consistency checking in `chapter
 Design and implement the Endoporeutic Game as a standalone REPL/CLI engine, independent of the GUI. The game engine will serve as the formal reasoning core that the GUI Agon mode wraps.
 
 **Architecture**:
+
 ```
 GameState
 ├── domain_model: EGIF         # The agreed Universe of Discourse
@@ -273,6 +277,7 @@ Domain models and assertions are both EGIFs. The REPL loop processes natural-lan
 ### Peirce's Existential Graphs
 
 Peirce's EG system (ca. 1896–1913) represents first-order logic diagrammatically using:
+
 - **Sheet of Assertion**: the base context, everything on it is asserted
 - **Cuts** (closed curves): negation contexts
 - **Ligatures** (lines of identity): existential quantification
@@ -283,6 +288,7 @@ The Alpha system handles propositional logic; Beta adds ligatures for predicate 
 ### Dau's Formalization
 
 Frithjof Dau (2006) provides the canonical mathematical formalization in *The Logic System of Concept Graphs with Negations*. Key chapters:
+
 - **Chapter 14**: Relational Graphs with Cuts (the EGI data model)
 - **Chapter 15**: Formal Calculus (the six transformation rules)
 - **Chapter 16**: Ligature manipulation rules
@@ -294,6 +300,7 @@ Frithjof Dau (2006) provides the canonical mathematical formalization in *The Lo
 ### The Endoporeutic Game
 
 Peirce's game semantics for EG: the Proposer (Graphist) asserts a graph is true; the Skeptic (Grapheus) attempts to disprove it through challenge and counter-moves. The game proceeds by alternating rule applications:
+
 - In positive contexts: Skeptic chooses which rule to apply
 - In negative contexts: Proposer chooses
 - Winner is determined by whether the final state is a tautology, contradiction, or contingent

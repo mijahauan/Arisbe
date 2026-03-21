@@ -15,6 +15,7 @@
 ### **Workflow A: Text-First (Transcription → Visual)**
 
 **User Journey:**
+
 1. Scholar transcribes Peirce's diagram to linear form (EGIF, CGIF, CLIF, or FOPL)
 2. Loads into Arisbe → parses to EGI model
 3. Layout engine applies Peirce style → initial spatial arrangement
@@ -49,6 +50,7 @@ Match Peirce's actual spatial arrangement from notebook
 ### **Workflow B: Drawing-First (Visual → Text)**
 
 **User Journey:**
+
 1. Scholar opens Ergasterion in "Peirce Drawing Mode"
 2. Manually draws graph mimicking Peirce's notebook diagram
    - Place vertices (identity lines)
@@ -94,6 +96,7 @@ Extracts: V, E, Cut, area, nu mappings
 #### High Priority:
 
 **1. LaTeX Export Integration in Organon/Ergasterion**
+
 - **Current:** Only SVG export button
 - **Need:** "Export LaTeX..." button
 - **Location:** `organon_mode.py` line 104-107, `ergasterion_mode.py`
@@ -114,12 +117,14 @@ Extracts: V, E, Cut, area, nu mappings
   ```
 
 **2. DTO → TikZ Render Commands Bridge**
+
 - **Current:** TikZ exporter expects "render commands" format
 - **Need:** Convert `LayoutDTO` → TikZ render commands
 - **Missing Link:** Adapter between unified DTO and old render command format
 - **File:** Create `src/export/dto_to_tikz_adapter.py`
 
 **3. Peirce Style Fidelity Enhancements**
+
 - **Current:** Basic Peirce conventions in JSON
 - **Need:** More authentic details:
   - Hand-drawn line variation (slight wobble)
@@ -131,18 +136,21 @@ Extracts: V, E, Cut, area, nu mappings
 #### Medium Priority:
 
 **4. CGIF/CLIF/FOPL Parsers**
+
 - **Current:** Only EGIF parser implemented
 - **Need:** Parse Sowa's CGIF, Common Logic CLIF, FOPL
 - **Benefit:** Scholars can use any linear notation format
 - **Files:** Create `src/parsers/cgif_parser.py`, `clif_parser.py`, `fopl_parser.py`
 
 **5. Drawing Mode in Ergasterion**
+
 - **Current:** Transformation mode only (apply formal rules)
 - **Need:** Free drawing mode (no rule validation)
 - **UI:** Mode toggle: [Transformation] / [Drawing]
 - **Behavior:** In drawing mode, allow any placement without checking graph-theoretic validity
 
 **6. Template Library**
+
 - **Current:** Start from scratch
 - **Need:** Pre-made templates of common Peirce diagrams
 - **Examples:**
@@ -152,6 +160,7 @@ Extracts: V, E, Cut, area, nu mappings
 - **Storage:** `tomos/templates/peirce/`
 
 **7. Citation Generator**
+
 - **Current:** Manual citation entry
 - **Need:** Auto-generate proper citations
 - **Format:** "Peirce, C.S. (1903). MS 280, p. 12. In *Writings of Charles S. Peirce*, Vol. 6."
@@ -160,16 +169,19 @@ Extracts: V, E, Cut, area, nu mappings
 #### Low Priority:
 
 **8. Overlay Comparison Mode**
+
 - **Need:** Overlay Peirce's original image with Arisbe recreation
 - **UI:** Transparency slider to fade between original and recreation
 - **Benefit:** Verify spatial accuracy
 
 **9. Batch Export**
+
 - **Need:** Export multiple diagrams at once
 - **Format:** Single LaTeX document with all diagrams
 - **Use Case:** Creating appendix of all Peirce diagrams for a paper
 
 **10. Historical Context Annotations**
+
 - **Need:** Add scholarly notes to diagrams
 - **Format:** LaTeX footnotes/margin notes
 - **Content:** "This diagram appears in MS 514 and represents Peirce's treatment of..."
@@ -219,6 +231,7 @@ Extracts: V, E, Cut, area, nu mappings
 ```
 
 **Generated LaTeX:**
+
 ```latex
 \documentclass[tikz]{standalone}
 \usepackage{tikz}
@@ -283,6 +296,7 @@ Extracts: V, E, Cut, area, nu mappings
 ## Success Criteria
 
 ✅ Scholar can:
+
 1. Transcribe Peirce's diagram from notebook to EGIF
 2. Load into Arisbe with Peirce style
 3. Manually adjust to match Peirce's spatial layout
@@ -290,6 +304,7 @@ Extracts: V, E, Cut, area, nu mappings
 5. Compile to PDF and include in academic paper
 
 ✅ Output quality:
+
 - Visually faithful to Peirce's hand-drawn style
 - Vector graphics (scalable without loss)
 - Proper line weights, curves, and spacing
@@ -300,10 +315,13 @@ Extracts: V, E, Cut, area, nu mappings
 ## Timeline Estimate
 
 **Minimal Viable (Phase 1):** 2-3 hours
+
 **Production Ready (Phases 1-2):** 6-9 hours
+
 **Full Feature Set (Phases 1-5):** 36-47 hours
 
 **Next Immediate Steps:**
+
 1. Create DTO → TikZ adapter (1 hour)
 2. Add export buttons (30 min)
 3. Test with one Peirce diagram (1 hour)

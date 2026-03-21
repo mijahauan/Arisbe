@@ -40,6 +40,7 @@ A complete implementation of **Dau's formalism for Peirce's Existential Graphs**
 
 ### The Problem
 Existential Graphs represent a **rigorous, complete visual logic system** that:
+
 - Is **sound and complete** (proven by Dau)
 - Is **more intuitive** than symbolic logic for certain reasoning tasks
 - Has **historical significance** (Peirce's major contribution to logic)
@@ -47,6 +48,7 @@ Existential Graphs represent a **rigorous, complete visual logic system** that:
 
 ### Our Solution
 Arisbe provides the **first production-quality implementation** that:
+
 - Maintains **mathematical rigor** (Dau's formalism is non-negotiable)
 - Provides **practical usability** (researchers can actually use it)
 - Enables **interactive exploration** (not just static diagrams)
