@@ -226,16 +226,32 @@ class TomosService:
     # ===== Core Operations =====
     
     def _normalize_entry(self, entry: Dict) -> Dict:
-        """
-        Normalize old tomos format to new format.
-        
-        Old format: id, title, category, path
-        New format: uod_id, name, category, is_static, is_dynamic, path
+        """Convert a legacy index entry to the current V2 index-entry schema.
+
+        The legacy format (pre-V2) used different field names and assumed all
+        UoDs were static literature examples:
+
+            Legacy fields  →  V2 fields
+            id             →  uod_id
+            title          →  name
+            updated        →  created / last_modified
+            (none)         →  is_static = True, is_dynamic = False,
+                               uod_type = "standalone"
+
+        If the entry already contains ``uod_id`` it is returned unchanged
+        (idempotent).
+
+        Args:
+            entry: Raw dict from the index file (either legacy or V2 format).
+
+        Returns:
+            A dict conforming to the V2 index-entry schema with all required
+            fields present.
         """
         # If already has uod_id, assume it's new format
         if "uod_id" in entry:
             return entry
-        
+
         # Translate old format to new format
         normalized = {
             "uod_id": entry.get("id", entry.get("uod_id", "unknown")),
@@ -251,7 +267,7 @@ class TomosService:
             "authors": entry.get("authors", []),
             "tags": entry.get("tags", []),
         }
-        
+
         return normalized
     
     def list_uods(
@@ -308,13 +324,34 @@ class TomosService:
         return self.get_uod_metadata(uod_id) is not None
     
     def _load_uod_old_format(self, uod_id: str, uod_path: Path) -> Optional[UniverseOfDiscourse]:
-        """
-        Load UoD from old tomos format.
-        
-        Old format:
-        - {uod_id}.meta.json
-        - {uod_id}.egi.json
-        - {uod_id}.json (full entity data)
+        """Load a UoD stored in the pre-V2 (legacy) flat-file format.
+
+        The legacy format placed two files directly inside the UoD directory:
+
+            {uod_id}.meta.json  — metadata (name, description, dates, category …)
+            {uod_id}.egi.json   — the serialised RelationalGraphWithCuts
+
+        An optional ``{uod_id}.json`` full-entity file was also written by the
+        old ``EntityStorageManager`` but is not read here.
+
+        Conversion performed:
+            - ``created`` / ``last_modified`` ISO strings are parsed to
+              ``datetime`` objects (falling back to ``datetime.now()`` on parse
+              error).
+            - The legacy ``category`` string (e.g. ``"peirce"`` or
+              ``"literature"``) is mapped to the corresponding
+              ``UoDCategory`` enum value via a hard-coded lookup; unknown
+              values default to ``UoDCategory.LITERATURE_EXAMPLE``.
+            - History is not present in the legacy format; the returned UoD
+              has ``history=None``.
+
+        Args:
+            uod_id: The UoD identifier string.
+            uod_path: Directory containing the legacy files.
+
+        Returns:
+            A ``UniverseOfDiscourse`` built from the legacy files, or ``None``
+            if the expected files do not exist.
         """
         from datetime import datetime
         
@@ -386,17 +423,31 @@ class TomosService:
         uod_id: str,
         load_history: bool = True
     ) -> Optional[UniverseOfDiscourse]:
-        """
-        Load UoD from tomos.
-        
-        Handles both old and new tomos formats.
-        
+        """Load a UoD from tomos, transparently handling both legacy and V2 formats.
+
+        Format detection:
+            - If the UoD directory does not contain a ``uod.meta.json`` file
+              (the V2 metadata filename), loading is delegated to
+              ``_load_uod_old_format`` which reads ``{uod_id}.meta.json`` and
+              ``{uod_id}.egi.json`` instead.
+            - V2 UoDs are loaded from ``uod.meta.json``, ``current.egi.json``,
+              and optionally ``current.deltas.json`` for layout overrides.
+
+        History loading:
+            History is only loaded when ``load_history=True`` **and** the UoD
+            type is ``UoDType.HISTORICAL``.  The JSONL history log is not yet
+            implemented (marked TODO); the returned ``history`` attribute will
+            be ``None`` until that feature is complete.
+
         Args:
-            uod_id: UoD identifier
-            load_history: If True, load full history (default: True)
-            
+            uod_id: The UoD identifier to load.
+            load_history: Whether to attempt loading transformation history.
+                Defaults to ``True``; set to ``False`` for faster browsing
+                when history is not needed.
+
         Returns:
-            UniverseOfDiscourse or None if not found
+            The loaded ``UniverseOfDiscourse``, or ``None`` if the UoD is not
+            in the index or its directory does not exist on disk.
         """
         entry = self.get_uod_metadata(uod_id)
         if entry is None:
@@ -449,17 +500,30 @@ class TomosService:
         return uod
     
     def save_uod(self, uod: UniverseOfDiscourse):
-        """
-        Save UoD to tomos.
-        
-        Saves:
-        - Metadata
-        - Current EGI
-        - Current layout deltas
-        - History (if historical)
-        
+        """Persist a UoD to disk in V2 format and update the tomos index.
+
+        Files written under ``<universes_dir|literature_dir>/{uod.uod_id}/``:
+
+            uod.meta.json           — ``UoDMetadata`` serialised to JSON
+            current.egi.json        — current ``RelationalGraphWithCuts``
+            current.deltas.json     — layout position overrides (optional;
+                                       only written when
+                                       ``uod.current_layout_deltas`` is set)
+            history/history.jsonl   — transformation history placeholder
+                                       (written only for HISTORICAL UoDs;
+                                       full JSONL serialisation is TODO)
+
+        The UoD is routed to ``literature_dir`` for static UoDs and to
+        ``universes_dir`` for dynamic ones, as determined by ``_get_uod_path``.
+        The ``index.json`` file is updated (or the entry created) after each
+        successful save.
+
         Args:
-            uod: UniverseOfDiscourse to save
+            uod: The ``UniverseOfDiscourse`` to save.  Must have a valid
+                ``uod_id`` and a non-``None`` ``current_egi``.
+
+        Raises:
+            Any IO error raised by the filesystem (propagates unhandled).
         """
         uod_path = self._get_uod_path(uod)
         uod_path.mkdir(parents=True, exist_ok=True)
@@ -532,17 +596,33 @@ class TomosService:
         tags: Optional[Set[str]] = None,
         author: Optional[str] = None,
     ) -> List[Dict]:
-        """
-        Search UoDs in tomos.
-        
+        """Search the tomos index and return matching lightweight UoD metadata dicts.
+
+        Filters are applied in order: category → tags → author → query.
+        All filters are optional; calling with no arguments returns the full
+        (un-normalised) index.
+
+        Note: the ``query`` filter currently matches only against the ``name``
+        field (case-insensitive substring match); description search is not
+        yet implemented.
+
+        Note: unlike ``list_uods``, this method does *not* normalise legacy
+        entries before filtering.  If the index contains legacy entries their
+        field names may differ from the V2 schema.
+
         Args:
-            query: Search in name and description (optional)
-            category: Filter by category (optional)
-            tags: Filter by tags (any match) (optional)
-            author: Filter by author (optional)
-            
+            query: Case-insensitive substring matched against the UoD ``name``
+                field.  ``None`` skips this filter.
+            category: Return only UoDs whose ``category`` value matches this
+                ``UoDCategory``.  ``None`` skips this filter.
+            tags: Return UoDs that have *any* of the specified tags in their
+                ``tags`` list.  ``None`` skips this filter.
+            author: Return only UoDs that list this author string in their
+                ``authors`` list.  ``None`` skips this filter.
+
         Returns:
-            List of matching UoD metadata dicts
+            List of raw index-entry dicts (not normalised) that satisfy all
+            supplied filters.
         """
         results = self._index.universes
         
@@ -623,41 +703,62 @@ class TomosService:
     # ===== Migration Support =====
     
     def migrate_from_legacy(self):
-        """
-        Migrate UoDs from legacy corpus/graphs/ structure to new structure.
-        
-        This is a one-time migration operation.
+        """Migrate UoDs from the legacy ``tomos/graphs/`` structure to the V2 structure.
+
+        This is a one-time operation.  After migration the legacy ``graphs/``
+        directory can be archived; the new ``universes/`` and ``literature/``
+        directories take over.
+
+        Legacy layout (pre-V2):
+            tomos/
+              index.json          ← flat list under key "entries" (not "universes")
+              graphs/
+                {id}.meta.json
+                {id}.egi.json
+
+        V2 layout (post-migration):
+            tomos/
+              index.json          ← key "universes", version "v2"
+              universes/{id}/     ← dynamic UoDs
+              literature/{id}/    ← static literature UoDs
+                uod.meta.json
+                current.egi.json
+
+        Each legacy entity is loaded via ``EntityStorageManager`` (which
+        understands the flat-file format) and then re-saved with ``save_uod``
+        which writes the V2 directory structure and updates the index.
         """
         if not self.legacy_graphs_dir.exists():
             return
-        
-        # Load legacy index
+
+        # The legacy index lives one level above the graphs/ subdirectory
         legacy_index_path = self.legacy_graphs_dir.parent / "index.json"
         if not legacy_index_path.exists():
             return
-        
+
         with open(legacy_index_path, 'r', encoding='utf-8') as f:
             legacy_index = json.load(f)
-        
+
         migrated_count = 0
-        
+
+        # Legacy index uses "entries" key; V2 index uses "universes"
         for entry in legacy_index.get("entries", []):
             try:
-                # Load from legacy location
+                # EntityStorageManager reads the flat {id}.meta.json + {id}.egi.json
+                # files and returns a UniverseOfDiscourse (previously called "entity")
                 from entity_storage import EntityStorageManager
                 legacy_storage = EntityStorageManager(self.legacy_graphs_dir)
                 entity = legacy_storage.load_entity(entry["id"])
-                
-                # entity is already a UniverseOfDiscourse (via alias)
-                # Just save to new location
+
+                # save_uod writes V2 directory layout and updates index.json
                 self.save_uod(entity)
-                
+
                 migrated_count += 1
                 print(f"✅ Migrated: {entity.name}")
-                
+
             except Exception as e:
                 print(f"❌ Failed to migrate {entry['id']}: {e}")
-        
+
         print(f"\n✅ Migration complete: {migrated_count} UoDs migrated")
     
     # ===== Statistics =====

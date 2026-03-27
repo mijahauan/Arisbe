@@ -161,11 +161,38 @@ class UnifiedD3Engine:
         return dto
     
     def _calculate_sizes(self, egi: RelationalGraphWithCuts, style):
-        """Calculate sizes for all non-cut elements."""
+        """Calculate bounding-box sizes for all vertices and predicates (non-cut elements).
+
+        Layout model — label-beside-vertex:
+            Each vertex is rendered as a filled circle (Dau "heavy dot") with its
+            label appearing to the *right* of the circle rather than below it.
+            The bounding box therefore spans:
+
+                width  = circle_diameter + gap (8 px) + text_width + right_margin (4 px)
+                height = max(circle_diameter, text_height)
+
+            Text width is estimated as ``len(label) * 6.2`` pixels, which is the
+            average character advance for the default sans-serif font at the
+            configured point size.  For unlabelled (anonymous) vertices the
+            bounding box is exactly the circle diameter.
+
+        For predicates (edges), the bounding box is sized tightly around the
+        relation name text using ``style.predicate_char_width`` and
+        ``style.predicate_height``, with 3 px horizontal and 2 px vertical
+        padding on each side.
+
+        Sizes are stored in ``self.element_sizes`` keyed by element ID and are
+        consumed by ``_layout_single_cut`` when building the D3 payload.
+
+        Args:
+            egi: The EGI whose vertices and edges need sizing.
+            style: Style specification supplying ``vertex_radius``,
+                ``predicate_char_width``, and ``predicate_height``.
+        """
         for v in egi.V:
             radius = style.vertex_radius
             circle_size = radius * 2
-            
+
             # Account for vertex label text BESIDE the spot (not below)
             label = v.label or ""
             if label:
@@ -180,9 +207,9 @@ class UnifiedD3Engine:
             else:
                 width = circle_size
                 height = circle_size
-            
+
             self.element_sizes[v.id] = (width, height)
-        
+
         for e in egi.E:
             label = egi.get_relation_name(e.id)
             # Tight boundary around text (Dau style - minimal padding)
@@ -441,9 +468,49 @@ class UnifiedD3Engine:
         return result['positions'], result['bbox']
     
     def _call_d3_worker(self, payload: dict) -> dict:
-        """Call D3 worker subprocess."""
+        """Invoke the D3 force-simulation worker via a Node.js subprocess.
+
+        Subprocess protocol:
+            - The payload dict is JSON-serialised and written to the worker's
+              stdin (``input=json.dumps(payload)``).
+            - ``unified_d3_worker.js`` reads from stdin, runs a D3 force
+              simulation, and writes a single JSON object to stdout with two
+              top-level keys:
+
+                  ``positions``: dict mapping element-id strings to
+                      ``{"x": float, "y": float}`` objects for every node
+                      (content nodes AND cut obstacles).
+
+                  ``bbox``: object with keys ``min_x``, ``min_y``, ``max_x``,
+                      ``max_y`` (any may be ``null`` if the cut is empty).
+
+            - Stderr is captured; any Node.js runtime errors are printed and
+              re-raised via ``subprocess.CalledProcessError``.
+            - A 10-second timeout is enforced to prevent hangs if Node is not
+              installed or the simulation diverges.
+
+        Empty-cut handling: when the worker returns ``null`` bbox values
+        (no content), a 100×100 px default bounding box is used so the cut
+        circle remains visible in the rendered diagram.
+
+        Args:
+            payload: Dict with keys ``content`` (list of node dicts),
+                ``obstacles`` (list of child-cut obstacle dicts), ``links``
+                (list of source/target dicts), ``bounds``, and ``seed``.
+
+        Returns:
+            Dict with keys ``positions`` (mapping element-id -> (x, y) tuple)
+            and ``bbox`` (BoundingBox instance).
+
+        Raises:
+            FileNotFoundError: if ``unified_d3_worker.js`` is not found.
+            subprocess.CalledProcessError: if Node exits with non-zero status.
+            subprocess.TimeoutExpired: if the worker does not complete within
+                10 seconds.
+            json.JSONDecodeError: if the worker output is not valid JSON.
+        """
         worker_path = Path(__file__).parent / 'unified_d3_worker.js'
-        
+
         if not worker_path.exists():
             raise FileNotFoundError(f"D3 worker not found: {worker_path}")
         
@@ -504,7 +571,23 @@ class UnifiedD3Engine:
     
     def _circle_boundary_point(self, cx: float, cy: float, radius: float,
                               target_x: float, target_y: float) -> Tuple[float, float]:
-        """Calculate point on circle boundary toward target."""
+        """Return the point on a circle's boundary that lies on the ray toward a target.
+
+        Used to compute the attachment point of a ligature line at a vertex
+        circle, so the line appears to terminate at the edge of the spot rather
+        than at its centre.
+
+        Args:
+            cx: X coordinate of the circle's centre.
+            cy: Y coordinate of the circle's centre.
+            radius: Radius of the circle.
+            target_x: X coordinate of the target point (e.g., predicate centre).
+            target_y: Y coordinate of the target point.
+
+        Returns:
+            (x, y) of the boundary point on the circle closest to *target*.
+            Falls back to ``(cx + radius, cy)`` when centre == target.
+        """
         dx = target_x - cx
         dy = target_y - cy
         distance = math.sqrt(dx * dx + dy * dy)
@@ -516,10 +599,31 @@ class UnifiedD3Engine:
         # Point on boundary
         return cx + ux * radius, cy + uy * radius
     
-    def _rect_boundary_point(self, rect_cx: float, rect_cy: float, 
+    def _rect_boundary_point(self, rect_cx: float, rect_cy: float,
                             rect_w: float, rect_h: float,
                             target_x: float, target_y: float) -> Tuple[float, float]:
-        """Calculate point on rectangle boundary toward target (from center)."""
+        """Return the point on a rectangle's boundary that lies on the ray from its centre toward a target.
+
+        Used to compute the hook attachment point for a ligature line at a
+        predicate label rectangle, so the line visually connects to the edge
+        of the box rather than its centre.
+
+        The algorithm shoots a parametric ray from the rectangle centre and
+        checks intersection with each of the four axis-aligned edges, keeping
+        the intersection with the smallest positive parameter ``t``.
+
+        Args:
+            rect_cx: X coordinate of the rectangle's centre.
+            rect_cy: Y coordinate of the rectangle's centre.
+            rect_w: Full width of the rectangle.
+            rect_h: Full height of the rectangle.
+            target_x: X coordinate of the target point (e.g., vertex centre).
+            target_y: Y coordinate of the target point.
+
+        Returns:
+            (x, y) of the boundary intersection point closest to *target*.
+            Returns ``(rect_cx, rect_cy)`` when centre == target.
+        """
         dx = target_x - rect_cx
         dy = target_y - rect_cy
         
@@ -576,7 +680,29 @@ class UnifiedD3Engine:
         egi: RelationalGraphWithCuts,
         style
     ) -> LayoutDTO:
-        """Build final LayoutDTO from recursively calculated positions."""
+        """Assemble the final LayoutDTO from positions and bboxes computed by the recursive layout.
+
+        After ``_layout_recursively`` has populated ``self.element_positions``
+        (vertex and predicate centres) and ``self.cut_bboxes`` (cut bounding
+        boxes), this method:
+
+        1. Separates element positions into ``vertex_positions`` and
+           ``predicate_positions`` by matching against the EGI's V and E sets.
+        2. Builds ``ligature_paths``: for each predicate–vertex incidence pair
+           (ν-relation), a two-point path is created from the predicate's
+           rectangle boundary (hook attachment) to the vertex centre.  The
+           vertex end is the *centre* so that the rendered spot circle sits on
+           top of the line, giving visual continuity.
+        3. Computes a viewport ``BoundingBox`` that encloses all positions and
+           cut bboxes with a 30 px margin.
+
+        Args:
+            egi: Source EGI (used for vertex/edge/cut membership and ν-relation).
+            style: Style specification (attached to the returned DTO).
+
+        Returns:
+            A fully populated ``LayoutDTO`` ready for ``SimpleSVGRenderer``.
+        """
         
         # Extract positions by type
         vertex_positions = {

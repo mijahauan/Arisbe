@@ -34,6 +34,7 @@ from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 from egi_core_dau import ElementID, RelationalGraphWithCuts
 from egi_transformation_history import EGITransformationHistory
 from frozendict import frozendict
+from rule_interaction import insert_from_egif
 
 from formal_transformation_rules import (
     AreaPolarity,
@@ -222,12 +223,12 @@ class EndoporeuticGame:
 
         polarity, depth = self._area_polarity(state.current_egi, target_area)
 
-        # --- INS: merge parsed EGIF into target area directly ---
+        # --- INS: merge parsed EGIF into target area ---
         if rule_name == "INS":
             if not insert_egif:
                 return state, "INS requires insert_egif argument."
-            result = self._apply_ins(
-                state.current_egi, target_area, insert_egif, polarity, depth
+            result = insert_from_egif(
+                state.current_egi, target_area, insert_egif
             )
         else:
             context = TransformationContext(
@@ -377,31 +378,11 @@ class EndoporeuticGame:
         egi: RelationalGraphWithCuts,
         area_id: ElementID,
     ) -> Tuple[AreaPolarity, int]:
-        """Compute the polarity and nesting depth of an area."""
-        depth = self._nesting_depth(egi, area_id)
-        polarity = AreaPolarity.POSITIVE if depth % 2 == 0 else AreaPolarity.NEGATIVE
-        return polarity, depth
+        """Compute the polarity and nesting depth of an area.
 
-    def _nesting_depth(self, egi: RelationalGraphWithCuts, area_id: ElementID) -> int:
-        """Count how many cuts enclose area_id (0 for the sheet)."""
-        if area_id == egi.sheet:
-            return 0
-        depth = 0
-        current = area_id
-        visited: set = set()
-        while current != egi.sheet:
-            if current in visited:
-                break
-            visited.add(current)
-            parent = next(
-                (pid for pid, contents in egi.area.items() if current in contents),
-                None,
-            )
-            if parent is None:
-                break
-            depth += 1
-            current = parent
-        return depth
+        Delegates to the canonical ``egi.area_polarity()`` method.
+        """
+        return egi.area_polarity(area_id)
 
     def _is_players_area(self, state: GameState, area_id: ElementID) -> bool:
         """True if area_id is in the current player's territory."""
@@ -448,129 +429,6 @@ class EndoporeuticGame:
                 f"Area {target_area!r} is negative (depth={depth})."
             )
         return None
-
-    def _apply_ins(
-        self,
-        egi: RelationalGraphWithCuts,
-        target_area: ElementID,
-        insert_egif: str,
-        polarity: AreaPolarity,
-        depth: int,
-    ) -> TransformationResult:
-        """
-        INS: parse insert_egif and merge all sheet-level elements into target_area.
-
-        This is the correct game-level INS: the Proposer writes a new sub-graph
-        into a negative area, exactly as Peirce described (any graph may be
-        asserted in a negatively-enclosed area).
-        """
-        if polarity is not AreaPolarity.NEGATIVE:
-            return TransformationResult(
-                False, None,
-                "INS only allowed in negative (odd-depth) areas.", {}
-            )
-
-        try:
-            import uuid
-            from egif_parser_dau import parse_egif
-
-            insert_egi = parse_egif(insert_egif)
-
-            # Collect top-level elements from the insert EGI (those on its sheet)
-            src_sheet_contents = insert_egi.area.get(insert_egi.sheet, frozenset())
-
-            # Assign fresh IDs to avoid collisions with the host EGI
-            id_map: Dict[ElementID, ElementID] = {}
-
-            def fresh_v() -> ElementID:
-                return ElementID(f"v_{uuid.uuid4().hex[:8]}")
-            def fresh_e() -> ElementID:
-                return ElementID(f"e_{uuid.uuid4().hex[:8]}")
-            def fresh_c() -> ElementID:
-                return ElementID(f"c_{uuid.uuid4().hex[:8]}")
-
-            new_V = set(egi.V)
-            new_E = set(egi.E)
-            new_Cut = set(egi.Cut)
-            new_nu = dict(egi.nu)
-            new_rel = dict(egi.rel)
-            new_area = dict(egi.area)
-
-            def _copy_element(elem_id: ElementID):
-                """Recursively copy an element from insert_egi into host."""
-                if elem_id in id_map:
-                    return id_map[elem_id]
-
-                v_match = next((v for v in insert_egi.V if v.id == elem_id), None)
-                if v_match is not None:
-                    nid = fresh_v()
-                    id_map[elem_id] = nid
-                    from egi_core_dau import Vertex
-                    new_V.add(Vertex(id=nid, label=v_match.label, is_generic=v_match.is_generic))
-                    return nid
-
-                e_match = next((e for e in insert_egi.E if e.id == elem_id), None)
-                if e_match is not None:
-                    nid = fresh_e()
-                    id_map[elem_id] = nid
-                    from egi_core_dau import Edge
-                    new_E.add(Edge(nid))
-                    if elem_id in insert_egi.rel:
-                        new_rel[nid] = insert_egi.rel[elem_id]
-                    return nid
-
-                c_match = next((c for c in insert_egi.Cut if c.id == elem_id), None)
-                if c_match is not None:
-                    nid = fresh_c()
-                    id_map[elem_id] = nid
-                    from egi_core_dau import Cut
-                    new_Cut.add(Cut(nid))
-                    # Recursively copy cut interior
-                    inner_contents = insert_egi.area.get(elem_id, frozenset())
-                    new_inner = set()
-                    for inner_id in inner_contents:
-                        copied = _copy_element(inner_id)
-                        new_inner.add(copied)
-                    new_area[nid] = frozenset(new_inner)
-                    return nid
-
-                return elem_id  # unknown: pass through
-
-            # Copy all top-level elements
-            top_level_new = set()
-            for elem_id in src_sheet_contents:
-                copied_id = _copy_element(elem_id)
-                top_level_new.add(copied_id)
-
-            # Fix nu mappings for all copied edges
-            for orig_e_id, new_e_id in id_map.items():
-                if any(new_e_id == e.id for e in new_E) and orig_e_id in insert_egi.nu:
-                    new_nu[new_e_id] = tuple(
-                        id_map.get(vid, vid) for vid in insert_egi.nu[orig_e_id]
-                    )
-
-            # Add top-level copies to target area
-            existing = new_area.get(target_area, frozenset())
-            new_area[target_area] = existing | frozenset(top_level_new)
-
-            from egi_core_dau import RelationalGraphWithCuts
-            result_egi = RelationalGraphWithCuts(
-                V=frozenset(new_V),
-                E=frozenset(new_E),
-                nu=frozendict(new_nu),
-                sheet=egi.sheet,
-                Cut=frozenset(new_Cut),
-                area=frozendict(new_area),
-                rel=frozendict(new_rel),
-            )
-            return TransformationResult(
-                success=True,
-                result_egi=result_egi,
-                error_message=None,
-                changes_made={"rule": "INS", "inserted": list(top_level_new)},
-            )
-        except Exception as exc:
-            return TransformationResult(False, None, str(exc), {})
 
     def _check_outcome(
         self, state: GameState

@@ -11,17 +11,9 @@ from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
 
 from frozendict import frozendict
 
-from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
+from egi_core_dau import AreaPolarity, Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 from graph_isomorphism_engine import IsomorphismValidator
 from subgraph_closure_validator import SubgraphClosureValidator
-# from legacy.level_polarity_adjustment import LevelPolarityAdjuster  # Legacy component removed
-
-
-class AreaPolarity(Enum):
-    """Polarity of an area based on nesting depth of cuts."""
-
-    POSITIVE = "positive"  # Even nesting depth (0, 2, 4, ...)
-    NEGATIVE = "negative"  # Odd nesting depth (1, 3, 5, ...)
 
 
 @dataclass
@@ -86,47 +78,29 @@ class FormalTransformationRule(ABC):
     def calculate_area_polarity(
         self, egi: RelationalGraphWithCuts, area_id: ElementID
     ) -> Tuple[AreaPolarity, int]:
-        """Calculate the polarity and nesting depth of an area."""
-        # Sheet is always level 0, positive
-        if area_id == egi.sheet:
-            return AreaPolarity.POSITIVE, 0
+        """Calculate the polarity and nesting depth of an area.
 
-        # For cut areas, count how many cuts enclose this area
-        is_cut_area = any(cut.id == area_id for cut in egi.Cut)
-
-        if is_cut_area:
-            enclosing_cuts = 0
-            current_area = area_id
-
-            while True:
-                containing_area = None
-                for area_candidate, contents in egi.area.items():
-                    if current_area in contents:
-                        containing_area = area_candidate
-                        break
-
-                if containing_area is None or containing_area == egi.sheet:
-                    break
-
-                if any(cut.id == containing_area for cut in egi.Cut):
-                    enclosing_cuts += 1
-                    current_area = containing_area
-                else:
-                    break
-
-            nesting_depth = enclosing_cuts + 1
-        else:
-            # For non-cut areas, this shouldn't happen in valid EGIs
-            nesting_depth = 0
-
-        polarity = (
-            AreaPolarity.POSITIVE if nesting_depth % 2 == 0 else AreaPolarity.NEGATIVE
-        )
-        return polarity, nesting_depth
+        Delegates to the canonical ``egi.area_polarity()`` method.
+        """
+        return egi.area_polarity(area_id)
 
 
 class DoubleCutInsertionRule(FormalTransformationRule):
-    """DC+ - Double Cut Insertion Rule"""
+    """DC+ (Dau §14.3): Double Cut Insertion Rule.
+
+    Inserts a pair of nested cuts around any subgraph (or around nothing,
+    yielding two empty nested cuts) in any area regardless of polarity.
+    Because a double cut is semantically transparent — the two negations
+    cancel — the rule is truth-preserving in all polarities.
+
+    Preconditions (Dau §14.3):
+        - The target area must exist in the EGI.
+        - Every element of the selected subgraph must live directly in the
+          target area (not inside a nested cut within that area).
+
+    Result: a new outer cut O and inner cut I are created; O lives in
+    target_area, I lives inside O, and the selected subgraph moves inside I.
+    """
 
     def get_rule_name(self) -> str:
         return "DC+ (Double Cut Insertion)"
@@ -152,7 +126,22 @@ class DoubleCutInsertionRule(FormalTransformationRule):
     def apply_transformation(
         self, context: TransformationContext
     ) -> TransformationResult:
-        """Apply DC+ by inserting a double cut around selected elements."""
+        """Apply DC+ by inserting a pair of nested cuts around the selected elements.
+
+        If ``context.selected_subgraph`` is non-empty, those elements are moved
+        inside the new inner cut.  If empty, all elements currently in
+        ``context.target_area`` are enclosed instead.
+
+        Args:
+            context: Transformation context carrying the source EGI, the target
+                area, and the (possibly empty) subgraph to enclose.
+
+        Returns:
+            TransformationResult with ``success=True`` and a new
+            RelationalGraphWithCuts in which an outer cut and an inner cut have
+            been added, or ``success=False`` with an ``error_message`` when
+            preconditions fail.
+        """
         precondition_ok, error_msg = self.check_preconditions(context)
         if not precondition_ok:
             return TransformationResult(False, None, error_msg, {})
@@ -226,7 +215,21 @@ class DoubleCutInsertionRule(FormalTransformationRule):
 
 
 class DoubleCutErasureRule(FormalTransformationRule):
-    """DC- - Double Cut Erasure Rule"""
+    """DC- (Dau §14.3): Double Cut Erasure Rule.
+
+    Removes a pair of adjacent nested cuts, releasing their contents into the
+    enclosing area.  Applicable in any polarity area (the double cut is
+    semantically transparent, so its removal is always valid).
+
+    Preconditions (Dau §14.3):
+        - Exactly one cut must be selected (the outer cut).
+        - That outer cut must contain exactly one element, which must itself
+          be a cut (the inner cut).
+        - The inner cut may contain arbitrary content.
+
+    Result: both cuts are removed and the inner cut's contents are placed
+    directly into the area that formerly contained the outer cut.
+    """
 
     def get_rule_name(self) -> str:
         return "DC- (Double Cut Erasure)"
@@ -265,7 +268,17 @@ class DoubleCutErasureRule(FormalTransformationRule):
     def apply_transformation(
         self, context: TransformationContext
     ) -> TransformationResult:
-        """Apply DC- by removing the double cut pattern."""
+        """Apply DC- by removing the outer and inner cuts, merging contents upward.
+
+        Args:
+            context: Transformation context.  ``context.selected_subgraph``
+                must be a singleton frozenset containing the outer cut's ID.
+
+        Returns:
+            TransformationResult with ``success=True`` and a new EGI in which
+            the outer and inner cuts are absent and the inner cut's contents
+            are placed in the parent area, or ``success=False`` on failure.
+        """
         precondition_ok, error_msg = self.check_preconditions(context)
         if not precondition_ok:
             return TransformationResult(False, None, error_msg, {})
@@ -328,7 +341,20 @@ class DoubleCutErasureRule(FormalTransformationRule):
 
 
 class InsertionRule(FormalTransformationRule):
-    """INS - Insertion Rule"""
+    """INS (Dau §14.2): Insertion Rule.
+
+    Any closed graph may be inserted into a negatively-enclosed area (odd
+    nesting depth).  Logically this corresponds to weakening inside a
+    negation, which is truth-preserving.
+
+    Preconditions (Dau §14.2):
+        - The target area must have negative polarity (odd nesting depth).
+        - The subgraph to insert must be *closed* per Dau's definition: no
+          edge in the subgraph has an endpoint outside the subgraph.
+
+    Result: the closed subgraph (and any vertices needed to make it closed)
+    is added to the negative target area.
+    """
 
     def get_rule_name(self) -> str:
         return "INS (Insertion)"
@@ -373,7 +399,24 @@ class InsertionRule(FormalTransformationRule):
     def apply_transformation(
         self, context: TransformationContext
     ) -> TransformationResult:
-        """Apply INS by adding the specified subgraph to the negative area."""
+        """Apply INS by adding the specified closed subgraph to the negative area.
+
+        If ``check_preconditions`` already expanded the subgraph to its closure
+        (stored on ``context.expanded_subgraph``), that expanded version is used.
+        The method also supports a direct-construction path via
+        ``context.insertion_edge_id`` / ``context.insertion_relation_name`` /
+        ``context.insertion_vertex_sequence`` for GUI-driven single-predicate
+        insertions.
+
+        Args:
+            context: Transformation context with ``target_area`` pointing to a
+                negative area and ``selected_subgraph`` identifying elements to
+                insert.
+
+        Returns:
+            TransformationResult with ``success=True`` and a new EGI
+            containing the inserted elements, or ``success=False`` on failure.
+        """
         precondition_ok, error_msg = self.check_preconditions(context)
         if not precondition_ok:
             return TransformationResult(False, None, error_msg, {})
@@ -470,7 +513,22 @@ class InsertionRule(FormalTransformationRule):
 
 
 class ErasureRule(FormalTransformationRule):
-    """ERA - Erasure Rule"""
+    """ERA (Dau §14.1): Erasure Rule.
+
+    Any closed subgraph may be erased from a positively-enclosed area (even
+    nesting depth).  Logically this is weakening in a positive context, which
+    is truth-preserving.
+
+    Preconditions (Dau §14.1):
+        - The target area must have positive polarity (even nesting depth,
+          including the sheet of assertion at depth 0).
+        - The subgraph to erase must be *closed* per Dau's definition: no
+          edge in the subgraph has an endpoint outside the subgraph.
+        - All selected elements must reside directly in the target area.
+
+    Result: the selected closed subgraph (including any cuts and their
+    recursive contents) is removed from the EGI.
+    """
 
     def get_rule_name(self) -> str:
         return "ERA (Erasure)"
@@ -523,7 +581,21 @@ class ErasureRule(FormalTransformationRule):
     def apply_transformation(
         self, context: TransformationContext
     ) -> TransformationResult:
-        """Apply ERA by removing the specified subgraph from the positive area."""
+        """Apply ERA by removing the closed subgraph from the positive area.
+
+        Uses the expanded closure computed by ``check_preconditions`` (stored
+        on ``context.expanded_subgraph``) to ensure all transitively required
+        elements (e.g. cut interiors) are also removed.
+
+        Args:
+            context: Transformation context with ``target_area`` pointing to a
+                positive area and ``selected_subgraph`` identifying elements
+                to erase.
+
+        Returns:
+            TransformationResult with ``success=True`` and a new EGI with the
+            erased elements absent, or ``success=False`` on failure.
+        """
         precondition_ok, error_msg = self.check_preconditions(context)
         if not precondition_ok:
             return TransformationResult(False, None, error_msg, {})
@@ -588,12 +660,22 @@ class ErasureRule(FormalTransformationRule):
 
 
 class IterationRule(FormalTransformationRule):
-    """IT+ - Iteration Rule
+    """IT+ (Dau §14.4): Iteration Rule.
 
-    A subgraph in area A may be copied into any area B where B is enclosed
-    by A (i.e., B is at a deeper nesting level than A, or B == A).
-    Copied elements receive fresh UUID-based IDs and preserve all attributes.
-    Cut interiors are duplicated recursively.
+    A subgraph in area A may be copied into any area B that is enclosed by A
+    (i.e., B is a descendant of A in the cut hierarchy, or B == A).
+    Logically this is conjunction introduction — adding a repeated assertion
+    deeper in the graph — which is truth-preserving.
+
+    Preconditions (Dau §14.4):
+        - ``context.selected_subgraph`` must be non-empty.
+        - ``context.target_area`` must exist in the EGI.
+        - The destination area must be enclosed by (or equal to) the source
+          area that directly contains the selected elements.
+
+    Result: all selected elements (vertices, edges, cuts and their recursive
+    interiors) are deep-copied with fresh UUID-based IDs and the copies are
+    added to ``context.target_area``.
     """
 
     def get_rule_name(self) -> str:
@@ -757,7 +839,12 @@ class IterationRule(FormalTransformationRule):
         if context.target_area not in egi.area:
             return False, f"Target area {context.target_area} does not exist"
 
-        source_area = self._find_source_area(egi, context.selected_subgraph)
+        # Use explicitly provided source_area (from interaction protocol) when
+        # available.  The protocol computes this from the *original* selection
+        # before closure expansion, which is the correct semantic source area.
+        source_area = getattr(context, 'source_area', None)
+        if source_area is None:
+            source_area = self._find_source_area(egi, context.selected_subgraph)
         if not self._is_enclosed_by(egi, context.target_area, source_area):
             return False, (
                 f"IT+ requires the destination to be enclosed by the source area. "
@@ -769,7 +856,23 @@ class IterationRule(FormalTransformationRule):
     def apply_transformation(
         self, context: TransformationContext
     ) -> TransformationResult:
-        """Apply IT+ by copying the selected subgraph into the target area."""
+        """Apply IT+ by deep-copying the selected subgraph into the target area.
+
+        Only top-level elements (directly in the source area) are iterated;
+        elements nested inside selected cuts are handled recursively by
+        ``_copy_cut_recursive``.  All copied elements receive fresh
+        UUID-based IDs so the originals are not disturbed.
+
+        Args:
+            context: Transformation context.  ``context.selected_subgraph``
+                identifies elements in the source area; ``context.target_area``
+                is the destination (must be enclosed by the source area).
+
+        Returns:
+            TransformationResult with ``success=True`` and a new EGI
+            containing the copied elements in ``target_area``, or
+            ``success=False`` on failure.
+        """
         import uuid
 
         precondition_ok, error_msg = self.check_preconditions(context)
@@ -778,7 +881,9 @@ class IterationRule(FormalTransformationRule):
 
         try:
             egi = context.source_egi
-            source_area = self._find_source_area(egi, context.selected_subgraph)
+            source_area = getattr(context, 'source_area', None)
+            if source_area is None:
+                source_area = self._find_source_area(egi, context.selected_subgraph)
 
             new_vertices: Set = set(egi.V)
             new_edges: Set = set(egi.E)
@@ -884,7 +989,25 @@ class IterationRule(FormalTransformationRule):
 
 
 class DeiterationRule(FormalTransformationRule):
-    """IT- - Deiteration Rule"""
+    """IT- (Dau §14.4): Deiteration Rule.
+
+    The inverse of Iteration: a subgraph may be erased from an area if an
+    isomorphic copy of it exists in the same area or in any enclosing area
+    (i.e., the subgraph could have been placed there by IT+).  Logically this
+    removes a redundant repeated assertion, preserving truth.
+
+    Polarity: IT- may be applied in any polarity area (unlike ERA, which is
+    positive-only).
+
+    Preconditions (Dau §14.4):
+        - ``context.selected_subgraph`` must be non-empty.
+        - A structurally isomorphic copy of the subgraph must exist in the
+          target area or in an enclosing area (the "nest of cuts").
+          Structural identity is checked via ``IsomorphismValidator``.
+
+    Result: the selected subgraph is erased, delegating to ``ErasureRule``
+    with the polarity constraint overridden.
+    """
 
     def get_rule_name(self) -> str:
         return "IT- (Deiteration)"
@@ -1167,7 +1290,20 @@ class DeiterationRule(FormalTransformationRule):
     def apply_transformation(
         self, context: TransformationContext
     ) -> TransformationResult:
-        """Apply IT- by removing one instance of the duplicated subgraph."""
+        """Apply IT- by erasing the selected (iterated) subgraph.
+
+        Delegates to ``ErasureRule`` with the polarity constraint overridden to
+        POSITIVE so the erasure logic can proceed regardless of the actual
+        polarity of the target area.
+
+        Args:
+            context: Transformation context identifying the subgraph to remove.
+
+        Returns:
+            TransformationResult with ``success=True`` and the updated EGI
+            (``changes_made["rule"]`` is rewritten from "ERA" to "IT-"), or
+            ``success=False`` if preconditions fail or erasure fails.
+        """
         precondition_ok, error_msg = self.check_preconditions(context)
         if not precondition_ok:
             return TransformationResult(False, None, error_msg, {})

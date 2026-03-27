@@ -12,6 +12,7 @@ This implementation replaces the previous "Context" model with Dau's formal:
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import Enum
 from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
 
 from frozendict import frozendict
@@ -20,6 +21,19 @@ from frozendict import frozendict
 ElementID = str
 VertexSequence = Tuple[ElementID, ...]
 RelationName = str
+
+
+class AreaPolarity(Enum):
+    """Polarity of an area based on nesting depth of cuts.
+
+    Recto (positive): even nesting depth (0, 2, 4, ...) — the sheet and areas
+    enclosed by an even number of cuts.
+    Verso (negative): odd nesting depth (1, 3, 5, ...) — areas enclosed by
+    an odd number of cuts.
+    """
+
+    POSITIVE = "positive"  # Recto — even nesting depth
+    NEGATIVE = "negative"  # Verso — odd nesting depth
 
 
 @dataclass(frozen=True)
@@ -398,6 +412,47 @@ class RelationalGraphWithCuts:
     def is_negative_context(self, context_id: ElementID) -> bool:
         """Check if context is negative (evenly enclosed cut)."""
         return not self.is_positive_context(context_id)
+
+    def area_polarity(self, area_id: ElementID) -> Tuple["AreaPolarity", int]:
+        """Canonical polarity and nesting depth for an area (sheet or cut).
+
+        Uses the precomputed HierarchicalIndex for O(1) lookup.
+
+        Args:
+            area_id: The sheet ID or a cut ID.
+
+        Returns:
+            (AreaPolarity, nesting_depth) where nesting_depth 0 = sheet.
+        """
+        if self.hierarchical_index is not None:
+            level = self.hierarchical_index.get_nesting_level(area_id)
+            if level is not None:
+                polarity = (
+                    AreaPolarity.POSITIVE if level % 2 == 0 else AreaPolarity.NEGATIVE
+                )
+                return polarity, level
+
+        # Fallback for areas not in the index (should not happen for valid EGIs)
+        if area_id == self.sheet:
+            return AreaPolarity.POSITIVE, 0
+
+        depth = 0
+        current = area_id
+        visited: set = set()
+        while current != self.sheet:
+            if current in visited:
+                break
+            visited.add(current)
+            parent = next(
+                (pid for pid, contents in self.area.items() if current in contents),
+                None,
+            )
+            if parent is None:
+                break
+            depth += 1
+            current = parent
+        polarity = AreaPolarity.POSITIVE if depth % 2 == 0 else AreaPolarity.NEGATIVE
+        return polarity, depth
 
     # Hook operations (Definition 12.9)
 

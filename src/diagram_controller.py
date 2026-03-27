@@ -965,39 +965,13 @@ class DiagramController:
             return f"Validation exception: {str(e)}"
 
     def _calculate_area_polarity(self, area_id: ElementID) -> Tuple[AreaPolarity, int]:
-        """Calculate polarity and nesting depth of an area."""
+        """Calculate polarity and nesting depth of an area.
+
+        Delegates to the canonical ``egi.area_polarity()`` method.
+        """
         if not self.egi_model:
             return AreaPolarity.POSITIVE, 0
-
-        # Sheet is always level 0, positive
-        if area_id == self.egi_model.sheet:
-            return AreaPolarity.POSITIVE, 0
-
-        # For cut areas, count how many cuts enclose this area
-        enclosing_cuts = 0
-        current_area = area_id
-
-        while True:
-            # Find which area contains current_area
-            containing_area = None
-            for area_candidate, contents in self.egi_model.area.items():
-                if current_area in contents:
-                    containing_area = area_candidate
-                    break
-
-            if containing_area is None or containing_area == self.egi_model.sheet:
-                break
-
-            if any(cut.id == containing_area for cut in self.egi_model.Cut):
-                enclosing_cuts += 1
-                current_area = containing_area
-            else:
-                break
-
-        nesting_depth = enclosing_cuts + 1
-        polarity = AreaPolarity.POSITIVE if nesting_depth % 2 == 0 else AreaPolarity.NEGATIVE
-
-        return polarity, nesting_depth
+        return self.egi_model.area_polarity(area_id)
 
     def _validate_element_position(self, element_id: str, new_position: Tuple[float, float]) -> ValidationResult:
         """Validate that a new element position is within logical bounds."""
