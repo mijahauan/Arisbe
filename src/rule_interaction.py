@@ -416,8 +416,10 @@ class ERAInteraction(RuleInteraction):
             )
 
         # Subgraph must be closed (with auto-expansion)
+        # Beta: vertices in ancestor areas of the operating area are free
         validator = SubgraphClosureValidator(egi)
-        analysis = validator.analyze_closure(selection, allow_expansion=True)
+        analysis = validator.analyze_closure(
+            selection, allow_expansion=True, context_area=area)
 
         if not analysis.is_closed:
             violations = "; ".join(v.description for v in analysis.violations[:3])
@@ -663,8 +665,10 @@ class ITPlusInteraction(RuleInteraction):
             )
 
         # Must be closed
+        # Beta: vertices in ancestor areas of the source area are free
         validator = SubgraphClosureValidator(egi)
-        analysis = validator.analyze_closure(selection, allow_expansion=True)
+        analysis = validator.analyze_closure(
+            selection, allow_expansion=True, context_area=area)
         if not analysis.is_closed:
             violations = "; ".join(v.description for v in analysis.violations[:3])
             return StepResult(
@@ -786,8 +790,10 @@ class ITMinusInteraction(RuleInteraction):
             )
 
         # Must be closed
+        # Beta: vertices in ancestor areas of the candidate area are free
         validator = SubgraphClosureValidator(egi)
-        analysis = validator.analyze_closure(selection, allow_expansion=True)
+        analysis = validator.analyze_closure(
+            selection, allow_expansion=True, context_area=area)
         if not analysis.is_closed:
             violations = "; ".join(v.description for v in analysis.violations[:3])
             return StepResult(

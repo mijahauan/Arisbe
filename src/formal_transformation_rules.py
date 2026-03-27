@@ -377,9 +377,12 @@ class InsertionRule(FormalTransformationRule):
 
         # CRITICAL: Check if subgraph to insert is closed per Dau's requirement
         # Use comprehensive closure validator
+        # Beta: pass context_area so vertices in ancestor areas are free
         if context.selected_subgraph:
             validator = SubgraphClosureValidator(context.source_egi)
-            analysis = validator.analyze_closure(context.selected_subgraph, allow_expansion=True)
+            analysis = validator.analyze_closure(
+                context.selected_subgraph, allow_expansion=True,
+                context_area=context.target_area)
             
             if not analysis.is_closed:
                 # Show detailed violations
@@ -559,9 +562,12 @@ class ErasureRule(FormalTransformationRule):
 
         # CRITICAL: Check if subgraph is closed per Dau's requirement
         # Use comprehensive closure validator with automatic expansion
+        # Beta: pass context_area so vertices in ancestor areas are free
         if context.selected_subgraph:
             validator = SubgraphClosureValidator(context.source_egi)
-            analysis = validator.analyze_closure(context.selected_subgraph, allow_expansion=True)
+            analysis = validator.analyze_closure(
+                context.selected_subgraph, allow_expansion=True,
+                context_area=context.target_area)
             
             if not analysis.is_closed:
                 # Show detailed violations
@@ -902,6 +908,17 @@ class IterationRule(FormalTransformationRule):
                 # Vertex?
                 v_match = next((v for v in egi.V if v.id == elem_id), None)
                 if v_match is not None:
+                    # Beta: do NOT copy vertices from the source area when
+                    # iterating into a deeper area.  Copied edges will
+                    # reference the original vertex, extending the line of
+                    # identity into the destination.  Vertices inside
+                    # recursively-copied cuts ARE still duplicated because
+                    # they are self-contained within the cut.
+                    if source_area != context.target_area:
+                        # Destination is deeper — reuse original vertex
+                        element_mapping[elem_id] = elem_id  # identity mapping
+                        continue
+                    # Same-area copy (unusual) — create fresh vertex
                     new_v_id = ElementID(f"v_{uuid.uuid4().hex[:8]}")
                     element_mapping[elem_id] = new_v_id
                     new_vertices.add(
