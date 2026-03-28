@@ -600,7 +600,7 @@ sequence = history.get_transformation_sequence(from_state, to_state)
 
 ### Agon Mode (⏳ Phase 3)
 - **Purpose**: Formal reasoning and Endoporeutic Game
-- **Planned**: Game board, move validation, umpire evaluation, game history
+- **Planned**: Game board, move validation, Agonothetes evaluation, game history
 
 ### Key Documentation
 - **Data Models**: `EGI_DATA_MODEL_SUMMARY.md`, `DIACHRONIC_SYNCHRONIC_DATA_MODEL_ANALYSIS.md`

@@ -369,7 +369,7 @@ class TestScriptD_NewFact(unittest.TestCase):
       The DM says "all humans are mortal" but names no specific humans.
       The proposal "Socrates is human" is perfectly compatible but not
       derivable.  The game reaches stalemate — neither player can force
-      a win.  The Umpire facilitates agreement to accept G as a new fact.
+      a win.  The Agonothetes facilitates agreement to accept G as a new fact.
 
       After acceptance, DM' = DM ∪ {Human(Socrates)}, and the combined
       DM' now entails Mortal(Socrates) as a theorem.
@@ -848,9 +848,9 @@ class TestOutcomeTaxonomyNotes(unittest.TestCase):
     UniverseOfDiscourse already supports branching histories — this
     needs to be wired into the game engine's post-game hook.
 
-    Case 3a–3e (Independent proposals): Require the Umpire role to
-    facilitate post-game negotiation.  Currently the Umpire is implicit.
-    A formal Umpire protocol would need:
+    Case 3a–3e (Independent proposals): Require the Agonothetes role to
+    facilitate post-game negotiation.  Currently the Agonothetes is implicit.
+    A formal Agonothetes protocol would need:
       - A method to propose DM modification (INS/ERA on the DM itself)
       - Acceptance/rejection by both players
       - Recording the rationale in the proof transcript
@@ -876,10 +876,10 @@ class TestOutcomeTaxonomyNotes(unittest.TestCase):
         needs_work = {
             "2b": "DM revision — needs meta-protocol",
             "2c": "Fork — needs DAG history integration",
-            "3b": "Abductive hypothesis — needs Umpire protocol",
-            "3c": "Open conjecture — needs Umpire protocol",
-            "3d": "Definition — needs Umpire protocol",
-            "3e": "Conditional acceptance — needs Umpire protocol",
+            "3b": "Abductive hypothesis — needs Agonothetes protocol",
+            "3c": "Open conjecture — needs Agonothetes protocol",
+            "3d": "Definition — needs Agonothetes protocol",
+            "3e": "Conditional acceptance — needs Agonothetes protocol",
             "6":  "Partial overlap — needs decomposition meta-game",
             "7":  "Refinement — needs subsumption checking",
             "8":  "Generalization — needs subsumption checking",

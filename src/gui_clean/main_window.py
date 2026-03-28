@@ -130,7 +130,7 @@ class MainWindow(QMainWindow):
         label.setStyleSheet("font-size: 16pt; padding: 20px;")
         layout.addWidget(label)
         
-        status = QLabel("Coming soon: Game board, umpire, hypothesis manager")
+        status = QLabel("Coming soon: Game board, Agonothetes, hypothesis manager")
         status.setAlignment(Qt.AlignCenter)
         status.setStyleSheet("color: gray;")
         layout.addWidget(status)

@@ -6,30 +6,46 @@
 
 ## Overview
 
-The Endoporeutic Game (EPG) is Peirce's dialogical semantics for Existential Graphs.
-Two players — the **Graphist** (Proposer) and the **Grapheus** (Skeptic) — engage in a
-formal exchange over a proposed graph, given an agreed **Domain Model** (DM).
+The Endoporeutic Game (EPG) is Peirce's dialogical semantics for Existential
+Graphs — a paraphrasing of "unwrapping game" or "outside-in game."
 
-The game is not merely a proof checker. It is a **model of inquiry**: its outcomes
-drive the growth, revision, and correction of knowledge within a Universe of Discourse.
+> "The interpretation of existential graphs is *endoporeutic*, that is, proceeds
+> inwardly; so that a nest sucks the meaning from without inwards unto its
+> centre, as a sponge absorbs water..."  — Ms 650, pp. 18–19
+
+Two players — the **Graphist** (Proposer) and the **Grapheus** (Skeptic) —
+engage in a formal exchange over a proposed graph, given an agreed **Domain
+Model** (M). A third role, the **Agonothetes** (ἀγωνοθέτης, "organizer of
+the contest"), presides over the game, validates moves, and manages the
+post-game negotiation that determines how M evolves.
+
+The game is not merely a proof checker. It is a **model of inquiry**: its
+outcomes drive the growth, revision, and correction of knowledge within a
+Universe of Discourse. Both players reference a model **M** consisting of a
+set of individuals **D** and a set of relations **R** over **D**. New graphs
+need not originate from M — M develops as the Graphist and Grapheus consider
+new graphs and how or whether they fit with M. A model has to start somewhere:
+it may be pre-existing or it may begin as an empty sheet (the assertion of a
+double negative providing the initial context).
 
 ### Prerequisites
 
 | Component | Description |
 |-----------|-------------|
-| **Domain Model (DM)** | An agreed EGI representing the shared knowledge base |
+| **Domain Model (M)** | An agreed EGI on the Sheet of Assertion — the shared knowledge base |
 | **Proposal (G)** | The Graphist's "seed" graph — an assertion to be tested |
 | **Rules** | The six Dau transformation rules, polarity-constrained |
-| **Umpire** (optional) | Validates moves, oversees post-game negotiation |
+| **Agonothetes** | Organizer of the contest: validates moves, oversees outcome negotiation |
 
 ### Players and Territories
 
-| Player | Role | Territory | Rules |
-|--------|------|-----------|-------|
-| **Graphist** (Proposer) | Defends the proposal | NEGATIVE areas (odd depth) | INS, IT+, DC+ |
-| **Grapheus** (Skeptic) | Challenges the proposal | POSITIVE areas (even depth) | ERA, IT-, DC- |
+| Player | Also known as | Role | Territory | Rules |
+|--------|---------------|------|-----------|-------|
+| **Graphist** | Proposer, Utterer, Encoder, Speaker | Defends the proposal | NEGATIVE areas (odd depth) | INS, IT+, DC+ |
+| **Grapheus** | Skeptic, Interpreter, Decoder, Listener | Challenges the proposal | POSITIVE areas (even depth) | ERA, IT-, DC- |
 
 DC+ and DC- are meaning-preserving and available to both players in any area.
+One person can play both roles, as when playing oneself in chess.
 
 ### Turn Structure
 
@@ -43,56 +59,103 @@ This reflects the semantic reading: universal claims (negative contexts) are
 defended by the Proposer against *any* challenge; existential claims (positive
 contexts) are attacked by the Skeptic who must find a *specific* counterexample.
 
+### The Outside-In Process
+
+In EGs one makes a cut in a place and thereby creates an area of opposite
+valence. Given `{ }` and applying +DN produces `{ (()) }`. One makes the
+first cut of the DN at level 0 (on the blank SoA) and creates an area at
+level 1. One makes the second cut at a place in level 1 (the area created
+by the first cut), and creates an area at level 2. In considering the elements
+juxtaposed in an area you can effectively ignore the details in nested areas.
+
+The game proceeds by this outside-in reduction:
+
+1. If an outermost part *g* of the contested EG **contains no negations**,
+   the Proposer must show a mapping (graph homomorphism) between *g* and
+   the objects and relations in M. If *g* maps onto M, the Proposer fixes
+   all mapped lines of identity from *g* into the remaining EG and erases
+   *g*. This leaves either an empty sheet (Proposer wins) or one or more
+   negations (continue below).
+
+2. If the contested EG **contains negations**, the process removes them
+   one-by-one. Removing a single negation changes the valence of nested
+   elements and **reverses the roles** of Proposer and Skeptic.
+
+3. If the outermost graph consists of **two or more negations**, the current
+   Skeptic can remove all but one of them.
+
+These steps gradually reduce the proposed graph either to emptiness (Proposer
+wins, G is true in M) or to a graph having no possible mapping in M (Skeptic
+wins, G is false in M).
+
+### Contextualizing a Proposed Graph
+
+The Proposer scribes the contested EG into a context per these rules:
+
+1. `{ }` — Sheet of Assertion (depth 0)
+2. `{ (()) }` — Add double cut: outer at depth 1, inner at depth 2
+3. `{ ((())) () }` — Add another double cut inside the first (depth 1)
+4. `{ (((G))) () }` — Insert G at depth 3 (negative/odd context, per INS rule)
+5. `{ (()) () }` — Erase `((G))` from depth 2 (positive/even, per ERA rule)
+6. `{ (()) }` — De-iterate the redundant empty cut (per IT- rule)
+7. `{ }` — Erase the double cut (per DC- rule)
+
+This demonstrates a valid procedure for introducing G into a specific context
+and then removing it, using only the formal transformation rules.
+
 ---
 
 ## Taxonomy of Game Outcomes
 
 ### I. Logical Classification
 
-The game *determines* the logical relationship between G and DM:
+The game *determines* the logical relationship between G and M:
 
 | # | Relationship | Formal | Result |
 |---|---|---|---|
-| 1 | **G is entailed by DM** | DM ⊨ G | Graphist wins — G is a **theorem** |
-| 2 | **G contradicts DM** | DM ⊨ ¬G | Grapheus wins — G is **refuted** |
-| 3 | **G is independent of DM** | DM ⊭ G ∧ DM ⊭ ¬G | **Stalemate** — neither can force a win |
-| 4 | **G is a tautology** | ⊨ G | Graphist wins trivially (DM irrelevant) |
-| 5 | **G is self-contradictory** | G unsatisfiable | Grapheus wins trivially (DM irrelevant) |
+| 1 | **G is entailed by M** | M ⊨ G | Graphist wins — G is a **theorem** |
+| 2 | **G contradicts M** | M ⊨ ¬G | Grapheus wins — G is **refuted** |
+| 3 | **G is independent of M** | M ⊭ G ∧ M ⊭ ¬G | **Stalemate** — neither can force a win |
+| 4 | **G is a tautology** | ⊨ G | Graphist wins trivially (M irrelevant) |
+| 5 | **G is self-contradictory** | G unsatisfiable | Grapheus wins trivially (M irrelevant) |
 
 ### II. Pragmatic Outcomes
 
 Each logical outcome opens different pragmatic paths — this is where the game
-drives inquiry rather than merely classifying propositions:
+drives inquiry rather than merely classifying propositions. The Agonothetes
+presides over the post-game negotiation that determines which path is taken.
 
 #### Case 1 — G Proved (Theorem)
 
-- **1a. Registration**: G is added to DM as a derived theorem with its proof
-  transcript. The DM grows by **deduction**.
-- **1b. Redundancy**: G was already in DM (or trivially equivalent). The proof
+- **1a. Registration**: G is added to M as a derived theorem with its proof
+  transcript. M grows by **deduction**.
+- **1b. Redundancy**: G was already in M (or trivially equivalent). The proof
   is still valuable as an alternative derivation or pedagogical exercise.
 
-#### Case 2 — G Refuted (Contradiction with DM)
+#### Case 2 — G Refuted (Contradiction with M)
 
-- **2a. Rejection** (standard): DM is authoritative, G is simply wrong. The
+- **2a. Rejection** (standard): M is authoritative, G is simply wrong. The
   Graphist concedes. The refutation proof is recorded.
-- **2b. Challenge to DM** (revolutionary): The Graphist has external reasons
-  to believe G is correct, meaning something in DM is wrong. The refutation
-  becomes evidence *against* the DM. This initiates **DM revision** — Peirce's
-  "irritation of doubt."
+- **2b. Challenge to M** (revolutionary): The Graphist has external reasons
+  to believe G is correct, meaning something in M is wrong. The refutation
+  becomes evidence *against* M. This initiates **M revision** — Peirce's
+  "irritation of doubt." Under what conditions might G supplant what
+  contradicted it in M?
 - **2c. Fork**: Both G and ¬G have defensible grounds. The UoD branches into
-  alternative domain models (DM₁ with G, DM₂ without). The DAG history
+  alternative domain models (M₁ with G, M₂ without). The DAG history
   records both branches.
 - **2d. Reductio resource**: The contradiction itself is useful — it establishes
-  ¬G as a theorem of DM, constraining future reasoning.
+  ¬G as a theorem of M, constraining future reasoning.
 
 #### Case 3 — G Independent (Stalemate)
 
-This is the richest case — it corresponds to **genuinely new knowledge** that DM
+This is the richest case — it corresponds to **genuinely new knowledge** that M
 alone cannot adjudicate:
 
 - **3a. New empirical fact**: G describes an observation. Both players agree to
-  assert G into DM (INS at the sheet). The DM grows by **induction**.
-- **3b. Abductive hypothesis**: G *explains* something puzzling in DM (unifies
+  assert G into M (INS at the sheet). M grows by **induction**. The Skeptic
+  decides whether to accept G into M — the Agonothetes facilitates this decision.
+- **3b. Abductive hypothesis**: G *explains* something puzzling in M (unifies
   seemingly unrelated theorems). Tentatively accepted as a hypothesis. Peirce's
   abduction — "the only logical operation which introduces any new idea."
 - **3c. Open conjecture**: G is interesting but unverified. Recorded in the UoD
@@ -100,7 +163,7 @@ alone cannot adjudicate:
 - **3d. Definition or convention**: G introduces new terminology or conceptual
   structure. Accepted by mutual agreement, not by proof.
 - **3e. Conditional acceptance**: G is accepted under an additional premise P.
-  The result P → G is added to DM.
+  The result P → G is added to M.
 
 #### Case 4 — G is Tautological
 
@@ -110,7 +173,8 @@ valuable. Also serves as a **soundness check** on the game mechanics.
 #### Case 5 — G is Self-Contradictory
 
 Trivially false. May signal a **formalization error** rather than a logical
-one — the Graphist intended a different graph. The Umpire may allow reformulation.
+one — the Graphist intended a different graph. The Agonothetes may allow
+reformulation.
 
 ### III. Composite Cases
 
@@ -118,32 +182,67 @@ Real-world proposals are often complex:
 
 - **Case 6 — Partial overlap**: Parts of G are theorems, parts are independent,
   parts may conflict. The game decomposes G and adjudicates each component.
-- **Case 7 — Refinement**: G adds more specific claims consistent with DM
+- **Case 7 — Refinement**: G adds more specific claims consistent with M
   (specialization). Accepted as a strengthening.
 - **Case 8 — Generalization**: G proposes a broader principle subsuming existing
-  DM content. An **inductive leap** — the most characteristically Peircean move.
+  M content. An **inductive leap** — the most characteristically Peircean move.
+  (Consider the swan example: observations 1–20 all note white color; at some
+  point the Proposer generalizes to "all swans are white." Nothing in M
+  contradicts this so the Skeptic allows it — until a black swan appears and
+  forces M revision via Case 2b.)
 
 ### IV. Connection to Peirce's Three Modes of Inference
 
 | Mode | EPG Outcome | Character |
 |------|-------------|-----------|
-| **Deduction** | Case 1 (theorem) | G follows necessarily from DM |
+| **Deduction** | Case 1 (theorem) | G follows necessarily from M |
 | **Induction** | Case 3a (new fact) | G is supported by evidence |
-| **Abduction** | Case 3b (hypothesis) | G explains something in DM |
+| **Abduction** | Case 3b (hypothesis) | G explains something in M |
 
 ---
 
-## The Umpire's Role
+## The Agonothetes (ἀγωνοθέτης)
 
-The Umpire is not merely a referee but the **guardian of the inquiry process**:
+The **Agonothetes** — literally "organizer of the contest" — is the official
+who presides over the game. The term comes from the ancient Greek title for
+those who organized and judged games, festivals, and competitions. In the
+EPG, the Agonothetes is not merely a referee but the **guardian of the
+inquiry process** and the central agent for managing the evolution and
+integrity of the Sheet of Assertion.
 
-1. **Pre-game**: Confirms DM is well-formed and mutually agreed upon
-2. **During game**: Validates move legality, enforces turn order and polarity rules
-3. **Post-game**: Oversees the **negotiation of pragmatic outcome** — this is where
-   cases 2b–2c and 3a–3e are decided by the players
-4. **Record-keeping**: Maintains the official transcript via `ProofSerializer`
-5. **Meta-adjudication**: When players disagree on whether G should revise DM
-   (case 2b vs 2a), the Umpire facilitates resolution
+### During the Game
+
+1. **Pre-game**: Confirms M is well-formed and mutually agreed upon. Ensures
+   the Proposer's graph G is syntactically valid EGI.
+2. **Move validation**: Every step must conform to Dau's formal definitions
+   for EGIs, proper subgraphs, and transformation rules. If a move is
+   invalid (incorrect syntax, improper subgraph selection, non-existent
+   mapping), the Agonothetes states the reason for invalidity.
+3. **Mapping validation**: When the Proposer maps exposed elements to M,
+   the Agonothetes validates the mapping. If the Proposer legitimately claims
+   a **new entity** not present in M, and the mapping is otherwise valid, the
+   Agonothetes prompts for its formal addition to the domain's ontology.
+
+### Post-Game Outcome Negotiation
+
+The Agonothetes' most critical function occurs at the conclusion of each
+inning. Based on the game outcome, the Agonothetes presents options for
+the proposed graph's fate:
+
+| Disposition | When | Effect on M |
+|-------------|------|-------------|
+| **Accepted as Consistent** | G mapped successfully, aligns with M | G added to SoA, expanding UoD |
+| **Provisionally Accepted** | G is plausible but requires further evidence | G added with hypothesis marker |
+| **Accepted, Implies M Change** | G is valid but conflicts with existing M | Agonothetes flags the inconsistency; participants decide whether to revise G, revise M, or mark the inconsistency for later resolution |
+| **Rejected** | G is invalid or inconsistent | G not added to M; optionally saved in a "Rejected Graphs" folio with the reason for rejection |
+
+### Record-Keeping and Replay
+
+The Agonothetes maintains the official game transcript via `ProofSerializer`.
+The critical replay function (side-by-side or step-by-step) allows
+participants to review the sequence of transformations, both for successful
+derivations and for instances of illustrative errors. This fosters deeper
+understanding of why a proof succeeded or failed.
 
 ---
 
@@ -181,6 +280,17 @@ The Skeptic attacks G by operating in positive (even-depth) areas:
 *simplifying structure*. The Skeptic cannot add anything — they can only
 remove and simplify.
 
+### Role Reversal
+
+A defining feature of the EPG is that **removing a negation reverses the
+roles**. When the outermost graph consists of a single negation, the next
+step removes it — changing the valence of all nested elements and making the
+former Skeptic into the new Proposer, who must now defend the contrary graph.
+
+This means both players must reason about the consequences of their moves
+not just for the current position but for the position they may find
+themselves defending after a role switch.
+
 ### Turn-by-Turn Dynamics
 
 The alternation creates a dialectical rhythm:
@@ -200,8 +310,41 @@ A player should concede when:
 - Continuing would only allow the opponent to strengthen theirs
 - The logical conclusion is clear and further play is pointless
 
-The Umpire may suggest concession when the outcome is logically determined
-but the players have not yet reached a terminal state.
+The Agonothetes may suggest concession when the outcome is logically
+determined but the players have not yet reached a terminal state.
+
+---
+
+## Two Game Aims
+
+The EPG has two basic aims:
+
+1. **Construct and achieve agreement** between Graphist and Grapheus on the
+   Individuals (D) and Relations (R) that make a shared Model (M).
+2. **Evaluate** whether any new Graph (G) by the Proposer has existing
+   meaning (maps) in M or adds new meaning to M.
+
+### Starting Conditions
+
+- **Option 1**: Pre-existing M (a corpus of established knowledge)
+- **Option 2**: Empty M (assertion of a double negative — the initial context
+  from which all subsequent graphs are proposed and considered)
+
+### The Inning
+
+Each proposal-and-resolution cycle constitutes an "inning":
+
+1. **P presents G** to S
+2. If G exposes only negated sub-graphs, S erases all but one and removes
+   its enclosing negation — **reversing roles** (S becomes P, P becomes S)
+   and returning to step 1 with the contrary of G
+3. S selects only the non-negated parts of G (erasing the negated parts)
+   to produce G₁
+4. Test M against G₁:
+   - If M maps to G₁ → **WIN** (erase G₁, inning ends)
+   - If M contradicts G₁ → **LOSE** (record in rejected graphs)
+   - If M says nothing about G₁ → retain G₁ as potential addition to M
+     (the Agonothetes facilitates the acceptance decision)
 
 ---
 
@@ -212,15 +355,15 @@ of the following scenarios:
 
 ### Simple Outcome Examples
 
-| Script | DM | Proposal G | Outcome | Demonstrates |
-|--------|-----|------------|---------|--------------|
+| Script | M (Domain Model) | Proposal G | Outcome | Demonstrates |
+|--------|-------------------|------------|---------|--------------|
 | **A** | ∀x(Human(x)→Mortal(x)), Human(Socrates) | Mortal(Socrates) | 1a: Theorem | Deductive proof (Barbara) |
-| **B** | ∀x(Cat(x)→Mammal(x)) | ∃x(Cat(x)∧Fish(x)) | 2a: Refuted | Standard refutation |
+| **B** | ∀x(Cat(x)→Mammal(x)), ¬∃(Mammal∧Fish) | ∃x(Cat(x)∧Fish(x)) | 2a: Refuted | Standard refutation |
 | **C** | P | ¬P | 2d: Reductio | Contradiction as resource |
 | **D** | ∀x(Human(x)→Mortal(x)) | Human(Socrates) | 3a: New fact | Empirical enlargement |
 | **E** | Human(Socrates), Mortal(Socrates) | ∀x(Human(x)→Mortal(x)) | 3b: Abduction | Inductive generalization |
-| **F** | ∀x(Swan(x)→White(x)) | ∃x(Swan(x)∧Black(x)) | 2b: DM revision | Revolutionary challenge |
-| **G** | (empty sheet) | ¬¬P→P (double negation) | 4: Tautology | Soundness check |
+| **F** | ∀x(Swan(x)→White(x)) | ∃x(Swan(x)∧Black(x)) | 2b: M revision | Revolutionary challenge |
+| **G** | (empty sheet) | P → P | 4: Tautology | Soundness check |
 | **H** | P | P∧¬P | 5: Self-contradictory | Formalization error |
 
 ### Advanced Strategy Examples
@@ -230,9 +373,9 @@ of the following scenarios:
 | **I** | Multi-move deduction with IT+ chain | Proposer propagation strategy |
 | **J** | Skeptic simplification via ERA+DC- | Skeptic reduction strategy |
 | **K** | Territory expansion via DC+ | Preparatory moves |
-| **L** | IT+/IT- push-pull exchange | Dialectical middle game |
+| **L** | DC+/DC- push-pull exchange | Dialectical middle game |
 | **M** | Concession after exhausting moves | Endgame recognition |
-| **N** | Fork into alternative DMs | DM revision negotiation |
+| **N** | Full game engine integration | Turn alternation, legality, goals |
 
 ---
 
@@ -306,6 +449,11 @@ graph is given by the *strategies available to the players*. A graph is **true**
 the Graphist has a winning strategy; **false** if the Grapheus has one; **undetermined**
 if neither can force a win.
 
+Peirce also used the term "endogenous" (Ms L 477, 1913) for this inside-out
+process. The game models interpretation as proceeding from the outermost context
+inward — each nested area "sucks the meaning from without inwards unto its
+centre."
+
 This dialogical interpretation makes EG a precursor to:
 
 - **Game-theoretic semantics** (Hintikka, 1973)
@@ -327,6 +475,10 @@ character. The post-game negotiation (Section II above) connects the formal
 game to Peirce's broader theory of inquiry:
 
 - **Belief fixation**: The game outcome fixes or disturbs belief
-- **Community of inquiry**: The Umpire represents the community's standards
+- **Community of inquiry**: The Agonothetes represents the community's standards
+  (the Commens — the community that realizes interpretation)
 - **Fallibilism**: Even "proven" results may be revised (case 2b)
-- **Growth of knowledge**: Independent proposals (case 3) are the engine of discovery
+- **Growth of knowledge**: Independent proposals (case 3) are the engine of
+  discovery — M develops as Graphist and Grapheus consider new graphs
+- **Self-correction**: The game is a model of inquiry as a self-correcting
+  process within a rational community

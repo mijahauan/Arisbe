@@ -105,7 +105,7 @@ result = InsertionRule().apply_transformation(context)
 - **Proposer** seeks to prove their assertion is true in the domain
 - **Skeptic** seeks to find a counter-model
 - In positive contexts, Skeptic chooses the rule; in negative contexts, Proposer chooses
-- The Umpire (automated) validates each move and determines the final outcome
+- The Agonothetes (automated) validates each move and determines the final outcome
 
 **Domain model as EGIF**: All domain knowledge is represented as an EGIF graph, not as external data or a separate knowledge base. The domain model is itself an EGI — it can be browsed, transformed, and reasoned about using the same tools.
 
@@ -181,7 +181,7 @@ Three styles selectable across all modes:
 4. REPL/GUI loop:
    - Proposer: apply rule in negative context
    - Skeptic: challenge or apply rule in positive context
-   - Umpire: validate each move
+   - Agonothetes: validate each move
 5. GameEngine.evaluate() → WIN | LOSE | DRAW
 6. Full game transcript saved as proof notation (EGIF sequence)
 ```
