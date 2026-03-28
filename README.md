@@ -239,7 +239,7 @@ The **core reasoning engine** and referee.
 
 ```
 src/                  Core logic and engine (39 production modules)
-tests/                Pytest test suite (254 passing, 26 test files)
+tests/                Pytest test suite (270 passing, 27 test files)
 tools/                Quality tools, demos, and utilities
 docs/                 Architecture documentation
 docs/context/         AI-assist context and recovery guides
@@ -425,7 +425,7 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 
 **Testing:**
 
-- **254 tests passing** (26 test files), 3 skipped (Qt-dependent)
+- **270 tests passing** (27 test files), 3 skipped (Qt-dependent)
 - Quality gates and core protection active
 - Comprehensive test coverage: core data model, all six transformation rules,
   import/export round-trips, isomorphism engine, proof exercises (Alpha + Beta),

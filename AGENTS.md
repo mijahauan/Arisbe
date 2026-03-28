@@ -2,7 +2,7 @@
 
 ## � Core Protection System
 - **16 protected core modules** - Cannot be modified without explicit authorization
-- **254 tests** must always pass (26 test files) - These validate the mathematical foundation
+- **270 tests** must always pass (27 test files) - These validate the mathematical foundation
 - **Qt-dependent tests** excluded from automatic quality gate (run manually to avoid hangs)
 - **Check protection status**: `python tools/core_protection_system.py --report`
 - **Override protection** (authorized changes only): `touch .core_modification_authorized`
@@ -23,10 +23,10 @@
 ## 🧪 Testing Requirements
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
 - **System status**: `python tools/daily_quality_dashboard.py`
-- **Core tests**: `python -m pytest tests/` (254 passing, 3 skipped)
+- **Core tests**: `python -m pytest tests/` (270 passing, 3 skipped)
 - **Qt-dependent tests**: Run manually (excluded from automatic checks due to collection hangs)
 - **GUI Organon tests**: `python tools/test_gui_organon.py` (3/3 passing)
-- **Expected results**: 254 tests passing, 0 failing
+- **Expected results**: 270 tests passing, 0 failing
 - **Timeout protection**: 120s timeout prevents infinite hangs on Qt import issues
 
 ### Battle-Tested Import/Export Infrastructure
@@ -42,7 +42,7 @@
 - **Environment**: `conda activate CGIF` (Python 3.12.10)
 - **Dependencies**: See `requirements.txt`
 - **Core modules location**: `src/` directory (16 protected modules)
-- **Test location**: `tests/` directory (26 test files, 254 tests)
+- **Test location**: `tests/` directory (27 test files, 270 tests)
 
 ## 📋 Code Style and Conventions
 - **Import pattern**: `from module_name import function_name` (not `from src.module_name`)
@@ -69,7 +69,7 @@
 ## 📊 Quality Gates
 - **Pre-commit hooks**: Automatically run quality checks
 - **Core protection**: Blocks unauthorized changes to protected modules
-- **Test validation**: All 254 tests must pass
+- **Test validation**: All 270 tests must pass
 - **Syntax checking**: Zero syntax errors required
 
 ## 🎯 Common Development Patterns
@@ -317,7 +317,7 @@ branch_id = uod.history.create_branch_from_state(
 - **DO NOT** reinvent existing solutions - use context awareness system first
 
 ## 🏆 Success Indicators
-- All 254 tests passing (26 test files)
+- All 270 tests passing (27 test files)
 - Quality dashboard shows "EXCELLENT" status
 - Core protection system shows "CLEAN" status
 - Zero syntax errors across all source files

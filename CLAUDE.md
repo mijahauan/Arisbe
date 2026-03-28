@@ -123,9 +123,10 @@ Code chapters correspond to Dau's formal textbook:
 - Ch. 18 → `chapter18_fopl_translation.py` (linear format Φ/Ψ translations)
 - Ch. 20 → `chapter20_syntactic_equivalence_fixes.py`
 
-## Testing (254 passing, 3 skipped)
+## Testing (270 passing, 3 skipped)
 
 Key test files:
+- `test_epg_exemplar_scripts.py` — 16 Endoporeutic Game scenarios (outcomes, strategies, engine integration)
 - `test_beta_proof_exercises.py` — 20 Beta graph tests (FOL, shared vertices, EGIF round-trips)
 - `test_logical_proof_exercises.py` — Propositional tautology derivations (modus ponens, etc.)
 - `test_rule_interaction.py` — Headless RuleInteraction protocol integration tests

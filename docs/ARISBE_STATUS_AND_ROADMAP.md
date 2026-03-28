@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-Arisbe implements Frithjof Dau's complete formalization of Peirce's Existential Graphs (EGI) as a rigorous computational system. The mathematical core — including full **Beta graph support** (first-order logic with lines of identity crossing cut boundaries) — is complete and thoroughly tested. The codebase comprises 39 production modules in `src/` with **254 passing tests** across 26 test files.
+Arisbe implements Frithjof Dau's complete formalization of Peirce's Existential Graphs (EGI) as a rigorous computational system. The mathematical core — including full **Beta graph support** (first-order logic with lines of identity crossing cut boundaries) — is complete and thoroughly tested. The codebase comprises 39 production modules in `src/` with **270 passing tests** across 27 test files.
 
 **Completed since last major update (March 2026):**
 
@@ -160,10 +160,11 @@ Validates and auto-expands subgraph selections to satisfy Dau's closure requirem
 
 ## Test Status
 
-**254 tests passing, 0 failing, 3 skipped** (as of 2026-03-27). 26 test files.
+**270 tests passing, 0 failing, 3 skipped** (as of 2026-03-28). 27 test files.
 
 Key test files:
 
+- `test_epg_exemplar_scripts.py` — 16 Endoporeutic Game scenarios (outcomes, strategies, engine)
 - `test_beta_proof_exercises.py` — 20 Beta graph FOL tests (shared vertices, EGIF round-trips)
 - `test_logical_proof_exercises.py` — Propositional tautology derivations via RuleInteraction
 - `test_rule_interaction.py` — Headless RuleInteraction protocol integration tests
@@ -267,7 +268,7 @@ gui_clean/agon/                  # Game interface (stub, pending game engine)
 - **Endoporeutic Game**: `endoporeutic_game.py` + `game_repl.py` — full two-player dialogical engine
 - **RuleInteraction protocol**: `rule_interaction.py` — headless stepwise proof construction
 - **Beta graph support**: Lines of identity, Beta-aware closure, Beta-aware IT+/ERA/INS
-- **Proof exercises**: Propositional tautologies + FOL Beta graph proofs (254 tests)
+- **Proof exercises**: Propositional tautologies + FOL Beta graph proofs + EPG exemplars (270 tests)
 - **Proof serialization**: JSON notation via `proof_serializer.py`
 - **Logical core unification**: Canonical `area_polarity()` method, elimination of ad-hoc polarity calculations
 
