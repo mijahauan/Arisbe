@@ -110,7 +110,7 @@ The **core reasoning engine** and referee.
 ## 🔒 **Development Guidelines**
 
 - **📚 API Documentation**: `docs/ARISBE_CORE_API_REFERENCE.md`
-- **🛡️ Core Protection**: 16 validated modules, 151 passing tests
+- **🛡️ Core Protection**: 16 validated modules, 254 passing tests
 - **📊 Quality Monitoring**: Automated quality gates and daily dashboard
 - **🧠 Context Recovery**: `docs/context/COHERENCE_FRAMEWORK_REMINDER.md`
 
@@ -143,9 +143,16 @@ The **core reasoning engine** and referee.
 
 **Transformation Rules** (Dau formalism, all implemented):
 
-- **ERA / INS**: Erasure and insertion (polarity-controlled)
-- **IT+ / IT-**: Iteration and deiteration
+- **ERA / INS**: Erasure and insertion (polarity-controlled, Beta-aware closure)
+- **IT+ / IT-**: Iteration and deiteration (Beta: extends lines of identity)
 - **DC+ / DC-**: Double cut insertion and erasure
+
+**Beta Graph Support** (full first-order logic):
+
+- Lines of identity crossing cut boundaries (shared vertices across areas)
+- Beta-aware subgraph closure validation (free outer-area vertices)
+- IT+ extends lines of identity instead of copying vertices
+- Headless RuleInteraction protocol for stepwise proof construction
 
 ---
 
@@ -161,7 +168,8 @@ The **core reasoning engine** and referee.
 
 **Transformation Engine:**
 
-- `formal_transformation_rules.py` — All six Dau rules (ERA, INS, IT+, IT-, DC+, DC-) with precondition validation
+- `formal_transformation_rules.py` — All six Dau rules (ERA, INS, IT+, IT-, DC+, DC-) with Beta-aware precondition validation
+- `rule_interaction.py` — Headless RuleInteraction protocol for stepwise rule application (DC+, DC-, ERA, INS, IT+, IT-)
 - `hierarchical_index.py` — O(1) polarity and nesting-depth lookup
 - `chapter17_soundness_evaluation.py` — Soundness evaluation framework (Z3-backed)
 - `ligature_manipulation_rules.py` — Chapter 16/17 ligature rules
@@ -193,7 +201,7 @@ The **core reasoning engine** and referee.
 - `graph_isomorphism_engine.py` — NetworkX VF2 `MultiDiGraphMatcher` for goal detection
 - `syntactic_equivalence_checker.py` — Chapter 20 syntactic equivalence
 - `chapter20_syntactic_equivalence_fixes.py` — Equivalence edge cases
-- `subgraph_closure_validator.py` — INS/ERA closure validation
+- `subgraph_closure_validator.py` — INS/ERA closure validation (Beta-aware: free outer-area vertices)
 
 **Corpus and UoD Management:**
 
@@ -230,8 +238,8 @@ The **core reasoning engine** and referee.
 ## 📁 Project Structure
 
 ```
-src/                  Core logic and engine (38 production modules)
-tests/                Pytest test suite (151 passing)
+src/                  Core logic and engine (39 production modules)
+tests/                Pytest test suite (254 passing, 26 test files)
 tools/                Quality tools, demos, and utilities
 docs/                 Architecture documentation
 docs/context/         AI-assist context and recovery guides
@@ -274,19 +282,23 @@ ArisbeGameREPL().cmdloop()
 import sys; sys.path.insert(0, 'src')
 from egif_parser_dau import parse_egif
 from egif_generator_dau import generate_egif
-from formal_transformation_rules import DoubleCutInsertionRule, TransformationContext, AreaPolarity
 
-egi = parse_egif('*x (Human x) ~[ (Mortal x) ]')
+# Beta graph: ∀x(Human(x) → Mortal(x))
+egi = parse_egif('~[ (Human *x) ~[ (Mortal x) ] ]')
+print(generate_egif(egi))  # ~[ *x (Human x) ~[ (Mortal x) ] ]
+```
 
-ctx = TransformationContext(
-    source_egi=egi,
-    target_area=egi.sheet,
-    selected_subgraph=frozenset(),
-    area_polarity=AreaPolarity.POSITIVE,
-    nesting_depth=0,
-)
-result = DoubleCutInsertionRule().apply_transformation(ctx)
-print(generate_egif(result.result_egi))
+### Apply transformation rules (headless RuleInteraction protocol)
+
+```python
+from rule_interaction import begin_interaction, advance_interaction, apply_interaction
+
+# IT+: iterate (Human x) from outer cut into inner cut
+state = begin_interaction("IT+", egi)
+result1 = advance_interaction(state, [human_edge_id])  # select source
+result2 = advance_interaction(state, inner_cut_id)      # select destination
+result = apply_interaction(state)
+print(generate_egif(result.result_egi))  # ~[ *x (Human x) ~[ (Human x) (Mortal x) ] ]
 ```
 
 ### Z3 semantic validation
@@ -308,7 +320,7 @@ print(r)   # Z3Result(YES: ...)
 ### Core suite
 
 ```bash
-# Full test suite (151 passing)
+# Full test suite (254 passing)
 conda run -n CGIF python -m pytest tests/ -q
 
 # With verbose output
@@ -358,12 +370,37 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 
 - Complete Dau-compliant EGI data structures (6+1 component `RelationalGraphWithCuts`)
 - All six transformation rules (ERA, INS, IT+, IT-, DC+, DC-) with precondition validation
+- **Full Beta graph support**: lines of identity crossing cut boundaries (first-order logic)
+- **Headless RuleInteraction protocol** for stepwise proof construction (all six rules)
 - Round-trip translation: EGIF ↔ CGIF ↔ CLIF ↔ FOPL ↔ EGI (57+ / 40+ / 35+ tomos validated)
 - Hierarchical indexing for O(1) polarity and nesting calculations
 - Chapter 17 ligature rules (move branches, extend/retract, split/merge vertices)
 - Chapter 18 FOPL ↔ EGI (Φ/Ψ translations)
 - Chapter 20 syntactic equivalence checking
 - NetworkX VF2 graph isomorphism (replaces O(n!) permutation engine)
+
+**Beta Graph Support (FOL):**
+
+- Beta-aware `SubgraphClosureValidator` — vertices in ancestor areas are free
+- Beta-aware `IterationRule` — extends lines of identity, does not copy source-area vertices
+- Beta-aware `ErasureRule` / `InsertionRule` — operate on edges with free outer-area vertices
+- EGIF round-trip preservation of shared vertex structure across cut boundaries
+- 20 dedicated Beta proof exercises validating all rules on FOL graphs
+
+**RuleInteraction Protocol:**
+
+- Platform-independent, headless protocol for stepwise rule application
+- Guided multi-step workflows: source selection → destination → apply
+- Automatic subgraph closure expansion with user feedback
+- Beta-aware closure validation throughout
+- Used by both programmatic proof construction and future GUI integration
+
+**Logical Proof Exercises:**
+
+- Propositional tautologies: modus ponens, modus tollens, hypothetical syllogism, double negation, contraposition, weakening
+- Beta graph proofs: universal strengthening, weakening via ERA, IT+/IT- round-trips
+- Multi-predicate and multi-variable Beta graphs
+- EGIF round-trip verification for Beta structure preservation
 
 **Semantic Validation:**
 
@@ -388,14 +425,18 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 
 **Testing:**
 
-- 151 tests passing (87 core + extended suite)
+- **254 tests passing** (26 test files), 3 skipped (Qt-dependent)
 - Quality gates and core protection active
+- Comprehensive test coverage: core data model, all six transformation rules,
+  import/export round-trips, isomorphism engine, proof exercises (Alpha + Beta),
+  rule interaction protocol, subgraph closure validation
 
 ### 🔧 In Progress / Next
 
 - Ergasterion interactive editor (constraint enforcement, selection system)
 - Organon browser completeness (import/export integration)
-- GUI integration of Endoporeutic Game (currently REPL only)
+- GUI integration of RuleInteraction protocol and Endoporeutic Game
+- Advanced Beta proofs: Barbara/Celarent syllogisms with full FOL quantification
 
 ---
 

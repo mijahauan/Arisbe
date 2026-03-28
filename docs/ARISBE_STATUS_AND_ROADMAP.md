@@ -1,21 +1,31 @@
 # Arisbe: Status and Development Roadmap
 
-**Date**: 2026-03-20  
-**Current Phase**: Foundation Consolidated — Next: Transformation Fixes + Endoporeutic Game
+**Date**: 2026-03-27  
+**Current Phase**: Beta Graph Support Complete — Next: GUI Integration
 
 ---
 
 ## Executive Summary
 
-Arisbe implements Frithjof Dau's complete formalization of Peirce's Existential Graphs (EGI) as a rigorous computational system. The mathematical core is complete and thoroughly tested. A housecleaning in March 2026 removed ~100 legacy files, leaving a clean, production-quality `src/` with ~40 modules and 151 passing tests.
+Arisbe implements Frithjof Dau's complete formalization of Peirce's Existential Graphs (EGI) as a rigorous computational system. The mathematical core — including full **Beta graph support** (first-order logic with lines of identity crossing cut boundaries) — is complete and thoroughly tested. The codebase comprises 39 production modules in `src/` with **254 passing tests** across 26 test files.
+
+**Completed since last major update (March 2026):**
+
+- ✅ IT+ rule fully fixed (UUID-based IDs, attribute copying, recursive cut duplication, nesting precondition)
+- ✅ NetworkX VF2 isomorphism engine (replaced O(n!) brute force)
+- ✅ Z3 SMT-solver semantic validation
+- ✅ Endoporeutic Game engine + REPL
+- ✅ Headless RuleInteraction protocol for stepwise proof construction
+- ✅ Beta graph support (lines of identity, Beta-aware closure, Beta-aware IT+)
+- ✅ Logical proof exercises (propositional tautologies + FOL Beta proofs)
+- ✅ Proof serialization as JSON notation
 
 **Current focus areas:**
 
-- Fix the IT+ transformation rule (known bugs in attribute copying and preconditions)
-- Replace the O(n!) isomorphism engine with NetworkX
-- Complete EGIF as a version-controllable proof notation
-- Design and implement the Endoporeutic Game as a REPL/CLI engine
-- Integrate Z3 for semantic validation
+- GUI integration of the RuleInteraction protocol
+- Ergasterion interactive editor completion
+- Organon browser import/export integration
+- Advanced Beta proofs (Barbara/Celarent syllogisms)
 
 ---
 
@@ -47,7 +57,7 @@ Immutable implementation of Dau's 6+1 component definition:
 - **area**: containment mapping (area → frozenset of elements)
 - **sheet**: the outermost area (sheet of assertion)
 
-All structures are immutable frozen dataclasses. Transformations produce new EGIs via `.with_vertex()`, `.with_edge()` patterns.
+All structures are immutable frozen dataclasses. Transformations produce new EGIs via `.with_vertex()`, `.with_edge()` patterns. Canonical `area_polarity()` method provides O(1) polarity and nesting-depth lookup via `HierarchicalIndex`.
 
 ### Linear Format Parsers and Generators
 
@@ -55,36 +65,76 @@ All formats tested against 100+ examples from the Arisbe corpus:
 
 | Format | Module | Status |
 |--------|--------|--------|
-| EGIF | `egif_parser_dau.py`, `egif_generator_dau.py` | ✅ Production |
-| CGIF | `cgif_parser_dau.py`, `cgif_generator_dau.py` | ✅ Production |
-| CLIF | `clif_parser_dau.py`, `clif_generator_dau.py` | ✅ Production |
-| FOPL | `chapter18_fopl_translation.py` | ✅ Production |
-| JSON | `egi_io.py` | ✅ Production |
+| EGIF | `egif_parser_dau.py`, `egif_generator_dau.py` | ✅ Production (57+ tomos) |
+| CGIF | `cgif_parser_dau.py`, `cgif_generator_dau.py` | ✅ Production (40+ tomos) |
+| CLIF | `clif_parser_dau.py`, `clif_generator_dau.py` | ✅ Production (35+ tomos) |
+| FOPL | `chapter18_fopl_translation.py` | ✅ Production (Φ/Ψ bidirectional) |
+| JSON | `egi_io.py` | ✅ Production (with layout deltas) |
 
-Round-trip fidelity is validated (parse → generate → parse). Variable names are preserved across formats.
+Round-trip fidelity is validated (parse → generate → parse). Variable names are preserved across formats. Beta graph structure (shared vertices across cut boundaries) is preserved through round-trips.
 
 ### Transformation Rules (`formal_transformation_rules.py`)
 
-All six Dau transformation rules are implemented:
+All six Dau transformation rules are implemented and Beta-aware:
 
-| Rule | Name | Status | Known Issues |
-|------|------|--------|--------------|
-| DC+ | Double Cut Insertion | ✅ Correct | None |
-| DC- | Double Cut Erasure | ✅ Correct | None |
-| INS | Insertion | ✅ Correct | None |
-| ERA | Erasure | ✅ Correct | None |
-| IT+ | Iteration | ⚠️ Bugs | See below |
-| IT- | Deiteration | ✅ Correct | None |
+| Rule | Name | Status |
+|------|------|--------|
+| DC+ | Double Cut Insertion | ✅ Correct |
+| DC- | Double Cut Erasure | ✅ Correct |
+| INS | Insertion | ✅ Correct (Beta-aware closure) |
+| ERA | Erasure | ✅ Correct (Beta-aware closure) |
+| IT+ | Iteration | ✅ Correct (Beta: extends lines of identity) |
+| IT- | Deiteration | ✅ Correct (VF2 isomorphism) |
 
-**IT+ Known Bugs** (to be fixed):
-1. Copied vertex IDs use `_copy` suffix — accumulates across multiple iterations
-2. Copied vertices lose label and `is_generic` attributes
-3. Cut interiors not fully duplicated
-4. Nesting precondition not enforced (iteration must move to a more-enclosed area)
+### RuleInteraction Protocol (`rule_interaction.py`)
+
+Headless, platform-independent protocol for stepwise rule application:
+
+- `begin_interaction(rule_name, egi)` → `InteractionState`
+- `advance_interaction(state, user_input)` → `StepResult`
+- `apply_interaction(state)` → `TransformationResult`
+
+Guided multi-step workflows with automatic subgraph closure expansion and Beta-aware validation. Used by programmatic proof construction and future GUI integration.
+
+### Beta Graph Support (First-Order Logic)
+
+- **Beta-aware `SubgraphClosureValidator`**: `context_area` parameter treats vertices in ancestor areas as free
+- **Beta-aware `IterationRule`**: extends lines of identity instead of copying source-area vertices
+- **Beta-aware `ErasureRule` / `InsertionRule`**: operate on edges with free outer-area vertices
+- **EGIF round-trip**: shared vertex structure preserved across cut boundaries
+- **20 dedicated Beta proof exercises** validating all rules on FOL graphs
 
 ### Graph Isomorphism (`graph_isomorphism_engine.py`)
 
-Implemented but uses O(n!) brute-force permutation enumeration. Correct for small subgraphs but unusable for anything beyond ~5 elements. **Replacement with NetworkX is the immediate priority.**
+✅ **NetworkX VF2** (`MultiDiGraphMatcher`) — polynomial-time subgraph isomorphism. EGI subgraphs encoded as NetworkX MultiDiGraphs with structural attributes. Used for IT- deiteration validation and Endoporeutic Game goal detection.
+
+### Z3 Semantic Validation (`z3_semantic_validator.py`)
+
+✅ **Z3 SMT-solver integration** for semantic equivalence checking:
+- `are_semantically_equivalent(G, G')` — UNSAT of ¬(G ↔ G')
+- `is_satisfiable(G)`, `is_tautology(G)`
+- DC+ soundness confirmed: ∃x.Human(x) ≡ ¬¬∃x.Human(x)
+- `chapter17_soundness_evaluation.py` backed by real Z3 calls
+
+### Endoporeutic Game (`endoporeutic_game.py`, `game_repl.py`)
+
+✅ **Fully implemented** two-player dialogical game engine:
+- `Player.PROPOSER` / `Player.SKEPTIC` role model
+- Polarity-based move permissions enforced
+- EGIF-based insertion with fresh-UUID element merging
+- Goal detection via graph isomorphism
+- Interactive REPL with save/load via `ProofSerializer`
+- Transformation history as serializable proof notation
+
+### Logical Proof Exercises
+
+✅ **Propositional tautologies** (`test_logical_proof_exercises.py`):
+- Modus ponens, modus tollens, hypothetical syllogism, double negation, contraposition, weakening
+
+✅ **Beta graph proofs** (`test_beta_proof_exercises.py`):
+- Universal strengthening, weakening via ERA, IT+/IT- round-trips
+- Multi-predicate and multi-variable Beta graphs
+- EGIF round-trip verification for Beta structure preservation
 
 ### Layout Engine (`unified_d3_engine.py`)
 
@@ -96,7 +146,7 @@ Three built-in styles: Dau (mathematical), Peirce (authentic), Sowa (conceptual 
 
 ### GUI (`src/gui_clean/`)
 
-Three-tab PySide6 application (Organon, Ergasterion, Agon). Organon is functional for browsing and reading the corpus. Ergasterion and Agon are stubs pending the REPL/CLI game engine.
+Three-tab PySide6 application (Organon, Ergasterion, Agon). Organon is functional for browsing and reading the corpus. Ergasterion has foundation integrated. Agon pending GUI wrapping of the production game engine.
 
 ### Universe of Discourse (`universe_of_discourse.py`, `tomos_service.py`)
 
@@ -104,30 +154,30 @@ DAG-based transformation history. UoD is the fundamental entity — a diachronic
 
 ### Subgraph Closure Validation (`subgraph_closure_validator.py`)
 
-Validates and auto-expands subgraph selections to satisfy Dau's closure requirement for INS and ERA.
-
-### Soundness Evaluation (`chapter17_soundness_evaluation.py`)
-
-Implements the framework for Dau Chapter 17 soundness proofs. **Currently mostly stub** — semantic consistency checks return `True`. Replacement with Z3 is planned.
+Validates and auto-expands subgraph selections to satisfy Dau's closure requirement for INS and ERA. **Beta-aware**: `context_area` parameter treats vertices in ancestor areas as free, enabling operations on edges whose vertices live in enclosing scopes.
 
 ---
 
 ## Test Status
 
-**151 tests passing, 0 failing, 3 skipped** (as of 2026-03-20 after housecleaning).
+**254 tests passing, 0 failing, 3 skipped** (as of 2026-03-27). 26 test files.
 
 Key test files:
 
-- `tests/test_corpus_parsing.py` — EGIF/CGIF/CLIF round-trip across 100+ tomos examples
-- `tests/test_variable_order_alignment.py` — variable name preservation
-- `tests/test_variable_name_consistency.py` — semantic variable names across formats
-- `tests/test_subgraph_closure_validation.py` — SubgraphClosureValidator
-- `tests/test_graph_isomorphism_engine.py` — isomorphism correctness
-- `tests/test_it_minus_with_isomorphism.py` — IT- deiteration validation
-- `tests/test_chapter15_formal_calculus.py` — Chapter 15 formal calculus
-- `tests/test_chapter16_17_ligature_soundness_simplified.py` — ligature soundness
-- `tests/test_chapter20_syntactic_equivalence.py` — syntactic equivalence
-- `tests/unit/test_egi_transformation_rules_unit.py` — per-rule unit tests
+- `test_beta_proof_exercises.py` — 20 Beta graph FOL tests (shared vertices, EGIF round-trips)
+- `test_logical_proof_exercises.py` — Propositional tautology derivations via RuleInteraction
+- `test_rule_interaction.py` — Headless RuleInteraction protocol integration tests
+- `test_subgraph_closure_validation.py` — SubgraphClosureValidator (including Beta-aware)
+- `test_graph_isomorphism_engine.py` — VF2 isomorphism correctness
+- `test_it_minus_with_isomorphism.py` — IT- deiteration validation
+- `test_it_minus_dau_compliance.py` — IT- Dau compliance
+- `test_tomos_parsing.py` — EGIF/CGIF/CLIF round-trip across tomos corpus
+- `test_variable_order_alignment.py` — variable name preservation
+- `test_variable_name_consistency.py` — semantic variable names across formats
+- `test_chapter15_formal_calculus.py` — Chapter 15 formal calculus
+- `test_chapter16_17_ligature_soundness_simplified.py` — ligature soundness
+- `test_chapter20_syntactic_equivalence.py` — syntactic equivalence
+- `test_egi_core_comprehensive.py` — comprehensive EGI data model tests
 
 ---
 
@@ -149,9 +199,10 @@ hierarchical_index.py            # Internal indexing for egi_core_dau
 
 ### Transformation System
 ```
-formal_transformation_rules.py   # All 6 Dau rules (DC+/-, INS, ERA, IT+/-)
-graph_isomorphism_engine.py      # Subgraph isomorphism (⚠️ O(n!), needs NetworkX)
-subgraph_closure_validator.py    # Closure checking for INS/ERA
+formal_transformation_rules.py   # All 6 Dau rules (DC+/-, INS, ERA, IT+/-) — Beta-aware
+rule_interaction.py              # Headless stepwise RuleInteraction protocol
+graph_isomorphism_engine.py      # NetworkX VF2 subgraph isomorphism (polynomial)
+subgraph_closure_validator.py    # Closure checking for INS/ERA (Beta-aware)
 insertion_clipboard.py           # Insertion graph management
 ```
 
@@ -163,7 +214,7 @@ single_object_ligature_detector.py
 nary_identity_relations.py
 theta_relation.py
 enhanced_ligature_algorithms.py
-chapter17_soundness_evaluation.py  # Soundness proofs (⚠️ mostly stub)
+chapter17_soundness_evaluation.py  # Soundness proofs (Z3-backed)
 syntactic_equivalence_checker.py
 chapter20_syntactic_equivalence_fixes.py
 egi_validity_analyzer.py
@@ -208,67 +259,37 @@ gui_clean/agon/                  # Game interface (stub, pending game engine)
 
 ## Development Roadmap
 
-### Immediate: Fix IT+ Rule
+### ✅ Completed (March 2026)
 
-**File**: `src/formal_transformation_rules.py`, `IterationRule` class
+- **IT+ rule fully fixed**: UUID-based IDs, attribute copying, recursive cut duplication, nesting precondition, Beta-aware line-of-identity extension
+- **NetworkX VF2 isomorphism**: Polynomial-time `MultiDiGraphMatcher` replaces O(n!) brute force
+- **Z3 semantic validation**: `z3_semantic_validator.py` with `are_semantically_equivalent`, `is_satisfiable`, `is_tautology`
+- **Endoporeutic Game**: `endoporeutic_game.py` + `game_repl.py` — full two-player dialogical engine
+- **RuleInteraction protocol**: `rule_interaction.py` — headless stepwise proof construction
+- **Beta graph support**: Lines of identity, Beta-aware closure, Beta-aware IT+/ERA/INS
+- **Proof exercises**: Propositional tautologies + FOL Beta graph proofs (254 tests)
+- **Proof serialization**: JSON notation via `proof_serializer.py`
+- **Logical core unification**: Canonical `area_polarity()` method, elimination of ad-hoc polarity calculations
 
-Required fixes:
+### Current Focus (Q2 2026)
 
-1. Use `uuid.uuid4()` for copied element IDs (not `_copy` suffix)
-2. Copy vertex attributes: `label`, `is_generic`
-3. Properly duplicate cut interiors (recursive area copy)
-4. Enforce nesting precondition: the destination area must be enclosed by the source area
+- **GUI integration of RuleInteraction protocol**: Wire the headless protocol into the Ergasterion editor
+- **Ergasterion interactive editor**: Constraint enforcement, selection system, real-time feedback
+- **Organon browser completion**: Import/export integration, full corpus navigation
+- **Advanced Beta proofs**: Barbara/Celarent syllogisms with full FOL quantification
 
-### Immediate: NetworkX Isomorphism
+### Medium-term (2026)
 
-**File**: `src/graph_isomorphism_engine.py`
+- **GUI Agon mode**: Qt-based Endoporeutic Game interface (wrapping the production REPL engine)
+- **Web interface**: Browser-based EG editor and viewer
+- **Collaborative editing**: Shared UoD sessions
+- **Advanced visualization**: Animated transformation sequences
 
-Replace the O(n!) permutation loop in `test_subgraph_isomorphism` with NetworkX `vf2userfunc` or `is_isomorphic`. The EGI needs to be converted to a NetworkX DiGraph with node/edge attributes carrying vertex labels, generic status, and relation symbols. Cut nesting must be encoded as edges.
+### Long-term
 
-NetworkX 3.5 is already installed in the CGIF conda environment.
-
-### Near-term: EGIF as Proof Notation
-
-Transformation sequences (chains of EGI states + rule applications) should be serializable as annotated EGIF files. Each step is: `(rule_name, selected_subgraph_egif, result_egif)`. This enables version-controllable, text-diffable proof files.
-
-**New module**: `src/proof_notation.py`
-
-### Near-term: Z3 Semantic Validation
-
-Install `z3-solver` and implement real semantic consistency checking in `chapter17_soundness_evaluation.py`. Z3 integration converts EGI structures to Z3 formulas and checks satisfiability/validity, replacing the current `return True` stubs.
-
-**Install**: `conda install -c conda-forge z3-solver`
-
-### Primary Goal: Endoporeutic Game REPL/CLI
-
-Design and implement the Endoporeutic Game as a standalone REPL/CLI engine, independent of the GUI. The game engine will serve as the formal reasoning core that the GUI Agon mode wraps.
-
-**Architecture**:
-
-```
-GameState
-├── domain_model: EGIF         # The agreed Universe of Discourse
-├── assertion: EGIF            # Proposer's current assertion
-├── history: List[GameMove]    # Full game transcript
-└── turn: Player               # PROPOSER | SKEPTIC
-
-GameMove
-├── player: Player
-├── rule: TransformationRule
-├── context: TransformationContext
-└── result_state: GameState
-
-GameEngine (REPL)
-├── load_domain(egif_text)     # Set domain model
-├── propose(egif_text)         # Proposer makes assertion
-├── challenge(area_id)         # Skeptic selects a context
-├── respond(rule, subgraph)    # Proposer applies transformation
-└── evaluate() → GameOutcome   # WIN | LOSE | DRAW
-```
-
-Domain models and assertions are both EGIFs. The REPL loop processes natural-language-style commands against a running `GameState`. The GUI wraps this engine — it does not reimplement it.
-
-**New module**: `src/endoporeutic_game.py`
+- **Educational platform**: Complete learning management system for EG theory
+- **Machine learning integration**: Pattern recognition in logical transformation sequences
+- **Theorem prover bridge**: Integration with Coq/Lean via CLIF
 
 ---
 
@@ -315,20 +336,32 @@ This dialogical interpretation makes EG a precursor to modern game-theoretic sem
 # Environment
 conda activate CGIF
 
-# Run tests
+# Run tests (254 passing)
 python -m pytest tests/ -q
 
 # Launch GUI
-python src/gui_clean/main_application.py
+python arisbe.py
 
 # Use core API
 python -c "
-from egi_core_dau import create_empty_graph
+import sys; sys.path.insert(0, 'src')
 from egif_parser_dau import parse_egif
 from egif_generator_dau import generate_egif
 
-egi = parse_egif('[*x] (Human x) ~[ ~[ (Mortal x) ] ]')
+# Beta graph: ∀x(Human(x) → Mortal(x))
+egi = parse_egif('~[ (Human *x) ~[ (Mortal x) ] ]')
 print(generate_egif(egi))
+"
+
+# Headless proof construction
+python -c "
+import sys; sys.path.insert(0, 'src')
+from egif_parser_dau import parse_egif
+from rule_interaction import begin_interaction, advance_interaction, apply_interaction
+
+egi = parse_egif('(P *a) ~[ (P *b) ~[ (Q *c) ] ]')  # P, P→Q
+# Modus ponens via IT- then DC-
+print('Try: test_logical_proof_exercises.py for full examples')
 "
 ```
 

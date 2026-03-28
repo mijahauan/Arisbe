@@ -54,7 +54,9 @@ The **87 core tests must always pass**. They validate the mathematical foundatio
 ### Key `src/` Modules
 
 - `egi_core_dau.py` — `RelationalGraphWithCuts` data model (immutable)
-- `formal_transformation_rules.py` — Six Dau rules: ERA, INS, IT+, IT−, DC+, DC−
+- `formal_transformation_rules.py` — Six Dau rules: ERA, INS, IT+, IT−, DC+, DC− (Beta-aware)
+- `rule_interaction.py` — Headless RuleInteraction protocol for stepwise proof construction
+- `subgraph_closure_validator.py` — Closure validation (Beta-aware: free outer-area vertices)
 - `universe_of_discourse.py` — UoD entity (synchronic EGI + diachronic DAG history + layout deltas)
 - `egi_transformation_history.py` — DAG-based branching transformation history
 - `endoporeutic_game.py` + `game_repl.py` — Two-player dialogical game engine
@@ -79,6 +81,15 @@ The **87 core tests must always pass**. They validate the mathematical foundatio
 - **EGI is immutable**: use `.with_vertex()`, `.with_edge()` — never `.add_*()`
 - **Import pattern**: `from module_name import Foo` (not `from src.module_name`)
 - **UoD state**: `State_n = (EGI_n, LayoutDeltas_n)` — deltas persist through transformations
+
+### Beta Graph Support (FOL)
+
+- **Beta graphs** use shared vertices across cut boundaries (lines of identity)
+- EGIF: `*x` = defining label (new vertex), `x` = bound label (existing vertex in enclosing scope)
+- `~[ (P *x) ~[ (Q x) ] ]` = ∀x(P(x) → Q(x)) — one shared vertex
+- `SubgraphClosureValidator` with `context_area` treats ancestor-area vertices as free
+- `IterationRule` extends lines of identity (reuses source-area vertices, no copy)
+- `RuleInteraction` protocol: `begin_interaction` → `advance_interaction` → `apply_interaction`
 
 ## API Discovery
 
@@ -106,7 +117,18 @@ python tools/context_awareness_system.py --check "task description"
 ## Mathematical Foundation
 
 Code chapters correspond to Dau's formal textbook:
-- Ch. 14/15 → `formal_transformation_rules.py` (six transformation rules)
+- Ch. 14/15 → `formal_transformation_rules.py` (six transformation rules, Beta-aware)
+- Ch. 14/15 → `rule_interaction.py` (headless stepwise protocol for all rules)
 - Ch. 16–17 → `ligature_manipulation_rules.py`, `chapter17_soundness_evaluation.py`
 - Ch. 18 → `chapter18_fopl_translation.py` (linear format Φ/Ψ translations)
 - Ch. 20 → `chapter20_syntactic_equivalence_fixes.py`
+
+## Testing (254 passing, 3 skipped)
+
+Key test files:
+- `test_beta_proof_exercises.py` — 20 Beta graph tests (FOL, shared vertices, EGIF round-trips)
+- `test_logical_proof_exercises.py` — Propositional tautology derivations (modus ponens, etc.)
+- `test_rule_interaction.py` — Headless RuleInteraction protocol integration tests
+- `test_subgraph_closure_validation.py` — Closure validator including Beta-aware checks
+- `test_graph_isomorphism_engine.py` — VF2 isomorphism for IT- validation
+- `test_tomos_parsing.py` — EGIF/CGIF/CLIF round-trip across 87+ tomos examples

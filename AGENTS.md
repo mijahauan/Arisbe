@@ -1,8 +1,8 @@
 # AGENTS.md
 
-## 🔒 Core Protection System
+## � Core Protection System
 - **16 protected core modules** - Cannot be modified without explicit authorization
-- **87 core tests** must always pass - These validate the mathematical foundation
+- **254 tests** must always pass (26 test files) - These validate the mathematical foundation
 - **Qt-dependent tests** excluded from automatic quality gate (run manually to avoid hangs)
 - **Check protection status**: `python tools/core_protection_system.py --report`
 - **Override protection** (authorized changes only): `touch .core_modification_authorized`
@@ -23,10 +23,10 @@
 ## 🧪 Testing Requirements
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
 - **System status**: `python tools/daily_quality_dashboard.py`
-- **Core tests**: `python -m pytest tests/` (87/87 passing)
+- **Core tests**: `python -m pytest tests/` (254 passing, 3 skipped)
 - **Qt-dependent tests**: Run manually (excluded from automatic checks due to collection hangs)
 - **GUI Organon tests**: `python tools/test_gui_organon.py` (3/3 passing)
-- **Expected results**: 87 core tests passing, 0 failing
+- **Expected results**: 254 tests passing, 0 failing
 - **Timeout protection**: 120s timeout prevents infinite hangs on Qt import issues
 
 ### Battle-Tested Import/Export Infrastructure
@@ -42,7 +42,7 @@
 - **Environment**: `conda activate CGIF` (Python 3.12.10)
 - **Dependencies**: See `requirements.txt`
 - **Core modules location**: `src/` directory (16 protected modules)
-- **Test location**: `tests/` directory (90 core validation tests)
+- **Test location**: `tests/` directory (26 test files, 254 tests)
 
 ## 📋 Code Style and Conventions
 - **Import pattern**: `from module_name import function_name` (not `from src.module_name`)
@@ -69,7 +69,7 @@
 ## 📊 Quality Gates
 - **Pre-commit hooks**: Automatically run quality checks
 - **Core protection**: Blocks unauthorized changes to protected modules
-- **Test validation**: All 87 core tests must pass
+- **Test validation**: All 254 tests must pass
 - **Syntax checking**: Zero syntax errors required
 
 ## 🎯 Common Development Patterns
@@ -124,12 +124,45 @@ vertex_radius = current.vertex_radius
 cut_padding = current.cut_padding
 ```
 
-### Transformation Rules
+### Transformation Rules (Direct API)
 ```python
 from formal_transformation_rules import DeiterationRule, TransformationContext
 rule = DeiterationRule()
 context = TransformationContext(source_egi=egi, target_area="sheet", ...)
 result = rule.apply_transformation(context)
+```
+
+### RuleInteraction Protocol (Headless Stepwise Proofs)
+```python
+from rule_interaction import begin_interaction, advance_interaction, apply_interaction
+
+# IT+: iterate subgraph from source area into destination area
+state = begin_interaction("IT+", egi)
+r1 = advance_interaction(state, [edge_id])      # select source
+r2 = advance_interaction(state, dest_area_id)    # select destination
+result = apply_interaction(state)
+new_egi = result.result_egi
+
+# ERA: erase subgraph from positive area
+state = begin_interaction("ERA", egi)
+r = advance_interaction(state, [edge_id])        # select elements
+result = apply_interaction(state)
+```
+
+### Beta Graphs (Lines of Identity / FOL)
+```python
+from egif_parser_dau import parse_egif
+
+# ∀x(Human(x) → Mortal(x)) — one shared vertex across cut boundary
+egi = parse_egif("~[ (Human *x) ~[ (Mortal x) ] ]")
+assert len(egi.V) == 1  # Single shared vertex
+
+# Closure validation with Beta awareness
+from subgraph_closure_validator import SubgraphClosureValidator
+validator = SubgraphClosureValidator(egi)
+analysis = validator.analyze_closure(
+    selection, allow_expansion=True,
+    context_area=inner_cut_id)  # vertices in ancestor areas are free
 ```
 
 ### Import/Export - Battle-Tested Production Modules (✅ 57+ tomos examples tested)
@@ -284,7 +317,7 @@ branch_id = uod.history.create_branch_from_state(
 - **DO NOT** reinvent existing solutions - use context awareness system first
 
 ## 🏆 Success Indicators
-- All 90 core tests passing
+- All 254 tests passing (26 test files)
 - Quality dashboard shows "EXCELLENT" status
 - Core protection system shows "CLEAN" status
 - Zero syntax errors across all source files
