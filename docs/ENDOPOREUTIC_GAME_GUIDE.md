@@ -210,39 +210,139 @@ EPG, the Agonothetes is not merely a referee but the **guardian of the
 inquiry process** and the central agent for managing the evolution and
 integrity of the Sheet of Assertion.
 
+### Game Setup
+
+Everything happens within one **Universe of Discourse** (UoD), where more
+than one domain model may exist. The three participants — Graphist, Grapheus,
+and Agonothetes — agree on a particular reference DM (M). The Agonothetes
+then prepares the game space using the transformation rules themselves:
+
+1. **DC+** — The Agonothetes creates a context (double cut) in which the
+   contest takes place. This provides a fresh negative area (depth 1) and
+   a positive area (depth 2) nested within.
+
+2. **IT+** — A copy of M (or reference thereto) is iterated into the
+   game context. M now resides at depth 1 (negative area) alongside the
+   inner cut.
+
+3. **INS** — The Graphist inserts the proposed graph G in a negative
+   sub-context within the game area, in effect asserting: *"if or given
+   this M, then G follows."*
+
+The resulting structure on the sheet is:
+
+```
+~[ M  ~[ G ] ]
+```
+
+This reads as ¬(M ∧ ¬G) = **M → G**. The game will determine whether this
+implication holds — whether G follows from M, contradicts M, is independent
+of M, or falls into one of the other taxonomic categories.
+
 ### During the Game
 
-1. **Pre-game**: Confirms M is well-formed and mutually agreed upon. Ensures
-   the Proposer's graph G is syntactically valid EGI.
-2. **Move validation**: Every step must conform to Dau's formal definitions
+1. **Move validation**: Every step must conform to Dau's formal definitions
    for EGIs, proper subgraphs, and transformation rules. If a move is
    invalid (incorrect syntax, improper subgraph selection, non-existent
    mapping), the Agonothetes states the reason for invalidity.
-3. **Mapping validation**: When the Proposer maps exposed elements to M,
+2. **Mapping validation**: When the Proposer maps exposed elements to M,
    the Agonothetes validates the mapping. If the Proposer legitimately claims
    a **new entity** not present in M, and the mapping is otherwise valid, the
    Agonothetes prompts for its formal addition to the domain's ontology.
+3. **Traversal tracking**: The Agonothetes tracks the path through the tree
+   (which areas have been resolved, which sub-games are in progress) and
+   records the outcome of each sub-game in the transcript.
 
 ### Post-Game Outcome Negotiation
 
 The Agonothetes' most critical function occurs at the conclusion of each
-inning. Based on the game outcome, the Agonothetes presents options for
-the proposed graph's fate:
+game (or sub-game). Based on the outcome, the Agonothetes presents options
+for the proposed graph's fate:
 
 | Disposition | When | Effect on M |
 |-------------|------|-------------|
 | **Accepted as Consistent** | G mapped successfully, aligns with M | G added to SoA, expanding UoD |
-| **Provisionally Accepted** | G is plausible but requires further evidence | G added with hypothesis marker |
-| **Accepted, Implies M Change** | G is valid but conflicts with existing M | Agonothetes flags the inconsistency; participants decide whether to revise G, revise M, or mark the inconsistency for later resolution |
+| **Provisionally Accepted** | G is plausible but requires further evidence | G added with hypothesis marker, pending confirmation or refutation by further evidence |
+| **Accepted, Implies M Change** | G is valid but conflicts with existing M | Agonothetes flags the inconsistency; participants decide whether to revise G, revise M, or hold both as alternatives |
 | **Rejected** | G is invalid or inconsistent | G not added to M; optionally saved in a "Rejected Graphs" folio with the reason for rejection |
+
+A sub-graph might include a new fact or a new explanation that throws the
+whole into doubt without frankly contradicting M. Or it might contradict M
+outright, yet the three participants might agree to hold the graph as a
+hypothesis or alternative pending confirmation or refutation by further
+evidence. The taxonomy of outcomes (Section II) covers these possibilities;
+the Agonothetes facilitates the decision among them.
 
 ### Record-Keeping and Replay
 
 The Agonothetes maintains the official game transcript via `ProofSerializer`.
-The critical replay function (side-by-side or step-by-step) allows
+This includes the traversal path, each sub-game's outcome, and the final
+disposition. The replay function (side-by-side or step-by-step) allows
 participants to review the sequence of transformations, both for successful
-derivations and for instances of illustrative errors. This fosters deeper
-understanding of why a proof succeeded or failed.
+derivations and for instances of illustrative errors.
+
+---
+
+## The Game as Tree Traversal
+
+The game is, in effect, a **tree traversal** of the EGI's hierarchical
+structure. The `HierarchicalIndex` (sheet → cuts → nested cuts → ...) defines
+the tree. The game reads it **outside-in, depth-first**.
+
+At each node in the traversal:
+
+- **The polarity** (even depth = positive, odd depth = negative) determines
+  who has initiative
+- **The content** (edges and vertices juxtaposed in that area) is what the
+  current player must address
+- **The children** (nested cuts) are sub-trees to be traversed when reached
+
+### Role Reversal as Descent
+
+"Removing a negation to reverse roles" is not a separate operation and not a
+rule application — it is simply **descending one level in the tree**. When the
+traversal crosses a cut boundary, the depth increments, the polarity flips,
+and the player with initiative changes. That *is* the role reversal.
+
+### Sub-Games
+
+A complicated graph involves **sub-games** as the tree is traversed.
+Each sub-game corresponds to a sub-tree rooted at some cut:
+
+- The Agonothetes opens a sub-game when the traversal descends into a cut
+- Within the sub-game, the players apply transformation rules in their
+  respective territories (polarity-constrained)
+- The sub-game resolves to one of the taxonomic outcomes (Section II)
+- Control returns to the parent level with the sub-game's result
+
+The Agonothetes tracks the **traversal path** and the **outcome of each
+sub-game** until the process unwraps the whole graph.
+
+### The ∀/∃ Alternation
+
+The asymmetry of the game is the ∀/∃ alternation in the game tree:
+
+- **Positive node** (Grapheus has initiative): The content is *asserted*
+  (conjunction of juxtaposed elements). The Grapheus can challenge **any**
+  element — if any one fails to map to M, the whole conjunction fails.
+  The Graphist must defend **all** of them.
+
+- **Negative node** (Graphist has initiative): The content is inside a cut
+  (negated). The Graphist chooses **which path** to pursue — they select the
+  defense most favorable to their position.
+
+The burden lies more heavily on the Graphist than on the Grapheus. The
+Graphist must show that *every* part of the graph makes sense with respect
+to M. The Grapheus needs only show that *any one* part fails.
+
+### Where M Lives
+
+M resides in the game context (iterated there by the Agonothetes during
+setup) so that the deiteration rule (IT-) permits showing content "maps
+to M": if a subgraph in the current area is identical to something in M at
+an ancestor level, IT- can deiterate it — demonstrating the mapping. The
+Graphist wins a sub-game when all positive content has been resolved this
+way: everything either maps to M or is structurally tautological.
 
 ---
 
@@ -312,39 +412,6 @@ A player should concede when:
 
 The Agonothetes may suggest concession when the outcome is logically
 determined but the players have not yet reached a terminal state.
-
----
-
-## Two Game Aims
-
-The EPG has two basic aims:
-
-1. **Construct and achieve agreement** between Graphist and Grapheus on the
-   Individuals (D) and Relations (R) that make a shared Model (M).
-2. **Evaluate** whether any new Graph (G) by the Proposer has existing
-   meaning (maps) in M or adds new meaning to M.
-
-### Starting Conditions
-
-- **Option 1**: Pre-existing M (a corpus of established knowledge)
-- **Option 2**: Empty M (assertion of a double negative — the initial context
-  from which all subsequent graphs are proposed and considered)
-
-### The Inning
-
-Each proposal-and-resolution cycle constitutes an "inning":
-
-1. **P presents G** to S
-2. If G exposes only negated sub-graphs, S erases all but one and removes
-   its enclosing negation — **reversing roles** (S becomes P, P becomes S)
-   and returning to step 1 with the contrary of G
-3. S selects only the non-negated parts of G (erasing the negated parts)
-   to produce G₁
-4. Test M against G₁:
-   - If M maps to G₁ → **WIN** (erase G₁, inning ends)
-   - If M contradicts G₁ → **LOSE** (record in rejected graphs)
-   - If M says nothing about G₁ → retain G₁ as potential addition to M
-     (the Agonothetes facilitates the acceptance decision)
 
 ---
 
