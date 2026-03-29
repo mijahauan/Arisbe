@@ -324,8 +324,7 @@ The asymmetry of the game is the ∀/∃ alternation in the game tree:
 
 - **Positive node** (Grapheus has initiative): The content is *asserted*
   (conjunction of juxtaposed elements). The Grapheus can challenge **any**
-  element — if any one fails to map to M, the whole conjunction fails.
-  The Graphist must defend **all** of them.
+  element. The Graphist must defend **all** of them.
 
 - **Negative node** (Graphist has initiative): The content is inside a cut
   (negated). The Graphist chooses **which path** to pursue — they select the
@@ -333,7 +332,24 @@ The asymmetry of the game is the ∀/∃ alternation in the game tree:
 
 The burden lies more heavily on the Graphist than on the Grapheus. The
 Graphist must show that *every* part of the graph makes sense with respect
-to M. The Grapheus needs only show that *any one* part fails.
+to M. The Grapheus needs only identify a part that does not map directly.
+
+However, a failure to map does not necessarily doom the graph. It means
+that the proposed graph does not map *simply* onto M — but the taxonomy
+of outcomes (Section II) tells us what this can signify:
+
+- If the unmapped content **internally contradicts** itself, the graph
+  is in genuine trouble (Case 5).
+- If it **contradicts M**, the game enters the refutation/revision space
+  (Cases 2a–2d).
+- If it is merely **independent of M**, the failure to map may signal a
+  **new fact** (Case 3a), a **new abductive explanation** (Case 3b), an
+  **open conjecture** (Case 3c), or a **generalization** that would
+  enhance the UoD (Case 8).
+
+The game *sorts* the graph into the appropriate taxonomic category. A
+"failure" at a sub-game level is not necessarily a failure of the whole
+proposal — it is information about how the proposal relates to M.
 
 ### Where M Lives
 
