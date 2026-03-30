@@ -15,9 +15,9 @@ Graphs — a paraphrasing of "unwrapping game" or "outside-in game."
 
 Two players — the **Graphist** (Proposer) and the **Grapheus** (Skeptic) —
 engage in a formal exchange over a proposed graph, given an agreed **Domain
-Model** (M). A third role, the **Agonothetes** (ἀγωνοθέτης, "organizer of
-the contest"), presides over the game, validates moves, and manages the
-post-game negotiation that determines how M evolves.
+Model** (M). A third function, the **Agonothetes** (ἀγωνοθέτης, "organizer
+of the contest"), is the interpretive dimension of the game — the purpose
+for which the contest exists and the understanding it produces.
 
 The game is not merely a proof checker. It is a **model of inquiry**: its
 outcomes drive the growth, revision, and correction of knowledge within a
@@ -35,7 +35,7 @@ double negative providing the initial context).
 | **Domain Model (M)** | An agreed EGI on the Sheet of Assertion — the shared knowledge base |
 | **Proposal (G)** | The Graphist's "seed" graph — an assertion to be tested |
 | **Rules** | The six Dau transformation rules, polarity-constrained |
-| **Agonothetes** | Organizer of the contest: validates moves, oversees outcome negotiation |
+| **Agonothetes** | The interpretive function of the game: provides context, validates moves, produces understanding from the outcome |
 
 ### Players and Territories
 
@@ -203,23 +203,65 @@ Real-world proposals are often complex:
 
 ## The Agonothetes (ἀγωνοθέτης)
 
-The **Agonothetes** — literally "organizer of the contest" — is the official
-who presides over the game. The term comes from the ancient Greek title for
-those who organized and judged games, festivals, and competitions. In the
-EPG, the Agonothetes is not merely a referee but the **guardian of the
-inquiry process** and the central agent for managing the evolution and
-integrity of the Sheet of Assertion.
+### Semiotic Grounding
 
-### Game Setup
+Peirce's semiotics holds that a sign is irreducibly **triadic**: it consists
+of a *representamen* (the sign-vehicle), an *object* (what the sign stands
+for), and an *interpretant* (the understanding the sign produces). No dyad
+suffices. A representamen without an object is empty form; a representamen
+confronting an object without an interpretant is a mark checked against the
+world but producing no understanding. The triad is the minimal structure of
+meaning.
+
+The Endoporeutic Game recapitulates this triad:
+
+| Sign element | Game function | Role |
+|---|---|---|
+| **Representamen** | **Graphist** | Produces the sign — the proposed graph, the representation to be tested |
+| **Object** | **Grapheus** | The domain, the world-as-known, what the sign is tested against |
+| **Interpretant** | **Agonothetes** | The understanding that the contest produces — how the proposal relates to the known |
+
+Without the Agonothetes, the game is formally complete but semiotically
+barren: it yields true or false, but no growth of understanding. Without
+the Grapheus, the Graphist produces signs that are never tested — unchecked
+speculation. Without the Graphist, there is a domain with interpretive
+capacity but nothing proposed — knowledge that never grows.
+
+The term **Agonothetes** — literally "organizer of the contest" — comes from
+the ancient Greek title for those who organized athletic games, festivals,
+and competitions. The agonothetes did not compete; they established the
+conditions under which the contest could take place, ensured the rules were
+followed, and declared what the outcome meant. In the EPG, the Agonothetes
+is not a third *player* but the **telic function** of the game: the purpose
+for which the contest exists and the understanding it produces.
+
+Peirce himself did not name this third function in his game — he was working
+at the level of formal semantics, where the boolean outcome (true/false) is
+the relevant output. But his own semiotic framework demands it. A sign
+process that terminates at a dyad is degenerate in Peircean terms. The
+Agonothetes names what Peirce left implicit: the interpretant of the
+game-as-semiosis.
+
+Note that the user of Arisbe straddles *both* player roles — the same person
+proposes (Graphist) and challenges (Grapheus), as when playing chess against
+oneself. The Agonothetes is therefore not the user-as-observer but the
+**meaning-making function** that the game serves: it is what transforms the
+mechanical contest into an act of inquiry.
+
+### What the Agonothetes Does
+
+The Agonothetes manifests in three phases of the game:
+
+**Before the game — providing context:**
 
 Everything happens within one **Universe of Discourse** (UoD), where more
-than one domain model may exist. The three participants — Graphist, Grapheus,
-and Agonothetes — agree on a particular reference DM (M). The Agonothetes
-then prepares the game space using the transformation rules themselves:
+than one domain model may exist. The Graphist and Grapheus agree on a
+particular reference model M. The game space is then prepared using the
+transformation rules themselves:
 
-1. **DC+** — The Agonothetes creates a context (double cut) in which the
-   contest takes place. This provides a fresh negative area (depth 1) and
-   a positive area (depth 2) nested within.
+1. **DC+** — A context (double cut) is created for the contest. This
+   provides a fresh negative area (depth 1) and a positive area (depth 2)
+   nested within.
 
 2. **IT+** — A copy of M (or reference thereto) is iterated into the
    game context. M now resides at depth 1 (negative area) alongside the
@@ -239,7 +281,7 @@ This reads as ¬(M ∧ ¬G) = **M → G**. The game will determine whether this
 implication holds — whether G follows from M, contradicts M, is independent
 of M, or falls into one of the other taxonomic categories.
 
-### During the Game
+**During the game — maintaining rigour:**
 
 1. **Move validation**: Every step must conform to Dau's formal definitions
    for EGIs, proper subgraphs, and transformation rules. If a move is
@@ -252,34 +294,34 @@ of M, or falls into one of the other taxonomic categories.
 3. **Traversal tracking**: The Agonothetes tracks the path through the tree
    (which areas have been resolved, which sub-games are in progress) and
    records the outcome of each sub-game in the transcript.
+4. **Record-keeping**: The official game transcript is maintained via
+   `ProofSerializer`, including the traversal path, each sub-game's outcome,
+   and the final disposition.
 
-### Post-Game Outcome Negotiation
+**After the game — producing understanding:**
 
-The Agonothetes' most critical function occurs at the conclusion of each
-game (or sub-game). Based on the outcome, the Agonothetes presents options
-for the proposed graph's fate:
+This is the Agonothetes' most essential function — the one that makes it
+the Interpretant. The game has produced a boolean result: the Graphist has
+a winning strategy, or the Grapheus does. But what does this *mean* for
+the knowledge base? The Agonothetes interprets the result in context:
 
 | Disposition | When | Effect on M |
 |-------------|------|-------------|
 | **Accepted as Consistent** | G mapped successfully, aligns with M | G added to SoA, expanding UoD |
 | **Provisionally Accepted** | G is plausible but requires further evidence | G added with hypothesis marker, pending confirmation or refutation by further evidence |
-| **Accepted, Implies M Change** | G is valid but conflicts with existing M | Agonothetes flags the inconsistency; participants decide whether to revise G, revise M, or hold both as alternatives |
+| **Accepted, Implies M Change** | G is valid but conflicts with existing M | The inconsistency is identified; participants decide whether to revise G, revise M, or hold both as alternatives |
 | **Rejected** | G is invalid or inconsistent | G not added to M; optionally saved in a "Rejected Graphs" folio with the reason for rejection |
 
 A sub-graph might include a new fact or a new explanation that throws the
 whole into doubt without frankly contradicting M. Or it might contradict M
-outright, yet the three participants might agree to hold the graph as a
-hypothesis or alternative pending confirmation or refutation by further
-evidence. The taxonomy of outcomes (Section II) covers these possibilities;
-the Agonothetes facilitates the decision among them.
+outright, yet the participants might agree to hold the graph as a hypothesis
+or alternative pending confirmation or refutation by further evidence. The
+taxonomy of outcomes (Section II) covers these possibilities; the Agonothetes
+is the function by which the game result is interpreted and acted upon.
 
-### Record-Keeping and Replay
-
-The Agonothetes maintains the official game transcript via `ProofSerializer`.
-This includes the traversal path, each sub-game's outcome, and the final
-disposition. The replay function (side-by-side or step-by-step) allows
-participants to review the sequence of transformations, both for successful
-derivations and for instances of illustrative errors.
+The replay function (side-by-side or step-by-step) allows participants to
+review the sequence of transformations, both for successful derivations and
+for instances of illustrative errors.
 
 ---
 

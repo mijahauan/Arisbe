@@ -39,9 +39,9 @@ and agreed-upon.
 regulation during surgery." This is her *proposal* — a sentence she believes
 follows from what she knows, but has not yet formally verified.
 
-**Agon** — She puts the proposal to the test. The Agonothetes (the organizer
-of the contest) sets up the game: "Given everything Dr. Melo knows, does it
-follow that Biscuit needs temperature regulation?"
+**Agon** — She puts the proposal to the test. The game is framed as a
+question: "Given everything Dr. Melo knows, does it follow that Biscuit
+needs temperature regulation?"
 
 The game proceeds by unwrapping the claim from the outside in:
 
@@ -105,9 +105,9 @@ The game reaches a **stalemate** — not because anything is wrong, but
 because the proposal is *independent* of the existing knowledge. It doesn't
 contradict anything; it simply goes beyond what is currently recorded.
 
-**The Agonothetes facilitates a decision**: Since the claim is compatible
+**The game produces an interpretation**: Since the claim is compatible
 with everything known, and Tomás has direct observational evidence (he
-saw the bird), the three participants agree to accept it as a **new fact**.
+saw the bird), he accepts it as a **new fact**.
 The knowledge base grows: it now includes the Azure Kingfisher, its traits,
 and the observation date.
 
@@ -158,9 +158,10 @@ a problem:
 The claim **contradicts** the established knowledge. This is a *refutation*
 of the proposal — or is it?
 
-**The Agonothetes intervenes**: A contradiction does not necessarily mean
-the proposal is wrong. It means the proposal and the established knowledge
-cannot both be true as stated. There are several possibilities:
+**But the game's interpretive function goes deeper than a simple
+verdict**: A contradiction does not necessarily mean the proposal is wrong.
+It means the proposal and the established knowledge cannot both be true
+as stated. There are several possibilities:
 
 - **Reject the proposal**: Perhaps the cherry tomatoes were not really
   thriving, or the north bed got more light than thought.
@@ -183,8 +184,8 @@ planting decisions can take reflective mulch into account.
 
 This is *knowledge revision* — the most powerful and most difficult outcome
 of the game. The Agon did not simply accept or reject; it identified a
-genuine conflict and the Agonothetes facilitated a resolution that improved
-the group's understanding of the world. The old rule was not "wrong" — it
+genuine conflict and facilitated a resolution that improved the group's
+understanding of the world. The old rule was not "wrong" — it
 was *incomplete*. The game process exposed the incompleteness and guided
 the revision.
 
@@ -229,7 +230,7 @@ The game unwraps each step:
 - Step 6 introduces another new claim: the revenue *exceeds* the costs.
   This is a quantitative assertion the knowledge base cannot verify.
 
-**The Agonothetes reports a mixed result**:
+**The game yields a mixed interpretation**:
 
 - The first part of the argument is a **theorem** — it follows deductively
   from what the council already accepts.
@@ -317,8 +318,8 @@ cold-blooded. Testing it in the Agon produces a contradiction with the
 existing knowledge.
 
 But instead of rejecting the claim, the teacher and Amara discuss it.
-The Agonothetes presents the options: reject the claim, revise the
-knowledge base, or hold it as a hypothesis. Amara decides to **revise**:
+The game presents the options: reject the claim, revise the knowledge
+base, or hold it as a hypothesis. Amara decides to **revise**:
 "Most fish are cold-blooded, but some species (like tuna) can partially
 regulate body temperature." Her knowledge base becomes more nuanced.
 

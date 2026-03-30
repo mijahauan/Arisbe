@@ -6,6 +6,20 @@ Arisbe implements a complete cycle of inquiry through three interconnected modes
 
 The graphical interface is not merely a renderer of logical structures. Following Peirce's conception of "moving pictures of thought," it functions as a facilitator of aesthetic, expressive, and interpretive engagement with diagrams.
 
+### Semiotic Architecture
+
+The triad is not accidental. It reflects Peirce's irreducibly triadic conception of the sign:
+
+| Sign element | Arisbe mode | Function |
+|---|---|---|
+| **Object** | **Organon** | The domain — what is known, the world that signs refer to |
+| **Representamen** | **Ergasterion** | The sign-making workshop — where new representations are crafted |
+| **Interpretant** | **Agon** | The understanding produced — what the sign means when tested against the domain |
+
+No pair suffices. The Organon without the Ergasterion is a library no one writes for. The Ergasterion without the Agon produces signs that are never tested. The Agon without the Organon has nothing to test against. The three together form the minimal structure for the growth of understanding.
+
+This triadic structure recurs *within* the Agon itself, where the Graphist (representamen — produces the proposed sign), the Grapheus (object — the domain model the sign is tested against), and the Agonothetes (interpretant — the understanding the contest produces) form a sign-triad at the level of the individual game. See `docs/ENDOPOREUTIC_GAME_GUIDE.md` for the full account.
+
 ---
 
 ## The Three Modes
@@ -100,12 +114,14 @@ result = InsertionRule().apply_transformation(context)
 - Validate proofs: a sequence of rule applications from premises to conclusion
 - Classify outcomes: tautology, contradiction, or contingent (hypothesis)
 
-**Game structure**:
+**Game structure** (a sign-triad within the Agon):
 
-- **Proposer** seeks to prove their assertion is true in the domain
-- **Skeptic** seeks to find a counter-model
-- In positive contexts, Skeptic chooses the rule; in negative contexts, Proposer chooses
-- The Agonothetes (automated) validates each move and determines the final outcome
+- **Graphist** (Representamen) — proposes a sign, defends it by operating in negative areas
+- **Grapheus** (Object) — the domain model; challenges the sign by operating in positive areas
+- **Agonothetes** (Interpretant) — the meaning-making function: validates moves, tracks the
+  traversal, and interprets the outcome into understanding that flows back into the UoD
+- The user straddles both player roles; the Agonothetes is not a third player but the telic
+  function of the game — see `docs/ENDOPOREUTIC_GAME_GUIDE.md` §Agonothetes
 
 **Domain model as EGIF**: All domain knowledge is represented as an EGIF graph, not as external data or a separate knowledge base. The domain model is itself an EGI — it can be browsed, transformed, and reasoned about using the same tools.
 
