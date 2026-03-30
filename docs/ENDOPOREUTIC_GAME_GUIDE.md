@@ -404,6 +404,107 @@ way: everything either maps to M or is structurally tautological.
 
 ---
 
+## Two Layers of the Game
+
+The EPG unifies two formalisms that are often treated separately. Understanding
+their relationship is essential for implementation.
+
+### The Semantic Evaluation Game (Inner Layer)
+
+Pietarinen (2006, Ch. 4–7) formalizes Peirce's endoporeutic interpretation as
+a **semantic game** with four rules:
+
+1. **Juxtaposition** — At a positive node (conjunction), the Grapheus chooses
+   which conjunct to examine. At a negative node, the Graphist chooses.
+2. **Ligatures** — The polarity of a ligature's outermost extremity determines
+   who picks an individual from the domain: the Graphist on positive areas
+   (existential quantification), the Grapheus on negative areas (universal).
+3. **Atomic spot** — When an atomic predicate is reached, its truth-value in
+   the model determines the winner: true = Graphist wins, false = Grapheus wins.
+4. **Winning strategy** — The graph is true in the model if and only if the
+   Graphist has a winning strategy.
+
+This game is **recursive**, **boolean** (true/false), and **always terminates**
+(the graph is finite, so the descent bottoms out at atomic spots). It is purely
+evaluative — no transformation rules appear. It answers the question: *is this
+graph true in this model?*
+
+### The Transformation Game (Strategic Layer)
+
+Dau's six rules — INS, ERA, IT+, IT-, DC+, DC- — constitute a separate
+**proof-theoretic** system. Players use these rules to manipulate the graph
+structure: the Graphist strengthens and propagates; the Grapheus simplifies
+and erases.
+
+The transformation rules are not moves *in* the semantic game; they are the
+**strategic reasoning** by which a player constructs or demonstrates a winning
+(or losing) position. They answer the question: *can we show that the Graphist
+has (or lacks) a winning strategy?*
+
+### The Bridge: IT- as Semantic Mapping
+
+The connection between the two layers is **deiteration (IT-)**. In the
+semantic game, reaching an atomic spot and checking its truth-value against
+the model is the termination condition. In the transformation game, the
+corresponding operation is IT-: if a subgraph at the current level is
+identical to something in M at an ancestor level, IT- deiterates it —
+removing it as "already accounted for." This is the proof-theoretic way of
+saying "this content is true in M."
+
+The Graphist wins when all positive content has been deiterated (mapped to M)
+or shown to be structurally tautological. The Grapheus wins when some positive
+content cannot be mapped and cannot be resolved.
+
+### The Interpretive Layer (Agonothetes)
+
+The semantic game yields a boolean. The transformation game demonstrates
+*why* that boolean holds. But neither layer, alone, produces *understanding*.
+The Agonothetes — the interpretive function — takes the boolean result
+together with the traversal path and the game transcript and maps them to
+the outcome taxonomy (Section II):
+
+```
+Semantic game result (true/false)
+  + traversal path (which sub-games, which choices)
+  + game transcript (which rules, which failures)
+  ────────────────────────────────
+  → taxonomic outcome (theorem, new fact, revision, ...)
+  → disposition (accept, reject, revise M, hold as hypothesis, ...)
+  → integration into UoD
+```
+
+This is why the Agonothetes is not reducible to either player's perspective:
+it operates at a meta-level, interpreting the *significance* of the game's
+mechanical result.
+
+### Design Implications
+
+This two-layer structure resolves several architectural concerns:
+
+- **Non-boolean outcomes**: The semantic game IS boolean. The taxonomy of
+  outcomes is a higher-level interpretation applied by the Agonothetes after
+  the game completes. The boolean result determines the *logical* status;
+  the Agonothetes determines what it *means* in context.
+
+- **Termination**: The semantic game always terminates because graphs are
+  finite. Pietarinen: "the graphs are finite... the interaction will come to
+  a halt in a finite number of steps." The transformation game may involve
+  strategic choices about when to stop, but the underlying evaluation is
+  guaranteed to bottom out.
+
+- **When to descend**: In the semantic game, descent is immediate — each
+  step peels off one layer of the nest. In the transformation game, players
+  may prepare before descending (DC+, INS to set up structures). The
+  preparation IS the strategic reasoning; the descent IS the evaluation.
+
+- **Beta graphs**: Ligatures introduce quantifier binding. The semantic
+  game handles this via rule 2 (who picks the individual from the domain).
+  The transformation game handles it via the subgraph closure rules that
+  govern which ligature-connected elements can be iterated or deiterated
+  together.
+
+---
+
 ## Role-Switching and Strategic Considerations
 
 ### Graphist (Proposer) Strategies
