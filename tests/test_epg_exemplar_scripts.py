@@ -5,26 +5,48 @@ These tests exercise the EndoporeuticGame engine through complete game
 scenarios, each illustrating a distinct outcome type from the EPG taxonomy
 (see docs/ENDOPOREUTIC_GAME_GUIDE.md).
 
+Architecture (two layers — see EPG Guide §Two Layers of the Game):
+
+  The EPG unifies two formalisms:
+  - **Semantic evaluation game** (inner layer): recursive, boolean, always
+    terminates.  Determines truth by descending the graph outside-in.
+  - **Transformation game** (strategic layer): Dau's six rules used to
+    construct or demonstrate a winning (or losing) position.
+
+  These scripts demonstrate the *transformation game* — the strategic layer
+  by which players build proofs.  IT- is the bridge: deiteration proves
+  that content "maps to M" (the proof-theoretic expression of semantic truth).
+
+  The **Agonothetes** (interpretive function, not a third player) operates
+  at the meta-level: it sets up the game context, validates moves, and
+  interprets the boolean result into the outcome taxonomy.
+
 Organisation:
 
   Part I — Simple outcome examples (A–H)
-    Each script has a Domain Model, a Proposal, and a clear outcome.
+    Each script has a domain model (M), a Proposal (G), and a clear outcome.
 
   Part II — Advanced strategy examples (I–N)
     Multi-move games demonstrating role-switching, territory expansion,
-    push-pull dynamics, and post-game DM negotiation.
+    push-pull dynamics, and concession.
+
+  Part III — Game setup and full flow (O)
+    Demonstrates the Agonothetes' game setup: building ~[ M ~[ G ] ] via
+    DC+, IT+, INS, then proving the theorem within that structure.
+
+  Part IV — Commentary on unimplemented outcomes
 
 Conventions:
 
-  - Domain Model is encoded as the *initial_egif* (what is already asserted).
-  - The Proposal (G) is the claim the Graphist wishes to prove/introduce.
-  - In the simple cases, DM + G are combined on the sheet and the game
-    operates on the resulting graph.  In advanced cases, the DM may be
-    separate from G via cut structure.
+  - M (domain model) is the agreed knowledge base, encoded as EGIF.
+  - G (proposal) is the claim the Graphist wishes to prove/introduce.
+  - The canonical game structure is ~[ M ~[ G ] ] = M → G.
+  - In the simple cases (Part I), M + G are combined on the sheet for
+    brevity.  Part III shows the full ~[ M ~[ G ] ] setup.
   - The game engine enforces polarity-based move permissions:
-      Proposer → INS, IT+, DC+  in NEGATIVE areas
-      Skeptic  → ERA, IT-, DC-  in POSITIVE areas
-      DC+/DC-  available to both in any area
+      Graphist  → INS, IT+, DC+  in NEGATIVE areas
+      Grapheus  → ERA, IT-, DC-  in POSITIVE areas
+      DC+/DC-   available to both in any area
 """
 
 import os
@@ -831,7 +853,160 @@ class TestScriptN_GameEngineIntegration(unittest.TestCase):
 
 
 # ===================================================================
-# PART III — COMMENTARY ON UNIMPLEMENTED OUTCOMES
+# PART III — GAME SETUP AND FULL FLOW
+# ===================================================================
+
+class TestScriptO_FullGameSetup(unittest.TestCase):
+    """
+    Script O — Proof within ~[ M ~[ G ] ]: the canonical game structure
+
+    This script demonstrates a complete proof within the canonical game
+    structure ~[ M ~[ G ] ], showing all three phases of the Agonothetes.
+
+    M:   P, P → Q       EGIF: (P *a) ~[ (P *b) ~[ (Q *c) ] ]
+    G:   Q               EGIF: (Q *z)
+    Goal: show M → G, i.e. that Q follows from P and P → Q.
+
+    Conceptual setup (Agonothetes — "providing context"):
+      The Agonothetes prepares the game space by placing M and the
+      proposed implication M → G on the sheet.  The result is:
+
+        ~[ M ~[ G ] ]  =  ~[ P  (P→Q)  ~[ Q ] ]  =  ¬(P ∧ (P→Q) ∧ ¬Q)
+
+      This asserts "it is not the case that P, P→Q, and not-Q all hold."
+      If this can be demonstrated as valid (the sheet reduces to a
+      tautological state), then Q follows from M.
+
+    Proof (Transformation game — strategic layer):
+      1. IT- — deiterate P from within (P→Q), mapping it to the P
+         at depth 1.  This is the bridge: "P maps to M."
+      2. DC- — the implication cut now contains only ~[Q], forming
+         a double cut.  Remove it: Q appears at depth 1.
+      3. IT- — deiterate Q from the goal negation ~[Q], mapping it
+         to the Q now at depth 1.  The goal cut is empty.
+
+    After step 3, the goal negation is empty (~[] = ⊥) and all positive
+    content at depth 2 has been resolved.  The Graphist wins.
+
+    This demonstrates:
+      - The two-layer architecture in action
+      - IT- as the bridge (proof-theoretic "maps to M")
+      - The Agonothetes' three phases: context → rigour → understanding
+    """
+
+    def test_canonical_game_proof(self):
+        # === PHASE 1: Agonothetes — providing context ===
+        #
+        # Parse the canonical game structure directly.
+        # In a full implementation, this would be built via DC+, IT+, INS
+        # (see EPG Guide §Game Setup).  Here we parse the result to focus
+        # on the proof.
+        #
+        # Structure: ~[ P  ~[ P ~[ Q ] ]  ~[ Q ] ]
+        #            ^^^   ^^^^^^^^^^^^^   ^^^^^^^
+        #            M:P   M: P→Q         ¬G: ¬Q
+        #
+        # Depth 1 (neg, Graphist): P(*a), implication cut, goal negation
+        # Depth 2 (pos, Grapheus): P(*b) inside implication; Q(*z) inside goal
+        # Depth 3 (neg): Q(*c) inside the consequent of the implication
+
+        egi = parse_egif("~[ (P *a) ~[ (P *b) ~[ (Q *c) ] ] ~[ (Q *z) ] ]")
+        _dump(egi, "Game context: ~[ M ~[ G ] ]")
+
+        # Identify the structural areas
+        sheet = egi.sheet
+        game_cut = _elements_in_area(egi, sheet)["cuts"][0]
+        pol_game, d_game = egi.area_polarity(game_cut)
+        self.assertEqual(pol_game, AreaPolarity.NEGATIVE,
+                         "Game context should be negative (depth 1)")
+
+        # Find the implication cut and goal negation inside the game context
+        game_info = _elements_in_area(egi, game_cut)
+        self.assertIsNotNone(_find_edge_by_rel(egi, game_cut, "P"),
+                             "P(*a) should be at depth 1")
+
+        impl_cut = None
+        goal_cut = None
+        for cid in game_info["cuts"]:
+            if _find_edge_by_rel(egi, cid, "P") is not None:
+                impl_cut = cid
+            elif _find_edge_by_rel(egi, cid, "Q") is not None:
+                goal_cut = cid
+
+        self.assertIsNotNone(impl_cut, "Should find implication cut ~[(P ~[Q])]")
+        self.assertIsNotNone(goal_cut, "Should find goal negation ~[(Q)]")
+
+        # === PHASE 2: Transformation game — proving the theorem ===
+
+        # Step 1: IT- on P(*b) inside the implication cut
+        # P(*b) at depth 2 maps to P(*a) at depth 1 (ancestor area).
+        # This is the bridge: deiteration = "P maps to M."
+        p_in_impl = _find_edge_by_rel(egi, impl_cut, "P")
+        self.assertIsNotNone(p_in_impl, "P(*b) should be in implication cut")
+
+        egi = _apply_rule("IT-", egi, selection=[p_in_impl])
+        _dump(egi, "After IT- on P: 'P maps to M'")
+
+        # P is gone from the implication cut
+        p_after = _find_edge_by_rel(egi, impl_cut, "P")
+        self.assertIsNone(p_after, "P should be deiterated from implication")
+
+        # Step 2: DC- on the resulting double cut
+        # The implication cut now contains only ~[(Q *c)] — a double cut.
+        # Check: no edges remain, only the nested cut.
+        impl_after = _elements_in_area(egi, impl_cut)
+        self.assertEqual(len(impl_after["edges"]), 0,
+                         "Implication cut should have no edges after IT-")
+        self.assertTrue(len(impl_after["cuts"]) >= 1,
+                        "Implication cut should still have the Q-cut")
+
+        egi = _apply_rule("DC-", egi, selection=[impl_cut])
+        _dump(egi, "After DC-: Q appears at depth 1")
+
+        # Q should now be directly in the game context
+        q_at_depth1 = _find_edge_by_rel(egi, game_cut, "Q")
+        self.assertIsNotNone(q_at_depth1,
+                             "Q should appear at depth 1 after DC-")
+
+        # Step 3: IT- on Q(*z) inside the goal negation
+        # Q(*z) at depth 2 maps to Q at depth 1 (just derived).
+        # This is the second bridge: "Q maps to the derived content."
+        q_in_goal = _find_edge_by_rel(egi, goal_cut, "Q")
+        self.assertIsNotNone(q_in_goal, "Q(*z) should still be in goal cut")
+
+        egi = _apply_rule("IT-", egi, selection=[q_in_goal])
+        _dump(egi, "After IT- on Q in goal: goal negation is empty")
+
+        # The goal cut should now be empty — ⊥
+        q_after = _find_edge_by_rel(egi, goal_cut, "Q")
+        self.assertIsNone(q_after,
+                          "Q should be deiterated from goal — proof complete")
+
+        # === PHASE 3: Agonothetes — producing understanding ===
+        #
+        # The game has demonstrated that Q follows from M:
+        #   - Every positive content at depth 2 was deiterated (mapped to M)
+        #   - The goal negation is empty (= ⊥), confirming M → G
+        #
+        # The Agonothetes interprets this:
+        #   Boolean result: Graphist has a winning strategy (true)
+        #   + Traversal: all depth-2 content resolved via IT-
+        #   + Transcript: IT-, DC-, IT- (three-step proof)
+        #   ──────────────────────────────────────
+        #   → Taxonomic outcome: Case 1a — G is entailed by M (theorem)
+        #   → Disposition: Accepted as consistent
+        #   → Effect on UoD: Q may be asserted on the sheet as derived fact
+
+        # Verify the proof left the game context structurally sound
+        game_after = _elements_in_area(egi, game_cut)
+        self.assertIsNotNone(_find_edge_by_rel(egi, game_cut, "P"),
+                             "P remains at depth 1 (part of M)")
+        self.assertIsNotNone(_find_edge_by_rel(egi, game_cut, "Q"),
+                             "Q now at depth 1 (derived from M)")
+
+
+# ===================================================================
+# PART IV — COMMENTARY ON UNIMPLEMENTED OUTCOMES
 # ===================================================================
 
 class TestOutcomeTaxonomyNotes(unittest.TestCase):
@@ -839,27 +1014,28 @@ class TestOutcomeTaxonomyNotes(unittest.TestCase):
     Not all EPG outcomes can be fully automated yet.  This test class
     documents the remaining outcomes and what infrastructure they need.
 
-    Case 2b (DM revision): Requires a meta-protocol where the Graphist
-    can challenge the DM itself.  The current engine takes the DM as
-    fixed — revision would need an outer game loop where the roles
-    reverse and the DM is put on trial.
+    Case 2b (M revision): Requires a meta-protocol where the Graphist
+    can challenge M itself.  The current engine takes M as fixed —
+    revision would need an outer game loop where the roles reverse and
+    M is put on trial.
 
     Case 2c (Fork): Requires the DAG history system to branch.  The
     UniverseOfDiscourse already supports branching histories — this
     needs to be wired into the game engine's post-game hook.
 
-    Case 3a–3e (Independent proposals): Require the Agonothetes role to
-    facilitate post-game negotiation.  Currently the Agonothetes is implicit.
-    A formal Agonothetes protocol would need:
-      - A method to propose DM modification (INS/ERA on the DM itself)
-      - Acceptance/rejection by both players
+    Case 3a–3e (Independent proposals): Require the Agonothetes'
+    interpretive function to produce understanding from the game result.
+    The game yields a boolean (stalemate / no winning strategy for
+    either player); the Agonothetes interprets what this means:
+      - A method to propose M modification (INS/ERA on M itself)
+      - Acceptance/rejection by the user (who plays both roles)
       - Recording the rationale in the proof transcript
 
     Case 6 (Partial overlap): Requires decomposing G into sub-propositions
-    and running separate games on each.  This is a meta-game strategy.
+    and running separate sub-games on each.  This is a meta-game strategy.
 
     Case 7/8 (Refinement/Generalization): Require subsumption checking
-    (is G more specific or more general than something in DM?).  This
+    (is G more specific or more general than something in M?).  This
     could leverage the Z3 semantic validator for entailment checking.
     """
 
@@ -867,19 +1043,19 @@ class TestOutcomeTaxonomyNotes(unittest.TestCase):
         """Placeholder documenting which outcomes are and aren't automated."""
         implemented = {
             "1a": "Theorem (Script A — modus ponens)",
-            "2a": "Refutation (Script B — contradicts DM)",
+            "2a": "Refutation (Script B — contradicts M)",
             "2d": "Reductio (Script C — contradiction as resource)",
             "3a": "New fact (Script D — empirical enlargement)",
             "4":  "Tautology (Script G — P→P)",
             "5":  "Self-contradictory (Script H — P∧¬P)",
         }
         needs_work = {
-            "2b": "DM revision — needs meta-protocol",
+            "2b": "M revision — needs meta-protocol",
             "2c": "Fork — needs DAG history integration",
-            "3b": "Abductive hypothesis — needs Agonothetes protocol",
-            "3c": "Open conjecture — needs Agonothetes protocol",
-            "3d": "Definition — needs Agonothetes protocol",
-            "3e": "Conditional acceptance — needs Agonothetes protocol",
+            "3b": "Abductive hypothesis — needs interpretive layer",
+            "3c": "Open conjecture — needs interpretive layer",
+            "3d": "Definition — needs interpretive layer",
+            "3e": "Conditional acceptance — needs interpretive layer",
             "6":  "Partial overlap — needs decomposition meta-game",
             "7":  "Refinement — needs subsumption checking",
             "8":  "Generalization — needs subsumption checking",
