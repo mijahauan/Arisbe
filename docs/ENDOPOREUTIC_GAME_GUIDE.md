@@ -1227,6 +1227,80 @@ new doubts — the record is there.  The UoD's transformation history is not
 a path converging on truth; it is a **trail through an evolving landscape**,
 honest about where it has been and open about where it might go next.
 
+### The Pragmatic Corrective
+
+This position — adequacy without finality, knowledge without omniscience —
+provides a useful corrective to two pathologies of thought that recur
+whenever inquiry confronts its own limits.
+
+**The pathology of cynicism: "You never really know anything."**
+
+This is the nihilistic misreading of fallibilism.  If no M is final, if
+every belief is subject to revision, if the ground itself shifts — then
+(the argument goes) nothing is genuinely known.  All knowledge is merely
+provisional, merely approximate, merely contingent.  The word "merely" does
+all the damage.
+
+The EPG answers: M is real.  The games we have played have produced genuine
+understanding — theorems derived, contradictions exposed, predictions
+confirmed, practices refined.  The parasitologist's M enables real public
+health interventions.  The engineer's M enables real bridges.  The
+bereaved owner's M enables real grief and real healing.  That M may be
+revised tomorrow does not mean it is worthless today.  A map that is
+adequate for the current journey is not defective because the landscape may
+change.  The cynical move — discounting all knowledge because no knowledge
+is absolute — confuses *revisability* with *unreliability*.  They are not
+the same.
+
+In EPG terms: the Graphist's proposals succeed or fail against a real
+Grapheus.  IT- maps or it does not.  The game's honesty is not diminished
+by the fact that M will evolve.  What was proved in this game was genuinely
+proved, given this M, using these rules, recorded in this transcript.
+
+**The pathology of absolutism: "This is the one Truth."**
+
+This is the dogmatic response to the desire for certainty.  If fallibilism
+is uncomfortable, one can escape the discomfort by declaring some M to be
+final — the one true God, the one true philosophy, the one true political
+system, the one true leader.  The move is always the same: elevate a
+particular M to the status of unquestionable ground, and block inquiry into
+that ground itself.
+
+The EPG answers: no M is immune from challenge.  The Grapheus resists
+proposals that contradict it, but the Grapheus is itself the product of
+prior Agonothetes judgments — each of which was situated, each of which was
+adequate-for-then, none of which was final.  To declare an M absolute is to
+block the way of inquiry (CP 1.135) — it is Peirce's method of authority
+dressed in metaphysical clothing.
+
+In EPG terms: absolutism is the refusal to let the Graphist propose
+anything that challenges M.  But the framework's integrity depends on the
+Graphist's freedom to propose *anything* — including proposals that
+contradict the deepest commitments of M.  The game may reject the proposal
+(M may win), but the game must be *played*.  The moment certain propositions
+are declared unquestionable, the system ceases to be inquiry and becomes
+dogma.
+
+**The middle ground: we know something, but we will never know everything.**
+
+Between the cynic who says knowledge is impossible and the absolutist who
+says knowledge is complete, the pragmatic position is simply this: **we do
+know something, and we will never know everything.**
+
+- We know something because M is real, the games are honest, and the
+  understanding the Agonothetes produces is genuinely adequate for the
+  ongoing inquiry.
+- We will never know everything because the world is inexhaustible, our
+  interpretations change it, and the stability that grounds our knowledge
+  is itself subject to transformation.
+
+This is not a compromise or a hedge.  It is the only position consistent
+with both the reality of knowledge and the reality of change.  The EPG
+formalizes it: every game produces genuine results (not "merely" provisional
+ones); every result is held in readiness for revision (not enshrined as
+absolute).  The transformation history records both the knowledge gained and
+the openness to what comes next.
+
 ### Unlimited Semiosis, Without a Terminus
 
 Peirce's doctrine of **unlimited semiosis** — the idea that every
