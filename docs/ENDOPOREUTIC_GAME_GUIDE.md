@@ -985,6 +985,179 @@ when doubt arrives — and to not pretend it isn't there when it does.
 
 ---
 
+## Situated Meaning: One Sign, Many Games
+
+The preceding sections establish that meaning is produced by the triadic
+cycle: the Graphist proposes, the Grapheus resists, the Agonothetes
+interprets.  But there is a stronger claim implicit in the framework: **a
+single play of the EPG — one "inning" — situates the meaning of every term
+it touches in a way that is simultaneously context-dependent and formally
+precise.**
+
+Consider the word "cat."
+
+### Six Games, Six Meanings
+
+**1. A Mandarin-speaking person learning English.**
+
+M contains a rich conceptual structure organized around 猫 (māo) — the
+Mandarin category for feline animals — plus the learner's general world
+knowledge.  The Graphist proposes: "(Cat *x)".  The game tests whether this
+English sign maps to anything in M.  IT- finds the mapping: "cat" deiterates
+onto 猫.  The Agonothetes produces a *cross-linguistic* Interpretant: "cat"
+means what 猫 means, plus whatever English-specific connotations the game
+exposes (and minus whatever Mandarin connotations fail to map).
+
+The game does not merely translate.  If M also contains knowledge about
+English idiom ("cat got your tongue," "it's raining cats and dogs"), the game
+will encounter propositions where "cat" does *not* map to 猫 — stalemates
+and contradictions that reveal the boundaries of the cross-linguistic
+correspondence.  Each such failure is itself a meaning: the places where
+the mapping breaks are as informative as the places where it holds.
+
+**2. A student learning conceptual graphs via "the cat is on the mat."**
+
+M is the formal apparatus of Conceptual Graph theory — type hierarchies,
+relation definitions, the syntax of CGIF.  "Cat" enters the game not as an
+animal but as a *type label*: a node in a type lattice, an exemplar concept
+used to illustrate the machinery.  The Graphist proposes:
+`[Cat: #]→(On)→[Mat: #]`.  The game tests whether this is well-formed
+against M (the CG formalism), not whether there is an actual cat on an
+actual mat.
+
+The Agonothetes produces a *metalinguistic* Interpretant: "cat" means
+"a convenient concept node that illustrates how types, referents, and
+relations interact in the formalism."  The feline content is almost
+irrelevant; what matters is the formal structure.
+
+**3. A person whose beloved pet cat has just died.**
+
+M is dense with particulars: this cat's name, habits, personality, the years
+of companionship, the specific textures of grief.  "Cat" in this M is not a
+type but an *individual* — saturated with affect, irreducible to a category.
+The Graphist proposes something — perhaps "(Alive *x)" with respect to this
+individual — and the game fails.  The Grapheus wins: M no longer supports
+the proposition.
+
+The Agonothetes produces an Interpretant shaped by loss.  The meaning of
+"cat" here is not a definition but a weight — the significance of what the
+sign used to map to and no longer does.  The game's formal machinery
+captures this: the failure of IT- (the element no longer maps to M) *is* the
+formal expression of absence.
+
+**4. A person whose pet parakeet was eaten by the neighbor's cat.**
+
+M includes: "neighbor's cat killed my parakeet," emotional attachment to the
+bird, anger at the cat and perhaps the neighbor.  "Cat" is understood as
+predator, threat, instrument of loss.  The Graphist proposes
+"(Dangerous *x)" where *x* is bound to Cat.  Against this M, the game
+succeeds — IT- maps the proposition to the killing event.
+
+The Agonothetes produces an Interpretant colored by adversarial experience.
+"Cat" means something very different here than in case 3, even though both
+involve grief and a specific animal.  The difference is entirely in M — the
+Grapheus — and therefore entirely in what the game can derive.
+
+**5. A parasitologist studying toxoplasmosis.**
+
+M is the domain of parasitology: *Toxoplasma gondii*, the feline definitive
+host, oocyst shedding in cat feces, the parasite's lifecycle, zoonotic
+transmission pathways, seroprevalence data.  "Cat" is understood as a
+*biological vector* — the only definitive host in which the parasite
+completes its sexual reproduction cycle.
+
+The Graphist proposes: "(DefinitiveHost Cat Toxoplasma)".  The game
+succeeds — M contains exactly this relationship, and IT- maps it cleanly.
+The Agonothetes produces a *technical* Interpretant: "cat" means "the
+organism *Felis catus* in its epidemiological role as *T. gondii* definitive
+host."  No affect, no companionship, no threat — pure functional
+classification.
+
+**6. Us, using "cat" as an example to define and describe the EPG.**
+
+M is the EPG framework itself — the sections above, the triadic structure,
+the game mechanics.  "Cat" enters as a *pedagogical device*: a familiar
+concept used to illustrate how meaning is situated by the game.  The
+Graphist proposes: "the word 'cat' demonstrates situated meaning."  The game
+tests this against M (the EPG formalism).
+
+The Agonothetes produces a *reflexive* Interpretant: "cat" means "a
+convenient example that shows how the same sign-vehicle produces different
+Interpretants depending on M."  The meaning of "cat" in this game is
+*about meaning itself* — a meta-level use that the framework accommodates
+without special machinery.
+
+### What the Six Games Show
+
+The sign-vehicle is identical in every case: "cat," three letters, one
+syllable.  What changes is **M** — the Grapheus, the domain against which
+the sign is tested.  And because M changes, everything downstream changes:
+
+- The **game tree** differs: different depths, different branches, different
+  points where IT- succeeds or fails.
+- The **Agonothetes judgment** differs: theorem, new fact, contradiction,
+  stalemate — each M produces its own outcome.
+- The **Interpretant** differs: cross-linguistic mapping, formal type label,
+  weight of grief, predatory threat, epidemiological function, reflexive
+  meta-example.
+
+Yet each meaning is **formally precise** within its game.  The parasitologist's
+"cat" is not vague; it is exactly what M (the parasitology domain) entails
+under the game's rules.  The bereaved owner's "cat" is not vague; it is
+exactly what M (the personal history with this animal) entails and fails to
+entail.  The precision is not reduced by the context-dependence; it is
+*produced* by it.
+
+### The Pragmatic Maxim
+
+This is Peirce's **pragmatic maxim** made operational:
+
+> "Consider what effects, that might conceivably have practical bearings,
+> we conceive the object of our conception to have.  Then, our conception
+> of these effects is the whole of our conception of the object."
+> (W 3:266)
+
+Each play of the EPG reveals *some* of the practical effects of "cat" —
+the ones that are relevant to the particular M and the particular inquiry.
+The parasitologist's game reveals the epidemiological effects.  The
+bereaved owner's game reveals the effects of absence.  The student's game
+reveals the formal-structural effects.
+
+No single game captures the *whole* meaning of "cat" — that would require
+playing the game against every possible M, which is Peirce's ideal limit.
+But each game captures a **legitimate, precise, situated** portion of the
+meaning.  And the totality of games that *could* be played — across all
+possible M's, all possible inquirers, all possible times — converges on
+what Peirce calls the **final interpretant**: the meaning the sign would
+have at the ideal end of inquiry.
+
+### Unlimited Semiosis, Formally Grounded
+
+Peirce's doctrine of **unlimited semiosis** — the idea that every
+Interpretant becomes a new sign capable of generating further Interpretants
+— finds its formal expression in the cycle diagram (§The Cycle).  Each
+Agonothetes judgment enriches M, producing M'.  But M' is now a richer
+Grapheus, capable of producing richer games, capable of producing richer
+Interpretants.
+
+The parasitologist who runs the "cat = definitive host" game and integrates
+the result into M now has a richer M against which to test the next
+proposition — perhaps about vaccine development, or about the behavioral
+effects of *T. gondii* on intermediate hosts.  Each game begets the
+conditions for the next.  Semiosis does not terminate; it *turns* — and
+each turn is a play of the game.
+
+This is what it means to say the EPG situates meaning in a "more precise,
+richer, and functional way."  The precision comes from the formal game
+mechanics (IT-, DC-, the transformation rules).  The richness comes from M
+(the Grapheus — the accumulated past of the UoD).  The functionality comes
+from the Agonothetes (the Interpretant — the understanding that the game
+produces and that feeds forward into the next inquiry).
+
+The sign "cat" is simple.  The games it can play are inexhaustible.
+
+---
+
 ## The Game as Tree Traversal
 
 The game is, in effect, a **tree traversal** of the EGI's hierarchical
