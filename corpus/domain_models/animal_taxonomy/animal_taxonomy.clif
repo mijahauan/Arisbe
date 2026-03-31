@@ -1,0 +1,41 @@
+;; Animal Taxonomy — a simple domain model for testing
+;; Suitable as M (Grapheus) in the Endoporeutic Game
+
+;; Type hierarchy
+(forall (x) (if (Cat x) (Mammal x)))
+(forall (x) (if (Dog x) (Mammal x)))
+(forall (x) (if (Mammal x) (Animal x)))
+(forall (x) (if (Bird x) (Animal x)))
+(forall (x) (if (Penguin x) (Bird x)))
+(forall (x) (if (Parrot x) (Bird x)))
+(forall (x) (if (Fish x) (Animal x)))
+
+;; Disjointness
+(forall (x) (not (and (Mammal x) (Bird x))))
+(forall (x) (not (and (Mammal x) (Fish x))))
+(forall (x) (not (and (Bird x) (Fish x))))
+(forall (x) (not (and (Cat x) (Dog x))))
+(forall (x) (not (and (Penguin x) (Parrot x))))
+
+;; Properties
+(forall (x) (if (Mammal x) (Warm-blooded x)))
+(forall (x) (if (Bird x) (Warm-blooded x)))
+(forall (x) (if (Bird x) (Has-feathers x)))
+(forall (x) (if (Fish x) (Cold-blooded x)))
+
+;; Default flying ability for birds (defeasible — can be challenged)
+(forall (x) (if (Bird x) (Can-fly x)))
+
+;; Known exception: penguins cannot fly
+(forall (x) (if (Penguin x) (not (Can-fly x))))
+
+;; Relations
+(forall (x y) (if (Owns x y) (and (Person x) (Animal y))))
+(forall (x y) (if (Eats x y) (Animal x)))
+
+;; Individuals
+(Cat Biscuit)
+(Person Socrates)
+(Owns Socrates Biscuit)
+(Penguin Tux)
+(Parrot Polly)

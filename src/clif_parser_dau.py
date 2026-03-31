@@ -55,6 +55,9 @@ class CLIFTokenType(Enum):
     IFF = "IFF"  # iff
     IF = "IF"  # if
     COMMENT = "COMMENT"  # ;; comment
+    CL_TEXT = "CL_TEXT"  # cl-text
+    CL_IMPORTS = "CL_IMPORTS"  # cl-imports
+    CL_MODULE = "CL_MODULE"  # cl-module
     EOF = "EOF"
 
 
@@ -143,6 +146,9 @@ class CLIFLexer:
             "or": CLIFTokenType.OR,
             "iff": CLIFTokenType.IFF,
             "if": CLIFTokenType.IF,
+            "cl-text": CLIFTokenType.CL_TEXT,
+            "cl-imports": CLIFTokenType.CL_IMPORTS,
+            "cl-module": CLIFTokenType.CL_MODULE,
         }.get(identifier.lower(), CLIFTokenType.IDENTIFIER)
 
         self.tokens.append(CLIFToken(token_type, identifier, start))
@@ -197,17 +203,27 @@ class CLIFParser:
         self.current_token = None
 
     def parse(self) -> RelationalGraphWithCuts:
-        """Parse CLIF text into EGI structure."""
+        """Parse CLIF text into EGI structure.
+
+        Handles single expressions, multiple top-level sentences
+        (conjuncted on the sheet), and ``cl-text`` wrappers used
+        by the COLORE repository.
+        """
         self.tokens = self.lexer.tokenize()
+        # Strip comment tokens so the parser never sees them
+        self.tokens = [t for t in self.tokens if t.type != CLIFTokenType.COMMENT]
         self.position = 0
         self.current_token = self.tokens[0] if self.tokens else None
 
-        # Parse the CLIF expression
-        parse_tree = self._parse_expression()
+        # Parse all top-level expressions (multi-sentence support)
+        sentences: List[CLIFParseNode] = []
+        while self.current_token and self.current_token.type != CLIFTokenType.EOF:
+            sentences.append(self._parse_expression())
 
-        # Convert parse tree to EGI immutably
+        # Convert parse trees to EGI — all sentences conjuncted on sheet
         egi = create_empty_graph()
-        egi = self._convert_to_egi(parse_tree, egi, egi.sheet)
+        for sentence in sentences:
+            egi = self._convert_to_egi(sentence, egi, egi.sheet)
         # Populate AlphabetDAU and rho
         egi = self._finalize_alphabet_and_rho(egi)
         return egi
@@ -256,6 +272,16 @@ class CLIFParser:
             return self._parse_conjunction()
         elif self.current_token.type == CLIFTokenType.OR:
             return self._parse_disjunction()
+        elif self.current_token.type == CLIFTokenType.IF:
+            return self._parse_conditional()
+        elif self.current_token.type == CLIFTokenType.IFF:
+            return self._parse_biconditional()
+        elif self.current_token.type in (
+            CLIFTokenType.CL_TEXT, CLIFTokenType.CL_MODULE,
+        ):
+            return self._parse_cl_text()
+        elif self.current_token.type == CLIFTokenType.CL_IMPORTS:
+            return self._parse_cl_imports()
         elif self.current_token.type == CLIFTokenType.IDENTIFIER:
             return self._parse_atomic_formula()
         else:
@@ -327,6 +353,72 @@ class CLIFParser:
         node = CLIFParseNode("or")
         node.children = disjuncts
         return node
+
+    def _parse_conditional(self) -> CLIFParseNode:
+        """Parse conditional (if P Q) — material implication."""
+        self._advance()  # Skip 'if'
+
+        antecedent = self._parse_expression()
+        consequent = self._parse_expression()
+        self._expect(CLIFTokenType.RPAREN)
+
+        node = CLIFParseNode("if")
+        node.children = [antecedent, consequent]
+        return node
+
+    def _parse_biconditional(self) -> CLIFParseNode:
+        """Parse biconditional (iff P Q)."""
+        self._advance()  # Skip 'iff'
+
+        left = self._parse_expression()
+        right = self._parse_expression()
+        self._expect(CLIFTokenType.RPAREN)
+
+        node = CLIFParseNode("iff")
+        node.children = [left, right]
+        return node
+
+    def _parse_cl_text(self) -> CLIFParseNode:
+        """Parse (cl-text name sentence...) — COLORE wrapper.
+
+        Extracts the inner sentences and returns them as a conjunction.
+        The name is stored as the node value for metadata purposes.
+        """
+        self._advance()  # Skip 'cl-text' / 'cl-module'
+
+        # Optional name (identifier)
+        name = None
+        if self.current_token.type == CLIFTokenType.IDENTIFIER:
+            name = self.current_token.value
+            self._advance()
+
+        # Parse inner sentences until closing paren
+        sentences: List[CLIFParseNode] = []
+        while self.current_token.type != CLIFTokenType.RPAREN:
+            if self.current_token.type == CLIFTokenType.EOF:
+                raise ValueError("Unexpected EOF inside cl-text block")
+            sentences.append(self._parse_expression())
+
+        self._expect(CLIFTokenType.RPAREN)
+
+        if len(sentences) == 1:
+            return sentences[0]
+        node = CLIFParseNode("and", value=name)
+        node.children = sentences
+        return node
+
+    def _parse_cl_imports(self) -> CLIFParseNode:
+        """Parse (cl-imports uri) — skip import directives.
+
+        Returns a no-op node; actual file loading is handled at a
+        higher level by the ontology loader.
+        """
+        self._advance()  # Skip 'cl-imports'
+        # Read and discard the URI or name
+        if self.current_token.type == CLIFTokenType.IDENTIFIER:
+            self._advance()
+        self._expect(CLIFTokenType.RPAREN)
+        return CLIFParseNode("noop")
 
     def _parse_atomic_formula(self) -> CLIFParseNode:
         """Parse atomic formula (P x y)."""
@@ -411,11 +503,54 @@ class CLIFParser:
                 egi = self._convert_to_egi(child, egi, inner_cut_id)
             return egi
 
+        if node.type == "if":
+            # Material conditional: (if P Q) = ~[ P ~[ Q ] ]
+            antecedent, consequent = node.children
+            outer_cut_id = f"c_if_outer_{len(egi.Cut)}"
+            outer_cut = Cut(id=outer_cut_id)
+            egi = egi.with_cut(outer_cut, context_id=area_id)
+            # Antecedent goes in the outer cut
+            egi = self._convert_to_egi(antecedent, egi, outer_cut_id)
+            # Inner cut for consequent
+            inner_cut_id = f"c_if_inner_{len(egi.Cut)}"
+            inner_cut = Cut(id=inner_cut_id)
+            egi = egi.with_cut(inner_cut, context_id=outer_cut_id)
+            egi = self._convert_to_egi(consequent, egi, inner_cut_id)
+            return egi
+
+        if node.type == "iff":
+            # Biconditional: (iff P Q) = (and (if P Q) (if Q P))
+            left, right = node.children
+            # Forward: ~[ P ~[ Q ] ]
+            fwd_node = CLIFParseNode("if")
+            fwd_node.children = [left, right]
+            egi = self._convert_to_egi(fwd_node, egi, area_id)
+            # Backward: ~[ Q ~[ P ] ]
+            bwd_node = CLIFParseNode("if")
+            bwd_node.children = [right, left]
+            egi = self._convert_to_egi(bwd_node, egi, area_id)
+            return egi
+
         if node.type == "forall":
-            # Universal quantification - process variables and body (ignore variable scoping for now)
+            # Universal quantification: (forall (x) body)
+            # In EG, universals are implicit from the cut structure.
+            # The body (typically an if-expression) handles the scoping.
             for child in node.children:
                 if child.type != "variables":
                     egi = self._convert_to_egi(child, egi, area_id)
+            return egi
+
+        if node.type == "exists":
+            # Existential quantification: (exists (x) body)
+            # In EG, existentials are the default — a generic vertex
+            # on the sheet (or in the current area) IS the existential.
+            for child in node.children:
+                if child.type != "variables":
+                    egi = self._convert_to_egi(child, egi, area_id)
+            return egi
+
+        if node.type == "noop":
+            # Skip (e.g., cl-imports directives)
             return egi
 
         return egi

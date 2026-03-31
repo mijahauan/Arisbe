@@ -1,0 +1,42 @@
+{
+  "name": "Animal Taxonomy",
+  "description": "A simple animal classification for testing domain model import and EPG gameplay.",
+
+  "types": [
+    {"name": "Animal", "supertypes": []},
+    {"name": "Mammal", "supertypes": ["Animal"]},
+    {"name": "Bird", "supertypes": ["Animal"]},
+    {"name": "Fish", "supertypes": ["Animal"]},
+    {"name": "Cat", "supertypes": ["Mammal"]},
+    {"name": "Dog", "supertypes": ["Mammal"]},
+    {"name": "Penguin", "supertypes": ["Bird"]},
+    {"name": "Parrot", "supertypes": ["Bird"]},
+    {"name": "Person", "supertypes": []}
+  ],
+
+  "relations": [
+    {"name": "Owns", "signature": ["Person", "Animal"]},
+    {"name": "Eats", "signature": ["Animal", "Thing"]}
+  ],
+
+  "individuals": [
+    {"name": "Socrates", "types": ["Person"]},
+    {"name": "Biscuit", "types": ["Cat"]},
+    {"name": "Tux", "types": ["Penguin"]},
+    {"name": "Polly", "types": ["Parrot"]}
+  ],
+
+  "disjoint": [
+    ["Mammal", "Bird", "Fish"],
+    ["Cat", "Dog"],
+    ["Penguin", "Parrot"]
+  ],
+
+  "axioms": [
+    "(forall (x) (if (Mammal x) (Warm-blooded x)))",
+    "(forall (x) (if (Bird x) (Warm-blooded x)))",
+    "(forall (x) (if (Bird x) (Has-feathers x)))",
+    "(forall (x) (if (Bird x) (Can-fly x)))",
+    "(forall (x) (if (Penguin x) (not (Can-fly x))))"
+  ]
+}

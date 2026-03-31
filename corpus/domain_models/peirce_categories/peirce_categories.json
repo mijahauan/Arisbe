@@ -1,0 +1,54 @@
+{
+  "name": "Peirce's Categories",
+  "description": "A minimal domain model of Peirce's three categories and sign theory, for testing and demonstration.",
+
+  "types": [
+    {"name": "Sign", "supertypes": []},
+    {"name": "Object", "supertypes": []},
+    {"name": "Interpretant", "supertypes": ["Sign"]},
+
+    {"name": "Firstness", "supertypes": []},
+    {"name": "Secondness", "supertypes": []},
+    {"name": "Thirdness", "supertypes": []},
+
+    {"name": "Qualisign", "supertypes": ["Sign", "Firstness"]},
+    {"name": "Sinsign", "supertypes": ["Sign", "Secondness"]},
+    {"name": "Legisign", "supertypes": ["Sign", "Thirdness"]},
+
+    {"name": "Icon", "supertypes": ["Sign", "Firstness"]},
+    {"name": "Index", "supertypes": ["Sign", "Secondness"]},
+    {"name": "Symbol", "supertypes": ["Sign", "Thirdness"]},
+
+    {"name": "Rheme", "supertypes": ["Sign", "Firstness"]},
+    {"name": "Dicisign", "supertypes": ["Sign", "Secondness"]},
+    {"name": "Argument", "supertypes": ["Sign", "Thirdness"]},
+
+    {"name": "Inquiry", "supertypes": []},
+    {"name": "Belief", "supertypes": []},
+    {"name": "Doubt", "supertypes": []}
+  ],
+
+  "relations": [
+    {"name": "Represents", "signature": ["Sign", "Object"]},
+    {"name": "Determines", "signature": ["Sign", "Interpretant"]},
+    {"name": "GroundedIn", "signature": ["Sign", "Object"]},
+    {"name": "Disrupts", "signature": ["Doubt", "Belief"]},
+    {"name": "Resolves", "signature": ["Inquiry", "Doubt"]},
+    {"name": "Produces", "signature": ["Inquiry", "Belief"]}
+  ],
+
+  "individuals": [],
+
+  "disjoint": [
+    ["Firstness", "Secondness", "Thirdness"],
+    ["Belief", "Doubt"]
+  ],
+
+  "axioms": [
+    "(forall (x) (if (Sign x) (exists (y) (and (Object y) (Represents x y)))))",
+    "(forall (x) (if (Sign x) (exists (y) (and (Interpretant y) (Determines x y)))))",
+    "(forall (x) (if (Doubt x) (exists (y) (and (Inquiry y) (Resolves y x)))))",
+    "(forall (x y) (if (Disrupts x y) (and (Doubt x) (Belief y))))",
+    "(forall (x y) (if (Produces x y) (and (Inquiry x) (Belief y))))"
+  ]
+}
