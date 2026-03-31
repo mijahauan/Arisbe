@@ -1126,35 +1126,139 @@ reveals the formal-structural effects.
 No single game captures the *whole* meaning of "cat" — that would require
 playing the game against every possible M, which is Peirce's ideal limit.
 But each game captures a **legitimate, precise, situated** portion of the
-meaning.  And the totality of games that *could* be played — across all
-possible M's, all possible inquirers, all possible times — converges on
-what Peirce calls the **final interpretant**: the meaning the sign would
-have at the ideal end of inquiry.
+meaning.
 
-### Unlimited Semiosis, Formally Grounded
+Peirce would say that the totality of games that *could* be played — across
+all possible M's, all possible inquirers, all possible times — converges on
+what he calls the **final interpretant**: the meaning the sign would have at
+the ideal end of inquiry.  But does it?
+
+### Against Convergence: Inquiry Changes the World
+
+The final interpretant, as Peirce conceived it, assumes that inquiry
+asymptotically approaches a fixed reality — that there is a stable target
+toward which the community of inquiry converges given sufficient time and
+honesty.  This is structurally identical to Teilhard de Chardin's **Omega
+Point**: the idea that evolution converges on an ultimate state of
+consciousness.  Both posit a teleological attractor: a fixed point toward
+which the process tends.
+
+The difficulty is this: **our interpretations change the reality in which
+we make them and that supports the very effort of interpretation.**
+
+The parasitologist's game does not merely *discover* that cats are
+*T. gondii* definitive hosts; it produces knowledge that leads to public
+health interventions, vaccination research, altered animal husbandry
+practices — all of which change the epidemiological reality that the next
+parasitologist's M must model.  The bereaved owner's game does not merely
+register grief; the understanding produced changes how that person relates
+to animals, to loss, to future companionship — altering the M against which
+the next "cat" game will be played.
+
+At every scale, interpretation feeds back into reality:
+
+- A **scientific community** interprets evidence → publishes findings →
+  changes research priorities → changes what evidence is gathered → changes
+  the world it is studying (new drugs, new technologies, new environmental
+  pressures).
+- A **culture** interprets its situation → develops practices → transforms
+  its environment → must now interpret the transformed environment.
+- An **individual** interprets experience → forms beliefs → acts on them →
+  encounters a world shaped by those actions.
+
+The target moves because the inquirer is *in* the world, not observing it
+from outside.  Every Agonothetes judgment that enriches M also enriches (or
+disturbs) the reality that M models.  M' is not a better approximation of a
+fixed world; M' is an adequate-for-now model of a world that M' itself has
+helped to change.
+
+### Stability and Transformation
+
+This is not chaos.  There is genuine stability — without it, no game could
+be played, no M could be relied upon, no IT- could succeed.  The
+transformation rules work because the formal structure is stable: the six
+rules, the polarity system, the cut semantics.  The biological world is
+stable enough that "cats are definitive hosts" remains true across many
+games.  The laws of physics are stable enough to ground engineering.
+
+But the stability that enables transformation is itself subject to
+transformation.  This is the mechanism of **evolution** — biological,
+cultural, conceptual:
+
+1. A certain stability of underlying function enables inquiry
+   (M is settled enough to support a game).
+2. The game produces a transformation — a new understanding, a new
+   practice, a new intervention (the Agonothetes judgment feeds back).
+3. That transformation alters the stability — the world is now different
+   in some respect, perhaps subtly, perhaps profoundly.
+4. The altered world presents new doubts, new experiences, new proposals
+   (the cycle turns again, but on different ground).
+
+We have no reason to believe that, upon sufficient reflection and
+interaction, any part of the stability of the world is immune from
+transformation.  The "laws" of physics are stable across human timescales
+but may not be fundamental.  The biological categories ("cat," "bird,"
+"parasite") are stable across ecological timescales but shift across
+evolutionary ones.  Even formal systems — M itself — evolve as the concepts
+and relations within them are revised through inquiry.
+
+### What Replaces the Final Interpretant?
+
+If there is no fixed point of convergence, what does the EPG aim at?
+
+Not *truth as correspondence to a static reality*, but **adequacy for the
+ongoing inquiry** — belief that is warranted *now*, that enables action
+*now*, that is held *in readiness for revision* when the next doubt arrives.
+This is closer to Peirce's own **fallibilism** than the final interpretant
+is:
+
+> "Do not block the way of inquiry." (CP 1.135)
+
+The final interpretant blocks the way of inquiry by implying that inquiry
+has an endpoint — even an ideal one.  Fallibilism, taken seriously, says:
+there is no endpoint.  There is only the next game, played on ground that
+the last game helped to shape.
+
+What the EPG provides is not convergence but **accountability**: every move
+is recorded, every derivation is inspectable, every judgment is situated in
+a specific M and a specific inquiry.  When the ground shifts — when new
+experience, new encounters, or the consequences of our own actions create
+new doubts — the record is there.  The UoD's transformation history is not
+a path converging on truth; it is a **trail through an evolving landscape**,
+honest about where it has been and open about where it might go next.
+
+### Unlimited Semiosis, Without a Terminus
 
 Peirce's doctrine of **unlimited semiosis** — the idea that every
 Interpretant becomes a new sign capable of generating further Interpretants
 — finds its formal expression in the cycle diagram (§The Cycle).  Each
 Agonothetes judgment enriches M, producing M'.  But M' is now a richer
 Grapheus, capable of producing richer games, capable of producing richer
-Interpretants.
+Interpretants — and, crucially, **situated in a world that M' itself has
+helped to change**.
 
 The parasitologist who runs the "cat = definitive host" game and integrates
 the result into M now has a richer M against which to test the next
 proposition — perhaps about vaccine development, or about the behavioral
-effects of *T. gondii* on intermediate hosts.  Each game begets the
-conditions for the next.  Semiosis does not terminate; it *turns* — and
-each turn is a play of the game.
+effects of *T. gondii* on intermediate hosts.  But the vaccine, once
+developed, changes the epidemiological landscape.  The next game is played
+on different ground.
+
+Semiosis does not terminate, and it does not converge.  It *turns* — and
+each turn is a play of the game, on ground that the previous turns have
+shaped.
 
 This is what it means to say the EPG situates meaning in a "more precise,
 richer, and functional way."  The precision comes from the formal game
 mechanics (IT-, DC-, the transformation rules).  The richness comes from M
 (the Grapheus — the accumulated past of the UoD).  The functionality comes
 from the Agonothetes (the Interpretant — the understanding that the game
-produces and that feeds forward into the next inquiry).
+produces and that feeds forward into both the next inquiry and the world
+that inquiry inhabits).
 
-The sign "cat" is simple.  The games it can play are inexhaustible.
+The sign "cat" is simple.  The games it can play are inexhaustible — not
+because the meaning is infinitely deep, but because the world in which the
+sign operates is inexhaustibly responsive to what we make of it.
 
 ---
 
