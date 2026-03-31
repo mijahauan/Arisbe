@@ -325,6 +325,318 @@ for instances of illustrative errors.
 
 ---
 
+## The Three Roles: Situational and Functional Definitions
+
+The semiotic grounding (above) establishes *what* the three roles correspond
+to in Peirce's sign-triad.  This section asks the complementary questions:
+*where* does each role sit within the Universe of Discourse as a diachronic
+process, and *what* does each role do — not just mechanically but as a
+function of inquiry?
+
+### Situational Definitions
+
+The UoD architecture document establishes that the fundamental entity in
+Arisbe is not a static graph but the **diachronic process** of evolving
+logical discourse — the film, not the photograph.  Within this process, the
+three game roles occupy distinct temporal positions:
+
+**Grapheus — the past.**  The Grapheus is the domain model M: everything
+that has been established through prior inquiry, every Agonothetes judgment
+that has been rendered and accepted, every fact imported and every theorem
+proved.  M is the *sediment* of previous understanding.  It is not passive
+— it actively resists proposals that contradict it, and it actively supports
+proposals that align with it — but it is, by the time any particular game
+begins, already settled.  In the UoD's diachronic process, the Grapheus is
+what *was*: the world-as-already-known.
+
+**Graphist — the present.**  The Graphist is the active moment of inquiry:
+the point at which something new is introduced into the discourse.  The
+Graphist exists at the boundary between the known and the not-yet-known.
+Every proposal G is an act of semiosis — the creation of a sign that may or
+may not find its object in M.  In the UoD's diachronic process, the Graphist
+is what *is happening*: the inquiry in progress, the hypothesis ventured,
+the claim put forward.
+
+**Agonothetes — the future.**  Not in a predictive sense, but in a telic
+one: the Agonothetes is what the game is *for*.  It is the understanding
+that the process aims to produce.  Each Agonothetes judgment, once rendered,
+becomes part of M (the Grapheus) for subsequent inquiry.  The Agonothetes is
+therefore the hinge between one cycle of inquiry and the next — the point
+at which the diachronic process turns.  In the UoD's diachronic process, the
+Agonothetes is what *comes to be*: the growth of understanding that feeds
+forward into the next round.
+
+This temporal mapping is not metaphorical.  It corresponds directly to the
+UoD's architecture:
+
+| Role | Temporal position | UoD component | Peirce's categories |
+|------|-------------------|---------------|---------------------|
+| Grapheus | Past | Transformation history + current M | Secondness — brute resistance of fact |
+| Graphist | Present | The in-forming event (new proposal) | Firstness — quality of possibility |
+| Agonothetes | Future | The next state of M (after judgment) | Thirdness — mediation, law, habit |
+
+### Functional Definitions
+
+**Graphist — the assertive function.**
+
+The Graphist embodies the *creative* dimension of inquiry: the capacity to
+produce new signs, to propose what has not yet been tested.  Functionally:
+
+- Constructs representations (graphs) — translating intuitions, observations,
+  or hypotheses into formal structure
+- Defends them — operates in negative areas (INS, IT+, DC+), strengthening
+  conditions and propagating information inward
+- Bears the burden of *completeness* — must show that every part of G maps
+  to M or is internally coherent
+- Embodies the assertive function: *putting claims forward* so they can be
+  tested
+
+Without the Graphist, the UoD is a closed archive — knowledge that never
+grows, a Grapheus with nothing to test.
+
+**Grapheus — the critical function.**
+
+The Grapheus embodies the *constraining* dimension of inquiry: the resistance
+of reality-as-known to unchecked assertion.  Functionally:
+
+- Tests signs against the domain — M is not an inert database but an active
+  participant whose structure determines what follows and what does not
+- Challenges proposals — operates in positive areas (ERA, IT-, DC-),
+  simplifying structure and weakening assertions
+- Bears the burden of *specificity* — needs only one failure, one unmapped
+  element, to block the Graphist's claim
+- Embodies the critical function: *checking, constraining, pruning* so that
+  only warranted assertions survive
+
+Without the Grapheus, the UoD is unchecked speculation — a Graphist producing
+signs that are never tested, assertion without resistance.
+
+**Agonothetes — the interpretive function.**
+
+The Agonothetes embodies the *telic* dimension of inquiry: the purpose for
+which the contest exists.  Functionally:
+
+- Before the game: establishes the conditions of inquiry — what M is, what G
+  is, how the game space is structured (DC+, IT+, INS)
+- During the game: maintains rigour — validates moves, tracks traversal,
+  records the transcript
+- After the game: produces understanding — interprets the boolean result
+  together with the traversal path and transcript, maps them to the outcome
+  taxonomy, facilitates the disposition that integrates the result into M
+- Embodies the interpretive function: *making meaning* from the mechanical
+  contest, transforming a formal result into an act of understanding
+
+Without the Agonothetes, the game yields true or false but no growth of
+understanding — a contest with a winner but no significance.
+
+### The Cycle
+
+The three functions form a cycle that is the engine of inquiry:
+
+```
+  Grapheus (past)           Graphist (present)
+       M ──────────────────────── G
+       │                          │
+       │    Endoporeutic Game     │
+       │    (the contest)         │
+       │                          │
+       └──────── Agonothetes ─────┘
+                 (future)
+                    │
+                    ▼
+              M' = M + judgment
+              (new Grapheus for
+               the next game)
+```
+
+Each Agonothetes judgment enriches or revises M, producing M' — which
+becomes the Grapheus for the next inquiry.  The UoD's diachronic process
+*is* this iteration: the repeated application of the Graphist–Grapheus–
+Agonothetes cycle, each round building on the last.
+
+---
+
+## The Triad Beyond the Game: Speculative Validity Checks
+
+If the triadic framework (Graphist / Grapheus / Agonothetes = Representamen /
+Object / Interpretant) is genuinely grounded in Peirce's architectonic, it
+should not be limited to the formal game.  It should illuminate sign-processes
+wherever they occur.  The following sections explore — speculatively, as rough
+validity checks — whether the framework fits other domains of inquiry.
+
+### Quasi-Minds
+
+Peirce held that semiosis does not require biological minds.  Any entity
+capable of determining an interpretant — a book, a law, an institution, a
+tradition — functions as a **quasi-mind** (CP 4.536).  The sign-process
+operates between quasi-minds, not within a single consciousness.
+
+The triadic framework maps directly:
+
+- A **book** communicates.  The author's text is the Graphist-function
+  (producing signs).  The reader's existing knowledge is the Grapheus-function
+  (the domain against which the text is tested).  The understanding the reader
+  produces — which is *not* identical to the author's intention — is the
+  Agonothetes-function.  A book read by a novice and the same book read by an
+  expert produce different Agonothetes-judgments because the Grapheus differs.
+
+- A **law** operates.  The legislature's enactment is the Graphist-function.
+  The facts of a particular case are the Grapheus-function.  The judge's
+  interpretation — which may establish precedent, overturn prior readings,
+  or identify ambiguity — is the Agonothetes-function.  The law's meaning
+  is not fixed at enactment; it grows through the iterated application of
+  the triadic cycle across cases.
+
+- A **scientific paper** proposes.  The paper's claims are the Graphist-
+  function.  The existing literature and experimental evidence are the
+  Grapheus-function.  The community's response — acceptance, replication,
+  critique, revision — is the Agonothetes-function.  Peer review is a
+  formalized Endoporeutic Game.
+
+The framework fits because it *is* Peirce's sign-triad applied to inquiry.
+Quasi-minds are precisely the entities between which the triadic process
+operates.  The Endoporeutic Game is a formalization of the process; the
+quasi-mind interactions are the process in the wild.
+
+### Simple Understanding and Expert Understanding
+
+Consider the same proposal G tested against two different domain models:
+a novice's M_n and an expert's M_e.
+
+**The novice's game:**
+
+- M_n is sparse — few facts, few implications, shallow structure.
+- Many proposals are **independent** of M_n (stalemate → new fact).  The
+  game terminates quickly because there is little for the Grapheus to
+  challenge and little for IT- to map.
+- The Agonothetes-function is coarse: the novice can distinguish "yes,"
+  "no," and "I don't know" but has few intermediate categories.
+- The game tree is shallow and narrow.
+
+**The expert's game:**
+
+- M_e is rich — many facts, deep implication chains, extensive cross-
+  references.
+- The same proposal G may be a **theorem** (derivable through a long chain
+  of IT- and DC- steps), a **refinement** of an existing result, or a subtle
+  **contradiction** that the novice's M_n could not detect.
+- The Agonothetes-function is nuanced: the expert can distinguish refinement
+  from generalization, conditional acceptance from provisional hypothesis,
+  a genuine contribution from a rediscovery of known results.
+- The game tree is deep and richly branched.
+
+**Learning is the iterated growth of M through successive games.**  The
+novice's M_n becomes the expert's M_e through thousands of Agonothetes
+judgments, each enriching the Grapheus for the next round.  The expert is
+not someone who has a *different* process of understanding but someone whose
+Grapheus is deep enough that the Agonothetes can produce fine-grained
+distinctions.
+
+This suggests a testable prediction: the quality of understanding scales with
+the *richness of M*, not with any special faculty of the inquirer.  An expert
+in domain A is a novice in domain B precisely because their M is rich in one
+and sparse in the other.
+
+### Cross-Cultural Interaction
+
+When cultures interact, each brings its own M — its own Grapheus, the
+accumulated knowledge and conceptual structure of that tradition.  A proposal
+from culture A, tested against culture B's M, may produce outcomes that
+neither culture anticipated.
+
+**Scenario: complementary domains.**  Culture A has deep knowledge of
+navigation; culture B has deep knowledge of agriculture.  A navigational
+claim from A tested against B's M produces stalemate (independence) — not
+because the claim is wrong but because B's M has no basis to evaluate it.
+The Agonothetes-function here is: accept as new fact on A's authority, or
+hold as hypothesis pending B's own investigation.  This is Case 3a in the
+taxonomy — empirical enlargement.
+
+**Scenario: overlapping but different frameworks.**  Culture A models illness
+as imbalance of humors; culture B models illness as microbial infection.
+A claim from A ("this patient's illness is caused by excess bile") tested
+against B's M produces a **contradiction** — not because A is wrong in all
+respects but because the frameworks are structurally incompatible.  The
+Agonothetes-function must distinguish:
+
+- Is the contradiction fundamental (the frameworks are irreconcilable)?
+- Is it terminological (the same phenomena described in different vocabularies)?
+- Is it partial (each framework captures aspects the other misses)?
+
+This is precisely where the taxonomy of outcomes (revision, fork, conditional
+acceptance) earns its keep.  The Agonothetes does not simply accept or
+reject; it *interprets* the nature of the disagreement and facilitates a
+disposition that may involve revising either M, holding both as alternatives,
+or constructing a third framework that subsumes both.
+
+Cross-cultural understanding is the case where the Agonothetes must operate
+at its most sophisticated — and where a purely boolean game (true/false)
+would be most impoverished.
+
+### The Temporal Self
+
+Perhaps the most intimate instance of the triad: the relationship between
+a person's past, present, and future understanding.
+
+- **Past self = Grapheus.**  The knowledge base M as it was: the beliefs,
+  commitments, and conceptual structures one held at an earlier time.
+- **Present self = Graphist.**  The active inquirer, bringing new experience,
+  new reading, new encounters to bear on the old M.
+- **Agonothetes = the growth of understanding over time.**  The judgment
+  that "I used to think X, now I think Y" is an Agonothetes verdict: the
+  present Graphist proposed Y, the past Grapheus resisted (M included X),
+  and the Agonothetes interpreted the outcome as warranting revision.
+
+This framing illuminates several familiar phenomena:
+
+- **Diary-keeping and journaling** are forms of the Endoporeutic Game played
+  across time.  The journal entry is the Graphist's proposal; re-reading it
+  years later tests it against a changed M; the insight produced is the
+  Agonothetes-function.
+
+- **Education** (as in Scenario 5 of the practical exemplars) is the
+  *guided* application of the cycle: the teacher structures the Graphist's
+  proposals and scaffolds the Agonothetes-function until the student's M
+  is rich enough to sustain the cycle independently.
+
+- **Self-contradiction across time** ("How could I have believed that?") is
+  a game in which the present self's enriched M exposes a claim the past
+  self held as a theorem but which the present self can refute.  The
+  discomfort is the Agonothetes registering a genuine conflict between
+  temporal selves.
+
+Peirce himself anticipated this with his notion of the **community of
+inquiry** — even a single inquirer participates in this community
+diachronically, through the conversation between past, present, and future
+selves.  The triadic framework makes this precise: the community of inquiry
+is the iterated Graphist–Grapheus–Agonothetes cycle applied across time.
+
+### What These Checks Suggest
+
+The framework appears to fit — not as a loose analogy but as a structural
+correspondence.  In every case examined, the three functions (assertive,
+critical, interpretive) are present and irreducible.  Removing any one
+collapses the process:
+
+- Without the Graphist: no proposals, no growth — a static archive.
+- Without the Grapheus: no resistance, no testing — unchecked speculation.
+- Without the Agonothetes: no interpretation, no significance — a contest
+  with a winner but no understanding.
+
+This structural necessity is exactly what Peirce's semiotic predicts.  The
+sign-triad is irreducible because meaning-making is irreducibly triadic.
+The Endoporeutic Game is one formalization of this process; the quasi-mind
+interactions, the novice-to-expert trajectory, the cross-cultural encounter,
+and the temporal self are other instances of the same triadic engine.
+
+These observations remain speculative and would benefit from more rigorous
+treatment.  But as rough validity checks, they suggest that the triadic
+framework is not an *ad hoc* addition to the game mechanics but a genuine
+reflection of the structure of inquiry — which is what we should expect if
+Peirce's architectonic is sound.
+
+---
+
 ## The Game as Tree Traversal
 
 The game is, in effect, a **tree traversal** of the EGI's hierarchical
