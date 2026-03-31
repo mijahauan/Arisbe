@@ -1321,6 +1321,96 @@ provisional ones); every result is held in readiness for revision (not
 enshrined as absolute).  The transformation history records both the
 knowledge gained and the openness to what comes next.
 
+### The Axiomatics as Epistemology
+
+Existential Graphs capture this entire philosophical position — simply,
+elegantly, and in three moves.
+
+**The Sheet of Assertion.**  The blank sheet is the axiom.  It asserts the
+unspeakable Truth of the world: the totality that is, prior to and
+independent of anything we say about it.  The sheet is *true* — not
+because we have verified it, but because it is the ground on which
+verification becomes possible.  It commits to the world's reality without
+claiming to articulate any of its content.  It is the ultimate reliability:
+the ground that enables everything that follows.
+
+This is the **stability** of the preceding discussion.  The world is there.
+It is real.  It is not our construction.  The sheet says so, silently, by
+being blank.
+
+**DC+ — the only initial move.**  On a blank sheet, the only legitimate
+transformation is DC+: the introduction of a double cut.  This creates a
+negative context enclosed within a positive one:
+
+```
+  ┌─────────────────────────────┐
+  │  Sheet (positive, true)     │
+  │                             │
+  │   ╭───────────────────╮     │
+  │   │  outer cut (neg)  │     │
+  │   │  ╭─────────────╮  │     │
+  │   │  │ inner (pos)  │  │     │
+  │   │  │             │  │     │
+  │   │  ╰─────────────╯  │     │
+  │   ╰───────────────────╯     │
+  │                             │
+  └─────────────────────────────┘
+```
+
+DC+ does not assert anything about the world.  It creates **the space in
+which assertion becomes possible**.  The double cut is logically
+transparent (it contributes nothing to truth value) but epistemologically
+decisive: it situates all future speech within a structure that makes that
+speech *contestable*.
+
+This is the moment where inquiry begins.  Not with a claim, but with the
+creation of a context for claims.
+
+**INS — confined to negative contexts.**  Insertion is permitted only in
+negative areas (odd depth).  Everything we can legitimately say about the
+world must be said *under negation*.  The outer cut of the double cut
+provides exactly this: a negative area in which the Graphist may inscribe
+propositions.
+
+What does it mean that our assertions live in negative contexts?  It means
+that, formally, the sum of what we assert is *false* — or more precisely,
+it is *falsifiable*.  The negative context is the formal expression of
+fallibilism.  Nothing scribed within it is sheltered from challenge.  The
+Grapheus (M, the domain, the world-as-known) will test every inscription
+through the game, and the game may refute it.
+
+But falsifiable does not mean useless.  The content of the negative
+context, tested against M and found adequate, produces genuine
+understanding — theorems, new facts, refined models.  The negation does
+not destroy the value of what is inscribed; it **guarantees the epistemic
+honesty** of the inscription.  What survives the game has earned its place
+in M', precisely because it was never sheltered from challenge.
+
+**The structure as a whole.**
+
+```
+  Sheet          = The world is real         (stability)
+  DC+            = The space for speech      (the opening of inquiry)
+  INS in ~[ ]    = What we say is falsifiable (revision is always possible)
+  The game       = Testing against M         (reliability through challenge)
+  Agonothetes    = Understanding produced    (knowledge, adequate for now)
+```
+
+The entire epistemological arc — from the reality of the world, through the
+opening of inquiry, through the falsifiability of our claims, through the
+testing of those claims, to the understanding that results — is encoded in
+the axiomatics of Existential Graphs.  Peirce did not need to argue for
+this position philosophically and then build a notation that illustrates it.
+The notation *is* the position.  The philosophy is in the mathematics.
+
+The cynic cannot get started: the sheet commits to the reality of the
+world before any speech begins.  The absolutist cannot survive: everything
+said is said under negation and must face the game.  The pragmatist finds
+the entire structure already prepared: reliable ground (the sheet), the
+opening of inquiry (DC+), honest speech (INS under negation), rigorous
+testing (the game), and genuine understanding (the Agonothetes) — all
+within a single, minimal, formally precise framework.
+
 ### Unlimited Semiosis, Without a Terminus
 
 Peirce's doctrine of **unlimited semiosis** — the idea that every
