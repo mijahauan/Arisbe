@@ -637,6 +637,354 @@ Peirce's architectonic is sound.
 
 ---
 
+## Bootstrapping M: From Scratch and From Import
+
+The cycle diagram (§The Cycle) raises an immediate practical question: where
+does M come from in the first place?  There are two fundamental pathways,
+and each illuminates something different about the framework.
+
+### From Scratch: Emergence from the Empty Sheet
+
+Can one imagine this starting from nothing — like Conway's Game of Life —
+and watching it grow?
+
+Yes.  Start with **M = the empty sheet**: no facts, no implications, no
+structure.  The first game is trivial:
+
+1. The Graphist proposes G₁ (say, "Birds fly").
+2. The Grapheus has nothing — M is empty.  There is nothing for IT- to map
+   to, nothing for the Grapheus to challenge.  The game is an immediate
+   stalemate.
+3. The Agonothetes interprets: G₁ is independent of M (Case 3a — new fact).
+   Disposition: accept as empirical assertion, pending future evidence.
+4. M₁ = {G₁}.
+
+The second game is slightly richer:
+
+1. The Graphist proposes G₂ ("Penguins are birds").
+2. M₁ contains "Birds fly."  G₂ is independent — it says nothing about
+   flying.  Stalemate again, but this time the Agonothetes can observe that
+   G₂ is *related* to M₁ (it shares the concept "bird"), even though M₁
+   does not entail it.
+3. M₂ = {G₁, G₂}.
+
+The third game:
+
+1. The Graphist proposes G₃ ("Penguins fly").
+2. Now M₂ contains "Birds fly" and "Penguins are birds."  Via IT+ and IT-
+   inside a `~[ M ~[ G₃ ] ]` structure, the Graphist can derive: Penguins
+   are birds → birds fly → penguins fly.  G₃ is a **theorem** (Case 1a).
+3. M₃ = M₂ (no new content; G₃ was already entailed).
+
+The fourth game:
+
+1. The Graphist proposes G₄ ("Penguins do not fly").
+2. G₄ contradicts G₃ (which is derivable from M₃).  The Grapheus wins.
+3. The Agonothetes interprets: **contradiction** — but a productive one.
+   The conflict is between the general rule "birds fly" and the specific
+   case "penguins do not fly."  This is the Agonothetes at its most
+   essential: it must distinguish between rejecting G₄ and revising M.
+4. If the participants decide to revise M (adding an exception: "birds fly,
+   except penguins"), then M₄ ≠ M₃ — a genuine restructuring.
+
+**The analogy to Conway's Game of Life holds in structure but differs in
+agency.**  In GoL, the rules are applied mechanically to initial conditions;
+patterns emerge without choice.  In the EPG, the Graphist *chooses* what to
+propose and the Agonothetes *interprets* the result.  But the structural
+parallel is real:
+
+- **Simple local rules** (the six transformation rules, the polarity-based
+  turn system) produce **complex global behavior** (a growing, self-
+  correcting knowledge base).
+- **Emergence** happens: M develops structure that no single proposal
+  contained — implications, chains of inference, exceptions, taxonomies.
+- **The richness of the game scales with M**: early games are trivial;
+  later games involve deep tree traversals and multi-step proofs.  This
+  is the novice-to-expert trajectory viewed diachronically.
+
+The from-scratch pathway is the *pedagogical* mode — ideal for building
+understanding of a domain by constructing it piece by piece, seeing each
+implication and contradiction as it arises.  Scenario 5 in the practical
+exemplars (Amara's zoology course) illustrates this: each lesson adds to M,
+and the class's understanding grows through the iterated cycle.
+
+### From Import: External Ontologies as Domain Models
+
+But one need not start from an empty sheet.  Published ontologies represent
+the crystallized results of extensive prior inquiry — someone else's M,
+refined over decades.  Importing such an ontology is like transplanting a
+mature root system rather than growing from seed.
+
+**What exists to import:**
+
+- **WordNet** — ~117,000 synsets organized by semantic relations (hypernymy,
+  meronymy, antonymy).  A lexical Grapheus for natural language reasoning.
+- **SNOMED CT** — ~350,000 medical concepts with relationships.  A clinical
+  Grapheus for medical reasoning.
+- **Gene Ontology** — biological processes, molecular functions, cellular
+  components.  A biological Grapheus.
+- **Wikidata** — ~100 million items with structured properties.  A general-
+  purpose Grapheus.
+- **Domain-specific OWL ontologies** — thousands published via BioPortal,
+  LOV, and similar registries.
+
+**How import works — the existing infrastructure:**
+
+The key observation is that Arisbe already has production-tested parsers for
+standard interchange formats:
+
+```
+External ontology (OWL/RDF)
+    │
+    ▼  (external tooling: OWL → CLIF translation)
+CLIF (Common Logic Interchange Format)
+    │
+    ▼  parse_clif()     ← Arisbe, tested on 35+ examples
+EGI (Existential Graph Instance)
+    │
+    ▼  UoD.promote_to_historical("Imported from WordNet v3.1")
+M in a Universe of Discourse
+```
+
+CLIF is an ISO standard (ISO/IEC 24707) for Common Logic, and Sowa's work
+explicitly establishes the correspondence between Conceptual Graphs, Common
+Logic, and Existential Graphs.  Translation from OWL to CLIF (or a close
+approximation) is a studied problem with existing tooling.
+
+**Partial import is natural.**  One need not import all of WordNet or all of
+SNOMED.  The Agonothetes' "providing context" function includes *selecting*
+what to import — a subtree, a domain slice, a set of relations relevant to
+the current inquiry.  This selection is itself an act of inquiry: "which
+parts of this external knowledge are relevant to our UoD?"
+
+**The semiotic implications are significant.**  An imported ontology is not
+merely data; it is the residue of another triadic process — another
+community's iterated Graphist–Grapheus–Agonothetes cycles, crystallized into
+a formal structure.  Importing it is a cross-cultural encounter (§Cross-
+Cultural Interaction): the external ontology is a Graphist-function (it
+proposes claims); our existing M is the Grapheus-function (it tests those
+claims); the Agonothetes determines what fits, what conflicts, and what
+requires revision.
+
+This means import is not a passive operation.  Each imported assertion
+should, in principle, pass through the game — does it align with our
+existing M?  Contradict it?  Extend it?  In practice, a bulk import may
+accept the external ontology wholesale as a starting M (trusting the source),
+with individual claims tested as they become relevant.  This is the
+difference between "I accept this textbook" (bulk import) and "Let me check
+whether this specific claim holds" (individual game).
+
+### The Two Pathways Converge
+
+The from-scratch pathway and the import pathway are not alternatives but
+endpoints of a spectrum:
+
+```
+Empty sheet ◄──────────────────────────────► Full ontology import
+(pure emergence)                              (bootstrapped M)
+     │                                              │
+     │  Every assertion passes through the game     │
+     │  (slow, pedagogical, deep understanding)     │
+     │                                              │
+     │         Partial import sits here:            │
+     │         some structure inherited,            │
+     │         the rest built through inquiry       │
+     │                                              │
+     ▼                                              ▼
+  M grows through iterated cycles              M starts rich,
+  (novice trajectory)                          refined through use
+                                               (expert trajectory)
+```
+
+In both cases, the cycle is the same: Graphist proposes, Grapheus resists,
+Agonothetes interprets, M evolves.  The import pathway merely shifts the
+starting point further along the novice-to-expert spectrum.
+
+The pedagogical implications are clear:
+
+- **From scratch** is best for learning — building understanding by
+  constructing it, seeing each consequence as it emerges.
+- **Partial import** is best for applied work — importing established
+  knowledge and focusing inquiry on the frontier.
+- **Full import** is best for integration — bringing an existing knowledge
+  base into Arisbe's formal reasoning environment so it can be tested,
+  extended, and combined with other M's.
+
+All three are valid uses of the same triadic engine.
+
+---
+
+## The Drive of Inquiry: Doubt as Prime Mover
+
+The cycle diagram shows *how* M evolves.  But what makes it turn?  What
+drives the Graphist to propose G in the first place?  The bootstrapping
+section demonstrates growth *given* proposals — but where do the proposals
+come from?
+
+Peirce's answer, in "The Fixation of Belief" (1877), is unequivocal:
+**doubt**.  Belief is a settled habit of action — a state in which we know
+how to go on.  Doubt is the irritation that disrupts the habit: something
+does not fit, something surprises, something resists.  Inquiry is the
+struggle to pass from the irritation of doubt to the settlement of belief.
+The sole purpose of inquiry is the fixation of belief; the sole cause of
+inquiry is the disruption of doubt.
+
+### Sources of Doubt
+
+In the EPG framework, doubt manifests in several distinct ways:
+
+**1. Experience — the world talks back.**
+
+The most fundamental source.  The user observes something that M does not
+predict, encounters a case M does not cover, or witnesses an outcome M
+says should not happen.  This is *external* to the formal system — it comes
+from the user's engagement with the world.  The formal system cannot
+generate it; it can only receive it when the user translates the experience
+into a proposal G.
+
+In Peircean terms: this is Secondness — the brute resistance of the real,
+the dyadic encounter between expectation and fact.  The Grapheus (M)
+predicted one thing; the world delivered another.  The gap is doubt.
+
+Example: Dr. Melo's M says cats are obligate carnivores.  Then Biscuit eats
+grass.  The experience generates doubt; the doubt motivates the proposal
+("Biscuit sometimes eats grass"); the game tests it against M.
+
+**2. Internal inconsistency — M contradicts itself.**
+
+A sufficiently rich M may harbor contradictions that are not immediately
+apparent.  Two individually plausible assertions may jointly imply something
+false.  This form of doubt is *discoverable through the game itself* — it
+emerges when the game traversal encounters a contradiction during a proof
+attempt.
+
+In Peircean terms: this is the self-correcting nature of inquiry.  M is
+not a static monument but a living structure that can expose its own flaws
+when pressed.  The game is the pressing.
+
+Example: M contains "all birds fly" and "penguins are birds."  No
+contradiction is visible until someone proposes "penguins do not fly" and the
+Agonothetes must confront the conflict.
+
+**3. Encounter with another M — the other talks back.**
+
+Another person, culture, text, or one's own past self presents claims that
+conflict with one's current M.  This is the cross-cultural case and the
+temporal-self case from the validity checks.  The doubt arises not from the
+world directly but from discovering that another coherent perspective
+disagrees with one's own.
+
+In Peircean terms: this is the community of inquiry.  No individual M is
+privileged; the long-run convergence of inquiry depends on exposure to
+alternative perspectives.
+
+Example: importing a medical ontology that models illness differently from
+one's own framework.  The disagreement is itself a form of doubt — not "I
+am wrong" but "we cannot both be right in the same way."
+
+**4. Formal incompleteness — M has gaps.**
+
+M may be consistent but *incomplete*: there are well-formed questions it
+cannot answer.  The game terminates in stalemate (independence), and the
+Agonothetes must decide whether the gap matters.  Some gaps are benign
+(M has no opinion on matters outside its domain); others are significant
+(M should have an answer but does not).
+
+In Peircean terms: this is the abductive moment — the recognition that
+something needs explaining, that M is missing a piece.
+
+### The Inversion: Doubt Is the Default
+
+The question "what guarantees doubt?" contains a hidden assumption — that
+belief is the natural state and doubt the exception requiring explanation.
+Peirce inverts this.  Any finite M in contact with an inexhaustible world
+is *necessarily* incomplete and *probably* inconsistent in ways not yet
+exposed.  Doubt is not something to be artificially generated; it is the
+**natural condition** of any inquirer who has not stopped paying attention.
+
+What needs explaining is not doubt but its temporary absence — the
+settlement of belief, the moments when M feels adequate and the cycle
+pauses.  The game provides exactly this: when the Graphist cannot find a
+proposal that M does not already handle, when no experience contradicts
+expectations, when no alternative M creates tension, then the cycle rests.
+But it rests *in readiness*, not in finality.  Peirce:
+
+> "The irritation of doubt causes a struggle to attain a state of belief.
+> I shall term this struggle *inquiry*." (W 3:247)
+
+The struggle ends when belief is fixed — until the next doubt.
+
+### What This Means for Arisbe
+
+The architectural implication is that the system does not need a mechanism
+to *create* doubt.  Doubt comes from the user's engagement with the world,
+from the internal tensions of a growing M, and from encounter with external
+M's (imported ontologies, other users, literature).  What the system needs
+is:
+
+1. **Receptivity** — the ability to accept new proposals at any time
+   (the Graphist function is always available).
+
+2. **Honesty** — the game must faithfully report contradictions,
+   independence, and failures, not paper over them.  A system that always
+   says "consistent" is Peirce's method of tenacity: fixing belief by
+   refusing to acknowledge doubt.
+
+3. **Memory** — the UoD's transformation history must preserve the record
+   of past doubts and their resolutions, so that the community of inquiry
+   (even a community of one across time) can revisit and re-evaluate.
+
+4. **Openness** — the import pathway (§From Import) keeps the system in
+   contact with external M's, ensuring that the inquirer is not sealed
+   inside their own settled beliefs.
+
+There is, however, one further possibility: **automated doubt detection**.
+The system could scan M for formal markers of potential doubt:
+
+- Assertions that are logically independent but semantically related
+  (sharing concepts but making no claims about each other — a gap)
+- Imported assertions that have not yet been tested against existing M
+  (untested imports — latent doubt)
+- Long chains of inference whose intermediate steps have never been
+  independently verified (fragile derivations)
+- Subgraphs that were accepted provisionally but never confirmed
+
+Such a mechanism would not *create* doubt — Peirce is clear that artificial
+doubt is sterile — but it would *surface* doubts that are genuinely present
+in M's structure but not yet noticed by the user.  This is the system as
+a kind of intellectual conscience: not inventing problems but pointing out
+the ones that are already there.
+
+### The Fixation of Belief in Arisbe
+
+Peirce distinguishes four methods of fixing belief: tenacity, authority,
+the *a priori* method, and the method of science.  Only the last is self-
+correcting.  The EPG, if implemented honestly, embodies the method of
+science:
+
+- **Tenacity** (holding fast regardless of evidence) is blocked by the
+  Grapheus: M resists proposals that contradict it, and the game will
+  expose the contradiction.
+- **Authority** (accepting belief because an authority dictates it) is
+  blocked by the game's transparency: every step is recorded, every
+  derivation is inspectable, no assertion is immune from challenge.
+- **The *a priori* method** (accepting what seems "agreeable to reason")
+  is blocked by the Grapheus's indifference to elegance: M does not care
+  whether G is beautiful, only whether it maps.
+- **The method of science** (fixing belief by submitting it to something
+  independent of what we think about it) is what the game *is*: the
+  Graphist proposes, the Grapheus — standing for the world-as-known, not
+  for the Graphist's preferences — tests, and the Agonothetes interprets
+  honestly.
+
+The guarantee of doubt, then, is not a mechanism within the system but a
+condition of its use: that the user remains in contact with the world, with
+other inquirers, and with their own evolving experience.  The system's job
+is to make the cycle as faithful, transparent, and productive as possible
+when doubt arrives — and to not pretend it isn't there when it does.
+
+---
+
 ## The Game as Tree Traversal
 
 The game is, in effect, a **tree traversal** of the EGI's hierarchical
