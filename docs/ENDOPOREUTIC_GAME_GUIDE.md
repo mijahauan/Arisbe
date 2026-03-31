@@ -1295,11 +1295,31 @@ know something, and we will never know everything.**
   is itself subject to transformation.
 
 This is not a compromise or a hedge.  It is the only position consistent
-with both the reality of knowledge and the reality of change.  The EPG
-formalizes it: every game produces genuine results (not "merely" provisional
-ones); every result is held in readiness for revision (not enshrined as
-absolute).  The transformation history records both the knowledge gained and
-the openness to what comes next.
+with both the reality of knowledge and the reality of change.  The
+relationship between reliability and revision is not antagonistic but
+*enabling*:
+
+- **Reliability enables revision** — it does not block it.  You can only
+  revise what you have genuinely established; you can only identify a
+  contradiction against a background of stable knowledge.  The fear that
+  reliable knowledge becomes rigid knowledge — that M, once settled,
+  resists all change — mistakes the Grapheus's *resistance* (which is
+  essential to the game) for *immovability* (which is not).  M resists
+  poorly warranted proposals; it yields to well-demonstrated ones.  That
+  is what honesty means.
+
+- **Revision builds new foundations to rely on** — it does not merely
+  destroy.  Every successful revision produces M', which is not a gap
+  where M used to be but a *new settlement* — richer, better adapted,
+  ready to support the next round of inquiry.  The fear that revision
+  undermines all foundations — that questioning M leaves nothing to stand
+  on — mistakes the *transformation* of the ground for the *removal* of
+  the ground.  The ground changes; it does not vanish.
+
+The EPG formalizes this: every game produces genuine results (not "merely"
+provisional ones); every result is held in readiness for revision (not
+enshrined as absolute).  The transformation history records both the
+knowledge gained and the openness to what comes next.
 
 ### Unlimited Semiosis, Without a Terminus
 
