@@ -4,6 +4,8 @@
 A formal reasoning environment implementing Charles S. Peirce's Existential Graphs through Frithjof Dau's rigorous framework. Arisbe elevates logical diagrams from static notation to **living processes of inquiry** - complete universes of discourse where justification, transformation, and meaning unfold through dialogue and formal rules.
 
 ---
+https://deepwiki.com/badge-maker?url=https%3A%2F%2Fdeepwiki.com%2Fmijahauan%2FArisbe
+---
 
 ## 🎯 **Philosophical Foundation** (Read First)
 
