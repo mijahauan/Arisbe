@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Arisbe ELK Layout Gallery</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 2rem; background: #f8f9fa; }
+  h1 { color: #1a1a2e; }
+  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem; }
+  .card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
+  .card img { width: 100%; height: auto; display: block; border-bottom: 1px solid #eee; }
+  .card .label { padding: 0.75rem 1rem; font-size: 0.85rem; color: #555; }
+  h2 { margin-top: 2rem; color: #333; border-bottom: 2px solid #ddd; padding-bottom: 0.3rem; }
+</style>
+</head>
+<body>
+<h1>Arisbe ELK Layout — SVG Gallery</h1>
+<p>Visual validation of the ELK compound graph layout engine with polarity shading.</p>
+
+<h2>Basic Graphs</h2>
+<div class="gallery">
+  <div class="card"><img src="01_single_predicate.svg"><div class="label">01 — Single Predicate: <code>(Human *x)</code></div></div>
+  <div class="card"><img src="02_constant.svg"><div class="label">02 — Constant Vertex: <code>(Human "Socrates")</code></div></div>
+  <div class="card"><img src="03_binary_relation.svg"><div class="label">03 — Binary Relation: <code>(Loves *x *y)</code></div></div>
+  <div class="card"><img src="04_two_predicates.svg"><div class="label">04 — Shared Vertex: <code>(Human *x)(Mortal x)</code></div></div>
+</div>
+
+<h2>Cuts (Negation)</h2>
+<div class="gallery">
+  <div class="card"><img src="05_simple_negation.svg"><div class="label">05 — Simple Negation: <code>~[ (Cat *x) ]</code></div></div>
+  <div class="card"><img src="06_double_cut.svg"><div class="label">06 — Double Cut: <code>~[ ~[ (Cat *x) ] ]</code></div></div>
+  <div class="card"><img src="07_nested_cuts.svg"><div class="label">07 — If Cat then Animal: <code>~[ (Cat *x) ~[ (Animal x) ] ]</code></div></div>
+  <div class="card"><img src="08_sibling_cuts.svg"><div class="label">08 — Sibling Cuts: <code>~[ (Cat *x) ] ~[ (Dog *y) ]</code></div></div>
+</div>
+
+<h2>Complex Graphs</h2>
+<div class="gallery">
+  <div class="card"><img src="09_syllogism_premise.svg"><div class="label">09 — All humans are mortal</div></div>
+  <div class="card"><img src="10_modus_ponens.svg"><div class="label">10 — Modus Ponens Setup</div></div>
+  <div class="card"><img src="11_three_deep.svg"><div class="label">11 — Three Levels of Nesting</div></div>
+  <div class="card"><img src="12_conjunction.svg"><div class="label">12 — Conjunction on Sheet</div></div>
+  <div class="card"><img src="13_cross_boundary.svg"><div class="label">13 — Cross-Boundary Ligature</div></div>
+</div>
+
+<h2>Corpus Examples</h2>
+<div class="gallery">
+  <div class="card"><img src="corpus_dau_2006_p112_ligature.svg"><div class="label">Dau 2006 p112 Ligature</div></div>
+  <div class="card"><img src="corpus_dau_theorem_proving.svg"><div class="label">Dau Theorem Proving</div></div>
+  <div class="card"><img src="corpus_mixed_quantifier_complex.svg"><div class="label">Mixed Quantifier Complex</div></div>
+  <div class="card"><img src="corpus_peirce_complex_scope.svg"><div class="label">Peirce Complex Scope</div></div>
+  <div class="card"><img src="corpus_peirce_cp_4_394_man_mortal.svg"><div class="label">Peirce CP 4.394 Man is Mortal</div></div>
+</div>
+
+<h2>Domain Model Imports</h2>
+<div class="gallery">
+  <div class="card"><img src="domain_animal_taxonomy.svg"><div class="label">Animal Taxonomy (from CLIF)</div></div>
+  <div class="card"><img src="domain_peirce_categories.svg"><div class="label">Peirce Categories (from JSON Lattice)</div></div>
+</div>
+
+</body>
+</html>

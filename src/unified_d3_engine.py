@@ -16,65 +16,9 @@ import subprocess
 import math
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Set
-from dataclasses import dataclass
 
 from egi_core_dau import RelationalGraphWithCuts, ElementID
-
-
-# ============================================================================
-# LAYOUT DTO - Single canonical format
-# ============================================================================
-
-@dataclass
-class Point:
-    """2D point."""
-    x: float
-    y: float
-
-
-@dataclass
-class BoundingBox:
-    """Axis-aligned bounding box."""
-    min_x: float
-    min_y: float
-    max_x: float
-    max_y: float
-    
-    @property
-    def width(self) -> float:
-        return self.max_x - self.min_x
-    
-    @property
-    def height(self) -> float:
-        return self.max_y - self.min_y
-    
-    @property
-    def center(self) -> Point:
-        return Point(
-            (self.min_x + self.max_x) / 2,
-            (self.min_y + self.max_y) / 2
-        )
-
-
-@dataclass
-class LigaturePath:
-    """Path for a ligature connection."""
-    predicate_id: ElementID
-    vertex_id: ElementID
-    points: Tuple[Point, ...]
-
-
-@dataclass
-class LayoutDTO:
-    """Platform-independent layout result."""
-    vertex_positions: Dict[ElementID, Point]
-    predicate_positions: Dict[ElementID, Point]
-    cut_bounds: Dict[ElementID, BoundingBox]
-    ligature_paths: List[LigaturePath]
-    area_hierarchy: Dict[ElementID, Set[ElementID]]
-    viewport_bounds: BoundingBox
-    sheet_id: ElementID
-    style: any = None
+from layout_dto import Point, BoundingBox, LigaturePath, LayoutDTO  # noqa: F401 (re-exported)
 
 
 # ============================================================================

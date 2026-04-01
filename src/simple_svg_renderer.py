@@ -11,7 +11,7 @@ Date: 2025-10-12
 import xml.etree.ElementTree as ET
 from typing import Optional
 
-from unified_d3_engine import LayoutDTO
+from layout_dto import LayoutDTO
 from egi_core_dau import RelationalGraphWithCuts
 
 
@@ -84,6 +84,9 @@ class SimpleSVGRenderer:
         offset_x = -dto.viewport_bounds.min_x + 40
         offset_y = -dto.viewport_bounds.min_y + 65
         
+        # Compute cut nesting depths for polarity shading
+        cut_depths = self._compute_cut_depths(egi) if egi else {}
+        
         # Create groups for proper layering
         cut_group = ET.SubElement(svg, "g", {"id": "cuts"})
         ligature_group = ET.SubElement(svg, "g", {"id": "ligatures"})
@@ -93,15 +96,16 @@ class SimpleSVGRenderer:
         # Render Cuts (sorted by depth - sheet first, then nested)
         # ====================================================================
         
-        # Sort cuts by area (sheet has most elements, deepest cuts have least)
+        # Sort cuts by nesting depth: shallowest first (bottom layer),
+        # deepest last (top layer).  This ensures even-depth white fills
+        # properly cover odd-depth gray fills beneath them.
         cuts_to_render = []
         for cut_id, bounds in dto.cut_bounds.items():
             is_sheet = (cut_id == dto.sheet_id)
-            num_contents = len(dto.area_hierarchy.get(cut_id, []))
-            cuts_to_render.append((cut_id, bounds, is_sheet, num_contents))
+            depth = cut_depths.get(cut_id, 0)
+            cuts_to_render.append((cut_id, bounds, is_sheet, depth))
         
-        # Sheet first, then by number of contents (fewer = deeper)
-        cuts_to_render.sort(key=lambda x: (not x[2], x[3]), reverse=True)
+        cuts_to_render.sort(key=lambda x: (not x[2], x[3]))
         
         for cut_id, bounds, is_sheet, _ in cuts_to_render:
             # SKIP the sheet - it's invisible/infinite in Dau's formalism
@@ -114,12 +118,23 @@ class SimpleSVGRenderer:
             width = bounds.width
             height = bounds.height
             
+            # Polarity shading: odd depth (negative) → gray, even depth → opaque white
+            # Even-depth fills MUST be opaque to cover the gray of their parent cut.
+            depth = cut_depths.get(cut_id, 1)
+            if style.alternating_shading_enabled:
+                if depth % 2 == 1:
+                    fill_color = style.odd_polarity_fill
+                else:
+                    fill_color = style.even_polarity_fill if style.even_polarity_fill != "transparent" else "#FFFFFF"
+            else:
+                fill_color = "none"
+            
             ET.SubElement(cut_group, "rect", {
                 "x": str(x), "y": str(y),
                 "width": str(width), "height": str(height),
                 "rx": str(style.cut_corner_radius),
                 "ry": str(style.cut_corner_radius),
-                "fill": "none",
+                "fill": fill_color,
                 "stroke": "#000000",
                 "stroke-width": str(style.cut_line_width)
             })
@@ -243,3 +258,26 @@ class SimpleSVGRenderer:
         
         # Convert to string
         return ET.tostring(svg, encoding='unicode')
+    
+    @staticmethod
+    def _compute_cut_depths(egi: RelationalGraphWithCuts) -> dict:
+        """Compute nesting depth of each cut. Sheet=0, direct children=1, etc."""
+        if egi is None:
+            return {}
+        cut_ids = {c.id for c in egi.Cut}
+        # Build parent map: child_cut_id → parent_area_id
+        child_to_parent = {}
+        for area_id, contents in egi.area.items():
+            for elem_id in contents:
+                if elem_id in cut_ids:
+                    child_to_parent[elem_id] = area_id
+        
+        depths = {}
+        for cut_id in cut_ids:
+            depth = 0
+            current = cut_id
+            while current in child_to_parent:
+                depth += 1
+                current = child_to_parent[current]
+            depths[cut_id] = depth
+        return depths
