@@ -111,13 +111,13 @@ class SimpleSVGRenderer:
             # SKIP the sheet - it's invisible/infinite in Dau's formalism
             if is_sheet:
                 continue
-            
+
             # Regular cut - use Dau style
             x = bounds.min_x + offset_x
             y = bounds.min_y + offset_y
             width = bounds.width
             height = bounds.height
-            
+
             # Polarity shading: odd depth (negative) → gray, even depth → opaque white
             # Even-depth fills MUST be opaque to cover the gray of their parent cut.
             depth = cut_depths.get(cut_id, 1)
@@ -128,8 +128,15 @@ class SimpleSVGRenderer:
                     fill_color = style.even_polarity_fill if style.even_polarity_fill != "transparent" else "#FFFFFF"
             else:
                 fill_color = "none"
-            
-            ET.SubElement(cut_group, "rect", {
+
+            # Wrap in a named group so the frontend can detect clicks by element ID
+            cut_g = ET.SubElement(cut_group, "g", {
+                "id": cut_id,
+                "data-element-id": cut_id,
+                "data-element-type": "cut",
+                "cursor": "pointer",
+            })
+            ET.SubElement(cut_g, "rect", {
                 "x": str(x), "y": str(y),
                 "width": str(width), "height": str(height),
                 "rx": str(style.cut_corner_radius),
@@ -171,32 +178,47 @@ class SimpleSVGRenderer:
         for v_id, pos in dto.vertex_positions.items():
             cx = pos.x + offset_x
             cy = pos.y + offset_y
-            
+
             # Get vertex label from EGI
             label = ""
             if egi:
                 v = next((v for v in egi.V if v.id == v_id), None)
                 if v and v.label:
                     label = v.label
-            
+
+            # Wrap in a named group so the frontend can detect clicks by element ID
+            v_g = ET.SubElement(element_group, "g", {
+                "id": v_id,
+                "data-element-id": v_id,
+                "data-element-type": "vertex",
+                "cursor": "pointer",
+            })
+
+            # Transparent hit area (larger than the dot) for easier clicking
+            hit = style.vertex_radius + 6
+            ET.SubElement(v_g, "rect", {
+                "x": str(cx - hit), "y": str(cy - hit),
+                "width": str(hit * 2), "height": str(hit * 2),
+                "fill": "transparent", "stroke": "none",
+            })
+
             # Vertex circle - only draw if rendering_mode includes "dot"
             show_dot = style.vertex_rendering_mode in ["dot_only", "dot_and_label"]
             if show_dot:
-                ET.SubElement(element_group, "circle", {
+                ET.SubElement(v_g, "circle", {
                     "cx": str(cx), "cy": str(cy),
                     "r": str(style.vertex_radius),
                     "fill": style.vertex_fill_color,
                     "stroke": "none"  # No border - continuous with ligature
                 })
-            
+
             # Label - shown in all modes except dot_only
             if label and style.vertex_rendering_mode != "dot_only":
-                # Position to the right and slightly up from center
-                label_x = cx + style.vertex_radius + 8  # 8px offset from edge
-                label_y = cy + 4  # Slightly below center for alignment
-                ET.SubElement(element_group, "text", {
+                label_x = cx + style.vertex_radius + 8
+                label_y = cy + 4
+                ET.SubElement(v_g, "text", {
                     "x": str(label_x), "y": str(label_y),
-                    "text-anchor": "start",  # Left-aligned from position
+                    "text-anchor": "start",
                     "font-size": str(style.font_size),
                     "font-family": style.font_family,
                     "fill": "#000000",
@@ -210,33 +232,40 @@ class SimpleSVGRenderer:
         for p_id, pos in dto.predicate_positions.items():
             x = pos.x + offset_x
             y = pos.y + offset_y
-            
+
             # Get relation name from EGI
             label = "?"
             if egi:
                 label = egi.get_relation_name(p_id)
-            
+
             # Tight padding around text (Dau style)
             char_width = style.predicate_char_width
-            padding_h = 2  # Minimal horizontal padding
-            padding_v = 1  # Minimal vertical padding
+            padding_h = 2
+            padding_v = 1
             text_width = len(label) * char_width + 2 * padding_h
             text_height = style.predicate_height + 2 * padding_v
-            
-            # Background rectangle (transparent per Dau)
-            # Only render if not transparent
+
+            # Wrap in a named group so the frontend can detect clicks by element ID
+            p_g = ET.SubElement(element_group, "g", {
+                "id": p_id,
+                "data-element-id": p_id,
+                "data-element-type": "predicate",
+                "cursor": "pointer",
+            })
+
+            # Background rectangle — always present as a clickable hit area.
+            # Use the style colour if specified, otherwise transparent.
             bg_color = style.raw_style_data.get('predicate', {}).get('label_box_background', 'transparent')
-            if bg_color != 'transparent':
-                ET.SubElement(element_group, "rect", {
-                    "x": str(x - text_width/2), "y": str(y - text_height/2),
-                    "width": str(text_width), "height": str(text_height),
-                    "rx": "2", "ry": "2",
-                    "fill": bg_color,
-                    "stroke": "none"
-                })
-            
+            ET.SubElement(p_g, "rect", {
+                "x": str(x - text_width / 2), "y": str(y - text_height / 2),
+                "width": str(text_width), "height": str(text_height),
+                "rx": "2", "ry": "2",
+                "fill": bg_color,
+                "stroke": "none",
+            })
+
             # Label text
-            ET.SubElement(element_group, "text", {
+            ET.SubElement(p_g, "text", {
                 "x": str(x), "y": str(y + 5),
                 "text-anchor": "middle",
                 "font-size": str(style.font_size),

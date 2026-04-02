@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arisbe — Existential Graph Viewer</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ===== Sidebar ===== -->
+    <aside id="sidebar">
+      <div id="sidebar-header">
+        <h1>Arisbe</h1>
+        <p>Existential Graph Viewer</p>
+      </div>
+
+      <div id="diagram-list-container">
+        <h2>Tomos Corpus</h2>
+        <div id="diagram-list">
+          <div style="padding:10px;color:#6c7086;font-size:12px;">Loading…</div>
+        </div>
+      </div>
+
+      <div id="info-panel">
+        <h3>Graph Info</h3>
+        <div style="color:#6c7086;font-size:12px;">Select a diagram to begin</div>
+      </div>
+    </aside>
+
+    <!-- ===== Main canvas ===== -->
+    <main id="canvas-area">
+      <div id="svg-container">
+        <div id="canvas-placeholder">
+          <p>Select a diagram from the sidebar</p>
+        </div>
+      </div>
+      <div id="loading-overlay">Loading…</div>
+    </main>
+
+    <!-- ===== Bottom bar ===== -->
+    <footer id="bottombar">
+
+      <!-- History controls -->
+      <div class="bottombar-section">
+        <h4>History</h4>
+        <div class="btn-row">
+          <button id="undo-btn" class="btn" disabled title="Undo">&#8592; Undo</button>
+          <button id="redo-btn" class="btn" disabled title="Redo">Redo &#8594;</button>
+        </div>
+      </div>
+
+      <!-- Transformation mode selector -->
+      <div class="bottombar-section">
+        <h4>Transform</h4>
+        <div class="btn-row">
+          <button class="btn mode-btn" data-mode="ERA" title="Erasure: remove subgraph from positive area">ERA</button>
+          <button class="btn mode-btn" data-mode="INS" title="Insertion: insert into negative area">INS</button>
+          <button class="btn mode-btn" data-mode="DC+" title="Double-Cut Insertion">DC+</button>
+          <button class="btn mode-btn" data-mode="DC-" title="Double-Cut Erasure">DC−</button>
+          <button class="btn mode-btn" data-mode="IT+" title="Iteration: copy into nested area">IT+</button>
+          <button class="btn mode-btn" data-mode="IT-" title="Deiteration: remove iterated subgraph">IT−</button>
+        </div>
+      </div>
+
+      <!-- Mode-specific panel -->
+      <div id="mode-panel" class="hidden">
+
+        <!-- ERA / IT+ / IT- selection info -->
+        <div id="era-section" class="hidden">
+          <div id="selection-count" style="font-size:11px;color:#cdd6f4;margin-bottom:5px;">Click elements on the diagram to select them</div>
+          <div class="btn-row">
+            <button id="auto-complete-btn" class="btn" title="Expand selection to the smallest closed subgraph containing all selected elements">Auto-Complete</button>
+            <button id="clear-selection-btn" class="btn" title="Clear all selected elements">Clear</button>
+            <button id="apply-btn" class="btn primary">Apply ERA</button>
+          </div>
+        </div>
+
+        <!-- INS EGIF input -->
+        <div id="ins-section" class="hidden">
+          <textarea id="egif-input" class="egif-input" placeholder="Enter EGIF, e.g.: (Mortal *x)"></textarea>
+          <div class="btn-row" style="margin-top:5px;">
+            <button id="apply-btn-ins" class="btn primary">Apply INS</button>
+          </div>
+        </div>
+
+        <!-- DC+/DC- target -->
+        <div id="dc-section" class="hidden">
+          <div style="font-size:11px;color:#bac2de;margin-bottom:5px;">Click the target area or cut on the diagram.</div>
+          <div class="btn-row">
+            <button id="apply-btn-dc" class="btn primary">Apply</button>
+          </div>
+        </div>
+
+        <!-- IT+ / IT- use the era-section; fallback apply for other modes -->
+        <div id="it-section" class="hidden">
+          <div id="it-selection-count" style="font-size:11px;color:#cdd6f4;margin-bottom:5px;">Click elements on the diagram to select them</div>
+          <div class="btn-row">
+            <button id="auto-complete-btn-it" class="btn" title="Expand to closed subgraph">Auto-Complete</button>
+            <button id="clear-selection-btn-it" class="btn" title="Clear selection">Clear</button>
+            <button id="apply-btn-it" class="btn primary">Apply</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- View controls + status -->
+      <div class="bottombar-section" style="flex:1;">
+        <h4>View</h4>
+        <div class="btn-row">
+          <button id="reset-view-btn" class="btn" title="Reset pan/zoom">Fit</button>
+        </div>
+      </div>
+
+      <div id="status-bar">
+        <div id="status-message">Ready</div>
+      </div>
+
+    </footer>
+  </div>
+
+  <!-- SVG pan-zoom library (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+
+  <!-- Application scripts (order matters) -->
+  <script src="js/api-client.js"></script>
+  <script src="js/diagram-viewer.js"></script>
+  <script src="js/selection-manager.js"></script>
+  <script src="js/transformation-ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

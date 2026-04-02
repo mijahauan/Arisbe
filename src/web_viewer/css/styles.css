@@ -1,0 +1,329 @@
+/* Arisbe EGI Web Viewer — styles */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --sidebar-width: 280px;
+  --bottombar-height: auto;
+  --sidebar-bg: #1e2030;
+  --sidebar-text: #cdd6f4;
+  --sidebar-accent: #89b4fa;
+  --sidebar-hover: #2a2d3e;
+  --sidebar-selected: #313244;
+  --canvas-bg: #ffffff;
+  --bottombar-bg: #1e2030;
+  --bottombar-border: #313244;
+  --btn-bg: #313244;
+  --btn-hover: #45475a;
+  --btn-text: #cdd6f4;
+  --btn-primary: #89b4fa;
+  --btn-primary-text: #1e2030;
+  --btn-danger: #f38ba8;
+  --success: #a6e3a1;
+  --warning: #fab387;
+  --error: #f38ba8;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  overflow: hidden;
+}
+
+/* ===== Layout ===== */
+
+#app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: 1fr auto;
+  height: 100vh;
+}
+
+/* ===== Sidebar ===== */
+
+#sidebar {
+  grid-row: 1 / 3;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--bottombar-border);
+  overflow: hidden;
+}
+
+#sidebar-header {
+  padding: 16px 14px 12px;
+  border-bottom: 1px solid var(--bottombar-border);
+}
+
+#sidebar-header h1 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sidebar-accent);
+  letter-spacing: 0.5px;
+}
+
+#sidebar-header p {
+  font-size: 11px;
+  color: #6c7086;
+  margin-top: 2px;
+}
+
+#diagram-list-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+#diagram-list-container h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6c7086;
+  padding: 6px 14px 4px;
+}
+
+.diagram-item {
+  padding: 8px 14px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.15s;
+  line-height: 1.4;
+}
+
+.diagram-item:hover {
+  background: var(--sidebar-hover);
+}
+
+.diagram-item.active {
+  background: var(--sidebar-selected);
+  border-left-color: var(--sidebar-accent);
+}
+
+.diagram-item .name {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.diagram-item .category {
+  font-size: 11px;
+  color: #6c7086;
+  margin-top: 2px;
+}
+
+/* Info panel */
+#info-panel {
+  border-top: 1px solid var(--bottombar-border);
+  padding: 12px 14px;
+  font-size: 12px;
+  color: #bac2de;
+  min-height: 100px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+#info-panel h3 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6c7086;
+  margin-bottom: 6px;
+}
+
+#info-panel .stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+#info-panel .stat span {
+  color: var(--sidebar-accent);
+}
+
+/* ===== Canvas ===== */
+
+#canvas-area {
+  background: var(--canvas-bg);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#svg-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+#svg-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+#canvas-placeholder {
+  color: #aaa;
+  font-size: 15px;
+  text-align: center;
+}
+
+#loading-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.8);
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #555;
+  z-index: 100;
+}
+
+#loading-overlay.active {
+  display: flex;
+}
+
+/* ===== Bottom bar ===== */
+
+#bottombar {
+  background: var(--bottombar-bg);
+  border-top: 1px solid var(--bottombar-border);
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow: visible;
+  min-height: 80px;
+}
+
+.bottombar-section {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-right: 1px solid var(--bottombar-border);
+  min-width: 120px;
+}
+
+.bottombar-section:last-child {
+  border-right: none;
+  flex: 1;
+}
+
+.bottombar-section h4 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6c7086;
+  margin-bottom: 6px;
+}
+
+/* ===== Buttons ===== */
+
+.btn {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--btn-hover);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn.primary {
+  background: var(--btn-primary);
+  color: var(--btn-primary-text);
+  font-weight: 600;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #74c7ec;
+}
+
+.btn.active {
+  background: var(--sidebar-accent);
+  color: var(--btn-primary-text);
+}
+
+.btn-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ===== Mode panel ===== */
+
+#mode-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 14px;
+  border-right: 1px solid var(--bottombar-border);
+  min-width: 220px;
+}
+
+#mode-panel.hidden {
+  display: none;
+}
+
+#egif-input {
+  background: #313244;
+  color: var(--sidebar-text);
+  border: 1px solid #45475a;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: monospace;
+  resize: none;
+  height: 56px;
+  width: 100%;
+}
+
+/* ===== Status bar ===== */
+
+#status-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #6c7086;
+  overflow: hidden;
+}
+
+#status-message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#status-message.success { color: var(--success); }
+#status-message.error { color: var(--error); }
+#status-message.info { color: var(--sidebar-accent); }
+
+/* ===== SVG highlights ===== */
+
+.eg-selected {
+  outline: 2px solid #89b4fa;
+  outline-offset: 2px;
+}
+
+/* highlight overlays via JS */
