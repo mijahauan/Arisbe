@@ -209,25 +209,54 @@ class SubgraphClosureValidator:
             added_elements=total_added
         )
     
+    def _vertex_has_external_connections(
+        self, vertex_id: ElementID, edge_id: ElementID,
+        current_subgraph: Set[ElementID]
+    ) -> bool:
+        """Return True if *vertex_id* connects to any edge (other than *edge_id*)
+        that is NOT already in *current_subgraph*.
+
+        Such a vertex will remain connected after the subgraph is erased and
+        need not be pulled into it.
+        """
+        for e in self.egi.E:
+            if e.id == edge_id:
+                continue
+            if vertex_id in self.egi.nu.get(e.id, ()) and e.id not in current_subgraph:
+                return True
+        return False
+
     def _check_edge_closure(self, edge_id: ElementID,
                            current_subgraph: Set[ElementID],
                            context_area: Optional[ElementID] = None
                            ) -> List[ClosureViolation]:
-        """Check if edge has all its vertices in subgraph.
+        """Check if edge has all its required vertices in subgraph.
 
-        Beta: vertices in ancestor areas of *context_area* are free.
+        A vertex endpoint is required unless it is:
+        (a) already in the subgraph,
+        (b) free via Beta ancestor-area scoping, OR
+        (c) "semi-free": it has other connecting edges outside the subgraph,
+            meaning it will remain connected after this subgraph is erased.
+
+        Rule (c) allows erasing a predicate edge (e.g. "Cat") without forcing
+        erasure of a shared line-of-identity vertex that also connects to other
+        predicates (e.g. "On").  Vertices that connect *only* to selected edges
+        are still required so they are erased together, not left isolated.
         """
         violations = []
         vertex_sequence = self.egi.nu.get(edge_id, ())
-        
+
         missing_vertices = set()
         for vertex_id in vertex_sequence:
             if vertex_id not in current_subgraph:
-                # Beta: skip free vertices (in ancestor area)
+                # (b) Beta: skip free vertices in ancestor area
                 if self._vertex_is_free(vertex_id, context_area):
                     continue
+                # (c) Semi-free: vertex has other connections outside subgraph
+                if self._vertex_has_external_connections(vertex_id, edge_id, current_subgraph):
+                    continue
                 missing_vertices.add(vertex_id)
-        
+
         if missing_vertices:
             relation = self.egi.rel.get(edge_id, "?")
             violations.append(ClosureViolation(
@@ -236,23 +265,26 @@ class SubgraphClosureValidator:
                 missing_elements=missing_vertices,
                 description=f"Edge {relation}({edge_id}) connects to vertices outside subgraph: {missing_vertices}"
             ))
-        
+
         return violations
-    
+
     def _check_vertex_closure(self, vertex_id: ElementID,
                              current_subgraph: Set[ElementID],
                              context_area: Optional[ElementID] = None
                              ) -> List[ClosureViolation]:
-        """Check if vertex has all its connecting edges in subgraph.
+        """A selected vertex requires ALL connecting edges in the same area.
 
-        Beta: only edges in the same area as the vertex (or the context_area)
-        are required.  Edges in descendant or sibling areas are independent.
+        If a vertex is erased, every edge that references it would become a
+        dangling reference.  All such edges must therefore also be in the
+        subgraph.
+
+        Beta: only edges in the same area as the vertex are required.
+        Edges in descendant or sibling areas are independent.
         """
         violations = []
         missing_edges = set()
         v_area = self._elem_area.get(vertex_id)
-        
-        # Find all edges that connect to this vertex
+
         for edge in self.egi.E:
             vertex_sequence = self.egi.nu.get(edge.id, ())
             if vertex_id in vertex_sequence:
@@ -262,18 +294,9 @@ class SubgraphClosureValidator:
                     if e_area != v_area:
                         continue  # Edge in a different area — independent
 
-                # This edge connects to our vertex
                 if edge.id not in current_subgraph:
-                    # Check if the other end of the edge is in subgraph
-                    other_vertices_in_subgraph = [
-                        v for v in vertex_sequence 
-                        if v != vertex_id and v in current_subgraph
-                    ]
-                    
-                    if other_vertices_in_subgraph:
-                        # Edge connects two vertices in subgraph but edge itself not included
-                        missing_edges.add(edge.id)
-        
+                    missing_edges.add(edge.id)
+
         if missing_edges:
             violations.append(ClosureViolation(
                 element_id=vertex_id,
@@ -281,7 +304,7 @@ class SubgraphClosureValidator:
                 missing_elements=missing_edges,
                 description=f"Vertex {vertex_id} has connecting edges outside subgraph: {missing_edges}"
             ))
-        
+
         return violations
     
     def _check_cut_closure(self, cut_id: ElementID,
@@ -340,48 +363,45 @@ class SubgraphClosureValidator:
                          context_area: Optional[ElementID] = None) -> bool:
         """Final strict validation that subgraph is closed.
 
-        Beta: when *context_area* is set, vertices in ancestor areas are
-        considered free and edges in other areas are independent.
+        Edge rule: a vertex endpoint is OK to omit if (b) it is Beta-free or
+        (c) it has other connecting edges outside the subgraph (semi-free).
+
+        Vertex rule: every connecting edge in the same area must be in the subgraph.
+
+        Cut rule: a cut must include all of its contents.
         """
-        subgraph_edges = {e_id for e_id in subgraph if e_id in self._edge_ids}
-        
-        for edge_id in subgraph_edges:
-            vertex_sequence = self.egi.nu.get(edge_id, ())
-            for vertex_id in vertex_sequence:
-                if vertex_id not in subgraph:
-                    # Beta: free vertex in ancestor area is OK
-                    if self._vertex_is_free(vertex_id, context_area):
-                        continue
-                    return False
-        
-        # Check cuts have full contents
+        # Cut rule
         subgraph_cuts = {c_id for c_id in subgraph if c_id in self._cut_ids}
         for cut_id in subgraph_cuts:
-            cut_contents = self.egi.area.get(cut_id, frozenset())
-            for content_id in cut_contents:
+            for content_id in self.egi.area.get(cut_id, frozenset()):
                 if content_id not in subgraph:
                     return False
-        
-        # Check vertices have all connecting edges (if other end is in subgraph)
+
+        # Edge rule: check each edge in the subgraph
+        subgraph_edges = {e_id for e_id in subgraph if e_id in self._edge_ids}
+        for edge_id in subgraph_edges:
+            for vertex_id in self.egi.nu.get(edge_id, ()):
+                if vertex_id not in subgraph:
+                    if self._vertex_is_free(vertex_id, context_area):
+                        continue
+                    if self._vertex_has_external_connections(vertex_id, edge_id, subgraph):
+                        continue
+                    return False
+
+        # Vertex rule: each selected vertex requires all connecting edges in same area
         subgraph_vertices = {v_id for v_id in subgraph if v_id in self._vertex_ids}
         for vertex_id in subgraph_vertices:
             v_area = self._elem_area.get(vertex_id)
             for edge in self.egi.E:
                 vertex_sequence = self.egi.nu.get(edge.id, ())
                 if vertex_id in vertex_sequence:
-                    # Beta: only require edges in the same area as the vertex
                     if context_area is not None:
                         e_area = self._elem_area.get(edge.id)
                         if e_area != v_area:
                             continue
-                    # Check if all vertices of this edge are in subgraph
-                    all_vertices_in = all(
-                        v in subgraph or self._vertex_is_free(v, context_area)
-                        for v in vertex_sequence
-                    )
-                    if all_vertices_in and edge.id not in subgraph:
+                    if edge.id not in subgraph:
                         return False
-        
+
         return True
     
     def get_expansion_description(self, analysis: ClosureAnalysis) -> str:

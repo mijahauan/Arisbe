@@ -39,13 +39,16 @@ class TestSubgraphClosureValidator:
         assert len(analysis.violations) == 0
         assert len(analysis.added_elements) == 0
 
-    def test_edge_without_vertices_expands(self):
-        """Edge selected without its vertices should expand to include vertices."""
-        # Create EGI with edge connecting two vertices
+    def test_edge_without_vertices_expands_when_isolated(self):
+        """Edge whose vertices have no other connections expands to include them.
+
+        When v1 and v2 connect ONLY to e1, erasing e1 alone would leave them
+        as isolated vertices.  The closure pulls them in so they are co-erased.
+        """
         v1 = Vertex(ElementID("v1"))
         v2 = Vertex(ElementID("v2"))
         e1 = Edge(ElementID("e1"))
-        
+
         egi = RelationalGraphWithCuts(
             V=frozenset([v1, v2]),
             E=frozenset([e1]),
@@ -55,19 +58,49 @@ class TestSubgraphClosureValidator:
             area=frozendict({ElementID("sheet"): frozenset([ElementID("v1"), ElementID("v2"), ElementID("e1")])}),
             rel=frozendict({ElementID("e1"): "Connected"}),
         )
-        
+
         validator = SubgraphClosureValidator(egi)
-        
-        # Select only the edge
         selection = frozenset([ElementID("e1")])
         analysis = validator.analyze_closure(selection, allow_expansion=True)
-        
-        # Should expand to include vertices
+
         assert analysis.is_closed
         assert ElementID("v1") in analysis.closed_subgraph
         assert ElementID("v2") in analysis.closed_subgraph
+        assert len(analysis.added_elements) == 2
+
+    def test_edge_without_vertices_is_closed_when_vertex_shared(self):
+        """Edge is closed alone when its vertex connects to OTHER predicates.
+
+        The vertex is "semi-free": it has external connections and will remain
+        connected after the edge is erased.  This is the ERA "Cat on Mat" fix:
+        erasing Cat leaves the shared vertex still connected to On.
+        """
+        v1 = Vertex(ElementID("v1"))
+        e1 = Edge(ElementID("e1"))  # Cat — v1
+        e2 = Edge(ElementID("e2"))  # On  — v1
+
+        egi = RelationalGraphWithCuts(
+            V=frozenset([v1]),
+            E=frozenset([e1, e2]),
+            nu=frozendict({
+                ElementID("e1"): (ElementID("v1"),),
+                ElementID("e2"): (ElementID("v1"),),
+            }),
+            sheet=ElementID("sheet"),
+            Cut=frozenset(),
+            area=frozendict({ElementID("sheet"): frozenset([ElementID("v1"), ElementID("e1"), ElementID("e2")])}),
+            rel=frozendict({ElementID("e1"): "Cat", ElementID("e2"): "On"}),
+        )
+
+        validator = SubgraphClosureValidator(egi)
+        selection = frozenset([ElementID("e1")])
+        analysis = validator.analyze_closure(selection, allow_expansion=True)
+
+        # Cat alone is closed — v1 is semi-free (stays connected to On)
+        assert analysis.is_closed
         assert ElementID("e1") in analysis.closed_subgraph
-        assert len(analysis.added_elements) == 2  # Added v1 and v2
+        assert ElementID("v1") not in analysis.closed_subgraph
+        assert len(analysis.added_elements) == 0
 
     def test_vertex_without_edge_expands(self):
         """Vertices selected without connecting edge should expand to include edge."""
@@ -158,15 +191,22 @@ class TestSubgraphClosureValidator:
         assert analysis.closed_subgraph == selection
         assert len(analysis.added_elements) == 0
 
-    def test_partial_edge_connection_does_not_force_inclusion(self):
-        """Edge connecting to vertex outside subgraph should not be included."""
-        # Create EGI with three vertices and two edges in a chain
+    def test_vertex_selection_forces_all_connecting_edges(self):
+        """Selecting vertices forces all connecting edges to be included.
+
+        When a vertex is erased, every edge referencing it would become a
+        dangling reference.  The closure must therefore include all edges
+        that touch any selected vertex.  In a chain v1-e1-v2-e2-v3, selecting
+        {v1, v2} forces both e1 and e2 (because v2 connects to e2).  Since
+        v3 connects only to e2 (which is now in the subgraph), v3 is also
+        pulled in to avoid leaving an isolated vertex.
+        """
         v1 = Vertex(ElementID("v1"))
         v2 = Vertex(ElementID("v2"))
         v3 = Vertex(ElementID("v3"))
-        e1 = Edge(ElementID("e1"))  # v1 -> v2
-        e2 = Edge(ElementID("e2"))  # v2 -> v3
-        
+        e1 = Edge(ElementID("e1"))  # v1 — v2
+        e2 = Edge(ElementID("e2"))  # v2 — v3
+
         egi = RelationalGraphWithCuts(
             V=frozenset([v1, v2, v3]),
             E=frozenset([e1, e2]),
@@ -187,28 +227,28 @@ class TestSubgraphClosureValidator:
                 ElementID("e2"): "Connected",
             }),
         )
-        
+
         validator = SubgraphClosureValidator(egi)
-        
-        # Select v1 and v2, which should include e1 but NOT e2
+
+        # Select v1 and v2 — forces e1 and e2 (connecting edges)
+        # v3 is isolated after e2 is added, so it is co-erased
         selection = frozenset([ElementID("v1"), ElementID("v2")])
         analysis = validator.analyze_closure(selection, allow_expansion=True)
-        
-        # Should include e1 (connects v1 and v2) but not e2 or v3
+
         assert analysis.is_closed
         assert ElementID("v1") in analysis.closed_subgraph
         assert ElementID("v2") in analysis.closed_subgraph
         assert ElementID("e1") in analysis.closed_subgraph
-        assert ElementID("e2") not in analysis.closed_subgraph
-        assert ElementID("v3") not in analysis.closed_subgraph
+        assert ElementID("e2") in analysis.closed_subgraph   # forced by v2
+        # v3 connects only to e2, so it is co-erased to avoid leaving an isolated vertex
+        assert ElementID("v3") in analysis.closed_subgraph
 
     def test_violation_reporting(self):
-        """Violations should be clearly reported."""
-        # Create edge with vertices, but select edge only
+        """Violations should be reported for vertex with missing connecting edges."""
         v1 = Vertex(ElementID("v1"))
         v2 = Vertex(ElementID("v2"))
         e1 = Edge(ElementID("e1"))
-        
+
         egi = RelationalGraphWithCuts(
             V=frozenset([v1, v2]),
             E=frozenset([e1]),
@@ -218,19 +258,18 @@ class TestSubgraphClosureValidator:
             area=frozendict({ElementID("sheet"): frozenset([ElementID("v1"), ElementID("v2"), ElementID("e1")])}),
             rel=frozendict({ElementID("e1"): "Connected"}),
         )
-        
+
         validator = SubgraphClosureValidator(egi)
-        
-        # Select edge only, don't allow expansion
-        selection = frozenset([ElementID("e1")])
+
+        # Select only a vertex (without its connecting edge), no expansion allowed
+        selection = frozenset([ElementID("v1")])
         analysis = validator.analyze_closure(selection, allow_expansion=False)
-        
-        # Should have violations (edge without its vertices)
+
+        # Should have violations (vertex without its connecting edge)
         assert not analysis.is_closed
         assert len(analysis.violations) > 0
-        # Check that violation mentions missing vertices
         violation_text = str(analysis.violations[0].description).lower()
-        assert "v1" in violation_text or "v2" in violation_text or "vertex" in violation_text
+        assert "e1" in violation_text or "edge" in violation_text
 
     def test_factory_function(self):
         """Factory function should create validator."""
