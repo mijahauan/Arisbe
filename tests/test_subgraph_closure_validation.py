@@ -12,17 +12,25 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent))  # for shared strategy imports
 
 import pytest
 from frozendict import frozendict
+from hypothesis import HealthCheck, assume, given, settings, strategies as st
 
 from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
+from egif_parser_dau import parse_egif
 from subgraph_closure_validator import (
     ClosureAnalysis,
     SubgraphClosureValidator,
     create_validator,
 )
 from formal_transformation_rules import InsertionRule, ErasureRule, TransformationContext, AreaPolarity
+
+# Reuse the well-formed EGIF strategy from the round-trip property tests.
+# Importing across test modules is safe: pytest collects each file
+# independently, and `egif_sheet` is a strategy factory, not a test.
+from test_properties_round_trip import egif_sheet
 
 
 class TestSubgraphClosureValidator:
@@ -387,6 +395,98 @@ class TestSubgraphClosureValidator:
             Cut=frozenset(),
             area=frozendict({ElementID("sheet"): frozenset([ElementID("v1")])}),
             rel=frozendict(),
+        )
+
+
+# --------------------------------------------------------------------------- #
+# Property tests: closure idempotence (issue #8)                              #
+# --------------------------------------------------------------------------- #
+
+
+@st.composite
+def egi_with_selection(draw):
+    """Generate a parseable EGIF, parse it to an EGI, and draw a random
+    subset of its element IDs as the selection.
+
+    Selection may include any mix of vertex / edge / cut IDs, including
+    the empty set (trivially closed) and the full element set (already
+    closed by construction).
+    """
+    text = draw(egif_sheet(max_atoms=3, max_cut_depth=1))
+    try:
+        egi = parse_egif(text)
+    except Exception:
+        assume(False)
+        return None  # unreachable; assume(False) aborts
+
+    all_ids = (
+        [v.id for v in egi.V]
+        + [e.id for e in egi.E]
+        + [c.id for c in egi.Cut]
+    )
+    if not all_ids:
+        assume(False)
+
+    selection = draw(st.sets(st.sampled_from(all_ids)))
+    return egi, frozenset(selection)
+
+
+class TestClosureIdempotence:
+    """Issue #8: compute_closure(compute_closure(g)) == compute_closure(g).
+
+    The expansion in ``analyze_closure`` already iterates to a fixed point
+    internally (up to 100 passes). Idempotence is the external guarantee:
+    feeding the result back in does no further work and yields the same
+    closed subgraph.
+    """
+
+    @settings(
+        max_examples=120,
+        deadline=None,
+        suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
+    )
+    @given(egi_with_selection())
+    def test_closure_is_a_fixed_point(self, egi_and_selection):
+        egi, selection = egi_and_selection
+        validator = SubgraphClosureValidator(egi)
+
+        first = validator.analyze_closure(selection, allow_expansion=True)
+        second = validator.analyze_closure(first.closed_subgraph, allow_expansion=True)
+
+        # The closed subgraph itself is stable.
+        assert first.closed_subgraph == second.closed_subgraph, (
+            f"closure not idempotent: first={set(first.closed_subgraph)} "
+            f"second={set(second.closed_subgraph)}"
+        )
+        # The second pass adds nothing.
+        assert second.added_elements == set(), (
+            f"second pass added elements: {second.added_elements}"
+        )
+        # The second pass classifies as closed (the strict check passes).
+        assert second.is_closed, (
+            f"second pass not closed; violations={[v.description for v in second.violations]}"
+        )
+
+    @settings(
+        max_examples=120,
+        deadline=None,
+        suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
+    )
+    @given(egi_with_selection())
+    def test_closure_is_a_superset_of_input(self, egi_and_selection):
+        """Closure never removes elements from the selection — it only adds.
+
+        This is a sanity check on the expansion: when ``allow_expansion=True``
+        the returned ``closed_subgraph`` must contain every element of the
+        original selection.
+        """
+        egi, selection = egi_and_selection
+        validator = SubgraphClosureValidator(egi)
+
+        result = validator.analyze_closure(selection, allow_expansion=True)
+
+        assert selection <= result.closed_subgraph, (
+            f"closure dropped elements: missing={selection - result.closed_subgraph}"
         )
 
 
