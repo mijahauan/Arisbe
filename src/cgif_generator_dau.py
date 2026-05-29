@@ -13,8 +13,9 @@ CGIF Generation Strategy:
 Maintains same rigor as EGIF and CLIF generators.
 """
 
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
+from canonical_signature import compute_canonical_signatures
 from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 
 
@@ -33,6 +34,10 @@ class CGIFGenerator:
         # Cache for constant detection
         self._rho = None
         self._alphabet = None
+        # UUID-independent canonical signatures (populated in generate()).
+        self._vertex_sig: Dict[ElementID, Any] = {}
+        self._edge_sig: Dict[ElementID, Any] = {}
+        self._cut_sig: Dict[ElementID, Any] = {}
 
     def generate(self) -> str:
         """Generate CGIF expression from graph."""
@@ -43,6 +48,11 @@ class CGIFGenerator:
         # Cache helpers
         self._rho = getattr(self.graph, "rho", None)
         self._alphabet = getattr(self.graph, "alphabet", None)
+        # Compute canonical structural signatures so all subsequent sort keys
+        # are UUID-independent (issue #6).
+        self._vertex_sig, self._edge_sig, self._cut_sig = (
+            compute_canonical_signatures(self.graph)
+        )
         # Identify type relations (monadic relations on vertices)
         self._identify_type_relations()
 
@@ -85,17 +95,12 @@ class CGIFGenerator:
             # Visit edges first in deterministic order, then isolated vertices, then cuts
             area = self.graph.area.get(ctx_id, set())
 
-            # Edges sorted by (predicate, ν vertex ids)
+            # Edges sorted by canonical structural signature (UUID-independent).
             edge_ids: List[str] = [
                 eid for eid in area if any(e.id == eid for e in self.graph.E)
             ]
 
-            def _edge_key(eid: str) -> Tuple[str, Tuple[str, ...]]:
-                pred = self.graph.rel.get(eid, "")
-                vseq = tuple(self.graph.nu.get(eid, []))
-                return (pred, vseq)
-
-            for eid in sorted(edge_ids, key=_edge_key):
+            for eid in sorted(edge_ids, key=lambda e: self._edge_sig[e]):
                 vseq = self.graph.nu.get(eid, [])
                 for vid in vseq:
                     v = next((vx for vx in self.graph.V if vx.id == vid), None)
@@ -121,14 +126,13 @@ class CGIFGenerator:
                 incident_in_area.update(self.graph.nu.get(eid, []))
             isolated = [vid for vid in vertex_ids if vid not in incident_in_area]
 
-            def _vertex_key(vid: str) -> Tuple[int, str]:
+            def _vertex_key(vid: str) -> Tuple[int, Any]:
                 v = next((vx for vx in self.graph.V if vx.id == vid), None)
                 if v is None:
-                    return (2, vid)
+                    return (2, self._vertex_sig.get(vid, ""))
                 if v.is_generic:
-                    # Use assigned label if any as sort key; else fallback to id
-                    return (0, self.vertex_labels.get(vid, vid))
-                return (1, v.label or vid)
+                    return (0, self._vertex_sig.get(vid, ""))
+                return (1, self._vertex_sig.get(vid, ""))
 
             for vid in sorted(isolated, key=_vertex_key):
                 v = next((vx for vx in self.graph.V if vx.id == vid), None)
@@ -140,11 +144,11 @@ class CGIFGenerator:
                     self.used_labels.add(lab)
                 processed.add(vid)
 
-            # Recurse into cuts deterministically
+            # Recurse into cuts in canonical structural order.
             cut_ids: List[str] = [
                 cid for cid in area if any(c.id == cid for c in self.graph.Cut)
             ]
-            for cid in sorted(cut_ids):
+            for cid in sorted(cut_ids, key=lambda c: self._cut_sig[c]):
                 assign_in_context(cid)
 
         # Start at sheet
@@ -310,21 +314,7 @@ class CGIFGenerator:
             eid for eid in elements["edges"] if len(self.graph.nu.get(eid, [])) == 1
         ]
 
-        def _typed_key(eid: str) -> tuple:
-            type_name = self.graph.rel.get(eid, "")
-            vseq = self.graph.nu.get(eid, [])
-            vid = vseq[0] if vseq else ""
-            v = next((vx for vx in self.graph.V if vx.id == vid), None)
-            vlabel = ""
-            if v is not None:
-                vlabel = (
-                    self.vertex_labels.get(vid, vid)
-                    if v.is_generic
-                    else (v.label or vid)
-                )
-            return (type_name, vlabel, eid)
-
-        for edge_id in sorted(monadic_edges, key=_typed_key):
+        for edge_id in sorted(monadic_edges, key=lambda e: self._edge_sig[e]):
             vertex_sequence = self.graph.nu.get(edge_id, [])
             vertex_id = vertex_sequence[0]
             concept = self._generate_typed_concept(edge_id, vertex_id)
@@ -350,11 +340,10 @@ class CGIFGenerator:
         def _vertex_key(vid: str) -> tuple:
             v = next((vx for vx in self.graph.V if vx.id == vid), None)
             if v is None:
-                return (2, vid)
+                return (2, self._vertex_sig.get(vid, ""))
             if v.is_generic:
-                return (0, self.vertex_labels.get(vid, vid), vid)
-            else:
-                return (1, v.label or vid, vid)
+                return (0, self._vertex_sig.get(vid, ""))
+            return (1, self._vertex_sig.get(vid, ""))
 
         for vertex_id in sorted(remaining_vertices, key=_vertex_key):
             concept = self._generate_untyped_concept(vertex_id)
@@ -366,29 +355,13 @@ class CGIFGenerator:
             eid for eid in elements["edges"] if len(self.graph.nu.get(eid, [])) >= 2
         ]
 
-        def _rel_key(eid: str) -> tuple:
-            pred = self.graph.rel.get(eid, "")
-            vseq = self.graph.nu.get(eid, [])
-            arg_labels: List[str] = []
-            for vid in vseq:
-                v = next((vx for vx in self.graph.V if vx.id == vid), None)
-                if v is None:
-                    arg_labels.append(vid)
-                elif v.is_generic:
-                    lab = self.vertex_labels.get(vid, vid)
-                    # normalize generic to bound form for sorting without punctuation
-                    arg_labels.append(lab.lstrip("*?"))
-                else:
-                    arg_labels.append(v.label or vid)
-            return (pred, tuple(arg_labels), eid)
-
-        for edge_id in sorted(poly_edges, key=_rel_key):
+        for edge_id in sorted(poly_edges, key=lambda e: self._edge_sig[e]):
             rel = self._generate_relation(edge_id)
             if rel:
                 cgif_parts.append(rel)
 
-        # Generate negations from cuts
-        for cut_id in sorted(elements["cuts"]):
+        # Generate negations from cuts in canonical structural order.
+        for cut_id in sorted(elements["cuts"], key=lambda c: self._cut_sig[c]):
             negation = self._generate_cut_expression(cut_id)
             if negation:
                 cgif_parts.append(negation)

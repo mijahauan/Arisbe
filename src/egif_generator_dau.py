@@ -5,8 +5,9 @@ Fixes the critical issue where variables defined in cuts were not marked as defi
 Key fix: Variables that first appear in any context (including cuts) are marked as defining (*x).
 """
 
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
+from canonical_signature import compute_canonical_signatures
 from egi_core_dau import Alphabet, Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 
 
@@ -22,6 +23,12 @@ class EGIFGenerator:
         self.defining_vertices = set()  # legacy flagging (not used for hoisted defs)
         # Planned defining context per vertex (minimal common ancestor over all uses)
         self.vertex_def_context: Dict[ElementID, ElementID] = {}
+        # Canonical structural signatures — computed in generate().
+        # Independent of UUIDs, so two structurally equivalent EGIs produce
+        # identical labels and identical emitted EGIF.
+        self._vertex_sig: Dict[ElementID, Any] = {}
+        self._edge_sig: Dict[ElementID, Any] = {}
+        self._cut_sig: Dict[ElementID, Any] = {}
 
     def generate(self) -> str:
         """Generate EGIF expression from graph."""
@@ -29,6 +36,9 @@ class EGIFGenerator:
             raise TypeError(
                 "EGIFGenerator.generate() called without a graph. Provide one in constructor or use generate_egif(graph)."
             )
+        # Compute canonical structural signatures before any label assignment
+        # so that all sort keys can be UUID-independent.
+        self._compute_canonical_signatures()
         # Assign labels to vertices and determine defining occurrences
         self._assign_vertex_labels()
         # Compute hoisted defining context for each generic vertex
@@ -44,6 +54,16 @@ class EGIFGenerator:
         """Legacy API: egif_gen.generate_egif(graph) -> str"""
         self.graph = graph
         return self.generate()
+
+    def _compute_canonical_signatures(self) -> None:
+        """Populate UUID-independent structural signatures for sort keys.
+
+        See ``canonical_signature.compute_canonical_signatures`` for the full
+        Weisfeiler-Leman-style algorithm. We delegate so EGIF, CGIF, and CLIF
+        share one implementation."""
+        self._vertex_sig, self._edge_sig, self._cut_sig = (
+            compute_canonical_signatures(self.graph)
+        )
 
     def _assign_vertex_labels(self):
         """Assign EGIF labels to vertices and determine defining occurrences."""
@@ -135,19 +155,15 @@ class EGIFGenerator:
         # Get area (direct contents) of this context
         area_elements = self.graph.get_area(context_id)
 
-        # CRITICAL: Process edges first to establish ν mapping order for vertices
-        # Deterministic ordering: sort edges by (relation name, incident vertex IDs)
+        # CRITICAL: Process edges first to establish ν mapping order for vertices.
+        # Order by the canonical structural signature (UUID-independent) so that
+        # two structurally equivalent EGIs yield identical label assignments.
         sorted_edges: List[ElementID] = []
         for element_id in area_elements:
             if element_id in self.graph._edge_map:
                 sorted_edges.append(element_id)
 
-        def _edge_key(eid: ElementID) -> Tuple[str, Tuple[ElementID, ...]]:
-            rel_name = self.graph.get_relation_name(eid)
-            vseq = self.graph.get_incident_vertices(eid)
-            return (rel_name, tuple(vseq))
-
-        for element_id in sorted(sorted_edges, key=_edge_key):
+        for element_id in sorted(sorted_edges, key=lambda eid: self._edge_sig[eid]):
             # Get the exact ν mapping order for this edge
             vertex_sequence = self.graph.get_incident_vertices(element_id)
 
@@ -172,8 +188,9 @@ class EGIFGenerator:
 
                     processed_vertices.add(vertex_id)
 
-        # Process isolated vertices in this area
-        # Deterministic: sort isolated vertices by (is_generic, constant label or id)
+        # Process isolated vertices in this area in canonical signature order
+        # so the assignment is UUID-independent. Generic vertices come before
+        # constant vertices, then within each group sort by structural sig.
         isolated_vertices: List[ElementID] = []
         for element_id in area_elements:
             if (
@@ -182,14 +199,9 @@ class EGIFGenerator:
             ):
                 isolated_vertices.append(element_id)
 
-        def _vertex_key(vid: ElementID) -> Tuple[int, str]:
-            if not self._is_constant_vertex(vid):
-                # If label already assigned use it, else use id as fallback
-                lbl = self.vertex_labels.get(vid, vid)
-                return (0, lbl)
-            else:
-                cname = self._constant_name(vid) or vid
-                return (1, cname)
+        def _vertex_key(vid: ElementID) -> Tuple[int, Any]:
+            kind = 1 if self._is_constant_vertex(vid) else 0
+            return (kind, self._vertex_sig[vid])
 
         for element_id in sorted(isolated_vertices, key=_vertex_key):
             if not self._is_constant_vertex(element_id):
@@ -205,13 +217,14 @@ class EGIFGenerator:
 
             processed_vertices.add(element_id)
 
-        # Process cuts in this area recursively
-        # Deterministic: sort cuts by ID
+        # Process cuts in this area recursively, sorted by their canonical
+        # structural signature so that UUID order does not affect which cut's
+        # contents claim labels first.
         cut_ids: List[ElementID] = []
         for element_id in area_elements:
             if element_id in self.graph._cut_map:
                 cut_ids.append(element_id)
-        for element_id in sorted(cut_ids):
+        for element_id in sorted(cut_ids, key=lambda cid: self._cut_sig[cid]):
             self._assign_labels_preserving_nu_order(element_id, processed_vertices)
 
     def _assign_labels_recursive(
@@ -314,12 +327,15 @@ class EGIFGenerator:
             ):
                 isolated_ids.append(element_id)
 
-        def _iso_key(vid: ElementID) -> Tuple[int, str]:
+        def _iso_key(vid: ElementID) -> Tuple[int, Any]:
             v = self.graph.get_vertex(vid)
             if v.is_generic:
-                return (0, self.vertex_labels.get(vid, vid))
+                # Once labels are assigned canonically (by structural sig), the
+                # label itself is canonical. Fall back to the structural sig if
+                # somehow unlabeled.
+                return (0, self.vertex_labels.get(vid, self._vertex_sig.get(vid, "")))
             else:
-                return (1, v.label or vid)
+                return (1, v.label or self._vertex_sig.get(vid, ""))
 
         for element_id in sorted(isolated_ids, key=_iso_key):
             vertex = self.graph.get_vertex(element_id)
@@ -353,9 +369,9 @@ class EGIFGenerator:
             relation_egif = self._generate_relation(element_id)
             content_parts.append(relation_egif)
 
-        # Generate cuts
+        # Generate cuts in canonical structural order (UUID-independent).
         cut_ids = [eid for eid in area_elements if eid in self.graph._cut_map]
-        for element_id in sorted(cut_ids):
+        for element_id in sorted(cut_ids, key=lambda cid: self._cut_sig[cid]):
             cut_egif = self._generate_cut(element_id)
             content_parts.append(cut_egif)
 

@@ -12,8 +12,9 @@ CLIF Generation Strategy:
 Maintains same rigor as EGIF generator with proper variable management.
 """
 
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
+from canonical_signature import compute_canonical_signatures
 from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 
 
@@ -26,6 +27,18 @@ class CLIFGenerator:
         self.vertex_labels = {}  # Maps vertex IDs to CLIF variable names
         self.used_labels = set()
         self.variable_counter = 0
+        # UUID-independent canonical signatures (populated on first use).
+        self._vertex_sig: Dict[ElementID, Any] = {}
+        self._edge_sig: Dict[ElementID, Any] = {}
+        self._cut_sig: Dict[ElementID, Any] = {}
+
+    def _ensure_canonical_signatures(self) -> None:
+        """Compute canonical structural signatures (issue #6) if not yet done."""
+        if self._edge_sig:
+            return
+        self._vertex_sig, self._edge_sig, self._cut_sig = (
+            compute_canonical_signatures(self.graph)
+        )
 
     def generate(self) -> str:
         """Generate CLIF expression from graph."""
@@ -33,6 +46,11 @@ class CLIFGenerator:
             raise TypeError(
                 "CLIFGenerator.generate() called without a graph. Provide one in constructor or use generate_clif(graph)."
             )
+        # Reset cached canonical signatures (graph may have changed).
+        self._vertex_sig = {}
+        self._edge_sig = {}
+        self._cut_sig = {}
+        self._ensure_canonical_signatures()
         # Assign variable names to vertices
         self._assign_vertex_labels()
 
@@ -58,7 +76,13 @@ class CLIFGenerator:
         self.vertex_labels = {}
         self.used_labels = set()
         self.variable_counter = 0
-        
+        # Reset and recompute canonical signatures (graph may have changed
+        # between calls via the legacy ``generate_clif(graph)`` API).
+        self._vertex_sig = {}
+        self._edge_sig = {}
+        self._cut_sig = {}
+        self._ensure_canonical_signatures()
+
         # First, use semantic variable names from the EGI if available
         if hasattr(self.graph, 'variable_names') and self.graph.variable_names:
             for vertex_id, var_name in self.graph.variable_names.items():
@@ -72,17 +96,12 @@ class CLIFGenerator:
         def assign_in_context(ctx_id: str) -> None:
             area = self.graph.area.get(ctx_id, set())
 
-            # Edges sorted by (predicate, ν vertex ids)
+            # Edges sorted by canonical structural signature (UUID-independent).
             edge_ids: List[str] = [
                 eid for eid in area if any(e.id == eid for e in self.graph.E)
             ]
 
-            def _edge_key(eid: str) -> tuple:
-                pred = self.graph.rel.get(eid, "")
-                vseq = tuple(self.graph.nu.get(eid, []))
-                return (pred, vseq)
-
-            for eid in sorted(edge_ids, key=_edge_key):
+            for eid in sorted(edge_ids, key=lambda e: self._edge_sig[e]):
                 vseq = self.graph.nu.get(eid, [])
                 for vid in vseq:
                     v = next((vx for vx in self.graph.V if vx.id == vid), None)
@@ -95,7 +114,7 @@ class CLIFGenerator:
                         self.used_labels.add(label)
                     processed.add(vid)
 
-            # Isolated vertices: ensure generics get labels too
+            # Isolated vertices in canonical structural order.
             vertex_ids: List[str] = [
                 vid for vid in area if any(v.id == vid for v in self.graph.V)
             ]
@@ -104,13 +123,13 @@ class CLIFGenerator:
                 incident_in_area.update(self.graph.nu.get(eid, []))
             isolated = [vid for vid in vertex_ids if vid not in incident_in_area]
 
-            def _vertex_key(vid: str) -> tuple:
+            def _vertex_key(vid: str) -> Tuple[int, Any]:
                 v = next((vx for vx in self.graph.V if vx.id == vid), None)
                 if v is None:
-                    return (2, vid)
+                    return (2, self._vertex_sig.get(vid, ""))
                 if v.is_generic:
-                    return (0, self.vertex_labels.get(vid, vid))
-                return (1, v.label or vid)
+                    return (0, self._vertex_sig.get(vid, ""))
+                return (1, self._vertex_sig.get(vid, ""))
 
             for vid in sorted(isolated, key=_vertex_key):
                 v = next((vx for vx in self.graph.V if vx.id == vid), None)
@@ -122,11 +141,11 @@ class CLIFGenerator:
                     self.used_labels.add(label)
                 processed.add(vid)
 
-            # Recurse into cuts deterministically
+            # Recurse into cuts in canonical structural order.
             cut_ids: List[str] = [
                 cid for cid in area if any(c.id == cid for c in self.graph.Cut)
             ]
-            for cid in sorted(cut_ids):
+            for cid in sorted(cut_ids, key=lambda c: self._cut_sig[c]):
                 assign_in_context(cid)
 
         assign_in_context(self.graph.sheet)
@@ -169,26 +188,18 @@ class CLIFGenerator:
         """Generate CLIF expression for area content."""
         elements = self._get_area_elements(area_id)
 
-        # Generate atomic formulas from edges
+        # Generate atomic formulas from edges in canonical structural order.
+        self._ensure_canonical_signatures()
         atomic_formulas = []
 
-        def _edge_key(eid: str) -> tuple:
-            pred = self.graph.rel.get(eid, "")
-            vseq = self.graph.nu.get(eid, [])
-            arg_labels: List[str] = []
-            for vid in vseq:
-                lab = self.vertex_labels.get(vid, vid)
-                arg_labels.append(lab)
-            return (pred, tuple(arg_labels), eid)
-
-        for edge_id in sorted(elements["edges"], key=_edge_key):
+        for edge_id in sorted(elements["edges"], key=lambda e: self._edge_sig[e]):
             formula = self._generate_atomic_formula(edge_id)
             if formula:
                 atomic_formulas.append(formula)
 
-        # Generate negations from cuts
+        # Generate negations from cuts in canonical structural order.
         negations = []
-        for cut_id in sorted(elements["cuts"]):
+        for cut_id in sorted(elements["cuts"], key=lambda c: self._cut_sig[c]):
             negation = self._generate_cut_expression(cut_id)
             if negation:
                 negations.append(negation)
