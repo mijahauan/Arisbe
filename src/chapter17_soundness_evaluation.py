@@ -316,26 +316,78 @@ class Chapter17SoundnessEvaluator:
         """
         Verify ligature-specific soundness properties.
 
-        Different rules have different preservation requirements:
-        - Move: Preserves ligature connectivity
-        - Extend: Adds valid identity connections
-        - Retract: Maintains semantic equivalence through identity
-        - Rearrange: Preserves ligature semantics in new arrangement
+        Two layers:
+        1. Rule-specific structural checks (counts, connectivity assumptions).
+        2. Universal Dau Definition 16.8 check: every ligature in the
+           transformed EGI must remain single-object. A rule that produces
+           a non-single-object ligature has destroyed semantic well-formedness
+           even if the structural counts look right.
         """
+        # Layer 1: rule-specific structural checks.
         if "MOVE_BRANCHES" in rule_name:
-            return self._verify_move_branches_properties(original_egi, transformed_egi)
+            rule_specific_ok = self._verify_move_branches_properties(
+                original_egi, transformed_egi
+            )
         elif "EXTEND_LIGATURE" in rule_name:
-            return self._verify_extend_properties(original_egi, transformed_egi)
+            rule_specific_ok = self._verify_extend_properties(
+                original_egi, transformed_egi
+            )
         elif "RETRACT_LIGATURE" in rule_name:
-            return self._verify_retract_properties(original_egi, transformed_egi)
+            rule_specific_ok = self._verify_retract_properties(
+                original_egi, transformed_egi
+            )
         elif "REARRANGE_LIGATURE" in rule_name:
-            return self._verify_rearrange_properties(original_egi, transformed_egi)
+            rule_specific_ok = self._verify_rearrange_properties(
+                original_egi, transformed_egi
+            )
         elif "SPLIT_VERTEX" in rule_name:
-            return self._verify_split_properties(original_egi, transformed_egi)
+            rule_specific_ok = self._verify_split_properties(
+                original_egi, transformed_egi
+            )
         elif "MERGE_VERTICES" in rule_name:
-            return self._verify_merge_properties(original_egi, transformed_egi)
+            rule_specific_ok = self._verify_merge_properties(
+                original_egi, transformed_egi
+            )
+        else:
+            rule_specific_ok = True
 
-        return True  # Default case
+        if not rule_specific_ok:
+            return False
+
+        # Layer 2: every ligature in the transformed EGI must satisfy
+        # Dau Definition 16.8 (single-object). Skip if the original itself
+        # was already malformed — in that case the rule isn't responsible
+        # for the violation.
+        original_ok, _ = self._all_ligatures_single_object(original_egi)
+        if not original_ok:
+            return True  # Pre-existing malformedness; not this rule's fault.
+
+        transformed_ok, _ = self._all_ligatures_single_object(transformed_egi)
+        return transformed_ok
+
+    def _all_ligatures_single_object(
+        self,
+        egi: RelationalGraphWithCuts,
+    ) -> Tuple[bool, List[str]]:
+        """Check every ligature in ``egi`` against Dau Definition 16.8.
+
+        A ligature is a connected component of vertices under identity
+        edges. Single-vertex ligatures are trivially single-object (no
+        identity edges to violate any condition).
+
+        Returns ``(all_ok, violation_messages)``.
+        """
+        self.ligature_detector.egi = egi
+        violations: List[str] = []
+        for ligature in egi.get_ligatures():
+            if len(ligature) <= 1:
+                continue
+            is_single, ligature_violations = (
+                self.ligature_detector.is_single_object_ligature(list(ligature))
+            )
+            if not is_single:
+                violations.extend(ligature_violations)
+        return (not violations, violations)
 
     def _extract_identity_relations(
         self, egi: RelationalGraphWithCuts

@@ -73,60 +73,139 @@ class TestChapter16_17LigatureSoundnessSimplified:
 
     # ==================== LIGATURE DETECTION SOUNDNESS ====================
 
-    def test_ligature_detection_soundness_validation(self):
+    def test_detector_recognizes_same_area_ligature_as_single_object(self):
+        """A ligature whose identity edge and both vertices live in the same
+        area is single-object per Dau Definition 16.8 — none of the three
+        depth conditions can be violated when all elements share a context.
         """
-        Test ligature detection soundness validation comprehensively.
-        
-        Validates that ligature detection correctly identifies valid ligature opportunities.
+        from frozendict import frozendict
+
+        from src.egi_core_dau import (
+            Edge,
+            ElementID,
+            RelationalGraphWithCuts,
+            Vertex,
+        )
+        from src.single_object_ligature_detector import SingleObjectLigatureDetector
+
+        v1 = Vertex(ElementID("v1"))
+        v2 = Vertex(ElementID("v2"))
+        e = Edge(ElementID("e"))
+        egi = RelationalGraphWithCuts(
+            V=frozenset([v1, v2]),
+            E=frozenset([e]),
+            nu=frozendict({ElementID("e"): (ElementID("v1"), ElementID("v2"))}),
+            sheet=ElementID("sheet"),
+            Cut=frozenset(),
+            area=frozendict(
+                {
+                    ElementID("sheet"): frozenset(
+                        [ElementID("v1"), ElementID("v2"), ElementID("e")]
+                    )
+                }
+            ),
+            rel=frozendict({ElementID("e"): "="}),
+        )
+
+        detector = SingleObjectLigatureDetector(egi=egi)
+        is_single, violations = detector.is_single_object_ligature(
+            [ElementID("v1"), ElementID("v2")]
+        )
+
+        assert is_single, f"Expected single-object; got violations: {violations}"
+        assert violations == []
+
+    def test_detector_flags_identity_edge_strictly_deeper_than_endpoints(self):
+        """Dau Definition 16.8 Condition 1: an identity-link whose context
+        is strictly deeper than both endpoints is forbidden. With v1, v2 on
+        the sheet and the identity edge inside a cut, the detector must
+        report a Condition 1 violation.
         """
-        print("\n🧪 Testing ligature detection soundness validation...")
-        
-        # Test 1: Ligature detection module availability
-        try:
-            from src.single_object_ligature_detector import SingleObjectLigatureDetector
-            detector = SingleObjectLigatureDetector()
-            assert detector is not None
-            print("✅ Ligature detector module available and instantiated")
-            
-        except Exception as e:
-            print(f"⚠️  Ligature detector availability: {e}")
-        
-        # Test 2: Ligature detection on simple EGI
-        try:
-            from src.single_object_ligature_detector import SingleObjectLigatureDetector
-            detector = SingleObjectLigatureDetector()
-            
-            if hasattr(detector, 'detect_ligatures'):
-                ligatures = detector.detect_ligatures(self.test_egi)
-                print(f"✅ Ligature detection on simple EGI: {len(ligatures) if ligatures else 0} ligatures found")
-            elif hasattr(detector, 'find_ligatures'):
-                ligatures = detector.find_ligatures(self.test_egi)
-                print(f"✅ Ligature finding on simple EGI: {len(ligatures) if ligatures else 0} ligatures found")
-            else:
-                print("✅ Ligature detector instantiated (methods available for inspection)")
-                
-        except Exception as e:
-            print(f"⚠️  Simple EGI ligature detection: {e}")
-        
-        # Test 3: Ligature detection determinism
-        try:
-            from src.single_object_ligature_detector import SingleObjectLigatureDetector
-            detector = SingleObjectLigatureDetector()
-            
-            # Multiple runs should give consistent results
-            results = []
-            for i in range(3):
-                if hasattr(detector, 'detect_ligatures'):
-                    result = detector.detect_ligatures(self.test_egi)
-                    results.append(len(result) if result else 0)
-                else:
-                    results.append(0)  # Consistent placeholder
-            
-            deterministic = len(set(results)) <= 1  # All results should be the same
-            print(f"✅ Ligature detection deterministic: {deterministic} (results: {results})")
-            
-        except Exception as e:
-            print(f"⚠️  Ligature detection determinism test: {e}")
+        from frozendict import frozendict
+
+        from src.egi_core_dau import (
+            Cut,
+            Edge,
+            ElementID,
+            RelationalGraphWithCuts,
+            Vertex,
+        )
+        from src.single_object_ligature_detector import SingleObjectLigatureDetector
+
+        v1 = Vertex(ElementID("v1"))
+        v2 = Vertex(ElementID("v2"))
+        e = Edge(ElementID("e"))
+        cut = Cut(ElementID("cut"))
+        egi = RelationalGraphWithCuts(
+            V=frozenset([v1, v2]),
+            E=frozenset([e]),
+            nu=frozendict({ElementID("e"): (ElementID("v1"), ElementID("v2"))}),
+            sheet=ElementID("sheet"),
+            Cut=frozenset([cut]),
+            area=frozendict(
+                {
+                    ElementID("sheet"): frozenset(
+                        [ElementID("v1"), ElementID("v2"), ElementID("cut")]
+                    ),
+                    ElementID("cut"): frozenset([ElementID("e")]),
+                }
+            ),
+            rel=frozendict({ElementID("e"): "="}),
+        )
+
+        detector = SingleObjectLigatureDetector(egi=egi)
+        is_single, violations = detector.is_single_object_ligature(
+            [ElementID("v1"), ElementID("v2")]
+        )
+
+        assert not is_single
+        assert any("condition 1" in v.lower() for v in violations), (
+            f"Expected a Condition 1 violation; got: {violations}"
+        )
+
+    def test_detector_is_deterministic(self):
+        """Repeated calls on the same EGI/ligature must return identical
+        results — no hidden state, no nondeterministic enumeration order
+        that flips the verdict.
+        """
+        from frozendict import frozendict
+
+        from src.egi_core_dau import (
+            Edge,
+            ElementID,
+            RelationalGraphWithCuts,
+            Vertex,
+        )
+        from src.single_object_ligature_detector import SingleObjectLigatureDetector
+
+        v1 = Vertex(ElementID("v1"))
+        v2 = Vertex(ElementID("v2"))
+        e = Edge(ElementID("e"))
+        egi = RelationalGraphWithCuts(
+            V=frozenset([v1, v2]),
+            E=frozenset([e]),
+            nu=frozendict({ElementID("e"): (ElementID("v1"), ElementID("v2"))}),
+            sheet=ElementID("sheet"),
+            Cut=frozenset(),
+            area=frozendict(
+                {
+                    ElementID("sheet"): frozenset(
+                        [ElementID("v1"), ElementID("v2"), ElementID("e")]
+                    )
+                }
+            ),
+            rel=frozendict({ElementID("e"): "="}),
+        )
+
+        detector = SingleObjectLigatureDetector(egi=egi)
+        results = [
+            detector.is_single_object_ligature([ElementID("v1"), ElementID("v2")])
+            for _ in range(3)
+        ]
+
+        assert all(r == results[0] for r in results), (
+            f"Detector returned inconsistent results across runs: {results}"
+        )
 
     def test_ligature_manipulation_rules_compliance(self):
         """
@@ -635,6 +714,115 @@ class TestChapter16_17LigatureSoundnessSimplified:
         
         # This test always passes - it's a summary
         assert True
+
+    # ==================== CH17 EVALUATOR WIRING ====================
+
+    def test_ch17_evaluator_accepts_well_formed_ligature(self):
+        """``Chapter17SoundnessEvaluator._all_ligatures_single_object`` must
+        return ``(True, [])`` when every ligature in the EGI satisfies
+        Dau Definition 16.8 — the canonical sound case.
+        """
+        from frozendict import frozendict
+
+        from src.chapter17_soundness_evaluation import Chapter17SoundnessEvaluator
+        from src.egi_core_dau import (
+            Edge,
+            ElementID,
+            RelationalGraphWithCuts,
+            Vertex,
+        )
+
+        v1 = Vertex(ElementID("v1"))
+        v2 = Vertex(ElementID("v2"))
+        e = Edge(ElementID("e"))
+        egi = RelationalGraphWithCuts(
+            V=frozenset([v1, v2]),
+            E=frozenset([e]),
+            nu=frozendict({ElementID("e"): (ElementID("v1"), ElementID("v2"))}),
+            sheet=ElementID("sheet"),
+            Cut=frozenset(),
+            area=frozendict(
+                {
+                    ElementID("sheet"): frozenset(
+                        [ElementID("v1"), ElementID("v2"), ElementID("e")]
+                    )
+                }
+            ),
+            rel=frozendict({ElementID("e"): "="}),
+        )
+
+        evaluator = Chapter17SoundnessEvaluator()
+        ok, violations = evaluator._all_ligatures_single_object(egi)
+        assert ok, f"Expected well-formed; got violations: {violations}"
+        assert violations == []
+
+    def test_ch17_evaluator_flags_non_single_object_ligature(self):
+        """The evaluator must reject an EGI whose ligature violates Dau
+        Definition 16.8 — here, an identity edge sitting in a strictly
+        deeper context than both endpoints.
+        """
+        from frozendict import frozendict
+
+        from src.chapter17_soundness_evaluation import Chapter17SoundnessEvaluator
+        from src.egi_core_dau import (
+            Cut,
+            Edge,
+            ElementID,
+            RelationalGraphWithCuts,
+            Vertex,
+        )
+
+        v1 = Vertex(ElementID("v1"))
+        v2 = Vertex(ElementID("v2"))
+        e = Edge(ElementID("e"))
+        cut = Cut(ElementID("cut"))
+        egi = RelationalGraphWithCuts(
+            V=frozenset([v1, v2]),
+            E=frozenset([e]),
+            nu=frozendict({ElementID("e"): (ElementID("v1"), ElementID("v2"))}),
+            sheet=ElementID("sheet"),
+            Cut=frozenset([cut]),
+            area=frozendict(
+                {
+                    ElementID("sheet"): frozenset(
+                        [ElementID("v1"), ElementID("v2"), ElementID("cut")]
+                    ),
+                    ElementID("cut"): frozenset([ElementID("e")]),
+                }
+            ),
+            rel=frozendict({ElementID("e"): "="}),
+        )
+
+        evaluator = Chapter17SoundnessEvaluator()
+        ok, violations = evaluator._all_ligatures_single_object(egi)
+        assert not ok
+        assert violations, "Expected at least one violation message"
+
+    def test_ch17_evaluator_ignores_isolated_vertices(self):
+        """Single-vertex 'ligatures' have no identity edges to violate
+        any condition — the evaluator must treat them as trivially
+        single-object regardless of where they sit.
+        """
+        from frozendict import frozendict
+
+        from src.chapter17_soundness_evaluation import Chapter17SoundnessEvaluator
+        from src.egi_core_dau import ElementID, RelationalGraphWithCuts, Vertex
+
+        v = Vertex(ElementID("v"))
+        egi = RelationalGraphWithCuts(
+            V=frozenset([v]),
+            E=frozenset(),
+            nu=frozendict(),
+            sheet=ElementID("sheet"),
+            Cut=frozenset(),
+            area=frozendict({ElementID("sheet"): frozenset([ElementID("v")])}),
+            rel=frozendict(),
+        )
+
+        evaluator = Chapter17SoundnessEvaluator()
+        ok, violations = evaluator._all_ligatures_single_object(egi)
+        assert ok
+        assert violations == []
 
 
 if __name__ == "__main__":
