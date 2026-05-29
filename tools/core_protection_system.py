@@ -2,9 +2,11 @@
 """
 Core Protection System - Protects validated core modules from unauthorized changes
 
-This system implements strict protection for the 16 validated core modules
-that have been tested with 87/87 passing tests. Any modifications to these
-modules require explicit authorization and justification.
+Protects the validated core modules from unauthorized changes. The mathematical
+core test suite (covering egi_core_dau, formal_transformation_rules, rule_interaction,
+subgraph_closure_validator, graph_isomorphism_engine, and Beta/logical proof
+exercises) must always pass; modifications to protected modules require explicit
+authorization (touch .core_modification_authorized).
 """
 
 import os
@@ -21,24 +23,44 @@ class CoreProtectionSystem:
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or Path.cwd()
         
-        # Protected core modules (from our analysis)
+        # Protected core modules.
+        # Rationale: each module here is either (a) the EGI data model and its IO,
+        # (b) a Dau transformation rule or its interaction protocol, (c) a Beta-aware
+        # validator/matcher relied on by the rules, or (d) layout/ligature machinery
+        # that downstream code treats as a stable interface. Modules dropped in
+        # 2026-05 (enhanced_ligature_algorithms.py, syntactic_equivalence_checker.py)
+        # were orphaned — no imports anywhere in the codebase — and so could not
+        # be load-bearing despite being protected.
         self.protected_modules = {
-            'area_spatial_constraint_system.py',
-            'cgif_generator_dau.py',
-            'cgif_parser_dau.py',
+            # EGI data model + IO
             'egi_core_dau.py',
             'egi_io.py',
-            'egif_generator_dau.py',
-            'egif_parser_dau.py',
-            'enhanced_ligature_algorithms.py',
-            'formal_transformation_rules.py',
             'hierarchical_index.py',
-            'ligature_aware_positioning_engine.py',
+            # Linear format parsers/generators
+            'egif_parser_dau.py',
+            'egif_generator_dau.py',
+            'cgif_parser_dau.py',
+            'cgif_generator_dau.py',
+            'clif_parser_dau.py',
+            'clif_generator_dau.py',
+            # Diachronic state + history
+            'universe_of_discourse.py',
+            'egi_transformation_history.py',
+            # Transformation rules + headless stepwise protocol
+            'formal_transformation_rules.py',
+            'rule_interaction.py',
+            # Beta-aware validation + isomorphism
+            'subgraph_closure_validator.py',
+            'graph_isomorphism_engine.py',
+            # Ligature machinery (stable interfaces). Four other ligature
+            # modules listed in earlier versions of this set
+            # (area_spatial_constraint_system, ligature_aware_positioning_engine,
+            # ligature_optimization_engine, obstacle_aware_ligature_router) were
+            # removed in May 2026 — they did not exist on disk; only stale
+            # __pycache__ entries remained. The protection system was guarding
+            # ghosts.
             'ligature_manipulation_rules.py',
-            'ligature_optimization_engine.py',
-            'obstacle_aware_ligature_router.py',
             'single_object_ligature_detector.py',
-            'syntactic_equivalence_checker.py'
         }
         
         self.src_path = self.project_root / "src"

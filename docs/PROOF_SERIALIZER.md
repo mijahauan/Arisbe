@@ -304,7 +304,7 @@ are preserved on round-trip.
 ## Running the Tests
 
 ```bash
-conda run -n CGIF python -m pytest tests/test_proof_serializer.py -v
+uv run python -m pytest tests/test_proof_serializer.py -v
 ```
 
 Expected: all tests pass.
@@ -312,5 +312,5 @@ Expected: all tests pass.
 ## Running the Demo
 
 ```bash
-conda run -n CGIF python tools/demo_proof_serializer.py
+uv run python tools/demo_proof_serializer.py
 ```

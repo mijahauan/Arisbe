@@ -64,6 +64,12 @@ class EGIFLexer:
         self.text = text
         self.position = 0
         self.tokens = []
+        # Defining-variable names (without the leading "*") seen so far during
+        # this scan. Used by ``_is_bound_variable`` to classify multi-character
+        # identifiers that the generator may emit (e.g. ``x1``, ``x2``) when
+        # disambiguating relabeled vertices. EGIF convention is that defining
+        # occurrences precede bound uses, so single-pass tracking is sufficient.
+        self.defined_names: set = set()
 
     def tokenize(self) -> List[Token]:
         """Scan the EGIF text and produce a flat list of Tokens.
@@ -111,6 +117,9 @@ class EGIFLexer:
                 self.position += 2
             elif char == "*":
                 var_name = self._read_variable()
+                # Track the base name (strip the leading "*") so subsequent
+                # plain-identifier occurrences classify as BOUND_VAR.
+                self.defined_names.add(var_name[1:])
                 self.tokens.append(
                     Token(
                         TokenType.DEFINING_VAR, var_name, self.position - len(var_name)
@@ -206,16 +215,21 @@ class EGIFLexer:
         return self.text[start : self.position]
 
     def _is_bound_variable(self, identifier: str) -> bool:
-        """Return True if *identifier* looks like a bound variable rather than a relation name.
+        """Return True if *identifier* names a bound variable rather than a relation.
 
-        Heuristic: a single lowercase letter (e.g. ``x``, ``y``) is treated as
-        a bound variable; anything longer or starting with uppercase is treated
-        as a relation name.  A proper implementation would track all defining
-        occurrences (``*x``) seen so far, but the single-char rule is sufficient
-        for all Dau-corpus examples currently in the test suite.
+        Primary rule: if the identifier has appeared as a defining variable
+        (``*identifier``) earlier in this scan, it is a bound reference. This
+        handles multi-character names the generator emits when disambiguating
+        relabeled vertices (e.g. ``*x1`` defined, then ``x1`` referenced).
+
+        Fallback: single lowercase letter (``x``, ``y``, ``z``) is treated as
+        a bound variable even if no prior defining occurrence is present, for
+        backward compatibility with hand-written EGIF corpus inputs that
+        sometimes use bound names whose defining occurrence sits inside a
+        scope the lexer hasn't yet processed.
         """
-        # Simple heuristic: single lowercase letter is likely a bound variable
-        # More sophisticated logic would track defining occurrences
+        if identifier in self.defined_names:
+            return True
         return len(identifier) == 1 and identifier.islower()
 
 

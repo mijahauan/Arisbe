@@ -10,7 +10,7 @@ Demonstrates four representative use cases:
   4. Branching DAG — serialize a history that has an alternative branch
 
 Run:
-    conda run -n CGIF python tools/demo_proof_serializer.py
+    uv run python tools/demo_proof_serializer.py
 """
 
 import json

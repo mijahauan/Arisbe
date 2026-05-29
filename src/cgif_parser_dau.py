@@ -379,17 +379,28 @@ class CGIFParser:
                 self._advance()
 
                 if self.current_token.type == CGIFTokenType.COLON:
-                    # Type concept [Type: *x]
+                    # Type concept [Type: *x], [Type: ?x], [Type: @every *x],
+                    # or [Type: Constant]
                     self._advance()  # Skip :
 
                     node = CGIFParseNode("type_concept")
                     node.value = type_token.value
 
-                    # Parse referent (defining label or constant)
+                    # Parse referent: defining (*x), bound (?x), universal
+                    # (@every *x), or constant (identifier / quoted string).
                     if self.current_token.type == CGIFTokenType.ASTERISK:
                         self._advance()  # Skip *
                         label_token = self._expect(CGIFTokenType.IDENTIFIER)
                         node.attributes["defining_label"] = label_token.value
+                    elif self.current_token.type == CGIFTokenType.QUESTION:
+                        # Bound reference: the type relation attaches to an
+                        # existing vertex previously introduced (either as an
+                        # isolated [* x] or as a defining occurrence in an
+                        # outer scope). The EGI-builder will look the vertex
+                        # up rather than create a new one.
+                        self._advance()  # Skip ?
+                        label_token = self._expect(CGIFTokenType.IDENTIFIER)
+                        node.attributes["bound_label"] = label_token.value
                     elif self.current_token.type == CGIFTokenType.AT_EVERY:
                         self._advance()  # Skip @every
                         self._expect(CGIFTokenType.ASTERISK)
@@ -518,6 +529,19 @@ class CGIFParser:
                 # Track mapping for reuse
                 self._label_to_vertex_id[node.attributes["defining_label"]] = vertex_id
                 # Create type relation edge attached to the vertex
+                type_edge_id = f"e_{node.value}_{len(egi.E)}"
+                type_edge = Edge(id=type_edge_id)
+                egi = egi.with_edge(
+                    type_edge, (vertex_id,), node.value, context_id=area_id
+                )
+                return egi
+
+            if "bound_label" in node.attributes:
+                # [Type: ?x] - attach type relation to a previously-introduced
+                # vertex. The vertex must already exist (introduced earlier as
+                # an isolated [* x] or as a defining occurrence). Same lookup
+                # convention as the "relation" branch below.
+                vertex_id = f"v_{node.attributes['bound_label']}"
                 type_edge_id = f"e_{node.value}_{len(egi.E)}"
                 type_edge = Edge(id=type_edge_id)
                 egi = egi.with_edge(

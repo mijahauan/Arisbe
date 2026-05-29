@@ -114,7 +114,7 @@ The **core reasoning engine** and referee.
 - **📚 API Documentation**: `docs/ARISBE_CORE_API_REFERENCE.md`
 - **🛡️ Core Protection**: 16 validated modules, 254 passing tests
 - **📊 Quality Monitoring**: Automated quality gates and daily dashboard
-- **🧠 Context Recovery**: `docs/context/COHERENCE_FRAMEWORK_REMINDER.md`
+- **🧠 Context Recovery**: `docs/RETURN_TO_DEVELOPMENT.md`
 
 **→ New to the codebase? Read `AGENTS.md` for complete development guidelines.**
 
@@ -220,11 +220,7 @@ The **core reasoning engine** and referee.
 
 **Utilities:**
 
-- `dau_formalism_validator.py` — Cross-chapter Dau compliance checking
 - `insertion_clipboard.py` — Persistent INS workflow clipboard
-- `egi_validity_analyzer.py` — Structural EGI integrity checking
-- `nary_identity_relations.py` — N-ary identity/ligature relations
-- `theta_relation.py` — Θ-relation for ligature equivalence classes
 - `single_object_ligature_detector.py` — Single-object ligature detection
 
 ### Core Principles
@@ -241,10 +237,10 @@ The **core reasoning engine** and referee.
 
 ```
 src/                  Core logic and engine (39 production modules)
-tests/                Pytest test suite (270 passing, 27 test files)
+tests/                Pytest test suite (313 passing, 33 test files)
 tools/                Quality tools, demos, and utilities
 docs/                 Architecture documentation
-docs/context/         AI-assist context and recovery guides
+docs/RETURN_TO_DEVELOPMENT.md  Context recovery guide for returning authors
 tomos/                Canonical example corpus (87 items)
 corpus/               Active working corpus
 archive/              Archived legacy components
@@ -258,20 +254,19 @@ styles/               Visual style specifications (JSON)
 ### Install
 
 ```bash
-conda activate CGIF   # Python 3.12; see requirements.txt
-pip install -r requirements.txt
+uv sync --extra dev   # Python 3.12; see pyproject.toml
 ```
 
 ### Launch the Qt GUI
 
 ```bash
-python arisbe.py
+uv run python arisbe.py
 ```
 
 ### Play the Endoporeutic Game (REPL)
 
 ```bash
-conda run -n CGIF python -c "
+uv run python -c "
 import sys; sys.path.insert(0, 'src')
 from game_repl import ArisbeGameREPL
 ArisbeGameREPL().cmdloop()
@@ -322,34 +317,34 @@ print(r)   # Z3Result(YES: ...)
 ### Core suite
 
 ```bash
-# Full test suite (254 passing)
-conda run -n CGIF python -m pytest tests/ -q
+# Full test suite
+uv run pytest tests/ -q
 
 # With verbose output
-conda run -n CGIF python -m pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 ### Quality and protection
 
 ```bash
 # Quality gate
-conda run -n CGIF python tools/quality_gate_system.py
+uv run python tools/quality_gate_system.py
 
 # Core protection status
-conda run -n CGIF python tools/core_protection_system.py --report
+uv run python tools/core_protection_system.py --report
 
 # Daily dashboard
-conda run -n CGIF python tools/daily_quality_dashboard.py
+uv run python tools/daily_quality_dashboard.py
 ```
 
 ### Demos and integration scripts
 
 ```bash
 # Syllogism proof demo
-conda run -n CGIF python tools/demo_syllogism_proof.py
+uv run python tools/demo_syllogism_proof.py
 
 # Round-trip translation demo
-conda run -n CGIF python tools/demo_round_trip_translations.py
+uv run python tools/demo_round_trip_translations.py
 ```
 
 ---
@@ -427,7 +422,7 @@ conda run -n CGIF python tools/demo_round_trip_translations.py
 
 **Testing:**
 
-- **270 tests passing** (27 test files), 3 skipped (Qt-dependent)
+- **313 tests passing** (33 test files), 3 skipped (Qt-dependent)
 - Quality gates and core protection active
 - Comprehensive test coverage: core data model, all six transformation rules,
   import/export round-trips, isomorphism engine, proof exercises (Alpha + Beta),

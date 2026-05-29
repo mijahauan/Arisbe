@@ -254,6 +254,71 @@ class TestGenerateLayout:
             f"Sibling cuts overlap: {a} vs {b}"
         )
 
+    def test_nested_cut_contained_in_parent_cut(self, engine, style):
+        """A child cut's bounding box must lie inside its parent cut's bounding box.
+
+        ELK's hierarchical compound graph layout is supposed to guarantee this,
+        but it depends on (a) the EGI → ELK mapping marking cuts as containers
+        with correct parent/child links, and (b) ELK respecting the padding
+        spec. Regressions in either layer would produce diagrams where Dau's
+        nesting semantics is visually violated."""
+        egi = parse_egif("~[ (Cat *x) ~[ (Animal x) ] ]")
+        dto = engine.generate_layout(egi, style)
+        # Find parent → child cut relationship via area_hierarchy.
+        outer_id = None
+        inner_id = None
+        for parent_id, children in dto.area_hierarchy.items():
+            child_cuts = [c.id for c in egi.Cut if c.id in children]
+            if parent_id != egi.sheet and child_cuts:
+                outer_id = parent_id
+                inner_id = child_cuts[0]
+                break
+        assert outer_id is not None, "expected a non-sheet cut with a child cut"
+        assert inner_id is not None
+        outer = dto.cut_bounds[outer_id]
+        inner = dto.cut_bounds[inner_id]
+        assert outer.min_x <= inner.min_x, f"inner.min_x={inner.min_x} escapes outer.min_x={outer.min_x}"
+        assert outer.min_y <= inner.min_y, f"inner.min_y={inner.min_y} escapes outer.min_y={outer.min_y}"
+        assert inner.max_x <= outer.max_x, f"inner.max_x={inner.max_x} escapes outer.max_x={outer.max_x}"
+        assert inner.max_y <= outer.max_y, f"inner.max_y={inner.max_y} escapes outer.max_y={outer.max_y}"
+
+    def test_intra_area_ligature_stays_inside_predicates_cut(self, engine, style):
+        """For a predicate and its vertex both living in the same cut, the
+        ligature path connecting them must stay within that cut's bounds.
+
+        Cross-cut ligatures (Beta lines of identity) are intentional and
+        excluded from this check — we only assert containment when both
+        endpoints belong to the same enclosed area."""
+        # Single predicate, single vertex, both inside one cut.
+        egi = parse_egif("~[ (Cat *x) ]")
+        dto = engine.generate_layout(egi, style)
+        # The lone cut bounds.
+        assert len(dto.cut_bounds) == 1
+        cut_id, cut_bb = next(iter(dto.cut_bounds.items()))
+
+        # Build vertex_id → area_id and predicate_id → area_id maps.
+        elem_area: dict = {}
+        for area_id, members in egi.area.items():
+            for m in members:
+                elem_area[m] = area_id
+
+        checked = 0
+        for lp in dto.ligature_paths:
+            v_area = elem_area.get(lp.vertex_id)
+            p_area = elem_area.get(lp.predicate_id)
+            if v_area == p_area == cut_id:
+                checked += 1
+                for pt in lp.points:
+                    # Allow a tiny tolerance for floating-point edge cases.
+                    eps = 0.5
+                    assert cut_bb.min_x - eps <= pt.x <= cut_bb.max_x + eps, (
+                        f"ligature x={pt.x} outside cut [{cut_bb.min_x},{cut_bb.max_x}]"
+                    )
+                    assert cut_bb.min_y - eps <= pt.y <= cut_bb.max_y + eps, (
+                        f"ligature y={pt.y} outside cut [{cut_bb.min_y},{cut_bb.max_y}]"
+                    )
+        assert checked >= 1, "expected at least one intra-cut ligature to check"
+
     def test_corpus_example(self, engine, style):
         """Load and layout a corpus EGI JSON example end-to-end."""
         corpus_path = (

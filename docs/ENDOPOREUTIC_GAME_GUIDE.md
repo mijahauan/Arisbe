@@ -6,8 +6,14 @@
 
 ## Overview
 
-The Endoporeutic Game (EPG) is Peirce's dialogical semantics for Existential
-Graphs — a paraphrasing of "unwrapping game" or "outside-in game."
+The Endoporeutic Game (EPG) is Peirce's dialogical **interpretation** of
+Existential Graphs — a paraphrasing of "unwrapping game" or "outside-in game."
+It is not a proof procedure. Proof and interpretation are related but serve
+different purposes and follow different procedures. The EPG provides the
+interpretive method: given a proposed graph G and a domain model M, the game
+determines whether G holds in M by systematically unwrapping G using only the
+eliminative rules IT- and DC- until the graph either disappears entirely or
+cannot be reduced further.
 
 > "The interpretation of existential graphs is *endoporeutic*, that is, proceeds
 > inwardly; so that a nest sucks the meaning from without inwards unto its
@@ -34,18 +40,22 @@ double negative providing the initial context).
 |-----------|-------------|
 | **Domain Model (M)** | An agreed EGI on the Sheet of Assertion — the shared knowledge base |
 | **Proposal (G)** | The Graphist's "seed" graph — an assertion to be tested |
-| **Rules** | The six Dau transformation rules, polarity-constrained |
+| **Rules** | IT- (de-iteration) and DC- (double cut elimination) — the two eliminative rules used by the EPG |
 | **Agonothetes** | The interpretive function of the game: provides context, validates moves, produces understanding from the outcome |
 
 ### Players and Territories
 
 | Player | Also known as | Role | Territory | Rules |
 |--------|---------------|------|-----------|-------|
-| **Graphist** | Proposer, Utterer, Encoder, Speaker | Defends the proposal | NEGATIVE areas (odd depth) | INS, IT+, DC+ |
-| **Grapheus** | Skeptic, Interpreter, Decoder, Listener | Challenges the proposal | POSITIVE areas (even depth) | ERA, IT-, DC- |
+| **Graphist** | Proposer, Utterer, Encoder, Speaker | Defends the proposal | NEGATIVE areas (odd depth) | IT-, DC-; hosts erase-a-negative INS step |
+| **Grapheus** | Skeptic, Interpreter, Decoder, Listener | Challenges the proposal | POSITIVE areas (even depth) | IT-, DC-; initiates erase-a-negative |
 
-DC+ and DC- are meaning-preserving and available to both players in any area.
-One person can play both roles, as when playing oneself in chess.
+The EPG uses three canonical operations — IT-, DC-, and a compound move called
+**erase-a-negative** — all strictly in the service of unwinding structure.
+No arbitrary insertion, no iteration-in to strengthen premises, no erasure of
+arbitrary subgraphs. Each operation reduces or simplifies; none adds new
+propositional content. One person can play both roles, as when playing oneself
+in chess.
 
 ### Turn Structure
 
@@ -77,31 +87,154 @@ The game proceeds by this outside-in reduction:
    *g*. This leaves either an empty sheet (Proposer wins) or one or more
    negations (continue below).
 
-2. If the contested EG **contains negations**, the process removes them
-   one-by-one. Removing a single negation changes the valence of nested
-   elements and **reverses the roles** of Proposer and Skeptic.
+2. If the contested EG **contains negations**, the Grapheus can remove
+   the cut enclosing any subgraph at the current level — **erasing a
+   negative**. This is the core EPG move. The canonical mechanism is:
 
-3. If the outermost graph consists of **two or more negations**, the current
-   Skeptic can remove all but one of them.
+   a. Enter the negative context (the interior of the cut to be erased).
+      By INS — which is always permitted in a negative area — draw a new cut
+      around the subgraph inside, producing a double cut `~[ ~[ H ] ]` in
+      place of the original `~[ H ]`.
+   b. Apply DC- to remove the double cut, leaving H at the current level.
 
-These steps gradually reduce the proposed graph either to emptiness (Proposer
-wins, G is true in M) or to a graph having no possible mapping in M (Skeptic
-wins, G is false in M).
+   Net effect: the enclosing cut is gone and H is promoted one level outward,
+   changing the polarity of every element inside H. What was in a positive
+   context (even depth) is now in a negative context (odd depth), and vice
+   versa. This **reverses the roles** of Graphist and Grapheus for the
+   subgame that follows within H.
 
-### Contextualizing a Proposed Graph
+   The reversal is local: as the game continues back outward through the
+   surrounding structure, the original role assignments are restored. Role
+   switching occurs exactly once per cut traversed; each traversal flips
+   the polarity and the players, resolving back to the original orientation
+   as the game ascends out of each nested level.
 
-The Proposer scribes the contested EG into a context per these rules:
+3. If the outermost graph consists of **two or more negations** (a double
+   cut or multiple adjacent cuts), the current Skeptic can apply DC- to
+   remove a double cut in a single step, bypassing the INS intermediate
+   where the two-cut structure is already in place.
 
-1. `{ }` — Sheet of Assertion (depth 0)
-2. `{ (()) }` — Add double cut: outer at depth 1, inner at depth 2
-3. `{ ((())) () }` — Add another double cut inside the first (depth 1)
-4. `{ (((G))) () }` — Insert G at depth 3 (negative/odd context, per INS rule)
-5. `{ (()) () }` — Erase `((G))` from depth 2 (positive/even, per ERA rule)
-6. `{ (()) }` — De-iterate the redundant empty cut (per IT- rule)
-7. `{ }` — Erase the double cut (per DC- rule)
+These steps gradually reduce the proposed graph either to emptiness (Graphist
+wins, G holds in M) or to a residue having no possible mapping in M (Grapheus
+wins, G does not hold in M).
 
-This demonstrates a valid procedure for introducing G into a specific context
-and then removing it, using only the formal transformation rules.
+### Game Termination
+
+The EPG terminates in exactly one of two ways:
+
+1. **Graph disappears** — every element has been unwound through IT-,
+   DC-, and erase-a-negative operations, and each exposed atomic portion
+   mapped successfully onto M. The Graphist wins: G holds in M.
+
+2. **Graph cannot be reduced further** — some subgraph remains that none of
+   the three EPG operations can eliminate, or an atomic portion fails to map
+   onto M. The Grapheus wins: G does not hold in M.
+
+There is no draw in the formal sense: the game either runs to empty or
+terminates at an irreducible remainder. Stalemate in the *logical* taxonomy
+(§Taxonomy of Game Outcomes) refers to the pragmatic situation where G is
+independent of M — neither provable nor refutable — which appears formally as
+a failure to map, not as a failure to terminate.
+
+---
+
+## Proof: The Constructive Method
+
+Proof and interpretation share the same six Dau transformation rules and the
+same polarity system, but their purposes and procedures are opposite in
+direction. The EPG unwraps a graph to test whether it holds in M. Proof
+*constructs* a derivation showing that G must follow from M — it builds toward
+a target rather than eliminating toward emptiness.
+
+### Purpose
+
+Given a domain model M and a proposed graph G, a **proof** is a finite
+sequence of EGIs, each following from the previous by exactly one rule
+application, that derives G from M (or derives a tautology from the blank
+sheet). The proof demonstrates that G is *necessarily* true whenever M is
+true — it cannot be otherwise.
+
+This is a stronger claim than the EPG result. The EPG answers: "Does G hold
+in M?" Proof answers: "Must G hold in every model that satisfies M?" Both
+questions are important; they are not the same question.
+
+### Rules and Polarity
+
+Proof uses all six Dau transformation rules, partitioned by polarity:
+
+| Operation | Rule | Permitted in |
+|-----------|------|-------------|
+| Erasure | ERA | Positive areas (even depth) |
+| Insertion | INS | Negative areas (odd depth) |
+| Iteration | IT+ | Any area → a nested area of same or deeper depth |
+| De-iteration | IT- | Any area, removing a copy |
+| Double Cut introduction | DC+ | Any area |
+| Double Cut elimination | DC- | Any area |
+
+The **constructive rules** — INS, IT+, DC+ — add structure. The **eliminative
+rules** — ERA, IT-, DC- — remove structure. Both directions are available
+because proof must be able to move in either direction to find a path from the
+premises to the conclusion.
+
+### Player Roles in Proof
+
+In a proof-mode game, the polarity-based role assignment reflects the
+direction of derivation:
+
+| Player | Territory | Rules |
+|--------|-----------|-------|
+| **Graphist** | Negative areas (odd depth) | INS, IT+, DC+ |
+| **Grapheus** | Positive areas (even depth) | ERA, IT-, DC- |
+
+The Graphist works in negative areas because that is where universal
+conditions and antecedents reside — strengthening premises and propagating
+information inward. The Grapheus works in positive areas because that is where
+existential claims and consequents reside — simplifying structure and exposing
+what the Graphist must actually deliver.
+
+DC+ and DC- are available to both players in any area as meaning-preserving
+structural operations.
+
+### The Proof Frame and Termination
+
+A proof that G follows from M is typically structured as a demonstration that
+`~[ M ~[ G ] ]` reduces to the blank sheet. This reads as ¬(M ∧ ¬G) = M → G.
+If the game from this starting position reaches the empty sheet, the proof is
+complete: G is a theorem of M.
+
+A proof terminates when:
+
+1. **Success** — the graph reaches the target (empty sheet for a theorem; a
+   specific goal graph for a derivation step). The Graphist has a winning
+   strategy.
+2. **Failure** — no sequence of rule applications can reach the target. The
+   Grapheus has a winning strategy — there exists a model satisfying M in
+   which G is false.
+
+Unlike the EPG, a proof may require many steps in either direction before
+terminating, and the path is not necessarily monotonically simplifying. The
+Graphist may introduce structure (DC+, IT+, INS) to set up a later
+elimination.
+
+### Relationship to the EPG
+
+The two methods address the same logical territory from opposite directions:
+
+| | EPG (Interpretation) | Proof (Construction) |
+|---|---|---|
+| **Question** | Does G hold in M? | Must G hold given M? |
+| **Direction** | Outside-in elimination | Constructive derivation |
+| **Rules** | IT-, DC- only | All six (ERA, INS, IT+, IT-, DC+, DC-) |
+| **Termination** | Empty (yes) or stuck (no) | Target reached (yes) or unreachable (no) |
+| **Graphist moves** | IT-, DC- in negative areas | INS, IT+, DC+ in negative areas |
+| **Grapheus moves** | IT-, DC- in positive areas | ERA, IT-, DC- in positive areas |
+| **Result** | Semantic: G holds (or not) in *this* M | Logical: G holds in *every* M satisfying the premises |
+
+The EPG outcome informs whether a proof is worth attempting: if the EPG
+returns a win for the Graphist in the given M, there is evidence that a proof
+may exist. If the EPG returns a stalemate, G is independent of M and no proof
+is possible. The EPG is the interpretive gate; proof is the formal
+certification.
 
 ---
 
@@ -256,30 +389,23 @@ The Agonothetes manifests in three phases of the game:
 
 Everything happens within one **Universe of Discourse** (UoD), where more
 than one domain model may exist. The Graphist and Grapheus agree on a
-particular reference model M. The game space is then prepared using the
-transformation rules themselves:
+particular reference model M and a proposed graph G to interpret against it.
 
-1. **DC+** — A context (double cut) is created for the contest. This
-   provides a fresh negative area (depth 1) and a positive area (depth 2)
-   nested within.
-
-2. **IT+** — A copy of M (or reference thereto) is iterated into the
-   game context. M now resides at depth 1 (negative area) alongside the
-   inner cut.
-
-3. **INS** — The Graphist inserts the proposed graph G in a negative
-   sub-context within the game area, in effect asserting: *"if or given
-   this M, then G follows."*
-
-The resulting structure on the sheet is:
+The interpretive frame — the structure the game will unwind — is:
 
 ```
 ~[ M  ~[ G ] ]
 ```
 
-This reads as ¬(M ∧ ¬G) = **M → G**. The game will determine whether this
-implication holds — whether G follows from M, contradicts M, is independent
-of M, or falls into one of the other taxonomic categories.
+This reads as ¬(M ∧ ¬G) = **M → G**. Constructing this frame may require
+proof-mode operations (DC+, IT+, INS) that are outside the EPG procedure
+itself; the Agonothetes oversees that construction before the interpretive
+game begins. Once the frame is in place, the EPG proceeds using only IT- and
+DC- from the outside in.
+
+The game will determine whether G holds in M, contradicts M, is independent
+of M, or falls into one of the other taxonomic categories (§Taxonomy of Game
+Outcomes).
 
 **During the game — maintaining rigour:**
 
@@ -383,11 +509,14 @@ The Graphist embodies the *creative* dimension of inquiry: the capacity to
 produce new signs, to propose what has not yet been tested.  Functionally:
 
 - Constructs representations (graphs) — translating intuitions, observations,
-  or hypotheses into formal structure
-- Defends them — operates in negative areas (INS, IT+, DC+), strengthening
-  conditions and propagating information inward
-- Bears the burden of *completeness* — must show that every part of G maps
-  to M or is internally coherent
+  or hypotheses into formal structure (before the game; proof-mode operations)
+- Defends the unwinding — operates in negative areas, choosing which IT-
+  or DC- moves to apply at each negative-context step; also the territory
+  within which the erase-a-negative INS step is executed (the Grapheus
+  enters this territory to draw the enclosing cut, then DC- completes the
+  erasure from the outside)
+- Bears the burden of *completeness* — must show that every exposed atomic
+  portion of G maps onto M; a single unmapped element means the game fails
 - Embodies the assertive function: *putting claims forward* so they can be
   tested
 
@@ -401,8 +530,13 @@ of reality-as-known to unchecked assertion.  Functionally:
 
 - Tests signs against the domain — M is not an inert database but an active
   participant whose structure determines what follows and what does not
-- Challenges proposals — operates in positive areas (ERA, IT-, DC-),
-  simplifying structure and weakening assertions
+- Challenges proposals — operates in positive areas, choosing which IT-,
+  DC-, or erase-a-negative moves to apply; the erase-a-negative move
+  temporarily enters a negative context (using INS to create a double cut)
+  before DC- completes the erasure — this is the canonical implementation
+  of role switching across a cut boundary
+- Bears the burden of *specificity*: if any exposed element fails to map
+  onto M, the Grapheus wins
 - Bears the burden of *specificity* — needs only one failure, one unmapped
   element, to block the Graphist's claim
 - Embodies the critical function: *checking, constraining, pruning* so that

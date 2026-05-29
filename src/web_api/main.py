@@ -2,7 +2,7 @@
 FastAPI application entry point for the Arisbe EGI Web Viewer.
 
 Run with:
-    conda run -n CGIF uvicorn src.web_api.main:app --reload --port 8000
+    uv run uvicorn src.web_api.main:app --reload --port 8000
 """
 
 import sys

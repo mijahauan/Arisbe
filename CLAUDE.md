@@ -8,48 +8,51 @@ Arisbe implements Frithjof Dau's formal mathematics for Charles Sanders Peirce's
 
 ## Environment & Commands
 
-```bash
-conda activate CGIF        # Python 3.12.10 — required before running anything
+Dependencies are managed by **uv** (Python 3.12). One-time setup: `uv sync --extra dev`. Run commands via `uv run` (no manual activation needed), or `source .venv/bin/activate` first.
 
+```bash
 # Testing
-python -m pytest tests/ -q          # Full test suite (quiet)
-python -m pytest tests/test_foo.py  # Single test file
+uv run pytest tests/ -q          # Full test suite (quiet)
+uv run pytest tests/test_foo.py  # Single test file
 
 # Quality assurance
-python tools/quality_gate_system.py         # Pre-commit checks (auto-run on commit)
-python tools/core_protection_system.py --report  # Check protected module status
-python tools/daily_quality_dashboard.py     # Overall system status
+uv run python tools/quality_gate_system.py         # Pre-commit checks (auto-run on commit)
+uv run python tools/core_protection_system.py --report  # Check protected module status
+uv run python tools/daily_quality_dashboard.py     # Overall system status
 
-# GUI
-python arisbe.py                           # Qt-based integrated interface (PySide6)
-python src/gui_clean/main_application.py   # Clean GUI entry point
-
-# Interactive game REPL
-python -c "import sys; sys.path.insert(0,'src'); from game_repl import ArisbeGameREPL; ArisbeGameREPL().cmdloop()"
+# Web viewer (canonical UI as of May 2026)
+uv run uvicorn web_api.main:app --reload --port 8000   # API + static viewer at /
 ```
 
-**Qt-dependent tests hang during collection** — exclude them from automated runs or run manually via `python tools/test_gui_organon.py`.
+The Qt-based GUI (`arisbe.py`, `src/gui_clean/`) and its `unified_d3` layout
+engine were archived to `archive/qt-gui-2025/` in May 2026 — see that
+directory's README for context. They remain in git history if needed.
 
 ## Core Protection System
 
-**16 modules in `src/` are protected** and cannot be modified without authorization:
+**17 modules in `src/` are protected** and cannot be modified without authorization:
 
 ```bash
 touch .core_modification_authorized   # Required before modifying protected modules
 python tools/core_protection_system.py --report  # Check what's protected
 ```
 
-The **87 core tests must always pass**. They validate the mathematical foundation. Failing core tests indicate real mathematical correctness issues, not test infrastructure problems.
+**The mathematical core test suite must always pass.** The core suite is the subset of `tests/` that covers `egi_core_dau`, `formal_transformation_rules`, `rule_interaction`, `subgraph_closure_validator`, `graph_isomorphism_engine`, and the Beta/logical proof exercises (~118 tests today). Failing core tests indicate real mathematical correctness issues, not test infrastructure problems.
 
 ## Architecture
 
-### Three-Module GUI Architecture
+### Three-Mode Conceptual Architecture
 
-| Module | Greek meaning | Role | Status |
-|--------|--------------|------|--------|
-| **Organon** | "instrument" | Archive/corpus browser, timeline navigation, read-only | ~40% complete |
-| **Ergasterion** | "workshop" | Private editor, transformation practice, draft graphs | Foundation integrated, untested |
-| **Agon** | "contest" | Endoporeutic Game engine, formal validation, official record | Future (game engine in `src/` is production) |
+| Mode | Greek meaning | Role |
+|------|--------------|------|
+| **Organon** | "instrument" | Archive/corpus browser, timeline navigation, read-only |
+| **Ergasterion** | "workshop" | Private editor, transformation practice, draft graphs |
+| **Agon** | "contest" | Endoporeutic Game engine, formal validation, official record |
+
+These are *conceptual modes*. The original Qt implementation (`src/gui_clean/`)
+that mirrored them as separate windows was archived in May 2026. The current
+plan is to surface them as routes within the web app (`src/web_api/`,
+`src/web_viewer/`); that mapping is still ahead.
 
 ### Key `src/` Modules
 
@@ -59,12 +62,14 @@ The **87 core tests must always pass**. They validate the mathematical foundatio
 - `subgraph_closure_validator.py` — Closure validation (Beta-aware: free outer-area vertices)
 - `universe_of_discourse.py` — UoD entity (synchronic EGI + diachronic DAG history + layout deltas)
 - `egi_transformation_history.py` — DAG-based branching transformation history
-- `endoporeutic_game.py` + `game_repl.py` — Two-player dialogical game engine
-- `unified_d3_engine.py` — Recursive bottom-up layout engine (shell-and-core D3)
+- `endoporeutic_game.py` — Two-player dialogical game engine
+- `elk_layout_engine.py` (+ `elk_worker.js`) — Cut-aware ELK-based layout, the canonical layout path
 - `simple_svg_renderer.py` — LayoutDTO → SVG
+- `layout_dto.py` — Platform-independent layout DTO shared by layout engines and renderers
 - `tomos_service.py` — Unified corpus API
 - `z3_semantic_validator.py` — Z3 SMT-solver semantic validation
 - `graph_isomorphism_engine.py` — NetworkX VF2 matching for goal detection
+- `web_api/` (FastAPI) + `web_viewer/` (static HTML/JS) — the canonical user interface
 
 ### Linear Format Support (all production, round-trip tested)
 
@@ -111,7 +116,7 @@ python tools/context_awareness_system.py --check "task description"
 - `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md` — Core paradigm (read before touching UoD/history)
 - `docs/DAG_HISTORY_ARCHITECTURE.md` — Branching transformation history
 - `docs/ARISBE_CORE_API_REFERENCE.md` — Auto-generated API reference
-- `docs/context/FRAMEWORK_AMNESIA_RECOVERY.md` — Full context recovery if disoriented
+- `docs/RETURN_TO_DEVELOPMENT.md` — 5-minute context recovery for the returning author
 - `tomos/` — 87+ canonical EG examples with EGIF/CGIF/CLIF/FOPL variants
 
 ## Mathematical Foundation
@@ -121,9 +126,9 @@ Code chapters correspond to Dau's formal textbook:
 - Ch. 14/15 → `rule_interaction.py` (headless stepwise protocol for all rules)
 - Ch. 16–17 → `ligature_manipulation_rules.py`, `chapter17_soundness_evaluation.py`
 - Ch. 18 → `chapter18_fopl_translation.py` (linear format Φ/Ψ translations)
-- Ch. 20 → `chapter20_syntactic_equivalence_fixes.py`
+- Ch. 20 → `syntactic_equivalence_checker.py`, `chapter20_syntactic_equivalence_fixes.py`
 
-## Testing (270 passing, 3 skipped)
+## Testing (313 passing, 3 skipped, 33 test files)
 
 Key test files:
 - `test_epg_exemplar_scripts.py` — 16 Endoporeutic Game scenarios (outcomes, strategies, engine integration)

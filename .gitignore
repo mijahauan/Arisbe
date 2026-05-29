@@ -185,3 +185,10 @@ cython_debug/
 # Obsolete documentation (archived to prevent context contamination)
 docs/archived/
 !docs/archived/obsolete_egdf/EGDF_OBSOLETE_WARNING.md
+
+# Graphify knowledge-graph output (regenerated on demand)
+graphify-out/
+
+# Claude Code local state and one-shot authorization markers
+.claude/
+.core_modification_authorized

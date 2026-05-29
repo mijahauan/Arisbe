@@ -1,8 +1,8 @@
 # AGENTS.md
 
 ## � Core Protection System
-- **16 protected core modules** - Cannot be modified without explicit authorization
-- **270 tests** must always pass (27 test files) - These validate the mathematical foundation
+- **15 protected core modules** - Cannot be modified without explicit authorization
+- **313 tests** must always pass (33 test files) - These validate the mathematical foundation
 - **Qt-dependent tests** excluded from automatic quality gate (run manually to avoid hangs)
 - **Check protection status**: `python tools/core_protection_system.py --report`
 - **Override protection** (authorized changes only): `touch .core_modification_authorized`
@@ -11,7 +11,7 @@
 - **Auto-updating documentation**: Documentation stays current with codebase changes
 - **Context awareness system**: `tools/context_awareness_system.py` prevents reinvention
 - **Persistent memory integration**: Critical framework awareness stored in memory system
-- **Framework amnesia recovery**: `docs/context/FRAMEWORK_AMNESIA_RECOVERY.md` for complete context recovery
+- **Return-to-development guide**: `docs/RETURN_TO_DEVELOPMENT.md` for context recovery after a break
 - **IDE integration**: VS Code tasks for instant context checks
 
 ## 📚 API Discovery Protocol
@@ -23,10 +23,10 @@
 ## 🧪 Testing Requirements
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
 - **System status**: `python tools/daily_quality_dashboard.py`
-- **Core tests**: `python -m pytest tests/` (270 passing, 3 skipped)
+- **Core tests**: `python -m pytest tests/` (313 passing, 3 skipped)
 - **Qt-dependent tests**: Run manually (excluded from automatic checks due to collection hangs)
 - **GUI Organon tests**: `python tools/test_gui_organon.py` (3/3 passing)
-- **Expected results**: 270 tests passing, 0 failing
+- **Expected results**: 313 tests passing, 0 failing
 - **Timeout protection**: 120s timeout prevents infinite hangs on Qt import issues
 
 ### Battle-Tested Import/Export Infrastructure
@@ -39,10 +39,10 @@
 - **Test files**: `test_corpus_parsing.py`, `test_variable_order_alignment.py`, `test_variable_name_consistency.py`
 
 ## 🏗️ Build and Development
-- **Environment**: `conda activate CGIF` (Python 3.12.10)
-- **Dependencies**: See `requirements.txt`
-- **Core modules location**: `src/` directory (16 protected modules)
-- **Test location**: `tests/` directory (27 test files, 270 tests)
+- **Environment**: managed by `uv` (Python 3.12). Run `uv sync --extra dev` once, then use `uv run <cmd>` (or `source .venv/bin/activate`).
+- **Dependencies**: See `pyproject.toml`
+- **Core modules location**: `src/` directory (15 protected modules)
+- **Test location**: `tests/` directory (33 test files, 313 tests)
 
 ## 📋 Code Style and Conventions
 - **Import pattern**: `from module_name import function_name` (not `from src.module_name`)
@@ -50,12 +50,8 @@
 - **Error handling**: Check return values, handle None cases
 - **Documentation**: Follow existing docstring patterns
 
-## 🧠 Context Recovery (Framework Amnesia)
-- **Forgot the framework?** Read `docs/context/COHERENCE_FRAMEWORK_REMINDER.md` first
-- **Complete recovery guide**: `docs/context/FRAMEWORK_AMNESIA_RECOVERY.md`
-- **Persistent context system**: `docs/context/PERSISTENT_CONTEXT_SYSTEM.md` for complete workflow
-- **Automated reminders**: `python tools/coherence_reminder_system.py`
-- **Context awareness check**: `python tools/context_awareness_system.py --check "task"`
+## 🧠 Context Recovery
+- **Returning after a break?** Read `docs/RETURN_TO_DEVELOPMENT.md` — the 5-minute checklist for re-anchoring on the code, the state of the suite, and the known follow-ups.
 - **Quick status**: `python tools/core_protection_system.py --report`
 
 ## 🔧 Essential Tools
@@ -69,7 +65,7 @@
 ## 📊 Quality Gates
 - **Pre-commit hooks**: Automatically run quality checks
 - **Core protection**: Blocks unauthorized changes to protected modules
-- **Test validation**: All 270 tests must pass
+- **Test validation**: All 313 tests must pass
 - **Syntax checking**: Zero syntax errors required
 
 ## 🎯 Common Development Patterns
@@ -317,7 +313,7 @@ branch_id = uod.history.create_branch_from_state(
 - **DO NOT** reinvent existing solutions - use context awareness system first
 
 ## 🏆 Success Indicators
-- All 270 tests passing (27 test files)
+- All 313 tests passing (33 test files)
 - Quality dashboard shows "EXCELLENT" status
 - Core protection system shows "CLEAN" status
 - Zero syntax errors across all source files

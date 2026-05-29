@@ -265,7 +265,7 @@ def test_my_functionality():
 
 ### **What's Protected**
 - **16 core modules** with 57 classes and 19 functions
-- **87 core tests** that must always pass
+- **The mathematical core test suite** (~118 tests covering egi_core_dau, formal_transformation_rules, rule_interaction, subgraph_closure_validator, graph_isomorphism_engine, and Beta/logical proof exercises) that must always pass
 - **API signatures** that cannot change without authorization
 
 ### **What Requires Authorization**

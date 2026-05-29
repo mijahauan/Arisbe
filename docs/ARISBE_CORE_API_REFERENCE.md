@@ -1,16 +1,27 @@
 # Arisbe Core API Reference
 
-**Last Updated**: 2026-03-20 09:17:38  
-**Auto-Generated**: This file is automatically regenerated when core modules change
+**Last Updated**: 2026-03-20 09:17:38
+
+> ⚠️ **STALE — last regenerated 2026-03-20.** Several modules listed below
+> (`diagram_controller`, `enhanced_ligature_algorithms`, `ligature_optimization_engine`,
+> `area_spatial_constraint_system`, `ligature_aware_positioning_engine`,
+> `obstacle_aware_ligature_router`) were archived or never existed on disk;
+> they are documented here but are not part of the current `src/`. The
+> `tools/extract_core_api.py` regenerator itself needs an update (its hardcoded
+> module list and output path are out of date) before this doc can be
+> faithfully regenerated. Until then, treat this as a partial reference and
+> prefer reading source directly. The authoritative protected-modules list
+> lives in `tools/core_protection_system.py` (15 modules as of 2026-05-29).
 
 ---
 
 ## Overview
 
 This document provides complete API documentation for Arisbe's protected core modules.
-These modules form the mathematical foundation validated by 90 core tests.
+These modules form the mathematical foundation validated by the core test suite
+(~118 tests within the current 353-test full suite).
 
-**Protected Modules**: Changes require explicit authorization (`export ARISBE_CORE_OVERRIDE=true`)
+**Protected Modules**: Changes require explicit authorization (`touch .core_modification_authorized`)
 
 ---
 

@@ -4,6 +4,59 @@
 
 ---
 
+## What Arisbe is, mid-2026
+
+Arisbe is a Python 3.12 implementation of **Frithjof Dau's formalization of
+Peirce's Existential Graphs**, focused on rigor first and ergonomics second.
+
+The mathematical core is in good shape and is the asset to protect:
+the EGI data model (immutable; Dau's 6+1 components), the six transformation
+rules with full Beta-graph support (lines of identity across cuts), the
+headless `RuleInteraction` protocol that lets a UI drive proofs step by step,
+linear-format round-trips across **EGIF, CGIF, CLIF, FOPL, JSON** validated
+against 130+ corpus examples, and the **Universe of Discourse** abstraction
+that treats logical reasoning as a *diachronic process* (a sequence of
+synchronic EGI states + transformation history + layout deltas) rather than
+a static diagram. Around all of this, ~355 tests pass; 15 modules are
+explicitly protected; the protection system, quality dashboard, and corpus
+validation tooling work.
+
+What is *not* in good shape, as of the May 2026 review, is the user
+interface. The original plan envisioned **Organon / Ergasterion / Agon** as
+three Qt windows — corpus browser, transformation workshop, and Endoporeutic
+Game arena. That Qt implementation made it ~40% of the way through Organon,
+left Ergasterion untested, and never started Agon. In April 2026 active work
+shifted to a web viewer (FastAPI + ELK-based layout + browser SVG). In
+May 2026 we accepted that bet and archived the Qt code to
+`archive/qt-gui-2025/`.
+
+So the 2026 form of the vision is:
+
+- **Mathematical core**: the foundation. Protected. The yardstick for every
+  other change.
+- **Universe of Discourse**: the central abstraction. The unit of inquiry is
+  the diachronic UoD, not the synchronic EGI snapshot.
+- **Web viewer** (`src/web_api/` + `src/web_viewer/`) is the canonical user
+  surface. The ELK layout engine and SVG renderer are the canonical render
+  path.
+- **Organon / Ergasterion / Agon** remain as the *conceptual modes* of
+  engagement — corpus browsing, transformation practice, formal game —
+  but are now best understood as **routes within the web app**, not
+  separate windows. Implementing that mapping is the next major UI
+  workstream.
+
+The known follow-ups identified during the review (EGIF generator
+round-trip bugs found by hypothesis, a stale API-reference regenerator, the
+web-app mode implementation, property-test expansion, ELK ligature edge
+cases) are tracked as GitHub issues rather than inline here, because that
+material moves too fast for a vision doc.
+
+The sections below remain the longer philosophical statement of *why*
+this project exists and *who* it serves; they predate the May 2026
+realignment and should be read in light of the note above.
+
+---
+
 ## What We Are Building
 
 A complete implementation of **Dau's formalism for Peirce's Existential Graphs**, providing:
@@ -60,8 +113,11 @@ Arisbe provides the **first production-quality implementation** that:
 
 ### 1. Mathematical Rigor
 - **Dau's formalism is the foundation** - No shortcuts or approximations
-- **90 validated core tests** - Mathematical correctness is non-negotiable
-- **Protected core modules** - Foundation cannot be casually modified
+- **The mathematical core test suite must always pass** - currently ~355 tests
+  covering data model, transformation rules, Beta graphs, closure validation,
+  isomorphism, and proof exercises
+- **Protected core modules** - 15 modules cannot be casually modified
+  (see `tools/core_protection_system.py`)
 
 ### 2. Immutable Data Model
 - **EGI transformations produce new graphs** - No in-place mutations
@@ -84,7 +140,7 @@ Arisbe provides the **first production-quality implementation** that:
 
 ### Phase 1: Foundation (COMPLETE ✅)
 - [x] EGI core data model with immutable operations
-- [x] 90/90 core tests passing (100% mathematical validation)
+- [x] Core test suite passing (~355 tests as of 2026-05-29)
 - [x] Linear format bidirectional translation (EGIF, CGIF, CLIF, FOPL)
 - [x] Transformation rules (DC±, INS/ERA, IT±)
 - [x] Layout engine with Dau-compliant rendering
@@ -128,10 +184,8 @@ Arisbe provides the **first production-quality implementation** that:
 
 ## Current Status
 
-**Phase**: GUI Development - Diachronic Delta Workflow  
-**Last Major Milestone**: Area containment validation with layout delta persistence  
-**Next Milestone**: Tomos validation and transformation UI  
-**Overall Progress**: ~70% complete (foundation solid, GUI progressing)
+See the "What Arisbe is, mid-2026" section at the top of this document for
+the up-to-date statement.
 
 ---
 
@@ -158,5 +212,5 @@ Arisbe provides the **first production-quality implementation** that:
 
 *This document is our guiding star. All development decisions should align with this vision. If they don't, either the decision is wrong, or the vision needs updating.*
 
-**Last Updated**: 2025-10-13  
-**Next Review**: 2025-12-31
+**Last Updated**: 2026-05-29 (mid-2026 realignment note added; vision body unchanged)  
+**Next Review**: 2026-12-31
