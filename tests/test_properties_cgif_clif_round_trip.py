@@ -237,6 +237,46 @@ def test_clif_generate_is_idempotent_on_regenerated_output(text):
     )
 
 
+@pytest.mark.xfail(
+    reason=(
+        "Issue #10: CLIF generator canonical labeling is unstable when "
+        "two bound variables have equivalent structural signatures "
+        "(same usage pattern across the outer and inner scopes). The "
+        "second→third round swaps the variable assignments. Surfaced by "
+        "the closure-idempotence and rule-reversibility property tests "
+        "pushing more EGIF shapes through the shared strategy. "
+        "strict=False because the bug is order-dependent (cross-call "
+        "state in the generator — see issue #1 bug (3) for the same "
+        "pattern in EGIFGenerator): triggered reliably in isolation, "
+        "sometimes masked when other CLIF calls have warmed module "
+        "state. Remove the marker only after issue #10 fixes both the "
+        "labeling instability and the state leakage."
+    ),
+    strict=False,
+)
+def test_known_clif_generator_canonical_labeling_swap_bug():
+    """Minimal reproducer for the CLIF generator non-idempotence bug.
+
+    Input: ``(Loves *x *y) (Loves *z *u) ~[ (Likes *v y) (Likes *w u) ]``
+
+    Round 1 → 2 stabilizes labeling, but round 2 → 3 swaps ``y`` and
+    ``u`` inside the inner ``Likes`` calls, producing a different CLIF
+    string with the same logical content. Symmetry between the two
+    structurally-equivalent variables defeats the canonical refinement.
+    """
+    text = "(Loves *x *y) (Loves *z *u) ~[ (Likes *v y) (Likes *w u) ]"
+    egi1 = parse_egif(text)
+    first = generate_clif(egi1)
+    egi2 = parse_clif(first)
+    second = generate_clif(egi2)
+    egi3 = parse_clif(second)
+    third = generate_clif(egi3)
+    assert second == third, (
+        f"CLIF generator not idempotent past first round.\n"
+        f"second: {second!r}\nthird:  {third!r}"
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Sanity checks on the generators                                             #
 # --------------------------------------------------------------------------- #
