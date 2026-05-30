@@ -1,350 +1,256 @@
 #!/usr/bin/env python3
-"""
-Core API Extractor - Identifies and documents the validated core modules
+"""Regenerate ``docs/ARISBE_CORE_API_REFERENCE.md`` from the protected-modules set.
 
-This tool analyzes our 87 passing core tests to identify exactly which modules,
-classes, and functions constitute our validated, protected core.
+The protected-modules list lives in :mod:`tools.core_protection_system` so it
+is reused by ``quality_gate_system`` and the protection enforcer. This script
+imports it as the single source of truth, then walks each module with the
+``inspect`` machinery to emit a markdown reference. The ``Last Generated``
+timestamp is anchored to the most recent commit touching any protected module
+so that ``python tools/extract_core_api.py`` is idempotent on a fresh checkout.
 """
 
-import ast
+from __future__ import annotations
+
 import importlib
 import inspect
+import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Set, Any, Optional
-import json
+from typing import Iterable, List, Sequence
 
-class CoreAPIExtractor:
-    """Extract API documentation from validated core modules."""
-    
-    def __init__(self, project_root: Path):
-        self.project_root = project_root
-        self.src_path = project_root / "src"
-        self.tests_path = project_root / "tests"
-        
-        # Core test files that define our validated modules
-        self.core_test_files = [
-            "test_egi_core_comprehensive.py",
-            "test_ligature_algorithms_working.py", 
-            "test_performance_working.py",
-            "test_chapter15_formal_calculus.py",
-            "test_chapter16_17_ligature_soundness_simplified.py",
-            "test_chapter20_syntactic_equivalence.py",
-            "test_advanced_performance_optimization.py",
-            "test_complete_serialization_simplified.py",
-            "test_production_scalability_validation.py",
-            "test_complete_system_integration.py",
-            "test_final_production_readiness.py",
-            "test_comprehensive_edge_case_validation.py"
-        ]
-        
-        self.core_modules = set()
-        self.api_documentation = {}
-    
-    def extract_imports_from_test_file(self, test_file: Path) -> Set[str]:
-        """Extract src module imports from a test file."""
-        imports = set()
-        
-        try:
-            with open(test_file, 'r') as f:
-                tree = ast.parse(f.read())
-            
-            for node in ast.walk(tree):
-                if isinstance(node, ast.ImportFrom):
-                    if node.module and node.module.startswith('src.'):
-                        module_name = node.module[4:]  # Remove 'src.' prefix
-                        imports.add(module_name)
-                        
-                        # Also track specific imports
-                        if node.names:
-                            for alias in node.names:
-                                if alias.name != '*':
-                                    imports.add(f"{module_name}.{alias.name}")
-                                    
-        except Exception as e:
-            print(f"Error parsing {test_file}: {e}")
-            
-        return imports
-    
-    def analyze_core_modules(self):
-        """Analyze all core test files to identify validated modules."""
-        print("🔍 Analyzing core test files to identify validated modules...")
-        
-        all_imports = set()
-        
-        for test_file_name in self.core_test_files:
-            test_file = self.tests_path / test_file_name
-            if test_file.exists():
-                imports = self.extract_imports_from_test_file(test_file)
-                all_imports.update(imports)
-                print(f"   {test_file_name}: {len(imports)} imports")
-            else:
-                print(f"   ⚠️  {test_file_name}: File not found")
-        
-        # Extract unique module names (without specific functions)
-        for imp in all_imports:
-            if '.' in imp:
-                module_name = imp.split('.')[0]
-            else:
-                module_name = imp
-            self.core_modules.add(module_name)
-        
-        print(f"\n📦 Identified {len(self.core_modules)} core modules:")
-        for module in sorted(self.core_modules):
-            print(f"   - {module}")
-        
-        return self.core_modules
-    
-    def document_module_api(self, module_name: str) -> Dict[str, Any]:
-        """Generate comprehensive API documentation for a module."""
-        module_path = self.src_path / f"{module_name}.py"
-        
-        if not module_path.exists():
-            return {"error": f"Module file {module_path} not found"}
-        
-        try:
-            # Add src to path temporarily
-            sys.path.insert(0, str(self.src_path))
-            
-            # Import the module
-            module = importlib.import_module(module_name)
-            
-            doc = {
-                "module_name": module_name,
-                "file_path": str(module_path),
-                "docstring": inspect.getdoc(module) or "No module docstring",
-                "classes": {},
-                "functions": {},
-                "constants": {}
-            }
-            
-            # Document all public members
-            for name, obj in inspect.getmembers(module):
-                if name.startswith('_'):
-                    continue  # Skip private members
-                
-                if inspect.isclass(obj) and obj.__module__ == module_name:
-                    doc["classes"][name] = self._document_class(obj)
-                elif inspect.isfunction(obj) and obj.__module__ == module_name:
-                    doc["functions"][name] = self._document_function(obj)
-                elif not inspect.ismodule(obj) and not inspect.isclass(obj) and not inspect.isfunction(obj):
-                    doc["constants"][name] = {
-                        "type": type(obj).__name__,
-                        "value": str(obj) if len(str(obj)) < 100 else f"{str(obj)[:100]}...",
-                        "docstring": inspect.getdoc(obj) or "No docstring"
-                    }
-            
-            return doc
-            
-        except Exception as e:
-            return {"error": f"Failed to import/analyze {module_name}: {e}"}
-        finally:
-            # Remove src from path
-            if str(self.src_path) in sys.path:
-                sys.path.remove(str(self.src_path))
-    
-    def _document_class(self, cls) -> Dict[str, Any]:
-        """Document a class and its methods."""
-        doc = {
-            "docstring": inspect.getdoc(cls) or "No class docstring",
-            "methods": {},
-            "properties": {},
-            "class_variables": {}
-        }
-        
-        for name, method in inspect.getmembers(cls):
-            if name.startswith('_') and name not in ['__init__', '__str__', '__repr__']:
-                continue
-                
-            if inspect.ismethod(method) or inspect.isfunction(method):
-                doc["methods"][name] = self._document_function(method)
-            elif isinstance(method, property):
-                doc["properties"][name] = {
-                    "docstring": inspect.getdoc(method) or "No property docstring",
-                    "getter": method.fget is not None,
-                    "setter": method.fset is not None,
-                    "deleter": method.fdel is not None
-                }
-        
-        return doc
-    
-    def _document_function(self, func) -> Dict[str, Any]:
-        """Document a function including signature and docstring."""
-        try:
-            sig = inspect.signature(func)
-            
-            doc = {
-                "signature": str(sig),
-                "docstring": inspect.getdoc(func) or "No function docstring",
-                "parameters": {},
-                "return_annotation": str(sig.return_annotation) if sig.return_annotation != inspect.Signature.empty else None
-            }
-            
-            # Document parameters
-            for param_name, param in sig.parameters.items():
-                doc["parameters"][param_name] = {
-                    "annotation": str(param.annotation) if param.annotation != inspect.Parameter.empty else None,
-                    "default": str(param.default) if param.default != inspect.Parameter.empty else None,
-                    "kind": str(param.kind)
-                }
-            
-            return doc
-            
-        except Exception as e:
-            return {"error": f"Failed to document function {func.__name__}: {e}"}
-    
-    def generate_core_api_documentation(self) -> Dict[str, Any]:
-        """Generate complete API documentation for all core modules."""
-        print("\n📚 Generating comprehensive API documentation...")
-        
-        self.api_documentation = {
-            "metadata": {
-                "generated_date": "2025-01-19",
-                "total_core_modules": len(self.core_modules),
-                "validation_status": "87/87 core tests passing",
-                "description": "Protected core API - validated and tested"
-            },
-            "modules": {}
-        }
-        
-        for module_name in sorted(self.core_modules):
-            print(f"   📖 Documenting {module_name}...")
-            self.api_documentation["modules"][module_name] = self.document_module_api(module_name)
-        
-        return self.api_documentation
-    
-    def save_documentation(self, output_file: Path):
-        """Save API documentation to file."""
-        with open(output_file, 'w') as f:
-            json.dump(self.api_documentation, f, indent=2)
-        print(f"\n💾 API documentation saved to {output_file}")
-    
-    def generate_markdown_summary(self, output_file: Path):
-        """Generate human-readable markdown summary."""
-        content = []
-        content.append("# 🔒 ARISBE PROTECTED CORE API REFERENCE")
-        content.append("")
-        content.append("**Generated:** 2025-01-19")
-        content.append("**Status:** ✅ VALIDATED (87/87 core tests passing)")
-        content.append("**Purpose:** Protected core API documentation")
-        content.append("")
-        content.append("---")
-        content.append("")
-        
-        # Summary statistics
-        total_classes = sum(len(doc.get("classes", {})) for doc in self.api_documentation["modules"].values() if isinstance(doc, dict))
-        total_functions = sum(len(doc.get("functions", {})) for doc in self.api_documentation["modules"].values() if isinstance(doc, dict))
-        
-        content.append("## 📊 **CORE API SUMMARY**")
-        content.append("")
-        content.append(f"- **Total Modules:** {len(self.core_modules)}")
-        content.append(f"- **Total Classes:** {total_classes}")
-        content.append(f"- **Total Functions:** {total_functions}")
-        content.append(f"- **Validation Status:** 100% tested and validated")
-        content.append("")
-        
-        # Module index
-        content.append("## 📦 **CORE MODULES INDEX**")
-        content.append("")
-        for module_name in sorted(self.core_modules):
-            module_doc = self.api_documentation["modules"].get(module_name, {})
-            if isinstance(module_doc, dict) and "error" not in module_doc:
-                num_classes = len(module_doc.get("classes", {}))
-                num_functions = len(module_doc.get("functions", {}))
-                content.append(f"- **`{module_name}`** - {num_classes} classes, {num_functions} functions")
-            else:
-                content.append(f"- **`{module_name}`** - ⚠️ Documentation error")
-        content.append("")
-        
-        # Detailed documentation for each module
-        content.append("---")
-        content.append("")
-        content.append("## 📚 **DETAILED API DOCUMENTATION**")
-        content.append("")
-        
-        for module_name in sorted(self.core_modules):
-            module_doc = self.api_documentation["modules"].get(module_name, {})
-            if isinstance(module_doc, dict) and "error" not in module_doc:
-                content.append(f"### 📦 `{module_name}`")
-                content.append("")
-                content.append(f"**File:** `{module_doc.get('file_path', 'Unknown')}`")
-                content.append("")
-                content.append(f"**Description:** {module_doc.get('docstring', 'No description')}")
-                content.append("")
-                
-                # Document classes
-                if module_doc.get("classes"):
-                    content.append("#### Classes")
-                    content.append("")
-                    for class_name, class_doc in module_doc["classes"].items():
-                        content.append(f"##### `{class_name}`")
-                        content.append("")
-                        content.append(f"{class_doc.get('docstring', 'No description')}")
-                        content.append("")
-                        
-                        if class_doc.get("methods"):
-                            content.append("**Methods:**")
-                            for method_name, method_doc in class_doc["methods"].items():
-                                sig = method_doc.get("signature", "")
-                                content.append(f"- `{method_name}{sig}`")
-                            content.append("")
-                
-                # Document functions
-                if module_doc.get("functions"):
-                    content.append("#### Functions")
-                    content.append("")
-                    for func_name, func_doc in module_doc["functions"].items():
-                        sig = func_doc.get("signature", "")
-                        content.append(f"##### `{func_name}{sig}`")
-                        content.append("")
-                        content.append(f"{func_doc.get('docstring', 'No description')}")
-                        content.append("")
-                        
-                        if func_doc.get("parameters"):
-                            content.append("**Parameters:**")
-                            for param_name, param_doc in func_doc["parameters"].items():
-                                annotation = param_doc.get("annotation", "Any")
-                                default = param_doc.get("default")
-                                default_str = f" = {default}" if default else ""
-                                content.append(f"- `{param_name}: {annotation}{default_str}`")
-                            content.append("")
-                        
-                        if func_doc.get("return_annotation"):
-                            content.append(f"**Returns:** `{func_doc['return_annotation']}`")
-                            content.append("")
-                
-                content.append("---")
-                content.append("")
-        
-        # Write markdown file
-        with open(output_file, 'w') as f:
-            f.write('\n'.join(content))
-        
-        print(f"📄 Markdown summary saved to {output_file}")
+DUNDER_ALLOW = {"__init__", "__post_init__", "__str__", "__repr__"}
 
-def main():
-    """Main entry point."""
-    project_root = Path.cwd()
-    extractor = CoreAPIExtractor(project_root)
-    
-    # Step 1: Analyze core modules
-    core_modules = extractor.analyze_core_modules()
-    
-    # Step 2: Generate API documentation
-    api_docs = extractor.generate_core_api_documentation()
-    
-    # Step 3: Save documentation
-    json_output = project_root / "ARISBE_CORE_API_REFERENCE.json"
-    extractor.save_documentation(json_output)
-    
-    # Step 4: Generate markdown summary
-    md_output = project_root / "ARISBE_CORE_API_REFERENCE.md"
-    extractor.generate_markdown_summary(md_output)
-    
-    print("\n🎯 Core API extraction complete!")
-    print(f"   📦 {len(core_modules)} core modules identified")
-    print(f"   📚 API documentation generated")
-    print(f"   🔒 Ready for core protection implementation")
+USAGE_NOTES = """## Usage Notes
+
+### Import Patterns
+```python
+# Recommended import style
+from module_name import function_name
+from module_name import ClassName
+
+# Not: from src.module_name import ...
+```
+
+### Immutability
+The EGI model is immutable. Use `.with_*()` methods:
+
+```python
+# Correct
+new_egi = egi.with_vertex(vertex)
+
+# Incorrect
+egi.add_vertex(vertex)  # No such method
+```
+
+### Error Handling
+Check return values and handle ``None`` cases:
+
+```python
+result = transform_egi(egi, rule)
+if result is None:
+    # Handle transformation failure
+    pass
+```
+
+---
+
+*For usage examples, see [CORE_API_USAGE_GUIDE.md](CORE_API_USAGE_GUIDE.md).*
+"""
+
+
+def load_protected_modules(project_root: Path) -> List[str]:
+    """Return the sorted list of protected module names (without ``.py``)."""
+    sys.path.insert(0, str(project_root / "tools"))
+    from core_protection_system import CoreProtectionSystem
+
+    cps = CoreProtectionSystem(project_root=project_root)
+    return sorted(m.removesuffix(".py") for m in cps.protected_modules)
+
+
+def generation_timestamp(project_root: Path, modules: Sequence[str]) -> str:
+    """Last commit ISO-8601 timestamp touching any protected module.
+
+    Falls back to the current UTC time if git is unavailable (e.g. exported
+    tarball with no ``.git`` directory).
+    """
+    paths = [f"src/{m}.py" for m in modules]
+    try:
+        result = subprocess.run(
+            ["git", "log", "-1", "--format=%cI", "--"] + paths,
+            cwd=project_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        ts = result.stdout.strip()
+        if ts:
+            return ts
+    except FileNotFoundError:
+        pass
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def _first_line(doc: str | None) -> str:
+    if not doc:
+        return ""
+    return doc.split("\n", 1)[0].strip()
+
+
+def _signature_str(obj) -> str:
+    try:
+        return str(inspect.signature(obj))
+    except (TypeError, ValueError):
+        return "(...)"
+
+
+def _method_emit_filter(name: str) -> bool:
+    if not name.startswith("_"):
+        return True
+    return name in DUNDER_ALLOW
+
+
+def _document_class(name: str, cls: type) -> List[str]:
+    lines: List[str] = [f"#### `{name}`", ""]
+    cdoc = inspect.getdoc(cls)
+    if cdoc:
+        lines.append(cdoc)
+        lines.append("")
+
+    methods: List[tuple[str, object]] = []
+    for member_name, member in sorted(inspect.getmembers(cls)):
+        if not _method_emit_filter(member_name):
+            continue
+        if not (inspect.isfunction(member) or inspect.ismethod(member)):
+            continue
+        methods.append((member_name, member))
+
+    if methods:
+        lines.append("**Methods**:")
+        lines.append("")
+        for member_name, member in methods:
+            sig = _signature_str(member)
+            lines.append(f"- `{member_name}{sig}`")
+            summary = _first_line(inspect.getdoc(member))
+            if summary:
+                lines.append(f"  {summary}")
+        lines.append("")
+    return lines
+
+
+def _document_module(module_name: str, src_path: Path) -> tuple[List[str], int, int]:
+    """Return (markdown_lines, class_count, function_count) for one module."""
+    module = importlib.import_module(module_name)
+
+    lines: List[str] = []
+    lines.append(f"## {module_name}.py")
+    lines.append("")
+    lines.append(f"**Path**: `src/{module_name}.py`  ")
+    lines.append("**Status**: Protected Core Module")
+    lines.append("")
+
+    mod_doc = inspect.getdoc(module)
+    if mod_doc:
+        lines.append("### Module Description")
+        lines.append("")
+        lines.append(mod_doc)
+        lines.append("")
+
+    classes = sorted(
+        (
+            (n, o)
+            for n, o in inspect.getmembers(module, inspect.isclass)
+            if getattr(o, "__module__", None) == module_name
+        ),
+        key=lambda pair: pair[0],
+    )
+    if classes:
+        lines.append("### Classes")
+        lines.append("")
+        for name, cls in classes:
+            lines.extend(_document_class(name, cls))
+
+    functions = sorted(
+        (
+            (n, o)
+            for n, o in inspect.getmembers(module, inspect.isfunction)
+            if getattr(o, "__module__", None) == module_name and not n.startswith("_")
+        ),
+        key=lambda pair: pair[0],
+    )
+    if functions:
+        lines.append("### Functions")
+        lines.append("")
+        for name, fn in functions:
+            sig = _signature_str(fn)
+            lines.append(f"#### `{name}{sig}`")
+            lines.append("")
+            fdoc = inspect.getdoc(fn)
+            if fdoc:
+                lines.append(fdoc)
+                lines.append("")
+
+    lines.append("---")
+    lines.append("")
+    return lines, len(classes), len(functions)
+
+
+def render(project_root: Path, modules: Sequence[str]) -> tuple[str, int, int]:
+    """Render the full document. Returns (markdown, total_classes, total_functions)."""
+    src_path = project_root / "src"
+    sys.path.insert(0, str(src_path))
+
+    timestamp = generation_timestamp(project_root, modules)
+
+    out: List[str] = []
+    out.append("# Arisbe Core API Reference")
+    out.append("")
+    out.append(f"**Last Generated**: {timestamp}  ")
+    out.append("**Source of truth**: `tools/core_protection_system.py` (`protected_modules`)  ")
+    out.append(f"**Module count**: {len(modules)}")
+    out.append("")
+    out.append("---")
+    out.append("")
+    out.append("## Overview")
+    out.append("")
+    out.append(
+        "This document provides API documentation for Arisbe's protected core "
+        "modules. These modules form the mathematical foundation validated by "
+        "the core test suite. Modifying any module listed below requires "
+        "explicit authorization (`touch .core_modification_authorized`)."
+    )
+    out.append("")
+    out.append("To regenerate this file, run `python tools/extract_core_api.py`.")
+    out.append("")
+    out.append("---")
+    out.append("")
+
+    total_classes = 0
+    total_functions = 0
+    for module_name in modules:
+        module_lines, cc, fc = _document_module(module_name, src_path)
+        out.extend(module_lines)
+        total_classes += cc
+        total_functions += fc
+
+    out.append(USAGE_NOTES)
+    return "\n".join(out).rstrip() + "\n", total_classes, total_functions
+
+
+def main() -> int:
+    project_root = Path(__file__).resolve().parents[1]
+    modules = load_protected_modules(project_root)
+    markdown, total_classes, total_functions = render(project_root, modules)
+
+    output = project_root / "docs" / "ARISBE_CORE_API_REFERENCE.md"
+    output.write_text(markdown, encoding="utf-8")
+
+    print(f"Wrote {output.relative_to(project_root)}")
+    print(f"  modules:   {len(modules)}")
+    print(f"  classes:   {total_classes}")
+    print(f"  functions: {total_functions}")
+    return 0
+
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

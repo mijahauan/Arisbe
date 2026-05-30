@@ -16,7 +16,7 @@
 
 ## 📚 API Discovery Protocol
 - **NEVER guess function signatures** - Use `docs/ARISBE_CORE_API_REFERENCE.md` for exact signatures
-- **Complete API documentation**: 57 classes, 19 functions fully documented
+- **Regenerate**: `uv run python tools/extract_core_api.py` (reads the protected-modules set from `tools/core_protection_system.py`)
 - **Usage patterns**: See `docs/CORE_API_USAGE_GUIDE.md` for common development patterns
 - **Quick function lookup**: `grep -i "function_name" docs/ARISBE_CORE_API_REFERENCE.md`
 

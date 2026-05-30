@@ -58,10 +58,12 @@ for how the model expresses it.
 ## Discovering the API
 
 The auto-generated [docs/ARISBE_CORE_API_REFERENCE.md](ARISBE_CORE_API_REFERENCE.md)
-is partially stale (its regenerator needs an update — tracked as a follow-up).
-Until that is fixed, prefer reading source directly:
+covers every module in the protected-modules set. Regenerate it after
+touching any protected module:
 
 ```bash
+uv run python tools/extract_core_api.py
+
 # Find a function or class by name
 grep -rn "def foo\|class Foo" src/
 
@@ -76,9 +78,6 @@ entry point for understanding any one module.
 
 - **Rule-reversibility and closure-idempotence property tests** are still
   to be written (carried forward from issue #4 into issue #8).
-- **`tools/extract_core_api.py` is stale** (references deleted modules, writes
-  to the wrong directory). It needs a rewrite before
-  `docs/ARISBE_CORE_API_REFERENCE.md` can be regenerated faithfully.
 - **CI runs only a subset of the test suite** (see `.github/workflows/canonical.yml`).
   Full-suite-on-CI is a Phase 4 item.
 - **Three-mode UI (Organon/Ergasterion/Agon) is conceptual only.** Implementing

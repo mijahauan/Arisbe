@@ -98,11 +98,14 @@ plan is to surface them as routes within the web app (`src/web_api/`,
 
 ## API Discovery
 
-**Never guess function signatures.** The complete API (57 classes, 19 functions) is documented:
+**Never guess function signatures.** The complete API is documented in
+`docs/ARISBE_CORE_API_REFERENCE.md` (regenerated from
+`tools/core_protection_system.py`'s protected-modules set):
 
 ```bash
 grep -i "function_name" docs/ARISBE_CORE_API_REFERENCE.md
-cat docs/CORE_API_USAGE_GUIDE.md     # Common development patterns
+cat docs/CORE_API_USAGE_GUIDE.md          # Common development patterns
+uv run python tools/extract_core_api.py   # Regenerate the reference
 ```
 
 Before starting any implementation task, check whether a solution already exists:
