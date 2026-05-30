@@ -13,7 +13,7 @@ Based on:
 
 import uuid
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, FrozenSet, List, Optional, Set, Tuple
 
 from frozendict import frozendict
 
@@ -440,92 +440,201 @@ class Chapter17SoundnessEvaluator:
 
         return False
 
+    # ------------------------------------------------------------------
+    # Structural-invariant helpers used by per-rule verifiers
+    # ------------------------------------------------------------------
+
+    def _identity_edge_ids(self, egi: RelationalGraphWithCuts) -> Set[ElementID]:
+        """Edges whose relation symbol is the identity ``=``."""
+        return {e.id for e in egi.E if egi.rel.get(e.id) == "="}
+
+    def _predicate_edge_ids(self, egi: RelationalGraphWithCuts) -> Set[ElementID]:
+        """All non-identity edges (the predicates)."""
+        return {e.id for e in egi.E if egi.rel.get(e.id) != "="}
+
+    def _cuts_unchanged(
+        self,
+        original_egi: RelationalGraphWithCuts,
+        transformed_egi: RelationalGraphWithCuts,
+    ) -> bool:
+        """No ligature manipulation rule touches the cut hierarchy.
+
+        Returns True iff the set of cuts and each cut's area mapping are
+        identical between the two graphs.
+        """
+        if {c.id for c in original_egi.Cut} != {c.id for c in transformed_egi.Cut}:
+            return False
+        for cut in original_egi.Cut:
+            if original_egi.area.get(cut.id) != transformed_egi.area.get(cut.id):
+                return False
+        return True
+
+    def _ligature_partition(
+        self, egi: RelationalGraphWithCuts
+    ) -> FrozenSet[FrozenSet[ElementID]]:
+        """The vertex equivalence classes under identity edges.
+
+        Two vertices are in the same ligature iff they are connected by a
+        path of identity edges. Rules that "rearrange" a ligature must
+        preserve this partition even if they change which identity edges
+        realize it.
+        """
+        return frozenset(frozenset(lig) for lig in egi.get_ligatures())
+
+    # ------------------------------------------------------------------
+    # Per-rule structural invariants
+    # ------------------------------------------------------------------
+
     def _verify_move_branches_properties(
         self,
         original_egi: RelationalGraphWithCuts,
         transformed_egi: RelationalGraphWithCuts,
     ) -> bool:
+        """Verify MOVE_BRANCHES preserves ligature topology.
+
+        Dau's Lemma 16.1: moving a predicate's hook from one vertex of a
+        ligature to another preserves logical content. The rule must:
+        - leave the vertex set unchanged
+        - leave the identity-edge set unchanged (the ligature scaffolding)
+        - leave the predicate-edge set unchanged in identity (the same
+          predicates exist; only their ν may move within a ligature)
+        - touch no cut
         """
-        Verify move branches preserves ligature connectivity.
-
-        Dau's Lemma 16.1 guarantees soundness if:
-        1. Vertices are connected by identity edge
-        2. Both vertices in same context
-        3. Only hook attachments change, not structure
-        """
-        try:
-            # Move branches is guaranteed sound by Dau's Lemma 16.1
-            # if the preconditions are met (which they are if transformation succeeded)
-
-            # Basic structural preservation checks
-            if not self._verify_egi_integrity(transformed_egi):
-                return False
-
-            # Vertex and edge counts should be preserved
-            if len(original_egi.V) != len(transformed_egi.V):
-                return False
-            if len(original_egi.E) != len(transformed_egi.E):
-                return False
-
-            # By Dau's theoretical framework, if the rule is correctly implemented
-            # and preconditions are satisfied, soundness is guaranteed
-            return True
-
-        except Exception:
+        if not self._verify_egi_integrity(transformed_egi):
             return False
+        if not self._cuts_unchanged(original_egi, transformed_egi):
+            return False
+        if {v.id for v in original_egi.V} != {v.id for v in transformed_egi.V}:
+            return False
+        if self._identity_edge_ids(original_egi) != self._identity_edge_ids(
+            transformed_egi
+        ):
+            return False
+        if self._predicate_edge_ids(original_egi) != self._predicate_edge_ids(
+            transformed_egi
+        ):
+            return False
+        return True
 
     def _verify_extend_properties(
         self,
         original_egi: RelationalGraphWithCuts,
         transformed_egi: RelationalGraphWithCuts,
     ) -> bool:
-        """Verify extend adds valid identity connections."""
-        # Extend should add new vertices and identity edges
-        return len(transformed_egi.V) >= len(original_egi.V)
+        """Verify EXTEND_LIGATURE adds exactly one vertex and one identity edge.
+
+        The new vertex extends an existing ligature; no predicate edge is
+        added or removed, and the cut hierarchy is untouched.
+        """
+        if not self._cuts_unchanged(original_egi, transformed_egi):
+            return False
+        if len(transformed_egi.V) != len(original_egi.V) + 1:
+            return False
+        if len(self._identity_edge_ids(transformed_egi)) != len(
+            self._identity_edge_ids(original_egi)
+        ) + 1:
+            return False
+        if self._predicate_edge_ids(original_egi) != self._predicate_edge_ids(
+            transformed_egi
+        ):
+            return False
+        return True
 
     def _verify_retract_properties(
         self,
         original_egi: RelationalGraphWithCuts,
         transformed_egi: RelationalGraphWithCuts,
     ) -> bool:
-        """Verify retract maintains semantic equivalence."""
-        # Retract should reduce vertices while preserving semantics
-        return len(transformed_egi.V) <= len(original_egi.V)
+        """Verify RETRACT_LIGATURE removes exactly one vertex and one identity edge."""
+        if not self._cuts_unchanged(original_egi, transformed_egi):
+            return False
+        if len(transformed_egi.V) != len(original_egi.V) - 1:
+            return False
+        if len(self._identity_edge_ids(transformed_egi)) != len(
+            self._identity_edge_ids(original_egi)
+        ) - 1:
+            return False
+        if self._predicate_edge_ids(original_egi) != self._predicate_edge_ids(
+            transformed_egi
+        ):
+            return False
+        return True
 
     def _verify_rearrange_properties(
         self,
         original_egi: RelationalGraphWithCuts,
         transformed_egi: RelationalGraphWithCuts,
     ) -> bool:
-        """Verify rearrange preserves ligature semantics."""
-        # Rearrange should maintain same semantic content in new arrangement
-        return (
-            True  # Simplified - actual implementation would check semantic equivalence
-        )
+        """Verify REARRANGE_LIGATURE preserves the ligature partition.
+
+        The vertex set is unchanged and the predicate edges are unchanged.
+        The identity edges *may* differ in which pairs they realize, but
+        the equivalence relation they generate — the partition of vertices
+        into ligatures — must be the same.
+        """
+        if not self._cuts_unchanged(original_egi, transformed_egi):
+            return False
+        if {v.id for v in original_egi.V} != {v.id for v in transformed_egi.V}:
+            return False
+        if self._predicate_edge_ids(original_egi) != self._predicate_edge_ids(
+            transformed_egi
+        ):
+            return False
+        if self._ligature_partition(original_egi) != self._ligature_partition(
+            transformed_egi
+        ):
+            return False
+        return True
 
     def _verify_split_properties(
         self,
         original_egi: RelationalGraphWithCuts,
         transformed_egi: RelationalGraphWithCuts,
     ) -> bool:
-        """Verify split creates valid identity connection."""
-        # Split should add exactly one vertex and one identity edge
-        return (
-            len(transformed_egi.V) == len(original_egi.V) + 1
-            and len(transformed_egi.E) == len(original_egi.E) + 1
-        )
+        """Verify SPLIT_VERTEX adds exactly one vertex and one identity edge.
+
+        Predicate-edge identities are preserved (their ν may relabel to
+        reference the new vertex, but the predicate set is unchanged) and
+        no cut is touched.
+        """
+        if not self._cuts_unchanged(original_egi, transformed_egi):
+            return False
+        if len(transformed_egi.V) != len(original_egi.V) + 1:
+            return False
+        if len(self._identity_edge_ids(transformed_egi)) != len(
+            self._identity_edge_ids(original_egi)
+        ) + 1:
+            return False
+        if self._predicate_edge_ids(original_egi) != self._predicate_edge_ids(
+            transformed_egi
+        ):
+            return False
+        return True
 
     def _verify_merge_properties(
         self,
         original_egi: RelationalGraphWithCuts,
         transformed_egi: RelationalGraphWithCuts,
     ) -> bool:
-        """Verify merge removes identity connection properly."""
-        # Merge should remove exactly one vertex and one identity edge
-        return (
-            len(transformed_egi.V) == len(original_egi.V) - 1
-            and len(transformed_egi.E) == len(original_egi.E) - 1
-        )
+        """Verify MERGE_VERTICES removes exactly one vertex and one identity edge.
+
+        Predicate edges are preserved as a set even though their ν may
+        relabel from the absorbed vertex onto the surviving one. No cut
+        is touched.
+        """
+        if not self._cuts_unchanged(original_egi, transformed_egi):
+            return False
+        if len(transformed_egi.V) != len(original_egi.V) - 1:
+            return False
+        if len(self._identity_edge_ids(transformed_egi)) != len(
+            self._identity_edge_ids(original_egi)
+        ) - 1:
+            return False
+        if self._predicate_edge_ids(original_egi) != self._predicate_edge_ids(
+            transformed_egi
+        ):
+            return False
+        return True
 
 
 class Chapter17ComplianceTestSuite:

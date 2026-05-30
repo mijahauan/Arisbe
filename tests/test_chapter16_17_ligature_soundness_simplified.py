@@ -798,6 +798,221 @@ class TestChapter16_17LigatureSoundnessSimplified:
         assert not ok
         assert violations, "Expected at least one violation message"
 
+    # ==================== PER-RULE STRUCTURAL INVARIANTS ====================
+
+    def _evaluator(self):
+        from src.chapter17_soundness_evaluation import Chapter17SoundnessEvaluator
+        return Chapter17SoundnessEvaluator()
+
+    def _two_vertex_identity_egi(self):
+        """A minimal ligature: v1 = v2 via one identity edge on the sheet."""
+        from frozendict import frozendict
+        from src.egi_core_dau import (
+            Edge, ElementID, RelationalGraphWithCuts, Vertex,
+        )
+        v1 = Vertex(ElementID("v1"))
+        v2 = Vertex(ElementID("v2"))
+        eid = Edge(ElementID("eid"))
+        return RelationalGraphWithCuts(
+            V=frozenset([v1, v2]),
+            E=frozenset([eid]),
+            nu=frozendict({ElementID("eid"): (ElementID("v1"), ElementID("v2"))}),
+            sheet=ElementID("sheet"),
+            Cut=frozenset(),
+            area=frozendict(
+                {
+                    ElementID("sheet"): frozenset(
+                        [ElementID("v1"), ElementID("v2"), ElementID("eid")]
+                    )
+                }
+            ),
+            rel=frozendict({ElementID("eid"): "="}),
+        )
+
+    def _three_vertex_chain_egi(self):
+        """Three-vertex ligature: v1 = v2 = v3 on the sheet."""
+        from frozendict import frozendict
+        from src.egi_core_dau import (
+            Edge, ElementID, RelationalGraphWithCuts, Vertex,
+        )
+        v1 = Vertex(ElementID("v1"))
+        v2 = Vertex(ElementID("v2"))
+        v3 = Vertex(ElementID("v3"))
+        e12 = Edge(ElementID("e12"))
+        e23 = Edge(ElementID("e23"))
+        return RelationalGraphWithCuts(
+            V=frozenset([v1, v2, v3]),
+            E=frozenset([e12, e23]),
+            nu=frozendict({
+                ElementID("e12"): (ElementID("v1"), ElementID("v2")),
+                ElementID("e23"): (ElementID("v2"), ElementID("v3")),
+            }),
+            sheet=ElementID("sheet"),
+            Cut=frozenset(),
+            area=frozendict({
+                ElementID("sheet"): frozenset([
+                    ElementID("v1"), ElementID("v2"), ElementID("v3"),
+                    ElementID("e12"), ElementID("e23"),
+                ])
+            }),
+            rel=frozendict({ElementID("e12"): "=", ElementID("e23"): "="}),
+        )
+
+    def test_extend_accepts_proper_extension(self):
+        """EXTEND_LIGATURE: +1 vertex, +1 identity edge, predicates unchanged."""
+        original = self._two_vertex_identity_egi()
+        transformed = self._three_vertex_chain_egi()
+        assert self._evaluator()._verify_extend_properties(original, transformed)
+
+    def test_extend_rejects_no_change(self):
+        """EXTEND must add a vertex; identity transformation fails the contract."""
+        egi = self._two_vertex_identity_egi()
+        assert not self._evaluator()._verify_extend_properties(egi, egi)
+
+    def test_extend_rejects_predicate_edge_growth(self):
+        """EXTEND must not add a predicate edge — only +1 identity edge."""
+        from frozendict import frozendict
+        from src.egi_core_dau import (
+            Edge, ElementID, RelationalGraphWithCuts, Vertex,
+        )
+        original = self._two_vertex_identity_egi()
+        # Add a new vertex AND a predicate edge instead of an identity edge.
+        v3 = Vertex(ElementID("v3"))
+        pred = Edge(ElementID("pred"))
+        transformed = RelationalGraphWithCuts(
+            V=frozenset(list(original.V) + [v3]),
+            E=frozenset(list(original.E) + [pred]),
+            nu=frozendict({
+                **dict(original.nu),
+                ElementID("pred"): (ElementID("v3"),),
+            }),
+            sheet=original.sheet,
+            Cut=original.Cut,
+            area=frozendict({
+                ElementID("sheet"): frozenset(
+                    list(original.area[original.sheet])
+                    + [ElementID("v3"), ElementID("pred")]
+                )
+            }),
+            rel=frozendict({**dict(original.rel), ElementID("pred"): "P"}),
+        )
+        assert not self._evaluator()._verify_extend_properties(original, transformed)
+
+    def test_retract_accepts_proper_retraction(self):
+        """RETRACT_LIGATURE: -1 vertex, -1 identity edge."""
+        original = self._three_vertex_chain_egi()
+        transformed = self._two_vertex_identity_egi()
+        assert self._evaluator()._verify_retract_properties(original, transformed)
+
+    def test_retract_rejects_predicate_edge_removal(self):
+        """RETRACT must not remove a predicate edge."""
+        from frozendict import frozendict
+        from src.egi_core_dau import (
+            Edge, ElementID, RelationalGraphWithCuts, Vertex,
+        )
+        # Original: chain + a predicate referencing v3.
+        chain = self._three_vertex_chain_egi()
+        pred = Edge(ElementID("pred"))
+        original = RelationalGraphWithCuts(
+            V=chain.V,
+            E=frozenset(list(chain.E) + [pred]),
+            nu=frozendict({**dict(chain.nu), ElementID("pred"): (ElementID("v3"),)}),
+            sheet=chain.sheet,
+            Cut=chain.Cut,
+            area=frozendict({
+                ElementID("sheet"): frozenset(
+                    list(chain.area[chain.sheet]) + [ElementID("pred")]
+                )
+            }),
+            rel=frozendict({**dict(chain.rel), ElementID("pred"): "P"}),
+        )
+        # Transformed: two-vertex EGI — predicate edge dropped too.
+        transformed = self._two_vertex_identity_egi()
+        assert not self._evaluator()._verify_retract_properties(original, transformed)
+
+    def test_rearrange_accepts_partition_preserving_rewire(self):
+        """REARRANGE_LIGATURE: same vertex set, same ligature partition.
+
+        Rewiring v1=v2=v3 to v1=v3 + v1=v2 preserves the {v1, v2, v3}
+        ligature membership even though one identity edge is different.
+        """
+        from frozendict import frozendict
+        from src.egi_core_dau import (
+            Edge, ElementID, RelationalGraphWithCuts, Vertex,
+        )
+        original = self._three_vertex_chain_egi()
+        # Rewire: e12 stays (v1, v2), e23 becomes (v1, v3) — still one ligature.
+        rewired_e23 = Edge(ElementID("e_new"))
+        transformed = RelationalGraphWithCuts(
+            V=original.V,
+            E=frozenset([Edge(ElementID("e12")), rewired_e23]),
+            nu=frozendict({
+                ElementID("e12"): (ElementID("v1"), ElementID("v2")),
+                ElementID("e_new"): (ElementID("v1"), ElementID("v3")),
+            }),
+            sheet=original.sheet,
+            Cut=original.Cut,
+            area=frozendict({
+                ElementID("sheet"): frozenset([
+                    ElementID("v1"), ElementID("v2"), ElementID("v3"),
+                    ElementID("e12"), ElementID("e_new"),
+                ])
+            }),
+            rel=frozendict({ElementID("e12"): "=", ElementID("e_new"): "="}),
+        )
+        assert self._evaluator()._verify_rearrange_properties(original, transformed)
+
+    def test_rearrange_rejects_partition_change(self):
+        """REARRANGE that breaks v1-v2-v3 into two ligatures must be rejected."""
+        from frozendict import frozendict
+        from src.egi_core_dau import (
+            Edge, ElementID, RelationalGraphWithCuts, Vertex,
+        )
+        original = self._three_vertex_chain_egi()
+        # Drop e23 entirely: now {v1,v2} and {v3} are separate ligatures.
+        transformed = RelationalGraphWithCuts(
+            V=original.V,
+            E=frozenset([Edge(ElementID("e12"))]),
+            nu=frozendict({ElementID("e12"): (ElementID("v1"), ElementID("v2"))}),
+            sheet=original.sheet,
+            Cut=original.Cut,
+            area=frozendict({
+                ElementID("sheet"): frozenset([
+                    ElementID("v1"), ElementID("v2"), ElementID("v3"),
+                    ElementID("e12"),
+                ])
+            }),
+            rel=frozendict({ElementID("e12"): "="}),
+        )
+        assert not self._evaluator()._verify_rearrange_properties(original, transformed)
+
+    def test_move_branches_rejects_cut_change(self):
+        """MOVE_BRANCHES must not add, remove, or relocate cuts."""
+        from frozendict import frozendict
+        from src.egi_core_dau import (
+            Cut, ElementID, RelationalGraphWithCuts,
+        )
+        original = self._two_vertex_identity_egi()
+        # Add a stray cut to the transformed graph.
+        new_cut = Cut(ElementID("c"))
+        transformed = RelationalGraphWithCuts(
+            V=original.V,
+            E=original.E,
+            nu=original.nu,
+            sheet=original.sheet,
+            Cut=frozenset([new_cut]),
+            area=frozendict({
+                ElementID("sheet"): frozenset(
+                    list(original.area[original.sheet]) + [ElementID("c")]
+                ),
+                ElementID("c"): frozenset(),
+            }),
+            rel=original.rel,
+        )
+        assert not self._evaluator()._verify_move_branches_properties(
+            original, transformed
+        )
+
     def test_ch17_evaluator_ignores_isolated_vertices(self):
         """Single-vertex 'ligatures' have no identity edges to violate
         any condition — the evaluator must treat them as trivially
