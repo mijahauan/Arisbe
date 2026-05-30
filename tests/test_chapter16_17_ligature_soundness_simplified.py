@@ -1023,27 +1023,12 @@ class TestChapter16_17LigatureSoundnessSimplified:
             f"err={result.error_message}"
         )
 
-    @pytest.mark.xfail(
-        reason=(
-            "Issue #11: the in-tree LigatureRearrangementRule implements "
-            "'rearrange' as RETRACT followed by adding a fresh vertex — "
-            "the ligature ends up with a different vertex set ({B, "
-            "B_rearranged, C}) than it started with ({A, B, C}), violating "
-            "Dau Definition 16.4's vertex-set preservation."
-        ),
-        strict=True,
-    )
-    def test_evaluate_rearrange_ligature_xfail_dau_def_16_4(self):
-        """Pinned regression for the REARRANGE_LIGATURE contract gap.
+    def test_evaluate_rearrange_ligature_dau_def_16_4(self):
+        """End-to-end soundness for REARRANGE_LIGATURE (Dau §16.4).
 
-        Dau §16.4 says a rearrangement replaces ligature (W, F) with a
-        new ligature (W', F') *in the same context with the same vertex
-        membership*. The current implementation produces a graph whose
-        vertex set differs from the original — the structural verifier
-        (correctly) rejects it.
-
-        When the rule is fixed to preserve vertex membership, this xfail
-        will flip to xpass and the marker should be removed.
+        The rule constructs a new identity-edge set F' realizing the
+        same ligature partition over the same vertex set W. The Ch17
+        evaluator should accept the output as sound.
         """
         from src.chapter17_soundness_evaluation import Chapter17ComplianceTestSuite
 

@@ -568,105 +568,123 @@ class LigatureRearrangementRule(FormalTransformationRule):
     def apply_transformation(
         self, context: TransformationContext
     ) -> TransformationResult:
-        """Apply ligature rearrangement by replacing structure."""
+        """Apply Dau Definition 16.4 ligature rearrangement.
+
+        Constructs a new identity-edge set F' that realizes the same
+        ligature partition as F, with the same vertex set W. Only
+        identity edges that sit in the same area as the selected
+        vertices are rewired; edges in other areas (notably edges that
+        cross into descendant cuts) are preserved as-is, which keeps the
+        cut hierarchy unchanged.
+        """
         precondition_ok, error_msg = self.check_preconditions(context)
         if not precondition_ok:
             return TransformationResult(False, None, error_msg, {})
 
         try:
             egi = context.source_egi
-            ligature_vertices = list(context.selected_subgraph)
-            ligature_context = self._get_vertex_context(egi, ligature_vertices[0])
+            selected_vertices = list(context.selected_subgraph)
+            ligature_context = self._get_vertex_context(egi, selected_vertices[0])
 
-            # Step 1: Retract existing ligature to single vertex
-            retraction_rule = RetractLigatureRule()
-            retraction_context = TransformationContext(
-                source_egi=egi,
-                target_area=ligature_context,
-                selected_subgraph=frozenset(ligature_vertices),
-                area_polarity=context.area_polarity,
-                nesting_depth=context.nesting_depth,
-            )
-
-            retraction_result = retraction_rule.apply_transformation(retraction_context)
-            if not retraction_result.success:
+            # Find the full ligature containing the selection.
+            ligature: FrozenSet[ElementID] = frozenset()
+            for component in egi.get_ligatures():
+                if selected_vertices[0] in component:
+                    ligature = component
+                    break
+            if not ligature:
                 return TransformationResult(
-                    False,
-                    None,
-                    f"Retraction failed: {retraction_result.error_message}",
+                    False, None, "Selected vertex is not part of any ligature.", {}
+                )
+
+            context_area = egi.area.get(ligature_context, frozenset())
+
+            # Local subset of the ligature that sits in the selected area.
+            local_vertices = sorted(v for v in ligature if v in context_area)
+            if len(local_vertices) < 2:
+                return TransformationResult(
+                    False, None,
+                    "Need at least two ligature vertices in the selected context.",
                     {},
                 )
 
-            intermediate_egi = retraction_result.result_egi
-            target_vertex = ligature_vertices[0]  # The vertex we retracted to
+            # Identity edges to be replaced: identity edges whose endpoints are
+            # both local and which themselves sit in the selected area.
+            local_vertex_set = set(local_vertices)
+            old_edges: Set[ElementID] = set()
+            for edge_id, vertex_seq in egi.nu.items():
+                if (
+                    egi.rel.get(edge_id) == "="
+                    and len(vertex_seq) == 2
+                    and edge_id in context_area
+                    and vertex_seq[0] in local_vertex_set
+                    and vertex_seq[1] in local_vertex_set
+                ):
+                    old_edges.add(edge_id)
 
-            # Step 2: Create new ligature structure by directly adding vertices and identity edges
-            # Since we retracted to a single vertex, we need to manually create the new arrangement
-            import uuid
+            # Canonical replacement: a star at the lexically-smallest local
+            # vertex. Reversed nu order witnesses an actual structural
+            # difference even when |local_vertices| == 2.
+            center = local_vertices[0]
+            new_edge_pairs: Dict[ElementID, Tuple[ElementID, ElementID]] = {}
+            for spoke in local_vertices[1:]:
+                new_eid = ElementID(f"id_rearr_{center}_{spoke}")
+                new_edge_pairs[new_eid] = (spoke, center)
 
-            from egi_core_dau import Edge, Vertex
-
-            # Create new vertices for the rearranged ligature
-            new_vertex_id = ElementID(f"{target_vertex}_rearranged")
-            new_vertex = Vertex(new_vertex_id)
-
-            # Create identity edge connecting original and new vertex
-            identity_edge_id = ElementID(f"id_{target_vertex}_{new_vertex_id}")
-            identity_edge = Edge(identity_edge_id)
-
-            # Update EGI components
-            new_vertices = intermediate_egi.V | {new_vertex}
-            new_edges = intermediate_egi.E | {identity_edge}
-
-            # Update nu mapping for the identity edge
-            new_nu = dict(intermediate_egi.nu)
-            new_nu[identity_edge_id] = (target_vertex, new_vertex_id)
-
-            # Update area mapping to include new elements in same context
-            new_area = dict(intermediate_egi.area)
-            current_area_contents = set(new_area[ligature_context])
-            new_area[ligature_context] = frozenset(
-                current_area_contents | {new_vertex_id, identity_edge_id}
+            new_E = (
+                {e for e in egi.E if e.id not in old_edges}
+                | {Edge(eid) for eid in new_edge_pairs}
             )
+            new_nu = {
+                k: v for k, v in egi.nu.items() if k not in old_edges
+            }
+            new_nu.update(new_edge_pairs)
+            new_rel = {
+                k: v for k, v in egi.rel.items() if k not in old_edges
+            }
+            new_rel.update({eid: "=" for eid in new_edge_pairs})
 
-            # Update relation mapping
-            new_rel = dict(intermediate_egi.rel)
-            new_rel[identity_edge_id] = "="
+            new_area = dict(egi.area)
+            ctx_contents = set(new_area.get(ligature_context, frozenset()))
+            ctx_contents -= old_edges
+            ctx_contents |= set(new_edge_pairs.keys())
+            new_area[ligature_context] = frozenset(ctx_contents)
 
-            # Create result EGI
             result_egi = RelationalGraphWithCuts(
-                V=new_vertices,
-                E=new_edges,
+                V=egi.V,
+                E=frozenset(new_E),
                 nu=frozendict(new_nu),
-                sheet=intermediate_egi.sheet,
-                Cut=intermediate_egi.Cut,
+                sheet=egi.sheet,
+                Cut=egi.Cut,
                 area=frozendict(new_area),
                 rel=frozendict(new_rel),
             )
 
-            extension_result = TransformationResult(
-                True,
-                result_egi,
-                None,
-                {
-                    "rule": "REARRANGE_LIGATURE",
-                    "rearranged_vertex": str(target_vertex),
-                    "new_vertex": str(new_vertex_id),
-                    "identity_edge": str(identity_edge_id),
-                    "context": str(ligature_context),
-                },
+            # Self-check: F' must realize the same partition as F.
+            original_partition = frozenset(
+                frozenset(c) for c in egi.get_ligatures()
             )
+            new_partition = frozenset(
+                frozenset(c) for c in result_egi.get_ligatures()
+            )
+            if new_partition != original_partition:
+                return TransformationResult(
+                    False, None,
+                    "Rearrangement broke the ligature partition.",
+                    {},
+                )
 
             return TransformationResult(
                 success=True,
-                result_egi=extension_result.result_egi,
+                result_egi=result_egi,
                 error_message=None,
                 changes_made={
                     "rule": "REARRANGE_LIGATURE",
-                    "original_vertices": [str(v) for v in ligature_vertices],
                     "context": str(ligature_context),
-                    "retraction_changes": retraction_result.changes_made,
-                    "extension_changes": extension_result.changes_made,
+                    "removed_identity_edges": sorted(str(e) for e in old_edges),
+                    "added_identity_edges": sorted(
+                        str(e) for e in new_edge_pairs
+                    ),
                 },
             )
 
