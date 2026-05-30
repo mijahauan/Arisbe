@@ -93,15 +93,26 @@ class CLIFGenerator:
 
         processed: Set[str] = set()
 
+        def _edge_order_key(eid: str) -> Tuple[Any, Tuple[str, ...]]:
+            # Primary: canonical structural signature (UUID-independent).
+            # Secondary: the ν tuple itself, which carries structural info
+            # not in the WL signature when the graph has true automorphisms.
+            # CLIF parser-minted vertex IDs are name-derived
+            # (``v_<varname>``), so this tiebreak is stable across
+            # re-parsings of the same CLIF text — which is the property
+            # the round-trip idempotence test exercises (issue #10).
+            return (self._edge_sig[eid], tuple(self.graph.nu.get(eid, ())))
+
         def assign_in_context(ctx_id: str) -> None:
             area = self.graph.area.get(ctx_id, set())
 
-            # Edges sorted by canonical structural signature (UUID-independent).
+            # Edges sorted by canonical structural signature (UUID-independent),
+            # with ν-tuple tiebreak for automorphism-symmetric ties.
             edge_ids: List[str] = [
                 eid for eid in area if any(e.id == eid for e in self.graph.E)
             ]
 
-            for eid in sorted(edge_ids, key=lambda e: self._edge_sig[e]):
+            for eid in sorted(edge_ids, key=_edge_order_key):
                 vseq = self.graph.nu.get(eid, [])
                 for vid in vseq:
                     v = next((vx for vx in self.graph.V if vx.id == vid), None)
@@ -189,10 +200,16 @@ class CLIFGenerator:
         elements = self._get_area_elements(area_id)
 
         # Generate atomic formulas from edges in canonical structural order.
+        # The ν-tuple tiebreak mirrors the one in ``_assign_vertex_labels``
+        # so the output order is consistent with the labeling order, even
+        # for graphs with true automorphism-symmetric edges (issue #10).
         self._ensure_canonical_signatures()
         atomic_formulas = []
 
-        for edge_id in sorted(elements["edges"], key=lambda e: self._edge_sig[e]):
+        def _edge_order_key(eid: str) -> Tuple[Any, Tuple[str, ...]]:
+            return (self._edge_sig[eid], tuple(self.graph.nu.get(eid, ())))
+
+        for edge_id in sorted(elements["edges"], key=_edge_order_key):
             formula = self._generate_atomic_formula(edge_id)
             if formula:
                 atomic_formulas.append(formula)

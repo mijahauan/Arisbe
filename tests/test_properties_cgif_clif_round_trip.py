@@ -208,7 +208,7 @@ def test_cgif_generate_is_idempotent_on_regenerated_output(text):
 
 
 @settings(
-    max_examples=120,
+    max_examples=200,
     deadline=None,
     suppress_health_check=[HealthCheck.too_slow],
 )
@@ -219,7 +219,11 @@ def test_clif_generate_is_idempotent_on_regenerated_output(text):
     The first round may use the EGIF parser's preserved variable_names
     (e.g. the user's chosen ``*foo``), but the CLIF parser does not
     propagate variable_names, so from the second round on the generator
-    falls into its canonical-labeling path. We assert that path is stable."""
+    falls into its canonical-labeling path. We assert that path is stable.
+
+    Bumped to max_examples=200 after issue #10 was fixed (per its
+    acceptance criteria) to widen coverage of the canonical-labeling
+    path on automorphism-symmetric inputs."""
     try:
         egi1 = parse_egif(text)
     except Exception:
@@ -237,32 +241,20 @@ def test_clif_generate_is_idempotent_on_regenerated_output(text):
     )
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Issue #10: CLIF generator canonical labeling is unstable when "
-        "two bound variables have equivalent structural signatures "
-        "(same usage pattern across the outer and inner scopes). The "
-        "second→third round swaps the variable assignments. Surfaced by "
-        "the closure-idempotence and rule-reversibility property tests "
-        "pushing more EGIF shapes through the shared strategy. "
-        "strict=False because the bug is order-dependent (cross-call "
-        "state in the generator — see issue #1 bug (3) for the same "
-        "pattern in EGIFGenerator): triggered reliably in isolation, "
-        "sometimes masked when other CLIF calls have warmed module "
-        "state. Remove the marker only after issue #10 fixes both the "
-        "labeling instability and the state leakage."
-    ),
-    strict=False,
-)
-def test_known_clif_generator_canonical_labeling_swap_bug():
-    """Minimal reproducer for the CLIF generator non-idempotence bug.
+def test_clif_generator_symmetric_likes_round_trips():
+    """Regression for issue #10.
 
     Input: ``(Loves *x *y) (Loves *z *u) ~[ (Likes *v y) (Likes *w u) ]``
 
-    Round 1 → 2 stabilizes labeling, but round 2 → 3 swaps ``y`` and
-    ``u`` inside the inner ``Likes`` calls, producing a different CLIF
-    string with the same logical content. Symmetry between the two
-    structurally-equivalent variables defeats the canonical refinement.
+    Pre-fix: the two Likes edges had structurally-equivalent canonical
+    signatures (true automorphism), so ``sorted`` fell back to frozenset
+    iteration order. Two re-parses produced EGIs in which ``e_Likes_2``
+    and ``e_Likes_3`` had swapped ν tuples, leading the generator's
+    output to differ between round 2 and round 3.
+
+    Post-fix: the generator sorts edges by ``(edge_sig, ν tuple)``. The
+    ν tuple uses CLIF's name-derived vertex IDs (``v_x``, ``v_y``, ...),
+    which are stable across re-parsings, so the tiebreak is consistent.
     """
     text = "(Loves *x *y) (Loves *z *u) ~[ (Likes *v y) (Likes *w u) ]"
     egi1 = parse_egif(text)
