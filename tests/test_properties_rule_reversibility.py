@@ -47,9 +47,11 @@ from egi_core_dau import (
 )
 from egif_parser_dau import parse_egif
 from formal_transformation_rules import (
+    DeiterationRule,
     DoubleCutErasureRule,
     DoubleCutInsertionRule,
     ErasureRule,
+    IterationRule,
     TransformationContext,
 )
 from subgraph_closure_validator import SubgraphClosureValidator
@@ -324,6 +326,136 @@ class TestErasureRestoreReversibility:
         assert dict(g_restored.area) == dict(egi.area), (
             f"area mismatch after restore:\n"
             f"  original={dict(egi.area)}\n  restored={dict(g_restored.area)}"
+        )
+
+
+# --------------------------------------------------------------------------- #
+# IT+ ↔ IT− structural round-trip                                             #
+# --------------------------------------------------------------------------- #
+
+
+@st.composite
+def _iter_target(draw):
+    """Generate ``(egi, source_area, target_area, selection)`` for an IT+
+    application that has a soundly-applicable IT− inverse.
+
+    Strategy:
+      - source area = sheet (positive depth 0)
+      - target area = a cut directly inside the sheet (negative depth 1)
+        — strictly deeper, so IT+ "extends a line of identity" rather than
+        duplicating vertices.
+      - selection = a non-empty subset of edges directly in the source.
+
+    Cuts are excluded from the selection set to keep the seed simple; the
+    rule supports iterating cuts but their recursive copy semantics add
+    surface area beyond what this round-trip test needs to probe.
+    """
+    egi = draw(_seed_egi())
+
+    sheet_contents = _direct_area_contents(egi, egi.sheet)
+    edges_in_sheet = [
+        eid for eid in sheet_contents if any(e.id == eid for e in egi.E)
+    ]
+    cuts_in_sheet = [
+        cid for cid in sheet_contents if any(c.id == cid for c in egi.Cut)
+    ]
+    if not edges_in_sheet or not cuts_in_sheet:
+        assume(False)
+
+    selection = frozenset(
+        draw(
+            st.lists(
+                st.sampled_from(edges_in_sheet),
+                min_size=1,
+                max_size=len(edges_in_sheet),
+                unique=True,
+            )
+        )
+    )
+    target_cut = draw(st.sampled_from(cuts_in_sheet))
+
+    return egi, egi.sheet, target_cut, selection
+
+
+class TestIterationReversibility:
+    """IT+ then IT− on the just-iterated copy reproduces the original EGI.
+
+    Both rules are truth-preserving in Dau §14.4: IT+ is conjunction
+    introduction (copy an asserted subgraph into a more deeply nested
+    area, which a line of identity can extend into); IT− removes a
+    subgraph whose isomorphic image exists in an enclosing area. They
+    form a genuine equivalence pair, unlike ERA/INS.
+
+    The seed-by-construction strategy guarantees the IT+ preconditions
+    (destination strictly enclosed by source); the isomorphism
+    precondition of IT− is then automatic — the original subgraph in
+    the source area is the witness.
+    """
+
+    @settings(
+        max_examples=120,
+        deadline=None,
+        suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
+    )
+    @given(_iter_target())
+    def test_it_plus_minus_round_trip_is_structural_identity(self, params):
+        egi, source_area, target_area, selection = params
+
+        # Apply IT+: copy the selection from source_area into target_area.
+        # target_area is strictly deeper, so vertices are reused (lines of
+        # identity extend) and only edges get fresh IDs in the copy.
+        polarity, depth = egi.area_polarity(target_area)
+        ctx_plus = TransformationContext(
+            source_egi=egi,
+            target_area=target_area,
+            selected_subgraph=selection,
+            area_polarity=polarity,
+            nesting_depth=depth,
+        )
+        plus_result = IterationRule().apply_transformation(ctx_plus)
+        assume(plus_result.success)  # selection may be unreachable; skip
+        g_plus = plus_result.result_egi
+
+        # The IT+ copies are the new top-level elements added to
+        # ``target_area``.  Restrict to elements actually present in
+        # g_plus (defensive; the rule reports them via changes_made).
+        copy_ids = frozenset(
+            ElementID(s) for s in plus_result.changes_made.get("copied_elements", [])
+        )
+        present_ids = (
+            {v.id for v in g_plus.V}
+            | {e.id for e in g_plus.E}
+            | {c.id for c in g_plus.Cut}
+        )
+        assume(copy_ids and copy_ids <= present_ids)
+
+        # Apply IT− to remove just the copy.  IT− validates via the
+        # isomorphism engine, which should find the original subgraph
+        # in source_area as the enclosing witness.
+        polarity2, depth2 = g_plus.area_polarity(target_area)
+        ctx_minus = TransformationContext(
+            source_egi=g_plus,
+            target_area=target_area,
+            selected_subgraph=copy_ids,
+            area_polarity=polarity2,
+            nesting_depth=depth2,
+        )
+        minus_result = DeiterationRule().apply_transformation(ctx_minus)
+        assert minus_result.success, (
+            f"IT- failed after IT+: {minus_result.error_message}"
+        )
+        g_final = minus_result.result_egi
+
+        # Structural identity: every field equals the original.
+        assert g_final.sheet == egi.sheet
+        assert g_final.V == egi.V
+        assert g_final.E == egi.E
+        assert g_final.Cut == egi.Cut
+        assert g_final.nu == egi.nu
+        assert g_final.rel == egi.rel
+        assert dict(g_final.area) == dict(egi.area), (
+            f"area mismatch after IT+ → IT-:\n"
+            f"  original={dict(egi.area)}\n  final={dict(g_final.area)}"
         )
 
 
