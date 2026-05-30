@@ -113,6 +113,70 @@ SVG diagram
 - **SVG generation**: <100ms
 - **Total latency**: ~1-2s for full layout + render cycle
 
+## Known edge cases
+
+Findings from the ligature edge-case audit (Issue #5, May 2026; see
+`tests/test_elk_ligature_edge_cases.py`):
+
+### 1. Cross-cut Beta ligatures (lines of identity)
+
+Tested with `(P *x) ~[ (Q x) ~[ (R x) ] ] ~[ (S *y) ]` (one shared vertex,
+two nested cuts, plus an unrelated sibling cut) and a three-level chain
+`(P *x) ~[ (Q x) ~[ (R x) ~[ (S x) ] ] ]`.  Two geometric properties
+hold on every ligature produced:
+
+- The polyline crosses each enclosing cut boundary **exactly once** (no
+  spurious re-entry).
+- The polyline does not intersect the bounding box of any unrelated cut.
+
+No regressions found — the cut-aware routing (`_authorized_cuts` plus
+`_route_avoiding_cuts`) handles the audited shapes correctly.  Deeper
+chains (5+ levels) and wider sibling configurations remain untested by
+this audit.
+
+### 2. Large-EGI performance — stdout pipe truncation (fixed)
+
+**Bug surfaced.**  Before the fix, EGIs above roughly 240 sheet-level
+elements raised `json.JSONDecodeError: Unterminated string starting at:
+line 1 column 65528` — consistently at the macOS 64 KB pipe-buffer
+boundary.  Root cause was in `src/elk_worker.js`:
+
+```js
+// before
+process.stdout.write(JSON.stringify(result));
+process.exit(0);
+```
+
+`process.exit(0)` does not wait for stdout to flush.  When the result
+exceeded the OS pipe buffer the tail of the write was discarded.  The
+fix is one line — use the callback form of `write` so `exit` runs only
+after the buffer drains:
+
+```js
+// after
+process.stdout.write(JSON.stringify(result), () => process.exit(0));
+```
+
+Empirically verified: post-fix, 300-element and 900-element layouts
+complete cleanly.  A regression test
+(`TestLargeEGIPerformance::test_layout_above_pipe_buffer_threshold`)
+exercises 300 elements; the latency-budget test exercises 150 elements
+within 5 s (typical actual time: ~0.2 s).
+
+### 3. Dense n-ary relations
+
+Tested with `(R *x *y *z) (S x y z) (T x y z) (U x y z)` — four ternary
+predicates sharing the same vertex triple, producing 12 ligature paths
+that all converge on three shared vertices.  Assertion: no two distinct
+ligature paths contain collinear-overlapping segments (i.e. visually
+stacked lines).  Passes — bundles fan out from each shared vertex
+rather than stacking.
+
+Single-point intersections between distinct ligatures still occur (and
+are geometrically unavoidable when many predicates fan in to a small
+vertex set).  Reducing visual crossing count is a layout-quality issue,
+not a correctness one, and is out of scope for this audit.
+
 ## Known Limitations
 
 1. **No incremental layout**: Every layout is computed from scratch. For transformation sequences, unchanged elements don't automatically hold their positions (this is the "layout stability" problem — deferred to future work).

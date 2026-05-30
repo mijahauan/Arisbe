@@ -15,8 +15,9 @@ process.stdin.on('end', async () => {
   try {
     const graph = JSON.parse(input);
     const result = await elk.layout(graph);
-    process.stdout.write(JSON.stringify(result));
-    process.exit(0);
+    // Drain stdout before exit — for large graphs the result can exceed the
+    // OS pipe buffer (~64 KB on macOS); a bare process.exit() would truncate.
+    process.stdout.write(JSON.stringify(result), () => process.exit(0));
   } catch (err) {
     process.stderr.write(`ELK error: ${err.message}\n`);
     process.exit(1);
