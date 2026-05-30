@@ -415,11 +415,15 @@ class ERAInteraction(RuleInteraction):
                         f"Area {area} is {polarity.value} (depth {depth}).",
             )
 
-        # Subgraph must be closed (with auto-expansion)
-        # Beta: vertices in ancestor areas of the operating area are free
+        # Subgraph must be closed (with auto-expansion).
+        # Beta: vertices in ancestor areas of the operating area are free.
+        # for_erasure=True so a selected vertex pulls in every referencing
+        # edge, including those in descendant cuts — otherwise ERA would
+        # leave dangling references. See issue #9.
         validator = SubgraphClosureValidator(egi)
         analysis = validator.analyze_closure(
-            selection, allow_expansion=True, context_area=area)
+            selection, allow_expansion=True, context_area=area,
+            for_erasure=True)
 
         if not analysis.is_closed:
             violations = "; ".join(v.description for v in analysis.violations[:3])
@@ -789,11 +793,15 @@ class ITMinusInteraction(RuleInteraction):
                 message="All candidate elements must be in the same area.",
             )
 
-        # Must be closed
-        # Beta: vertices in ancestor areas of the candidate area are free
+        # Must be closed.
+        # Beta: vertices in ancestor areas of the candidate area are free.
+        # for_erasure=True: IT- removes the candidate, so a selected vertex
+        # must pull in every referencing edge to avoid dangling references
+        # after removal (same reasoning as ERA — see issue #9).
         validator = SubgraphClosureValidator(egi)
         analysis = validator.analyze_closure(
-            selection, allow_expansion=True, context_area=area)
+            selection, allow_expansion=True, context_area=area,
+            for_erasure=True)
         if not analysis.is_closed:
             violations = "; ".join(v.description for v in analysis.violations[:3])
             return StepResult(

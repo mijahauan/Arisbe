@@ -111,9 +111,12 @@ async def validate_transform(request: TransformValidateRequest):
                 except Exception as e:
                     errors.append(f"Area polarity error: {e}")
 
-                # Check closure
+                # Check closure. for_erasure=True so descendant-area edges
+                # referencing a selected vertex are required (issue #9).
                 validator = SubgraphClosureValidator(egi)
-                analysis = validator.analyze_closure(selected, allow_expansion=True)
+                analysis = validator.analyze_closure(
+                    selected, allow_expansion=True, for_erasure=True
+                )
                 if not analysis.is_closed:
                     missing = list(analysis.added_elements)
                     errors.append(f"Selection is not a closed subgraph; missing: {missing}")

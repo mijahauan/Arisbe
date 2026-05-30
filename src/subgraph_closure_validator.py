@@ -110,17 +110,25 @@ class SubgraphClosureValidator:
 
     def analyze_closure(self, selection: FrozenSet[ElementID],
                        allow_expansion: bool = True,
-                       context_area: Optional[ElementID] = None) -> ClosureAnalysis:
+                       context_area: Optional[ElementID] = None,
+                       for_erasure: bool = False) -> ClosureAnalysis:
         """
         Analyze if selection forms a closed subgraph.
-        
+
         Args:
             selection: Selected element IDs
             allow_expansion: If True, automatically expand to achieve closure
             context_area: (Beta) The area in which the subgraph resides.
                 When provided, vertices in strict ancestor areas are treated
                 as free and need not be included in the subgraph.
-            
+            for_erasure: If True, a selected vertex requires *every* edge
+                that references it in the closure, regardless of area —
+                erasing the vertex would otherwise leave those edges
+                dangling. When False (default, suitable for insertion-like
+                operations), the Beta-aware ``context_area`` skip applies
+                and edges in non-matching areas of the vertex are treated
+                as independent. See issue #9.
+
         Returns:
             ClosureAnalysis with validation results and expansion details
         """
@@ -160,9 +168,9 @@ class SubgraphClosureValidator:
                 
                 elif elem_id in self._vertex_ids:
                     # Vertex closure: all connecting edges must be included
-                    # (Beta: only edges in the same area)
+                    # (Beta: only edges in the same area, unless for_erasure)
                     vertex_violations = self._check_vertex_closure(
-                        elem_id, current_subgraph, context_area)
+                        elem_id, current_subgraph, context_area, for_erasure)
                     if vertex_violations:
                         violations_this_pass.extend(vertex_violations)
                         if allow_expansion:
@@ -197,7 +205,7 @@ class SubgraphClosureValidator:
         
         # Final validation
         is_closed = self._is_truly_closed(
-            frozenset(current_subgraph), context_area)
+            frozenset(current_subgraph), context_area, for_erasure)
         
         total_added = current_subgraph - set(selection)
         
@@ -270,16 +278,20 @@ class SubgraphClosureValidator:
 
     def _check_vertex_closure(self, vertex_id: ElementID,
                              current_subgraph: Set[ElementID],
-                             context_area: Optional[ElementID] = None
+                             context_area: Optional[ElementID] = None,
+                             for_erasure: bool = False,
                              ) -> List[ClosureViolation]:
-        """A selected vertex requires ALL connecting edges in the same area.
+        """A selected vertex requires connecting edges in the closure.
 
-        If a vertex is erased, every edge that references it would become a
-        dangling reference.  All such edges must therefore also be in the
-        subgraph.
+        Insertion (``for_erasure=False``) with a Beta context: only edges
+        in the same area as the vertex are required. Edges in descendant
+        or sibling areas can be treated as independent because newly
+        inserting a vertex does not affect pre-existing edges.
 
-        Beta: only edges in the same area as the vertex are required.
-        Edges in descendant or sibling areas are independent.
+        Erasure (``for_erasure=True``): every edge that references the
+        vertex must be in the closure, regardless of area — otherwise
+        erasing the vertex would leave those edges with a dangling
+        reference. See issue #9.
         """
         violations = []
         missing_edges = set()
@@ -289,7 +301,9 @@ class SubgraphClosureValidator:
             vertex_sequence = self.egi.nu.get(edge.id, ())
             if vertex_id in vertex_sequence:
                 # Beta: only require edges in the same area as the vertex
-                if context_area is not None:
+                # — but only when the operation is non-destructive. Erasure
+                # cannot leave referencing edges behind.
+                if context_area is not None and not for_erasure:
                     e_area = self._elem_area.get(edge.id)
                     if e_area != v_area:
                         continue  # Edge in a different area — independent
@@ -360,13 +374,17 @@ class SubgraphClosureValidator:
         return violations
     
     def _is_truly_closed(self, subgraph: FrozenSet[ElementID],
-                         context_area: Optional[ElementID] = None) -> bool:
+                         context_area: Optional[ElementID] = None,
+                         for_erasure: bool = False) -> bool:
         """Final strict validation that subgraph is closed.
 
         Edge rule: a vertex endpoint is OK to omit if (b) it is Beta-free or
         (c) it has other connecting edges outside the subgraph (semi-free).
 
-        Vertex rule: every connecting edge in the same area must be in the subgraph.
+        Vertex rule: every connecting edge must be in the subgraph. With a
+        Beta ``context_area`` and ``for_erasure=False``, only same-area
+        edges are required. With ``for_erasure=True``, every edge
+        referencing the vertex is required regardless of area (issue #9).
 
         Cut rule: a cut must include all of its contents.
         """
@@ -388,14 +406,16 @@ class SubgraphClosureValidator:
                         continue
                     return False
 
-        # Vertex rule: each selected vertex requires all connecting edges in same area
+        # Vertex rule: each selected vertex requires connecting edges. With
+        # a Beta context_area and not for_erasure, only same-area edges are
+        # required; for erasure, every referencing edge must be included.
         subgraph_vertices = {v_id for v_id in subgraph if v_id in self._vertex_ids}
         for vertex_id in subgraph_vertices:
             v_area = self._elem_area.get(vertex_id)
             for edge in self.egi.E:
                 vertex_sequence = self.egi.nu.get(edge.id, ())
                 if vertex_id in vertex_sequence:
-                    if context_area is not None:
+                    if context_area is not None and not for_erasure:
                         e_area = self._elem_area.get(edge.id)
                         if e_area != v_area:
                             continue
@@ -447,9 +467,11 @@ class SubgraphClosureValidator:
         if not selection:
             return False, "No elements selected", selection
         
-        # Analyze closure
+        # Analyze closure. ERA must pull in every referencing edge to avoid
+        # leaving dangling references after vertex removal; INS does not.
         analysis = self.analyze_closure(selection, allow_expansion=True,
-                                        context_area=context_area)
+                                        context_area=context_area,
+                                        for_erasure=(rule_name == "ERA"))
         
         if analysis.is_closed:
             if analysis.added_elements:

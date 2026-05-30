@@ -560,15 +560,19 @@ class ErasureRule(FormalTransformationRule):
         if elements_in_target != context.selected_subgraph:
             return False, "Selected subgraph contains elements not in target area"
 
-        # CRITICAL: Check if subgraph is closed per Dau's requirement
-        # Use comprehensive closure validator with automatic expansion
-        # Beta: pass context_area so vertices in ancestor areas are free
+        # CRITICAL: Check if subgraph is closed per Dau's requirement.
+        # Use comprehensive closure validator with automatic expansion.
+        # Beta: pass context_area so vertices in ancestor areas are free.
+        # for_erasure=True so a selected vertex pulls in every referencing
+        # edge (regardless of area) — otherwise erasure would leave
+        # descendant-area edges dangling. See issue #9.
         if context.selected_subgraph:
             validator = SubgraphClosureValidator(context.source_egi)
             analysis = validator.analyze_closure(
                 context.selected_subgraph, allow_expansion=True,
-                context_area=context.target_area)
-            
+                context_area=context.target_area,
+                for_erasure=True)
+
             if not analysis.is_closed:
                 # Show detailed violations
                 violations_desc = "\n  ".join(v.description for v in analysis.violations[:3])
@@ -576,7 +580,7 @@ class ErasureRule(FormalTransformationRule):
                     False,
                     f"Erasure requires closed subgraph:\n  {violations_desc}",
                 )
-            
+
             # Store expanded subgraph for use in transformation
             # This includes cuts with their contents automatically
             if hasattr(context, '__dict__'):

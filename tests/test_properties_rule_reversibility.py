@@ -194,9 +194,11 @@ def _era_target(draw):
         draw(st.sets(st.sampled_from(contents), min_size=1))
     )
 
+    # Match ERA's actual closure semantics (issue #9): for_erasure=True.
     validator = SubgraphClosureValidator(egi)
     analysis = validator.analyze_closure(
-        selection, allow_expansion=True, context_area=area_id
+        selection, allow_expansion=True, context_area=area_id,
+        for_erasure=True,
     )
     assume(analysis.is_closed)
     return egi, area_id, selection
@@ -279,9 +281,11 @@ class TestErasureRestoreReversibility:
 
         # Compute the closure expansion ERA will perform internally — this
         # is the exact set of element IDs ERA's mutation should remove.
+        # Must mirror ERA's for_erasure=True (issue #9).
         validator = SubgraphClosureValidator(egi)
         analysis = validator.analyze_closure(
-            selection, allow_expansion=True, context_area=area_id
+            selection, allow_expansion=True, context_area=area_id,
+            for_erasure=True,
         )
         expected_erased = analysis.closed_subgraph
 
@@ -294,15 +298,7 @@ class TestErasureRestoreReversibility:
             nesting_depth=depth,
         )
         result = ErasureRule().apply_transformation(ctx)
-        # Issue #9: SubgraphClosureValidator's Beta-aware mode can mark a
-        # selection ``is_closed=True`` when a selected vertex has edges in
-        # a descendant cut area; those edges are skipped by closure
-        # expansion but still reference the vertex after ERA removes it,
-        # so the result EGI's __post_init__ validation rejects the
-        # construction. Pinned in ``test_known_era_descendant_area_edge_bug``
-        # below — skip those cases here so the property test continues to
-        # exercise the well-behaved space. Remove this gate when #9 is fixed.
-        assume(result.success)
+        assert result.success, f"ERA failed: {result.error_message}"
         g_after = result.result_egi
 
         # ERA must have removed exactly the expanded closure.
@@ -332,31 +328,27 @@ class TestErasureRestoreReversibility:
 
 
 # --------------------------------------------------------------------------- #
-# Pinned regressions for bugs discovered by the property tests above           #
+# Regression for issue #9 — fixed by for_erasure=True closure semantics       #
 # --------------------------------------------------------------------------- #
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Issue #9: SubgraphClosureValidator's Beta-aware mode reports "
-        "is_closed=True for selections where a selected vertex has edges "
-        "in a descendant cut area. ERA's mutation then leaves those "
-        "descendant-area edges dangling and "
-        "RelationalGraphWithCuts.__post_init__ rejects the result."
-    ),
-    strict=True,
-)
-def test_known_era_descendant_area_edge_bug():
-    """Minimal reproducer for issue #9 (closure-validator Beta-asymmetry).
+def test_era_drags_descendant_area_edges_into_closure():
+    """Regression for issue #9.
 
     Setup: EGIF ``(P *x) ~[ (Q x) ]`` —
       - vertex x and edge P live on the sheet (positive)
       - edge Q lives inside a cut (negative), referencing x
 
-    Selecting {x} on the sheet: the Beta-aware closure expands to {x, P}
-    (Q is skipped because it's in a different area) and reports is_closed.
-    ERA then tries to construct an EGI without x but with Q still
-    referencing it — invariant violation.
+    Pre-fix: the Beta-aware closure expanded {x} to {x, P} only — Q was
+    skipped as descendant-area, leading ERA to construct an EGI without
+    x but with Q still referencing it. RelationalGraphWithCuts.
+    __post_init__ then rejected the construction.
+
+    Post-fix: ERA passes ``for_erasure=True`` to ``analyze_closure``,
+    which pulls in every edge referencing the vertex regardless of area.
+    Either ERA succeeds with the cut+Q also erased, or the closure
+    expansion drags Q (and possibly the cut, if Q was the only thing in
+    it) in and ERA proceeds correctly.
     """
     egi = parse_egif("(P *x) ~[ (Q x) ]")
     sheet_contents = egi.area[egi.sheet]
@@ -373,6 +365,13 @@ def test_known_era_descendant_area_edge_bug():
     )
     result = ErasureRule().apply_transformation(ctx)
     assert result.success, f"ERA failed: {result.error_message}"
+
+    # The vertex x must be gone, and so must Q (it referenced x).
+    g = result.result_egi
+    assert not any(v.id == sheet_vertex for v in g.V)
+    assert all(g.rel.get(e.id) != "Q" for e in g.E), (
+        f"Q edge survived erasure of its referent: {dict(g.rel)}"
+    )
 
 
 def test_suite():
