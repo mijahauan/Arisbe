@@ -1,8 +1,8 @@
 # AGENTS.md
 
-## � Core Protection System
-- **15 protected core modules** - Cannot be modified without explicit authorization
-- **313 tests** must always pass (33 test files) - These validate the mathematical foundation
+## Core Protection System
+- **17 protected core modules** - Cannot be modified without explicit authorization
+- **401 tests** must always pass (34 test files) - These validate the mathematical foundation
 - **Qt-dependent tests** excluded from automatic quality gate (run manually to avoid hangs)
 - **Check protection status**: `python tools/core_protection_system.py --report`
 - **Override protection** (authorized changes only): `touch .core_modification_authorized`
@@ -23,11 +23,8 @@
 ## 🧪 Testing Requirements
 - **Quality check**: `python tools/quality_gate_system.py` (runs automatically on commit)
 - **System status**: `python tools/daily_quality_dashboard.py`
-- **Core tests**: `python -m pytest tests/` (313 passing, 3 skipped)
-- **Qt-dependent tests**: Run manually (excluded from automatic checks due to collection hangs)
-- **GUI Organon tests**: `python tools/test_gui_organon.py` (3/3 passing)
-- **Expected results**: 313 tests passing, 0 failing
-- **Timeout protection**: 120s timeout prevents infinite hangs on Qt import issues
+- **Core tests**: `uv run pytest tests/` (401 passing, 3 skipped)
+- **Expected results**: 401 tests passing, 0 failing
 
 ### Battle-Tested Import/Export Infrastructure
 **Status**: ✅ PRODUCTION - Comprehensive test coverage across corpus
@@ -41,8 +38,8 @@
 ## 🏗️ Build and Development
 - **Environment**: managed by `uv` (Python 3.12). Run `uv sync --extra dev` once, then use `uv run <cmd>` (or `source .venv/bin/activate`).
 - **Dependencies**: See `pyproject.toml`
-- **Core modules location**: `src/` directory (15 protected modules)
-- **Test location**: `tests/` directory (33 test files, 313 tests)
+- **Core modules location**: `src/` directory (17 protected modules)
+- **Test location**: `tests/` directory (34 test files, 401 tests)
 
 ## 📋 Code Style and Conventions
 - **Import pattern**: `from module_name import function_name` (not `from src.module_name`)
@@ -65,7 +62,7 @@
 ## 📊 Quality Gates
 - **Pre-commit hooks**: Automatically run quality checks
 - **Core protection**: Blocks unauthorized changes to protected modules
-- **Test validation**: All 313 tests must pass
+- **Test validation**: All 401 tests must pass
 - **Syntax checking**: Zero syntax errors required
 
 ## 🎯 Common Development Patterns
@@ -313,7 +310,7 @@ branch_id = uod.history.create_branch_from_state(
 - **DO NOT** reinvent existing solutions - use context awareness system first
 
 ## 🏆 Success Indicators
-- All 313 tests passing (33 test files)
+- All 401 tests passing (34 test files)
 - Quality dashboard shows "EXCELLENT" status
 - Core protection system shows "CLEAN" status
 - Zero syntax errors across all source files

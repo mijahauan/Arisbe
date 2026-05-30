@@ -47,7 +47,7 @@ for how the model expresses it.
 ## Where things live (post-2026-05 cleanup)
 
 - `src/` — core modules (~32 .py files plus `web_api/` and `web_viewer/`).
-- `tests/` — pytest suite (~33 files, 353 passing as of 2026-05-29).
+- `tests/` — pytest suite (~34 files, 401 passing as of 2026-05-30).
 - `tools/` — quality tools, demos, utilities (not in import path for tests).
 - `tomos/` — 87+ canonical EG examples (Peirce, Roberts, Sowa, Dau).
 - `corpus/` — active working corpus.

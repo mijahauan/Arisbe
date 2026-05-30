@@ -131,7 +131,7 @@ Code chapters correspond to Dau's formal textbook:
 - Ch. 18 → `chapter18_fopl_translation.py` (linear format Φ/Ψ translations)
 - Ch. 20 → `syntactic_equivalence_checker.py`, `chapter20_syntactic_equivalence_fixes.py`
 
-## Testing (313 passing, 3 skipped, 33 test files)
+## Testing (401 passing, 3 skipped, 34 test files)
 
 Key test files:
 - `test_epg_exemplar_scripts.py` — 16 Endoporeutic Game scenarios (outcomes, strategies, engine integration)
