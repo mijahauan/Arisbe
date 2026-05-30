@@ -986,6 +986,78 @@ class TestChapter16_17LigatureSoundnessSimplified:
         )
         assert not self._evaluator()._verify_rearrange_properties(original, transformed)
 
+    # ==================== END-TO-END SOUNDNESS ====================
+
+    @pytest.mark.parametrize(
+        "rule_name",
+        ["MOVE_BRANCHES", "EXTEND_LIGATURE", "RETRACT_LIGATURE",
+         "SPLIT_VERTEX", "MERGE_VERTICES"],
+    )
+    def test_evaluate_rule_soundness_accepts_correct_rule_output(self, rule_name):
+        """End-to-end: actually run a rule, feed its output through
+        ``Chapter17SoundnessEvaluator.evaluate_rule_soundness``, and
+        assert is_sound=True.
+
+        This exercises the full Ch17 pipeline:
+        - The rule's own ``apply_transformation``
+        - Z3 semantic equivalence and model preservation
+        - The strengthened per-rule structural invariants
+        - The Definition 16.8 single-object postcondition
+
+        REARRANGE_LIGATURE is omitted — see
+        ``test_evaluate_rearrange_ligature_xfail_dau_def_16_4`` below for
+        the documented gap with the current rule implementation.
+        """
+        from src.chapter17_soundness_evaluation import Chapter17ComplianceTestSuite
+
+        suite = Chapter17ComplianceTestSuite()
+        egi, ctx = suite._create_test_case_for_rule(rule_name)
+        rule = suite.rules[rule_name]
+
+        result = suite.evaluator.evaluate_rule_soundness(rule, egi, ctx)
+
+        assert result.is_sound, (
+            f"{rule_name} not sound: "
+            f"sem_eq={result.semantic_equivalence_verified} "
+            f"model={result.model_preservation_verified} "
+            f"err={result.error_message}"
+        )
+
+    @pytest.mark.xfail(
+        reason=(
+            "Issue #11: the in-tree LigatureRearrangementRule implements "
+            "'rearrange' as RETRACT followed by adding a fresh vertex — "
+            "the ligature ends up with a different vertex set ({B, "
+            "B_rearranged, C}) than it started with ({A, B, C}), violating "
+            "Dau Definition 16.4's vertex-set preservation."
+        ),
+        strict=True,
+    )
+    def test_evaluate_rearrange_ligature_xfail_dau_def_16_4(self):
+        """Pinned regression for the REARRANGE_LIGATURE contract gap.
+
+        Dau §16.4 says a rearrangement replaces ligature (W, F) with a
+        new ligature (W', F') *in the same context with the same vertex
+        membership*. The current implementation produces a graph whose
+        vertex set differs from the original — the structural verifier
+        (correctly) rejects it.
+
+        When the rule is fixed to preserve vertex membership, this xfail
+        will flip to xpass and the marker should be removed.
+        """
+        from src.chapter17_soundness_evaluation import Chapter17ComplianceTestSuite
+
+        suite = Chapter17ComplianceTestSuite()
+        egi, ctx = suite._create_test_case_for_rule("REARRANGE_LIGATURE")
+        rule = suite.rules["REARRANGE_LIGATURE"]
+
+        result = suite.evaluator.evaluate_rule_soundness(rule, egi, ctx)
+        assert result.is_sound, (
+            f"REARRANGE_LIGATURE not sound: "
+            f"sem_eq={result.semantic_equivalence_verified} "
+            f"model={result.model_preservation_verified}"
+        )
+
     def test_move_branches_rejects_cut_change(self):
         """MOVE_BRANCHES must not add, remove, or relocate cuts."""
         from frozendict import frozendict

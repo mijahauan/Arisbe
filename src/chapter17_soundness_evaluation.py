@@ -521,18 +521,24 @@ class Chapter17SoundnessEvaluator:
         original_egi: RelationalGraphWithCuts,
         transformed_egi: RelationalGraphWithCuts,
     ) -> bool:
-        """Verify EXTEND_LIGATURE adds exactly one vertex and one identity edge.
+        """Verify EXTEND_LIGATURE adds an identity network to a ligature.
 
-        The new vertex extends an existing ligature; no predicate edge is
-        added or removed, and the cut hierarchy is untouched.
+        Dau §16.2 allows extending by any chain length ≥1; some
+        implementations may always add a fixed size (the in-tree
+        ``ExtendRestrictLigatureRule`` always adds a 2-vertex chain).
+        The structural invariant is:
+        - Vertex count grows by N ≥ 1.
+        - Identity-edge count grows by the same N (no asymmetric growth).
+        - Predicate edges are unchanged in identity.
+        - The cut hierarchy is untouched.
         """
         if not self._cuts_unchanged(original_egi, transformed_egi):
             return False
-        if len(transformed_egi.V) != len(original_egi.V) + 1:
-            return False
-        if len(self._identity_edge_ids(transformed_egi)) != len(
+        vertex_delta = len(transformed_egi.V) - len(original_egi.V)
+        identity_delta = len(self._identity_edge_ids(transformed_egi)) - len(
             self._identity_edge_ids(original_egi)
-        ) + 1:
+        )
+        if vertex_delta < 1 or vertex_delta != identity_delta:
             return False
         if self._predicate_edge_ids(original_egi) != self._predicate_edge_ids(
             transformed_egi
@@ -545,14 +551,21 @@ class Chapter17SoundnessEvaluator:
         original_egi: RelationalGraphWithCuts,
         transformed_egi: RelationalGraphWithCuts,
     ) -> bool:
-        """Verify RETRACT_LIGATURE removes exactly one vertex and one identity edge."""
+        """Verify RETRACT_LIGATURE removes a chain of identity-linked vertices.
+
+        Inverse of EXTEND_LIGATURE: any chain length ≥1 may be removed.
+        - Vertex count shrinks by N ≥ 1.
+        - Identity-edge count shrinks by the same N.
+        - Predicate edges are unchanged in identity.
+        - The cut hierarchy is untouched.
+        """
         if not self._cuts_unchanged(original_egi, transformed_egi):
             return False
-        if len(transformed_egi.V) != len(original_egi.V) - 1:
-            return False
-        if len(self._identity_edge_ids(transformed_egi)) != len(
-            self._identity_edge_ids(original_egi)
-        ) - 1:
+        vertex_delta = len(original_egi.V) - len(transformed_egi.V)
+        identity_delta = len(self._identity_edge_ids(original_egi)) - len(
+            self._identity_edge_ids(transformed_egi)
+        )
+        if vertex_delta < 1 or vertex_delta != identity_delta:
             return False
         if self._predicate_edge_ids(original_egi) != self._predicate_edge_ids(
             transformed_egi
