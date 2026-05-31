@@ -35,6 +35,7 @@ from egi_core_dau import ElementID, RelationalGraphWithCuts
 from egif_parser_dau import parse_egif
 from elk_layout_engine import ELKLayoutEngine
 from layout_dto import BoundingBox, LayoutDTO, LigaturePath, Point
+from presentation_ops import cut_parents, element_area
 from style_loader import load_default_style
 
 
@@ -97,14 +98,6 @@ def _path_intersects_rect_interior(
     return False
 
 
-def _build_element_to_area(egi: RelationalGraphWithCuts) -> Dict[ElementID, ElementID]:
-    elem_area: Dict[ElementID, ElementID] = {}
-    for area_id, contents in egi.area.items():
-        for m in contents:
-            elem_area[m] = area_id
-    return elem_area
-
-
 def _ancestor_chain(area_id: ElementID, parent_of: Dict[ElementID, ElementID]) -> List[ElementID]:
     chain = [area_id]
     cur = area_id
@@ -112,18 +105,6 @@ def _ancestor_chain(area_id: ElementID, parent_of: Dict[ElementID, ElementID]) -
         cur = parent_of[cur]
         chain.append(cur)
     return chain
-
-
-def _build_cut_parent_map(
-    egi: RelationalGraphWithCuts,
-) -> Dict[ElementID, ElementID]:
-    cut_ids = {c.id for c in egi.Cut}
-    parent: Dict[ElementID, ElementID] = {}
-    for area_id, contents in egi.area.items():
-        for elem_id in contents:
-            if elem_id in cut_ids:
-                parent[elem_id] = area_id
-    return parent
 
 
 def _authorized_cuts_for(
@@ -201,8 +182,8 @@ class TestBetaCrossCutLigatures:
         )
         dto = engine.generate_layout(egi, style)
 
-        cut_parent = _build_cut_parent_map(egi)
-        elem_area = _build_element_to_area(egi)
+        cut_parent = cut_parents(egi)
+        elem_area = element_area(egi)
 
         # Identify the named cuts by inspecting which predicates each cut
         # transitively contains.
@@ -288,8 +269,8 @@ class TestBetaCrossCutLigatures:
         )
         dto = engine.generate_layout(egi, style)
 
-        cut_parent = _build_cut_parent_map(egi)
-        elem_area = _build_element_to_area(egi)
+        cut_parent = cut_parents(egi)
+        elem_area = element_area(egi)
 
         for lp in dto.ligature_paths:
             pa, va = elem_area[lp.predicate_id], elem_area[lp.vertex_id]

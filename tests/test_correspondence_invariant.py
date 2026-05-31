@@ -51,6 +51,10 @@ from elk_layout_engine import ELKLayoutEngine
 from layout_dto import BoundingBox, Point
 from presentation_ops import (
     Regime3Violation,
+    area_chain,
+    cut_parents,
+    deepest_containing_cut,
+    element_area,
     move_vertex,
     reroute_ligature,
     reshape_cut,
@@ -272,23 +276,6 @@ def test_render_round_trip_incidence_fidelity(uod_id, tomos, engine, style):
     )
 
 
-def _element_area_map(egi):
-    """Return {element_id: area_id} for every vertex and edge in *egi*.
-
-    The area map is the inverse of egi.area: instead of "what's in this
-    area" it answers "what area is this element in".  Cuts are skipped
-    (they are areas, not contents of an area's element set in the sense
-    we want here — though a cut's own area is its parent in egi.area).
-    """
-    cut_ids = {c.id for c in egi.Cut}
-    result = {}
-    for area_id, contents in egi.area.items():
-        for elem_id in contents:
-            if elem_id not in cut_ids:
-                result[elem_id] = area_id
-    return result
-
-
 @pytest.mark.parametrize("uod_id", _uod_ids())
 def test_identity_fidelity_endpoint_placement(uod_id, tomos, engine, style):
     """LigaturePath endpoints sit at the right places, in the right areas.
@@ -322,7 +309,7 @@ def test_identity_fidelity_endpoint_placement(uod_id, tomos, engine, style):
     egi = uod.current_egi
     dto = engine.generate_layout(egi, style)
 
-    elem_area = _element_area_map(egi)
+    elem_area = element_area(egi)
     cut_ids = {c.id for c in egi.Cut}
 
     def _in_bounds(point, bounds):
@@ -385,42 +372,6 @@ def test_identity_fidelity_endpoint_placement(uod_id, tomos, engine, style):
     )
 
 
-def _cut_parent_map(egi):
-    """Return {cut_id: enclosing area_id} — the area-tree parent map."""
-    cut_ids = {c.id for c in egi.Cut}
-    parent = {}
-    for area_id, contents in egi.area.items():
-        for elem_id in contents:
-            if elem_id in cut_ids:
-                parent[elem_id] = area_id
-    return parent
-
-
-def _chain_between(a, b, parent_map):
-    """Return the set of areas on the path from `a` to `b` in the area tree.
-
-    The path goes a → ancestors → LCA → ... → b.  Both endpoints and
-    the LCA are included.  `parent_map.get(sheet)` is None — the sheet
-    is the tree's root.
-    """
-    anc_a = []
-    cur = a
-    while cur is not None:
-        anc_a.append(cur)
-        cur = parent_map.get(cur)
-    anc_a_set = set(anc_a)
-    chain_b = []
-    cur = b
-    while cur is not None and cur not in anc_a_set:
-        chain_b.append(cur)
-        cur = parent_map.get(cur)
-    if cur is None:
-        # Disjoint trees — shouldn't happen with a single sheet root.
-        return set(chain_b) | anc_a_set
-    idx = anc_a.index(cur)
-    return set(chain_b) | set(anc_a[: idx + 1])
-
-
 @pytest.mark.parametrize("uod_id", _uod_ids())
 def test_identity_fidelity_area_chain_traversal(uod_id, tomos, engine, style):
     """LigaturePath geometry stays on the ancestor chain between endpoints.
@@ -453,40 +404,19 @@ def test_identity_fidelity_area_chain_traversal(uod_id, tomos, engine, style):
     egi = uod.current_egi
     dto = engine.generate_layout(egi, style)
 
-    elem_area = _element_area_map(egi)
-    cut_ids = {c.id for c in egi.Cut}
-    parent_map = _cut_parent_map(egi)
-
-    def depth(cid):
-        d = 0
-        cur = cid
-        while parent_map.get(cur) is not None:
-            cur = parent_map[cur]
-            d += 1
-        return d
-
-    def deepest_containing_cut(point):
-        candidates = [
-            cid
-            for cid, b in dto.cut_bounds.items()
-            if cid in cut_ids
-            and b.min_x < point.x < b.max_x
-            and b.min_y < point.y < b.max_y
-        ]
-        if not candidates:
-            return egi.sheet
-        return max(candidates, key=depth)
+    elem_area = element_area(egi)
+    parent_map = cut_parents(egi)
 
     failures = []
     for path in dto.ligature_paths:
         v_area = elem_area.get(path.vertex_id, egi.sheet)
         p_area = elem_area.get(path.predicate_id, egi.sheet)
-        allowed = _chain_between(v_area, p_area, parent_map)
+        allowed = area_chain(v_area, p_area, parent_map)
 
         pts = path.points
         # Per-point check
         for i, pt in enumerate(pts):
-            area = deepest_containing_cut(pt)
+            area = deepest_containing_cut(pt, dto, egi, parent_map)
             if area not in allowed:
                 failures.append(
                     f"  ligature ({path.predicate_id} → {path.vertex_id}): "
@@ -502,7 +432,7 @@ def test_identity_fidelity_area_chain_traversal(uod_id, tomos, engine, style):
                 (pts[i].x + pts[i + 1].x) / 2,
                 (pts[i].y + pts[i + 1].y) / 2,
             )
-            area = deepest_containing_cut(mid)
+            area = deepest_containing_cut(mid, dto, egi, parent_map)
             if area not in allowed:
                 failures.append(
                     f"  ligature ({path.predicate_id} → {path.vertex_id}): "
@@ -801,7 +731,7 @@ def _check_correspondence(label, egi, dto):
             )
 
     # Identity 1/3: endpoint placement
-    elem_area = _element_area_map(egi)
+    elem_area = element_area(egi)
     cut_ids = {c.id for c in egi.Cut}
     for path in dto.ligature_paths:
         pts = path.points
@@ -836,34 +766,14 @@ def _check_correspondence(label, egi, dto):
                     )
 
     # Identity 2/3: area-chain traversal
-    parent_map = _cut_parent_map(egi)
-
-    def _depth(cid):
-        d = 0
-        cur = cid
-        while parent_map.get(cur) is not None:
-            cur = parent_map[cur]
-            d += 1
-        return d
-
-    def _deepest(point):
-        cands = [
-            cid
-            for cid, b in dto.cut_bounds.items()
-            if cid in cut_ids
-            and b.min_x < point.x < b.max_x
-            and b.min_y < point.y < b.max_y
-        ]
-        if not cands:
-            return egi.sheet
-        return max(cands, key=_depth)
+    parent_map = cut_parents(egi)
 
     for path in dto.ligature_paths:
         v_area = elem_area.get(path.vertex_id, egi.sheet)
         p_area = elem_area.get(path.predicate_id, egi.sheet)
-        allowed = _chain_between(v_area, p_area, parent_map)
+        allowed = area_chain(v_area, p_area, parent_map)
         for i, pt in enumerate(path.points):
-            area = _deepest(pt)
+            area = deepest_containing_cut(pt, dto, egi, parent_map)
             if area not in allowed:
                 failures.append(
                     f"  identity-chain: ({path.predicate_id} → {path.vertex_id}) "
@@ -874,7 +784,7 @@ def _check_correspondence(label, egi, dto):
                 (path.points[i].x + path.points[i + 1].x) / 2,
                 (path.points[i].y + path.points[i + 1].y) / 2,
             )
-            area = _deepest(mid)
+            area = deepest_containing_cut(mid, dto, egi, parent_map)
             if area not in allowed:
                 failures.append(
                     f"  identity-chain: ({path.predicate_id} → {path.vertex_id}) "
@@ -1010,7 +920,7 @@ def _pick_era_site(egi):
     Returns None if no UoD edge sits in a positive area.
     """
     cut_ids = {c.id for c in egi.Cut}
-    elem_area = _element_area_map(egi)
+    elem_area = element_area(egi)
     for edge in sorted(egi.E, key=lambda e: e.id):
         area = elem_area.get(edge.id)
         if area is None:
@@ -1073,8 +983,8 @@ def _pick_it_plus_site(egi):
 
     Returns None if no edge has a strictly-deeper cut to iterate into.
     """
-    elem_area = _element_area_map(egi)
-    parent_map = _cut_parent_map(egi)
+    elem_area = element_area(egi)
+    parent_map = cut_parents(egi)
 
     def is_descendant(candidate, ancestor):
         cur = candidate
