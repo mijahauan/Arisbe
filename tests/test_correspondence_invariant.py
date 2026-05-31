@@ -28,6 +28,9 @@ the spec:
                      port_index reproduces ν exactly.
   - Transformation invariance: every rule application (DC+, ERA, IT+)
                      preserves correspondence on the post-EGI's drawing.
+                     Both a one-site-per-UoD smoke test and an
+                     exhaustive "every applicable site" sweep are run
+                     for each rule.
   - Regime-3 non-interference: every projection-only mutation (vertex
                      translation, interior-preserving cut reshape,
                      on-chain ligature reroute) leaves the EGI
@@ -866,6 +869,180 @@ def test_transformation_invariance_iteration(uod_id, tomos, engine, style):
     assert not failures, (
         f"[{uod_id}] post-IT+ drawing fails correspondence:\n"
         + "\n".join(failures)
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Exhaustive transformation invariance — §7 shape #2 (full coverage)          #
+# --------------------------------------------------------------------------- #
+#
+# The three tests above (test_transformation_invariance_dc_plus / _era /
+# _iteration) each pick one deterministic site per UoD per rule.  That
+# catches the obvious cases but says nothing about rule applications at
+# non-default sites — a DC+ targeting a deeply nested cut, an ERA on a
+# different positive-area edge, an IT+ into a different deeper cut.
+# The §7 spec text contemplates "every applicable site"; the file's
+# original comment deferred that to "a Hypothesis-driven companion
+# suite (out of scope here)".  This section is that companion.
+#
+# For a *finite* corpus (15 UoDs as of May 2026), exhaustive parametric
+# enumeration is the honest tool — Hypothesis-style sampling would only
+# revisit the same finite site space without adding coverage.  Each of
+# the three tests below loads a UoD, enumerates every site at which
+# its rule is applicable, applies the rule, and runs check_correspondence
+# on the post-state.  Failures are accumulated into one report per UoD
+# so a regression names every offending site at once.
+
+
+def _enumerate_dc_plus_sites(egi):
+    """Yield (target_area, empty_selection) for every applicable DC+ site.
+
+    DC+ (Double Cut Insertion) is unconstrained: any area can host a
+    fresh pair of nested empty cuts.  The applicable site set is just
+    {sheet} ∪ Cut.
+    """
+    yield (egi.sheet, frozenset())
+    for cut in sorted(egi.Cut, key=lambda c: c.id):
+        yield (cut.id, frozenset())
+
+
+def _enumerate_era_sites(egi):
+    """Yield (target_area, edge_selection) for every applicable ERA site.
+
+    ERA needs a positive-polarity area and a non-empty selection whose
+    closure is closed.  The simplest applicable selection is one edge
+    at a time; ERA's closure expansion handles semi-free vertices.
+    """
+    from egi_core_dau import AreaPolarity
+
+    elem_area = element_area(egi)
+    for edge in sorted(egi.E, key=lambda e: e.id):
+        area = elem_area.get(edge.id)
+        if area is None:
+            continue
+        polarity, _ = egi.area_polarity(area)
+        if polarity is AreaPolarity.POSITIVE:
+            yield (area, frozenset([edge.id]))
+
+
+def _enumerate_it_plus_sites(egi):
+    """Yield (target_area, edge_selection) for every IT+ site.
+
+    IT+ deep-copies a subgraph into a strictly-enclosed target area.
+    For each edge, every strictly-deeper cut is a valid target.
+    """
+    elem_area = element_area(egi)
+    parent_map = cut_parents(egi)
+
+    def _is_descendant(candidate, ancestor):
+        cur = candidate
+        while cur is not None:
+            cur = parent_map.get(cur)
+            if cur == ancestor:
+                return True
+        return False
+
+    for edge in sorted(egi.E, key=lambda e: e.id):
+        src = elem_area.get(edge.id)
+        if src is None:
+            continue
+        for cut in sorted(egi.Cut, key=lambda c: c.id):
+            if _is_descendant(cut.id, src):
+                yield (cut.id, frozenset([edge.id]))
+
+
+def _run_invariance_at_sites(
+    rule_name, sites, egi, engine, style, uod_id, t_engine
+):
+    """Apply ``rule_name`` at each site; return list of (site, failure_msg).
+
+    Sites for which the rule rejects on its own preconditions are *not*
+    counted as failures — they're skipped silently because the rule
+    declining is the rule doing its job.  A site that succeeds but
+    whose post-state fails correspondence IS a failure.
+    """
+    failures = []
+    sites_applied = 0
+    for area_id, selection in sites:
+        result = t_engine.apply_rule(rule_name, egi, area_id, selection)
+        if not result.success:
+            continue
+        sites_applied += 1
+        post_dto = engine.generate_layout(result.result_egi, style)
+        site_failures = check_correspondence(result.result_egi, post_dto)
+        if site_failures:
+            failures.append(
+                f"  site (area={area_id}, sel={sorted(selection)}): "
+                + " | ".join(s.strip() for s in site_failures)
+            )
+    return failures, sites_applied
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_dc_plus_exhaustive(
+    uod_id, tomos, engine, style
+):
+    """DC+ preserves correspondence at every applicable site in the UoD.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §7 shape #2
+    (transformation invariance, "every applicable site").  Companion to
+    the deterministic test_transformation_invariance_dc_plus above.
+    """
+    from formal_transformation_rules import FormalTransformationEngine
+
+    egi = tomos.load_uod(uod_id).current_egi
+    t_engine = FormalTransformationEngine()
+    sites = list(_enumerate_dc_plus_sites(egi))
+    failures, applied = _run_invariance_at_sites(
+        "DC+", sites, egi, engine, style, uod_id, t_engine
+    )
+    if applied == 0:
+        pytest.skip(f"{uod_id}: no DC+ site accepted")
+    assert not failures, (
+        f"[{uod_id}] DC+ post-state failed correspondence at "
+        f"{len(failures)}/{applied} site(s):\n" + "\n".join(failures)
+    )
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_era_exhaustive(
+    uod_id, tomos, engine, style
+):
+    """ERA preserves correspondence at every applicable positive-area edge."""
+    from formal_transformation_rules import FormalTransformationEngine
+
+    egi = tomos.load_uod(uod_id).current_egi
+    t_engine = FormalTransformationEngine()
+    sites = list(_enumerate_era_sites(egi))
+    failures, applied = _run_invariance_at_sites(
+        "ERA", sites, egi, engine, style, uod_id, t_engine
+    )
+    if applied == 0:
+        pytest.skip(f"{uod_id}: no ERA site accepted")
+    assert not failures, (
+        f"[{uod_id}] ERA post-state failed correspondence at "
+        f"{len(failures)}/{applied} site(s):\n" + "\n".join(failures)
+    )
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_it_plus_exhaustive(
+    uod_id, tomos, engine, style
+):
+    """IT+ preserves correspondence at every (edge, deeper-cut) pair."""
+    from formal_transformation_rules import FormalTransformationEngine
+
+    egi = tomos.load_uod(uod_id).current_egi
+    t_engine = FormalTransformationEngine()
+    sites = list(_enumerate_it_plus_sites(egi))
+    failures, applied = _run_invariance_at_sites(
+        "IT+", sites, egi, engine, style, uod_id, t_engine
+    )
+    if applied == 0:
+        pytest.skip(f"{uod_id}: no IT+ site accepted")
+    assert not failures, (
+        f"[{uod_id}] IT+ post-state failed correspondence at "
+        f"{len(failures)}/{applied} site(s):\n" + "\n".join(failures)
     )
 
 
