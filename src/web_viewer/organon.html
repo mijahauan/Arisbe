@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arisbe Organon — Tomos Corpus Archive</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* Organon-specific overrides: read-only archive layout */
+    #organon-app {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      height: 100vh;
+    }
+    #organon-sidebar {
+      display: flex;
+      flex-direction: column;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--bottombar-border);
+      overflow: hidden;
+    }
+    #organon-sidebar-header {
+      padding: 16px 14px 12px;
+      border-bottom: 1px solid var(--bottombar-border);
+    }
+    #organon-sidebar-header h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--sidebar-accent);
+      letter-spacing: 0.5px;
+    }
+    #organon-sidebar-header p {
+      font-size: 11px;
+      color: #6c7086;
+      margin-top: 2px;
+    }
+    #organon-sidebar-header .mode-tag {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 6px;
+      background: var(--sidebar-accent);
+      color: var(--sidebar-bg);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    #organon-filter {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--bottombar-border);
+    }
+    #organon-filter input {
+      width: 100%;
+      padding: 6px 8px;
+      background: var(--btn-bg);
+      color: var(--sidebar-text);
+      border: 1px solid var(--bottombar-border);
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    #organon-uod-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+    .uod-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--bottombar-border);
+      font-size: 12px;
+    }
+    .uod-item:hover {
+      background: var(--sidebar-hover);
+    }
+    .uod-item.selected {
+      background: var(--sidebar-selected);
+      border-left: 3px solid var(--sidebar-accent);
+      padding-left: 11px;
+    }
+    .uod-item .uod-name {
+      color: var(--sidebar-text);
+      font-weight: 500;
+    }
+    .uod-item .uod-meta {
+      color: #6c7086;
+      font-size: 10px;
+      margin-top: 3px;
+    }
+    .uod-item .uod-category {
+      display: inline-block;
+      padding: 1px 5px;
+      background: var(--btn-bg);
+      color: #a6adc8;
+      font-size: 9px;
+      border-radius: 2px;
+      margin-right: 4px;
+    }
+
+    #organon-main {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #organon-detail-header {
+      padding: 14px 18px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e3e8;
+      color: #2a2d3e;
+    }
+    #organon-detail-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2a2d3e;
+      margin: 0;
+    }
+    #organon-detail-header .detail-meta {
+      font-size: 11px;
+      color: #6c7086;
+      margin-top: 4px;
+    }
+    #organon-detail-header .detail-meta span {
+      margin-right: 12px;
+    }
+    #organon-canvas {
+      flex: 1;
+      background: var(--canvas-bg);
+      overflow: hidden;
+      position: relative;
+    }
+    #organon-canvas-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #6c7086;
+      font-size: 14px;
+      text-align: center;
+    }
+    #organon-canvas svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    #organon-status {
+      padding: 6px 18px;
+      background: var(--bottombar-bg);
+      color: var(--sidebar-text);
+      font-size: 11px;
+      border-top: 1px solid var(--bottombar-border);
+    }
+    #organon-status.error {
+      color: var(--error);
+    }
+    .empty-state {
+      padding: 20px 14px;
+      color: #6c7086;
+      font-size: 12px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="organon-app">
+
+    <aside id="organon-sidebar">
+      <div id="organon-sidebar-header">
+        <h1>Arisbe Organon</h1>
+        <p>Tomos Corpus Archive</p>
+        <span class="mode-tag">Read-only</span>
+      </div>
+
+      <div id="organon-filter">
+        <input
+          type="text"
+          id="organon-filter-input"
+          placeholder="Filter by name…"
+          autocomplete="off"
+        />
+      </div>
+
+      <div id="organon-uod-list">
+        <div class="empty-state">Loading corpus…</div>
+      </div>
+    </aside>
+
+    <main id="organon-main">
+      <header id="organon-detail-header">
+        <h2 id="organon-detail-title">Select a UoD from the archive</h2>
+        <div class="detail-meta" id="organon-detail-meta"></div>
+      </header>
+
+      <div id="organon-canvas">
+        <div id="organon-canvas-placeholder">
+          The Organon is read-only.<br />
+          Pick any UoD on the left to view its drawing.
+        </div>
+      </div>
+
+      <div id="organon-status">Ready</div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script>
+    (function () {
+      const listEl = document.getElementById('organon-uod-list');
+      const filterEl = document.getElementById('organon-filter-input');
+      const titleEl = document.getElementById('organon-detail-title');
+      const metaEl = document.getElementById('organon-detail-meta');
+      const canvasEl = document.getElementById('organon-canvas');
+      const statusEl = document.getElementById('organon-status');
+
+      let allUods = [];
+      let selectedUodId = null;
+      let svgPanZoomInstance = null;
+
+      function setStatus(msg, isError) {
+        statusEl.textContent = msg;
+        statusEl.classList.toggle('error', !!isError);
+      }
+
+      function renderList(uods) {
+        if (uods.length === 0) {
+          listEl.innerHTML = '<div class="empty-state">No matches.</div>';
+          return;
+        }
+        listEl.innerHTML = '';
+        uods.forEach((uod) => {
+          const item = document.createElement('div');
+          item.className = 'uod-item';
+          if (uod.uod_id === selectedUodId) {
+            item.classList.add('selected');
+          }
+          item.dataset.uodId = uod.uod_id;
+          const categoryLabel = (uod.category || '').replace(/_/g, ' ');
+          item.innerHTML =
+            '<div class="uod-name">' + escapeHtml(uod.name) + '</div>' +
+            '<div class="uod-meta">' +
+              '<span class="uod-category">' + escapeHtml(categoryLabel) + '</span>' +
+              (uod.total_states && uod.total_states > 1
+                ? '<span>' + uod.total_states + ' states</span>'
+                : '') +
+            '</div>';
+          item.addEventListener('click', function () {
+            openUod(uod.uod_id);
+          });
+          listEl.appendChild(item);
+        });
+      }
+
+      function escapeHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function applyFilter() {
+        const q = filterEl.value.trim().toLowerCase();
+        if (!q) {
+          renderList(allUods);
+          return;
+        }
+        const filtered = allUods.filter(function (u) {
+          return (
+            (u.name || '').toLowerCase().includes(q) ||
+            (u.uod_id || '').toLowerCase().includes(q)
+          );
+        });
+        renderList(filtered);
+      }
+
+      async function loadCorpus() {
+        setStatus('Loading corpus…');
+        try {
+          const res = await fetch('/organon/uods');
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Failed to load corpus: ' + (body.error && body.error.message), true);
+            listEl.innerHTML = '<div class="empty-state">Load failed.</div>';
+            return;
+          }
+          allUods = body.data || [];
+          allUods.sort(function (a, b) {
+            return (a.name || '').localeCompare(b.name || '');
+          });
+          renderList(allUods);
+          setStatus('Loaded ' + allUods.length + ' UoDs from tomos corpus.');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, true);
+          listEl.innerHTML = '<div class="empty-state">Network error.</div>';
+        }
+      }
+
+      async function openUod(uodId) {
+        selectedUodId = uodId;
+        // Re-mark selection without rebuilding list contents
+        Array.from(listEl.querySelectorAll('.uod-item')).forEach(function (el) {
+          el.classList.toggle('selected', el.dataset.uodId === uodId);
+        });
+        setStatus('Loading ' + uodId + '…');
+        titleEl.textContent = uodId;
+        metaEl.textContent = '';
+        canvasEl.innerHTML = '<div id="organon-canvas-placeholder">Loading…</div>';
+
+        try {
+          const res = await fetch('/organon/uods/' + encodeURIComponent(uodId));
+          const body = await res.json();
+          if (!body.success) {
+            const err = body.error || {};
+            setStatus(
+              'Failed to load ' + uodId + ': ' + (err.message || 'unknown error'),
+              true
+            );
+            canvasEl.innerHTML =
+              '<div id="organon-canvas-placeholder" style="color:#f38ba8;">' +
+              escapeHtml(err.message || 'Load failed') +
+              '</div>';
+            return;
+          }
+          renderDetail(body.data);
+          setStatus(
+            'Loaded ' +
+              uodId +
+              ' (' +
+              body.data.egi_summary.vertex_count +
+              ' vertices, ' +
+              body.data.egi_summary.edge_count +
+              ' edges, ' +
+              body.data.egi_summary.cut_count +
+              ' cuts). §3.3 attested at load + render boundaries.'
+          );
+        } catch (e) {
+          setStatus('Network error loading ' + uodId + ': ' + e.message, true);
+        }
+      }
+
+      function renderDetail(data) {
+        const meta = data.metadata || {};
+        titleEl.textContent = meta.name || data.uod_id;
+        const parts = [];
+        if (meta.category) {
+          parts.push('<span><strong>category:</strong> ' + escapeHtml(meta.category.replace(/_/g, ' ')) + '</span>');
+        }
+        if (meta.authors && meta.authors.length) {
+          parts.push('<span><strong>authors:</strong> ' + escapeHtml(meta.authors.join(', ')) + '</span>');
+        }
+        if (meta.source_citation) {
+          parts.push('<span><strong>source:</strong> ' + escapeHtml(meta.source_citation) + '</span>');
+        }
+        if (meta.last_modified) {
+          parts.push('<span><strong>modified:</strong> ' + escapeHtml(meta.last_modified.split('T')[0]) + '</span>');
+        }
+        if (data.egi_summary) {
+          parts.push(
+            '<span><strong>shape:</strong> ' +
+              data.egi_summary.vertex_count + 'V / ' +
+              data.egi_summary.edge_count + 'E / ' +
+              data.egi_summary.cut_count + 'C' +
+              '</span>'
+          );
+        }
+        metaEl.innerHTML = parts.join(' ');
+
+        if (svgPanZoomInstance) {
+          try { svgPanZoomInstance.destroy(); } catch (_) {}
+          svgPanZoomInstance = null;
+        }
+        canvasEl.innerHTML = data.svg || '';
+        const svgEl = canvasEl.querySelector('svg');
+        if (svgEl && window.svgPanZoom) {
+          svgEl.setAttribute('width', '100%');
+          svgEl.setAttribute('height', '100%');
+          svgPanZoomInstance = window.svgPanZoom(svgEl, {
+            zoomEnabled: true,
+            controlIconsEnabled: false,
+            fit: true,
+            center: true,
+            minZoom: 0.1,
+            maxZoom: 20,
+          });
+        }
+      }
+
+      filterEl.addEventListener('input', applyFilter);
+      loadCorpus();
+    })();
+  </script>
+</body>
+</html>

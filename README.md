@@ -364,7 +364,7 @@ the Qt implementation was archived in May 2026.
 
 | Module | Status | Notes |
 |---|---|---|
-| **Organon** (Archive/browser) | Web route pending | Corpus browsing via `TomosService`; web route to be implemented |
+| **Organon** (Archive/browser) | ✅ **Live** | `web_api/routes/organon.py` + `web_viewer/organon.html` — read-only corpus archive at `/organon`. Both load and render boundaries §3.3-attested per request. |
 | **Ergasterion** (Workshop) | Web route pending | Composition regime; correspondence invariant suspended for drafts |
 | **Agon** (Endoporeutic Game) | ✅ **Engine implemented; web route pending** | `endoporeutic_game.py` + `game_repl.py`; Z3-validated. REPL available today; web arena ahead |
 | **Correspondence attestation** | ✅ **Live** | `correspondence_attestation.py` + hook in `web_api/services/layout_service.py` |

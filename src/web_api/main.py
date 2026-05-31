@@ -17,7 +17,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from web_api.routes import diagrams, transformations
+from web_api.routes import diagrams, organon, transformations
 
 app = FastAPI(title="Arisbe EGI Viewer", version="1.0.0")
 
@@ -30,6 +30,7 @@ app.add_middleware(
 
 app.include_router(diagrams.router)
 app.include_router(transformations.router)
+app.include_router(organon.router)
 
 # Serve the frontend
 viewer_path = Path(__file__).parent.parent / "web_viewer"
