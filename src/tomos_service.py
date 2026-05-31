@@ -34,9 +34,42 @@ from universe_of_discourse import (
     UoDType,
     UoDCategory,
 )
+from correspondence_attestation import attest_correspondence
 from egi_core_dau import RelationalGraphWithCuts
 from egi_io import load_egi_json, save_egi_json
+from elk_layout_engine import ELKLayoutEngine
+from style_loader import load_default_style
 import json
+
+
+def _attest_uod_in_correspondence(
+    uod: "UniverseOfDiscourse", context: str
+) -> None:
+    """Render the UoD's current EGI and attest §3.3 correspondence.
+
+    Called at the tomos save/load boundary events named in
+    ``docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md`` §6: "Save to tomos
+    corpus — the graph becomes a persistent record; correspondence
+    must hold from this point" and "Load from corpus — the loaded
+    graph's drawing must correspond to its stored EGI".
+
+    The function is a no-op for UoDs whose ``current_egi`` is None
+    (empty / freshly-created UoDs that hold no claim yet).  For
+    everything else, it instantiates the canonical layout path
+    (``ELKLayoutEngine`` + default style), renders the EGI, and runs
+    the full §3.3 check via ``attest_correspondence``.  A failure
+    raises ``CorrespondenceViolation`` with the supplied context label.
+
+    ``context`` should describe the boundary event — e.g.
+    ``"tomos_service.save_uod(my-uod)"`` — so post-mortems can name
+    which boundary refused.
+    """
+    if uod.current_egi is None:
+        return
+    engine = ELKLayoutEngine()
+    style = load_default_style()
+    dto = engine.generate_layout(uod.current_egi, style)
+    attest_correspondence(uod.current_egi, dto, context=context)
 
 
 class TomosVersion(Enum):
@@ -496,9 +529,18 @@ class TomosService:
             current_layout_deltas=current_deltas,
             history=history
         )
-        
+
+        # Boundary-event attestation: the loaded graph's drawing must
+        # correspond to its stored EGI
+        # (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §6).  Catches drift
+        # introduced by external edits to the persisted file or by
+        # layout-engine changes since the file was written.
+        _attest_uod_in_correspondence(
+            uod, context=f"tomos_service.load_uod({uod_id})"
+        )
+
         return uod
-    
+
     def save_uod(self, uod: UniverseOfDiscourse):
         """Persist a UoD to disk in V2 format and update the tomos index.
 
@@ -524,7 +566,21 @@ class TomosService:
 
         Raises:
             Any IO error raised by the filesystem (propagates unhandled).
+            ``CorrespondenceViolation`` (from
+            ``correspondence_attestation``) if the UoD's current EGI
+            cannot be rendered into a §3.3-compliant drawing.  Save is
+            aborted before any files are written; the tomos corpus is
+            never left with a graph it can't render in correspondence.
         """
+        # Boundary-event attestation: the graph is about to become a
+        # persistent record claimed to mean something definite
+        # (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.2, §6).  Attest
+        # before any disk writes so the corpus never reaches a
+        # half-saved drifted state.
+        _attest_uod_in_correspondence(
+            uod, context=f"tomos_service.save_uod({uod.uod_id})"
+        )
+
         uod_path = self._get_uod_path(uod)
         uod_path.mkdir(parents=True, exist_ok=True)
         
