@@ -45,10 +45,18 @@ class BoundingBox:
 
 @dataclass
 class LigaturePath:
-    """Path for a ligature connection."""
+    """Path for a ligature connection.
+
+    `port_index` is the 0-based position of `vertex_id` in the
+    predicate's ν tuple — i.e. argument 1 has port_index=0, argument 2
+    has port_index=1, etc.  When a vertex appears multiple times in the
+    same predicate's ν (e.g. (Eq *x x)), each occurrence becomes a
+    distinct LigaturePath with its own port_index.
+    """
     predicate_id: ElementID
     vertex_id: ElementID
     points: Tuple[Point, ...]
+    port_index: int = 0
 
 
 @dataclass

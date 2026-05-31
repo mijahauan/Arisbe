@@ -348,7 +348,7 @@ class ELKLayoutEngine:
             pred_w, pred_h = element_sizes.get(edge.id, (40.0, 16.0))
             pred_area = elem_to_area.get(edge.id)
 
-            for v_id in vertex_seq:
+            for port_index, v_id in enumerate(vertex_seq):
                 vert_center = vertex_positions.get(v_id)
                 if not vert_center:
                     continue
@@ -379,6 +379,7 @@ class ELKLayoutEngine:
                         predicate_id=edge.id,
                         vertex_id=v_id,
                         points=path,
+                        port_index=port_index,
                     )
                 )
 

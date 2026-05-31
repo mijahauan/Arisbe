@@ -16,20 +16,16 @@ listed in §7 of the spec:
   - Identity (1/3):  endpoint placement — each LigaturePath's vertex-side
                      endpoint coincides with the vertex's position, and each
                      endpoint lies in the bounds of its endpoint's egi.area.
-
-Two further layers of identity fidelity remain:
-
-  - Area-chain traversal: the path's point sequence visits only areas on
-    the ancestor chain between the vertex's and the predicate's areas
-    (no siblings, no detours through unrelated cuts).
-  - Connectedness across shared identities: for each vertex referenced by
-    multiple predicates in different areas (Beta graphs), the union of
-    paths involving that vertex forms one connected geometry rooted at
-    the vertex's position.
-
-Argument-order fidelity (which hook is arg 1 vs arg 2) is deferred: the
-current LigaturePath does not carry a port index, so order is a renderer-
-level concern not visible at this layer.
+  - Identity (2/3):  area-chain traversal — every path point and segment
+                     midpoint lies on the ancestor chain between the
+                     vertex's and the predicate's areas.
+  - Identity (3/3):  shared-identity connectedness — for each vertex,
+                     the count of paths matches ν references and the
+                     union of paths forms one connected component
+                     rooted at the vertex's position.
+  - Argument order:  the LigaturePath.port_index field realises ν's
+                     argument ordering — sorting a predicate's paths by
+                     port_index reproduces ν exactly.
 """
 
 import sys
@@ -612,4 +608,514 @@ def test_identity_fidelity_shared_identity_connectedness(uod_id, tomos, engine, 
     assert not failures, (
         f"[{uod_id}] identity fidelity (shared-identity connectedness) "
         f"violated:\n" + "\n".join(failures)
+    )
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_incidence_fidelity_argument_order(uod_id, tomos, engine, style):
+    """LigaturePath.port_index realises ν's argument ordering.
+
+    For every predicate E in egi.E with ν(E) = (v_1, v_2, ..., v_n):
+
+      - The LigaturePaths with predicate_id == E.id, sorted by
+        port_index ascending, yield exactly the vertex sequence
+        (v_1, v_2, ..., v_n).
+      - port_index values for E's paths are exactly {0, 1, ..., n-1}.
+
+    A repeated vertex in ν (e.g. (Eq *x x)) produces two paths with the
+    same vertex_id but distinct port_index values — the test enforces
+    that distinction.
+
+    Together with the incidence fidelity test (multiset match), this
+    closes off §3.3 "Incidence fidelity" — the drawing's hooks realise
+    ν not just as a bag but as an ordered tuple.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §3.3 (Incidence
+    fidelity — "argument order is visually distinguishable and matches
+    ν"), §5.4 (Predicate hook order).
+    """
+    uod = tomos.load_uod(uod_id)
+    egi = uod.current_egi
+    dto = engine.generate_layout(egi, style)
+
+    paths_by_predicate: dict = {}
+    for p in dto.ligature_paths:
+        paths_by_predicate.setdefault(p.predicate_id, []).append(p)
+
+    failures = []
+    for edge in egi.E:
+        edge_id = edge.id
+        nu_seq = egi.nu.get(edge_id)
+        if nu_seq is None:
+            continue  # surfaced by the incidence test
+        paths = paths_by_predicate.get(edge_id, [])
+        if len(paths) != len(nu_seq):
+            continue  # surfaced by the incidence test
+
+        port_values = sorted(p.port_index for p in paths)
+        expected_ports = list(range(len(nu_seq)))
+        if port_values != expected_ports:
+            failures.append(
+                f"  predicate {edge_id}: port_index values are "
+                f"{port_values}; expected {expected_ports}"
+            )
+            continue
+
+        ordered_vertices = tuple(
+            p.vertex_id for p in sorted(paths, key=lambda x: x.port_index)
+        )
+        expected = tuple(nu_seq)
+        if ordered_vertices != expected:
+            failures.append(
+                f"  predicate {edge_id}: paths sorted by port_index give "
+                f"vertex sequence {ordered_vertices}; ν says {expected}"
+            )
+
+    assert not failures, (
+        f"[{uod_id}] argument-order fidelity violated:\n"
+        + "\n".join(failures)
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Transformation invariance — §7 test shape #2                                #
+# --------------------------------------------------------------------------- #
+#
+# For each Dau rule applied to each tomos UoD at a deterministic site, we
+# render the post-state and re-run every correspondence check.  This catches
+# rule-induced drift: a rule that produces a structurally valid EGI whose
+# rendered drawing nevertheless fails the invariant.
+#
+# Site picking is per-rule and intentionally simple — one site per UoD per
+# rule, chosen by a deterministic rule.  Exhaustive site enumeration is left
+# to a Hypothesis-driven companion suite (out of scope here).
+#
+# The check helper below bundles every property test's logic into one pass.
+# We deliberately do not refactor the per-property tests to use it: those
+# tests give focused error messages per property on the original corpus,
+# and that locality is worth keeping.  The helper exists for post-state
+# checks where "the drawing matches the EGI" is the single question.
+
+
+def _check_correspondence(label, egi, dto):
+    """Run every §3.3 check on (egi, dto). Returns list of failure messages."""
+    failures = []
+    egi_v_ids = {v.id for v in egi.V}
+    egi_e_ids = {e.id for e in egi.E}
+    egi_cut_ids = {c.id for c in egi.Cut}
+
+    # Totality
+    for kind, want, have in (
+        ("vertex", egi_v_ids, dto.vertex_positions.keys()),
+        ("predicate", egi_e_ids, dto.predicate_positions.keys()),
+        ("cut", egi_cut_ids, dto.cut_bounds.keys()),
+    ):
+        missing = want - have
+        if missing:
+            failures.append(
+                f"  totality: {kind}(s) missing from DTO: {sorted(missing)}"
+            )
+
+    # Injectivity
+    extra_v = dto.vertex_positions.keys() - egi_v_ids
+    extra_e = dto.predicate_positions.keys() - egi_e_ids
+    extra_cuts = dto.cut_bounds.keys() - egi_cut_ids - {egi.sheet}
+    if extra_v:
+        failures.append(f"  injectivity: stray vertex IDs in DTO: {sorted(extra_v)}")
+    if extra_e:
+        failures.append(f"  injectivity: stray predicate IDs in DTO: {sorted(extra_e)}")
+    if extra_cuts:
+        failures.append(f"  injectivity: stray cut IDs in DTO: {sorted(extra_cuts)}")
+
+    # Containment
+    for cut in egi.Cut:
+        bounds = dto.cut_bounds.get(cut.id)
+        if bounds is None:
+            continue
+        for elem_id in egi.area.get(cut.id, frozenset()):
+            pos = dto.vertex_positions.get(elem_id) or dto.predicate_positions.get(
+                elem_id
+            )
+            if pos is not None:
+                if not (
+                    bounds.min_x <= pos.x <= bounds.max_x
+                    and bounds.min_y <= pos.y <= bounds.max_y
+                ):
+                    failures.append(
+                        f"  containment: {elem_id} in egi.area[{cut.id}] "
+                        f"at ({pos.x:.1f},{pos.y:.1f}) outside cut bounds"
+                    )
+                continue
+            child = dto.cut_bounds.get(elem_id)
+            if child is None:
+                continue
+            if not (
+                bounds.min_x <= child.min_x
+                and bounds.max_x >= child.max_x
+                and bounds.min_y <= child.min_y
+                and bounds.max_y >= child.max_y
+            ):
+                failures.append(
+                    f"  containment: sub-cut {elem_id} in egi.area[{cut.id}] "
+                    f"is not fully inside parent bounds"
+                )
+
+    # Incidence — count + multiset
+    paths_by_pred: dict = {}
+    for p in dto.ligature_paths:
+        paths_by_pred.setdefault(p.predicate_id, []).append(p)
+    for edge in egi.E:
+        nu_seq = egi.nu.get(edge.id)
+        if nu_seq is None:
+            failures.append(f"  incidence: predicate {edge.id} has no entry in ν")
+            continue
+        paths = paths_by_pred.get(edge.id, [])
+        if len(paths) != len(nu_seq):
+            failures.append(
+                f"  incidence: predicate {edge.id} arity mismatch — "
+                f"ν says {len(nu_seq)}, DTO has {len(paths)}"
+            )
+            continue
+        if sorted(p.vertex_id for p in paths) != sorted(nu_seq):
+            failures.append(
+                f"  incidence: predicate {edge.id} vertex multiset mismatch — "
+                f"ν names {sorted(nu_seq)}, DTO connects "
+                f"{sorted(p.vertex_id for p in paths)}"
+            )
+
+    # Identity 1/3: endpoint placement
+    elem_area = _element_area_map(egi)
+    cut_ids = {c.id for c in egi.Cut}
+    for path in dto.ligature_paths:
+        pts = path.points
+        if len(pts) < 2:
+            failures.append(
+                f"  identity-endpoint: ({path.predicate_id} → {path.vertex_id}) "
+                f"has only {len(pts)} point(s)"
+            )
+            continue
+        vpos = dto.vertex_positions.get(path.vertex_id)
+        if vpos is not None and (pts[-1].x, pts[-1].y) != (vpos.x, vpos.y):
+            failures.append(
+                f"  identity-endpoint: ({path.predicate_id} → {path.vertex_id}) "
+                f"last point {pts[-1]} ≠ vertex position {vpos}"
+            )
+        for end_idx, eid, label_str in (
+            (-1, path.vertex_id, "vertex"),
+            (0, path.predicate_id, "predicate"),
+        ):
+            area = elem_area.get(eid)
+            if area in cut_ids:
+                bounds = dto.cut_bounds.get(area)
+                pt = pts[end_idx]
+                if bounds is not None and not (
+                    bounds.min_x <= pt.x <= bounds.max_x
+                    and bounds.min_y <= pt.y <= bounds.max_y
+                ):
+                    failures.append(
+                        f"  identity-endpoint: ({path.predicate_id} → "
+                        f"{path.vertex_id}) {label_str} endpoint outside "
+                        f"egi.area[{area}] cut bounds"
+                    )
+
+    # Identity 2/3: area-chain traversal
+    parent_map = _cut_parent_map(egi)
+
+    def _depth(cid):
+        d = 0
+        cur = cid
+        while parent_map.get(cur) is not None:
+            cur = parent_map[cur]
+            d += 1
+        return d
+
+    def _deepest(point):
+        cands = [
+            cid
+            for cid, b in dto.cut_bounds.items()
+            if cid in cut_ids
+            and b.min_x < point.x < b.max_x
+            and b.min_y < point.y < b.max_y
+        ]
+        if not cands:
+            return egi.sheet
+        return max(cands, key=_depth)
+
+    for path in dto.ligature_paths:
+        v_area = elem_area.get(path.vertex_id, egi.sheet)
+        p_area = elem_area.get(path.predicate_id, egi.sheet)
+        allowed = _chain_between(v_area, p_area, parent_map)
+        for i, pt in enumerate(path.points):
+            area = _deepest(pt)
+            if area not in allowed:
+                failures.append(
+                    f"  identity-chain: ({path.predicate_id} → {path.vertex_id}) "
+                    f"point[{i}] in area {area} off chain {sorted(allowed)}"
+                )
+        for i in range(len(path.points) - 1):
+            mid = Point(
+                (path.points[i].x + path.points[i + 1].x) / 2,
+                (path.points[i].y + path.points[i + 1].y) / 2,
+            )
+            area = _deepest(mid)
+            if area not in allowed:
+                failures.append(
+                    f"  identity-chain: ({path.predicate_id} → {path.vertex_id}) "
+                    f"midpoint[{i}→{i+1}] in area {area} off chain "
+                    f"{sorted(allowed)}"
+                )
+
+    # Identity 3/3: shared-identity connectedness
+    paths_by_vertex: dict = {}
+    for p in dto.ligature_paths:
+        paths_by_vertex.setdefault(p.vertex_id, []).append(p)
+    expected_count: dict = {}
+    for nu_seq in egi.nu.values():
+        for vid in nu_seq:
+            expected_count[vid] = expected_count.get(vid, 0) + 1
+    for vertex in egi.V:
+        vid = vertex.id
+        paths = paths_by_vertex.get(vid, [])
+        if len(paths) != expected_count.get(vid, 0):
+            # Already reported by incidence — skip
+            continue
+        if not paths:
+            continue
+        vpos = dto.vertex_positions.get(vid)
+        if vpos is None:
+            continue
+        adj: dict = {}
+        nodes: set = set()
+        for p in paths:
+            for pt in p.points:
+                nodes.add((pt.x, pt.y))
+            for i in range(len(p.points) - 1):
+                a = (p.points[i].x, p.points[i].y)
+                b = (p.points[i + 1].x, p.points[i + 1].y)
+                if a == b:
+                    continue
+                adj.setdefault(a, set()).add(b)
+                adj.setdefault(b, set()).add(a)
+        start = (vpos.x, vpos.y)
+        if start not in nodes:
+            failures.append(
+                f"  identity-connected: vertex {vid} pos not in path union"
+            )
+            continue
+        visited = {start}
+        stack = [start]
+        while stack:
+            n = stack.pop()
+            for m in adj.get(n, ()):
+                if m not in visited:
+                    visited.add(m)
+                    stack.append(m)
+        if nodes - visited:
+            failures.append(
+                f"  identity-connected: vertex {vid} has disconnected paths "
+                f"({len(nodes - visited)} unreachable points)"
+            )
+
+    # Argument order
+    for edge in egi.E:
+        nu_seq = egi.nu.get(edge.id)
+        if nu_seq is None:
+            continue
+        paths = paths_by_pred.get(edge.id, [])
+        if len(paths) != len(nu_seq):
+            continue
+        ports = sorted(p.port_index for p in paths)
+        if ports != list(range(len(nu_seq))):
+            failures.append(
+                f"  arg-order: predicate {edge.id} port indices {ports} "
+                f"≠ {list(range(len(nu_seq)))}"
+            )
+            continue
+        ordered = tuple(
+            p.vertex_id for p in sorted(paths, key=lambda x: x.port_index)
+        )
+        if ordered != tuple(nu_seq):
+            failures.append(
+                f"  arg-order: predicate {edge.id} sorted vertex sequence "
+                f"{ordered} ≠ ν {tuple(nu_seq)}"
+            )
+
+    return failures
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_dc_plus(uod_id, tomos, engine, style):
+    """DC+ applied at the sheet preserves the correspondence invariant.
+
+    DC+ (Double Cut Insertion) has no polarity restriction and is always
+    applicable with an empty selection — it just adds two empty nested
+    cuts in the target area.  We pick the sheet as the target area for
+    every UoD; this gives a deterministic post-state per UoD that adds
+    exactly two cuts to the existing structure.
+
+    The post-state is then rendered and every correspondence check from
+    §3.3 is run via _check_correspondence.  Any failure means the rule's
+    EGI output is structurally valid (the rule itself succeeded) but
+    its rendered drawing has drifted out of correspondence — exactly the
+    kind of bug §7 shape #2 is meant to catch.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.2 (Asserted regime
+    — invariant must hold after every transformation rule), §7 (test
+    shape #2 — transformation invariance).
+    """
+    from formal_transformation_rules import FormalTransformationEngine
+
+    uod = tomos.load_uod(uod_id)
+    egi = uod.current_egi
+
+    t_engine = FormalTransformationEngine()
+    result = t_engine.apply_rule("DC+", egi, egi.sheet, frozenset())
+    assert result.success, f"DC+ at sheet failed for {uod_id}: {result.error_message}"
+
+    post_egi = result.result_egi
+    post_dto = engine.generate_layout(post_egi, style)
+
+    failures = _check_correspondence(f"{uod_id}+DC+", post_egi, post_dto)
+    assert not failures, (
+        f"[{uod_id}] post-DC+ drawing fails correspondence:\n"
+        + "\n".join(failures)
+    )
+
+
+def _pick_era_site(egi):
+    """Return (area_id, selection) for a deterministic ERA application, or None.
+
+    ERA needs a positive-polarity area with a non-empty direct selection
+    whose closure is closed.  We pick the first edge (in stable ID
+    order) that lives in a positive area, and offer it as a singleton
+    selection — ERA's closure expansion handles semi-free vertices.
+
+    Returns None if no UoD edge sits in a positive area.
+    """
+    cut_ids = {c.id for c in egi.Cut}
+    elem_area = _element_area_map(egi)
+    for edge in sorted(egi.E, key=lambda e: e.id):
+        area = elem_area.get(edge.id)
+        if area is None:
+            continue
+        polarity, _ = egi.area_polarity(area)
+        from egi_core_dau import AreaPolarity
+
+        if polarity is AreaPolarity.POSITIVE:
+            return area, frozenset([edge.id])
+    return None
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_era(uod_id, tomos, engine, style):
+    """ERA at the first positive-area edge preserves correspondence.
+
+    Pick the lowest-ID edge in a positive area (or skip if none exists)
+    and erase it; the closure validator will pull in semi-free vertices
+    automatically.  Render the post-state and check every §3.3 property.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.2 (the invariant
+    must hold after every rule application), §7 (test shape #2 —
+    transformation invariance).
+    """
+    from formal_transformation_rules import FormalTransformationEngine
+
+    uod = tomos.load_uod(uod_id)
+    egi = uod.current_egi
+
+    site = _pick_era_site(egi)
+    if site is None:
+        pytest.skip(f"{uod_id} has no edge in a positive area")
+    target_area, selection = site
+
+    t_engine = FormalTransformationEngine()
+    result = t_engine.apply_rule("ERA", egi, target_area, selection)
+    if not result.success:
+        pytest.skip(
+            f"ERA rejected for {uod_id} at {target_area}: {result.error_message}"
+        )
+
+    post_egi = result.result_egi
+    post_dto = engine.generate_layout(post_egi, style)
+
+    failures = _check_correspondence(f"{uod_id}+ERA", post_egi, post_dto)
+    assert not failures, (
+        f"[{uod_id}] post-ERA drawing fails correspondence:\n"
+        + "\n".join(failures)
+    )
+
+
+def _pick_it_plus_site(egi):
+    """Return (source_area, target_area, selection) for an IT+ application, or None.
+
+    IT+ copies a subgraph from a source area into a strictly-enclosed
+    target area.  We pick the lowest-ID edge as the selection; its area
+    becomes the source.  The target is the lowest-ID cut whose ancestry
+    chain includes the source (i.e., a descendant of source, source !=
+    target), so a true into-cut iteration happens.
+
+    Returns None if no edge has a strictly-deeper cut to iterate into.
+    """
+    elem_area = _element_area_map(egi)
+    parent_map = _cut_parent_map(egi)
+
+    def is_descendant(candidate, ancestor):
+        cur = candidate
+        while cur is not None:
+            cur = parent_map.get(cur)
+            if cur == ancestor:
+                return True
+        return False
+
+    for edge in sorted(egi.E, key=lambda e: e.id):
+        src = elem_area.get(edge.id)
+        if src is None:
+            continue
+        for cut in sorted(egi.Cut, key=lambda c: c.id):
+            if is_descendant(cut.id, src):
+                return src, cut.id, frozenset([edge.id])
+    return None
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_iteration(uod_id, tomos, engine, style):
+    """IT+ copying a sheet-level edge into a descendant cut preserves correspondence.
+
+    IT+ deep-copies a selected subgraph (vertices, edges, cuts and their
+    interiors) into a strictly-enclosed target area.  The new edges in
+    the deeper area introduce fresh ligature geometry that crosses no
+    cut boundaries (the copies are self-contained), but the post-state
+    has one more predicate and possibly one more vertex than the
+    pre-state.  Layout must place them correctly inside the target cut.
+
+    Skip UoDs with no edge that has a strictly-deeper cut available.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.2, §7 (test shape
+    #2 — transformation invariance), §5.2 (Beta-style ligatures —
+    iteration is one of the rules that creates them in regime 2).
+    """
+    from formal_transformation_rules import FormalTransformationEngine
+
+    uod = tomos.load_uod(uod_id)
+    egi = uod.current_egi
+
+    site = _pick_it_plus_site(egi)
+    if site is None:
+        pytest.skip(f"{uod_id} has no edge with a strictly-deeper cut to iterate into")
+    src, tgt, selection = site
+
+    t_engine = FormalTransformationEngine()
+    result = t_engine.apply_rule("IT+", egi, tgt, selection)
+    if not result.success:
+        pytest.skip(
+            f"IT+ rejected for {uod_id} ({src} → {tgt}): {result.error_message}"
+        )
+
+    post_egi = result.result_egi
+    post_dto = engine.generate_layout(post_egi, style)
+
+    failures = _check_correspondence(f"{uod_id}+IT+", post_egi, post_dto)
+    assert not failures, (
+        f"[{uod_id}] post-IT+ drawing fails correspondence:\n"
+        + "\n".join(failures)
     )

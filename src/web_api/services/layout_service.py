@@ -87,6 +87,7 @@ def layout_dto_to_dict(dto: LayoutDTO) -> dict:
             "predicate_id": lig.predicate_id,
             "vertex_id": lig.vertex_id,
             "points": [{"x": p.x, "y": p.y} for p in lig.points],
+            "port_index": lig.port_index,
         }
         for lig in dto.ligature_paths
     ]
