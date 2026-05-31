@@ -1,7 +1,9 @@
 # Arisbe: Universes of Discourse
 **Peirce's "Moving Pictures of Thought" Made Real**
 
-A formal reasoning environment implementing Charles S. Peirce's Existential Graphs through Frithjof Dau's rigorous framework. Arisbe elevates logical diagrams from static notation to **living processes of inquiry** - complete universes of discourse where justification, transformation, and meaning unfold through dialogue and formal rules.
+An environment for **doing logic in pictures**, built around Charles S. Peirce's Existential Graphs with Frithjof Dau's formalization as the guarantor of correctness. Arisbe elevates logical diagrams from static notation to **living processes of inquiry** - complete universes of discourse where justification, transformation, and meaning unfold through dialogue and formal rules.
+
+The central engineering and research problem the codebase solves: **inerrant correspondence between an EGI's linear written form and its graphical drawn form**. The contract is stated in [docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md), tested against the tomos corpus, exposed as a refusal-bearing API in [src/presentation_ops.py](src/presentation_ops.py), and runtime-attested at the web service boundary by [src/correspondence_attestation.py](src/correspondence_attestation.py). When picture and proposition come apart, the system refuses to serve a drawing it can't attest.
 
 ---
 https://deepwiki.com/badge-maker?url=https%3A%2F%2Fdeepwiki.com%2Fmijahauan%2FArisbe
@@ -100,11 +102,12 @@ The **core reasoning engine** and referee.
 
 ## 🌟 **Project Status**
 
-**What**: Complete implementation of Dau's formalism for Peirce's Existential Graphs  
-**Who**: Researchers, logicians, and students working with diagrammatic reasoning  
-**Why**: First modern, rigorous implementation of EG as a **process-oriented logic system**
+**What**: A reasoning environment for doing logic *in* pictures (Peirce's aim), with Dau's formalization as guarantor and inerrant linear↔graphical correspondence as the central testable contract
+**Who**: Researchers, logicians, and students working with diagrammatic reasoning
+**Why**: First modern implementation that treats correspondence as a stated, tested, and runtime-attested invariant — not an emergent property maintained by careful code
 
-👉 **Full vision**: [PRODUCT_VISION.md](docs/PRODUCT_VISION.md)  
+👉 **Full vision**: [PRODUCT_VISION.md](docs/PRODUCT_VISION.md)
+👉 **Correspondence spec**: [LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md)
 👉 **AI assistance**: [AI_CONDUCT_GUIDELINES.md](AI_CONDUCT_GUIDELINES.md)
 
 ---
@@ -112,7 +115,7 @@ The **core reasoning engine** and referee.
 ## 🔒 **Development Guidelines**
 
 - **📚 API Documentation**: `docs/ARISBE_CORE_API_REFERENCE.md`
-- **🛡️ Core Protection**: 16 validated modules, 254 passing tests
+- **🛡️ Core Protection**: 17 validated modules, 654 passing tests
 - **📊 Quality Monitoring**: Automated quality gates and daily dashboard
 - **🧠 Context Recovery**: `docs/RETURN_TO_DEVELOPMENT.md`
 
@@ -236,8 +239,8 @@ The **core reasoning engine** and referee.
 ## 📁 Project Structure
 
 ```
-src/                  Core logic and engine (39 production modules)
-tests/                Pytest test suite (406 passing, 35 test files)
+src/                  Core logic and engine (35+ production modules)
+tests/                Pytest test suite (654 passing, 40 test files)
 tools/                Quality tools, demos, and utilities
 docs/                 Architecture documentation
 docs/RETURN_TO_DEVELOPMENT.md  Context recovery guide for returning authors
@@ -257,11 +260,16 @@ styles/               Visual style specifications (JSON)
 uv sync --extra dev   # Python 3.12; see pyproject.toml
 ```
 
-### Launch the Qt GUI
+### Launch the web viewer (canonical UI as of May 2026)
 
 ```bash
-uv run python arisbe.py
+uv run uvicorn web_api.main:app --reload --port 8000
+# Open http://localhost:8000/ in a browser.
 ```
+
+The Qt-based GUI (`arisbe.py`, `src/gui_clean/`) was archived to
+`archive/qt-gui-2025/` in May 2026. The web viewer
+(`src/web_api/` + `src/web_viewer/`) is the active surface.
 
 ### Play the Endoporeutic Game (REPL)
 
@@ -351,15 +359,19 @@ uv run python tools/demo_round_trip_translations.py
 
 ## 🗺️ Sub-application Status
 
+The three modes are now best understood as **routes within the web app**;
+the Qt implementation was archived in May 2026.
+
 | Module | Status | Notes |
 |---|---|---|
-| **Organon** (Archive/browser) | Foundation in place | Qt GUI entry; corpus browsing via `TomosService` |
-| **Ergasterion** (Workshop) | Foundation in place | Interactive editor; constraint system under development |
-| **Agon** (Endoporeutic Game) | ✅ **Implemented** | `endoporeutic_game.py` + `game_repl.py`; Z3-validated |
+| **Organon** (Archive/browser) | Web route pending | Corpus browsing via `TomosService`; web route to be implemented |
+| **Ergasterion** (Workshop) | Web route pending | Composition regime; correspondence invariant suspended for drafts |
+| **Agon** (Endoporeutic Game) | ✅ **Engine implemented; web route pending** | `endoporeutic_game.py` + `game_repl.py`; Z3-validated. REPL available today; web arena ahead |
+| **Correspondence attestation** | ✅ **Live** | `correspondence_attestation.py` + hook in `web_api/services/layout_service.py` |
 
 ---
 
-## 📊 Current State (March 2026)
+## 📊 Current State (May 2026)
 
 ### ✅ Completed
 
@@ -420,20 +432,40 @@ uv run python tools/demo_round_trip_translations.py
 - `TomosService` unified corpus API
 - DAG-based transformation history with branching
 
+**Linear-Graphical Correspondence (the central contract):**
+
+- Specification: `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` (§3 properties,
+  §4 three-regime scoping, §5 hard cases, §7 testable shapes)
+- Property tests: `tests/test_correspondence_invariant.py` covers all
+  six §7 shapes against every UoD in the tomos corpus
+- Regime-3 production API: `src/presentation_ops.py` — vertex
+  translation, cut reshape, ligature reroute, each raising
+  `Regime3Violation` on attempted boundary crossings
+- Runtime attestation: `src/correspondence_attestation.py`, hooked into
+  `web_api/services/layout_service.py` so every (EGI, drawing) pair
+  the user sees has been verified before leaving the service
+
 **Testing:**
 
-- **406 tests passing** (35 test files), 3 skipped
-- Quality gates and core protection active
-- Comprehensive test coverage: core data model, all six transformation rules,
-  import/export round-trips, isomorphism engine, proof exercises (Alpha + Beta),
-  rule interaction protocol, subgraph closure validation
+- **654 tests passing**, 17 skipped, across 40 test files
+- Quality gates and core protection active (17 protected modules)
+- Comprehensive coverage: core data model, all six transformation rules,
+  import/export round-trips, isomorphism engine, proof exercises
+  (Alpha + Beta), rule interaction protocol, subgraph closure
+  validation, §3.3 correspondence properties, regime-3 contract
 
 ### 🔧 In Progress / Next
 
-- Ergasterion interactive editor (constraint enforcement, selection system)
-- Organon browser completeness (import/export integration)
-- GUI integration of RuleInteraction protocol and Endoporeutic Game
-- Advanced Beta proofs: Barbara/Celarent syllogisms with full FOL quantification
+- **Web routes for Organon, Ergasterion, Agon** — surface the three
+  conceptual modes as routes within the web app (matched to the three
+  regimes of the correspondence invariant)
+- **Projection conventions** — name and test the conventions currently
+  in force (ELK sibling ordering, ligature crossing style, etc.); the
+  §3.3 convention-compliance row
+- **Extend attestation to additional boundaries** — tomos save/load,
+  Agon session boundaries
+- **Advanced Beta proofs** — Barbara/Celarent syllogisms with full
+  FOL quantification
 
 ---
 
@@ -481,20 +513,30 @@ uv run python tools/demo_round_trip_translations.py
 
 ## 🗓️ Development Roadmap
 
-### Current Focus (Q1–Q2 2026)
-- **Ergasterion completion**: Full interactive editor with real-time constraint enforcement
-- **Organon browser**: Complete import/export integration, full corpus navigation
-- **GUI for Agon**: Qt-based Endoporeutic Game interface (REPL currently available)
+### Current Focus (mid-2026)
+- **Web routes for the three modes**: Organon (archive), Ergasterion
+  (workshop), Agon (arena) as routes within the web app — matched to
+  the three regimes of the correspondence invariant
+- **Projection conventions**: name and test the conventions currently
+  in force, closing the §3.3 convention-compliance row
+- **Boundary attestation extension**: tomos save/load and Agon session
+  boundaries (the layout-service hook already covers the user-facing
+  render path)
 
-### Medium-term (2026)
-- **Web interface**: Browser-based EG editor and viewer
-- **Collaborative editing**: Shared UoD sessions
-- **Advanced visualization**: Animated transformation sequences
+### Medium-term
+- **Hypothesis-driven exhaustive transformation testing**: extend
+  per-rule property tests from one deterministic site to full
+  enumeration of applicable sites
+- **Collaborative editing**: shared UoD sessions
+- **Advanced visualization**: animated transformation sequences;
+  alternative projections (3-D viewer, accessibility renderings)
 
 ### Long-term
-- **Educational platform**: Complete learning management system for EG theory
-- **Machine learning integration**: Pattern recognition in logical transformation sequences
-- **Theorem prover bridge**: Integration with Coq/Lean via CLIF
+- **Stylus drawing input** parsed back to a canonical EGI under the
+  named projection conventions (would activate the parse direction of
+  the correspondence map)
+- **Educational platform**: learning management system for EG theory
+- **Theorem prover bridge**: integration with Coq/Lean via CLIF
 
 ---
 

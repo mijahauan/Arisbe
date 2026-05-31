@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-Arisbe implements Frithjof Dau's formal mathematics for Charles Sanders Peirce's Existential Graphs (EGs). The fundamental entity is the **Universe of Discourse (UoD)** — a diachronic (evolving) process of logical reasoning — not a static diagram. A single EG is a synchronic snapshot within that process.
+Arisbe is an environment for **doing logic in pictures, not pictures of logic** — Charles Sanders Peirce's "moving pictures of thought" made operational. Frithjof Dau's formalization is the guarantor of correctness; that bedrock is non-negotiable. The **central engineering and research problem** the codebase exists to solve is the **inerrant correspondence between an EGI's linear written form and its graphical drawn form** — picture and proposition denoting the same mathematical object across every transformation, every layout regeneration, every user edit, every round-trip.
+
+The fundamental entity is the **Universe of Discourse (UoD)** — a diachronic (evolving) process of logical reasoning, not a static diagram. A single EG is a synchronic snapshot within that process. The correspondence invariant is scoped to three regimes: **composition** (Ergasterion drafts, invariant suspended); **asserted/canonical** (Agon, Organon, every rule application, invariant mandatory and runtime-attested); **presentation-only** (always free, preserved by construction via the `presentation_ops` API). See [docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md) for the full contract.
 
 ## Environment & Commands
 
@@ -66,6 +68,8 @@ plan is to surface them as routes within the web app (`src/web_api/`,
 - `elk_layout_engine.py` (+ `elk_worker.js`) — Cut-aware ELK-based layout, the canonical layout path
 - `simple_svg_renderer.py` — LayoutDTO → SVG
 - `layout_dto.py` — Platform-independent layout DTO shared by layout engines and renderers
+- `presentation_ops.py` — Regime-3 algebra: `move_vertex`, `reshape_cut`, `reroute_ligature`, each raising `Regime3Violation` on attempted boundary crossings. Also exports the public area-topology helpers (`element_area`, `cut_parents`, `area_chain`, `deepest_containing_cut`).
+- `correspondence_attestation.py` — Runtime §3.3 check: `attest_correspondence(egi, dto)` raises `CorrespondenceViolation` on failure. Hooked into `web_api/services/layout_service.py` so every served (EGI, drawing) pair is verified.
 - `tomos_service.py` — Unified corpus API
 - `z3_semantic_validator.py` — Z3 SMT-solver semantic validation
 - `graph_isomorphism_engine.py` — NetworkX VF2 matching for goal detection
@@ -116,6 +120,7 @@ python tools/context_awareness_system.py --check "task description"
 ## Key Documentation
 
 - `AGENTS.md` — Developer guidelines with code patterns and usage examples
+- `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` — **The central contract.** Read before touching anything that produces or consumes (EGI, LayoutDTO) pairs (transformation rules, layout, rendering, sessions, the three modes, the Endoporeutic Game).
 - `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md` — Core paradigm (read before touching UoD/history)
 - `docs/DAG_HISTORY_ARCHITECTURE.md` — Branching transformation history
 - `docs/ARISBE_CORE_API_REFERENCE.md` — Auto-generated API reference
@@ -131,9 +136,13 @@ Code chapters correspond to Dau's formal textbook:
 - Ch. 18 → `chapter18_fopl_translation.py` (linear format Φ/Ψ translations)
 - Ch. 20 → `syntactic_equivalence_checker.py`, `chapter20_syntactic_equivalence_fixes.py`
 
-## Testing (406 passing, 3 skipped, 35 test files)
+## Testing (654 passing, 17 skipped, 40 test files)
 
 Key test files:
+- `test_correspondence_invariant.py` — All six §7 test shapes from `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` (totality/injectivity, containment, incidence + arg-order, identity 3-way, transformation invariance, regime-3 non-interference) against the tomos corpus
+- `test_correspondence_attestation.py` — Module contract: corpus-wide happy path plus adversarial unit tests confirming each §3.3 property's failure raises `CorrespondenceViolation`
+- `test_presentation_ops.py` — Regime-3 API contract: happy + refusal paths for `move_vertex` / `reshape_cut` / `reroute_ligature`
+- `test_layout_service_attestation.py` — The web boundary hook fires on a real UoD and refuses when the engine returns a corrupted DTO
 - `test_epg_exemplar_scripts.py` — 16 Endoporeutic Game scenarios (outcomes, strategies, engine integration)
 - `test_beta_proof_exercises.py` — 20 Beta graph tests (FOL, shared vertices, EGIF round-trips)
 - `test_logical_proof_exercises.py` — Propositional tautology derivations (modus ponens, etc.)
