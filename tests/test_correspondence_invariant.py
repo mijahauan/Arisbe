@@ -47,6 +47,7 @@ import pytest
 # Match the repo's test convention: prepend src/ so bare imports work.
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from correspondence_attestation import check_correspondence
 from elk_layout_engine import ELKLayoutEngine
 from layout_dto import BoundingBox, Point
 from presentation_ops import (
@@ -644,232 +645,6 @@ def test_incidence_fidelity_argument_order(uod_id, tomos, engine, style):
 # checks where "the drawing matches the EGI" is the single question.
 
 
-def _check_correspondence(label, egi, dto):
-    """Run every §3.3 check on (egi, dto). Returns list of failure messages."""
-    failures = []
-    egi_v_ids = {v.id for v in egi.V}
-    egi_e_ids = {e.id for e in egi.E}
-    egi_cut_ids = {c.id for c in egi.Cut}
-
-    # Totality
-    for kind, want, have in (
-        ("vertex", egi_v_ids, dto.vertex_positions.keys()),
-        ("predicate", egi_e_ids, dto.predicate_positions.keys()),
-        ("cut", egi_cut_ids, dto.cut_bounds.keys()),
-    ):
-        missing = want - have
-        if missing:
-            failures.append(
-                f"  totality: {kind}(s) missing from DTO: {sorted(missing)}"
-            )
-
-    # Injectivity
-    extra_v = dto.vertex_positions.keys() - egi_v_ids
-    extra_e = dto.predicate_positions.keys() - egi_e_ids
-    extra_cuts = dto.cut_bounds.keys() - egi_cut_ids - {egi.sheet}
-    if extra_v:
-        failures.append(f"  injectivity: stray vertex IDs in DTO: {sorted(extra_v)}")
-    if extra_e:
-        failures.append(f"  injectivity: stray predicate IDs in DTO: {sorted(extra_e)}")
-    if extra_cuts:
-        failures.append(f"  injectivity: stray cut IDs in DTO: {sorted(extra_cuts)}")
-
-    # Containment
-    for cut in egi.Cut:
-        bounds = dto.cut_bounds.get(cut.id)
-        if bounds is None:
-            continue
-        for elem_id in egi.area.get(cut.id, frozenset()):
-            pos = dto.vertex_positions.get(elem_id) or dto.predicate_positions.get(
-                elem_id
-            )
-            if pos is not None:
-                if not (
-                    bounds.min_x <= pos.x <= bounds.max_x
-                    and bounds.min_y <= pos.y <= bounds.max_y
-                ):
-                    failures.append(
-                        f"  containment: {elem_id} in egi.area[{cut.id}] "
-                        f"at ({pos.x:.1f},{pos.y:.1f}) outside cut bounds"
-                    )
-                continue
-            child = dto.cut_bounds.get(elem_id)
-            if child is None:
-                continue
-            if not (
-                bounds.min_x <= child.min_x
-                and bounds.max_x >= child.max_x
-                and bounds.min_y <= child.min_y
-                and bounds.max_y >= child.max_y
-            ):
-                failures.append(
-                    f"  containment: sub-cut {elem_id} in egi.area[{cut.id}] "
-                    f"is not fully inside parent bounds"
-                )
-
-    # Incidence — count + multiset
-    paths_by_pred: dict = {}
-    for p in dto.ligature_paths:
-        paths_by_pred.setdefault(p.predicate_id, []).append(p)
-    for edge in egi.E:
-        nu_seq = egi.nu.get(edge.id)
-        if nu_seq is None:
-            failures.append(f"  incidence: predicate {edge.id} has no entry in ν")
-            continue
-        paths = paths_by_pred.get(edge.id, [])
-        if len(paths) != len(nu_seq):
-            failures.append(
-                f"  incidence: predicate {edge.id} arity mismatch — "
-                f"ν says {len(nu_seq)}, DTO has {len(paths)}"
-            )
-            continue
-        if sorted(p.vertex_id for p in paths) != sorted(nu_seq):
-            failures.append(
-                f"  incidence: predicate {edge.id} vertex multiset mismatch — "
-                f"ν names {sorted(nu_seq)}, DTO connects "
-                f"{sorted(p.vertex_id for p in paths)}"
-            )
-
-    # Identity 1/3: endpoint placement
-    elem_area = element_area(egi)
-    cut_ids = {c.id for c in egi.Cut}
-    for path in dto.ligature_paths:
-        pts = path.points
-        if len(pts) < 2:
-            failures.append(
-                f"  identity-endpoint: ({path.predicate_id} → {path.vertex_id}) "
-                f"has only {len(pts)} point(s)"
-            )
-            continue
-        vpos = dto.vertex_positions.get(path.vertex_id)
-        if vpos is not None and (pts[-1].x, pts[-1].y) != (vpos.x, vpos.y):
-            failures.append(
-                f"  identity-endpoint: ({path.predicate_id} → {path.vertex_id}) "
-                f"last point {pts[-1]} ≠ vertex position {vpos}"
-            )
-        for end_idx, eid, label_str in (
-            (-1, path.vertex_id, "vertex"),
-            (0, path.predicate_id, "predicate"),
-        ):
-            area = elem_area.get(eid)
-            if area in cut_ids:
-                bounds = dto.cut_bounds.get(area)
-                pt = pts[end_idx]
-                if bounds is not None and not (
-                    bounds.min_x <= pt.x <= bounds.max_x
-                    and bounds.min_y <= pt.y <= bounds.max_y
-                ):
-                    failures.append(
-                        f"  identity-endpoint: ({path.predicate_id} → "
-                        f"{path.vertex_id}) {label_str} endpoint outside "
-                        f"egi.area[{area}] cut bounds"
-                    )
-
-    # Identity 2/3: area-chain traversal
-    parent_map = cut_parents(egi)
-
-    for path in dto.ligature_paths:
-        v_area = elem_area.get(path.vertex_id, egi.sheet)
-        p_area = elem_area.get(path.predicate_id, egi.sheet)
-        allowed = area_chain(v_area, p_area, parent_map)
-        for i, pt in enumerate(path.points):
-            area = deepest_containing_cut(pt, dto, egi, parent_map)
-            if area not in allowed:
-                failures.append(
-                    f"  identity-chain: ({path.predicate_id} → {path.vertex_id}) "
-                    f"point[{i}] in area {area} off chain {sorted(allowed)}"
-                )
-        for i in range(len(path.points) - 1):
-            mid = Point(
-                (path.points[i].x + path.points[i + 1].x) / 2,
-                (path.points[i].y + path.points[i + 1].y) / 2,
-            )
-            area = deepest_containing_cut(mid, dto, egi, parent_map)
-            if area not in allowed:
-                failures.append(
-                    f"  identity-chain: ({path.predicate_id} → {path.vertex_id}) "
-                    f"midpoint[{i}→{i+1}] in area {area} off chain "
-                    f"{sorted(allowed)}"
-                )
-
-    # Identity 3/3: shared-identity connectedness
-    paths_by_vertex: dict = {}
-    for p in dto.ligature_paths:
-        paths_by_vertex.setdefault(p.vertex_id, []).append(p)
-    expected_count: dict = {}
-    for nu_seq in egi.nu.values():
-        for vid in nu_seq:
-            expected_count[vid] = expected_count.get(vid, 0) + 1
-    for vertex in egi.V:
-        vid = vertex.id
-        paths = paths_by_vertex.get(vid, [])
-        if len(paths) != expected_count.get(vid, 0):
-            # Already reported by incidence — skip
-            continue
-        if not paths:
-            continue
-        vpos = dto.vertex_positions.get(vid)
-        if vpos is None:
-            continue
-        adj: dict = {}
-        nodes: set = set()
-        for p in paths:
-            for pt in p.points:
-                nodes.add((pt.x, pt.y))
-            for i in range(len(p.points) - 1):
-                a = (p.points[i].x, p.points[i].y)
-                b = (p.points[i + 1].x, p.points[i + 1].y)
-                if a == b:
-                    continue
-                adj.setdefault(a, set()).add(b)
-                adj.setdefault(b, set()).add(a)
-        start = (vpos.x, vpos.y)
-        if start not in nodes:
-            failures.append(
-                f"  identity-connected: vertex {vid} pos not in path union"
-            )
-            continue
-        visited = {start}
-        stack = [start]
-        while stack:
-            n = stack.pop()
-            for m in adj.get(n, ()):
-                if m not in visited:
-                    visited.add(m)
-                    stack.append(m)
-        if nodes - visited:
-            failures.append(
-                f"  identity-connected: vertex {vid} has disconnected paths "
-                f"({len(nodes - visited)} unreachable points)"
-            )
-
-    # Argument order
-    for edge in egi.E:
-        nu_seq = egi.nu.get(edge.id)
-        if nu_seq is None:
-            continue
-        paths = paths_by_pred.get(edge.id, [])
-        if len(paths) != len(nu_seq):
-            continue
-        ports = sorted(p.port_index for p in paths)
-        if ports != list(range(len(nu_seq))):
-            failures.append(
-                f"  arg-order: predicate {edge.id} port indices {ports} "
-                f"≠ {list(range(len(nu_seq)))}"
-            )
-            continue
-        ordered = tuple(
-            p.vertex_id for p in sorted(paths, key=lambda x: x.port_index)
-        )
-        if ordered != tuple(nu_seq):
-            failures.append(
-                f"  arg-order: predicate {edge.id} sorted vertex sequence "
-                f"{ordered} ≠ ν {tuple(nu_seq)}"
-            )
-
-    return failures
-
-
 @pytest.mark.parametrize("uod_id", _uod_ids())
 def test_transformation_invariance_dc_plus(uod_id, tomos, engine, style):
     """DC+ applied at the sheet preserves the correspondence invariant.
@@ -881,7 +656,7 @@ def test_transformation_invariance_dc_plus(uod_id, tomos, engine, style):
     exactly two cuts to the existing structure.
 
     The post-state is then rendered and every correspondence check from
-    §3.3 is run via _check_correspondence.  Any failure means the rule's
+    §3.3 is run via check_correspondence.  Any failure means the rule's
     EGI output is structurally valid (the rule itself succeeded) but
     its rendered drawing has drifted out of correspondence — exactly the
     kind of bug §7 shape #2 is meant to catch.
@@ -902,7 +677,7 @@ def test_transformation_invariance_dc_plus(uod_id, tomos, engine, style):
     post_egi = result.result_egi
     post_dto = engine.generate_layout(post_egi, style)
 
-    failures = _check_correspondence(f"{uod_id}+DC+", post_egi, post_dto)
+    failures = check_correspondence(post_egi, post_dto)
     assert not failures, (
         f"[{uod_id}] post-DC+ drawing fails correspondence:\n"
         + "\n".join(failures)
@@ -965,7 +740,7 @@ def test_transformation_invariance_era(uod_id, tomos, engine, style):
     post_egi = result.result_egi
     post_dto = engine.generate_layout(post_egi, style)
 
-    failures = _check_correspondence(f"{uod_id}+ERA", post_egi, post_dto)
+    failures = check_correspondence(post_egi, post_dto)
     assert not failures, (
         f"[{uod_id}] post-ERA drawing fails correspondence:\n"
         + "\n".join(failures)
@@ -1041,7 +816,7 @@ def test_transformation_invariance_iteration(uod_id, tomos, engine, style):
     post_egi = result.result_egi
     post_dto = engine.generate_layout(post_egi, style)
 
-    failures = _check_correspondence(f"{uod_id}+IT+", post_egi, post_dto)
+    failures = check_correspondence(post_egi, post_dto)
     assert not failures, (
         f"[{uod_id}] post-IT+ drawing fails correspondence:\n"
         + "\n".join(failures)
@@ -1070,7 +845,7 @@ def test_transformation_invariance_iteration(uod_id, tomos, engine, style):
 #      the "preserved by construction" half: a mutation that *could* be
 #      called regime-3 in shape but breaks the area mapping or the
 #      W-realisation by side-effect is, in the spec's terms, not regime
-#      3 at all.  Reusing `_check_correspondence` makes this explicit.
+#      3 at all.  Reusing `check_correspondence` makes this explicit.
 #
 # The mutations are hand-engineered to respect their regime-3 constraint
 # (stays in same area; interior-preserving; on-chain).  If a future
@@ -1180,9 +955,7 @@ def test_regime3_vertex_translation(uod_id, tomos, engine, style):
         + "\n  ".join(diffs)
     )
 
-    failures = _check_correspondence(
-        f"{uod_id}+regime3-vertex-shift", egi_before, mutated
-    )
+    failures = check_correspondence(egi_before, mutated)
     assert not failures, (
         f"[{uod_id}] post-translation drawing fails correspondence "
         f"({shifted_count} vertices shifted):\n" + "\n".join(failures)
@@ -1238,9 +1011,7 @@ def test_regime3_cut_reshape_interior_preserving(uod_id, tomos, engine, style):
         + "\n  ".join(diffs)
     )
 
-    failures = _check_correspondence(
-        f"{uod_id}+regime3-cut-reshape", egi_before, mutated
-    )
+    failures = check_correspondence(egi_before, mutated)
     assert not failures, (
         f"[{uod_id}] post-reshape drawing fails correspondence "
         f"({reshaped_count} cut(s) expanded):\n" + "\n".join(failures)
@@ -1319,9 +1090,7 @@ def test_regime3_ligature_reroute_on_chain(uod_id, tomos, engine, style):
         + "\n  ".join(diffs)
     )
 
-    failures = _check_correspondence(
-        f"{uod_id}+regime3-ligature-reroute", egi_before, mutated
-    )
+    failures = check_correspondence(egi_before, mutated)
     assert not failures, (
         f"[{uod_id}] post-reroute drawing fails correspondence "
         f"({rerouted_count} ligature(s) rerouted):\n" + "\n".join(failures)

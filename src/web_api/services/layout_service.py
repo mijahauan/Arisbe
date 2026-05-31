@@ -14,6 +14,7 @@ _src_dir = Path(__file__).parent.parent.parent
 if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
+from correspondence_attestation import attest_correspondence
 from elk_layout_engine import ELKLayoutEngine
 from layout_dto import LayoutDTO, BoundingBox, LigaturePath, Point
 from simple_svg_renderer import SimpleSVGRenderer
@@ -52,6 +53,15 @@ def generate_layout(
             layout_deltas[p_id] = LayoutDelta(new_position=(pos.x, pos.y))
 
     dto = engine.generate_layout(egi, style, layout_deltas=layout_deltas)
+
+    # Boundary-event attestation (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md
+    # §6, §8 bullet 1).  Every (EGI, DTO) pair we hand to the renderer
+    # — initial diagram serve, post-transformation re-render, anywhere
+    # else this wrapper is called from — is verified to be in §3.3
+    # correspondence before it leaves the service.  A drift between
+    # picture and proposition raises CorrespondenceViolation; the
+    # system refuses to serve a drawing it can't attest.
+    attest_correspondence(egi, dto, context="layout_service.generate_layout")
 
     # Generate EGIF linear form for the renderer title
     try:
