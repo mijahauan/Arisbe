@@ -180,9 +180,55 @@ These tests give the spec teeth. The spec gives them a definition.
 
 ---
 
-## 8. Open questions to resolve as the workstream progresses
+## 8. Projection conventions in force (May 2026)
 
-- **Runtime assertions at regime boundaries, not only in tests?** Cost: constant-factor overhead at save/load/apply time. Benefit: catches drift in production, not only in CI.
-- **Which projection conventions do we commit to today?** The current implementation has implicit conventions (ELK's sibling ordering, the SVG renderer's ligature crossing style, etc.). Naming them is a precondition for testing them. More conventions arrive with Gamma.
-- **How are projection choices represented?** 2-D is the default and the only projection committed to today. Higher-dimensional presentations (3-D viewers, accessibility renderings) remain an open research direction; once a second projection exists, `LayoutDeltas` (or a parallel structure) will need to carry "which projection" alongside the positions and shapes.
-- **When and how does parse-from-image become real?** Image-format input (PNG/JPEG/PDF) parsed back to an EGI would be a major feature — out of scope for this spec, but the architecture should not foreclose it. When undertaken, the projection conventions become enforced *rules the user's drawing must obey* in order to be parseable.
+§3.3 includes a **convention compliance** row: a drawing can fail correspondence by silently breaking a projection convention even when its underlying structural map is intact. This section commits the current implementation to a specific set of conventions, so future divergences become visible. The list will grow as Gamma extensions arrive and as additional projections (3-D, accessibility, stylus-input) are added; everything here describes the *2-D screen projection* as of May 2026.
+
+The conventions are grouped by what they bind:
+
+### 8.1 Layout-level conventions (visible in `LayoutDTO`)
+
+These conventions shape the structural layout output and are testable directly from the DTO.
+
+- **L1. Deterministic layout** — within a single process, two calls to `engine.generate_layout(egi, style)` for the same EGI produce equal `LayoutDTO`s. The flat-file render path is reproducible. *Across* processes, Python frozenset iteration order may differ; if cross-process reproducibility becomes a requirement (e.g., for diff-based PR review of layouts), this commits us to setting `PYTHONHASHSEED` or sorting area contents before feeding ELK.
+- **L2. ELK layered algorithm with hierarchy** — every layout is produced by `elk.algorithm: layered` with `elk.hierarchyHandling: INCLUDE_CHILDREN`. Child cuts are laid out *inside* their parent's box; the parent's bounds expand to fit.
+- **L3. Left-to-right primary flow** — `elk.direction: RIGHT`. Layered nodes flow left-to-right; ligatures connecting them have a left-to-right tendency.
+- **L4. LAYER_SWEEP crossing minimization** — `elk.layered.crossingMinimization.strategy: LAYER_SWEEP`, a heuristic. Best-effort; not a guarantee that no ligatures cross. When they do cross, see R6 below.
+- **L5. Predicate ports are FREE with side hints** — every predicate exposes one port per `ν` index (`{elem_id}_port_{port_index}`). The port carries a `port.side` directive (`EAST` for even-indexed ports, `WEST` for odd), but the predicate node uses `portConstraints: FREE`, so ELK is free to relocate ports for routing. The side hint *biases* placement; it does not guarantee a specific side. Per-port positions are not part of the convention contract; only the existence and `port_index → vertex_id` mapping are.
+- **L6. `port_index` is the canonical argument-order channel** — argument order is communicated through `LigaturePath.port_index`, sorted ascending to reproduce `ν`. There is no visual-only carrier of argument order today.
+- **L7. Cuts contain their `area` children geometrically** — every element the EGI says is in `area[C]` is inside `cut_bounds[C]`; every sub-cut's bounds are fully nested inside its parent's. This is the §3.3 containment row stated as a convention.
+
+### 8.2 Renderer-level conventions (visible in the SVG output)
+
+These conventions shape the SVG that the user sees. They are not currently tested by automated checks; this section commits us to them so future drift is visible.
+
+- **R1. Cut shape** — rounded rectangle. Corner radius from `style.cut_corner_radius`; black 1-pixel stroke.
+- **R2. Polarity shading** — when `style.alternating_shading_enabled`, cuts at odd nesting depth (negative areas) are filled with `style.odd_polarity_fill` (gray); even-depth cuts are opaque white. The shading is the visual carrier of polarity — there are no explicit positive/negative symbols.
+- **R3. Sheet of assertion is invisible** — the sheet is *not* drawn. This matches Dau's formalism: the sheet is the unbounded space within which everything else exists, not an enclosed region.
+- **R4. Cut z-order: shallow-first** — cuts are rendered in ascending depth so that deeper opaque-white fills cover their parent's gray shading. The user sees alternating shading even though the SVG order is back-to-front.
+- **R5. Vertex shape** — filled circle, no stroke. Same color as the ligature, by `style.vertex_fill_color`. A vertex with a label has the label drawn to the right of the dot.
+- **R6. Ligatures are straight polylines; crossings are unmarked** — ligature paths are rendered as straight polyline segments between their points, no markers, no arrows, no bridge marks at crossings. When two ligatures cross in the 2-D projection, the visual ambiguity is *accepted*; the W-partition disambiguation lives in the structural data (`LigaturePath.predicate_id` + `vertex_id`) and is not recoverable from pixels alone. This is the §5.3 hard case acknowledged honestly: we depend on the structural channel.
+- **R7. Predicate shape** — centered text label, optional background rectangle (`style.predicate_label_box_background`, default transparent). No border around the text. No visible hook markers at the ports.
+- **R8. Argument order is not visually distinguishable** — corollary of L6 and R7. The user can see *how many* arguments a predicate has (from the number of ligatures meeting it), but cannot tell from the picture alone which argument is argument 1 vs argument 2. Recovery of the order requires the structural `port_index` channel.
+
+### 8.3 What these conventions imply for the parse direction
+
+The parse direction (§3.2) is trivially closed today: Arisbe never has to recover an EGI from pixels because every drawing it shows was rendered from an EGI it already holds. **R6 and R8 make this dependence load-bearing**: a user could not in principle reconstruct the EGI from pixels alone, because ligature crossings are unmarked and argument order is invisible.
+
+When the parse direction becomes real (stylus drawing input, image parsing), these two conventions become *forced choices*: either we add visual markers (bridge marks for R6, numbered hooks for R8), or we accept that pixel-only input is ambiguous and require a separate channel (typed annotations, gesture order, structural pre-binding). The spec doesn't choose yet; it names the trade-off.
+
+### 8.4 What this section does *not* commit to
+
+- Specific port positions per predicate (only port count + index ↔ vertex mapping).
+- Specific cut x/y coordinates (only nesting and containment).
+- Specific colors beyond polarity shading (style-configurable).
+- Cross-process layout reproducibility (only within-process).
+- Visual representations of Gamma extensions (modal, temporal, abstractional) — those will arrive with their own conventions; the spec will be extended.
+
+---
+
+## 9. Open questions to resolve as the workstream progresses
+
+- **Runtime assertions at regime boundaries, not only in tests?** *Partially resolved* — the web layout-service boundary attests every (EGI, drawing) pair before it leaves the service (`src/correspondence_attestation.py`). Save/load and Agon session boundaries remain to be wired. Cost: constant-factor overhead at boundary events. Benefit: catches drift in production, not only in CI.
+- **How are projection choices represented?** 2-D is the default and the only projection committed to today (§8). Higher-dimensional presentations (3-D viewers, accessibility renderings) remain an open research direction; once a second projection exists, `LayoutDeltas` (or a parallel structure) will need to carry "which projection" alongside the positions and shapes.
+- **When and how does parse-from-image become real?** Image-format input (PNG/JPEG/PDF) parsed back to an EGI would be a major feature — out of scope for this spec, but the architecture should not foreclose it. When undertaken, §8.3 names the forced choice: either add visual markers (bridge marks, numbered hooks) or accept ambiguity and require a separate input channel.

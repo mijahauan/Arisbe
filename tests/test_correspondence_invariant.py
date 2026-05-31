@@ -37,6 +37,11 @@ the spec:
                      contract tests (including the API's refusal
                      behaviour on attempted boundary crossings) live
                      in tests/test_presentation_ops.py.
+  - Convention compliance (§3.3 row 7): the layout-level conventions
+                     named in spec §8.1 (deterministic layout, etc.)
+                     are exercised.  Renderer-level conventions (§8.2)
+                     describe SVG output and are not tested here;
+                     adding SVG-inspection tests is a follow-up.
 """
 
 import sys
@@ -86,6 +91,47 @@ def _uod_ids():
     """Enumerate UoD IDs from the tomos corpus at collection time."""
     service = TomosService(TOMOS_ROOT)
     return [u["uod_id"] for u in service.list_uods()]
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_render_layout_determinism_within_process(uod_id, tomos, engine, style):
+    """Two renders of the same EGI within one process produce equal LayoutDTOs.
+
+    Convention L1 (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §8.1): within a
+    single process, the flat-file render path is reproducible.  Without
+    this, every other test that compares pre- and post-state drawings
+    becomes flaky: a transformation invariance failure would be
+    indistinguishable from a layout-engine non-determinism failure.
+
+    The test asserts exact equality on every field of LayoutDTO that
+    correspondence depends on (vertex_positions, predicate_positions,
+    cut_bounds, ligature_paths).  Float positions are compared
+    bit-exactly because ELK is deterministic per input order and
+    Python's frozenset iteration is stable within a process; if either
+    of those becomes a relaxed expectation later, this test will
+    surface that change.
+
+    Cross-process determinism is *not* committed to by convention L1 —
+    frozenset iteration order varies with PYTHONHASHSEED.  That is a
+    separate, future commitment.
+    """
+    uod = tomos.load_uod(uod_id)
+    egi = uod.current_egi
+    dto_a = engine.generate_layout(egi, style)
+    dto_b = engine.generate_layout(egi, style)
+
+    assert dto_a.vertex_positions == dto_b.vertex_positions, (
+        f"[{uod_id}] vertex_positions differ between renders"
+    )
+    assert dto_a.predicate_positions == dto_b.predicate_positions, (
+        f"[{uod_id}] predicate_positions differ between renders"
+    )
+    assert dto_a.cut_bounds == dto_b.cut_bounds, (
+        f"[{uod_id}] cut_bounds differ between renders"
+    )
+    assert list(dto_a.ligature_paths) == list(dto_b.ligature_paths), (
+        f"[{uod_id}] ligature_paths differ between renders"
+    )
 
 
 @pytest.mark.parametrize("uod_id", _uod_ids())
