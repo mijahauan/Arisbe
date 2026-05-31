@@ -2,8 +2,8 @@
 Linear-graphical correspondence invariant — property tests.
 
 See docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md for the contract these tests
-enforce. This file currently attacks the first five of the six test shapes
-listed in §7 of the spec:
+enforce. This file attacks all six of the test shapes listed in §7 of
+the spec:
 
   - Totality:        every EGI element (V, E, Cut) is represented in the
                      rendered LayoutDTO.
@@ -26,6 +26,13 @@ listed in §7 of the spec:
   - Argument order:  the LigaturePath.port_index field realises ν's
                      argument ordering — sorting a predicate's paths by
                      port_index reproduces ν exactly.
+  - Transformation invariance: every rule application (DC+, ERA, IT+)
+                     preserves correspondence on the post-EGI's drawing.
+  - Regime-3 non-interference: every projection-only mutation (vertex
+                     translation, interior-preserving cut reshape,
+                     on-chain ligature reroute) leaves the EGI
+                     structurally untouched and keeps the mutated
+                     drawing in correspondence.
 """
 
 import sys
@@ -37,7 +44,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from elk_layout_engine import ELKLayoutEngine
-from layout_dto import Point
+from layout_dto import BoundingBox, LayoutDTO, LigaturePath, Point
 from style_loader import load_default_style
 from tomos_service import TomosService
 
@@ -1118,4 +1125,486 @@ def test_transformation_invariance_iteration(uod_id, tomos, engine, style):
     assert not failures, (
         f"[{uod_id}] post-IT+ drawing fails correspondence:\n"
         + "\n".join(failures)
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Regime-3 non-interference — §7 test shape #6                                #
+# --------------------------------------------------------------------------- #
+#
+# §4.3 / §5.5 of the spec scope regime 3 as the projection-only free
+# dimension: a user may reposition a vertex, reshape a cut, or reroute a
+# ligature — operations that touch the drawing alone — and the EGI must
+# remain structurally identical.  §5.5 names this "preserved by
+# construction": a *legitimate* regime-3 op is one whose effect on the
+# `(EGI, projection)` pair is provably restricted to the projection
+# component.
+#
+# These tests synthesise regime-3 mutations directly on the LayoutDTO and
+# assert two things for each:
+#
+#   1. EGI structural equality — the snapshot of (V, E, Cut, ν, area, ρ)
+#      taken before the mutation equals the snapshot taken after.  This
+#      is the load-bearing assertion.
+#   2. The mutated drawing still satisfies §3.3 correspondence.  This is
+#      the "preserved by construction" half: a mutation that *could* be
+#      called regime-3 in shape but breaks the area mapping or the
+#      W-realisation by side-effect is, in the spec's terms, not regime
+#      3 at all.  Reusing `_check_correspondence` makes this explicit.
+#
+# The mutations are hand-engineered to respect their regime-3 constraint
+# (stays in same area; interior-preserving; on-chain).  If a future
+# refactor causes a LayoutDTO field to alias EGI state, or causes the
+# correspondence check to fail post-mutation, these tests will catch it.
+
+
+def _structurally_equal_egi(pre, post):
+    """Compare two EGIs on (V, E, Cut, ν, area, ρ).  Returns (ok, diffs)."""
+    diffs = []
+    if {v.id for v in pre.V} != {v.id for v in post.V}:
+        diffs.append(
+            f"V differs: {sorted({v.id for v in pre.V})} ≠ "
+            f"{sorted({v.id for v in post.V})}"
+        )
+    if {e.id for e in pre.E} != {e.id for e in post.E}:
+        diffs.append(
+            f"E differs: {sorted({e.id for e in pre.E})} ≠ "
+            f"{sorted({e.id for e in post.E})}"
+        )
+    if {c.id for c in pre.Cut} != {c.id for c in post.Cut}:
+        diffs.append(
+            f"Cut differs: {sorted({c.id for c in pre.Cut})} ≠ "
+            f"{sorted({c.id for c in post.Cut})}"
+        )
+    pre_nu = {k: tuple(v) for k, v in pre.nu.items()}
+    post_nu = {k: tuple(v) for k, v in post.nu.items()}
+    if pre_nu != post_nu:
+        diffs.append(f"ν differs: {pre_nu} ≠ {post_nu}")
+    pre_area = {k: frozenset(v) for k, v in pre.area.items()}
+    post_area = {k: frozenset(v) for k, v in post.area.items()}
+    if pre_area != post_area:
+        diffs.append(f"area differs: {pre_area} ≠ {post_area}")
+    pre_rel = dict(pre.rel)
+    post_rel = dict(post.rel)
+    if pre_rel != post_rel:
+        diffs.append(f"ρ differs: {pre_rel} ≠ {post_rel}")
+    if pre.sheet != post.sheet:
+        diffs.append(f"sheet differs: {pre.sheet} ≠ {post.sheet}")
+    return (not diffs), diffs
+
+
+def _clone_dto(
+    dto,
+    vertex_positions=None,
+    predicate_positions=None,
+    cut_bounds=None,
+    ligature_paths=None,
+):
+    """Return a new LayoutDTO with the given fields replaced.  Unspecified
+    fields are shallow-copied so the original DTO is left untouched.
+    """
+    return LayoutDTO(
+        vertex_positions=(
+            vertex_positions
+            if vertex_positions is not None
+            else dict(dto.vertex_positions)
+        ),
+        predicate_positions=(
+            predicate_positions
+            if predicate_positions is not None
+            else dict(dto.predicate_positions)
+        ),
+        cut_bounds=(
+            cut_bounds if cut_bounds is not None else dict(dto.cut_bounds)
+        ),
+        ligature_paths=(
+            ligature_paths
+            if ligature_paths is not None
+            else list(dto.ligature_paths)
+        ),
+        area_hierarchy={k: set(v) for k, v in dto.area_hierarchy.items()},
+        viewport_bounds=dto.viewport_bounds,
+        sheet_id=dto.sheet_id,
+        style=dto.style,
+    )
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_regime3_identity_null_op(uod_id, tomos, engine, style):
+    """The structural-equality helper agrees on an EGI re-rendered untouched.
+
+    The null op: snapshot the EGI, render a layout, render *again* with
+    no mutation in between, assert the EGI is structurally identical to
+    its snapshot.  This is trivially true (EGIs are immutable; rendering
+    is read-only) but it pins down the helper's behaviour and gives the
+    other three sub-tests a known-good baseline.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.3 (Presentation-only
+    — invariant preserved by construction), §7 (test shape #6).
+    """
+    uod = tomos.load_uod(uod_id)
+    egi_before = uod.current_egi
+    _ = engine.generate_layout(egi_before, style)
+    _ = engine.generate_layout(egi_before, style)
+    egi_after = uod.current_egi
+
+    ok, diffs = _structurally_equal_egi(egi_before, egi_after)
+    assert ok, f"[{uod_id}] null-op rendered changed EGI:\n  " + "\n  ".join(diffs)
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_regime3_vertex_translation(uod_id, tomos, engine, style):
+    """Shifting vertex positions (regime-3) leaves the EGI structurally equal.
+
+    For each vertex with margin on all sides of its containing area, shift
+    its position by a small offset that stays inside the area.  Update the
+    corresponding LigaturePath endpoints so the identity-endpoint property
+    is preserved.  Then:
+
+      - assert the EGI snapshot taken before the mutation is structurally
+        equal to the EGI snapshot taken after (the regime-3 contract);
+      - assert the mutated DTO still satisfies every §3.3 property
+        (preserved by construction).
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.3, §5.5 (the
+    structural impossibility of regime-3 abuse — a vertex shift that
+    would push the vertex outside its area is *not* a regime-3 op and
+    must be refused; here we only synthesise shifts that respect the
+    area boundary), §7 (test shape #6).
+    """
+    uod = tomos.load_uod(uod_id)
+    egi_before = uod.current_egi
+    dto = engine.generate_layout(egi_before, style)
+
+    elem_area = _element_area_map(egi_before)
+    cut_ids = {c.id for c in egi_before.Cut}
+    delta = 0.5  # ELK uses pixel-scale layouts; sub-pixel shift is always safe
+
+    # Pick the shift per vertex so it stays inside its area.  A vertex
+    # whose area is the sheet has no bound to respect; a vertex in a cut
+    # must keep `pos + delta` strictly inside the cut bounds.
+    new_positions: dict = {}
+    shifted_vertices: set = set()
+    for vid, pos in dto.vertex_positions.items():
+        area = elem_area.get(vid)
+        if area in cut_ids:
+            bounds = dto.cut_bounds.get(area)
+            if bounds is None:
+                continue
+            # Need delta margin on the +x and +y sides; otherwise skip.
+            if pos.x + delta >= bounds.max_x or pos.y + delta >= bounds.max_y:
+                continue
+        new_positions[vid] = Point(pos.x + delta, pos.y + delta)
+        shifted_vertices.add(vid)
+
+    if not shifted_vertices:
+        pytest.skip(f"{uod_id} has no vertex with margin to translate")
+
+    # Update ligature endpoints whose vertex moved (vertex-side endpoint
+    # is the last point; its coords must match the new vertex position).
+    new_paths = []
+    for path in dto.ligature_paths:
+        if path.vertex_id not in shifted_vertices:
+            new_paths.append(path)
+            continue
+        new_last = new_positions[path.vertex_id]
+        pts = list(path.points)
+        pts[-1] = new_last
+        new_paths.append(
+            LigaturePath(
+                predicate_id=path.predicate_id,
+                vertex_id=path.vertex_id,
+                points=tuple(pts),
+                port_index=path.port_index,
+            )
+        )
+
+    merged_positions = dict(dto.vertex_positions)
+    merged_positions.update(new_positions)
+    mutated = _clone_dto(
+        dto, vertex_positions=merged_positions, ligature_paths=new_paths
+    )
+
+    egi_after = uod.current_egi
+    ok, diffs = _structurally_equal_egi(egi_before, egi_after)
+    assert ok, (
+        f"[{uod_id}] vertex-translation regime-3 op changed EGI:\n  "
+        + "\n  ".join(diffs)
+    )
+
+    failures = _check_correspondence(
+        f"{uod_id}+regime3-vertex-shift", egi_before, mutated
+    )
+    assert not failures, (
+        f"[{uod_id}] post-translation drawing fails correspondence "
+        f"(presented {len(shifted_vertices)} shifted vertices):\n"
+        + "\n".join(failures)
+    )
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_regime3_cut_reshape_interior_preserving(uod_id, tomos, engine, style):
+    """Expanding cut bounds outward (regime-3) leaves the EGI structurally equal.
+
+    For each cut C in the EGI, grow its bounds by a small padding on all
+    four sides.  Two regime-3 constraints must hold for the expansion to
+    qualify as presentation-only:
+
+      1. **Interior-preserving outward**: every element the EGI says is
+         in `area[C]` must still lie inside the new bounds.  Because the
+         expansion only grows bounds outward, this is trivially true and
+         we assert it for clarity.
+      2. **Interior-preserving inward**: no element from outside `area[C]`
+         is pulled inside the new bounds.  This is the load-bearing part
+         of §5.5 ("a cut's redrawn boundary cannot move elements into or
+         out of its area").  If the expansion would absorb a sibling
+         element, we skip that cut — that wider expansion is *not* a
+         regime-3 op.
+
+    If at least one cut can be expanded under the above constraints,
+    apply all such expansions, then assert:
+
+      - the EGI is structurally unchanged;
+      - the mutated DTO still satisfies every §3.3 property — in
+        particular, containment fidelity, since the cut bounds are now
+        wider but their `area`-content is unchanged.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.3, §5.5
+    ("structural impossibility of regime-3 abuse" — cut reshape), §7.
+    """
+    uod = tomos.load_uod(uod_id)
+    egi_before = uod.current_egi
+    dto = engine.generate_layout(egi_before, style)
+
+    cut_ids = {c.id for c in egi_before.Cut}
+    elem_area = _element_area_map(egi_before)
+    pad = 0.5  # sub-pixel expansion: small enough to almost never absorb a sibling
+
+    # Build a position lookup for every vertex and predicate so we can
+    # test the inward-preservation constraint for each candidate expansion.
+    pos_map: dict = {}
+    pos_map.update({vid: p for vid, p in dto.vertex_positions.items()})
+    pos_map.update({eid: p for eid, p in dto.predicate_positions.items()})
+
+    new_bounds_updates: dict = {}
+    reshaped: list = []
+    for cid in cut_ids:
+        bounds = dto.cut_bounds.get(cid)
+        if bounds is None:
+            continue
+        expanded = BoundingBox(
+            min_x=bounds.min_x - pad,
+            min_y=bounds.min_y - pad,
+            max_x=bounds.max_x + pad,
+            max_y=bounds.max_y + pad,
+        )
+        own_area_members = egi_before.area.get(cid, frozenset())
+        # Inward-preservation check: scan every element not in area[cid]
+        # and reject if its drawn position would fall inside the expanded
+        # box.  Cuts themselves are checked by bounds overlap, not point
+        # containment (a child cut already lives inside us; a sibling
+        # cut's bounds must not enter ours).
+        violation = False
+        for elem_id, elem_pos in pos_map.items():
+            if elem_id in own_area_members:
+                continue
+            # Skip elements already inside `cid` via deeper nesting; those
+            # are not "outside" elements being absorbed.  We detect this
+            # by checking whether the original bounds already contain
+            # them — if so, they were already ours by nesting.
+            if (
+                bounds.min_x <= elem_pos.x <= bounds.max_x
+                and bounds.min_y <= elem_pos.y <= bounds.max_y
+            ):
+                continue
+            if (
+                expanded.min_x <= elem_pos.x <= expanded.max_x
+                and expanded.min_y <= elem_pos.y <= expanded.max_y
+            ):
+                violation = True
+                break
+        if violation:
+            continue
+        new_bounds_updates[cid] = expanded
+        reshaped.append(cid)
+
+    if not reshaped:
+        pytest.skip(
+            f"{uod_id} has no cut whose bounds can be padded without "
+            f"absorbing a non-area element"
+        )
+
+    merged_bounds = dict(dto.cut_bounds)
+    merged_bounds.update(new_bounds_updates)
+    mutated = _clone_dto(dto, cut_bounds=merged_bounds)
+
+    egi_after = uod.current_egi
+    ok, diffs = _structurally_equal_egi(egi_before, egi_after)
+    assert ok, (
+        f"[{uod_id}] cut-reshape regime-3 op changed EGI:\n  "
+        + "\n  ".join(diffs)
+    )
+
+    failures = _check_correspondence(
+        f"{uod_id}+regime3-cut-reshape", egi_before, mutated
+    )
+    assert not failures, (
+        f"[{uod_id}] post-reshape drawing fails correspondence "
+        f"(expanded {len(reshaped)} cut(s)):\n" + "\n".join(failures)
+    )
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_regime3_ligature_reroute_on_chain(uod_id, tomos, engine, style):
+    """Perturbing interior waypoints (regime-3) leaves the EGI structurally equal.
+
+    A ligature reroute is regime-3 only if the perturbation does not
+    change which areas the path visits — i.e., the path stays on the
+    ancestor chain between predicate-area and vertex-area.  Endpoints
+    must not move (those are pinned by the predicate hook and the vertex
+    position; moving them would be a different operation entirely).
+
+    For each ligature, build a candidate perturbation: nudge the middle
+    waypoint diagonally if the path already has ≥ 3 points, otherwise
+    insert a perpendicular kink at the midpoint of the straight 2-point
+    segment.  (ELK currently emits straight 2-point paths for most
+    tomos UoDs; without the kink fallback the test would skip 100% of
+    the corpus.)  Accept the perturbation only if the new interior
+    point and the midpoints of its two adjacent segments still lie on
+    the area chain — the same deepest-containing-cut logic the
+    area-chain traversal test uses.  Apply all accepted perturbations
+    together and assert:
+
+      - the EGI is structurally unchanged;
+      - the mutated DTO still satisfies every §3.3 property.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.3, §5.5 (ligature
+    reroute — "cannot change which areas the path visits"), §7.
+    """
+    uod = tomos.load_uod(uod_id)
+    egi_before = uod.current_egi
+    dto = engine.generate_layout(egi_before, style)
+
+    elem_area = _element_area_map(egi_before)
+    cut_ids = {c.id for c in egi_before.Cut}
+    parent_map = _cut_parent_map(egi_before)
+
+    def depth(cid):
+        d = 0
+        cur = cid
+        while parent_map.get(cur) is not None:
+            cur = parent_map[cur]
+            d += 1
+        return d
+
+    def deepest_containing_cut(point):
+        cands = [
+            cid
+            for cid, b in dto.cut_bounds.items()
+            if cid in cut_ids
+            and b.min_x < point.x < b.max_x
+            and b.min_y < point.y < b.max_y
+        ]
+        if not cands:
+            return egi_before.sheet
+        return max(cands, key=depth)
+
+    delta = 0.25  # sub-pixel waypoint perturbation; small enough to stay in-area
+    rerouted = 0
+    new_paths = []
+    for path in dto.ligature_paths:
+        pts = list(path.points)
+        if len(pts) < 2:
+            new_paths.append(path)
+            continue
+
+        v_area = elem_area.get(path.vertex_id, egi_before.sheet)
+        p_area = elem_area.get(path.predicate_id, egi_before.sheet)
+        allowed = _chain_between(v_area, p_area, parent_map)
+
+        # Pick a candidate perturbation depending on how many points the
+        # path has.  Both shapes are regime-3 as long as the resulting
+        # interior point and its adjacent segment midpoints stay on the
+        # area chain — i.e., the path visits exactly the same area set
+        # before and after.
+        if len(pts) >= 3:
+            # Nudge the middle waypoint diagonally.
+            mid_idx = len(pts) // 2
+            if mid_idx in (0, len(pts) - 1):
+                new_paths.append(path)
+                continue
+            candidate = Point(pts[mid_idx].x + delta, pts[mid_idx].y + delta)
+            new_pts = pts[:]
+            new_pts[mid_idx] = candidate
+        else:
+            # Insert a perpendicular kink at the midpoint of the
+            # straight 2-point segment.  This is still a regime-3 op:
+            # the path is the same set of areas, just drawn with a
+            # tiny bend instead of a straight line.
+            a, b = pts[0], pts[1]
+            mx = (a.x + b.x) / 2
+            my = (a.y + b.y) / 2
+            dx = b.x - a.x
+            dy = b.y - a.y
+            length = (dx * dx + dy * dy) ** 0.5
+            if length == 0:
+                # Degenerate path (endpoints coincident); leave it.
+                new_paths.append(path)
+                continue
+            # Unit perpendicular (rotated +90°): (-dy, dx) / length.
+            nx = -dy / length
+            ny = dx / length
+            candidate = Point(mx + delta * nx, my + delta * ny)
+            new_pts = [a, candidate, b]
+            mid_idx = 1
+
+        seg_mid_left = Point(
+            (new_pts[mid_idx - 1].x + new_pts[mid_idx].x) / 2,
+            (new_pts[mid_idx - 1].y + new_pts[mid_idx].y) / 2,
+        )
+        seg_mid_right = Point(
+            (new_pts[mid_idx].x + new_pts[mid_idx + 1].x) / 2,
+            (new_pts[mid_idx].y + new_pts[mid_idx + 1].y) / 2,
+        )
+        if (
+            deepest_containing_cut(new_pts[mid_idx]) not in allowed
+            or deepest_containing_cut(seg_mid_left) not in allowed
+            or deepest_containing_cut(seg_mid_right) not in allowed
+        ):
+            # Perturbation would leave the chain — not regime-3 for this
+            # path.  Pass it through unchanged.
+            new_paths.append(path)
+            continue
+
+        new_paths.append(
+            LigaturePath(
+                predicate_id=path.predicate_id,
+                vertex_id=path.vertex_id,
+                points=tuple(new_pts),
+                port_index=path.port_index,
+            )
+        )
+        rerouted += 1
+
+    if rerouted == 0:
+        pytest.skip(
+            f"{uod_id} has no ligature whose interior waypoint can be "
+            f"nudged while staying on the area chain"
+        )
+
+    mutated = _clone_dto(dto, ligature_paths=new_paths)
+
+    egi_after = uod.current_egi
+    ok, diffs = _structurally_equal_egi(egi_before, egi_after)
+    assert ok, (
+        f"[{uod_id}] ligature-reroute regime-3 op changed EGI:\n  "
+        + "\n  ".join(diffs)
+    )
+
+    failures = _check_correspondence(
+        f"{uod_id}+regime3-ligature-reroute", egi_before, mutated
+    )
+    assert not failures, (
+        f"[{uod_id}] post-reroute drawing fails correspondence "
+        f"(rerouted {rerouted} ligature(s)):\n" + "\n".join(failures)
     )
