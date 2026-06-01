@@ -39,9 +39,51 @@ and *against*.
 
 ---
 
-## Active task: on-canvas element selection
+## Active thread: NaturalLayout — own the dimensionality
 
-**Why now (not Agon, not polish).** The promotion boundary is *correct*
+A deliberate detour ahead of dogfooding/Agon, prioritized because the
+logic→spatial mapping is the project's central difficulty (the recurring
+"ligatures crossing cuts illegitimately" pain). Stance and grounding:
+memories `project-render-as-projection-own-dimensionality` and
+`project-ligature-crossing-topological-invariant`. The renderer is a
+*projection*; the projection-independent structure (containment tree,
+per-ligature crossing-sequence, incidence, ports) is what we own;
+conventions are the projection's free parameters; 3-D becomes additive
+iff the natural layer stays coordinate-free.
+
+**Sequencing:** (1) probe ✅ → (2) unify the 3× redundant crossing
+computation → (3) strengthen §3.3 identity check to crossing-equality →
+(4) name the conventions object → (5) enforce dimension-free discipline.
+
+**Step 1 done (2026-06-01).** `src/natural_layout.py` (coordinate-free
+`NaturalLayout` + `authorized_crossings`, no geometry imports, enforced by
+test), `tools/natural_layout_probe.py` (corpus + synthetic crossing-
+equality probe), `tests/test_natural_layout.py` (6 tests).
+**Finding:** zero illegitimate / wrong-parity crossings across the 15
+indexed corpus UoDs (49 ligature incidences) AND six synthetic
+pathological shapes (3-deep nesting, sibling-spanning, branching,
+two-variable mixed nesting). The current obstacle-aware routing is
+already crossing-correct on everything probed — so the historical
+#5/#9/#11 pain is substantially fixed in the routing that exists, and the
+probe cross-validates that `natural_layout`'s independent crossing
+computation AGREES with ELK's rendered output. Verdict confirmed: the
+refactor is **unification, not correctness rescue**. Caveats: probe checks
+crossing count/parity vs axis-aligned boxes, not ordering, not
+W-connectedness (the existing attestation covers connectedness), and small
+graphs only.
+
+**Next (step 2+):** make `ELKLayoutEngine._authorized_cuts` and
+`correspondence_attestation`'s area-chain check both delegate to
+`natural_layout.authorized_crossings` (single source of truth); then
+upgrade the §3.3 identity check from sampled-containment to
+crossing-multiset-equality, seeding it from the probe's geometry. Keep
+`test_correspondence_attestation` / `test_correspondence_invariant` green.
+
+---
+
+## Done: on-canvas element selection
+
+**Why it came first (not Agon, not polish).** The promotion boundary is *correct*
 but *unexercised by real reasoning*: rule parameters are currently typed
 element-ids (UUIDs), so you can't comfortably build a multi-step proof.
 Until someone composes a non-trivial chain and promotes it, we don't know
