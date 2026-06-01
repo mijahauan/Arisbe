@@ -91,9 +91,50 @@ surface as a real corpus/composed graph and be caught by the strengthened
 attestation. The refactor is the right primitive; **3-D is now a second
 projection against the same NaturalLayout, not a rewrite.**
 
-**Next:** back to the product thread — dogfood the Ergasterion promotion
-boundary (compose + promote a real multi-step proof via on-canvas
-selection), then the Agon web arena.
+---
+
+## Dogfood (2026-06-01): the promotion boundary is lived, not just correct
+
+Drove the running app API-level: opened a workshop on
+`peirce_cp_4_394_man_mortal`, composed a 2-step chain (DC+ on the whole
+proposition, then a vacuous DC+ on the sheet), promoted to a new forked
+UoD, confirmed §3.3 passed at the corpus boundary, the chain persisted
+(chain.jsonl + 3 state snapshots), `load_chain` round-tripped, and
+re-promote was refused. Promote-as-fork confirmed by use. (Throwaway UoD
+deleted; pre-existing `practice_43480df3` left intact.)
+
+**Friction = the prioritized signal** (full detail in memory
+`project-ergasterion-dogfood-findings`):
+1. **No area/polarity introspection over HTTP** — to select for any rule
+   beyond empty-DC+, the client must know an element's area + polarity;
+   on-canvas the picture shows it, via API it had to be inferred. Agon is
+   selection-heavy → it needs this most. **Highest-leverage next add.**
+2. **Rule requirements not discoverable over HTTP** —
+   `RuleInteraction.steps()` declares them but they aren't surfaced.
+3. **§3.3 invisible until it fails** — a pre-promote attestation *preview*
+   would show correspondence while composing.
+4. **Linear-only** didn't bite at 2 steps; undo/branching will matter for
+   real exploration and Agon's move/counter-move (JSONL leaves room).
+5. **Promote-as-fork felt right** — keep.
+
+Still unverified: the on-canvas *clicking* UX (hooks + JS validated; no
+browser has actually clicked-to-select + promoted).
+
+---
+
+## Next (recommended order)
+
+1. **Small API introspection addition (friction #1+#2)** — expose
+   per-element area membership + polarity, and surface
+   `RuleInteraction.steps()` rule-requirement descriptors over HTTP. A
+   bounded change that unblocks both better Ergasterion UX *and* Agon. Do
+   this first; the dogfood proved Agon needs it most.
+2. **Agon web arena** — the Endoporeutic Game as a route, designed with
+   the dialogical "asserted = withstood challenge" notion
+   (`docs/CHAIN_OF_SEMIOSIS.md`, "Semiosis is dialogical"). Engine + REPL
+   exist; the arena is selection-heavy, hence (1) first.
+3. **Optional/parallel:** browser walkthrough of on-canvas selection;
+   pre-promote §3.3 preview (#3); pin sibling-cut ordering convention.
 
 ---
 
