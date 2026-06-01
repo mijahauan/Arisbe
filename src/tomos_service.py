@@ -25,7 +25,7 @@ See: UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md for philosophical foundation
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 from enum import Enum
 
 from universe_of_discourse import (
@@ -40,6 +40,85 @@ from egi_io import load_egi_json, save_egi_json
 from elk_layout_engine import ELKLayoutEngine
 from style_loader import load_default_style
 import json
+
+
+# ---------------------------------------------------------------------------
+# Chain model — V1 persistence of a Peircean reasoning chain.
+# ---------------------------------------------------------------------------
+#
+# In Peircean terms, every assertion resides in a context.  A workshop
+# session is a chain of rule applications anchored at a base state; each
+# step's logical force comes from its parent state plus its place in the
+# chain.  These dataclasses are the slim on-disk shape of that chain —
+# the diachronic record that turns a single snapshot into an asserted
+# reasoning process.
+#
+# This is intentionally NOT a hydration of ``EGITransformationHistory``
+# (which is protected and whose ``add_transformation`` API is designed
+# for live application, not disk hydration).  V1 keeps the chain
+# external to the UoD; later phases may extend the protected model.
+#
+# See ``docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md`` §4.2 and
+# ``docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`` for the conceptual
+# grounding.
+
+CHAIN_SCHEMA_VERSION = 1
+
+
+@dataclass(frozen=True)
+class ChainStep:
+    """One rule application in a transformation chain.
+
+    Each step names the rule, the parent state it was applied against
+    (``from_state_id``), the resulting state (``to_state_id``), and the
+    rule-specific parameters that produced the move.  ``parameters`` is
+    a free-form JSON dict whose shape varies by rule (e.g. ERA gets a
+    selected_elements list, INS gets an egif_content string).
+    """
+
+    step_id: str
+    rule_name: str
+    from_state_id: str
+    to_state_id: str
+    parameters: Dict[str, Any]
+    timestamp: str
+    user_annotation: Optional[str] = None
+
+
+@dataclass
+class TransformationChain:
+    """A linear chain of rule applications anchored at an initial state.
+
+    The chain is the unit of meaning for a Peircean reasoning episode:
+    each step's force is conferred by its parent state plus the chain's
+    accumulated context.  V1 supports only linear (non-branching)
+    chains; the JSONL format leaves room for ``branch_id`` later.
+
+    Attributes:
+        initial_state_id: ID of the base state — the context against
+            which the chain's first step was applied.
+        steps: Ordered list of rule applications.  An empty list is
+            valid (a chain with no steps is just a base state).
+        states: All EGI snapshots referenced by the chain, keyed by
+            state_id.  Includes ``initial_state_id`` and every step's
+            ``from_state_id`` / ``to_state_id``.
+    """
+
+    initial_state_id: str
+    steps: List[ChainStep]
+    states: Dict[str, RelationalGraphWithCuts]
+
+    @property
+    def initial_egi(self) -> RelationalGraphWithCuts:
+        return self.states[self.initial_state_id]
+
+    @property
+    def current_state_id(self) -> str:
+        return self.steps[-1].to_state_id if self.steps else self.initial_state_id
+
+    @property
+    def current_egi(self) -> RelationalGraphWithCuts:
+        return self.states[self.current_state_id]
 
 
 def _attest_uod_in_correspondence(
@@ -611,10 +690,168 @@ class TomosService:
             # For now, just save marker file
             with open(files["history_log"], 'w', encoding='utf-8') as f:
                 f.write(f"# History for {uod.uod_id}\n")
-        
+
         # Update index
         self._update_index_entry(uod)
-    
+
+    # ===== Chain persistence (Peircean reasoning chains) =====
+
+    def save_uod_with_chain(
+        self,
+        uod: UniverseOfDiscourse,
+        chain: TransformationChain,
+    ) -> None:
+        """Persist a UoD together with its transformation chain.
+
+        Calls ``save_uod`` first — which runs §3.3 attestation on the
+        UoD's current EGI and aborts before any disk writes if
+        correspondence fails.  Only after that succeeds are the chain
+        artefacts written, so the corpus never contains a chain whose
+        tail state could not be attested.
+
+        Files written under ``<uod_path>/history/`` (in addition to
+        whatever ``save_uod`` writes at the UoD root):
+
+            chain.jsonl              — initial-state header + one JSON
+                                       object per ``ChainStep``
+            states/<state_id>.egi.json — per-state EGI snapshots, one
+                                       per state referenced by the chain
+
+        Args:
+            uod: UoD to save.  Its ``current_egi`` should equal
+                ``chain.current_egi`` (the caller's responsibility — V1
+                does not enforce this beyond §3.3 attestation, which
+                would catch a drifted final state at save_uod).
+            chain: The transformation chain to persist alongside.
+
+        Raises:
+            ``CorrespondenceViolation`` (from ``save_uod``) if the
+            final-state §3.3 check fails.  In that case no chain files
+            are written.
+        """
+        # Final-state attestation happens inside save_uod *before* any
+        # writes.  If it raises, we never reach the chain-write block —
+        # so a refusal aborts cleanly with no half-saved chain on disk.
+        self.save_uod(uod)
+
+        uod_path = self._get_uod_path(uod)
+        history_dir = uod_path / "history"
+        states_dir = history_dir / "states"
+        history_dir.mkdir(parents=True, exist_ok=True)
+        states_dir.mkdir(parents=True, exist_ok=True)
+
+        # Write every state snapshot referenced by the chain.  Includes
+        # the initial state (the context against which step 1 was
+        # applied) and every from_state / to_state of every step.
+        for state_id, state_egi in chain.states.items():
+            snap_path = states_dir / f"{state_id}.egi.json"
+            save_egi_json(state_egi, snap_path)
+
+        # Write the JSONL log.  First line is the initial-state header;
+        # subsequent lines are step records in chain order.
+        chain_jsonl = history_dir / "chain.jsonl"
+        with open(chain_jsonl, "w", encoding="utf-8") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "type": "initial",
+                        "initial_state_id": chain.initial_state_id,
+                        "schema_version": CHAIN_SCHEMA_VERSION,
+                    }
+                )
+                + "\n"
+            )
+            for step in chain.steps:
+                f.write(
+                    json.dumps(
+                        {
+                            "type": "step",
+                            "step_id": step.step_id,
+                            "rule_name": step.rule_name,
+                            "from_state_id": step.from_state_id,
+                            "to_state_id": step.to_state_id,
+                            "parameters": step.parameters,
+                            "timestamp": step.timestamp,
+                            "user_annotation": step.user_annotation,
+                        }
+                    )
+                    + "\n"
+                )
+
+    def load_chain(self, uod_id: str) -> Optional[TransformationChain]:
+        """Load the transformation chain persisted alongside a UoD.
+
+        Returns ``None`` if the UoD is not in the index, has no
+        ``history/chain.jsonl``, or the chain file references a state
+        whose snapshot file is missing (a broken chain — we refuse to
+        return a half-loaded one).
+
+        Args:
+            uod_id: UoD identifier.
+
+        Returns:
+            The parsed ``TransformationChain``, or ``None``.
+        """
+        entry = self.get_uod_metadata(uod_id)
+        if entry is None:
+            return None
+
+        uod_path = Path(entry["path"])
+        chain_jsonl = uod_path / "history" / "chain.jsonl"
+        states_dir = uod_path / "history" / "states"
+
+        if not chain_jsonl.exists() or not states_dir.exists():
+            return None
+
+        initial_state_id: Optional[str] = None
+        steps: List[ChainStep] = []
+
+        with open(chain_jsonl, "r", encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                obj = json.loads(line)
+                obj_type = obj.get("type")
+                if obj_type == "initial":
+                    initial_state_id = obj["initial_state_id"]
+                elif obj_type == "step":
+                    steps.append(
+                        ChainStep(
+                            step_id=obj["step_id"],
+                            rule_name=obj["rule_name"],
+                            from_state_id=obj["from_state_id"],
+                            to_state_id=obj["to_state_id"],
+                            parameters=obj.get("parameters", {}),
+                            timestamp=obj["timestamp"],
+                            user_annotation=obj.get("user_annotation"),
+                        )
+                    )
+
+        if initial_state_id is None:
+            return None
+
+        # Gather every state_id referenced by the chain and load the
+        # snapshot file for each.  A missing snapshot means the chain
+        # is broken — refuse to return a partial chain.
+        needed: Set[str] = {initial_state_id}
+        for step in steps:
+            needed.add(step.from_state_id)
+            needed.add(step.to_state_id)
+
+        states: Dict[str, RelationalGraphWithCuts] = {}
+        for sid in needed:
+            snap_path = states_dir / f"{sid}.egi.json"
+            if not snap_path.exists():
+                return None
+            states[sid] = load_egi_json(snap_path)
+
+        return TransformationChain(
+            initial_state_id=initial_state_id,
+            steps=steps,
+            states=states,
+        )
+
     def delete_uod(self, uod_id: str) -> bool:
         """
         Delete UoD from tomos.

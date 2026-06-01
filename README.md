@@ -365,7 +365,7 @@ the Qt implementation was archived in May 2026.
 | Module | Status | Notes |
 |---|---|---|
 | **Organon** (Archive/browser) | ✅ **Live** | `web_api/routes/organon.py` + `web_viewer/organon.html` — read-only corpus archive at `/organon`. Both load and render boundaries §3.3-attested per request. |
-| **Ergasterion** (Workshop) | Web route pending | Composition regime; correspondence invariant suspended for drafts |
+| **Ergasterion** (Workshop) | ✅ **Live** | `web_api/routes/ergasterion.py` + `web_viewer/ergasterion.html` — composition route at `/ergasterion`. Regime-1 drafts (correspondence invariant suspended); promotion is the regime-1 → regime-2 boundary at which §3.3 attestation fires. Chain of rule applications persisted via `TomosService.save_uod_with_chain` (V1 linear chains, JSONL + per-state snapshots). |
 | **Agon** (Endoporeutic Game) | ✅ **Engine implemented; web route pending** | `endoporeutic_game.py` + `game_repl.py`; Z3-validated. REPL available today; web arena ahead |
 | **Correspondence attestation** | ✅ **Live** | `correspondence_attestation.py` + hook in `web_api/services/layout_service.py` |
 

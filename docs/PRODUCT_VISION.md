@@ -85,6 +85,13 @@ conventions, additional boundary attestation, Hypothesis-driven
 exhaustive rule testing, ELK ligature edge cases) are tracked as GitHub
 issues.
 
+The deeper Peircean grounding — *why* a reasoning episode is preserved as
+a chain of sound, attested steps, and what that is in service of — is set
+out in [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md): every rule
+application is an attestation event, the chain (not the snapshot) is the
+unit of meaning, and the whole apparatus serves Peirce's aim of analyzing
+reasoning toward clearer thinking.
+
 The sections below restate the longer philosophical case for *why* this
 project exists and *who* it serves; they predate the May 2026 realignment
 and should be read with the framing above in mind.

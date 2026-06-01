@@ -1,0 +1,566 @@
+"""
+Tests for the Ergasterion (workshop) web routes.
+
+Ergasterion is the composition mode in the Organon / Ergasterion /
+Agon trio.  Unlike Organon (read-only) and the legacy transformations
+route (snapshot-style undo/redo), an Ergasterion session carries a
+**Peircean reasoning chain**: a base state (the chosen context) plus
+an accumulating sequence of rule applications, each justified by a
+Dau rule.  Until promoted, the chain lives in regime 1 — drawn but
+not asserted as a corpus-grade record — and the §3.3 correspondence
+invariant is suspended *at the corpus-record boundary*.  At
+promotion, the chain anchors into the corpus context and ``save_uod``
+fires §3.3.
+
+This file pins down the contract:
+
+1. **Session lifecycle** — open with empty_sheet, open with corpus
+   UoD, invalid base refused, get/discard endpoints work.
+2. **Rule application via RuleInteraction** — a valid rule advances
+   the chain; an invalid rule returns the protocol's refusal cleanly.
+3. **Chain accumulates** — multiple applies produce a chain whose
+   step_count matches.
+4. **Regime-1 drafts don't fire the corpus-record §3.3 hook** —
+   during ``/apply``, the ``tomos_service.save_uod`` /
+   ``tomos_service.load_uod`` boundary contexts are NOT observed in
+   the attestation hook (only the per-render
+   ``layout_service.generate_layout`` context, which is a separate
+   render-time check).
+5. **Promotion fires §3.3 at the corpus boundary** — ``/promote``
+   produces an attestation call whose context names
+   ``tomos_service.save_uod(<promoted_id>)``.
+6. **Promotion writes a chain that ``load_chain`` round-trips** — the
+   chain JSONL + state snapshots are written; loading the new UoD
+   returns the same step sequence.
+7. **§3.3 refusal at promote aborts cleanly** — a monkeypatched
+   broken layout engine causes promote to surface a
+   ``CORRESPONDENCE_VIOLATION`` error code, with no chain files on
+   disk and the session preserved.
+8. **Promotion refuses duplicate uod_id** — source corpus UoDs are
+   never overwritten.
+9. **HTML viewer** — GET /ergasterion serves a workshop page.
+"""
+
+import sys
+from pathlib import Path
+from typing import List
+
+import pytest
+from fastapi.testclient import TestClient
+
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+import correspondence_attestation
+from layout_dto import LayoutDTO
+import tomos_service
+from tomos_service import TomosService
+from web_api import main as web_main
+from web_api.routes import ergasterion as ergasterion_route
+from web_api.services import layout_service
+from web_api.services.ergasterion_session_manager import (
+    ErgasterionSessionManager,
+)
+
+
+TOMOS_ROOT = Path(__file__).parent.parent / "tomos"
+
+
+# --------------------------------------------------------------------------- #
+# Fixtures                                                                    #
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture
+def client():
+    return TestClient(web_main.app)
+
+
+@pytest.fixture
+def isolated_tomos(tmp_path, monkeypatch):
+    """Redirect the Ergasterion route's TomosService singleton to a tmp dir.
+
+    Without this, promote endpoints would write into the real corpus.
+    We seed the temp tomos with a copy of one real UoD so we have a
+    base-state-from-corpus to work with.
+    """
+    tmp_tomos = tmp_path / "tomos"
+    tmp_tomos.mkdir(parents=True)
+    fresh = TomosService(tmp_tomos)
+
+    # Seed: load a small real UoD and re-save it into the tmp tomos.
+    real_service = TomosService(TOMOS_ROOT)
+    uod_ids = [u["uod_id"] for u in real_service.list_uods()]
+    # Prefer a deliberately small one
+    seed_candidates = ["alpha_man_mortal", "peirce_modus_ponens"]
+    seed_id = next((c for c in seed_candidates if c in uod_ids), uod_ids[0])
+    seed_uod = real_service.load_uod(seed_id)
+    assert seed_uod is not None
+    fresh.save_uod(seed_uod)
+
+    # Reset the route's singleton + the session manager so each test
+    # starts clean.  Bind a single manager instance so successive
+    # calls within the test see the same sessions.
+    isolated_manager = ErgasterionSessionManager()
+    monkeypatch.setattr(ergasterion_route, "_tomos_service", fresh)
+    monkeypatch.setattr(
+        ergasterion_route,
+        "get_ergasterion_session_manager",
+        lambda: isolated_manager,
+    )
+    return {
+        "service": fresh,
+        "seed_id": seed_id,
+        "tomos_root": tmp_tomos,
+        "session_manager": isolated_manager,
+    }
+
+
+@pytest.fixture
+def fresh_session_manager(monkeypatch):
+    """For tests that don't need an isolated tomos, still reset the manager.
+
+    Sessions persist across tests via a module-level singleton; this
+    keeps tests independent.
+    """
+    fresh = ErgasterionSessionManager()
+    monkeypatch.setattr(
+        ergasterion_route,
+        "get_ergasterion_session_manager",
+        lambda: fresh,
+    )
+    return fresh
+
+
+# --------------------------------------------------------------------------- #
+# Helpers                                                                     #
+# --------------------------------------------------------------------------- #
+
+
+def _open_session(client, base_source: str):
+    response = client.post(
+        "/ergasterion/sessions", json={"base_source": base_source}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True, body.get("error")
+    return body["data"]
+
+
+# --------------------------------------------------------------------------- #
+# 1. Session lifecycle                                                        #
+# --------------------------------------------------------------------------- #
+
+
+def test_open_session_with_empty_sheet(client, fresh_session_manager):
+    """Opening with empty_sheet returns a session anchored at an empty graph."""
+    data = _open_session(client, "empty_sheet")
+    assert data["session_id"]
+    assert data["base_source"] == "empty_sheet"
+    assert data["base_source_uod_id"] is None
+    assert data["egi_summary"]["vertex_count"] == 0
+    assert data["egi_summary"]["edge_count"] == 0
+    assert data["egi_summary"]["cut_count"] == 0
+    assert data["chain"]["step_count"] == 0
+    assert data["chain"]["initial_state_id"] == data["chain"]["current_state_id"]
+
+
+def test_open_session_with_corpus_uod(client, isolated_tomos):
+    """Opening with uod:<id> uses that UoD's current EGI as the base state."""
+    seed_id = isolated_tomos["seed_id"]
+    data = _open_session(client, f"uod:{seed_id}")
+    assert data["base_source"] == f"uod:{seed_id}"
+    assert data["base_source_uod_id"] == seed_id
+    assert data["chain"]["step_count"] == 0
+    # The base state's drawing was rendered — that means render-time
+    # §3.3 attestation passed.  We just sanity-check it's non-trivial.
+    assert data["egi_summary"]["vertex_count"] >= 0
+    assert isinstance(data["svg"], str) and data["svg"].startswith("<")
+
+
+def test_open_session_refuses_invalid_base(client, fresh_session_manager):
+    """A bogus base_source returns INVALID_BASE_SOURCE, not a 500."""
+    response = client.post(
+        "/ergasterion/sessions", json={"base_source": "nonsense"}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "INVALID_BASE_SOURCE"
+
+
+def test_open_session_with_unknown_uod(client, isolated_tomos):
+    """Opening from a non-existent UoD returns UOD_NOT_FOUND cleanly."""
+    response = client.post(
+        "/ergasterion/sessions", json={"base_source": "uod:does-not-exist"}
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "UOD_NOT_FOUND"
+
+
+def test_get_session_returns_current_state(client, fresh_session_manager):
+    """GET /ergasterion/sessions/{id} re-renders and returns the current state."""
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    response = client.get(f"/ergasterion/sessions/{sid}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["session_id"] == sid
+
+
+def test_discard_session(client, fresh_session_manager):
+    """DELETE removes the session; subsequent GET returns SESSION_NOT_FOUND."""
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    delete_response = client.delete(f"/ergasterion/sessions/{sid}")
+    assert delete_response.json()["success"] is True
+
+    get_response = client.get(f"/ergasterion/sessions/{sid}")
+    body = get_response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "SESSION_NOT_FOUND"
+
+
+# --------------------------------------------------------------------------- #
+# 2. Rule application                                                         #
+# --------------------------------------------------------------------------- #
+
+
+def test_apply_dc_plus_on_empty_sheet(client, fresh_session_manager):
+    """DC+ with no selection inserts an empty double cut on the sheet.
+
+    This is the easiest happy-path rule application: ``RuleInteraction``
+    accepts an empty selection and produces an empty double-cut on the
+    sheet.  We use it to verify the apply pipeline works end-to-end
+    without needing a real corpus subgraph.
+    """
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    response = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={"rule": "DC+", "parameters": {"selected_elements": []}},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True, body.get("error")
+
+    data = body["data"]
+    # A DC+ on empty creates two cuts (outer and inner) and no V/E.
+    assert data["egi_summary"]["cut_count"] == 2
+    assert data["chain"]["step_count"] == 1
+    assert data["chain"]["steps"][0]["rule_name"] == "DC+"
+    # The chain's current state advanced past initial.
+    assert data["chain"]["initial_state_id"] != data["chain"]["current_state_id"]
+
+
+def test_apply_unknown_rule(client, fresh_session_manager):
+    """An unknown rule name returns UNKNOWN_RULE, not a 500."""
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    response = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={"rule": "WHACKY", "parameters": {}},
+    )
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "UNKNOWN_RULE"
+
+
+def test_apply_invalid_parameters_returns_precondition_failure(
+    client, fresh_session_manager
+):
+    """Invalid parameters surface RuleInteraction's precondition message."""
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    # DC- requires selecting exactly one cut that contains exactly one
+    # inner cut.  On an empty graph, no such cut exists; the protocol
+    # refuses cleanly.
+    response = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={
+            "rule": "DC-",
+            "parameters": {"selected_elements": ["nonexistent-cut-id"]},
+        },
+    )
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] in (
+        "RULE_PRECONDITION_FAILED",
+        "RULE_APPLY_FAILED",
+    )
+    assert body["error"]["rule"] == "DC-"
+
+
+# --------------------------------------------------------------------------- #
+# 3. Chain accumulates                                                        #
+# --------------------------------------------------------------------------- #
+
+
+def test_chain_accumulates_across_multiple_applies(client, fresh_session_manager):
+    """Two successive applies leave the session with a 2-step chain."""
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    # Step 1: DC+ on empty sheet → 2 cuts.
+    r1 = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={"rule": "DC+", "parameters": {"selected_elements": []}},
+    )
+    assert r1.json()["success"], r1.json().get("error")
+
+    # Step 2: another DC+ on the same sheet → 4 cuts total.
+    r2 = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={"rule": "DC+", "parameters": {"selected_elements": []}},
+    )
+    body2 = r2.json()
+    assert body2["success"], body2.get("error")
+
+    assert body2["data"]["chain"]["step_count"] == 2
+    assert [s["rule_name"] for s in body2["data"]["chain"]["steps"]] == ["DC+", "DC+"]
+    assert body2["data"]["egi_summary"]["cut_count"] == 4
+
+
+# --------------------------------------------------------------------------- #
+# 4. Regime-1 drafts do NOT fire the corpus-record §3.3 hook                  #
+# --------------------------------------------------------------------------- #
+
+
+def test_apply_does_not_fire_corpus_record_attestation(
+    client, fresh_session_manager, monkeypatch
+):
+    """During /apply, no ``tomos_service.save_uod`` attestation context fires.
+
+    Regime-1 work means the chain is not yet a public corpus record —
+    so the save-boundary §3.3 hook must not be triggered by apply.
+    The render-time hook (``layout_service.generate_layout``) WILL
+    fire because we still render the new state, but that's a separate
+    correspondence check and does not constitute corpus assertion.
+    """
+    observed_contexts: List[str] = []
+    real_attest = correspondence_attestation.attest_correspondence
+
+    def _spy(egi, dto, *, context=None):
+        observed_contexts.append(context or "")
+        return real_attest(egi, dto, context=context)
+
+    monkeypatch.setattr(tomos_service, "attest_correspondence", _spy)
+    monkeypatch.setattr(layout_service, "attest_correspondence", _spy)
+
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    observed_contexts.clear()  # ignore open-time render attestation
+    response = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={"rule": "DC+", "parameters": {"selected_elements": []}},
+    )
+    assert response.json()["success"], response.json().get("error")
+
+    save_ctxs = [c for c in observed_contexts if "tomos_service.save_uod" in c]
+    load_ctxs = [c for c in observed_contexts if "tomos_service.load_uod" in c]
+    render_ctxs = [
+        c for c in observed_contexts if "layout_service.generate_layout" in c
+    ]
+
+    assert not save_ctxs, (
+        f"regime-1 apply fired corpus-record save attestation: {save_ctxs}"
+    )
+    assert not load_ctxs, (
+        f"regime-1 apply fired corpus-record load attestation: {load_ctxs}"
+    )
+    # Render-time attestation is expected — sanity check it ran so we
+    # know the spy is wired correctly.
+    assert render_ctxs, (
+        f"render-time attestation did not fire on apply; spy may be miswired"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# 5. Promotion fires §3.3 at the corpus boundary                              #
+# 6. Promotion writes a chain that load_chain round-trips                     #
+# --------------------------------------------------------------------------- #
+
+
+def test_promote_fires_corpus_record_attestation_and_persists_chain(
+    client, isolated_tomos, monkeypatch
+):
+    """A successful promote fires save-boundary §3.3 and writes the chain.
+
+    Two assertions in one test (the events are coupled): the
+    ``tomos_service.save_uod`` context fires AND the saved chain
+    round-trips through ``load_chain`` with the same step sequence.
+    """
+    observed_contexts: List[str] = []
+    real_attest = correspondence_attestation.attest_correspondence
+
+    def _spy(egi, dto, *, context=None):
+        observed_contexts.append(context or "")
+        return real_attest(egi, dto, context=context)
+
+    monkeypatch.setattr(tomos_service, "attest_correspondence", _spy)
+    monkeypatch.setattr(layout_service, "attest_correspondence", _spy)
+
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    # Build a 1-step chain.
+    apply_resp = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={"rule": "DC+", "parameters": {"selected_elements": []}},
+    )
+    assert apply_resp.json()["success"], apply_resp.json().get("error")
+
+    observed_contexts.clear()
+    promoted_id = "my-promoted-chain"
+    promote_resp = client.post(
+        f"/ergasterion/sessions/{sid}/promote",
+        json={
+            "uod_id": promoted_id,
+            "name": "Test promotion",
+            "description": "Promoted from a unit test.",
+        },
+    )
+    body = promote_resp.json()
+    assert body["success"] is True, body.get("error")
+    assert body["data"]["promoted_uod_id"] == promoted_id
+    assert body["data"]["step_count"] == 1
+
+    save_ctxs = [
+        c
+        for c in observed_contexts
+        if "tomos_service.save_uod" in c and promoted_id in c
+    ]
+    assert save_ctxs, (
+        f"promote did not fire tomos_service.save_uod attestation for "
+        f"'{promoted_id}'; observed contexts: {observed_contexts}"
+    )
+
+    # Chain round-trips.
+    loaded_chain = isolated_tomos["service"].load_chain(promoted_id)
+    assert loaded_chain is not None
+    assert len(loaded_chain.steps) == 1
+    assert loaded_chain.steps[0].rule_name == "DC+"
+
+
+# --------------------------------------------------------------------------- #
+# 7. §3.3 refusal at promote aborts cleanly                                   #
+# --------------------------------------------------------------------------- #
+
+
+def test_promote_refuses_drifted_drawing_cleanly(
+    client, isolated_tomos, monkeypatch
+):
+    """When §3.3 fails at promote, the API returns a clean error and
+    no chain files are written.
+
+    Monkeypatches the ELK engine the attestation helper uses to return
+    a DTO missing one vertex.  ``save_uod`` raises
+    ``CorrespondenceViolation`` before any writes; the route catches
+    it and returns ``CORRESPONDENCE_VIOLATION``.  Disk stays clean.
+    """
+    _local_manager = ErgasterionSessionManager()
+    monkeypatch.setattr(
+        ergasterion_route,
+        "get_ergasterion_session_manager",
+        lambda: _local_manager,
+    )
+
+    seed_id = isolated_tomos["seed_id"]
+    opened = _open_session(client, f"uod:{seed_id}")
+    sid = opened["session_id"]
+
+    # Build a broken engine that drops one vertex from any DTO it generates.
+    from elk_layout_engine import ELKLayoutEngine
+    from style_loader import load_default_style
+
+    class _BrokenEngine:
+        def generate_layout(self, egi, style, layout_deltas=None):
+            real = ELKLayoutEngine().generate_layout(egi, style, layout_deltas)
+            if not real.vertex_positions:
+                return real  # nothing to drop on an empty graph
+            victim = next(iter(real.vertex_positions))
+            broken_positions = {
+                k: v for k, v in real.vertex_positions.items() if k != victim
+            }
+            return LayoutDTO(
+                vertex_positions=broken_positions,
+                predicate_positions=dict(real.predicate_positions),
+                cut_bounds=dict(real.cut_bounds),
+                ligature_paths=list(real.ligature_paths),
+                area_hierarchy={k: set(v) for k, v in real.area_hierarchy.items()},
+                viewport_bounds=real.viewport_bounds,
+                sheet_id=real.sheet_id,
+                style=real.style,
+            )
+
+    monkeypatch.setattr(tomos_service, "ELKLayoutEngine", lambda: _BrokenEngine())
+
+    promoted_id = "should-not-be-saved"
+    response = client.post(
+        f"/ergasterion/sessions/{sid}/promote",
+        json={"uod_id": promoted_id, "name": "drifted"},
+    )
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "CORRESPONDENCE_VIOLATION"
+    assert "totality" in body["error"]["message"]
+
+    # No artefacts on disk: the UoD directory should either not exist
+    # or be empty.
+    uod_dir = isolated_tomos["tomos_root"] / "universes" / promoted_id
+    assert not uod_dir.exists() or not any(uod_dir.iterdir()), (
+        "promote left files on disk despite §3.3 refusal"
+    )
+
+    # The session itself is still alive — user can fix and retry.
+    follow_up = client.get(f"/ergasterion/sessions/{sid}")
+    assert follow_up.json()["success"] is True
+
+
+# --------------------------------------------------------------------------- #
+# 8. Promotion refuses duplicate uod_id                                       #
+# --------------------------------------------------------------------------- #
+
+
+def test_promote_refuses_duplicate_uod_id(client, isolated_tomos, monkeypatch):
+    """Source corpus UoDs are never overwritten; promote refuses if the
+    target uod_id is already in the corpus."""
+    _local_manager = ErgasterionSessionManager()
+    monkeypatch.setattr(
+        ergasterion_route,
+        "get_ergasterion_session_manager",
+        lambda: _local_manager,
+    )
+
+    seed_id = isolated_tomos["seed_id"]
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    response = client.post(
+        f"/ergasterion/sessions/{sid}/promote",
+        json={"uod_id": seed_id, "name": "attempt to overwrite"},
+    )
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "UOD_ALREADY_EXISTS"
+
+
+# --------------------------------------------------------------------------- #
+# 9. HTML viewer                                                              #
+# --------------------------------------------------------------------------- #
+
+
+def test_ergasterion_index_serves_html(client):
+    """GET /ergasterion serves the workshop page (which is the regime-1 UI)."""
+    response = client.get("/ergasterion")
+    assert response.status_code == 200
+    assert "text/html" in response.headers.get("content-type", "")
+    assert "Ergasterion" in response.text

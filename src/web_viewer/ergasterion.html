@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arisbe Ergasterion — Workshop</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* Ergasterion-specific overrides: composition layout */
+    #ergasterion-app {
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      height: 100vh;
+    }
+    .panel {
+      display: flex;
+      flex-direction: column;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--bottombar-border);
+      overflow: hidden;
+    }
+    .panel.right {
+      border-right: none;
+      border-left: 1px solid var(--bottombar-border);
+    }
+    .panel-header {
+      padding: 16px 14px 12px;
+      border-bottom: 1px solid var(--bottombar-border);
+    }
+    .panel-header h1, .panel-header h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--sidebar-accent);
+      letter-spacing: 0.5px;
+    }
+    .panel-header h1 { font-size: 16px; }
+    .panel-header p {
+      font-size: 11px;
+      color: #6c7086;
+      margin-top: 2px;
+    }
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 14px;
+    }
+    .mode-tag {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 6px;
+      background: var(--warning);
+      color: var(--sidebar-bg);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border-radius: 3px;
+      text-transform: uppercase;
+    }
+    .mode-tag.regime-2 {
+      background: var(--success);
+    }
+    .regime-banner {
+      font-size: 10px;
+      color: #6c7086;
+      margin-top: 4px;
+      font-style: italic;
+    }
+    button.action {
+      display: block;
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: 1px solid var(--bottombar-border);
+      border-radius: 3px;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: left;
+    }
+    button.action:hover {
+      background: var(--btn-hover);
+    }
+    button.action.primary {
+      background: var(--btn-primary);
+      color: var(--btn-primary-text);
+      font-weight: 600;
+    }
+    button.action.primary:hover {
+      background: #b4befe;
+    }
+    button.action.danger {
+      color: var(--btn-danger);
+    }
+    button.action:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .rule-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .rule-grid button.action {
+      margin-bottom: 0;
+      text-align: center;
+      font-family: monospace;
+      font-weight: 600;
+    }
+    .field {
+      margin-bottom: 10px;
+    }
+    .field label {
+      display: block;
+      font-size: 10px;
+      color: #6c7086;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .field input, .field textarea, .field select {
+      width: 100%;
+      padding: 5px 7px;
+      background: var(--btn-bg);
+      color: var(--sidebar-text);
+      border: 1px solid var(--bottombar-border);
+      border-radius: 3px;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .field textarea {
+      font-family: monospace;
+      min-height: 50px;
+      resize: vertical;
+    }
+    .step-item {
+      padding: 7px 9px;
+      background: var(--btn-bg);
+      border-radius: 3px;
+      margin-bottom: 5px;
+      font-size: 11px;
+    }
+    .step-item .step-rule {
+      font-family: monospace;
+      font-weight: 600;
+      color: var(--sidebar-accent);
+    }
+    .step-item .step-meta {
+      color: #6c7086;
+      font-size: 10px;
+      margin-top: 2px;
+    }
+    .empty-state {
+      padding: 16px 0;
+      color: #6c7086;
+      font-size: 11px;
+      text-align: center;
+      font-style: italic;
+    }
+    #canvas {
+      background: var(--canvas-bg);
+      overflow: hidden;
+      position: relative;
+    }
+    #canvas-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #6c7086;
+      font-size: 13px;
+      text-align: center;
+    }
+    #canvas svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    #status {
+      grid-column: 1 / -1;
+      padding: 6px 14px;
+      background: var(--bottombar-bg);
+      color: var(--sidebar-text);
+      font-size: 11px;
+      border-top: 1px solid var(--bottombar-border);
+    }
+    #status.error { color: var(--error); }
+    #status.success { color: var(--success); }
+    .corpus-uod-item {
+      padding: 6px 8px;
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+    .corpus-uod-item:hover {
+      background: var(--sidebar-hover);
+    }
+    .promote-section {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--bottombar-border);
+    }
+    .promote-section .label {
+      font-size: 10px;
+      color: var(--success);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <main id="ergasterion-app">
+
+    <!-- Left panel: base-state picker / session info -->
+    <aside class="panel" id="left-panel">
+      <div class="panel-header">
+        <h1>Arisbe Ergasterion</h1>
+        <p>Workshop · Composition</p>
+        <span class="mode-tag" id="regime-tag">Regime 1 · Draft</span>
+        <div class="regime-banner">
+          Forms here are drawn but not yet asserted in the corpus.
+        </div>
+      </div>
+      <div class="panel-body" id="left-body">
+
+        <div id="picker-section">
+          <h2 style="font-size: 12px; color: var(--sidebar-accent); margin-bottom: 8px;">
+            Pick a context to compose against
+          </h2>
+          <p style="font-size: 10px; color: #6c7086; margin-bottom: 10px;">
+            Every assertion resides in a context. Choose your starting point.
+          </p>
+          <button class="action primary" id="btn-start-empty">
+            Empty sheet of assertion
+          </button>
+          <div style="margin-top: 10px;">
+            <label style="font-size: 10px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px;">
+              Or start from a corpus UoD
+            </label>
+            <input
+              type="text"
+              id="corpus-filter"
+              placeholder="Filter…"
+              style="width: 100%; margin: 6px 0; padding: 5px 7px; background: var(--btn-bg); color: var(--sidebar-text); border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px;"
+            />
+            <div id="corpus-list">
+              <div class="empty-state">Loading corpus…</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="session-info" style="display: none;">
+          <div class="field">
+            <label>Session id</label>
+            <input type="text" id="session-id-display" readonly />
+          </div>
+          <div class="field">
+            <label>Base context</label>
+            <input type="text" id="base-source-display" readonly />
+          </div>
+          <button class="action danger" id="btn-discard">
+            Discard draft (forget chain)
+          </button>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Center: canvas (the current EGI drawing) -->
+    <section id="canvas">
+      <div id="canvas-placeholder">
+        Pick a base context on the left to begin.
+      </div>
+    </section>
+
+    <!-- Right panel: rules + step list + promote -->
+    <aside class="panel right" id="right-panel">
+      <div class="panel-header">
+        <h2>Moves</h2>
+        <p>Apply Dau rules to advance the chain.</p>
+      </div>
+      <div class="panel-body" id="right-body">
+
+        <div id="rules-section" style="display: none;">
+
+          <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+            Rule
+          </h2>
+          <div class="rule-grid">
+            <button class="action" data-rule="DC+">DC+</button>
+            <button class="action" data-rule="DC-">DC−</button>
+            <button class="action" data-rule="ERA">ERA</button>
+            <button class="action" data-rule="INS">INS</button>
+            <button class="action" data-rule="IT+">IT+</button>
+            <button class="action" data-rule="IT-">IT−</button>
+          </div>
+
+          <div id="rule-params"></div>
+
+          <button class="action primary" id="btn-apply" disabled>
+            Apply rule
+          </button>
+
+          <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 6px;">
+            Chain · <span id="step-count">0</span> step(s)
+          </h2>
+          <div id="step-list">
+            <div class="empty-state">No rule applications yet.</div>
+          </div>
+
+          <!-- Promote section: the regime-1 → regime-2 boundary -->
+          <div class="promote-section">
+            <div class="label">Regime 2 · anchor into corpus</div>
+            <p style="font-size: 10px; color: #6c7086; margin-bottom: 8px;">
+              Promoting writes this chain as a new UoD in the corpus.
+              §3.3 attestation fires before any disk writes; a violation
+              aborts cleanly and leaves your draft intact.
+            </p>
+            <div class="field">
+              <label>New UoD id</label>
+              <input type="text" id="promote-uod-id" placeholder="my-proof-v1" />
+            </div>
+            <div class="field">
+              <label>Name</label>
+              <input type="text" id="promote-name" placeholder="Modus ponens, my version" />
+            </div>
+            <div class="field">
+              <label>Description (optional)</label>
+              <textarea id="promote-description" rows="2"></textarea>
+            </div>
+            <button class="action primary" id="btn-promote">
+              Promote to corpus
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </aside>
+
+    <div id="status">Ready</div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script>
+    (function () {
+      // ---- DOM refs ----
+      const statusEl = document.getElementById('status');
+      const canvasEl = document.getElementById('canvas');
+      const corpusListEl = document.getElementById('corpus-list');
+      const corpusFilterEl = document.getElementById('corpus-filter');
+      const pickerSection = document.getElementById('picker-section');
+      const sessionInfoEl = document.getElementById('session-info');
+      const rulesSectionEl = document.getElementById('rules-section');
+      const sessionIdDisplay = document.getElementById('session-id-display');
+      const baseSourceDisplay = document.getElementById('base-source-display');
+      const stepListEl = document.getElementById('step-list');
+      const stepCountEl = document.getElementById('step-count');
+      const ruleParamsEl = document.getElementById('rule-params');
+      const btnApply = document.getElementById('btn-apply');
+      const btnPromote = document.getElementById('btn-promote');
+      const btnDiscard = document.getElementById('btn-discard');
+      const btnStartEmpty = document.getElementById('btn-start-empty');
+
+      let currentSessionId = null;
+      let currentRule = null;
+      let allCorpus = [];
+      let svgPanZoomInstance = null;
+
+      // ---- helpers ----
+
+      function setStatus(msg, kind) {
+        statusEl.textContent = msg;
+        statusEl.classList.remove('error', 'success');
+        if (kind) statusEl.classList.add(kind);
+      }
+
+      function escapeHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function renderSvg(svg) {
+        if (svgPanZoomInstance) {
+          try { svgPanZoomInstance.destroy(); } catch (_) {}
+          svgPanZoomInstance = null;
+        }
+        canvasEl.innerHTML = svg || '<div id="canvas-placeholder">No drawing.</div>';
+        const svgEl = canvasEl.querySelector('svg');
+        if (svgEl && window.svgPanZoom) {
+          svgEl.setAttribute('width', '100%');
+          svgEl.setAttribute('height', '100%');
+          svgPanZoomInstance = window.svgPanZoom(svgEl, {
+            zoomEnabled: true,
+            controlIconsEnabled: false,
+            fit: true,
+            center: true,
+            minZoom: 0.1,
+            maxZoom: 20,
+          });
+        }
+      }
+
+      function renderChain(chain) {
+        stepCountEl.textContent = chain.step_count || 0;
+        if (!chain.steps || chain.steps.length === 0) {
+          stepListEl.innerHTML = '<div class="empty-state">No rule applications yet.</div>';
+          return;
+        }
+        stepListEl.innerHTML = '';
+        chain.steps.forEach((step, idx) => {
+          const div = document.createElement('div');
+          div.className = 'step-item';
+          div.innerHTML =
+            '<div><span class="step-rule">' + escapeHtml(step.rule_name) + '</span>' +
+            ' &middot; step ' + (idx + 1) + '</div>' +
+            '<div class="step-meta">' + escapeHtml(step.timestamp || '') + '</div>';
+          stepListEl.appendChild(div);
+        });
+      }
+
+      function showSession(data) {
+        currentSessionId = data.session_id;
+        sessionIdDisplay.value = data.session_id;
+        baseSourceDisplay.value = data.base_source +
+          (data.base_source_uod_id ? ' (' + data.base_source_uod_id + ')' : '');
+        pickerSection.style.display = 'none';
+        sessionInfoEl.style.display = 'block';
+        rulesSectionEl.style.display = 'block';
+        renderSvg(data.svg);
+        renderChain(data.chain);
+      }
+
+      function clearSession() {
+        currentSessionId = null;
+        currentRule = null;
+        pickerSection.style.display = 'block';
+        sessionInfoEl.style.display = 'none';
+        rulesSectionEl.style.display = 'none';
+        canvasEl.innerHTML = '<div id="canvas-placeholder">Pick a base context on the left to begin.</div>';
+        ruleParamsEl.innerHTML = '';
+        btnApply.disabled = true;
+      }
+
+      // ---- rule parameter forms ----
+
+      function renderRuleParams(rule) {
+        currentRule = rule;
+        let html = '';
+        if (rule === 'DC+') {
+          html = '<div class="field"><label>Selected elements (comma-sep ids, may be empty)</label>' +
+                 '<input type="text" id="param-selected" placeholder="(leave blank for empty double cut on sheet)" /></div>';
+        } else if (rule === 'DC-' || rule === 'ERA' || rule === 'IT-') {
+          const prompt = rule === 'DC-' ? 'one cut id (the outer cut)' :
+                         rule === 'ERA' ? 'element ids in a positive area' :
+                         'candidate copy element ids';
+          html = '<div class="field"><label>Selected elements (' + prompt + ')</label>' +
+                 '<input type="text" id="param-selected" /></div>';
+        } else if (rule === 'INS') {
+          html = '<div class="field"><label>EGIF content to insert</label>' +
+                 '<textarea id="param-egif" placeholder="(P *x)"></textarea></div>' +
+                 '<div class="field"><label>Target area id (negative)</label>' +
+                 '<input type="text" id="param-target-area" /></div>';
+        } else if (rule === 'IT+') {
+          html = '<div class="field"><label>Source elements (comma-sep ids)</label>' +
+                 '<input type="text" id="param-selected" /></div>' +
+                 '<div class="field"><label>Destination area id (nested inside source)</label>' +
+                 '<input type="text" id="param-target-area" /></div>';
+        }
+        ruleParamsEl.innerHTML = html;
+        btnApply.disabled = false;
+      }
+
+      function readRuleParameters() {
+        if (currentRule === 'DC+' || currentRule === 'DC-' ||
+            currentRule === 'ERA' || currentRule === 'IT-') {
+          const raw = (document.getElementById('param-selected') || {}).value || '';
+          const items = raw.split(',').map((s) => s.trim()).filter(Boolean);
+          return { selected_elements: items };
+        }
+        if (currentRule === 'INS') {
+          return {
+            egif_content: document.getElementById('param-egif').value,
+            target_area: document.getElementById('param-target-area').value.trim(),
+          };
+        }
+        if (currentRule === 'IT+') {
+          const raw = (document.getElementById('param-selected') || {}).value || '';
+          const items = raw.split(',').map((s) => s.trim()).filter(Boolean);
+          return {
+            selected_elements: items,
+            target_area: document.getElementById('param-target-area').value.trim(),
+          };
+        }
+        return {};
+      }
+
+      // ---- API calls ----
+
+      async function openSession(baseSource) {
+        setStatus('Opening workshop session…');
+        try {
+          const res = await fetch('/ergasterion/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ base_source: baseSource }),
+          });
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Open failed: ' + (body.error && body.error.message), 'error');
+            return;
+          }
+          showSession(body.data);
+          setStatus('Workshop opened. Base = ' + baseSource +
+                    '. Apply rules to grow the chain; promote when ready.', 'success');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
+      async function applyRule() {
+        if (!currentSessionId || !currentRule) return;
+        const parameters = readRuleParameters();
+        setStatus('Applying ' + currentRule + '…');
+        try {
+          const res = await fetch('/ergasterion/sessions/' + currentSessionId + '/apply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rule: currentRule, parameters }),
+          });
+          const body = await res.json();
+          if (!body.success) {
+            setStatus(
+              currentRule + ' refused: ' + (body.error && body.error.message),
+              'error'
+            );
+            return;
+          }
+          showSession({ ...body.data });
+          setStatus(currentRule + ' applied. Chain length: ' +
+                    body.data.chain.step_count, 'success');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
+      async function promote() {
+        if (!currentSessionId) return;
+        const uodId = document.getElementById('promote-uod-id').value.trim();
+        const name = document.getElementById('promote-name').value.trim();
+        const description = document.getElementById('promote-description').value.trim();
+        if (!uodId) {
+          setStatus('Promote needs a uod_id.', 'error');
+          return;
+        }
+        setStatus('Promoting chain to corpus…');
+        try {
+          const res = await fetch('/ergasterion/sessions/' + currentSessionId + '/promote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uod_id: uodId, name: name || uodId, description }),
+          });
+          const body = await res.json();
+          if (!body.success) {
+            const err = body.error || {};
+            if (err.code === 'CORRESPONDENCE_VIOLATION') {
+              setStatus(
+                '§3.3 refusal at corpus boundary: ' + (err.message || '') +
+                ' — your draft is preserved.',
+                'error'
+              );
+            } else {
+              setStatus('Promote failed: ' + (err.message || 'unknown'), 'error');
+            }
+            return;
+          }
+          setStatus(
+            'Promoted to corpus as “' + uodId + '” with ' +
+            body.data.step_count + ' step(s). The chain is now regime 2.',
+            'success'
+          );
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
+      async function discard() {
+        if (!currentSessionId) return;
+        try {
+          await fetch('/ergasterion/sessions/' + currentSessionId, { method: 'DELETE' });
+        } catch (_) {}
+        clearSession();
+        setStatus('Draft discarded. Pick a base context to start a new one.');
+      }
+
+      async function loadCorpus() {
+        try {
+          const res = await fetch('/ergasterion/corpus/uods');
+          const body = await res.json();
+          if (!body.success) {
+            corpusListEl.innerHTML = '<div class="empty-state">Corpus load failed.</div>';
+            return;
+          }
+          allCorpus = (body.data || []).sort((a, b) =>
+            (a.name || '').localeCompare(b.name || '')
+          );
+          renderCorpusList(allCorpus);
+        } catch (e) {
+          corpusListEl.innerHTML = '<div class="empty-state">Network error.</div>';
+        }
+      }
+
+      function renderCorpusList(items) {
+        if (items.length === 0) {
+          corpusListEl.innerHTML = '<div class="empty-state">No matches.</div>';
+          return;
+        }
+        corpusListEl.innerHTML = '';
+        items.forEach((u) => {
+          const div = document.createElement('div');
+          div.className = 'corpus-uod-item';
+          div.textContent = u.name || u.uod_id;
+          div.addEventListener('click', () => openSession('uod:' + u.uod_id));
+          corpusListEl.appendChild(div);
+        });
+      }
+
+      // ---- wiring ----
+
+      btnStartEmpty.addEventListener('click', () => openSession('empty_sheet'));
+      btnApply.addEventListener('click', applyRule);
+      btnPromote.addEventListener('click', promote);
+      btnDiscard.addEventListener('click', discard);
+
+      document.querySelectorAll('button.action[data-rule]').forEach((b) => {
+        b.addEventListener('click', () => renderRuleParams(b.dataset.rule));
+      });
+
+      corpusFilterEl.addEventListener('input', () => {
+        const q = corpusFilterEl.value.trim().toLowerCase();
+        const filtered = !q ? allCorpus : allCorpus.filter((u) =>
+          (u.name || '').toLowerCase().includes(q) ||
+          (u.uod_id || '').toLowerCase().includes(q)
+        );
+        renderCorpusList(filtered);
+      });
+
+      loadCorpus();
+    })();
+  </script>
+</body>
+</html>

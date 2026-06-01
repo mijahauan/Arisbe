@@ -11,6 +11,8 @@ The fundamental entity in Arisbe is **not** a static EGI diagram, but the **Univ
 
 This understanding elevates Arisbe from a diagram editor to a **formal reasoning environment** where justification, transformation history, and logical process are first-class citizens.
 
+For the Peircean reading of *why* the diachronic chain is the unit of meaning — a reasoning episode as a **chain of semiosis**, every rule application an attestation event — see [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md).
+
 ---
 
 ## The Problem: Static EGI Focus

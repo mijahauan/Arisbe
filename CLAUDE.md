@@ -70,10 +70,10 @@ plan is to surface them as routes within the web app (`src/web_api/`,
 - `layout_dto.py` — Platform-independent layout DTO shared by layout engines and renderers
 - `presentation_ops.py` — Regime-3 algebra: `move_vertex`, `reshape_cut`, `reroute_ligature`, each raising `Regime3Violation` on attempted boundary crossings. Also exports the public area-topology helpers (`element_area`, `cut_parents`, `area_chain`, `deepest_containing_cut`).
 - `correspondence_attestation.py` — Runtime §3.3 check: `attest_correspondence(egi, dto)` raises `CorrespondenceViolation` on failure. Hooked into `web_api/services/layout_service.py` so every served (EGI, drawing) pair is verified.
-- `tomos_service.py` — Unified corpus API
+- `tomos_service.py` — Unified corpus API. `save_uod` / `load_uod` attest §3.3 at the save/load boundary. `save_uod_with_chain(uod, chain)` + `load_chain(uod_id)` persist a workshop chain (V1 linear) as `history/chain.jsonl` + `history/states/<id>.egi.json` alongside the UoD record; §3.3 fires inside `save_uod` before any chain files are written, so a refusal aborts cleanly with no half-saved chain on disk. `TransformationChain` / `ChainStep` are the slim on-disk shape (NOT a hydration of the protected `EGITransformationHistory`).
 - `z3_semantic_validator.py` — Z3 SMT-solver semantic validation
 - `graph_isomorphism_engine.py` — NetworkX VF2 matching for goal detection
-- `web_api/` (FastAPI) + `web_viewer/` (static HTML/JS) — the canonical user interface
+- `web_api/` (FastAPI) + `web_viewer/` (static HTML/JS) — the canonical user interface. Three-mode routes: `/organon` (read-only archive, both load+render boundaries §3.3-attested), `/ergasterion` (workshop / composition; regime-1 drafts with promotion firing §3.3 at the corpus boundary). Agon (game arena) web route still ahead.
 
 ### Linear Format Support (all production, round-trip tested)
 
@@ -121,6 +121,7 @@ python tools/context_awareness_system.py --check "task description"
 
 - `AGENTS.md` — Developer guidelines with code patterns and usage examples
 - `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` — **The central contract.** Read before touching anything that produces or consumes (EGI, LayoutDTO) pairs (transformation rules, layout, rendering, sessions, the three modes, the Endoporeutic Game).
+- `docs/CHAIN_OF_SEMIOSIS.md` — **The Peircean grounding.** Why a reasoning episode is a chain of sound, attested sign-transitions; why every rule application is an attestation event; how Arisbe's provenance/immutability model relates to Git/Datomic/wikis and where it departs (the sound-step requirement). Read for the *purpose* behind the chain model, the regimes, and the Ergasterion promotion boundary.
 - `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md` — Core paradigm (read before touching UoD/history)
 - `docs/DAG_HISTORY_ARCHITECTURE.md` — Branching transformation history
 - `docs/ARISBE_CORE_API_REFERENCE.md` — Auto-generated API reference
@@ -143,6 +144,9 @@ Key test files:
 - `test_correspondence_attestation.py` — Module contract: corpus-wide happy path plus adversarial unit tests confirming each §3.3 property's failure raises `CorrespondenceViolation`
 - `test_presentation_ops.py` — Regime-3 API contract: happy + refusal paths for `move_vertex` / `reshape_cut` / `reroute_ligature`
 - `test_layout_service_attestation.py` — The web boundary hook fires on a real UoD and refuses when the engine returns a corrupted DTO
+- `test_chain_persistence.py` — Transformation-chain JSONL round-trip; §3.3 refusal at save_uod_with_chain leaves no chain files on disk
+- `test_ergasterion_routes.py` — Workshop route contract: session lifecycle, RuleInteraction-driven apply, regime-1 drafts don't fire corpus-record §3.3, promotion does, refusal aborts cleanly, no duplicate-uod overwrite
+- `test_organon_routes.py` — Archive route contract: corpus listing, UoD detail, both load+render attestation hooks fire per detail request
 - `test_epg_exemplar_scripts.py` — 16 Endoporeutic Game scenarios (outcomes, strategies, engine integration)
 - `test_beta_proof_exercises.py` — 20 Beta graph tests (FOL, shared vertices, EGIF round-trips)
 - `test_logical_proof_exercises.py` — Propositional tautology derivations (modus ponens, etc.)
