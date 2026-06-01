@@ -177,6 +177,47 @@
       height: 100%;
       display: block;
     }
+    /* On-canvas selection highlights. CSS wins over the renderer's
+       presentation attributes (fill=/stroke=), so no !important needed. */
+    #canvas g[data-element-type="vertex"].sel-subgraph circle,
+    #canvas g[data-element-type="predicate"].sel-subgraph rect,
+    #canvas g[data-element-type="cut"].sel-subgraph > rect {
+      stroke: #f9a06c;
+      stroke-width: 3px;
+    }
+    #canvas g[data-element-type="cut"].sel-area > rect {
+      stroke: #40a02b;
+      stroke-width: 3px;
+      stroke-dasharray: 7 3;
+    }
+    #selection-bar {
+      margin-bottom: 10px;
+      padding: 7px 9px;
+      background: var(--btn-bg);
+      border-radius: 3px;
+      font-size: 10px;
+      color: #a6adc8;
+    }
+    #selection-bar .sel-line { margin-bottom: 3px; }
+    #selection-bar .sel-swatch {
+      display: inline-block;
+      width: 9px; height: 9px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    #selection-bar .sel-swatch.subgraph { background: #f9a06c; }
+    #selection-bar .sel-swatch.area { background: #40a02b; }
+    #selection-bar code {
+      color: var(--sidebar-text);
+      font-size: 10px;
+      word-break: break-all;
+    }
+    #selection-bar .clear-sel {
+      color: var(--btn-danger);
+      cursor: pointer;
+      float: right;
+    }
     #status {
       grid-column: 1 / -1;
       padding: 6px 14px;
@@ -287,6 +328,20 @@
 
         <div id="rules-section" style="display: none;">
 
+          <div id="selection-bar">
+            <span class="clear-sel" id="clear-selection">clear</span>
+            <div class="sel-line">
+              <span class="sel-swatch subgraph"></span>
+              <strong>selection:</strong> click elements ·
+              <code id="sel-subgraph-display">none</code>
+            </div>
+            <div class="sel-line">
+              <span class="sel-swatch area"></span>
+              <strong>target area:</strong> shift-click a cut ·
+              <code id="sel-area-display">none</code>
+            </div>
+          </div>
+
           <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
             Rule
           </h2>
@@ -367,10 +422,22 @@
       const btnDiscard = document.getElementById('btn-discard');
       const btnStartEmpty = document.getElementById('btn-start-empty');
 
+      const selSubgraphDisplay = document.getElementById('sel-subgraph-display');
+      const selAreaDisplay = document.getElementById('sel-area-display');
+      const clearSelectionBtn = document.getElementById('clear-selection');
+
       let currentSessionId = null;
       let currentRule = null;
       let allCorpus = [];
       let svgPanZoomInstance = null;
+
+      // On-canvas selection state. The subgraph set feeds rules'
+      // `selected_elements`; the area feeds `target_area` (INS / IT+).
+      // The rule's text fields remain authoritative at apply time
+      // (readRuleParameters reads them) — selection just populates them,
+      // so manual entry still works and the route API is unaffected.
+      let selectedSubgraph = new Set();
+      let selectedArea = null;
 
       // ---- helpers ----
 
@@ -386,6 +453,85 @@
           .replace(/</g, '&lt;')
           .replace(/>/g, '&gt;')
           .replace(/"/g, '&quot;');
+      }
+
+      // ---- on-canvas selection ----
+
+      function cssAttr(id) {
+        // Element ids are alphanumeric + underscore, but escape defensively.
+        return (window.CSS && CSS.escape) ? CSS.escape(id) : id;
+      }
+
+      function applySelectionHighlights() {
+        const svgEl = canvasEl.querySelector('svg');
+        if (!svgEl) return;
+        svgEl.querySelectorAll('.sel-subgraph').forEach((el) =>
+          el.classList.remove('sel-subgraph')
+        );
+        svgEl.querySelectorAll('.sel-area').forEach((el) =>
+          el.classList.remove('sel-area')
+        );
+        selectedSubgraph.forEach((id) => {
+          const g = svgEl.querySelector('[data-element-id="' + cssAttr(id) + '"]');
+          if (g) g.classList.add('sel-subgraph');
+        });
+        if (selectedArea) {
+          const g = svgEl.querySelector(
+            '[data-element-id="' + cssAttr(selectedArea) + '"]'
+          );
+          if (g) g.classList.add('sel-area');
+        }
+      }
+
+      function syncSelectionToFields() {
+        const selField = document.getElementById('param-selected');
+        if (selField) selField.value = Array.from(selectedSubgraph).join(', ');
+        const areaField = document.getElementById('param-target-area');
+        if (areaField) areaField.value = selectedArea || '';
+      }
+
+      function updateSelectionBar() {
+        if (selSubgraphDisplay) {
+          selSubgraphDisplay.textContent = selectedSubgraph.size
+            ? Array.from(selectedSubgraph).join(', ')
+            : 'none';
+        }
+        if (selAreaDisplay) {
+          selAreaDisplay.textContent = selectedArea || 'none';
+        }
+      }
+
+      function refreshSelectionUI() {
+        applySelectionHighlights();
+        syncSelectionToFields();
+        updateSelectionBar();
+      }
+
+      function clearSelection() {
+        selectedSubgraph = new Set();
+        selectedArea = null;
+        refreshSelectionUI();
+      }
+
+      function onCanvasClick(e) {
+        const g = e.target.closest && e.target.closest('[data-element-id]');
+        if (!g) return;
+        const id = g.getAttribute('data-element-id');
+        const type = g.getAttribute('data-element-type');
+        if (!id) return;
+
+        if (e.shiftKey) {
+          // Shift-click a cut → mark it as the target area (INS / IT+).
+          // Only cuts are valid areas; the sheet is not rendered as a
+          // clickable region, so sheet-as-target stays a text-field path.
+          if (type === 'cut') {
+            selectedArea = selectedArea === id ? null : id;
+          }
+        } else {
+          if (selectedSubgraph.has(id)) selectedSubgraph.delete(id);
+          else selectedSubgraph.add(id);
+        }
+        refreshSelectionUI();
       }
 
       function renderSvg(svg) {
@@ -407,6 +553,9 @@
             maxZoom: 20,
           });
         }
+        // A new drawing means a new state; any prior selection referred
+        // to the old state's element ids, so reset it.
+        clearSelection();
       }
 
       function renderChain(chain) {
@@ -448,6 +597,7 @@
         canvasEl.innerHTML = '<div id="canvas-placeholder">Pick a base context on the left to begin.</div>';
         ruleParamsEl.innerHTML = '';
         btnApply.disabled = true;
+        clearSelection();
       }
 
       // ---- rule parameter forms ----
@@ -477,6 +627,8 @@
         }
         ruleParamsEl.innerHTML = html;
         btnApply.disabled = false;
+        // Carry any existing on-canvas selection into the new fields.
+        syncSelectionToFields();
       }
 
       function readRuleParameters() {
@@ -643,6 +795,14 @@
       document.querySelectorAll('button.action[data-rule]').forEach((b) => {
         b.addEventListener('click', () => renderRuleParams(b.dataset.rule));
       });
+
+      // Delegated: clicks on rendered elements toggle selection. Bound
+      // once — canvasEl persists across re-renders even as its SVG child
+      // is replaced.
+      canvasEl.addEventListener('click', onCanvasClick);
+      if (clearSelectionBtn) {
+        clearSelectionBtn.addEventListener('click', clearSelection);
+      }
 
       corpusFilterEl.addEventListener('input', () => {
         const q = corpusFilterEl.value.trim().toLowerCase();
