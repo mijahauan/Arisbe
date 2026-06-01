@@ -75,6 +75,63 @@ class ErgasterionApplyRequest(BaseModel):
     user_annotation: Optional[str] = None
 
 
+class AgonNewGameRequest(BaseModel):
+    """Start an Endoporeutic Game contest.
+
+    The contest is framed in one of three ways (checked in this order):
+
+      * ``initial_egif`` — a raw starting graph (the Agonothetes has
+        already constructed the interpretive frame).
+      * ``model_egif`` + ``proposal_egif`` — build the canonical frame
+        ``~[ M ~[ G ] ]`` (= M → G) from a domain model M and proposal G.
+      * ``base_source = "uod:<id>"`` + ``proposal_egif`` — take M from a
+        corpus UoD's current EGI and frame the proposal against it.
+
+    ``goal_egif`` is the engine's (proxy) win target; ``first_player`` is
+    ``"Proposer"`` (Graphist) or ``"Skeptic"`` (Grapheus).  V1 is
+    hot-seat: one user drives both roles.
+    """
+
+    initial_egif: Optional[str] = None
+    model_egif: Optional[str] = None
+    proposal_egif: Optional[str] = None
+    base_source: Optional[str] = None
+    goal_egif: Optional[str] = None
+    first_player: Optional[str] = "Proposer"
+
+
+class AgonMoveRequest(BaseModel):
+    """One move in a contest.
+
+    ``parameters`` mirrors the Ergasterion / ``/rules`` shape:
+    ``selected_elements: List[str]``, ``target_area: str``,
+    ``egif_content: str`` (for INS).  The engine enforces territory and
+    polarity by the current player's role.
+    """
+
+    rule: str
+    parameters: Dict[str, Any] = {}
+
+
+class AgonDispositionRequest(BaseModel):
+    """The Agonothetes' post-contest judgment (open taxonomy choice).
+
+    ``disposition`` is a key from the outcome taxonomy (see
+    ``web_api.services.agonothetes.DISPOSITIONS``).  An *asserting*
+    disposition writes a corpus record and requires ``target_uod_id``;
+    a non-asserting one is recorded on the episode only.  Nothing
+    auto-asserts — this is reached only by explicit choice.
+    """
+
+    disposition: str
+    target_uod_id: Optional[str] = None
+    name: Optional[str] = None
+    description: Optional[str] = None
+    authors: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    notes: Optional[str] = None
+
+
 class ErgasterionPromoteRequest(BaseModel):
     """Promote the workshop's chain into the corpus.
 

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arisbe Agon — Arena</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    #agon-app { display: grid; grid-template-columns: 340px 1fr 340px; height: 100vh; }
+    .panel { display: flex; flex-direction: column; background: var(--sidebar-bg);
+      border-right: 1px solid var(--bottombar-border); overflow: hidden; }
+    .panel.right { border-right: none; border-left: 1px solid var(--bottombar-border); }
+    .panel-header { padding: 16px 14px 12px; border-bottom: 1px solid var(--bottombar-border); }
+    .panel-header h1 { font-size: 16px; font-weight: 700; color: var(--sidebar-accent); letter-spacing: 0.5px; }
+    .panel-header h2 { font-size: 14px; font-weight: 700; color: var(--sidebar-accent); letter-spacing: 0.5px; }
+    .panel-header p { font-size: 11px; color: #6c7086; margin-top: 2px; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 10px 14px; }
+    .mode-tag { display: inline-block; margin-top: 6px; padding: 2px 6px; background: var(--btn-primary);
+      color: var(--sidebar-bg); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; border-radius: 3px; text-transform: uppercase; }
+    button.action { display: block; width: 100%; padding: 8px 10px; margin-bottom: 6px; background: var(--btn-bg);
+      color: var(--btn-text); border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px; cursor: pointer; text-align: left; }
+    button.action:hover { background: var(--btn-hover); }
+    button.action.primary { background: var(--btn-primary); color: var(--btn-primary-text); font-weight: 600; text-align: center; }
+    button.action.primary:hover { background: #b4befe; }
+    button.action.danger { color: var(--btn-danger); }
+    button.action:disabled { opacity: 0.45; cursor: not-allowed; }
+    .rule-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+    .rule-grid button.action { margin-bottom: 0; text-align: center; font-family: monospace; font-weight: 600; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 10px; color: #6c7086; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input, .field textarea, .field select { width: 100%; padding: 5px 7px; background: var(--btn-bg);
+      color: var(--sidebar-text); border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px; font-family: inherit; }
+    .field textarea { font-family: monospace; min-height: 44px; resize: vertical; }
+    .empty-state { padding: 16px 0; color: #6c7086; font-size: 11px; text-align: center; font-style: italic; }
+    #canvas { background: var(--canvas-bg); overflow: hidden; position: relative; }
+    #canvas-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c7086; font-size: 13px; text-align: center; }
+    #canvas svg { width: 100%; height: 100%; display: block; }
+    #canvas g[data-element-type="vertex"].sel-subgraph circle,
+    #canvas g[data-element-type="predicate"].sel-subgraph rect,
+    #canvas g[data-element-type="cut"].sel-subgraph > rect { stroke: #f9a06c; stroke-width: 3px; }
+    #canvas g[data-element-type="cut"].sel-area > rect { stroke: #40a02b; stroke-width: 3px; stroke-dasharray: 7 3; }
+    #turn-banner { padding: 10px 14px; border-bottom: 1px solid var(--bottombar-border); }
+    #turn-banner .role { font-size: 15px; font-weight: 700; }
+    #turn-banner .role.graphist { color: #89b4fa; }
+    #turn-banner .role.grapheus { color: #f38ba8; }
+    #turn-banner .sub { font-size: 10px; color: #6c7086; margin-top: 2px; }
+    #turn-banner.over .role { color: var(--success); }
+    .selection-bar { margin-bottom: 10px; padding: 7px 9px; background: var(--btn-bg); border-radius: 3px; font-size: 10px; color: #a6adc8; }
+    .selection-bar .sel-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+    .selection-bar .sel-swatch.subgraph { background: #f9a06c; }
+    .selection-bar .sel-swatch.area { background: #40a02b; }
+    .selection-bar code { color: var(--sidebar-text); font-size: 10px; word-break: break-all; }
+    .selection-bar .clear-sel { color: var(--btn-danger); cursor: pointer; float: right; }
+    .move-item { padding: 7px 9px; background: var(--btn-bg); border-radius: 3px; margin-bottom: 5px; font-size: 11px; }
+    .move-item .move-rule { font-family: monospace; font-weight: 600; color: var(--sidebar-accent); }
+    .move-item .move-role { font-size: 10px; }
+    .move-item .move-role.graphist { color: #89b4fa; }
+    .move-item .move-role.grapheus { color: #f38ba8; }
+    .move-item .move-egif { color: #6c7086; font-family: monospace; font-size: 10px; margin-top: 2px; word-break: break-all; }
+    .disp-item { padding: 8px 9px; background: var(--btn-bg); border-radius: 3px; margin-bottom: 5px; font-size: 11px; cursor: pointer; border: 1px solid transparent; }
+    .disp-item:hover { background: var(--btn-hover); }
+    .disp-item.selected { border-color: var(--btn-primary); }
+    .disp-item .disp-label { font-weight: 600; color: var(--sidebar-text); }
+    .disp-item .disp-mode { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; padding: 1px 5px; border-radius: 3px; margin-left: 6px; }
+    .disp-item .disp-mode.deduction { background: #313244; color: #89b4fa; }
+    .disp-item .disp-mode.induction { background: #313244; color: #a6e3a1; }
+    .disp-item .disp-mode.abduction { background: #313244; color: #f9e2af; }
+    .disp-item .disp-mode.none { background: #313244; color: #6c7086; }
+    .disp-item .disp-asserts { font-size: 9px; color: var(--warning); margin-left: 6px; }
+    .disp-item .disp-summary { color: #6c7086; font-size: 10px; margin-top: 3px; }
+    #status { grid-column: 1 / -1; padding: 6px 14px; background: var(--bottombar-bg); color: var(--sidebar-text); font-size: 11px; border-top: 1px solid var(--bottombar-border); }
+    #status.error { color: var(--error); }
+    #status.success { color: var(--success); }
+    .hint { font-size: 10px; color: #6c7086; margin-bottom: 8px; font-style: italic; }
+  </style>
+</head>
+<body>
+  <main id="agon-app">
+
+    <!-- Left: setup + roles -->
+    <aside class="panel" id="left-panel">
+      <div class="panel-header">
+        <h1>Arisbe Agon</h1>
+        <p>Arena · Endoporeutic contest</p>
+        <span class="mode-tag">Dialogical</span>
+      </div>
+      <div class="panel-body">
+
+        <div id="setup-section">
+          <p class="hint">
+            The Graphist proposes G; the Grapheus is the model M. You drive
+            both roles (hot-seat). When the contest ends, you — as
+            Agonothetes — choose what the result means.
+          </p>
+          <div class="field">
+            <label>Domain model M (EGIF, optional)</label>
+            <textarea id="setup-model" placeholder="(Human *x) ~[ (Human x) ~[ (Mortal x) ] ]"></textarea>
+          </div>
+          <div class="field">
+            <label>Proposal G (EGIF) — framed as ~[ M ~[ G ] ]</label>
+            <textarea id="setup-proposal" placeholder="(Mortal *x)"></textarea>
+          </div>
+          <div class="field">
+            <label>…or a raw initial graph (overrides M/G)</label>
+            <textarea id="setup-initial" placeholder="~[ (Human *x) ~[ (Mortal x) ] ]"></textarea>
+          </div>
+          <div class="field">
+            <label>Goal G (EGIF, optional win proxy)</label>
+            <input type="text" id="setup-goal" placeholder="(Mortal *y)" />
+          </div>
+          <div class="field">
+            <label>First player</label>
+            <select id="setup-first">
+              <option value="Proposer">Graphist (Proposer)</option>
+              <option value="Skeptic">Grapheus (Skeptic)</option>
+            </select>
+          </div>
+          <button class="action primary" id="btn-start">Begin contest</button>
+        </div>
+
+        <div id="game-info" style="display:none;">
+          <div class="field"><label>Game id</label><input type="text" id="game-id-display" readonly /></div>
+          <div class="field"><label>Frame ~[ M ~[ G ] ]</label><textarea id="frame-display" readonly></textarea></div>
+          <button class="action danger" id="btn-discard">Discard contest</button>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- Center: turn banner + board -->
+    <section style="display:flex; flex-direction:column; overflow:hidden;">
+      <div id="turn-banner" style="display:none;">
+        <div class="role" id="turn-role">—</div>
+        <div class="sub" id="turn-sub"></div>
+      </div>
+      <div id="canvas" style="flex:1;">
+        <div id="canvas-placeholder">Set up a contest on the left to begin.</div>
+      </div>
+    </section>
+
+    <!-- Right: moves / episode / disposition -->
+    <aside class="panel right" id="right-panel">
+      <div class="panel-header">
+        <h2 id="right-title">Moves</h2>
+        <p id="right-sub">Apply rules in your territory.</p>
+      </div>
+      <div class="panel-body">
+
+        <div id="moves-section" style="display:none;">
+          <div class="selection-bar">
+            <span class="clear-sel" id="clear-selection">clear</span>
+            <div><span class="sel-swatch subgraph"></span><strong>selection:</strong> click · <code id="sel-subgraph-display">none</code></div>
+            <div><span class="sel-swatch area"></span><strong>target area:</strong> shift-click a cut · <code id="sel-area-display">none</code></div>
+          </div>
+          <div class="rule-grid">
+            <button class="action" data-rule="DC+">DC+</button>
+            <button class="action" data-rule="DC-">DC−</button>
+            <button class="action" data-rule="ERA">ERA</button>
+            <button class="action" data-rule="INS">INS</button>
+            <button class="action" data-rule="IT+">IT+</button>
+            <button class="action" data-rule="IT-">IT−</button>
+          </div>
+          <div id="rule-params"></div>
+          <button class="action primary" id="btn-move" disabled>Apply move</button>
+          <button class="action danger" id="btn-concede">Concede (opponent wins)</button>
+
+          <h2 style="font-size:11px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px; margin:16px 0 6px;">
+            Episode · <span id="move-count">0</span> move(s)
+          </h2>
+          <div id="move-list"><div class="empty-state">No moves yet.</div></div>
+        </div>
+
+        <div id="disposition-section" style="display:none;">
+          <p class="hint" id="disp-outcome"></p>
+          <p class="hint">
+            As Agonothetes, assign the contest's meaning. An asserting choice
+            writes a corpus record (§3.3 fires there); the rest record your
+            judgment only. Nothing auto-asserts.
+          </p>
+          <div id="disp-list"></div>
+          <div id="disp-assert-fields" style="display:none;">
+            <div class="field"><label>New UoD id (for asserting)</label><input type="text" id="disp-uod-id" placeholder="contest-v1" /></div>
+            <div class="field"><label>Name</label><input type="text" id="disp-name" /></div>
+            <div class="field"><label>Notes (optional)</label><textarea id="disp-notes" rows="2"></textarea></div>
+          </div>
+          <button class="action primary" id="btn-dispose" disabled>Record disposition</button>
+        </div>
+
+      </div>
+    </aside>
+
+    <div id="status">Ready</div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const statusEl = $('status'), canvasEl = $('canvas');
+      let gameId = null, currentRule = null, lastData = null, svgPZ = null, selectedDisp = null;
+      let selectedSubgraph = new Set(), selectedArea = null;
+
+      function setStatus(m, k) { statusEl.textContent = m; statusEl.classList.remove('error','success'); if (k) statusEl.classList.add(k); }
+      function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      function cssAttr(id){ return (window.CSS && CSS.escape) ? CSS.escape(id) : id; }
+
+      // ---- selection ----
+      function applyHighlights(){
+        const svg = canvasEl.querySelector('svg'); if(!svg) return;
+        svg.querySelectorAll('.sel-subgraph').forEach(e=>e.classList.remove('sel-subgraph'));
+        svg.querySelectorAll('.sel-area').forEach(e=>e.classList.remove('sel-area'));
+        selectedSubgraph.forEach(id=>{ const g=svg.querySelector('[data-element-id="'+cssAttr(id)+'"]'); if(g) g.classList.add('sel-subgraph'); });
+        if(selectedArea){ const g=svg.querySelector('[data-element-id="'+cssAttr(selectedArea)+'"]'); if(g) g.classList.add('sel-area'); }
+      }
+      function syncFields(){
+        const s=$('param-selected'); if(s) s.value=Array.from(selectedSubgraph).join(', ');
+        const a=$('param-target-area'); if(a) a.value=selectedArea||'';
+      }
+      function updateBar(){
+        if($('sel-subgraph-display')) $('sel-subgraph-display').textContent = selectedSubgraph.size?Array.from(selectedSubgraph).join(', '):'none';
+        if($('sel-area-display')) $('sel-area-display').textContent = selectedArea||'none';
+      }
+      function refreshSel(){ applyHighlights(); syncFields(); updateBar(); }
+      function clearSel(){ selectedSubgraph=new Set(); selectedArea=null; refreshSel(); }
+      function onCanvasClick(e){
+        const g=e.target.closest && e.target.closest('[data-element-id]'); if(!g) return;
+        const id=g.getAttribute('data-element-id'), type=g.getAttribute('data-element-type'); if(!id) return;
+        if(e.shiftKey){ if(type==='cut') selectedArea = selectedArea===id?null:id; }
+        else { selectedSubgraph.has(id)?selectedSubgraph.delete(id):selectedSubgraph.add(id); }
+        refreshSel();
+      }
+
+      function renderSvg(svg){
+        if(svgPZ){ try{svgPZ.destroy();}catch(_){} svgPZ=null; }
+        canvasEl.innerHTML = svg || '<div id="canvas-placeholder">No drawing.</div>';
+        const el=canvasEl.querySelector('svg');
+        if(el && window.svgPanZoom){ el.setAttribute('width','100%'); el.setAttribute('height','100%');
+          svgPZ=window.svgPanZoom(el,{zoomEnabled:true,controlIconsEnabled:false,fit:true,center:true,minZoom:0.1,maxZoom:20}); }
+        clearSel();
+      }
+
+      // ---- rule param forms (mirror Ergasterion) ----
+      function renderRuleParams(rule){
+        currentRule=rule; let html='';
+        if(rule==='DC+'){ html='<div class="field"><label>Selected elements (may be empty)</label><input type="text" id="param-selected" placeholder="(blank = empty double cut)"/></div>'
+          +'<div class="field"><label>Target area id</label><input type="text" id="param-target-area"/></div>'; }
+        else if(rule==='DC-'||rule==='ERA'||rule==='IT-'){ html='<div class="field"><label>Selected elements</label><input type="text" id="param-selected"/></div>'
+          +'<div class="field"><label>Target area id</label><input type="text" id="param-target-area"/></div>'; }
+        else if(rule==='INS'){ html='<div class="field"><label>EGIF to insert</label><textarea id="param-egif" placeholder="(P *x)"></textarea></div>'
+          +'<div class="field"><label>Target area id (negative)</label><input type="text" id="param-target-area"/></div>'; }
+        else if(rule==='IT+'){ html='<div class="field"><label>Source elements</label><input type="text" id="param-selected"/></div>'
+          +'<div class="field"><label>Destination area id</label><input type="text" id="param-target-area"/></div>'; }
+        $('rule-params').innerHTML=html; $('btn-move').disabled=false; syncFields();
+      }
+      function readParams(){
+        const area=($('param-target-area')||{}).value; const target_area=area?area.trim():undefined;
+        if(currentRule==='INS') return { egif_content:($('param-egif')||{}).value||'', target_area };
+        const raw=($('param-selected')||{}).value||'';
+        const items=raw.split(',').map(s=>s.trim()).filter(Boolean);
+        return { selected_elements:items, target_area };
+      }
+
+      // ---- rendering state ----
+      function renderTurn(d){
+        const b=$('turn-banner'); b.style.display='block'; b.classList.toggle('over', d.is_over);
+        const roleEl=$('turn-role'); roleEl.className='role';
+        if(d.is_over){ roleEl.textContent='Contest over — '+(d.winner?d.winner+' wins':'drawn'); $('turn-sub').textContent=d.outcome_reason||''; }
+        else { roleEl.textContent=d.current_role+"'s move"; roleEl.classList.add(d.current_role.toLowerCase());
+          const terr=d.legal_areas.length+' area(s) in territory';
+          $('turn-sub').textContent=(d.current_role==='Graphist'?'INS · IT+ · DC+ in negative areas':'ERA · IT- · DC- in positive areas')+' · '+terr; }
+      }
+      function renderMoves(ep){
+        $('move-count').textContent=ep.moves.length;
+        if(!ep.moves.length){ $('move-list').innerHTML='<div class="empty-state">No moves yet.</div>'; return; }
+        $('move-list').innerHTML='';
+        ep.moves.forEach(m=>{ const div=document.createElement('div'); div.className='move-item';
+          div.innerHTML='<div><span class="move-rule">'+esc(m.rule)+'</span> · <span class="move-role '+m.role.toLowerCase()+'">'+esc(m.role)+'</span> · #'+m.move_number+'</div>'
+            +'<div class="move-egif">'+esc(m.resulting_egif)+'</div>';
+          $('move-list').appendChild(div); });
+      }
+      function renderDispositions(d){
+        $('moves-section').style.display='none'; $('disposition-section').style.display='block';
+        $('right-title').textContent='Agonothetes'; $('right-sub').textContent='Assign the contest its meaning.';
+        $('disp-outcome').textContent='Outcome: '+(d.winner?d.winner+' wins':'drawn')+' — '+(d.outcome_reason||'');
+        const list=$('disp-list'); list.innerHTML=''; selectedDisp=null; $('btn-dispose').disabled=true; $('disp-assert-fields').style.display='none';
+        (d.available_dispositions||[]).forEach(dd=>{ const div=document.createElement('div'); div.className='disp-item'; div.dataset.key=dd.key;
+          div.innerHTML='<div><span class="disp-label">'+esc(dd.label)+'</span>'
+            +'<span class="disp-mode '+dd.mode+'">'+dd.mode+'</span>'
+            +(dd.asserts?'<span class="disp-asserts">asserts →corpus</span>':'')+'</div>'
+            +'<div class="disp-summary">'+esc(dd.summary)+'</div>';
+          div.addEventListener('click',()=>{ list.querySelectorAll('.disp-item').forEach(x=>x.classList.remove('selected'));
+            div.classList.add('selected'); selectedDisp=dd; $('btn-dispose').disabled=false;
+            $('disp-assert-fields').style.display=dd.asserts?'block':'none'; });
+          list.appendChild(div); });
+      }
+      function showGame(d){
+        lastData=d; gameId=d.game_id;
+        $('setup-section').style.display='none'; $('game-info').style.display='block';
+        $('game-id-display').value=d.game_id; $('frame-display').value=(d.episode.setup.framed_egif)||'';
+        renderTurn(d); renderSvg(d.svg); renderMoves(d.episode);
+        if(d.is_over){ renderDispositions(d); }
+        else { $('moves-section').style.display='block'; $('disposition-section').style.display='none';
+          $('right-title').textContent='Moves'; $('right-sub').textContent='Apply rules in your territory.'; }
+      }
+
+      // ---- API ----
+      async function post(url, body){ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}); return r.json(); }
+
+      async function start(){
+        const initial=$('setup-initial').value.trim(), model=$('setup-model').value.trim(),
+          proposal=$('setup-proposal').value.trim(), goal=$('setup-goal').value.trim(), first=$('setup-first').value;
+        const payload={ first_player:first }; if(goal) payload.goal_egif=goal;
+        if(initial) payload.initial_egif=initial; else { if(model) payload.model_egif=model; if(proposal) payload.proposal_egif=proposal; }
+        setStatus('Starting contest…');
+        const b=await post('/agon/games', payload);
+        if(!b.success){ setStatus('Start failed: '+(b.error&&b.error.message),'error'); return; }
+        showGame(b.data); setStatus('Contest begun. '+b.data.current_role+' to move.','success');
+      }
+      async function move(){
+        if(!gameId||!currentRule) return;
+        const b=await post('/agon/games/'+gameId+'/move',{rule:currentRule,parameters:readParams()});
+        if(!b.success){ setStatus(currentRule+' refused: '+(b.error&&b.error.message),'error'); return; }
+        showGame(b.data); setStatus(currentRule+' applied. '+(b.data.is_over?'Contest over.':b.data.current_role+' to move.'),'success');
+      }
+      async function concede(){
+        if(!gameId) return;
+        const b=await post('/agon/games/'+gameId+'/concede');
+        if(!b.success){ setStatus('Concede failed: '+(b.error&&b.error.message),'error'); return; }
+        showGame(b.data); setStatus('Conceded. '+(b.data.winner||'')+' wins. Choose a disposition.','success');
+      }
+      async function dispose(){
+        if(!gameId||!selectedDisp) return;
+        const payload={ disposition:selectedDisp.key, notes:($('disp-notes')||{}).value||'' };
+        if(selectedDisp.asserts){ payload.target_uod_id=($('disp-uod-id').value||'').trim(); payload.name=($('disp-name').value||'').trim(); }
+        const b=await post('/agon/games/'+gameId+'/disposition', payload);
+        if(!b.success){ const e=b.error||{};
+          setStatus((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal: ':'Disposition failed: ')+(e.message||''),'error'); return; }
+        setStatus(b.data.message,'success');
+      }
+      async function discard(){ if(gameId){ try{ await fetch('/agon/games/'+gameId,{method:'DELETE'}); }catch(_){} }
+        gameId=null; $('setup-section').style.display='block'; $('game-info').style.display='none';
+        $('turn-banner').style.display='none'; $('moves-section').style.display='none'; $('disposition-section').style.display='none';
+        canvasEl.innerHTML='<div id="canvas-placeholder">Set up a contest on the left to begin.</div>'; setStatus('Contest discarded.'); }
+
+      // ---- wiring ----
+      $('btn-start').addEventListener('click', start);
+      $('btn-move').addEventListener('click', move);
+      $('btn-concede').addEventListener('click', concede);
+      $('btn-dispose').addEventListener('click', dispose);
+      $('btn-discard').addEventListener('click', discard);
+      document.querySelectorAll('button.action[data-rule]').forEach(b=>b.addEventListener('click',()=>renderRuleParams(b.dataset.rule)));
+      canvasEl.addEventListener('click', onCanvasClick);
+      $('clear-selection').addEventListener('click', clearSel);
+    })();
+  </script>
+</body>
+</html>

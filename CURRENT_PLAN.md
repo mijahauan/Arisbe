@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-01 (Task 1: HTTP selection introspection)
+**Last Updated**: 2026-06-01 (Agon arena V1: thin, flexible slice)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -23,7 +23,7 @@ and onto the Peircean chain-of-semiosis grounding (see
 | **Organon** (archive, read-only) | ✅ live — `/organon` |
 | **Ergasterion** (workshop, composition) | ✅ live — `/ergasterion` |
 | Chain persistence (regime-1 → regime-2 boundary) | ✅ `tomos_service.save_uod_with_chain` / `load_chain` |
-| **Agon** (Endoporeutic Game arena) | ⬜ engine + REPL exist; web arena not started |
+| **Agon** (Endoporeutic Game arena) | 🟢 V1 live — `/agon` (thin, flexible slice) |
 | On-canvas element selection for rule application | 🟡 **in progress** |
 | Transformation UI w/ regime-3 (drag/reshape) affordances | ⬜ not started |
 
@@ -133,12 +133,60 @@ browser has actually clicked-to-select + promoted).
    field a client must populate (`selected_elements` / `target_area` /
    `egif_content`). Both additive + read-only; no protected module or
    attestation logic touched. Tests: `tests/test_introspection_and_rules.py`.
-2. **Agon web arena** — the Endoporeutic Game as a route, designed with
-   the dialogical "asserted = withstood challenge" notion
-   (`docs/CHAIN_OF_SEMIOSIS.md`, "Semiosis is dialogical"). Engine + REPL
-   exist; the arena is selection-heavy, hence (1) first.
-3. **Optional/parallel:** browser walkthrough of on-canvas selection;
-   pre-promote §3.3 preview (#3); pin sibling-cut ordering convention.
+2. ✅ **Agon web arena (V1, thin flexible slice)** — done 2026-06-01.
+   `/agon` hosts the Endoporeutic Game as a dialogical contest, built
+   *after research* (Pietarinen, *Signs of Logic* 2006, Ch. 4 + the
+   repo's own `docs/ENDOPOREUTIC_GAME_GUIDE.md`) reframed the design away
+   from "win → auto-assert thesis." See the Agon section below.
+
+### Agon arena V1 (the research-informed, flexibility-first build)
+
+**Why thin and flexible.** The EPG is genuinely untrod ground — sketched
+by Peirce, never fully codified or played. The sources establish that the
+game is **triadic, not a duel**: Graphist (proposal G), Grapheus (model
+M), and the **Agonothetes** — the *interpretant*, the telic function that
+assigns meaning *after* the contest. A two-party true/false duel is, in
+Peirce's own terms, a degenerate sign-process. The interesting outcomes
+are not "G proved" but the inductive/abductive/revisionary ones: the
+**model is tested by the proposal** (revise M, fork the UoD, hold a
+hypothesis or conjecture). So the build refuses to hardcode an outcome.
+
+**What landed (V1):**
+- `web_api/services/agon_session_manager.py` — wraps the headless engine
+  (`endoporeutic_game.py`, untouched) + a structured **dialogical
+  episode** (typed move log naming player, Peircean role, rule, area,
+  resulting linear form; faithful per-move EGI snapshots for chain build).
+- `web_api/services/agonothetes.py` — the **outcome taxonomy as data**
+  (13 dispositions across deduction/induction/abduction), `available_
+  dispositions`, and a thin `apply_disposition`. Open: every disposition
+  is selectable; only *asserting* ones write a corpus record (firing §3.3
+  at that boundary, via `save_uod_with_chain`). **Nothing auto-asserts.**
+- `web_api/routes/agon.py` — `/agon` routes: start (raw EGIF / M+G frame
+  `~[ M ~[ G ] ]` / `uod:<id>` as M), get, move (engine enforces
+  territory + polarity), concede, **disposition** (the open Agonothetes
+  step), delete, HTML, `/agon/dispositions`. Every payload carries Task-1
+  introspection + `legal_areas` + role.
+- `web_viewer/agon.html` — hot-seat arena: board, turn/territory banner,
+  move panel (selection via `data-element-id`), episode log, and a
+  disposition panel surfacing the taxonomy on game end.
+- `tests/test_agon_routes.py` (15) — start/move/concede/disposition
+  contract, territory enforcement, asserting-disposition chain round-trip,
+  §3.3 refusal aborts cleanly.
+
+**Deliberately deferred (kept open):** the **semantic-evaluation inner
+layer** (the engine's `goal_egif` win is only a proxy — the real "is G
+true in M?" / winning-strategy layer is unbuilt); an **auto-Grapheus**
+(V1 is hot-seat, the guide's own model — the one inquirer holds both
+roles); **dynamic M** (Pietarinen: the Grapheus may add determinations
+mid-play) and the per-disposition corpus semantics (revise-in-place,
+fork-the-DAG) beyond the single assert-as-new-UoD path. The taxonomy is
+data and the disposition layer is a handler map, so these are additive.
+
+3. **Optional/parallel:** browser walkthrough of on-canvas selection
+   (Ergasterion + Agon share the `data-element-id` approach, still
+   unverified by a real browser); semantic-evaluation layer; per-
+   disposition integrations; pre-promote §3.3 preview; pin sibling-cut
+   ordering convention.
 
 ---
 
