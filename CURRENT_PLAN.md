@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-01
+**Last Updated**: 2026-06-01 (Task 1: HTTP selection introspection)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -124,11 +124,15 @@ browser has actually clicked-to-select + promoted).
 
 ## Next (recommended order)
 
-1. **Small API introspection addition (friction #1+#2)** — expose
-   per-element area membership + polarity, and surface
-   `RuleInteraction.steps()` rule-requirement descriptors over HTTP. A
-   bounded change that unblocks both better Ergasterion UX *and* Agon. Do
-   this first; the dogfood proved Agon needs it most.
+1. ✅ **Small API introspection addition (friction #1+#2)** — done
+   2026-06-01. `web_api/services/introspection.py` (`egi_introspection`)
+   exposes per-element area membership + per-area polarity; the
+   Ergasterion session payload now carries an `introspection` block.
+   `web_api/routes/rules.py` serves `GET /rules` + `/rules/{rule}`,
+   surfacing each `RuleInteraction.steps()` descriptor with the request
+   field a client must populate (`selected_elements` / `target_area` /
+   `egif_content`). Both additive + read-only; no protected module or
+   attestation logic touched. Tests: `tests/test_introspection_and_rules.py`.
 2. **Agon web arena** — the Endoporeutic Game as a route, designed with
    the dialogical "asserted = withstood challenge" notion
    (`docs/CHAIN_OF_SEMIOSIS.md`, "Semiosis is dialogical"). Engine + REPL

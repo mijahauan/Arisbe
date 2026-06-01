@@ -57,6 +57,7 @@ from web_api.services.ergasterion_session_manager import (
     WorkshopSession,
     get_ergasterion_session_manager,
 )
+from web_api.services.introspection import egi_introspection
 from web_api.services.layout_service import generate_layout, layout_dto_to_dict
 
 from correspondence_attestation import CorrespondenceViolation
@@ -129,6 +130,11 @@ def _session_payload(session: WorkshopSession, svg: str) -> dict:
         "svg": svg,
         "layout_dto": layout_dto_to_dict(session.current_layout_dto),
         "egi_summary": _egi_summary(session.current_egi),
+        # Per-element area membership + per-area polarity, so a client can
+        # tell *where* each element lives and *what polarity* it has without
+        # inferring it from geometry.  Unblocks selecting elements for any
+        # rule beyond empty-DC+ (dogfood friction #1).
+        "introspection": egi_introspection(session.current_egi),
         "chain": _chain_summary(session),
     }
 
