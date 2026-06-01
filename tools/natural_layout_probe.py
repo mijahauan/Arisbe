@@ -35,65 +35,20 @@ _SRC = Path(__file__).parent.parent / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from layout_dto import BoundingBox, Point
 from natural_layout import natural_layout
 from elk_layout_engine import ELKLayoutEngine
 from style_loader import load_default_style
 from correspondence_attestation import check_correspondence
+from presentation_ops import count_boundary_crossings
 from tomos_service import TomosService
 
 
 TOMOS_ROOT = Path(__file__).parent.parent / "tomos"
 
 
-# --------------------------------------------------------------------------- #
-# Geometry — count true boundary crossings of a polyline vs an AABB.          #
-# A convex rect bounds a straight segment to 0/1/2 boundary crossings,        #
-# decided by endpoint membership (1 if they differ) or by edge               #
-# intersections when both endpoints are outside (0 or 2 for a pass-through).  #
-# --------------------------------------------------------------------------- #
-
-
-def _inside(p: Point, b: BoundingBox) -> bool:
-    return b.min_x <= p.x <= b.max_x and b.min_y <= p.y <= b.max_y
-
-
-def _orient(ax, ay, bx, by, cx, cy) -> float:
-    return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
-
-
-def _proper_intersect(ax, ay, bx, by, cx, cy, dx, dy) -> bool:
-    d1 = _orient(cx, cy, dx, dy, ax, ay)
-    d2 = _orient(cx, cy, dx, dy, bx, by)
-    d3 = _orient(ax, ay, bx, by, cx, cy)
-    d4 = _orient(ax, ay, bx, by, dx, dy)
-    return ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0))
-
-
-def _outside_edge_crossings(a: Point, b: Point, r: BoundingBox) -> int:
-    edges = [
-        (r.min_x, r.min_y, r.max_x, r.min_y),
-        (r.max_x, r.min_y, r.max_x, r.max_y),
-        (r.max_x, r.max_y, r.min_x, r.max_y),
-        (r.min_x, r.max_y, r.min_x, r.min_y),
-    ]
-    return sum(
-        1
-        for (x1, y1, x2, y2) in edges
-        if _proper_intersect(a.x, a.y, b.x, b.y, x1, y1, x2, y2)
-    )
-
-
-def count_boundary_crossings(points, rect: BoundingBox) -> int:
-    total = 0
-    for i in range(len(points) - 1):
-        a, b = points[i], points[i + 1]
-        ai, bi = _inside(a, rect), _inside(b, rect)
-        if ai != bi:
-            total += 1
-        elif not ai and not bi:
-            total += _outside_edge_crossings(a, b, rect)
-    return total
+# The crossing-count geometry now lives in presentation_ops (shared with
+# the runtime §3.3 identity check); the probe imports it rather than
+# keeping a parallel copy.
 
 
 # --------------------------------------------------------------------------- #

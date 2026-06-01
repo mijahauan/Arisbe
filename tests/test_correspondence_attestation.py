@@ -223,6 +223,77 @@ def test_attest_raises_on_ligature_endpoint_mismatch(tomos, engine, style):
     assert "identity-endpoint" in str(excinfo.value)
 
 
+def test_attest_raises_on_forbidden_cut_crossing(engine, style):
+    """A ligature that dips into a cut not on its area chain is rejected.
+
+    This is the capability the earlier sampled area-membership check
+    lacked: point/midpoint sampling could miss a curve that crossed into
+    a forbidden cut and back out between samples.  The crossing-multiset
+    check counts true boundary crossings, so a forbidden-cut excursion is
+    caught regardless of where its turning points fall.
+
+    Construction: render a sibling-cut graph (clean to start), then
+    splice a waypoint at the center of a cut that is NOT on a chosen
+    ligature's required-crossing path.  The detour enters and exits that
+    forbidden cut (two boundary crossings) — exactly what must be
+    refused.
+    """
+    from egif_parser_dau import parse_egif
+    from natural_layout import natural_layout
+
+    egi = parse_egif("(P *x) ~[ (Q x) ] ~[ (R x) ]")
+    dto = engine.generate_layout(egi, style)
+    # Sanity: the freshly-rendered sibling graph is in correspondence.
+    assert check_correspondence(egi, dto) == []
+
+    nat = natural_layout(egi)
+    paths = {
+        (p.predicate_id, p.vertex_id, p.port_index): p
+        for p in dto.ligature_paths
+    }
+
+    target = None
+    for lig in nat.ligatures:
+        required = set(lig.required_crossings)
+        path = paths.get((lig.predicate_id, lig.vertex_id, lig.port_index))
+        if path is None or len(path.points) < 2:
+            continue
+        for cut in egi.Cut:
+            if cut.id in required:
+                continue
+            bounds = dto.cut_bounds.get(cut.id)
+            if bounds is not None:
+                target = (path, cut.id, bounds)
+                break
+        if target:
+            break
+    if target is None:
+        pytest.skip("no forbidden-cut / ligature pair to corrupt")
+
+    path, forbidden_cid, bounds = target
+    center = Point((bounds.min_x + bounds.max_x) / 2,
+                   (bounds.min_y + bounds.max_y) / 2)
+    pts = list(path.points)
+    detoured = [pts[0], center] + pts[1:]  # dip into the forbidden cut
+
+    new_paths = [p for p in dto.ligature_paths if p is not path]
+    new_paths.append(
+        LigaturePath(
+            predicate_id=path.predicate_id,
+            vertex_id=path.vertex_id,
+            points=tuple(detoured),
+            port_index=path.port_index,
+        )
+    )
+    broken = _clone_dto(dto, ligature_paths=new_paths)
+
+    with pytest.raises(CorrespondenceViolation) as excinfo:
+        attest_correspondence(egi, broken)
+    msg = str(excinfo.value)
+    assert "identity-crossing" in msg
+    assert forbidden_cid in msg
+
+
 def test_correspondence_violation_message_contains_context(tomos, engine, style):
     """The exception's message includes the context label and failure count."""
     egi, dto = _baseline(tomos, engine, style)

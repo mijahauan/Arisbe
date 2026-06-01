@@ -222,6 +222,75 @@ def deepest_containing_cut(
 
 
 # --------------------------------------------------------------------------- #
+# Boundary-crossing count — projection-side geometry for the crossing-        #
+# multiset form of §3.3 identity fidelity.                                    #
+# --------------------------------------------------------------------------- #
+
+
+def _orient(ax, ay, bx, by, cx, cy) -> float:
+    return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+
+
+def _segments_properly_cross(
+    ax, ay, bx, by, cx, cy, dx, dy
+) -> bool:
+    """True iff segments (a,b) and (c,d) cross at an interior point.
+
+    Strict (proper) crossing: a segment merely *touching* an edge
+    endpoint or running *along* it does not count.  This matters because
+    routing intentionally runs ligatures along the outside edge of
+    unauthorized cuts (see ``deepest_containing_cut``'s strict-bounds
+    note) — grazing must not be miscounted as a crossing.
+    """
+    d1 = _orient(cx, cy, dx, dy, ax, ay)
+    d2 = _orient(cx, cy, dx, dy, bx, by)
+    d3 = _orient(ax, ay, bx, by, cx, cy)
+    d4 = _orient(ax, ay, bx, by, dx, dy)
+    return ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0))
+
+
+def _outside_edge_crossings(a: "Point", b: "Point", r: BoundingBox) -> int:
+    """Count proper intersections of segment (a,b) with the 4 rect edges.
+
+    Used only when *both* endpoints are outside the rect; for a convex
+    rectangle a straight segment then crosses the boundary 0 or 2 times
+    (a clean pass-through), never 1.
+    """
+    edges = (
+        (r.min_x, r.min_y, r.max_x, r.min_y),
+        (r.max_x, r.min_y, r.max_x, r.max_y),
+        (r.max_x, r.max_y, r.min_x, r.max_y),
+        (r.min_x, r.max_y, r.min_x, r.min_y),
+    )
+    return sum(
+        1
+        for (x1, y1, x2, y2) in edges
+        if _segments_properly_cross(a.x, a.y, b.x, b.y, x1, y1, x2, y2)
+    )
+
+
+def count_boundary_crossings(points, rect: BoundingBox) -> int:
+    """Number of times a polyline crosses the boundary of an AABB.
+
+    A convex rectangle bounds each straight segment to 0/1/2 boundary
+    crossings: 1 when its endpoints straddle the boundary, else 0 unless
+    the segment passes clean through (then 2).  This is the projection
+    geometry behind the crossing-multiset form of §3.3 identity
+    fidelity — for an authorized cut the count must be 1 (net once), for
+    an unauthorized cut 0 (the line must not enter it at all).
+    """
+    total = 0
+    for i in range(len(points) - 1):
+        a, b = points[i], points[i + 1]
+        a_in, b_in = _point_in(a, rect), _point_in(b, rect)
+        if a_in != b_in:
+            total += 1
+        elif not a_in and not b_in:
+            total += _outside_edge_crossings(a, b, rect)
+    return total
+
+
+# --------------------------------------------------------------------------- #
 # Internal: containment + DTO copy helpers                                    #
 # --------------------------------------------------------------------------- #
 
@@ -574,6 +643,7 @@ __all__ = [
     "cut_parents",
     "area_chain",
     "crossing_sequence",
+    "count_boundary_crossings",
     "deepest_containing_cut",
     "move_vertex",
     "reshape_cut",

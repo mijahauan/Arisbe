@@ -30,11 +30,11 @@ share their internal vocabulary.
 from typing import List, Optional, Sequence
 
 from egi_core_dau import RelationalGraphWithCuts
-from layout_dto import LayoutDTO, Point
+from layout_dto import LayoutDTO
 from presentation_ops import (
-    area_chain,
+    count_boundary_crossings,
+    crossing_sequence,
     cut_parents,
-    deepest_containing_cut,
     element_area,
 )
 
@@ -83,9 +83,11 @@ def check_correspondence(
           - endpoint placement (path[-1] coincides with the vertex
             position; both endpoints lie in their respective areas'
             cut bounds);
-          - area-chain traversal (every path point and segment
-            midpoint resolves to an area on the chain between
-            predicate-area and vertex-area);
+          - crossing-multiset equality (the ligature crosses each
+            authorized cut's boundary exactly once and no other cut's
+            boundary at all, where the authorized set is the area-tree
+            path between predicate-area and vertex-area — the
+            projection-independent ``crossing_sequence``);
           - shared-identity connectedness (the union of paths ending at
             a vertex forms one connected component rooted at the
             vertex's drawn position);
@@ -218,30 +220,41 @@ def check_correspondence(
                         f"egi.area[{area}] cut bounds"
                     )
 
-    # Identity 2/3: area-chain traversal.
+    # Identity 2/3: crossing-multiset equality.
+    #
+    # The projection-independent fact is the *required crossing-sequence*
+    # — the cuts on the area-tree path between predicate-area and
+    # vertex-area (``crossing_sequence``).  A faithful drawing realizes
+    # it exactly: each authorized cut's boundary crossed once (net),
+    # every other cut's boundary not crossed at all.  This supersedes the
+    # earlier sampled area-membership check (point/midpoint containment),
+    # which could not see a curve that crossed an *authorized* cut the
+    # wrong number of times (in-out-in) nor a dip into a forbidden cut
+    # *between* samples.  We count true boundary crossings instead of
+    # sampling — see ``presentation_ops.count_boundary_crossings``.
     parent_map = cut_parents(egi)
+    cut_bounds = dto.cut_bounds
     for path in dto.ligature_paths:
         v_area = elem_area_map.get(path.vertex_id, egi.sheet)
         p_area = elem_area_map.get(path.predicate_id, egi.sheet)
-        allowed = area_chain(v_area, p_area, parent_map)
-        for i, pt in enumerate(path.points):
-            area = deepest_containing_cut(pt, dto, egi, parent_map)
-            if area not in allowed:
+        required = set(crossing_sequence(p_area, v_area, parent_map))
+        for cut in egi.Cut:
+            bounds = cut_bounds.get(cut.id)
+            if bounds is None:
+                continue
+            actual = count_boundary_crossings(path.points, bounds)
+            if cut.id in required:
+                if actual != 1:
+                    failures.append(
+                        f"  identity-crossing: ({path.predicate_id} → "
+                        f"{path.vertex_id}) crosses authorized cut {cut.id} "
+                        f"{actual}×, want 1 (net once)"
+                    )
+            elif actual > 0:
                 failures.append(
-                    f"  identity-chain: ({path.predicate_id} → {path.vertex_id}) "
-                    f"point[{i}] in area {area} off chain {sorted(allowed)}"
-                )
-        for i in range(len(path.points) - 1):
-            mid = Point(
-                (path.points[i].x + path.points[i + 1].x) / 2,
-                (path.points[i].y + path.points[i + 1].y) / 2,
-            )
-            area = deepest_containing_cut(mid, dto, egi, parent_map)
-            if area not in allowed:
-                failures.append(
-                    f"  identity-chain: ({path.predicate_id} → {path.vertex_id}) "
-                    f"midpoint[{i}→{i+1}] in area {area} off chain "
-                    f"{sorted(allowed)}"
+                    f"  identity-crossing: ({path.predicate_id} → "
+                    f"{path.vertex_id}) enters forbidden cut {cut.id} "
+                    f"({actual} boundary crossing(s)); not on its area chain"
                 )
 
     # Identity 3/3: shared-identity connectedness.
