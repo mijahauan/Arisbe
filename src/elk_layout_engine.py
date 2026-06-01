@@ -15,6 +15,7 @@ from typing import Dict, List, Optional, Set, Tuple
 
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from layout_dto import LayoutDTO, Point, BoundingBox, LigaturePath
+from natural_layout import authorized_crossings
 from style_loader import StyleSpecification
 
 
@@ -400,34 +401,13 @@ class ELKLayoutEngine:
         These are exactly the cuts on the path from *pred_area* up to
         *vert_area* (or vice-versa) in the area hierarchy.  Same-area
         ligatures return an empty set.
+
+        Delegates to the single authoritative crossing computation
+        (``natural_layout.authorized_crossings`` →
+        ``presentation_ops.crossing_sequence``); the routing only needs
+        the membership set, so the ordered sequence is collapsed here.
         """
-        if pred_area == vert_area or pred_area is None or vert_area is None:
-            return set()
-
-        def ancestor_chain(area: ElementID) -> List[ElementID]:
-            chain = []
-            cur = area
-            while cur in parent_map:
-                chain.append(cur)
-                cur = parent_map[cur]
-            chain.append(cur)  # root (sheet)
-            return chain
-
-        pred_chain = ancestor_chain(pred_area)
-        vert_chain = ancestor_chain(vert_area)
-        pred_set = set(pred_chain)
-        vert_set = set(vert_chain)
-
-        authorized: Set[ElementID] = set()
-        for area in pred_chain:
-            if area in vert_set:
-                break
-            authorized.add(area)
-        for area in vert_chain:
-            if area in pred_set:
-                break
-            authorized.add(area)
-        return authorized
+        return set(authorized_crossings(pred_area, vert_area, parent_map))
 
     # ------------------------------------------------------------------
     # Predicate hook attachment

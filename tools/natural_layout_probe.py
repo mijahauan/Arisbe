@@ -151,13 +151,35 @@ STRESS_CASES = [
 ]
 
 
+def _large_cases():
+    """Generated larger graphs — vigilance for scale-induced trouble.
+
+    - deep-N:  a vertex on the sheet referenced N cuts deep (one ligature
+      crossing N boundaries).
+    - wide-M:  M sibling cuts each referencing the same sheet-level vertex
+      (M ligatures, sibling-spanning W-class).
+    - comb-D:  D nested cuts, each containing a predicate referencing the
+      sheet-level vertex (D ligatures crossing 1..D boundaries).
+    """
+    cases = []
+    for n in (8, 12, 20):
+        cases.append(
+            (f"deep-{n}", "(P *x) " + "~[ " * n + "(R x) " + "] " * n)
+        )
+    for m in (8, 12, 20):
+        cases.append((f"wide-{m}", "(P *x) " + "~[ (Q x) ] " * m))
+    for d in (6, 10):
+        cases.append((f"comb-{d}", "(P *x) " + "~[ (R x) " * d + "]" * d))
+    return cases
+
+
 def probe_stress():
     from egif_parser_dau import parse_egif
 
     print("\n" + "=" * 70)
     print("STRESS CASES — synthetic pathological shapes")
     print("=" * 70)
-    for label, egif in STRESS_CASES:
+    for label, egif in STRESS_CASES + _large_cases():
         try:
             egi = parse_egif(egif)
             n, illegit, parity = probe_uod(egi)

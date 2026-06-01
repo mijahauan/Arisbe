@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
 
 from egi_core_dau import ElementID, RelationalGraphWithCuts
-from presentation_ops import cut_parents, element_area
+from presentation_ops import crossing_sequence, cut_parents, element_area
 
 
 @dataclass(frozen=True)
@@ -100,42 +100,14 @@ def authorized_crossings(
     the predicate's area to just below the meet, then inward from just
     below the meet down to the vertex's area.
 
-    This is the single authoritative definition of the crossing
-    structure.  ``ELKLayoutEngine._authorized_cuts`` computes the same
-    set today (as an unordered set); the intent is to migrate the engine
-    and ``correspondence_attestation`` onto this function so the fact is
-    computed once, not three times.
+    Semantic alias for the projection-independent layer.  The
+    computation itself lives once in ``presentation_ops.crossing_sequence``
+    (sharing its ``_tree_path`` walk with ``area_chain``); this name is
+    the projection-independent vocabulary the layout/projection code
+    consumes.  ``ELKLayoutEngine._authorized_cuts`` delegates here, so
+    the area-tree walk is computed once, not three times.
     """
-    if pred_area == vert_area or pred_area is None or vert_area is None:
-        return ()
-
-    def chain(area: ElementID) -> list:
-        out: list = []
-        cur: Optional[ElementID] = area
-        while cur is not None:
-            out.append(cur)
-            cur = parent_map.get(cur)
-        return out
-
-    pred_chain = chain(pred_area)
-    vert_chain = chain(vert_area)
-    pred_set = set(pred_chain)
-    vert_set = set(vert_chain)
-
-    pred_side: list = []
-    for a in pred_chain:
-        if a in vert_set:  # reached the meet
-            break
-        pred_side.append(a)
-
-    vert_side: list = []
-    for a in vert_chain:
-        if a in pred_set:  # reached the meet
-            break
-        vert_side.append(a)
-
-    # Outward from predicate, then inward to vertex.
-    return tuple(pred_side + list(reversed(vert_side)))
+    return crossing_sequence(pred_area, vert_area, parent_map)
 
 
 def natural_layout(egi: RelationalGraphWithCuts) -> NaturalLayout:

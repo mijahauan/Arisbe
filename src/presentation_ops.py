@@ -90,6 +90,56 @@ def cut_parents(egi: RelationalGraphWithCuts) -> Dict[ElementID, ElementID]:
     return result
 
 
+def _tree_path(
+    a: Optional[ElementID],
+    b: Optional[ElementID],
+    parent_map: Dict[ElementID, ElementID],
+) -> Tuple[list, Optional[ElementID], list]:
+    """Canonical area-tree walk shared by ``area_chain`` and
+    ``crossing_sequence`` — the single source of truth for the path
+    between two areas.
+
+    Returns ``(a_side, lca, b_side)`` where:
+
+    - ``a_side`` is the ordered list of areas from ``a`` up to (but
+      *excluding*) the lowest common ancestor;
+    - ``b_side`` is the ordered list of areas from ``b`` up to (but
+      *excluding*) the LCA;
+    - ``lca`` is the lowest common ancestor area, or ``None`` if the two
+      lie in disjoint trees (should not happen under a single sheet
+      root).
+
+    The boundary-*crossing* structure (``crossing_sequence``) is
+    ``a_side`` + reversed ``b_side`` — the cuts you exit going out from
+    ``a``, then the cuts you enter going in to ``b``.  The *area* set
+    the path may occupy (``area_chain``) is ``a_side ∪ b_side ∪ {lca}``.
+    The LCA's boundary is not crossed but its area is occupied — that is
+    exactly the distinction between the two derived quantities.
+    """
+    if a is None or b is None:
+        return [], None, []
+
+    anc_a: list = []
+    cur: Optional[ElementID] = a
+    while cur is not None:
+        anc_a.append(cur)
+        cur = parent_map.get(cur)
+    anc_a_set = set(anc_a)
+
+    b_side: list = []
+    cur = b
+    while cur is not None and cur not in anc_a_set:
+        b_side.append(cur)
+        cur = parent_map.get(cur)
+    lca = cur  # the first ancestor of b on a's chain, or None if disjoint
+
+    if lca is None:
+        a_side = list(anc_a)
+    else:
+        a_side = anc_a[: anc_a.index(lca)]
+    return a_side, lca, b_side
+
+
 def area_chain(
     a: ElementID,
     b: ElementID,
@@ -100,23 +150,36 @@ def area_chain(
     The path goes a -> ancestors -> LCA -> ... -> b.  Both endpoints
     and the LCA are included.  ``parent_map.get(sheet)`` is None — the
     sheet is the tree's root.
+
+    Derived from the shared ``_tree_path`` walk (see
+    ``crossing_sequence`` for the boundary-crossing counterpart).
     """
-    anc_a: list = []
-    cur: Optional[ElementID] = a
-    while cur is not None:
-        anc_a.append(cur)
-        cur = parent_map.get(cur)
-    anc_a_set = set(anc_a)
-    chain_b: list = []
-    cur = b
-    while cur is not None and cur not in anc_a_set:
-        chain_b.append(cur)
-        cur = parent_map.get(cur)
-    if cur is None:
-        # Disjoint trees — should not happen with a single sheet root.
-        return set(chain_b) | anc_a_set
-    idx = anc_a.index(cur)
-    return set(chain_b) | set(anc_a[: idx + 1])
+    a_side, lca, b_side = _tree_path(a, b, parent_map)
+    result: Set[ElementID] = set(a_side) | set(b_side)
+    if lca is not None:
+        result.add(lca)
+    return result
+
+
+def crossing_sequence(
+    pred_area: Optional[ElementID],
+    vert_area: Optional[ElementID],
+    parent_map: Dict[ElementID, ElementID],
+) -> Tuple[ElementID, ...]:
+    """Ordered cuts whose boundary a ligature must cross, from
+    ``pred_area`` outward to the meet then inward to ``vert_area``.
+
+    The projection-independent crossing structure: the cuts on the
+    area-tree path *excluding* the lowest common ancestor (whose
+    boundary is occupied, not crossed).  Empty for same-area
+    incidences.  This is the single authoritative computation;
+    ``natural_layout.authorized_crossings`` is a semantic alias for the
+    projection-independent layer, and ``ELKLayoutEngine._authorized_cuts``
+    consumes it (as a set) for obstacle determination — so the walk is
+    computed once, not three times.
+    """
+    a_side, _lca, b_side = _tree_path(pred_area, vert_area, parent_map)
+    return tuple(a_side + list(reversed(b_side)))
 
 
 def deepest_containing_cut(
@@ -510,6 +573,7 @@ __all__ = [
     "element_area",
     "cut_parents",
     "area_chain",
+    "crossing_sequence",
     "deepest_containing_cut",
     "move_vertex",
     "reshape_cut",
