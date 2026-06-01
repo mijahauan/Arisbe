@@ -127,13 +127,32 @@ def test_natural_layout_imports_no_geometry():
     """natural_layout must not depend on geometry — that keeps 3-D additive.
 
     Reads the module source and asserts it neither imports ``layout_dto``
-    nor references the geometric types. A failure here means a 2-D
-    assumption has leaked into the projection-independent layer.
+    nor references the geometric types, and that it imports no projection
+    module (the layout engine / renderer / projection conventions). A
+    failure here means a 2-D assumption — coordinates, distances, or a
+    rendering choice — has leaked into the projection-independent layer,
+    which is exactly what would turn a future 3-D projection from an
+    additive step into a rewrite.
     """
     src = (Path(__file__).parent.parent / "src" / "natural_layout.py").read_text()
     # Strip the module docstring, which mentions these names in prose.
     body = src.split('"""', 2)[-1]
+
+    # No geometry.
     assert "import layout_dto" not in body
     assert "from layout_dto" not in body
     assert "BoundingBox" not in body
     assert "Point" not in body
+
+    # No projection modules — natural_layout is upstream of every
+    # projection and must never depend on one.
+    for projection_module in (
+        "elk_layout_engine",
+        "simple_svg_renderer",
+        "projection_conventions",
+        "layout_service",
+    ):
+        assert projection_module not in body, (
+            f"natural_layout must not import the projection module "
+            f"'{projection_module}' — keep the natural layer coordinate-free"
+        )

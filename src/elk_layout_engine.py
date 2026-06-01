@@ -16,13 +16,24 @@ from typing import Dict, List, Optional, Set, Tuple
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from layout_dto import LayoutDTO, Point, BoundingBox, LigaturePath
 from natural_layout import authorized_crossings
+from projection_conventions import Conventions, DEFAULT_CONVENTIONS
 from style_loader import StyleSpecification
 
 
 class ELKLayoutEngine:
-    """Compound graph layout via elkjs subprocess."""
+    """Compound graph layout via elkjs subprocess.
+
+    The engine is a *projection* of the coordinate-free NaturalLayout
+    into 2-D geometry; the free parameters of that projection live in a
+    ``Conventions`` object (``projection_conventions``).  Defaults
+    reproduce the behavior in force, so ``ELKLayoutEngine()`` is
+    unchanged.
+    """
 
     ELK_WORKER = Path(__file__).parent / "elk_worker.js"
+
+    def __init__(self, conventions: Optional[Conventions] = None):
+        self.conventions = conventions or DEFAULT_CONVENTIONS
 
     def generate_layout(
         self,
@@ -372,7 +383,9 @@ class ELKLayoutEngine:
                 ]
 
                 path = self._route_avoiding_cuts(
-                    hook, vert_center, unauthorized_bounds
+                    hook, vert_center, unauthorized_bounds,
+                    detour_pad=self.conventions.detour_pad,
+                    visibility_pad=self.conventions.visibility_pad,
                 )
 
                 ligature_paths.append(
@@ -460,6 +473,8 @@ class ELKLayoutEngine:
         start: Point,
         end: Point,
         obstacles: List[BoundingBox],
+        detour_pad: float = DEFAULT_CONVENTIONS.detour_pad,
+        visibility_pad: float = DEFAULT_CONVENTIONS.visibility_pad,
     ) -> Tuple[Point, ...]:
         """Route a polyline from *start* to *end* avoiding *obstacles*.
 
@@ -469,6 +484,10 @@ class ELKLayoutEngine:
            crossed obstacles (left / right / top / bottom).
         3. Fall back to a visibility-graph shortest path through the
            padded corners of all obstacle rectangles.
+
+        ``detour_pad`` / ``visibility_pad`` are projection conventions
+        (``projection_conventions.Conventions``) — the standoff distances
+        for the L-detour and the visibility-graph fallback respectively.
         """
         if not obstacles:
             return (start, end)
@@ -478,7 +497,7 @@ class ELKLayoutEngine:
             return (start, end)
 
         # --- quick L-shaped detour around combined bbox ---------------
-        PAD = 12
+        PAD = detour_pad
         cmin_x = min(b.min_x for b in crossed) - PAD
         cmax_x = max(b.max_x for b in crossed) + PAD
         cmin_y = min(b.min_y for b in crossed) - PAD
@@ -510,7 +529,9 @@ class ELKLayoutEngine:
             return tuple(valid[0][1])
 
         # --- full visibility-graph fallback ---------------------------
-        return cls._route_via_visibility_graph(start, end, obstacles)
+        return cls._route_via_visibility_graph(
+            start, end, obstacles, pad=visibility_pad
+        )
 
     @classmethod
     def _route_via_visibility_graph(
@@ -518,9 +539,12 @@ class ELKLayoutEngine:
         start: Point,
         end: Point,
         obstacles: List[BoundingBox],
+        pad: float = DEFAULT_CONVENTIONS.visibility_pad,
     ) -> Tuple[Point, ...]:
-        """Shortest obstacle-free path using a visibility graph."""
-        PAD = 8
+        """Shortest obstacle-free path using a visibility graph.
+
+        ``pad`` is the obstacle-corner standoff convention."""
+        PAD = pad
         waypoints: List[Point] = [start, end]
         for b in obstacles:
             waypoints.extend([

@@ -51,33 +51,49 @@ per-ligature crossing-sequence, incidence, ports) is what we own;
 conventions are the projection's free parameters; 3-D becomes additive
 iff the natural layer stays coordinate-free.
 
-**Sequencing:** (1) probe ✅ → (2) unify the 3× redundant crossing
-computation → (3) strengthen §3.3 identity check to crossing-equality →
-(4) name the conventions object → (5) enforce dimension-free discipline.
+**Sequencing — all five steps DONE (2026-06-01):**
 
-**Step 1 done (2026-06-01).** `src/natural_layout.py` (coordinate-free
-`NaturalLayout` + `authorized_crossings`, no geometry imports, enforced by
-test), `tools/natural_layout_probe.py` (corpus + synthetic crossing-
-equality probe), `tests/test_natural_layout.py` (6 tests).
-**Finding:** zero illegitimate / wrong-parity crossings across the 15
-indexed corpus UoDs (49 ligature incidences) AND six synthetic
-pathological shapes (3-deep nesting, sibling-spanning, branching,
-two-variable mixed nesting). The current obstacle-aware routing is
-already crossing-correct on everything probed — so the historical
-#5/#9/#11 pain is substantially fixed in the routing that exists, and the
-probe cross-validates that `natural_layout`'s independent crossing
-computation AGREES with ELK's rendered output. Verdict confirmed: the
-refactor is **unification, not correctness rescue**. Caveats: probe checks
-crossing count/parity vs axis-aligned boxes, not ordering, not
-W-connectedness (the existing attestation covers connectedness), and small
-graphs only.
+1. ✅ `c9a8e71` — probe + coordinate-free `src/natural_layout.py`
+   (`NaturalLayout`, `authorized_crossings`), `tools/natural_layout_probe.py`,
+   `tests/test_natural_layout.py`. **Finding:** zero illegitimate /
+   wrong-parity crossings across 15 corpus UoDs (49 incidences) and the
+   synthetic stress + large shapes (deep-20, wide-20, comb-10, sibling-
+   spanning). Verdict: the refactor is **unification, not correctness
+   rescue** — the existing routing is already crossing-correct, and
+   `natural_layout`'s independent computation agrees with ELK's output.
+2. ✅ `ee1fe41` — unified the area-tree walk: `presentation_ops._tree_path`
+   is the single source; `area_chain` (allowed areas) and
+   `crossing_sequence` (cuts crossed) derive from it; `natural_layout`
+   and `ELKLayoutEngine._authorized_cuts` delegate; the engine's bespoke
+   walk deleted.
+3. ✅ `71fe593` — §3.3 identity check upgraded from sampled-containment to
+   crossing-multiset equality (`count_boundary_crossings` in
+   presentation_ops; attestation requires each authorized cut crossed
+   once, no forbidden cut crossed). Adversarial test added.
+4. ✅ `Conventions` object (`src/projection_conventions.py`) — the
+   projection's free parameters enumerated in one place: honored knobs
+   (`detour_pad`, `visibility_pad`, wired through the engine) + descriptive
+   fields (cut_shape, hook_placement, ligature_routing,
+   ligature_crossing_marks=R6, sibling_cut_ordering). Makes the §3.3
+   "convention compliance" row enumerable instead of folklore.
+   `tests/test_projection_conventions.py` proves defaults = current
+   behavior and that the knobs are genuinely wired.
+5. ✅ dimension-free discipline locked: `test_natural_layout` now also
+   forbids `natural_layout` importing any projection module (engine,
+   renderer, conventions, layout_service) — so 3-D stays additive.
 
-**Next (step 2+):** make `ELKLayoutEngine._authorized_cuts` and
-`correspondence_attestation`'s area-chain check both delegate to
-`natural_layout.authorized_crossings` (single source of truth); then
-upgrade the §3.3 identity check from sampled-containment to
-crossing-multiset-equality, seeding it from the probe's geometry. Keep
-`test_correspondence_attestation` / `test_correspondence_invariant` green.
+**Caveats kept on the record:** the crossing check counts vs axis-aligned
+boxes; it validates count/parity, not crossing *order* and not
+W-connectedness (the attestation's separate Identity 3/3 covers
+connectedness). Synthetic stress proves structural scale, not ELK's
+aesthetic placement on arbitrary real graphs — a future pathology would
+surface as a real corpus/composed graph and be caught by the strengthened
+attestation. The refactor is the right primitive; **3-D is now a second
+projection against the same NaturalLayout, not a rewrite.**
+
+**Next:** back to the product thread — dogfood the Ergasterion promotion
+boundary (compose + promote a real multi-step proof via on-canvas
+selection), then the Agon web arena.
 
 ---
 
