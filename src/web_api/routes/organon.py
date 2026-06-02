@@ -28,6 +28,7 @@ from fastapi.responses import FileResponse
 
 from web_api.models.api_models import ApiResponse
 from web_api.services.layout_service import generate_layout, layout_dto_to_dict
+from web_api.services.linear_forms import linear_forms
 
 from tomos_service import TomosService
 
@@ -156,6 +157,7 @@ async def get_uod(uod_id: str):
                 "svg": svg,
                 "layout_dto": layout_dict,
                 "egi_summary": _egi_summary(egi),
+                "linear_forms": linear_forms(egi),
                 "metadata": metadata,
             },
         )

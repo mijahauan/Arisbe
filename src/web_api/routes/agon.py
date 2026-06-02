@@ -53,6 +53,7 @@ from web_api.services.agonothetes import (
 )
 from web_api.services.introspection import egi_introspection
 from web_api.services.layout_service import generate_layout, layout_dto_to_dict
+from web_api.services.linear_forms import linear_forms
 
 from correspondence_attestation import CorrespondenceViolation
 from egif_parser_dau import parse_egif
@@ -132,6 +133,8 @@ def _game_payload(game: AgonGame, svg: str) -> dict:
         # selection-heavy arena UI can show whose territory each element
         # is in without inferring from geometry.
         "introspection": egi_introspection(state.current_egi),
+        # Linear form(s) of the contest's current state, beside its drawing.
+        "linear_forms": linear_forms(state.current_egi),
         "current_player": current_player.value,
         "current_role": PLAYER_ROLE[current_player],
         "move_number": state.move_number,

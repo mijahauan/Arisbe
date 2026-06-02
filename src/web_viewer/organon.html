@@ -201,6 +201,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script src="js/linear-form-panel.js"></script>
   <script>
     (function () {
       const listEl = document.getElementById('organon-uod-list');
@@ -380,6 +381,10 @@
             minZoom: 0.1,
             maxZoom: 20,
           });
+        }
+        // Collapsible linear-form view (EGIF default; CGIF / CLIF selectable).
+        if (window.LinearFormPanel) {
+          window.LinearFormPanel.render(canvasEl, data.linear_forms);
         }
       }
 

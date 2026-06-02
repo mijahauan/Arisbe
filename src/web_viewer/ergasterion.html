@@ -402,6 +402,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script src="js/linear-form-panel.js"></script>
   <script>
     (function () {
       // ---- DOM refs ----
@@ -585,6 +586,11 @@
         sessionInfoEl.style.display = 'block';
         rulesSectionEl.style.display = 'block';
         renderSvg(data.svg);
+        // Collapsible linear-form view of the current state (EGIF default;
+        // CGIF / CLIF selectable). Re-rendered after each rule application.
+        if (window.LinearFormPanel) {
+          window.LinearFormPanel.render(canvasEl, data.linear_forms);
+        }
         renderChain(data.chain);
       }
 

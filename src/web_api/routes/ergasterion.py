@@ -59,6 +59,7 @@ from web_api.services.ergasterion_session_manager import (
 )
 from web_api.services.introspection import egi_introspection
 from web_api.services.layout_service import generate_layout, layout_dto_to_dict
+from web_api.services.linear_forms import linear_forms
 
 from correspondence_attestation import CorrespondenceViolation
 from egif_parser_dau import parse_egif
@@ -135,6 +136,10 @@ def _session_payload(session: WorkshopSession, svg: str) -> dict:
         # inferring it from geometry.  Unblocks selecting elements for any
         # rule beyond empty-DC+ (dogfood friction #1).
         "introspection": egi_introspection(session.current_egi),
+        # Linear form(s) of the current state, beside its drawing — EGIF
+        # default, CGIF/CLIF selectable (the picture and the proposition,
+        # shown together).
+        "linear_forms": linear_forms(session.current_egi),
         "chain": _chain_summary(session),
     }
 

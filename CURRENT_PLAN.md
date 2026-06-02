@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-01 (Agon arena V1: thin, flexible slice)
+**Last Updated**: 2026-06-01 (linear-form view across all diagram modes)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -181,6 +181,25 @@ roles); **dynamic M** (Pietarinen: the Grapheus may add determinations
 mid-play) and the per-disposition corpus semantics (revise-in-place,
 fork-the-DAG) beyond the single assert-as-new-UoD path. The taxonomy is
 data and the disposition layer is a handler map, so these are additive.
+
+### Linear-form view (all three diagram modes, 2026-06-01)
+
+Every diagram view now carries a collapsible **linear form** beside the
+drawing, with a notation selector (EGIF default; CGIF, CLIF; registry-
+extensible). Picture and proposition shown together — the correspondence
+made visible.
+- `web_api/services/linear_forms.py` — single source of truth: an ordered
+  registry over the format generators, `linear_forms(egi)` returning
+  `{default, formats, forms}` with each notation generated *defensively*
+  (one failing notation reports its error, doesn't break the others).
+- Wired into all three diagram payloads (Organon detail, Ergasterion
+  session, Agon game) — so the form tracks the current state through every
+  move / rule application.
+- `web_viewer/js/linear-form-panel.js` — shared, self-contained floating
+  panel; data-driven selector (a new server-side notation appears with no
+  frontend change); selected format + open state persist across
+  re-renders. Loaded by all three pages.
+- Tests: `tests/test_linear_forms.py` (7).
 
 3. **Optional/parallel:** browser walkthrough of on-canvas selection
    (Ergasterion + Agon share the `data-element-id` approach, still

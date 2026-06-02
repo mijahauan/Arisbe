@@ -193,6 +193,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script src="js/linear-form-panel.js"></script>
   <script>
     (function () {
       const $ = (id) => document.getElementById(id);
@@ -298,6 +299,9 @@
         $('setup-section').style.display='none'; $('game-info').style.display='block';
         $('game-id-display').value=d.game_id; $('frame-display').value=(d.episode.setup.framed_egif)||'';
         renderTurn(d); renderSvg(d.svg); renderMoves(d.episode);
+        // Collapsible linear-form view of the contest's current state
+        // (EGIF default; CGIF / CLIF selectable). Updates as the game advances.
+        if (window.LinearFormPanel) { window.LinearFormPanel.render(canvasEl, d.linear_forms); }
         if(d.is_over){ renderDispositions(d); }
         else { $('moves-section').style.display='block'; $('disposition-section').style.display='none';
           $('right-title').textContent='Moves'; $('right-sub').textContent='Apply rules in your territory.'; }
