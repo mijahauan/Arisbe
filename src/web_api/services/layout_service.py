@@ -18,7 +18,7 @@ from correspondence_attestation import attest_correspondence
 from elk_layout_engine import ELKLayoutEngine
 from layout_dto import LayoutDTO, BoundingBox, LigaturePath, Point
 from simple_svg_renderer import SimpleSVGRenderer
-from style_loader import load_default_style
+from style_loader import load_default_style, load_style
 from egif_generator_dau import EGIFGenerator
 
 
@@ -31,16 +31,24 @@ class LayoutDelta:
 def generate_layout(
     egi,
     previous_layout: Optional[LayoutDTO] = None,
+    style_name: Optional[str] = None,
 ) -> Tuple[LayoutDTO, str]:
     """Generate layout and SVG for an EGI.
 
     If *previous_layout* is provided, unchanged elements are anchored at
     their previous positions to reduce visual jump.
 
+    *style_name* selects the visual style — the *projection's* visual
+    realization of the one coordinate-free ``NaturalLayout`` (Dau, Peirce,
+    Sowa, …).  ``None`` uses the default (dau-compliant).  Style varies
+    the *manifest*, never the *meaning*: §3.3 attests every styled render
+    because its checks are topological (containment / incidence /
+    crossings against axis-aligned bounds), not stylistic.
+
     Returns:
         (layout_dto, svg_string)
     """
-    style = load_default_style()
+    style = load_style(style_name) if style_name else load_default_style()
     engine = ELKLayoutEngine()
 
     # Build layout_deltas from previous layout when available
