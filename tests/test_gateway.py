@@ -55,3 +55,9 @@ def test_mode_routes_have_home_link(client):
         assert r.status_code == 200
         assert "⌂ Arisbe" in r.text
         assert 'href="/"' in r.text
+
+
+def test_organon_links_to_import(client):
+    """Organon (the archive) offers a way into Import — how the corpus grows."""
+    html = client.get("/organon").text
+    assert 'href="/import"' in html
