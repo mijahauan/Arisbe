@@ -60,3 +60,30 @@ def test_unknown_style_raises():
     egi = parse_egif("(Human *x)")
     with pytest.raises(Exception):
         generate_layout(egi, style_name="no-such-style@9.9")
+
+
+def test_renderer_honors_peirce_script_and_ink():
+    """Peirce's declared style is actually drawn: italic script labels, a
+    cursive font, and softer ink — while Dau stays upright black."""
+    egi = parse_egif("(Human *x) ~[ (Mortal x) ]")
+    _d, dau = generate_layout(egi, style_name="dau-compliant@1.0")
+    _p, peirce = generate_layout(egi, style_name="peirce-authentic@1.0")
+    # Peirce: italic + cursive family + non-black ink.
+    assert 'font-style="italic"' in peirce
+    assert "Chancery" in peirce or "cursive" in peirce
+    assert "#1a1a1a" in peirce
+    # Dau: no italic, upright black.
+    assert "font-style" not in dau
+    assert "#1a1a1a" not in dau
+
+
+def test_smooth_path_curves_multipoint_ligatures():
+    """Organic routing curves a multi-point line of identity (Catmull-Rom →
+    cubic Bézier), and is a straight segment for two points."""
+    from collections import namedtuple
+    from simple_svg_renderer import SimpleSVGRenderer
+    P = namedtuple("P", "x y")
+    three = SimpleSVGRenderer._smooth_path([P(0, 0), P(10, 20), P(30, 0)], 0, 0)
+    assert " C " in three  # cubic curve segments
+    two = SimpleSVGRenderer._smooth_path([P(0, 0), P(10, 10)], 0, 0)
+    assert " C " not in two and " L " in two

@@ -4,9 +4,10 @@
   "description": "Authentic reproduction of Peirce's hand-drawn EG conventions (based on egpeirce.sty LaTeX package by Jukka Nikulainen)",
   
   "global": {
-    "font_family": "serif",
-    "font_size": 11,
+    "font_family": "Apple Chancery, 'Snell Roundhand', 'URW Chancery L', cursive",
+    "font_size": 13,
     "font_weight": "normal",
+    "font_style": "italic",
     "background_color": "#FEFEFE"
   },
   

@@ -43,6 +43,20 @@ class SimpleSVGRenderer:
         if style is None:
             from style_loader import StyleLoader
             style = StyleLoader().load_default_style()
+
+        # Honor the declared style's ink, script, and ligature character.
+        # Defaults reproduce Dau's hardcoded look exactly, so Dau output is
+        # byte-identical; Peirce/Sowa supply their own values.  This is the
+        # projection's *visual realization* layer (docs/MANIFEST_AND_MEANING):
+        # manifest varies, meaning (and §3.3, which reads the DTO not the ink)
+        # does not.
+        _raw = style.raw_style_data
+        cut_line_color = _raw.get("cut", {}).get("line_color", "#000000")
+        ligature_color = _raw.get("ligature", {}).get("color", "#000000")
+        predicate_label_color = _raw.get("predicate", {}).get("label_color", "#000000")
+        vertex_label_color = _raw.get("vertex", {}).get("label_color", "#000000")
+        font_style = _raw.get("global", {}).get("font_style", "normal")
+        ligature_routing = _raw.get("ligature", {}).get("routing_mode", "orthogonal")
         
         # Calculate SVG dimensions from viewport (less padding for better fit)
         svg_width = int(dto.viewport_bounds.width + 80)
@@ -142,7 +156,7 @@ class SimpleSVGRenderer:
                 "rx": str(style.cut_corner_radius),
                 "ry": str(style.cut_corner_radius),
                 "fill": fill_color,
-                "stroke": "#000000",
+                "stroke": cut_line_color,
                 "stroke-width": str(style.cut_line_width)
             })
         
@@ -156,16 +170,23 @@ class SimpleSVGRenderer:
         for lig in dto.ligature_paths:
             if len(lig.points) < 2:
                 continue
-            
-            # Build path
-            path_d = f"M {lig.points[0].x + offset_x} {lig.points[0].y + offset_y}"
-            for point in lig.points[1:]:
-                path_d += f" L {point.x + offset_x} {point.y + offset_y}"
-            
+
+            # Build the path.  An "organic"/"natural" routing draws Peirce's
+            # flowing line of identity (a smooth curve through the same layout
+            # points); orthogonal/other draws Dau's straight segments.  The
+            # curve passes through every layout point, so §3.3 (which reads
+            # the DTO geometry, not the drawn stroke) is unaffected.
+            if ligature_routing in ("organic", "natural", "curved"):
+                path_d = self._smooth_path(lig.points, offset_x, offset_y)
+            else:
+                path_d = f"M {lig.points[0].x + offset_x} {lig.points[0].y + offset_y}"
+                for point in lig.points[1:]:
+                    path_d += f" L {point.x + offset_x} {point.y + offset_y}"
+
             # Main ligature line - no hooks, cap style from style spec
             ET.SubElement(ligature_group, "path", {
                 "d": path_d,
-                "stroke": "#000000",
+                "stroke": ligature_color,
                 "stroke-width": str(style.ligature_line_width),
                 "stroke-linecap": ligature_cap_style,
                 "fill": "none"
@@ -216,14 +237,17 @@ class SimpleSVGRenderer:
             if label and style.vertex_rendering_mode != "dot_only":
                 label_x = cx + style.vertex_radius + 8
                 label_y = cy + 4
-                ET.SubElement(v_g, "text", {
+                v_attrs = {
                     "x": str(label_x), "y": str(label_y),
                     "text-anchor": "start",
                     "font-size": str(style.font_size),
                     "font-family": style.font_family,
-                    "fill": "#000000",
-                    "font-weight": style.font_weight
-                }).text = label
+                    "fill": vertex_label_color,
+                    "font-weight": style.font_weight,
+                }
+                if font_style != "normal":
+                    v_attrs["font-style"] = font_style
+                ET.SubElement(v_g, "text", v_attrs).text = label
         
         # ====================================================================
         # Render Predicates (Edge Labels)
@@ -265,14 +289,17 @@ class SimpleSVGRenderer:
             })
 
             # Label text
-            ET.SubElement(p_g, "text", {
+            p_attrs = {
                 "x": str(x), "y": str(y + 5),
                 "text-anchor": "middle",
                 "font-size": str(style.font_size),
                 "font-family": style.font_family,
-                "fill": "#000000",
-                "font-weight": style.font_weight
-            }).text = label
+                "fill": predicate_label_color,
+                "font-weight": style.font_weight,
+            }
+            if font_style != "normal":
+                p_attrs["font-style"] = font_style
+            ET.SubElement(p_g, "text", p_attrs).text = label
         
         # EGIF at bottom
         if egif:
@@ -288,6 +315,37 @@ class SimpleSVGRenderer:
         # Convert to string
         return ET.tostring(svg, encoding='unicode')
     
+    @staticmethod
+    def _smooth_path(points, offset_x: float, offset_y: float) -> str:
+        """A smooth SVG path (Catmull-Rom → cubic Bézier) through the layout
+        points — Peirce's flowing line of identity.
+
+        The curve interpolates *every* layout point, so it stays close to the
+        straight polyline the layout authorized (no new cut crossings); it
+        only rounds the joints.  Falls back to a straight segment for < 3
+        points.
+        """
+        pts = [(p.x + offset_x, p.y + offset_y) for p in points]
+        if len(pts) < 3:
+            d = f"M {pts[0][0]:.2f} {pts[0][1]:.2f}"
+            for x, y in pts[1:]:
+                d += f" L {x:.2f} {y:.2f}"
+            return d
+        d = f"M {pts[0][0]:.2f} {pts[0][1]:.2f}"
+        n = len(pts)
+        for i in range(n - 1):
+            p0 = pts[i - 1] if i > 0 else pts[0]
+            p1 = pts[i]
+            p2 = pts[i + 1]
+            p3 = pts[i + 2] if i + 2 < n else pts[-1]
+            # Catmull-Rom (tension 1/6) control points for this segment.
+            c1x = p1[0] + (p2[0] - p0[0]) / 6.0
+            c1y = p1[1] + (p2[1] - p0[1]) / 6.0
+            c2x = p2[0] - (p3[0] - p1[0]) / 6.0
+            c2y = p2[1] - (p3[1] - p1[1]) / 6.0
+            d += f" C {c1x:.2f} {c1y:.2f} {c2x:.2f} {c2y:.2f} {p2[0]:.2f} {p2[1]:.2f}"
+        return d
+
     @staticmethod
     def _compute_cut_depths(egi: RelationalGraphWithCuts) -> dict:
         """Compute nesting depth of each cut. Sheet=0, direct children=1, etc."""

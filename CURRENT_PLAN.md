@@ -249,6 +249,32 @@ choice**, per `docs/MANIFEST_AND_MEANING.md`: three manifests (Dau / Peirce
   style-independent. First step of the bidirectional vision.
 - Tests: `tests/test_styles.py` (4), `tests/test_export_routes.py` (12).
 
+### Peirce visual fidelity — Tier 1 (renderer honors the declared style, 2026-06-02)
+
+Dogfood: Dau and Peirce looked nearly identical because the renderer
+*under-realized* the declared style (it hardcoded black straight lines and
+an upright font, ignoring `cut_shape`, ligature `routing_mode`, ink colors,
+and script). Calibrated against the egpeirce documentation gallery (and
+Roberts, `docs/references/Existential Graphs of Peirce.pdf`):
+- `simple_svg_renderer` now honors **ink color** (cut/ligature/label), a
+  **`font_style`** (italic), the **font family**, and **curved lines of
+  identity** (Catmull-Rom→Bézier when ligature routing is `organic`). Dau
+  output is **byte-identical** (defaults reproduce the old hardcoding); only
+  styles that *declare* a difference change. §3.3 unaffected (it reads the
+  DTO geometry, not the stroke).
+- `peirce-authentic@1.0.json` now sets a cursive script (`Apple Chancery`…)
+  + italic; Peirce labels render in Peirce's hand (and survive PNG/PDF
+  export on macOS via fontconfig). Vertex dots already suppressed
+  (`label_only`).
+- Tests: `tests/test_styles.py` (+3).
+- **Tier 2 (next): oval cuts.** The renderer still draws rounded rectangles
+  for every style. Drawing ellipses needs the **Convention/layout** work
+  (an inscribed oval clips corner contents; the oval must circumscribe the
+  content box ≈√2×, which means `cut_shape` feeds ELK padding — promoting it
+  from a descriptive `projection_conventions` field to an honored knob),
+  keeping the axis-aligned bbox as the §3.3 container. **Tier 3:** hand-drawn
+  wobble (`hand_drawn_variation`) + the TikZ exporter's matching Peirce idiom.
+
 **Still ahead on this arc:**
 - **Stage 3 — authentic Peirce in TikZ (NOT egpeirce/PSTricks)**: the repo
   already chose TikZ/pgf over PSTricks
