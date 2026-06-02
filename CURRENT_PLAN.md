@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-01 (linear-form view across all diagram modes)
+**Last Updated**: 2026-06-02 (Import doorway: admit linear forms at low warrant)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -201,11 +201,40 @@ made visible.
   re-renders. Loaded by all three pages.
 - Tests: `tests/test_linear_forms.py` (7).
 
-3. **Optional/parallel:** browser walkthrough of on-canvas selection
-   (Ergasterion + Agon share the `data-element-id` approach, still
-   unverified by a real browser); semantic-evaluation layer; per-
-   disposition integrations; pre-promote §3.3 preview; pin sibling-cut
-   ordering convention.
+### Import doorway — admit a linear form at low warrant (2026-06-02)
+
+The read-only Organon implied a doorway *into* the corpus. Built per the
+philosophical floor (`docs/MANIFEST_AND_MEANING.md`): an import is
+**admitted at low warrant** — parsed (comprehended), attested for §3.3
+correspondence, bibliographically attributed, **never asserted as true**.
+No promotion gate; no logical/Z3 check (truth isn't ours at admission).
+- `web_api/services/bibliography.py` — CSL-style citation model (book,
+  chapter, article-journal, webpage, generic) as data: per-type form
+  fields, `format_citation`, `authors_list`.
+- `web_api/services/import_service.py` — `check` (parse + round-trip
+  integrity + §3.3, no persistence) and `admit` (build a standalone
+  `LITERATURE_EXAMPLE` UoD, `warrant:low` tag, save_uod fires §3.3,
+  persist structured bibliography sidecar).
+- `tomos_service.save_bibliography` / `load_bibliography` — sidecar
+  (additive to the unprotected module; structured record + formatted).
+- `routes/imports.py` (`/import`): page, `/check`, `/admit`,
+  `/citation-types`, `/format-citation`. `web_viewer/import.html`:
+  input + grammar/round-trip/§3.3 badges + regenerated-form compare,
+  data-driven bibliographic form with live citation preview, drawing +
+  linear-form panel.
+- Organon detail payload + page now surface imported provenance.
+- Tests: `tests/test_import_routes.py` (14).
+
+**Warrant note:** warrant is carried by category + `warrant:low` tag +
+UI language, *not* a first-class field — that would touch the protected
+UoD model and is a deliberate later change. Warrant rises only through
+Agon (withstanding challenge) and can fall.
+
+3. **Optional/parallel:** "adopt this import as M / send to Agon as G"
+   (the warrant-raising acts that close the Import↔Agon loop); browser
+   walkthrough of on-canvas selection (still unverified by a real
+   browser); semantic-evaluation layer; per-disposition integrations;
+   a first-class warrant gradient; pin sibling-cut ordering convention.
 
 ---
 

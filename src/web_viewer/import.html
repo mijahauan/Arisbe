@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arisbe Import — Admit a linear form</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    #import-app { display: grid; grid-template-columns: 360px 1fr 360px; height: 100vh; }
+    .panel { display: flex; flex-direction: column; background: var(--sidebar-bg);
+      border-right: 1px solid var(--bottombar-border); overflow: hidden; }
+    .panel.right { border-right: none; border-left: 1px solid var(--bottombar-border); }
+    .panel-header { padding: 16px 14px 12px; border-bottom: 1px solid var(--bottombar-border); }
+    .panel-header h1 { font-size: 16px; font-weight: 700; color: var(--sidebar-accent); letter-spacing: 0.5px; }
+    .panel-header h2 { font-size: 14px; font-weight: 700; color: var(--sidebar-accent); }
+    .panel-header p { font-size: 11px; color: #6c7086; margin-top: 2px; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 10px 14px; }
+    .mode-tag { display: inline-block; margin-top: 6px; padding: 2px 6px; background: var(--btn-primary);
+      color: var(--sidebar-bg); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; border-radius: 3px; text-transform: uppercase; }
+    button.action { display: block; width: 100%; padding: 8px 10px; margin-bottom: 6px; background: var(--btn-bg);
+      color: var(--btn-text); border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px; cursor: pointer; text-align: center; }
+    button.action:hover { background: var(--btn-hover); }
+    button.action.primary { background: var(--btn-primary); color: var(--btn-primary-text); font-weight: 600; }
+    button.action.primary:hover { background: #b4befe; }
+    button.action:disabled { opacity: 0.45; cursor: not-allowed; }
+    .field { margin-bottom: 10px; }
+    .field label { display: block; font-size: 10px; color: #6c7086; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input, .field textarea, .field select { width: 100%; padding: 5px 7px; background: var(--btn-bg);
+      color: var(--sidebar-text); border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px; font-family: inherit; }
+    .field textarea { font-family: ui-monospace, Menlo, monospace; min-height: 90px; resize: vertical; }
+    .field .req { color: var(--btn-danger); }
+    .hint { font-size: 10px; color: #6c7086; margin-bottom: 8px; font-style: italic; }
+    #canvas { background: var(--canvas-bg); overflow: hidden; position: relative; flex: 1; }
+    #canvas-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c7086; font-size: 13px; text-align: center; }
+    #canvas svg { width: 100%; height: 100%; display: block; }
+    .checks { margin: 10px 0; }
+    .check-row { display: flex; align-items: baseline; gap: 8px; font-size: 11px; padding: 4px 0; border-bottom: 1px solid var(--bottombar-border); }
+    .check-row .badge { font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 3px; flex: 0 0 auto; }
+    .badge.ok { background: #2a3b2a; color: var(--success); }
+    .badge.warn { background: #3b372a; color: var(--warning); }
+    .badge.bad { background: #3b2a2a; color: var(--error); }
+    .check-detail { color: #6c7086; font-size: 10px; word-break: break-word; }
+    .regen { margin-top: 6px; padding: 6px 8px; background: var(--btn-bg); border-radius: 3px; font-family: ui-monospace, Menlo, monospace; font-size: 10px; color: var(--sidebar-text); word-break: break-word; }
+    .regen .lbl { color: #6c7086; font-family: inherit; text-transform: uppercase; letter-spacing: 0.5px; font-size: 9px; }
+    .citation-preview { margin: 8px 0; padding: 8px 10px; background: var(--btn-bg); border-radius: 3px; font-size: 11px; color: var(--sidebar-text); line-height: 1.5; min-height: 18px; }
+    .citation-preview:empty::before { content: 'fill the fields — a formatted citation appears here'; color: #6c7086; font-style: italic; }
+    .section-sep { margin: 14px 0 8px; padding-top: 12px; border-top: 1px solid var(--bottombar-border); font-size: 11px; color: var(--sidebar-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    #status { grid-column: 1 / -1; padding: 6px 14px; background: var(--bottombar-bg); color: var(--sidebar-text); font-size: 11px; border-top: 1px solid var(--bottombar-border); }
+    #status.error { color: var(--error); }
+    #status.success { color: var(--success); }
+    .nav-link { font-size: 10px; color: var(--sidebar-accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <main id="import-app">
+
+    <!-- Left: input + checks -->
+    <aside class="panel" id="left-panel">
+      <div class="panel-header">
+        <h1>Arisbe Import</h1>
+        <p>Admit a linear form into the corpus</p>
+        <span class="mode-tag">Low warrant</span>
+        <p class="hint" style="margin-top:8px;">
+          A transcribed or pasted linear form is <em>admitted</em>, not
+          asserted as true: checked for grammar and §3.3 correspondence,
+          attributed, and held open to challenge. <a class="nav-link" href="/organon">↪ Organon</a>
+        </p>
+      </div>
+      <div class="panel-body">
+        <div class="field">
+          <label>Notation</label>
+          <select id="notation"><option value="egif">EGIF</option><option value="cgif">CGIF</option><option value="clif">CLIF</option></select>
+        </div>
+        <div class="field">
+          <label>Linear form — transcribe or paste</label>
+          <textarea id="linear-input" placeholder="(Human *x) ~[ (Mortal x) ]"></textarea>
+        </div>
+        <button class="action primary" id="btn-check">Check &amp; render</button>
+
+        <div class="checks" id="checks" style="display:none;">
+          <div class="check-row"><span class="badge" id="b-parse">—</span><div><div>Grammatical correctness</div><div class="check-detail" id="d-parse"></div></div></div>
+          <div class="check-row"><span class="badge" id="b-roundtrip">—</span><div><div>Round-trip integrity</div><div class="check-detail" id="d-roundtrip"></div></div></div>
+          <div class="check-row"><span class="badge" id="b-corr">—</span><div><div>§3.3 correspondence</div><div class="check-detail" id="d-corr"></div></div></div>
+          <div class="regen" id="regen" style="display:none;">
+            <div class="lbl">regenerated from the parsed graph — compare to your input</div>
+            <div id="regen-text"></div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center: drawing -->
+    <section style="display:flex; flex-direction:column; overflow:hidden;">
+      <div id="canvas"><div id="canvas-placeholder">Check a linear form to see it drawn.</div></div>
+    </section>
+
+    <!-- Right: bibliography + admit -->
+    <aside class="panel right" id="right-panel">
+      <div class="panel-header">
+        <h2>Provenance</h2>
+        <p>Proper attribution — the trace of where this came from.</p>
+      </div>
+      <div class="panel-body">
+        <div class="field">
+          <label>Source type</label>
+          <select id="cite-type"></select>
+        </div>
+        <div id="cite-fields"></div>
+        <label style="font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">Formatted citation</label>
+        <div class="citation-preview" id="citation-preview"></div>
+
+        <div class="section-sep">Admit to corpus</div>
+        <div class="field"><label>UoD id <span class="req">*</span></label><input type="text" id="uod-id" placeholder="peirce-cp-4-394" /></div>
+        <div class="field"><label>Name</label><input type="text" id="uod-name" placeholder="defaults to the title" /></div>
+        <div class="field"><label>Description / note</label><textarea id="uod-desc" style="min-height:44px;" placeholder="what this graph asserts, in your words"></textarea></div>
+        <div class="field"><label>Tags (comma-separated)</label><input type="text" id="uod-tags" placeholder="peirce, alpha" /></div>
+        <button class="action primary" id="btn-admit" disabled>Admit to corpus</button>
+        <p class="hint" id="admit-hint">Run a successful check first. §3.3 fires again at the corpus boundary.</p>
+      </div>
+    </aside>
+
+    <div id="status">Ready</div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script src="js/linear-form-panel.js"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById(id);
+      const statusEl = $('status'), canvasEl = $('canvas');
+      let svgPZ = null, citationTypes = [], lastCheckOk = false, fmtTimer = null;
+
+      function setStatus(m, k){ statusEl.textContent=m; statusEl.classList.remove('error','success'); if(k) statusEl.classList.add(k); }
+      function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+      async function post(url, body){ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); return r.json(); }
+
+      function renderSvg(svg){
+        if(svgPZ){ try{svgPZ.destroy();}catch(_){} svgPZ=null; }
+        canvasEl.innerHTML = svg || '<div id="canvas-placeholder">No drawing.</div>';
+        const el=canvasEl.querySelector('svg');
+        if(el && window.svgPanZoom){ el.setAttribute('width','100%'); el.setAttribute('height','100%');
+          svgPZ=window.svgPanZoom(el,{zoomEnabled:true,controlIconsEnabled:false,fit:true,center:true,minZoom:0.1,maxZoom:20}); }
+      }
+      function badge(el, kind, text){ el.className='badge '+kind; el.textContent=text; }
+
+      // ---- bibliographic form (data-driven) ----
+      function renderCiteFields(){
+        const type = $('cite-type').value;
+        const spec = citationTypes.find(t=>t.type===type);
+        const wrap = $('cite-fields'); wrap.innerHTML='';
+        if(!spec) return;
+        spec.fields.forEach(f=>{
+          const div=document.createElement('div'); div.className='field';
+          const req = f.required ? ' <span class="req">*</span>' : '';
+          const isArea = (f.key==='note');
+          div.innerHTML = '<label>'+esc(f.label)+req+'</label>'+
+            (isArea ? '<textarea data-key="'+f.key+'" style="min-height:40px;" placeholder="'+esc(f.hint||'')+'"></textarea>'
+                    : '<input type="text" data-key="'+f.key+'" placeholder="'+esc(f.hint||'')+'" />');
+          wrap.appendChild(div);
+        });
+        wrap.querySelectorAll('[data-key]').forEach(inp=>inp.addEventListener('input', scheduleFormat));
+        scheduleFormat();
+      }
+      function gatherRecord(){
+        const rec = { type: $('cite-type').value };
+        $('cite-fields').querySelectorAll('[data-key]').forEach(inp=>{ rec[inp.dataset.key] = inp.value; });
+        return rec;
+      }
+      function scheduleFormat(){ clearTimeout(fmtTimer); fmtTimer=setTimeout(formatCitation, 300); }
+      async function formatCitation(){
+        const b = await post('/import/format-citation', { record: gatherRecord() });
+        if(b.success) $('citation-preview').textContent = b.data.formatted || '';
+      }
+
+      // ---- check ----
+      async function check(){
+        const text=$('linear-input').value, notation=$('notation').value;
+        setStatus('Checking…');
+        const b = await post('/import/check', { text, notation });
+        if(!b.success){ setStatus('Check error: '+(b.error&&b.error.message),'error'); return; }
+        const r=b.data; $('checks').style.display='block';
+        // grammar
+        if(r.parsed.ok){ badge($('b-parse'),'ok','PASS'); $('d-parse').textContent = (r.egi_summary? r.egi_summary.vertex_count+'V / '+r.egi_summary.edge_count+'E / '+r.egi_summary.cut_count+'C' : ''); }
+        else { badge($('b-parse'),'bad','FAIL'); $('d-parse').textContent = r.parsed.error||''; }
+        // roundtrip
+        if(r.roundtrip.ok && r.roundtrip.stable){ badge($('b-roundtrip'),'ok','STABLE'); $('d-roundtrip').textContent='parses back to the same graph'; }
+        else if(r.roundtrip.ok){ badge($('b-roundtrip'),'warn','DRIFT'); $('d-roundtrip').textContent='regenerated form differs — check your transcription'; }
+        else { badge($('b-roundtrip'),'bad','—'); $('d-roundtrip').textContent=r.roundtrip.error||'n/a'; }
+        if(r.roundtrip.regenerated){ $('regen').style.display='block'; $('regen-text').textContent=r.roundtrip.regenerated; }
+        else { $('regen').style.display='none'; }
+        // §3.3
+        if(r.correspondence.ok){ badge($('b-corr'),'ok','PASS'); $('d-corr').textContent='picture and proposition correspond'; }
+        else { badge($('b-corr'),'bad','FAIL'); $('d-corr').textContent=r.correspondence.error||''; }
+        // drawing + linear panel
+        if(r.svg){ renderSvg(r.svg); if(window.LinearFormPanel) window.LinearFormPanel.render(canvasEl, r.linear_forms); }
+        lastCheckOk = !!r.ok;
+        $('btn-admit').disabled = !lastCheckOk;
+        $('admit-hint').textContent = lastCheckOk ? 'Ready to admit. §3.3 fires again at the corpus boundary.' : 'Fix the failing check(s) before admitting.';
+        setStatus(lastCheckOk ? 'Checks passed — comprehended and in correspondence. Attribute and admit.' : 'Check completed with problems — see the badges.', lastCheckOk?'success':'error');
+      }
+
+      // ---- admit ----
+      async function admit(){
+        if(!lastCheckOk) return;
+        const payload = {
+          text: $('linear-input').value, notation: $('notation').value,
+          bibliography: gatherRecord(), uod_id: ($('uod-id').value||'').trim(),
+          name: ($('uod-name').value||'').trim() || null,
+          description: ($('uod-desc').value||'').trim() || null,
+          tags: ($('uod-tags').value||'').split(',').map(s=>s.trim()).filter(Boolean),
+        };
+        if(!payload.uod_id){ setStatus('A UoD id is required.','error'); return; }
+        setStatus('Admitting…');
+        const b = await post('/import/admit', payload);
+        if(!b.success){ const e=b.error||{};
+          setStatus((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal at corpus boundary: ':'Admit refused: ')+(e.message||''),'error'); return; }
+        setStatus('Admitted as “'+b.data.uod_id+'”. It now sits in the corpus at low warrant — view it in Organon.','success');
+        $('btn-admit').disabled = true;
+      }
+
+      // ---- init ----
+      async function init(){
+        const b = await fetch('/import/citation-types').then(r=>r.json());
+        if(b.success){ citationTypes=b.data; const sel=$('cite-type');
+          citationTypes.forEach(t=>{ const o=document.createElement('option'); o.value=t.type; o.textContent=t.label; sel.appendChild(o); });
+          renderCiteFields();
+        }
+        $('cite-type').addEventListener('change', renderCiteFields);
+        $('btn-check').addEventListener('click', check);
+        $('btn-admit').addEventListener('click', admit);
+        // re-checking invalidates the prior pass
+        $('linear-input').addEventListener('input', ()=>{ lastCheckOk=false; $('btn-admit').disabled=true; });
+        $('notation').addEventListener('change', ()=>{ lastCheckOk=false; $('btn-admit').disabled=true; });
+      }
+      init();
+    })();
+  </script>
+</body>
+</html>

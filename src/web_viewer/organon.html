@@ -362,6 +362,13 @@
               '</span>'
           );
         }
+        if (data.bibliography && data.bibliography.formatted) {
+          parts.push(
+            '<span style="display:block; margin-top:6px; color:#a6adc8;">' +
+            '<strong>provenance:</strong> ' + escapeHtml(data.bibliography.formatted) +
+            '</span>'
+          );
+        }
         metaEl.innerHTML = parts.join(' ');
 
         if (svgPanZoomInstance) {

@@ -852,6 +852,49 @@ class TomosService:
             states=states,
         )
 
+    # ===== Bibliographic provenance (imports) =====
+
+    def save_bibliography(
+        self,
+        uod: UniverseOfDiscourse,
+        record: Dict[str, Any],
+        formatted: str,
+    ) -> None:
+        """Persist a structured bibliographic record beside a UoD.
+
+        For corpus imports, the provenance is the trace of the un-hosted
+        dialogue the linear form came from (see
+        ``docs/MANIFEST_AND_MEANING.md``).  The structured ``record``
+        (CSL-compatible) is kept so the citation can be re-styled later;
+        ``formatted`` is the human-readable string also stored in the
+        UoD metadata's ``source_citation``.
+
+        Written to ``<uod_path>/bibliography.json``.  Call after
+        ``save_uod`` (so the UoD directory exists).
+        """
+        uod_path = self._get_uod_path(uod)
+        uod_path.mkdir(parents=True, exist_ok=True)
+        biblio_path = uod_path / "bibliography.json"
+        with open(biblio_path, "w", encoding="utf-8") as f:
+            json.dump({"record": record, "formatted": formatted}, f, indent=2)
+
+    def load_bibliography(self, uod_id: str) -> Optional[Dict[str, Any]]:
+        """Load the bibliographic record for a UoD, or ``None`` if absent.
+
+        Returns ``{"record": {...}, "formatted": "..."}``.
+        """
+        entry = self.get_uod_metadata(uod_id)
+        if entry is None:
+            return None
+        biblio_path = Path(entry["path"]) / "bibliography.json"
+        if not biblio_path.exists():
+            return None
+        try:
+            with open(biblio_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return None
+
     def delete_uod(self, uod_id: str) -> bool:
         """
         Delete UoD from tomos.

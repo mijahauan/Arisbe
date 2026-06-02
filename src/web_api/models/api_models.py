@@ -75,6 +75,41 @@ class ErgasterionApplyRequest(BaseModel):
     user_annotation: Optional[str] = None
 
 
+class ImportCheckRequest(BaseModel):
+    """Inspect a linear form without persisting it.
+
+    ``notation`` is ``"egif"`` (default), ``"cgif"``, or ``"clif"``.
+    Returns parse / round-trip / §3.3 results and a rendering, so the
+    importer can confirm the drawing matches what they meant.
+    """
+
+    text: str
+    notation: str = "egif"
+
+
+class FormatCitationRequest(BaseModel):
+    """Live-preview a formatted citation from a structured record."""
+
+    record: Dict[str, Any]
+
+
+class ImportAdmitRequest(BaseModel):
+    """Admit a linear form into the corpus as a low-warrant import.
+
+    Creates a standalone ``LITERATURE_EXAMPLE`` UoD attributed from the
+    structured (CSL-compatible) ``bibliography`` record.  §3.3 fires at
+    the corpus boundary; never overwrites an existing id.
+    """
+
+    text: str
+    notation: str = "egif"
+    bibliography: Dict[str, Any]
+    uod_id: str
+    name: Optional[str] = None
+    description: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
 class AgonNewGameRequest(BaseModel):
     """Start an Endoporeutic Game contest.
 

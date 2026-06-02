@@ -158,6 +158,10 @@ async def get_uod(uod_id: str):
                 "layout_dto": layout_dict,
                 "egi_summary": _egi_summary(egi),
                 "linear_forms": linear_forms(egi),
+                # Bibliographic provenance for imported UoDs (None for
+                # non-imports) — the trace of the un-hosted dialogue the
+                # linear form came from.
+                "bibliography": tomos.load_bibliography(uod_id),
                 "metadata": metadata,
             },
         )
