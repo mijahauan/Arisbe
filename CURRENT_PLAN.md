@@ -250,13 +250,21 @@ choice**, per `docs/MANIFEST_AND_MEANING.md`: three manifests (Dau / Peirce
 - Tests: `tests/test_styles.py` (4), `tests/test_export_routes.py` (12).
 
 **Still ahead on this arc:**
-- **Stage 3 — authentic Peirce LaTeX**: `egpeirce.sty` is *structural*
-  (nested `\cut`/`\li`/`\hk` + built-in bridge-ligature macros, PSTricks),
-  so its exporter is **NaturalLayout-driven**, not DTO-geometric — the deep
-  payoff of "style connects to the natural layout plan". Peirce currently
-  exports as a portable-TikZ approximation; the authentic egpeirce emitter
-  (+ optional `pdflatex` compile) is the next step. `egpeirce.sty.txt` and
-  `Egpeirce Documentation.pdf` are in `docs/references/`.
+- **Stage 3 — authentic Peirce in TikZ (NOT egpeirce/PSTricks)**: the repo
+  already chose TikZ/pgf over PSTricks
+  (`docs/FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md`, `STYLE_NOTES_PEIRCE.md`),
+  and today's `tikz_export.py` is PSTricks-free + LyX-native. `egpeirce.sty`
+  has two author-stated limitations — PSTricks, and no connection to the
+  underlying logic — and we are past **both** (we emit TikZ; everything is
+  EGI/NaturalLayout-derived and §3.3-attested). So Stage 3 keeps
+  `egpeirce.sty` as a *visual reference only* and deepens the **TikZ** Peirce
+  output to reproduce Peirce's conventions: oval cuts, hand-drawn quality,
+  and the **bridge-at-crossing** mark (`Conventions.ligature_crossing_marks
+  = "bridges"`). egpeirce used PSTricks *relative* placement because it had
+  no layout engine; we own the layout, so absolute-coordinate TikZ is
+  simpler and more faithful — Peirce's hand, not his typesetter. Optional
+  `pdflatex` compile to PDF. Refs: `egpeirce.sty.txt`,
+  `Egpeirce Documentation.pdf` in `docs/references/`.
 - **Stage 5 — drawing-first editor** (separate, larger arc): a structured
   drawing surface where placing cuts/spots/lines builds a live EGI rendered
   in a chosen style — the honest "copy a Peirce drawing → EGI". (Image→EGI

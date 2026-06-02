@@ -3,131 +3,100 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arisbe — Existential Graph Viewer</title>
+  <title>Arisbe — an environment for moving pictures of thought</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    body { margin: 0; background: var(--canvas-bg, #1e1e2e); color: var(--sidebar-text, #cdd6f4);
+      font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+    .gateway { max-width: 980px; margin: 0 auto; padding: 48px 24px 64px; }
+    header.hero { text-align: center; margin-bottom: 36px; }
+    header.hero h1 { font-size: 44px; letter-spacing: 1px; margin: 0 0 6px;
+      color: var(--sidebar-accent, #89b4fa); font-weight: 700; }
+    header.hero .tagline { font-size: 15px; color: #a6adc8; font-style: italic; margin: 0; }
+    .house { margin: 28px auto 8px; max-width: 560px; }
+    .house img { width: 100%; border-radius: 6px; display: block;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.45); border: 1px solid var(--bottombar-border, #313244); }
+    .house figcaption { font-size: 11px; color: #6c7086; text-align: center; margin-top: 8px; font-style: italic; }
+    .intro { font-size: 14px; line-height: 1.7; color: #bac2de; max-width: 680px; margin: 24px auto 8px; }
+    .intro .chord { color: var(--sidebar-accent, #89b4fa); }
+    h2.section { text-align: center; font-size: 13px; text-transform: uppercase; letter-spacing: 2px;
+      color: #6c7086; margin: 44px 0 18px; font-weight: 600; }
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .mode { display: block; text-decoration: none; color: inherit; padding: 18px 18px 20px;
+      background: var(--sidebar-bg, #181825); border: 1px solid var(--bottombar-border, #313244);
+      border-radius: 8px; transition: border-color .15s, transform .15s; }
+    .mode:hover { border-color: var(--sidebar-accent, #89b4fa); transform: translateY(-2px); }
+    .mode .name { font-size: 19px; font-weight: 700; color: var(--sidebar-accent, #89b4fa); }
+    .mode .greek { font-size: 12px; color: #6c7086; margin: 2px 0 10px; font-style: italic; }
+    .mode .desc { font-size: 12.5px; line-height: 1.55; color: #bac2de; }
+    .doorway { margin-top: 16px; }
+    .mode.wide { display: flex; align-items: baseline; gap: 14px; }
+    .mode.wide .name { flex: 0 0 auto; }
+    .mode.wide .desc { margin: 0; }
+    footer.foot { text-align: center; margin-top: 40px; font-size: 11px; color: #6c7086; }
+    footer.foot a { color: #6c7086; }
+    @media (max-width: 720px) { .modes { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
-  <div id="app">
+  <main class="gateway">
 
-    <!-- ===== Sidebar ===== -->
-    <aside id="sidebar">
-      <div id="sidebar-header">
-        <h1>Arisbe</h1>
-        <p>Existential Graph Viewer</p>
-      </div>
+    <header class="hero">
+      <h1>Arisbe</h1>
+      <p class="tagline">Doing logic in pictures — Peirce's moving pictures of thought, made operational.</p>
+    </header>
 
-      <div id="diagram-list-container">
-        <h2>Tomos Corpus</h2>
-        <div id="diagram-list">
-          <div style="padding:10px;color:#6c7086;font-size:12px;">Loading…</div>
-        </div>
-      </div>
+    <figure class="house">
+      <img src="assets/arisbe_house.jpg"
+           alt="Arisbe — the home of Charles S. Peirce, near Milford, Pennsylvania." />
+      <figcaption>Arisbe — the home Charles S. Peirce named, near Milford, on the Delaware.</figcaption>
+    </figure>
 
-      <div id="info-panel">
-        <h3>Graph Info</h3>
-        <div style="color:#6c7086;font-size:12px;">Select a diagram to begin</div>
-      </div>
-    </aside>
+    <p class="intro">
+      Arisbe was the name Charles Sanders Peirce gave to the house where, in his last
+      decades, he worked out the Existential Graphs — a way of doing logic
+      <em>in</em> pictures rather than drawing pictures <em>of</em> logic. This
+      environment carries the name. Here a graph's drawn form and its written form
+      denote one and the same thing, and every transformation is attested so that
+      <span class="chord">manifest and meaning keep sounding in the same chord</span>.
+      Beneath all of it lies the blank sheet of assertion — the one thing that, saying
+      nothing, cannot be wrong; everything scribed upon it remains open to challenge.
+    </p>
 
-    <!-- ===== Main canvas ===== -->
-    <main id="canvas-area">
-      <div id="svg-container">
-        <div id="canvas-placeholder">
-          <p>Select a diagram from the sidebar</p>
-        </div>
-      </div>
-      <div id="loading-overlay">Loading…</div>
-    </main>
+    <h2 class="section">The three modes</h2>
+    <div class="modes">
+      <a class="mode" href="/organon">
+        <div class="name">Organon</div>
+        <div class="greek">ὄργανον · “instrument”</div>
+        <div class="desc">The archive. Browse the corpus; read each graph in its linear
+          and drawn forms; export it in Dau's, Peirce's, or Sowa's hand. Read-only.</div>
+      </a>
+      <a class="mode" href="/ergasterion">
+        <div class="name">Ergasterion</div>
+        <div class="greek">ἐργαστήριον · “workshop”</div>
+        <div class="desc">The workshop. Compose and transform a graph by the rules,
+          draw it in a chosen style, and promote a result into the corpus.</div>
+      </a>
+      <a class="mode" href="/agon">
+        <div class="name">Agon</div>
+        <div class="greek">ἀγών · “contest”</div>
+        <div class="desc">The arena. Test a proposal against a model in the Endoporeutic
+          Game — an assertion earns its place by withstanding challenge.</div>
+      </a>
+    </div>
 
-    <!-- ===== Bottom bar ===== -->
-    <footer id="bottombar">
+    <h2 class="section">The doorway</h2>
+    <a class="mode wide doorway" href="/import">
+      <div class="name">Import</div>
+      <div class="desc">Admit a linear form from the outside world — transcribed from a
+        book or pasted from a page — at low warrant: checked for grammar and §3.3
+        correspondence, bibliographically attributed, and drawn. Not asserted as true.</div>
+    </a>
 
-      <!-- History controls -->
-      <div class="bottombar-section">
-        <h4>History</h4>
-        <div class="btn-row">
-          <button id="undo-btn" class="btn" disabled title="Undo">&#8592; Undo</button>
-          <button id="redo-btn" class="btn" disabled title="Redo">Redo &#8594;</button>
-        </div>
-      </div>
-
-      <!-- Transformation mode selector -->
-      <div class="bottombar-section">
-        <h4>Transform</h4>
-        <div class="btn-row">
-          <button class="btn mode-btn" data-mode="ERA" title="Erasure: remove subgraph from positive area">ERA</button>
-          <button class="btn mode-btn" data-mode="INS" title="Insertion: insert into negative area">INS</button>
-          <button class="btn mode-btn" data-mode="DC+" title="Double-Cut Insertion">DC+</button>
-          <button class="btn mode-btn" data-mode="DC-" title="Double-Cut Erasure">DC−</button>
-          <button class="btn mode-btn" data-mode="IT+" title="Iteration: copy into nested area">IT+</button>
-          <button class="btn mode-btn" data-mode="IT-" title="Deiteration: remove iterated subgraph">IT−</button>
-        </div>
-      </div>
-
-      <!-- Mode-specific panel -->
-      <div id="mode-panel" class="hidden">
-
-        <!-- ERA / IT+ / IT- selection info -->
-        <div id="era-section" class="hidden">
-          <div id="selection-count" style="font-size:11px;color:#cdd6f4;margin-bottom:5px;">Click elements on the diagram to select them</div>
-          <div class="btn-row">
-            <button id="auto-complete-btn" class="btn" title="Expand selection to the smallest closed subgraph containing all selected elements">Auto-Complete</button>
-            <button id="clear-selection-btn" class="btn" title="Clear all selected elements">Clear</button>
-            <button id="apply-btn" class="btn primary">Apply ERA</button>
-          </div>
-        </div>
-
-        <!-- INS EGIF input -->
-        <div id="ins-section" class="hidden">
-          <textarea id="egif-input" class="egif-input" placeholder="Enter EGIF, e.g.: (Mortal *x)"></textarea>
-          <div class="btn-row" style="margin-top:5px;">
-            <button id="apply-btn-ins" class="btn primary">Apply INS</button>
-          </div>
-        </div>
-
-        <!-- DC+/DC- target -->
-        <div id="dc-section" class="hidden">
-          <div style="font-size:11px;color:#bac2de;margin-bottom:5px;">Click the target area or cut on the diagram.</div>
-          <div class="btn-row">
-            <button id="apply-btn-dc" class="btn primary">Apply</button>
-          </div>
-        </div>
-
-        <!-- IT+ / IT- use the era-section; fallback apply for other modes -->
-        <div id="it-section" class="hidden">
-          <div id="it-selection-count" style="font-size:11px;color:#cdd6f4;margin-bottom:5px;">Click elements on the diagram to select them</div>
-          <div class="btn-row">
-            <button id="auto-complete-btn-it" class="btn" title="Expand to closed subgraph">Auto-Complete</button>
-            <button id="clear-selection-btn-it" class="btn" title="Clear selection">Clear</button>
-            <button id="apply-btn-it" class="btn primary">Apply</button>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- View controls + status -->
-      <div class="bottombar-section" style="flex:1;">
-        <h4>View</h4>
-        <div class="btn-row">
-          <button id="reset-view-btn" class="btn" title="Reset pan/zoom">Fit</button>
-        </div>
-      </div>
-
-      <div id="status-bar">
-        <div id="status-message">Ready</div>
-      </div>
-
+    <footer class="foot">
+      <a href="/legacy-viewer.html">scratch viewer (legacy)</a>
     </footer>
-  </div>
 
-  <!-- SVG pan-zoom library (CDN) -->
-  <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
-
-  <!-- Application scripts (order matters) -->
-  <script src="js/api-client.js"></script>
-  <script src="js/diagram-viewer.js"></script>
-  <script src="js/selection-manager.js"></script>
-  <script src="js/transformation-ui.js"></script>
-  <script src="js/main.js"></script>
+  </main>
 </body>
 </html>
