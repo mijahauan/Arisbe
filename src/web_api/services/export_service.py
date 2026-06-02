@@ -1,0 +1,150 @@
+"""
+Export service — take an EGI out of the corpus to the outside world.
+
+Completes the outer arc (world → Organon → world): an EGI is exported in
+a chosen **style** (Dau / Peirce / Sowa — the projection's visual
+realization) and a chosen **format**.
+
+Formats:
+  * linear  — EGIF / CGIF / CLIF text (the proposition, in any notation)
+  * svg     — the styled drawing (vector, web-native)
+  * tikz    — portable TikZ/LaTeX (compiles anywhere; LyX-includable)
+  * png/pdf — rasterised/vector via ``rsvg-convert`` (runtime-guarded)
+
+Each format is produced defensively; PNG/PDF report cleanly if the
+external rasteriser is absent rather than crashing.  (The authentic
+Peirce ``egpeirce.sty`` LaTeX path is a separate, structural exporter.)
+"""
+
+import base64
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+# Ensure src/ is on path (when imported from web_api/services/)
+_src_dir = Path(__file__).parent.parent.parent
+if str(_src_dir) not in sys.path:
+    sys.path.insert(0, str(_src_dir))
+
+from cgif_generator_dau import generate_cgif
+from clif_generator_dau import generate_clif
+from egif_generator_dau import generate_egif
+
+from web_api.services.layout_service import generate_layout
+from web_api.services.tikz_export import export_tikz
+
+
+class ExportError(Exception):
+    """A recoverable export problem (unknown format, missing tool, …)."""
+
+
+# Ordered format registry.  ``requires`` names an external binary that must
+# be present (None = always available).  Adding a format is a row here.
+_FORMATS: List[Dict[str, Any]] = [
+    {"format": "egif", "label": "EGIF (linear)", "ext": "egif", "media_type": "text/plain", "binary": False, "requires": None},
+    {"format": "cgif", "label": "CGIF (linear)", "ext": "cgif", "media_type": "text/plain", "binary": False, "requires": None},
+    {"format": "clif", "label": "CLIF (linear)", "ext": "clif", "media_type": "text/plain", "binary": False, "requires": None},
+    {"format": "svg", "label": "SVG (styled drawing)", "ext": "svg", "media_type": "image/svg+xml", "binary": False, "requires": None},
+    {"format": "tikz", "label": "TikZ / LaTeX", "ext": "tex", "media_type": "text/x-tex", "binary": False, "requires": None},
+    {"format": "png", "label": "PNG (raster)", "ext": "png", "media_type": "image/png", "binary": True, "requires": "rsvg-convert"},
+    {"format": "pdf", "label": "PDF (vector)", "ext": "pdf", "media_type": "application/pdf", "binary": True, "requires": "rsvg-convert"},
+]
+
+_FORMATS_BY_KEY = {f["format"]: f for f in _FORMATS}
+
+_LINEAR = {"egif": generate_egif, "cgif": generate_cgif, "clif": generate_clif}
+
+
+def _tool_available(name: Optional[str]) -> bool:
+    return name is None or shutil.which(name) is not None
+
+
+def available_formats() -> List[Dict[str, Any]]:
+    """The format registry, annotated with runtime availability."""
+    out = []
+    for f in _FORMATS:
+        out.append({
+            "format": f["format"], "label": f["label"], "ext": f["ext"],
+            "binary": f["binary"], "requires": f["requires"],
+            "available": _tool_available(f["requires"]),
+        })
+    return out
+
+
+def _rsvg(svg: str, target: str) -> bytes:
+    """Convert SVG to PNG/PDF bytes via rsvg-convert (raises if unavailable)."""
+    exe = shutil.which("rsvg-convert")
+    if exe is None:
+        raise ExportError(
+            f"Cannot export {target.upper()}: 'rsvg-convert' is not installed."
+        )
+    try:
+        proc = subprocess.run(
+            [exe, "-f", target],
+            input=svg.encode("utf-8"),
+            capture_output=True,
+            timeout=30,
+        )
+    except Exception as exc:  # pragma: no cover - subprocess plumbing
+        raise ExportError(f"{target.upper()} conversion failed: {exc}")
+    if proc.returncode != 0:
+        raise ExportError(
+            f"{target.upper()} conversion failed: "
+            f"{proc.stderr.decode('utf-8', 'replace')[:200]}"
+        )
+    return proc.stdout
+
+
+def export_egi(
+    egi,
+    fmt: str,
+    *,
+    style_name: Optional[str] = None,
+    standalone: bool = True,
+    basename: str = "export",
+) -> Dict[str, Any]:
+    """Export *egi* in *fmt* (and *style_name* for drawn forms).
+
+    Returns a JSON-able dict::
+
+        {"format", "filename", "media_type", "is_binary",
+         "content": <text> | None, "content_base64": <b64> | None}
+
+    Text formats fill ``content``; binary formats (png/pdf) fill
+    ``content_base64``.  Raises ``ExportError`` for unknown formats or a
+    missing external tool, and propagates ``CorrespondenceViolation`` from
+    the styled render unchanged (§3.3 still guards every drawing exported).
+    """
+    spec = _FORMATS_BY_KEY.get(fmt)
+    if spec is None:
+        raise ExportError(f"Unknown format '{fmt}'. Valid: {sorted(_FORMATS_BY_KEY)}.")
+
+    filename = f"{basename}.{spec['ext']}"
+    result = {
+        "format": fmt, "filename": filename, "media_type": spec["media_type"],
+        "is_binary": spec["binary"], "content": None, "content_base64": None,
+    }
+
+    if fmt in _LINEAR:
+        result["content"] = _LINEAR[fmt](egi)
+        return result
+
+    if fmt == "svg":
+        _dto, svg = generate_layout(egi, style_name=style_name)
+        result["content"] = svg
+        return result
+
+    if fmt == "tikz":
+        dto, _svg = generate_layout(egi, style_name=style_name)
+        result["content"] = export_tikz(dto, egi, standalone=standalone, style=dto.style)
+        return result
+
+    if fmt in ("png", "pdf"):
+        # §3.3 fires here (styled render) before the external conversion.
+        _dto, svg = generate_layout(egi, style_name=style_name)
+        result["content_base64"] = base64.b64encode(_rsvg(svg, fmt)).decode("ascii")
+        return result
+
+    raise ExportError(f"Unhandled format '{fmt}'.")  # pragma: no cover

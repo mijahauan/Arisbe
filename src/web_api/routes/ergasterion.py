@@ -215,7 +215,7 @@ async def open_session(request: ErgasterionOpenRequest):
         # Render and lay out the base state (attests §3.3 at the
         # render boundary — confirming the *base* is in correspondence
         # before composition begins).
-        dto, svg = generate_layout(initial_egi)
+        dto, svg = generate_layout(initial_egi, style_name=request.style_name)
 
         manager = get_ergasterion_session_manager()
         session = manager.create_session(
@@ -223,6 +223,7 @@ async def open_session(request: ErgasterionOpenRequest):
             initial_layout_dto=dto,
             base_source=base,
             base_source_uod_id=base_source_uod_id,
+            style_name=request.style_name,
         )
 
         return ApiResponse(success=True, data=_session_payload(session, svg))
@@ -251,12 +252,16 @@ async def open_session(request: ErgasterionOpenRequest):
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str):
+async def get_session(session_id: str, style: Optional[str] = None):
     """Return the current state of a workshop session.
 
     Re-renders the current EGI on each call (attests §3.3 at the
     render boundary).  Useful for a fresh page load or for clients
     that lost their local state.
+
+    An optional ``style`` query selects (and remembers, for subsequent
+    renders) the visual style the workshop draws in — the first step of
+    drawing-in-a-style.  Style changes the *manifest*, not the chain.
     """
     try:
         manager = get_ergasterion_session_manager()
@@ -270,7 +275,9 @@ async def get_session(session_id: str):
                 },
             )
 
-        dto, svg = generate_layout(session.current_egi)
+        if style is not None:
+            session.style_name = style or None
+        dto, svg = generate_layout(session.current_egi, style_name=session.style_name)
         session.current_layout_dto = dto
         return ApiResponse(success=True, data=_session_payload(session, svg))
     except CorrespondenceViolation as exc:
@@ -396,7 +403,9 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
 
         new_egi = apply_result.result_egi
         previous_layout = session.current_layout_dto
-        new_dto, svg = generate_layout(new_egi, previous_layout=previous_layout)
+        new_dto, svg = generate_layout(
+            new_egi, previous_layout=previous_layout, style_name=session.style_name
+        )
 
         manager.append_step(
             session_id,

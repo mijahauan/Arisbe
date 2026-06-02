@@ -48,6 +48,11 @@ class WorkshopSession:
     current_layout_dto: LayoutDTO
     base_source: str  # "empty_sheet" or "uod:<uod_id>"
     base_source_uod_id: Optional[str] = None
+    # The visual style the workshop draws in (Dau / Peirce / Sowa). None =
+    # default. Composition is style-independent (the EGI is the same); this
+    # only chooses how the current state is *drawn* — the first step toward
+    # drawing-in-a-style.
+    style_name: Optional[str] = None
     created: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_accessed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -79,6 +84,7 @@ class ErgasterionSessionManager:
         initial_layout_dto: LayoutDTO,
         base_source: str,
         base_source_uod_id: Optional[str] = None,
+        style_name: Optional[str] = None,
     ) -> WorkshopSession:
         """Open a new workshop session anchored at the given base state.
 
@@ -104,6 +110,7 @@ class ErgasterionSessionManager:
             current_layout_dto=initial_layout_dto,
             base_source=base_source,
             base_source_uod_id=base_source_uod_id,
+            style_name=style_name,
         )
         self._sessions[session_id] = session
         return session

@@ -303,6 +303,15 @@
             <label>Base context</label>
             <input type="text" id="base-source-display" readonly />
           </div>
+          <div class="field">
+            <label>Draw in style</label>
+            <select id="style-select">
+              <option value="">Dau (default)</option>
+              <option value="dau-compliant@1.0">Dau — mathematical</option>
+              <option value="peirce-authentic@1.0">Peirce — handwritten</option>
+              <option value="sowa-compliant@1.0">Sowa — conceptual graph</option>
+            </select>
+          </div>
           <button class="action danger" id="btn-discard">
             Discard draft (forget chain)
           </button>
@@ -792,6 +801,26 @@
       }
 
       // ---- wiring ----
+
+      // Style selector — re-render the current state in the chosen style.
+      // Composition is style-independent; this changes only the drawing.
+      const styleSelect = document.getElementById('style-select');
+      if (styleSelect) {
+        styleSelect.addEventListener('change', async () => {
+          if (!currentSessionId) return;
+          const q = styleSelect.value ? ('?style=' + encodeURIComponent(styleSelect.value)) : '';
+          setStatus('Re-rendering in ' + (styleSelect.value || 'default') + '…');
+          try {
+            const res = await fetch('/ergasterion/sessions/' + currentSessionId + q);
+            const body = await res.json();
+            if (!body.success) { setStatus('Style render failed: ' + (body.error && body.error.message), 'error'); return; }
+            renderSvg(body.data.svg);
+            if (window.LinearFormPanel) window.LinearFormPanel.render(canvasEl, body.data.linear_forms);
+            renderChain(body.data.chain);
+            setStatus('Drawing in ' + (styleSelect.value || 'Dau default') + '.', 'success');
+          } catch (e) { setStatus('Network error: ' + e.message, 'error'); }
+        });
+      }
 
       btnStartEmpty.addEventListener('click', () => openSession('empty_sheet'));
       btnApply.addEventListener('click', applyRule);

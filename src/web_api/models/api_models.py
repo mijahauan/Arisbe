@@ -56,6 +56,7 @@ class ErgasterionOpenRequest(BaseModel):
     """
 
     base_source: str
+    style_name: Optional[str] = None
 
 
 class ErgasterionApplyRequest(BaseModel):
@@ -73,6 +74,23 @@ class ErgasterionApplyRequest(BaseModel):
     rule: str
     parameters: Dict[str, Any]
     user_annotation: Optional[str] = None
+
+
+class ExportRequest(BaseModel):
+    """Export an EGI in a chosen format and style.
+
+    The source is either a corpus UoD (``uod_id``) or an inline linear
+    form (``text`` + ``notation``).  ``format`` is one of the keys from
+    ``GET /export/formats``; ``style_name`` selects the visual style for
+    drawn formats (svg / tikz / png / pdf), defaulting to dau-compliant.
+    """
+
+    format: str
+    uod_id: Optional[str] = None
+    text: Optional[str] = None
+    notation: str = "egif"
+    style_name: Optional[str] = None
+    standalone: bool = True
 
 
 class ImportCheckRequest(BaseModel):

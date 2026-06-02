@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-02 (Import doorway: admit linear forms at low warrant)
+**Last Updated**: 2026-06-02 (Export arc + style keystone + Ergasterion-in-style)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -229,6 +229,38 @@ No promotion gate; no logical/Z3 check (truth isn't ours at admission).
 UI language, *not* a first-class field — that would touch the protected
 UoD model and is a deliberate later change. Warrant rises only through
 Agon (withstanding challenge) and can fall.
+
+### Export arc + style (the outer loop closed, 2026-06-02)
+
+World → Organon → world is now complete. Style is treated as a **projection
+choice**, per `docs/MANIFEST_AND_MEANING.md`: three manifests (Dau / Peirce
+/ Sowa), one meaning, each §3.3-attested.
+- **Style keystone** — `layout_service.generate_layout(style_name=…)` makes
+  the visual style selectable through the render path (default unchanged).
+  `GET /styles` lists them. Unlocks export, view-in-style, draw-in-style.
+- **Export** — `web_api/services/export_service.py` + `routes/export.py`
+  (`/export`, `/export/formats`): EGIF/CGIF/CLIF, styled **SVG**, portable
+  **TikZ** (`tikz_export.py`, mirrors the SVG renderer's labels/parity),
+  **PNG**/**PDF** via `rsvg-convert` (runtime-guarded; reports cleanly if
+  absent). Source = a corpus UoD or inline linear form. Organon detail has
+  an export panel (style + format → preview/copy/download).
+- **Ergasterion render-in-style** — the workshop draws in a chosen style
+  (`?style=` on the session; remembered); composition stays
+  style-independent. First step of the bidirectional vision.
+- Tests: `tests/test_styles.py` (4), `tests/test_export_routes.py` (12).
+
+**Still ahead on this arc:**
+- **Stage 3 — authentic Peirce LaTeX**: `egpeirce.sty` is *structural*
+  (nested `\cut`/`\li`/`\hk` + built-in bridge-ligature macros, PSTricks),
+  so its exporter is **NaturalLayout-driven**, not DTO-geometric — the deep
+  payoff of "style connects to the natural layout plan". Peirce currently
+  exports as a portable-TikZ approximation; the authentic egpeirce emitter
+  (+ optional `pdflatex` compile) is the next step. `egpeirce.sty.txt` and
+  `Egpeirce Documentation.pdf` are in `docs/references/`.
+- **Stage 5 — drawing-first editor** (separate, larger arc): a structured
+  drawing surface where placing cuts/spots/lines builds a live EGI rendered
+  in a chosen style — the honest "copy a Peirce drawing → EGI". (Image→EGI
+  recognition is out of scope; the Import doorway is today's bridge.)
 
 3. **Optional/parallel:** "adopt this import as M / send to Agon as G"
    (the warrant-raising acts that close the Import↔Agon loop); browser

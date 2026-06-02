@@ -187,6 +187,29 @@
       <header id="organon-detail-header">
         <h2 id="organon-detail-title">Select a UoD from the archive</h2>
         <div class="detail-meta" id="organon-detail-meta"></div>
+        <details id="organon-export" style="display:none; margin-top:8px; font-size:12px;">
+          <summary style="cursor:pointer; color:var(--sidebar-accent); font-weight:600;">Export ▾</summary>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+            <label style="font-size:10px; color:#6c7086;">Style</label>
+            <select id="export-style">
+              <option value="">Dau (default)</option>
+              <option value="dau-compliant@1.0">Dau — mathematical</option>
+              <option value="peirce-authentic@1.0">Peirce — handwritten</option>
+              <option value="sowa-compliant@1.0">Sowa — conceptual graph</option>
+            </select>
+            <label style="font-size:10px; color:#6c7086;">Format</label>
+            <select id="export-format"></select>
+            <button id="export-go" style="padding:4px 10px; cursor:pointer;">Export</button>
+            <span id="export-status" style="font-size:10px; color:#6c7086;"></span>
+          </div>
+          <div id="export-output" style="display:none; margin-top:8px;">
+            <textarea id="export-text" readonly style="width:100%; min-height:70px; font-family:ui-monospace,Menlo,monospace; font-size:11px;"></textarea>
+            <div style="margin-top:4px; display:flex; gap:8px;">
+              <button id="export-copy" style="padding:3px 8px; cursor:pointer;">Copy</button>
+              <a id="export-download" download style="font-size:11px;"></a>
+            </div>
+          </div>
+        </details>
       </header>
 
       <div id="organon-canvas">
@@ -214,6 +237,8 @@
       let allUods = [];
       let selectedUodId = null;
       let svgPanZoomInstance = null;
+      let exportUodId = null;
+      let exportFormats = [];
 
       function setStatus(msg, isError) {
         statusEl.textContent = msg;
@@ -371,6 +396,13 @@
         }
         metaEl.innerHTML = parts.join(' ');
 
+        // Reveal the export panel for the loaded UoD.
+        exportUodId = data.uod_id;
+        const exportPanel = document.getElementById('organon-export');
+        if (exportPanel) exportPanel.style.display = 'block';
+        const exOut = document.getElementById('export-output');
+        if (exOut) exOut.style.display = 'none';
+
         if (svgPanZoomInstance) {
           try { svgPanZoomInstance.destroy(); } catch (_) {}
           svgPanZoomInstance = null;
@@ -395,7 +427,87 @@
         }
       }
 
+      // ---- Export ----
+      function b64ToBlob(b64, mime) {
+        const bytes = atob(b64);
+        const arr = new Uint8Array(bytes.length);
+        for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+        return new Blob([arr], { type: mime });
+      }
+
+      async function loadExportFormats() {
+        try {
+          const body = await fetch('/export/formats').then((r) => r.json());
+          if (!body.success) return;
+          exportFormats = body.data;
+          const sel = document.getElementById('export-format');
+          sel.innerHTML = '';
+          exportFormats.forEach((f) => {
+            const o = document.createElement('option');
+            o.value = f.format;
+            o.textContent = f.label + (f.available ? '' : ' (unavailable)');
+            o.disabled = !f.available;
+            sel.appendChild(o);
+          });
+        } catch (_) {}
+      }
+
+      async function doExport() {
+        if (!exportUodId) return;
+        const fmt = document.getElementById('export-format').value;
+        const style = document.getElementById('export-style').value;
+        const exStatus = document.getElementById('export-status');
+        exStatus.textContent = 'Exporting ' + fmt + '…';
+        try {
+          const body = await fetch('/export', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uod_id: exportUodId, format: fmt, style_name: style || null }),
+          }).then((r) => r.json());
+          if (!body.success) { exStatus.textContent = 'Failed: ' + (body.error && body.error.message); return; }
+          const a = body.data;
+          const dl = document.getElementById('export-download');
+          const out = document.getElementById('export-output');
+          const txt = document.getElementById('export-text');
+          if (a.is_binary) {
+            const blob = b64ToBlob(a.content_base64, a.media_type);
+            dl.href = URL.createObjectURL(blob);
+            dl.download = a.filename;
+            dl.textContent = '⤓ download ' + a.filename;
+            out.style.display = 'block';
+            txt.style.display = 'none';
+            document.getElementById('export-copy').style.display = 'none';
+          } else {
+            txt.style.display = 'block';
+            txt.value = a.content;
+            document.getElementById('export-copy').style.display = 'inline-block';
+            const blob = new Blob([a.content], { type: a.media_type });
+            dl.href = URL.createObjectURL(blob);
+            dl.download = a.filename;
+            dl.textContent = '⤓ download ' + a.filename;
+            out.style.display = 'block';
+            // SVG: also refresh the canvas preview in the chosen style.
+            if (fmt === 'svg') {
+              canvasEl.innerHTML = a.content;
+              const svgEl = canvasEl.querySelector('svg');
+              if (svgEl && window.svgPanZoom) {
+                svgEl.setAttribute('width', '100%'); svgEl.setAttribute('height', '100%');
+                window.svgPanZoom(svgEl, { zoomEnabled: true, controlIconsEnabled: false, fit: true, center: true, minZoom: 0.1, maxZoom: 20 });
+              }
+            }
+          }
+          exStatus.textContent = 'Exported ' + a.filename + '.';
+        } catch (e) { exStatus.textContent = 'Network error: ' + e.message; }
+      }
+
+      document.getElementById('export-go').addEventListener('click', doExport);
+      document.getElementById('export-copy').addEventListener('click', function () {
+        const txt = document.getElementById('export-text');
+        if (navigator.clipboard) navigator.clipboard.writeText(txt.value);
+      });
+
       filterEl.addEventListener('input', applyFilter);
+      loadExportFormats();
       loadCorpus();
     })();
   </script>
