@@ -469,13 +469,32 @@ workshop.
      soundness, and §3.3 attests at every state (ligatures crossing cuts
      included). Visually confirmed in Peirce style (the shared line crosses the
      wobbled ovals; one line, so no bridge — correctly).
-   - **Still open:** the navigation/`describe` introspection isn't yet wired to
-     an **HTTP endpoint** (dogfood finding #1 for the Ergasterion/Agon UI);
-     `IT+`'s "All source elements must be in the same area" message is still
-     confusing for a caller passing a full closed set. More exemplars (a longer
-     Beta derivation; a graph with genuinely *crossing* distinct lines to
-     exercise the Tier-3c bridge in a real proof) are cheap now that the
-     authoring layer exists.
+   - **✅ HTTP introspection DONE (2026-06-03).** The content layer is now
+     served, fully closing dogfood finding #1 (select-by-meaning over HTTP):
+     `egi_introspection` (already carrying area/polarity, wired into the
+     Ergasterion + Agon session payloads) now also exposes each edge's
+     `relation` / `arity` / `incident_vertices` (ν order) and each vertex's
+     `label`, drawn from `eg_navigation`. A standalone read-only **`POST
+     /introspect`** (egif or `uod_id`; mode-independent like `/rules`) makes it
+     reachable for any graph without a session — so a client can resolve "the
+     cut holding P" or detect "the two lines that cross" (shared vertices in
+     swapped ν order) entirely from structure. `tests/test_introspection_and_rules.py`
+     (+5). (Finding #2, rule-requirement discovery, was already `GET /rules`.)
+   - **✅ Crossing-lines exemplar DONE (2026-06-03).** `tools/build_beta_converse_chain.py`
+     seeds `beta_converse_mp` — converse modus ponens
+     `R(x,y), ∀(R(x,y)→S(y,x)) ⊢ R(x,y)∧S(y,x)` (two steps IT-, DC-). The
+     argument swap makes the two lines **cross**, so it is the first corpus
+     proof whose Peirce drawing draws the **Tier-3c bridge** (§3.0's worked
+     example). `tests/test_beta_converse_proof.py` (+6) asserts the conclusion
+     has ≥1 ligature crossing and that Peirce emits `<g id="bridges">` while Dau
+     does not; visually confirmed (the over-line hops the under-line at the
+     crossing).
+   - **Still open:** the `IT+` "All source elements must be in the same area"
+     message is still confusing for a caller passing a full closed set (cosmetic
+     engine-message fix). The introspection content is served but no web UI yet
+     *consumes* it for click-to-select (the on-canvas selection arc). More/longer
+     derivations remain cheap now that the authoring layer + introspection
+     exist.
 2. **Agon web arena** — informed by a *lived* promotion boundary, not a
    merely correct one. The fuller notion of regime-2 "asserted" (earned by
    withstanding challenge, not only by §3.3 attestation) is the design

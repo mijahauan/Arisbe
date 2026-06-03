@@ -9,14 +9,20 @@ area* each element lives in and that area's *polarity* (recto/verso).
 On-canvas the picture shows it; over HTTP it had to be inferred by
 bounds-containment.  Agon (the selection-heavy arena) needs this most.
 
-This helper exposes the projection-independent facts — area membership
-and polarity — that the client otherwise reconstructs by guesswork.
-It reads only public structure:
+This helper exposes the projection-independent facts a selection-driven
+client otherwise reconstructs by guesswork — in two layers:
 
-  * ``presentation_ops.element_area`` / ``cut_parents`` — the area-tree
-    (the single source of truth shared with layout/attestation);
-  * ``egi.area_polarity`` — canonical polarity + nesting depth (O(1)
-    via the hierarchical index).
+  * **where** — area membership + polarity (the original gap):
+    ``presentation_ops.element_area`` / ``cut_parents`` (the area-tree,
+    shared with layout/attestation) and ``egi.area_polarity`` (canonical
+    polarity + nesting depth).
+  * **what** — the *content* a client needs to name an element by meaning
+    rather than by ephemeral id: each edge's ``relation`` name, ``arity``,
+    and ``incident_vertices`` (the ν tuple, in argument order), and each
+    vertex's ``label``. This is the HTTP face of ``eg_navigation`` (the
+    content-addressable selection layer); together with the *where* layer
+    it lets a client resolve "the cut holding P", "the line carrying both
+    P and Q", "the two lines that cross" without reading pixels.
 
 Purely additive: it derives from the EGI, never mutates it, and makes
 no claim about correspondence (that is §3.3's job at the render/corpus
@@ -31,6 +37,7 @@ _src_dir = Path(__file__).parent.parent.parent
 if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
+from eg_navigation import relation_of, vertices_of_edge
 from presentation_ops import cut_parents, element_area
 
 
@@ -55,6 +62,9 @@ def egi_introspection(egi) -> dict:
               "area":     <area_id>,       # the area that *contains* it
               "polarity": "positive" | "negative",   # polarity of that area
               "depth":    int,             # nesting depth of that area
+              # content layer (the "what"), by type:
+              # edge:   "relation", "arity", "incident_vertices" (ν order)
+              # vertex: "label"
             },
             ...                            # every vertex, edge, and cut
           },
@@ -102,10 +112,20 @@ def egi_introspection(egi) -> dict:
 
     for vertex in egi.V:
         area_id = elem_to_area.get(vertex.id)
-        elements[vertex.id] = {"type": "vertex", **_element_record(area_id)}
+        elements[vertex.id] = {
+            "type": "vertex",
+            "label": getattr(vertex, "label", None),
+            **_element_record(area_id),
+        }
     for edge in egi.E:
         area_id = elem_to_area.get(edge.id)
-        elements[edge.id] = {"type": "edge", **_element_record(area_id)}
+        elements[edge.id] = {
+            "type": "edge",
+            "relation": relation_of(egi, edge.id),
+            "arity": len(vertices_of_edge(egi, edge.id)),
+            "incident_vertices": list(vertices_of_edge(egi, edge.id)),
+            **_element_record(area_id),
+        }
     for cut in egi.Cut:
         # A cut-as-element sits in its parent area.
         area_id = parents.get(cut.id)

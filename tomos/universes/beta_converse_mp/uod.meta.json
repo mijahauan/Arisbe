@@ -1,0 +1,19 @@
+{
+  "uod_id": "beta_converse_mp",
+  "uod_type": "historical",
+  "name": "Converse Modus Ponens (crossing lines)",
+  "description": "R(x,y), \u2200x\u2200y(R(x,y)\u2192S(y,x)) \u22a2 R(x,y)\u2227S(y,x) \u2014 modus ponens over a binary relation whose consequent swaps the arguments, so the two lines of identity cross. The tomos's first exemplar that exercises the Peirce bridge-at-crossing mark (Tier 3c, \u00a73.0's worked example). Two steps (IT-, DC-) from the asserted premises; every step a real, attestable Dau-rule application.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

@@ -93,6 +93,20 @@ class ExportRequest(BaseModel):
     standalone: bool = True
 
 
+class IntrospectRequest(BaseModel):
+    """Introspect a graph's area/polarity + content for selection.
+
+    The source is either a corpus UoD (``uod_id``) or an inline linear
+    form (``text`` + ``notation``).  Read-only: returns the
+    ``egi_introspection`` block (areas + elements with relation/label/
+    incidence) and makes no §3.3 claim.
+    """
+
+    uod_id: Optional[str] = None
+    text: Optional[str] = None
+    notation: str = "egif"
+
+
 class ImportCheckRequest(BaseModel):
     """Inspect a linear form without persisting it.
 

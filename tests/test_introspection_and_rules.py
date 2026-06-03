@@ -29,13 +29,31 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from egif_parser_dau import parse_egif
+from tomos_service import TomosService
 from web_api import main as web_main
+from web_api.routes import introspect as introspect_route
 from web_api.services.introspection import egi_introspection
 
 
 @pytest.fixture
 def client():
     return TestClient(web_main.app)
+
+
+@pytest.fixture
+def isolated_tomos(tmp_path, monkeypatch):
+    """A throwaway corpus seeded with one real UoD, wired into the
+    /introspect route so the uod_id path is testable without touching the
+    real tomos."""
+    tmp = tmp_path / "tomos"
+    tmp.mkdir(parents=True)
+    fresh = TomosService(tmp)
+    real = TomosService(Path(__file__).parent.parent / "tomos")
+    uod_ids = [u["uod_id"] for u in real.list_uods()]
+    seed = next((c for c in ["theorem_praeclarum", "beta_modus_ponens"] if c in uod_ids), uod_ids[0])
+    fresh.save_uod(real.load_uod(seed))
+    monkeypatch.setattr(introspect_route, "_tomos_service", fresh)
+    return {"service": fresh, "seed_id": seed}
 
 
 # --------------------------------------------------------------------------- #
@@ -109,6 +127,93 @@ def test_introspection_covers_every_element():
     assert depths[0] == "positive"
     assert depths[1] == "negative"
     assert depths[2] == "positive"
+
+
+# --------------------------------------------------------------------------- #
+# Content layer — relation / label / incidence (the "what")                   #
+# --------------------------------------------------------------------------- #
+
+
+def test_introspection_exposes_edge_content():
+    """Each edge carries its relation name, arity, and incident vertices (ν
+    order) — so a client can name "the edge P" / select by relation."""
+    egi = parse_egif("(R *x *y) (S y x)")
+    intro = egi_introspection(egi)
+    edges = {
+        rec["relation"]: rec
+        for rec in intro["elements"].values()
+        if rec["type"] == "edge"
+    }
+    assert set(edges) == {"R", "S"}
+    assert edges["R"]["arity"] == 2
+    assert len(edges["R"]["incident_vertices"]) == 2
+    # R(x,y) and S(y,x) share the two lines in *swapped* order — the content
+    # a client uses to detect that the two lines cross (the bridge case),
+    # entirely from structure, no pixels.
+    assert edges["R"]["incident_vertices"] == edges["S"]["incident_vertices"][::-1]
+
+
+def test_introspection_exposes_vertex_label():
+    """A named line of identity reports its label; an anonymous one reports
+    ``None`` — the ``label`` key is always present so a client can rely on the
+    shape."""
+    named = egi_introspection(parse_egif('(P "Socrates")'))
+    named_v = [r for r in named["elements"].values() if r["type"] == "vertex"]
+    assert len(named_v) == 1 and named_v[0]["label"] == "Socrates"
+
+    anon = egi_introspection(parse_egif("(P *x)"))
+    anon_v = [r for r in anon["elements"].values() if r["type"] == "vertex"]
+    assert len(anon_v) == 1 and anon_v[0]["label"] is None  # key present, value None
+
+
+# --------------------------------------------------------------------------- #
+# /introspect endpoint                                                        #
+# --------------------------------------------------------------------------- #
+
+
+def test_introspect_endpoint_from_egif(client):
+    """``POST /introspect`` with inline text returns areas + content-bearing
+    elements for an arbitrary graph (no session needed)."""
+    resp = client.post(
+        "/introspect", json={"text": "(R *x *y) ~[ (S y x) ]"}
+    ).json()
+    assert resp["success"] is True
+    data = resp["data"]
+    assert "areas" in data and "elements" in data
+    rels = {
+        r["relation"] for r in data["elements"].values() if r["type"] == "edge"
+    }
+    assert rels == {"R", "S"}
+    # S sits inside the cut → negative; R on the sheet → positive.
+    by_rel = {
+        r["relation"]: r for r in data["elements"].values() if r["type"] == "edge"
+    }
+    assert by_rel["R"]["polarity"] == "positive"
+    assert by_rel["S"]["polarity"] == "negative"
+
+
+def test_introspect_endpoint_from_uod(client, isolated_tomos):
+    """The ``uod_id`` source path introspects a corpus UoD's current EGI."""
+    resp = client.post(
+        "/introspect", json={"uod_id": isolated_tomos["seed_id"]}
+    ).json()
+    assert resp["success"] is True
+    assert len(resp["data"]["elements"]) > 0
+
+
+def test_introspect_endpoint_error_paths(client):
+    """No source, unknown notation, parse error, and unknown UoD each refuse
+    cleanly (no 500)."""
+    assert client.post("/introspect", json={}).json()["error"]["code"] == "NO_SOURCE"
+    assert client.post(
+        "/introspect", json={"text": "(P)", "notation": "xyz"}
+    ).json()["error"]["code"] == "BAD_NOTATION"
+    assert client.post(
+        "/introspect", json={"text": "(P"}
+    ).json()["error"]["code"] == "PARSE_ERROR"
+    assert client.post(
+        "/introspect", json={"uod_id": "does-not-exist"}
+    ).json()["error"]["code"] == "UOD_NOT_FOUND"
 
 
 # --------------------------------------------------------------------------- #
