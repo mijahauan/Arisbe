@@ -17,6 +17,7 @@ SVG manifests of a graph agree.
 
 from typing import Optional
 
+import render_geometry as rg
 from egi_core_dau import RelationalGraphWithCuts
 from layout_dto import LayoutDTO
 
@@ -74,6 +75,13 @@ def export_tikz(
     shade = getattr(style, "alternating_shading_enabled", True)
     v_mode = getattr(style, "vertex_rendering_mode", "dot_and_label")
     font_pt = getattr(style, "font_size", 11)
+    # Hand-drawn line of identity (Peirce): organic curve + deterministic
+    # waver, computed by the same shared "hand" the SVG renderer uses so the
+    # two manifests agree.  Dau (orthogonal) and Sowa (manhattan) declare
+    # neither, so their ligatures stay straight `--` and byte-identical.
+    lig_routing = raw.get("ligature", {}).get("routing_mode", "orthogonal")
+    lig_wobble = float(raw.get("ligature", {}).get("hand_drawn_variation", 0.0))
+    lig_crossing_marks = raw.get("ligature", {}).get("crossing_marks", "none")
 
     depths = _cut_depths(egi)
     lines = []
@@ -102,11 +110,52 @@ def export_tikz(
             )
 
     # --- ligatures ---
+    # Mirror simple_svg_renderer: a non-zero wobble first nudges the interior
+    # points off the polyline; an organic/curved routing (or any wobble) then
+    # draws a smooth Catmull-Rom curve; otherwise Dau's straight segments.
+    curved = lig_routing in ("organic", "natural", "curved") or lig_wobble > 0
     for lig in dto.ligature_paths:
         if len(lig.points) < 2:
             continue
-        pts = " -- ".join(f"({p.x:.1f},{p.y:.1f})" for p in lig.points)
-        lines.append(f"  \\draw[line width={lig_lw}pt] {pts};")
+        pts = lig.points
+        if lig_wobble > 0:
+            seed = f"{lig.predicate_id}|{lig.vertex_id}|{lig.port_index}"
+            pts = rg.hand_drawn_points(pts, lig_wobble * 2.0, seed)
+        if curved and len(pts) >= 3:
+            coords = [(p.x, p.y) for p in pts]
+            path = f"({coords[0][0]:.1f},{coords[0][1]:.1f})"
+            for c1, c2, p2 in rg.catmull_rom_segments(coords):
+                path += (f" .. controls ({c1[0]:.1f},{c1[1]:.1f}) and "
+                         f"({c2[0]:.1f},{c2[1]:.1f}) .. ({p2[0]:.1f},{p2[1]:.1f})")
+            lines.append(f"  \\draw[line width={lig_lw}pt] {path};")
+        else:
+            seg = " -- ".join(f"({p.x:.1f},{p.y:.1f})" for p in pts)
+            lines.append(f"  \\draw[line width={lig_lw}pt] {seg};")
+
+    # --- bridge marks (Peirce's hop) at ligature crossings ---
+    # Same detection + geometry as the SVG renderer; convention-gated, so
+    # styles that don't declare "bridges" emit nothing here (byte-identical).
+    if lig_crossing_marks == "bridges":
+        radius = max(6.0, lig_lw * 2.5)
+        for cr in rg.ligature_crossings(dto.ligature_paths):
+            br = rg.bridge_path(cr, radius)
+            # 1. erase the over-line's straight passage through the crossing
+            lines.append(
+                f"  \\draw[white,line width={lig_lw + 1.0}pt] "
+                f"({br.a[0]:.1f},{br.a[1]:.1f}) -- ({br.b[0]:.1f},{br.b[1]:.1f});"
+            )
+            # 2. restore the under-line straight through the crossing
+            lines.append(
+                f"  \\draw[line width={lig_lw}pt] "
+                f"({br.under_a[0]:.1f},{br.under_a[1]:.1f}) -- "
+                f"({br.under_b[0]:.1f},{br.under_b[1]:.1f});"
+            )
+            # 3. the hop arc (the over-line lifting over)
+            lines.append(
+                f"  \\draw[line width={lig_lw}pt] ({br.a[0]:.1f},{br.a[1]:.1f}) "
+                f".. controls ({br.c1[0]:.1f},{br.c1[1]:.1f}) and "
+                f"({br.c2[0]:.1f},{br.c2[1]:.1f}) .. ({br.b[0]:.1f},{br.b[1]:.1f});"
+            )
 
     # --- vertices ---
     show_dot = v_mode in ("dot_only", "dot_and_label")

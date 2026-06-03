@@ -170,3 +170,120 @@ def test_smooth_path_curves_multipoint_ligatures():
     assert " C " in three  # cubic curve segments
     two = SimpleSVGRenderer._smooth_path([P(0, 0), P(10, 10)], 0, 0)
     assert " C " not in two and " L " in two
+
+
+# --------------------------------------------------------------------------
+# Tier 3b — TikZ parity (curved + wobbled lines of identity)
+# --------------------------------------------------------------------------
+
+# Two relations that swap arguments — two distinct lines of identity (x, y)
+# whose projections cross.  The Tier-3c bridge fixture.
+_CROSSING = "(R *x *y) (S y x)"
+
+
+def _tikz(egi, style_name):
+    from layout_dto import LayoutDTO  # noqa: F401  (import sanity)
+    from web_api.services.tikz_export import export_tikz
+    dto, _svg = generate_layout(egi, style_name=style_name)
+    return export_tikz(dto, egi, standalone=False, style=dto.style)
+
+
+def _multipoint_dto(style):
+    """A minimal DTO carrying one *3-point* line of identity — enough to
+    exercise the curve/waver, which only engages for ≥3 points (a real
+    ELK route that detours around a cut). No vertices/predicates, so the
+    renderers' label loops stay inert and `egi` is untouched."""
+    from layout_dto import BoundingBox, LayoutDTO, LigaturePath, Point
+    lig = LigaturePath("p1", "v1", (Point(0, 0), Point(20, 30), Point(50, 0)), 0)
+    return LayoutDTO(
+        vertex_positions={}, predicate_positions={}, cut_bounds={},
+        ligature_paths=[lig], area_hierarchy={},
+        viewport_bounds=BoundingBox(0, 0, 50, 30), sheet_id="sheet", style=style,
+    )
+
+
+def test_tikz_curves_multipoint_ligatures_mirroring_svg():
+    """Tier 3b: a multi-point line of identity is drawn as a flowing Bézier
+    curve in TikZ (`controls`) when the style routes organically, and as
+    straight `--` segments under Dau's orthogonal routing. The same input
+    fed to the SVG renderer curves under Peirce and stays straight under Dau —
+    the two renderers share one `render_geometry` hand."""
+    from style_loader import StyleLoader
+    from web_api.services.tikz_export import export_tikz
+    from simple_svg_renderer import SimpleSVGRenderer
+    peirce = StyleLoader().load_style("peirce-authentic@1.0")
+    dau = StyleLoader().load_style("dau-compliant@1.0")
+    egi = parse_egif("(R *x)")  # unused by the label loops; satisfies the signature
+
+    tikz_p = export_tikz(_multipoint_dto(peirce), egi, standalone=False, style=peirce)
+    tikz_d = export_tikz(_multipoint_dto(dau), egi, standalone=False, style=dau)
+    assert "controls" in tikz_p          # flowing line of identity
+    assert "controls" not in tikz_d and "--" in tikz_d  # Dau stays straight
+
+    svg_p = SimpleSVGRenderer().render_to_svg(_multipoint_dto(peirce), "t", "", egi)
+    svg_d = SimpleSVGRenderer().render_to_svg(_multipoint_dto(dau), "t", "", egi)
+    assert " C " in svg_p                 # SVG curves under the same style…
+    assert " C " not in svg_d             # …and stays straight under Dau
+
+
+def test_tikz_ligature_hand_is_deterministic():
+    """The TikZ 'hand' (curve + waver + bridges) is reproducible — same DTO
+    renders byte-identically (invariant L1, hash-seeded not salted)."""
+    egi = parse_egif(_CROSSING)
+    assert _tikz(egi, "peirce-authentic@1.0") == _tikz(egi, "peirce-authentic@1.0")
+
+
+# --------------------------------------------------------------------------
+# Tier 3c — bridge-at-crossing marks
+# --------------------------------------------------------------------------
+
+def test_ligature_crossings_finds_distinct_line_crossings_only():
+    """`render_geometry.ligature_crossings` finds a proper crossing of two
+    *distinct* lines of identity, but never reports paths that share a vertex
+    (one line of identity meeting itself is not a crossing to bridge)."""
+    import render_geometry as rg
+    # A single line of identity (Human-x, Mortal-x share vertex x): no bridge.
+    egi1 = parse_egif("(Human *x) ~[ (Mortal x) ]")
+    dto1, _ = generate_layout(egi1, style_name="peirce-authentic@1.0")
+    assert rg.ligature_crossings(dto1.ligature_paths) == []
+    # Two crossing lines of identity (x and y, swapped): exactly one hop.
+    egi2 = parse_egif(_CROSSING)
+    dto2, _ = generate_layout(egi2, style_name="peirce-authentic@1.0")
+    assert len(rg.ligature_crossings(dto2.ligature_paths)) >= 1
+
+
+def test_bridges_drawn_for_crossings_and_scoped_to_the_convention():
+    """Tier 3c: a graph with crossing lines of identity draws Peirce's hop in
+    both SVG (a `<g id="bridges">` group) and TikZ (a white erase + hop). Dau
+    and Sowa declare `crossing_marks: none`, so neither emits a bridge — and a
+    single-identity graph emits none even under Peirce."""
+    egi = parse_egif(_CROSSING)
+    _d, peirce_svg = generate_layout(egi, style_name="peirce-authentic@1.0")
+    assert 'id="bridges"' in peirce_svg
+    peirce_tikz = _tikz(egi, "peirce-authentic@1.0")
+    assert "white" in peirce_tikz  # the hop's erase stroke
+    # Scoped: Dau/Sowa never bridge.
+    _dd, dau_svg = generate_layout(egi, style_name="dau-compliant@1.0")
+    _ds, sowa_svg = generate_layout(egi, style_name="sowa-compliant@1.0")
+    assert 'id="bridges"' not in dau_svg and 'id="bridges"' not in sowa_svg
+    # No crossing → no bridge group even for Peirce.
+    no_cross = parse_egif("(Human *x) ~[ (Mortal x) ]")
+    _n, peirce_nocross = generate_layout(no_cross, style_name="peirce-authentic@1.0")
+    assert 'id="bridges"' not in peirce_nocross
+
+
+def test_bridges_are_stroke_only_and_still_attest():
+    """The hop is stroke-only and additive. `generate_layout` runs §3.3
+    attestation on every styled render *before* the renderer draws anything,
+    so a crossing graph reaching here in Peirce without raising is the proof
+    that the bridge marks don't perturb the geometry §3.3 reads. The hop is
+    also additive: the full ligatures layer survives alongside the bridges
+    group (the lines are not replaced, only hopped over)."""
+    egi = parse_egif(_CROSSING)
+    _d, peirce_svg = generate_layout(egi, style_name="peirce-authentic@1.0")  # raises on §3.3 failure
+    assert 'id="ligatures"' in peirce_svg and 'id="bridges"' in peirce_svg
+    # The bridge convention is read only by the renderer, never the layout —
+    # so the served DTO is the plain projection, attested as-is.
+    from correspondence_attestation import attest_correspondence
+    dto, _ = generate_layout(egi, style_name="peirce-authentic@1.0")
+    attest_correspondence(egi, dto)  # explicit: the DTO itself is faithful

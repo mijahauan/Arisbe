@@ -304,19 +304,43 @@ identity wavers (interior points nudged perpendicular). Both are:
   rect/ellipse/line, **byte-identical**. Only Peirce declares wobble.
 - Tests: `tests/test_styles.py` (+2 — determinism + scoping, `_jitter` bounds).
 
-**Still open on the Peirce arc:**
-- **Tier 3b — TikZ parity.** `tikz_export.py` already draws oval cuts (and
-  inherits Tier-2's grown ovals via the DTO), but its ligatures are straight
-  `--` segments. Mirror the SVG path: curved (organic) + wobbled lines of
-  identity in TikZ.
-- **Tier 3c — bridge-at-crossing marks.** Promote
-  `Conventions.ligature_crossing_marks` from `"none"` to a real `"bridges"`
-  value: detect where two ligatures cross in the 2-D projection and draw
-  Peirce's hop/bridge (the §3.3 "convention compliance" row). Needs 2-D
-  crossing detection; the larger, more interesting piece. (See gate-1 framing
-  in `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` §3.0 — the bridge is exactly the
-  convention that *recovers a distinction a 2-D projection would otherwise
-  collapse*.)
+### Peirce visual fidelity — Tier 3b + 3c (TikZ parity, bridge marks, 2026-06-03)
+
+The SVG and TikZ renderers now share one hand. The hand-drawn geometry —
+hash-seeded `jitter`, the perpendicular `hand_drawn_points` waver, the
+Catmull-Rom `catmull_rom_segments` curve, plus crossing detection and bridge
+geometry — lives in a new coordinate-only module `src/render_geometry.py`;
+`simple_svg_renderer` delegates to it (its old `_jitter` / `_hand_drawn_points`
+/ `_smooth_path` are thin wrappers, output unchanged) and `tikz_export` imports
+the same functions, so the two manifests of a graph agree by construction.
+
+- **Tier 3b — TikZ parity.** A line of identity in TikZ is now an organic
+  Catmull-Rom curve (`.. controls .. ..`) when the style routes organically,
+  and wavers when the style declares `ligature.hand_drawn_variation` — the same
+  seed (`predicate|vertex|port`) and amplitude as the SVG path, so the curves
+  coincide. (In practice ELK routes most lines as 2 points, which both
+  renderers draw straight; the curve/waver engages on real ≥3-point detours.)
+  Dau (orthogonal) and Sowa (manhattan) declare neither → straight `--`,
+  byte-identical to before.
+- **Tier 3c — bridge-at-crossing marks.** `Conventions.ligature_crossing_marks`
+  is now **honored**: a style declaring `ligature.crossing_marks: "bridges"`
+  (Peirce does) draws Peirce's hop where two **distinct** lines of identity
+  (different `vertex_id` — paths sharing a vertex are one W-class, not a
+  crossing) cross in the 2-D projection. The over-line (deterministic key
+  order) lifts over via a Bézier arc; the under-line is restored straight
+  through. Detection runs on the authorized DTO polylines, and the hop is
+  **stroke-only** — it never touches the geometry §3.3 reads (which attests
+  before the renderer runs). This is §3.3's "convention compliance" row and
+  §3.0's worked example: the bridge recovers a distinction the projection would
+  otherwise collapse (the Dau render shows a plain ambiguous X; Peirce shows
+  the hop). Verified visually on `(R *x *y) (S y x)` (SVG→PNG and a
+  pdflatex-compiled TikZ).
+- Tests: `tests/test_styles.py` (+5 — TikZ curve mirrors SVG on a multi-point
+  line; deterministic TikZ hand; `ligature_crossings` finds only distinct-line
+  crossings; bridges drawn + scoped to the convention; stroke-only + still
+  attests). Known limitation (V1): the hop's gap is erased with white, so a
+  crossing *inside* an odd-polarity (gray-tinted) cut shows a faint white nick;
+  most distinct-line crossings sit on the open sheet.
 
 **Still ahead on this arc:**
 - **Stage 3 — authentic Peirce in TikZ (NOT egpeirce/PSTricks)**: the repo

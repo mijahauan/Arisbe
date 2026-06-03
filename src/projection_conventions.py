@@ -81,10 +81,19 @@ class Conventions:
     equality), not the router's."""
 
     ligature_crossing_marks: str = "none"
-    """Disambiguation of two ligatures crossing in the 2-D projection.
-    Currently unmarked (spec R6): the visual ambiguity is accepted and
-    the W-partition is recovered from the structural channel, not pixels.
-    Bridge marks (Peirce's own device) would be an alternative value."""
+    """Disambiguation of two distinct lines of identity crossing in the 2-D
+    projection. **Honored** (Tier 3c, 2026-06-03): the active value is
+    sourced from the style's ``ligature.crossing_marks``. Default ``"none"``
+    leaves crossings unmarked (spec R6 — the visual ambiguity is accepted and
+    the W-partition is recovered from the structural channel, not pixels);
+    ``"bridges"`` draws Peirce's own device, a hop where the over-line lifts
+    over the under-line. The renderers (``simple_svg_renderer``,
+    ``tikz_export``) detect crossings (``render_geometry.ligature_crossings``,
+    on the authorized DTO polylines) and draw the hop stroke-only — never
+    touching the DTO geometry §3.3 reads. This is the §3.3 "convention
+    compliance" row and §3.0's worked example: the bridge recovers a
+    distinction the projection would otherwise collapse (two distinct lines
+    sharing a point yet staying distinct)."""
 
     sibling_cut_ordering: str = "elk_emergent"
     """Left/right order of sibling cuts at the same depth — a pure

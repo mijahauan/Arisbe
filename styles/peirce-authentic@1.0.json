@@ -77,7 +77,8 @@
     "min_length": 15.0,
     "border_overlap": 2.0,
     "approach_margin": 6.0,
-    "hand_drawn_variation": 0.8
+    "hand_drawn_variation": 0.8,
+    "crossing_marks": "bridges"
   },
   
   "alternating_shading": {

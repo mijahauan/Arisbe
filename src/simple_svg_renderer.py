@@ -8,16 +8,13 @@ Author: Refactored for architectural consistency
 Date: 2025-10-12
 """
 
-import hashlib
 import math
 import xml.etree.ElementTree as ET
-from collections import namedtuple
 from typing import Optional
 
+import render_geometry as rg
 from layout_dto import LayoutDTO
 from egi_core_dau import RelationalGraphWithCuts
-
-_P = namedtuple("_P", "x y")
 
 
 class SimpleSVGRenderer:
@@ -74,6 +71,13 @@ class SimpleSVGRenderer:
         # Zero (Dau, Sowa) leaves a crisp ellipse/rect/line, byte-identical.
         cut_wobble = float(_raw.get("cut", {}).get("hand_drawn_variation", 0.0))
         lig_wobble = float(_raw.get("ligature", {}).get("hand_drawn_variation", 0.0))
+        # Conventions.ligature_crossing_marks: when a style declares
+        # "bridges" (Peirce's own device), two distinct lines of identity
+        # that cross in this 2-D projection get a hop where one lifts over
+        # the other — the §3.0 convention that recovers a distinction a
+        # projection would otherwise collapse.  Default "none" leaves
+        # crossings unmarked (Dau, Sowa), byte-identical to before.
+        lig_crossing_marks = _raw.get("ligature", {}).get("crossing_marks", "none")
         
         # Calculate SVG dimensions from viewport (less padding for better fit)
         svg_width = int(dto.viewport_bounds.width + 80)
@@ -239,7 +243,51 @@ class SimpleSVGRenderer:
                 "stroke-linecap": ligature_cap_style,
                 "fill": "none"
             })
-        
+
+        # ====================================================================
+        # Bridge marks (Peirce's hop) at ligature crossings — drawn on top of
+        # the ligatures so the over-line lifts cleanly over the under-line.
+        # Stroke-only and convention-gated: nothing here touches DTO geometry,
+        # and a style that doesn't declare "bridges" emits no <g id="bridges">.
+        # ====================================================================
+        crossings = rg.ligature_crossings(dto.ligature_paths) if lig_crossing_marks == "bridges" else []
+        if crossings:
+            bridges_group = ET.SubElement(svg, "g", {"id": "bridges"})
+            radius = max(6.0, style.ligature_line_width * 2.5)
+            for cr in crossings:
+                br = rg.bridge_path(cr, radius)
+                ax, ay = br.a[0] + offset_x, br.a[1] + offset_y
+                bx, by = br.b[0] + offset_x, br.b[1] + offset_y
+                # 1. erase the over-line's straight passage through the crossing
+                ET.SubElement(bridges_group, "line", {
+                    "x1": f"{ax:.2f}", "y1": f"{ay:.2f}",
+                    "x2": f"{bx:.2f}", "y2": f"{by:.2f}",
+                    "stroke": "#FFFFFF",
+                    "stroke-width": f"{style.ligature_line_width + 1.0}",
+                    "stroke-linecap": "round",
+                })
+                # 2. restore the under-line straight through the crossing
+                uax, uay = br.under_a[0] + offset_x, br.under_a[1] + offset_y
+                ubx, uby = br.under_b[0] + offset_x, br.under_b[1] + offset_y
+                ET.SubElement(bridges_group, "line", {
+                    "x1": f"{uax:.2f}", "y1": f"{uay:.2f}",
+                    "x2": f"{ubx:.2f}", "y2": f"{uby:.2f}",
+                    "stroke": ligature_color,
+                    "stroke-width": str(style.ligature_line_width),
+                    "stroke-linecap": "round",
+                })
+                # 3. the hop arc (the over-line lifting over)
+                c1x, c1y = br.c1[0] + offset_x, br.c1[1] + offset_y
+                c2x, c2y = br.c2[0] + offset_x, br.c2[1] + offset_y
+                ET.SubElement(bridges_group, "path", {
+                    "d": (f"M {ax:.2f} {ay:.2f} C {c1x:.2f} {c1y:.2f} "
+                          f"{c2x:.2f} {c2y:.2f} {bx:.2f} {by:.2f}"),
+                    "stroke": ligature_color,
+                    "stroke-width": str(style.ligature_line_width),
+                    "stroke-linecap": "round",
+                    "fill": "none",
+                })
+
         # ====================================================================
         # Render Vertices
         # ====================================================================
@@ -366,13 +414,10 @@ class SimpleSVGRenderer:
     @staticmethod
     def _smooth_path(points, offset_x: float, offset_y: float) -> str:
         """A smooth SVG path (Catmull-Rom → cubic Bézier) through the layout
-        points — Peirce's flowing line of identity.
-
-        The curve interpolates *every* layout point, so it stays close to the
-        straight polyline the layout authorized (no new cut crossings); it
-        only rounds the joints.  Falls back to a straight segment for < 3
-        points.
-        """
+        points — Peirce's flowing line of identity.  Delegates the control
+        points to ``render_geometry.catmull_rom_segments`` (the shared "hand"
+        the TikZ renderer uses too); falls back to a straight segment for < 3
+        points."""
         pts = [(p.x + offset_x, p.y + offset_y) for p in points]
         if len(pts) < 3:
             d = f"M {pts[0][0]:.2f} {pts[0][1]:.2f}"
@@ -380,48 +425,22 @@ class SimpleSVGRenderer:
                 d += f" L {x:.2f} {y:.2f}"
             return d
         d = f"M {pts[0][0]:.2f} {pts[0][1]:.2f}"
-        n = len(pts)
-        for i in range(n - 1):
-            p0 = pts[i - 1] if i > 0 else pts[0]
-            p1 = pts[i]
-            p2 = pts[i + 1]
-            p3 = pts[i + 2] if i + 2 < n else pts[-1]
-            # Catmull-Rom (tension 1/6) control points for this segment.
-            c1x = p1[0] + (p2[0] - p0[0]) / 6.0
-            c1y = p1[1] + (p2[1] - p0[1]) / 6.0
-            c2x = p2[0] - (p3[0] - p1[0]) / 6.0
-            c2y = p2[1] - (p3[1] - p1[1]) / 6.0
-            d += f" C {c1x:.2f} {c1y:.2f} {c2x:.2f} {c2y:.2f} {p2[0]:.2f} {p2[1]:.2f}"
+        for c1, c2, p2 in rg.catmull_rom_segments(pts):
+            d += f" C {c1[0]:.2f} {c1[1]:.2f} {c2[0]:.2f} {c2[1]:.2f} {p2[0]:.2f} {p2[1]:.2f}"
         return d
 
     @staticmethod
     def _jitter(seed: str, i: int) -> float:
-        """A deterministic pseudo-random value in [-1, 1] from (seed, i).
-
-        Uses a hash (not Python's salted ``hash``) so the same element wobbles
-        the same way on every render and across processes — the "hand" is
-        stable, and layout reproducibility (invariant L1) is preserved."""
-        h = hashlib.md5(f"{seed}|{i}".encode()).digest()
-        return (int.from_bytes(h[:4], "big") / 0xFFFFFFFF) * 2.0 - 1.0
+        """Deterministic pseudo-random value in [-1, 1] — see
+        ``render_geometry.jitter`` (the shared hash-seeded "hand")."""
+        return rg.jitter(seed, i)
 
     @classmethod
     def _hand_drawn_points(cls, points, amplitude: float, seed: str):
-        """Nudge each *interior* point perpendicular to the local direction by a
-        deterministic amount ≤ ``amplitude``.  Endpoints are untouched so the
-        line still meets its hook and vertex exactly."""
-        pts = list(points)
-        if len(pts) < 3 or amplitude <= 0:
-            return pts
-        out = [pts[0]]
-        for i in range(1, len(pts) - 1):
-            prev, cur, nxt = pts[i - 1], pts[i], pts[i + 1]
-            dx, dy = nxt.x - prev.x, nxt.y - prev.y
-            length = math.hypot(dx, dy) or 1.0
-            nx, ny = -dy / length, dx / length  # unit perpendicular
-            j = amplitude * cls._jitter(seed, i)
-            out.append(_P(cur.x + nx * j, cur.y + ny * j))
-        out.append(pts[-1])
-        return out
+        """Nudge each interior point perpendicular to the local direction by a
+        deterministic amount ≤ ``amplitude`` — see
+        ``render_geometry.hand_drawn_points`` (shared with the TikZ renderer)."""
+        return rg.hand_drawn_points(points, amplitude, seed)
 
     @classmethod
     def _wobbled_oval_path(
