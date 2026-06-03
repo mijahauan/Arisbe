@@ -418,17 +418,37 @@ workshop.
    This is the dogfood the plan always wanted, now with a concrete,
    motivating, *famous* target — and it doubles as the diachronic seed the
    Organon timeline and the Agon record both need.
-   - **Deliverable:** an authoring script (`tools/` or `tomos/`) that builds
-     the chain through the headless `RuleInteraction` protocol and saves it,
-     plus a test that loads it and replays each step (§3.3 attesting at every
-     transition — the chain-of-semiosis "every rule application is an
-     attestation event"). One or two more after it (a propositional
-     tautology, a Beta modus ponens) to cover Beta/lines-of-identity.
-   - **Expect friction** (memory `project-ergasterion-dogfood-findings`): no
-     area/polarity introspection, rule requirements not discoverable, §3.3
-     invisible until it fails, linear-only. Building Praeclarum step-by-step
-     is exactly what surfaces which of these to fix first — capture findings
-     as we go.
+   - **✅ Praeclarum DONE (2026-06-03).** `tools/build_praeclarum_chain.py`
+     builds the 7-step proof through the headless `RuleInteraction` protocol
+     (every step a *real* rule application, not a hand-authored state) and
+     seeds it into the corpus as `theorem_praeclarum` (category
+     `THEOREM_PROOF`, historical) via `save_uod_with_chain`. Sequence
+     **DC+, INS, IT+, INS, IT+, IT−, DC−** (Peirce 3i,1i,2i,1i,2i,2e,3e),
+     conclusion `~[ (P⊃R) (Q⊃S) ~[ ~[ (P)(Q) ~[(R)(S)] ] ] ]`.
+     `tests/test_praeclarum_proof.py` (+6) pins shape, conclusion (order-
+     insensitive structural signature), **per-step soundness** (each step
+     replays from its own `from_state` snapshot), §3.3 at every non-blank
+     state, and corpus round-trip. The engine accepted all seven sound moves
+     without complaint — the logic core is solid.
+   - **Dogfood findings** (update memory `project-ergasterion-dogfood-findings`):
+     (a) propositional atoms must be **capitalised** (`(P)`, not `(p)` —
+     lowercase is reserved for vertex labels), so the diagram's lowercase
+     p/q/r/s can't round-trip verbatim into linear form; (b) confirmed the big
+     one — **rule parameters are ephemeral element-ids**, so authoring needed
+     bespoke *structural* navigation (`_cut_with_edge` "the cut directly
+     containing edge P", etc.) to locate each selection. There is no
+     content-addressable / structural selection API; the helpers I wrote want
+     a shared home before the next proof. (c) `IT+` source wants the single
+     top element of one area (closure expands internally); passing the full
+     closed set trips a confusing "All source elements must be in the same
+     area". Net: the **logic** is solid; the **authoring ergonomics** (linear
+     naming + id-typed selections) are the gap.
+   - **Next exemplars:** a propositional tautology (already partly covered by
+     `test_logical_proof_exercises`) and a **Beta modus ponens** (lines of
+     identity) — the latter also exercises the bridge/wobble visual work on a
+     graph that actually has ligatures. Consider promoting the structural
+     navigation helpers into `src` first so each new proof isn't a fresh
+     hand-navigation.
 2. **Agon web arena** — informed by a *lived* promotion boundary, not a
    merely correct one. The fuller notion of regime-2 "asserted" (earned by
    withstanding challenge, not only by §3.3 attestation) is the design

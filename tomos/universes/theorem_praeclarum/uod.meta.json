@@ -1,0 +1,19 @@
+{
+  "uod_id": "theorem_praeclarum",
+  "uod_type": "historical",
+  "name": "Leibniz's Praeclarum Theorema",
+  "description": "((P\u2283R) \u2227 (Q\u2283S)) \u2283 ((P\u2227Q) \u2283 (R\u2227S)) \u2014 Sowa's 7-step Existential Graph proof from a blank sheet (docs/references/Peirce_Rules_of_Inference.pdf). The tomos's first canonical diachronic exemplar: every step a real, attestable Dau-rule application.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

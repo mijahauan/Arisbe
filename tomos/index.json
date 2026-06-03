@@ -228,7 +228,22 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/peirce_cp_4_394_man_mortal"
+    },
+    {
+      "uod_id": "theorem_praeclarum",
+      "name": "Leibniz's Praeclarum Theorema",
+      "category": "theorem_proof",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/theorem_praeclarum"
     }
   ],
-  "last_updated": "2025-10-22T04:56:08.086239"
+  "last_updated": "2026-06-03T12:52:02.129587"
 }
