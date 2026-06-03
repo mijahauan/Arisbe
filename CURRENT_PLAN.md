@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-03 (Peirce fidelity Tier 2 — oval cuts)
+**Last Updated**: 2026-06-03 (Peirce fidelity Tier 3b/3c — TikZ parity + bridge marks)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -403,14 +403,38 @@ workshop.
 
 ## After this
 
-1. **Dogfood** — compose and promote a real multi-step proof (e.g. a
-   propositional tautology or a Beta modus ponens) through the workshop;
-   record what the chain model gets right and where it chafes.
+1. **Dogfood by ingesting known proofs → the first diachronic exemplars.**
+   The UoD is *fundamentally diachronic* (an evolving reasoning process),
+   but today's tomos is almost all synchronic snapshots — only `practice_*`
+   UoDs carry a `history/`. Seed the corpus with **canonical worked proofs**
+   built as real `TransformationChain`s and persisted via
+   `save_uod_with_chain`. First target: **Leibniz's Praeclarum Theorema**,
+   `((p⊃r) ∧ (q⊃s)) ⊃ ((p∧q) ⊃ (r∧s))` — Sowa's showcase EG proof
+   (`docs/references/Peirce_Rules_of_Inference.pdf`): **7 steps from a blank
+   sheet** (vs. Principia's 43 steps from 5 axiom schemata). Pure Alpha, so
+   every step maps onto an existing Dau rule — Peirce's three pairs are our
+   six: insertion-in-negative → **INS**, erasure-in-positive → **ERA**,
+   iteration/deiteration → **IT+ / IT−**, double-cut in/out → **DC+ / DC−**.
+   This is the dogfood the plan always wanted, now with a concrete,
+   motivating, *famous* target — and it doubles as the diachronic seed the
+   Organon timeline and the Agon record both need.
+   - **Deliverable:** an authoring script (`tools/` or `tomos/`) that builds
+     the chain through the headless `RuleInteraction` protocol and saves it,
+     plus a test that loads it and replays each step (§3.3 attesting at every
+     transition — the chain-of-semiosis "every rule application is an
+     attestation event"). One or two more after it (a propositional
+     tautology, a Beta modus ponens) to cover Beta/lines-of-identity.
+   - **Expect friction** (memory `project-ergasterion-dogfood-findings`): no
+     area/polarity introspection, rule requirements not discoverable, §3.3
+     invisible until it fails, linear-only. Building Praeclarum step-by-step
+     is exactly what surfaces which of these to fix first — capture findings
+     as we go.
 2. **Agon web arena** — informed by a *lived* promotion boundary, not a
    merely correct one. The fuller notion of regime-2 "asserted" (earned by
    withstanding challenge, not only by §3.3 attestation) is the design
    target — see [docs/CHAIN_OF_SEMIOSIS.md](docs/CHAIN_OF_SEMIOSIS.md),
-   "Semiosis is dialogical."
+   "Semiosis is dialogical." The ingested proofs give Agon real records to
+   challenge.
 
 ---
 
