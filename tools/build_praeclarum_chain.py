@@ -8,13 +8,7 @@ Sowa's showcase EG proof (``docs/references/Peirce_Rules_of_Inference.pdf``)
 derives the theorem in **seven steps from a blank sheet** — versus the
 Principia's 43 steps from five axiom schemata. It is pure Alpha
 (propositional), so each of Peirce's three rule-pairs is one of Dau's six
-rules. Peirce's labels ↔ ours:
-
-    3i  double-cut insertion        → DC+
-    1i  insertion in a negative area → INS
-    2i  iteration                   → IT+
-    2e  deiteration                 → IT-
-    3e  double-cut erasure          → DC-
+rules. Peirce's labels ↔ ours: 3i→DC+, 1i→INS, 2i→IT+, 2e→IT-, 3e→DC-.
 
 The seven steps (Sowa's diagram, read left-to-right then the second row
 right-to-left):
@@ -27,45 +21,28 @@ right-to-left):
     6. IT-  deiterate the inner Q (a copy of the enclosing Q)
     7. DC-  erase the double cut around S
 
-Unlike ``tests/test_chain_persistence.py`` (which builds a *synthetic*
-chain to exercise the persistence shape), every step here is a **real**
-rule application through the headless ``RuleInteraction`` protocol — so the
-chain is a genuine Peircean reasoning episode: a sequence of sound,
-attestable sign-transitions (``docs/CHAIN_OF_SEMIOSIS.md``).
-
-This module is import-safe (no side effects). ``build_praeclarum_chain()``
-returns ``(TransformationChain, UniverseOfDiscourse)``; running it as a
-script saves the exemplar into the real tomos corpus.
+Every step is a *real* rule application through the authoring layer
+(``proof_authoring.ProofChain`` + ``eg_navigation``): selections are named by
+**structure** ("the cut holding P", "the inner cut") rather than by ephemeral
+id, and the chain bookkeeping is automatic. Contrast
+``tests/test_chain_persistence.py``, which hand-builds a *synthetic* chain to
+exercise the persistence shape. This module is import-safe (no side effects).
 
 A note on EGIF: propositional atoms are nullary relations and must be
-**capitalised** (``(P)``) — lowercase is reserved for vertex/variable
-labels. (First dogfood friction: the linear syntax forces a naming
-convention the diagram doesn't.)
+**capitalised** (``(P)``) — lowercase is reserved for vertex/variable labels.
 """
 
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+import eg_navigation as nav
 from egif_parser_dau import parse_egif
-from rule_interaction import (
-    begin_interaction,
-    advance_interaction,
-    apply_interaction,
-)
-from universe_of_discourse import (
-    UniverseOfDiscourse,
-    UoDCategory,
-    UoDMetadata,
-    UoDType,
-)
-
-# Imported lazily-by-name so the module stays importable even from contexts
-# that only need the builder (the chain types live in tomos_service).
-from tomos_service import ChainStep, TransformationChain
+from proof_authoring import ProofChain
+from tomos_service import TransformationChain
+from universe_of_discourse import UniverseOfDiscourse
 
 
 THEOREM_EGIF = (
@@ -78,198 +55,84 @@ consequent."""
 
 UOD_ID = "theorem_praeclarum"
 
-
-# --------------------------------------------------------------------------- #
-# Structural navigation + equality (order-insensitive)                        #
-# --------------------------------------------------------------------------- #
-
-def _cuts_in(egi, area) -> List[str]:
-    cut_ids = {c.id for c in egi.Cut}
-    return [e for e in egi.area.get(area, ()) if e in cut_ids]
-
-
-def _edges_in(egi, area, rel=None) -> List[str]:
-    edge_ids = {e.id for e in egi.E}
-    return [
-        e for e in egi.area.get(area, ())
-        if e in edge_ids and (rel is None or egi.rel.get(e) == rel)
-    ]
-
-
-def _cut_with_edge(egi, parent_area, rel):
-    """The cut directly inside ``parent_area`` that directly contains an edge
-    named ``rel`` — how we pick (P⊃R) vs (Q⊃S) vs the inner cut by content
-    rather than by ephemeral id."""
-    for c in _cuts_in(egi, parent_area):
-        if _edges_in(egi, c, rel):
-            return c
-    return None
-
-
-def area_signature(egi, area=None):
-    """An order-insensitive structural signature of an area subtree.
-
-    Two Alpha graphs are the same graph iff their sheet signatures are
-    equal — sibling order is a projection artifact, not logical content
-    (spec §5.3). Used to compare the engine's output against the target
-    theorem and to verify each replayed step without depending on element
-    ids or sibling order."""
-    if area is None:
-        area = egi.sheet
-    rels = sorted(egi.rel.get(e) for e in _edges_in(egi, area))
-    subcuts = sorted(area_signature(egi, c) for c in _cuts_in(egi, area))
-    return ("rels", tuple(rels), "cuts", tuple(subcuts))
+_ANTECEDENT = "~[ (P) ~[ (R) ] ] ~[ (Q) ~[ (S) ] ]"
 
 
 # --------------------------------------------------------------------------- #
-# Rule application through the interaction protocol                           #
+# Structural locators — each names an element by *what it is*, resolved fresh #
+# against whatever state the step is applied to (ids change every step).      #
 # --------------------------------------------------------------------------- #
 
-def apply_rule(rule_name, egi, *, selection=None, egif=None, target=None):
-    """Apply one Dau rule via the headless ``RuleInteraction`` protocol and
-    return the resulting EGI. Raises with the engine's own message on any
-    rejected step — so an unsound move fails loudly rather than silently
-    producing a wrong graph."""
-    state = begin_interaction(rule_name, egi)
-    if rule_name == "INS":
-        r1 = advance_interaction(state, egif)
-        assert r1.valid, f"INS content rejected: {r1.message}"
-        r2 = advance_interaction(state, target)
-        assert r2.valid, f"INS target rejected: {r2.message}"
-    elif rule_name == "IT+":
-        r1 = advance_interaction(state, selection)
-        assert r1.valid, f"IT+ source rejected: {r1.message}"
-        r2 = advance_interaction(state, target)
-        assert r2.valid, f"IT+ destination rejected: {r2.message}"
-    else:  # DC+, DC-, IT- (and ERA) — single selection step
-        r = advance_interaction(state, selection or [])
-        assert r.valid, f"{rule_name} rejected: {r.message}"
-    result = apply_interaction(state)
-    assert result.success, f"{rule_name} apply failed: {result.message}"
-    return result.result_egi
+def _outer(g):
+    """The main implication's outer cut (the only cut on the sheet)."""
+    return nav.child_cuts(g, g.sheet)[0]
 
 
-def apply_step(egi, params: Dict):
-    """Re-apply one chain step to ``egi`` from its persisted ``parameters``.
+def _implication(rel):
+    """A locator for the antecedent conjunct whose antecedent is ``rel`` —
+    (P⊃R) for "P", (Q⊃S) for "Q"."""
+    return lambda g: nav.cut_holding_relation(g, _outer(g), rel)
 
-    The selection / target ids in ``parameters`` index into the step's
-    ``from_state`` snapshot, so replay is faithful when ``egi`` is that
-    snapshot. Returns the resulting EGI."""
-    return apply_rule(
-        params["rule"],
-        egi,
-        selection=params.get("selection"),
-        egif=params.get("egif_content"),
-        target=params.get("target_area"),
-    )
+
+def _inner(g):
+    """The scroll's inner cut inside the outer cut (the one holding no direct
+    relation of its own)."""
+    return nav.empty_cut_in(g, _outer(g))
+
+
+def _copied_implication(g):
+    """The (P⊃R) copy iterated into the inner cut."""
+    return nav.child_cuts(g, _inner(g))[0]
+
+
+def _r_cut(g):
+    """The cut around R inside the copied implication — destination for the
+    (Q⊃S) iteration."""
+    return nav.cut_holding_relation(g, _copied_implication(g), "R")
+
+
+def _b_prime(g):
+    """The (Q⊃S) copy iterated next to R (its outer cut directly holds Q)."""
+    return nav.cut_holding_relation(g, _r_cut(g), "Q")
+
+
+def _inner_q(g):
+    """The Q inside that copy — the deiteration candidate (a copy of the
+    enclosing Q)."""
+    return nav.child_edges(g, _b_prime(g), "Q")[0]
+
+
+def _double_cut_s(g):
+    """After the inner Q is deiterated, the (Q⊃S) copy is ~[ ~[ (S) ] ] — the
+    cut around R that now holds no direct relation. Its erasure leaves S."""
+    return nav.empty_cut_in(g, _r_cut(g))
 
 
 # --------------------------------------------------------------------------- #
 # The proof                                                                    #
 # --------------------------------------------------------------------------- #
 
-# Peirce's label, our rule, and a human description for each of the 7 steps.
-# The element-selection for each step is computed structurally at build time
-# (ids are ephemeral), then recorded into the step's parameters so the
-# persisted chain replays against its own snapshots.
-_ANTECEDENT = "~[ (P) ~[ (R) ] ] ~[ (Q) ~[ (S) ] ]"
-
-_TS_BASE = "2026-06-03T00:00:0"  # deterministic, one second per step
-
-
 def build_praeclarum_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
-    """Construct the proof as a real ``TransformationChain`` + its UoD.
-
-    Each step is applied through the engine; the resulting states and the
-    parameters that produced them are recorded. Deterministic: no clocks or
-    randomness, so the chain is byte-stable across runs (good for tests)."""
-    states: Dict[str, "object"] = {}
-    steps: List[ChainStep] = []
-
-    def record(i, rule, egi_from, egi_to, params, peirce, desc):
-        from_id, to_id = f"s{i}", f"s{i + 1}"
-        states[from_id] = egi_from
-        states[to_id] = egi_to
-        steps.append(ChainStep(
-            step_id=f"step-{i + 1}",
-            rule_name=rule,
-            from_state_id=from_id,
-            to_state_id=to_id,
-            parameters={"rule": rule, "peirce_label": peirce, "description": desc, **params},
-            timestamp=f"{_TS_BASE}{i}+00:00",
-            user_annotation=f"{peirce}: {desc}",
-        ))
-
-    # s0: blank sheet (⊤) — the context the whole proof is asserted against.
-    g0 = parse_egif("")
-
-    # 1. DC+  blank → ~[ ~[ ] ]
-    g1 = apply_rule("DC+", g0)
-    record(0, "DC+", g0, g1, {"selection": []},
-           "3i", "Insert an empty double cut on the blank sheet.")
-
-    # 2. INS  insert the antecedent into the outer (negative) area
-    O = _cuts_in(g1, g1.sheet)[0]
-    g2 = apply_rule("INS", g1, egif=_ANTECEDENT, target=O)
-    record(1, "INS", g1, g2, {"egif_content": _ANTECEDENT, "target_area": O},
-           "1i", "Insert the antecedent (P⊃R)(Q⊃S) into the outer cut.")
-
-    def _locate(g):
-        O = _cuts_in(g, g.sheet)[0]
-        A = _cut_with_edge(g, O, "P")
-        B = _cut_with_edge(g, O, "Q")
-        I = next(c for c in _cuts_in(g, O) if c not in (A, B))
-        return O, A, B, I
-
-    # 3. IT+  iterate (P⊃R) into the inner cut
-    O, A, B, I = _locate(g2)
-    g3 = apply_rule("IT+", g2, selection=[A], target=I)
-    record(2, "IT+", g2, g3, {"selection": [A], "target_area": I},
-           "2i", "Iterate (P⊃R) into the inner cut.")
-
-    # 4. INS  insert Q into the cut now holding the iterated (P⊃R)
-    O, A, B, I = _locate(g3)
-    A_prime = _cuts_in(g3, I)[0]
-    g4 = apply_rule("INS", g3, egif="(Q)", target=A_prime)
-    record(3, "INS", g3, g4, {"egif_content": "(Q)", "target_area": A_prime},
-           "1i", "Insert Q into the cut holding the iterated (P⊃R).")
-
-    # 5. IT+  iterate (Q⊃S) into the cut around R
-    O, A, B, I = _locate(g4)
-    A_prime = _cuts_in(g4, I)[0]
-    R_cut = _cut_with_edge(g4, A_prime, "R")
-    g5 = apply_rule("IT+", g4, selection=[B], target=R_cut)
-    record(4, "IT+", g4, g5, {"selection": [B], "target_area": R_cut},
-           "2i", "Iterate (Q⊃S) into the cut around R.")
-
-    # 6. IT-  deiterate the inner Q (a copy of the enclosing Q)
-    O, A, B, I = _locate(g5)
-    A_prime = _cuts_in(g5, I)[0]
-    R_cut = _cut_with_edge(g5, A_prime, "R")
-    B_prime = _cut_with_edge(g5, R_cut, "Q")
-    inner_Q = _edges_in(g5, B_prime, "Q")[0]
-    g6 = apply_rule("IT-", g5, selection=[inner_Q])
-    record(5, "IT-", g5, g6, {"selection": [inner_Q]},
-           "2e", "Deiterate the inner Q (a copy of the enclosing Q).")
-
-    # 7. DC-  erase the double cut around S
-    O, A, B, I = _locate(g6)
-    A_prime = _cuts_in(g6, I)[0]
-    R_cut = _cut_with_edge(g6, A_prime, "R")
-    # B' has lost its Q, so it is now ~[ ~[ (S) ] ] — the cut with no direct edge.
-    B_prime = next(c for c in _cuts_in(g6, R_cut) if not _edges_in(g6, c))
-    g7 = apply_rule("DC-", g6, selection=[B_prime])
-    record(6, "DC-", g6, g7, {"selection": [B_prime]},
-           "3e", "Erase the double cut around S.")
-
-    chain = TransformationChain(
-        initial_state_id="s0", steps=steps, states=states,
+    """Construct the proof as a real ``TransformationChain`` + its UoD."""
+    author = (
+        ProofChain.from_blank()
+        .apply("DC+", label="3i",
+               note="Insert an empty double cut on the blank sheet.")
+        .apply("INS", insert=_ANTECEDENT, into=_outer, label="1i",
+               note="Insert the antecedent (P⊃R)(Q⊃S) into the outer cut.")
+        .apply("IT+", select=_implication("P"), into=_inner, label="2i",
+               note="Iterate (P⊃R) into the inner cut.")
+        .apply("INS", insert="(Q)", into=_copied_implication, label="1i",
+               note="Insert Q into the cut holding the iterated (P⊃R).")
+        .apply("IT+", select=_implication("Q"), into=_r_cut, label="2i",
+               note="Iterate (Q⊃S) into the cut around R.")
+        .apply("IT-", select=_inner_q, label="2e",
+               note="Deiterate the inner Q (a copy of the enclosing Q).")
+        .apply("DC-", select=_double_cut_s, label="3e",
+               note="Erase the double cut around S.")
     )
-
-    created = datetime(2026, 6, 3, tzinfo=timezone.utc)
-    meta = UoDMetadata(
+    return author.to_uod(
         uod_id=UOD_ID,
-        uod_type=UoDType.HISTORICAL,
         name="Leibniz's Praeclarum Theorema",
         description=(
             "((P⊃R) ∧ (Q⊃S)) ⊃ ((P∧Q) ⊃ (R∧S)) — Sowa's 7-step Existential "
@@ -278,12 +141,7 @@ def build_praeclarum_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
             "diachronic exemplar: every step a real, attestable Dau-rule "
             "application."
         ),
-        category=UoDCategory.THEOREM_PROOF,
-        created=created,
-        last_modified=created,
     )
-    uod = UniverseOfDiscourse(metadata=meta, current_egi=g7)
-    return chain, uod
 
 
 def main(argv=None) -> int:
@@ -291,10 +149,9 @@ def main(argv=None) -> int:
     from tomos_service import TomosService
 
     chain, uod = build_praeclarum_chain()
-    final_sig = area_signature(uod.current_egi)
-    assert final_sig == area_signature(parse_egif(THEOREM_EGIF)), (
-        "built proof does not match the Praeclarum Theorema"
-    )
+    assert nav.area_signature(uod.current_egi) == nav.area_signature(
+        parse_egif(THEOREM_EGIF)
+    ), "built proof does not match the Praeclarum Theorema"
 
     tomos_root = Path(__file__).resolve().parent.parent / "tomos"
     service = TomosService(tomos_root)

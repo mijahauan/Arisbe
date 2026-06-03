@@ -443,12 +443,39 @@ workshop.
      closed set trips a confusing "All source elements must be in the same
      area". Net: the **logic** is solid; the **authoring ergonomics** (linear
      naming + id-typed selections) are the gap.
-   - **Next exemplars:** a propositional tautology (already partly covered by
-     `test_logical_proof_exercises`) and a **Beta modus ponens** (lines of
-     identity) — the latter also exercises the bridge/wobble visual work on a
-     graph that actually has ligatures. Consider promoting the structural
-     navigation helpers into `src` first so each new proof isn't a fresh
-     hand-navigation.
+   - **✅ Authoring layer DONE (2026-06-03).** The dogfood findings drove a
+     reusable layer in `src`, so a proof no longer means hand-navigating ids:
+     - `src/eg_navigation.py` — **content-addressable structural selection**:
+       name an element by *what it is and where it sits* (`cut_holding_relation`,
+       `empty_cut_in`, `child_edges`, `edges_on_vertex`, `vertex_by_label`),
+       `area_signature` (Alpha) + `same_graph` (full iso, the Beta authority),
+       and `describe` (kind/area/polarity/depth — the introspection finding #1
+       wanted, also for a future HTTP selection API). Area topology delegates to
+       `presentation_ops`, not redefined.
+     - `src/proof_authoring.py` — **`ProofChain`**: a fluent builder that
+       applies rules by locator (`callable(egi)→id`, resolved against the
+       current state) and records each `ChainStep` with deterministic ids and
+       timestamps. `apply_rule` / `replay_step` are the shared engine/replay
+       primitives. `tools/build_praeclarum_chain.py` was refactored onto it
+       (same chain, test still green) — the abstraction validated on a known
+       proof before reuse.
+   - **✅ Beta modus ponens DONE (2026-06-03).** `tools/build_beta_modus_ponens_chain.py`
+     seeds `beta_modus_ponens` — the corpus's first proof with a **line of
+     identity**: `P(x), P(x)→Q(x) ⊢ P(x)∧Q(x)`, two steps (IT-, DC-) anchored
+     at the *premises* (not the blank sheet), so the two exemplars together show
+     both episode shapes — theorem-from-⊤ and inference-from-a-context.
+     `tests/test_beta_modus_ponens_proof.py` (+6) uses `same_graph` (the W-
+     partition needs full iso, not a signature) for conclusion + per-step
+     soundness, and §3.3 attests at every state (ligatures crossing cuts
+     included). Visually confirmed in Peirce style (the shared line crosses the
+     wobbled ovals; one line, so no bridge — correctly).
+   - **Still open:** the navigation/`describe` introspection isn't yet wired to
+     an **HTTP endpoint** (dogfood finding #1 for the Ergasterion/Agon UI);
+     `IT+`'s "All source elements must be in the same area" message is still
+     confusing for a caller passing a full closed set. More exemplars (a longer
+     Beta derivation; a graph with genuinely *crossing* distinct lines to
+     exercise the Tier-3c bridge in a real proof) are cheap now that the
+     authoring layer exists.
 2. **Agon web arena** — informed by a *lived* promotion boundary, not a
    merely correct one. The fuller notion of regime-2 "asserted" (earned by
    withstanding challenge, not only by §3.3 attestation) is the design

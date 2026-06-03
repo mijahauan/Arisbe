@@ -1,0 +1,40 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_935a828c"
+    },
+    {
+      "id": "e_d0205920"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_c9088e5c",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "sheet_f4fd47d4": [
+      "e_935a828c",
+      "e_d0205920",
+      "v_c9088e5c"
+    ]
+  },
+  "nu": {
+    "e_935a828c": [
+      "v_c9088e5c"
+    ],
+    "e_d0205920": [
+      "v_c9088e5c"
+    ]
+  },
+  "rel": {
+    "e_935a828c": "P",
+    "e_d0205920": "Q"
+  },
+  "rho": {},
+  "sheet": "sheet_f4fd47d4"
+}

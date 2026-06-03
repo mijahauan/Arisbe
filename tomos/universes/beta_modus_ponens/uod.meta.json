@@ -1,0 +1,19 @@
+{
+  "uod_id": "beta_modus_ponens",
+  "uod_type": "historical",
+  "name": "Beta Modus Ponens",
+  "description": "P(x), P(x)\u2192Q(x) \u22a2 P(x)\u2227Q(x) \u2014 modus ponens on a single line of identity (the tomos's first Beta exemplar). Two steps (IT-, DC-) from the asserted premises; mirrors the Alpha modus ponens in test_logical_proof_exercises but with a shared line crossing the cut. Every step a real, attestable Dau-rule application.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

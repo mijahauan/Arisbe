@@ -61,6 +61,8 @@ plan is to surface them as routes within the web app (`src/web_api/`,
 - `egi_core_dau.py` — `RelationalGraphWithCuts` data model (immutable)
 - `formal_transformation_rules.py` — Six Dau rules: ERA, INS, IT+, IT−, DC+, DC− (Beta-aware)
 - `rule_interaction.py` — Headless RuleInteraction protocol for stepwise proof construction
+- `eg_navigation.py` — Content-addressable structural selection over an EGI: name elements by what they are / where they sit (`cut_holding_relation`, `empty_cut_in`, `child_edges`, `edges_on_vertex`, `vertex_by_label`), `area_signature` (Alpha) + `same_graph` (full iso, the Beta authority), `describe` (kind/area/polarity introspection). The query half of the proof-authoring layer; area topology delegates to `presentation_ops`.
+- `proof_authoring.py` — `ProofChain`: fluent builder that applies Dau rules by *locator* (`callable(egi)→id`, resolved against the current state) and records each `ChainStep` with deterministic ids/timestamps; `apply_rule` / `replay_step` are the shared engine/replay primitives. The action half — turns the dogfood friction (authoring by ephemeral id) into a readable chain. Used by `tools/build_*_chain.py`.
 - `subgraph_closure_validator.py` — Closure validation (Beta-aware: free outer-area vertices)
 - `universe_of_discourse.py` — UoD entity (synchronic EGI + diachronic DAG history + layout deltas)
 - `egi_transformation_history.py` — DAG-based branching transformation history

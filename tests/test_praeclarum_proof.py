@@ -37,13 +37,13 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "tools"))
 from build_praeclarum_chain import (
     THEOREM_EGIF,
     UOD_ID,
-    apply_step,
-    area_signature,
     build_praeclarum_chain,
 )
 from correspondence_attestation import attest_correspondence
+from eg_navigation import area_signature
 from egif_parser_dau import parse_egif
 from elk_layout_engine import ELKLayoutEngine
+from proof_authoring import replay_step
 from style_loader import load_default_style
 from tomos_service import TomosService
 
@@ -113,7 +113,7 @@ def test_every_step_is_a_sound_rule_application(built):
     for step in chain.steps:
         frm = chain.states[step.from_state_id]
         expected = chain.states[step.to_state_id]
-        replayed = apply_step(frm, step.parameters)
+        replayed = replay_step(frm, step.parameters)
         assert area_signature(replayed) == area_signature(expected), (
             f"{step.step_id} ({step.rule_name}) did not reproduce its to_state"
         )
