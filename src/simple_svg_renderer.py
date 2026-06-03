@@ -8,11 +8,16 @@ Author: Refactored for architectural consistency
 Date: 2025-10-12
 """
 
+import hashlib
+import math
 import xml.etree.ElementTree as ET
+from collections import namedtuple
 from typing import Optional
 
 from layout_dto import LayoutDTO
 from egi_core_dau import RelationalGraphWithCuts
+
+_P = namedtuple("_P", "x y")
 
 
 class SimpleSVGRenderer:
@@ -57,6 +62,18 @@ class SimpleSVGRenderer:
         vertex_label_color = _raw.get("vertex", {}).get("label_color", "#000000")
         font_style = _raw.get("global", {}).get("font_style", "normal")
         ligature_routing = _raw.get("ligature", {}).get("routing_mode", "orthogonal")
+        # A cut is drawn as an inscribed ellipse (Peirce/Sowa "oval") or a
+        # rounded rectangle (Dau).  The layout engine has already grown an oval
+        # cut's box so the inscribed ellipse contains its contents; the
+        # axis-aligned bbox remains the §3.3 container either way.
+        cut_shape = getattr(style, "cut_shape", "rounded_rectangle")
+        # Hand-drawn quality (Peirce): a small, *deterministic* wobble applied
+        # to the cut outline and the line of identity.  It perturbs only the
+        # drawn stroke, never the DTO geometry §3.3 reads (which has already
+        # been attested before the renderer runs) — exactly as Tier 1's curves.
+        # Zero (Dau, Sowa) leaves a crisp ellipse/rect/line, byte-identical.
+        cut_wobble = float(_raw.get("cut", {}).get("hand_drawn_variation", 0.0))
+        lig_wobble = float(_raw.get("ligature", {}).get("hand_drawn_variation", 0.0))
         
         # Calculate SVG dimensions from viewport (less padding for better fit)
         svg_width = int(dto.viewport_bounds.width + 80)
@@ -150,15 +167,38 @@ class SimpleSVGRenderer:
                 "data-element-type": "cut",
                 "cursor": "pointer",
             })
-            ET.SubElement(cut_g, "rect", {
-                "x": str(x), "y": str(y),
-                "width": str(width), "height": str(height),
-                "rx": str(style.cut_corner_radius),
-                "ry": str(style.cut_corner_radius),
-                "fill": fill_color,
-                "stroke": cut_line_color,
-                "stroke-width": str(style.cut_line_width)
-            })
+            if cut_shape in ("oval", "circle") and cut_wobble > 0:
+                # Peirce's hand: a slightly irregular closed loop instead of a
+                # perfect ellipse.  Amplitude stays well under the Tier-2
+                # containment margin, so contents remain enclosed.
+                d = self._wobbled_oval_path(
+                    x + width / 2, y + height / 2, width / 2, height / 2,
+                    amplitude=cut_wobble * 3.0, seed=cut_id,
+                )
+                ET.SubElement(cut_g, "path", {
+                    "d": d,
+                    "fill": fill_color,
+                    "stroke": cut_line_color,
+                    "stroke-width": str(style.cut_line_width),
+                })
+            elif cut_shape in ("oval", "circle"):
+                ET.SubElement(cut_g, "ellipse", {
+                    "cx": str(x + width / 2), "cy": str(y + height / 2),
+                    "rx": str(width / 2), "ry": str(height / 2),
+                    "fill": fill_color,
+                    "stroke": cut_line_color,
+                    "stroke-width": str(style.cut_line_width)
+                })
+            else:
+                ET.SubElement(cut_g, "rect", {
+                    "x": str(x), "y": str(y),
+                    "width": str(width), "height": str(height),
+                    "rx": str(style.cut_corner_radius),
+                    "ry": str(style.cut_corner_radius),
+                    "fill": fill_color,
+                    "stroke": cut_line_color,
+                    "stroke-width": str(style.cut_line_width)
+                })
         
         # ====================================================================
         # Render Ligatures (line of identity)
@@ -173,14 +213,22 @@ class SimpleSVGRenderer:
 
             # Build the path.  An "organic"/"natural" routing draws Peirce's
             # flowing line of identity (a smooth curve through the same layout
-            # points); orthogonal/other draws Dau's straight segments.  The
-            # curve passes through every layout point, so §3.3 (which reads
-            # the DTO geometry, not the drawn stroke) is unaffected.
-            if ligature_routing in ("organic", "natural", "curved"):
-                path_d = self._smooth_path(lig.points, offset_x, offset_y)
+            # points); orthogonal/other draws Dau's straight segments.  A
+            # non-zero ligature wobble (Peirce) first nudges the interior points
+            # off the polyline for a hand-drawn waver, then smooths.  Both the
+            # curve and the waver pass close to every authorized layout point —
+            # endpoints are fixed and the amplitude stays under the routing
+            # clearance — so §3.3 (which reads the DTO geometry, not the drawn
+            # stroke) is unaffected.
+            pts = lig.points
+            if lig_wobble > 0:
+                seed = f"{lig.predicate_id}|{lig.vertex_id}|{lig.port_index}"
+                pts = self._hand_drawn_points(pts, lig_wobble * 2.0, seed)
+            if ligature_routing in ("organic", "natural", "curved") or lig_wobble > 0:
+                path_d = self._smooth_path(pts, offset_x, offset_y)
             else:
-                path_d = f"M {lig.points[0].x + offset_x} {lig.points[0].y + offset_y}"
-                for point in lig.points[1:]:
+                path_d = f"M {pts[0].x + offset_x} {pts[0].y + offset_y}"
+                for point in pts[1:]:
                     path_d += f" L {point.x + offset_x} {point.y + offset_y}"
 
             # Main ligature line - no hooks, cap style from style spec
@@ -345,6 +393,71 @@ class SimpleSVGRenderer:
             c2y = p2[1] - (p3[1] - p1[1]) / 6.0
             d += f" C {c1x:.2f} {c1y:.2f} {c2x:.2f} {c2y:.2f} {p2[0]:.2f} {p2[1]:.2f}"
         return d
+
+    @staticmethod
+    def _jitter(seed: str, i: int) -> float:
+        """A deterministic pseudo-random value in [-1, 1] from (seed, i).
+
+        Uses a hash (not Python's salted ``hash``) so the same element wobbles
+        the same way on every render and across processes — the "hand" is
+        stable, and layout reproducibility (invariant L1) is preserved."""
+        h = hashlib.md5(f"{seed}|{i}".encode()).digest()
+        return (int.from_bytes(h[:4], "big") / 0xFFFFFFFF) * 2.0 - 1.0
+
+    @classmethod
+    def _hand_drawn_points(cls, points, amplitude: float, seed: str):
+        """Nudge each *interior* point perpendicular to the local direction by a
+        deterministic amount ≤ ``amplitude``.  Endpoints are untouched so the
+        line still meets its hook and vertex exactly."""
+        pts = list(points)
+        if len(pts) < 3 or amplitude <= 0:
+            return pts
+        out = [pts[0]]
+        for i in range(1, len(pts) - 1):
+            prev, cur, nxt = pts[i - 1], pts[i], pts[i + 1]
+            dx, dy = nxt.x - prev.x, nxt.y - prev.y
+            length = math.hypot(dx, dy) or 1.0
+            nx, ny = -dy / length, dx / length  # unit perpendicular
+            j = amplitude * cls._jitter(seed, i)
+            out.append(_P(cur.x + nx * j, cur.y + ny * j))
+        out.append(pts[-1])
+        return out
+
+    @classmethod
+    def _wobbled_oval_path(
+        cls, cx: float, cy: float, rx: float, ry: float,
+        amplitude: float, seed: str, n: int = 60,
+    ) -> str:
+        """A closed, smoothly-curved loop approximating the ellipse, with the
+        radius perturbed by a *low-frequency* deterministic deviation —
+        Peirce's hand-drawn cut (a few gentle bulges, not high-frequency
+        noise).  Amplitude is also capped to a small fraction of the smaller
+        radius so tight cuts stay legible.  Coordinates are already offset."""
+        amp = min(amplitude, 0.08 * min(rx, ry))
+        # Two integer harmonics (periodic over the loop, so it closes smoothly)
+        # with hashed phases and counts — the "hand" varies per cut but is
+        # stable across renders.
+        phi1 = cls._jitter(seed, 1) * math.pi
+        phi2 = cls._jitter(seed, 2) * math.pi
+        k1 = 2 + int(round(abs(cls._jitter(seed, 3)) * 1.49))  # 2..3
+        k2 = 4 + int(round(abs(cls._jitter(seed, 4)) * 1.49))  # 4..5
+        pts = []
+        for i in range(n):
+            t = 2.0 * math.pi * i / n
+            dev = amp * (0.6 * math.sin(k1 * t + phi1) + 0.4 * math.sin(k2 * t + phi2))
+            pts.append((cx + (rx + dev) * math.cos(t), cy + (ry + dev) * math.sin(t)))
+        # Closed Catmull-Rom → cubic Bézier (cyclic neighbours).
+        d = f"M {pts[0][0]:.2f} {pts[0][1]:.2f}"
+        for i in range(n):
+            p0, p1, p2, p3 = (
+                pts[(i - 1) % n], pts[i], pts[(i + 1) % n], pts[(i + 2) % n]
+            )
+            c1x = p1[0] + (p2[0] - p0[0]) / 6.0
+            c1y = p1[1] + (p2[1] - p0[1]) / 6.0
+            c2x = p2[0] - (p3[0] - p1[0]) / 6.0
+            c2y = p2[1] - (p3[1] - p1[1]) / 6.0
+            d += f" C {c1x:.2f} {c1y:.2f} {c2x:.2f} {c2y:.2f} {p2[0]:.2f} {p2[1]:.2f}"
+        return d + " Z"
 
     @staticmethod
     def _compute_cut_depths(egi: RelationalGraphWithCuts) -> dict:

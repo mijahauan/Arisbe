@@ -32,6 +32,12 @@ class ELKLayoutEngine:
 
     ELK_WORKER = Path(__file__).parent / "elk_worker.js"
 
+    # Upper bound on the oval-cut refit iterations (see ``_refit_oval_cuts``).
+    # Each pass propagates a grown cut up one nesting level, so this caps the
+    # supported nesting depth before we accept a near-converged layout; the
+    # padding margin keeps it visually safe if the cap is ever reached.
+    MAX_OVAL_PASSES = 6
+
     def __init__(self, conventions: Optional[Conventions] = None):
         self.conventions = conventions or DEFAULT_CONVENTIONS
 
@@ -45,7 +51,114 @@ class ELKLayoutEngine:
         element_sizes = self._compute_element_sizes(egi, style)
         elk_graph = self._egi_to_elk_graph(egi, style, element_sizes)
         positioned = self._run_elk(elk_graph)
+        # Oval cuts (cut_shape "oval"/"circle") need the inscribed ellipse to
+        # contain its corner contents — a convention that *feeds the layout*
+        # (extra, content-proportional padding), not a cosmetic.  The
+        # axis-aligned bbox stays the §3.3 container.  The default
+        # rounded-rectangle path skips this entirely and is byte-identical.
+        if self._cut_is_oval(style):
+            positioned = self._refit_oval_cuts(egi, style, element_sizes, positioned)
         return self._elk_result_to_dto(positioned, egi, style, element_sizes)
+
+    # -------------------------------------------------------------------------
+    # Oval-cut refit — feed cut_shape into the layout's padding
+    # -------------------------------------------------------------------------
+
+    @staticmethod
+    def _cut_is_oval(style: StyleSpecification) -> bool:
+        """Whether this style draws cuts as inscribed ellipses (Peirce/Sowa)."""
+        return getattr(style, "cut_shape", "rounded_rectangle") in ("oval", "circle")
+
+    @staticmethod
+    def _oval_padding(content_w: float, content_h: float) -> Tuple[float, float]:
+        """Per-side (horizontal, vertical) padding so an ellipse inscribed in
+        the resulting node box contains the centered ``content_w × content_h``
+        box.
+
+        An ellipse with semi-axes (A, B) contains a centered axis-aligned box
+        of half-extents (w/2, h/2) iff (w/2A)² + (h/2B)² ≤ 1.  Taking the node
+        box (and thus the inscribed ellipse's bounding box) to be √2× the
+        content in each dimension makes the content's corners lie exactly on
+        the ellipse; a small additive margin then puts them strictly inside,
+        which also absorbs minor ELK re-arrangement between refit passes.
+        """
+        k = (math.sqrt(2.0) - 1.0) / 2.0  # ≈ 0.2071: half of (√2 − 1)
+        margin = 4.0
+        return (content_w * k + margin, content_h * k + margin)
+
+    def _measure_cut_contents(
+        self, positioned: dict, cut_ids: Set[ElementID]
+    ) -> Dict[ElementID, Tuple[float, float]]:
+        """The (width, height) of each cut's *direct children* bounding box, in
+        the cut's local coordinates — the content the inscribed ellipse must
+        enclose.  Padding lives outside this box, so it is padding-agnostic and
+        comparable across refit passes."""
+        contents: Dict[ElementID, Tuple[float, float]] = {}
+
+        def visit(node: dict):
+            if node["id"] in cut_ids:
+                children = node.get("children", [])
+                if children:
+                    min_x = min(c.get("x", 0.0) for c in children)
+                    min_y = min(c.get("y", 0.0) for c in children)
+                    max_x = max(c.get("x", 0.0) + c.get("width", 0.0) for c in children)
+                    max_y = max(c.get("y", 0.0) + c.get("height", 0.0) for c in children)
+                    contents[node["id"]] = (max_x - min_x, max_y - min_y)
+                else:
+                    contents[node["id"]] = (0.0, 0.0)
+            for child in node.get("children", []):
+                visit(child)
+
+        visit(positioned)
+        return contents
+
+    @staticmethod
+    def _contents_stable(
+        a: Dict[ElementID, Tuple[float, float]],
+        b: Dict[ElementID, Tuple[float, float]],
+        tol: float = 2.0,
+    ) -> bool:
+        if a.keys() != b.keys():
+            return False
+        return all(
+            abs(a[k][0] - b[k][0]) <= tol and abs(a[k][1] - b[k][1]) <= tol
+            for k in a
+        )
+
+    def _refit_oval_cuts(
+        self,
+        egi: RelationalGraphWithCuts,
+        style: StyleSpecification,
+        element_sizes: Dict[ElementID, Tuple[float, float]],
+        positioned: dict,
+    ) -> dict:
+        """Re-lay-out with content-proportional per-cut padding until cut
+        contents stop changing.
+
+        Growing one cut grows its parent's content, so a single pass would
+        under-pad outer cuts; iterating propagates the growth outward one
+        nesting level per pass and converges (deepest cuts stabilize first).
+        ``MAX_OVAL_PASSES`` caps it; the margin in ``_oval_padding`` keeps the
+        result safe if the cap is hit before exact convergence."""
+        cut_ids: Set[ElementID] = {c.id for c in egi.Cut}
+        if not cut_ids:
+            return positioned
+
+        contents = self._measure_cut_contents(positioned, cut_ids)
+        for _ in range(self.MAX_OVAL_PASSES):
+            overrides = {
+                cid: self._oval_padding(w, h) for cid, (w, h) in contents.items()
+            }
+            elk_graph = self._egi_to_elk_graph(
+                egi, style, element_sizes, pad_overrides=overrides
+            )
+            positioned = self._run_elk(elk_graph)
+            new_contents = self._measure_cut_contents(positioned, cut_ids)
+            stable = self._contents_stable(contents, new_contents)
+            contents = new_contents
+            if stable:
+                break
+        return positioned
 
     # -------------------------------------------------------------------------
     # Phase 2: EGI → ELK translation
@@ -56,6 +169,7 @@ class ELKLayoutEngine:
         egi: RelationalGraphWithCuts,
         style: StyleSpecification,
         element_sizes: Dict[ElementID, Tuple[float, float]],
+        pad_overrides: Optional[Dict[ElementID, Tuple[float, float]]] = None,
     ) -> dict:
         """Convert EGI to ELK JSON graph.
 
@@ -72,7 +186,7 @@ class ELKLayoutEngine:
 
         # Build the children list for the sheet area recursively.
         sheet_children = self._build_area_children(
-            egi.sheet, egi, style, element_sizes, elk_edges
+            egi.sheet, egi, style, element_sizes, elk_edges, pad_overrides
         )
 
         root = {
@@ -136,6 +250,7 @@ class ELKLayoutEngine:
         style: StyleSpecification,
         element_sizes: Dict[ElementID, Tuple[float, float]],
         elk_edges: List[dict],  # accumulated at root
+        pad_overrides: Optional[Dict[ElementID, Tuple[float, float]]] = None,
     ) -> List[dict]:
         """Build the ELK children list for one area (sheet or cut interior).
 
@@ -155,17 +270,29 @@ class ELKLayoutEngine:
             if elem_id in cut_ids:
                 # Recurse: this cut becomes a group node
                 cut_children = self._build_area_children(
-                    elem_id, egi, style, element_sizes, elk_edges
+                    elem_id, egi, style, element_sizes, elk_edges, pad_overrides
                 )
+                # An oval refit pass supplies content-proportional padding per
+                # cut; without it (every Dau render, and the oval styles' first
+                # pass) the uniform integer cut_padding is used verbatim, so the
+                # rounded-rectangle output is byte-identical.
+                if pad_overrides is not None and elem_id in pad_overrides:
+                    ph, pv = pad_overrides[elem_id]
+                    padding_str = (
+                        f"[top={pv:.2f},left={ph:.2f},"
+                        f"bottom={pv:.2f},right={ph:.2f}]"
+                    )
+                else:
+                    padding_str = (
+                        f"[top={int(style.cut_padding)},"
+                        f"left={int(style.cut_padding)},"
+                        f"bottom={int(style.cut_padding)},"
+                        f"right={int(style.cut_padding)}]"
+                    )
                 group_node = {
                     "id": elem_id,
                     "layoutOptions": {
-                        "elk.padding": (
-                            f"[top={int(style.cut_padding)},"
-                            f"left={int(style.cut_padding)},"
-                            f"bottom={int(style.cut_padding)},"
-                            f"right={int(style.cut_padding)}]"
-                        ),
+                        "elk.padding": padding_str,
                         "elk.algorithm": "layered",
                         "elk.spacing.nodeNode": str(int(style.element_spacing)),
                     },

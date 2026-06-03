@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-02 (Export arc + style keystone + Ergasterion-in-style)
+**Last Updated**: 2026-06-03 (Peirce fidelity Tier 2 — oval cuts)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -267,13 +267,56 @@ Roberts, `docs/references/Existential Graphs of Peirce.pdf`):
   export on macOS via fontconfig). Vertex dots already suppressed
   (`label_only`).
 - Tests: `tests/test_styles.py` (+3).
-- **Tier 2 (next): oval cuts.** The renderer still draws rounded rectangles
-  for every style. Drawing ellipses needs the **Convention/layout** work
-  (an inscribed oval clips corner contents; the oval must circumscribe the
-  content box ≈√2×, which means `cut_shape` feeds ELK padding — promoting it
-  from a descriptive `projection_conventions` field to an honored knob),
-  keeping the axis-aligned bbox as the §3.3 container. **Tier 3:** hand-drawn
-  wobble (`hand_drawn_variation`) + the TikZ exporter's matching Peirce idiom.
+
+### Peirce visual fidelity — Tier 2 (oval cuts, 2026-06-03)
+
+Cuts now draw as **inscribed ellipses** for any style whose `cut.shape` is
+`oval`/`circle` (Peirce, Sowa); Dau's `rounded_rectangle` is untouched and
+**byte-identical**. The convention *feeds the layout*, it is not a cosmetic:
+- An ellipse inscribed in a box contains a centered content box only if the
+  box is ≥ **√2×** the content, so `ELKLayoutEngine` grows each oval cut with
+  **content-proportional padding** (`_oval_padding` = `content·(√2−1)/2 +
+  margin`). `cut_shape` is thereby promoted from a descriptive
+  `projection_conventions` field to an **honored** one (value sourced from the
+  active style).
+- Nesting cascades: growing a cut grows its parent's content, so a single
+  padding pass under-pads outer cuts. The engine **iterates ELK to a fixpoint**
+  on cut contents (`_refit_oval_cuts`, deepest-first convergence, capped at
+  `MAX_OVAL_PASSES`); the additive margin keeps it safe if the cap is hit.
+- The **axis-aligned bbox stays the §3.3 container** — attestation reads DTO
+  geometry, not the drawn stroke, so every styled render still attests.
+- Tests: `tests/test_styles.py` (+2 — ellipse-vs-rect, and containment through
+  a nested double cut).
+
+### Peirce visual fidelity — Tier 3a (hand-drawn wobble, SVG, 2026-06-03)
+
+`hand_drawn_variation` is now realized in `simple_svg_renderer`: Peirce's oval
+cut becomes a closed, gently-wavering loop (low-frequency harmonic radial
+deviation, two hashed harmonics — *not* high-frequency noise) and its line of
+identity wavers (interior points nudged perpendicular). Both are:
+- **Deterministic** — a hash-seeded "hand" (`_jitter`, not Python's salted
+  `hash`), so renders are byte-stable across processes (invariant L1).
+- **Stroke-only** — perturbs the drawn path, never the DTO geometry §3.3 reads
+  (already attested before the renderer runs); amplitude is capped under the
+  Tier-2 containment margin, so contents stay enclosed. Same principle as
+  Tier 1's curves.
+- **Scoped** — `hand_drawn_variation: 0` (Dau, Sowa) leaves a crisp
+  rect/ellipse/line, **byte-identical**. Only Peirce declares wobble.
+- Tests: `tests/test_styles.py` (+2 — determinism + scoping, `_jitter` bounds).
+
+**Still open on the Peirce arc:**
+- **Tier 3b — TikZ parity.** `tikz_export.py` already draws oval cuts (and
+  inherits Tier-2's grown ovals via the DTO), but its ligatures are straight
+  `--` segments. Mirror the SVG path: curved (organic) + wobbled lines of
+  identity in TikZ.
+- **Tier 3c — bridge-at-crossing marks.** Promote
+  `Conventions.ligature_crossing_marks` from `"none"` to a real `"bridges"`
+  value: detect where two ligatures cross in the 2-D projection and draw
+  Peirce's hop/bridge (the §3.3 "convention compliance" row). Needs 2-D
+  crossing detection; the larger, more interesting piece. (See gate-1 framing
+  in `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` §3.0 — the bridge is exactly the
+  convention that *recovers a distinction a 2-D projection would otherwise
+  collapse*.)
 
 **Still ahead on this arc:**
 - **Stage 3 — authentic Peirce in TikZ (NOT egpeirce/PSTricks)**: the repo

@@ -56,12 +56,18 @@ class Conventions:
     """Standoff (px) for the padded obstacle corners in the
     visibility-graph fallback router (``_route_via_visibility_graph``)."""
 
-    # --- Descriptive: current fixed behavior, not yet a knob ---------------
-
     cut_shape: str = "axis_aligned_rectangle"
     """How a cut's region is drawn. The natural layer only knows
-    *containment*; this is the 2-D realization of it. A 3-D projection
-    would replace this (closed surface) without touching NaturalLayout."""
+    *containment*; this is the 2-D realization of it. **Honored** (Tier 2,
+    2026-06-03): the active value is sourced from the style's ``cut.shape``
+    (``rounded_rectangle`` → Dau rect; ``oval``/``circle`` → an inscribed
+    ellipse). When a style declares an oval, the choice *feeds the layout* —
+    ``ELKLayoutEngine`` grows each cut with content-proportional padding so
+    the inscribed ellipse contains its corner contents — while the
+    axis-aligned bbox stays the §3.3 container. A 3-D projection would
+    replace this (closed surface) without touching NaturalLayout."""
+
+    # --- Descriptive: current fixed behavior, not yet a knob ---------------
 
     hook_placement: str = "ray_to_bbox_intersection"
     """How a predicate's ligature hook is placed: the intersection of the

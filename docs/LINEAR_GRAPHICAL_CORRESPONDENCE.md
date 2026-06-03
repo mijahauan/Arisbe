@@ -56,6 +56,65 @@ The Obsidian 3-D graph-viewer analogy is apt. Dropping the planarity constraint 
 
 The map runs in both directions, and each direction has different obligations.
 
+### 3.0 What correspondence *is*: integrity, not truth
+
+Before the directions and the property table, the shape of the thing. The
+correspondence is best understood as an **embedding**: the assignment of
+figures to logical elements must *preserve and reflect* the EGI's relational
+structure — containment, incidence-with-order, identity (the W-partition),
+labeling. "Reflect" is load-bearing: every relation visible in the picture
+must answer to one in the logic, *and vice versa*. The naive phrasing
+"distinct elements occupy distinct spaces" is too strong twice over —
+containment is nesting, not disjointness, and two lines of identity may
+legitimately cross at a shared point (a non-planar structure forced into 2-D),
+staying distinct by a convention (Peirce's bridge) or the structural channel.
+What the invariant forbids is not shared *points* but a relation **fabricated
+or destroyed** by the realization.
+
+A drawing therefore passes three gates, in order, and they must not be
+confused:
+
+1. **Integrity** — *is it even a sign?* Do picture and proposition come out as
+   **one object** — does the drawing *embed* a genuine EGI, or only mime one?
+   This is **formation** (well-formedness), prior to and independent of truth.
+   It is the gate this document specifies; §3.3 is its check.
+2. **Context** — *which* sign is it? The same marks, read under a different cut
+   or outside-in, denote different things. This is the endoporeutic reading;
+   polarity and depth decide it.
+3. **Truth** — *is it right?* True-in-a-model. This is the **Agon**, and it only
+   gets to run if gate 1 passed.
+
+So correspondence is **syntax in the broad logician's sense** — formation of
+the *bilingual* object (picture-and-proposition-as-one), not the grammar of
+the linear string alone (a string can parse and still be drawn into a lie),
+and not semantics (that is truth, gate 3). Its failure is not falsehood but
+**voidness** — Pauli's *"not even wrong."* The mechanism of an integrity
+failure is precise: it is *using a rule and breaking it in the same act*. To
+draw cuts and lines at all is to invoke the EG conventions — that is what makes
+the marks readable as a graph; a line drawn through a cut it does not cross
+then asserts a cross-scope identity those same conventions forbid, in the very
+gesture that invoked them. A performative contradiction in the formation, not a
+false claim about the world. The marks never became a proposition, so there is
+nothing for truth to bite on.
+
+Two failures must be kept apart:
+
+- **Denotes a different object** — *recoverable*: the marks are a fine sign,
+  just of something other than was meant. Re-read it (gate 2) and it lives.
+  ("The child is the father of the man.")
+- **Not even wrong** — *void*: the marks embed no consistent object at all; no
+  re-reading rescues them. (The line that lies about what it crosses.)
+
+Integrity is the wall between them. Below it: not yet a sign. Above it: a sign —
+free to be reordered, recontextualized, tested, and *to be wrong*. This is the
+engineering reading of MANIFEST_AND_MEANING's "**we attest correspondence,
+never truth**": gate 1 held deliberately apart from gate 3. And it scopes
+itself — the invariant governs what may be **asserted**, never what may be
+**entertained**: composition (regime 1, §4) suspends it on purpose, because the
+freedom to scramble, recombine, and read from an unearned perspective is how
+inquiry probes and expands. Exploration suspends *assertion*, never the
+*legibility* of coherence.
+
 ### 3.1 EGI → drawing (the "render" direction)
 
 Given an EGI, produce a drawing whose structure preserves the EGI. This is what [elk_layout_engine.py](../src/elk_layout_engine.py) + [simple_svg_renderer.py](../src/simple_svg_renderer.py) do today: EGI → `LayoutDTO` → SVG.
