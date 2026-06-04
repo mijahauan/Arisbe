@@ -241,6 +241,47 @@ def test_session_payload_includes_introspection(client):
     client.delete(f"/ergasterion/sessions/{data['session_id']}")
 
 
+def test_session_payload_introspection_carries_content_layer(client):
+    """After composing some content, the payload's introspection exposes the
+    *content* the click-to-select UI binds to — each edge's relation,
+    polarity, and arity — so the selection bar can name "P (negative)" rather
+    than echo a raw id. Self-contained: builds the content via apply, no
+    corpus dependency."""
+    opened = client.post(
+        "/ergasterion/sessions", json={"base_source": "empty_sheet"}
+    ).json()
+    sid = opened["data"]["session_id"]
+    try:
+        # DC+ → ~[ ~[ ] ]; INS (P) into the outer (negative, depth-1) cut.
+        after_dc = client.post(
+            f"/ergasterion/sessions/{sid}/apply",
+            json={"rule": "DC+", "parameters": {"selected_elements": []}},
+        ).json()
+        assert after_dc["success"], after_dc
+        areas = after_dc["data"]["introspection"]["areas"]
+        neg_cut = next(
+            aid for aid, a in areas.items()
+            if a["polarity"] == "negative" and a["depth"] == 1
+        )
+        after_ins = client.post(
+            f"/ergasterion/sessions/{sid}/apply",
+            json={"rule": "INS",
+                  "parameters": {"egif_content": "(P)", "target_area": neg_cut}},
+        ).json()
+        assert after_ins["success"], after_ins
+
+        edges = [
+            e for e in after_ins["data"]["introspection"]["elements"].values()
+            if e["type"] == "edge"
+        ]
+        p = next(e for e in edges if e.get("relation") == "P")
+        assert p["polarity"] == "negative"        # it sits in the verso cut
+        assert p["arity"] == 0                      # a propositional medad
+        assert "incident_vertices" in p
+    finally:
+        client.delete(f"/ergasterion/sessions/{sid}")
+
+
 # --------------------------------------------------------------------------- #
 # /rules — rule requirements                                                  #
 # --------------------------------------------------------------------------- #

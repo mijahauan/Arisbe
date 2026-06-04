@@ -213,11 +213,45 @@
       font-size: 10px;
       word-break: break-all;
     }
+    /* Meaningful chips for selected elements — relation/label + polarity,
+       resolved from the session payload's introspection block (not raw ids,
+       which live in each chip's title for the rare case you need them). */
+    #selection-bar .sel-chip {
+      display: inline-block;
+      padding: 1px 6px;
+      margin: 1px 2px;
+      border-radius: 9px;
+      background: var(--sidebar-hover, #313244);
+      color: var(--sidebar-text);
+      font-size: 10px;
+      cursor: default;
+    }
+    #selection-bar .sel-chip .pol {
+      display: inline-block;
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    /* recto (positive) vs verso (negative) — the same parity the shading shows */
+    #selection-bar .sel-chip .pol.pos { background: #cdd6f4; border: 1px solid #6c7086; }
+    #selection-bar .sel-chip .pol.neg { background: #6c7086; }
     #selection-bar .clear-sel {
       color: var(--btn-danger);
       cursor: pointer;
       float: right;
     }
+    /* Non-blocking polarity guidance for the chosen rule. The text fields
+       and the engine remain authoritative; these only forewarn. */
+    #rule-hint { margin: 4px 0 2px; }
+    #rule-hint .hint {
+      font-size: 10px;
+      padding: 3px 7px;
+      border-radius: 3px;
+      margin-bottom: 3px;
+    }
+    #rule-hint .hint.ok   { color: var(--success); }
+    #rule-hint .hint.warn { color: var(--btn-danger); background: rgba(243,139,168,0.08); }
     #status {
       grid-column: 1 / -1;
       padding: 6px 14px;
@@ -364,6 +398,7 @@
           </div>
 
           <div id="rule-params"></div>
+          <div id="rule-hint"></div>
 
           <button class="action primary" id="btn-apply" disabled>
             Apply rule
@@ -449,6 +484,12 @@
       let selectedSubgraph = new Set();
       let selectedArea = null;
 
+      // The current state's introspection block (areas + content-bearing
+      // elements), carried in every session/apply payload. It lets the
+      // selection bar name elements by meaning (relation/label + polarity)
+      // instead of by raw id, and lets us forewarn polarity mismatches.
+      let currentIntrospection = null;
+
       // ---- helpers ----
 
       function setStatus(msg, kind) {
@@ -500,15 +541,82 @@
         if (areaField) areaField.value = selectedArea || '';
       }
 
+      // Resolve an element id to a meaningful description via introspection.
+      function describeElement(id) {
+        const el = currentIntrospection &&
+          currentIntrospection.elements && currentIntrospection.elements[id];
+        if (!el) return { label: id, polarity: null, title: id };
+        let label;
+        if (el.type === 'edge') label = el.relation + (el.arity ? '/' + el.arity : '');
+        else if (el.type === 'vertex') label = el.label ? '“' + el.label + '”' : 'line';
+        else label = 'cut';
+        return { label: label, polarity: el.polarity, depth: el.depth, type: el.type, title: id };
+      }
+
+      // For a target area we care about the cut's *interior* polarity
+      // (where INS/IT+ content would land), which lives in `areas`.
+      function describeArea(id) {
+        const a = currentIntrospection &&
+          currentIntrospection.areas && currentIntrospection.areas[id];
+        if (!a) return { label: 'cut', polarity: null, title: id };
+        return {
+          label: a.is_sheet ? 'sheet' : 'cut · depth ' + a.depth,
+          polarity: a.polarity, depth: a.depth, title: id,
+        };
+      }
+
+      function polDot(pol) {
+        if (pol === 'negative') return '<span class="pol neg" title="negative (verso)"></span>';
+        if (pol === 'positive') return '<span class="pol pos" title="positive (recto)"></span>';
+        return '';
+      }
+
+      function chipHtml(desc) {
+        return '<span class="sel-chip" title="' + escapeHtml(desc.title) + '">' +
+          polDot(desc.polarity) + escapeHtml(desc.label) + '</span>';
+      }
+
       function updateSelectionBar() {
         if (selSubgraphDisplay) {
-          selSubgraphDisplay.textContent = selectedSubgraph.size
-            ? Array.from(selectedSubgraph).join(', ')
+          selSubgraphDisplay.innerHTML = selectedSubgraph.size
+            ? Array.from(selectedSubgraph).map((id) => chipHtml(describeElement(id))).join(' ')
             : 'none';
         }
         if (selAreaDisplay) {
-          selAreaDisplay.textContent = selectedArea || 'none';
+          selAreaDisplay.innerHTML = selectedArea ? chipHtml(describeArea(selectedArea)) : 'none';
         }
+        updateRuleHints();
+      }
+
+      // Non-blocking polarity guidance for the chosen rule, from introspection.
+      // The text fields and the engine remain authoritative; this only
+      // forewarns the common mistakes (INS/IT+ into a positive area, ERA from
+      // a negative one) so the composer isn't guessing.
+      function updateRuleHints() {
+        const hintEl = document.getElementById('rule-hint');
+        if (!hintEl) return;
+        if (!currentRule || !currentIntrospection) { hintEl.innerHTML = ''; return; }
+        const msgs = [];
+        if ((currentRule === 'INS' || currentRule === 'IT+') && selectedArea) {
+          const a = describeArea(selectedArea);
+          if (a.polarity === 'positive') {
+            msgs.push({ warn: true, text: currentRule +
+              ' inserts into a negative (verso) area — this target is positive.' });
+          } else if (a.polarity === 'negative') {
+            msgs.push({ warn: false, text: 'target area is negative ✓' });
+          }
+        }
+        if (currentRule === 'ERA' && selectedSubgraph.size) {
+          const anyNeg = Array.from(selectedSubgraph)
+            .some((id) => describeElement(id).polarity === 'negative');
+          if (anyNeg) {
+            msgs.push({ warn: true, text:
+              'ERA erases from a positive (recto) area — some selected elements are in a negative area.' });
+          }
+        }
+        hintEl.innerHTML = msgs.map((m) =>
+          '<div class="hint ' + (m.warn ? 'warn' : 'ok') + '">' + escapeHtml(m.text) + '</div>'
+        ).join('');
       }
 
       function refreshSelectionUI() {
@@ -536,10 +644,17 @@
           // clickable region, so sheet-as-target stays a text-field path.
           if (type === 'cut') {
             selectedArea = selectedArea === id ? null : id;
+            const a = describeArea(id);
+            setStatus((selectedArea ? 'target area · ' : 'cleared target · ') +
+              a.label + (a.polarity ? ' (' + a.polarity + ')' : ''));
           }
         } else {
-          if (selectedSubgraph.has(id)) selectedSubgraph.delete(id);
-          else selectedSubgraph.add(id);
+          const added = !selectedSubgraph.has(id);
+          if (added) selectedSubgraph.add(id);
+          else selectedSubgraph.delete(id);
+          const d = describeElement(id);
+          setStatus((added ? 'selected · ' : 'deselected · ') +
+            d.label + (d.polarity ? ' (' + d.polarity + ')' : ''));
         }
         refreshSelectionUI();
       }
@@ -588,6 +703,9 @@
 
       function showSession(data) {
         currentSessionId = data.session_id;
+        // Capture introspection before rendering so the selection bar can
+        // describe elements as soon as the (reset) selection refreshes.
+        currentIntrospection = data.introspection || null;
         sessionIdDisplay.value = data.session_id;
         baseSourceDisplay.value = data.base_source +
           (data.base_source_uod_id ? ' (' + data.base_source_uod_id + ')' : '');
@@ -606,6 +724,7 @@
       function clearSession() {
         currentSessionId = null;
         currentRule = null;
+        currentIntrospection = null;
         pickerSection.style.display = 'block';
         sessionInfoEl.style.display = 'none';
         rulesSectionEl.style.display = 'none';
@@ -642,8 +761,10 @@
         }
         ruleParamsEl.innerHTML = html;
         btnApply.disabled = false;
-        // Carry any existing on-canvas selection into the new fields.
+        // Carry any existing on-canvas selection into the new fields, and
+        // refresh the polarity guidance for the newly chosen rule.
         syncSelectionToFields();
+        updateRuleHints();
       }
 
       function readRuleParameters() {

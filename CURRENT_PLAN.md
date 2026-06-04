@@ -24,7 +24,7 @@ and onto the Peircean chain-of-semiosis grounding (see
 | **Ergasterion** (workshop, composition) | ✅ live — `/ergasterion` |
 | Chain persistence (regime-1 → regime-2 boundary) | ✅ `tomos_service.save_uod_with_chain` / `load_chain` |
 | **Agon** (Endoporeutic Game arena) | 🟢 V1 live — `/agon` (thin, flexible slice) |
-| On-canvas element selection for rule application | 🟡 **in progress** |
+| On-canvas element selection for rule application | ✅ live + browser-verified — click→select, introspection-named chips, polarity hints |
 | Transformation UI w/ regime-3 (drag/reshape) affordances | ⬜ not started |
 
 **What the Ergasterion build settled.** Bringing the workshop online
@@ -489,12 +489,22 @@ workshop.
      has ≥1 ligature crossing and that Peirce emits `<g id="bridges">` while Dau
      does not; visually confirmed (the over-line hops the under-line at the
      crossing).
+   - **✅ Click-to-select UI DONE + browser-verified (2026-06-03).** The
+     Ergasterion canvas now *consumes* the introspection: clicking an element
+     names it as a chip by **meaning** — relation/label + a recto/verso polarity
+     dot (raw id only in the chip's tooltip) — instead of echoing a UUID, and a
+     non-blocking **polarity hint** forewarns the common mistakes (INS/IT+ into a
+     positive area, ERA from a negative one) using the same introspection. The
+     long-standing "unverified in a real browser" flag is **closed**: drove
+     system Chrome via Playwright through open-session → click predicate (chip
+     "Q") → shift-click cut (chip "cut · depth 1") → INS ("target area is
+     negative ✓"). `tests/test_introspection_and_rules.py` (+1) pins the payload
+     contract the UI binds to. Text fields stay authoritative (graceful
+     degradation; the engine is the final arbiter).
    - **Still open:** the `IT+` "All source elements must be in the same area"
      message is still confusing for a caller passing a full closed set (cosmetic
-     engine-message fix). The introspection content is served but no web UI yet
-     *consumes* it for click-to-select (the on-canvas selection arc). More/longer
-     derivations remain cheap now that the authoring layer + introspection
-     exist.
+     engine-message fix). More/longer derivations remain cheap now that the
+     authoring layer + introspection + click-to-select all exist.
 2. **Agon web arena** — informed by a *lived* promotion boundary, not a
    merely correct one. The fuller notion of regime-2 "asserted" (earned by
    withstanding challenge, not only by §3.3 attestation) is the design
