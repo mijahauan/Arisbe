@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-03 (Peirce fidelity Tier 3b/3c — TikZ parity + bridge marks)
+**Last Updated**: 2026-06-04 (next session: per-rule sub-graph selection review — before Agon)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -403,6 +403,34 @@ workshop.
 
 ## After this
 
+0. **NEXT SESSION (explicitly before Agon) — review per-rule sub-graph
+   selection in the UI.** Agon is tempting but deferred. Before it, carefully
+   review how the Ergasterion UI lets a user select the **proper sub-graph
+   (including an *empty space*)** that each transformation rule actually
+   requires. Click-to-select shipped and is browser-verified, but it currently
+   models selection as a *flat set of clicked element ids* plus a shift-clicked
+   *cut* as target area — which does not yet match what each rule needs:
+   - **DC+** — encloses a *closed* sub-graph **or nothing** (an empty double
+     cut). "Including an empty space" is exactly this: DC+ on empty space, and
+     INS/IT+ *into* an empty space. Selecting a **region/space** (the sheet, or
+     an empty area inside a cut) is not expressible by clicking elements today —
+     only cuts are shift-selectable as targets; the **sheet** and **empty
+     areas** have no affordance.
+   - **DC-** — the *outer cut* of a double-cut pair (a single, specific cut).
+   - **ERA** — a *closed* sub-graph in a **positive** area.
+   - **INS** — EGIF content **+ a negative area** (a space to insert into).
+   - **IT+** — a *closed* source sub-graph **+ a destination area** nested
+     inside the source's area.
+   - **IT-** — a *closed* candidate copy (the engine verifies isomorphism).
+   The review question: does the UI's selection model express **proper
+   sub-graphs** (closed, per `SubgraphClosureValidator`) and **empty-space /
+   region** selections faithfully, per rule, with the right affordances and
+   guidance? Where it doesn't, design the fix. The introspection content +
+   `/rules` descriptors + closure validator are the materials; the
+   `expanded_selection` a step returns (closure expansion) is a hook the UI
+   could surface ("your selection was closed up to …"). See memory
+   [[project-ui-subgraph-selection-review]].
+
 1. **Dogfood by ingesting known proofs → the first diachronic exemplars.**
    The UoD is *fundamentally diachronic* (an evolving reasoning process),
    but today's tomos is almost all synchronic snapshots — only `practice_*`
@@ -505,10 +533,11 @@ workshop.
      message is still confusing for a caller passing a full closed set (cosmetic
      engine-message fix). More/longer derivations remain cheap now that the
      authoring layer + introspection + click-to-select all exist.
-2. **Agon web arena** — informed by a *lived* promotion boundary, not a
-   merely correct one. The fuller notion of regime-2 "asserted" (earned by
-   withstanding challenge, not only by §3.3 attestation) is the design
-   target — see [docs/CHAIN_OF_SEMIOSIS.md](docs/CHAIN_OF_SEMIOSIS.md),
+2. **Agon web arena** — *deferred behind item 0* (the user's call: review
+   per-rule sub-graph selection first). Informed by a *lived* promotion
+   boundary, not a merely correct one. The fuller notion of regime-2 "asserted"
+   (earned by withstanding challenge, not only by §3.3 attestation) is the
+   design target — see [docs/CHAIN_OF_SEMIOSIS.md](docs/CHAIN_OF_SEMIOSIS.md),
    "Semiosis is dialogical." The ingested proofs give Agon real records to
    challenge.
 
