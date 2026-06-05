@@ -1,11 +1,54 @@
 # Current Plan
 
-**Last Updated**: 2026-06-05 (Settle continuity + chain player + view-style; Spot/Subject grammar 2a)
+**Last Updated**: 2026-06-05 (Settle continuity + chain player + view-style + Spot/Subject grammar 2a–2c)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
 this file tracks the active front. The pre-commit quality gate reads the
 **Last Updated** date here, so keep it current.
+
+---
+
+## Session 2026-06-05 — done this session, and where to start next
+
+The per-rule sub-graph selection review (the prior session's directive) was
+completed and turned into a built-out **transformation workflow** layer. See
+[docs/TRANSFORMATION_WORKFLOW_SPEC.md](docs/TRANSFORMATION_WORKFLOW_SPEC.md)
+(the design + status) and memory `project-transformation-workflow-grammar`.
+
+**Shipped + verified this session (all on `main`, pushed):**
+- **Reviewed grammar** — four beats (Spot→Subject→Commit→Settle), two families
+  (Placing / Removing); visual continuity is the keystone. Validated against the
+  real Praeclarum (7-step) and Beta modus ponens chains.
+- **Settle ④a continuity** — 1a stable viewport (workshop hold-camera), 1b FLIP
+  animation, 1c positional pinning for **subtractive** rules (ERA/IT−/DC−) +
+  **DC+ wrap** (survivors move 0px; §3.3-attested, full-layout fallback).
+- **Diachronic chain player** (Organon) — play a worked proof step-by-step;
+  **view-style selector** (Dau/Peirce/Sowa) without the export path.
+- **Spot/Subject grammar 2a/2b/2c (complete)** — sheet/region selection;
+  per-rule `/rules` step checklist; closure preview (a cut pulls in its
+  contents; DC− "cuts go, contents stay"); step-driven click dispatch (no
+  modifier); justification highlights (DC− pair, IT− governing original, ERA
+  positivity).
+- **Layout fixes** — empty cuts visible (`EMPTY_CUT_MIN_SIZE`); id-independent
+  `_structural_key` ordering (IT+ copies no longer flip; layout reproducible);
+  removed "Existential Graph"/stats chrome; per-frame "shape".
+
+**Start next session with one of (rough priority):**
+1. **Manual Settle ④b** — wire `presentation_ops` (`move_vertex` /
+   `reshape_cut` / `reroute_ligature`, already built + tested) to the canvas,
+   completing the four-beat workflow (lets a user tidy appearance after a
+   transform, logic-preserving). The natural completion of the Settle arc.
+2. **INS / IT+ positional pinning** (the rest of 1c) — the hard *additive*
+   case: place genuinely new vertices/predicates in the survivors' frame,
+   overlap-aware (§3.3 won't catch visual overlap, so the safety net is weaker).
+3. **DC+ empty-double-cut semantics** — the one **protected-module** change
+   (`rule_interaction.py`/`formal_transformation_rules.py`): let DC+ honor an
+   explicit-empty selection so a truly-empty double cut works in a non-empty
+   area (spec §2 DC+ gap). Needs `.core_modification_authorized` + core suite.
+4. **Dogfood the grammar** on a real proof (the workshop is now genuinely
+   usable for per-rule selection); a literal **ghost-preview** for Placing;
+   **Agon V2**; a first-class **warrant gradient**.
 
 ---
 
