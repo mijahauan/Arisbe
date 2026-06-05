@@ -380,9 +380,10 @@
             </div>
             <div class="sel-line">
               <span class="sel-swatch area"></span>
-              <strong>target area:</strong> shift-click a cut ·
+              <strong>target region:</strong> shift-click a cut or empty space (sheet) ·
               <code id="sel-area-display">none</code>
             </div>
+            <div class="sel-line" id="rule-steps-guidance" style="margin-top:6px;"></div>
           </div>
 
           <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
@@ -476,6 +477,8 @@
       let currentRule = null;
       let allCorpus = [];
       let svgPanZoomInstance = null;
+      let sheetId = null;        // the sheet's area id (a selectable region)
+      let ruleSteps = {};        // rule name -> /rules step descriptors
 
       // On-canvas selection state. The subgraph set feeds rules'
       // `selected_elements`; the area feeds `target_area` (INS / IT+).
@@ -620,10 +623,55 @@
         ).join('');
       }
 
+      // Fetch the per-rule step descriptors once (mode-independent /rules), so
+      // the workshop can show *what each rule needs* — the rule-shaped guidance
+      // the Spot/Subject grammar calls for (spec §1).
+      async function loadRules() {
+        try {
+          const res = await fetch('/rules');
+          const body = await res.json();
+          if (body.success) {
+            (body.data || []).forEach((r) => { ruleSteps[r.rule] = r.steps || []; });
+          }
+        } catch (_) { /* guidance is best-effort */ }
+      }
+
+      // Whether the current selection state fills a given step's input.
+      function stepFilled(step) {
+        if (step.parameter === 'selected_elements') return selectedSubgraph.size > 0;
+        if (step.parameter === 'target_area') return !!selectedArea;
+        if (step.parameter === 'egif_content') {
+          const el = document.getElementById('param-egif');
+          return !!(el && el.value.trim());
+        }
+        return false;
+      }
+
+      // Render the chosen rule's ordered steps as a checklist, so the composer
+      // sees what to select (a closed sub-graph, a region, EGIF content) and in
+      // what order — and what's still outstanding.
+      function renderRuleGuidance() {
+        const el = document.getElementById('rule-steps-guidance');
+        if (!el) return;
+        const steps = currentRule && ruleSteps[currentRule];
+        if (!steps || !steps.length) { el.innerHTML = ''; return; }
+        const marks = ['①', '②', '③', '④'];
+        el.innerHTML = '<strong>' + escapeHtml(currentRule) + ' needs:</strong> ' +
+          steps.map((s, i) => {
+            const done = stepFilled(s);
+            const opt = s.optional ? ' (optional)' : '';
+            return '<span style="display:inline-block; margin-right:10px; color:' +
+              (done ? '#a6e3a1' : '#a6adc8') + ';">' +
+              (marks[i] || (i + 1) + '.') + ' ' + escapeHtml(s.prompt) +
+              opt + ' ' + (done ? '✓' : '☐') + '</span>';
+          }).join('');
+      }
+
       function refreshSelectionUI() {
         applySelectionHighlights();
         syncSelectionToFields();
         updateSelectionBar();
+        renderRuleGuidance();
       }
 
       function clearSelection() {
@@ -634,29 +682,31 @@
 
       function onCanvasClick(e) {
         const g = e.target.closest && e.target.closest('[data-element-id]');
-        if (!g) return;
-        const id = g.getAttribute('data-element-id');
-        const type = g.getAttribute('data-element-type');
-        if (!id) return;
+        const id = g && g.getAttribute('data-element-id');
+        const type = g && g.getAttribute('data-element-type');
 
         if (e.shiftKey) {
-          // Shift-click a cut → mark it as the target area (INS / IT+).
-          // Only cuts are valid areas; the sheet is not rendered as a
-          // clickable region, so sheet-as-target stays a text-field path.
-          if (type === 'cut') {
-            selectedArea = selectedArea === id ? null : id;
-            const a = describeArea(id);
-            setStatus((selectedArea ? 'target area · ' : 'cleared target · ') +
+          // Region (Spot) selection: shift-click a cut for its interior, or
+          // empty space for the open **sheet** — the region every theorem
+          // proof starts on, which previously had no on-canvas affordance.
+          const regionId = (type === 'cut') ? id : sheetId;
+          if (regionId) {
+            selectedArea = selectedArea === regionId ? null : regionId;
+            const a = describeArea(regionId);
+            setStatus((selectedArea ? 'target region · ' : 'cleared region · ') +
               a.label + (a.polarity ? ' (' + a.polarity + ')' : ''));
+            refreshSelectionUI();
           }
-        } else {
-          const added = !selectedSubgraph.has(id);
-          if (added) selectedSubgraph.add(id);
-          else selectedSubgraph.delete(id);
-          const d = describeElement(id);
-          setStatus((added ? 'selected · ' : 'deselected · ') +
-            d.label + (d.polarity ? ' (' + d.polarity + ')' : ''));
+          return;
         }
+        if (!id) return;  // plain click on empty space — reserved for step 2c
+
+        const added = !selectedSubgraph.has(id);
+        if (added) selectedSubgraph.add(id);
+        else selectedSubgraph.delete(id);
+        const d = describeElement(id);
+        setStatus((added ? 'selected · ' : 'deselected · ') +
+          d.label + (d.polarity ? ' (' + d.polarity + ')' : ''));
         refreshSelectionUI();
       }
 
@@ -756,6 +806,15 @@
         // Capture introspection before rendering so the selection bar can
         // describe elements as soon as the (reset) selection refreshes.
         currentIntrospection = data.introspection || null;
+        // The sheet id — the open region, a first-class selectable Spot
+        // (every theorem proof starts on it). From the layout DTO, falling
+        // back to the introspection area flagged is_sheet.
+        sheetId = (data.layout_dto && data.layout_dto.sheet_id) || sheetId;
+        if (!sheetId && currentIntrospection && currentIntrospection.areas) {
+          for (const aid in currentIntrospection.areas) {
+            if (currentIntrospection.areas[aid].is_sheet) { sheetId = aid; break; }
+          }
+        }
         sessionIdDisplay.value = data.session_id;
         baseSourceDisplay.value = data.base_source +
           (data.base_source_uod_id ? ' (' + data.base_source_uod_id + ')' : '');
@@ -811,10 +870,14 @@
         }
         ruleParamsEl.innerHTML = html;
         btnApply.disabled = false;
+        // Keep the step checklist current as EGIF content is typed.
+        const egifEl = document.getElementById('param-egif');
+        if (egifEl) egifEl.addEventListener('input', renderRuleGuidance);
         // Carry any existing on-canvas selection into the new fields, and
-        // refresh the polarity guidance for the newly chosen rule.
+        // refresh the polarity guidance + the step checklist for this rule.
         syncSelectionToFields();
         updateRuleHints();
+        renderRuleGuidance();
       }
 
       function readRuleParameters() {
@@ -1023,6 +1086,7 @@
       });
 
       loadCorpus();
+      loadRules();
     })();
   </script>
 </body>

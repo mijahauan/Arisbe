@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-04 (per-rule sub-graph selection review DONE → transformation-workflow spec + build plan)
+**Last Updated**: 2026-06-05 (Settle continuity + chain player + view-style; Spot/Subject grammar 2a)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -24,7 +24,7 @@ and onto the Peircean chain-of-semiosis grounding (see
 | **Ergasterion** (workshop, composition) | ✅ live — `/ergasterion` |
 | Chain persistence (regime-1 → regime-2 boundary) | ✅ `tomos_service.save_uod_with_chain` / `load_chain` |
 | **Agon** (Endoporeutic Game arena) | 🟢 V1 live — `/agon` (thin, flexible slice) |
-| On-canvas element selection for rule application | ✅ live + browser-verified — click→select, introspection-named chips, polarity hints |
+| On-canvas element selection for rule application | ✅ live + browser-verified — click→select, introspection-named chips, polarity hints; **Spot/Subject grammar 2a**: sheet/region selectable (shift-click empty space), per-rule `/rules` step checklist |
 | Transformation UI w/ regime-3 (drag/reshape) affordances | ⬜ not started |
 
 **What the Ergasterion build settled.** Bringing the workshop online

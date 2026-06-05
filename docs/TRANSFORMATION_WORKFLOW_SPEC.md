@@ -354,6 +354,21 @@ descriptions, so it is a **keystone, not a follow-up**.
    selection (incl. the sheet), driven by `/rules` step descriptors; restore
    closure preview; the two visual dialects (ghost-preview vs
    justification-highlight). Mostly unprotected UI + additive routes.
+   *In progress (2026-06-05), built as increments:*
+   - **2a — region/empty-space selection incl. the sheet + rule-step
+     guidance. ✅ done + browser-verified (2026-06-05).** The sheet (the most
+     important empty space — every theorem proof starts there) had no
+     affordance; now **shift-click empty space selects the open sheet** (and
+     shift-click a cut its interior), the sheet id coming from the session
+     payload (`layout_dto.sheet_id` / `introspection.areas`). Each chosen rule
+     shows a **step checklist** from `/rules` ("INS needs: ① content ☐ ②
+     negative region ☐"), checks filling as you select. Verified in Chrome.
+   - **2b — closure preview** (surface `SubgraphClosureValidator` so a Subject
+     selection shows "closes up to N elements"; restores + betters the legacy
+     auto-complete).
+   - **2c — step-driven click dispatch** (a click means *element* on a Subject
+     step, *region* on a Spot step — resolving the cut-as-subject vs
+     cut-interior-as-region ambiguity), and the two visual dialects.
 3. **Manual Settle (④b).** Wire `move_vertex` / `reshape_cut` /
    `reroute_ligature` onto the canvas, refusing boundary crossings.
 4. **DC+ empty-double-cut semantics.** Resolve the one logic-expressiveness
