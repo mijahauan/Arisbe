@@ -50,6 +50,7 @@ from fastapi.responses import FileResponse
 from web_api.models.api_models import (
     ApiResponse,
     ErgasterionApplyRequest,
+    ErgasterionClosureRequest,
     ErgasterionOpenRequest,
     ErgasterionPromoteRequest,
 )
@@ -63,6 +64,7 @@ from web_api.services.linear_forms import linear_forms
 
 from correspondence_attestation import CorrespondenceViolation
 from egif_parser_dau import parse_egif
+from subgraph_closure_validator import SubgraphClosureValidator
 from rule_interaction import (
     StepKind,
     advance_interaction,
@@ -439,6 +441,54 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
                 "message": str(exc),
                 "type": type(exc).__name__,
             },
+        )
+
+
+@router.post("/sessions/{session_id}/closure")
+async def preview_closure(session_id: str, request: ErgasterionClosureRequest):
+    """Preview the closed sub-graph a Subject selection expands to.
+
+    A rule acts on a *closed* sub-graph: selecting a cut pulls in **all its
+    contents**, selecting an edge pulls in its incident vertices, etc.  This
+    read-only endpoint runs ``SubgraphClosureValidator.analyze_closure`` on the
+    session's current state and returns the closure plus the elements it added,
+    so the workshop can show what the selection really covers *before* applying
+    a rule — the "your selection closed up to …" feedback (no state change).
+
+    (DC- is the exception the caller handles: its selected cut-pair is removed
+    while the enclosed contents stay, so the UI does not treat the closure as
+    the acted-on set for DC-.)
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+        selection = frozenset(request.selected_elements or [])
+        validator = SubgraphClosureValidator(session.current_egi)
+        analysis = validator.analyze_closure(
+            selection, allow_expansion=True, for_erasure=request.for_erasure
+        )
+        return ApiResponse(
+            success=True,
+            data={
+                "selection": sorted(selection),
+                "closed_subgraph": sorted(analysis.closed_subgraph),
+                "added_elements": sorted(analysis.added_elements),
+                "is_closed": analysis.is_closed,
+            },
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CLOSURE_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
         )
 
 

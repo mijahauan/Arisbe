@@ -190,6 +190,16 @@
       stroke-width: 3px;
       stroke-dasharray: 7 3;
     }
+    /* Closure preview: elements *pulled in* to close the selection (e.g. a
+       cut's contents, an edge's vertices) — dashed, to read as "comes along"
+       rather than directly clicked. */
+    #canvas g[data-element-type="vertex"].sel-closure circle,
+    #canvas g[data-element-type="predicate"].sel-closure rect,
+    #canvas g[data-element-type="cut"].sel-closure > rect {
+      stroke: #f9a06c;
+      stroke-width: 2px;
+      stroke-dasharray: 4 3;
+    }
     #selection-bar {
       margin-bottom: 10px;
       padding: 7px 9px;
@@ -377,6 +387,7 @@
               <span class="sel-swatch subgraph"></span>
               <strong>selection:</strong> click elements ·
               <code id="sel-subgraph-display">none</code>
+              <span id="closure-note" style="margin-left:8px; color:#f9a06c; font-size:11px;"></span>
             </div>
             <div class="sel-line">
               <span class="sel-swatch area"></span>
@@ -526,6 +537,9 @@
         svgEl.querySelectorAll('.sel-area').forEach((el) =>
           el.classList.remove('sel-area')
         );
+        svgEl.querySelectorAll('.sel-closure').forEach((el) =>
+          el.classList.remove('sel-closure')
+        );
         selectedSubgraph.forEach((id) => {
           const g = svgEl.querySelector('[data-element-id="' + cssAttr(id) + '"]');
           if (g) g.classList.add('sel-subgraph');
@@ -667,11 +681,63 @@
           }).join('');
       }
 
+      // Closure preview (2b): a rule acts on a *closed* sub-graph, so a
+      // selection that includes a cut pulls in all its contents, an edge pulls
+      // in its vertices, etc.  We ask the server (the authoritative
+      // SubgraphClosureValidator) what the selection closes to and mark the
+      // *pulled-in* elements (.sel-closure, dashed) so the effect is visible
+      // before applying.  DC- is the exception the user noted: its selected
+      // cut-pair is removed while the enclosed contents stay, so we don't treat
+      // the closure as the acted-on set — just say so.
+      let _closureSeq = 0;
+      async function previewClosure() {
+        const noteEl = document.getElementById('closure-note');
+        const svgEl = canvasEl.querySelector('svg');
+        if (svgEl) svgEl.querySelectorAll('.sel-closure').forEach((el) =>
+          el.classList.remove('sel-closure'));
+        if (noteEl) noteEl.textContent = '';
+        if (!currentSessionId || selectedSubgraph.size === 0) return;
+
+        if (currentRule === 'DC-') {
+          if (noteEl) noteEl.textContent =
+            '— DC− removes the double cut; enclosed contents stay';
+          return;
+        }
+
+        const seq = ++_closureSeq;
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/closure',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                selected_elements: Array.from(selectedSubgraph),
+                for_erasure: currentRule === 'ERA',
+              }),
+            }
+          );
+          const body = await res.json();
+          if (seq !== _closureSeq || !body.success) return;  // superseded / failed
+          const added = body.data.added_elements || [];
+          const total = (body.data.closed_subgraph || []).length;
+          const svg2 = canvasEl.querySelector('svg');
+          if (svg2) added.forEach((id) => {
+            const g = svg2.querySelector('[data-element-id="' + cssAttr(id) + '"]');
+            if (g) g.classList.add('sel-closure');
+          });
+          if (noteEl) noteEl.textContent = added.length
+            ? '— closes to ' + total + ' elements (+' + added.length + ' pulled in)'
+            : '— closed sub-graph · ' + total + ' element(s)';
+        } catch (_) { /* preview is best-effort */ }
+      }
+
       function refreshSelectionUI() {
         applySelectionHighlights();
         syncSelectionToFields();
         updateSelectionBar();
         renderRuleGuidance();
+        previewClosure();
       }
 
       function clearSelection() {

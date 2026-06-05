@@ -363,9 +363,17 @@ descriptions, so it is a **keystone, not a follow-up**.
      payload (`layout_dto.sheet_id` / `introspection.areas`). Each chosen rule
      shows a **step checklist** from `/rules` ("INS needs: ① content ☐ ②
      negative region ☐"), checks filling as you select. Verified in Chrome.
-   - **2b — closure preview** (surface `SubgraphClosureValidator` so a Subject
-     selection shows "closes up to N elements"; restores + betters the legacy
-     auto-complete).
+   - **2b — closure preview. ✅ done + browser-verified (2026-06-05).** A rule
+     acts on a *closed* sub-graph, so selecting a **cut pulls in all its
+     contents** (the user's point), an edge pulls in its vertices, etc. `POST
+     /ergasterion/sessions/{id}/closure` runs the authoritative
+     `SubgraphClosureValidator` on the session state; the workshop marks the
+     *pulled-in* elements (dashed `.sel-closure`) and notes "closes to N (+M
+     pulled in)". **DC− is the exception** (the user flagged it): its selected
+     cut-pair is removed while the enclosed contents *stay*, so DC− is not
+     treated as closure-as-acted-on — it shows "DC− removes the double cut;
+     enclosed contents stay". Verified: ERA+cut → +3 pulled in; DC−+cut → the
+     exception note, no pull-in.
    - **2c — step-driven click dispatch** (a click means *element* on a Subject
      step, *region* on a Spot step — resolving the cut-as-subject vs
      cut-interior-as-region ambiguity), and the two visual dialects.

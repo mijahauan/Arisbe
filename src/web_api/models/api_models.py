@@ -76,6 +76,20 @@ class ErgasterionApplyRequest(BaseModel):
     user_annotation: Optional[str] = None
 
 
+class ErgasterionClosureRequest(BaseModel):
+    """Preview the closed sub-graph a selection expands to (read-only).
+
+    A selection is acted on as a *closed* sub-graph: selecting a cut pulls in
+    all its contents, selecting an edge pulls in its incident vertices, etc.
+    This lets the workshop show what a selection really covers before applying
+    a rule.  ``for_erasure`` tightens the closure for ERA/IT- (a selected
+    vertex requires every edge referencing it).
+    """
+
+    selected_elements: List[str]
+    for_erasure: bool = False
+
+
 class ExportRequest(BaseModel):
     """Export an EGI in a chosen format and style.
 

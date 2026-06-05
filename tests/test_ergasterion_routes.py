@@ -177,6 +177,55 @@ def test_open_session_with_corpus_uod(client, isolated_tomos):
     assert isinstance(data["svg"], str) and data["svg"].startswith("<")
 
 
+# --------------------------------------------------------------------------- #
+# Closure preview (2b)                                                        #
+# --------------------------------------------------------------------------- #
+
+
+def test_closure_preview_cut_pulls_in_contents(client, isolated_tomos):
+    """Selecting a cut closes to include all its contents (the user's point:
+    a cut travels with its enclosed sub-graph)."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    intro = data["introspection"]
+    cuts = [eid for eid, e in intro["elements"].items() if e["type"] == "cut"]
+    assert cuts, "seed UoD is expected to contain at least one cut"
+
+    def has_direct_contents(cut):
+        return any(e.get("area") == cut for e in intro["elements"].values())
+
+    target = next((c for c in cuts if has_direct_contents(c)), cuts[0])
+    resp = client.post(
+        f"/ergasterion/sessions/{sid}/closure",
+        json={"selected_elements": [target]},
+    )
+    assert resp.status_code == 200
+    d = resp.json()["data"]
+    assert target in d["closed_subgraph"]
+    assert set(d["selection"]).issubset(set(d["closed_subgraph"]))
+    if has_direct_contents(target):
+        assert len(d["added_elements"]) >= 1  # contents pulled in
+
+
+def test_closure_preview_empty_selection_is_trivially_closed(client, isolated_tomos):
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    resp = client.post(
+        f"/ergasterion/sessions/{sid}/closure", json={"selected_elements": []}
+    )
+    d = resp.json()["data"]
+    assert d["closed_subgraph"] == [] and d["added_elements"] == []
+    assert d["is_closed"] is True
+
+
+def test_closure_preview_unknown_session_is_clean_error(client, fresh_session_manager):
+    resp = client.post(
+        "/ergasterion/sessions/no-such/closure", json={"selected_elements": []}
+    )
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"
+
+
 def test_open_session_refuses_invalid_base(client, fresh_session_manager):
     """A bogus base_source returns INVALID_BASE_SOURCE, not a 500."""
     response = client.post(
