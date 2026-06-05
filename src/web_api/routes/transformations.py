@@ -46,7 +46,7 @@ def _render_svg(egi, dto) -> str:
     except Exception:
         egif = ""
     renderer = SimpleSVGRenderer()
-    return renderer.render_to_svg(dto, title="Existential Graph", egif=egif, egi=egi)
+    return renderer.render_to_svg(dto, egif=egif, egi=egi)
 
 
 def _infer_target_area(egi, selected_elements) -> str:

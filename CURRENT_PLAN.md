@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-04 (next session: per-rule sub-graph selection review — before Agon)
+**Last Updated**: 2026-06-04 (per-rule sub-graph selection review DONE → transformation-workflow spec + build plan)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
@@ -20,7 +20,7 @@ and onto the Peircean chain-of-semiosis grounding (see
 | Workstream | Status |
 |---|---|
 | FastAPI + ELK + SVG render path, §3.3-attested at the service boundary | ✅ done |
-| **Organon** (archive, read-only) | ✅ live — `/organon` |
+| **Organon** (archive, read-only) | ✅ live — `/organon` (+ diachronic **chain player**: step/▶ through a worked proof, each rule application + resulting graph, with continuity; **view-style selector**: see any form/frame in Dau / Peirce / Sowa directly, no export round-trip) |
 | **Ergasterion** (workshop, composition) | ✅ live — `/ergasterion` |
 | Chain persistence (regime-1 → regime-2 boundary) | ✅ `tomos_service.save_uod_with_chain` / `load_chain` |
 | **Agon** (Endoporeutic Game arena) | 🟢 V1 live — `/agon` (thin, flexible slice) |
@@ -403,33 +403,166 @@ workshop.
 
 ## After this
 
-0. **NEXT SESSION (explicitly before Agon) — review per-rule sub-graph
-   selection in the UI.** Agon is tempting but deferred. Before it, carefully
-   review how the Ergasterion UI lets a user select the **proper sub-graph
-   (including an *empty space*)** that each transformation rule actually
-   requires. Click-to-select shipped and is browser-verified, but it currently
-   models selection as a *flat set of clicked element ids* plus a shift-clicked
-   *cut* as target area — which does not yet match what each rule needs:
-   - **DC+** — encloses a *closed* sub-graph **or nothing** (an empty double
-     cut). "Including an empty space" is exactly this: DC+ on empty space, and
-     INS/IT+ *into* an empty space. Selecting a **region/space** (the sheet, or
-     an empty area inside a cut) is not expressible by clicking elements today —
-     only cuts are shift-selectable as targets; the **sheet** and **empty
-     areas** have no affordance.
-   - **DC-** — the *outer cut* of a double-cut pair (a single, specific cut).
-   - **ERA** — a *closed* sub-graph in a **positive** area.
-   - **INS** — EGIF content **+ a negative area** (a space to insert into).
-   - **IT+** — a *closed* source sub-graph **+ a destination area** nested
-     inside the source's area.
-   - **IT-** — a *closed* candidate copy (the engine verifies isomorphism).
-   The review question: does the UI's selection model express **proper
-   sub-graphs** (closed, per `SubgraphClosureValidator`) and **empty-space /
-   region** selections faithfully, per rule, with the right affordances and
-   guidance? Where it doesn't, design the fix. The introspection content +
-   `/rules` descriptors + closure validator are the materials; the
-   `expanded_selection` a step returns (closure expansion) is a hook the UI
-   could surface ("your selection was closed up to …"). See memory
-   [[project-ui-subgraph-selection-review]].
+0. **✅ Per-rule sub-graph selection review DONE (2026-06-04).** Reviewed
+   how the Ergasterion UI lets a user select the proper sub-graph (incl. an
+   *empty space*) for each rule, against the logic and the actual engine. The
+   reviewed design lives in
+   [docs/TRANSFORMATION_WORKFLOW_SPEC.md](docs/TRANSFORMATION_WORKFLOW_SPEC.md).
+   Outcome (confirmed with the author):
+   - **A unified grammar — four beats, two families.** Every rule application
+     is **① Spot → ② Subject → ③ Commit → ④ Settle**. The six rules split into
+     **Placing** (DC+, INS, IT+ — pick a spot + fill a *buffer* by
+     authoring/copying, then a ghost-preview) and **Removing** (ERA, DC−, IT−
+     — select a closed sub-graph, spot *implied*, with a *justification
+     highlight* of why the move is legal). One skeleton, two visual dialects =
+     consistent between rules and within each.
+   - **Settle is a keystone, not polish.** The author's central point: a
+     transform must preserve the **visual family resemblance** between
+     before/after (Peirce's "moving pictures of thought" leans on human
+     pattern-recognition). v1 principle = **layout conservatism** (change the
+     drawing as little as the new logic allows; the addition/removal stays
+     locally legible). Two parts: **④a automatic continuity** (engine) +
+     **④b manual touch-up** (regime-3 on canvas).
+   - **The one logic-expressiveness gap:** DC+ equates *no selection* with
+     *enclose the whole area*, so a **truly empty** double cut is only possible
+     in an already-empty area. "A double negative at any spot, even around
+     nothing" needs an explicit-empty selection honored by the engine
+     (protected change).
+   - **The one concrete engine no-op found:** `ELKLayoutEngine.generate_layout`
+     accepts `layout_deltas` but **never uses it** — `layout_service`'s
+     advertised anchoring is dead, so every transform re-lays-out cold. This is
+     the natural hook for ④a conservatism.
+
+   **Build order (keystone-first), from the spec §5:**
+   1. **Automatic continuity (④a)** — *revised 2026-06-04 after experiment:
+      the ELK-interactive option-flip **regresses** and was reverted (spec §3a).*
+      ELK is deterministic, so staged instead:
+      - **(1a) stable viewport — ✅ DONE + browser-verified (2026-06-04).** A
+        continuation render (rule applied / style changed / Agon move) now
+        carries the prior camera across the re-render instead of re-fitting:
+        absolute scale (`getZoom × realZoom`) + pan restored, so a surviving
+        element keeps its size and screen position and the eye tracks what
+        changed; a fresh open still fits/centers. `web_viewer/ergasterion.html`
+        + `agon.html` `renderSvg(svg, preserveView)`. Verified via system
+        Chrome: across a DC+ apply the viewport transform is preserved exactly
+        (Δscale 0.0000, Δpan 0) while a fresh open re-fits.
+      - **(1b) animated transition — ✅ DONE + browser-verified (2026-06-04).**
+        `web_viewer/js/diagram-transition.js` (shared FLIP helper, loaded by
+        ergasterion + agon): captures element screen positions before the SVG
+        is replaced, then — with the camera held by 1a — animates each
+        surviving element (matched by `data-element-id`) from its old position
+        to the new and fades in genuinely new ones, so motion keeps the picture
+        followable (the literal "moving picture"). Client-only, §3.3-neutral;
+        degrades to an instant cut without the Web Animations API. Verified via
+        Chrome: a DC+ apply (3→5 elements) drove 5 concurrent animations (3
+        survivors sliding + 2 new cuts fading in), settling to 0 residual
+        transforms / 0 running, no page errors.
+      - **(1c) pin-and-place — subtractive case DONE (2026-06-04).** Measured
+        first: with structural ordering in place, survivors still drift 50–235px
+        per step (global ELK re-balances as the graph changes), and rigid
+        re-anchoring (translate / similarity) is insufficient (step 3 stays
+        232px; similarity overfits to a degenerate flip on few points). So true
+        pinning is required. Split by what the step does:
+        **subtractive (ERA / IT− / DC−)** — the new element set is a *subset* of
+        the old, so survivors keep their **exact** previous positions and removed
+        elements vanish (zero new material to place). `layout_service.
+        _subtractive_layout` detects this structurally (no rule coupling) and
+        reuses the previous DTO's positions/bounds, §3.3-attested with a full
+        layout fallback. Verified: beta_modus_ponens DC− and Praeclarum steps 6
+        (IT−) & 7 (DC−) now move **0px** (were 51 / 79). Tests:
+        `test_layout_service_attestation.py` (+2).
+        **Additive — DC+ wrap DONE (2026-06-05).** DC+ adds only *cuts* (no new
+        vertices/predicates) and wraps survivors, so
+        `layout_service._additive_cut_layout` keeps every element at its exact
+        position and recomputes cut bounds bottom-up around them (ancestors grow
+        just enough); §3.3-attested, full-layout fallback if a recomputed wrap
+        overlaps a sibling. Verified 0px survivor drift on plain / Beta (line of
+        identity) / multi-sibling / enclose-all DC+. Tests +1.
+        **INS and IT+** still fall back — they add new vertices/predicates that
+        need frame-consistent, overlap-aware *placement* of genuinely new
+        geometry (the harder remaining increment; the agreed pause point).
+
+      **Diachronic chain player — ✅ DONE + browser-verified (2026-06-04).**
+      To actually *watch* 1a/1b on a real proof there has to be a way to play a
+      chain; there wasn't. Added `GET /organon/uods/{id}/chain` (loads the
+      persisted `TransformationChain`, renders base + one frame per step to
+      SVG + linear form, each §3.3-attested) and a player in `organon.html`
+      (« ‹ ▶ › » + step counter + the rule's Peirce-label/note; `has_chain:false`
+      hides it for synchronic UoDs).
+
+      **View convention — fit-to-content, not hold-camera.** A first cut reused
+      the workshop's 1a *hold-camera*, which was wrong for the player: a proof's
+      states vary widely in size (blank → full → smaller), so a base-fit that
+      was zoomed-in stayed zoomed-in and the graph overflowed; reversing didn't
+      re-fit. Corrected to the **fit-to-content + animated camera dolly**
+      convention (the standard for guided playback of differently-sized states,
+      e.g. yEd / reveal.js): each frame is fitted so the whole (sub-)graph stays
+      in scope, and the camera *dollies* (zoom + pan, eased) from the previous
+      frame's view to the new fit rather than snapping. Verified across
+      Praeclarum 0→7: every frame fits, zoom adapts (3.3→0.5→0.59 as it grows
+      then shrinks), and stepping back is exactly reversible. The two
+      conventions are now explicit: **workshop = hold-camera (1a, small local
+      edits); player = fit-to-content (states change size).**
+      Verified via Chrome on `theorem_praeclarum` (8 frames, all 7 rules in
+      order, anim peaks 2→19) and `beta_modus_ponens` (autoplay). Tests:
+      `tests/test_organon_routes.py` (+3).
+
+      **Drawing chrome (2026-06-05):** removed the per-drawing "Existential
+      Graph" title and the `V/P/C/L` stats line from the SVG renderer (redundant
+      chrome; counts live in the page UI). The Organon header `shape: V/E/C` now
+      updates **per frame** as you step (was stuck on the final state).
+
+      **View-style selector in Organon (2026-06-05):** style is a *projection*
+      choice, so viewing a form in Dau / Peirce / Sowa is now a basic option in
+      the viewer (a toolbar `<select>`), not only on the Export path. `GET
+      /organon/uods/{id}` and `…/chain` take an optional `?style=`; the page
+      re-renders the current detail or chain frame in the chosen style
+      (frame-preserving), with a "Rendering in <style>… (N frames)" status since
+      a whole-chain Peirce render (oval refit + hand-drawn) takes a few seconds.
+      §3.3 attests every styled render. Tests: `test_organon_routes.py` (+2).
+
+      **Three bugs fixed while playing it through:**
+      - **Empty cuts were invisible.** ELK collapses a childless compound node
+        to a zero-size point, so an empty cut (`~[ ]`, and the *inner* cut of an
+        empty double cut `~[ ~[ ] ]`) rendered as nothing — step 1 showed one
+        shape though the EGI had 2 cuts. `ELKLayoutEngine.EMPTY_CUT_MIN_SIZE`
+        (32) now floors childless cuts; §3.3 still attests (inner stays
+        contained). Verified: step 1 shows both nested cuts.
+      - **An IT+ copy rendered flipped vs its source.** `egi.area` is a
+        frozenset, so ELK got children in id-dependent order; a copy (different
+        ids) stacked its elements oppositely (step 3: source P-above-R, copy
+        R-above-P). The engine now orders area children by an id-independent
+        `_structural_key` (edges, then cuts recursively, then vertices), so
+        isomorphic subgraphs lay out identically — the copy mirrors its source
+        (TRANSFORMATION_WORKFLOW_SPEC §2 IT+ "echo the original's shape"). Also
+        makes layout reproducible across runs. Verified: both scrolls now
+        P-above-R.
+      - **Stale "Unified D3" subtitle** (the archived Qt engine name) → now a
+        plain `0V, 6P, 8C, 0L` element count.
+
+      Tests: `tests/test_elk_layout_engine.py` (+4 — empty cut visible, empty
+      double cut nests, isomorphic structural keys, id-independent layout). Full
+      layout/correspondence/proof suite green (416 passed).
+      §3.3-neutral. Includes **ligature continuity** (hold a line of identity's
+      surviving geometry fixed).
+   2. **Spot/Subject grammar + closure preview** — first-class region select
+      (incl. the **sheet**), `/rules`-driven prompts, restored closure preview,
+      the two visual dialects (ghost-preview vs justification-highlight). Mostly
+      unprotected UI + additive routes.
+   3. **Manual Settle (④b)** — wire `move_vertex`/`reshape_cut`/`reroute_ligature`
+      onto the canvas (refusing boundary crossings).
+   4. **DC+ empty-double-cut semantics** — the one protected change
+      (`rule_interaction.py` / `formal_transformation_rules.py`).
+
+   **Validated against the seeded exemplars** (spec §6): the grammar was
+   walked step-by-step over the real `theorem_praeclarum` (7 steps) and
+   `beta_modus_ponens` (2 steps) chains. Every step is unambiguously
+   Placing or Removing and the Spot/Subject/justification slots fill
+   correctly. Refinements: DC+ empty case works only on empty areas
+   (confirmed at Praeclarum step 1, the blank sheet); **ligature continuity**
+   added as a continuity requirement (Beta steps both act on the shared line
+   x). See memory [[project-ui-subgraph-selection-review]] and
+   [[project-transformation-workflow-grammar]].
 
 1. **Dogfood by ingesting known proofs → the first diachronic exemplars.**
    The UoD is *fundamentally diachronic* (an evolving reasoning process),

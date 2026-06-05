@@ -49,6 +49,95 @@ def test_layout_service_happy_path(tomos):
     assert isinstance(svg, str) and svg
 
 
+def test_subtractive_step_preserves_survivor_positions_exactly(tomos):
+    """A subtractive step (DC−) keeps every surviving element at its exact
+    previous position — positional conservatism (Settle ④a, 1c).
+
+    Renders the state before a DC− and the state after, passing the former as
+    ``previous_layout``; every element that survives must have an *identical*
+    position, and the served DTO must still attest §3.3.
+    """
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "tools"))
+    from build_beta_modus_ponens_chain import build_beta_modus_ponens_chain
+
+    chain, _uod = build_beta_modus_ponens_chain()
+    dc_minus = chain.steps[-1]  # the DC− step
+    assert dc_minus.rule_name == "DC-"
+    before = chain.states[dc_minus.from_state_id]
+    after = chain.states[dc_minus.to_state_id]
+
+    prev_dto, _ = layout_service.generate_layout(before)
+    new_dto, _ = layout_service.generate_layout(after, previous_layout=prev_dto)
+
+    prev_pos = {**prev_dto.vertex_positions, **prev_dto.predicate_positions}
+    new_pos = {**new_dto.vertex_positions, **new_dto.predicate_positions}
+    survivors = set(prev_pos) & set(new_pos)
+    assert survivors, "expected surviving elements across a DC− step"
+    for eid in survivors:
+        assert prev_pos[eid].x == prev_pos[eid].x  # sanity
+        assert new_pos[eid].x == pytest.approx(prev_pos[eid].x)
+        assert new_pos[eid].y == pytest.approx(prev_pos[eid].y)
+    # The double cut's two cuts are gone; survivors did not move.
+    assert len(new_dto.cut_bounds) < len(prev_dto.cut_bounds)
+
+
+def test_dc_plus_wrap_preserves_survivor_positions_exactly(tomos):
+    """DC+ (wrap a subgraph in a double cut) adds only cuts, so every existing
+    vertex/predicate keeps its exact position and two new cuts appear around
+    the wrapped content — positional conservatism for an *additive* step
+    (Settle ④a, 1c, additive-cut path).
+    """
+    from egif_parser_dau import parse_egif
+    from rule_interaction import (
+        begin_interaction, advance_interaction, apply_interaction,
+    )
+
+    before = parse_egif("(P) (Q)")
+    p_id = next(e.id for e in before.E if before.get_relation_name(e.id) == "P")
+    state = begin_interaction("DC+", before)
+    advance_interaction(state, [p_id])  # wrap just P
+    result = apply_interaction(state)
+    assert result.success, result.message
+    after = result.result_egi
+    assert len(after.Cut) == len(before.Cut) + 2  # outer + inner
+
+    prev_dto, _ = layout_service.generate_layout(before)
+    # The additive-cut path applies (only cuts were added).
+    assert layout_service._additive_cut_layout(prev_dto, after, prev_dto.style) is not None
+    new_dto, svg = layout_service.generate_layout(after, previous_layout=prev_dto)
+
+    prev_pos = {**prev_dto.predicate_positions, **prev_dto.vertex_positions}
+    new_pos = {**new_dto.predicate_positions, **new_dto.vertex_positions}
+    for eid in set(prev_pos) & set(new_pos):
+        assert new_pos[eid].x == pytest.approx(prev_pos[eid].x)
+        assert new_pos[eid].y == pytest.approx(prev_pos[eid].y)
+    assert len(new_dto.cut_bounds) == 2 and svg
+
+
+def test_additive_step_falls_back_to_full_layout(tomos):
+    """An additive step (new material) is *not* eligible for the subtractive
+    fast path; the service still returns an attested layout."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "tools"))
+    from build_praeclarum_chain import build_praeclarum_chain
+
+    chain, _uod = build_praeclarum_chain()
+    ins = next(s for s in chain.steps if s.rule_name == "INS")
+    before = chain.states[ins.from_state_id]
+    after = chain.states[ins.to_state_id]
+
+    prev_dto, _ = layout_service.generate_layout(before)
+    # INS adds new vertices/predicates: neither incremental path applies.
+    assert layout_service._subtractive_layout(prev_dto, after, prev_dto.style) is None
+    assert layout_service._additive_cut_layout(prev_dto, after, prev_dto.style) is None
+    # But the service still produces a valid, attested layout via the engine.
+    new_dto, svg = layout_service.generate_layout(after, previous_layout=prev_dto)
+    assert isinstance(new_dto, LayoutDTO) and svg
+
+
 def test_layout_service_refuses_broken_dto(tomos, monkeypatch):
     """A corrupted DTO causes the service to raise CorrespondenceViolation."""
     uod = tomos.load_uod(tomos.list_uods()[0]["uod_id"])

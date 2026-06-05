@@ -194,6 +194,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/linear-form-panel.js"></script>
+  <script src="js/diagram-transition.js"></script>
   <script>
     (function () {
       const $ = (id) => document.getElementById(id);
@@ -231,12 +232,29 @@
         refreshSel();
       }
 
-      function renderSvg(svg){
-        if(svgPZ){ try{svgPZ.destroy();}catch(_){} svgPZ=null; }
+      // Stable viewport (Settle ④a, step 1a): a move is a continuation of the
+      // same contest, so preserve the camera across the re-render instead of
+      // re-fitting — the absolute scale (getZoom × realZoom) and pan are
+      // carried over so the eye tracks what the move changed. A fresh game
+      // start fits/centers. See docs/TRANSFORMATION_WORKFLOW_SPEC.md §3a.
+      function renderSvg(svg, preserveView){
+        let priorPan=null, priorAbsZoom=null, oldCenters=null;
+        if(svgPZ){
+          if(preserveView){
+            try{ priorPan=svgPZ.getPan(); priorAbsZoom=svgPZ.getZoom()*svgPZ.getSizes().realZoom; }catch(_){}
+            // Capture positions before replacement so survivors can be animated (step 1b).
+            if(window.DiagramTransition){ oldCenters=window.DiagramTransition.capture(canvasEl); }
+          }
+          try{svgPZ.destroy();}catch(_){} svgPZ=null;
+        }
         canvasEl.innerHTML = svg || '<div id="canvas-placeholder">No drawing.</div>';
         const el=canvasEl.querySelector('svg');
         if(el && window.svgPanZoom){ el.setAttribute('width','100%'); el.setAttribute('height','100%');
-          svgPZ=window.svgPanZoom(el,{zoomEnabled:true,controlIconsEnabled:false,fit:true,center:true,minZoom:0.1,maxZoom:20}); }
+          const canRestore = preserveView && priorPan && priorAbsZoom;
+          svgPZ=window.svgPanZoom(el,{zoomEnabled:true,controlIconsEnabled:false,fit:!canRestore,center:!canRestore,minZoom:0.1,maxZoom:20});
+          if(canRestore){ try{ const nr=svgPZ.getSizes().realZoom; if(nr) svgPZ.zoom(priorAbsZoom/nr); svgPZ.pan(priorPan); }catch(_){} }
+          if(oldCenters && window.DiagramTransition){ window.DiagramTransition.play(canvasEl, oldCenters, priorAbsZoom, 420); }
+        }
         clearSel();
       }
 
@@ -294,11 +312,11 @@
             $('disp-assert-fields').style.display=dd.asserts?'block':'none'; });
           list.appendChild(div); });
       }
-      function showGame(d){
+      function showGame(d, preserveView){
         lastData=d; gameId=d.game_id;
         $('setup-section').style.display='none'; $('game-info').style.display='block';
         $('game-id-display').value=d.game_id; $('frame-display').value=(d.episode.setup.framed_egif)||'';
-        renderTurn(d); renderSvg(d.svg); renderMoves(d.episode);
+        renderTurn(d); renderSvg(d.svg, preserveView); renderMoves(d.episode);
         // Collapsible linear-form view of the contest's current state
         // (EGIF default; CGIF / CLIF selectable). Updates as the game advances.
         if (window.LinearFormPanel) { window.LinearFormPanel.render(canvasEl, d.linear_forms); }
@@ -324,7 +342,7 @@
         if(!gameId||!currentRule) return;
         const b=await post('/agon/games/'+gameId+'/move',{rule:currentRule,parameters:readParams()});
         if(!b.success){ setStatus(currentRule+' refused: '+(b.error&&b.error.message),'error'); return; }
-        showGame(b.data); setStatus(currentRule+' applied. '+(b.data.is_over?'Contest over.':b.data.current_role+' to move.'),'success');
+        showGame(b.data, true); setStatus(currentRule+' applied. '+(b.data.is_over?'Contest over.':b.data.current_role+' to move.'),'success');
       }
       async function concede(){
         if(!gameId) return;

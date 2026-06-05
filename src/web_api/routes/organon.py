@@ -99,7 +99,7 @@ async def list_uods():
 
 
 @router.get("/uods/{uod_id}")
-async def get_uod(uod_id: str):
+async def get_uod(uod_id: str, style: Optional[str] = None):
     """Return the UoD's drawing + summary metadata.
 
     Pipeline:
@@ -135,7 +135,9 @@ async def get_uod(uod_id: str):
                 },
             )
 
-        layout_dto, svg = generate_layout(egi)
+        # Style is a *projection* choice: view any form in any style directly,
+        # without the export path.  §3.3 attests every styled render.
+        layout_dto, svg = generate_layout(egi, style_name=style)
         layout_dict = layout_dto_to_dict(layout_dto)
 
         metadata = {
@@ -170,6 +172,91 @@ async def get_uod(uod_id: str):
             success=False,
             error={
                 "code": "LOAD_ERROR",
+                "message": str(exc),
+                "type": type(exc).__name__,
+            },
+        )
+
+
+@router.get("/uods/{uod_id}/chain")
+async def get_uod_chain(uod_id: str, style: Optional[str] = None):
+    """Return the UoD's transformation chain as an ordered list of *frames*.
+
+    A UoD is *fundamentally diachronic* — an evolving reasoning episode, not
+    a single picture (`docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`).  The
+    seeded exemplars (``theorem_praeclarum``, ``beta_modus_ponens``,
+    ``beta_converse_mp``) persist a real ``TransformationChain``; this route
+    surfaces it so the archive can *play it through* — frame 0 the base state,
+    then one frame per rule application, each carrying the resulting drawing
+    and linear form so picture and proposition are watched co-evolving.
+
+    Each frame's drawing is produced by ``generate_layout``, so §3.3 is
+    attested at the render boundary for *every* state in the chain, not just
+    the current one.  Read-only; no session.  ``has_chain`` is False (with an
+    empty ``frames``) for the synchronic majority of the corpus that carries
+    no ``history/``.
+    """
+    try:
+        tomos = _get_tomos()
+        uod = tomos.load_uod(uod_id)
+        if uod is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "UOD_NOT_FOUND",
+                    "message": f"UoD '{uod_id}' not found in tomos",
+                },
+            )
+
+        chain = tomos.load_chain(uod_id)
+        if chain is None:
+            return ApiResponse(
+                success=True,
+                data={"uod_id": uod_id, "has_chain": False, "frames": []},
+            )
+
+        def _frame(index, kind, egi, rule=None, annotation=None, step_id=None):
+            _dto, svg = generate_layout(egi, style_name=style)  # attests §3.3 per state
+            return {
+                "index": index,
+                "kind": kind,             # "base" | "step"
+                "rule": rule,
+                "annotation": annotation,  # "<peirce label>: <note>"
+                "step_id": step_id,
+                "svg": svg,
+                "egi_summary": _egi_summary(egi),
+                "linear_forms": linear_forms(egi),
+            }
+
+        frames = [
+            _frame(0, "base", chain.states[chain.initial_state_id])
+        ]
+        for i, step in enumerate(chain.steps, start=1):
+            frames.append(
+                _frame(
+                    i,
+                    "step",
+                    chain.states[step.to_state_id],
+                    rule=step.rule_name,
+                    annotation=step.user_annotation,
+                    step_id=step.step_id,
+                )
+            )
+
+        return ApiResponse(
+            success=True,
+            data={
+                "uod_id": uod_id,
+                "has_chain": True,
+                "step_count": len(chain.steps),
+                "frames": frames,
+            },
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={
+                "code": "CHAIN_LOAD_ERROR",
                 "message": str(exc),
                 "type": type(exc).__name__,
             },

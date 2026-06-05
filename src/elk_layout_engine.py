@@ -38,6 +38,14 @@ class ELKLayoutEngine:
     # padding margin keeps it visually safe if the cap is ever reached.
     MAX_OVAL_PASSES = 6
 
+    # Minimum on-screen size for an *empty* cut.  ELK collapses a compound
+    # node with no children to a zero-size point, which renders as nothing —
+    # so an empty cut (``~[ ]``, and the inner cut of an empty double cut
+    # ``~[ ~[ ] ]``) would be invisible despite being a real EG element. We
+    # give a childless cut this minimum so it always draws as a visible
+    # (small) region.
+    EMPTY_CUT_MIN_SIZE = 32.0
+
     def __init__(self, conventions: Optional[Conventions] = None):
         self.conventions = conventions or DEFAULT_CONVENTIONS
 
@@ -243,6 +251,35 @@ class ELKLayoutEngine:
 
         return sizes
 
+    def _structural_key(
+        self,
+        egi: RelationalGraphWithCuts,
+        elem_id: ElementID,
+        cut_ids: Set[ElementID],
+        vertex_ids: Set[ElementID],
+        edge_ids: Set[ElementID],
+    ):
+        """An id-independent sort key describing *what an element is*, so that
+        isomorphic subgraphs order their siblings identically.
+
+        Ordered by type rank (edges, then cuts, then vertices), then by
+        content: an edge by (relation, arity); a cut *recursively* by the
+        sorted keys of its own contents; a vertex by label.  The leading rank
+        is an int in every branch, so heterogeneous keys compare safely (the
+        deeper, type-specific part is only reached between same-type siblings).
+        """
+        if elem_id in edge_ids:
+            return (0, egi.get_relation_name(elem_id), len(egi.nu.get(elem_id, ())))
+        if elem_id in cut_ids:
+            child_keys = sorted(
+                self._structural_key(egi, c, cut_ids, vertex_ids, edge_ids)
+                for c in egi.area.get(elem_id, frozenset())
+            )
+            return (1, tuple(child_keys))
+        # vertex
+        v = next((vv for vv in egi.V if vv.id == elem_id), None)
+        return (2, (getattr(v, "label", "") or "") if v else "")
+
     def _build_area_children(
         self,
         area_id: ElementID,
@@ -266,7 +303,21 @@ class ELKLayoutEngine:
 
         children: List[dict] = []
 
-        for elem_id in area_contents:
+        # Feed ELK the children in a deterministic, *structural* order (not the
+        # frozenset's id-dependent iteration order).  Two isomorphic areas — a
+        # subgraph and an IT+ copy of it — then lay out identically instead of
+        # one appearing flipped relative to the other, preserving the visual
+        # family resemblance a copy should have (TRANSFORMATION_WORKFLOW_SPEC
+        # §2 IT+, §3a continuity).  It also makes layout reproducible across
+        # runs regardless of element-id hashing.
+        ordered_contents = sorted(
+            area_contents,
+            key=lambda eid: self._structural_key(
+                egi, eid, cut_ids, vertex_ids, edge_ids
+            ),
+        )
+
+        for elem_id in ordered_contents:
             if elem_id in cut_ids:
                 # Recurse: this cut becomes a group node
                 cut_children = self._build_area_children(
@@ -289,15 +340,26 @@ class ELKLayoutEngine:
                         f"bottom={int(style.cut_padding)},"
                         f"right={int(style.cut_padding)}]"
                     )
+                group_layout_options = {
+                    "elk.padding": padding_str,
+                    "elk.algorithm": "layered",
+                    "elk.spacing.nodeNode": str(int(style.element_spacing)),
+                }
                 group_node = {
                     "id": elem_id,
-                    "layoutOptions": {
-                        "elk.padding": padding_str,
-                        "elk.algorithm": "layered",
-                        "elk.spacing.nodeNode": str(int(style.element_spacing)),
-                    },
+                    "layoutOptions": group_layout_options,
                     "children": cut_children,
                 }
+                if not cut_children:
+                    # An empty cut has no children to size it; ELK would
+                    # collapse it to a zero-size point (invisible). Enforce a
+                    # visible minimum so the cut still draws — covers ``~[ ]``
+                    # and the inner cut of an empty double cut ``~[ ~[ ] ]``.
+                    m = self.EMPTY_CUT_MIN_SIZE
+                    group_node["width"] = m
+                    group_node["height"] = m
+                    group_layout_options["elk.nodeSize.constraints"] = "MINIMUM_SIZE"
+                    group_layout_options["elk.nodeSize.minimum"] = f"({m},{m})"
                 children.append(group_node)
 
             elif elem_id in vertex_ids:

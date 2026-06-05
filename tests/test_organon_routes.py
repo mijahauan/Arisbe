@@ -215,6 +215,86 @@ def test_unknown_organon_subpath_is_not_swallowed_by_static(client):
 
 
 # --------------------------------------------------------------------------- #
+# 4b. Diachronic chain playback                                               #
+# --------------------------------------------------------------------------- #
+
+
+def test_chain_playback_returns_ordered_frames_for_a_worked_proof(client):
+    """A UoD with a persisted chain plays through as base + one frame per step.
+
+    ``theorem_praeclarum`` is the 7-step Praeclarum exemplar; its chain route
+    must return 8 frames (base + 7), each carrying a rendered drawing and a
+    linear form, in order, with the step frames naming their rule.
+    """
+    response = client.get("/organon/uods/theorem_praeclarum/chain")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    data = body["data"]
+    assert data["has_chain"] is True
+    assert data["step_count"] == 7
+    frames = data["frames"]
+    assert len(frames) == 8
+    # Frame 0 is the base; the rest are steps in order.
+    assert frames[0]["kind"] == "base"
+    assert [f["index"] for f in frames] == list(range(8))
+    assert [f["kind"] for f in frames[1:]] == ["step"] * 7
+    assert [f["rule"] for f in frames[1:]] == [
+        "DC+", "INS", "IT+", "INS", "IT+", "IT-", "DC-"
+    ]
+    # Every frame carries a drawing it could play, attested at render.
+    for f in frames:
+        assert f["svg"] and "<svg" in f["svg"]
+        assert "forms" in f["linear_forms"]
+    # Step frames carry the readable "<peirce label>: <note>" annotation.
+    assert frames[1]["annotation"] and "double cut" in frames[1]["annotation"]
+
+
+def test_chain_playback_absent_for_synchronic_uod(client, sample_uod_id):
+    """The synchronic majority of the corpus carries no chain — the route
+    reports ``has_chain: False`` with no frames, not an error."""
+    response = client.get(f"/organon/uods/{sample_uod_id}/chain")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is True
+    assert body["data"]["has_chain"] is False
+    assert body["data"]["frames"] == []
+
+
+def test_uod_detail_honors_view_style(client):
+    """A UoD can be *viewed* in any style directly (not only via export).
+
+    The Peirce style draws cuts as ovals/hand-drawn (``<path>``) where the Dau
+    default uses rounded rectangles — so the styled render differs and §3.3
+    still attests (no error)."""
+    base = client.get("/organon/uods/peirce_modus_ponens")
+    styled = client.get("/organon/uods/peirce_modus_ponens?style=peirce-authentic@1.0")
+    assert base.status_code == 200 and styled.status_code == 200
+    base_svg = base.json()["data"]["svg"]
+    peirce_svg = styled.json()["data"]["svg"]
+    assert base_svg != peirce_svg
+    assert "<path" in peirce_svg  # oval / hand-drawn cuts
+
+
+def test_chain_playback_honors_view_style(client):
+    """The chain player frames can be rendered in a chosen style too."""
+    resp = client.get("/organon/uods/theorem_praeclarum/chain?style=peirce-authentic@1.0")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["has_chain"]
+    assert any("<path" in f["svg"] for f in data["frames"])
+
+
+def test_chain_playback_unknown_id_is_clean_error(client):
+    """An unknown UoD id on the chain route is reported, not a 500."""
+    response = client.get("/organon/uods/no-such-uod/chain")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "UOD_NOT_FOUND"
+
+
+# --------------------------------------------------------------------------- #
 # 5. Organon HTML viewer                                                      #
 # --------------------------------------------------------------------------- #
 

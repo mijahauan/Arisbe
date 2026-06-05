@@ -130,6 +130,73 @@ class TestEgiToElkGraph:
         edges = _all_edge_ids(g)
         assert len(edges) == 2
 
+    def test_empty_cut_has_visible_size(self, engine, style):
+        """An empty cut ``~[ ]`` must render with a nonzero bounding box.
+
+        ELK collapses a childless compound node to a zero-size point, which
+        would draw as nothing; the engine enforces ``EMPTY_CUT_MIN_SIZE``."""
+        egi = parse_egif("~[ ]")
+        dto = engine.generate_layout(egi, style)
+        (cut_id,) = list(dto.cut_bounds.keys())
+        b = dto.cut_bounds[cut_id]
+        assert b.width >= engine.EMPTY_CUT_MIN_SIZE
+        assert b.height >= engine.EMPTY_CUT_MIN_SIZE
+
+    def test_empty_double_cut_shows_two_nested_cuts(self, engine, style):
+        """``~[ ~[ ] ]`` (DC+ on a blank sheet) draws *both* cuts, the inner
+        strictly contained in the outer — not a single shape."""
+        egi = parse_egif("~[ ~[ ] ]")
+        dto = engine.generate_layout(egi, style)
+        assert len(dto.cut_bounds) == 2
+        # Identify outer (the one whose area holds the other cut) vs inner.
+        outer_id = next(
+            cid for cid in dto.cut_bounds
+            if any(other in egi.area.get(cid, frozenset())
+                   for other in dto.cut_bounds if other != cid)
+        )
+        inner_id = next(c for c in dto.cut_bounds if c != outer_id)
+        o, i = dto.cut_bounds[outer_id], dto.cut_bounds[inner_id]
+        for b in (o, i):
+            assert b.width > 2 and b.height > 2  # both visible
+        # Inner strictly inside outer (so §3.3 containment holds and the eye
+        # sees a genuine double cut).
+        assert o.min_x < i.min_x and o.min_y < i.min_y
+        assert i.max_x < o.max_x and i.max_y < o.max_y
+
+    def test_isomorphic_cuts_get_equal_structural_keys(self, engine, style):
+        """Two isomorphic scrolls have identical structural sort keys, so they
+        order their siblings the same — an IT+ copy mirrors its source rather
+        than appearing flipped."""
+        egi = parse_egif("~[ (P) ~[ (R) ] ] ~[ (P) ~[ (R) ] ]")
+        cut_ids = {c.id for c in egi.Cut}
+        vids = {v.id for v in egi.V}
+        eids = {e.id for e in egi.E}
+        sheet_cuts = [c for c in egi.area[egi.sheet] if c in cut_ids]
+        assert len(sheet_cuts) == 2
+        k0 = engine._structural_key(egi, sheet_cuts[0], cut_ids, vids, eids)
+        k1 = engine._structural_key(egi, sheet_cuts[1], cut_ids, vids, eids)
+        assert k0 == k1
+
+    def test_layout_is_id_independent(self, engine, style):
+        """Two independent parses of the same EGIF lay out identically (by
+        relation), because children are ordered structurally, not by the
+        frozenset's id-dependent iteration.  This is what stops an iterated
+        copy from rendering flipped relative to its source, and makes layout
+        reproducible across runs."""
+        src = "~[ (P) ~[ (R) ] ] ~[ (Q) ~[ (S) ] ]"
+        e1 = parse_egif(src)
+        e2 = parse_egif(src)
+        d1 = engine.generate_layout(e1, style)
+        d2 = engine.generate_layout(e2, style)
+
+        def by_rel(egi, d):
+            return sorted(
+                (egi.get_relation_name(eid), round(p.x, 1), round(p.y, 1))
+                for eid, p in d.predicate_positions.items()
+            )
+
+        assert by_rel(e1, d1) == by_rel(e2, d2)
+
     def test_cross_boundary_ligature_edges_at_root(self, engine, style):
         """All ELK edges are placed at root so cross-boundary routing is handled by ELK."""
         # ~[ (P *x) ] — vertex in cut, predicate could be outside depending on parse

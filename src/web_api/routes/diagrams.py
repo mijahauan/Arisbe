@@ -127,7 +127,7 @@ async def get_session(session_id: str):
             egif = ""
 
         renderer = SimpleSVGRenderer()
-        svg = renderer.render_to_svg(dto, title="Existential Graph", egif=egif, egi=egi)
+        svg = renderer.render_to_svg(dto, egif=egif, egi=egi)
 
         return ApiResponse(
             success=True,

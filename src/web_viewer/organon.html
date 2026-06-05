@@ -218,6 +218,39 @@
         </details>
       </header>
 
+      <!-- View-style toolbar: style is a *projection* of one meaning, so any
+           form can be viewed in any style directly (Dau / Peirce / Sowa) — a
+           basic viewing option, distinct from the Export path. Shown whenever a
+           form is on the canvas. §3.3 attests every styled render. -->
+      <div id="view-toolbar" style="display:none; align-items:center; gap:8px;
+           padding:6px 12px; background:#1e1e2e; border-bottom:1px solid #313244;">
+        <label for="view-style" style="font-size:11px; color:#a6adc8;">View style</label>
+        <select id="view-style" style="font-size:12px;">
+          <option value="">Dau (default)</option>
+          <option value="dau-compliant@1.0">Dau — mathematical</option>
+          <option value="peirce-authentic@1.0">Peirce — handwritten</option>
+          <option value="sowa-compliant@1.0">Sowa — conceptual graph</option>
+        </select>
+      </div>
+
+      <!-- Diachronic chain player: a UoD with a persisted TransformationChain
+           (a worked proof) can be played through step by step — base state,
+           then each rule application — so the reasoning episode is watched
+           unfolding, not just its final picture. Hidden for synchronic UoDs. -->
+      <div id="chain-player" style="display:none; align-items:center; gap:10px;
+           padding:8px 12px; background:#181825; border-bottom:1px solid #313244;
+           flex-wrap:wrap;">
+        <div style="display:flex; gap:4px;">
+          <button id="cp-first" title="Base state" style="cursor:pointer; padding:3px 8px;">«</button>
+          <button id="cp-prev"  title="Previous step" style="cursor:pointer; padding:3px 8px;">‹</button>
+          <button id="cp-play"  title="Play" style="cursor:pointer; padding:3px 10px;">▶ Play</button>
+          <button id="cp-next"  title="Next step" style="cursor:pointer; padding:3px 8px;">›</button>
+          <button id="cp-last"  title="Final state" style="cursor:pointer; padding:3px 8px;">»</button>
+        </div>
+        <span id="cp-counter" style="font-size:12px; color:#a6adc8; min-width:90px;"></span>
+        <span id="cp-annotation" style="font-size:12px; color:#cdd6f4; flex:1 1 240px;"></span>
+      </div>
+
       <div id="organon-canvas">
         <div id="organon-canvas-placeholder">
           The Organon is read-only.<br />
@@ -231,6 +264,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/linear-form-panel.js"></script>
+  <script src="js/diagram-transition.js"></script>
   <script>
     (function () {
       const listEl = document.getElementById('organon-uod-list');
@@ -245,6 +279,17 @@
       let svgPanZoomInstance = null;
       let exportUodId = null;
       let exportFormats = [];
+
+      // Diachronic chain player state.
+      let chainFrames = [];      // ordered frames from /chain (base + steps)
+      let chainIndex = 0;        // currently shown frame
+      let chainPlayTimer = null; // setInterval handle while playing
+
+      // View-style state (projection choice; persists across UoD switches).
+      let currentStyle = '';
+      function styleQuery() {
+        return currentStyle ? '?style=' + encodeURIComponent(currentStyle) : '';
+      }
 
       function setStatus(msg, isError) {
         statusEl.textContent = msg;
@@ -334,10 +379,11 @@
         setStatus('Loading ' + uodId + '…');
         titleEl.textContent = uodId;
         metaEl.textContent = '';
+        hidePlayer();  // a new UoD may or may not be diachronic
         canvasEl.innerHTML = '<div id="organon-canvas-placeholder">Loading…</div>';
 
         try {
-          const res = await fetch('/organon/uods/' + encodeURIComponent(uodId));
+          const res = await fetch('/organon/uods/' + encodeURIComponent(uodId) + styleQuery());
           const body = await res.json();
           if (!body.success) {
             const err = body.error || {};
@@ -363,9 +409,18 @@
               body.data.egi_summary.cut_count +
               ' cuts). §3.3 attested at load + render boundaries.'
           );
+          // If this UoD is diachronic (carries a worked chain), reveal the
+          // player and start at the base state.
+          loadChain(uodId);
         } catch (e) {
           setStatus('Network error loading ' + uodId + ': ' + e.message, true);
         }
+      }
+
+      function shapeText(summary) {
+        if (!summary) return '';
+        return summary.vertex_count + 'V / ' +
+          summary.edge_count + 'E / ' + summary.cut_count + 'C';
       }
 
       function renderDetail(data) {
@@ -385,12 +440,11 @@
           parts.push('<span><strong>modified:</strong> ' + escapeHtml(meta.last_modified.split('T')[0]) + '</span>');
         }
         if (data.egi_summary) {
+          // The counts live in their own span so the chain player can update
+          // them per frame (the drawing's "shape" changes as the proof steps).
           parts.push(
-            '<span><strong>shape:</strong> ' +
-              data.egi_summary.vertex_count + 'V / ' +
-              data.egi_summary.edge_count + 'E / ' +
-              data.egi_summary.cut_count + 'C' +
-              '</span>'
+            '<span><strong>shape:</strong> <span id="shape-counts">' +
+              shapeText(data.egi_summary) + '</span></span>'
           );
         }
         if (data.bibliography && data.bibliography.formatted) {
@@ -402,36 +456,206 @@
         }
         metaEl.innerHTML = parts.join(' ');
 
-        // Reveal the export panel for the loaded UoD.
+        // Reveal the export panel + the view-style toolbar for the loaded UoD.
         exportUodId = data.uod_id;
         const exportPanel = document.getElementById('organon-export');
         if (exportPanel) exportPanel.style.display = 'block';
         const exOut = document.getElementById('export-output');
         if (exOut) exOut.style.display = 'none';
+        const viewBar = document.getElementById('view-toolbar');
+        if (viewBar) viewBar.style.display = 'flex';
 
+        renderCanvas(data.svg || '', data.linear_forms, false);
+      }
+
+      // Re-render the current view (static detail or the current chain frame)
+      // in the chosen style — no Export round-trip. §3.3 attests each render.
+      async function applyViewStyle() {
+        if (!selectedUodId) return;
+        const label = currentStyle || 'Dau (default)';
+        // Immediate feedback: a styled re-render of a whole chain (oval refit +
+        // hand-drawn) can take a few seconds, so show progress rather than
+        // appearing frozen.
+        setStatus('Rendering in ' + label +
+          (chainFrames.length ? ' (' + chainFrames.length + ' frames)…' : '…'));
+        try {
+          if (chainFrames.length) {
+            const res = await fetch(
+              '/organon/uods/' + encodeURIComponent(selectedUodId) + '/chain' + styleQuery()
+            );
+            const body = await res.json();
+            if (body.success && body.data && body.data.has_chain) {
+              chainFrames = body.data.frames || [];
+              showFrame(Math.min(chainIndex, chainFrames.length - 1), false);
+            }
+          } else {
+            const res = await fetch(
+              '/organon/uods/' + encodeURIComponent(selectedUodId) + styleQuery()
+            );
+            const body = await res.json();
+            if (body.success) renderCanvas(body.data.svg, body.data.linear_forms, false);
+          }
+          setStatus('Viewing in ' + (currentStyle || 'Dau (default)') + ' style.');
+        } catch (e) {
+          setStatus('Style render failed: ' + e.message, true);
+        }
+      }
+
+      let cameraAnimRAF = null;
+
+      // Render a state and frame it. The chain player walks states that vary
+      // widely in size (a proof grows from a blank sheet to a full graph), so
+      // the right convention is **fit-to-content with an animated camera**: each
+      // frame is fitted so the whole (sub-)graph stays in scope, and when
+      // *animateFromPrevious* is set the camera *dollies* (zoom + pan) from the
+      // previous frame's view to the new fit rather than snapping — preserving
+      // continuity (TRANSFORMATION_WORKFLOW_SPEC §3a). This differs from the
+      // workshop's hold-the-camera convention (right there because edits are
+      // small and local); here states change size, so the view must re-fit.
+      function renderCanvas(svg, linearForms, animateFromPrevious) {
+        let fromAbsZoom = null, fromPan = null;
         if (svgPanZoomInstance) {
+          if (animateFromPrevious) {
+            try {
+              fromAbsZoom = svgPanZoomInstance.getZoom() *
+                svgPanZoomInstance.getSizes().realZoom;
+              fromPan = svgPanZoomInstance.getPan();
+            } catch (_) {}
+          }
           try { svgPanZoomInstance.destroy(); } catch (_) {}
           svgPanZoomInstance = null;
         }
-        canvasEl.innerHTML = data.svg || '';
+        if (cameraAnimRAF) { cancelAnimationFrame(cameraAnimRAF); cameraAnimRAF = null; }
+        canvasEl.innerHTML = svg || '';
         const svgEl = canvasEl.querySelector('svg');
         if (svgEl && window.svgPanZoom) {
           svgEl.setAttribute('width', '100%');
           svgEl.setAttribute('height', '100%');
+          // Always create fitted + centered: this is the *target* view that
+          // keeps the whole graph in scope.
           svgPanZoomInstance = window.svgPanZoom(svgEl, {
             zoomEnabled: true,
             controlIconsEnabled: false,
             fit: true,
             center: true,
-            minZoom: 0.1,
+            minZoom: 0.05,
             maxZoom: 20,
           });
+          // Dolly from the previous frame's camera to this fitted target.
+          if (animateFromPrevious && fromAbsZoom && fromPan) {
+            try {
+              const inst = svgPanZoomInstance;
+              const realZoom = inst.getSizes().realZoom || 1;
+              const toZoom = inst.getZoom();
+              const toPan = inst.getPan();
+              const fromZoom = fromAbsZoom / realZoom;
+              inst.zoom(fromZoom); inst.pan(fromPan);  // start at previous view
+              const dur = 460, t0 = performance.now();
+              const step = function (now) {
+                let t = Math.min(1, (now - t0) / dur);
+                const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; // easeInOut
+                inst.zoom(fromZoom + (toZoom - fromZoom) * e);
+                inst.pan({
+                  x: fromPan.x + (toPan.x - fromPan.x) * e,
+                  y: fromPan.y + (toPan.y - fromPan.y) * e,
+                });
+                cameraAnimRAF = t < 1 ? requestAnimationFrame(step) : null;
+              };
+              cameraAnimRAF = requestAnimationFrame(step);
+            } catch (_) {}
+          }
         }
-        // Collapsible linear-form view (EGIF default; CGIF / CLIF selectable).
         if (window.LinearFormPanel) {
-          window.LinearFormPanel.render(canvasEl, data.linear_forms);
+          window.LinearFormPanel.render(canvasEl, linearForms);
         }
       }
+
+      // ---- Diachronic chain player ----
+
+      const cp = {
+        bar: document.getElementById('chain-player'),
+        first: document.getElementById('cp-first'),
+        prev: document.getElementById('cp-prev'),
+        play: document.getElementById('cp-play'),
+        next: document.getElementById('cp-next'),
+        last: document.getElementById('cp-last'),
+        counter: document.getElementById('cp-counter'),
+        annotation: document.getElementById('cp-annotation'),
+      };
+
+      function stopPlay() {
+        if (chainPlayTimer) { clearInterval(chainPlayTimer); chainPlayTimer = null; }
+        if (cp.play) cp.play.textContent = '▶ Play';
+      }
+
+      function hidePlayer() {
+        stopPlay();
+        chainFrames = [];
+        chainIndex = 0;
+        if (cp.bar) cp.bar.style.display = 'none';
+      }
+
+      function showFrame(i, animate) {
+        if (!chainFrames.length) return;
+        chainIndex = Math.max(0, Math.min(i, chainFrames.length - 1));
+        const f = chainFrames[chainIndex];
+        renderCanvas(f.svg, f.linear_forms, animate);
+        const total = chainFrames.length - 1;  // step count (frame 0 is base)
+        if (cp.counter) {
+          cp.counter.textContent = chainIndex === 0
+            ? 'base state · 0 / ' + total
+            : 'step ' + chainIndex + ' / ' + total;
+        }
+        if (cp.annotation) {
+          cp.annotation.textContent = f.kind === 'base'
+            ? 'The blank/asserted starting context.'
+            : (f.rule ? f.rule + ' — ' : '') + (f.annotation || '');
+        }
+        if (cp.prev) cp.prev.disabled = chainIndex === 0;
+        if (cp.first) cp.first.disabled = chainIndex === 0;
+        if (cp.next) cp.next.disabled = chainIndex === total;
+        if (cp.last) cp.last.disabled = chainIndex === total;
+        // Keep the header "shape" counts in step with the frame on screen.
+        const shapeEl = document.getElementById('shape-counts');
+        if (shapeEl && f.egi_summary) shapeEl.textContent = shapeText(f.egi_summary);
+      }
+
+      function togglePlay() {
+        if (chainPlayTimer) { stopPlay(); return; }
+        if (!chainFrames.length) return;
+        // From the last frame, Play restarts at the base.
+        if (chainIndex >= chainFrames.length - 1) showFrame(0, false);
+        cp.play.textContent = '⏸ Pause';
+        chainPlayTimer = setInterval(function () {
+          if (chainIndex >= chainFrames.length - 1) { stopPlay(); return; }
+          showFrame(chainIndex + 1, true);
+          // Stop as soon as the final frame is shown (don't idle a tick on it).
+          if (chainIndex >= chainFrames.length - 1) stopPlay();
+        }, 1100);
+      }
+
+      async function loadChain(uodId) {
+        hidePlayer();
+        try {
+          const res = await fetch('/organon/uods/' + encodeURIComponent(uodId) + '/chain' + styleQuery());
+          const body = await res.json();
+          if (!body.success || !body.data || !body.data.has_chain) return;
+          const frames = body.data.frames || [];
+          if (frames.length < 2) return;  // nothing to play through
+          chainFrames = frames;
+          if (cp.bar) cp.bar.style.display = 'flex';
+          // Start at the base state so the episode plays forward.
+          showFrame(0, false);
+          setStatus('Diachronic chain: ' + (frames.length - 1) +
+            ' step(s). Use the player to follow each rule application.');
+        } catch (_) { /* leave player hidden on any error */ }
+      }
+
+      if (cp.first) cp.first.addEventListener('click', function () { stopPlay(); showFrame(0, true); });
+      if (cp.prev)  cp.prev.addEventListener('click', function () { stopPlay(); showFrame(chainIndex - 1, true); });
+      if (cp.next)  cp.next.addEventListener('click', function () { stopPlay(); showFrame(chainIndex + 1, true); });
+      if (cp.last)  cp.last.addEventListener('click', function () { stopPlay(); showFrame(chainFrames.length - 1, true); });
+      if (cp.play)  cp.play.addEventListener('click', togglePlay);
 
       // ---- Export ----
       function b64ToBlob(b64, mime) {
@@ -513,6 +737,13 @@
       });
 
       filterEl.addEventListener('input', applyFilter);
+      const viewStyleSel = document.getElementById('view-style');
+      if (viewStyleSel) {
+        viewStyleSel.addEventListener('change', function () {
+          currentStyle = viewStyleSel.value;
+          applyViewStyle();
+        });
+      }
       loadExportFormats();
       loadCorpus();
     })();

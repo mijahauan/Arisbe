@@ -1,5 +1,5 @@
 """
-Simple SVG Renderer for Unified D3 Layout Engine
+Simple SVG Renderer (LayoutDTO → SVG; ELK layout path)
 
 Renders the new LayoutDTO format directly to SVG.
 No adapters, no conversions - clean and simple.
@@ -21,10 +21,10 @@ class SimpleSVGRenderer:
     """Renders LayoutDTO to SVG format."""
     
     def render_to_svg(
-        self, 
-        dto: LayoutDTO, 
-        title: str, 
-        egif: str, 
+        self,
+        dto: LayoutDTO,
+        title: str = "",
+        egif: str = "",
         egi: Optional[RelationalGraphWithCuts] = None
     ) -> str:
         """
@@ -99,19 +99,15 @@ class SimpleSVGRenderer:
             "fill": "white", "stroke": "none"
         })
         
-        # Title
-        ET.SubElement(svg, "text", {
-            "x": "10", "y": "25",
-            "font-size": "16", "font-weight": "bold",
-            "fill": "#333"
-        }).text = title
-        
-        # Stats
-        stats = f"Unified D3: {len(dto.vertex_positions)}V, {len(dto.predicate_positions)}P, {len(dto.cut_bounds)}C, {len(dto.ligature_paths)}L"
-        ET.SubElement(svg, "text", {
-            "x": "10", "y": "45",
-            "font-size": "11", "fill": "#666"
-        }).text = stats
+        # Title — only when a caller explicitly asks for one.  The default
+        # render carries none: every drawing being an "Existential Graph" is
+        # redundant chrome, and the page chrome already names the UoD.
+        if title:
+            ET.SubElement(svg, "text", {
+                "x": "10", "y": "25",
+                "font-size": "16", "font-weight": "bold",
+                "fill": "#333"
+            }).text = title
         
         # Content offset - shift viewport to canvas position
         # Viewport min_x/min_y tell us where diagram starts, so negate them
