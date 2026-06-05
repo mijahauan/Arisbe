@@ -490,6 +490,7 @@
       let svgPanZoomInstance = null;
       let sheetId = null;        // the sheet's area id (a selectable region)
       let ruleSteps = {};        // rule name -> /rules step descriptors
+      let activeStepIndex = 0;   // which step the canvas is currently filling
 
       // On-canvas selection state. The subgraph set feeds rules'
       // `selected_elements`; the area feeds `target_area` (INS / IT+).
@@ -661,24 +662,55 @@
         return false;
       }
 
-      // Render the chosen rule's ordered steps as a checklist, so the composer
-      // sees what to select (a closed sub-graph, a region, EGIF content) and in
-      // what order — and what's still outstanding.
+      function firstCanvasStep(steps) {
+        for (let i = 0; i < steps.length; i++) {
+          if (steps[i].kind !== 'provide_egif') return i;
+        }
+        return 0;
+      }
+
+      function setActiveStep(i) {
+        const steps = currentRule && ruleSteps[currentRule];
+        if (!steps) return;
+        activeStepIndex = Math.max(0, Math.min(i, steps.length - 1));
+        renderRuleGuidance();
+      }
+
+      // Render the chosen rule's ordered steps as a checklist — what to select
+      // (a closed sub-graph, a region, EGIF content), in order, what's
+      // outstanding, and which step the canvas is currently filling. The
+      // canvas steps are clickable to switch which one a click targets (the
+      // grammar's step-driven dispatch, e.g. IT+ source → destination).
       function renderRuleGuidance() {
         const el = document.getElementById('rule-steps-guidance');
         if (!el) return;
         const steps = currentRule && ruleSteps[currentRule];
         if (!steps || !steps.length) { el.innerHTML = ''; return; }
         const marks = ['①', '②', '③', '④'];
-        el.innerHTML = '<strong>' + escapeHtml(currentRule) + ' needs:</strong> ' +
-          steps.map((s, i) => {
-            const done = stepFilled(s);
-            const opt = s.optional ? ' (optional)' : '';
-            return '<span style="display:inline-block; margin-right:10px; color:' +
-              (done ? '#a6e3a1' : '#a6adc8') + ';">' +
-              (marks[i] || (i + 1) + '.') + ' ' + escapeHtml(s.prompt) +
-              opt + ' ' + (done ? '✓' : '☐') + '</span>';
-          }).join('');
+        const parts = steps.map((s, i) => {
+          const done = stepFilled(s);
+          const active = (i === activeStepIndex);
+          const canvasStep = s.kind !== 'provide_egif';
+          const color = done ? '#a6e3a1' : (active ? '#f9e2af' : '#a6adc8');
+          return '<span data-step="' + i + '" style="display:inline-block; ' +
+            'margin-right:10px; cursor:' + (canvasStep ? 'pointer' : 'default') +
+            '; color:' + color + ';' + (active ? ' text-decoration:underline;' : '') +
+            '">' + (marks[i] || (i + 1) + '.') + ' ' + escapeHtml(s.prompt) +
+            (s.optional ? ' (optional)' : '') + ' ' + (done ? '✓' : '☐') + '</span>';
+        }).join('');
+        const act = steps[Math.min(activeStepIndex, steps.length - 1)];
+        let mode = '';
+        if (act && act.kind === 'select_subgraph') mode = 'click elements to select the sub-graph';
+        else if (act && act.kind === 'select_area') mode = 'click a region — a cut’s interior, or empty space for the sheet';
+        else if (act && act.kind === 'provide_egif') mode = 'type EGIF content in the field above';
+        el.innerHTML = '<strong>' + escapeHtml(currentRule) + ' needs:</strong> ' + parts +
+          (mode ? '<div style="margin-top:3px; color:#89b4fa;">now: ' + escapeHtml(mode) + '</div>' : '');
+        el.querySelectorAll('[data-step]').forEach((sp) => {
+          sp.addEventListener('click', () => {
+            const i = parseInt(sp.getAttribute('data-step'), 10);
+            if (steps[i] && steps[i].kind !== 'provide_egif') setActiveStep(i);
+          });
+        });
       }
 
       // Closure preview (2b): a rule acts on a *closed* sub-graph, so a
@@ -746,27 +778,40 @@
         refreshSelectionUI();
       }
 
-      function onCanvasClick(e) {
-        const g = e.target.closest && e.target.closest('[data-element-id]');
-        const id = g && g.getAttribute('data-element-id');
-        const type = g && g.getAttribute('data-element-type');
+      // The kind of the step the canvas is currently filling
+      // ('select_subgraph' | 'select_area' | 'provide_egif' | null).
+      function activeStepKind() {
+        const steps = currentRule && ruleSteps[currentRule];
+        if (!steps || !steps.length) return 'select_subgraph';  // default
+        const s = steps[Math.min(activeStepIndex, steps.length - 1)];
+        return s ? s.kind : 'select_subgraph';
+      }
 
-        if (e.shiftKey) {
-          // Region (Spot) selection: shift-click a cut for its interior, or
-          // empty space for the open **sheet** — the region every theorem
-          // proof starts on, which previously had no on-canvas affordance.
-          const regionId = (type === 'cut') ? id : sheetId;
-          if (regionId) {
-            selectedArea = selectedArea === regionId ? null : regionId;
-            const a = describeArea(regionId);
-            setStatus((selectedArea ? 'target region · ' : 'cleared region · ') +
-              a.label + (a.polarity ? ' (' + a.polarity + ')' : ''));
-            refreshSelectionUI();
+      // The region (a cut's interior, or the open sheet) under a click — the
+      // deepest cut hit, else the sheet. Uses the rendered stacking order, so
+      // it needs no coordinate math and handles nesting naturally.
+      function resolveRegionAt(e) {
+        const stack = document.elementsFromPoint
+          ? document.elementsFromPoint(e.clientX, e.clientY) : [];
+        for (const el of stack) {
+          const c = el.closest && el.closest('[data-element-type="cut"]');
+          if (c && c.getAttribute('data-element-id')) {
+            return c.getAttribute('data-element-id');
           }
-          return;
         }
-        if (!id) return;  // plain click on empty space — reserved for step 2c
+        return sheetId;
+      }
 
+      function selectRegion(regionId) {
+        if (!regionId) return;
+        selectedArea = (selectedArea === regionId) ? null : regionId;
+        const a = describeArea(regionId);
+        setStatus((selectedArea ? 'target region · ' : 'cleared region · ') +
+          a.label + (a.polarity ? ' (' + a.polarity + ')' : ''));
+        refreshSelectionUI();
+      }
+
+      function toggleElement(id) {
         const added = !selectedSubgraph.has(id);
         if (added) selectedSubgraph.add(id);
         else selectedSubgraph.delete(id);
@@ -774,6 +819,26 @@
         setStatus((added ? 'selected · ' : 'deselected · ') +
           d.label + (d.polarity ? ' (' + d.polarity + ')' : ''));
         refreshSelectionUI();
+      }
+
+      function onCanvasClick(e) {
+        const g = e.target.closest && e.target.closest('[data-element-id]');
+        const id = g && g.getAttribute('data-element-id');
+
+        // Shift is always a quick "select region" override, regardless of step.
+        if (e.shiftKey) { selectRegion(resolveRegionAt(e)); return; }
+
+        // Plain click is dispatched by the *active step's* kind (the grammar
+        // way — no modifier): a Spot step selects the region under the pointer
+        // (a cut's interior, or empty space → the sheet); a Subject step
+        // toggles the clicked element. This resolves the cut-as-subject vs
+        // cut-interior-as-region ambiguity by what the rule is asking for now.
+        if (activeStepKind() === 'select_area') {
+          selectRegion(resolveRegionAt(e));
+          return;
+        }
+        if (!id) return;  // empty space on a Subject step: nothing to select
+        toggleElement(id);
       }
 
       // Settle ④a, step 1a — stable viewport. Re-rendering after a rule
@@ -913,6 +978,10 @@
 
       function renderRuleParams(rule) {
         currentRule = rule;
+        // Start the canvas on the rule's first selection step (skip a leading
+        // provide_egif step — that's the textarea): INS → the area step, IT+ →
+        // the source step, others → their single step.
+        activeStepIndex = ruleSteps[rule] ? firstCanvasStep(ruleSteps[rule]) : 0;
         let html = '';
         if (rule === 'DC+') {
           html = '<div class="field"><label>Selected elements (comma-sep ids, may be empty)</label>' +

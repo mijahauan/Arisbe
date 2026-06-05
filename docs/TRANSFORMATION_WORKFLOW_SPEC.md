@@ -374,9 +374,19 @@ descriptions, so it is a **keystone, not a follow-up**.
      treated as closure-as-acted-on — it shows "DC− removes the double cut;
      enclosed contents stay". Verified: ERA+cut → +3 pulled in; DC−+cut → the
      exception note, no pull-in.
-   - **2c — step-driven click dispatch** (a click means *element* on a Subject
-     step, *region* on a Spot step — resolving the cut-as-subject vs
-     cut-interior-as-region ambiguity), and the two visual dialects.
+   - **2c — step-driven click dispatch ✅ + visual dialects (in progress).**
+     **2c-i done + browser-verified (2026-06-05):** a plain click is dispatched
+     by the *active step's* kind — a Subject step toggles the clicked element, a
+     Spot step selects the region under the pointer (a cut's interior, or empty
+     space → the sheet). This resolves the cut-as-subject vs
+     cut-interior-as-region ambiguity *by what the rule is asking for now* — no
+     modifier key (shift stays as a quick region override). The rule's `/rules`
+     steps render as a clickable tracker with a "now: …" mode line; INS starts
+     on its area step, IT+ on its source step and switches to destination by
+     clicking step ②. **2c-ii (next):** the two visual dialects —
+     ghost-preview/region-emphasis for Placing, and justification-highlight for
+     Removing (DC− the cut-pair; IT− the *governing original* it copies, via the
+     iso engine; ERA positivity, already hinted).
 3. **Manual Settle (④b).** Wire `move_vertex` / `reshape_cut` /
    `reroute_ligature` onto the canvas, refusing boundary crossings.
 4. **DC+ empty-double-cut semantics.** Resolve the one logic-expressiveness
