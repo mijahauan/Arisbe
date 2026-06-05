@@ -383,10 +383,17 @@ descriptions, so it is a **keystone, not a follow-up**.
      modifier key (shift stays as a quick region override). The rule's `/rules`
      steps render as a clickable tracker with a "now: …" mode line; INS starts
      on its area step, IT+ on its source step and switches to destination by
-     clicking step ②. **2c-ii (next):** the two visual dialects —
-     ghost-preview/region-emphasis for Placing, and justification-highlight for
-     Removing (DC− the cut-pair; IT− the *governing original* it copies, via the
-     iso engine; ERA positivity, already hinted).
+     clicking step ②. **2c-ii done + verified (2026-06-05):** the Removing
+     family's **justification-highlight** (blue `.sel-justify`) shows *why* a
+     removal is licensed — **DC−** marks its inner cut so the cut-pair is
+     visible ("the double-cut pair"); **IT−** marks the **governing original**
+     it copies, found via the iso engine (`POST …/deiteration-original`, which
+     runs the IT− interaction and returns its `original_matches` — no protected
+     change); **ERA**'s justification is its positivity (the existing polarity
+     hint). The Placing family's emphasis is the selected region (the dashed
+     `.sel-area` highlight on the chosen Spot); a literal ghost-render of the
+     inserted/copied content is a later refinement. **The grammar (2a/2b/2c) is
+     complete.**
 3. **Manual Settle (④b).** Wire `move_vertex` / `reshape_cut` /
    `reroute_ligature` onto the canvas, refusing boundary crossings.
 4. **DC+ empty-double-cut semantics.** Resolve the one logic-expressiveness

@@ -200,6 +200,16 @@
       stroke-width: 2px;
       stroke-dasharray: 4 3;
     }
+    /* Justification highlight (Removing family): the warrant for the move —
+       DC−'s inner cut (the pair), or IT−'s governing original (the sub-graph
+       this is a copy of). Blue, to read as "why this is legal" not "selected". */
+    #canvas g[data-element-type="vertex"].sel-justify circle,
+    #canvas g[data-element-type="predicate"].sel-justify rect,
+    #canvas g[data-element-type="cut"].sel-justify > rect {
+      stroke: #89b4fa;
+      stroke-width: 3px;
+      stroke-dasharray: 2 2;
+    }
     #selection-bar {
       margin-bottom: 10px;
       padding: 7px 9px;
@@ -388,6 +398,7 @@
               <strong>selection:</strong> click elements ·
               <code id="sel-subgraph-display">none</code>
               <span id="closure-note" style="margin-left:8px; color:#f9a06c; font-size:11px;"></span>
+              <span id="justify-note" style="margin-left:8px; color:#89b4fa; font-size:11px;"></span>
             </div>
             <div class="sel-line">
               <span class="sel-swatch area"></span>
@@ -540,6 +551,9 @@
         );
         svgEl.querySelectorAll('.sel-closure').forEach((el) =>
           el.classList.remove('sel-closure')
+        );
+        svgEl.querySelectorAll('.sel-justify').forEach((el) =>
+          el.classList.remove('sel-justify')
         );
         selectedSubgraph.forEach((id) => {
           const g = svgEl.querySelector('[data-element-id="' + cssAttr(id) + '"]');
@@ -764,12 +778,61 @@
         } catch (_) { /* preview is best-effort */ }
       }
 
+      // Justification dialect (Removing family): highlight *why* a removal is
+      // licensed (blue .sel-justify). DC− → its inner cut (so the pair is
+      // visible); IT− → the governing original it copies (from the iso engine,
+      // via the deiteration-original endpoint). ERA's justification is its
+      // positivity, already surfaced by the polarity hint.
+      let _justifySeq = 0;
+      async function previewJustification() {
+        const svgEl = canvasEl.querySelector('svg');
+        if (svgEl) svgEl.querySelectorAll('.sel-justify').forEach((el) =>
+          el.classList.remove('sel-justify'));
+        const noteEl = document.getElementById('justify-note');
+        if (noteEl) noteEl.textContent = '';
+        if (!currentSessionId || selectedSubgraph.size === 0) return;
+
+        const mark = (id) => {
+          const g = svgEl && svgEl.querySelector('[data-element-id="' + cssAttr(id) + '"]');
+          if (g) g.classList.add('sel-justify');
+        };
+
+        if (currentRule === 'DC-') {
+          // The pair: highlight the inner cut directly inside the selected outer.
+          const outer = Array.from(selectedSubgraph)[0];
+          const els = (currentIntrospection && currentIntrospection.elements) || {};
+          const inner = Object.keys(els).find(
+            (eid) => els[eid].type === 'cut' && els[eid].area === outer);
+          if (inner) { mark(inner); if (noteEl) noteEl.textContent = '— the double-cut pair'; }
+          return;
+        }
+
+        if (currentRule === 'IT-') {
+          const seq = ++_justifySeq;
+          try {
+            const res = await fetch(
+              '/ergasterion/sessions/' + currentSessionId + '/deiteration-original',
+              { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ selected_elements: Array.from(selectedSubgraph) }) }
+            );
+            const body = await res.json();
+            if (seq !== _justifySeq || !body.success) return;
+            const orig = (body.data && body.data.original_elements) || [];
+            orig.forEach(mark);
+            if (noteEl) noteEl.textContent = body.data.found
+              ? '— deiterable: copies the highlighted original'
+              : '— ' + (body.data.message || 'no governing original found');
+          } catch (_) { /* best-effort */ }
+        }
+      }
+
       function refreshSelectionUI() {
         applySelectionHighlights();
         syncSelectionToFields();
         updateSelectionBar();
         renderRuleGuidance();
         previewClosure();
+        previewJustification();
       }
 
       function clearSelection() {

@@ -226,6 +226,38 @@ def test_closure_preview_unknown_session_is_clean_error(client, fresh_session_ma
     assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"
 
 
+# --------------------------------------------------------------------------- #
+# Deiteration-original justification (2c-ii)                                  #
+# --------------------------------------------------------------------------- #
+
+
+def test_deiteration_original_returns_justification_shape(client, isolated_tomos):
+    """The IT- justification endpoint returns the governing-original contract
+    (found / valid / original_elements / message) without changing state."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    intro = data["introspection"]
+    edge = next((eid for eid, e in intro["elements"].items()
+                 if e["type"] == "edge"), None)
+    resp = client.post(
+        f"/ergasterion/sessions/{sid}/deiteration-original",
+        json={"selected_elements": [edge] if edge else []},
+    )
+    assert resp.status_code == 200
+    d = resp.json()["data"]
+    assert {"found", "valid", "original_elements", "message"}.issubset(d.keys())
+    assert isinstance(d["original_elements"], list)
+
+
+def test_deiteration_original_unknown_session_is_clean_error(client, fresh_session_manager):
+    resp = client.post(
+        "/ergasterion/sessions/no-such/deiteration-original",
+        json={"selected_elements": []},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"
+
+
 def test_open_session_refuses_invalid_base(client, fresh_session_manager):
     """A bogus base_source returns INVALID_BASE_SOURCE, not a 500."""
     response = client.post(

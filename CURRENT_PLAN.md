@@ -24,7 +24,7 @@ and onto the Peircean chain-of-semiosis grounding (see
 | **Ergasterion** (workshop, composition) | ✅ live — `/ergasterion` |
 | Chain persistence (regime-1 → regime-2 boundary) | ✅ `tomos_service.save_uod_with_chain` / `load_chain` |
 | **Agon** (Endoporeutic Game arena) | 🟢 V1 live — `/agon` (thin, flexible slice) |
-| On-canvas element selection for rule application | ✅ live + browser-verified — click→select, introspection-named chips, polarity hints; **Spot/Subject grammar 2a+2b**: sheet/region selectable (shift-click empty space), per-rule `/rules` step checklist, **closure preview** (selecting a cut shows it pulls in all its contents; DC− shown as "cuts go, contents stay") |
+| On-canvas element selection for rule application | ✅ live + browser-verified — click→select, introspection-named chips, polarity hints; **Spot/Subject grammar (2a/2b/2c complete)**: sheet/region selectable, per-rule `/rules` step checklist, **closure preview** (a cut pulls in its contents; DC− "cuts go, contents stay"), **step-driven click dispatch** (Subject step → element, Spot step → region; no modifier), **justification highlights** (DC− pair, IT− governing original via iso engine, ERA positivity) |
 | Transformation UI w/ regime-3 (drag/reshape) affordances | ⬜ not started |
 
 **What the Ergasterion build settled.** Bringing the workshop online

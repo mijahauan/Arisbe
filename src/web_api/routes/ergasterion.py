@@ -492,6 +492,49 @@ async def preview_closure(session_id: str, request: ErgasterionClosureRequest):
         )
 
 
+@router.post("/sessions/{session_id}/deiteration-original")
+async def deiteration_original(session_id: str, request: ErgasterionClosureRequest):
+    """Find the *governing original* that licenses deiterating a candidate.
+
+    IT- (deiteration) is the least obvious rule: a copy may be erased only
+    because an identical sub-graph exists in an enclosing area.  This read-only
+    endpoint runs the IT- interaction's own validation on the selection and
+    returns the matched original's element ids, so the workshop can *highlight
+    why* the move is legal (the Removing family's justification dialect) — no
+    state change, no reimplementation of the protected rule logic.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={"code": "SESSION_NOT_FOUND",
+                       "message": f"Workshop session '{session_id}' not found."},
+            )
+        sel = list(request.selected_elements or [])
+        if not sel:
+            return ApiResponse(success=True, data={
+                "found": False, "valid": False, "original_elements": [],
+                "message": "Select a candidate copy first."})
+        state = begin_interaction("IT-", session.current_egi)
+        step_result = advance_interaction(state, sel)
+        matches = (step_result.data or {}).get("original_matches") if step_result.data else None
+        original = sorted(matches[0][1]) if matches else []
+        return ApiResponse(success=True, data={
+            "found": bool(original),
+            "valid": step_result.valid,
+            "original_elements": original,
+            "message": step_result.message,
+        })
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "DEITERATION_ORIGINAL_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
+        )
+
+
 # --------------------------------------------------------------------------- #
 # Promotion                                                                   #
 # --------------------------------------------------------------------------- #
