@@ -1,6 +1,43 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (Presentation-delta corpus persistence — increment 2b: deltas round-trip through history/deltas.json)
+**Last Updated**: 2026-06-06 (Presentation-delta extrapolation — increment 4 scale 1: generalize sparse move_vertex nudges to untouched structural siblings within a view)
+
+## Session 2026-06-06 (h) — presentation-delta extrapolation (increment 4, scale 1: within-view)
+
+**Shipped (on `main`):** the conceptual heart of the projection ladder — a
+sparse hand-nudge now **generalizes** to the untouched elements that share its
+structural description. A delta is *a sample of an intent*; extrapolation copies
+that intent to its structural siblings.
+- `presentation_deltas.generalization_key(target, fields)` — a *coarse*
+  structural key from a delta's `describe` tags (default `kind` +
+  `area_polarity`, Peirce's odd/even nesting), distinct from `delta_key`'s
+  element *identity*.
+- `presentation_deltas.extrapolate_deltas(egi, deltas, *, key_fields=…)` —
+  generalizes the **`move_vertex`** exemplars only (a move is a transferable
+  *translation*; absolute `reshape_cut` bounds + per-line `reroute_ligature`
+  paths are **not** extrapolated, they need a relative encoding first): groups
+  exemplars by key, takes each group's **mean** translation, and synthesizes a
+  tagged `move_vertex` delta for every in-scope vertex matching a group's key
+  that has **no explicit delta of its own** (the touched element is never
+  overridden). Returns only the synthetic deltas (disjoint element-set),
+  replayed through the same best-effort §3.3-attested `apply_deltas`.
+- `layout_service.generate_layout(…, extrapolate=False)` consumes them —
+  **opt-in, default off**, so existing renders are unchanged. Reachable via
+  `GET /ergasterion/sessions/{id}?extrapolate=true` — a research *view* that
+  never mutates the stored deltas.
+- Tests: `test_presentation_deltas.py` (+5 — key derivation, generalize to
+  sibling, mean of exemplars, move-only, polarity grouping) and
+  `test_ergasterion_routes.py` (+1 — the `?extrapolate=true` route generalizes a
+  nudge to a sibling while the plain GET doesn't; stored deltas untouched). Full
+  suite green; no protected module touched.
+
+**This is extrapolation scale 1** (within a view). **Next:** the scale-1→2
+bridge (generalize to the **new** elements a transformation step introduces,
+which never had a delta), a relative encoding so cut/ligature deltas extrapolate
+too, and variance/agreement gating as the study-(b) signal — then increment 5
+(scoped rendering) + 6 (crystallization tooling: delta dataset → new style).
+See `docs/PRESENTATION_DELTAS_AND_STYLE.md` §6.4.
+
 
 > **NEXT SESSION (the projection ladder, increments 2–6):** the regime-3
 > *presentation deltas* foundation shipped (vocabulary + replay + record +

@@ -1,10 +1,13 @@
 # Presentation deltas & style — persisting the regime-3 free dimension
 
-**Status:** design + foundation (2026-06-06). Foundation shipped: a typed,
-tagged delta vocabulary (`presentation_deltas.py`), replay-via-`presentation_ops`,
-recording in the Settle ④b adjust route, and consumption in `layout_service.
-generate_layout`. Persistence, chain inheritance, extrapolation, and scoped
-rendering are spec'd here as the follow-on increments.
+**Status:** design + foundation + increments 2/2b/3/4-scale-1 shipped
+(2026-06-06). Done: a typed, tagged delta vocabulary (`presentation_deltas.py`),
+replay-via-`presentation_ops`, recording in the Settle ④b adjust route,
+consumption in `layout_service.generate_layout`, scratch + corpus persistence,
+chain inheritance (scale 2, by id), and **within-view extrapolation (scale 1):
+generalize sparse `move_vertex` exemplars to untouched structural siblings**.
+Cross-step extrapolation to new elements, scoped rendering, and crystallization
+tooling remain as follow-on increments.
 
 Read alongside [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
 §4.3 / §5.5 (regime 3) and [TRANSFORMATION_WORKFLOW_SPEC.md](TRANSFORMATION_WORKFLOW_SPEC.md)
@@ -163,9 +166,31 @@ attested by §3.3 at the service boundary
    `previous_layout` pinning — which already carries the nudge forward — so
    inheritance is *not* layered on top of it (that would double the offset). This
    is extrapolation **scale 2** (within-UoD, by element id).
-4. **Extrapolation** — generalize tagged deltas to untouched in-scope elements
-   (within-view first), then to new elements across a step. The research layer
-   behind goals (b) and (c).
+4. **Extrapolation — ✅ scale 1 (within-view) done.**
+   `presentation_deltas.generalization_key(target, fields)` derives a *coarse*
+   structural key from a delta's `describe` tags (default `kind` +
+   `area_polarity` — Peirce's odd/even nesting, the example §3 names), distinct
+   from `delta_key`'s element *identity*. `extrapolate_deltas(egi, deltas, *,
+   key_fields=…)` generalizes the sparse **`move_vertex`** exemplars (a move is
+   a transferable *translation*; absolute `reshape_cut` bounds and per-line
+   `reroute_ligature` paths are **not** extrapolated — they'd need a relative
+   encoding first): it groups exemplars by key, takes each group's **mean**
+   translation (one exemplar → itself; several → their average — the raw signal
+   a future "study" layer reads), and synthesizes a tagged `move_vertex` delta
+   for every in-scope vertex that matches a group's key **and has no explicit
+   delta of its own** (the explicit element is never overridden). It returns
+   only the synthetic deltas (a disjoint element-set from the explicit ones),
+   replayed through the same best-effort §3.3-attested `apply_deltas` — an
+   extrapolation that doesn't fit is dropped, not forced.
+   `layout_service.generate_layout(…, extrapolate=False)` consumes them
+   (opt-in, default off → no change to existing renders); reachable via the
+   workshop's `GET /sessions/{id}?extrapolate=true` — a research *view* that
+   never mutates the stored deltas. Tests: `test_presentation_deltas.py` (+5)
+   and `test_ergasterion_routes.py` (+1). No protected module touched.
+   **Remaining (scale 1→2 bridge):** generalize to the **new** elements a
+   transformation step introduces (which never had a delta); a relative
+   encoding for cut/ligature extrapolation; variance/agreement gating as the
+   study (b) signal.
 5. **Scoped rendering** — lay out and draw a *sub-scope* of a large UoD; style +
    deltas are already scope-independent by construction, so this is additive.
 6. **Crystallization tooling** — surface the delta dataset (b); a path from a

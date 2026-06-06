@@ -331,7 +331,9 @@ async def open_session(request: ErgasterionOpenRequest):
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str, style: Optional[str] = None):
+async def get_session(
+    session_id: str, style: Optional[str] = None, extrapolate: bool = False
+):
     """Return the current state of a workshop session.
 
     Re-renders the current EGI on each call (attests §3.3 at the
@@ -341,6 +343,11 @@ async def get_session(session_id: str, style: Optional[str] = None):
     An optional ``style`` query selects (and remembers, for subsequent
     renders) the visual style the workshop draws in — the first step of
     drawing-in-a-style.  Style changes the *manifest*, not the chain.
+
+    An optional ``extrapolate=true`` query turns on extrapolation scale 1
+    (within-view): the state's sparse ``move_vertex`` nudges are generalized to
+    untouched structural siblings before rendering.  Off by default — a research
+    view that never mutates the stored deltas (it only changes this render).
     """
     try:
         manager = get_ergasterion_session_manager()
@@ -362,7 +369,8 @@ async def get_session(session_id: str, style: Optional[str] = None):
         # consistent down the worked sequence; non-applying deltas drop.
         deltas = manager.effective_deltas(session, session.chain.current_state_id)
         dto, svg = generate_layout(
-            session.current_egi, style_name=session.style_name, deltas=deltas
+            session.current_egi, style_name=session.style_name, deltas=deltas,
+            extrapolate=extrapolate,
         )
         session.current_layout_dto = dto
         return ApiResponse(success=True, data=_session_payload(session, svg))

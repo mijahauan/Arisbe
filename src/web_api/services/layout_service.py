@@ -395,6 +395,7 @@ def generate_layout(
     previous_layout: Optional[LayoutDTO] = None,
     style_name: Optional[str] = None,
     deltas: Optional[list] = None,
+    extrapolate: bool = False,
 ) -> Tuple[LayoutDTO, str]:
     """Generate layout and SVG for an EGI.
 
@@ -415,6 +416,13 @@ def generate_layout(
     deltas that no longer apply are dropped.  This is the consumption side of
     the projection ladder (style = universal default; deltas = sparse
     overrides) — see ``docs/PRESENTATION_DELTAS_AND_STYLE.md``.
+
+    *extrapolate* (opt-in, default off) turns on extrapolation **scale 1**
+    (within a view): the sparse ``move_vertex`` deltas are generalized to the
+    *untouched* in-scope vertices that share their structural description
+    (``extrapolate_deltas``), and those synthetic deltas are replayed after the
+    explicit ones.  Off by default so existing renders are unchanged — it is the
+    research layer behind goals (b)/(c), reached via an opt-in query flag.
 
     Returns:
         (layout_dto, svg_string)
@@ -464,8 +472,15 @@ def generate_layout(
     # longer applies to this base is dropped (best-effort, like the ④a
     # incremental builders).  docs/PRESENTATION_DELTAS_AND_STYLE.md.
     if deltas:
-        from presentation_deltas import apply_deltas
-        dto, _dropped = apply_deltas(egi, dto, deltas)
+        from presentation_deltas import apply_deltas, extrapolate_deltas
+        apply_list = list(deltas)
+        if extrapolate:
+            # Generalize the sparse exemplars to untouched structural siblings
+            # (scale 1).  The synthetic deltas target a disjoint element-set
+            # from the explicit ones, so order is immaterial; each is dropped by
+            # apply_deltas if it doesn't fit (best-effort, like ④a).
+            apply_list = apply_list + extrapolate_deltas(egi, deltas)
+        dto, _dropped = apply_deltas(egi, dto, apply_list)
 
     # Generate EGIF linear form for the renderer title
     try:

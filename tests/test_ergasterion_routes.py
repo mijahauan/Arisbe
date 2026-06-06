@@ -712,6 +712,62 @@ def test_recorded_delta_survives_a_full_re_render(client, isolated_tomos):
     assert after["y"] == pytest.approx(old["y"] + dy)
 
 
+def _seed_egif_uod(isolated_tomos, egif: str, uod_id: str):
+    """Save a plain (synchronic) UoD built from *egif* into the isolated tomos,
+    so a session can open a base graph with a known structure."""
+    from datetime import datetime, timezone
+    from universe_of_discourse import (
+        UniverseOfDiscourse, UoDMetadata, UoDType, UoDCategory,
+    )
+    from egif_parser_dau import parse_egif as _parse
+
+    when = datetime(2026, 6, 6, tzinfo=timezone.utc)
+    meta = UoDMetadata(
+        uod_id=uod_id, uod_type=UoDType.STANDALONE, name=uod_id,
+        description="extrapolation test", category=UoDCategory.CANONICAL_PATTERN,
+        created=when, last_modified=when,
+    )
+    uod = UniverseOfDiscourse(metadata=meta, current_egi=_parse(egif))
+    isolated_tomos["service"].save_uod(uod)
+    return uod_id
+
+
+def test_extrapolate_query_generalizes_nudge_to_sibling(client, isolated_tomos):
+    """Increment 4 (extrapolation, scale 1) reaches the workshop: with
+    ``?extrapolate=true`` a single recorded ``move_vertex`` nudge generalizes to
+    an *untouched* structural sibling in the same render — while the default GET
+    leaves that sibling exactly where the base layout put it (opt-in; the stored
+    deltas are never mutated)."""
+    uod_id = _seed_egif_uod(isolated_tomos, "(P *x) (Q *y)", "extrap_two_v")
+    data = _open_session(client, f"uod:{uod_id}")
+    sid = data["session_id"]
+
+    base_pos = data["layout_dto"]["vertex_positions"]
+    assert len(base_pos) == 2
+    nudged, sibling = list(base_pos.keys())
+    sib_base = base_pos[sibling]
+
+    # Nudge exactly one vertex.
+    _adjust(client, sid, {"operation": "move_vertex", "vertex_id": nudged,
+                          "dx": 0.0, "dy": 40.0})
+
+    # Plain re-render: only the nudged vertex moved; the sibling stayed put.
+    plain = client.get(f"/ergasterion/sessions/{sid}").json()["data"]
+    plain_sib = plain["layout_dto"]["vertex_positions"][sibling]
+    assert plain_sib["y"] == pytest.approx(sib_base["y"])
+
+    # Extrapolating re-render: the sibling (same kind + polarity, untouched)
+    # inherits the generalized translation.
+    extr = client.get(
+        f"/ergasterion/sessions/{sid}?extrapolate=true"
+    ).json()["data"]
+    extr_sib = extr["layout_dto"]["vertex_positions"][sibling]
+    assert extr_sib["y"] == pytest.approx(sib_base["y"] + 40.0)
+
+    # Opt-in only: the recorded delta stream is unchanged (still the one nudge).
+    assert len(extr["presentation_deltas"]) == 1
+
+
 # --------------------------------------------------------------------------- #
 # Move-by-move navigation (load + step through a worked sequence)             #
 # --------------------------------------------------------------------------- #

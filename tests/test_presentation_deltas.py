@@ -30,10 +30,13 @@ from presentation_ops import element_area
 from presentation_deltas import (
     PresentationDelta,
     MOVE_VERTEX,
+    RESHAPE_CUT,
     record_delta,
     apply_deltas,
     delta_key,
     merge_inherited,
+    generalization_key,
+    extrapolate_deltas,
     deltas_to_list,
     deltas_from_list,
 )
@@ -153,6 +156,102 @@ def test_state_ancestry_orders_initial_to_target():
     )
     assert state_ancestry(chain, "S1") == ["S0", "S1"]
     assert state_ancestry(chain, "S0") == ["S0"]
+
+
+# --------------------------------------------------------------------------- #
+# Extrapolation (increment 4, scale 1): generalize tagged deltas within a view #
+# --------------------------------------------------------------------------- #
+
+
+def test_generalization_key_reads_tags_and_drops_untaggable():
+    """The generalization key is the coarse structural handle (a subset of the
+    describe tags), distinct from delta_key's element identity; a missing field
+    makes the delta ungeneralizable."""
+    tagged = {"kind": "vertex", "area_polarity": "positive", "area_depth": 0}
+    assert generalization_key(tagged, ("kind", "area_polarity")) == (
+        ("kind", "vertex"),
+        ("area_polarity", "positive"),
+    )
+    # Same key for the same structural description, regardless of element id.
+    assert generalization_key(tagged, ("kind", "area_polarity")) == \
+        generalization_key(dict(tagged, id="whatever"), ("kind", "area_polarity"))
+    # An absent field → None (can't generalize by structure).
+    assert generalization_key({"kind": "vertex"}, ("kind", "area_polarity")) is None
+
+
+def test_extrapolate_generalizes_move_to_structural_sibling():
+    """The conceptual heart: nudging one vertex generalizes the *same intent* to
+    an untouched sibling of the same structural description — and never touches
+    the explicitly-adjusted element."""
+    egi, _ = _egi_and_dto("(P *x) (Q *y)")  # two vertices, both on the sheet
+    vids = [v.id for v in egi.V]
+    assert len(vids) == 2
+
+    d = record_delta(egi, MOVE_VERTEX, {"vertex_id": vids[0], "dx": 0.0, "dy": 25.0})
+    synth = extrapolate_deltas(egi, [d])
+
+    by_target = {s.params["vertex_id"]: s for s in synth}
+    assert vids[0] not in by_target          # explicit element is never overridden
+    assert vids[1] in by_target              # the structural sibling is generalized to
+    assert by_target[vids[1]].params["dy"] == pytest.approx(25.0)
+    assert by_target[vids[1]].params["dx"] == pytest.approx(0.0)
+    assert by_target[vids[1]].op == MOVE_VERTEX
+    # The synthetic delta carries the sibling's own tag (a real sample of intent).
+    assert by_target[vids[1]].target.get("kind") == "vertex"
+
+
+def test_extrapolate_averages_multiple_exemplars():
+    """Several exemplars in one structural group → the mean translation (the raw
+    signal a future 'study' layer reads)."""
+    egi, _ = _egi_and_dto("(P *x) (Q *y) (R *z)")  # three sheet vertices
+    vids = [v.id for v in egi.V]
+    assert len(vids) == 3
+
+    deltas = [
+        record_delta(egi, MOVE_VERTEX, {"vertex_id": vids[0], "dx": 0.0, "dy": 10.0}),
+        record_delta(egi, MOVE_VERTEX, {"vertex_id": vids[1], "dx": 0.0, "dy": 30.0}),
+    ]
+    synth = extrapolate_deltas(egi, deltas)
+
+    # Only the one untouched vertex gets a synthetic delta, with the mean dy.
+    assert [s.params["vertex_id"] for s in synth] == [vids[2]]
+    assert synth[0].params["dy"] == pytest.approx(20.0)
+
+
+def test_extrapolate_only_generalizes_move_vertex():
+    """reshape_cut bounds are absolute geometry, not a transferable translation —
+    they are not extrapolated (no relative encoding yet)."""
+    egi, _ = _egi_and_dto("~[ (P *x) ] (Q *y)")
+    cut_id = next(iter(c.id for c in egi.Cut))
+    reshape = PresentationDelta(
+        op=RESHAPE_CUT,
+        params={"cut_id": cut_id,
+                "bounds": {"min_x": 0, "min_y": 0, "max_x": 9, "max_y": 9}},
+        target={"kind": "cut", "area_polarity": "positive"},
+    )
+    assert extrapolate_deltas(egi, [reshape]) == []
+
+
+def test_extrapolate_respects_polarity_grouping():
+    """A vertex nudged in a positive area does not generalize to a vertex inside
+    a cut (negative polarity) — different structural class, different key."""
+    # x, w on the sheet (positive); y inside a cut (negative).
+    egi, _ = _egi_and_dto("(P *x) (S *w) ~[ (Q *y) ]")
+    pos = [v.id for v in egi.V if describe_polarity(egi, v.id) == "positive"]
+    neg = [v.id for v in egi.V if describe_polarity(egi, v.id) == "negative"]
+    assert len(pos) == 2 and len(neg) == 1
+
+    d = record_delta(egi, MOVE_VERTEX, {"vertex_id": pos[0], "dx": 0.0, "dy": 15.0})
+    synth = extrapolate_deltas(egi, [d])
+
+    touched = {s.params["vertex_id"] for s in synth}
+    assert pos[1] in touched      # same-polarity sibling IS generalized to
+    assert neg[0] not in touched  # opposite-polarity vertex is left alone
+
+
+def describe_polarity(egi, vid):
+    from eg_navigation import describe
+    return describe(egi, vid).get("area_polarity")
 
 
 def test_generate_layout_consumes_deltas():
