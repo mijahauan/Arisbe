@@ -140,7 +140,26 @@
       border-radius: 3px;
       margin-bottom: 5px;
       font-size: 11px;
+      cursor: pointer;
+      border: 1px solid transparent;
     }
+    .step-item:hover { border-color: var(--bottombar-border); }
+    .step-item.viewing {
+      border-color: var(--sidebar-accent);
+      background: var(--sidebar-selected, rgba(137,180,250,0.12));
+    }
+    .nav-btn {
+      padding: 3px 8px;
+      background: var(--btn-bg);
+      color: var(--sidebar-text);
+      border: 1px solid var(--bottombar-border);
+      border-radius: 3px;
+      font-size: 13px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .nav-btn:hover:not(:disabled) { border-color: var(--sidebar-accent); }
+    .nav-btn:disabled { opacity: 0.4; cursor: default; }
     .step-item .step-rule {
       font-family: monospace;
       font-weight: 600;
@@ -339,9 +358,8 @@
 
     <!-- Left panel: base-state picker / session info -->
     <aside class="panel" id="left-panel">
+      <div data-mode-nav></div>
       <div class="panel-header">
-        <h1>Arisbe Ergasterion</h1>
-        <p>Workshop · Composition · <a href="/" style="color:var(--sidebar-accent);">⌂ Arisbe</a></p>
         <span class="mode-tag" id="regime-tag">Regime 1 · Draft</span>
         <div class="regime-banner">
           Forms here are drawn but not yet asserted in the corpus.
@@ -465,10 +483,23 @@
           </button>
 
           <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 6px;">
-            Chain · <span id="step-count">0</span> step(s)
+            Sequence · <span id="step-count">0</span> move(s)
           </h2>
+          <!-- Move-by-move navigator: step through every graph in the
+               sequence, not just the last one. -->
+          <div id="chain-nav" style="display:none; align-items:center; gap:4px; margin-bottom:6px;">
+            <button class="nav-btn" id="nav-first" title="Base state">«</button>
+            <button class="nav-btn" id="nav-prev" title="Previous move">‹</button>
+            <span id="nav-pos" style="flex:1; text-align:center; font-size:11px; color:var(--sidebar-text);">base</span>
+            <button class="nav-btn" id="nav-next" title="Next move">›</button>
+            <button class="nav-btn" id="nav-last" title="Latest">»</button>
+          </div>
+          <div id="nav-banner" style="display:none; font-size:10px; color:#f9e2af; background:rgba(249,226,175,0.08); border:1px solid rgba(249,226,175,0.25); border-radius:3px; padding:5px 7px; margin-bottom:6px;">
+            Viewing an earlier state (read-only).
+            <a href="#" id="nav-return" style="color:var(--sidebar-accent);">Return to latest</a> to apply a move.
+          </div>
           <div id="step-list">
-            <div class="empty-state">No rule applications yet.</div>
+            <div class="empty-state">No moves yet.</div>
           </div>
 
           <!-- Promote section: the regime-1 → regime-2 boundary -->
@@ -506,6 +537,7 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+  <script src="js/mode-nav.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/settle-adjust.js"></script>
@@ -541,6 +573,13 @@
       let sheetId = null;        // the sheet's area id (a selectable region)
       let ruleSteps = {};        // rule name -> /rules step descriptors
       let activeStepIndex = 0;   // which step the canvas is currently filling
+
+      // Move-by-move navigation through the session's worked sequence.
+      // currentChain is the last chain summary; viewIndex is which move is
+      // shown in the canvas (0 = base state, N = the tip / latest). Stepping
+      // back is read-only navigation (Slice 1); applying a move acts at the tip.
+      let currentChain = null;
+      let viewIndex = 0;
 
       // On-canvas selection state. The subgraph set feeds rules'
       // `selected_elements`; the area feeds `target_area` (INS / IT+).
@@ -1022,19 +1061,104 @@
         if (window.SettleAdjust && SettleAdjust.isEnabled()) SettleAdjust.refresh();
       }
 
+      // ---- move-by-move navigation ----
+
+      function tipIndex() {
+        return currentChain && currentChain.steps ? currentChain.steps.length : 0;
+      }
+      function atTip() { return viewIndex >= tipIndex(); }
+      function stateIdForIndex(i) {
+        if (!currentChain) return null;
+        if (i <= 0) return currentChain.initial_state_id;
+        const steps = currentChain.steps || [];
+        const k = Math.min(i, steps.length);
+        return steps[k - 1] ? steps[k - 1].to_state_id : currentChain.initial_state_id;
+      }
+      function setApplyEnabled() {
+        // A move can only be applied at the tip (Slice 1: stepping back is
+        // read-only; branch-from-a-past-state comes later).
+        btnApply.disabled = !(currentRule && atTip());
+      }
+      function updateNavControls() {
+        const tip = tipIndex();
+        const posEl = document.getElementById('nav-pos');
+        if (posEl) posEl.textContent =
+          viewIndex === 0 ? 'base' : ('move ' + viewIndex + ' / ' + tip);
+        const ids = ['nav-first', 'nav-prev', 'nav-next', 'nav-last'];
+        const dis = [viewIndex <= 0, viewIndex <= 0, viewIndex >= tip, viewIndex >= tip];
+        ids.forEach((id, k) => {
+          const b = document.getElementById(id);
+          if (b) b.disabled = dis[k];
+        });
+        const banner = document.getElementById('nav-banner');
+        if (banner) banner.style.display = atTip() ? 'none' : 'block';
+        setApplyEnabled();
+      }
+
+      async function navTo(index) {
+        if (!currentSessionId || !currentChain) return;
+        const tip = tipIndex();
+        index = Math.max(0, Math.min(index, tip));
+        const stateId = stateIdForIndex(index);
+        if (!stateId) return;
+        setStatus('Loading ' + (index === 0 ? 'base state' : 'move ' + index) + '…');
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId +
+            '/states/' + encodeURIComponent(stateId)
+          );
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Could not load state: ' +
+              (body.error && body.error.message), 'error');
+            return;
+          }
+          viewIndex = index;
+          currentIntrospection = body.data.introspection || null;
+          currentLayoutDto = body.data.layout_dto || null;
+          sheetId = (body.data.layout_dto && body.data.layout_dto.sheet_id) || sheetId;
+          // States in a sequence vary in size, so fit each frame (the chain-
+          // player convention) rather than holding the camera.
+          renderSvg(body.data.svg, false);
+          if (window.LinearFormPanel) {
+            window.LinearFormPanel.render(canvasEl, body.data.linear_forms);
+          }
+          renderChain(currentChain);  // refresh highlight + nav state
+          setStatus(atTip()
+            ? 'At latest move.'
+            : ('Viewing move ' + index + ' of ' + tip + ' — read-only.'));
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
       function renderChain(chain) {
-        stepCountEl.textContent = chain.step_count || 0;
-        if (!chain.steps || chain.steps.length === 0) {
-          stepListEl.innerHTML = '<div class="empty-state">No rule applications yet.</div>';
+        currentChain = chain || null;
+        const n = chain ? (chain.step_count ||
+          (chain.steps ? chain.steps.length : 0)) : 0;
+        stepCountEl.textContent = n;
+        const navEl = document.getElementById('chain-nav');
+        if (navEl) navEl.style.display = n > 0 ? 'flex' : 'none';
+        updateNavControls();
+
+        if (!chain || !chain.steps || chain.steps.length === 0) {
+          stepListEl.innerHTML = '<div class="empty-state">No moves yet.</div>';
           return;
         }
         stepListEl.innerHTML = '';
+        const base = document.createElement('div');
+        base.className = 'step-item' + (viewIndex === 0 ? ' viewing' : '');
+        base.dataset.index = '0';
+        base.innerHTML = '<div><span class="step-rule">base</span>' +
+          ' &middot; starting state</div>';
+        stepListEl.appendChild(base);
         chain.steps.forEach((step, idx) => {
           const div = document.createElement('div');
-          div.className = 'step-item';
+          div.className = 'step-item' + (viewIndex === idx + 1 ? ' viewing' : '');
+          div.dataset.index = String(idx + 1);
           div.innerHTML =
             '<div><span class="step-rule">' + escapeHtml(step.rule_name) + '</span>' +
-            ' &middot; step ' + (idx + 1) + '</div>' +
+            ' &middot; move ' + (idx + 1) + '</div>' +
             '<div class="step-meta">' + escapeHtml(step.timestamp || '') + '</div>';
           stepListEl.appendChild(div);
         });
@@ -1068,6 +1192,9 @@
         if (window.LinearFormPanel) {
           window.LinearFormPanel.render(canvasEl, data.linear_forms);
         }
+        // A session open / rule application always lands on the tip (latest).
+        currentChain = data.chain || null;
+        viewIndex = tipIndex();
         renderChain(data.chain);
       }
 
@@ -1075,6 +1202,8 @@
         currentSessionId = null;
         currentRule = null;
         currentIntrospection = null;
+        currentChain = null;
+        viewIndex = 0;
         pickerSection.style.display = 'block';
         sessionInfoEl.style.display = 'none';
         rulesSectionEl.style.display = 'none';
@@ -1116,7 +1245,7 @@
                  '<input type="text" id="param-target-area" /></div>';
         }
         ruleParamsEl.innerHTML = html;
-        btnApply.disabled = false;
+        setApplyEnabled();  // only enabled at the tip (read-only when stepped back)
         // Keep the step checklist current as EGIF content is typed.
         const egifEl = document.getElementById('param-egif');
         if (egifEl) egifEl.addEventListener('input', renderRuleGuidance);
@@ -1319,6 +1448,23 @@
       btnStartEmpty.addEventListener('click', () => openSession('empty_sheet'));
       btnApply.addEventListener('click', applyRule);
       btnPromote.addEventListener('click', promote);
+
+      // Move-by-move navigation controls.
+      document.getElementById('nav-first').addEventListener('click', () => navTo(0));
+      document.getElementById('nav-prev').addEventListener('click', () => navTo(viewIndex - 1));
+      document.getElementById('nav-next').addEventListener('click', () => navTo(viewIndex + 1));
+      document.getElementById('nav-last').addEventListener('click', () => navTo(tipIndex()));
+      document.getElementById('nav-return').addEventListener('click', (e) => {
+        e.preventDefault();
+        navTo(tipIndex());
+      });
+      // Click any move in the list to jump to that graph.
+      stepListEl.addEventListener('click', (e) => {
+        const item = e.target.closest('.step-item');
+        if (!item || item.dataset.index === undefined) return;
+        const idx = parseInt(item.dataset.index, 10);
+        if (!isNaN(idx)) navTo(idx);
+      });
       btnDiscard.addEventListener('click', discard);
 
       // Settle ④b — wire the regime-3 drag layer. A successful adjust returns a

@@ -85,6 +85,7 @@ class ErgasterionSessionManager:
         base_source: str,
         base_source_uod_id: Optional[str] = None,
         style_name: Optional[str] = None,
+        chain: Optional[TransformationChain] = None,
     ) -> WorkshopSession:
         """Open a new workshop session anchored at the given base state.
 
@@ -92,17 +93,26 @@ class ErgasterionSessionManager:
         rule applications will get their force.  A workshop without an
         explicit base state would be incoherent (no context), so this
         method requires one.
+
+        If *chain* is given, the session opens with that whole sequence of
+        moves already in hand — the workshop loads an existing UoD's worked
+        sequence so the user can navigate (and, later, branch from) any state,
+        not just see the final one.  ``initial_egi`` / ``initial_layout_dto``
+        then describe the state the canvas opens *at* (the chain's tip).  When
+        *chain* is ``None`` the session starts as a fresh single-state chain at
+        ``initial_egi`` (composition from scratch).
         """
         self.cleanup_expired()
 
         session_id = str(uuid.uuid4())
-        initial_state_id = f"state-{uuid.uuid4().hex[:8]}"
 
-        chain = TransformationChain(
-            initial_state_id=initial_state_id,
-            steps=[],
-            states={initial_state_id: initial_egi},
-        )
+        if chain is None:
+            initial_state_id = f"state-{uuid.uuid4().hex[:8]}"
+            chain = TransformationChain(
+                initial_state_id=initial_state_id,
+                steps=[],
+                states={initial_state_id: initial_egi},
+            )
 
         session = WorkshopSession(
             session_id=session_id,

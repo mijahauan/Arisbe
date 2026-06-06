@@ -1,6 +1,51 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (INS / IT+ positional pinning — Settle ④a 1c additive-placement complete)
+**Last Updated**: 2026-06-06 (Mode nav component + Ergasterion move-by-move navigation, Slice 1)
+
+## Session 2026-06-06 (c) — left-column nav + workshop sequence navigation
+
+**Shipped (on `main`):**
+- **Shared mode-nav component** (`web_viewer/js/mode-nav.js`) on all three mode
+  pages: a prominent clickable **Arisbe** (home) atop the sidebar, then a row
+  **Organon · Ergasterion · Agon** — each clickable, the current one bolder/larger
+  with its description below (e.g. *workshop · composition*). Self-contained;
+  active mode inferred from the URL.
+- **Ergasterion move-by-move navigation — Slice 1** (the symptom fix: "one only
+  sees the last graph"). Opening a UoD that carries a worked sequence now
+  **hydrates the whole chain** into the session (not just the final graph); new
+  `GET /ergasterion/sessions/{id}/states/{state_id}` renders any state, §3.3-
+  attested; UI navigator (`« ‹ ▶ › »` + move list, fit-to-content per frame),
+  read-only when stepped back (apply gated to the tip). Terminology: a chain is
+  a *sequence of moves/transformations*, not necessarily a "proof".
+  Tests: `test_ergasterion_routes.py` (+6).
+
+**Conceptual reaffirmation (2026-06-06, confirmed with author) — the mode
+contract:**
+- **Organon** organizes / imports / exports / *views* **attested** graphs, UoDs,
+  and the **products of Agon**.
+- **Ergasterion** is where a user *plays* with any graph copied from Organon or
+  composes new ones (regime-1 drafts).
+- **A new graph leaving Ergasterion must be EITHER (a) a style-only reprojection
+  of an already-attested graph (regime-3, carries the original's warrant) OR (b)
+  tested through Agon** (the dialogical challenge that earns regime-2). §3.3
+  attestation proves *correspondence*, **not truth** — so it is necessary but
+  **not sufficient** for entering the attested corpus.
+- **Implication acted on:** the existing Ergasterion *direct* "Promote to corpus"
+  (forks a corpus UoD on §3.3 alone) is inconsistent with this and is being
+  re-pointed — workshop output goes to **scratch** (regime-1 holding, Slice 3)
+  or is **sent to Agon** to be tested; the only direct-to-corpus path is a
+  style-only variant. Aligns with `docs/CHAIN_OF_SEMIOSIS.md` ("semiosis is
+  dialogical"; fuller regime-2 = withstood challenge) and the import doorway's
+  low-warrant floor.
+
+**Next: Slice 2 (branch-on-edit) + Slice 3 (scratch storage).** Stepping back and
+changing forks a *branch in the workshop* (original untouched); fragments /
+incomplete attempts / branches persist to a **separate scratch store** (not the
+corpus). Promote is re-pointed to scratch + a "send to Agon" hand-off.
+
+---
+
+**(prior)** INS / IT+ positional pinning — Settle ④a 1c additive-placement complete
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);

@@ -775,3 +775,83 @@ def test_adjust_unknown_session_is_clean_error(client, fresh_session_manager):
     )
     assert resp.status_code == 200
     assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"
+
+
+# --------------------------------------------------------------------------- #
+# Move-by-move navigation (load + step through a worked sequence)             #
+# --------------------------------------------------------------------------- #
+
+
+def _seed_chain_uod(isolated_tomos):
+    """Build a real 2-step chain (beta modus ponens) and save it into the
+    isolated tomos so a workshop can open it as a base with a sequence."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+    from build_beta_modus_ponens_chain import build_beta_modus_ponens_chain
+
+    chain, uod = build_beta_modus_ponens_chain()
+    isolated_tomos["service"].save_uod_with_chain(uod, chain)
+    return uod.uod_id, chain
+
+
+def test_open_uod_with_chain_hydrates_sequence(client, isolated_tomos):
+    """Opening a UoD that carries a worked sequence loads the *whole* chain into
+    the session (so it can be navigated), not just the final graph."""
+    uod_id, chain = _seed_chain_uod(isolated_tomos)
+    data = _open_session(client, f"uod:{uod_id}")
+    # The session's chain mirrors the persisted sequence (2 moves).
+    assert data["chain"]["step_count"] == len(chain.steps) == 2
+    assert data["chain"]["initial_state_id"] == chain.initial_state_id
+    # Canvas opens at the tip (the final graph).
+    assert data["chain"]["current_state_id"] == chain.current_state_id
+
+
+def test_open_uod_without_chain_starts_empty_sequence(client, isolated_tomos):
+    """A synchronic UoD (no persisted chain) still opens with a fresh 0-move
+    sequence anchored at its current EGI (unchanged behaviour)."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    assert data["chain"]["step_count"] == 0
+    assert data["chain"]["initial_state_id"] == data["chain"]["current_state_id"]
+
+
+def test_render_any_state_in_sequence(client, isolated_tomos):
+    """Each state in the loaded sequence renders on demand — the move-by-move
+    navigator — with correct step_index / is_tip and a §3.3-attested drawing."""
+    uod_id, chain = _seed_chain_uod(isolated_tomos)
+    data = _open_session(client, f"uod:{uod_id}")
+    sid = data["session_id"]
+
+    # Base state (index 0) is not the tip.
+    init = client.get(
+        f"/ergasterion/sessions/{sid}/states/{chain.initial_state_id}"
+    ).json()
+    assert init["success"] is True, init.get("error")
+    assert init["data"]["step_index"] == 0
+    assert init["data"]["is_tip"] is False
+    assert init["data"]["svg"].startswith("<")
+
+    # The state after the first move.
+    s1 = chain.steps[0].to_state_id
+    mid = client.get(f"/ergasterion/sessions/{sid}/states/{s1}").json()["data"]
+    assert mid["step_index"] == 1
+    assert mid["is_tip"] is False
+
+    # The tip.
+    tip_id = chain.current_state_id
+    tip = client.get(f"/ergasterion/sessions/{sid}/states/{tip_id}").json()["data"]
+    assert tip["step_index"] == len(chain.steps)
+    assert tip["is_tip"] is True
+
+
+def test_render_unknown_state_is_clean_error(client, isolated_tomos):
+    uod_id, _chain = _seed_chain_uod(isolated_tomos)
+    data = _open_session(client, f"uod:{uod_id}")
+    sid = data["session_id"]
+    resp = client.get(f"/ergasterion/sessions/{sid}/states/no-such-state")
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "STATE_NOT_FOUND"
+
+
+def test_render_state_unknown_session_is_clean_error(client, fresh_session_manager):
+    resp = client.get("/ergasterion/sessions/no-such/states/s0")
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"

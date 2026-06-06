@@ -194,6 +194,7 @@ async def open_session(request: ErgasterionOpenRequest):
     try:
         base = request.base_source.strip()
         base_source_uod_id: Optional[str] = None
+        loaded_chain = None
 
         if base == "empty_sheet":
             initial_egi = parse_egif("")
@@ -214,6 +215,13 @@ async def open_session(request: ErgasterionOpenRequest):
                 )
             initial_egi = uod.current_egi
             base_source_uod_id = uod_id
+            # If this UoD carries a worked sequence of transformations (any
+            # chain — not only "proofs"), load it so the workshop opens with the
+            # whole sequence navigable, not just the final graph.  The canvas
+            # still opens at the tip; the user can step back through every move.
+            loaded_chain = tomos.load_chain(uod_id)
+            if loaded_chain is not None:
+                initial_egi = loaded_chain.current_egi
         else:
             return ApiResponse(
                 success=False,
@@ -238,6 +246,7 @@ async def open_session(request: ErgasterionOpenRequest):
             base_source=base,
             base_source_uod_id=base_source_uod_id,
             style_name=request.style_name,
+            chain=loaded_chain,
         )
 
         return ApiResponse(success=True, data=_session_payload(session, svg))
@@ -303,6 +312,84 @@ async def get_session(session_id: str, style: Optional[str] = None):
         return ApiResponse(
             success=False,
             error={"code": "GET_SESSION_ERROR", "message": str(exc)},
+        )
+
+
+def _step_index_of_state(session, state_id: str) -> int:
+    """0 for the initial state; k for the state produced by the k-th step."""
+    if state_id == session.chain.initial_state_id:
+        return 0
+    for i, s in enumerate(session.chain.steps):
+        if s.to_state_id == state_id:
+            return i + 1
+    return -1
+
+
+@router.get("/sessions/{session_id}/states/{state_id}")
+async def get_session_state(session_id: str, state_id: str, style: Optional[str] = None):
+    """Render any state in the session's worked sequence — the workshop's
+    move-by-move navigator.
+
+    This lets the workshop step through the whole sequence of moves (a loaded
+    UoD's chain, or the one being composed), so a user can *see every graph in
+    the series*, not only the last.  It is a **read** of a state already in the
+    chain — it does not change the session (the cursor that decides where the
+    next rule applies is tracked client-side for now); each state is laid out
+    cold and §3.3-attested at the render boundary, like the Organon chain
+    player (states in a sequence vary in size → fit-to-content on the client).
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+
+        egi = session.chain.states.get(state_id)
+        if egi is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "STATE_NOT_FOUND",
+                    "message": (
+                        f"State '{state_id}' is not part of session "
+                        f"'{session_id}'."
+                    ),
+                },
+            )
+
+        style_name = style if style is not None else session.style_name
+        dto, svg = generate_layout(egi, style_name=style_name)
+
+        return ApiResponse(
+            success=True,
+            data={
+                "session_id": session.session_id,
+                "viewed_state_id": state_id,
+                "step_index": _step_index_of_state(session, state_id),
+                "step_count": session.step_count,
+                "is_tip": state_id == session.chain.current_state_id,
+                "svg": svg,
+                "layout_dto": layout_dto_to_dict(dto),
+                "egi_summary": _egi_summary(egi),
+                "introspection": egi_introspection(egi),
+                "linear_forms": linear_forms(egi),
+            },
+        )
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc)},
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "GET_STATE_ERROR", "message": str(exc)},
         )
 
 
