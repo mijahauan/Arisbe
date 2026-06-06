@@ -740,6 +740,28 @@ def test_open_uod_with_chain_hydrates_sequence(client, isolated_tomos):
     assert data["chain"]["current_state_id"] == chain.current_state_id
 
 
+def test_open_uod_restores_persisted_presentation_deltas(client, isolated_tomos):
+    """Increment 2b: regime-3 deltas saved beside a corpus UoD's chain are
+    restored into the session when the UoD is reopened in the workshop."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+    from build_beta_modus_ponens_chain import build_beta_modus_ponens_chain
+
+    chain, uod = build_beta_modus_ponens_chain()
+    vid = next(iter(chain.current_egi.V)).id
+    deltas = {chain.current_state_id: [
+        {"op": "move_vertex",
+         "params": {"vertex_id": vid, "dx": 6.0, "dy": 4.0},
+         "target": {"kind": "vertex"}},
+    ]}
+    isolated_tomos["service"].save_uod_with_chain(uod, chain, deltas)
+
+    data = _open_session(client, f"uod:{uod.uod_id}")
+    restored = data["presentation_deltas"]  # current (tip) state's deltas
+    assert len(restored) == 1
+    assert restored[0]["op"] == "move_vertex"
+    assert restored[0]["params"]["vertex_id"] == vid
+
+
 def test_open_uod_without_chain_starts_empty_sequence(client, isolated_tomos):
     """A synchronic UoD (no persisted chain) still opens with a fresh 0-move
     sequence anchored at its current EGI (unchanged behaviour)."""

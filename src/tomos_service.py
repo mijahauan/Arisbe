@@ -700,6 +700,7 @@ class TomosService:
         self,
         uod: UniverseOfDiscourse,
         chain: TransformationChain,
+        presentation_deltas: Optional[Dict[str, List[dict]]] = None,
     ) -> None:
         """Persist a UoD together with its transformation chain.
 
@@ -716,6 +717,9 @@ class TomosService:
                                        object per ``ChainStep``
             states/<state_id>.egi.json — per-state EGI snapshots, one
                                        per state referenced by the chain
+            deltas.json              — {state_id: [delta-dict, …]} regime-3
+                                       presentation deltas per state (written
+                                       only when non-empty)
 
         Args:
             uod: UoD to save.  Its ``current_egi`` should equal
@@ -723,6 +727,10 @@ class TomosService:
                 does not enforce this beyond §3.3 attestation, which
                 would catch a drifted final state at save_uod).
             chain: The transformation chain to persist alongside.
+            presentation_deltas: Optional already-serialized regime-3 deltas
+                (``{state_id: [delta-dict]}``) to persist beside the chain so
+                a corpus UoD reopened in the workshop keeps its appearance.
+                The symmetric read is ``load_chain_deltas``.
 
         Raises:
             ``CorrespondenceViolation`` (from ``save_uod``) if the
@@ -777,6 +785,38 @@ class TomosService:
                     )
                     + "\n"
                 )
+
+        # Per-state regime-3 presentation deltas (sparse; only nudged states
+        # appear).  Written only when non-empty; an overwriting save clears a
+        # stale file so a UoD never keeps deltas it no longer has.
+        deltas_path = history_dir / "deltas.json"
+        pruned = {k: v for k, v in (presentation_deltas or {}).items() if v}
+        if pruned:
+            with open(deltas_path, "w", encoding="utf-8") as f:
+                json.dump(pruned, f, indent=2)
+        elif deltas_path.exists():
+            deltas_path.unlink()
+
+    def load_chain_deltas(self, uod_id: str) -> Dict[str, List[dict]]:
+        """Load the per-state regime-3 deltas persisted beside a UoD's chain.
+
+        Returns ``{state_id: [delta-dict]}`` (serialized form, deserialized by
+        the caller via ``presentation_deltas.deltas_from_list``), or an empty
+        dict if the UoD is unknown or carries no ``history/deltas.json``.  The
+        symmetric write is ``save_uod_with_chain``'s ``presentation_deltas``.
+        """
+        entry = self.get_uod_metadata(uod_id)
+        if entry is None:
+            return {}
+        deltas_path = Path(entry["path"]) / "history" / "deltas.json"
+        if not deltas_path.exists():
+            return {}
+        try:
+            with open(deltas_path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            return loaded if isinstance(loaded, dict) else {}
+        except (json.JSONDecodeError, OSError):
+            return {}
 
     def load_chain(self, uod_id: str) -> Optional[TransformationChain]:
         """Load the transformation chain persisted alongside a UoD.

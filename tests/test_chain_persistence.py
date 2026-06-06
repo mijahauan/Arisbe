@@ -258,6 +258,9 @@ def test_save_with_chain_refuses_drifted_final_state(
     chain artefacts should appear on disk.
     """
     chain, uod = _simple_chain()
+    deltas = {chain.initial_state_id: [
+        {"op": "move_vertex", "params": {"vertex_id": "v", "dx": 5, "dy": 3}}
+    ]}
 
     # Build a real DTO via the legitimate engine, then drop a vertex.
     from elk_layout_engine import ELKLayoutEngine
@@ -288,7 +291,7 @@ def test_save_with_chain_refuses_drifted_final_state(
     monkeypatch.setattr(tomos_service, "ELKLayoutEngine", lambda: _BrokenEngine())
 
     with pytest.raises(CorrespondenceViolation) as excinfo:
-        tomos.save_uod_with_chain(uod, chain)
+        tomos.save_uod_with_chain(uod, chain, deltas)
 
     assert "totality" in str(excinfo.value)
     assert uod.uod_id in str(excinfo.value)
@@ -304,6 +307,44 @@ def test_save_with_chain_refuses_drifted_final_state(
         assert not any(states_dir.iterdir()), (
             "save_uod_with_chain wrote state snapshots despite attestation failure"
         )
+    assert not (uod_dir / "history" / "deltas.json").exists(), (
+        "save_uod_with_chain wrote deltas.json despite attestation failure"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# 6. Presentation deltas travel with the chain (increment 2b)                 #
+# --------------------------------------------------------------------------- #
+
+
+def test_save_and_load_chain_deltas_round_trip(tomos):
+    """Per-state regime-3 deltas persist beside the chain and load back verbatim
+    via load_chain_deltas — the corpus counterpart of the scratch round-trip."""
+    chain, uod = _simple_chain()
+    deltas = {
+        chain.initial_state_id: [
+            {"op": "move_vertex",
+             "params": {"vertex_id": "vx", "dx": 12.0, "dy": -7.0},
+             "target": {"kind": "vertex"}},
+        ],
+        chain.current_state_id: [
+            {"op": "reshape_cut",
+             "params": {"cut_id": "cx",
+                        "bounds": {"min_x": 0, "min_y": 0, "max_x": 9, "max_y": 9}},
+             "target": {"kind": "cut"}},
+        ],
+    }
+    tomos.save_uod_with_chain(uod, chain, deltas)
+
+    loaded = tomos.load_chain_deltas(uod.uod_id)
+    assert loaded == deltas
+
+    # A UoD with no deltas reports an empty map (no file written).
+    chain2, uod2 = _simple_chain()
+    uod2.metadata.uod_id = "chain-test-uod-2"
+    tomos.save_uod_with_chain(uod2, chain2)
+    assert tomos.load_chain_deltas(uod2.uod_id) == {}
+    assert tomos.load_chain_deltas("no-such-uod") == {}
 
 
 # --------------------------------------------------------------------------- #

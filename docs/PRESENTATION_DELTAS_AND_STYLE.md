@@ -141,13 +141,16 @@ attested by §3.3 at the service boundary
      tip's over its base, so a reopened draft *looks* the way it was saved.
      `create_session` carries deltas in; navigation
      (`GET …/states/{state_id}`) replays each state's own deltas.
-   - **Corpus path (regime-2) — follow-on.** `save_uod_with_chain` /
-     `load_chain` (the Agon-asserted boundary, and the workshop's "open a corpus
-     UoD that carries a sequence" path) should write/read a parallel
-     `history/deltas.json`. Deferred one step: per-state deltas across a fully
-     hydrated multi-state chain are most meaningful once chain inheritance
-     (increment 3) is in. A UoD *preferred style* there can reuse the vestigial
-     `current_layout_deltas` slot's sibling or UoD metadata (no protected field).
+   - **✅ Corpus path (regime-2) done (2b).** `save_uod_with_chain(uod, chain,
+     presentation_deltas=…)` writes a parallel `history/deltas.json` (pruned of
+     empties; cleared on an overwriting save); §3.3 still fires inside `save_uod`
+     *before* any history write, so a refusal leaves no `deltas.json` either.
+     `load_chain_deltas(uod_id)` reads it (empty dict if absent; `load_chain`'s
+     signature unchanged). The workshop's "open a corpus UoD that carries a
+     sequence" path hydrates them and replays the tip's effective deltas. Note:
+     no workshop→corpus *writer* carries deltas yet (the promote route was
+     retired; Agon assertion doesn't track board deltas) — the corpus read/write
+     mechanism is ready for when such a writer exists (e.g. Agon-side deltas).
 3. **✅ Chain inheritance done.** `presentation_deltas.merge_inherited` resolves
    a state's *effective* deltas = the authored deltas along its ancestry
    (`ergasterion_session_manager.state_ancestry`), where a descendant re-authoring

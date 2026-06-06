@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (Presentation-delta chain inheritance — increment 3: nudges carry forward down a worked sequence)
+**Last Updated**: 2026-06-06 (Presentation-delta corpus persistence — increment 2b: deltas round-trip through history/deltas.json)
 
 > **NEXT SESSION (the projection ladder, increments 2–6):** the regime-3
 > *presentation deltas* foundation shipped (vocabulary + replay + record +
@@ -22,6 +22,28 @@
 > [[project-presentation-deltas-and-style-ladder]],
 > [[project-render-as-projection-own-dimensionality]],
 > [[project-correspondence-invariant-three-regimes]].
+
+## Session 2026-06-06 (g) — presentation-delta corpus persistence (increment 2b)
+
+**Shipped (on `main`):** regime-3 deltas now round-trip through the **corpus**,
+symmetric with the scratch path. `tomos_service.save_uod_with_chain(uod, chain,
+presentation_deltas=…)` writes `history/deltas.json` (pruned; cleared on
+overwrite); §3.3 still fires inside `save_uod` before any history write, so a
+refusal leaves no `deltas.json`. New `load_chain_deltas(uod_id)` reads it
+(`load_chain`'s signature untouched). The workshop "open a corpus UoD that
+carries a sequence" path hydrates them into the session and replays the tip's
+effective deltas. Tests: `test_chain_persistence.py` (+1 round-trip, +refusal
+assert) and `test_ergasterion_routes.py` (+1 open-restores). No protected module.
+
+**Known gap (noted, not a bug):** no workshop→corpus *writer* carries deltas yet
+(promote retired; Agon assertion doesn't track board deltas) — the corpus
+read/write mechanism is ready for when such a writer exists (Agon-side deltas).
+
+**Persistence story complete (scratch + corpus).** Next session: increment
+**4 — extrapolation** (scale 1, within-view): generalize *tagged* deltas to
+untouched in-scope elements — the study (b) + new-styles (c) research layer, the
+conceptual heart of the original ask. See `docs/PRESENTATION_DELTAS_AND_STYLE.md`
+§6 + memory [[project-presentation-deltas-and-style-ladder]].
 
 ## Session 2026-06-06 (f) — presentation-delta chain inheritance (increment 3)
 

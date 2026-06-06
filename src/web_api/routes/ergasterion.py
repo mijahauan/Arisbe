@@ -234,6 +234,7 @@ async def open_session(request: ErgasterionOpenRequest):
         base = request.base_source.strip()
         base_source_uod_id: Optional[str] = None
         loaded_chain = None
+        loaded_deltas: dict = {}
 
         if base == "empty_sheet":
             initial_egi = parse_egif("")
@@ -261,6 +262,12 @@ async def open_session(request: ErgasterionOpenRequest):
             loaded_chain = tomos.load_chain(uod_id)
             if loaded_chain is not None:
                 initial_egi = loaded_chain.current_egi
+                # Restore any regime-3 hand-adjustments persisted with the chain
+                # so the UoD reopens in the workshop looking as it was saved.
+                loaded_deltas = {
+                    sid: deltas_from_list(items)
+                    for sid, items in tomos.load_chain_deltas(uod_id).items()
+                }
         else:
             return ApiResponse(
                 success=False,
@@ -275,8 +282,17 @@ async def open_session(request: ErgasterionOpenRequest):
 
         # Render and lay out the base state (attests §3.3 at the
         # render boundary — confirming the *base* is in correspondence
-        # before composition begins).
-        dto, svg = generate_layout(initial_egi, style_name=request.style_name)
+        # before composition begins).  Replay the tip's effective deltas so a
+        # UoD that carried hand-adjustments reopens looking as it was saved.
+        tip_deltas = None
+        if loaded_chain is not None and loaded_deltas:
+            tip_deltas = merge_inherited(
+                state_ancestry(loaded_chain, loaded_chain.current_state_id),
+                loaded_deltas,
+            )
+        dto, svg = generate_layout(
+            initial_egi, style_name=request.style_name, deltas=tip_deltas
+        )
 
         manager = get_ergasterion_session_manager()
         session = manager.create_session(
@@ -286,6 +302,7 @@ async def open_session(request: ErgasterionOpenRequest):
             base_source_uod_id=base_source_uod_id,
             style_name=request.style_name,
             chain=loaded_chain,
+            presentation_deltas=loaded_deltas,
         )
 
         return ApiResponse(success=True, data=_session_payload(session, svg))
