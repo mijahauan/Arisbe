@@ -76,7 +76,7 @@ plan is to surface them as routes within the web app (`src/web_api/`,
 - `tomos_service.py` — Unified corpus API. `save_uod` / `load_uod` attest §3.3 at the save/load boundary. `save_uod_with_chain(uod, chain)` + `load_chain(uod_id)` persist a workshop chain (V1 linear) as `history/chain.jsonl` + `history/states/<id>.egi.json` alongside the UoD record; §3.3 fires inside `save_uod` before any chain files are written, so a refusal aborts cleanly with no half-saved chain on disk. `TransformationChain` / `ChainStep` are the slim on-disk shape (NOT a hydration of the protected `EGITransformationHistory`).
 - `z3_semantic_validator.py` — Z3 SMT-solver semantic validation
 - `graph_isomorphism_engine.py` — NetworkX VF2 matching for goal detection
-- `web_api/` (FastAPI) + `web_viewer/` (static HTML/JS) — the canonical user interface. Three-mode routes: `/organon` (read-only archive, both load+render boundaries §3.3-attested), `/ergasterion` (workshop / composition; regime-1 drafts with promotion firing §3.3 at the corpus boundary). Agon (game arena) web route still ahead.
+- `web_api/` (FastAPI) + `web_viewer/` (static HTML/JS) — the canonical user interface. All three mode routes are live: `/organon` (read-only archive, both load+render boundaries §3.3-attested), `/ergasterion` (workshop / composition — regime-1 drafts; a session holds a forest of branches with move-by-move navigation; output goes to a regime-1 **scratch** store or is **sent to Agon**, never straight to the corpus — there is no direct workshop→corpus route), `/agon` (Endoporeutic Game arena — the dialogical contest where a graph earns the corpus). The mode contract: a graph reaches the attested corpus only by being tested through Agon or as a style-only reprojection of an attested graph (§3.3 attests *correspondence, not truth*). A shared left-column nav (`web_viewer/js/mode-nav.js`) links the three modes + home.
 
 ### Linear Format Support (all production, round-trip tested)
 
@@ -140,7 +140,7 @@ Code chapters correspond to Dau's formal textbook:
 - Ch. 18 → `chapter18_fopl_translation.py` (linear format Φ/Ψ translations)
 - Ch. 20 → `syntactic_equivalence_checker.py`, `chapter20_syntactic_equivalence_fixes.py`
 
-## Testing (654 passing, 17 skipped, 40 test files)
+## Testing (~955 passing, 35 skipped)
 
 Key test files:
 - `test_correspondence_invariant.py` — All six §7 test shapes from `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` (totality/injectivity, containment, incidence + arg-order, identity 3-way, transformation invariance, regime-3 non-interference) against the tomos corpus
@@ -148,7 +148,7 @@ Key test files:
 - `test_presentation_ops.py` — Regime-3 API contract: happy + refusal paths for `move_vertex` / `reshape_cut` / `reroute_ligature`
 - `test_layout_service_attestation.py` — The web boundary hook fires on a real UoD and refuses when the engine returns a corrupted DTO
 - `test_chain_persistence.py` — Transformation-chain JSONL round-trip; §3.3 refusal at save_uod_with_chain leaves no chain files on disk
-- `test_ergasterion_routes.py` — Workshop route contract: session lifecycle, RuleInteraction-driven apply, regime-1 drafts don't fire corpus-record §3.3, promotion does, refusal aborts cleanly, no duplicate-uod overwrite
+- `test_ergasterion_routes.py` — Workshop route contract: session lifecycle, RuleInteraction-driven apply, regime-1 drafts don't fire corpus-record §3.3, move-by-move navigation (a UoD's worked sequence hydrates + any state renders), branch-on-edit (apply from an earlier state forks; branches switchable), scratch store (save/list/open/delete; never the corpus). (Direct workshop→corpus promotion was retired; its §3.3 mechanism lives in `test_chain_persistence.py`.)
 - `test_organon_routes.py` — Archive route contract: corpus listing, UoD detail, both load+render attestation hooks fire per detail request
 - `test_epg_exemplar_scripts.py` — 16 Endoporeutic Game scenarios (outcomes, strategies, engine integration)
 - `test_beta_proof_exercises.py` — 20 Beta graph tests (FOL, shared vertices, EGIF round-trips)

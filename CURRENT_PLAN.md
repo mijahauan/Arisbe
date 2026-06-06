@@ -1,8 +1,22 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (Mode nav component + Ergasterion move-by-move navigation, Slice 1)
+**Last Updated**: 2026-06-06 (Mode nav + workshop sequence navigation + branch-on-edit + scratch store + /promote retired)
 
-## Session 2026-06-06 (c) — left-column nav + workshop sequence navigation
+> **NEXT SESSION (requested):** walk through the editing that is **"indifferent
+> to the logic"** — the **regime-3 presentation layer**. That is `presentation_ops`
+> (`move_vertex` / `reshape_cut` / `reroute_ligature`, each raising
+> `Regime3Violation` on a boundary crossing) surfaced as **Manual Settle ④b** in
+> the workshop (`web_viewer/js/settle-adjust.js` + `POST /ergasterion/.../adjust`,
+> rendered by `layout_service.attest_and_render`). The walkthrough should cover:
+> what "free, indifferent to logic" means (regime-3 of the three-regime invariant);
+> how a pure-appearance nudge is *defined* to preserve §3.3 yet still attested as a
+> backstop; where the local membership guards end and attestation begins; and how
+> this differs from ④a automatic continuity (engine-driven, logic-following).
+> See memory [[project-correspondence-invariant-three-regimes]],
+> [[project-transformation-workflow-grammar]], and
+> `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` §3 (regime 3) + the spec.
+
+## Session 2026-06-06 (c) — nav + sequence navigation + branch-on-edit + scratch + promote retired
 
 **Shipped (on `main`):**
 - **Shared mode-nav component** (`web_viewer/js/mode-nav.js`) on all three mode

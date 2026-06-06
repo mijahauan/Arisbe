@@ -225,7 +225,7 @@ between two parties: a defender who asserts the graph and a skeptic who
 challenges it. For Peirce the game is not a gloss on the logic — it is how
 the logic *means*. A graph's truth is what survives the contest. (The
 two-player engine is implemented today, Z3-validated, with a REPL; the web
-arena is the next major mode after Ergasterion. See
+arena `/agon` is live as a thin, flexible V1. See
 [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).)
 
 Read this way, the three sources of creativity and discovery that an
@@ -245,8 +245,13 @@ every step. Agon is where a chain is *put at risk* — defended, attacked,
 and either carried into the corpus with its meaning tested between minds or
 turned back. Regime-2 standing, in its fullest form, is earned not just by
 §3.3 attestation but by having withstood challenge. That fuller account is
-ahead of the current implementation; it is recorded here because it is the
-direction the grounding points, and the reason Agon matters.
+still ahead of the current implementation in *degree* — Agon does not yet
+score winning strategies — but the architecture now **enforces its
+direction**: as of 2026-06-06 the workshop has no direct §3.3-only path into
+the corpus. A graph leaves Ergasterion either to a regime-1 **scratch** store
+(unasserted holding) or by being **sent to Agon** to be tested. §3.3 attests
+*correspondence, not truth*, so it cannot on its own confer regime-2 standing;
+that is the contract the retirement of the direct promote route makes literal.
 
 ---
 
@@ -280,7 +285,10 @@ thinking more clearly.
 [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md),
 and [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md).
 The chain-persistence implementation lands in `src/tomos_service.py`
-(`TransformationChain`, `ChainStep`, `save_uod_with_chain`, `load_chain`)
-and the Ergasterion promotion boundary in `src/web_api/routes/ergasterion.py`.*
+(`TransformationChain`, `ChainStep`, `save_uod_with_chain`, `load_chain`).
+The regime-1→2 boundary is now reached through Agon's asserting disposition
+(`src/web_api/routes/agon.py` → `save_uod_with_chain`), not a workshop route;
+Ergasterion (`src/web_api/routes/ergasterion.py`) holds regime-1 drafts and a
+**scratch** store (`src/web_api/services/scratch_store.py`).*
 
 **Created**: 2026-06-01
