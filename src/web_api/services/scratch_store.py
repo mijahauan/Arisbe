@@ -22,6 +22,9 @@ Files written under ``<root>/<scratch_id>/``:
                                   created, step_count}
     chain.jsonl                — initial-state header + one record per step
     states/<state_id>.egi.json — per-state EGI snapshots
+    deltas.json                — {state_id: [delta-dict, …]} regime-3 hand-
+                                  adjustments per state (optional; absent when
+                                  the draft carries no nudges)
 """
 
 import json
@@ -58,11 +61,16 @@ class ScratchStore:
         base_source: str,
         style_name: Optional[str] = None,
         scratch_id: Optional[str] = None,
+        presentation_deltas: Optional[Dict[str, List[dict]]] = None,
     ) -> dict:
         """Persist a transformation line as a draft.  No §3.3 — it's a draft.
 
         Returns the entry's metadata dict.  Passing an existing ``scratch_id``
         overwrites that entry (save-in-place); otherwise a new id is minted.
+
+        ``presentation_deltas`` (already serialized: ``{state_id: [delta-dict]}``)
+        carries the regime-3 hand-adjustments so a reopened draft keeps its
+        appearance.  ``style_name`` is the draft's preferred projection.
         """
         scratch_id = scratch_id or f"scratch-{uuid.uuid4().hex[:8]}"
         entry_dir = self.root / scratch_id
@@ -71,6 +79,17 @@ class ScratchStore:
 
         for state_id, state_egi in chain.states.items():
             save_egi_json(state_egi, states_dir / f"{state_id}.egi.json")
+
+        # Per-state regime-3 deltas (sparse; only states the user actually
+        # nudged appear).  Written only when non-empty; an overwriting save
+        # clears a stale file so a draft never keeps deltas it no longer has.
+        deltas_path = entry_dir / "deltas.json"
+        pruned = {k: v for k, v in (presentation_deltas or {}).items() if v}
+        if pruned:
+            with open(deltas_path, "w", encoding="utf-8") as f:
+                json.dump(pruned, f, indent=2)
+        elif deltas_path.exists():
+            deltas_path.unlink()
 
         with open(entry_dir / "chain.jsonl", "w", encoding="utf-8") as f:
             f.write(json.dumps({
@@ -120,8 +139,15 @@ class ScratchStore:
         out.sort(key=lambda m: m.get("created", ""), reverse=True)
         return out
 
-    def load(self, scratch_id: str) -> Optional[Tuple[TransformationChain, dict]]:
-        """Load a draft as ``(chain, meta)``; ``None`` if missing or broken."""
+    def load(
+        self, scratch_id: str
+    ) -> Optional[Tuple[TransformationChain, dict, Dict[str, List[dict]]]]:
+        """Load a draft as ``(chain, meta, deltas)``; ``None`` if missing/broken.
+
+        ``deltas`` is the ``{state_id: [delta-dict]}`` map (empty when the draft
+        carried no hand-adjustments) — serialized form, deserialized by the
+        caller via ``presentation_deltas.deltas_from_list``.
+        """
         entry_dir = self.root / scratch_id
         chain_jsonl = entry_dir / "chain.jsonl"
         states_dir = entry_dir / "states"
@@ -165,11 +191,27 @@ class ScratchStore:
 
         with open(meta_path, "r", encoding="utf-8") as f:
             meta = json.load(f)
-        return TransformationChain(
-            initial_state_id=initial_state_id,
-            steps=steps,
-            states=states,
-        ), meta
+
+        deltas: Dict[str, List[dict]] = {}
+        deltas_path = entry_dir / "deltas.json"
+        if deltas_path.exists():
+            try:
+                with open(deltas_path, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    deltas = loaded
+            except (json.JSONDecodeError, OSError):
+                deltas = {}  # a broken deltas file just means no nudges restored
+
+        return (
+            TransformationChain(
+                initial_state_id=initial_state_id,
+                steps=steps,
+                states=states,
+            ),
+            meta,
+            deltas,
+        )
 
     def delete(self, scratch_id: str) -> bool:
         """Remove a draft.  Returns False if it wasn't there."""

@@ -867,6 +867,41 @@ def test_scratch_save_list_open_delete_cycle(client, isolated_scratch):
     assert client.get("/ergasterion/scratch").json()["data"]["drafts"] == []
 
 
+def test_scratch_round_trips_presentation_deltas(client, isolated_tomos, isolated_scratch):
+    """A regime-3 nudge travels with a scratch draft: save → reopen restores both
+    the recorded delta and the *drawn* position it produced.  Persistence
+    increment 2 — the deltas are saved with the EGI, not lost with the session."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    vid, old = next(iter(data["layout_dto"]["vertex_positions"].items()))
+    dx, dy = 28.0, -16.0
+
+    moved = _adjust(client, sid, {"operation": "move_vertex", "vertex_id": vid,
+                                  "dx": dx, "dy": dy})["data"]
+    moved_pos = moved["layout_dto"]["vertex_positions"][vid]
+
+    saved = client.post(
+        f"/ergasterion/sessions/{sid}/save-to-scratch", json={"name": "nudged"}
+    ).json()
+    assert saved["success"] is True, saved.get("error")
+    scid = saved["data"]["scratch_id"]
+
+    reopened = client.post(f"/ergasterion/scratch/{scid}/open").json()
+    assert reopened["success"] is True, reopened.get("error")
+    d = reopened["data"]
+
+    # The delta came back, tagged, keyed under the (restored) tip state.
+    assert len(d["presentation_deltas"]) == 1
+    assert d["presentation_deltas"][0]["op"] == "move_vertex"
+    assert d["presentation_deltas"][0]["params"]["vertex_id"] == vid
+
+    # And it was replayed: the reopened drawing shows the nudged position.
+    after = d["layout_dto"]["vertex_positions"][vid]
+    assert after["x"] == pytest.approx(moved_pos["x"])
+    assert after["y"] == pytest.approx(moved_pos["y"])
+    assert after["x"] == pytest.approx(old["x"] + dx)
+
+
 def test_scratch_open_missing_is_clean_error(client, isolated_scratch):
     resp = client.post("/ergasterion/scratch/no-such/open")
     assert resp.status_code == 200

@@ -110,6 +110,7 @@ class ErgasterionSessionManager:
         base_source_uod_id: Optional[str] = None,
         style_name: Optional[str] = None,
         chain: Optional[TransformationChain] = None,
+        presentation_deltas: Optional[Dict[str, List[PresentationDelta]]] = None,
     ) -> WorkshopSession:
         """Open a new workshop session anchored at the given base state.
 
@@ -145,6 +146,7 @@ class ErgasterionSessionManager:
             base_source=base_source,
             base_source_uod_id=base_source_uod_id,
             style_name=style_name,
+            presentation_deltas=presentation_deltas or {},
         )
         self._sessions[session_id] = session
         return session

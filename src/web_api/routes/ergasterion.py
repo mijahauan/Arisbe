@@ -79,7 +79,7 @@ from presentation_ops import (
     reshape_cut,
     reroute_ligature,
 )
-from presentation_deltas import record_delta
+from presentation_deltas import record_delta, deltas_from_list
 from egif_parser_dau import parse_egif
 from subgraph_closure_validator import SubgraphClosureValidator
 from rule_interaction import (
@@ -408,7 +408,12 @@ async def get_session_state(session_id: str, state_id: str, style: Optional[str]
             )
 
         style_name = style if style is not None else session.style_name
-        dto, svg = generate_layout(egi, style_name=style_name)
+        # Replay this state's own recorded nudges (per-state keyed), so stepping
+        # the navigator shows each frame the way it was hand-adjusted.
+        dto, svg = generate_layout(
+            egi, style_name=style_name,
+            deltas=session.presentation_deltas.get(state_id),
+        )
 
         return ApiResponse(
             success=True,
@@ -502,12 +507,21 @@ async def save_to_scratch(session_id: str, request: ErgasterionSaveScratchReques
                 },
             )
         store = get_scratch_store()
+        # Serialize the active line's per-state regime-3 deltas to travel with
+        # the draft, restricted to states this branch actually contains.
+        line_states = set(session.chain.states.keys())
+        serialized_deltas = {
+            sid: [d.to_dict() for d in deltas]
+            for sid, deltas in session.presentation_deltas.items()
+            if sid in line_states and deltas
+        }
         meta = store.save(
             session.chain,
             name=request.name,
             base_source=session.base_source,
             style_name=session.style_name,
             scratch_id=request.scratch_id,
+            presentation_deltas=serialized_deltas,
         )
         return ApiResponse(success=True, data=meta)
     except Exception as exc:
@@ -545,9 +559,18 @@ async def open_scratch(scratch_id: str, style: Optional[str] = None):
                     "message": f"Draft '{scratch_id}' not found or unreadable.",
                 },
             )
-        chain, meta = loaded
+        chain, meta, raw_deltas = loaded
         style_name = style if style is not None else meta.get("style_name")
-        dto, svg = generate_layout(chain.current_egi, style_name=style_name)
+        # Rehydrate the per-state regime-3 deltas the draft carried, and replay
+        # the tip state's over its fresh base so the draft reopens *looking* the
+        # way it was saved.
+        deltas = {
+            sid: deltas_from_list(items) for sid, items in raw_deltas.items()
+        }
+        tip_deltas = deltas.get(chain.current_state_id)
+        dto, svg = generate_layout(
+            chain.current_egi, style_name=style_name, deltas=tip_deltas
+        )
         manager = get_ergasterion_session_manager()
         session = manager.create_session(
             initial_egi=chain.current_egi,
@@ -556,6 +579,7 @@ async def open_scratch(scratch_id: str, style: Optional[str] = None):
             base_source_uod_id=None,
             style_name=style_name,
             chain=chain,
+            presentation_deltas=deltas,
         )
         return ApiResponse(success=True, data=_session_payload(session, svg))
     except CorrespondenceViolation as exc:

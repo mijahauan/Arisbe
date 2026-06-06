@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (Regime-3 walkthrough + presentation-delta foundation: persist/replay/extrapolate ladder)
+**Last Updated**: 2026-06-06 (Presentation-delta persistence — increment 2 scratch path: deltas+style round-trip a draft)
 
 > **NEXT SESSION (the projection ladder, increments 2–6):** the regime-3
 > *presentation deltas* foundation shipped (vocabulary + replay + record +
@@ -22,6 +22,29 @@
 > [[project-presentation-deltas-and-style-ladder]],
 > [[project-render-as-projection-own-dimensionality]],
 > [[project-correspondence-invariant-three-regimes]].
+
+## Session 2026-06-06 (e) — presentation-delta persistence (increment 2, scratch path)
+
+**Shipped (on `main`):** the regime-3 deltas now **persist with a saved workshop
+line**. `ScratchStore` writes a per-state `deltas.json` (`{state_id:
+[delta-dict]}`) beside the chain; `style_name` (the draft's preferred
+projection) was already in `meta.json`. `save-to-scratch` serializes
+`session.presentation_deltas` (restricted to the active line's states);
+`open_scratch` rehydrates them, replays the **tip** state's over its fresh base
+(so a reopened draft *looks* the way it was saved), and seeds them into the new
+session via a new `create_session(presentation_deltas=…)` param. Navigation
+(`GET …/states/{state_id}`) now replays **each state's own** deltas. Tests:
+`test_ergasterion_routes.py` (+1 — full save→reopen round-trip of a nudge:
+recorded delta *and* drawn position both restored). No protected module touched.
+
+**Next (increment 2b → 3+):** corpus-path delta persistence (parallel
+`history/deltas.json` in `save_uod_with_chain` / `load_chain`, the Agon-asserted
+boundary + "open a corpus UoD that carries a sequence"), deferred one step
+because per-state deltas across a fully hydrated multi-state chain are most
+meaningful once **chain inheritance (increment 3)** lands (effective =
+surviving-id parent ⊕ authored-here). Then **extrapolation (4)**, scoped
+rendering (5), crystallization tooling (6). See
+`docs/PRESENTATION_DELTAS_AND_STYLE.md` §6.
 
 ## Session 2026-06-06 (d) — regime-3 walkthrough + presentation-delta foundation
 

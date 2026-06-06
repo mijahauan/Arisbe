@@ -132,8 +132,22 @@ attested by §3.3 at the service boundary
      `GET /sessions/{id}` re-render (and `?style=` reprojection) **replays** the
      current state's recorded deltas over a fresh base, so a nudge survives a
      full re-layout. `_session_payload` surfaces them.
-2. **Persistence** — write per-state deltas + preferred style to disk (chain +
-   scratch + corpus), via the repurposed `current_layout_deltas` slot.
+2. **Persistence** — write per-state deltas + preferred style to disk.
+   - **✅ Scratch path (regime-1) done.** `ScratchStore` writes a per-state
+     `deltas.json` (`{state_id: [delta-dict]}`) beside the chain, and
+     `style_name` (the draft's preferred projection) is already in `meta.json`.
+     `save-to-scratch` serializes `session.presentation_deltas` (restricted to
+     the active line's states); `open_scratch` rehydrates them and replays the
+     tip's over its base, so a reopened draft *looks* the way it was saved.
+     `create_session` carries deltas in; navigation
+     (`GET …/states/{state_id}`) replays each state's own deltas.
+   - **Corpus path (regime-2) — follow-on.** `save_uod_with_chain` /
+     `load_chain` (the Agon-asserted boundary, and the workshop's "open a corpus
+     UoD that carries a sequence" path) should write/read a parallel
+     `history/deltas.json`. Deferred one step: per-state deltas across a fully
+     hydrated multi-state chain are most meaningful once chain inheritance
+     (increment 3) is in. A UoD *preferred style* there can reuse the vestigial
+     `current_layout_deltas` slot's sibling or UoD metadata (no protected field).
 3. **Chain inheritance** — effective deltas = surviving-id parent deltas ⊕
    authored-here, wired into the apply / navigation render paths.
 4. **Extrapolation** — generalize tagged deltas to untouched in-scope elements
