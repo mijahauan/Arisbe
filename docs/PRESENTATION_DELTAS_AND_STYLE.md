@@ -187,10 +187,22 @@ attested by §3.3 at the service boundary
    workshop's `GET /sessions/{id}?extrapolate=true` — a research *view* that
    never mutates the stored deltas. Tests: `test_presentation_deltas.py` (+5)
    and `test_ergasterion_routes.py` (+1). No protected module touched.
-   **Remaining (scale 1→2 bridge):** generalize to the **new** elements a
-   transformation step introduces (which never had a delta); a relative
-   encoding for cut/ligature extrapolation; variance/agreement gating as the
-   study (b) signal.
+
+   **Scale 1→2 bridge — ✅ done (by composition).** Because `extrapolate_deltas`
+   iterates the **current state's** EGI (not the deltas' origin graph), a vertex
+   that exists at this state but carries no explicit/inherited delta — e.g. one
+   a transformation step just *introduced* — picks up the generalized intent of
+   its structural class, while the nudged survivor (still present by id) is
+   excluded. So `effective_deltas` (inherited-by-id, scale 2) ⊕ extrapolation
+   (over the current EGI, scale 1) covers new elements without extra wiring.
+   Reachable on both cold-render routes: `GET /sessions/{id}?extrapolate=true`
+   **and** `GET /sessions/{id}/states/{state_id}?extrapolate=true` (the
+   move-by-move navigator). Tests: `test_presentation_deltas.py`
+   (+1 — new-element coverage) and `test_ergasterion_routes.py` (+1 — the
+   states route honors the flag).
+   **Remaining:** a relative encoding so `reshape_cut` / `reroute_ligature`
+   extrapolate too (currently move-only); variance/agreement gating as the
+   study (b) signal; finer/learned key fields beyond kind + polarity.
 5. **Scoped rendering** — lay out and draw a *sub-scope* of a large UoD; style +
    deltas are already scope-independent by construction, so this is additive.
 6. **Crystallization tooling** — surface the delta dataset (b); a path from a

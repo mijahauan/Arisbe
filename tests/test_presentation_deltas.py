@@ -249,6 +249,25 @@ def test_extrapolate_respects_polarity_grouping():
     assert neg[0] not in touched  # opposite-polarity vertex is left alone
 
 
+def test_extrapolate_covers_new_element_in_current_egi():
+    """The scale-1→2 bridge: extrapolation iterates the *current* EGI's vertices,
+    so a vertex that exists at this state but carries no explicit delta — e.g. one
+    a transformation step just introduced — picks up the generalized intent, while
+    the explicitly-nudged survivor (still present by id) is excluded."""
+    # Survivor vid_a carries an explicit nudge; vid_b is "new" (no delta).
+    egi = parse_egif("(P *x) (Q *y)")
+    vids = [v.id for v in egi.V]
+    survivor, newcomer = vids[0], vids[1]
+    d = record_delta(egi, MOVE_VERTEX, {"vertex_id": survivor, "dx": 0.0, "dy": 18.0})
+
+    synth = extrapolate_deltas(egi, [d])
+
+    by_target = {s.params["vertex_id"]: s for s in synth}
+    assert survivor not in by_target            # explicit (inherited-by-id) excluded
+    assert newcomer in by_target                # the new element is covered
+    assert by_target[newcomer].params["dy"] == pytest.approx(18.0)
+
+
 def describe_polarity(egi, vid):
     from eg_navigation import describe
     return describe(egi, vid).get("area_polarity")

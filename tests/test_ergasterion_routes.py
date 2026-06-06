@@ -768,6 +768,38 @@ def test_extrapolate_query_generalizes_nudge_to_sibling(client, isolated_tomos):
     assert len(extr["presentation_deltas"]) == 1
 
 
+def test_extrapolate_query_honored_by_state_navigation_route(client, isolated_tomos):
+    """The scale-1→2 bridge reaches the move-by-move navigator: GET
+    /sessions/{id}/states/{state_id}?extrapolate=true generalizes the state's
+    effective nudges to untouched siblings (extrapolation iterates *that*
+    state's EGI, so a fresh element matching an inherited intent is covered)."""
+    uod_id = _seed_egif_uod(isolated_tomos, "(P *x) (Q *y)", "extrap_state_two_v")
+    data = _open_session(client, f"uod:{uod_id}")
+    sid = data["session_id"]
+    state_id = data["chain"]["current_state_id"]
+
+    base_pos = data["layout_dto"]["vertex_positions"]
+    nudged, sibling = list(base_pos.keys())
+    sib_base = base_pos[sibling]
+
+    _adjust(client, sid, {"operation": "move_vertex", "vertex_id": nudged,
+                          "dx": 0.0, "dy": 35.0})
+
+    # Plain navigation render: sibling unmoved.
+    plain = client.get(
+        f"/ergasterion/sessions/{sid}/states/{state_id}"
+    ).json()["data"]
+    assert plain["layout_dto"]["vertex_positions"][sibling]["y"] == \
+        pytest.approx(sib_base["y"])
+
+    # Extrapolating navigation render: sibling inherits the generalized nudge.
+    extr = client.get(
+        f"/ergasterion/sessions/{sid}/states/{state_id}?extrapolate=true"
+    ).json()["data"]
+    assert extr["layout_dto"]["vertex_positions"][sibling]["y"] == \
+        pytest.approx(sib_base["y"] + 35.0)
+
+
 # --------------------------------------------------------------------------- #
 # Move-by-move navigation (load + step through a worked sequence)             #
 # --------------------------------------------------------------------------- #

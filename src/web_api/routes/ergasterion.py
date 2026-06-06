@@ -397,7 +397,10 @@ def _step_index_of_state(session, state_id: str) -> int:
 
 
 @router.get("/sessions/{session_id}/states/{state_id}")
-async def get_session_state(session_id: str, state_id: str, style: Optional[str] = None):
+async def get_session_state(
+    session_id: str, state_id: str, style: Optional[str] = None,
+    extrapolate: bool = False,
+):
     """Render any state in the session's worked sequence — the workshop's
     move-by-move navigator.
 
@@ -408,6 +411,13 @@ async def get_session_state(session_id: str, state_id: str, style: Optional[str]
     next rule applies is tracked client-side for now); each state is laid out
     cold and §3.3-attested at the render boundary, like the Organon chain
     player (states in a sequence vary in size → fit-to-content on the client).
+
+    ``extrapolate=true`` (opt-in) generalizes this state's effective nudges to
+    its untouched structural siblings — including the **new** elements a step
+    introduced that never had a delta (the scale-1→2 bridge): extrapolation
+    iterates *this* state's EGI, so a fresh element matching an inherited
+    intent's structural class picks it up.  A research view; stored deltas are
+    untouched.
     """
     try:
         manager = get_ergasterion_session_manager()
@@ -441,6 +451,7 @@ async def get_session_state(session_id: str, state_id: str, style: Optional[str]
         dto, svg = generate_layout(
             egi, style_name=style_name,
             deltas=manager.effective_deltas(session, state_id),
+            extrapolate=extrapolate,
         )
 
         return ApiResponse(

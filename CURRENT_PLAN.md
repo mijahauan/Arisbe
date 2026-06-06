@@ -31,12 +31,18 @@ that intent to its structural siblings.
   nudge to a sibling while the plain GET doesn't; stored deltas untouched). Full
   suite green; no protected module touched.
 
-**This is extrapolation scale 1** (within a view). **Next:** the scale-1→2
-bridge (generalize to the **new** elements a transformation step introduces,
-which never had a delta), a relative encoding so cut/ligature deltas extrapolate
-too, and variance/agreement gating as the study-(b) signal — then increment 5
-(scoped rendering) + 6 (crystallization tooling: delta dataset → new style).
-See `docs/PRESENTATION_DELTAS_AND_STYLE.md` §6.4.
+**This is extrapolation scale 1** (within a view). The **scale-1→2 bridge** then
+followed *by composition*: `extrapolate_deltas` iterates the *current* state's
+EGI, so a **new** element a transformation step introduces (no explicit/inherited
+delta) picks up its structural class's generalized intent, while the nudged
+survivor is excluded by id. The `extrapolate` flag now reaches the move-by-move
+navigator too (`GET …/states/{state_id}?extrapolate=true`). +2 tests
+(new-element coverage; states-route flag).
+
+**Next:** a relative encoding so `reshape_cut` / `reroute_ligature` deltas
+extrapolate too (currently move-only); variance/agreement gating as the study-(b)
+signal; then increment 5 (scoped rendering) + 6 (crystallization tooling: delta
+dataset → new style). See `docs/PRESENTATION_DELTAS_AND_STYLE.md` §6.4.
 
 
 > **NEXT SESSION (the projection ladder, increments 2–6):** the regime-3
