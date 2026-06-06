@@ -855,3 +855,149 @@ def test_render_state_unknown_session_is_clean_error(client, fresh_session_manag
     resp = client.get("/ergasterion/sessions/no-such/states/s0")
     assert resp.status_code == 200
     assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"
+
+
+# --------------------------------------------------------------------------- #
+# Branch-on-edit (the workshop is editable everywhere)                        #
+# --------------------------------------------------------------------------- #
+
+
+def _apply(client, sid, rule, parameters=None, from_state_id=None):
+    body = {"rule": rule, "parameters": parameters or {}}
+    if from_state_id is not None:
+        body["from_state_id"] = from_state_id
+    return client.post(f"/ergasterion/sessions/{sid}/apply", json=body).json()
+
+
+def test_apply_at_tip_extends_active_line(client, fresh_session_manager):
+    """A move applied at the tip extends the active line — no new branch."""
+    data = _open_session(client, "empty_sheet")
+    sid = data["session_id"]
+    r1 = _apply(client, sid, "DC+")["data"]
+    assert r1["chain"]["step_count"] == 1
+    assert r1["branches"]["count"] == 1
+    r2 = _apply(client, sid, "DC+")["data"]
+    assert r2["chain"]["step_count"] == 2
+    assert r2["branches"]["count"] == 1
+
+
+def test_apply_from_earlier_state_forks_a_branch(client, fresh_session_manager):
+    """Backing up and applying a move forks a new branch; the original line is
+    left intact and the new branch becomes active."""
+    data = _open_session(client, "empty_sheet")
+    sid = data["session_id"]
+    r1 = _apply(client, sid, "DC+")["data"]
+    s1 = r1["chain"]["steps"][0]["to_state_id"]
+    _apply(client, sid, "DC+")  # active line now 2 moves
+
+    forked = _apply(client, sid, "DC+", from_state_id=s1)
+    assert forked["success"] is True, forked.get("error")
+    fd = forked["data"]
+    assert fd["branches"]["count"] == 2
+    # The new branch is active and has 2 moves (1 shared prefix + the new one).
+    assert fd["branches"]["active_branch"] == 1
+    assert fd["chain"]["step_count"] == 2
+    # The original line (branch 0) is untouched — still 2 moves.
+    assert fd["branches"]["branches"][0]["step_count"] == 2
+    assert fd["branches"]["branches"][0]["active"] is False
+
+
+def test_switch_branch_restores_a_line(client, fresh_session_manager):
+    """Switching to another branch makes it active and re-renders its tip."""
+    data = _open_session(client, "empty_sheet")
+    sid = data["session_id"]
+    r1 = _apply(client, sid, "DC+")["data"]
+    s1 = r1["chain"]["steps"][0]["to_state_id"]
+    _apply(client, sid, "DC+")
+    _apply(client, sid, "DC+", from_state_id=s1)  # fork → active = branch 1
+
+    sw = client.post(
+        f"/ergasterion/sessions/{sid}/branches/switch", json={"branch_index": 0}
+    ).json()
+    assert sw["success"] is True
+    assert sw["data"]["branches"]["active_branch"] == 0
+    assert sw["data"]["chain"]["step_count"] == 2
+
+
+def test_switch_unknown_branch_is_clean_error(client, fresh_session_manager):
+    data = _open_session(client, "empty_sheet")
+    sid = data["session_id"]
+    resp = client.post(
+        f"/ergasterion/sessions/{sid}/branches/switch", json={"branch_index": 9}
+    )
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "BRANCH_NOT_FOUND"
+
+
+def test_apply_from_unknown_state_is_clean_error(client, fresh_session_manager):
+    data = _open_session(client, "empty_sheet")
+    sid = data["session_id"]
+    out = _apply(client, sid, "DC+", from_state_id="no-such-state")
+    assert out["success"] is False
+    assert out["error"]["code"] == "STATE_NOT_FOUND"
+
+
+# --------------------------------------------------------------------------- #
+# Scratch store (regime-1 holding pen — not the corpus)                       #
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture
+def isolated_scratch(tmp_path, monkeypatch):
+    """Redirect the route's scratch store to a tmp dir, with a fresh manager."""
+    from web_api.services.scratch_store import ScratchStore
+    store = ScratchStore(tmp_path / "scratch")
+    monkeypatch.setattr(ergasterion_route, "_scratch_store", store)
+    mgr = ErgasterionSessionManager()
+    monkeypatch.setattr(
+        ergasterion_route, "get_ergasterion_session_manager", lambda: mgr
+    )
+    return store
+
+
+def test_scratch_save_list_open_delete_cycle(client, isolated_scratch):
+    """A workshop line saves to scratch, lists, reopens as a session, deletes —
+    regime-1 throughout (no §3.3 gate, never the corpus)."""
+    data = _open_session(client, "empty_sheet")
+    sid = data["session_id"]
+    _apply(client, sid, "DC+")
+    _apply(client, sid, "DC+")
+
+    saved = client.post(
+        f"/ergasterion/sessions/{sid}/save-to-scratch", json={"name": "my draft"}
+    ).json()
+    assert saved["success"] is True, saved.get("error")
+    assert saved["data"]["step_count"] == 2
+    scid = saved["data"]["scratch_id"]
+
+    listing = client.get("/ergasterion/scratch").json()["data"]["drafts"]
+    assert any(d["scratch_id"] == scid and d["name"] == "my draft" for d in listing)
+
+    reopened = client.post(f"/ergasterion/scratch/{scid}/open").json()
+    assert reopened["success"] is True
+    assert reopened["data"]["base_source"] == f"scratch:{scid}"
+    assert reopened["data"]["chain"]["step_count"] == 2
+
+    deleted = client.delete(f"/ergasterion/scratch/{scid}").json()
+    assert deleted["success"] is True
+    assert client.get("/ergasterion/scratch").json()["data"]["drafts"] == []
+
+
+def test_scratch_open_missing_is_clean_error(client, isolated_scratch):
+    resp = client.post("/ergasterion/scratch/no-such/open")
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "SCRATCH_NOT_FOUND"
+
+
+def test_scratch_delete_missing_is_clean_error(client, isolated_scratch):
+    resp = client.delete("/ergasterion/scratch/no-such")
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "SCRATCH_NOT_FOUND"
+
+
+def test_save_to_scratch_unknown_session_is_clean_error(client, isolated_scratch):
+    resp = client.post(
+        "/ergasterion/sessions/no-such/save-to-scratch", json={"name": "x"}
+    )
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"

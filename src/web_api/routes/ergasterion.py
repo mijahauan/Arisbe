@@ -54,12 +54,15 @@ from web_api.models.api_models import (
     ErgasterionClosureRequest,
     ErgasterionOpenRequest,
     ErgasterionPromoteRequest,
+    ErgasterionSaveScratchRequest,
+    ErgasterionSwitchBranchRequest,
 )
 from web_api.services.ergasterion_session_manager import (
     WorkshopSession,
     get_ergasterion_session_manager,
 )
 from web_api.services.introspection import egi_introspection
+from web_api.services.scratch_store import ScratchStore
 from web_api.services.layout_service import (
     attest_and_render,
     generate_layout,
@@ -96,9 +99,11 @@ from universe_of_discourse import (
 router = APIRouter(prefix="/ergasterion")
 
 TOMOS_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/tomos")
+SCRATCH_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/scratch")
 VIEWER_DIR = Path(__file__).parent.parent.parent / "web_viewer"
 
 _tomos_service: Optional[TomosService] = None
+_scratch_store: Optional[ScratchStore] = None
 
 
 def _get_tomos() -> TomosService:
@@ -106,6 +111,13 @@ def _get_tomos() -> TomosService:
     if _tomos_service is None:
         _tomos_service = TomosService(TOMOS_PATH)
     return _tomos_service
+
+
+def get_scratch_store() -> ScratchStore:
+    global _scratch_store
+    if _scratch_store is None:
+        _scratch_store = ScratchStore(SCRATCH_PATH)
+    return _scratch_store
 
 
 def _egi_summary(egi) -> dict:
@@ -136,6 +148,28 @@ def _chain_summary(session: WorkshopSession) -> dict:
     }
 
 
+def _branches_summary(session: WorkshopSession) -> dict:
+    """The workshop's forest of branches, for the branch switcher.
+
+    Each branch is a line the user has explored; the active one is what
+    subsequent moves extend.  A single-branch session is the common case (no
+    forking yet).
+    """
+    return {
+        "active_branch": session.active_branch,
+        "count": len(session.branches),
+        "branches": [
+            {
+                "index": i,
+                "step_count": len(b.steps),
+                "tip_rule": b.steps[-1].rule_name if b.steps else None,
+                "active": i == session.active_branch,
+            }
+            for i, b in enumerate(session.branches)
+        ],
+    }
+
+
 def _session_payload(session: WorkshopSession, svg: str) -> dict:
     """Standard response shape for any endpoint that returns a session state."""
     return {
@@ -155,6 +189,7 @@ def _session_payload(session: WorkshopSession, svg: str) -> dict:
         # shown together).
         "linear_forms": linear_forms(session.current_egi),
         "chain": _chain_summary(session),
+        "branches": _branches_summary(session),
     }
 
 
@@ -393,6 +428,155 @@ async def get_session_state(session_id: str, state_id: str, style: Optional[str]
         )
 
 
+@router.post("/sessions/{session_id}/branches/switch")
+async def switch_branch(session_id: str, request: ErgasterionSwitchBranchRequest):
+    """Make a different workshop branch the active line.
+
+    Subsequent moves then extend the chosen branch.  Pure in-memory bookkeeping
+    — no §3.3 here (regime-1 work); the canvas re-renders the newly-active
+    line's tip.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+        try:
+            session = manager.switch_branch(session_id, request.branch_index)
+        except IndexError as exc:
+            return ApiResponse(
+                success=False,
+                error={"code": "BRANCH_NOT_FOUND", "message": str(exc)},
+            )
+        dto, svg = generate_layout(
+            session.current_egi, style_name=session.style_name
+        )
+        session.current_layout_dto = dto
+        return ApiResponse(success=True, data=_session_payload(session, svg))
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc)},
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "SWITCH_BRANCH_ERROR", "message": str(exc)},
+        )
+
+
+@router.post("/sessions/{session_id}/save-to-scratch")
+async def save_to_scratch(session_id: str, request: ErgasterionSaveScratchRequest):
+    """Save the session's active line to the workshop **scratch** store.
+
+    Scratch is a regime-1 holding pen — fragments and incomplete attempts the
+    user wants to return to.  It is deliberately **not the corpus**: saving here
+    asserts nothing and runs no §3.3 gate (a draft need not even be in
+    correspondence yet).  A new graph reaches the attested corpus only as a
+    style-only reprojection of an attested graph, or by being tested in Agon.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+        store = get_scratch_store()
+        meta = store.save(
+            session.chain,
+            name=request.name,
+            base_source=session.base_source,
+            style_name=session.style_name,
+            scratch_id=request.scratch_id,
+        )
+        return ApiResponse(success=True, data=meta)
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "SAVE_SCRATCH_ERROR", "message": str(exc)},
+        )
+
+
+@router.get("/scratch")
+async def list_scratch():
+    """List the workshop's saved drafts (newest first)."""
+    try:
+        store = get_scratch_store()
+        return ApiResponse(success=True, data={"drafts": store.list()})
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "LIST_SCRATCH_ERROR", "message": str(exc)},
+        )
+
+
+@router.post("/scratch/{scratch_id}/open")
+async def open_scratch(scratch_id: str, style: Optional[str] = None):
+    """Reopen a saved draft as a fresh workshop session (with its whole line
+    navigable, just like opening a corpus UoD that carries a sequence)."""
+    try:
+        store = get_scratch_store()
+        loaded = store.load(scratch_id)
+        if loaded is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SCRATCH_NOT_FOUND",
+                    "message": f"Draft '{scratch_id}' not found or unreadable.",
+                },
+            )
+        chain, meta = loaded
+        style_name = style if style is not None else meta.get("style_name")
+        dto, svg = generate_layout(chain.current_egi, style_name=style_name)
+        manager = get_ergasterion_session_manager()
+        session = manager.create_session(
+            initial_egi=chain.current_egi,
+            initial_layout_dto=dto,
+            base_source=f"scratch:{scratch_id}",
+            base_source_uod_id=None,
+            style_name=style_name,
+            chain=chain,
+        )
+        return ApiResponse(success=True, data=_session_payload(session, svg))
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc)},
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "OPEN_SCRATCH_ERROR", "message": str(exc)},
+        )
+
+
+@router.delete("/scratch/{scratch_id}")
+async def delete_scratch(scratch_id: str):
+    """Delete a saved draft."""
+    store = get_scratch_store()
+    found = store.delete(scratch_id)
+    if not found:
+        return ApiResponse(
+            success=False,
+            error={
+                "code": "SCRATCH_NOT_FOUND",
+                "message": f"Draft '{scratch_id}' not found.",
+            },
+        )
+    return ApiResponse(success=True, data={"scratch_id": scratch_id})
+
+
 @router.delete("/sessions/{session_id}")
 async def discard_session(session_id: str):
     """Discard a workshop session and its in-memory chain."""
@@ -472,7 +656,24 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
                 error={"code": "UNKNOWN_RULE", "message": str(exc)},
             )
 
-        state = begin_interaction(rule, session.current_egi)
+        # The move is applied *from* a chosen state.  Default = the active
+        # line's tip (extend it); an earlier state means the user backed up to
+        # edit, which forks a new branch (the workshop is editable everywhere).
+        from_state_id = request.from_state_id or session.chain.current_state_id
+        from_egi = session.chain.states.get(from_state_id)
+        if from_egi is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "STATE_NOT_FOUND",
+                    "message": (
+                        f"Cannot apply from state '{from_state_id}': not part "
+                        f"of this session's active branch."
+                    ),
+                },
+            )
+
+        state = begin_interaction(rule, from_egi)
 
         # Walk through the declared steps, feeding the matching
         # parameter into each.  ``advance_interaction`` validates the
@@ -508,12 +709,13 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
             new_egi, previous_layout=previous_layout, style_name=session.style_name
         )
 
-        manager.append_step(
+        manager.add_step(
             session_id,
             rule_name=rule,
             parameters=parameters,
             result_egi=new_egi,
             new_layout_dto=new_dto,
+            from_state_id=from_state_id,
             user_annotation=request.user_annotation,
         )
 

@@ -38,10 +38,37 @@ contract:**
   dialogical"; fuller regime-2 = withstood challenge) and the import doorway's
   low-warrant floor.
 
-**Next: Slice 2 (branch-on-edit) + Slice 3 (scratch storage).** Stepping back and
-changing forks a *branch in the workshop* (original untouched); fragments /
-incomplete attempts / branches persist to a **separate scratch store** (not the
-corpus). Promote is re-pointed to scratch + a "send to Agon" hand-off.
+**Slice 2 — branch-on-edit (shipped).** The workshop is editable everywhere. A
+session now holds a **forest of branches** (`WorkshopSession.branches` +
+`active_branch`; `chain` is a property view onto the active line). Apply takes a
+`from_state_id`: at the tip it extends the active line; from an earlier state it
+**forks a new branch** (shared prefix reuses the original `ChainStep`s; the
+original line is intact). New `add_step` (branch-aware; `append_step` kept as a
+shim), `switch_branch`, `POST /sessions/{id}/branches/switch`, `branches` in the
+payload. UI: apply enabled at any viewed state (button reads "forks a branch"
+when not at tip), a branch switcher (chips), banner reworded. Tests +5.
+
+**Slice 3 — scratch storage + re-pointed promote (shipped).** A new
+`web_api/services/scratch_store.py` (`ScratchStore`) persists a workshop line as
+a **regime-1 draft** — its own JSONL+states store under `/scratch/` (gitignored),
+**no §3.3 gate, never the corpus**. Routes: `POST /sessions/{id}/save-to-scratch`,
+`GET /scratch`, `POST /scratch/{id}/open` (reopens as a navigable session),
+`DELETE /scratch/{id}`. UI: the old direct **"Promote to corpus"** panel is
+**removed from the workshop** (the `/promote` endpoint is *kept* as the
+mechanism — Agon's asserting disposition uses `save_uod_with_chain`, not this
+route) and replaced with **"Save to scratch"** + **"Send to Agon →"** (opens
+`/agon?proposal_egif=…`, which agon.html now prefills as the proposal G) + a
+saved-drafts list in the base picker. Tests +4. Honors the mode contract below.
+
+**The mode contract (confirmed 2026-06-06, now enforced in the UI):**
+- **Organon** = the attested archive (import / export / view of attested graphs,
+  UoDs, Agon's products).
+- **Ergasterion** = regime-1 play over copies-from-Organon or fresh compositions.
+- **A graph leaves Ergasterion for the corpus only by (a) being a style-only
+  reprojection of an attested graph, or (b) being tested through Agon.** §3.3
+  attests *correspondence, not truth* — necessary, not sufficient, for assertion.
+  Workshop output otherwise lives in **scratch** (regime-1). See memory
+  [[project-mode-contract-ergasterion-output]].
 
 ---
 

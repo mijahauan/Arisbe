@@ -373,6 +373,18 @@
       document.querySelectorAll('button.action[data-rule]').forEach(b=>b.addEventListener('click',()=>renderRuleParams(b.dataset.rule)));
       canvasEl.addEventListener('click', onCanvasClick);
       $('clear-selection').addEventListener('click', clearSel);
+
+      // Hand-off from Ergasterion: ?proposal_egif=<egif> prefills the proposal
+      // G so a workshop graph can be brought into the contest to be tested.
+      try {
+        const pe = new URLSearchParams(window.location.search).get('proposal_egif');
+        if (pe) {
+          $('setup-proposal').value = pe;
+          if (typeof setStatus === 'function') {
+            setStatus('Proposal G brought in from Ergasterion — add a model M, then start.');
+          }
+        }
+      } catch (_) {}
     })();
   </script>
 </body>

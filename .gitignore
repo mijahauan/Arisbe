@@ -192,3 +192,6 @@ graphify-out/
 # Claude Code local state and one-shot authorization markers
 .claude/
 .core_modification_authorized
+
+# Ergasterion workshop scratch (regime-1 drafts; not part of the corpus)
+/scratch/

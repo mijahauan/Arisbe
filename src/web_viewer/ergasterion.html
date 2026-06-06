@@ -160,6 +160,21 @@
     }
     .nav-btn:hover:not(:disabled) { border-color: var(--sidebar-accent); }
     .nav-btn:disabled { opacity: 0.4; cursor: default; }
+    .branch-chip {
+      padding: 3px 8px;
+      background: var(--btn-bg);
+      color: var(--sidebar-text);
+      border: 1px solid var(--bottombar-border);
+      border-radius: 3px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .branch-chip:hover { border-color: var(--sidebar-accent); }
+    .branch-chip.active {
+      border-color: var(--sidebar-accent);
+      background: var(--sidebar-selected, rgba(137,180,250,0.12));
+      font-weight: 600;
+    }
     .step-item .step-rule {
       font-family: monospace;
       font-weight: 600;
@@ -391,6 +406,14 @@
               <div class="empty-state">Loading corpus…</div>
             </div>
           </div>
+          <div style="margin-top: 14px;">
+            <label style="font-size: 10px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px;">
+              Or reopen a saved draft
+            </label>
+            <div id="scratch-list" style="margin-top: 6px;">
+              <div class="empty-state">No saved drafts.</div>
+            </div>
+          </div>
         </div>
 
         <div id="session-info" style="display: none;">
@@ -485,6 +508,12 @@
           <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 6px;">
             Sequence · <span id="step-count">0</span> move(s)
           </h2>
+          <!-- Branch switcher: a workshop session can hold several lines that
+               diverge from a common point. -->
+          <div id="branch-switcher" style="display:none; margin-bottom:6px;">
+            <div style="font-size:10px; color:#6c7086; margin-bottom:3px;">Branches</div>
+            <div id="branch-list" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+          </div>
           <!-- Move-by-move navigator: step through every graph in the
                sequence, not just the last one. -->
           <div id="chain-nav" style="display:none; align-items:center; gap:4px; margin-bottom:6px;">
@@ -495,35 +524,36 @@
             <button class="nav-btn" id="nav-last" title="Latest">»</button>
           </div>
           <div id="nav-banner" style="display:none; font-size:10px; color:#f9e2af; background:rgba(249,226,175,0.08); border:1px solid rgba(249,226,175,0.25); border-radius:3px; padding:5px 7px; margin-bottom:6px;">
-            Viewing an earlier state (read-only).
-            <a href="#" id="nav-return" style="color:var(--sidebar-accent);">Return to latest</a> to apply a move.
+            Viewing an earlier state. Applying a move here <strong>forks a new
+            branch</strong> — the current line is kept.
+            <a href="#" id="nav-return" style="color:var(--sidebar-accent);">Return to latest</a>.
           </div>
           <div id="step-list">
             <div class="empty-state">No moves yet.</div>
           </div>
 
-          <!-- Promote section: the regime-1 → regime-2 boundary -->
+          <!-- Workshop output: regime-1 stays in scratch; the corpus is
+               reached only by testing in Agon (or a style-only reprojection
+               of an already-attested graph). §3.3 attests correspondence,
+               not truth, so it is not on its own a ticket into the corpus. -->
           <div class="promote-section">
-            <div class="label">Regime 2 · anchor into corpus</div>
+            <div class="label">Keep this work</div>
             <p style="font-size: 10px; color: #6c7086; margin-bottom: 8px;">
-              Promoting writes this chain as a new UoD in the corpus.
-              §3.3 attestation fires before any disk writes; a violation
-              aborts cleanly and leaves your draft intact.
+              The workshop is regime-1: nothing here is asserted. Save a draft
+              to <strong>scratch</strong> to return to it, or send it to
+              <strong>Agon</strong> to be tested — only a graph that withstands
+              challenge (or a style-only view of an attested graph) earns a
+              place in the corpus.
             </p>
             <div class="field">
-              <label>New UoD id</label>
-              <input type="text" id="promote-uod-id" placeholder="my-proof-v1" />
+              <label>Draft name</label>
+              <input type="text" id="scratch-name" placeholder="my attempt" />
             </div>
-            <div class="field">
-              <label>Name</label>
-              <input type="text" id="promote-name" placeholder="Modus ponens, my version" />
-            </div>
-            <div class="field">
-              <label>Description (optional)</label>
-              <textarea id="promote-description" rows="2"></textarea>
-            </div>
-            <button class="action primary" id="btn-promote">
-              Promote to corpus
+            <button class="action primary" id="btn-save-scratch">
+              Save to scratch
+            </button>
+            <button class="action" id="btn-send-agon" style="margin-top:6px;">
+              Send to Agon →
             </button>
           </div>
 
@@ -557,7 +587,10 @@
       const stepCountEl = document.getElementById('step-count');
       const ruleParamsEl = document.getElementById('rule-params');
       const btnApply = document.getElementById('btn-apply');
-      const btnPromote = document.getElementById('btn-promote');
+      const btnSaveScratch = document.getElementById('btn-save-scratch');
+      const btnSendAgon = document.getElementById('btn-send-agon');
+      const scratchNameEl = document.getElementById('scratch-name');
+      const scratchListEl = document.getElementById('scratch-list');
       const btnDiscard = document.getElementById('btn-discard');
       const btnStartEmpty = document.getElementById('btn-start-empty');
 
@@ -580,6 +613,8 @@
       // back is read-only navigation (Slice 1); applying a move acts at the tip.
       let currentChain = null;
       let viewIndex = 0;
+      // EGIF of the state currently in view — handed to Agon as the proposal G.
+      let currentEgif = '';
 
       // On-canvas selection state. The subgraph set feeds rules'
       // `selected_elements`; the area feeds `target_area` (INS / IT+).
@@ -1075,9 +1110,13 @@
         return steps[k - 1] ? steps[k - 1].to_state_id : currentChain.initial_state_id;
       }
       function setApplyEnabled() {
-        // A move can only be applied at the tip (Slice 1: stepping back is
-        // read-only; branch-from-a-past-state comes later).
-        btnApply.disabled = !(currentRule && atTip());
+        // The workshop is editable everywhere: a move can be applied from any
+        // viewed state.  At the tip it extends the line; from an earlier state
+        // it forks a new branch (handled server-side via from_state_id).
+        btnApply.disabled = !currentRule;
+        btnApply.textContent = (currentRule && !atTip())
+          ? 'Apply move (forks a branch)'
+          : 'Apply rule';
       }
       function updateNavControls() {
         const tip = tipIndex();
@@ -1116,6 +1155,7 @@
           viewIndex = index;
           currentIntrospection = body.data.introspection || null;
           currentLayoutDto = body.data.layout_dto || null;
+          currentEgif = egifFromForms(body.data.linear_forms);
           sheetId = (body.data.layout_dto && body.data.layout_dto.sheet_id) || sheetId;
           // States in a sequence vary in size, so fit each frame (the chain-
           // player convention) rather than holding the camera.
@@ -1126,7 +1166,53 @@
           renderChain(currentChain);  // refresh highlight + nav state
           setStatus(atTip()
             ? 'At latest move.'
-            : ('Viewing move ' + index + ' of ' + tip + ' — read-only.'));
+            : ('Viewing move ' + index + ' of ' + tip +
+               ' — applying a move here forks a branch.'));
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
+      function renderBranches(branches) {
+        const wrap = document.getElementById('branch-switcher');
+        const list = document.getElementById('branch-list');
+        if (!wrap || !list) return;
+        const n = branches ? (branches.count || 0) : 0;
+        // Show the switcher only once the session holds more than one line.
+        wrap.style.display = n > 1 ? 'block' : 'none';
+        if (n <= 1) { list.innerHTML = ''; return; }
+        list.innerHTML = '';
+        (branches.branches || []).forEach((b) => {
+          const chip = document.createElement('span');
+          chip.className = 'branch-chip' + (b.active ? ' active' : '');
+          chip.dataset.index = String(b.index);
+          const label = b.index === 0 ? 'main' : ('branch ' + b.index);
+          chip.textContent = label + ' · ' + b.step_count +
+            ' move' + (b.step_count === 1 ? '' : 's');
+          list.appendChild(chip);
+        });
+      }
+
+      async function switchBranch(index) {
+        if (!currentSessionId) return;
+        setStatus('Switching branch…');
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/branches/switch',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ branch_index: index }),
+            }
+          );
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Switch failed: ' +
+              (body.error && body.error.message), 'error');
+            return;
+          }
+          showSession(body.data, false);
+          setStatus('On ' + (index === 0 ? 'the main line' : 'branch ' + index) + '.');
         } catch (e) {
           setStatus('Network error: ' + e.message, 'error');
         }
@@ -1195,7 +1281,16 @@
         // A session open / rule application always lands on the tip (latest).
         currentChain = data.chain || null;
         viewIndex = tipIndex();
+        currentEgif = egifFromForms(data.linear_forms);
         renderChain(data.chain);
+        renderBranches(data.branches);
+      }
+
+      function egifFromForms(lf) {
+        try {
+          const f = lf.forms[lf.default];
+          return (f && f.ok && f.text) ? f.text : '';
+        } catch (_) { return ''; }
       }
 
       function clearSession() {
@@ -1307,7 +1402,8 @@
           }
           showSession(body.data);
           setStatus('Workshop opened. Base = ' + baseSource +
-                    '. Apply rules to grow the chain; promote when ready.', 'success');
+                    '. Apply moves; step back to branch; save to scratch or ' +
+                    'send to Agon when ready.', 'success');
         } catch (e) {
           setStatus('Network error: ' + e.message, 'error');
         }
@@ -1316,12 +1412,20 @@
       async function applyRule() {
         if (!currentSessionId || !currentRule) return;
         const parameters = readRuleParameters();
+        // Apply the move *from the state currently in view*. At the tip this
+        // extends the line; from an earlier state the server forks a branch.
+        const fromStateId = stateIdForIndex(viewIndex);
+        const willFork = !atTip();
         setStatus('Applying ' + currentRule + '…');
         try {
           const res = await fetch('/ergasterion/sessions/' + currentSessionId + '/apply', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rule: currentRule, parameters }),
+            body: JSON.stringify({
+              rule: currentRule,
+              parameters,
+              from_state_id: fromStateId,
+            }),
           });
           const body = await res.json();
           if (!body.success) {
@@ -1334,51 +1438,109 @@
           // A rule application is a *continuation* of the same episode —
           // preserve the camera so the user sees what changed (Settle ④a).
           showSession({ ...body.data }, true);
-          setStatus(currentRule + ' applied. Chain length: ' +
-                    body.data.chain.step_count, 'success');
+          setStatus(willFork
+            ? (currentRule + ' applied — forked a new branch (the original line is kept).')
+            : (currentRule + ' applied. Sequence length: ' +
+               body.data.chain.step_count), 'success');
         } catch (e) {
           setStatus('Network error: ' + e.message, 'error');
         }
       }
 
-      async function promote() {
+      // ---- workshop output: scratch + Agon (not a direct corpus shortcut) ----
+
+      async function saveToScratch() {
         if (!currentSessionId) return;
-        const uodId = document.getElementById('promote-uod-id').value.trim();
-        const name = document.getElementById('promote-name').value.trim();
-        const description = document.getElementById('promote-description').value.trim();
-        if (!uodId) {
-          setStatus('Promote needs a uod_id.', 'error');
-          return;
-        }
-        setStatus('Promoting chain to corpus…');
+        const name = (scratchNameEl.value || '').trim() || 'untitled draft';
+        setStatus('Saving draft to scratch…');
         try {
-          const res = await fetch('/ergasterion/sessions/' + currentSessionId + '/promote', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uod_id: uodId, name: name || uodId, description }),
-          });
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/save-to-scratch',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name }),
+            }
+          );
           const body = await res.json();
           if (!body.success) {
-            const err = body.error || {};
-            if (err.code === 'CORRESPONDENCE_VIOLATION') {
-              setStatus(
-                '§3.3 refusal at corpus boundary: ' + (err.message || '') +
-                ' — your draft is preserved.',
-                'error'
-              );
-            } else {
-              setStatus('Promote failed: ' + (err.message || 'unknown'), 'error');
-            }
+            setStatus('Save failed: ' + (body.error && body.error.message), 'error');
             return;
           }
-          setStatus(
-            'Promoted to corpus as “' + uodId + '” with ' +
-            body.data.step_count + ' step(s). The chain is now regime 2.',
-            'success'
-          );
+          setStatus('Saved draft “' + body.data.name + '” to scratch (regime 1).',
+                    'success');
+          loadScratchList();
         } catch (e) {
           setStatus('Network error: ' + e.message, 'error');
         }
+      }
+
+      function sendToAgon() {
+        // Hand the graph in view to Agon as the proposal G — the warrant-raising
+        // path (a graph earns the corpus by withstanding challenge, not by §3.3
+        // alone). Agon prefills its proposal field from the query string.
+        if (!currentEgif) {
+          setStatus('No linear form available to send to Agon.', 'error');
+          return;
+        }
+        window.open('/agon?proposal_egif=' + encodeURIComponent(currentEgif), '_blank');
+        setStatus('Opened Agon with this graph as the proposal G.');
+      }
+
+      async function loadScratchList() {
+        try {
+          const res = await fetch('/ergasterion/scratch');
+          const body = await res.json();
+          const drafts = (body.success && body.data && body.data.drafts) || [];
+          if (!drafts.length) {
+            scratchListEl.innerHTML = '<div class="empty-state">No saved drafts.</div>';
+            return;
+          }
+          scratchListEl.innerHTML = '';
+          drafts.forEach((d) => {
+            const row = document.createElement('div');
+            row.className = 'step-item';
+            row.style.display = 'flex';
+            row.style.alignItems = 'center';
+            row.style.justifyContent = 'space-between';
+            row.innerHTML =
+              '<span data-open="' + d.scratch_id + '" style="cursor:pointer; flex:1;">' +
+              escapeHtml(d.name) + ' <span style="color:#6c7086;">· ' +
+              d.step_count + ' move' + (d.step_count === 1 ? '' : 's') + '</span></span>' +
+              '<span data-del="' + d.scratch_id + '" title="Delete" ' +
+              'style="cursor:pointer; color:#f38ba8; padding-left:8px;">✕</span>';
+            scratchListEl.appendChild(row);
+          });
+        } catch (_) {
+          scratchListEl.innerHTML = '<div class="empty-state">Could not load drafts.</div>';
+        }
+      }
+
+      async function openScratch(scratchId) {
+        setStatus('Opening draft…');
+        try {
+          const res = await fetch(
+            '/ergasterion/scratch/' + encodeURIComponent(scratchId) + '/open',
+            { method: 'POST' }
+          );
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Open failed: ' + (body.error && body.error.message), 'error');
+            return;
+          }
+          showSession(body.data, false);
+          setStatus('Reopened draft. Continue, or branch from any earlier move.');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
+      async function deleteScratch(scratchId) {
+        try {
+          await fetch('/ergasterion/scratch/' + encodeURIComponent(scratchId),
+                      { method: 'DELETE' });
+        } catch (_) {}
+        loadScratchList();
       }
 
       async function discard() {
@@ -1447,7 +1609,15 @@
 
       btnStartEmpty.addEventListener('click', () => openSession('empty_sheet'));
       btnApply.addEventListener('click', applyRule);
-      btnPromote.addEventListener('click', promote);
+      btnSaveScratch.addEventListener('click', saveToScratch);
+      btnSendAgon.addEventListener('click', sendToAgon);
+      // Reopen / delete saved drafts from the picker list.
+      scratchListEl.addEventListener('click', (e) => {
+        const openId = e.target.closest('[data-open]');
+        const delId = e.target.closest('[data-del]');
+        if (delId) { deleteScratch(delId.dataset.del); return; }
+        if (openId) { openScratch(openId.dataset.open); }
+      });
 
       // Move-by-move navigation controls.
       document.getElementById('nav-first').addEventListener('click', () => navTo(0));
@@ -1464,6 +1634,13 @@
         if (!item || item.dataset.index === undefined) return;
         const idx = parseInt(item.dataset.index, 10);
         if (!isNaN(idx)) navTo(idx);
+      });
+      // Click a branch chip to make that line active.
+      document.getElementById('branch-list').addEventListener('click', (e) => {
+        const chip = e.target.closest('.branch-chip');
+        if (!chip || chip.dataset.index === undefined) return;
+        const idx = parseInt(chip.dataset.index, 10);
+        if (!isNaN(idx)) switchBranch(idx);
       });
       btnDiscard.addEventListener('click', discard);
 
@@ -1516,6 +1693,7 @@
 
       loadCorpus();
       loadRules();
+      loadScratchList();
     })();
   </script>
 </body>

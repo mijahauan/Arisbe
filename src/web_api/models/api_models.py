@@ -74,6 +74,28 @@ class ErgasterionApplyRequest(BaseModel):
     rule: str
     parameters: Dict[str, Any]
     user_annotation: Optional[str] = None
+    # The state to apply the move *from*.  Ergasterion is a workshop: every
+    # state is editable.  Omitted (or the active line's tip) → the move extends
+    # the active line.  An earlier state → the move **forks a new branch** from
+    # there, leaving the original line intact.
+    from_state_id: Optional[str] = None
+
+
+class ErgasterionSwitchBranchRequest(BaseModel):
+    """Make a different workshop branch the active one (its tip becomes the
+    state subsequent moves extend)."""
+
+    branch_index: int
+
+
+class ErgasterionSaveScratchRequest(BaseModel):
+    """Save the session's active line as a workshop draft (regime-1 scratch).
+
+    ``scratch_id`` overwrites an existing draft (save-in-place); omit it to
+    create a new one."""
+
+    name: str
+    scratch_id: Optional[str] = None
 
 
 class ErgasterionAdjustRequest(BaseModel):

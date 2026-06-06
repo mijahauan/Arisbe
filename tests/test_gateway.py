@@ -49,12 +49,22 @@ def test_legacy_viewer_preserved(client):
     assert "Existential Graph Viewer" in r.text
 
 
-def test_mode_routes_have_home_link(client):
-    for route in ("/organon", "/ergasterion", "/agon", "/import"):
+def test_mode_pages_carry_shared_nav(client):
+    """The three modes carry the shared mode-nav — a home link plus a
+    one-click switch to either sibling mode — rendered into ``[data-mode-nav]``
+    by ``mode-nav.js`` (so the home affordance is present on every mode page)."""
+    for route in ("/organon", "/ergasterion", "/agon"):
         r = client.get(route)
         assert r.status_code == 200
-        assert "⌂ Arisbe" in r.text
-        assert 'href="/"' in r.text
+        assert "data-mode-nav" in r.text
+        assert "mode-nav.js" in r.text
+
+
+def test_import_has_home_link(client):
+    """The Import doorway keeps its own way home."""
+    r = client.get("/import")
+    assert r.status_code == 200
+    assert 'href="/"' in r.text
 
 
 def test_organon_links_to_import(client):
