@@ -54,11 +54,17 @@ a **regime-1 draft** — its own JSONL+states store under `/scratch/` (gitignore
 **no §3.3 gate, never the corpus**. Routes: `POST /sessions/{id}/save-to-scratch`,
 `GET /scratch`, `POST /scratch/{id}/open` (reopens as a navigable session),
 `DELETE /scratch/{id}`. UI: the old direct **"Promote to corpus"** panel is
-**removed from the workshop** (the `/promote` endpoint is *kept* as the
-mechanism — Agon's asserting disposition uses `save_uod_with_chain`, not this
-route) and replaced with **"Save to scratch"** + **"Send to Agon →"** (opens
-`/agon?proposal_egif=…`, which agon.html now prefills as the proposal G) + a
-saved-drafts list in the base picker. Tests +4. Honors the mode contract below.
+**removed from the workshop**, replaced with **"Save to scratch"** + **"Send to
+Agon →"** (opens `/agon?proposal_egif=…`, which agon.html now prefills as the
+proposal G) + a saved-drafts list in the base picker. Tests +4.
+
+**The `/promote` route is now retired (2026-06-06).** It forked a corpus UoD on
+§3.3 alone, bypassing the contract. The `promote_session` route +
+`ErgasterionPromoteRequest` model + its 3 route tests are removed (so is the
+now-dead `datetime` / `universe_of_discourse` import in the route). The
+corpus-record §3.3 *mechanism* survives as `tomos_service.save_uod_with_chain`
+(used by Agon's asserting disposition; refusal-leaves-no-files covered by
+`test_chain_persistence.py`). **No direct workshop→corpus path remains.**
 
 **The mode contract (confirmed 2026-06-06, now enforced in the UI):**
 - **Organon** = the attested archive (import / export / view of attested graphs,

@@ -258,20 +258,3 @@ class AgonDispositionRequest(BaseModel):
     authors: Optional[List[str]] = None
     tags: Optional[List[str]] = None
     notes: Optional[str] = None
-
-
-class ErgasterionPromoteRequest(BaseModel):
-    """Promote the workshop's chain into the corpus.
-
-    Promotion creates a NEW UoD (PRACTICE_SESSION category, HISTORICAL
-    type) and writes both the final EGI and the full chain via
-    ``TomosService.save_uod_with_chain``.  §3.3 attestation fires on
-    the final state; a violation aborts the save with no half-written
-    artefacts.  The source UoD (if any) is never overwritten.
-    """
-
-    uod_id: str
-    name: str
-    description: Optional[str] = ""
-    authors: Optional[List[str]] = None
-    tags: Optional[List[str]] = None

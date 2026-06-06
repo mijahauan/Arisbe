@@ -6,11 +6,15 @@ Agon trio.  Unlike Organon (read-only) and the legacy transformations
 route (snapshot-style undo/redo), an Ergasterion session carries a
 **Peircean reasoning chain**: a base state (the chosen context) plus
 an accumulating sequence of rule applications, each justified by a
-Dau rule.  Until promoted, the chain lives in regime 1 — drawn but
-not asserted as a corpus-grade record — and the §3.3 correspondence
-invariant is suspended *at the corpus-record boundary*.  At
-promotion, the chain anchors into the corpus context and ``save_uod``
-fires §3.3.
+Dau rule.  Everything here is regime 1 — drawn but not asserted — so
+the §3.3 correspondence invariant is suspended at the corpus-record
+boundary.  A graph leaves the workshop for the corpus only by being a
+style-only reprojection of an attested graph, or by being tested
+through Agon; there is **no direct workshop→corpus route** (the old
+``/promote`` was retired 2026-06-06 — see memory
+project-mode-contract-ergasterion-output).  The corpus-record §3.3
+mechanism itself (``save_uod_with_chain``) is covered by
+``tests/test_chain_persistence.py``.
 
 This file pins down the contract:
 
@@ -26,19 +30,13 @@ This file pins down the contract:
    the attestation hook (only the per-render
    ``layout_service.generate_layout`` context, which is a separate
    render-time check).
-5. **Promotion fires §3.3 at the corpus boundary** — ``/promote``
-   produces an attestation call whose context names
-   ``tomos_service.save_uod(<promoted_id>)``.
-6. **Promotion writes a chain that ``load_chain`` round-trips** — the
-   chain JSONL + state snapshots are written; loading the new UoD
-   returns the same step sequence.
-7. **§3.3 refusal at promote aborts cleanly** — a monkeypatched
-   broken layout engine causes promote to surface a
-   ``CORRESPONDENCE_VIOLATION`` error code, with no chain files on
-   disk and the session preserved.
-8. **Promotion refuses duplicate uod_id** — source corpus UoDs are
-   never overwritten.
-9. **HTML viewer** — GET /ergasterion serves a workshop page.
+5. **Move-by-move navigation** — a loaded UoD's worked sequence
+   hydrates into the session; any state renders on demand.
+6. **Branch-on-edit** — applying from an earlier state forks a branch
+   (the original line is intact); branches are switchable.
+7. **Scratch store** — a workshop line saves to / lists from / reopens
+   from / deletes from the regime-1 scratch store (never the corpus).
+8. **HTML viewer** — GET /ergasterion serves a workshop page.
 """
 
 import sys
@@ -465,177 +463,18 @@ def test_apply_does_not_fire_corpus_record_attestation(
 
 
 # --------------------------------------------------------------------------- #
-# 5. Promotion fires §3.3 at the corpus boundary                              #
-# 6. Promotion writes a chain that load_chain round-trips                     #
+# Corpus assertion is no longer a workshop route                              #
 # --------------------------------------------------------------------------- #
-
-
-def test_promote_fires_corpus_record_attestation_and_persists_chain(
-    client, isolated_tomos, monkeypatch
-):
-    """A successful promote fires save-boundary §3.3 and writes the chain.
-
-    Two assertions in one test (the events are coupled): the
-    ``tomos_service.save_uod`` context fires AND the saved chain
-    round-trips through ``load_chain`` with the same step sequence.
-    """
-    observed_contexts: List[str] = []
-    real_attest = correspondence_attestation.attest_correspondence
-
-    def _spy(egi, dto, *, context=None):
-        observed_contexts.append(context or "")
-        return real_attest(egi, dto, context=context)
-
-    monkeypatch.setattr(tomos_service, "attest_correspondence", _spy)
-    monkeypatch.setattr(layout_service, "attest_correspondence", _spy)
-
-    opened = _open_session(client, "empty_sheet")
-    sid = opened["session_id"]
-
-    # Build a 1-step chain.
-    apply_resp = client.post(
-        f"/ergasterion/sessions/{sid}/apply",
-        json={"rule": "DC+", "parameters": {"selected_elements": []}},
-    )
-    assert apply_resp.json()["success"], apply_resp.json().get("error")
-
-    observed_contexts.clear()
-    promoted_id = "my-promoted-chain"
-    promote_resp = client.post(
-        f"/ergasterion/sessions/{sid}/promote",
-        json={
-            "uod_id": promoted_id,
-            "name": "Test promotion",
-            "description": "Promoted from a unit test.",
-        },
-    )
-    body = promote_resp.json()
-    assert body["success"] is True, body.get("error")
-    assert body["data"]["promoted_uod_id"] == promoted_id
-    assert body["data"]["step_count"] == 1
-
-    save_ctxs = [
-        c
-        for c in observed_contexts
-        if "tomos_service.save_uod" in c and promoted_id in c
-    ]
-    assert save_ctxs, (
-        f"promote did not fire tomos_service.save_uod attestation for "
-        f"'{promoted_id}'; observed contexts: {observed_contexts}"
-    )
-
-    # Chain round-trips.
-    loaded_chain = isolated_tomos["service"].load_chain(promoted_id)
-    assert loaded_chain is not None
-    assert len(loaded_chain.steps) == 1
-    assert loaded_chain.steps[0].rule_name == "DC+"
+# The direct ``/promote`` route was retired (2026-06-06): a graph reaches the
+# corpus only by being tested through Agon or as a style-only reprojection of an
+# attested graph (§3.3 attests correspondence, not truth).  The corpus-record
+# §3.3 mechanism (``save_uod_with_chain`` refusing a drifted final state with no
+# files on disk) is covered by ``tests/test_chain_persistence.py``.  Workshop
+# output paths are tested above (move navigation, branch-on-edit, scratch).
 
 
 # --------------------------------------------------------------------------- #
-# 7. §3.3 refusal at promote aborts cleanly                                   #
-# --------------------------------------------------------------------------- #
-
-
-def test_promote_refuses_drifted_drawing_cleanly(
-    client, isolated_tomos, monkeypatch
-):
-    """When §3.3 fails at promote, the API returns a clean error and
-    no chain files are written.
-
-    Monkeypatches the ELK engine the attestation helper uses to return
-    a DTO missing one vertex.  ``save_uod`` raises
-    ``CorrespondenceViolation`` before any writes; the route catches
-    it and returns ``CORRESPONDENCE_VIOLATION``.  Disk stays clean.
-    """
-    _local_manager = ErgasterionSessionManager()
-    monkeypatch.setattr(
-        ergasterion_route,
-        "get_ergasterion_session_manager",
-        lambda: _local_manager,
-    )
-
-    seed_id = isolated_tomos["seed_id"]
-    opened = _open_session(client, f"uod:{seed_id}")
-    sid = opened["session_id"]
-
-    # Build a broken engine that drops one vertex from any DTO it generates.
-    from elk_layout_engine import ELKLayoutEngine
-    from style_loader import load_default_style
-
-    class _BrokenEngine:
-        def generate_layout(self, egi, style, layout_deltas=None):
-            real = ELKLayoutEngine().generate_layout(egi, style, layout_deltas)
-            if not real.vertex_positions:
-                return real  # nothing to drop on an empty graph
-            victim = next(iter(real.vertex_positions))
-            broken_positions = {
-                k: v for k, v in real.vertex_positions.items() if k != victim
-            }
-            return LayoutDTO(
-                vertex_positions=broken_positions,
-                predicate_positions=dict(real.predicate_positions),
-                cut_bounds=dict(real.cut_bounds),
-                ligature_paths=list(real.ligature_paths),
-                area_hierarchy={k: set(v) for k, v in real.area_hierarchy.items()},
-                viewport_bounds=real.viewport_bounds,
-                sheet_id=real.sheet_id,
-                style=real.style,
-            )
-
-    monkeypatch.setattr(tomos_service, "ELKLayoutEngine", lambda: _BrokenEngine())
-
-    promoted_id = "should-not-be-saved"
-    response = client.post(
-        f"/ergasterion/sessions/{sid}/promote",
-        json={"uod_id": promoted_id, "name": "drifted"},
-    )
-    body = response.json()
-    assert body["success"] is False
-    assert body["error"]["code"] == "CORRESPONDENCE_VIOLATION"
-    assert "totality" in body["error"]["message"]
-
-    # No artefacts on disk: the UoD directory should either not exist
-    # or be empty.
-    uod_dir = isolated_tomos["tomos_root"] / "universes" / promoted_id
-    assert not uod_dir.exists() or not any(uod_dir.iterdir()), (
-        "promote left files on disk despite §3.3 refusal"
-    )
-
-    # The session itself is still alive — user can fix and retry.
-    follow_up = client.get(f"/ergasterion/sessions/{sid}")
-    assert follow_up.json()["success"] is True
-
-
-# --------------------------------------------------------------------------- #
-# 8. Promotion refuses duplicate uod_id                                       #
-# --------------------------------------------------------------------------- #
-
-
-def test_promote_refuses_duplicate_uod_id(client, isolated_tomos, monkeypatch):
-    """Source corpus UoDs are never overwritten; promote refuses if the
-    target uod_id is already in the corpus."""
-    _local_manager = ErgasterionSessionManager()
-    monkeypatch.setattr(
-        ergasterion_route,
-        "get_ergasterion_session_manager",
-        lambda: _local_manager,
-    )
-
-    seed_id = isolated_tomos["seed_id"]
-    opened = _open_session(client, "empty_sheet")
-    sid = opened["session_id"]
-
-    response = client.post(
-        f"/ergasterion/sessions/{sid}/promote",
-        json={"uod_id": seed_id, "name": "attempt to overwrite"},
-    )
-    body = response.json()
-    assert body["success"] is False
-    assert body["error"]["code"] == "UOD_ALREADY_EXISTS"
-
-
-# --------------------------------------------------------------------------- #
-# 9. HTML viewer                                                              #
+# HTML viewer                                                                 #
 # --------------------------------------------------------------------------- #
 
 

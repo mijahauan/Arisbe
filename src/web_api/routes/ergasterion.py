@@ -2,26 +2,30 @@
 Ergasterion (workshop) routes.
 
 Ergasterion is the composition mode in the Organon / Ergasterion / Agon
-trio (``docs/PRODUCT_VISION.md``, ``CLAUDE.md``).  It is the only place
-in the system where the correspondence invariant flips on/off:
+trio (``docs/PRODUCT_VISION.md``, ``CLAUDE.md``).  It is where a user
+*plays*: composes new graphs, or copies any graph from Organon and
+transforms / branches it.  Everything here is **regime-1** — drawn but
+not asserted.  Rule applications mutate an in-memory
+``TransformationChain`` anchored at a chosen base state; each step is
+sound (``RuleInteraction`` enforces preconditions) but the chain is not a
+public, corpus-grade record, so §3.3 attestation is suspended.
 
-  * **Regime 1 (in-workshop)**: the user is composing.  Rule
-    applications mutate an in-memory ``TransformationChain`` anchored
-    at a chosen base state.  Each step is sound (``RuleInteraction``
-    enforces preconditions) but the chain has not been asserted as a
-    public, corpus-grade record.  §3.3 attestation is suspended.
-
-  * **Regime 2 (promoted)**: the user fires ``POST .../promote`` and
-    the chain anchors into the corpus context.  ``save_uod_with_chain``
-    runs §3.3 attestation on the final EGI before any disk writes; a
-    violation aborts cleanly and the workshop session is preserved.
+**Leaving the workshop (the mode contract).**  §3.3 attests
+*correspondence, not truth*, so it is necessary but not sufficient to
+assert a graph into the corpus.  A graph reaches the corpus only by being
+a **style-only reprojection** of an already-attested graph, or by being
+**tested through Agon** (the dialogical challenge that earns regime-2).
+Workshop output therefore goes to **scratch** (a regime-1 holding pen,
+``/scratch/`` — ``web_api/services/scratch_store.py``) or is **sent to
+Agon**; there is no direct workshop→corpus route.  (See memory
+project-mode-contract-ergasterion-output.)
 
 A workshop session always has an explicit base state — composing
 without a context is incoherent in Peircean terms (see
 ``docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md`` §4 and the
-project-peircean-assertion-in-context memory).  V1 supports two base
-sources: an empty sheet of assertion, or the current EGI of any UoD
-already in the tomos corpus.
+project-peircean-assertion-in-context memory).  Base sources: an empty
+sheet of assertion, the current EGI of any UoD already in the corpus
+(with its worked sequence loaded if it has one), or a saved scratch draft.
 
 V1 scope:
   * Single-shot rule application (one HTTP call per rule, all step
@@ -29,8 +33,8 @@ V1 scope:
     internally via ``RuleInteraction`` but not yet split across
     multiple endpoints; the route here drives the full
     begin → advance → apply sequence in one call.
-  * Linear chains only (no branching / no undo).  The JSONL format
-    leaves room for these later.
+  * A session holds a small **forest of branches** (back up + apply →
+    fork); navigation steps through any state in the active line.
 """
 
 import sys
@@ -42,8 +46,6 @@ _src_dir = Path(__file__).parent.parent.parent
 if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
-from datetime import datetime, timezone
-
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
@@ -53,7 +55,6 @@ from web_api.models.api_models import (
     ErgasterionApplyRequest,
     ErgasterionClosureRequest,
     ErgasterionOpenRequest,
-    ErgasterionPromoteRequest,
     ErgasterionSaveScratchRequest,
     ErgasterionSwitchBranchRequest,
 )
@@ -88,12 +89,6 @@ from rule_interaction import (
     get_interaction,
 )
 from tomos_service import TomosService
-from universe_of_discourse import (
-    UniverseOfDiscourse,
-    UoDCategory,
-    UoDMetadata,
-    UoDType,
-)
 
 
 router = APIRouter(prefix="/ergasterion")
@@ -947,117 +942,17 @@ async def deiteration_original(session_id: str, request: ErgasterionClosureReque
 # --------------------------------------------------------------------------- #
 
 
-@router.post("/sessions/{session_id}/promote")
-async def promote_session(session_id: str, request: ErgasterionPromoteRequest):
-    """Promote the workshop's chain into the corpus.
-
-    This is the regime-1 → regime-2 boundary.  The chain anchors into
-    the corpus context as a new PRACTICE_SESSION HISTORICAL UoD with
-    the workshop's accumulated chain persisted alongside.
-
-    Pipeline:
-        1. Refuse if the target uod_id already exists in the corpus
-           (we never overwrite — source UoDs are sacrosanct).
-        2. Build the new UoD from the session's current EGI + the
-           request's metadata.
-        3. Call ``save_uod_with_chain``, which delegates to
-           ``save_uod`` (firing §3.3 attestation on the final state
-           BEFORE any disk writes).
-        4. On a §3.3 violation, return a clean
-           ``CORRESPONDENCE_VIOLATION`` error and leave the workshop
-           session intact so the user can fix and retry.
-        5. On success, return the promoted UoD's id and a summary.
-    """
-    try:
-        manager = get_ergasterion_session_manager()
-        session = manager.get_session(session_id)
-        if session is None:
-            return ApiResponse(
-                success=False,
-                error={
-                    "code": "SESSION_NOT_FOUND",
-                    "message": f"Workshop session '{session_id}' not found.",
-                },
-            )
-
-        tomos = _get_tomos()
-        target_uod_id = request.uod_id.strip()
-        if not target_uod_id:
-            return ApiResponse(
-                success=False,
-                error={
-                    "code": "INVALID_UOD_ID",
-                    "message": "uod_id is required for promotion.",
-                },
-            )
-
-        if tomos.uod_exists(target_uod_id):
-            return ApiResponse(
-                success=False,
-                error={
-                    "code": "UOD_ALREADY_EXISTS",
-                    "message": (
-                        f"UoD '{target_uod_id}' already exists in the corpus. "
-                        f"Pick a different id; promotion never overwrites."
-                    ),
-                },
-            )
-
-        now = datetime.now(timezone.utc)
-        metadata = UoDMetadata(
-            uod_id=target_uod_id,
-            uod_type=UoDType.HISTORICAL,
-            name=request.name or target_uod_id,
-            description=request.description or "",
-            category=UoDCategory.PRACTICE_SESSION,
-            created=now,
-            last_modified=now,
-            authors=list(request.authors or []),
-            tags=set(request.tags or []),
-            total_states=len(session.chain.states),
-            total_transformations=session.step_count,
-        )
-        uod = UniverseOfDiscourse(
-            metadata=metadata,
-            current_egi=session.current_egi,
-        )
-
-        # Promotion: §3.3 attestation fires inside save_uod_with_chain
-        # → save_uod → _attest_uod_in_correspondence, BEFORE any disk
-        # writes.  A violation here is the regime-1 → regime-2 refusal
-        # — we surface it cleanly and leave the session untouched so
-        # the user can adjust and retry.
-        tomos.save_uod_with_chain(uod, session.chain)
-
-        return ApiResponse(
-            success=True,
-            data={
-                "session_id": session_id,
-                "promoted_uod_id": target_uod_id,
-                "step_count": session.step_count,
-                "state_count": len(session.chain.states),
-                "egi_summary": _egi_summary(session.current_egi),
-            },
-        )
-
-    except CorrespondenceViolation as exc:
-        return ApiResponse(
-            success=False,
-            error={
-                "code": "CORRESPONDENCE_VIOLATION",
-                "message": str(exc),
-                "context": getattr(exc, "context", None),
-            },
-        )
-    except Exception as exc:
-        return ApiResponse(
-            success=False,
-            error={
-                "code": "PROMOTE_ERROR",
-                "message": str(exc),
-                "type": type(exc).__name__,
-            },
-        )
+# NOTE — the direct workshop "promote to corpus" route has been **retired**
+# (2026-06-06).  It forked a corpus UoD on §3.3 attestation alone, which proves
+# *correspondence, not truth* — and so bypassed the mode contract: a graph
+# leaves Ergasterion for the corpus only by being a style-only reprojection of
+# an attested graph, or by being **tested through Agon** (the dialogical
+# challenge that earns regime-2).  Workshop output now goes to **scratch**
+# (regime-1, ``/scratch/``) or is **sent to Agon**.  The underlying mechanism
+# survives where it belongs: Agon's asserting disposition anchors a withstood
+# chain into the corpus via ``tomos_service.save_uod_with_chain`` (whose §3.3
+# refusal is covered by ``tests/test_chain_persistence.py``).  See memory
+# project-mode-contract-ergasterion-output.
 
 
 # --------------------------------------------------------------------------- #
