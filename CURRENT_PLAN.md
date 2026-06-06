@@ -1,11 +1,58 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (Manual Settle ④b drag layer + DC+ empty-double-cut semantics)
+**Last Updated**: 2026-06-06 (INS / IT+ positional pinning — Settle ④a 1c additive-placement complete)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
 this file tracks the active front. The pre-commit quality gate reads the
 **Last Updated** date here, so keep it current.
+
+---
+
+## Session 2026-06-06 (b) — INS / IT+ positional pinning (shipped)
+
+Closed the last ④a 1c additive case, completing the four-beat **continuity**
+story for all six rules (the four-beat *grammar* itself was already complete).
+All on `main`; full suite **943 passed, 35 skipped**; quality gate green; no
+protected module touched (only unprotected `layout_service.py` + tests).
+
+**The additive-placement builder.** `layout_service._additive_placement_layout`
+joins `_subtractive_layout` and `_additive_cut_layout` in the `previous_layout`
+incremental loop. INS and IT+ add *genuinely new* vertices/predicates that must
+be **placed**, not merely kept — so the builder:
+- **Pins survivors** (any id present in the previous DTO) at their exact prior
+  position/bounds (verified **0px** drift).
+- **Borrows the new subgraph's internal shape** from a fresh full-ELK reference
+  layout (correct nested-cut bounds + intra-subgraph layout, and per
+  `_structural_key` the IT+ copy echoes its source), then **translates it as a
+  rigid group** into free space in the single target area — below that area's
+  existing content, so survivors don't move.
+- **Grows ancestor (survivor) cuts bottom-up** around the placed group (cuts
+  only ever expand), then **rebuilds all ligature paths** via the engine's
+  geometric `_build_ligature_paths` (endpoints pinned → survivor lines stay
+  anchored; new + grown-cut lines re-route correctly — Beta line-of-identity
+  extension included, §3.3-attested).
+- **Owns overlap-avoidance** — the weaker safety net called out in planning:
+  §3.3 is topological and will *not* catch two elements *visually overlapping*
+  in one area. So the builder runs an explicit **same-area overlap guard** and
+  returns `None` (caller falls back to a full layout) when the placed group or a
+  grown cut would collide with a sibling — e.g. IT+ into a previously-*empty*
+  cut wedged between siblings has no room and honestly falls back. This is the
+  opposite of the Settle ④b reshape case (there attestation was the backstop).
+
+**Verified:** Praeclarum 2nd INS (6 survivors, 0px) + Beta IT+ line-extension
+(`(P *x) ~[ (Q x) ]` → copy into the cut, 0px, ligature rebuilt + attested) both
+engage and pin; Praeclarum 1st IT+ (copy into an empty wedged cut) correctly
+declines → full re-layout. Tests: `test_layout_service_attestation.py` (+2 net;
+INS-pins, IT+-pins-when-room, falls-back-when-no-room). Visual render confirms
+the new content lands in the target area below survivors.
+
+**Next (decided): dogfood the now-complete four-beat grammar end-to-end** in the
+browser (compose → settle each step → promote) + a literal **ghost-preview** for
+Placing rules. Then **Agon V2** (semantic-evaluation inner layer / auto-Grapheus
+/ dynamic M); a first-class **warrant gradient**. (A future placement refinement
+— *displace siblings* to make room instead of falling back — would let IT+ into
+a tight area stay incremental; deferred as it needs survivor re-flow.)
 
 ---
 
@@ -611,9 +658,16 @@ workshop.
         just enough); §3.3-attested, full-layout fallback if a recomputed wrap
         overlaps a sibling. Verified 0px survivor drift on plain / Beta (line of
         identity) / multi-sibling / enclose-all DC+. Tests +1.
-        **INS and IT+** still fall back — they add new vertices/predicates that
-        need frame-consistent, overlap-aware *placement* of genuinely new
-        geometry (the harder remaining increment; the agreed pause point).
+        **Additive — INS / IT+ placement DONE (2026-06-06).**
+        `layout_service._additive_placement_layout` pins survivors, borrows the
+        new subgraph's internal shape from a full-ELK reference layout, and
+        translates it as a rigid group into the target area's free space (below
+        existing content), growing ancestor cuts bottom-up and rebuilding all
+        ligatures geometrically. Owns its own **same-area overlap guard** (§3.3
+        is topological and can't see visual overlap) → falls back to full layout
+        when there's no room (e.g. IT+ into an empty wedged cut). Verified 0px on
+        Praeclarum INS + Beta IT+ line-extension; honest fallback on the tight
+        IT+. Tests +2 net. **All six rules now have ④a continuity.**
 
       **Diachronic chain player — ✅ DONE + browser-verified (2026-06-04).**
       To actually *watch* 1a/1b on a real proof there has to be a way to play a

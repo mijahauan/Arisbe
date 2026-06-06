@@ -116,24 +116,108 @@ def test_dc_plus_wrap_preserves_survivor_positions_exactly(tomos):
     assert len(new_dto.cut_bounds) == 2 and svg
 
 
-def test_additive_step_falls_back_to_full_layout(tomos):
-    """An additive step (new material) is *not* eligible for the subtractive
-    fast path; the service still returns an attested layout."""
+def test_ins_placement_pins_survivors_exactly(tomos):
+    """INS adds genuinely new vertices/predicates, so it is handled by the
+    *placement* builder (Settle ④a, 1c — additive-placement): survivors keep
+    their exact positions and only the inserted content is placed in free space.
+
+    The subtractive / additive-cut fast paths don't apply (INS adds material
+    they refuse); the placement builder engages and pins survivors at 0px, and
+    the served DTO still attests §3.3.
+    """
     import sys as _sys
     from pathlib import Path as _Path
     _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "tools"))
     from build_praeclarum_chain import build_praeclarum_chain
 
     chain, _uod = build_praeclarum_chain()
-    ins = next(s for s in chain.steps if s.rule_name == "INS")
+    # The 2nd INS in Praeclarum inserts into an area that already has survivors.
+    ins_steps = [s for s in chain.steps if s.rule_name == "INS"]
+    ins = ins_steps[-1]
     before = chain.states[ins.from_state_id]
     after = chain.states[ins.to_state_id]
 
     prev_dto, _ = layout_service.generate_layout(before)
-    # INS adds new vertices/predicates: neither incremental path applies.
     assert layout_service._subtractive_layout(prev_dto, after, prev_dto.style) is None
     assert layout_service._additive_cut_layout(prev_dto, after, prev_dto.style) is None
-    # But the service still produces a valid, attested layout via the engine.
+    # The placement builder *does* apply and pins survivors.
+    cand = layout_service._additive_placement_layout(prev_dto, after, prev_dto.style)
+    assert cand is not None, "placement builder should engage for this INS"
+
+    new_dto, svg = layout_service.generate_layout(after, previous_layout=prev_dto)
+    assert isinstance(new_dto, LayoutDTO) and svg
+    prev_pos = {**prev_dto.vertex_positions, **prev_dto.predicate_positions}
+    new_pos = {**new_dto.vertex_positions, **new_dto.predicate_positions}
+    survivors = set(prev_pos) & set(new_pos)
+    assert survivors, "expected surviving elements across the INS step"
+    for eid in survivors:
+        assert new_pos[eid].x == pytest.approx(prev_pos[eid].x)
+        assert new_pos[eid].y == pytest.approx(prev_pos[eid].y)
+    # New material did appear.
+    assert len(new_pos) > len(survivors)
+
+
+def test_it_plus_placement_pins_survivors_when_room(tomos):
+    """IT+ (copy a subgraph into a deeper area) places the copy in free space
+    and pins survivors at 0px when the destination area has room — including
+    when the copy *extends a line of identity* (Beta), where the rebuilt
+    ligature must still attest §3.3."""
+    from egif_parser_dau import parse_egif
+    from rule_interaction import (
+        begin_interaction, advance_interaction, apply_interaction,
+    )
+
+    # Beta: P(x) on the sheet, x shared into a roomy cut; IT+ copies (P x) in,
+    # extending the line of identity across the cut boundary.
+    before = parse_egif("(P *x) ~[ (Q x) ]")
+    p_id = next(e.id for e in before.E if before.get_relation_name(e.id) == "P")
+    cut_id = next(iter(before.Cut)).id
+    state = begin_interaction("IT+", before)
+    advance_interaction(state, [p_id])
+    advance_interaction(state, cut_id)
+    result = apply_interaction(state)
+    assert result.success, result.message
+    after = result.result_egi
+
+    prev_dto, _ = layout_service.generate_layout(before)
+    cand = layout_service._additive_placement_layout(prev_dto, after, prev_dto.style)
+    assert cand is not None, "placement builder should engage for a roomy IT+"
+
+    new_dto, svg = layout_service.generate_layout(after, previous_layout=prev_dto)
+    assert isinstance(new_dto, LayoutDTO) and svg
+    prev_pos = {**prev_dto.vertex_positions, **prev_dto.predicate_positions}
+    new_pos = {**new_dto.vertex_positions, **new_dto.predicate_positions}
+    survivors = set(prev_pos) & set(new_pos)
+    assert survivors
+    for eid in survivors:
+        assert new_pos[eid].x == pytest.approx(prev_pos[eid].x)
+        assert new_pos[eid].y == pytest.approx(prev_pos[eid].y)
+
+
+def test_placement_falls_back_when_no_room(tomos):
+    """When the new material can't be placed without overlapping a survivor
+    sibling, the placement builder declines (returns ``None``) rather than emit
+    a colliding layout that §3.3 (topological) can't catch — and the service
+    still produces a valid, attested layout via a full re-layout.
+
+    Praeclarum's first IT+ copies into a previously *empty* cut wedged between
+    siblings: there is no room to grow it incrementally, so the builder must
+    fall back."""
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.insert(0, str(_Path(__file__).resolve().parent.parent / "tools"))
+    from build_praeclarum_chain import build_praeclarum_chain
+
+    chain, _uod = build_praeclarum_chain()
+    it_plus = next(s for s in chain.steps if s.rule_name == "IT+")
+    before = chain.states[it_plus.from_state_id]
+    after = chain.states[it_plus.to_state_id]
+
+    prev_dto, _ = layout_service.generate_layout(before)
+    assert layout_service._additive_placement_layout(
+        prev_dto, after, prev_dto.style
+    ) is None, "builder should decline when placement would overlap a sibling"
+    # The service still yields a valid, §3.3-attested layout via full re-layout.
     new_dto, svg = layout_service.generate_layout(after, previous_layout=prev_dto)
     assert isinstance(new_dto, LayoutDTO) and svg
 
