@@ -1,6 +1,6 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (Presentation-delta persistence — increment 2 scratch path: deltas+style round-trip a draft)
+**Last Updated**: 2026-06-06 (Presentation-delta chain inheritance — increment 3: nudges carry forward down a worked sequence)
 
 > **NEXT SESSION (the projection ladder, increments 2–6):** the regime-3
 > *presentation deltas* foundation shipped (vocabulary + replay + record +
@@ -22,6 +22,36 @@
 > [[project-presentation-deltas-and-style-ladder]],
 > [[project-render-as-projection-own-dimensionality]],
 > [[project-correspondence-invariant-three-regimes]].
+
+## Session 2026-06-06 (f) — presentation-delta chain inheritance (increment 3)
+
+**Shipped (on `main`):** regime-3 nudges now **carry forward down a worked
+sequence** — a vertex/cut/line adjusted at one state stays adjusted at its
+descendant states (surviving elements), the first concrete *extrapolation* (scale
+2: within-UoD, by element id).
+- `presentation_deltas.merge_inherited(ordered_state_ids, authored_by_state)` —
+  effective deltas = authored deltas along the ancestry, where a descendant
+  re-authoring an element (`delta_key`) **replaces** the ancestor's for that key
+  (re-nudge supersedes, doesn't stack); same-key drags within the winning state
+  stay ordered. `delta_key` added (op + element identity).
+- `ergasterion_session_manager.state_ancestry(chain, state_id)` (initial→target
+  via step links) + `ErgasterionSessionManager.effective_deltas(session, id)`.
+- Wired into the **cold-render** paths only — `GET /sessions/{id}`,
+  `GET …/states/{id}`, `open_scratch` tip — via `effective_deltas`. The **apply**
+  path keeps `previous_layout` pinning (already carries the nudge forward), so
+  inheritance isn't layered on top (would double the offset). Inherited deltas
+  that no longer fit (survivor removed/re-boxed) drop at replay — the regime
+  boundary holds.
+- Tests: `test_presentation_deltas.py` (+5 — delta_key, merge rules,
+  state_ancestry) and `test_ergasterion_routes.py` (+1 — parent nudge inherits
+  into a child's cold render, proven against a clean control). No protected
+  module touched.
+
+**Next:** increment **2b** (corpus-path delta persistence — parallel
+`history/deltas.json` in `save_uod_with_chain`/`load_chain`, now unblocked) and
+increment **4 — extrapolation** (generalize *tagged* deltas to untouched in-scope
+elements, scale 1: within-view — the study (b) + new-styles (c) research layer).
+See `docs/PRESENTATION_DELTAS_AND_STYLE.md` §6.
 
 ## Session 2026-06-06 (e) — presentation-delta persistence (increment 2, scratch path)
 

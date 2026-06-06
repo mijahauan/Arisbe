@@ -148,8 +148,18 @@ attested by §3.3 at the service boundary
      hydrated multi-state chain are most meaningful once chain inheritance
      (increment 3) is in. A UoD *preferred style* there can reuse the vestigial
      `current_layout_deltas` slot's sibling or UoD metadata (no protected field).
-3. **Chain inheritance** — effective deltas = surviving-id parent deltas ⊕
-   authored-here, wired into the apply / navigation render paths.
+3. **✅ Chain inheritance done.** `presentation_deltas.merge_inherited` resolves
+   a state's *effective* deltas = the authored deltas along its ancestry
+   (`ergasterion_session_manager.state_ancestry`), where a descendant re-authoring
+   an element (`delta_key`) **replaces** the ancestor's for that key (re-nudging
+   supersedes, doesn't stack) and same-key drags within the winning state stay
+   ordered (cumulative). Wired into the cold-render paths (`GET /sessions/{id}`,
+   `GET …/states/{id}`, `open_scratch` tip) via `manager.effective_deltas`; an
+   inherited delta whose survivor was removed/re-boxed is dropped at replay by
+   `apply_deltas` (the regime boundary holds). The **apply** path keeps using
+   `previous_layout` pinning — which already carries the nudge forward — so
+   inheritance is *not* layered on top of it (that would double the offset). This
+   is extrapolation **scale 2** (within-UoD, by element id).
 4. **Extrapolation** — generalize tagged deltas to untouched in-scope elements
    (within-view first), then to new elements across a step. The research layer
    behind goals (b) and (c).

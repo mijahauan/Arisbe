@@ -61,6 +61,7 @@ from web_api.models.api_models import (
 from web_api.services.ergasterion_session_manager import (
     WorkshopSession,
     get_ergasterion_session_manager,
+    state_ancestry,
 )
 from web_api.services.introspection import egi_introspection
 from web_api.services.scratch_store import ScratchStore
@@ -79,7 +80,7 @@ from presentation_ops import (
     reshape_cut,
     reroute_ligature,
 )
-from presentation_deltas import record_delta, deltas_from_list
+from presentation_deltas import record_delta, deltas_from_list, merge_inherited
 from egif_parser_dau import parse_egif
 from subgraph_closure_validator import SubgraphClosureValidator
 from rule_interaction import (
@@ -338,10 +339,11 @@ async def get_session(session_id: str, style: Optional[str] = None):
 
         if style is not None:
             session.style_name = style or None
-        # Replay the current state's recorded regime-3 nudges over the freshly
-        # built base, so a hand-adjustment survives this full re-layout (and
-        # best-effort-ports across a style change; non-applying deltas drop).
-        deltas = session.presentation_deltas.get(session.chain.current_state_id)
+        # Replay the current state's *effective* regime-3 nudges (its own plus
+        # those inherited from ancestor states' survivors) over the freshly built
+        # base, so hand-adjustments survive this full re-layout and stay
+        # consistent down the worked sequence; non-applying deltas drop.
+        deltas = manager.effective_deltas(session, session.chain.current_state_id)
         dto, svg = generate_layout(
             session.current_egi, style_name=session.style_name, deltas=deltas
         )
@@ -408,11 +410,12 @@ async def get_session_state(session_id: str, state_id: str, style: Optional[str]
             )
 
         style_name = style if style is not None else session.style_name
-        # Replay this state's own recorded nudges (per-state keyed), so stepping
-        # the navigator shows each frame the way it was hand-adjusted.
+        # Replay this state's *effective* nudges (its own + inherited from
+        # ancestor survivors), so stepping the navigator shows each frame the
+        # way it was hand-adjusted, consistently down the sequence.
         dto, svg = generate_layout(
             egi, style_name=style_name,
-            deltas=session.presentation_deltas.get(state_id),
+            deltas=manager.effective_deltas(session, state_id),
         )
 
         return ApiResponse(
@@ -567,7 +570,9 @@ async def open_scratch(scratch_id: str, style: Optional[str] = None):
         deltas = {
             sid: deltas_from_list(items) for sid, items in raw_deltas.items()
         }
-        tip_deltas = deltas.get(chain.current_state_id)
+        tip_deltas = merge_inherited(
+            state_ancestry(chain, chain.current_state_id), deltas
+        )
         dto, svg = generate_layout(
             chain.current_egi, style_name=style_name, deltas=tip_deltas
         )

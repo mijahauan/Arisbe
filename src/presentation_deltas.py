@@ -83,6 +83,63 @@ class PresentationDelta:
         )
 
 
+def delta_key(delta: "PresentationDelta") -> tuple:
+    """The element-identity a delta addresses — the unit of inheritance/override.
+
+    Two deltas with the same key touch the same element (the same vertex, cut,
+    or line of identity), so a *later* state re-authoring that key supersedes
+    the ancestor's (re-nudging replaces, it doesn't stack); different keys
+    coexist.  Within one state, same-key deltas are kept in order (successive
+    drags compose).  See ``merge_inherited``.
+    """
+    p = delta.params
+    if delta.op == MOVE_VERTEX:
+        return ("v", p.get("vertex_id"))
+    if delta.op == RESHAPE_CUT:
+        return ("c", p.get("cut_id"))
+    if delta.op == REROUTE_LIGATURE:
+        return ("l", p.get("predicate_id"), p.get("vertex_id"), p.get("port_index"))
+    return ("?", delta.op)
+
+
+def merge_inherited(
+    ordered_state_ids: List[str],
+    authored_by_state: Dict[str, List["PresentationDelta"]],
+) -> List["PresentationDelta"]:
+    """Resolve the *effective* delta list for the last state in
+    ``ordered_state_ids`` (the chain inheritance / extrapolation-scale-2 rule).
+
+    ``ordered_state_ids`` is the ancestry initial → … → target (target last);
+    ``authored_by_state`` maps each state id to the deltas *authored at* it.
+
+    The effective list is the authored deltas concatenated in ancestry order,
+    **except** that a descendant state which re-authors a given ``delta_key``
+    REPLACES every ancestor delta for that key — so a survivor nudged at an
+    early state inherits forward, but re-adjusting it later supersedes rather
+    than double-applies.  Order is by first key introduction; same-key deltas
+    from the winning state stay in their authored order (cumulative drags).
+
+    Inherited deltas whose target element no longer exists downstream are *not*
+    filtered here — they are dropped at replay time by ``apply_deltas`` (the
+    op raises ``Regime3Violation`` for an unknown id), keeping this resolver a
+    pure key-merge with no EGI dependency.
+    """
+    from collections import OrderedDict
+
+    by_key: "OrderedDict[tuple, List[PresentationDelta]]" = OrderedDict()
+    for sid in ordered_state_ids:
+        authored = authored_by_state.get(sid) or []
+        groups: "OrderedDict[tuple, List[PresentationDelta]]" = OrderedDict()
+        for d in authored:
+            groups.setdefault(delta_key(d), []).append(d)
+        for k, ds in groups.items():
+            by_key[k] = ds  # descendant authorship replaces inherited for key k
+    out: List["PresentationDelta"] = []
+    for ds in by_key.values():
+        out.extend(ds)
+    return out
+
+
 def _target_element(op: str, params: Dict[str, Any]) -> Optional[ElementID]:
     """The primary element an op addresses — the one we tag with ``describe``."""
     if op == MOVE_VERTEX:
@@ -198,6 +255,8 @@ __all__ = [
     "REROUTE_LIGATURE",
     "record_delta",
     "apply_deltas",
+    "delta_key",
+    "merge_inherited",
     "deltas_to_list",
     "deltas_from_list",
 ]

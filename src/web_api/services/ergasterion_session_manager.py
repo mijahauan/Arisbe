@@ -31,7 +31,29 @@ if str(_src_dir) not in sys.path:
 from egi_core_dau import RelationalGraphWithCuts
 from layout_dto import LayoutDTO
 from tomos_service import ChainStep, TransformationChain
-from presentation_deltas import PresentationDelta
+from presentation_deltas import PresentationDelta, merge_inherited
+
+
+def state_ancestry(chain: TransformationChain, state_id: str) -> List[str]:
+    """Ordered state ids from the initial state down to ``state_id`` (inclusive),
+    following the chain's step links backward.
+
+    The basis for delta inheritance: a state's effective regime-3 deltas accrue
+    along this path.  Returns ``[state_id]`` for the initial state (or an orphan
+    with no parent link).  Cycle-guarded, though a well-formed chain is a tree.
+    """
+    parent = {s.to_state_id: s.from_state_id for s in chain.steps}
+    path = [state_id]
+    seen = {state_id}
+    cur = state_id
+    while cur in parent:
+        cur = parent[cur]
+        if cur in seen:
+            break
+        path.append(cur)
+        seen.add(cur)
+    path.reverse()
+    return path
 
 
 @dataclass
@@ -157,6 +179,24 @@ class ErgasterionSessionManager:
         if session is not None:
             session.last_accessed = datetime.now(timezone.utc)
         return session
+
+    @staticmethod
+    def effective_deltas(
+        session: WorkshopSession, state_id: str
+    ) -> List[PresentationDelta]:
+        """The regime-3 deltas *in effect* when drawing ``state_id`` — the
+        state's own authored deltas plus those inherited from its ancestors
+        (survivor elements), resolved by ``merge_inherited``.
+
+        Used by the cold-render paths (GET session/state, reopen): a nudge made
+        at an early state stays applied as the worked sequence advances, until
+        the survivor is removed (then replay drops it) or re-adjusted (then the
+        later authorship supersedes).  The apply path keeps using
+        ``previous_layout`` pinning, which already carries the nudge forward, so
+        inheritance is not layered on top of it (that would double the offset).
+        """
+        order = state_ancestry(session.chain, state_id)
+        return merge_inherited(order, session.presentation_deltas)
 
     def add_step(
         self,

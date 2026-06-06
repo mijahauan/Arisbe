@@ -616,6 +616,57 @@ def test_adjust_unknown_session_is_clean_error(client, fresh_session_manager):
     assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"
 
 
+def test_parent_nudge_inherits_into_child_state_render(client, isolated_tomos):
+    """Increment 3 — chain inheritance: a vertex nudged at the parent state is
+    still drawn nudged at the child state (a survivor across the step), without
+    re-authoring.  Proven against a clean control session that applies the same
+    move with no nudge: the only difference at the child's cold render is the
+    inherited offset.
+
+    The nudge is aimed toward the centre of the vertex's child-state cut so it
+    stays placeable there — DC+ re-boxes the vertex into a tight double cut, and
+    a nudge that would push it out of that cut is *correctly* dropped at replay
+    (the regime boundary holds); that drop is not what this test is about."""
+    seed = f"uod:{isolated_tomos['seed_id']}"
+
+    # Control: open → apply DC+ (wraps contents; the vertex survives) → read the
+    # child's cold base position + the cut the vertex now sits in.
+    ctl = _open_session(client, seed)
+    csid = ctl["session_id"]
+    vid, _ = next(iter(ctl["layout_dto"]["vertex_positions"].items()))
+    assert _apply(client, csid, "DC+")["success"] is True
+    ctl_tip = client.get(f"/ergasterion/sessions/{csid}").json()["data"]
+    base = ctl_tip["layout_dto"]["vertex_positions"][vid]
+    cut_bounds = ctl_tip["layout_dto"]["cut_bounds"]
+
+    # Deepest cut strictly containing the vertex = its area cut (smallest such).
+    containing = [
+        b for b in cut_bounds.values()
+        if b["min_x"] < base["x"] < b["max_x"] and b["min_y"] < base["y"] < b["max_y"]
+    ]
+    assert containing, "DC+ should have boxed the vertex into a cut"
+    inner = min(containing, key=lambda b: (b["max_x"] - b["min_x"]) * (b["max_y"] - b["min_y"]))
+    cx = (inner["min_x"] + inner["max_x"]) / 2
+    cy = (inner["min_y"] + inner["max_y"]) / 2
+    # A quarter-step toward the cut centre stays strictly inside it.
+    dx, dy = 0.25 * (cx - base["x"]), 0.25 * (cy - base["y"])
+
+    # Treatment: open → nudge the vertex at the parent (on the open sheet) →
+    # apply the same DC+ → read the child's cold render.  Nothing authored at
+    # the child, yet it inherits the parent's nudge.
+    trt = _open_session(client, seed)
+    tsid = trt["session_id"]
+    _adjust(client, tsid, {"operation": "move_vertex", "vertex_id": vid,
+                           "dx": dx, "dy": dy})
+    assert _apply(client, tsid, "DC+")["success"] is True
+    trt_tip = client.get(f"/ergasterion/sessions/{tsid}").json()["data"]
+    assert trt_tip["presentation_deltas"] == []  # child authored nothing
+    moved = trt_tip["layout_dto"]["vertex_positions"][vid]
+
+    assert moved["x"] == pytest.approx(base["x"] + dx)
+    assert moved["y"] == pytest.approx(base["y"] + dy)
+
+
 def test_adjust_records_a_tagged_delta_in_the_payload(client, isolated_tomos):
     """A Settle ④b nudge is now *recorded* (not only applied to the live DTO):
     the session payload carries it as a tagged, replayable delta — the seed of
