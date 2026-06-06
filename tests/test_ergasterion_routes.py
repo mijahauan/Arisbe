@@ -616,6 +616,51 @@ def test_adjust_unknown_session_is_clean_error(client, fresh_session_manager):
     assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"
 
 
+def test_adjust_records_a_tagged_delta_in_the_payload(client, isolated_tomos):
+    """A Settle ④b nudge is now *recorded* (not only applied to the live DTO):
+    the session payload carries it as a tagged, replayable delta — the seed of
+    persistence and of the delta-as-dataset study path."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    assert data["presentation_deltas"] == []  # none yet
+
+    vid, _old = next(iter(data["layout_dto"]["vertex_positions"].items()))
+    out = _adjust(client, sid, {"operation": "move_vertex", "vertex_id": vid,
+                                "dx": 25.0, "dy": 10.0})
+    deltas = out["data"]["presentation_deltas"]
+    assert len(deltas) == 1
+    rec = deltas[0]
+    assert rec["op"] == "move_vertex"
+    assert rec["params"]["vertex_id"] == vid
+    # Tagged with the target's structural description (the generalization handle).
+    assert rec["target"].get("kind") == "vertex"
+
+
+def test_recorded_delta_survives_a_full_re_render(client, isolated_tomos):
+    """The consumption side end-to-end: after a nudge, GET /sessions/{id}
+    rebuilds the layout from scratch (a full ELK pass) yet replays the recorded
+    delta over it, so the hand-adjustment is *not* lost to the re-layout."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    vid, old = next(iter(data["layout_dto"]["vertex_positions"].items()))
+    dx, dy = 33.0, -18.0
+
+    adjusted = _adjust(client, sid, {"operation": "move_vertex", "vertex_id": vid,
+                                     "dx": dx, "dy": dy})
+    moved = adjusted["data"]["layout_dto"]["vertex_positions"][vid]
+
+    # Re-render from scratch (no client-supplied geometry).
+    rer = client.get(f"/ergasterion/sessions/{sid}").json()
+    assert rer["success"] is True, rer.get("error")
+    after = rer["data"]["layout_dto"]["vertex_positions"][vid]
+
+    # The delta replayed over the fresh base → same nudged position as the adjust.
+    assert after["x"] == pytest.approx(moved["x"])
+    assert after["y"] == pytest.approx(moved["y"])
+    assert after["x"] == pytest.approx(old["x"] + dx)
+    assert after["y"] == pytest.approx(old["y"] + dy)
+
+
 # --------------------------------------------------------------------------- #
 # Move-by-move navigation (load + step through a worked sequence)             #
 # --------------------------------------------------------------------------- #

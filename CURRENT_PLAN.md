@@ -1,20 +1,62 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (Mode nav + workshop sequence navigation + branch-on-edit + scratch store + /promote retired)
+**Last Updated**: 2026-06-06 (Regime-3 walkthrough + presentation-delta foundation: persist/replay/extrapolate ladder)
 
-> **NEXT SESSION (requested):** walk through the editing that is **"indifferent
-> to the logic"** — the **regime-3 presentation layer**. That is `presentation_ops`
-> (`move_vertex` / `reshape_cut` / `reroute_ligature`, each raising
-> `Regime3Violation` on a boundary crossing) surfaced as **Manual Settle ④b** in
-> the workshop (`web_viewer/js/settle-adjust.js` + `POST /ergasterion/.../adjust`,
-> rendered by `layout_service.attest_and_render`). The walkthrough should cover:
-> what "free, indifferent to logic" means (regime-3 of the three-regime invariant);
-> how a pure-appearance nudge is *defined* to preserve §3.3 yet still attested as a
-> backstop; where the local membership guards end and attestation begins; and how
-> this differs from ④a automatic continuity (engine-driven, logic-following).
-> See memory [[project-correspondence-invariant-three-regimes]],
-> [[project-transformation-workflow-grammar]], and
-> `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` §3 (regime 3) + the spec.
+> **NEXT SESSION (the projection ladder, increments 2–6):** the regime-3
+> *presentation deltas* foundation shipped (vocabulary + replay + record +
+> consume). The design and remaining increments live in
+> `docs/PRESENTATION_DELTAS_AND_STYLE.md`:
+> **(2) persistence** — write per-state deltas + a UoD *preferred style* to disk
+> (reuse the vestigial `current_layout_deltas` slot → live, per-state; no
+> protected change); **(3) chain inheritance** — effective deltas = surviving-id
+> parent deltas ⊕ authored-here, wired into apply / navigation renders;
+> **(4) extrapolation** — generalize the *tagged* deltas to untouched in-scope
+> elements (within-view first), the research layer behind study (b) +
+> new-styles (c); **(5) scoped rendering** — draw a sub-scope of a large UoD
+> (style + deltas are already scope-independent); **(6) crystallization tooling**
+> — delta-as-dataset + a path from a stable delta pattern to a new
+> `projection_conventions` knob + style JSON. The conceptual frame: **style =
+> universal default, deltas = sparse tagged exemplars, extrapolation = the
+> crystallization that turns hand-deltas into styles** (one operation at three
+> scales: view → UoD → corpus). See memory
+> [[project-presentation-deltas-and-style-ladder]],
+> [[project-render-as-projection-own-dimensionality]],
+> [[project-correspondence-invariant-three-regimes]].
+
+## Session 2026-06-06 (d) — regime-3 walkthrough + presentation-delta foundation
+
+**Delivered the requested walkthrough** of the editing "indifferent to the
+logic" (regime-3): what *free* means; how a nudge is *defined* to preserve §3.3
+yet attested as a backstop (`presentation_ops` local guards → `attest_and_render`
+authority); ④b manual vs ④a engine-driven continuity (the safety-net asymmetry).
+
+**Then built the foundation** the walkthrough's persistence question raised —
+*how to save the deltas with an EGI* (goals: consistent style+deltas through a
+UoD, study their effects, develop new basic styles). Author reframed it
+decisively: a UoD is **large** — don't draw the whole thing; **style is the
+universal default**, **deltas are sparse exemplars**, and we **extrapolate** from
+the few to the many. So a delta is a *sample of an intent*, tagged with its
+target's structural description, and extrapolation is *the* crystallization
+mechanism (view → UoD → corpus = a new style). Design:
+`docs/PRESENTATION_DELTAS_AND_STYLE.md`.
+
+**Shipped (on `main`, foundation increment 1):**
+- **`src/presentation_deltas.py`** (new, unprotected) — `PresentationDelta`
+  (op + params + `target` tags via `eg_navigation.describe`), `record_delta`,
+  `apply_deltas` (best-effort replay through `presentation_ops`, **§3.3-attested
+  per delta**, drops what no longer applies — same fallback discipline as the ④a
+  builders), `to_dict`/`from_dict`.
+- **`layout_service.generate_layout(…, deltas=…)`** now *consumes* deltas via
+  `apply_deltas` — finally making the long-dead `layout_deltas` parameter live
+  (at the **service** layer; the engine stays projection-mechanism).
+- **Settle ④b adjust route records** a tagged delta into the session
+  (`WorkshopSession.presentation_deltas`, keyed by state id — the per-state seed
+  for inheritance); `GET /sessions/{id}` (and `?style=`) **replays** the current
+  state's deltas over a fresh base, so a nudge **survives a full re-layout** /
+  best-effort-ports across a style change. Payload surfaces `presentation_deltas`.
+- Tests: `tests/test_presentation_deltas.py` (+4 — tag, apply+round-trip, drop,
+  generate_layout consume) and `tests/test_ergasterion_routes.py` (+2 — record
+  in payload, survives re-render). Full suite green; no protected module touched.
 
 ## Session 2026-06-06 (c) — nav + sequence navigation + branch-on-edit + scratch + promote retired
 

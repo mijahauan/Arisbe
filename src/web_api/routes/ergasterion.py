@@ -79,6 +79,7 @@ from presentation_ops import (
     reshape_cut,
     reroute_ligature,
 )
+from presentation_deltas import record_delta
 from egif_parser_dau import parse_egif
 from subgraph_closure_validator import SubgraphClosureValidator
 from rule_interaction import (
@@ -185,6 +186,13 @@ def _session_payload(session: WorkshopSession, svg: str) -> dict:
         "linear_forms": linear_forms(session.current_egi),
         "chain": _chain_summary(session),
         "branches": _branches_summary(session),
+        # Recorded regime-3 hand-adjustments for the current state (Settle ④b) —
+        # the sparse human overrides that a re-render replays over the base
+        # layout.  Tagged with each target's structural description.
+        "presentation_deltas": [
+            d.to_dict()
+            for d in session.presentation_deltas.get(session.chain.current_state_id, [])
+        ],
     }
 
 
@@ -330,7 +338,13 @@ async def get_session(session_id: str, style: Optional[str] = None):
 
         if style is not None:
             session.style_name = style or None
-        dto, svg = generate_layout(session.current_egi, style_name=session.style_name)
+        # Replay the current state's recorded regime-3 nudges over the freshly
+        # built base, so a hand-adjustment survives this full re-layout (and
+        # best-effort-ports across a style change; non-applying deltas drop).
+        deltas = session.presentation_deltas.get(session.chain.current_state_id)
+        dto, svg = generate_layout(
+            session.current_egi, style_name=session.style_name, deltas=deltas
+        )
         session.current_layout_dto = dto
         return ApiResponse(success=True, data=_session_payload(session, svg))
     except CorrespondenceViolation as exc:
@@ -778,10 +792,15 @@ async def adjust_presentation(session_id: str, request: ErgasterionAdjustRequest
             )
 
         op = request.operation
+        # Params recorded with the delta mirror what presentation_ops consumed —
+        # the same shape apply_deltas replays.  Built per-op so the recorded
+        # delta is self-contained (independent of this request object).
+        params: dict
         if op == "move_vertex":
             if not request.vertex_id:
                 return _adjust_bad_request("move_vertex requires 'vertex_id'.")
             new_dto = move_vertex(egi, dto, request.vertex_id, request.dx, request.dy)
+            params = {"vertex_id": request.vertex_id, "dx": request.dx, "dy": request.dy}
         elif op == "reshape_cut":
             if not request.cut_id or not request.bounds:
                 return _adjust_bad_request("reshape_cut requires 'cut_id' and 'bounds'.")
@@ -796,6 +815,13 @@ async def adjust_presentation(session_id: str, request: ErgasterionAdjustRequest
                     "reshape_cut 'bounds' needs numeric min_x, min_y, max_x, max_y."
                 )
             new_dto = reshape_cut(egi, dto, request.cut_id, new_bounds)
+            params = {
+                "cut_id": request.cut_id,
+                "bounds": {
+                    "min_x": new_bounds.min_x, "min_y": new_bounds.min_y,
+                    "max_x": new_bounds.max_x, "max_y": new_bounds.max_y,
+                },
+            }
         elif op == "reroute_ligature":
             if not request.predicate_id or not request.vertex_id or request.interior is None:
                 return _adjust_bad_request(
@@ -809,11 +835,24 @@ async def adjust_presentation(session_id: str, request: ErgasterionAdjustRequest
                 egi, dto, request.predicate_id, request.vertex_id,
                 request.port_index, interior,
             )
+            params = {
+                "predicate_id": request.predicate_id,
+                "vertex_id": request.vertex_id,
+                "port_index": request.port_index,
+                "interior": [{"x": p.x, "y": p.y} for p in interior],
+            }
         else:
             return _adjust_bad_request(f"Unknown adjust operation '{op}'.")
 
         new_dto, svg = attest_and_render(egi, new_dto)
         session.current_layout_dto = new_dto
+        # Record the act as a tagged, replayable delta keyed by the current
+        # state id.  Pure presentation: no chain step, EGI untouched — this is
+        # the persistence seed (a re-render replays it; cf. GET /sessions/{id}).
+        state_id = session.chain.current_state_id
+        session.presentation_deltas.setdefault(state_id, []).append(
+            record_delta(egi, op, params)
+        )
         return ApiResponse(success=True, data=_session_payload(session, svg))
 
     except Regime3Violation as exc:

@@ -394,6 +394,7 @@ def generate_layout(
     egi,
     previous_layout: Optional[LayoutDTO] = None,
     style_name: Optional[str] = None,
+    deltas: Optional[list] = None,
 ) -> Tuple[LayoutDTO, str]:
     """Generate layout and SVG for an EGI.
 
@@ -406,6 +407,14 @@ def generate_layout(
     the *manifest*, never the *meaning*: §3.3 attests every styled render
     because its checks are topological (containment / incidence /
     crossings against axis-aligned bounds), not stylistic.
+
+    *deltas* is an optional list of ``presentation_deltas.PresentationDelta`` —
+    the user's recorded regime-3 hand-adjustments (Settle ④b).  They are
+    replayed over the freshly-built base layout (``apply_deltas``), so a nudge
+    survives a full re-layout and best-effort-ports across a style change;
+    deltas that no longer apply are dropped.  This is the consumption side of
+    the projection ladder (style = universal default; deltas = sparse
+    overrides) — see ``docs/PRESENTATION_DELTAS_AND_STYLE.md``.
 
     Returns:
         (layout_dto, svg_string)
@@ -448,6 +457,15 @@ def generate_layout(
         # picture and proposition raises CorrespondenceViolation; the
         # system refuses to serve a drawing it can't attest.
         attest_correspondence(egi, dto, context="layout_service.generate_layout")
+
+    # Replay recorded regime-3 hand-adjustments (Settle ④b) over the base
+    # layout, so a nudge survives a full re-layout / style change.  Each
+    # surviving delta is §3.3-attested inside apply_deltas; a delta that no
+    # longer applies to this base is dropped (best-effort, like the ④a
+    # incremental builders).  docs/PRESENTATION_DELTAS_AND_STYLE.md.
+    if deltas:
+        from presentation_deltas import apply_deltas
+        dto, _dropped = apply_deltas(egi, dto, deltas)
 
     # Generate EGIF linear form for the renderer title
     try:

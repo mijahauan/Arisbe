@@ -1,0 +1,145 @@
+# Presentation deltas & style — persisting the regime-3 free dimension
+
+**Status:** design + foundation (2026-06-06). Foundation shipped: a typed,
+tagged delta vocabulary (`presentation_deltas.py`), replay-via-`presentation_ops`,
+recording in the Settle ④b adjust route, and consumption in `layout_service.
+generate_layout`. Persistence, chain inheritance, extrapolation, and scoped
+rendering are spec'd here as the follow-on increments.
+
+Read alongside [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
+§4.3 / §5.5 (regime 3) and [TRANSFORMATION_WORKFLOW_SPEC.md](TRANSFORMATION_WORKFLOW_SPEC.md)
+(Manual Settle ④b).
+
+---
+
+## 1. The problem
+
+We let a user edit the *drawn* form of an EGI in ways that are **indifferent to
+the logic** — `move_vertex` / `reshape_cut` / `reroute_ligature`, the regime-3
+algebra (`presentation_ops`). Today those edits live only in the session's
+in-memory `current_layout_dto`; close the session and the nudge is gone. We need
+a coherent way to **save the deltas with an EGI** so that:
+
+- **(a)** a consistent style + deltas hold throughout a UoD (a *diachronic*,
+  possibly large, evolving reasoning process — not one static diagram);
+- **(b)** we can *study* the deltas' effects (what people actually nudge, and how);
+- **(c)** we can *develop new stable basic styles* the way we already have Dau,
+  Peirce-handwritten, and Sowa.
+
+## 2. The model: a specificity ladder, all regime-3
+
+Three tiers of projection-side data, increasingly specific. All three are
+"indifferent to the logic"; they differ in *scope* and *reuse*.
+
+| Tier | What it is | Scope | Home in code |
+|---|---|---|---|
+| **Convention** | what *can* vary — the grammar of the projection step | universal | `projection_conventions.Conventions` (already splits *honored* vs *descriptive, not-yet-a-knob*) |
+| **Style** | a *named, shared* setting of conventions — a stable basic dialect | every graph, any view | `styles/*.json`, `style_loader` |
+| **Deltas** | per-state, per-element *human overrides* on a (style + base layout) | one state of one UoD | `presentation_deltas.PresentationDelta` (this work) |
+
+The three goals are the three things this ladder is *for*, one per tier:
+
+- **(a)** persist a **preferred style** + a **delta stream** with the UoD, and
+  carry deltas forward along the chain → consistency through the episode.
+- **(b)** deltas are **structured, tagged, replayable acts** (not pixels) → a
+  queryable dataset.
+- **(c)** the lifecycle **delta → convention → style**: a delta pattern that
+  recurs and proves stable graduates into a named convention/style. Deltas are
+  the *raw material* of styles; the `projection_conventions` *descriptive →
+  honored* split is literally the graduation ladder.
+
+## 3. The crux: deltas are **sparse, tagged exemplars** — and we *extrapolate*
+
+A UoD can be **large**. We do **not** draw the whole thing, and we do **not**
+store a position for every element. Instead:
+
+- **Style applies universally** — on any viewing, at any scope, to elements that
+  have no explicit delta. The default needs no per-element data.
+- **Deltas are sparse** — the user nudges a *few* things where the automatic
+  layout doesn't read well.
+- **We extrapolate** from those few exemplars to everything else. A delta is
+  therefore not a one-off pixel fact; it is a **sample of an intent**, and must
+  carry the *structural description of its target* — kind / area / polarity /
+  depth / relation / label, from `eg_navigation.describe`. That tag is the
+  handle for generalization.
+
+**Extrapolation is one operation at three scales — and the third scale is goal (c):**
+
+1. **Within a view** — generalize a delta to untouched elements of the same
+   structural description in scope (e.g. "vertices in odd-polarity cuts sit a
+   little lower"; "sibling cuts get this much breathing room").
+2. **Within the UoD (diachronic)** — survivors keep their element ids across a
+   transformation step (the same fact the Settle ④a pin-and-place relies on), so
+   a delta inherits forward by id; the *generalized* intent additionally covers
+   the **new** elements a step introduces, which never had an explicit delta.
+3. **Across the corpus** — when an extrapolated regularity is stable across many
+   graphs, **name it**: promote a `projection_conventions` descriptive field to
+   honored, and ship a style JSON that sets it. A new basic style **is** a
+   crystallized delta pattern.
+
+So extrapolation is not a side feature — it is the crystallization mechanism
+that turns hand-deltas into styles. Capturing deltas as *tagged acts* is what
+makes all three scales reachable; a DTO snapshot (baked pixels) could not.
+
+## 4. The render equation
+
+A drawing is a **scoped projection** of the EGI, not a whole-graph dump:
+
+```
+drawing(scope) = render(
+    base   = ELK(EGI | scope, style)              # universal style, any subset
+    ⊕ replay(applicable deltas over base)         # sparse human overrides, by id
+    ⊕ extrapolate(tagged deltas → untouched in-scope elements)   # [follow-on]
+)
+attested by §3.3 at the service boundary
+```
+
+- **Replay** folds each delta through `presentation_ops` — the op preserves §3.3
+  by construction; a delta that no longer applies (target absent, or the op now
+  crosses a boundary) is **dropped**, not failed, exactly like the ④a
+  incremental builders fall back rather than error.
+- **Style binding:** deltas are authored against the UoD's preferred style.
+  Translations (`move_vertex dx,dy`) are largely style-robust; absolute
+  `reshape_cut` bounds are geometry-specific (Dau rectangle vs Peirce's
+  √2-grown oval) and may not attest under a different style — those drop on
+  reprojection. A per-style delta map is the upgrade if best-effort proves
+  insufficient.
+
+## 5. Persistence shape (follow-on)
+
+- Reuse the **existing** `UniverseOfDiscourse.current_layout_deltas` slot
+  (already on the model, already round-tripped as `current.deltas.json`,
+  currently vestigial) rather than adding a protected field — repurpose the
+  dead field into the live one, extended to **per-state** keying.
+- A state's stored deltas are the *acts authored at that state*. Its **effective**
+  deltas = parent's surviving-id deltas (filtered to ids still present) ⊕
+  authored-here ⊕ extrapolated. This is the same shape as ④a continuity, seeded
+  from disk instead of the live prior DTO.
+- A UoD carries a **preferred style** (one name); a viewer may still reproject
+  transiently (Organon's style selector) without mutating the stored preference.
+
+## 6. Build order
+
+1. **✅ Foundation (this work).**
+   - `presentation_deltas.py` — `PresentationDelta` (op + params + target tags),
+     `record_delta` (tags via `eg_navigation.describe`), `apply_deltas`
+     (best-effort replay through `presentation_ops`, §3.3-attested per delta,
+     drops what doesn't apply), `to_dict`/`from_dict`.
+   - `layout_service.generate_layout(…, deltas=…)` consumes deltas via
+     `apply_deltas` — finally making the dead `layout_deltas` parameter live (at
+     the service layer, the right home: the engine stays projection-mechanism).
+   - Settle ④b adjust route **records** a tagged delta into the session; the
+     `GET /sessions/{id}` re-render (and `?style=` reprojection) **replays** the
+     current state's recorded deltas over a fresh base, so a nudge survives a
+     full re-layout. `_session_payload` surfaces them.
+2. **Persistence** — write per-state deltas + preferred style to disk (chain +
+   scratch + corpus), via the repurposed `current_layout_deltas` slot.
+3. **Chain inheritance** — effective deltas = surviving-id parent deltas ⊕
+   authored-here, wired into the apply / navigation render paths.
+4. **Extrapolation** — generalize tagged deltas to untouched in-scope elements
+   (within-view first), then to new elements across a step. The research layer
+   behind goals (b) and (c).
+5. **Scoped rendering** — lay out and draw a *sub-scope* of a large UoD; style +
+   deltas are already scope-independent by construction, so this is additive.
+6. **Crystallization tooling** — surface the delta dataset (b); a path from a
+   stable delta pattern to a new `projection_conventions` knob + style JSON (c).

@@ -31,6 +31,7 @@ if str(_src_dir) not in sys.path:
 from egi_core_dau import RelationalGraphWithCuts
 from layout_dto import LayoutDTO
 from tomos_service import ChainStep, TransformationChain
+from presentation_deltas import PresentationDelta
 
 
 @dataclass
@@ -61,6 +62,12 @@ class WorkshopSession:
     # only chooses how the current state is *drawn* — the first step toward
     # drawing-in-a-style.
     style_name: Optional[str] = None
+    # Recorded regime-3 hand-adjustments (Settle ④b), keyed by the state id they
+    # were authored at.  Sparse human overrides on top of (style + base layout);
+    # replayed on re-render so a nudge survives a re-layout.  Per-state keying is
+    # the seed for diachronic inheritance (effective = surviving-id parent deltas
+    # ⊕ authored-here).  See docs/PRESENTATION_DELTAS_AND_STYLE.md.
+    presentation_deltas: Dict[str, List[PresentationDelta]] = field(default_factory=dict)
     created: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_accessed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
