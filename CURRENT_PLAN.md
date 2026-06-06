@@ -64,16 +64,38 @@ already-empty area.
 - Needed `.core_modification_authorized` + core suite (415 passed directly);
   `docs/ARISBE_CORE_API_REFERENCE.md` regenerated.
 
-**Start next session with one of (rough priority):**
-1. **INS / IT+ positional pinning** (the remaining ④a 1c additive case) — place
-   genuinely new vertices/predicates in the survivors' frame, overlap-aware
-   (§3.3 won't catch visual overlap, so the safety net is weaker). The agreed
-   pause point; the hardest continuity increment.
-2. **Dogfood the now-complete four-beat grammar** on a real multi-step proof
-   end-to-end in the browser (compose → settle each step → promote); a literal
-   **ghost-preview** for Placing rules.
-3. **Agon V2** (semantic-evaluation inner layer / auto-Grapheus / dynamic M) or
-   a first-class **warrant gradient**.
+**Next session (decided): INS / IT+ positional pinning** — the remaining ④a
+1c additive case, and the last gap before the four-beat continuity story is
+complete. Subtractive (ERA/IT−/DC−) and additive-DC+ wrap already pin survivors
+at 0px (`layout_service._subtractive_layout` / `_additive_cut_layout`); INS and
+IT+ still fall back to a cold full layout because they add **genuinely new
+vertices/predicates** that need frame-consistent, overlap-aware *placement*.
+
+Concrete starting point:
+- Add a sibling builder in `layout_service.py` — e.g. `_additive_placement_layout`
+  (parallel to the two existing incremental builders, same §3.3-attest +
+  full-layout-fallback shape). Keep every **survivor** (element present in the
+  previous DTO) at its exact prior position/bounds; **place only the new
+  elements** = current-EGI elements − previous-DTO elements.
+- New elements land in their **target area's** free space (INS: the inserted
+  content in the chosen negative area; IT+: the copy in the destination area —
+  and per the existing `_structural_key` ordering, the copy should echo the
+  source's shape). Need an overlap-aware packer / a scoped ELK pass on just the
+  changed sub-area, then grow ancestor cut bounds bottom-up around it (reuse the
+  `_additive_cut_layout` bottom-up refit idea).
+- **The weaker safety net (call it out):** §3.3 is topological (containment /
+  incidence / crossings against axis-aligned bounds) — it will NOT catch two new
+  predicates *visually overlapping* in the same area. So overlap-avoidance is a
+  presentation-quality concern the attestation can't enforce; the builder must
+  own it, and fall back to full layout if it can't place cleanly.
+- `changes_made` from the rule result names what's new (INS inserted ids; IT+
+  the copied subgraph) — use it (or the EGI−DTO set difference) to find the new
+  elements. The apply path already flows `previous_layout` into `generate_layout`.
+
+Deferred after that: **dogfood the now-complete four-beat grammar** end-to-end in
+the browser (compose → settle each step → promote) + a literal **ghost-preview**
+for Placing rules; **Agon V2** (semantic-evaluation inner layer / auto-Grapheus /
+dynamic M); a first-class **warrant gradient**.
 
 ---
 
