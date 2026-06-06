@@ -1,11 +1,79 @@
 # Current Plan
 
-**Last Updated**: 2026-06-05 (Settle continuity + chain player + view-style + Spot/Subject grammar 2a–2c)
+**Last Updated**: 2026-06-06 (Manual Settle ④b drag layer + DC+ empty-double-cut semantics)
 
 Living scratchpad for where development stands and what's next. The
 durable vision lives in [docs/PRODUCT_VISION.md](docs/PRODUCT_VISION.md);
 this file tracks the active front. The pre-commit quality gate reads the
 **Last Updated** date here, so keep it current.
+
+---
+
+## Session 2026-06-06 — Manual Settle ④b + DC+ empty-double-cut (both shipped)
+
+Completed the two threads at the top of the prior session's start list:
+**#1 Manual Settle ④b** (the four-beat workflow's final beat) and
+**#3 DC+ empty-double-cut semantics** (the one logic-expressiveness gap).
+All on `main`; full suite **941 passed, 35 skipped**; quality gate green.
+
+**#1 Manual Settle ④b — the regime-3 drag layer (browser-verified).**
+The four-beat grammar (Spot→Subject→Commit→Settle) now has its manual
+touch-up. The workshop canvas drags to tidy appearance *after* a transform,
+logic held fixed:
+- **Backend** — `layout_service.attest_and_render(egi, dto)` renders an
+  already-built DTO (no ELK pass, so the nudge survives) and still §3.3-attests.
+  `POST /ergasterion/sessions/{id}/adjust` dispatches to `presentation_ops`
+  (`move_vertex` / `reshape_cut` / `reroute_ligature`); pure presentation
+  (EGI untouched, **no chain step**); `Regime3Violation` → clean `REGIME3_VIOLATION`.
+- **Frontend** — `web_viewer/js/settle-adjust.js` (self-contained): a Settle
+  toggle; drag a **vertex** (→ move_vertex), a **cut corner handle** (→
+  reshape_cut), or a **line of identity** (→ reroute_ligature). Screen→DTO via
+  the pan-zoom viewport CTM + the renderer's `(-min+pad)` offset (deltas are
+  offset-invariant; absolute bounds/waypoints subtract the offset). Re-renders
+  with the camera held (1a) and redraws handles. The ligature `<path>` is now
+  tagged `data-predicate-id`/`data-vertex-id`/`data-port-index` (renderer,
+  unprotected; Dau output still byte-identical — attrs are additive).
+- **The layered guarantee, made a contract.** A reshape can satisfy
+  `presentation_ops`' own membership guards yet still break §3.3 (enlarging a
+  cut so a ligature newly crosses it) — `attest_and_render` is the authority
+  and refuses it as `CORRESPONDENCE_VIOLATION`. `presentation_ops` = local
+  guards; attestation = the backstop. Pinned in a route test.
+- **Browser-verified** (system Chrome): Settle on → 8 handles (4 corners × 2
+  cuts); vertex drag +70,+45px moved the spot **exactly** +70,+45px (coordinate
+  transform is pixel-exact), move_vertex + reshape_cut + reroute_ligature all
+  round-tripped "appearance updated (logic unchanged)". Tests:
+  `test_ergasterion_routes.py` (+6).
+
+**#3 DC+ empty-double-cut — "a double negative at any spot, even around
+nothing" (protected change).** DC+ used to equate empty selection with
+*enclose the whole area*, so a truly-empty double cut only worked in an
+already-empty area.
+- `formal_transformation_rules.py` — `TransformationContext.enclose_empty:
+  bool = False` (additive). DC+ now: non-empty selection → enclose those; empty
+  + `enclose_empty` → empty double cut around nothing; empty + not → legacy
+  whole-area wrap (backward-compatible).
+- `rule_interaction.py` — `DCPlusInteraction` gains an optional `SELECT_AREA`
+  step (the Spot). Empty Subject + explicit Spot → `enclose_empty=True` in that
+  area; nothing at all → legacy sheet-wrap. The route already maps
+  `SELECT_AREA → target_area`, so no route change.
+- **UI** — DC+ param form gains a Spot field (shift-click a region fills it);
+  `readRuleParameters` sends `target_area`. Browser-verified: empty double cut
+  inserted into the non-empty cut `c_6ea5bf60` (cut_count 2→4) *without*
+  wrapping its contents. Tests: `test_rule_interaction.py` (+3),
+  `test_introspection_and_rules.py` updated.
+- Needed `.core_modification_authorized` + core suite (415 passed directly);
+  `docs/ARISBE_CORE_API_REFERENCE.md` regenerated.
+
+**Start next session with one of (rough priority):**
+1. **INS / IT+ positional pinning** (the remaining ④a 1c additive case) — place
+   genuinely new vertices/predicates in the survivors' frame, overlap-aware
+   (§3.3 won't catch visual overlap, so the safety net is weaker). The agreed
+   pause point; the hardest continuity increment.
+2. **Dogfood the now-complete four-beat grammar** on a real multi-step proof
+   end-to-end in the browser (compose → settle each step → promote); a literal
+   **ghost-preview** for Placing rules.
+3. **Agon V2** (semantic-evaluation inner layer / auto-Grapheus / dynamic M) or
+   a first-class **warrant gradient**.
 
 ---
 
@@ -68,7 +136,7 @@ and onto the Peircean chain-of-semiosis grounding (see
 | Chain persistence (regime-1 → regime-2 boundary) | ✅ `tomos_service.save_uod_with_chain` / `load_chain` |
 | **Agon** (Endoporeutic Game arena) | 🟢 V1 live — `/agon` (thin, flexible slice) |
 | On-canvas element selection for rule application | ✅ live + browser-verified — click→select, introspection-named chips, polarity hints; **Spot/Subject grammar (2a/2b/2c complete)**: sheet/region selectable, per-rule `/rules` step checklist, **closure preview** (a cut pulls in its contents; DC− "cuts go, contents stay"), **step-driven click dispatch** (Subject step → element, Spot step → region; no modifier), **justification highlights** (DC− pair, IT− governing original via iso engine, ERA positivity) |
-| Transformation UI w/ regime-3 (drag/reshape) affordances | ⬜ not started |
+| Transformation UI w/ regime-3 (drag/reshape) affordances | ✅ live + browser-verified — **Manual Settle ④b**: `/ergasterion/.../adjust` + `web_viewer/js/settle-adjust.js` drag a vertex (move_vertex) / cut corner (reshape_cut) / line (reroute_ligature); pure presentation, `Regime3Violation`→clean refusal, `attest_and_render` is the §3.3 backstop |
 
 **What the Ergasterion build settled.** Bringing the workshop online
 forced the **regime-1 → regime-2 promotion boundary** into a concrete
@@ -592,10 +660,12 @@ workshop.
       (incl. the **sheet**), `/rules`-driven prompts, restored closure preview,
       the two visual dialects (ghost-preview vs justification-highlight). Mostly
       unprotected UI + additive routes.
-   3. **Manual Settle (④b)** — wire `move_vertex`/`reshape_cut`/`reroute_ligature`
-      onto the canvas (refusing boundary crossings).
-   4. **DC+ empty-double-cut semantics** — the one protected change
-      (`rule_interaction.py` / `formal_transformation_rules.py`).
+   3. ✅ **Manual Settle (④b) DONE (2026-06-06)** — `move_vertex`/`reshape_cut`/
+      `reroute_ligature` wired onto the canvas (`settle-adjust.js` +
+      `/ergasterion/.../adjust`), boundary crossings refused, browser-verified.
+   4. ✅ **DC+ empty-double-cut semantics DONE (2026-06-06)** — `enclose_empty`
+      on `TransformationContext` + an optional Spot step on `DCPlusInteraction`
+      (`formal_transformation_rules.py` / `rule_interaction.py`, protected).
 
    **Validated against the seeded exemplars** (spec §6): the grammar was
    walked step-by-step over the real `theorem_praeclarum` (7 steps) and

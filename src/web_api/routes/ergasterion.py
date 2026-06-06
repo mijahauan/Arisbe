@@ -49,6 +49,7 @@ from fastapi.responses import FileResponse
 
 from web_api.models.api_models import (
     ApiResponse,
+    ErgasterionAdjustRequest,
     ErgasterionApplyRequest,
     ErgasterionClosureRequest,
     ErgasterionOpenRequest,
@@ -59,10 +60,21 @@ from web_api.services.ergasterion_session_manager import (
     get_ergasterion_session_manager,
 )
 from web_api.services.introspection import egi_introspection
-from web_api.services.layout_service import generate_layout, layout_dto_to_dict
+from web_api.services.layout_service import (
+    attest_and_render,
+    generate_layout,
+    layout_dto_to_dict,
+)
 from web_api.services.linear_forms import linear_forms
 
 from correspondence_attestation import CorrespondenceViolation
+from layout_dto import BoundingBox, Point
+from presentation_ops import (
+    Regime3Violation,
+    move_vertex,
+    reshape_cut,
+    reroute_ligature,
+)
 from egif_parser_dau import parse_egif
 from subgraph_closure_validator import SubgraphClosureValidator
 from rule_interaction import (
@@ -442,6 +454,112 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
                 "type": type(exc).__name__,
             },
         )
+
+
+@router.post("/sessions/{session_id}/adjust")
+async def adjust_presentation(session_id: str, request: ErgasterionAdjustRequest):
+    """Settle ④b — a manual regime-3 presentation touch-up.
+
+    The user has nudged the drawing (moved a vertex, reshaped a cut, rerouted
+    a ligature) to tidy appearance after a transformation.  This is *pure
+    presentation*: the EGI is untouched, no chain step is recorded, and the
+    operation is logic-preserving by construction — ``presentation_ops``
+    refuses any boundary-crossing nudge (``Regime3Violation``).
+
+    The adjusted LayoutDTO is rendered directly (no ELK pass, so the nudge
+    survives) and still §3.3-attested before it leaves the service — the
+    runtime guarantee that the move preserved correspondence.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+
+        egi = session.current_egi
+        dto = session.current_layout_dto
+        if dto is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "NO_LAYOUT",
+                    "message": "Session has no current layout to adjust. Render it first.",
+                },
+            )
+
+        op = request.operation
+        if op == "move_vertex":
+            if not request.vertex_id:
+                return _adjust_bad_request("move_vertex requires 'vertex_id'.")
+            new_dto = move_vertex(egi, dto, request.vertex_id, request.dx, request.dy)
+        elif op == "reshape_cut":
+            if not request.cut_id or not request.bounds:
+                return _adjust_bad_request("reshape_cut requires 'cut_id' and 'bounds'.")
+            b = request.bounds
+            try:
+                new_bounds = BoundingBox(
+                    min_x=float(b["min_x"]), min_y=float(b["min_y"]),
+                    max_x=float(b["max_x"]), max_y=float(b["max_y"]),
+                )
+            except (KeyError, TypeError, ValueError):
+                return _adjust_bad_request(
+                    "reshape_cut 'bounds' needs numeric min_x, min_y, max_x, max_y."
+                )
+            new_dto = reshape_cut(egi, dto, request.cut_id, new_bounds)
+        elif op == "reroute_ligature":
+            if not request.predicate_id or not request.vertex_id or request.interior is None:
+                return _adjust_bad_request(
+                    "reroute_ligature requires 'predicate_id', 'vertex_id', 'interior'."
+                )
+            try:
+                interior = [Point(x=float(p["x"]), y=float(p["y"])) for p in request.interior]
+            except (KeyError, TypeError, ValueError):
+                return _adjust_bad_request("reroute_ligature 'interior' needs {x, y} points.")
+            new_dto = reroute_ligature(
+                egi, dto, request.predicate_id, request.vertex_id,
+                request.port_index, interior,
+            )
+        else:
+            return _adjust_bad_request(f"Unknown adjust operation '{op}'.")
+
+        new_dto, svg = attest_and_render(egi, new_dto)
+        session.current_layout_dto = new_dto
+        return ApiResponse(success=True, data=_session_payload(session, svg))
+
+    except Regime3Violation as exc:
+        # A boundary-crossing nudge — refused.  This is the regime-3 guarantee
+        # working: appearance is free, but it may not change the logic.
+        return ApiResponse(
+            success=False,
+            error={"code": "REGIME3_VIOLATION", "message": str(exc)},
+        )
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc)},
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={
+                "code": "ADJUST_ERROR",
+                "message": str(exc),
+                "type": type(exc).__name__,
+            },
+        )
+
+
+def _adjust_bad_request(message: str) -> ApiResponse:
+    return ApiResponse(
+        success=False,
+        error={"code": "ADJUST_BAD_REQUEST", "message": message},
+    )
 
 
 @router.post("/sessions/{session_id}/closure")

@@ -237,6 +237,34 @@ def generate_layout(
     return dto, svg
 
 
+def attest_and_render(
+    egi,
+    dto: LayoutDTO,
+) -> Tuple[LayoutDTO, str]:
+    """Attest and render an *already-built* LayoutDTO — no layout engine pass.
+
+    Used for Settle ④b (manual regime-3 touch-up): a user has nudged a
+    vertex / reshaped a cut / rerouted a ligature via ``presentation_ops``,
+    producing a new DTO whose geometry must be preserved exactly (re-running
+    ELK would discard the nudge).  The (EGI, DTO) pair is still §3.3-attested
+    before it leaves the service — a regime-3 op is *defined* to preserve
+    correspondence, so this is the runtime guarantee that it did.
+
+    Returns:
+        (dto, svg_string) — the same DTO passed in, plus its rendered SVG.
+    """
+    attest_correspondence(egi, dto, context="layout_service.attest_and_render")
+
+    try:
+        egif = EGIFGenerator().generate(egi)
+    except Exception:
+        egif = ""
+
+    renderer = SimpleSVGRenderer()
+    svg = renderer.render_to_svg(dto, egif=egif, egi=egi)
+    return dto, svg
+
+
 def layout_dto_to_dict(dto: LayoutDTO) -> dict:
     """Serialize a LayoutDTO to a JSON-compatible dict."""
     vertex_positions = {

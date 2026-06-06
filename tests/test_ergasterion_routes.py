@@ -645,3 +645,133 @@ def test_ergasterion_index_serves_html(client):
     assert response.status_code == 200
     assert "text/html" in response.headers.get("content-type", "")
     assert "Ergasterion" in response.text
+
+
+# --------------------------------------------------------------------------- #
+# Manual Settle ④b — regime-3 presentation touch-up (/adjust)                 #
+# --------------------------------------------------------------------------- #
+
+
+def _adjust(client, sid, body):
+    resp = client.post(f"/ergasterion/sessions/{sid}/adjust", json=body)
+    assert resp.status_code == 200
+    return resp.json()
+
+
+def test_adjust_move_vertex_is_pure_presentation(client, isolated_tomos):
+    """Moving a (sheet) vertex updates only the drawing: the EGI, the chain,
+    and the rest of the graph are untouched, and the new position reflects the
+    nudge exactly."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    vpos = data["layout_dto"]["vertex_positions"]
+    vid, old = next(iter(vpos.items()))
+    dx, dy = 37.0, -21.0
+
+    out = _adjust(client, sid, {"operation": "move_vertex", "vertex_id": vid,
+                                "dx": dx, "dy": dy})
+    assert out["success"] is True, out.get("error")
+    d = out["data"]
+
+    new = d["layout_dto"]["vertex_positions"][vid]
+    assert new["x"] == pytest.approx(old["x"] + dx)
+    assert new["y"] == pytest.approx(old["y"] + dy)
+
+    # Pure presentation: no chain step recorded, EGI summary unchanged.
+    assert d["chain"]["step_count"] == data["chain"]["step_count"]
+    assert d["egi_summary"] == data["egi_summary"]
+
+
+def test_adjust_reshape_cut_to_equal_bounds_is_accepted(client, isolated_tomos):
+    """A reshape that preserves the bounds is accepted and re-rendered — proves
+    the reshape_cut dispatch + attest + render path end-to-end without relying
+    on fragile geometry.  (Geometric reshape semantics are pinned in
+    tests/test_presentation_ops.py.)"""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    cut_bounds = data["layout_dto"]["cut_bounds"]
+    cid, b = next(iter(cut_bounds.items()))
+
+    out = _adjust(client, sid, {"operation": "reshape_cut", "cut_id": cid,
+                                "bounds": dict(b)})
+    assert out["success"] is True, out.get("error")
+    got = out["data"]["layout_dto"]["cut_bounds"][cid]
+    for k in ("min_x", "min_y", "max_x", "max_y"):
+        assert got[k] == pytest.approx(b[k])
+    # Pure presentation: EGI unchanged.
+    assert out["data"]["egi_summary"] == data["egi_summary"]
+
+
+def test_adjust_reshape_that_breaks_correspondence_is_refused(client, isolated_tomos):
+    """The attestation backstop: a reshape can satisfy presentation_ops' own
+    membership guards yet still break §3.3 (e.g. enlarging a cut so a ligature
+    newly crosses it).  attest_and_render catches that and the route refuses
+    cleanly — either as a local Regime3Violation or as a correspondence
+    violation.  Appearance is free; it may never change the logic."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    cut_bounds = data["layout_dto"]["cut_bounds"]
+    intro = data["introspection"]["elements"]
+
+    # A cut with contents on the sheet, grown by a large margin — big enough to
+    # sweep across neighbouring geometry (a ligature and/or sibling element).
+    cid = next(
+        c for c in cut_bounds
+        if any(e.get("area") == c for e in intro.values())
+    )
+    b = cut_bounds[cid]
+    big = {"min_x": b["min_x"] - 400, "min_y": b["min_y"] - 400,
+           "max_x": b["max_x"] + 400, "max_y": b["max_y"] + 400}
+
+    out = _adjust(client, sid, {"operation": "reshape_cut", "cut_id": cid,
+                                "bounds": big})
+    assert out["success"] is False
+    assert out["error"]["code"] in {"CORRESPONDENCE_VIOLATION", "REGIME3_VIOLATION"}
+    # State preserved.
+    after = client.get(f"/ergasterion/sessions/{sid}").json()["data"]
+    assert after["egi_summary"] == data["egi_summary"]
+
+
+def test_adjust_reshape_cut_refuses_expelling_contents(client, isolated_tomos):
+    """Shrinking a cut to a pinpoint would push its contents out — refused as a
+    Regime3Violation (appearance is free, but it may not change the logic)."""
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    cut_bounds = data["layout_dto"]["cut_bounds"]
+    intro = data["introspection"]["elements"]
+
+    # A cut that actually has contents.
+    with_contents = next(
+        cid for cid in cut_bounds
+        if any(e.get("area") == cid for e in intro.values())
+    )
+    b = cut_bounds[with_contents]
+    cx = (b["min_x"] + b["max_x"]) / 2
+    cy = (b["min_y"] + b["max_y"]) / 2
+    tiny = {"min_x": cx - 1, "min_y": cy - 1, "max_x": cx + 1, "max_y": cy + 1}
+
+    out = _adjust(client, sid, {"operation": "reshape_cut",
+                                "cut_id": with_contents, "bounds": tiny})
+    assert out["success"] is False
+    assert out["error"]["code"] == "REGIME3_VIOLATION"
+
+    # State preserved: a fresh GET still renders the unshrunk graph.
+    after = client.get(f"/ergasterion/sessions/{sid}").json()["data"]
+    assert after["egi_summary"] == data["egi_summary"]
+
+
+def test_adjust_unknown_operation_is_clean_error(client, isolated_tomos):
+    data = _open_session(client, f"uod:{isolated_tomos['seed_id']}")
+    sid = data["session_id"]
+    out = _adjust(client, sid, {"operation": "teleport_cut"})
+    assert out["success"] is False
+    assert out["error"]["code"] == "ADJUST_BAD_REQUEST"
+
+
+def test_adjust_unknown_session_is_clean_error(client, fresh_session_manager):
+    resp = client.post(
+        "/ergasterion/sessions/no-such/adjust",
+        json={"operation": "move_vertex", "vertex_id": "v", "dx": 1, "dy": 1},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"

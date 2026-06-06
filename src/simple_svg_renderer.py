@@ -231,13 +231,19 @@ class SimpleSVGRenderer:
                 for point in pts[1:]:
                     path_d += f" L {point.x + offset_x} {point.y + offset_y}"
 
-            # Main ligature line - no hooks, cap style from style spec
+            # Main ligature line - no hooks, cap style from style spec.
+            # The (predicate, vertex, port) triple uniquely keys this path, so
+            # the canvas can address it for a regime-3 reroute (Settle ④b).
             ET.SubElement(ligature_group, "path", {
                 "d": path_d,
                 "stroke": ligature_color,
                 "stroke-width": str(style.ligature_line_width),
                 "stroke-linecap": ligature_cap_style,
-                "fill": "none"
+                "fill": "none",
+                "class": "ligature-path",
+                "data-predicate-id": str(lig.predicate_id),
+                "data-vertex-id": str(lig.vertex_id),
+                "data-port-index": str(lig.port_index),
             })
 
         # ====================================================================

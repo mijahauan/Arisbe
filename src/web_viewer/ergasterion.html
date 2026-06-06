@@ -210,6 +210,33 @@
       stroke-width: 3px;
       stroke-dasharray: 2 2;
     }
+    /* Settle ④b — manual regime-3 touch-up.  In settle mode the cursor invites
+       dragging, cut corners show grab handles, and a drag previews in cyan. */
+    #canvas.settle-mode { cursor: grab; }
+    #canvas.settle-mode g[data-element-type="vertex"],
+    #canvas.settle-mode path.ligature-path { cursor: grab; }
+    #canvas.settle-mode g[data-element-type="vertex"]:active,
+    #canvas.settle-mode path.ligature-path:active { cursor: grabbing; }
+    #canvas .settle-handle {
+      fill: #94e2d5;
+      stroke: #181825;
+      stroke-width: 1px;
+      cursor: nwse-resize;
+    }
+    #canvas .settle-preview {
+      fill: none;
+      stroke: #94e2d5;
+      stroke-width: 1.5px;
+      stroke-dasharray: 4 3;
+      pointer-events: none;
+    }
+    #canvas .settle-preview-dot {
+      fill: #94e2d5;
+      stroke: #181825;
+      stroke-width: 1px;
+      pointer-events: none;
+    }
+    #btn-settle.primary { background: #94e2d5; color: #181825; }
     #selection-bar {
       margin-bottom: 10px;
       padding: 7px 9px;
@@ -408,6 +435,16 @@
             <div class="sel-line" id="rule-steps-guidance" style="margin-top:6px;"></div>
           </div>
 
+          <!-- Settle ④b: a regime-3 toggle. On, the canvas drags to tidy the
+               drawing (move a vertex, resize a cut corner, reroute a line) —
+               appearance only, the logic is held fixed by the server. -->
+          <div id="settle-row" style="margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <button class="action" id="btn-settle" style="flex:0 0 auto;">✋ Settle</button>
+            <span style="font-size:10px; color:#6c7086;">
+              tidy the layout — drag a spot, a cut corner, or a line. Logic stays fixed.
+            </span>
+          </div>
+
           <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
             Rule
           </h2>
@@ -471,6 +508,7 @@
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
+  <script src="js/settle-adjust.js"></script>
   <script>
     (function () {
       // ---- DOM refs ----
@@ -499,6 +537,7 @@
       let currentRule = null;
       let allCorpus = [];
       let svgPanZoomInstance = null;
+      let currentLayoutDto = null;   // current state's layout DTO (Settle ④b geometry)
       let sheetId = null;        // the sheet's area id (a selectable region)
       let ruleSteps = {};        // rule name -> /rules step descriptors
       let activeStepIndex = 0;   // which step the canvas is currently filling
@@ -885,6 +924,9 @@
       }
 
       function onCanvasClick(e) {
+        // In Settle mode the canvas drags geometry rather than selecting
+        // elements for a rule, so suppress selection clicks entirely.
+        if (window.SettleAdjust && SettleAdjust.isEnabled()) return;
         const g = e.target.closest && e.target.closest('[data-element-id]');
         const id = g && g.getAttribute('data-element-id');
 
@@ -975,6 +1017,9 @@
         // A new drawing means a new state; any prior selection referred
         // to the old state's element ids, so reset it.
         clearSelection();
+        // If we're tidying (Settle ④b), redraw the drag handles over the
+        // freshly-rendered SVG.
+        if (window.SettleAdjust && SettleAdjust.isEnabled()) SettleAdjust.refresh();
       }
 
       function renderChain(chain) {
@@ -1000,6 +1045,8 @@
         // Capture introspection before rendering so the selection bar can
         // describe elements as soon as the (reset) selection refreshes.
         currentIntrospection = data.introspection || null;
+        // The current geometry — Settle ④b drags are computed against it.
+        currentLayoutDto = data.layout_dto || null;
         // The sheet id — the open region, a first-class selectable Spot
         // (every theorem proof starts on it). From the layout DTO, falling
         // back to the introspection area flagged is_sheet.
@@ -1047,8 +1094,10 @@
         activeStepIndex = ruleSteps[rule] ? firstCanvasStep(ruleSteps[rule]) : 0;
         let html = '';
         if (rule === 'DC+') {
-          html = '<div class="field"><label>Selected elements (comma-sep ids, may be empty)</label>' +
-                 '<input type="text" id="param-selected" placeholder="(leave blank for empty double cut on sheet)" /></div>';
+          html = '<div class="field"><label>Subject — elements to enclose (comma-sep ids; blank for an empty double cut)</label>' +
+                 '<input type="text" id="param-selected" placeholder="(blank = empty double cut)" /></div>' +
+                 '<div class="field"><label>Spot — area for an empty double cut (optional; shift-click a region)</label>' +
+                 '<input type="text" id="param-target-area" placeholder="(blank = whole sheet)" /></div>';
         } else if (rule === 'DC-' || rule === 'ERA' || rule === 'IT-') {
           const prompt = rule === 'DC-' ? 'one cut id (the outer cut)' :
                          rule === 'ERA' ? 'element ids in a positive area' :
@@ -1079,8 +1128,18 @@
       }
 
       function readRuleParameters() {
-        if (currentRule === 'DC+' || currentRule === 'DC-' ||
-            currentRule === 'ERA' || currentRule === 'IT-') {
+        if (currentRule === 'DC+') {
+          // Subject + optional Spot: a Spot with an empty Subject inserts an
+          // empty double cut around nothing there (enclose_empty); no Spot and
+          // no Subject keeps the convenience whole-sheet wrap.
+          const raw = (document.getElementById('param-selected') || {}).value || '';
+          const items = raw.split(',').map((s) => s.trim()).filter(Boolean);
+          const area = ((document.getElementById('param-target-area') || {}).value || '').trim();
+          const params = { selected_elements: items };
+          if (area) params.target_area = area;
+          return params;
+        }
+        if (currentRule === 'DC-' || currentRule === 'ERA' || currentRule === 'IT-') {
           const raw = (document.getElementById('param-selected') || {}).value || '';
           const items = raw.split(',').map((s) => s.trim()).filter(Boolean);
           return { selected_elements: items };
@@ -1261,6 +1320,32 @@
       btnApply.addEventListener('click', applyRule);
       btnPromote.addEventListener('click', promote);
       btnDiscard.addEventListener('click', discard);
+
+      // Settle ④b — wire the regime-3 drag layer. A successful adjust returns a
+      // full session payload (the server re-rendered the nudged drawing); show
+      // it with the camera held (renderSvg re-draws the handles).
+      const btnSettle = document.getElementById('btn-settle');
+      if (window.SettleAdjust) {
+        SettleAdjust.configure({
+          canvasEl,
+          getSessionId: () => currentSessionId,
+          getLayoutDto: () => currentLayoutDto,
+          getPanZoom: () => svgPanZoomInstance,
+          onResult: (data) => showSession({ ...data }, true),
+          setStatus,
+        });
+      }
+      if (btnSettle) {
+        btnSettle.addEventListener('click', () => {
+          if (!window.SettleAdjust) return;
+          const on = !SettleAdjust.isEnabled();
+          SettleAdjust.setEnabled(on);
+          btnSettle.classList.toggle('primary', on);
+          setStatus(on
+            ? 'Settle on — drag a spot, a cut corner, or a line to tidy. The logic is held fixed.'
+            : 'Settle off — clicks select elements for rules again.');
+        });
+      }
 
       document.querySelectorAll('button.action[data-rule]').forEach((b) => {
         b.addEventListener('click', () => renderRuleParams(b.dataset.rule));

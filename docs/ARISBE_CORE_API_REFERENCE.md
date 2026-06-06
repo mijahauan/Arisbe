@@ -1004,7 +1004,7 @@ Context information for applying a transformation.
 
 **Methods**:
 
-- `__init__(self, source_egi: egi_core_dau.RelationalGraphWithCuts, target_area: str, selected_subgraph: FrozenSet[str], area_polarity: egi_core_dau.AreaPolarity, nesting_depth: int) -> None`
+- `__init__(self, source_egi: egi_core_dau.RelationalGraphWithCuts, target_area: str, selected_subgraph: FrozenSet[str], area_polarity: egi_core_dau.AreaPolarity, nesting_depth: int, enclose_empty: bool = False) -> None`
   Initialize self.  See help(type(self)) for accurate signature.
 - `__repr__(self)`
   Return repr(self).
@@ -1304,7 +1304,8 @@ user actions and formal transformation rule application.
 
 Each of Dau's six rules has a distinct interaction pattern:
 
-    DC+  Single-step: select elements to enclose (may be empty).
+    DC+  Subject + spot: select elements to enclose, or a spot (area) for an
+                      empty double cut around nothing (both optional).
     DC-  Single-step: select the outer cut of a double-cut pair.
     ERA  Single-step: select a closed subgraph in a positive area.
     INS  Two-step:    (a) provide content to insert (EGIF or subgraph),
@@ -1352,7 +1353,19 @@ DC- (Double Cut Erasure): select the outer cut of a double-cut pair.
 
 #### `DCPlusInteraction`
 
-DC+ (Double Cut Insertion): select elements to enclose.
+DC+ (Double Cut Insertion): enclose a subject, or a spot around nothing.
+
+Two optional steps, following the Spot/Subject grammar:
+
+- ``select`` (the Subject): the elements to enclose.  When non-empty, the
+  double cut wraps exactly those elements (in their common area).
+- ``select_area`` (the Spot): the area to place the double cut in.  When
+  the Subject is empty but a Spot is given, an *empty* double cut is
+  inserted there — a double negative around nothing, even in a non-empty
+  area (``enclose_empty``).
+
+With neither step provided, DC+ falls back to the convenience default:
+enclose every element currently on the sheet.
 
 **Methods**:
 

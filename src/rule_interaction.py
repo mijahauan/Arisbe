@@ -4,7 +4,8 @@ user actions and formal transformation rule application.
 
 Each of Dau's six rules has a distinct interaction pattern:
 
-    DC+  Single-step: select elements to enclose (may be empty).
+    DC+  Subject + spot: select elements to enclose, or a spot (area) for an
+                      empty double cut around nothing (both optional).
     DC-  Single-step: select the outer cut of a double-cut pair.
     ERA  Single-step: select a closed subgraph in a positive area.
     INS  Two-step:    (a) provide content to insert (EGIF or subgraph),
@@ -218,7 +219,20 @@ def _all_in_same_area(
 # ---------------------------------------------------------------------------
 
 class DCPlusInteraction(RuleInteraction):
-    """DC+ (Double Cut Insertion): select elements to enclose."""
+    """DC+ (Double Cut Insertion): enclose a subject, or a spot around nothing.
+
+    Two optional steps, following the Spot/Subject grammar:
+
+    - ``select`` (the Subject): the elements to enclose.  When non-empty, the
+      double cut wraps exactly those elements (in their common area).
+    - ``select_area`` (the Spot): the area to place the double cut in.  When
+      the Subject is empty but a Spot is given, an *empty* double cut is
+      inserted there — a double negative around nothing, even in a non-empty
+      area (``enclose_empty``).
+
+    With neither step provided, DC+ falls back to the convenience default:
+    enclose every element currently on the sheet.
+    """
 
     rule_name = "DC+"
 
@@ -227,49 +241,103 @@ class DCPlusInteraction(RuleInteraction):
             InteractionStep(
                 step_id="select",
                 kind=StepKind.SELECT_SUBGRAPH,
-                prompt="Select elements to enclose in a double cut (or select nothing for empty double cut).",
+                prompt="Select elements to enclose in a double cut (or select nothing for an empty double cut).",
+                optional=True,
+            ),
+            InteractionStep(
+                step_id="select_area",
+                kind=StepKind.SELECT_AREA,
+                prompt="Select the spot (area) for the double cut. With no elements selected, "
+                       "this inserts an empty double cut around nothing there.",
                 optional=True,
             ),
         ]
 
     def validate_step(self, step, user_input, state):
+        if step.step_id == "select":
+            return self._validate_subject(user_input, state)
+        if step.step_id == "select_area":
+            return self._validate_spot(user_input, state)
+        return StepResult(step_id=step.step_id, valid=False, message="Unknown step.")
+
+    def _validate_subject(self, user_input, state):
         egi = state.egi
         selection: FrozenSet[ElementID] = frozenset(user_input) if user_input else frozenset()
 
         if not selection:
-            # Empty selection → insert empty double cut on sheet
+            # No subject yet — the area (if any) is decided by the spot step.
             return StepResult(
-                step_id=step.step_id,
+                step_id="select",
                 valid=True,
-                data={"selection": frozenset(), "area": egi.sheet},
-                message="Will insert empty double cut on sheet.",
+                data={"selection": frozenset(), "area": None},
+                message="No elements selected — provide a spot for an empty double cut.",
             )
 
         # All selected elements must be in the same area
         area = _all_in_same_area(egi, selection)
         if area is None:
             return StepResult(
-                step_id=step.step_id,
+                step_id="select",
                 valid=False,
                 message="All selected elements must be in the same area.",
             )
 
         return StepResult(
-            step_id=step.step_id,
+            step_id="select",
             valid=True,
             data={"selection": selection, "area": area},
             message=f"Will enclose {len(selection)} element(s) in area {area}.",
         )
 
+    def _validate_spot(self, user_input, state):
+        egi = state.egi
+        if not user_input:
+            # No spot given — legacy/whole-area behaviour decided in build_context.
+            return StepResult(
+                step_id="select_area",
+                valid=True,
+                data={"area": None},
+                message="No spot selected.",
+            )
+
+        area_id = str(user_input)
+        if area_id not in egi.area:
+            return StepResult(
+                step_id="select_area",
+                valid=False,
+                message=f"Area '{area_id}' does not exist in the current graph.",
+            )
+
+        return StepResult(
+            step_id="select_area",
+            valid=True,
+            data={"area": area_id},
+            message=f"Spot {area_id} selected for the double cut.",
+        )
+
     def build_context(self, state):
-        step_data = state.completed_steps.get("select")
-        if step_data and step_data.valid:
-            selection = step_data.data["selection"]
-            area = step_data.data["area"]
+        subject = state.completed_steps.get("select")
+        spot = state.completed_steps.get("select_area")
+
+        selection: FrozenSet[ElementID] = frozenset()
+        subject_area = None
+        if subject and subject.valid:
+            selection = subject.data.get("selection", frozenset())
+            subject_area = subject.data.get("area")
+        spot_area = spot.data.get("area") if (spot and spot.valid) else None
+
+        if selection:
+            # Subject given → enclose exactly those, in their common area.
+            area = subject_area
+            enclose_empty = False
+        elif spot_area is not None:
+            # Empty subject + explicit spot → empty double cut around nothing.
+            area = spot_area
+            enclose_empty = True
         else:
-            # No selection step → empty double cut on sheet
-            selection = frozenset()
+            # Neither → convenience default: enclose the whole sheet.
             area = state.egi.sheet
+            enclose_empty = False
 
         polarity, depth = state.egi.area_polarity(area)
         return TransformationContext(
@@ -278,6 +346,7 @@ class DCPlusInteraction(RuleInteraction):
             selected_subgraph=selection,
             area_polarity=polarity,
             nesting_depth=depth,
+            enclose_empty=enclose_empty,
         )
 
     def _get_rule(self):

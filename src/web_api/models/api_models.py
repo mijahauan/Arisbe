@@ -76,6 +76,31 @@ class ErgasterionApplyRequest(BaseModel):
     user_annotation: Optional[str] = None
 
 
+class ErgasterionAdjustRequest(BaseModel):
+    """Manual Settle ④b: a regime-3 presentation touch-up on a session's layout.
+
+    Pure appearance — the EGI is untouched, no chain step is recorded.  The
+    server applies the named ``presentation_ops`` operation to the session's
+    current LayoutDTO and re-renders.  A boundary-crossing nudge is refused
+    (``Regime3Violation``).  Fields are operation-specific:
+
+        move_vertex      → ``vertex_id``, ``dx``, ``dy``
+        reshape_cut      → ``cut_id``, ``bounds`` {min_x, min_y, max_x, max_y}
+        reroute_ligature → ``predicate_id``, ``vertex_id``, ``port_index``,
+                           ``interior`` [{x, y}, …]
+    """
+
+    operation: str
+    vertex_id: Optional[str] = None
+    cut_id: Optional[str] = None
+    predicate_id: Optional[str] = None
+    port_index: int = 0
+    dx: float = 0.0
+    dy: float = 0.0
+    bounds: Optional[Dict[str, float]] = None
+    interior: Optional[List[Dict[str, float]]] = None
+
+
 class ErgasterionClosureRequest(BaseModel):
     """Preview the closed sub-graph a selection expands to (read-only).
 

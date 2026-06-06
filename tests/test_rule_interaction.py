@@ -120,6 +120,87 @@ class TestDCPlusInteraction(unittest.TestCase):
             self.assertFalse(r.valid)
             self.assertIn("same area", r.message)
 
+    def test_empty_double_cut_in_nonempty_area(self):
+        """An empty double cut can be placed around nothing on a non-empty sheet.
+
+        The classic gap: DC+ with no selection used to enclose the *whole*
+        area, so a double negative "at a spot, around nothing" was impossible
+        unless the area was already empty.  Selecting a spot (the area) with an
+        empty subject now inserts a truly empty double cut there, leaving the
+        existing content untouched.
+        """
+        egi = parse_egif("(Human *x)")  # sheet holds an edge + its vertex
+        sheet = egi.sheet
+        before_cuts = len(egi.Cut)
+
+        state = begin_interaction("DC+", egi)
+        r1 = advance_interaction(state, [])       # Subject: nothing
+        self.assertTrue(r1.valid, r1.message)
+        r2 = advance_interaction(state, sheet)    # Spot: the (non-empty) sheet
+        self.assertTrue(r2.valid, r2.message)
+        self.assertTrue(state.is_complete)
+
+        result = apply_interaction(state)
+        self.assertTrue(result.success, result.message)
+        after = result.result_egi
+
+        # Two new cuts; the existing Human(x) is untouched.
+        self.assertEqual(len(after.Cut), before_cuts + 2)
+        self.assertEqual(len(after.V), 1)
+        self.assertEqual(len(after.E), 1)
+
+        cut_ids = {c.id for c in after.Cut}
+        sheet_after = after.area[after.sheet]
+        # The vertex + edge remain directly on the sheet (NOT enclosed).
+        non_cut_on_sheet = [e for e in sheet_after if e not in cut_ids]
+        self.assertEqual(len(non_cut_on_sheet), 2)
+        # Exactly one new outer cut on the sheet, holding an empty inner cut.
+        outer_on_sheet = [e for e in sheet_after if e in cut_ids]
+        self.assertEqual(len(outer_on_sheet), 1)
+        inner_contents = after.area.get(outer_on_sheet[0], frozenset())
+        self.assertEqual(len(inner_contents), 1)
+        inner = next(iter(inner_contents))
+        self.assertEqual(len(after.area.get(inner, frozenset())), 0)  # truly empty
+
+    def test_empty_double_cut_inside_nonempty_cut(self):
+        """Empty double cut around nothing, placed inside an occupied cut."""
+        egi = parse_egif("~[ (Mortal *y) ]")
+        target_cut = next(c.id for c in egi.Cut)
+        before_cuts = len(egi.Cut)
+
+        state = begin_interaction("DC+", egi)
+        advance_interaction(state, [])                 # no subject
+        r = advance_interaction(state, target_cut)     # spot = the occupied cut
+        self.assertTrue(r.valid, r.message)
+
+        result = apply_interaction(state)
+        self.assertTrue(result.success, result.message)
+        after = result.result_egi
+        self.assertEqual(len(after.Cut), before_cuts + 2)
+
+        # The target cut still holds Mortal(y) (edge + vertex) plus a new outer cut.
+        cut_ids = {c.id for c in after.Cut}
+        target_contents = after.area.get(target_cut, frozenset())
+        self.assertEqual(len([e for e in target_contents if e not in cut_ids]), 2)
+        new_outer = [e for e in target_contents if e in cut_ids]
+        self.assertEqual(len(new_outer), 1)
+        inner = next(iter(after.area.get(new_outer[0], frozenset())))
+        self.assertEqual(len(after.area.get(inner, frozenset())), 0)  # truly empty
+
+    def test_empty_selection_no_spot_wraps_whole_area(self):
+        """Legacy convenience preserved: empty selection, no spot → wrap sheet."""
+        egi = parse_egif("(Human *x)")
+        state = begin_interaction("DC+", egi)
+        advance_interaction(state, [])   # empty subject, no spot advanced
+        result = apply_interaction(state)
+        self.assertTrue(result.success, result.message)
+        after = result.result_egi
+        cut_ids = {c.id for c in after.Cut}
+        sheet_after = after.area[after.sheet]
+        # Whole sheet wrapped → only the outer cut remains directly on the sheet.
+        self.assertEqual([e for e in sheet_after if e not in cut_ids], [])
+        self.assertEqual(len([e for e in sheet_after if e in cut_ids]), 1)
+
 
 # ===================================================================
 # DC- Tests

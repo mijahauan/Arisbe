@@ -291,11 +291,21 @@ Even a conservative auto-layout will sometimes want a human nudge. After the
 auto-redraw, the user may refine the appearance *without touching the logic*
 via the regime-3 presentation algebra — `move_vertex`, `reshape_cut`,
 `reroute_ligature` (`presentation_ops.py`), each of which refuses any
-boundary-crossing change (raising `Regime3Violation`). These operations are
-**built and tested** but **not yet wired to the canvas**
-(CURRENT_PLAN: "Transformation UI w/ regime-3 (drag/reshape) affordances —
-not started"). Until they are, Settle's manual half does not exist, and the
-four-beat workflow is incomplete for all six rules.
+boundary-crossing change (raising `Regime3Violation`). **DONE (2026-06-06,
+browser-verified):** these are now wired to the workshop canvas. A **Settle
+toggle** turns the canvas into a tidy-the-layout surface — drag a vertex
+(→ `move_vertex`), a cut corner handle (→ `reshape_cut`), or a line of
+identity (→ `reroute_ligature`). The round-trip is `POST
+/ergasterion/sessions/{id}/adjust` → `presentation_ops` → `attest_and_render`
+(re-render the nudged DTO with no ELK pass, **still §3.3-attested**). It is
+pure presentation: the EGI is untouched and **no chain step is recorded**.
+A boundary-crossing nudge is refused as `REGIME3_VIOLATION`; a nudge that
+slips past `presentation_ops`' local guards but breaks §3.3 (e.g. growing a
+cut so a ligature newly crosses it) is caught by `attest_and_render` as
+`CORRESPONDENCE_VIOLATION` — `presentation_ops` gives local guards,
+attestation is the authority. Client: `web_viewer/js/settle-adjust.js`. With
+this, Settle's manual half exists and the four-beat workflow is complete for
+all six rules.
 
 ---
 
@@ -394,14 +404,21 @@ descriptions, so it is a **keystone, not a follow-up**.
      `.sel-area` highlight on the chosen Spot); a literal ghost-render of the
      inserted/copied content is a later refinement. **The grammar (2a/2b/2c) is
      complete.**
-3. **Manual Settle (④b).** Wire `move_vertex` / `reshape_cut` /
-   `reroute_ligature` onto the canvas, refusing boundary crossings.
-4. **DC+ empty-double-cut semantics.** Resolve the one logic-expressiveness
-   gap — let DC+ honor an explicit-empty selection. **Protected change**
-   (`rule_interaction.py` / `formal_transformation_rules.py`): requires
-   `.core_modification_authorized` and the core suite staying green.
+3. ✅ **Manual Settle (④b) — DONE (2026-06-06, browser-verified).**
+   `move_vertex` / `reshape_cut` / `reroute_ligature` wired onto the canvas
+   via a Settle toggle (`settle-adjust.js` + `/ergasterion/.../adjust`),
+   boundary crossings refused (`REGIME3_VIOLATION`), §3.3 backstopped by
+   `attest_and_render` (`CORRESPONDENCE_VIOLATION`). See ④b above.
+4. ✅ **DC+ empty-double-cut semantics — DONE (2026-06-06).** DC+ now honors
+   an explicit-empty selection via `TransformationContext.enclose_empty` +
+   an optional Spot (`SELECT_AREA`) step on `DCPlusInteraction`: a Spot with
+   an empty Subject inserts an empty double cut around nothing, even in a
+   non-empty area; empty-and-no-Spot keeps the legacy whole-area wrap.
+   Protected change (`rule_interaction.py` / `formal_transformation_rules.py`),
+   core suite green.
 
-Items 1–3 are largely additive; item 4 is the only protected-module change.
+All four are now complete: items 1–3 were largely additive; item 4 was the
+only protected-module change.
 
 ---
 

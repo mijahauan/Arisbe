@@ -321,12 +321,22 @@ def test_ins_is_two_step_with_egif_and_target_area(client):
 
 
 def test_dc_plus_uses_selected_elements(client):
-    """DC+ takes a single subgraph selection via ``selected_elements``."""
+    """DC+ takes a subgraph selection (the Subject) and an optional spot.
+
+    Following the Spot/Subject grammar, DC+ accepts a subgraph to enclose plus
+    an optional ``target_area`` spot — selecting a spot with no Subject inserts
+    an empty double cut around nothing there.
+    """
     resp = client.get("/rules/DC+").json()
     assert resp["success"] is True
     steps = resp["data"]["steps"]
-    assert any(s["parameter"] == "selected_elements" for s in steps)
-    assert all(s["kind"] == "select_subgraph" for s in steps)
+    kinds = {s["kind"] for s in steps}
+    params = {s["parameter"] for s in steps}
+    assert "select_subgraph" in kinds
+    assert "selected_elements" in params
+    # The spot step (for an empty double cut in a chosen area) is present.
+    assert "select_area" in kinds
+    assert "target_area" in params
 
 
 def test_unknown_rule_refused_cleanly(client):

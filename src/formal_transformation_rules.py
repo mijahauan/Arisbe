@@ -25,6 +25,11 @@ class TransformationContext:
     selected_subgraph: FrozenSet[ElementID]
     area_polarity: AreaPolarity
     nesting_depth: int
+    # DC+ only: when True and ``selected_subgraph`` is empty, insert a *truly
+    # empty* double cut (around nothing) in ``target_area`` rather than falling
+    # back to enclosing the whole area.  Distinguishes "a double negative at
+    # this spot, around nothing" from the convenience "wrap the whole area".
+    enclose_empty: bool = False
 
 
 @dataclass
@@ -129,8 +134,10 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         """Apply DC+ by inserting a pair of nested cuts around the selected elements.
 
         If ``context.selected_subgraph`` is non-empty, those elements are moved
-        inside the new inner cut.  If empty, all elements currently in
-        ``context.target_area`` are enclosed instead.
+        inside the new inner cut.  If empty and ``context.enclose_empty`` is set,
+        an empty double cut is inserted around nothing in ``context.target_area``.
+        If empty and ``enclose_empty`` is False, all elements currently in
+        ``context.target_area`` are enclosed instead (the convenience default).
 
         Args:
             context: Transformation context carrying the source EGI, the target
@@ -157,9 +164,17 @@ class DoubleCutInsertionRule(FormalTransformationRule):
             outer_cut = Cut(outer_cut_id)
             inner_cut = Cut(inner_cut_id)
 
-            # Get elements to enclose (if any selected, otherwise enclose all in target area)
+            # Get elements to enclose.  Three cases:
+            #   1. A non-empty selection → enclose exactly those elements.
+            #   2. Empty selection + ``enclose_empty`` → a truly empty double
+            #      cut around nothing (a double negative at this spot), even in
+            #      a non-empty area.
+            #   3. Empty selection, no ``enclose_empty`` → the convenience
+            #      default: enclose every element currently in the target area.
             if context.selected_subgraph:
                 elements_to_enclose = context.selected_subgraph
+            elif getattr(context, "enclose_empty", False):
+                elements_to_enclose = frozenset()
             else:
                 # Enclose all elements in the target area
                 elements_to_enclose = egi.area.get(context.target_area, frozenset())
