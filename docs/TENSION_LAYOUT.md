@@ -283,6 +283,38 @@ projection; **ELK stays the default**.
 attest (lift the 17/18 to full coverage); non-overlap tuning; then 2-D placement
 quality (the 1-D principal-axis reading generalized).
 
+## 10. Ligature-as-thread layout — PoC (2026-06-07)
+
+The deeper lesson from `dau_theorem_proving`: its graph is a single chain
+`P — x — Q — y — R — z — S` threading 5 nested cuts (every vertex degree-2). The
+node-placement engines (ELK's layers, tension's stars around a vertex *point*)
+can't make that chain collinear, because they place each predicate/vertex
+independently and draw each incidence as its own stub. The fix is to make the
+**line of identity the primary object**: lay the *thread* as one taut path
+through the nested areas and hang the predicates on it.
+
+`tools/thread_layout_poc.py` does this for a single monotone thread: extract the
+ordered chain, place it collinear (one axis), size each cut bottom-up around its
+contiguous run of the thread (so the cuts telescope and nest by construction),
+and route each incidence along the axis through the cut crossings. Result on
+`dau_theorem_proving`:
+
+```
+S@0 — •@90 — R@180 — •@270 — Q@360 — •@450 — P@540   (all y=0)
+c_a0ab[-28,28] ⊂ c_a53b[-50,208] ⊂ c_3197[-72,230] ⊂ c_8b47[-94,388] ⊂ c_2cc6[-116,568]
+```
+
+One straight collinear line of identity through 5 telescoped cuts, each crossed
+exactly once, **§3.3-attested in Dau and Peirce**. This is the straight
+pass-through the example called for, and it follows from one principle (the
+thread pulled taut through the containment nest) with no special cases.
+
+**Generalization (the engine increment):** multiple threads; branch points
+(degree-≥3 vertices); non-monotone threads (in-and-out of cuts); composing
+several threads + their shared cuts into one layout. The thread becomes the unit
+the tension solve places, with containment as the nest it threads — the
+node-placement engine (§9) reframed around ligatures.
+
 The one-sentence version: **the containment tree says where things may live;
 ligature tension, pulled taut against the cut boundaries the crossing-sequence
 fixes, says where they settle — and in settling, the vertex tree lays out the cut
