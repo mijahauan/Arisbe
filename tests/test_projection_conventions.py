@@ -49,13 +49,15 @@ def test_engine_defaults_to_default_conventions():
 # --------------------------------------------------------------------------- #
 
 
-def test_detour_pad_changes_route_standoff():
-    """A larger detour_pad routes the L-detour further from the obstacle.
+def test_visibility_pad_changes_route_standoff():
+    """A larger visibility_pad routes the taut geodesic further from the
+    obstacle's corner.
 
-    Unit-tests the routing directly (no ELK dependency): a horizontal
-    segment is blocked by a box straddling it; the L-detour goes around
-    at the box edge plus the pad. The waypoint's offset must track the
-    pad value.
+    Unit-tests the routing directly (no ELK dependency): a horizontal segment
+    is blocked by a box straddling it; the taut-line router (visibility-graph
+    shortest path — no more L-detour) skirts the box at a corner offset by the
+    pad. The standoff must track the pad value, confirming visibility_pad is the
+    honored routing knob.
     """
     start = Point(0.0, 0.0)
     end = Point(100.0, 0.0)
@@ -63,15 +65,34 @@ def test_detour_pad_changes_route_standoff():
 
     def max_abs_y(pad):
         path = ELKLayoutEngine._route_avoiding_cuts(
-            start, end, [box], detour_pad=pad
+            start, end, [box], visibility_pad=pad
         )
         return max(abs(p.y) for p in path)
 
-    # Detour rides at box edge (±10) + pad.
+    # The taut path skirts the box corner at edge (±10) + pad.
     assert max_abs_y(12.0) == 22.0
     assert max_abs_y(40.0) == 50.0
     # Strictly increasing in the pad — the knob is wired, not cosmetic.
     assert max_abs_y(40.0) > max_abs_y(12.0)
+
+
+def test_taut_route_is_shorter_than_an_l_detour():
+    """The taut router returns a geodesic, not a right-angle detour: a single
+    corner skirt (3 points), strictly shorter than the L it replaced (4)."""
+    import math
+    start = Point(0.0, 0.0)
+    end = Point(100.0, 0.0)
+    box = BoundingBox(min_x=40.0, min_y=-10.0, max_x=60.0, max_y=10.0)
+    path = ELKLayoutEngine._route_avoiding_cuts(start, end, [box], visibility_pad=12.0)
+
+    def plen(p):
+        return sum(math.hypot(p[i + 1].x - p[i].x, p[i + 1].y - p[i].y)
+                   for i in range(len(p) - 1))
+    # The old L-detour would have been [start,(cmin_x,0),(cmin_x,?),end] etc.;
+    # the taut path is at most 3 points and shorter than going to both far
+    # corners squared off.
+    assert len(path) <= 3
+    assert plen(path) < plen([start, Point(28.0, -22.0), Point(72.0, -22.0), end])
 
 
 def test_no_obstacle_route_is_straight_regardless_of_pad():
@@ -79,5 +100,5 @@ def test_no_obstacle_route_is_straight_regardless_of_pad():
     start, end = Point(0.0, 0.0), Point(50.0, 0.0)
     for pad in (8.0, 12.0, 40.0):
         assert ELKLayoutEngine._route_avoiding_cuts(
-            start, end, [], detour_pad=pad
+            start, end, [], visibility_pad=pad
         ) == (start, end)

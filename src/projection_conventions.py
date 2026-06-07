@@ -48,13 +48,17 @@ class Conventions:
     # --- Honored knobs (wired through ELKLayoutEngine routing) -------------
 
     detour_pad: float = 12.0
-    """Standoff (px) for the L-shaped detour around the combined bounding
-    box of crossed obstacle cuts (``_route_avoiding_cuts``). How far a
-    rerouted ligature stands clear of an unauthorized cut it must avoid."""
+    """**Retired (2026-06-07), descriptive only.** Was the standoff for the
+    axis-aligned L-detour, which the taut-line router replaced — routing is now
+    straight-or-geodesic, with no right-angle detour, so this no longer affects
+    any drawing. Kept as a field for back-compatibility; ``visibility_pad`` is
+    the live routing standoff."""
 
     visibility_pad: float = 8.0
-    """Standoff (px) for the padded obstacle corners in the
-    visibility-graph fallback router (``_route_via_visibility_graph``)."""
+    """Standoff (px) for the padded obstacle corners in the **taut-line router**
+    (``_route_via_visibility_graph``) — how far a line of identity skirts a cut
+    it must avoid. The honored routing knob (``_route_avoiding_cuts`` is now
+    straight-line, else this geodesic)."""
 
     cut_shape: str = "axis_aligned_rectangle"
     """How a cut's region is drawn. The natural layer only knows

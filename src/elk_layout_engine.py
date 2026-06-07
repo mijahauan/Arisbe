@@ -783,18 +783,22 @@ class ELKLayoutEngine:
         detour_pad: float = DEFAULT_CONVENTIONS.detour_pad,
         visibility_pad: float = DEFAULT_CONVENTIONS.visibility_pad,
     ) -> Tuple[Point, ...]:
-        """Route a polyline from *start* to *end* avoiding *obstacles*.
+        """Route a polyline from *start* to *end* avoiding *obstacles* — the
+        **taut-line router**: a line of identity pulled taut, hugging the cuts it
+        must skirt (the rubber-band-around-pegs of ``docs/TENSION_LAYOUT.md``).
 
         Strategy:
-        1. Straight line if no unauthorized crossings.
-        2. Try four L-shaped detours around the combined bbox of
-           crossed obstacles (left / right / top / bottom).
-        3. Fall back to a visibility-graph shortest path through the
-           padded corners of all obstacle rectangles.
+        1. Straight line if it crosses no obstacle (the shortest path there is).
+        2. Otherwise the **visibility-graph shortest path** through the padded
+           obstacle corners — the geodesic that avoids the forbidden cuts while
+           crossing the authorized ones naturally.
 
-        ``detour_pad`` / ``visibility_pad`` are projection conventions
-        (``projection_conventions.Conventions``) — the standoff distances
-        for the L-detour and the visibility-graph fallback respectively.
+        This deliberately drops the older axis-aligned L-detour (which produced
+        right-angle zigzags through nested cuts): the shortest path is never
+        longer than an L and reads as a taut line, and the Peirce/curved styles
+        smooth it into a flowing curve.  ``detour_pad`` is retained for signature
+        compatibility but no longer used; ``visibility_pad`` is the obstacle
+        corner standoff convention.
         """
         if not obstacles:
             return (start, end)
@@ -803,39 +807,6 @@ class ELKLayoutEngine:
         if not crossed:
             return (start, end)
 
-        # --- quick L-shaped detour around combined bbox ---------------
-        PAD = detour_pad
-        cmin_x = min(b.min_x for b in crossed) - PAD
-        cmax_x = max(b.max_x for b in crossed) + PAD
-        cmin_y = min(b.min_y for b in crossed) - PAD
-        cmax_y = max(b.max_y for b in crossed) + PAD
-
-        candidates = [
-            [start, Point(cmin_x, start.y), Point(cmin_x, end.y), end],
-            [start, Point(cmax_x, start.y), Point(cmax_x, end.y), end],
-            [start, Point(start.x, cmin_y), Point(end.x, cmin_y), end],
-            [start, Point(start.x, cmax_y), Point(end.x, cmax_y), end],
-        ]
-
-        def _path_ok(path):
-            for i in range(len(path) - 1):
-                for b in obstacles:
-                    if cls._seg_crosses_rect(path[i], path[i + 1], b):
-                        return False
-            return True
-
-        def _path_len(path):
-            return sum(
-                math.hypot(path[i + 1].x - path[i].x, path[i + 1].y - path[i].y)
-                for i in range(len(path) - 1)
-            )
-
-        valid = [((_path_len(p), p)) for p in candidates if _path_ok(p)]
-        if valid:
-            valid.sort(key=lambda x: x[0])
-            return tuple(valid[0][1])
-
-        # --- full visibility-graph fallback ---------------------------
         return cls._route_via_visibility_graph(
             start, end, obstacles, pad=visibility_pad
         )
