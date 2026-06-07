@@ -54,8 +54,9 @@ class TensionLayoutEngine:
     GAP = 34.0      # base separation between sibling blocks
     DOT = 6.0       # vertex dot half-size
     T_GAP = 16.0    # thread: minimum clearance between consecutive elements
-    T_PAD = 22.0    # thread: nesting inset per cut level
-    T_ROWH = 26.0   # thread: half-height of the band a thread runs in
+    T_PAD = 22.0    # thread: horizontal nesting inset per cut level
+    T_VPAD = 12.0   # thread: vertical nesting inset (small — the thread is
+                    # horizontal, so cuts stay short, hugging their elements)
     STRESS = 120.0  # base stress scale
 
     def __init__(self, conventions=None):
@@ -181,8 +182,11 @@ class TensionLayoutEngine:
                     bys += [p.y - h / 2, p.y + h / 2]
             if not bxs:
                 bxs, bys = [0.0], [0.0]
-            b = BoundingBox(min(bxs) - self.T_PAD, min(bys) - self.T_ROWH - self.T_PAD,
-                            max(bxs) + self.T_PAD, max(bys) + self.T_ROWH + self.T_PAD)
+            # Horizontal inset clears labels + crossings; vertical inset is small
+            # (a horizontal thread needs no tall band), so cuts stay short and
+            # wide, tending to the alignment of their elements.
+            b = BoundingBox(min(bxs) - self.T_PAD, min(bys) - self.T_VPAD,
+                            max(bxs) + self.T_PAD, max(bys) + self.T_VPAD)
             cbounds[cid] = b
             return b
         for c in egi.Cut:

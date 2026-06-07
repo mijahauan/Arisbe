@@ -33,8 +33,8 @@ from presentation_ops import element_area, cut_parents, crossing_sequence
 from correspondence_attestation import attest_correspondence, CorrespondenceViolation
 
 GAP_MIN = 16.0  # minimum clearance between consecutive thread elements
-PAD = 22.0      # nesting inset per cut level
-ROWH = 26.0     # half-height of the innermost band
+PAD = 22.0      # horizontal nesting inset per cut level
+VPAD = 12.0     # vertical nesting inset (small — horizontal thread ⇒ short cuts)
 
 
 def extract_thread(egi):
@@ -118,8 +118,8 @@ def thread_layout(egi, style):
                 xs += [p.x - w / 2, p.x + w / 2]; ys += [p.y - h / 2, p.y + h / 2]
         if not xs:
             xs, ys = [0.0], [0.0]
-        b = BoundingBox(min(xs) - PAD, min(ys) - ROWH - PAD,
-                        max(xs) + PAD, max(ys) + ROWH + PAD)
+        b = BoundingBox(min(xs) - PAD, min(ys) - VPAD,
+                        max(xs) + PAD, max(ys) + VPAD)
         cbounds[cid] = b
         return b
     for c in egi.Cut:
