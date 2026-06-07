@@ -147,13 +147,84 @@ def test_thread_spacing_is_variable_not_uniform():
     assert len(set(gaps)) > 1  # not a uniform step — widens where cuts cross
 
 
-def test_branch_graph_still_attests_via_hierarchical():
-    """A graph with a branch (degree-≥3 vertex) isn't a single thread; it falls
-    through to hierarchical placement, which still produces a §3.3-valid layout."""
+def test_branch_graph_lays_out_as_taut_tree():
+    """A branching line of identity (a degree-≥3 junction) is one connected
+    acyclic tree — it lays out via the tree path (`_tree_layout`, the branch
+    generalization of the collinear thread) and is §3.3-valid."""
     svc = TomosService(TOMOS_ROOT)
     egi = svc.load_uod("peirce_modus_ponens").current_egi
     dto = _engine().generate_layout(egi, load_default_style())
     attest_correspondence(egi, dto, context="branch")
+
+
+def test_tree_path_taken_for_branch_graphs_and_attests():
+    """Every corpus branch graph (a single tree-shaped ligature with a junction)
+    is dispatched to the tree layout and attests — no hierarchical fallback."""
+    from tension_layout import extract_thread, extract_tree
+    svc = TomosService(TOMOS_ROOT)
+    style = load_default_style()
+    branch = []
+    for meta in svc.list_uods():
+        egi = svc.load_uod(meta["uod_id"]).current_egi
+        if extract_thread(egi) is None and extract_tree(egi) is not None:
+            branch.append(meta["uod_id"])
+            dto = _engine().generate_layout(egi, style)
+            # The tree layout's own output attests (so it is returned, not the
+            # hierarchical fallback).
+            attest_correspondence(egi, dto, context=f"tree:{meta['uod_id']}")
+    assert branch, "expected at least one branching ligature in the corpus"
+
+
+def test_branch_tree_is_compact():
+    """A deep/branched ligature does not spread far past what it needs.  The
+    compact (per-edge-length) embedding keeps a crossing-proxy hop short; where it
+    can't route (a tight junction), the unweighted fallback is compacted to its
+    minimal non-overlapping size — either way `roberts_domain_modeling` (a
+    degree-4 junction across two cuts) stays well under its old exorbitant spread
+    (~810×1040) with no element overlap."""
+    svc = TomosService(TOMOS_ROOT)
+    egi = svc.load_uod("roberts_domain_modeling").current_egi
+    dto = _engine().generate_layout(egi, load_default_style())
+    attest_correspondence(egi, dto, context="compact")
+    vb = dto.viewport_bounds
+    assert (vb.max_x - vb.min_x) < 650 and (vb.max_y - vb.min_y) < 650
+    # No predicate sits on top of its vertex (the overlap a naive push produced).
+    for e in egi.E:
+        pc = dto.predicate_positions[e.id]
+        for v in egi.nu.get(e.id, ()):
+            vp = dto.vertex_positions[v]
+            assert ((pc.x - vp.x) ** 2 + (pc.y - vp.y) ** 2) ** 0.5 > 15.0
+
+
+def test_branch_tree_smaller_cases_are_weighted_compact():
+    """The cases the compact embedding *can* route (no tight cross-cut junction)
+    come out tight — well under a few hundred px — via per-edge ideal lengths."""
+    svc = TomosService(TOMOS_ROOT)
+    style = load_default_style()
+    for uid in ["dau_2006_p112_ligature", "ternary_relation_challenge"]:
+        egi = svc.load_uod(uid).current_egi
+        dto = _engine().generate_layout(egi, style)
+        vb = dto.viewport_bounds
+        assert (vb.max_x - vb.min_x) < 320 and (vb.max_y - vb.min_y) < 320
+
+
+def test_branch_vertex_contained_after_push():
+    """The containment push keeps a junction that stress pulled into a cut's hull
+    outside the cuts it does not belong to (dau_2006: *x (P x) ~[ (Q x)(R x) ] —
+    x is on the sheet, P sheet, Q/R inside; the branch dot must sit outside the
+    cut)."""
+    egi = parse_egif("(P *x) ~[ (Q x) (R x) ]")
+    dto = _engine().generate_layout(egi, load_default_style())
+    attest_correspondence(egi, dto, context="push")
+    ea = element_area(egi)
+    cut_ids = {c.id for c in egi.Cut}
+    # The branch vertex x sits directly on the sheet (not in any cut) — its drawn
+    # point must lie outside every cut box.
+    (xid,) = [v.id for v in egi.V if ea.get(v.id) not in cut_ids]
+    xp = dto.vertex_positions[xid]
+    for cid in cut_ids:
+        b = dto.cut_bounds[cid]
+        assert not (b.min_x <= xp.x <= b.max_x and b.min_y <= xp.y <= b.max_y)
 
 
 def test_service_engine_tension_is_attested():

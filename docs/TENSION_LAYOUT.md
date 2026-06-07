@@ -350,3 +350,71 @@ The one-sentence version: **the containment tree says where things may live;
 ligature tension, pulled taut against the cut boundaries the crossing-sequence
 fixes, says where they settle — and in settling, the vertex tree lays out the cut
 tree.**
+
+## 11. Branch points — the thread becomes a taut tree (2026-06-07)
+
+The first frontier case after the single thread: a line of identity that **forks**
+to three or more predicates (a degree-≥3 junction). Its incidence graph is no
+longer a path but is still **one connected acyclic tree** — so the thread
+generalizes to a small tree pulled taut through the cut nest. `extract_tree`
+(`src/tension_layout.py`) certifies the shape (`|E| = |V|−1`, one component) and
+fixes the node order; `TensionLayoutEngine._tree_layout` realizes it, dispatched
+after `extract_thread` and before the §9 hierarchical fallback.
+
+The construction, faithful to the thread's ideas:
+
+1. **One global taut embedding.** The incidence graph (predicates + vertices, one
+   node each) is laid out by global stress majorization. Each ligature's
+   crossing-sequence is inserted as **chained proxy nodes** between the predicate
+   and the vertex, so a deep incidence relaxes to a straight run through exactly
+   the boundaries it must cross — a path straightens, a junction fans.
+2. **Per-edge ideal lengths (compaction).** Every edge is given its *own* ideal
+   length — two half-extents (a predicate's label, a vertex's dot, a crossing
+   proxy's small boundary hop) plus a gap — via `stress_majorize(edge_len=…)`
+   (weighted shortest-path distances). So each edge is only as long as it must be:
+   a crossing-proxy hop stays short instead of inflating to a full uniform "scale"
+   the way unit-hop graph distance did. This is the thread's "each gap only as
+   wide as what must fit" carried into 2-D, and it is what keeps a branched
+   ligature from spreading far past what it needs.
+3. **Cut boxes bottom-up** (the shared `_box_cuts`): each cut is the bounding box
+   of its drawn contents plus an inset, so the boxes nest by construction.
+
+Stress alone ignores containment (§9's "honest gap"): it can pull an *outside*
+junction into a cut's hull, because more of its neighbours sit inside. So after
+the solve, any node that landed inside a cut it does **not** belong to is pushed
+to that cut's nearest boundary; the boxes are re-derived and the push repeats to a
+fixpoint. Each ligature crossing is then snapped to where the straight
+predicate→vertex segment meets the cut box (`_seg_box_hit`), so the
+crossing-sequence is realized geometrically. The whole result **self-attests**
+(§3.3).
+
+**Two embeddings, tried in order.** A tight junction with neighbours on both
+sides of a cut can defeat the *compact* embedding: pushing the junction out one
+side leaves its outside line crossing the cut. So the engine tries the compact
+(per-edge-length) embedding first and, if it doesn't attest, falls back to the
+**unweighted** embedding (uniform graph-distance shape) *compacted to its minimal
+non-overlapping size* by an order-preserving uniform scale (`_compact_scale`) —
+the balanced fan at the smallest scale, no magic constant — then to §9
+hierarchical placement. Same try/attest/fallback discipline as `_thread_layout`.
+
+**Result.** All **5** corpus branch graphs lay out as clean, *compact* taut trees
+and attest at the engine — so the whole corpus attests with **no ELK fallback**
+(18/18, up from 17/18). The two predicate-fork stars (`ternary_relation_challenge`,
+`peirce_complex_scope`) and the cross-boundary vertex-forks the hierarchical
+engine drew awkwardly (`dau_2006_p112_ligature`, `peirce_modus_ponens` — the
+junction stranded outside its cuts with long lines reaching back in) now settle
+the junction **against the cut boundary**, the predicates fanning into their cut,
+via the compact embedding. `roberts_domain_modeling` (a degree-4 junction across
+two cuts) takes the compacted unweighted fallback — the balanced fan, now ~513×562
+instead of the ~810×1040 it first produced. Both layout engines are selectable in
+the **workshop** *and* the **Organon** archive (`?engine=tension`). Tests in
+`tests/test_tension_engine.py` (tree path taken + attests for every branch graph;
+the push keeps an outside junction outside its cuts; the branch tree stays compact
+with no predicate-on-vertex overlap) and `tests/test_tension_layout.py` (the
+weighted vs unweighted `stress_majorize` paths).
+
+**Remaining generalization:** multiple threads (a *forest* — `mixed_quantifier_complex`)
+and cyclic ligatures (`beta_converse_mp`), both still hierarchical; composing
+several trees + their shared cuts; non-monotone threads. The unit the tension
+solve places is now the ligature *tree*; next it becomes a *forest* sharing a cut
+nest.

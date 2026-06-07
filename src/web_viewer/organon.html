@@ -230,6 +230,11 @@
           <option value="peirce-authentic@1.0">Peirce — handwritten</option>
           <option value="sowa-compliant@1.0">Sowa — conceptual graph</option>
         </select>
+        <label for="view-engine" style="font-size:11px; color:#a6adc8; margin-left:8px;">Layout</label>
+        <select id="view-engine" style="font-size:12px;">
+          <option value="elk">ELK (default)</option>
+          <option value="tension">Tension — relation between arguments</option>
+        </select>
       </div>
 
       <!-- Diachronic chain player: a UoD with a persisted TransformationChain
@@ -286,10 +291,17 @@
       let chainIndex = 0;        // currently shown frame
       let chainPlayTimer = null; // setInterval handle while playing
 
-      // View-style state (projection choice; persists across UoD switches).
+      // View-projection state (style + layout engine; both are projection
+      // choices that persist across UoD switches — §3.3 attests every render).
       let currentStyle = '';
+      let currentEngine = 'elk';
       function styleQuery() {
-        return currentStyle ? '?style=' + encodeURIComponent(currentStyle) : '';
+        const q = [];
+        if (currentStyle) q.push('style=' + encodeURIComponent(currentStyle));
+        if (currentEngine && currentEngine !== 'elk') {
+          q.push('engine=' + encodeURIComponent(currentEngine));
+        }
+        return q.length ? '?' + q.join('&') : '';
       }
 
       function setStatus(msg, isError) {
@@ -690,6 +702,13 @@
         viewStyleSel.addEventListener('change', function () {
           currentStyle = viewStyleSel.value;
           applyViewStyle();
+        });
+      }
+      const viewEngineSel = document.getElementById('view-engine');
+      if (viewEngineSel) {
+        viewEngineSel.addEventListener('change', function () {
+          currentEngine = viewEngineSel.value;
+          applyViewStyle();  // re-fetch + re-render in the chosen layout engine
         });
       }
       loadExportFormats();

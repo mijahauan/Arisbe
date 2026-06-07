@@ -276,6 +276,19 @@ def test_uod_detail_honors_view_style(client):
     assert "<path" in peirce_svg  # oval / hand-drawn cuts
 
 
+def test_uod_detail_honors_layout_engine(client):
+    """A UoD can be *viewed* under either layout projection from the archive —
+    ``engine=tension`` (the ligature-first reading) differs from the ELK default
+    and still attests (§3.3 at the render boundary; tension falls back to ELK on
+    anything it can't lay out, so the request never fails).  Uses a branch graph
+    whose tension layout genuinely differs from ELK's two columns."""
+    base = client.get("/organon/uods/dau_2006_p112_ligature")
+    tens = client.get("/organon/uods/dau_2006_p112_ligature?engine=tension")
+    assert base.status_code == 200 and tens.status_code == 200
+    assert base.json()["success"] and tens.json()["success"]
+    assert base.json()["data"]["svg"] != tens.json()["data"]["svg"]
+
+
 def test_chain_playback_honors_view_style(client):
     """The chain player frames can be rendered in a chosen style too."""
     resp = client.get("/organon/uods/theorem_praeclarum/chain?style=peirce-authentic@1.0")

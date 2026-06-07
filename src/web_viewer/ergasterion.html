@@ -1372,6 +1372,15 @@
 
       // ---- API calls ----
 
+      // A fresh open (new session or reopened scratch) is rendered server-side
+      // with the *default* engine; if the user has a non-default projection
+      // selected (e.g. tension), apply it now so the drawing matches the controls
+      // without a manual toggle — the layout selectors persist across opens.
+      async function applySelectedLayoutIfAny() {
+        if (typeof window.layoutQuery === 'function' && window.layoutQuery())
+          await rerenderLayout('initial layout');
+      }
+
       async function openSession(baseSource) {
         setStatus('Opening workshop session…');
         try {
@@ -1386,6 +1395,7 @@
             return;
           }
           showSession(body.data);
+          await applySelectedLayoutIfAny();
           setStatus('Workshop opened. Base = ' + baseSource +
                     '. Apply moves; step back to branch; save to scratch or ' +
                     'send to Agon when ready.', 'success');
@@ -1514,6 +1524,7 @@
             return;
           }
           showSession(body.data, false);
+          await applySelectedLayoutIfAny();
           setStatus('Reopened draft. Continue, or branch from any earlier move.');
         } catch (e) {
           setStatus('Network error: ' + e.message, 'error');

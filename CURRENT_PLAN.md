@@ -1,23 +1,78 @@
 # Current Plan
 
-**Last Updated**: 2026-06-07 (Layout: tension-driven thread-first engine — single lines of identity lay out as one collinear taut thread through the cut nest)
+**Last Updated**: 2026-06-07 (Layout: tension engine — branch points done; a forking line of identity lays out as a small taut tree; corpus attests 18/18 with no ELK fallback)
 
-> **NEXT SESSION — the tension layout frontier (generalize the thread engine).**
-> `?engine=tension` now lays a **single** line of identity as one collinear taut
-> thread through the nested cuts (the Peircean reading), short cuts hugging the
-> thread, labels clear of the lines, §3.3-valid; ELK stays the default. The
-> frontier is the cases the thread engine still hands to hierarchical placement:
-> **(1) branch points** — a line of identity forking to 3+ predicates (degree-≥3
-> vertex): the thread becomes a small *tree* pulled taut; **(2) multiple threads**
-> sharing cuts (a graph with several lines of identity); **(3) non-monotone
-> threads** that dive into a cut and come back out. The principle: make the
-> **ligature the unit the layout places**, with containment as the nest it
-> threads — no special cases. Start with branch points (most common after single
-> threads). Survey: 11/18 corpus single-thread (done), 4 branch, 1 multi-thread,
-> 1 empty. Code: `src/tension_engine.py` (`_thread_layout` / `_hierarchical_layout`
-> dispatch), `src/tension_layout.py` (`extract_thread`, `stress_majorize`),
-> `tools/thread_layout_poc.py`. Spec: `docs/TENSION_LAYOUT.md` §9–§10. Memory:
+> **NEXT SESSION — the tension layout frontier (now: multiple threads).**
+> `?engine=tension` lays a **single** line of identity as one collinear taut
+> thread (`_thread_layout`) and a **branching** one (a degree-≥3 junction, one
+> connected acyclic ligature) as a small **tree pulled taut** through the cut nest
+> (`_tree_layout`, done this session). ELK stays the default; the whole corpus now
+> attests at the engine with **no fallback** (18/18). The remaining frontier is
+> the cases still handed to §9 hierarchical placement: **(2) multiple threads** —
+> a *forest* of ligatures sharing a cut nest (`mixed_quantifier_complex`); **(2b)
+> cyclic ligatures** (`beta_converse_mp`); **(3) non-monotone threads** that dive
+> into a cut and come back out. The principle holds: the unit the tension solve
+> places is the ligature (a path → tree → next a **forest**), with containment as
+> the nest it threads. Start with multiple threads: lay each tree as now, then
+> separate the trees and merge the cut boxes they share (the §9 sibling-separation
+> + the tree push, composed). Survey: 10 single-thread + 5 branch (done) = 15/18;
+> 2 multi/cyclic + 1 empty → hierarchical. Code: `src/tension_engine.py`
+> (`_thread_layout` / `_tree_layout` / `_hierarchical_layout` dispatch; shared
+> `_box_cuts`), `src/tension_layout.py` (`extract_thread`, `extract_tree`,
+> `stress_majorize`). Spec: `docs/TENSION_LAYOUT.md` §9–§11. Memory:
 > [[project-tension-layout-engine]], [[project-layout-orientation-and-clustering]].
+
+## Session 2026-06-07 (b) — tension frontier: branch points (the taut tree)
+
+Generalized the thread engine's first frontier case: a line of identity that
+**forks** to 3+ predicates (a degree-≥3 junction). Its incidence graph is one
+connected acyclic **tree**, so the collinear thread becomes a small tree pulled
+taut through the cut nest. On `main`, no protected module touched.
+
+- `tension_layout.extract_tree` — certifies a single connected acyclic ligature
+  (`|E| = |V|−1`, one component) and fixes the node order; sibling of
+  `extract_thread` (which still claims the pure-path collinear case first).
+- `tension_engine._tree_layout` — global stress over the incidence graph with each
+  ligature's crossing-sequence inserted as **chained proxy nodes** (a deep
+  incidence straightens through exactly the boundaries it crosses); cut boxes
+  bottom-up via the new shared `_box_cuts`; then an **intruder push** — stress can
+  pull an outside junction into a cut's hull, so any node inside a cut it doesn't
+  belong to is pushed to the boundary and the boxes re-derived to a fixpoint; each
+  crossing snapped to where the straight predicate→vertex segment meets the box
+  (`_seg_box_hit`). Self-attests with hierarchical fallback, same discipline as
+  `_thread_layout`. Dispatch is now thread → tree → hierarchical.
+- **Result:** all 5 corpus branch graphs lay out as clean taut trees and attest at
+  the engine → the whole corpus attests with **no ELK fallback** (18/18, up from
+  17/18). The three cross-boundary vertex-forks the hierarchical engine drew
+  awkwardly (`dau_2006_p112_ligature`, `peirce_modus_ponens`,
+  `roberts_domain_modeling` — junction stranded outside its cuts) now settle the
+  junction against the cut boundary, predicates fanning in.
+- Tests: `tests/test_tension_engine.py` (+2: tree path taken + attests for every
+  branch graph; the push keeps an outside junction outside its cuts; renamed the
+  old "falls back" branch test to "lays out as taut tree"). Spec:
+  `docs/TENSION_LAYOUT.md` §11. Full suite green (1016 + new), no regression.
+
+**Follow-ups same session (compaction + reach):**
+- **Compaction.** First branch layouts spread exorbitantly (roberts ~810×1040):
+  the unit-hop graph distance × a uniform scale inflated every edge, and a
+  crossing proxy counted as a *full* hop. Fixed by giving `stress_majorize` an
+  optional `edge_len` (per-edge ideal lengths → weighted shortest paths), so each
+  edge is only as long as it must be (proxy hops short, labels their room). The
+  engine tries this *compact* embedding first; a tight junction whose outside line
+  would re-cross a sibling cut (roberts) falls back to the **unweighted** shape
+  *compacted to minimal non-overlap* (`_compact_scale`, order-preserving uniform
+  scale) — the balanced fan, ~513×562. 4/5 branch graphs use the compact
+  embedding; roberts the compacted fallback; all 5 attest, deterministic, no
+  overlap. +3 tests.
+- **Organon gets the engine.** `?engine=tension` wired into `/organon/uods/{id}`
+  (+`/chain`) and a "Layout" selector added to the archive toolbar
+  (`organon.html`, folded into the shared projection query). The archive may show
+  a style-/engine-only reprojection of an attested graph (§3.3 attests
+  correspondence, not truth). +1 route test.
+- **Workshop open bug.** A fresh workshop open rendered server-side with the
+  *default* engine while the controls still showed tension — you had to toggle to
+  see it. `openSession`/`openScratch` now re-apply the selected projection after
+  open (`applySelectedLayoutIfAny`), so the drawing matches the controls.
 
 ## Session 2026-06-07 — editing surface + the tension layout engine
 

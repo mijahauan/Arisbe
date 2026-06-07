@@ -26,7 +26,9 @@ from elk_layout_engine import ELKLayoutEngine
 from style_loader import load_default_style
 from projection_conventions import DEFAULT_CONVENTIONS
 from presentation_ops import element_area, cut_parents, crossing_sequence
-from tension_layout import springs, tension, optimize_order, sibling_order
+from tension_layout import (
+    springs, tension, optimize_order, sibling_order, stress_majorize,
+)
 from tomos_service import TomosService
 
 TOMOS_ROOT = Path(__file__).parent.parent / "tomos"
@@ -146,3 +148,35 @@ def test_service_tension_flag_preserves_attestation():
     dto, svg = generate_layout(egi, tension=True)
     assert "<svg" in svg
     assert dto.cut_bounds  # laid out
+
+
+# --------------------------------------------------------------------------- #
+# Weighted stress (per-edge ideal lengths)                                    #
+# --------------------------------------------------------------------------- #
+
+
+def test_stress_majorize_unweighted_unchanged():
+    """The default (no edge_len) path is unchanged: a 3-node path relaxes to a
+    straight, evenly-spaced line in order (each hop the unit distance)."""
+    pos = stress_majorize(["a", "b", "c"], [("a", "b"), ("b", "c")])
+    import math
+    d_ab = math.dist(pos["a"], pos["b"])
+    d_bc = math.dist(pos["b"], pos["c"])
+    d_ac = math.dist(pos["a"], pos["c"])
+    assert abs(d_ab - d_bc) < 1e-3              # equal unit hops
+    assert abs(d_ac - (d_ab + d_bc)) < 0.02     # ~collinear, b between a and c
+
+
+def test_stress_majorize_weighted_respects_edge_lengths():
+    """With per-edge ideal lengths, each edge takes its own length — a short hop
+    stays short next to a long one (the compaction the tree layout relies on)."""
+    import math
+    nodes = ["a", "b", "c"]
+    edges = [("a", "b"), ("b", "c")]
+    pos = stress_majorize(
+        nodes, edges, edge_len={("a", "b"): 10.0, ("b", "c"): 100.0}
+    )
+    d_ab = math.dist(pos["a"], pos["b"])
+    d_bc = math.dist(pos["b"], pos["c"])
+    assert d_bc > 5 * d_ab                    # the long edge is far longer
+    assert abs(d_ab - 10.0) < 2.0 and abs(d_bc - 100.0) < 5.0

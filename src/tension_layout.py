@@ -187,20 +187,60 @@ def extract_thread(egi: RelationalGraphWithCuts) -> Optional[List]:
     return order
 
 
+def extract_tree(egi: RelationalGraphWithCuts) -> Optional[List]:
+    """The incidence graph's node list when the whole graph is a **single
+    connected acyclic line of identity** — one ligature, possibly *branching*
+    (a degree-≥3 junction).  Returns the nodes in deterministic order, or
+    ``None`` if the graph is empty, disconnected (several ligatures), or cyclic.
+
+    A plain path is a tree too, but :func:`extract_thread` handles that case
+    first (the collinear reading); this is the **branch generalization** — the
+    thread becomes a small tree pulled taut through the cut nest.  The engine
+    rebuilds the edges (with crossing proxies) itself; this only certifies the
+    shape and fixes the node order (layout invariant L1)."""
+    inc = incidence(egi)
+    if not inc:
+        return None
+    nodes = sorted(inc, key=str)
+    n_edges = sum(len(egi.nu.get(e.id, ())) for e in egi.E)
+    if n_edges != len(nodes) - 1:
+        return None  # a tree has exactly |V|−1 edges; otherwise cyclic/forest
+    seen = {nodes[0]}
+    stack = [nodes[0]]
+    while stack:
+        u = stack.pop()
+        for w in inc[u]:
+            if w not in seen:
+                seen.add(w)
+                stack.append(w)
+    if len(seen) != len(nodes):
+        return None  # disconnected — several ligatures (the multi-thread case)
+    return nodes
+
+
 def stress_majorize(
     nodes: List,
     edges: List[Tuple],
     *,
     iters: int = 300,
     scale: float = 1.0,
+    edge_len: Optional[Dict[Tuple, float]] = None,
 ) -> Dict:
     """Deterministic 2-D stress majorization (SMACOF) of a graph.
 
     Minimizes the tension energy ``Σ w_ij (‖p_i − p_j‖ − d_ij)²`` with ideal
-    distances ``d_ij`` = graph (BFS) distance and ``w_ij = 1/d_ij²`` — a path
-    relaxes to a straight line in order, a star to a hub.  Disconnected pairs get
-    a large finite ideal distance (they simply repel).  Pure numpy (no scipy);
-    the fixed line-init makes it reproducible (layout invariant L1).
+    distances ``d_ij`` = graph distance and ``w_ij = 1/d_ij²`` — a path relaxes to
+    a straight line in order, a star to a hub.  Disconnected pairs get a large
+    finite ideal distance (they simply repel).  Pure numpy (no scipy); the fixed
+    line-init makes it reproducible (layout invariant L1).
+
+    By default every edge has unit length (graph distance = hop count).  Pass
+    ``edge_len`` — a ``{(a, b): length}`` map (either endpoint order accepted) —
+    to give each edge its **own ideal length**, so ``d_ij`` becomes the weighted
+    shortest-path distance.  This makes each edge only as long as it must be (a
+    short crossing-proxy hop stays short; a label-sized incidence gets its label's
+    room), instead of every hop inflating to the same scale — the cure for a deep
+    or branched ligature spreading far more than it needs to.
 
     Returns ``{node: (x, y)}`` as plain floats, scaled by ``scale``.
     """
@@ -213,25 +253,55 @@ def stress_majorize(
         return {nodes[0]: (0.0, 0.0)}
 
     idx = {u: i for i, u in enumerate(nodes)}
-    adj = collections.defaultdict(set)
-    for a, b in edges:
-        if a in idx and b in idx and a != b:
-            adj[a].add(b)
-            adj[b].add(a)
-
     D = np.zeros((n, n))
-    for s in nodes:
-        dist = {s: 0}
-        q = collections.deque([s])
-        while q:
-            u = q.popleft()
-            for w in adj[u]:
-                if w not in dist:
-                    dist[w] = dist[u] + 1
-                    q.append(w)
-        for t, dd in dist.items():
-            D[idx[s], idx[t]] = dd
-    big = D.max() + 1 if n else 1.0
+
+    if edge_len is None:
+        # Unweighted: BFS hop count (the original behaviour).
+        adj = collections.defaultdict(set)
+        for a, b in edges:
+            if a in idx and b in idx and a != b:
+                adj[a].add(b)
+                adj[b].add(a)
+        for s in nodes:
+            dist = {s: 0}
+            q = collections.deque([s])
+            while q:
+                u = q.popleft()
+                for w in adj[u]:
+                    if w not in dist:
+                        dist[w] = dist[u] + 1
+                        q.append(w)
+            for t, dd in dist.items():
+                D[idx[s], idx[t]] = dd
+        init_step = 1.0
+    else:
+        # Weighted: Dijkstra shortest paths over per-edge ideal lengths.
+        import heapq
+        wadj = collections.defaultdict(dict)
+        for a, b in edges:
+            if a not in idx or b not in idx or a == b:
+                continue
+            L = edge_len.get((a, b), edge_len.get((b, a), 1.0))
+            wadj[a][b] = min(wadj[a].get(b, L), L)
+            wadj[b][a] = min(wadj[b].get(a, L), L)
+        for s in nodes:
+            dist = {s: 0.0}
+            pq = [(0.0, idx[s], s)]
+            while pq:
+                d, _, u = heapq.heappop(pq)
+                if d > dist.get(u, float("inf")):
+                    continue
+                for w, L in wadj[u].items():
+                    nd = d + L
+                    if nd < dist.get(w, float("inf")):
+                        dist[w] = nd
+                        heapq.heappush(pq, (nd, idx[w], w))
+            for t, dd in dist.items():
+                D[idx[s], idx[t]] = dd
+        vals = [L for L in edge_len.values()]
+        init_step = (sum(vals) / len(vals)) if vals else 1.0
+
+    big = D.max() + init_step if n else 1.0
     for i in range(n):
         for j in range(n):
             if i != j and D[i, j] == 0:
@@ -240,7 +310,8 @@ def stress_majorize(
     with np.errstate(divide="ignore", invalid="ignore"):
         W = np.where(D > 0, 1.0 / D ** 2, 0.0)
 
-    X = np.column_stack([np.arange(n, dtype=float), (np.arange(n) % 2) * 0.3])
+    X = np.column_stack([np.arange(n, dtype=float) * init_step,
+                         (np.arange(n) % 2) * 0.3 * init_step])
     for _ in range(iters):
         diff = X[:, None] - X[None, :]
         dist = np.linalg.norm(diff, axis=2)
@@ -269,4 +340,5 @@ __all__ = [
     "stress_majorize",
     "incidence",
     "extract_thread",
+    "extract_tree",
 ]

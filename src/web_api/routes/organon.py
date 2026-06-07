@@ -99,7 +99,7 @@ async def list_uods():
 
 
 @router.get("/uods/{uod_id}")
-async def get_uod(uod_id: str, style: Optional[str] = None):
+async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk"):
     """Return the UoD's drawing + summary metadata.
 
     Pipeline:
@@ -112,6 +112,12 @@ async def get_uod(uod_id: str, style: Optional[str] = None):
     Both boundary attestations fire on every call; a drift in either
     raises ``CorrespondenceViolation`` and surfaces here as a 500-style
     error payload.  No session is created — Organon is read-only.
+
+    ``engine`` selects the layout projection — ``"elk"`` (default) or
+    ``"tension"`` (the ligature-first reading); both are §3.3-attested at the
+    render boundary, and ``tension`` falls back to ELK on any graph it can't yet
+    lay out.  A style-only/engine-only reprojection of an attested graph is free
+    (§3.3 attests *correspondence*, not truth), so the archive may show it.
     """
     try:
         tomos = _get_tomos()
@@ -137,7 +143,7 @@ async def get_uod(uod_id: str, style: Optional[str] = None):
 
         # Style is a *projection* choice: view any form in any style directly,
         # without the export path.  §3.3 attests every styled render.
-        layout_dto, svg = generate_layout(egi, style_name=style)
+        layout_dto, svg = generate_layout(egi, style_name=style, engine=engine)
         layout_dict = layout_dto_to_dict(layout_dto)
 
         metadata = {
@@ -179,7 +185,8 @@ async def get_uod(uod_id: str, style: Optional[str] = None):
 
 
 @router.get("/uods/{uod_id}/chain")
-async def get_uod_chain(uod_id: str, style: Optional[str] = None):
+async def get_uod_chain(uod_id: str, style: Optional[str] = None,
+                        engine: str = "elk"):
     """Return the UoD's transformation chain as an ordered list of *frames*.
 
     A UoD is *fundamentally diachronic* — an evolving reasoning episode, not
@@ -216,7 +223,7 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None):
             )
 
         def _frame(index, kind, egi, rule=None, annotation=None, step_id=None):
-            _dto, svg = generate_layout(egi, style_name=style)  # attests §3.3 per state
+            _dto, svg = generate_layout(egi, style_name=style, engine=engine)  # attests §3.3 per state
             return {
                 "index": index,
                 "kind": kind,             # "base" | "step"
