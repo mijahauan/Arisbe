@@ -331,12 +331,24 @@ class SimpleSVGRenderer:
                     "stroke": "none"  # No border - continuous with ligature
                 })
 
-            # Label - shown in all modes except dot_only
+            # Label - shown in all modes except dot_only.  Default placement is
+            # to the right of the dot; but if an incident line of identity leaves
+            # eastward (e.g. a labeled vertex sitting on a horizontal thread —
+            # tension layout), a right-placed label is overwritten by the line.
+            # In that case place the label in the *freest* direction — the
+            # bisector of the largest angular gap between incident ligatures.
             if label and style.vertex_rendering_mode != "dot_only":
-                label_x = cx + style.vertex_radius + 8
-                label_y = cy + 4
+                import math
+                angs = []
+                for lp in dto.ligature_paths:
+                    if lp.vertex_id == v_id and len(lp.points) >= 2:
+                        a, b = lp.points[-1], lp.points[-2]
+                        angs.append(math.atan2(b.y - a.y, b.x - a.x))
+                east_blocked = any(
+                    abs(math.atan2(math.sin(a), math.cos(a))) < math.radians(50)
+                    for a in angs
+                )
                 v_attrs = {
-                    "x": str(label_x), "y": str(label_y),
                     "text-anchor": "start",
                     "font-size": str(style.font_size),
                     "font-family": style.font_family,
@@ -345,6 +357,25 @@ class SimpleSVGRenderer:
                 }
                 if font_style != "normal":
                     v_attrs["font-style"] = font_style
+                if not east_blocked:
+                    v_attrs["x"] = str(cx + style.vertex_radius + 8)
+                    v_attrs["y"] = str(cy + 4)
+                else:
+                    angs.sort()
+                    best_gap, ang = -1.0, -math.pi / 2  # default: above
+                    for i in range(len(angs)):
+                        a0 = angs[i]
+                        a1 = angs[(i + 1) % len(angs)] + (
+                            2 * math.pi if i + 1 == len(angs) else 0.0)
+                        if a1 - a0 > best_gap:
+                            best_gap, ang = a1 - a0, (a0 + a1) / 2
+                    rr = style.vertex_radius + 8
+                    v_attrs["x"] = str(cx + rr * math.cos(ang))
+                    v_attrs["y"] = str(cy + rr * math.sin(ang))
+                    cosv = math.cos(ang)
+                    v_attrs["text-anchor"] = (
+                        "start" if cosv > 0.3 else "end" if cosv < -0.3 else "middle")
+                    v_attrs["dominant-baseline"] = "central"
                 ET.SubElement(v_g, "text", v_attrs).text = label
         
         # ====================================================================
