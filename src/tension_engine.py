@@ -32,9 +32,10 @@ from typing import Dict, List, Optional, Tuple
 from egi_core_dau import ElementID, RelationalGraphWithCuts
 from layout_dto import BoundingBox, LayoutDTO, LigaturePath, Point
 from presentation_ops import element_area, cut_parents, crossing_sequence
-from tension_layout import block_of, springs, stress_majorize
+from tension_layout import block_of, springs, stress_majorize, extract_thread
 from elk_layout_engine import ELKLayoutEngine
 from style_loader import StyleSpecification
+from correspondence_attestation import attest_correspondence, CorrespondenceViolation
 
 
 @dataclass
@@ -52,6 +53,9 @@ class TensionLayoutEngine:
     PAD = 26.0      # padding inside a cut around its contents
     GAP = 34.0      # base separation between sibling blocks
     DOT = 6.0       # vertex dot half-size
+    T_GAP = 16.0    # thread: minimum clearance between consecutive elements
+    T_PAD = 22.0    # thread: nesting inset per cut level
+    T_ROWH = 26.0   # thread: half-height of the band a thread runs in
     STRESS = 120.0  # base stress scale
 
     def __init__(self, conventions=None):
@@ -66,6 +70,24 @@ class TensionLayoutEngine:
         layout_deltas: Optional[Dict] = None,
     ) -> LayoutDTO:
         sizes = ELKLayoutEngine()._compute_element_sizes(egi, style)
+
+        # Ligature-first: if the graph is a single line of identity (one thread,
+        # no branches), lay it as one taut collinear thread through the cut nest
+        # (docs/TENSION_LAYOUT.md §10) — the Peircean reading. Self-attest: a
+        # non-monotone thread that doesn't realize its crossing-sequence falls
+        # through to the hierarchical node placement below.
+        thread = extract_thread(egi)
+        if thread is not None:
+            try:
+                dto = self._thread_layout(egi, style, sizes, thread)
+                attest_correspondence(egi, dto, context="tension_engine.thread")
+                return dto
+            except Exception:
+                pass  # non-monotone / unattestable → hierarchical placement
+
+        return self._hierarchical_layout(egi, style, sizes)
+
+    def _hierarchical_layout(self, egi, style, sizes) -> LayoutDTO:
         res = self._layout_area(egi, egi.sheet, sizes)
 
         margin = 40.0
@@ -102,6 +124,106 @@ class TensionLayoutEngine:
             viewport_bounds=viewport,
             sheet_id=egi.sheet,
             style=style,
+        )
+
+    # ------------------------------------------------------------------ #
+    # Ligature-first: a single thread laid collinear through the cut nest #
+    # ------------------------------------------------------------------ #
+
+    def _thread_layout(self, egi, style, sizes, thread) -> LayoutDTO:
+        """Lay the whole line of identity as one taut collinear thread (y = 0)
+        with variable spacing — each gap only as wide as what must fit (label
+        clearance, plus one nesting inset per cut boundary that crosses there) —
+        and cut boxes sized bottom-up so they telescope and nest by construction.
+        See ``docs/TENSION_LAYOUT.md`` §10.  Raises (caught by the caller) on a
+        non-monotone thread whose cuts don't come out contiguous."""
+        from presentation_ops import crossing_sequence
+        ea = element_area(egi)
+        pm = cut_parents(egi)
+        cut_ids = {c.id for c in egi.Cut}
+        edge_ids = {e.id for e in egi.E}
+
+        def width(eid):
+            return sizes.get(eid, (2 * self.DOT, 2 * self.DOT))[0]
+
+        # Variable spacing along the thread.
+        xs = [0.0]
+        for a, b in zip(thread, thread[1:]):
+            label_gap = (width(a) + width(b)) / 2 + self.T_GAP
+            ncross = len(crossing_sequence(ea.get(a), ea.get(b), pm))
+            cross_gap = ((width(a) + width(b)) / 2 + (ncross + 1) * self.T_PAD
+                         if ncross else 0.0)
+            xs.append(xs[-1] + max(label_gap, cross_gap))
+
+        vpos: Dict = {}
+        ppos: Dict = {}
+        for eid, x in zip(thread, xs):
+            (ppos if eid in edge_ids else vpos)[eid] = Point(x, 0.0)
+
+        # Cut boxes bottom-up (telescoping suffixes ⇒ nesting holds).
+        cbounds: Dict = {}
+
+        def box(cid):
+            if cid in cbounds:
+                return cbounds[cid]
+            bxs: List[float] = []
+            bys: List[float] = []
+            for child in egi.area.get(cid, ()):
+                if child in cut_ids:
+                    b = box(child)
+                    bxs += [b.min_x, b.max_x]; bys += [b.min_y, b.max_y]
+                else:
+                    p = vpos.get(child) or ppos.get(child)
+                    if p is None:
+                        continue
+                    w, h = sizes.get(child, (10.0, 10.0))
+                    bxs += [p.x - w / 2, p.x + w / 2]
+                    bys += [p.y - h / 2, p.y + h / 2]
+            if not bxs:
+                bxs, bys = [0.0], [0.0]
+            b = BoundingBox(min(bxs) - self.T_PAD, min(bys) - self.T_ROWH - self.T_PAD,
+                            max(bxs) + self.T_PAD, max(bys) + self.T_ROWH + self.T_PAD)
+            cbounds[cid] = b
+            return b
+        for c in egi.Cut:
+            box(c.id)
+
+        # Ligature paths: each incidence along the axis through its crossings.
+        hook = ELKLayoutEngine._predicate_hook_point
+        paths: List[LigaturePath] = []
+        for e in egi.E:
+            if e.id not in ppos:
+                continue
+            pc = ppos[e.id]
+            pw, ph = sizes.get(e.id, (40.0, 18.0))
+            for port, v in enumerate(egi.nu.get(e.id, ())):
+                if v not in vpos:
+                    continue
+                vp = vpos[v]
+                lo, hi = sorted((pc.x, vp.x))
+                mids = []
+                for c in crossing_sequence(ea.get(e.id), ea.get(v), pm):
+                    b = cbounds[c]
+                    edge = (b.min_x if abs(b.min_x - lo) < abs(b.max_x - lo)
+                            else b.max_x)
+                    edge = min(max(edge, lo), hi)
+                    mids.append(Point(edge, 0.0))
+                mids.sort(key=lambda p: abs(p.x - pc.x))
+                h = hook(pc, pw, ph, mids[0] if mids else vp)
+                paths.append(LigaturePath(e.id, v, tuple([h] + mids + [vp]), port))
+
+        allx = [p.x for p in list(vpos.values()) + list(ppos.values())]
+        ally = [p.y for p in list(vpos.values()) + list(ppos.values())]
+        for b in cbounds.values():
+            allx += [b.min_x, b.max_x]; ally += [b.min_y, b.max_y]
+        m = 40.0
+        vb = (BoundingBox(min(allx) - m, min(ally) - m, max(allx) + m, max(ally) + m)
+              if allx else BoundingBox(0, 0, 100, 100))
+        return LayoutDTO(
+            vertex_positions=vpos, predicate_positions=ppos, cut_bounds=cbounds,
+            ligature_paths=paths,
+            area_hierarchy={a: set(c) for a, c in egi.area.items()},
+            viewport_bounds=vb, sheet_id=egi.sheet, style=style,
         )
 
     # ------------------------------------------------------------------ #

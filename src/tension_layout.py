@@ -146,6 +146,47 @@ def sibling_order(
     return optimize_order(list(base_order), intra)
 
 
+def incidence(egi: RelationalGraphWithCuts) -> Dict:
+    """Adjacency of the incidence graph: each predicate/vertex → its incident
+    elements (a predicate to its ν vertices, a vertex to its predicates)."""
+    inc: Dict = {}
+    for e in egi.E:
+        for v in egi.nu.get(e.id, ()):
+            inc.setdefault(e.id, []).append(v)
+            inc.setdefault(v, []).append(e.id)
+    return inc
+
+
+def extract_thread(egi: RelationalGraphWithCuts) -> Optional[List]:
+    """The ordered element chain ``[pred, vertex, pred, …]`` of a graph that is a
+    **single thread** — one connected line of identity with no branches (every
+    predicate/vertex has degree ≤ 2).  Returns ``None`` if the graph is empty,
+    disconnected, branched (a degree-≥3 junction), or a pure cycle.
+
+    Deterministic: the walk starts at the lexicographically smallest degree-1
+    endpoint."""
+    inc = incidence(egi)
+    if not inc:
+        return None
+    if any(len(ns) > 2 for ns in inc.values()):
+        return None
+    ends = sorted(n for n, ns in inc.items() if len(ns) == 1)
+    if not ends:
+        return None  # cycle, or nothing
+    start = ends[0]
+    order, prev, cur = [start], None, start
+    while True:
+        nxts = [n for n in inc[cur] if n != prev]
+        if not nxts:
+            break
+        prev, cur = cur, nxts[0]
+        order.append(cur)
+    # Single thread ⇔ the walk covered every incident element.
+    if len(order) != len(inc):
+        return None
+    return order
+
+
 def stress_majorize(
     nodes: List,
     edges: List[Tuple],
@@ -226,4 +267,6 @@ __all__ = [
     "optimize_order",
     "sibling_order",
     "stress_majorize",
+    "incidence",
+    "extract_thread",
 ]

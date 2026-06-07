@@ -122,6 +122,40 @@ def test_layout_is_deterministic():
 # --------------------------------------------------------------------------- #
 
 
+def test_single_thread_lays_out_collinear():
+    """A single line of identity (one thread, no branches) is laid as one taut
+    collinear thread through the cut nest — every element shares one y."""
+    svc = TomosService(TOMOS_ROOT)
+    style = load_default_style()
+    egi = svc.load_uod("dau_theorem_proving").current_egi  # P—x—Q—y—R—z—S
+    dto = _engine().generate_layout(egi, style)
+    ys = {round(p.y, 3) for p in list(dto.vertex_positions.values())
+          + list(dto.predicate_positions.values())}
+    assert len(ys) == 1            # collinear
+    attest_correspondence(egi, dto, context="thread")  # §3.3-valid
+
+
+def test_thread_spacing_is_variable_not_uniform():
+    """Gaps reflect the topology: same-area neighbours sit closer than a pair
+    with cut boundaries crossing between them (cut area ∝ length²)."""
+    svc = TomosService(TOMOS_ROOT)
+    egi = svc.load_uod("dau_theorem_proving").current_egi  # nested cuts
+    dto = _engine().generate_layout(egi, load_default_style())
+    xs = sorted(p.x for p in list(dto.vertex_positions.values())
+                + list(dto.predicate_positions.values()))
+    gaps = [round(b - a) for a, b in zip(xs, xs[1:])]
+    assert len(set(gaps)) > 1  # not a uniform step — widens where cuts cross
+
+
+def test_branch_graph_still_attests_via_hierarchical():
+    """A graph with a branch (degree-≥3 vertex) isn't a single thread; it falls
+    through to hierarchical placement, which still produces a §3.3-valid layout."""
+    svc = TomosService(TOMOS_ROOT)
+    egi = svc.load_uod("peirce_modus_ponens").current_egi
+    dto = _engine().generate_layout(egi, load_default_style())
+    attest_correspondence(egi, dto, context="branch")
+
+
 def test_service_engine_tension_is_attested():
     from web_api.services.layout_service import generate_layout
     egi = parse_egif("(Cat *x) (On x *y) (Mat y)")

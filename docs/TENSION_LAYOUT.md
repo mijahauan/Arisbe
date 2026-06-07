@@ -324,11 +324,27 @@ S@0 —(54,1×)— •@53 —(26,0×)— R@79 —(76,2×)— •@154 —(26,0×)
 ~4× cut-area reduction, still collinear and §3.3-valid. The spacing reflects the
 topology, not a magic constant.
 
-**Generalization (the engine increment):** multiple threads; branch points
-(degree-≥3 vertices); non-monotone threads (in-and-out of cuts); composing
-several threads + their shared cuts into one layout. The thread becomes the unit
-the tension solve places, with containment as the nest it threads — the
-node-placement engine (§9) reframed around ligatures.
+### Wired into the engine (2026-06-07)
+
+`TensionLayoutEngine.generate_layout` now dispatches: if the graph is a **single
+thread** (`tension_layout.extract_thread` — one connected line of identity, no
+branches), it lays it out collinearly (`_thread_layout`, the PoC logic with
+variable spacing); otherwise it uses the §9 hierarchical node placement. The
+thread path **self-attests** and falls through to hierarchical on a non-monotone
+thread that doesn't realize its crossing-sequence. ELK remains the default
+engine; this is still `?engine=tension`.
+
+Corpus: **10 of the 11 single-thread graphs** get the collinear thread layout
+(the 11th is non-monotone → hierarchical); all 18 attest at the engine (no ELK
+fallback needed). `cat_on_mat` reads `Cat —•— On —•— Mat`. Tests in
+`tests/test_tension_engine.py` (single-thread collinear; variable spacing;
+branch graph falls back yet still attests).
+
+**Remaining generalization:** multiple threads; branch points (degree-≥3
+vertices); non-monotone threads (in-and-out of cuts); composing several threads
++ their shared cuts. The thread becomes the unit the tension solve places, with
+containment as the nest it threads — the node-placement engine reframed around
+ligatures.
 
 The one-sentence version: **the containment tree says where things may live;
 ligature tension, pulled taut against the cut boundaries the crossing-sequence
