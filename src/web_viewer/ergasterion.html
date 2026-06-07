@@ -1674,7 +1674,10 @@
             return;
           }
           currentLayoutDto = body.data.layout_dto || currentLayoutDto;
-          renderSvg(body.data.svg, true);  // same graph → hold the camera
+          // A layout-engine / axis / style change resizes the whole drawing, so
+          // fit-to-content (like Organon) rather than holding the prior camera —
+          // otherwise a spread-out tension layout lands partly out of view.
+          renderSvg(body.data.svg, false);
           if (window.LinearFormPanel)
             window.LinearFormPanel.render(canvasEl, body.data.linear_forms);
           if (body.data.chain) renderChain(body.data.chain);
