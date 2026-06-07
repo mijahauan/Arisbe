@@ -455,6 +455,30 @@
               <option value="sowa-compliant@1.0">Sowa — conceptual graph</option>
             </select>
           </div>
+          <div class="field">
+            <label>Layout engine</label>
+            <select id="engine-select">
+              <option value="elk">ELK (default)</option>
+              <option value="tension">Tension — relation between arguments</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Reading axis (ELK)</label>
+            <select id="direction-select">
+              <option value="">Right — left-to-right (default)</option>
+              <option value="DOWN">Down — spread siblings wide</option>
+              <option value="LEFT">Left</option>
+              <option value="UP">Up</option>
+            </select>
+          </div>
+          <div class="field" style="font-size:11px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+              <input type="checkbox" id="tension-sib-chk" /> Tension sibling order (ELK)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;margin-top:4px;">
+              <input type="checkbox" id="extrapolate-chk" /> Extrapolate nudges to siblings
+            </label>
+          </div>
           <button class="action danger" id="btn-discard">
             Discard draft (forget chain)
           </button>
@@ -1165,7 +1189,8 @@
         try {
           const res = await fetch(
             '/ergasterion/sessions/' + currentSessionId +
-            '/states/' + encodeURIComponent(stateId)
+            '/states/' + encodeURIComponent(stateId) +
+            (window.layoutQuery ? window.layoutQuery() : '')
           );
           const body = await res.json();
           if (!body.success) {
@@ -1607,26 +1632,69 @@
 
       // ---- wiring ----
 
-      // Style selector — re-render the current state in the chosen style.
-      // Composition is style-independent; this changes only the drawing.
+      // Layout controls — engine / reading axis / tension / extrapolate / style
+      // all change only the *drawing* (composition is layout-independent). Each
+      // is a query parameter the workshop now sends on every render, so the
+      // chosen projection persists across navigation and re-renders.
       const styleSelect = document.getElementById('style-select');
-      if (styleSelect) {
-        styleSelect.addEventListener('change', async () => {
-          if (!currentSessionId) return;
-          const q = styleSelect.value ? ('?style=' + encodeURIComponent(styleSelect.value)) : '';
-          setStatus('Re-rendering in ' + (styleSelect.value || 'default') + '…');
-          try {
-            const res = await fetch('/ergasterion/sessions/' + currentSessionId + q);
-            const body = await res.json();
-            if (!body.success) { setStatus('Style render failed: ' + (body.error && body.error.message), 'error'); return; }
-            // Same graph, new style → hold the camera steady.
-            renderSvg(body.data.svg, true);
-            if (window.LinearFormPanel) window.LinearFormPanel.render(canvasEl, body.data.linear_forms);
-            renderChain(body.data.chain);
-            setStatus('Drawing in ' + (styleSelect.value || 'Dau default') + '.', 'success');
-          } catch (e) { setStatus('Network error: ' + e.message, 'error'); }
-        });
+      const engineSelect = document.getElementById('engine-select');
+      const directionSelect = document.getElementById('direction-select');
+      const tensionSibChk = document.getElementById('tension-sib-chk');
+      const extrapolateChk = document.getElementById('extrapolate-chk');
+
+      // Build the layout query shared by every session/state render.
+      window.layoutQuery = function layoutQuery() {
+        const p = new URLSearchParams();
+        if (styleSelect && styleSelect.value) p.set('style', styleSelect.value);
+        if (engineSelect && engineSelect.value && engineSelect.value !== 'elk')
+          p.set('engine', engineSelect.value);
+        if (directionSelect && directionSelect.value)
+          p.set('direction', directionSelect.value);
+        if (tensionSibChk && tensionSibChk.checked) p.set('tension', 'true');
+        if (extrapolateChk && extrapolateChk.checked) p.set('extrapolate', 'true');
+        const s = p.toString();
+        return s ? ('?' + s) : '';
+      };
+
+      // Re-render the currently-viewed state with the current layout options.
+      async function rerenderLayout(label) {
+        if (!currentSessionId) return;
+        const atState = (currentChain && typeof viewIndex === 'number'
+          && viewIndex !== tipIndex());
+        const stateId = atState ? stateIdForIndex(viewIndex) : null;
+        const url = '/ergasterion/sessions/' + currentSessionId +
+          (stateId ? ('/states/' + encodeURIComponent(stateId)) : '') +
+          layoutQuery();
+        setStatus('Re-rendering' + (label ? ' — ' + label : '') + '…');
+        try {
+          const res = await fetch(url);
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Render failed: ' + (body.error && body.error.message), 'error');
+            return;
+          }
+          currentLayoutDto = body.data.layout_dto || currentLayoutDto;
+          renderSvg(body.data.svg, true);  // same graph → hold the camera
+          if (window.LinearFormPanel)
+            window.LinearFormPanel.render(canvasEl, body.data.linear_forms);
+          if (body.data.chain) renderChain(body.data.chain);
+          setStatus('Layout updated' + (label ? ' (' + label + ')' : '') + '.', 'success');
+        } catch (e) { setStatus('Network error: ' + e.message, 'error'); }
       }
+
+      if (styleSelect)
+        styleSelect.addEventListener('change',
+          () => rerenderLayout('style ' + (styleSelect.value || 'default')));
+      if (engineSelect)
+        engineSelect.addEventListener('change',
+          () => rerenderLayout(engineSelect.value + ' engine'));
+      if (directionSelect)
+        directionSelect.addEventListener('change',
+          () => rerenderLayout('axis ' + (directionSelect.value || 'right')));
+      if (tensionSibChk)
+        tensionSibChk.addEventListener('change', () => rerenderLayout('tension order'));
+      if (extrapolateChk)
+        extrapolateChk.addEventListener('change', () => rerenderLayout('extrapolate'));
 
       btnStartEmpty.addEventListener('click', () => openSession('empty_sheet'));
       btnApply.addEventListener('click', applyRule);
