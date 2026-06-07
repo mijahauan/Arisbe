@@ -2,13 +2,19 @@
  * SettleAdjust — Manual Settle ④b.
  *
  * The workshop's regime-3 touch-up layer: drag the drawing to tidy its
- * appearance *after* a transformation, without changing the logic.  Three
- * gestures map onto the three presentation_ops the server exposes at
+ * appearance *after* a transformation, without changing the logic.  The
+ * gestures map onto the presentation_ops the server exposes at
  * POST /ergasterion/sessions/{id}/adjust:
  *
  *   - drag a vertex dot            → move_vertex (dx, dy)
+ *   - drag a predicate (relation)  → move_predicate (dx, dy)
  *   - drag a cut's corner handle   → reshape_cut (new bounds)
+ *   - drag a cut's body / border   → move_cut (dx, dy) — whole cut + contents
  *   - drag a line of identity      → reroute_ligature (a waypoint)
+ *
+ * Each drag shows a live guide while the mouse is down (a translated ghost of
+ * the element, or — for a reroute — the polyline the line will take) so the
+ * result is predictable before release, not a surprise on let-go.
  *
  * Every gesture is logic-preserving by construction: the server refuses any
  * boundary-crossing nudge (Regime3Violation) and re-attests §3.3 before
@@ -167,6 +173,50 @@ window.SettleAdjust = (function () {
     }, e);
   }
 
+  // ---- gesture: move a predicate (relation label) -------------------------
+
+  function startPredicateDrag(group, e) {
+    const pid = group.getAttribute('data-element-id');
+    if (!pid) return;
+    const origTransform = group.getAttribute('transform') || '';
+    beginDrag({
+      kind: 'predicate',
+      preview(dx, dy) {
+        group.setAttribute('transform', origTransform + ' translate(' + dx + ',' + dy + ')');
+      },
+      commit(ev, state) {
+        postAdjust({ operation: 'move_predicate', predicate_id: pid, dx: state.dx, dy: state.dy });
+      },
+    }, e);
+  }
+
+  // ---- gesture: move a whole cut (drag its body / border) -----------------
+
+  function startCutMoveDrag(group, e) {
+    const cid = group.getAttribute('data-element-id');
+    const dto = cfg.getLayoutDto && cfg.getLayoutDto();
+    const b = dto && dto.cut_bounds && dto.cut_bounds[cid];
+    if (!cid || !b) return;
+    const { ox, oy } = offset();
+    const r = { min_x: b.min_x + ox, min_y: b.min_y + oy,
+                max_x: b.max_x + ox, max_y: b.max_y + oy };
+    const overlay = ensureOverlay();
+    let ghost = null;
+    beginDrag({
+      kind: 'cut-move',
+      preview(dx, dy) {
+        if (ghost) ghost.remove();
+        ghost = rect(r.min_x + dx, r.min_y + dy, r.max_x - r.min_x, r.max_y - r.min_y,
+                     'settle-preview');
+        overlay.appendChild(ghost);
+      },
+      commit(ev, state) {
+        if (ghost) ghost.remove();
+        postAdjust({ operation: 'move_cut', cut_id: cid, dx: state.dx, dy: state.dy });
+      },
+    }, e);
+  }
+
   // ---- gesture: reshape a cut via corner handles --------------------------
 
   function startCutHandleDrag(handle, e) {
@@ -225,19 +275,43 @@ window.SettleAdjust = (function () {
     const vertex_id = path.getAttribute('data-vertex-id');
     const port_index = parseInt(path.getAttribute('data-port-index') || '0', 10);
     if (!predicate_id || !vertex_id) return;
+
+    // The line's pinned endpoints (predicate side = points[0], vertex side =
+    // points[-1]) in rendered coords — so the live guide shows the *actual*
+    // polyline the reroute will produce, not just where the cursor is.
+    const { ox, oy } = offset();
+    const dto = cfg.getLayoutDto && cfg.getLayoutDto();
+    let ends = null;
+    if (dto && dto.ligature_paths) {
+      const lp = dto.ligature_paths.find((p) =>
+        p.predicate_id === predicate_id && p.vertex_id === vertex_id &&
+        (p.port_index || 0) === port_index);
+      if (lp && lp.points && lp.points.length >= 2) {
+        const a = lp.points[0], b = lp.points[lp.points.length - 1];
+        ends = { ax: a.x + ox, ay: a.y + oy, bx: b.x + ox, by: b.y + oy };
+      }
+    }
     const overlay = ensureOverlay();
-    let marker = null;
+    let guide = null, marker = null;
     beginDrag({
       kind: 'ligature',
       preview(dx, dy, ev) {
         const p = toRendered(ev.clientX, ev.clientY);
         if (!p) return;
         if (marker) marker.remove();
+        if (guide) guide.remove();
+        if (ends) {
+          guide = polyline(
+            [[ends.ax, ends.ay], [p.x, p.y], [ends.bx, ends.by]],
+            'settle-preview-line');
+          overlay.appendChild(guide);
+        }
         marker = dot(p.x, p.y, 'settle-preview-dot');
         overlay.appendChild(marker);
       },
       commit(ev) {
         if (marker) marker.remove();
+        if (guide) guide.remove();
         const p = toDto(ev.clientX, ev.clientY);
         if (!p) { refresh(); return; }
         postAdjust({
@@ -277,14 +351,35 @@ window.SettleAdjust = (function () {
     return c;
   }
 
-  /** Draw the corner handles for every cut, into the overlay. */
+  function ring(cx, cy, r, cls) {
+    const c = document.createElementNS(SVGNS, 'circle');
+    c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', r);
+    if (cls) c.setAttribute('class', cls);
+    return c;
+  }
+
+  function polyline(points, cls) {
+    const p = document.createElementNS(SVGNS, 'polyline');
+    p.setAttribute('points', points.map((pt) => pt[0] + ',' + pt[1]).join(' '));
+    if (cls) p.setAttribute('class', cls);
+    return p;
+  }
+
+  /** Draw the drag affordances for every element, into the overlay.
+   *
+   * Cut corners get interactive resize handles; vertices and predicates get a
+   * faint, *non-interactive* ring (pointer-events:none in CSS) that only says
+   * "this is grabbable" — the actual drag is caught on the element group
+   * underneath.  Together with the cut body being draggable, every regime-3
+   * gesture now has a visible invitation. */
   function drawHandles() {
     const dto = cfg.getLayoutDto && cfg.getLayoutDto();
-    if (!dto || !dto.cut_bounds) return;
+    if (!dto) return;
     const overlay = ensureOverlay();
     overlay.innerHTML = '';
     const { ox, oy } = offset();
-    Object.keys(dto.cut_bounds).forEach((cid) => {
+
+    Object.keys(dto.cut_bounds || {}).forEach((cid) => {
       const b = dto.cut_bounds[cid];
       const corners = {
         nw: [b.min_x + ox, b.min_y + oy],
@@ -299,6 +394,15 @@ window.SettleAdjust = (function () {
         h.setAttribute('data-handle', corner);
         overlay.appendChild(h);
       });
+    });
+
+    Object.keys(dto.vertex_positions || {}).forEach((vid) => {
+      const p = dto.vertex_positions[vid];
+      overlay.appendChild(ring(p.x + ox, p.y + oy, HANDLE + 2, 'settle-grabhint'));
+    });
+    Object.keys(dto.predicate_positions || {}).forEach((pid) => {
+      const p = dto.predicate_positions[pid];
+      overlay.appendChild(ring(p.x + ox, p.y + oy, HANDLE + 4, 'settle-grabhint'));
     });
   }
 
@@ -315,8 +419,16 @@ window.SettleAdjust = (function () {
     const vgroup = t.closest('g[data-element-type="vertex"]');
     if (vgroup) { startVertexDrag(vgroup, e); return; }
 
+    const pgroup = t.closest('g[data-element-type="predicate"]');
+    if (pgroup) { startPredicateDrag(pgroup, e); return; }
+
     const ligature = t.closest('path.ligature-path');
     if (ligature) { startLigatureDrag(ligature, e); return; }
+
+    // Last: the cut body / border (rendered under elements + lines), so a click
+    // on contained material is handled above before falling through to here.
+    const cgroup = t.closest('g[data-element-type="cut"]');
+    if (cgroup) { startCutMoveDrag(cgroup, e); return; }
   }
 
   function refresh() {

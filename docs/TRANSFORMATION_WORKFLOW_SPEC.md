@@ -289,13 +289,18 @@ it says exactly what is new / removed / moved, so the policy never guesses.
 ### ④b — Manual adjustment (regime-3)
 Even a conservative auto-layout will sometimes want a human nudge. After the
 auto-redraw, the user may refine the appearance *without touching the logic*
-via the regime-3 presentation algebra — `move_vertex`, `reshape_cut`,
-`reroute_ligature` (`presentation_ops.py`), each of which refuses any
-boundary-crossing change (raising `Regime3Violation`). **DONE (2026-06-06,
-browser-verified):** these are now wired to the workshop canvas. A **Settle
-toggle** turns the canvas into a tidy-the-layout surface — drag a vertex
-(→ `move_vertex`), a cut corner handle (→ `reshape_cut`), or a line of
-identity (→ `reroute_ligature`). The round-trip is `POST
+via the regime-3 presentation algebra — `move_vertex`, `move_predicate`,
+`reshape_cut`, `move_cut`, `reroute_ligature` (`presentation_ops.py`), each of
+which refuses any boundary-crossing change (raising `Regime3Violation`). **DONE
+(2026-06-06, browser-verified):** these are wired to the workshop canvas. A
+**Settle toggle** turns the canvas into a tidy-the-layout surface — drag a
+vertex (→ `move_vertex`), a **relation label** (→ `move_predicate`), a **cut
+body** to slide the whole cut + its contents (→ `move_cut`) or a **cut corner
+handle** to resize it (→ `reshape_cut`), or a line of identity
+(→ `reroute_ligature`). Each drag shows a **live guide** (a translated ghost,
+or — for a reroute — the polyline the line will take) so the result is
+predictable before release, and faint rings mark every grabbable
+vertex/relation. The round-trip is `POST
 /ergasterion/sessions/{id}/adjust` → `presentation_ops` → `attest_and_render`
 (re-render the nudged DTO with no ELK pass, **still §3.3-attested**). It is
 pure presentation: the EGI is untouched and **no chain step is recorded**.

@@ -37,15 +37,23 @@ from eg_navigation import describe
 from presentation_ops import (
     Regime3Violation,
     move_vertex,
+    move_predicate,
     reshape_cut,
+    move_cut,
     reroute_ligature,
 )
 from correspondence_attestation import attest_correspondence, CorrespondenceViolation
 
 MOVE_VERTEX = "move_vertex"
+MOVE_PREDICATE = "move_predicate"
 RESHAPE_CUT = "reshape_cut"
+MOVE_CUT = "move_cut"
 REROUTE_LIGATURE = "reroute_ligature"
-_OPS = (MOVE_VERTEX, RESHAPE_CUT, REROUTE_LIGATURE)
+_OPS = (MOVE_VERTEX, MOVE_PREDICATE, RESHAPE_CUT, MOVE_CUT, REROUTE_LIGATURE)
+
+# Ops that are pure translations of one element by (dx, dy) — the deltas that
+# generalize cleanly to structural siblings (extrapolation scale 1).
+_TRANSLATION_OPS = (MOVE_VERTEX, MOVE_PREDICATE)
 
 
 @dataclass(frozen=True)
@@ -57,7 +65,9 @@ class PresentationDelta:
     accepts:
 
         move_vertex      → {vertex_id, dx, dy}
+        move_predicate   → {predicate_id, dx, dy}
         reshape_cut      → {cut_id, bounds: {min_x, min_y, max_x, max_y}}
+        move_cut         → {cut_id, dx, dy}
         reroute_ligature → {predicate_id, vertex_id, port_index, interior: [{x,y}]}
 
     ``target`` is ``eg_navigation.describe()`` of the *primary* element the act
@@ -95,7 +105,9 @@ def delta_key(delta: "PresentationDelta") -> tuple:
     p = delta.params
     if delta.op == MOVE_VERTEX:
         return ("v", p.get("vertex_id"))
-    if delta.op == RESHAPE_CUT:
+    if delta.op == MOVE_PREDICATE:
+        return ("e", p.get("predicate_id"))
+    if delta.op in (RESHAPE_CUT, MOVE_CUT):
         return ("c", p.get("cut_id"))
     if delta.op == REROUTE_LIGATURE:
         return ("l", p.get("predicate_id"), p.get("vertex_id"), p.get("port_index"))
@@ -175,12 +187,12 @@ def extrapolate_deltas(
 
     The recipe, per ``docs/PRESENTATION_DELTAS_AND_STYLE.md`` §3:
 
-    1. A delta is a **sample of an intent**.  Only ``move_vertex`` generalizes
-       cleanly: a move is a *translation* (dx, dy), largely style-robust, so
-       "this kind of vertex sits a little lower" copies to a sibling.  Absolute
-       ``reshape_cut`` bounds and per-line ``reroute_ligature`` paths are
-       geometry-specific and are **not** extrapolated here (they'd need a
-       relative encoding first).
+    1. A delta is a **sample of an intent**.  Only the *translation* ops
+       (``move_vertex`` / ``move_predicate``) generalize cleanly: a move is a
+       (dx, dy) offset, largely style-robust, so "this kind of element sits a
+       little lower" copies to a sibling.  Absolute ``reshape_cut`` / ``move_cut``
+       bounds and per-line ``reroute_ligature`` paths are geometry-specific and
+       are **not** extrapolated here (they'd need a relative encoding first).
     2. Group the move exemplars by their ``generalization_key`` (default:
        kind + area polarity — Peirce's odd/even nesting, the example the design
        names).  Each group's intent is the **mean** translation of its members
@@ -197,52 +209,58 @@ def extrapolate_deltas(
     that doesn't fit (would cross a boundary, overlaps) is silently dropped, not
     forced.
     """
-    moves = [d for d in deltas if d.op == MOVE_VERTEX]
-    if not moves:
-        return []
-
-    # Intent per structural group: accumulate (dx, dy) of the exemplars.
-    groups: "Dict[tuple, List[Tuple[float, float]]]" = {}
-    for d in moves:
-        key = generalization_key(d.target, key_fields)
-        if key is None:
-            continue
-        try:
-            dx, dy = float(d.params["dx"]), float(d.params["dy"])
-        except (KeyError, TypeError, ValueError):
-            continue
-        groups.setdefault(key, []).append((dx, dy))
-    if not groups:
-        return []
-
-    mean_intent = {
-        key: (sum(x for x, _ in pts) / len(pts), sum(y for _, y in pts) / len(pts))
-        for key, pts in groups.items()
-    }
-
-    explicit_vids = {
-        d.params.get("vertex_id") for d in moves if d.params.get("vertex_id")
-    }
-
     out: List["PresentationDelta"] = []
-    for v in egi.V:
-        if v.id in explicit_vids:
-            continue  # the user touched this one directly — never override it
-        try:
-            target = describe(egi, v.id)
-        except Exception:
+    # Each translation op generalizes over its own element kind: vertex nudges
+    # to vertices, predicate nudges to predicates.  (Cross-kind leakage can't
+    # happen anyway — the default key includes "kind".)
+    for op, id_param, elements in (
+        (MOVE_VERTEX, "vertex_id", list(egi.V)),
+        (MOVE_PREDICATE, "predicate_id", list(egi.E)),
+    ):
+        exemplars = [d for d in deltas if d.op == op]
+        if not exemplars:
             continue
-        key = generalization_key(target, key_fields)
-        if key is None or key not in mean_intent:
+
+        # Intent per structural group: the mean (dx, dy) of the exemplars.
+        groups: "Dict[tuple, List[Tuple[float, float]]]" = {}
+        for d in exemplars:
+            key = generalization_key(d.target, key_fields)
+            if key is None:
+                continue
+            try:
+                dx, dy = float(d.params["dx"]), float(d.params["dy"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            groups.setdefault(key, []).append((dx, dy))
+        if not groups:
             continue
-        dx, dy = mean_intent[key]
-        out.append(
-            PresentationDelta(
-                op=MOVE_VERTEX,
-                params={"vertex_id": v.id, "dx": dx, "dy": dy},
-                target=target,
+
+        mean_intent = {
+            key: (sum(x for x, _ in pts) / len(pts), sum(y for _, y in pts) / len(pts))
+            for key, pts in groups.items()
+        }
+        explicit_ids = {
+            d.params.get(id_param) for d in exemplars if d.params.get(id_param)
+        }
+
+        for el in elements:
+            if el.id in explicit_ids:
+                continue  # the user touched this one directly — never override it
+            try:
+                target = describe(egi, el.id)
+            except Exception:
+                continue
+            key = generalization_key(target, key_fields)
+            if key is None or key not in mean_intent:
+                continue
+            dx, dy = mean_intent[key]
+            out.append(
+                PresentationDelta(
+                    op=op,
+                    params={id_param: el.id, "dx": dx, "dy": dy},
+                    target=target,
+                )
             )
-        )
     return out
 
 
@@ -250,7 +268,9 @@ def _target_element(op: str, params: Dict[str, Any]) -> Optional[ElementID]:
     """The primary element an op addresses — the one we tag with ``describe``."""
     if op == MOVE_VERTEX:
         return params.get("vertex_id")
-    if op == RESHAPE_CUT:
+    if op == MOVE_PREDICATE:
+        return params.get("predicate_id")
+    if op in (RESHAPE_CUT, MOVE_CUT):
         return params.get("cut_id")
     if op == REROUTE_LIGATURE:
         # The line of identity's vertex end; the predicate is the other end.
@@ -287,6 +307,10 @@ def _apply_one(
     p = delta.params
     if delta.op == MOVE_VERTEX:
         return move_vertex(egi, dto, p["vertex_id"], float(p["dx"]), float(p["dy"]))
+    if delta.op == MOVE_PREDICATE:
+        return move_predicate(egi, dto, p["predicate_id"], float(p["dx"]), float(p["dy"]))
+    if delta.op == MOVE_CUT:
+        return move_cut(egi, dto, p["cut_id"], float(p["dx"]), float(p["dy"]))
     if delta.op == RESHAPE_CUT:
         b = p["bounds"]
         new_bounds = BoundingBox(
@@ -357,7 +381,9 @@ def deltas_from_list(items: List[Dict[str, Any]]) -> List[PresentationDelta]:
 __all__ = [
     "PresentationDelta",
     "MOVE_VERTEX",
+    "MOVE_PREDICATE",
     "RESHAPE_CUT",
+    "MOVE_CUT",
     "REROUTE_LIGATURE",
     "record_delta",
     "apply_deltas",

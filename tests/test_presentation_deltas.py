@@ -30,7 +30,9 @@ from presentation_ops import element_area
 from presentation_deltas import (
     PresentationDelta,
     MOVE_VERTEX,
+    MOVE_PREDICATE,
     RESHAPE_CUT,
+    MOVE_CUT,
     record_delta,
     apply_deltas,
     delta_key,
@@ -271,6 +273,76 @@ def test_extrapolate_covers_new_element_in_current_egi():
 def describe_polarity(egi, vid):
     from eg_navigation import describe
     return describe(egi, vid).get("area_polarity")
+
+
+# --------------------------------------------------------------------------- #
+# move_predicate / move_cut deltas — record, apply round-trip, extrapolate     #
+# --------------------------------------------------------------------------- #
+
+
+def _a_predicate(egi, dto):
+    for e in egi.E:
+        if e.id in dto.predicate_positions:
+            return e.id
+    return None
+
+
+def test_record_and_apply_move_predicate_round_trips():
+    egi, dto = _egi_and_dto("(P *x) (Q *y)")
+    pid = _a_predicate(egi, dto)
+    assert pid is not None
+    before = dto.predicate_positions[pid]
+
+    d = record_delta(egi, MOVE_PREDICATE, {"predicate_id": pid, "dx": 12.0, "dy": -4.0})
+    assert d.target.get("kind") == "edge"  # tagged as a predicate
+    new_dto, dropped = apply_deltas(egi, dto, [d])
+
+    assert dropped == []
+    after = new_dto.predicate_positions[pid]
+    assert after.x == pytest.approx(before.x + 12.0)
+    assert after.y == pytest.approx(before.y - 4.0)
+    # JSON round-trip preserves the act.
+    again = deltas_from_list(deltas_to_list([d]))
+    assert again[0].to_dict() == d.to_dict()
+
+
+def test_record_and_apply_move_cut_round_trips():
+    egi, dto = _egi_and_dto("~[ (P *x) ] (Q *y)")
+    cid = next(iter(c.id for c in egi.Cut))
+    before = dto.cut_bounds[cid]
+
+    d = record_delta(egi, MOVE_CUT, {"cut_id": cid, "dx": -3.0, "dy": -3.0})
+    assert d.target.get("kind") == "cut"
+    new_dto, dropped = apply_deltas(egi, dto, [d])
+
+    assert dropped == []
+    after = new_dto.cut_bounds[cid]
+    assert after.min_x == pytest.approx(before.min_x - 3.0)
+    assert after.min_y == pytest.approx(before.min_y - 3.0)
+
+
+def test_delta_key_distinguishes_predicate_from_vertex():
+    pv = PresentationDelta(op=MOVE_VERTEX, params={"vertex_id": "n1", "dx": 1, "dy": 1})
+    pe = PresentationDelta(op=MOVE_PREDICATE, params={"predicate_id": "n1", "dx": 1, "dy": 1})
+    # Same raw id, different element kind → different keys (no spurious merge).
+    assert delta_key(pv) != delta_key(pe)
+
+
+def test_extrapolate_generalizes_move_predicate_to_sibling():
+    """The predicate-side of extrapolation: nudging one relation generalizes the
+    intent to an untouched relation of the same structural class."""
+    egi, _ = _egi_and_dto("(P *x) (Q *y)")  # two sheet-level predicates
+    pids = [e.id for e in egi.E]
+    assert len(pids) == 2
+
+    d = record_delta(egi, MOVE_PREDICATE, {"predicate_id": pids[0], "dx": 0.0, "dy": 14.0})
+    synth = extrapolate_deltas(egi, [d])
+
+    by_target = {s.params["predicate_id"]: s for s in synth}
+    assert pids[0] not in by_target          # explicit predicate untouched
+    assert pids[1] in by_target              # sibling generalized to
+    assert by_target[pids[1]].op == MOVE_PREDICATE
+    assert by_target[pids[1]].params["dy"] == pytest.approx(14.0)
 
 
 def test_generate_layout_consumes_deltas():

@@ -7,15 +7,19 @@ may freely reposition a vertex, reshape a cut, or reroute a ligature
 *as long as* the EGI is untouched and the resulting drawing remains in
 correspondence with it.
 
-The three operations exposed here — ``move_vertex``, ``reshape_cut``,
-``reroute_ligature`` — take an EGI and a LayoutDTO and return a *new*
-LayoutDTO.  They never mutate the EGI.  They refuse (by raising
-``Regime3Violation``) any proposal that would cross a regime boundary:
+The operations exposed here — ``move_vertex``, ``move_predicate``,
+``reshape_cut``, ``move_cut``, ``reroute_ligature`` — take an EGI and a
+LayoutDTO and return a *new* LayoutDTO.  They never mutate the EGI.  They
+refuse (by raising ``Regime3Violation``) any proposal that would cross a
+regime boundary:
 
-- a vertex translation that would push the vertex outside its current
-  area;
+- a vertex / predicate translation that would push the element outside its
+  current area;
 - a cut reshape that would change which elements are geometrically
   inside the cut (the §5.5 interior-preservation rule);
+- a cut *move* (rigid translation of the cut and everything it contains)
+  that would leave its parent area, absorb a non-descendant element, or
+  overlap a non-descendant cut;
 - a ligature reroute whose new interior points or segment midpoints
   would leave the area chain between predicate-area and vertex-area
   (changes W-realisation).
@@ -448,6 +452,86 @@ def move_vertex(
     )
 
 
+def move_predicate(
+    egi: RelationalGraphWithCuts,
+    dto: LayoutDTO,
+    predicate_id: ElementID,
+    dx: float,
+    dy: float,
+) -> LayoutDTO:
+    """Translate a predicate (edge / relation label) by ``(dx, dy)`` and
+    cascade to its ligature predicate-side endpoints.
+
+    A relation's *drawn position* carries no logic: where the label ``P`` sits
+    is pure presentation, so long as it stays in its EGI area and its incident
+    identity lines keep their endpoints attached.  This is the predicate-side
+    twin of ``move_vertex`` — every ``LigaturePath`` with
+    ``predicate_id == predicate_id`` has its predicate-side endpoint
+    (``points[0]``, the hook on the predicate's box) translated by the same
+    ``(dx, dy)`` so the line follows the label, while the vertex-side endpoint
+    stays pinned.
+
+    Raises ``Regime3Violation`` if:
+      - ``predicate_id`` is not in ``dto.predicate_positions``;
+      - the predicate's area is a cut and the translated position would fall
+        outside ``dto.cut_bounds[area]`` (a silent area change, not regime-3).
+
+    As with ``move_vertex`` the explicit guard is area-containment of the
+    predicate's anchor point; a stretched first segment that would mis-cross a
+    cut is caught by the §3.3 attestation backstop at the service boundary.
+    """
+    if predicate_id not in dto.predicate_positions:
+        raise Regime3Violation(
+            f"move_predicate: {predicate_id} not in dto.predicate_positions"
+        )
+    old_pos = dto.predicate_positions[predicate_id]
+    new_pos = Point(old_pos.x + dx, old_pos.y + dy)
+
+    elem_area_map = element_area(egi)
+    cut_ids = {c.id for c in egi.Cut}
+    p_area = elem_area_map.get(predicate_id)
+    if p_area in cut_ids:
+        bounds = dto.cut_bounds.get(p_area)
+        if bounds is None:
+            raise Regime3Violation(
+                f"move_predicate: predicate {predicate_id} is in area {p_area} "
+                f"but that area has no cut_bounds entry"
+            )
+        if not _point_in(new_pos, bounds):
+            raise Regime3Violation(
+                f"move_predicate: translating {predicate_id} by ({dx}, {dy}) "
+                f"would move it from inside area {p_area} to "
+                f"({new_pos.x},{new_pos.y}) — outside the area. "
+                f"That is a structural area change, not a regime-3 op."
+            )
+
+    new_predicates = dict(dto.predicate_positions)
+    new_predicates[predicate_id] = new_pos
+
+    new_paths = []
+    for path in dto.ligature_paths:
+        if path.predicate_id != predicate_id:
+            new_paths.append(path)
+            continue
+        pts = list(path.points)
+        if not pts:
+            new_paths.append(path)
+            continue
+        pts[0] = Point(pts[0].x + dx, pts[0].y + dy)
+        new_paths.append(
+            LigaturePath(
+                predicate_id=path.predicate_id,
+                vertex_id=path.vertex_id,
+                points=tuple(pts),
+                port_index=path.port_index,
+            )
+        )
+
+    return _clone_dto(
+        dto, predicate_positions=new_predicates, ligature_paths=new_paths
+    )
+
+
 def reshape_cut(
     egi: RelationalGraphWithCuts,
     dto: LayoutDTO,
@@ -538,6 +622,135 @@ def reshape_cut(
     new_cut_bounds = dict(dto.cut_bounds)
     new_cut_bounds[cut_id] = new_bounds
     return _clone_dto(dto, cut_bounds=new_cut_bounds)
+
+
+def move_cut(
+    egi: RelationalGraphWithCuts,
+    dto: LayoutDTO,
+    cut_id: ElementID,
+    dx: float,
+    dy: float,
+) -> LayoutDTO:
+    """Rigidly translate a cut **and everything it contains** by ``(dx, dy)``.
+
+    Unlike ``reshape_cut`` (which moves one boundary and must preserve which
+    elements are inside) a *move* slides the whole subtree together — the cut's
+    bounds, every descendant cut's bounds, the vertices and predicates in its
+    descendant areas, and the ligature points that ride inside it.  Because the
+    contents move with the boundary, interior membership is preserved by
+    construction; the structural risk is only at the cut's *own* boundary.
+
+    Raises ``Regime3Violation`` if the translated cut would:
+      - leave its parent area (translated outer bounds no longer fit inside the
+        parent cut's bounds) — a change of nesting depth, not regime-3;
+      - absorb a non-descendant vertex/predicate (one that didn't move would
+        fall inside the translated bounds);
+      - overlap a non-descendant cut.
+
+    A line of identity that *crosses* the cut boundary keeps its outside
+    endpoint fixed and its inside endpoint translated, so the crossing is
+    preserved; the §3.3 attestation backstops the stretched segment.
+    """
+    if cut_id not in dto.cut_bounds:
+        raise Regime3Violation(f"move_cut: {cut_id} not in dto.cut_bounds")
+    cut_ids = {c.id for c in egi.Cut}
+    if cut_id not in cut_ids:
+        raise Regime3Violation(f"move_cut: {cut_id} is not a cut in the EGI")
+
+    parent_map = cut_parents(egi)
+    elem_area_map = element_area(egi)
+    own_areas = _descendant_areas(egi, cut_id)  # cut_id + descendant cut ids
+
+    def tbox(b: BoundingBox) -> BoundingBox:
+        return BoundingBox(b.min_x + dx, b.min_y + dy, b.max_x + dx, b.max_y + dy)
+
+    def tpt(p: Point) -> Point:
+        return Point(p.x + dx, p.y + dy)
+
+    new_outer = tbox(dto.cut_bounds[cut_id])
+
+    # 1. Parent containment — the cut may not slide out of its enclosing area.
+    parent = parent_map.get(cut_id)
+    if parent is not None and parent in dto.cut_bounds:
+        if not _bounds_in(new_outer, dto.cut_bounds[parent]):
+            raise Regime3Violation(
+                f"move_cut: translating {cut_id} by ({dx}, {dy}) would push it "
+                f"outside its parent area {parent} — a change of nesting, not a "
+                f"regime-3 op."
+            )
+
+    # 2. No non-descendant vertex/predicate (which does not move) may end up
+    #    inside the translated bounds.
+    for eid, pos in list(dto.vertex_positions.items()) + list(
+        dto.predicate_positions.items()
+    ):
+        if elem_area_map.get(eid) in own_areas:
+            continue  # descendant — rides along, stays in by construction
+        if _point_in(pos, new_outer):
+            raise Regime3Violation(
+                f"move_cut: the moved cut {cut_id} would come to enclose "
+                f"{eid}, which is not inside it — that would change the area "
+                f"hierarchy."
+            )
+
+    # 3. No non-descendant cut may overlap the translated bounds.
+    for other_id, other_bounds in dto.cut_bounds.items():
+        if other_id in own_areas:
+            continue  # cut_id itself or a descendant — moves with it
+        if _bounds_overlap(other_bounds, new_outer):
+            raise Regime3Violation(
+                f"move_cut: the moved cut {cut_id} would overlap cut "
+                f"{other_id}, which is not part of it."
+            )
+
+    # Build the translated DTO: every moving cut / element / inside-point shifts.
+    new_cut_bounds = dict(dto.cut_bounds)
+    for cid in dto.cut_bounds:
+        if cid in own_areas:
+            new_cut_bounds[cid] = tbox(dto.cut_bounds[cid])
+
+    new_vpos = dict(dto.vertex_positions)
+    moved_v: Set[ElementID] = set()
+    for vid, pos in dto.vertex_positions.items():
+        if elem_area_map.get(vid) in own_areas:
+            new_vpos[vid] = tpt(pos)
+            moved_v.add(vid)
+
+    new_ppos = dict(dto.predicate_positions)
+    moved_p: Set[ElementID] = set()
+    for pid, pos in dto.predicate_positions.items():
+        if elem_area_map.get(pid) in own_areas:
+            new_ppos[pid] = tpt(pos)
+            moved_p.add(pid)
+
+    old_outer = dto.cut_bounds[cut_id]
+    new_paths = []
+    for path in dto.ligature_paths:
+        pts = list(path.points)
+        if pts:
+            if path.predicate_id in moved_p:
+                pts[0] = tpt(pts[0])
+            if path.vertex_id in moved_v:
+                pts[-1] = tpt(pts[-1])
+            for i in range(1, len(pts) - 1):
+                if _point_in(path.points[i], old_outer):
+                    pts[i] = tpt(path.points[i])
+        new_paths.append(
+            LigaturePath(
+                predicate_id=path.predicate_id,
+                vertex_id=path.vertex_id,
+                points=tuple(pts),
+                port_index=path.port_index,
+            )
+        )
+
+    return _clone_dto(
+        dto,
+        vertex_positions=new_vpos,
+        predicate_positions=new_ppos,
+        cut_bounds=new_cut_bounds,
+        ligature_paths=new_paths,
+    )
 
 
 def reroute_ligature(
@@ -646,6 +859,8 @@ __all__ = [
     "count_boundary_crossings",
     "deepest_containing_cut",
     "move_vertex",
+    "move_predicate",
     "reshape_cut",
+    "move_cut",
     "reroute_ligature",
 ]

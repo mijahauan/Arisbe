@@ -248,8 +248,12 @@
        dragging, cut corners show grab handles, and a drag previews in cyan. */
     #canvas.settle-mode { cursor: grab; }
     #canvas.settle-mode g[data-element-type="vertex"],
+    #canvas.settle-mode g[data-element-type="predicate"],
+    #canvas.settle-mode g[data-element-type="cut"],
     #canvas.settle-mode path.ligature-path { cursor: grab; }
     #canvas.settle-mode g[data-element-type="vertex"]:active,
+    #canvas.settle-mode g[data-element-type="predicate"]:active,
+    #canvas.settle-mode g[data-element-type="cut"]:active,
     #canvas.settle-mode path.ligature-path:active { cursor: grabbing; }
     #canvas .settle-handle {
       fill: #94e2d5;
@@ -257,7 +261,24 @@
       stroke-width: 1px;
       cursor: nwse-resize;
     }
+    /* A faint, non-interactive ring marking each grabbable vertex / predicate. */
+    #canvas .settle-grabhint {
+      fill: none;
+      stroke: #94e2d5;
+      stroke-width: 1px;
+      stroke-dasharray: 2 2;
+      opacity: 0.55;
+      pointer-events: none;
+    }
     #canvas .settle-preview {
+      fill: none;
+      stroke: #94e2d5;
+      stroke-width: 1.5px;
+      stroke-dasharray: 4 3;
+      pointer-events: none;
+    }
+    /* The live guide for a ligature reroute: the polyline the line will take. */
+    #canvas .settle-preview-line {
       fill: none;
       stroke: #94e2d5;
       stroke-width: 1.5px;
@@ -482,7 +503,7 @@
           <div id="settle-row" style="margin-bottom:10px; display:flex; align-items:center; gap:8px;">
             <button class="action" id="btn-settle" style="flex:0 0 auto;">✋ Settle</button>
             <span style="font-size:10px; color:#6c7086;">
-              tidy the layout — drag a spot, a cut corner, or a line. Logic stays fixed.
+              tidy the layout — drag a spot, a relation, a cut (body to move, corner to resize), or a line. Logic stays fixed.
             </span>
           </div>
 
@@ -1665,7 +1686,7 @@
           SettleAdjust.setEnabled(on);
           btnSettle.classList.toggle('primary', on);
           setStatus(on
-            ? 'Settle on — drag a spot, a cut corner, or a line to tidy. The logic is held fixed.'
+            ? 'Settle on — drag a spot, a relation, a cut (body moves it, corner resizes it), or a line to tidy. The logic is held fixed.'
             : 'Settle off — clicks select elements for rules again.');
         });
       }

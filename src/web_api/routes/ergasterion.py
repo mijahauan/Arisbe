@@ -77,7 +77,9 @@ from layout_dto import BoundingBox, Point
 from presentation_ops import (
     Regime3Violation,
     move_vertex,
+    move_predicate,
     reshape_cut,
+    move_cut,
     reroute_ligature,
 )
 from presentation_deltas import record_delta, deltas_from_list, merge_inherited
@@ -866,6 +868,16 @@ async def adjust_presentation(session_id: str, request: ErgasterionAdjustRequest
                 return _adjust_bad_request("move_vertex requires 'vertex_id'.")
             new_dto = move_vertex(egi, dto, request.vertex_id, request.dx, request.dy)
             params = {"vertex_id": request.vertex_id, "dx": request.dx, "dy": request.dy}
+        elif op == "move_predicate":
+            if not request.predicate_id:
+                return _adjust_bad_request("move_predicate requires 'predicate_id'.")
+            new_dto = move_predicate(egi, dto, request.predicate_id, request.dx, request.dy)
+            params = {"predicate_id": request.predicate_id, "dx": request.dx, "dy": request.dy}
+        elif op == "move_cut":
+            if not request.cut_id:
+                return _adjust_bad_request("move_cut requires 'cut_id'.")
+            new_dto = move_cut(egi, dto, request.cut_id, request.dx, request.dy)
+            params = {"cut_id": request.cut_id, "dx": request.dx, "dy": request.dy}
         elif op == "reshape_cut":
             if not request.cut_id or not request.bounds:
                 return _adjust_bad_request("reshape_cut requires 'cut_id' and 'bounds'.")

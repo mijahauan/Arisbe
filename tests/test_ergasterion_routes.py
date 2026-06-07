@@ -521,6 +521,46 @@ def test_adjust_move_vertex_is_pure_presentation(client, isolated_tomos):
     assert d["egi_summary"] == data["egi_summary"]
 
 
+def test_adjust_move_predicate_is_pure_presentation(client, isolated_tomos):
+    """Moving a predicate (edge/relation label) updates only the drawing — the
+    capability the workshop previously lacked entirely."""
+    uod_id = _seed_egif_uod(isolated_tomos, "~[ (P *x) ]", "adj_move_pred")
+    data = _open_session(client, f"uod:{uod_id}")
+    sid = data["session_id"]
+    ppos = data["layout_dto"]["predicate_positions"]
+    pid, old = next(iter(ppos.items()))
+    dx, dy = 4.0, 3.0
+
+    out = _adjust(client, sid, {"operation": "move_predicate", "predicate_id": pid,
+                                "dx": dx, "dy": dy})
+    assert out["success"] is True, out.get("error")
+    d = out["data"]
+    new = d["layout_dto"]["predicate_positions"][pid]
+    assert new["x"] == pytest.approx(old["x"] + dx)
+    assert new["y"] == pytest.approx(old["y"] + dy)
+    # Pure presentation: no chain step, recorded as a tagged delta.
+    assert d["chain"]["step_count"] == data["chain"]["step_count"]
+    assert d["presentation_deltas"][-1]["op"] == "move_predicate"
+
+
+def test_adjust_move_cut_translates_cut_and_contents(client, isolated_tomos):
+    """Dragging a cut body translates the cut and everything inside it."""
+    uod_id = _seed_egif_uod(isolated_tomos, "~[ (P *x) ] (Q *y)", "adj_move_cut")
+    data = _open_session(client, f"uod:{uod_id}")
+    sid = data["session_id"]
+    cut_bounds = data["layout_dto"]["cut_bounds"]
+    cid, cb = next(iter(cut_bounds.items()))
+    dx, dy = -3.0, -3.0
+
+    out = _adjust(client, sid, {"operation": "move_cut", "cut_id": cid,
+                                "dx": dx, "dy": dy})
+    assert out["success"] is True, out.get("error")
+    nb = out["data"]["layout_dto"]["cut_bounds"][cid]
+    assert nb["min_x"] == pytest.approx(cb["min_x"] + dx)
+    assert nb["max_y"] == pytest.approx(cb["max_y"] + dy)
+    assert out["data"]["presentation_deltas"][-1]["op"] == "move_cut"
+
+
 def test_adjust_reshape_cut_to_equal_bounds_is_accepted(client, isolated_tomos):
     """A reshape that preserves the bounds is accepted and re-rendered — proves
     the reshape_cut dispatch + attest + render path end-to-end without relying

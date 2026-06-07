@@ -107,7 +107,9 @@ class ErgasterionAdjustRequest(BaseModel):
     (``Regime3Violation``).  Fields are operation-specific:
 
         move_vertex      → ``vertex_id``, ``dx``, ``dy``
+        move_predicate   → ``predicate_id``, ``dx``, ``dy``
         reshape_cut      → ``cut_id``, ``bounds`` {min_x, min_y, max_x, max_y}
+        move_cut         → ``cut_id``, ``dx``, ``dy``
         reroute_ligature → ``predicate_id``, ``vertex_id``, ``port_index``,
                            ``interior`` [{x, y}, …]
     """

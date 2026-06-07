@@ -37,8 +37,10 @@ from presentation_ops import (
     deepest_containing_cut,
     element_area,
     move_vertex,
+    move_predicate,
     reroute_ligature,
     reshape_cut,
+    move_cut,
 )
 from style_loader import load_default_style
 from tomos_service import TomosService
@@ -510,3 +512,144 @@ def test_move_vertex_returns_distinct_dto(tomos, engine, style):
     assert new_dto.vertex_positions is not dto.vertex_positions
     # Original vertex_positions unchanged.
     assert dto.vertex_positions[vid] == pos
+
+
+# --------------------------------------------------------------------------- #
+# move_predicate — happy + refusal (the predicate-side twin of move_vertex)    #
+# --------------------------------------------------------------------------- #
+
+
+def _egi_dto(egif, engine, style):
+    from egif_parser_dau import parse_egif
+    egi = parse_egif(egif)
+    return egi, engine.generate_layout(egi, style)
+
+
+def test_move_predicate_happy_path_follows_ligature_and_attests(engine, style):
+    """Translating a predicate inside a cut updates its position, drags the
+    ligature predicate-side endpoint with it, leaves the EGI untouched, and the
+    result still passes §3.3 correspondence."""
+    from correspondence_attestation import attest_correspondence
+
+    egi, dto = _egi_dto("~[ (P *x) ]", engine, style)
+    pid = next(iter(dto.predicate_positions))
+    pos = dto.predicate_positions[pid]
+    area = element_area(egi)[pid]
+    bounds = dto.cut_bounds[area]
+    if pos.x + 1.0 >= bounds.max_x or pos.y + 1.0 >= bounds.max_y:
+        pytest.skip("predicate too close to cut edge for a safe nudge")
+
+    # predicate-side endpoint (points[0]) of P's ligature, before.
+    before_ends = {
+        (lp.predicate_id, lp.vertex_id, lp.port_index): lp.points[0]
+        for lp in dto.ligature_paths if lp.predicate_id == pid
+    }
+    snapshot = egi
+    new_dto = move_predicate(egi, dto, pid, 1.0, 1.0)
+
+    assert egi is snapshot
+    assert new_dto is not dto
+    assert new_dto.predicate_positions[pid].x == pytest.approx(pos.x + 1.0)
+    assert new_dto.predicate_positions[pid].y == pytest.approx(pos.y + 1.0)
+    assert dto.predicate_positions[pid] == pos  # original untouched
+    for lp in new_dto.ligature_paths:
+        if lp.predicate_id != pid:
+            continue
+        b = before_ends[(lp.predicate_id, lp.vertex_id, lp.port_index)]
+        assert lp.points[0].x == pytest.approx(b.x + 1.0)
+        assert lp.points[0].y == pytest.approx(b.y + 1.0)
+    # The §3.3 backstop is satisfied — the move preserved correspondence.
+    attest_correspondence(egi, new_dto, context="test_move_predicate")
+
+
+def test_move_predicate_refuses_when_leaving_area(engine, style):
+    """A translation large enough to push the predicate out of its cut raises
+    Regime3Violation (a silent area change, not a regime-3 op)."""
+    egi, dto = _egi_dto("~[ (P *x) ]", engine, style)
+    pid = next(iter(dto.predicate_positions))
+    pos = dto.predicate_positions[pid]
+    bounds = dto.cut_bounds[element_area(egi)[pid]]
+    dx = (bounds.max_x - pos.x) + 50.0
+    with pytest.raises(Regime3Violation) as exc:
+        move_predicate(egi, dto, pid, dx, 0.0)
+    assert "area" in str(exc.value).lower()
+
+
+def test_move_predicate_refuses_unknown_predicate(engine, style):
+    egi, dto = _egi_dto("(P *x)", engine, style)
+    with pytest.raises(Regime3Violation):
+        move_predicate(egi, dto, "nonexistent_pred", 1.0, 1.0)
+
+
+# --------------------------------------------------------------------------- #
+# move_cut — rigid translation of a cut + everything it contains              #
+# --------------------------------------------------------------------------- #
+
+
+def test_move_cut_happy_path_translates_contents_and_attests(engine, style):
+    """Moving a cut slides its bounds and every contained element together,
+    leaves the EGI untouched, and still passes §3.3."""
+    from correspondence_attestation import attest_correspondence
+
+    # A cut with content, plus a sibling far enough away to clear a small move.
+    egi, dto = _egi_dto("~[ (P *x) ] (Q *y)", engine, style)
+    cid = next(iter(c.id for c in egi.Cut))
+    ea = element_area(egi)
+    inside = [eid for eid, a in ea.items() if a == cid]
+    assert inside, "expected content inside the cut"
+    cb = dto.cut_bounds[cid]
+    before_inside = {
+        eid: (dto.vertex_positions.get(eid) or dto.predicate_positions.get(eid))
+        for eid in inside
+    }
+
+    dx, dy = -3.0, -3.0  # nudge up-left, away from the sibling Q
+    snapshot = egi
+    new_dto = move_cut(egi, dto, cid, dx, dy)
+
+    assert egi is snapshot
+    assert new_dto.cut_bounds[cid].min_x == pytest.approx(cb.min_x + dx)
+    assert new_dto.cut_bounds[cid].max_y == pytest.approx(cb.max_y + dy)
+    for eid, p in before_inside.items():
+        np = new_dto.vertex_positions.get(eid) or new_dto.predicate_positions.get(eid)
+        assert np.x == pytest.approx(p.x + dx)
+        assert np.y == pytest.approx(p.y + dy)
+    attest_correspondence(egi, new_dto, context="test_move_cut")
+
+
+def test_move_cut_refuses_overlapping_sibling(engine, style):
+    """Sliding a cut onto a sibling element/cut raises Regime3Violation (it
+    would appear to absorb / collide with material it doesn't contain)."""
+    egi, dto = _egi_dto("~[ (P *x) ] (Q *y)", engine, style)
+    cid = next(iter(c.id for c in egi.Cut))
+    cb = dto.cut_bounds[cid]
+    # Find Q's position (the sheet-level sibling predicate) and aim the cut at it.
+    ea = element_area(egi)
+    sib = next(
+        p for p, a in ea.items()
+        if a != cid and p in dto.predicate_positions
+    )
+    qp = dto.predicate_positions[sib]
+    cx = (cb.min_x + cb.max_x) / 2
+    cy = (cb.min_y + cb.max_y) / 2
+    with pytest.raises(Regime3Violation):
+        move_cut(egi, dto, cid, qp.x - cx, qp.y - cy)
+
+
+def test_move_cut_refuses_leaving_parent(engine, style):
+    """An inner cut slid far enough to leave its enclosing cut raises
+    Regime3Violation (a change of nesting depth)."""
+    egi, dto = _egi_dto("~[ ~[ (P *x) ] ]", engine, style)
+    # The inner cut is the one whose parent is another cut.
+    pm = cut_parents(egi)
+    inner = next(cid for cid, parent in pm.items() if parent in {c.id for c in egi.Cut})
+    outer = pm[inner]
+    span = dto.cut_bounds[outer].max_x - dto.cut_bounds[outer].min_x
+    with pytest.raises(Regime3Violation):
+        move_cut(egi, dto, inner, span + 100.0, 0.0)
+
+
+def test_move_cut_refuses_unknown_cut(engine, style):
+    egi, dto = _egi_dto("~[ (P *x) ]", engine, style)
+    with pytest.raises(Regime3Violation):
+        move_cut(egi, dto, "nonexistent_cut", 1.0, 1.0)

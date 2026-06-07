@@ -1,0 +1,20 @@
+# Archived code and docs — kept in-repo for git history but not active.
+archive/
+
+# Generated test artifacts — not source.
+test_outputs/
+test_histories/
+
+# Rendering pipeline outputs — regeneratable artifacts (SVG gallery, etc.).
+output/
+
+# Corpus backups — active corpus lives in tomos/.
+tomos_backups/
+
+# Graphify's own output should not feed back into itself.
+graphify-out/
+
+# Local Claude Code state and one-shot markers.
+.claude/
+.core_modification_authorized
+.coherence_reminder_state
