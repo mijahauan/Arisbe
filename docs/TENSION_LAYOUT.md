@@ -309,6 +309,21 @@ exactly once, **§3.3-attested in Dau and Peirce**. This is the straight
 pass-through the example called for, and it follows from one principle (the
 thread pulled taut through the containment nest) with no special cases.
 
+**Variable spacing (cut area ∝ length²).** Peirce ovals are √2-grown to bound
+their contents, so cut area scales with the *square* of the thread length — a
+uniform step wastes it. Each gap is instead sized to only what must fit there:
+label clearance always, plus one nesting inset per cut boundary that actually
+crosses between the two elements. So same-area neighbours sit close and a gap
+widens only where boundaries pass:
+
+```
+S@0 —(54,1×)— •@53 —(26,0×)— R@79 —(76,2×)— •@154 —(26,0×)— Q@180 —(54,1×)— •@234 —(26,0×)— P@259
+```
+
+(gap, #crossings). Thread length **540 → 260**, outer cut width 684 → 404 — a
+~4× cut-area reduction, still collinear and §3.3-valid. The spacing reflects the
+topology, not a magic constant.
+
 **Generalization (the engine increment):** multiple threads; branch points
 (degree-≥3 vertices); non-monotone threads (in-and-out of cuts); composing
 several threads + their shared cuts into one layout. The thread becomes the unit

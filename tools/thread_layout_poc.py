@@ -32,9 +32,9 @@ from style_loader import load_style, load_default_style
 from presentation_ops import element_area, cut_parents, crossing_sequence
 from correspondence_attestation import attest_correspondence, CorrespondenceViolation
 
-STEP = 90.0   # spacing between consecutive thread elements
-PAD = 22.0    # nesting inset per cut level
-ROWH = 26.0   # half-height of the innermost band
+GAP_MIN = 16.0  # minimum clearance between consecutive thread elements
+PAD = 22.0      # nesting inset per cut level
+ROWH = 26.0     # half-height of the innermost band
 
 
 def extract_thread(egi):
@@ -69,12 +69,28 @@ def thread_layout(egi, style):
     sizes = ELKLayoutEngine()._compute_element_sizes(egi, style)
 
     thread = extract_thread(egi)
-    idx = {eid: i for i, eid in enumerate(thread)}
 
-    # 1. Place the thread collinear: x by order, y = 0.
+    # 1. Place the thread collinear (y = 0) with **variable spacing**: each gap
+    #    is only as wide as what must fit there — label clearance always, plus
+    #    room for the cut boundaries that actually cross between the two elements.
+    #    Same-area neighbours (no crossing) sit close; the gap widens only where
+    #    boundaries pass.  Cut area ∝ (thread length)², so this shrinks the cuts
+    #    quadratically versus a uniform step.
+    def width(eid):
+        return sizes.get(eid, (2 * 6.0, 2 * 6.0))[0]
+
+    xs = [0.0]
+    for a, b in zip(thread, thread[1:]):
+        label_gap = (width(a) + width(b)) / 2 + GAP_MIN
+        ncross = len(crossing_sequence(ea.get(a), ea.get(b), pm))
+        # Each crossed cut needs a telescoped boundary (≈ one nesting inset) to
+        # sit between a and b, clear of both elements.
+        cross_gap = (width(a) + width(b)) / 2 + (ncross + 1) * PAD if ncross else 0.0
+        xs.append(xs[-1] + max(label_gap, cross_gap))
+
     vpos, ppos = {}, {}
-    for eid in thread:
-        p = Point(idx[eid] * STEP, 0.0)
+    for eid, x in zip(thread, xs):
+        p = Point(x, 0.0)
         (ppos if eid in edge_ids else vpos)[eid] = p
 
     # 2. Cut boxes bottom-up: each cut bounds its direct children + inset, so
