@@ -1,19 +1,136 @@
 /**
- * DiagramViewer — manages the SVG canvas with pan/zoom.
+ * DiagramViewer — the single client-side view engine for every mode.
+ *
+ * Server-side rendering (EGI → SVG) is already one path (layout_service +
+ * SimpleSVGRenderer, §3.3-attested); this is its client-side twin — the one
+ * place pan/zoom/fit and camera behaviour live, so Organon, Ergasterion, and
+ * Agon view diagrams identically and a fix lands once.
+ *
+ * The shared entry point is ``render(svgString, opts)``:
+ *   - opts.camera : "fit" (default — fit + centre the whole drawing) or "hold"
+ *     (restore the prior *absolute* camera so a transformation doesn't snap the
+ *     view — Settle ④a / Agon continuity).
+ *   - opts.transition : animate surviving elements from their old positions to
+ *     the new ones (DiagramTransition) — for a held-camera continuation.
+ *   - opts.dolly : animate the *camera* from the previous fit to this fit (the
+ *     Organon chain player, where each frame re-fits because states resize).
+ *
+ * The legacy ``renderSVG`` / ``onElementClick`` / ``highlightElement`` API is
+ * retained for ``legacy-viewer.html``.
  */
 
 class DiagramViewer {
-  constructor() {
+  constructor(opts = {}) {
     this.containerId = null;
     this.container = null;
     this.panZoom = null;
     this._clickHandler = null;
+    this.minZoom = opts.minZoom != null ? opts.minZoom : 0.1;
+    this.maxZoom = opts.maxZoom != null ? opts.maxZoom : 20;
+    this._anim = null;
   }
 
   /** Initialise the viewer on a container element. */
   init(containerId) {
     this.containerId = containerId;
     this.container = document.getElementById(containerId);
+  }
+
+  /** Attach to an existing container element (chainable). */
+  attach(el) {
+    this.container = el;
+    return this;
+  }
+
+  getPanZoom() { return this.panZoom; }
+
+  /** Fit + centre the whole drawing. */
+  fit() {
+    if (this.panZoom) { this.panZoom.fit(); this.panZoom.center(); }
+  }
+
+  /**
+   * The unified render: inject SVG and (re-)create svg-pan-zoom with the chosen
+   * camera behaviour.  Returns the svg-pan-zoom instance.
+   */
+  render(svgString, opts = {}) {
+    const c = this.container;
+    if (!c) return null;
+    const camera = opts.camera || 'fit';
+    const wantTransition = !!opts.transition;
+    const wantDolly = !!opts.dolly;
+
+    // Capture the prior camera (absolute) and — for a transition — element
+    // positions, before the SVG is replaced.
+    let priorPan = null, priorAbsZoom = null, oldCenters = null;
+    if (this.panZoom) {
+      try {
+        priorAbsZoom = this.panZoom.getZoom() * this.panZoom.getSizes().realZoom;
+        priorPan = this.panZoom.getPan();
+      } catch (_) {}
+      if (wantTransition && window.DiagramTransition) {
+        oldCenters = window.DiagramTransition.capture(c);
+      }
+      try { this.panZoom.destroy(); } catch (_) {}
+      this.panZoom = null;
+    }
+    if (this._anim) { cancelAnimationFrame(this._anim); this._anim = null; }
+
+    c.innerHTML = svgString || '<div class="canvas-placeholder">No drawing.</div>';
+    const svgEl = c.querySelector('svg');
+    if (!svgEl || typeof window.svgPanZoom === 'undefined') return null;
+    svgEl.setAttribute('width', '100%');
+    svgEl.setAttribute('height', '100%');
+
+    const hold = camera === 'hold' && priorPan && priorAbsZoom;
+    this.panZoom = window.svgPanZoom(svgEl, {
+      zoomEnabled: true,
+      controlIconsEnabled: false,
+      fit: !hold,
+      center: !hold,
+      minZoom: this.minZoom,
+      maxZoom: this.maxZoom,
+    });
+
+    if (hold) {
+      // Restore the absolute camera (absolute = relative × realZoom), so a
+      // surviving element keeps its size and screen position.
+      try {
+        const newReal = this.panZoom.getSizes().realZoom;
+        if (newReal) this.panZoom.zoom(priorAbsZoom / newReal);
+        this.panZoom.pan(priorPan);
+      } catch (_) {}
+      if (oldCenters && window.DiagramTransition) {
+        window.DiagramTransition.play(c, oldCenters, priorAbsZoom, 420);
+      }
+    } else if (wantDolly && priorPan && priorAbsZoom) {
+      this._dollyCamera(priorAbsZoom, priorPan);
+    }
+    return this.panZoom;
+  }
+
+  /** Animate the camera from a previous (absolute) view to the new fitted one. */
+  _dollyCamera(fromAbsZoom, fromPan) {
+    const inst = this.panZoom;
+    if (!inst) return;
+    try {
+      const realZoom = inst.getSizes().realZoom || 1;
+      const toZoom = inst.getZoom(), toPan = inst.getPan();
+      const fromZoom = fromAbsZoom / realZoom;
+      inst.zoom(fromZoom); inst.pan(fromPan);
+      const dur = 460, t0 = performance.now();
+      const step = (now) => {
+        const t = Math.min(1, (now - t0) / dur);
+        const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        inst.zoom(fromZoom + (toZoom - fromZoom) * e);
+        inst.pan({
+          x: fromPan.x + (toPan.x - fromPan.x) * e,
+          y: fromPan.y + (toPan.y - fromPan.y) * e,
+        });
+        this._anim = t < 1 ? requestAnimationFrame(step) : null;
+      };
+      this._anim = requestAnimationFrame(step);
+    } catch (_) {}
   }
 
   /**
@@ -169,3 +286,7 @@ class DiagramViewer {
 }
 
 const diagramViewer = new DiagramViewer();
+
+// Shared across all modes (Organon / Ergasterion / Agon) — each constructs its
+// own instance via `new DiagramViewer({minZoom}).attach(canvas)`.
+if (typeof window !== 'undefined') window.DiagramViewer = DiagramViewer;

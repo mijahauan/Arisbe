@@ -195,6 +195,7 @@
   <script src="js/mode-nav.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
+  <script src="js/diagram-viewer.js"></script>
   <script>
     (function () {
       const $ = (id) => document.getElementById(id);
@@ -237,24 +238,12 @@
       // re-fitting — the absolute scale (getZoom × realZoom) and pan are
       // carried over so the eye tracks what the move changed. A fresh game
       // start fits/centers. See docs/TRANSFORMATION_WORKFLOW_SPEC.md §3a.
+      const agonView = new DiagramViewer({ minZoom: 0.1 }).attach(canvasEl);
       function renderSvg(svg, preserveView){
-        let priorPan=null, priorAbsZoom=null, oldCenters=null;
-        if(svgPZ){
-          if(preserveView){
-            try{ priorPan=svgPZ.getPan(); priorAbsZoom=svgPZ.getZoom()*svgPZ.getSizes().realZoom; }catch(_){}
-            // Capture positions before replacement so survivors can be animated (step 1b).
-            if(window.DiagramTransition){ oldCenters=window.DiagramTransition.capture(canvasEl); }
-          }
-          try{svgPZ.destroy();}catch(_){} svgPZ=null;
-        }
-        canvasEl.innerHTML = svg || '<div id="canvas-placeholder">No drawing.</div>';
-        const el=canvasEl.querySelector('svg');
-        if(el && window.svgPanZoom){ el.setAttribute('width','100%'); el.setAttribute('height','100%');
-          const canRestore = preserveView && priorPan && priorAbsZoom;
-          svgPZ=window.svgPanZoom(el,{zoomEnabled:true,controlIconsEnabled:false,fit:!canRestore,center:!canRestore,minZoom:0.1,maxZoom:20});
-          if(canRestore){ try{ const nr=svgPZ.getSizes().realZoom; if(nr) svgPZ.zoom(priorAbsZoom/nr); svgPZ.pan(priorPan); }catch(_){} }
-          if(oldCenters && window.DiagramTransition){ window.DiagramTransition.play(canvasEl, oldCenters, priorAbsZoom, 420); }
-        }
+        svgPZ = agonView.render(svg, {
+          camera: preserveView ? 'hold' : 'fit',
+          transition: !!preserveView,
+        });
         clearSel();
       }
 

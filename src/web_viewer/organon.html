@@ -265,6 +265,7 @@
   <script src="js/mode-nav.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
+  <script src="js/diagram-viewer.js"></script>
   <script>
     (function () {
       const listEl = document.getElementById('organon-uod-list');
@@ -501,70 +502,17 @@
         }
       }
 
-      let cameraAnimRAF = null;
-
-      // Render a state and frame it. The chain player walks states that vary
-      // widely in size (a proof grows from a blank sheet to a full graph), so
-      // the right convention is **fit-to-content with an animated camera**: each
-      // frame is fitted so the whole (sub-)graph stays in scope, and when
-      // *animateFromPrevious* is set the camera *dollies* (zoom + pan) from the
-      // previous frame's view to the new fit rather than snapping — preserving
-      // continuity (TRANSFORMATION_WORKFLOW_SPEC §3a). This differs from the
-      // workshop's hold-the-camera convention (right there because edits are
-      // small and local); here states change size, so the view must re-fit.
+      // Render a state and frame it via the shared DiagramViewer. The chain
+      // player walks states that vary widely in size, so the convention is
+      // fit-to-content with an animated camera: each frame is fitted, and when
+      // *animateFromPrevious* is set the camera *dollies* from the previous view
+      // to the new fit rather than snapping (TRANSFORMATION_WORKFLOW_SPEC §3a) —
+      // the same engine the workshop uses with its hold-the-camera convention.
+      const diagramView = new DiagramViewer({ minZoom: 0.05 }).attach(canvasEl);
       function renderCanvas(svg, linearForms, animateFromPrevious) {
-        let fromAbsZoom = null, fromPan = null;
-        if (svgPanZoomInstance) {
-          if (animateFromPrevious) {
-            try {
-              fromAbsZoom = svgPanZoomInstance.getZoom() *
-                svgPanZoomInstance.getSizes().realZoom;
-              fromPan = svgPanZoomInstance.getPan();
-            } catch (_) {}
-          }
-          try { svgPanZoomInstance.destroy(); } catch (_) {}
-          svgPanZoomInstance = null;
-        }
-        if (cameraAnimRAF) { cancelAnimationFrame(cameraAnimRAF); cameraAnimRAF = null; }
-        canvasEl.innerHTML = svg || '';
-        const svgEl = canvasEl.querySelector('svg');
-        if (svgEl && window.svgPanZoom) {
-          svgEl.setAttribute('width', '100%');
-          svgEl.setAttribute('height', '100%');
-          // Always create fitted + centered: this is the *target* view that
-          // keeps the whole graph in scope.
-          svgPanZoomInstance = window.svgPanZoom(svgEl, {
-            zoomEnabled: true,
-            controlIconsEnabled: false,
-            fit: true,
-            center: true,
-            minZoom: 0.05,
-            maxZoom: 20,
-          });
-          // Dolly from the previous frame's camera to this fitted target.
-          if (animateFromPrevious && fromAbsZoom && fromPan) {
-            try {
-              const inst = svgPanZoomInstance;
-              const realZoom = inst.getSizes().realZoom || 1;
-              const toZoom = inst.getZoom();
-              const toPan = inst.getPan();
-              const fromZoom = fromAbsZoom / realZoom;
-              inst.zoom(fromZoom); inst.pan(fromPan);  // start at previous view
-              const dur = 460, t0 = performance.now();
-              const step = function (now) {
-                let t = Math.min(1, (now - t0) / dur);
-                const e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; // easeInOut
-                inst.zoom(fromZoom + (toZoom - fromZoom) * e);
-                inst.pan({
-                  x: fromPan.x + (toPan.x - fromPan.x) * e,
-                  y: fromPan.y + (toPan.y - fromPan.y) * e,
-                });
-                cameraAnimRAF = t < 1 ? requestAnimationFrame(step) : null;
-              };
-              cameraAnimRAF = requestAnimationFrame(step);
-            } catch (_) {}
-          }
-        }
+        svgPanZoomInstance = diagramView.render(svg, {
+          camera: 'fit', dolly: !!animateFromPrevious,
+        });
         if (window.LinearFormPanel) {
           window.LinearFormPanel.render(canvasEl, linearForms);
         }

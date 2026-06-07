@@ -615,6 +615,7 @@
   <script src="js/mode-nav.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
+  <script src="js/diagram-viewer.js"></script>
   <script src="js/settle-adjust.js"></script>
   <script>
     (function () {
@@ -1065,79 +1066,17 @@
         toggleElement(id);
       }
 
-      // Settle ④a, step 1a — stable viewport. Re-rendering after a rule
-      // application replaces the SVG; left to itself svg-pan-zoom re-fits and
-      // re-centers, snapping the camera and breaking the visual continuity
-      // between successive states (docs/TRANSFORMATION_WORKFLOW_SPEC.md §3a).
-      // When *preserveView* is set (any continuation render — a rule applied,
-      // a style change — i.e. not a fresh session open) we carry the prior
-      // pan/zoom across so the camera holds still and the eye can track what
-      // changed. ELK is deterministic, so the underlying coordinates are
-      // stable; this removes the largest *perceived* discontinuity with no
-      // layout change. (Pixel-exactness when the graph's extent changes a lot
-      // is a later step — 1c pin-and-place.)
+      // Render via the shared DiagramViewer (the single client-side view engine).
+      // preserveView holds the camera + animates survivors (Settle ④a/§3a
+      // continuity); a fresh render fits-to-content.  Page-specific post-steps —
+      // reset selection, redraw Settle handles — stay here.
+      const diagramView = new DiagramViewer({ minZoom: 0.1 }).attach(canvasEl);
       function renderSvg(svg, preserveView) {
-        // Capture the prior camera in *absolute* terms.  svg-pan-zoom's
-        // getZoom() is relative to its fit baseline, and a transformed graph
-        // has a different baseline (different viewBox extent), so restoring the
-        // relative zoom would still rescale the picture.  The absolute scale is
-        // getZoom() × realZoom; restoring that (and the absolute pan) holds the
-        // camera — a surviving predicate keeps its size and screen position, so
-        // the eye tracks what changed (Settle ④a, step 1a).
-        let priorPan = null, priorAbsZoom = null, oldCenters = null;
-        if (svgPanZoomInstance) {
-          if (preserveView) {
-            try {
-              priorPan = svgPanZoomInstance.getPan();
-              priorAbsZoom =
-                svgPanZoomInstance.getZoom() *
-                svgPanZoomInstance.getSizes().realZoom;
-            } catch (_) {}
-            // Capture element screen positions now (step 1b) so we can animate
-            // survivors from here to their new spots after the re-render.
-            if (window.DiagramTransition) {
-              oldCenters = window.DiagramTransition.capture(canvasEl);
-            }
-          }
-          try { svgPanZoomInstance.destroy(); } catch (_) {}
-          svgPanZoomInstance = null;
-        }
-        canvasEl.innerHTML = svg || '<div id="canvas-placeholder">No drawing.</div>';
-        const svgEl = canvasEl.querySelector('svg');
-        if (svgEl && window.svgPanZoom) {
-          svgEl.setAttribute('width', '100%');
-          svgEl.setAttribute('height', '100%');
-          const canRestore = preserveView && priorPan && priorAbsZoom;
-          svgPanZoomInstance = window.svgPanZoom(svgEl, {
-            zoomEnabled: true,
-            controlIconsEnabled: false,
-            // Only fit/center on a fresh render; a continuation restores the
-            // prior camera instead, below.
-            fit: !canRestore,
-            center: !canRestore,
-            minZoom: 0.1,
-            maxZoom: 20,
-          });
-          if (canRestore) {
-            try {
-              // Convert the absolute scale back into this render's relative
-              // zoom (absolute = relative × realZoom).
-              const newReal = svgPanZoomInstance.getSizes().realZoom;
-              if (newReal) svgPanZoomInstance.zoom(priorAbsZoom / newReal);
-              svgPanZoomInstance.pan(priorPan);
-            } catch (_) {}
-          }
-          // With the camera held steady, animate survivors from their old
-          // positions to the new ones (step 1b). New elements fade in.
-          if (oldCenters && window.DiagramTransition) {
-            window.DiagramTransition.play(canvasEl, oldCenters, priorAbsZoom, 420);
-          }
-        }
-        // A new drawing means a new state; any prior selection referred
-        // to the old state's element ids, so reset it.
+        svgPanZoomInstance = diagramView.render(svg, {
+          camera: preserveView ? 'hold' : 'fit',
+          transition: !!preserveView,
+        });
         clearSelection();
-        // If we're tidying (Settle ④b), redraw the drag handles over the
-        // freshly-rendered SVG.
         if (window.SettleAdjust && SettleAdjust.isEnabled()) SettleAdjust.refresh();
       }
 
