@@ -397,6 +397,7 @@ def generate_layout(
     deltas: Optional[list] = None,
     extrapolate: bool = False,
     direction: Optional[str] = None,
+    tension: bool = False,
 ) -> Tuple[LayoutDTO, str]:
     """Generate layout and SVG for an EGI.
 
@@ -431,6 +432,11 @@ def generate_layout(
     *secondary* axis, so ``RIGHT`` stacks it vertically and ``DOWN`` spreads it
     horizontally; this lets a client compare without authoring a style variant.
 
+    *tension* (opt-in, default off) orders each area's sibling blocks to minimize
+    ligature tension — the vertex tree organizing the free order of the cut tree
+    (``docs/TENSION_LAYOUT.md``).  Correspondence-safe (a crossing-sequence is
+    order-independent); enforced at the sheet level.
+
     Returns:
         (layout_dto, svg_string)
     """
@@ -441,7 +447,18 @@ def generate_layout(
         # without authoring a style variant; the stored style is untouched.
         import dataclasses
         style = dataclasses.replace(style, layout_direction=direction)
-    engine = ELKLayoutEngine()
+    if tension:
+        # Order each area's sibling blocks to minimize ligature tension
+        # (the vertex tree organizing the free order of the cut tree —
+        # docs/TENSION_LAYOUT.md).  Correspondence-safe; enforced at the sheet
+        # level (elkjs honors model order there crash-free).
+        import dataclasses
+        from projection_conventions import DEFAULT_CONVENTIONS
+        engine = ELKLayoutEngine(
+            dataclasses.replace(DEFAULT_CONVENTIONS, tension_sibling_order=True)
+        )
+    else:
+        engine = ELKLayoutEngine()
 
     # Positional conservatism (Settle ④a, 1c): when the step only *removed*
     # material, keep every survivor at its exact previous position instead of

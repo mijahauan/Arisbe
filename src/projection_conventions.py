@@ -109,8 +109,18 @@ class Conventions:
     sibling_cut_ordering: str = "elk_emergent"
     """Left/right order of sibling cuts at the same depth — a pure
     projection artifact (siblings have no logical order; spec §5.3).
-    Currently whatever ELK emits; not yet pinned to a canonical rule
-    (cf. layout invariant L1 on cross-process determinism)."""
+    Default is whatever ELK emits (tie-broken by the engine's structural key);
+    the ``tension_sibling_order`` knob below pins it to a canonical rule."""
+
+    tension_sibling_order: bool = False
+    """When True, an area's sibling blocks are ordered to **minimize ligature
+    tension** (``tension_layout.sibling_order``) before the layout pass — the
+    vertex tree organizing the free ordering of the containment tree (see
+    ``docs/TENSION_LAYOUT.md``). Default False = the current structural-key
+    order (byte-identical output). Honored via the engine, which feeds the
+    tension order to ELK with model-order respected. Correspondence-safe by
+    construction: a ligature's crossing-sequence is order-independent, so this
+    moves only the free projection dimension."""
 
 
 DEFAULT_CONVENTIONS = Conventions()

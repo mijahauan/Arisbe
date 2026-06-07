@@ -17,6 +17,7 @@ from egi_core_dau import RelationalGraphWithCuts, ElementID
 from layout_dto import LayoutDTO, Point, BoundingBox, LigaturePath
 from natural_layout import authorized_crossings
 from projection_conventions import Conventions, DEFAULT_CONVENTIONS
+from tension_layout import sibling_order
 from style_loader import StyleSpecification
 
 
@@ -58,7 +59,26 @@ class ELKLayoutEngine:
         """Generate positioned layout for an EGI diagram."""
         element_sizes = self._compute_element_sizes(egi, style)
         elk_graph = self._egi_to_elk_graph(egi, style, element_sizes)
-        positioned = self._run_elk(elk_graph)
+        try:
+            positioned = self._run_elk(elk_graph)
+        except RuntimeError:
+            # The tension-ordering convention sets ELK's considerModelOrder, which
+            # has an elkjs bug on some hierarchical + ported graphs.  Retry once
+            # without it: the tension order then degrades to ELK's emergent order
+            # for this graph rather than failing.  (No-op when the convention is
+            # off — the default — so normal layout never enters this path.)
+            if (
+                self.conventions.tension_sibling_order
+                and not getattr(self, "_suppress_model_order", False)
+            ):
+                self._suppress_model_order = True
+                try:
+                    elk_graph = self._egi_to_elk_graph(egi, style, element_sizes)
+                    positioned = self._run_elk(elk_graph)
+                finally:
+                    self._suppress_model_order = False
+            else:
+                raise
         # Oval cuts (cut_shape "oval"/"circle") need the inscribed ellipse to
         # contain its corner contents — a convention that *feeds the layout*
         # (extra, content-proportional padding), not a cosmetic.  The
@@ -216,6 +236,7 @@ class ELKLayoutEngine:
                 # Reading axis the layout develops along — honored style knob
                 # (layout.direction), default left-to-right.
                 "elk.direction": getattr(style, "layout_direction", "RIGHT"),
+                **self._model_order_opts(),
             },
             "children": sheet_children,
             "edges": elk_edges,
@@ -282,6 +303,32 @@ class ELKLayoutEngine:
         v = next((vv for vv in egi.V if vv.id == elem_id), None)
         return (2, (getattr(v, "label", "") or "") if v else "")
 
+    def _model_order_opts(self) -> Dict[str, str]:
+        """ELK options that make the layered algorithm respect the *input* child
+        order — so a tension-minimized ordering actually survives the layout.
+
+        Applied at the **sheet (root) level only**.  elkjs's ``considerModelOrder``
+        has a bug that crashes on nested *ported* groups (the cut interiors), so
+        enabling it there fails on ~half the corpus; at the sheet level it is
+        crash-free across the whole corpus, and the sheet is where free sibling
+        ordering (disconnected sibling cuts) most commonly lives.  Nested-cut
+        sibling order is still fed in tension order but left to ELK to honor or
+        not (best-effort).  Empty unless the tension convention is on (default
+        off → byte-identical output), or after a fallback (see generate_layout)."""
+        if not self.conventions.tension_sibling_order:
+            return {}
+        if getattr(self, "_suppress_model_order", False):
+            # A prior pass hit the elkjs considerModelOrder bug on this graph;
+            # fall back to ELK's emergent order so layout still succeeds.
+            return {}
+        return {
+            # Honor model (input) order for in-layer node placement...
+            "elk.layered.considerModelOrder.strategy": "NODES_AND_EDGES",
+            # ...and for the placement of disconnected components (sibling cuts
+            # with no line of identity between them — the classic free choice).
+            "elk.layered.considerModelOrder.components": "MODEL_ORDER",
+        }
+
     def _build_area_children(
         self,
         area_id: ElementID,
@@ -319,6 +366,14 @@ class ELKLayoutEngine:
             ),
         )
 
+        # Tension ordering (opt-in convention): reorder the area's sibling blocks
+        # to minimize ligature tension, tie-broken toward the structural order
+        # above (so isomorphic areas still match).  Correspondence-safe — a
+        # crossing-sequence is order-independent.  ELK is told to respect model
+        # order (see _model_order_opts) so this input order survives the layout.
+        if self.conventions.tension_sibling_order:
+            ordered_contents = sibling_order(egi, area_id, ordered_contents)
+
         for elem_id in ordered_contents:
             if elem_id in cut_ids:
                 # Recurse: this cut becomes a group node
@@ -348,6 +403,10 @@ class ELKLayoutEngine:
                     "elk.spacing.nodeNode": str(int(style.element_spacing)),
                     # Nested cuts develop along the same reading axis as the root.
                     "elk.direction": getattr(style, "layout_direction", "RIGHT"),
+                    # NOTE: model-order is intentionally NOT set on nested groups
+                    # — elkjs's considerModelOrder crashes on ported cut interiors
+                    # (see _model_order_opts).  Sibling order is enforced at the
+                    # sheet level only; nested children are best-effort.
                 }
                 group_node = {
                     "id": elem_id,

@@ -1,0 +1,154 @@
+"""
+Tension layout — the vertex tree as an organizing principle (the structural core).
+
+A *line of identity* is elastic: identified things want to be near each other.
+This module turns that into a concrete, **correspondence-safe** choice for one of
+layout's free dimensions — the left-to-right order of an area's sibling blocks
+(the `projection_conventions.sibling_cut_ordering` choice, logically free per
+spec §5.3).
+
+The model (see ``docs/TENSION_LAYOUT.md``):
+
+- A **spring** is one predicate–vertex incidence (from ``ν``).
+- A **block** is a direct child of an area (a sub-cut, vertex, or predicate);
+  every deeper element belongs to the top-level block that contains it.
+- For a 1-D ordering of an area's blocks,
+  ``tension(order) = Σ over intra-area springs |pos[block(u)] − pos[block(v)]|``.
+- ``sibling_order`` returns the tension-minimizing order, tie-broken by a caller
+  supplied deterministic key (the engine's structural key), so isomorphic areas
+  still lay out identically.
+
+Why this is safe to feed into layout: a ligature's *crossing-sequence* (the §3.3
+homotopy class) is computed from the area tree alone, so it is **identical under
+every ordering**.  Reordering siblings moves only the free projection dimension;
+correspondence is untouched.  This module owns no geometry — it consumes the EGI
+structure and returns an order; the engine realizes it.
+"""
+
+from itertools import permutations
+from typing import Callable, Dict, List, Optional, Tuple
+
+from egi_core_dau import ElementID, RelationalGraphWithCuts
+from presentation_ops import element_area, cut_parents
+
+# Brute-force the exact minimum up to this many blocks; above it, a barycenter
+# sweep (an area with more siblings than this is rare and the heuristic is good).
+_EXACT_MAX = 8
+
+
+def springs(egi: RelationalGraphWithCuts) -> List[Tuple[ElementID, ElementID]]:
+    """One spring per predicate–vertex incidence (the ``ν`` function)."""
+    out: List[Tuple[ElementID, ElementID]] = []
+    for e in egi.E:
+        for v in egi.nu.get(e.id, ()):
+            out.append((e.id, v))
+    return out
+
+
+def block_of(
+    elem: ElementID,
+    area: ElementID,
+    elem_area: Dict[ElementID, ElementID],
+    parent_map: Dict[ElementID, ElementID],
+) -> Optional[ElementID]:
+    """The direct child of ``area`` that contains ``elem`` (or ``elem`` itself if
+    it sits directly in ``area``); ``None`` if ``elem`` is outside ``area``."""
+    a = elem_area.get(elem)
+    if a is None:
+        return None
+    if a == area:
+        return elem
+    cur: Optional[ElementID] = a
+    while cur is not None and cur != area:
+        if parent_map.get(cur) == area:
+            return cur
+        cur = parent_map.get(cur)
+    return None
+
+
+def _intra_springs(
+    egi: RelationalGraphWithCuts,
+    area: ElementID,
+    elem_area: Dict[ElementID, ElementID],
+    parent_map: Dict[ElementID, ElementID],
+) -> List[Tuple[ElementID, ElementID]]:
+    """Springs whose two endpoints lie in *different* direct children of
+    ``area`` (the only ones whose tension an in-area ordering can change)."""
+    out: List[Tuple[ElementID, ElementID]] = []
+    for e, v in springs(egi):
+        bu = block_of(e, area, elem_area, parent_map)
+        bv = block_of(v, area, elem_area, parent_map)
+        if bu is not None and bv is not None and bu != bv:
+            out.append((bu, bv))
+    return out
+
+
+def tension(order: List[ElementID], intra: List[Tuple[ElementID, ElementID]]) -> float:
+    """Σ |index difference| of the blocks each intra-area spring connects."""
+    idx = {b: i for i, b in enumerate(order)}
+    return float(sum(abs(idx[bu] - idx[bv]) for bu, bv in intra))
+
+
+def optimize_order(
+    blocks: List[ElementID],
+    intra: List[Tuple[ElementID, ElementID]],
+) -> List[ElementID]:
+    """Tension-minimizing 1-D order of ``blocks``.
+
+    ``blocks`` must already be in a deterministic base order (the caller's
+    structural key); the result is then deterministic and tie-broken toward that
+    base — exact for ≤ ``_EXACT_MAX`` blocks (the first minimal permutation in
+    base order), a barycenter sweep above it.
+    """
+    if not intra or len(blocks) < 3:
+        return list(blocks)
+    if len(blocks) <= _EXACT_MAX:
+        return list(min(permutations(blocks), key=lambda o: tension(list(o), intra)))
+
+    from collections import defaultdict
+    nbr: Dict[ElementID, List[ElementID]] = defaultdict(list)
+    for bu, bv in intra:
+        nbr[bu].append(bv)
+        nbr[bv].append(bu)
+    order = list(blocks)
+    best, best_t = list(order), tension(order, intra)
+    for _ in range(20):
+        idx = {b: i for i, b in enumerate(order)}
+        bary = {b: (sum(idx[n] for n in nbr[b]) / len(nbr[b]) if nbr[b] else idx[b])
+                for b in order}
+        # Sort by barycentre, tie-broken by the base index for determinism.
+        base_idx = {b: i for i, b in enumerate(blocks)}
+        order = sorted(order, key=lambda b: (bary[b], base_idx[b]))
+        t = tension(order, intra)
+        if t < best_t:
+            best, best_t = list(order), t
+    return best
+
+
+def sibling_order(
+    egi: RelationalGraphWithCuts,
+    area: ElementID,
+    base_order: List[ElementID],
+) -> List[ElementID]:
+    """Reorder an area's direct children (``base_order``, in the engine's
+    deterministic structural order) to minimize ligature tension.
+
+    Areas with no cross-block lines of identity keep ``base_order`` unchanged —
+    tension is indifferent there, so the change is surgical.  The crossing
+    sequence of every ligature is order-independent, so this never affects §3.3.
+    """
+    elem_area = element_area(egi)
+    parent_map = cut_parents(egi)
+    intra = _intra_springs(egi, area, elem_area, parent_map)
+    if not intra:
+        return list(base_order)
+    return optimize_order(list(base_order), intra)
+
+
+__all__ = [
+    "springs",
+    "block_of",
+    "tension",
+    "optimize_order",
+    "sibling_order",
+]

@@ -174,10 +174,33 @@ later a full constrained tension solver as an alternative projection.
 Run it: `uv run python tools/tension_poc.py [uod_id]`.
 
 So the principle organizes the free choices toward readability *and* is
-correspondence-safe by construction. The promising next increments: (1) feed the
-tension-minimizing sibling order into ELK as an order constraint (geometry still
-ELK's job); (2) generalize the 1-D ordering to 2-D placement; (3) the
-constrained taut-rubber-band router for the lines themselves.
+correspondence-safe by construction.
+
+### Wired into the layout pass (2026-06-07)
+
+The reusable core is `src/tension_layout.py` (`springs`, `block_of`, `tension`,
+`optimize_order`, `sibling_order`). The honored convention
+`projection_conventions.tension_sibling_order` (default **off** → output
+byte-identical) makes `ELKLayoutEngine._build_area_children` order each area's
+sibling blocks by `sibling_order` (tension primary, the structural key as
+deterministic tie-break, so isomorphic areas still match), and feed ELK
+`considerModelOrder` so the order survives the layout.
+
+**elkjs limitation found & dodged.** `considerModelOrder` crashes elkjs on nested
+*ported* groups (the cut interiors) — ~10/18 corpus UoDs failed when it was set
+on every area. It is therefore applied at the **sheet (root) level only**, which
+is crash-free across the whole corpus and is where free sibling ordering
+(disconnected sibling cuts) most commonly lives; nested-cut children are fed in
+tension order but left to ELK (best-effort). A defensive retry in
+`generate_layout` drops model-order on any residual elkjs failure (never
+triggered on the corpus). Exposed for live comparison as
+`generate_layout(tension=True)` / the workshop `?tension=true` query. Tests in
+`tests/test_tension_layout.py` (incl. corpus-wide no-crash + byte-identical-when-off).
+
+The promising next increments: (1) lift the sheet-only limitation (newer elkjs,
+or a post-hoc geometric sibling-slot permutation that needs no elkjs option);
+(2) generalize the 1-D ordering to 2-D placement; (3) the constrained
+taut-rubber-band router for the lines themselves.
 
 The one-sentence version: **the containment tree says where things may live;
 ligature tension, pulled taut against the cut boundaries the crossing-sequence

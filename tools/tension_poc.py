@@ -35,73 +35,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from egif_parser_dau import parse_egif
 from presentation_ops import element_area, cut_parents, crossing_sequence
+from tension_layout import springs, block_of, tension, optimize_order
 from tomos_service import TomosService
-
-
-# --------------------------------------------------------------------------- #
-# The tension model                                                           #
-# --------------------------------------------------------------------------- #
-
-
-def springs(egi):
-    """One spring per predicate–vertex incidence (the ν function)."""
-    out = []
-    for e in egi.E:
-        for v in egi.nu.get(e.id, ()):
-            out.append((e.id, v))
-    return out
-
-
-def block_of(elem, area, elem_area, parent_map):
-    """The direct child of `area` that contains `elem` (or `elem` itself if it
-    sits directly in `area`); None if `elem` is outside `area`'s subtree."""
-    a = elem_area.get(elem)
-    if a is None:
-        return None
-    if a == area:
-        return elem
-    cur = a
-    while cur is not None and cur != area:
-        if parent_map.get(cur) == area:
-            return cur
-        cur = parent_map.get(cur)
-    return None
-
-
-def tension(order, intra_springs):
-    """Σ |index difference| of the blocks each intra-area spring connects."""
-    idx = {b: i for i, b in enumerate(order)}
-    total = 0.0
-    for bu, bv in intra_springs:
-        total += abs(idx[bu] - idx[bv])
-    return total
-
-
-def optimize_order(blocks, intra_springs):
-    """Tension-minimizing 1-D order: exact for ≤8 blocks, else a barycenter
-    sweep (place each block at the mean index of its spring-neighbours, re-sort,
-    iterate; keep the best order seen)."""
-    if len(blocks) <= 8:
-        best = min(permutations(blocks), key=lambda o: tension(o, intra_springs))
-        return list(best)
-
-    # Barycenter heuristic for larger areas.
-    from collections import defaultdict
-    nbr = defaultdict(list)
-    for bu, bv in intra_springs:
-        nbr[bu].append(bv)
-        nbr[bv].append(bu)
-    order = list(blocks)
-    best, best_t = list(order), tension(order, intra_springs)
-    for _ in range(20):
-        idx = {b: i for i, b in enumerate(order)}
-        bary = {b: (sum(idx[n] for n in nbr[b]) / len(nbr[b]) if nbr[b] else idx[b])
-                for b in order}
-        order = sorted(order, key=lambda b: bary[b])
-        t = tension(order, intra_springs)
-        if t < best_t:
-            best, best_t = list(order), t
-    return best
 
 
 # --------------------------------------------------------------------------- #
