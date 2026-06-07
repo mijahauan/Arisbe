@@ -202,6 +202,55 @@ or a post-hoc geometric sibling-slot permutation that needs no elkjs option);
 (2) generalize the 1-D ordering to 2-D placement; (3) the constrained
 taut-rubber-band router for the lines themselves.
 
+## 9. Tension-driven 2-D placement — PoC (2026-06-07)
+
+The bigger readability win: the Peircean **single-line reading** where a relation
+sits *between* its argument vertices (`Cat —•— On —•— Mat`), instead of ELK's
+bipartite **two-column** split (predicates in one layer, line-of-identity dots in
+the next — the reason `cat_on_mat` currently renders as two vertical stacks).
+
+`tools/tension2d_poc.py` places the incidence graph (predicates + vertices as
+nodes, one spring per `ν` incidence) by **stress majorization (SMACOF)** — the
+exact tension energy `Σ w_ij(‖p_i−p_j‖ − d_ij)²`, `d_ij` = graph distance,
+`w_ij = 1/d_ij²`. Pure numpy (no scipy), deterministic init.
+
+**Result — it produces the reading:**
+- `cat_on_mat`: ELK is two columns (predicate x≈32–35, vertex x≈78; total spring
+  length 230.5). Stress lays it out as the chain `Mat • On • Cat` with the binary
+  relation **On between its two arguments** and total spring length **46.1 (≈5×
+  lower)**. The single-line reading emerges from tension alone.
+
+**Honest gap — containment.** The PoC is *unconstrained*: on `peirce_modus_ponens`
+(which has cuts) stress places **both** cut-bound elements *outside* their cut, so
+§3.3 would refuse. Pure stress ignores the containment tree. So 2-D placement is
+not "run a force layout"; it is **constrained** stress that respects the area
+tree.
+
+### Wiring plan (the real work, not yet built)
+
+A new opt-in *projection* (alternative to ELK; consumes `natural_layout`,
+produces a `LayoutDTO`, attested by §3.3), built in increments:
+
+1. **Hierarchical constrained SMACOF.** Lay out each area's contents by stress,
+   **bottom-up**: lay out a cut's interior in its own frame, size the cut box to
+   fit, then treat the cut as a single node in its parent's stress layout.
+   Containment holds by construction (each area solved in its own frame; a cut is
+   atomic to its parent). This is "the vertex tree positions the cut tree" made
+   literal.
+2. **Cross-boundary springs.** A line of identity from inside a cut to outside
+   attaches to the cut's boundary as a port; the parent layout pulls the cut
+   toward the outside end, the child pulls the inside end toward the boundary —
+   the coupling that lets tension shape the nesting.
+3. **Non-overlap + routing.** Add repulsion / min-separation (stress alone lets
+   nodes coincide), then route lines with the existing cut-aware router so the
+   crossing-sequence is realized exactly.
+4. **Guardrails.** Deterministic init (L1); §3.3 attestation as the per-result
+   gate; behind a convention flag (default ELK), opt-in `?engine=tension` for
+   live comparison — same pattern as `?tension` / `?direction`.
+
+Start with the cut-free and single-cut cases (where the PoC already wins), prove
+each increment against the corpus, and only then make it selectable.
+
 The one-sentence version: **the containment tree says where things may live;
 ligature tension, pulled taut against the cut boundaries the crossing-sequence
 fixes, says where they settle — and in settling, the vertex tree lays out the cut
