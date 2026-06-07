@@ -1,6 +1,67 @@
 # Current Plan
 
-**Last Updated**: 2026-06-06 (Presentation-delta extrapolation — increment 4 scale 1: generalize sparse move_vertex nudges to untouched structural siblings within a view)
+**Last Updated**: 2026-06-07 (Layout: tension-driven thread-first engine — single lines of identity lay out as one collinear taut thread through the cut nest)
+
+> **NEXT SESSION — the tension layout frontier (generalize the thread engine).**
+> `?engine=tension` now lays a **single** line of identity as one collinear taut
+> thread through the nested cuts (the Peircean reading), short cuts hugging the
+> thread, labels clear of the lines, §3.3-valid; ELK stays the default. The
+> frontier is the cases the thread engine still hands to hierarchical placement:
+> **(1) branch points** — a line of identity forking to 3+ predicates (degree-≥3
+> vertex): the thread becomes a small *tree* pulled taut; **(2) multiple threads**
+> sharing cuts (a graph with several lines of identity); **(3) non-monotone
+> threads** that dive into a cut and come back out. The principle: make the
+> **ligature the unit the layout places**, with containment as the nest it
+> threads — no special cases. Start with branch points (most common after single
+> threads). Survey: 11/18 corpus single-thread (done), 4 branch, 1 multi-thread,
+> 1 empty. Code: `src/tension_engine.py` (`_thread_layout` / `_hierarchical_layout`
+> dispatch), `src/tension_layout.py` (`extract_thread`, `stress_majorize`),
+> `tools/thread_layout_poc.py`. Spec: `docs/TENSION_LAYOUT.md` §9–§10. Memory:
+> [[project-tension-layout-engine]], [[project-layout-orientation-and-clustering]].
+
+## Session 2026-06-07 — editing surface + the tension layout engine
+
+A long arc from "I can't move things in Settle" to a second, ligature-first
+layout engine. All on `main`, full suite green (1016 passing), no protected
+module touched.
+
+**Editing surface (Settle ④b made whole).**
+- `presentation_ops` gained `move_predicate` + `move_cut` (rigid cut+contents);
+  Settle UI can now drag relations and whole cuts, with live drag guides + grab
+  affordances (commit 4586cae).
+- **Attachment points now *derive*** on a move: `ELKLayoutEngine.rebuild_ligature_anchors`
+  recomputes the predicate hook as a perimeter anchor so it follows the line's
+  new incident direction (fixed "the hook stayed frozen"; commit 4865f19).
+- **Layout reading axis** is an honored style knob (`layout.direction`); the
+  taut-line router replaced the L-detour with the visibility-graph geodesic
+  (`detour_pad` retired; commit 57b5d0b).
+
+**Tension layout engine (`?engine=tension`, opt-in; ELK default).**
+- `src/tension_engine.py` — constrained stress so a relation sits *between* its
+  arguments; then **thread-first**: a single line of identity is laid as one
+  collinear taut thread through the nested cuts (`_thread_layout`), variable
+  spacing (gap = label clearance + one inset per crossing), short cuts (small
+  vertical inset), §3.3-gated with ELK fallback. cat_on_mat → `Cat —•— On —•— Mat`;
+  dau_theorem_proving → the straight skewer.
+- `src/tension_layout.py` — `sibling_order` (tension-minimizing free order, the
+  `?tension` knob), `stress_majorize` (SMACOF), `extract_thread`.
+- Sprotty/GLSP evaluated (`docs/SPROTTY_EVALUATION.md`): borrow concepts, don't
+  adopt — Arisbe already implements GLSP's server-veto-then-resend.
+
+**Viewing unified.** `web_viewer/js/diagram-viewer.js` is now the single
+client-side view engine (`render(svg, {camera:'fit'|'hold', dolly, transition})`);
+Organon, Ergasterion, Agon all delegate (commit a647395). Workshop gained UI
+controls for engine / axis / tension / extrapolate (commit f9eaedc).
+
+**Renderer.** A vertex label is placed clear of its incident ligatures (the
+freest angular gap) when a right-placed label would be overwritten (commit
+45f31e2).
+
+Spec for the layout work: `docs/TENSION_LAYOUT.md`. See the NEXT SESSION block
+above for the frontier.
+
+---
+
 
 ## Session 2026-06-06 (h) — presentation-delta extrapolation (increment 4, scale 1: within-view)
 
