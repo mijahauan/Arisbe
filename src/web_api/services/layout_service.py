@@ -396,6 +396,7 @@ def generate_layout(
     style_name: Optional[str] = None,
     deltas: Optional[list] = None,
     extrapolate: bool = False,
+    direction: Optional[str] = None,
 ) -> Tuple[LayoutDTO, str]:
     """Generate layout and SVG for an EGI.
 
@@ -424,10 +425,22 @@ def generate_layout(
     explicit ones.  Off by default so existing renders are unchanged — it is the
     research layer behind goals (b)/(c), reached via an opt-in query flag.
 
+    *direction* optionally overrides the style's layout reading axis for this
+    render only (``"RIGHT"`` left-to-right, ``"DOWN"``, ``"LEFT"``, ``"UP"``).
+    Sibling-heavy structure (conjunctions, proof steps) packs along the
+    *secondary* axis, so ``RIGHT`` stacks it vertically and ``DOWN`` spreads it
+    horizontally; this lets a client compare without authoring a style variant.
+
     Returns:
         (layout_dto, svg_string)
     """
     style = load_style(style_name) if style_name else load_default_style()
+    if direction:
+        # Per-render override of the style's reading axis (RIGHT/DOWN/LEFT/UP) —
+        # the honored layout-flow knob.  Lets a client compare orientations
+        # without authoring a style variant; the stored style is untouched.
+        import dataclasses
+        style = dataclasses.replace(style, layout_direction=direction)
     engine = ELKLayoutEngine()
 
     # Positional conservatism (Settle ④a, 1c): when the step only *removed*
@@ -481,6 +494,10 @@ def generate_layout(
             # apply_deltas if it doesn't fit (best-effort, like ④a).
             apply_list = apply_list + extrapolate_deltas(egi, deltas)
         dto, _dropped = apply_deltas(egi, dto, apply_list)
+        # A delta translates the moved element's ligature endpoints rigidly;
+        # re-derive them so the predicate attachment follows the line's new
+        # incident direction (idempotent on unmoved lines, interior-preserving).
+        dto = engine.rebuild_ligature_anchors(egi, dto)
 
     # Generate EGIF linear form for the renderer title
     try:
@@ -492,6 +509,19 @@ def generate_layout(
     svg = renderer.render_to_svg(dto, egif=egif, egi=egi)
 
     return dto, svg
+
+
+def reanchor_ligatures(egi, dto: LayoutDTO) -> LayoutDTO:
+    """Re-derive ligature endpoints from the current element geometry.
+
+    A thin service wrapper over ``ELKLayoutEngine.rebuild_ligature_anchors`` —
+    the predicate attachment is a floating/perimeter anchor, so after a regime-3
+    *move* (which only translates the old endpoints) the hook is recomputed to
+    face the line's new incident direction.  Idempotent on unmoved lines and
+    interior-preserving (an explicit reroute survives).  Use after
+    move_vertex / move_predicate / move_cut, before ``attest_and_render``.
+    """
+    return ELKLayoutEngine().rebuild_ligature_anchors(egi, dto)
 
 
 def attest_and_render(

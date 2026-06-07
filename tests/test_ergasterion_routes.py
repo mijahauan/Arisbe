@@ -808,6 +808,44 @@ def test_extrapolate_query_generalizes_nudge_to_sibling(client, isolated_tomos):
     assert len(extr["presentation_deltas"]) == 1
 
 
+def test_move_vertex_reanchors_predicate_hook(client, isolated_tomos):
+    """After moving a vertex, the predicate-side ligature endpoint is re-derived
+    to face the line's new direction (not left frozen) — the attachment-point
+    fix, end-to-end through /adjust."""
+    uod_id = _seed_egif_uod(isolated_tomos, "(P *x)", "reanchor_one")
+    data = _open_session(client, f"uod:{uod_id}")
+    sid = data["session_id"]
+    lig0 = data["layout_dto"]["ligature_paths"][0]
+    hook_before = lig0["points"][0]
+    vid = lig0["vertex_id"]
+
+    out = _adjust(client, sid, {"operation": "move_vertex", "vertex_id": vid,
+                                "dx": 0.0, "dy": 120.0})
+    lig1 = out["data"]["layout_dto"]["ligature_paths"][0]
+    # The hook moved (re-anchored), and the vertex-side endpoint tracks the vertex.
+    assert lig1["points"][0]["y"] != pytest.approx(hook_before["y"])
+    assert lig1["points"][-1]["y"] == pytest.approx(
+        out["data"]["layout_dto"]["vertex_positions"][vid]["y"])
+
+
+def test_direction_query_overrides_reading_axis(client, isolated_tomos):
+    """?direction=DOWN re-orients a render without mutating the stored style —
+    sibling-heavy structure that stacks vertically under RIGHT spreads wide."""
+    uod_id = _seed_egif_uod(
+        isolated_tomos, "(P *x) (Q *y) (R *z) (S *w)", "dir_four")
+    data = _open_session(client, f"uod:{uod_id}")
+    sid = data["session_id"]
+
+    def ratio(payload):
+        vb = payload["layout_dto"]["viewport_bounds"]
+        return (vb["max_y"] - vb["min_y"]) / (vb["max_x"] - vb["min_x"])
+
+    right = client.get(f"/ergasterion/sessions/{sid}?direction=RIGHT").json()["data"]
+    down = client.get(f"/ergasterion/sessions/{sid}?direction=DOWN").json()["data"]
+    assert ratio(right) > 1.0
+    assert ratio(down) < 1.0
+
+
 def test_extrapolate_query_honored_by_state_navigation_route(client, isolated_tomos):
     """The scale-1→2 bridge reaches the move-by-move navigator: GET
     /sessions/{id}/states/{state_id}?extrapolate=true generalizes the state's

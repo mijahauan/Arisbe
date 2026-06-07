@@ -69,6 +69,7 @@ from web_api.services.layout_service import (
     attest_and_render,
     generate_layout,
     layout_dto_to_dict,
+    reanchor_ligatures,
 )
 from web_api.services.linear_forms import linear_forms
 
@@ -334,7 +335,8 @@ async def open_session(request: ErgasterionOpenRequest):
 
 @router.get("/sessions/{session_id}")
 async def get_session(
-    session_id: str, style: Optional[str] = None, extrapolate: bool = False
+    session_id: str, style: Optional[str] = None, extrapolate: bool = False,
+    direction: Optional[str] = None,
 ):
     """Return the current state of a workshop session.
 
@@ -372,7 +374,7 @@ async def get_session(
         deltas = manager.effective_deltas(session, session.chain.current_state_id)
         dto, svg = generate_layout(
             session.current_egi, style_name=session.style_name, deltas=deltas,
-            extrapolate=extrapolate,
+            extrapolate=extrapolate, direction=direction,
         )
         session.current_layout_dto = dto
         return ApiResponse(success=True, data=_session_payload(session, svg))
@@ -401,7 +403,7 @@ def _step_index_of_state(session, state_id: str) -> int:
 @router.get("/sessions/{session_id}/states/{state_id}")
 async def get_session_state(
     session_id: str, state_id: str, style: Optional[str] = None,
-    extrapolate: bool = False,
+    extrapolate: bool = False, direction: Optional[str] = None,
 ):
     """Render any state in the session's worked sequence — the workshop's
     move-by-move navigator.
@@ -453,7 +455,7 @@ async def get_session_state(
         dto, svg = generate_layout(
             egi, style_name=style_name,
             deltas=manager.effective_deltas(session, state_id),
-            extrapolate=extrapolate,
+            extrapolate=extrapolate, direction=direction,
         )
 
         return ApiResponse(
@@ -920,6 +922,12 @@ async def adjust_presentation(session_id: str, request: ErgasterionAdjustRequest
             }
         else:
             return _adjust_bad_request(f"Unknown adjust operation '{op}'.")
+
+        # A move only translates the moved element's ligature endpoints; re-derive
+        # them so the predicate attachment follows the line's new incident
+        # direction (idempotent on unmoved lines; preserves an explicit reroute).
+        if op in ("move_vertex", "move_predicate", "move_cut"):
+            new_dto = reanchor_ligatures(egi, new_dto)
 
         new_dto, svg = attest_and_render(egi, new_dto)
         session.current_layout_dto = new_dto

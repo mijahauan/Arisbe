@@ -304,6 +304,14 @@ vertex/relation. The round-trip is `POST
 /ergasterion/sessions/{id}/adjust` → `presentation_ops` → `attest_and_render`
 (re-render the nudged DTO with no ELK pass, **still §3.3-attested**). It is
 pure presentation: the EGI is untouched and **no chain step is recorded**.
+After a *move* (`move_vertex` / `move_predicate` / `move_cut`) the affected
+ligature **endpoints are re-derived** (`ELKLayoutEngine.rebuild_ligature_anchors`):
+the predicate attachment is a floating/perimeter anchor, so the hook slides to
+face the line's new incident direction instead of staying frozen — the
+attachment point follows the geometry (derive-don't-store), interior reroute
+waypoints preserved, idempotent on unmoved lines. The reading axis the layout
+develops along is the honored `layout.direction` style knob (RIGHT/DOWN/LEFT/UP),
+overridable per render via `generate_layout(direction=…)` / `?direction=`.
 A boundary-crossing nudge is refused as `REGIME3_VIOLATION`; a nudge that
 slips past `presentation_ops`' local guards but breaks §3.3 (e.g. growing a
 cut so a ligature newly crosses it) is caught by `attest_and_render` as

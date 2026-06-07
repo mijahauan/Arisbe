@@ -95,6 +95,17 @@ class Conventions:
     distinction the projection would otherwise collapse (two distinct lines
     sharing a point yet staying distinct)."""
 
+    flow_direction: str = "RIGHT"
+    """The reading axis the layered layout develops along (ELK ``elk.direction``).
+    **Honored** (2026-06-07): the active value is sourced from the style's
+    ``layout.direction`` (``ELKLayoutEngine`` reads ``style.layout_direction``;
+    default ``"RIGHT"`` = left-to-right). It is a pure projection choice — the
+    NaturalLayout fixes containment and incidence, not the page axis — but it
+    governs readability: sibling-heavy structure (conjunctions, proof steps)
+    packs along the *secondary* axis, so ``RIGHT`` stacks it vertically and
+    ``DOWN`` spreads it horizontally. A per-render override is exposed as
+    ``generate_layout(direction=…)`` / the workshop ``?direction=`` query."""
+
     sibling_cut_ordering: str = "elk_emergent"
     """Left/right order of sibling cuts at the same depth — a pure
     projection artifact (siblings have no logical order; spec §5.3).

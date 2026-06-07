@@ -653,3 +653,69 @@ def test_move_cut_refuses_unknown_cut(engine, style):
     egi, dto = _egi_dto("~[ (P *x) ]", engine, style)
     with pytest.raises(Regime3Violation):
         move_cut(egi, dto, "nonexistent_cut", 1.0, 1.0)
+
+
+# --------------------------------------------------------------------------- #
+# rebuild_ligature_anchors — the attachment point is derived, not stored       #
+# --------------------------------------------------------------------------- #
+
+
+def test_rebuild_anchors_follows_vertex_after_move(engine, style):
+    """After a vertex move, re-deriving anchors slides the predicate hook to
+    face the line's new incident direction — the bug 'the attachment point on
+    the predicate did not change' is fixed by recomputing, not dragging."""
+    egi, dto = _egi_dto("(P *x)", engine, style)
+    vid = next(iter(dto.vertex_positions))
+    hook_before = dto.ligature_paths[0].points[0]
+
+    moved = move_vertex(egi, dto, vid, 0.0, 120.0)         # push vertex far down
+    assert moved.ligature_paths[0].points[0] == hook_before  # rigid: hook frozen
+
+    re = engine.rebuild_ligature_anchors(egi, moved)
+    hook_after = re.ligature_paths[0].points[0]
+    assert hook_after.y != pytest.approx(hook_before.y)      # hook moved to face it
+    assert re.ligature_paths[0].points[-1].y == pytest.approx(
+        moved.vertex_positions[vid].y)                        # vertex end pinned
+
+
+def test_rebuild_anchors_idempotent_on_fresh_layout(engine, style):
+    """On an unedited layout the hook is already the perimeter anchor, so
+    re-deriving changes nothing (same derive rule as the cold layout)."""
+    egi, dto = _egi_dto("(P *x) (Q *y)", engine, style)
+    re = engine.rebuild_ligature_anchors(egi, dto)
+    for a, b in zip(dto.ligature_paths, re.ligature_paths):
+        assert a.points[0].x == pytest.approx(b.points[0].x)
+        assert a.points[0].y == pytest.approx(b.points[0].y)
+        assert a.points[-1].x == pytest.approx(b.points[-1].x)
+
+
+def test_rebuild_anchors_preserves_reroute_interior(engine, style):
+    """An explicit reroute waypoint survives a re-anchor — only the endpoints
+    are recomputed."""
+    egi, dto = _egi_dto("(P *x)", engine, style)
+    lp = dto.ligature_paths[0]
+    mid = Point((lp.points[0].x + lp.points[-1].x) / 2,
+                (lp.points[0].y + lp.points[-1].y) / 2 + 8.0)
+    routed = reroute_ligature(egi, dto, lp.predicate_id, lp.vertex_id,
+                              lp.port_index, [mid])
+    re = engine.rebuild_ligature_anchors(egi, routed)
+    # The interior waypoint is unchanged; the path still has 3 points.
+    assert len(re.ligature_paths[0].points) == 3
+    assert re.ligature_paths[0].points[1].x == pytest.approx(mid.x)
+    assert re.ligature_paths[0].points[1].y == pytest.approx(mid.y)
+
+
+def test_layout_direction_is_a_style_knob(engine, style):
+    """layout.direction (the reading axis) is honored: sibling-heavy structure
+    stacks vertically under RIGHT and spreads horizontally under DOWN."""
+    import dataclasses
+    egi = __import__("egif_parser_dau").parse_egif("(P *x) (Q *y) (R *z) (S *w)")
+    right = engine.generate_layout(egi, dataclasses.replace(style, layout_direction="RIGHT"))
+    down = engine.generate_layout(egi, dataclasses.replace(style, layout_direction="DOWN"))
+
+    def ratio(dto):
+        vb = dto.viewport_bounds
+        return (vb.max_y - vb.min_y) / (vb.max_x - vb.min_x)
+
+    assert ratio(right) > 1.0   # tall (siblings stacked on the vertical axis)
+    assert ratio(down) < 1.0    # wide (siblings spread left-to-right)

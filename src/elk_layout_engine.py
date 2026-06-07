@@ -213,7 +213,9 @@ class ELKLayoutEngine:
                     f"right={int(style.cut_padding)}]"
                 ),
                 "elk.layered.crossingMinimization.strategy": "LAYER_SWEEP",
-                "elk.direction": "RIGHT",
+                # Reading axis the layout develops along — honored style knob
+                # (layout.direction), default left-to-right.
+                "elk.direction": getattr(style, "layout_direction", "RIGHT"),
             },
             "children": sheet_children,
             "edges": elk_edges,
@@ -344,6 +346,8 @@ class ELKLayoutEngine:
                     "elk.padding": padding_str,
                     "elk.algorithm": "layered",
                     "elk.spacing.nodeNode": str(int(style.element_spacing)),
+                    # Nested cuts develop along the same reading axis as the root.
+                    "elk.direction": getattr(style, "layout_direction", "RIGHT"),
                 }
                 group_node = {
                     "id": elem_id,
@@ -651,6 +655,61 @@ class ELKLayoutEngine:
             pred_center.x + dx * t_min,
             pred_center.y + dy * t_min,
         )
+
+    # ------------------------------------------------------------------
+    # Re-derive ligature endpoints from element geometry (regime-3 edits)
+    # ------------------------------------------------------------------
+
+    def rebuild_ligature_anchors(
+        self,
+        egi: RelationalGraphWithCuts,
+        dto: LayoutDTO,
+    ) -> LayoutDTO:
+        """Re-derive each ligature's *endpoints* from the current element
+        geometry, preserving any interior waypoints.
+
+        A ligature's attachment is a **floating/perimeter anchor**, not a stored
+        pixel fact: the predicate-side endpoint is the point on the predicate's
+        box facing the connected vertex (``_predicate_hook_point``), and the
+        vertex-side endpoint is the vertex position.  The full ELK pass already
+        computes these; the regime-3 edit ops (``move_vertex`` /
+        ``move_predicate`` / ``move_cut``) only translate the old endpoints, so
+        after a move the hook no longer faces the line's new incident direction.
+        This recomputes both endpoints so the attachment *follows the geometry*
+        — the same derive-don't-store discipline as the cold layout.
+
+        It is **idempotent** on an unedited layout (the hook is computed toward
+        the vertex centre, exactly as ``_build_ligature_paths`` does) and
+        **interior-preserving** (an explicit ``reroute_ligature`` waypoint
+        survives — only the endpoints are touched).  A move that would require a
+        *new* cut detour is not re-routed here; the §3.3 attestation downstream
+        refuses such a result, so correspondence still holds.
+
+        Returns a new ``LayoutDTO``; the input is not mutated.
+        """
+        import dataclasses
+
+        sizes = self._compute_element_sizes(egi, dto.style)
+        new_paths: List[LigaturePath] = []
+        for lp in dto.ligature_paths:
+            pts = list(lp.points)
+            pred_center = dto.predicate_positions.get(lp.predicate_id)
+            vert_pos = dto.vertex_positions.get(lp.vertex_id)
+            if len(pts) < 2 or pred_center is None or vert_pos is None:
+                new_paths.append(lp)
+                continue
+            pw, ph = sizes.get(lp.predicate_id, (40.0, 16.0))
+            pts[-1] = vert_pos
+            pts[0] = self._predicate_hook_point(pred_center, pw, ph, vert_pos)
+            new_paths.append(
+                LigaturePath(
+                    predicate_id=lp.predicate_id,
+                    vertex_id=lp.vertex_id,
+                    points=tuple(pts),
+                    port_index=lp.port_index,
+                )
+            )
+        return dataclasses.replace(dto, ligature_paths=new_paths)
 
     # ------------------------------------------------------------------
     # Cut-aware ligature routing

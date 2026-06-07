@@ -64,7 +64,13 @@ class StyleSpecification:
     
     # Raw style data for renderer access
     raw_style_data: Dict[str, Any]
-    
+
+    # Layout flow direction — the reading axis the layered layout develops along
+    # (ELK's elk.direction).  "RIGHT" = left-to-right (default, the scan order
+    # of left-to-right scripts); "DOWN"/"LEFT"/"UP" are the other axes.  An
+    # honored projection convention sourced from the style's layout.direction.
+    layout_direction: str = "RIGHT"
+
     def get_element_bounds(self, element_type: str, content: str = "") -> Tuple[float, float]:
         """Calculate spatial bounds required for an element with this style"""
         if element_type == "vertex":
@@ -131,7 +137,10 @@ class StyleSpecification:
             collapsed_context_enabled=data.get('collapsed_context', {}).get('enabled', False),
             
             # Raw data for renderer access
-            raw_style_data=data
+            raw_style_data=data,
+
+            # Layout flow direction (honored; default left-to-right)
+            layout_direction=data['layout'].get('direction', 'RIGHT'),
         )
 
 
