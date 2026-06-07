@@ -336,7 +336,7 @@ async def open_session(request: ErgasterionOpenRequest):
 @router.get("/sessions/{session_id}")
 async def get_session(
     session_id: str, style: Optional[str] = None, extrapolate: bool = False,
-    direction: Optional[str] = None, tension: bool = False,
+    direction: Optional[str] = None, tension: bool = False, engine: str = "elk",
 ):
     """Return the current state of a workshop session.
 
@@ -375,6 +375,7 @@ async def get_session(
         dto, svg = generate_layout(
             session.current_egi, style_name=session.style_name, deltas=deltas,
             extrapolate=extrapolate, direction=direction, tension=tension,
+            engine=engine,
         )
         session.current_layout_dto = dto
         return ApiResponse(success=True, data=_session_payload(session, svg))
@@ -404,7 +405,7 @@ def _step_index_of_state(session, state_id: str) -> int:
 async def get_session_state(
     session_id: str, state_id: str, style: Optional[str] = None,
     extrapolate: bool = False, direction: Optional[str] = None,
-    tension: bool = False,
+    tension: bool = False, engine: str = "elk",
 ):
     """Render any state in the session's worked sequence — the workshop's
     move-by-move navigator.
@@ -457,6 +458,7 @@ async def get_session_state(
             egi, style_name=style_name,
             deltas=manager.effective_deltas(session, state_id),
             extrapolate=extrapolate, direction=direction, tension=tension,
+            engine=engine,
         )
 
         return ApiResponse(

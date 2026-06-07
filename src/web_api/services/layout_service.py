@@ -398,6 +398,7 @@ def generate_layout(
     extrapolate: bool = False,
     direction: Optional[str] = None,
     tension: bool = False,
+    engine: str = "elk",
 ) -> Tuple[LayoutDTO, str]:
     """Generate layout and SVG for an EGI.
 
@@ -437,6 +438,12 @@ def generate_layout(
     (``docs/TENSION_LAYOUT.md``).  Correspondence-safe (a crossing-sequence is
     order-independent); enforced at the sheet level.
 
+    *engine* selects the layout projection: ``"elk"`` (default) or ``"tension"``
+    — the constrained-stress engine that places a relation *between* its argument
+    vertices (the Peircean single-line reading; ``docs/TENSION_LAYOUT.md`` §9).
+    The tension engine is §3.3-gated with a graceful fall back to ELK on any
+    graph whose tension layout does not attest.
+
     Returns:
         (layout_dto, svg_string)
     """
@@ -454,11 +461,11 @@ def generate_layout(
         # level (elkjs honors model order there crash-free).
         import dataclasses
         from projection_conventions import DEFAULT_CONVENTIONS
-        engine = ELKLayoutEngine(
+        elk_engine = ELKLayoutEngine(
             dataclasses.replace(DEFAULT_CONVENTIONS, tension_sibling_order=True)
         )
     else:
-        engine = ELKLayoutEngine()
+        elk_engine = ELKLayoutEngine()
 
     # Positional conservatism (Settle ④a, 1c): when the step only *removed*
     # material, keep every survivor at its exact previous position instead of
@@ -466,7 +473,24 @@ def generate_layout(
     # Only engages with a previous layout and a subtractive change; additive
     # steps and fresh renders fall through to the full layout.
     dto: Optional[LayoutDTO] = None
-    if previous_layout is not None:
+
+    # Alternative projection: the tension engine (docs/TENSION_LAYOUT.md §9) —
+    # constrained stress so a relation sits between its arguments (the Peircean
+    # single-line reading).  Cold layout only; §3.3-gated with a graceful ELK
+    # fallback, so ?engine=tension never breaks — it shows the tension layout
+    # where it attests and ELK otherwise.
+    if engine == "tension":
+        from tension_engine import TensionLayoutEngine
+        try:
+            candidate = TensionLayoutEngine().generate_layout(egi, style)
+            attest_correspondence(
+                egi, candidate, context="layout_service.tension_engine"
+            )
+            dto = candidate
+        except CorrespondenceViolation:
+            dto = None  # fall through to ELK below
+
+    if dto is None and previous_layout is not None:
         for builder, ctx in (
             (_subtractive_layout, "layout_service.incremental_subtractive"),
             (_additive_cut_layout, "layout_service.incremental_additive_cut"),
@@ -486,7 +510,7 @@ def generate_layout(
                 dto = None
 
     if dto is None:
-        dto = engine.generate_layout(egi, style)
+        dto = elk_engine.generate_layout(egi, style)
         # Boundary-event attestation (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md
         # §6, §8 bullet 1).  Every (EGI, DTO) pair we hand to the renderer
         # — initial diagram serve, post-transformation re-render, anywhere
@@ -514,7 +538,7 @@ def generate_layout(
         # A delta translates the moved element's ligature endpoints rigidly;
         # re-derive them so the predicate attachment follows the line's new
         # incident direction (idempotent on unmoved lines, interior-preserving).
-        dto = engine.rebuild_ligature_anchors(egi, dto)
+        dto = elk_engine.rebuild_ligature_anchors(egi, dto)
 
     # Generate EGIF linear form for the renderer title
     try:

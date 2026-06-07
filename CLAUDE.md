@@ -67,7 +67,9 @@ plan is to surface them as routes within the web app (`src/web_api/`,
 - `universe_of_discourse.py` — UoD entity (synchronic EGI + diachronic DAG history + layout deltas)
 - `egi_transformation_history.py` — DAG-based branching transformation history
 - `endoporeutic_game.py` — Two-player dialogical game engine
-- `elk_layout_engine.py` (+ `elk_worker.js`) — Cut-aware ELK-based layout, the canonical layout path
+- `elk_layout_engine.py` (+ `elk_worker.js`) — Cut-aware ELK-based layout, the default layout path; also `rebuild_ligature_anchors` (re-derive ligature endpoints from element geometry after a regime-3 move)
+- `tension_layout.py` — the vertex tree as organizing principle: `sibling_order` (tension-minimizing free order of an area's siblings, the `?tension` knob) + `stress_majorize` (SMACOF). Correspondence-safe: a crossing-sequence is order-independent. See `docs/TENSION_LAYOUT.md`
+- `tension_engine.py` — `TensionLayoutEngine`, an opt-in alternative projection (`?engine=tension`): hierarchical constrained stress with crossing-point proxies that places a relation *between* its arguments (Peircean single-line reading). Containment by construction; §3.3-gated with ELK fallback (17/18 corpus attest)
 - `simple_svg_renderer.py` — LayoutDTO → SVG
 - `layout_dto.py` — Platform-independent layout DTO shared by layout engines and renderers
 - `presentation_ops.py` — Regime-3 algebra: `move_vertex`, `move_predicate`, `reshape_cut`, `move_cut` (rigid translate of a cut + contents), `reroute_ligature`, each raising `Regime3Violation` on attempted boundary crossings. Also exports the public area-topology helpers (`element_area`, `cut_parents`, `area_chain`, `crossing_sequence`, `deepest_containing_cut`). `area_chain` (allowed areas, incl. LCA) and `crossing_sequence` (ordered cuts crossed, excl. LCA) share one `_tree_path` walk — the single source of truth consumed by `natural_layout.authorized_crossings` and `ELKLayoutEngine._authorized_cuts`.

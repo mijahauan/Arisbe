@@ -25,6 +25,7 @@ correspondence is untouched.  This module owns no geometry — it consumes the E
 structure and returns an order; the engine realizes it.
 """
 
+import collections
 from itertools import permutations
 from typing import Callable, Dict, List, Optional, Tuple
 
@@ -145,10 +146,84 @@ def sibling_order(
     return optimize_order(list(base_order), intra)
 
 
+def stress_majorize(
+    nodes: List,
+    edges: List[Tuple],
+    *,
+    iters: int = 300,
+    scale: float = 1.0,
+) -> Dict:
+    """Deterministic 2-D stress majorization (SMACOF) of a graph.
+
+    Minimizes the tension energy ``Σ w_ij (‖p_i − p_j‖ − d_ij)²`` with ideal
+    distances ``d_ij`` = graph (BFS) distance and ``w_ij = 1/d_ij²`` — a path
+    relaxes to a straight line in order, a star to a hub.  Disconnected pairs get
+    a large finite ideal distance (they simply repel).  Pure numpy (no scipy);
+    the fixed line-init makes it reproducible (layout invariant L1).
+
+    Returns ``{node: (x, y)}`` as plain floats, scaled by ``scale``.
+    """
+    import numpy as np
+
+    n = len(nodes)
+    if n == 0:
+        return {}
+    if n == 1:
+        return {nodes[0]: (0.0, 0.0)}
+
+    idx = {u: i for i, u in enumerate(nodes)}
+    adj = collections.defaultdict(set)
+    for a, b in edges:
+        if a in idx and b in idx and a != b:
+            adj[a].add(b)
+            adj[b].add(a)
+
+    D = np.zeros((n, n))
+    for s in nodes:
+        dist = {s: 0}
+        q = collections.deque([s])
+        while q:
+            u = q.popleft()
+            for w in adj[u]:
+                if w not in dist:
+                    dist[w] = dist[u] + 1
+                    q.append(w)
+        for t, dd in dist.items():
+            D[idx[s], idx[t]] = dd
+    big = D.max() + 1 if n else 1.0
+    for i in range(n):
+        for j in range(n):
+            if i != j and D[i, j] == 0:
+                D[i, j] = big
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        W = np.where(D > 0, 1.0 / D ** 2, 0.0)
+
+    X = np.column_stack([np.arange(n, dtype=float), (np.arange(n) % 2) * 0.3])
+    for _ in range(iters):
+        diff = X[:, None] - X[None, :]
+        dist = np.linalg.norm(diff, axis=2)
+        np.fill_diagonal(dist, 1.0)
+        Xn = np.zeros_like(X)
+        for i in range(n):
+            num = np.zeros(2)
+            den = 0.0
+            for j in range(n):
+                if i == j or W[i, j] == 0:
+                    continue
+                num += W[i, j] * (X[j] + D[i, j] * (X[i] - X[j]) / dist[i, j])
+                den += W[i, j]
+            Xn[i] = num / den if den else X[i]
+        X = Xn
+    X = X * scale
+    return {u: (float(X[idx[u], 0]), float(X[idx[u], 1])) for u in nodes}
+
+
 __all__ = [
     "springs",
     "block_of",
     "tension",
     "optimize_order",
     "sibling_order",
+    "stress_majorize",
 ]

@@ -251,6 +251,38 @@ produces a `LayoutDTO`, attested by §3.3), built in increments:
 Start with the cut-free and single-cut cases (where the PoC already wins), prove
 each increment against the corpus, and only then make it selectable.
 
+### Built — increment 1 (2026-06-07)
+
+`src/tension_engine.py` (`TensionLayoutEngine`) implements the plan as an opt-in
+projection; **ELK stays the default**.
+
+- **Hierarchical constrained stress.** Each area is laid out in its own frame by
+  `tension_layout.stress_majorize` over its direct children (sub-cuts are atomic
+  sized boxes); a cut enters its parent as one box sized to its interior, so
+  **containment holds by construction**.
+- **Crossing-point proxies.** A line crossing an area's boundary is an edge to a
+  proxy node; after the solve the proxy is projected onto the boundary and
+  becomes the crossing point used both by the parent (to pull the cuts together)
+  and by ligature routing. The proxy set is *given* by each line's
+  crossing-sequence — tension only places it along the boundary.
+- **Left-to-right.** Each area is rotated so its principal axis is horizontal
+  (boxes recomputed from the rotated content stay axis-aligned), then box
+  overlaps are removed by order-preserving uniform scaling. `cat_on_mat` →
+  `Cat —•— On —•— Mat` on one horizontal line, On between its arguments.
+- **Determinism (L1).** Children and proxies are sorted; the SMACOF init is
+  fixed — same EGI → same layout.
+- **§3.3-gated with ELK fallback.** Today **17/18** corpus UoDs attest directly;
+  the rest (a line clipping a sibling cut — routing refinement is future work)
+  fall back to ELK at the service, so `?engine=tension` never fails.
+- **Exposed** as `generate_layout(engine="tension")` and the workshop
+  `?engine=tension`. Tests: `tests/test_tension_engine.py` (between-arguments,
+  containment, corpus attest-most + determinism, service fallback) and the
+  `tension_layout` stress core in `tests/test_tension_layout.py`.
+
+**Next on this engine:** the cut-aware router for lines so the last few graphs
+attest (lift the 17/18 to full coverage); non-overlap tuning; then 2-D placement
+quality (the 1-D principal-axis reading generalized).
+
 The one-sentence version: **the containment tree says where things may live;
 ligature tension, pulled taut against the cut boundaries the crossing-sequence
 fixes, says where they settle — and in settling, the vertex tree lays out the cut

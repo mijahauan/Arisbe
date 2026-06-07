@@ -34,61 +34,15 @@ from egif_parser_dau import parse_egif
 from elk_layout_engine import ELKLayoutEngine
 from presentation_ops import element_area, deepest_containing_cut
 from style_loader import load_default_style
-from tension_layout import springs
+from tension_layout import springs, stress_majorize
 from tomos_service import TomosService
 
 
 def stress_layout(nodes, edges, iters=400):
-    """Deterministic SMACOF stress majorization of a graph in 2-D.
-
-    Returns {node: np.array([x, y])}.  Ideal distances are graph (BFS) distances;
-    the Guttman/SMACOF update is iterated from a fixed line init, so the result
-    is reproducible (layout invariant L1)."""
-    n = len(nodes)
-    idx = {u: i for i, u in enumerate(nodes)}
-    adj = collections.defaultdict(set)
-    for a, b in edges:
-        adj[a].add(b)
-        adj[b].add(a)
-
-    D = np.zeros((n, n))
-    for s in nodes:
-        dist = {s: 0}
-        q = collections.deque([s])
-        while q:
-            u = q.popleft()
-            for w in adj[u]:
-                if w not in dist:
-                    dist[w] = dist[u] + 1
-                    q.append(w)
-        for t, dd in dist.items():
-            D[idx[s], idx[t]] = dd
-    # Disconnected pairs: a large but finite ideal distance so they just repel.
-    big = D.max() + 1 if n else 1
-    for i in range(n):
-        for j in range(n):
-            if i != j and D[i, j] == 0:
-                D[i, j] = big
-
-    with np.errstate(divide="ignore", invalid="ignore"):
-        W = np.where(D > 0, 1.0 / D ** 2, 0.0)
-
-    X = np.column_stack([np.arange(n, dtype=float), (np.arange(n) % 2) * 0.3])
-    for _ in range(iters):
-        dist = np.linalg.norm(X[:, None] - X[None, :], axis=2)
-        np.fill_diagonal(dist, 1.0)
-        Xn = np.zeros_like(X)
-        for i in range(n):
-            num = np.zeros(2)
-            den = 0.0
-            for j in range(n):
-                if i == j or W[i, j] == 0:
-                    continue
-                num += W[i, j] * (X[j] + D[i, j] * (X[i] - X[j]) / dist[i, j])
-                den += W[i, j]
-            Xn[i] = num / den if den else X[i]
-        X = Xn
-    return {u: X[idx[u]] for u in nodes}
+    """Thin wrapper over the shared ``tension_layout.stress_majorize`` (single
+    source of truth), returning numpy arrays for this tool's analysis."""
+    return {u: np.array(p) for u, p in
+            stress_majorize(nodes, edges, iters=iters).items()}
 
 
 def _names(egi):
