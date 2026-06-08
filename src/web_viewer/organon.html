@@ -121,6 +121,32 @@
     #organon-detail-header .detail-meta span {
       margin-right: 12px;
     }
+    #organon-detail-extra { margin-top: 8px; }
+    #organon-detail-extra .prov-block,
+    #organon-detail-extra .ann-block {
+      font-size: 11px; color: #4a4d5e; margin-top: 6px;
+      border-left: 2px solid #d0d4da; padding: 2px 0 2px 8px;
+    }
+    #organon-detail-extra .prov-block strong,
+    #organon-detail-extra .ann-block strong { color: #2a2d3e; }
+    #organon-detail-extra .prov-kind {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .04em;
+      color: #5b21b6; background: #ede9fe;
+      border-radius: 3px; padding: 1px 6px; margin-right: 6px;
+    }
+    #organon-detail-extra .prov-warrant {
+      font-size: 10px; color: #6c7086;
+    }
+    #organon-detail-extra .ann-item { margin: 3px 0; line-height: 1.4; }
+    #organon-detail-extra .ann-scope {
+      display: inline-block; font-size: 9px; font-weight: 600;
+      text-transform: uppercase; color: #6c7086; background: #eef0f3;
+      border-radius: 3px; padding: 0 5px; margin-right: 5px; vertical-align: 1px;
+    }
+    #organon-detail-extra .ann-tag {
+      font-size: 9px; color: #8a8fa3; margin-left: 4px;
+    }
     #organon-canvas {
       flex: 1;
       background: var(--canvas-bg);
@@ -192,6 +218,7 @@
       <header id="organon-detail-header">
         <h2 id="organon-detail-title">Select a UoD from the archive</h2>
         <div class="detail-meta" id="organon-detail-meta"></div>
+        <div id="organon-detail-extra"></div>
         <details id="organon-export" style="display:none; margin-top:8px; font-size:12px;">
           <summary style="cursor:pointer; color:var(--sidebar-accent); font-weight:600;">Export ▾</summary>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
@@ -436,6 +463,56 @@
           summary.edge_count + 'E / ' + summary.cut_count + 'C';
       }
 
+      // The typed provenance bundle (src/provenance.py): import kind + per-layer
+      // warrant + the theorem / proof / method source lines. Falls back to the
+      // older single-CSL bibliography when no bundle is present.
+      function renderProvenance(data) {
+        const p = data.provenance;
+        if (p && (p.kind || (p.formatted && (p.formatted.theorem || p.formatted.proof ||
+              (p.formatted.methods && p.formatted.methods.length))))) {
+          const f = p.formatted || {};
+          const rows = [];
+          const head = [];
+          if (p.kind) head.push('<span class="prov-kind">' + escapeHtml(p.kind) + '</span>');
+          if (p.warrant) {
+            const w = Object.entries(p.warrant).map(function (kv) { return kv[0] + ':' + kv[1]; }).join(' · ');
+            head.push('<span class="prov-warrant">warrant ' + escapeHtml(w) + '</span>');
+          }
+          if (head.length) rows.push(head.join(' '));
+          if (f.theorem) rows.push('<strong>theorem:</strong> ' + escapeHtml(f.theorem));
+          if (f.proof) rows.push('<strong>proof:</strong> ' + escapeHtml(f.proof));
+          if (f.methods && f.methods.length) {
+            rows.push('<strong>method:</strong> ' + escapeHtml(f.methods.join('; ')));
+          }
+          return '<div class="prov-block">' + rows.join('<br>') + '</div>';
+        }
+        if (data.bibliography && data.bibliography.formatted) {
+          return '<div class="prov-block"><strong>provenance:</strong> ' +
+            escapeHtml(data.bibliography.formatted) + '</div>';
+        }
+        return '';
+      }
+
+      // The annotation layer (src/annotations.py): marginalia about the UoD /
+      // chain / step. Step-scoped notes also ride the chain player per frame; the
+      // uod- and chain-scoped ones are the standing commentary shown here.
+      function renderAnnotations(data) {
+        const anns = (data.annotations || []).filter(function (a) { return a && a.text; });
+        if (!anns.length) return '';
+        const order = { uod: 0, chain: 1, step: 2, element: 3 };
+        anns.sort(function (a, b) { return (order[a.scope] || 9) - (order[b.scope] || 9); });
+        const items = anns.map(function (a) {
+          const tags = (a.tags || []).map(function (t) {
+            return '<span class="ann-tag">#' + escapeHtml(t) + '</span>';
+          }).join('');
+          const scope = a.scope === 'step' && a.step_id
+            ? escapeHtml(a.step_id) : escapeHtml(a.scope || 'note');
+          return '<div class="ann-item"><span class="ann-scope">' + scope + '</span>' +
+            escapeHtml(a.text) + tags + '</div>';
+        }).join('');
+        return '<div class="ann-block"><strong>notes</strong>' + items + '</div>';
+      }
+
       function renderDetail(data) {
         const meta = data.metadata || {};
         titleEl.textContent = meta.name || data.uod_id;
@@ -460,14 +537,14 @@
               shapeText(data.egi_summary) + '</span></span>'
           );
         }
-        if (data.bibliography && data.bibliography.formatted) {
-          parts.push(
-            '<span style="display:block; margin-top:6px; color:#a6adc8;">' +
-            '<strong>provenance:</strong> ' + escapeHtml(data.bibliography.formatted) +
-            '</span>'
-          );
-        }
         metaEl.innerHTML = parts.join(' ');
+
+        // The typed provenance bundle + the annotation layer (the outside-record
+        // every corpus item now carries — docs/CORPUS_AND_IMPORT_MODEL.md). These
+        // sit *outside* §3.3: they describe the source, they are not signs in the
+        // graph.
+        const extraEl = document.getElementById('organon-detail-extra');
+        if (extraEl) extraEl.innerHTML = renderProvenance(data) + renderAnnotations(data);
 
         // Reveal the export panel + the view-style toolbar for the loaded UoD.
         exportUodId = data.uod_id;
