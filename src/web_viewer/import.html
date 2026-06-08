@@ -48,7 +48,6 @@
     #status { grid-column: 1 / -1; padding: 6px 14px; background: var(--bottombar-bg); color: var(--sidebar-text); font-size: 11px; border-top: 1px solid var(--bottombar-border); }
     #status.error { color: var(--error); }
     #status.success { color: var(--success); }
-    .nav-link { font-size: 10px; color: var(--sidebar-accent); text-decoration: none; }
   </style>
 </head>
 <body>
@@ -56,15 +55,14 @@
 
     <!-- Left: input + checks -->
     <aside class="panel" id="left-panel">
+      <div data-mode-nav></div>
       <div class="panel-header">
-        <h1>Arisbe Import</h1>
-        <p>Admit a linear form into the corpus</p>
+        <p>Import · admit a linear form</p>
         <span class="mode-tag">Low warrant</span>
         <p class="hint" style="margin-top:8px;">
           A transcribed or pasted linear form is <em>admitted</em>, not
           asserted as true: checked for grammar and §3.3 correspondence,
           attributed, and held open to challenge.
-          <a class="nav-link" href="/">⌂ Arisbe</a> · <a class="nav-link" href="/organon">↪ Organon</a>
         </p>
       </div>
       <div class="panel-body">
@@ -123,6 +121,7 @@
     <div id="status">Ready</div>
   </main>
 
+  <script src="js/mode-nav.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script>
