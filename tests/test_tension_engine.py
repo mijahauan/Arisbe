@@ -227,6 +227,45 @@ def test_branch_vertex_contained_after_push():
         assert not (b.min_x <= xp.x <= b.max_x and b.min_y <= xp.y <= b.max_y)
 
 
+def test_alpha_graph_defers_to_elk():
+    """A pure-Alpha graph has no line of identity (no predicate–vertex
+    incidence), so a *tension* layout of it is meaningless — the engine defers to
+    ELK rather than imposing a node placement.  `theorem_praeclarum` (0 vertices)
+    must come out identical to the ELK layout."""
+    svc = TomosService(TOMOS_ROOT)
+    style = load_default_style()
+    egi = svc.load_uod("theorem_praeclarum").current_egi
+    t = _engine().generate_layout(egi, style)
+    e = ELKLayoutEngine().generate_layout(egi, style)
+    assert t.cut_bounds == e.cut_bounds
+    assert t.predicate_positions == e.predicate_positions
+
+
+def test_oval_style_cut_contains_its_contents():
+    """Under an oval style the cut is drawn as an ellipse *inscribed* in the cut
+    box; the tree layout grows the box (the √2 rule) so that ellipse still
+    contains its contents — no predicate label sitting on the cut line."""
+    import math as _m
+    from style_loader import load_style
+    svc = TomosService(TOMOS_ROOT)
+    style = load_style("peirce-authentic@1.0")
+    egi = svc.load_uod("dau_2006_p112_ligature").current_egi  # a branch graph
+    dto = _engine().generate_layout(egi, style)
+    ea = element_area(egi)
+    cut_ids = {c.id for c in egi.Cut}
+    for eid, area in ea.items():
+        if area not in cut_ids:
+            continue
+        pos = dto.vertex_positions.get(eid) or dto.predicate_positions.get(eid)
+        if pos is None:
+            continue
+        b = dto.cut_bounds[area]
+        cx, cy = (b.min_x + b.max_x) / 2, (b.min_y + b.max_y) / 2
+        ax, ay = (b.max_x - b.min_x) / 2, (b.max_y - b.min_y) / 2
+        # The element centre lies strictly inside the inscribed ellipse.
+        assert ((pos.x - cx) / ax) ** 2 + ((pos.y - cy) / ay) ** 2 < 1.0
+
+
 def test_service_engine_tension_is_attested():
     from web_api.services.layout_service import generate_layout
     egi = parse_egif("(Cat *x) (On x *y) (Mat y)")

@@ -26,6 +26,7 @@ clip a sibling cut — routing refinement is future work).
 """
 
 import itertools
+import math
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -76,6 +77,16 @@ class TensionLayoutEngine:
         self, egi: RelationalGraphWithCuts, style: StyleSpecification,
         layout_deltas: Optional[Dict] = None,
     ) -> LayoutDTO:
+        # The tension engine exists to lay out the **line of identity** (a
+        # relation between its arguments, ligatures pulled taut).  A pure-Alpha
+        # graph — no lines of identity (no predicate–vertex incidence) — has
+        # nothing for tension to organize, so a "tension" layout of it is
+        # meaningless; defer to ELK, the meaningful default, rather than impose a
+        # node placement that is just a worse ELK.
+        if not springs(egi):
+            return ELKLayoutEngine(self.conventions).generate_layout(
+                egi, style, layout_deltas)
+
         sizes = ELKLayoutEngine()._compute_element_sizes(egi, style)
 
         # Ligature-first: if the graph is a single line of identity (one thread,
@@ -185,7 +196,8 @@ class TensionLayoutEngine:
         # horizontal inset clears labels + crossings; the vertical inset is small
         # (a horizontal thread needs no tall band), so cuts stay short and wide,
         # tending to the alignment of their elements.
-        cbounds = self._box_cuts(egi, vpos, ppos, sizes, self.T_PAD, self.T_VPAD)
+        cbounds = self._box_cuts(egi, vpos, ppos, sizes, self.T_PAD, self.T_VPAD,
+                                 style=style)
 
         # Ligature paths: each incidence along the axis through its crossings.
         hook = ELKLayoutEngine._predicate_hook_point
@@ -229,11 +241,20 @@ class TensionLayoutEngine:
     # Cut boxing — bottom-up bounding box of each cut's drawn contents    #
     # ------------------------------------------------------------------ #
 
-    def _box_cuts(self, egi, vpos, ppos, sizes, hpad, vpad) -> Dict:
+    def _box_cuts(self, egi, vpos, ppos, sizes, hpad, vpad, style=None) -> Dict:
         """Size every cut to the bounding box of its direct children (a sub-cut
         enters as its own already-sized box) plus an inset, bottom-up — so the
-        boxes nest by construction.  Shared by the thread and tree layouts."""
+        boxes nest by construction.  Shared by the thread and tree layouts.
+
+        For an **oval** style (Peirce/Sowa) the renderer draws an ellipse
+        *inscribed* in the box, which is smaller than the box — so a fixed
+        additive inset leaves contents at the corners sitting on (or outside) the
+        ellipse.  There the box is instead grown ∝ its content (the same √2 rule
+        as ``ELKLayoutEngine._oval_padding``) so the inscribed ellipse contains
+        the contents; bottom-up, the growth propagates outward in one pass."""
         cut_ids = {c.id for c in egi.Cut}
+        oval = ELKLayoutEngine._cut_is_oval(style) if style is not None else False
+        k = (math.sqrt(2.0) - 1.0) / 2.0  # ≈ 0.2071 (see _oval_padding)
         cbounds: Dict = {}
 
         def box(cid):
@@ -254,8 +275,12 @@ class TensionLayoutEngine:
                     bys += [p.y - h / 2, p.y + h / 2]
             if not bxs:
                 bxs, bys = [0.0], [0.0]
-            b = BoundingBox(min(bxs) - hpad, min(bys) - vpad,
-                            max(bxs) + hpad, max(bys) + vpad)
+            ph, pv = hpad, vpad
+            if oval:
+                ph = max(ph, (max(bxs) - min(bxs)) * k + 4.0)
+                pv = max(pv, (max(bys) - min(bys)) * k + 4.0)
+            b = BoundingBox(min(bxs) - ph, min(bys) - pv,
+                            max(bxs) + ph, max(bys) + pv)
             cbounds[cid] = b
             return b
 
@@ -348,7 +373,8 @@ class TensionLayoutEngine:
         def boxes():
             vp = {n: p for n, p in pos.items() if real(n) and n in vids}
             pp = {n: p for n, p in pos.items() if real(n) and n in edge_ids}
-            return self._box_cuts(egi, vp, pp, sizes, self.TR_PAD, self.TR_VPAD)
+            return self._box_cuts(egi, vp, pp, sizes, self.TR_PAD, self.TR_VPAD,
+                                  style=style)
 
         cbounds = boxes()
         for _ in range(40):

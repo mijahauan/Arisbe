@@ -73,6 +73,16 @@ taut through the cut nest. On `main`, no protected module touched.
   *default* engine while the controls still showed tension — you had to toggle to
   see it. `openSession`/`openScratch` now re-apply the selected projection after
   open (`applySelectedLayoutIfAny`), so the drawing matches the controls.
+- **Oval cuts.** In Peirce/Sowa styles a predicate sat *on* the cut line (the
+  ellipse is inscribed in the box, smaller than it). `_box_cuts` is now
+  style-aware: an oval style grows each cut box ∝ content (the √2 rule, matching
+  `ELKLayoutEngine._oval_padding`), bottom-up, so the inscribed ellipse contains
+  its contents. Whole corpus attests in both Dau and Peirce (18/18 each).
+- **Alpha defers to ELK.** The tension engine is for the *line of identity*; a
+  pure-Alpha graph (no incidence — `springs` empty, e.g. `theorem_praeclarum`)
+  has nothing to tension, so `generate_layout` defers to ELK rather than impose a
+  meaningless node placement (was producing a stray floating cut). +2 tests
+  (Alpha→ELK; oval cut contains its contents). Spec `docs/TENSION_LAYOUT.md` §11.
 
 ## Session 2026-06-07 — editing surface + the tension layout engine
 

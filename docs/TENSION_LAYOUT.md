@@ -413,6 +413,22 @@ the push keeps an outside junction outside its cuts; the branch tree stays compa
 with no predicate-on-vertex overlap) and `tests/test_tension_layout.py` (the
 weighted vs unweighted `stress_majorize` paths).
 
+**Two refinements (2026-06-07b).**
+
+- *Oval cuts.* For an oval style (Peirce/Sowa) the renderer draws the cut as an
+  ellipse *inscribed* in the cut box, which is smaller than the box — so a fixed
+  additive inset leaves a predicate at a box corner sitting on the cut line. The
+  shared `_box_cuts` is now style-aware: for an oval style it grows each cut box
+  ∝ its content (the √2 rule, the same `k = (√2−1)/2` as
+  `ELKLayoutEngine._oval_padding`), bottom-up, so the inscribed ellipse contains
+  its contents.
+- *Alpha defers to ELK.* The tension engine exists to lay out the **line of
+  identity**. A pure-Alpha graph (no predicate–vertex incidence — `springs(egi)`
+  empty, e.g. `theorem_praeclarum`) has nothing for tension to organize, so a
+  "tension" layout of it is meaningless; `generate_layout` defers to ELK rather
+  than impose a node placement that is just a worse ELK. (So selecting *Tension*
+  on an Alpha proof shows the ELK layout — the meaningful one.)
+
 **Remaining generalization:** multiple threads (a *forest* — `mixed_quantifier_complex`)
 and cyclic ligatures (`beta_converse_mp`), both still hierarchical; composing
 several trees + their shared cuts; non-monotone threads. The unit the tension
