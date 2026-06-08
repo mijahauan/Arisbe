@@ -43,6 +43,7 @@ here gives both this module and future runtime-assertion work a
 canonical home.
 """
 
+import math
 from typing import Dict, Iterable, Optional, Set, Tuple
 
 from egi_core_dau import ElementID, RelationalGraphWithCuts
@@ -291,6 +292,95 @@ def count_boundary_crossings(points, rect: BoundingBox) -> int:
             total += 1
         elif not a_in and not b_in:
             total += _outside_edge_crossings(a, b, rect)
+    return total
+
+
+# --------------------------------------------------------------------------- #
+# Shape-aware cut geometry — the drawn cut boundary IS the region.            #
+#                                                                            #
+# A cut's bounding box (``cut_bounds``) is a single geometric handle; the     #
+# *style's* ``cut_shape`` says how to read "inside" it, and that reading is   #
+# the **same one the renderer draws**.  So containment is determined by the   #
+# drawn curve, identically across styles — the shape (rounded rectangle,      #
+# inscribed ellipse, …) is immaterial to *which* area an element is in.  An   #
+# oval style draws the ellipse inscribed in the box (renderer: rx=w/2,        #
+# ry=h/2), so "inside" is the inscribed ellipse, not the box.                 #
+# --------------------------------------------------------------------------- #
+
+
+def _is_oval(shape) -> bool:
+    return shape in ("oval", "circle")
+
+
+def _ellipse_norm(x: float, y: float, b: BoundingBox) -> Tuple[float, float]:
+    """Map a point into the cut's inscribed-ellipse frame (unit circle)."""
+    cx, cy = (b.min_x + b.max_x) / 2.0, (b.min_y + b.max_y) / 2.0
+    rx = (b.max_x - b.min_x) / 2.0 or 1e-9
+    ry = (b.max_y - b.min_y) / 2.0 or 1e-9
+    return (x - cx) / rx, (y - cy) / ry
+
+
+def point_in_cut(p: Point, bounds: BoundingBox, shape) -> bool:
+    """Whether point ``p`` is inside the cut as the style *draws* it: the
+    inscribed ellipse for an oval/circle style, the box otherwise."""
+    if _is_oval(shape):
+        nx, ny = _ellipse_norm(p.x, p.y, bounds)
+        return nx * nx + ny * ny <= 1.0 + 1e-9
+    return _point_in(p, bounds)
+
+
+def bounds_in_cut(inner: BoundingBox, outer: BoundingBox, shape) -> bool:
+    """Whether the whole ``inner`` box lies inside the cut ``outer`` as drawn —
+    for an oval, every corner of ``inner`` inside ``outer``'s inscribed ellipse;
+    for a box, the plain AABB containment."""
+    if _is_oval(shape):
+        corners = (
+            (inner.min_x, inner.min_y), (inner.max_x, inner.min_y),
+            (inner.max_x, inner.max_y), (inner.min_x, inner.max_y),
+        )
+        for x, y in corners:
+            nx, ny = _ellipse_norm(x, y, outer)
+            if nx * nx + ny * ny > 1.0 + 1e-9:
+                return False
+        return True
+    return _bounds_in(inner, outer)
+
+
+def _ellipse_secant_crossings(a: Point, b: Point, bounds: BoundingBox) -> int:
+    """Proper intersections of segment (a,b) with the inscribed ellipse when
+    *both* endpoints are outside — 0 (miss/tangent) or 2 (clean pass-through),
+    the ellipse analogue of ``_outside_edge_crossings``."""
+    ax, ay = _ellipse_norm(a.x, a.y, bounds)
+    bx, by = _ellipse_norm(b.x, b.y, bounds)
+    dx, dy = bx - ax, by - ay
+    A = dx * dx + dy * dy
+    if A < 1e-12:
+        return 0
+    B = 2.0 * (ax * dx + ay * dy)
+    C = ax * ax + ay * ay - 1.0
+    disc = B * B - 4.0 * A * C
+    if disc <= 1e-9:  # miss, or tangent (a graze is not a crossing)
+        return 0
+    s = math.sqrt(disc)
+    roots = ((-B - s) / (2.0 * A), (-B + s) / (2.0 * A))
+    return sum(1 for t in roots if 1e-9 < t < 1.0 - 1e-9)
+
+
+def count_cut_crossings(points, bounds: BoundingBox, shape) -> int:
+    """Number of times a polyline crosses the cut boundary as the style draws it
+    — against the inscribed ellipse for an oval/circle style, the box otherwise.
+    The crossing-multiset form of §3.3 reads off the *drawn* curve."""
+    if not _is_oval(shape):
+        return count_boundary_crossings(points, bounds)
+    total = 0
+    for i in range(len(points) - 1):
+        a, b = points[i], points[i + 1]
+        a_in = point_in_cut(a, bounds, shape)
+        b_in = point_in_cut(b, bounds, shape)
+        if a_in != b_in:
+            total += 1
+        elif not a_in and not b_in:
+            total += _ellipse_secant_crossings(a, b, bounds)
     return total
 
 
@@ -857,6 +947,9 @@ __all__ = [
     "area_chain",
     "crossing_sequence",
     "count_boundary_crossings",
+    "point_in_cut",
+    "bounds_in_cut",
+    "count_cut_crossings",
     "deepest_containing_cut",
     "move_vertex",
     "move_predicate",

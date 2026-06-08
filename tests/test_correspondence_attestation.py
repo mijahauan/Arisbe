@@ -200,6 +200,39 @@ def test_attest_raises_on_vertex_outside_cut(tomos, engine, style):
     )
 
 
+def test_containment_is_read_from_the_drawn_shape(engine):
+    """The drawn cut boundary is authoritative for containment, so the *shape*
+    determines which area an element is in.  A predicate placed near a box corner
+    (inside the box, outside the inscribed ellipse) is contained under a box
+    style (Dau) but *not* under an oval style (Peirce) — same geometry, the shape
+    decides.  This is the principled replacement for episodic style-padding."""
+    import dataclasses
+    from egif_parser_dau import parse_egif
+    from style_loader import load_default_style, load_style
+
+    egi = parse_egif("~[ (P) ]")  # one cut, one nullary predicate inside it
+    (cut_id,) = [c.id for c in egi.Cut]
+    (pid,) = [e.id for e in egi.E]
+    dau = load_default_style()
+    dto = engine.generate_layout(egi, dau)
+    b = dto.cut_bounds[cut_id]
+    # A point just inside the box's top-left corner — well outside the inscribed
+    # ellipse ((−0.9)²+(−0.9)² = 1.62 > 1 in the ellipse's unit frame).
+    corner = Point(b.min_x + 0.05 * (b.max_x - b.min_x),
+                   b.min_y + 0.05 * (b.max_y - b.min_y))
+    moved = _clone_dto(dto, predicate_positions={**dto.predicate_positions,
+                                                 pid: corner})
+
+    # Box style: the corner is inside → attests.
+    attest_correspondence(egi, moved)  # must not raise
+
+    # Oval style: same point, now outside the drawn ellipse → refused.
+    oval = dataclasses.replace(moved, style=load_style("peirce-authentic@1.0"))
+    with pytest.raises(CorrespondenceViolation) as excinfo:
+        attest_correspondence(egi, oval)
+    assert any("containment" in f and pid in f for f in excinfo.value.failures)
+
+
 def test_attest_raises_on_ligature_endpoint_mismatch(tomos, engine, style):
     """If a ligature's last point doesn't equal its vertex position, raise."""
     egi, dto = _baseline(tomos, engine, style)

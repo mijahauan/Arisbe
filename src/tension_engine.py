@@ -120,7 +120,7 @@ class TensionLayoutEngine:
         return self._hierarchical_layout(egi, style, sizes)
 
     def _hierarchical_layout(self, egi, style, sizes) -> LayoutDTO:
-        res = self._layout_area(egi, egi.sheet, sizes)
+        res = self._layout_area(egi, egi.sheet, sizes, style)
 
         margin = 40.0
         bx0, by0, _, _ = res.bbox
@@ -499,7 +499,7 @@ class TensionLayoutEngine:
     # Hierarchical constrained stress                                    #
     # ------------------------------------------------------------------ #
 
-    def _layout_area(self, egi, A, sizes) -> _Area:
+    def _layout_area(self, egi, A, sizes, style=None) -> _Area:
         cut_ids = {c.id for c in egi.Cut}
         edge_ids = {e.id for e in egi.E}
         ea = element_area(egi)
@@ -511,7 +511,7 @@ class TensionLayoutEngine:
         sub: Dict[ElementID, _Area] = {}
         for k in kids:
             if k in cut_ids:
-                sub[k] = self._layout_area(egi, k, sizes)
+                sub[k] = self._layout_area(egi, k, sizes, style)
 
         def ksize(k):
             if k in cut_ids:
@@ -587,8 +587,16 @@ class TensionLayoutEngine:
         if not xs:
             xs = [0.0]; ys = [0.0]
         res.bbox = (min(xs), min(ys), max(xs), max(ys))
-        abox = (res.bbox[0] - self.PAD, res.bbox[1] - self.PAD,
-                res.bbox[2] + self.PAD, res.bbox[3] + self.PAD)
+        # Oval styles need the box grown ∝ content (√2 rule) so the inscribed
+        # ellipse the renderer/§3.3 read still contains the contents — the same
+        # rule as `_box_cuts` and ELK's `_oval_padding`.
+        ph = pv = self.PAD
+        if ELKLayoutEngine._cut_is_oval(style):
+            k = (math.sqrt(2.0) - 1.0) / 2.0
+            ph = max(ph, (res.bbox[2] - res.bbox[0]) * k + 4.0)
+            pv = max(pv, (res.bbox[3] - res.bbox[1]) * k + 4.0)
+        abox = (res.bbox[0] - ph, res.bbox[1] - pv,
+                res.bbox[2] + ph, res.bbox[3] + pv)
         res.box = (abox[2] - abox[0], abox[3] - abox[1])
 
         # This area's own crossing points (on its boundary) for the parent + router.

@@ -84,6 +84,24 @@ taut through the cut nest. On `main`, no protected module touched.
   meaningless node placement (was producing a stray floating cut). +2 tests
   (Alpha→ELK; oval cut contains its contents). Spec `docs/TENSION_LAYOUT.md` §11.
 
+**Shape-aware §3.3 (the principled replacement for the oval fudge).** The author
+flagged that growing oval boxes was an *episodic accommodation* of style, against
+deterministic logical↔spatial correspondence. Root cause: §3.3 read containment
+off the **rectangular** `cut_bounds` while the renderer draws an **inscribed
+ellipse** (smaller) — the shape leaked into the logic, and a Peirce render could
+show an element outside its cut yet pass a box-based §3.3 (a latent hole). Fix:
+**the drawn shape is authoritative.** `presentation_ops` gained `point_in_cut` /
+`bounds_in_cut` / `count_cut_crossings` (oval-aware, keyed on `style.cut_shape`);
+`correspondence_attestation` now reads containment + the crossing-multiset off the
+*drawn* shape (the inscribed ellipse for oval/circle, the box otherwise). The
+layout's √2 growth is thereby reframed — not a fudge, but the layout meeting a
+constraint the attestation actually checks; the hierarchical fallback
+(`_layout_area`) is oval-grown too. Corpus attests 18/18 at the engine in **all
+three styles** (Dau/Peirce/Sowa) for both engines. +1 test (containment read from
+the drawn shape: a box-corner point attests under Dau, refused under Peirce).
+Central spec updated: `LINEAR_GRAPHICAL_CORRESPONDENCE.md` L7. Full suite green
+(1026 passed). Neither file is a protected core module.
+
 ## Session 2026-06-07 — editing surface + the tension layout engine
 
 A long arc from "I can't move things in Settle" to a second, ligature-first

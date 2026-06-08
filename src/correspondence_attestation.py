@@ -32,10 +32,12 @@ from typing import List, Optional, Sequence
 from egi_core_dau import RelationalGraphWithCuts
 from layout_dto import LayoutDTO
 from presentation_ops import (
-    count_boundary_crossings,
+    bounds_in_cut,
+    count_cut_crossings,
     crossing_sequence,
     cut_parents,
     element_area,
+    point_in_cut,
 )
 
 
@@ -96,6 +98,12 @@ def check_correspondence(
     """
     failures: List[str] = []
 
+    # The cut's drawn shape (from the style) is authoritative for containment:
+    # "inside the cut" means inside the curve the renderer draws — the inscribed
+    # ellipse for an oval/circle style, the box otherwise — so the shape is
+    # immaterial to *which* area an element is in.
+    cut_shape = getattr(dto.style, "cut_shape", "rounded_rectangle")
+
     egi_v_ids = {v.id for v in egi.V}
     egi_e_ids = {e.id for e in egi.E}
     egi_cut_ids = {c.id for c in egi.Cut}
@@ -139,10 +147,7 @@ def check_correspondence(
                 elem_id
             )
             if pos is not None:
-                if not (
-                    bounds.min_x <= pos.x <= bounds.max_x
-                    and bounds.min_y <= pos.y <= bounds.max_y
-                ):
+                if not point_in_cut(pos, bounds, cut_shape):
                     failures.append(
                         f"  containment: {elem_id} in egi.area[{cut.id}] "
                         f"at ({pos.x:.1f},{pos.y:.1f}) outside cut bounds"
@@ -151,12 +156,7 @@ def check_correspondence(
             child = dto.cut_bounds.get(elem_id)
             if child is None:
                 continue
-            if not (
-                bounds.min_x <= child.min_x
-                and bounds.max_x >= child.max_x
-                and bounds.min_y <= child.min_y
-                and bounds.max_y >= child.max_y
-            ):
+            if not bounds_in_cut(child, bounds, cut_shape):
                 failures.append(
                     f"  containment: sub-cut {elem_id} in egi.area[{cut.id}] "
                     f"is not fully inside parent bounds"
@@ -210,10 +210,7 @@ def check_correspondence(
             if area in cut_ids:
                 bounds = dto.cut_bounds.get(area)
                 pt = pts[end_idx]
-                if bounds is not None and not (
-                    bounds.min_x <= pt.x <= bounds.max_x
-                    and bounds.min_y <= pt.y <= bounds.max_y
-                ):
+                if bounds is not None and not point_in_cut(pt, bounds, cut_shape):
                     failures.append(
                         f"  identity-endpoint: ({path.predicate_id} → "
                         f"{path.vertex_id}) {label_str} endpoint outside "
@@ -242,7 +239,7 @@ def check_correspondence(
             bounds = cut_bounds.get(cut.id)
             if bounds is None:
                 continue
-            actual = count_boundary_crossings(path.points, bounds)
+            actual = count_cut_crossings(path.points, bounds, cut_shape)
             if cut.id in required:
                 if actual != 1:
                     failures.append(
