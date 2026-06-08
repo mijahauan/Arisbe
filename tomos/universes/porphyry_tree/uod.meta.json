@@ -1,0 +1,19 @@
+{
+  "uod_id": "porphyry_tree",
+  "uod_type": "standalone",
+  "name": "Porphyry's Tree",
+  "description": "The classic genus\u2013species hierarchy of Porphyry's Isagoge (c. 270 CE): Substance \u2290 Body \u2290 Living \u2290 Animal, divided into Man (rational) and Beast (irrational), with Socrates as a Man. The ancestor of all ontologies and the T-box the syllogism Barbara reasons over.",
+  "category": "domain_model",
+  "created": "2026-06-08T00:00:00+00:00",
+  "last_modified": "2026-06-08T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

@@ -37,7 +37,11 @@ CITED = {
     "peirce_cp_4_394_man_mortal", "roberts_1973_p57_disjunction",
     "sowa_2011_p356_quantification", "sowa_cat_on_mat", "dau_2006_p112_ligature",
     "theorem_praeclarum",
+    # imported ontologies (kind=ontology) — each cites its source vocabulary
+    "porphyry_tree", "foaf_core", "sumo_upper",
 }
+# Imported ontologies (kind=ontology).
+ONTOLOGIES = {"porphyry_tree", "foaf_core", "sumo_upper"}
 # The worked-proof fixtures (each carries a real chain).
 PROOFS = {"peirce_law", "barbara", "group_identity", "theorem_praeclarum"}
 
@@ -80,6 +84,14 @@ def test_praeclarum_is_the_transcribed_proof(tomos):
 
 def test_practice_session_was_retired(tomos):
     assert "practice_43480df3" not in _uod_ids()
+
+
+@pytest.mark.parametrize("uod_id", sorted(ONTOLOGIES))
+def test_imported_ontologies_are_kind_ontology(uod_id, tomos):
+    assert uod_id in _uod_ids(), f"{uod_id} not in corpus"
+    prov = Provenance.from_dict(tomos.load_provenance(uod_id))
+    assert prov.kind == "ontology"
+    assert prov.theorem_source, f"{uod_id} ontology cites no source vocabulary"
 
 
 def test_synthetic_uods_are_authored_not_falsely_cited(tomos):

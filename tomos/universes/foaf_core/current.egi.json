@@ -1,0 +1,163 @@
+{
+  "Cut": [
+    {
+      "id": "c_04d4b8be"
+    },
+    {
+      "id": "c_2b49ecfc"
+    },
+    {
+      "id": "c_4fc3864d"
+    },
+    {
+      "id": "c_bc86c7c6"
+    },
+    {
+      "id": "c_bd710e2d"
+    },
+    {
+      "id": "c_bdbc4509"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_040540c6"
+    },
+    {
+      "id": "e_52f49f00"
+    },
+    {
+      "id": "e_6948fd22"
+    },
+    {
+      "id": "e_6ecfceea"
+    },
+    {
+      "id": "e_c25f3ad7"
+    },
+    {
+      "id": "e_c43d7311"
+    },
+    {
+      "id": "e_df3f9e00"
+    },
+    {
+      "id": "e_f4351ea7"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_3c733be5",
+      "is_generic": false,
+      "label": "Alice"
+    },
+    {
+      "id": "v_3fad5446",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_53fcd0fe",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_635de521",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_98cfe8ac",
+      "is_generic": false,
+      "label": "Bob"
+    },
+    {
+      "id": "v_a5f6c4c7",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_d6f78015",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "c_04d4b8be": [
+      "e_52f49f00"
+    ],
+    "c_2b49ecfc": [
+      "e_c43d7311"
+    ],
+    "c_4fc3864d": [
+      "c_2b49ecfc",
+      "e_c25f3ad7",
+      "v_a5f6c4c7",
+      "v_d6f78015"
+    ],
+    "c_bc86c7c6": [
+      "c_04d4b8be",
+      "e_6ecfceea",
+      "v_3fad5446"
+    ],
+    "c_bd710e2d": [
+      "e_6948fd22"
+    ],
+    "c_bdbc4509": [
+      "c_bd710e2d",
+      "e_df3f9e00",
+      "v_53fcd0fe",
+      "v_635de521"
+    ],
+    "sheet_6a3c7b03": [
+      "c_4fc3864d",
+      "c_bc86c7c6",
+      "c_bdbc4509",
+      "e_040540c6",
+      "e_f4351ea7",
+      "v_3c733be5",
+      "v_98cfe8ac"
+    ]
+  },
+  "nu": {
+    "e_040540c6": [
+      "v_98cfe8ac"
+    ],
+    "e_52f49f00": [
+      "v_3fad5446"
+    ],
+    "e_6948fd22": [
+      "v_53fcd0fe"
+    ],
+    "e_6ecfceea": [
+      "v_3fad5446"
+    ],
+    "e_c25f3ad7": [
+      "v_a5f6c4c7",
+      "v_d6f78015"
+    ],
+    "e_c43d7311": [
+      "v_d6f78015"
+    ],
+    "e_df3f9e00": [
+      "v_53fcd0fe",
+      "v_635de521"
+    ],
+    "e_f4351ea7": [
+      "v_3c733be5"
+    ]
+  },
+  "rel": {
+    "e_040540c6": "Person",
+    "e_52f49f00": "Agent",
+    "e_6948fd22": "Person",
+    "e_6ecfceea": "Person",
+    "e_c25f3ad7": "knows",
+    "e_c43d7311": "Person",
+    "e_df3f9e00": "knows",
+    "e_f4351ea7": "Person"
+  },
+  "rho": {},
+  "sheet": "sheet_6a3c7b03"
+}

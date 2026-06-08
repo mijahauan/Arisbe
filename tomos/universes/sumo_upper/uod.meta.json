@@ -1,0 +1,19 @@
+{
+  "uod_id": "sumo_upper",
+  "uod_type": "standalone",
+  "name": "SUMO (upper taxonomy)",
+  "description": "The upper structural spine of the Suggested Upper Merged Ontology \u2014 43 subsumptions over 26 classes (depth \u2264 2 from Entity), translated from docs/references/SUMO1.2.txt. SUMO's top is Sowa's upper ontology, itself built on Peirce's three categories: Independent / Relative / Mediating = Firstness / Secondness / Thirdness.",
+  "category": "domain_model",
+  "created": "2026-06-08T00:00:00+00:00",
+  "last_modified": "2026-06-08T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

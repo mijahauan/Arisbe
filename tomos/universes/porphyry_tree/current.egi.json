@@ -1,0 +1,231 @@
+{
+  "Cut": [
+    {
+      "id": "c_0e473947"
+    },
+    {
+      "id": "c_19a2e721"
+    },
+    {
+      "id": "c_28056030"
+    },
+    {
+      "id": "c_2aa486be"
+    },
+    {
+      "id": "c_472ab8e0"
+    },
+    {
+      "id": "c_4b3f27e6"
+    },
+    {
+      "id": "c_5d1d33c1"
+    },
+    {
+      "id": "c_af0d73a4"
+    },
+    {
+      "id": "c_c0c3a318"
+    },
+    {
+      "id": "c_cd6c78f5"
+    },
+    {
+      "id": "c_d1133df5"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_00be99c3"
+    },
+    {
+      "id": "e_34580fee"
+    },
+    {
+      "id": "e_34910ea7"
+    },
+    {
+      "id": "e_49549ec7"
+    },
+    {
+      "id": "e_650a0273"
+    },
+    {
+      "id": "e_7aedb433"
+    },
+    {
+      "id": "e_8cd45d25"
+    },
+    {
+      "id": "e_9319feef"
+    },
+    {
+      "id": "e_c77a2797"
+    },
+    {
+      "id": "e_d40a52a8"
+    },
+    {
+      "id": "e_d999dcff"
+    },
+    {
+      "id": "e_dd8cc83a"
+    },
+    {
+      "id": "e_e319b82d"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_467ab255",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_5a925317",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_699689d7",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_8bca3c86",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_be692092",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_d2194ecf",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_db82c779",
+      "is_generic": false,
+      "label": "Socrates"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "c_0e473947": [
+      "c_af0d73a4",
+      "e_49549ec7",
+      "v_467ab255"
+    ],
+    "c_19a2e721": [
+      "c_4b3f27e6",
+      "e_650a0273",
+      "v_5a925317"
+    ],
+    "c_28056030": [
+      "e_e319b82d"
+    ],
+    "c_2aa486be": [
+      "c_28056030",
+      "e_7aedb433",
+      "v_8bca3c86"
+    ],
+    "c_472ab8e0": [
+      "e_00be99c3",
+      "e_c77a2797",
+      "v_d2194ecf"
+    ],
+    "c_4b3f27e6": [
+      "e_d40a52a8"
+    ],
+    "c_5d1d33c1": [
+      "c_d1133df5",
+      "e_8cd45d25",
+      "v_699689d7"
+    ],
+    "c_af0d73a4": [
+      "e_34910ea7"
+    ],
+    "c_c0c3a318": [
+      "c_cd6c78f5",
+      "e_d999dcff",
+      "v_be692092"
+    ],
+    "c_cd6c78f5": [
+      "e_9319feef"
+    ],
+    "c_d1133df5": [
+      "e_dd8cc83a"
+    ],
+    "sheet_a23222b9": [
+      "c_0e473947",
+      "c_19a2e721",
+      "c_2aa486be",
+      "c_472ab8e0",
+      "c_5d1d33c1",
+      "c_c0c3a318",
+      "e_34580fee",
+      "v_db82c779"
+    ]
+  },
+  "nu": {
+    "e_00be99c3": [
+      "v_d2194ecf"
+    ],
+    "e_34580fee": [
+      "v_db82c779"
+    ],
+    "e_34910ea7": [
+      "v_467ab255"
+    ],
+    "e_49549ec7": [
+      "v_467ab255"
+    ],
+    "e_650a0273": [
+      "v_5a925317"
+    ],
+    "e_7aedb433": [
+      "v_8bca3c86"
+    ],
+    "e_8cd45d25": [
+      "v_699689d7"
+    ],
+    "e_9319feef": [
+      "v_be692092"
+    ],
+    "e_c77a2797": [
+      "v_d2194ecf"
+    ],
+    "e_d40a52a8": [
+      "v_5a925317"
+    ],
+    "e_d999dcff": [
+      "v_be692092"
+    ],
+    "e_dd8cc83a": [
+      "v_699689d7"
+    ],
+    "e_e319b82d": [
+      "v_8bca3c86"
+    ]
+  },
+  "rel": {
+    "e_00be99c3": "Beast",
+    "e_34580fee": "Man",
+    "e_34910ea7": "Substance",
+    "e_49549ec7": "Body",
+    "e_650a0273": "Animal",
+    "e_7aedb433": "Man",
+    "e_8cd45d25": "Living",
+    "e_9319feef": "Animal",
+    "e_c77a2797": "Man",
+    "e_d40a52a8": "Living",
+    "e_d999dcff": "Beast",
+    "e_dd8cc83a": "Body",
+    "e_e319b82d": "Animal"
+  },
+  "rho": {},
+  "sheet": "sheet_a23222b9"
+}

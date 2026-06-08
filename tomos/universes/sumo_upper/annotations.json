@@ -1,0 +1,36 @@
+{
+  "annotations": [
+    {
+      "id": "ann_34ef0c2a",
+      "scope": "uod",
+      "text": "Upper spine of SUMO (Niles & Pease 2001): 43 subsumptions + 0 disjoints over 26 classes, depth \u2264 2 from Entity. SUMO's top is Sowa's ontology on Peirce's categories \u2014 Independent/Relative/Mediating = Firstness/Secondness/Thirdness, the Peircean triad at the root of a modern upper ontology.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "ontology",
+        "cited",
+        "sumo",
+        "peircean-categories",
+        "t-box"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_5de3d698",
+      "scope": "uod",
+      "text": "Honest partial import: the full SUMO file yields {'subclass-of': 123, 'instance-of': 9} EG axioms; 181 forms were NOT translated because they are not first-order-EG-expressible \u2014 89\u00d7 documentation, 34\u00d7 nth-domain, 8\u00d7 =>, 8\u00d7 and, 7\u00d7 <=>, 4\u00d7 subclass-of (variable/non-ground), 4\u00d7 part-of, 3\u00d7 =, 3\u00d7 the, 2\u00d7 forall, 2\u00d7 or, 2\u00d7 ?Z, 2\u00d7 instance-of (variable/non-ground), 1\u00d7 not, 1\u00d7 in, 1\u00d7 overlaps, 1\u00d7 exists, 1\u00d7 proper-part-of, 1\u00d7 proper-overlaps, 1\u00d7 interior-part-of, 1\u00d7 superficial-part-of, 1\u00d7 surface-of, 1\u00d7 mereological-sum, 1\u00d7 mereological-product, 1\u00d7 mereological-difference, 1\u00d7 Maximal-Boundary. Documentation strings are metadata; =>/<=>/nth-domain/modal forms exceed first-order EG. The displayed UoD is the depth\u22642 upper spine for layout legibility; the full ground taxonomy (123 subsumptions) is reproducible via tools/suokif_to_eg.py.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "provenance",
+        "honest-partial-import",
+        "no-silent-caps"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

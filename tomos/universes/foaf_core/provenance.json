@@ -1,0 +1,31 @@
+{
+  "theorem_source": {
+    "type": "webpage",
+    "author": "Brickley, Dan and Miller, Libby",
+    "title": "FOAF Vocabulary Specification",
+    "publisher": "W3C / FOAF project",
+    "year": "2014",
+    "note": "core terms: Agent, Person, knows"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "ontology",
+  "formatted": {
+    "theorem": "Brickley, Dan and Miller, Libby (2014). FOAF Vocabulary Specification",
+    "proof": "",
+    "methods": [
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

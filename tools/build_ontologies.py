@@ -1,0 +1,228 @@
+"""
+Import three ontologies as existential-graph theories — the ``ontology`` import
+kind made real (``docs/CORPUS_AND_IMPORT_MODEL.md`` §2, §5).  Each is a single
+``kind=ontology`` UoD: a conjunction of subsumption / disjointness / typing axioms
+on one sheet, the standing theory Agon plays *within* and Organon shelves.
+
+Three, in ascending realism — the general import model exercised end to end:
+
+  * **porphyry_tree** — Porphyry's Tree (Isagoge, c. 270 CE), *hand-encoded*: the
+    genus–species spine Substance ⊐ Body ⊐ Living ⊐ Animal ⊐ {Man, Beast}, the
+    rational/irrational division, and Socrates as a Man.  The ancestor of all
+    ontologies, and the very T-box Barbara (already in the corpus) reasons over.
+  * **foaf_core** — a slice of FOAF (Brickley & Miller, W3C), *hand-encoded*:
+    Person ⊑ Agent plus domain/range typing on the ``knows`` relation — a modern
+    web ontology, showing argument-typing axioms.
+  * **sumo_upper** — the upper spine of SUMO (Niles & Pease 2001, built on Sowa's
+    upper ontology, KR 2000), *translated* from ``docs/references/SUMO1.2.txt`` by
+    ``tools/suokif_to_eg.py``.  An **honest partial import**: only the
+    EG-expressible ground axioms cross; documentation / modal / higher-order forms
+    are reported, not silently dropped.  SUMO's top is Sowa's reading of Peirce's
+    three categories — Independent / Relative / Mediating = Firstness / Secondness
+    / Thirdness — so the upper ontology is, at root, Peircean.
+
+Import-safe (no side effects on import).  Run to seed the corpus.
+"""
+
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List, Tuple
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from annotations import SCOPE_UOD, annotations_to_list, make_annotation
+from egif_parser_dau import parse_egif
+from ontology_egif import OntologyEGIF
+from provenance import KIND_ONTOLOGY, make_provenance
+from suokif_to_eg import upper_taxonomy
+from universe_of_discourse import (
+    UniverseOfDiscourse,
+    UoDCategory,
+    UoDMetadata,
+    UoDType,
+)
+
+_WHEN = datetime(2026, 6, 8, tzinfo=timezone.utc)
+_SUMO = Path(__file__).resolve().parent.parent / "docs" / "references" / "SUMO1.2.txt"
+
+
+def _uod(uod_id: str, name: str, description: str, egif: str) -> UniverseOfDiscourse:
+    meta = UoDMetadata(
+        uod_id=uod_id, uod_type=UoDType.STANDALONE, name=name,
+        description=description, category=UoDCategory.DOMAIN_MODEL,
+        created=_WHEN, last_modified=_WHEN,
+    )
+    return UniverseOfDiscourse(metadata=meta, current_egi=parse_egif(egif))
+
+
+def _anns(*texts_tags) -> List[dict]:
+    return annotations_to_list(
+        [make_annotation(SCOPE_UOD, t, tags=tg) for t, tg in texts_tags]
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Porphyry's Tree                                                              #
+# --------------------------------------------------------------------------- #
+
+def porphyry():
+    onto = (OntologyEGIF()
+            .subsumes("Body", "Substance")
+            .subsumes("Living", "Body")
+            .subsumes("Animal", "Living")
+            .subsumes("Man", "Animal")
+            .subsumes("Beast", "Animal")
+            .disjoint("Man", "Beast")
+            .instance("Socrates", "Man"))
+    uod = _uod(
+        "porphyry_tree", "Porphyry's Tree",
+        "The classic genus–species hierarchy of Porphyry's Isagoge (c. 270 CE): "
+        "Substance ⊐ Body ⊐ Living ⊐ Animal, divided into Man (rational) and Beast "
+        "(irrational), with Socrates as a Man. The ancestor of all ontologies and "
+        "the T-box the syllogism Barbara reasons over.",
+        onto.egif(),
+    )
+    prov = make_provenance(
+        theorem_source={"type": "book", "author": "Porphyry",
+                        "title": "Isagoge", "year": "c. 270",
+                        "note": "the Tree of Porphyry — genus, species, differentia"},
+        method_sources=[{"type": "book", "author": "Peirce, Charles Sanders",
+                         "title": "Collected Papers", "bibkey": "peirce1931collected",
+                         "note": "existential-graph notation"}],
+        kind=KIND_ONTOLOGY,
+    )
+    anns = _anns(
+        ("Porphyry's Tree (Isagoge, c. 270 CE) — the original ontology: a "
+         "subsumption spine with a binary differentia (rational/irrational) "
+         "dividing Animal into Man and Beast. Each ⊑ is a scroll; the whole tree "
+         "is their conjunction. The very T-box the corpus's Barbara reasons over, "
+         "and the context the man–mortal scroll presupposes.",
+         ["ontology", "cited", "history-of-logic", "t-box"]),
+    )
+    return uod, prov, anns
+
+
+# --------------------------------------------------------------------------- #
+# FOAF core                                                                   #
+# --------------------------------------------------------------------------- #
+
+def foaf():
+    onto = (OntologyEGIF()
+            .subsumes("Person", "Agent")
+            .domain("knows", 2, 1, "Person")   # domain(knows) ⊑ Person
+            .domain("knows", 2, 2, "Person")   # range(knows)  ⊑ Person
+            .instance("Alice", "Person")
+            .instance("Bob", "Person"))
+    uod = _uod(
+        "foaf_core", "FOAF (core)",
+        "A core slice of the FOAF (Friend of a Friend) vocabulary: Person ⊑ Agent, "
+        "with the knows relation typed Person→Person (domain and range), and two "
+        "individuals. A modern web ontology rendered as an EG theory.",
+        onto.egif(),
+    )
+    prov = make_provenance(
+        theorem_source={"type": "webpage", "author": "Brickley, Dan and Miller, Libby",
+                        "title": "FOAF Vocabulary Specification",
+                        "publisher": "W3C / FOAF project", "year": "2014",
+                        "note": "core terms: Agent, Person, knows"},
+        method_sources=[{"type": "book", "author": "Peirce, Charles Sanders",
+                         "title": "Collected Papers", "bibkey": "peirce1931collected"}],
+        kind=KIND_ONTOLOGY,
+    )
+    anns = _anns(
+        ("FOAF core — a modern semantic-web vocabulary as an EG theory. Beyond "
+         "subsumption (Person ⊑ Agent) it shows argument typing: domain/range on "
+         "the binary knows relation become two scrolls ~[ (knows *x *y) ~[ (Person …) ] ]. "
+         "A small populated board (Alice, Bob) for the game.",
+         ["ontology", "cited", "semantic-web", "domain-range"]),
+    )
+    return uod, prov, anns
+
+
+# --------------------------------------------------------------------------- #
+# SUMO upper spine (translated)                                               #
+# --------------------------------------------------------------------------- #
+
+def sumo():
+    text = _SUMO.read_text(encoding="latin-1")
+    egif, report, kept = upper_taxonomy(text, root="Entity", max_depth=2)
+    n_sub = len(kept["subsumptions"])
+    n_dis = len(kept["disjoints"])
+    n_cls = len(kept["classes"])
+    skipped = report["skipped"]
+    n_skipped = sum(skipped.values())
+    uod = _uod(
+        "sumo_upper", "SUMO (upper taxonomy)",
+        f"The upper structural spine of the Suggested Upper Merged Ontology — "
+        f"{n_sub} subsumptions over {n_cls} classes (depth ≤ 2 from Entity), "
+        f"translated from docs/references/SUMO1.2.txt. SUMO's top is Sowa's upper "
+        f"ontology, itself built on Peirce's three categories: Independent / "
+        f"Relative / Mediating = Firstness / Secondness / Thirdness.",
+        egif,
+    )
+    prov = make_provenance(
+        theorem_source={"type": "paper-conference",
+                        "author": "Niles, Ian and Pease, Adam",
+                        "title": "Towards a Standard Upper Ontology",
+                        "container_title": "FOIS", "year": "2001",
+                        "note": "SUMO 1.2 (docs/references/SUMO1.2.txt), a merge "
+                                "of several SUO sources"},
+        method_sources=[
+            {"type": "book", "author": "Sowa, John F.",
+             "title": "Knowledge Representation: Logical, Philosophical, and "
+                      "Computational Foundations", "publisher": "Brooks/Cole",
+             "year": "2000", "bibkey": "sowa2000eg2cg",
+             "note": "the upper ontology SUMO's merge is based on; ch. 2"},
+            {"type": "book", "author": "Peirce, Charles Sanders",
+             "title": "Collected Papers", "bibkey": "peirce1931collected",
+             "note": "the three categories underlying Sowa's top level"},
+        ],
+        kind=KIND_ONTOLOGY,
+    )
+    # The honest skip report, verbatim, as a uod annotation (no silent caps).
+    skip_str = ", ".join(f"{v}× {k}" for k, v in sorted(
+        skipped.items(), key=lambda kv: -kv[1]))
+    anns = _anns(
+        (f"Upper spine of SUMO (Niles & Pease 2001): {n_sub} subsumptions + "
+         f"{n_dis} disjoints over {n_cls} classes, depth ≤ 2 from Entity. SUMO's "
+         f"top is Sowa's ontology on Peirce's categories — Independent/Relative/"
+         f"Mediating = Firstness/Secondness/Thirdness, the Peircean triad at the "
+         f"root of a modern upper ontology.",
+         ["ontology", "cited", "sumo", "peircean-categories", "t-box"]),
+        (f"Honest partial import: the full SUMO file yields "
+         f"{report['translated']} EG axioms; {n_skipped} forms were NOT "
+         f"translated because they are not first-order-EG-expressible — {skip_str}. "
+         f"Documentation strings are metadata; =>/<=>/nth-domain/modal forms exceed "
+         f"first-order EG. The displayed UoD is the depth≤2 upper spine for layout "
+         f"legibility; the full ground taxonomy (123 subsumptions) is reproducible "
+         f"via tools/suokif_to_eg.py.",
+         ["provenance", "honest-partial-import", "no-silent-caps"]),
+    )
+    return uod, prov, anns
+
+
+def build_all() -> List[Tuple]:
+    return [porphyry(), foaf(), sumo()]
+
+
+def main(argv=None) -> int:
+    from tomos_service import TomosService
+
+    tomos_root = Path(__file__).resolve().parent.parent / "tomos"
+    service = TomosService(tomos_root)
+    for uod, prov, anns in build_all():
+        prov.validate()
+        service.save_uod(uod)                       # §3.3 attests at the boundary
+        service.save_provenance(uod, prov.to_dict())
+        service.save_annotations(uod, anns)
+        g = uod.current_egi
+        print(f"  saved {uod.uod_id:16} kind=ontology  "
+              f"V{len(g.V)} E{len(g.E)} Cut{len(g.Cut)}")
+    print(f"\nimported {len(build_all())} ontologies.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,31 @@
+{
+  "theorem_source": {
+    "type": "book",
+    "author": "Porphyry",
+    "title": "Isagoge",
+    "year": "c. 270",
+    "note": "the Tree of Porphyry \u2014 genus, species, differentia"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected",
+      "note": "existential-graph notation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "ontology",
+  "formatted": {
+    "theorem": "Porphyry (c. 270). Isagoge",
+    "proof": "",
+    "methods": [
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

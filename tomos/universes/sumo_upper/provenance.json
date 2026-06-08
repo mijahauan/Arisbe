@@ -1,0 +1,42 @@
+{
+  "theorem_source": {
+    "type": "paper-conference",
+    "author": "Niles, Ian and Pease, Adam",
+    "title": "Towards a Standard Upper Ontology",
+    "container_title": "FOIS",
+    "year": "2001",
+    "note": "SUMO 1.2 (docs/references/SUMO1.2.txt), a merge of several SUO sources"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Sowa, John F.",
+      "title": "Knowledge Representation: Logical, Philosophical, and Computational Foundations",
+      "publisher": "Brooks/Cole",
+      "year": "2000",
+      "bibkey": "sowa2000eg2cg",
+      "note": "the upper ontology SUMO's merge is based on; ch. 2"
+    },
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected",
+      "note": "the three categories underlying Sowa's top level"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "ontology",
+  "formatted": {
+    "theorem": "Niles, Ian and Pease, Adam (2001). Towards a Standard Upper Ontology. FOIS",
+    "proof": "",
+    "methods": [
+      "Sowa, John F. (2000). Knowledge Representation: Logical, Philosophical, and Computational Foundations",
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

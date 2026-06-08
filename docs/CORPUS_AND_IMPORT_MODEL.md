@@ -1,8 +1,8 @@
 # The Corpus and the Import Model
 
-**Status:** active (2026-06-08). The corpus retrofit described in §3 is *done*;
-the import-kind taxonomy in §2 is implemented in the provenance bundle; §4 (the
-Agon roles) and §5 (ontology import) are the forward edges.
+**Status:** active (2026-06-08). The corpus retrofit (§3) and the first **ontology
+import** (§5) are *done*; the import-kind taxonomy (§2) is implemented in the
+provenance bundle. §4 (the Agon warrant lifecycle) remains the forward edge.
 
 This doc sits downstream of two others and should be read after them:
 [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (the philosophical floor —
@@ -82,9 +82,9 @@ one throwaway practice session. The curated corpus is **20 items**:
   `stanford_nested_quantifiers`, `beta_modus_ponens`, `beta_converse_mp`,
   `dau_theorem_proving`).
 
-Four of the five kinds are populated; `ontology` is the one not yet exercised
-(§5). Citations cross-reference `docs/references/eg_proofs.bib` by bibkey where
-one exists.
+All five kinds are now populated (`ontology` was added with the import in §5).
+The curated corpus is **23 items**. Citations cross-reference
+`docs/references/eg_proofs.bib` by bibkey where one exists.
 
 ## 4. The corpus serves two masters
 
@@ -104,18 +104,62 @@ its warrant rises to `tested`. That transition is the only route above the floor
 and it is the reason the corpus needs reference models in the first place: the
 game needs a board, an opponent's repertoire, and a goal, all drawn from here.
 
-## 5. Forward edges
+## 5. Ontology import (done)
 
-- **Ontology import** — the one unused kind. An ontology (a published T-box) would
-  enter as background theory: a `domain_model`-shaped UoD whose provenance cites
-  the vocabulary, available to Agon as the standing context a game presupposes.
-  The natural first target is a small, well-known vocabulary so the
-  correspondence story stays legible.
-- **Pattern library for Agon** — promote `pattern`-kind items into a queryable
-  move set the game engine can offer a player, and let a *derived rule*
-  (`src/derived_rules.py`) register itself as a named pattern.
+An ontology is a T-box, and every T-box axiom is already a shape the corpus knows
+(`src/ontology_egif.py` names the constructors):
+
+| Axiom | DL | EG |
+|---|---|---|
+| subsumption | `A ⊑ B` | `~[ (A *x) ~[ (B x) ] ]` (a scroll) |
+| disjointness | `A ⊓ B ⊑ ⊥` | `~[ (A *x) (B x) ]` |
+| argument typing | `domain/range(R) ⊑ C` | `~[ (R …*x…) ~[ (C x) ] ]` |
+| A-box | `C(a)` | `(C "a")` |
+
+So an ontology imports as the **conjunction of those axioms on one sheet** — a
+single `kind=ontology` UoD (shelved under the `domain_model` category). Three were
+imported, in ascending realism — the general model exercised end to end:
+
+- **`porphyry_tree`** — Porphyry's Isagoge (c. 270 CE), hand-encoded: the
+  genus–species spine + the rational/irrational division + Socrates. The T-box
+  the corpus's `barbara` reasons over.
+- **`foaf_core`** — a FOAF slice (Brickley & Miller, W3C), hand-encoded: `Person ⊑
+  Agent` plus domain/range typing on `knows`.
+- **`sumo_upper`** — the upper spine of SUMO (Niles & Pease 2001), **translated**
+  from `docs/references/SUMO1.2.txt` by `tools/suokif_to_eg.py`.
+
+Two findings worth keeping:
+
+- **Honest partial translation.** SUMO is large, merged, and partly modal/
+  higher-order. The translator brings across only the EG-expressible *ground*
+  axioms (`subclass-of`, `disjoint`, `instance-of`) and **reports everything it
+  drops** by operator (89 `documentation`, 34 `nth-domain`, the `=>`/`<=>`/modal
+  forms, the mereology predicates). That report rides in the UoD's annotation —
+  no silent cap that would read as "imported all of SUMO." This *is* the manifest
+  floor applied to import: bring across what's expressible, at low warrant, and be
+  explicit about the rest.
+- **The upper ontology is Peircean.** SUMO 1.2 is built on Sowa's upper ontology,
+  whose top division — `Independent / Relative / Mediating` directly under
+  `Entity` — *is* Peirce's Firstness / Secondness / Thirdness. The root of a
+  modern merged ontology is the same triad the rest of the corpus rests on.
+- **Layout cost scales super-linearly.** The full 127-axiom ground taxonomy
+  attests but takes ~74 s to lay out (250 cuts through ELK); the depth-≤2 upper
+  spine (43 axioms) lays out in ~0.3 s. The displayed UoD is the spine; the full
+  taxonomy is reproducible from the translator. A large *theory* is correct but
+  not yet cheap to *draw* — a real layout-performance frontier.
+
+## 6. Forward edges
+
+- **Pattern library for Agon** — two tiers. A *depicted* pattern (`kind=pattern`,
+  a graph you can read) imports trivially; promoting it to a *computable* pattern
+  means registering it as a **derived rule** (`src/derived_rules.py`, where
+  `universal_instantiation` / `instantiate_to_lines` already live) so the engine
+  can actually apply it. The library is the bridge: a "lesson learned / established
+  method" enters as a depiction and graduates to a move.
 - **Warrant lifecycle** — wire the `low → tested` transition to an actual Agon
-  outcome, so a graph that survives the game is re-saved at `tested` with the
-  game record as its proof-of-standing.
-- **`dau_2006_p112_ligature` page** — verify the citation against a fixed copy of
-  *Mathematical Logic with Diagrams* and drop the `verify-page` tag.
+  outcome, so a graph that survives the game is re-saved at `tested` with the game
+  record as its proof-of-standing. *(Blocked: Agon does not yet emit outcomes.)*
+- **Layout performance for large theories** — make a 100+-axiom ontology drawable
+  (the 74 s case above); until then large taxonomies live as spines + translators.
+- **`dau_2006_p112_ligature` page** — verify against a fixed copy and drop the
+  `verify-page` tag.

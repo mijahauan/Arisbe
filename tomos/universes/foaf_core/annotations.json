@@ -1,0 +1,20 @@
+{
+  "annotations": [
+    {
+      "id": "ann_429265e2",
+      "scope": "uod",
+      "text": "FOAF core \u2014 a modern semantic-web vocabulary as an EG theory. Beyond subsumption (Person \u2291 Agent) it shows argument typing: domain/range on the binary knows relation become two scrolls ~[ (knows *x *y) ~[ (Person \u2026) ] ]. A small populated board (Alice, Bob) for the game.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "ontology",
+        "cited",
+        "semantic-web",
+        "domain-range"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}
