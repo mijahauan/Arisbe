@@ -1736,6 +1736,15 @@
       loadCorpus();
       loadRules();
       loadScratchList();
+
+      // Hand-off from Organon: ?open=uod:<id> (or empty_sheet) opens that base
+      // directly, so "Open in Ergasterion" lands in a ready workshop session.
+      try {
+        const open = new URLSearchParams(window.location.search).get('open');
+        if (open && (open.indexOf('uod:') === 0 || open === 'empty_sheet')) {
+          openSession(open);
+        }
+      } catch (_) {}
     })();
   </script>
 </body>

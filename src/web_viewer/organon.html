@@ -274,6 +274,16 @@
         <button class="xfer-btn" id="btn-import"
                 title="Admit a graph from a book or page into the corpus (low warrant)">
           <span class="xfer-ico">↓</span> Import</button>
+        <span class="xfer-sep"></span>
+        <button class="xfer-btn" id="act-ergasterion" disabled
+                title="Open a copy in the workshop to transform (a regime-1 draft; the corpus item is not changed)">
+          <span class="xfer-ico">✎</span> Open in Ergasterion</button>
+        <button class="xfer-btn" id="act-agon" disabled
+                title="Carry this graph into the arena as a reference model M to test a proposal against">
+          <span class="xfer-ico">⚔</span> Use in Agon</button>
+        <button class="xfer-btn" id="act-copy" disabled
+                title="Copy the EGIF linear form to the clipboard">
+          <span class="xfer-ico">⧉</span> Copy</button>
         <span class="xfer-spacer"></span>
         <button class="xfer-btn" id="act-export" disabled
                 title="Export this graph in the current view style + layout">
@@ -374,6 +384,7 @@
       let svgPanZoomInstance = null;
       let exportUodId = null;
       let exportFormats = [];
+      let currentEgif = '';   // EGIF of the open UoD (for Copy / Use-in-Agon)
 
       // Diachronic chain player state.
       let chainFrames = [];      // ordered frames from /chain (base + steps)
@@ -686,6 +697,9 @@
         // Enable the item actions + reveal the view-style toolbar for the loaded
         // UoD. The export panel stays collapsed until the Export button is hit.
         exportUodId = data.uod_id;
+        try {
+          currentEgif = (((data.linear_forms || {}).forms || {}).egif || {}).text || '';
+        } catch (_) { currentEgif = ''; }
         setItemActionsEnabled(true);
         const exportPanel = document.getElementById('organon-export');
         if (exportPanel) exportPanel.style.display = 'none';
@@ -913,9 +927,12 @@
         } catch (e) { exStatus.textContent = 'Network error: ' + e.message; }
       }
 
-      // ---- Unified action toolbar (Import / Export; cross-mode added in C) ----
+      // ---- Unified action toolbar: transfer (Import/Export) + cross-mode ----
       // Item actions enable when a UoD is open; the global Import is always live.
-      const ITEM_ACTION_IDS = ['act-export'];
+      // Organon is the reference shelf; these verbs hand a corpus graph to the
+      // other modes (it is *consumed*, never written back here — the mode
+      // contract: a graph reaches the corpus only via Agon or Import).
+      const ITEM_ACTION_IDS = ['act-ergasterion', 'act-agon', 'act-copy', 'act-export'];
       function setItemActionsEnabled(on) {
         ITEM_ACTION_IDS.forEach(function (id) {
           const b = document.getElementById(id);
@@ -924,6 +941,21 @@
       }
       document.getElementById('btn-import').addEventListener('click', function () {
         window.location.href = '/import';
+      });
+      document.getElementById('act-ergasterion').addEventListener('click', function () {
+        if (!selectedUodId) return;
+        // The workshop opens a regime-1 *copy* as its base — a draft to transform.
+        window.location.href = '/ergasterion?open=' + encodeURIComponent('uod:' + selectedUodId);
+      });
+      document.getElementById('act-agon').addEventListener('click', function () {
+        if (!currentEgif) { setStatus('No linear form available to carry into Agon.', true); return; }
+        // Carry the graph in as the reference model M; the user composes G there.
+        window.location.href = '/agon?model_egif=' + encodeURIComponent(currentEgif);
+      });
+      document.getElementById('act-copy').addEventListener('click', function () {
+        if (!currentEgif) return;
+        if (navigator.clipboard) navigator.clipboard.writeText(currentEgif);
+        setStatus('Copied EGIF to clipboard.');
       });
       document.getElementById('act-export').addEventListener('click', function () {
         const panel = document.getElementById('organon-export');

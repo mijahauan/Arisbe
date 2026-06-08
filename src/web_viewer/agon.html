@@ -363,15 +363,20 @@
       canvasEl.addEventListener('click', onCanvasClick);
       $('clear-selection').addEventListener('click', clearSel);
 
-      // Hand-off from Ergasterion: ?proposal_egif=<egif> prefills the proposal
-      // G so a workshop graph can be brought into the contest to be tested.
+      // Hand-offs into the arena via URL:
+      //   ?proposal_egif=<egif> — from Ergasterion: prefill the proposal G.
+      //   ?model_egif=<egif>    — from Organon ("Use in Agon"): prefill the
+      //                           reference model M, then compose a proposal G.
       try {
-        const pe = new URLSearchParams(window.location.search).get('proposal_egif');
-        if (pe) {
-          $('setup-proposal').value = pe;
-          if (typeof setStatus === 'function') {
-            setStatus('Proposal G brought in from Ergasterion — add a model M, then start.');
-          }
+        const params = new URLSearchParams(window.location.search);
+        const pe = params.get('proposal_egif');
+        const me = params.get('model_egif');
+        if (pe) $('setup-proposal').value = pe;
+        if (me) $('setup-model').value = me;
+        if ((pe || me) && typeof setStatus === 'function') {
+          setStatus(me
+            ? 'Reference model M brought in from Organon — add a proposal G, then start.'
+            : 'Proposal G brought in from Ergasterion — add a model M, then start.');
         }
       } catch (_) {}
     })();
