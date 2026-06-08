@@ -1,8 +1,23 @@
 # Current Plan
 
-**Last Updated**: 2026-06-07 (Layout: tension engine — branch points done; a forking line of identity lays out as a small taut tree; corpus attests 18/18 with no ELK fallback)
+**Last Updated**: 2026-06-08 (Session paused to prepare a thorough documentation review — see `docs/DOCUMENTATION_REVIEW_PREP.md`)
 
-> **NEXT SESSION — the tension layout frontier (now: multiple threads).**
+> **NEXT SESSION — thorough documentation review (author-requested).** Let the
+> docs settle on **what truly describes the fundamental arc from Peirce's vision
+> (with Dau, Roberts, Sowa, Pietarinen) to Arisbe**, consolidating/clarifying
+> against the literature in `docs/references/` and the examples in `tomos/` and the
+> real implementation. Expect substantial legacy / erroneous / obsolete material to
+> correct, merge, or retire. The full scaffold — the target "fundamental arc"
+> spine, a doc-by-doc triage table, the known-error/legacy hunt list, and the
+> proposed process — is in **`docs/DOCUMENTATION_REVIEW_PREP.md`**. Note: the end
+> game (the **Endoporeutic Game** / Agon) remains to complete; the review should
+> mark that frontier honestly, not bury it. Quick wins already spotted: the two
+> identical `PRODUCT_VISION.md`; Qt/legacy-GUI references in
+> `ARCHITECTURE_STYLE_SYSTEM.md` + `arisbe_triad_architecture.md`;
+> `WEB_VIEWER_IMPLEMENTATION_PLAN.md` is a plan now built. Memory
+> [[project-documentation-review-prep]].
+
+> **DEFERRED — the tension layout frontier (multiple threads).**
 > `?engine=tension` lays a **single** line of identity as one collinear taut
 > thread (`_thread_layout`) and a **branching** one (a degree-≥3 junction, one
 > connected acyclic ligature) as a small **tree pulled taut** through the cut nest
