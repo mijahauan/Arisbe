@@ -150,7 +150,26 @@ Two findings worth keeping:
 
 ## 6. Forward edges
 
+- **By-hand import & edit (the reading desk)** — the next big one. So far every
+  corpus item was built by a Python tool (`build_*_chain.py`, `build_ontologies.py`,
+  `retrofit_corpus.py`). What's missing is the *interactive* path: a person reading
+  a book or magazine, transcribing a graph and its provenance **by hand** through
+  the UI. That means an editor where you draw/enter the EG (or paste a linear form),
+  fill the provenance bundle (kind, the source citation, transcribed-vs-authored,
+  warrant stays `low`) and the annotations, see it §3.3-attest live, and save it to
+  scratch / send it to Agon — and the same editor reopened on an existing item to
+  revise its graph or its outside-record. This is the Ergasterion's job extended
+  with a provenance/annotation form; the building blocks exist (the workshop editor,
+  `save_provenance` / `save_annotations`, the linear-form parsers), but the
+  hand-transcription surface does not. It is the human counterpart to the
+  translators in §5: a translator brings a *file* across; the reading desk brings a
+  *page* across.
 - **Pattern library for Agon** — two tiers. A *depicted* pattern (`kind=pattern`,
+  a graph you can read) imports trivially; promoting it to a *computable* pattern
+  means registering it as a **derived rule** (`src/derived_rules.py`, where
+  `universal_instantiation` / `instantiate_to_lines` already live) so the engine
+  can actually apply it. The library is the bridge: a "lesson learned / established
+  method" enters as a depiction and graduates to a move. A *depicted* pattern (`kind=pattern`,
   a graph you can read) imports trivially; promoting it to a *computable* pattern
   means registering it as a **derived rule** (`src/derived_rules.py`, where
   `universal_instantiation` / `instantiate_to_lines` already live) so the engine

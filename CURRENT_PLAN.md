@@ -1,20 +1,39 @@
 # Current Plan
 
-**Last Updated**: 2026-06-08 (Organon import COMPLETE — 3 fixtures + corpus retrofit; next = ontology import / Agon warrant lifecycle)
+**Last Updated**: 2026-06-08 (Ontology import done + viewer surfaces provenance/annotations; next = by-hand import & edit "reading desk")
 
-> **NEXT SESSION — the Organon import arc is complete.** New design-of-record for
-> the corpus & import model: [docs/CORPUS_AND_IMPORT_MODEL.md](docs/CORPUS_AND_IMPORT_MODEL.md)
-> (§5 forward edges). Candidate next steps, in rough order:
-> - **Ontology import** — the one unused import `kind`. A small published T-box
->   enters as a `domain_model`-shaped background theory available to Agon (the
->   standing context a game presupposes). Pick a small legible vocabulary first.
-> - **Warrant lifecycle** — wire the `low → tested` transition to a real Agon
->   outcome (a graph that survives the game is re-saved at `tested`). This is the
->   only route above the floor and the reason the corpus needs reference models.
-> - **Pattern library for Agon** — promote `pattern`-kind items into a queryable
->   move set; let a derived rule (`src/derived_rules.py`) register as a pattern.
-> - **`dau_2006_p112_ligature`** — verify the page against a fixed copy, drop the
->   `verify-page` tag.
+> **NEXT SESSION — the by-hand import & edit "reading desk."** Design-of-record:
+> [docs/CORPUS_AND_IMPORT_MODEL.md](docs/CORPUS_AND_IMPORT_MODEL.md) §6 (forward
+> edges). The lead item (user-requested):
+> - **By-hand import & edit** — every corpus item so far was built by a Python
+>   tool. The missing path is *interactive*: a person reading a book/magazine
+>   transcribing a graph + its outside-record by hand. An editor where you enter
+>   the EG (draw or paste a linear form), fill the provenance bundle (kind, source
+>   citation, transcribed-vs-authored; warrant stays `low`) and annotations, watch
+>   it §3.3-attest live, and save to scratch / send to Agon — plus reopen an
+>   existing item to revise its graph or its outside-record. This extends the
+>   Ergasterion workshop with a provenance/annotation form; building blocks exist
+>   (workshop editor, `save_provenance`/`save_annotations`, linear-form parsers),
+>   the hand-transcription surface does not. The human counterpart to §5's
+>   translators (a translator brings a *file* across; the desk brings a *page*).
+>
+> Other candidates (deferred): **pattern library** (depicted `kind=pattern` →
+> computable derived rule in `src/derived_rules.py`); **warrant lifecycle**
+> (`low → tested` wired to a real Agon outcome — blocked on Agon emitting
+> outcomes); **layout perf** for 100+-axiom ontologies; **`dau_2006_p112_ligature`**
+> page verification.
+>
+> **Done this session (ontology import + viewer fix, on `main`, full suite green
+> 1250/37, no protected module touched):** the `ontology` import kind end-to-end —
+> `src/ontology_egif.py` (encoder) + `tools/suokif_to_eg.py` (SUO-KIF→EG translator
+> with honest skip-report) + `tools/build_ontologies.py`; three UoDs
+> (`porphyry_tree`, `foaf_core`, `sumo_upper`); corpus now **23 items, all 5 kinds
+> populated**. Finding: SUMO's top is Sowa on Peirce's three categories
+> (Independent/Relative/Mediating = 1ns/2ns/3ns); layout is super-linear (74s@127
+> axioms → spine shown). **Plus** the Organon viewer now surfaces the typed
+> provenance bundle + annotation layer (they were returned by the route but the
+> front-end only showed the old bibliography line). Memory
+> [[project-ontology-import]].
 >
 > **Done this session — corpus retrofit (on `main`, full suite green, no protected
 > module touched):** every pre-existing UoD brought *up to spec* via
