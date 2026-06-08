@@ -1,6 +1,24 @@
 # The Endoporeutic Game: Reference Guide
 
-**Date**: 2026-03-28 · **Reviewed**: 2026-06-08
+**Date**: 2026-03-28 · **Reviewed**: 2026-06-08 · **Reorganized**: 2026-06-08
+
+This guide is organized in four parts, from machinery to meaning to practice:
+
+- **Part I · The Game** — how it works: the two formal layers, the mechanics of
+  play, and the constructive (proof-mode) counterpart.
+- **Part II · Outcomes and Interpretation** — what the game produces: the outcome
+  taxonomy, the *Agonothetes* (the interpretive function that makes meaning of a
+  result), and where the domain model M comes from.
+- **Part III · The Philosophy of Inquiry** — why it matters: the Peircean account
+  of doubt, situated meaning, and fallibilism that the game formalizes.
+- **Part IV · Practice and Reference** — strategy heuristics, worked scripts, the
+  implementation, and the literature.
+
+For a non-technical, narrative on-ramp — six everyday scenarios (a vet, a
+birdwatcher, a gardener, a town planner, a class, a research group) that show the
+same cycle without the formalism — read
+[ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) first; each scenario there is a
+concrete instance of an outcome in Part II's taxonomy (the mapping is given there).
 
 ---
 
@@ -41,6 +59,10 @@ place.
 - **Automated doubt detection** and guided **M-revision** workflows.
 
 ---
+
+# Part I · The Game
+
+*How the game works — its two formal layers, the mechanics of play, and the constructive counterpart.*
 
 ## Overview
 
@@ -176,6 +198,190 @@ a failure to map, not as a failure to terminate.
 
 ---
 
+## Two Layers of the Game
+
+Before the mechanics of play, one distinction clears up most confusion about the
+EPG — including why the Overview above speaks of "two eliminative rules" (IT-,
+DC-) while Arisbe ships all six. The EPG unifies **two formalisms** that are
+often treated separately, and they answer different questions. Understanding
+their relationship is the key to the rest of this guide.
+
+### The Semantic Evaluation Game (Inner Layer)
+
+Pietarinen (2006, Ch. 4–7) formalizes Peirce's endoporeutic interpretation as
+a **semantic game** with four rules:
+
+1. **Juxtaposition** — At a positive node (conjunction), the Grapheus chooses
+   which conjunct to examine. At a negative node, the Graphist chooses.
+2. **Ligatures** — The polarity of a ligature's outermost extremity determines
+   who picks an individual from the domain: the Graphist on positive areas
+   (existential quantification), the Grapheus on negative areas (universal).
+3. **Atomic spot** — When an atomic predicate is reached, its truth-value in
+   the model determines the winner: true = Graphist wins, false = Grapheus wins.
+4. **Winning strategy** — The graph is true in the model if and only if the
+   Graphist has a winning strategy.
+
+This game is **recursive**, **boolean** (true/false), and **always terminates**
+(the graph is finite, so the descent bottoms out at atomic spots). It is purely
+evaluative — no transformation rules appear. It answers the question: *is this
+graph true in this model?*
+
+### The Transformation Game (Strategic Layer)
+
+Dau's six rules — INS, ERA, IT+, IT-, DC+, DC- — constitute a separate
+**proof-theoretic** system. Players use these rules to manipulate the graph
+structure: the Graphist strengthens and propagates; the Grapheus simplifies
+and erases.
+
+The transformation rules are not moves *in* the semantic game; they are the
+**strategic reasoning** by which a player constructs or demonstrates a winning
+(or losing) position. They answer the question: *can we show that the Graphist
+has (or lacks) a winning strategy?*
+
+### The Bridge: IT- as Semantic Mapping
+
+The connection between the two layers is **deiteration (IT-)**. In the
+semantic game, reaching an atomic spot and checking its truth-value against
+the model is the termination condition. In the transformation game, the
+corresponding operation is IT-: if a subgraph at the current level is
+identical to something in M at an ancestor level, IT- deiterates it —
+removing it as "already accounted for." This is the proof-theoretic way of
+saying "this content is true in M."
+
+The Graphist wins when all positive content has been deiterated (mapped to M)
+or shown to be structurally tautological. The Grapheus wins when some positive
+content cannot be mapped and cannot be resolved.
+
+### The Interpretive Layer (Agonothetes)
+
+The semantic game yields a boolean. The transformation game demonstrates
+*why* that boolean holds. But neither layer, alone, produces *understanding*.
+The Agonothetes — the interpretive function — takes the boolean result
+together with the traversal path and the game transcript and maps them to
+the outcome taxonomy (Part II):
+
+```
+Semantic game result (true/false)
+  + traversal path (which sub-games, which choices)
+  + game transcript (which rules, which failures)
+  ────────────────────────────────
+  → taxonomic outcome (theorem, new fact, revision, ...)
+  → disposition (accept, reject, revise M, hold as hypothesis, ...)
+  → integration into UoD
+```
+
+This is why the Agonothetes is not reducible to either player's perspective:
+it operates at a meta-level, interpreting the *significance* of the game's
+mechanical result.
+
+### Design Implications
+
+This two-layer structure resolves several architectural concerns:
+
+- **Non-boolean outcomes**: The semantic game IS boolean. The taxonomy of
+  outcomes is a higher-level interpretation applied by the Agonothetes after
+  the game completes. The boolean result determines the *logical* status;
+  the Agonothetes determines what it *means* in context.
+
+- **Termination**: The semantic game always terminates because graphs are
+  finite. Pietarinen: "the graphs are finite... the interaction will come to
+  a halt in a finite number of steps." The transformation game may involve
+  strategic choices about when to stop, but the underlying evaluation is
+  guaranteed to bottom out.
+
+- **When to descend**: In the semantic game, descent is immediate — each
+  step peels off one layer of the nest. In the transformation game, players
+  may prepare before descending (DC+, INS to set up structures). The
+  preparation IS the strategic reasoning; the descent IS the evaluation.
+
+- **Beta graphs**: Ligatures introduce quantifier binding. The semantic
+  game handles this via rule 2 (who picks the individual from the domain).
+  The transformation game handles it via the subgraph closure rules that
+  govern which ligature-connected elements can be iterated or deiterated
+  together.
+
+---
+
+## The Game as Tree Traversal
+
+The same mechanics, stated formally as a data-structure walk — the framing the
+implementation actually uses. The game is, in effect, a **tree traversal** of the
+EGI's hierarchical structure. The `HierarchicalIndex` (sheet → cuts → nested cuts
+→ ...) defines the tree. The game reads it **outside-in, depth-first**.
+
+At each node in the traversal:
+
+- **The polarity** (even depth = positive, odd depth = negative) determines
+  who has initiative
+- **The content** (edges and vertices juxtaposed in that area) is what the
+  current player must address
+- **The children** (nested cuts) are sub-trees to be traversed when reached
+
+### Role Reversal as Descent
+
+"Removing a negation to reverse roles" is not a separate operation and not a
+rule application — it is simply **descending one level in the tree**. When the
+traversal crosses a cut boundary, the depth increments, the polarity flips,
+and the player with initiative changes. That *is* the role reversal.
+
+### Sub-Games
+
+A complicated graph involves **sub-games** as the tree is traversed.
+Each sub-game corresponds to a sub-tree rooted at some cut:
+
+- The Agonothetes opens a sub-game when the traversal descends into a cut
+- Within the sub-game, the players apply transformation rules in their
+  respective territories (polarity-constrained)
+- The sub-game resolves to one of the taxonomic outcomes (Part II)
+- Control returns to the parent level with the sub-game's result
+
+The Agonothetes tracks the **traversal path** and the **outcome of each
+sub-game** until the process unwraps the whole graph.
+
+### The ∀/∃ Alternation
+
+The asymmetry of the game is the ∀/∃ alternation in the game tree:
+
+- **Positive node** (Grapheus has initiative): The content is *asserted*
+  (conjunction of juxtaposed elements). The Grapheus can challenge **any**
+  element. The Graphist must defend **all** of them.
+
+- **Negative node** (Graphist has initiative): The content is inside a cut
+  (negated). The Graphist chooses **which path** to pursue — they select the
+  defense most favorable to their position.
+
+The burden lies more heavily on the Graphist than on the Grapheus. The
+Graphist must show that *every* part of the graph makes sense with respect
+to M. The Grapheus needs only identify a part that does not map directly.
+
+However, a failure to map does not necessarily doom the graph. It means
+that the proposed graph does not map *simply* onto M — but the taxonomy
+of outcomes (Part II) tells us what this can signify:
+
+- If the unmapped content **internally contradicts** itself, the graph
+  is in genuine trouble (Case 5).
+- If it **contradicts M**, the game enters the refutation/revision space
+  (Cases 2a–2d).
+- If it is merely **independent of M**, the failure to map may signal a
+  **new fact** (Case 3a), a **new abductive explanation** (Case 3b), an
+  **open conjecture** (Case 3c), or a **generalization** that would
+  enhance the UoD (Case 8).
+
+The game *sorts* the graph into the appropriate taxonomic category. A
+"failure" at a sub-game level is not necessarily a failure of the whole
+proposal — it is information about how the proposal relates to M.
+
+### Where M Lives
+
+M resides in the game context (iterated there by the Agonothetes during
+setup) so that the deiteration rule (IT-) permits showing content "maps
+to M": if a subgraph in the current area is identical to something in M at
+an ancestor level, IT- can deiterate it — demonstrating the mapping. The
+Graphist wins a sub-game when all positive content has been resolved this
+way: everything either maps to M or is structurally tautological.
+
+---
+
 ## Proof: The Constructive Method
 
 > **⚠️ Frontier (design-only).** The Agon V1 engine implements the *interpretive*
@@ -283,6 +489,10 @@ certification.
 
 ---
 
+# Part II · Outcomes and Interpretation
+
+*What the game produces — the outcome taxonomy, the interpretive function that makes meaning of it, and where the model M comes from.*
+
 ## Taxonomy of Game Outcomes
 
 ### I. Logical Classification
@@ -376,6 +586,25 @@ Real-world proposals are often complex:
 | **Deduction** | Case 1 (theorem) | G follows necessarily from M |
 | **Induction** | Case 3a (new fact) | G is supported by evidence |
 | **Abduction** | Case 3b (hypothesis) | G explains something in M |
+
+### V. The Taxonomy in the Practical Scenarios
+
+The six everyday scenarios in [ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) are
+not separate examples — each is a concrete play that lands on one of the cases
+above. The narrative version drops the formalism; this table is the bridge back
+to it:
+
+| Scenario (practice doc) | Outcome | Mode |
+|---|---|---|
+| 1 · the veterinarian (Biscuit needs temperature regulation) | Case 1 — theorem | Deduction |
+| 2 · the birdwatcher (a new species, consistent + independent) | Case 3a — new fact | Induction |
+| 3 · the gardener (tomatoes in the shade) | Case 2b — challenge to M / revision | (M-revision) |
+| 4 · the town planner (a mixed argument) | Case 6 — partial overlap (theorem + extension + conjecture) | Composite |
+| 5 · the zoology course (proposing, testing, revising) | Cases 1, 2b, 3a across innings | The full cycle |
+| 6 · ecology ↔ economics (a bridging argument) | Case 1 — theorem of the *merged* model | Deduction |
+
+A reader who wants the intuition first should read those scenarios, then return
+here for the formal account.
 
 ---
 
@@ -487,7 +716,7 @@ A sub-graph might include a new fact or a new explanation that throws the
 whole into doubt without frankly contradicting M. Or it might contradict M
 outright, yet the participants might agree to hold the graph as a hypothesis
 or alternative pending confirmation or refutation by further evidence. The
-taxonomy of outcomes (Section II) covers these possibilities; the Agonothetes
+taxonomy of outcomes (Part II) covers these possibilities; the Agonothetes
 is the function by which the game result is interpreted and acted upon.
 
 The replay function (side-by-side or step-by-step) allows participants to
@@ -580,8 +809,6 @@ of reality-as-known to unchecked assertion.  Functionally:
   temporarily enters a negative context (using INS to create a double cut)
   before DC- completes the erasure — this is the canonical implementation
   of role switching across a cut boundary
-- Bears the burden of *specificity*: if any exposed element fails to map
-  onto M, the Grapheus wins
 - Bears the burden of *specificity* — needs only one failure, one unmapped
   element, to block the Graphist's claim
 - Embodies the critical function: *checking, constraining, pruning* so that
@@ -632,187 +859,6 @@ Each Agonothetes judgment enriches or revises M, producing M' — which
 becomes the Grapheus for the next inquiry.  The UoD's diachronic process
 *is* this iteration: the repeated application of the Graphist–Grapheus–
 Agonothetes cycle, each round building on the last.
-
----
-
-## The Triad Beyond the Game: Speculative Validity Checks
-
-If the triadic framework (Graphist / Grapheus / Agonothetes = Representamen /
-Object / Interpretant) is genuinely grounded in Peirce's architectonic, it
-should not be limited to the formal game.  It should illuminate sign-processes
-wherever they occur.  The following sections explore — speculatively, as rough
-validity checks — whether the framework fits other domains of inquiry.
-
-### Quasi-Minds
-
-Peirce held that semiosis does not require biological minds.  Any entity
-capable of determining an interpretant — a book, a law, an institution, a
-tradition — functions as a **quasi-mind** (CP 4.536).  The sign-process
-operates between quasi-minds, not within a single consciousness.
-
-The triadic framework maps directly:
-
-- A **book** communicates.  The author's text is the Graphist-function
-  (producing signs).  The reader's existing knowledge is the Grapheus-function
-  (the domain against which the text is tested).  The understanding the reader
-  produces — which is *not* identical to the author's intention — is the
-  Agonothetes-function.  A book read by a novice and the same book read by an
-  expert produce different Agonothetes-judgments because the Grapheus differs.
-
-- A **law** operates.  The legislature's enactment is the Graphist-function.
-  The facts of a particular case are the Grapheus-function.  The judge's
-  interpretation — which may establish precedent, overturn prior readings,
-  or identify ambiguity — is the Agonothetes-function.  The law's meaning
-  is not fixed at enactment; it grows through the iterated application of
-  the triadic cycle across cases.
-
-- A **scientific paper** proposes.  The paper's claims are the Graphist-
-  function.  The existing literature and experimental evidence are the
-  Grapheus-function.  The community's response — acceptance, replication,
-  critique, revision — is the Agonothetes-function.  Peer review is a
-  formalized Endoporeutic Game.
-
-The framework fits because it *is* Peirce's sign-triad applied to inquiry.
-Quasi-minds are precisely the entities between which the triadic process
-operates.  The Endoporeutic Game is a formalization of the process; the
-quasi-mind interactions are the process in the wild.
-
-### Simple Understanding and Expert Understanding
-
-Consider the same proposal G tested against two different domain models:
-a novice's M_n and an expert's M_e.
-
-**The novice's game:**
-
-- M_n is sparse — few facts, few implications, shallow structure.
-- Many proposals are **independent** of M_n (stalemate → new fact).  The
-  game terminates quickly because there is little for the Grapheus to
-  challenge and little for IT- to map.
-- The Agonothetes-function is coarse: the novice can distinguish "yes,"
-  "no," and "I don't know" but has few intermediate categories.
-- The game tree is shallow and narrow.
-
-**The expert's game:**
-
-- M_e is rich — many facts, deep implication chains, extensive cross-
-  references.
-- The same proposal G may be a **theorem** (derivable through a long chain
-  of IT- and DC- steps), a **refinement** of an existing result, or a subtle
-  **contradiction** that the novice's M_n could not detect.
-- The Agonothetes-function is nuanced: the expert can distinguish refinement
-  from generalization, conditional acceptance from provisional hypothesis,
-  a genuine contribution from a rediscovery of known results.
-- The game tree is deep and richly branched.
-
-**Learning is the iterated growth of M through successive games.**  The
-novice's M_n becomes the expert's M_e through thousands of Agonothetes
-judgments, each enriching the Grapheus for the next round.  The expert is
-not someone who has a *different* process of understanding but someone whose
-Grapheus is deep enough that the Agonothetes can produce fine-grained
-distinctions.
-
-This suggests a testable prediction: the quality of understanding scales with
-the *richness of M*, not with any special faculty of the inquirer.  An expert
-in domain A is a novice in domain B precisely because their M is rich in one
-and sparse in the other.
-
-### Cross-Cultural Interaction
-
-When cultures interact, each brings its own M — its own Grapheus, the
-accumulated knowledge and conceptual structure of that tradition.  A proposal
-from culture A, tested against culture B's M, may produce outcomes that
-neither culture anticipated.
-
-**Scenario: complementary domains.**  Culture A has deep knowledge of
-navigation; culture B has deep knowledge of agriculture.  A navigational
-claim from A tested against B's M produces stalemate (independence) — not
-because the claim is wrong but because B's M has no basis to evaluate it.
-The Agonothetes-function here is: accept as new fact on A's authority, or
-hold as hypothesis pending B's own investigation.  This is Case 3a in the
-taxonomy — empirical enlargement.
-
-**Scenario: overlapping but different frameworks.**  Culture A models illness
-as imbalance of humors; culture B models illness as microbial infection.
-A claim from A ("this patient's illness is caused by excess bile") tested
-against B's M produces a **contradiction** — not because A is wrong in all
-respects but because the frameworks are structurally incompatible.  The
-Agonothetes-function must distinguish:
-
-- Is the contradiction fundamental (the frameworks are irreconcilable)?
-- Is it terminological (the same phenomena described in different vocabularies)?
-- Is it partial (each framework captures aspects the other misses)?
-
-This is precisely where the taxonomy of outcomes (revision, fork, conditional
-acceptance) earns its keep.  The Agonothetes does not simply accept or
-reject; it *interprets* the nature of the disagreement and facilitates a
-disposition that may involve revising either M, holding both as alternatives,
-or constructing a third framework that subsumes both.
-
-Cross-cultural understanding is the case where the Agonothetes must operate
-at its most sophisticated — and where a purely boolean game (true/false)
-would be most impoverished.
-
-### The Temporal Self
-
-Perhaps the most intimate instance of the triad: the relationship between
-a person's past, present, and future understanding.
-
-- **Past self = Grapheus.**  The knowledge base M as it was: the beliefs,
-  commitments, and conceptual structures one held at an earlier time.
-- **Present self = Graphist.**  The active inquirer, bringing new experience,
-  new reading, new encounters to bear on the old M.
-- **Agonothetes = the growth of understanding over time.**  The judgment
-  that "I used to think X, now I think Y" is an Agonothetes verdict: the
-  present Graphist proposed Y, the past Grapheus resisted (M included X),
-  and the Agonothetes interpreted the outcome as warranting revision.
-
-This framing illuminates several familiar phenomena:
-
-- **Diary-keeping and journaling** are forms of the Endoporeutic Game played
-  across time.  The journal entry is the Graphist's proposal; re-reading it
-  years later tests it against a changed M; the insight produced is the
-  Agonothetes-function.
-
-- **Education** (as in Scenario 5 of the practical exemplars) is the
-  *guided* application of the cycle: the teacher structures the Graphist's
-  proposals and scaffolds the Agonothetes-function until the student's M
-  is rich enough to sustain the cycle independently.
-
-- **Self-contradiction across time** ("How could I have believed that?") is
-  a game in which the present self's enriched M exposes a claim the past
-  self held as a theorem but which the present self can refute.  The
-  discomfort is the Agonothetes registering a genuine conflict between
-  temporal selves.
-
-Peirce himself anticipated this with his notion of the **community of
-inquiry** — even a single inquirer participates in this community
-diachronically, through the conversation between past, present, and future
-selves.  The triadic framework makes this precise: the community of inquiry
-is the iterated Graphist–Grapheus–Agonothetes cycle applied across time.
-
-### What These Checks Suggest
-
-The framework appears to fit — not as a loose analogy but as a structural
-correspondence.  In every case examined, the three functions (assertive,
-critical, interpretive) are present and irreducible.  Removing any one
-collapses the process:
-
-- Without the Graphist: no proposals, no growth — a static archive.
-- Without the Grapheus: no resistance, no testing — unchecked speculation.
-- Without the Agonothetes: no interpretation, no significance — a contest
-  with a winner but no understanding.
-
-This structural necessity is exactly what Peirce's semiotic predicts.  The
-sign-triad is irreducible because meaning-making is irreducibly triadic.
-The Endoporeutic Game is one formalization of this process; the quasi-mind
-interactions, the novice-to-expert trajectory, the cross-cultural encounter,
-and the temporal self are other instances of the same triadic engine.
-
-These observations remain speculative and would benefit from more rigorous
-treatment.  But as rough validity checks, they suggest that the triadic
-framework is not an *ad hoc* addition to the game mechanics but a genuine
-reflection of the structure of inquiry — which is what we should expect if
-Peirce's architectonic is sound.
 
 ---
 
@@ -999,6 +1045,10 @@ The pedagogical implications are clear:
 All three are valid uses of the same triadic engine.
 
 ---
+
+# Part III · The Philosophy of Inquiry
+
+*Why the game matters — the Peircean account of inquiry, meaning, and fallibilism that the game formalizes.*
 
 ## The Drive of Inquiry: Doubt as Prime Mover
 
@@ -1632,185 +1682,190 @@ sign operates is inexhaustibly responsive to what we make of it.
 
 ---
 
-## The Game as Tree Traversal
+## The Triad Beyond the Game: Speculative Validity Checks
 
-The game is, in effect, a **tree traversal** of the EGI's hierarchical
-structure. The `HierarchicalIndex` (sheet → cuts → nested cuts → ...) defines
-the tree. The game reads it **outside-in, depth-first**.
+If the triadic framework (Graphist / Grapheus / Agonothetes = Representamen /
+Object / Interpretant) is genuinely grounded in Peirce's architectonic, it
+should not be limited to the formal game.  It should illuminate sign-processes
+wherever they occur.  The following sections explore — speculatively, as rough
+validity checks — whether the framework fits other domains of inquiry.
 
-At each node in the traversal:
+### Quasi-Minds
 
-- **The polarity** (even depth = positive, odd depth = negative) determines
-  who has initiative
-- **The content** (edges and vertices juxtaposed in that area) is what the
-  current player must address
-- **The children** (nested cuts) are sub-trees to be traversed when reached
+Peirce held that semiosis does not require biological minds.  Any entity
+capable of determining an interpretant — a book, a law, an institution, a
+tradition — functions as a **quasi-mind** (CP 4.536).  The sign-process
+operates between quasi-minds, not within a single consciousness.
 
-### Role Reversal as Descent
+The triadic framework maps directly:
 
-"Removing a negation to reverse roles" is not a separate operation and not a
-rule application — it is simply **descending one level in the tree**. When the
-traversal crosses a cut boundary, the depth increments, the polarity flips,
-and the player with initiative changes. That *is* the role reversal.
+- A **book** communicates.  The author's text is the Graphist-function
+  (producing signs).  The reader's existing knowledge is the Grapheus-function
+  (the domain against which the text is tested).  The understanding the reader
+  produces — which is *not* identical to the author's intention — is the
+  Agonothetes-function.  A book read by a novice and the same book read by an
+  expert produce different Agonothetes-judgments because the Grapheus differs.
 
-### Sub-Games
+- A **law** operates.  The legislature's enactment is the Graphist-function.
+  The facts of a particular case are the Grapheus-function.  The judge's
+  interpretation — which may establish precedent, overturn prior readings,
+  or identify ambiguity — is the Agonothetes-function.  The law's meaning
+  is not fixed at enactment; it grows through the iterated application of
+  the triadic cycle across cases.
 
-A complicated graph involves **sub-games** as the tree is traversed.
-Each sub-game corresponds to a sub-tree rooted at some cut:
+- A **scientific paper** proposes.  The paper's claims are the Graphist-
+  function.  The existing literature and experimental evidence are the
+  Grapheus-function.  The community's response — acceptance, replication,
+  critique, revision — is the Agonothetes-function.  Peer review is a
+  formalized Endoporeutic Game.
 
-- The Agonothetes opens a sub-game when the traversal descends into a cut
-- Within the sub-game, the players apply transformation rules in their
-  respective territories (polarity-constrained)
-- The sub-game resolves to one of the taxonomic outcomes (Section II)
-- Control returns to the parent level with the sub-game's result
+The framework fits because it *is* Peirce's sign-triad applied to inquiry.
+Quasi-minds are precisely the entities between which the triadic process
+operates.  The Endoporeutic Game is a formalization of the process; the
+quasi-mind interactions are the process in the wild.
 
-The Agonothetes tracks the **traversal path** and the **outcome of each
-sub-game** until the process unwraps the whole graph.
+### Simple Understanding and Expert Understanding
 
-### The ∀/∃ Alternation
+Consider the same proposal G tested against two different domain models:
+a novice's M_n and an expert's M_e.
 
-The asymmetry of the game is the ∀/∃ alternation in the game tree:
+**The novice's game:**
 
-- **Positive node** (Grapheus has initiative): The content is *asserted*
-  (conjunction of juxtaposed elements). The Grapheus can challenge **any**
-  element. The Graphist must defend **all** of them.
+- M_n is sparse — few facts, few implications, shallow structure.
+- Many proposals are **independent** of M_n (stalemate → new fact).  The
+  game terminates quickly because there is little for the Grapheus to
+  challenge and little for IT- to map.
+- The Agonothetes-function is coarse: the novice can distinguish "yes,"
+  "no," and "I don't know" but has few intermediate categories.
+- The game tree is shallow and narrow.
 
-- **Negative node** (Graphist has initiative): The content is inside a cut
-  (negated). The Graphist chooses **which path** to pursue — they select the
-  defense most favorable to their position.
+**The expert's game:**
 
-The burden lies more heavily on the Graphist than on the Grapheus. The
-Graphist must show that *every* part of the graph makes sense with respect
-to M. The Grapheus needs only identify a part that does not map directly.
+- M_e is rich — many facts, deep implication chains, extensive cross-
+  references.
+- The same proposal G may be a **theorem** (derivable through a long chain
+  of IT- and DC- steps), a **refinement** of an existing result, or a subtle
+  **contradiction** that the novice's M_n could not detect.
+- The Agonothetes-function is nuanced: the expert can distinguish refinement
+  from generalization, conditional acceptance from provisional hypothesis,
+  a genuine contribution from a rediscovery of known results.
+- The game tree is deep and richly branched.
 
-However, a failure to map does not necessarily doom the graph. It means
-that the proposed graph does not map *simply* onto M — but the taxonomy
-of outcomes (Section II) tells us what this can signify:
+**Learning is the iterated growth of M through successive games.**  The
+novice's M_n becomes the expert's M_e through thousands of Agonothetes
+judgments, each enriching the Grapheus for the next round.  The expert is
+not someone who has a *different* process of understanding but someone whose
+Grapheus is deep enough that the Agonothetes can produce fine-grained
+distinctions.
 
-- If the unmapped content **internally contradicts** itself, the graph
-  is in genuine trouble (Case 5).
-- If it **contradicts M**, the game enters the refutation/revision space
-  (Cases 2a–2d).
-- If it is merely **independent of M**, the failure to map may signal a
-  **new fact** (Case 3a), a **new abductive explanation** (Case 3b), an
-  **open conjecture** (Case 3c), or a **generalization** that would
-  enhance the UoD (Case 8).
+This suggests a testable prediction: the quality of understanding scales with
+the *richness of M*, not with any special faculty of the inquirer.  An expert
+in domain A is a novice in domain B precisely because their M is rich in one
+and sparse in the other.
 
-The game *sorts* the graph into the appropriate taxonomic category. A
-"failure" at a sub-game level is not necessarily a failure of the whole
-proposal — it is information about how the proposal relates to M.
+### Cross-Cultural Interaction
 
-### Where M Lives
+When cultures interact, each brings its own M — its own Grapheus, the
+accumulated knowledge and conceptual structure of that tradition.  A proposal
+from culture A, tested against culture B's M, may produce outcomes that
+neither culture anticipated.
 
-M resides in the game context (iterated there by the Agonothetes during
-setup) so that the deiteration rule (IT-) permits showing content "maps
-to M": if a subgraph in the current area is identical to something in M at
-an ancestor level, IT- can deiterate it — demonstrating the mapping. The
-Graphist wins a sub-game when all positive content has been resolved this
-way: everything either maps to M or is structurally tautological.
+**Scenario: complementary domains.**  Culture A has deep knowledge of
+navigation; culture B has deep knowledge of agriculture.  A navigational
+claim from A tested against B's M produces stalemate (independence) — not
+because the claim is wrong but because B's M has no basis to evaluate it.
+The Agonothetes-function here is: accept as new fact on A's authority, or
+hold as hypothesis pending B's own investigation.  This is Case 3a in the
+taxonomy — empirical enlargement.
+
+**Scenario: overlapping but different frameworks.**  Culture A models illness
+as imbalance of humors; culture B models illness as microbial infection.
+A claim from A ("this patient's illness is caused by excess bile") tested
+against B's M produces a **contradiction** — not because A is wrong in all
+respects but because the frameworks are structurally incompatible.  The
+Agonothetes-function must distinguish:
+
+- Is the contradiction fundamental (the frameworks are irreconcilable)?
+- Is it terminological (the same phenomena described in different vocabularies)?
+- Is it partial (each framework captures aspects the other misses)?
+
+This is precisely where the taxonomy of outcomes (revision, fork, conditional
+acceptance) earns its keep.  The Agonothetes does not simply accept or
+reject; it *interprets* the nature of the disagreement and facilitates a
+disposition that may involve revising either M, holding both as alternatives,
+or constructing a third framework that subsumes both.
+
+Cross-cultural understanding is the case where the Agonothetes must operate
+at its most sophisticated — and where a purely boolean game (true/false)
+would be most impoverished.
+
+### The Temporal Self
+
+Perhaps the most intimate instance of the triad: the relationship between
+a person's past, present, and future understanding.
+
+- **Past self = Grapheus.**  The knowledge base M as it was: the beliefs,
+  commitments, and conceptual structures one held at an earlier time.
+- **Present self = Graphist.**  The active inquirer, bringing new experience,
+  new reading, new encounters to bear on the old M.
+- **Agonothetes = the growth of understanding over time.**  The judgment
+  that "I used to think X, now I think Y" is an Agonothetes verdict: the
+  present Graphist proposed Y, the past Grapheus resisted (M included X),
+  and the Agonothetes interpreted the outcome as warranting revision.
+
+This framing illuminates several familiar phenomena:
+
+- **Diary-keeping and journaling** are forms of the Endoporeutic Game played
+  across time.  The journal entry is the Graphist's proposal; re-reading it
+  years later tests it against a changed M; the insight produced is the
+  Agonothetes-function.
+
+- **Education** (as in Scenario 5 of the practical exemplars) is the
+  *guided* application of the cycle: the teacher structures the Graphist's
+  proposals and scaffolds the Agonothetes-function until the student's M
+  is rich enough to sustain the cycle independently.
+
+- **Self-contradiction across time** ("How could I have believed that?") is
+  a game in which the present self's enriched M exposes a claim the past
+  self held as a theorem but which the present self can refute.  The
+  discomfort is the Agonothetes registering a genuine conflict between
+  temporal selves.
+
+Peirce himself anticipated this with his notion of the **community of
+inquiry** — even a single inquirer participates in this community
+diachronically, through the conversation between past, present, and future
+selves.  The triadic framework makes this precise: the community of inquiry
+is the iterated Graphist–Grapheus–Agonothetes cycle applied across time.
+
+### What These Checks Suggest
+
+The framework appears to fit — not as a loose analogy but as a structural
+correspondence.  In every case examined, the three functions (assertive,
+critical, interpretive) are present and irreducible.  Removing any one
+collapses the process:
+
+- Without the Graphist: no proposals, no growth — a static archive.
+- Without the Grapheus: no resistance, no testing — unchecked speculation.
+- Without the Agonothetes: no interpretation, no significance — a contest
+  with a winner but no understanding.
+
+This structural necessity is exactly what Peirce's semiotic predicts.  The
+sign-triad is irreducible because meaning-making is irreducibly triadic.
+The Endoporeutic Game is one formalization of this process; the quasi-mind
+interactions, the novice-to-expert trajectory, the cross-cultural encounter,
+and the temporal self are other instances of the same triadic engine.
+
+These observations remain speculative and would benefit from more rigorous
+treatment.  But as rough validity checks, they suggest that the triadic
+framework is not an *ad hoc* addition to the game mechanics but a genuine
+reflection of the structure of inquiry — which is what we should expect if
+Peirce's architectonic is sound.
 
 ---
 
-## Two Layers of the Game
+# Part IV · Practice and Reference
 
-The EPG unifies two formalisms that are often treated separately. Understanding
-their relationship is essential for implementation.
-
-### The Semantic Evaluation Game (Inner Layer)
-
-Pietarinen (2006, Ch. 4–7) formalizes Peirce's endoporeutic interpretation as
-a **semantic game** with four rules:
-
-1. **Juxtaposition** — At a positive node (conjunction), the Grapheus chooses
-   which conjunct to examine. At a negative node, the Graphist chooses.
-2. **Ligatures** — The polarity of a ligature's outermost extremity determines
-   who picks an individual from the domain: the Graphist on positive areas
-   (existential quantification), the Grapheus on negative areas (universal).
-3. **Atomic spot** — When an atomic predicate is reached, its truth-value in
-   the model determines the winner: true = Graphist wins, false = Grapheus wins.
-4. **Winning strategy** — The graph is true in the model if and only if the
-   Graphist has a winning strategy.
-
-This game is **recursive**, **boolean** (true/false), and **always terminates**
-(the graph is finite, so the descent bottoms out at atomic spots). It is purely
-evaluative — no transformation rules appear. It answers the question: *is this
-graph true in this model?*
-
-### The Transformation Game (Strategic Layer)
-
-Dau's six rules — INS, ERA, IT+, IT-, DC+, DC- — constitute a separate
-**proof-theoretic** system. Players use these rules to manipulate the graph
-structure: the Graphist strengthens and propagates; the Grapheus simplifies
-and erases.
-
-The transformation rules are not moves *in* the semantic game; they are the
-**strategic reasoning** by which a player constructs or demonstrates a winning
-(or losing) position. They answer the question: *can we show that the Graphist
-has (or lacks) a winning strategy?*
-
-### The Bridge: IT- as Semantic Mapping
-
-The connection between the two layers is **deiteration (IT-)**. In the
-semantic game, reaching an atomic spot and checking its truth-value against
-the model is the termination condition. In the transformation game, the
-corresponding operation is IT-: if a subgraph at the current level is
-identical to something in M at an ancestor level, IT- deiterates it —
-removing it as "already accounted for." This is the proof-theoretic way of
-saying "this content is true in M."
-
-The Graphist wins when all positive content has been deiterated (mapped to M)
-or shown to be structurally tautological. The Grapheus wins when some positive
-content cannot be mapped and cannot be resolved.
-
-### The Interpretive Layer (Agonothetes)
-
-The semantic game yields a boolean. The transformation game demonstrates
-*why* that boolean holds. But neither layer, alone, produces *understanding*.
-The Agonothetes — the interpretive function — takes the boolean result
-together with the traversal path and the game transcript and maps them to
-the outcome taxonomy (Section II):
-
-```
-Semantic game result (true/false)
-  + traversal path (which sub-games, which choices)
-  + game transcript (which rules, which failures)
-  ────────────────────────────────
-  → taxonomic outcome (theorem, new fact, revision, ...)
-  → disposition (accept, reject, revise M, hold as hypothesis, ...)
-  → integration into UoD
-```
-
-This is why the Agonothetes is not reducible to either player's perspective:
-it operates at a meta-level, interpreting the *significance* of the game's
-mechanical result.
-
-### Design Implications
-
-This two-layer structure resolves several architectural concerns:
-
-- **Non-boolean outcomes**: The semantic game IS boolean. The taxonomy of
-  outcomes is a higher-level interpretation applied by the Agonothetes after
-  the game completes. The boolean result determines the *logical* status;
-  the Agonothetes determines what it *means* in context.
-
-- **Termination**: The semantic game always terminates because graphs are
-  finite. Pietarinen: "the graphs are finite... the interaction will come to
-  a halt in a finite number of steps." The transformation game may involve
-  strategic choices about when to stop, but the underlying evaluation is
-  guaranteed to bottom out.
-
-- **When to descend**: In the semantic game, descent is immediate — each
-  step peels off one layer of the nest. In the transformation game, players
-  may prepare before descending (DC+, INS to set up structures). The
-  preparation IS the strategic reasoning; the descent IS the evaluation.
-
-- **Beta graphs**: Ligatures introduce quantifier binding. The semantic
-  game handles this via rule 2 (who picks the individual from the domain).
-  The transformation game handles it via the subgraph closure rules that
-  govern which ligature-connected elements can be iterated or deiterated
-  together.
-
----
+*Playing and building — strategy heuristics, worked scripts, the implementation, and the literature.*
 
 ## Role-Switching and Strategic Considerations
 
@@ -1846,16 +1901,14 @@ The Skeptic attacks G by operating in positive (even-depth) areas:
 *simplifying structure*. The Skeptic cannot add anything — they can only
 remove and simplify.
 
-### Role Reversal
+### Reasoning across a role reversal
 
-A defining feature of the EPG is that **removing a negation reverses the
-roles**. When the outermost graph consists of a single negation, the next
-step removes it — changing the valence of all nested elements and making the
-former Skeptic into the new Proposer, who must now defend the contrary graph.
-
-This means both players must reason about the consequences of their moves
-not just for the current position but for the position they may find
-themselves defending after a role switch.
+Removing a negation reverses the roles — its mechanism is *The Outside-In
+Process* and *Role Reversal as Descent* in Part I. Strategically, this means
+both players must reason about
+the consequences of a move not just for the current position but for the
+position they may find themselves defending *after* a role switch — the former
+Skeptic becomes the Proposer who must defend the contrary graph.
 
 ### Turn-by-Turn Dynamics
 
@@ -2015,7 +2068,7 @@ game play.
 ### The Pragmatic Turn
 
 What distinguishes the EPG from a standard proof system is its **pragmatic**
-character. The post-game negotiation (Section II above) connects the formal
+character. The post-game negotiation (Part II) connects the formal
 game to Peirce's broader theory of inquiry:
 
 - **Belief fixation**: The game outcome fixes or disturbs belief

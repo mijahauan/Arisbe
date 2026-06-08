@@ -15,6 +15,12 @@ something new (Ergasterion), test it (Agon), and the result flows back into
 what you know. This document walks through practical scenarios that show
 how the cycle works — in language meant for anyone, not just logicians.
 
+This is the narrative on-ramp; the formal account of the testing step (the
+Endoporeutic Game — its rules, its outcome taxonomy, and the Peircean theory of
+inquiry behind it) is in [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
+Each scenario below is a concrete instance of one of that guide's outcome cases;
+the guide's Part II gives the scenario-by-scenario mapping.
+
 One rule keeps the cycle honest: work in the workshop never lands directly in
 the library. A graph reaches the trusted record (the corpus) only by being
 *tested through Agon*, or as a presentation-only restyling of something already
