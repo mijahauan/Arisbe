@@ -38,6 +38,12 @@ from tools.build_peirce_law_chain import (
     peirce_law_annotations,
     peirce_law_provenance,
 )
+from tools.build_barbara_chain import (
+    CONCLUSION_EGIF as BARBARA_CONCLUSION,
+    barbara_annotations,
+    barbara_provenance,
+    build_barbara_chain,
+)
 
 
 @pytest.fixture
@@ -88,3 +94,43 @@ def test_peirce_law_full_payload_round_trips(tomos):
     assert prov.is_authored_here()
     layer = annotations_from_list(tomos.load_annotations(uod.uod_id))
     assert {a.scope for a in layer} == {SCOPE_UOD, SCOPE_CHAIN, SCOPE_STEP}
+
+
+# --------------------------------------------------------------------------- #
+# Barbara (Beta, from premises) — exercises the derived iterate-and-join       #
+# --------------------------------------------------------------------------- #
+
+
+def test_barbara_reaches_conclusion():
+    chain, uod = build_barbara_chain()
+    # Derived UI move first, then ordinary primitives.
+    assert [s.rule_name for s in chain.steps] == ["UI", "IT-", "DC-", "ERA"]
+    # Beta → full isomorphism is the authority (A1 stays asserted + every-S-is-P).
+    assert nav.same_graph(uod.current_egi, parse_egif(BARBARA_CONCLUSION))
+
+
+def test_barbara_ui_step_is_marked_derived():
+    chain, _ = build_barbara_chain()
+    ui = chain.steps[0]
+    assert ui.rule_name == "UI"
+    assert ui.parameters.get("derived") is True
+
+
+def test_barbara_provenance_and_annotations():
+    prov = Provenance.from_dict(barbara_provenance())
+    prov.validate()
+    assert prov.is_authored_here()
+    assert "Aristotle" in prov.formatted()["theorem"]
+
+    layer = annotations_from_list(barbara_annotations())
+    # The Beta crux is the step-1 iterate-and-join.
+    step1 = for_step(layer, "step-1")
+    assert step1 and "beta-crux" in step1[0].tags
+
+
+def test_barbara_full_payload_round_trips(tomos):
+    chain, uod = build_barbara_chain()
+    tomos.save_uod_with_chain(uod, chain, provenance=barbara_provenance())
+    tomos.save_annotations(uod, barbara_annotations())
+    assert tomos.load_chain(uod.uod_id) is not None
+    assert Provenance.from_dict(tomos.load_provenance(uod.uod_id)).is_authored_here()

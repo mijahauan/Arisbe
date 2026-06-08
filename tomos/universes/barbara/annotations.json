@@ -1,0 +1,43 @@
+{
+  "annotations": [
+    {
+      "id": "ann_2830bdd0",
+      "scope": "uod",
+      "text": "Barbara \u2014 Aristotle's first syllogism \u2014 proved from premises asserted on the sheet (\u0393\u22a2\u03c6); the premises-vs-blank-sheet contrast with Peirce's Law and the Praeclarum is itself worth demonstrating.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "pedagogy"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_9816bc29",
+      "scope": "chain",
+      "text": "A1 ('every M is P') remains asserted on the sheet throughout; erase it with a final ERA if you want the conclusion standing alone.",
+      "author": null,
+      "created": null,
+      "tags": [],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_0252f38e",
+      "scope": "step",
+      "text": "The one genuinely Beta-specific move: iterate A1 into A2's scroll and join the copied line of identity to y \u2014 *x becomes a bound use of y. This iterate-and-join is universal instantiation derived from the primitives (Sowa Fig. 14; Dau \u00a716 derived ligature rules) \u2014 and the place a naive engine quietly drops the coreference.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "crux",
+        "beta-crux",
+        "fixture"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    }
+  ]
+}

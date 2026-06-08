@@ -579,15 +579,34 @@ started.
   cut nest (a coreferent vertex + identity edge at each level) and *then* merged.
   This is exactly Sowa's 1i ("insert a connection") realized here, and exactly the
   point "where most EG engines quietly drop a coreference."
-- **Therefore the move composes (no protected change) as:** `IT+` (the 2i copy) →
-  **extend the target line `y` down through the nest** (`ligature_manipulation_rules.
-  ExtendRestrictLigatureRule` — adds a coreferent vertex + `=` edge per context)
-  → **merge** the copied `z` into the extended `y` (`vertex_splitting_merging_rules.
-  VertexMergingRule`; both modules unprotected, callable) → `DC-` (the 3e). All
-  pieces are public; the new code is an unprotected composition module
-  (`src/derived_rules.py`) + a `ProofChain` entry that records the expansion as
-  real primitive/ligature steps.
+- **Dau confirmation (author's gate to proceed).** Dau, *Mathematical Logic with
+  Diagrams* §16.1 *Derived Rules for Ligatures* formalizes the move's pieces as
+  derived rules, each proven **syntactically equivalent** (sound + reversible),
+  with soundness in §17: **Lemma 16.2** (extending a ligature in a context, from
+  iteration + adding-a-vertex), **Definition 16.6 / Lemma 16.7** (merging two
+  vertices, constraint `ctx(v₁) ≥ ctx(e) = ctx(v₂)` — exactly the constraint the
+  probe hit), Lem 16.1 / Def 16.4 (moving / rearranging). So the derived UI move
+  is Dau-formalized, not improvised.
 
-**Next:** implement `derived_rules.universal_instantiation` per the above; seed
-Barbara with it; then group-identity (R8 now settled — equality as ligature);
-then step 5 (retrofit).
+- **Built (Step 4c). ✅** [`src/derived_rules.py`](../src/derived_rules.py)
+  `universal_instantiation` = `IT+` (2i copy → fresh line `z`) → insert identity
+  edge `=`(target_line, z) in `z`'s context (the 1i connection) → **merge** `z`
+  into the target line (Def 16.6 — the merge rewrites incidence directly, so it
+  crosses the depth a per-hook rebind cannot). `ProofChain.apply_derived` records
+  a derived move as one readable `ChainStep`. Composes public ops only; no
+  protected module touched.
+
+**Step 4d — Barbara (Beta) ✅ seeded.**
+[`tools/build_barbara_chain.py`](../tools/build_barbara_chain.py): from premises
+asserted on the sheet (`from_egif`), **UI → IT- → DC- → ERA**, reaching
+∀y(S⊃P) with A1 still asserted (verified by full isomorphism). All five chain
+states render and §3.3-attest (incl. the post-UI state with `y` crossing three
+cuts). Authored-here provenance (theorem = Aristotle; method = Dau §16 / Sowa
+Fig.14 / Roberts) + the §4.2 comments as annotations (the step-1 iterate-and-join
+crux, the A1-stays-asserted chain note, the premises-vs-blank uod note). Now in
+the corpus as `barbara`. Tests: +4 in `test_fixture_chains.py`.
+
+**Next:** group-identity (Step 4e) needs **multi-line** UI (A3 instantiates four
+lines at once, to *constants* `e`/`f`) — an extension of the single-line
+`universal_instantiation`; R8 is settled (equality = ligature). Then step 5
+(retrofit the corpus to spec).

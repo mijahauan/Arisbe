@@ -216,6 +216,52 @@ class ProofChain:
         self._current_id, self._current = to_id, new_egi
         return self
 
+    def apply_derived(
+        self,
+        rule_name: str,
+        transform: Callable[[RelationalGraphWithCuts], RelationalGraphWithCuts],
+        *,
+        label: Optional[str] = None,
+        note: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
+    ) -> "ProofChain":
+        """Apply a *derived* rule and record it as one ``ChainStep``.
+
+        ``transform`` is a callable ``egi -> egi`` that composes primitive rules
+        (e.g. ``derived_rules.universal_instantiation``), resolving its own
+        locators against the current state.  The resulting state is recorded and
+        is authoritative — a derived step is one move at the chain level, and is
+        not re-expanded by the six-rule ``replay_step`` path (its sub-steps are
+        Dau-formalized but collapsed here for readability, the same way a human
+        proof writes "by universal instantiation").
+
+        Use this for moves outside the six base rules (Beta ligature work);
+        ``apply`` remains the path for the six primitives.
+        """
+        new_egi = transform(self._current)
+        i = len(self._steps)
+        from_id, to_id = self._current_id, f"s{i + 1}"
+        p: Dict[str, Any] = {"rule": rule_name, "derived": True}
+        if label is not None:
+            p["peirce_label"] = label
+        if note is not None:
+            p["description"] = note
+        if params:
+            p.update(params)
+        annotation = f"{label}: {note}" if (label and note) else note
+        self._steps.append(ChainStep(
+            step_id=f"step-{i + 1}",
+            rule_name=rule_name,
+            from_state_id=from_id,
+            to_state_id=to_id,
+            parameters=p,
+            timestamp=(self._base + timedelta(seconds=i)).isoformat(),
+            user_annotation=annotation,
+        ))
+        self._states[to_id] = new_egi
+        self._current_id, self._current = to_id, new_egi
+        return self
+
     def to_chain(self) -> TransformationChain:
         """The accumulated chain."""
         return TransformationChain(

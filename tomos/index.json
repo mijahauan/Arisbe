@@ -288,7 +288,22 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/peirce_law"
+    },
+    {
+      "uod_id": "barbara",
+      "name": "Barbara (First-Figure Syllogism)",
+      "category": "theorem_proof",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/barbara"
     }
   ],
-  "last_updated": "2026-06-08T08:20:19.548211"
+  "last_updated": "2026-06-08T09:41:32.865569"
 }
