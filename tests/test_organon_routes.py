@@ -100,8 +100,26 @@ def test_list_uods_entries_carry_archive_metadata(client):
         "last_modified",
         "authors",
         "tags",
+        # browse facets (the corpus-browser shelving dimension + search fields)
+        "kind",
+        "cited",
+        "description",
     ):
         assert required in sample, f"missing field on Organon list entry: {required}"
+
+
+def test_list_uods_carries_browse_facets(client):
+    """The list is enriched with provenance kind + cited flag from the cheap
+    side-files (no load_uod), so the browser can group/facet without N fetches."""
+    body = client.get("/organon/uods").json()["data"]
+    by_id = {u["uod_id"]: u for u in body}
+    # an imported ontology is kind=ontology and cited from its source vocabulary
+    if "sumo_upper" in by_id:
+        assert by_id["sumo_upper"]["kind"] == "ontology"
+        assert by_id["sumo_upper"]["cited"] is True
+    # a synthetic exemplar is authored-here (not cited)
+    if "ternary_relation_challenge" in by_id:
+        assert by_id["ternary_relation_challenge"]["cited"] is False
 
 
 # --------------------------------------------------------------------------- #

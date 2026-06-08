@@ -46,19 +46,6 @@
       border-radius: 3px;
       text-transform: uppercase;
     }
-    #organon-filter {
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--bottombar-border);
-    }
-    #organon-filter input {
-      width: 100%;
-      padding: 6px 8px;
-      background: var(--btn-bg);
-      color: var(--sidebar-text);
-      border: 1px solid var(--bottombar-border);
-      border-radius: 3px;
-      font-size: 12px;
-    }
     #organon-uod-list {
       flex: 1;
       overflow-y: auto;
@@ -95,6 +82,49 @@
       border-radius: 2px;
       margin-right: 4px;
     }
+
+    /* --- corpus browser controls --- */
+    #organon-controls {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--bottombar-border);
+      display: flex; flex-direction: column; gap: 7px;
+    }
+    #organon-controls input, #organon-controls select {
+      width: 100%; padding: 6px 8px;
+      background: var(--btn-bg); color: var(--sidebar-text);
+      border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px;
+    }
+    #organon-controls .ctl-row { display: flex; gap: 7px; align-items: center; }
+    #organon-controls .ctl-row label { font-size: 10px; color: #6c7086; white-space: nowrap; }
+    #organon-count { font-size: 10px; color: #6c7086; }
+    /* kind facet chips */
+    #organon-facets { display: flex; flex-wrap: wrap; gap: 4px; }
+    .facet-chip {
+      font-size: 10px; padding: 2px 7px; border-radius: 10px; cursor: pointer;
+      border: 1px solid var(--bottombar-border); color: #a6adc8; background: transparent;
+      user-select: none;
+    }
+    .facet-chip:hover { color: var(--sidebar-text); }
+    .facet-chip.active { background: var(--sidebar-accent); color: var(--sidebar-bg); border-color: var(--sidebar-accent); font-weight: 600; }
+    /* kind group headers */
+    .kind-group-header {
+      position: sticky; top: 0; z-index: 1;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px; cursor: pointer;
+      background: #181825; border-bottom: 1px solid var(--bottombar-border);
+      font-size: 11px; font-weight: 700; color: var(--sidebar-text); letter-spacing: .02em;
+    }
+    .kind-group-header .kg-caret { font-size: 9px; color: #6c7086; width: 9px; }
+    .kind-group-header .kg-count { font-size: 10px; color: #6c7086; font-weight: 500; }
+    .kind-group.collapsed .uod-item { display: none; }
+    /* per-row kind badge + cited dot */
+    .uod-kind-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 3px;
+      font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
+      margin-right: 5px;
+    }
+    .uod-cited-dot { font-size: 9px; color: #94a3b8; }
+    .uod-cited-dot.cited { color: #a6e3a1; }
 
     #organon-main {
       display: flex;
@@ -195,13 +225,23 @@
         <span class="mode-tag">Read-only</span>
       </div>
 
-      <div id="organon-filter">
+      <div id="organon-controls">
         <input
           type="text"
           id="organon-filter-input"
-          placeholder="Filter by name…"
+          placeholder="Search name, description, source, tags…"
           autocomplete="off"
         />
+        <div class="ctl-row">
+          <label for="organon-sort">Sort</label>
+          <select id="organon-sort">
+            <option value="kind">Group by kind</option>
+            <option value="name">Name (A–Z)</option>
+            <option value="modified">Recently modified</option>
+          </select>
+        </div>
+        <div id="organon-facets"></div>
+        <div id="organon-count"></div>
       </div>
 
       <div id="organon-uod-list">
@@ -304,6 +344,8 @@
       const statusEl = document.getElementById('organon-status');
 
       let allUods = [];
+      let sortMode = 'kind';     // 'kind' (grouped) | 'name' | 'modified'
+      let activeKind = null;     // facet filter: a kind id, or null for all
       let selectedUodId = null;
       let svgPanZoomInstance = null;
       let exportUodId = null;
@@ -332,32 +374,75 @@
         statusEl.classList.toggle('error', !!isError);
       }
 
+      // The import-kind taxonomy is the corpus's shelving dimension
+      // (docs/CORPUS_AND_IMPORT_MODEL.md §2). Order, label and colour per kind.
+      const KIND_META = {
+        ontology:     { label: 'Ontologies',    color: '#5b21b6', bg: '#ede9fe' },
+        proof:        { label: 'Proofs',        color: '#166534', bg: '#dcfce7' },
+        pattern:      { label: 'Patterns',      color: '#92400e', bg: '#fef3c7' },
+        domain_model: { label: 'Domain models', color: '#115e59', bg: '#ccfbf1' },
+        exemplar:     { label: 'Exemplars',     color: '#334155', bg: '#e2e8f0' },
+        _none:        { label: 'Unclassified',  color: '#44475a', bg: '#cdd0d8' },
+      };
+      const KIND_ORDER = ['ontology', 'proof', 'pattern', 'domain_model', 'exemplar', '_none'];
+      const collapsedKinds = {};   // kind -> true when its group is collapsed
+
+      function kindOf(u) { return u.kind && KIND_META[u.kind] ? u.kind : '_none'; }
+
+      function makeItemEl(uod) {
+        const item = document.createElement('div');
+        item.className = 'uod-item';
+        if (uod.uod_id === selectedUodId) item.classList.add('selected');
+        item.dataset.uodId = uod.uod_id;
+        const km = KIND_META[kindOf(uod)];
+        const badge = '<span class="uod-kind-badge" style="color:' + km.color +
+          ';background:' + km.bg + '">' + escapeHtml((uod.kind || 'unclassified')) + '</span>';
+        const states = uod.total_states && uod.total_states > 1
+          ? '<span>' + uod.total_states + ' states</span>' : '';
+        const cited = '<span class="uod-cited-dot ' + (uod.cited ? 'cited' : '') + '" title="' +
+          (uod.cited ? 'cited from a source' : 'authored here') + '">●</span> ' +
+          (uod.cited ? 'cited' : 'authored');
+        item.innerHTML =
+          '<div class="uod-name">' + badge + escapeHtml(uod.name) + '</div>' +
+          '<div class="uod-meta">' + cited + (states ? ' · ' + states : '') + '</div>';
+        item.addEventListener('click', function () { openUod(uod.uod_id); });
+        return item;
+      }
+
       function renderList(uods) {
+        listEl.innerHTML = '';
         if (uods.length === 0) {
           listEl.innerHTML = '<div class="empty-state">No matches.</div>';
           return;
         }
-        listEl.innerHTML = '';
-        uods.forEach((uod) => {
-          const item = document.createElement('div');
-          item.className = 'uod-item';
-          if (uod.uod_id === selectedUodId) {
-            item.classList.add('selected');
-          }
-          item.dataset.uodId = uod.uod_id;
-          const categoryLabel = (uod.category || '').replace(/_/g, ' ');
-          item.innerHTML =
-            '<div class="uod-name">' + escapeHtml(uod.name) + '</div>' +
-            '<div class="uod-meta">' +
-              '<span class="uod-category">' + escapeHtml(categoryLabel) + '</span>' +
-              (uod.total_states && uod.total_states > 1
-                ? '<span>' + uod.total_states + ' states</span>'
-                : '') +
-            '</div>';
-          item.addEventListener('click', function () {
-            openUod(uod.uod_id);
+        if (sortMode !== 'kind') {
+          const sorted = uods.slice().sort(sortMode === 'modified'
+            ? function (a, b) { return (b.last_modified || '').localeCompare(a.last_modified || ''); }
+            : function (a, b) { return (a.name || '').localeCompare(b.name || ''); });
+          sorted.forEach(function (u) { listEl.appendChild(makeItemEl(u)); });
+          return;
+        }
+        // Group by kind, in the taxonomy order, with collapsible headers + counts.
+        const groups = {};
+        uods.forEach(function (u) { (groups[kindOf(u)] = groups[kindOf(u)] || []).push(u); });
+        KIND_ORDER.forEach(function (k) {
+          const list = groups[k];
+          if (!list || !list.length) return;
+          list.sort(function (a, b) { return (a.name || '').localeCompare(b.name || ''); });
+          const wrap = document.createElement('div');
+          wrap.className = 'kind-group' + (collapsedKinds[k] ? ' collapsed' : '');
+          const hdr = document.createElement('div');
+          hdr.className = 'kind-group-header';
+          hdr.innerHTML = '<span class="kg-caret">' + (collapsedKinds[k] ? '▸' : '▾') + '</span>' +
+            '<span>' + KIND_META[k].label + '</span>' +
+            '<span class="kg-count">' + list.length + '</span>';
+          hdr.addEventListener('click', function () {
+            collapsedKinds[k] = !collapsedKinds[k];
+            applyFilter();
           });
-          listEl.appendChild(item);
+          wrap.appendChild(hdr);
+          list.forEach(function (u) { wrap.appendChild(makeItemEl(u)); });
+          listEl.appendChild(wrap);
         });
       }
 
@@ -369,19 +454,52 @@
           .replace(/"/g, '&quot;');
       }
 
+      // Search matches across name, id, description, source and tags — not just
+      // the name (the old filter's blind spot at corpus scale).
+      function matchesQuery(u, q) {
+        if (!q) return true;
+        const hay = [u.name, u.uod_id, u.description, (u.tags || []).join(' '),
+          (u.category || '').replace(/_/g, ' ')].join(' ').toLowerCase();
+        return hay.indexOf(q) >= 0;
+      }
+
       function applyFilter() {
         const q = filterEl.value.trim().toLowerCase();
-        if (!q) {
-          renderList(allUods);
-          return;
-        }
         const filtered = allUods.filter(function (u) {
-          return (
-            (u.name || '').toLowerCase().includes(q) ||
-            (u.uod_id || '').toLowerCase().includes(q)
-          );
+          if (activeKind && kindOf(u) !== activeKind) return false;
+          return matchesQuery(u, q);
         });
         renderList(filtered);
+        const countEl = document.getElementById('organon-count');
+        if (countEl) {
+          const kinds = new Set(filtered.map(kindOf));
+          countEl.textContent = filtered.length + ' of ' + allUods.length +
+            ' items · ' + kinds.size + ' kind' + (kinds.size === 1 ? '' : 's') +
+            (q || activeKind ? ' (filtered)' : '');
+        }
+      }
+
+      // Facet chips: one per kind present, plus "All". Click to scope the list.
+      function renderFacets() {
+        const host = document.getElementById('organon-facets');
+        if (!host) return;
+        const counts = {};
+        allUods.forEach(function (u) { counts[kindOf(u)] = (counts[kindOf(u)] || 0) + 1; });
+        const chips = ['<span class="facet-chip' + (activeKind ? '' : ' active') +
+          '" data-kind="">All ' + allUods.length + '</span>'];
+        KIND_ORDER.forEach(function (k) {
+          if (!counts[k]) return;
+          chips.push('<span class="facet-chip' + (activeKind === k ? ' active' : '') +
+            '" data-kind="' + k + '">' + KIND_META[k].label + ' ' + counts[k] + '</span>');
+        });
+        host.innerHTML = chips.join('');
+        Array.from(host.querySelectorAll('.facet-chip')).forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            activeKind = chip.dataset.kind || null;
+            renderFacets();
+            applyFilter();
+          });
+        });
       }
 
       async function loadCorpus() {
@@ -395,10 +513,8 @@
             return;
           }
           allUods = body.data || [];
-          allUods.sort(function (a, b) {
-            return (a.name || '').localeCompare(b.name || '');
-          });
-          renderList(allUods);
+          renderFacets();
+          applyFilter();
           setStatus('Loaded ' + allUods.length + ' UoDs from tomos corpus.');
         } catch (e) {
           setStatus('Network error: ' + e.message, true);
@@ -777,6 +893,13 @@
       });
 
       filterEl.addEventListener('input', applyFilter);
+      const sortSel = document.getElementById('organon-sort');
+      if (sortSel) {
+        sortSel.addEventListener('change', function () {
+          sortMode = sortSel.value;
+          applyFilter();
+        });
+      }
       const viewStyleSel = document.getElementById('view-style');
       if (viewStyleSel) {
         viewStyleSel.addEventListener('change', function () {

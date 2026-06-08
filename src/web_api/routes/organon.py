@@ -71,19 +71,52 @@ async def organon_index():
     return FileResponse(str(VIEWER_DIR / "organon.html"))
 
 
+def _browse_facets(entry: dict) -> dict:
+    """Cheap browse facets for a list row — the provenance ``kind`` + a
+    cited/authored flag + the description + tags — read straight from the
+    ``provenance.json`` / ``uod.meta.json`` side-files.
+
+    Deliberately does NOT call ``load_uod`` (that would parse + §3.3-attest every
+    corpus graph on every list request); only the small JSON side-files are read.
+    """
+    import json
+    facets = {"kind": None, "cited": False, "description": "", "extra_tags": []}
+    path = entry.get("path")
+    if not path:
+        return facets
+    base = Path(path)
+    try:
+        prov = json.loads((base / "provenance.json").read_text(encoding="utf-8"))
+        facets["kind"] = prov.get("kind")
+        facets["cited"] = bool(prov.get("theorem_source"))
+    except Exception:
+        pass
+    try:
+        meta = json.loads((base / "uod.meta.json").read_text(encoding="utf-8"))
+        facets["description"] = meta.get("description") or ""
+        facets["extra_tags"] = list(meta.get("tags") or [])
+    except Exception:
+        pass
+    return facets
+
+
 @router.get("/uods")
 async def list_uods():
-    """List all UoDs in the tomos corpus.
+    """List all UoDs in the tomos corpus, enriched with browse facets.
 
-    Returns the same lightweight metadata that ``TomosService.list_uods``
-    exposes — enough for the browser to render a list and open any
-    entry.  Read-only; no session is created.
+    Beyond the lightweight index metadata, each row carries the provenance
+    ``kind`` (the shelving dimension), a ``cited`` flag, and the ``description``
+    — enough for the browser to group, facet, sort, and search without a detail
+    fetch per item.  Read-only; no session, no attestation (facets come from the
+    cheap side-files, see ``_browse_facets``).
     """
     try:
         tomos = _get_tomos()
         entries = tomos.list_uods()
-        items = [
-            {
+        items = []
+        for e in entries:
+            f = _browse_facets(e)
+            items.append({
                 "uod_id": e.get("uod_id", ""),
                 "name": e.get("name", "Untitled"),
                 "category": e.get("category", ""),
@@ -93,12 +126,13 @@ async def list_uods():
                 "created": e.get("created", ""),
                 "last_modified": e.get("last_modified", ""),
                 "authors": e.get("authors", []),
-                "tags": e.get("tags", []),
+                "tags": e.get("tags", []) + [t for t in f["extra_tags"] if t not in e.get("tags", [])],
                 "total_states": e.get("total_states", 1),
                 "total_transformations": e.get("total_transformations", 0),
-            }
-            for e in entries
-        ]
+                "kind": f["kind"],
+                "cited": f["cited"],
+                "description": f["description"],
+            })
         return ApiResponse(success=True, data=items)
     except Exception as exc:
         return ApiResponse(
