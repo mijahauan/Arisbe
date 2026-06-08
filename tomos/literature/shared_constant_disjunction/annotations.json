@@ -1,0 +1,19 @@
+{
+  "annotations": [
+    {
+      "id": "ann_7dae9e44",
+      "scope": "uod",
+      "text": "Structural exemplar: a constant (Socrates) shared between a sheet assertion and a double-cut \u2014 constant interning across polarity. Authored as a test case.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "structural",
+        "beta",
+        "authored"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

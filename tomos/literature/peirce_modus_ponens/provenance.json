@@ -1,0 +1,31 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers of Charles Sanders Peirce",
+      "publisher": "Harvard University Press",
+      "year": "1931",
+      "bibkey": "peirce1931collected",
+      "note": "Peirce's existential-graph notation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "pattern",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Peirce, Charles Sanders (1931). Collected Papers of Charles Sanders Peirce"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "theorem_source": {
+    "type": "book",
+    "author": "Roberts, Don D.",
+    "title": "The Existential Graphs of Charles S. Peirce",
+    "publisher": "Mouton",
+    "year": "1973",
+    "bibkey": "roberts1973existential",
+    "pages": "57",
+    "note": "disjunction P \u2228 Q as ~[ ~[P] ~[Q] ]"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Roberts, Don D.",
+      "title": "The Existential Graphs of Charles S. Peirce",
+      "publisher": "Mouton",
+      "year": "1973",
+      "bibkey": "roberts1973existential"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "Roberts, Don D. (1973). The Existential Graphs of Charles S. Peirce",
+    "proof": "",
+    "methods": [
+      "Roberts, Don D. (1973). The Existential Graphs of Charles S. Peirce"
+    ]
+  }
+}

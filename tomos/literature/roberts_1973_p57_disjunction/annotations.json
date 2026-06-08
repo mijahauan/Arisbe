@@ -1,0 +1,19 @@
+{
+  "annotations": [
+    {
+      "id": "ann_7debaa19",
+      "scope": "uod",
+      "text": "Disjunction drawn the Peircean way (Roberts 1973, p.57): P \u2228 Q = ~[ ~[P] ~[Q] ] \u2014 two negated cuts inside a cut.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "pedagogy",
+        "alpha",
+        "cited"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

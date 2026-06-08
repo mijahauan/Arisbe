@@ -1,0 +1,18 @@
+{
+  "annotations": [
+    {
+      "id": "ann_4dbcb1b6",
+      "scope": "uod",
+      "text": "Beta exemplar: P(x) \u2227 Q(x) on one line of identity \u2014 the conclusion shape of a Beta modus ponens. Authored.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beta",
+        "authored"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

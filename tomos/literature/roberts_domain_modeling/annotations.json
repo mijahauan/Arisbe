@@ -1,0 +1,19 @@
+{
+  "annotations": [
+    {
+      "id": "ann_75a6f513",
+      "scope": "uod",
+      "text": "A small modelled universe of discourse (professor / course / student / teaches / has): an authored domain model \u2014 the kind of board the Endoporeutic Game is played within.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "domain-model",
+        "beta",
+        "authored"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

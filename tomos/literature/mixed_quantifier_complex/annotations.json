@@ -1,0 +1,19 @@
+{
+  "annotations": [
+    {
+      "id": "ann_82676948",
+      "scope": "uod",
+      "text": "Structural exemplar: mixed quantifier scope across cuts (\u2200 outside, \u2203 inside). Authored as a test case.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "structural",
+        "beta",
+        "authored"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

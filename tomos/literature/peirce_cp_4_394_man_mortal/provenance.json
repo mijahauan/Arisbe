@@ -1,0 +1,36 @@
+{
+  "theorem_source": {
+    "type": "book",
+    "author": "Peirce, Charles Sanders",
+    "title": "Collected Papers of Charles Sanders Peirce",
+    "publisher": "Harvard University Press",
+    "year": "1931",
+    "bibkey": "peirce1931collected",
+    "pages": "4.394",
+    "note": "the man\u2013mortal scroll (CP 4.394)"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers of Charles Sanders Peirce",
+      "publisher": "Harvard University Press",
+      "year": "1931",
+      "bibkey": "peirce1931collected",
+      "note": "Peirce's existential-graph notation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "Peirce, Charles Sanders (1931). Collected Papers of Charles Sanders Peirce",
+    "proof": "",
+    "methods": [
+      "Peirce, Charles Sanders (1931). Collected Papers of Charles Sanders Peirce"
+    ]
+  }
+}

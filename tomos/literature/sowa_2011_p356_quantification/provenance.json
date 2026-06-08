@@ -1,0 +1,36 @@
+{
+  "theorem_source": {
+    "type": "article-journal",
+    "author": "Sowa, John F.",
+    "title": "Peirce's Tutorial on Existential Graphs",
+    "container_title": "Semiotica",
+    "year": "2011",
+    "pages": "356",
+    "bibkey": "sowa2011tutorial",
+    "note": "\u2200x (Human(x) \u2192 Mortal(x)) example"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "article-journal",
+      "author": "Sowa, John F.",
+      "title": "Peirce's Tutorial on Existential Graphs",
+      "container_title": "Semiotica",
+      "year": "2011",
+      "pages": "345-394",
+      "bibkey": "sowa2011tutorial"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "Sowa, John F. (2011). Peirce's Tutorial on Existential Graphs. Semiotica",
+    "proof": "",
+    "methods": [
+      "Sowa, John F. (2011). Peirce's Tutorial on Existential Graphs. Semiotica"
+    ]
+  }
+}

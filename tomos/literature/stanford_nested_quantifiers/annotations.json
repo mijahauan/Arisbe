@@ -1,0 +1,19 @@
+{
+  "annotations": [
+    {
+      "id": "ann_8a01765f",
+      "scope": "uod",
+      "text": "Pedagogical exemplar: nested quantifiers, ~[ \u2203x \u2203y Loves(x,y) ] (nobody loves anybody). Authored as a teaching case in the nested-quantifier idiom.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "pedagogy",
+        "beta",
+        "authored"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

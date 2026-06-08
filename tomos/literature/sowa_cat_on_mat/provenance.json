@@ -1,0 +1,34 @@
+{
+  "theorem_source": {
+    "type": "book",
+    "author": "Sowa, John F.",
+    "title": "Conceptual Structures: Information Processing in Mind and Machine",
+    "publisher": "Addison-Wesley",
+    "year": "1984",
+    "note": "'the cat is on the mat' \u2014 Sowa's canonical conceptual-graph stock example"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "article-journal",
+      "author": "Sowa, John F.",
+      "title": "Peirce's Tutorial on Existential Graphs",
+      "container_title": "Semiotica",
+      "year": "2011",
+      "pages": "345-394",
+      "bibkey": "sowa2011tutorial"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "Sowa, John F. (1984). Conceptual Structures: Information Processing in Mind and Machine",
+    "proof": "",
+    "methods": [
+      "Sowa, John F. (2011). Peirce's Tutorial on Existential Graphs. Semiotica"
+    ]
+  }
+}

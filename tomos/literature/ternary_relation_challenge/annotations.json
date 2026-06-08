@@ -1,0 +1,20 @@
+{
+  "annotations": [
+    {
+      "id": "ann_445b1817",
+      "scope": "uod",
+      "text": "Structural exemplar: a single 3-adic relation Between(x,y,z) with three lines \u2014 exercises argument-order rendering. Authored as a test.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "structural",
+        "beta",
+        "authored",
+        "arg-order"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

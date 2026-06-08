@@ -153,23 +153,6 @@
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/ternary_relation_challenge"
     },
     {
-      "uod_id": "practice_43480df3",
-      "name": "Practice: sowa_cat_on_mat",
-      "category": "practice_session",
-      "uod_type": "historical",
-      "is_static": false,
-      "is_dynamic": true,
-      "created": "2025-10-14T19:21:24.366286",
-      "last_modified": "2025-10-14T19:22:20.685485",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [
-        "Current User"
-      ],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/practice_43480df3"
-    },
-    {
       "uod_id": "dau_2006_p112_ligature",
       "name": "dau_2006_p112_ligature",
       "category": "literature_example",
@@ -320,5 +303,5 @@
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/group_identity"
     }
   ],
-  "last_updated": "2026-06-08T11:02:09.193174"
+  "last_updated": "2026-06-08T12:23:18.427766"
 }

@@ -1,0 +1,19 @@
+{
+  "annotations": [
+    {
+      "id": "ann_84221590",
+      "scope": "uod",
+      "text": "Beta exemplar: R(x,y) \u2227 S(y,x) \u2014 a relation and its converse sharing two lines. Authored as a test case.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beta",
+        "authored",
+        "arg-order"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

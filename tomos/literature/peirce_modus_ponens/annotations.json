@@ -1,0 +1,19 @@
+{
+  "annotations": [
+    {
+      "id": "ann_fcd391e9",
+      "scope": "uod",
+      "text": "The modus-ponens argument form in EG: P(x) asserted alongside the scroll P(x) \u2283 Q(x). An authored pattern (not a transcription) \u2014 a move available to Agon.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "pattern",
+        "beta",
+        "authored"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

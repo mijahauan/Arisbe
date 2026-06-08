@@ -108,6 +108,19 @@ def test_validation_rejects_malformed():
         make_provenance(proof_source={"kind": DERIVATION_AUTHORED})     # no author
     with pytest.raises(ValueError):
         make_provenance(warrant={"theorem": "stellar"})                 # bad level
+    with pytest.raises(ValueError):
+        make_provenance(kind="treatise")                                # bad import kind
+
+
+def test_import_kind_round_trips():
+    from provenance import KIND_DOMAIN_MODEL
+    prov = make_provenance(
+        proof_source=authored_proof("Arisbe"), kind=KIND_DOMAIN_MODEL
+    )
+    assert prov.kind == KIND_DOMAIN_MODEL
+    assert Provenance.from_dict(prov.to_dict()).kind == KIND_DOMAIN_MODEL
+    # Absent kind stays None (backward-compatible with pre-retrofit bundles).
+    assert Provenance.from_dict({"theorem_source": {}}).kind is None
 
 
 def test_dict_round_trip():

@@ -1,18 +1,36 @@
 # Current Plan
 
-**Last Updated**: 2026-06-08 (Organon import — all 3 fixtures built; next = corpus retrofit)
+**Last Updated**: 2026-06-08 (Organon import COMPLETE — 3 fixtures + corpus retrofit; next = ontology import / Agon warrant lifecycle)
 
-> **NEXT SESSION — finish the Organon import build (3 of 3 fixtures done).**
-> The walkthrough memo is the design-of-record:
-> [docs/ORGANON_IMPORT_WALKTHROUGH.md](docs/ORGANON_IMPORT_WALKTHROUGH.md) (see
-> its §8 build queue + §9 build log). **One item remains:**
-> - **(5) retrofit the corpus to spec** — apply the provenance-bundle +
->   annotation-layer shapes to the **18 existing UoDs** (whose ids already encode
->   their citations: `peirce_cp_4_394…`, `dau_2006_p112…`, `sowa_cat_on_mat`).
->   Mostly mechanical; per-item citation judgment. `theorem_praeclarum` is the
->   one whose `proof_source` is a real external citation (Sowa), not authored.
+> **NEXT SESSION — the Organon import arc is complete.** New design-of-record for
+> the corpus & import model: [docs/CORPUS_AND_IMPORT_MODEL.md](docs/CORPUS_AND_IMPORT_MODEL.md)
+> (§5 forward edges). Candidate next steps, in rough order:
+> - **Ontology import** — the one unused import `kind`. A small published T-box
+>   enters as a `domain_model`-shaped background theory available to Agon (the
+>   standing context a game presupposes). Pick a small legible vocabulary first.
+> - **Warrant lifecycle** — wire the `low → tested` transition to a real Agon
+>   outcome (a graph that survives the game is re-saved at `tested`). This is the
+>   only route above the floor and the reason the corpus needs reference models.
+> - **Pattern library for Agon** — promote `pattern`-kind items into a queryable
+>   move set; let a derived rule (`src/derived_rules.py`) register as a pattern.
+> - **`dau_2006_p112_ligature`** — verify the page against a fixed copy, drop the
+>   `verify-page` tag.
 >
-> **Done this session (on `main`, full suite green, no protected module touched):**
+> **Done this session — corpus retrofit (on `main`, full suite green, no protected
+> module touched):** every pre-existing UoD brought *up to spec* via
+> `tools/retrofit_corpus.py` — a typed provenance bundle + annotation layer +
+> import `kind` on all 20 curated items; one throwaway practice session retired.
+> The corpus is **two honest populations**: 6 cited exemplars + 1 transcribed
+> proof (Praeclarum) with real citations, and 8 synthetic exemplars + 1 pattern +
+> 1 domain-model authored-here (NO fabricated citations — the manifest floor made
+> operational). Added `kind` (exemplar/proof/pattern/domain_model/ontology) to the
+> provenance bundle (`src/provenance.py`); `tests/test_corpus_conformance.py` pins
+> the whole-corpus invariant. Memory [[project-organon-import-build]].
+>
+> **Earlier this session (the 3rd fixture):** `group_identity` + the multi-line UI
+> move — see below.
+
+> **Done earlier this session (on `main`, full suite green, no protected module touched):**
 > the **third fixture** `group_identity` — uniqueness of the group identity (Beta,
 > theory-relative; A1 left-id, A2 right-id, A3 single-valued ⊢ e=f, the classic
 > e=e·f=f). 8 steps (UI·UI·UI·IT-·IT-·DC-·ERA·ERA) through the real engine; all 9

@@ -1,0 +1,30 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Dau, Frithjof",
+      "title": "The Logic System of Concept Graphs with Negation",
+      "publisher": "Springer",
+      "year": "2003",
+      "bibkey": "dau2003logic"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Dau, Frithjof (2003). The Logic System of Concept Graphs with Negation"
+    ]
+  }
+}

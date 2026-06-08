@@ -1,0 +1,20 @@
+{
+  "annotations": [
+    {
+      "id": "ann_591a37b9",
+      "scope": "uod",
+      "text": "Leibniz's Praeclarum Theorema \u2014 the one corpus item with a *transcribed* proof (Dau's animated EG derivation), not an authored-here one. Theorem: Leibniz 1966 Addenda.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "proof",
+        "alpha",
+        "cited",
+        "transcribed"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

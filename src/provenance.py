@@ -66,6 +66,19 @@ DERIVATION_TRANSCRIBED = "transcribed"   # copied from a published EG proof
 DERIVATION_AUTHORED = "authored"         # constructed here (original to Arisbe)
 _DERIVATION_KINDS = (DERIVATION_TRANSCRIBED, DERIVATION_AUTHORED)
 
+# What *kind* of import this is — so Organon can shelve it and Agon can query it
+# ("give me a domain model to play in", "an argument pattern to apply"). A
+# coarse typology over the corpus, orthogonal to warrant and to transcribed-vs-
+# authored (``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §5).
+KIND_EXEMPLAR = "exemplar"          # a single depicted graph, no derivation
+KIND_PROOF = "proof"               # a worked derivation (carries a chain)
+KIND_PATTERN = "pattern"           # an argument form (MP, syllogism, dilemma…)
+KIND_DOMAIN_MODEL = "domain_model"  # a small modelled universe of discourse
+KIND_ONTOLOGY = "ontology"         # a published vocabulary / T-box
+_IMPORT_KINDS = (
+    KIND_EXEMPLAR, KIND_PROOF, KIND_PATTERN, KIND_DOMAIN_MODEL, KIND_ONTOLOGY,
+)
+
 # Warrant gradient (low is the import/authored floor; tested = withstood Agon).
 WARRANT_BLANK = "blank"      # the sheet itself — inviolable
 WARRANT_LOW = "low"          # admitted/authored, attested for correspondence, not asserted true
@@ -92,8 +105,13 @@ class Provenance:
     proof_source: Dict[str, Any] = field(default_factory=dict)
     method_sources: List[Dict[str, Any]] = field(default_factory=list)
     warrant: Dict[str, str] = field(default_factory=lambda: dict(_DEFAULT_WARRANT))
+    kind: Optional[str] = None   # one of _IMPORT_KINDS, or None if unspecified
 
     def validate(self) -> None:
+        if self.kind is not None and self.kind not in _IMPORT_KINDS:
+            raise ValueError(
+                f"Provenance: kind must be one of {_IMPORT_KINDS}, got {self.kind!r}"
+            )
         kind = self.proof_source.get("kind")
         if kind is not None and kind not in _DERIVATION_KINDS:
             raise ValueError(
@@ -139,6 +157,7 @@ class Provenance:
             "proof_source": dict(self.proof_source),
             "method_sources": [dict(m) for m in self.method_sources],
             "warrant": dict(self.warrant),
+            "kind": self.kind,
             "formatted": self.formatted(),
         }
 
@@ -151,6 +170,7 @@ class Provenance:
             proof_source=dict(d.get("proof_source") or {}),
             method_sources=[dict(m) for m in (d.get("method_sources") or [])],
             warrant=warrant,
+            kind=d.get("kind"),
         )
 
 
@@ -173,6 +193,7 @@ def make_provenance(
     proof_source: Optional[Dict[str, Any]] = None,
     method_sources: Optional[List[Dict[str, Any]]] = None,
     warrant: Optional[Dict[str, str]] = None,
+    kind: Optional[str] = None,
 ) -> Provenance:
     """Build and validate a provenance bundle, defaulting warrant to low/low."""
     w = dict(_DEFAULT_WARRANT)
@@ -182,6 +203,7 @@ def make_provenance(
         proof_source=dict(proof_source or {}),
         method_sources=[dict(m) for m in (method_sources or [])],
         warrant=w,
+        kind=kind,
     )
     prov.validate()
     return prov
@@ -194,6 +216,11 @@ __all__ = [
     "WARRANT_BLANK",
     "WARRANT_LOW",
     "WARRANT_TESTED",
+    "KIND_EXEMPLAR",
+    "KIND_PROOF",
+    "KIND_PATTERN",
+    "KIND_DOMAIN_MODEL",
+    "KIND_ONTOLOGY",
     "authored_proof",
     "transcribed_proof",
     "make_provenance",

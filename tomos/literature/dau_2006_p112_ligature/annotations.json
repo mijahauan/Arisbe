@@ -1,0 +1,20 @@
+{
+  "annotations": [
+    {
+      "id": "ann_5c10e6e9",
+      "scope": "uod",
+      "text": "Dau's ligature example (Mathematical Logic with Diagrams, \u2248p.112): one line of identity feeding P(x) on the sheet and both Q(x), R(x) inside a cut. Source page to be verified.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "pedagogy",
+        "beta",
+        "cited",
+        "verify-page"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

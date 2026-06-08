@@ -1,0 +1,32 @@
+{
+  "theorem_source": {
+    "type": "book",
+    "author": "Dau, Frithjof",
+    "title": "Mathematical Logic with Diagrams",
+    "note": "ligature example; page/edition to verify",
+    "pages": "112"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Dau, Frithjof",
+      "title": "The Logic System of Concept Graphs with Negation",
+      "publisher": "Springer",
+      "year": "2003",
+      "bibkey": "dau2003logic"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "Dau, Frithjof. Mathematical Logic with Diagrams",
+    "proof": "",
+    "methods": [
+      "Dau, Frithjof (2003). The Logic System of Concept Graphs with Negation"
+    ]
+  }
+}

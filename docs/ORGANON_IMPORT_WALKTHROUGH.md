@@ -637,5 +637,22 @@ encoding of a named individual referenced across contexts. Unit tests:
 [`tests/test_derived_rules.py`](../tests/test_derived_rules.py) (3: single-line,
 multi-line, positive-area refusal).
 
-**Next:** step 5 (retrofit the 18 existing corpus items to spec — the
-provenance-bundle + annotation shapes; ids already encode their citations).
+**Step 5 — corpus retrofit. ✅ Done.** [`tools/retrofit_corpus.py`](../tools/retrofit_corpus.py)
+brought every pre-existing UoD *up to spec* (typed provenance bundle + annotation
+layer + import `kind`) and retired one throwaway practice session — the curated
+corpus is now **20 items**, all conformant
+([`tests/test_corpus_conformance.py`](../tests/test_corpus_conformance.py)). The
+retrofit surfaced the finding that reframed it: the corpus is **two honest
+populations** — *cited* (6 exemplars + the Praeclarum's transcribed proof, real
+citations cross-referenced to `eg_proofs.bib`) and *synthetic/authored-here* (8
+structural exemplars + 1 pattern + 1 domain model, NO fabricated citations — the
+manifest floor made operational). Added an import `kind`
+(`exemplar`/`proof`/`pattern`/`domain_model`/`ontology`) to the provenance bundle
+([`src/provenance.py`](../src/provenance.py)) so Organon can shelve and Agon can
+query. The whole import arc is now folded into a standalone design-of-record:
+[`docs/CORPUS_AND_IMPORT_MODEL.md`](CORPUS_AND_IMPORT_MODEL.md) (the import-kind
+taxonomy, the corpus-as-textbook-and-as-Agon-board reading, and the forward edges
+— ontology import, the `low → tested` warrant lifecycle, a pattern library).
+
+**The build queue is complete.** Forward edges live in
+[`docs/CORPUS_AND_IMPORT_MODEL.md`](CORPUS_AND_IMPORT_MODEL.md) §5.
