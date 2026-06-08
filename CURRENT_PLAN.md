@@ -1,6 +1,22 @@
 # Current Plan
 
-**Last Updated**: 2026-06-08 (Documentation review executed — see below)
+**Last Updated**: 2026-06-08 (Documentation review executed; next session set — see below)
+
+> **NEXT SESSION — Organon import walkthrough (author-requested).** Walk through
+> the process of **importing to Organon** and surface **the issues it raises**,
+> using two proofs the author has in hand to import **with comments**:
+> **Peirce's Law** `((P→Q)→P)→P` (classical tautology, pure implicational →
+> **Alpha**) and **Barbara** (∀x(M→P), ∀x(S→M) ⊢ ∀x(S→P) → **Beta**, lines of
+> identity). Together they re-cover Alpha+Beta as *named historical proofs*. The
+> real subject is the **import experience**: how do **comments/annotations**
+> attach to an imported proof (a step? a chain? a UoD?) — likely the gap; at what
+> **warrant** does a proof enter (import = LOW warrant, never asserted true — see
+> `docs/MANIFEST_AND_MEANING.md`); and how does this continue the **diachronic
+> exemplars** seeding (real `TransformationChain`s via `save_uod_with_chain`,
+> precedent `tools/build_*_chain.py`). Recall the mode contract: Organon is the
+> attested read-only archive — a graph earns the corpus via Agon or as a
+> style-only reprojection. Memory
+> [[project-next-organon-import-peirces-law-barbara]].
 
 > **✅ DONE — thorough documentation review (2026-06-08).** Worked the
 > `docs/DOCUMENTATION_REVIEW_PREP.md` triage *spine-first, then outward*, with
