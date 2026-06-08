@@ -84,6 +84,50 @@ taut through the cut nest. On `main`, no protected module touched.
   meaningless node placement (was producing a stray floating cut). +2 tests
   (Alpha→ELK; oval cut contains its contents). Spec `docs/TENSION_LAYOUT.md` §11.
 
+**Argument order: a drawn convention (verified vs Peirce & Dau).** Confirmed
+against the sources (web + Dau's book §11.2 in `docs/references/`): **Peirce**
+shows argument order **clockwise** around the spot (CP 4.470 / Convention 13);
+**Dau** deliberately *prescinds from* spatial position and writes **numerals 1..n
+on the lines**. So order is visually encodable — not the R8 gap I'd assumed — and
+it maps onto Arisbe's styles. `style.argument_order_convention` (`"numbered"`
+default; Peirce style → `"clockwise"`) drives both render and read.
+- **Numbered (shipped, end-to-end):** renderer draws the numeral on each ≥2-ary
+  line (`simple_svg_renderer`); `eg_reader` reads it (= `port_index`);
+  `read(render(egi))` recovers the **full ν including order**, 18/18 both engines.
+- **Clockwise (reader shipped):** `eg_reader` recovers order from hook angles
+  (clockwise from "vertically above"); unit-tested. **Placement enforcement is
+  pending** — engines don't yet guarantee hooks sit in clockwise ν order (it
+  fights pointing each line at its vertex; corpus clockwise round trip 13/18).
+  Peirce's own numeric-index override is the escape where placement can't honor it.
+- Docs: `LINEAR_GRAPHICAL_CORRESPONDENCE.md` L6 + R8 rewritten. Memory
+  [[project-argument-order-convention]].
+
+**Foundation reframe + drawn→EG reader (A).** A long design exchange clarified the
+foundation: the **EG (the thought) is foundational; the linear form, drawn form,
+and EGI are three co-equal expressions of it** — none is "the source of truth" the
+others answer to (don't over-correct the box fix into "the renderer is
+authoritative"). Correspondence = the three expressions denote one EG; §3.3 stated
+faithfully = *the EG read from the picture is the same EG as the linear form and
+the EGI* (round-trip among co-equals). The author's Peircean point: humans read a
+picture natively (inside/outside a closed line, trace a connection); the goal is to
+align those skills with the logic — *show they bring it into being*.
+- **`src/eg_reader.py` (new, A shipped):** `read_drawing(dto) -> ReadEG` recovers
+  the area tree + incidence from **geometry alone** — inside/outside the drawn cut
+  *shape* (`point_in_cut`/`bounds_in_cut`), ligature endpoints matched to the
+  nearest mark (NOT the path's stored ids). Per-element queries (`container`,
+  `co_residents`, `connections`) answer exactly what the author named.
+  `reading_matches_egi` is the drawn→EG half of `read(render(egi)) == egi`.
+  **Round-trips 18/18 across both engines and box+oval styles.** The one thing not
+  recovered is argument *order* (R8 — not visually encoded; lives in the linear /
+  port_index channel), so incidence compares as a multiset. Tests
+  `tests/test_eg_reader.py` (corpus round-trip ×4; geometry-not-stored-ids;
+  per-element queries; nested-cut recovery).
+- **Next — B (she draws, we read):** Ergasterion already enables it; give her
+  constrained tools for the three-symbol alphabet (cut / ligature / predicate) so
+  we read her exact EG without free-form stroke disambiguation. Free-form (is this
+  closed line a cut or a curving ligature?) is a later, AI-assisted step. Memory
+  [[project-drawn-shape-authoritative-containment]].
+
 **Shape-aware §3.3 (the principled replacement for the oval fudge).** The author
 flagged that growing oval boxes was an *episodic accommodation* of style, against
 deterministic logical↔spatial correspondence. Root cause: §3.3 read containment

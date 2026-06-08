@@ -71,6 +71,16 @@ class StyleSpecification:
     # honored projection convention sourced from the style's layout.direction.
     layout_direction: str = "RIGHT"
 
+    # How a relation's argument ORDER (its ν sequence) is shown in the drawing —
+    # a projection convention faithful to the style's namesake:
+    #   "numbered"  — small numeric labels 1..n on the lines (Dau §11.2; also
+    #                 Sowa CGs).  Always unambiguous, independent of placement.
+    #   "clockwise" — the hooks are read in clockwise order around the spot
+    #                 (Peirce, CP 4.470 / Convention 13).
+    # The reader (eg_reader) recovers the order by whichever the active style
+    # draws, so the drawn form carries the full ν — argument order included.
+    argument_order_convention: str = "numbered"
+
     def get_element_bounds(self, element_type: str, content: str = "") -> Tuple[float, float]:
         """Calculate spatial bounds required for an element with this style"""
         if element_type == "vertex":
@@ -141,6 +151,11 @@ class StyleSpecification:
 
             # Layout flow direction (honored; default left-to-right)
             layout_direction=data['layout'].get('direction', 'RIGHT'),
+
+            # Argument-order convention (how ν's order is drawn): default the
+            # unambiguous numbered form (Dau); a style may set "clockwise" (Peirce).
+            argument_order_convention=data.get('argument_order', {}).get(
+                'convention', 'numbered'),
         )
 
 

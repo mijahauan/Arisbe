@@ -206,7 +206,20 @@ class SimpleSVGRenderer:
         
         # Get cap style from style specification
         ligature_cap_style = style.raw_style_data.get('ligature', {}).get('cap_style', 'butt')
-        
+
+        # Argument-order convention: under "numbered" (Dau §11.2) a small numeral
+        # n is drawn on each line of an ≥2-ary relation, so the picture itself
+        # carries ν's order (the eg_reader recovers it by reading the numeral —
+        # which is LigaturePath.port_index).  Under "clockwise" (Peirce) the order
+        # is read from the hooks' angular order instead; no numeral is drawn.
+        order_convention = getattr(style, "argument_order_convention", "numbered")
+        arity_by_pred = {}
+        for _l in dto.ligature_paths:
+            arity_by_pred[_l.predicate_id] = arity_by_pred.get(_l.predicate_id, 0) + 1
+        _an = style.raw_style_data.get("arity_numbers", {})
+        num_font_size = _an.get("font_size", 8)
+        num_color = _an.get("color", "#666666")
+
         for lig in dto.ligature_paths:
             if len(lig.points) < 2:
                 continue
@@ -245,6 +258,28 @@ class SimpleSVGRenderer:
                 "data-vertex-id": str(lig.vertex_id),
                 "data-port-index": str(lig.port_index),
             })
+
+            # Numbered convention: the order numeral on this line (1-based), set
+            # just off the predicate-end of the line.  Only for ≥2-ary relations.
+            if order_convention == "numbered" and arity_by_pred.get(lig.predicate_id, 0) >= 2:
+                hook, nxt = pts[0], pts[1]
+                dx, dy = nxt.x - hook.x, nxt.y - hook.y
+                seg = math.hypot(dx, dy) or 1.0
+                ux, uy = dx / seg, dy / seg
+                lx = hook.x + ux * 15.0 - uy * 6.0 + offset_x
+                ly = hook.y + uy * 15.0 + ux * 6.0 + offset_y
+                num = ET.SubElement(ligature_group, "text", {
+                    "x": f"{lx:.1f}", "y": f"{ly:.1f}",
+                    "font-family": style.font_family,
+                    "font-size": str(num_font_size),
+                    "fill": num_color,
+                    "text-anchor": "middle",
+                    "dominant-baseline": "central",
+                    "class": "arg-order-number",
+                    "data-predicate-id": str(lig.predicate_id),
+                    "data-port-index": str(lig.port_index),
+                })
+                num.text = str(lig.port_index + 1)
 
         # ====================================================================
         # Bridge marks (Peirce's hop) at ligature crossings — drawn on top of
@@ -338,7 +373,6 @@ class SimpleSVGRenderer:
             # In that case place the label in the *freest* direction — the
             # bisector of the largest angular gap between incident ligatures.
             if label and style.vertex_rendering_mode != "dot_only":
-                import math
                 angs = []
                 for lp in dto.ligature_paths:
                     if lp.vertex_id == v_id and len(lp.points) >= 2:
