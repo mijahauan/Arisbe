@@ -1,5 +1,13 @@
 # Arisbe Triad Architecture
 
+> **Updated 2026-06-08.** This doc's *conceptual* triad (Organon / Ergasterion
+> / Agon as Peirce's sign-triad) is current and load-bearing. Its
+> implementation pointers were written for the Qt GUI; that GUI was archived to
+> `archive/qt-gui-2025/` in May 2026 and all three modes now live as **web
+> routes** (`src/web_api/routes/{organon,ergasterion,agon}.py` +
+> `src/web_viewer/{organon,ergasterion,agon}.html`). Location/status lines below
+> have been updated accordingly.
+
 ## Overview
 
 Arisbe implements a complete cycle of inquiry through three interconnected modes that model Peirce's vision of logic as a living, diagrammatic practice. The three modes correspond to the three phases of reasoning: *knowing* (Organon), *making* (Ergasterion), and *contesting* (Agon).
@@ -28,7 +36,7 @@ This triadic structure recurs *within* the Agon itself, where the Graphist (repr
 
 **Purpose**: Knowledge corpus management, graph browsing, linear form import, read-only visualization.
 
-**Location**: `src/gui_clean/organon/`
+**Location**: `src/web_api/routes/organon.py` + `src/web_viewer/organon.html`
 
 **Core functions**:
 
@@ -52,7 +60,7 @@ uods = corpus.list_uods(is_static=True)
 uod = corpus.load_uod(uod_id, load_history=True)
 ```
 
-**Current status**: Functional for corpus browsing and diagram viewing. Metadata panel and search are pending.
+**Current status**: Live. Read-only corpus browsing, UoD detail, and chain/timeline navigation; both load and render boundaries are §3.3-attested.
 
 ---
 
@@ -60,7 +68,7 @@ uod = corpus.load_uod(uod_id, load_history=True)
 
 **Purpose**: Interactive graph construction, transformation practice, derivation sequences.
 
-**Location**: `src/gui_clean/ergasterion/`
+**Location**: `src/web_api/routes/ergasterion.py` + `src/web_viewer/ergasterion.html`
 
 **Core functions**:
 
@@ -96,7 +104,7 @@ context = TransformationContext(
 result = InsertionRule().apply_transformation(context)
 ```
 
-**Current status**: Stub. Development depends on completing the REPL/CLI Endoporeutic Game engine, which provides the core transformation workflow logic.
+**Current status**: Live. Session-based workshop over the headless `RuleInteraction` protocol — all six rules via the four-beat grammar, regime-1 drafts, branch-on-edit, move-by-move navigation, and a scratch store. Output goes to scratch or is sent to Agon (never straight to the corpus).
 
 ---
 
@@ -104,7 +112,7 @@ result = InsertionRule().apply_transformation(context)
 
 **Purpose**: Formal dialogical reasoning via the Endoporeutic Game, proof construction, semantic validation.
 
-**Location**: `src/gui_clean/agon/` (GUI wrapper), `src/endoporeutic_game.py` (engine — pending)
+**Location**: `src/web_api/routes/agon.py` + `src/web_viewer/agon.html` (arena), `src/endoporeutic_game.py` (engine)
 
 **Core functions**:
 
@@ -132,7 +140,7 @@ Assertion EGIF → parse → EGI (hypothesis)
 GameEngine.play() → alternating moves → GameOutcome
 ```
 
-**Current status**: The GUI stub is in place. The game engine (`src/endoporeutic_game.py`) is the next major development target. It will be designed as a standalone REPL/CLI first, then wrapped by the GUI.
+**Current status**: Live as a thin V1 arena (shipped 2026-06-01). The game engine (`src/endoporeutic_game.py`) is wired; play is hot-seat (one user drives both roles), nothing auto-asserts, and the outcome is an open disposition taxonomy. Deferred frontier: a semantic layer, an automated Grapheus opponent, and a dynamically-learned model M — see [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
 
 ---
 

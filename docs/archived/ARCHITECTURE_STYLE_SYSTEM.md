@@ -1,5 +1,14 @@
 # Style Architecture - Platform-Independent Rendering
 
+> **⚠️ RETIRED (2026-06-08).** This Dec-2025 architecture note describes the
+> Qt rendering pipeline (`gui_clean`, `qt_diagram_renderer.py`,
+> `unified_d3_engine.py`) that was archived to `archive/qt-gui-2025/` in May
+> 2026, and proposes TODOs against it. The live style system is documented in
+> [STYLE_SYSTEM_GUIDE.md](../STYLE_SYSTEM_GUIDE.md) (the single canonical style
+> doc); the live layout/render path is `elk_layout_engine.py` →
+> `simple_svg_renderer.py` consuming a `StyleSpecification` from `style_loader`.
+> Kept for historical reference.
+
 ## Overview
 
 The Arisbe style system ensures **identical visual output** across all rendering backends (SVG, Qt, future web/mobile), with style as **data** stored with each UoD diagram.

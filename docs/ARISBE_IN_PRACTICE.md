@@ -15,6 +15,14 @@ something new (Ergasterion), test it (Agon), and the result flows back into
 what you know. This document walks through practical scenarios that show
 how the cycle works — in language meant for anyone, not just logicians.
 
+One rule keeps the cycle honest: work in the workshop never lands directly in
+the library. A graph reaches the trusted record (the corpus) only by being
+*tested through Agon*, or as a presentation-only restyling of something already
+trusted. Until then, a workshop draft lives in a private scratch space. So
+where a scenario below says a new claim "becomes part of what she knows," read
+it as: the claim was made in the workshop and then earned its place by being
+contested.
+
 ---
 
 ## Scenario 1: What You Already Knew

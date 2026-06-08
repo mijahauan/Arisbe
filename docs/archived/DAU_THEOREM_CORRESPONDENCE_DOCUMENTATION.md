@@ -1,5 +1,14 @@
 # Dau Theorem Correspondence Documentation
 
+> **⚠️ RETIRED (2026-06-08).** This documents a Chapter-15 theorem test
+> harness (`DauTheoremCorrespondence` / `TheoremTestResult`) that no longer
+> exists in `src/` or `tests/`. Note also that "correspondence" here means
+> theorem-to-implementation mapping — a different concern from the project's
+> central **linear–graphical correspondence** invariant, which is specified
+> in [LINEAR_GRAPHICAL_CORRESPONDENCE.md](../LINEAR_GRAPHICAL_CORRESPONDENCE.md)
+> and runtime-attested by `src/correspondence_attestation.py`. Kept for
+> historical reference.
+
 ## Overview
 
 This document establishes comprehensive correspondence between Frithjof Dau's formal theorems and lemmas from Chapter 15 and the Arisbe system implementation. Each test validates specific theoretical results with detailed rationale, Dau references, and performance analysis.

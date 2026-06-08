@@ -1,6 +1,6 @@
 # Linear–Graphical Correspondence: The Central Invariant
 
-**Status**: Draft v1 — 2026-05-30
+**Status**: Active contract — stated, tested, and runtime-attested (last revised 2026-06-07). The §7 property tests (`tests/test_correspondence_invariant.py`) and the §3.3 runtime hook (`src/correspondence_attestation.py`, wired into the web layout service) are in place.
 **Scope**: Specification of the correspondence between an EGI's linear written form and its graphical drawn form. This document defines the contract that every other workstream (transformation rules, layout, rendering, sessions, the three modes, the Endoporeutic Game) must respect.
 
 ---
@@ -13,7 +13,7 @@ We call that contract the **linear–graphical correspondence**: in any state as
 
 This spec is the source of truth for:
 
-- Property tests that audit correspondence (the next workstream after this spec).
+- Property tests that audit correspondence (`tests/test_correspondence_invariant.py`, all six §7 shapes against the tomos corpus).
 - Design reviews of features touching parse, generate, layout, render, transform, or undo/redo.
 - Decisions about which user interactions are permitted in which mode.
 - Future work on alternative projections (3-D visualization, stylus drawing input, accessibility renderings).

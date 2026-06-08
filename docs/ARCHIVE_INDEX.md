@@ -16,6 +16,34 @@ archive/
 └── deprecated\_code/        # Backup/deprecated code (5 files)
 ```
 
+## docs/archived/ — retired documentation (per-doc)
+
+Separate from the top-level `archive/` cleanup below, the `docs/archived/`
+directory holds documentation retired from active `docs/` because it was
+superseded or built-and-diverged. Each retired file carries a banner at its
+top explaining why and what supersedes it.
+
+**Documentation review — 2026-06-08:**
+
+- `WEB_VIEWER_IMPLEMENTATION_PLAN.md` — April 2026 plan, now built and
+  diverged. As-built: `PRODUCT_VISION.md`, `README.md`, `CLAUDE.md`.
+- `DAU_SEMANTIC_EVALUATION_GUIDE.md` — documents a
+  `DauSemanticEvaluationEngine` no longer in `src/`; superseded by
+  `src/z3_semantic_validator.py`.
+- `DAU_THEOREM_CORRESPONDENCE_DOCUMENTATION.md` — Chapter-15 theorem test
+  harness no longer in `src/`/`tests/`; the project's correspondence story
+  is now `LINEAR_GRAPHICAL_CORRESPONDENCE.md` + `correspondence_attestation.py`.
+- `ARCHITECTURE_STYLE_SYSTEM.md` — Qt-era (Dec 2025) style/render architecture
+  note; superseded by `STYLE_SYSTEM_GUIDE.md` (the single canonical style doc)
+  and the live `elk_layout_engine.py` → `simple_svg_renderer.py` path.
+- `UOD_DEVELOPER_GUIDE.md` — March 2026; documents a wholesale-replaced API
+  (`GraphEntity`, `tomos_index`, `IntegratedCorpusManager`). Concepts live in
+  `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`; the live API in `tomos_service.py` +
+  `CORE_API_USAGE_GUIDE.md` + `ARISBE_CORE_API_REFERENCE.md`.
+
+(Earlier `docs/archived/` contents predate this index and remain available in
+git history.)
+
 ## What Was Archived
 
 ### 1. Historical Documentation (archive/documentation/)
@@ -288,6 +316,7 @@ git checkout HEAD -- archive/documentation/PHASE\_1\_COMPLETION\_REPORT.md
 
 ---
 
-**Last Updated**: 2025-12-26  
-**Archived Files**: ~145 files  
+**Last Updated**: 2026-06-08 (added the `docs/archived/` retirement section
+for the documentation review)  
+**Archived Files**: ~145 files (top-level `archive/`) + `docs/archived/`  
 **Total Space Organized**: ~10MB of documentation and artifacts

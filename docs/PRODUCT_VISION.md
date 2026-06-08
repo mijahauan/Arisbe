@@ -55,17 +55,18 @@ linear-format round-trips across EGIF/CGIF/CLIF/FOPL/JSON validated against
 treats logical reasoning as a diachronic process rather than a static
 diagram — is the bedrock that makes the correspondence contract testable
 in the first place. That core is protected (17 modules), the test suite
-(654 passing, 17 skipped across 40 test files) is the yardstick for every
+(~955 passing, 35 skipped) is the yardstick for every
 change, and the protection system + quality dashboard + corpus validation
 tooling work.
 
-The user interface story remains in transition. The original plan
+The user interface now lives in the web app. The original plan
 envisioned **Organon / Ergasterion / Agon** as three Qt windows; that Qt
 implementation made it ~40% of the way through Organon and was archived
 in May 2026 to `archive/qt-gui-2025/`. Active work shifted to a web viewer
-(FastAPI + ELK-based layout + browser SVG). The three modes remain as the
-conceptual modes of engagement and now correspond directly to the three
-regimes of the correspondence invariant:
+(FastAPI + ELK-based layout + browser SVG), and as of June 2026 all three
+mode routes are live. The three modes are the conceptual modes of
+engagement and correspond directly to the three regimes of the
+correspondence invariant:
 
 - **Ergasterion** (workshop) — the composition regime. The user is still
   figuring out what to say; the invariant is suspended because there is
@@ -79,11 +80,14 @@ regimes of the correspondence invariant:
   EGI (`src/presentation_ops.py` enforces this by refusing any proposal
   that would cross a boundary).
 
-Implementing the Organon/Agon routes in the web app is the next major UI
-workstream. The known follow-ups identified during the review (projection
-conventions, additional boundary attestation, Hypothesis-driven
-exhaustive rule testing, ELK ligature edge cases) are tracked as GitHub
-issues.
+All three mode routes shipped in the web app: `/organon` (read-only
+archive, both load+render boundaries §3.3-attested), `/ergasterion`
+(workshop, regime-1 drafts with branch/scratch), and `/agon` (a thin
+Endoporeutic Game arena, V1 shipped 2026-06-01). The next frontier is the
+end game itself — deepening Agon toward the fuller dialogical contest (see
+the Endoporeutic Game guide). Known layout follow-ups (projection
+conventions, additional boundary attestation, ELK ligature edge cases)
+are tracked separately.
 
 The deeper Peircean grounding — *why* a reasoning episode is preserved as
 a chain of sound, attested steps, and what that is in service of — is set
@@ -221,8 +225,8 @@ The contract is scoped to three regimes (see [LINEAR_GRAPHICAL_CORRESPONDENCE.md
 ### 3. Mathematical Rigor
 - **Dau's formalism is the foundation** — no shortcuts or
   approximations
-- **The mathematical core test suite must always pass** — 654 tests
-  passing across 40 test files as of the May 2026 review, covering
+- **The mathematical core test suite must always pass** — ~955 tests
+  passing (35 skipped), covering
   data model, transformation rules, Beta graphs, closure validation,
   isomorphism, proof exercises, and the §3.3 / §5.5 correspondence
   properties
@@ -256,12 +260,11 @@ The contract is scoped to three regimes (see [LINEAR_GRAPHICAL_CORRESPONDENCE.md
 
 ### Phase 1: Foundation (COMPLETE ✅)
 - [x] EGI core data model with immutable operations
-- [x] Core test suite passing (654 tests, 17 skipped as of 2026-05-31)
+- [x] Core test suite passing (~955 tests, 35 skipped)
 - [x] Linear format bidirectional translation (EGIF, CGIF, CLIF, FOPL)
 - [x] Transformation rules (DC±, INS/ERA, IT±) with Beta-graph support
 - [x] Layout engine with Dau-compliant rendering
-- [x] Endoporeutic Game engine (`endoporeutic_game.py`, REPL,
-      Z3-validated)
+- [x] Endoporeutic Game engine (`endoporeutic_game.py`, Z3-validated)
 
 ### Phase 2: Correspondence as a Stated Invariant (COMPLETE ✅)
 - [x] Specification (`docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md`)
@@ -272,14 +275,15 @@ The contract is scoped to three regimes (see [LINEAR_GRAPHICAL_CORRESPONDENCE.md
 - [x] Runtime attestation at the layout-service boundary
       (`src/correspondence_attestation.py`)
 
-### Phase 3: Web UI Implementation (IN PROGRESS 🟡)
+### Phase 3: Web UI Implementation (COMPLETE ✅)
 - [x] FastAPI + ELK layout + browser SVG (canonical render path)
 - [x] Diagram serving with correspondence attestation
-- [ ] **Organon route** — corpus browser, timeline navigation
-- [ ] **Ergasterion route** — private editor, draft graph workflow
-- [ ] **Agon route** — Endoporeutic Game arena (REPL available today)
-- [ ] Transformation UI — visual rule application with regime-3
-      affordances
+- [x] **Organon route** — corpus browser, timeline navigation
+- [x] **Ergasterion route** — private editor, draft graph workflow
+      (branch-on-edit, scratch store)
+- [x] **Agon route** — Endoporeutic Game arena (thin V1, 2026-06-01)
+- [x] Transformation UI — four-beat grammar with regime-3 affordances
+      (all six rules)
 
 ### Phase 4: Production Readiness (PLANNED 📋)
 - [ ] Complete tomos validation (87+ published graphs already covered;
@@ -345,6 +349,7 @@ the up-to-date statement.
 
 *This document is our guiding star. All development decisions should align with this vision. If they don't, either the decision is wrong, or the vision needs updating.*
 
-**Last Updated**: 2026-05-31 (Peirce-first reframe; correspondence
-named as central invariant; success criteria refreshed)
+**Last Updated**: 2026-06-08 (documentation review: all three web mode
+routes marked live; test counts and REPL reference corrected; Phase 3
+closed. Peirce-first reframe and central-invariant framing retained.)
 **Next Review**: 2026-12-31

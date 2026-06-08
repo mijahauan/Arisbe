@@ -1,5 +1,13 @@
 # Web-Based Interactive EGI Viewer: Implementation Plan
 
+> **⚠️ RETIRED (2026-06-08).** This was the April 2026 plan for the web
+> viewer. It is now built and the implementation diverged from the plan
+> (mode-centric routes `/organon` `/ergasterion` `/agon`, a diachronic
+> `TransformationChain` session model, presentation deltas, the Agon game
+> engine). Kept for historical context only. For the as-built picture see
+> [PRODUCT_VISION.md](../PRODUCT_VISION.md), [README.md](../../README.md),
+> and `CLAUDE.md`'s Architecture section.
+
 **Target**: Production-ready web application for viewing and transforming existential graphs  
 **Architecture**: Python backend (Flask/FastAPI) + JavaScript frontend (vanilla JS + SVG)  
 **Scope**: Phase 1 focuses on ERA transformation; Phase 2 extends to all 6 transformation rules

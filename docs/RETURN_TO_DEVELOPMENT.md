@@ -41,13 +41,13 @@ for how the model expresses it.
 - **Beta graphs** use shared vertices across cut boundaries. In EGIF, `*x` =
   defining label (new vertex), `x` = bound label (existing vertex in enclosing
   scope). `~[ (P *x) ~[ (Q x) ] ]` = ∀x(P(x) → Q(x)) with one shared vertex.
-- **Protected modules** (15, listed in `tools/core_protection_system.py`) need
+- **Protected modules** (17, listed in `tools/core_protection_system.py`) need
   `touch .core_modification_authorized` before modification.
 
 ## Where things live (post-2026-05 cleanup)
 
 - `src/` — core modules (~32 .py files plus `web_api/` and `web_viewer/`).
-- `tests/` — pytest suite (~35 files, 406 passing as of 2026-05-30).
+- `tests/` — pytest suite (~955 passing, 35 skipped).
 - `tools/` — quality tools, demos, utilities (not in import path for tests).
 - `tomos/` — 87+ canonical EG examples (Peirce, Roberts, Sowa, Dau).
 - `corpus/` — active working corpus.
@@ -80,8 +80,10 @@ entry point for understanding any one module.
   to be written (carried forward from issue #4 into issue #8).
 - **CI runs only a subset of the test suite** (see `.github/workflows/canonical.yml`).
   Full-suite-on-CI is a Phase 4 item.
-- **Three-mode UI (Organon/Ergasterion/Agon) is conceptual only.** Implementing
-  them as routes in the web viewer is the next major UI workstream.
+- **Three-mode UI (Organon/Ergasterion/Agon) is live** as web routes
+  (`/organon`, `/ergasterion`, `/agon`; Agon shipped as a thin V1 arena
+  2026-06-01). The next frontier is deepening Agon — the Endoporeutic Game end
+  game (see `docs/ENDOPOREUTIC_GAME_GUIDE.md`).
 
 ## If you are an AI assistant
 

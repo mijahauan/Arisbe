@@ -1,6 +1,6 @@
 # Arisbe Core API Reference
 
-**Last Generated**: 2026-05-30T08:02:09-05:00  
+**Last Generated**: 2026-06-06T09:20:41-05:00  
 **Source of truth**: `tools/core_protection_system.py` (`protected_modules`)  
 **Module count**: 17
 

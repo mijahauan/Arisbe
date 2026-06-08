@@ -1,5 +1,15 @@
 # Arisbe Style System Guide
 
+> **Canonical style doc** (as of 2026-06-08). The visual *style* is part of the
+> presentation layer — the projection from EGI to drawn form. Style choices
+> (Dau / Peirce / Sowa conventions, shapes, spacing, argument-order convention)
+> are presentation-only: they change how the picture looks, never what it means,
+> and so are governed by the third regime of the correspondence invariant (see
+> [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md) and
+> [PRESENTATION_DELTAS_AND_STYLE.md](PRESENTATION_DELTAS_AND_STYLE.md)). The
+> earlier `ARCHITECTURE_STYLE_SYSTEM.md` (Qt-era) was retired into this guide on
+> 2026-06-08.
+
 ## Overview
 
 The Arisbe Style System provides platform-independent styling for Existential Graph diagrams. Styles are defined in JSON format and control all visual aspects of diagram rendering while maintaining mathematical correctness and spatial-logical correspondence.
@@ -207,16 +217,15 @@ Focus on these key areas:
 
 ### Step 4: Test Integration
 ```python
-from src.style_loader import StyleLoader
-from src.layout_engine_styled import StyleAwareLayoutEngine
+from style_loader import load_style
+from elk_layout_engine import ELKLayoutEngine
 
 # Load your custom style
-style_loader = StyleLoader()
-custom_style = style_loader.load_style("my-custom-style@1.0")
+custom_style = load_style("my-custom-style@1.0")
 
-# Test with layout engine
-engine = StyleAwareLayoutEngine(custom_style)
-layout = engine.compute_layout(egi)
+# Test with the layout engine (ELK is the default layout path)
+engine = ELKLayoutEngine()
+layout = engine.generate_layout(egi, custom_style)
 ```
 
 ### Step 5: Validate Schema
@@ -348,21 +357,19 @@ For depth-restricted views:
 ## Validation and Testing
 
 ### Schema Validation
-All styles must conform to `styles/style_schema.json`:
-```bash
-python tools/validate_style.py styles/my-style@1.0.json
+All styles must conform to `styles/style_schema.json`. Validate a style file
+with `StyleLoader.validate_style_file`:
+```python
+from pathlib import Path
+from style_loader import StyleLoader
+
+StyleLoader().validate_style_file(Path("styles/my-style@1.0.json"))
 ```
 
 ### Layout Engine Testing
 Test style integration:
 ```bash
-python -m pytest tests/test_style_integration.py -v
-```
-
-### Visual Regression Testing
-Generate test diagrams:
-```bash
-python tools/generate_style_samples.py --style my-style@1.0
+uv run pytest tests/test_styles.py -v
 ```
 
 ## Best Practices

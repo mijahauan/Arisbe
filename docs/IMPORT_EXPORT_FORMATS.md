@@ -219,14 +219,17 @@ svg_content = renderer.render_to_svg_string(dto, egi, style)
 **Generator**:
 
 ```python
-from export.tikz_exporter import generate_tikz
+from web_api.services.tikz_export import export_tikz
 
-# Generate standalone LaTeX document
-latex_content = generate_tikz(render_commands, standalone=True)
+# Generate standalone LaTeX document from a (dto, egi) pair
+latex_content = export_tikz(dto, egi, standalone=True, style=dto.style)
 
 # Generate TikZ picture only (for inclusion)
-tikz_picture = generate_tikz(render_commands, standalone=False)
+tikz_picture = export_tikz(dto, egi, standalone=False, style=dto.style)
 ```
+
+In the web app this is reached through `export_service.render_export(...,
+fmt="tikz")`.
 
 **Use Cases**:
 
@@ -308,7 +311,7 @@ Import Universe of Discourse
 - [x] FOPL translator (`chapter18_fopl_translation.py`)
 - [x] JSON EGI I/O (`egi_io.py`)
 - [x] SVG renderer (`simple_svg_renderer.py`)
-- [x] LaTeX/TikZ exporter (`export/tikz_exporter.py`)
+- [x] LaTeX/TikZ exporter (`web_api/services/tikz_export.py`)
 
 ### Organon Integration 🔄
 - [ ] Import manager with format detection
@@ -323,10 +326,18 @@ Import Universe of Discourse
 
 ## Usage Examples
 
+> **⚠️ PLANNED API.** The `ImportExportManager` shown below is **not yet
+> implemented** — it sketches the unified import/export manager listed under
+> "Organon Integration 🔄" above. Today, importing happens through the `/import`
+> route (linear forms at low warrant) and exporting through
+> `export_service.render_export(...)` / the export route; the individual
+> parsers/generators (`egif_parser_dau`, `cgif_generator_dau`, …) are callable
+> directly. Treat this section as a design sketch.
+
 ### Import Literature (EGIF)
 
 ```python
-# In Organon
+# In Organon (PLANNED — see banner above)
 from import_export_manager import ImportExportManager
 
 manager = ImportExportManager(tomos_service)
@@ -395,7 +406,7 @@ manager.export_uod(uod, format='uod_json', file_path='output.uod.json')
 - `src/egi_io.py` - JSON EGI I/O
 - `src/tomos_service.py` - Full UoD I/O
 - `src/simple_svg_renderer.py` - SVG export
-- `src/export/tikz_exporter.py` - LaTeX/TikZ export
+- `src/web_api/services/tikz_export.py` - LaTeX/TikZ export (via `export_service.py`)
 
 ---
 

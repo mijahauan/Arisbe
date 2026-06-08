@@ -242,7 +242,7 @@ tikz_picture = generate_tikz(render_commands, standalone=False)
 
 ### Tomos Management (✅ PRODUCTION - IMPLEMENTED 2025-10-14)
 **Current Status**: Unified TomosService API (fully tested and integrated)  
-**Documentation**: `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `docs/UOD_DEVELOPER_GUIDE.md`, `docs/DAG_HISTORY_ARCHITECTURE.md`
+**Documentation**: `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `docs/CORE_API_USAGE_GUIDE.md`, `docs/DAG_HISTORY_ARCHITECTURE.md`
 
 **For Organon (Browse & Load UoDs)**:
 ```python
@@ -480,7 +480,7 @@ egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
 - **TomosService**: Unified API with index-based browsing, lazy loading, efficient storage
 - **Categories**: Static (Literature, Canonical) vs Dynamic (Inquiry, Theorem Proof, EPG Session, Practice)
 - **Backward Compatibility**: `GraphEntity` = `UniverseOfDiscourse` (all old code works unchanged)
-- **Documentation**: `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `docs/UOD_DEVELOPER_GUIDE.md`, `docs/DAG_HISTORY_ARCHITECTURE.md`
+- **Documentation**: `docs/UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`, `docs/CORE_API_USAGE_GUIDE.md`, `docs/DAG_HISTORY_ARCHITECTURE.md`
 - **Scalability**: Designed for 1000+ states, DAG supports branching exploration
 
 ### DAG-Based Transformation History (✅ PRODUCTION 2025-10-14)

@@ -1,6 +1,18 @@
 # Universe of Discourse: Developer Guide
 **Working with UoDs Across Organon, Ergasterion, and Agon**
 
+> **⚠️ RETIRED (2026-06-08).** This March-2026 guide documents an API that has
+> since been replaced wholesale: `GraphEntity` (now `UniverseOfDiscourse`),
+> `src/tomos_index.py` (now `TomosService` in `src/tomos_service.py`),
+> `IntegratedCorpusManager` (gone), and `EntityMetadata`/`EntityType` (now
+> `UoDMetadata`/`UoDType`/`UoDCategory`). Following its code examples will
+> import modules that no longer exist. For the **concepts** see
+> [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](../UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md);
+> for the **live API** see `src/tomos_service.py`,
+> [CORE_API_USAGE_GUIDE.md](../CORE_API_USAGE_GUIDE.md), and
+> [ARISBE_CORE_API_REFERENCE.md](../ARISBE_CORE_API_REFERENCE.md). Kept for
+> historical reference.
+
 ---
 
 ## Quick Reference

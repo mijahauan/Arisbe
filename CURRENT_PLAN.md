@@ -1,21 +1,37 @@
 # Current Plan
 
-**Last Updated**: 2026-06-08 (Session paused to prepare a thorough documentation review — see `docs/DOCUMENTATION_REVIEW_PREP.md`)
+**Last Updated**: 2026-06-08 (Documentation review executed — see below)
 
-> **NEXT SESSION — thorough documentation review (author-requested).** Let the
-> docs settle on **what truly describes the fundamental arc from Peirce's vision
-> (with Dau, Roberts, Sowa, Pietarinen) to Arisbe**, consolidating/clarifying
-> against the literature in `docs/references/` and the examples in `tomos/` and the
-> real implementation. Expect substantial legacy / erroneous / obsolete material to
-> correct, merge, or retire. The full scaffold — the target "fundamental arc"
-> spine, a doc-by-doc triage table, the known-error/legacy hunt list, and the
-> proposed process — is in **`docs/DOCUMENTATION_REVIEW_PREP.md`**. Note: the end
-> game (the **Endoporeutic Game** / Agon) remains to complete; the review should
-> mark that frontier honestly, not bury it. Quick wins already spotted: the two
-> identical `PRODUCT_VISION.md`; Qt/legacy-GUI references in
-> `ARCHITECTURE_STYLE_SYSTEM.md` + `arisbe_triad_architecture.md`;
-> `WEB_VIEWER_IMPLEMENTATION_PLAN.md` is a plan now built. Memory
-> [[project-documentation-review-prep]].
+> **✅ DONE — thorough documentation review (2026-06-08).** Worked the
+> `docs/DOCUMENTATION_REVIEW_PREP.md` triage *spine-first, then outward*, with
+> legacy handled by **retire-to-archived**. Outcomes:
+> - **Spine** confirmed coherent (each canon doc opens by locating itself on the
+>   arc). `PRODUCT_VISION.md` deduped (the byte-identical top-level copy deleted)
+>   and brought current (three web modes live; ~955 tests; REPL reference removed;
+>   Phase 3 closed). `LINEAR_GRAPHICAL_CORRESPONDENCE.md` status updated from
+>   "Draft v1" to active/tested/attested.
+> - **Retired to `docs/archived/`** (each with a banner + indexed in
+>   `ARCHIVE_INDEX.md`): `WEB_VIEWER_IMPLEMENTATION_PLAN.md` (built & diverged),
+>   `DAU_SEMANTIC_EVALUATION_GUIDE.md` (→ `z3_semantic_validator`),
+>   `DAU_THEOREM_CORRESPONDENCE_DOCUMENTATION.md` (harness gone),
+>   `ARCHITECTURE_STYLE_SYSTEM.md` (Qt-era → `STYLE_SYSTEM_GUIDE.md`),
+>   `UOD_DEVELOPER_GUIDE.md` (dead API → architecture doc + live API refs).
+> - **Merged/canonicalized**: `STYLE_SYSTEM_GUIDE.md` is now the single style
+>   doc (live `ELKLayoutEngine`/`style_loader` API); `UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md`
+>   is the single UoD doc (GraphEntity→UniverseOfDiscourse, roadmap marked built).
+> - **Revised in place**: `arisbe_triad_architecture.md` (Qt paths→web routes,
+>   statuses), `CHAPTER18_FOPL_TRANSLATION_DOCUMENTATION.md` (phantom "enhanced"
+>   module removed), `IMPORT_EXPORT_FORMATS.md` (tikz path, `ImportExportManager`
+>   marked planned), `ARISBE_IN_PRACTICE.md` (mode-contract note).
+> - **End game marked honestly**: `ENDOPOREUTIC_GAME_GUIDE.md` gained an
+>   "Implemented today (Agon V1) vs the Frontier" section + design-only banners
+>   (proof mode, ontology import); dead `game_repl.py` → the live `/agon` arena.
+> - **Regenerated** `ARISBE_CORE_API_REFERENCE.md`; refreshed
+>   `RETURN_TO_DEVELOPMENT.md` (17 modules, ~955 tests, three modes live).
+> - **Not yet done** (carry forward): grounding retained docs in the
+>   `docs/references/` literature + named `tomos/` examples per §4.3 of the prep;
+>   the prep's optional "roll old CURRENT_PLAN sessions to an archive."
+>   Memory [[project-documentation-review-prep]].
 
 > **DEFERRED — the tension layout frontier (multiple threads).**
 > `?engine=tension` lays a **single** line of identity as one collinear taut

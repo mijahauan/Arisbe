@@ -1,6 +1,44 @@
 # The Endoporeutic Game: Reference Guide
 
-**Date**: 2026-03-28
+**Date**: 2026-03-28 · **Reviewed**: 2026-06-08
+
+---
+
+## Implemented today (Agon V1) vs the Frontier
+
+The Endoporeutic Game is Arisbe's **end game** — the part of the arc that is
+deliberately *not finished*. This guide describes the full framework; most of
+it is theory and design-ahead. To keep the reader honest about what is wired
+today, here is the split. Banners further down mark design-only material in
+place.
+
+**Built today — Agon V1 (shipped 2026-06-01):**
+
+- The game engine `src/endoporeutic_game.py` — `GameState`, turn alternation,
+  `apply_move`, `legal_areas`, win/`concede` detection, polarity-constrained
+  legality.
+- The six Dau rules (Beta-aware) via `formal_transformation_rules.py` and the
+  headless `rule_interaction.py` protocol.
+- The **Agon arena** at `/agon` (`web_api/routes/agon.py` +
+  `web_viewer/agon.html`) — interactive **hot-seat** play (one user drives both
+  roles); the engine enforces each role's territory.
+- The post-game **open disposition taxonomy** (`web_api/services/agonothetes.py`):
+  nothing auto-asserts — the user, *as Agonothetes*, chooses the outcome's
+  meaning, and only an asserting disposition writes to the corpus.
+- §3.3 correspondence attestation on every framed graph before play.
+- 16 exemplar scenarios in `tests/test_epg_exemplar_scripts.py`.
+
+**The Frontier — described below, not yet built:**
+
+- **Proof mode** (the *constructive* direction, INS/IT+/DC+), as opposed to the
+  *interpretive* unwrapping the engine implements today.
+- An **automated Grapheus** opponent (move/strategy selection) — V1 is hot-seat
+  only.
+- A **dynamically-learned model M** and **ontology import** (OWL→CLIF→EGI,
+  WordNet/SNOMED/Wikidata) — today M is built by hand.
+- The inner **semantic game** as a first-class, step-exposed API (today the
+  transformation layer is the implemented one).
+- **Automated doubt detection** and guided **M-revision** workflows.
 
 ---
 
@@ -139,6 +177,13 @@ a failure to map, not as a failure to terminate.
 ---
 
 ## Proof: The Constructive Method
+
+> **⚠️ Frontier (design-only).** The Agon V1 engine implements the *interpretive*
+> game (outside-in unwrapping with IT-/DC-). The *constructive* proof mode
+> described in this section — building toward a target with INS/IT+/DC+ — is not
+> a separate wired mode today; it is described here as the symmetric design. The
+> six rules themselves are implemented (`formal_transformation_rules.py`); what
+> is not yet wired is a proof-direction game loop with its own role assignment.
 
 Proof and interpretation share the same six Dau transformation rules and the
 same polarity system, but their purposes and procedures are opposite in
@@ -843,6 +888,13 @@ exemplars (Amara's zoology course) illustrates this: each lesson adds to M,
 and the class's understanding grows through the iterated cycle.
 
 ### From Import: External Ontologies as Domain Models
+
+> **⚠️ Frontier (design-only).** The OWL→CLIF→EGI import pipeline and ontology
+> sources (WordNet, SNOMED, Wikidata) described below are **not implemented**.
+> Today a model M is built by hand (or seeded from a tomos UoD). This subsection
+> is the design for a future capability. (Arisbe's `/import` route does admit
+> linear forms at *low warrant* — see `docs/MANIFEST_AND_MEANING.md` — but that
+> is not the ontology-as-M pipeline sketched here.)
 
 But one need not start from an empty sheet.  Published ontologies represent
 the crystallized results of extensive prior inquiry — someone else's M,
@@ -1867,7 +1919,8 @@ of the following scenarios:
 | Module | Purpose |
 |--------|---------|
 | `endoporeutic_game.py` | Game engine: state, moves, win detection |
-| `game_repl.py` | Interactive REPL for human play |
+| `web_api/routes/agon.py` + `web_viewer/agon.html` | The live **Agon arena** — interactive hot-seat play in the browser (the V1 surface) |
+| `web_api/services/agonothetes.py` | The post-game disposition taxonomy |
 | `proof_serializer.py` | Save/load proofs as JSON or text |
 | `formal_transformation_rules.py` | The six Dau rules (Beta-aware) |
 | `rule_interaction.py` | Headless stepwise protocol |
@@ -1898,11 +1951,21 @@ state, msg = game.apply_move(state, "INS", frozenset(), cut_area_id,
 state, msg = game.apply_move(state, "DC+", frozenset(), area_id)
 ```
 
-### Interactive REPL
+### Interactive play (the Agon arena)
+
+Interactive play happens in the browser, not a terminal REPL. Start the web
+app and open the Agon arena:
 
 ```bash
-python src/game_repl.py "~[ (Human *x) ~[ (Mortal x) ] ]" --goal "(Mortal *y)"
+uv run uvicorn web_api.main:app --reload --port 8000
+# then open http://localhost:8000/agon
 ```
+
+The arena drives the same `EndoporeuticGame` engine shown above over the
+`/agon` routes (`new_game` / `apply_move` / `concede` / `legal_areas`), with
+hot-seat play (one user drives both roles) and a post-game disposition
+selector. *(An earlier `src/game_repl.py` terminal REPL was removed; the engine
+API above is the headless entry point if you want to script a game.)*
 
 ### Saving and Loading Proofs
 

@@ -1,5 +1,13 @@
 # Dau Chapter 13 Semantic Evaluation Implementation Guide
 
+> **⚠️ RETIRED (2026-06-08).** This guide documents a
+> `DauSemanticEvaluationEngine` (classical/endoporeutic `RelationalStructure`
+> + `Valuation`) that no longer exists in `src/` — it was superseded by the
+> Z3 SMT-based validator `src/z3_semantic_validator.py`
+> (`is_satisfiable` / `is_tautology` / `are_semantically_equivalent`). The
+> Chapter-13 semantics this describes remain mathematically valid; only the
+> implementation moved. Kept for historical reference.
+
 ## Overview
 
 This guide documents the implementation of Frithjof Dau's Chapter 13 semantic evaluation formalism for Existential Graph Instances (EGIs) within the Arisbe system. The implementation provides rigorous mathematical semantics for EGI evaluation using both classical and endoporeutic methods.

@@ -275,7 +275,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 
 4. **Acceptance** (Agon ⚔️)
    - If Graphist wins → fact is justified
-   - Agon uses DiagramController to commit `EGI_fact`
+   - Agon commits `EGI_fact` via `TomosService` (`save_uod` / `save_uod_with_chain`)
    - New `TransformationStep` recorded in history
    - New `StateSnapshot` created: `State_n+1 = (EGI_n+1, Deltas_n+1)`
    - UoD advances to next frame in the film
@@ -309,25 +309,29 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 
 ## Data Model Implications
 
-### Current State: GraphEntity
-**Existing model** (`src/graph_entity.py`):
+### Implemented model: UniverseOfDiscourse
+**Current model** (`src/universe_of_discourse.py`):
 ```python
 @dataclass
-class GraphEntity:
-    metadata: EntityMetadata
+class UniverseOfDiscourse:
+    metadata: UoDMetadata
     current_egi: RelationalGraphWithCuts
     history: Optional[EGITransformationHistory]
 ```
 
-**Observations**:
+The earlier `GraphEntity` (`src/graph_entity.py`) was **renamed** to
+`UniverseOfDiscourse`, and `EntityMetadata`/`EntityCategory` became
+`UoDMetadata`/`UoDCategory` — the "Recommended Refinement" this section once
+proposed is **done**. Both the synchronic (`current_egi`) and diachronic
+(`history`) aspects are present; persistence is via `TomosService`
+(`save_uod`/`load_uod`, and `save_uod_with_chain`/`load_chain` for a worked
+chain). For the live developer API see `src/tomos_service.py`,
+[CORE_API_USAGE_GUIDE.md](CORE_API_USAGE_GUIDE.md), and
+[ARISBE_CORE_API_REFERENCE.md](ARISBE_CORE_API_REFERENCE.md).
 
-- Already has synchronic (`current_egi`) and diachronic (`history`) aspects
-- `EntityCategory.UNIVERSE` already exists
-- Name "GraphEntity" is misleading - it's really a UoD
+### Design rationale: UniverseOfDiscourse
 
-### Recommended Refinement: UniverseOfDiscourse
-
-**Proposed model**:
+**Model** (implemented in `src/universe_of_discourse.py`):
 ```python
 @dataclass
 class UniverseOfDiscourse:
@@ -602,6 +606,13 @@ tomos/
 ---
 
 ## Implementation Strategy
+
+> **Status (2026-06-08):** this roadmap is largely realized. The
+> `UniverseOfDiscourse` model, `UoDCategory`, layout deltas, and the
+> UoD-centric `TomosService` (Phases 2–3) are built; all three web modes —
+> Organon, Ergasterion, Agon (Phase 4) — are live; the Endoporeutic Game
+> engine + Agon V1 arena (Phase 5) shipped 2026-06-01. The phase list below is
+> retained as the original plan and its day-estimates as history.
 
 ### Phase 1: Conceptual Alignment (Current)
 - ✅ Document philosophical foundation (this document)

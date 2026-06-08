@@ -10,19 +10,18 @@ This document provides comprehensive documentation for the implementation of Fri
 
 ### Key Components
 
-1. **Core Translation Framework** (`src/chapter18_fopl_translation.py`)
+1. **Translation Framework** (`src/chapter18_fopl_translation.py`) — a single
+   module; there is no separate "enhanced" module.
    - Complete FOPL parser with lexical analysis and recursive descent parsing
-   - Ψ translation: FOPL formulas → EGIs (Definition 19.1)
-   - Φ translation: EGIs → FOPL formulas (inverse mapping)
+     (`FOPLLexer`, `FOPLParser`, `parse_fopl_formula`)
+   - Ψ translation: FOPL formulas → EGIs (`Chapter18FOPLTranslator.psi_translate`)
+   - Φ translation: EGIs → FOPL formulas (`phi_translate` / `egi_to_fopl`)
+   - Module-level convenience wrappers: `fopl_to_egi`, `egi_to_fopl`
+   - Variable-sharing detection, existential vertex merging, and round-trip
+     fidelity are built into this one translator
    - Support for all logical operators: ∧, ∨, ¬, →, ∃, ∀, .=
 
-2. **Enhanced Translation System** (`src/chapter18_enhanced_translation.py`)
-   - Improved variable sharing detection and management
-   - Enhanced existential quantification with proper vertex merging
-   - Better round-trip translation fidelity
-   - EGIF parser compatibility improvements
-
-3. **Comprehensive Testing** (`test_chapter18_translation_consistency.py`)
+2. **Comprehensive Testing** (`tests/test_chapter18_*`)
    - Translation consistency verification across EGIF, CGIF, CLIF formats
    - Round-trip translation fidelity testing
    - Completeness properties verification
@@ -80,22 +79,22 @@ egi = fopl_to_egi(formula_str)
 fopl_result = egi_to_fopl(egi)
 ```
 
-### Enhanced Translation
+### Universal Quantification
 
 ```python
-from chapter18_enhanced_translation import enhanced_fopl_to_egi, enhanced_egi_to_fopl
+from chapter18_fopl_translation import fopl_to_egi, egi_to_fopl
 
-# Enhanced translation with better variable handling
-egi = enhanced_fopl_to_egi("∀x.(Man(x) → Mortal(x))")
-fopl_result = enhanced_egi_to_fopl(egi)
+# ∀ is translated via ¬∃¬ (see the rule table above)
+egi = fopl_to_egi("∀x.(Man(x) → Mortal(x))")
+fopl_result = egi_to_fopl(egi)
 ```
 
 ### Custom Translation Control
 
 ```python
-from chapter18_enhanced_translation import EnhancedChapter18Translator
+from chapter18_fopl_translation import Chapter18FOPLTranslator, parse_fopl_formula
 
-translator = EnhancedChapter18Translator()
+translator = Chapter18FOPLTranslator()
 formula = parse_fopl_formula("Man(x) ∧ Loves(x, y)")
 egi = translator.psi_translate(formula)
 fopl_back = translator.phi_translate(egi)
@@ -133,7 +132,7 @@ The Chapter 18 translation system integrates seamlessly with the existing Chapte
 
 ```python
 # Translate FOPL to EG, apply ligature transformations, verify soundness
-egi = enhanced_fopl_to_egi("∃x.(Man(x) ∧ Mortal(x))")
+egi = fopl_to_egi("∃x.(Man(x) ∧ Mortal(x))")
 transformed_egi = ligature_engine.apply_transformation(egi, context)
 soundness_result = soundness_evaluator.verify_soundness(egi, transformed_egi)
 ```
@@ -148,7 +147,7 @@ Works with all existing parsers and generators:
 ## Advanced Features
 
 ### Variable Sharing Detection
-The enhanced translator automatically detects variables that appear in multiple contexts and handles them appropriately:
+The translator automatically detects variables that appear in multiple contexts and handles them appropriately:
 
 ```python
 # Shared variable 'x' properly handled
