@@ -1,0 +1,55 @@
+{
+  "theorem_source": {
+    "type": "article-journal",
+    "author": "Peirce, Charles Sanders",
+    "title": "On the Algebra of Logic: A Contribution to the Philosophy of Notation",
+    "container_title": "American Journal of Mathematics",
+    "volume": "7",
+    "year": "1885",
+    "pages": "180\u2013202",
+    "bibkey": "peirce1885algebra",
+    "note": "Peirce's Law is the \u2018fifth icon\u2019 (~CP 3.384)."
+  },
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Dau, Frithjof",
+      "title": "The Logic System of Concept Graphs with Negation",
+      "year": "2003",
+      "bibkey": "dau2003logic"
+    },
+    {
+      "type": "article-journal",
+      "author": "Sowa, John F.",
+      "title": "Peirce's Tutorial on Existential Graphs",
+      "container_title": "Semiotica",
+      "year": "2011",
+      "bibkey": "sowa2011tutorial"
+    },
+    {
+      "type": "book",
+      "author": "Roberts, Don D.",
+      "title": "The Existential Graphs of Charles S. Peirce",
+      "year": "1973",
+      "bibkey": "roberts1973existential"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "formatted": {
+    "theorem": "Peirce, Charles Sanders (1885). On the Algebra of Logic: A Contribution to the Philosophy of Notation. American Journal of Mathematics",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Dau, Frithjof (2003). The Logic System of Concept Graphs with Negation",
+      "Sowa, John F. (2011). Peirce's Tutorial on Existential Graphs. Semiotica",
+      "Roberts, Don D. (1973). The Existential Graphs of Charles S. Peirce"
+    ]
+  }
+}

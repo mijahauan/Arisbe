@@ -1,0 +1,56 @@
+{
+  "annotations": [
+    {
+      "id": "ann_ae2bc2b4",
+      "scope": "uod",
+      "text": "Peirce's Law is classically valid yet not intuitionistically provable \u2014 the cleanest place to see where classicality lives in the EG rule set, proved in Peirce's own graphs.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "pedagogy"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_7260308f",
+      "scope": "chain",
+      "text": "The whole derivation turns on steps 1 and 5 \u2014 the two freely-inserted double cuts. That unrestricted double-cut insertion is exactly the classical move an intuitionistic restriction would forbid; everything distinguishing classical from intuitionistic EG reasoning lives in that one rule.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "crux"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_72273fbd",
+      "scope": "step",
+      "text": "The first freely-inserted double cut \u2014 half of the classical move this theorem spotlights.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "crux"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    },
+    {
+      "id": "ann_2735895e",
+      "scope": "step",
+      "text": "The second freely-inserted double cut (around P and ~[(Q)]); with step 1, this is where classicality enters.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "crux"
+      ],
+      "state_id": null,
+      "step_id": "step-5",
+      "element_id": null
+    }
+  ]
+}

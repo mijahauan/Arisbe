@@ -1,0 +1,66 @@
+{
+  "Cut": [
+    {
+      "id": "c_26ddc93e"
+    },
+    {
+      "id": "cut_33db1a51"
+    },
+    {
+      "id": "cut_adf275ea"
+    },
+    {
+      "id": "cut_b1f38592"
+    },
+    {
+      "id": "cut_f542ef69"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_527b122f"
+    },
+    {
+      "id": "e_a86cbc17"
+    },
+    {
+      "id": "e_f9f3638b"
+    }
+  ],
+  "V": [],
+  "alphabet": null,
+  "area": {
+    "c_26ddc93e": [
+      "e_f9f3638b"
+    ],
+    "cut_33db1a51": [
+      "c_26ddc93e",
+      "e_527b122f"
+    ],
+    "cut_adf275ea": [
+      "cut_33db1a51"
+    ],
+    "cut_b1f38592": [
+      "cut_adf275ea",
+      "cut_f542ef69"
+    ],
+    "cut_f542ef69": [
+      "e_a86cbc17"
+    ],
+    "sheet_371d92c2": [
+      "cut_b1f38592"
+    ]
+  },
+  "nu": {
+    "e_527b122f": [],
+    "e_a86cbc17": [],
+    "e_f9f3638b": []
+  },
+  "rel": {
+    "e_527b122f": "P",
+    "e_a86cbc17": "P",
+    "e_f9f3638b": "Q"
+  },
+  "rho": {},
+  "sheet": "sheet_371d92c2"
+}

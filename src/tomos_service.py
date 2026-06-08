@@ -701,6 +701,7 @@ class TomosService:
         uod: UniverseOfDiscourse,
         chain: TransformationChain,
         presentation_deltas: Optional[Dict[str, List[dict]]] = None,
+        provenance: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Persist a UoD together with its transformation chain.
 
@@ -731,6 +732,12 @@ class TomosService:
                 (``{state_id: [delta-dict]}``) to persist beside the chain so
                 a corpus UoD reopened in the workshop keeps its appearance.
                 The symmetric read is ``load_chain_deltas``.
+            provenance: Optional already-serialized provenance bundle (from
+                ``provenance.Provenance.to_dict``) — the typed theorem /
+                EG-derivation / calculus source layers + per-layer warrant.
+                This is the doorway-union: a worked proof imports as a chain
+                that *carries* its low-warrant attribution.  Written to
+                ``<uod_path>/provenance.json``; read back via ``load_provenance``.
 
         Raises:
             ``CorrespondenceViolation`` (from ``save_uod``) if the
@@ -796,6 +803,10 @@ class TomosService:
                 json.dump(pruned, f, indent=2)
         elif deltas_path.exists():
             deltas_path.unlink()
+
+        # Provenance bundle (UoD-root side-file, like bibliography.json) — the
+        # doorway-union: the chain carries its typed, low-warrant attribution.
+        self.save_provenance(uod, provenance or {})
 
     def load_chain_deltas(self, uod_id: str) -> Dict[str, List[dict]]:
         """Load the per-state regime-3 deltas persisted beside a UoD's chain.
@@ -933,6 +944,101 @@ class TomosService:
             with open(biblio_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception:
+            return None
+
+    # ===== Annotation layer (marginalia about a UoD / chain / step / element) =====
+
+    def save_annotations(
+        self, uod: UniverseOfDiscourse, annotations: List[Dict[str, Any]]
+    ) -> None:
+        """Persist the annotation layer beside a UoD.
+
+        Annotations are *marginalia about* the reasoning, not part of it — a
+        side layer that rides alongside the UoD exactly as ``bibliography.json``
+        and ``history/deltas.json`` do, and like them is **outside §3.3** (a
+        comment is not a sign in the graph, so the correspondence chord does not
+        answer for it; this method runs no attestation).  See
+        ``src/annotations.py`` and ``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §3.
+
+        ``annotations`` is the already-serialized list (from
+        ``annotations.annotations_to_list``).  Written to
+        ``<uod_path>/annotations.json`` as ``{"annotations": [...]}`` only when
+        non-empty; an overwriting save with an empty list clears a stale file so
+        a UoD never keeps annotations it no longer has (same discipline as the
+        per-state deltas).  Call after ``save_uod`` (so the directory exists).
+        """
+        uod_path = self._get_uod_path(uod)
+        uod_path.mkdir(parents=True, exist_ok=True)
+        ann_path = uod_path / "annotations.json"
+        if annotations:
+            with open(ann_path, "w", encoding="utf-8") as f:
+                json.dump({"annotations": annotations}, f, indent=2)
+        elif ann_path.exists():
+            ann_path.unlink()
+
+    def load_annotations(self, uod_id: str) -> List[Dict[str, Any]]:
+        """Load the annotation layer for a UoD, or ``[]`` if absent.
+
+        Returns the serialized list of annotation dicts (rehydrated by the
+        caller via ``annotations.annotations_from_list``).  The symmetric write
+        is ``save_annotations``.
+        """
+        entry = self.get_uod_metadata(uod_id)
+        if entry is None:
+            return []
+        ann_path = Path(entry["path"]) / "annotations.json"
+        if not ann_path.exists():
+            return []
+        try:
+            with open(ann_path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            items = loaded.get("annotations") if isinstance(loaded, dict) else None
+            return items if isinstance(items, list) else []
+        except (json.JSONDecodeError, OSError):
+            return []
+
+    # ===== Provenance bundle (typed multi-layer attribution for a proof) =====
+
+    def save_provenance(
+        self, uod: UniverseOfDiscourse, provenance: Dict[str, Any]
+    ) -> None:
+        """Persist a provenance bundle beside a UoD.
+
+        The bundle (``src/provenance.py``) carries the *theorem* / *EG-derivation*
+        / *calculus* source layers — which do not share a source — plus a
+        per-layer warrant and a transcribed-vs-authored-here flag.  It is the
+        proof-chain analogue of the single-CSL ``bibliography.json`` and, like it,
+        is **outside §3.3** (it describes the source, it is not a sign in the
+        graph; no attestation runs here).  Written to
+        ``<uod_path>/provenance.json``; an empty/falsy bundle clears a stale file.
+        Call after ``save_uod`` (so the directory exists).
+        """
+        uod_path = self._get_uod_path(uod)
+        uod_path.mkdir(parents=True, exist_ok=True)
+        prov_path = uod_path / "provenance.json"
+        if provenance:
+            with open(prov_path, "w", encoding="utf-8") as f:
+                json.dump(provenance, f, indent=2)
+        elif prov_path.exists():
+            prov_path.unlink()
+
+    def load_provenance(self, uod_id: str) -> Optional[Dict[str, Any]]:
+        """Load the provenance bundle for a UoD, or ``None`` if absent.
+
+        Returns the serialized bundle (rehydrated by the caller via
+        ``provenance.Provenance.from_dict``).  Symmetric write: ``save_provenance``.
+        """
+        entry = self.get_uod_metadata(uod_id)
+        if entry is None:
+            return None
+        prov_path = Path(entry["path"]) / "provenance.json"
+        if not prov_path.exists():
+            return None
+        try:
+            with open(prov_path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            return loaded if isinstance(loaded, dict) else None
+        except (json.JSONDecodeError, OSError):
             return None
 
     def delete_uod(self, uod_id: str) -> bool:

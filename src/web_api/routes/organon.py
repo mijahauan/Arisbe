@@ -31,6 +31,15 @@ from web_api.services.layout_service import generate_layout, layout_dto_to_dict
 from web_api.services.linear_forms import linear_forms
 
 from tomos_service import TomosService
+from annotations import (
+    SCOPE_UOD,
+    SCOPE_CHAIN,
+    annotations_from_list,
+    annotations_to_list,
+    for_scope,
+    for_state,
+    for_step,
+)
 
 router = APIRouter(prefix="/organon")
 
@@ -170,6 +179,13 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk")
                 # non-imports) — the trace of the un-hosted dialogue the
                 # linear form came from.
                 "bibliography": tomos.load_bibliography(uod_id),
+                # Provenance bundle — typed theorem / EG-derivation / calculus
+                # source layers + per-layer warrant + transcribed-vs-authored
+                # flag (None for items without one).  Outside §3.3.
+                "provenance": tomos.load_provenance(uod_id),
+                # Annotation layer — marginalia *about* this UoD, all scopes
+                # (the client filters by scope).  Outside §3.3; [] when none.
+                "annotations": tomos.load_annotations(uod_id),
                 "metadata": metadata,
             },
         )
@@ -222,21 +238,34 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                 data={"uod_id": uod_id, "has_chain": False, "frames": []},
             )
 
-        def _frame(index, kind, egi, rule=None, annotation=None, step_id=None):
+        # Annotation layer (marginalia, outside §3.3).  ``annotation`` below
+        # remains the step's *baked-in* user_annotation (authored rationale);
+        # ``layer`` carries the *additive* external notes for this frame —
+        # step-scoped (by step_id) plus element-scoped (anchored in this state).
+        layer = annotations_from_list(tomos.load_annotations(uod_id))
+
+        def _frame(index, kind, egi, state_id, rule=None, annotation=None,
+                   step_id=None):
             _dto, svg = generate_layout(egi, style_name=style, engine=engine)  # attests §3.3 per state
+            frame_anns = list(for_state(layer, state_id))
+            if step_id is not None:
+                frame_anns = list(for_step(layer, step_id)) + frame_anns
             return {
                 "index": index,
                 "kind": kind,             # "base" | "step"
                 "rule": rule,
-                "annotation": annotation,  # "<peirce label>: <note>"
+                "annotation": annotation,  # "<peirce label>: <note>" (baked-in)
                 "step_id": step_id,
+                "state_id": state_id,
+                "annotations": annotations_to_list(frame_anns),  # additive layer
                 "svg": svg,
                 "egi_summary": _egi_summary(egi),
                 "linear_forms": linear_forms(egi),
             }
 
         frames = [
-            _frame(0, "base", chain.states[chain.initial_state_id])
+            _frame(0, "base", chain.states[chain.initial_state_id],
+                   chain.initial_state_id)
         ]
         for i, step in enumerate(chain.steps, start=1):
             frames.append(
@@ -244,6 +273,7 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                     i,
                     "step",
                     chain.states[step.to_state_id],
+                    step.to_state_id,
                     rule=step.rule_name,
                     annotation=step.user_annotation,
                     step_id=step.step_id,
@@ -256,6 +286,9 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                 "uod_id": uod_id,
                 "has_chain": True,
                 "step_count": len(chain.steps),
+                # Whole-derivation and whole-universe notes (not tied to a frame).
+                "chain_annotations": annotations_to_list(for_scope(layer, SCOPE_CHAIN)),
+                "uod_annotations": annotations_to_list(for_scope(layer, SCOPE_UOD)),
                 "frames": frames,
             },
         )

@@ -1,0 +1,19 @@
+{
+  "uod_id": "peirce_law",
+  "uod_type": "historical",
+  "name": "Peirce's Law",
+  "description": "((P\u2283Q)\u2283P)\u2283P \u2014 Peirce's fifth icon (Peirce 1885), the classical tautology that is not intuitionistically provable. A 6-step Alpha derivation from the blank sheet; the derivation is original to Arisbe (the theorem is Peirce's). Every step a real, attestable Dau-rule application.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}
