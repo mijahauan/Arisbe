@@ -41,6 +41,7 @@ co-equal expression, not a weaker one.  (Earlier this module declared order
 limit of pictures — both Peirce and Dau encode it, differently.)
 """
 
+import dataclasses
 import math
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
@@ -147,7 +148,13 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
     convention = getattr(dto.style, "argument_order_convention", "numbered")
 
     def order_key(path, pid: str) -> float:
-        """The sort key that recovers argument order, by the drawn convention."""
+        """The sort key that recovers argument order from the drawing.  A drawn
+        numeral (``order_label``) wins where present — it is the unambiguous mark a
+        person reads (Dau's numbers; Peirce's Convention-13 numeric override).
+        Otherwise the clockwise convention reads the hook angle, and (fallback for
+        an unlabelled drawing) the numbered convention uses ``port_index``."""
+        if path.order_label is not None:
+            return float(path.order_label)
         if convention == "clockwise":
             # The angle the line leaves the spot, read clockwise from "vertically
             # above" (Peirce).  Screen y grows downward, so increasing atan2(dy,dx)
@@ -156,7 +163,6 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
             ref = path.points[1] if len(path.points) >= 2 else path.points[-1]
             theta = math.atan2(ref.y - P.y, ref.x - P.x)
             return (theta + math.pi / 2) % (2 * math.pi)
-        # "numbered": the numeral drawn on the line is its port_index.
         return float(path.port_index)
 
     # Collect (order_key, vid) per predicate, then sort into the ν sequence.
@@ -175,6 +181,57 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
     }
 
     return ReadEG(sheet_id=dto.sheet_id, area=area, incidence=incidence)
+
+
+def _clockwise_order(dto: LayoutDTO, pid: str) -> List[str]:
+    """The vertices of predicate ``pid`` in the clockwise order their hooks leave
+    the spot (from 'vertically above'), as the eye reads them — used to decide
+    whether the natural placement already shows ν, or needs a numeric override."""
+    P = dto.predicate_positions.get(pid)
+    if P is None:
+        return []
+    items = []
+    for path in dto.ligature_paths:
+        if path.predicate_id != pid or len(path.points) < 2:
+            continue
+        ref = path.points[1]
+        theta = math.atan2(ref.y - P.y, ref.x - P.x)
+        items.append(((theta + math.pi / 2) % (2 * math.pi), path.vertex_id))
+    return [v for _, v in sorted(items, key=lambda kv: kv[0])]
+
+
+def assign_order_labels(egi, dto: LayoutDTO) -> LayoutDTO:
+    """Return ``dto`` with each ``LigaturePath.order_label`` set per the style's
+    argument-order convention, so the drawing carries ν's order visibly:
+
+    - ``"numbered"`` (Dau) — label every line of an ≥2-ary relation (1-based).
+    - ``"clockwise"`` (Peirce) — label *only* the relations whose natural
+      clockwise hook order does not already match ν (the Convention-13 numeric
+      override); relations the placement already shows clockwise stay unlabelled.
+
+    The renderer draws the label and ``read_drawing`` reads it, so the round trip
+    recovers the full ν including order under either convention.
+    """
+    convention = getattr(dto.style, "argument_order_convention", "numbered")
+    nu = {e.id: list(egi.nu.get(e.id, ())) for e in egi.E}
+    arity = {pid: len(seq) for pid, seq in nu.items()}
+
+    needs_label = {}
+    for pid, seq in nu.items():
+        if arity[pid] < 2:
+            needs_label[pid] = False
+        elif convention == "clockwise":
+            needs_label[pid] = _clockwise_order(dto, pid) != seq
+        else:  # numbered
+            needs_label[pid] = True
+
+    new_paths = [
+        dataclasses.replace(
+            p, order_label=(p.port_index + 1 if needs_label.get(p.predicate_id)
+                            else None))
+        for p in dto.ligature_paths
+    ]
+    return dataclasses.replace(dto, ligature_paths=new_paths)
 
 
 def reading_matches_egi(reading: ReadEG, egi, *, ordered: bool = True) -> bool:
@@ -196,4 +253,4 @@ def reading_matches_egi(reading: ReadEG, egi, *, ordered: bool = True) -> bool:
     return True
 
 
-__all__ = ["ReadEG", "read_drawing", "reading_matches_egi"]
+__all__ = ["ReadEG", "read_drawing", "reading_matches_egi", "assign_order_labels"]

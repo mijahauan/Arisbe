@@ -546,6 +546,13 @@ def generate_layout(
     except Exception:
         egif = ""
 
+    # Assign argument-order numerals per the style's convention (numbered → every
+    # ≥2-ary line; clockwise → only the Convention-13 overrides) so the served
+    # drawing visibly carries ν's order and the reader recovers it.  Annotation
+    # only — positions/bounds/paths are untouched, so §3.3 (attested above) holds.
+    from eg_reader import assign_order_labels
+    dto = assign_order_labels(egi, dto)
+
     renderer = SimpleSVGRenderer()
     svg = renderer.render_to_svg(dto, egif=egif, egi=egi)
 

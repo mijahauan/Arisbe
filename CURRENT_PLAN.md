@@ -94,11 +94,15 @@ default; Peirce style → `"clockwise"`) drives both render and read.
 - **Numbered (shipped, end-to-end):** renderer draws the numeral on each ≥2-ary
   line (`simple_svg_renderer`); `eg_reader` reads it (= `port_index`);
   `read(render(egi))` recovers the **full ν including order**, 18/18 both engines.
-- **Clockwise (reader shipped):** `eg_reader` recovers order from hook angles
-  (clockwise from "vertically above"); unit-tested. **Placement enforcement is
-  pending** — engines don't yet guarantee hooks sit in clockwise ν order (it
-  fights pointing each line at its vertex; corpus clockwise round trip 13/18).
-  Peirce's own numeric-index override is the escape where placement can't honor it.
+- **Clockwise (shipped via Convention-13 override):** `eg_reader` recovers order
+  from hook angles; where the natural placement doesn't already read clockwise-as-ν
+  (it can't always — each line points at its vertex), `assign_order_labels` draws a
+  numeric index on **just those** relations (Peirce's own Convention-13 remedy,
+  author's choice), and the reader uses it there. Clockwise round trip now **18/18**
+  both engines; clean relations stay unlabelled (overrides are sparse). The numeral
+  is carried in `LigaturePath.order_label` (DTO), set in the canonical
+  `layout_service` pipeline; renderer draws it, reader reads it — no SVG parsing.
+  Pure geometric clockwise *placement* (zero numerals) remains future layout work.
 - Docs: `LINEAR_GRAPHICAL_CORRESPONDENCE.md` L6 + R8 rewritten. Memory
   [[project-argument-order-convention]].
 

@@ -6,7 +6,7 @@ Importing from this module is the canonical way to access these types.
 For backward compatibility, unified_d3_engine.py re-exports them all.
 """
 
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass
 
 from egi_core_dau import ElementID
@@ -57,6 +57,13 @@ class LigaturePath:
     vertex_id: ElementID
     points: Tuple[Point, ...]
     port_index: int = 0
+    # The argument-order numeral drawn on this line, or None to draw none.  Set
+    # by the active style's order convention (eg_reader.assign_order_labels):
+    # "numbered" labels every ≥2-ary line; "clockwise" labels only where the
+    # natural clockwise reading of the hooks would not match ν (Peirce's
+    # Convention-13 numeric-index override).  When set it is the 1-based index;
+    # the renderer draws it and eg_reader reads it back.
+    order_label: Optional[int] = None
 
 
 @dataclass

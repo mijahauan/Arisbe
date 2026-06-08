@@ -207,15 +207,12 @@ class SimpleSVGRenderer:
         # Get cap style from style specification
         ligature_cap_style = style.raw_style_data.get('ligature', {}).get('cap_style', 'butt')
 
-        # Argument-order convention: under "numbered" (Dau §11.2) a small numeral
-        # n is drawn on each line of an ≥2-ary relation, so the picture itself
-        # carries ν's order (the eg_reader recovers it by reading the numeral —
-        # which is LigaturePath.port_index).  Under "clockwise" (Peirce) the order
-        # is read from the hooks' angular order instead; no numeral is drawn.
-        order_convention = getattr(style, "argument_order_convention", "numbered")
-        arity_by_pred = {}
-        for _l in dto.ligature_paths:
-            arity_by_pred[_l.predicate_id] = arity_by_pred.get(_l.predicate_id, 0) + 1
+        # Argument-order numerals: a line carries a number iff its DTO sets
+        # LigaturePath.order_label (eg_reader.assign_order_labels decides per the
+        # style's convention — every ≥2-ary line under "numbered"/Dau §11.2; only
+        # the lines a "clockwise"/Peirce placement can't disambiguate, the
+        # Convention-13 override).  The renderer just draws what the DTO says, so
+        # picture and reader agree on the same numeral.
         _an = style.raw_style_data.get("arity_numbers", {})
         num_font_size = _an.get("font_size", 8)
         num_color = _an.get("color", "#666666")
@@ -259,9 +256,9 @@ class SimpleSVGRenderer:
                 "data-port-index": str(lig.port_index),
             })
 
-            # Numbered convention: the order numeral on this line (1-based), set
-            # just off the predicate-end of the line.  Only for ≥2-ary relations.
-            if order_convention == "numbered" and arity_by_pred.get(lig.predicate_id, 0) >= 2:
+            # Argument-order numeral on this line (1-based), set just off the
+            # predicate-end, drawn iff the DTO assigned one.
+            if getattr(lig, "order_label", None) is not None:
                 hook, nxt = pts[0], pts[1]
                 dx, dy = nxt.x - hook.x, nxt.y - hook.y
                 seg = math.hypot(dx, dy) or 1.0
@@ -279,7 +276,7 @@ class SimpleSVGRenderer:
                     "data-predicate-id": str(lig.predicate_id),
                     "data-port-index": str(lig.port_index),
                 })
-                num.text = str(lig.port_index + 1)
+                num.text = str(lig.order_label)
 
         # ====================================================================
         # Bridge marks (Peirce's hop) at ligature crossings — drawn on top of

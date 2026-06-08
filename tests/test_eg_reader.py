@@ -17,7 +17,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from eg_reader import read_drawing, reading_matches_egi
+from eg_reader import read_drawing, reading_matches_egi, assign_order_labels
 from egif_parser_dau import parse_egif
 from elk_layout_engine import ELKLayoutEngine
 from tension_engine import TensionLayoutEngine
@@ -62,6 +62,42 @@ def test_numbered_round_trip_recovers_full_nu_with_order(Engine):
         assert reading_matches_egi(read_drawing(dto), egi, ordered=True), (
             f"{meta['uod_id']} lost argument order under {Engine.__name__}/numbered"
         )
+
+
+@pytest.mark.parametrize("Engine", _ENGINES)
+def test_clockwise_round_trip_recovers_full_nu_via_overrides(Engine):
+    """Under the clockwise convention (Peirce) the canonical pipeline labels only
+    the relations whose natural placement doesn't read clockwise-as-ν (the
+    Convention-13 numeric override); with that, the round trip recovers the full
+    ν including order across the corpus, both engines."""
+    svc = TomosService(TOMOS_ROOT)
+    style = load_style("peirce-authentic@1.0")  # clockwise
+    for meta in svc.list_uods():
+        egi = svc.load_uod(meta["uod_id"]).current_egi
+        dto = assign_order_labels(egi, Engine().generate_layout(egi, style))
+        assert reading_matches_egi(read_drawing(dto), egi, ordered=True), (
+            f"{meta['uod_id']} lost order under {Engine.__name__}/clockwise"
+        )
+
+
+def test_clockwise_labels_are_sparse_numbered_labels_all():
+    """numbered labels every ≥2-ary line; clockwise labels only the overrides —
+    so for the same corpus clockwise draws *strictly fewer* numerals (the
+    placement already shows most relations' order)."""
+    svc = TomosService(TOMOS_ROOT)
+    dau = load_default_style()
+    peirce = load_style("peirce-authentic@1.0")
+    n_numbered = n_clockwise = 0
+    for meta in svc.list_uods():
+        egi = svc.load_uod(meta["uod_id"]).current_egi
+        base = ELKLayoutEngine().generate_layout(egi, dau)
+        n_numbered += sum(p.order_label is not None
+                          for p in assign_order_labels(egi, base).ligature_paths)
+        basep = ELKLayoutEngine().generate_layout(egi, peirce)
+        n_clockwise += sum(p.order_label is not None
+                           for p in assign_order_labels(egi, basep).ligature_paths)
+    assert n_numbered > 0
+    assert n_clockwise < n_numbered  # clockwise only overrides where needed
 
 
 def test_clockwise_reader_recovers_order_from_hook_angles():
