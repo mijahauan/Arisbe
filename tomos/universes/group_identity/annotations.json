@@ -1,0 +1,45 @@
+{
+  "annotations": [
+    {
+      "id": "ann_2c0c3f32",
+      "scope": "uod",
+      "text": "Uniqueness of the group identity (e = f) \u2014 the first tomos fixture that is genuinely *mathematical* (true relative to the three axioms, \u0393 \u22a2 \u03c6) rather than purely logical, and the first to carry equality as a line of identity rather than a predicate.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "pedagogy",
+        "theory-relative"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_92cc6188",
+      "scope": "chain",
+      "text": "The shape is the one-liner e = e\u00b7f = f: derive e\u00b7f = f and e\u00b7f = e (steps 1\u20132), then single-valuedness forces f = e (steps 3\u20136). The axioms are consumed (a \u0393 \u22a2 \u03c6 derivation may spend its premises); the conclusion stands alone as the bare equality.",
+      "author": null,
+      "created": null,
+      "tags": [],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_e7396fd7",
+      "scope": "step",
+      "text": "Multi-line universal instantiation: A3's four lines (x,y,z,w) are joined to the two constants (e,f,f,e) in a single move \u2014 four 'insert a connection' ligatures at once (Sowa Fig. 14; Dau \u00a716.6). This is where an engine that handles one line at a time, or drops a coreference, would fail; the consequent =(z,w) lands as =(e,f), and because coreference is unordered that IS the goal (no e=f vs f=e bookkeeping).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "crux",
+        "beta-crux",
+        "fixture",
+        "multi-line"
+      ],
+      "state_id": null,
+      "step_id": "step-3",
+      "element_id": null
+    }
+  ]
+}

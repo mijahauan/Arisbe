@@ -44,6 +44,12 @@ from tools.build_barbara_chain import (
     barbara_provenance,
     build_barbara_chain,
 )
+from tools.build_group_identity_chain import (
+    _is_bare_equality,
+    build_group_identity_chain,
+    group_identity_annotations,
+    group_identity_provenance,
+)
 
 
 @pytest.fixture
@@ -134,3 +140,48 @@ def test_barbara_full_payload_round_trips(tomos):
     tomos.save_annotations(uod, barbara_annotations())
     assert tomos.load_chain(uod.uod_id) is not None
     assert Provenance.from_dict(tomos.load_provenance(uod.uod_id)).is_authored_here()
+
+
+# --------------------------------------------------------------------------- #
+# Uniqueness of the group identity (Beta, theory-relative) — multi-line UI     #
+# --------------------------------------------------------------------------- #
+
+
+def test_group_identity_reaches_conclusion():
+    chain, uod = build_group_identity_chain()
+    # Three universal-instantiation moves, then detachment, then tidy-up.
+    assert [s.rule_name for s in chain.steps] == [
+        "UI", "UI", "UI", "IT-", "IT-", "DC-", "ERA", "ERA"
+    ]
+    # The conclusion is the bare equality e = f (a single = ligature on the
+    # sheet); the = relation is off the EGIF surface, so we pin it structurally.
+    assert _is_bare_equality(uod.current_egi)
+
+
+def test_group_identity_third_ui_is_the_multi_line_move():
+    chain, _ = build_group_identity_chain()
+    third = chain.steps[2]
+    assert third.rule_name == "UI"
+    assert third.parameters.get("derived") is True
+    assert third.parameters.get("peirce_label") == "multi-line"
+
+
+def test_group_identity_provenance_and_annotations():
+    prov = Provenance.from_dict(group_identity_provenance())
+    prov.validate()
+    assert prov.is_authored_here()
+
+    layer = annotations_from_list(group_identity_annotations())
+    # The crux is the step-3 multi-line instantiation.
+    step3 = for_step(layer, "step-3")
+    assert step3 and "multi-line" in step3[0].tags and "beta-crux" in step3[0].tags
+
+
+def test_group_identity_full_payload_round_trips(tomos):
+    chain, uod = build_group_identity_chain()
+    tomos.save_uod_with_chain(uod, chain, provenance=group_identity_provenance())
+    tomos.save_annotations(uod, group_identity_annotations())
+    assert tomos.load_chain(uod.uod_id) is not None
+    assert Provenance.from_dict(tomos.load_provenance(uod.uod_id)).is_authored_here()
+    layer = annotations_from_list(tomos.load_annotations(uod.uod_id))
+    assert {a.scope for a in layer} == {SCOPE_UOD, SCOPE_CHAIN, SCOPE_STEP}

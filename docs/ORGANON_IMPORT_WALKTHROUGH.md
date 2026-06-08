@@ -606,7 +606,36 @@ Fig.14 / Roberts) + the §4.2 comments as annotations (the step-1 iterate-and-jo
 crux, the A1-stays-asserted chain note, the premises-vs-blank uod note). Now in
 the corpus as `barbara`. Tests: +4 in `test_fixture_chains.py`.
 
-**Next:** group-identity (Step 4e) needs **multi-line** UI (A3 instantiates four
-lines at once, to *constants* `e`/`f`) — an extension of the single-line
-`universal_instantiation`; R8 is settled (equality = ligature). Then step 5
-(retrofit the corpus to spec).
+**Step 4e — uniqueness of the group identity (Beta, theory-relative) ✅ seeded.**
+[`tools/build_group_identity_chain.py`](../tools/build_group_identity_chain.py):
+from the three axioms (A1 left-identity, A2 right-identity, A3 single-valued)
+asserted on the sheet, **UI → UI → UI → IT- → IT- → DC- → ERA → ERA**, reducing
+to the bare equality `e = f` (an `=` ligature on the sheet). All 8 steps run
+through the real engine; all 9 chain states render and §3.3-attest; the
+conclusion is pinned structurally (`_is_bare_equality` — the `=` relation is off
+the EGIF surface, so no parse-and-compare). Authored-here provenance (theorem =
+folklore; method = Dau §16.6 / Sowa Fig.14 / Roberts) + the §4.3 comments as
+annotations (the multi-line crux, the e=e·f=f chain note, the theory-relative
+uod note). Now in the corpus as `group_identity`. Tests: +4 in
+`test_fixture_chains.py`.
+
+The **multi-line UI** is a new derived move,
+[`derived_rules.instantiate_to_lines`](../src/derived_rules.py) — the *consuming,
+multi-line* sibling of `universal_instantiation`. Both are Sowa's "insert a
+connection ↔ identify two nodes" (Fig.14) / Dau §16.6; they differ only in
+whether the universal is **reused** (iterate-and-join, deeper target, universal
+stays — Barbara) or **consumed** (in-place: insert `=`(target, source) in the
+universal's own negative area, merge source into the enclosing target — group
+identity). `joins` carries several `(source, target)` pairs, so A3's **four**
+lines instantiate to the two constants `e`/`f` in one move (the consequent
+`=(z,w)` lands as the goal `=(e,f)`; coreference is unordered, so f=e *is* e=f —
+no symmetry bookkeeping). The move refuses a positive insertion area (would be
+unsound). A representational note settling the §4.3 fork: constants intern
+*per-area* in this EGIF dialect, so `e` and `f` are **shared generic lines on the
+sheet**, not `"e"`/`"f"` tokens (which would duplicate across cuts) — the faithful
+encoding of a named individual referenced across contexts. Unit tests:
+[`tests/test_derived_rules.py`](../tests/test_derived_rules.py) (3: single-line,
+multi-line, positive-area refusal).
+
+**Next:** step 5 (retrofit the 18 existing corpus items to spec — the
+provenance-bundle + annotation shapes; ids already encode their citations).

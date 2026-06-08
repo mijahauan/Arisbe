@@ -4,36 +4,42 @@ primitives, each expanding to a sequence of sound, syntactically-equivalent
 rules.  (See ``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §6 — the derived-rule layer
 is the prerequisite for scaling EG proofs past toy theorems.)
 
-**`universal_instantiation`** — Dau's *iterate-and-join*: instantiate a
-universally-quantified line to an existing line of identity.  This is the move
-Barbara's step 1 needs and the one a naive IT+ "quietly drops" (it copies the
-line as fresh instead of joining it).  Grounded in:
+Both moves here are realizations of the *same* underlying idea — Sowa's
+"**insert a connection** between two nodes has the effect of identifying two
+nodes" (`cg_hbook.pdf` Fig. 14) = a coreference/identity link = (Arisbe) a shared
+line of identity, formalized by Dau, *Mathematical Logic with Diagrams* §16.1
+*Derived Rules for Ligatures* (Lemma 16.2 extending a ligature; Definition 16.6 /
+Lemma 16.7 merging two vertices under ``ctx(v₁) ≥ ctx(e) = ctx(v₂)``; soundness in
+§17).  They differ only in whether the universal is **reused** or **consumed**:
 
-  * Sowa, *cg_hbook.pdf* Fig. 14 ("Proof of universal instantiation"):
-    UI = 2i (copy the line into the negative context as a bound use) → 1i
-    (insert a *connection* between the two lines) → 3e.  Sowa: "inserting a
-    connection between two nodes has the effect of identifying two nodes."
-  * Dau, *Mathematical Logic with Diagrams* §14.2 (iteration), §16.1 *Derived
-    Rules for Ligatures* — Lemma 16.2 (extending a ligature in a context) and
-    Definition 16.6 / Lemma 16.7 (merging two vertices, with the constraint
-    ``ctx(v₁) ≥ ctx(e) = ctx(v₂)``), each proven syntactically equivalent, with
-    soundness in §17.
+**`universal_instantiation`** — the *reuse* variant (iterate-and-join).
+Instantiate a universally-quantified line to a *deeper* existing line while
+leaving the universal asserted: IT+ (copy the universal into the deeper target,
+producing a fresh line ``z``) → insert ``=``(target, z) in ``z``'s context → merge
+``z`` into the target.  This is the move Barbara's step 1 needs and the one a naive
+IT+ "quietly drops" (it copies the line as fresh instead of joining it).  In
+Arisbe's per-context vertex model a line cannot be *rebound* across cut-depth
+(``replace_vertex_on_hook`` rightly refuses a deep hook → shallow line — that *is*
+Dau's constraint), so the join is a **merge**, which rewrites incidence directly.
 
-In Arisbe's per-context vertex model a line cannot be *rebound* across cut-depth
-(``replace_vertex_on_hook`` rightly refuses to point a deep hook at a shallow
-line — that *is* Dau's constraint).  So the join is done by **merge**: copy the
-universal (IT+ → a fresh line ``z`` deep in the target), add an identity edge
-``=``(target_line, z) in ``z``'s context (the connection, sound as a 1i insertion
-in a negative area), then merge ``z`` into the target line (Def 16.6 — the merge
-rewrites incidence directly, so it crosses depth that a per-hook rebind cannot).
+**`instantiate_to_lines`** — the *consuming, multi-line* variant (in-place).
+Instantiate the universal's own lines to *shallower* existing individuals (e.g.
+sheet-level constants), spending the quantifier and leaving the instance in
+place: for each ``(source, target)`` insert ``=``(target, source) in the
+universal's own (negative) area — a sound insertion — then merge ``source`` into
+the (enclosing) ``target``.  ``joins`` may carry several pairs at once, so a
+functionality axiom's four lines instantiate to two constants in a single move
+(uniqueness-of-group-identity, ``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §4.3).  The
+caller discharges the result (a double cut for a single-line universal, the
+instantiated scroll for an implication) with the primitive rules.
 
 Composes existing public operations only; touches no protected module.
 """
 
-from typing import Optional
+from typing import Iterable, Optional, Tuple
 
 import eg_navigation as nav
-from egi_core_dau import Edge, ElementID, RelationalGraphWithCuts
+from egi_core_dau import AreaPolarity, Edge, ElementID, RelationalGraphWithCuts
 from proof_authoring import apply_rule
 from vertex_splitting_merging_rules import VertexMergingRule
 
@@ -82,4 +88,55 @@ def universal_instantiation(
     return g
 
 
-__all__ = ["universal_instantiation"]
+def instantiate_to_lines(
+    egi: RelationalGraphWithCuts,
+    *,
+    universal_cut: ElementID,
+    joins: Iterable[Tuple[ElementID, ElementID]],
+    edge_id_prefix: str = "e_inst",
+) -> RelationalGraphWithCuts:
+    """Instantiate a universal's own lines *in place* to existing (enclosing)
+    lines — the consuming, multi-line variant of the derived UI/join move (see
+    module docstring).
+
+    For each ``(source, target)`` in ``joins``: insert an identity edge
+    ``=``(target, source) into the universal's negative area (sound — insertion
+    in a negative context is always permitted) and merge ``source`` into
+    ``target`` (Def 16.6 — the target encloses the source, so
+    ``ctx(target) ≥ ctx(edge) = ctx(source)`` holds).  The universal's quantifier
+    is thereby spent and the instance is left in place; the caller discharges the
+    remaining structure with the primitive rules.
+
+    Args:
+        universal_cut: the universal's outer cut.  Its directly-declared lines are
+            the instantiation variables, and the identity edges are inserted into
+            its area.  Must be a negative (verso/odd) area.
+        joins: pairs ``(source_line, target_line)`` — each ``source_line`` declared
+            in ``universal_cut`` is identified with the enclosing ``target_line``.
+            Several pairs instantiate several lines at once (e.g. four lines of a
+            functionality axiom to two constants).
+        edge_id_prefix: prefix for the transient identity edges (each merge
+            removes its own edge, so the prefix need only be unique per call).
+
+    Returns the EGI after all joins.  Raises ``ValueError`` if the insertion area
+    is not negative (an in-place insertion there would be unsound).
+    """
+    polarity, _ = nav.polarity_of(egi, universal_cut)
+    if polarity is not AreaPolarity.NEGATIVE:
+        raise ValueError(
+            "instantiate_to_lines requires the universal's area to be negative "
+            "(verso/odd); an identity-edge insertion in a positive area is unsound"
+        )
+    g = egi
+    for i, (source, target) in enumerate(joins):
+        edge_id = f"{edge_id_prefix}_{i}"
+        # 1i — insert the connection (identity edge) in the source line's area.
+        g = g.with_edge(Edge(id=edge_id), (target, source), "=", universal_cut)
+        # Def 16.6 — merge source into the enclosing target (target survives).
+        g = VertexMergingRule()._apply_vertex_merge(
+            g, v1_id=target, v2_id=source, identity_edge_id=edge_id
+        )
+    return g
+
+
+__all__ = ["universal_instantiation", "instantiate_to_lines"]

@@ -1,0 +1,19 @@
+{
+  "uod_id": "group_identity",
+  "uod_type": "historical",
+  "name": "Uniqueness of the Group Identity",
+  "description": "A1 (\u2200y. e\u00b7y = y), A2 (\u2200x. x\u00b7f = x), A3 (single-valued) \u22a2 e = f \u2014 the left identity equals the right identity, the classic e = e\u00b7f = f. A Beta, theory-relative theorem (\u0393 \u22a2 \u03c6 from axioms) and the first fixture to exercise multi-line universal instantiation (A3's four lines to two constants at once) and equality-as-ligature. The derivation is original to Arisbe (the theorem is folklore); every step a real, attestable rule application.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

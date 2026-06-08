@@ -1,0 +1,47 @@
+{
+  "theorem_source": {
+    "type": "manuscript",
+    "title": "Uniqueness of the identity element (folklore)",
+    "note": "Standard one-line group-theory lemma: e = e\u00b7f = f, where e is a left identity and f a right identity. No single canonical source."
+  },
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Dau, Frithjof",
+      "title": "Mathematical Logic with Diagrams",
+      "note": "\u00a716.1 derived rules for ligatures (Lem 16.2 extending a ligature; Def 16.6 merging vertices, ctx(v1) \u2265 ctx(e) = ctx(v2)); \u00a717 soundness \u2014 the warrant for multi-line instantiation."
+    },
+    {
+      "type": "article-journal",
+      "author": "Sowa, John F.",
+      "title": "Conceptual Graphs (Handbook of Knowledge Representation, ch. 5)",
+      "year": "2008",
+      "note": "Fig. 14: UI as iterate-and-join; 'inserting a connection between two nodes identifies them' \u2014 equality is the ligature, not a dyadic predicate."
+    },
+    {
+      "type": "book",
+      "author": "Roberts, Don D.",
+      "title": "The Existential Graphs of Charles S. Peirce",
+      "year": "1973",
+      "bibkey": "roberts1973existential"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "formatted": {
+    "theorem": "Uniqueness of the identity element (folklore)",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Dau, Frithjof. Mathematical Logic with Diagrams",
+      "Sowa, John F. (2008). Conceptual Graphs (Handbook of Knowledge Representation, ch. 5)",
+      "Roberts, Don D. (1973). The Existential Graphs of Charles S. Peirce"
+    ]
+  }
+}

@@ -1,34 +1,39 @@
 # Current Plan
 
-**Last Updated**: 2026-06-08 (Organon import walkthrough executed + built; next session set — see below)
+**Last Updated**: 2026-06-08 (Organon import — all 3 fixtures built; next = corpus retrofit)
 
-> **NEXT SESSION — finish the Organon import build (2 of 3 fixtures done).**
+> **NEXT SESSION — finish the Organon import build (3 of 3 fixtures done).**
 > The walkthrough memo is the design-of-record:
 > [docs/ORGANON_IMPORT_WALKTHROUGH.md](docs/ORGANON_IMPORT_WALKTHROUGH.md) (see
-> its §8 build queue + §9 build log). Two items remain:
-> - **(4e) the group-identity fixture** — uniqueness of the group identity, the
->   third fixture (Beta, theory-relative, equality-as-ligature). It needs
->   extending `derived_rules.universal_instantiation` to **multi-line** UI: A3
->   (single-valuedness) instantiates **four lines at once, to the constants
->   `e`/`f`**, and the conclusion is the coreference `[e f]`. The single-line UI
->   move (Barbara) is built; multi-line + constant targets is the extension.
->   R8 is settled (equality = ligature, Sowa "insert a connection identifies two
->   nodes" + Dau §16.6).
+> its §8 build queue + §9 build log). **One item remains:**
 > - **(5) retrofit the corpus to spec** — apply the provenance-bundle +
 >   annotation-layer shapes to the **18 existing UoDs** (whose ids already encode
 >   their citations: `peirce_cp_4_394…`, `dau_2006_p112…`, `sowa_cat_on_mat`).
 >   Mostly mechanical; per-item citation judgment. `theorem_praeclarum` is the
 >   one whose `proof_source` is a real external citation (Sowa), not authored.
 >
-> **Done this session (committed on branch `organon-import-annotations-provenance`,
-> full suite 1104 passed / 37 skipped, no protected module touched):** the
+> **Done this session (on `main`, full suite green, no protected module touched):**
+> the **third fixture** `group_identity` — uniqueness of the group identity (Beta,
+> theory-relative; A1 left-id, A2 right-id, A3 single-valued ⊢ e=f, the classic
+> e=e·f=f). 8 steps (UI·UI·UI·IT-·IT-·DC-·ERA·ERA) through the real engine; all 9
+> states render + §3.3-attest; reduces to the bare `=` ligature on the sheet.
+> Built on a new derived move
+> [`derived_rules.instantiate_to_lines`](src/derived_rules.py) — the *consuming,
+> multi-line* sibling of `universal_instantiation`: A3's **four lines instantiate
+> to the two constants `e`/`f` in one move** (in-place INS+merge; consequent
+> `=(z,w)` lands as the goal `=(e,f)`, coreference unordered). R8 settled in code
+> (equality = shared line; constants intern per-area, so `e`/`f` are shared
+> *generic* lines, not `"e"`/`"f"` tokens). Tools/tests:
+> `tools/build_group_identity_chain.py`, `tests/test_derived_rules.py` (3),
+> `tests/test_fixture_chains.py` (+4). Memory [[project-organon-import-build]].
+>
+> **Prior session (annotation layer + provenance + first two fixtures):** the
 > annotation layer (`src/annotations.py`, 4 scopes, outside §3.3), the provenance
 > bundle + per-layer warrant (`src/provenance.py`) + the `save_uod_with_chain`
 > doorway-union, the **derived universal-instantiation move** (`src/derived_rules.py`
-> — Dau's iterate-and-join, grounded in Sowa Fig.14 + Dau §16.1, validated) +
-> `ProofChain.apply_derived`, and **two seeded fixtures**: `peirce_law` (Alpha)
-> and `barbara` (Beta). Memory [[project-organon-import-build]],
-> [[project-next-organon-import-peirces-law-barbara]].
+> — Dau's iterate-and-join, grounded in Sowa Fig.14 + Dau §16.1) +
+> `ProofChain.apply_derived`, and the `peirce_law` (Alpha) + `barbara` (Beta)
+> fixtures. Memory [[project-next-organon-import-peirces-law-barbara]].
 
 > **✅ DONE — thorough documentation review (2026-06-08).** Worked the
 > `docs/DOCUMENTATION_REVIEW_PREP.md` triage *spine-first, then outward*, with
