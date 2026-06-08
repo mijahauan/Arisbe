@@ -1,21 +1,33 @@
 # Current Plan
 
-**Last Updated**: 2026-06-08 (Documentation review executed; next session set — see below)
+**Last Updated**: 2026-06-08 (Organon import walkthrough executed + built; next session set — see below)
 
-> **NEXT SESSION — Organon import walkthrough (author-requested).** Walk through
-> the process of **importing to Organon** and surface **the issues it raises**,
-> using two proofs the author has in hand to import **with comments**:
-> **Peirce's Law** `((P→Q)→P)→P` (classical tautology, pure implicational →
-> **Alpha**) and **Barbara** (∀x(M→P), ∀x(S→M) ⊢ ∀x(S→P) → **Beta**, lines of
-> identity). Together they re-cover Alpha+Beta as *named historical proofs*. The
-> real subject is the **import experience**: how do **comments/annotations**
-> attach to an imported proof (a step? a chain? a UoD?) — likely the gap; at what
-> **warrant** does a proof enter (import = LOW warrant, never asserted true — see
-> `docs/MANIFEST_AND_MEANING.md`); and how does this continue the **diachronic
-> exemplars** seeding (real `TransformationChain`s via `save_uod_with_chain`,
-> precedent `tools/build_*_chain.py`). Recall the mode contract: Organon is the
-> attested read-only archive — a graph earns the corpus via Agon or as a
-> style-only reprojection. Memory
+> **NEXT SESSION — finish the Organon import build (2 of 3 fixtures done).**
+> The walkthrough memo is the design-of-record:
+> [docs/ORGANON_IMPORT_WALKTHROUGH.md](docs/ORGANON_IMPORT_WALKTHROUGH.md) (see
+> its §8 build queue + §9 build log). Two items remain:
+> - **(4e) the group-identity fixture** — uniqueness of the group identity, the
+>   third fixture (Beta, theory-relative, equality-as-ligature). It needs
+>   extending `derived_rules.universal_instantiation` to **multi-line** UI: A3
+>   (single-valuedness) instantiates **four lines at once, to the constants
+>   `e`/`f`**, and the conclusion is the coreference `[e f]`. The single-line UI
+>   move (Barbara) is built; multi-line + constant targets is the extension.
+>   R8 is settled (equality = ligature, Sowa "insert a connection identifies two
+>   nodes" + Dau §16.6).
+> - **(5) retrofit the corpus to spec** — apply the provenance-bundle +
+>   annotation-layer shapes to the **18 existing UoDs** (whose ids already encode
+>   their citations: `peirce_cp_4_394…`, `dau_2006_p112…`, `sowa_cat_on_mat`).
+>   Mostly mechanical; per-item citation judgment. `theorem_praeclarum` is the
+>   one whose `proof_source` is a real external citation (Sowa), not authored.
+>
+> **Done this session (committed on branch `organon-import-annotations-provenance`,
+> full suite 1104 passed / 37 skipped, no protected module touched):** the
+> annotation layer (`src/annotations.py`, 4 scopes, outside §3.3), the provenance
+> bundle + per-layer warrant (`src/provenance.py`) + the `save_uod_with_chain`
+> doorway-union, the **derived universal-instantiation move** (`src/derived_rules.py`
+> — Dau's iterate-and-join, grounded in Sowa Fig.14 + Dau §16.1, validated) +
+> `ProofChain.apply_derived`, and **two seeded fixtures**: `peirce_law` (Alpha)
+> and `barbara` (Beta). Memory [[project-organon-import-build]],
 > [[project-next-organon-import-peirces-law-barbara]].
 
 > **✅ DONE — thorough documentation review (2026-06-08).** Worked the
