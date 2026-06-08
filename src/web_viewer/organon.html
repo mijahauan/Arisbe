@@ -197,6 +197,23 @@
       height: 100%;
       display: block;
     }
+    /* --- unified action toolbar (transfer in/out + cross-mode) --- */
+    #organon-actionbar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; background: #181825;
+      border-bottom: 1px solid var(--bottombar-border);
+    }
+    .xfer-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; font-size: 12px; cursor: pointer; white-space: nowrap;
+      background: var(--btn-bg); color: var(--sidebar-text);
+      border: 1px solid var(--bottombar-border); border-radius: 4px;
+    }
+    .xfer-btn:hover:not(:disabled) { background: var(--sidebar-hover); }
+    .xfer-btn:disabled { opacity: .38; cursor: not-allowed; }
+    .xfer-btn .xfer-ico { font-size: 13px; line-height: 1; }
+    .xfer-sep { width: 1px; align-self: stretch; background: var(--bottombar-border); margin: 0 3px; }
+    .xfer-spacer { flex: 1; }
     #organon-status {
       padding: 6px 18px;
       background: var(--bottombar-bg);
@@ -247,20 +264,27 @@
       <div id="organon-uod-list">
         <div class="empty-state">Loading corpus…</div>
       </div>
-
-      <div id="organon-sidebar-footer" style="padding:10px 14px; border-top:1px solid var(--bottombar-border); font-size:11px;">
-        <a href="/import" style="color:var(--sidebar-accent); text-decoration:none;">＋ Import a linear form</a>
-        <div style="font-size:10px; color:#6c7086; margin-top:3px;">admit a graph from a book or page into the corpus</div>
-      </div>
     </aside>
 
     <main id="organon-main">
+      <!-- Unified action toolbar: graphs in/out of the corpus (Import / Export)
+           and cross-mode hand-offs, one consistent place with one icon family.
+           Item actions enable once a UoD is open. -->
+      <div id="organon-actionbar">
+        <button class="xfer-btn" id="btn-import"
+                title="Admit a graph from a book or page into the corpus (low warrant)">
+          <span class="xfer-ico">↓</span> Import</button>
+        <span class="xfer-spacer"></span>
+        <button class="xfer-btn" id="act-export" disabled
+                title="Export this graph in the current view style + layout">
+          <span class="xfer-ico">↑</span> Export</button>
+      </div>
+
       <header id="organon-detail-header">
         <h2 id="organon-detail-title">Select a UoD from the archive</h2>
         <div class="detail-meta" id="organon-detail-meta"></div>
         <div id="organon-detail-extra"></div>
-        <details id="organon-export" style="display:none; margin-top:8px; font-size:12px;">
-          <summary style="cursor:pointer; color:var(--sidebar-accent); font-weight:600;">Export ▾</summary>
+        <div id="organon-export" style="display:none; margin-top:8px; font-size:12px;">
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
             <label style="font-size:10px; color:#6c7086;">Format</label>
             <select id="export-format"></select>
@@ -277,7 +301,7 @@
               <a id="export-download" download style="font-size:11px;"></a>
             </div>
           </div>
-        </details>
+        </div>
       </header>
 
       <!-- View-style toolbar: style is a *projection* of one meaning, so any
@@ -531,6 +555,7 @@
         setStatus('Loading ' + uodId + '…');
         titleEl.textContent = uodId;
         metaEl.textContent = '';
+        setItemActionsEnabled(false);  // re-enabled by renderDetail on success
         hidePlayer();  // a new UoD may or may not be diachronic
         canvasEl.innerHTML = '<div id="organon-canvas-placeholder">Loading…</div>';
 
@@ -658,10 +683,12 @@
         const extraEl = document.getElementById('organon-detail-extra');
         if (extraEl) extraEl.innerHTML = renderProvenance(data) + renderAnnotations(data);
 
-        // Reveal the export panel + the view-style toolbar for the loaded UoD.
+        // Enable the item actions + reveal the view-style toolbar for the loaded
+        // UoD. The export panel stays collapsed until the Export button is hit.
         exportUodId = data.uod_id;
+        setItemActionsEnabled(true);
         const exportPanel = document.getElementById('organon-export');
-        if (exportPanel) exportPanel.style.display = 'block';
+        if (exportPanel) exportPanel.style.display = 'none';
         const exOut = document.getElementById('export-output');
         if (exOut) exOut.style.display = 'none';
         const viewBar = document.getElementById('view-toolbar');
@@ -885,6 +912,25 @@
           exStatus.textContent = 'Exported ' + a.filename + '.';
         } catch (e) { exStatus.textContent = 'Network error: ' + e.message; }
       }
+
+      // ---- Unified action toolbar (Import / Export; cross-mode added in C) ----
+      // Item actions enable when a UoD is open; the global Import is always live.
+      const ITEM_ACTION_IDS = ['act-export'];
+      function setItemActionsEnabled(on) {
+        ITEM_ACTION_IDS.forEach(function (id) {
+          const b = document.getElementById(id);
+          if (b) b.disabled = !on;
+        });
+      }
+      document.getElementById('btn-import').addEventListener('click', function () {
+        window.location.href = '/import';
+      });
+      document.getElementById('act-export').addEventListener('click', function () {
+        const panel = document.getElementById('organon-export');
+        if (!panel) return;
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        if (panel.style.display === 'block') panel.scrollIntoView({ block: 'nearest' });
+      });
 
       document.getElementById('export-go').addEventListener('click', doExport);
       document.getElementById('export-copy').addEventListener('click', function () {
