@@ -77,6 +77,24 @@ def test_styled_svg_differs_by_style(client):
     assert dau["content"] != peirce["content"]
 
 
+def test_tikz_honors_style(client):
+    """Regression: TikZ export in the Peirce style must NOT come out as Dau —
+    the chosen style reaches the exporter (the viewer's 'export what you see')."""
+    dau = client.post("/export", json={"text": FORM, "format": "tikz", "style_name": "dau-compliant@1.0"}).json()["data"]
+    peirce = client.post("/export", json={"text": FORM, "format": "tikz", "style_name": "peirce-authentic@1.0"}).json()["data"]
+    assert dau["content"] != peirce["content"]
+    assert "peirce-authentic" in peirce["content"]
+    assert "dau-compliant" in dau["content"]
+
+
+def test_export_honors_layout_engine(client):
+    """The layout engine carries into export too, so an export reproduces the
+    viewer's chosen projection (ELK vs tension), not just its style."""
+    elk = client.post("/export", json={"text": FORM, "format": "tikz", "engine": "elk"}).json()["data"]
+    tension = client.post("/export", json={"text": FORM, "format": "tikz", "engine": "tension"}).json()["data"]
+    assert elk["content"] != tension["content"]
+
+
 def test_export_from_uod(client, isolated_tomos):
     body = client.post("/export", json={"uod_id": isolated_tomos["seed_id"], "format": "svg"}).json()
     assert body["success"] is True

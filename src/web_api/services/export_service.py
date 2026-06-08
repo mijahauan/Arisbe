@@ -102,10 +102,12 @@ def export_egi(
     fmt: str,
     *,
     style_name: Optional[str] = None,
+    engine: str = "elk",
     standalone: bool = True,
     basename: str = "export",
 ) -> Dict[str, Any]:
-    """Export *egi* in *fmt* (and *style_name* for drawn forms).
+    """Export *egi* in *fmt* using the same *style_name* + layout *engine* the
+    viewer is showing — "export what you see".
 
     Returns a JSON-able dict::
 
@@ -132,18 +134,18 @@ def export_egi(
         return result
 
     if fmt == "svg":
-        _dto, svg = generate_layout(egi, style_name=style_name)
+        _dto, svg = generate_layout(egi, style_name=style_name, engine=engine)
         result["content"] = svg
         return result
 
     if fmt == "tikz":
-        dto, _svg = generate_layout(egi, style_name=style_name)
+        dto, _svg = generate_layout(egi, style_name=style_name, engine=engine)
         result["content"] = export_tikz(dto, egi, standalone=standalone, style=dto.style)
         return result
 
     if fmt in ("png", "pdf"):
         # §3.3 fires here (styled render) before the external conversion.
-        _dto, svg = generate_layout(egi, style_name=style_name)
+        _dto, svg = generate_layout(egi, style_name=style_name, engine=engine)
         result["content_base64"] = base64.b64encode(_rsvg(svg, fmt)).decode("ascii")
         return result
 

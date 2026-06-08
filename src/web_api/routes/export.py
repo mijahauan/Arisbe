@@ -90,7 +90,7 @@ async def do_export(request: ExportRequest):
 
         artifact = export_service.export_egi(
             egi, request.format, style_name=request.style_name,
-            standalone=request.standalone, basename=basename,
+            engine=request.engine, standalone=request.standalone, basename=basename,
         )
         return ApiResponse(success=True, data=artifact)
 

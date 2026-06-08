@@ -144,8 +144,9 @@ class ExportRequest(BaseModel):
 
     The source is either a corpus UoD (``uod_id``) or an inline linear
     form (``text`` + ``notation``).  ``format`` is one of the keys from
-    ``GET /export/formats``; ``style_name`` selects the visual style for
-    drawn formats (svg / tikz / png / pdf), defaulting to dau-compliant.
+    ``GET /export/formats``; ``style_name`` selects the visual style and
+    ``engine`` the layout engine for drawn formats (svg / tikz / png / pdf),
+    so an export reproduces exactly what the viewer is showing.
     """
 
     format: str
@@ -153,6 +154,7 @@ class ExportRequest(BaseModel):
     text: Optional[str] = None
     notation: str = "egif"
     style_name: Optional[str] = None
+    engine: str = "elk"
     standalone: bool = True
 
 

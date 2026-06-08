@@ -222,17 +222,13 @@
         <details id="organon-export" style="display:none; margin-top:8px; font-size:12px;">
           <summary style="cursor:pointer; color:var(--sidebar-accent); font-weight:600;">Export ▾</summary>
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
-            <label style="font-size:10px; color:#6c7086;">Style</label>
-            <select id="export-style">
-              <option value="">Dau (default)</option>
-              <option value="dau-compliant@1.0">Dau — mathematical</option>
-              <option value="peirce-authentic@1.0">Peirce — handwritten</option>
-              <option value="sowa-compliant@1.0">Sowa — conceptual graph</option>
-            </select>
             <label style="font-size:10px; color:#6c7086;">Format</label>
             <select id="export-format"></select>
             <button id="export-go" style="padding:4px 10px; cursor:pointer;">Export</button>
             <span id="export-status" style="font-size:10px; color:#6c7086;"></span>
+          </div>
+          <div id="export-view-note" style="font-size:10px; color:#6c7086; margin-top:4px;">
+            Exports the current view — set the style and layout in the toolbar above the canvas.
           </div>
           <div id="export-output" style="display:none; margin-top:8px;">
             <textarea id="export-text" readonly style="width:100%; min-height:70px; font-family:ui-monospace,Menlo,monospace; font-size:11px;"></textarea>
@@ -722,14 +718,21 @@
       async function doExport() {
         if (!exportUodId) return;
         const fmt = document.getElementById('export-format').value;
-        const style = document.getElementById('export-style').value;
+        // "Export what you see": use the current view projection (style + layout
+        // engine from the toolbar), not a separate, easily-desynced dropdown.
+        const style = currentStyle;
         const exStatus = document.getElementById('export-status');
-        exStatus.textContent = 'Exporting ' + fmt + '…';
+        const label = (currentStyle || 'Dau (default)') +
+          (currentEngine && currentEngine !== 'elk' ? ' / ' + currentEngine : '');
+        exStatus.textContent = 'Exporting ' + fmt + ' in ' + label + '…';
         try {
           const body = await fetch('/export', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uod_id: exportUodId, format: fmt, style_name: style || null }),
+            body: JSON.stringify({
+              uod_id: exportUodId, format: fmt,
+              style_name: style || null, engine: currentEngine || 'elk',
+            }),
           }).then((r) => r.json());
           if (!body.success) { exStatus.textContent = 'Failed: ' + (body.error && body.error.message); return; }
           const a = body.data;
