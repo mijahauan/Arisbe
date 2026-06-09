@@ -130,6 +130,15 @@ class EGIFLexer:
                 self.tokens.append(
                     Token(TokenType.CONSTANT, constant, self.position - len(constant))
                 )
+            elif char == "=":
+                # Dau's special dyadic identity relation (Ch. 11): identity is
+                # formalized as a 2-ary edge labeled with the relation name "=".
+                # It is a single-character relation name, so it does not flow
+                # through ``_read_identifier`` (alphanumeric+underscore only).
+                # The generator already emits ``(= x y)``; this closes the read
+                # side so a ``=`` edge round-trips.
+                self.tokens.append(Token(TokenType.RELATION, "=", self.position))
+                self.position += 1
             elif char.isalpha():
                 identifier = self._read_identifier()
                 # Determine if it's a bound variable or relation

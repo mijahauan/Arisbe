@@ -1,16 +1,37 @@
 # Current Plan
 
-**Last Updated**: 2026-06-08 (big session: ontology import, corpus retrofit, Organon UX pass, EPG-guide reorg + scholars' intro, tension "slash" fix; NEXT = plan the math fixtures)
+**Last Updated**: 2026-06-09 (math fixtures: validation gate passed — Part I+IV parse/round-trip; equality settled as Dau's `=` edge + lexer fix; NEXT = definition layer + schema node)
 
-> **NEXT SESSION — plan the math: ZFC + Peirce's 1881 arithmetic as EGIF
-> fixtures, and the graph-with-holes (schema) node.** Design-of-record (a draft
-> fixture set + spec the user authored): [docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md](docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md).
-> The arc: validate the proposed EGIF against Arisbe's parser, then build the two
-> genuinely new capabilities the fixtures need:
+> **DONE this session — math-fixtures validation gate (the first concrete step
+> of the math arc).** All on `main`-bound working tree, full suite green
+> (**1253 passed, 37 skipped**) + core suite green (380); one protected module
+> touched (authorized).
+> - **Validated** Part I (7 ZFC axioms) + Part IV (P1–P6 Peirce 1881) against the
+>   parser: all 13 parse and round-trip (parse→generate→parse, (V,E,Cut)
+>   preserved). Pinned in [tests/test_math_fixtures.py](tests/test_math_fixtures.py)
+>   (27 tests) — the canonical parser-exact EGIF. Two notation fixes from the
+>   brief: bound labels are bare `x` (not `?x`); equality is `(= a b)`.
+> - **Equality settled — and the brief was wrong.** The proposed coreference
+>   bracket `[a b]` (a vertex *merge*) is the reading **Dau explicitly refines
+>   away** (*Mathematical Logic with Diagrams* Ch. 11: "the identity relation is
+>   formalized by edges… 2-ary edges, labeled with the special relation name `=`").
+>   So R8 "equality = ligature" = the **`=` edge** between distinct vertices — what
+>   `group_identity` already builds. `(= a b)` round-trips to CLIF exactly.
+> - **Protected change (authorized):** the EGIF **lexer** (`egif_parser_dau.py`)
+>   now reads `=` as the special relation name — a latent round-trip bug, since
+>   `generate_egif` already *emitted* `(= x y)` but `parse_egif` choked on `=`.
+>   One additive `elif char == "="` branch; no signature change → no API-ref regen.
+> - Doc [docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md](docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md)
+>   updated (validation outcome + Dau-grounded equality decision; `(= a b)` now
+>   canonical). Memory [[project-math-fixtures-zfc-peirce-schema]].
+>
+> **NEXT SESSION — build the two new capabilities (both unprotected); the
+> validation gate is passed:**
 > - **Definition layer** — named graphs `name(ports) := body` (the term-level twin
 >   of the shipped derived-rule layer in `src/derived_rules.py`); lets `(subset …)`,
 >   `(succ …)`, `(empty …)`, `(plus …)` stand for their bodies. Makes Power Set /
->   Infinity / Choice / Peirce's recursive +,× readable and storable.
+>   Infinity / Choice / Peirce's recursive +,× readable and storable. **Start here**
+>   (smaller, well-scoped, a prerequisite feel for the schema node).
 > - **Graph-with-holes / schema node** (Part III of the doc) — a Beta graph + holes
 >   (ports, shared occurrence-id, α-rename-on-splice, parity-independent
 >   occurrence-equality) + `instantiate(schema, g)` + one new side-rule
@@ -20,9 +41,8 @@
 >   relabeling) is the stress case. First-order EG can't quantify over formulas —
 >   this is why a schema can't be one ordinary graph; Gamma (predicate
 >   quantification) stays out of scope.
-> Start by eyeballing/correcting the Part I–IV EGIF in the parser; equality is the
-> ligature `[a b]` (R8, settled this session). This is the gate to importing *real*
-> mathematics (the R7 horizon from the import walkthrough §6).
+> This is the gate to importing *real* mathematics (the R7 horizon from the import
+> walkthrough §6).
 >
 > Earlier-queued items still open (deferred behind the math): the by-hand import &
 > edit **"reading desk"** ([docs/CORPUS_AND_IMPORT_MODEL.md](docs/CORPUS_AND_IMPORT_MODEL.md)

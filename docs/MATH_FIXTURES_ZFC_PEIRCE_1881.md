@@ -1,8 +1,29 @@
 # EGIF Fixtures — ZFC and Peirce's 1881 Arithmetic
 
-**Status:** draft fixture set + design brief (2026-06-08), authored as next-session
-planning material. Not yet built. The EGIF below is a *proposed first draft to
-validate against Arisbe's own parser*, not verified ground truth.
+**Status:** design brief (2026-06-08). **Part I (7 ZFC axioms) and Part IV
+(P1–P6 Peirce) are now validated against Arisbe's parser** — all 13 parse and
+round-trip (parse → generate → parse, (V,E,Cut) preserved). The parser-exact,
+canonical EGIF lives in [`tests/test_math_fixtures.py`](../tests/test_math_fixtures.py)
+(27 tests green); the bodies below are the design rationale. The schema fixtures
+(Part II Separation/Replacement, P7 induction) carry holes and await the
+graph-with-holes node (Part III) — not yet built.
+
+**Validation outcome (2026-06-08) — two adjustments from this brief's notation:**
+1. **Bound labels are bare `x`, not `?x`.** Arisbe EGIF writes a defining label
+   `*x` and a bound use `x`; the `?` prefix is this brief's own convention. (The
+   canonical forms in the test use bare labels.)
+2. **Equality is `(= a b)`, Dau's identity edge — not the coreference bracket
+   `[a b]`.** Checked against Dau, *Mathematical Logic with Diagrams*, Ch. 11:
+   "Vertices will denote objects, and the identity relation is formalized by
+   edges. Identity is a special dyadic relation … captured by 2-ary edges,
+   labeled with the special relation name `=`." Dau explicitly *refines away* the
+   "two coincident points merge into one line" reading; `egi_core_dau` keeps `x`
+   and `y` as distinct vertices joined by a `=`-labeled edge. This is also exactly
+   what the shipped `group_identity` fixture builds, and it round-trips to CLIF
+   `(= a b)`. The EGIF **lexer** was updated (protected change) to read `=` as the
+   special relation name — the generator already *emitted* `(= x y)`, so this
+   closed a latent generator↔parser round-trip gap. Every `[a b]` / `[?x ?y]`
+   below should be read as `(= a b)`.
 
 This is the natural continuation of the Organon-import arc
 ([CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md)) into real mathematics.
@@ -26,10 +47,12 @@ is a shared *generic* line). Every `[a b]` below is that ligature.
 
 ## Conventions
 
-- **Membership** `x ∈ y`  →  relation `(in ?x ?y)`
-- **Equality** `x = y`  →  coreference node (ligature) `[?x ?y]`.
-  Relational alternative if Arisbe carries `=` as a predicate: replace every
-  `[a b]` with `(= a b)`. This also makes the round-trip to CLIF `(= a b)` exact.
+- **Membership** `x ∈ y`  →  relation `(in x y)`
+- **Equality** `x = y`  →  `(= x y)`, Dau's special dyadic identity relation
+  (a 2-ary `=` edge; Ch. 11). This is what Arisbe's parser reads and what CLIF
+  `(= a b)` round-trips to. *(This brief originally proposed the coreference
+  bracket `[a b]`; see the Validation outcome above for why the `=` edge is the
+  Dau-faithful choice.)*
 - **Cut / negation**  `~[ … ]`  ;  **conjunction** = juxtaposition.
 - **Defining label** `*v` introduces a line of identity (existential);
   **bound label** `?v` is a coreference use.
