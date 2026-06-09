@@ -1,0 +1,120 @@
+# Drawing a hole — schema correspondence
+
+**The question.** We built a graph-with-holes / schema node (`src/schema.py`) and
+used it to do real proof work (induction, parametric totality). A hole is written
+`⟨name: args⟩` in EGIF. *How does a hole draw, and does the §3.3 correspondence
+invariant apply to it?*
+
+**The short answer — settled, and empirically verified.** A hole is **not** a
+bounded region with an opaque interior (my first guess, wrong). In the EGI it is an
+ordinary `Edge`: `rel[eid] = "phi"`, `nu[eid] = (port lines…)`, flagged as a hole
+*only* by the wrapper-side `Schema.holes` dict (`{name: arity}`). So **a hole is
+structurally a predicate-position placeholder spot with ports** — it occupies
+exactly the slot a relation would, and at instantiation a whole filler graph is
+spliced onto its ports (`eg_splice.splice`). The "opaque interior" is *conceptual*
+(you don't yet know which graph fills it), not a drawn area.
+
+Because a hole IS relation-shaped, the whole projection-independent stack already
+handles it:
+
+- `natural_layout(schema.egi)` builds cleanly — one `NaturalLigature` per
+  (hole, port), identical to a relation's incidence. **(verified)**
+- `attest_correspondence(schema.egi, dto)` — the full §3.3 check — **PASSES on a
+  schema's EGI today, unchanged**: totality, containment, incidence+arity,
+  argument-order, the per-ligature crossing-sequence, identity connectedness are
+  all well-defined for a hole's ports. **(verified)**
+- An **instance** (holes filled) is an ordinary Beta graph and attests normally;
+  instantiation **preserves** §3.3. **(verified)**
+
+This is the deep point, and it lands squarely on the project's contract: **§3.3
+attests *correspondence*, not assertion/truth** (`docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md`).
+A hole's *boundary* (its ports, its containing area, its argument order, the cuts
+its lines must cross) denotes a definite structure, and the picture must denote that
+same structure — that is fully attestable. What the hole does *not* carry is a
+*committed predicate* (it is a metalevel placeholder, never asserted true — exactly
+why `Schema.to_clif` refuses). Correspondence governs the *sign*, not the
+*assertion*; so nothing about §3.3 needs to be "suspended" for a hole. There is no
+fourth regime here.
+
+## What corresponds, and what is open by design
+
+For a hole `⟨phi: a b⟩` the §3.3-attested boundary data is:
+
+| Boundary datum | Source | §3.3 property |
+|---|---|---|
+| identity / arity | `Schema.holes["phi"] = 2` | incidence count, argument-order |
+| ports (which lines attach) | `nu[eid] = (a, b)` | incidence multiset, identity connectedness |
+| containing area | `element_area[eid]` | containment fidelity |
+| line crossings | `natural_layout` crossing-sequence | identity crossing-multiset |
+
+Open *by design* (and **not** a correspondence gap): **which graph fills the hole.**
+That under-determination is the schema's whole purpose. It is resolved at
+`instantiate`, and the resolution is itself checkable — see "instantiation
+preserves correspondence" below.
+
+## Spot, not region — and why that's forced
+
+There is a tempting "region" picture: draw a hole as a labelled box and imagine a
+graph dropping inside it. We **reject** it, and the rejection is principled, not
+aesthetic: the central commitment is **the drawn shape IS the logical sign**
+(`docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md`; memory *drawn-shape-authoritative*). The
+logical sign here is an **edge**, so its faithful drawing is a **spot with hooks**,
+not an area. A box-with-interior would draw a *cut/area* — a different logical
+object than the edge the hole actually is — i.e. a correspondence violation in
+spirit. (If we ever *wanted* hole-as-area semantics, that would be a different
+representation — a cut flagged as a hole — and a separate decision; it is not what
+`schema.py` builds, and the spot model is what keeps instantiation = splice-at-ports
+clean.)
+
+So: **a hole draws where a predicate draws, with its argument lines attaching as
+ordinary hooks, glyphed distinctly to read as a placeholder rather than an asserted
+relation.** The glyph is the only genuinely new presentation element.
+
+## The one build gap: the placeholder glyph (presentation)
+
+Today `SimpleSVGRenderer` labels a predicate via `egi.get_relation_name(p_id)`
+(`simple_svg_renderer.py:423`) and draws every predicate the same way. A hole edge
+therefore currently renders **identically to a real relation named "phi"** — which
+is the only thing wrong with drawing a schema right now. To fix:
+
+1. **Plumb the hole set to the renderer.** The bare EGI does not know which edges
+   are holes (hole-ness lives in `Schema.holes`). Pass the hole-edge id set (or
+   hole names) into `render_to_svg` / the layout service, or mark hole predicates in
+   the `LayoutDTO` (a `hole_predicates: frozenset[ElementID]` field — additive, and
+   it travels with the drawing so a served schema stays self-describing).
+2. **Render the placeholder glyph.** A hole predicate draws with a distinct mark —
+   candidates: angle-bracketed name `⟨φ⟩`; a dashed/hairline label box; a tinted
+   placeholder fill. The argument lines attach exactly as a relation's hooks. This
+   is a style knob, defaulted, not a hardcode.
+3. **Keep §3.3 intact.** Since the change is label/box styling only (the predicate
+   *position* and *ports* are unchanged), attestation is unaffected — a schema with
+   the glyph still passes the same check it already passes.
+
+Everything above the renderer (natural layout, attestation) needs **no change** and
+**no protected-module edit**.
+
+## Instantiation preserves correspondence (the schema §3.3 theorem)
+
+The property that makes the schema machinery honest:
+
+> For a schema `S` and fillers `F`, let `inst = instance_of_schema(S, F)`. Then
+> `inst` is a hole-free EGI that attests §3.3, **and** the boundary the filler
+> presents at each former hole occurrence (its ports, in order; its containing
+> area) equals the boundary the hole presented — i.e. the splice welds port *i* of
+> the filler onto the *i*-th argument line of the hole, in the hole's area.
+
+This is what `eg_splice.splice(host, occ, filler, ports=…, weld=…)` already does;
+the theorem just makes it an attested invariant. Pinned by tests (below): the
+schema EGI attests, every fixture instance attests, and the per-occurrence port/area
+correspondence holds.
+
+## Status / build order
+
+- **DONE (verified, locked by tests):** schema EGIs and their instances attest
+  §3.3; instantiation preserves correspondence. *(The conceptual question — "does
+  §3.3 apply to a hole" — is answered: yes, fully, as boundary correspondence.)*
+- **NEXT (presentation):** the placeholder glyph — DTO `hole_predicates` field +
+  renderer branch + a style knob; choose the glyph (author's aesthetic call).
+- **Later / optional:** if hole-as-*area* semantics ever wanted, that is a separate
+  representation (a cut flagged as a hole) and a separate correspondence story; not
+  needed for the current schema node.

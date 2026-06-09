@@ -179,3 +179,64 @@ def test_schema_refuses_first_order_clif_export():
         sep.to_clif()
     with pytest.raises(ValueError, match="metalevel"):
         sep.to_cgif()
+
+
+# --- §3.3 correspondence for holes (docs/SCHEMA_HOLE_CORRESPONDENCE.md) ------ #
+#
+# A hole is structurally a predicate-position placeholder spot with ports (an
+# ordinary Edge flagged only by Schema.holes), so the projection-independent
+# stack already handles it: natural_layout builds it, and §3.3 attests its
+# *boundary* (ports, area, arity, argument-order, line crossings).  §3.3 attests
+# CORRESPONDENCE, not assertion — a hole carries no committed predicate, so
+# nothing needs suspending.  These tests lock that in: every fixture schema EGI
+# and every instance corresponds, and instantiation preserves it.
+
+def _engine_and_style():
+    from elk_layout_engine import ELKLayoutEngine
+    from style_loader import load_default_style
+    return ELKLayoutEngine(), load_default_style()
+
+
+@pytest.mark.parametrize("egif", [SEPARATION, REPLACEMENT, INDUCTION_P7])
+def test_schema_egi_attests_correspondence(egif):
+    """A schema's EGI — holes drawn as relation-shaped spots — passes §3.3."""
+    from correspondence_attestation import check_correspondence
+    schema = Schema.from_egif(egif)
+    engine, style = _engine_and_style()
+    dto = engine.generate_layout(schema.egi, style)
+    assert check_correspondence(schema.egi, dto) == []
+
+
+def test_instantiation_preserves_correspondence():
+    """Filling holes yields a hole-free EGI that also passes §3.3 — the schema
+    §3.3 theorem: instantiation preserves correspondence."""
+    from correspondence_attestation import check_correspondence
+    engine, style = _engine_and_style()
+    cases = [
+        (Schema.from_egif(INDUCTION_P7), {"psi": ("[*k] (even k)", ["k"])}),
+        (Schema.from_egif(REPLACEMENT), {"phi": ("[*a] [*b] (maps a b)", ["a", "b"])}),
+    ]
+    for schema, fillers in cases:
+        inst = instance_of_schema(schema, fillers)
+        assert "phi" not in set(inst.rel.values())
+        assert "psi" not in set(inst.rel.values())
+        dto = engine.generate_layout(inst, style)
+        assert check_correspondence(inst, dto) == []
+
+
+def test_hole_boundary_matches_a_real_relation_of_same_shape():
+    """The hole's drawn boundary is relation-grade: a schema whose hole is φ/1 has
+    the same incidence/area skeleton as the graph with φ replaced by a real
+    unary relation — i.e. the *spot* drawing is faithful (no region needed)."""
+    from correspondence_attestation import check_correspondence
+    engine, style = _engine_and_style()
+    schema = Schema.from_egif(INDUCTION_P7)             # ψ/1 at 3 occurrences
+    # The same EGIF with ψ as an ordinary relation r/1 — a hole-free sibling.
+    sibling = parse_egif(
+        "~[ [*x] (rel x) ~[ [*u] (rel u) ~[ [*y] (rel y) (lt y u) ] ] ]"
+    )
+    # Both lay out and correspond; both have the placeholder/relation at the same
+    # 3 spots with one port each.
+    assert check_correspondence(schema.egi, engine.generate_layout(schema.egi, style)) == []
+    assert check_correspondence(sibling, engine.generate_layout(sibling, style)) == []
+    assert len(schema.occurrences("psi")) == rel_count(sibling, "rel") == 3
