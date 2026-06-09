@@ -31,28 +31,56 @@
 >   (backward-compatible; no target → legacy whole/common-area wrap). Lets
 >   `chain.apply("DC+", select=[], into=sheet)` insert a truly empty double cut.
 >
-> **NEXT — totality assembly is blocked on TWO nameable pieces (both real):**
-> The construction is understood and the *logic* is verified: prove base+step
-> lemmas on one sheet sharing x, assert the induction instance (φ:=∃z plus(x,·,z)),
-> **deiterate** the base- and step-clauses against the proven lemmas → the outer
-> cut collapses to `~[ [*Y] ~[ [*z](plus x Y z) ] ]` = ∀Y∃z plus(x,Y,z). Two
-> capabilities are missing:
->   1. **Schema layer — shared ambient parameter.** `instance_of_schema` α-renames
->      φ's body per occurrence, so φ:=∃z plus(x,·,z) yields **four distinct x
->      lines**, not one shared x. The induction instance needs x threaded through
->      all occurrences as a single line (x is ∀-bound *outside* the whole bracket).
->      `parameters` welds to *schema* lines, but there's no schema-level x. (Work-
->      around for the proof: hand-write the instance as an explicit premise with x
->      shared — it's a legitimate axiom instance, asserted like `plus_base`.)
->   2. **Engine (PROTECTED) — `IT-` can't deiterate a CUT.** Deiteration's
->      isomorphism validator recognizes only flat *edges* as candidates, not a
->      whole cut subgraph (verified: fails even for pure-Alpha `~[(P)] ~[~[(P)]]`).
->      Consuming the proven base/step **clauses** (which are cuts) out of the
->      asserted induction instance needs cut-level IT-. Same class as the
->      ERA-of-cut limitation (ERA also refuses a non-empty cut: multi-area
->      selection). This is the load-bearing missing primitive — a protected change
->      to `formal_transformation_rules` / the `IsomorphismValidator`, needing
->      `.core_modification_authorized` + core suite. **Start here next session.**
+> **NEXT SESSION — close totality, in this order (decided with the author).**
+> The assembly *logic* is verified: with base+step proven and the induction
+> instance asserted (x shared), **deiterate** the base- and step-clauses against
+> the proven lemmas → the induction outer cut collapses to
+> `~[ [*Y] ~[ [*z](plus x Y z) ] ]` = ∀Y∃z plus(x,Y,z). Two capabilities are
+> missing; do the load-bearing one first.
+>
+> **(1) Engine (PROTECTED) — cut-level `IT-` (and `ERA`). START HERE.** This is the
+> load-bearing, *general* gap (not totality-specific): any proof that consumes a
+> compound lemma out of a negative context needs to deiterate a whole **cut**, and
+> right now only flat *edges* deiterate/erase (verified: cut-`IT-` fails even on
+> pure-Alpha `~[(P)] ~[~[(P)]]`; `ERA` refuses a non-empty cut too). Two layers to
+> fix, Dau-faithfully (a cut deiterates iff cut-plus-contents is isomorphic — lines
+> included — to an enclosing copy):
+>   - `rule_interaction.py` IT-/ERA **subject validation** (`_all_in_same_area`,
+>     ~L204; ERA `_validate` ~L469, IT- `_validate_source` ~L720) rejects a
+>     multi-area selection — a cut + its contents spans areas. Allow selecting a
+>     single cut as a *unit* (closure pulls in its contents without tripping the
+>     same-area guard).
+>   - `graph_isomorphism_engine.py` `IsomorphismValidator.validate_deiteration_candidate`
+>     (L310) → `find_isomorphic_subgraphs(egi, target_subgraph, search_areas)`:
+>     a selected cut must be **expanded to its full closed sub-tree** and matched
+>     structurally against an enclosing cut-subtree. (The `ErasureRule` apply path
+>     also rejects with "elements not in target area" — same root: cut-as-unit.)
+>   - Needs `.core_modification_authorized` + the core suite green (the math core
+>     test set). Regenerate `ARISBE_CORE_API_REFERENCE.md` only if a signature
+>     changes (additive behaviour likely needs none).
+>
+> **(2) Assemble totality (parametric in x).** With cut-`IT-` in hand: hand-write
+> the induction instance as an explicit premise (a legitimate axiom instance,
+> asserted like `plus_base`) with x shared on the sheet — `[*x] ~[ {base-clause}
+> {step-clause} [*Y] ~[ [*z](plus x Y z) ] ]`; prove base+step lemmas on that same
+> sheet (the proofs exist as tests — `test_totality_base_lemma_existential` +
+> `test_totality_step_lemma_existential`); deiterate the two clauses → ∀Y∃z
+> plus(x,Y,z). The schema *generator* is sidestepped here (instance hand-written),
+> which is why (3) is optional for the theorem.
+>
+> **CAVEAT before promising the fully-closed form.** Step (2) leaves **x free**
+> (parametric totality). The object-level `∀x∀y∃z plus(x,y,z)` additionally needs a
+> sound **universal generalization of x** (binding x by wrapping its scope) —
+> confirm that move is actually available/sound in the engine before committing to
+> the closed ∀x∀y statement; otherwise state the result honestly as parametric.
+>
+> **(3) Schema layer — shared ambient parameter (follow-on, OPTIONAL for the
+> theorem).** `instance_of_schema` α-renames φ's body per occurrence, so
+> φ:=∃z plus(x,·,z) yields **four distinct x lines**, not the single ∀-bound-outside
+> x. `parameters` welds to *schema* lines but there's no schema-level x. Add a way
+> to thread one ambient parameter through all hole occurrences, then assert the
+> *generated* instance is `same_graph` to the hand-written one from (2). Quality /
+> correctness of the generator, not a gate on totality.
 >
 > Other queued (unchanged): corpus-import the math theories; **Gamma** frontier;
 > **schema layout/correspondence** (how a hole `⟨…⟩` draws + §3.3).
