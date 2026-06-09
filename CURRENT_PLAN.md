@@ -1,6 +1,61 @@
 # Current Plan
 
-**Last Updated**: 2026-06-09 (math arc: definition layer + graph-with-holes schema node BUILT on a shared splice — all unprotected; NEXT = Gamma horizon / corpus import of the math theories)
+**Last Updated**: 2026-06-09 (induction arc: items 1+2 + totality pieces + existential-generalization move all on `main`; NEXT = the step-lemma construction to close totality)
+
+> **DONE this session — recursion fixtures + the induction arc (items 1, 2, and
+> totality's pieces), all on `main`, pushed, full suite green, protection CLEAN.**
+> Built smallest-first, pausing to evaluate each (the recursion `+`/`×` axioms are
+> **primitive-relation Beta axioms**, not eliminable definitions — see Part IV
+> correction in the math-fixtures doc).
+> - **`eg_splice.graft`** — disjoint juxtaposition (assert a graph onto a sheet),
+>   the non-welding sibling of `splice`; used to assert a schema instance into a
+>   proof state.
+> - **Item 1 — mechanized induction inference** (`tests/test_induction_proofs.py`):
+>   instantiate P7 for ψ:=even via the new `instance-of-schema` side-rule, supply
+>   the witness, detach "a least even exists" (derived UI + IT- + DC-). The P7
+>   instance is just a scroll ∀x(even(x)→Q) — **induction = universal instantiation
+>   + modus ponens, no meta-rule.**
+> - **Item 2 — least-counterexample, minimality used**: from a witness P(a), P7's
+>   minimality clause ∀w(P(w)→¬(w<u)) yields ¬(a<u) (the least element is a lower
+>   bound) — reaches the ∀w-clause item 1 didn't touch, same vocabulary.
+> - **Item 3 pieces** — the **ordinary-induction schema** (a *second* graph-with-holes
+>   schema, base+step form, φ at 4 occurrences); the **base case** `x+0=x` and
+>   **inductive step** `x+v=z ⟹ x+S(v)=S(z)` from the recursion axioms (their first
+>   real work).
+> - **`derived_rules.existential_generalization`** — the sound generalization
+>   (weakening) move, inverse twin of the join in `universal_instantiation`:
+>   `(P…a…) ⊢ (P…*z…)`, realized as Dau's vertex split (16.6/16.7, already in
+>   `VertexSplittingRule`) + erase-identity (positive-context ERA). Precedents
+>   verified in the on-disk sources: Sowa's **detach** (CG handbook Fig.11/14),
+>   Peirce's erasing an evenly-enclosed branch (CP 4.505 / `Signs_of_Logic`), Dau
+>   Def 16.6/Lemma 16.7. Sound only in even areas (negative-context refusal tested).
+> - **Existential base lemma** — `∀o(zero(o)→∃z plus(x,o,z))` closes (plus_base +
+>   EG at depth 2). The primitive blocker for totality is removed.
+>
+> **NEXT SESSION — close totality of addition (`∀x∀y ∃z plus(x,y,z)`).** The
+> remaining piece is the inductive **STEP lemma**:
+>   `∀n∀sn( ∃z plus(x,n,z) ∧ succ(n,sn) → ∃z plus(x,sn,z) )`.
+> The finding from this session: this is NOT another missing primitive — it is a
+> different **proof mode**. Everything so far is *detachment* (use an existing
+> implication via instantiate + modus ponens, which EG does fluently). The step
+> lemma must be **constructed** as a new implication from the axioms (the
+> *deduction-theorem* direction: build `A→B` by deriving `B` under assumption `A`),
+> AND it must **discharge successor-existence** (`succ(z,sz)`, which `plus_step`
+> demands) via a `succ`-totality premise `∀w∃sw succ(w,sw)` (Peirce P4/P6). Concrete
+> recipe: instantiate `plus_step` at `x`; existentially-generalize the consequent
+> value (`existential_generalization`, done); iterate `succ`-totality into the
+> antecedent context and instantiate at the value line to discharge `succ(z,sz)`;
+> existentially-close the antecedent value. Then the final detachment: deiterate the
+> proven base + step lemmas into the ordinary-induction-schema instance (φ:=∃z
+> plus(x,·,z), parameter x) and DC- to release `∀Y∃z plus(x,Y,z)`; generalize x.
+> Building implications is the harder EG mode — this is the focused task.
+>
+> Other queued (unchanged): corpus-import the math theories (ZFC + Peirce 1881 as
+> real UoDs); the **Gamma** frontier; **schema layout/correspondence** (how a hole
+> `⟨…⟩` draws + §3.3) — the user flagged this as the track to follow the math.
+
+> **(prior) DONE — definition layer + graph-with-holes schema node, on a shared
+> splice (all unprotected).** Full suite **1313 passed, 37 skipped**.
 
 > **DONE this session — the two new math capabilities, built.** All on
 > `main`-bound working tree, full suite green (**1313 passed, 37 skipped**, +60),
