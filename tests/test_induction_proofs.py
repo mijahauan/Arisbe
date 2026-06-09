@@ -21,9 +21,10 @@ import eg_navigation as nav
 from derived_rules import instantiate_to_lines
 from eg_navigation import same_graph
 from eg_splice import graft
+from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 from proof_authoring import ProofChain
-from schema import Schema, instance_of_schema
+from schema import Schema, instance_of_schema, instantiate
 
 P7 = Schema.from_egif(
     "~[ [*x] ⟨psi: x⟩ "
@@ -152,4 +153,114 @@ def test_least_counterexample_minimum_is_lower_bound():
 
     # ⊢ ¬(a < u): the least P-element u is a lower bound for the witness a.
     goal = parse_egif("[*a] (P a) [*u] (P u) ~[ (lt a u) ]")
+    assert same_graph(chain.current, goal)
+
+
+# ===========================================================================
+# Item 3 — totality of addition.  Built from three pieces: a second induction
+# schema (base+step form), the mechanized base case, and the mechanized
+# inductive step (the first proofs where the recursion axioms do real work).
+# ===========================================================================
+
+# The ORDINARY mathematical-induction schema (base + step ⟹ ∀), a *second*
+# graph-with-holes schema: hole φ at FOUR occurrences (o, n, sn, Y), the form
+# most recognise as induction.  Reads:
+#   ( ∀o(zero(o)→φ(o)) ∧ ∀n∀sn(φ(n)∧succ(n,sn)→φ(sn)) ) → ∀Y φ(Y)
+ORD_INDUCTION_EGIF = (
+    "~[ ~[ [*o] (zero o) ~[ ⟨phi: o⟩ ] ] "
+    "   ~[ [*n] [*sn] ⟨phi: n⟩ (succ n sn) ~[ ⟨phi: sn⟩ ] ] "
+    "   ~[ [*Y] ~[ ⟨phi: Y⟩ ] ] ]"
+)
+
+
+def test_ordinary_induction_schema_instantiates():
+    """The base+step induction schema (4 occurrences of φ) parses and
+    instantiates hole-free — a second, independent schema fixture."""
+    ord_ind = Schema.from_egif(ORD_INDUCTION_EGIF)
+    assert ord_ind.holes == {"phi": 1}            # φ is unary…
+    assert len(ord_ind.occurrences("phi")) == 4   # …occurring four times (o, n, sn, Y)
+    inst = instantiate(ord_ind, "[*k] (big k)", ports=["k"])
+    assert "phi" not in set(inst.rel.values())
+    assert same_graph(parse_egif(generate_egif(inst)), inst)
+
+
+# plus_base / plus_step axioms (from tests/test_math_fixtures.RECURSION_FIXTURES).
+PLUS_BASE = "~[ [*x] [*z] (zero z) ~[ (plus x z x) ] ]"
+PLUS_STEP = (
+    "~[ [*x] [*y] [*z] [*sy] [*sz] "
+    "   (plus x y z) (succ y sy) (succ z sz) ~[ (plus x sy sz) ] ]"
+)
+
+
+def _by_rel(egi, area, rel):
+    return [e for e in nav.child_edges(egi, area) if nav.relation_of(egi, e) == rel]
+
+
+def test_totality_base_case():
+    """x + 0 = x — the base case, from the plus_base recursion axiom.
+
+    Premises: plus_base + a fixed x and a zero o.  Instantiate the axiom at
+    (x, o), detach plus(x, o, x)."""
+    chain = ProofChain.from_egif(f"[*x] [*o] (zero o) {PLUS_BASE}")
+
+    def ui_base(egi):
+        cut = _sheet_cut(egi)
+        zz = nav.vertices_of_edge(egi, _by_rel(egi, cut, "zero")[0])[0]
+        xx = [v for v in nav.child_vertices(egi, cut) if v != zz][0]
+        o = nav.vertices_of_edge(egi, _by_rel(egi, egi.sheet, "zero")[0])[0]
+        x = [v for v in nav.child_vertices(egi, egi.sheet) if v != o][0]
+        return instantiate_to_lines(egi, universal_cut=cut, joins=[(xx, x), (zz, o)])
+
+    chain.apply_derived("universal-instantiation", ui_base, label="UI", note="x'/z' := x/o.")
+    chain.apply(
+        "IT-",
+        select=lambda egi: _by_rel(egi, _sheet_cut(egi), "zero")[0],
+        label="2e", note="Deiterate the zero(o) antecedent.",
+    )
+    chain.apply("DC-", select=_sheet_cut, label="2e", note="Release plus(x,o,x).")
+
+    goal = parse_egif("[*x] [*o] (zero o) (plus x o x)")
+    assert same_graph(chain.current, goal)
+
+
+def test_totality_step_case():
+    """x + v = z  ∧  succ(v,sv)  ∧  succ(z,sz)  ⊢  x + S(v) = S(z) — the inductive
+    step, from the plus_step recursion axiom (detachment / modus ponens)."""
+    premises = "[*x] [*v] [*z] [*sv] [*sz] (plus x v z) (succ v sv) (succ z sz)"
+    chain = ProofChain.from_egif(f"{premises} {PLUS_STEP}")
+
+    def ui_step(egi):
+        cut = _sheet_cut(egi)
+        # universal lines, by their roles inside the axiom cut
+        plus_e = _by_rel(egi, cut, "plus")[0]
+        xx, yy, zz = nav.vertices_of_edge(egi, plus_e)
+        succ_es = _by_rel(egi, cut, "succ")
+        syy = next(nav.vertices_of_edge(egi, e)[1] for e in succ_es
+                   if nav.vertices_of_edge(egi, e)[0] == yy)
+        szz = next(nav.vertices_of_edge(egi, e)[1] for e in succ_es
+                   if nav.vertices_of_edge(egi, e)[0] == zz)
+        # matching sheet premises, by the same roles
+        s_plus = _by_rel(egi, egi.sheet, "plus")[0]
+        x, v, z = nav.vertices_of_edge(egi, s_plus)
+        s_succ = _by_rel(egi, egi.sheet, "succ")
+        sv = next(nav.vertices_of_edge(egi, e)[1] for e in s_succ
+                  if nav.vertices_of_edge(egi, e)[0] == v)
+        sz = next(nav.vertices_of_edge(egi, e)[1] for e in s_succ
+                  if nav.vertices_of_edge(egi, e)[0] == z)
+        return instantiate_to_lines(
+            egi, universal_cut=cut,
+            joins=[(xx, x), (yy, v), (zz, z), (syy, sv), (szz, sz)],
+        )
+
+    chain.apply_derived("universal-instantiation", ui_step, label="UI", note="instantiate the step axiom at the premises.")
+    # deiterate the three antecedent relations (copies of the sheet premises)
+    for rel, lbl in (("plus", "2e"), ("succ", "2e"), ("succ", "2e")):
+        chain.apply(
+            "IT-",
+            select=lambda egi, r=rel: _by_rel(egi, _sheet_cut(egi), r)[0],
+            label=lbl, note=f"Deiterate the {rel} antecedent.",
+        )
+    chain.apply("DC-", select=_sheet_cut, label="2e", note="Release plus(x,sv,sz).")
+
+    goal = parse_egif(f"{premises} (plus x sv sz)")
     assert same_graph(chain.current, goal)
