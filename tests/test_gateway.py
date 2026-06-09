@@ -61,13 +61,16 @@ def test_mode_pages_carry_shared_nav(client):
 
 
 def test_import_has_home_link(client):
-    """The Import doorway keeps its own way home."""
+    """The Import doorway carries the shared mode-nav (its way home + the mode
+    switch), the same component the three modes use."""
     r = client.get("/import")
     assert r.status_code == 200
-    assert 'href="/"' in r.text
+    assert "data-mode-nav" in r.text and "mode-nav.js" in r.text
 
 
 def test_organon_links_to_import(client):
-    """Organon (the archive) offers a way into Import — how the corpus grows."""
+    """Organon (the archive) offers a way into Import — how the corpus grows.
+    Import is a button on the action toolbar that navigates to ``/import``."""
     html = client.get("/organon").text
-    assert 'href="/import"' in html
+    assert 'id="btn-import"' in html
+    assert "'/import'" in html  # the button's navigation target
