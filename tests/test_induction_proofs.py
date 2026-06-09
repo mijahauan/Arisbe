@@ -18,7 +18,7 @@ least-number principle in action.
 """
 
 import eg_navigation as nav
-from derived_rules import instantiate_to_lines
+from derived_rules import existential_generalization, instantiate_to_lines
 from eg_navigation import same_graph
 from eg_splice import graft
 from egif_generator_dau import generate_egif
@@ -263,4 +263,35 @@ def test_totality_step_case():
     chain.apply("DC-", select=_sheet_cut, label="2e", note="Release plus(x,sv,sz).")
 
     goal = parse_egif(f"{premises} (plus x sv sz)")
+    assert same_graph(chain.current, goal)
+
+
+# --- the existential base/step lemmas (φ := ∃z plus(x,·,z)) ------------------ #
+
+def test_totality_base_lemma_existential():
+    """∀o( zero(o) → ∃z plus(x,o,z) ) — the base in the form the induction schema
+    wants, from plus_base + existential generalization."""
+    chain = ProofChain.from_egif(f"[*x] {PLUS_BASE}")
+
+    # instantiate plus_base at xx := x (leaving zz/o universal)
+    def ui_xx(egi):
+        cut = _sheet_cut(egi)
+        zz = nav.vertices_of_edge(egi, _by_rel(egi, cut, "zero")[0])[0]
+        xx = [v for v in nav.child_vertices(egi, cut) if v != zz][0]
+        x = nav.child_vertices(egi, egi.sheet)[0]
+        return instantiate_to_lines(egi, universal_cut=cut, joins=[(xx, x)])
+
+    chain.apply_derived("universal-instantiation", ui_xx, label="UI", note="x' := x.")
+
+    # ∃-generalize the value position of (plus x o x) → ∃z plus(x,o,z)
+    def gen_value(egi):
+        # the plus edge lives in the innermost cut
+        outer = _sheet_cut(egi)
+        inner = nav.child_cuts(egi, outer)[0]
+        plus_e = _by_rel(egi, inner, "plus")[0]
+        return existential_generalization(egi, edge_id=plus_e, position=2, new_vertex_id="zval")
+
+    chain.apply_derived("existential-generalization", gen_value, label="EG", note="value := ∃z.")
+
+    goal = parse_egif("[*x] ~[ [*o] (zero o) ~[ [*z] (plus x o z) ] ]")
     assert same_graph(chain.current, goal)

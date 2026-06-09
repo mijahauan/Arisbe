@@ -36,12 +36,17 @@ instantiated scroll for an implication) with the primitive rules.
 Composes existing public operations only; touches no protected module.
 """
 
+from dataclasses import replace
 from typing import Iterable, Optional, Tuple
 
 import eg_navigation as nav
 from egi_core_dau import AreaPolarity, Edge, ElementID, RelationalGraphWithCuts
 from proof_authoring import apply_rule
-from vertex_splitting_merging_rules import VertexMergingRule
+from vertex_splitting_merging_rules import (
+    VertexMergingRule,
+    VertexSplitSpec,
+    VertexSplittingRule,
+)
 
 
 def universal_instantiation(
@@ -139,4 +144,65 @@ def instantiate_to_lines(
     return g
 
 
-__all__ = ["universal_instantiation", "instantiate_to_lines"]
+def existential_generalization(
+    egi: RelationalGraphWithCuts,
+    *,
+    edge_id: ElementID,
+    position: int,
+    new_vertex_id: str = "v_eg",
+) -> RelationalGraphWithCuts:
+    """Detach the hook at ``position`` of ``edge_id`` from its current line onto a
+    fresh existential line — the sound *generalization* (weakening) move, the
+    inverse twin of the join in :func:`universal_instantiation`.
+
+    ``(P … a …) ⊢ (P … *z …)``: a relation argument tied to a named/shared line
+    ``a`` is loosened to "some line."  Realized as **Dau's vertex split**
+    (Def. 16.6 / Lemma 16.7 — split ``a`` into ``a, a'`` joined by ``=``, moving
+    this one hook to ``a'``; split/merge are syntactically equivalent) **followed
+    by erasing the resulting identity edge** in its (positive) context (the basic
+    erasure rule — erasing in an even area is sound and is exactly the weakening
+    that turns ``a = a'`` into "``a'`` is some line").
+
+    Precedents: Sowa's **detach** generalization rule (the inverse of join,
+    ``u ⊃ v``; CG handbook Fig. 11/14); Peirce's permission to erase an
+    evenly-enclosed branch of a line of identity (``Signs of Logic``; CP 4.505 —
+    "a line of identity whose outermost part is evenly enclosed refers to
+    *something*").  The split half is ``VertexSplittingRule`` (Lemma 16.7); the
+    erase half is the ``ERA`` primitive.
+
+    Args:
+        edge_id: the relation edge one of whose hooks is being loosened.
+        position: the hook index in ``ν(edge_id)`` to detach (0-based).
+        new_vertex_id: id for the fresh existential line (must be unique).
+
+    Returns the EGI with that hook on a fresh existential line.  Raises (via the
+    ``ERA`` engine) if the identity edge's context is not positive — generalization
+    is only sound in an even area.
+    """
+    v = egi.nu[edge_id][position]
+    target_context = nav.area_of(egi, edge_id)
+
+    spec = VertexSplitSpec(
+        source_vertex=v,
+        target_context=target_context,
+        hooks_to_move=[(edge_id, position)],
+        new_vertex_id=new_vertex_id,
+    )
+    g = VertexSplittingRule()._apply_vertex_split(egi, spec)
+    # _apply_vertex_split rebuilds without rho/variable_names/alphabet — restore
+    # them (the split touches neither; the new line is simply absent from both).
+    g = replace(
+        g, rho=egi.rho, variable_names=egi.variable_names, alphabet=egi.alphabet
+    )
+
+    # Erase the freed identity edge =(v, v') in its positive context: this is the
+    # weakening (a = a' ↦ a' existential).
+    identity_edge_id = f"id_{v}_{new_vertex_id}"
+    return apply_rule("ERA", g, selection=[identity_edge_id])
+
+
+__all__ = [
+    "universal_instantiation",
+    "instantiate_to_lines",
+    "existential_generalization",
+]

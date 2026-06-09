@@ -17,7 +17,8 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import eg_navigation as nav
-from derived_rules import instantiate_to_lines
+from derived_rules import existential_generalization, instantiate_to_lines
+from eg_navigation import same_graph
 from egi_core_dau import AreaPolarity, Edge
 from egif_parser_dau import parse_egif
 from proof_authoring import apply_rule
@@ -86,3 +87,33 @@ def test_instantiation_refuses_a_positive_area():
     a = next(v.id for v in g.V if nav.area_of(g, v.id) == g.sheet)
     with pytest.raises(ValueError, match="negative"):
         instantiate_to_lines(g, universal_cut=inner, joins=[(y, a)])
+
+
+def _edge_named(g, rel):
+    return next(e for e in g.rel if g.rel[e] == rel)
+
+
+def test_existential_generalization_loosens_a_hook():
+    """(plus x o x) ⊢ ∃z plus(x,o,z): detach the third hook from the shared line
+    x onto a fresh existential line — Sowa's 'detach' / Dau split (16.7) + erase
+    identity / Peirce's erasing an evenly-enclosed branch."""
+    g = parse_egif("[*x] [*o] (plus x o x)")
+    plus_e = _edge_named(g, "plus")
+    assert g.nu[plus_e][0] == g.nu[plus_e][2]  # arg1 and arg3 are the same line
+
+    g2 = existential_generalization(g, edge_id=plus_e, position=2)
+
+    # arg3 is now a distinct, fresh line; no identity edge remains.
+    p2 = _edge_named(g2, "plus")
+    assert g2.nu[p2][0] != g2.nu[p2][2]
+    assert "=" not in set(g2.rel.values())
+    assert same_graph(g2, parse_egif("[*x] [*o] [*z] (plus x o z)"))
+
+
+def test_existential_generalization_refuses_negative_context():
+    """Generalization is sound only in an even area; erasing the identity edge in
+    a negative context must be rejected by the ERA engine."""
+    g = parse_egif("~[ [*x] [*o] (plus x o x) ]")
+    plus_e = _edge_named(g, "plus")
+    with pytest.raises(AssertionError):
+        existential_generalization(g, edge_id=plus_e, position=2)
