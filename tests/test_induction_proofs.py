@@ -81,3 +81,75 @@ def test_mechanized_induction_inference_least_even():
     # ⊢ witness ∧ Q, where Q = ∃u( even(u) ∧ ∀y( even(y) → ¬(y<u) ) ).
     goal = parse_egif("[*a] (even a) [*u] (even u) ~[ [*y] (even y) (lt y u) ]")
     assert same_graph(chain.current, goal)
+
+
+def _detach_least(chain):
+    """Steps shared with item 1: assert P7 for ψ:=P over a witness P(a), then
+    detach the least-element conclusion ∃u(P(u) ∧ ∀w(P(w)→¬(w<u)))."""
+    p7_P = instance_of_schema(P7, {"psi": ("[*n] (P n)", ["n"])})
+    chain.apply_derived(
+        "instance-of-schema",
+        lambda egi: graft(egi, p7_P),
+        label="ind",
+        note="Assert the least-number induction principle for ψ(n) := P(n).",
+    )
+
+    def ui_join_x(egi):
+        cut = _sheet_cut(egi)
+        x = nav.child_vertices(egi, cut)[0]
+        a = nav.child_vertices(egi, egi.sheet)[0]
+        return instantiate_to_lines(egi, universal_cut=cut, joins=[(x, a)])
+
+    chain.apply_derived("universal-instantiation", ui_join_x, label="UI", note="x := a.")
+
+    def inner_P(egi):
+        cut = _sheet_cut(egi)
+        return [e for e in nav.child_edges(egi, cut) if nav.relation_of(egi, e) == "P"][0]
+
+    chain.apply("IT-", select=inner_P, label="2e", note="Deiterate the matched antecedent.")
+    chain.apply("DC-", select=_sheet_cut, label="2e", note="Release: a least P-element u exists.")
+    return chain
+
+
+def test_least_counterexample_minimum_is_lower_bound():
+    """Item 2 — minimality genuinely used.  From a witness P(a), P7 gives a least
+    P-element u; its minimality clause ∀w(P(w)→¬(w<u)) then yields ¬(a<u): the
+    least element is a lower bound for the witness (the meaning of 'minimum')."""
+    chain = ProofChain.from_egif("[*a] (P a)")
+    _detach_least(chain)
+    # state now: [*a] (P a) [*u] (P u) ~[ [*w] (P w) (lt w u) ]
+    # the trailing cut is ∀w(P(w) → ¬(w<u)) — the minimality clause.
+
+    def minimality_cut(egi):
+        return _sheet_cut(egi)
+
+    def witness_a(egi):
+        # u is the line in the SECOND position of the cut's (lt w u); a is the
+        # other sheet line (the witness).
+        cut = _sheet_cut(egi)
+        lt_e = [e for e in nav.child_edges(egi, cut) if nav.relation_of(egi, e) == "lt"][0]
+        u = nav.vertices_of_edge(egi, lt_e)[1]
+        return [v for v in nav.child_vertices(egi, egi.sheet) if v != u][0]
+
+    # Step 5 — instantiate minimality ∀w(...) at w := a (use minimality on the witness).
+    def ui_join_w(egi):
+        cut = minimality_cut(egi)
+        w = nav.child_vertices(egi, cut)[0]
+        a = witness_a(egi)
+        return instantiate_to_lines(egi, universal_cut=cut, joins=[(w, a)])
+
+    chain.apply_derived(
+        "universal-instantiation", ui_join_w, label="UI", note="w := a (minimality on the witness)."
+    )
+    # cut is now ~[ (P a) (lt a u) ] = ¬(P(a) ∧ a<u).
+
+    # Step 6 — deiterate the inner P(a) (copy of the sheet's witness) → ~[ (lt a u) ].
+    def inner_P_in_min(egi):
+        cut = _sheet_cut(egi)
+        return [e for e in nav.child_edges(egi, cut) if nav.relation_of(egi, e) == "P"][0]
+
+    chain.apply("IT-", select=inner_P_in_min, label="2e", note="Deiterate P(a); leaves ¬(a<u).")
+
+    # ⊢ ¬(a < u): the least P-element u is a lower bound for the witness a.
+    goal = parse_egif("[*a] (P a) [*u] (P u) ~[ (lt a u) ]")
+    assert same_graph(chain.current, goal)
