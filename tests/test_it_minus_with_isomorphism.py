@@ -274,5 +274,113 @@ class TestITMinusWithIsomorphism(unittest.TestCase):
         # This test documents the expected behavior per Dau's formalism
 
 
+class TestCutAsUnitDeiterationAndErasure(unittest.TestCase):
+    """IT-/ERA of a whole *cut* (cut + everything nested inside it) as a unit.
+
+    Before this capability only flat edges could be deiterated/erased: a cut's
+    interior lives in a deeper area, so the candidate spanned areas and the
+    isomorphism search (which built each search area's graph from its *direct*
+    members only) could never embed a cut-subtree.  ``find_isomorphic_subgraphs``
+    now searches the area's *recursive* contents and filters each match to a
+    rooted, closed subtree; ``ErasureRule`` accepts a selection rooted at the
+    target area through selected cuts.
+    """
+
+    @staticmethod
+    def _parent_area(egi, eid):
+        for a, contents in egi.area.items():
+            if eid in contents:
+                return a
+        return None
+
+    def _inner_P_cut(self, egi):
+        """The ``~[(P)]`` cut that is NOT a direct member of the sheet."""
+        edges = {e.id for e in egi.E}
+        for c in egi.Cut:
+            cont = egi.area.get(c.id)
+            if (len(cont) == 1 and list(cont)[0] in edges
+                    and egi.rel.get(list(cont)[0]) == "P"
+                    and self._parent_area(egi, c.id) != egi.sheet):
+                return c.id
+        return None
+
+    def test_cut_deiteration_as_unit(self):
+        """``~[(P)] ~[ ~[(P)] ]`` → deiterate the inner ``~[(P)]`` copy."""
+        from src.egif_parser_dau import parse_egif
+        from src.rule_interaction import (
+            begin_interaction, advance_interaction, apply_interaction,
+        )
+
+        egi = parse_egif("~[ (P) ] ~[ ~[ (P) ] ]")
+        candidate = self._inner_P_cut(egi)
+        self.assertIsNotNone(candidate)
+
+        state = begin_interaction("IT-", egi)
+        result = advance_interaction(state, frozenset([candidate]))
+        self.assertTrue(result.valid, result.message)
+        self.assertTrue(state.is_complete)
+
+        applied = apply_interaction(state)
+        self.assertTrue(applied.success, applied.message)
+        out = applied.result_egi
+        # The inner copy is gone: the original (P)-cut survives plus one now-empty
+        # cut (the double cut's outer, its interior removed).
+        self.assertEqual(2, len(out.Cut))
+        self.assertEqual(1, len(out.E))  # only the surviving (P)
+        empty_cuts = [c for c in out.Cut if not out.area.get(c.id)]
+        self.assertEqual(1, len(empty_cuts))
+
+    def test_cut_erasure_as_unit(self):
+        """Erase a whole ``~[(P)]`` cut from the positive sheet."""
+        from src.egif_parser_dau import parse_egif
+        from src.egif_generator_dau import generate_egif
+        from src.rule_interaction import (
+            begin_interaction, advance_interaction, apply_interaction,
+        )
+
+        egi = parse_egif("~[ (P) ] ~[ ~[ (P) ] ]")
+        edges = {e.id for e in egi.E}
+        outer = next(
+            c.id for c in egi.Cut
+            if len(egi.area.get(c.id)) == 1
+            and list(egi.area.get(c.id))[0] in edges
+            and self._parent_area(egi, c.id) == egi.sheet
+        )
+
+        state = begin_interaction("ERA", egi)
+        result = advance_interaction(state, frozenset([outer]))
+        self.assertTrue(result.valid, result.message)
+
+        applied = apply_interaction(state)
+        self.assertTrue(applied.success, applied.message)
+        # Only the double-cut ~[ ~[(P)] ] survives.
+        self.assertEqual("~[ ~[ (P) ] ]", generate_egif(applied.result_egi))
+
+    def test_sliced_cut_is_rejected(self):
+        """A cut copy must be *identical*: ``~[(P)]`` ≠ a slice of ``~[(P)(Q)]``."""
+        from src.egif_parser_dau import parse_egif
+        from src.rule_interaction import begin_interaction, advance_interaction
+
+        egi = parse_egif("~[ (P) (Q) ] ~[ ~[ (P) ] ]")
+        candidate = self._inner_P_cut(egi)
+        state = begin_interaction("IT-", egi)
+        result = advance_interaction(state, frozenset([candidate]))
+        self.assertFalse(result.valid)
+
+    def test_buried_copy_is_not_an_enclosing_occurrence(self):
+        """A copy nested inside a *sibling* cut is not in an enclosing area."""
+        from src.egif_parser_dau import parse_egif
+        from src.rule_interaction import begin_interaction, advance_interaction
+
+        # cut2 = ~[ ~[(P)] ] on the sheet; the only other ~[(P)] is buried
+        # inside cut1's interior, which is not an ancestor of cut2's interior.
+        egi = parse_egif("~[ (A) ~[ (P) ] ] ~[ ~[ (P) ] ]")
+        candidate = self._inner_P_cut(egi)
+        self.assertIsNotNone(candidate)
+        state = begin_interaction("IT-", egi)
+        result = advance_interaction(state, frozenset([candidate]))
+        self.assertFalse(result.valid)
+
+
 if __name__ == "__main__":
     unittest.main()

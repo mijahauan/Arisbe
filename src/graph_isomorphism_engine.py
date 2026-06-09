@@ -237,6 +237,17 @@ class GraphIsomorphismEngine:
         Uses VF2 subgraph isomorphism: embeds target as a sub-pattern of each
         area graph rather than enumerating all same-size combinations.
 
+        The search graph for an area is built from that area's *recursive*
+        contents (every cut's interior, transitively), so a target that is a
+        whole cut-subtree — a cut plus everything nested inside it — can be
+        embedded.  Without this, only the area's direct members are present and
+        a cut copy is unmatchable because its contents (in deeper areas) are
+        missing.  Each raw VF2 hit is then filtered to a valid deiteration
+        source by ``_match_is_rooted_subtree``: the image must be a union of
+        *full* subtrees rooted at the search area's own level (no slicing
+        through a cut, no copy buried inside a sibling cut — that would not be
+        an enclosing occurrence).
+
         Returns:
             List of (area_id, matching_subgraph, mapping) tuples
         """
@@ -247,11 +258,11 @@ class GraphIsomorphismEngine:
         matches = []
 
         for area_id in search_areas:
-            area_contents = egi.area.get(area_id, frozenset())
-            if len(area_contents) < len(target_subgraph):
+            search_ids = self._recursive_area_contents(egi, area_id)
+            if len(search_ids) < len(target_subgraph):
                 continue
 
-            G_area = self._build_nx_graph(egi, area_contents)
+            G_area = self._build_nx_graph(egi, search_ids)
             gm = MultiDiGraphMatcher(G_area, G_target, self._node_match, self._edge_match)
 
             for nx_mapping in gm.subgraph_isomorphisms_iter():
@@ -259,11 +270,65 @@ class GraphIsomorphismEngine:
                 # Reverse: target_node -> area_node
                 reverse = {v: k for k, v in nx_mapping.items()}
                 matched_ids = frozenset(reverse[t] for t in target_subgraph if t in reverse)
-                if len(matched_ids) == len(target_subgraph):
-                    iso_mapping = self._mapping_from_nx(reverse, egi, egi)
-                    matches.append((area_id, matched_ids, iso_mapping))
+                if len(matched_ids) != len(target_subgraph):
+                    continue
+                if not self._match_is_rooted_subtree(egi, matched_ids, area_id):
+                    continue
+                iso_mapping = self._mapping_from_nx(reverse, egi, egi)
+                matches.append((area_id, matched_ids, iso_mapping))
 
         return matches
+
+    @staticmethod
+    def _recursive_area_contents(
+        egi: RelationalGraphWithCuts, area_id: ElementID
+    ) -> FrozenSet[ElementID]:
+        """All elements within ``area_id``, descending through nested cuts."""
+        collected: Set[ElementID] = set()
+        frontier = list(egi.area.get(area_id, frozenset()))
+        while frontier:
+            elem = frontier.pop()
+            if elem in collected:
+                continue
+            collected.add(elem)
+            # If this element is a cut, descend into its interior.
+            frontier.extend(egi.area.get(elem, frozenset()))
+        return frozenset(collected)
+
+    @staticmethod
+    def _match_is_rooted_subtree(
+        egi: RelationalGraphWithCuts,
+        matched_ids: FrozenSet[ElementID],
+        area_id: ElementID,
+    ) -> bool:
+        """
+        A deiteration source must be a union of *full* subtrees rooted at the
+        search area's level.  Two conditions, together, enforce that:
+
+        - *rooted-in-area*: every matched element sits directly in ``area_id``
+          or inside a cut that is itself matched — so the match doesn't reach
+          down into a sibling cut (a non-enclosing, deeper area).
+        - *closed cuts*: every matched cut contributes all of its direct
+          contents — so the match doesn't slice through a cut (which would make
+          e.g. ``~[(P)]`` spuriously match a copy inside ``~[(P)(Q)]``).
+        """
+        c_ids = {c.id for c in egi.Cut}
+        # Parent area of each element (the area whose contents include it).
+        parent: Dict[ElementID, ElementID] = {}
+        for a, contents in egi.area.items():
+            for elem in contents:
+                parent[elem] = a
+
+        for m in matched_ids:
+            p = parent.get(m)
+            if p != area_id and p not in matched_ids:
+                return False  # reaches outside the rooted subtrees
+
+        for m in matched_ids:
+            if m in c_ids:
+                if not egi.area.get(m, frozenset()) <= matched_ids:
+                    return False  # cut sliced — contents missing
+        return True
 
     # ------------------------------------------------------------------
     # Legacy helpers retained for any external callers

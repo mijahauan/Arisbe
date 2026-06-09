@@ -567,13 +567,21 @@ class ErasureRule(FormalTransformationRule):
         if context.target_area not in context.source_egi.area:
             return False, f"Target area {context.target_area} does not exist"
 
-        # Verify selected subgraph exists in the area
-        area_contents = context.source_egi.area.get(context.target_area, frozenset())
-
-        # Check if the selected subgraph is in the target area
-        elements_in_target = context.selected_subgraph.intersection(area_contents)
-        if elements_in_target != context.selected_subgraph:
-            return False, "Selected subgraph contains elements not in target area"
+        # Verify the selected subgraph is rooted at the target area.  Each
+        # element must sit directly in ``target_area`` OR inside a cut that is
+        # itself selected — i.e. the selection is a union of whole subtrees
+        # rooted at this area's level.  This admits erasing a cut *as a unit*
+        # (its interior contents live in the cut's own area, not in
+        # ``target_area``) while still rejecting a selection that reaches into
+        # an unselected sibling cut.
+        egi = context.source_egi
+        parent_area = {
+            elem: a for a, contents in egi.area.items() for elem in contents
+        }
+        for elem in context.selected_subgraph:
+            p = parent_area.get(elem)
+            if p != context.target_area and p not in context.selected_subgraph:
+                return False, "Selected subgraph contains elements not in target area"
 
         # CRITICAL: Check if subgraph is closed per Dau's requirement.
         # Use comprehensive closure validator with automatic expansion.

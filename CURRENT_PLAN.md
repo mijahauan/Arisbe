@@ -1,8 +1,65 @@
 # Current Plan
 
-**Last Updated**: 2026-06-09 (step lemma CONSTRUCTED + induction-schema logic bug fixed; totality assembly blocked on two nameable pieces — see below)
+**Last Updated**: 2026-06-09 (cut-level IT-/ERA shipped in the engine; **parametric totality of addition ASSEMBLED** — the induction arc closes to ∀Y∃z plus(x,Y,z))
 
-> **DONE this session — the inductive STEP lemma (the focused task), plus a
+> **DONE this session — closed totality of addition (parametric in x).** Did
+> steps (1) and (2) of the prior plan, in order. All on the `main`-bound tree;
+> full suite green; core math suite green (435 passed, 34 skipped). Two PROTECTED
+> modules touched under `.core_modification_authorized` (additive behaviour, no
+> signature change → no API-reference regen needed); the assembly test is in the
+> unprotected test file.
+>
+> - **(1) Engine — cut-level `IT-` and `ERA` (the load-bearing, general gap).**
+>   The blocker was narrower than the plan guessed: a *single* cut selection
+>   already passes `_all_in_same_area` (one element, one area), and `ERA`'s
+>   removal logic already deletes a multi-area subtree. Two real fixes:
+>   - `graph_isomorphism_engine.find_isomorphic_subgraphs` built each search
+>     area's graph from its **direct** members only, so a cut-subtree could never
+>     embed (its contents live in deeper areas, absent from the graph). Now it
+>     searches the area's **recursive** contents and filters each VF2 hit with
+>     `_match_is_rooted_subtree`: the image must be a union of *full* subtrees
+>     rooted at the search-area level — rejects a *sliced* cut (`~[(P)]` ≠ a
+>     slice of `~[(P)(Q)]`) and a copy *buried* in a sibling cut (not an
+>     enclosing occurrence). Two new helpers, both static.
+>   - `formal_transformation_rules.ErasureRule.check_preconditions` required every
+>     selected element to be *directly* in `target_area`; relaxed to the same
+>     rooted-subtree condition (an element may sit inside a *selected* cut), so a
+>     cut erases/deiterates as a unit. (IT- delegates to ERA, so this one change
+>     covers both apply paths.)
+>   - Pinned in `tests/test_it_minus_with_isomorphism.py::TestCutAsUnitDeiterationAndErasure`
+>     (4 tests: cut-IT- ✓, cut-ERA ✓, sliced-cut ✗, buried-copy ✗).
+>
+> - **(2) Parametric totality assembled** (`test_totality_assembly_parametric`):
+>   hand-write the induction instance for φ:=∃z plus(x,·,z) with **x shared**
+>   (`~[ ~[BASE] ~[STEP] [*Y] ~[ [*z](plus x Y z) ] ]`); on the same sheet assert
+>   the proven base + step lemmas. Then **two cut-level IT-** deiterate `~[BASE]`
+>   and `~[STEP]` (whole cuts) against their identical copies on the enclosing
+>   sheet → the induction outer cut collapses to `~[ [*Y] ~[ [*z](plus x Y z) ] ]`
+>   = **∀Y∃z plus(x,Y,z)**. `same_graph`-checked. This is the first proof that
+>   *needed* cut-IT- — flat-edge IT- can't reach a clause that is itself a cut.
+>
+> **HONEST CAVEAT (unchanged from the plan): x is left FREE → parametric.** The
+> closed object-level `∀x∀y∃z plus(x,y,z)` still needs a sound **universal
+> generalization of x** (a free sheet-line is existential, not universal). That
+> move was NOT asserted — confirm it is available/sound in the engine before
+> claiming the fully-closed form. The metatheorem (x arbitrary, unconstrained by
+> the axioms ⇒ ∀x) holds, but it is not yet an object-level EG step here.
+>
+> **NEXT SESSION — candidates (decide at session start):**
+> - **Universal generalization of x** — make parametric totality the closed
+>   `∀x∀y∃z`. Investigate whether binding a free sheet-line by wrapping its scope
+>   is a sound EG move available in the engine; if so, the theorem closes fully.
+> - **(3, optional) Schema generator — shared ambient parameter.**
+>   `instance_of_schema` α-renames φ per occurrence (four distinct x lines), so
+>   it can't yet *generate* the hand-written instance from (2). Thread one ambient
+>   parameter through all hole occurrences, then assert the generated instance is
+>   `same_graph` to the hand-written one. Generator quality, not a theorem gate.
+> - Other queued (unchanged): corpus-import the math theories; **Gamma** frontier;
+>   **schema layout/correspondence** (how a hole `⟨…⟩` draws + §3.3).
+>
+> ---
+
+> **(prior session) DONE — the inductive STEP lemma (the focused task), plus a
 > correctness fix to the induction schema.** All on the `main`-bound tree, full
 > suite green, protection **CLEAN** (only unprotected `proof_authoring.py` + the
 > test file touched).

@@ -524,3 +524,81 @@ def test_totality_step_lemma_existential():
         "~[ [*n] [*sn] [*z] (plus x n z) (succ n sn) ~[ [*z2] (plus x sn z2) ] ]"
     )
     assert same_graph(chain.current, goal)
+
+
+# --- the assembly: parametric totality of addition -------------------------- #
+#
+# ∀Y ∃z plus(x, Y, z) — totality of `+` for an arbitrary (free) x.  This is the
+# induction *conclusion*, assembled by collapsing a hand-written induction
+# instance against the two proven lemmas.
+#
+# The induction instance for φ(t) := ∃z plus(x,t,z), with x the shared ambient
+# parameter (hand-written so x is ONE line, not the four α-renamed lines the
+# schema generator would produce — see CURRENT_PLAN step 3):
+#
+#   ~[ ~[BASE]  ~[STEP]  [*Y] ~[ [*z](plus x Y z) ] ]
+#     = ¬( base ∧ step ∧ ∃Y¬φ ) = (base ∧ step) → ∀Y φ(Y).
+#
+# ``~[BASE]`` and ``~[STEP]`` are *whole cuts* identical to the proven base /
+# step lemmas sitting on the enclosing sheet — so each is removed by a single
+# **cut-level IT-** (deiteration of a cut as a unit, the load-bearing capability
+# this work added; flat-edge IT- could never reach a clause that is itself a
+# cut).  Removing both collapses the outer cut to ``~[ [*Y] ~[ [*z](plus x Y z) ] ]``
+# = ∀Y∃z plus(x,Y,z).
+#
+# CAVEAT (parametric, per CURRENT_PLAN): x is left FREE.  The closed object-level
+# ∀x∀y∃z plus(x,y,z) additionally needs a sound universal generalisation of x;
+# that move is not asserted here, so the result is stated honestly as parametric
+# (totality for an arbitrary x), exactly as planned.
+
+_T_BASE_LEMMA = "~[ [*o] (zero o) ~[ [*z] (plus x o z) ] ]"
+_T_STEP_LEMMA = (
+    "~[ [*n] [*sn] [*z] (plus x n z) (succ n sn) ~[ [*z2] (plus x sn z2) ] ]"
+)
+_T_IND_INSTANCE = (
+    "~[ " + _T_BASE_LEMMA + " " + _T_STEP_LEMMA
+    + " [*Y] ~[ [*z] (plus x Y z) ] ]"
+)
+
+
+def test_totality_assembly_parametric():
+    """Collapse the induction instance against the proven base/step lemmas →
+    ∀Y∃z plus(x,Y,z) (parametric totality of addition).
+
+    Premises on one sheet, x shared throughout:
+      • the base lemma   ``~[ [*o](zero o) ~[ [*z](plus x o z) ] ]``
+        (proven in ``test_totality_base_lemma_existential``),
+      • the step lemma   (proven in ``test_totality_step_lemma_existential``),
+      • the induction instance for φ:=∃z plus(x,·,z) (a legitimate schema
+        instance, asserted like an axiom instance).
+    The two assembly moves are *cut-level* deiterations — the new capability."""
+    chain = ProofChain.from_egif(
+        f"[*x] {_T_BASE_LEMMA} {_T_STEP_LEMMA} {_T_IND_INSTANCE}"
+    )
+
+    def _ind_cut(egi):
+        # The induction instance is the only sheet-child cut with no direct
+        # edges (the base lemma has a `zero` edge; the step lemma `plus`/`succ`).
+        # Robust before AND after deiteration removes its clause cuts.
+        return [c for c in nav.child_cuts(egi, egi.sheet)
+                if not nav.child_edges(egi, c)][0]
+
+    def _base_clause(egi):
+        return [c for c in nav.child_cuts(egi, _ind_cut(egi))
+                if _by_rel(egi, c, "zero")][0]
+
+    def _step_clause(egi):
+        return [c for c in nav.child_cuts(egi, _ind_cut(egi))
+                if _by_rel(egi, c, "succ")][0]
+
+    chain.apply("IT-", select=_base_clause, label="2e",
+                note="Deiterate ~[BASE] against the proven base lemma (cut-IT-).")
+    chain.apply("IT-", select=_step_clause, label="2e",
+                note="Deiterate ~[STEP] against the proven step lemma (cut-IT-).")
+
+    # ⊢ the lemmas survive (deiteration removes the *copies*) and the induction
+    # cut has collapsed to ∀Y∃z plus(x,Y,z).
+    goal = parse_egif(
+        f"[*x] {_T_BASE_LEMMA} {_T_STEP_LEMMA} ~[ [*Y] ~[ [*z] (plus x Y z) ] ]"
+    )
+    assert same_graph(chain.current, goal)
