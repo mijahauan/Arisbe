@@ -67,8 +67,10 @@ def apply_rule(
     Calling conventions (mirroring the protocol):
       * ``INS`` — ``egif`` (content) + ``target`` (a negative area)
       * ``IT+`` — ``selection`` (source) + ``target`` (a nested area)
-      * ``DC+`` / ``DC-`` / ``ERA`` / ``IT-`` — ``selection`` only
-        (``DC+`` accepts an empty selection: an empty double cut on the sheet)
+      * ``DC+`` — ``selection`` (elements to enclose) and/or ``target`` (the
+        spot area); empty ``selection`` + a ``target`` inserts a truly empty
+        double cut there; no ``target`` falls back to the whole/common-area wrap
+      * ``DC-`` / ``ERA`` / ``IT-`` — ``selection`` only
     """
     state = begin_interaction(rule_name, egi)
     if rule_name == "INS":
@@ -81,6 +83,16 @@ def apply_rule(
         assert r1.valid, f"IT+ source rejected: {r1.message}"
         r2 = advance_interaction(state, target)
         assert r2.valid, f"IT+ destination rejected: {r2.message}"
+    elif rule_name == "DC+" and target is not None:
+        # DC+ with an explicit spot (the SELECT_AREA step): an empty subject +
+        # a target area inserts a truly empty double cut there (``enclose_empty``);
+        # a non-empty selection encloses it in that area. Without a target this
+        # falls through to the single-step path (legacy whole-area / common-area
+        # wrap), so existing callers are unaffected.
+        r1 = advance_interaction(state, selection or [])
+        assert r1.valid, f"DC+ subject rejected: {r1.message}"
+        r2 = advance_interaction(state, target)
+        assert r2.valid, f"DC+ spot rejected: {r2.message}"
     else:  # DC+, DC-, IT-, ERA — single selection step
         r = advance_interaction(state, selection or [])
         assert r.valid, f"{rule_name} rejected: {r.message}"

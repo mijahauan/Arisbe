@@ -166,22 +166,36 @@ def test_least_counterexample_minimum_is_lower_bound():
 # graph-with-holes schema: hole φ at FOUR occurrences (o, n, sn, Y), the form
 # most recognise as induction.  Reads:
 #   ( ∀o(zero(o)→φ(o)) ∧ ∀n∀sn(φ(n)∧succ(n,sn)→φ(sn)) ) → ∀Y φ(Y)
+# = ¬( BASE ∧ STEP ∧ ∃Y¬φ(Y) ).  The conclusion clause is the *negated*
+# conclusion ∃Y¬φ(Y) = ``[*Y] ~[ φ(Y) ]`` placed DIRECTLY in the outer cut — NOT
+# wrapped in a further cut.  (An earlier draft wrapped it, which made the clause
+# read ∀Yφ and the whole schema ¬(BASE∧STEP∧∀Yφ) = (BASE∧STEP)→¬∀Yφ — the
+# negation of induction.  Verified against ``chapter18_fopl_translation``.)
 ORD_INDUCTION_EGIF = (
     "~[ ~[ [*o] (zero o) ~[ ⟨phi: o⟩ ] ] "
     "   ~[ [*n] [*sn] ⟨phi: n⟩ (succ n sn) ~[ ⟨phi: sn⟩ ] ] "
-    "   ~[ [*Y] ~[ ⟨phi: Y⟩ ] ] ]"
+    "   [*Y] ~[ ⟨phi: Y⟩ ] ]"
 )
 
 
 def test_ordinary_induction_schema_instantiates():
-    """The base+step induction schema (4 occurrences of φ) parses and
-    instantiates hole-free — a second, independent schema fixture."""
+    """The base+step induction schema (4 occurrences of φ) parses, instantiates
+    hole-free, and — crucially — instantiates to the *correct* induction
+    principle ``(BASE ∧ STEP) → ∀Y φ(Y)`` (guarding the conclusion-clause polarity
+    bug: ``[*Y] ~[φ]`` = ∃Y¬φ, NOT ``~[ [*Y] ~[φ] ]`` = ∀Yφ)."""
     ord_ind = Schema.from_egif(ORD_INDUCTION_EGIF)
     assert ord_ind.holes == {"phi": 1}            # φ is unary…
     assert len(ord_ind.occurrences("phi")) == 4   # …occurring four times (o, n, sn, Y)
-    inst = instantiate(ord_ind, "[*k] (big k)", ports=["k"])
+    inst = instantiate(ord_ind, "[*k] (P k)", ports=["k"])
     assert "phi" not in set(inst.rel.values())
     assert same_graph(parse_egif(generate_egif(inst)), inst)
+    # The instance IS the induction principle for φ:=P: ¬(BASE ∧ STEP ∧ ∃Y¬P(Y)).
+    induction = parse_egif(
+        "~[ ~[ [*o] (zero o) ~[ (P o) ] ] "
+        "   ~[ [*n] [*sn] (P n) (succ n sn) ~[ (P sn) ] ] "
+        "   [*Y] ~[ (P Y) ] ]"
+    )
+    assert same_graph(inst, induction)
 
 
 # plus_base / plus_step axioms (from tests/test_math_fixtures.RECURSION_FIXTURES).
@@ -294,4 +308,219 @@ def test_totality_base_lemma_existential():
     chain.apply_derived("existential-generalization", gen_value, label="EG", note="value := ∃z.")
 
     goal = parse_egif("[*x] ~[ [*o] (zero o) ~[ [*z] (plus x o z) ] ]")
+    assert same_graph(chain.current, goal)
+
+
+# --- the inductive STEP lemma (φ := ∃z plus(x,·,z)) -------------------------- #
+#
+# The step in the form the induction schema wants:
+#   ∀n∀sn( (∃z plus(x,n,z)) ∧ succ(n,sn) → ∃z' plus(x,sn,z') )
+# This is a *different proof mode* from everything above.  Items 1–3-base are all
+# **detachment** (use an existing implication via instantiate + modus ponens —
+# what EG does fluently).  The step lemma must be **constructed** as a NEW
+# implication from the axioms — the deduction-theorem direction (build A→B by
+# deriving B under the assumption A).  The EG realisation:
+#   1. DC+ an empty double cut  ~[ ~[ ] ]  — the scroll that will be A→B.
+#   2. INS the antecedent A into the outer (negative) cut; weld its parameter
+#      line onto x.
+#   3. IT+ a copy of A, and the plus_step + succ_total axioms, into the inner
+#      (positive) cut — now a forward detachment proof can run there.
+#   4. inside the inner cut: discharge succ-existence (∃sz succ(z,sz) from
+#      succ_total), instantiate plus_step at the premises, detach plus(x,sn,sz),
+#      ∃-generalise the value, and erase the spent premises — leaving exactly the
+#      consequent ∃z' plus(x,sn,z').
+# The axioms are *copied* (IT+), never consumed, so they survive on the sheet —
+# the conclusion is "axioms ⊢ step-lemma", the same convention the detachment
+# proofs above use (premises remain in the goal).
+
+PLUS_STEP_AX = (
+    "~[ [*x2] [*y] [*zz] [*sy] [*sz] "
+    "   (plus x2 y zz) (succ y sy) (succ zz sz) ~[ (plus x2 sy sz) ] ]"
+)
+SUCC_TOTAL_AX = "~[ [*w] ~[ [*sw] (succ w sw) ] ]"  # ∀w∃sw succ(w,sw) — Peirce P4/P6
+
+
+def _cout(egi):
+    """The scroll being built: a sheet cut with a plus, exactly one direct succ
+    (the antecedent succ(n,sn)), and a child cut.  plus_step has *two* direct
+    succ; succ_total has none — so this is unambiguous throughout the build."""
+    for c in nav.child_cuts(egi, egi.sheet):
+        if (_by_rel(egi, c, "plus") and len(_by_rel(egi, c, "succ")) == 1
+                and nav.child_cuts(egi, c)):
+            return c
+
+
+def _plus_step_cut(egi):
+    for c in nav.child_cuts(egi, egi.sheet):
+        if _by_rel(egi, c, "plus") and len(_by_rel(egi, c, "succ")) == 2:
+            return c
+
+
+def _succ_total_cut(egi):
+    for c in nav.child_cuts(egi, egi.sheet):
+        if not _by_rel(egi, c, "plus") and not _by_rel(egi, c, "succ"):
+            ks = nav.child_cuts(egi, c)
+            if ks and _by_rel(egi, ks[0], "succ"):
+                return c
+
+
+def _empty_scroll_outer(egi):
+    for c in nav.child_cuts(egi, egi.sheet):
+        ks = nav.child_cuts(egi, c)
+        if (len(ks) == 1 and not nav.child_edges(egi, c)
+                and not nav.child_vertices(egi, c)
+                and not nav.child_edges(egi, ks[0])
+                and not nav.child_vertices(egi, ks[0])
+                and not nav.child_cuts(egi, ks[0])):
+            return c
+
+
+def _succ_total_copy(egi, area):
+    """A succ_total copy inside ``area``: a child cut with no direct edges whose
+    inner cut carries succ."""
+    for c in nav.child_cuts(egi, area):
+        if not nav.child_edges(egi, c):
+            ks = nav.child_cuts(egi, c)
+            if ks and _by_rel(egi, ks[0], "succ"):
+                return c
+
+
+def _plus_step_copy(egi, area):
+    for c in nav.child_cuts(egi, area):
+        if _by_rel(egi, c, "plus") and len(_by_rel(egi, c, "succ")) == 2:
+            return c
+
+
+def test_totality_step_lemma_existential():
+    """∀n∀sn( ∃z plus(x,n,z) ∧ succ(n,sn) → ∃z' plus(x,sn,z') ) — the inductive
+    step in the induction schema's form, *constructed* from plus_step + succ_total
+    (the deduction-theorem direction, the harder EG mode).  See the module note."""
+    chain = ProofChain.from_egif(f"[*x] {PLUS_STEP_AX} {SUCC_TOTAL_AX}")
+
+    # 1 — DC+ the empty double cut (the scroll that becomes the implication).
+    chain.apply(
+        "DC+", select=[], into=lambda egi: egi.sheet, label="2i",
+        note="Empty double cut — the scroll that will host the implication.",
+    )
+
+    # 2 — INS the antecedent into the outer (negative) cut.  Fresh x'-line.
+    chain.apply(
+        "INS", insert="[*xx] [*n] [*sn] [*z] (plus xx n z) (succ n sn)",
+        into=_empty_scroll_outer, label="1i",
+        note="Insert the antecedent ∃z plus(x,n,z) ∧ succ(n,sn) into the outer cut.",
+    )
+
+    # 3 — weld the inserted x'-line onto the parameter x (a join, sound in the
+    # negative outer cut: insert =(x,x') there + merge).
+    def weld_x(egi):
+        cout = _cout(egi)
+        xx = egi.nu[_by_rel(egi, cout, "plus")[0]][0]
+        x = nav.child_vertices(egi, egi.sheet)[0]
+        return instantiate_to_lines(egi, universal_cut=cout, joins=[(xx, x)])
+
+    chain.apply_derived("join", weld_x, label="1i",
+                        note="Weld the antecedent's x-line onto the parameter x.")
+
+    # 4 — copy the antecedent (plus, then succ) into the inner (positive) cut.
+    def cin(egi):
+        return nav.child_cuts(egi, _cout(egi))[0]
+
+    chain.apply("IT+", select=lambda egi: _by_rel(egi, _cout(egi), "plus")[0],
+                into=cin, label="2it", note="Copy plus(x,n,z) into the proof cut.")
+    chain.apply("IT+", select=lambda egi: _by_rel(egi, _cout(egi), "succ")[0],
+                into=cin, label="2it", note="Copy succ(n,sn) into the proof cut.")
+
+    # 5 — iterate the plus_step + succ_total axioms into the inner cut.
+    chain.apply("IT+", select=_plus_step_cut, into=cin, label="2it",
+                note="Iterate the plus_step axiom into the proof cut.")
+    chain.apply("IT+", select=_succ_total_cut, into=cin, label="2it",
+                note="Iterate succ-totality into the proof cut.")
+
+    # role lines (stable by id through the rest): the antecedent's n, z, sn.
+    def roles(egi):
+        cout = _cout(egi)
+        _, n, z = egi.nu[_by_rel(egi, cout, "plus")[0]]
+        _, sn = egi.nu[_by_rel(egi, cout, "succ")[0]]
+        return n, z, sn
+
+    # 4a — succ-existence: instantiate the succ_total copy at w:=z, DC- to release
+    # a witness sz with succ(z,sz) into the proof cut.
+    def succ_witness(egi):
+        _, z, _ = roles(egi)
+        st = _succ_total_copy(egi, cin(egi))
+        w = nav.child_vertices(egi, st)[0]
+        return instantiate_to_lines(egi, universal_cut=st, joins=[(w, z)])
+
+    chain.apply_derived("universal-instantiation", succ_witness, label="UI",
+                        note="succ-totality at z: ∃sz succ(z,sz).")
+    chain.apply("DC-", select=lambda egi: _succ_total_copy(egi, cin(egi)),
+                label="2e", note="Release the successor witness succ(z,sz).")
+
+    # 4b — instantiate plus_step at (x, n, z, sn, sz) — the premises in scope.
+    def inst_plus_step(egi):
+        n, z, sn = roles(egi)
+        cn = cin(egi)
+        sz = next(egi.nu[e][1] for e in _by_rel(egi, cn, "succ")
+                  if egi.nu[e][0] == z)
+        x = nav.child_vertices(egi, egi.sheet)[0]
+        ps = _plus_step_copy(egi, cn)
+        x5, x6, x7 = egi.nu[_by_rel(egi, ps, "plus")[0]]
+        succs = _by_rel(egi, ps, "succ")
+        x8 = next(egi.nu[e][1] for e in succs if egi.nu[e][0] == x6)
+        x9 = next(egi.nu[e][1] for e in succs if egi.nu[e][0] == x7)
+        return instantiate_to_lines(
+            egi, universal_cut=ps,
+            joins=[(x5, x), (x6, n), (x7, z), (x8, sn), (x9, sz)],
+        )
+
+    chain.apply_derived("universal-instantiation", inst_plus_step, label="UI",
+                        note="Instantiate plus_step at the premises.")
+
+    # 4c — deiterate the three antecedent relations of the instantiated axiom
+    # (each a copy of a premise in the proof cut), then DC- to detach plus(x,sn,sz).
+    def detach_step(egi):
+        cn = cin(egi)
+        ps = _plus_step_copy(egi, cn)
+        g = egi
+        from proof_authoring import apply_rule
+        for r in ("plus", "succ", "succ"):
+            g = apply_rule("IT-", g, selection=[_by_rel(g, ps, r)[0]])
+        return apply_rule("DC-", g, selection=[ps])
+
+    chain.apply_derived("modus-ponens", detach_step, label="2e/2e",
+                        note="Deiterate the three antecedents, DC- → plus(x,sn,sz).")
+
+    # 4d — ∃-generalise the value sz of plus(x,sn,sz) → a fresh existential z'.
+    def gen_value(egi):
+        n, z, sn = roles(egi)
+        cn = cin(egi)
+        cons = next(e for e in _by_rel(egi, cn, "plus") if egi.nu[e][1] == sn)
+        return existential_generalization(egi, edge_id=cons, position=2,
+                                          new_vertex_id="z2val")
+
+    chain.apply_derived("existential-generalization", gen_value, label="EG",
+                        note="value := ∃z' — the consequent ∃z' plus(x,sn,z').")
+
+    # 4e — erase the spent premises in the (positive) proof cut: the antecedent
+    # plus(x,n,z) and both succ relations, leaving exactly the consequent.
+    def clear_proof_cut(egi):
+        from proof_authoring import apply_rule
+        n, z, sn = roles(egi)
+        cn = cin(egi)
+        g = egi
+        ante = [e for e in _by_rel(g, cn, "plus") if g.nu[e][1] == n]
+        for e in ante:
+            g = apply_rule("ERA", g, selection=[e])
+        for e in list(_by_rel(g, cin(g), "succ")):
+            g = apply_rule("ERA", g, selection=[e])
+        return g
+
+    chain.apply_derived("erasure", clear_proof_cut, label="1e",
+                        note="Erase the spent premises; the consequent remains.")
+
+    # ⊢ (with the axioms surviving, since IT+ copies them) the step lemma scroll.
+    goal = parse_egif(
+        f"[*x] {PLUS_STEP_AX} {SUCC_TOTAL_AX} "
+        "~[ [*n] [*sn] [*z] (plus x n z) (succ n sn) ~[ [*z2] (plus x sn z2) ] ]"
+    )
     assert same_graph(chain.current, goal)

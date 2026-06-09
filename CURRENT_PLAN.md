@@ -1,6 +1,61 @@
 # Current Plan
 
-**Last Updated**: 2026-06-09 (induction arc: items 1+2 + totality pieces + existential-generalization move all on `main`; NEXT = the step-lemma construction to close totality)
+**Last Updated**: 2026-06-09 (step lemma CONSTRUCTED + induction-schema logic bug fixed; totality assembly blocked on two nameable pieces — see below)
+
+> **DONE this session — the inductive STEP lemma (the focused task), plus a
+> correctness fix to the induction schema.** All on the `main`-bound tree, full
+> suite green, protection **CLEAN** (only unprotected `proof_authoring.py` + the
+> test file touched).
+> - **STEP lemma** (`test_totality_step_lemma_existential`):
+>   `∀n∀sn( ∃z plus(x,n,z) ∧ succ(n,sn) → ∃z' plus(x,sn,z') )`, *constructed* from
+>   `plus_step` + `succ_total` in the **deduction-theorem mode** (build A→B by
+>   deriving B under assumption A) — the harder EG direction the prior session
+>   flagged. The realization: DC+ an empty double cut (the scroll); INS the
+>   antecedent into the negative outer cut + weld its line onto x; IT+ a copy of
+>   the antecedent **and** both axioms into the positive inner cut; then run a
+>   *forward detachment* inside that cut — discharge succ-existence (∃sz succ(z,sz)
+>   from succ_total), instantiate plus_step at the premises, deiterate + DC- to
+>   detach `plus(x,sn,sz)`, ∃-generalize the value, ERA the spent premises. Axioms
+>   are **copied** (IT+), never consumed, so they survive on the sheet — the goal
+>   is "axioms ⊢ step-lemma", the same convention the detachment proofs use.
+> - **Induction-schema logic bug FIXED.** `ORD_INDUCTION_EGIF` had the conclusion
+>   clause as `~[ [*Y] ~[φ(Y)] ]` (= ∀Yφ), making the whole schema
+>   `¬(BASE∧STEP∧∀Yφ) = (BASE∧STEP)→¬∀Yφ` — the **negation** of induction. Correct
+>   is `[*Y] ~[φ(Y)]` (= ∃Y¬φ) placed *directly* in the outer cut →
+>   `¬(BASE∧STEP∧∃Y¬φ) = (BASE∧STEP)→∀Yφ`. Verified via `chapter18_fopl_translation`;
+>   `test_ordinary_induction_schema_instantiates` now pins the logical form with a
+>   `same_graph` check against the hand-written induction principle (the old test
+>   only checked parsing/round-trip, so the bug slipped through).
+> - **`apply_rule`/`ProofChain` can now drive the empty double cut.** Added a DC+
+>   branch that advances the `SELECT_AREA` spot step when a `target` is given
+>   (backward-compatible; no target → legacy whole/common-area wrap). Lets
+>   `chain.apply("DC+", select=[], into=sheet)` insert a truly empty double cut.
+>
+> **NEXT — totality assembly is blocked on TWO nameable pieces (both real):**
+> The construction is understood and the *logic* is verified: prove base+step
+> lemmas on one sheet sharing x, assert the induction instance (φ:=∃z plus(x,·,z)),
+> **deiterate** the base- and step-clauses against the proven lemmas → the outer
+> cut collapses to `~[ [*Y] ~[ [*z](plus x Y z) ] ]` = ∀Y∃z plus(x,Y,z). Two
+> capabilities are missing:
+>   1. **Schema layer — shared ambient parameter.** `instance_of_schema` α-renames
+>      φ's body per occurrence, so φ:=∃z plus(x,·,z) yields **four distinct x
+>      lines**, not one shared x. The induction instance needs x threaded through
+>      all occurrences as a single line (x is ∀-bound *outside* the whole bracket).
+>      `parameters` welds to *schema* lines, but there's no schema-level x. (Work-
+>      around for the proof: hand-write the instance as an explicit premise with x
+>      shared — it's a legitimate axiom instance, asserted like `plus_base`.)
+>   2. **Engine (PROTECTED) — `IT-` can't deiterate a CUT.** Deiteration's
+>      isomorphism validator recognizes only flat *edges* as candidates, not a
+>      whole cut subgraph (verified: fails even for pure-Alpha `~[(P)] ~[~[(P)]]`).
+>      Consuming the proven base/step **clauses** (which are cuts) out of the
+>      asserted induction instance needs cut-level IT-. Same class as the
+>      ERA-of-cut limitation (ERA also refuses a non-empty cut: multi-area
+>      selection). This is the load-bearing missing primitive — a protected change
+>      to `formal_transformation_rules` / the `IsomorphismValidator`, needing
+>      `.core_modification_authorized` + core suite. **Start here next session.**
+>
+> Other queued (unchanged): corpus-import the math theories; **Gamma** frontier;
+> **schema layout/correspondence** (how a hole `⟨…⟩` draws + §3.3).
 
 > **DONE this session — recursion fixtures + the induction arc (items 1, 2, and
 > totality's pieces), all on `main`, pushed, full suite green, protection CLEAN.**
