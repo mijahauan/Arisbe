@@ -82,9 +82,9 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
 - **Teach Peirce's logic as a practice, not a notation.** The Endoporeutic Game is
   *playable*: a student proposes a graph against a domain model and watches it
   resolve to a theorem, a refutation, a new fact, or a productive contradiction.
-  A companion document, [ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md), walks six
+  A companion document, [ARISBE\_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md), walks six
   everyday scenarios in non-technical language; the
-  [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) gives the formal
+  [ENDOPOREUTIC\_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) gives the formal
   account and its Peircean grounding.
 - **Work with a shared, inspectable corpus.** Every proof is a real chain of sound
   rule applications with deterministic provenance; every item states its source
@@ -143,12 +143,12 @@ logic.
 
 ## Pointers
 
-- **Read first:** [ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) (narrative),
-  then [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) (formal).
-- **The central contract:** [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md).
+- **Read first:** [ARISBE\_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) (narrative),
+  then [ENDOPOREUTIC\_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) (formal).
+- **The central contract:** [LINEAR\_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md).
 - **The Peircean grounding of the provenance/inquiry model:**
-  [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) and
-  [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md).
-- **The corpus and import model:** [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md).
+  [CHAIN\_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) and
+  [MANIFEST\_AND_MEANING.md](MANIFEST_AND_MEANING.md).
+- **The corpus and import model:** [CORPUS\_AND\_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md).
 - **Run it:** `uv sync --extra dev` then
   `uv run uvicorn web_api.main:app --reload --port 8000` and open `/organon`.

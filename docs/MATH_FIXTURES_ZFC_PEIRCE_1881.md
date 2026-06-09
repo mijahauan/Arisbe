@@ -1,0 +1,312 @@
+# EGIF Fixtures — ZFC and Peirce's 1881 Arithmetic
+
+**Status:** draft fixture set + design brief (2026-06-08), authored as next-session
+planning material. Not yet built. The EGIF below is a *proposed first draft to
+validate against Arisbe's own parser*, not verified ground truth.
+
+This is the natural continuation of the Organon-import arc
+([CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md)) into real mathematics.
+Two pieces connect it to what's already built:
+
+- The **definition layer** below is the term-level twin of the derived-rule layer
+  already shipped in [`src/derived_rules.py`](../src/derived_rules.py) (named moves
+  atop Peirce's primitives). `(subset …)`, `(succ …)`, `(plus …)` are named graphs
+  the way `universal_instantiation` is a named rule.
+- The **graph-with-holes / schema node** (Part III) is genuinely new: it is what
+  lets Beta store ZFC's Separation/Replacement and Peirce's induction as *finitely
+  many* hole-bearing graphs + one instantiation routine + one side-rule. First-order
+  EG cannot quantify over formulas, so a schema cannot be a single ordinary graph.
+
+The fixtures are also the first real exercise of the equality-as-ligature decision
+settled this session (R8: equality is a shared line / `=` edge, not a dyadic
+predicate; constants intern per-area, so a named individual referenced across cuts
+is a shared *generic* line). Every `[a b]` below is that ligature.
+
+---
+
+## Conventions
+
+- **Membership** `x ∈ y`  →  relation `(in ?x ?y)`
+- **Equality** `x = y`  →  coreference node (ligature) `[?x ?y]`.
+  Relational alternative if Arisbe carries `=` as a predicate: replace every
+  `[a b]` with `(= a b)`. This also makes the round-trip to CLIF `(= a b)` exact.
+- **Cut / negation**  `~[ … ]`  ;  **conjunction** = juxtaposition.
+- **Defining label** `*v` introduces a line of identity (existential);
+  **bound label** `?v` is a coreference use.
+- Derived shapes (all by pushing negation through, normal EG form):
+  - `∀x φ`            →  `~[ [*x] ~[ φ ] ]`
+  - `∃x φ`            →  `[*x] φ`
+  - `∀x (A ⊃ B)`      →  `~[ [*x] A ~[ B ] ]`
+  - `A ∨ B`           →  `~[ ~[ A ] ~[ B ] ]`
+  - `A ↔ B`           →  `~[ A ~[ B ] ]  ~[ B ~[ A ] ]`   (two implications, juxtaposed)
+
+The ONLY nonlogical vocabulary in Part I–III is `(in …)` plus the equality
+ligature. In Part IV it is `(lt …)` plus the equality ligature.
+
+---
+
+## Part I — ZFC: the seven non-schema axioms (one graph each)
+
+### 1. Extensionality
+Sets with the same members are equal.
+
+`∀x∀y [ ∀z(z∈x ↔ z∈y) → x=y ]`
+
+```
+~[ [*x] [*y]
+   ~[ [*z] ~[ ~[ (in ?z ?x) ~[ (in ?z ?y) ] ]
+              ~[ (in ?z ?y) ~[ (in ?z ?x) ] ] ] ]
+   ~[ [?x ?y] ] ]
+```
+Note: the inner `~[ [*z] ~[ … ↔ … ] ]` is the antecedent "x and y have the same
+members," sitting in the negative area; the consequent `x=y` is the ligature
+`~[ [?x ?y] ]`. No native `↔`, so it expands to the two implications.
+
+### 2. Empty Set
+There is a set with no members. (Often derived from Separation + Infinity; kept
+here as a standalone fixture.)
+
+`∃x ∀y ¬(y∈x)`
+
+```
+[*x] ~[ [*y] (in ?y ?x) ]
+```
+Note: `~[ [*y] (in ?y ?x) ]` is `¬∃y(y∈x)` = "nothing is in x." Cleanest axiom
+in the set.
+
+### 3. Pairing (existence form)
+For any x, y there is a set containing both. (Separation later trims it to the
+exact pair; the exact-pair version needs the `↔` expansion as in Extensionality.)
+
+`∀x∀y ∃z (x∈z ∧ y∈z)`
+
+```
+~[ [*x] [*y] ~[ [*z] (in ?x ?z) (in ?y ?z) ] ]
+```
+Note: the canonical `∀∀∃` rhythm — two defining labels just inside the leading
+cut, one more cut for the existential.
+
+### 4. Union
+For any family F there is a set A containing every member of every member of F.
+
+`∀F ∃A ∀x [ ∃B(x∈B ∧ B∈F) → x∈A ]`
+
+```
+~[ [*F] ~[ [*A]
+   ~[ [*x] [*B] (in ?x ?B) (in ?B ?F) ~[ (in ?x ?A) ] ] ] ]
+```
+Note: the inner `∃B(…)` in the antecedent becomes a `[*B]` alongside `[*x]` under
+the same cut — the prenex equivalence `∀x(∃B φ → ψ) ≡ ∀x∀B(φ → ψ)` (ψ free of B)
+makes this exact and saves a cut.
+
+### 5. Power Set
+For any x there is a set y containing every subset of x.
+
+`∀x ∃y ∀z ( z⊆x → z∈y )`,  where `z⊆x ≡ ∀w(w∈z → w∈x)`
+
+```
+~[ [*x] ~[ [*y]
+   ~[ [*z] ~[ [*w] (in ?w ?z) ~[ (in ?w ?x) ] ]
+            ~[ (in ?z ?y) ] ] ] ]
+```
+Note: the subset relation is inlined as `~[ [*w] (in ?w ?z) ~[ (in ?w ?x) ] ]`.
+This is the first axiom that visibly screams for a defined relation
+`(subset ?z ?x)` — see Part III, definition layer.
+
+### 6. Infinity
+There is a set I containing the empty set and closed under successor s = x ∪ {x}.
+
+`∃I [ ∃e(e∈I ∧ ∀z¬(z∈e))`
+`     ∧ ∀x( x∈I → ∃s( s∈I ∧ ∀w(w∈s ↔ (w∈x ∨ w=x)) ) ) ]`
+
+```
+[*I]
+  [*e] (in ?e ?I) ~[ [*z] (in ?z ?e) ]
+  ~[ [*x] (in ?x ?I)
+     ~[ [*s] (in ?s ?I)
+        ~[ [*w] ~[ ~[ (in ?w ?s) ~[ ~[ ~[ (in ?w ?x) ] ~[ [?w ?x] ] ] ] ]
+                   ~[ ~[ ~[ (in ?w ?x) ] ~[ [?w ?x] ] ] ~[ (in ?w ?s) ] ] ] ] ] ]
+```
+Note: this is the deliberate monster. `(w∈x ∨ w=x)` is the disjunction
+`~[ ~[ (in ?w ?x) ] ~[ [?w ?x] ] ]`, appearing once in each arm of the `w∈s ↔ …`
+biconditional. With defined relations `(empty ?e)` and `(succ ?x ?s)` it
+collapses to:
+`[*I] [*e] (empty ?e) (in ?e ?I) ~[ [*x] (in ?x ?I) ~[ [*s] (in ?s ?I) (succ ?x ?s) ] ]`
+
+### 7. Foundation (Regularity)
+Every nonempty set has an ∈-minimal member.
+
+`∀x [ ∃y(y∈x) → ∃u( u∈x ∧ ¬∃z(z∈u ∧ z∈x) ) ]`
+
+```
+~[ [*x] [*y] (in ?y ?x)
+   ~[ [*u] (in ?u ?x) ~[ [*z] (in ?z ?u) (in ?z ?x) ] ] ]
+```
+Note: the antecedent's witness `y` and the consequent's minimal element `u` are
+distinct bound lines — distinct labels are mandatory.
+
+### (Choice)
+For any family of nonempty pairwise-disjoint sets there is a set meeting each in
+exactly one element. Stated faithfully it is long; recommended as a defined-relation
+fixture (`(pairwise_disjoint ?F)`, `(meets_once ?C ?F)`) rather than raw `in`.
+Flagged here, deferred to the definition layer.
+
+---
+
+## Part II — ZFC: the two schemas (graph-with-holes)
+
+Each is ONE hole-bearing graph standing for infinitely many axioms. `⟨φ: ports⟩`
+denotes the hole; all occurrences of the same `φ` co-instantiate.
+
+### 8. Separation (Specification) — hole arity 1
+For each formula φ(x) (with parameters p̄): the φ-definable subclass of any set A
+is a set.
+
+`∀p ∀A ∃B ∀x ( x∈B ↔ (x∈A ∧ φ(x)) )`
+
+```
+~[ [*p] ~[ [*A] ~[ [*B]
+   ~[ [*x] ~[ ~[ (in ?x ?B) ~[ (in ?x ?A) ⟨φ: ?x⟩ ] ]
+              ~[ (in ?x ?A) ⟨φ: ?x⟩ ~[ (in ?x ?B) ] ] ] ]
+] ] ]
+```
+- Hole `⟨φ: ?x⟩`: one port `?x`, TWO occurrences (different depth/polarity).
+- φ may use `?x` and parameters `?p`; it may NOT bind `B`, `A`, or `x`.
+- Sample instantiation `⟨φ: ?x⟩ := (in ?x ?p)` yields A ∩ p.
+
+### 9. Replacement — hole arity 2
+For each formula φ(x,y) functional on A, the φ-image of A is a set.
+
+`∀A [ ∀x( x∈A → ∃!y φ(x,y) )`
+`     → ∃B ∀x( x∈A → ∃y( y∈B ∧ φ(x,y) ) ) ]`
+
+```
+~[ [*A]
+   ~[ [*x] (in ?x ?A) ~[ [*y] ⟨φ: ?x ?y⟩
+                          ~[ [*y2] ⟨φ: ?x ?y2⟩ ~[ [?y ?y2] ] ] ] ]   % functionality hyp (∃!)
+   ~[ [*B]
+      ~[ [*x] (in ?x ?A) ~[ [*y] (in ?y ?B) ⟨φ: ?x ?y⟩ ] ] ] ]
+```
+- Hole `⟨φ: ?x ?y⟩`: two ports. THREE occurrences here (twice in the `∃!y`
+  uniqueness hypothesis, once in the image clause) — and the second port differs
+  per occurrence (`?y` vs `?y2`), so the instantiation routine must rename the
+  port wiring, not just copy.
+- This is the stress case for the hole node: multiple ports, multiple occurrences,
+  per-occurrence port relabeling. If the design survives Replacement it survives
+  everything.
+
+---
+
+## Part III — The graph-with-holes node (spec for Arisbe)
+
+A **schema** = a Beta graph plus ≥1 holes. A **hole** record carries:
+
+1. **Ports** — an ordered list of line references the plugged subgraph may attach
+   to. Arity = |ports|. (Separation 1, Replacement 2, Peirce least-number 1.)
+2. **Schema-occurrence id** — every occurrence of the same φ shares one id, so a
+   single instantiation fills all of them. Sharing is enforced, not re-derived.
+3. **Scope / capture rule** — the plugged graph g must have free lines ⊆ ports ∪
+   ambient parameters; g's own `*`-nodes are α-renamed fresh on splice so they
+   cannot weld onto schema lines.
+4. **Parity independence** — occurrences may sit at different depths/polarities;
+   occurrence-equality compares graph CONTENT modulo surrounding cuts.
+
+**Instantiation** `instantiate(schema, g)`:
+- check arity(g.free_lines) == arity(ports);
+- for each occurrence: copy g, α-rename g's bound labels fresh, weld g's
+  port-lines to the schema lines recorded at that occurrence;
+- result is an ordinary hole-free Beta graph = one axiom.
+
+**New inference side-rule** `instance-of-schema`: licenses asserting any
+`instantiate(schema, g)` when `schema` is on the sheet. This is the *only* new
+primitive the schema machinery adds on top of Peirce's five rules. Storing
+PA / ZFC = finitely many hole-bearing graphs + this routine + this side-rule.
+
+**Definition layer (companion, strongly recommended):** a named graph
+`name(ports) := body` that expands to `body` on demand — the term-level twin of
+named lemmas / derived rules. Lets `(subset ?z ?x)`, `(empty ?e)`, `(succ ?x ?s)`,
+`(pairwise_disjoint ?F)` stand in for their bodies, which is what makes Power Set,
+Infinity, and Choice readable and storable.
+
+---
+
+## Part IV — Peirce 1881 arithmetic (Shields reconstruction)
+
+Source: C. S. Peirce, "On the Logic of Number," *American Journal of Mathematics*
+4 (1881), 85–95. The crisp axiom list is Paul Shields' reconstruction (diss. 1981;
+"Peirce's Axiomatization of Arithmetic," in Houser/Roberts/Van Evra eds.,
+*Studies in the Logic of C. S. Peirce*, Indiana UP, 1997), proven equivalent to
+Dedekind (1888) and Peano (1889). Peirce's naturals = a discrete linear order with
+a least element and no greatest; his induction is the least-number principle.
+
+Primitive: strict order `(lt ?x ?y)` for `x < y`. Equality via ligature.
+
+### P1. Irreflexivity
+`∀x ¬(x<x)`
+```
+~[ [*x] (lt ?x ?x) ]
+```
+
+### P2. Transitivity
+`∀x∀y∀z ( x<y ∧ y<z → x<z )`
+```
+~[ [*x] [*y] [*z] (lt ?x ?y) (lt ?y ?z) ~[ (lt ?x ?z) ] ]
+```
+
+### P3. Trichotomy (linearity)
+`∀x∀y ( x<y ∨ x=y ∨ y<x )`
+```
+~[ [*x] [*y] ~[ (lt ?x ?y) ] ~[ [?x ?y] ] ~[ (lt ?y ?x) ] ]
+```
+
+### P4. Discreteness (immediate successor exists)
+`∀x ∃y ( x<y ∧ ¬∃z(x<z ∧ z<y) )`
+```
+~[ [*x] ~[ [*y] (lt ?x ?y) ~[ [*z] (lt ?x ?z) (lt ?z ?y) ] ] ]
+```
+
+### P5. Least element (Peirce starts the count at 1)
+`∃x ∀y ( x<y ∨ x=y )`
+```
+[*x] ~[ [*y] ~[ (lt ?x ?y) ] ~[ [?x ?y] ] ]
+```
+
+### P6. No greatest element (unboundedness)
+`∀x ∃y ( x<y )`
+```
+~[ [*x] ~[ [*y] (lt ?x ?y) ] ]
+```
+
+### P7. Induction = least-number principle — SCHEMA, hole arity 1
+For each formula ψ(n): every nonempty ψ-class has a <-least member.
+
+`∀… [ ∃x ψ(x) → ∃u( ψ(u) ∧ ∀y(ψ(y) → ¬(y<u)) ) ]`
+
+```
+~[ [*x] ⟨ψ: ?x⟩
+   ~[ [*u] ⟨ψ: ?u⟩
+      ~[ [*y] ⟨ψ: ?y⟩ (lt ?y ?u) ] ] ]
+```
+- Hole `⟨ψ: ?n⟩`: one port, THREE occurrences (`?x`, `?u`, `?y`).
+- Same hole node as ZFC Separation — Peirce's induction validates the schema
+  machinery a second time, on an arithmetic theory instead of a set theory.
+
+### Recursive operations (definition-layer fixtures, not rendered raw)
+Peirce gave recursive definitions of `+` and `×`. These are recursion equations on
+the successor, e.g. `x + 1 = S(x)`, `x + S(y) = S(x + y)`, and likewise for `×`.
+They belong in the definition layer (`(plus ?x ?y ?z)`, `(times ?x ?y ?z)` as
+defined ternary relations grounded in `succ`), not as raw `lt` graphs. Listed here
+as the natural next fixtures once the definition node exists.
+
+---
+
+## Notes / caveats
+
+- Verbosity of Infinity / Power Set / Choice is inherited from raw single-relation
+  ZFC, not from EG; the definition layer is the fix.
+- Schemas (Separation, Replacement, Peirce induction) cannot be single graphs in
+  Beta — first-order logic can't quantify over formulas. They require the hole node.
+- Second-order/categorical versions (full induction, second-order ZFC) need
+  predicate quantification = Peirce's Gamma graphs, deliberately out of scope.
+- All EGIF here is a proposed first draft for validation against Arisbe's parser;
+  expect to adjust label-scoping details to match the implementation's exact rules.

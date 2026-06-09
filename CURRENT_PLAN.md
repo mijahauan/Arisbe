@@ -1,8 +1,64 @@
 # Current Plan
 
-**Last Updated**: 2026-06-08 (Ontology import done + viewer surfaces provenance/annotations; next = by-hand import & edit "reading desk")
+**Last Updated**: 2026-06-08 (big session: ontology import, corpus retrofit, Organon UX pass, EPG-guide reorg + scholars' intro, tension "slash" fix; NEXT = plan the math fixtures)
 
-> **NEXT SESSION — the by-hand import & edit "reading desk."** Design-of-record:
+> **NEXT SESSION — plan the math: ZFC + Peirce's 1881 arithmetic as EGIF
+> fixtures, and the graph-with-holes (schema) node.** Design-of-record (a draft
+> fixture set + spec the user authored): [docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md](docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md).
+> The arc: validate the proposed EGIF against Arisbe's parser, then build the two
+> genuinely new capabilities the fixtures need:
+> - **Definition layer** — named graphs `name(ports) := body` (the term-level twin
+>   of the shipped derived-rule layer in `src/derived_rules.py`); lets `(subset …)`,
+>   `(succ …)`, `(empty …)`, `(plus …)` stand for their bodies. Makes Power Set /
+>   Infinity / Choice / Peirce's recursive +,× readable and storable.
+> - **Graph-with-holes / schema node** (Part III of the doc) — a Beta graph + holes
+>   (ports, shared occurrence-id, α-rename-on-splice, parity-independent
+>   occurrence-equality) + `instantiate(schema, g)` + one new side-rule
+>   `instance-of-schema`. The *only* new primitive; lets Beta store ZFC's
+>   Separation/Replacement and Peirce's induction (least-number principle) as
+>   finitely many graphs. Replacement (2 ports, 3 occurrences, per-occurrence port
+>   relabeling) is the stress case. First-order EG can't quantify over formulas —
+>   this is why a schema can't be one ordinary graph; Gamma (predicate
+>   quantification) stays out of scope.
+> Start by eyeballing/correcting the Part I–IV EGIF in the parser; equality is the
+> ligature `[a b]` (R8, settled this session). This is the gate to importing *real*
+> mathematics (the R7 horizon from the import walkthrough §6).
+>
+> Earlier-queued items still open (deferred behind the math): the by-hand import &
+> edit **"reading desk"** ([docs/CORPUS_AND_IMPORT_MODEL.md](docs/CORPUS_AND_IMPORT_MODEL.md)
+> §6, [[project-by-hand-import-reading-desk]]); pattern library; `low→tested`
+> warrant lifecycle (blocked on Agon); ontology layout perf; `dau_2006_p112_ligature`
+> page check.
+
+> **Done this session (all on `main`, pushed, full suite green ≈1253/37, no
+> protected module touched):**
+> - **Ontology import** — the `ontology` kind end-to-end (`src/ontology_egif.py`
+>   encoder + `tools/suokif_to_eg.py` SUO-KIF→EG translator with honest skip-report
+>   + `tools/build_ontologies.py`); `porphyry_tree`/`foaf_core`/`sumo_upper`. SUMO's
+>   top = Sowa on Peirce's 3 categories. Memory [[project-ontology-import]].
+> - **Corpus retrofit** — all pre-existing UoDs up to spec (provenance + annotations
+>   + import `kind`); corpus = **23 curated items, all 5 kinds populated**; one
+>   practice throwaway retired; two honest populations (cited vs synthetic, no
+>   fabricated citations). [[project-organon-import-build]].
+> - **Organon UX pass** — corpus browser (group-by-kind, facets, sort, search,
+>   badges); unified Import+Export toolbar; cross-mode action bar (Open in
+>   Ergasterion / Use in Agon as a reference model / Copy); export "what you see"
+>   (style+engine); Import page on the shared mode-nav. The viewer now surfaces the
+>   provenance bundle + annotation layer.
+> - **Docs** — EPG guide reorganized into a 4-part spine (mechanics consolidated,
+>   tail repetition removed); ARISBE_IN_PRACTICE cross-linked (scenario↔taxonomy);
+>   **new** `docs/ARISBE_FOR_SCHOLARS.md` (concise intro aimed at Pietarinen — the
+>   correspondence problem as mechanized iconicity, the two-layer game, the
+>   Agonothetes; worth the author's own read before sending).
+> - **Tension "slash" fix** — `?engine=tension` on multi-thread/cyclic graphs
+>   (group_identity proof) slashed a line across nested cuts. A wrong "defer to ELK"
+>   was tried + reverted (user prefers the tension look); the real fix is a top-down
+>   **crossing-reconciliation** pass in `_hierarchical_layout` (`_seg_box_hit` on
+>   the straight predicate→vertex segment), verified by render→PNG→Read. The dense
+>   multi-relation tangle (forest frontier) remains. [[project-tension-layout-engine]].
+
+> **(superseded next-session note) — the by-hand import & edit "reading desk."**
+> Design-of-record:
 > [docs/CORPUS_AND_IMPORT_MODEL.md](docs/CORPUS_AND_IMPORT_MODEL.md) §6 (forward
 > edges). The lead item (user-requested):
 > - **By-hand import & edit** — every corpus item so far was built by a Python
