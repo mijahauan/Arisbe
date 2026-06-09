@@ -437,29 +437,7 @@ weighted vs unweighted `stress_majorize` paths).
   on an Alpha proof shows the ELK layout — the meaningful one.)
 
 **Remaining generalization:** multiple threads (a *forest* — `mixed_quantifier_complex`)
-and cyclic ligatures (`beta_converse_mp`), composing several trees + their shared
-cuts, and non-monotone threads. The unit the tension solve places is now the
-ligature *tree*; next it becomes a *forest* sharing a cut nest.
-
-## 12. Retiring the §9 hierarchical placement — defer to ELK (2026-06-08)
-
-The §9 "hierarchical constrained stress" placement (the per-area local-frame
-stress majorization, `_hierarchical_layout` / `_layout_area`) was the engine's
-catch-all for graphs that are neither a single thread (§10) nor a single tree
-(§11). In practice it was *just a worse ELK* for exactly those frontier graphs —
-multiple threads, cyclic ligatures, non-monotone lines. The
-`group_identity` proof made this concrete: its step-5 state is two lines joined by
-two `M` edges **and** a deep `=` edge (a cyclic, multi-thread ligature diving into
-a double cut), and the hierarchical placement drew a line slashing diagonally
-across the nested cuts — §3.3-valid but visually wrong.
-
-So that placement was **removed**. `generate_layout` now does thread (§10), then
-tree (§11), then **defers to ELK** for everything else — the same reasoning the
-Alpha case already used (don't impose a node placement that is just a worse ELK).
-Net effect: `?engine=tension` shows the taut single-line/tree reading where it is
-well-defined, and the clean conventional ELK drawing everywhere else. The earlier
-"18/18 attest at the engine, no ELK fallback" was an aesthetic aspiration; for the
-forest/cyclic class the ELK deferral is the better drawing, so the present-tense
-claims in §9–§11 about a hierarchical fallback are superseded by this entry.
-`_hierarchical_layout`, `_layout_area`, and their helpers were deleted (≈235
-lines); 34 tension/layout tests stay green.
+and cyclic ligatures (`beta_converse_mp`), both still hierarchical; composing
+several trees + their shared cuts; non-monotone threads. The unit the tension
+solve places is now the ligature *tree*; next it becomes a *forest* sharing a cut
+nest.
