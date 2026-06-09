@@ -167,3 +167,90 @@ def test_local_expansion_reaches_the_same_territory_as_global():
             break
         g = expand_at(g, reg, spots[0])
     assert same_graph(g, expand(host, reg))
+
+
+# --- selection-driven fold (docs/DEFINITION_NODE.md "Open / next") ------------ #
+#
+# `fold` consumes a FoldPoint — the provenance of a just-done `expand_at`.
+# `fold_selection` is the iso-matched front door: recognize an arbitrary drawn
+# body as an instance of a definition and contract it.  The soundness gate is
+# essential — folding a non-instance would be an unsound rewrite — so a
+# non-instance selection and a port misalignment must both refuse.
+
+from definitions import fold_selection  # noqa: E402
+
+
+def _recursive_contents(g, cut_id):
+    """A cut plus everything transitively inside it."""
+    out = {cut_id}
+    stack = [cut_id]
+    while stack:
+        for eid in g.area.get(stack.pop(), frozenset()):
+            out.add(eid)
+            stack.append(eid)
+    return out
+
+
+def test_fold_selection_inverts_expand_at_from_a_computed_selection():
+    """fold_selection(expand_at(g, e)) == g — with the selection *computed from
+    the drawing* (the unfolded body is the sheet-level cut and its interior),
+    not taken from the expand_at provenance."""
+    reg = _subset_reg()
+    host = parse_egif("[*p] [*q] (subset p q)")
+    spot = next(eid for eid, r in host.rel.items() if r == "subset")
+    p, q = host.nu[spot]                       # ports, in argument order (z, x)
+    g1 = expand_at(host, reg, spot)
+
+    top_cut = next(c.id for c in g1.Cut if c.id in g1.area[g1.sheet])
+    selection = _recursive_contents(g1, top_cut)
+    refolded = fold_selection(g1, reg, "subset", selection, ports=(p, q))
+    assert same_graph(refolded, host)
+
+
+def test_fold_selection_refuses_a_non_instance():
+    """A selection that is not isomorphic to the body must raise — folding it
+    would be an unsound rewrite."""
+    reg = _subset_reg()
+    # Looks vaguely subset-ish but is NOT the body (no nested cut, wrong shape).
+    host = parse_egif("[*p] [*q] ~[ [*w] (in w p) (in w q) ]")
+    cut = next(c.id for c in host.Cut if c.id in host.area[host.sheet])
+    selection = _recursive_contents(host, cut)
+    p = next(v for v in host.area[host.sheet] if v in {x.id for x in host.V})
+    q = next(v for v in host.area[host.sheet]
+             if v in {x.id for x in host.V} and v != p)
+    with pytest.raises(ValueError, match="not an instance"):
+        fold_selection(host, reg, "subset", selection, ports=(p, q))
+
+
+def test_fold_selection_refuses_misaligned_ports():
+    """A true body instance with the ports given in the WRONG argument order
+    must raise — subset(z, x) is not symmetric, and silently permuting hooks
+    would change the proposition."""
+    reg = _subset_reg()
+    host = parse_egif("[*p] [*q] (subset p q)")
+    spot = next(eid for eid, r in host.rel.items() if r == "subset")
+    p, q = host.nu[spot]
+    g1 = expand_at(host, reg, spot)
+
+    top_cut = next(c.id for c in g1.Cut if c.id in g1.area[g1.sheet])
+    selection = _recursive_contents(g1, top_cut)
+    with pytest.raises(ValueError, match="not an instance"):
+        fold_selection(g1, reg, "subset", selection, ports=(q, p))  # swapped
+
+
+def test_fold_selection_body_whose_top_level_is_a_cut():
+    """Area-placement edge case: EMPTY's body is a port line plus a top-level
+    cut — the spot must land in the cut's host area, here inside an enclosing
+    cut rather than on the sheet."""
+    reg = DefinitionRegistry([EMPTY])
+    host = parse_egif("~[ [*e] (empty e) (in e e) ]")   # the use sits in a cut
+    spot = next(eid for eid, r in host.rel.items() if r == "empty")
+    (e_line,) = host.nu[spot]
+    g1 = expand_at(host, reg, spot)
+
+    # the unfolded body: the deepest cut (inside the enclosing host cut)
+    host_cut = next(c.id for c in g1.Cut if c.id in g1.area[g1.sheet])
+    body_cut = next(c.id for c in g1.Cut if c.id in g1.area[host_cut])
+    selection = _recursive_contents(g1, body_cut)
+    refolded = fold_selection(g1, reg, "empty", selection, ports=(e_line,))
+    assert same_graph(refolded, host)

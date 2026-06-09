@@ -22,12 +22,12 @@ recursive definition rather than loop.
 Touches no protected module.
 """
 
-from dataclasses import dataclass
-from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple
+from dataclasses import dataclass, replace
+from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Tuple
 
 from frozendict import frozendict
 
-from egi_core_dau import Edge, ElementID, RelationalGraphWithCuts
+from egi_core_dau import Edge, ElementID, RelationalGraphWithCuts, Vertex
 from egif_parser_dau import parse_egif
 from eg_splice import _all_ids, splice
 
@@ -236,6 +236,126 @@ def fold(egi: RelationalGraphWithCuts, fold_point: FoldPoint) -> RelationalGraph
     return g.with_edge(spot, fold_point.ports, fold_point.name, fold_point.area)
 
 
+def _area_depth(egi: RelationalGraphWithCuts, area: ElementID) -> int:
+    depth, a = 0, area
+    while a != egi.sheet:
+        a = _edge_area(egi, a)
+        depth += 1
+    return depth
+
+
+def _mark_ports(
+    egi: RelationalGraphWithCuts, port_ids: Sequence[ElementID]
+) -> RelationalGraphWithCuts:
+    """A copy of ``egi`` whose port vertices carry positional constant labels,
+    so an isomorphism test between two marked graphs is forced to align port i
+    with port i (and to preserve each port's original label/genericity, folded
+    into the mark)."""
+    index = {p: i for i, p in enumerate(port_ids)}
+    new_V = frozenset(
+        Vertex(
+            id=v.id,
+            label=f"__port_{index[v.id]}__{v.label}",
+            is_generic=False,
+        )
+        if v.id in index
+        else v
+        for v in egi.V
+    )
+    return replace(egi, V=new_V)
+
+
+def fold_selection(
+    egi: RelationalGraphWithCuts,
+    registry: DefinitionRegistry,
+    name: str,
+    selection: Iterable[ElementID],
+    ports: Sequence[ElementID],
+) -> RelationalGraphWithCuts:
+    """Contract an arbitrary *selection* under definition ``name`` — the
+    selection-driven front door to :func:`fold` (see ``docs/DEFINITION_NODE.md``
+    "Open / next").  Where :func:`fold` consumes a :class:`FoldPoint` (the
+    provenance of a just-performed :func:`expand_at`), this recognizes a drawn
+    body wherever it came from: "fold *this selection* under definition D."
+
+    Args:
+        egi: the host graph.
+        registry: where ``name`` is defined.
+        name: the definition to fold under.
+        selection: host element ids forming the candidate definition body
+            (the port vertices may be included or omitted; they are counted in
+            either way and survive the fold).
+        ports: the host lines that become the spot's hooks, **in argument
+            order** (aligned with the definition's ports).
+
+    **Soundness gate (essential):** the sub-structure on ``selection`` must be
+    isomorphic to the definition body with ``ports`` aligned to the
+    definition's ports — folding a non-instance would be an unsound rewrite.
+    Checked twice, by construction: (1) the selection is isomorphism-matched
+    against the body via ``GraphIsomorphismEngine`` with both graphs'
+    ports positionally marked (so the match cannot silently permute hooks);
+    (2) after folding, the new spot is re-expanded with :func:`expand_at` and
+    the result must be ``same_graph`` to the original — the exact-inverse
+    round-trip, which also refuses selections whose internal lines leak edges
+    outside the selection.  Raises ``ValueError`` on any failure.
+
+    Returns the host with the selection contracted to a ``name`` spot.
+    """
+    defn = registry.get(name)
+    if defn is None:
+        raise ValueError(f"no definition named {name!r} in the registry")
+    ports = tuple(ports)
+    if len(ports) != defn.arity:
+        raise ValueError(
+            f"definition {name!r} has arity {defn.arity}, got {len(ports)} ports"
+        )
+    selection = frozenset(selection) | frozenset(ports)
+
+    # Gate (1): iso-match the selection against the body, ports pinned.
+    from graph_isomorphism_engine import GraphIsomorphismEngine
+
+    body = defn.body
+    body_ids = frozenset(_all_ids(body) - {body.sheet})
+    result = GraphIsomorphismEngine().test_cross_egi_isomorphism(
+        _mark_ports(egi, ports), selection,
+        _mark_ports(body, defn.port_ids()), body_ids,
+    )
+    if not result.is_isomorphic:
+        raise ValueError(
+            f"selection is not an instance of {name!r} with the given port "
+            f"alignment: {result.reason}"
+        )
+
+    # Build the FoldPoint: the spot sits where the body's top level sits — the
+    # shallowest area among the internal (non-port) selection.  (A body whose
+    # top level is a cut works the same way: the cut's own area is the host
+    # area, its interior is deeper.)
+    internal = selection - frozenset(ports)
+    if not internal:
+        raise ValueError("selection holds nothing to fold besides the ports")
+    area = min(
+        {_edge_area(egi, eid) for eid in internal},
+        key=lambda a: _area_depth(egi, a),
+    )
+    folded = fold(
+        egi,
+        FoldPoint(name=name, ports=ports, area=area, body_elements=internal),
+    )
+
+    # Gate (2): the exact-inverse round-trip — unfolding the new spot must
+    # reproduce the original graph.
+    from eg_navigation import same_graph
+
+    if not same_graph(expand_at(folded, registry, f"e_fold_{name}"), egi):
+        raise ValueError(
+            f"folding the selection under {name!r} is not reversible — the "
+            "selection is not a clean instance (e.g. an internal line is used "
+            "outside the selection)"
+        )
+    return folded
+
+
 __all__ = [
-    "Definition", "DefinitionRegistry", "expand", "expand_at", "fold", "FoldPoint",
+    "Definition", "DefinitionRegistry", "expand", "expand_at", "fold",
+    "fold_selection", "FoldPoint",
 ]

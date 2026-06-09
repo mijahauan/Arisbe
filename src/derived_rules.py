@@ -37,7 +37,7 @@ Composes existing public operations only; touches no protected module.
 """
 
 from dataclasses import replace
-from typing import Iterable, Optional, Tuple
+from typing import Callable, Iterable, Optional, Tuple
 
 import eg_navigation as nav
 from egi_core_dau import AreaPolarity, Edge, ElementID, RelationalGraphWithCuts
@@ -201,8 +201,91 @@ def existential_generalization(
     return apply_rule("ERA", g, selection=[identity_edge_id])
 
 
+def universal_generalization(
+    egi: RelationalGraphWithCuts,
+    *,
+    derive_body: Callable[
+        [RelationalGraphWithCuts, ElementID, ElementID], RelationalGraphWithCuts
+    ],
+    axioms: Iterable = (),
+) -> RelationalGraphWithCuts:
+    """Close a universal ``∀x G(x)`` via the Dau-native **scaffold tactic** —
+    NOT a final-graph rewrite ``∃ ⤳ ∀`` (which is provably unsound; see
+    ``docs/UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md``).  The tactic realizes the
+    UG metatheorem (``Γ ⊢ φ(x)``, ``x`` not free in ``Γ`` ⟹ ``Γ ⊢ ∀x φ(x)``)
+    as a construction in which ``x`` is **universal from the start** and the
+    body is re-derived beneath it:
+
+    1. ``DC+`` an empty double cut on the sheet — the universal scaffold
+       ``~[ ~[ ] ]`` (double-cut rule, an equivalence in any context).
+    2. Insert an isolated generic vertex ``[*x]`` on the *outer* (negative)
+       cut — Dau's isolated-vertex rule (Def. 24.10), an **equivalence valid in
+       arbitrary contexts**; our ``HeavyDotInsertionRule`` permits exactly the
+       negative context this step needs.  ``x`` is now oddly enclosed =
+       universal, bound to nothing (``∀x⊤ ∧ A ≡ A``).
+    3. ``IT+`` each of ``axioms`` (sheet subgraphs that do **not** mention
+       ``x``) into the *inner* (positive, depth-2) cut — iteration, an
+       equivalence.
+    4. Hand the inner area to ``derive_body(egi, inner_area, x_vertex)``, which
+       must re-derive the body ``G(x)`` there **composing sound public ops
+       only** (every polarity-sensitive move that ran on the sheet, depth 0
+       positive, is equally legal at depth 2 positive) and erase the spent
+       axiom copies, leaving the inner cut holding exactly ``G(x)``.
+
+    Result: ``A ~[ [*x] ~[ G(x) ] ]`` = ``A ∧ ∀x G(x)`` — sound *by
+    construction*: every step is a Dau primitive or a composition of them; the
+    one load-bearing primitive (isolated-vertex insertion as an equivalence in
+    any context) is Dau Def. 24.10.
+
+    Args:
+        derive_body: callable ``(egi, inner_area_id, x_vertex_id) -> egi``
+            that derives ``G(x)`` inside the inner area via public ops.
+        axioms: sheet subgraphs to iterate into the inner area before the body
+            derivation runs — each an element id, a list of ids, or a locator
+            ``callable(egi) -> id|list`` resolved against the current state.
+
+    Returns the EGI with the closed universal on the sheet.
+    """
+    from formal_transformation_rules import FormalTransformationEngine
+
+    # 1 — DC+ an empty double cut on the sheet (equivalence, any context).
+    cuts_before = {c.id for c in egi.Cut}
+    g = apply_rule("DC+", egi, selection=[], target=egi.sheet)
+    new_cuts = {c.id for c in g.Cut} - cuts_before
+    outer = next(c for c in new_cuts if nav.area_of(g, c) == g.sheet)
+    inner = next(c for c in new_cuts if c != outer)
+
+    # 2 — insert the isolated generic vertex [*x] on the negative outer cut
+    # (Dau Def. 24.10 — equivalence; HeavyDotInsertionRule's negative-context
+    # restriction is stricter than Dau's "arbitrary contexts", and sufficient).
+    verts_before = {v.id for v in g.V}
+    result = FormalTransformationEngine().apply_rule(
+        "HEAVY_DOT", g, target_area=outer, selected_subgraph=frozenset()
+    )
+    if not result.success:
+        raise ValueError(f"isolated-vertex insertion failed: {result.error_message}")
+    # The engine rebuilds without rho/variable_names/alphabet — restore them
+    # (the insertion touches none; the new line is simply absent from each).
+    g = replace(
+        result.result_egi,
+        rho=g.rho, variable_names=g.variable_names, alphabet=g.alphabet,
+    )
+    x = next(iter({v.id for v in g.V} - verts_before))
+
+    # 3 — iterate the axioms into the positive inner cut (equivalence).
+    for spec in axioms:
+        sel = spec(g) if callable(spec) else spec
+        if isinstance(sel, str):
+            sel = [sel]
+        g = apply_rule("IT+", g, selection=sel, target=inner)
+
+    # 4 — re-derive the body G(x) in the inner (positive) area.
+    return derive_body(g, inner, x)
+
+
 __all__ = [
     "universal_instantiation",
     "instantiate_to_lines",
     "existential_generalization",
+    "universal_generalization",
 ]

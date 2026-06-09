@@ -602,3 +602,226 @@ def test_totality_assembly_parametric():
         f"[*x] {_T_BASE_LEMMA} {_T_STEP_LEMMA} ~[ [*Y] ~[ [*z] (plus x Y z) ] ]"
     )
     assert same_graph(chain.current, goal)
+
+
+# --- the close: UNIVERSAL totality of addition (∀x∀Y∃z) ---------------------- #
+#
+# The parametric result above leaves x FREE (existential on the sheet).  No
+# sound rule sequence can strengthen ∃x G(x) to ∀x G(x) on the finished graph
+# (model-preservation — see docs/UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md §1),
+# so ∀x is closed via the **universal-scaffold tactic**
+# (``derived_rules.universal_generalization``): introduce x as a *universal*
+# (oddly-enclosed) line from the start — DC+ an empty double cut, isolated-
+# vertex insertion of [*x] on the negative outer cut (Dau Def. 24.10, an
+# equivalence in any context) — then RE-DERIVE the whole body
+# G(x) = ∀Y∃z plus(x,Y,z) inside the positive inner area (depth 2 is even, so
+# every move that ran on the sheet is equally legal there), and erase the spent
+# copies.  Result: A ~[ [*x] ~[ G(x) ] ] = ∀x∀Y∃z plus(x,Y,z).
+#
+# The sheet axioms are all x-FREE (closed graphs), as the metatheorem requires:
+# the three recursion axioms, plus the universally-closed induction instance
+# for φ := ∃z plus(x,·,z) (the closure over the parameter x of the instance the
+# parametric test asserts — an axiom schema asserts the closures of its
+# instances, so this is the same instance-of-schema side-rule, stated honestly
+# x-free so it can sit on the sheet of a universal proof).
+
+_T_IND_CLOSED = (
+    "~[ [*xc] ~[ "
+    "~[ ~[ [*o] (zero o) ~[ [*z] (plus xc o z) ] ] "
+    "   ~[ [*n] [*sn] [*z] (plus xc n z) (succ n sn) ~[ [*z2] (plus xc sn z2) ] ] "
+    "   [*Y] ~[ [*z] (plus xc Y z) ] ] ] ]"
+)
+
+
+# Sheet-axiom locators (resolved with the scaffold already on the sheet, so
+# each must exclude the scaffold's own cuts as well as its sibling axioms).
+
+def _base_ax(egi):
+    """plus_base: the sheet cut directly holding a `zero` edge."""
+    return [c for c in nav.child_cuts(egi, egi.sheet) if _by_rel(egi, c, "zero")][0]
+
+
+def _ind_ax(egi):
+    """The closed induction instance: a sheet cut with a direct vertex (xc), no
+    direct edges, whose single child cut holds *exactly one* element, a cut
+    (the instance) — distinguishing it from succ_total (inner cut holds an
+    edge) and from the scaffold's outer cut (its inner cut is either empty or,
+    by the time this locator resolves as the fourth axiom, holds the *three*
+    already-iterated axiom copies)."""
+    for c in nav.child_cuts(egi, egi.sheet):
+        if not nav.child_edges(egi, c) and nav.child_vertices(egi, c):
+            ks = nav.child_cuts(egi, c)
+            if (len(ks) == 1 and not nav.child_edges(egi, ks[0])
+                    and not nav.child_vertices(egi, ks[0])
+                    and len(nav.child_cuts(egi, ks[0])) == 1):
+                return c
+
+
+def _derive_totality_body(g, ci, x):
+    """Re-derive G(x) = ∀Y∃z plus(x,Y,z) inside the (positive) inner area
+    ``ci``, with ``x`` the universal line on the enclosing negative cut.  A
+    replay of the base-lemma, step-lemma, and assembly derivations proven on
+    the sheet above, with every locator rooted at ``ci`` instead of the sheet —
+    polarity is preserved (depth 0 → depth 2, both even), so each move is the
+    same sound rule application.  Composes public ops only."""
+    from proof_authoring import apply_rule
+
+    # ---- base lemma (replay of test_totality_base_lemma_existential) ------- #
+    def base_copy(egi):
+        return [c for c in nav.child_cuts(egi, ci) if _by_rel(egi, c, "zero")][0]
+
+    bc = base_copy(g)
+    zz = nav.vertices_of_edge(g, _by_rel(g, bc, "zero")[0])[0]
+    xx = [v for v in nav.child_vertices(g, bc) if v != zz][0]
+    g = instantiate_to_lines(g, universal_cut=bc, joins=[(xx, x)])
+    inner_b = nav.child_cuts(g, base_copy(g))[0]
+    g = existential_generalization(
+        g, edge_id=_by_rel(g, inner_b, "plus")[0], position=2, new_vertex_id="zval_u"
+    )
+    # ci now holds the base lemma ~[ [*o](zero o) ~[ [*z](plus x o z) ] ].
+
+    # ---- step lemma (replay of test_totality_step_lemma_existential) ------- #
+    g = apply_rule("DC+", g, selection=[], target=ci)
+
+    def scroll_outer(egi):
+        for c in nav.child_cuts(egi, ci):
+            ks = nav.child_cuts(egi, c)
+            if (len(ks) == 1 and not nav.child_edges(egi, c)
+                    and not nav.child_vertices(egi, c)
+                    and not nav.child_edges(egi, ks[0])
+                    and not nav.child_vertices(egi, ks[0])
+                    and not nav.child_cuts(egi, ks[0])):
+                return c
+
+    g = apply_rule(
+        "INS", g, egif="[*xx] [*n] [*sn] [*z] (plus xx n z) (succ n sn)",
+        target=scroll_outer(g),
+    )
+
+    def cout(egi):
+        for c in nav.child_cuts(egi, ci):
+            if (_by_rel(egi, c, "plus") and len(_by_rel(egi, c, "succ")) == 1
+                    and nav.child_cuts(egi, c)):
+                return c
+
+    co = cout(g)
+    xx = g.nu[_by_rel(g, co, "plus")[0]][0]
+    g = instantiate_to_lines(g, universal_cut=co, joins=[(xx, x)])
+
+    def cin(egi):
+        return nav.child_cuts(egi, cout(egi))[0]
+
+    g = apply_rule("IT+", g, selection=[_by_rel(g, cout(g), "plus")[0]], target=cin(g))
+    g = apply_rule("IT+", g, selection=[_by_rel(g, cout(g), "succ")[0]], target=cin(g))
+    g = apply_rule("IT+", g, selection=[_plus_step_copy(g, ci)], target=cin(g))
+    g = apply_rule("IT+", g, selection=[_succ_total_copy(g, ci)], target=cin(g))
+
+    def roles(egi):
+        c = cout(egi)
+        _, n, z = egi.nu[_by_rel(egi, c, "plus")[0]]
+        _, sn = egi.nu[_by_rel(egi, c, "succ")[0]]
+        return n, z, sn
+
+    # succ-existence: instantiate the succ_total copy at w := z, DC-.
+    _, z, _ = roles(g)
+    st = _succ_total_copy(g, cin(g))
+    g = instantiate_to_lines(
+        g, universal_cut=st, joins=[(nav.child_vertices(g, st)[0], z)]
+    )
+    g = apply_rule("DC-", g, selection=[_succ_total_copy(g, cin(g))])
+
+    # instantiate the plus_step copy at (x, n, z, sn, sz).
+    n, z, sn = roles(g)
+    cn = cin(g)
+    sz = next(g.nu[e][1] for e in _by_rel(g, cn, "succ") if g.nu[e][0] == z)
+    ps = _plus_step_copy(g, cn)
+    x5, x6, x7 = g.nu[_by_rel(g, ps, "plus")[0]]
+    succs = _by_rel(g, ps, "succ")
+    x8 = next(g.nu[e][1] for e in succs if g.nu[e][0] == x6)
+    x9 = next(g.nu[e][1] for e in succs if g.nu[e][0] == x7)
+    g = instantiate_to_lines(
+        g, universal_cut=ps,
+        joins=[(x5, x), (x6, n), (x7, z), (x8, sn), (x9, sz)],
+    )
+
+    # detach: deiterate the three antecedents, DC- → plus(x,sn,sz).
+    ps = _plus_step_copy(g, cin(g))
+    for r in ("plus", "succ", "succ"):
+        g = apply_rule("IT-", g, selection=[_by_rel(g, ps, r)[0]])
+    g = apply_rule("DC-", g, selection=[ps])
+
+    # ∃-generalise the value, erase the spent premises in the proof cut.
+    n, z, sn = roles(g)
+    cons = next(e for e in _by_rel(g, cin(g), "plus") if g.nu[e][1] == sn)
+    g = existential_generalization(g, edge_id=cons, position=2, new_vertex_id="z2val_u")
+    n, z, sn = roles(g)
+    for e in [e for e in _by_rel(g, cin(g), "plus") if g.nu[e][1] == n]:
+        g = apply_rule("ERA", g, selection=[e])
+    for e in list(_by_rel(g, cin(g), "succ")):
+        g = apply_rule("ERA", g, selection=[e])
+    # ci now also holds the step lemma scroll.
+
+    # ---- erase the spent axiom copies in ci -------------------------------- #
+    g = apply_rule("ERA", g, selection=[_plus_step_copy(g, ci)])
+    g = apply_rule("ERA", g, selection=[_succ_total_copy(g, ci)])
+
+    # ---- the induction instance: instantiate its closure at xc := x -------- #
+    def edge_free_cut(egi):
+        return [c for c in nav.child_cuts(egi, ci) if not nav.child_edges(egi, c)][0]
+
+    ic = edge_free_cut(g)
+    g = instantiate_to_lines(
+        g, universal_cut=ic, joins=[(nav.child_vertices(g, ic)[0], x)]
+    )
+    g = apply_rule("DC-", g, selection=[edge_free_cut(g)])
+
+    # ---- assembly (replay of test_totality_assembly_parametric) ------------ #
+    base_clause = [c for c in nav.child_cuts(g, edge_free_cut(g))
+                   if _by_rel(g, c, "zero")][0]
+    g = apply_rule("IT-", g, selection=[base_clause])
+    step_clause = [c for c in nav.child_cuts(g, edge_free_cut(g))
+                   if _by_rel(g, c, "succ")][0]
+    g = apply_rule("IT-", g, selection=[step_clause])
+
+    # ---- erase the spent lemmas; ci holds exactly G(x) ---------------------- #
+    g = apply_rule(
+        "ERA", g,
+        selection=[[c for c in nav.child_cuts(g, ci) if _by_rel(g, c, "zero")][0]],
+    )
+    g = apply_rule(
+        "ERA", g,
+        selection=[[c for c in nav.child_cuts(g, ci) if _by_rel(g, c, "succ")][0]],
+    )
+    return g
+
+
+def test_totality_universal():
+    """∀x∀Y∃z plus(x,Y,z) — CLOSED totality of addition, via the universal-
+    scaffold tactic.  The honest caveat on the parametric result is discharged:
+    x is universal by construction (introduced oddly-enclosed via Dau's
+    isolated-vertex equivalence), never a free existential strengthened after
+    the fact."""
+    from derived_rules import universal_generalization
+
+    chain = ProofChain.from_egif(
+        f"{PLUS_BASE} {PLUS_STEP_AX} {SUCC_TOTAL_AX} {_T_IND_CLOSED}"
+    )
+
+    chain.apply_derived(
+        "universal-generalization",
+        lambda egi: universal_generalization(
+            egi,
+            axioms=[_base_ax, _plus_step_cut, _succ_total_cut, _ind_ax],
+            derive_body=_derive_totality_body,
+        ),
+        label="UG",
+        note="∀x via the scaffold: universal line first, body re-derived beneath it.",
+    )
+
+    # ⊢ the axioms survive, and the sheet carries the closed theorem
+    # ~[ [*x] ~[ G(x) ] ] with G(x) = ~[ [*Y] ~[ [*z](plus x Y z) ] ].
+    goal = parse_egif(
+        f"{PLUS_BASE} {PLUS_STEP_AX} {SUCC_TOTAL_AX} {_T_IND_CLOSED} "
+        "~[ [*x] ~[ ~[ [*Y] ~[ [*z] (plus x Y z) ] ] ] ]"
+    )
+    assert same_graph(chain.current, goal)
