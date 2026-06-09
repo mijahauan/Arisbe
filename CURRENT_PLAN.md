@@ -6,6 +6,12 @@
 
 ## ▶ NEXT SESSION — start here. Two implementation tasks, in this order.
 
+> Running in a cloud agent (Devin Desktop) instead of the laptop? Read
+> **`docs/DEVIN_SETUP.md`** first — bootstrap, what's not in the clone (author
+> memory, git hooks, `.core_modification_authorized`), and the push-from-cloud /
+> pull-on-laptop discipline. Both tasks below are unprotected, pure logic — no Node
+> or Z3 needed to implement or test them.
+
 Both are *designed and verified on paper this session*; what remains is to write the
 code and the test. Both touch **only unprotected modules**. Do them in order: the
 ∀x close completes the totality arc (the headline), the fold front-door completes the
