@@ -110,3 +110,60 @@ def test_recursive_definition_is_refused_not_looped():
 def test_unknown_port_in_definition_raises():
     with pytest.raises(ValueError, match="ports"):
         Definition("bad", ("missing",), "[*a] (in a a)")
+
+
+# --- local, reversible fold/unfold (docs/DEFINITION_NODE.md) ----------------- #
+#
+# The guardrail against the Borges 1:1 map: never globally normalize for reading.
+# `expand_at` unfolds ONE spot; `fold` puts it back exactly.  Definitions are a
+# conservative extension, so the folded and unfolded forms carry identical
+# information — you lose nothing by staying folded, and you expand locally only to
+# verify a step, then refold.
+
+from definitions import expand_at, fold  # noqa: E402
+
+
+def _subset_reg():
+    return DefinitionRegistry([SUBSET])
+
+
+def test_expand_at_is_local_leaving_siblings_folded():
+    """Unfolding one spot leaves every other defined spot folded."""
+    reg = _subset_reg()
+    host = parse_egif("[*p] [*q] (subset p q) ~[ (subset q p) ]")
+    spots = [eid for eid, r in host.rel.items() if r == "subset"]
+    assert len(spots) == 2
+    g1 = expand_at(host, reg, spots[0])
+    assert sum(1 for r in g1.rel.values() if r == "subset") == 1  # the other stays
+
+
+def test_expand_at_then_fold_is_identity():
+    """`fold(expand_at(g, e)) == g` — unfold is a local, undoable experiment."""
+    reg = _subset_reg()
+    host = parse_egif("[*p] [*q] (subset p q) ~[ (subset q p) ]")
+    spot = next(eid for eid, r in host.rel.items() if r == "subset")
+    g1, fp = expand_at(host, reg, spot, return_fold_point=True)
+    assert same_graph(fold(g1, fp), host)
+
+
+def test_expand_at_refuses_a_non_defined_spot():
+    """Only a defined-relation spot can be unfolded."""
+    reg = _subset_reg()
+    host = parse_egif("[*p] [*q] (in p q)")        # `in` is primitive, not defined
+    spot = next(eid for eid, r in host.rel.items() if r == "in")
+    with pytest.raises(ValueError, match="not a defined-relation spot"):
+        expand_at(host, reg, spot)
+
+
+def test_local_expansion_reaches_the_same_territory_as_global():
+    """Local unfolds compose to the global fully-expanded form (conservative):
+    expanding the spots one-by-one == `expand` all at once."""
+    reg = _subset_reg()
+    host = parse_egif("[*p] [*q] (subset p q) ~[ (subset q p) ]")
+    g = host
+    while True:
+        spots = [eid for eid, r in g.rel.items() if r == "subset"]
+        if not spots:
+            break
+        g = expand_at(g, reg, spots[0])
+    assert same_graph(g, expand(host, reg))

@@ -22,11 +22,14 @@ recursive definition rather than loop.
 Touches no protected module.
 """
 
-from typing import Dict, List, Optional, Sequence
+from dataclasses import dataclass
+from typing import Dict, FrozenSet, List, Optional, Sequence, Tuple
 
-from egi_core_dau import ElementID, RelationalGraphWithCuts
+from frozendict import frozendict
+
+from egi_core_dau import Edge, ElementID, RelationalGraphWithCuts
 from egif_parser_dau import parse_egif
-from eg_splice import splice
+from eg_splice import _all_ids, splice
 
 
 class Definition:
@@ -116,9 +119,16 @@ def _find_defined_edge(
 def expand(
     egi: RelationalGraphWithCuts, registry: DefinitionRegistry
 ) -> RelationalGraphWithCuts:
-    """Replace every defined-relation edge in ``egi`` with its body, repeatedly,
-    until only primitive relations remain.  The returned graph is an ordinary
-    Dau-Beta graph (no defined relations).
+    """Replace **every** defined-relation edge in ``egi`` with its body,
+    repeatedly, until only primitive relations remain — the fully-unfolded graph.
+
+    This is the *whole-territory* operation: the result is the Borges 1:1 map,
+    typically unreadable, and is meant for **verification only** (proving the
+    folded form is a conservative abbreviation of a definite primitive graph —
+    e.g. ``test_definitions`` checks a defined axiom is ``same_graph`` to the raw
+    fixture).  It is NOT the working move: for reading and reasoning, keep the
+    graph folded and use :func:`expand_at` / :func:`fold` to unfold a single spot
+    locally and refold it immediately (see ``docs/DEFINITION_NODE.md``).
 
     Raises ``ValueError`` if expansion does not terminate within
     ``_MAX_EXPANSIONS`` steps — the signature of a recursive definition, which
@@ -129,18 +139,103 @@ def expand(
         edge = _find_defined_edge(g, registry)
         if edge is None:
             return g
-        defn = registry.get(g.rel[edge])
-        arity = len(g.nu[edge])
-        if arity != defn.arity:
-            raise ValueError(
-                f"use of {defn.name!r} has arity {arity}, definition has "
-                f"{defn.arity}"
-            )
-        g = splice(g, edge, defn.body, ports=defn.port_ids())
+        g = expand_at(g, registry, edge)
     raise ValueError(
         "definition expansion did not terminate — recursive definitions are not "
         "supported by the definition layer (see module docstring)"
     )
 
 
-__all__ = ["Definition", "DefinitionRegistry", "expand"]
+@dataclass(frozen=True)
+class FoldPoint:
+    """The inverse data of one :func:`expand_at` — everything :func:`fold` needs
+    to contract an unfolded body back to its named spot.
+
+    ``body_elements`` are the host ids of the spliced-in body (the elements
+    :func:`fold` removes); ``ports`` are the host lines the spot welds onto, in
+    argument order (they survive the fold); ``area`` is where the named spot sits.
+    """
+
+    name: str
+    ports: Tuple[ElementID, ...]
+    area: ElementID
+    body_elements: FrozenSet[ElementID]
+
+
+def _edge_area(egi: RelationalGraphWithCuts, eid: ElementID) -> ElementID:
+    for area_id, contents in egi.area.items():
+        if eid in contents:
+            return area_id
+    return egi.sheet
+
+
+def expand_at(
+    egi: RelationalGraphWithCuts,
+    registry: DefinitionRegistry,
+    edge_id: ElementID,
+    *,
+    return_fold_point: bool = False,
+):
+    """Unfold **one** defined-relation spot in place — the local, reversible move.
+
+    Replaces the single edge ``edge_id`` (whose relation must be defined in
+    ``registry``) with the definition body, welding the body's ports onto the
+    edge's incident lines.  Every other defined spot is left folded.  Pass
+    ``return_fold_point=True`` to also get the :class:`FoldPoint` that
+    :func:`fold` consumes to put the spot back (an exact inverse) — the
+    fold/unfold pair the design requires so unfolding is always a local, undoable
+    experiment, never a one-way slide to the 1:1 map.
+
+    Raises ``ValueError`` if ``edge_id`` is not a defined-relation edge or its
+    arity disagrees with the definition.
+    """
+    rel = egi.rel.get(edge_id)
+    if rel is None or rel not in registry:
+        raise ValueError(f"edge {edge_id!r} is not a defined-relation spot")
+    defn = registry.get(rel)
+    ports = tuple(egi.nu[edge_id])
+    if len(ports) != defn.arity:
+        raise ValueError(
+            f"use of {defn.name!r} has arity {len(ports)}, definition has "
+            f"{defn.arity}"
+        )
+    area = _edge_area(egi, edge_id)
+    before = _all_ids(egi)
+    g = splice(egi, edge_id, defn.body, ports=defn.port_ids())
+    if not return_fold_point:
+        return g
+    body_elements = frozenset(_all_ids(g) - before)
+    return g, FoldPoint(
+        name=defn.name, ports=ports, area=area, body_elements=body_elements
+    )
+
+
+def fold(egi: RelationalGraphWithCuts, fold_point: FoldPoint) -> RelationalGraphWithCuts:
+    """Contract an unfolded body back to its named spot — the exact inverse of
+    :func:`expand_at`.
+
+    Removes ``fold_point.body_elements`` (the spliced-in body, closed: a removed
+    cut took its whole interior) and re-asserts a single ``fold_point.name`` edge
+    on ``fold_point.ports`` in ``fold_point.area``.  ``fold(expand_at(g, e)) ==
+    g`` up to ``same_graph`` (the refold edge gets a fresh id; the lines and area
+    are unchanged).
+    """
+    drop = set(fold_point.body_elements)
+    new_V = frozenset(v for v in egi.V if v.id not in drop)
+    new_E = frozenset(e for e in egi.E if e.id not in drop)
+    new_Cut = frozenset(c for c in egi.Cut if c.id not in drop)
+    new_nu = frozendict({k: v for k, v in egi.nu.items() if k not in drop})
+    new_rel = frozendict({k: v for k, v in egi.rel.items() if k not in drop})
+    new_area = {a: (contents - drop) for a, contents in egi.area.items() if a not in drop}
+    g = RelationalGraphWithCuts(
+        V=new_V, E=new_E, nu=new_nu, sheet=egi.sheet, Cut=new_Cut,
+        area=frozendict(new_area), rel=new_rel,
+    )
+    # Re-assert the named spot on the surviving port lines, in its original area.
+    spot = Edge(id=f"e_fold_{fold_point.name}")
+    return g.with_edge(spot, fold_point.ports, fold_point.name, fold_point.area)
+
+
+__all__ = [
+    "Definition", "DefinitionRegistry", "expand", "expand_at", "fold", "FoldPoint",
+]

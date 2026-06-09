@@ -45,10 +45,42 @@
 > claiming the fully-closed form. The metatheorem (x arbitrary, unconstrained by
 > the axioms ⇒ ∀x) holds, but it is not yet an object-level EG step here.
 >
+> **ALSO DONE this session — the Dau homework on ∀x, and the hole/schema
+> correspondence track (the author's chosen order: homework → holes → ∀x).**
+> - **Closing ∀x — homework done, verdict in `docs/UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md`.**
+>   The "derived UG rule dual to `existential_generalization` on the finished graph"
+>   is **provably unsound** (model-preservation: `∃x G(x) ⊬ ∀x G(x)`). ∀x closes via
+>   a **Dau-native scaffold tactic**: DC+ empty double cut → insert an isolated
+>   generic vertex on the *negative* outer cut (Dau's isolated-vertex rule is an
+>   **equivalence valid in any context**, Def 24.10) → iterate axioms + line inward →
+>   **re-derive the body in the positive inner area** → erase spent copies, leaving
+>   `~[ [*x] ~[ G(x) ] ]` = ∀x. Sound by construction; **likely no protected change**.
+>   Confirmed `(A) ~[ [*x] ~[ ] ]` ≡ `A` empirically.
+> - **Hole/schema §3.3 — `docs/SCHEMA_HOLE_CORRESPONDENCE.md` + tests.** A hole is an
+>   Edge (rel+nu), flagged only by `Schema.holes` — a predicate-position placeholder
+>   **spot with ports**, not a region. `natural_layout` + §3.3 attest a schema EGI and
+>   its instances **today, unchanged** (verified); instantiation preserves
+>   correspondence. §3.3 attests *correspondence, not assertion*, so nothing is
+>   suspended.
+> - **The historical homework (author-run) settles the asymmetry —
+>   `docs/DEFINITION_NODE.md`.** φ-hole is **metalinguistic** (no object glyph; EGIF
+>   `⟨φ: ?x⟩` only; never survives instantiation) — guardrail against drifting into
+>   ad-hoc Gamma. The **definition node** is the drawable abbreviation (CG lambda /
+>   ISO 24707 lineage; Peircean selective root): draws as a named spot today.
+> - **Borges-map guardrail BUILT (`src/definitions.py`, unprotected).** `expand_at`
+>   (local single-spot unfold) + `fold` (exact inverse; `fold(expand_at(g,e))==g`);
+>   global `expand` quarantined as the verification-only whole-territory witness — no
+>   global "normalize for reading" path. `test_definitions.py` (+4).
+>
 > **NEXT SESSION — candidates (decide at session start):**
-> - **Universal generalization of x** — make parametric totality the closed
->   `∀x∀y∃z`. Investigate whether binding a free sheet-line by wrapping its scope
->   is a sound EG move available in the engine; if so, the theorem closes fully.
+> - **Implement the ∀x scaffold tactic** — `universal_generalization` in
+>   `src/derived_rules.py` (sound by construction, per the homework doc); add
+>   `test_totality_universal`. Closes `∀x∀y∃z plus` fully.
+> - **Selection-driven `fold`** — recognize an arbitrary drawn body as a definition
+>   instance (iso-matching front door) and contract it; sound gate = selection ≅ body
+>   with ports aligned. (Current `fold` takes a `FoldPoint` provenance.)
+> - **(earlier candidate, now superseded by the homework):** ~~UG as wrapping a free
+>   sheet-line~~ — confirmed unsound as a local rewrite; use the scaffold tactic.
 > - **(3, optional) Schema generator — shared ambient parameter.**
 >   `instance_of_schema` α-renames φ per occurrence (four distinct x lines), so
 >   it can't yet *generate* the hand-written instance from (2). Thread one ambient

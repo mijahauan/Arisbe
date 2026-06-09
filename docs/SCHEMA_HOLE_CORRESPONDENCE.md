@@ -52,6 +52,28 @@ That under-determination is the schema's whole purpose. It is resolved at
 `instantiate`, and the resolution is itself checkable — see "instantiation
 preserves correspondence" below.
 
+## Refinement (after the historical homework): φ stays metalinguistic
+
+The precedent search (see [docs/DEFINITION_NODE.md](DEFINITION_NODE.md) for the full
+finding and citations) sharpens the stance below. **A φ-hole has no object-level
+drawing precedent** — Peirce/Roberts/Dau/Sowa denote "any graph G" only in the
+*metalanguage* of the rules, never as a mark on the sheet. So the right answer is:
+
+- The φ-hole is **metalinguistic**. In Arisbe it lives only as the EGIF annotation
+  `⟨φ: ?x⟩` and **never survives instantiation** (`instance-of-schema` turns schema +
+  concrete graph into an ordinary Beta instance — exactly how the tradition treats
+  "any graph G"). We do **not** give φ a first-class object-level glyph; doing so
+  would drift from Peirce into ad-hoc Gamma. (A real object-level "graph-valued"
+  node would be Sowa's Proposition-typed context node — second-order, out of scope.)
+- The §3.3 results below still hold and are still worth having: *if* a schema EGI is
+  drawn, it corresponds (a hole is relation-shaped). But the normal artifact you
+  draw is an **instance**, not a schema. So the "placeholder glyph" build is
+  **demoted** — not needed for the schema node, and only ever a typographic nicety
+  for the linear/annotation view.
+
+The genuinely *drawable* abbreviation is the **definition node**, which has full
+CG/ISO 24707 lineage — see [docs/DEFINITION_NODE.md](DEFINITION_NODE.md).
+
 ## Spot, not region — and why that's forced
 
 There is a tempting "region" picture: draw a hole as a labelled box and imagine a
@@ -113,8 +135,12 @@ correspondence holds.
 - **DONE (verified, locked by tests):** schema EGIs and their instances attest
   §3.3; instantiation preserves correspondence. *(The conceptual question — "does
   §3.3 apply to a hole" — is answered: yes, fully, as boundary correspondence.)*
-- **NEXT (presentation):** the placeholder glyph — DTO `hole_predicates` field +
-  renderer branch + a style knob; choose the glyph (author's aesthetic call).
+- **DEMOTED (after the homework):** the placeholder glyph. φ is metalinguistic, so
+  there is no object-level hole glyph to build; at most a typographic `⟨φ: ?x⟩` in
+  the linear/annotation view. Not needed for the schema node.
+- **The drawable abbreviation is the definition node** —
+  [docs/DEFINITION_NODE.md](DEFINITION_NODE.md): it draws as a named spot today, and
+  local reversible `expand_at`/`fold` (the Borges-map guardrail) are now built.
 - **Later / optional:** if hole-as-*area* semantics ever wanted, that is a separate
   representation (a cut flagged as a hole) and a separate correspondence story; not
   needed for the current schema node.
