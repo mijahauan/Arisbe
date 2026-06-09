@@ -8,7 +8,7 @@ filler's own bound lines α-renamed so they can never fuse onto host lines.
 
 import pytest
 
-from eg_splice import splice
+from eg_splice import splice, graft
 from egif_parser_dau import parse_egif
 from egif_generator_dau import generate_egif
 from eg_navigation import same_graph
@@ -100,3 +100,28 @@ def test_unknown_placeholder_raises():
     body = parse_egif(SUBSET_BODY)
     with pytest.raises(ValueError, match="not in host"):
         splice(host, "e_nope", body, ports=[port(body, "z"), port(body, "x")])
+
+
+# --- graft: disjoint juxtaposition (assert a graph onto a sheet) ------------ #
+
+def test_graft_juxtaposes_disjointly():
+    host = parse_egif("[*a] (even a)")
+    frag = parse_egif("~[ [*x] (odd x) ]")
+    result = graft(host, frag)
+    # both graphs present, no shared lines
+    assert same_graph(result, parse_egif("[*a] (even a) ~[ [*x] (odd x) ]"))
+
+
+def test_graft_fresh_ids_no_collision():
+    host = parse_egif("[*x] (P x)")
+    frag = parse_egif("[*x] (Q x)")  # same label, must NOT fuse
+    result = graft(host, frag)
+    assert len(result.V) == 2
+    assert same_graph(result, parse_egif("[*x] (P x) [*y] (Q y)"))
+
+
+def test_graft_into_a_cut():
+    host = parse_egif("[*a] (even a) ~[ ]")
+    cut = next(c.id for c in host.Cut)
+    result = graft(host, parse_egif("[*x] (odd x)"), context=cut)
+    assert same_graph(result, parse_egif("[*a] (even a) ~[ [*x] (odd x) ]"))

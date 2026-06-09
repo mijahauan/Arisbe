@@ -373,12 +373,28 @@ For each formula ψ(n): every nonempty ψ-class has a <-least member.
 - Same hole node as ZFC Separation — Peirce's induction validates the schema
   machinery a second time, on an arithmetic theory instead of a set theory.
 
-### Recursive operations (definition-layer fixtures, not rendered raw)
-Peirce gave recursive definitions of `+` and `×`. These are recursion equations on
-the successor, e.g. `x + 1 = S(x)`, `x + S(y) = S(x + y)`, and likewise for `×`.
-They belong in the definition layer (`(plus ?x ?y ?z)`, `(times ?x ?y ?z)` as
-defined ternary relations grounded in `succ`), not as raw `lt` graphs. Listed here
-as the natural next fixtures once the definition node exists.
+### Recursive operations — `+`, `×` as primitive relations + recursion axioms (BUILT)
+Peirce gave recursive definitions of `+` and `×` (recursion equations on the
+successor, `x + 0 = x`, `x + S(y) = S(x + y)`, and likewise for `×`). **These are
+NOT definition-layer entries** — a recursive body never bottoms out, so it is not
+an *eliminable* definition (the definition layer's `expand` correctly refuses it).
+They are ordinary first-order **(Beta) axioms** constraining new relation symbols
+`plus`/`times`, grounded in `succ` (immediate successor) + `zero`. Built and pinned
+in [`tests/test_math_fixtures.py`](../tests/test_math_fixtures.py)
+(`RECURSION_FIXTURES`):
+
+```
+plus_base   ~[ [*x] [*z] (zero z) ~[ (plus x z x) ] ]                                  % x + 0 = x
+plus_step   ~[ [*x][*y][*z][*sy][*sz] (plus x y z) (succ y sy) (succ z sz) ~[ (plus x sy sz) ] ]  % x + S(y) = S(x+y)
+times_base  ~[ [*x] [*z] (zero z) ~[ (times x z z) ] ]                                 % x · 0 = 0
+times_step  ~[ [*x][*y][*p][*sy] (times x y p) (succ y sy) ~[ [*q] (plus p x q) (times x sy q) ] ]  % x·S(y) = x·y + x
+```
+
+Reasoning *about* recursively-defined operations uses the **induction schema** (P7);
+see [`tests/test_induction_proofs.py`](../tests/test_induction_proofs.py). Gamma is
+needed only for the *second-order* recursion theorem (∃! function f …); Peirce 1881
+— like first-order PA — sidesteps it exactly this way, taking `+`/`×` as primitives
+axiomatized by their recursion equations + induction.
 
 ---
 

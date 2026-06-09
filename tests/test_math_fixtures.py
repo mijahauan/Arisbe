@@ -185,3 +185,47 @@ def test_schema_fixture_instantiates_hole_free_and_round_trips(name):
         len(g2.E),
         len(g2.Cut),
     )
+
+
+# --- Part IV (recursive operations): Peirce's +, × as primitive relations ---- #
+# NOT eliminable definitions (a recursive body never bottoms out — that's why the
+# definition layer's `expand` refuses them). They are ordinary first-order
+# (Beta) AXIOMS constraining the new relation symbols `plus`/`times`, grounded in
+# `succ` (immediate successor) and `zero`. Reasoning about them uses the induction
+# schema (P7). Gamma is needed only for the 2nd-order recursion theorem; Peirce
+# 1881 — like first-order PA — sidesteps it exactly this way. See test_induction_proofs.
+
+RECURSION_FIXTURES = {
+    # x + 0 = x
+    "plus_base": "~[ [*x] [*z] (zero z) ~[ (plus x z x) ] ]",
+    # x + S(y) = S(x + y)
+    "plus_step": (
+        "~[ [*x] [*y] [*z] [*sy] [*sz] "
+        "   (plus x y z) (succ y sy) (succ z sz) ~[ (plus x sy sz) ] ]"
+    ),
+    # x · 0 = 0
+    "times_base": "~[ [*x] [*z] (zero z) ~[ (times x z z) ] ]",
+    # x · S(y) = x·y + x
+    "times_step": (
+        "~[ [*x] [*y] [*p] [*sy] (times x y p) (succ y sy) "
+        "   ~[ [*q] (plus p x q) (times x sy q) ] ]"
+    ),
+}
+
+
+@pytest.mark.parametrize("name", sorted(RECURSION_FIXTURES))
+def test_recursion_axiom_parses(name):
+    g = parse_egif(RECURSION_FIXTURES[name])
+    rel_names = {g.rel[e] for e in g.rel}
+    assert rel_names <= {"zero", "succ", "plus", "times"}, f"{name}: {rel_names}"
+
+
+@pytest.mark.parametrize("name", sorted(RECURSION_FIXTURES))
+def test_recursion_axiom_round_trips(name):
+    g1 = parse_egif(RECURSION_FIXTURES[name])
+    g2 = parse_egif(generate_egif(g1))
+    assert (len(g1.V), len(g1.E), len(g1.Cut)) == (
+        len(g2.V),
+        len(g2.E),
+        len(g2.Cut),
+    )

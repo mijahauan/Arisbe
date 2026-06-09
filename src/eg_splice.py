@@ -218,4 +218,72 @@ def splice(
     )
 
 
-__all__ = ["splice"]
+def graft(
+    host: RelationalGraphWithCuts,
+    fragment: RelationalGraphWithCuts,
+    *,
+    context: Optional[ElementID] = None,
+) -> RelationalGraphWithCuts:
+    """Juxtapose ``fragment`` into ``host``'s ``context`` (default: the sheet),
+    with all of the fragment's elements α-renamed to fresh ids — a disjoint union,
+    no welding.
+
+    The non-welding sibling of :func:`splice`.  Used to *assert* a graph (e.g. a
+    schema instance produced by ``instance_of_schema``, or an axiom) onto a proof
+    state's sheet, the way a theory-relative proof starts with its axioms present.
+    """
+    context = context or host.sheet
+    if context != host.sheet and context not in {c.id for c in host.Cut}:
+        raise ValueError(f"Context {context} does not exist in host")
+
+    fresh = _FreshId(_all_ids(host), _all_ids(fragment))
+    vmap = {v.id: fresh() for v in fragment.V}
+    emap = {e.id: fresh() for e in fragment.E}
+    cmap = {c.id: fresh() for c in fragment.Cut}
+
+    def map_ctx(ctx: ElementID) -> ElementID:
+        return context if ctx == fragment.sheet else cmap[ctx]
+
+    def map_elem(eid: ElementID) -> ElementID:
+        return vmap.get(eid) or emap.get(eid) or cmap.get(eid) or eid
+
+    new_V = host.V | {
+        Vertex(id=vmap[v.id], label=v.label, is_generic=v.is_generic)
+        for v in fragment.V
+    }
+    new_E = host.E | {Edge(id=emap[e.id]) for e in fragment.E}
+    new_Cut = host.Cut | {Cut(id=cmap[c.id]) for c in fragment.Cut}
+
+    new_nu = dict(host.nu)
+    new_nu.update(
+        {emap[eid]: tuple(vmap[v] for v in seq) for eid, seq in fragment.nu.items()}
+    )
+    new_rel = dict(host.rel)
+    new_rel.update({emap[eid]: n for eid, n in fragment.rel.items()})
+    new_rho = dict(host.rho)
+    new_rho.update({vmap[vid]: c for vid, c in fragment.rho.items()})
+    new_vn = dict(host.variable_names)
+    new_vn.update({vmap[vid]: n for vid, n in fragment.variable_names.items()})
+
+    new_area = {ctx: set(elems) for ctx, elems in host.area.items()}
+    for ctx, elems in fragment.area.items():
+        dest = map_ctx(ctx)
+        new_area.setdefault(dest, set())
+        new_area[dest] |= {map_elem(e) for e in elems}
+    new_area = {ctx: frozenset(elems) for ctx, elems in new_area.items()}
+
+    return RelationalGraphWithCuts(
+        V=new_V,
+        E=new_E,
+        nu=frozendict(new_nu),
+        sheet=host.sheet,
+        Cut=new_Cut,
+        area=frozendict(new_area),
+        rel=frozendict(new_rel),
+        alphabet=host.alphabet,
+        rho=frozendict(new_rho),
+        variable_names=frozendict(new_vn),
+    )
+
+
+__all__ = ["splice", "graft"]
