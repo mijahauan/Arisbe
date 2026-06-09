@@ -441,3 +441,30 @@ and cyclic ligatures (`beta_converse_mp`), both still hierarchical; composing
 several trees + their shared cuts; non-monotone threads. The unit the tension
 solve places is now the ligature *tree*; next it becomes a *forest* sharing a cut
 nest.
+
+## 12. Top-down crossing reconciliation — the "slash" fix (2026-06-08)
+
+The hierarchical placement (§9) sized and placed everything bottom-up, including
+each line's **cut-boundary crossing point** — but at that moment the *outside*
+endpoint of the line wasn't placed yet, so a crossing could land on the side of
+the box *away* from where the line was headed, and the line would slash back
+across the box to reach its vertex. The `group_identity` proof showed it
+starkly: a "theta" graph (two lines `x`,`y` joined by three parallel relations —
+two `M`s and a deep `=`), where the `=`'s line slashed corner-to-corner through
+the double cut. (A wrong "defer to ELK for these graphs" fix was tried and
+reverted — the user prefers the tension look and wants it rendered.)
+
+The fix is a **top-down reconciliation pass** in `_hierarchical_layout`, after
+everything is placed: for each predicate→vertex line, re-snap each crossing to
+where the *straight* predicate→vertex segment meets that cut's box
+(`_seg_box_hit`, the same primitive the tree layout uses). The line then
+enters/exits every cut on the side **facing its endpoint** — no slash. The
+crossing stays on the boundary, so the crossing-sequence / §3.3 containment is
+unchanged (only *which* boundary point moves); a crossing whose straight segment
+misses the box keeps its bottom-up value. Verified visually (render→PNG): the
+`=` now sits cleanly in its double cut with both lines exiting toward `x`,`y`;
+`barbara`'s scroll lines exit cleanly; `beta_converse_mp`'s X-crossing (the
+converse — the crossing *is* the meaning) is unaffected. The genuine
+multi-relation tangle of the denser proof states (several relations sharing two
+vertices) remains — that's the §11 forest frontier, not the slash. 26
+tension/layout tests + the corpus attest-most test green.

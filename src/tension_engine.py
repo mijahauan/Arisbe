@@ -133,6 +133,32 @@ class TensionLayoutEngine:
         }
         crossings = {k: (x + ox, y + oy) for k, (x, y) in res.crossings.items()}
 
+        # Top-down crossing reconciliation. `_layout_area` placed each cut-boundary
+        # crossing bottom-up, before the outside endpoint's position was known — so
+        # a line can exit a cut on the side *away* from where it's headed and slash
+        # back across the box. Now that every element is placed, re-snap each
+        # crossing to where the straight predicate→vertex line actually meets that
+        # cut's box: the line then enters/exits each cut on the side facing its
+        # endpoint. The crossing stays on the boundary (so the crossing-sequence /
+        # §3.3 containment is unchanged); only *which* boundary point moves.
+        ea = element_area(egi)
+        pm = cut_parents(egi)
+        for e in egi.E:
+            if e.id not in ppos:
+                continue
+            pc = ppos[e.id]
+            p_area = ea.get(e.id)
+            for v in egi.nu.get(e.id, ()):
+                if v not in vpos:
+                    continue
+                vp = vpos[v]
+                for c in crossing_sequence(p_area, ea.get(v), pm):
+                    if c not in cbounds:
+                        continue
+                    hit = self._seg_box_hit(pc, vp, cbounds[c])
+                    if hit is not None:
+                        crossings[((e.id, v), c)] = (hit.x, hit.y)
+
         paths = self._paths(egi, vpos, ppos, cbounds, crossings, sizes)
 
         xs: List[float] = []
