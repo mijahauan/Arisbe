@@ -1,6 +1,76 @@
 # Current Plan
 
-**Last Updated**: 2026-06-09 (cut-level IT-/ERA shipped in the engine; **parametric totality of addition ASSEMBLED** — the induction arc closes to ∀Y∃z plus(x,Y,z))
+**Last Updated**: 2026-06-09 (cut-level IT-/ERA + **parametric totality assembled**; Dau ∀x homework done; hole/schema correspondence settled + definition-node fold/unfold built. Next: implement the ∀x scaffold tactic, then selection-driven fold.)
+
+---
+
+## ▶ NEXT SESSION — start here. Two implementation tasks, in this order.
+
+Both are *designed and verified on paper this session*; what remains is to write the
+code and the test. Both touch **only unprotected modules**. Do them in order: the
+∀x close completes the totality arc (the headline), the fold front-door completes the
+definition-node track.
+
+### Task A — implement the ∀x scaffold tactic → close `∀x∀y∃z plus`
+
+Spec & soundness: **`docs/UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md`** (read §2–§3
+first). Verdict already established: a "dual-of-EG rule on the finished graph" is
+**unsound**; ∀x closes via a Dau-native **scaffold** that re-derives the body under a
+vacuously-introduced universal line. The enabling primitive — isolated-vertex
+insertion as an equivalence in any context — is Dau Def. 24.10.
+
+Concrete build:
+1. Add `universal_generalization(...)` to **`src/derived_rules.py`** (a *tactic*,
+   sound by construction — composes public ops only; no protected change expected).
+   The expansion, on a sheet holding axioms `A` (which don't mention `x`):
+   - `DC+` an empty double cut (use `chain.apply("DC+", select=[], into=sheet)` — the
+     empty-double-cut path already exists);
+   - **insert an isolated generic vertex `[*x]` on the negative outer cut** — the
+     existing `HeavyDotInsertionRule` already permits a negative context (that is the
+     one context we need; Dau allows any, ours is stricter but sufficient);
+   - `IT+` the axioms inward into the positive inner cut, and extend the `x`-line
+     inward (ligature extension / iteration clause 2);
+   - **re-derive the body `G(x)` in the positive inner area** — replay the existing
+     parametric chain (base + step lemmas, schema-instance graft, the two cut-`IT-`
+     deiterations) with target areas offset into the inner cut. Depth-2 is still
+     positive, so every move keeps its polarity;
+   - `ERA` the spent axiom copies in the inner area.
+   Result: `~[ [*x] ~[ G(x) ] ]` = ∀x G(x).
+2. Add `test_totality_universal` to **`tests/test_induction_proofs.py`**: run the
+   scaffold and `same_graph`-check the result against
+   `~[ [*x] ~[ ~[ [*Y] ~[ [*z](plus x Y z) ] ] ] ]` = ∀x∀Y∃z plus(x,Y,z).
+3. Sanity anchors already verified: `(A) ~[ [*x] ~[ ] ]` ≡ `A` (vacuous universal
+   line); `test_totality_assembly_parametric` is the body sub-derivation to replay.
+
+### Task B — selection-driven `fold` (the definition-node front door)
+
+Spec: **`docs/DEFINITION_NODE.md`** ("Open / next"). Today `expand_at`/`fold` exist
+in **`src/definitions.py`**, but `fold` takes a `FoldPoint` (the provenance of a
+just-done `expand_at`). A UI/author wants "fold *this selection* under definition D."
+
+Concrete build (all in `src/definitions.py`, unprotected):
+1. Add `fold_selection(egi, registry, name, selection, ports)`:
+   - `selection` = host element ids forming a candidate definition body; `ports` =
+     the host lines (arg order) that become the spot's hooks.
+   - **Soundness gate (essential):** verify the sub-structure on `selection` is
+     isomorphic to `registry.get(name).body` with `selection`'s port lines aligned to
+     `defn.port_ids()`. Use `graph_isomorphism_engine` (`test_subgraph_isomorphism` /
+     `test_cross_egi_isomorphism`); refuse (raise) on no match — folding a non-instance
+     would be an unsound rewrite.
+   - On success build a `FoldPoint(name, ports, area, body_elements=selection−ports)`
+     and delegate to the existing `fold`. Derive `area` as the shallowest area among
+     the internal selection (where the body's top-level sits).
+2. Tests in `tests/test_definitions.py`: `fold_selection(expand_at(g,e)) == g` from a
+   computed selection (not the provenance); a non-instance selection raises; ports
+   misaligned raises.
+3. Note the area-placement edge cases (body whose top level is a cut) — cover with a
+   fixture where the definition body starts with a cut.
+
+When both land: totality is fully closed (∀x∀y∃z), and the definition node has a
+sound, selection-driven fold to match its unfold — the Borges-map guardrail with a
+usable front door.
+
+---
 
 > **DONE this session — closed totality of addition (parametric in x).** Did
 > steps (1) and (2) of the prior plan, in order. All on the `main`-bound tree;
@@ -72,16 +142,12 @@
 >   global `expand` quarantined as the verification-only whole-territory witness — no
 >   global "normalize for reading" path. `test_definitions.py` (+4).
 >
-> **NEXT SESSION — candidates (decide at session start):**
-> - **Implement the ∀x scaffold tactic** — `universal_generalization` in
->   `src/derived_rules.py` (sound by construction, per the homework doc); add
->   `test_totality_universal`. Closes `∀x∀y∃z plus` fully.
-> - **Selection-driven `fold`** — recognize an arbitrary drawn body as a definition
->   instance (iso-matching front door) and contract it; sound gate = selection ≅ body
->   with ports aligned. (Current `fold` takes a `FoldPoint` provenance.)
-> - **(earlier candidate, now superseded by the homework):** ~~UG as wrapping a free
->   sheet-line~~ — confirmed unsound as a local rewrite; use the scaffold tactic.
-> - **(3, optional) Schema generator — shared ambient parameter.**
+> **NEXT SESSION — see the ▶ HANDOFF section at the top of this file** for the two
+> ordered tasks with full recipes: (A) implement the ∀x scaffold tactic
+> (`universal_generalization`) → close `∀x∀y∃z plus`; (B) selection-driven `fold`.
+> The earlier "UG as wrapping a free sheet-line" candidate is **retired** — confirmed
+> unsound as a local rewrite (use the scaffold tactic instead).
+> - **(optional, lower priority) Schema generator — shared ambient parameter.**
 >   `instance_of_schema` α-renames φ per occurrence (four distinct x lines), so
 >   it can't yet *generate* the hand-written instance from (2). Thread one ambient
 >   parameter through all hole occurrences, then assert the generated instance is
