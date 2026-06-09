@@ -38,8 +38,15 @@
 > **NEXT — candidates (decide at session start):**
 > - **Import the math theories into the corpus** — ZFC and Peirce 1881 as real UoDs
 >   now that schemas + definitions store them finitely (the R7 horizon, concrete).
-> - **The recursion gap** — Peirce's `+`/`×` recursion equations (deferred
->   definition-layer case): successor-grounded recursion needs more than `expand`.
+> - **Peirce-1881 recursion (`+`/`×`) — Beta, not Gamma.** The recursion equations
+>   (`x+0=x`, `x+S(y)=S(x+y)`) are ordinary first-order axioms; `+`/`×` enter as
+>   **primitive relation symbols constrained by those axioms**, NOT as eliminable
+>   named graphs (which is why `expand` correctly refuses them — a recursive body
+>   never terminates). Reasoning about them (totality, uniqueness, assoc/comm) uses
+>   the **induction schema we just built** (P7). Gamma is needed only for the
+>   *second-order* recursion theorem (∃! function f …); first-order arithmetic — and
+>   Peirce in "On the Logic of Number" (1881), before Dedekind/Peano — sidesteps it
+>   exactly this way. So this is the natural next *fixture*, not a frontier crossing.
 > - **Gamma** — the frontier just above the schema line (predicate/property
 >   quantification, modality / the broken cut). The schema draws the map.
 > - **Schema layout/correspondence** — how a hole `⟨…⟩` *draws* and whether
