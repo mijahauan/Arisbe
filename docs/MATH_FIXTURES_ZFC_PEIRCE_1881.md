@@ -1,12 +1,19 @@
 # EGIF Fixtures — ZFC and Peirce's 1881 Arithmetic
 
-**Status:** design brief (2026-06-08). **Part I (7 ZFC axioms) and Part IV
-(P1–P6 Peirce) are now validated against Arisbe's parser** — all 13 parse and
-round-trip (parse → generate → parse, (V,E,Cut) preserved). The parser-exact,
-canonical EGIF lives in [`tests/test_math_fixtures.py`](../tests/test_math_fixtures.py)
-(27 tests green); the bodies below are the design rationale. The schema fixtures
-(Part II Separation/Replacement, P7 induction) carry holes and await the
-graph-with-holes node (Part III) — not yet built.
+**Status:** built (2026-06-09). **Part I (7 ZFC axioms) and Part IV
+(P1–P6 Peirce) are validated against Arisbe's parser** — all 13 parse and
+round-trip (parse → generate → parse, (V,E,Cut) preserved). **Both new
+capabilities are now built (all unprotected):** the **definition layer**
+([`src/definitions.py`](../src/definitions.py)) and the **graph-with-holes /
+schema node** ([`src/schema.py`](../src/schema.py)), both layered on a shared
+graph-splice primitive ([`src/eg_splice.py`](../src/eg_splice.py)). The schema
+fixtures (Part II Separation/Replacement, P7 induction) parse as `Schema`s and
+instantiate to hole-free Beta graphs. The parser-exact canonical EGIF lives in
+[`tests/test_math_fixtures.py`](../tests/test_math_fixtures.py); deep coverage in
+[`tests/test_definitions.py`](../tests/test_definitions.py),
+[`tests/test_schema.py`](../tests/test_schema.py),
+[`tests/test_eg_splice.py`](../tests/test_eg_splice.py). The consistency contract
+(Dau · Common Logic · CGIF · FOPL) is **Part III-bis** below.
 
 **Validation outcome (2026-06-08) — two adjustments from this brief's notation:**
 1. **Bound labels are bare `x`, not `?x`.** Arisbe EGIF writes a defining label
@@ -250,6 +257,58 @@ PA / ZFC = finitely many hole-bearing graphs + this routine + this side-rule.
 named lemmas / derived rules. Lets `(subset ?z ?x)`, `(empty ?e)`, `(succ ?x ?s)`,
 `(pairwise_disjoint ?F)` stand in for their bodies, which is what makes Power Set,
 Infinity, and Choice readable and storable.
+
+---
+
+## Part III-bis — Consistency contract (Dau · Common Logic · CGIF · FOPL)
+
+These two additions must stay faithful to the formalisms Arisbe already
+round-trips (EGIF/CGIF/CLIF/FOPL) and to Dau's Beta. They do so for **different
+reasons**, and only the definition layer touches the round-trip. Dau's
+*Mathematical Logic with Diagrams* formalizes Alpha + Beta as **first-order logic
+with identity** plus the six rules; it contains **neither** a definition mechanism
+**nor** schemas as object-level primitives (and no Gamma). Both additions are
+therefore extensions *on top of* Dau's Beta — but faithful ones, governed by three
+rules:
+
+**1. Definitions stay eliminable (a conservative/definitional extension).**
+A named graph is *abbreviation only*: it always carries its expansion, and every
+defined graph reduces to a Dau-primitive graph. Expansion is the fallback;
+**§3.3 attestation and all logic run on the expanded form**, never on the name.
+Expressive power is unchanged — Dau's Beta admits this the way FOL admits defined
+predicates.
+- *CLIF:* a definition `name(p̄) := body` **is** the biconditional
+  `(forall (p̄) (iff (name p̄) body))` — handled natively by the existing parser
+  (`clif_parser_dau.py` expands `(iff P Q)` to `(and (if P Q) (if Q P))`). Round-trips
+  with no new logic.
+- *CGIF / Sowa CGs:* conceptual graphs already have a native definition mechanism
+  (lambda abstraction defining new type/relation labels). The definition layer
+  *adopts* a CG feature EGIF currently lacks — it strengthens the bridge rather
+  than strains it.
+- *Net on the round-trip:* an **enhancement in fidelity and readability**
+  (`(subset …)` survives the trip instead of exploding into raw `(in …)` plumbing),
+  with **zero** added power and **zero** risk, because it reduces to what already
+  round-trips.
+
+**2. The schema's round-trippable unit is the INSTANCE, not the schema (a
+metalevel generator).** A schema cannot be an object-level Beta graph (quantifying
+over formulas is beyond Beta), and Common Logic / CGIF are first-order with **no
+schema construct** — so a schema must **never** be exported as a single counterfeit
+first-order CLIF/CGIF sentence. Instead:
+- The schema is an **EG/Arisbe-native object**; the hole token `⟨φ: ?x⟩` is an
+  Arisbe extension to EGIF, not standard EGIF/CLIF/CGIF.
+- Every `instantiate(schema, g)` **instance** is pure Beta = pure FOL and
+  round-trips cleanly through the existing EGIF↔CGIF↔CLIF↔FOPL path.
+- CLIF/CGIF *export* of a schema = its instances, or a flagged metalevel object —
+  never a fake sentence. This mirrors how Common Logic itself handles ZFC/PA:
+  instances are object-level, the schema is metalogical.
+
+**3. Gamma stays the boundary.** Both devices are valuable precisely because they
+reach first-order mathematics (ZFC, PA, Peirce 1881) *without* crossing into
+Gamma. The moment one would *quantify over* a hole **inside** the logic — rather
+than fill it by the external `instance-of-schema` rule — that is Gamma (predicate
+quantification), and is deliberately out of scope. The schema device buys ZFC/PA's
+reach while keeping every asserted graph in Dau-Beta.
 
 ---
 

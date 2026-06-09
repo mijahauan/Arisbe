@@ -14,8 +14,12 @@ notation is *not* the chosen surface: Dau explicitly refines the
 "two coincident points merge into one line" reading into the ``=`` edge.
 
 The schema fixtures (ZFC Separation/Replacement, Peirce induction P7) carry holes
-``<phi: ...>`` and are NOT ordinary EGIF — they await the graph-with-holes node
-(Part III of the doc) and are deliberately not exercised here.
+``⟨phi: ...⟩`` and are NOT ordinary EGIF.  The graph-with-holes node now exists
+(``src/schema.py``), so they ARE exercised here (bottom of file): each parses as a
+``Schema`` with the expected hole arity and instantiates to a hole-free Beta graph
+that round-trips.  The deep coverage (Replacement's per-occurrence relabeling,
+shared parameters, the native-EGIF round-trip, the CLIF-export refusal) lives in
+``tests/test_schema.py``.
 """
 
 import pytest
@@ -118,3 +122,66 @@ def test_equality_is_dau_identity_edge():
     eq_edges = [e for e in g.rel if g.rel[e] == "="]
     assert len(eq_edges) == 1
     assert len(g.nu[eq_edges[0]]) == 2, "identity is a 2-ary edge"
+
+
+# --- Part II + P7: the schema fixtures (graph-with-holes node) --------------- #
+# Now buildable. ``hole_name -> (arity, occurrences)``; a parameter-free sample
+# filler instantiates each to a hole-free Beta graph. Deep coverage in
+# tests/test_schema.py.
+
+SCHEMA_FIXTURES = {
+    # 8. Separation (Specification) — hole arity 1, 2 occurrences.
+    "zfc_separation": (
+        "~[ [*p] ~[ [*A] ~[ [*B] "
+        "   ~[ [*x] ~[ ~[ (in x B) ~[ (in x A) ⟨phi: x⟩ ] ] "
+        "              ~[ (in x A) ⟨phi: x⟩ ~[ (in x B) ] ] ] ] "
+        "] ] ]",
+        ("phi", 1, 2),
+        ("[*x] (red x)", ["x"]),  # φ(x) := (red x)
+    ),
+    # 9. Replacement — hole arity 2, 3 occurrences, per-occurrence relabeling.
+    "zfc_replacement": (
+        "~[ [*A] "
+        "   ~[ [*x] (in x A) ~[ [*y] ⟨phi: x y⟩ "
+        "                       ~[ [*y2] ⟨phi: x y2⟩ ~[ (= y y2) ] ] ] ] "
+        "   ~[ [*B] "
+        "      ~[ [*xi] (in xi A) ~[ [*yi] (in yi B) ⟨phi: xi yi⟩ ] ] ] ]",
+        ("phi", 2, 3),
+        ("[*x] [*y] (maps x y)", ["x", "y"]),  # φ(x, y) := (maps x y)
+    ),
+    # P7. Induction = least-number principle — hole arity 1, 3 occurrences.
+    "peirce_p7_induction": (
+        "~[ [*x] ⟨psi: x⟩ "
+        "   ~[ [*u] ⟨psi: u⟩ "
+        "      ~[ [*y] ⟨psi: y⟩ (lt y u) ] ] ]",
+        ("psi", 1, 3),
+        ("[*n] (even n)", ["n"]),  # ψ(n) := (even n)
+    ),
+}
+
+
+@pytest.mark.parametrize("name", sorted(SCHEMA_FIXTURES))
+def test_schema_fixture_parses_with_expected_hole(name):
+    from schema import Schema
+
+    egif, (hole, arity, n_occ), _ = SCHEMA_FIXTURES[name]
+    s = Schema.from_egif(egif)
+    assert s.holes == {hole: arity}
+    assert len(s.occurrences(hole)) == n_occ
+    assert not s.is_complete()
+
+
+@pytest.mark.parametrize("name", sorted(SCHEMA_FIXTURES))
+def test_schema_fixture_instantiates_hole_free_and_round_trips(name):
+    from schema import Schema, instantiate
+
+    egif, (hole, _, _), (filler, ports) = SCHEMA_FIXTURES[name]
+    inst = instantiate(Schema.from_egif(egif), filler, ports=ports)
+    # a single-hole schema yields a finished graph with no hole relation left
+    assert hole not in set(inst.rel.values())
+    g2 = parse_egif(generate_egif(inst))
+    assert (len(inst.V), len(inst.E), len(inst.Cut)) == (
+        len(g2.V),
+        len(g2.E),
+        len(g2.Cut),
+    )

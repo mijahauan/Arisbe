@@ -1,9 +1,53 @@
 # Current Plan
 
-**Last Updated**: 2026-06-09 (math fixtures: validation gate passed — Part I+IV parse/round-trip; equality settled as Dau's `=` edge + lexer fix; NEXT = definition layer + schema node)
+**Last Updated**: 2026-06-09 (math arc: definition layer + graph-with-holes schema node BUILT on a shared splice — all unprotected; NEXT = Gamma horizon / corpus import of the math theories)
 
-> **DONE this session — math-fixtures validation gate (the first concrete step
-> of the math arc).** All on `main`-bound working tree, full suite green
+> **DONE this session — the two new math capabilities, built.** All on
+> `main`-bound working tree, full suite green (**1313 passed, 37 skipped**, +60),
+> protection report **CLEAN** (zero protected modules touched). The architectural
+> keystone: **one shared graph-splice primitive** under both features.
+> - **`src/eg_splice.py`** — `splice(host, placeholder_edge, filler, ports=, weld=)`:
+>   insert a fragment, α-rename its bound lines fresh, weld ordered *ports* onto host
+>   lines (a port vertex is id-mapped directly onto the host arg → incident edges
+>   come out welded, no merge step), drop the placeholder. A *definitional* rewrite,
+>   not a Dau inference step. `test_eg_splice.py` (6).
+> - **`src/definitions.py`** — the **definition layer**: `Definition(name, ports,
+>   body)`, `DefinitionRegistry`, `expand`. Conservative/eliminable; non-recursive
+>   only (Peirce's +,× are recursion equations → deferred; `expand` raises on
+>   recursion). **Keystone:** defined Power Set + Infinity, expanded, are `same_graph`
+>   to the **validated raw fixtures** — the collapsed `(subset…)`/`(succ…)` form
+>   provably *is* the verified axiom. `test_definitions.py` (7).
+> - **`src/schema.py`** — the **graph-with-holes / schema node** (the one genuinely
+>   new primitive): `Schema(egi, holes)` (+ `from_egif` desugaring the `⟨name: args⟩`
+>   token **wrapper-side**, so the protected EGIF parser stays untouched),
+>   `instantiate(schema, g, ports=, parameters=)`, side-rule `instance_of_schema`.
+>   Per-occurrence splice → Replacement's per-occurrence relabeling (`?y`/`?y2`) is
+>   free; shared **parameters** via the splice weld map. All 3 fixtures
+>   (Separation/Replacement/P7) parse + instantiate hole-free + round-trip.
+>   `test_schema.py` (16).
+> - **Consistency contract written into the doc as Part III-bis** (Dau · Common
+>   Logic · CGIF · FOPL): (1) definitions stay eliminable & *enhance* the EGIF↔CLIF
+>   round-trip (a definition ≈ a CLIF biconditional ≈ a CGIF lambda); (2) the
+>   schema's round-trippable unit is the **instance**, not the schema — `Schema.to_clif`
+>   **refuses** as a metalevel object, `to_egif` re-sugars natively, every instance
+>   round-trips; (3) **Gamma stays the boundary** (no quantifying over a hole inside
+>   the logic). Part II/P7 fixtures folded into `tests/test_math_fixtures.py`.
+> - Doc [docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md](docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md)
+>   status header + Part III-bis updated. Memory [[project-math-fixtures-zfc-peirce-schema]].
+>
+> **NEXT — candidates (decide at session start):**
+> - **Import the math theories into the corpus** — ZFC and Peirce 1881 as real UoDs
+>   now that schemas + definitions store them finitely (the R7 horizon, concrete).
+> - **The recursion gap** — Peirce's `+`/`×` recursion equations (deferred
+>   definition-layer case): successor-grounded recursion needs more than `expand`.
+> - **Gamma** — the frontier just above the schema line (predicate/property
+>   quantification, modality / the broken cut). The schema draws the map.
+> - **Schema layout/correspondence** — how a hole `⟨…⟩` *draws* and whether
+>   instantiation preserves §3.3 (the open correspondence question from planning).
+>
+> ---
+>
+> **(prior) DONE — math-fixtures validation gate.** Full suite green
 > (**1253 passed, 37 skipped**) + core suite green (380); one protected module
 > touched (authorized).
 > - **Validated** Part I (7 ZFC axioms) + Part IV (P1–P6 Peirce 1881) against the
