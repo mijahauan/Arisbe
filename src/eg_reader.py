@@ -91,10 +91,17 @@ def _shape(dto: LayoutDTO):
     return getattr(dto.style, "cut_shape", "rounded_rectangle")
 
 
+def _corner_radius(dto: LayoutDTO) -> float:
+    """The drawn corner radius — so containment tests the rounded rectangle the
+    renderer actually draws, not a sharp-box proxy (no corner void)."""
+    return float(getattr(dto.style, "cut_corner_radius", 0) or 0)
+
+
 def read_drawing(dto: LayoutDTO) -> ReadEG:
     """Recover the EG structure (area tree + incidence) from a drawn form, using
     only its geometry and the drawn cut shapes — the perceptual reading."""
     shape = _shape(dto)
+    radius = _corner_radius(dto)
     cut_ids = list(dto.cut_bounds.keys())
 
     def box_area(cid: str) -> float:
@@ -106,7 +113,7 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
     def deepest_cut_for_point(p: Point) -> Optional[str]:
         best = None
         for cid in cut_ids:
-            if point_in_cut(p, dto.cut_bounds[cid], shape):
+            if point_in_cut(p, dto.cut_bounds[cid], shape, radius):
                 if best is None or box_area(cid) < box_area(best):
                     best = cid
         return best
@@ -119,7 +126,7 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
         for oc in cut_ids:
             if oc == cid:
                 continue
-            if bounds_in_cut(b, dto.cut_bounds[oc], shape):
+            if bounds_in_cut(b, dto.cut_bounds[oc], shape, radius):
                 if best is None or box_area(oc) < box_area(best):
                     best = oc
         return best

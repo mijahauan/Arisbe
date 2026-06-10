@@ -103,6 +103,9 @@ def check_correspondence(
     # ellipse for an oval/circle style, the box otherwise — so the shape is
     # immaterial to *which* area an element is in.
     cut_shape = getattr(dto.style, "cut_shape", "rounded_rectangle")
+    # The drawn corner radius, so containment tests the rounded rectangle the
+    # renderer draws (not a sharp-box proxy) — exact, no corner void.
+    cut_radius = float(getattr(dto.style, "cut_corner_radius", 0) or 0)
 
     egi_v_ids = {v.id for v in egi.V}
     egi_e_ids = {e.id for e in egi.E}
@@ -147,7 +150,7 @@ def check_correspondence(
                 elem_id
             )
             if pos is not None:
-                if not point_in_cut(pos, bounds, cut_shape):
+                if not point_in_cut(pos, bounds, cut_shape, cut_radius):
                     failures.append(
                         f"  containment: {elem_id} in egi.area[{cut.id}] "
                         f"at ({pos.x:.1f},{pos.y:.1f}) outside cut bounds"
@@ -156,7 +159,7 @@ def check_correspondence(
             child = dto.cut_bounds.get(elem_id)
             if child is None:
                 continue
-            if not bounds_in_cut(child, bounds, cut_shape):
+            if not bounds_in_cut(child, bounds, cut_shape, cut_radius):
                 failures.append(
                     f"  containment: sub-cut {elem_id} in egi.area[{cut.id}] "
                     f"is not fully inside parent bounds"
@@ -210,7 +213,7 @@ def check_correspondence(
             if area in cut_ids:
                 bounds = dto.cut_bounds.get(area)
                 pt = pts[end_idx]
-                if bounds is not None and not point_in_cut(pt, bounds, cut_shape):
+                if bounds is not None and not point_in_cut(pt, bounds, cut_shape, cut_radius):
                     failures.append(
                         f"  identity-endpoint: ({path.predicate_id} → "
                         f"{path.vertex_id}) {label_str} endpoint outside "

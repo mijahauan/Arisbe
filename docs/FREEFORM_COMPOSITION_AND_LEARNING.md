@@ -106,6 +106,10 @@ region the reader and the renderer share.
 
 ## Exact correspondence: the cut *is* its curve (the target architecture)
 
+> **Canonical: [docs/EXACT_CORRESPONDENCE.md](EXACT_CORRESPONDENCE.md)** — the
+> architecture and phased implementation plan live there. The summary below is the
+> freeform-facing view; keep the two in sync.
+
 **Decided with the author 2026-06-10.** The deepest version of the requirement
 above, and the architecture the build should aim at from the start — refine the
 *model*, not the *approximation*. This generalizes beyond freeform: it is the

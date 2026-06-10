@@ -320,29 +320,63 @@ def _ellipse_norm(x: float, y: float, b: BoundingBox) -> Tuple[float, float]:
     return (x - cx) / rx, (y - cy) / ry
 
 
-def point_in_cut(p: Point, bounds: BoundingBox, shape) -> bool:
-    """Whether point ``p`` is inside the cut as the style *draws* it: the
-    inscribed ellipse for an oval/circle style, the box otherwise."""
+def _point_in_rounded_rect(p: Point, b: BoundingBox, radius: float) -> bool:
+    """Exact: ``p`` is inside a rounded rectangle (box ``b`` with quarter-circle
+    corners of ``radius``) — the shape the renderer actually draws for the Dau
+    style (`<rect rx=corner_radius>`).  A rounded rect is exactly the Minkowski sum
+    of the *inner* rectangle (``b`` shrunk by ``radius`` on every side) and a disk
+    of ``radius``: ``p`` is inside iff its distance to that inner rectangle is
+    ``<= radius``.  So a point in a rounded-away corner reads *outside*, matching
+    the drawing — no corner void.  ``radius`` is clamped to half the smaller side.
+    """
+    r = max(0.0, min(radius, (b.max_x - b.min_x) / 2.0, (b.max_y - b.min_y) / 2.0))
+    if r <= 0.0:
+        return _point_in(p, b)
+    nx = min(max(p.x, b.min_x + r), b.max_x - r)   # nearest point on inner rect
+    ny = min(max(p.y, b.min_y + r), b.max_y - r)
+    return (p.x - nx) ** 2 + (p.y - ny) ** 2 <= r * r + 1e-9
+
+
+def point_in_cut(p: Point, bounds: BoundingBox, shape, corner_radius: float = 0.0) -> bool:
+    """Whether point ``p`` is inside the cut **as the style draws it** — the
+    inscribed ellipse for an oval/circle, the rounded rectangle (with
+    ``corner_radius``) for a Dau box, the plain box when ``corner_radius`` is 0.
+
+    Testing the *drawn* shape (not a bounding-box proxy) is what makes containment
+    exact: the rounded corners are not part of the cut, so a mark parked there
+    reads outside, matching what the eye sees (`docs/EXACT_CORRESPONDENCE.md`).
+    ``corner_radius`` defaults to 0 for backward compatibility; callers that have
+    the style pass ``style.cut_corner_radius``.
+    """
     if _is_oval(shape):
         nx, ny = _ellipse_norm(p.x, p.y, bounds)
         return nx * nx + ny * ny <= 1.0 + 1e-9
+    if corner_radius > 0.0:
+        return _point_in_rounded_rect(p, bounds, corner_radius)
     return _point_in(p, bounds)
 
 
-def bounds_in_cut(inner: BoundingBox, outer: BoundingBox, shape) -> bool:
+def bounds_in_cut(
+    inner: BoundingBox, outer: BoundingBox, shape, corner_radius: float = 0.0
+) -> bool:
     """Whether the whole ``inner`` box lies inside the cut ``outer`` as drawn —
-    for an oval, every corner of ``inner`` inside ``outer``'s inscribed ellipse;
-    for a box, the plain AABB containment."""
+    every corner of ``inner`` inside ``outer``'s drawn shape (inscribed ellipse,
+    rounded rectangle, or box)."""
+    corners = (
+        (inner.min_x, inner.min_y), (inner.max_x, inner.min_y),
+        (inner.max_x, inner.max_y), (inner.min_x, inner.max_y),
+    )
     if _is_oval(shape):
-        corners = (
-            (inner.min_x, inner.min_y), (inner.max_x, inner.min_y),
-            (inner.max_x, inner.max_y), (inner.min_x, inner.max_y),
-        )
         for x, y in corners:
             nx, ny = _ellipse_norm(x, y, outer)
             if nx * nx + ny * ny > 1.0 + 1e-9:
                 return False
         return True
+    if corner_radius > 0.0:
+        return all(
+            _point_in_rounded_rect(Point(x, y), outer, corner_radius)
+            for x, y in corners
+        )
     return _bounds_in(inner, outer)
 
 

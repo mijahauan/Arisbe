@@ -719,3 +719,38 @@ def test_layout_direction_is_a_style_knob(engine, style):
 
     assert ratio(right) > 1.0   # tall (siblings stacked on the vertical axis)
     assert ratio(down) < 1.0    # wide (siblings spread left-to-right)
+
+
+# --- exact containment: rounded-rect corner void (docs/EXACT_CORRESPONDENCE.md) --- #
+#
+# The cut "inside" must be the shape the renderer draws. A Dau cut is a
+# <rect rx=corner_radius>, so its rounded-away corners are NOT inside it — a mark
+# parked there reads outside, matching the eye. Phase 1: point_in_cut /
+# bounds_in_cut take the corner radius and test the rounded rectangle exactly.
+
+def test_point_in_cut_excludes_the_rounded_corner_void():
+    from presentation_ops import point_in_cut
+    b = BoundingBox(0, 0, 100, 100)
+    r = 20.0
+    # Deep in a corner triangle (within the box, outside the rounded curve).
+    corner = Point(3, 3)
+    assert point_in_cut(corner, b, "rounded_rectangle", 0.0) is True   # box proxy: inside
+    assert point_in_cut(corner, b, "rounded_rectangle", r) is False     # rounded: outside
+    # The corner's arc center stays inside; the box interior is unaffected.
+    assert point_in_cut(Point(r, r), b, "rounded_rectangle", r) is True
+    assert point_in_cut(Point(50, 50), b, "rounded_rectangle", r) is True
+    # A point on a straight edge (away from corners) is still inside.
+    assert point_in_cut(Point(50, 1), b, "rounded_rectangle", r) is True
+
+
+def test_bounds_in_cut_rounded_rejects_a_child_poking_into_a_corner():
+    from presentation_ops import bounds_in_cut
+    outer = BoundingBox(0, 0, 100, 100)
+    r = 20.0
+    # A child whose own corner sits in the parent's rounded-away corner triangle.
+    poking = BoundingBox(2, 2, 40, 40)
+    assert bounds_in_cut(poking, outer, "rounded_rectangle", 0.0) is True    # box proxy
+    assert bounds_in_cut(poking, outer, "rounded_rectangle", r) is False      # rounded: not contained
+    # A child kept clear of the corners is contained either way.
+    clear = BoundingBox(30, 30, 70, 70)
+    assert bounds_in_cut(clear, outer, "rounded_rectangle", r) is True
