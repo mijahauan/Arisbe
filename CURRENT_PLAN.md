@@ -7,31 +7,60 @@ full suite green: 1352 passed, 37 skipped.)
 
 ---
 
-## ▶ NEXT SESSION — start here.
+## ▶ NEXT SESSION — start here: implement the composition workflow.
 
 > Running in a cloud agent (Devin Desktop) instead of the laptop? Read
 > **`docs/DEVIN_SETUP.md`** first.
 
-The two headline arcs are **closed** (see the DONE block below): totality of addition
-is now the fully-closed object-level theorem `∀x∀Y∃z plus(x,Y,z)`, and the definition
-node has its sound, selection-driven fold. No single mandatory next task is queued;
-the candidates, roughly in the author's standing priority order:
+**The queued task: Ergasterion composition workflow — spec is written and
+author-reviewed, implement it.** Spec: **`docs/COMPOSITION_WORKFLOW_SPEC.md`**
+(2026-06-09; companion to `TRANSFORMATION_WORKFLOW_SPEC.md`). The finding: the
+workshop is a *derivation* UI that never got its *composition* half — on a blank
+sheet INS can never fire (positive area), ERA can't erase fresh ink, and the only
+authoring input is the EGIF textarea inside INS. The architecture already licenses
+the fix (regime 1 = invariant suspended on purpose); no UI/API ever implemented it.
 
-1. **(optional, lower priority) Schema generator — shared ambient parameter.**
-   `instance_of_schema` α-renames φ per occurrence (four distinct x lines), so it
-   can't yet *generate* the hand-written induction instance. Thread one ambient
-   parameter through all hole occurrences, then assert the generated instance is
-   `same_graph` to the hand-written one (`_T_IND_INSTANCE` / `_T_IND_CLOSED` in
-   `tests/test_induction_proofs.py`). Generator quality, not a theorem gate.
-2. **CG/ISO 24707 conformance write-up** for the definition node's marked-parameter
-   syntax (`docs/DEFINITION_NODE.md` "Open / next", second item).
-3. Other queued (unchanged): corpus-import the math theories; **Gamma** frontier;
-   **schema layout/correspondence** (how a hole `⟨…⟩` draws + §3.3).
-4. (optional cleanup) Widen `HeavyDotInsertionRule` to Dau's any-context
-   isolated-vertex rule (ours is negative-only — safe over-restriction, now exercised
-   by the UG tactic; widening is a PROTECTED-module change).
+The shape (author's decisions, 2026-06-09): **three phases, two fixings** —
+`COMPOSE → [① fix the graph] → DERIVE → [② fix the chain] → DISPOSE`, with:
+- a **palette** (Cut · Line of identity · Relation · Constant + Attach/Erase/
+  Rename/Fragment), every action a **typed compose chain step**
+  (`compose.add_relation`, …) — recorded, undoable (branch-on-edit), replayable;
+- **server compose ops** (new unprotected `src/composition_ops.py` over the public
+  immutable constructors), well-formedness enforced, soundness suspended;
+- gate ① fixes the draft as the chain's **base state** and opens the six rules;
+  gate ② seals the chain (read-only; regime-3/style still free *within the fixed
+  meaning*);
+- disposition only for a fixed chain: **vault** (scratch renamed), **send to
+  Agon** (unchanged, the only road to attested status), **publish to Organon as
+  an unattested workshop record** (badged facet — flagged in the spec §5.3 as a
+  mode-contract note for the author to confirm).
+
+Implementation order (spec §6): (1) `composition_ops.py` + tests → (2) session
+`phase` + `/compose`, `/fix-graph`, `/fix-chain` routes + tests → (3) palette UI,
+phase banner, gates, ghost previews, live linear mirror → (4) polish
+(bidirectional linear↔canvas, keyboard). Steps 1–2 are pure logic/routes, no
+protected modules. First fixture: the user's own scenario (spec §7).
+
+Other queued (unchanged, lower priority): schema generator shared ambient
+parameter; CG/ISO 24707 conformance write-up for the definition node; corpus-import
+the math theories; Gamma frontier; schema layout/correspondence; (optional,
+PROTECTED) widen `HeavyDotInsertionRule` to Dau's any-context rule.
 
 ---
+
+> **DONE this session (2026-06-09, third session) — Ergasterion composition
+> assessed and specced.** Examined the workshop end-to-end (`ergasterion.html`,
+> JS modules, routes, session manager). Verdict: derivation UI without its
+> composition half (blank-sheet dead end; see spec §0). Wrote
+> **`docs/COMPOSITION_WORKFLOW_SPEC.md`** capturing the author's decisions:
+> explicit gates (not mixed), server compose ops (not a client drawing schema),
+> typed compose steps (not an opaque base state), spec-first (implementation is
+> the next session's task). The two-fixings structure is the author's framing:
+> fix a *graph* (a sign), then fix a *sequence* (an argument) — both during
+> composition, both recorded as steps. Also this session: `/graphify --update`
+> refreshed the knowledge graph (7,552 nodes / 13,429 edges / 478 communities).
+>
+> ---
 
 > **DONE this session (2026-06-09, second session) — both queued tasks, in order.**
 > Only unprotected modules touched (no `.core_modification_authorized` needed).
