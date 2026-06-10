@@ -363,7 +363,7 @@ def _additive_placement_layout(prev_dto: LayoutDTO, egi, style) -> Optional[Layo
                     return None
 
     ligature_paths = engine._build_ligature_paths(
-        egi, final_vpos, final_ppos, sizes, computed
+        egi, final_vpos, final_ppos, sizes, computed, style
     )
 
     all_boxes = list(computed.values())

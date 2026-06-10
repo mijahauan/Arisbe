@@ -142,7 +142,7 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
   new tests pin the straddle refusal and the shared box formula.
 - **3b — no improper occlusion. *Done* (2026-06-10).** §3.3 gained a "marks don't
   overlap each other / cut lines illegibly" check (an occluded label can't be
-  recovered by the reader → correspondence breaks). Two properties shipped, both
+  recovered by the reader → correspondence breaks). Three properties shipped, all
   green corpus-wide:
   - **text-on-text** — two label boxes (predicate or vertex) may not overlap on a
     positive-area region (`presentation_ops.boxes_overlap`; abutting edges are
@@ -159,14 +159,28 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
     text centred in this same box. The one real straddle this surfaced
     (`peirce_cp_4_394_man_mortal`, "Socrates" parked at the cut's right edge) is fixed
     by the cut-aware placement choosing an inward direction.
-  - **deferred (paired with routing):** a *third* property — a line of identity the
-    label is **not** incident to running through its box — is a genuine occlusion
-    (it found a real strike-through in the shared-vertex fan-in after IT+ on
-    `roberts_domain_modeling`), but a check needs its constructive half
-    (label-aware ligature routing) or it red-flags honest layouts. The obstacle-test
-    primitive `presentation_ops.path_intersects_box` (Liang–Barsky clip + strict
-    interior, so a graze along an edge is legible) is in hand for that paired
-    routing-and-check task.
+  - **no strike-through (line through a non-incident box). *Done* (2026-06-10),
+    paired with its routing.** A line of identity running through a label box it
+    is **not** incident to bisects the text — a genuine occlusion (it surfaced a
+    real strike-through in the shared-vertex fan-in after IT+ on
+    `roberts_domain_modeling`: several lines converging on one vertex through the
+    intervening "Person"/predicate boxes). Shipped as a matched pair so honest
+    layouts stay green:
+    - **the §3.3 check** (`correspondence_attestation`): for each label box, any
+      ligature *not* incident to it (≠ that predicate / ≠ that vertex) passing
+      through the box's open interior (`presentation_ops.path_intersects_box` —
+      Liang–Barsky clip + strict interior, so a graze along an edge is legible)
+      is refused.
+    - **the constructive partner** (`elk_layout_engine._build_ligature_paths`):
+      label boxes (the same `predicate_label_box` / `vertex_label_box` the check
+      reads) become **soft obstacles** the router skirts. Two-tier routing —
+      forbidden cuts are **hard** (never crossed; soundness), label boxes are
+      **soft** (skirted only when a detour exists that still clears every hard
+      cut; otherwise the label is given up for the sound route). A finite
+      visibility-graph path through hard ∪ soft avoids the cuts by construction;
+      vertex-label placement is read from a stable provisional straight pass
+      (routing bends only a line's middle, not its endpoints), so the two passes
+      don't chase each other.
 - **3c — clockwise placement as the order carrier.** Place hooks in clockwise order
   so argument order lives in the geometry; the numeral becomes a toggleable,
   presentation-only annotation (show/hide). Touches hook placement + the clockwise

@@ -39,6 +39,7 @@ from presentation_ops import (
     crossing_sequence,
     cut_parents,
     element_area,
+    path_intersects_box,
     point_in_cut,
     predicate_label_box,
     vertex_label_box,
@@ -230,21 +231,23 @@ def check_correspondence(
                 )
 
     # Occlusion (Phase 3b): a mark the reader cannot recover breaks
-    # correspondence.  Two ways a label is rendered illegible:
+    # correspondence.  Three ways a label is rendered illegible:
     #   (1) text-on-text — two label boxes overlapping each other;
     #   (2) a cut boundary stroke bisecting a vertex/constant label box (the
-    #       predicate analogue is the no-straddle extent check above).
+    #       predicate analogue is the no-straddle extent check above);
+    #   (3) a line of identity the label is NOT incident to running through the
+    #       box — a strike-through (built below, after the boxes are gathered).
     # Each label box comes from the renderer's single source of truth
     # (`predicate_label_box` / `vertex_label_box`) so the test and the drawing agree
     # (`docs/EXACT_CORRESPONDENCE.md` Phase 3b).  Boxes that only abut are legible
     # and not flagged.
     #
-    # A *third* property — a line of identity the label is NOT incident to running
-    # through the box — is deferred: it is a genuine occlusion (it found a real
-    # strike-through in the shared-vertex fan-in after IT+), but a check needs its
-    # constructive half (obstacle-aware ligature routing) or it red-flags honest
-    # layouts.  `path_intersects_box` is the obstacle-test primitive that paired
-    # routing-and-check task will use.
+    # Property (3)'s constructive partner ships with it: `elk_layout_engine`
+    # routes non-incident ligatures *around* label boxes (treated as soft
+    # obstacles that yield to forbidden cuts), so honest layouts pass and only a
+    # genuine strike-through — the shared-vertex fan-in after IT+ that surfaced
+    # it (`roberts_domain_modeling`) — is refused.  `path_intersects_box` is the
+    # shared obstacle-test primitive.
     show_vertex_labels = (
         getattr(dto.style, "vertex_rendering_mode", "dot_and_label") != "dot_only"
     )
@@ -308,6 +311,30 @@ def check_correspondence(
                 failures.append(
                     f"  occlusion: vertex {eid} label box intrudes into "
                     f"cut {cut.id} (not on its area chain)"
+                )
+
+    # (3) a label box struck through by a line of identity it is NOT incident
+    # to.  An incident line legitimately meets the label at its anchor (a
+    # predicate's own hook line; a vertex's own ligature); any *other* ligature
+    # running through the open interior of the box bisects the text and the
+    # reader cannot recover it — a genuine occlusion.  The constructive partner
+    # keeps non-incident lines clear: ``elk_layout_engine`` routes ligatures
+    # around label boxes (treated as obstacles), so this check attests the
+    # routed result.  Uses ``path_intersects_box`` (open interior — a line
+    # grazing the border is legible and not flagged).
+    for kind, eid, box in label_boxes:
+        for path in dto.ligature_paths:
+            incident = (
+                (kind == "predicate" and path.predicate_id == eid)
+                or (kind == "vertex" and path.vertex_id == eid)
+            )
+            if incident:
+                continue
+            if path_intersects_box(path.points, box):
+                failures.append(
+                    f"  occlusion: {kind} {eid} label box struck through by "
+                    f"line of identity ({path.predicate_id} → {path.vertex_id}) "
+                    f"it is not incident to"
                 )
 
     # Identity 1/3: endpoint placement.

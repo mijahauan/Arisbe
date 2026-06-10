@@ -102,3 +102,63 @@ def test_no_obstacle_route_is_straight_regardless_of_pad():
         assert ELKLayoutEngine._route_avoiding_cuts(
             start, end, [], visibility_pad=pad
         ) == (start, end)
+
+
+# --------------------------------------------------------------------------- #
+# Two-tier routing: label boxes are soft obstacles, cuts are hard             #
+# (label-aware ligature routing, EXACT_CORRESPONDENCE Phase 3b)               #
+# --------------------------------------------------------------------------- #
+
+
+def _crosses(path, box):
+    return any(
+        ELKLayoutEngine._seg_crosses_rect(path[i], path[i + 1], box)
+        for i in range(len(path) - 1)
+    )
+
+
+def test_soft_obstacle_label_box_is_skirted():
+    """A non-incident label box (soft obstacle) straddling a straight ligature is
+    routed around — the line is bent clear of the text it would otherwise strike
+    through (§3.3 occlusion check #3).  No hard cut here, so legibility is free."""
+    start, end = Point(0.0, 0.0), Point(100.0, 0.0)
+    label = BoundingBox(min_x=40.0, min_y=-10.0, max_x=60.0, max_y=10.0)
+    path = ELKLayoutEngine._route_avoiding_cuts(
+        start, end, [], soft_obstacles=[label], visibility_pad=8.0
+    )
+    assert len(path) > 2  # detoured, not the straight strike-through
+    assert not _crosses(path, label)
+
+
+def test_route_avoids_hard_cut_and_soft_label_together():
+    """When a corridor exists that clears both, the route avoids the forbidden cut
+    (hard) *and* the label box (soft).  A cut on the line forces a skirt; a label
+    box on the near side pushes the skirt to the far corridor."""
+    start, end = Point(0.0, 0.0), Point(100.0, 0.0)
+    hard = BoundingBox(min_x=40.0, min_y=-10.0, max_x=60.0, max_y=10.0)
+    soft = BoundingBox(min_x=30.0, min_y=8.0, max_x=70.0, max_y=28.0)  # above the cut
+    path = ELKLayoutEngine._route_avoiding_cuts(
+        start, end, [hard], soft_obstacles=[soft], visibility_pad=8.0
+    )
+    assert not _crosses(path, hard)   # soundness
+    assert not _crosses(path, soft)   # legibility
+    assert min(p.y for p in path) < -10.0  # routed under — the only clear corridor
+
+
+def test_soundness_wins_unsatisfiable_soft_yields_to_hard_route():
+    """If honouring the soft obstacles would force crossing a forbidden cut, the
+    label is given up and the sound hard-only route is kept — soundness never
+    yields to legibility.  Here soft boxes wall off both detour corridors, so the
+    combined route is unsatisfiable; the fallback still avoids the hard cut."""
+    start, end = Point(0.0, 0.0), Point(100.0, 0.0)
+    hard = BoundingBox(min_x=40.0, min_y=-10.0, max_x=60.0, max_y=10.0)
+    # Tall walls flanking the cut on both sides of the line: no detour clears the
+    # cut without entering a wall, so hard ∪ soft has no obstacle-free path.
+    walls = [
+        BoundingBox(min_x=38.0, min_y=10.0, max_x=62.0, max_y=400.0),
+        BoundingBox(min_x=38.0, min_y=-400.0, max_x=62.0, max_y=-10.0),
+    ]
+    path = ELKLayoutEngine._route_avoiding_cuts(
+        start, end, [hard], soft_obstacles=walls, visibility_pad=8.0
+    )
+    assert not _crosses(path, hard)  # the forbidden cut is never crossed

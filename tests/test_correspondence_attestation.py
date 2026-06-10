@@ -319,6 +319,46 @@ def test_vertex_label_box_must_not_straddle_its_cut(engine):
         + "\n  ".join(failures))
 
 
+def test_label_box_struck_through_by_non_incident_line(engine):
+    """Phase 3b occlusion (check #3): a line of identity running through a label
+    box it is *not* incident to bisects the text — a strike-through the reader
+    cannot recover.  The engine routes non-incident lines around label boxes
+    (the constructive partner), so the clean drawing attests; forcing one line
+    straight through a *different* predicate's box makes §3.3 refuse.  This is
+    the regression the shared-vertex fan-in after IT+ surfaced
+    (``roberts_domain_modeling``)."""
+    from egif_parser_dau import parse_egif
+    from presentation_ops import predicate_label_box
+
+    egi = parse_egif("(P *x) (Q x)")  # P and Q share the line of identity x
+    style = load_default_style()
+    dto = engine.generate_layout(egi, style)
+    attest_correspondence(egi, dto)  # engine keeps non-incident lines clear
+
+    by_name = {egi.get_relation_name(e.id): e.id for e in egi.E}
+    p_id, q_id = by_name["P"], by_name["Q"]
+    p_box = predicate_label_box("P", dto.predicate_positions[p_id], style)
+    p_center = Point((p_box.min_x + p_box.max_x) / 2.0,
+                     (p_box.min_y + p_box.max_y) / 2.0)
+
+    # Re-route Q's (non-incident to P) line straight through P's label box.
+    qx = next(lp for lp in dto.ligature_paths if lp.predicate_id == q_id)
+    struck = LigaturePath(
+        predicate_id=q_id, vertex_id=qx.vertex_id,
+        points=(qx.points[0], p_center, qx.points[-1]),
+        port_index=qx.port_index,
+    )
+    new_paths = [struck if lp is qx else lp for lp in dto.ligature_paths]
+    broken = _clone_dto(dto, ligature_paths=new_paths)
+
+    with pytest.raises(CorrespondenceViolation) as excinfo:
+        attest_correspondence(egi, broken)
+    assert any("occlusion" in f and "struck through" in f and p_id in f
+               for f in excinfo.value.failures), (
+        "expected a struck-through occlusion for P's label box, got:\n  "
+        + "\n  ".join(excinfo.value.failures))
+
+
 def test_attest_raises_on_ligature_endpoint_mismatch(tomos, engine, style):
     """If a ligature's last point doesn't equal its vertex position, raise."""
     egi, dto = _baseline(tomos, engine, style)

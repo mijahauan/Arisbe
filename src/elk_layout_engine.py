@@ -11,11 +11,12 @@ import json
 import math
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from egi_core_dau import RelationalGraphWithCuts, ElementID
 from layout_dto import LayoutDTO, Point, BoundingBox, LigaturePath
 from natural_layout import authorized_crossings
+from presentation_ops import predicate_label_box, vertex_label_box
 from projection_conventions import Conventions, DEFAULT_CONVENTIONS
 from tension_layout import sibling_order
 from style_loader import StyleSpecification
@@ -543,7 +544,7 @@ class ELKLayoutEngine:
         # Ligatures are routed to avoid unauthorized cut crossings.
         ligature_paths = self._build_ligature_paths(
             egi, vertex_positions, predicate_positions,
-            element_sizes, cut_bounds,
+            element_sizes, cut_bounds, style,
         )
 
         # Area hierarchy
@@ -581,12 +582,28 @@ class ELKLayoutEngine:
         predicate_positions: Dict[ElementID, Point],
         element_sizes: Dict[ElementID, Tuple[float, float]],
         cut_bounds: Dict[ElementID, BoundingBox],
+        style: Optional[StyleSpecification] = None,
     ) -> List[LigaturePath]:
         """Build ligature paths that respect EG area containment.
 
         A ligature can only cross a cut boundary that lies on the area
         hierarchy path between the predicate's area and the vertex's area.
-        All other cuts are obstacles the ligature must route around.
+        Those cuts are **hard** obstacles — never crossed (soundness).
+
+        **Label boxes are soft obstacles.**  A line of identity running through
+        a label box it is *not* incident to strikes the text out — a genuine
+        occlusion (§3.3 occlusion check #3, ``correspondence_attestation``).  So
+        the router also skirts every non-incident label box, but only when a
+        detour exists that still avoids the forbidden cuts: legibility yields to
+        soundness, never the reverse.  The motivating case is the shared-vertex
+        fan-in after IT+ (N predicates → one vertex, the lines crossing
+        intervening predicate boxes — ``roberts_domain_modeling``).
+
+        ``style`` supplies the drawn label-box extents (the same
+        ``predicate_label_box`` / ``vertex_label_box`` the §3.3 check reads, so
+        what the router avoids is exactly what the check tests).  When ``style``
+        is ``None`` no label boxes are avoided (cut-only routing, the old
+        behavior).
         """
         # Build area hierarchy helpers
         cut_ids = {c.id for c in egi.Cut}
@@ -602,40 +619,98 @@ class ELKLayoutEngine:
                 if elem_id not in cut_ids:
                     elem_to_area[elem_id] = area_id
 
-        ligature_paths: List[LigaturePath] = []
-
+        # Pass 1: provisional straight hook→vertex paths.  These pin the hooks
+        # (reused below) and supply the incident directions that place vertex
+        # labels — routing only bends a line's *middle*, so the endpoints, and
+        # therefore the label placement, are stable across the real pass.
+        hooks: Dict[Tuple[ElementID, int], Point] = {}
+        provisional: List[LigaturePath] = []
         for edge in egi.E:
-            vertex_seq = egi.nu.get(edge.id, ())
             pred_center = predicate_positions.get(edge.id)
             if not pred_center:
                 continue
             pred_w, pred_h = element_sizes.get(edge.id, (40.0, 16.0))
-            pred_area = elem_to_area.get(edge.id)
-
-            for port_index, v_id in enumerate(vertex_seq):
+            for port_index, v_id in enumerate(egi.nu.get(edge.id, ())):
                 vert_center = vertex_positions.get(v_id)
                 if not vert_center:
                     continue
-                vert_area = elem_to_area.get(v_id)
-
                 hook = self._predicate_hook_point(
                     pred_center, pred_w, pred_h, vert_center
                 )
+                hooks[(edge.id, port_index)] = hook
+                provisional.append(
+                    LigaturePath(
+                        predicate_id=edge.id, vertex_id=v_id,
+                        points=(hook, vert_center), port_index=port_index,
+                    )
+                )
 
-                # Determine which cuts this ligature may cross
+        # Label boxes (owner-tagged soft obstacles).  Predicate boxes are fixed
+        # on the predicate; vertex boxes are placed from the provisional
+        # directions, exactly as the renderer and §3.3 do.
+        label_boxes: List[Tuple[str, ElementID, BoundingBox]] = []
+        if style is not None:
+            show_vertex_labels = (
+                getattr(style, "vertex_rendering_mode", "dot_and_label")
+                != "dot_only"
+            )
+            for edge in egi.E:
+                c = predicate_positions.get(edge.id)
+                if c is None:
+                    continue
+                label_boxes.append((
+                    "predicate", edge.id,
+                    predicate_label_box(egi.get_relation_name(edge.id), c, style),
+                ))
+            if show_vertex_labels:
+                for vertex in egi.V:
+                    if not getattr(vertex, "label", None):
+                        continue
+                    c = vertex_positions.get(vertex.id)
+                    if c is None:
+                        continue
+                    label_boxes.append((
+                        "vertex", vertex.id,
+                        vertex_label_box(
+                            vertex.label, c, style, provisional, vertex.id,
+                            egi=egi, cut_bounds=cut_bounds,
+                        ),
+                    ))
+
+        # Pass 2: real routing — hard obstacles = forbidden cuts; soft = label
+        # boxes this ligature is not incident to.
+        ligature_paths: List[LigaturePath] = []
+        for edge in egi.E:
+            if predicate_positions.get(edge.id) is None:
+                continue
+            pred_area = elem_to_area.get(edge.id)
+
+            for port_index, v_id in enumerate(egi.nu.get(edge.id, ())):
+                vert_center = vertex_positions.get(v_id)
+                hook = hooks.get((edge.id, port_index))
+                if vert_center is None or hook is None:
+                    continue
+                vert_area = elem_to_area.get(v_id)
+
                 authorized = self._authorized_cuts(
                     pred_area, vert_area, parent_map
                 )
-
-                # Unauthorized = every other cut that has spatial bounds
-                unauthorized_bounds = [
+                hard = [
                     cut_bounds[cid]
                     for cid in cut_bounds
                     if cid not in authorized
                 ]
+                soft = [
+                    box
+                    for kind, owner, box in label_boxes
+                    if not (
+                        (kind == "predicate" and owner == edge.id)
+                        or (kind == "vertex" and owner == v_id)
+                    )
+                ]
 
                 path = self._route_avoiding_cuts(
-                    hook, vert_center, unauthorized_bounds,
+                    hook, vert_center, hard, soft_obstacles=soft,
                     detour_pad=self.conventions.detour_pad,
                     visibility_pad=self.conventions.visibility_pad,
                 )
@@ -780,6 +855,7 @@ class ELKLayoutEngine:
         start: Point,
         end: Point,
         obstacles: List[BoundingBox],
+        soft_obstacles: Sequence[BoundingBox] = (),
         detour_pad: float = DEFAULT_CONVENTIONS.detour_pad,
         visibility_pad: float = DEFAULT_CONVENTIONS.visibility_pad,
     ) -> Tuple[Point, ...]:
@@ -787,29 +863,57 @@ class ELKLayoutEngine:
         **taut-line router**: a line of identity pulled taut, hugging the cuts it
         must skirt (the rubber-band-around-pegs of ``docs/TENSION_LAYOUT.md``).
 
+        Two tiers of obstacle:
+
+        - ``obstacles`` (**hard** — the forbidden cuts) must never be crossed.
+          This is soundness: a ligature that dips into a cut off its area chain
+          would change what the picture says.
+        - ``soft_obstacles`` (the non-incident **label boxes**) are skirted for
+          legibility — a line through a label box strikes the text out — but
+          *only when a detour exists that still avoids every hard obstacle*.  If
+          honouring a label would force a crossing of a forbidden cut, the label
+          is given up and the sound hard-only route is kept.
+
         Strategy:
-        1. Straight line if it crosses no obstacle (the shortest path there is).
+        1. Straight line if it crosses nothing (the shortest path there is).
         2. Otherwise the **visibility-graph shortest path** through the padded
-           obstacle corners — the geodesic that avoids the forbidden cuts while
-           crossing the authorized ones naturally.
+           corners of hard ∪ soft.  A finite such path avoids every obstacle in
+           the set — the hard cuts included — so it is sound by construction.
+        3. If no path avoids hard ∪ soft (labels over-constrain), fall back to
+           routing against the hard obstacles alone (still sound).
 
-        This deliberately drops the older axis-aligned L-detour (which produced
-        right-angle zigzags through nested cuts): the shortest path is never
-        longer than an L and reads as a taut line, and the Peirce/curved styles
-        smooth it into a flowing curve.  ``detour_pad`` is retained for signature
-        compatibility but no longer used; ``visibility_pad`` is the obstacle
-        corner standoff convention.
+        ``detour_pad`` is retained for signature compatibility but no longer
+        used; ``visibility_pad`` is the obstacle corner standoff convention.
         """
-        if not obstacles:
-            return (start, end)
+        hard = list(obstacles)
+        soft = list(soft_obstacles)
 
-        crossed = [b for b in obstacles if cls._seg_crosses_rect(start, end, b)]
-        if not crossed:
-            return (start, end)
+        def _route(obs: List[BoundingBox]) -> Tuple[Point, ...]:
+            if not obs:
+                return (start, end)
+            if not any(cls._seg_crosses_rect(start, end, b) for b in obs):
+                return (start, end)
+            return cls._route_via_visibility_graph(
+                start, end, obs, pad=visibility_pad
+            )
 
-        return cls._route_via_visibility_graph(
-            start, end, obstacles, pad=visibility_pad
-        )
+        if not soft:
+            return _route(hard)
+
+        # Try hard ∪ soft.  ``_route_via_visibility_graph`` returns the straight
+        # ``(start, end)`` only when it finds *no* obstacle-free path (Dijkstra
+        # exhausted); a genuine detour has interior waypoints.  So a returned
+        # path that still crosses something signals over-constraint → fall back
+        # to the sound hard-only route.
+        combined = hard + soft
+        path = _route(combined)
+        if not any(
+            cls._seg_crosses_rect(path[i], path[i + 1], b)
+            for i in range(len(path) - 1)
+            for b in combined
+        ):
+            return path
+        return _route(hard)
 
     @classmethod
     def _route_via_visibility_graph(
