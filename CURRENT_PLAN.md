@@ -9,7 +9,42 @@ condensed 2026-06-10 (detail lives in git, the docs, and memory).
 
 ## ▶ NEXT SESSION — start here
 
-Two active, related threads, plus ready-to-pick math tasks. Pick by appetite.
+**Designated next task: Exact-correspondence Phase 3b — "no improper occlusion."**
+(Thread A below; Phases 1, 2, 3a are done.) After 3b, the appetite-driven menu
+(Thread B, the math tasks) is still open.
+
+### Phase 3b — no improper occlusion (the designated next task)
+*§3.3 gains a "marks don't overlap each other / cut lines illegibly" check — an
+occluded or bisected label can't be recovered by the reader, so correspondence
+breaks. The constructive side: layout/routing treat label boxes as obstacles.*
+
+**Building blocks in hand (from 3a):** `presentation_ops.predicate_label_box`
+(predicate extent, single source of truth) and `box_intrudes_cut` (box-vs-cut
+intrusion). 3a already forbids a *predicate* box straddling a cut boundary.
+
+**The design crux — resolve first, it's an author call:**
+- **Vertex/constant label placement is renderer-internal and direction-adaptive.**
+  `simple_svg_renderer` (~L367–410) places a vertex label to the right of the dot,
+  or, if a ligature leaves eastward, in the *freest angular gap* between incident
+  ligatures. This geometry is **not in the DTO**. To check vertex-label occlusion
+  §3.3 needs that box — so first factor the placement into a shared
+  `vertex_label_box(...)` (the way 3a factored `predicate_label_box`) **or** carry
+  the box in the DTO. Harder than the predicate case (depends on incident ligature
+  angles). This also closes the gap 3a left open (constant = labeled dot).
+- **What counts as "improper"?** Propose: (1) two *text* boxes (predicate/vertex
+  labels) must not overlap — text-on-text is illegible; (2) a label box must not be
+  *bisected* by a cut boundary stroke (for predicates this is 3a's no-straddle;
+  extend to vertex labels). Likely *acceptable* (don't flag): a label box merely
+  touched by a ligature line it's incident to. Get the author's read on where the
+  line is before coding the check.
+
+**Entry points:** `correspondence_attestation.py` (add an occlusion block beside the
+3a extent block); `presentation_ops.py` (the shared box/overlap helpers — a
+`boxes_overlap` is trivial; `vertex_label_box` is the real work);
+`simple_svg_renderer.py` ~L367–410 (the placement to factor out). Verify the same
+way 3a did: full §3.3 corpus surface green (the engine should keep labels clear; any
+real overlap it produces is a finding, not a spurious failure). `docs/
+EXACT_CORRESPONDENCE.md` Phase 3 has the 3a/3b/3c breakdown.
 
 ### Thread A — the exact-correspondence engine (`docs/EXACT_CORRESPONDENCE.md`)
 *Delete the geometry proxy: a cut **is** its drawn curve; containment / crossing /
