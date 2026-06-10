@@ -143,79 +143,81 @@ class CoreProtectionSystem:
     def run_core_validation_tests(self) -> Dict[str, any]:
         """Run the core validation test suite to ensure integrity."""
         print("🧪 Running core validation tests...")
-        
+
+        # The protected-logic subset: headless pure-Python (~150 tests, <30s).
+        # See quality_gate_system.py for the canonical list.
         core_test_files = [
             "tests/test_egi_core_comprehensive.py",
-            "tests/test_ligature_algorithms_working.py", 
-            "tests/test_performance_working.py",
             "tests/test_chapter15_formal_calculus.py",
-            "tests/test_chapter16_17_ligature_soundness_simplified.py",
-            "tests/test_chapter20_syntactic_equivalence.py",
-            "tests/test_advanced_performance_optimization.py",
-            "tests/test_complete_serialization_simplified.py",
-            "tests/test_production_scalability_validation.py",
-            "tests/test_complete_system_integration.py",
-            "tests/test_final_production_readiness.py",
-            "tests/test_comprehensive_edge_case_validation.py"
+            "tests/test_rule_interaction.py",
+            "tests/test_subgraph_closure_validation.py",
+            "tests/test_graph_isomorphism_engine.py",
+            "tests/test_it_minus_with_isomorphism.py",
+            "tests/test_beta_proof_exercises.py",
+            "tests/test_beta_modus_ponens_proof.py",
+            "tests/test_beta_converse_proof.py",
+            "tests/test_logical_proof_exercises.py",
+            "tests/test_induction_proofs.py",
         ]
-        
+
+        # Prefer the uv-managed environment (the project standard).
+        import shutil
+        if shutil.which("uv"):
+            pytest_cmd = ["uv", "run", "pytest"]
+        else:
+            pytest_cmd = [sys.executable, "-m", "pytest"]
+
         try:
-            result = subprocess.run([
-                sys.executable, "-m", "pytest"
-            ] + core_test_files + [
-                "-v", "--tb=short"
-            ], capture_output=True, text=True, cwd=self.project_root, timeout=120)
-            
+            result = subprocess.run(
+                pytest_cmd + core_test_files + ["-q", "--tb=short"],
+                capture_output=True, text=True, cwd=self.project_root, timeout=180
+            )
+
             # Parse results
             passed_tests = 0
             failed_tests = 0
-            
+
             if result.stdout:
                 import re
                 passed_match = re.search(r'(\d+) passed', result.stdout)
                 if passed_match:
                     passed_tests = int(passed_match.group(1))
-                    
+
                 failed_match = re.search(r'(\d+) failed', result.stdout)
                 if failed_match:
                     failed_tests = int(failed_match.group(1))
-            
-            # If no tests were collected/run, it's likely a collection error
+
+            # Collection errors are real failures, not environment quirks.
             if passed_tests == 0 and failed_tests == 0 and result.returncode != 0:
-                print(f"⚠️  Test collection issue detected")
-                print(f"   Return code: {result.returncode}")
-                if result.stderr:
-                    print(f"   stderr: {result.stderr[:200]}")
-                # Don't block commit for collection issues - they may be environment-specific
+                stderr_preview = result.stderr[:300] if result.stderr else ""
+                print(f"❌ Test collection failed (return code {result.returncode})")
+                if stderr_preview:
+                    print(f"   stderr: {stderr_preview}")
                 return {
                     "test_result": "COLLECTION_ISSUE",
                     "passed_tests": 0,
                     "failed_tests": 0,
-                    "expected_passed": 87,
-                    "core_integrity": "UNKNOWN - collection failed, manual verification required",
-                    "note": "Test collection hung/failed - Qt import issue. Core tests verified manually: 87/87 passing"
+                    "core_integrity": "COMPROMISED - collection failed",
                 }
-            
+
             return {
                 "test_result": "PASS" if result.returncode == 0 else "FAIL",
                 "passed_tests": passed_tests,
                 "failed_tests": failed_tests,
-                "expected_passed": 87,
-                "core_integrity": "MAINTAINED" if passed_tests >= 87 and failed_tests == 0 else "COMPROMISED"
+                "core_integrity": "MAINTAINED" if result.returncode == 0 and failed_tests == 0 else "COMPROMISED"
             }
-        
+
         except subprocess.TimeoutExpired:
-            print("⚠️  Core tests timed out (likely Qt import hang during collection)")
-            print("   This is a known environment issue - core tests pass when run directly")
+            # The core subset is headless and fast; a timeout means something is
+            # genuinely wrong, so fail loudly rather than waving it through.
+            print("❌ Core tests timed out (>180s) — the core subset runs in <30s, so this is a real problem")
             return {
                 "test_result": "TIMEOUT",
                 "passed_tests": 0,
                 "failed_tests": 0,
-                "expected_passed": 87,
-                "core_integrity": "UNKNOWN - timeout, manual verification required",
-                "note": "Test collection timeout - Qt import hang. Core tests verified manually: 87/87 passing"
+                "core_integrity": "COMPROMISED - timeout",
             }
-            
+
         except Exception as e:
             return {
                 "test_result": "ERROR",
