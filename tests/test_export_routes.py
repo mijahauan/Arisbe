@@ -140,6 +140,7 @@ def test_ergasterion_renders_in_chosen_style(client):
     sid = opened["data"]["session_id"]
     # Compose something so the drawing is non-trivial.
     sheet = next(a for a, r in opened["data"]["introspection"]["areas"].items() if r["is_sheet"])
+    client.post(f"/ergasterion/sessions/{sid}/fix-graph", json={})  # gate ① → deriving
     client.post(f"/ergasterion/sessions/{sid}/apply",
                 json={"rule": "DC+", "parameters": {"selected_elements": [], "target_area": sheet}})
     default_svg = client.get(f"/ergasterion/sessions/{sid}").json()["data"]["svg"]

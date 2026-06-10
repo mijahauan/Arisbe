@@ -81,6 +81,36 @@ class ErgasterionApplyRequest(BaseModel):
     from_state_id: Optional[str] = None
 
 
+class ErgasterionComposeRequest(BaseModel):
+    """One palette action in a session's *composing* phase (regime 1).
+
+    ``action`` names a ``composition_ops`` op (with or without the
+    ``compose.`` namespace): ``add_cut``, ``add_line``, ``add_relation``,
+    ``add_constant``, ``attach``, ``detach``, ``rename``, ``erase``,
+    ``move_to_area``, ``graft``.  ``parameters`` is the op's keyword dict
+    (see ``src/composition_ops.py``); the recorded chain step persists the
+    parameters *with generated ids filled in*, so the step replays exactly.
+
+    Like ``/apply``, an earlier ``from_state_id`` forks a new branch — and
+    because the gates belong to a branch, forking from before gate ① re-opens
+    the clay.
+    """
+
+    action: str
+    parameters: Dict[str, Any] = {}
+    user_annotation: Optional[str] = None
+    from_state_id: Optional[str] = None
+
+
+class ErgasterionFixRequest(BaseModel):
+    """Cross a workshop gate: ① fix the graph (composing → deriving) or
+    ② fix the chain (deriving → sealed).  Both fixings are themselves
+    recorded chain steps, so the whole episode — including its own
+    gate-crossings — replays."""
+
+    user_annotation: Optional[str] = None
+
+
 class ErgasterionSwitchBranchRequest(BaseModel):
     """Make a different workshop branch the active one (its tip becomes the
     state subsequent moves extend)."""

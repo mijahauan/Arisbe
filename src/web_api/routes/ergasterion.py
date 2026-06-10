@@ -47,13 +47,15 @@ if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
 from fastapi import APIRouter
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 from web_api.models.api_models import (
     ApiResponse,
     ErgasterionAdjustRequest,
     ErgasterionApplyRequest,
     ErgasterionClosureRequest,
+    ErgasterionComposeRequest,
+    ErgasterionFixRequest,
     ErgasterionOpenRequest,
     ErgasterionSaveScratchRequest,
     ErgasterionSwitchBranchRequest,
@@ -61,6 +63,7 @@ from web_api.models.api_models import (
 from web_api.services.ergasterion_session_manager import (
     WorkshopSession,
     get_ergasterion_session_manager,
+    phase_at_state,
     state_ancestry,
 )
 from web_api.services.introspection import egi_introspection
@@ -73,6 +76,12 @@ from web_api.services.layout_service import (
 )
 from web_api.services.linear_forms import linear_forms
 
+from composition_ops import (
+    COMPOSE_STEP_PREFIX,
+    FIX_CHAIN_STEP,
+    FIX_GRAPH_STEP,
+    apply_compose,
+)
 from correspondence_attestation import CorrespondenceViolation
 from layout_dto import BoundingBox, Point
 from presentation_ops import (
@@ -176,6 +185,10 @@ def _session_payload(session: WorkshopSession, svg: str) -> dict:
         "session_id": session.session_id,
         "base_source": session.base_source,
         "base_source_uod_id": session.base_source_uod_id,
+        # Which act the user is performing at the active branch's tip:
+        # composing (regime-1 clay) | deriving (the six rules) | sealed
+        # (read-only).  The UI's phase banner hangs off this.
+        "phase": session.phase,
         "svg": svg,
         "layout_dto": layout_dto_to_dict(session.current_layout_dto),
         "egi_summary": _egi_summary(session.current_egi),
@@ -198,6 +211,23 @@ def _session_payload(session: WorkshopSession, svg: str) -> dict:
             for d in session.presentation_deltas.get(session.chain.current_state_id, [])
         ],
     }
+
+
+def _phase_refusal(message: str, *, phase: str) -> JSONResponse:
+    """An out-of-phase action — explicit 409 (spec §4.3) so the gate is
+    unmistakable, with the same body shape as ApiResponse for the client."""
+    return JSONResponse(
+        status_code=409,
+        content={
+            "success": False,
+            "data": None,
+            "error": {
+                "code": "PHASE_REFUSED",
+                "message": message,
+                "phase": phase,
+            },
+        },
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -238,6 +268,10 @@ async def open_session(request: ErgasterionOpenRequest):
         base_source_uod_id: Optional[str] = None
         loaded_chain = None
         loaded_deltas: dict = {}
+        # Picking a base state IS picking a phase: an empty sheet is clay
+        # (composing); a corpus UoD's EGI is already a fixed graph, so the
+        # workshop opens deriving against it (spec §4.2).
+        base_phase = "composing"
 
         if base == "empty_sheet":
             initial_egi = parse_egif("")
@@ -258,6 +292,7 @@ async def open_session(request: ErgasterionOpenRequest):
                 )
             initial_egi = uod.current_egi
             base_source_uod_id = uod_id
+            base_phase = "deriving"
             # If this UoD carries a worked sequence of transformations (any
             # chain — not only "proofs"), load it so the workshop opens with the
             # whole sequence navigable, not just the final graph.  The canvas
@@ -265,6 +300,14 @@ async def open_session(request: ErgasterionOpenRequest):
             loaded_chain = tomos.load_chain(uod_id)
             if loaded_chain is not None:
                 initial_egi = loaded_chain.current_egi
+                # A chain that carries compose steps (or gate ①) began as
+                # clay — hydrate from "composing" so the recorded gates land
+                # each state's phase where it actually was.
+                if any(
+                    s.rule_name.startswith(COMPOSE_STEP_PREFIX)
+                    for s in loaded_chain.steps
+                ):
+                    base_phase = "composing"
                 # Restore any regime-3 hand-adjustments persisted with the chain
                 # so the UoD reopens in the workshop looking as it was saved.
                 loaded_deltas = {
@@ -306,6 +349,7 @@ async def open_session(request: ErgasterionOpenRequest):
             style_name=request.style_name,
             chain=loaded_chain,
             presentation_deltas=loaded_deltas,
+            base_phase=base_phase,
         )
 
         return ApiResponse(success=True, data=_session_payload(session, svg))
@@ -469,6 +513,9 @@ async def get_session_state(
                 "step_index": _step_index_of_state(session, state_id),
                 "step_count": session.step_count,
                 "is_tip": state_id == session.chain.current_state_id,
+                # The phase *at this state* (gates are recorded steps, so an
+                # earlier state may still be clay) — the banner tracks it.
+                "phase": phase_at_state(session, state_id),
                 "svg": svg,
                 "layout_dto": layout_dto_to_dict(dto),
                 "egi_summary": _egi_summary(egi),
@@ -628,6 +675,13 @@ async def open_scratch(scratch_id: str, style: Optional[str] = None):
             style_name=style_name,
             chain=chain,
             presentation_deltas=deltas,
+            # The draft's own gate steps (recorded in its chain) advance the
+            # phase from this base — phase_at_state walks them on demand.
+            base_phase=(
+                "deriving"
+                if str(meta.get("base_source", "")).startswith("uod:")
+                else "composing"
+            ),
         )
         return ApiResponse(success=True, data=_session_payload(session, svg))
     except CorrespondenceViolation as exc:
@@ -672,6 +726,221 @@ async def discard_session(session_id: str):
             },
         )
     return ApiResponse(success=True, data={"session_id": session_id})
+
+
+# --------------------------------------------------------------------------- #
+# Composition (regime 1) + the two fixings                                    #
+# --------------------------------------------------------------------------- #
+
+
+@router.post("/sessions/{session_id}/compose")
+async def compose(session_id: str, request: ErgasterionComposeRequest):
+    """One palette action while the clay is soft (spec §2, §4).
+
+    Dispatches to ``composition_ops.apply_compose`` and records the result as
+    a typed ``compose.<action>`` chain step whose parameters carry the
+    generated ids (``recorded_parameters``), so the step replays exactly.
+    Only legal while the from-state's phase is ``composing``; the well-formed
+    refusals (Dau context condition, unknown ids, …) come back as
+    ``COMPOSE_REFUSED`` with the op's own message.
+
+    Like ``/apply``, ``from_state_id`` defaults to the active line's tip; an
+    earlier state forks a new branch — and because gates belong to a branch,
+    forking from before gate ① re-opens the clay.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+
+        from_state_id = request.from_state_id or session.chain.current_state_id
+        from_egi = session.chain.states.get(from_state_id)
+        if from_egi is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "STATE_NOT_FOUND",
+                    "message": (
+                        f"Cannot compose from state '{from_state_id}': not "
+                        f"part of this session's active branch."
+                    ),
+                },
+            )
+
+        phase = phase_at_state(session, from_state_id)
+        if phase != "composing":
+            return _phase_refusal(
+                "The graph is fixed — step back before the fixing to fork a "
+                "new draft, or open a new session to compose.",
+                phase=phase,
+            )
+
+        try:
+            result = apply_compose(from_egi, request.action, request.parameters or {})
+        except ValueError as exc:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "COMPOSE_REFUSED",
+                    "message": str(exc),
+                    "action": request.action,
+                },
+            )
+
+        new_dto, svg = generate_layout(
+            result.egi,
+            previous_layout=session.current_layout_dto,
+            style_name=session.style_name,
+        )
+
+        action = request.action
+        if not action.startswith(COMPOSE_STEP_PREFIX):
+            action = f"{COMPOSE_STEP_PREFIX}{action}"
+        manager.add_step(
+            session_id,
+            rule_name=action,
+            parameters=result.recorded_parameters,
+            result_egi=result.egi,
+            new_layout_dto=new_dto,
+            from_state_id=from_state_id,
+            user_annotation=request.user_annotation,
+        )
+
+        session = manager.get_session(session_id)
+        payload = _session_payload(session, svg)
+        # What the op minted / removed, so the UI can select the new element
+        # for the next palette action without diffing the introspection block.
+        payload["compose_result"] = {
+            "created": result.created,
+            "removed": list(result.removed),
+        }
+        return ApiResponse(success=True, data=payload)
+
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={
+                "code": "CORRESPONDENCE_VIOLATION",
+                "message": str(exc),
+                "context": getattr(exc, "context", None),
+            },
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={
+                "code": "COMPOSE_ERROR",
+                "message": str(exc),
+                "type": type(exc).__name__,
+            },
+        )
+
+
+def _record_gate(
+    session_id: str,
+    *,
+    rule_name: str,
+    expected_phase: str,
+    refusal: str,
+    user_annotation: Optional[str],
+):
+    """Shared body of the two gate routes: a gate crossing is itself a
+    recorded chain step on the active line's tip — an identity step on the
+    graph that advances the *phase* (spec §4.2), so the whole episode,
+    including its own fixings, replays."""
+    manager = get_ergasterion_session_manager()
+    session = manager.get_session(session_id)
+    if session is None:
+        return ApiResponse(
+            success=False,
+            error={
+                "code": "SESSION_NOT_FOUND",
+                "message": f"Workshop session '{session_id}' not found.",
+            },
+        )
+
+    tip = session.chain.current_state_id
+    phase = phase_at_state(session, tip)
+    if phase != expected_phase:
+        return _phase_refusal(refusal, phase=phase)
+
+    dto, svg = generate_layout(
+        session.current_egi,
+        previous_layout=session.current_layout_dto,
+        style_name=session.style_name,
+    )
+    manager.add_step(
+        session_id,
+        rule_name=rule_name,
+        parameters={},
+        result_egi=session.current_egi,
+        new_layout_dto=dto,
+        from_state_id=tip,
+        user_annotation=user_annotation,
+    )
+    session = manager.get_session(session_id)
+    return ApiResponse(success=True, data=_session_payload(session, svg))
+
+
+@router.post("/sessions/{session_id}/fix-graph")
+async def fix_graph(session_id: str, request: ErgasterionFixRequest):
+    """Gate ① — fix the graph: composing → deriving (spec §4).
+
+    From here the graph is no longer clay; only the six Dau rules act on it.
+    Recorded as a ``compose.fix_graph`` identity step, so forking from a state
+    before this step re-opens composition on the new branch.
+    """
+    try:
+        return _record_gate(
+            session_id,
+            rule_name=FIX_GRAPH_STEP,
+            expected_phase="composing",
+            refusal=(
+                "The graph is already fixed — gate ① has been crossed on "
+                "this line."
+            ),
+            user_annotation=request.user_annotation,
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "FIX_GRAPH_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
+        )
+
+
+@router.post("/sessions/{session_id}/fix-chain")
+async def fix_chain(session_id: str, request: ErgasterionFixRequest):
+    """Gate ② — fix the chain: deriving → sealed (spec §4).
+
+    The derivation is complete; the line becomes read-only (disposition only:
+    save to scratch, send to Agon).  Recorded as a ``chain.fix`` identity
+    step; forking from before it re-opens derivation on the new branch.
+    """
+    try:
+        return _record_gate(
+            session_id,
+            rule_name=FIX_CHAIN_STEP,
+            expected_phase="deriving",
+            refusal=(
+                "Gate ② needs a deriving line: fix the graph first (①), "
+                "or — if already sealed — fork from an earlier state."
+            ),
+            user_annotation=request.user_annotation,
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "FIX_CHAIN_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
+        )
 
 
 # --------------------------------------------------------------------------- #
@@ -752,6 +1021,21 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
                         f"of this session's active branch."
                     ),
                 },
+            )
+
+        # Phase gate (spec §4.3): the six rules act on a *fixed* graph.
+        phase = phase_at_state(session, from_state_id)
+        if phase == "composing":
+            return _phase_refusal(
+                "The graph isn't fixed yet — finish composing and fix the "
+                "graph (gate ①) before deriving.",
+                phase=phase,
+            )
+        if phase == "sealed":
+            return _phase_refusal(
+                "This chain is fixed — step back before the fixing to fork "
+                "a new line, or open a new session.",
+                phase=phase,
             )
 
         state = begin_interaction(rule, from_egi)

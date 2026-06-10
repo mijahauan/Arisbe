@@ -252,6 +252,9 @@ def test_session_payload_introspection_carries_content_layer(client):
     ).json()
     sid = opened["data"]["session_id"]
     try:
+        # Gate ① first — an empty sheet opens composing; rules need deriving.
+        fixed = client.post(f"/ergasterion/sessions/{sid}/fix-graph", json={}).json()
+        assert fixed["success"], fixed
         # DC+ → ~[ ~[ ] ]; INS (P) into the outer (negative, depth-1) cut.
         after_dc = client.post(
             f"/ergasterion/sessions/{sid}/apply",

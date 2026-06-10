@@ -144,6 +144,22 @@ def _open_session(client, base_source: str):
     return body["data"]
 
 
+def _fix_graph(client, sid: str):
+    """Cross gate ① so the six rules apply.  An empty sheet now opens as
+    *clay* (composing phase, spec §4); the fixing is itself a recorded
+    ``compose.fix_graph`` chain step, so step counts include it."""
+    body = client.post(f"/ergasterion/sessions/{sid}/fix-graph", json={}).json()
+    assert body["success"] is True, body.get("error")
+    return body["data"]
+
+
+def _open_fixed(client, base_source: str = "empty_sheet"):
+    """Open a session and immediately fix the (possibly empty) graph —
+    the shortest path to a deriving session for rule-application tests."""
+    data = _open_session(client, base_source)
+    return _fix_graph(client, data["session_id"])
+
+
 # --------------------------------------------------------------------------- #
 # 1. Session lifecycle                                                        #
 # --------------------------------------------------------------------------- #
@@ -160,6 +176,8 @@ def test_open_session_with_empty_sheet(client, fresh_session_manager):
     assert data["egi_summary"]["cut_count"] == 0
     assert data["chain"]["step_count"] == 0
     assert data["chain"]["initial_state_id"] == data["chain"]["current_state_id"]
+    # An empty sheet opens as clay — the composing phase (spec §4).
+    assert data["phase"] == "composing"
 
 
 def test_open_session_with_corpus_uod(client, isolated_tomos):
@@ -169,6 +187,9 @@ def test_open_session_with_corpus_uod(client, isolated_tomos):
     assert data["base_source"] == f"uod:{seed_id}"
     assert data["base_source_uod_id"] == seed_id
     assert data["chain"]["step_count"] == 0
+    # A corpus UoD's EGI is already a fixed graph — the workshop opens
+    # deriving against it (no composing phase to cross).
+    assert data["phase"] == "deriving"
     # The base state's drawing was rendered — that means render-time
     # §3.3 attestation passed.  We just sanity-check it's non-trivial.
     assert data["egi_summary"]["vertex_count"] >= 0
@@ -317,7 +338,7 @@ def test_apply_dc_plus_on_empty_sheet(client, fresh_session_manager):
     sheet.  We use it to verify the apply pipeline works end-to-end
     without needing a real corpus subgraph.
     """
-    opened = _open_session(client, "empty_sheet")
+    opened = _open_fixed(client, "empty_sheet")
     sid = opened["session_id"]
 
     response = client.post(
@@ -331,8 +352,9 @@ def test_apply_dc_plus_on_empty_sheet(client, fresh_session_manager):
     data = body["data"]
     # A DC+ on empty creates two cuts (outer and inner) and no V/E.
     assert data["egi_summary"]["cut_count"] == 2
-    assert data["chain"]["step_count"] == 1
-    assert data["chain"]["steps"][0]["rule_name"] == "DC+"
+    # Steps: [compose.fix_graph (gate ①), DC+].
+    assert data["chain"]["step_count"] == 2
+    assert data["chain"]["steps"][-1]["rule_name"] == "DC+"
     # The chain's current state advanced past initial.
     assert data["chain"]["initial_state_id"] != data["chain"]["current_state_id"]
 
@@ -355,7 +377,7 @@ def test_apply_invalid_parameters_returns_precondition_failure(
     client, fresh_session_manager
 ):
     """Invalid parameters surface RuleInteraction's precondition message."""
-    opened = _open_session(client, "empty_sheet")
+    opened = _open_fixed(client, "empty_sheet")
     sid = opened["session_id"]
 
     # DC- requires selecting exactly one cut that contains exactly one
@@ -383,8 +405,8 @@ def test_apply_invalid_parameters_returns_precondition_failure(
 
 
 def test_chain_accumulates_across_multiple_applies(client, fresh_session_manager):
-    """Two successive applies leave the session with a 2-step chain."""
-    opened = _open_session(client, "empty_sheet")
+    """Two successive applies extend the chain (after the gate-① step)."""
+    opened = _open_fixed(client, "empty_sheet")
     sid = opened["session_id"]
 
     # Step 1: DC+ on empty sheet → 2 cuts.
@@ -402,8 +424,10 @@ def test_chain_accumulates_across_multiple_applies(client, fresh_session_manager
     body2 = r2.json()
     assert body2["success"], body2.get("error")
 
-    assert body2["data"]["chain"]["step_count"] == 2
-    assert [s["rule_name"] for s in body2["data"]["chain"]["steps"]] == ["DC+", "DC+"]
+    assert body2["data"]["chain"]["step_count"] == 3
+    assert [s["rule_name"] for s in body2["data"]["chain"]["steps"]] == [
+        "compose.fix_graph", "DC+", "DC+",
+    ]
     assert body2["data"]["egi_summary"]["cut_count"] == 4
 
 
@@ -433,10 +457,10 @@ def test_apply_does_not_fire_corpus_record_attestation(
     monkeypatch.setattr(tomos_service, "attest_correspondence", _spy)
     monkeypatch.setattr(layout_service, "attest_correspondence", _spy)
 
-    opened = _open_session(client, "empty_sheet")
+    opened = _open_fixed(client, "empty_sheet")
     sid = opened["session_id"]
 
-    observed_contexts.clear()  # ignore open-time render attestation
+    observed_contexts.clear()  # ignore open/gate-time render attestation
     response = client.post(
         f"/ergasterion/sessions/{sid}/apply",
         json={"rule": "DC+", "parameters": {"selected_elements": []}},
@@ -994,43 +1018,43 @@ def _apply(client, sid, rule, parameters=None, from_state_id=None):
 
 def test_apply_at_tip_extends_active_line(client, fresh_session_manager):
     """A move applied at the tip extends the active line — no new branch."""
-    data = _open_session(client, "empty_sheet")
+    data = _open_fixed(client, "empty_sheet")
     sid = data["session_id"]
     r1 = _apply(client, sid, "DC+")["data"]
-    assert r1["chain"]["step_count"] == 1
+    assert r1["chain"]["step_count"] == 2  # gate ① + DC+
     assert r1["branches"]["count"] == 1
     r2 = _apply(client, sid, "DC+")["data"]
-    assert r2["chain"]["step_count"] == 2
+    assert r2["chain"]["step_count"] == 3
     assert r2["branches"]["count"] == 1
 
 
 def test_apply_from_earlier_state_forks_a_branch(client, fresh_session_manager):
     """Backing up and applying a move forks a new branch; the original line is
     left intact and the new branch becomes active."""
-    data = _open_session(client, "empty_sheet")
+    data = _open_fixed(client, "empty_sheet")
     sid = data["session_id"]
     r1 = _apply(client, sid, "DC+")["data"]
-    s1 = r1["chain"]["steps"][0]["to_state_id"]
-    _apply(client, sid, "DC+")  # active line now 2 moves
+    s1 = r1["chain"]["steps"][-1]["to_state_id"]
+    _apply(client, sid, "DC+")  # active line now gate + 2 moves
 
     forked = _apply(client, sid, "DC+", from_state_id=s1)
     assert forked["success"] is True, forked.get("error")
     fd = forked["data"]
     assert fd["branches"]["count"] == 2
-    # The new branch is active and has 2 moves (1 shared prefix + the new one).
+    # The new branch is active: gate + first DC+ (shared prefix) + the new one.
     assert fd["branches"]["active_branch"] == 1
-    assert fd["chain"]["step_count"] == 2
-    # The original line (branch 0) is untouched — still 2 moves.
-    assert fd["branches"]["branches"][0]["step_count"] == 2
+    assert fd["chain"]["step_count"] == 3
+    # The original line (branch 0) is untouched — still gate + 2 moves.
+    assert fd["branches"]["branches"][0]["step_count"] == 3
     assert fd["branches"]["branches"][0]["active"] is False
 
 
 def test_switch_branch_restores_a_line(client, fresh_session_manager):
     """Switching to another branch makes it active and re-renders its tip."""
-    data = _open_session(client, "empty_sheet")
+    data = _open_fixed(client, "empty_sheet")
     sid = data["session_id"]
     r1 = _apply(client, sid, "DC+")["data"]
-    s1 = r1["chain"]["steps"][0]["to_state_id"]
+    s1 = r1["chain"]["steps"][-1]["to_state_id"]
     _apply(client, sid, "DC+")
     _apply(client, sid, "DC+", from_state_id=s1)  # fork → active = branch 1
 
@@ -1039,7 +1063,7 @@ def test_switch_branch_restores_a_line(client, fresh_session_manager):
     ).json()
     assert sw["success"] is True
     assert sw["data"]["branches"]["active_branch"] == 0
-    assert sw["data"]["chain"]["step_count"] == 2
+    assert sw["data"]["chain"]["step_count"] == 3
 
 
 def test_switch_unknown_branch_is_clean_error(client, fresh_session_manager):
@@ -1053,7 +1077,7 @@ def test_switch_unknown_branch_is_clean_error(client, fresh_session_manager):
 
 
 def test_apply_from_unknown_state_is_clean_error(client, fresh_session_manager):
-    data = _open_session(client, "empty_sheet")
+    data = _open_fixed(client, "empty_sheet")
     sid = data["session_id"]
     out = _apply(client, sid, "DC+", from_state_id="no-such-state")
     assert out["success"] is False
@@ -1081,7 +1105,7 @@ def isolated_scratch(tmp_path, monkeypatch):
 def test_scratch_save_list_open_delete_cycle(client, isolated_scratch):
     """A workshop line saves to scratch, lists, reopens as a session, deletes —
     regime-1 throughout (no §3.3 gate, never the corpus)."""
-    data = _open_session(client, "empty_sheet")
+    data = _open_fixed(client, "empty_sheet")
     sid = data["session_id"]
     _apply(client, sid, "DC+")
     _apply(client, sid, "DC+")
@@ -1090,7 +1114,7 @@ def test_scratch_save_list_open_delete_cycle(client, isolated_scratch):
         f"/ergasterion/sessions/{sid}/save-to-scratch", json={"name": "my draft"}
     ).json()
     assert saved["success"] is True, saved.get("error")
-    assert saved["data"]["step_count"] == 2
+    assert saved["data"]["step_count"] == 3  # gate ① + 2 moves
     scid = saved["data"]["scratch_id"]
 
     listing = client.get("/ergasterion/scratch").json()["data"]["drafts"]
@@ -1099,7 +1123,9 @@ def test_scratch_save_list_open_delete_cycle(client, isolated_scratch):
     reopened = client.post(f"/ergasterion/scratch/{scid}/open").json()
     assert reopened["success"] is True
     assert reopened["data"]["base_source"] == f"scratch:{scid}"
-    assert reopened["data"]["chain"]["step_count"] == 2
+    assert reopened["data"]["chain"]["step_count"] == 3
+    # The draft's recorded gate ① replays into the phase: still deriving.
+    assert reopened["data"]["phase"] == "deriving"
 
     deleted = client.delete(f"/ergasterion/scratch/{scid}").json()
     assert deleted["success"] is True

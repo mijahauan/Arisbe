@@ -1,45 +1,58 @@
 # Current Plan
 
-**Last Updated**: 2026-06-09 (second session: **∀x CLOSED — universal totality of
-addition proven** via the `universal_generalization` scaffold tactic; **selection-
-driven `fold_selection`** landed with its iso soundness gate. Both queued tasks done;
-full suite green: 1352 passed, 37 skipped.)
+**Last Updated**: 2026-06-09 (fourth session: **composition workflow implemented**
+— spec §6 steps 1–3 of `docs/COMPOSITION_WORKFLOW_SPEC.md`: `composition_ops.py`,
+session phases + `/compose` + the two gates, palette UI with phase banner. Full
+suite green: 1404 passed, 37 skipped.)
 
 ---
 
-## ▶ NEXT SESSION — start here: implement the composition workflow.
+## ▶ NEXT SESSION — start here: dogfood the composition workflow in the browser.
 
 > Running in a cloud agent (Devin Desktop) instead of the laptop? Read
 > **`docs/DEVIN_SETUP.md`** first.
 
-**The queued task: Ergasterion composition workflow — spec is written and
-author-reviewed, implement it.** Spec: **`docs/COMPOSITION_WORKFLOW_SPEC.md`**
-(2026-06-09; companion to `TRANSFORMATION_WORKFLOW_SPEC.md`). The finding: the
-workshop is a *derivation* UI that never got its *composition* half — on a blank
-sheet INS can never fire (positive area), ERA can't erase fresh ink, and the only
-authoring input is the EGIF textarea inside INS. The architecture already licenses
-the fix (regime 1 = invariant suspended on purpose); no UI/API ever implemented it.
+**The composition workflow is implemented but not yet browser-dogfooded.** All
+server behavior is test-covered (+52 tests; the spec §7 Human/Mortal scenario
+passes over HTTP end to end, palette → attach across the cut boundary → gate ① →
+DC+ → gate ② sealed), and the page's inline JS is syntax-checked — but no human
+(or browser) has yet clicked through the palette. First task: `uv run uvicorn
+web_api.main:app --reload --port 8000`, open `/ergasterion`, start an empty
+sheet, and walk spec §7 by hand: arm ▭ Relation ("Human", arity 1) → click the
+sheet → ◯ Cut → ▭ "Mortal" inside it (the cut glows as the target while a
+placing tool is armed) → ⟝ Attach (click Mortal, then Human's line) → watch the
+linear mirror pulse to `*x (Human x) ~[ (Mortal x) ]` → ① Fix this graph → DC+
+→ ② Fix this chain → disposition (vault to scratch / send to Agon). Check the
+two-click flows' hints, Esc-disarm, double-click rename, the banner tracking the
+*viewed* state's phase when stepping back (pre-gate states show COMPOSING and
+acting there forks fresh clay), and Settle staying live in every phase.
 
-The shape (author's decisions, 2026-06-09): **three phases, two fixings** —
-`COMPOSE → [① fix the graph] → DERIVE → [② fix the chain] → DISPOSE`, with:
-- a **palette** (Cut · Line of identity · Relation · Constant + Attach/Erase/
-  Rename/Fragment), every action a **typed compose chain step**
-  (`compose.add_relation`, …) — recorded, undoable (branch-on-edit), replayable;
-- **server compose ops** (new unprotected `src/composition_ops.py` over the public
-  immutable constructors), well-formedness enforced, soundness suspended;
-- gate ① fixes the draft as the chain's **base state** and opens the six rules;
-  gate ② seals the chain (read-only; regime-3/style still free *within the fixed
-  meaning*);
-- disposition only for a fixed chain: **vault** (scratch renamed), **send to
-  Agon** (unchanged, the only road to attested status), **publish to Organon as
-  an unattested workshop record** (badged facet — flagged in the spec §5.3 as a
-  mode-contract note for the author to confirm).
+Then spec §6 step 4 polish, as friction dictates: position deltas on click
+placement (ink lands where the click was, via the regime-3 layer), drag-as-
+logical-move while composing, bidirectional linear↔canvas editing, keyboard map.
+Note: **publish-to-Organon-as-unattested-record (spec §5.3) was deliberately NOT
+built** — it's flagged in the spec as a mode-contract question for the author;
+disposition today = vault (scratch) or send to Agon.
 
-Implementation order (spec §6): (1) `composition_ops.py` + tests → (2) session
-`phase` + `/compose`, `/fix-graph`, `/fix-chain` routes + tests → (3) palette UI,
-phase banner, gates, ghost previews, live linear mirror → (4) polish
-(bidirectional linear↔canvas, keyboard). Steps 1–2 are pure logic/routes, no
-protected modules. First fixture: the user's own scenario (spec §7).
+Implementation notes (this session):
+- `src/composition_ops.py` (unprotected) — add_cut/add_line/add_constant/
+  add_relation/attach/detach/rename/erase/move_to_area/graft_fragment over the
+  public immutable constructors; `apply_compose` dispatcher;
+  `verify_chain_replay` (compose exact / gates identity / rules by iso);
+  `COMPOSE_STEP_PREFIX`, `FIX_GRAPH_STEP`, `FIX_CHAIN_STEP`.
+- Phases are **per branch, derived from the chain**: gates are recorded steps
+  (`compose.fix_graph`, `chain.fix`); `phase_at_state` walks the active branch
+  from `base_phase` (empty_sheet → composing; uod: → deriving, unless the loaded
+  chain holds compose steps). Forking from before a gate re-opens the clay.
+- Routes: `POST /sessions/{id}/compose` (composing only), `/fix-graph`,
+  `/fix-chain`; out-of-phase = **409 + PHASE_REFUSED**; op refusals =
+  COMPOSE_REFUSED. State-detail (`GET …/states/{state_id}`) now carries the
+  phase *at that state* for the navigator banner.
+- UI (`ergasterion.html`): amber/green/neutral phase banner; right panel swaps
+  palette (composing) / rules (deriving) / disposition framing (sealed); armed
+  tools with crosshair + cut-glow target preview; two-click attach/move flows;
+  linear-mirror pulse per compose step; Fragment graft into the shift-selected
+  region; Settle (regime-3) free in all phases.
 
 Other queued (unchanged, lower priority): schema generator shared ambient
 parameter; CG/ISO 24707 conformance write-up for the definition node; corpus-import
@@ -47,6 +60,18 @@ the math theories; Gamma frontier; schema layout/correspondence; (optional,
 PROTECTED) widen `HeavyDotInsertionRule` to Dau's any-context rule.
 
 ---
+
+> **DONE this session (2026-06-09, fourth session) — composition workflow,
+> spec §6 steps 1–3.** New: `src/composition_ops.py` + `tests/test_composition_ops.py`;
+> session `base_phase`/`phase_at_state` in the session manager; `/compose`,
+> `/fix-graph`, `/fix-chain` routes + `tests/test_ergasterion_compose_routes.py`
+> (10 tests incl. the spec §7 fixture, fork-reopens-clay, scratch round-trip with
+> `verify_chain_replay`); palette UI + phase banner + gates in `ergasterion.html`.
+> Existing suites updated for the gate (apply now needs ① first): ergasterion/
+> export/introspection route tests. Full suite **1404 passed, 37 skipped**.
+> Browser dogfood deliberately left to the author (next session's first task).
+>
+> ---
 
 > **DONE this session (2026-06-09, third session) — Ergasterion composition
 > assessed and specced.** Examined the workshop end-to-end (`ergasterion.html`,

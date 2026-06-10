@@ -354,6 +354,70 @@
     }
     #rule-hint .hint.ok   { color: var(--success); }
     #rule-hint .hint.warn { color: var(--btn-danger); background: rgba(243,139,168,0.08); }
+    /* Phase banner — the unmistakable signal of which act the user is
+       performing (spec §5.1): composing amber, deriving green, sealed neutral. */
+    #phase-banner {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      z-index: 5;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      text-align: center;
+      display: none;
+    }
+    #phase-banner.composing { display: block; background: rgba(249,226,175,0.92); color: #1e1e2e; }
+    #phase-banner.deriving  { display: block; background: rgba(166,227,161,0.92); color: #1e1e2e; }
+    #phase-banner.sealed    { display: block; background: rgba(147,153,178,0.92); color: #1e1e2e; }
+    #phase-banner .consequence {
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+      margin-left: 8px;
+      opacity: 0.85;
+    }
+    /* The palette (composing). Same grid bones as the rule grid. */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .palette-grid button.action {
+      margin-bottom: 0;
+      text-align: center;
+      font-weight: 600;
+    }
+    .palette-grid button.action.armed {
+      background: var(--btn-primary);
+      color: var(--btn-primary-text);
+    }
+    #canvas.tool-armed { cursor: crosshair; }
+    #canvas.tool-armed g[data-element-id] { cursor: crosshair; }
+    /* Soft highlight on the region that would receive the armed tool's ink.
+       The cut glyph varies by style (rect / ellipse / hand-drawn path). */
+    #canvas g[data-element-type="cut"].compose-target > rect,
+    #canvas g[data-element-type="cut"].compose-target > ellipse,
+    #canvas g[data-element-type="cut"].compose-target > path {
+      stroke: #f9e2af;
+      stroke-width: 3px;
+      stroke-dasharray: 7 3;
+    }
+    .gate-consequence {
+      font-size: 10px;
+      color: #6c7086;
+      margin: -2px 0 10px;
+      font-style: italic;
+    }
+    /* The linear mirror pulses when a palette action lands, drawing the eye
+       to the sentence forming (spec §2.4). */
+    @keyframes lf-pulse {
+      0%   { box-shadow: 0 0 0 0 rgba(249,226,175,0.8); }
+      100% { box-shadow: 0 0 0 9px rgba(249,226,175,0); }
+    }
+    .lf-panel.pulse { animation: lf-pulse 0.6s ease-out 1; }
     #status {
       grid-column: 1 / -1;
       padding: 6px 14px;
@@ -489,6 +553,9 @@
 
     <!-- Center: canvas (the current EGI drawing) -->
     <section id="canvas">
+      <!-- Which act the user is performing (spec §5.1): always visible while
+           a session is open, so the regime is never ambiguous. -->
+      <div id="phase-banner"></div>
       <div id="canvas-placeholder">
         Pick a base context on the left to begin.
       </div>
@@ -504,6 +571,56 @@
 
         <div id="rules-section" style="display: none;">
 
+          <!-- Palette (composing phase). Four kinds of ink + the non-placing
+               actions — the palette IS the Beta ontology (spec §2.1). -->
+          <div id="palette-block" style="display: none;">
+            <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+              Palette — click the canvas to place
+            </h2>
+            <div class="palette-grid">
+              <button class="action" data-tool="add_cut" title="An oval in a region — negation">◯ Cut</button>
+              <button class="action" data-tool="add_line" title="A heavy spot — “something exists”">● Line</button>
+              <button class="action" data-tool="add_relation" title="A named spot with hooks">▭ Relation</button>
+              <button class="action" data-tool="add_constant" title="A labelled spot — a name">“a” Constant</button>
+              <button class="action" data-tool="attach" title="Wire a relation hook to a line: click the relation, then the line">⟝ Attach</button>
+              <button class="action" data-tool="detach" title="Unhook a relation argument: click the relation">⟞ Detach</button>
+              <button class="action" data-tool="move" title="Move an element to another region: click it, then the region">↪ Move</button>
+              <button class="action" data-tool="erase" title="Erase (cascades: a line takes its hooks, a cut its contents)">✕ Erase</button>
+            </div>
+            <div id="palette-params">
+              <div class="field" id="palette-name-field" style="display:none;">
+                <label>Relation name</label>
+                <input type="text" id="palette-name" placeholder="Human" />
+              </div>
+              <div class="field" id="palette-arity-field" style="display:none;">
+                <label>Arity (hooks)</label>
+                <input type="number" id="palette-arity" value="1" min="0" max="9" />
+              </div>
+              <div class="field" id="palette-label-field" style="display:none;">
+                <label>Constant label</label>
+                <input type="text" id="palette-label" placeholder="Socrates" />
+              </div>
+            </div>
+            <div id="palette-hint" style="font-size:10px; color:#89b4fa; min-height:14px; margin-bottom:8px;"></div>
+            <details style="margin-bottom:10px;">
+              <summary style="font-size:11px; color:#6c7086; cursor:pointer;">Fragment — graft EGIF text as ink</summary>
+              <div class="field" style="margin-top:6px;">
+                <textarea id="fragment-egif" placeholder="(Human *x) ~[ (Mortal x) ]"></textarea>
+              </div>
+              <button class="action" id="btn-graft">Graft into selected region (or sheet)</button>
+            </details>
+            <button class="action primary" id="btn-fix-graph">① Fix this graph</button>
+            <p class="gate-consequence">
+              From here the graph is no longer clay — it changes only by the
+              six rules. (Recorded; stepping back before it forks fresh clay.)
+            </p>
+            <p style="font-size:10px; color:#6c7086; margin-bottom:10px;">
+              Double-click a relation or constant to rename it.
+              Esc disarms the tool.
+            </p>
+          </div>
+
+          <div id="derive-block" style="display: none;">
           <div id="selection-bar">
             <span class="clear-sel" id="clear-selection">clear</span>
             <div class="sel-line">
@@ -519,16 +636,6 @@
               <code id="sel-area-display">none</code>
             </div>
             <div class="sel-line" id="rule-steps-guidance" style="margin-top:6px;"></div>
-          </div>
-
-          <!-- Settle ④b: a regime-3 toggle. On, the canvas drags to tidy the
-               drawing (move a vertex, resize a cut corner, reroute a line) —
-               appearance only, the logic is held fixed by the server. -->
-          <div id="settle-row" style="margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-            <button class="action" id="btn-settle" style="flex:0 0 auto;">✋ Settle</button>
-            <span style="font-size:10px; color:#6c7086;">
-              tidy the layout — drag a spot, a relation, a cut (body to move, corner to resize), or a line. Logic stays fixed.
-            </span>
           </div>
 
           <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
@@ -549,6 +656,24 @@
           <button class="action primary" id="btn-apply" disabled>
             Apply rule
           </button>
+
+          <button class="action" id="btn-fix-chain" style="margin-top:8px;">② Fix this chain</button>
+          <p class="gate-consequence">
+            The derivation is complete — the line becomes read-only
+            (navigate, restyle, dispose). Recorded; forking re-opens it.
+          </p>
+          </div><!-- /derive-block -->
+
+          <!-- Settle ④b: a regime-3 toggle, free in any phase. On, the canvas
+               drags to tidy the drawing (move a vertex, resize a cut corner,
+               reroute a line) — appearance only, the logic is held fixed by
+               the server. -->
+          <div id="settle-row" style="margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <button class="action" id="btn-settle" style="flex:0 0 auto;">✋ Settle</button>
+            <span style="font-size:10px; color:#6c7086;">
+              tidy the layout — drag a spot, a relation, a cut (body to move, corner to resize), or a line. Logic stays fixed.
+            </span>
+          </div>
 
           <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 6px;">
             Sequence · <span id="step-count">0</span> move(s)
@@ -582,8 +707,8 @@
                of an already-attested graph). §3.3 attests correspondence,
                not truth, so it is not on its own a ticket into the corpus. -->
           <div class="promote-section">
-            <div class="label">Keep this work</div>
-            <p style="font-size: 10px; color: #6c7086; margin-bottom: 8px;">
+            <div class="label" id="keep-label">Keep this work</div>
+            <p style="font-size: 10px; color: #6c7086; margin-bottom: 8px;" id="keep-desc">
               The workshop is regime-1: nothing here is asserted. Save a draft
               to <strong>scratch</strong> to return to it, or send it to
               <strong>Agon</strong> to be tested — only a graph that withstands
@@ -675,6 +800,15 @@
       // selection bar name elements by meaning (relation/label + polarity)
       // instead of by raw id, and lets us forewarn polarity mismatches.
       let currentIntrospection = null;
+
+      // Which act the user is performing (spec §4.2/§5.1): composing |
+      // deriving | sealed.  Drives the phase banner and which right-panel
+      // block (palette / rule grid / disposition) is live.
+      let currentPhase = null;
+      // The armed palette tool ('add_cut' | 'add_line' | …) and, for the
+      // two-click tools (attach / move), the first pick.
+      let armedTool = null;
+      let pendingPick = null;
 
       // ---- helpers ----
 
@@ -1053,6 +1187,12 @@
         // Shift is always a quick "select region" override, regardless of step.
         if (e.shiftKey) { selectRegion(resolveRegionAt(e)); return; }
 
+        // Composing with an armed palette tool: the click places ink.
+        if (currentPhase === 'composing' && armedTool) {
+          paletteCanvasClick(e);
+          return;
+        }
+
         // Plain click is dispatched by the *active step's* kind (the grammar
         // way — no modifier): a Spot step selects the region under the pointer
         // (a cut's interior, or empty space → the sheet); a Subject step
@@ -1066,6 +1206,346 @@
         toggleElement(id);
       }
 
+      // ---- composition (regime 1): phase banner + palette ----
+
+      const phaseBannerEl = document.getElementById('phase-banner');
+      const paletteBlockEl = document.getElementById('palette-block');
+      const deriveBlockEl = document.getElementById('derive-block');
+      const paletteHintEl = document.getElementById('palette-hint');
+      const keepLabelEl = document.getElementById('keep-label');
+      const keepDescEl = document.getElementById('keep-desc');
+      const keepDefaults = (keepLabelEl && keepDescEl)
+        ? { label: keepLabelEl.textContent, desc: keepDescEl.innerHTML }
+        : null;
+
+      const PHASE_BANNERS = {
+        composing: 'COMPOSING <span class="consequence">— nothing asserted; draw freely</span>',
+        deriving: 'DERIVING <span class="consequence">— graph fixed; change by rule only</span>',
+        sealed: 'FIXED CHAIN <span class="consequence">— read-only; style and replay</span>',
+      };
+
+      function updatePhaseUI() {
+        if (phaseBannerEl) {
+          phaseBannerEl.className = currentPhase || '';
+          phaseBannerEl.innerHTML =
+            (currentPhase && PHASE_BANNERS[currentPhase]) || '';
+        }
+        if (paletteBlockEl)
+          paletteBlockEl.style.display =
+            currentPhase === 'composing' ? 'block' : 'none';
+        if (deriveBlockEl)
+          deriveBlockEl.style.display =
+            currentPhase === 'deriving' ? 'block' : 'none';
+        // Sealed: the right panel becomes the disposition (spec §5).
+        if (keepDefaults) {
+          if (currentPhase === 'sealed') {
+            keepLabelEl.textContent = 'Dispose of this chain';
+            keepDescEl.innerHTML = 'The chain is fixed — navigate, restyle, ' +
+              'replay. Save it to <strong>scratch</strong> as a finished ' +
+              'draft, or send the result to <strong>Agon</strong> to be ' +
+              'tested. Stepping back before gate ② forks the line open again.';
+          } else {
+            keepLabelEl.textContent = keepDefaults.label;
+            keepDescEl.innerHTML = keepDefaults.desc;
+          }
+        }
+        if (currentPhase !== 'composing') disarmTool();
+      }
+
+      const TOOL_HINTS = {
+        add_cut: 'Click a region to draw a cut there.',
+        add_line: 'Click a region to place a line of identity — "something exists".',
+        add_relation: 'Name it, set the arity, then click a region to place the spot.',
+        add_constant: 'Type the name, then click a region to place it.',
+        attach: 'Click a relation, then the line to wire its first open hook onto.',
+        detach: 'Click a relation to unhook its first wired argument.',
+        move: 'Click an element, then the region to move it into.',
+        erase: 'Click an element to erase it (a cut takes its contents with it).',
+      };
+      const PLACING_TOOLS = ['add_cut', 'add_line', 'add_relation', 'add_constant'];
+
+      function setPaletteHint(msg) {
+        if (paletteHintEl) paletteHintEl.textContent = msg || '';
+      }
+
+      function updatePaletteParams() {
+        const show = (fid, on) => {
+          const el = document.getElementById(fid);
+          if (el) el.style.display = on ? 'block' : 'none';
+        };
+        show('palette-name-field', armedTool === 'add_relation');
+        show('palette-arity-field', armedTool === 'add_relation');
+        show('palette-label-field', armedTool === 'add_constant');
+      }
+
+      function paletteButtons() {
+        return document.querySelectorAll('#palette-block [data-tool]');
+      }
+
+      function disarmTool() {
+        armedTool = null;
+        pendingPick = null;
+        paletteButtons().forEach((b) => b.classList.remove('armed'));
+        canvasEl.classList.remove('tool-armed');
+        clearComposeTargetHighlight();
+        updatePaletteParams();
+        setPaletteHint('');
+      }
+
+      function armTool(tool) {
+        if (armedTool === tool) { disarmTool(); return; }
+        armedTool = tool;
+        pendingPick = null;
+        paletteButtons().forEach(
+          (b) => b.classList.toggle('armed', b.dataset.tool === tool));
+        canvasEl.classList.add('tool-armed');
+        updatePaletteParams();
+        setPaletteHint(TOOL_HINTS[tool] || '');
+      }
+
+      // One palette action → one recorded compose.* chain step. Works from
+      // any viewed state (an earlier one forks, same as /apply); the linear
+      // mirror pulses so picture and proposition visibly move together.
+      async function composeAction(action, parameters) {
+        if (!currentSessionId) return;
+        const fromStateId = stateIdForIndex(viewIndex);
+        const willFork = !atTip();
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/compose', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action, parameters, from_state_id: fromStateId,
+              }),
+            });
+          const body = await res.json();
+          if (!body.success) {
+            setStatus(action.replace(/_/g, ' ') + ' refused: ' +
+              (body.error && body.error.message), 'error');
+            return;
+          }
+          showSession({ ...body.data }, true);
+          pulseLinearPanel();
+          setStatus(action.replace(/_/g, ' ') +
+            (willFork ? ' — forked a new branch.' : ' ✓'), 'success');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
+      function pulseLinearPanel() {
+        const p = canvasEl.querySelector('.lf-panel');
+        if (!p) return;
+        p.classList.remove('pulse');
+        void p.offsetWidth;  // restart the animation
+        p.classList.add('pulse');
+      }
+
+      function elementType(id) {
+        const el = currentIntrospection && currentIntrospection.elements &&
+          currentIntrospection.elements[id];
+        return el ? el.type : null;
+      }
+
+      // How many relation hooks each vertex carries — distinguishes a bare
+      // placeholder dot (degree ≤ 1, unlabelled) from a wired line.
+      function vertexDegrees() {
+        const deg = {};
+        const els = (currentIntrospection && currentIntrospection.elements) || {};
+        for (const id in els) {
+          if (els[id].type !== 'edge') continue;
+          (els[id].incident_vertices || []).forEach((v) => {
+            deg[v] = (deg[v] || 0) + 1;
+          });
+        }
+        return deg;
+      }
+
+      function firstPlaceholderHook(edgeId) {
+        const els = (currentIntrospection && currentIntrospection.elements) || {};
+        const edge = els[edgeId];
+        if (!edge) return 0;
+        const deg = vertexDegrees();
+        const hooks = edge.incident_vertices || [];
+        for (let i = 0; i < hooks.length; i++) {
+          const v = els[hooks[i]];
+          if (v && !v.label && (deg[hooks[i]] || 0) <= 1) return i;
+        }
+        return 0;
+      }
+
+      function firstWiredHook(edgeId) {
+        const els = (currentIntrospection && currentIntrospection.elements) || {};
+        const edge = els[edgeId];
+        if (!edge) return 0;
+        const deg = vertexDegrees();
+        const hooks = edge.incident_vertices || [];
+        for (let i = 0; i < hooks.length; i++) {
+          const v = els[hooks[i]];
+          if (v && (v.label || (deg[hooks[i]] || 0) > 1)) return i;
+        }
+        return 0;
+      }
+
+      // The armed tool's canvas dispatch. Placing tools take the region under
+      // the click; attach/move are two-click flows held in pendingPick.
+      function paletteCanvasClick(e) {
+        // The linear mirror floats inside the canvas — clicks on it (copy,
+        // expand, format select) must not land ink underneath.
+        if (e.target.closest && e.target.closest('.lf-panel')) return;
+        const g = e.target.closest && e.target.closest('[data-element-id]');
+        const id = g && g.getAttribute('data-element-id');
+        const region = resolveRegionAt(e);
+        const tool = armedTool;
+
+        if (tool === 'add_cut' || tool === 'add_line') {
+          composeAction(tool, { context_id: region });
+          return;
+        }
+        if (tool === 'add_relation') {
+          const nameEl = document.getElementById('palette-name');
+          const name = (nameEl && nameEl.value || '').trim();
+          if (!name) { setPaletteHint('Name the relation first.'); return; }
+          const arityEl = document.getElementById('palette-arity');
+          const arity = Math.max(0, parseInt(arityEl && arityEl.value, 10) || 0);
+          composeAction('add_relation', { name, arity, context_id: region });
+          return;
+        }
+        if (tool === 'add_constant') {
+          const labelEl = document.getElementById('palette-label');
+          const label = (labelEl && labelEl.value || '').trim();
+          if (!label) { setPaletteHint('Type the constant’s name first.'); return; }
+          composeAction('add_constant', { label, context_id: region });
+          return;
+        }
+        if (tool === 'erase') {
+          if (!id) { setPaletteHint('Click an element to erase.'); return; }
+          composeAction('erase', { element_id: id });
+          return;
+        }
+        if (tool === 'detach') {
+          if (!id || elementType(id) !== 'edge') {
+            setPaletteHint('Click a relation to unhook.');
+            return;
+          }
+          composeAction('detach', { edge_id: id, hook_index: firstWiredHook(id) });
+          return;
+        }
+        if (tool === 'move') {
+          if (!pendingPick) {
+            if (!id) { setPaletteHint('Click the element to move first.'); return; }
+            pendingPick = { element_id: id };
+            setPaletteHint('Now click the region to move ' +
+              describeElement(id).label + ' into.');
+            return;
+          }
+          const el = pendingPick.element_id;
+          pendingPick = null;
+          setPaletteHint(TOOL_HINTS.move);
+          composeAction('move_to_area', { element_id: el, context_id: region });
+          return;
+        }
+        if (tool === 'attach') {
+          if (!pendingPick) {
+            if (!id || elementType(id) !== 'edge') {
+              setPaletteHint('Click the relation first.');
+              return;
+            }
+            pendingPick = { edge_id: id };
+            setPaletteHint('Now click the line of identity to wire it onto.');
+            return;
+          }
+          if (!id || elementType(id) !== 'vertex') {
+            setPaletteHint('Click a line of identity (a spot) to finish the attach.');
+            return;
+          }
+          const edgeId = pendingPick.edge_id;
+          pendingPick = null;
+          setPaletteHint(TOOL_HINTS.attach);
+          composeAction('attach', {
+            edge_id: edgeId,
+            hook_index: firstPlaceholderHook(edgeId),
+            vertex_id: id,
+          });
+          return;
+        }
+      }
+
+      // Ghost preview: while a placing tool is armed, the cut under the
+      // pointer glows as the would-be target region (the sheet shows none).
+      let lastComposeTarget = null;
+      function clearComposeTargetHighlight() {
+        if (lastComposeTarget) {
+          lastComposeTarget.classList.remove('compose-target');
+          lastComposeTarget = null;
+        }
+      }
+      canvasEl.addEventListener('mousemove', (e) => {
+        if (currentPhase !== 'composing' || !armedTool ||
+            PLACING_TOOLS.indexOf(armedTool) === -1) {
+          clearComposeTargetHighlight();
+          return;
+        }
+        const region = resolveRegionAt(e);
+        const target = (region && region !== sheetId)
+          ? canvasEl.querySelector(
+              'g[data-element-type="cut"][data-element-id="' +
+              cssAttr(region) + '"]')
+          : null;
+        if (target === lastComposeTarget) return;
+        clearComposeTargetHighlight();
+        if (target) {
+          target.classList.add('compose-target');
+          lastComposeTarget = target;
+        }
+      });
+
+      // Double-click renames a relation or a constant (composing only).
+      canvasEl.addEventListener('dblclick', (e) => {
+        if (currentPhase !== 'composing' || !currentSessionId) return;
+        const g = e.target.closest && e.target.closest('[data-element-id]');
+        const id = g && g.getAttribute('data-element-id');
+        const el = id && currentIntrospection &&
+          currentIntrospection.elements && currentIntrospection.elements[id];
+        if (!el) return;
+        if (el.type !== 'edge' && !(el.type === 'vertex' && el.label)) return;
+        const current = el.type === 'edge' ? (el.relation || '') : el.label;
+        const name = window.prompt('Rename “' + current + '” to:', current);
+        if (name === null || !name.trim() || name.trim() === current) return;
+        composeAction('rename', { element_id: id, name: name.trim() });
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && armedTool) disarmTool();
+      });
+
+      // The two fixings — recorded gate steps that advance the phase.
+      async function crossGate(gate) {
+        if (!currentSessionId) return;
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/' + gate, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({}),
+            });
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Gate refused: ' +
+              (body.error && body.error.message), 'error');
+            return;
+          }
+          showSession({ ...body.data }, true);
+          setStatus(gate === 'fix-graph'
+            ? '① Graph fixed — from here it changes only by the six rules.'
+            : '② Chain fixed — the line is read-only; restyle, replay, dispose.',
+            'success');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
       // Render via the shared DiagramViewer (the single client-side view engine).
       // preserveView holds the camera + animates survivors (Settle ④a/§3a
       // continuity); a fresh render fits-to-content.  Page-specific post-steps —
@@ -1077,6 +1557,7 @@
           transition: !!preserveView,
         });
         clearSelection();
+        clearComposeTargetHighlight();
         if (window.SettleAdjust && SettleAdjust.isEnabled()) SettleAdjust.refresh();
       }
 
@@ -1142,6 +1623,9 @@
           currentLayoutDto = body.data.layout_dto || null;
           currentEgif = egifFromForms(body.data.linear_forms);
           sheetId = (body.data.layout_dto && body.data.layout_dto.sheet_id) || sheetId;
+          // The banner tracks the phase *at the viewed state* — a pre-gate
+          // state is still clay (acting there forks an open branch).
+          if (body.data.phase) { currentPhase = body.data.phase; updatePhaseUI(); }
           // States in a sequence vary in size, so fit each frame (the chain-
           // player convention) rather than holding the camera.
           renderSvg(body.data.svg, false);
@@ -1269,6 +1753,10 @@
         currentEgif = egifFromForms(data.linear_forms);
         renderChain(data.chain);
         renderBranches(data.branches);
+        // Phase drives the right panel (palette / rules / disposition) and
+        // the banner. A payload without one (older endpoints) keeps the last.
+        if (data.phase) currentPhase = data.phase;
+        updatePhaseUI();
       }
 
       function egifFromForms(lf) {
@@ -1283,6 +1771,9 @@
         currentRule = null;
         currentIntrospection = null;
         currentChain = null;
+        currentPhase = null;
+        disarmTool();
+        updatePhaseUI();
         viewIndex = 0;
         pickerSection.style.display = 'block';
         sessionInfoEl.style.display = 'none';
@@ -1715,6 +2206,26 @@
       document.querySelectorAll('button.action[data-rule]').forEach((b) => {
         b.addEventListener('click', () => renderRuleParams(b.dataset.rule));
       });
+
+      // Palette tools + the Fragment graft + the two gates.
+      paletteButtons().forEach((b) => {
+        b.addEventListener('click', () => armTool(b.dataset.tool));
+      });
+      const btnGraft = document.getElementById('btn-graft');
+      if (btnGraft) {
+        btnGraft.addEventListener('click', () => {
+          const ta = document.getElementById('fragment-egif');
+          const egif = (ta && ta.value || '').trim();
+          if (!egif) { setStatus('Fragment needs EGIF text.', 'error'); return; }
+          composeAction('graft', { egif, context_id: selectedArea || null });
+        });
+      }
+      const btnFixGraph = document.getElementById('btn-fix-graph');
+      if (btnFixGraph)
+        btnFixGraph.addEventListener('click', () => crossGate('fix-graph'));
+      const btnFixChain = document.getElementById('btn-fix-chain');
+      if (btnFixChain)
+        btnFixChain.addEventListener('click', () => crossGate('fix-chain'));
 
       // Delegated: clicks on rendered elements toggle selection. Bound
       // once — canvasEl persists across re-renders even as its SVG child

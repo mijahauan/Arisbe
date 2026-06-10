@@ -28,6 +28,7 @@ _src_dir = Path(__file__).parent.parent.parent
 if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
+from composition_ops import FIX_CHAIN_STEP, FIX_GRAPH_STEP
 from egi_core_dau import RelationalGraphWithCuts
 from layout_dto import LayoutDTO
 from tomos_service import ChainStep, TransformationChain
@@ -54,6 +55,30 @@ def state_ancestry(chain: TransformationChain, state_id: str) -> List[str]:
         seen.add(cur)
     path.reverse()
     return path
+
+
+def phase_at_state(session: "WorkshopSession", state_id: str) -> str:
+    """The workshop phase *in effect at a given state* of the active branch:
+    ``composing`` | ``deriving`` | ``sealed``.
+
+    Phase is derivable from the chain itself (spec §4.2): the branch starts at
+    the session's ``base_phase`` and each recorded gate crossing —
+    ``compose.fix_graph`` (①), ``chain.fix`` (②) — advances it.  The gates
+    belong to a *branch*, not the session: forking from a state before gate ①
+    re-opens the clay while the fixed line stays fixed, which is why phase is
+    asked per-state rather than stored as one session flag.
+    """
+    phase = session.base_phase
+    if state_id == session.chain.initial_state_id:
+        return phase
+    for step in session.chain.steps:
+        if step.rule_name == FIX_GRAPH_STEP:
+            phase = "deriving"
+        elif step.rule_name == FIX_CHAIN_STEP:
+            phase = "sealed"
+        if step.to_state_id == state_id:
+            return phase
+    return phase
 
 
 @dataclass
@@ -84,6 +109,11 @@ class WorkshopSession:
     # only chooses how the current state is *drawn* — the first step toward
     # drawing-in-a-style.
     style_name: Optional[str] = None
+    # The phase the active branch's *initial state* is in: "composing" for an
+    # empty sheet or a reopened draft (any recorded gate crossings then advance
+    # it — see phase_at_state); "deriving" for a corpus-UoD base (an asserted
+    # graph is already fixed).  Spec: docs/COMPOSITION_WORKFLOW_SPEC.md §4.2.
+    base_phase: str = "composing"
     # Recorded regime-3 hand-adjustments (Settle ④b), keyed by the state id they
     # were authored at.  Sparse human overrides on top of (style + base layout);
     # replayed on re-render so a nudge survives a re-layout.  Per-state keying is
@@ -105,6 +135,11 @@ class WorkshopSession:
     @property
     def current_egi(self) -> RelationalGraphWithCuts:
         return self.chain.current_egi
+
+    @property
+    def phase(self) -> str:
+        """The phase at the active branch's tip."""
+        return phase_at_state(self, self.chain.current_state_id)
 
     @property
     def step_count(self) -> int:
@@ -133,6 +168,7 @@ class ErgasterionSessionManager:
         style_name: Optional[str] = None,
         chain: Optional[TransformationChain] = None,
         presentation_deltas: Optional[Dict[str, List[PresentationDelta]]] = None,
+        base_phase: str = "composing",
     ) -> WorkshopSession:
         """Open a new workshop session anchored at the given base state.
 
@@ -168,6 +204,7 @@ class ErgasterionSessionManager:
             base_source=base_source,
             base_source_uod_id=base_source_uod_id,
             style_name=style_name,
+            base_phase=base_phase,
             presentation_deltas=presentation_deltas or {},
         )
         self._sessions[session_id] = session
