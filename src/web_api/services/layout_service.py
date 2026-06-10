@@ -540,14 +540,13 @@ def generate_layout(
         # incident direction (idempotent on unmoved lines, interior-preserving).
         dto = elk_engine.rebuild_ligature_anchors(egi, dto)
 
-    # Canonical clockwise hook placement (Peirce Convention-13 placement as the
-    # order carrier, docs/EXACT_CORRESPONDENCE.md Phase 3c): under the clockwise
-    # convention, spread a *fragile* predicate's hooks (a near-collinear pair the
-    # eye can't order — the shared-vertex fan-in) into well-separated slots,
-    # preserving their natural clockwise order so no line is made to cross.  This
-    # makes the placement carry order robustly, so the numeral can be hidden
-    # (argument_order_numerals: never).  Geometry change ⇒ re-attest, falling back
-    # to the already-attested layout if the spread does not stay in correspondence.
+    # Clockwise placement as the order carrier (Peirce's writing convention,
+    # docs/EXACT_CORRESPONDENCE.md Phase 3c): under the clockwise convention draw
+    # each relation's hooks clockwise around the spot in ν-order, at the rotation
+    # that best aligns them with where the vertices lie (crossings minimized).
+    # The clockwise reading is then ν by construction; assign_order_labels marks
+    # only the single start anchor.  Geometry change ⇒ re-attest, falling back to
+    # the already-attested layout for any predicate the spread can't keep sound.
     if getattr(style, "argument_order_convention", "numbered") == "clockwise":
         from clockwise_placement import place_clockwise_hooks
         candidate = place_clockwise_hooks(egi, dto, style, elk_engine)
@@ -567,8 +566,9 @@ def generate_layout(
         egif = ""
 
     # Assign argument-order numerals per the style's convention (numbered → every
-    # ≥2-ary line; clockwise → only the Convention-13 overrides) so the served
-    # drawing visibly carries ν's order and the reader recovers it.  Annotation
+    # ≥2-ary line; clockwise → at most a single start anchor per relation, the
+    # Convention-13 start index, and none where the placement already reads ν) so
+    # the served drawing carries ν's order and the reader recovers it.  Annotation
     # only — positions/bounds/paths are untouched, so §3.3 (attested above) holds.
     from eg_reader import assign_order_labels
     dto = assign_order_labels(egi, dto)

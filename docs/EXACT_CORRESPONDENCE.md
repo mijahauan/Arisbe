@@ -181,33 +181,42 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
       vertex-label placement is read from a stable provisional straight pass
       (routing bends only a line's middle, not its endpoints), so the two passes
       don't chase each other.
-- **3c — clockwise placement as the order carrier. *Done* (2026-06-10).** Argument
-  order (ν) lives in the *geometry* under the clockwise convention — the angle each
-  hook leaves the spot, read clockwise from vertically-above (Peirce, CP 4.470 /
-  Conv. 13); the reader (`eg_reader._clockwise_order`) already recovered it. Two
-  pieces shipped:
-  - **the numeral is now a presentation-only toggle.** Style knob
-    `argument_order_numerals: auto | always | never` (`assign_order_labels` honours
-    it): `always` labels every ≥2-ary line, `never` draws none (rely on placement,
-    Peirce-pure), `auto` (default) is the per-convention behaviour. Toggling never
-    touches geometry, so §3.3 is indifferent.
-  - **canonical clockwise hook placement** (`clockwise_placement.place_clockwise_hooks`,
-    run pre-attestation in `layout_service`). A *hybrid, no-crossing* move: it
-    spreads a **fragile** predicate's hooks — a near-collinear pair the eye can't
-    order (the shared-vertex fan-in of `roberts_domain_modeling`, two hooks 0.6°
-    apart) — into well-separated slots, *preserving their natural clockwise order*
-    (no reorder ⇒ no line made to cross). So the placement carries order robustly
-    and the numeral can be safely hidden. A predicate whose hooks already read ν
-    keeps reading ν (now robustly); one whose natural order ≠ ν still reads its
-    natural order, so the Convention-13 numeric override still fires for it under
-    `auto` — exactly the cases geometry cannot fix without a crossing. Each
-    re-hooked line is locally guarded (crossing-multiset + area endpoints unchanged,
-    no non-incident-box occlusion) and the whole result re-attested with a fallback
-    to the pre-placement layout. *Empirical scope:* corpus-wide only 1 predicate is
-    fragile (roberts' fan-in, 0.6°→40°); §3.3 stays green; ordered round-trip 23/23
-    under `auto`; 19/23 under `never` (the 4 misses are the hard cases where the
-    layout puts vertices in an angular order that contradicts ν — Peirce's numeric
-    override exists for exactly them).
+- **3c — clockwise placement as the order carrier (Peirce's *writing* convention).
+  *Done* (2026-06-10).** ν *specifies* the argument order, so the drawing *shows*
+  it: a relation's hooks are drawn **clockwise around the spot in ν-order, by
+  construction** (CP 4.470 / Conv. 13). The clockwise reading is then ν by
+  construction — order lives in the geometry, not in a number on every line. Three
+  pieces:
+  - **the writing-convention placement** (`clockwise_placement.place_clockwise_hooks`,
+    run pre-attestation in `layout_service`). Every ≥2-ary predicate's hooks are
+    placed at evenly-spaced clockwise slots in ν-order, at the **rotation that best
+    aligns the fan with where the vertices actually lie** — so crossings are
+    minimized (when the layout already put the vertices in ν-clockwise order the
+    hooks point straight at them and nothing crosses; otherwise the orientation
+    with the least bending is chosen). A 10-ary relation becomes ten spokes 36°
+    apart, a clock face read clockwise. Each re-hooked line is rerouted around cuts
+    and label boxes (the two-tier router) and locally guarded (crossing-multiset +
+    area endpoints unchanged, no non-incident-box occlusion); a predicate the
+    spread can't keep sound — e.g. a high-arity relation crammed in a tight cut
+    whose spokes would pierce the boundary — is left at its natural hooks (graceful
+    degradation), and the whole result is re-attested with a fallback.
+  - **a single start anchor.** The clockwise placement carries the *order*; a reader
+    still needs ν's *first* hook. Pinning the fan to vertically-above would fight the
+    crossing-minimizing fit, so instead `assign_order_labels` marks at most one line
+    per relation — the numeral 1 on ν's first line (Conv. 13's start index) — and
+    none where the fit already reads ν from the top. **One mark, any arity**, never
+    a number on every line. (`read_drawing` is anchor-aware: the placement gives the
+    cyclic order, the anchor says where it begins.) Genuine permutations — which the
+    by-construction placement never produces, only a sound-reverted predicate can —
+    fall back to full numbering.
+  - **the numeral is a presentation-only toggle.** `argument_order_numerals: auto |
+    always | never`: `never` draws none (pure placement, Peirce-pure), `always`
+    numbers every line, `auto` (default) draws the sparse start anchors. Toggling
+    never touches geometry, so §3.3 is indifferent.
+  *Result:* corpus-wide §3.3 green; the clockwise hook order is a rotation of ν for
+  **every** ≥2-ary relation by construction; the ordered round trip recovers ν
+  **with zero numerals** (`never`, 23/23) — pure placement carries the whole
+  corpus's argument order, with zero near-spot crossings on these graphs.
 
 **Phase 4 — browser as client-side arbiter + freeform.** Carry the cut boundary
 polyline in the DTO (needed once cuts can be human-drawn); client-side

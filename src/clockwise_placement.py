@@ -1,33 +1,32 @@
-"""Canonical clockwise hook placement — Peirce's Convention-13 placement as the
-argument-order carrier (`docs/EXACT_CORRESPONDENCE.md` Phase 3c).
+"""Clockwise hook placement — Peirce's writing convention for argument order
+(`docs/EXACT_CORRESPONDENCE.md` Phase 3c).
 
-Under the **clockwise** argument-order convention a relation's argument order (its
-ν sequence) is read off the *clockwise order its hooks leave the spot*, from
-vertically-above (Peirce, CP 4.470 / Conv. 13).  The reader
-(``eg_reader._clockwise_order``) already recovers ν from those hook angles.  The
-gap this closes is *robustness*: when two hooks leave the spot at nearly the same
-angle (the shared-vertex fan-in — ``roberts_domain_modeling`` has two hooks 0.6°
-apart), the clockwise reading is fragile and a person could not tell the order
-without the numeral.  This pass **spreads a fragile predicate's hooks into
-well-separated slots**, so the placement carries order unambiguously and the
-numeral can be safely hidden (``argument_order_numerals: never``).
+ν *specifies* the argument order, so the drawing should *show* it: a relation's
+hooks are placed **clockwise around the spot in ν-order**, by construction (CP
+4.470 / Conv. 13).  The reader then recovers ν from the clockwise placement.
+This is the writing convention — the order is in the geometry, not in a number on
+every line.
 
-It is a **hybrid, no-crossing** move:
+Two design facts make it tractable:
 
-- It re-hooks a predicate *only* when its hooks are fragile (a pair closer than
-  ``FRAGILE_BELOW_DEG``), leaving comfortable layouts untouched.
-- It **preserves the hooks' natural cyclic order** (each path keeps its rank in
-  the clockwise-from-above sort), so no two lines are made to cross near the
-  spot — it only widens the gaps.  A predicate whose hooks already read ν keeps
-  reading ν (now robustly); one whose natural order ≠ ν still reads its natural
-  order, so the Convention-13 numeric override (``assign_order_labels``) still
-  fires for it under ``auto`` — exactly the cases geometry cannot fix without a
-  crossing.
+- **Crossings are inevitable but minimized.**  A vertex shared by several
+  relations can't sit in the clockwise-correct slot for all of them at once, so
+  some lines must cross near a spot.  We minimize them by choosing the *rotation*
+  of the clockwise fan that best aligns each hook slot with the direction its own
+  vertex actually lies (a 1-parameter fit) — when the layout already placed the
+  vertices in ν-clockwise order, the fit makes the hooks point straight at them
+  and nothing crosses; otherwise it picks the orientation with the least bending.
+- **One mark carries the start.**  The clockwise *order* is in the placement; a
+  reader still needs to know which hook is ν's first.  Pinning the fan to
+  "vertically above" would fight the crossing-minimizing fit, so instead a single
+  start anchor (the numeral 1 on ν's first line — Conv. 13's start index, drawn by
+  ``eg_reader.assign_order_labels``) marks it.  One mark, any arity — not a number
+  on every line.
 
-Each re-hooked predicate is validated locally (the ligature crossing-multiset and
-its area endpoints must be unchanged — the §3.3 identity properties); a predicate
-that would not stay sound is reverted to its original hooks.  The whole result is
-re-attested by the caller as a backstop.
+Each re-hooked line is rerouted around cuts and label boxes (the two-tier router)
+and locally guarded (crossing-multiset + area endpoints unchanged, no
+non-incident-box occlusion); a predicate that would not stay §3.3-sound is left at
+its natural hooks.  The whole result is re-attested by the caller as a backstop.
 """
 
 import dataclasses
@@ -46,33 +45,32 @@ from presentation_ops import (
     vertex_label_box,
 )
 
-# A predicate is "fragile" — worth re-hooking — when its two closest hooks leave
-# the spot within this many degrees of each other (the reader cannot reliably
-# order them).  Comfortable layouts (all gaps wider) are left untouched.
-FRAGILE_BELOW_DEG = 15.0
+# The widest a clockwise fan opens between adjacent hooks.  For low arity this
+# keeps the spokes a comfortable fan facing the arguments rather than flung to
+# opposite sides of the spot; for high arity the even spacing 2π/n is narrower
+# and wins, so the hooks ring the spot like a clock face.
+MAX_GAP_DEG = 75.0
 
-# The target separation a re-hooked predicate's adjacent hooks are spread to.
-TARGET_GAP_DEG = 40.0
-
-
-def _key(theta: float) -> float:
-    """Clockwise-from-vertically-above sort key, matching ``eg_reader``: screen y
-    grows downward, so increasing ``atan2`` is clockwise; rotate so straight-up
-    (−y) is the 0 start."""
-    return (theta + math.pi / 2.0) % (2.0 * math.pi)
+# Rotation-fit search resolution (degrees).  The fan is rigidly rotated to the
+# orientation that best aligns each hook with its vertex; 5° is finer than the
+# eye resolves and cheap for the small n a relation has.
+_FIT_STEP_DEG = 5.0
 
 
-def place_clockwise_hooks(
-    egi, dto: LayoutDTO, style, engine
-) -> LayoutDTO:
-    """Return ``dto`` with fragile ≥2-ary predicates' hooks spread into
-    well-separated clockwise slots (natural order preserved).  Only acts under
-    the clockwise convention; otherwise returns ``dto`` unchanged.
+def _circ_dist(a: float, b: float) -> float:
+    d = abs((a - b) % (2.0 * math.pi))
+    return min(d, 2.0 * math.pi - d)
 
-    ``engine`` is an ``ELKLayoutEngine`` (its static ``_predicate_hook_point`` /
+
+def place_clockwise_hooks(egi, dto: LayoutDTO, style, engine) -> LayoutDTO:
+    """Return ``dto`` with every ≥2-ary predicate's hooks placed clockwise in
+    ν-order (best-fit rotation, crossings minimized).  Only acts under the
+    clockwise convention; otherwise returns ``dto`` unchanged.
+
+    ``engine`` is an ``ELKLayoutEngine`` whose static ``_predicate_hook_point`` /
     ``_route_avoiding_cuts`` / ``_authorized_cuts`` and ``_compute_element_sizes``
-    are reused so the re-hooked lines route around cuts and label boxes exactly
-    as the cold layout does).
+    are reused, so the re-hooked lines route around cuts and label boxes exactly
+    as the cold layout does.
     """
     if getattr(style, "argument_order_convention", "numbered") != "clockwise":
         return dto
@@ -84,8 +82,7 @@ def place_clockwise_hooks(
     elem_area = element_area(egi)
     sizes = engine._compute_element_sizes(egi, style)
 
-    # Label boxes (owner-tagged) — soft obstacles for the rerouted stubs, exactly
-    # as ``_build_ligature_paths`` treats them.
+    # Label boxes (owner-tagged) — soft obstacles for the rerouted stubs.
     show_vertex_labels = (
         getattr(style, "vertex_rendering_mode", "dot_and_label") != "dot_only"
     )
@@ -122,62 +119,42 @@ def place_clockwise_hooks(
         P = dto.predicate_positions.get(pid)
         if P is None:
             continue
-        paths = [dto.ligature_paths[i] for i in idxs]
-        if any(len(p.points) < 2 for p in paths):
+        # ν order = ascending port_index.
+        order = sorted(idxs, key=lambda gi: dto.ligature_paths[gi].port_index)
+        paths = [dto.ligature_paths[gi] for gi in order]
+        verts = [dto.vertex_positions.get(p.vertex_id) for p in paths]
+        if any(v is None for v in verts):
             continue
-
-        # Natural hook keys (the direction each line currently leaves the spot).
-        def nat_key(p: LigaturePath) -> float:
-            ref = p.points[1]
-            return _key(math.atan2(ref.y - P.y, ref.x - P.x))
-
-        keys = [nat_key(p) for p in paths]
-        ordered = sorted(range(len(paths)), key=lambda k: keys[k])  # C
-        skeys = sorted(keys)
-        gaps = [
-            (skeys[(j + 1) % len(skeys)] - skeys[j]) % (2.0 * math.pi)
-            for j in range(len(skeys))
-        ]
-        if not gaps or math.degrees(min(gaps)) >= FRAGILE_BELOW_DEG:
-            continue  # comfortable separation already — leave it untouched
-
-        # Canonical slots: evenly spread by TARGET_GAP_DEG, centred on the mean
-        # direction of the incident vertices (so the fan still faces them).
-        vdirs = [
-            math.atan2(
-                dto.vertex_positions[p.vertex_id].y - P.y,
-                dto.vertex_positions[p.vertex_id].x - P.x,
-            )
-            for p in paths
-        ]
-        mx = sum(math.cos(a) for a in vdirs)
-        my = sum(math.sin(a) for a in vdirs)
-        mean = math.atan2(my, mx) if (mx or my) else 0.0
         n = len(paths)
-        step = math.radians(TARGET_GAP_DEG)
-        slot_thetas = [mean + (j - (n - 1) / 2.0) * step for j in range(n)]
-        # Assign the j-th-smallest-key slot to the j-th-smallest-key path, so the
-        # clockwise rank of every path is preserved (no reorder ⇒ no crossing).
-        slot_by_key = sorted(range(n), key=lambda j: _key(slot_thetas[j]))
-        assign: Dict[int, float] = {}
-        for j in range(n):
-            assign[ordered[j]] = slot_thetas[slot_by_key[j]]
+
+        # Clockwise slots in ν-order at the best-fit rotation.  key increases
+        # clockwise (= (θ+π/2) mod 2π); slot i at key base + i·g, so reading
+        # clockwise-from-above visits the ports in ν-order (up to where the seam
+        # falls — the single anchor pins that).
+        dirs = [math.atan2(v.y - P.y, v.x - P.x) for v in verts]
+        g = min(2.0 * math.pi / n, math.radians(MAX_GAP_DEG))
+        steps = max(1, int(round(360.0 / _FIT_STEP_DEG)))
+        best_thetas = None
+        best_cost = None
+        for s in range(steps):
+            base = s / steps * 2.0 * math.pi
+            thetas = [(base + i * g) - math.pi / 2.0 for i in range(n)]
+            cost = sum(_circ_dist(thetas[i], dirs[i]) for i in range(n))
+            if best_cost is None or cost < best_cost:
+                best_cost, best_thetas = cost, thetas
 
         pred_w, pred_h = sizes.get(pid, (40.0, 16.0))
         candidate: Dict[int, LigaturePath] = {}
         sound = True
-        for local_k, gi in enumerate(idxs):
+        for i, gi in enumerate(order):
             old = dto.ligature_paths[gi]
-            theta = assign[local_k]
+            theta = best_thetas[i]
             dirx, diry = math.cos(theta), math.sin(theta)
             far = Point(P.x + dirx * 1000.0, P.y + diry * 1000.0)
             hook = engine._predicate_hook_point(P, pred_w, pred_h, far)
             stub_d = math.hypot(hook.x - P.x, hook.y - P.y) + 14.0
             stub = Point(P.x + dirx * stub_d, P.y + diry * stub_d)
-            vpos = dto.vertex_positions.get(old.vertex_id)
-            if vpos is None:
-                sound = False
-                break
+            vpos = verts[i]
 
             pred_area = elem_area.get(pid)
             vert_area = elem_area.get(old.vertex_id)
@@ -219,15 +196,12 @@ def _path_sound(
     pts = new_p.points
     if len(pts) < 2:
         return False
-    # Vertex endpoint pinned.
     if (pts[-1].x, pts[-1].y) != (old_p.points[-1].x, old_p.points[-1].y):
         return False
-    # Predicate-side endpoint must sit in the predicate's area cut (if any).
     p_area = elem_area.get(new_p.predicate_id)
     if p_area in cut_bounds:
         if not point_in_cut(pts[0], cut_bounds[p_area], cut_shape, cut_radius):
             return False
-    # Crossing-multiset: every cut crossed exactly as required.
     v_area = elem_area.get(new_p.vertex_id, egi.sheet)
     pa = elem_area.get(new_p.predicate_id, egi.sheet)
     required = set(crossing_sequence(pa, v_area, parent_map))
@@ -241,7 +215,6 @@ def _path_sound(
                 return False
         elif actual > 0:
             return False
-    # Occlusion: not through a non-incident label box.
     for kind, owner, box in label_boxes:
         incident = (
             (kind == "predicate" and owner == new_p.predicate_id)

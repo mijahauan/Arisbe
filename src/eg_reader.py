@@ -154,25 +154,23 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
 
     convention = getattr(dto.style, "argument_order_convention", "numbered")
 
+    def cw_angle(path, pid: str) -> float:
+        """The angle the line leaves the spot, read clockwise from 'vertically
+        above' (Peirce).  Screen y grows downward, so increasing atan2(dy,dx) is
+        clockwise; rotate so straight-up (−y) is the 0 start."""
+        P = dto.predicate_positions[pid]
+        ref = path.points[1] if len(path.points) >= 2 else path.points[-1]
+        return (math.atan2(ref.y - P.y, ref.x - P.x) + math.pi / 2) % (2 * math.pi)
+
     def order_key(path, pid: str) -> float:
-        """The sort key that recovers argument order from the drawing.  A drawn
-        numeral (``order_label``) wins where present — it is the unambiguous mark a
-        person reads (Dau's numbers; Peirce's Convention-13 numeric override).
-        Otherwise the clockwise convention reads the hook angle, and (fallback for
-        an unlabelled drawing) the numbered convention uses ``port_index``."""
-        if path.order_label is not None:
-            return float(path.order_label)
+        """Placement-only sort key (no drawn numeral): the clockwise convention
+        reads the hook angle; the numbered convention has no geometric order to
+        read, so it falls back to the stored ``port_index``."""
         if convention == "clockwise":
-            # The angle the line leaves the spot, read clockwise from "vertically
-            # above" (Peirce).  Screen y grows downward, so increasing atan2(dy,dx)
-            # is clockwise; rotate so straight-up (−y) is the 0 start.
-            P = dto.predicate_positions[pid]
-            ref = path.points[1] if len(path.points) >= 2 else path.points[-1]
-            theta = math.atan2(ref.y - P.y, ref.x - P.x)
-            return (theta + math.pi / 2) % (2 * math.pi)
+            return cw_angle(path, pid)
         return float(path.port_index)
 
-    # Collect (order_key, vid) per predicate, then sort into the ν sequence.
+    # Collect (path, vid) per predicate, then recover the ν sequence.
     pending: Dict[str, List] = {pid: [] for pid in dto.predicate_positions}
     for path in dto.ligature_paths:
         pts = path.points
@@ -181,10 +179,37 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
         pid = nearest(pts[0], preds)   # predicate-hook end
         vid = nearest(pts[-1], verts)  # vertex end
         if pid is not None and vid is not None:
-            pending[pid].append((order_key(path, pid), vid))
+            pending[pid].append((path, vid))
+
+    def order_predicate(pid: str, items: List) -> List[str]:
+        """Recover one predicate's argument order from its drawn lines.  Three
+        carriers, in the order a reader trusts them:
+
+        - **full numbering** — every line carries a numeral (Dau's numbered
+          convention, or the clockwise full-disambiguation fallback): sort by
+          the numerals.
+        - **single anchor** — exactly one line carries a numeral (Peirce's
+          Convention-13 start index): the *clockwise placement* gives the cyclic
+          order and the anchor says where ν begins, so rotate the clockwise sort
+          to start at the anchored line.  One mark carries the order at any arity.
+        - **placement only** — no numeral: read clockwise from vertically-above
+          (clockwise), or fall back to the stored port (numbered-with-numerals-
+          hidden, where order simply isn't drawn).
+        """
+        n = len(items)
+        labeled = [(p, v) for (p, v) in items if p.order_label is not None]
+        if n >= 2 and len(labeled) == n:
+            return [v for _, v in sorted(items, key=lambda pv: pv[0].order_label)]
+        if n >= 2 and len(labeled) == 1:
+            ranked = sorted(items, key=lambda pv: cw_angle(pv[0], pid))
+            anchor = labeled[0][0]
+            ai = next(i for i, (p, _) in enumerate(ranked) if p is anchor)
+            ranked = ranked[ai:] + ranked[:ai]
+            return [v for _, v in ranked]
+        return [v for _, v in sorted(items, key=lambda pv: order_key(pv[0], pid))]
+
     incidence: Dict[str, List[str]] = {
-        pid: [vid for _, vid in sorted(items, key=lambda kv: kv[0])]
-        for pid, items in pending.items()
+        pid: order_predicate(pid, items) for pid, items in pending.items()
     }
 
     return ReadEG(sheet_id=dto.sheet_id, area=area, incidence=incidence)
@@ -207,43 +232,81 @@ def _clockwise_order(dto: LayoutDTO, pid: str) -> List[str]:
     return [v for _, v in sorted(items, key=lambda kv: kv[0])]
 
 
+def _rotation_offset(seq: List[str], cyc: List[str]):
+    """The k such that ``seq[i] == cyc[(i+k) % n]`` for all i — i.e. ``seq`` is
+    ``cyc`` read cyclically starting k steps in — or ``None`` if ``seq`` is not a
+    rotation of ``cyc``.  When ν is a rotation of the clockwise hook order, the
+    placement already carries the order *up to where you start reading*, so a
+    single start anchor (Conv. 13) suffices to pin it — no per-line numbering."""
+    n = len(seq)
+    if n == 0 or n != len(cyc) or sorted(seq) != sorted(cyc):
+        return None
+    for k in range(n):
+        if all(seq[i] == cyc[(i + k) % n] for i in range(n)):
+            return k
+    return None
+
+
 def assign_order_labels(egi, dto: LayoutDTO) -> LayoutDTO:
-    """Return ``dto`` with each ``LigaturePath.order_label`` set per the style's
-    argument-order convention, so the drawing carries ν's order visibly:
+    """Return ``dto`` with ``LigaturePath.order_label`` set so the drawing carries
+    ν's order with as few drawn numerals as the convention allows.
 
-    - ``"numbered"`` (Dau) — label every line of an ≥2-ary relation (1-based).
-    - ``"clockwise"`` (Peirce) — label *only* the relations whose natural
-      clockwise hook order does not already match ν (the Convention-13 numeric
-      override); relations the placement already shows clockwise stay unlabelled.
+    Under the **clockwise** convention (Peirce) order lives in the *placement* —
+    the hooks read clockwise from vertically-above.  So a relation needs:
 
-    The ``argument_order_numerals`` style knob overrides this per drawing —
-    ``"always"`` labels every ≥2-ary line, ``"never"`` labels none (rely on
-    placement), ``"auto"`` (default) is the per-convention behavior above.
+    - *no numeral* when the clockwise hook order already reads ν;
+    - a *single start anchor* (the numeral 1 on ν's first line — Convention 13's
+      start index) when ν is a rotation of the clockwise order: the placement
+      gives the cyclic order, the anchor says where it begins.  **One mark, any
+      arity** — this is the "distinguished argument" carrier, not a number on
+      every line;
+    - *full numbering* only when the hook order is a genuine permutation of ν
+      (not a rotation), which placement cannot disambiguate with one mark.
 
-    The renderer draws the label and ``read_drawing`` reads it, so the round trip
-    recovers the full ν including order under either convention (in ``"never"``
-    mode the order is carried by the clockwise placement alone).
+    Under the **numbered** convention (Dau) every ≥2-ary line is numbered.
+
+    The ``argument_order_numerals`` knob overrides this per drawing: ``"always"``
+    numbers every ≥2-ary line, ``"never"`` draws none (rely on placement),
+    ``"auto"`` (default) is the per-convention behaviour above.
+
+    The renderer draws the label and ``read_drawing`` reads it back, so the round
+    trip recovers the full ν including order; in ``"never"`` mode (or where no
+    anchor is drawn) the clockwise placement carries it alone.
     """
     convention = getattr(dto.style, "argument_order_convention", "numbered")
     numerals = getattr(dto.style, "argument_order_numerals", "auto")
     nu = {e.id: list(egi.nu.get(e.id, ())) for e in egi.E}
     arity = {pid: len(seq) for pid, seq in nu.items()}
 
-    needs_label = {}
+    # Per predicate: "none" (placement carries it), "anchor" (one start index),
+    # or "full" (number every line).
+    mode: Dict[str, str] = {}
     for pid, seq in nu.items():
         if arity[pid] < 2 or numerals == "never":
-            needs_label[pid] = False
+            mode[pid] = "none"
         elif numerals == "always":
-            needs_label[pid] = True
+            mode[pid] = "full"
         elif convention == "clockwise":
-            needs_label[pid] = _clockwise_order(dto, pid) != seq
+            cw = _clockwise_order(dto, pid)
+            if cw == seq:
+                mode[pid] = "none"           # placement already reads ν
+            elif _rotation_offset(seq, cw) is not None:
+                mode[pid] = "anchor"         # one start index pins the rotation
+            else:
+                mode[pid] = "full"           # genuine permutation — number all
         else:  # numbered
-            needs_label[pid] = True
+            mode[pid] = "full"
+
+    def label_for(p):
+        m = mode.get(p.predicate_id, "none")
+        if m == "full":
+            return p.port_index + 1
+        if m == "anchor":
+            return 1 if p.port_index == 0 else None  # mark ν's first line only
+        return None
 
     new_paths = [
-        dataclasses.replace(
-            p, order_label=(p.port_index + 1 if needs_label.get(p.predicate_id)
-                            else None))
+        dataclasses.replace(p, order_label=label_for(p))
         for p in dto.ligature_paths
     ]
     return dataclasses.replace(dto, ligature_paths=new_paths)

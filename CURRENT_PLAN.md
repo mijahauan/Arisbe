@@ -17,18 +17,18 @@ docs, memory).
 independent and unprotected). Phases 1, 2, 3a, 3b, 3c are all done — the exact
 label/numeral extents work is complete.
 
-### Phase 3c — clockwise placement — DONE 2026-06-10
-*The argument-order numeral is now a presentation-only toggle, and clockwise
-placement carries order robustly.* Style knob `argument_order_numerals:
-auto|always|never` (`assign_order_labels`): `never` relies purely on placement,
-`always` labels every ≥2-ary line, `auto` (default) is per-convention. Plus
-`clockwise_placement.place_clockwise_hooks` (run pre-attestation in
-`layout_service`): a hybrid no-crossing move that spreads a **fragile** predicate's
-hooks (a near-collinear pair the eye can't order — roberts' fan-in, 0.6°→40°) into
-well-separated slots, *preserving natural clockwise order* so no line is made to
-cross; locally guarded + re-attested with fallback. §3.3 green; ordered round-trip
-23/23 under `auto`, 19/23 under `never` (the 4 misses keep the Convention-13
-override — geometry can't carry an order the layout contradicts without a crossing).
+### Phase 3c — clockwise placement (Peirce's writing convention) — DONE 2026-06-10
+*ν specifies the order, so the drawing shows it: hooks drawn clockwise around the
+spot in ν-order, by construction.* `clockwise_placement.place_clockwise_hooks`
+(pre-attestation in `layout_service`): every ≥2-ary predicate's hooks → evenly
+spaced clockwise slots in ν-order, at the **rotation that best aligns with where
+the vertices lie** (crossings minimized — zero on the corpus; a 10-ary becomes a
+clock face). Rerouted around cuts/labels + locally guarded; a predicate the spread
+can't keep sound (e.g. high arity in a tight cut) reverts gracefully. Carried by a
+**single start anchor** (`assign_order_labels` marks ≤1 line/relation — Conv. 13's
+start index; `read_drawing` is anchor-aware), plus the `argument_order_numerals:
+auto|always|never` toggle. §3.3 green; clockwise order is a rotation of ν for every
+relation by construction; ordered round-trip **23/23 with zero numerals** (`never`).
 
 ### Label-aware ligature routing — DONE 2026-06-10
 *Phase 3b's deferred third occlusion property shipped with its constructive
@@ -77,11 +77,12 @@ arbiter; the logic stays coordinate-free.*
     boxes as soft obstacles, cuts stay hard; cleared the `roberts_domain_modeling`
     IT+ fan-in strike-through). Surfaced + fixed one real straddle ("Socrates" at a
     cut edge in `peirce_cp_4_394_man_mortal`).
-  - **3c — clockwise placement as the order carrier — DONE** (2026-06-10): the order
-    numeral became a presentation-only toggle (`argument_order_numerals:
-    auto|always|never`) and `place_clockwise_hooks` robustifies fragile hook fans
-    (no-crossing, natural order preserved) so placement carries ν without the
-    numeral. §3.3 green; 23/23 round-trip under `auto`, 19/23 under `never`.
+  - **3c — clockwise placement (writing convention) — DONE** (2026-06-10): hooks
+    drawn clockwise around the spot in ν-order by construction
+    (`place_clockwise_hooks`, best-fit rotation = crossings minimized; 10-ary = a
+    clock face), carried by a single start anchor + the `argument_order_numerals:
+    auto|always|never` toggle. §3.3 green; ordered round-trip 23/23 with zero
+    numerals (`never`).
 - **Phase 4 — DTO carries the cut polyline + browser `isPointInPath` hit-testing**
   (needed once cuts are human-drawn; unblocks the freeform canvas).
 
@@ -135,14 +136,18 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Recently shipped (newest first — detail in git / docs / memory)
 
-- **2026-06-10** — **Phase 3c: clockwise placement as the order carrier.** The
-  argument-order numeral is now a presentation-only toggle (`argument_order_numerals:
-  auto|always|never`, honoured by `assign_order_labels`). `clockwise_placement.
-  place_clockwise_hooks` (pre-attestation in `layout_service`) spreads a *fragile*
-  predicate's hooks (near-collinear pair — roberts' fan-in 0.6°→40°) into
-  well-separated slots, preserving natural clockwise order (no crossing); locally
-  guarded + re-attested with fallback. §3.3 green corpus-wide; ordered round-trip
-  23/23 under `auto`, 19/23 under `never`. Phase 3 (label/numeral extents) complete.
+- **2026-06-10** — **Phase 3c: clockwise placement as Peirce's writing convention.**
+  ν specifies the order → the drawing shows it: `clockwise_placement.
+  place_clockwise_hooks` draws every ≥2-ary relation's hooks clockwise around the
+  spot in ν-order by construction, at the best-fit rotation (crossings minimized; a
+  10-ary = a clock face), rerouted around cuts/labels + locally guarded (reverts
+  gracefully where unsound, e.g. high arity in a tight cut). Carried by a single
+  start anchor (`assign_order_labels` ≤1 mark/relation; `read_drawing` anchor-aware)
+  + the `argument_order_numerals: auto|always|never` toggle. §3.3 green; clockwise
+  order is a rotation of ν for every relation by construction; ordered round-trip
+  23/23 with **zero numerals** (`never`). Reframed mid-session from a corpus-tuned
+  fragile-patch to the writing convention at the author's direction. Phase 3
+  (label/numeral extents) complete.
 - **2026-06-10** — **Label-aware ligature routing** (Phase 3b's third occlusion
   property + its constructive partner). §3.3 check #3 refuses a line of identity
   running through a label box it is *not* incident to (`path_intersects_box`); the
