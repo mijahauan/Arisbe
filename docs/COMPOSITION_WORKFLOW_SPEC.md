@@ -120,28 +120,39 @@ composing phase is a **logical move** (`with_vertex_moved_to_context` /
 area reassignment), not a regime-3 violation — this is the one phase where
 crossing a boundary is exactly what the user means.
 
-### 2.3 Composition mutates one synchronic graph — it is **not** a chain
+### 2.3 The recorded step is a *rule application on a fixed graph* — composition is freeform
 
 **Revised 2026-06-09 (supersedes the earlier "every action is a recorded
-step").** On a blank sheet, or any graph not yet fixed, there is no logical or
-semiotic *chain* — only the placing, arranging, and removing of elements on what
-will become a single, **synchronic** graph with the meaning the author wants. An
-element is like a letter in a word: you place and erase it freely until the word
-is right, and the *order* in which letters were placed or removed carries no
-meaning. The view holds only the **presence, position, and removal** of elements
-— the current configuration — not a history of how it got there.
+step").** The principle:
 
-So each palette action (§4) `POST /compose` **mutates the live graph in place**
-and records **no step**. The session's composing branch stays a single-state
-chain (`steps == []`); the op simply replaces the synchronic graph
-(`update_composing_state`). Correcting a mistake is a direct edit — erase the
-element — not a step-back through a sequence.
+> **Every application of a transformation rule on a fixed graph is a recorded
+> step. Composition of the base graph is freeform and records nothing.**
 
-Only when the graph is **fixed** (gate ①) does a diachronic sequence begin: from
-there, transformation-rule applications are the recorded, navigable, undo/redo-able
-chain (§3 of the transformation spec), until the chain is itself fixed (gate ②)
-and saved to scratch or sent to Organon/Agon. The recorded chain's **base state
-is the fixed graph**; it contains no `compose.*` steps.
+This tracks the seam between a *synchronic* sign and a *diachronic* argument. A
+single graph is a proposition: its meaning is its **final configuration**, so the
+*order* in which its elements were placed or erased carries no logical or semiotic
+content — an element is a letter in a word, placed and erased freely until the
+word is right. The view holds only the **presence, position, and removal** of
+elements, never a history of how they got there. Composition is therefore
+**freeform**: each palette action (§4) `POST /compose` **mutates the live
+synchronic graph in place** (`update_composing_state`; the composing branch stays
+`steps == []`) and **records no step**. Correcting a mistake is a direct edit —
+erase the element — not a step-back through a sequence.
+
+The *recorded* unit appears only in the next phase. Once the graph is **fixed**
+(gate ①) the user explores the **paths of an argument** that is not yet fixed:
+each transformation-rule application *is* a recorded, navigable, undo/redo-able
+step (§3 of the transformation spec) — this is where the learning is. When the
+argument is itself fixed (gate ②), the **fixed base graph + the worked path** can
+be saved in Ergasterion as a possible graph/argument, or sent to Organon or Agon.
+The recorded chain's **base state is the fixed graph**; it contains no
+`compose.*` steps.
+
+Three categories, kept distinct: **(a) composition** — freeform structure-building
+of one synchronic graph, unrecorded; **(b) transformation** — recorded inference
+on the fixed graph, diachronic; **(c) presentation** (Settle / regime-3) — free
+repositioning in *any* phase, §3.3-attested, **never** a recorded step. (a)↔(b) is
+the fixing boundary; (c) is orthogonal to both.
 
 (Re-opening the clay: composing from the pre-gate synchronic base of a branch
 that has since been fixed forks a *fresh* composing draft — a new single-graph
