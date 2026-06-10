@@ -104,14 +104,89 @@ This folds into build step 1 (snapping + validity) and the canvas (step 2): the
 shaded region is what makes the snap legible rather than magic, and it is the same
 region the reader and the renderer share.
 
+## Exact correspondence: the cut *is* its curve (the target architecture)
+
+**Decided with the author 2026-06-10.** The deepest version of the requirement
+above, and the architecture the build should aim at from the start — refine the
+*model*, not the *approximation*. This generalizes beyond freeform: it is the
+geometric realization of the whole §3.3 invariant.
+
+**The diagnosis.** Imprecision lives in exactly one place, and it is eliminable.
+There are three layers, and only the middle one approximates:
+1. **The logic (EGI)** is *topological* — "X is inside C" is a partition of
+   elements into nested areas. Exact, pixel-agnostic; it does not want coordinates.
+2. **The drawing** is a set of *closed curves*. By the **Jordan Curve Theorem**,
+   any closed curve — box, oval, hand-drawn wobble — has a precise inside and
+   outside. So "inside the cut you drew" is also exact, for any shape, for free.
+3. **The geometry layer** (`point_in_cut`) is the *only* approximator, and only
+   because it tests a **proxy shape** (bounding box / inscribed ellipse) instead of
+   the **actual drawn curve**. Delete the proxy and the gap closes.
+
+**The model.** A cut *is a closed path* — the literal points the renderer draws —
+not a `BoundingBox`. Containment is **point-in-that-path** (ray-cast / winding
+number): exact, cheap, style-agnostic. The renderer draws the path; the test uses
+the same path; *what you see is what reads*. (This also recovers Peirce: a cut is a
+**boundary** — the *sep*, a line you cross — not a region; a box was already a small
+betrayal of that.)
+
+**The browser as the exact arbiter.** Client-side, the rendering engine that
+decides where every pixel of the curve goes is the same one that answers
+inside/outside: Canvas `Path2D` + `ctx.isPointInPath(path, x, y)`, or SVG
+`pathElement.isPointInFill(point)`. Hit-tested against the very path rendered — no
+second opinion to diverge. The logic still never touches a pixel; it receives the
+partition the exact test yields. (Server-side: sample each cut spline to a fine
+polyline once, share that one polyline between renderer and test.)
+
+**Ligatures fall out of the same move.** Once a cut is an exact closed path, a
+ligature is an exact *open* path, and **crossing becomes exact**: "does this line
+cross cut C, and how many times" = intersections of the ligature path with C's
+closed path (equivalently: transitions of inside/outside along the line). So the
+per-ligature **crossing-sequence invariant** (actual-vs-required crossing
+multiset — the project's topological ligature law) is checked against the literal
+drawn curves, no proxy. Three consequences, including the two the author named:
+- **Cross at a precise, chosen point on the actual boundary** — a clean single
+  transition outside→inside at a deterministic spot on C's curve, never a
+  tangential graze that a proxy might miscount.
+- **No spurious crossings** — the renderer can guarantee the line dips inside/
+  outside *only* the cuts in its required sequence, because it can test exactly.
+- **Obstacle avoidance** — knowing every exact path and spot/label position, route
+  the line *around* unrelated marks and sibling cuts it must not cross. (Routing
+  stays a constrained problem — connect A→B, cross exactly {C…}, avoid the rest —
+  but the constraints and the verification are now exact; ELK orthogonal routing
+  and the tension taut-thread router are the substrate.)
+
+**What it retires.** The box/ellipse/rounded special-casing in `point_in_cut`; the
+"keep decorative wobble under content-clearance" fudge (the wobble *is* the
+boundary now); the freeform corner-void. And it *characterizes* the one illegal
+case cleanly: curves that **cross** have well-defined insides individually but no
+consistent nesting — exactly the "cuts must nest or be separate" rule, now falling
+out of the geometry instead of bolted on.
+
+**What it costs, and why it fits.** The layout DTO must carry each cut's **path**
+(and consume the *same* path in renderer and test) rather than a bounding box —
+that is the whole change. It honors the existing layering: the logic stays
+**coordinate-free** (`natural_layout` imports no geometry — "own the
+dimensionality"), geometry lives entirely in the **projection** (renderer), and
+correspondence is checked at that boundary (`correspondence_attestation` /
+`eg_reader`). We are not adding a layer; we are making the projection's
+inside/outside and crossing tests *exact* instead of proxied — the
+**extent-based §3.3** the "drawn shape is authoritative" note already named as next,
+taken to its exact conclusion. End state: the entire §3.3 invariant (partition +
+incidence + crossing-sequence) is a set of *exact facts about the literal drawn
+picture*. Inerrant correspondence, realized geometrically.
+
 ## Build order
 
-1. **Visible containment + snapping + validity (the de-risked core).** First make
-   the containment region one shown shape (§"Visible containment regions" above):
-   verify/fix the rounded-rectangle box-vs-render gap, render cut interiors as
-   filled regions, add live area feedback. Then draw-time endpoint/containment
-   snapping and a `read_drawing`-based fix-time validity pass with legible
-   messages. This is what makes freeform usable and "fix = read" trustworthy.
+0. **Cut-as-closed-path containment (the foundation).** Carry each cut's path in
+   the DTO; replace `point_in_cut`'s box/ellipse proxy with point-in-path against
+   that shared path (client-side: the browser's `isPointInPath`/`isPointInFill`).
+   Extend the crossing test for ligatures to path-vs-path intersection. This is the
+   exact-correspondence target above; everything else assumes the region is exact.
+1. **Visible containment + snapping + validity (the de-risked core).** Render cut
+   interiors as filled regions (the exact path area) with live area feedback; then
+   draw-time endpoint/containment snapping and a `read_drawing`-based fix-time
+   validity pass with legible messages. This is what makes freeform usable and
+   "fix = read" trustworthy.
 2. **Freeform drawing canvas.** Replace the composing-phase palette's typed
    `composition_ops` with place/drag/erase of marks on a free `LayoutDTO`; no live
    EGI; live linear forms go silent until fix.
