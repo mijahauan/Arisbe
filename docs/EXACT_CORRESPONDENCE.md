@@ -110,10 +110,21 @@ nest or be separate," now falling out of the geometry.
 - Verify: corpus §3.3 round-trip still green (engine keeps marks clear of corners,
   so tightening the test must not regress); new tests pin the corner-void fix.
 
-**Phase 2 — exact ligature crossing.** Crossing test = ligature-polyline vs
-cut-boundary intersection (shared with Phase 1's boundary). The crossing-sequence
-attestation in `correspondence_attestation` consumes it. Chosen-crossing-point
-placement in the renderer; verify the crossing multiset corpus-wide.
+**Phase 2 — exact ligature crossing. *Done* (2026-06-10).** Crossing now reads off
+the *same* drawn boundary as Phase 1's containment: `count_cut_crossings` takes the
+corner radius and counts a ligature segment's crossings against the rounded
+rectangle the renderer draws — straight edges inset by the radius plus four
+quarter-circle corner arcs (`_rounded_rect_secant_crossings` / `_seg_arc_crossings`,
+the rounded-rect analogue of the box `_outside_edge_crossings` and the
+`_ellipse_secant_crossings` it already had). So a ligature that clips a rounded-away
+corner is counted as the eye sees it — *outside* the cut — not as a spurious entry,
+closing the crossing-side of the corner void. The crossing-multiset attestation in
+`correspondence_attestation` threads `cut_radius` into the call. Verified
+corpus-wide: 457 §3.3 tests green, zero regression; new unit tests pin the
+corner-graze (square box counts 2, rounded counts 0), straddle (1), and clean
+pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-point
+*placement* in the renderer — Phase 2 made the crossing *test* exact; deliberately
+*placing* each crossing on the boundary is a routing concern.
 
 **Phase 3 — extents for labels + numerals.** Predicate/constant containment uses
 the label box (wholly inside the cut boundary); a §3.3 "no straddle / no improper

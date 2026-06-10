@@ -1,9 +1,9 @@
 # Current Plan
 
-**Last Updated**: 2026-06-10 — exact-correspondence **Phase 1 shipped** (exact cut
-containment, no corner void); active arc = the exact-correspondence engine +
-freeform composition. History below condensed 2026-06-10 (detail lives in git, the
-docs, and memory).
+**Last Updated**: 2026-06-10 — exact-correspondence **Phases 1 & 2 shipped** (exact
+cut containment + exact ligature crossing, no corner void on either side); active
+arc = the exact-correspondence engine + freeform composition. History below
+condensed 2026-06-10 (detail lives in git, the docs, and memory).
 
 ---
 
@@ -20,10 +20,15 @@ arbiter; the logic stays coordinate-free.*
   `bounds_in_cut` test the rounded rectangle the renderer draws (corner radius), so
   the corner void is gone. Threaded through `eg_reader` + `correspondence_attestation`;
   zero regression (482 §3.3 tests).
-- **Phase 2 (next) — exact ligature crossing.** Crossing = ligature-polyline vs
-  cut-boundary intersection (reuse Phase 1's shared boundary); the crossing-sequence
-  attestation consumes it; verify the crossing multiset corpus-wide.
-- **Phase 3 — label/numeral extents.** Predicate/constant containment uses the label
+- **Phase 2 — exact ligature crossing — DONE** (2026-06-10): `count_cut_crossings`
+  takes the corner radius and counts crossings against the rounded rectangle the
+  renderer draws (edges inset by the radius + four corner arcs —
+  `_rounded_rect_secant_crossings`), so a ligature grazing a rounded-away corner
+  reads *outside* (not a spurious cut entry). Attestation threads `cut_radius`; 457
+  §3.3 tests green, new unit tests pin corner-graze / straddle / pass-through.
+  *Still open:* chosen-crossing-point *placement* in the renderer (a routing concern,
+  deferred).
+- **Phase 3 (next) — label/numeral extents.** Predicate/constant containment uses the label
   *box* (no straddle); §3.3 gains a "no straddle / no improper occlusion" check;
   clockwise *placement* as the order carrier → the argument-order numerals become a
   toggleable presentation-only annotation (a show/hide control).
@@ -80,6 +85,10 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Recently shipped (newest first — detail in git / docs / memory)
 
+- **2026-06-10** — Exact-correspondence **Phase 2** (exact ligature crossing): the
+  crossing test reads off the same rounded-rect boundary as Phase 1's containment
+  (`count_cut_crossings` corner-radius-aware; `_rounded_rect_secant_crossings` /
+  `_seg_arc_crossings`), closing the crossing-side of the corner void. 457 §3.3 green.
 - **2026-06-10** — Exact-correspondence Phase 1 (exact cut containment) +
   architecture doc + scope boundary. Ergasterion review: keep-in-view camera;
   composition reconceived as **synchronic** (no `compose.*` steps; chain begins at

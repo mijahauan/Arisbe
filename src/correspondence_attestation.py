@@ -242,7 +242,7 @@ def check_correspondence(
             bounds = cut_bounds.get(cut.id)
             if bounds is None:
                 continue
-            actual = count_cut_crossings(path.points, bounds, cut_shape)
+            actual = count_cut_crossings(path.points, bounds, cut_shape, cut_radius)
             if cut.id in required:
                 if actual != 1:
                     failures.append(

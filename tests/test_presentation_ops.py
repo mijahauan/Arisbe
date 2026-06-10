@@ -754,3 +754,37 @@ def test_bounds_in_cut_rounded_rejects_a_child_poking_into_a_corner():
     # A child kept clear of the corners is contained either way.
     clear = BoundingBox(30, 30, 70, 70)
     assert bounds_in_cut(clear, outer, "rounded_rectangle", r) is True
+
+
+# --- exact crossing: the corner graze is not a crossing (EXACT_CORRESPONDENCE Phase 2) --- #
+#
+# Phase 1 made *containment* read off the rounded curve. Phase 2 makes *crossing*
+# read off the same curve, so a ligature that clips a rounded-away corner is counted
+# as the eye sees it — outside the cut — not as a spurious entry. count_cut_crossings
+# takes the corner radius and tests the rounded rectangle the renderer draws.
+
+def test_count_cut_crossings_ignores_a_rounded_corner_graze():
+    from presentation_ops import count_cut_crossings
+    b = BoundingBox(0, 0, 100, 100)
+    r = 20.0
+    # A segment that clips the top-left square corner: it crosses the box's left and
+    # top edges (entering at (0,5), leaving at (5,0)) but stays out in the corner
+    # triangle, clear of the rounded arc.
+    graze = [Point(-5, 10), Point(10, -5)]
+    assert count_cut_crossings(graze, b, "rounded_rectangle", 0.0) == 2   # square box: enters + exits
+    assert count_cut_crossings(graze, b, "rounded_rectangle", r) == 0     # rounded: never inside
+
+
+def test_count_cut_crossings_rounded_straddle_and_passthrough():
+    from presentation_ops import count_cut_crossings
+    b = BoundingBox(0, 0, 100, 100)
+    r = 20.0
+    # One endpoint inside, one outside → exactly one boundary crossing.
+    straddle = [Point(50, 50), Point(50, -10)]
+    assert count_cut_crossings(straddle, b, "rounded_rectangle", r) == 1
+    # Both endpoints outside, a clean vertical pass through the middle → two.
+    through = [Point(50, -10), Point(50, 110)]
+    assert count_cut_crossings(through, b, "rounded_rectangle", r) == 2
+    # A predicate-to-vertex line that legitimately enters once and stops inside.
+    entering = [Point(50, -10), Point(50, 40)]
+    assert count_cut_crossings(entering, b, "rounded_rectangle", r) == 1

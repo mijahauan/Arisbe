@@ -400,21 +400,104 @@ def _ellipse_secant_crossings(a: Point, b: Point, bounds: BoundingBox) -> int:
     return sum(1 for t in roots if 1e-9 < t < 1.0 - 1e-9)
 
 
-def count_cut_crossings(points, bounds: BoundingBox, shape) -> int:
-    """Number of times a polyline crosses the cut boundary as the style draws it
-    — against the inscribed ellipse for an oval/circle style, the box otherwise.
-    The crossing-multiset form of §3.3 reads off the *drawn* curve."""
-    if not _is_oval(shape):
+def _seg_arc_crossings(
+    a: Point, b: Point, cx: float, cy: float, r: float, sx: int, sy: int
+) -> int:
+    """Proper intersections of segment (a,b) with one quarter-circle corner arc —
+    the arc of radius ``r`` about ``(cx, cy)`` lying in the *outward* quadrant given
+    by the sign pair ``(sx, sy)`` (e.g. ``(-1, -1)`` is the top-left corner, the arc
+    where ``x <= cx`` and ``y <= cy``).  The rounded-rect analogue of an edge test:
+    intersect the segment with the full circle, keep roots strictly interior to the
+    segment whose point falls in the arc's quadrant."""
+    ax, ay = a.x - cx, a.y - cy
+    bx, by = b.x - cx, b.y - cy
+    dx, dy = bx - ax, by - ay
+    A = dx * dx + dy * dy
+    if A < 1e-12:
+        return 0
+    B = 2.0 * (ax * dx + ay * dy)
+    C = ax * ax + ay * ay - r * r
+    disc = B * B - 4.0 * A * C
+    if disc <= 1e-9:  # miss, or tangent (a graze is not a crossing)
+        return 0
+    s = math.sqrt(disc)
+    count = 0
+    for t in ((-B - s) / (2.0 * A), (-B + s) / (2.0 * A)):
+        if 1e-9 < t < 1.0 - 1e-9:
+            px, py = ax + t * dx, ay + t * dy  # relative to the arc's centre
+            if px * sx >= -1e-9 and py * sy >= -1e-9:
+                count += 1
+    return count
+
+
+def _rounded_rect_secant_crossings(
+    a: Point, b: Point, bnd: BoundingBox, radius: float
+) -> int:
+    """Proper intersections of segment (a,b) with the rounded-rectangle boundary
+    when *both* endpoints are outside — 0 (miss/tangent) or 2 (clean pass-through),
+    the rounded-rect analogue of ``_outside_edge_crossings`` / ``_ellipse_secant_crossings``.
+
+    The boundary the renderer draws (`<rect rx=radius>`) is four straight edges —
+    each inset by ``radius`` so it spans only the flat part of a side — joined by
+    four quarter-circle arcs of ``radius`` centred at the inner-rectangle corners.
+    Counting crossings against *these* pieces (not the square box edges) is what
+    makes the crossing test read off the same drawn curve as Phase 1's containment,
+    so a line grazing a rounded-away corner is not miscounted as entering the cut."""
+    r = max(0.0, min(radius, (bnd.max_x - bnd.min_x) / 2.0, (bnd.max_y - bnd.min_y) / 2.0))
+    if r <= 0.0:
+        return _outside_edge_crossings(a, b, bnd)
+    ix0, iy0 = bnd.min_x + r, bnd.min_y + r   # inner-rectangle corners
+    ix1, iy1 = bnd.max_x - r, bnd.max_y - r
+    edges = (
+        (ix0, bnd.min_y, ix1, bnd.min_y),   # top    (flat span)
+        (bnd.max_x, iy0, bnd.max_x, iy1),   # right
+        (ix1, bnd.max_y, ix0, bnd.max_y),   # bottom
+        (bnd.min_x, iy1, bnd.min_x, iy0),   # left
+    )
+    total = sum(
+        1
+        for (x1, y1, x2, y2) in edges
+        if _segments_properly_cross(a.x, a.y, b.x, b.y, x1, y1, x2, y2)
+    )
+    for cx, cy, sx, sy in (
+        (ix0, iy0, -1, -1),   # top-left
+        (ix1, iy0,  1, -1),   # top-right
+        (ix1, iy1,  1,  1),   # bottom-right
+        (ix0, iy1, -1,  1),   # bottom-left
+    ):
+        total += _seg_arc_crossings(a, b, cx, cy, r, sx, sy)
+    return total
+
+
+def count_cut_crossings(
+    points, bounds: BoundingBox, shape, corner_radius: float = 0.0
+) -> int:
+    """Number of times a polyline crosses the cut boundary as the style draws it —
+    the inscribed ellipse for an oval/circle, the rounded rectangle (with
+    ``corner_radius``) for a Dau box, the plain box when ``corner_radius`` is 0.
+
+    The crossing-multiset form of §3.3 reads off the *drawn* curve, so this consumes
+    the same boundary as Phase 1's containment (``point_in_cut``): a ligature that
+    clips a rounded-away corner is counted exactly as the eye sees it — not as a
+    spurious entry into the cut (`docs/EXACT_CORRESPONDENCE.md` Phase 2).
+    ``corner_radius`` defaults to 0; callers with the style pass
+    ``style.cut_corner_radius``."""
+    if _is_oval(shape):
+        inside = lambda p: point_in_cut(p, bounds, shape)
+        secant = lambda a, b: _ellipse_secant_crossings(a, b, bounds)
+    elif corner_radius > 0.0:
+        inside = lambda p: _point_in_rounded_rect(p, bounds, corner_radius)
+        secant = lambda a, b: _rounded_rect_secant_crossings(a, b, bounds, corner_radius)
+    else:
         return count_boundary_crossings(points, bounds)
     total = 0
     for i in range(len(points) - 1):
         a, b = points[i], points[i + 1]
-        a_in = point_in_cut(a, bounds, shape)
-        b_in = point_in_cut(b, bounds, shape)
+        a_in, b_in = inside(a), inside(b)
         if a_in != b_in:
             total += 1
         elif not a_in and not b_in:
-            total += _ellipse_secant_crossings(a, b, bounds)
+            total += secant(a, b)
     return total
 
 
