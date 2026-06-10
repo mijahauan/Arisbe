@@ -327,6 +327,63 @@ class ErgasterionSessionManager:
         session.current_layout_dto = new_layout_dto
         return session
 
+    def update_composing_state(
+        self,
+        session_id: str,
+        *,
+        result_egi: RelationalGraphWithCuts,
+        new_layout_dto: LayoutDTO,
+        from_state_id: Optional[str] = None,
+    ) -> Optional[WorkshopSession]:
+        """Mutate the **single synchronic graph** of the composing phase in place.
+
+        Composition is not a chain: placing, arranging, and removing elements
+        just change the configuration of one graph that will become the fixed
+        utterance, and the *order* of those edits carries no logical meaning, so
+        nothing is recorded as a step (spec §2.3).  This replaces the live graph
+        rather than appending a ``ChainStep`` — the recorded, diachronic chain
+        begins only at gate ① (fix-graph).
+
+        Behaviour:
+          * the active branch's base, with no steps yet (a clay draft) → the base
+            EGI is replaced in place; still ``steps == []``;
+          * an earlier state of a branch that has since been fixed (re-opening the
+            clay before gate ①) → a fresh single-state composing draft is forked
+            and made active.
+
+        Returns the updated session, or ``None`` if the session is missing.
+        """
+        session = self.get_session(session_id)
+        if session is None:
+            return None
+
+        active = session.chain
+        if from_state_id is None:
+            from_state_id = active.current_state_id
+
+        pure_clay = from_state_id == active.initial_state_id and not active.steps
+        if pure_clay:
+            # Replace the live graph; the synchronic object simply changes.
+            session.chain = TransformationChain(
+                initial_state_id=active.initial_state_id,
+                steps=[],
+                states={active.initial_state_id: result_egi},
+            )
+        else:
+            # Re-opening the clay from before a fixing: a fresh composing draft.
+            new_id = f"state-{uuid.uuid4().hex[:8]}"
+            session.branches.append(
+                TransformationChain(
+                    initial_state_id=new_id,
+                    steps=[],
+                    states={new_id: result_egi},
+                )
+            )
+            session.active_branch = len(session.branches) - 1
+
+        session.current_layout_dto = new_layout_dto
+        return session
+
     def append_step(
         self,
         session_id: str,

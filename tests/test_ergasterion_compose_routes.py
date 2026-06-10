@@ -10,10 +10,12 @@ This file pins down the route contract:
 
 1. **Phase at open** — an empty sheet opens *composing*; a corpus UoD's
    EGI opens *deriving* (it is already a fixed graph).
-2. **Palette actions** — ``POST /compose`` lands each action as a typed
-   ``compose.<action>`` chain step whose parameters carry the generated
-   ids (replayable); refusals (Dau context condition, unknown ids,
-   unknown action) come back as ``COMPOSE_REFUSED``.
+2. **Palette actions** — ``POST /compose`` mutates the *single synchronic
+   graph* in place; composition is not a chain, so **no step is recorded**
+   (the order of placements/erasures carries no logical meaning). The
+   recorded, diachronic chain begins only at gate ①. Refusals (Dau context
+   condition, unknown ids, unknown action) come back as ``COMPOSE_REFUSED``
+   and change nothing.
 3. **Gate ①** — ``/fix-graph`` flips composing → deriving, recorded as a
    ``compose.fix_graph`` identity step; after it ``/compose`` is refused
    with 409, before it ``/apply`` is refused with 409 (spec §4.3).
@@ -165,37 +167,41 @@ def test_uod_base_opens_deriving_and_refuses_compose(
 
 
 # --------------------------------------------------------------------------- #
-# 2. Palette actions land as typed compose steps                              #
+# 2. Palette actions mutate the synchronic graph (no steps recorded)          #
 # --------------------------------------------------------------------------- #
 
 
-def test_compose_records_typed_replayable_steps(client, manager):
+def test_compose_mutates_synchronic_graph_without_recording_steps(client, manager):
+    """Each palette action changes the one graph being formed; the order is not
+    meaningful, so nothing is recorded as a step (the chain begins at gate ①)."""
     data = _open(client)
     sid = data["session_id"]
 
     r1 = _compose_ok(client, sid, "add_cut")
-    assert r1["chain"]["steps"][-1]["rule_name"] == "compose.add_cut"
     cut_id = r1["compose_result"]["created"]["cut"]
-    # The recorded step carries the generated id, so it replays exactly.
-    assert r1["chain"]["steps"][-1]["rule_name"].startswith("compose.")
-    step = manager.get_session(sid).chain.steps[-1]
-    assert step.parameters["cut_id"] == cut_id
+    # No step recorded — composition is synchronic, not a chain.
+    assert r1["chain"]["step_count"] == 0
+    assert manager.get_session(sid).chain.steps == []
+    assert r1["egi_summary"]["cut_count"] == 1
 
     r2 = _compose_ok(
         client, sid, "add_relation", {"name": "P", "context_id": cut_id}
     )
-    assert r2["chain"]["steps"][-1]["rule_name"] == "compose.add_relation"
+    # Still no steps; the edits simply accumulate on the single graph.
+    assert r2["chain"]["step_count"] == 0
     assert r2["egi_summary"]["edge_count"] == 1
     assert r2["egi_summary"]["vertex_count"] == 1  # placeholder line
     assert r2["egi_summary"]["cut_count"] == 1
     # Linear mirror moves with the canvas.
     assert "P" in r2["linear_forms"]["forms"]["egif"]["text"]
+    # The graph is the same synchronic object throughout (no new base id).
+    assert r2["chain"]["initial_state_id"] == r1["chain"]["initial_state_id"]
 
 
 def test_compose_namespaced_action_is_accepted(client, manager):
     data = _open(client)
     r = _compose_ok(client, data["session_id"], "compose.add_line")
-    assert r["chain"]["steps"][-1]["rule_name"] == "compose.add_line"
+    assert r["chain"]["step_count"] == 0  # composition records no steps
     assert r["egi_summary"]["vertex_count"] == 1
 
 
@@ -214,16 +220,17 @@ def test_compose_refusals_are_clean(client, manager):
     inner_line = _compose_ok(client, sid, "add_line", {"context_id": cut})[
         "compose_result"
     ]["created"]["vertex"]
+    before = manager.get_session(sid).current_egi
     refused = _compose(
         client, sid, "add_relation", {"name": "Q", "hooks": [inner_line]}
     ).json()
     assert refused["success"] is False
     assert refused["error"]["code"] == "COMPOSE_REFUSED"
 
-    # A refusal records no step.
-    assert (
-        manager.get_session(sid).chain.steps[-1].rule_name == "compose.add_line"
-    )
+    # A refusal changes nothing: still no steps, and the graph is untouched
+    # (no Q edge added).
+    assert manager.get_session(sid).chain.steps == []
+    assert manager.get_session(sid).current_egi is before
 
 
 # --------------------------------------------------------------------------- #
@@ -291,7 +298,9 @@ def test_fork_from_pre_gate_state_reopens_composition(client, manager):
     sid = data["session_id"]
 
     r1 = _compose_ok(client, sid, "add_relation", {"name": "P"})
-    pre_gate_state = r1["chain"]["steps"][-1]["to_state_id"]
+    # Composition records no steps, so the pre-gate state IS the synchronic
+    # base — the single graph that was being formed.
+    pre_gate_state = r1["chain"]["initial_state_id"]
     assert _fix(client, sid, "fix-graph").status_code == 200
     assert _fix(client, sid, "fix-chain").status_code == 200
     assert manager.get_session(sid).phase == "sealed"
@@ -338,18 +347,23 @@ def test_scratch_round_trip_preserves_gates_and_replays(
     assert reopened["success"] is True, reopened.get("error")
     rd = reopened["data"]
     assert rd["phase"] == "sealed"
+    # The recorded chain begins at gate ①: the composed graph (cut + P) is the
+    # base state, not a sequence of compose.* steps. Only the diachronic moves
+    # are recorded.
     assert [s["rule_name"] for s in rd["chain"]["steps"]] == [
-        "compose.add_cut",
-        "compose.add_relation",
         "compose.fix_graph",
         "DC+",
         "chain.fix",
     ]
+    # The base state carries the fully-composed graph.
+    base = rd["chain"]["initial_state_id"]
+    base_egi = manager.get_session(rd["session_id"]).chain.states[base]
+    assert len(base_egi.Cut) == 1 and len(base_egi.E) == 1
 
-    # The reloaded chain replays end-to-end: compose steps exactly
-    # (recorded ids), the rule step up to isomorphism, gates as identity.
+    # The reloaded chain replays end-to-end: the rule step up to isomorphism,
+    # gates as identity.
     session = manager.get_session(rd["session_id"])
-    assert verify_chain_replay(session.chain) == 5
+    assert verify_chain_replay(session.chain) == 3
 
 
 # --------------------------------------------------------------------------- #

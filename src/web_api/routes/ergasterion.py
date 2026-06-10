@@ -800,17 +800,14 @@ async def compose(session_id: str, request: ErgasterionComposeRequest):
             style_name=session.style_name,
         )
 
-        action = request.action
-        if not action.startswith(COMPOSE_STEP_PREFIX):
-            action = f"{COMPOSE_STEP_PREFIX}{action}"
-        manager.add_step(
+        # Composition is not a chain: the synchronic graph just changes, no step
+        # is recorded, and the order of edits carries no meaning (spec §2.3).
+        # The recorded chain begins only at gate ① (fix-graph).
+        manager.update_composing_state(
             session_id,
-            rule_name=action,
-            parameters=result.recorded_parameters,
             result_egi=result.egi,
             new_layout_dto=new_dto,
             from_state_id=from_state_id,
-            user_annotation=request.user_annotation,
         )
 
         session = manager.get_session(session_id)

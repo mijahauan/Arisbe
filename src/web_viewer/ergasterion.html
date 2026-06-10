@@ -675,6 +675,11 @@
             </span>
           </div>
 
+          <!-- The diachronic chain UI. Hidden while COMPOSING: a single graph
+               being formed is synchronic — there is no sequence yet, and the
+               order of placements/erasures carries no meaning. The sequence
+               begins only at gate ① (fix-graph). -->
+          <div id="sequence-panel">
           <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 6px;">
             Sequence · <span id="step-count">0</span> move(s)
           </h2>
@@ -701,6 +706,7 @@
           <div id="step-list">
             <div class="empty-state">No moves yet.</div>
           </div>
+          </div><!-- /#sequence-panel -->
 
           <!-- Workshop output: regime-1 stays in scratch; the corpus is
                reached only by testing in Agon (or a style-only reprojection
@@ -1236,6 +1242,15 @@
         if (deriveBlockEl)
           deriveBlockEl.style.display =
             currentPhase === 'deriving' ? 'block' : 'none';
+        // The diachronic chain UI (sequence, branches, navigator) and the
+        // Settle layout-tidy belong to a fixed graph being reasoned about, not
+        // to the synchronic clay. Hide them while composing.
+        const seqPanel = document.getElementById('sequence-panel');
+        const settleRow = document.getElementById('settle-row');
+        if (seqPanel)
+          seqPanel.style.display = currentPhase === 'composing' ? 'none' : 'block';
+        if (settleRow)
+          settleRow.style.display = currentPhase === 'composing' ? 'none' : 'flex';
         // Sealed: the right panel becomes the disposition (spec §5).
         if (keepDefaults) {
           if (currentPhase === 'sealed') {
@@ -1547,13 +1562,16 @@
       }
 
       // Render via the shared DiagramViewer (the single client-side view engine).
-      // preserveView holds the camera + animates survivors (Settle ④a/§3a
-      // continuity); a fresh render fits-to-content.  Page-specific post-steps —
-      // reset selection, redraw Settle handles — stay here.
+      // preserveView uses the 'keep' camera: it holds the view + animates
+      // survivors (Settle ④a/§3a continuity) while the graph still fits, and
+      // re-fits (animated) only when an edit would push it out of frame — so the
+      // graph stays properly in view as you compose/transform.  A fresh render
+      // fits-to-content.  Page-specific post-steps — reset selection, redraw
+      // Settle handles — stay here.
       const diagramView = new DiagramViewer({ minZoom: 0.1 }).attach(canvasEl);
       function renderSvg(svg, preserveView) {
         svgPanZoomInstance = diagramView.render(svg, {
-          camera: preserveView ? 'hold' : 'fit',
+          camera: preserveView ? 'keep' : 'fit',
           transition: !!preserveView,
         });
         clearSelection();

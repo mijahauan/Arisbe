@@ -82,7 +82,9 @@ class DiagramViewer {
     svgEl.setAttribute('width', '100%');
     svgEl.setAttribute('height', '100%');
 
-    const hold = camera === 'hold' && priorPan && priorAbsZoom;
+    // 'hold' and 'keep' both restore the prior camera; 'keep' additionally
+    // re-fits (animated) when the edited drawing no longer fits the frame.
+    const hold = (camera === 'hold' || camera === 'keep') && priorPan && priorAbsZoom;
     this.panZoom = window.svgPanZoom(svgEl, {
       zoomEnabled: true,
       controlIconsEnabled: false,
@@ -100,13 +102,44 @@ class DiagramViewer {
         if (newReal) this.panZoom.zoom(priorAbsZoom / newReal);
         this.panZoom.pan(priorPan);
       } catch (_) {}
-      if (oldCenters && window.DiagramTransition) {
+      // Keep-in-view: if an edit pushed the drawing out of frame (or shrank it
+      // to a speck), animate a re-fit from the held view so the graph stays
+      // properly visible without a jarring snap. When it still fits, behave
+      // exactly like 'hold' (no motion / survivor transition).
+      if (camera === 'keep' && !this._contentFitsViewport(svgEl)) {
+        try { this.panZoom.fit(); this.panZoom.center(); } catch (_) {}
+        this._dollyCamera(priorAbsZoom, priorPan);
+      } else if (oldCenters && window.DiagramTransition) {
         window.DiagramTransition.play(c, oldCenters, priorAbsZoom, 420);
       }
     } else if (wantDolly && priorPan && priorAbsZoom) {
       this._dollyCamera(priorAbsZoom, priorPan);
     }
     return this.panZoom;
+  }
+
+  /**
+   * Does the drawing currently fit the viewport? Compares the pan-zoom viewport
+   * group's screen rect to the container's, with a small tolerance. Returns
+   * false when content overflows the frame OR has shrunk to a speck (both are
+   * cases where 'keep' should re-fit). Conservative: returns true if anything
+   * can't be measured, so an unknown never triggers an unwanted re-fit.
+   */
+  _contentFitsViewport(svgEl) {
+    try {
+      const vp = svgEl.querySelector('.svg-pan-zoom_viewport');
+      const cr = this.container && this.container.getBoundingClientRect();
+      if (!vp || !cr || !cr.width || !cr.height) return true;
+      const r = vp.getBoundingClientRect();
+      if (!r.width || !r.height) return true;
+      const m = 6; // px tolerance at the edges
+      const within = r.left >= cr.left - m && r.top >= cr.top - m &&
+                     r.right <= cr.right + m && r.bottom <= cr.bottom + m;
+      const tooSmall = r.width < cr.width * 0.2 && r.height < cr.height * 0.2;
+      return within && !tooSmall;
+    } catch (_) {
+      return true;
+    }
   }
 
   /** Animate the camera from a previous (absolute) view to the new fitted one. */

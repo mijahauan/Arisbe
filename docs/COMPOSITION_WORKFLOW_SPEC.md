@@ -120,20 +120,32 @@ composing phase is a **logical move** (`with_vertex_moved_to_context` /
 area reassignment), not a regime-3 violation — this is the one phase where
 crossing a boundary is exactly what the user means.
 
-### 2.3 Every action is a typed, undoable, replayable step
+### 2.3 Composition mutates one synchronic graph — it is **not** a chain
 
-Each palette action posts one compose op (§4) and is recorded as a
-`ChainStep` whose `rule_name` is namespaced: `compose.add_cut`,
-`compose.add_line`, `compose.add_relation`, `compose.add_constant`,
-`compose.attach`, `compose.detach`, `compose.rename`, `compose.erase`,
-`compose.graft`. Undo is what it already is for rules: step back in the
-navigator and continue — branch-on-edit applies to composing exactly as to
-deriving. Replay of a compose step re-executes the op from `parameters`
-(a compose-aware arm beside `replay_step`'s six-rule arm).
+**Revised 2026-06-09 (supersedes the earlier "every action is a recorded
+step").** On a blank sheet, or any graph not yet fixed, there is no logical or
+semiotic *chain* — only the placing, arranging, and removing of elements on what
+will become a single, **synchronic** graph with the meaning the author wants. An
+element is like a letter in a word: you place and erase it freely until the word
+is right, and the *order* in which letters were placed or removed carries no
+meaning. The view holds only the **presence, position, and removal** of elements
+— the current configuration — not a history of how it got there.
 
-This keeps one chain, one navigator, one branch model, one scratch
-persistence format (`chain.jsonl` with a `compose.*` step type) across the
-whole episode.
+So each palette action (§4) `POST /compose` **mutates the live graph in place**
+and records **no step**. The session's composing branch stays a single-state
+chain (`steps == []`); the op simply replaces the synchronic graph
+(`update_composing_state`). Correcting a mistake is a direct edit — erase the
+element — not a step-back through a sequence.
+
+Only when the graph is **fixed** (gate ①) does a diachronic sequence begin: from
+there, transformation-rule applications are the recorded, navigable, undo/redo-able
+chain (§3 of the transformation spec), until the chain is itself fixed (gate ②)
+and saved to scratch or sent to Organon/Agon. The recorded chain's **base state
+is the fixed graph**; it contains no `compose.*` steps.
+
+(Re-opening the clay: composing from the pre-gate synchronic base of a branch
+that has since been fixed forks a *fresh* composing draft — a new single-graph
+clay — leaving the fixed line intact.)
 
 ### 2.4 The live linear mirror
 
@@ -266,11 +278,11 @@ rest of the spec.
    layer: each op's happy path, §3 refusals (sibling-cut attach, dangling
    erase), cascade semantics, and `compose-op ∘ undo = identity` shapes.
 2. **Session phases + routes + `tests/test_ergasterion_compose_routes.py`**
-   — empty sheet opens composing; palette actions land as typed steps;
-   navigator/branching over compose steps; gate ① flips phase and refuses
-   out-of-phase actions both ways; gate ② seals; scratch/vault round-trip
-   preserves compose steps and fixings; compose-aware replay verifies a
-   loaded chain end-to-end.
+   — empty sheet opens composing; palette actions mutate the synchronic graph
+   and record **no** step (the chain begins at gate ①); gate ① flips phase and
+   refuses out-of-phase actions both ways; gate ② seals; scratch/vault
+   round-trip preserves the fixed-graph base + the recorded chain (gates + rule
+   moves, no `compose.*`); replay verifies the loaded chain end-to-end.
 3. **UI: palette + phase banner + gates** — tool arming, ghost previews,
    placement (area + position delta), drag/resize/attach/erase, inline
    rename, live linear panel; disposition panel.
