@@ -128,3 +128,37 @@ polyline in the DTO (needed once cuts can be human-drawn); client-side
 
 The phases are independent wins: Phase 1 alone fixes a real §3.3 gap and is the
 prerequisite for the freeform canvas's "visible, unambiguous containment regions."
+
+## Scope boundary: structured placement, not pixel recognition
+
+**The load-bearing design choice — and the reason the "read" direction is
+tractable at all.** "Convert a user drawing into an EGI" hides two problems that
+are worlds apart:
+
+- **In scope — reading *structured placement*.** In Arisbe's freeform canvas the
+  user places **typed marks**: *this is a cut, this is a relation labelled P, this
+  is a line of identity* — the tool that made each mark already carries its
+  identity. The system never *recognises* anything; it only reads the
+  **relationships** (containment, incidence, crossing-sequence, order) from
+  geometry — which is exactly `eg_reader.read_drawing`, already round-tripping the
+  whole corpus and made *exact* by this document. The only open work is human
+  *imprecision* (a line stopping short, a spot near a boundary), handled by
+  **snapping + validity**, not intelligence. **Arisbe reads structured placement,
+  not pixels.**
+
+- **DEFERRED, out of current scope — reading a *raster image*.** A photo, scan, or
+  true stylus-freehand of a hand-drawn EG (e.g. a figure from a book, Peirce's
+  notebook) is a different and genuinely hard problem: stroke segmentation, mark
+  classification, label handwriting recognition, structure inference from noisy
+  pixels. That is computer vision / sketch recognition, **not** what freeform
+  composition or challenge mode needs, and it must not contaminate their scoping.
+
+  **It is a real "to do," just not now — and likely a hand-off to external AI image
+  recognition rather than something built internally.** The natural shape: an
+  outside vision/recognition step produces a *structured placement* (typed marks +
+  positions, i.e. a `LayoutDTO`-shaped result), which then enters the *same*
+  `read_drawing` → EGI → validity pipeline as freeform. So the internal system stays
+  geometry-on-known-marks; the hard pixel problem is isolated behind that boundary
+  and can be filled by an AI service when wanted. This is the engine half of the
+  by-hand "reading desk / import" idea (see that backlog item); keep the two
+  distinct so future scoping stays honest.
