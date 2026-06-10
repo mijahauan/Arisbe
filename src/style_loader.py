@@ -81,6 +81,17 @@ class StyleSpecification:
     # draws, so the drawn form carries the full ν — argument order included.
     argument_order_convention: str = "numbered"
 
+    # Whether the argument-order *numeral* is drawn — a presentation-only
+    # annotation on top of the placement (`eg_reader.assign_order_labels`):
+    #   "auto"   — per the convention (numbered → every ≥2-ary line; clockwise →
+    #              only the Convention-13 overrides where placement ≠ ν). Default.
+    #   "always" — draw every ≥2-ary line's numeral regardless of convention.
+    #   "never"  — draw none; rely purely on placement (Peirce-pure clockwise).
+    #              Order is still recoverable for predicates whose hooks read ν;
+    #              the canonical clockwise placement makes that robust.
+    # Toggling this never touches geometry, so §3.3 is indifferent to it.
+    argument_order_numerals: str = "auto"
+
     def get_element_bounds(self, element_type: str, content: str = "") -> Tuple[float, float]:
         """Calculate spatial bounds required for an element with this style"""
         if element_type == "vertex":
@@ -156,6 +167,11 @@ class StyleSpecification:
             # unambiguous numbered form (Dau); a style may set "clockwise" (Peirce).
             argument_order_convention=data.get('argument_order', {}).get(
                 'convention', 'numbered'),
+
+            # Whether the order numeral is drawn (presentation-only): auto (per
+            # convention) / always / never.  Default auto.
+            argument_order_numerals=data.get('argument_order', {}).get(
+                'numerals', 'auto'),
         )
 
 

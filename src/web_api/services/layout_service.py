@@ -540,6 +540,26 @@ def generate_layout(
         # incident direction (idempotent on unmoved lines, interior-preserving).
         dto = elk_engine.rebuild_ligature_anchors(egi, dto)
 
+    # Canonical clockwise hook placement (Peirce Convention-13 placement as the
+    # order carrier, docs/EXACT_CORRESPONDENCE.md Phase 3c): under the clockwise
+    # convention, spread a *fragile* predicate's hooks (a near-collinear pair the
+    # eye can't order — the shared-vertex fan-in) into well-separated slots,
+    # preserving their natural clockwise order so no line is made to cross.  This
+    # makes the placement carry order robustly, so the numeral can be hidden
+    # (argument_order_numerals: never).  Geometry change ⇒ re-attest, falling back
+    # to the already-attested layout if the spread does not stay in correspondence.
+    if getattr(style, "argument_order_convention", "numbered") == "clockwise":
+        from clockwise_placement import place_clockwise_hooks
+        candidate = place_clockwise_hooks(egi, dto, style, elk_engine)
+        if candidate is not dto:
+            try:
+                attest_correspondence(
+                    egi, candidate, context="layout_service.clockwise_placement"
+                )
+                dto = candidate
+            except CorrespondenceViolation:
+                pass  # keep the attested pre-placement layout
+
     # Generate EGIF linear form for the renderer title
     try:
         egif = EGIFGenerator().generate(egi)

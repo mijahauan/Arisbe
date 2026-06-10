@@ -128,6 +128,109 @@ def test_clockwise_reader_recovers_order_from_hook_angles():
     assert read_drawing(dto).incidence["R"] == ["a", "b", "c"]
 
 
+# --------------------------------------------------------------------------- #
+# Phase 3c: clockwise placement as the order carrier + the numeral toggle      #
+# --------------------------------------------------------------------------- #
+
+
+def _min_hook_gap_deg(dto, pid):
+    import math
+    P = dto.predicate_positions[pid]
+    ks = []
+    for p in dto.ligature_paths:
+        if p.predicate_id != pid or len(p.points) < 2:
+            continue
+        r = p.points[1]
+        ks.append((math.atan2(r.y - P.y, r.x - P.x) + math.pi / 2) % (2 * math.pi))
+    ks.sort()
+    if len(ks) < 2:
+        return 999.0
+    gaps = [(ks[(i + 1) % len(ks)] - ks[i]) % (2 * math.pi) for i in range(len(ks))]
+    return math.degrees(min(gaps))
+
+
+def test_argument_order_numerals_toggle():
+    """The argument_order_numerals knob is a presentation-only override of which
+    lines get a drawn order numeral: 'always' labels every ≥2-ary line, 'never'
+    labels none (rely on placement), 'auto' is the per-convention default."""
+    import dataclasses
+    egi = parse_egif("(Loves *x *y)")  # one binary relation
+    eng = ELKLayoutEngine()
+    base = load_default_style()
+    def labels(conv, num):
+        st = dataclasses.replace(base, argument_order_convention=conv,
+                                 argument_order_numerals=num)
+        dto = assign_order_labels(egi, eng.generate_layout(egi, st))
+        return [p.order_label for p in dto.ligature_paths]
+    assert labels("numbered", "auto") == [1, 2]
+    assert labels("numbered", "never") == [None, None]
+    assert labels("clockwise", "auto") == [None, None]   # already reads ν
+    assert labels("clockwise", "always") == [1, 2]
+    assert labels("clockwise", "never") == [None, None]
+
+
+def test_clockwise_placement_robustifies_fragile_hooks():
+    """A fragile predicate — two hooks leaving the spot nearly collinear (the
+    shared-vertex fan-in of roberts_domain_modeling, ~0.6° apart) — is spread into
+    well-separated slots by place_clockwise_hooks, so its clockwise reading is
+    unambiguous.  The spread preserves the natural order (still reads ν), stays in
+    §3.3 correspondence, and touches only the fragile predicate."""
+    import dataclasses
+    from clockwise_placement import place_clockwise_hooks, FRAGILE_BELOW_DEG
+    from correspondence_attestation import check_correspondence
+    from eg_reader import _clockwise_order
+
+    svc = TomosService(TOMOS_ROOT)
+    style = dataclasses.replace(load_default_style(),
+                                argument_order_convention="clockwise")
+    eng = ELKLayoutEngine()
+    egi = svc.load_uod("roberts_domain_modeling").current_egi
+    dto = eng.generate_layout(egi, style)
+
+    fragile = [e.id for e in egi.E
+               if len(egi.nu.get(e.id, ())) >= 2
+               and _min_hook_gap_deg(dto, e.id) < FRAGILE_BELOW_DEG]
+    assert fragile, "expected roberts to have a fragile (near-collinear) predicate"
+
+    dto2 = place_clockwise_hooks(egi, dto, style, eng)
+    assert not check_correspondence(egi, dto2)  # still corresponds
+    for pid in fragile:
+        assert _min_hook_gap_deg(dto2, pid) >= FRAGILE_BELOW_DEG  # now robust
+        # order preserved (no crossing introduced): still reads ν
+        assert _clockwise_order(dto2, pid) == list(egi.nu.get(pid))
+
+
+def test_clockwise_never_pure_placement_carries_order_where_geometry_agrees():
+    """With numerals hidden ('never') the clockwise *placement alone* must carry ν
+    for every predicate whose hooks read clockwise-as-ν — and after the robustify
+    pass that includes the fan-in.  The round trip recovers full order for those
+    UoDs, §3.3 stays green, and no numeral is drawn."""
+    import dataclasses
+    from clockwise_placement import place_clockwise_hooks
+    from correspondence_attestation import check_correspondence
+    from eg_reader import _clockwise_order
+
+    svc = TomosService(TOMOS_ROOT)
+    style = dataclasses.replace(load_default_style(),
+                                argument_order_convention="clockwise",
+                                argument_order_numerals="never")
+    eng = ELKLayoutEngine()
+    n_ok = 0
+    for meta in svc.list_uods():
+        egi = svc.load_uod(meta["uod_id"]).current_egi
+        dto = place_clockwise_hooks(egi, eng.generate_layout(egi, style), style, eng)
+        assert not check_correspondence(egi, dto), meta["uod_id"]
+        dto = assign_order_labels(egi, dto)
+        assert all(p.order_label is None for p in dto.ligature_paths)
+        # If every ≥2-ary predicate's placement reads ν, the order round-trips.
+        if all(_clockwise_order(dto, e.id) == list(egi.nu.get(e.id))
+               for e in egi.E if len(egi.nu.get(e.id, ())) >= 2):
+            assert reading_matches_egi(read_drawing(dto), egi, ordered=True), \
+                meta["uod_id"]
+            n_ok += 1
+    assert n_ok >= 15  # most of the corpus carries order by placement alone
+
+
 def test_reader_uses_geometry_not_stored_ids():
     """The logic is read from geometry, not the path's stored ids: scrambling
     every LigaturePath's predicate_id/vertex_id must not change the reading

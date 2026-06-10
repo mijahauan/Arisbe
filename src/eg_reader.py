@@ -216,17 +216,25 @@ def assign_order_labels(egi, dto: LayoutDTO) -> LayoutDTO:
       clockwise hook order does not already match ν (the Convention-13 numeric
       override); relations the placement already shows clockwise stay unlabelled.
 
+    The ``argument_order_numerals`` style knob overrides this per drawing —
+    ``"always"`` labels every ≥2-ary line, ``"never"`` labels none (rely on
+    placement), ``"auto"`` (default) is the per-convention behavior above.
+
     The renderer draws the label and ``read_drawing`` reads it, so the round trip
-    recovers the full ν including order under either convention.
+    recovers the full ν including order under either convention (in ``"never"``
+    mode the order is carried by the clockwise placement alone).
     """
     convention = getattr(dto.style, "argument_order_convention", "numbered")
+    numerals = getattr(dto.style, "argument_order_numerals", "auto")
     nu = {e.id: list(egi.nu.get(e.id, ())) for e in egi.E}
     arity = {pid: len(seq) for pid, seq in nu.items()}
 
     needs_label = {}
     for pid, seq in nu.items():
-        if arity[pid] < 2:
+        if arity[pid] < 2 or numerals == "never":
             needs_label[pid] = False
+        elif numerals == "always":
+            needs_label[pid] = True
         elif convention == "clockwise":
             needs_label[pid] = _clockwise_order(dto, pid) != seq
         else:  # numbered

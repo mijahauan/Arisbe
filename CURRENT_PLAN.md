@@ -1,27 +1,34 @@
 # Current Plan
 
-**Last Updated**: 2026-06-10 — exact-correspondence **Phases 1, 2, 3a & 3b shipped**
-(exact cut containment + exact ligature crossing + predicate label-box containment +
-no improper occlusion — incl. the third occlusion property, **label-aware ligature
-routing**); active arc = the exact-correspondence engine + freeform composition.
-History below condensed 2026-06-10 (detail lives in git, the docs, and memory).
+**Last Updated**: 2026-06-10 — exact-correspondence **Phases 1, 2, 3 (a/b/c) shipped**
+(exact cut containment + exact ligature crossing + label-box containment + no
+improper occlusion incl. label-aware routing + clockwise placement as order
+carrier); Phase 3 complete. Active arc = the exact-correspondence engine (Phase 4
+next) + freeform composition. History below condensed 2026-06-10 (detail in git,
+docs, memory).
 
 ---
 
 ## ▶ NEXT SESSION — start here
 
-**Designated next task: Phase 3c — clockwise placement as the order carrier (the
-largest Phase-3 piece).** (Thread A below; Phases 1, 2, 3a, 3b — including
-label-aware routing — all done.) The appetite-driven math menu (Thread B / the
-ready-to-pick tasks) remains open and independent.
+**Designated next task: Phase 4 — DTO carries the cut polyline + browser
+`isPointInPath` hit-testing** (the freeform-canvas prerequisite — Thread A below),
+**or** the appetite-driven math menu (Thread B / the ready-to-pick tasks, both
+independent and unprotected). Phases 1, 2, 3a, 3b, 3c are all done — the exact
+label/numeral extents work is complete.
 
-### Phase 3c — clockwise placement (the designated next task)
-Place a relation's hooks in **clockwise order** around its spot so argument order
-lives in the *geometry*, not only in the numerals; the numeral then becomes a
-toggleable, presentation-only annotation (show/hide). Touches hook placement
-(`elk_layout_engine._predicate_hook_point` / `_build_ligature_paths`) + the
-clockwise *reader* (which already exists — see the argument-order memory). The
-largest Phase-3 piece; spec in `docs/EXACT_CORRESPONDENCE.md` §3c.
+### Phase 3c — clockwise placement — DONE 2026-06-10
+*The argument-order numeral is now a presentation-only toggle, and clockwise
+placement carries order robustly.* Style knob `argument_order_numerals:
+auto|always|never` (`assign_order_labels`): `never` relies purely on placement,
+`always` labels every ≥2-ary line, `auto` (default) is per-convention. Plus
+`clockwise_placement.place_clockwise_hooks` (run pre-attestation in
+`layout_service`): a hybrid no-crossing move that spreads a **fragile** predicate's
+hooks (a near-collinear pair the eye can't order — roberts' fan-in, 0.6°→40°) into
+well-separated slots, *preserving natural clockwise order* so no line is made to
+cross; locally guarded + re-attested with fallback. §3.3 green; ordered round-trip
+23/23 under `auto`, 19/23 under `never` (the 4 misses keep the Convention-13
+override — geometry can't carry an order the layout contradicts without a crossing).
 
 ### Label-aware ligature routing — DONE 2026-06-10
 *Phase 3b's deferred third occlusion property shipped with its constructive
@@ -70,8 +77,11 @@ arbiter; the logic stays coordinate-free.*
     boxes as soft obstacles, cuts stay hard; cleared the `roberts_domain_modeling`
     IT+ fan-in strike-through). Surfaced + fixed one real straddle ("Socrates" at a
     cut edge in `peirce_cp_4_394_man_mortal`).
-  - **3c — clockwise placement as the order carrier** → numerals become a toggleable
-    presentation-only annotation. The largest piece (hook placement + clockwise reader).
+  - **3c — clockwise placement as the order carrier — DONE** (2026-06-10): the order
+    numeral became a presentation-only toggle (`argument_order_numerals:
+    auto|always|never`) and `place_clockwise_hooks` robustifies fragile hook fans
+    (no-crossing, natural order preserved) so placement carries ν without the
+    numeral. §3.3 green; 23/23 round-trip under `auto`, 19/23 under `never`.
 - **Phase 4 — DTO carries the cut polyline + browser `isPointInPath` hit-testing**
   (needed once cuts are human-drawn; unblocks the freeform canvas).
 
@@ -125,6 +135,14 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Recently shipped (newest first — detail in git / docs / memory)
 
+- **2026-06-10** — **Phase 3c: clockwise placement as the order carrier.** The
+  argument-order numeral is now a presentation-only toggle (`argument_order_numerals:
+  auto|always|never`, honoured by `assign_order_labels`). `clockwise_placement.
+  place_clockwise_hooks` (pre-attestation in `layout_service`) spreads a *fragile*
+  predicate's hooks (near-collinear pair — roberts' fan-in 0.6°→40°) into
+  well-separated slots, preserving natural clockwise order (no crossing); locally
+  guarded + re-attested with fallback. §3.3 green corpus-wide; ordered round-trip
+  23/23 under `auto`, 19/23 under `never`. Phase 3 (label/numeral extents) complete.
 - **2026-06-10** — **Label-aware ligature routing** (Phase 3b's third occlusion
   property + its constructive partner). §3.3 check #3 refuses a line of identity
   running through a label box it is *not* incident to (`path_intersects_box`); the

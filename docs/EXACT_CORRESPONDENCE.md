@@ -181,10 +181,33 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
       vertex-label placement is read from a stable provisional straight pass
       (routing bends only a line's middle, not its endpoints), so the two passes
       don't chase each other.
-- **3c — clockwise placement as the order carrier.** Place hooks in clockwise order
-  so argument order lives in the geometry; the numeral becomes a toggleable,
-  presentation-only annotation (show/hide). Touches hook placement + the clockwise
-  reader (which already exists). The largest piece.
+- **3c — clockwise placement as the order carrier. *Done* (2026-06-10).** Argument
+  order (ν) lives in the *geometry* under the clockwise convention — the angle each
+  hook leaves the spot, read clockwise from vertically-above (Peirce, CP 4.470 /
+  Conv. 13); the reader (`eg_reader._clockwise_order`) already recovered it. Two
+  pieces shipped:
+  - **the numeral is now a presentation-only toggle.** Style knob
+    `argument_order_numerals: auto | always | never` (`assign_order_labels` honours
+    it): `always` labels every ≥2-ary line, `never` draws none (rely on placement,
+    Peirce-pure), `auto` (default) is the per-convention behaviour. Toggling never
+    touches geometry, so §3.3 is indifferent.
+  - **canonical clockwise hook placement** (`clockwise_placement.place_clockwise_hooks`,
+    run pre-attestation in `layout_service`). A *hybrid, no-crossing* move: it
+    spreads a **fragile** predicate's hooks — a near-collinear pair the eye can't
+    order (the shared-vertex fan-in of `roberts_domain_modeling`, two hooks 0.6°
+    apart) — into well-separated slots, *preserving their natural clockwise order*
+    (no reorder ⇒ no line made to cross). So the placement carries order robustly
+    and the numeral can be safely hidden. A predicate whose hooks already read ν
+    keeps reading ν (now robustly); one whose natural order ≠ ν still reads its
+    natural order, so the Convention-13 numeric override still fires for it under
+    `auto` — exactly the cases geometry cannot fix without a crossing. Each
+    re-hooked line is locally guarded (crossing-multiset + area endpoints unchanged,
+    no non-incident-box occlusion) and the whole result re-attested with a fallback
+    to the pre-placement layout. *Empirical scope:* corpus-wide only 1 predicate is
+    fragile (roberts' fan-in, 0.6°→40°); §3.3 stays green; ordered round-trip 23/23
+    under `auto`; 19/23 under `never` (the 4 misses are the hard cases where the
+    layout puts vertices in an angular order that contradicts ν — Peirce's numeric
+    override exists for exactly them).
 
 **Phase 4 — browser as client-side arbiter + freeform.** Carry the cut boundary
 polyline in the DTO (needed once cuts can be human-drawn); client-side
