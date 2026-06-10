@@ -429,6 +429,162 @@ def box_intrudes_cut(
     return any(_point_in(Point(x, y), box) for x, y in cut_corners)
 
 
+# Width of one character of a vertex/constant label as a fraction of the font
+# size — a sans-serif advance estimate (the renderer draws plain text with no box,
+# so this is the faithful extent, not a measured glyph run).
+_VERTEX_CHAR_W_RATIO = 0.6
+
+
+def vertex_label_box(
+    label, center, style, ligature_paths=(), vertex_id=None,
+    egi=None, cut_bounds=None,
+) -> BoundingBox:
+    """The axis-aligned **extent** of a vertex/constant label, placed adjacent to
+    its dot.  The preferred direction is the *freest* angular gap between the lines
+    of identity incident to the vertex (so the label never sits on a ligature it is
+    incident to), defaulting to the right of the dot when no incident line leaves
+    eastward.  This mirrors `simple_svg_renderer`'s placement; the renderer draws the
+    text centred in this same box, so picture and §3.3 test agree (single source of
+    truth, like `predicate_label_box`).
+
+    **Cut-aware placement.**  When ``egi`` and ``cut_bounds`` are supplied, the
+    preferred direction is only taken if the resulting box stays wholly inside the
+    vertex's area cut and clear of every non-ancestor cut; otherwise the freest
+    direction is tried, then the four cardinals, and the first that fits is used.
+    Only if *no* direction fits (a genuinely cramped layout the engine must widen)
+    does it fall back to the freest gap — which §3.3 then flags as a real occlusion.
+    This keeps the label legible without the layout engine yet reserving room.
+
+    ``ligature_paths``/``vertex_id`` supply the incident directions.  ``style`` may
+    be ``None`` (defaults used).  The label width is estimated from the font size
+    (the renderer draws plain text, not a boxed run), so the extent is faithful, not
+    pixel-exact."""
+    font_size = float(getattr(style, "font_size", 14.0) or 14.0)
+    vr = float(getattr(style, "vertex_radius", 5.0) or 5.0)
+    w = len(label) * font_size * _VERTEX_CHAR_W_RATIO + 2.0 * _PRED_LABEL_PAD_H
+    h = font_size + 2.0 * _PRED_LABEL_PAD_V
+
+    angs = []
+    for lp in ligature_paths:
+        if vertex_id is not None and getattr(lp, "vertex_id", None) != vertex_id:
+            continue
+        pts = getattr(lp, "points", ())
+        if len(pts) >= 2:
+            a, b = pts[-1], pts[-2]
+            angs.append(math.atan2(b.y - a.y, b.x - a.x))
+
+    east_blocked = any(
+        abs(math.atan2(math.sin(a), math.cos(a))) < math.radians(50) for a in angs
+    )
+    if not east_blocked or not angs:
+        free_ang = 0.0  # to the right of the dot
+    else:
+        angs.sort()
+        best_gap, free_ang = -1.0, -math.pi / 2.0  # default: above
+        for i in range(len(angs)):
+            a0 = angs[i]
+            a1 = angs[(i + 1) % len(angs)] + (
+                2.0 * math.pi if i + 1 == len(angs) else 0.0)
+            if a1 - a0 > best_gap:
+                best_gap, free_ang = a1 - a0, (a0 + a1) / 2.0
+
+    def _box_at(ang: float) -> BoundingBox:
+        dirx, diry = math.cos(ang), math.sin(ang)
+        # Push the box out so its near edge clears the dot by ~8 units, regardless
+        # of direction: distance from dot to box centre = clearance + the box's
+        # half-extent projected onto the placement direction.
+        d = vr + 8.0 + abs(dirx) * w / 2.0 + abs(diry) * h / 2.0
+        bcx, bcy = center.x + dirx * d, center.y + diry * d
+        return BoundingBox(bcx - w / 2.0, bcy - h / 2.0, bcx + w / 2.0, bcy + h / 2.0)
+
+    if egi is None or cut_bounds is None or vertex_id is None:
+        return _box_at(free_ang)
+
+    # Cut-aware: find a direction that keeps the box inside its area cut and out of
+    # every non-ancestor cut, so the §3.3 occlusion test (which uses these very
+    # predicates) accepts it.  Try the aesthetic free direction first, then cardinals.
+    cut_id_set = {c.id for c in egi.Cut}
+    area_cut = element_area(egi).get(vertex_id, egi.sheet)
+    parent_map = cut_parents(egi)
+    ancestors = set()
+    cur = area_cut
+    while cur in cut_id_set:
+        ancestors.add(cur)
+        cur = parent_map.get(cur, egi.sheet)
+    shape = getattr(style, "cut_shape", "rounded_rectangle")
+    radius = float(getattr(style, "cut_corner_radius", 0) or 0)
+    container = cut_bounds.get(area_cut) if area_cut in cut_id_set else None
+    obstacles = [
+        cut_bounds[cid] for cid in cut_id_set
+        if cid not in ancestors and cid in cut_bounds
+    ]
+
+    def _fits(box: BoundingBox) -> bool:
+        if container is not None and not bounds_in_cut(box, container, shape, radius):
+            return False
+        return not any(box_intrudes_cut(box, ob, shape, radius) for ob in obstacles)
+
+    for ang in (free_ang, -math.pi / 2.0, math.pi / 2.0, math.pi, 0.0):
+        box = _box_at(ang)
+        if _fits(box):
+            return box
+    return _box_at(free_ang)
+
+
+def boxes_overlap(a: BoundingBox, b: BoundingBox) -> bool:
+    """True iff two axis-aligned boxes share a positive-area region.  Boxes that
+    merely abut along an edge or touch at a corner do *not* overlap — text that just
+    touches is still legible; only genuine area overlap is occlusion."""
+    return (
+        a.min_x < b.max_x - 1e-9 and b.min_x < a.max_x - 1e-9
+        and a.min_y < b.max_y - 1e-9 and b.min_y < a.max_y - 1e-9
+    )
+
+
+def _clip_segment_to_box(a: Point, b: Point, box: BoundingBox):
+    """Liang–Barsky clip of segment (a,b) to the closed ``box``.  Returns the
+    clipped sub-segment as ``(x0, y0, x1, y1)`` or ``None`` if it misses the box."""
+    x0, y0, dx, dy = a.x, a.y, b.x - a.x, b.y - a.y
+    p = (-dx, dx, -dy, dy)
+    q = (x0 - box.min_x, box.max_x - x0, y0 - box.min_y, box.max_y - y0)
+    t0, t1 = 0.0, 1.0
+    for pi, qi in zip(p, q):
+        if abs(pi) < 1e-12:
+            if qi < 0.0:  # parallel to this slab and outside it
+                return None
+        else:
+            t = qi / pi
+            if pi < 0.0:
+                if t > t1:
+                    return None
+                t0 = max(t0, t)
+            else:
+                if t < t0:
+                    return None
+                t1 = min(t1, t)
+    if t1 < t0:
+        return None
+    return (x0 + t0 * dx, y0 + t0 * dy, x0 + t1 * dx, y0 + t1 * dy)
+
+
+def path_intersects_box(points, box: BoundingBox) -> bool:
+    """True iff a polyline passes through the *open interior* of ``box`` — some
+    segment has a portion strictly inside, or a vertex strictly inside.  A line
+    merely touching or running along the border (e.g. a ligature grazing the box's
+    edge) stays on the boundary and does not count, so a label sitting against a line
+    is not falsely flagged.  This is the obstacle-test primitive for the deferred
+    label-aware ligature routing (`docs/EXACT_CORRESPONDENCE.md` Phase 3b)."""
+    for i in range(len(points) - 1):
+        clipped = _clip_segment_to_box(points[i], points[i + 1], box)
+        if clipped is None:
+            continue
+        mx, my = (clipped[0] + clipped[2]) / 2.0, (clipped[1] + clipped[3]) / 2.0
+        if (box.min_x + 1e-9 < mx < box.max_x - 1e-9
+                and box.min_y + 1e-9 < my < box.max_y - 1e-9):
+            return True
+    return False
+
+
 def _ellipse_secant_crossings(a: Point, b: Point, bounds: BoundingBox) -> int:
     """Proper intersections of segment (a,b) with the inscribed ellipse when
     *both* endpoints are outside — 0 (miss/tangent) or 2 (clean pass-through),
@@ -1117,6 +1273,9 @@ __all__ = [
     "bounds_in_cut",
     "predicate_label_box",
     "box_intrudes_cut",
+    "vertex_label_box",
+    "boxes_overlap",
+    "path_intersects_box",
     "count_cut_crossings",
     "deepest_containing_cut",
     "move_vertex",

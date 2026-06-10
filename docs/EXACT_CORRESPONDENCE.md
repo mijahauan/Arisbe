@@ -140,10 +140,33 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
   is point-contained (its offset label's readability is a 3b occlusion concern).
   521 §3.3 tests green corpus-wide (the engine keeps boxes clear of boundaries);
   new tests pin the straddle refusal and the shared box formula.
-- **3b — no improper occlusion (next).** §3.3 gains a "marks don't overlap each
-  other / cut lines illegibly" check (an occluded label can't be recovered by the
-  reader → correspondence breaks); layout/routing treat label boxes as obstacles.
-  Covers the constant/vertex-label placement left out of 3a.
+- **3b — no improper occlusion. *Done* (2026-06-10).** §3.3 gained a "marks don't
+  overlap each other / cut lines illegibly" check (an occluded label can't be
+  recovered by the reader → correspondence breaks). Two properties shipped, both
+  green corpus-wide:
+  - **text-on-text** — two label boxes (predicate or vertex) may not overlap on a
+    positive-area region (`presentation_ops.boxes_overlap`; abutting edges are
+    legible and allowed).
+  - **vertex/constant label no-straddle** — a vertex label box must sit wholly
+    inside its area cut and clear of every non-ancestor cut, the vertex-label
+    analogue of 3a's predicate no-straddle (closing the constant/vertex case 3a
+    left out). This required factoring the renderer's direction-adaptive vertex
+    label placement into a shared, **cut-aware** `presentation_ops.vertex_label_box`
+    (single source of truth, like `predicate_label_box`): it places the label in the
+    freest angular gap between incident ligatures *that keeps the box inside its cut
+    and clear of siblings*, trying the free direction then the four cardinals, so the
+    engine keeps labels legible without yet reserving room. The renderer draws the
+    text centred in this same box. The one real straddle this surfaced
+    (`peirce_cp_4_394_man_mortal`, "Socrates" parked at the cut's right edge) is fixed
+    by the cut-aware placement choosing an inward direction.
+  - **deferred (paired with routing):** a *third* property — a line of identity the
+    label is **not** incident to running through its box — is a genuine occlusion
+    (it found a real strike-through in the shared-vertex fan-in after IT+ on
+    `roberts_domain_modeling`), but a check needs its constructive half
+    (label-aware ligature routing) or it red-flags honest layouts. The obstacle-test
+    primitive `presentation_ops.path_intersects_box` (Liang–Barsky clip + strict
+    interior, so a graze along an edge is legible) is in hand for that paired
+    routing-and-check task.
 - **3c — clockwise placement as the order carrier.** Place hooks in clockwise order
   so argument order lives in the geometry; the numeral becomes a toggleable,
   presentation-only annotation (show/hide). Touches hook placement + the clockwise

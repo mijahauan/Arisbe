@@ -34,12 +34,14 @@ from layout_dto import LayoutDTO
 from presentation_ops import (
     bounds_in_cut,
     box_intrudes_cut,
+    boxes_overlap,
     count_cut_crossings,
     crossing_sequence,
     cut_parents,
     element_area,
     point_in_cut,
     predicate_label_box,
+    vertex_label_box,
 )
 
 
@@ -224,6 +226,87 @@ def check_correspondence(
             elif box_intrudes_cut(box, cbounds, cut_shape, cut_radius):
                 failures.append(
                     f"  extent: predicate {edge.id} label box intrudes into "
+                    f"cut {cut.id} (not on its area chain)"
+                )
+
+    # Occlusion (Phase 3b): a mark the reader cannot recover breaks
+    # correspondence.  Two ways a label is rendered illegible:
+    #   (1) text-on-text — two label boxes overlapping each other;
+    #   (2) a cut boundary stroke bisecting a vertex/constant label box (the
+    #       predicate analogue is the no-straddle extent check above).
+    # Each label box comes from the renderer's single source of truth
+    # (`predicate_label_box` / `vertex_label_box`) so the test and the drawing agree
+    # (`docs/EXACT_CORRESPONDENCE.md` Phase 3b).  Boxes that only abut are legible
+    # and not flagged.
+    #
+    # A *third* property — a line of identity the label is NOT incident to running
+    # through the box — is deferred: it is a genuine occlusion (it found a real
+    # strike-through in the shared-vertex fan-in after IT+), but a check needs its
+    # constructive half (obstacle-aware ligature routing) or it red-flags honest
+    # layouts.  `path_intersects_box` is the obstacle-test primitive that paired
+    # routing-and-check task will use.
+    show_vertex_labels = (
+        getattr(dto.style, "vertex_rendering_mode", "dot_and_label") != "dot_only"
+    )
+    label_boxes = []  # (kind, elem_id, box)
+    for edge in egi.E:
+        ppos = dto.predicate_positions.get(edge.id)
+        if ppos is None:
+            continue
+        label_boxes.append(
+            ("predicate", edge.id,
+             predicate_label_box(egi.get_relation_name(edge.id), ppos, dto.style))
+        )
+    if show_vertex_labels:
+        for vertex in egi.V:
+            if not getattr(vertex, "label", None):
+                continue
+            vpos = dto.vertex_positions.get(vertex.id)
+            if vpos is None:
+                continue
+            label_boxes.append(
+                ("vertex", vertex.id,
+                 vertex_label_box(vertex.label, vpos, dto.style,
+                                  dto.ligature_paths, vertex.id,
+                                  egi=egi, cut_bounds=dto.cut_bounds))
+            )
+
+    # (1) text-on-text overlap (each unordered pair once).
+    for i in range(len(label_boxes)):
+        k1, id1, b1 = label_boxes[i]
+        for j in range(i + 1, len(label_boxes)):
+            k2, id2, b2 = label_boxes[j]
+            if boxes_overlap(b1, b2):
+                failures.append(
+                    f"  occlusion: {k1} {id1} label box overlaps "
+                    f"{k2} {id2} label box (text-on-text)"
+                )
+
+    # (2) a vertex/constant label box bisected by a cut boundary — the box must sit
+    # wholly inside every ancestor cut and wholly outside every other cut, like the
+    # predicate extent check.  (Predicate boxes are already covered above.)
+    for kind, eid, box in label_boxes:
+        if kind != "vertex":
+            continue
+        area = elem_area_map.get(eid, egi.sheet)
+        ancestors = set()
+        cur = area
+        while cur in cut_ids:
+            ancestors.add(cur)
+            cur = parent_map.get(cur, egi.sheet)
+        for cut in egi.Cut:
+            cbounds = dto.cut_bounds.get(cut.id)
+            if cbounds is None:
+                continue
+            if cut.id in ancestors:
+                if not bounds_in_cut(box, cbounds, cut_shape, cut_radius):
+                    failures.append(
+                        f"  occlusion: vertex {eid} label box straddles out "
+                        f"of its area cut {cut.id}"
+                    )
+            elif box_intrudes_cut(box, cbounds, cut_shape, cut_radius):
+                failures.append(
+                    f"  occlusion: vertex {eid} label box intrudes into "
                     f"cut {cut.id} (not on its area chain)"
                 )
 

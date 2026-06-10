@@ -33,14 +33,17 @@ from layout_dto import BoundingBox, LayoutDTO, Point
 from presentation_ops import (
     Regime3Violation,
     area_chain,
+    boxes_overlap,
     cut_parents,
     deepest_containing_cut,
     element_area,
     move_vertex,
     move_predicate,
+    path_intersects_box,
     reroute_ligature,
     reshape_cut,
     move_cut,
+    vertex_label_box,
 )
 from style_loader import load_default_style
 from tomos_service import TomosService
@@ -830,3 +833,60 @@ def test_box_intrudes_cut_detects_a_straddle():
     # Box engulfing the cut (cut corners inside the box) → intrudes.
     engulfing = BoundingBox(-10, -10, 110, 110)
     assert box_intrudes_cut(engulfing, cut, "rounded_rectangle", 0.0) is True
+
+
+def test_boxes_overlap_positive_area_only():
+    """Phase 3b: text-on-text overlap is positive-area; a shared edge or corner
+    (abutting labels) is still legible and does not count."""
+    a = BoundingBox(0, 0, 10, 10)
+    assert boxes_overlap(a, BoundingBox(5, 5, 15, 15)) is True   # genuine overlap
+    assert boxes_overlap(a, BoundingBox(10, 0, 20, 10)) is False  # abutting edge
+    assert boxes_overlap(a, BoundingBox(10, 10, 20, 20)) is False  # corner touch
+    assert boxes_overlap(a, BoundingBox(20, 0, 30, 10)) is False  # disjoint
+
+
+def test_path_intersects_box_interior_not_border():
+    """Phase 3b primitive (the obstacle test the deferred ligature-routing task will
+    use): a polyline passing through a box's interior counts; one merely touching the
+    border does not."""
+    box = BoundingBox(0, 0, 10, 10)
+    # Straight segment through the middle.
+    assert path_intersects_box([Point(-5, 5), Point(15, 5)], box) is True
+    # Endpoint strictly inside.
+    assert path_intersects_box([Point(5, 5), Point(20, 20)], box) is True
+    # Running along the top edge — touches, not interior.
+    assert path_intersects_box([Point(-5, 0), Point(15, 0)], box) is False
+    # Passing clear of the box.
+    assert path_intersects_box([Point(-5, 20), Point(15, 20)], box) is False
+
+
+def test_vertex_label_box_is_cut_aware(tomos, engine, style):
+    """Phase 3b: cut-aware placement keeps a constant's label inside its area cut
+    when a direction fits.  A cut large enough for the label in some direction yields
+    a box wholly inside it; a cut too small in every direction falls back to the free
+    placement (which §3.3 then flags), so the helper never silently hides a cramped
+    layout."""
+    from egif_parser_dau import parse_egif
+    from presentation_ops import bounds_in_cut
+
+    egi = parse_egif('~[ (Human "Socrates") ]')
+    (cut_id,) = [c.id for c in egi.Cut]
+    (vid,) = [v.id for v in egi.V]
+    dto = engine.generate_layout(egi, style)
+    shape = getattr(style, "cut_shape", "rounded_rectangle")
+    radius = float(getattr(style, "cut_corner_radius", 0) or 0)
+
+    # Engine layout: cut-aware box lies wholly inside the cut.
+    box = vertex_label_box("Socrates", dto.vertex_positions[vid], style,
+                           dto.ligature_paths, vid, egi=egi,
+                           cut_bounds=dto.cut_bounds)
+    assert bounds_in_cut(box, dto.cut_bounds[cut_id], shape, radius)
+
+    # Shrink the cut below the label in every direction: placement can't fit, so it
+    # returns the free box (which then straddles) rather than pretending it fits.
+    vp = dto.vertex_positions[vid]
+    tiny = {**dto.cut_bounds, cut_id: BoundingBox(vp.x - 4, vp.y - 4,
+                                                  vp.x + 4, vp.y + 4)}
+    cramped = vertex_label_box("Socrates", vp, style, dto.ligature_paths, vid,
+                               egi=egi, cut_bounds=tiny)
+    assert not bounds_in_cut(cramped, tiny[cut_id], shape, radius)

@@ -268,6 +268,57 @@ def test_predicate_label_box_must_not_straddle_its_cut(engine):
     attest_correspondence(egi, dto)  # must not raise
 
 
+def test_two_label_boxes_must_not_overlap(engine):
+    """Phase 3b occlusion: two label boxes overlapping each other is text-on-text —
+    illegible, so neither can be recovered.  Stacking two predicate anchors at the
+    same point makes their boxes coincide; §3.3 refuses.  The clean (engine-placed)
+    drawing attests."""
+    from egif_parser_dau import parse_egif
+    from style_loader import load_default_style
+
+    egi = parse_egif("(P) (Q)")  # two nullary predicates on the sheet
+    ids = [e.id for e in egi.E]
+    style = load_default_style()
+    dto = engine.generate_layout(egi, style)
+    attest_correspondence(egi, dto)  # clean placement is legible
+
+    # Stack both anchors at one point: the boxes coincide.
+    p0 = dto.predicate_positions[ids[0]]
+    overlapped = _clone_dto(dto, predicate_positions={
+        **dto.predicate_positions, ids[1]: Point(p0.x, p0.y)})
+    with pytest.raises(CorrespondenceViolation) as excinfo:
+        attest_correspondence(egi, overlapped)
+    assert any("occlusion" in f and "text-on-text" in f
+               for f in excinfo.value.failures)
+
+
+def test_vertex_label_box_must_not_straddle_its_cut(engine):
+    """Phase 3b occlusion: a constant's label box bisected by a cut boundary cannot
+    be read into a single area.  Cut-aware placement keeps it inside when there is
+    room; a cut shrunk too small for the label in *any* direction leaves it
+    straddling, which §3.3 refuses (the vertex-label analogue of the predicate
+    no-straddle).  The clean drawing attests."""
+    from egif_parser_dau import parse_egif
+    from style_loader import load_default_style
+
+    egi = parse_egif('~[ (Human "Socrates") ]')  # a constant inside a cut
+    (cut_id,) = [c.id for c in egi.Cut]
+    (vid,) = [v.id for v in egi.V]
+    style = load_default_style()
+    dto = engine.generate_layout(egi, style)
+    attest_correspondence(egi, dto)  # engine keeps the label inside
+
+    # Shrink the cut to a tiny box around the dot — no label direction fits.
+    vp = dto.vertex_positions[vid]
+    tiny = BoundingBox(vp.x - 4, vp.y - 4, vp.x + 4, vp.y + 4)
+    cramped = _clone_dto(dto, cut_bounds={**dto.cut_bounds, cut_id: tiny})
+    failures = check_correspondence(egi, cramped)
+    assert any("occlusion" in f and vid in f and "straddles" in f
+               for f in failures), (
+        "expected a vertex-label straddle occlusion, got:\n  "
+        + "\n  ".join(failures))
+
+
 def test_attest_raises_on_ligature_endpoint_mismatch(tomos, engine, style):
     """If a ligature's last point doesn't equal its vertex position, raise."""
     egi, dto = _baseline(tomos, engine, style)
