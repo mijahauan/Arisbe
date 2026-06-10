@@ -175,13 +175,55 @@ taken to its exact conclusion. End state: the entire §3.3 invariant (partition 
 incidence + crossing-sequence) is a set of *exact facts about the literal drawn
 picture*. Inerrant correspondence, realized geometrically.
 
+### Every mark is an extent: labels and ligature numerals (the final piece)
+
+**Decided with the author 2026-06-10.** The same principle reaches the text. A
+predicate or constant is drawn as *text*, and that text consumes an **area** — a
+footprint — not just its font pixels and not a point. The argument-order **numerals**
+on ligatures (Dau's numbers / Peirce's Convention-13 overrides) are marks with
+footprints too — and "easily overwritten" today, because their footprint is not
+reserved. So the completion: **every drawn mark that carries logical content has an
+extent** — cut (closed curve), predicate/constant **label box**, vertex dot,
+ligature line, order **numeral box** — and the extent is the sign.
+
+Keep two senses of "area" distinct: a mark's **logical area** (which cut-nest it
+belongs to — combinatorial) versus its **footprint** (the screen region it occupies
+— geometric). Two requirements bind them:
+1. **Each footprint lies wholly within its logical area.** A predicate label must
+   not *straddle* a cut boundary — its whole box is inside one area, like a cut's
+   contents. So containment for a predicate is "its **label box** is inside the cut
+   path," not "its anchor *point* is" — the same point→extent upgrade as box→curve.
+   The layout must grow cuts to enclose label *boxes* (ELK's `_compute_element_sizes`
+   already sizes labels; the containment *test* and §3.3 must use the box).
+2. **No footprint occludes another.** Labels must not overlap labels; a ligature
+   line must not run through an unrelated label; and a numeral's box must be kept
+   **clear** so it is readable.
+
+**Why this is correspondence, not cosmetics.** The drawing is one of three co-equal
+expressions of the EG, and the reader must recover the EG from the marks. An
+**occluded or straddling label cannot be recovered** → correspondence breaks. The
+numerals are the sharpest case: `eg_reader` reads the numeral to recover argument
+order — overwrite it and the **order is lost**, an inerrancy failure, not an
+eyesore. **Readability is a correctness property**: §3.3 should extend to "every
+mark is wholly within its area and unoccluded enough to be read," and routing/
+layout must treat every label and numeral box as an obstacle that lines route
+around and cuts enclose whole.
+
+End state with this piece: the whole picture is a set of **extents** — curves,
+boxes, dots, lines, numeral boxes — each wholly within its logical area, none
+improperly occluding another (lawful nesting and crossing excepted), every one
+readable. *That* is the complete geometric realization of inerrant correspondence.
+
 ## Build order
 
-0. **Cut-as-closed-path containment (the foundation).** Carry each cut's path in
-   the DTO; replace `point_in_cut`'s box/ellipse proxy with point-in-path against
-   that shared path (client-side: the browser's `isPointInPath`/`isPointInFill`).
-   Extend the crossing test for ligatures to path-vs-path intersection. This is the
-   exact-correspondence target above; everything else assumes the region is exact.
+0. **Exact extents (the foundation).** Carry each cut's path in the DTO; replace
+   `point_in_cut`'s box/ellipse proxy with point-in-path against that shared path
+   (client-side: the browser's `isPointInPath`/`isPointInFill`). Extend the crossing
+   test for ligatures to path-vs-path intersection. Make predicate/constant
+   containment use the **label box** (wholly inside the cut path, not the anchor
+   point), and give order **numerals** reserved, collision-checked footprints. Add
+   to §3.3 an "every mark wholly within its area and unoccluded" check. This is the
+   exact-correspondence target above; everything else assumes extents are exact.
 1. **Visible containment + snapping + validity (the de-risked core).** Render cut
    interiors as filled regions (the exact path area) with live area feedback; then
    draw-time endpoint/containment snapping and a `read_drawing`-based fix-time
