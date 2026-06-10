@@ -3,7 +3,7 @@
 ## Core Protection System
 - **17 protected core modules** - Cannot be modified without explicit authorization
 - **406 tests** must always pass (35 test files) - These validate the mathematical foundation
-- **Qt-dependent tests** excluded from automatic quality gate (run manually to avoid hangs)
+- **Commit gate runs the core math subset** (~150 headless tests, <30s); the full ~1350-test suite is for CI / manual runs (`uv run pytest tests/ -q`, ~12 min)
 - **Check protection status**: `python tools/core_protection_system.py --report`
 - **Override protection** (authorized changes only): `touch .core_modification_authorized`
 
@@ -468,11 +468,10 @@ egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
 - **Transformation support**: Double cut highlighting, isomorphic matching, collapsed contexts
 - **Complete documentation**: `docs/STYLE_SYSTEM_GUIDE.md` - User and developer guide
 
-## 🖥️ GUI Implementation - Three-Mode Architecture
-- **Status**: Phase 1 Complete - Organon Functional (2025-10-02)
-- **Framework**: PySide6 (Qt6)
-- **Launch**: `python src/gui_clean/main_application.py`
-- **Architecture**: Clean implementation, zero legacy dependencies
+## 🖥️ UI - Three-Mode Architecture (web)
+- **Status**: All three mode routes live in the web app (`/organon`, `/ergasterion`, `/agon`)
+- **Launch**: `uv run uvicorn web_api.main:app --reload --port 8000`
+- **Note**: The earlier Qt/PySide6 GUI (`src/gui_clean/`) was archived to `archive/qt-gui-2025/` (May 2026)
 
 ### Universe of Discourse Model (✅ PRODUCTION 2025-10-14)
 - **UniverseOfDiscourse**: Synchronic (current state) + Diachronic (DAG history) + LayoutDeltas
