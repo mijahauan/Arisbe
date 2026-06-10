@@ -201,16 +201,34 @@ belongs to — combinatorial) versus its **footprint** (the screen region it occ
 
 **Why this is correspondence, not cosmetics.** The drawing is one of three co-equal
 expressions of the EG, and the reader must recover the EG from the marks. An
-**occluded or straddling label cannot be recovered** → correspondence breaks. The
-numerals are the sharpest case: `eg_reader` reads the numeral to recover argument
-order — overwrite it and the **order is lost**, an inerrancy failure, not an
-eyesore. **Readability is a correctness property**: §3.3 should extend to "every
-mark is wholly within its area and unoccluded enough to be read," and routing/
-layout must treat every label and numeral box as an obstacle that lines route
-around and cuts enclose whole.
+**occluded or straddling label cannot be recovered** → correspondence breaks.
+**Readability is a correctness property**: §3.3 should extend to "every mark is
+wholly within its area and unoccluded enough to be read," and routing/layout must
+treat every label box as an obstacle that lines route around and cuts enclose whole.
+
+**The argument-order numerals are a special, *convention-dependent* case.** These
+are the numbers on the ligatures incident to a predicate — each line's position in
+that predicate's ν. Argument order *is* logic (`(loves x y) ≠ (loves y x)`), but
+the numeral is only *one* way to draw it; the other is **clockwise placement**
+(Peirce, CP 4.470 / Conv. 13) — the order read from the geometric arrangement of
+the hooks around the spot. So:
+- Under **clockwise placement**, the order lives in the geometry; the numeral is a
+  toggleable **annotation** — presentation-only (regime-3), free, not affecting the
+  logic. Hiding it (or even overwriting it) loses nothing readable, because the
+  arrangement still encodes ν. *This is the robust, Peircean ideal.*
+- Under the pure **numbered** convention (Dau §11.2, placement not arranged
+  clockwise), the numeral is the *sole* carrier of order — load-bearing; hiding it
+  loses ν-order. There its footprint must be reserved like any other mark.
+
+So a numeral, *when drawn*, still has a footprint and obeys the extent rules; but
+whether it is correctness-critical or a free annotation depends on whether the
+order is independently carried by clockwise placement. Make clockwise placement the
+order-carrier (the clockwise *reader* exists; clockwise *placement* is the pending
+piece) and the numeral becomes a clean show/hide interpretation aid.
 
 End state with this piece: the whole picture is a set of **extents** — curves,
-boxes, dots, lines, numeral boxes — each wholly within its logical area, none
+boxes, dots, lines, (annotation) numeral boxes — each wholly within its logical
+area, none
 improperly occluding another (lawful nesting and crossing excepted), every one
 readable. *That* is the complete geometric realization of inerrant correspondence.
 
