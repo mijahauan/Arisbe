@@ -126,11 +126,28 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
 *placement* in the renderer — Phase 2 made the crossing *test* exact; deliberately
 *placing* each crossing on the boundary is a routing concern.
 
-**Phase 3 — extents for labels + numerals.** Predicate/constant containment uses
-the label box (wholly inside the cut boundary); a §3.3 "no straddle / no improper
-occlusion" check; layout/routing treat label boxes as obstacles. Clockwise
-*placement* as the order carrier → numerals become a toggleable annotation
-(presentation-only); a show/hide control.
+**Phase 3 — extents for labels + numerals.** Three sub-pieces, taken separately.
+
+- **3a — label-box containment / no straddle. *Done* (2026-06-10).** A predicate's
+  containment is its *drawn label box*, not its anchor point. `presentation_ops.
+  predicate_label_box(label, center, style)` is the single source of truth — the
+  exact rectangle the renderer draws (`simple_svg_renderer` now draws *from* it, so
+  picture and test never diverge). §3.3 (`correspondence_attestation`) checks the box
+  sits wholly inside every ancestor cut (`bounds_in_cut`) and wholly outside every
+  non-ancestor cut (`box_intrudes_cut` — the box analogue of the ligature
+  "enters forbidden cut" check), so a label may not straddle a cut boundary. A
+  vertex stays a *dot* (point containment); a constant is a labeled dot, so its dot
+  is point-contained (its offset label's readability is a 3b occlusion concern).
+  521 §3.3 tests green corpus-wide (the engine keeps boxes clear of boundaries);
+  new tests pin the straddle refusal and the shared box formula.
+- **3b — no improper occlusion (next).** §3.3 gains a "marks don't overlap each
+  other / cut lines illegibly" check (an occluded label can't be recovered by the
+  reader → correspondence breaks); layout/routing treat label boxes as obstacles.
+  Covers the constant/vertex-label placement left out of 3a.
+- **3c — clockwise placement as the order carrier.** Place hooks in clockwise order
+  so argument order lives in the geometry; the numeral becomes a toggleable,
+  presentation-only annotation (show/hide). Touches hook placement + the clockwise
+  reader (which already exists). The largest piece.
 
 **Phase 4 — browser as client-side arbiter + freeform.** Carry the cut boundary
 polyline in the DTO (needed once cuts can be human-drawn); client-side

@@ -33,11 +33,13 @@ from egi_core_dau import RelationalGraphWithCuts
 from layout_dto import LayoutDTO
 from presentation_ops import (
     bounds_in_cut,
+    box_intrudes_cut,
     count_cut_crossings,
     crossing_sequence,
     cut_parents,
     element_area,
     point_in_cut,
+    predicate_label_box,
 )
 
 
@@ -146,9 +148,10 @@ def check_correspondence(
         if bounds is None:
             continue
         for elem_id in egi.area.get(cut.id, frozenset()):
-            pos = dto.vertex_positions.get(elem_id) or dto.predicate_positions.get(
-                elem_id
-            )
+            # A vertex is a dot — point containment.  A predicate is a label box,
+            # checked as an *extent* in the dedicated block below (it falls through
+            # here: no vertex pos, no cut bounds).
+            pos = dto.vertex_positions.get(elem_id)
             if pos is not None:
                 if not point_in_cut(pos, bounds, cut_shape, cut_radius):
                     failures.append(
@@ -188,9 +191,43 @@ def check_correspondence(
                 f"{sorted(p.vertex_id for p in paths)}"
             )
 
-    # Identity 1/3: endpoint placement.
     elem_area_map = element_area(egi)
     cut_ids = {c.id for c in egi.Cut}
+    parent_map = cut_parents(egi)
+
+    # Extent (Phase 3): a predicate's drawn label BOX — not its anchor point — is its
+    # containment.  The box must sit wholly inside every ancestor cut and wholly
+    # outside every non-ancestor cut; a box that straddles a cut boundary cannot be
+    # read into a single area, so the reader could not recover which area the
+    # predicate is in (`docs/EXACT_CORRESPONDENCE.md` Phase 3).
+    for edge in egi.E:
+        ppos = dto.predicate_positions.get(edge.id)
+        if ppos is None:
+            continue
+        box = predicate_label_box(egi.get_relation_name(edge.id), ppos, dto.style)
+        p_area = elem_area_map.get(edge.id, egi.sheet)
+        ancestors = set()
+        cur = p_area
+        while cur in cut_ids:
+            ancestors.add(cur)
+            cur = parent_map.get(cur, egi.sheet)
+        for cut in egi.Cut:
+            cbounds = dto.cut_bounds.get(cut.id)
+            if cbounds is None:
+                continue
+            if cut.id in ancestors:
+                if not bounds_in_cut(box, cbounds, cut_shape, cut_radius):
+                    failures.append(
+                        f"  extent: predicate {edge.id} label box straddles out "
+                        f"of its area cut {cut.id}"
+                    )
+            elif box_intrudes_cut(box, cbounds, cut_shape, cut_radius):
+                failures.append(
+                    f"  extent: predicate {edge.id} label box intrudes into "
+                    f"cut {cut.id} (not on its area chain)"
+                )
+
+    # Identity 1/3: endpoint placement.
     for path in dto.ligature_paths:
         pts = path.points
         if len(pts) < 2:
@@ -232,7 +269,6 @@ def check_correspondence(
     # wrong number of times (in-out-in) nor a dip into a forbidden cut
     # *between* samples.  We count true boundary crossings instead of
     # sampling — see ``presentation_ops.count_boundary_crossings``.
-    parent_map = cut_parents(egi)
     cut_bounds = dto.cut_bounds
     for path in dto.ligature_paths:
         v_area = elem_area_map.get(path.vertex_id, egi.sheet)

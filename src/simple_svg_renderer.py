@@ -14,6 +14,7 @@ from typing import Optional
 
 import render_geometry as rg
 from layout_dto import LayoutDTO
+from presentation_ops import predicate_label_box
 from egi_core_dau import RelationalGraphWithCuts
 
 
@@ -422,12 +423,12 @@ class SimpleSVGRenderer:
             if egi:
                 label = egi.get_relation_name(p_id)
 
-            # Tight padding around text (Dau style)
-            char_width = style.predicate_char_width
-            padding_h = 2
-            padding_v = 1
-            text_width = len(label) * char_width + 2 * padding_h
-            text_height = style.predicate_height + 2 * padding_v
+            # The drawn label box is the single source of truth for the predicate's
+            # extent — the same box §3.3 reads for containment (presentation_ops.
+            # predicate_label_box). Draw from it so picture and test never diverge.
+            _box = predicate_label_box(label, pos, style)
+            text_width = _box.max_x - _box.min_x
+            text_height = _box.max_y - _box.min_y
 
             # Wrap in a named group so the frontend can detect clicks by element ID
             p_g = ET.SubElement(element_group, "g", {

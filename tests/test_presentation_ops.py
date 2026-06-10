@@ -788,3 +788,45 @@ def test_count_cut_crossings_rounded_straddle_and_passthrough():
     # A predicate-to-vertex line that legitimately enters once and stops inside.
     entering = [Point(50, -10), Point(50, 40)]
     assert count_cut_crossings(entering, b, "rounded_rectangle", r) == 1
+
+
+# --- exact extent: a predicate is a label box, not a point (EXACT_CORRESPONDENCE Phase 3) --- #
+#
+# §3.3 reads a predicate's containment off the drawn label box. predicate_label_box
+# is the single source of truth — the same box the renderer draws — so the box may
+# not straddle a cut boundary.
+
+class _FakeStyle:
+    predicate_char_width = 8.0
+    predicate_height = 20.0
+
+
+def test_predicate_label_box_matches_the_drawn_formula():
+    from presentation_ops import predicate_label_box
+    box = predicate_label_box("loves", Point(100, 50), _FakeStyle())
+    # width = len*char_width + 2*pad_h (2) ; height = predicate_height + 2*pad_v (1)
+    assert (box.max_x - box.min_x) == 5 * 8.0 + 4.0
+    assert (box.max_y - box.min_y) == 20.0 + 2.0
+    # Centred on the anchor.
+    assert (box.min_x + box.max_x) / 2 == 100
+    assert (box.min_y + box.max_y) / 2 == 50
+
+
+def test_predicate_label_box_defaults_when_style_is_none():
+    from presentation_ops import predicate_label_box
+    box = predicate_label_box("P", Point(0, 0), None)  # falls back to defaults
+    assert box.max_x > box.min_x and box.max_y > box.min_y
+
+
+def test_box_intrudes_cut_detects_a_straddle():
+    from presentation_ops import box_intrudes_cut
+    cut = BoundingBox(0, 0, 100, 100)
+    # Box overlapping the left edge — a corner inside the cut → intrudes.
+    straddling = BoundingBox(-10, 40, 10, 60)
+    assert box_intrudes_cut(straddling, cut, "rounded_rectangle", 0.0) is True
+    # Box wholly outside → no intrusion.
+    outside = BoundingBox(-30, 40, -10, 60)
+    assert box_intrudes_cut(outside, cut, "rounded_rectangle", 0.0) is False
+    # Box engulfing the cut (cut corners inside the box) → intrudes.
+    engulfing = BoundingBox(-10, -10, 110, 110)
+    assert box_intrudes_cut(engulfing, cut, "rounded_rectangle", 0.0) is True

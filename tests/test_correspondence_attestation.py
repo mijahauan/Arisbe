@@ -202,17 +202,20 @@ def test_attest_raises_on_vertex_outside_cut(tomos, engine, style):
 
 def test_containment_is_read_from_the_drawn_shape(engine):
     """The drawn cut boundary is authoritative for containment, so the *shape*
-    determines which area an element is in.  A predicate placed near a box corner
-    (inside the box, outside the inscribed ellipse) is contained under a box
-    style (Dau) but *not* under an oval style (Peirce) — same geometry, the shape
-    decides.  This is the principled replacement for episodic style-padding."""
+    determines which area a *dot* is in.  A vertex dot near a box corner (inside the
+    box, outside the inscribed ellipse) is contained under a box style (Dau) but
+    *not* under an oval style (Peirce) — same geometry, the shape decides.  This is
+    the principled replacement for episodic style-padding.  (A predicate is an
+    *extent*, checked as a label box — see
+    ``test_predicate_label_box_must_not_straddle_its_cut``; the dot is the point-
+    containment carrier.)"""
     import dataclasses
     from egif_parser_dau import parse_egif
     from style_loader import load_default_style, load_style
 
-    egi = parse_egif("~[ (P) ]")  # one cut, one nullary predicate inside it
+    egi = parse_egif("~[ *x ]")  # one cut, one isolated vertex (a dot) inside it
     (cut_id,) = [c.id for c in egi.Cut]
-    (pid,) = [e.id for e in egi.E]
+    (vid,) = [v.id for v in egi.V]
     dau = load_default_style()
     dto = engine.generate_layout(egi, dau)
     b = dto.cut_bounds[cut_id]
@@ -220,8 +223,7 @@ def test_containment_is_read_from_the_drawn_shape(engine):
     # ellipse ((−0.9)²+(−0.9)² = 1.62 > 1 in the ellipse's unit frame).
     corner = Point(b.min_x + 0.05 * (b.max_x - b.min_x),
                    b.min_y + 0.05 * (b.max_y - b.min_y))
-    moved = _clone_dto(dto, predicate_positions={**dto.predicate_positions,
-                                                 pid: corner})
+    moved = _clone_dto(dto, vertex_positions={**dto.vertex_positions, vid: corner})
 
     # Box style: the corner is inside → attests.
     attest_correspondence(egi, moved)  # must not raise
@@ -230,7 +232,40 @@ def test_containment_is_read_from_the_drawn_shape(engine):
     oval = dataclasses.replace(moved, style=load_style("peirce-authentic@1.0"))
     with pytest.raises(CorrespondenceViolation) as excinfo:
         attest_correspondence(egi, oval)
-    assert any("containment" in f and pid in f for f in excinfo.value.failures)
+    assert any("containment" in f and vid in f for f in excinfo.value.failures)
+
+
+def test_predicate_label_box_must_not_straddle_its_cut(engine):
+    """Phase 3: a predicate's containment is its drawn label *box*, not the anchor
+    point.  Parking the anchor hard against a cut corner leaves the box straddling
+    the boundary — unreadable into one area — so §3.3 refuses, even though the bare
+    anchor point is inside.  This is the extent generalization of Phases 1–2."""
+    from egif_parser_dau import parse_egif
+    from presentation_ops import predicate_label_box, point_in_cut
+    from style_loader import load_default_style
+
+    egi = parse_egif("~[ (P) ]")  # one cut, one nullary predicate inside it
+    (cut_id,) = [c.id for c in egi.Cut]
+    (pid,) = [e.id for e in egi.E]
+    style = load_default_style()
+    dto = engine.generate_layout(egi, style)
+    b = dto.cut_bounds[cut_id]
+    radius = float(getattr(style, "cut_corner_radius", 0) or 0)
+
+    # Push the anchor to the cut's top-left, just clear of the rounded corner void
+    # so the anchor *point* is inside — but the half-box around it pokes out.
+    box = predicate_label_box("P", Point(b.min_x, b.min_y), style)
+    anchor = Point(b.min_x + (box.max_x - box.min_x) / 2 - 4,
+                   b.min_y + (box.max_y - box.min_y) / 2 - 4)
+    assert point_in_cut(anchor, b, "rounded_rectangle", radius)  # the point is inside
+    straddling = _clone_dto(dto, predicate_positions={**dto.predicate_positions,
+                                                      pid: anchor})
+    with pytest.raises(CorrespondenceViolation) as excinfo:
+        attest_correspondence(egi, straddling)
+    assert any("extent" in f and pid in f for f in excinfo.value.failures)
+
+    # Centred (engine placement): box clears the boundary → attests.
+    attest_correspondence(egi, dto)  # must not raise
 
 
 def test_attest_raises_on_ligature_endpoint_mismatch(tomos, engine, style):

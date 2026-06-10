@@ -1,8 +1,8 @@
 # Current Plan
 
-**Last Updated**: 2026-06-10 — exact-correspondence **Phases 1 & 2 shipped** (exact
-cut containment + exact ligature crossing, no corner void on either side); active
-arc = the exact-correspondence engine + freeform composition. History below
+**Last Updated**: 2026-06-10 — exact-correspondence **Phases 1, 2 & 3a shipped**
+(exact cut containment + exact ligature crossing + predicate label-box containment);
+active arc = the exact-correspondence engine + freeform composition. History below
 condensed 2026-06-10 (detail lives in git, the docs, and memory).
 
 ---
@@ -28,10 +28,17 @@ arbiter; the logic stays coordinate-free.*
   §3.3 tests green, new unit tests pin corner-graze / straddle / pass-through.
   *Still open:* chosen-crossing-point *placement* in the renderer (a routing concern,
   deferred).
-- **Phase 3 (next) — label/numeral extents.** Predicate/constant containment uses the label
-  *box* (no straddle); §3.3 gains a "no straddle / no improper occlusion" check;
-  clockwise *placement* as the order carrier → the argument-order numerals become a
-  toggleable presentation-only annotation (a show/hide control).
+- **Phase 3 — label/numeral extents.** Three sub-pieces:
+  - **3a — label-box containment / no straddle — DONE** (2026-06-10):
+    `presentation_ops.predicate_label_box` is the single source of truth (renderer
+    draws from it; §3.3 tests it). A predicate's containment is its drawn label box —
+    wholly inside ancestor cuts, wholly outside others (`box_intrudes_cut`), no
+    straddle. Vertices stay dots. 521 §3.3 tests green corpus-wide.
+  - **3b (next) — no improper occlusion.** §3.3 "marks don't overlap each other / cut
+    lines illegibly"; layout treats label boxes as obstacles; covers constant/
+    vertex-label placement.
+  - **3c — clockwise placement as the order carrier** → numerals become a toggleable
+    presentation-only annotation. The largest piece (hook placement + clockwise reader).
 - **Phase 4 — DTO carries the cut polyline + browser `isPointInPath` hit-testing**
   (needed once cuts are human-drawn; unblocks the freeform canvas).
 
@@ -85,6 +92,10 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Recently shipped (newest first — detail in git / docs / memory)
 
+- **2026-06-10** — Exact-correspondence **Phase 3a** (label-box containment): a
+  predicate's containment is its drawn label box, not the anchor point
+  (`predicate_label_box` single source of truth — renderer draws it, §3.3 tests it;
+  `box_intrudes_cut` forbids straddling into non-ancestor cuts). 521 §3.3 green.
 - **2026-06-10** — Exact-correspondence **Phase 2** (exact ligature crossing): the
   crossing test reads off the same rounded-rect boundary as Phase 1's containment
   (`count_cut_crossings` corner-radius-aware; `_rounded_rect_secant_crossings` /

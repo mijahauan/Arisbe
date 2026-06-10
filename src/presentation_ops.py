@@ -380,6 +380,55 @@ def bounds_in_cut(
     return _bounds_in(inner, outer)
 
 
+# Padding the renderer adds around the predicate text, in DTO units.  Kept here so
+# the drawn box and the §3.3 extent are computed from one formula.
+_PRED_LABEL_PAD_H = 2.0
+_PRED_LABEL_PAD_V = 1.0
+
+
+def predicate_label_box(label: str, center, style) -> BoundingBox:
+    """The axis-aligned **extent** of a predicate's drawn label box, centred on
+    ``center`` (its ``predicate_positions`` anchor).  This is the rectangle the
+    renderer actually draws (`simple_svg_renderer`): width
+    ``len(label)·char_width + 2·pad_h``, height ``predicate_height + 2·pad_v``.
+
+    §3.3 reads a predicate's containment off *this extent*, not the anchor point —
+    so a label may not straddle a cut boundary (`docs/EXACT_CORRESPONDENCE.md`
+    Phase 3).  Single source of truth: the renderer draws from this same box, so
+    test and picture agree.  ``style`` may be ``None`` (defaults are used)."""
+    char_width = float(getattr(style, "predicate_char_width", 8.0) or 8.0)
+    height = float(getattr(style, "predicate_height", 20.0) or 20.0)
+    w = len(label) * char_width + 2.0 * _PRED_LABEL_PAD_H
+    h = height + 2.0 * _PRED_LABEL_PAD_V
+    return BoundingBox(
+        center.x - w / 2.0, center.y - h / 2.0,
+        center.x + w / 2.0, center.y + h / 2.0,
+    )
+
+
+def box_intrudes_cut(
+    box: BoundingBox, bounds: BoundingBox, shape, corner_radius: float = 0.0
+) -> bool:
+    """Whether any part of ``box`` lies inside the cut ``bounds`` as drawn — used to
+    forbid a label box from dipping into a cut that is *not* its container (the box
+    analogue of the ligature "enters forbidden cut" check).  True if any corner of
+    ``box`` is inside the cut, or any corner of the cut's bounds is inside ``box``
+    (the box engulfing part of the cut).  This catches every straddle where a corner
+    crosses the boundary; a pure cross-overlap with no corner inside either is not a
+    case the engine produces for axis-aligned label boxes."""
+    box_corners = (
+        (box.min_x, box.min_y), (box.max_x, box.min_y),
+        (box.max_x, box.max_y), (box.min_x, box.max_y),
+    )
+    if any(point_in_cut(Point(x, y), bounds, shape, corner_radius) for x, y in box_corners):
+        return True
+    cut_corners = (
+        (bounds.min_x, bounds.min_y), (bounds.max_x, bounds.min_y),
+        (bounds.max_x, bounds.max_y), (bounds.min_x, bounds.max_y),
+    )
+    return any(_point_in(Point(x, y), box) for x, y in cut_corners)
+
+
 def _ellipse_secant_crossings(a: Point, b: Point, bounds: BoundingBox) -> int:
     """Proper intersections of segment (a,b) with the inscribed ellipse when
     *both* endpoints are outside — 0 (miss/tangent) or 2 (clean pass-through),
@@ -1066,6 +1115,8 @@ __all__ = [
     "count_boundary_crossings",
     "point_in_cut",
     "bounds_in_cut",
+    "predicate_label_box",
+    "box_intrudes_cut",
     "count_cut_crossings",
     "deepest_containing_cut",
     "move_vertex",
