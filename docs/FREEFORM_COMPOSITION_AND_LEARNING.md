@@ -60,11 +60,58 @@ a cut; and (b) a **fix-time validity pass** that catches the drawings the reader
 *can* read but that aren't well-formed EGs (overlapping cuts, unwired hooks,
 dangling lines) and reports them in EG vocabulary. Both are bounded.
 
+## Visible, unambiguous containment regions (no invisible boundary)
+
+The author's requirement (2026-06-10), and a correctness invariant, not just UX:
+
+> **The region that reads as "inside a cut" must be one shape, *shown*, and
+> identical to what the reader uses. There is no second, invisible boundary.**
+
+The trap is a divergence between the *decorative* drawn curve and the *containment
+region* `point_in_cut` uses. Today (`presentation_ops.point_in_cut`):
+- **oval/circle** → inside the inscribed ellipse, and the renderer draws that same
+  ellipse → region == drawing, consistent. Only the general at-the-edge question
+  remains.
+- **box / rounded-rectangle** → inside the **bounding box**, but the Dau render is
+  a `<rect rx=cut_corner_radius>` (rounded), so the rounded-away corner reads
+  **inside** (box) yet looks **outside**. That corner *void* is the "guess where
+  the invisible boundary is" frustration.
+
+  Why it is dormant *today* but a real freeform concern: `simple_svg_renderer`
+  deliberately keeps decorative deviation (corner rounding, hand-drawn wobble)
+  **under the engine's content clearance** — §3.3 reads the idealized DTO geometry,
+  not the drawn stroke, and the engine grows cut boxes with margin, so no
+  *engine-placed* element ever lands in a void. **Freeform human placement breaks
+  that guarantee** — a person can drop a mark squarely in the corner void where the
+  engine never would. Fix: **one curve per cut, used for both render and
+  containment** (make `point_in_cut` shape-exact for the rounded corners, or render
+  a true box), so the shown region *is* the read region with no clearance
+  assumption. Oval already satisfies this; rounded-rectangle is the gap.
+
+Design consequences for the freeform canvas:
+1. **One curve per cut for render *and* containment** — eliminate the box/rounded/
+   oval divergence in *what counts as inside*.
+2. **Render the cut interior as a filled/translucent region** (the exact
+   `point_in_cut` area), not a thin outline to place *near*. "Inside" becomes "on
+   the tinted area," unambiguous by construction; wobble is pure boundary
+   decoration.
+3. **The cut line is a visible band = the snap threshold / no-drop zone.** Dragging
+   a mark snaps it clearly inside (into the tint) or outside, never into the band.
+4. **Live area feedback on drag** — name where the mark will land ("inside cut C" /
+   "on the sheet") *before* release, so the boundary is confirmed up front.
+
+This folds into build step 1 (snapping + validity) and the canvas (step 2): the
+shaded region is what makes the snap legible rather than magic, and it is the same
+region the reader and the renderer share.
+
 ## Build order
 
-1. **Snapping + validity (the de-risked core).** Draw-time endpoint/containment
-   snapping; a `read_drawing`-based fix-time validity pass with legible messages.
-   This is what makes freeform usable and makes "fix = read" trustworthy.
+1. **Visible containment + snapping + validity (the de-risked core).** First make
+   the containment region one shown shape (§"Visible containment regions" above):
+   verify/fix the rounded-rectangle box-vs-render gap, render cut interiors as
+   filled regions, add live area feedback. Then draw-time endpoint/containment
+   snapping and a `read_drawing`-based fix-time validity pass with legible
+   messages. This is what makes freeform usable and "fix = read" trustworthy.
 2. **Freeform drawing canvas.** Replace the composing-phase palette's typed
    `composition_ops` with place/drag/erase of marks on a free `LayoutDTO`; no live
    EGI; live linear forms go silent until fix.
