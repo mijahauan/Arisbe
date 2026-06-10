@@ -1,37 +1,50 @@
 # Current Plan
 
-**Last Updated**: 2026-06-09 (fourth session: **composition workflow implemented**
-— spec §6 steps 1–3 of `docs/COMPOSITION_WORKFLOW_SPEC.md`: `composition_ops.py`,
-session phases + `/compose` + the two gates, palette UI with phase banner. Full
-suite green: 1404 passed, 37 skipped.)
+**Last Updated**: 2026-06-10 (fifth session: Ergasterion review — keep-in-view
+camera + **composition reconceived as synchronic, then as freeform draw-then-read**;
+de-risked `read_drawing` on human geometry. Forward direction: freeform composition
++ challenge mode, `docs/FREEFORM_COMPOSITION_AND_LEARNING.md`.)
 
 ---
 
-## ▶ NEXT SESSION — start here: dogfood the composition workflow in the browser.
+## ▶ NEXT SESSION — start here: freeform composition (draw-then-read).
 
 > Running in a cloud agent (Devin Desktop) instead of the laptop? Read
 > **`docs/DEVIN_SETUP.md`** first.
 
-**The composition workflow is implemented but not yet browser-dogfooded.** All
-server behavior is test-covered (+52 tests; the spec §7 Human/Mortal scenario
-passes over HTTP end to end, palette → attach across the cut boundary → gate ① →
-DC+ → gate ② sealed), and the page's inline JS is syntax-checked — but no human
-(or browser) has yet clicked through the palette. First task: `uv run uvicorn
-web_api.main:app --reload --port 8000`, open `/ergasterion`, start an empty
-sheet, and walk spec §7 by hand: arm ▭ Relation ("Human", arity 1) → click the
-sheet → ◯ Cut → ▭ "Mortal" inside it (the cut glows as the target while a
-placing tool is armed) → ⟝ Attach (click Mortal, then Human's line) → watch the
-linear mirror pulse to `*x (Human x) ~[ (Mortal x) ]` → ① Fix this graph → DC+
-→ ② Fix this chain → disposition (vault to scratch / send to Agon). Check the
-two-click flows' hints, Esc-disarm, double-click rename, the banner tracking the
-*viewed* state's phase when stepping back (pre-gate states show COMPOSING and
-acting there forks fresh clay), and Settle staying live in every phase.
+**The big direction (decided with the author 2026-06-10) — read
+`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`.** Composition of the base graph
+becomes *freeform drawing*: marks (labelled spots, lines, cut-curves) positioned
+freely, **no live EGI, no live interpretation**; the picture is read into a
+determinate sign only at gate ① (`eg_reader.read_drawing` → EGI → validity →
+"what it says"). This dissolves the cut-ownership friction (a cut is just a drawn
+curve; erase it and contents stay) and is the project's *logic-in-pictures /
+drawn-shape-authoritative* thesis applied to composition. Then **challenge mode**:
+show a linear form, the author draws it freehand, `read_drawing` + `same_graph`
+grade it and a **legible EGI diff** reports the discrepancy — correspondence
+learned by doing (the human-facing twin of §3.3; tomos is the challenge bank).
 
-Then spec §6 step 4 polish, as friction dictates: position deltas on click
-placement (ink lands where the click was, via the regime-3 layer), drag-as-
-logical-move while composing, bidirectional linear↔canvas editing, keyboard map.
-Note: **publish-to-Organon-as-unattested-record (spec §5.3) was deliberately NOT
-built** — it's flagged in the spec as a mode-contract question for the author;
+**De-risk is DONE (this session).** `read_drawing`'s algorithm is sound and
+faithful on human-messy geometry; the only gaps are *snapping* (draw-time) and
+*validity flags* (fix-time), both bounded — see the doc's findings table, pinned
+in `tests/test_eg_reader.py::test_freeform_*`. So **no reader rewrite**.
+
+Build order (doc §"Build order"): (1) **snapping + a fix-time validity pass**
+(line-endpoints→hooks, spot→clearly in/out of a cut; flag overlapping cuts /
+unwired hooks in EG vocabulary); (2) the **freeform drawing canvas** (replace the
+composing-phase typed `composition_ops` with place/drag/erase on a free
+`LayoutDTO`; live forms silent until fix); (3) the **legible EGI diff** (align by
+label+role, diff area-tree + incidence/order); (4) **challenge mode** in
+Ergasterion over the corpus. Building (4) *is* the ongoing stress test of (1).
+
+*(Already shipped this session, commit `0df26b7`: composition is synchronic — no
+`compose.*` steps recorded; the recorded chain begins at gate ①. Camera 'keep'
+mode keeps the graph in view across edits. Spec §2.3 rewritten to the
+recorded-step principle.)*
+
+Lower-priority polish if friction dictates: position deltas on click placement,
+keyboard map, bidirectional linear↔canvas. **Publish-to-Organon-as-unattested-record
+(spec §5.3) deliberately NOT built** — a mode-contract question for the author;
 disposition today = vault (scratch) or send to Agon.
 
 Implementation notes (this session):

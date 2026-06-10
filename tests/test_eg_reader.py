@@ -175,3 +175,76 @@ def test_recovers_nested_cut_containment():
     assert dto.sheet_id in parents          # the outer cut sits on the sheet
     assert any(p in cut_ids for p in parents)  # the inner cut sits in a cut
     assert reading_matches_egi(reading, egi)
+
+
+# --------------------------------------------------------------------------- #
+# Freeform robustness — characterization of the reader on *human* (not engine)
+# geometry, the de-risk for draw-then-read composition
+# (docs/FREEFORM_COMPOSITION_AND_LEARNING.md).  The reading algorithm is sound
+# and faithful — it reads exactly what is drawn; these pin *where human
+# imprecision and ill-formed drawings need draw-time snapping / fix-time
+# validity*, NOT a reader rewrite.  If a future change "fixes" one of these in
+# the reader itself, that's a design decision to make deliberately, not a
+# regression to paper over.
+# --------------------------------------------------------------------------- #
+
+
+def _free_dto(verts, preds, cuts, paths, sheet="sheet"):
+    from layout_dto import BoundingBox, LayoutDTO
+    return LayoutDTO(
+        vertex_positions=verts, predicate_positions=preds, cut_bounds=cuts,
+        ligature_paths=paths, area_hierarchy={sheet: set()},
+        viewport_bounds=BoundingBox(-300, -300, 300, 300),
+        sheet_id=sheet, style=load_default_style(),
+    )
+
+
+def test_freeform_containment_is_the_drawn_point_no_snapping():
+    """Containment is the *exact drawn point*: a spot 1px inside reads inside, 1px
+    outside reads outside, on-edge reads inside. Correct (drawn shape is
+    authoritative) — but human intent near a boundary is ambiguous, so the
+    *canvas* must snap clearly in/out; the reader does not."""
+    from layout_dto import BoundingBox, Point
+    cut = {"c": BoundingBox(0, 0, 100, 100)}
+    def where(px):
+        r = read_drawing(_free_dto({"x": Point(px, 50)}, {"P": Point(px, 50)}, cut, []))
+        return "c" if "P" in r.area.get("c", set()) else r.sheet_id
+    assert where(50) == "c"        # clearly inside
+    assert where(1) == "c"         # 1px inside → inside
+    assert where(-1) == "sheet"    # 1px outside → outside
+    assert where(0) == "c"         # on the edge → inside
+
+
+def test_freeform_incidence_is_nearest_endpoint_and_is_brittle():
+    """Incidence matches a line's end to the *nearest* mark. A line that stops
+    short and drifts toward a decoy vertex is read as connecting the decoy — the
+    one real fragility, to be handled by draw-time endpoint snapping / a
+    touch-tolerance, not by the reader guessing intent."""
+    from layout_dto import LigaturePath, Point
+    verts = {"x": Point(0, -100), "y": Point(20, -100)}   # x intended, y decoy
+    preds = {"P": Point(0, 0)}
+
+    def incid(end):
+        p = [LigaturePath(predicate_id="P", vertex_id="x",
+                          points=(Point(2, -8), end), port_index=0)]
+        return read_drawing(_free_dto(verts, preds, {}, p)).incidence.get("P")
+
+    assert incid(Point(0, -95)) == ["x"]      # the line reaches x → correct
+    assert incid(Point(15, -55)) == ["y"]     # stops short, drifts → reads decoy
+    assert incid(Point(20, -95)) == ["y"]     # reaches y
+
+
+def test_freeform_overlapping_cuts_are_not_a_valid_nesting():
+    """Overlapping cuts (neither nests the other) cannot be a valid area tree.
+    The reader treats them as sheet-level siblings and assigns an overlap-region
+    spot to one — so the *fix-time validity pass* must detect and refuse overlap
+    ('cuts must nest or be separate'); the reader will not invent a nesting."""
+    from layout_dto import BoundingBox, Point
+    cuts = {"c1": BoundingBox(0, 0, 100, 100), "c2": BoundingBox(50, 50, 150, 150)}
+    r = read_drawing(_free_dto({"x": Point(75, 75)}, {"P": Point(75, 75)}, cuts, []))
+    # Neither cut is read as inside the other — both are sheet-level.
+    assert r.container("c1") == r.sheet_id
+    assert r.container("c2") == r.sheet_id
+    # The overlap-region spot lands in exactly one area (not both, not neither).
+    homes = [a for a, kids in r.area.items() if "P" in kids]
+    assert len(homes) == 1
