@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Start here each session:** active work and the next-session handoff live in
+> [CURRENT_PLAN.md](CURRENT_PLAN.md) (`▶ NEXT SESSION` section) — read it first.
+
 ## What This Project Is
 
 Arisbe is an environment for **doing logic in pictures, not pictures of logic** — Charles Sanders Peirce's "moving pictures of thought" made operational. Frithjof Dau's formalization is the guarantor of correctness; that bedrock is non-negotiable. The **central engineering and research problem** the codebase exists to solve is the **inerrant correspondence between an EGI's linear written form and its graphical drawn form** — picture and proposition denoting the same mathematical object across every transformation, every layout regeneration, every user edit, every round-trip.

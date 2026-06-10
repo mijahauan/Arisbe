@@ -5,9 +5,6 @@ containment, no corner void); active arc = the exact-correspondence engine +
 freeform composition. History below condensed 2026-06-10 (detail lives in git, the
 docs, and memory).
 
-> Running in a cloud agent (Devin Desktop) instead of the laptop? Read
-> **`docs/DEVIN_SETUP.md`** first (bootstrap + cloud↔laptop discipline).
-
 ---
 
 ## ▶ NEXT SESSION — start here

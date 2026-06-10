@@ -22,14 +22,8 @@ git log --oneline -20
 
 If those three steps produce a green test suite, a CLEAN protection report, and a
 git log that you can follow — you have enough context to start working. The next
-sections are only needed if something looks wrong.
-
-> **Picking up in a cloud agent (Devin Desktop) rather than the laptop?** See
-> [DEVIN_SETUP.md](DEVIN_SETUP.md) — bootstrap (`uv sync --extra dev`, `npm install`),
-> what the clone lacks (the laptop's `~/.claude` auto-memory, git hooks,
-> `.core_modification_authorized`), and the push-from-cloud / pull-on-laptop discipline
-> so the two environments don't diverge. The active task handoff is always
-> [CURRENT_PLAN.md](../CURRENT_PLAN.md)'s `▶ HANDOFF` section.
+sections are only needed if something looks wrong. The active task handoff is
+always [CURRENT_PLAN.md](../CURRENT_PLAN.md)'s `▶ NEXT SESSION` section.
 
 ## What is Arisbe
 
