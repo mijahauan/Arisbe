@@ -55,6 +55,7 @@ from web_api.models.api_models import (
     ErgasterionApplyRequest,
     ErgasterionClosureRequest,
     ErgasterionComposeRequest,
+    ErgasterionDrawingRequest,
     ErgasterionFixRequest,
     ErgasterionOpenRequest,
     ErgasterionSaveScratchRequest,
@@ -83,7 +84,9 @@ from composition_ops import (
     apply_compose,
 )
 from correspondence_attestation import CorrespondenceViolation
-from layout_dto import BoundingBox, Point
+from drawing_to_egi import build_egi_from_drawing
+from drawing_validity import validate_drawing
+from layout_dto import BoundingBox, LayoutDTO, LigaturePath, Point
 from presentation_ops import (
     Regime3Violation,
     move_vertex,
@@ -93,6 +96,7 @@ from presentation_ops import (
     reroute_ligature,
 )
 from presentation_deltas import record_delta, deltas_from_list, merge_inherited
+from style_loader import load_default_style, load_style
 from egif_parser_dau import parse_egif
 from subgraph_closure_validator import SubgraphClosureValidator
 from rule_interaction import (
@@ -838,6 +842,210 @@ async def compose(session_id: str, request: ErgasterionComposeRequest):
                 "type": type(exc).__name__,
             },
         )
+
+
+# --------------------------------------------------------------------------- #
+# Freeform composition canvas — draw-then-read (build step 2)                  #
+# docs/FREEFORM_COMPOSITION_AND_LEARNING.md                                    #
+# --------------------------------------------------------------------------- #
+
+
+def _session_style(session: WorkshopSession):
+    """The style object the freeform DTO carries (cut shape / corner radius /
+    argument-order convention) — what ``read_drawing`` and ``validate_drawing``
+    key off.  Mirrors the session's chosen style; default when unset."""
+    name = session.style_name
+    if not name:
+        return load_default_style()
+    try:
+        return load_style(name)
+    except Exception:
+        return load_default_style()
+
+
+def _dto_from_drawing(drawing: Dict[str, Any], style, sheet_id: str):
+    """Convert a posted freeform drawing into a ``(LayoutDTO, predicate_labels,
+    vertex_labels)`` triple — the ink as the reader/validator/builder consume it.
+
+    The drawing is pure geometry + typed content (see ``ErgasterionDrawingRequest``):
+    cut polylines become both ``cut_boundary`` (the literal drawn curve, tested
+    point-in-polygon) and ``cut_bounds`` (its extent, for the analytic fallbacks and
+    the viewport); labels ride alongside in the two label maps the EGI builder needs.
+    """
+    verts = drawing.get("vertices", []) or []
+    preds = drawing.get("predicates", []) or []
+    cuts = drawing.get("cuts", []) or []
+    lines = drawing.get("lines", []) or []
+
+    vertex_positions = {v["id"]: Point(float(v["x"]), float(v["y"])) for v in verts}
+    predicate_positions = {p["id"]: Point(float(p["x"]), float(p["y"])) for p in preds}
+    vertex_labels = {v["id"]: v.get("label") for v in verts}
+    predicate_labels = {p["id"]: p.get("label", "?") for p in preds}
+
+    cut_bounds: Dict[str, BoundingBox] = {}
+    cut_boundary: Dict[str, tuple] = {}
+    for c in cuts:
+        poly = [Point(float(x), float(y)) for x, y in c["boundary"]]
+        cut_boundary[c["id"]] = tuple(poly)
+        xs = [pt.x for pt in poly]
+        ys = [pt.y for pt in poly]
+        cut_bounds[c["id"]] = BoundingBox(min(xs), min(ys), max(xs), max(ys))
+
+    ligature_paths = []
+    for ln in lines:
+        pts = tuple(Point(float(x), float(y)) for x, y in ln["points"])
+        ligature_paths.append(LigaturePath(
+            predicate_id=ln["predicate_id"],
+            vertex_id=ln["vertex_id"],
+            points=pts,
+            port_index=int(ln.get("port_index", 0)),
+            order_label=ln.get("order_label"),
+        ))
+
+    # Viewport: the extent of everything drawn, padded; a sane default if empty.
+    all_pts = (list(vertex_positions.values()) + list(predicate_positions.values())
+               + [pt for poly in cut_boundary.values() for pt in poly])
+    if all_pts:
+        pad = 40.0
+        vb = BoundingBox(
+            min(p.x for p in all_pts) - pad, min(p.y for p in all_pts) - pad,
+            max(p.x for p in all_pts) + pad, max(p.y for p in all_pts) + pad,
+        )
+    else:
+        vb = BoundingBox(-200, -200, 200, 200)
+
+    dto = LayoutDTO(
+        vertex_positions=vertex_positions,
+        predicate_positions=predicate_positions,
+        cut_bounds=cut_bounds,
+        ligature_paths=ligature_paths,
+        area_hierarchy={sheet_id: set()},
+        viewport_bounds=vb,
+        sheet_id=sheet_id,
+        style=style,
+        cut_boundary=cut_boundary or None,
+    )
+    return dto, predicate_labels, vertex_labels
+
+
+def _issues_payload(report) -> Dict[str, Any]:
+    """The validity report as JSON the canvas can show in EG vocabulary."""
+    return {
+        "is_well_formed": report.is_well_formed,
+        "errors": [
+            {"code": i.code, "message": i.message, "elements": list(i.elements)}
+            for i in report.errors
+        ],
+        "warnings": [
+            {"code": i.code, "message": i.message, "elements": list(i.elements)}
+            for i in report.warnings
+        ],
+    }
+
+
+@router.post("/sessions/{session_id}/read-drawing")
+async def read_drawing_preview(session_id: str, request: ErgasterionDrawingRequest):
+    """Read the composing-phase ink into a determinate sign — *without committing*.
+
+    The non-mutating "what does it say" preview (the canvas's on-demand button):
+    run the validity pass, and when the drawing is well-formed build the EGI it
+    denotes and return its linear forms.  Composition stays silent; this is when
+    the picture *speaks*, so the author is never flying blind before gate ①.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(success=False, error={
+                "code": "SESSION_NOT_FOUND",
+                "message": f"Workshop session '{session_id}' not found."})
+
+        style = _session_style(session)
+        sheet_id = request.drawing.get("sheet_id", "sheet")
+        dto, predicate_labels, vertex_labels = _dto_from_drawing(
+            request.drawing, style, sheet_id)
+        report = validate_drawing(dto)
+        data: Dict[str, Any] = {"validity": _issues_payload(report)}
+        if report.is_well_formed:
+            egi = build_egi_from_drawing(dto, predicate_labels, vertex_labels)
+            data["egi_summary"] = _egi_summary(egi)
+            data["linear_forms"] = linear_forms(egi)
+        return ApiResponse(success=True, data=data)
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "READ_DRAWING_ERROR", "message": str(exc),
+            "type": type(exc).__name__})
+
+
+@router.post("/sessions/{session_id}/fix-drawing")
+async def fix_drawing(session_id: str, request: ErgasterionDrawingRequest):
+    """Gate ① for the freeform canvas — *read* the drawing into the fixed graph.
+
+    Composing is draw-then-read: the picture becomes a determinate sign only here.
+    Validate the ink (refuse, in EG vocabulary, if it isn't a well-formed EG), build
+    the EGI it denotes, install it as the composing state, then cross gate ① exactly
+    like the typed path (a recorded ``compose.fix_graph`` step; §3.3 attested at the
+    render boundary).  From here the graph is clay no longer — only the six Dau rules
+    act on it.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(success=False, error={
+                "code": "SESSION_NOT_FOUND",
+                "message": f"Workshop session '{session_id}' not found."})
+
+        from_state_id = request.from_state_id or session.chain.current_state_id
+        phase = phase_at_state(session, from_state_id)
+        if phase != "composing":
+            return _phase_refusal(
+                "The graph is already fixed — step back before the fixing to fork "
+                "a new draft, or open a new session to compose.", phase=phase)
+
+        style = _session_style(session)
+        sheet_id = request.drawing.get("sheet_id", "sheet")
+        dto, predicate_labels, vertex_labels = _dto_from_drawing(
+            request.drawing, style, sheet_id)
+
+        report = validate_drawing(dto)
+        if not report.is_well_formed:
+            return JSONResponse(status_code=400, content={
+                "success": False, "data": None,
+                "error": {
+                    "code": "DRAWING_ILL_FORMED",
+                    "message": ("The drawing is not a well-formed existential graph "
+                                "yet — fix the flagged marks, then fix the graph."),
+                    "validity": _issues_payload(report),
+                }})
+
+        egi = build_egi_from_drawing(dto, predicate_labels, vertex_labels)
+        new_dto, _svg = generate_layout(egi, style_name=session.style_name)
+        # Install the read EGI as the composing state, then cross gate ①: from here
+        # the recorded, diachronic chain begins (spec §4).
+        manager.update_composing_state(
+            session_id, result_egi=egi, new_layout_dto=new_dto,
+            from_state_id=from_state_id)
+        resp = _record_gate(
+            session_id,
+            rule_name=FIX_GRAPH_STEP,
+            expected_phase="composing",
+            refusal="The graph is already fixed — gate ① has been crossed.",
+            user_annotation=request.user_annotation,
+        )
+        # Carry the validity warnings (well-formed, but worth surfacing) through.
+        if isinstance(resp, ApiResponse) and resp.success and resp.data is not None:
+            resp.data["validity"] = _issues_payload(report)
+        return resp
+
+    except CorrespondenceViolation as exc:
+        return ApiResponse(success=False, error={
+            "code": "CORRESPONDENCE_VIOLATION", "message": str(exc),
+            "context": getattr(exc, "context", None)})
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "FIX_DRAWING_ERROR", "message": str(exc),
+            "type": type(exc).__name__})
 
 
 def _record_gate(

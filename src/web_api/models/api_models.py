@@ -111,6 +111,34 @@ class ErgasterionFixRequest(BaseModel):
     user_annotation: Optional[str] = None
 
 
+class ErgasterionDrawingRequest(BaseModel):
+    """A freeform drawing posted from the composing-phase canvas.
+
+    Composition is *draw-then-read*: while composing, marks are ink with no live
+    EGI (docs/FREEFORM_COMPOSITION_AND_LEARNING.md, build step 2).  The browser
+    owns the ink and posts the whole drawing — to ``read-drawing`` for a non-
+    mutating "what does it say" preview, or to ``fix-drawing`` to cross gate ①
+    (read it into the fixed EGI).  ``drawing`` is::
+
+        {
+          "sheet_id": "sheet",                                  # optional
+          "vertices":   [{"id", "x", "y", "label"?}],           # label⇒constant
+          "predicates": [{"id", "x", "y", "label"}],            # the relation name
+          "cuts":       [{"id", "boundary": [[x, y], …]}],      # closed polyline
+          "lines":      [{"predicate_id", "vertex_id",
+                          "points": [[x, y], …],
+                          "port_index"?, "order_label"?}]       # ν carrier
+        }
+
+    The geometry is read into structure (``eg_reader``) and the labels supply the
+    content (``drawing_to_egi``); validity is checked first (``drawing_validity``).
+    """
+
+    drawing: Dict[str, Any]
+    user_annotation: Optional[str] = None
+    from_state_id: Optional[str] = None
+
+
 class ErgasterionSwitchBranchRequest(BaseModel):
     """Make a different workshop branch the active one (its tip becomes the
     state subsequent moves extend)."""
