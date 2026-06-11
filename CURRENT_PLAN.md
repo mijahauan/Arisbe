@@ -19,13 +19,23 @@ condensed 2026-06-10 (detail in git, docs, memory).
 
 **The build, in order (each a shippable increment):**
 1. **Visible containment + snapping + fix-time validity** (the de-risked core).
-   Render cut interiors as filled/translucent regions (the exact `point_in_cut`
-   area) with **live area feedback on drag** ("inside cut C" / "on the sheet" — use
-   `diagram-viewer.areaAtPoint`); draw-time **snapping** (line endpoints to
-   hooks/vertices; spot placement clearly in/out of a cut, never in the boundary
-   band); and a `read_drawing`-based **fix-time validity pass** that catches the
-   drawings the reader *can* read but that aren't well-formed (overlapping cuts,
-   unwired hooks, dangling lines) and reports them in EG vocabulary.
+   - **Fix-time validity pass — DONE 2026-06-10** (`src/drawing_validity.py` +
+     `tests/test_drawing_validity.py`, 13 tests). `validate_drawing(dto) →
+     ValidityReport` runs `read_drawing` and catches the ill-formed drawings the
+     reader *can* read, in EG vocabulary: **errors** (`overlapping_cuts` — cut curves
+     cross, so the areas aren't a tree; `dangling_line` — a line end touches no mark
+     within tolerance, the brittle stops-short/drift case) and **warnings**
+     (`boundary_band` — a mark on a cut's boundary stroke; `unwired_predicate` — reads
+     as 0-ary; `label_overlap`). `report.is_well_formed` = no errors. Geometry of
+     record reused from `presentation_ops` (`cut_boundary`/`point_in_polygon`/
+     `predicate_label_box`), so "inside / on the boundary" is the same curve the
+     renderer draws and §3.3 attests; clean engine layouts raise zero errors.
+   - **Still to do (folds into step 2's canvas — needs the drag surface + a free-DTO
+     source):** render cut interiors as filled/translucent regions (the exact
+     `point_in_cut` area) with **live area feedback on drag** (`diagram-viewer.areaAtPoint`)
+     and draw-time **snapping** (line endpoints to hooks/vertices; spot placement
+     clearly in/out of a cut, never in the boundary band). Wire `validate_drawing`
+     into the composing-phase fix endpoint when the canvas emits a free `LayoutDTO`.
 2. **The freeform drawing canvas.** Replace the composing-phase typed
    `composition_ops` with place/drag/erase of typed marks on a free `LayoutDTO`
    (a cut = a drawn polyline via `cut_boundary`/`LayoutDTO.cut_boundary`); **no live
@@ -183,6 +193,17 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Recently shipped (newest first — detail in git / docs / memory)
 
+- **2026-06-10** — **Freeform step 1: fix-time validity pass** (`src/drawing_validity.py`,
+  13 tests). `validate_drawing(dto) → ValidityReport`: the well-formedness backstop of
+  *fix = read* — `read_drawing` reads exactly what is drawn even when it isn't a legal
+  EG, so this catches the ill-formed drawings in EG vocabulary. Errors:
+  `overlapping_cuts` (curves cross → areas not a tree), `dangling_line` (a loose end,
+  incl. the stops-short/drift brittleness). Warnings: `boundary_band`,
+  `unwired_predicate` (0-ary), `label_overlap`. Twin of `correspondence_attestation`
+  (which checks against a *known* EGI); this checks a freeform drawing with *no EGI
+  yet*. Reuses `presentation_ops` geometry of record; clean engine layouts raise zero
+  errors. Remaining step-1 UI (filled regions + live drag feedback + snapping) folds
+  into step 2's canvas.
 - **2026-06-10** — **Phase 4: cut boundary as a drawn polyline + browser as
   client-side arbiter.** A cut can be carried as its literal closed polyline
   (`LayoutDTO.cut_boundary`), the foundation for human-drawn freeform cuts.

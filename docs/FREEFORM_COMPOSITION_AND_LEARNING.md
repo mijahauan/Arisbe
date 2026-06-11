@@ -257,6 +257,21 @@ readable. *That* is the complete geometric realization of inerrant correspondenc
    draw-time endpoint/containment snapping and a `read_drawing`-based fix-time
    validity pass with legible messages. This is what makes freeform usable and
    "fix = read" trustworthy.
+   - **Fix-time validity pass — DONE 2026-06-10** (`src/drawing_validity.py`,
+     `tests/test_drawing_validity.py`). `validate_drawing(dto) → ValidityReport`
+     reads the drawing and reports the ill-formed cases the reader *can* read, in EG
+     vocabulary — **errors** `overlapping_cuts` (curves cross → areas aren't a tree)
+     and `dangling_line` (a loose end touches no mark, incl. the stops-short/drift
+     brittleness); **warnings** `boundary_band` (a mark on a cut's boundary stroke),
+     `unwired_predicate` (reads as 0-ary), `label_overlap`. It is the twin of
+     `correspondence_attestation` (which checks a drawing against a *known* EGI):
+     this checks a freeform drawing with *no EGI yet*. Geometry of record reused from
+     `presentation_ops`, so "inside / on the boundary" is the same curve the renderer
+     draws and §3.3 attests; clean engine layouts raise zero errors.
+   - **Remaining:** filled/translucent containment regions + live area feedback on
+     drag (`diagram-viewer.areaAtPoint`) + draw-time snapping, and wiring
+     `validate_drawing` into the fix endpoint — all of which need the drag surface and
+     a free-`LayoutDTO` source, so they ship with the canvas (step 2).
 2. **Freeform drawing canvas.** Replace the composing-phase palette's typed
    `composition_ops` with place/drag/erase of marks on a free `LayoutDTO`; no live
    EGI; live linear forms go silent until fix.
