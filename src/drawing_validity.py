@@ -168,17 +168,24 @@ def _point_to_box_dist(p: Point, box) -> float:
     return math.hypot(dx, dy)
 
 
-def _attachment_dist(pt: Point, dto: LayoutDTO) -> float:
+def _attachment_dist(
+    pt: Point, dto: LayoutDTO, predicate_labels: Optional[Dict[str, str]] = None
+) -> float:
     """How far ``pt`` is from the nearest mark it could attach to — a vertex *dot*
     (distance to its centre) or a predicate *hook* (distance to its drawn label box,
     since a hook sits on the spot's perimeter, not its centre).  An endpoint within
     ``touch_tolerance`` of either is connected; beyond it, the line has a loose end.
-    Returns ``inf`` when there are no marks at all."""
+    Returns ``inf`` when there are no marks at all.
+
+    The predicate box must use the **actual label text** (its real drawn width), not
+    the element id — a wide relation like ``loves`` places its hook well outside a
+    narrow id-width box, which would read a perfectly-attached line as loose."""
+    labels = predicate_labels or {}
     best = math.inf
     for vid, q in dto.vertex_positions.items():
         best = min(best, math.hypot(q.x - pt.x, q.y - pt.y))
     for pid, q in dto.predicate_positions.items():
-        box = predicate_label_box(pid, q, dto.style)
+        box = predicate_label_box(labels.get(pid, pid), q, dto.style)
         best = min(best, _point_to_box_dist(pt, box))
     return best
 
@@ -191,6 +198,8 @@ def _attachment_dist(pt: Point, dto: LayoutDTO) -> float:
 def validate_drawing(
     dto: LayoutDTO,
     *,
+    predicate_labels: Optional[Dict[str, str]] = None,
+    vertex_labels: Optional[Dict[str, Optional[str]]] = None,
     touch_tolerance: float = DEFAULT_TOUCH_TOLERANCE,
     boundary_band: float = DEFAULT_BOUNDARY_BAND,
 ) -> ValidityReport:
@@ -201,7 +210,14 @@ def validate_drawing(
     ambiguous-but-readable intent.  The drawing is read with
     ``eg_reader.read_drawing`` so the report can speak about what was read; the
     geometric checks use the same drawn curves the reader and §3.3 use.
+
+    ``predicate_labels`` / ``vertex_labels`` give each mark's drawn text so the
+    checks that depend on a label's *extent* (hook attachment, label overlap) use
+    the real drawn width.  Without them the element id is used as a width proxy —
+    fine for hand-placed marks whose lines meet the spot centre, but a seeded
+    layout places hooks on the real label's perimeter, so pass the labels there.
     """
+    predicate_labels = predicate_labels or {}
     issues: List[ValidityIssue] = []
     polys = _cut_polylines(dto)
     cut_ids = list(dto.cut_bounds.keys())
@@ -240,7 +256,7 @@ def validate_drawing(
         # drawn in that direction, so a loose end is one that touches *no* mark at
         # all — neither a vertex dot nor a predicate label box, within tolerance.
         for label, end in (("start", pts[0]), ("end", pts[-1])):
-            d = _attachment_dist(end, dto)
+            d = _attachment_dist(end, dto, predicate_labels)
             if d > touch_tolerance:
                 issues.append(ValidityIssue(
                     code="dangling_line",
@@ -291,7 +307,7 @@ def validate_drawing(
     # -- WARNING: two labels overlap (neither can be read apart) ------------- #
     boxes = []
     for pid, pos in preds:
-        name = pid  # freeform: the drawn label text == the relation name
+        name = predicate_labels.get(pid, pid)  # the real drawn label text
         boxes.append((pid, predicate_label_box(name, pos, dto.style)))
     for i in range(len(boxes)):
         for j in range(i + 1, len(boxes)):

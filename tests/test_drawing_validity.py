@@ -138,6 +138,23 @@ def test_line_stopping_short_is_dangling():
     assert "dangling_line" in _codes(report, "error")
 
 
+def test_wide_label_hook_attaches_when_labels_known():
+    """A line whose hook sits on a *wide* label's perimeter is attached — but only
+    if the validator knows the real label text. With the element id as a width
+    proxy (a short id) the same hook reads as a loose end. This is the bug that
+    made a seeded layout fail re-fixing; labels must be passed through."""
+    preds = {"p1": Point(0, 0)}
+    verts = {"v1": Point(0, -100)}
+    paths = [LigaturePath(predicate_id="p1", vertex_id="v1",
+                          points=(Point(24, 0), Point(0, -100)), port_index=0)]
+    dto = _free_dto(verts, preds, {}, paths)
+    # Short id as width proxy → the hook reads as a loose start.
+    assert "dangling_line" in _codes(validate_drawing(dto), "error")
+    # Real wide label → the hook is on the label box → attached.
+    rep = validate_drawing(dto, predicate_labels={"p1": "relation"})
+    assert "dangling_line" not in _codes(rep, "error")
+
+
 def test_degenerate_line_is_dangling():
     paths = [LigaturePath(predicate_id="P", vertex_id="x",
                           points=(Point(0, 0),), port_index=0)]

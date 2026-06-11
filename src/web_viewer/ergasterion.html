@@ -591,8 +591,8 @@
     <!-- Right panel: rules + step list + promote -->
     <aside class="panel right" id="right-panel">
       <div class="panel-header">
-        <h2>Moves</h2>
-        <p>Apply Dau rules to advance the chain.</p>
+        <h2 id="right-panel-title">Workshop</h2>
+        <p id="right-panel-sub">Pick a base context to begin.</p>
       </div>
       <div class="panel-body" id="right-body">
 
@@ -1349,21 +1349,36 @@
         if (segArg) {
           segArg.classList.toggle('active', !composing);
           // You cannot apply a rule to an unfixed graph — so the Argument is
-          // locked until the graph is fixed.
+          // locked until the graph is fixed (shown with a padlock).
           segArg.classList.toggle('locked', composing);
+          segArg.textContent = composing ? '🔒 The Argument' : '⊢ The Argument';
         }
         // While a graph is fixed, the Graph segment becomes the explicit re-open.
         if (segGraph) segGraph.textContent = composing ? '✎ The Graph' : '✎ Edit base graph';
+        // The panel header mirrors the active workspace, so "where am I" is stated
+        // at the top too (not a stale "Moves").
+        const title = document.getElementById('right-panel-title');
+        const sub = document.getElementById('right-panel-sub');
+        if (title && sub) {
+          if (composing) {
+            title.textContent = 'The Graph';
+            sub.textContent = 'Draw and shape what it means.';
+          } else {
+            title.textContent = 'The Argument';
+            sub.textContent = 'Apply Dau rules to a fixed graph.';
+          }
+        }
         if (!st) return;
         st.className = 'ws-state ' + (composing ? 'unfixed' : (sealed ? 'sealed' : 'fixed'));
         if (composing) {
           const willFork = currentChain && (currentChain.step_count > 0) && viewIndex === 0;
-          st.innerHTML = '<span class="lock">🔓</span><span><strong>UNFIXED — editing the graph’s meaning.</strong> ' +
-            '<span class="ws-sub">Draw and erase freely. Transformation rules are locked until you ① fix it.' +
+          st.innerHTML = '<span class="lock">🔓</span><span><strong>GRAPH UNFIXED — meaning unlocked.</strong> ' +
+            '<span class="ws-sub">Change the graph to express a new meaning. ' +
+            'Transformation rules are locked until you ① fix it.' +
             (willFork ? ' Fixing forks a new line (the current argument is kept as a branch).' : '') +
             '</span></span>';
         } else if (sealed) {
-          st.innerHTML = '<span class="lock">🔒</span><span><strong>ARGUMENT FIXED — read-only.</strong> ' +
+          st.innerHTML = '<span class="lock">🔒🔒</span><span><strong>ARGUMENT FIXED — read-only.</strong> ' +
             '<span class="ws-sub">Navigate, restyle, replay. Step back before gate ② to re-open the line.</span></span>';
         } else {
           st.innerHTML = '<span class="lock">🔒</span><span><strong>GRAPH FIXED — meaning locked.</strong> ' +

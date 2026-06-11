@@ -1024,7 +1024,8 @@ async def read_drawing_preview(session_id: str, request: ErgasterionDrawingReque
         sheet_id = request.drawing.get("sheet_id", "sheet")
         dto, predicate_labels, vertex_labels = _dto_from_drawing(
             request.drawing, style, sheet_id)
-        report = validate_drawing(dto)
+        report = validate_drawing(
+            dto, predicate_labels=predicate_labels, vertex_labels=vertex_labels)
         data: Dict[str, Any] = {"validity": _issues_payload(report)}
         if report.is_well_formed:
             egi = build_egi_from_drawing(dto, predicate_labels, vertex_labels)
@@ -1068,7 +1069,8 @@ async def fix_drawing(session_id: str, request: ErgasterionDrawingRequest):
         dto, predicate_labels, vertex_labels = _dto_from_drawing(
             request.drawing, style, sheet_id)
 
-        report = validate_drawing(dto)
+        report = validate_drawing(
+            dto, predicate_labels=predicate_labels, vertex_labels=vertex_labels)
         if not report.is_well_formed:
             return JSONResponse(status_code=400, content={
                 "success": False, "data": None,

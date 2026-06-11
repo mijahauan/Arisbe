@@ -137,3 +137,18 @@ def test_freeform_draw_read_fix_and_two_mode_switch(page, app_url):
     # Seeded, not blank: the 'loves' relation mark is on the re-opened canvas.
     assert page.eval_on_selector_all(
         ".freeform-wrap text", "els=>els.some(e=>e.textContent==='loves')")
+
+    # The round-trip must work *repeatedly* — re-fix the seeded graph and re-open
+    # it again. (Regression: it used to work only once, because the seeded layout
+    # placed hooks on the real label's perimeter and the label-unaware attachment
+    # check refused the re-fix.)
+    page.click("#btn-fix-graph")
+    page.wait_for_function(
+        "document.querySelector('#seg-argument').classList.contains('active')", timeout=8000)
+    page.click("#seg-graph")
+    page.wait_for_function(
+        "document.querySelector('#ws-state').classList.contains('unfixed')", timeout=8000)
+    page.wait_for_selector(".freeform-wrap", state="visible", timeout=8000)
+    # The amber editing frame reappears (the canvas visibly re-opens a second time).
+    assert page.eval_on_selector(
+        ".freeform-wrap", "e=>getComputedStyle(e).boxShadow") != "none"
