@@ -238,14 +238,20 @@ readable. *That* is the complete geometric realization of inerrant correspondenc
 
 ## Build order
 
-0. **Exact extents (the foundation).** Carry each cut's path in the DTO; replace
-   `point_in_cut`'s box/ellipse proxy with point-in-path against that shared path
-   (client-side: the browser's `isPointInPath`/`isPointInFill`). Extend the crossing
-   test for ligatures to path-vs-path intersection. Make predicate/constant
-   containment use the **label box** (wholly inside the cut path, not the anchor
-   point), and give order **numerals** reserved, collision-checked footprints. Add
-   to §3.3 an "every mark wholly within its area and unoccluded" check. This is the
-   exact-correspondence target above; everything else assumes extents are exact.
+0. **Exact extents (the foundation). — DONE 2026-06-10 (exact-correspondence engine,
+   Phases 1–4; see docs/EXACT_CORRESPONDENCE.md + SESSION_LOG_2026-06-10.md).** Cut
+   containment / ligature crossing read off the rounded-rect / ellipse the renderer
+   draws; predicate/constant containment uses the **label box** (not the anchor
+   point); §3.3 has the "every mark wholly within its area and unoccluded" checks
+   (text-on-text, cut-line straddle, line through a non-incident label, with
+   label-aware ligature routing); argument order by clockwise placement + single
+   anchor. **Phase 4** carries each cut's **polyline** in the DTO and tests
+   point-in-polygon, with the browser's `isPointInFill` (`diagram-viewer.areaAtPoint`)
+   as the client-side arbiter — exactly what a human-drawn cut needs. One open
+   refinement deferred by design: the hand-drawn **wobble** stays a render-only
+   cosmetic (not attested), so a *human-drawn* cut is carried as an explicit polyline
+   rather than relying on the wobble of an analytic shape. **The next session starts
+   at step 1.**
 1. **Visible containment + snapping + validity (the de-risked core).** Render cut
    interiors as filled regions (the exact path area) with live area feedback; then
    draw-time endpoint/containment snapping and a `read_drawing`-based fix-time

@@ -5,6 +5,8 @@ An environment for **doing logic in pictures**, built around Charles S. Peirce's
 
 The central engineering and research problem the codebase solves: **inerrant correspondence between an EGI's linear written form and its graphical drawn form**. The contract is stated in [docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md), tested against the tomos corpus, exposed as a refusal-bearing API in [src/presentation_ops.py](src/presentation_ops.py), and runtime-attested at the web service boundary by [src/correspondence_attestation.py](src/correspondence_attestation.py). When picture and proposition come apart, the system refuses to serve a drawing it can't attest.
 
+**The exact-correspondence engine (complete, June 2026).** That contract is now realized *geometrically*: a cut **is its drawn curve**, every mark is an **extent** (label box, not anchor point), and the whole §3.3 invariant — cut containment, ligature crossing-sequence, label/numeral extents, no improper occlusion, argument order by clockwise placement — is checked as a set of **exact facts about the literal drawn picture**, no proxy shape. A cut can be an arbitrary human-drawn polyline, tested point-in-polygon by both the attestation and the reader and hit-tested in the browser via `isPointInFill`. See [docs/EXACT_CORRESPONDENCE.md](docs/EXACT_CORRESPONDENCE.md). This is the foundation for the **freeform composition canvas** (draw logic by hand, read it into a sign on demand) — the active arc.
+
 ---
 https://deepwiki.com/badge-maker?url=https%3A%2F%2Fdeepwiki.com%2Fmijahauan%2FArisbe
 ---
@@ -115,7 +117,7 @@ The **core reasoning engine** and referee.
 ## 🔒 **Development Guidelines**
 
 - **📚 API Documentation**: `docs/ARISBE_CORE_API_REFERENCE.md`
-- **🛡️ Core Protection**: 17 validated modules, 654 passing tests
+- **🛡️ Core Protection**: 17 validated modules; ~960 passing tests across the suite
 - **📊 Quality Monitoring**: Automated quality gates and daily dashboard
 - **🧠 Context Recovery**: `docs/RETURN_TO_DEVELOPMENT.md`
 
@@ -216,10 +218,16 @@ The **core reasoning engine** and referee.
 
 **Layout and Visualization:**
 
-- `unified_d3_engine.py` — Recursive bottom-up D3 layout engine (production)
-- `simple_svg_renderer.py` — Direct LayoutDTO → SVG rendering
-- `style_specification.py` / `style_loader.py` — Declarative visual style system
-- `diagram_controller.py` — GUI coordination layer
+- `natural_layout.py` — coordinate-free, projection-independent layout (containment tree + per-ligature required crossing-sequence); imports no geometry ("own the dimensionality")
+- `elk_layout_engine.py` (+ `elk_worker.js`) — cut-aware ELK layout, the default projection; label-aware two-tier ligature router (cuts hard, label boxes soft)
+- `tension_engine.py` / `tension_layout.py` — opt-in `?engine=tension` projection (a relation drawn *between* its arguments, the Peircean single-line reading)
+- `clockwise_placement.py` — Peirce's writing convention: hooks drawn clockwise around the spot in ν-order (argument order in the geometry)
+- `simple_svg_renderer.py` — LayoutDTO → SVG; draws the exact label boxes and cut curves the §3.3 test reads
+- `layout_dto.py` — platform-independent layout DTO (carries cut boundary polylines for human-drawn cuts)
+- `presentation_ops.py` — regime-3 algebra + the exact-correspondence geometry (`point_in_cut`, `cut_boundary`, `point_in_polygon`, label-box extents)
+- `style_loader.py` — declarative visual style system (Dau / Peirce / Sowa)
+
+> The Qt GUI and the old `unified_d3` engine were archived to `archive/qt-gui-2025/` in May 2026; the web app (`src/web_api/` + `src/web_viewer/`) is the canonical UI.
 
 **Utilities:**
 
@@ -240,7 +248,7 @@ The **core reasoning engine** and referee.
 
 ```
 src/                  Core logic and engine (35+ production modules)
-tests/                Pytest test suite (654 passing, 40 test files)
+tests/                Pytest test suite (~960 passing, 45+ test files)
 tools/                Quality tools, demos, and utilities
 docs/                 Architecture documentation
 docs/RETURN_TO_DEVELOPMENT.md  Context recovery guide for returning authors
@@ -371,7 +379,7 @@ the Qt implementation was archived in May 2026.
 
 ---
 
-## 📊 Current State (May 2026)
+## 📊 Current State (June 2026)
 
 ### ✅ Completed
 
@@ -445,9 +453,33 @@ the Qt implementation was archived in May 2026.
   `web_api/services/layout_service.py` so every (EGI, drawing) pair
   the user sees has been verified before leaving the service
 
+**The exact-correspondence engine (Phases 1–4, June 2026):**
+
+- The correspondence contract realized *geometrically* — every §3.3 property is an
+  exact fact about the literal drawn picture, no proxy shape
+  (`docs/EXACT_CORRESPONDENCE.md`)
+- **Phase 1–2**: cut containment + ligature crossing tested on the rounded
+  rectangle / inscribed ellipse the renderer actually draws (no corner void)
+- **Phase 3**: every mark is an **extent** — predicate/constant **label boxes**
+  (not anchor points) wholly within their area; no improper occlusion (text-on-text,
+  cut-line straddle, line through a non-incident label, with **label-aware ligature
+  routing** as the constructive partner); **argument order by clockwise placement**
+  (Peirce's writing convention) with a single start anchor and a numeral toggle
+- **Phase 4**: a cut can be carried as its **literal drawn polyline** — the
+  foundation for human-drawn cuts — tested point-in-polygon by §3.3 and the reader,
+  and hit-tested in the browser via `isPointInFill` (`areaAtPoint`)
+
+**The three web modes (live):**
+
+- **Organon** (`/organon`) — read-only corpus archive, load + render boundaries
+  §3.3-attested per request
+- **Ergasterion** (`/ergasterion`) — workshop / composition; regime-1 drafts; a graph
+  reaches the corpus only via Agon or as a style-only reprojection
+- **Agon** (`/agon`) — Endoporeutic Game arena (hot-seat V1)
+
 **Testing:**
 
-- **654 tests passing**, 17 skipped, across 40 test files
+- **~960 tests passing**, ~35 skipped, across 45+ test files
 - Quality gates and core protection active (17 protected modules)
 - Comprehensive coverage: core data model, all six transformation rules,
   import/export round-trips, isomorphism engine, proof exercises
@@ -456,16 +488,19 @@ the Qt implementation was archived in May 2026.
 
 ### 🔧 In Progress / Next
 
-- **Web routes for Organon, Ergasterion, Agon** — surface the three
-  conceptual modes as routes within the web app (matched to the three
-  regimes of the correspondence invariant)
-- **Projection conventions** — name and test the conventions currently
-  in force (ELK sibling ordering, ligature crossing style, etc.); the
-  §3.3 convention-compliance row
-- **Extend attestation to additional boundaries** — tomos save/load,
-  Agon session boundaries
-- **Advanced Beta proofs** — Barbara/Celarent syllogisms with full
-  FOL quantification
+- **Freeform composition canvas** *(the active arc)* — composition becomes
+  draw-then-read: place/drag/erase typed marks (cut / relation / line-of-identity)
+  at free positions on a `LayoutDTO`, with no live EGI; the picture is read into a
+  sign only at gate ① (`read_drawing` → EGI → validity → "what it says"). Then
+  **challenge mode**: show a linear form, draw it freehand, grade with `same_graph`
+  + a legible EGI diff — correspondence learned by doing
+  (`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`). Build step 0 (exact extents) is the
+  now-complete exact-correspondence engine, so this starts at step 1 (visible
+  containment regions + snapping + fix-time validity).
+- **Agon web arena** — surface the Endoporeutic Game engine (live as a REPL) as a
+  web route
+- **Math horizon** — the ∀x scaffold tactic (`derived_rules.py`) and selection-driven
+  `fold` (`definitions.py`); corpus-import the math theories (ZFC + Peirce 1881)
 
 ---
 
@@ -514,14 +549,12 @@ the Qt implementation was archived in May 2026.
 ## 🗓️ Development Roadmap
 
 ### Current Focus (mid-2026)
-- **Web routes for the three modes**: Organon (archive), Ergasterion
-  (workshop), Agon (arena) as routes within the web app — matched to
-  the three regimes of the correspondence invariant
-- **Projection conventions**: name and test the conventions currently
-  in force, closing the §3.3 convention-compliance row
-- **Boundary attestation extension**: tomos save/load and Agon session
-  boundaries (the layout-service hook already covers the user-facing
-  render path)
+- **Freeform composition canvas**: draw logic by hand on a free `LayoutDTO`, read it
+  into a determinate sign on demand (gate ①); then challenge mode for
+  correspondence-by-doing. The exact-correspondence engine (Phases 1–4) is the
+  foundation; the remaining build is the canvas, draw-time snapping, a fix-time
+  validity pass, the legible EGI diff, and challenge mode over the tomos corpus
+- **Agon web arena**: the Endoporeutic Game as a web route (engine + REPL exist)
 
 ### Medium-term
 - **Hypothesis-driven exhaustive transformation testing**: extend

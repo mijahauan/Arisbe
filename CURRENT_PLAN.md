@@ -11,12 +11,46 @@ condensed 2026-06-10 (detail in git, docs, memory).
 
 ## ▶ NEXT SESSION — start here
 
-**Designated next task: the freeform composition canvas (Thread B)** — now that
-Phase 4 carries the cut polyline + browser `isPointInFill` hit-testing, build the
-draw-then-read canvas (place/drag/erase typed marks on a free `LayoutDTO`; live
-forms silent until gate ①). After that, the appetite-driven **math menu** (the
-ready-to-pick tasks, independent and unprotected). Phases 1–4 of the
-exact-correspondence engine are all done.
+**Designated next task: the freeform composition canvas** — composition becomes
+*draw-then-read*. The exact-correspondence engine (Phases 1–4) is done; that was
+**build step 0** of `docs/FREEFORM_COMPOSITION_AND_LEARNING.md`, so the next session
+**starts at step 1**. Read that doc's "Build order" + the three-move arc, and
+`docs/SESSION_LOG_2026-06-10.md` for how the foundation got here.
+
+**The build, in order (each a shippable increment):**
+1. **Visible containment + snapping + fix-time validity** (the de-risked core).
+   Render cut interiors as filled/translucent regions (the exact `point_in_cut`
+   area) with **live area feedback on drag** ("inside cut C" / "on the sheet" — use
+   `diagram-viewer.areaAtPoint`); draw-time **snapping** (line endpoints to
+   hooks/vertices; spot placement clearly in/out of a cut, never in the boundary
+   band); and a `read_drawing`-based **fix-time validity pass** that catches the
+   drawings the reader *can* read but that aren't well-formed (overlapping cuts,
+   unwired hooks, dangling lines) and reports them in EG vocabulary.
+2. **The freeform drawing canvas.** Replace the composing-phase typed
+   `composition_ops` with place/drag/erase of typed marks on a free `LayoutDTO`
+   (a cut = a drawn polyline via `cut_boundary`/`LayoutDTO.cut_boundary`); **no live
+   EGI**; live linear forms go silent until fix. A cut is just ink — erase it and
+   its contents stay put; drag a mark across a boundary to change its area.
+3. **The legible EGI diff** (the discrepancy report): align two EGIs by relation
+   label + role (generic vertices by incidence), diff area trees + per-relation
+   incidence/order, phrase in EG terms (containment / scope / incidence / order /
+   missing / extra). Reused by both fix-time validity *and* challenge mode.
+4. **Challenge mode**: pick a tomos linear form, hide its drawing, grade the freehand
+   attempt with `same_graph` + the diff. Difficulty gradient straight from the
+   corpus (single relation → nested cuts → Beta with a shared line crossing a
+   boundary). Building (4) *is* the ongoing stress test of `read_drawing` on humans.
+
+**Building blocks in hand:** `read_drawing` (de-risked on human geometry,
+`test_eg_reader.py::test_freeform_*`), `diagram-viewer.areaAtPoint` +
+`isPointInFill` (Phase 4), `presentation_ops.cut_boundary` + `LayoutDTO.cut_boundary`
+(a cut as a drawn polyline), §3.3 attestation at gate ①, `same_graph` /
+`reading_matches_egi`. The one genuinely new logical piece is the **legible EGI diff**
+(step 3). Scope boundary (load-bearing): Arisbe reads **structured placement, not
+pixels** — reading a raster image is deferred (a hand-off to external AI that emits a
+structured placement into the same `read_drawing` pipeline).
+
+After freeform: the appetite-driven **math menu** (∀x scaffold tactic; selection-driven
+`fold`) and the **Agon web arena** — independent and ready to pick.
 
 ### Phase 3c — clockwise placement (Peirce's writing convention) — DONE 2026-06-10
 *ν specifies the order, so the drawing shows it: hooks drawn clockwise around the
