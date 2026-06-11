@@ -155,11 +155,14 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
     convention = getattr(dto.style, "argument_order_convention", "numbered")
 
     def cw_angle(path, pid: str) -> float:
-        """The angle the line leaves the spot, read clockwise from 'vertically
-        above' (Peirce).  Screen y grows downward, so increasing atan2(dy,dx) is
-        clockwise; rotate so straight-up (−y) is the 0 start."""
+        """The angular position of the *hook* around the spot, read clockwise from
+        'vertically above' (Peirce reads the hooks' positions, not the lines'
+        directions — so a line may run straight to a far vertex without disturbing
+        the order).  The hook is ``points[0]``, on the spot's edge; screen y grows
+        downward, so increasing atan2(dy,dx) is clockwise; rotate so straight-up
+        (−y) is the 0 start."""
         P = dto.predicate_positions[pid]
-        ref = path.points[1] if len(path.points) >= 2 else path.points[-1]
+        ref = path.points[0]
         return (math.atan2(ref.y - P.y, ref.x - P.x) + math.pi / 2) % (2 * math.pi)
 
     def order_key(path, pid: str) -> float:
@@ -216,9 +219,10 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
 
 
 def _clockwise_order(dto: LayoutDTO, pid: str) -> List[str]:
-    """The vertices of predicate ``pid`` in the clockwise order their hooks leave
-    the spot (from 'vertically above'), as the eye reads them — used to decide
-    whether the natural placement already shows ν, or needs a numeric override."""
+    """The vertices of predicate ``pid`` in the clockwise order of their *hooks*
+    around the spot (from 'vertically above'), as the eye reads them — the hook is
+    ``points[0]`` on the spot's edge (Peirce reads hook positions, not line
+    directions).  Used to decide whether the placement already shows ν."""
     P = dto.predicate_positions.get(pid)
     if P is None:
         return []
@@ -226,7 +230,7 @@ def _clockwise_order(dto: LayoutDTO, pid: str) -> List[str]:
     for path in dto.ligature_paths:
         if path.predicate_id != pid or len(path.points) < 2:
             continue
-        ref = path.points[1]
+        ref = path.points[0]
         theta = math.atan2(ref.y - P.y, ref.x - P.x)
         items.append(((theta + math.pi / 2) % (2 * math.pi), path.vertex_id))
     return [v for _, v in sorted(items, key=lambda kv: kv[0])]

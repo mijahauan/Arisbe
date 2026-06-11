@@ -19,16 +19,17 @@ label/numeral extents work is complete.
 
 ### Phase 3c — clockwise placement (Peirce's writing convention) — DONE 2026-06-10
 *ν specifies the order, so the drawing shows it: hooks drawn clockwise around the
-spot in ν-order, by construction.* `clockwise_placement.place_clockwise_hooks`
-(pre-attestation in `layout_service`): every ≥2-ary predicate's hooks → evenly
-spaced clockwise slots in ν-order, at the **rotation that best aligns with where
-the vertices lie** (crossings minimized — zero on the corpus; a 10-ary becomes a
-clock face). Rerouted around cuts/labels + locally guarded; a predicate the spread
-can't keep sound (e.g. high arity in a tight cut) reverts gracefully. Carried by a
-**single start anchor** (`assign_order_labels` marks ≤1 line/relation — Conv. 13's
-start index; `read_drawing` is anchor-aware), plus the `argument_order_numerals:
-auto|always|never` toggle. §3.3 green; clockwise order is a rotation of ν for every
-relation by construction; ordered round-trip **23/23 with zero numerals** (`never`).
+spot in ν-order, by construction — consistently across every style and layout.*
+`clockwise_placement.place_clockwise_hooks` (pre-attestation in `layout_service`,
+applied for **all** styles): every ≥2-ary predicate's hooks → evenly spaced
+clockwise slots in ν-order at the **rotation that best aligns with the vertices**
+(crossings minimized — zero on the corpus; a 10-ary = a clock face). The **hook
+position** (`points[0]`) carries the order, so lines run **straight to their
+vertices — no stub, no kink**. Rerouted around cuts/labels + locally guarded;
+reverts gracefully where unsound (e.g. high arity in a tight cut). Carried by a
+**single start anchor** (`assign_order_labels` ≤1 mark/relation; `read_drawing`
+anchor-aware) + `argument_order_numerals: auto|always|never` toggle. §3.3 green;
+every style draws args clockwise; ordered round-trip **23/23 with zero numerals**.
 
 ### Label-aware ligature routing — DONE 2026-06-10
 *Phase 3b's deferred third occlusion property shipped with its constructive
@@ -136,18 +137,18 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Recently shipped (newest first — detail in git / docs / memory)
 
-- **2026-06-10** — **Phase 3c: clockwise placement as Peirce's writing convention.**
-  ν specifies the order → the drawing shows it: `clockwise_placement.
-  place_clockwise_hooks` draws every ≥2-ary relation's hooks clockwise around the
-  spot in ν-order by construction, at the best-fit rotation (crossings minimized; a
-  10-ary = a clock face), rerouted around cuts/labels + locally guarded (reverts
-  gracefully where unsound, e.g. high arity in a tight cut). Carried by a single
-  start anchor (`assign_order_labels` ≤1 mark/relation; `read_drawing` anchor-aware)
-  + the `argument_order_numerals: auto|always|never` toggle. §3.3 green; clockwise
-  order is a rotation of ν for every relation by construction; ordered round-trip
-  23/23 with **zero numerals** (`never`). Reframed mid-session from a corpus-tuned
-  fragile-patch to the writing convention at the author's direction. Phase 3
-  (label/numeral extents) complete.
+- **2026-06-10** — **Phase 3c: clockwise placement as Peirce's writing convention**
+  (consistent across all styles/layouts). `clockwise_placement.place_clockwise_hooks`
+  draws every ≥2-ary relation's hooks clockwise around the spot in ν-order by
+  construction, at the best-fit rotation (crossings minimized; 10-ary = a clock
+  face). The hook *position* (`points[0]`) carries the order, so lines run straight
+  to vertices — no stub, no kink. Applied for **every** style (numbered draws them
+  clockwise + numbered; Peirce clockwise + zero/anchor) so the picture reads the
+  same everywhere; rerouted + locally guarded (reverts gracefully where unsound).
+  Single start anchor + `argument_order_numerals: auto|always|never` toggle. §3.3
+  green; ordered round-trip 23/23 with zero numerals (`never`). Reframed across the
+  session at the author's direction: corpus-tuned fragile-patch → writing convention
+  → hook-position carrier (no kinks) → consistent across styles. Phase 3 complete.
 - **2026-06-10** — **Label-aware ligature routing** (Phase 3b's third occlusion
   property + its constructive partner). §3.3 check #3 refuses a line of identity
   running through a label box it is *not* incident to (`path_intersects_box`); the

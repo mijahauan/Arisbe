@@ -71,10 +71,13 @@ def place_clockwise_hooks(egi, dto: LayoutDTO, style, engine) -> LayoutDTO:
     ``_route_avoiding_cuts`` / ``_authorized_cuts`` and ``_compute_element_sizes``
     are reused, so the re-hooked lines route around cuts and label boxes exactly
     as the cold layout does.
-    """
-    if getattr(style, "argument_order_convention", "numbered") != "clockwise":
-        return dto
 
+    Applied for **every** style — drawing a relation's hooks clockwise in ν-order
+    is correct layout, not a Peirce-only flourish, so the picture reads the same
+    across styles and layouts.  The ``argument_order_convention`` style setting
+    governs only whether numerals are *also* drawn (Dau numbers / Peirce anchor),
+    not the placement.
+    """
     cut_shape = getattr(style, "cut_shape", "rounded_rectangle")
     cut_radius = float(getattr(style, "cut_corner_radius", 0) or 0)
     cut_bounds = dto.cut_bounds
@@ -151,9 +154,10 @@ def place_clockwise_hooks(egi, dto: LayoutDTO, style, engine) -> LayoutDTO:
             theta = best_thetas[i]
             dirx, diry = math.cos(theta), math.sin(theta)
             far = Point(P.x + dirx * 1000.0, P.y + diry * 1000.0)
+            # Hook on the spot's edge at the clockwise slot.  The line then runs
+            # straight to its vertex — no artificial stub, so no kink/bend; the
+            # *hook position* (points[0]) carries the order, read clockwise.
             hook = engine._predicate_hook_point(P, pred_w, pred_h, far)
-            stub_d = math.hypot(hook.x - P.x, hook.y - P.y) + 14.0
-            stub = Point(P.x + dirx * stub_d, P.y + diry * stub_d)
             vpos = verts[i]
 
             pred_area = elem_area.get(pid)
@@ -166,11 +170,11 @@ def place_clockwise_hooks(egi, dto: LayoutDTO, style, engine) -> LayoutDTO:
                         or (kind == "vertex" and owner == old.vertex_id))
             ]
             route = engine._route_avoiding_cuts(
-                stub, vpos, hard, soft_obstacles=soft,
+                hook, vpos, hard, soft_obstacles=soft,
                 detour_pad=engine.conventions.detour_pad,
                 visibility_pad=engine.conventions.visibility_pad,
             )
-            points = (hook,) + tuple(route)  # points[1] == stub ⇒ reads the slot
+            points = tuple(route)  # points[0] == hook (the slot); straight to vertex
             new_p = dataclasses.replace(old, points=points)
 
             if not _path_sound(new_p, old, egi, cut_bounds, cut_shape, cut_radius,

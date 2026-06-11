@@ -188,18 +188,24 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
   construction — order lives in the geometry, not in a number on every line. Three
   pieces:
   - **the writing-convention placement** (`clockwise_placement.place_clockwise_hooks`,
-    run pre-attestation in `layout_service`). Every ≥2-ary predicate's hooks are
-    placed at evenly-spaced clockwise slots in ν-order, at the **rotation that best
-    aligns the fan with where the vertices actually lie** — so crossings are
-    minimized (when the layout already put the vertices in ν-clockwise order the
-    hooks point straight at them and nothing crosses; otherwise the orientation
-    with the least bending is chosen). A 10-ary relation becomes ten spokes 36°
-    apart, a clock face read clockwise. Each re-hooked line is rerouted around cuts
-    and label boxes (the two-tier router) and locally guarded (crossing-multiset +
-    area endpoints unchanged, no non-incident-box occlusion); a predicate the
-    spread can't keep sound — e.g. a high-arity relation crammed in a tight cut
-    whose spokes would pierce the boundary — is left at its natural hooks (graceful
-    degradation), and the whole result is re-attested with a fallback.
+    run pre-attestation in `layout_service` for **every style and layout** — drawing
+    a relation's hooks clockwise in ν-order is correct layout, not a Peirce-only
+    flourish, so the picture reads the same across styles; the convention setting
+    governs only whether numerals are *also* drawn). Every ≥2-ary predicate's hooks
+    are placed on the spot's edge at evenly-spaced clockwise slots in ν-order, at the
+    **rotation that best aligns the fan with where the vertices actually lie** — so
+    crossings are minimized (when the layout already put the vertices in ν-clockwise
+    order the hooks point straight at them and nothing crosses; otherwise the
+    orientation with the least bending is chosen). A 10-ary relation becomes ten
+    spokes 36° apart, a clock face read clockwise. The **hook position** carries the
+    order (Peirce reads the hooks' positions around the spot, not the lines'
+    directions — `read_drawing`/`_clockwise_order` key off `points[0]`), so each line
+    runs **straight to its vertex with no artificial stub or kink**. Each line is
+    rerouted around cuts and label boxes (the two-tier router) and locally guarded
+    (crossing-multiset + area endpoints unchanged, no non-incident-box occlusion); a
+    predicate the spread can't keep sound — e.g. a high-arity relation crammed in a
+    tight cut whose spokes would pierce the boundary — is left at its natural hooks
+    (graceful degradation), and the whole result is re-attested with a fallback.
   - **a single start anchor.** The clockwise placement carries the *order*; a reader
     still needs ν's *first* hook. Pinning the fan to vertically-above would fight the
     crossing-minimizing fit, so instead `assign_order_labels` marks at most one line

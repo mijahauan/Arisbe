@@ -241,12 +241,12 @@ def test_clockwise_high_arity_draws_a_clockwise_clock_face():
     dto = assign_order_labels(egi, dto)
     assert all(p.order_label is None for p in dto.ligature_paths)
     assert reading_matches_egi(read_drawing(dto), egi, ordered=True)
-    # Hooks ascend in clockwise angle with port (ν) order — a clock face.
+    # Hook positions ascend in clockwise angle with port (ν) order — a clock face.
     (pid,) = [e.id for e in egi.E]
     P = dto.predicate_positions[pid]
     keyed = sorted(
         ((p.port_index,
-          (math.atan2(p.points[1].y - P.y, p.points[1].x - P.x) + math.pi / 2)
+          (math.atan2(p.points[0].y - P.y, p.points[0].x - P.x) + math.pi / 2)
           % (2 * math.pi))
          for p in dto.ligature_paths), key=lambda kv: kv[0])
     angles = [a for _, a in keyed]

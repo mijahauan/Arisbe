@@ -541,23 +541,23 @@ def generate_layout(
         dto = elk_engine.rebuild_ligature_anchors(egi, dto)
 
     # Clockwise placement as the order carrier (Peirce's writing convention,
-    # docs/EXACT_CORRESPONDENCE.md Phase 3c): under the clockwise convention draw
-    # each relation's hooks clockwise around the spot in ν-order, at the rotation
-    # that best aligns them with where the vertices lie (crossings minimized).
-    # The clockwise reading is then ν by construction; assign_order_labels marks
-    # only the single start anchor.  Geometry change ⇒ re-attest, falling back to
-    # the already-attested layout for any predicate the spread can't keep sound.
-    if getattr(style, "argument_order_convention", "numbered") == "clockwise":
-        from clockwise_placement import place_clockwise_hooks
-        candidate = place_clockwise_hooks(egi, dto, style, elk_engine)
-        if candidate is not dto:
-            try:
-                attest_correspondence(
-                    egi, candidate, context="layout_service.clockwise_placement"
-                )
-                dto = candidate
-            except CorrespondenceViolation:
-                pass  # keep the attested pre-placement layout
+    # docs/EXACT_CORRESPONDENCE.md Phase 3c): draw each relation's hooks clockwise
+    # around the spot in ν-order, at the rotation that best aligns them with where
+    # the vertices lie (crossings minimized).  Applied for EVERY style and layout
+    # so argument order reads the same everywhere; the style's convention governs
+    # only whether numerals are also drawn (assign_order_labels, below).  Geometry
+    # change ⇒ re-attest, falling back to the already-attested layout for any
+    # predicate the spread can't keep sound.
+    from clockwise_placement import place_clockwise_hooks
+    candidate = place_clockwise_hooks(egi, dto, style, elk_engine)
+    if candidate is not dto:
+        try:
+            attest_correspondence(
+                egi, candidate, context="layout_service.clockwise_placement"
+            )
+            dto = candidate
+        except CorrespondenceViolation:
+            pass  # keep the attested pre-placement layout
 
     # Generate EGIF linear form for the renderer title
     try:
