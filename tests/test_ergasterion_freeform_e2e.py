@@ -152,3 +152,25 @@ def test_freeform_draw_read_fix_and_two_mode_switch(page, app_url):
     # The amber editing frame reappears (the canvas visibly re-opens a second time).
     assert page.eval_on_selector(
         ".freeform-wrap", "e=>getComputedStyle(e).boxShadow") != "none"
+
+
+def test_corpus_edit_base_is_consistent(page, app_url):
+    """Editing the base graph of a *corpus* UoD (whose base state is 'deriving')
+    must read consistently as "The Graph / unfixed" everywhere — the bug where the
+    badge said GRAPH FIXED while the canvas was in freeform. Regression guard."""
+    page.goto(app_url + "/ergasterion", wait_until="networkidle")
+    page.wait_for_selector("#corpus-list > *", timeout=10000)
+    page.click("#corpus-list > *")
+    page.wait_for_selector("#workspace-switch", state="visible")
+    page.wait_for_load_state("networkidle")
+    # A corpus graph opens already fixed (The Argument).
+    assert page.text_content("#right-panel-title") == "The Argument"
+    page.click("#seg-graph")  # Edit base graph
+    page.wait_for_function(
+        "document.querySelector('#ws-state').classList.contains('unfixed')", timeout=10000)
+    # Everything flips together — no split state.
+    assert page.text_content("#right-panel-title") == "The Graph"
+    assert page.eval_on_selector("#derive-block", "e=>getComputedStyle(e).display") == "none"
+    assert page.is_visible("#btn-read-drawing")
+    assert page.eval_on_selector(".freeform-wrap", "e=>getComputedStyle(e).boxShadow") != "none"
+    assert "locked" in (page.get_attribute("#seg-argument", "class") or "")

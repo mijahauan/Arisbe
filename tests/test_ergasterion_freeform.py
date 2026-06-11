@@ -222,6 +222,28 @@ def test_state_drawing_seeds_an_editable_graph(client):
     assert same_graph(read_back, original)
 
 
+def test_edit_corpus_copy_fixes_independently(client):
+    """A graph pulled from the corpus opens already fixed ('deriving'). Editing it
+    (here: re-fixing its own seeded drawing) must succeed and yield a fixed line —
+    an independent working copy, never a change to the original (there is no
+    workshop→corpus route; saving is to scratch under a new name)."""
+    r = client.post("/ergasterion/sessions", json={"base_source": "uod:barbara"})
+    if not (r.status_code == 200 and r.json().get("success")):
+        pytest.skip("barbara UoD not available")
+    d = r.json()["data"]
+    sid = d["session_id"]
+    assert d["phase"] == "deriving"          # a corpus graph is already asserted
+    base_id = d["chain"]["initial_state_id"]
+    seed = client.get(f"/ergasterion/sessions/{sid}/state-drawing",
+                      params={"state_id": base_id}).json()["data"]["drawing"]
+    # Fixing the edited copy from the base state must NOT be refused as "already
+    # fixed" — it produces a fresh fixed graph to derive on.
+    fx = client.post(f"/ergasterion/sessions/{sid}/fix-drawing",
+                     json={"drawing": seed, "from_state_id": base_id})
+    assert fx.status_code == 200, fx.text
+    assert fx.json()["data"]["phase"] == "deriving"
+
+
 def test_read_drawing_reports_validity_without_building(client):
     """A drawing with a dangling line reports the error and omits linear forms."""
     drawing = {

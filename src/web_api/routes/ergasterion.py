@@ -1057,12 +1057,14 @@ async def fix_drawing(session_id: str, request: ErgasterionDrawingRequest):
                 "code": "SESSION_NOT_FOUND",
                 "message": f"Workshop session '{session_id}' not found."})
 
+        # Fixing a *drawing* is valid from any state: the act of reading ink into a
+        # graph and fixing it always yields a fixed graph.  In particular, editing a
+        # graph pulled from the corpus (whose base state is 'deriving', already
+        # asserted) creates an INDEPENDENT new graph — a working copy — never a
+        # change to the original (there is no workshop→corpus route; the copy is
+        # saved to scratch under a new name).  So there is no composing-only guard
+        # here; the freeform-editing precondition is enforced client-side.
         from_state_id = request.from_state_id or session.chain.current_state_id
-        phase = phase_at_state(session, from_state_id)
-        if phase != "composing":
-            return _phase_refusal(
-                "The graph is already fixed — step back before the fixing to fork "
-                "a new draft, or open a new session to compose.", phase=phase)
 
         style = _session_style(session)
         sheet_id = request.drawing.get("sheet_id", "sheet")
@@ -1083,22 +1085,25 @@ async def fix_drawing(session_id: str, request: ErgasterionDrawingRequest):
 
         egi = build_egi_from_drawing(dto, predicate_labels, vertex_labels)
         new_dto, _svg = generate_layout(egi, style_name=session.style_name)
-        # Install the read EGI as the composing state, then cross gate ①: from here
-        # the recorded, diachronic chain begins (spec §4).
+        # Install the read EGI as the composing state (replaces a fresh clay draft;
+        # forks a new line when editing an already-fixed/pulled graph), then record
+        # gate ① directly — no phase guard, since fixing a drawing is always valid.
         manager.update_composing_state(
             session_id, result_egi=egi, new_layout_dto=new_dto,
             from_state_id=from_state_id)
-        resp = _record_gate(
-            session_id,
-            rule_name=FIX_GRAPH_STEP,
-            expected_phase="composing",
-            refusal="The graph is already fixed — gate ① has been crossed.",
-            user_annotation=request.user_annotation,
-        )
-        # Carry the validity warnings (well-formed, but worth surfacing) through.
-        if isinstance(resp, ApiResponse) and resp.success and resp.data is not None:
-            resp.data["validity"] = _issues_payload(report)
-        return resp
+        session = manager.get_session(session_id)
+        tip = session.chain.current_state_id
+        gate_dto, svg = generate_layout(
+            session.current_egi, previous_layout=session.current_layout_dto,
+            style_name=session.style_name)
+        manager.add_step(
+            session_id, rule_name=FIX_GRAPH_STEP, parameters={},
+            result_egi=session.current_egi, new_layout_dto=gate_dto,
+            from_state_id=tip, user_annotation=request.user_annotation)
+        session = manager.get_session(session_id)
+        resp_data = _session_payload(session, svg)
+        resp_data["validity"] = _issues_payload(report)
+        return ApiResponse(success=True, data=resp_data)
 
     except CorrespondenceViolation as exc:
         return ApiResponse(success=False, error={

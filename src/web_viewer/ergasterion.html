@@ -1292,30 +1292,41 @@
         sealed: 'FIXED CHAIN <span class="consequence">— read-only; style and replay</span>',
       };
 
+      // The phase that governs the UI. Freeform editing IS editing an unfixed
+      // graph's meaning, so while it is on the whole UI must read "composing /
+      // The Graph" — even when the *server* state is 'deriving' (e.g. editing the
+      // base graph of a corpus UoD, whose base state is an already-fixed graph).
+      // This is what keeps the bottom FREEFORM bar, the badge, the switch, and the
+      // greyed-out rules all consistent.
+      function effectivePhase() {
+        try { return (freeformOn && freeform) ? 'composing' : currentPhase; }
+        catch (_) { return currentPhase; }
+      }
+
       function updatePhaseUI() {
+        const phase = effectivePhase();
         if (phaseBannerEl) {
-          phaseBannerEl.className = currentPhase || '';
-          phaseBannerEl.innerHTML =
-            (currentPhase && PHASE_BANNERS[currentPhase]) || '';
+          phaseBannerEl.className = phase || '';
+          phaseBannerEl.innerHTML = (phase && PHASE_BANNERS[phase]) || '';
         }
         if (paletteBlockEl)
-          paletteBlockEl.style.display =
-            currentPhase === 'composing' ? 'block' : 'none';
+          paletteBlockEl.style.display = phase === 'composing' ? 'block' : 'none';
+        // The transformation rules act ONLY on a fixed graph — so while composing
+        // (or freeform-editing) they are hidden/inaccessible.
         if (deriveBlockEl)
-          deriveBlockEl.style.display =
-            currentPhase === 'deriving' ? 'block' : 'none';
+          deriveBlockEl.style.display = phase === 'deriving' ? 'block' : 'none';
         // The diachronic chain UI (sequence, branches, navigator) and the
         // Settle layout-tidy belong to a fixed graph being reasoned about, not
         // to the synchronic clay. Hide them while composing.
         const seqPanel = document.getElementById('sequence-panel');
         const settleRow = document.getElementById('settle-row');
         if (seqPanel)
-          seqPanel.style.display = currentPhase === 'composing' ? 'none' : 'block';
+          seqPanel.style.display = phase === 'composing' ? 'none' : 'block';
         if (settleRow)
-          settleRow.style.display = currentPhase === 'composing' ? 'none' : 'flex';
+          settleRow.style.display = phase === 'composing' ? 'none' : 'flex';
         // Sealed: the right panel becomes the disposition (spec §5).
         if (keepDefaults) {
-          if (currentPhase === 'sealed') {
+          if (phase === 'sealed') {
             keepLabelEl.textContent = 'Dispose of this chain';
             keepDescEl.innerHTML = 'The chain is fixed — navigate, restyle, ' +
               'replay. Save it to <strong>scratch</strong> as a finished ' +
@@ -1343,8 +1354,12 @@
         const segGraph = document.getElementById('seg-graph');
         const segArg = document.getElementById('seg-argument');
         const st = document.getElementById('ws-state');
-        const composing = currentPhase === 'composing';
-        const sealed = currentPhase === 'sealed';
+        // Use the *effective* phase so freeform-on reads as "The Graph / unfixed"
+        // consistently with the rest of the UI (rules hidden, freeform amber),
+        // even over a corpus base graph whose server phase is 'deriving'.
+        const phase = effectivePhase();
+        const composing = phase === 'composing';
+        const sealed = phase === 'sealed';
         if (segGraph) segGraph.classList.toggle('active', composing);
         if (segArg) {
           segArg.classList.toggle('active', !composing);
@@ -2424,6 +2439,7 @@
           } else {
             ff.disable();
           }
+          updatePhaseUI();          // freeform-on drives the whole UI to "The Graph"
         });
       }
       document.querySelectorAll('#freeform-tools [data-fftool]').forEach((b) => {
@@ -2524,7 +2540,7 @@
               (body.error && body.error.message), 'error');
             return;
           }
-          await navTo(0);  // base state → server reports 'composing'
+          await navTo(0);  // render the base state under the freeform surface
           const ff = ensureFreeform();
           if (ff) {
             ff.load(body.data.drawing);
@@ -2533,6 +2549,9 @@
             if (btnFreeformToggle) btnFreeformToggle.classList.add('armed');
             ff.setTool('select'); setFreeformActiveTool('select');
           }
+          // freeform-on overrides the server phase (a corpus base graph is
+          // 'deriving'): drive the whole UI to "The Graph / unfixed".
+          updatePhaseUI();
           setStatus('Editing the base graph — change its meaning, check it, then ' +
             '① Fix (that forks a new line).');
         } catch (err) { setStatus('Re-open failed: ' + err, 'error'); }

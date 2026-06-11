@@ -191,6 +191,33 @@
       return [x / poly.length, y / poly.length];
     }
 
+    // Shortest distance from a point to a closed polyline (its stroke).
+    _distToBoundary(x, y, poly) {
+      let best = Infinity;
+      for (let i = 0, n = poly.length; i < n; i++) {
+        const a = poly[i], b = poly[(i + 1) % n];
+        const dx = b[0] - a[0], dy = b[1] - a[1];
+        const seg2 = dx * dx + dy * dy || 1;
+        let t = ((x - a[0]) * dx + (y - a[1]) * dy) / seg2;
+        t = Math.max(0, Math.min(1, t));
+        best = Math.min(best, Math.hypot(x - (a[0] + t * dx), y - (a[1] + t * dy)));
+      }
+      return best;
+    }
+
+    // The deepest cut to act on at a point: one whose interior contains it, or
+    // whose boundary it is near (so a click just outside the edge still grabs it).
+    _cutAt(x, y) {
+      let best = null, bestArea = Infinity;
+      for (const c of this.cuts) {
+        if (pointInPolygon(x, y, c.boundary) || this._distToBoundary(x, y, c.boundary) <= 16) {
+          const a = this._polyArea(c.boundary);
+          if (a < bestArea) { best = c; bestArea = a; }
+        }
+      }
+      return best;
+    }
+
     // ---- interaction ----
 
     _onPointerDown(e) {
@@ -202,6 +229,22 @@
         const hit = this._marksNear(x, y);
         if (hit) {
           this._drag = { kind: hit.kind, m: hit.m, dx: hit.m.x - x, dy: hit.m.y - y };
+          this.svg.setPointerCapture(e.pointerId);
+          return;
+        }
+        // A cut is ink too: drag its interior to MOVE it (contents stay put — its
+        // area changes by what it now encloses), or drag near its boundary to
+        // RESIZE it (scale about its centre).
+        const cut = this._cutAt(x, y);
+        if (cut) {
+          const c = this._centroid(cut.boundary);
+          const onEdge = this._distToBoundary(x, y, cut.boundary) <= 16;
+          this._drag = {
+            kind: 'cut', cut, mode: onEdge ? 'resize' : 'move',
+            sx: x, sy: y, cx: c[0], cy: c[1],
+            r0: Math.hypot(x - c[0], y - c[1]) || 1,
+            orig: cut.boundary.map((p) => [p[0], p[1]]),
+          };
           this.svg.setPointerCapture(e.pointerId);
         }
         return;
@@ -256,6 +299,19 @@
       const area = this.areaAt(x, y);
       this._areaFeedback(area);
 
+      if (this._drag && this._drag.kind === 'cut') {
+        const d = this._drag;
+        if (d.mode === 'move') {
+          const ddx = x - d.sx, ddy = y - d.sy;
+          d.cut.boundary = d.orig.map((p) => [p[0] + ddx, p[1] + ddy]);
+        } else {
+          const f = (Math.hypot(x - d.cx, y - d.cy) || 1) / d.r0;
+          d.cut.boundary = d.orig.map(
+            (p) => [d.cx + (p[0] - d.cx) * f, d.cy + (p[1] - d.cy) * f]);
+        }
+        this._render();
+        return;
+      }
       if (this._drag) {
         this._drag.m.x = x + this._drag.dx;
         this._drag.m.y = y + this._drag.dy;
@@ -373,10 +429,15 @@
           'stroke-linecap': 'round',
         }));
         if (l.port_index != null && this.predicates.filter((p) => p.id === l.predicate_id).length) {
-          // A small numeral near the hook carries argument order (numbered convention).
-          const np = l.points[0];
+          // A small numeral carries argument order (numbered convention). Place it
+          // a little ALONG the line from the hook, so a wide predicate label does
+          // not sit on top of it.
+          const a = l.points[0], b = l.points[1] || a;
+          const dx = b[0] - a[0], dy = b[1] - a[1];
+          const len = Math.hypot(dx, dy) || 1;
           const t = el('text', {
-            x: np[0] + 6, y: np[1] - 4, fill: '#f9e2af', 'font-size': '9',
+            x: a[0] + (dx / len) * 18 + 3, y: a[1] + (dy / len) * 18 - 3,
+            fill: '#f9e2af', 'font-size': '10', 'font-weight': '700',
           });
           t.textContent = String((l.port_index || 0) + 1);
           L.lines.appendChild(t);
