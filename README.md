@@ -117,7 +117,7 @@ The **core reasoning engine** and referee.
 ## 🔒 **Development Guidelines**
 
 - **📚 API Documentation**: `docs/ARISBE_CORE_API_REFERENCE.md`
-- **🛡️ Core Protection**: 17 validated modules; ~960 passing tests across the suite
+- **🛡️ Core Protection**: 17 validated modules; ~1000 passing tests across the suite
 - **📊 Quality Monitoring**: Automated quality gates and daily dashboard
 - **🧠 Context Recovery**: `docs/RETURN_TO_DEVELOPMENT.md`
 
@@ -488,15 +488,18 @@ the Qt implementation was archived in May 2026.
 
 ### 🔧 In Progress / Next
 
-- **Freeform composition canvas** *(the active arc)* — composition becomes
+- **Freeform composition canvas** *(built; the active arc)* — composition is now
   draw-then-read: place/drag/erase typed marks (cut / relation / line-of-identity)
-  at free positions on a `LayoutDTO`, with no live EGI; the picture is read into a
-  sign only at gate ① (`read_drawing` → EGI → validity → "what it says"). Then
-  **challenge mode**: show a linear form, draw it freehand, grade with `same_graph`
-  + a legible EGI diff — correspondence learned by doing
-  (`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`). Build step 0 (exact extents) is the
-  now-complete exact-correspondence engine, so this starts at step 1 (visible
-  containment regions + snapping + fix-time validity).
+  at free positions, with no live EGI; the picture is read into a sign only at gate
+  ① (`read_drawing` → validity → build EGI → "what it says"). **Live** in Ergasterion
+  (`web_viewer/js/freeform-canvas.js` + `read-drawing`/`fix-drawing` routes), with a
+  **Graph↔Argument** two-mode workspace (fixed/unfixed unmistakable; rules act only
+  on a fixed graph; "Edit base graph" re-opens an independent copy), draw-time
+  snapping, a fix-time validity pass (`drawing_validity`), the drawing→EGI builder
+  (`drawing_to_egi`), and the legible EGI diff (`egi_diff`). **Remaining: challenge
+  mode** — show a linear form, draw it freehand, grade with `same_graph` + the diff,
+  difficulty gradient straight from the corpus
+  (`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`).
 - **Agon web arena** — surface the Endoporeutic Game engine (live as a REPL) as a
   web route
 - **Math horizon** — the ∀x scaffold tactic (`derived_rules.py`) and selection-driven
@@ -526,6 +529,10 @@ the Qt implementation was archived in May 2026.
 
 ### For Students & Educators
 
+- **Freeform composition** (Ergasterion `/ergasterion`): draw an existential graph by
+  hand — cuts, relations, lines of identity — then ask "what does it say?" to read it
+  into a determinate sign and see its linear form (or why it isn't yet well-formed),
+  before fixing it and reasoning with the rules
 - Interactive REPL for step-by-step EG transformation practice
 - Visual comparison between logical representation formats
 - Educational tomos with 87+ canonical examples
@@ -549,11 +556,12 @@ the Qt implementation was archived in May 2026.
 ## 🗓️ Development Roadmap
 
 ### Current Focus (mid-2026)
-- **Freeform composition canvas**: draw logic by hand on a free `LayoutDTO`, read it
-  into a determinate sign on demand (gate ①); then challenge mode for
-  correspondence-by-doing. The exact-correspondence engine (Phases 1–4) is the
-  foundation; the remaining build is the canvas, draw-time snapping, a fix-time
-  validity pass, the legible EGI diff, and challenge mode over the tomos corpus
+- **Freeform composition canvas** *(built)*: draw logic by hand, read it into a
+  determinate sign on demand (gate ①). Live in Ergasterion with a Graph↔Argument
+  two-mode workspace, draw-time snapping, a fix-time validity pass, the drawing→EGI
+  builder, and the legible EGI diff. **Remaining: challenge mode** over the tomos
+  corpus (grade a freehand attempt with `same_graph` + the diff) — correspondence
+  learned by doing
 - **Agon web arena**: the Endoporeutic Game as a web route (engine + REPL exist)
 
 ### Medium-term

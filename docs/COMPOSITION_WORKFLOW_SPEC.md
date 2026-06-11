@@ -1,6 +1,18 @@
 # Composition Workflow Specification
 
-**Status:** reviewed design (2026-06-09), not yet implemented.
+> **Superseded for composition by freeform draw-then-read (2026-06-11).** The
+> phase model, the two gates (① fix-graph, ② fix-chain), and the regime story below
+> still hold and are live. But the *composing* act is no longer the typed
+> `composition_ops` palette described here — it is the **freeform canvas**: place /
+> drag / erase typed marks with no live EGI, read into a sign only at gate ①. The
+> two acts (working on the **Graph**'s meaning vs working on an **Argument**) are
+> surfaced as a Graph↔Argument two-mode switch. See
+> [FREEFORM_COMPOSITION_AND_LEARNING.md](FREEFORM_COMPOSITION_AND_LEARNING.md) for
+> what composition became and why; this spec remains the reference for the gates,
+> phases, and disposition.
+
+**Status:** reviewed design (2026-06-09); composing surface superseded by freeform
+draw-then-read (2026-06-11); the phase/gate/disposition model is implemented and live.
 **Scope:** how Ergasterion lets a user *create* a graph from nothing — figure
 out what she wants to say by direct manipulation — and carry the result
 through derivation to a disposition (vault, Organon, Agon). Companion to
