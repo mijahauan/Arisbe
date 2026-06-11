@@ -106,8 +106,20 @@
       svg.appendChild(this._layers.marks);
       svg.appendChild(this._layers.overlay);
       wrap.appendChild(svg);
+      // A loud, unmistakable "you are editing the graph's meaning" cue on the
+      // canvas itself (not just the side panel) — an amber frame + a chip.
+      const chip = document.createElement('div');
+      chip.className = 'freeform-chip';
+      chip.textContent = '✎ FREEFORM — editing the graph’s meaning (ink until you Fix)';
+      chip.style.cssText =
+        'position:absolute; bottom:10px; left:50%; transform:translateX(-50%);' +
+        ' z-index:2; background:rgba(249,226,175,0.95); color:#1e1e2e;' +
+        ' font:700 11px/1 system-ui,sans-serif; letter-spacing:0.3px;' +
+        ' padding:6px 12px; border-radius:5px; pointer-events:none; white-space:nowrap;';
+      wrap.appendChild(chip);
       this.svg = svg;
       this.wrap = wrap;
+      this._chip = chip;
       this.host.appendChild(wrap);
 
       svg.addEventListener('pointerdown', (e) => this._onPointerDown(e));
@@ -428,6 +440,14 @@
 
     enable() {
       this.enabled = true;
+      // The host canvas is re-rendered (innerHTML replaced) whenever a diagram is
+      // drawn — which detaches our wrap. Re-attach it so re-entering freeform (e.g.
+      // "Edit base graph", which first renders the base diagram) actually shows the
+      // editable surface instead of a static picture.
+      if (!this.host.contains(this.wrap)) this.host.appendChild(this.wrap);
+      // The amber frame marks the canvas as an editable scratch surface, distinct
+      // from a rendered fixed diagram.
+      this.wrap.style.boxShadow = 'inset 0 0 0 3px rgba(249,226,175,0.85)';
       this.wrap.style.display = 'block';
       this._render();
       this._status('Freeform: draw marks, then “Read it now” or fix the graph.');

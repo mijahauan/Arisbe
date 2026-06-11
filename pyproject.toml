@@ -37,6 +37,11 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "hypothesis>=6.100",
+    # Headless-browser E2E for the Ergasterion freeform canvas
+    # (tests/test_ergasterion_freeform_e2e.py). The browser binary is installed
+    # separately: `uv run playwright install chromium`. The test skips cleanly
+    # if Playwright/Chromium is absent.
+    "pytest-playwright>=0.5.0",
 ]
 web = [
     "fastapi>=0.100.0",

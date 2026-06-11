@@ -611,6 +611,18 @@
             <div class="ws-state" id="ws-state"></div>
           </div>
 
+          <!-- Single-graph management, clustered together (the actions on *this
+               graph*, as opposed to the argument/sequence below): Settle = tidy
+               the appearance of the fixed graph (regime-3; logic held fixed by
+               the server). Shown only once the graph is fixed; "Edit base graph"
+               (the meaning) lives in the switch above. -->
+          <div id="settle-row" style="margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #313244; display:none; align-items:center; gap:8px;">
+            <button class="action" id="btn-settle" style="flex:0 0 auto;">✋ Settle appearance</button>
+            <span style="font-size:10px; color:#6c7086;">
+              tidy the layout — drag a spot, a relation, a cut (body to move, corner to resize), or a line. The logic/meaning stays fixed.
+            </span>
+          </div>
+
           <!-- Palette (composing phase). Four kinds of ink + the non-placing
                actions — the palette IS the Beta ontology (spec §2.1). -->
           <div id="palette-block" style="display: none;">
@@ -723,17 +735,6 @@
             (navigate, restyle, dispose). Recorded; forking re-opens it.
           </p>
           </div><!-- /derive-block -->
-
-          <!-- Settle ④b: a regime-3 toggle, free in any phase. On, the canvas
-               drags to tidy the drawing (move a vertex, resize a cut corner,
-               reroute a line) — appearance only, the logic is held fixed by
-               the server. -->
-          <div id="settle-row" style="margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-            <button class="action" id="btn-settle" style="flex:0 0 auto;">✋ Settle</button>
-            <span style="font-size:10px; color:#6c7086;">
-              tidy the layout — drag a spot, a relation, a cut (body to move, corner to resize), or a line. Logic stays fixed.
-            </span>
-          </div>
 
           <!-- The diachronic chain UI. Hidden while COMPOSING: a single graph
                being formed is synchronic — there is no sequence yet, and the

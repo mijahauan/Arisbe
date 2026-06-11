@@ -124,3 +124,16 @@ def test_freeform_draw_read_fix_and_two_mode_switch(page, app_url):
     # Now FIXED: meaning locked, the Argument workspace is active, Graph re-opens.
     assert "fixed" in (page.get_attribute("#ws-state", "class") or "")
     assert "Edit base graph" in (page.text_content("#seg-graph") or "")
+    # Settle (single-graph appearance) is clustered up top and visible once fixed.
+    assert page.eval_on_selector("#settle-row", "e=>getComputedStyle(e).display") != "none"
+
+    # The Graph↔Argument round-trip: "Edit base graph" must visibly re-open the
+    # editable freeform surface, seeded with the graph (the detach bug regression).
+    page.click("#seg-graph")
+    page.wait_for_function(
+        "document.querySelector('#ws-state').classList.contains('unfixed')", timeout=8000)
+    page.wait_for_selector(".freeform-wrap", state="visible", timeout=8000)
+    assert page.eval_on_selector(".freeform-wrap", "e=>getComputedStyle(e).display") == "block"
+    # Seeded, not blank: the 'loves' relation mark is on the re-opened canvas.
+    assert page.eval_on_selector_all(
+        ".freeform-wrap text", "els=>els.some(e=>e.textContent==='loves')")
