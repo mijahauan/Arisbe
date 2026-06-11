@@ -205,6 +205,31 @@
       return best;
     }
 
+    // Draw-time snapping for a SPOT (a vertex or predicate): push it clear of any
+    // cut's boundary stroke so its area is unambiguous — clearly inside (in the
+    // tint) or clearly outside, never sitting on the line. The reader is exact and
+    // the validator flags a mark in the boundary band; snapping removes the doubt
+    // at the point of placement. Keeps the side the point is already on (moving
+    // along the centroid direction), so dropping just inside stays inside.
+    _snapSpot(x, y) {
+      const BAND = 12;   // clear of the server's boundary_band (so no warning)
+      for (let pass = 0; pass < 2; pass++) {
+        for (const c of this.cuts) {
+          if (this._distToBoundary(x, y, c.boundary) >= BAND) continue;
+          const inside = pointInPolygon(x, y, c.boundary);
+          const cen = this._centroid(c.boundary);
+          let vx = inside ? cen[0] - x : x - cen[0];
+          let vy = inside ? cen[1] - y : y - cen[1];
+          const l = Math.hypot(vx, vy) || 1; vx /= l; vy /= l;
+          let guard = 0;
+          while (this._distToBoundary(x, y, c.boundary) < BAND && guard++ < 40) {
+            x += vx * 3; y += vy * 3;
+          }
+        }
+      }
+      return { x, y };
+    }
+
     // The deepest cut to act on at a point: one whose interior contains it, or
     // whose boundary it is near (so a click just outside the edge still grabs it).
     _cutAt(x, y) {
@@ -255,19 +280,22 @@
         return;
       }
       if (tool === 'vertex') {
-        this.vertices.push({ id: this._id('v'), x, y, label: null });
+        const s = this._snapSpot(x, y);
+        this.vertices.push({ id: this._id('v'), x: s.x, y: s.y, label: null });
         this._render(); this._announce(); return;
       }
       if (tool === 'constant') {
         const label = (this.opts.prompt || window.prompt)('Constant name (a named individual):', 'Socrates');
         if (!label) return;
-        this.vertices.push({ id: this._id('v'), x, y, label: String(label).trim() });
+        const s = this._snapSpot(x, y);
+        this.vertices.push({ id: this._id('v'), x: s.x, y: s.y, label: String(label).trim() });
         this._render(); this._announce(); return;
       }
       if (tool === 'predicate') {
         const name = (this.opts.prompt || window.prompt)('Relation name:', 'P');
         if (!name) return;
-        this.predicates.push({ id: this._id('p'), x, y, label: String(name).trim() });
+        const s = this._snapSpot(x, y);
+        this.predicates.push({ id: this._id('p'), x: s.x, y: s.y, label: String(name).trim() });
         this._render(); this._announce(); return;
       }
       if (tool === 'line') {
@@ -328,6 +356,14 @@
     _onPointerUp(e) {
       if (!this.enabled) return;
       if (this._drag) {
+        // A dragged spot snaps clear of any cut boundary on release, so it never
+        // comes to rest in the ambiguous band. (Cuts themselves are not snapped.)
+        if (this._drag.m) {
+          const s = this._snapSpot(this._drag.m.x, this._drag.m.y);
+          this._drag.m.x = s.x; this._drag.m.y = s.y;
+          this._updateIncidentLines(this._drag.kind, this._drag.m);
+          this._render();
+        }
         this._drag = null;
         this._announce();
         return;

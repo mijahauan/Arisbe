@@ -154,6 +154,41 @@ def test_freeform_draw_read_fix_and_two_mode_switch(page, app_url):
         ".freeform-wrap", "e=>getComputedStyle(e).boxShadow") != "none"
 
 
+def test_spot_snaps_clear_of_cut_boundary(page, app_url):
+    """Draw-time snapping: a vertex dropped right on a cut's boundary is pushed
+    clearly inside/outside, so the read reports no boundary-band ambiguity."""
+    page.goto(app_url + "/ergasterion")
+    page.click("#btn-start-empty")
+    page.wait_for_selector("#workspace-switch", state="visible")
+    page.click("#btn-freeform-toggle")
+    page.wait_for_selector("#freeform-tools", state="visible")
+    box = page.locator("#canvas").bounding_box()
+
+    def at(fx, fy):
+        return (box["x"] + box["width"] * fx, box["y"] + box["height"] * fy)
+
+    # Draw a cut by dragging an oval.
+    page.click('#freeform-tools [data-fftool="cut"]')
+    x0, y0 = at(0.35, 0.3)
+    x1, y1 = at(0.65, 0.7)
+    page.mouse.move(x0, y0)
+    page.mouse.down()
+    page.mouse.move(x1, y1, steps=6)
+    page.mouse.up()
+
+    # Place a vertex right on the cut's left boundary (cx ≈ 0.5, so x ≈ 0.35 is the edge).
+    page.click('#freeform-tools [data-fftool="vertex"]')
+    vx, vy = at(0.35, 0.5)
+    page.mouse.click(vx, vy)
+
+    # Read it now → the snapped spot is unambiguous: no boundary-band warning.
+    page.click("#btn-read-drawing")
+    page.wait_for_function(
+        "document.querySelector('#freeform-validity').textContent.length > 0", timeout=8000)
+    txt = page.text_content("#freeform-validity")
+    assert "boundary" not in txt.lower(), f"boundary-band ambiguity not snapped away: {txt}"
+
+
 def test_corpus_edit_base_is_consistent(page, app_url):
     """Editing the base graph of a *corpus* UoD (whose base state is 'deriving')
     must read consistently as "The Graph / unfixed" everywhere — the bug where the

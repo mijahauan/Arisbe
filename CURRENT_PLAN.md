@@ -30,12 +30,14 @@ condensed 2026-06-10 (detail in git, docs, memory).
      record reused from `presentation_ops` (`cut_boundary`/`point_in_polygon`/
      `predicate_label_box`), so "inside / on the boundary" is the same curve the
      renderer draws and §3.3 attests; clean engine layouts raise zero errors.
-   - **Still to do (folds into step 2's canvas — needs the drag surface + a free-DTO
-     source):** render cut interiors as filled/translucent regions (the exact
-     `point_in_cut` area) with **live area feedback on drag** (`diagram-viewer.areaAtPoint`)
-     and draw-time **snapping** (line endpoints to hooks/vertices; spot placement
-     clearly in/out of a cut, never in the boundary band). Wire `validate_drawing`
-     into the composing-phase fix endpoint when the canvas emits a free `LayoutDTO`.
+   - **Visible containment + live feedback + snapping — DONE 2026-06-11** (on the
+     freeform canvas). Cut interiors render as translucent filled regions (polarity
+     by nesting depth); **live area feedback on drag** ("inside cut C" / "on the
+     sheet") via point-in-polygon `areaAt`; **snapping** — line endpoints attach to
+     marks by construction (click-a-mark line tool, so no stops-short/drift), and a
+     **spot snaps clear of any cut boundary** (`_snapSpot`) on placement and
+     drag-release so its area is never ambiguous (E2E-tested). `validate_drawing` is
+     wired into the fix/read endpoints. **Step 1 is complete.**
 2. **The freeform drawing canvas — DONE 2026-06-11** (backend tested; frontend
    shipped, interactive layer pending author's-eyes verification). Composition is
    now *draw-then-read*: the browser owns the ink, no live EGI, linear forms silent

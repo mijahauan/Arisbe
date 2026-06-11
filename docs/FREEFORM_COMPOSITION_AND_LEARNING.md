@@ -290,11 +290,13 @@ readable. *That* is the complete geometric realization of inerrant correspondenc
      step 1, realized here on the canvas); a cut is just ink (erase it, contents
      stay; drag a mark across to change its area). Wired into the composing palette
      by an opt-in toggle; "Read it now" + freeform "① Fix this graph".
-   - **Still folding in from step 1:** draw-time *snapping* (endpoints to
-     hooks/vertices; spot placement clearly in/out, never in the boundary band) —
-     the canvas has the hit-test (`areaAt`) but does not yet snap. The reader/
-     validator already treat near-boundary/loose-end as ambiguous; snapping is the
-     UX that prevents them at the point of drawing.
+   - **Snapping — DONE 2026-06-11.** Line endpoints attach to marks by construction
+     (the line tool connects a clicked predicate to a clicked vertex, so the
+     stops-short/drift case cannot arise); a *spot* (vertex/predicate) snaps clear
+     of any cut boundary (`_snapSpot`, keeping the side it is on) on placement and
+     on drag-release, so its area is never the ambiguous boundary band. Live area
+     feedback (`areaAt`) names the destination while dragging. **Step 1 is now
+     complete** (validity + visible containment + live feedback + snapping).
 3. **The legible EGI diff** (the discrepancy report): align two EGIs by relation
    label + role (generic vertices by incidence), diff area trees and per-relation
    incidence/order, phrase in EG terms (containment / scope / incidence / order /
