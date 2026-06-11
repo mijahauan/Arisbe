@@ -64,10 +64,14 @@ condensed 2026-06-10 (detail in git, docs, memory).
      incl. JS-serialize↔backend contract for binary order + ellipse-cut negation).
      Both JS files syntax-clean; page + asset serve. **Pending:** interactive
      pointer/drag behaviour in a real browser (no headless browser here).
-3. **The legible EGI diff** (the discrepancy report): align two EGIs by relation
-   label + role (generic vertices by incidence), diff area trees + per-relation
-   incidence/order, phrase in EG terms (containment / scope / incidence / order /
-   missing / extra). Reused by both fix-time validity *and* challenge mode.
+3. **The legible EGI diff — DONE 2026-06-11** (`src/egi_diff.py`, 11 tests).
+   `legible_diff(target, attempt) → DiffReport`: empty (and `matches` True) iff
+   `same_graph`; else EG-vocabulary findings — `structure` (cut count),
+   `missing`/`extra` (relations + individuals), `scope` (wrong cut/polarity — the
+   gold Beta error), `incidence` (wrong connections), `order` (argument order).
+   Content-aligned, not id-aligned (constants by label, relations by name +
+   best-match arg signature, generic lines by incidence overlap aligned *first*).
+   Ready for challenge mode.
 4. **Challenge mode**: pick a tomos linear form, hide its drawing, grade the freehand
    attempt with `same_graph` + the diff. Difficulty gradient straight from the
    corpus (single relation → nested cuts → Beta with a shared line crossing a
