@@ -38,6 +38,7 @@ from fastapi.responses import FileResponse
 from web_api.models.api_models import (
     AgonDispositionRequest,
     AgonInterpretRequest,
+    AgonModelTestRequest,
     AgonMoveRequest,
     AgonNewGameRequest,
     AgonSetModelRequest,
@@ -417,6 +418,93 @@ async def concede(game_id: str):
 
 
 # --------------------------------------------------------------------------- #
+# Reference models — what M can be chosen (the inning's part 1)               #
+# --------------------------------------------------------------------------- #
+
+
+@router.get("/models")
+async def list_models():
+    """Reference models a contest can be tested against (part 1: choose M).
+
+    Two sources: curated **example** scenarios (ready-to-play, one per outcome) and
+    the **corpus** UoDs (any asserted graph can serve as a model M). The frontend
+    populates its model picker from this.
+    """
+    from agon_models import list_example_models
+
+    examples = [
+        {"id": e.id, "title": e.title, "model_egif": e.model_egif,
+         "closed": e.closed, "sample_proposal": e.sample_proposal, "note": e.note}
+        for e in list_example_models()
+    ]
+    corpus = []
+    try:
+        for entry in _get_tomos().list_uods():
+            uid = entry.get("uod_id") or entry.get("id")
+            if uid:
+                corpus.append({"uod_id": uid,
+                               "title": entry.get("name") or entry.get("title") or uid})
+    except Exception:
+        corpus = []  # corpus listing is best-effort; examples always work
+    return ApiResponse(success=True, data={"examples": examples, "corpus": corpus})
+
+
+def _resolve_model_egif(model_egif: Optional[str], model_uod: Optional[str]) -> str:
+    """Resolve a chosen model M to its EGIF (raw facts or a corpus UoD's atoms)."""
+    if model_uod:
+        uod = _get_tomos().load_uod(model_uod)
+        if uod is None or uod.current_egi is None:
+            raise ValueError(f"Model UoD '{model_uod}' not found or has no current EGI.")
+        from egif_generator_dau import generate_egif
+        return generate_egif(uod.current_egi)
+    if model_egif and model_egif.strip():
+        return model_egif.strip()
+    raise ValueError("Provide model_egif or model_uod (a corpus UoD id).")
+
+
+def _interpret_payload(model_egif: str, proposal_egif: str, closed: bool) -> dict:
+    """Run the peel and shape the result (shared by the standalone + game routes)."""
+    oracle = CorpusOracle.from_egif({"M": model_egif}, closed=closed)
+    result = evaluate_semantic(parse_egif(proposal_egif), oracle)
+    verdict = result.verdict.value
+    return {
+        "model_egif": model_egif,
+        "proposal_egif": proposal_egif,
+        "closed": closed,
+        "verdict": verdict,
+        "holds": result.holds,
+        "summary": result.summary,
+        "transcript": result.transcript,
+        "winning_witness": result.winning_witness,
+        "counterexample": result.counterexample,
+        "available_dispositions": available_dispositions(verdict=verdict),
+    }
+
+
+@router.post("/interpret")
+async def interpret_standalone(request: AgonModelTestRequest):
+    """A standalone inning: choose M, test G — *given M, then G* — no contest needed.
+
+    The simplest path to the interpretation register: resolve the chosen model M
+    (raw facts or a corpus UoD), peel the proposal G against it, and return the
+    verdict, the outside-in transcript, the deciding evidence, and the disposition
+    taxonomy annotated by the outcome. Nothing is asserted or persisted.
+    """
+    try:
+        model_egif = _resolve_model_egif(request.model_egif, request.model_uod)
+        if not (request.proposal_egif or "").strip():
+            return ApiResponse(success=False, error={
+                "code": "NO_PROPOSAL", "message": "Provide a proposal_egif (the graph G)."})
+        return ApiResponse(success=True, data=_interpret_payload(
+            model_egif, request.proposal_egif.strip(), request.closed))
+    except ValueError as exc:
+        return ApiResponse(success=False, error={"code": "INVALID_MODEL", "message": str(exc)})
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "INTERPRET_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+# --------------------------------------------------------------------------- #
 # Interpretation register — peel G against M (the inning's part 2)            #
 # docs/GENERATION_AND_TESTING.md                                              #
 # --------------------------------------------------------------------------- #
@@ -507,22 +595,9 @@ async def interpret(game_id: str, request: AgonInterpretRequest):
                                    "proposal_egif, or call set-model first.")},
             )
 
-        oracle = CorpusOracle.from_egif({"M": model_egif}, closed=closed)
-        result = evaluate_semantic(parse_egif(proposal_egif), oracle)
-        verdict = result.verdict.value
-        return ApiResponse(success=True, data={
-            "game_id": game_id,
-            "model_egif": model_egif,
-            "proposal_egif": proposal_egif,
-            "closed": closed,
-            "verdict": verdict,
-            "holds": result.holds,
-            "summary": result.summary,
-            "transcript": result.transcript,
-            "winning_witness": result.winning_witness,
-            "counterexample": result.counterexample,
-            "available_dispositions": available_dispositions(game, verdict=verdict),
-        })
+        data = _interpret_payload(model_egif, proposal_egif, closed)
+        data["game_id"] = game_id
+        return ApiResponse(success=True, data=data)
     except Exception as exc:
         return ApiResponse(
             success=False,

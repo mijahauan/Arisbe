@@ -170,3 +170,52 @@ def test_interpretation_does_not_mutate_the_game(client):
 def test_interpret_unknown_game(client):
     r = client.post("/agon/games/nope/interpret", json={})
     assert r.json()["error"]["code"] == "GAME_NOT_FOUND"
+
+
+# ---------------------------------------------------------------------------
+# Reference models + the standalone inning (part 1 picker, part 2 peel)
+# ---------------------------------------------------------------------------
+
+def test_list_models_examples_and_corpus(client):
+    data = client.get("/agon/models").json()["data"]
+    ex_ids = {e["id"] for e in data["examples"]}
+    # the five persona scenarios are selectable, each carrying M + a sample G
+    assert {"teacher-mammals", "student-sea", "researcher-coast",
+            "physician-ward", "logician-open"} <= ex_ids
+    for e in data["examples"]:
+        assert e["model_egif"] and e["sample_proposal"]
+    assert isinstance(data["corpus"], list)   # corpus best-effort, may be empty
+
+
+def test_standalone_interpret_with_raw_model(client):
+    data = client.post("/agon/interpret", json={
+        "model_egif": '(mammal "Biscuit") (mammal "Whale") (warmblooded "Whale")',
+        "proposal_egif": '~[ (mammal *x) ~[ (warmblooded x) ] ]',
+        "closed": True,
+    }).json()["data"]
+    assert data["verdict"] == "false"
+    assert data["counterexample"] == {"x": "Biscuit"}
+    # dispositions annotated, full taxonomy present, nothing asserted
+    keys = {d["key"] for d in data["available_dispositions"]}
+    assert "challenge_to_M" in keys
+
+
+def test_standalone_interpret_every_example_scenario(client):
+    data = client.get("/agon/models").json()["data"]
+    expected = {
+        "teacher-mammals": "true", "student-sea": "false",
+        "researcher-coast": "unknown", "physician-ward": "false",
+        "logician-open": "unknown",
+    }
+    for e in data["examples"]:
+        res = client.post("/agon/interpret", json={
+            "model_egif": e["model_egif"], "proposal_egif": e["sample_proposal"],
+            "closed": e["closed"]}).json()["data"]
+        assert res["verdict"] == expected[e["id"]], e["id"]
+
+
+def test_standalone_interpret_missing_model(client):
+    r = client.post("/agon/interpret", json={"proposal_egif": '(dog "x")'})
+    body = r.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "INVALID_MODEL"

@@ -92,7 +92,20 @@
             Agonothetes — choose what the result means.
           </p>
           <div class="field">
-            <label>Domain model M (EGIF, optional)</label>
+            <label>Reference model M — choose one</label>
+            <select id="model-picker">
+              <option value="">— pick a model, or type facts below —</option>
+            </select>
+            <div id="model-note" class="hint" style="margin-top:4px;"></div>
+          </div>
+          <div class="field">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="model-closed" style="width:auto;" />
+              Closed world — asserted-complete (a miss is FALSE, not UNKNOWN)
+            </label>
+          </div>
+          <div class="field">
+            <label>Domain model M (EGIF — the facts)</label>
             <textarea id="setup-model" placeholder="(Human *x) ~[ (Human x) ~[ (Mortal x) ] ]"></textarea>
           </div>
           <div class="field">
@@ -114,7 +127,8 @@
               <option value="Skeptic">Grapheus (Skeptic)</option>
             </select>
           </div>
-          <button class="action primary" id="btn-start">Begin contest</button>
+          <button class="action primary" id="btn-interpret">▷ Does G hold in M?</button>
+          <button class="action" id="btn-start">Play it out (full contest)</button>
         </div>
 
         <div id="game-info" style="display:none;">
@@ -135,6 +149,9 @@
       <div id="canvas" style="flex:1;">
         <div id="canvas-placeholder">Set up a contest on the left to begin.</div>
       </div>
+      <!-- The interpretation register (given M, then G): the peel result, shown
+           in place of the board. docs/GENERATION_AND_TESTING.md. -->
+      <div id="interpret-result" style="display:none; flex:1; padding:18px; overflow:auto;"></div>
     </section>
 
     <!-- Right: moves / episode / disposition -->
@@ -202,6 +219,7 @@
       const statusEl = $('status'), canvasEl = $('canvas');
       let gameId = null, currentRule = null, lastData = null, svgPZ = null, selectedDisp = null;
       let selectedSubgraph = new Set(), selectedArea = null;
+      let agonModels = { examples: [], corpus: [] }, selectedModelUod = null;
 
       function setStatus(m, k) { statusEl.textContent = m; statusEl.classList.remove('error','success'); if (k) statusEl.classList.add(k); }
       function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -303,6 +321,7 @@
       }
       function showGame(d, preserveView){
         lastData=d; gameId=d.game_id;
+        $('interpret-result').style.display='none'; canvasEl.style.display='';
         $('setup-section').style.display='none'; $('game-info').style.display='block';
         $('game-id-display').value=d.game_id; $('frame-display').value=(d.episode.setup.framed_egif)||'';
         renderTurn(d); renderSvg(d.svg, preserveView); renderMoves(d.episode);
@@ -314,14 +333,76 @@
           $('right-title').textContent='Moves'; $('right-sub').textContent='Apply rules in your territory.'; }
       }
 
+      // ---- reference models (part 1: choose M) ----
+      async function loadModels(){
+        try{
+          const r=await fetch('/agon/models'); const b=await r.json();
+          if(!b.success) return; agonModels=b.data||{examples:[],corpus:[]};
+          const pick=$('model-picker');
+          if((agonModels.examples||[]).length){ const og=document.createElement('optgroup'); og.label='Example scenarios';
+            agonModels.examples.forEach(e=>{ const o=document.createElement('option'); o.value='ex:'+e.id; o.textContent=e.title; og.appendChild(o); }); pick.appendChild(og); }
+          if((agonModels.corpus||[]).length){ const og=document.createElement('optgroup'); og.label='Corpus models';
+            agonModels.corpus.forEach(c=>{ const o=document.createElement('option'); o.value='uod:'+c.uod_id; o.textContent=c.title; og.appendChild(o); }); pick.appendChild(og); }
+        }catch(_){}
+      }
+      function onPickModel(){
+        const v=$('model-picker').value; selectedModelUod=null; $('model-note').textContent='';
+        if(v.indexOf('ex:')===0){ const e=(agonModels.examples||[]).find(x=>x.id===v.slice(3)); if(!e) return;
+          $('setup-model').value=e.model_egif; $('setup-proposal').value=e.sample_proposal;
+          $('model-closed').checked=!!e.closed; $('model-note').textContent=e.note; }
+        else if(v.indexOf('uod:')===0){ selectedModelUod=v.slice(4); $('setup-model').value='';
+          $('model-note').textContent='Model M = corpus “'+selectedModelUod+'”. Enter a proposal G to test against it.'; }
+      }
+
+      // ---- interpretation register (part 2: peel G against M) ----
+      function verdictColor(v){ return v==='true'?'#a6e3a1':(v==='false'?'#f38ba8':'#f9e2af'); }
+      function pairs(o){ return Object.keys(o||{}).map(k=>k+' = '+o[k]).join(', '); }
+      function renderInterpretation(d){
+        $('turn-banner').style.display='none'; canvasEl.style.display='none';
+        const el=$('interpret-result'); el.style.display='block';
+        let h='<div style="font-size:12px; color:#6c7086; margin-bottom:8px;">Given M, then G — the peel (outside-in):</div>';
+        h+='<span style="display:inline-block; padding:4px 14px; border-radius:6px; font-weight:700; color:#11111b; background:'+verdictColor(d.verdict)+';">'+esc(d.verdict.toUpperCase())+'</span>';
+        h+='<div style="margin:8px 0 12px; color:#cdd6f4;">'+esc(d.summary)+'</div>';
+        if(d.counterexample) h+='<div style="color:#f38ba8; margin-bottom:4px;">Counterexample — '+esc(pairs(d.counterexample))+' (the individual that defeats it)</div>';
+        if(d.winning_witness) h+='<div style="color:#a6e3a1; margin-bottom:4px;">Witness — '+esc(pairs(d.winning_witness))+' (the assignment that satisfies it)</div>';
+        h+='<div style="font-size:11px; color:#6c7086;">M ('+(d.closed?'closed':'open')+' world): <code>'+esc(d.model_egif)+'</code></div>';
+        h+='<div style="font-size:11px; color:#6c7086;">G: <code>'+esc(d.proposal_egif)+'</code></div>';
+        h+='<div style="margin:12px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">Moves</div>';
+        h+='<pre style="background:#181825; padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:#cdd6f4; margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
+        h+='<div style="margin:14px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">What to do with it — the Agonothetes decides (coherent with this verdict highlighted)</div>';
+        (d.available_dispositions||[]).forEach(dd=>{ const coh=dd.coherent_with_verdict;
+          h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border:1px solid '+(coh?'#585b70':'#313244')+'; opacity:'+(coh===false?'0.45':'1')+';">'
+            +'<strong style="color:'+(coh?'#cdd6f4':'#9399b2')+';">'+esc(dd.label)+'</strong>'
+            +' <span style="font-size:10px; color:#6c7086;">'+esc(dd.mode)+(dd.asserts?' · asserts':'')+(coh?' · coheres':'')+'</span>'
+            +'<div style="font-size:11px; color:#6c7086;">'+esc(dd.summary)+'</div></div>'; });
+        h+='<div style="margin-top:12px; font-size:11px; color:#6c7086;">An interpretation, not an assertion — nothing is recorded. “Play it out (full contest)” to contest it move-by-move.</div>';
+        el.innerHTML=h;
+      }
+
       // ---- API ----
       async function post(url, body){ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}); return r.json(); }
+
+      async function interpret(){
+        const proposal=$('setup-proposal').value.trim();
+        if(!proposal){ setStatus('Enter a proposal G to test.','error'); return; }
+        const body={ proposal_egif:proposal, closed:$('model-closed').checked };
+        if(selectedModelUod) body.model_uod=selectedModelUod; else body.model_egif=$('setup-model').value.trim();
+        if(!selectedModelUod && !body.model_egif){ setStatus('Choose or type a reference model M.','error'); return; }
+        setStatus('Peeling G against M…');
+        const b=await post('/agon/interpret', body);
+        if(!b.success){ setStatus('Interpret failed: '+(b.error&&b.error.message),'error'); return; }
+        renderInterpretation(b.data);
+        setStatus('G is '+b.data.verdict.toUpperCase()+' in M.', b.data.verdict==='true'?'success':(b.data.verdict==='false'?'error':null));
+      }
 
       async function start(){
         const initial=$('setup-initial').value.trim(), model=$('setup-model').value.trim(),
           proposal=$('setup-proposal').value.trim(), goal=$('setup-goal').value.trim(), first=$('setup-first').value;
-        const payload={ first_player:first }; if(goal) payload.goal_egif=goal;
-        if(initial) payload.initial_egif=initial; else { if(model) payload.model_egif=model; if(proposal) payload.proposal_egif=proposal; }
+        const payload={ first_player:first, model_closed:$('model-closed').checked }; if(goal) payload.goal_egif=goal;
+        if(initial) payload.initial_egif=initial;
+        else { if(selectedModelUod) payload.base_source='uod:'+selectedModelUod; else if(model) payload.model_egif=model;
+               if(proposal) payload.proposal_egif=proposal; }
+        $('interpret-result').style.display='none'; canvasEl.style.display='';
         setStatus('Starting contest…');
         const b=await post('/agon/games', payload);
         if(!b.success){ setStatus('Start failed: '+(b.error&&b.error.message),'error'); return; }
@@ -351,9 +432,13 @@
       async function discard(){ if(gameId){ try{ await fetch('/agon/games/'+gameId,{method:'DELETE'}); }catch(_){} }
         gameId=null; $('setup-section').style.display='block'; $('game-info').style.display='none';
         $('turn-banner').style.display='none'; $('moves-section').style.display='none'; $('disposition-section').style.display='none';
+        $('interpret-result').style.display='none'; canvasEl.style.display='';
         canvasEl.innerHTML='<div id="canvas-placeholder">Set up a contest on the left to begin.</div>'; setStatus('Contest discarded.'); }
 
       // ---- wiring ----
+      $('btn-interpret').addEventListener('click', interpret);
+      $('model-picker').addEventListener('change', onPickModel);
+      loadModels();
       $('btn-start').addEventListener('click', start);
       $('btn-move').addEventListener('click', move);
       $('btn-concede').addEventListener('click', concede);

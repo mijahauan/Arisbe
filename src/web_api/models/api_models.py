@@ -368,3 +368,17 @@ class AgonInterpretRequest(BaseModel):
     model_egif: Optional[str] = None
     proposal_egif: Optional[str] = None
     closed: Optional[bool] = None
+
+
+class AgonModelTestRequest(BaseModel):
+    """A standalone inning — choose a reference model M and test a proposal G,
+    without spinning up a full contest (docs/GENERATION_AND_TESTING.md).
+
+    M is given either as ``model_egif`` (raw facts) or ``model_uod`` (a corpus
+    UoD id, resolved server-side to its asserted EGI). ``closed`` is M's regime.
+    """
+
+    model_egif: Optional[str] = None
+    model_uod: Optional[str] = None
+    proposal_egif: str
+    closed: bool = False

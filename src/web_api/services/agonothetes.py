@@ -125,7 +125,7 @@ _COHERENT_WITH = {
 
 
 def available_dispositions(
-    game: AgonGame, verdict: Optional[str] = None
+    game: Optional[AgonGame] = None, verdict: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """The dispositions the Agonothetes may choose for this contest.
 
