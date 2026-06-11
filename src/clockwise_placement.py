@@ -220,11 +220,14 @@ def _path_sound(
         elif actual > 0:
             return False
     for kind, owner, box in label_boxes:
-        incident = (
-            (kind == "predicate" and owner == new_p.predicate_id)
-            or (kind == "vertex" and owner == new_p.vertex_id)
-        )
-        if incident:
+        # A line legitimately reaches its own vertex's dot; that vertex's label is
+        # placed clear of incident lines, so don't fault the line for nearing it.
+        # But a line must not strike through ANY predicate label — including its
+        # OWN spot: a hook forced to the far side of a wide name would run the
+        # line straight across the name.  Reverting such a predicate to its
+        # natural hooks (which leave the edge toward the vertex) keeps the picture
+        # legible; the numeral then carries the order.
+        if kind == "vertex" and owner == new_p.vertex_id:
             continue
         if path_intersects_box(pts, box):
             return False

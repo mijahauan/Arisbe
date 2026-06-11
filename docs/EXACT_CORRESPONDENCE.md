@@ -197,15 +197,23 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
     crossings are minimized (when the layout already put the vertices in ν-clockwise
     order the hooks point straight at them and nothing crosses; otherwise the
     orientation with the least bending is chosen). A 10-ary relation becomes ten
-    spokes 36° apart, a clock face read clockwise. The **hook position** carries the
-    order (Peirce reads the hooks' positions around the spot, not the lines'
-    directions — `read_drawing`/`_clockwise_order` key off `points[0]`), so each line
-    runs **straight to its vertex with no artificial stub or kink**. Each line is
-    rerouted around cuts and label boxes (the two-tier router) and locally guarded
-    (crossing-multiset + area endpoints unchanged, no non-incident-box occlusion); a
-    predicate the spread can't keep sound — e.g. a high-arity relation crammed in a
-    tight cut whose spokes would pierce the boundary — is left at its natural hooks
-    (graceful degradation), and the whole result is re-attested with a fallback.
+    spokes 36° apart, a clock face read clockwise — *when the layout places the
+    vertices around the spot*; ELK often stacks a relation's arguments to one side,
+    in which case a full clockwise fan is geometrically impossible without spokes
+    crossing the name, and the predicate reverts (below). The **hook position**
+    carries the order (Peirce reads the hooks' positions around the spot, not the
+    lines' directions — `read_drawing`/`_clockwise_order` key off `points[0]`), so
+    each line runs **straight to its vertex with no artificial stub or kink**. Each
+    line is rerouted around cuts and label boxes (the two-tier router) and locally
+    guarded — crossing-multiset + area endpoints unchanged, **and no line may strike
+    through any predicate label, including its own spot** (a hook forced opposite its
+    vertex would run the line across the name). A predicate the spread can't keep
+    clean — a strike-through, or a relation crammed in a tight cut whose spokes would
+    pierce the boundary — reverts to its natural hooks (graceful degradation; the
+    numeral then carries its order), and the whole result is re-attested with a
+    fallback. *True high-arity clock faces want the layout to order each relation's
+    argument-vertices clockwise around the spot — a constrained-layout feature, not
+    yet built.*
   - **a single start anchor.** The clockwise placement carries the *order*; a reader
     still needs ν's *first* hook. Pinning the fan to vertically-above would fight the
     crossing-minimizing fit, so instead `assign_order_labels` marks at most one line
@@ -219,10 +227,10 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
     always | never`: `never` draws none (pure placement, Peirce-pure), `always`
     numbers every line, `auto` (default) draws the sparse start anchors. Toggling
     never touches geometry, so §3.3 is indifferent.
-  *Result:* corpus-wide §3.3 green; the clockwise hook order is a rotation of ν for
-  **every** ≥2-ary relation by construction; the ordered round trip recovers ν
-  **with zero numerals** (`never`, 23/23) — pure placement carries the whole
-  corpus's argument order, with zero near-spot crossings on these graphs.
+  *Result:* corpus-wide §3.3 green; **no line strikes through any predicate label**;
+  the ordered round trip recovers ν everywhere (`auto`, 23/23) — placement carries
+  it where the layout cooperates, the numeral carries any predicate that reverted.
+  Applied for every style/layout, so the picture reads the same across them.
 
 **Phase 4 — browser as client-side arbiter + freeform.** Carry the cut boundary
 polyline in the DTO (needed once cuts can be human-drawn); client-side

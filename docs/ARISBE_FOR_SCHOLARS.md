@@ -44,8 +44,8 @@ honest rather than tyrannical: **composition** (workshop drafts — suspended),
 attested), and **presentation-only** (restyling and hand-nudges — free by
 construction, preserved through a dedicated regime-3 API).
 
-To our knowledge this *inerrant, runtime-attested* coupling of the linear and the
-diagrammatic is novel, and it is the contribution we would most want a Peirce
+To my knowledge this *inerrant, runtime-attested* coupling of the linear and the
+diagrammatic is novel for EGs, and it is the contribution I would most want a Peirce
 scholar's eyes on: it is a precise, mechanized claim about the iconicity of EGs —
 that the graph is not a notation *for* a proposition but a sign that *is* one.
 
@@ -94,7 +94,7 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
   to critique — and the code is the argument: each is a module you can read, run,
   and try to break.
 
-## The frontier (stated honestly)
+## The approaching frontier 
 
 The Endoporeutic-Game side is deliberately the least finished, and the guide
 marks design-only material in place. Not yet built: a **proof mode** (the
@@ -102,12 +102,12 @@ constructive direction, INS/IT+/DC+) as a wired game loop; an **automated
 Grapheus** opponent (V1 is hot-seat only); the **ontology-as-M pipeline**
 (OWL→CLIF→EGI from WordNet/SNOMED/Wikidata); the inner **semantic game** as a
 first-class, step-exposed API; and the **warrant lifecycle** that would raise a
-graph from *low* to *tested* by its surviving Agon. We would rather say this
+graph from *low* to *tested* by its surviving Agon. I would rather say this
 plainly than oversell a demo.
 
-## For Ahti-Veikko Pietarinen in particular
+## For you in particular
 
-Arisbe's treatment of the game is built directly on your formalization of the
+Arisbe's treatment of the game is directly informed by your treatise on the
 endoporeutic interpretation as a semantic game (*Signs of Logic*, 2006). The
 guide separates **two layers** that are often conflated: the inner **semantic
 evaluation game** (your four-rule, boolean, always-terminating game over the
@@ -116,7 +116,7 @@ system), bridged by deiteration (IT−) as the proof-theoretic form of "this
 content holds in M." We would value your judgment on whether that bridge is drawn
 correctly.
 
-Two places where we have ventured past the received account and most want a
+Two places where I have ventured beyond the received account and most want a
 critical reading:
 
 1. **The *Agonothetes*.** Peirce's game terminates at a dyad — true or false. But
@@ -132,9 +132,9 @@ critical reading:
    that the drawn graph and its symbolic form denote one object is, in effect, an
    operational claim about the iconic character of EGs. Whether it captures what
    Peirce meant by the diagram *being* the proposition — rather than standing for
-   it — is exactly the kind of question we are not equipped to settle alone.
+   it — is exactly the kind of question I am not equipped to settle alone.
 
-You know more about Peirce's existential graphs than we do, and almost certainly
+You know more about Peirce's existential graphs than I do, and almost certainly
 more about how an effort like this might serve scholars, teachers, and students.
 That is the collaboration we are seeking: a reading from someone in the tradition,
 a steer on where the formalization is sound and where it strays, and — if any of

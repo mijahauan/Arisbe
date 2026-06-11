@@ -190,67 +190,54 @@ def test_clockwise_out_of_order_uses_a_single_start_anchor_not_full_numbering():
     assert read_drawing(labelled).incidence["R"] == ["b", "c", "a"]  # recovers ν
 
 
-def test_clockwise_writing_convention_carries_order_by_placement():
-    """The writing convention: under the clockwise convention the hooks are placed
-    clockwise around the spot in ν-order (place_clockwise_hooks), so the clockwise
-    reading IS ν by construction — every ≥2-ary relation's hook order is a rotation
-    of ν (never a genuine permutation).  Corpus-wide, §3.3 stays green and the
-    ordered round trip recovers ν with pure placement (numerals hidden)."""
-    import dataclasses
+def test_clockwise_no_label_strikethrough_and_order_recovered():
+    """The load-bearing guarantee: under the clockwise writing convention no line
+    is ever drawn *through* a predicate's label — a clockwise spoke that would be
+    forced across its own spot (the vertex lying opposite its ν-slot) reverts to
+    the natural hook instead.  Corpus-wide, §3.3 stays green, every line is clear
+    of every predicate label, and the ordered round trip still recovers ν (the
+    numeral carries any predicate that had to revert)."""
     from clockwise_placement import place_clockwise_hooks
     from correspondence_attestation import check_correspondence
-    from eg_reader import _clockwise_order, _rotation_offset
+    from presentation_ops import predicate_label_box, path_intersects_box
 
     svc = TomosService(TOMOS_ROOT)
-    style = dataclasses.replace(load_style("peirce-authentic@1.0"),
-                                argument_order_numerals="never")
+    style = load_style("peirce-authentic@1.0")
     eng = ELKLayoutEngine()
     for meta in svc.list_uods():
         egi = svc.load_uod(meta["uod_id"]).current_egi
         dto = place_clockwise_hooks(egi, eng.generate_layout(egi, style), style, eng)
         assert not check_correspondence(egi, dto), meta["uod_id"]
         for e in egi.E:
-            seq = list(egi.nu.get(e.id, ()))
-            if len(seq) < 2:
-                continue
-            # clockwise order is a rotation of ν — placement carries the order
-            assert _rotation_offset(seq, _clockwise_order(dto, e.id)) is not None, (
-                f"{meta['uod_id']}/{e.id}: clockwise placement is not even a "
-                f"rotation of ν")
+            box = predicate_label_box(egi.get_relation_name(e.id),
+                                      dto.predicate_positions[e.id], dto.style)
+            for p in dto.ligature_paths:
+                if p.predicate_id == e.id:
+                    assert not path_intersects_box(p.points, box), (
+                        f"{meta['uod_id']}: a line strikes through its own label")
         dto = assign_order_labels(egi, dto)
-        assert all(p.order_label is None for p in dto.ligature_paths)  # 0 numerals
         assert reading_matches_egi(read_drawing(dto), egi, ordered=True), \
             meta["uod_id"]
 
 
-def test_clockwise_high_arity_draws_a_clockwise_clock_face():
-    """A 10-ary relation is drawn as ten spokes spaced evenly around the spot in
-    ν-order (a clock face), read clockwise — order carried by placement alone, no
-    numerals, and the round trip recovers the full 10-tuple."""
-    import dataclasses
-    import math
+def test_clockwise_high_arity_never_strikes_its_label():
+    """A 10-ary relation: whatever the layout does with its ten arguments, not one
+    spoke is drawn through the relation name, and the full 10-tuple round-trips."""
     from clockwise_placement import place_clockwise_hooks
     from correspondence_attestation import check_correspondence
+    from presentation_ops import predicate_label_box, path_intersects_box
 
     egi = parse_egif("(R *a *b *c *d *e *f *g *h *i *j)")
-    style = dataclasses.replace(load_style("peirce-authentic@1.0"),
-                                argument_order_numerals="never")
+    style = load_style("peirce-authentic@1.0")
     eng = ELKLayoutEngine()
     dto = place_clockwise_hooks(egi, eng.generate_layout(egi, style), style, eng)
     assert not check_correspondence(egi, dto)
-    dto = assign_order_labels(egi, dto)
-    assert all(p.order_label is None for p in dto.ligature_paths)
-    assert reading_matches_egi(read_drawing(dto), egi, ordered=True)
-    # Hook positions ascend in clockwise angle with port (ν) order — a clock face.
     (pid,) = [e.id for e in egi.E]
-    P = dto.predicate_positions[pid]
-    keyed = sorted(
-        ((p.port_index,
-          (math.atan2(p.points[0].y - P.y, p.points[0].x - P.x) + math.pi / 2)
-          % (2 * math.pi))
-         for p in dto.ligature_paths), key=lambda kv: kv[0])
-    angles = [a for _, a in keyed]
-    assert angles == sorted(angles)  # port order == clockwise order
+    box = predicate_label_box("R", dto.predicate_positions[pid], dto.style)
+    for p in dto.ligature_paths:
+        assert not path_intersects_box(p.points, box)  # no spoke through "R"
+    dto = assign_order_labels(egi, dto)
+    assert reading_matches_egi(read_drawing(dto), egi, ordered=True)
 
 
 def test_reader_uses_geometry_not_stored_ids():

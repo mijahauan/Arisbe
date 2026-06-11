@@ -21,15 +21,18 @@ label/numeral extents work is complete.
 *ν specifies the order, so the drawing shows it: hooks drawn clockwise around the
 spot in ν-order, by construction — consistently across every style and layout.*
 `clockwise_placement.place_clockwise_hooks` (pre-attestation in `layout_service`,
-applied for **all** styles): every ≥2-ary predicate's hooks → evenly spaced
-clockwise slots in ν-order at the **rotation that best aligns with the vertices**
-(crossings minimized — zero on the corpus; a 10-ary = a clock face). The **hook
-position** (`points[0]`) carries the order, so lines run **straight to their
-vertices — no stub, no kink**. Rerouted around cuts/labels + locally guarded;
-reverts gracefully where unsound (e.g. high arity in a tight cut). Carried by a
+applied for **all** styles): every ≥2-ary predicate's hooks → clockwise slots in
+ν-order at the **rotation that best aligns with the vertices** (crossings
+minimized). The **hook position** (`points[0]`) carries the order, so lines run
+**straight to their vertices — no stub, no kink**. Locally guarded so **no line
+strikes through any predicate label** (a spoke forced across its own spot reverts
+to the natural hook); also reverts where a cut would be pierced. Carried by a
 **single start anchor** (`assign_order_labels` ≤1 mark/relation; `read_drawing`
-anchor-aware) + `argument_order_numerals: auto|always|never` toggle. §3.3 green;
-every style draws args clockwise; ordered round-trip **23/23 with zero numerals**.
+anchor-aware) + `argument_order_numerals: auto|always|never` toggle. §3.3 green; no
+label strike-throughs; ordered round-trip **23/23** (`auto`) — placement where the
+layout cooperates, numeral where it reverts. *Open:* true high-arity clock faces
+need the layout to order argument-vertices clockwise around the spot (constrained
+layout, not yet built — ELK stacks them to one side).
 
 ### Label-aware ligature routing — DONE 2026-06-10
 *Phase 3b's deferred third occlusion property shipped with its constructive
@@ -144,11 +147,15 @@ external AI that emits a structured placement into the same pipeline.*
   face). The hook *position* (`points[0]`) carries the order, so lines run straight
   to vertices — no stub, no kink. Applied for **every** style (numbered draws them
   clockwise + numbered; Peirce clockwise + zero/anchor) so the picture reads the
-  same everywhere; rerouted + locally guarded (reverts gracefully where unsound).
-  Single start anchor + `argument_order_numerals: auto|always|never` toggle. §3.3
-  green; ordered round-trip 23/23 with zero numerals (`never`). Reframed across the
-  session at the author's direction: corpus-tuned fragile-patch → writing convention
-  → hook-position carrier (no kinks) → consistent across styles. Phase 3 complete.
+  same everywhere. Hook-position carrier (`points[0]`) = straight lines, no kinks.
+  Locally guarded so **no line strikes through any predicate label** (a spoke forced
+  across its own spot reverts to the natural hook + numeral). Single start anchor +
+  `argument_order_numerals: auto|always|never` toggle. §3.3 green; no label
+  strike-throughs; ordered round-trip 23/23 (`auto`). Reframed across the session at
+  the author's direction: corpus-tuned fragile-patch → writing convention →
+  hook-position carrier (no kinks) → consistent across styles → no own-label strikes.
+  *Open:* true high-arity clock faces need constrained layout (vertices ordered
+  clockwise around the spot; ELK stacks them). Phase 3 complete.
 - **2026-06-10** — **Label-aware ligature routing** (Phase 3b's third occlusion
   property + its constructive partner). §3.3 check #3 refuses a line of identity
   running through a label box it is *not* incident to (`path_intersects_box`); the
