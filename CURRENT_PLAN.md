@@ -30,9 +30,13 @@ to the natural hook); also reverts where a cut would be pierced. Carried by a
 **single start anchor** (`assign_order_labels` ≤1 mark/relation; `read_drawing`
 anchor-aware) + `argument_order_numerals: auto|always|never` toggle. §3.3 green; no
 label strike-throughs; ordered round-trip **23/23** (`auto`) — placement where the
-layout cooperates, numeral where it reverts. *Open:* true high-arity clock faces
-need the layout to order argument-vertices clockwise around the spot (constrained
-layout, not yet built — ELK stacks them to one side).
+layout cooperates, numeral where it reverts. **Decision (2026-06-10): constrained
+layout for clock-face placement considered and DECLINED** — it doesn't scale (a
+shared line of identity gives a vertex conflicting clockwise demands from every spot
+it touches; it would fight the cut hierarchy — exactly why Dau numbers the lines).
+Order lives in ν; the numeral/anchor is the scalable carrier of record; clockwise
+placement is a best-effort small-graph aesthetic. **Phase 3 / the exact-correspondence
+extents work is DONE.**
 
 ### Label-aware ligature routing — DONE 2026-06-10
 *Phase 3b's deferred third occlusion property shipped with its constructive
@@ -154,8 +158,9 @@ external AI that emits a structured placement into the same pipeline.*
   strike-throughs; ordered round-trip 23/23 (`auto`). Reframed across the session at
   the author's direction: corpus-tuned fragile-patch → writing convention →
   hook-position carrier (no kinks) → consistent across styles → no own-label strikes.
-  *Open:* true high-arity clock faces need constrained layout (vertices ordered
-  clockwise around the spot; ELK stacks them). Phase 3 complete.
+  Constrained-layout clock faces **considered + declined** (doesn't scale — shared
+  lines of identity give conflicting clockwise demands; numerals are the scalable
+  carrier, clockwise is small-graph sugar). Phase 3 complete.
 - **2026-06-10** — **Label-aware ligature routing** (Phase 3b's third occlusion
   property + its constructive partner). §3.3 check #3 refuses a line of identity
   running through a label box it is *not* incident to (`path_intersects_box`); the

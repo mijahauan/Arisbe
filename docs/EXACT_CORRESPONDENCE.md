@@ -211,9 +211,25 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
     clean — a strike-through, or a relation crammed in a tight cut whose spokes would
     pierce the boundary — reverts to its natural hooks (graceful degradation; the
     numeral then carries its order), and the whole result is re-attested with a
-    fallback. *True high-arity clock faces want the layout to order each relation's
-    argument-vertices clockwise around the spot — a constrained-layout feature, not
-    yet built.*
+    fallback.
+
+    **Design decision — clockwise placement is a *local, best-effort* sugar, not a
+    layout constraint (constrained layout considered and *declined*).** A *clock
+    face* for stacked/high-arity arguments would need the layout to order each
+    relation's argument-vertices clockwise around its spot. We deliberately do **not**
+    build that. It does not scale: a **shared line of identity** makes one vertex
+    incident to many spots (possibly across cuts), so each spot demands a different
+    clockwise angle for it — *k* conflicting demands for a degree-*k* vertex,
+    unsatisfiable for *k ≥ 2*. It would be a second structural system competing with
+    the cut-containment hierarchy (the load-bearing, non-negotiable structure) — a
+    presentation convention pushed down into the structural layout, fighting the cuts
+    as density grows. This is exactly why Dau prescinds from position and **numbers
+    the lines** (§11.2): the numeral/anchor is O(1) per line, always available, and
+    composes with any nesting and density. So the division of labour is: **order
+    lives in ν; the numeral (or single start anchor) is the scalable carrier of
+    record; clockwise placement is a small-graph aesthetic that applies when free and
+    yields to the numeral otherwise** — consistent with "render as projection" (order
+    lives in the projection-independent layer, each projection shows it differently).
   - **a single start anchor.** The clockwise placement carries the *order*; a reader
     still needs ν's *first* hook. Pinning the fan to vertically-above would fight the
     crossing-minimizing fit, so instead `assign_order_labels` marks at most one line
