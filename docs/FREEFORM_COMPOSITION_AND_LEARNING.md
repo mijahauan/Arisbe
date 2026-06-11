@@ -272,9 +272,29 @@ readable. *That* is the complete geometric realization of inerrant correspondenc
      drag (`diagram-viewer.areaAtPoint`) + draw-time snapping, and wiring
      `validate_drawing` into the fix endpoint — all of which need the drag surface and
      a free-`LayoutDTO` source, so they ship with the canvas (step 2).
-2. **Freeform drawing canvas.** Replace the composing-phase palette's typed
-   `composition_ops` with place/drag/erase of marks on a free `LayoutDTO`; no live
-   EGI; live linear forms go silent until fix.
+2. **Freeform drawing canvas — DONE 2026-06-11** (backend tested; frontend shipped,
+   interactive layer pending author's-eyes check). Composition is *draw-then-read*:
+   the browser owns the ink, no live EGI, linear forms silent until gate ①.
+   - **`src/drawing_to_egi.build_egi_from_drawing`** — the construction half of
+     fix=read: `read_drawing` gives structure (area tree + ordered incidence), the
+     drawing carries content (relation names, constant labels), and this joins them
+     into a real EGI. Corpus round-trip via `same_graph`.
+   - **Routes** (additive; typed `composition_ops` untouched): `read-drawing` (non-
+     mutating preview — validity + linear forms when well-formed) and `fix-drawing`
+     (gate ①: validate → build → install as composing state → cross into deriving;
+     §3.3 attested at the render boundary; ill-formed refused in EG vocabulary).
+   - **`web_viewer/js/freeform-canvas.js`** — a self-contained `FreeformCanvas` SVG
+     surface: tools Move / Line / Relation / Constant / Cut (drag an ellipse) /
+     Connect / Erase; translucent cut fills (polarity by nesting depth); live
+     point-in-polygon area feedback (the **visible containment + live feedback** of
+     step 1, realized here on the canvas); a cut is just ink (erase it, contents
+     stay; drag a mark across to change its area). Wired into the composing palette
+     by an opt-in toggle; "Read it now" + freeform "① Fix this graph".
+   - **Still folding in from step 1:** draw-time *snapping* (endpoints to
+     hooks/vertices; spot placement clearly in/out, never in the boundary band) —
+     the canvas has the hit-test (`areaAt`) but does not yet snap. The reader/
+     validator already treat near-boundary/loose-end as ambiguous; snapping is the
+     UX that prevents them at the point of drawing.
 3. **The legible EGI diff** (the discrepancy report): align two EGIs by relation
    label + role (generic vertices by incidence), diff area trees and per-relation
    incidence/order, phrase in EG terms (containment / scope / incidence / order /

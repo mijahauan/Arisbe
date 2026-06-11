@@ -150,6 +150,57 @@ def test_fix_drawing_refuses_overlapping_cuts(client):
     assert g.json()["data"]["phase"] == "composing"
 
 
+def _ellipse(cx, cy, rx, ry, n=48):
+    """A cut polyline exactly as freeform-canvas.js draws it (sampled ellipse)."""
+    import math
+    return [[cx + rx * math.cos(2 * math.pi * i / n),
+             cy + ry * math.sin(2 * math.pi * i / n)] for i in range(n)]
+
+
+def test_canvas_contract_binary_order(client):
+    """A drawing in the exact shape the freeform canvas emits (hook at the
+    predicate centre, lines in creation order via port_index) reads back with the
+    right argument order — locks the JS serialize()↔backend contract."""
+    drawing = {
+        "sheet_id": "sheet",
+        "vertices": [
+            {"id": "v1", "x": -80, "y": 80, "label": "Romeo"},
+            {"id": "v2", "x": 80, "y": 80, "label": "Juliet"},
+        ],
+        "predicates": [{"id": "p1", "x": 0, "y": -40, "label": "loves"}],
+        "cuts": [],
+        "lines": [
+            {"predicate_id": "p1", "vertex_id": "v1",
+             "points": [[0, -40], [-80, 80]], "port_index": 0},
+            {"predicate_id": "p1", "vertex_id": "v2",
+             "points": [[0, -40], [80, 80]], "port_index": 1},
+        ],
+    }
+    sid = _open(client)
+    r = client.post(f"/ergasterion/sessions/{sid}/fix-drawing", json={"drawing": drawing})
+    assert r.status_code == 200, r.text
+    egif = _egif_of(r.json()["data"]["linear_forms"])
+    assert same_graph(parse_egif(egif), parse_egif('(loves "Romeo" "Juliet")')), egif
+
+
+def test_canvas_contract_negation_with_ellipse_cut(client):
+    """A negation drawn as the canvas draws it — an ellipse-polyline cut enclosing a
+    relation and its line — reads back as ~[ (P *x) ]."""
+    drawing = {
+        "sheet_id": "sheet",
+        "vertices": [{"id": "v1", "x": 0, "y": 30, "label": None}],
+        "predicates": [{"id": "p1", "x": 0, "y": -30, "label": "P"}],
+        "cuts": [{"id": "c1", "boundary": _ellipse(0, 0, 120, 110)}],
+        "lines": [{"predicate_id": "p1", "vertex_id": "v1",
+                   "points": [[0, -30], [0, 30]], "port_index": 0}],
+    }
+    sid = _open(client)
+    r = client.post(f"/ergasterion/sessions/{sid}/fix-drawing", json={"drawing": drawing})
+    assert r.status_code == 200, r.text
+    egif = _egif_of(r.json()["data"]["linear_forms"])
+    assert same_graph(parse_egif(egif), parse_egif("~[ (P *x) ]")), egif
+
+
 def test_read_drawing_reports_validity_without_building(client):
     """A drawing with a dangling line reports the error and omits linear forms."""
     drawing = {

@@ -36,11 +36,32 @@ condensed 2026-06-10 (detail in git, docs, memory).
      and draw-time **snapping** (line endpoints to hooks/vertices; spot placement
      clearly in/out of a cut, never in the boundary band). Wire `validate_drawing`
      into the composing-phase fix endpoint when the canvas emits a free `LayoutDTO`.
-2. **The freeform drawing canvas.** Replace the composing-phase typed
-   `composition_ops` with place/drag/erase of typed marks on a free `LayoutDTO`
-   (a cut = a drawn polyline via `cut_boundary`/`LayoutDTO.cut_boundary`); **no live
-   EGI**; live linear forms go silent until fix. A cut is just ink — erase it and
-   its contents stay put; drag a mark across a boundary to change its area.
+2. **The freeform drawing canvas — DONE 2026-06-11** (backend tested; frontend
+   shipped, interactive layer pending author's-eyes verification). Composition is
+   now *draw-then-read*: the browser owns the ink, no live EGI, linear forms silent
+   until gate ①.
+   - **Backend (`src/drawing_to_egi.py` + two routes).**
+     `build_egi_from_drawing(dto, predicate_labels, vertex_labels)` is the
+     construction half of *fix = read*: `read_drawing` recovers structure (area
+     tree + ordered incidence), the drawing carries content (relation names,
+     constant labels), and this joins them into a real EGI. Corpus round-trip via
+     `same_graph` (both styles, nested cuts, argument order, constant-vs-generic).
+     `POST /ergasterion/sessions/{id}/read-drawing` (non-mutating preview: validity
+     + linear forms) and `POST …/fix-drawing` (gate ①: validate → build → install
+     as composing state → cross into deriving; §3.3 attested; refuses ill-formed in
+     EG vocabulary). Additive — the typed `composition_ops` path is untouched.
+   - **Frontend (`web_viewer/js/freeform-canvas.js` + Ergasterion integration).**
+     Self-contained `FreeformCanvas` SVG surface (own coordinate space): tools
+     Move / Line (vertex) / Relation / Constant / Cut (drag an ellipse) / Connect /
+     Erase; translucent cut fills (polarity by nesting depth); **live area feedback**
+     on drag (point-in-polygon `areaAt`, the same test the server uses); a cut is
+     just ink (erase it, contents stay; drag a mark across a boundary to change
+     area). "👁 Read it now" → preview; "① Fix this graph" → `fix-drawing` when ink
+     is present. Opt-in toggle in the composing palette.
+   - **Tests:** `test_drawing_to_egi.py` (6), `test_ergasterion_freeform.py` (12,
+     incl. JS-serialize↔backend contract for binary order + ellipse-cut negation).
+     Both JS files syntax-clean; page + asset serve. **Pending:** interactive
+     pointer/drag behaviour in a real browser (no headless browser here).
 3. **The legible EGI diff** (the discrepancy report): align two EGIs by relation
    label + role (generic vertices by incidence), diff area trees + per-relation
    incidence/order, phrase in EG terms (containment / scope / incidence / order /
@@ -193,6 +214,18 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Recently shipped (newest first — detail in git / docs / memory)
 
+- **2026-06-11** — **Freeform step 2: the draw-then-read canvas** (backend tested;
+  frontend shipped). `drawing_to_egi.build_egi_from_drawing` is the construction half
+  of fix=read (structure from `read_drawing` + content from carried labels → a real
+  EGI; corpus round-trip via `same_graph`). Two additive Ergasterion routes:
+  `read-drawing` (non-mutating preview) and `fix-drawing` (gate ①: validate → build →
+  install → derive; §3.3 attested; ill-formed refused in EG vocabulary). Frontend
+  `freeform-canvas.js`: a self-contained SVG drawing surface (place/drag/erase typed
+  marks, cuts as drawn ellipses, translucent fills, live point-in-polygon area
+  feedback) wired into the composing palette via an opt-in toggle; "Read it now" +
+  freeform "① Fix this graph". 18 new tests (builder corpus round-trip + route
+  round-trip + JS-serialize↔backend contract). Interactive pointer layer pending
+  author's-eyes verification (no headless browser available).
 - **2026-06-10** — **Freeform step 1: fix-time validity pass** (`src/drawing_validity.py`,
   13 tests). `validate_drawing(dto) → ValidityReport`: the well-formedness backstop of
   *fix = read* — `read_drawing` reads exactly what is drawn even when it isn't a legal

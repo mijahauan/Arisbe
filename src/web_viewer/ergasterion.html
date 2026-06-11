@@ -609,6 +609,26 @@
               </div>
               <button class="action" id="btn-graft">Graft into selected region (or sheet)</button>
             </details>
+            <!-- Freeform: draw-then-read (build step 2). Marks are ink, no live
+                 EGI; the picture is read into a sign only at gate ①.
+                 docs/FREEFORM_COMPOSITION_AND_LEARNING.md. -->
+            <div id="freeform-block" style="margin: 10px 0; border-top: 1px solid #313244; padding-top: 8px;">
+              <button class="action" id="btn-freeform-toggle" title="Draw marks freely; read them into the graph at gate ①">✎ Freeform draw</button>
+              <div id="freeform-tools" style="display:none; margin-top:6px;">
+                <div class="palette-grid">
+                  <button class="action" data-fftool="select" title="Move marks">↺ Move</button>
+                  <button class="action" data-fftool="vertex" title="A heavy spot — a line of identity">● Line</button>
+                  <button class="action" data-fftool="predicate" title="A named spot">▭ Relation</button>
+                  <button class="action" data-fftool="constant" title="A labelled spot — a name">“a” Constant</button>
+                  <button class="action" data-fftool="cut" title="Drag an oval — negation">◯ Cut</button>
+                  <button class="action" data-fftool="line" title="Click a relation then a vertex">⟝ Connect</button>
+                  <button class="action" data-fftool="erase" title="Erase a mark (a cut leaves its contents)">✕ Erase</button>
+                </div>
+                <div id="freeform-area" style="font-size:10px; color:#89b4fa; min-height:14px; margin:4px 0;"></div>
+                <button class="action" id="btn-read-drawing">👁 Read it now — what does it say?</button>
+                <div id="freeform-validity" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
+              </div>
+            </div>
             <button class="action primary" id="btn-fix-graph">① Fix this graph</button>
             <p class="gate-consequence">
               From here the graph is no longer clay — it changes only by the
@@ -747,6 +767,7 @@
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
+  <script src="js/freeform-canvas.js"></script>
   <script src="js/settle-adjust.js"></script>
   <script>
     (function () {
@@ -1903,6 +1924,14 @@
             setStatus('Open failed: ' + (body.error && body.error.message), 'error');
             return;
           }
+          // A new session starts with a clean canvas — the prior ink belonged to
+          // the prior draft.
+          if (typeof freeform !== 'undefined' && freeform) {
+            freeform.clear();
+            freeformOn = false; freeform.disable();
+            if (freeformToolsEl) freeformToolsEl.style.display = 'none';
+            if (btnFreeformToggle) btnFreeformToggle.classList.remove('armed');
+          }
           showSession(body.data);
           await applySelectedLayoutIfAny();
           setStatus('Workshop opened. Base = ' + baseSource +
@@ -2240,10 +2269,138 @@
       }
       const btnFixGraph = document.getElementById('btn-fix-graph');
       if (btnFixGraph)
-        btnFixGraph.addEventListener('click', () => crossGate('fix-graph'));
+        btnFixGraph.addEventListener('click', () => {
+          // Freeform with ink on the canvas → gate ① is "read the drawing"
+          // (fix-drawing); otherwise the typed-palette gate (fix-graph).
+          if (freeformOn && freeform && !freeform.isEmpty()) fixDrawing();
+          else crossGate('fix-graph');
+        });
       const btnFixChain = document.getElementById('btn-fix-chain');
       if (btnFixChain)
         btnFixChain.addEventListener('click', () => crossGate('fix-chain'));
+
+      // ---- freeform composition canvas (draw-then-read, build step 2) ----
+      // The browser owns the ink; composition is silent; the picture is read into
+      // a sign only at gate ① (read-drawing preview / fix-drawing commit).
+      let freeform = null;
+      let freeformOn = false;
+      const freeformToolsEl = document.getElementById('freeform-tools');
+      const btnFreeformToggle = document.getElementById('btn-freeform-toggle');
+
+      function ensureFreeform() {
+        if (!freeform && window.FreeformCanvas) {
+          freeform = window.FreeformCanvas.mount(canvasEl, {
+            setStatus,
+            onArea: (area) => {
+              const a = document.getElementById('freeform-area');
+              if (a) a.textContent = area ? ('▸ inside cut ' + area) : '▸ on the sheet';
+            },
+            onChange: () => {
+              const v = document.getElementById('freeform-validity');
+              if (v) v.innerHTML =
+                '<span style="color:#6c7086;">drawing changed — read it to see what it says</span>';
+            },
+          });
+        }
+        return freeform;
+      }
+
+      function setFreeformActiveTool(tool) {
+        document.querySelectorAll('#freeform-tools [data-fftool]').forEach(
+          (x) => x.classList.toggle('armed', x.dataset.fftool === tool));
+      }
+
+      if (btnFreeformToggle) {
+        btnFreeformToggle.addEventListener('click', () => {
+          const ff = ensureFreeform();
+          if (!ff) { setStatus('Freeform canvas unavailable.', 'error'); return; }
+          freeformOn = !freeformOn;
+          btnFreeformToggle.classList.toggle('armed', freeformOn);
+          if (freeformToolsEl) freeformToolsEl.style.display = freeformOn ? 'block' : 'none';
+          if (freeformOn) {
+            disarmTool();           // stand down the typed palette
+            ff.setTool('select');
+            setFreeformActiveTool('select');
+            ff.enable();
+          } else {
+            ff.disable();
+          }
+        });
+      }
+      document.querySelectorAll('#freeform-tools [data-fftool]').forEach((b) => {
+        b.addEventListener('click', () => {
+          const ff = ensureFreeform();
+          if (!ff) return;
+          ff.setTool(b.dataset.fftool);
+          setFreeformActiveTool(b.dataset.fftool);
+        });
+      });
+
+      function renderFreeformValidity(body) {
+        const v = document.getElementById('freeform-validity');
+        if (!v) return;
+        if (!body.success) {
+          v.innerHTML = '<span style="color:#f38ba8;">' +
+            escapeHtml(body.error && body.error.message) + '</span>';
+          return;
+        }
+        const data = body.data || {};
+        const val = data.validity || {};
+        let html = '';
+        (val.errors || []).forEach((e) =>
+          html += '<div style="color:#f38ba8;">✕ ' + escapeHtml(e.message) + '</div>');
+        (val.warnings || []).forEach((w) =>
+          html += '<div style="color:#f9e2af;">⚠ ' + escapeHtml(w.message) + '</div>');
+        if (val.is_well_formed && data.linear_forms) {
+          const egif = (((data.linear_forms.forms || {}).egif) || {}).text || '';
+          html += '<div style="color:#a6e3a1; margin-top:4px;">✓ reads as: <code>' +
+            escapeHtml(egif) + '</code></div>';
+        }
+        v.innerHTML = html || '<span style="color:#6c7086;">empty drawing</span>';
+      }
+
+      async function readDrawing() {
+        if (!currentSessionId || !freeform) return;
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/read-drawing', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ drawing: freeform.serialize() }),
+            });
+          renderFreeformValidity(await res.json());
+        } catch (err) { setStatus('Read failed: ' + err, 'error'); }
+      }
+
+      async function fixDrawing() {
+        if (!currentSessionId || !freeform) return;
+        setStatus('Reading the drawing into the graph…');
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/fix-drawing', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ drawing: freeform.serialize() }),
+            });
+          const body = await res.json();
+          if (!body.success) {
+            const val = body.error && body.error.validity;
+            if (val) renderFreeformValidity({ success: true, data: { validity: val } });
+            setStatus('Cannot fix: ' + (body.error && body.error.message), 'error');
+            return;
+          }
+          // Read into the fixed graph — leave freeform mode, show the derived view.
+          freeformOn = false;
+          freeform.disable();
+          if (freeformToolsEl) freeformToolsEl.style.display = 'none';
+          if (btnFreeformToggle) btnFreeformToggle.classList.remove('armed');
+          showSession({ ...body.data }, false);
+          setStatus('Graph fixed from your drawing — now derive with the rules.', 'success');
+        } catch (err) { setStatus('Fix failed: ' + err, 'error'); }
+      }
+
+      const btnReadDrawing = document.getElementById('btn-read-drawing');
+      if (btnReadDrawing) btnReadDrawing.addEventListener('click', readDrawing);
 
       // Delegated: clicks on rendered elements toggle selection. Bound
       // once — canvasEl persists across re-renders even as its SVG child
