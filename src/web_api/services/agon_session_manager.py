@@ -111,12 +111,21 @@ class AgonEpisode:
 
 @dataclass
 class AgonGame:
-    """An in-progress Agon contest: engine state + dialogical episode."""
+    """An in-progress Agon contest: engine state + dialogical episode.
+
+    The inning's part-1 framing — the model M and proposal G — is kept here for
+    the **interpretation register** (the semantic game, part 2): ``model_egif`` is
+    the reference world, ``proposal_egif`` is G, ``model_closed`` its regime.
+    These are independent of the transformation game's unwrapping state.
+    """
 
     game_id: str
     state: GameState
     episode: AgonEpisode
     current_layout_dto: LayoutDTO
+    model_egif: Optional[str] = None
+    proposal_egif: Optional[str] = None
+    model_closed: bool = False
     created: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_accessed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -152,8 +161,15 @@ class AgonSessionManager:
         state: GameState,
         layout_dto: LayoutDTO,
         setup: Dict[str, Any],
+        model_egif: Optional[str] = None,
+        proposal_egif: Optional[str] = None,
+        model_closed: bool = False,
     ) -> AgonGame:
-        """Open a new contest from an already-constructed engine state."""
+        """Open a new contest from an already-constructed engine state.
+
+        ``model_egif`` / ``proposal_egif`` carry the inning's M and G for the
+        interpretation register (the semantic game); ``model_closed`` its regime.
+        """
         self.cleanup_expired()
         game_id = str(uuid.uuid4())
         game = AgonGame(
@@ -161,6 +177,9 @@ class AgonSessionManager:
             state=state,
             episode=AgonEpisode(setup=setup, initial_egi=state.initial_egi),
             current_layout_dto=layout_dto,
+            model_egif=model_egif,
+            proposal_egif=proposal_egif,
+            model_closed=model_closed,
         )
         self._games[game_id] = game
         return game

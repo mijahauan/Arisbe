@@ -37,8 +37,10 @@ from fastapi.responses import FileResponse
 
 from web_api.models.api_models import (
     AgonDispositionRequest,
+    AgonInterpretRequest,
     AgonMoveRequest,
     AgonNewGameRequest,
+    AgonSetModelRequest,
     ApiResponse,
 )
 from web_api.services.agon_session_manager import (
@@ -56,8 +58,10 @@ from web_api.services.layout_service import generate_layout, layout_dto_to_dict
 from web_api.services.linear_forms import linear_forms
 
 from correspondence_attestation import CorrespondenceViolation
+from domain_oracle import CorpusOracle
 from egif_parser_dau import parse_egif
 from endoporeutic_game import Player
+from semantic_game import evaluate as evaluate_semantic
 from tomos_service import TomosService
 
 
@@ -169,17 +173,18 @@ async def agon_index():
 # --------------------------------------------------------------------------- #
 
 
-def _build_initial_egif(request: AgonNewGameRequest) -> str:
-    """Resolve the contest's starting EGIF from the request's framing.
+def _build_initial_egif(request: AgonNewGameRequest):
+    """Resolve a contest's framing into ``(framed_egif, model_egif, proposal_egif)``.
 
-    Frame construction (``~[ M ~[ G ] ]``) is a convenience for the
-    common M → G contest; the ``initial_egif`` escape hatch lets the
-    Agonothetes supply any pre-built frame.  (Caveat: naive M/G framing
-    concatenates linear forms — beta label scoping across M and G is the
-    caller's responsibility; use ``initial_egif`` for shared ligatures.)
+    Frame construction (``~[ M ~[ G ] ]``) is a convenience for the common M → G
+    contest; the resolved M and G are returned alongside (``None`` for the raw
+    ``initial_egif`` escape hatch) so the **interpretation register** can peel G
+    against M.  (Caveat: naive M/G framing concatenates linear forms — beta label
+    scoping across M and G is the caller's responsibility; use ``initial_egif``
+    for shared ligatures.)
     """
     if request.initial_egif is not None:
-        return request.initial_egif
+        return request.initial_egif, None, None
 
     proposal = (request.proposal_egif or "").strip()
 
@@ -193,12 +198,13 @@ def _build_initial_egif(request: AgonNewGameRequest) -> str:
             raise ValueError(f"UoD '{uod_id}' not found or has no current EGI.")
         from egif_generator_dau import generate_egif
         model = generate_egif(uod.current_egi)
-        return f"~[ {model} ~[ {proposal} ] ]"
+        return f"~[ {model} ~[ {proposal} ] ]", model, proposal
 
     if request.model_egif is not None:
         if not proposal:
             raise ValueError("model_egif requires a proposal_egif (the graph G).")
-        return f"~[ {request.model_egif.strip()} ~[ {proposal} ] ]"
+        model = request.model_egif.strip()
+        return f"~[ {model} ~[ {proposal} ] ]", model, proposal
 
     raise ValueError(
         "Provide initial_egif, or model_egif + proposal_egif, or "
@@ -216,14 +222,15 @@ async def new_game(request: AgonNewGameRequest):
     """
     try:
         try:
-            initial_egif = _build_initial_egif(request)
+            initial_egif, model_egif, proposal_egif = _build_initial_egif(request)
             setup: Dict[str, Any] = {
                 "initial_egif": request.initial_egif,
-                "model_egif": request.model_egif,
-                "proposal_egif": request.proposal_egif,
+                "model_egif": model_egif,
+                "proposal_egif": proposal_egif,
                 "base_source": request.base_source,
                 "goal_egif": request.goal_egif,
                 "framed_egif": initial_egif,
+                "model_closed": request.model_closed,
                 "first_player": _player_from_name(request.first_player).value,
             }
         except ValueError as exc:
@@ -240,7 +247,11 @@ async def new_game(request: AgonNewGameRequest):
         )
 
         dto, svg = generate_layout(state.current_egi)
-        game = manager.create_game(state=state, layout_dto=dto, setup=setup)
+        game = manager.create_game(
+            state=state, layout_dto=dto, setup=setup,
+            model_egif=model_egif, proposal_egif=proposal_egif,
+            model_closed=request.model_closed,
+        )
         return ApiResponse(success=True, data=_game_payload(game, svg))
 
     except CorrespondenceViolation as exc:
@@ -402,6 +413,121 @@ async def concede(game_id: str):
         return ApiResponse(
             success=False,
             error={"code": "CONCEDE_ERROR", "message": str(exc)},
+        )
+
+
+# --------------------------------------------------------------------------- #
+# Interpretation register — peel G against M (the inning's part 2)            #
+# docs/GENERATION_AND_TESTING.md                                              #
+# --------------------------------------------------------------------------- #
+
+
+@router.post("/games/{game_id}/set-model")
+async def set_model(game_id: str, request: AgonSetModelRequest):
+    """Choose / change the model M for the interpretation register (part 1).
+
+    M is the reference world G is peeled against; ``closed`` sets its regime
+    (asserted-complete → a miss is FALSE; sampled → a miss is UNKNOWN).  This does
+    not touch the transformation game's state.
+    """
+    try:
+        manager = get_agon_session_manager()
+        game = manager.get_game(game_id)
+        if game is None:
+            return ApiResponse(
+                success=False,
+                error={"code": "GAME_NOT_FOUND", "message": f"Game '{game_id}' not found."},
+            )
+
+        model_egif = request.model_egif
+        if request.base_source and request.base_source.startswith("uod:"):
+            uod_id = request.base_source[len("uod:"):]
+            uod = _get_tomos().load_uod(uod_id)
+            if uod is None or uod.current_egi is None:
+                return ApiResponse(
+                    success=False,
+                    error={"code": "INVALID_SETUP",
+                           "message": f"UoD '{uod_id}' not found or has no current EGI."},
+                )
+            from egif_generator_dau import generate_egif
+            model_egif = generate_egif(uod.current_egi)
+
+        if not model_egif:
+            return ApiResponse(
+                success=False,
+                error={"code": "NO_MODEL",
+                       "message": "Provide model_egif or base_source 'uod:<id>'."},
+            )
+
+        game.model_egif = model_egif.strip()
+        game.model_closed = request.closed
+        return ApiResponse(success=True, data={
+            "game_id": game_id,
+            "model_egif": game.model_egif,
+            "closed": game.model_closed,
+        })
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "SET_MODEL_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
+        )
+
+
+@router.post("/games/{game_id}/interpret")
+async def interpret(game_id: str, request: AgonInterpretRequest):
+    """Peel the proposal G against the model M — the inning's part 2 (non-mutating).
+
+    Runs the semantic game (``semantic_game.evaluate``): reads G outside-in, asking
+    the model M (a ``CorpusOracle``) at each negation-free layer, and returns the
+    three-valued verdict (TRUE / FALSE / UNKNOWN), the outside-in transcript, and
+    the deciding evidence (``winning_witness`` / ``counterexample``).  The
+    disposition taxonomy is returned annotated by the verdict (part 3) — a hint,
+    never a filter; nothing auto-asserts and the game state is untouched.
+    """
+    try:
+        manager = get_agon_session_manager()
+        game = manager.get_game(game_id)
+        if game is None:
+            return ApiResponse(
+                success=False,
+                error={"code": "GAME_NOT_FOUND", "message": f"Game '{game_id}' not found."},
+            )
+
+        model_egif = request.model_egif or game.model_egif
+        proposal_egif = request.proposal_egif or game.proposal_egif
+        closed = request.closed if request.closed is not None else game.model_closed
+
+        if not model_egif or not proposal_egif:
+            return ApiResponse(
+                success=False,
+                error={"code": "NEEDS_M_AND_G",
+                       "message": ("Interpretation needs a separate model M and "
+                                   "proposal G. Frame the game with model_egif + "
+                                   "proposal_egif, or call set-model first.")},
+            )
+
+        oracle = CorpusOracle.from_egif({"M": model_egif}, closed=closed)
+        result = evaluate_semantic(parse_egif(proposal_egif), oracle)
+        verdict = result.verdict.value
+        return ApiResponse(success=True, data={
+            "game_id": game_id,
+            "model_egif": model_egif,
+            "proposal_egif": proposal_egif,
+            "closed": closed,
+            "verdict": verdict,
+            "holds": result.holds,
+            "summary": result.summary,
+            "transcript": result.transcript,
+            "winning_witness": result.winning_witness,
+            "counterexample": result.counterexample,
+            "available_dispositions": available_dispositions(game, verdict=verdict),
+        })
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "INTERPRET_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
         )
 
 

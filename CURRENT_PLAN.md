@@ -1,15 +1,85 @@
 # Current Plan
 
-**Last Updated**: 2026-06-10 — exact-correspondence **Phases 1, 2, 3 (a/b/c) & 4
-shipped** (exact cut containment + ligature crossing + label-box containment + no
-improper occlusion incl. label-aware routing + clockwise placement as order carrier
-+ cut-as-drawn-polyline / browser arbiter). The exact-correspondence engine is
-complete; active arc = the **freeform composition canvas** next. History below
-condensed 2026-06-10 (detail in git, docs, memory).
+**Last Updated**: 2026-06-11 — the **freeform composition arc is COMPLETE** (steps
+1–4: fix-time validity → draw-then-read canvas → legible EGI diff → **challenge
+mode**). Also this session: the **persona narrative** (`docs/ARISBE_PERSONAS.md`)
+and the **Domain Oracle** for Agon's model M (`docs/DOMAIN_ORACLE_AND_M.md`, step 1
+built). The exact-correspondence engine (Phases 1–4) remains complete. Detailed
+freeform history is condensed below; per-module mechanics live in git/docs/memory.
 
 ---
 
 ## ▶ NEXT SESSION — start here
+
+**Designated next task: the semantic-game seam (Agon depth) → wire the Domain
+Oracle.** The freeform arc is closed; the highest-leverage next move is making
+Agon's "test a graph against a model M" real. Sequence (from the 2026-06-11 plan
+review):
+
+1. **The semantic-game seam — DONE 2026-06-11** (`src/semantic_game.py`, 17 tests):
+   `evaluate(egi, oracle)` reads G outside-in, returns three-valued `Verdict3` +
+   transcript + structured `winning_witness` / `counterexample`. Kleene logic.
+2. **The interpretation register in Agon — DONE 2026-06-11.** The inning *given M,
+   then G*: part 1 choose M (`set-model` + new-game framing), part 2 peel
+   (`POST /agon/games/{id}/interpret` runs the semantic game, non-mutating), part 3
+   decide (`available_dispositions(game, verdict)` annotates the taxonomy by the
+   outcome — a hint, never a filter; nothing auto-asserts). 14 route tests; the five
+   persona innings reproduce through the route. Design-of-record:
+   `docs/GENERATION_AND_TESTING.md` (the eliminative/additive cut; making=Ergasterion,
+   game=Agon; deduction-through-Agon; model-checking-vs-inference; truth-vs-validity;
+   part-3-is-a-judgment).
+3. **Next:** the **inverse pivot** — "in what domain does this proposition make
+   sense?" (run the peel across candidate M, rank; abductive context-retrieval,
+   reuses the oracle — `docs/DOMAIN_ORACLE_AND_M.md` §7); then oracle **steps 3–5**
+   (demand-driven cache → horizon/open-closed params → `SparqlOracle`/Wikidata);
+   downstream warrant lifecycle, ontology-as-M. A frontend for the interpretation
+   register in `/agon` is also unbuilt (routes are wired; no UI yet).
+3. **Diachronic exemplars (Praeclarum first)** — interleave once the seam exists:
+   ingest canonical worked proofs as real `TransformationChain`s; the shakedown
+   cruise for the semantic game. `docs/` + the diachronic-exemplars memory.
+4. **Math menu** (independent, ready): ∀x scaffold tactic → selection-driven `fold`
+   → ZFC/Peirce-1881 fixtures + graph-with-holes schema node. Palate-cleanser depth.
+5. **Editor-persona frontier** (off the Agon path): by-hand reading desk + LaTeX/TikZ
+   export (the `egpeirce.sty` lineage; exporter exists, DTO→TikZ adapter + web button
+   don't). Do when the external Peirce-edition audience is the priority.
+
+The **Domain Oracle** (`src/domain_oracle.py`, 16 tests) is built and waiting on
+step 1: `resolve(g)` = conjunctive-query homomorphism of a negation-free `g` into a
+model's asserted atoms → CONFIRMED/UNKNOWN/DENIED with provenance; `witness()` for
+the negative-area pick. Built on the public EGI API, not the protected iso engine.
+
+---
+
+## ✅ DONE 2026-06-11 — challenge mode (freeform step 4)
+
+Correspondence, learned by doing: present a linear form, draw it freehand, grade the
+attempt against the parsed target. The grader is isomorphism (`same_graph`); the
+feedback is the **legible EGI diff** in EG vocabulary (missing/extra/scope/incidence/
+order), never a pixel comparison — a drawing that *looks* different but denotes the
+same graph passes; one that mis-scopes a line fails with a scope finding.
+
+- **`src/challenge_mode.py`** (12 tests) — standalone gradeable core: `Challenge` +
+  a curated `CHALLENGE_BANK` difficulty gradient (one-relation → argument-order →
+  shared line → negation → the scroll → the universal `~[ (man *x) ~[ (mortal x) ] ]`,
+  where a line crossing a cut boundary makes scope the gold error); `list_challenges`
+  / `get_challenge`; `grade(target, attempt) → DiffReport` (parse target, `legible_diff`).
+- **Routes** (`web_api/routes/ergasterion.py`, 9 tests in `test_ergasterion_challenge.py`):
+  `GET /ergasterion/challenges` (prompts only, never a drawing) and
+  `POST /ergasterion/sessions/{id}/grade-challenge` (read the drawing → ill-formed ink
+  returns validity feedback not a grade; well-formed → `matches` + findings +
+  `target_linear_forms`). **Non-mutating** — grading never touches session state.
+  `ChallengeGradeRequest` in `api_models.py`.
+- **Frontend** (`web_viewer/ergasterion.html`): a challenge picker + prompt/hint +
+  "Grade my drawing" + result panel inside the freeform tools; populated from the
+  bank on first arming; node `--check` clean, page serves, endpoint verified. Real-
+  browser interaction unverified here (no headless browser this session).
+
+Building challenge mode was the ongoing stress test of `read_drawing` on human input,
+as designed (`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`).
+
+---
+
+## Freeform composition arc (Thread B) — COMPLETE (steps 1–4, 2026-06-10/11)
 
 **Designated next task: the freeform composition canvas** — composition becomes
 *draw-then-read*. The exact-correspondence engine (Phases 1–4) is done; that was

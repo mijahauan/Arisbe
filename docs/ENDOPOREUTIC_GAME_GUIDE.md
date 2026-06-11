@@ -46,17 +46,23 @@ place.
 - §3.3 correspondence attestation on every framed graph before play.
 - 16 exemplar scenarios in `tests/test_epg_exemplar_scripts.py`.
 
+**Built since (2026-06-11):** the inner **semantic game** is now a first-class API
+(`src/semantic_game.py`) and is wired into Agon as the **interpretation register** —
+the inning *given M, then G* (choose M → peel G against M → decide). The
+*constructive* direction (INS/IT+/DC+) is now located as **making in Ergasterion**,
+not an Agon mode: the eliminative peel is the game, additive construction is the
+workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
+
 **The Frontier — described below, not yet built:**
 
-- **Proof mode** (the *constructive* direction, INS/IT+/DC+), as opposed to the
-  *interpretive* unwrapping the engine implements today.
+- The **inverse pivot** — "in what domain does G hold?" (run the peel across
+  candidate M; abductive context-retrieval). See `DOMAIN_ORACLE_AND_M.md` §7.
 - An **automated Grapheus** opponent (move/strategy selection) — V1 is hot-seat
-  only.
+  only; the semantic game now supplies the model-respecting reply it would use.
 - A **dynamically-learned model M** and **ontology import** (OWL→CLIF→EGI,
-  WordNet/SNOMED/Wikidata) — today M is built by hand.
-- The inner **semantic game** as a first-class, step-exposed API (today the
-  transformation layer is the implemented one).
+  WordNet/SNOMED/Wikidata) — today M is built by hand (queried via `DomainOracle`).
 - **Automated doubt detection** and guided **M-revision** workflows.
+- A **frontend** for the interpretation register (routes are wired; no UI yet).
 
 ---
 

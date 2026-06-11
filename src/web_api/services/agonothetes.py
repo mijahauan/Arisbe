@@ -111,15 +111,32 @@ DISPOSITIONS: List[Dict[str, Any]] = [
 _DISPOSITION_BY_KEY = {d["key"]: d for d in DISPOSITIONS}
 
 
-def available_dispositions(game: AgonGame) -> List[Dict[str, Any]]:
+# Which dispositions cohere with each semantic-game verdict (part 3 of the
+# inning).  The list stays complete and selectable — the meaning is the
+# Agonothetes' to assign, on collateral warrant the verdict cannot supply
+# (the physician's FALSE means "complete M", the student's means "reject":
+# same verdict, different judgment).  This only *annotates*; nothing narrows
+# or auto-asserts.
+_COHERENT_WITH = {
+    "true": {"theorem_registration", "redundancy", "conditional_acceptance", "tautology"},
+    "false": {"rejection", "challenge_to_M", "reductio", "fork", "self_contradictory"},
+    "unknown": {"new_fact", "abductive_hypothesis", "open_conjecture", "definition", "fork"},
+}
+
+
+def available_dispositions(
+    game: AgonGame, verdict: Optional[str] = None
+) -> List[Dict[str, Any]]:
     """The dispositions the Agonothetes may choose for this contest.
 
-    V1 returns the whole taxonomy (the meaning is the user's to assign),
-    annotated with whether the game has reached a terminal state.  The
-    list is intentionally complete and open — narrowing it by the
-    engine's boolean outcome is a later refinement once the semantic-
-    evaluation layer exists.
+    Returns the whole taxonomy (the meaning is the user's to assign).  When a
+    semantic-game ``verdict`` ("true" / "false" / "unknown") is supplied, each
+    disposition is annotated with ``coherent_with_verdict`` — a hint, not a
+    filter: the list stays complete and open, and nothing auto-asserts.  The
+    disposition remains a judgment on collateral warrant the verdict alone
+    cannot decide.
     """
+    coherent = _COHERENT_WITH.get(verdict or "", set())
     return [
         {
             "key": d["key"],
@@ -127,6 +144,7 @@ def available_dispositions(game: AgonGame) -> List[Dict[str, Any]]:
             "mode": d["mode"],
             "asserts": d["asserts"],
             "summary": d["summary"],
+            "coherent_with_verdict": (d["key"] in coherent) if verdict else None,
         }
         for d in DISPOSITIONS
     ]
