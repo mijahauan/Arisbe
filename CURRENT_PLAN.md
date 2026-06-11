@@ -28,12 +28,17 @@ review):
    `docs/GENERATION_AND_TESTING.md` (the eliminative/additive cut; making=Ergasterion,
    game=Agon; deduction-through-Agon; model-checking-vs-inference; truth-vs-validity;
    part-3-is-a-judgment).
-3. **Next:** the **inverse pivot** — "in what domain does this proposition make
+3. **Agon frontend — DONE 2026-06-11.** `/agon` now has a reference-model picker
+   (`GET /agon/models` = curated persona scenarios + corpus UoDs; `src/agon_models.py`),
+   an open/closed toggle, and a **"▷ Does G hold in M?"** button running the
+   standalone `POST /agon/interpret` (resolve M → peel → verdict + transcript +
+   witness/counterexample + verdict-annotated dispositions, shown in place of the
+   board). "Play it out" still starts a full contest. Nothing asserted.
+4. **Next:** the **inverse pivot** — "in what domain does this proposition make
    sense?" (run the peel across candidate M, rank; abductive context-retrieval,
    reuses the oracle — `docs/DOMAIN_ORACLE_AND_M.md` §7); then oracle **steps 3–5**
    (demand-driven cache → horizon/open-closed params → `SparqlOracle`/Wikidata);
-   downstream warrant lifecycle, ontology-as-M. A frontend for the interpretation
-   register in `/agon` is also unbuilt (routes are wired; no UI yet).
+   downstream warrant lifecycle, ontology-as-M.
 3. **Diachronic exemplars (Praeclarum first)** — interleave once the seam exists:
    ingest canonical worked proofs as real `TransformationChain`s; the shakedown
    cruise for the semantic game. `docs/` + the diachronic-exemplars memory.
