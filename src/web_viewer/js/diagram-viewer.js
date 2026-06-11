@@ -258,6 +258,49 @@ class DiagramViewer {
   }
 
   /**
+   * The area (cut id, or null for the sheet) that a screen point falls in —
+   * geometric containment against the *drawn* cut curves, not DOM order.
+   *
+   * Phase 4 of the exact-correspondence engine (docs/EXACT_CORRESPONDENCE.md):
+   * the browser is the client-side arbiter.  Each cut is drawn as an SVG shape
+   * (rounded <rect>, <ellipse>, or a <path> — the literal polyline of a
+   * human-drawn freeform cut), and `isPointInFill` answers "inside this drawn
+   * curve?" exactly, on the same path the renderer drew and the server's §3.3
+   * tested.  The deepest (smallest-area) containing cut wins, since cuts nest and
+   * do not overlap.  Use this for placement/drag hit-testing on the freeform
+   * canvas: where would a mark dropped here land in the area tree?
+   *
+   * @param {number} clientX  screen x (e.g. event.clientX)
+   * @param {number} clientY  screen y
+   * @returns {string|null}   deepest containing cut id, or null for the sheet
+   */
+  areaAtPoint(clientX, clientY) {
+    const svg = this.container && this.container.querySelector('svg');
+    if (!svg) return null;
+    let bestId = null;
+    let bestArea = Infinity;
+    const cutGroups = svg.querySelectorAll('[data-element-type="cut"]');
+    cutGroups.forEach((g) => {
+      const shape = g.querySelector('path, rect, ellipse, polygon, circle');
+      if (!shape || typeof shape.isPointInFill !== 'function') return;
+      const ctm = shape.getScreenCTM();
+      if (!ctm) return;
+      // Transform the screen point into the shape's own user space, where
+      // isPointInFill interprets it.
+      const local = new DOMPoint(clientX, clientY).matrixTransform(ctm.inverse());
+      if (shape.isPointInFill(local)) {
+        const bb = shape.getBBox();
+        const area = bb.width * bb.height;
+        if (area < bestArea) {
+          bestArea = area;
+          bestId = g.getAttribute('data-element-id') || g.id;
+        }
+      }
+    });
+    return bestId; // null => the sheet (outside every cut)
+  }
+
+  /**
    * Apply a visual highlight to an SVG element by ID.
    * Elements are wrapped in <g> groups by the renderer; we target their
    * visible child shapes (rect, circle, path) so the stroke is rendered.

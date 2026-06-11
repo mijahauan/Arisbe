@@ -122,7 +122,42 @@ def _clone_dto(dto, **overrides):
         viewport_bounds=dto.viewport_bounds,
         sheet_id=dto.sheet_id,
         style=dto.style,
+        cut_boundary=overrides.get("cut_boundary", dto.cut_boundary),
     )
+
+
+def test_freeform_cut_boundary_is_tested_as_drawn_polyline(engine):
+    """Phase 4: a cut carried as an explicit polyline (a human-drawn freeform cut,
+    where the polyline *is* the cut) has its containment read off that literal
+    curve by point-in-polygon.  Carrying the engine's own rounded-rect as a polygon
+    attests unchanged; shrinking the polyline so the contents fall outside the drawn
+    curve is refused — §3.3 reads the drawn curve, not the bounding box."""
+    import dataclasses
+    from egif_parser_dau import parse_egif
+    from presentation_ops import cut_boundary
+    from style_loader import load_style
+
+    egi = parse_egif("~[ (P *x) ]")  # a predicate + vertex inside one cut
+    style = load_style("dau-compliant@1.0")
+    dto = engine.generate_layout(egi, style)
+    (cid,) = list(dto.cut_bounds)
+    b = dto.cut_bounds[cid]
+
+    # The same drawn shape, now carried as an explicit polyline → still attests.
+    poly = cut_boundary(b, "rounded_rectangle", 8.0, samples=96)
+    attest_correspondence(egi, dataclasses.replace(dto, cut_boundary={cid: poly}))
+
+    # A polyline pulled in on the left so the contents sit outside it → refused.
+    # The drawn curve is what's read, so the marks now left outside it fail their
+    # §3.3 checks (extent / identity-endpoint / identity-crossing all read the
+    # polyline), where against the original bounding box they would pass.
+    shrunk = cut_boundary(
+        BoundingBox(b.min_x + b.width * 0.7, b.min_y, b.max_x, b.max_y),
+        "rounded_rectangle", 0.0, samples=16)
+    failures = check_correspondence(
+        egi, dataclasses.replace(dto, cut_boundary={cid: shrunk}))
+    assert failures, (
+        "expected refusal when the drawn polyline excludes the contents")
 
 
 def test_attest_raises_on_missing_vertex_position(tomos, engine, style):

@@ -220,6 +220,25 @@ def test_clockwise_no_label_strikethrough_and_order_recovered():
             meta["uod_id"]
 
 
+def test_freeform_cut_polyline_read_by_point_in_polygon():
+    """Phase 4: when a cut is carried as an explicit polyline (a human-drawn cut),
+    the reader recovers containment by point-in-polygon against that literal curve.
+    Reading a drawing whose cut polyline encloses the contents recovers the same
+    area tree as the analytic shape — the freeform read path."""
+    import dataclasses
+    from presentation_ops import cut_boundary
+
+    egi = parse_egif("~[ (P *x) ]")
+    style = load_style("dau-compliant@1.0")
+    dto = ELKLayoutEngine().generate_layout(egi, style)
+    (cid,) = list(dto.cut_bounds)
+    poly = cut_boundary(dto.cut_bounds[cid], "rounded_rectangle", 8.0, samples=96)
+    carried = dataclasses.replace(dto, cut_boundary={cid: poly})
+    # Same structure recovered whether the cut is analytic or a carried polyline.
+    assert reading_matches_egi(read_drawing(carried), egi, ordered=False)
+    assert read_drawing(dto).area == read_drawing(carried).area
+
+
 def test_clockwise_high_arity_never_strikes_its_label():
     """A 10-ary relation: whatever the layout does with its ten arguments, not one
     spoke is drawn through the relation name, and the full 10-tuple round-trips."""

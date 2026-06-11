@@ -47,7 +47,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set
 
 from layout_dto import LayoutDTO, Point
-from presentation_ops import bounds_in_cut, point_in_cut
+from presentation_ops import bounds_in_cut, point_in_cut, resolve_cut_boundaries
 
 
 @dataclass
@@ -103,6 +103,10 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
     shape = _shape(dto)
     radius = _corner_radius(dto)
     cut_ids = list(dto.cut_bounds.keys())
+    # Phase 4: a cut carried as an explicit polyline (a human-drawn freeform cut)
+    # is read by point-in-polygon against that literal curve; analytic cuts read
+    # the drawn ellipse/rounded-rect from cut_bounds + style.
+    boundaries = resolve_cut_boundaries(dto)
 
     def box_area(cid: str) -> float:
         b = dto.cut_bounds[cid]
@@ -113,7 +117,7 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
     def deepest_cut_for_point(p: Point) -> Optional[str]:
         best = None
         for cid in cut_ids:
-            if point_in_cut(p, dto.cut_bounds[cid], shape, radius):
+            if point_in_cut(p, dto.cut_bounds[cid], shape, radius, boundaries.get(cid)):
                 if best is None or box_area(cid) < box_area(best):
                     best = cid
         return best
@@ -126,7 +130,7 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
         for oc in cut_ids:
             if oc == cid:
                 continue
-            if bounds_in_cut(b, dto.cut_bounds[oc], shape, radius):
+            if bounds_in_cut(b, dto.cut_bounds[oc], shape, radius, boundaries.get(oc)):
                 if best is None or box_area(oc) < box_area(best):
                     best = oc
         return best

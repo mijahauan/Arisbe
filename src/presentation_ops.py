@@ -44,7 +44,7 @@ canonical home.
 """
 
 import math
-from typing import Dict, Iterable, Optional, Set, Tuple
+from typing import Dict, Iterable, Optional, Sequence, Set, Tuple
 
 from egi_core_dau import ElementID, RelationalGraphWithCuts
 from layout_dto import BoundingBox, LayoutDTO, LigaturePath, Point
@@ -337,17 +337,183 @@ def _point_in_rounded_rect(p: Point, b: BoundingBox, radius: float) -> bool:
     return (p.x - nx) ** 2 + (p.y - ny) ** 2 <= r * r + 1e-9
 
 
-def point_in_cut(p: Point, bounds: BoundingBox, shape, corner_radius: float = 0.0) -> bool:
-    """Whether point ``p`` is inside the cut **as the style draws it** — the
-    inscribed ellipse for an oval/circle, the rounded rectangle (with
-    ``corner_radius``) for a Dau box, the plain box when ``corner_radius`` is 0.
+# --------------------------------------------------------------------------- #
+# The cut boundary as an explicit closed polyline — Phase 4 of                 #
+# docs/EXACT_CORRESPONDENCE.md.  "A cut IS its drawn curve": one generator      #
+# samples the literal curve the renderer draws (rounded rectangle, inscribed    #
+# ellipse, or Peirce's hand-drawn wobble), so the renderer draws it, §3.3 tests #
+# it (point-in-polygon), and the browser hit-tests it (isPointInFill) — all     #
+# from one source of truth.  An arbitrary human-drawn cut is just such a        #
+# polyline with no analytic shape behind it (the freeform canvas).              #
+# --------------------------------------------------------------------------- #
+
+
+def _ellipse_polyline(
+    cx: float, cy: float, rx: float, ry: float,
+    wobble_amplitude: float, seed, samples: int,
+) -> Tuple[Point, ...]:
+    """``samples`` points around the inscribed ellipse; with a positive
+    ``wobble_amplitude`` and a ``seed`` they trace Peirce's hand-drawn loop — the
+    *same* low-frequency two-harmonic deviation the renderer draws
+    (`simple_svg_renderer._wobbled_oval_path`), so the polyline and the picture
+    are one curve.  Amplitude is capped at 8% of the smaller radius (the renderer's
+    cap)."""
+    if wobble_amplitude > 0.0 and seed is not None:
+        from render_geometry import jitter
+        amp = min(wobble_amplitude, 0.08 * min(rx, ry))
+        phi1 = jitter(seed, 1) * math.pi
+        phi2 = jitter(seed, 2) * math.pi
+        k1 = 2 + int(round(abs(jitter(seed, 3)) * 1.49))
+        k2 = 4 + int(round(abs(jitter(seed, 4)) * 1.49))
+        out = []
+        for i in range(samples):
+            t = 2.0 * math.pi * i / samples
+            dev = amp * (0.6 * math.sin(k1 * t + phi1) + 0.4 * math.sin(k2 * t + phi2))
+            out.append(Point(cx + (rx + dev) * math.cos(t), cy + (ry + dev) * math.sin(t)))
+        return tuple(out)
+    return tuple(
+        Point(cx + rx * math.cos(2.0 * math.pi * i / samples),
+              cy + ry * math.sin(2.0 * math.pi * i / samples))
+        for i in range(samples)
+    )
+
+
+def _rounded_rect_polyline(
+    b: BoundingBox, radius: float, samples: int
+) -> Tuple[Point, ...]:
+    """Closed polyline of the rounded rectangle the renderer draws (`<rect
+    rx=radius>`): four straight edges inset by ``radius`` joined by four
+    quarter-circle corner arcs — the same boundary ``_point_in_rounded_rect`` /
+    ``_rounded_rect_secant_crossings`` model.  ``radius`` 0 gives the plain box."""
+    r = max(0.0, min(radius, (b.max_x - b.min_x) / 2.0, (b.max_y - b.min_y) / 2.0))
+    if r <= 0.0:
+        return (
+            Point(b.min_x, b.min_y), Point(b.max_x, b.min_y),
+            Point(b.max_x, b.max_y), Point(b.min_x, b.max_y),
+        )
+    ix0, iy0, ix1, iy1 = b.min_x + r, b.min_y + r, b.max_x - r, b.max_y - r
+    per = max(2, samples // 4)
+    out: list = []
+    # Four corners, clockwise from top-right; each arc swept about its inner
+    # corner from the start angle through +90°.
+    for (cxp, cyp, a0) in (
+        (ix1, iy0, -math.pi / 2.0),   # top-right
+        (ix1, iy1, 0.0),              # bottom-right
+        (ix0, iy1, math.pi / 2.0),    # bottom-left
+        (ix0, iy0, math.pi),          # top-left
+    ):
+        for k in range(per + 1):
+            a = a0 + (math.pi / 2.0) * (k / per)
+            out.append(Point(cxp + r * math.cos(a), cyp + r * math.sin(a)))
+    # Drop consecutive duplicates (corner arc endpoints meet the next start).
+    dedup: list = []
+    for p in out:
+        if not dedup or abs(dedup[-1].x - p.x) > 1e-9 or abs(dedup[-1].y - p.y) > 1e-9:
+            dedup.append(p)
+    return tuple(dedup)
+
+
+def cut_boundary(
+    bounds: BoundingBox, shape, corner_radius: float = 0.0,
+    wobble_amplitude: float = 0.0, seed=None, samples: int = 96,
+) -> Tuple[Point, ...]:
+    """The closed polyline of a cut's **drawn** boundary — the single source of
+    truth for "what the cut is" as a curve.  Oval/circle → (optionally wobbled)
+    inscribed ellipse; otherwise the rounded rectangle (`corner_radius`).  The
+    points are in DTO coordinates and the polygon is implicitly closed (last → first)."""
+    cx = (bounds.min_x + bounds.max_x) / 2.0
+    cy = (bounds.min_y + bounds.max_y) / 2.0
+    rx = (bounds.max_x - bounds.min_x) / 2.0
+    ry = (bounds.max_y - bounds.min_y) / 2.0
+    if _is_oval(shape):
+        return _ellipse_polyline(cx, cy, rx, ry, wobble_amplitude, seed, samples)
+    return _rounded_rect_polyline(bounds, corner_radius, samples)
+
+
+def resolve_cut_boundaries(dto) -> Dict[ElementID, Optional[Tuple[Point, ...]]]:
+    """Per-cut drawn-boundary polyline to test containment against, or ``None``
+    where the cut has an analytic drawn shape.  The "boundary of record" shared by
+    §3.3 and ``eg_reader``:
+
+    - a cut **carried as an explicit polyline** (``dto.cut_boundary`` — a human-drawn
+      freeform cut, where the polyline *is* the cut, with no analytic shape behind
+      it) → that polyline, tested point-in-polygon;
+    - any cut from the analytic engines (inscribed ellipse / rounded rectangle) →
+      ``None``: ``point_in_cut`` reads the exact drawn shape from ``cut_bounds`` +
+      style.  (The hand-drawn *wobble* is a stroke-only cosmetic flourish applied at
+      render time and capped within the containment margin — see ``render_geometry``;
+      it is deliberately not part of the attested geometry, so it is not resolved
+      here.)
+    """
+    carried = getattr(dto, "cut_boundary", None) or {}
+    return {
+        cid: (tuple(carried[cid]) if carried.get(cid) else None)
+        for cid in dto.cut_bounds
+    }
+
+
+def point_in_polygon(p: Point, poly: Sequence[Point]) -> bool:
+    """Ray-casting test: is ``p`` strictly inside the closed polygon ``poly``
+    (implicitly closed last → first)?  This is the exact reading of "inside the
+    drawn cut" once the cut is carried as its literal polyline — what the browser's
+    ``isPointInFill`` computes on the same path."""
+    n = len(poly)
+    if n < 3:
+        return False
+    inside = False
+    j = n - 1
+    for i in range(n):
+        xi, yi = poly[i].x, poly[i].y
+        xj, yj = poly[j].x, poly[j].y
+        if (yi > p.y) != (yj > p.y):
+            x_cross = xi + (xj - xi) * (p.y - yi) / (yj - yi)
+            if p.x < x_cross:
+                inside = not inside
+        j = i
+    return inside
+
+
+def _seg_proper_cross(a: Point, b: Point, c: Point, d: Point) -> bool:
+    """True iff open segments ab and cd cross (share an interior point)."""
+    def orient(p, q, r):
+        return (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)
+    o1, o2 = orient(a, b, c), orient(a, b, d)
+    o3, o4 = orient(c, d, a), orient(c, d, b)
+    return (o1 > 0) != (o2 > 0) and (o3 > 0) != (o4 > 0)
+
+
+def polyline_polygon_crossings(points: Sequence[Point], poly: Sequence[Point]) -> int:
+    """How many times the open polyline ``points`` crosses the closed polygon
+    boundary ``poly`` — the polygon analogue of ``count_cut_crossings`` for a cut
+    carried as its literal curve."""
+    n = len(poly)
+    if n < 3:
+        return 0
+    total = 0
+    for i in range(len(points) - 1):
+        a, b = points[i], points[i + 1]
+        for j in range(n):
+            if _seg_proper_cross(a, b, poly[j], poly[(j + 1) % n]):
+                total += 1
+    return total
+
+
+def point_in_cut(
+    p: Point, bounds: BoundingBox, shape, corner_radius: float = 0.0,
+    boundary: Optional[Sequence[Point]] = None,
+) -> bool:
+    """Whether point ``p`` is inside the cut **as the style draws it**.  When the
+    cut's literal ``boundary`` polyline is supplied (Phase 4), test point-in-polygon
+    against it — the exact drawn curve, wobble and all.  Otherwise fall back to the
+    analytic drawn shape: the inscribed ellipse for an oval/circle, the rounded
+    rectangle (with ``corner_radius``) for a Dau box, the plain box when 0.
 
     Testing the *drawn* shape (not a bounding-box proxy) is what makes containment
-    exact: the rounded corners are not part of the cut, so a mark parked there
-    reads outside, matching what the eye sees (`docs/EXACT_CORRESPONDENCE.md`).
-    ``corner_radius`` defaults to 0 for backward compatibility; callers that have
-    the style pass ``style.cut_corner_radius``.
+    exact (`docs/EXACT_CORRESPONDENCE.md`).  ``corner_radius`` defaults to 0;
+    callers with the style pass ``style.cut_corner_radius``.
     """
+    if boundary is not None:
+        return point_in_polygon(p, boundary)
     if _is_oval(shape):
         nx, ny = _ellipse_norm(p.x, p.y, bounds)
         return nx * nx + ny * ny <= 1.0 + 1e-9
@@ -357,15 +523,19 @@ def point_in_cut(p: Point, bounds: BoundingBox, shape, corner_radius: float = 0.
 
 
 def bounds_in_cut(
-    inner: BoundingBox, outer: BoundingBox, shape, corner_radius: float = 0.0
+    inner: BoundingBox, outer: BoundingBox, shape, corner_radius: float = 0.0,
+    boundary: Optional[Sequence[Point]] = None,
 ) -> bool:
     """Whether the whole ``inner`` box lies inside the cut ``outer`` as drawn —
-    every corner of ``inner`` inside ``outer``'s drawn shape (inscribed ellipse,
-    rounded rectangle, or box)."""
+    every corner of ``inner`` inside ``outer``'s drawn shape (the literal
+    ``boundary`` polyline when given, else inscribed ellipse / rounded rectangle /
+    box)."""
     corners = (
         (inner.min_x, inner.min_y), (inner.max_x, inner.min_y),
         (inner.max_x, inner.max_y), (inner.min_x, inner.max_y),
     )
+    if boundary is not None:
+        return all(point_in_polygon(Point(x, y), boundary) for x, y in corners)
     if _is_oval(shape):
         for x, y in corners:
             nx, ny = _ellipse_norm(x, y, outer)
@@ -675,11 +845,14 @@ def _rounded_rect_secant_crossings(
 
 
 def count_cut_crossings(
-    points, bounds: BoundingBox, shape, corner_radius: float = 0.0
+    points, bounds: BoundingBox, shape, corner_radius: float = 0.0,
+    boundary: Optional[Sequence[Point]] = None,
 ) -> int:
-    """Number of times a polyline crosses the cut boundary as the style draws it —
-    the inscribed ellipse for an oval/circle, the rounded rectangle (with
-    ``corner_radius``) for a Dau box, the plain box when ``corner_radius`` is 0.
+    """Number of times a polyline crosses the cut boundary as the style draws it.
+    When the cut's literal ``boundary`` polyline is supplied (Phase 4), count
+    crossings of the actual drawn curve (``polyline_polygon_crossings``); otherwise
+    the analytic drawn shape — inscribed ellipse for an oval/circle, rounded
+    rectangle (with ``corner_radius``) for a Dau box, plain box when 0.
 
     The crossing-multiset form of §3.3 reads off the *drawn* curve, so this consumes
     the same boundary as Phase 1's containment (``point_in_cut``): a ligature that
@@ -687,6 +860,8 @@ def count_cut_crossings(
     spurious entry into the cut (`docs/EXACT_CORRESPONDENCE.md` Phase 2).
     ``corner_radius`` defaults to 0; callers with the style pass
     ``style.cut_corner_radius``."""
+    if boundary is not None:
+        return polyline_polygon_crossings(points, boundary)
     if _is_oval(shape):
         inside = lambda p: point_in_cut(p, bounds, shape)
         secant = lambda a, b: _ellipse_secant_crossings(a, b, bounds)
@@ -1277,6 +1452,10 @@ __all__ = [
     "boxes_overlap",
     "path_intersects_box",
     "count_cut_crossings",
+    "cut_boundary",
+    "resolve_cut_boundaries",
+    "point_in_polygon",
+    "polyline_polygon_crossings",
     "deepest_containing_cut",
     "move_vertex",
     "move_predicate",

@@ -1,21 +1,22 @@
 # Current Plan
 
-**Last Updated**: 2026-06-10 — exact-correspondence **Phases 1, 2, 3 (a/b/c) shipped**
-(exact cut containment + exact ligature crossing + label-box containment + no
-improper occlusion incl. label-aware routing + clockwise placement as order
-carrier); Phase 3 complete. Active arc = the exact-correspondence engine (Phase 4
-next) + freeform composition. History below condensed 2026-06-10 (detail in git,
-docs, memory).
+**Last Updated**: 2026-06-10 — exact-correspondence **Phases 1, 2, 3 (a/b/c) & 4
+shipped** (exact cut containment + ligature crossing + label-box containment + no
+improper occlusion incl. label-aware routing + clockwise placement as order carrier
++ cut-as-drawn-polyline / browser arbiter). The exact-correspondence engine is
+complete; active arc = the **freeform composition canvas** next. History below
+condensed 2026-06-10 (detail in git, docs, memory).
 
 ---
 
 ## ▶ NEXT SESSION — start here
 
-**Designated next task: Phase 4 — DTO carries the cut polyline + browser
-`isPointInPath` hit-testing** (the freeform-canvas prerequisite — Thread A below),
-**or** the appetite-driven math menu (Thread B / the ready-to-pick tasks, both
-independent and unprotected). Phases 1, 2, 3a, 3b, 3c are all done — the exact
-label/numeral extents work is complete.
+**Designated next task: the freeform composition canvas (Thread B)** — now that
+Phase 4 carries the cut polyline + browser `isPointInFill` hit-testing, build the
+draw-then-read canvas (place/drag/erase typed marks on a free `LayoutDTO`; live
+forms silent until gate ①). After that, the appetite-driven **math menu** (the
+ready-to-pick tasks, independent and unprotected). Phases 1–4 of the
+exact-correspondence engine are all done.
 
 ### Phase 3c — clockwise placement (Peirce's writing convention) — DONE 2026-06-10
 *ν specifies the order, so the drawing shows it: hooks drawn clockwise around the
@@ -91,8 +92,12 @@ arbiter; the logic stays coordinate-free.*
     clock face), carried by a single start anchor + the `argument_order_numerals:
     auto|always|never` toggle. §3.3 green; ordered round-trip 23/23 with zero
     numerals (`never`).
-- **Phase 4 — DTO carries the cut polyline + browser `isPointInPath` hit-testing**
-  (needed once cuts are human-drawn; unblocks the freeform canvas).
+- **Phase 4 — cut as a drawn polyline + browser as client-side arbiter — DONE**
+  (2026-06-10): `LayoutDTO.cut_boundary` carries a cut's literal polyline (freeform
+  human-drawn cuts); `resolve_cut_boundaries` shares it between §3.3 + `eg_reader`
+  (point-in-polygon); renderer draws it as `<path>`; `diagram-viewer.areaAtPoint`
+  hit-tests via `isPointInFill`. Wobble stays render-only cosmetic. Unblocks the
+  freeform canvas.
 
 ### Thread B — freeform composition + challenge mode (`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`)
 *Composition becomes freeform drawing (typed marks at free positions, no live EGI);
@@ -144,6 +149,17 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Recently shipped (newest first — detail in git / docs / memory)
 
+- **2026-06-10** — **Phase 4: cut boundary as a drawn polyline + browser as
+  client-side arbiter.** A cut can be carried as its literal closed polyline
+  (`LayoutDTO.cut_boundary`), the foundation for human-drawn freeform cuts.
+  `presentation_ops.cut_boundary` generates the curve; `point_in_polygon` /
+  `polyline_polygon_crossings` test it; `resolve_cut_boundaries` is the boundary of
+  record shared by §3.3 + `eg_reader` (carried polyline → point-in-polygon; analytic
+  cut → exact `point_in_cut`). `point_in_cut`/`bounds_in_cut`/`count_cut_crossings`
+  take an optional `boundary`. Renderer draws a carried polyline as `<path>`;
+  `diagram-viewer.js::areaAtPoint` uses `isPointInFill` for placement/drag
+  hit-testing. Wobble stays a render-only cosmetic (not attested — testing it was a
+  false positive, correctly left alone). §3.3 corpus green; new freeform tests.
 - **2026-06-10** — **Phase 3c: clockwise placement as Peirce's writing convention**
   (consistent across all styles/layouts). `clockwise_placement.place_clockwise_hooks`
   draws every ≥2-ary relation's hooks clockwise around the spot in ν-order by

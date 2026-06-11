@@ -42,6 +42,7 @@ from presentation_ops import (
     path_intersects_box,
     point_in_cut,
     predicate_label_box,
+    resolve_cut_boundaries,
     vertex_label_box,
 )
 
@@ -111,6 +112,11 @@ def check_correspondence(
     # The drawn corner radius, so containment tests the rounded rectangle the
     # renderer draws (not a sharp-box proxy) — exact, no corner void.
     cut_radius = float(getattr(dto.style, "cut_corner_radius", 0) or 0)
+    # Phase 4: the literal drawn boundary polyline per cut (a freeform human-drawn
+    # cut, or a hand-drawn wobbled oval), or None where the analytic shape above is
+    # already exact.  Containment/crossing read off this curve so the test matches
+    # the picture — wobble and all (docs/EXACT_CORRESPONDENCE.md Phase 4).
+    cut_boundaries = resolve_cut_boundaries(dto)
 
     egi_v_ids = {v.id for v in egi.V}
     egi_e_ids = {e.id for e in egi.E}
@@ -150,13 +156,14 @@ def check_correspondence(
         bounds = dto.cut_bounds.get(cut.id)
         if bounds is None:
             continue
+        cbnd = cut_boundaries.get(cut.id)
         for elem_id in egi.area.get(cut.id, frozenset()):
             # A vertex is a dot — point containment.  A predicate is a label box,
             # checked as an *extent* in the dedicated block below (it falls through
             # here: no vertex pos, no cut bounds).
             pos = dto.vertex_positions.get(elem_id)
             if pos is not None:
-                if not point_in_cut(pos, bounds, cut_shape, cut_radius):
+                if not point_in_cut(pos, bounds, cut_shape, cut_radius, cbnd):
                     failures.append(
                         f"  containment: {elem_id} in egi.area[{cut.id}] "
                         f"at ({pos.x:.1f},{pos.y:.1f}) outside cut bounds"
@@ -165,7 +172,7 @@ def check_correspondence(
             child = dto.cut_bounds.get(elem_id)
             if child is None:
                 continue
-            if not bounds_in_cut(child, bounds, cut_shape, cut_radius):
+            if not bounds_in_cut(child, bounds, cut_shape, cut_radius, cbnd):
                 failures.append(
                     f"  containment: sub-cut {elem_id} in egi.area[{cut.id}] "
                     f"is not fully inside parent bounds"
@@ -219,7 +226,8 @@ def check_correspondence(
             if cbounds is None:
                 continue
             if cut.id in ancestors:
-                if not bounds_in_cut(box, cbounds, cut_shape, cut_radius):
+                if not bounds_in_cut(box, cbounds, cut_shape, cut_radius,
+                                     cut_boundaries.get(cut.id)):
                     failures.append(
                         f"  extent: predicate {edge.id} label box straddles out "
                         f"of its area cut {cut.id}"
@@ -302,7 +310,8 @@ def check_correspondence(
             if cbounds is None:
                 continue
             if cut.id in ancestors:
-                if not bounds_in_cut(box, cbounds, cut_shape, cut_radius):
+                if not bounds_in_cut(box, cbounds, cut_shape, cut_radius,
+                                     cut_boundaries.get(cut.id)):
                     failures.append(
                         f"  occlusion: vertex {eid} label box straddles out "
                         f"of its area cut {cut.id}"
@@ -360,7 +369,8 @@ def check_correspondence(
             if area in cut_ids:
                 bounds = dto.cut_bounds.get(area)
                 pt = pts[end_idx]
-                if bounds is not None and not point_in_cut(pt, bounds, cut_shape, cut_radius):
+                if bounds is not None and not point_in_cut(
+                        pt, bounds, cut_shape, cut_radius, cut_boundaries.get(area)):
                     failures.append(
                         f"  identity-endpoint: ({path.predicate_id} → "
                         f"{path.vertex_id}) {label_str} endpoint outside "
@@ -388,7 +398,8 @@ def check_correspondence(
             bounds = cut_bounds.get(cut.id)
             if bounds is None:
                 continue
-            actual = count_cut_crossings(path.points, bounds, cut_shape, cut_radius)
+            actual = count_cut_crossings(path.points, bounds, cut_shape, cut_radius,
+                                         cut_boundaries.get(cut.id))
             if cut.id in required:
                 if actual != 1:
                     failures.append(

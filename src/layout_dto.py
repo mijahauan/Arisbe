@@ -77,3 +77,11 @@ class LayoutDTO:
     viewport_bounds: BoundingBox
     sheet_id: ElementID
     style: object = None
+    # Optional per-cut **drawn boundary** as an explicit closed polyline (the
+    # literal curve, Phase 4 of docs/EXACT_CORRESPONDENCE.md).  Present for a cut
+    # that has no analytic shape behind it — a human-drawn cut on the freeform
+    # canvas, where the polyline IS the cut.  When absent, the boundary is derived
+    # from cut_bounds + the style (rounded rectangle / inscribed ellipse / wobble);
+    # see presentation_ops.resolve_cut_boundaries.  §3.3 and the browser both read
+    # containment off this curve.
+    cut_boundary: Optional[Dict[ElementID, Tuple[Point, ...]]] = None

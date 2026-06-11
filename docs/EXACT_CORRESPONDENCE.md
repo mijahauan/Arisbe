@@ -248,10 +248,32 @@ pass-through (2). *Still open (deferred to routing/Phase 4):* chosen-crossing-po
   it where the layout cooperates, the numeral carries any predicate that reverted.
   Applied for every style/layout, so the picture reads the same across them.
 
-**Phase 4 — browser as client-side arbiter + freeform.** Carry the cut boundary
-polyline in the DTO (needed once cuts can be human-drawn); client-side
-`isPointInPath` hit-testing for placement/drag in the freeform canvas
-(`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`).
+**Phase 4 — browser as client-side arbiter + freeform. *Done* (2026-06-10).** A cut
+can now be carried as its **literal drawn polyline** — the foundation for
+human-drawn cuts on the freeform canvas, where the polyline *is* the cut with no
+analytic shape behind it.
+- **One generator** (`presentation_ops.cut_boundary(bounds, shape, corner_radius,
+  wobble, seed, samples)`) samples the drawn curve (rounded rectangle / inscribed
+  ellipse / wobble) as a closed polyline; `point_in_polygon` and
+  `polyline_polygon_crossings` test against it.
+- **The DTO carries it** (`LayoutDTO.cut_boundary: {cut_id: polyline}`, optional).
+  `resolve_cut_boundaries(dto)` is the boundary of record shared by §3.3 and
+  `eg_reader`: a carried polyline (freeform cut) → tested point-in-polygon; an
+  analytic cut → `None`, read by the exact `point_in_cut` from `cut_bounds` + style.
+  `point_in_cut` / `bounds_in_cut` / `count_cut_crossings` all take an optional
+  `boundary` and use it when present. So §3.3 refuses a drawing whose *drawn cut
+  curve* excludes a mark even when the bounding box would contain it.
+- **The renderer draws a carried polyline** as its literal `<path>` (one source of
+  truth: the curve §3.3 tests, the renderer draws, and the browser hit-tests).
+- **The browser is the client-side arbiter**: `diagram-viewer.js` `areaAtPoint(x, y)`
+  uses `SVGGeometryElement.isPointInFill` against the drawn cut shapes
+  (`<rect>`/`<ellipse>`/`<path>` alike) to answer "which area does this point fall
+  in?" — the deepest containing cut — for placement/drag on the freeform canvas.
+- *Scope note:* the hand-drawn **wobble** stays a render-only cosmetic flourish
+  (capped within the containment margin, not part of the attested geometry — see
+  `render_geometry`); Phase 4's polyline is for *human-drawn* cuts, not for
+  attesting the wobble (which testing surfaced as a false positive and was
+  correctly left alone).
 
 The phases are independent wins: Phase 1 alone fixes a real §3.3 gap and is the
 prerequisite for the freeform canvas's "visible, unambiguous containment regions."

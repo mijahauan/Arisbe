@@ -168,7 +168,20 @@ class SimpleSVGRenderer:
                 "data-element-type": "cut",
                 "cursor": "pointer",
             })
-            if cut_shape in ("oval", "circle") and cut_wobble > 0:
+            freeform = (getattr(dto, "cut_boundary", None) or {}).get(cut_id)
+            if freeform:
+                # A human-drawn cut: draw its literal polyline (the curve §3.3 and
+                # the browser both read for containment — one source of truth).
+                d = "M " + " L ".join(
+                    f"{pt.x + offset_x:.2f} {pt.y + offset_y:.2f}" for pt in freeform
+                ) + " Z"
+                ET.SubElement(cut_g, "path", {
+                    "d": d,
+                    "fill": fill_color,
+                    "stroke": cut_line_color,
+                    "stroke-width": str(style.cut_line_width),
+                })
+            elif cut_shape in ("oval", "circle") and cut_wobble > 0:
                 # Peirce's hand: a slightly irregular closed loop instead of a
                 # perfect ellipse.  Amplitude stays well under the Tier-2
                 # containment margin, so contents remain enclosed.
