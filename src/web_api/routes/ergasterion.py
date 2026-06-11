@@ -96,7 +96,9 @@ from presentation_ops import (
     reroute_ligature,
 )
 from presentation_deltas import record_delta, deltas_from_list, merge_inherited
+from presentation_ops import cut_boundary, resolve_cut_boundaries
 from style_loader import load_default_style, load_style
+from eg_reader import assign_order_labels
 from egif_parser_dau import parse_egif
 from subgraph_closure_validator import SubgraphClosureValidator
 from rule_interaction import (
@@ -941,6 +943,64 @@ def _issues_payload(report) -> Dict[str, Any]:
             for i in report.warnings
         ],
     }
+
+
+def _drawing_from_egi(egi, style, style_name) -> Dict[str, Any]:
+    """Serialize an EGI as a freeform drawing — the inverse of ``_dto_from_drawing``,
+    so the canvas can be **seeded** with an existing graph (re-opening a fixed base
+    graph to edit its meaning, or starting from a library graph).  Renders the EGI
+    to a layout, carries argument order (``assign_order_labels``), and emits the same
+    shape the canvas posts back: marks with labels, cut polylines, ordered lines."""
+    dto, _svg = generate_layout(egi, style_name=style_name)
+    dto = assign_order_labels(egi, dto)
+    boundaries = resolve_cut_boundaries(dto)
+    shape = getattr(style, "cut_shape", "rounded_rectangle")
+    radius = float(getattr(style, "cut_corner_radius", 0) or 0)
+
+    v_by_id = {v.id: v for v in egi.V}
+    vertices = [
+        {"id": vid, "x": p.x, "y": p.y,
+         "label": (v_by_id[vid].label if vid in v_by_id else None)}
+        for vid, p in dto.vertex_positions.items()
+    ]
+    predicates = [
+        {"id": pid, "x": p.x, "y": p.y, "label": egi.get_relation_name(pid)}
+        for pid, p in dto.predicate_positions.items()
+    ]
+    cuts = []
+    for cid, bounds in dto.cut_bounds.items():
+        poly = boundaries.get(cid) or cut_boundary(bounds, shape, radius)
+        cuts.append({"id": cid, "boundary": [[pt.x, pt.y] for pt in poly]})
+    lines = [
+        {"predicate_id": lp.predicate_id, "vertex_id": lp.vertex_id,
+         "points": [[pt.x, pt.y] for pt in lp.points],
+         "port_index": lp.port_index, "order_label": lp.order_label}
+        for lp in dto.ligature_paths
+    ]
+    return {"sheet_id": dto.sheet_id, "vertices": vertices,
+            "predicates": predicates, "cuts": cuts, "lines": lines}
+
+
+@router.get("/sessions/{session_id}/state-drawing")
+async def state_drawing(session_id: str, state_id: Optional[str] = None):
+    """The graph at a state, serialized as a freeform drawing — to **seed** the
+    canvas when re-opening a fixed base graph for editing (the Graph↔Argument
+    round-trip).  Defaults to the active branch's base (initial) state, which is the
+    graph that was fixed at gate ①."""
+    manager = get_ergasterion_session_manager()
+    session = manager.get_session(session_id)
+    if session is None:
+        return ApiResponse(success=False, error={
+            "code": "SESSION_NOT_FOUND",
+            "message": f"Workshop session '{session_id}' not found."})
+    sid = state_id or session.chain.initial_state_id
+    egi = session.chain.states.get(sid)
+    if egi is None:
+        return ApiResponse(success=False, error={
+            "code": "STATE_NOT_FOUND",
+            "message": f"State '{sid}' is not on the active branch."})
+    drawing = _drawing_from_egi(egi, _session_style(session), session.style_name)
+    return ApiResponse(success=True, data={"state_id": sid, "drawing": drawing})
 
 
 @router.post("/sessions/{session_id}/read-drawing")

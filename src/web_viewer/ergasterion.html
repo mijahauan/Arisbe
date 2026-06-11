@@ -378,6 +378,33 @@
       margin-left: 8px;
       opacity: 0.85;
     }
+    /* The two-mode workspace switch (Graph ↔ Argument) — the crystal-clear
+       "where am I" control. The Graph = editing meaning (unfixed); the Argument =
+       transformation rules on a fixed graph. */
+    #workspace-switch { margin-bottom: 10px; }
+    .mode-seg {
+      display: flex; gap: 0; border: 1px solid #45475a; border-radius: 6px;
+      overflow: hidden;
+    }
+    .mode-seg .seg {
+      flex: 1; padding: 8px 6px; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.3px; background: #181825; color: #6c7086;
+      border: none; cursor: pointer; transition: background 0.12s, color 0.12s;
+    }
+    .mode-seg .seg + .seg { border-left: 1px solid #45475a; }
+    .mode-seg .seg:hover:not(.locked):not(.active) { color: #cdd6f4; background: #1e1e2e; }
+    .mode-seg .seg.active.graph { background: rgba(249,226,175,0.92); color: #1e1e2e; }
+    .mode-seg .seg.active.argument { background: rgba(166,227,161,0.92); color: #1e1e2e; }
+    .mode-seg .seg.locked { color: #45475a; cursor: not-allowed; }
+    .ws-state {
+      margin-top: 6px; padding: 6px 9px; border-radius: 5px; font-size: 11px;
+      line-height: 1.45; display: flex; align-items: flex-start; gap: 6px;
+    }
+    .ws-state.unfixed { background: rgba(249,226,175,0.10); border: 1px solid rgba(249,226,175,0.35); color: #f9e2af; }
+    .ws-state.fixed   { background: rgba(166,227,161,0.10); border: 1px solid rgba(166,227,161,0.35); color: #a6e3a1; }
+    .ws-state.sealed  { background: rgba(147,153,178,0.12); border: 1px solid rgba(147,153,178,0.4); color: #9399b2; }
+    .ws-state .lock { font-size: 14px; line-height: 1; }
+    .ws-state .ws-sub { color: #9399b2; font-weight: 400; }
     /* The palette (composing). Same grid bones as the rule grid. */
     .palette-grid {
       display: grid;
@@ -570,6 +597,19 @@
       <div class="panel-body" id="right-body">
 
         <div id="rules-section" style="display: none;">
+
+          <!-- Two-mode workspace switch (the crystal-clear "where am I"):
+               THE GRAPH = editing meaning (unfixed); THE ARGUMENT = applying the
+               transformation rules to a fixed graph. You cannot apply a rule to an
+               unfixed graph; you cannot change a fixed graph's meaning (only settle
+               its appearance) — re-opening the graph to edit it forks a new line. -->
+          <div id="workspace-switch" style="display: none;">
+            <div class="mode-seg">
+              <button class="seg graph" id="seg-graph" title="Edit the graph's meaning">✎ The Graph</button>
+              <button class="seg argument" id="seg-argument" title="Apply transformation rules to the fixed graph">⊢ The Argument</button>
+            </div>
+            <div class="ws-state" id="ws-state"></div>
+          </div>
 
           <!-- Palette (composing phase). Four kinds of ink + the non-placing
                actions — the palette IS the Beta ontology (spec §2.1). -->
@@ -1286,6 +1326,49 @@
           }
         }
         if (currentPhase !== 'composing') disarmTool();
+        updateWorkspaceSwitch();
+      }
+
+      // The two-mode workspace switch (Graph ↔ Argument): the crystal-clear
+      // statement of where the user is and what is allowed. Unfixed = edit the
+      // meaning, rules locked; Fixed = rules + settle, meaning locked (re-open to
+      // change, which forks). Driven entirely by currentPhase.
+      function updateWorkspaceSwitch() {
+        const sw = document.getElementById('workspace-switch');
+        if (!sw) return;
+        const open = !!currentSessionId;
+        sw.style.display = open ? 'block' : 'none';
+        if (!open) return;
+        const segGraph = document.getElementById('seg-graph');
+        const segArg = document.getElementById('seg-argument');
+        const st = document.getElementById('ws-state');
+        const composing = currentPhase === 'composing';
+        const sealed = currentPhase === 'sealed';
+        if (segGraph) segGraph.classList.toggle('active', composing);
+        if (segArg) {
+          segArg.classList.toggle('active', !composing);
+          // You cannot apply a rule to an unfixed graph — so the Argument is
+          // locked until the graph is fixed.
+          segArg.classList.toggle('locked', composing);
+        }
+        // While a graph is fixed, the Graph segment becomes the explicit re-open.
+        if (segGraph) segGraph.textContent = composing ? '✎ The Graph' : '✎ Edit base graph';
+        if (!st) return;
+        st.className = 'ws-state ' + (composing ? 'unfixed' : (sealed ? 'sealed' : 'fixed'));
+        if (composing) {
+          const willFork = currentChain && (currentChain.step_count > 0) && viewIndex === 0;
+          st.innerHTML = '<span class="lock">🔓</span><span><strong>UNFIXED — editing the graph’s meaning.</strong> ' +
+            '<span class="ws-sub">Draw and erase freely. Transformation rules are locked until you ① fix it.' +
+            (willFork ? ' Fixing forks a new line (the current argument is kept as a branch).' : '') +
+            '</span></span>';
+        } else if (sealed) {
+          st.innerHTML = '<span class="lock">🔒</span><span><strong>ARGUMENT FIXED — read-only.</strong> ' +
+            '<span class="ws-sub">Navigate, restyle, replay. Step back before gate ② to re-open the line.</span></span>';
+        } else {
+          st.innerHTML = '<span class="lock">🔒</span><span><strong>GRAPH FIXED — meaning locked.</strong> ' +
+            '<span class="ws-sub">Apply the rules to build the argument, or ✋ Settle its appearance. ' +
+            'To change the meaning, “Edit base graph” — that forks a new line.</span></span>';
+        }
       }
 
       const TOOL_HINTS = {
@@ -2380,7 +2463,12 @@
             '/ergasterion/sessions/' + currentSessionId + '/fix-drawing', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ drawing: freeform.serialize() }),
+              // Fix *from the viewed state*: at a fresh base this replaces the clay
+              // in place; from an already-fixed base it forks a new line.
+              body: JSON.stringify({
+                drawing: freeform.serialize(),
+                from_state_id: stateIdForIndex(viewIndex),
+              }),
             });
           const body = await res.json();
           if (!body.success) {
@@ -2401,6 +2489,51 @@
 
       const btnReadDrawing = document.getElementById('btn-read-drawing');
       if (btnReadDrawing) btnReadDrawing.addEventListener('click', readDrawing);
+
+      // ---- the Graph ↔ Argument round-trip ----
+      // "Edit base graph" re-opens the fixed base graph for meaning-editing: it
+      // navigates to the base state (which is always 'composing') and seeds the
+      // freeform canvas with that graph, so the user adjusts an existing graph
+      // rather than starting blank. Fixing from there forks a new line.
+      async function editBaseGraph() {
+        if (!currentSessionId || !currentChain) return;
+        const baseId = currentChain.initial_state_id;
+        setStatus('Re-opening the base graph for editing…');
+        try {
+          const res = await fetch('/ergasterion/sessions/' + currentSessionId +
+            '/state-drawing?state_id=' + encodeURIComponent(baseId));
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Could not load base graph: ' +
+              (body.error && body.error.message), 'error');
+            return;
+          }
+          await navTo(0);  // base state → server reports 'composing'
+          const ff = ensureFreeform();
+          if (ff) {
+            ff.load(body.data.drawing);
+            freeformOn = true; ff.enable();
+            if (freeformToolsEl) freeformToolsEl.style.display = 'block';
+            if (btnFreeformToggle) btnFreeformToggle.classList.add('armed');
+            ff.setTool('select'); setFreeformActiveTool('select');
+          }
+          setStatus('Editing the base graph — change its meaning, check it, then ' +
+            '① Fix (that forks a new line).');
+        } catch (err) { setStatus('Re-open failed: ' + err, 'error'); }
+      }
+
+      const segGraphBtn = document.getElementById('seg-graph');
+      const segArgBtn = document.getElementById('seg-argument');
+      if (segGraphBtn) segGraphBtn.addEventListener('click', () => {
+        if (currentPhase === 'composing') return;  // already editing the graph
+        editBaseGraph();                            // re-open a fixed graph
+      });
+      if (segArgBtn) segArgBtn.addEventListener('click', () => {
+        if (currentPhase === 'composing') {
+          setStatus('Fix the graph first (①) — you cannot apply transformation ' +
+            'rules to an unfixed graph.', 'error');
+        }
+      });
 
       // Delegated: clicks on rendered elements toggle selection. Bound
       // once — canvasEl persists across re-renders even as its SVG child

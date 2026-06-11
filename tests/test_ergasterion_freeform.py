@@ -201,6 +201,27 @@ def test_canvas_contract_negation_with_ellipse_cut(client):
     assert same_graph(parse_egif(egif), parse_egif("~[ (P *x) ]")), egif
 
 
+def test_state_drawing_seeds_an_editable_graph(client):
+    """The Graph↔Argument round-trip: after fixing, the base graph can be fetched
+    as a drawing (to seed the canvas for re-editing) and that drawing re-reads to
+    the same graph — so re-opening starts from the real graph, not blank."""
+    original, drawing = _drawing_from_egi("~[ (P *x) ~[ (Q x) ] ]")
+    sid = _open(client)
+    fix = client.post(f"/ergasterion/sessions/{sid}/fix-drawing", json={"drawing": drawing})
+    assert fix.status_code == 200, fix.text
+    base_id = fix.json()["data"]["chain"]["initial_state_id"]
+
+    sd = client.get(f"/ergasterion/sessions/{sid}/state-drawing", params={"state_id": base_id})
+    assert sd.status_code == 200, sd.text
+    seed = sd.json()["data"]["drawing"]
+    # The seed re-reads (via the preview) to the same graph it came from.
+    pv = client.post(f"/ergasterion/sessions/{sid}/read-drawing", json={"drawing": seed})
+    assert pv.status_code == 200, pv.text
+    assert pv.json()["data"]["validity"]["is_well_formed"]
+    read_back = parse_egif(_egif_of(pv.json()["data"]["linear_forms"]))
+    assert same_graph(read_back, original)
+
+
 def test_read_drawing_reports_validity_without_building(client):
     """A drawing with a dangling line reports the error and omits linear forms."""
     drawing = {

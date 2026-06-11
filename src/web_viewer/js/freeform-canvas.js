@@ -454,6 +454,59 @@
         && !this.cuts.length && !this.lines.length;
     }
 
+    // Seed the canvas from an existing graph's drawing (the server's
+    // _drawing_from_egi shape) — re-opening a fixed base graph to edit its
+    // meaning, or starting from a library graph.  Ids are re-minted to the
+    // canvas's own scheme so subsequent edits never collide.
+    load(drawing) {
+      this._reset();
+      const vmap = {}, pmap = {};
+      (drawing.vertices || []).forEach((v) => {
+        const id = this._id('v'); vmap[v.id] = id;
+        this.vertices.push({ id, x: v.x, y: v.y, label: v.label || null });
+      });
+      (drawing.predicates || []).forEach((p) => {
+        const id = this._id('p'); pmap[p.id] = id;
+        this.predicates.push({ id, x: p.x, y: p.y, label: p.label });
+      });
+      (drawing.cuts || []).forEach((c) => {
+        this.cuts.push({ id: this._id('c'), boundary: (c.boundary || []).map((q) => [q[0], q[1]]) });
+      });
+      (drawing.lines || []).forEach((l) => {
+        const pid = pmap[l.predicate_id], vid = vmap[l.vertex_id];
+        if (!pid || !vid) return;
+        this.lines.push({
+          id: this._id('l'), predicate_id: pid, vertex_id: vid,
+          points: (l.points || []).map((q) => [q[0], q[1]]), port_index: l.port_index || 0,
+        });
+      });
+      this._fitView();
+      this._render();
+      this._announce();
+    }
+
+    // Fit the viewBox to all drawn geometry (seeded graphs arrive in the layout
+    // engine's coordinate space, not the canvas's default frame).
+    _fitView() {
+      const pts = [];
+      for (const v of this.vertices) pts.push([v.x, v.y]);
+      for (const p of this.predicates) pts.push([p.x, p.y]);
+      for (const c of this.cuts) for (const q of c.boundary) pts.push(q);
+      if (!pts.length) { this.svg.setAttribute('viewBox', '-400 -300 800 600'); return; }
+      let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+      for (const q of pts) {
+        minx = Math.min(minx, q[0]); miny = Math.min(miny, q[1]);
+        maxx = Math.max(maxx, q[0]); maxy = Math.max(maxy, q[1]);
+      }
+      const pad = 60;
+      const w = Math.max(200, (maxx - minx) + 2 * pad);
+      const h = Math.max(200, (maxy - miny) + 2 * pad);
+      const vb = [minx - pad, miny - pad, w, h];
+      this.svg.setAttribute('viewBox', vb.join(' '));
+      this._bg.setAttribute('x', vb[0]); this._bg.setAttribute('y', vb[1]);
+      this._bg.setAttribute('width', vb[2]); this._bg.setAttribute('height', vb[3]);
+    }
+
     serialize() {
       return {
         sheet_id: this.sheetId,
