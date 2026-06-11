@@ -139,6 +139,23 @@ class ErgasterionDrawingRequest(BaseModel):
     from_state_id: Optional[str] = None
 
 
+class ChallengeGradeRequest(BaseModel):
+    """Grade a freehand drawing against a challenge target (challenge mode —
+    correspondence learned by doing, docs/FREEFORM_COMPOSITION_AND_LEARNING.md
+    build step 4).
+
+    The target is named either by ``challenge_id`` (a curated bank entry) or
+    directly as ``target_egif``.  ``drawing`` is the same freeform shape the
+    canvas posts to ``read-drawing`` / ``fix-drawing``.  Grading is non-mutating:
+    it reads the drawing into an EGI and compares it to the target with the
+    legible diff — it never changes the session state.
+    """
+
+    drawing: Dict[str, Any]
+    challenge_id: Optional[str] = None
+    target_egif: Optional[str] = None
+
+
 class ErgasterionSwitchBranchRequest(BaseModel):
     """Make a different workshop branch the active one (its tip becomes the
     state subsequent moves extend)."""
@@ -288,6 +305,10 @@ class AgonNewGameRequest(BaseModel):
     base_source: Optional[str] = None
     goal_egif: Optional[str] = None
     first_player: Optional[str] = "Proposer"
+    # The model M's regime: closed = asserted-complete (a miss is FALSE,
+    # negation-as-failure); open = sampled (a miss is UNKNOWN). Governs the
+    # interpretation register (the semantic game).
+    model_closed: bool = False
 
 
 class AgonMoveRequest(BaseModel):
@@ -320,3 +341,30 @@ class AgonDispositionRequest(BaseModel):
     authors: Optional[List[str]] = None
     tags: Optional[List[str]] = None
     notes: Optional[str] = None
+
+
+class AgonSetModelRequest(BaseModel):
+    """Choose / change the model M for a contest's interpretation register —
+    the inning's opening move (docs/GENERATION_AND_TESTING.md, part 1).
+
+    M may be given as ``model_egif`` (raw facts) or ``base_source = "uod:<id>"``
+    (a corpus UoD's atoms). ``closed`` sets the regime (asserted-complete vs
+    sampled). Does not touch the transformation game's state.
+    """
+
+    model_egif: Optional[str] = None
+    base_source: Optional[str] = None
+    closed: bool = False
+
+
+class AgonInterpretRequest(BaseModel):
+    """Run the interpretation register — peel the proposal G against the model M
+    (docs/GENERATION_AND_TESTING.md, part 2). Non-mutating.
+
+    All fields are optional overrides; by default it uses the model M and
+    proposal G fixed when the game was framed.
+    """
+
+    model_egif: Optional[str] = None
+    proposal_egif: Optional[str] = None
+    closed: Optional[bool] = None

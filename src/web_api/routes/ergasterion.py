@@ -51,6 +51,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from web_api.models.api_models import (
     ApiResponse,
+    ChallengeGradeRequest,
     ErgasterionAdjustRequest,
     ErgasterionApplyRequest,
     ErgasterionClosureRequest,
@@ -84,6 +85,7 @@ from composition_ops import (
     apply_compose,
 )
 from correspondence_attestation import CorrespondenceViolation
+from challenge_mode import get_challenge, grade, list_challenges
 from drawing_to_egi import build_egi_from_drawing
 from drawing_validity import validate_drawing
 from layout_dto import BoundingBox, LayoutDTO, LigaturePath, Point
@@ -1112,6 +1114,94 @@ async def fix_drawing(session_id: str, request: ErgasterionDrawingRequest):
     except Exception as exc:
         return ApiResponse(success=False, error={
             "code": "FIX_DRAWING_ERROR", "message": str(exc),
+            "type": type(exc).__name__})
+
+
+# --------------------------------------------------------------------------- #
+# Challenge mode — correspondence, learned by doing (build step 4)             #
+# docs/FREEFORM_COMPOSITION_AND_LEARNING.md                                    #
+# --------------------------------------------------------------------------- #
+
+
+@router.get("/challenges")
+async def list_challenges_route():
+    """The challenge bank: a difficulty gradient of linear forms to draw freehand.
+
+    Returns the prompt (the linear form the learner reads and must render) but never
+    a drawing — the correspondence has to be reconstructed, not copied.
+    """
+    return ApiResponse(success=True, data={
+        "challenges": [
+            {"id": c.id, "title": c.title, "prompt_egif": c.prompt_egif,
+             "difficulty": c.difficulty, "hint": c.hint}
+            for c in list_challenges()
+        ]
+    })
+
+
+@router.post("/sessions/{session_id}/grade-challenge")
+async def grade_challenge(session_id: str, request: ChallengeGradeRequest):
+    """Grade a freehand drawing against a challenge target — non-mutating.
+
+    Read the drawing into an EGI and compare it to the target with the legible diff.
+    If the ink is not yet a well-formed EG, return the validity report instead of a
+    grade (the learner fixes the marks first, in EG vocabulary); if it is well-formed
+    but denotes a different graph, return ``matches=false`` with the discrepancy
+    findings.  The session state is never touched.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(success=False, error={
+                "code": "SESSION_NOT_FOUND",
+                "message": f"Workshop session '{session_id}' not found."})
+
+        # Resolve the target: a bank challenge id, or a raw EGIF string.
+        target_egif = request.target_egif
+        challenge = None
+        if request.challenge_id:
+            challenge = get_challenge(request.challenge_id)
+            if challenge is None:
+                return ApiResponse(success=False, error={
+                    "code": "CHALLENGE_NOT_FOUND",
+                    "message": f"No challenge '{request.challenge_id}'."})
+            target_egif = challenge.prompt_egif
+        if not target_egif:
+            return ApiResponse(success=False, error={
+                "code": "NO_TARGET",
+                "message": "Provide a challenge_id or a target_egif to grade against."})
+
+        style = _session_style(session)
+        sheet_id = request.drawing.get("sheet_id", "sheet")
+        dto, predicate_labels, vertex_labels = _dto_from_drawing(
+            request.drawing, style, sheet_id)
+
+        # Ill-formed drawing → EG-vocabulary feedback, not a grade.
+        report = validate_drawing(
+            dto, predicate_labels=predicate_labels, vertex_labels=vertex_labels)
+        if not report.is_well_formed:
+            return ApiResponse(success=True, data={
+                "gradeable": False,
+                "validity": _issues_payload(report),
+            })
+
+        attempt = build_egi_from_drawing(dto, predicate_labels, vertex_labels)
+        diff = grade(target_egif, attempt)
+        return ApiResponse(success=True, data={
+            "gradeable": True,
+            "matches": diff.matches,
+            "summary": diff.summary,
+            "findings": [
+                {"kind": f.kind, "message": f.message, "subject": f.subject}
+                for f in diff.findings
+            ],
+            "validity": _issues_payload(report),
+            "target_linear_forms": linear_forms(parse_egif(target_egif)),
+        })
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "GRADE_CHALLENGE_ERROR", "message": str(exc),
             "type": type(exc).__name__})
 
 

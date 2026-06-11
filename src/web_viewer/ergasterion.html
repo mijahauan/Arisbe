@@ -679,6 +679,19 @@
                 <div id="freeform-area" style="font-size:10px; color:#89b4fa; min-height:14px; margin:4px 0;"></div>
                 <button class="action" id="btn-read-drawing">👁 Read it now — what does it say?</button>
                 <div id="freeform-validity" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
+
+                <!-- Challenge mode (build step 4): pick a linear form, draw it
+                     freehand, grade against the target with the legible diff.
+                     docs/FREEFORM_COMPOSITION_AND_LEARNING.md -->
+                <div id="challenge-block" style="margin-top:8px; border-top:1px dashed #313244; padding-top:6px;">
+                  <label style="font-size:10px; color:#cdd6f4;">🎯 Challenge — read this, then draw it:</label>
+                  <select id="challenge-select" style="width:100%; margin:4px 0; font-size:11px; background:#1e1e2e; color:#cdd6f4; border:1px solid #313244;">
+                    <option value="">— pick a graph to reproduce —</option>
+                  </select>
+                  <div id="challenge-prompt" style="font-size:11px; color:#f9e2af; min-height:14px;"></div>
+                  <button class="action" id="btn-grade-challenge" disabled>✓ Grade my drawing</button>
+                  <div id="challenge-result" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
+                </div>
               </div>
             </div>
             <button class="action primary" id="btn-fix-graph">① Fix this graph</button>
@@ -2436,6 +2449,7 @@
             ff.setTool('select');
             setFreeformActiveTool('select');
             ff.enable();
+            loadChallenges();       // populate the challenge picker (once)
           } else {
             ff.disable();
           }
@@ -2521,6 +2535,101 @@
 
       const btnReadDrawing = document.getElementById('btn-read-drawing');
       if (btnReadDrawing) btnReadDrawing.addEventListener('click', readDrawing);
+
+      // ---- challenge mode: read a target, draw it freehand, get graded ----
+      // The grader is isomorphism (same_graph); the feedback is the legible diff,
+      // in EG vocabulary. Grading never mutates the session.
+      const challengeSelect = document.getElementById('challenge-select');
+      const challengePromptEl = document.getElementById('challenge-prompt');
+      const challengeResultEl = document.getElementById('challenge-result');
+      const btnGradeChallenge = document.getElementById('btn-grade-challenge');
+      let challengeBank = [];
+      let challengesLoaded = false;
+
+      async function loadChallenges() {
+        if (challengesLoaded || !challengeSelect) return;
+        challengesLoaded = true;
+        try {
+          const res = await fetch('/ergasterion/challenges');
+          const body = await res.json();
+          if (!body.success) return;
+          challengeBank = body.data.challenges || [];
+          challengeBank.forEach((c) => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.difficulty + ' · ' + c.title;
+            challengeSelect.appendChild(opt);
+          });
+        } catch (err) { /* non-fatal: challenge mode just stays empty */ }
+      }
+
+      if (challengeSelect) {
+        challengeSelect.addEventListener('change', () => {
+          const c = challengeBank.find((x) => x.id === challengeSelect.value);
+          if (!c) {
+            challengePromptEl.textContent = '';
+            if (btnGradeChallenge) btnGradeChallenge.disabled = true;
+            return;
+          }
+          challengePromptEl.innerHTML =
+            'Draw: <code>' + escapeHtml(c.prompt_egif) + '</code>' +
+            (c.hint ? '<div style="color:#6c7086; margin-top:2px;">' +
+              escapeHtml(c.hint) + '</div>' : '');
+          if (challengeResultEl) challengeResultEl.innerHTML = '';
+          if (btnGradeChallenge) btnGradeChallenge.disabled = false;
+        });
+      }
+
+      function renderChallengeResult(body) {
+        if (!challengeResultEl) return;
+        if (!body.success) {
+          challengeResultEl.innerHTML = '<span style="color:#f38ba8;">' +
+            escapeHtml(body.error && body.error.message) + '</span>';
+          return;
+        }
+        const data = body.data || {};
+        if (!data.gradeable) {
+          // Ill-formed ink: show the validity issues, not a grade.
+          const val = data.validity || {};
+          let html = '<div style="color:#f9e2af;">Not a well-formed graph yet — fix these first:</div>';
+          (val.errors || []).forEach((e) =>
+            html += '<div style="color:#f38ba8;">✕ ' + escapeHtml(e.message) + '</div>');
+          (val.warnings || []).forEach((w) =>
+            html += '<div style="color:#f9e2af;">⚠ ' + escapeHtml(w.message) + '</div>');
+          challengeResultEl.innerHTML = html;
+          return;
+        }
+        if (data.matches) {
+          challengeResultEl.innerHTML =
+            '<div style="color:#a6e3a1;">✓ Correct — your drawing denotes the same graph.</div>';
+          return;
+        }
+        let html = '<div style="color:#f38ba8;">✗ ' + escapeHtml(data.summary || 'Not the same graph.') + '</div>';
+        (data.findings || []).forEach((f) =>
+          html += '<div style="color:#fab387;">• <span style="color:#6c7086;">[' +
+            escapeHtml(f.kind) + ']</span> ' + escapeHtml(f.message) + '</div>');
+        challengeResultEl.innerHTML = html;
+      }
+
+      async function gradeChallenge() {
+        if (!currentSessionId || !freeform || !challengeSelect.value) return;
+        setStatus('Grading your drawing…');
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/grade-challenge', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                challenge_id: challengeSelect.value,
+                drawing: freeform.serialize(),
+              }),
+            });
+          renderChallengeResult(await res.json());
+          setStatus('');
+        } catch (err) { setStatus('Grade failed: ' + err, 'error'); }
+      }
+
+      if (btnGradeChallenge) btnGradeChallenge.addEventListener('click', gradeChallenge);
 
       // ---- the Graph ↔ Argument round-trip ----
       // "Edit base graph" re-opens the fixed base graph for meaning-editing: it

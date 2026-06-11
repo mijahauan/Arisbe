@@ -519,6 +519,11 @@ the Qt implementation was archived in May 2026.
 
 ## 👥 What Users Can Do with Arisbe
 
+> **New to Arisbe?** [docs/ARISBE_PERSONAS.md](docs/ARISBE_PERSONAS.md) tells the
+> story through the people who use it — teacher, student, researcher, logician,
+> physician, and the editor preparing Peirce's manuscripts for publication —
+> with a *what you can do now / when complete* split for each.
+
 ### For Logic Researchers & Academics
 
 - Apply all six formal transformation rules with mathematical validation and Z3 soundness verification
