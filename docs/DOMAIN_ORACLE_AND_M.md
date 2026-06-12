@@ -218,7 +218,17 @@ an honest **skip-report** of the rules left unmaterialized.
 
 ---
 
-## 7. Forward direction (TODO, not now): the *inverse* game — "what M does this map into?"
+## 7. The *inverse* game — "what M does this map into?" — BUILT 2026-06-11
+
+**Built** as `POST /agon/where-it-holds` (+ a "🔎 Where does G hold?" button): fix G,
+range the peel across the candidate models (the curated examples + the corpus UoDs,
+optionally materialized), and rank by relationship — **holds** (at home / a theorem),
+**partial** (some of G at home; the residue is its contribution), **independent**, or
+**contradicts**. The partial-map residue (below) is surfaced concretely — e.g. a
+proposal `(coastal C) (generates_tourism C)` reads *partial* in the wetland model with
+residue `(generates_tourism C)`. The interface needed no change to `resolve`/the peel:
+the forward inning already parameterizes on M, so the inverse is iteration plus a
+coarse sheet-atom fit score. Original sketch below.
 
 The forward game is *given M, test G*. There is an inverse worth naming because
 it matches a real and common experience: **an idea that makes sense while you are

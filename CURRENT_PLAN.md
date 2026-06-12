@@ -40,9 +40,14 @@ review):
    works; corpus UoDs carrying rules become testable); precondition for ontology-as-M.
    `src/model_materialization.py` (`materialize_egi`), reusing `match_atoms`; opt-in on
    `CorpusOracle.from_egif(..., materialize=True)` and `/agon/interpret`.
-5. **Then:** the **inverse pivot** ("in what domain does G hold?", §7); oracle steps
-   4–6 (demand-driven cache → horizon/open-closed params → `SparqlOracle`/Wikidata);
-   downstream warrant lifecycle, ontology-as-M.
+5. **The inverse pivot — DONE 2026-06-11.** `POST /agon/where-it-holds` + a "🔎 Where
+   does G hold?" button: fix G, range the peel across candidate models (examples +
+   corpus, optionally materialized), rank by relationship — holds / partial (residue =
+   the contribution) / independent / contradicts. Abductive context-retrieval; reused
+   the oracle unchanged (`docs/DOMAIN_ORACLE_AND_M.md` §7).
+6. **Then:** oracle steps 4–6 (demand-driven cache → horizon/open-closed params →
+   `SparqlOracle`/Wikidata); downstream warrant lifecycle, **ontology-as-M** (now
+   unblocked — materialize the T-box, peel/search against it).
 3. **Diachronic exemplars (Praeclarum first)** — interleave once the seam exists:
    ingest canonical worked proofs as real `TransformationChain`s; the shakedown
    cruise for the semantic game. `docs/` + the diachronic-exemplars memory.
