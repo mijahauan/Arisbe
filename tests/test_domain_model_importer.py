@@ -132,6 +132,22 @@ class TestCLIFImport:
         result = from_clif_text(clif)
         assert "http://example.org/base" in result.cl_imports
 
+    def test_colore_style_block_comment_header_is_stripped(self):
+        # Every COLORE file carries a /* Copyright … */ header; words inside it
+        # ("Toronto **and** others") would tokenise as keywords and break the parse
+        # if the block comment were not stripped before parsing.
+        clif = (
+            "/*****\n * Copyright (c) University of Toronto and others.\n"
+            " * if not for this, the parser would choke on 'and'/'if'/'not'.\n *****/\n"
+            "(cl-text http://colore.oor.net/x/y.clif\n"
+            "  (cl-imports http://colore.oor.net/x/base.clif)\n"
+            "  (forall (a b) (if (and (rel a b) (not (= a b))) (other a b))))"
+        )
+        result = from_clif_text(clif)
+        assert len(result.egi.E) > 0
+        # the http:// in the cl-imports IRI must NOT be mistaken for a comment
+        assert "http://colore.oor.net/x/base.clif" in result.cl_imports
+
 
 # ---------------------------------------------------------------------------
 # JSON type lattice import

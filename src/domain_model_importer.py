@@ -109,12 +109,27 @@ def _extract_cl_imports(clif_text: str) -> List[str]:
     return imports
 
 
+def _strip_block_comments(text: str) -> str:
+    """Remove C-style ``/* … */`` block comments before parsing.
+
+    Every COLORE file carries a ``/* Copyright … */`` header, and the protected
+    CLIF lexer only strips ``;;`` line comments — so words inside the header (e.g.
+    "Toronto **and** others") would tokenise as keywords and break the parse.  We
+    strip ``/* */`` here (the importer boundary) rather than touch the lexer.  Only
+    block comments are removed: ``//`` is left alone because it occurs inside
+    ``http://`` IRIs in ``cl-text`` / ``cl-imports`` forms.
+    """
+    import re
+    return re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+
+
 def from_clif_text(clif_text: str) -> ImportResult:
     """Import a domain model from a CLIF text string.
 
     Handles single sentences, multiple sentences, cl-text wrappers,
-    and comments.
+    ``;;`` comments and (COLORE-style) ``/* … */`` block comments.
     """
+    clif_text = _strip_block_comments(clif_text)
     cl_imports = _extract_cl_imports(clif_text)
     egi = parse_clif(clif_text)
 
