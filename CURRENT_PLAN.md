@@ -3,14 +3,17 @@
 **Last Updated**: 2026-06-12 (session end) — this session: **function terms relationalise
 on import** (`_relationalize_functions` in `domain_model_importer`) so the function-bearing
 COLORE modules (the majority) import — `(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧
-density(z))`, validated on the real COLORE `density.clif`. Prior sessions: the **T-box
-theorem query** (`theory_query.entails`, freeze-a-witness), the **OWL→CLIF→EGI pipeline**
-(`owl_to_clif`), two real ontologies landed (`bfo_core` BFO + `colore_between` from the
-real COLORE repo), the `theorem` verdict **visible in `/agon`**, and a clutch of import
-fixes (CLIF `/* */` comments, alpha-renaming reused variables, M-as-data non-attesting
-load). **▶ Next task: Playwright E2E over `/agon` interpretation + challenge mode** (the
-standing companion debt) — or import breadth (`cl-imports` auto-resolution) — see
-▶ NEXT SESSION. Prior: the **freeform composition arc is COMPLETE** (steps
+density(z))`, validated on the real COLORE `density.clif`; **plus a CLIF
+universal-quantifier correctness fix** the relationalization exposed — a
+mutually-compensating parser+generator pair where a positive-body `(forall (x) (P x))`
+collapsed to `∃` and the generator blanket-labelled everything `forall` (authorized core
+change; both fixed, round-trips now honest). Prior sessions: the **T-box theorem query**
+(`theory_query.entails`, freeze-a-witness), the **OWL→CLIF→EGI pipeline** (`owl_to_clif`),
+two real ontologies landed (`bfo_core` BFO + `colore_between` from the real COLORE repo),
+the `theorem` verdict **visible in `/agon`**, and a clutch of import fixes (CLIF `/* */`
+comments, alpha-renaming reused variables, M-as-data non-attesting load). **▶ Next session:
+P0 triage the 7 pre-existing red layout tests, then Playwright E2E** over `/agon`
+interpretation + challenge mode — see ▶ NEXT SESSION. Prior: the **freeform composition arc is COMPLETE** (steps
 1–4: fix-time validity → draw-then-read canvas → legible EGI diff → **challenge
 mode**). Also this session: the **persona narrative** (`docs/ARISBE_PERSONAS.md`)
 and the **Domain Oracle** for Agon's model M (`docs/DOMAIN_ORACLE_AND_M.md`, step 1
@@ -21,15 +24,25 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**Function-term relationalization is DONE** (this session — see the ✅ block below). Pick
-the next task:
+**This session: function-term relationalization + a CLIF universal-quantifier correctness
+fix (parser + generator)** — both DONE (✅ blocks below). Recommended order next session:
 
-**OPTION A — Playwright E2E over `/agon` interpretation + challenge mode** (the standing
-companion debt, two sessions running): the picker→interpret→theorem flow and freeform
-challenge grading are browser-checked *ad hoc* but not a committed suite. Turn it into a
-committed E2E (skipped if Chromium/Playwright absent, like `test_ergasterion_freeform_e2e.py`).
+**P0 (first, likely quick) — triage the 7 pre-existing red layout tests** (see *Known
+failing tests* in the Backlog). They are **not** from this session's work (they reproduce on
+the baseline with the CLIF changes stashed, and import no CLIF), but 7 reds on `main`
+shouldn't linger — and 6 of them are `test_eg_reader` **correspondence round-trips**
+(`reading_matches_egi(read_drawing(render(egi)), egi)`), which sit on the project's bedrock.
+First determine whether it's ELK/Tension layout *nondeterminism / environment* (the node ELK
+worker) or a genuine regression (git-bisect a known-good commit). The 7th
+(`test_branch_tree_is_compact`) is an aesthetic compactness threshold, lower stakes. Don't
+build new E2E coverage on top of unexplained reds.
 
-**OPTION B — import breadth (`cl-imports` auto-resolution).** With function terms now
+**P1 — Playwright E2E over `/agon` interpretation + challenge mode** (the standing companion
+debt, two sessions running): the picker→interpret→theorem flow and freeform challenge
+grading are browser-checked *ad hoc* but not a committed suite. Turn it into a committed E2E
+(skipped if Chromium/Playwright absent, like `test_ergasterion_freeform_e2e.py`).
+
+**P2 — import breadth (`cl-imports` auto-resolution).** With function terms now
 importing, the remaining blocker to a *fully cited* function-bearing COLORE corpus UoD
 (the `colore_between` treatment for, say, `density`) is closure resolution — `density`
 imports `amount` → `field` (the real-number field axioms). An auto-resolver that fetches /
@@ -528,6 +541,23 @@ external AI that emits a structured placement into the same pipeline.*
 
 ## Backlog (queued, lower priority)
 
+- **Known failing tests (pre-existing on `main`, need triage — see P0 above).** Surfaced by
+  a full-suite run 2026-06-12 (1657 passed, 7 failed); **confirmed not from the CLIF work**
+  (they reproduce with `src/clif_*_dau.py` stashed and import no CLIF). All are
+  **layout-engine** dependent:
+  - `test_eg_reader.py::test_round_trip_recovers_structure[dau-style0-ELKLayoutEngine]`
+  - `test_eg_reader.py::test_round_trip_recovers_structure[peirce-style1-ELKLayoutEngine]`
+  - `test_eg_reader.py::test_numbered_round_trip_recovers_full_nu_with_order[ELKLayoutEngine]`
+  - `test_eg_reader.py::test_clockwise_round_trip_recovers_full_nu_via_overrides[ELKLayoutEngine]`
+  - `test_eg_reader.py::test_clockwise_round_trip_recovers_full_nu_via_overrides[TensionLayoutEngine]`
+  - `test_eg_reader.py::test_clockwise_no_label_strikethrough_and_order_recovered`
+  - `test_tension_engine.py::test_branch_tree_is_compact` (aesthetic: `roberts_domain_modeling`
+    spread `1188×686` vs the `<650` threshold — a layout-compactness regression, not correctness)
+  The six `test_eg_reader` ones are `reading_matches_egi(read_drawing(render(egi)), egi)`
+  round-trips — **correspondence recovery**, so worth a real look: ELK/Tension geometry the
+  reader can't recover ordered ν from (a layout-quality issue surfacing as a round-trip
+  failure), vs ELK node-worker nondeterminism/environment, vs a genuine regression. Triage
+  before adding new suites.
 - **Schema generator — shared ambient parameter** so `instance_of_schema` can
   generate the hand-written induction instance (φ threaded through all hole
   occurrences); assert `same_graph` to the hand-written one.
