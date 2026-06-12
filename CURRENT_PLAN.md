@@ -1,9 +1,11 @@
 # Current Plan
 
-**Last Updated**: 2026-06-12 — **ontology-as-M step 1 DONE**: the T-box theorem query
-(`theory_query.entails`, freeze-a-fresh-witness) makes a real ontology (SUMO/Porphyry/
-FOAF) testable where model-checking reads vacuously; wired into `/agon/interpret`. Prior:
-the **freeform composition arc is COMPLETE** (steps
+**Last Updated**: 2026-06-12 — **ontology-as-M step 1 + the OWL→CLIF→EGI pipeline DONE**:
+the T-box theorem query (`theory_query.entails`, freeze-a-fresh-witness) makes a real
+ontology (SUMO/Porphyry/FOAF) testable where model-checking reads vacuously, wired into
+`/agon/interpret`; and `tools/owl_to_clif.py` + `domain_model_importer.from_owl_*` bring
+OWL 2 functional syntax in as M (back half `parse_clif` already solid). Prior: the
+**freeform composition arc is COMPLETE** (steps
 1–4: fix-time validity → draw-then-read canvas → legible EGI diff → **challenge
 mode**). Also this session: the **persona narrative** (`docs/ARISBE_PERSONAS.md`)
 and the **Domain Oracle** for Agon's model M (`docs/DOMAIN_ORACLE_AND_M.md`, step 1
@@ -22,19 +24,53 @@ subsumption proposal model-checks *vacuously*. The fix shipped is `theory_query.
 Porphyry / FOAF subsumption + typing now decide correctly, with the disjointness residue
 honestly UNKNOWN.
 
+**The OWL→CLIF→EGI pipeline is now BUILT (2026-06-12)** — see the section below.
+`tools/owl_to_clif.py` reads OWL 2 functional syntax → CLIF (the robust interlingua) →
+EGI; `domain_model_importer.from_owl_*` makes it first-class; an OWL-imported ontology
+decides theorems via this session's `theory_query`.
+
 **Designated next task — pick one:**
-- **Surface the `theorem` verdict in the `/agon` UI.** The route now returns it; the
-  frontend (`web_viewer/agon.html`) doesn't yet render it. Small, high-value: it makes
-  the "is G a theorem of this ontology?" answer visible beside the extensional peel.
-  Then a browser **Playwright E2E** over the `/agon` interpretation UI + challenge mode
-  (both still verified only at serve/route/JS-syntax level) — the companion debt.
-- **The OWL→CLIF→EGI import pipeline** (the bigger ontology frontier): bring an external
-  ontology in as a `kind=ontology` UoD, then test proposals against it via the now-real
-  theory query. Layout stays super-linear (keep M as data behind the oracle; draw only
-  the contested fragment — `DOMAIN_ORACLE_AND_M.md` §5).
+- **Surface the `theorem` verdict in the `/agon` UI.** The route returns it; the
+  frontend (`web_viewer/agon.html`) doesn't yet render it. Small, high-value — makes
+  "is G a theorem of this ontology?" visible beside the extensional peel. Then a browser
+  **Playwright E2E** over the `/agon` interpretation UI + challenge mode (both verified
+  only at serve/route/JS-syntax level so far).
+- **Land a real OWL ontology as a corpus UoD** + a **web import-doorway** notation for
+  OWL (today the doorway would flatten a multi-axiom ontology into one "linear form" and
+  lose the skip-report — needs an ontology-aware admit path that preserves it). Layout
+  stays super-linear (keep M as data; draw only the contested fragment —
+  `DOMAIN_ORACLE_AND_M.md` §5).
+- **Broaden OWL coverage:** `ObjectUnionOf` / `ObjectAllValuesFrom` in the head (EG-
+  expressible, not Horn → contest game), Manchester syntax, or a Turtle/RDF reader.
 - **Deeper alternative** (push the game itself): the dialogical **contest / automated
   Grapheus** (the peel supplies the model-respecting reply) + the **warrant lifecycle**
   (low → tested by surviving Agon).
+
+---
+
+## ✅ DONE 2026-06-12 — the OWL→CLIF→EGI import pipeline (front half)
+
+The named pipeline's **back half already existed** (`clif_parser_dau.parse_clif` turns a
+Common Logic sentence into exactly the EG shapes — subsumption scroll, conjunctive Horn
+body, existential-head scroll, disjointness denial). The missing **front half** is now
+built: `tools/owl_to_clif.py` reads **OWL 2 Functional-Style Syntax** and translates the
+EG-expressible axioms to CLIF (class expressions: named classes, `ObjectIntersectionOf`,
+`ObjectSomeValuesFrom`):
+
+- **Forms:** `SubClassOf`, `EquivalentClasses`/`DisjointClasses` (pairwise),
+  `SubObjectPropertyOf`, `ObjectPropertyDomain`/`Range`, `InverseObjectProperties`,
+  `Symmetric`/`TransitiveObjectProperty`, `ClassAssertion`, `ObjectPropertyAssertion`,
+  `SameIndividual`/`DifferentIndividuals`.
+- **Honest floor** (the SUO-KIF discipline): cardinality, union, complement,
+  `AllValuesFrom`, datatypes, functional/key, annotations → **reported by construct**;
+  `⊑ owl:Thing` dropped as trivial; `Declaration` counted as vocabulary. IRIs/prefixed
+  names reduce to sanitized local identifiers.
+- **First-class:** `domain_model_importer.from_owl_text` / `from_owl_file` (warnings
+  carry the skip-report); composes with the CLIF path; wraps as a `kind=ontology` UoD.
+- **The loop closes:** an OWL-imported ontology is a real M whose subsumption /
+  intersection / transitivity theorems `theory_query.entails` decides. Tests:
+  `tests/test_owl_import.py` (23) + `tests/fixtures/zoo.ofn`. Doc:
+  `docs/CORPUS_AND_IMPORT_MODEL.md` §5.1.
 
 ---
 

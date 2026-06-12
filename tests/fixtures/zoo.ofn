@@ -1,0 +1,32 @@
+Prefix(:=<http://example.org/zoo#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)
+Ontology(<http://example.org/zoo>
+  Declaration(Class(:Animal))
+  Declaration(Class(:Mammal))
+  Declaration(ObjectProperty(:hasParent))
+
+  SubClassOf(:Mammal :Animal)
+  SubClassOf(:Dog :Mammal)
+  SubClassOf(:Cat :Mammal)
+  SubClassOf(:Mammal owl:Thing)
+  EquivalentClasses(:Dog :Canine)
+  DisjointClasses(:Dog :Cat)
+
+  SubObjectPropertyOf(:hasMother :hasParent)
+  ObjectPropertyDomain(:hasParent :Animal)
+  ObjectPropertyRange(:hasParent :Animal)
+  InverseObjectProperties(:hasParent :hasChild)
+  SymmetricObjectProperty(:siblingOf)
+  TransitiveObjectProperty(:hasAncestor)
+
+  SubClassOf(ObjectIntersectionOf(:Male :Parent) :Father)
+  SubClassOf(:Dog ObjectSomeValuesFrom(:hasParent :Dog))
+
+  ClassAssertion(:Dog :Rex)
+  ObjectPropertyAssertion(:hasParent :Rex :Fido)
+  SameIndividual(:Rex :Rover)
+
+  SubClassOf(:Dog ObjectMinCardinality(2 :hasParent))
+  AnnotationAssertion(rdfs:label :Dog "A domestic dog")
+)

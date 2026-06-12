@@ -148,6 +148,43 @@ Two findings worth keeping:
   taxonomy is reproducible from the translator. A large *theory* is correct but
   not yet cheap to *draw* — a real layout-performance frontier.
 
+### 5.1 The OWL→CLIF→EGI pipeline (BUILT 2026-06-12)
+
+The SUO-KIF translator brings one specific dialect across. The general path for the
+**web's** ontology language is **OWL → CLIF → EGI**, and its back half already exists
+and is robust: `clif_parser_dau.parse_clif` turns a Common Logic sentence into exactly
+the EG shapes — `(forall (x)(if (Man x)(Mortal x)))` → the subsumption scroll, an
+intersection body → a conjunctive Horn body, an `exists` head → an existential scroll,
+`(not (and …))` → a disjointness denial. So bringing a real OWL ontology in as a model
+M reduces to **OWL → CLIF**, the front half built in `tools/owl_to_clif.py`.
+
+It reads **OWL 2 Functional-Style Syntax** (`.ofn` — the structural-specification
+serialization; form-oriented, so no RDF triple store or blank-node restriction
+decoding) and translates the EG-expressible axioms, class expressions limited to named
+classes, `ObjectIntersectionOf`, and `ObjectSomeValuesFrom`:
+
+| OWL axiom | CLIF |
+|---|---|
+| `SubClassOf(C D)` | `(forall (x)(if 〚C〛 〚D〛))` |
+| `EquivalentClasses` / `DisjointClasses` | pairwise `iff` / `not-and` |
+| `SubObjectPropertyOf(R S)` | `(forall (x y)(if (R x y)(S x y)))` |
+| `ObjectPropertyDomain` / `Range` | typing scrolls on `x` / `y` |
+| `InverseObjectProperties` / `Symmetric` / `Transitive` | the Horn rule for each |
+| `ClassAssertion` / `ObjectPropertyAssertion` | A-box facts |
+| `SameIndividual` / `DifferentIndividuals` | `(= a b)` / `(not (= a b))` |
+
+Same honest floor as the SUO-KIF path: cardinality, union, complement,
+`AllValuesFrom`, datatypes, functional/key axioms, and annotations are **reported by
+construct** (`⊑ owl:Thing` is dropped as trivial), never silently truncated.
+`Declaration(…)` is counted as vocabulary, not skipped. `domain_model_importer`
+exposes `from_owl_text` / `from_owl_file` (warnings carry the skip-report), so an OWL
+file composes with the CLIF path and wraps as a `kind=ontology` UoD. The loop closes
+with this session's theory query: an OWL-imported ontology is a real M whose
+subsumption / intersection / transitivity theorems `theory_query.entails` decides
+(`tests/test_owl_import.py`, 23). *Not yet surfaced:* a web import-doorway notation
+(it would flatten a multi-axiom ontology into one "linear form" and lose the
+skip-report) and a real-world OWL ontology as a shipped corpus UoD.
+
 ## 6. Forward edges
 
 - **By-hand import & edit (the reading desk)** — the next big one. So far every

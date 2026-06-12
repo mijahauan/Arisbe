@@ -188,6 +188,51 @@ def from_clif_directory(
 
 
 # ---------------------------------------------------------------------------
+# OWL import (OWL 2 Functional-Style Syntax → CLIF → EGI)
+# ---------------------------------------------------------------------------
+
+def from_owl_text(owl_text: str) -> ImportResult:
+    """Import a domain model from OWL 2 functional-syntax text.
+
+    Translates the EG-expressible axioms to CLIF (``tools/owl_to_clif``) and parses
+    that — the OWL→CLIF→EGI pipeline.  Untranslatable constructs (cardinality, union,
+    complement, datatypes, annotations) are recorded as warnings, never silently
+    dropped (the manifest floor).  The generated CLIF is kept on the result so the
+    model composes with CLIF imports.
+    """
+    import sys as _sys
+    _tools = str(Path(__file__).resolve().parent.parent / "tools")
+    if _tools not in _sys.path:
+        _sys.path.insert(0, _tools)
+    from owl_to_clif import translate as _owl_translate
+
+    clif_text, report = _owl_translate(owl_text)
+    egi = parse_clif(clif_text) if clif_text.strip() else parse_clif("(true)")
+
+    warnings = [f"skipped {n}× {construct}"
+                for construct, n in sorted(report.skipped.items())]
+    result = from_clif_text(clif_text) if clif_text.strip() else ImportResult(
+        egi=egi, source_clif=clif_text)
+    result.egi = egi
+    result.source_format = "owl-functional"
+    result.source_clif = clif_text
+    result.num_axioms = report.n_axioms
+    result.num_types = len(report.classes)
+    result.num_relations = len(report.properties)
+    result.num_individuals = len(report.individuals)
+    result.warnings = warnings
+    return result
+
+
+def from_owl_file(path: Union[str, Path]) -> ImportResult:
+    """Import a domain model from a single OWL functional-syntax file (.ofn/.owl)."""
+    path = Path(path)
+    result = from_owl_text(path.read_text(encoding="utf-8"))
+    result.source_path = str(path)
+    return result
+
+
+# ---------------------------------------------------------------------------
 # JSON Type Lattice import
 # ---------------------------------------------------------------------------
 
@@ -419,6 +464,12 @@ class DomainModelImporter:
         self, directory: Union[str, Path], recursive: bool = True
     ) -> ImportResult:
         return from_clif_directory(directory, recursive)
+
+    def from_owl_text(self, owl_text: str) -> ImportResult:
+        return from_owl_text(owl_text)
+
+    def from_owl_file(self, path: Union[str, Path]) -> ImportResult:
+        return from_owl_file(path)
 
     def from_type_lattice(self, path: Union[str, Path]) -> ImportResult:
         return from_type_lattice(path)
