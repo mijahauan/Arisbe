@@ -25,8 +25,9 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 ## ▶ NEXT SESSION — start here
 
 **This session: function-term relationalization + a CLIF universal-quantifier correctness
-fix (parser + generator) + P0 triage of the 7 red layout tests** — all DONE (✅ blocks below;
-the P0 triage outcome is in the Backlog). **▶ Start next session on P1 (Playwright E2E).**
+fix (parser + generator) + P0 (7 red layout tests triaged) + P1 (Playwright E2E)** — all DONE
+(✅ blocks below; P0 detail in the Backlog). **▶ Start next session on P2 (import breadth) or
+a layout follow-up (reader robustness on dense ELK / tension compaction — both in Backlog).**
 
 **P0 — DONE: the 7 pre-existing red layout tests, triaged + resolved** (full detail in the
 Backlog's ✅ P0 entry). None were from the CLIF work or a core fault — §3.3 still attests the
@@ -35,12 +36,20 @@ imported reasoning ontologies (`bfo_core` under ELK; `colore_between`'s ternary 
 clockwise), plus one opt-in-engine compaction regression. Resolved with a documented
 `_reader_frontier` helper (defers exactly the frontier combos, keeps every passing case) and
 one xfail. Two genuine layout follow-ups logged in the Backlog (reader robustness on dense
-ELK; tension compaction). The suite is green again.
+ELK; tension compaction).
 
-**P1 — Playwright E2E over `/agon` interpretation + challenge mode** (the standing companion
-debt, two sessions running): the picker→interpret→theorem flow and freeform challenge
-grading are browser-checked *ad hoc* but not a committed suite. Turn it into a committed E2E
-(skipped if Chromium/Playwright absent, like `test_ergasterion_freeform_e2e.py`).
+**P1 — DONE: Playwright E2E over `/agon` interpretation + challenge mode** (the standing
+companion debt, now committed). Two new headless-Chromium suites (skipped cleanly if
+Playwright/Chromium absent, like `test_ergasterion_freeform_e2e.py`):
+- `tests/test_agon_e2e.py` (4) — the picker→interpret→**theorem** flow driven through the real
+  page: select a persona model → "Does G hold in M?" → verdict (teacher TRUE; student FALSE +
+  named counterexample); a typed rule + "Use rules" → the **"Theorem of M? (deduction)"** block
+  reads TRUE (freeze-a-witness) beside the UNKNOWN open-world peel; "Where does G hold?" → the
+  inverse-pivot holds/partial/independent/contradicts tally.
+- `tests/test_ergasterion_challenge_e2e.py` (2) — freeform **challenge grading**: enter the
+  canvas, pick the one-relation target → prompt + grade enabled; grading an empty canvas shows
+  the **legible diff** (missing the target's relation/individual); drawing `(man "Socrates")`
+  freehand → graded a **match** (`same_graph`). 9/9 E2E green (incl. the 3 prior freeform).
 
 **P2 — import breadth (`cl-imports` auto-resolution).** With function terms now
 importing, the remaining blocker to a *fully cited* function-bearing COLORE corpus UoD
