@@ -380,6 +380,18 @@
             +(mt.derived_facts?'<div style="color:#a6e3a1; margin-top:2px;">facts now: <code>'+esc(mt.materialized_egif)+'</code></div>':'');
           (mt.skipped||[]).forEach(s=>{ h+='<div style="color:#f9e2af; margin-top:2px;">left to the contest game ('+esc(s.reason)+'): <code>'+esc(s.description)+'</code></div>'; });
           h+='</div>'; }
+        // The deduction beside the extensional peel: is G a *theorem* of the theory M?
+        // (freeze a fresh witness, materialize, check the head) — the real answer when
+        // the peel reads vacuously over an empty/sparse A-box (a pure T-box ontology).
+        if(d.theorem){ const tq=d.theorem;
+          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:#181825; border-left:3px solid '+verdictColor(tq.verdict)+'; font-size:11px; color:#cdd6f4;">'
+            +'<strong style="color:#cba6f7;">Theorem of M? (deduction)</strong> '
+            +'<span style="display:inline-block; padding:1px 8px; border-radius:4px; font-weight:700; color:#11111b; background:'+verdictColor(tq.verdict)+';">'+esc(tq.verdict.toUpperCase())+'</span>'
+            +'<div style="color:#6c7086; margin-top:2px;">'+esc(tq.summary)+'</div>'
+            +'<div style="color:#6c7086; margin-top:2px;">freeze a fresh witness: <code>'+esc(tq.body_egif||'')+'</code> ⊢ <code>'+esc(tq.head_egif||'')+'</code></div>'
+            +((tq.derived&&tq.derived.length)?'<div style="color:#a6e3a1; margin-top:2px;">head derived: <code>'+esc(tq.derived.join(' '))+'</code></div>':'')
+            +((tq.missing&&tq.missing.length)?'<div style="color:#f38ba8; margin-top:2px;">head not derivable: <code>'+esc(tq.missing.join(' '))+'</code></div>':'')
+            +'</div>'; }
         h+='<div style="margin:12px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">Moves</div>';
         h+='<pre style="background:#181825; padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:#cdd6f4; margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
         h+='<div style="margin:14px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">What to do with it — the Agonothetes decides (coherent with this verdict highlighted)</div>';

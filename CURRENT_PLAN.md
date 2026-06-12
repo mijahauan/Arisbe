@@ -29,27 +29,30 @@ honestly UNKNOWN.
 EGI; `domain_model_importer.from_owl_*` makes it first-class; an OWL-imported ontology
 decides theorems via this session's `theory_query`.
 
-**Designated next task — pick one:**
-- **Surface the `theorem` verdict in the `/agon` UI.** The route returns it; the
-  frontend (`web_viewer/agon.html`) doesn't yet render it. Small, high-value — makes
-  "is G a theorem of this ontology?" visible beside the extensional peel. Then a browser
-  **Playwright E2E** over the `/agon` interpretation UI + challenge mode (both verified
-  only at serve/route/JS-syntax level so far).
-- **Land a real OWL/COLORE ontology as a corpus UoD** + a **web import-doorway** notation
-  for OWL (today the doorway would flatten a multi-axiom ontology into one "linear form"
-  and lose the skip-report — needs an ontology-aware admit path that preserves it). Layout
-  stays super-linear (keep M as data; draw only the contested fragment —
-  `DOMAIN_ORACLE_AND_M.md` §5).
-- **Close the COLORE gaps** (CLIF import + test-as-M loop now work; hyphen crash fixed
-  2026-06-12): resolve `cl-imports` cross-module URIs (today a no-op — `from_clif_directory`
-  only concatenates a dir); and decide the **identifier policy** — either admit hyphenated
-  names into the EGIF query surface or sanitize at CLIF import (as OWL does), so a relation
-  like `Warm-blooded` is queryable without an alias.
-- **Broaden OWL coverage:** `ObjectUnionOf` / `ObjectAllValuesFrom` in the head (EG-
-  expressible, not Horn → contest game), Manchester syntax, or a Turtle/RDF reader.
-- **Deeper alternative** (push the game itself): the dialogical **contest / automated
-  Grapheus** (the peel supplies the model-respecting reply) + the **warrant lifecycle**
-  (low → tested by surviving Agon).
+**AGREED SEQUENCE (2026-06-12): consolidate & make visible.** Three sessions built
+deep inference power (peel → materialization → theory query → OWL/COLORE import) that is
+still **invisible and browser-unverified**. Make it real and seen — with a real ontology
+as the forcing function — before extending. The steps, in order:
+
+1. **Render the `theorem` verdict in `/agon`.** The route already returns the `theorem`
+   block (is-G-a-theorem-of-M, beside the extensional peel); the frontend
+   (`web_viewer/agon.html`) doesn't show it. Tiny; nothing is visible until this exists.
+   **← start here.**
+2. **Land one real ontology as a corpus UoD** (a real OWL file or a COLORE module), so the
+   `/agon` model picker offers a *real* M, not just toy examples — the persona promise
+   made true in the running app. This is the **forcing function**: fix exactly the
+   robustness gaps it surfaces (most likely the **identifier policy** — sanitize
+   hyphenated names at CLIF/OWL import the way OWL already does — and possibly
+   `cl-imports` resolution), not speculative ones. Keep layout cheap (draw only the
+   contested fragment; M answers as data — `DOMAIN_ORACLE_AND_M.md` §5).
+3. **Playwright E2E** over the `/agon` interpretation UI + challenge mode (standing debt
+   across two sessions; verified only at serve/route/JS-syntax level so far) — now with
+   real content worth exercising.
+
+**Then** (next fork, deferred until the above lands): pivot to **the game itself**
+(automated Grapheus — the peel supplies the model-respecting reply — + the **warrant
+lifecycle**, low → tested by surviving Agon) vs. **import breadth** (`ObjectUnionOf` /
+`ObjectAllValuesFrom` heads → contest game, Manchester syntax, Turtle/RDF).
 
 ---
 
