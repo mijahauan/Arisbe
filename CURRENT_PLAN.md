@@ -11,10 +11,23 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**Designated next task: the semantic-game seam (Agon depth) → wire the Domain
-Oracle.** The freeform arc is closed; the highest-leverage next move is making
-Agon's "test a graph against a model M" real. Sequence (from the 2026-06-11 plan
-review):
+**Designated next task: ontology-as-M** — cash in materialization + the inverse pivot
+on *real ontological data*. The corpus already holds ontology UoDs (Porphyry's Tree,
+a FOAF slice, the SUMO upper spine) whose subsumption axioms are exactly Horn rules.
+The interpretation register + "Use rules" *should already* let one peel/search a
+proposal against them — so step 1 is to **exercise it on those UoDs**, see what
+materialization derives and what it must skip on real T-box axioms, and make the
+persona promise ("a larger ontology is the model your proposal is tested against")
+concretely true. Then extend toward the OWL→CLIF→EGI import pipeline (the bigger
+frontier). **Companion debt to close:** a browser **Playwright E2E** over the new
+`/agon` interpretation UI + challenge mode (both verified only at serve/route/JS-syntax
+level so far). **Deeper alternative** if you'd rather push the game itself: the
+dialogical **contest / automated Grapheus** (the peel now supplies the model-respecting
+reply) + the **warrant lifecycle** (low → tested by surviving Agon).
+
+---
+
+### Done this session (the Agon interpretation arc) — for reference
 
 1. **The semantic-game seam — DONE 2026-06-11** (`src/semantic_game.py`, 17 tests):
    `evaluate(egi, oracle)` reads G outside-in, returns three-valued `Verdict3` +
