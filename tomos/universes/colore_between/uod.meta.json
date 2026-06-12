@@ -1,0 +1,19 @@
+{
+  "uod_id": "colore_between",
+  "uod_type": "standalone",
+  "name": "COLORE betweenness",
+  "description": "The betweenness ontology from COLORE (the Common Logic Ontology Repository, M. Gr\u00fcninger et al., University of Toronto): a ternary between(x,y,z) relation axiomatised by symmetry, identity-of-ends, and two transitivity laws \u2014 the resolved import closure betweenness \u2192 weak_between \u2192 bet. The first corpus ontology imported from a real external CL repository, validating the OWL/CLIF\u2192EGI pipeline on foreign first-order content.",
+  "category": "domain_model",
+  "created": "2026-06-12T00:00:00+00:00",
+  "last_modified": "2026-06-12T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

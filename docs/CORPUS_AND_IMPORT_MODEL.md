@@ -201,6 +201,35 @@ because the **EGIF query surface** rejects hyphenated identifiers, querying a re
 like `Warm-blooded` needs a clean alias until either EGIF admits those names or the CLIF
 importer sanitizes them (as the OWL path already does).
 
+**Validated against the real COLORE repository (2026-06-12).** Pulling actual modules
+from `github.com/gruninger/colore` surfaced — and fixed — what synthetic content hid:
+
+- **The `/* */` header blocked *every* COLORE file.** Each carries a `/* Copyright …
+  University of Toronto **and** others … */` block; the protected CLIF lexer strips only
+  `;;` comments, so "and"/"if"/"not" inside the header tokenised as keywords and broke
+  the parse. Fixed at the importer boundary (`_strip_block_comments` removes `/* */`,
+  leaving `//` alone so `http://` IRIs survive).
+- **Reused bound variables collapsed independent universals — a correctness bug.** A file
+  with many `(forall (x) …)` sentences had every `x` unified by `parse_clif` into one line
+  of identity, turning `(∀x A→B) ∧ (∀x C→D)` into the weaker `∃x (A→B)∧(C→D)` (and a
+  layout catastrophe: one vertex through every scroll). Fixed by **alpha-renaming** all
+  quantified variables to globally-unique names before parsing (`_disambiguate_variables`,
+  applied in `from_clif_text` and `compose_models`) — the CLIF analogue of the OWL
+  translator's per-axiom fresh variables.
+- **`colore_between` landed** (`tools/build_ontologies.py` `colore_between()`): the COLORE
+  *betweenness* ontology — the resolved `cl-imports` closure betweenness → weak_between →
+  bet, verbatim COLORE content (CC BY-SA, attributed) — as a cited `kind=ontology` UoD,
+  selectable in `/agon`. The **first corpus ontology from a real external CL repository**.
+
+What stays a boundary, honestly: COLORE is mostly **non-Horn FOL** (`iff` / `exists`-heads
+/ equality / negated bodies → materialization's skip residue, so a relational theory like
+betweenness forward-chains *nothing* — its reasoning value is in the contest, not the Horn
+closure); it uses **function terms** like `(dmv v m)`, which EGs cannot express (a parse
+error — a real expressiveness boundary, not a bug); and `cl-imports` still needs hand
+resolution. COLORE names are **underscored, not hyphenated**, and underscores round-trip
+through EGIF cleanly — so COLORE does *not* exercise the hyphen fix (that remains pinned by
+the in-repo hyphenated `animal_taxonomy`).
+
 ## 6. Forward edges
 
 - **By-hand import & edit (the reading desk)** — the next big one. So far every

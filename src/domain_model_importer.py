@@ -109,6 +109,101 @@ def _extract_cl_imports(clif_text: str) -> List[str]:
     return imports
 
 
+def _clif_tokenize(s: str) -> List[str]:
+    """Tokens of a CLIF document: parens, ``"…"`` string literals, bare atoms
+    (names, variables, ``=``, and ``http://`` IRIs — all space-free)."""
+    toks: List[str] = []
+    i, n = 0, len(s)
+    while i < n:
+        c = s[i]
+        if c.isspace():
+            i += 1
+        elif c in "()":
+            toks.append(c); i += 1
+        elif c == '"':
+            j = i + 1
+            while j < n and s[j] != '"':
+                j += 2 if s[j] == "\\" else 1
+            toks.append(s[i:j + 1]); i = j + 1
+        else:
+            j = i
+            while j < n and not s[j].isspace() and s[j] not in '()"':
+                j += 1
+            toks.append(s[i:j]); i = j
+    return toks
+
+
+def _clif_read_all(toks: List[str]) -> List[Any]:
+    """Parse CLIF tokens into nested lists (Lisp-style ``(head …)`` forms)."""
+    pos = [0]
+
+    def read() -> Any:
+        t = toks[pos[0]]; pos[0] += 1
+        if t == "(":
+            items: List[Any] = []
+            while pos[0] < len(toks) and toks[pos[0]] != ")":
+                items.append(read())
+            if pos[0] < len(toks):
+                pos[0] += 1  # past ')'
+            return items
+        return t
+
+    forms: List[Any] = []
+    while pos[0] < len(toks):
+        if toks[pos[0]] == ")":
+            pos[0] += 1; continue
+        forms.append(read())
+    return forms
+
+
+def _alpha_rename(node, env: Dict[str, str], counter: List[int]):
+    """Alpha-rename every ``forall``/``exists``-bound variable to a globally unique
+    name, so independent quantified sentences never accidentally share one.
+
+    Without this, ``parse_clif`` unifies same-named bound variables *across*
+    sentences into a single line of identity — turning two independent universals
+    ``(∀x A→B) ∧ (∀x C→D)`` into the weaker ``∃x (A→B)∧(C→D)`` (a **correctness**
+    bug, and a layout catastrophe: one vertex threaded through every scroll).  Real
+    ontologies (COLORE, hand-written CLIF) reuse ``x``/``y``/``z`` constantly.
+    """
+    if isinstance(node, str):
+        return env.get(node, node)
+    if not node:
+        return node
+    head = node[0]
+    if head in ("forall", "exists") and len(node) >= 2 and isinstance(node[1], list):
+        new_env = dict(env)
+        new_binders = []
+        for v in node[1]:
+            if isinstance(v, str):
+                counter[0] += 1
+                nv = f"{v}_{counter[0]}"
+                new_env[v] = nv
+                new_binders.append(nv)
+            else:                       # a typed/structured binder — recurse as-is
+                new_binders.append(_alpha_rename(v, env, counter))
+        return [head, new_binders] + [_alpha_rename(c, new_env, counter)
+                                      for c in node[2:]]
+    return [_alpha_rename(c, env, counter) for c in node]
+
+
+def _clif_serialize(node) -> str:
+    if isinstance(node, str):
+        return node
+    return "(" + " ".join(_clif_serialize(c) for c in node) + ")"
+
+
+def _disambiguate_variables(text: str) -> str:
+    """Rename all quantified variables to globally-unique names (see
+    ``_alpha_rename``).  ``;;`` line comments are dropped first (the structural
+    reader does not model them; block ``/* */`` comments are already stripped)."""
+    import re
+    text = re.sub(r";;[^\n]*", "", text)
+    counter = [0]
+    forms = [_alpha_rename(f, {}, counter) for f in _clif_read_all(_clif_tokenize(text))]
+    return "\n".join(_clif_serialize(f) for f in forms)
+
+
 def _strip_block_comments(text: str) -> str:
     """Remove C-style ``/* … */`` block comments before parsing.
 
@@ -131,7 +226,7 @@ def from_clif_text(clif_text: str) -> ImportResult:
     """
     clif_text = _strip_block_comments(clif_text)
     cl_imports = _extract_cl_imports(clif_text)
-    egi = parse_clif(clif_text)
+    egi = parse_clif(_disambiguate_variables(clif_text))
 
     # Count elements
     num_types = len({name for name in egi.rel.values()})
@@ -407,7 +502,10 @@ def compose_models(*results: ImportResult) -> ImportResult:
             clif_parts.append(r.source_clif)
 
     combined_clif = "\n\n".join(clif_parts)
-    egi = parse_clif(combined_clif) if combined_clif.strip() else create_empty_graph()
+    # Re-disambiguate the *combined* text: each part was numbered from zero, so two
+    # parts could still share a variable name across the join (re-collapsing).
+    egi = (parse_clif(_disambiguate_variables(combined_clif))
+           if combined_clif.strip() else create_empty_graph())
 
     sources = [r.source_path or "(in-memory)" for r in results]
 

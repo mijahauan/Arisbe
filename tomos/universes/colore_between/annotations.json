@@ -1,0 +1,37 @@
+{
+  "annotations": [
+    {
+      "id": "ann_293ec875",
+      "scope": "uod",
+      "text": "COLORE betweenness \u2014 the first corpus ontology imported from a real external Common Logic repository (Gr\u00fcninger's COLORE). A ternary between(x,y,z) with symmetry between(x,y,z)\u2192between(z,y,x), identity-of-ends, and transitivity. Proof that the CLIF\u2192EGI pipeline reads genuinely foreign first-order ontologies, not only Arisbe-authored ones.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "ontology",
+        "cited",
+        "colore",
+        "common-logic",
+        "betweenness"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_781f912e",
+      "scope": "uod",
+      "text": "Imported from corpus/ontologies/colore_between.clif (verbatim COLORE content, CC BY-SA 4.0). 0 facts; 4 Horn rules \u2192 +0 derived; 1 rule left to the contest game. This is a **relational FOL** theory \u2014 its axioms use equality and negation in bodies/heads, so materialization leaves them to the contest/deduction game (no A-box to forward-chain); the honest reasoning value is in the contest, not the Horn closure. The cl-imports chain was resolved by hand (auto-resolution is not yet built); COLORE function-term modules are out of scope (EGs are relational).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "provenance",
+        "clif-import",
+        "honest-partial-import",
+        "non-horn-residue"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

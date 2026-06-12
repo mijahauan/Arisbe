@@ -52,6 +52,38 @@ lifecycle**, low → tested by surviving Agon) vs. **import breadth** (`ObjectUn
 
 ---
 
+## ✅ DONE 2026-06-12 — COLORE validation + `colore_between` landed
+
+Validated the pipeline against the **real COLORE repository**
+(`github.com/gruninger/colore`) — which immediately surfaced and fixed two genuine bugs
+that synthetic content had hidden, and landed the first corpus ontology from an external
+CL repository.
+
+- **`/* */` header bug (fixed).** Every COLORE file carries a `/* Copyright … University
+  of Toronto **and** others … */` block; the protected CLIF lexer strips only `;;`, so
+  "and"/"if"/"not" inside the header tokenised as keywords and broke the parse — *no real
+  COLORE file could be read*. `from_clif_text` now strips `/* */` blocks (leaving `//` for
+  `http://` IRIs).
+- **Variable-collapse bug (fixed — a correctness bug).** Many `(forall (x) …)` sentences
+  reusing `x` had every `x` unified by `parse_clif` into one line of identity, turning
+  `(∀x A→B) ∧ (∀x C→D)` into the weaker `∃x (A→B)∧(C→D)` (+ a layout blowup). Fixed by
+  **alpha-renaming** all quantified variables globally-unique before parse
+  (`_disambiguate_variables`, in `from_clif_text` + `compose_models`) — the CLIF analogue
+  of the OWL translator's per-axiom fresh variables.
+- **`colore_between` landed.** The COLORE *betweenness* ontology (resolved `cl-imports`
+  closure, verbatim CC-BY-SA content attributed) as a cited `kind=ontology` UoD, in the
+  `/agon` picker. Corpus = 25.
+
+Honest boundaries confirmed (not bugs): COLORE is mostly **non-Horn FOL** (materialization
+skips it — betweenness forward-chains nothing, its value is the contest); **function terms**
+`(dmv v m)` aren't EG-expressible (parse error — a real expressiveness boundary);
+`cl-imports` still needs hand resolution; and COLORE uses **underscores** (which round-trip
+in EGIF), so it doesn't exercise the hyphen fix — that stays pinned by the in-repo
+hyphenated `animal_taxonomy`. (I was also wrong earlier that there was "no internet" —
+`WebFetch`/`WebSearch` and Bash all reach the network.)
+
+---
+
 ## ✅ DONE 2026-06-12 — consolidate & make visible (steps 1–2)
 
 **Step 1 — the `theorem` verdict is visible in `/agon`.** `renderInterpretation`

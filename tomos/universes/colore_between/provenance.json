@@ -1,0 +1,32 @@
+{
+  "theorem_source": {
+    "type": "webpage",
+    "author": "Gr\u00fcninger, Michael and others",
+    "title": "COLORE: Common Logic Ontology Repository \u2014 betweenness",
+    "publisher": "University of Toronto",
+    "url": "https://github.com/gruninger/colore/tree/master/ontologies/between",
+    "note": "Common Logic (ISO 24707), CC BY-SA 4.0; cl-imports closure betweenness \u2192 weak_between \u2192 bet"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected",
+      "note": "existential-graph notation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "ontology",
+  "formatted": {
+    "theorem": "Gr\u00fcninger, Michael and others. COLORE: Common Logic Ontology Repository \u2014 betweenness",
+    "proof": "",
+    "methods": [
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

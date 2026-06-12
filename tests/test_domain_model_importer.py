@@ -148,6 +148,18 @@ class TestCLIFImport:
         # the http:// in the cl-imports IRI must NOT be mistaken for a comment
         assert "http://colore.oor.net/x/base.clif" in result.cl_imports
 
+    def test_reused_variable_names_do_not_collapse_independent_universals(self):
+        # Two independent universals that both happen to use `x`.  Without
+        # alpha-renaming, parse_clif unifies the two `x`s into one line of identity
+        # — turning (∀x A→B) ∧ (∀x C→D) into the weaker ∃x (A→B)∧(C→D).  Each must
+        # keep its own line.
+        result = from_clif_text(
+            "(forall (x) (if (A x) (B x))) (forall (x) (if (C x) (D x)))")
+        # two distinct lines of identity, not one shared existential
+        assert len(result.egi.V) == 2
+        # neither universal binds an outer (sheet-level) vertex
+        assert not [v for v in result.egi.V if v.id in result.egi.area[result.egi.sheet]]
+
 
 # ---------------------------------------------------------------------------
 # JSON type lattice import

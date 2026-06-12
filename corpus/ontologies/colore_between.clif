@@ -1,0 +1,85 @@
+/*******************************************************************************
+ * COLORE "between" ontology — the resolved cl-imports closure
+ * (betweenness -> weak_between -> bet), assembled for Arisbe as a single
+ * self-contained Common Logic source.  Content is verbatim from the COLORE
+ * repository (github.com/gruninger/colore, ontologies/between/), (c) University
+ * of Toronto and others, CC BY-SA 4.0 (each module's original header retained
+ * below).  Arisbe resolves the import chain by hand because cl-imports is not
+ * yet auto-resolved; the axioms are unchanged.
+ *******************************************************************************/
+
+;; ===== betweenness.clif =====
+/*******************************************************************************
+ * Copyright (c) University of Toronto and others. All rights reserved.
+ * The content of this file is licensed under the Creative Commons Attribution-
+ * ShareAlike 4.0 Unported license. The legal text of this license can be
+ * found at http://creativecommons.org/licenses/by-sa/4.0/legalcode.
+ *
+ * Contributors:
+ *    Michael Gruninger - initial implementation
+ *******************************************************************************/
+
+
+(cl-text http://colore.oor.net/between/betweenness.clif
+
+(forall (x y z)
+	(if	(between x y z)
+		(between z y x)))
+
+(forall (x y z)
+	(if	(and	(between x y z)
+			(between y x z))
+		(= x y)))
+
+)
+
+;; ===== weak_between.clif =====
+/*******************************************************************************
+ * Copyright (c) University of Toronto and others. All rights reserved.
+ * The content of this file is licensed under the Creative Commons Attribution-
+ * ShareAlike 4.0 Unported license. The legal text of this license can be
+ * found at http://creativecommons.org/licenses/by-sa/4.0/legalcode.
+ *
+ * Contributors:
+ *    Michael Gruninger - initial implementation
+ *******************************************************************************/
+
+(cl-text http://colore.oor.net/between/weak_between.clif
+
+(cl-imports http://colore.oor.net/between/betweenness.clif)
+
+(forall (x y)
+	(if	(between x y x)
+		(= x y)))
+
+)
+
+;; ===== bet.clif =====
+/*******************************************************************************
+ * Copyright (c) University of Toronto and others. All rights reserved.
+ * The content of this file is licensed under the Creative Commons Attribution-
+ * ShareAlike 4.0 Unported license. The legal text of this license can be
+ * found at http://creativecommons.org/licenses/by-sa/4.0/legalcode.
+ *
+ * Contributors:
+ *    Michael Gruninger - initial implementation
+ *******************************************************************************/
+
+
+(cl-text http://colore.oor.net/between/bet.clif
+
+(cl-imports http://colore.oor.net/between/weak_between.clif)
+
+(forall (x y z w)
+        (if     (and    (between x y z)
+			(not (= y z))
+                        (between y z w))
+                (between x y w)))
+
+(forall (x y z w)
+        (if     (and    (between x y w)
+                        (between y z w))
+                (between x y z)))
+
+)
+

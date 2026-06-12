@@ -48,6 +48,8 @@ _WHEN = datetime(2026, 6, 8, tzinfo=timezone.utc)
 _WHEN_BFO = datetime(2026, 6, 12, tzinfo=timezone.utc)
 _SUMO = Path(__file__).resolve().parent.parent / "docs" / "references" / "SUMO1.2.txt"
 _BFO = Path(__file__).resolve().parent.parent / "corpus" / "ontologies" / "bfo_core.ofn"
+_COLORE_BETWEEN = (Path(__file__).resolve().parent.parent / "corpus" / "ontologies"
+                   / "colore_between.clif")
 
 
 def _uod(uod_id: str, name: str, description: str, egif: str) -> UniverseOfDiscourse:
@@ -265,8 +267,75 @@ def bfo():
     return uod, prov, anns
 
 
+# --------------------------------------------------------------------------- #
+# COLORE "between" — imported from a real Common Logic Ontology Repository file #
+# --------------------------------------------------------------------------- #
+
+def colore_between():
+    """The COLORE *betweenness* ontology, imported from real Common Logic.
+
+    The first corpus UoD drawn from an external CL ontology repository (COLORE,
+    github.com/gruninger/colore).  Validates the whole CLIF→EGI path on genuinely
+    foreign content; the cl-imports closure (betweenness → weak_between → bet) is
+    resolved by hand into one self-contained source."""
+    from domain_model_importer import from_clif_file
+    from model_materialization import materialize_egi
+
+    result = from_clif_file(_COLORE_BETWEEN)
+    g = result.egi
+    facts, rep = materialize_egi(g)  # honest report: a relational FOL theory
+    meta = UoDMetadata(
+        uod_id="colore_between", uod_type=UoDType.STANDALONE,
+        name="COLORE betweenness",
+        description=(
+            "The betweenness ontology from COLORE (the Common Logic Ontology "
+            "Repository, M. Grüninger et al., University of Toronto): a ternary "
+            "between(x,y,z) relation axiomatised by symmetry, identity-of-ends, and "
+            "two transitivity laws — the resolved import closure betweenness → "
+            "weak_between → bet. The first corpus ontology imported from a real "
+            "external CL repository, validating the OWL/CLIF→EGI pipeline on foreign "
+            "first-order content."),
+        category=UoDCategory.DOMAIN_MODEL, created=_WHEN_BFO, last_modified=_WHEN_BFO,
+    )
+    uod = UniverseOfDiscourse(metadata=meta, current_egi=g)
+    prov = make_provenance(
+        theorem_source={"type": "webpage",
+                        "author": "Grüninger, Michael and others",
+                        "title": "COLORE: Common Logic Ontology Repository — "
+                                 "betweenness",
+                        "publisher": "University of Toronto",
+                        "url": "https://github.com/gruninger/colore/tree/master/"
+                               "ontologies/between",
+                        "note": "Common Logic (ISO 24707), CC BY-SA 4.0; cl-imports "
+                                "closure betweenness → weak_between → bet"},
+        method_sources=[
+            {"type": "book", "author": "Peirce, Charles Sanders",
+             "title": "Collected Papers", "bibkey": "peirce1931collected",
+             "note": "existential-graph notation"},
+        ],
+        kind=KIND_ONTOLOGY,
+    )
+    anns = _anns(
+        ("COLORE betweenness — the first corpus ontology imported from a real "
+         "external Common Logic repository (Grüninger's COLORE). A ternary "
+         "between(x,y,z) with symmetry between(x,y,z)→between(z,y,x), "
+         "identity-of-ends, and transitivity. Proof that the CLIF→EGI pipeline reads "
+         "genuinely foreign first-order ontologies, not only Arisbe-authored ones.",
+         ["ontology", "cited", "colore", "common-logic", "betweenness"]),
+        (f"Imported from corpus/ontologies/colore_between.clif (verbatim COLORE "
+         f"content, CC BY-SA 4.0). {rep.summary}. This is a **relational FOL** theory "
+         f"— its axioms use equality and negation in bodies/heads, so materialization "
+         f"leaves them to the contest/deduction game (no A-box to forward-chain); the "
+         f"honest reasoning value is in the contest, not the Horn closure. The "
+         f"cl-imports chain was resolved by hand (auto-resolution is not yet built); "
+         f"COLORE function-term modules are out of scope (EGs are relational).",
+         ["provenance", "clif-import", "honest-partial-import", "non-horn-residue"]),
+    )
+    return uod, prov, anns
+
+
 def build_all() -> List[Tuple]:
-    return [porphyry(), foaf(), sumo(), bfo()]
+    return [porphyry(), foaf(), sumo(), bfo(), colore_between()]
 
 
 def main(argv=None) -> int:
