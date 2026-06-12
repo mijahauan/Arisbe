@@ -1,19 +1,21 @@
 # Current Plan
 
-**Last Updated**: 2026-06-12 (session end) — this session: **function terms relationalise
-on import** (`_relationalize_functions` in `domain_model_importer`) so the function-bearing
-COLORE modules (the majority) import — `(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧
-density(z))`, validated on the real COLORE `density.clif`; **plus a CLIF
-universal-quantifier correctness fix** the relationalization exposed — a
-mutually-compensating parser+generator pair where a positive-body `(forall (x) (P x))`
-collapsed to `∃` and the generator blanket-labelled everything `forall` (authorized core
-change; both fixed, round-trips now honest). Prior sessions: the **T-box theorem query**
+**Last Updated**: 2026-06-12 (session end) — this session: **P2 — `cl-imports`
+auto-resolution** (`src/cl_import_resolver.py`): a Common-Logic module's import closure is
+resolved automatically (pluggable Mapping/Directory/ColoreWeb/Caching/Chain resolvers; BFS
+dedupe; unresolved reported), wired into `from_clif_text/from_clif_file`. Landed
+**`colore_field`** — the COLORE field algebra (4-module auto-resolved closure, nested
+function terms relationalised), the first machine-resolved corpus ontology, drawn +
+§3.3-attested (28 cuts); the 130-cut density closure is vendored + imports as data but stays
+undrawn (layout-perf frontier). Prior sessions: **function terms relationalise on import**
+(`(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧ density(z))`) + a **CLIF universal-quantifier
+correctness fix** (parser+generator); the **T-box theorem query**
 (`theory_query.entails`, freeze-a-witness), the **OWL→CLIF→EGI pipeline** (`owl_to_clif`),
 two real ontologies landed (`bfo_core` BFO + `colore_between` from the real COLORE repo),
 the `theorem` verdict **visible in `/agon`**, and a clutch of import fixes (CLIF `/* */`
-comments, alpha-renaming reused variables, M-as-data non-attesting load). **▶ Next session:
-P0 triage the 7 pre-existing red layout tests, then Playwright E2E** over `/agon`
-interpretation + challenge mode — see ▶ NEXT SESSION. Prior: the **freeform composition arc is COMPLETE** (steps
+comments, alpha-renaming reused variables, M-as-data non-attesting load), and P0/P1 (the 7
+red layout tests triaged + Playwright E2E over `/agon` + challenge mode). **▶ Next session:
+see ▶ NEXT SESSION** below for the open forks. Prior: the **freeform composition arc is COMPLETE** (steps
 1–4: fix-time validity → draw-then-read canvas → legible EGI diff → **challenge
 mode**). Also this session: the **persona narrative** (`docs/ARISBE_PERSONAS.md`)
 and the **Domain Oracle** for Agon's model M (`docs/DOMAIN_ORACLE_AND_M.md`, step 1
@@ -24,12 +26,23 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**This session: function-term relationalization + a CLIF universal-quantifier correctness
+**This session: P2 — `cl-imports` auto-resolution** — DONE (✅ block below). The
+closure resolver (`src/cl_import_resolver.py`) auto-resolves a Common-Logic module's
+`cl-imports` chain (pluggable Mapping/Directory/ColoreWeb/Caching/Chain resolvers; BFS
+dedupe; unresolved reported, never dropped), wired into `from_clif_text/from_clif_file`.
+Landed **`colore_field`** — the COLORE real-number field algebra (4-module auto-resolved
+closure `field → commutative_ring → ring → semiring`, nested function terms relationalised),
+a drawn §3.3-attested corpus UoD (28 cuts). The fuller density closure (7 modules, 130 cuts)
+is **vendored** (`corpus/ontologies/colore_cache/`) + imports as data, but stays undrawn at
+the layout-perf frontier (like `bfo_core`). **▶ DESIGNATED NEXT TASK:** pick from the
+remaining P2 queue (`ObjectUnionOf`/`AllValuesFrom` heads → contest game; Manchester /
+Turtle / RDF), the two layout follow-ups (reader robustness on dense ELK / tension
+compaction — both in Backlog), or the next fork below (dialogical contest / automated
+Grapheus + the warrant lifecycle).
+
+**Prior session: function-term relationalization + a CLIF universal-quantifier correctness
 fix (parser + generator) + P0 (7 red layout tests triaged) + P1 (Playwright E2E)** — all DONE
-(✅ blocks below; P0 detail in the Backlog). **▶ DESIGNATED NEXT TASK: P2 — import breadth
-(`cl-imports` auto-resolution)**, to land a fully-cited function-bearing COLORE corpus UoD
-(`density` and the rest), see P2 below. The two layout follow-ups (reader robustness on dense
-ELK / tension compaction — both in Backlog) remain available if preferred.
+(✅ blocks below; P0 detail in the Backlog).
 
 **P0 — DONE: the 7 pre-existing red layout tests, triaged + resolved** (full detail in the
 Backlog's ✅ P0 entry). None were from the CLIF work or a core fault — §3.3 still attests the
@@ -53,16 +66,56 @@ Playwright/Chromium absent, like `test_ergasterion_freeform_e2e.py`):
   the **legible diff** (missing the target's relation/individual); drawing `(man "Socrates")`
   freehand → graded a **match** (`same_graph`). 9/9 E2E green (incl. the 3 prior freeform).
 
-**P2 — import breadth (`cl-imports` auto-resolution).** With function terms now
-importing, the remaining blocker to a *fully cited* function-bearing COLORE corpus UoD
-(the `colore_between` treatment for, say, `density`) is closure resolution — `density`
-imports `amount` → `field` (the real-number field axioms). An auto-resolver that fetches /
-locates and conjuncts the `cl-imports` closure would unblock landing those modules cited.
-Also queued here: `ObjectUnionOf`/`AllValuesFrom` heads → contest game; Manchester / Turtle
-/ RDF.
+**P2 — import breadth (`cl-imports` auto-resolution).** DONE — the auto-resolver landed
+`colore_field` cited (✅ block below). Still queued under this heading:
+`ObjectUnionOf`/`AllValuesFrom` heads → contest game; Manchester / Turtle / RDF.
 
 **Then** (next fork): the dialogical **contest / automated Grapheus** (the peel supplies
 the model-respecting reply) + the **warrant lifecycle** (low → tested by surviving Agon).
+
+---
+
+## ✅ DONE 2026-06-12 — P2: `cl-imports` auto-resolution + `colore_field` landed
+
+Where `colore_between` had its import chain resolved **by hand**, a Common-Logic module's
+`cl-imports` closure is now resolved **automatically**, and the first machine-resolved
+ontology landed in the corpus.
+
+- **`src/cl_import_resolver.py`** — the closure walk + pluggable resolution.
+  `resolve_from_text` / `resolve_from_iri` do a BFS over the `(cl-imports …)` graph
+  (dedupe by IRI — a diamond import contributes once; cycle-safe), conjuncting each
+  module's **verbatim** text under `;; ===== <iri> =====` headers into one self-contained
+  source that feeds the existing `from_clif_text` pipeline (the now-satisfied `cl-imports`
+  directives stay as harmless parser no-ops). Unresolved IRIs are **reported** on the
+  closure (`ResolvedClosure.unresolved` + a `UNRESOLVED:` line), never silently dropped.
+  Resolvers: `MappingResolver` (pure dict — the offline test backend), `DirectoryResolver`
+  (IRI path under a base dir), `ColoreWebResolver` (raw-GitHub fetch, certifi-verified SSL,
+  opt-in), `CachingResolver` (remote → persists a local mirror), `ChainResolver`.
+- **Wired** into `from_clif_text(…, resolver=…)` / `from_clif_file(…, resolver=…)` (result
+  carries `resolved_modules` + `unresolved_imports`; no resolver ⇒ unchanged behaviour).
+- **COLORE wrinkle fixed at the same boundary:** the ringoid files carry `(cl-comment '…')`
+  whose **single-quoted** strings contain parens (`'Annihilation by zero (entailed for
+  rings)'`); `_clif_tokenize` now reads `'…'` as one literal and `_strip_cl_comments` drops
+  the (logically-empty) annotations before parsing — like `_strip_block_comments`.
+- **`colore_field` landed** (`tools/build_ontologies.py`): the COLORE real-number field
+  algebra `field → commutative_ring → ring → semiring` (4 modules auto-resolved),
+  **heavily function-bearing** — the ring axioms use nested function terms
+  `(= (sum (sum x y) z) (sum x (sum y z)))`, each relationalised on import — drawn and
+  §3.3-attested at the save boundary (V59 E46 **Cut28**, ~2.6 s; the stronger eg_reader
+  round-trip passes, no `_reader_frontier` deferral). Cited (COLORE / Grüninger, CC BY-SA
+  4.0), in the `/agon` picker. Corpus = 26 (6 ontologies).
+- **Density stays data.** The full `density → amount, spatial_volume → ringoids` closure
+  (7 modules, **130 cuts**) is **vendored** in `corpus/ontologies/colore_cache/` (each file
+  verbatim with its CC-BY-SA header; a README documents provenance) and imports fine, but
+  is *not* stored as a drawn UoD — a 130-cut relational theory is super-linear to lay out at
+  the §3.3 save boundary (the layout-perf frontier, as with `bfo_core`; *M is data, draw
+  only the contested fragment*).
+- **Tests:** `tests/test_cl_import_resolver.py` (22 — closure dedupe / cycle-safety /
+  unresolved-reporting; Directory/Caching/Chain on a tmp dir; end-to-end through the
+  importer; one **live-network** test that actually runs when COLORE is reachable). No
+  regressions across import / ontology / agon / materialization / theory-query / corpus-
+  conformance / eg_reader / organon (`colore_field` added to the conformance `CITED` set).
+  Doc: `docs/CORPUS_AND_IMPORT_MODEL.md` §5.3.
 
 ---
 

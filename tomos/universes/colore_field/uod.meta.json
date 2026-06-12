@@ -1,0 +1,19 @@
+{
+  "uod_id": "colore_field",
+  "uod_type": "standalone",
+  "name": "COLORE field algebra",
+  "description": "The real-number field algebra from COLORE (the Common Logic Ontology Repository, M. Gr\u00fcninger et al., University of Toronto): the ringoid tower field \u2283 commutative_ring \u2283 ring \u2283 semiring, with sum and prod axiomatised by associativity, commutativity, distributivity, identity and inverse. Imported through automatic cl-imports closure resolution (field \u2192 commutative_ring \u2192 ring \u2192 semiring) with the ring axioms' nested function terms relationalised on import \u2014 the first corpus UoD whose import chain was resolved by the machine, not by hand.",
+  "category": "domain_model",
+  "created": "2026-06-12T00:00:00+00:00",
+  "last_modified": "2026-06-12T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

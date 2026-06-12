@@ -42,6 +42,11 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 from frozendict import frozendict
 
 from clif_parser_dau import parse_clif
+from cl_import_resolver import (
+    ImportResolver,
+    extract_imports,
+    resolve_from_text,
+)
 from egi_core_dau import (
     AlphabetDAU,
     Cut,
@@ -82,6 +87,8 @@ class ImportResult:
     num_individuals: int = 0
     warnings: List[str] = field(default_factory=list)
     cl_imports: List[str] = field(default_factory=list)
+    resolved_modules: List[str] = field(default_factory=list)
+    unresolved_imports: List[str] = field(default_factory=list)
 
     @property
     def summary(self) -> str:
@@ -101,17 +108,20 @@ class ImportResult:
 # ---------------------------------------------------------------------------
 
 def _extract_cl_imports(clif_text: str) -> List[str]:
-    """Extract cl-imports URIs from CLIF text without parsing."""
-    imports = []
-    import re
-    for match in re.finditer(r'\(cl-imports\s+([^\s)]+)\s*\)', clif_text):
-        imports.append(match.group(1))
-    return imports
+    """Extract cl-imports URIs from CLIF text without parsing (shared with the
+    closure resolver, ``cl_import_resolver.extract_imports``)."""
+    return extract_imports(clif_text)
 
 
 def _clif_tokenize(s: str) -> List[str]:
-    """Tokens of a CLIF document: parens, ``"…"`` string literals, bare atoms
-    (names, variables, ``=``, and ``http://`` IRIs — all space-free)."""
+    """Tokens of a CLIF document: parens, ``"…"`` / ``'…'`` string literals, bare
+    atoms (names, variables, ``=``, and ``http://`` IRIs — all space-free).
+
+    Single-quoted strings (``'…'``) are Common Logic enclosed-name/quoted text;
+    COLORE uses them for ``cl-comment`` bodies that contain spaces and parens
+    (e.g. ``'Annihilation by zero (entailed for rings)'``).  Keeping the whole
+    literal as one token is what lets ``_strip_cl_comments`` drop those forms
+    cleanly instead of the parens inside them derailing the reader."""
     toks: List[str] = []
     i, n = 0, len(s)
     while i < n:
@@ -120,9 +130,10 @@ def _clif_tokenize(s: str) -> List[str]:
             i += 1
         elif c in "()":
             toks.append(c); i += 1
-        elif c == '"':
+        elif c in "\"'":
+            quote = c
             j = i + 1
-            while j < n and s[j] != '"':
+            while j < n and s[j] != quote:
                 j += 2 if s[j] == "\\" else 1
             toks.append(s[i:j + 1]); i = j + 1
         else:
@@ -305,6 +316,31 @@ def _functionality_axioms(sigs: Set[Tuple[str, int]]) -> List[str]:
     return lines
 
 
+_CL_COMMENT_HEADS = {"cl-comment", "cl:comment"}
+
+
+def _strip_cl_comments(node):
+    """Drop ``(cl-comment <string> …)`` annotations, recursively.
+
+    The protected CLIF parser has no ``cl-comment`` form, so a comment string
+    that contains parens (COLORE: ``(cl-comment 'Annihilation by zero (entailed
+    for rings)')``) would derail it.  Common Logic's ``cl-comment`` carries no
+    logical content — it annotates an optional trailing phrase — so we remove the
+    comment node, keeping any annotated phrase (``(cl-comment "note" φ)`` → ``φ``)
+    and dropping a bare comment entirely.  Done here at the importer boundary,
+    like ``_strip_block_comments``."""
+    if isinstance(node, str) or not node:
+        return node
+    out = []
+    for c in node:
+        if isinstance(c, list) and c and c[0] in _CL_COMMENT_HEADS:
+            # keep the annotated phrase (child[2:]), drop the comment string
+            out.extend(_strip_cl_comments(g) for g in c[2:])
+        else:
+            out.append(_strip_cl_comments(c))
+    return out
+
+
 def _relationalize_functions(
     text: str,
     *,
@@ -322,8 +358,10 @@ def _relationalize_functions(
     text = re.sub(r";;[^\n]*", "", text)
     counter = [0]
     sigs: Set[Tuple[str, int]] = set()
-    forms = [_relationalize_node(f, sigs, counter)
-             for f in _clif_read_all(_clif_tokenize(text))]
+    # Strip cl-comment forms first (a synthetic root carries the top level so a
+    # comment that *is* a top-level form is dropped too), then relationalize.
+    forms = _strip_cl_comments(["__root__"] + _clif_read_all(_clif_tokenize(text)))[1:]
+    forms = [_relationalize_node(f, sigs, counter) for f in forms]
     out = [_clif_serialize(f) for f in forms]
     if sigs_out is not None:
         sigs_out.update(sigs)
@@ -346,7 +384,13 @@ def _strip_block_comments(text: str) -> str:
     return re.sub(r"/\*.*?\*/", "", text, flags=re.S)
 
 
-def from_clif_text(clif_text: str, *, assert_functionality: bool = False) -> ImportResult:
+def from_clif_text(
+    clif_text: str,
+    *,
+    assert_functionality: bool = False,
+    resolver: Optional[ImportResolver] = None,
+    root_iri: Optional[str] = None,
+) -> ImportResult:
     """Import a domain model from a CLIF text string.
 
     Handles single sentences, multiple sentences, cl-text wrappers,
@@ -355,7 +399,22 @@ def from_clif_text(clif_text: str, *, assert_functionality: bool = False) -> Imp
     (lifted to their graph relation ``R_f``) so function-bearing ontologies
     (most of COLORE) import; pass ``assert_functionality`` to also emit the
     (non-Horn) totality + uniqueness axioms.
+
+    When ``resolver`` is given, the module's ``(cl-imports <iri>)`` closure is
+    resolved first (``cl_import_resolver``): every transitively-imported module is
+    fetched/located, deduped, and conjuncted on the sheet before parsing, so an
+    ontology that *imports* its dependencies (most of COLORE) imports complete.
+    Unresolved IRIs are recorded on the result, never silently dropped.
     """
+    resolved_modules: List[str] = []
+    unresolved_imports: List[str] = []
+    if resolver is not None:
+        closure = resolve_from_text(
+            clif_text, resolver, root_iri=root_iri or "(root)")
+        clif_text = closure.combined_clif
+        resolved_modules = closure.resolved_iris
+        unresolved_imports = list(closure.unresolved)
+
     clif_text = _strip_block_comments(clif_text)
     cl_imports = _extract_cl_imports(clif_text)
     clif_text = _relationalize_functions(
@@ -379,14 +438,26 @@ def from_clif_text(clif_text: str, *, assert_functionality: bool = False) -> Imp
         num_relations=num_relations,
         num_individuals=num_individuals,
         cl_imports=cl_imports,
+        resolved_modules=resolved_modules,
+        unresolved_imports=unresolved_imports,
     )
 
 
-def from_clif_file(path: Union[str, Path]) -> ImportResult:
-    """Import a domain model from a single CLIF file."""
+def from_clif_file(
+    path: Union[str, Path],
+    *,
+    resolver: Optional[ImportResolver] = None,
+    root_iri: Optional[str] = None,
+) -> ImportResult:
+    """Import a domain model from a single CLIF file.
+
+    Pass ``resolver`` to auto-resolve the file's ``cl-imports`` closure (see
+    ``from_clif_text``); ``root_iri`` names the file's own IRI for the closure
+    headers (defaults to the path)."""
     path = Path(path)
     clif_text = path.read_text(encoding="utf-8")
-    result = from_clif_text(clif_text)
+    result = from_clif_text(
+        clif_text, resolver=resolver, root_iri=root_iri or str(path))
     result.source_path = str(path)
     return result
 

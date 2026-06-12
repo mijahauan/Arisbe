@@ -39,9 +39,11 @@ CITED = {
     "theorem_praeclarum",
     # imported ontologies (kind=ontology) — each cites its source vocabulary
     "porphyry_tree", "foaf_core", "sumo_upper", "bfo_core", "colore_between",
+    "colore_field",
 }
 # Imported ontologies (kind=ontology).
-ONTOLOGIES = {"porphyry_tree", "foaf_core", "sumo_upper", "bfo_core", "colore_between"}
+ONTOLOGIES = {"porphyry_tree", "foaf_core", "sumo_upper", "bfo_core",
+              "colore_between", "colore_field"}
 # The worked-proof fixtures (each carries a real chain).
 PROOFS = {"peirce_law", "barbara", "group_identity", "theorem_praeclarum"}
 

@@ -1,0 +1,32 @@
+{
+  "theorem_source": {
+    "type": "webpage",
+    "author": "Gr\u00fcninger, Michael and others",
+    "title": "COLORE: Common Logic Ontology Repository \u2014 ringoids / field",
+    "publisher": "University of Toronto",
+    "url": "https://github.com/gruninger/colore/tree/master/ontologies/ringoids",
+    "note": "Common Logic (ISO 24707), CC BY-SA 4.0; cl-imports closure field \u2192 commutative_ring \u2192 ring \u2192 semiring, auto-resolved + function terms relationalised"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected",
+      "note": "existential-graph notation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "ontology",
+  "formatted": {
+    "theorem": "Gr\u00fcninger, Michael and others. COLORE: Common Logic Ontology Repository \u2014 ringoids / field",
+    "proof": "",
+    "methods": [
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "annotations": [
+    {
+      "id": "ann_6fbad6fe",
+      "scope": "uod",
+      "text": "COLORE field algebra \u2014 the ringoid tower (field \u2283 commutative_ring \u2283 ring \u2283 semiring) as an EG theory. The first corpus ontology whose cl-imports chain was resolved **automatically** (the resolver fetched and conjuncted the closure), and a heavily function-bearing one: the ring axioms use nested function terms like (= (sum (sum x y) z) (sum x (sum y z))), each relationalised to its graph relation on import. Proof that import breadth \u2014 closure resolution + function relationalisation \u2014 carries a real foreign algebra into the corpus.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "ontology",
+        "cited",
+        "colore",
+        "common-logic",
+        "cl-imports",
+        "algebra"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_a41fa12e",
+      "scope": "uod",
+      "text": "Imported from corpus/ontologies/colore_cache/ (verbatim COLORE content, CC BY-SA 4.0) through automatic cl-imports resolution \u2014 closure: ringoids/field.clif, ringoids/commutative_ring.clif, ringoids/ring.clif, ringoids/semiring.clif. A **relational FOL** theory using equality throughout (totality/uniqueness of the functions left to the contest game; materialization forward-chains nothing). The fuller density closure (density \u2192 amount/spatial_volume \u2192 ringoids, 130 cuts) is cached beside this as the source of record but imported as *data*, not stored as a drawn UoD \u2014 a 130-cut relational theory is super-linear to lay out at the \u00a73.3 save boundary (the layout-perf frontier, as with bfo_core's full axiomatisation; M is data, draw only the contested fragment).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "provenance",
+        "clif-import",
+        "cl-imports-auto-resolved",
+        "non-horn-residue"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

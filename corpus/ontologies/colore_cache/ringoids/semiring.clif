@@ -1,0 +1,76 @@
+/*******************************************************************************
+ * Copyright (c) University of Toronto and others. All rights reserved.
+ * The content of this file is licensed under the Creative Commons Attribution-
+ * ShareAlike 4.0 Unported license. The legal text of this license can be
+ * found at http://creativecommons.org/licenses/by-sa/4.0/legalcode.
+ *
+ * Contributors:
+ *    Michael Gruninger - initial implementation
+ *******************************************************************************/
+
+(cl-text http://colore.oor.net/ringoids/semiring.clif
+
+(cl-comment 'Associativity of sum')
+
+(forall (x y z)
+	(= (sum (sum x y) z) (sum x (sum y z))))
+
+(cl-comment 'Commutativity of sum')        
+        
+(forall (x y)
+	(= (sum x y) (sum y x)))
+    
+  
+(cl-comment 'Associativity of prod')
+
+(forall (x y z)
+	(= (prod (prod x y) z) (prod x (prod y z))))
+
+(cl-comment 'Left distributivity of prod over sum')        
+        
+(forall (x y z)
+	(= (prod x (sum y z)) (sum (prod x y) (prod x z))))
+
+(cl-comment 'Right distributivity of prod over sum')        
+
+(forall (x y z)
+	(= (prod (sum x y) z) (sum (prod x z) (prod y z))))
+    
+(cl-comment 'zero is identity element for sum')
+  
+(forall (x)
+	(= x (sum zero x))
+)
+
+(forall (x)
+	(= x (sum x zero))
+)
+        
+        
+(cl-comment 'one is identity element for prod')
+    
+(forall (x)
+	(= x (prod one x))
+)
+
+(forall (x)
+	(= x (prod x one))
+)
+
+        
+(cl-comment 'Annihilation by zero (entailed for rings)')       
+        
+(forall (x)
+	(= zero (prod zero x))
+)
+
+(cl-comment 'Annihilation by zero (entailed for rings)')       
+
+
+(forall (x)
+    (= zero (prod x zero))
+)
+        
+
+
+)

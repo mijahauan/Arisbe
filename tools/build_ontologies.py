@@ -50,6 +50,8 @@ _SUMO = Path(__file__).resolve().parent.parent / "docs" / "references" / "SUMO1.
 _BFO = Path(__file__).resolve().parent.parent / "corpus" / "ontologies" / "bfo_core.ofn"
 _COLORE_BETWEEN = (Path(__file__).resolve().parent.parent / "corpus" / "ontologies"
                    / "colore_between.clif")
+_COLORE_CACHE = (Path(__file__).resolve().parent.parent / "corpus" / "ontologies"
+                 / "colore_cache")
 
 
 def _uod(uod_id: str, name: str, description: str, egif: str) -> UniverseOfDiscourse:
@@ -326,17 +328,101 @@ def colore_between():
          f"content, CC BY-SA 4.0). {rep.summary}. This is a **relational FOL** theory "
          f"— its axioms use equality and negation in bodies/heads, so materialization "
          f"leaves them to the contest/deduction game (no A-box to forward-chain); the "
-         f"honest reasoning value is in the contest, not the Horn closure. The "
-         f"cl-imports chain was resolved by hand (auto-resolution is not yet built); "
-         f"COLORE function-term modules now import too — function terms relationalise "
-         f"on import ((density (dmv v m)) ↦ ∃z (dmv(v,m,z) ∧ density(z))).",
+         f"honest reasoning value is in the contest, not the Horn closure. This "
+         f"module's cl-imports chain was resolved by hand; the colore_field UoD beside "
+         f"it now resolves its chain **automatically** (cl_import_resolver), and COLORE "
+         f"function-term modules import too — function terms relationalise on import "
+         f"((density (dmv v m)) ↦ ∃z (dmv(v,m,z) ∧ density(z))).",
          ["provenance", "clif-import", "honest-partial-import", "non-horn-residue"]),
     )
     return uod, prov, anns
 
 
+# --------------------------------------------------------------------------- #
+# COLORE "field" — a cl-imports closure resolved automatically                 #
+# --------------------------------------------------------------------------- #
+
+def colore_field():
+    """The COLORE real-number *field* algebra, imported through **automatic
+    cl-imports resolution**.
+
+    Where ``colore_between`` had its import chain resolved *by hand* into one
+    file, this resolves ``field → commutative_ring → ring → semiring``
+    automatically (``cl_import_resolver.DirectoryResolver`` over the vendored
+    ``colore_cache``), then relationalises the closure's **nested function
+    terms** (the ring axioms are stated with function terms, e.g.
+    ``(= (sum (sum x y) z) (sum x (sum y z)))``) on import — the two import-breadth
+    capabilities (closure resolution + function relationalisation) exercised
+    together on genuinely foreign Common Logic, landed as a drawn, §3.3-attested
+    corpus UoD."""
+    from cl_import_resolver import COLORE_PREFIX, DirectoryResolver, resolve_from_iri
+    from domain_model_importer import from_clif_text
+
+    resolver = DirectoryResolver(_COLORE_CACHE)
+    closure = resolve_from_iri(COLORE_PREFIX + "ringoids/field.clif", resolver)
+    result = from_clif_text(closure.combined_clif)
+    g = result.egi
+    modules = ", ".join(m.iri.replace(COLORE_PREFIX, "") for m in closure.modules)
+    meta = UoDMetadata(
+        uod_id="colore_field", uod_type=UoDType.STANDALONE,
+        name="COLORE field algebra",
+        description=(
+            "The real-number field algebra from COLORE (the Common Logic Ontology "
+            "Repository, M. Grüninger et al., University of Toronto): the ringoid "
+            "tower field ⊃ commutative_ring ⊃ ring ⊃ semiring, with sum and prod "
+            "axiomatised by associativity, commutativity, distributivity, identity "
+            "and inverse. Imported through automatic cl-imports closure resolution "
+            "(field → commutative_ring → ring → semiring) with the ring axioms' "
+            "nested function terms relationalised on import — the first corpus UoD "
+            "whose import chain was resolved by the machine, not by hand."),
+        category=UoDCategory.DOMAIN_MODEL, created=_WHEN_BFO, last_modified=_WHEN_BFO,
+    )
+    uod = UniverseOfDiscourse(metadata=meta, current_egi=g)
+    prov = make_provenance(
+        theorem_source={"type": "webpage",
+                        "author": "Grüninger, Michael and others",
+                        "title": "COLORE: Common Logic Ontology Repository — "
+                                 "ringoids / field",
+                        "publisher": "University of Toronto",
+                        "url": "https://github.com/gruninger/colore/tree/master/"
+                               "ontologies/ringoids",
+                        "note": "Common Logic (ISO 24707), CC BY-SA 4.0; cl-imports "
+                                "closure field → commutative_ring → ring → semiring, "
+                                "auto-resolved + function terms relationalised"},
+        method_sources=[
+            {"type": "book", "author": "Peirce, Charles Sanders",
+             "title": "Collected Papers", "bibkey": "peirce1931collected",
+             "note": "existential-graph notation"},
+        ],
+        kind=KIND_ONTOLOGY,
+    )
+    anns = _anns(
+        ("COLORE field algebra — the ringoid tower (field ⊃ commutative_ring ⊃ "
+         "ring ⊃ semiring) as an EG theory. The first corpus ontology whose "
+         "cl-imports chain was resolved **automatically** (the resolver fetched "
+         "and conjuncted the closure), and a heavily function-bearing one: the "
+         "ring axioms use nested function terms like (= (sum (sum x y) z) (sum x "
+         "(sum y z))), each relationalised to its graph relation on import. Proof "
+         "that import breadth — closure resolution + function relationalisation — "
+         "carries a real foreign algebra into the corpus.",
+         ["ontology", "cited", "colore", "common-logic", "cl-imports", "algebra"]),
+        (f"Imported from corpus/ontologies/colore_cache/ (verbatim COLORE content, "
+         f"CC BY-SA 4.0) through automatic cl-imports resolution — closure: {modules}. "
+         f"A **relational FOL** theory using equality throughout (totality/uniqueness "
+         f"of the functions left to the contest game; materialization forward-chains "
+         f"nothing). The fuller density closure (density → amount/spatial_volume → "
+         f"ringoids, 130 cuts) is cached beside this as the source of record but "
+         f"imported as *data*, not stored as a drawn UoD — a 130-cut relational theory "
+         f"is super-linear to lay out at the §3.3 save boundary (the layout-perf "
+         f"frontier, as with bfo_core's full axiomatisation; M is data, draw only the "
+         f"contested fragment).",
+         ["provenance", "clif-import", "cl-imports-auto-resolved", "non-horn-residue"]),
+    )
+    return uod, prov, anns
+
+
 def build_all() -> List[Tuple]:
-    return [porphyry(), foaf(), sumo(), bfo(), colore_between()]
+    return [porphyry(), foaf(), sumo(), bfo(), colore_between(), colore_field()]
 
 
 def main(argv=None) -> int:

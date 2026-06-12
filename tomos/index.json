@@ -360,7 +360,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "tomos/universes/bfo_core"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/bfo_core"
     },
     {
       "uod_id": "colore_between",
@@ -375,8 +375,23 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "tomos/universes/colore_between"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/colore_between"
+    },
+    {
+      "uod_id": "colore_field",
+      "name": "COLORE field algebra",
+      "category": "domain_model",
+      "uod_type": "standalone",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-12T00:00:00+00:00",
+      "last_modified": "2026-06-12T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/colore_field"
     }
   ],
-  "last_updated": "2026-06-12T07:14:20.222717"
+  "last_updated": "2026-06-12T13:18:05.232952"
 }

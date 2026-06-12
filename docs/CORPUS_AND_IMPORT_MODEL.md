@@ -194,10 +194,9 @@ through the EGI API rather than round-tripping through EGIF *text*, which a CLIF
 carrying names EGIF can't express (e.g. `Warm-blooded`, `Can-fly`) would otherwise
 crash. Verified on `corpus/domain_models/animal_taxonomy/animal_taxonomy.clif` (14 Horn
 rules forward-chain over the A-box; subsumption theorems decide; the disjointness and
-the defeasible penguin-can't-fly exception are honestly the non-Horn residue). **Two
-real COLORE gaps remain:** `cl-imports` is parsed as a **no-op** (cross-module URI
-resolution isn't done — you must supply all modules together, e.g. one directory); and
-because the **EGIF query surface** rejects hyphenated identifiers, querying a relation
+the defeasible penguin-can't-fly exception are honestly the non-Horn residue). **One
+real COLORE gap remains** (a second, `cl-imports`, is now closed — §5.3): because the
+**EGIF query surface** rejects hyphenated identifiers, querying a relation
 like `Warm-blooded` needs a clean alias until either EGIF admits those names or the CLIF
 importer sanitizes them (as the OWL path already does).
 
@@ -224,7 +223,8 @@ from `github.com/gruninger/colore` surfaced — and fixed — what synthetic con
 What stays a boundary, honestly: COLORE is mostly **non-Horn FOL** (`iff` / `exists`-heads
 / equality / negated bodies → materialization's skip residue, so a relational theory like
 betweenness forward-chains *nothing* — its reasoning value is in the contest, not the Horn
-closure); and `cl-imports` still needs hand resolution.
+closure). (`cl-imports` is now **auto-resolved** — §5.3; `colore_between` remains the
+hand-resolved exemplar, `colore_field` the machine-resolved one.)
 COLORE names are **underscored, not hyphenated**, and underscores round-trip
 through EGIF cleanly — so COLORE does *not* exercise the hyphen fix (that remains pinned by
 the in-repo hyphenated `animal_taxonomy`).
@@ -264,11 +264,59 @@ own boundary, leaving the protected lexer untouched (exactly as `_strip_block_co
   Dau/EGIF first-class function *notation* (a distinct glyph, an output peg) is a larger,
   separate piece; relationalisation is the meaning-preserving way to read COLORE now.
 
-What's still open for a *fully cited* function-bearing COLORE corpus UoD (the
-`colore_between` treatment for, say, `density`) is `cl-imports` closure resolution —
-density imports `amount` → `field` (the real-number field axioms), which auto-resolution
-(a separate forward edge) would bring in; `colore_between` stays the resolved-closure
-exemplar.
+With closure resolution now built (§5.3), the `colore_field` UoD is the *fully cited*
+function-bearing exemplar; `colore_between` stays the hand-resolved one.
+
+### 5.3 cl-imports: auto-resolution (BUILT 2026-06-12)
+
+A COLORE / Common-Logic module declares its dependencies with `(cl-imports <iri>)`
+directives, and the protected CLIF parser **skips** them (`_parse_cl_imports` returns a
+no-op). So a module whose imports are absent parses as a silently *incomplete* theory —
+betweenness only became usable once its chain `betweenness → weak_between → bet` was
+resolved **by hand** into one file (§5, `colore_between.clif`). `src/cl_import_resolver.py`
+now resolves that closure automatically:
+
+- **The closure walk** — `resolve_from_text(text, resolver)` / `resolve_from_iri(iri,
+  resolver)` does a breadth-first walk of the `(cl-imports …)` graph, deduping by IRI (a
+  diamond import contributes once), terminating on cycles, and conjuncting every resolved
+  module's **verbatim** text under `;; ===== <iri> =====` headers. The combined source feeds
+  the existing `from_clif_text` pipeline (block-comment strip → function relationalisation →
+  variable disambiguation → parse); the now-satisfied `cl-imports` directives stay in place
+  as harmless no-ops. Unresolved IRIs are **reported** on the closure (`ResolvedClosure.
+  unresolved`, and a `;; ===== UNRESOLVED: <iri> =====` line in the assembled source),
+  never silently dropped — the manifest floor.
+- **Resolution is pluggable** (`ImportResolver.resolve(iri) → Optional[str]`):
+  `MappingResolver` (in-memory dict — the pure offline test backend), `DirectoryResolver`
+  (a local directory mirroring the IRI path under a prefix — `http://colore.oor.net/<path>`
+  → `<base>/<path>`), `ColoreWebResolver` (fetch from raw GitHub; opt-in, network),
+  `CachingResolver` (wrap a remote, persisting every fetched module to a local dir), and
+  `ChainResolver` (first hit wins). A one-time online `CachingResolver` run thus **vendors**
+  an offline, reproducible, citable cache — `corpus/ontologies/colore_cache/` — which the
+  corpus build reads through a `DirectoryResolver` with **no network at build time** (the
+  `colore_between.clif` hand-vendoring, automated).
+- **Wired** into `from_clif_text(…, resolver=…)` / `from_clif_file(…, resolver=…)`; the
+  result carries `resolved_modules` + `unresolved_imports`. With no resolver the behaviour
+  is unchanged (imports stay no-ops).
+- **A COLORE wrinkle, fixed at the same boundary.** The ringoid files carry
+  `(cl-comment '…')` annotations whose **single-quoted** strings contain spaces and parens
+  (`'Annihilation by zero (entailed for rings)'`). The parser has no `cl-comment` form, so
+  `_clif_tokenize` now reads `'…'` as one literal and `_strip_cl_comments` drops the
+  annotations (keeping any annotated phrase) before parsing — like `_strip_block_comments`.
+- **Landed: `colore_field`.** The real-number field algebra `field → commutative_ring →
+  ring → semiring` (4 modules, auto-resolved), **heavily function-bearing** — the ring
+  axioms use *nested* function terms `(= (sum (sum x y) z) (sum x (sum y z)))`, each
+  relationalised on import (§5.2) — drawn and §3.3-attested at the save boundary (28 cuts,
+  ~2.6 s). The first corpus UoD whose import chain the machine resolved, and the
+  closure-resolution + function-relationalisation capabilities exercised together on
+  genuinely foreign Common Logic.
+- **Density stays data.** The fuller `density → amount, spatial_volume → ringoids` closure
+  (7 modules, 130 cuts) is cached beside `field` as the source of record and imports fine,
+  but is **not** stored as a drawn UoD: a 130-cut relational theory is super-linear to lay
+  out at the §3.3 save boundary (the layout-perf frontier, as with `bfo_core`'s full
+  axiomatisation — *M is data; draw only the contested fragment*).
+- **Tests:** `tests/test_cl_import_resolver.py` (closure dedupe / cycle-safety / missing-
+  module reporting; the Directory/Caching/Chain resolvers on a tmp dir; end-to-end through
+  `from_clif_text`; one opt-in live-network test that skips when COLORE is unreachable).
 
 ## 6. Forward edges
 
