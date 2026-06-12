@@ -170,9 +170,51 @@ Sequence:
    closed / UNKNOWN open, FALSE with a closed-world counterexample. This is the
    inner evaluation game; it does **not** yet drive the transformation game's
    moves — that wiring (auto-Grapheus, the dialogical loop) is a later step.
-3. Provenance-tagged session working-model (the demand-driven cache).
-4. Horizon radius + open/closed declaration as M-selection parameters.
-5. One remote backing (`SparqlOracle`, Wikidata) behind the same interface.
+3. **[NEXT] Materialize the model — facts + rules → the fullest extensional M.**
+   See §6.1. Resolves the "model-checking, not inference" limit
+   ([GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md) clarification 1): a model
+   M authored as *facts + Horn-shaped rules* is forward-chained to its **least
+   Herbrand model** (the closure of everything the rules entail over the facts), and
+   *that* is what the peel checks against. Keeps the peel pure model-checking while
+   making M "as full as possible." Reuses `match_atoms`; depends on nothing beyond
+   steps 1–2. Precondition for ontology-as-M (T-box rules must be materialized to be
+   testable).
+4. Provenance-tagged session working-model (the demand-driven cache).
+5. Horizon radius + open/closed declaration as M-selection parameters.
+6. One remote backing (`SparqlOracle`, Wikidata) behind the same interface.
+
+### 6.1 Materialization spec (step 3)
+
+`materialize(M) → (M′, report)` — forward-chain the **Horn fragment** of M over its
+facts to a fixpoint, returning a facts-only model `M′` (the least Herbrand model) and
+an honest **skip-report** of the rules left unmaterialized.
+
+- **The Horn line in EG.** A rule is a scroll `~[ B ~[ H ] ]` (= *B → H*).
+  Materializable iff: **B** (the outer cut's area, minus the inner cut) is a
+  conjunction of **atoms** over lines of identity; **H** (the inner cut's area) is a
+  conjunction of **atoms**; and every line in H also occurs in B (**range-restricted**
+  — no fresh existential individual in the head). Not materializable, and reported:
+  a **negation in the head** (a cut inside H → not Horn), a **disjunctive head**
+  (`~[ ~[A] ~[B] ]` inside H), or an **existential head** (a `*x` in H not bound in B
+  → would demand a new individual; skolemization is the contest game's business). A
+  bare fact (no scroll) is already in M′.
+- **The fixpoint.** Repeatedly: for each Horn rule, find every binding of B into the
+  current facts (this is exactly `match_atoms`), and add H's atoms under that binding;
+  stop when a pass adds nothing. **Termination is guaranteed** — function-free,
+  range-restricted rules generate no new individuals, so the Herbrand base is finite
+  (Datalog).
+- **Soundness + the closed pairing.** The least Herbrand model is the unique minimal
+  model of the Horn theory, so model-checking a *positive* query against M′ equals the
+  theory's entailment. For queries with cuts (negation), this is closed-world /
+  stratified-negation — which is exactly why materialization pairs with the **closed**
+  regime (§3): materialize, then close, then peel.
+- **Honest skip-report.** Mirrors the SUO-KIF import's report ([[project_ontology_import]]):
+  every non-Horn rule is named and left to the contest/deduction game, never silently
+  dropped. The user sees precisely how much of M the peel can and cannot use.
+- **Wiring.** A standalone `src/model_materialization.py` (`materialize_egi(egi) →
+  (facts_egi, report)`), reused at M-construction time: `CorpusOracle.from_egif(...,
+  materialize=True)` and an opt-in on the `/agon/interpret` path, so a corpus UoD or a
+  hand-authored M that carries rules becomes testable by the peel.
 
 ---
 

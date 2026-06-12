@@ -50,10 +50,16 @@ peel* (whose witness, which conjunct) plus the *freedom of the decision*.
 
 ## Three clarifications the personas forced (see `ARISBE_PERSONAS.md`)
 
-1. **M is an extensional model; the peel is model-checking, not inference.** The
-   oracle reads M's ground atomic facts; it does not run M's rules to derive new
-   facts. The syllogism is *checked against* a world, not *derived* from it.
-   Rules-in-M (forward chaining) is a separate, deferred question.
+1. **M is an extensional model; the peel is model-checking, not inference.** A
+   *model* is the facts (the extension over a domain); *rules* belong to a *theory*.
+   The peel checks G against the facts — it does not run M's rules to derive new ones,
+   so the syllogism is *checked against* a world, not *derived* from it. To make M "as
+   full as possible," author it as facts + Horn-shaped rules and **materialize** it
+   (forward-chain to the least Herbrand model) *before* the peel — the principled
+   bridge that keeps model-checking pure while letting rules fill out the world. Full
+   FOL rules (existential / disjunctive / negated heads) and modality (no γ-graphs,
+   so a single world, not a Kripke frame) fall outside, to the contest/deduction game.
+   See [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) §6.1.
 2. **The peel checks truth-in-a-model, not validity.** Under three-valued (Kleene)
    logic, `P → P` reads UNKNOWN when P is unknown — the game does not certify
    tautologies. **Validity** (truth in *all* models) is established by **construction**

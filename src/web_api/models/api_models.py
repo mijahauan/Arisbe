@@ -368,6 +368,9 @@ class AgonInterpretRequest(BaseModel):
     model_egif: Optional[str] = None
     proposal_egif: Optional[str] = None
     closed: Optional[bool] = None
+    # Materialize M's Horn rules into facts before the peel (the least Herbrand
+    # model) — docs/DOMAIN_ORACLE_AND_M.md §6.1.
+    materialize: bool = False
 
 
 class AgonModelTestRequest(BaseModel):
@@ -376,9 +379,12 @@ class AgonModelTestRequest(BaseModel):
 
     M is given either as ``model_egif`` (raw facts) or ``model_uod`` (a corpus
     UoD id, resolved server-side to its asserted EGI). ``closed`` is M's regime.
+    ``materialize`` forward-chains M's Horn rules into facts first (§6.1), so a
+    model authored as facts + rules becomes testable by the peel.
     """
 
     model_egif: Optional[str] = None
     model_uod: Optional[str] = None
     proposal_egif: str
     closed: bool = False
+    materialize: bool = False

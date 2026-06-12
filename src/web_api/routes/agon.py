@@ -60,8 +60,10 @@ from web_api.services.linear_forms import linear_forms
 
 from correspondence_attestation import CorrespondenceViolation
 from domain_oracle import CorpusOracle
+from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 from endoporeutic_game import Player
+from model_materialization import materialize_egi
 from semantic_game import evaluate as evaluate_semantic
 from tomos_service import TomosService
 
@@ -462,15 +464,37 @@ def _resolve_model_egif(model_egif: Optional[str], model_uod: Optional[str]) -> 
     raise ValueError("Provide model_egif or model_uod (a corpus UoD id).")
 
 
-def _interpret_payload(model_egif: str, proposal_egif: str, closed: bool) -> dict:
-    """Run the peel and shape the result (shared by the standalone + game routes)."""
-    oracle = CorpusOracle.from_egif({"M": model_egif}, closed=closed)
+def _interpret_payload(
+    model_egif: str, proposal_egif: str, closed: bool, materialize: bool = False
+) -> dict:
+    """Run the peel and shape the result (shared by the standalone + game routes).
+
+    When ``materialize`` is set, M's Horn rules are forward-chained to the least
+    Herbrand model first (the syllogism works; a model authored as facts + rules
+    becomes testable), and the materialization report is returned alongside.
+    """
+    materialization = None
+    if materialize:
+        facts_egi, rep = materialize_egi(parse_egif(model_egif))
+        oracle = CorpusOracle([("M", facts_egi)], closed=closed)
+        materialization = {
+            "summary": rep.summary,
+            "base_facts": rep.base_facts,
+            "derived_facts": rep.derived_facts,
+            "rules_applied": rep.rules_applied,
+            "materialized_egif": generate_egif(facts_egi),
+            "skipped": [{"reason": s.reason, "description": s.description}
+                        for s in rep.skipped],
+        }
+    else:
+        oracle = CorpusOracle.from_egif({"M": model_egif}, closed=closed)
     result = evaluate_semantic(parse_egif(proposal_egif), oracle)
     verdict = result.verdict.value
     return {
         "model_egif": model_egif,
         "proposal_egif": proposal_egif,
         "closed": closed,
+        "materialization": materialization,
         "verdict": verdict,
         "holds": result.holds,
         "summary": result.summary,
@@ -496,7 +520,7 @@ async def interpret_standalone(request: AgonModelTestRequest):
             return ApiResponse(success=False, error={
                 "code": "NO_PROPOSAL", "message": "Provide a proposal_egif (the graph G)."})
         return ApiResponse(success=True, data=_interpret_payload(
-            model_egif, request.proposal_egif.strip(), request.closed))
+            model_egif, request.proposal_egif.strip(), request.closed, request.materialize))
     except ValueError as exc:
         return ApiResponse(success=False, error={"code": "INVALID_MODEL", "message": str(exc)})
     except Exception as exc:
@@ -595,7 +619,8 @@ async def interpret(game_id: str, request: AgonInterpretRequest):
                                    "proposal_egif, or call set-model first.")},
             )
 
-        data = _interpret_payload(model_egif, proposal_egif, closed)
+        data = _interpret_payload(model_egif, proposal_egif, closed,
+                                  bool(request.materialize))
         data["game_id"] = game_id
         return ApiResponse(success=True, data=data)
     except Exception as exc:

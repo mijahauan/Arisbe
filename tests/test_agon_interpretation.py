@@ -219,3 +219,32 @@ def test_standalone_interpret_missing_model(client):
     body = r.json()
     assert body["success"] is False
     assert body["error"]["code"] == "INVALID_MODEL"
+
+
+# ---------------------------------------------------------------------------
+# Materialize — facts + Horn rules make the syllogism work through the route
+# ---------------------------------------------------------------------------
+
+def test_materialize_makes_the_syllogism_hold(client):
+    M = '(man "Socrates") ~[ (man *x) ~[ (mortal x) ] ]'
+    G = '(mortal "Socrates")'
+    # Without materialization the rule is ignored — the peel can't derive it.
+    plain = client.post("/agon/interpret", json={
+        "model_egif": M, "proposal_egif": G, "closed": True}).json()["data"]
+    assert plain["verdict"] == "false"          # closed world, fact absent
+    assert plain["materialization"] is None
+    # With materialization the rule fires and mortal(Socrates) holds.
+    mat = client.post("/agon/interpret", json={
+        "model_egif": M, "proposal_egif": G, "closed": True, "materialize": True}).json()["data"]
+    assert mat["verdict"] == "true"
+    assert mat["materialization"]["derived_facts"] == 1
+    assert mat["materialization"]["rules_applied"] == 1
+
+
+def test_materialize_reports_skipped_rules(client):
+    M = '(person "Bob") ~[ (person *x) ~[ (hasParent *y) ] ]'
+    data = client.post("/agon/interpret", json={
+        "model_egif": M, "proposal_egif": '(person "Bob")',
+        "closed": True, "materialize": True}).json()["data"]
+    skipped = data["materialization"]["skipped"]
+    assert any(s["reason"] == "existential_head" for s in skipped)

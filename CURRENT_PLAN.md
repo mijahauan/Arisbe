@@ -34,10 +34,14 @@ review):
    standalone `POST /agon/interpret` (resolve M → peel → verdict + transcript +
    witness/counterexample + verdict-annotated dispositions, shown in place of the
    board). "Play it out" still starts a full contest. Nothing asserted.
-4. **Next:** the **inverse pivot** — "in what domain does this proposition make
-   sense?" (run the peel across candidate M, rank; abductive context-retrieval,
-   reuses the oracle — `docs/DOMAIN_ORACLE_AND_M.md` §7); then oracle **steps 3–5**
-   (demand-driven cache → horizon/open-closed params → `SparqlOracle`/Wikidata);
+4. **Next: materialize the model** (oracle step 3, `docs/DOMAIN_ORACLE_AND_M.md`
+   §6.1) — author M as *facts + Horn rules*, forward-chain to the least Herbrand
+   model, peel against that. Resolves "model-checking, not inference" (the syllogism
+   works; corpus UoDs carrying rules become testable); precondition for ontology-as-M.
+   `src/model_materialization.py` (`materialize_egi`), reusing `match_atoms`; opt-in on
+   `CorpusOracle.from_egif(..., materialize=True)` and `/agon/interpret`.
+5. **Then:** the **inverse pivot** ("in what domain does G hold?", §7); oracle steps
+   4–6 (demand-driven cache → horizon/open-closed params → `SparqlOracle`/Wikidata);
    downstream warrant lifecycle, ontology-as-M.
 3. **Diachronic exemplars (Praeclarum first)** — interleave once the seam exists:
    ingest canonical worked proofs as real `TransformationChain`s; the shakedown

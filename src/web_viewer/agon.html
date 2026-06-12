@@ -105,6 +105,12 @@
             </label>
           </div>
           <div class="field">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="model-materialize" style="width:auto;" />
+              Use rules — forward-chain M's Horn rules into facts (the syllogism works)
+            </label>
+          </div>
+          <div class="field">
             <label>Domain model M (EGIF — the facts)</label>
             <textarea id="setup-model" placeholder="(Human *x) ~[ (Human x) ~[ (Mortal x) ] ]"></textarea>
           </div>
@@ -367,6 +373,12 @@
         if(d.winning_witness) h+='<div style="color:#a6e3a1; margin-bottom:4px;">Witness — '+esc(pairs(d.winning_witness))+' (the assignment that satisfies it)</div>';
         h+='<div style="font-size:11px; color:#6c7086;">M ('+(d.closed?'closed':'open')+' world): <code>'+esc(d.model_egif)+'</code></div>';
         h+='<div style="font-size:11px; color:#6c7086;">G: <code>'+esc(d.proposal_egif)+'</code></div>';
+        if(d.materialization){ const mt=d.materialization;
+          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:#181825; font-size:11px; color:#6c7086;">'
+            +'<strong style="color:#89b4fa;">Materialized M</strong> — '+esc(mt.summary)
+            +(mt.derived_facts?'<div style="color:#a6e3a1; margin-top:2px;">facts now: <code>'+esc(mt.materialized_egif)+'</code></div>':'');
+          (mt.skipped||[]).forEach(s=>{ h+='<div style="color:#f9e2af; margin-top:2px;">left to the contest game ('+esc(s.reason)+'): <code>'+esc(s.description)+'</code></div>'; });
+          h+='</div>'; }
         h+='<div style="margin:12px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">Moves</div>';
         h+='<pre style="background:#181825; padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:#cdd6f4; margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
         h+='<div style="margin:14px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">What to do with it — the Agonothetes decides (coherent with this verdict highlighted)</div>';
@@ -385,7 +397,7 @@
       async function interpret(){
         const proposal=$('setup-proposal').value.trim();
         if(!proposal){ setStatus('Enter a proposal G to test.','error'); return; }
-        const body={ proposal_egif:proposal, closed:$('model-closed').checked };
+        const body={ proposal_egif:proposal, closed:$('model-closed').checked, materialize:$('model-materialize').checked };
         if(selectedModelUod) body.model_uod=selectedModelUod; else body.model_egif=$('setup-model').value.trim();
         if(!selectedModelUod && !body.model_egif){ setStatus('Choose or type a reference model M.','error'); return; }
         setStatus('Peeling G against M…');
