@@ -162,6 +162,105 @@ class TestCLIFImport:
 
 
 # ---------------------------------------------------------------------------
+# Function-term relationalization (COLORE function-bearing modules)
+# ---------------------------------------------------------------------------
+
+class TestFunctionRelationalization:
+    """A nested function term ``(f t₁ … tₙ)`` in argument position is not
+    accepted by the protected CLIF parser, but functions are EG-expressible by
+    relationalization: ``(density (dmv v m))`` ↦ ``∃z (dmv(v,m,z) ∧ density(z))``.
+    The importer does this meaning-preserving reduction so COLORE's
+    function-bearing modules (the majority) import."""
+
+    def _same(self, a, b):
+        from eg_navigation import same_graph
+        return same_graph(a, b)
+
+    def test_function_term_imports_and_round_trips(self):
+        # (density (dmv v m)) ⇒ ∃z (dmv v m z) ∧ (density z)
+        result = from_clif_text(
+            "(forall (v m) (if (something v m) (density (dmv v m))))")
+        rels = set(result.egi.rel.values())
+        assert {"something", "dmv", "density"} <= rels
+        # dmv used 2-arily as a function ⇒ a 3-ary graph relation
+        dmv_edges = [e for e in result.egi.E if result.egi.rel[e.id] == "dmv"]
+        assert dmv_edges and len(result.egi.nu[dmv_edges[0].id]) == 3
+        # structure survives an EGIF round-trip
+        rt = parse_egif(generate_egif(result.egi))
+        assert self._same(result.egi, rt)
+
+    def test_relationalization_matches_hand_written_relational_form(self):
+        # The lifted form must denote the same graph as the relational form a
+        # human would write by hand.
+        functional = from_clif_text(
+            "(forall (v m) (if (something v m) (density (dmv v m))))").egi
+        relational = from_clif_text(
+            "(forall (v m) (if (something v m) "
+            "(exists (z) (and (dmv v m z) (density z)))))").egi
+        assert self._same(functional, relational)
+
+    def test_nested_function_terms_lift_inside_out(self):
+        # (P (f (g x))) ⇒ ∃z1 z2 (g x z2) ∧ (f z2 z1) ∧ (P z1).  Compared against
+        # the hand-written relational form (an EGIF round-trip is unreliable here:
+        # the generator mishandles a positive-body universal — a pre-existing,
+        # function-independent limitation).
+        functional = from_clif_text("(forall (x) (if (Q x) (P (f (g x)))))").egi
+        relational = from_clif_text(
+            "(forall (x) (if (Q x) (exists (z1 z2) "
+            "(and (g x z2) (f z2 z1) (P z1)))))").egi
+        assert {"P", "f", "g"} <= set(functional.rel.values())
+        assert self._same(functional, relational)
+
+    def test_equality_between_function_terms(self):
+        # COLORE's value-as-equality case: (= (dmv x y) (dmv z y)) — both sides
+        # relationalize, then (= z1 z2).
+        result = from_clif_text(
+            "(forall (x y z) (if (= (dmv x y) (dmv z y)) (= x z)))")
+        assert "=" in result.egi.rel.values()
+        assert "dmv" in result.egi.rel.values()
+        # two dmv occurrences (one per side)
+        assert sum(1 for r in result.egi.rel.values() if r == "dmv") == 2
+
+    def test_function_in_negative_context(self):
+        # The ∃-rewrite is sound in any polarity (the value exists everywhere).
+        result = from_clif_text("(not (density (dmv v m)))")
+        assert {"dmv", "density"} <= set(result.egi.rel.values())
+        rt = parse_egif(generate_egif(result.egi))
+        assert self._same(result.egi, rt)
+
+    def test_relation_atom_untouched(self):
+        # A plain relational atom (no nested term) is not rewritten.
+        a = from_clif_text("(forall (x) (if (Cat x) (Animal x)))").egi
+        b = parse_clif("(forall (x) (if (Cat x) (Animal x)))")
+        assert self._same(a, b)
+
+    def test_function_bearing_import_wraps_as_ontology_uod(self):
+        # The /agon-selectable path: a function-bearing module imports to a
+        # standard EGI that wraps as a DOMAIN_MODEL UoD like any other (the lifted
+        # function relation is an ordinary relation downstream).  Mirrors COLORE's
+        # density: (density (dmv v m)) with the value-as-equality axiom.
+        result = from_clif_text(
+            "(forall (v m) (if (and (amount m) (spatial_volume v)) "
+            "(density (dmv v m))))\n"
+            "(forall (x y z) (if (= (dmv x y) (dmv z y)) (= x z)))")
+        uod = as_uod(result, name="Density (function-bearing)")
+        assert uod.metadata.category.name == "DOMAIN_MODEL"
+        assert "dmv" in uod.current_egi.rel.values()
+
+    def test_functionality_axioms_optional(self):
+        # By default no functionality axioms are added; opt-in emits totality +
+        # uniqueness (which use equality, so they are non-Horn residue).
+        from domain_model_importer import _relationalize_functions
+        plain = _relationalize_functions("(forall (v m) (density (dmv v m)))")
+        assert "_fa_z" not in plain
+        withax = _relationalize_functions(
+            "(forall (v m) (density (dmv v m)))", assert_functionality=True)
+        assert "_fa_z" in withax
+        # the uniqueness axiom is itself valid CLIF
+        assert parse_clif(withax) is not None
+
+
+# ---------------------------------------------------------------------------
 # JSON type lattice import
 # ---------------------------------------------------------------------------
 

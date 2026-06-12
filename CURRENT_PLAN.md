@@ -1,12 +1,16 @@
 # Current Plan
 
-**Last Updated**: 2026-06-12 (session end) — this session: the **T-box theorem query**
-(`theory_query.entails`, freeze-a-witness), the **OWL→CLIF→EGI pipeline** (`owl_to_clif`),
-two real ontologies landed (`bfo_core` BFO + `colore_between` from the real COLORE repo),
-the `theorem` verdict **visible in `/agon`**, and a clutch of import fixes (CLIF `/* */`
-comments, alpha-renaming reused variables, M-as-data non-attesting load). **▶ Next task:
-relationalize function terms on import** (unblock the function-bearing COLORE modules) —
-see ▶ NEXT SESSION. Prior: the **freeform composition arc is COMPLETE** (steps
+**Last Updated**: 2026-06-12 (session end) — this session: **function terms relationalise
+on import** (`_relationalize_functions` in `domain_model_importer`) so the function-bearing
+COLORE modules (the majority) import — `(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧
+density(z))`, validated on the real COLORE `density.clif`. Prior sessions: the **T-box
+theorem query** (`theory_query.entails`, freeze-a-witness), the **OWL→CLIF→EGI pipeline**
+(`owl_to_clif`), two real ontologies landed (`bfo_core` BFO + `colore_between` from the
+real COLORE repo), the `theorem` verdict **visible in `/agon`**, and a clutch of import
+fixes (CLIF `/* */` comments, alpha-renaming reused variables, M-as-data non-attesting
+load). **▶ Next task: Playwright E2E over `/agon` interpretation + challenge mode** (the
+standing companion debt) — or import breadth (`cl-imports` auto-resolution) — see
+▶ NEXT SESSION. Prior: the **freeform composition arc is COMPLETE** (steps
 1–4: fix-time validity → draw-then-read canvas → legible EGI diff → **challenge
 mode**). Also this session: the **persona narrative** (`docs/ARISBE_PERSONAS.md`)
 and the **Domain Oracle** for Agon's model M (`docs/DOMAIN_ORACLE_AND_M.md`, step 1
@@ -17,53 +21,61 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**DESIGNATED NEXT TASK: relationalize function terms on import** — so the
-**function-bearing COLORE modules** (the majority) can come in. Today
-`clif_parser_dau` (protected) throws on a nested function term in argument position —
-e.g. COLORE's `density.clif` has `(density (dmv v m))` — so those modules don't import.
-This is an *implementation* gap, **not** a limit of EG: functions are expressible by
-**relationalization** (a function = a relation whose output is uniquely determined), and
-Dau gives a direct extension (*Constants and Functions in Peirce's Existential Graphs*,
-ICCS 2007; EGIF has a `(Type … | output)` form). See the function-terms discussion in
-`docs/CORPUS_AND_IMPORT_MODEL.md` §5.1 and the [[project-ontology-import]] memory.
+**Function-term relationalization is DONE** (this session — see the ✅ block below). Pick
+the next task:
 
-**The plan (do it at the importer boundary — the protected lexer stays untouched, like
-`_strip_block_comments` / `_disambiguate_variables` already do):**
-- **A CLIF→CLIF flattening pass in `domain_model_importer`** (reuse the
-  `_clif_tokenize` / `_clif_read_all` / `_clif_serialize` reader already there): walk each
-  sentence; for every nested function application `(f t₁ … tₙ)` sitting in an *argument*
-  position, lift it out — mint a fresh variable `z`, replace the occurrence with `z`, and
-  conjoin the relational atom `(f t₁ … tₙ z)` (the function's graph) into the enclosing
-  scope under the right quantifier. `(density (dmv v m))` ↦ `(exists (z) (and (dmv v m z)
-  (density z)))`. Distinguish a *function* application from a *relation* atom: in CLIF a
-  term in argument position that is itself `(… )` is a function term; a top-level/sentence
-  `( … )` is a predication. (Operators `and`/`or`/`not`/`if`/`iff`/`forall`/`exists`/`=`
-  are never functions.)
-- **Functionality axioms are optional + non-Horn.** Totality `∀x⃗ ∃z R_f(x⃗,z)` and
-  uniqueness `∀x⃗∀z∀z′ (R_f(x⃗,z) ∧ R_f(x⃗,z′) → z=z′)` are what make `R_f` a *function*
-  rather than a mere relation. They use `=` → land in the contest residue (like the rest
-  of COLORE), so emit them (or make them opt-in) but don't expect materialization to use
-  them. The minimal correct import just needs the **graph-of-the-function** atom; decide
-  whether to also assert functionality.
-- **Verify** on a real function-bearing COLORE module (e.g. `density`, or a small one with
-  a single function), round-trip through `same_graph` where checkable, and confirm it
-  lands as a `kind=ontology` UoD selectable in `/agon`. Watch the **value-as-equality**
-  case (`(= (dmv x y) (dmv z y))` — equality *between* function terms → relationalize both
-  sides, then `(= z1 z2)`).
-- **Scope guard:** keep it to first-order function terms over the relational reader; the
-  full Dau/EGIF first-class function *notation* (a distinct glyph, output peg) is a larger,
-  separate piece — relationalization is the meaning-preserving reduction that unblocks
-  COLORE now.
+**OPTION A — Playwright E2E over `/agon` interpretation + challenge mode** (the standing
+companion debt, two sessions running): the picker→interpret→theorem flow and freeform
+challenge grading are browser-checked *ad hoc* but not a committed suite. Turn it into a
+committed E2E (skipped if Chromium/Playwright absent, like `test_ergasterion_freeform_e2e.py`).
 
-**Companion debt still open — Playwright E2E** over the `/agon` interpretation UI +
-challenge mode (standing across two sessions; the picker→interpret→theorem flow is
-browser-checked *ad hoc* but not a committed suite). Turn it into a committed E2E
-(skipped if Chromium/Playwright absent, like `test_ergasterion_freeform_e2e.py`).
+**OPTION B — import breadth (`cl-imports` auto-resolution).** With function terms now
+importing, the remaining blocker to a *fully cited* function-bearing COLORE corpus UoD
+(the `colore_between` treatment for, say, `density`) is closure resolution — `density`
+imports `amount` → `field` (the real-number field axioms). An auto-resolver that fetches /
+locates and conjuncts the `cl-imports` closure would unblock landing those modules cited.
+Also queued here: `ObjectUnionOf`/`AllValuesFrom` heads → contest game; Manchester / Turtle
+/ RDF.
 
 **Then** (next fork): the dialogical **contest / automated Grapheus** (the peel supplies
-the model-respecting reply) + the **warrant lifecycle** (low → tested by surviving Agon);
-or more **import breadth** (`cl-imports` auto-resolution; `ObjectUnionOf`/`AllValuesFrom`
-heads → contest game; Manchester / Turtle / RDF).
+the model-respecting reply) + the **warrant lifecycle** (low → tested by surviving Agon).
+
+---
+
+## ✅ DONE 2026-06-12 — function terms relationalise on import
+
+The function-bearing COLORE modules (the majority) now import. The protected CLIF parser
+(`_parse_atomic_formula`) accepts only *names* in argument position, so a nested function
+application `(f t₁ … tₙ)` there — e.g. `density.clif`'s `(density (dmv v m))` — was a parse
+error. Functions are EG-expressible by **relationalisation** (a function = a relation whose
+last argument is uniquely determined — its graph), so the importer does the
+meaning-preserving reduction at its own boundary, leaving the protected lexer untouched
+(like `_strip_block_comments` / `_disambiguate_variables`).
+
+- **`_relationalize_functions` (`src/domain_model_importer.py`)** — a CLIF→CLIF pass over
+  the existing s-expression reader (`_clif_tokenize` / `_clif_read_all` / `_clif_serialize`).
+  Logical structure (connectives / quantifiers / `cl-text`/`cl-imports` wrappers) is
+  recursed through untouched; at every predication — including `(= t₁ t₂)`, since the
+  parser reads `=` as an ordinary relation — each function-term argument is lifted: mint a
+  fresh `z`, replace the occurrence with `z`, conjoin the graph atom `(f …args… z)` under a
+  fresh `exists`. `(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧ density(z))`. Nested `(f (g x))`
+  lifts inside-out; the **value-as-equality** case `(= (dmv x y) (dmv z y))` relationalises
+  both sides → `(= z₁ z₂)`. The ∃-form is sound in *any* polarity (the value exists in
+  every context given totality), so a lifted atom inside a `not` stays correct.
+- **Functionality is optional + non-Horn.** `from_clif_text(…, assert_functionality=True)`
+  emits totality `∀x⃗∃z R_f` + uniqueness `∀x⃗∀z∀z′ (R_f(x⃗,z)∧R_f(x⃗,z′)→z=z′)`; default
+  off (the minimal correct import needs only the graph atom; functionality uses `=` → falls
+  to the contest residue like the rest of COLORE).
+- **Verified** on the real COLORE `density.clif` (downloaded from `gruninger/colore`):
+  `dmv`, `add_density`, `mult_density`, … all import as relations; the canonical axiom
+  round-trips via `same_graph`. 8 new tests
+  (`tests/test_domain_model_importer.py::TestFunctionRelationalization`); no regressions
+  across the import / ontology / agon / materialization / theory-query suites (162 tests).
+  Doc: `docs/CORPUS_AND_IMPORT_MODEL.md` §5.2.
+- **Not committed:** a *fully cited* function-bearing COLORE corpus UoD (the
+  `colore_between` treatment for `density`) — that needs `cl-imports` closure resolution
+  (`density` → `amount` → `field`, the real-number field axioms), which is the separate
+  import-breadth fork. `colore_between` stays the resolved-closure exemplar.
 
 ---
 

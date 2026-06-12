@@ -204,6 +204,134 @@ def _disambiguate_variables(text: str) -> str:
     return "\n".join(_clif_serialize(f) for f in forms)
 
 
+# ---------------------------------------------------------------------------
+# Function-term relationalization (CLIF → CLIF, at the importer boundary)
+# ---------------------------------------------------------------------------
+#
+# The protected CLIF parser (``_parse_atomic_formula``) accepts only *names* in
+# argument position — a nested function application ``(f t₁ … tₙ)`` there is a
+# parse error.  But functions are EG-expressible by **relationalization**: a
+# function is a relation whose last argument is uniquely determined by the rest
+# (its graph).  ``(density (dmv v m))`` ↦ ``(exists (z) (and (dmv v m z) (density
+# z)))``.  Dau gives the direct extension (*Constants and Functions in Peirce's
+# Existential Graphs*, ICCS 2007); EGIF has a ``(Type … | output)`` form.  We do
+# the meaning-preserving reduction here, leaving the protected lexer untouched —
+# exactly as ``_strip_block_comments`` / ``_disambiguate_variables`` already do.
+#
+# The ∃-form is sound in *any* polarity given totality+functionality (the value
+# exists in every context), so a lifted atom inside a ``not`` stays correct.
+
+# Logical connectives whose direct children are sentences (recurse, never lift).
+_CLIF_CONNECTIVES = {"and", "or", "not", "if", "iff"}
+# Quantifiers: child[1] is the binder list, child[2:] are sentences.
+_CLIF_QUANTIFIERS = {"forall", "exists"}
+# Common Logic wrappers whose *list* children are sentences (names left alone).
+_CLIF_META = {
+    "cl-text", "cl:text", "cl-module", "cl:module",
+    "cl-comment", "cl:comment", "cl-imports", "cl:imports",
+}
+
+
+def _lift_function_terms(term, graph_atoms, fresh, sigs, counter):
+    """Replace a function term in argument position with a fresh variable, recording
+    its relational graph atom.  Recurses so nested ``(f (g x))`` lifts inside-out.
+
+    ``term`` is a name (returned as-is) or a function application ``(f t₁ … tₙ)``
+    (a list).  For the latter: lift the inner arguments first, mint a fresh output
+    variable ``z``, append the graph atom ``(f …inner… z)``, and return ``z``.
+    """
+    if isinstance(term, str) or not term:
+        return term
+    f = term[0]
+    inner = [_lift_function_terms(a, graph_atoms, fresh, sigs, counter)
+             for a in term[1:]]
+    counter[0] += 1
+    z = f"_fnz{counter[0]}"
+    fresh.append(z)
+    graph_atoms.append([f] + inner + [z])
+    if isinstance(f, str):
+        # f used as an n-ary function ⇒ an (n+1)-ary relation (its graph).
+        sigs.add((f, len(inner)))
+    return z
+
+
+def _relationalize_node(node, sigs, counter):
+    """Walk a CLIF s-expression, lifting every function term out of predication
+    (and equality) argument positions.  Logical structure is recursed through
+    untouched; only atoms carrying a ``(… )`` argument are rewritten."""
+    if isinstance(node, str) or not node:
+        return node
+    head = node[0]
+    if not isinstance(head, str):
+        return [_relationalize_node(c, sigs, counter) for c in node]
+    if head in _CLIF_QUANTIFIERS and len(node) >= 2 and isinstance(node[1], list):
+        return [head, node[1]] + [_relationalize_node(c, sigs, counter)
+                                  for c in node[2:]]
+    if head in _CLIF_CONNECTIVES:
+        return [head] + [_relationalize_node(c, sigs, counter) for c in node[1:]]
+    if head in _CLIF_META:
+        return [head] + [_relationalize_node(c, sigs, counter)
+                         if isinstance(c, list) else c for c in node[1:]]
+    # Otherwise a predication ``(P t₁ … tₙ)`` — including ``(= t₁ t₂)``, since the
+    # parser reads ``=`` as an ordinary relation.  Lift function-term arguments.
+    graph_atoms: List[Any] = []
+    fresh: List[str] = []
+    new_args = [_lift_function_terms(a, graph_atoms, fresh, sigs, counter)
+                for a in node[1:]]
+    atom = [head] + new_args
+    if not fresh:
+        return atom
+    return ["exists", fresh, ["and"] + graph_atoms + [atom]]
+
+
+def _functionality_axioms(sigs: Set[Tuple[str, int]]) -> List[str]:
+    """Optional totality + uniqueness axioms that make each relationalized ``R_f``
+    a genuine *function* rather than a mere relation.  Both are non-Horn / use
+    equality, so they land in the contest residue (materialization won't use
+    them) — emitted only when explicitly requested."""
+    lines: List[str] = []
+    for f, n in sorted(sigs):
+        xs = [f"_fa_x{i}" for i in range(n)]
+        graph_z = f"({f} {' '.join(xs + ['_fa_z'])})"
+        graph_z2 = f"({f} {' '.join(xs + ['_fa_z2'])})"
+        binder = " ".join(xs)
+        # Totality: ∀x⃗ ∃z R_f(x⃗, z)
+        lines.append(f"(forall ({binder}) (exists (_fa_z) {graph_z}))"
+                     if n else f"(exists (_fa_z) {graph_z})")
+        # Uniqueness: ∀x⃗ ∀z ∀z′ (R_f(x⃗,z) ∧ R_f(x⃗,z′) → z = z′)
+        ub = " ".join(xs + ["_fa_z", "_fa_z2"])
+        lines.append(f"(forall ({ub}) (if (and {graph_z} {graph_z2}) "
+                     f"(= _fa_z _fa_z2)))")
+    return lines
+
+
+def _relationalize_functions(
+    text: str,
+    *,
+    assert_functionality: bool = False,
+    sigs_out: Optional[Set[Tuple[str, int]]] = None,
+) -> str:
+    """Relationalize every nested function term in ``text`` (CLIF → CLIF).
+
+    ``;;`` line comments are dropped first (the structural reader does not model
+    them; block ``/* */`` comments are stripped upstream).  When
+    ``assert_functionality`` is set, totality + uniqueness axioms for every lifted
+    function symbol are appended.
+    """
+    import re
+    text = re.sub(r";;[^\n]*", "", text)
+    counter = [0]
+    sigs: Set[Tuple[str, int]] = set()
+    forms = [_relationalize_node(f, sigs, counter)
+             for f in _clif_read_all(_clif_tokenize(text))]
+    out = [_clif_serialize(f) for f in forms]
+    if sigs_out is not None:
+        sigs_out.update(sigs)
+    if assert_functionality and sigs:
+        out.extend(_functionality_axioms(sigs))
+    return "\n".join(out)
+
+
 def _strip_block_comments(text: str) -> str:
     """Remove C-style ``/* … */`` block comments before parsing.
 
@@ -218,14 +346,20 @@ def _strip_block_comments(text: str) -> str:
     return re.sub(r"/\*.*?\*/", "", text, flags=re.S)
 
 
-def from_clif_text(clif_text: str) -> ImportResult:
+def from_clif_text(clif_text: str, *, assert_functionality: bool = False) -> ImportResult:
     """Import a domain model from a CLIF text string.
 
     Handles single sentences, multiple sentences, cl-text wrappers,
-    ``;;`` comments and (COLORE-style) ``/* … */`` block comments.
+    ``;;`` comments and (COLORE-style) ``/* … */`` block comments.  Nested
+    function terms ``(f t₁ … tₙ)`` in argument position are **relationalized**
+    (lifted to their graph relation ``R_f``) so function-bearing ontologies
+    (most of COLORE) import; pass ``assert_functionality`` to also emit the
+    (non-Horn) totality + uniqueness axioms.
     """
     clif_text = _strip_block_comments(clif_text)
     cl_imports = _extract_cl_imports(clif_text)
+    clif_text = _relationalize_functions(
+        clif_text, assert_functionality=assert_functionality)
     egi = parse_clif(_disambiguate_variables(clif_text))
 
     # Count elements

@@ -328,7 +328,8 @@ def colore_between():
          f"leaves them to the contest/deduction game (no A-box to forward-chain); the "
          f"honest reasoning value is in the contest, not the Horn closure. The "
          f"cl-imports chain was resolved by hand (auto-resolution is not yet built); "
-         f"COLORE function-term modules are out of scope (EGs are relational).",
+         f"COLORE function-term modules now import too — function terms relationalise "
+         f"on import ((density (dmv v m)) ↦ ∃z (dmv(v,m,z) ∧ density(z))).",
          ["provenance", "clif-import", "honest-partial-import", "non-horn-residue"]),
     )
     return uod, prov, anns

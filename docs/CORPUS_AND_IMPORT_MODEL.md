@@ -224,17 +224,51 @@ from `github.com/gruninger/colore` surfaced — and fixed — what synthetic con
 What stays a boundary, honestly: COLORE is mostly **non-Horn FOL** (`iff` / `exists`-heads
 / equality / negated bodies → materialization's skip residue, so a relational theory like
 betweenness forward-chains *nothing* — its reasoning value is in the contest, not the Horn
-closure); it uses **function terms** like `(dmv v m)`, which **our CLIF parser** does not
-yet handle (a parse error — an *implementation* gap, not a limit of EG: functions are
-expressible by relationalisation — a function is a relation whose output is uniquely
-determined, `(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧ density(z))` + functionality — and
-Dau gives a direct extension, *Constants and Functions in Peirce's Existential Graphs*,
-ICCS 2007; EGIF even has an explicit `(Type … | output)` function form. The fix is to
-relationalise function terms on import; the uniqueness axioms are non-Horn, so they fall
-to the contest residue like the rest); and `cl-imports` still needs hand resolution.
+closure); and `cl-imports` still needs hand resolution.
 COLORE names are **underscored, not hyphenated**, and underscores round-trip
 through EGIF cleanly — so COLORE does *not* exercise the hyphen fix (that remains pinned by
 the in-repo hyphenated `animal_taxonomy`).
+
+### 5.2 Function terms: relationalised on import (BUILT 2026-06-12)
+
+The protected CLIF parser accepts only *names* in argument position, so a nested
+function application `(f t₁ … tₙ)` there — e.g. COLORE's `(density (dmv v m))` — is a
+parse error. This is an *implementation* gap, **not** a limit of EG: functions are
+EG-expressible by **relationalisation** (a function is a relation whose last argument is
+uniquely determined by the rest — its graph), and Dau gives the direct extension
+(*Constants and Functions in Peirce's Existential Graphs*, ICCS 2007; EGIF has a
+`(Type … | output)` form). The importer now does the meaning-preserving reduction at its
+own boundary, leaving the protected lexer untouched (exactly as `_strip_block_comments` /
+`_disambiguate_variables` do):
+
+- **`_relationalize_functions` (`domain_model_importer`)** — a CLIF→CLIF pass over the
+  existing s-expression reader (`_clif_tokenize` / `_clif_read_all` / `_clif_serialize`).
+  It walks each sentence; logical structure (`and`/`or`/`not`/`if`/`iff`/quantifiers, the
+  `cl-text`/`cl-imports` wrappers) is recursed through untouched, and at every predication
+  — including `(= t₁ t₂)`, since the parser reads `=` as an ordinary relation — each
+  function-term argument is **lifted**: mint a fresh `z`, replace the occurrence with `z`,
+  and conjoin the graph atom `(f …args… z)` under a fresh existential.
+  `(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧ density(z))`. Nested terms `(f (g x))` lift
+  inside-out; the **value-as-equality** case `(= (dmv x y) (dmv z y))` relationalises both
+  sides, then `(= z₁ z₂)`. The ∃-form is sound in *any* polarity (the value exists in
+  every context given totality), so a lifted atom inside a `not` stays correct.
+- **Functionality is optional + non-Horn.** Totality `∀x⃗∃z R_f(x⃗,z)` and uniqueness
+  `∀x⃗∀z∀z′ (R_f(x⃗,z) ∧ R_f(x⃗,z′) → z=z′)` are what make `R_f` a *function* rather than a
+  mere relation; they use `=` → land in the contest residue like the rest of COLORE.
+  `from_clif_text(…, assert_functionality=True)` emits them; the default off (the minimal
+  correct import needs only the graph-of-the-function atom).
+- **Verified** on the real COLORE `density.clif` (`dmv`, `add_density`, `mult_density`, …
+  all import as relations) and round-tripped through `same_graph` where the EGIF generator
+  cooperates. Tests: `tests/test_domain_model_importer.py::TestFunctionRelationalization`.
+- **Scope guard.** This is the first-order *reduction* over the relational reader. The full
+  Dau/EGIF first-class function *notation* (a distinct glyph, an output peg) is a larger,
+  separate piece; relationalisation is the meaning-preserving way to read COLORE now.
+
+What's still open for a *fully cited* function-bearing COLORE corpus UoD (the
+`colore_between` treatment for, say, `density`) is `cl-imports` closure resolution —
+density imports `amount` → `field` (the real-number field axioms), which auto-resolution
+(a separate forward edge) would bring in; `colore_between` stays the resolved-closure
+exemplar.
 
 ## 6. Forward edges
 
