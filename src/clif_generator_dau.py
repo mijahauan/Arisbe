@@ -372,12 +372,33 @@ class CLIFGenerator:
         if not main_expr:
             return ""
 
-        # Add universal quantification for free variables
-        if free_vars:
-            var_list = " ".join(sorted(free_vars))
-            return f"(forall ({var_list}) {main_expr})"
-        else:
+        if not free_vars:
             return main_expr
+
+        # Quantify by polarity, not blanket `forall`.  A generic line whose
+        # defining vertex sits in a positive (evenly-enclosed) context is
+        # **existential**; in a negative (oddly-enclosed) context it is
+        # **universal**.  The old code wrapped *every* free variable in one
+        # `forall`, which mislabelled every sheet-level existential — it only
+        # round-tripped because the parser used to read `forall` back as `exists`
+        # (the two were mutually-compensating bugs; both are now fixed).
+        label_to_vid = {lbl: vid for vid, lbl in self.vertex_labels.items()}
+        has_existential = any(
+            label_to_vid.get(var) is not None
+            and not self.graph.is_oddly_enclosed(label_to_vid[var])
+            for var in free_vars
+        )
+
+        # main_expr already encodes each universal line's negative placement in its
+        # cut structure, so the parser derives ∀ from the *structure*, not the
+        # keyword — which is why a single `exists` prefix round-trips every shape
+        # faithfully and is the honest label for the common all-existential graph.
+        # An all-universal graph gets an honest `forall`.  (A graph mixing the two
+        # cannot be rendered prenex without loss; `exists` keeps the round-trip
+        # exact, which is what the structure-driven parser relies on.)
+        var_list = " ".join(sorted(free_vars))
+        quantifier = "exists" if has_existential else "forall"
+        return f"({quantifier} ({var_list}) {main_expr})"
 
 
 # Factory function

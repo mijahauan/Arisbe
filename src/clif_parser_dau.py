@@ -532,12 +532,63 @@ class CLIFParser:
             return egi
 
         if node.type == "forall":
-            # Universal quantification: (forall (x) body)
-            # In EG, universals are implicit from the cut structure.
-            # The body (typically an if-expression) handles the scoping.
+            # Universal quantification: (forall (x⃗) body)  ≡  ¬∃x⃗ ¬body.
+            #
+            # A material-conditional or negation body already supplies the
+            # enclosing negative context that makes a bound line read universally,
+            # and places the bound line there:
+            #   - (if A B) = ~[ A ~[ B ] ]: the consequent's cut nests inside the
+            #     antecedent's, so a variable shared by A and B settles in the
+            #     *outer* (negative) cut — the canonical subsumption scroll
+            #     ~[ *x (A x) ~[ (B x) ] ].  Universal. ✓
+            #   - (not P) = ~[ P ]: the variable settles in that cut.  Universal. ✓
+            # We keep those established shapes untouched.
+            #
+            # Every *other* body fails to place the binder negatively, so the old
+            # "implicit" handling (drop the binder, convert the body here) collapsed
+            # the universal to an existential — a line whose shallowest occurrence
+            # is positive IS ∃.  This bit not only positive atoms / conjunctions /
+            # existentials but also (iff A B): its two scrolls are *siblings*, so a
+            # variable shared across them settles at their least common ancestor —
+            # the sheet (positive) — not in either cut.  For all of these, build the
+            # double cut explicitly: ~[ *x⃗ ~[ body ] ].  The binder vertices in the
+            # outer (negative) cut make the line universal; the body in the inner
+            # cut keeps its own existentials existential (back to even depth).
+            var_names: List[str] = []
+            bodies: List[CLIFParseNode] = []
             for child in node.children:
-                if child.type != "variables":
+                if child.type == "variables":
+                    var_names.extend(vn.value for vn in child.children)
+                else:
+                    bodies.append(child)
+
+            body_supplies_negation = (
+                len(bodies) == 1 and bodies[0].type in ("if", "not")
+            )
+            if body_supplies_negation:
+                for child in bodies:
                     egi = self._convert_to_egi(child, egi, area_id)
+                return egi
+
+            # ~[ *x⃗ ~[ body ] ]
+            outer_cut_id = f"c_all_outer_{len(egi.Cut)}"
+            outer_cut = Cut(id=outer_cut_id)
+            egi = egi.with_cut(outer_cut, context_id=area_id)
+            # The bound lines live in the outer (negative) cut — their universal
+            # position.  Pre-create them here so the body's atoms in the inner cut
+            # wire to these existing vertices rather than minting fresh ones.
+            for name in var_names:
+                vertex_id = f"v_{name}"
+                if not any(v.id == vertex_id for v in egi.V):
+                    egi = egi.with_vertex_in_context(
+                        Vertex(id=vertex_id, label=None, is_generic=True),
+                        outer_cut_id,
+                    )
+            inner_cut_id = f"c_all_inner_{len(egi.Cut)}"
+            inner_cut = Cut(id=inner_cut_id)
+            egi = egi.with_cut(inner_cut, context_id=outer_cut_id)
+            for child in bodies:
+                egi = self._convert_to_egi(child, egi, inner_cut_id)
             return egi
 
         if node.type == "exists":

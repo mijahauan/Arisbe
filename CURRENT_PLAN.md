@@ -42,6 +42,40 @@ the model-respecting reply) + the **warrant lifecycle** (low → tested by survi
 
 ---
 
+## ✅ DONE 2026-06-12 — CLIF universal-quantifier correctness (parser + generator)
+
+A follow-on to the relationalization work surfaced a **mutually-compensating pair of bugs**
+between the protected `clif_parser_dau` and `clif_generator_dau`, now both fixed (authorized
+core change; full suite green).
+
+- **Parser — positive-body universals.** `(forall (x⃗) body)` only built the universal's
+  negative context when `body` was a material conditional (`if`) — it dropped the binder and
+  leaned on the conditional's scroll. A **positive** body (a bare atom, conjunction, or
+  existential — and, it turned out, a biconditional) had nowhere to place the bound line, so
+  the universal silently collapsed to an existential (a line on the sheet **is** ∃). The
+  `forall`/`exists` handlers were in fact identical code. Fixed: keep the established shape
+  when the body is `if`/`not` (the bound line settles in their cut — the canonical
+  subsumption scroll is unchanged), and otherwise build the double cut `~[ *x⃗ ~[ body ] ]`
+  explicitly (binders in the outer/negative cut → universal; the body's own existentials
+  stay existential at even depth). `(forall (x) (P x))` now reads `~[ *x ~[ (P x) ] ]` = ∀x P,
+  not `~[ *x (P x) ]` = ∃x P. `iff` moved to the wrap path (its two scrolls are siblings, so
+  a shared line hoists to the sheet — positive — unlike `if`).
+- **Generator — quantifier by polarity.** `generate_with_quantification` wrapped *every*
+  free variable in one blanket `forall`, mislabelling every sheet-level existential; it only
+  round-tripped because the old parser read `forall` back as `exists`. Fixed: classify each
+  line by the polarity of its home area (`is_oddly_enclosed`) — a positive (even-depth)
+  vertex is existential, a negative (odd-depth) one universal. An all-existential graph now
+  emits honest `(exists …)`, an all-universal one honest `(forall …)`. (The cut structure
+  already pins each universal line negatively, so the parser derives ∀ from structure, not
+  the keyword — `exists` therefore round-trips every shape faithfully; a graph mixing both
+  polarities can't be rendered prenex without loss and keeps the faithful-round-trip `exists`.)
+- **Verified:** `tests/test_properties_cgif_clif_round_trip.py` (the 6 known-example
+  round-trips + count-preservation + idempotency) now pass *and* the emitted CLIF is
+  semantically honest (`(P *x)` → `(exists (x) (P x))`; `~[ (Cat *x) ~[ (Animal x) ] ]` →
+  `(forall (x) (not (and (Cat x) (not (Animal x)))))`). Full suite green; 152 core tests pass.
+
+---
+
 ## ✅ DONE 2026-06-12 — function terms relationalise on import
 
 The function-bearing COLORE modules (the majority) now import. The protected CLIF parser
