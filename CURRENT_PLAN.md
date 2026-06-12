@@ -1,6 +1,26 @@
 # Current Plan
 
-**Last Updated**: 2026-06-12 (session end) — this session: **P2 — `cl-imports`
+**Last Updated**: 2026-06-12 (session end) — this session **completed the P2 import-breadth
+queue**: (1) finished the **OWL construct fragment** — `ObjectHasValue` + `ObjectMinCardinality 1`
+(≡ someValues, sound either polarity) added to `_class_expr`; `ObjectComplementOf` in
+superclass position (`(not 〚D〛)`, head-only like ∀R.D); higher/max/exact cardinality +
+hasSelf + oneOf reported. (2) Added an **RDF front-end** (`tools/rdf_to_owl.py`): rdflib
+(BSD-3) parses Turtle / RDF-XML / N-Triples / JSON-LD, a triple→`Node` mapper reconstructs
+the *same* functional-syntax AST the OWL translator consumes (blank-node `owl:Restriction`
+decoding, `intersectionOf`/`unionOf` RDF-list handling, structural A-box detection), and
+`translate_axiom_forms` (extracted shared core) reuses every axiom + class-expression rule.
+Wired `from_rdf_text/from_rdf_file` into the importer; a Turtle-imported ontology reasons
+end-to-end (subsumption + ∀R.D-Horn materialization). 41 OWL tests + 16 RDF tests; 238
+regression green. **Manchester deferred** (no maintained Python parser; rdflib doesn't cover
+it; low real-world value). Earlier this session: **P2 — OWL `ObjectUnionOf` +
+`ObjectAllValuesFrom` heads** (`tools/owl_to_clif.py`): disjunction translates in either
+polarity (the De-Morgan `(or …)` double cut; a disjunctive head is non-Horn → contest peel),
+and a **universal restriction in superclass position** prenexes to the flat OWL-2-RL Horn
+rule (`SubClassOf(C, ∀R.D)` → `∀x∀y(C(x)∧R(x,y)→D(y))`) the materializer recognises — so it
+genuinely fires (derives facts) + decides theorems via `theory_query`; `∀R.D` in negative
+position stays reported-not-translated (first-reference vertex placement flips it unsoundly).
+Strictly additive — stored ontology UoDs re-import byte-for-byte; 32 OWL tests (was 23), no
+regressions. Earlier this session: **P2 — `cl-imports`
 auto-resolution** (`src/cl_import_resolver.py`): a Common-Logic module's import closure is
 resolved automatically (pluggable Mapping/Directory/ColoreWeb/Caching/Chain resolvers; BFS
 dedupe; unresolved reported), wired into `from_clif_text/from_clif_file`. Landed
@@ -26,52 +46,145 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**This session: P2 — `cl-imports` auto-resolution** — DONE (✅ block below). The
-closure resolver (`src/cl_import_resolver.py`) auto-resolves a Common-Logic module's
+**This session: completed the P2 import-breadth queue** — DONE (✅ blocks below). The OWL
+construct fragment is finished (union, ∀R.D→Horn, complement, hasValue, ≥1 cardinality; the
+rest reported), and an **RDF front-end** (`tools/rdf_to_owl.py`, via rdflib) brings in Turtle
+/ RDF-XML / N-Triples / JSON-LD by reconstructing the same functional-syntax AST the OWL
+translator consumes. Real ontologies now import from where they actually live.
+
+**▶ DESIGNATED NEXT TASK — the Endoporeutic Game + automated Grapheus (the dialogical
+contest).** P2 import-breadth is **closed** (only Manchester deferred). The main thread now is
+to make Agon a *real* dialogical contest rather than a hot-seat, by automating the Grapheus.
+
+*Read first:* `docs/ENDOPOREUTIC_GAME_GUIDE.md` (the two games), `docs/GENERATION_AND_TESTING.md`
+(eliminative=game / additive=making; deduction earns the corpus *through* Agon),
+`docs/DOMAIN_ORACLE_AND_M.md` §6 (the semantic-game seam), `docs/CHAIN_OF_SEMIOSIS.md`
+(semiosis is dialogical; fuller regime-2 = an assertion that has *withstood challenge*). Memory:
+[[project_agon_arena_v1_design]], [[project_domain_oracle_and_m]], [[project_chain_of_semiosis_grounding]].
+
+*The state to build on.* Two games already exist:
+- **The transformation game** (`src/endoporeutic_game.py`) — proof-theoretic, Dau Ch. 21:
+  PROPOSER defends in negative areas (INS/IT+/DC+), SKEPTIC attacks in positive areas
+  (ERA/IT−/DC−); alternation, win/concede/no-moves. Today it's **hot-seat** (both sides human).
+- **The semantic game / peel** (`src/semantic_game.py` `evaluate(egi, oracle)`) — reads G
+  outside-in against M, returns Kleene `Verdict3` + transcript + structured
+  `winning_witness` / `counterexample`. This is the seam that can supply a **model-respecting
+  reply**.
+
+*The shape of the work (design next session, don't pre-commit here).* The **automated Grapheus**
+is the move-generator that, given the current board and M (via the `DomainOracle` /
+materialized model), chooses the defender/challenger's reply the model warrants — the peel's
+`winning_witness`/`counterexample` is the natural source of that move. Then the **warrant
+lifecycle**: an assertion that *survives* the contest earns fuller regime-2 standing
+(low-warrant import → tested-through-Agon), the missing link in the import↔Agon arc
+([[project_import_low_warrant_and_floor]]). Open sub-questions for the session: how a generated
+Grapheus move maps onto the transformation game's rule set vs. the semantic peel; whether the
+first cut is auto-**SKEPTIC** (challenge a proposed G) or auto-**PROPOSER**; where the verdict
+annotates the disposition taxonomy; and what "withstood challenge" persists as on the chain.
+
+*Alternatives if priorities shift:* the two **layout follow-ups** (reader robustness on dense
+ELK / tension compaction — both in Backlog); the **math menu** (∀x scaffold tactic /
+selection-driven fold); or an optional consolidation — **land a cited Turtle/RDF ontology as a
+corpus UoD** now that the front-end exists (mind the layout-perf frontier).
+
+---
+
+## ✅ DONE 2026-06-12 — P2: completed the import-breadth queue (OWL constructs + RDF)
+
+The remaining P2 queue closed in two moves.
+
+**(1) The OWL construct fragment is complete** (`tools/owl_to_clif.py`). Beyond the prior
+union + ∀R.D-head work:
+- **`ObjectHasValue(R, a)`** → `(R x a)` (a binary atom with the individual fixed) and
+  **`ObjectMinCardinality 0/1`** (0 ≡ `owl:Thing`; `1 R [C]` ≡ `ObjectSomeValuesFrom`, an
+  existential) added to `_class_expr` — both add no cut around the bound variable, so they're
+  sound in **either** polarity.
+- **`ObjectComplementOf(D)`** in superclass position → `(if 〚C〛 (not 〚D〛))` via `_head_clauses`
+  (head-only, like ∀R.D — the `not`-cut would misplace the variable in negative position,
+  verified). Non-Horn → contest.
+- Reported (honest floor): `ObjectMinCardinality n≥2`, `ObjectMaxCardinality`,
+  `ObjectExactCardinality`, `ObjectHasSelf`, `ObjectOneOf`, and ∀R.D / ¬D in negative position.
+- 41 OWL tests (was 32).
+
+**(2) RDF front-end** (`tools/rdf_to_owl.py`) — the real-world surface syntaxes. Decision
+(with the author): add **rdflib** (BSD-3, pure-Python) rather than hand-roll a Turtle/XML
+parser — most functionality for least effort, no commercial encumbrance. rdflib parses any
+RDF serialization (**Turtle, RDF/XML, N-Triples, JSON-LD**); `rdf_to_forms(graph)`
+reconstructs the *same* functional-syntax `Node` AST the OWL translator consumes, so every
+axiom + class-expression rule is reused. The hard parts rdflib makes tractable: blank-node
+`owl:Restriction` decoding (some/all/hasValue/≥1-card), `owl:intersectionOf`/`unionOf`/
+`complementOf` (RDF-list members via `rdflib.collection.Collection`), and **structural A-box
+detection** (an object-property assertion `a P b` is recognised by a non-builtin predicate
+with URIRef ends — so it's recovered even when the property isn't explicitly typed
+`owl:ObjectProperty`, the common lightweight-Turtle case). Unsupported class shapes
+(datatypes, oneOf, hasSelf, max/exact card) become a sentinel the translator *reports* — no
+silent drop. `translate(text)` was split into a thin parser wrapper + the shared
+`translate_axiom_forms(forms)` core both front-ends call. Wired
+`from_rdf_text/from_rdf_file` (extension-guessed format) into `domain_model_importer` (+ the
+`DomainModelImporter` methods). A Turtle-imported ontology reasons end to end: subsumption
+theorems decide, the ∀R.D-Horn rule fires on the asserted A-box, the subclass chain
+materializes (`Dog(Fido)` → `Animal(Fido)`). Tests: `tests/test_rdf_import.py` (16) +
+`tests/fixtures/zoo.ttl`. **Manchester** (`.omn`) deferred — rdflib doesn't parse it, there's
+no maintained Python Manchester parser, and it's an editing syntax rather than a common
+distribution format (low import value).
+
+No regressions: 238 import/ontology/agon/materialization/theory-query/corpus-conformance/
+organon tests green. `rdflib>=7.6.0` added to `pyproject.toml` (main deps — import is a user
+feature). Docs: both translator module docstrings.
+
+---
+
+## ✅ DONE 2026-06-12 — P2: OWL `ObjectUnionOf` + `ObjectAllValuesFrom` heads
+
+Two more OWL 2 class-expression forms cross from *reported-as-skipped* into the translated
+fragment, widening what imports as a domain model M (all in `tools/owl_to_clif.py`, unprotected):
+
+- **`ObjectUnionOf` (disjunction), any position.** Added to `_class_expr` as
+  `(or 〚C〛 〚D〛)`, which `parse_clif` renders as the De-Morgan double cut
+  `~[ ~[A] ~[B] ]`. Verified sound in **both** polarities (the bound line settles universal
+  in a body, existential on the sheet — the cut nesting carries it). `C ⊔ Thing` ↦ Thing,
+  empty disjuncts dropped. A disjunctive *head* is non-Horn (materialization skips it) but is
+  sound EG the contest peel uses. Flows through the existing `SubClassOf`/`EquivalentClasses`/
+  `DisjointClasses` paths (previously these axioms were skipped).
+- **`ObjectAllValuesFrom` (universal restriction), superclass position only.** A new
+  `_head_clauses` compiler **prenexes** a head ∀-restriction into a flat OWL-2-RL Horn rule:
+  `SubClassOf(C, ∀R.D)` → `(forall (x y) (if (and (C x) (R x y)) (D y)))`. Crucially this is
+  the *flat* scroll `~[ (C x)(R x y) ~[ (D y) ] ]` the materializer recognises (the
+  compositional *nested* encoding reads as "negation in head" and would fall only to the
+  contest) — so the rule genuinely **fires** (materializes `Dog(Fido)` from `Dog(Rex)` +
+  `hasParent(Rex,Fido)`) and **decides theorems** (`theory_query.entails`: a Dog's parent is a
+  Mammal, chained through subsumption). A mixed intersection head splits into several rules
+  (`C ⊑ Agent ⊓ ∀R.Person` → `C⊑Agent` **and** `C⊓R(x,y)⊑Person(y)`), itself a sound,
+  layout-friendly decomposition. ∀R.D nests (composes through intersection + nested ∀).
+- **`∀R.D` in negative position stays reported, not translated.** In subclass / equivalent /
+  disjoint position, `parse_clif` places a vertex at its *first-reference* area (not its LCA),
+  so a universal-in-the-antecedent silently flips to existential (verified empirically) — the
+  honest floor reports it rather than mistranslate.
+- **Strictly additive.** The existing-superclass compiler is tried first and unchanged; the
+  head-clause path engages **only** when it returns `None` (i.e. a ∀-restriction is present).
+  Every prior translation is byte-for-byte identical, so the landed ontology UoDs re-import
+  unchanged. Tests: `tests/test_owl_import.py` 23 → **32** (union both polarities + equivalence;
+  ∀-head prenex + intersection split + materialize-fires + theory-query-decides + negative-
+  position skip). No regressions: 166 import/ontology/agon/materialization/theory-query +
+  102 corpus-conformance/ontology/organon green. Doc: the translator module docstring.
+
+---
+
+## ✅ DONE 2026-06-12 — P2: `cl-imports` auto-resolution + `colore_field` landed
+
+The closure resolver (`src/cl_import_resolver.py`) auto-resolves a Common-Logic module's
 `cl-imports` chain (pluggable Mapping/Directory/ColoreWeb/Caching/Chain resolvers; BFS
 dedupe; unresolved reported, never dropped), wired into `from_clif_text/from_clif_file`.
 Landed **`colore_field`** — the COLORE real-number field algebra (4-module auto-resolved
 closure `field → commutative_ring → ring → semiring`, nested function terms relationalised),
 a drawn §3.3-attested corpus UoD (28 cuts). The fuller density closure (7 modules, 130 cuts)
 is **vendored** (`corpus/ontologies/colore_cache/`) + imports as data, but stays undrawn at
-the layout-perf frontier (like `bfo_core`). **▶ DESIGNATED NEXT TASK:** pick from the
-remaining P2 queue (`ObjectUnionOf`/`AllValuesFrom` heads → contest game; Manchester /
-Turtle / RDF), the two layout follow-ups (reader robustness on dense ELK / tension
-compaction — both in Backlog), or the next fork below (dialogical contest / automated
-Grapheus + the warrant lifecycle).
-
-**Prior session: function-term relationalization + a CLIF universal-quantifier correctness
-fix (parser + generator) + P0 (7 red layout tests triaged) + P1 (Playwright E2E)** — all DONE
-(✅ blocks below; P0 detail in the Backlog).
-
-**P0 — DONE: the 7 pre-existing red layout tests, triaged + resolved** (full detail in the
-Backlog's ✅ P0 entry). None were from the CLIF work or a core fault — §3.3 still attests the
-whole corpus; the failures were the *stronger* geometric-reader round-trip on two dense
-imported reasoning ontologies (`bfo_core` under ELK; `colore_between`'s ternary order under
-clockwise), plus one opt-in-engine compaction regression. Resolved with a documented
-`_reader_frontier` helper (defers exactly the frontier combos, keeps every passing case) and
-one xfail. Two genuine layout follow-ups logged in the Backlog (reader robustness on dense
-ELK; tension compaction).
-
-**P1 — DONE: Playwright E2E over `/agon` interpretation + challenge mode** (the standing
-companion debt, now committed). Two new headless-Chromium suites (skipped cleanly if
-Playwright/Chromium absent, like `test_ergasterion_freeform_e2e.py`):
-- `tests/test_agon_e2e.py` (4) — the picker→interpret→**theorem** flow driven through the real
-  page: select a persona model → "Does G hold in M?" → verdict (teacher TRUE; student FALSE +
-  named counterexample); a typed rule + "Use rules" → the **"Theorem of M? (deduction)"** block
-  reads TRUE (freeze-a-witness) beside the UNKNOWN open-world peel; "Where does G hold?" → the
-  inverse-pivot holds/partial/independent/contradicts tally.
-- `tests/test_ergasterion_challenge_e2e.py` (2) — freeform **challenge grading**: enter the
-  canvas, pick the one-relation target → prompt + grade enabled; grading an empty canvas shows
-  the **legible diff** (missing the target's relation/individual); drawing `(man "Socrates")`
-  freehand → graded a **match** (`same_graph`). 9/9 E2E green (incl. the 3 prior freeform).
-
-**P2 — import breadth (`cl-imports` auto-resolution).** DONE — the auto-resolver landed
-`colore_field` cited (✅ block below). Still queued under this heading:
-`ObjectUnionOf`/`AllValuesFrom` heads → contest game; Manchester / Turtle / RDF.
-
-**Then** (next fork): the dialogical **contest / automated Grapheus** (the peel supplies
-the model-respecting reply) + the **warrant lifecycle** (low → tested by surviving Agon).
+the layout-perf frontier (like `bfo_core`). Earlier the same day: function-term
+relationalization + a CLIF universal-quantifier correctness fix (parser + generator),
+**P0** (the 7 pre-existing red layout tests triaged + resolved via a documented
+`_reader_frontier` helper + one xfail — detail in the Backlog), and **P1** (Playwright E2E
+over `/agon` interpretation + challenge mode — `tests/test_agon_e2e.py`,
+`tests/test_ergasterion_challenge_e2e.py`, 9/9 green).
 
 ---
 

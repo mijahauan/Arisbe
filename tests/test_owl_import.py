@@ -101,7 +101,8 @@ def test_subclass_of_thing_is_trivial_skip():
 
 @pytest.mark.parametrize("axiom, marker", [
     ("SubClassOf(:Dog ObjectMinCardinality(2 :hasParent))", "SubClassOf"),
-    ("SubClassOf(:Dog ObjectUnionOf(:Mammal :Bird))", "SubClassOf"),
+    ("SubClassOf(:Dog ObjectMaxCardinality(1 :hasParent))", "SubClassOf"),
+    ("SubClassOf(:Dog ObjectHasSelf(:knows))", "SubClassOf"),
     ("FunctionalObjectProperty(:hasMother)", "FunctionalObjectProperty"),
     ('AnnotationAssertion(rdfs:label :Dog "a dog")', "AnnotationAssertion"),
 ])
@@ -109,6 +110,139 @@ def test_untranslatable_is_skipped_and_named(axiom, marker):
     clif, rep = translate(_onto(axiom))
     assert clif.strip() == ""
     assert any(marker in k for k in rep.skipped)
+
+
+# --------------------------------------------------------------------------- #
+# ObjectUnionOf — the De-Morgan disjunction, sound in either polarity          #
+# --------------------------------------------------------------------------- #
+
+
+def test_union_in_superclass_is_disjunctive_head():
+    clif, rep = translate(_onto("SubClassOf(:Dog ObjectUnionOf(:Mammal :Bird))"))
+    assert clif.strip() == "(forall (x1) (if (Dog x1) (or (Mammal x1) (Bird x1))))"
+    assert rep.translated["SubClassOf"] == 1
+
+
+def test_union_in_subclass_is_disjunctive_body():
+    clif, rep = translate(_onto("SubClassOf(ObjectUnionOf(:Cat :Dog) :Pet)"))
+    assert clif.strip() == "(forall (x1) (if (or (Cat x1) (Dog x1)) (Pet x1)))"
+
+
+def test_union_in_equivalence():
+    clif, _ = translate(_onto("EquivalentClasses(:A ObjectUnionOf(:B :C))"))
+    assert clif.strip() == "(forall (x1) (iff (A x1) (or (B x1) (C x1))))"
+
+
+# --------------------------------------------------------------------------- #
+# ObjectAllValuesFrom — prenexed to a flat Horn rule in superclass position     #
+# --------------------------------------------------------------------------- #
+
+
+def test_all_values_in_superclass_prenexes_to_horn():
+    clif, rep = translate(
+        _onto("SubClassOf(:Dog ObjectAllValuesFrom(:hasParent :Dog))"))
+    assert clif.strip() == (
+        "(forall (x1 w1) (if (and (Dog x1) (hasParent x1 w1)) (Dog w1)))")
+    assert rep.translated["SubClassOf (head restriction)"] == 1
+
+
+def test_mixed_intersection_head_splits_into_several_rules():
+    # C ⊑ Agent ⊓ ∀hasFriend.Person  →  C⊑Agent  and  C⊓hasFriend(x,y) ⊑ Person(y)
+    clif, rep = translate(_onto(
+        "SubClassOf(:Person ObjectIntersectionOf("
+        ":Agent ObjectAllValuesFrom(:hasFriend :Person)))"))
+    assert "(forall (x1) (if (Person x1) (Agent x1)))" in clif
+    assert ("(forall (x1 w1) (if (and (Person x1) (hasFriend x1 w1)) "
+            "(Person w1)))") in clif
+    assert rep.translated["SubClassOf (head restriction)"] == 2
+
+
+def test_all_values_in_subclass_is_skipped_unsound_polarity():
+    # ∀R.C in *negative* position can't carry the universal soundly under the
+    # first-reference vertex placement — reported, not mistranslated.
+    clif, rep = translate(_onto("SubClassOf(ObjectAllValuesFrom(:r :C) :D)"))
+    assert clif.strip() == ""
+    assert any("SubClassOf" in k for k in rep.skipped)
+
+
+def test_all_values_head_fires_as_horn_rule():
+    # The payoff: a ∀-restriction head is genuinely Horn — it materializes.
+    from model_materialization import materialize_egi
+    from egif_generator_dau import generate_egif
+
+    egi, _clif, _rep = owl_to_egi(_onto(
+        "SubClassOf(:Dog ObjectAllValuesFrom(:hasParent :Dog))",
+        "ClassAssertion(:Dog :Rex)",
+        "ObjectPropertyAssertion(:hasParent :Rex :Fido)"))
+    facts, report = materialize_egi(egi)
+    assert report.derived_facts == 1
+    assert '(Dog "Fido")' in generate_egif(facts)
+
+
+# --------------------------------------------------------------------------- #
+# ObjectHasValue — a binary atom with a fixed individual, sound either polarity #
+# --------------------------------------------------------------------------- #
+
+
+def test_has_value_in_superclass():
+    clif, _ = translate(_onto("SubClassOf(:Dog ObjectHasValue(:hasOwner :Alice))"))
+    assert clif.strip() == "(forall (x1) (if (Dog x1) (hasOwner x1 Alice)))"
+
+
+def test_has_value_in_subclass():
+    clif, _ = translate(_onto("SubClassOf(ObjectHasValue(:hasOwner :Alice) :Owned))"))
+    assert clif.strip() == "(forall (x1) (if (hasOwner x1 Alice) (Owned x1)))"
+
+
+# --------------------------------------------------------------------------- #
+# ObjectMinCardinality — 0 is Thing, 1 reduces to ∃ (someValues), n≥2 reported  #
+# --------------------------------------------------------------------------- #
+
+
+def test_min_cardinality_one_unqualified_is_existential():
+    clif, _ = translate(_onto("SubClassOf(:Dog ObjectMinCardinality(1 :hasParent))"))
+    assert clif.strip() == (
+        "(forall (x1) (if (Dog x1) (exists (w1) (hasParent x1 w1))))")
+
+
+def test_min_cardinality_one_qualified_is_some_values():
+    clif, _ = translate(
+        _onto("SubClassOf(:Dog ObjectMinCardinality(1 :hasParent :Dog))"))
+    assert clif.strip() == (
+        "(forall (x1) (if (Dog x1) (exists (w1) (and (hasParent x1 w1) (Dog w1)))))")
+
+
+def test_min_cardinality_zero_is_trivial():
+    clif, rep = translate(_onto("SubClassOf(:Dog ObjectMinCardinality(0 :hasParent))"))
+    assert clif.strip() == ""
+    assert any("Thing" in k for k in rep.skipped)   # ≥0 ≡ owl:Thing
+
+
+# --------------------------------------------------------------------------- #
+# ObjectComplementOf — a negated consequent in superclass position only         #
+# --------------------------------------------------------------------------- #
+
+
+def test_complement_in_superclass_is_negated_consequent():
+    clif, rep = translate(_onto("SubClassOf(:Dog ObjectComplementOf(:Cat))"))
+    assert clif.strip() == "(forall (x1) (if (Dog x1) (not (Cat x1))))"
+    assert rep.translated["SubClassOf (head restriction)"] == 1
+
+
+def test_complement_in_subclass_is_skipped_unsound_polarity():
+    # ¬D in *negative* position would misplace the bound line — reported, not minted.
+    clif, rep = translate(_onto("SubClassOf(ObjectComplementOf(:Cat) :NonCat)"))
+    assert clif.strip() == ""
+    assert any("SubClassOf" in k for k in rep.skipped)
+
+
+def test_intersection_with_complement_head_splits():
+    # Bachelor ⊑ Man ⊓ ¬Married  →  Bachelor⊑Man  and  Bachelor⊑¬Married
+    clif, rep = translate(_onto(
+        "SubClassOf(:Bachelor ObjectIntersectionOf(:Man ObjectComplementOf(:Married)))"))
+    assert "(forall (x1) (if (Bachelor x1) (Man x1)))" in clif
+    assert "(forall (x1) (if (Bachelor x1) (not (Married x1))))" in clif
+    assert rep.translated["SubClassOf (head restriction)"] == 2
 
 
 def test_declarations_counted_not_skipped():
@@ -151,6 +285,7 @@ def zoo_M():
     owl = _onto(
         "SubClassOf(:Mammal :Animal)",
         "SubClassOf(:Dog :Mammal)",
+        "SubClassOf(:Dog ObjectAllValuesFrom(:hasParent :Dog))",
         "SubClassOf(ObjectIntersectionOf(:Male :Parent) :Father)",
         "TransitiveObjectProperty(:hasAncestor)",
         "ClassAssertion(:Dog :Rex)",
@@ -175,4 +310,11 @@ def test_owl_model_decides_intersection_rule(zoo_M):
 
 def test_owl_model_decides_transitivity(zoo_M):
     q = "~[ (hasAncestor *a *b) (hasAncestor b *c) ~[ (hasAncestor a c) ] ]"
+    assert _verdict(zoo_M, q) == "true"
+
+
+def test_owl_model_decides_all_values_restriction(zoo_M):
+    # Dog ⊑ ∀hasParent.Dog, Dog ⊑ Mammal — so a Dog's parent is a Mammal:
+    # the ∀-restriction prenexed to a Horn rule, chained through subsumption.
+    q = "~[ (Dog *x) (hasParent x *y) ~[ (Mammal y) ] ]"
     assert _verdict(zoo_M, q) == "true"

@@ -548,6 +548,56 @@ def from_owl_file(path: Union[str, Path]) -> ImportResult:
 
 
 # ---------------------------------------------------------------------------
+# RDF import (Turtle / RDF-XML / N-Triples / JSON-LD → OWL axioms → CLIF → EGI)
+# ---------------------------------------------------------------------------
+
+def from_rdf_text(rdf_text: str, fmt: Optional[str] = None) -> ImportResult:
+    """Import a domain model from an RDF document (Turtle, RDF/XML, N-Triples, JSON-LD).
+
+    rdflib parses the serialization; ``tools/rdf_to_owl`` reconstructs the OWL axioms
+    as the same forms the OWL→CLIF translator consumes (so the whole EG-expressible
+    fragment — subsumption, ∀R.D→Horn, union, complement, hasValue, ≥1 cardinality — is
+    reused).  ``fmt`` is an rdflib format hint (``"turtle"``/``"xml"``/``"nt"``/…); ``None``
+    lets rdflib guess.  Untranslatable constructs are recorded as warnings, not dropped.
+    """
+    import sys as _sys
+    _tools = str(Path(__file__).resolve().parent.parent / "tools")
+    if _tools not in _sys.path:
+        _sys.path.insert(0, _tools)
+    from rdf_to_owl import rdf_to_clif as _rdf_to_clif
+
+    clif_text, report = _rdf_to_clif(rdf_text, fmt)
+    egi = parse_clif(clif_text) if clif_text.strip() else parse_clif("(true)")
+
+    warnings = [f"skipped {n}× {construct}"
+                for construct, n in sorted(report.skipped.items())]
+    result = from_clif_text(clif_text) if clif_text.strip() else ImportResult(
+        egi=egi, source_clif=clif_text)
+    result.egi = egi
+    result.source_format = "rdf"
+    result.source_clif = clif_text
+    result.num_axioms = report.n_axioms
+    result.num_types = len(report.classes)
+    result.num_relations = len(report.properties)
+    result.num_individuals = len(report.individuals)
+    result.warnings = warnings
+    return result
+
+
+def from_rdf_file(path: Union[str, Path]) -> ImportResult:
+    """Import a domain model from an RDF file (.ttl/.owl/.rdf/.nt/.jsonld).
+
+    The serialization is guessed from the file extension (rdflib's guesser)."""
+    from rdflib.util import guess_format
+
+    path = Path(path)
+    fmt = guess_format(str(path))
+    result = from_rdf_text(path.read_text(encoding="utf-8"), fmt)
+    result.source_path = str(path)
+    return result
+
+
+# ---------------------------------------------------------------------------
 # JSON Type Lattice import
 # ---------------------------------------------------------------------------
 
@@ -788,6 +838,12 @@ class DomainModelImporter:
 
     def from_owl_file(self, path: Union[str, Path]) -> ImportResult:
         return from_owl_file(path)
+
+    def from_rdf_text(self, rdf_text: str, fmt: Optional[str] = None) -> ImportResult:
+        return from_rdf_text(rdf_text, fmt)
+
+    def from_rdf_file(self, path: Union[str, Path]) -> ImportResult:
+        return from_rdf_file(path)
 
     def from_type_lattice(self, path: Union[str, Path]) -> ImportResult:
         return from_type_lattice(path)

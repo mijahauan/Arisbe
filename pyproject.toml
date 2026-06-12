@@ -30,6 +30,7 @@ dependencies = [
     "pathfinding>=1.0.0",
     "jsonschema>=4.20.0",
     "psutil>=5.9.0",
+    "rdflib>=7.6.0",
 ]
 
 [project.optional-dependencies]

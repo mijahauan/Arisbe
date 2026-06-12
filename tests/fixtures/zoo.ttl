@@ -1,0 +1,36 @@
+# Turtle counterpart of zoo.ofn — exercises the RDF → OWL → CLIF → EGI front-end.
+@prefix :     <http://example.org/zoo#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://example.org/zoo> a owl:Ontology .
+
+:Animal  a owl:Class .
+:Mammal  a owl:Class ; rdfs:subClassOf :Animal .
+:Dog     a owl:Class ; rdfs:subClassOf :Mammal .
+:Cat     a owl:Class ; rdfs:subClassOf :Mammal ; owl:disjointWith :Dog .
+
+# Father ≡ Male ⊓ Parent  (intersection via an rdf:List)
+:Father  owl:equivalentClass [ a owl:Class ; owl:intersectionOf ( :Male :Parent ) ] .
+
+# Every Dog's parents are Dogs  (∀-restriction in superclass → a Horn rule)
+:Dog rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty :hasParent ; owl:allValuesFrom :Dog ] .
+
+# A Pet has some owner  (someValues)
+:Pet rdfs:subClassOf
+  [ a owl:Restriction ; owl:onProperty :hasOwner ; owl:someValuesFrom :Person ] .
+
+:hasParent   a owl:ObjectProperty ; rdfs:domain :Animal ; rdfs:range :Animal ;
+             owl:inverseOf :hasChild .
+:hasAncestor a owl:TransitiveProperty .
+:siblingOf   a owl:SymmetricProperty .
+
+# A-box (note :hasParent / :hasAncestor used without re-declaration)
+:Rex a owl:NamedIndividual , :Dog .
+:Rex :hasParent :Fido .
+
+# An untranslatable construct surfaces as a warning, not silence.
+:Dog rdfs:subClassOf [ a owl:Restriction ; owl:onProperty :hasParent ;
+                       owl:maxCardinality 2 ] .

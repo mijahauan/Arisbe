@@ -17,9 +17,12 @@ correspondence, not truth*): translate **only** the genuinely first-order-EG-exp
 axiom forms, and **report everything dropped** by construct — never a silent truncation
 that reads as "imported the whole ontology" when it didn't.
 
-Translated axiom forms (class expressions limited to **named classes**,
-``ObjectIntersectionOf`` of translatable expressions, and ``ObjectSomeValuesFrom`` over
-a named property):
+Translated axiom forms.  Class expressions cover **named classes**,
+``ObjectIntersectionOf`` / ``ObjectUnionOf`` of translatable expressions,
+``ObjectSomeValuesFrom`` and ``ObjectHasValue`` over a named property, and
+``ObjectMinCardinality`` ``0`` (≡ ``owl:Thing``) / ``1`` (≡ ``ObjectSomeValuesFrom``) —
+all sound in **any** position — plus ``ObjectAllValuesFrom`` and ``ObjectComplementOf`` in
+**superclass (positive) position only** (see the note below):
 
     SubClassOf(C D)                  → (forall (x) (if 〚C〛 〚D〛))
     EquivalentClasses(C D …)         → pairwise (forall (x) (iff 〚Ci〛 〚Cj〛))
@@ -35,10 +38,27 @@ a named property):
     SameIndividual(a b …)            → pairwise (= a b)
     DifferentIndividuals(a b …)      → pairwise (not (= a b))
 
+A **disjunction** ``C ⊔ D`` compiles to ``(or 〚C〛 〚D〛)`` (the De-Morgan double cut,
+sound in either polarity; a disjunctive head is non-Horn, so the contest peel uses it
+rather than materialization).  A **universal restriction** ``∀R.D`` in superclass
+position is *prenexed* into a flat OWL-2-RL Horn rule — ``SubClassOf(C, ∀R.D)`` →
+``(forall (x y) (if (and 〚C〛 (R x y)) 〚D〛[y]))`` — which the materializer recognises;
+a **complement** ``¬D`` in superclass position becomes
+``(if 〚C〛 (not 〚D〛))`` (non-Horn, contest).  An intersection head mixing plain conjuncts
+with such restrictions splits into several rules.
+
+``∀R.D`` and ``¬D`` are **not** translated in negative position (subclass / equivalent /
+disjoint): parse_clif places a vertex at its first-reference area, not its
+least-common-ancestor, so a construct that wraps the bound variable in an added cut flips
+it unsoundly to existential — these are reported instead.  (``ObjectSomeValuesFrom``,
+``ObjectHasValue`` and ``ObjectMinCardinality 1`` add no such cut, so they stay sound in
+either polarity.)
+
 ``Declaration(...)`` forms are vocabulary, not content — counted, not "skipped".
-Everything else (cardinality, ``ObjectUnionOf`` / ``ObjectComplementOf`` /
-``ObjectAllValuesFrom`` / ``ObjectHasValue``, datatypes, functional/key axioms,
-annotations) is reported by construct and left to a later pass or the contest game.
+Everything still outside the fragment (``ObjectMinCardinality n≥2`` / ``ObjectMaxCardinality``
+/ ``ObjectExactCardinality``, ``ObjectHasSelf``, ``ObjectOneOf``, ``∀R.D`` / ``¬D`` in
+negative position, datatypes, functional/key axioms, annotations) is reported by construct
+and left to a later pass or the contest game.
 
 ``translate(text) -> (clif_text, report)``; ``owl_to_egi(text) -> (egi, report)`` pipes
 through ``parse_clif``.  Run standalone on a ``.ofn`` path to print the report.
@@ -245,6 +265,23 @@ def _class_expr(node: Node, var: str, ctx: _Ctx) -> Optional[str]:
         if len(parts) == 1:
             return parts[0]
         return "(and " + " ".join(parts) + ")"
+    if head == "ObjectUnionOf":
+        # 〚C ⊔ D〛(x) = (or 〚C〛(x) 〚D〛(x)).  parse_clif renders (or A B) as the
+        # De-Morgan double cut ~[ ~[A] ~[B] ], so a union reads correctly in *either*
+        # polarity (verified: the bound line settles universal in a body, existential
+        # on the sheet — the cut nesting carries it).  A disjunctive *head* is non-Horn
+        # (materialization skips it), but it is sound EG and the contest peel uses it.
+        parts = [_class_expr(a, var, ctx) for a in args]
+        if any(p is None for p in parts):
+            return None
+        if any(p == "T" for p in parts):       # C ⊔ Thing = Thing
+            return "T"
+        parts = [p for p in parts if p != "F"]  # drop empty disjuncts
+        if not parts:                           # Nothing ⊔ Nothing = Nothing
+            return "F"
+        if len(parts) == 1:
+            return parts[0]
+        return "(or " + " ".join(parts) + ")"
     if head == "ObjectSomeValuesFrom":
         if len(args) != 2 or not isinstance(args[0], str):
             return None
@@ -256,7 +293,116 @@ def _class_expr(node: Node, var: str, ctx: _Ctx) -> Optional[str]:
         rel_atom = f"({rel} {var} {y})"
         inner = rel_atom if filler == "T" else f"(and {rel_atom} {filler})"
         return f"(exists ({y}) {inner})"
+    if head == "ObjectHasValue":
+        # 〚R value a〛(x) = (R x a) — a binary atom with the individual fixed.  No
+        # added cut around the bound variable, so it reads soundly in either polarity.
+        if len(args) != 2 or not all(isinstance(a, str) for a in args):
+            return None
+        rel = _safe_ident(_localname(args[0]))
+        ind = _safe_ident(_localname(args[1]))
+        return f"({rel} {var} {ind})"
+    if head == "ObjectMinCardinality":
+        # ≥0 is Thing; ≥1 R [C] ≡ ObjectSomeValuesFrom(R [C]) (an existential — sound in
+        # either polarity); ≥n (n≥2) needs n pairwise-distinct fillers — left to a later
+        # pass (not minted here).
+        if len(args) < 2 or not isinstance(args[0], str):
+            return None
+        try:
+            n = int(args[0])
+        except ValueError:
+            return None
+        if n == 0:
+            return "T"
+        if n != 1 or not isinstance(args[1], str):
+            return None
+        rel = _safe_ident(_localname(args[1]))
+        y = ctx.fresh()
+        rel_atom = f"({rel} {var} {y})"
+        if len(args) >= 3:                      # qualified: ≥1 R C
+            filler = _class_expr(args[2], y, ctx)
+            if filler is None or filler == "F":
+                return None
+            inner = rel_atom if filler == "T" else f"(and {rel_atom} {filler})"
+        else:                                   # unqualified: ≥1 R
+            inner = rel_atom
+        return f"(exists ({y}) {inner})"
     return None  # untranslatable class expression
+
+
+# ---------------------------------------------------------------------------
+# Head-position prenexing:  a universal restriction ∀R.C in *superclass* position
+# ---------------------------------------------------------------------------
+#
+# ``_class_expr`` deliberately returns None for ``ObjectAllValuesFrom`` — it cannot be
+# compiled to a single formula-in-one-variable, and in *negative* (subclass / equivalent
+# / disjoint) position it would be unsound here anyway: parse_clif places a vertex at its
+# first-reference area, not its least-common-ancestor, so a universal-in-the-antecedent
+# silently flips to existential (verified).
+#
+# But in *positive* (superclass) position a universal restriction is both sound and
+# **Horn**.  SubClassOf(C, ∀R.D) ≡ ∀x∀y(C(x) ∧ R(x,y) → D(y)) — the canonical OWL-2-RL
+# rule, whose flat scroll ~[ (C x)(R x y) ~[ (D y) ] ] the materializer recognises (the
+# *nested* form ~[ (C x) ~[ ~[ (R x y) ~[ (D y) ] ] ] ] reads as "negation in head" and
+# would fall only to the contest).  So we **prenex** the restriction's variable + relation
+# atom into the rule's antecedent.  A superclass that is an intersection mixing plain
+# conjuncts with ∀-restrictions splits into several rules (C ⊑ D ⊓ ∀R.E  →  C⊑D  and
+# C⊓R(x,y)⊑E(y)) — itself a sound, layout-friendly decomposition.
+#
+# A clause is (extra_bound_vars, extra_antecedent_atoms, consequent_formula): for a plain
+# head it is ([], [], 〚D〛); for ∀R.D it is ([y], ["(R x y)"], 〚D〛[y]).
+
+def _head_clauses(node: Node, var: str, ctx: _Ctx):
+    """Compile a *superclass* class expression to a list of Horn clauses, or None.
+
+    Returns a list of ``(extra_vars, extra_atoms, consequent)`` tuples — the caller
+    conjoins ``extra_atoms`` onto the rule body and binds ``extra_vars`` universally.
+    ``None`` if any part is untranslatable; ``[]`` if the whole head is a tautology.
+    """
+    if isinstance(node, list) and node and node[0] == "ObjectAllValuesFrom":
+        args = node[1:]
+        if len(args) != 2 or not isinstance(args[0], str):
+            return None
+        rel = _safe_ident(_localname(args[0]))
+        y = ctx.fresh()
+        inner = _head_clauses(args[1], y, ctx)   # the filler is itself in head position
+        if inner is None:
+            return None
+        rel_atom = f"({rel} {var} {y})"
+        out = []
+        for (vs, atoms, cons) in inner:
+            out.append(([y, *vs], [rel_atom, *atoms], cons))
+        return out
+    if isinstance(node, list) and node and node[0] == "ObjectComplementOf":
+        # ¬D in *superclass* position is sound (the bound line stays universal):
+        # SubClassOf(C, ¬D) → (forall (x) (if 〚C〛 (not 〚D〛))).  Non-Horn (a negated
+        # consequent), so the contest peel uses it.  In *negative* position the not-cut
+        # would misplace the variable (→ existential), so it is left to _class_expr —
+        # which returns None for complement, and the axiom is reported.
+        args = node[1:]
+        if len(args) != 1:
+            return None
+        inner = _class_expr(args[0], var, ctx)
+        if inner is None or inner in ("T", "F"):
+            return None
+        return [([], [], f"(not {inner})")]
+    if isinstance(node, list) and node and node[0] == "ObjectIntersectionOf":
+        out = []
+        for a in node[1:]:
+            sub = _head_clauses(a, var, ctx)
+            if sub is None:
+                return None
+            out.extend(sub)
+        return out
+    # Everything else falls back to the single-formula compiler (named class,
+    # ObjectSomeValuesFrom, ObjectUnionOf, …): one clause, no extra antecedent.
+    f = _class_expr(node, var, ctx)
+    if f is None:
+        return None
+    if f == "T":        # ⊑ Thing conjunct — contributes nothing
+        return []
+    if f == "F":        # ⊑ Nothing — a denial, not a Horn rule; leave to a later pass
+        return None
+    return [([], [], f)]
 
 
 # ---------------------------------------------------------------------------
@@ -314,6 +460,16 @@ def translate(text: str) -> Tuple[str, OWLReport]:
     construct), and the declared vocabulary.
     """
     forms = _read_forms(_tokenize(_strip_comments(text)))
+    return translate_axiom_forms(_axiom_forms(forms))
+
+
+def translate_axiom_forms(axiom_forms: List[Node]) -> Tuple[str, OWLReport]:
+    """Translate already-parsed, already-flattened OWL axiom ``Node`` forms to CLIF.
+
+    The shared core behind both front-ends: ``translate`` (OWL functional syntax) feeds
+    forms parsed from text, and ``rdf_to_owl`` (RDF / Turtle / RDF-XML via rdflib) feeds
+    forms reconstructed from triples.  Both reuse every axiom + class-expression rule here.
+    """
     report = OWLReport()
     sentences: List[str] = []
 
@@ -336,7 +492,7 @@ def translate(text: str) -> Tuple[str, OWLReport]:
     # catastrophe (one vertex crossing dozens of cut boundaries).
     ctx = _Ctx()
     nax = 0
-    for form in _axiom_forms(forms):
+    for form in axiom_forms:
         if not isinstance(form, list) or not form:
             continue
         head = form[0]
@@ -359,16 +515,36 @@ def translate(text: str) -> Tuple[str, OWLReport]:
         if head == "SubClassOf" and len(args) == 2:
             for a in args:
                 note_class(a)
-            sub, sup = _class_expr(args[0], vx, ctx), _class_expr(args[1], vx, ctx)
-            if sub is None or sup is None or sub == "F":
+            sub = _class_expr(args[0], vx, ctx)
+            if sub is None or sub == "F":
                 report.skipped["SubClassOf (complex class expression)"] += 1
                 continue
-            if sup == "T":          # C ⊑ Thing — trivially true
+            sup = _class_expr(args[1], vx, ctx)
+            if sup is not None:
+                if sup == "T":      # C ⊑ Thing — trivially true
+                    report.skipped["SubClassOf (… ⊑ Thing, trivial)"] += 1
+                    continue
+                body = "(true)" if sub == "T" else sub
+                sentences.append(f"(forall ({vx}) (if {body} {sup}))")
+                report.translated["SubClassOf"] += 1
+                continue
+            # The superclass isn't a single formula (e.g. it carries an ∀R.C
+            # restriction).  Prenex it into one or more flat Horn rules.
+            clauses = _head_clauses(args[1], vx, ctx)
+            if clauses is None:
+                report.skipped["SubClassOf (complex class expression)"] += 1
+                continue
+            if not clauses:         # head is all-tautology (… ⊑ Thing ⊓ Thing)
                 report.skipped["SubClassOf (… ⊑ Thing, trivial)"] += 1
                 continue
-            body = "(true)" if sub == "T" else sub
-            sentences.append(f"(forall ({vx}) (if {body} {sup}))")
-            report.translated["SubClassOf"] += 1
+            for (extra_vars, extra_atoms, cons) in clauses:
+                ante = ([] if sub == "T" else [sub]) + extra_atoms
+                body = ("(true)" if not ante
+                        else ante[0] if len(ante) == 1
+                        else "(and " + " ".join(ante) + ")")
+                bound = " ".join([vx, *extra_vars])
+                sentences.append(f"(forall ({bound}) (if {body} {cons}))")
+                report.translated["SubClassOf (head restriction)"] += 1
             continue
 
         if head in ("EquivalentClasses", "DisjointClasses") and len(args) >= 2:
