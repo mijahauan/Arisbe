@@ -941,12 +941,15 @@ and the class's understanding grows through the iterated cycle.
 
 ### From Import: External Ontologies as Domain Models
 
-> **⚠️ Frontier (design-only).** The OWL→CLIF→EGI import pipeline and ontology
-> sources (WordNet, SNOMED, Wikidata) described below are **not implemented**.
-> Today a model M is built by hand (or seeded from a tomos UoD). This subsection
-> is the design for a future capability. (Arisbe's `/import` route does admit
-> linear forms at *low warrant* — see `docs/MANIFEST_AND_MEANING.md` — but that
-> is not the ontology-as-M pipeline sketched here.)
+> **⚠️ Frontier (partly built).** As of 2026-06-11 a model M is **chosen** for a
+> contest (hand-authored facts, or a tomos UoD), **queried** through a `DomainOracle`,
+> and **materializable** — facts + Horn rules forward-chain to the least Herbrand
+> model (`docs/DOMAIN_ORACLE_AND_M.md` §6.1), which is exactly what a T-box needs to
+> become testable. What remains **not implemented** is the *automated* OWL→CLIF→EGI
+> import pipeline and the live ontology sources (WordNet, SNOMED, Wikidata) below;
+> materialization unblocks the T-box side of that. (Arisbe's `/import` route admits
+> linear forms at *low warrant* — `docs/MANIFEST_AND_MEANING.md` — distinct from this
+> pipeline.)
 
 But one need not start from an empty sheet.  Published ontologies represent
 the crystallized results of extensive prior inquiry — someone else's M,

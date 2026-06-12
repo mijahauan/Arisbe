@@ -1,6 +1,8 @@
 # The Domain Oracle: situating a graph in "enough" of a model M
 
-**Status**: design note (not yet built) · **Drafted**: 2026-06-11
+**Status**: design-of-record · **steps 1–3 + the inverse pivot BUILT** (2026-06-11;
+oracle + peel + materialization + `/agon` interpretation register & inverse search) ·
+remaining: oracle scale steps 4–6 (cache → horizon → SPARQL) · **Drafted**: 2026-06-11
 
 > The question this answers: the Endoporeutic Game tests a proposal G against a
 > domain model **M** — "the outside" that enables the outside-in interpretation.

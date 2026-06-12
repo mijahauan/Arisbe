@@ -96,14 +96,20 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
 
 ## The frontier (stated honestly)
 
-The Endoporeutic-Game side is deliberately the least finished, and the guide
-marks design-only material in place. Not yet built: a **proof mode** (the
-constructive direction, INS/IT+/DC+) as a wired game loop; an **automated
-Grapheus** opponent (V1 is hot-seat only); the **ontology-as-M pipeline**
-(OWL→CLIF→EGI from WordNet/SNOMED/Wikidata); the inner **semantic game** as a
-first-class, step-exposed API; and the **warrant lifecycle** that would raise a
-graph from *low* to *tested* by its surviving Agon. We would rather say this
-plainly than oversell a demo.
+The Endoporeutic-Game side has advanced but remains the least finished. **Built**
+(2026-06-11): the inner **semantic game** as a first-class API
+(`src/semantic_game.py`) and Agon's **interpretation register** — the inning *given
+M, then G*: choose a reference model M, peel G against it to a three-valued verdict
+(holds / fails / independent) with the deciding witness or counterexample named, with
+M **materializable** (facts + Horn rules → the least Herbrand model, so the syllogism
+works) and an **inverse pivot** ("in what domain does G hold?"). The conceptual
+division is settled (`docs/GENERATION_AND_TESTING.md`): the *eliminative* peel is the
+game (Agon), *additive* construction is making (Ergasterion). **Still not built**: the
+dialogical **contest** with an automated **Grapheus** (the peel now supplies the
+model-respecting reply it would use); the **ontology-as-M pipeline** (OWL→CLIF→EGI
+from WordNet/SNOMED/Wikidata — materialization unblocks the T-box side); and the
+**warrant lifecycle** that would raise a graph from *low* to *tested* by its surviving
+Agon. We would rather say this plainly than oversell a demo.
 
 ## For Ahti-Veikko Pietarinen in particular
 

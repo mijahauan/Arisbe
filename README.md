@@ -538,6 +538,12 @@ the Qt implementation was archived in May 2026.
   hand — cuts, relations, lines of identity — then ask "what does it say?" to read it
   into a determinate sign and see its linear form (or why it isn't yet well-formed),
   before fixing it and reasoning with the rules
+- **Challenge mode**: pick a target linear form, draw it freehand, and get graded with
+  `same_graph` + the legible diff — correspondence learned by doing
+- **Test a graph against a world** (Agon `/agon`): choose a reference model M and ask
+  "does G hold?" — the peel evaluates it outside-in to *holds / fails / independent*,
+  names the witness or counterexample, and (with "Use rules") forward-chains M's rules
+  so the syllogism works
 - Interactive REPL for step-by-step EG transformation practice
 - Visual comparison between logical representation formats
 - Educational tomos with 87+ canonical examples
@@ -564,16 +570,22 @@ the Qt implementation was archived in May 2026.
 - **Freeform composition canvas** *(built)*: draw logic by hand, read it into a
   determinate sign on demand (gate ①). Live in Ergasterion with a Graph↔Argument
   two-mode workspace, draw-time snapping, a fix-time validity pass, the drawing→EGI
-  builder, and the legible EGI diff. **Remaining: challenge mode** over the tomos
-  corpus (grade a freehand attempt with `same_graph` + the diff) — correspondence
-  learned by doing
-- **Agon web arena**: the Endoporeutic Game as a web route (engine + REPL exist)
+  builder, the legible EGI diff, and **challenge mode** *(built)* — grade a freehand
+  attempt against a tomos target
+- **Agon interpretation register** *(built)*: the inning *given M, then G* — choose a
+  reference model M (curated scenarios or corpus UoDs, optionally **materialized** so
+  facts + Horn rules become testable), peel G against it to a three-valued verdict
+  with witness/counterexample, and the **inverse pivot** ("in what domain does G
+  hold?"). See `docs/GENERATION_AND_TESTING.md`, `docs/DOMAIN_ORACLE_AND_M.md`
+- **Next**: **ontology-as-M** (materialize a T-box, peel/search against it) and the
+  oracle's scale steps (demand-driven cache → horizon params → a remote SPARQL backing)
 
 ### Medium-term
 - **Hypothesis-driven exhaustive transformation testing**: extend
   per-rule property tests from one deterministic site to full
   enumeration of applicable sites
-- **Collaborative editing**: shared UoD sessions
+- **The dialogical contest, in full**: an automated Grapheus (the peel supplies the
+  model-respecting reply) and the warrant lifecycle (low → tested by surviving Agon)
 - **Advanced visualization**: animated transformation sequences;
   alternative projections (3-D viewer, accessibility renderings)
 
