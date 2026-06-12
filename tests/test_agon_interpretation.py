@@ -248,3 +248,52 @@ def test_materialize_reports_skipped_rules(client):
         "closed": True, "materialize": True}).json()["data"]
     skipped = data["materialization"]["skipped"]
     assert any(s["reason"] == "existential_head" for s in skipped)
+
+
+# ---------------------------------------------------------------------------
+# The inverse pivot — in what domain does G hold?
+# ---------------------------------------------------------------------------
+
+def _sweep(client, proposal, **kw):
+    body = {"proposal_egif": proposal, "include_corpus": False}
+    body.update(kw)
+    r = client.post("/agon/where-it-holds", json=body)
+    assert r.status_code == 200, r.text
+    assert r.json()["success"], r.json()
+    return r.json()["data"]
+
+
+def test_inverse_ranks_examples_by_relationship(client):
+    data = _sweep(client, '~[ (mammal *x) ~[ (warmblooded x) ] ]')
+    by_title = {r["title"].split(" —")[0]: r for r in data["results"]}
+    assert by_title["Mammals"]["relationship"] == "holds"
+    assert by_title["Ward chart"]["relationship"] == "contradicts"
+    # results are ranked best-fit first: holds precede contradicts
+    rels = [r["relationship"] for r in data["results"]]
+    assert rels.index("holds") < rels.index("contradicts")
+    assert data["counts"]["holds"] >= 1 and data["counts"]["contradicts"] >= 1
+
+
+def test_inverse_partial_map_surfaces_the_residue(client):
+    # coastal holds in the wetland model; generates_tourism is the residue.
+    data = _sweep(client, '(coastal "CoastTown") (generates_tourism "CoastTown")')
+    wetland = next(r for r in data["results"] if r["title"].startswith("Wetland"))
+    assert wetland["relationship"] == "partial"
+    assert wetland["residue"] == ['(generates_tourism "CoastTown")']
+
+
+def test_inverse_carries_witness_and_counterexample(client):
+    data = _sweep(client, '~[ (mammal *x) ~[ (warmblooded x) ] ]')
+    ward = next(r for r in data["results"] if r["title"].startswith("Ward chart"))
+    assert ward["counterexample"] == {"x": "Biscuit"}
+
+
+def test_inverse_needs_a_proposal(client):
+    r = client.post("/agon/where-it-holds", json={"proposal_egif": "  "})
+    assert r.json()["error"]["code"] == "NO_PROPOSAL"
+
+
+def test_inverse_with_materialize_uses_rules(client):
+    # Across the corpus too — just assert it runs and ranks without error.
+    data = _sweep(client, '(mammal "Whale")', include_corpus=True, materialize=True)
+    assert "results" in data and "counts" in data

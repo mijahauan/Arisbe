@@ -388,3 +388,21 @@ class AgonModelTestRequest(BaseModel):
     proposal_egif: str
     closed: bool = False
     materialize: bool = False
+
+
+class AgonInverseRequest(BaseModel):
+    """The inverse pivot — *in what domain does G hold?* (docs/DOMAIN_ORACLE_AND_M.md
+    §7). Range the peel across candidate models and rank by how G relates to each:
+    holds (at home / a theorem), partial (some of G at home — the residue is its
+    contribution), independent, or contradicts.
+
+    ``closed`` is the regime used for *corpus* candidates (the curated examples carry
+    their own); ``materialize`` forward-chains each candidate's Horn rules first.
+    """
+
+    proposal_egif: str
+    closed: bool = False
+    materialize: bool = False
+    include_examples: bool = True
+    include_corpus: bool = True
+    limit: int = 40

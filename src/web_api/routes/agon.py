@@ -38,6 +38,7 @@ from fastapi.responses import FileResponse
 from web_api.models.api_models import (
     AgonDispositionRequest,
     AgonInterpretRequest,
+    AgonInverseRequest,
     AgonModelTestRequest,
     AgonMoveRequest,
     AgonNewGameRequest,
@@ -503,6 +504,122 @@ def _interpret_payload(
         "counterexample": result.counterexample,
         "available_dispositions": available_dispositions(verdict=verdict),
     }
+
+
+def _g_sheet_atoms(g_egi):
+    """G's sheet-level atoms as (relation, arg-vertex-tuple, display) — the
+    negation-free pieces whose individual fit measures a partial map."""
+    vmap = {v.id: v for v in g_egi.V}
+    edge_ids = {e.id for e in g_egi.E}
+    out = []
+    for eid in g_egi.area.get(g_egi.sheet, ()):
+        if eid in edge_ids:
+            verts = tuple(g_egi.nu[eid])
+            args = " ".join(
+                ('"' + vmap[v].label + '"'
+                 if (not vmap[v].is_generic and vmap[v].label) else "*")
+                for v in verts)
+            disp = "(" + g_egi.get_relation_name(eid) + ((" " + args) if args else "") + ")"
+            out.append((g_egi.get_relation_name(eid), verts, disp))
+    return out
+
+
+def _candidate_fit(kind, cid, title, model_egif, closed, g_egi, g_consts,
+                   g_atoms, materialize):
+    """Evaluate G against one candidate model M and describe the relationship."""
+    if materialize:
+        facts_egi, _rep = materialize_egi(parse_egif(model_egif))
+        oracle = CorpusOracle([("M", facts_egi)], closed=closed)
+    else:
+        oracle = CorpusOracle.from_egif({"M": model_egif}, closed=closed)
+    result = evaluate_semantic(g_egi, oracle)
+    verdict = result.verdict.value
+
+    # Partial map: which of G's sheet atoms individually hold (coarse — each atom's
+    # lines treated independently; the whole-graph verdict carries joint satisfaction).
+    held, residue = [], []
+    for rel, verts, disp in g_atoms:
+        ok = bool(oracle.match_atoms([(rel, verts)], constants=g_consts))
+        (held if ok else residue).append(disp)
+    fit = (len(held) / len(g_atoms)) if g_atoms else (1.0 if result.holds else 0.0)
+
+    if verdict == "true":
+        relationship = "holds"          # at home — a theorem of this model
+    elif verdict == "false":
+        relationship = "contradicts"    # alien
+    elif held:
+        relationship = "partial"        # some of G at home; residue is the contribution
+    else:
+        relationship = "independent"    # consistent but unrelated
+
+    return {
+        "kind": kind, "id": cid, "title": title,
+        "verdict": verdict, "holds": result.holds, "summary": result.summary,
+        "relationship": relationship, "fit": round(fit, 3),
+        "residue": residue,
+        "winning_witness": result.winning_witness,
+        "counterexample": result.counterexample,
+    }
+
+
+@router.post("/where-it-holds")
+async def where_it_holds(request: AgonInverseRequest):
+    """The inverse pivot: in what domain does G hold? (non-mutating, nothing asserted)
+
+    Ranges the peel across candidate models — the curated examples and the corpus
+    UoDs — and ranks them by how G relates to each: **holds** (at home / a theorem),
+    **partial** (some of G at home; the residue is its contribution), **independent**,
+    or **contradicts**. Abductive context-retrieval (docs/DOMAIN_ORACLE_AND_M.md §7).
+    """
+    try:
+        from agon_models import list_example_models
+
+        if not (request.proposal_egif or "").strip():
+            return ApiResponse(success=False, error={
+                "code": "NO_PROPOSAL", "message": "Provide a proposal_egif (the graph G)."})
+        g_egi = parse_egif(request.proposal_egif.strip())
+        g_consts = {v.id: v.label for v in g_egi.V if not v.is_generic and v.label}
+        g_atoms = _g_sheet_atoms(g_egi)
+
+        candidates = []  # (kind, id, title, model_egif, closed)
+        if request.include_examples:
+            for e in list_example_models():
+                candidates.append(("example", e.id, e.title, e.model_egif, e.closed))
+        if request.include_corpus:
+            try:
+                for entry in _get_tomos().list_uods()[: request.limit]:
+                    uid = entry.get("uod_id") or entry.get("id")
+                    if not uid:
+                        continue
+                    uod = _get_tomos().load_uod(uid)
+                    if uod is not None and uod.current_egi is not None:
+                        candidates.append(("corpus", uid,
+                                           entry.get("name") or entry.get("title") or uid,
+                                           generate_egif(uod.current_egi), request.closed))
+            except Exception:
+                pass  # corpus sweep is best-effort
+
+        results = []
+        for kind, cid, title, model_egif, closed in candidates:
+            try:
+                results.append(_candidate_fit(
+                    kind, cid, title, model_egif, closed, g_egi, g_consts,
+                    g_atoms, request.materialize))
+            except Exception:
+                continue  # a malformed candidate model shouldn't sink the sweep
+
+        rank = {"holds": 0, "partial": 1, "independent": 2, "contradicts": 3}
+        results.sort(key=lambda r: (rank.get(r["relationship"], 9), -r["fit"]))
+        return ApiResponse(success=True, data={
+            "proposal_egif": request.proposal_egif.strip(),
+            "materialized": request.materialize,
+            "results": results,
+            "counts": {k: sum(1 for r in results if r["relationship"] == k)
+                       for k in ("holds", "partial", "independent", "contradicts")},
+        })
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "INVERSE_ERROR", "message": str(exc), "type": type(exc).__name__})
 
 
 @router.post("/interpret")

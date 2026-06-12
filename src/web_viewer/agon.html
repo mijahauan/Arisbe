@@ -134,6 +134,7 @@
             </select>
           </div>
           <button class="action primary" id="btn-interpret">▷ Does G hold in M?</button>
+          <button class="action" id="btn-inverse">🔎 Where does G hold? (search models)</button>
           <button class="action" id="btn-start">Play it out (full contest)</button>
         </div>
 
@@ -391,8 +392,46 @@
         el.innerHTML=h;
       }
 
+      // ---- the inverse pivot: in what domain does G hold? ----
+      function relColor(rel){ return rel==='holds'?'#a6e3a1':(rel==='contradicts'?'#f38ba8':(rel==='partial'?'#89b4fa':'#f9e2af')); }
+      function renderInverse(d){
+        $('turn-banner').style.display='none'; canvasEl.style.display='none';
+        const el=$('interpret-result'); el.style.display='block';
+        const c=d.counts||{};
+        let h='<div style="font-size:12px; color:#6c7086; margin-bottom:8px;">In what domain does G hold? — the peel, run across every candidate model'+(d.materialized?' (rules materialized)':'')+':</div>';
+        h+='<div style="font-size:11px; color:#6c7086;">G: <code>'+esc(d.proposal_egif)+'</code></div>';
+        h+='<div style="margin:8px 0;">'
+          +'<span style="color:#a6e3a1;">'+(c.holds||0)+' holds</span> · '
+          +'<span style="color:#89b4fa;">'+(c.partial||0)+' partial</span> · '
+          +'<span style="color:#f9e2af;">'+(c.independent||0)+' independent</span> · '
+          +'<span style="color:#f38ba8;">'+(c.contradicts||0)+' contradicts</span></div>';
+        (d.results||[]).forEach(r=>{
+          h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border-left:3px solid '+relColor(r.relationship)+'; background:#181825;">'
+            +'<div><strong style="color:'+relColor(r.relationship)+';">'+esc(r.relationship)+'</strong>'
+            +' <span style="color:#cdd6f4;">'+esc(r.title)+'</span>'
+            +' <span style="font-size:10px; color:#6c7086;">['+esc(r.kind)+' · '+r.verdict+']</span></div>';
+          if(r.residue && r.residue.length) h+='<div style="font-size:11px; color:#89b4fa;">residue (the contribution): <code>'+esc(r.residue.join(' '))+'</code></div>';
+          if(r.counterexample) h+='<div style="font-size:11px; color:#f38ba8;">counterexample: '+esc(pairs(r.counterexample))+'</div>';
+          h+='</div>';
+        });
+        if(!(d.results||[]).length) h+='<div style="color:#6c7086;">No candidate models.</div>';
+        h+='<div style="margin-top:10px; font-size:11px; color:#6c7086;">Abduction: which context would make G a matter of course. Nothing asserted.</div>';
+        el.innerHTML=h;
+      }
+
       // ---- API ----
       async function post(url, body){ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined}); return r.json(); }
+
+      async function inverseSearch(){
+        const proposal=$('setup-proposal').value.trim();
+        if(!proposal){ setStatus('Enter a proposal G to search for.','error'); return; }
+        setStatus('Searching for domains where G holds…');
+        const b=await post('/agon/where-it-holds', { proposal_egif:proposal, closed:$('model-closed').checked, materialize:$('model-materialize').checked });
+        if(!b.success){ setStatus('Search failed: '+(b.error&&b.error.message),'error'); return; }
+        renderInverse(b.data);
+        const c=b.data.counts||{};
+        setStatus('Searched '+(b.data.results||[]).length+' models: '+(c.holds||0)+' hold, '+(c.partial||0)+' partial.', (c.holds||c.partial)?'success':null);
+      }
 
       async function interpret(){
         const proposal=$('setup-proposal').value.trim();
@@ -449,6 +488,7 @@
 
       // ---- wiring ----
       $('btn-interpret').addEventListener('click', interpret);
+      $('btn-inverse').addEventListener('click', inverseSearch);
       $('model-picker').addEventListener('change', onPickModel);
       loadModels();
       $('btn-start').addEventListener('click', start);
