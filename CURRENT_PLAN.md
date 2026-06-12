@@ -1,11 +1,12 @@
 # Current Plan
 
-**Last Updated**: 2026-06-12 — **ontology-as-M step 1 + the OWL→CLIF→EGI pipeline DONE**:
-the T-box theorem query (`theory_query.entails`, freeze-a-fresh-witness) makes a real
-ontology (SUMO/Porphyry/FOAF) testable where model-checking reads vacuously, wired into
-`/agon/interpret`; and `tools/owl_to_clif.py` + `domain_model_importer.from_owl_*` bring
-OWL 2 functional syntax in as M (back half `parse_clif` already solid). Prior: the
-**freeform composition arc is COMPLETE** (steps
+**Last Updated**: 2026-06-12 (session end) — this session: the **T-box theorem query**
+(`theory_query.entails`, freeze-a-witness), the **OWL→CLIF→EGI pipeline** (`owl_to_clif`),
+two real ontologies landed (`bfo_core` BFO + `colore_between` from the real COLORE repo),
+the `theorem` verdict **visible in `/agon`**, and a clutch of import fixes (CLIF `/* */`
+comments, alpha-renaming reused variables, M-as-data non-attesting load). **▶ Next task:
+relationalize function terms on import** (unblock the function-bearing COLORE modules) —
+see ▶ NEXT SESSION. Prior: the **freeform composition arc is COMPLETE** (steps
 1–4: fix-time validity → draw-then-read canvas → legible EGI diff → **challenge
 mode**). Also this session: the **persona narrative** (`docs/ARISBE_PERSONAS.md`)
 and the **Domain Oracle** for Agon's model M (`docs/DOMAIN_ORACLE_AND_M.md`, step 1
@@ -16,39 +17,64 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**Ontology-as-M step 1 is DONE (2026-06-12)** — see the section below. Exercising the
-interpretation register on the real ontology UoDs surfaced the gap and closed it: a
-pure **T-box** (SUMO) materializes to *nothing* (no individuals to chain), so a
-subsumption proposal model-checks *vacuously*. The fix shipped is `theory_query.entails`
-(**freeze-a-fresh-witness**), wired into `/agon/interpret` as a `theorem` block. SUMO /
-Porphyry / FOAF subsumption + typing now decide correctly, with the disjointness residue
-honestly UNKNOWN.
+**DESIGNATED NEXT TASK: relationalize function terms on import** — so the
+**function-bearing COLORE modules** (the majority) can come in. Today
+`clif_parser_dau` (protected) throws on a nested function term in argument position —
+e.g. COLORE's `density.clif` has `(density (dmv v m))` — so those modules don't import.
+This is an *implementation* gap, **not** a limit of EG: functions are expressible by
+**relationalization** (a function = a relation whose output is uniquely determined), and
+Dau gives a direct extension (*Constants and Functions in Peirce's Existential Graphs*,
+ICCS 2007; EGIF has a `(Type … | output)` form). See the function-terms discussion in
+`docs/CORPUS_AND_IMPORT_MODEL.md` §5.1 and the [[project-ontology-import]] memory.
 
-**The OWL→CLIF→EGI pipeline is now BUILT (2026-06-12)** — see the section below.
-`tools/owl_to_clif.py` reads OWL 2 functional syntax → CLIF (the robust interlingua) →
-EGI; `domain_model_importer.from_owl_*` makes it first-class; an OWL-imported ontology
-decides theorems via this session's `theory_query`.
+**The plan (do it at the importer boundary — the protected lexer stays untouched, like
+`_strip_block_comments` / `_disambiguate_variables` already do):**
+- **A CLIF→CLIF flattening pass in `domain_model_importer`** (reuse the
+  `_clif_tokenize` / `_clif_read_all` / `_clif_serialize` reader already there): walk each
+  sentence; for every nested function application `(f t₁ … tₙ)` sitting in an *argument*
+  position, lift it out — mint a fresh variable `z`, replace the occurrence with `z`, and
+  conjoin the relational atom `(f t₁ … tₙ z)` (the function's graph) into the enclosing
+  scope under the right quantifier. `(density (dmv v m))` ↦ `(exists (z) (and (dmv v m z)
+  (density z)))`. Distinguish a *function* application from a *relation* atom: in CLIF a
+  term in argument position that is itself `(… )` is a function term; a top-level/sentence
+  `( … )` is a predication. (Operators `and`/`or`/`not`/`if`/`iff`/`forall`/`exists`/`=`
+  are never functions.)
+- **Functionality axioms are optional + non-Horn.** Totality `∀x⃗ ∃z R_f(x⃗,z)` and
+  uniqueness `∀x⃗∀z∀z′ (R_f(x⃗,z) ∧ R_f(x⃗,z′) → z=z′)` are what make `R_f` a *function*
+  rather than a mere relation. They use `=` → land in the contest residue (like the rest
+  of COLORE), so emit them (or make them opt-in) but don't expect materialization to use
+  them. The minimal correct import just needs the **graph-of-the-function** atom; decide
+  whether to also assert functionality.
+- **Verify** on a real function-bearing COLORE module (e.g. `density`, or a small one with
+  a single function), round-trip through `same_graph` where checkable, and confirm it
+  lands as a `kind=ontology` UoD selectable in `/agon`. Watch the **value-as-equality**
+  case (`(= (dmv x y) (dmv z y))` — equality *between* function terms → relationalize both
+  sides, then `(= z1 z2)`).
+- **Scope guard:** keep it to first-order function terms over the relational reader; the
+  full Dau/EGIF first-class function *notation* (a distinct glyph, output peg) is a larger,
+  separate piece — relationalization is the meaning-preserving reduction that unblocks
+  COLORE now.
 
-**AGREED SEQUENCE (2026-06-12): consolidate & make visible.** Three sessions built
-deep inference power (peel → materialization → theory query → OWL/COLORE import) that is
-still **invisible and browser-unverified**. Make it real and seen — with a real ontology
-as the forcing function — before extending. The steps, in order:
+**Companion debt still open — Playwright E2E** over the `/agon` interpretation UI +
+challenge mode (standing across two sessions; the picker→interpret→theorem flow is
+browser-checked *ad hoc* but not a committed suite). Turn it into a committed E2E
+(skipped if Chromium/Playwright absent, like `test_ergasterion_freeform_e2e.py`).
 
-1. **Render the `theorem` verdict in `/agon`** — **DONE 2026-06-12** (browser-verified).
-2. **Land one real ontology as a corpus UoD** — **DONE 2026-06-12**: `bfo_core`, the BFO
-   upper taxonomy, imported OWL→CLIF→EGI and selectable in the `/agon` picker. See the
-   DONE section below; the forcing function surfaced (and this fixed) a real translator
-   bug + a per-query attestation cost.
-3. **← NEXT: Playwright E2E** over the `/agon` interpretation UI + challenge mode (standing
-   debt across two sessions; verified only at serve/route/JS-syntax level so far). The
-   picker→interpret→theorem flow is now browser-checked ad hoc (steps 1–2); turn that into
-   a committed E2E suite (skipped if Chromium/Playwright absent, like the freeform E2E),
-   and cover challenge mode too.
+**Then** (next fork): the dialogical **contest / automated Grapheus** (the peel supplies
+the model-respecting reply) + the **warrant lifecycle** (low → tested by surviving Agon);
+or more **import breadth** (`cl-imports` auto-resolution; `ObjectUnionOf`/`AllValuesFrom`
+heads → contest game; Manchester / Turtle / RDF).
 
-**Then** (next fork, deferred until the above lands): pivot to **the game itself**
-(automated Grapheus — the peel supplies the model-respecting reply — + the **warrant
-lifecycle**, low → tested by surviving Agon) vs. **import breadth** (`ObjectUnionOf` /
-`ObjectAllValuesFrom` heads → contest game, Manchester syntax, Turtle/RDF).
+---
+
+### For reference — the consolidate-&-make-visible sequence (steps 1–2 DONE 2026-06-12)
+
+Three sessions built deep inference power (peel → materialization → theory query →
+OWL/COLORE import). Steps 1–2 made it visible:
+1. **Render the `theorem` verdict in `/agon`** — DONE (browser-verified).
+2. **Land a real ontology** — DONE: `bfo_core` (BFO taxonomy, OWL→CLIF→EGI) +
+   `colore_between` (real COLORE, CLIF→EGI). Both in the `/agon` picker.
+3. **Playwright E2E** — the open companion debt (folded into the list above).
 
 ---
 
