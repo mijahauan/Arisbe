@@ -35,11 +35,16 @@ decides theorems via this session's `theory_query`.
   "is G a theorem of this ontology?" visible beside the extensional peel. Then a browser
   **Playwright E2E** over the `/agon` interpretation UI + challenge mode (both verified
   only at serve/route/JS-syntax level so far).
-- **Land a real OWL ontology as a corpus UoD** + a **web import-doorway** notation for
-  OWL (today the doorway would flatten a multi-axiom ontology into one "linear form" and
-  lose the skip-report — needs an ontology-aware admit path that preserves it). Layout
+- **Land a real OWL/COLORE ontology as a corpus UoD** + a **web import-doorway** notation
+  for OWL (today the doorway would flatten a multi-axiom ontology into one "linear form"
+  and lose the skip-report — needs an ontology-aware admit path that preserves it). Layout
   stays super-linear (keep M as data; draw only the contested fragment —
   `DOMAIN_ORACLE_AND_M.md` §5).
+- **Close the COLORE gaps** (CLIF import + test-as-M loop now work; hyphen crash fixed
+  2026-06-12): resolve `cl-imports` cross-module URIs (today a no-op — `from_clif_directory`
+  only concatenates a dir); and decide the **identifier policy** — either admit hyphenated
+  names into the EGIF query surface or sanitize at CLIF import (as OWL does), so a relation
+  like `Warm-blooded` is queryable without an alias.
 - **Broaden OWL coverage:** `ObjectUnionOf` / `ObjectAllValuesFrom` in the head (EG-
   expressible, not Horn → contest game), Manchester syntax, or a Turtle/RDF reader.
 - **Deeper alternative** (push the game itself): the dialogical **contest / automated

@@ -43,9 +43,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
-from egi_core_dau import RelationalGraphWithCuts
-from egif_generator_dau import generate_egif
-from egif_parser_dau import parse_egif
+from egi_core_dau import (
+    RelationalGraphWithCuts,
+    create_edge,
+    create_vertex,
+)
 from model_materialization import materialize_egi
 
 # A line-of-identity key in a query: ("c", label) constant / ("g", vertex_id) generic.
@@ -198,7 +200,20 @@ def entails(
     head_egif = " ".join(_atom_egif(rel, args) for rel, args in head_atoms)
 
     # Materialize M ∪ {frozen B}: run the theory's rules over the arbitrary witness.
-    combined = parse_egif((generate_egif(theory) + " " + body_egif).strip())
+    # Build the combined graph **directly** (not via EGIF text) so a CLIF/COLORE theory
+    # carrying names EGIF can't round-trip (e.g. ``Warm-blooded``) still materializes.
+    combined = theory
+    vid_of: Dict[str, str] = {}
+    for rel, args in body:
+        for k in args:
+            g = ground(k)
+            if g not in vid_of:
+                v = create_vertex(label=g, is_generic=False)
+                combined = combined.with_vertex(v)
+                vid_of[g] = v.id
+    for rel, args in body:
+        combined = combined.with_edge(
+            create_edge(), tuple(vid_of[ground(k)] for k in args), rel)
     facts_egi, report = materialize_egi(combined)
 
     # Check H over the same witnesses against the materialized facts.

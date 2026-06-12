@@ -41,8 +41,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Dict, List, Set, Tuple
 
-from egi_core_dau import RelationalGraphWithCuts
-from egif_parser_dau import parse_egif
+from egi_core_dau import (
+    RelationalGraphWithCuts,
+    create_edge,
+    create_empty_graph,
+    create_vertex,
+)
 
 # An individual key: ("c", label) for a named constant, ("g", vertex_id) for a
 # generic line of identity (an anonymous-but-distinct individual).
@@ -218,24 +222,32 @@ def _describe_cut(egi, cut_id, edge_ids, cut_ids) -> str:
 
 
 def _facts_to_egi(facts: Set[Fact]) -> RelationalGraphWithCuts:
-    """Build a facts-only EGI from the materialized atom set (all ground)."""
-    names: Dict[Key, str] = {}
+    """Build a facts-only EGI from the materialized atom set (all ground).
+
+    Constructed **directly** through the immutable EGI API rather than by generating
+    EGIF text and reparsing: a CLIF/COLORE-imported model may carry relation or
+    individual names EGIF text cannot round-trip (e.g. ``Warm-blooded``), and they are
+    legal in the graph.  Building structurally keeps any name the source allowed.
+    """
+    if not facts:
+        return create_empty_graph()  # the blank sheet (an empty model)
+
+    g = create_empty_graph()
+    vid_of: Dict[Key, str] = {}
     counter = 0
-    for _rel, args in facts:
+    for _rel, args in sorted(facts):
         for k in args:
-            if k in names:
+            if k in vid_of:
                 continue
             if k[0] == "c":
-                names[k] = k[1]
+                v = create_vertex(label=k[1], is_generic=False)
             else:
                 counter += 1
-                names[k] = f"_i{counter}"
-    if not facts:
-        return parse_egif('~[ ~[ ] ]')  # the blank sheet (an empty model)
+                v = create_vertex(label=f"_i{counter}", is_generic=False)
+            g = g.with_vertex(v)
+            vid_of[k] = v.id
 
-    def _atom_egif(rel: str, args: Tuple[Key, ...]) -> str:
-        quoted = ['"' + names[k] + '"' for k in args]
-        return "(" + rel + ((" " + " ".join(quoted)) if quoted else "") + ")"
-
-    egif = " ".join(_atom_egif(rel, args) for rel, args in sorted(facts))
-    return parse_egif(egif)
+    for rel, args in sorted(facts):
+        edge = create_edge()
+        g = g.with_edge(edge, tuple(vid_of[k] for k in args), rel)
+    return g

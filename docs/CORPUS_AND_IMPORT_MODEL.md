@@ -185,6 +185,22 @@ subsumption / intersection / transitivity theorems `theory_query.entails` decide
 (it would flatten a multi-axiom ontology into one "linear form" and lose the
 skip-report) and a real-world OWL ontology as a shipped corpus UoD.
 
+**COLORE (Common Logic) is the back half, directly.** COLORE files are *already* CLIF,
+so `from_clif_file` / `from_clif_directory` import them with no front-end —  including
+the `cl-text` / `cl-module` wrappers (inner sentences extracted) and disjointness /
+conjunctive heads. The test-as-M loop now works on them too: materialization +
+`theory_query` were hardened (2026-06-12) to build their working graphs **directly**
+through the EGI API rather than round-tripping through EGIF *text*, which a CLIF model
+carrying names EGIF can't express (e.g. `Warm-blooded`, `Can-fly`) would otherwise
+crash. Verified on `corpus/domain_models/animal_taxonomy/animal_taxonomy.clif` (14 Horn
+rules forward-chain over the A-box; subsumption theorems decide; the disjointness and
+the defeasible penguin-can't-fly exception are honestly the non-Horn residue). **Two
+real COLORE gaps remain:** `cl-imports` is parsed as a **no-op** (cross-module URI
+resolution isn't done — you must supply all modules together, e.g. one directory); and
+because the **EGIF query surface** rejects hyphenated identifiers, querying a relation
+like `Warm-blooded` needs a clean alias until either EGIF admits those names or the CLIF
+importer sanitizes them (as the OWL path already does).
+
 ## 6. Forward edges
 
 - **By-hand import & edit (the reading desk)** — the next big one. So far every

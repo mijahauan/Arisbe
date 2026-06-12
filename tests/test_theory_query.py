@@ -24,6 +24,10 @@ def _q(theory_egif: str, query_egif: str):
     return entails(parse_egif(theory_egif), parse_egif(query_egif))
 
 
+def _q_egi(theory_egi, query_egif: str):
+    return entails(theory_egi, parse_egif(query_egif))
+
+
 # --------------------------------------------------------------------------- #
 # Applicability — only a range-restricted Horn universal is a theory query     #
 # --------------------------------------------------------------------------- #
@@ -99,6 +103,20 @@ def test_conjunctive_head_all_atoms_required():
     assert _q(theory, '~[ (A *x) ~[ (B x) (C x) ] ]').verdict == "true"
     # One head atom underivable → not a theorem (wholly Horn ⇒ FALSE).
     assert _q(theory, '~[ (A *x) ~[ (B x) (E x) ] ]').verdict == "false"
+
+
+def test_clif_imported_names_with_hyphens_do_not_break():
+    # A CLIF/COLORE model may carry relation names EGIF text cannot round-trip
+    # (e.g. ``Warm-blooded``).  The query relation names are clean (EGIF-authored),
+    # but the *theory* carries hyphenated ones — the combined-graph build must not
+    # round-trip through EGIF text.  Materializing + querying must still work.
+    from clif_parser_dau import parse_clif
+    theory = parse_clif(
+        "(forall (x) (if (Bird x) (Warm-blooded x))) "
+        "(forall (x) (if (Penguin x) (Bird x)))")
+    # A clean-named query whose derivation passes *through* the hyphenated relation.
+    r = _q_egi(theory, '~[ (Penguin *x) ~[ (Bird x) ] ]')
+    assert r.verdict == "true"
 
 
 # --------------------------------------------------------------------------- #
