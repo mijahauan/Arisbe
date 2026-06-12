@@ -1,0 +1,19 @@
+{
+  "uod_id": "bfo_core",
+  "uod_type": "standalone",
+  "name": "BFO (core taxonomy)",
+  "description": "The upper is-a taxonomy of the Basic Formal Ontology (BFO 2.0): Entity \u2290 {Continuant, Occurrent}; IndependentContinuant \u2290 MaterialEntity \u2290 {Object, FiatObjectPart, ObjectAggregate}; the realizable line Quality / Role / Disposition \u2290 Function; with Continuant/Occurrent and the three dependence kinds disjoint. A pure T-box and a second real upper ontology beside SUMO \u2014 imported from OWL functional syntax through the OWL\u2192CLIF\u2192EGI pipeline.",
+  "category": "domain_model",
+  "created": "2026-06-12T00:00:00+00:00",
+  "last_modified": "2026-06-12T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

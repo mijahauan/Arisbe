@@ -34,25 +34,59 @@ deep inference power (peel → materialization → theory query → OWL/COLORE i
 still **invisible and browser-unverified**. Make it real and seen — with a real ontology
 as the forcing function — before extending. The steps, in order:
 
-1. **Render the `theorem` verdict in `/agon`.** The route already returns the `theorem`
-   block (is-G-a-theorem-of-M, beside the extensional peel); the frontend
-   (`web_viewer/agon.html`) doesn't show it. Tiny; nothing is visible until this exists.
-   **← start here.**
-2. **Land one real ontology as a corpus UoD** (a real OWL file or a COLORE module), so the
-   `/agon` model picker offers a *real* M, not just toy examples — the persona promise
-   made true in the running app. This is the **forcing function**: fix exactly the
-   robustness gaps it surfaces (most likely the **identifier policy** — sanitize
-   hyphenated names at CLIF/OWL import the way OWL already does — and possibly
-   `cl-imports` resolution), not speculative ones. Keep layout cheap (draw only the
-   contested fragment; M answers as data — `DOMAIN_ORACLE_AND_M.md` §5).
-3. **Playwright E2E** over the `/agon` interpretation UI + challenge mode (standing debt
-   across two sessions; verified only at serve/route/JS-syntax level so far) — now with
-   real content worth exercising.
+1. **Render the `theorem` verdict in `/agon`** — **DONE 2026-06-12** (browser-verified).
+2. **Land one real ontology as a corpus UoD** — **DONE 2026-06-12**: `bfo_core`, the BFO
+   upper taxonomy, imported OWL→CLIF→EGI and selectable in the `/agon` picker. See the
+   DONE section below; the forcing function surfaced (and this fixed) a real translator
+   bug + a per-query attestation cost.
+3. **← NEXT: Playwright E2E** over the `/agon` interpretation UI + challenge mode (standing
+   debt across two sessions; verified only at serve/route/JS-syntax level so far). The
+   picker→interpret→theorem flow is now browser-checked ad hoc (steps 1–2); turn that into
+   a committed E2E suite (skipped if Chromium/Playwright absent, like the freeform E2E),
+   and cover challenge mode too.
 
 **Then** (next fork, deferred until the above lands): pivot to **the game itself**
 (automated Grapheus — the peel supplies the model-respecting reply — + the **warrant
 lifecycle**, low → tested by surviving Agon) vs. **import breadth** (`ObjectUnionOf` /
 `ObjectAllValuesFrom` heads → contest game, Manchester syntax, Turtle/RDF).
+
+---
+
+## ✅ DONE 2026-06-12 — consolidate & make visible (steps 1–2)
+
+**Step 1 — the `theorem` verdict is visible in `/agon`.** `renderInterpretation`
+(`web_viewer/agon.html`) now paints a **"Theorem of M? (deduction)"** block beside the
+extensional peel: the deduction verdict + the freeze-witness `body ⊢ head` + which head
+atoms derived. So when the peel reads *vacuously* over an empty A-box (a pure T-box), the
+real answer is shown. Browser-verified (Playwright/Chromium).
+
+**Step 2 — a real ontology landed in the corpus: `bfo_core`.** The Basic Formal Ontology
+upper taxonomy (Arp, Smith & Spear 2015), authored as `corpus/ontologies/bfo_core.ofn`
+and imported **OWL→CLIF→EGI** into a `kind=ontology` UoD (cited; `tools/build_ontologies.py`
+`bfo()`). It's a pure T-box — the ideal companion to step 1: select it in the `/agon`
+picker, propose `Object ⊑ Entity`, materialize → empty, **theorem block → TRUE** (freeze
+`(Object __w1) ⊢ (Entity __w1)`), the disjointness as the honest non-Horn residue.
+Browser-verified end to end.
+
+The forcing function did its job — landing a real ontology surfaced two genuine gaps,
+both fixed:
+- **A translator bug:** `owl_to_clif` emitted the bound variable `x` for *every* axiom,
+  and `parse_clif` unifies same-named variables across sentences → all 24 subsumption
+  scrolls collapsed onto **one** line of identity threaded through 47 cuts (a correctness
+  smell + a 176s layout). Fixed: **fresh per-axiom variables** (`x1`, `x2`, …) — 24
+  distinct lines, layout 176s → 21s. Regression-tested.
+- **Per-query attestation cost:** `/agon/interpret` against a corpus model called
+  `load_uod`, which **attests §3.3 (a full layout, 21s for BFO)** at the load boundary —
+  even though M is read purely as *data* (materialize/peel never draw it), and
+  `where-it-holds` would attest *every* UoD. Fixed: `load_uod(..., attest=False)` for the
+  M-as-data reads (the "M is data, draw only the contested fragment" principle,
+  `DOMAIN_ORACLE_AND_M.md` §5). Picker→interpret **22.5s → 0.1s**. Default stays
+  `attest=True` for every caller that draws.
+
+A documented frontier remains: BFO's **relational** scrolls (transitive/inverse, multi-var
+bodies) are super-linear to lay out, so the stored `bfo_core` is the *taxonomy* only
+(subsumption + disjointness); the full `.ofn` (with RO relations + A-box) is the source of
+record and imports fine as data — the layout-perf frontier, not a correctness gap.
 
 ---
 

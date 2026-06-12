@@ -198,7 +198,7 @@ def _build_initial_egif(request: AgonNewGameRequest):
             raise ValueError("base_source requires a proposal_egif (the graph G).")
         uod_id = request.base_source[len("uod:"):]
         tomos = _get_tomos()
-        uod = tomos.load_uod(uod_id)
+        uod = tomos.load_uod(uod_id, attest=False)  # M read as data, not drawn
         if uod is None or uod.current_egi is None:
             raise ValueError(f"UoD '{uod_id}' not found or has no current EGI.")
         from egif_generator_dau import generate_egif
@@ -456,7 +456,7 @@ async def list_models():
 def _resolve_model_egif(model_egif: Optional[str], model_uod: Optional[str]) -> str:
     """Resolve a chosen model M to its EGIF (raw facts or a corpus UoD's atoms)."""
     if model_uod:
-        uod = _get_tomos().load_uod(model_uod)
+        uod = _get_tomos().load_uod(model_uod, attest=False)  # M read as data
         if uod is None or uod.current_egi is None:
             raise ValueError(f"Model UoD '{model_uod}' not found or has no current EGI.")
         from egif_generator_dau import generate_egif
@@ -611,7 +611,7 @@ async def where_it_holds(request: AgonInverseRequest):
                     uid = entry.get("uod_id") or entry.get("id")
                     if not uid:
                         continue
-                    uod = _get_tomos().load_uod(uid)
+                    uod = _get_tomos().load_uod(uid, attest=False)  # candidate M read as data
                     if uod is not None and uod.current_egi is not None:
                         candidates.append(("corpus", uid,
                                            entry.get("name") or entry.get("title") or uid,
@@ -691,7 +691,7 @@ async def set_model(game_id: str, request: AgonSetModelRequest):
         model_egif = request.model_egif
         if request.base_source and request.base_source.startswith("uod:"):
             uod_id = request.base_source[len("uod:"):]
-            uod = _get_tomos().load_uod(uod_id)
+            uod = _get_tomos().load_uod(uod_id, attest=False)  # M read as data
             if uod is None or uod.current_egi is None:
                 return ApiResponse(
                     success=False,

@@ -34,19 +34,21 @@ def _onto(*axioms: str) -> str:
 
 
 @pytest.mark.parametrize("axiom, expected", [
-    ("SubClassOf(:Man :Mortal)", "(forall (x) (if (Man x) (Mortal x)))"),
+    # A single axiom gets per-axiom index 1, so its bound variables are x1/y1/z1
+    # (distinct names per axiom prevent parse_clif merging lines of identity).
+    ("SubClassOf(:Man :Mortal)", "(forall (x1) (if (Man x1) (Mortal x1)))"),
     ("SubObjectPropertyOf(:hasMother :hasParent)",
-     "(forall (x y) (if (hasMother x y) (hasParent x y)))"),
+     "(forall (x1 y1) (if (hasMother x1 y1) (hasParent x1 y1)))"),
     ("ObjectPropertyDomain(:knows :Person)",
-     "(forall (x y) (if (knows x y) (Person x)))"),
+     "(forall (x1 y1) (if (knows x1 y1) (Person x1)))"),
     ("ObjectPropertyRange(:knows :Person)",
-     "(forall (x y) (if (knows x y) (Person y)))"),
+     "(forall (x1 y1) (if (knows x1 y1) (Person y1)))"),
     ("SymmetricObjectProperty(:siblingOf)",
-     "(forall (x y) (if (siblingOf x y) (siblingOf y x)))"),
+     "(forall (x1 y1) (if (siblingOf x1 y1) (siblingOf y1 x1)))"),
     ("TransitiveObjectProperty(:ancestorOf)",
-     "(forall (x y z) (if (and (ancestorOf x y) (ancestorOf y z)) (ancestorOf x z)))"),
+     "(forall (x1 y1 z1) (if (and (ancestorOf x1 y1) (ancestorOf y1 z1)) (ancestorOf x1 z1)))"),
     ("SubClassOf(ObjectIntersectionOf(:Male :Parent) :Father)",
-     "(forall (x) (if (and (Male x) (Parent x)) (Father x)))"),
+     "(forall (x1) (if (and (Male x1) (Parent x1)) (Father x1)))"),
     ("ClassAssertion(:Dog :Rex)", "(Dog Rex)"),
     ("ObjectPropertyAssertion(:hasParent :Rex :Fido)", "(hasParent Rex Fido)"),
 ])
@@ -55,24 +57,35 @@ def test_axiom_form_translates_to_expected_clif(axiom, expected):
     assert clif.strip() == expected
 
 
+def test_distinct_axioms_get_distinct_variables():
+    # Two subsumptions must NOT share a bound variable — else parse_clif unifies them
+    # into one line of identity threaded through both scrolls (a layout catastrophe).
+    clif, _ = translate(_onto("SubClassOf(:A :B)", "SubClassOf(:C :D)"))
+    assert "(forall (x1) (if (A x1) (B x1)))" in clif
+    assert "(forall (x2) (if (C x2) (D x2)))" in clif
+    from egif_parser_dau import parse_egif  # noqa
+    from clif_parser_dau import parse_clif
+    assert len(parse_clif(clif).V) == 2      # two lines of identity, not one
+
+
 def test_equivalent_and_disjoint_are_pairwise():
     clif, rep = translate(_onto("EquivalentClasses(:Dog :Canine)",
                                 "DisjointClasses(:Dog :Cat)"))
-    assert "(forall (x) (iff (Dog x) (Canine x)))" in clif
-    assert "(forall (x) (not (and (Dog x) (Cat x))))" in clif
+    assert "(forall (x1) (iff (Dog x1) (Canine x1)))" in clif
+    assert "(forall (x2) (not (and (Dog x2) (Cat x2))))" in clif
 
 
 def test_inverse_properties_emit_both_directions():
     clif, rep = translate(_onto("InverseObjectProperties(:hasParent :hasChild)"))
-    assert "(forall (x y) (if (hasParent x y) (hasChild y x)))" in clif
-    assert "(forall (x y) (if (hasChild x y) (hasParent y x)))" in clif
+    assert "(forall (x1 y1) (if (hasParent x1 y1) (hasChild y1 x1)))" in clif
+    assert "(forall (x1 y1) (if (hasChild x1 y1) (hasParent y1 x1)))" in clif
     assert rep.translated["InverseObjectProperties"] == 2
 
 
 def test_existential_restriction_in_superclass():
     clif, _ = translate(_onto("SubClassOf(:Dog ObjectSomeValuesFrom(:hasParent :Dog))"))
     assert clif.strip() == (
-        "(forall (x) (if (Dog x) (exists (y1) (and (hasParent x y1) (Dog y1)))))")
+        "(forall (x1) (if (Dog x1) (exists (w1) (and (hasParent x1 w1) (Dog w1)))))")
 
 
 # --------------------------------------------------------------------------- #
@@ -109,7 +122,7 @@ def test_declarations_counted_not_skipped():
 def test_iri_and_prefixed_names_reduce_to_local():
     clif, _ = translate(_onto(
         "SubClassOf(<http://example.org/onto#Man> <http://example.org/onto#Mortal>)"))
-    assert clif.strip() == "(forall (x) (if (Man x) (Mortal x)))"
+    assert clif.strip() == "(forall (x1) (if (Man x1) (Mortal x1)))"
 
 
 # --------------------------------------------------------------------------- #

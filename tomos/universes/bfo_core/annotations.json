@@ -1,0 +1,37 @@
+{
+  "annotations": [
+    {
+      "id": "ann_34d87841",
+      "scope": "uod",
+      "text": "BFO core \u2014 the Basic Formal Ontology upper taxonomy (Arp, Smith & Spear 2015) as an EG theory. A *pure-ish T-box*: a deep subsumption spine (Object \u2291 MaterialEntity \u2291 IndependentContinuant \u2291 Continuant \u2291 Entity) with Continuant/Occurrent disjoint and the three dependence kinds pairwise disjoint. The case the *theorem query* is for \u2014 model-checking a subsumption over its sparse A-box reads vacuously; freezing a witness decides it. Complements SUMO as a second real upper ontology to test proposals against.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "ontology",
+        "cited",
+        "bfo",
+        "upper-ontology",
+        "t-box"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_9bdfa8e2",
+      "scope": "uod",
+      "text": "Imported from corpus/ontologies/bfo_core.ofn through the OWL\u2192CLIF\u2192EGI pipeline (26 CLIF axioms over 22 classes). Honest partial encoding: BFO's principal is-a spine + the three top disjointness axioms \u2014 a pure T-box, not the full BFO/RO axiomatisation. BFO's Relation-Ontology relations and any A-box are omitted from the stored UoD because relational scrolls are super-linear to lay out at the \u00a73.3 save boundary while the taxonomy is cheap (the layout-perf frontier; M is data, draw only the contested fragment). Translator skips: none.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "provenance",
+        "owl-import",
+        "honest-partial-import",
+        "no-silent-caps"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

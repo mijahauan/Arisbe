@@ -1,0 +1,32 @@
+{
+  "theorem_source": {
+    "type": "book",
+    "author": "Arp, Robert and Smith, Barry and Spear, Andrew D.",
+    "title": "Building Ontologies with Basic Formal Ontology",
+    "publisher": "MIT Press",
+    "year": "2015",
+    "note": "BFO 2.0 upper taxonomy; partial faithful encoding"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected",
+      "note": "existential-graph notation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "ontology",
+  "formatted": {
+    "theorem": "Arp, Robert and Smith, Barry and Spear, Andrew D. (2015). Building Ontologies with Basic Formal Ontology",
+    "proof": "",
+    "methods": [
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

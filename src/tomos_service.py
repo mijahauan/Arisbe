@@ -533,7 +533,8 @@ class TomosService:
     def load_uod(
         self,
         uod_id: str,
-        load_history: bool = True
+        load_history: bool = True,
+        attest: bool = True,
     ) -> Optional[UniverseOfDiscourse]:
         """Load a UoD from tomos, transparently handling both legacy and V2 formats.
 
@@ -556,6 +557,16 @@ class TomosService:
             load_history: Whether to attempt loading transformation history.
                 Defaults to ``True``; set to ``False`` for faster browsing
                 when history is not needed.
+            attest: Whether to run the §3.3 correspondence attestation (a full
+                layout of the stored EGI) at the load boundary.  Defaults to
+                ``True`` — the boundary guarantee for any caller that will *draw*
+                the graph.  Set to ``False`` when the UoD is read purely as
+                **data** (an ontology used as a model M for materialization /
+                the semantic game / the theory query, which never draws M — the
+                "M is data, draw only the contested fragment" principle,
+                ``docs/DOMAIN_ORACLE_AND_M.md`` §5).  A large ontology's layout is
+                super-linear, so attesting it per query would make using it as M
+                unusably slow; the drawing was already attested at save time.
 
         Returns:
             The loaded ``UniverseOfDiscourse``, or ``None`` if the UoD is not
@@ -613,10 +624,12 @@ class TomosService:
         # correspond to its stored EGI
         # (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §6).  Catches drift
         # introduced by external edits to the persisted file or by
-        # layout-engine changes since the file was written.
-        _attest_uod_in_correspondence(
-            uod, context=f"tomos_service.load_uod({uod_id})"
-        )
+        # layout-engine changes since the file was written.  Skipped when the
+        # caller reads the UoD purely as data (attest=False) — M is never drawn.
+        if attest:
+            _attest_uod_in_correspondence(
+                uod, context=f"tomos_service.load_uod({uod_id})"
+            )
 
         return uod
 

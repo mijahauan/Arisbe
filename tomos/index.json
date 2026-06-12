@@ -346,7 +346,22 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/sumo_upper"
+    },
+    {
+      "uod_id": "bfo_core",
+      "name": "BFO (core taxonomy)",
+      "category": "domain_model",
+      "uod_type": "standalone",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-12T00:00:00+00:00",
+      "last_modified": "2026-06-12T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "tomos/universes/bfo_core"
     }
   ],
-  "last_updated": "2026-06-08T13:01:02.911777"
+  "last_updated": "2026-06-12T06:03:40.711429"
 }

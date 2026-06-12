@@ -64,6 +64,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 Node = Union[str, list]
 
 
+def _strip_comments(text: str) -> str:
+    """Drop full-line ``#`` comments (a line whose first non-space char is ``#``).
+
+    OWL functional syntax has no comment form, but authored ``.ofn`` sources often
+    carry ``#`` headers; IRIs contain ``#`` only mid-token, never at line start, so
+    this is safe."""
+    return "\n".join(
+        line for line in text.splitlines() if not line.lstrip().startswith("#")
+    )
+
+
 def _tokenize(text: str) -> List[str]:
     """Tokens of functional syntax: parens, ``<IRI>`` spans, ``"string"`` spans
     (with optional ``^^datatype`` / ``@lang`` suffix kept attached), and bare atoms."""
@@ -195,12 +206,14 @@ def _is_nothing(ref: str) -> bool:
 
 @dataclass
 class _Ctx:
-    """Fresh-variable supply for existential restrictions."""
+    """Fresh-variable supply for existential restrictions — ``w``-prefixed so they
+    never collide with the per-axiom top-level variables (``x``/``y``/``z`` + index).
+    Shared across the whole document so two axioms' fillers stay distinct."""
     n: int = 0
 
     def fresh(self) -> str:
         self.n += 1
-        return f"y{self.n}"
+        return f"w{self.n}"
 
 
 def _class_expr(node: Node, var: str, ctx: _Ctx) -> Optional[str]:
@@ -300,7 +313,7 @@ def translate(text: str) -> Tuple[str, OWLReport]:
     ``parse_clif``, and an honest account of what translated, what was skipped (by
     construct), and the declared vocabulary.
     """
-    forms = _read_forms(_tokenize(text))
+    forms = _read_forms(_tokenize(_strip_comments(text)))
     report = OWLReport()
     sentences: List[str] = []
 
@@ -316,12 +329,20 @@ def translate(text: str) -> Tuple[str, OWLReport]:
         if isinstance(ref, str):
             report.individuals.add(_safe_ident(_localname(ref)))
 
+    # One shared fresh-variable supply for restriction fillers, and a per-axiom index
+    # so each universally-quantified axiom gets its *own* bound variables (x7, y7, …).
+    # Reusing "x" across axioms would make parse_clif unify them into a single line of
+    # identity threaded through every scroll — a correctness smell and a layout
+    # catastrophe (one vertex crossing dozens of cut boundaries).
+    ctx = _Ctx()
+    nax = 0
     for form in _axiom_forms(forms):
         if not isinstance(form, list) or not form:
             continue
         head = form[0]
         args = _strip_annotations(form[1:])
-        ctx = _Ctx()
+        nax += 1
+        vx, vy, vz = f"x{nax}", f"y{nax}", f"z{nax}"
 
         if head == "Declaration":
             if args and isinstance(args[0], list) and args[0]:
@@ -338,7 +359,7 @@ def translate(text: str) -> Tuple[str, OWLReport]:
         if head == "SubClassOf" and len(args) == 2:
             for a in args:
                 note_class(a)
-            sub, sup = _class_expr(args[0], "x", ctx), _class_expr(args[1], "x", ctx)
+            sub, sup = _class_expr(args[0], vx, ctx), _class_expr(args[1], vx, ctx)
             if sub is None or sup is None or sub == "F":
                 report.skipped["SubClassOf (complex class expression)"] += 1
                 continue
@@ -346,14 +367,14 @@ def translate(text: str) -> Tuple[str, OWLReport]:
                 report.skipped["SubClassOf (… ⊑ Thing, trivial)"] += 1
                 continue
             body = "(true)" if sub == "T" else sub
-            sentences.append(f"(forall (x) (if {body} {sup}))")
+            sentences.append(f"(forall ({vx}) (if {body} {sup}))")
             report.translated["SubClassOf"] += 1
             continue
 
         if head in ("EquivalentClasses", "DisjointClasses") and len(args) >= 2:
             for a in args:
                 note_class(a)
-            exprs = [_class_expr(a, "x", ctx) for a in args]
+            exprs = [_class_expr(a, vx, ctx) for a in args]
             if any(e is None or e in ("T", "F") for e in exprs):
                 report.skipped[f"{head} (complex/empty class expression)"] += 1
                 continue
@@ -361,10 +382,10 @@ def translate(text: str) -> Tuple[str, OWLReport]:
             for i in range(len(exprs)):
                 for j in range(i + 1, len(exprs)):
                     if head == "EquivalentClasses":
-                        sentences.append(f"(forall (x) (iff {exprs[i]} {exprs[j]}))")
+                        sentences.append(f"(forall ({vx}) (iff {exprs[i]} {exprs[j]}))")
                     else:
                         sentences.append(
-                            f"(forall (x) (not (and {exprs[i]} {exprs[j]})))")
+                            f"(forall ({vx}) (not (and {exprs[i]} {exprs[j]})))")
                     made += 1
             report.translated[head] += made
             continue
@@ -373,7 +394,7 @@ def translate(text: str) -> Tuple[str, OWLReport]:
                 isinstance(a, str) for a in args):
             r, s = (_safe_ident(_localname(a)) for a in args)
             note_prop(args[0]); note_prop(args[1])
-            sentences.append(f"(forall (x y) (if ({r} x y) ({s} x y)))")
+            sentences.append(f"(forall ({vx} {vy}) (if ({r} {vx} {vy}) ({s} {vx} {vy})))")
             report.translated["SubObjectPropertyOf"] += 1
             continue
 
@@ -383,12 +404,12 @@ def translate(text: str) -> Tuple[str, OWLReport]:
                 continue
             note_prop(args[0]); note_class(args[1])
             r = _safe_ident(_localname(args[0]))
-            v = "x" if head == "ObjectPropertyDomain" else "y"
+            v = vx if head == "ObjectPropertyDomain" else vy
             cls = _class_expr(args[1], v, ctx)
             if cls is None or cls in ("T", "F"):
                 report.skipped[f"{head} (complex class)"] += 1
                 continue
-            sentences.append(f"(forall (x y) (if ({r} x y) {cls}))")
+            sentences.append(f"(forall ({vx} {vy}) (if ({r} {vx} {vy}) {cls}))")
             report.translated[head] += 1
             continue
 
@@ -396,8 +417,8 @@ def translate(text: str) -> Tuple[str, OWLReport]:
                 isinstance(a, str) for a in args):
             r, s = (_safe_ident(_localname(a)) for a in args)
             note_prop(args[0]); note_prop(args[1])
-            sentences.append(f"(forall (x y) (if ({r} x y) ({s} y x)))")
-            sentences.append(f"(forall (x y) (if ({s} x y) ({r} y x)))")
+            sentences.append(f"(forall ({vx} {vy}) (if ({r} {vx} {vy}) ({s} {vy} {vx})))")
+            sentences.append(f"(forall ({vx} {vy}) (if ({s} {vx} {vy}) ({r} {vy} {vx})))")
             report.translated["InverseObjectProperties"] += 2
             continue
 
@@ -405,7 +426,7 @@ def translate(text: str) -> Tuple[str, OWLReport]:
                 args[0], str):
             r = _safe_ident(_localname(args[0]))
             note_prop(args[0])
-            sentences.append(f"(forall (x y) (if ({r} x y) ({r} y x)))")
+            sentences.append(f"(forall ({vx} {vy}) (if ({r} {vx} {vy}) ({r} {vy} {vx})))")
             report.translated["SymmetricObjectProperty"] += 1
             continue
 
@@ -414,7 +435,8 @@ def translate(text: str) -> Tuple[str, OWLReport]:
             r = _safe_ident(_localname(args[0]))
             note_prop(args[0])
             sentences.append(
-                f"(forall (x y z) (if (and ({r} x y) ({r} y z)) ({r} x z)))")
+                f"(forall ({vx} {vy} {vz}) (if (and ({r} {vx} {vy}) ({r} {vy} {vz})) "
+                f"({r} {vx} {vz})))")
             report.translated["TransitiveObjectProperty"] += 1
             continue
 

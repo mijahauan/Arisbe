@@ -38,10 +38,10 @@ CITED = {
     "sowa_2011_p356_quantification", "sowa_cat_on_mat", "dau_2006_p112_ligature",
     "theorem_praeclarum",
     # imported ontologies (kind=ontology) — each cites its source vocabulary
-    "porphyry_tree", "foaf_core", "sumo_upper",
+    "porphyry_tree", "foaf_core", "sumo_upper", "bfo_core",
 }
 # Imported ontologies (kind=ontology).
-ONTOLOGIES = {"porphyry_tree", "foaf_core", "sumo_upper"}
+ONTOLOGIES = {"porphyry_tree", "foaf_core", "sumo_upper", "bfo_core"}
 # The worked-proof fixtures (each carries a real chain).
 PROOFS = {"peirce_law", "barbara", "group_identity", "theorem_praeclarum"}
 

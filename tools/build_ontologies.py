@@ -45,7 +45,9 @@ from universe_of_discourse import (
 )
 
 _WHEN = datetime(2026, 6, 8, tzinfo=timezone.utc)
+_WHEN_BFO = datetime(2026, 6, 12, tzinfo=timezone.utc)
 _SUMO = Path(__file__).resolve().parent.parent / "docs" / "references" / "SUMO1.2.txt"
+_BFO = Path(__file__).resolve().parent.parent / "corpus" / "ontologies" / "bfo_core.ofn"
 
 
 def _uod(uod_id: str, name: str, description: str, egif: str) -> UniverseOfDiscourse:
@@ -203,8 +205,68 @@ def sumo():
     return uod, prov, anns
 
 
+# --------------------------------------------------------------------------- #
+# BFO core — imported through the OWL→CLIF→EGI pipeline                        #
+# --------------------------------------------------------------------------- #
+
+def bfo():
+    """The Basic Formal Ontology upper taxonomy, imported from OWL functional
+    syntax — the OWL→CLIF→EGI pipeline exercised end to end into the corpus."""
+    from domain_model_importer import from_owl_file
+
+    result = from_owl_file(_BFO)
+    meta = UoDMetadata(
+        uod_id="bfo_core", uod_type=UoDType.STANDALONE, name="BFO (core taxonomy)",
+        description=(
+            "The upper is-a taxonomy of the Basic Formal Ontology (BFO 2.0): Entity ⊐ "
+            "{Continuant, Occurrent}; IndependentContinuant ⊐ MaterialEntity ⊐ "
+            "{Object, FiatObjectPart, ObjectAggregate}; the realizable line "
+            "Quality / Role / Disposition ⊐ Function; with Continuant/Occurrent and "
+            "the three dependence kinds disjoint. A pure T-box and a second real upper "
+            "ontology beside SUMO — imported from OWL functional syntax through the "
+            "OWL→CLIF→EGI pipeline."),
+        category=UoDCategory.DOMAIN_MODEL, created=_WHEN_BFO, last_modified=_WHEN_BFO,
+    )
+    uod = UniverseOfDiscourse(metadata=meta, current_egi=result.egi)
+    prov = make_provenance(
+        theorem_source={"type": "book",
+                        "author": "Arp, Robert and Smith, Barry and Spear, Andrew D.",
+                        "title": "Building Ontologies with Basic Formal Ontology",
+                        "publisher": "MIT Press", "year": "2015",
+                        "note": "BFO 2.0 upper taxonomy; partial faithful encoding"},
+        method_sources=[
+            {"type": "book", "author": "Peirce, Charles Sanders",
+             "title": "Collected Papers", "bibkey": "peirce1931collected",
+             "note": "existential-graph notation"},
+        ],
+        kind=KIND_ONTOLOGY,
+    )
+    skips = ", ".join(w for w in result.warnings) or "none"
+    anns = _anns(
+        ("BFO core — the Basic Formal Ontology upper taxonomy (Arp, Smith & Spear "
+         "2015) as an EG theory. A *pure-ish T-box*: a deep subsumption spine "
+         "(Object ⊑ MaterialEntity ⊑ IndependentContinuant ⊑ Continuant ⊑ Entity) "
+         "with Continuant/Occurrent disjoint and the three dependence kinds "
+         "pairwise disjoint. The case the *theorem query* is for — model-checking a "
+         "subsumption over its sparse A-box reads vacuously; freezing a witness "
+         "decides it. Complements SUMO as a second real upper ontology to test "
+         "proposals against.",
+         ["ontology", "cited", "bfo", "upper-ontology", "t-box"]),
+        (f"Imported from corpus/ontologies/bfo_core.ofn through the OWL→CLIF→EGI "
+         f"pipeline ({result.num_axioms} CLIF axioms over {result.num_types} classes). "
+         f"Honest partial encoding: BFO's principal is-a spine + the three top "
+         f"disjointness axioms — a pure T-box, not the full BFO/RO axiomatisation. "
+         f"BFO's Relation-Ontology relations and any A-box are omitted from the stored "
+         f"UoD because relational scrolls are super-linear to lay out at the §3.3 save "
+         f"boundary while the taxonomy is cheap (the layout-perf frontier; M is data, "
+         f"draw only the contested fragment). Translator skips: {skips}.",
+         ["provenance", "owl-import", "honest-partial-import", "no-silent-caps"]),
+    )
+    return uod, prov, anns
+
+
 def build_all() -> List[Tuple]:
-    return [porphyry(), foaf(), sumo()]
+    return [porphyry(), foaf(), sumo(), bfo()]
 
 
 def main(argv=None) -> int:

@@ -1,0 +1,53 @@
+# bfo_core.ofn — a faithful encoding of the Basic Formal Ontology (BFO 2.0) upper
+# *taxonomy*: the principal is-a spine plus the three top disjointness axioms.
+# Authored for Arisbe as an OWL 2 functional-syntax source for the OWL->CLIF->EGI
+# import pipeline; the taxonomy follows BFO 2.0 (Arp, Smith & Spear 2015).
+#
+# Honest scope: a *pure T-box* — subsumption + disjointness only.  BFO's Relation
+# Ontology relations (continuantPartOf, participatesIn, …) and any A-box are
+# deliberately omitted from the stored UoD: relational scrolls with multi-variable
+# bodies are super-linear to *lay out* (the §3.3 attestation at save), while the
+# taxonomy lays out cheaply.  The full pipeline's property/A-box coverage is exercised
+# by tests/fixtures/zoo.ofn instead.  A pure taxonomy is exactly the case the *theorem
+# query* exists for: model-checking a subsumption over an empty A-box reads vacuously;
+# freezing a witness decides it.
+Prefix(:=<http://purl.obolibrary.org/obo/bfo#>)
+Prefix(owl:=<http://www.w3.org/2002/07/owl#>)
+Ontology(<http://purl.obolibrary.org/obo/bfo/arisbe-core>
+
+  Declaration(Class(:Entity))
+  Declaration(Class(:Continuant))
+  Declaration(Class(:Occurrent))
+
+  # --- the principal is-a spine (BFO 2.0) -------------------------------------
+  SubClassOf(:Continuant :Entity)
+  SubClassOf(:Occurrent :Entity)
+
+  SubClassOf(:IndependentContinuant :Continuant)
+  SubClassOf(:SpecificallyDependentContinuant :Continuant)
+  SubClassOf(:GenericallyDependentContinuant :Continuant)
+
+  SubClassOf(:MaterialEntity :IndependentContinuant)
+  SubClassOf(:ImmaterialEntity :IndependentContinuant)
+  SubClassOf(:Object :MaterialEntity)
+  SubClassOf(:FiatObjectPart :MaterialEntity)
+  SubClassOf(:ObjectAggregate :MaterialEntity)
+  SubClassOf(:SpatialRegion :ImmaterialEntity)
+  SubClassOf(:Site :ImmaterialEntity)
+
+  SubClassOf(:Quality :SpecificallyDependentContinuant)
+  SubClassOf(:RealizableEntity :SpecificallyDependentContinuant)
+  SubClassOf(:Role :RealizableEntity)
+  SubClassOf(:Disposition :RealizableEntity)
+  SubClassOf(:Function :Disposition)
+
+  SubClassOf(:Process :Occurrent)
+  SubClassOf(:ProcessBoundary :Occurrent)
+  SubClassOf(:TemporalRegion :Occurrent)
+  SubClassOf(:SpatiotemporalRegion :Occurrent)
+
+  # --- the three top disjointness axioms --------------------------------------
+  DisjointClasses(:Continuant :Occurrent)
+  DisjointClasses(:IndependentContinuant :SpecificallyDependentContinuant :GenericallyDependentContinuant)
+  DisjointClasses(:MaterialEntity :ImmaterialEntity)
+)
