@@ -76,8 +76,10 @@ CL repository.
 
 Honest boundaries confirmed (not bugs): COLORE is mostly **non-Horn FOL** (materialization
 skips it — betweenness forward-chains nothing, its value is the contest); **function terms**
-`(dmv v m)` aren't EG-expressible (parse error — a real expressiveness boundary);
-`cl-imports` still needs hand resolution; and COLORE uses **underscores** (which round-trip
+`(dmv v m)` are not handled by *our CLIF parser* (parse error — an implementation gap, not a
+limit of EG: functions relationalise — `(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧ density(z))`
++ functionality — and Dau gives a direct extension, ICCS 2007; the fix is to relationalise on
+import); `cl-imports` still needs hand resolution; and COLORE uses **underscores** (which round-trip
 in EGIF), so it doesn't exercise the hyphen fix — that stays pinned by the in-repo
 hyphenated `animal_taxonomy`. (I was also wrong earlier that there was "no internet" —
 `WebFetch`/`WebSearch` and Bash all reach the network.)

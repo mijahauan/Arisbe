@@ -224,9 +224,15 @@ from `github.com/gruninger/colore` surfaced — and fixed — what synthetic con
 What stays a boundary, honestly: COLORE is mostly **non-Horn FOL** (`iff` / `exists`-heads
 / equality / negated bodies → materialization's skip residue, so a relational theory like
 betweenness forward-chains *nothing* — its reasoning value is in the contest, not the Horn
-closure); it uses **function terms** like `(dmv v m)`, which EGs cannot express (a parse
-error — a real expressiveness boundary, not a bug); and `cl-imports` still needs hand
-resolution. COLORE names are **underscored, not hyphenated**, and underscores round-trip
+closure); it uses **function terms** like `(dmv v m)`, which **our CLIF parser** does not
+yet handle (a parse error — an *implementation* gap, not a limit of EG: functions are
+expressible by relationalisation — a function is a relation whose output is uniquely
+determined, `(density (dmv v m))` ↦ `∃z (dmv(v,m,z) ∧ density(z))` + functionality — and
+Dau gives a direct extension, *Constants and Functions in Peirce's Existential Graphs*,
+ICCS 2007; EGIF even has an explicit `(Type … | output)` function form. The fix is to
+relationalise function terms on import; the uniqueness axioms are non-Horn, so they fall
+to the contest residue like the rest); and `cl-imports` still needs hand resolution.
+COLORE names are **underscored, not hyphenated**, and underscores round-trip
 through EGIF cleanly — so COLORE does *not* exercise the hyphen fix (that remains pinned by
 the in-repo hyphenated `animal_taxonomy`).
 
