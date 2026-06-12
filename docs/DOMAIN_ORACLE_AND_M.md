@@ -1,8 +1,9 @@
 # The Domain Oracle: situating a graph in "enough" of a model M
 
-**Status**: design-of-record · **steps 1–3 + the inverse pivot BUILT** (2026-06-11;
-oracle + peel + materialization + `/agon` interpretation register & inverse search) ·
-remaining: oracle scale steps 4–6 (cache → horizon → SPARQL) · **Drafted**: 2026-06-11
+**Status**: design-of-record · **steps 1–3 + the inverse pivot + theory query (§6.2)
+BUILT** (oracle + peel + materialization + `/agon` interpretation register & inverse
+search 2026-06-11; ontology-as-M / T-box theorem deduction 2026-06-12) · remaining:
+oracle scale steps 4–6 (cache → horizon → SPARQL) · **Drafted**: 2026-06-11
 
 > The question this answers: the Endoporeutic Game tests a proposal G against a
 > domain model **M** — "the outside" that enables the outside-in interpretation.
@@ -217,6 +218,52 @@ an honest **skip-report** of the rules left unmaterialized.
   (facts_egi, report)`), reused at M-construction time: `CorpusOracle.from_egif(...,
   materialize=True)` and an opt-in on the `/agon/interpret` path, so a corpus UoD or a
   hand-authored M that carries rules becomes testable by the peel.
+
+### 6.2 Theory query — deciding a T-box theorem (ontology-as-M) — BUILT 2026-06-12
+
+Materialization makes the peel work for an **A-box-bearing** model: Porphyry carries
+`(Man "Socrates")`, so materializing derives Socrates is Animal/Living/Body/Substance,
+and a proposal about Socrates model-checks correctly. But a real **T-box ontology** —
+the SUMO upper spine, the FOAF schema, Porphyry's genus ladder — is almost entirely
+*rules* over few or no individuals. Materializing SUMO's 43 subsumption axioms derives
+**0 facts** (no individuals to chain over → the empty model). A subsumption proposal
+`~[ (Object *x) ~[ (Entity x) ] ]` then reads **vacuously TRUE** closed (the *wrong*
+reason — a nonsense universal `~[ (Object *x) ~[ (Flibbertigibbet x) ] ]` reads TRUE
+too) or **UNKNOWN** open. **Model-checking cannot decide a theorem of the theory.**
+
+The decision that can is **deduction**, and for the Horn/Datalog fragment it is the
+standard, complete, terminating procedure — **freeze a fresh witness** (`entails` in
+`src/theory_query.py`):
+
+1. take the universal `G = ~[ B(x⃗) ~[ H(x⃗) ] ]` (body → head, range-restricted);
+2. mint a fresh constant for each line of identity in `B` and assert `B` over those
+   constants — an *arbitrary* individual mentioned nowhere in M;
+3. **materialize** `M ∪ {frozen B}` (run M's rules over the witness);
+4. check `H` over the same constants. Because the witnesses are arbitrary, `H` holding
+   of them means G holds *universally* — G is a theorem of M.
+
+**Soundness**: the fresh constants occur nowhere in M, so any derivation of
+`H(witnesses)` uses only M's universally-quantified rules and holds for every
+substitution. **Completeness (Horn)**: the least Herbrand model is M's unique minimal
+model, so a head atom is derivable iff the Horn theory entails it.
+
+**Honest residue.** A *positive* is always `TRUE` (derivation is sound regardless of
+what was skipped). A *negative* is `FALSE` only when M is **wholly Horn**; if M carries
+non-Horn axioms materialization had to skip, a negative is `UNKNOWN` — the Horn
+fragment can't prove G, but the skipped axioms might bear on it. This is exactly right
+on the corpus: `Man ⊑ Beast` over Porphyry reads `UNKNOWN`, because Porphyry's
+Man/Beast **disjointness** (`~[ (Beast z) (Man z) ]`) is a skipped non-Horn denial that
+is precisely what would settle it.
+
+**Wiring.** `/agon/interpret` (and the standalone `_interpret_payload`), when
+`materialize` is set and G is a universal Horn scroll, returns a `theorem` block beside
+the extensional `verdict` — the authoritative "is G a theorem of M (the theory)?"
+answer. This is the deduction the design-of-record (`GENERATION_AND_TESTING.md`
+clarification 1) routes to "the contest/deduction game": the peel stays pure
+model-checking; the theory query is the inference step that makes a T-box testable.
+Verified end-to-end on `sumo_upper` (subsumption theorems), `porphyry_tree` (the ladder
++ the disjointness residue), and `foaf_core` (typing chains through subsumption:
+`knows(y,z) → Person(y) → Agent(y)`). Tests: `tests/test_theory_query.py` (15).
 
 ---
 

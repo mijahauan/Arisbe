@@ -66,6 +66,7 @@ from egif_parser_dau import parse_egif
 from endoporeutic_game import Player
 from model_materialization import materialize_egi
 from semantic_game import evaluate as evaluate_semantic
+from theory_query import entails as theory_entails
 from tomos_service import TomosService
 
 
@@ -475,8 +476,10 @@ def _interpret_payload(
     becomes testable), and the materialization report is returned alongside.
     """
     materialization = None
+    theorem = None
     if materialize:
-        facts_egi, rep = materialize_egi(parse_egif(model_egif))
+        theory_egi = parse_egif(model_egif)
+        facts_egi, rep = materialize_egi(theory_egi)
         oracle = CorpusOracle([("M", facts_egi)], closed=closed)
         materialization = {
             "summary": rep.summary,
@@ -487,6 +490,22 @@ def _interpret_payload(
             "skipped": [{"reason": s.reason, "description": s.description}
                         for s in rep.skipped],
         }
+        # When G is a universal subsumption/typing rule, model-checking it against an
+        # empty or sparse A-box reads *vacuously* — so decide it as a **theorem of the
+        # theory M** instead (freeze a fresh witness, materialize, check the head).
+        # This is what makes a real T-box ontology (SUMO, Porphyry, FOAF) testable.
+        tq = theory_entails(theory_egi, parse_egif(proposal_egif))
+        if tq.applicable:
+            theorem = {
+                "verdict": tq.verdict,
+                "summary": tq.summary,
+                "body_egif": tq.body_egif,
+                "head_egif": tq.head_egif,
+                "witnesses": [w.constant for w in tq.witnesses],
+                "derived": tq.derived,
+                "missing": tq.missing,
+                "skipped_in_theory": tq.skipped_in_theory,
+            }
     else:
         oracle = CorpusOracle.from_egif({"M": model_egif}, closed=closed)
     result = evaluate_semantic(parse_egif(proposal_egif), oracle)
@@ -496,6 +515,7 @@ def _interpret_payload(
         "proposal_egif": proposal_egif,
         "closed": closed,
         "materialization": materialization,
+        "theorem": theorem,
         "verdict": verdict,
         "holds": result.holds,
         "summary": result.summary,

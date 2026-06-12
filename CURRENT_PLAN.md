@@ -1,6 +1,9 @@
 # Current Plan
 
-**Last Updated**: 2026-06-11 — the **freeform composition arc is COMPLETE** (steps
+**Last Updated**: 2026-06-12 — **ontology-as-M step 1 DONE**: the T-box theorem query
+(`theory_query.entails`, freeze-a-fresh-witness) makes a real ontology (SUMO/Porphyry/
+FOAF) testable where model-checking reads vacuously; wired into `/agon/interpret`. Prior:
+the **freeform composition arc is COMPLETE** (steps
 1–4: fix-time validity → draw-then-read canvas → legible EGI diff → **challenge
 mode**). Also this session: the **persona narrative** (`docs/ARISBE_PERSONAS.md`)
 and the **Domain Oracle** for Agon's model M (`docs/DOMAIN_ORACLE_AND_M.md`, step 1
@@ -11,23 +14,65 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**Designated next task: ontology-as-M** — cash in materialization + the inverse pivot
-on *real ontological data*. The corpus already holds ontology UoDs (Porphyry's Tree,
-a FOAF slice, the SUMO upper spine) whose subsumption axioms are exactly Horn rules.
-The interpretation register + "Use rules" *should already* let one peel/search a
-proposal against them — so step 1 is to **exercise it on those UoDs**, see what
-materialization derives and what it must skip on real T-box axioms, and make the
-persona promise ("a larger ontology is the model your proposal is tested against")
-concretely true. Then extend toward the OWL→CLIF→EGI import pipeline (the bigger
-frontier). **Companion debt to close:** a browser **Playwright E2E** over the new
-`/agon` interpretation UI + challenge mode (both verified only at serve/route/JS-syntax
-level so far). **Deeper alternative** if you'd rather push the game itself: the
-dialogical **contest / automated Grapheus** (the peel now supplies the model-respecting
-reply) + the **warrant lifecycle** (low → tested by surviving Agon).
+**Ontology-as-M step 1 is DONE (2026-06-12)** — see the section below. Exercising the
+interpretation register on the real ontology UoDs surfaced the gap and closed it: a
+pure **T-box** (SUMO) materializes to *nothing* (no individuals to chain), so a
+subsumption proposal model-checks *vacuously*. The fix shipped is `theory_query.entails`
+(**freeze-a-fresh-witness**), wired into `/agon/interpret` as a `theorem` block. SUMO /
+Porphyry / FOAF subsumption + typing now decide correctly, with the disjointness residue
+honestly UNKNOWN.
+
+**Designated next task — pick one:**
+- **Surface the `theorem` verdict in the `/agon` UI.** The route now returns it; the
+  frontend (`web_viewer/agon.html`) doesn't yet render it. Small, high-value: it makes
+  the "is G a theorem of this ontology?" answer visible beside the extensional peel.
+  Then a browser **Playwright E2E** over the `/agon` interpretation UI + challenge mode
+  (both still verified only at serve/route/JS-syntax level) — the companion debt.
+- **The OWL→CLIF→EGI import pipeline** (the bigger ontology frontier): bring an external
+  ontology in as a `kind=ontology` UoD, then test proposals against it via the now-real
+  theory query. Layout stays super-linear (keep M as data behind the oracle; draw only
+  the contested fragment — `DOMAIN_ORACLE_AND_M.md` §5).
+- **Deeper alternative** (push the game itself): the dialogical **contest / automated
+  Grapheus** (the peel supplies the model-respecting reply) + the **warrant lifecycle**
+  (low → tested by surviving Agon).
 
 ---
 
-### Done this session (the Agon interpretation arc) — for reference
+## ✅ DONE 2026-06-12 — ontology-as-M (step 1): the T-box theorem query
+
+Cashed in materialization + the interpretation register on the **real corpus ontology
+UoDs**, and closed the gap the exercise exposed.
+
+**What exercising revealed.** Materializing the three ontologies:
+- **Porphyry** (`(Man "Socrates")` + 5 subsumption rules) → derives Socrates is
+  Animal/Living/Body/Substance (the full ladder); the persona promise is concretely
+  true wherever M carries an A-box.
+- **FOAF** (Alice/Bob Persons + typing rules) → derives both are Agents.
+- **SUMO upper spine** — a **pure T-box** (43 subsumption rules, *zero* individuals) →
+  materializes to the **empty model**. A subsumption proposal then reads **vacuously
+  TRUE** (closed — a nonsense universal reads TRUE too) or **UNKNOWN** (open). *Model-
+  checking cannot decide a theorem of the theory.*
+
+**The fix — `src/theory_query.py` (`entails`, 15 tests).** The deduction
+`GENERATION_AND_TESTING.md` routes to "the contest/deduction game": decide a universal
+`~[ B ~[ H ] ]` by **freeze-a-fresh-witness** — mint an arbitrary constant per body
+line, assert B over it, **materialize M ∪ {frozen B}**, check H. Sound (witnesses
+mentioned nowhere in M ⇒ holds for all) + Horn-complete (least Herbrand model). A
+negative is FALSE only when M is **wholly Horn**, else **UNKNOWN** (skipped non-Horn
+axioms might bear) — so `Man ⊑ Beast` over Porphyry is honestly UNKNOWN (its Man/Beast
+**disjointness** is the skipped denial that would settle it). Verified on the corpus:
+SUMO `Object ⊑ Entity` TRUE / `Object ⊑ Occurrent` FALSE; FOAF `knows(y,z) → Agent(y)`
+TRUE (typing chained through subsumption).
+
+**Wiring.** `/agon/interpret` + `_interpret_payload` return a `theorem` block beside
+the extensional `verdict` whenever `materialize` is set and G is a universal Horn scroll.
+Peel stays pure model-checking; the theory query is the inference step. Doc:
+`docs/DOMAIN_ORACLE_AND_M.md` §6.2. *Frontend rendering of the `theorem` block is the
+next small task.*
+
+---
+
+### Done previous session (the Agon interpretation arc) — for reference
 
 1. **The semantic-game seam — DONE 2026-06-11** (`src/semantic_game.py`, 17 tests):
    `evaluate(egi, oracle)` reads G outside-in, returns three-valued `Verdict3` +
