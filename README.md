@@ -8,7 +8,7 @@ The central engineering and research problem the codebase solves: **inerrant cor
 **The exact-correspondence engine (complete, June 2026).** That contract is now realized *geometrically*: a cut **is its drawn curve**, every mark is an **extent** (label box, not anchor point), and the whole §3.3 invariant — cut containment, ligature crossing-sequence, label/numeral extents, no improper occlusion, argument order by clockwise placement — is checked as a set of **exact facts about the literal drawn picture**, no proxy shape. A cut can be an arbitrary human-drawn polyline, tested point-in-polygon by both the attestation and the reader and hit-tested in the browser via `isPointInFill`. See [docs/EXACT_CORRESPONDENCE.md](docs/EXACT_CORRESPONDENCE.md). This is the foundation for the **freeform composition canvas** (draw logic by hand, read it into a sign on demand) — the active arc.
 
 ---
-https://deepwiki.com/badge-maker?url=https%3A%2F%2Fdeepwiki.com%2Fmijahauan%2FArisbe
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mijahauan/Arisbe)
 ---
 
 ## 🎯 **Philosophical Foundation** (Read First)
