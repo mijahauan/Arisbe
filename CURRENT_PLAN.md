@@ -26,8 +26,10 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 **This session: function-term relationalization + a CLIF universal-quantifier correctness
 fix (parser + generator) + P0 (7 red layout tests triaged) + P1 (Playwright E2E)** — all DONE
-(✅ blocks below; P0 detail in the Backlog). **▶ Start next session on P2 (import breadth) or
-a layout follow-up (reader robustness on dense ELK / tension compaction — both in Backlog).**
+(✅ blocks below; P0 detail in the Backlog). **▶ DESIGNATED NEXT TASK: P2 — import breadth
+(`cl-imports` auto-resolution)**, to land a fully-cited function-bearing COLORE corpus UoD
+(`density` and the rest), see P2 below. The two layout follow-ups (reader robustness on dense
+ELK / tension compaction — both in Backlog) remain available if preferred.
 
 **P0 — DONE: the 7 pre-existing red layout tests, triaged + resolved** (full detail in the
 Backlog's ✅ P0 entry). None were from the CLIF work or a core fault — §3.3 still attests the
