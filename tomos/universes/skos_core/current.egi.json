@@ -1,0 +1,583 @@
+{
+  "Cut": [
+    {
+      "id": "c_if_inner_10"
+    },
+    {
+      "id": "c_if_inner_12"
+    },
+    {
+      "id": "c_if_inner_4"
+    },
+    {
+      "id": "c_if_inner_6"
+    },
+    {
+      "id": "c_if_inner_8"
+    },
+    {
+      "id": "c_if_outer_11"
+    },
+    {
+      "id": "c_if_outer_3"
+    },
+    {
+      "id": "c_if_outer_5"
+    },
+    {
+      "id": "c_if_outer_7"
+    },
+    {
+      "id": "c_if_outer_9"
+    },
+    {
+      "id": "c_not_0"
+    },
+    {
+      "id": "c_not_1"
+    },
+    {
+      "id": "c_not_2"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_Collection_2"
+    },
+    {
+      "id": "e_Collection_4"
+    },
+    {
+      "id": "e_ConceptScheme_0"
+    },
+    {
+      "id": "e_ConceptScheme_17"
+    },
+    {
+      "id": "e_ConceptScheme_5"
+    },
+    {
+      "id": "e_Concept_1"
+    },
+    {
+      "id": "e_Concept_18"
+    },
+    {
+      "id": "e_Concept_19"
+    },
+    {
+      "id": "e_Concept_20"
+    },
+    {
+      "id": "e_Concept_21"
+    },
+    {
+      "id": "e_Concept_22"
+    },
+    {
+      "id": "e_Concept_23"
+    },
+    {
+      "id": "e_Concept_3"
+    },
+    {
+      "id": "e_broaderTransitive_11"
+    },
+    {
+      "id": "e_broaderTransitive_14"
+    },
+    {
+      "id": "e_broaderTransitive_15"
+    },
+    {
+      "id": "e_broaderTransitive_16"
+    },
+    {
+      "id": "e_broaderTransitive_6"
+    },
+    {
+      "id": "e_broader_10"
+    },
+    {
+      "id": "e_broader_27"
+    },
+    {
+      "id": "e_broader_30"
+    },
+    {
+      "id": "e_broader_31"
+    },
+    {
+      "id": "e_broader_32"
+    },
+    {
+      "id": "e_broader_33"
+    },
+    {
+      "id": "e_inScheme_24"
+    },
+    {
+      "id": "e_inScheme_25"
+    },
+    {
+      "id": "e_inScheme_26"
+    },
+    {
+      "id": "e_inScheme_29"
+    },
+    {
+      "id": "e_inScheme_34"
+    },
+    {
+      "id": "e_related_12"
+    },
+    {
+      "id": "e_related_13"
+    },
+    {
+      "id": "e_related_28"
+    },
+    {
+      "id": "e_related_8"
+    },
+    {
+      "id": "e_semanticRelation_7"
+    },
+    {
+      "id": "e_semanticRelation_9"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_Animal",
+      "is_generic": false,
+      "label": "Animal"
+    },
+    {
+      "id": "v_Carnivore",
+      "is_generic": false,
+      "label": "Carnivore"
+    },
+    {
+      "id": "v_Cat",
+      "is_generic": false,
+      "label": "Cat"
+    },
+    {
+      "id": "v_Dog",
+      "is_generic": false,
+      "label": "Dog"
+    },
+    {
+      "id": "v_Mammal",
+      "is_generic": false,
+      "label": "Mammal"
+    },
+    {
+      "id": "v_Wolf",
+      "is_generic": false,
+      "label": "Wolf"
+    },
+    {
+      "id": "v_animals",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_x10",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_x11",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_x12",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_x13",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_x14",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_x7",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_x8",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_x9",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y10",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y11",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y12",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y13",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_y14",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_z14",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": {
+    "C": [
+      "Animal",
+      "Carnivore",
+      "Cat",
+      "Dog",
+      "Mammal",
+      "Wolf"
+    ],
+    "F": [],
+    "R": [
+      "Collection",
+      "Concept",
+      "ConceptScheme",
+      "broader",
+      "broaderTransitive",
+      "inScheme",
+      "related",
+      "semanticRelation"
+    ],
+    "ar": {
+      "Animal": 1,
+      "Carnivore": 1,
+      "Cat": 1,
+      "Collection": 1,
+      "Concept": 1,
+      "ConceptScheme": 1,
+      "Dog": 1,
+      "Mammal": 1,
+      "Wolf": 1,
+      "broader": 2,
+      "broaderTransitive": 2,
+      "inScheme": 2,
+      "related": 2,
+      "semanticRelation": 2
+    }
+  },
+  "area": {
+    "c_if_inner_10": [
+      "e_related_13"
+    ],
+    "c_if_inner_12": [
+      "e_broaderTransitive_16"
+    ],
+    "c_if_inner_4": [
+      "e_semanticRelation_7"
+    ],
+    "c_if_inner_6": [
+      "e_semanticRelation_9"
+    ],
+    "c_if_inner_8": [
+      "e_broaderTransitive_11"
+    ],
+    "c_if_outer_11": [
+      "c_if_inner_12",
+      "e_broaderTransitive_14",
+      "e_broaderTransitive_15",
+      "v_x14",
+      "v_y14",
+      "v_z14"
+    ],
+    "c_if_outer_3": [
+      "c_if_inner_4",
+      "e_broaderTransitive_6",
+      "v_x10",
+      "v_y10"
+    ],
+    "c_if_outer_5": [
+      "c_if_inner_6",
+      "e_related_8",
+      "v_x11",
+      "v_y11"
+    ],
+    "c_if_outer_7": [
+      "c_if_inner_8",
+      "e_broader_10",
+      "v_x12",
+      "v_y12"
+    ],
+    "c_if_outer_9": [
+      "c_if_inner_10",
+      "e_related_12",
+      "v_x13",
+      "v_y13"
+    ],
+    "c_not_0": [
+      "e_ConceptScheme_0",
+      "e_Concept_1",
+      "v_x7"
+    ],
+    "c_not_1": [
+      "e_Collection_2",
+      "e_Concept_3",
+      "v_x8"
+    ],
+    "c_not_2": [
+      "e_Collection_4",
+      "e_ConceptScheme_5",
+      "v_x9"
+    ],
+    "sheet_12c8d552": [
+      "c_if_outer_11",
+      "c_if_outer_3",
+      "c_if_outer_5",
+      "c_if_outer_7",
+      "c_if_outer_9",
+      "c_not_0",
+      "c_not_1",
+      "c_not_2",
+      "e_ConceptScheme_17",
+      "e_Concept_18",
+      "e_Concept_19",
+      "e_Concept_20",
+      "e_Concept_21",
+      "e_Concept_22",
+      "e_Concept_23",
+      "e_broader_27",
+      "e_broader_30",
+      "e_broader_31",
+      "e_broader_32",
+      "e_broader_33",
+      "e_inScheme_24",
+      "e_inScheme_25",
+      "e_inScheme_26",
+      "e_inScheme_29",
+      "e_inScheme_34",
+      "e_related_28",
+      "v_Animal",
+      "v_Carnivore",
+      "v_Cat",
+      "v_Dog",
+      "v_Mammal",
+      "v_Wolf",
+      "v_animals"
+    ]
+  },
+  "nu": {
+    "e_Collection_2": [
+      "v_x8"
+    ],
+    "e_Collection_4": [
+      "v_x9"
+    ],
+    "e_ConceptScheme_0": [
+      "v_x7"
+    ],
+    "e_ConceptScheme_17": [
+      "v_animals"
+    ],
+    "e_ConceptScheme_5": [
+      "v_x9"
+    ],
+    "e_Concept_1": [
+      "v_x7"
+    ],
+    "e_Concept_18": [
+      "v_Animal"
+    ],
+    "e_Concept_19": [
+      "v_Mammal"
+    ],
+    "e_Concept_20": [
+      "v_Carnivore"
+    ],
+    "e_Concept_21": [
+      "v_Dog"
+    ],
+    "e_Concept_22": [
+      "v_Cat"
+    ],
+    "e_Concept_23": [
+      "v_Wolf"
+    ],
+    "e_Concept_3": [
+      "v_x8"
+    ],
+    "e_broaderTransitive_11": [
+      "v_x12",
+      "v_y12"
+    ],
+    "e_broaderTransitive_14": [
+      "v_x14",
+      "v_y14"
+    ],
+    "e_broaderTransitive_15": [
+      "v_y14",
+      "v_z14"
+    ],
+    "e_broaderTransitive_16": [
+      "v_x14",
+      "v_z14"
+    ],
+    "e_broaderTransitive_6": [
+      "v_x10",
+      "v_y10"
+    ],
+    "e_broader_10": [
+      "v_x12",
+      "v_y12"
+    ],
+    "e_broader_27": [
+      "v_Cat",
+      "v_Carnivore"
+    ],
+    "e_broader_30": [
+      "v_Mammal",
+      "v_Animal"
+    ],
+    "e_broader_31": [
+      "v_Carnivore",
+      "v_Mammal"
+    ],
+    "e_broader_32": [
+      "v_Wolf",
+      "v_Carnivore"
+    ],
+    "e_broader_33": [
+      "v_Dog",
+      "v_Carnivore"
+    ],
+    "e_inScheme_24": [
+      "v_Carnivore",
+      "v_animals"
+    ],
+    "e_inScheme_25": [
+      "v_Wolf",
+      "v_animals"
+    ],
+    "e_inScheme_26": [
+      "v_Dog",
+      "v_animals"
+    ],
+    "e_inScheme_29": [
+      "v_Mammal",
+      "v_animals"
+    ],
+    "e_inScheme_34": [
+      "v_Cat",
+      "v_animals"
+    ],
+    "e_related_12": [
+      "v_x13",
+      "v_y13"
+    ],
+    "e_related_13": [
+      "v_y13",
+      "v_x13"
+    ],
+    "e_related_28": [
+      "v_Dog",
+      "v_Wolf"
+    ],
+    "e_related_8": [
+      "v_x11",
+      "v_y11"
+    ],
+    "e_semanticRelation_7": [
+      "v_x10",
+      "v_y10"
+    ],
+    "e_semanticRelation_9": [
+      "v_x11",
+      "v_y11"
+    ]
+  },
+  "rel": {
+    "e_Collection_2": "Collection",
+    "e_Collection_4": "Collection",
+    "e_ConceptScheme_0": "ConceptScheme",
+    "e_ConceptScheme_17": "ConceptScheme",
+    "e_ConceptScheme_5": "ConceptScheme",
+    "e_Concept_1": "Concept",
+    "e_Concept_18": "Concept",
+    "e_Concept_19": "Concept",
+    "e_Concept_20": "Concept",
+    "e_Concept_21": "Concept",
+    "e_Concept_22": "Concept",
+    "e_Concept_23": "Concept",
+    "e_Concept_3": "Concept",
+    "e_broaderTransitive_11": "broaderTransitive",
+    "e_broaderTransitive_14": "broaderTransitive",
+    "e_broaderTransitive_15": "broaderTransitive",
+    "e_broaderTransitive_16": "broaderTransitive",
+    "e_broaderTransitive_6": "broaderTransitive",
+    "e_broader_10": "broader",
+    "e_broader_27": "broader",
+    "e_broader_30": "broader",
+    "e_broader_31": "broader",
+    "e_broader_32": "broader",
+    "e_broader_33": "broader",
+    "e_inScheme_24": "inScheme",
+    "e_inScheme_25": "inScheme",
+    "e_inScheme_26": "inScheme",
+    "e_inScheme_29": "inScheme",
+    "e_inScheme_34": "inScheme",
+    "e_related_12": "related",
+    "e_related_13": "related",
+    "e_related_28": "related",
+    "e_related_8": "related",
+    "e_semanticRelation_7": "semanticRelation",
+    "e_semanticRelation_9": "semanticRelation"
+  },
+  "rho": {
+    "v_Animal": "Animal",
+    "v_Carnivore": "Carnivore",
+    "v_Cat": "Cat",
+    "v_Dog": "Dog",
+    "v_Mammal": "Mammal",
+    "v_Wolf": "Wolf",
+    "v_animals": null,
+    "v_x10": null,
+    "v_x11": null,
+    "v_x12": null,
+    "v_x13": null,
+    "v_x14": null,
+    "v_x7": null,
+    "v_x8": null,
+    "v_x9": null,
+    "v_y10": null,
+    "v_y11": null,
+    "v_y12": null,
+    "v_y13": null,
+    "v_y14": null,
+    "v_z14": null
+  },
+  "sheet": "sheet_12c8d552"
+}

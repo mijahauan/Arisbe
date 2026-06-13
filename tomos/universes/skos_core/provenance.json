@@ -1,0 +1,33 @@
+{
+  "theorem_source": {
+    "type": "techreport",
+    "author": "Miles, Alistair and Bechhofer, Sean",
+    "title": "SKOS Simple Knowledge Organization System Reference",
+    "publisher": "W3C",
+    "year": "2009",
+    "url": "http://www.w3.org/TR/skos-reference/",
+    "note": "W3C Recommendation; vocabulary skos:core, vendored verbatim as corpus/ontologies/skos.rdf"
+  },
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected",
+      "note": "existential-graph notation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "ontology",
+  "formatted": {
+    "theorem": "Miles, Alistair and Bechhofer, Sean (2009). SKOS Simple Knowledge Organization System Reference",
+    "proof": "",
+    "methods": [
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "uod_id": "skos_core",
+  "uod_type": "standalone",
+  "name": "SKOS (semantic-relation core)",
+  "description": "The semantic-relation core of the W3C Simple Knowledge Organization System (SKOS, Miles & Bechhofer 2009): the Concept / ConceptScheme / Collection classes (pairwise disjoint) and the semantic relations \u2014 broader \u2291 broaderTransitive (transitive) and the symmetric related, all rolling up to semanticRelation \u2014 over a small illustrative animal thesaurus (Animal \u2290 Mammal \u2290 Carnivore \u2290 {Dog, Cat, Wolf}). The first corpus ontology imported from RDF (Turtle) through the RDF\u2192OWL\u2192CLIF\u2192EGI front-end, and a *populated, rule-bearing* model: the broader chain closes under transitivity (Dog broaderTransitive Animal) and related closes symmetrically \u2014 a live target for the semantic game.",
+  "category": "domain_model",
+  "created": "2026-06-12T00:00:00+00:00",
+  "last_modified": "2026-06-12T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

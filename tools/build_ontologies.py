@@ -52,6 +52,8 @@ _COLORE_BETWEEN = (Path(__file__).resolve().parent.parent / "corpus" / "ontologi
                    / "colore_between.clif")
 _COLORE_CACHE = (Path(__file__).resolve().parent.parent / "corpus" / "ontologies"
                  / "colore_cache")
+_SKOS_TTL = (Path(__file__).resolve().parent.parent / "corpus" / "ontologies"
+             / "skos_core.ttl")
 
 
 def _uod(uod_id: str, name: str, description: str, egif: str) -> UniverseOfDiscourse:
@@ -421,8 +423,86 @@ def colore_field():
     return uod, prov, anns
 
 
+# --------------------------------------------------------------------------- #
+# SKOS core — imported from real RDF (Turtle) through the RDF→OWL→CLIF→EGI path #
+# --------------------------------------------------------------------------- #
+
+def skos_core():
+    """The semantic-relation core of W3C SKOS, imported from **Turtle** — the RDF
+    front-end (rdflib) exercised end to end into the corpus.
+
+    The first corpus UoD imported from an RDF serialization (the others come from OWL
+    functional syntax or Common Logic).  SKOS is distributed natively as RDF; the
+    drawn fragment is its reasoning core — sub-property + transitivity + symmetry —
+    plus a small illustrative concept scheme so the broaderTransitive closure
+    forward-chains (a *populated, rule-bearing* domain, unlike the pure-T-box SUMO/
+    BFO).  The full official vocabulary is vendored beside it (skos.rdf) as the source
+    of record; its 124 relational-scroll cuts are super-linear to draw, so it imports
+    as data — "M is data, draw only the contested fragment"."""
+    from domain_model_importer import from_rdf_file
+
+    result = from_rdf_file(_SKOS_TTL)
+    meta = UoDMetadata(
+        uod_id="skos_core", uod_type=UoDType.STANDALONE, name="SKOS (semantic-relation core)",
+        description=(
+            "The semantic-relation core of the W3C Simple Knowledge Organization "
+            "System (SKOS, Miles & Bechhofer 2009): the Concept / ConceptScheme / "
+            "Collection classes (pairwise disjoint) and the semantic relations — "
+            "broader ⊑ broaderTransitive (transitive) and the symmetric related, all "
+            "rolling up to semanticRelation — over a small illustrative animal "
+            "thesaurus (Animal ⊐ Mammal ⊐ Carnivore ⊐ {Dog, Cat, Wolf}). The first "
+            "corpus ontology imported from RDF (Turtle) through the RDF→OWL→CLIF→EGI "
+            "front-end, and a *populated, rule-bearing* model: the broader chain "
+            "closes under transitivity (Dog broaderTransitive Animal) and related "
+            "closes symmetrically — a live target for the semantic game."),
+        category=UoDCategory.DOMAIN_MODEL, created=_WHEN_BFO, last_modified=_WHEN_BFO,
+    )
+    uod = UniverseOfDiscourse(metadata=meta, current_egi=result.egi)
+    prov = make_provenance(
+        theorem_source={"type": "techreport",
+                        "author": "Miles, Alistair and Bechhofer, Sean",
+                        "title": "SKOS Simple Knowledge Organization System Reference",
+                        "publisher": "W3C", "year": "2009",
+                        "url": "http://www.w3.org/TR/skos-reference/",
+                        "note": "W3C Recommendation; vocabulary skos:core, vendored "
+                                "verbatim as corpus/ontologies/skos.rdf"},
+        method_sources=[
+            {"type": "book", "author": "Peirce, Charles Sanders",
+             "title": "Collected Papers", "bibkey": "peirce1931collected",
+             "note": "existential-graph notation"},
+        ],
+        kind=KIND_ONTOLOGY,
+    )
+    skips = ", ".join(w for w in result.warnings) or "none"
+    anns = _anns(
+        ("SKOS semantic-relation core (Miles & Bechhofer 2009) as an EG theory — the "
+         "first corpus ontology read from RDF/Turtle. Where SUMO and BFO are pure "
+         "T-boxes, SKOS here carries an A-box (an animal thesaurus): broader ⊑ "
+         "broaderTransitive with broaderTransitive transitive means a chain of "
+         "broader links forward-chains to the full ancestor relation (Dog "
+         "broaderTransitive Animal), and the symmetric related closes both ways. A "
+         "populated, rule-bearing model — a live semantic-game / Grapheus target, "
+         "not just a subsumption lattice.",
+         ["ontology", "cited", "skos", "rdf-turtle", "semantic-web", "a-box"]),
+        (f"Imported from corpus/ontologies/skos_core.ttl through the RDF→OWL→CLIF→EGI "
+         f"front-end (rdflib parses the Turtle; {result.num_axioms} CLIF axioms over "
+         f"{result.num_types} classes). The DRAWN fragment is the reasoning core "
+         f"(sub-property + transitivity + symmetry) + the illustrative scheme; the "
+         f"FULL official W3C vocabulary is vendored verbatim beside it as "
+         f"corpus/ontologies/skos.rdf — 62 EG axioms incl. every inverse / domain / "
+         f"range pair (124 relational-scroll cuts), super-linear to lay out at the "
+         f"§3.3 save boundary, so it is the source of record and imports as data, not "
+         f"a drawn UoD (the layout-perf frontier, as with bfo_core; M is data, draw "
+         f"only the contested fragment). The `ex:` animal thesaurus is authored here "
+         f"to populate the scheme, not part of SKOS. Translator skips: {skips}.",
+         ["provenance", "rdf-import", "honest-partial-import", "no-silent-caps"]),
+    )
+    return uod, prov, anns
+
+
 def build_all() -> List[Tuple]:
-    return [porphyry(), foaf(), sumo(), bfo(), colore_between(), colore_field()]
+    return [porphyry(), foaf(), sumo(), bfo(), colore_between(), colore_field(),
+            skos_core()]
 
 
 def main(argv=None) -> int:

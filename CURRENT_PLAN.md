@@ -52,40 +52,75 @@ rest reported), and an **RDF front-end** (`tools/rdf_to_owl.py`, via rdflib) bri
 / RDF-XML / N-Triples / JSON-LD by reconstructing the same functional-syntax AST the OWL
 translator consumes. Real ontologies now import from where they actually live.
 
-**▶ DESIGNATED NEXT TASK — the Endoporeutic Game + automated Grapheus (the dialogical
-contest).** P2 import-breadth is **closed** (only Manchester deferred). The main thread now is
-to make Agon a *real* dialogical contest rather than a hot-seat, by automating the Grapheus.
+**▶ DESIGNATED NEXT TASK — the automated Grapheus (the dialogical contest). DESIGN DONE
+2026-06-12; BUILD next.** P2 import-breadth is **closed** (only Manchester deferred). The
+design-of-record is **`docs/AUTOMATED_GRAPHEUS.md`** — read it first; it resolves the open
+sub-questions against Pietarinen, *Signs of Logic* Ch. 4 (the semantic-game reading of EGs).
+Memory: [[project_automated_grapheus_design]], [[project_agon_arena_v1_design]],
+[[project_domain_oracle_and_m]], [[project_chain_of_semiosis_grounding]].
 
-*Read first:* `docs/ENDOPOREUTIC_GAME_GUIDE.md` (the two games), `docs/GENERATION_AND_TESTING.md`
-(eliminative=game / additive=making; deduction earns the corpus *through* Agon),
-`docs/DOMAIN_ORACLE_AND_M.md` §6 (the semantic-game seam), `docs/CHAIN_OF_SEMIOSIS.md`
-(semiosis is dialogical; fuller regime-2 = an assertion that has *withstood challenge*). Memory:
-[[project_agon_arena_v1_design]], [[project_domain_oracle_and_m]], [[project_chain_of_semiosis_grounding]].
+*What the design settled (so the build doesn't re-litigate):*
+- **The contest is the semantic game** (`src/semantic_game.py`), **not** the Dau transformation
+  game (`src/endoporeutic_game.py`, which stays the proof apparatus). Pietarinen maps EGs
+  directly onto the outside-in semantic game; that *is* "the walk through levels of negation."
+- **The auto-Grapheus = minimax over the existing evaluator.** `semantic_game._holds` already
+  computes every subgame's Kleene value; the Grapheus plays a child that wins for it (the
+  peel's `counterexample`/`winning_witness` *are* the selectives). No new search — **lift the
+  evaluator into an interactive extensive-form driver**.
+- **Roles by polarity, total at every history; swap once per cut** (janus-faced cut, Peirce CP
+  3.480/4.458/4.556). Human = **Graphist** (proposes G, Verifier); machine = **Grapheus**
+  (Nature/Falsifier + M-adjudicator) — not "auto-Skeptic vs auto-Proposer" but "the machine
+  plays the model side, local role assigned by polarity." A *turn* runs to the next contested
+  frontier; the per-cut swap is internal bookkeeping.
+- **The record is the extensive-form `Play`** (selectives + choices + payoff) — a game record,
+  **not** a Dau `TransformationChain`. "Withstood challenge" = a Graphist win against the
+  model-warranted Grapheus; a corpus-boundary `ChainStep` is minted only on assertion,
+  referencing the `Play` (the import↔Agon warrant link, [[project_import_low_warrant_and_floor]]).
+- **Open-world UNKNOWN** is our deliberate overlay on Pietarinen's 2-valued closed game: a
+  Grapheus frontier M can't settle → Grapheus declines → Agonothetes records **independent**
+  (the hand-off to `/agon/where-it-holds`).
 
-*The state to build on.* Two games already exist:
-- **The transformation game** (`src/endoporeutic_game.py`) — proof-theoretic, Dau Ch. 21:
-  PROPOSER defends in negative areas (INS/IT+/DC+), SKEPTIC attacks in positive areas
-  (ERA/IT−/DC−); alternation, win/concede/no-moves. Today it's **hot-seat** (both sides human).
-- **The semantic game / peel** (`src/semantic_game.py` `evaluate(egi, oracle)`) — reads G
-  outside-in against M, returns Kleene `Verdict3` + transcript + structured
-  `winning_witness` / `counterexample`. This is the seam that can supply a **model-respecting
-  reply**.
-
-*The shape of the work (design next session, don't pre-commit here).* The **automated Grapheus**
-is the move-generator that, given the current board and M (via the `DomainOracle` /
-materialized model), chooses the defender/challenger's reply the model warrants — the peel's
-`winning_witness`/`counterexample` is the natural source of that move. Then the **warrant
-lifecycle**: an assertion that *survives* the contest earns fuller regime-2 standing
-(low-warrant import → tested-through-Agon), the missing link in the import↔Agon arc
-([[project_import_low_warrant_and_floor]]). Open sub-questions for the session: how a generated
-Grapheus move maps onto the transformation game's rule set vs. the semantic peel; whether the
-first cut is auto-**SKEPTIC** (challenge a proposed G) or auto-**PROPOSER**; where the verdict
-annotates the disposition taxonomy; and what "withstood challenge" persists as on the chain.
+*Build order (`docs/AUTOMATED_GRAPHEUS.md` §9):* (1) **`src/grapheus.py`** headless driver +
+tests (self-play reproduces `evaluate()`'s verdict corpus-wide) — the whole logical core; (2)
+routes (start/apply/get/concede, reuse `_interpret_payload` model resolution + `materialize`);
+(3) frontend + Playwright; (4) the warrant `ChainStep`. First opponent: **`skos_core`** (its
+materialised broaderTransitive closure gives the Grapheus non-trivial selectives).
 
 *Alternatives if priorities shift:* the two **layout follow-ups** (reader robustness on dense
-ELK / tension compaction — both in Backlog); the **math menu** (∀x scaffold tactic /
-selection-driven fold); or an optional consolidation — **land a cited Turtle/RDF ontology as a
-corpus UoD** now that the front-end exists (mind the layout-perf frontier).
+ELK / tension compaction — both in Backlog); or the **math menu** (∀x scaffold tactic /
+selection-driven fold). (The "land a cited Turtle/RDF ontology" consolidation is now **DONE** —
+`skos_core` landed 2026-06-12, ✅ block below.)
+
+---
+
+## ✅ DONE 2026-06-12 — `skos_core` landed (the RDF/Turtle front-end into the corpus)
+
+Landed the first corpus ontology imported from **RDF (Turtle)** — `skos_core`, the
+semantic-relation core of **W3C SKOS** (Miles & Bechhofer 2009) — to give the Grapheus a
+*populated, rule-bearing* domain (the corpus was heavy on pure T-boxes: SUMO, BFO; and
+relational algebras: COLORE).
+
+- **The drawn fragment** (`corpus/ontologies/skos_core.ttl`, faithfully transcribed from the
+  official vocabulary): the SKOS classes (Concept / ConceptScheme / Collection, pairwise
+  disjoint) + the three **reasoning-critical** property axioms — `broader ⊑ broaderTransitive`,
+  `broaderTransitive` transitive, the symmetric `related` (all ⊑ `semanticRelation`) — over a
+  small **illustrative animal thesaurus** (Animal ⊐ Mammal ⊐ Carnivore ⊐ {Dog, Cat, Wolf};
+  authored here, honestly noted as *not* part of SKOS). 13 cuts, **3.5 s** at the §3.3 save
+  boundary; materialization fires (`broader ⊑ broaderTransitive` + transitivity close the
+  chain → `(broaderTransitive "Dog" "Animal")`; symmetry → `(related "Wolf" "Dog")`). The
+  semantic peel decides it end to end: Dog⊳Animal TRUE, Wolf~Dog TRUE, Dog⊳Cat UNKNOWN
+  (sound open-world). A live semantic-game / Grapheus target.
+- **The layout-perf frontier, respected.** The **full** official W3C vocabulary is vendored
+  verbatim beside it (`corpus/ontologies/skos.rdf`) as the source of record — 62 EG axioms
+  incl. every inverse / domain / range pair → **124 relational-scroll cuts**, ~134 s to draw
+  (super-linear, like `bfo_core`'s full axiomatisation). It imports fine *as data*; only the
+  contested fragment is drawn ("M is data, draw only the contested fragment").
+- **Wiring:** `tools/build_ontologies.py` `skos_core()` (cited W3C source; in `build_all()`);
+  auto-appears in the `/agon` model picker (corpus UoDs are listed there). Corpus = 27 UoDs
+  (7 ontologies). Conformance `CITED` + `ONTOLOGIES` sets updated.
+- **Tests:** `tests/test_rdf_import.py` (+2: broaderTransitive/symmetric closure; drawable
+  fragment < 20 cuts). Regressions green — RDF/OWL import, corpus-conformance, agon-
+  interpretation, materialization, theory-query (188); eg_reader / attestation / organon.
 
 ---
 

@@ -199,3 +199,33 @@ def test_rdf_model_materializes_abox(zoo_ttl_M):
     fe = generate_egif(facts)
     assert '(Dog "Fido")' in fe        # allValues rule fired on the asserted hasParent
     assert '(Animal "Fido")' in fe     # chained through subsumption
+
+
+# --------------------------------------------------------------------------- #
+# The landed corpus UoD — SKOS core, imported from the vendored Turtle          #
+# --------------------------------------------------------------------------- #
+
+SKOS_TTL = ROOT / "corpus" / "ontologies" / "skos_core.ttl"
+
+
+@pytest.fixture(scope="module")
+def skos_M():
+    egi, _clif, _rep = rdf_to_egi(SKOS_TTL.read_text(encoding="utf-8"), "turtle")
+    return egi
+
+
+def test_skos_core_closes_broader_transitively(skos_M):
+    """The reasoning win: broader ⊑ broaderTransitive (transitive) closes the
+    thesaurus chain — a Dog is broaderTransitive an Animal, two genera up — and
+    the symmetric related closes both ways."""
+    facts, _ = materialize_egi(skos_M)
+    fe = generate_egif(facts)
+    assert '(broaderTransitive "Dog" "Animal")' in fe
+    assert '(broaderTransitive "Cat" "Animal")' in fe
+    assert '(related "Wolf" "Dog")' in fe
+
+
+def test_skos_core_is_the_drawable_fragment(skos_M):
+    """The drawn fragment stays under the layout-perf frontier; the full official
+    skos.rdf (every inverse/domain/range pair, 124 cuts) is vendored as data."""
+    assert len(skos_M.Cut) < 20

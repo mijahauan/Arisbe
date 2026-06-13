@@ -1,0 +1,52 @@
+# SKOS — the semantic-relation reasoning core of the W3C Simple Knowledge
+# Organization System (skos:core, Miles & Bechhofer, W3C Recommendation 2009),
+# transcribed faithfully from the official vocabulary (vendored beside this as
+# corpus/ontologies/skos.rdf, http://www.w3.org/TR/skos-reference/) into Turtle,
+# plus a small ILLUSTRATIVE concept scheme (the `ex:` animal thesaurus below —
+# authored here, not part of SKOS) so the broaderTransitive closure forward-chains.
+#
+# This is the DRAWN fragment: the SKOS classes + the three reasoning-critical
+# property axioms (sub-property + transitivity + symmetry) that carry the inference,
+# laid out at the §3.3 save boundary in a few seconds. The FULL official vocabulary
+# (62 EG axioms, incl. all the inverse / domain / range pairs → 124 relational-scroll
+# cuts) is super-linear to draw, so it is vendored as the source of record (skos.rdf)
+# and imports fine as data — "M is data, draw only the contested fragment."
+
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix ex:   <http://example.org/animals#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+#  ── SKOS classes ────────────────────────────────────────────────────────────
+skos:Concept        a owl:Class .
+skos:ConceptScheme  a owl:Class ; owl:disjointWith skos:Concept .
+skos:Collection     a owl:Class ; owl:disjointWith skos:Concept , skos:ConceptScheme .
+
+#  ── SKOS semantic relations (the reasoning core) ────────────────────────────
+#  broader ⊑ broaderTransitive, and broaderTransitive is transitive — so a chain of
+#  broader links closes to the full ancestor relation.  related is symmetric.  All
+#  roll up to semanticRelation.
+skos:broaderTransitive a owl:ObjectProperty , owl:TransitiveProperty ;
+    rdfs:subPropertyOf skos:semanticRelation .
+
+skos:broader a owl:ObjectProperty ;
+    rdfs:subPropertyOf skos:broaderTransitive .
+
+skos:related a owl:ObjectProperty , owl:SymmetricProperty ;
+    rdfs:subPropertyOf skos:semanticRelation .
+
+#  ── An illustrative concept scheme (authored here — NOT part of SKOS) ────────
+#  A small animal thesaurus.  `X skos:broader Y` reads "Y is broader than X", so the
+#  chain runs species → genus.  The closure derives e.g. `ex:Dog broaderTransitive
+#  ex:Animal`; `ex:Dog related ex:Wolf` closes symmetrically to `ex:Wolf related ex:Dog`.
+ex:animals a skos:ConceptScheme .
+
+ex:Animal    a skos:Concept .
+ex:Mammal    a skos:Concept ; skos:broader ex:Animal    ; skos:inScheme ex:animals .
+ex:Carnivore a skos:Concept ; skos:broader ex:Mammal    ; skos:inScheme ex:animals .
+ex:Dog       a skos:Concept ; skos:broader ex:Carnivore ; skos:inScheme ex:animals .
+ex:Cat       a skos:Concept ; skos:broader ex:Carnivore ; skos:inScheme ex:animals .
+ex:Wolf      a skos:Concept ; skos:broader ex:Carnivore ; skos:inScheme ex:animals .
+
+ex:Dog skos:related ex:Wolf .
