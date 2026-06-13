@@ -134,8 +134,9 @@
             </select>
           </div>
           <button class="action primary" id="btn-interpret">▷ Does G hold in M?</button>
+          <button class="action" id="btn-contest">⚔ Contest the Grapheus (move-by-move)</button>
           <button class="action" id="btn-inverse">🔎 Where does G hold? (search models)</button>
-          <button class="action" id="btn-start">Play it out (full contest)</button>
+          <button class="action" id="btn-start">Play it out (transformation game)</button>
         </div>
 
         <div id="game-info" style="display:none;">
@@ -225,6 +226,7 @@
       const $ = (id) => document.getElementById(id);
       const statusEl = $('status'), canvasEl = $('canvas');
       let gameId = null, currentRule = null, lastData = null, svgPZ = null, selectedDisp = null;
+      let contestId = null;
       let selectedSubgraph = new Set(), selectedArea = null;
       let agonModels = { examples: [], corpus: [] }, selectedModelUod = null;
 
@@ -493,13 +495,99 @@
         setStatus(b.data.message,'success');
       }
       async function discard(){ if(gameId){ try{ await fetch('/agon/games/'+gameId,{method:'DELETE'}); }catch(_){} }
+        if(contestId){ try{ await fetch('/agon/contests/'+contestId,{method:'DELETE'}); }catch(_){} contestId=null; }
         gameId=null; $('setup-section').style.display='block'; $('game-info').style.display='none';
         $('turn-banner').style.display='none'; $('moves-section').style.display='none'; $('disposition-section').style.display='none';
         $('interpret-result').style.display='none'; canvasEl.style.display='';
         canvasEl.innerHTML='<div id="canvas-placeholder">Set up a contest on the left to begin.</div>'; setStatus('Contest discarded.'); }
 
+      // ---- the automated-Grapheus contest (the interpretation register, move-by-move) ----
+      // The human plays the Graphist (witnesses positive lines, pursues the conjunct
+      // the defence chooses); the machine plays the Grapheus optimally and auto-advances
+      // to the next contested Graphist frontier. Under optimal play the contest reaches
+      // the verdict /interpret gives — the contest is the *experience* of that verdict.
+      function outcomeText(o){ return o==='graphist_wins'?'Graphist wins — G holds in M':
+        (o==='grapheus_wins'?'Grapheus wins — G fails in M':'Independent — M neither confirms nor denies G'); }
+      function renderContest(d){
+        contestId=d.contest_id;
+        $('turn-banner').style.display='none'; canvasEl.style.display='none';
+        const el=$('interpret-result'); el.style.display='block';
+        let h='<div style="font-size:12px; color:#6c7086; margin-bottom:8px;">Contest the Grapheus — you are the '
+          +'<strong style="color:#a6e3a1;">Graphist</strong> (defend G); the machine plays the '
+          +'<strong style="color:#89b4fa;">Grapheus</strong> (the model M), and moves automatically.</div>';
+        h+='<div style="font-size:11px; color:#6c7086;">G: <code>'+esc(d.setup.proposal_egif)+'</code></div>';
+        h+='<div style="font-size:11px; color:#6c7086;">M ('+(d.setup.closed?'closed':'open')+' world): <code>'+esc(d.setup.model_egif)+'</code></div>';
+        if(d.materialization && d.materialization.derived_facts){
+          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:#181825; font-size:11px; color:#6c7086;">'
+            +'<strong style="color:#89b4fa;">Materialized M</strong> — the Grapheus is armed with the derived closure: '
+            +'<code style="color:#a6e3a1;">'+esc(d.materialization.materialized_egif)+'</code></div>'; }
+        if(d.selectives && d.selectives.length){
+          h+='<div style="margin-top:6px; font-size:11px; color:#cdd6f4;">Lines fixed: '
+            +d.selectives.map(s=>'<code>'+esc(s.line)+' = '+esc(s.individual)+'</code> <span style="color:#6c7086;">('+esc(s.by)+')</span>').join(', ')+'</div>'; }
+
+        if(d.is_over){
+          h+='<div style="margin:12px 0 6px;"><span style="display:inline-block; padding:4px 14px; border-radius:6px; font-weight:700; color:#11111b; background:'
+            +verdictColor(d.verdict)+';">'+esc(outcomeText(d.outcome))+'</span></div>';
+          h+='<div style="margin-bottom:10px; color:#cdd6f4;">'+esc(d.summary)+(d.conceded?' (you conceded)':'')+'</div>';
+          h+='<div style="margin:12px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">What to do with it — the Agonothetes decides (coherent with this verdict highlighted)</div>';
+          (d.available_dispositions||[]).forEach(dd=>{ const coh=dd.coherent_with_verdict;
+            h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border:1px solid '+(coh?'#585b70':'#313244')+'; opacity:'+(coh===false?'0.45':'1')+';">'
+              +'<strong style="color:'+(coh?'#cdd6f4':'#9399b2')+';">'+esc(dd.label)+'</strong>'
+              +' <span style="font-size:10px; color:#6c7086;">'+esc(dd.mode)+(dd.asserts?' · asserts':'')+(coh?' · coheres':'')+'</span>'
+              +'<div style="font-size:11px; color:#6c7086;">'+esc(dd.summary)+'</div></div>'; });
+          h+='<div style="margin-top:12px; font-size:11px; color:#6c7086;">A contested interpretation — nothing is recorded yet (the warrant step is forthcoming).</div>';
+        } else if(d.frontier){
+          const f=d.frontier;
+          const prompt=f.kind==='witness'
+            ? 'Your move, Graphist — witness the line of identity (pick the individual that defends G):'
+            : 'Your move, Graphist — pursue a conjunct (the one you will defend):';
+          h+='<div style="margin:12px 0 6px; padding:8px 10px; border-radius:6px; background:#181825; border-left:3px solid #a6e3a1;">'
+            +'<div style="color:#a6e3a1; font-weight:600; margin-bottom:6px;">'+esc(prompt)+'</div>'
+            +'<div id="contest-options">'
+            +f.options.map(o=>'<button class="action contest-opt" data-key="'+esc(o.key)+'" style="margin:2px 4px 2px 0;">'
+              +esc(o.label)+'</button>').join('')
+            +'</div></div>';
+        }
+        h+='<div style="margin:14px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">The play (outside-in)</div>';
+        h+='<pre style="background:#181825; padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:#cdd6f4; margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
+        if(!d.is_over){ h+='<div style="margin-top:10px;"><button class="action danger" id="btn-contest-concede">Concede the inning</button></div>'; }
+        el.innerHTML=h;
+        el.querySelectorAll('.contest-opt').forEach(b=>b.addEventListener('click', ()=>chooseOption(b.dataset.key)));
+        const cc=el.querySelector('#btn-contest-concede'); if(cc) cc.addEventListener('click', concedeContest);
+      }
+      async function startContest(){
+        const proposal=$('setup-proposal').value.trim();
+        if(!proposal){ setStatus('Enter a proposal G to contest.','error'); return; }
+        const body={ proposal_egif:proposal, closed:$('model-closed').checked, materialize:$('model-materialize').checked };
+        if(selectedModelUod) body.model_uod=selectedModelUod; else body.model_egif=$('setup-model').value.trim();
+        if(!selectedModelUod && !body.model_egif){ setStatus('Choose or type a reference model M.','error'); return; }
+        setStatus('Opening the contest…');
+        const b=await post('/agon/contests', body);
+        if(!b.success){ setStatus('Contest failed: '+(b.error&&b.error.message),'error'); return; }
+        renderContest(b.data);
+        setStatus(b.data.is_over ? ('Contest over — '+outcomeText(b.data.outcome)+'.') : 'Contest begun — your move, Graphist.',
+          b.data.is_over ? (b.data.verdict==='true'?'success':(b.data.verdict==='false'?'error':null)) : null);
+      }
+      async function chooseOption(key){
+        if(!contestId) return;
+        setStatus('Playing your move…');
+        const b=await post('/agon/contests/'+contestId+'/choose',{ option_key:key });
+        if(!b.success){ setStatus('Move refused: '+(b.error&&b.error.message),'error'); return; }
+        renderContest(b.data);
+        setStatus(b.data.is_over ? ('Contest over — '+outcomeText(b.data.outcome)+'.') : 'Your move, Graphist.',
+          b.data.is_over && b.data.verdict==='true' ? 'success' : (b.data.is_over && b.data.verdict==='false' ? 'error' : null));
+      }
+      async function concedeContest(){
+        if(!contestId) return;
+        const b=await post('/agon/contests/'+contestId+'/concede');
+        if(!b.success){ setStatus('Concede failed: '+(b.error&&b.error.message),'error'); return; }
+        renderContest(b.data);
+        setStatus('Conceded — the Grapheus takes the inning.');
+      }
+
       // ---- wiring ----
       $('btn-interpret').addEventListener('click', interpret);
+      $('btn-contest').addEventListener('click', startContest);
       $('btn-inverse').addEventListener('click', inverseSearch);
       $('model-picker').addEventListener('change', onPickModel);
       loadModels();

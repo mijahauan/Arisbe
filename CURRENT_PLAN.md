@@ -53,20 +53,22 @@ rest reported), and an **RDF front-end** (`tools/rdf_to_owl.py`, via rdflib) bri
 translator consumes. Real ontologies now import from where they actually live.
 
 **▶ DESIGNATED NEXT TASK — the automated Grapheus (the dialogical contest). DESIGN DONE
-2026-06-12; BUILD in progress — increments 1 + 2 DONE (✅ block below); 3 (frontend) + 4
-(warrant ChainStep) remain.** The design-of-record is **`docs/AUTOMATED_GRAPHEUS.md`** — read
-it first; it resolves the open sub-questions against Pietarinen, *Signs of Logic* Ch. 4 (the
+2026-06-12; BUILD in progress — increments 1 + 2 + 3 DONE (✅ block below); only 4 (warrant
+ChainStep) remains.** The design-of-record is **`docs/AUTOMATED_GRAPHEUS.md`** — read it
+first; it resolves the open sub-questions against Pietarinen, *Signs of Logic* Ch. 4 (the
 semantic-game reading of EGs). Memory: [[project_automated_grapheus_design]],
 [[project_agon_arena_v1_design]], [[project_domain_oracle_and_m]],
 [[project_chain_of_semiosis_grounding]].
 
-**▶ Resume here next session: increment 3 (the interactive board) + increment 4 (the
-warrant ChainStep).** The headless core + routes are built and green (37 grapheus tests, 55
-agon/semantic regression). The frontend (`web_viewer/agon.html` + a contest panel) drives
-`POST /agon/contests` → `choose`/`concede`; Playwright E2E. Then the corpus-boundary
-`ChainStep` ("withstood Agon", referencing the `Play`) — mind the §7 persistence seam
-(`agonothetes._episode_to_chain` is transformation-game-shaped; needs a `Play`-aware warrant,
-not a reuse).
+**▶ Resume here next session: increment 4 — the warrant `ChainStep`.** The headless core +
+routes + interactive board are built and green (39 grapheus tests incl. 2 Playwright E2E, 55
+agon/semantic regression). What remains: a corpus-boundary `ChainStep` ("withstood Agon",
+referencing the `Play`) minted only when the Agonothetes chooses an *asserting* disposition on
+a Graphist-won contest — the import↔Agon warrant link ([[project_import_low_warrant_and_floor]]).
+**Mind the §7 persistence seam:** `agonothetes._episode_to_chain` is transformation-game-shaped
+(it walks `episode.move_egis`); a `Play` has no EGI-per-move, so this needs a `Play`-aware
+warrant, NOT a reuse. Design the warrant axis in `CHAIN_OF_SEMIOSIS.md` terms first. The
+contest board currently shows the disposition taxonomy read-only ("nothing recorded yet").
 
 *What the design settled (so the build doesn't re-litigate):*
 - **The contest is the semantic game** (`src/semantic_game.py`), **not** the Dau transformation
@@ -102,7 +104,7 @@ selection-driven fold). (The "land a cited Turtle/RDF ontology" consolidation is
 
 ---
 
-## ✅ DONE 2026-06-12 — automated Grapheus increments 1 + 2 (headless driver + routes)
+## ✅ DONE 2026-06-12 — automated Grapheus increments 1 + 2 + 3 (driver + routes + board)
 
 The semantic-game contest, built as the design's first two increments and verified green
 (37 grapheus tests + 55 agon/semantic regression, all passing).
@@ -135,7 +137,16 @@ materialized. Route conformance: the five persona innings autoplay to `/interpre
 (Graphist wins) and declines Dog⊳Cat (independent); the interactive Graphist witnesses a line
 and wins. Ephemeral sessions (4-h TTL), no corpus touch.
 
-**Next: increment 3 (frontend board + Playwright) + increment 4 (the warrant ChainStep).**
+**Increment 3 — the interactive board** (`web_viewer/agon.html` + `tests/test_grapheus_e2e.py`,
+2 Playwright tests). A "⚔ Contest the Grapheus (move-by-move)" action opens `/agon/contests`;
+`renderContest` shows the contested Graphist frontier as clickable option buttons (witness an
+individual / pursue a conjunct), the play transcript outside-in, the fixed lines of identity,
+and on termination the verdict + the verdict-annotated disposition taxonomy (read-only — the
+warrant step is increment 4). The machine Grapheus auto-advances server-side. E2E: the human
+witnesses x:=Rex and wins (selective recorded, disposition shown); concession hands the inning
+to the Grapheus.
+
+**Next: increment 4 (the `Play`-aware warrant `ChainStep`).**
 
 ---
 
