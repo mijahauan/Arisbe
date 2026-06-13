@@ -80,9 +80,11 @@ False=contradicted / Uncertain=neither). z3-solver added (dev extra).
   accuracy 91.2%, parse coverage 96.1%, recall T/F/U = 88/90/96%; of 10 disagreements, 9 are
   X→Uncertain (conservative) and ZERO True↔False flips.** Parser reads 99% of corpus FOL; the
   rest (comma-as-conjunction, decimal constants, unbalanced parens) abstain as Unparsed.
-- **Increment 2 — the pictures + fidelity (NEXT):** FOLIO-FOL AST → CLIF → EGI (`clif_parser_dau`,
-  constant-robust) → render; `same_graph` round-trip where it holds. Reuse the `folio_fol` AST,
-  add a CLIF emitter.
+- **Increment 2 — the pictures + fidelity (DONE, ✅):** `folio_fol.ast_to_clif` + `folio_fol_to_egi`
+  (CLIF emitter; ⊕→¬(a↔b)) → `clif_parser_dau` → EGI; `tools/folio_benchmark.py --fidelity`.
+  **Validation (1288 formulas): built 99.3% (0 build failures), round-trip exact 85.5%** — exact
+  for EG-native ∧¬→∀∃; ∨/↔/⊕ build but expand to De Morgan cuts that re-emit equivalently, not
+  identically (a real correspondence boundary, reported).
 - **Increment 3 — the native-coverage half (the "Both"):** the same premises/conclusion through
   Arisbe's own bounded engine (materialize / theory_query / semantic game), abstaining where the
   fragment can't decide — the DL-style soundness×coverage story over full FOL, reported beside
