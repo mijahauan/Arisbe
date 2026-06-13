@@ -43,6 +43,8 @@ dev = [
     # separately: `uv run playwright install chromium`. The test skips cleanly
     # if Playwright/Chromium is absent.
     "pytest-playwright>=0.5.0",
+    # FastAPI's TestClient (route tests) requires httpx; starlette leaves it optional.
+    "httpx>=0.27",
 ]
 web = [
     "fastapi>=0.100.0",

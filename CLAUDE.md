@@ -13,7 +13,7 @@ The fundamental entity is the **Universe of Discourse (UoD)** — a diachronic (
 
 ## Environment & Commands
 
-Dependencies are managed by **uv** (Python 3.12). One-time setup: `uv sync --extra dev`. Run commands via `uv run` (no manual activation needed), or `source .venv/bin/activate` first.
+Dependencies are managed by **uv** (Python 3.12). One-time setup: `uv sync --extra dev --extra web` (the `web` extra carries FastAPI/uvicorn — the route tests and the web viewer need it; `uv sync` is exact and will prune them if you omit it). Run commands via `uv run` (no manual activation needed), or `source .venv/bin/activate` first.
 
 ```bash
 # Testing

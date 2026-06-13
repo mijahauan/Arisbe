@@ -67,13 +67,17 @@ arc; the vocabulary-miss vs fact-miss distinction). Agreed order: **(1) DL-Reaso
 (2) FOLIO via its FOL side → NOT (3) the LLM front-end yet** (the "understandable but
 unmappable" caveat needs the backend + a vocabulary-miss notion first).
 
-**▶ Resume here next session: finish step 1, then start step 2.**
-- **Step 1 (DL-ReasonSuite DLCore) — the reasoning core is DONE** (✅ block below: `dl_reasoning`
-  + `tools/dl_benchmark.py`, 16 tests). **Remaining:** (a) the DL-ReasonSuite *adapter* — map
-  its OWL-DL task files into the harness's task schema; the dataset isn't cleanly fetchable from
-  here (MDPI 403), so the files need sourcing (MDPI supplementary / authors' repo). (b) a
-  corpus-ontology validation run (Porphyry/FOAF/SUMO already decide subsumption via `entails`) —
-  point `dl_benchmark` at them with `ontology_ref` and publish the soundness/coverage map.
+**▶ Resume here next session: run the full DLCore + publish the map, then start step 2.**
+- **Step 1 (DL-ReasonSuite DLCore) — adapter built and validated** (✅ block below). The dataset
+  is at github.com/okanss/DL-ReasonSuite (DLCore = 3 JSONL files over Turtle ontologies, buckets
+  `el`/`dl`). `tools/dl_reasonsuite.py --suite-dir <checkout>/dl-reason-suite` runs it.
+  **40/group sample: soundness 100%, coverage 98%** (only `el/consistency` abstains — EL
+  ontologies with existential restrictions can't be *certified* consistent in the Horn fragment).
+  **Remaining:** (a) **the full 3620-task run** (`--full`) — the real coverage map; expect coverage
+  to soften on `dl` subsumption/instance as fuller-DL constructs appear deeper in the files; the
+  sample is first-N, not random. (b) A stable DL-ReasonSuite checkout (it was cloned to /tmp,
+  which is ephemeral) — re-clone to a kept path before the full run. (c) write up the
+  soundness/coverage map (the honest "bounded reasoner vs full-DL benchmark" result).
 - **Step 2 (FOLIO):** a FOLIO-FOL → CLIF importer, then score import fidelity (`same_graph`
   round-trip) + entailment, rendering the proofs as pictures.
 
