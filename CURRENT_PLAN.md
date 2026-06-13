@@ -46,11 +46,26 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**This session: completed the P2 import-breadth queue** — DONE (✅ blocks below). The OWL
-construct fragment is finished (union, ∀R.D→Horn, complement, hasValue, ≥1 cardinality; the
-rest reported), and an **RDF front-end** (`tools/rdf_to_owl.py`, via rdflib) brings in Turtle
-/ RDF-XML / N-Triples / JSON-LD by reconstructing the same functional-syntax AST the OWL
-translator consumes. Real ontologies now import from where they actually live.
+**▶▶ NEXT SESSION = THE MATHEMATICS TRACK (author-chosen, fresh-head work).** See the
+**▶ MATH TRACK** block below for the concrete order: (1) validate the draft EGIF fixtures in
+`docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md` against the parser; (2) the **definition layer** (named
+graphs) + the **graph-with-holes schema node** (Separation/Replacement/induction); (3) **∀x**
+via the Dau-native scaffold (soundness homework already done). Entry docs/memories:
+[[project_math_fixtures_zfc_peirce_schema]], [[project_universal_generalization_dau_homework]],
+[[project_definition_node_vs_phi_hole]]. **After the math track: FOLIO increment 3** (the
+native-coverage half — see ▶ Step 2 below; increments 1+2, the Z3 verdict + the pictures, are
+done and green).
+
+*Last session (2026-06-13) recap:* recovered from an OOM mid-build and shipped a lot — the
+**automated Grapheus** (all 4 increments incl. the warrant), the **DL-ReasonSuite DLCore**
+integration (soundness 100% / coverage 67% on 3620 tasks; found+fixed the materialize edge-id
+collision), the **persona/practice docs merge**, and **FOLIO increments 1+2** (Z3 entailment
+91.2% val; FOL→EG pictures 99.3% built / 85.5% round-trip). Also: dev-env fixes (httpx + z3 in
+the dev extra; `uv sync --extra dev --extra web` is the correct setup). All on `main`.
+
+*(Older context, still valid below.)* **This session [earlier]: completed the P2 import-breadth
+queue** — the OWL construct fragment + an RDF front-end (`tools/rdf_to_owl.py`). Real ontologies
+now import from where they actually live.
 
 **✅ DONE — the automated Grapheus (the dialogical contest), all four increments built and
 green (2026-06-12/13).** Design-of-record `docs/AUTOMATED_GRAPHEUS.md`; ✅ blocks below cover
