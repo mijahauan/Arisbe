@@ -46,15 +46,26 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = THE MATHEMATICS TRACK (author-chosen, fresh-head work).** See the
-**▶ MATH TRACK** block below for the concrete order: (1) validate the draft EGIF fixtures in
-`docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md` against the parser; (2) the **definition layer** (named
-graphs) + the **graph-with-holes schema node** (Separation/Replacement/induction); (3) **∀x**
-via the Dau-native scaffold (soundness homework already done). Entry docs/memories:
-[[project_math_fixtures_zfc_peirce_schema]], [[project_universal_generalization_dau_homework]],
-[[project_definition_node_vs_phi_hole]]. **After the math track: FOLIO increment 3** (the
-native-coverage half — see ▶ Step 2 below; increments 1+2, the Z3 verdict + the pictures, are
-done and green).
+**▶▶ Last session (2026-06-13b) shipped FOLIO increment 3 — the "Both" FOLIO arc is COMPLETE,
+and discovered the MATH TRACK was already done.** Two findings:
+1. **The math track listed as "next session" was already complete and green** (commit
+   `3ce6886`, 2026-06-09 — four days before the 2026-06-13 plan re-listed it). All three items
+   verified: fixtures validated (`test_math_fixtures.py`), definition layer + schema node built
+   (`src/definitions.py`/`schema.py`/`eg_splice.py`), and **∀x via the Dau scaffold** —
+   `test_totality_universal` proves ∀x∀Y∃z plus(x,Y,z), green; `universal_generalization` at
+   `derived_rules.py:204`; the protected cut-level `IT-`/`ERA` it needed also landed (`223583c`).
+   The plan header was stale. The genuinely-open math frontier is the **schema-drawing /
+   correspondence** question (how a hole `⟨φ:?x⟩` draws + whether `instantiate` preserves §3.3)
+   — *not* yet built; see [[project_math_fixtures_zfc_peirce_schema]] (its closing note).
+2. **FOLIO increment 3 DONE** — the native bounded engine beside Z3 (✅ block below). The
+   complete "Both" FOLIO arc (Z3 verdict + pictures/fidelity + native soundness×coverage) is
+   now done; write-up at `docs/FOLIO_EVALUATION.md`.
+
+**▶ Candidate next directions (author's call):** (a) the **FOLIO/DLCore coverage lever** — a
+disjunctive / model-construction (case-split) capability for the non-Horn negative half, the
+shared frontier both benchmarks defer to; (b) the **schema-drawing / §3.3** math frontier
+above; (c) the deferred **LLM front-end** of the NL→logic arc (now that both backends —
+DL-ReasonSuite + FOLIO — are in place; [[project_nl_to_logic_arisbe_as_interpretant]]).
 
 *Last session (2026-06-13) recap:* recovered from an OOM mid-build and shipped a lot — the
 **automated Grapheus** (all 4 increments incl. the warrant), the **DL-ReasonSuite DLCore**
@@ -100,12 +111,13 @@ False=contradicted / Uncertain=neither). z3-solver added (dev extra).
   **Validation (1288 formulas): built 99.3% (0 build failures), round-trip exact 85.5%** — exact
   for EG-native ∧¬→∀∃; ∨/↔/⊕ build but expand to De Morgan cuts that re-emit equivalently, not
   identically (a real correspondence boundary, reported).
-- **Increment 3 — the native-coverage half (the "Both"):** the same premises/conclusion through
-  Arisbe's own bounded engine (materialize / theory_query / semantic game), abstaining where the
-  fragment can't decide — the DL-style soundness×coverage story over full FOL, reported beside
-  the Z3 verdict. Then a write-up.
-- Optional: inspect the one Uncertain→False directional disagreement (annotation nuance vs
-  quantifier-scope reading); nudge parse coverage (decimal constants / comma-as-∧) if worth it.
+- **Increment 3 — the native-coverage half (DONE, ✅):** `src/folio_native.py` decides FOLIO
+  on Arisbe's *own* bounded engine (Horn materializer + freeze-witness `theory_query` +
+  denial-based `check_consistency`), abstaining where the fragment can't decide.
+  **Validation (204): SOUNDNESS 100.0% (47/47 decided correct), COVERAGE 23.0%** — confusion
+  clean (gold-True→27T/0F, gold-False→20F/0T, gold-Uncertain→all abstain); never predicts
+  Uncertain. `tools/folio_benchmark.py --native`; `tests/test_folio_native.py` (16). Write-up:
+  `docs/FOLIO_EVALUATION.md`. See the ✅ block below.
 
 **▶ MATH TRACK (do not drop — author flagged 2026-06-13):** finish the mathematics horizon —
 validate the draft EGIF fixtures (docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md) against the parser,
@@ -171,6 +183,46 @@ materialised broaderTransitive closure gives the Grapheus non-trivial selectives
 ELK / tension compaction — both in Backlog); or the **math menu** (∀x scaffold tactic /
 selection-driven fold). (The "land a cited Turtle/RDF ontology" consolidation is now **DONE** —
 `skos_core` landed 2026-06-12, ✅ block below.)
+
+---
+
+## ✅ DONE 2026-06-13b — FOLIO increment 3: the native bounded engine (soundness × coverage)
+
+The "Both" FOLIO arc's third leg — decide FOLIO with Arisbe's *own* reasoner beside Z3, the
+DL-style honest-bounded story over natural-language-grounded full first-order logic.
+
+- **`src/folio_native.py`** — `decide_native(premises, conclusion)`. Both directions reduce
+  to one sound primitive: `M ⊨ C ⟺ M ∪ {¬C}` unsat (→ True), `M ⊨ ¬C ⟺ M ∪ {C}` unsat
+  (→ False), with unsat detected soundly-but-incompletely by `dl_reasoning.check_consistency`
+  (materialize the Horn fragment → a **denial** firing in the least Herbrand model = a genuine
+  inconsistency, since it uses only a subset of the axioms). Universal/subsumption conclusions
+  (no denial to fire) are recovered by freeze-a-witness `theory_query.entails`. **Never predicts
+  Uncertain** — soundly certifying "neither" needs a completeness the fragment lacks, so it
+  abstains (`Unknown`). Same shape as DLCore instance-checking.
+- **Three soundness traps the build surfaced**, all handled by compiling the AST **directly**
+  to an EGI (`_build`, not via CLIF/EGIF text): (1) `clif_parser_dau` has no Dau **constant** —
+  it reads every term as a generic line; the builder makes a FOLIO constant a shared
+  `is_generic=False` sheet vertex (matches only itself). (2) `parse_clif` **collapses** every
+  premise's `∀x` into one line of identity under `(and …)`; direct building gives each
+  quantifier its own vertex (no alpha-rename needed). (3) **existential-under-negation** —
+  `check_consistency` reads a sheet cut `~[A…]` as a *universal* denial, which over-fires for
+  `∃x (P(x) ∧ ¬Q(x))`; a polarity-aware guard (`_denial_reading_unsound`) abstains the
+  refutation direction whenever a negated atom carries an existentially-bound variable
+  (disjointness `∀x¬(A∧B)` stays decidable). A meaning-preserving `normalize` turns
+  `A→¬B ≡ ¬(A∧B)` (+ exportation + conjunctive-head split) so disjointness builds as flat
+  denials.
+- **Validation (204): SOUNDNESS 100.0% (47/47), COVERAGE 23.0% (47/204 decided).** Confusion
+  clean: gold-True→27 True/0 False, gold-False→20 False/0 True, gold-Uncertain→0 decided. 157
+  principled abstentions (non-Horn premises: ∨, ⊕, ∃-under-¬; every Uncertain gold). Zero
+  unsound verdicts. (Train split ships no `conclusion-FOL`, so validation is the entailment-
+  scorable split — as in increment 1.)
+- **Harness:** `tools/folio_benchmark.py --native` (soundness×coverage printer). **Tests:**
+  `tests/test_folio_native.py` (16) — the two provers, the guard, honest abstention, normalize,
+  and a soundness invariant over a FOLIO-shaped sample. No regressions across
+  folio/dl/theory-query/materialization (77). **Write-up:** `docs/FOLIO_EVALUATION.md` (all
+  three increments). **Coverage lever (deferred, the real extension):** a disjunctive /
+  model-construction (case-split) capability for the non-Horn negative half — the same frontier
+  DLCore defers to.
 
 ---
 

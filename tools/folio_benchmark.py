@@ -152,6 +152,46 @@ def run_folio(examples: List[dict], *, timeout_ms: int = 5000) -> FolioReport:
     return report
 
 
+def run_native(examples: List[dict]) -> FolioReport:
+    """Decide FOLIO with Arisbe's **own** bounded engine (the soundness×coverage half)."""
+    from folio_native import decide_native
+    report = FolioReport()
+    for ex in examples:
+        r = decide_native(ex.get("premises-FOL") or [], ex.get("conclusion-FOL") or "")
+        report.rows.append({"gold": ex.get("label", ""), "pred": r.verdict,
+                            "parsed": r.parsed,
+                            "story_id": ex.get("story_id", ex.get("example_id", ""))})
+    return report
+
+
+def _print_native(report: FolioReport) -> None:
+    """Soundness×coverage, the way a *bounded* reasoner deserves (cf. dl_benchmark):
+    abstentions (``Unknown``) are coverage the fragment doesn't reach, NOT errors."""
+    decided = report.correct + report.wrong   # over the True/False the engine committed to
+    soundness = 1.0 if decided == 0 else report.correct / decided
+    coverage = 0.0 if not report.total else decided / report.total
+    print(f"{report.total} examples · Arisbe's bounded engine (Horn materializer + "
+          f"freeze-witness + denial check)")
+    print(f"  SOUNDNESS {soundness:.1%} ({report.correct}/{decided} decided correct) · "
+          f"COVERAGE {coverage:.1%} ({decided}/{report.total} decided)")
+    print(f"  (abstained on {report.total - decided} — non-Horn residue / open world; "
+          f"never predicts Uncertain)")
+    print("-" * 64)
+    labels = ["True", "False", "Unknown", "Unparsed"]
+    conf = report.confusion()
+    for g in ["True", "False", "Uncertain"]:
+        gc = sum(1 for r in report.rows if r["gold"] == g)
+        if not gc:
+            continue
+        print(f"  gold {g:>10} ({gc:>3}): " +
+              " ".join(f"{p}={conf.get((g, p), 0)}" for p in labels))
+    bad = [r for r in report.rows if r["pred"] in _GOLD and r["pred"] != r["gold"]]
+    if bad:
+        print(f"\n  ⚠ {len(bad)} UNSOUND verdict(s) — a decided prediction contradicts gold:")
+        for r in bad[:8]:
+            print(f"     {r['gold']:>9} → {r['pred']:<9} {r['story_id']}")
+
+
 def _print(report: FolioReport) -> None:
     print(f"{report.total} examples · accuracy {report.accuracy:.1%} "
           f"({report.correct}/{report.total}) · parse coverage {report.parse_coverage:.1%} "
@@ -185,6 +225,9 @@ def main(argv: List[str]) -> int:
     ap.add_argument("--timeout-ms", type=int, default=5000)
     ap.add_argument("--fidelity", action="store_true",
                     help="instead of entailment, report FOL→EG build + round-trip fidelity")
+    ap.add_argument("--native", action="store_true",
+                    help="decide with Arisbe's own bounded engine (soundness×coverage) "
+                         "instead of the authoritative Z3 verdict")
     args = ap.parse_args(argv)
 
     examples = [json.loads(l) for l in Path(args.data).read_text().splitlines() if l.strip()]
@@ -192,6 +235,8 @@ def main(argv: List[str]) -> int:
         examples = examples[: args.limit]
     if args.fidelity:
         _print_fidelity(run_fidelity(examples))
+    elif args.native:
+        _print_native(run_native(examples))
     else:
         _print(run_folio(examples, timeout_ms=args.timeout_ms))
     return 0
