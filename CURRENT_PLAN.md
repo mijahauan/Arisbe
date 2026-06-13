@@ -60,15 +60,28 @@ increments 1+2+3 (driver + routes + board) and increment 4 (the warrant). Memory
 is now closed for a single G: a Graphist-won contest can be asserted into the corpus as
 "withstood Agon" ([[project_import_low_warrant_and_floor]]).
 
-**▶ Resume here next session — pick the next track (author's call):**
-- **The layout follow-ups** (Backlog): reader robustness on dense ELK / tension compaction.
-- **The math menu**: the ∀x scaffold tactic ([[project_universal_generalization_dau_homework]])
-  / selection-driven fold ([[project_definition_node_vs_phi_hole]]).
-- **Agon depth**: the contest's deferred axes (doc §10) — Beta sub-game ordering for legible
-  multi-ligature plays; or the false-band warrant (assert ¬G / revise M), which V1 reports-not-
-  builds; or two-Grapheus dialogue (`CHAIN_OF_SEMIOSIS` fuller social regime-2).
-- **The by-hand import "reading desk"** ([[project_by_hand_import_reading_desk]]) or the
-  **math fixtures** ([[project_math_fixtures_zfc_peirce_schema]]), both user-requested.
+**▶ CURRENT TRACK — NL→logic as *interpretation*, Arisbe as the interpretant/verifier (not
+the parser).** See [[project_nl_to_logic_arisbe_as_interpretant]] for the framing (the
+bidirectional "G1,G2,G3 in M?" / "G in M1,M2,M3?" reading; the LLM-proposes/Agon-disposes
+arc; the vocabulary-miss vs fact-miss distinction). Agreed order: **(1) DL-ReasonSuite DLCore →
+(2) FOLIO via its FOL side → NOT (3) the LLM front-end yet** (the "understandable but
+unmappable" caveat needs the backend + a vocabulary-miss notion first).
+
+**▶ Resume here next session: finish step 1, then start step 2.**
+- **Step 1 (DL-ReasonSuite DLCore) — the reasoning core is DONE** (✅ block below: `dl_reasoning`
+  + `tools/dl_benchmark.py`, 16 tests). **Remaining:** (a) the DL-ReasonSuite *adapter* — map
+  its OWL-DL task files into the harness's task schema; the dataset isn't cleanly fetchable from
+  here (MDPI 403), so the files need sourcing (MDPI supplementary / authors' repo). (b) a
+  corpus-ontology validation run (Porphyry/FOAF/SUMO already decide subsumption via `entails`) —
+  point `dl_benchmark` at them with `ontology_ref` and publish the soundness/coverage map.
+- **Step 2 (FOLIO):** a FOLIO-FOL → CLIF importer, then score import fidelity (`same_graph`
+  round-trip) + entailment, rendering the proofs as pictures.
+
+**Other open tracks (deferred while the NL→logic track runs):** layout follow-ups; the math
+menu ([[project_universal_generalization_dau_homework]] / [[project_definition_node_vs_phi_hole]]);
+Agon depth (doc §10 — Beta sub-game ordering, the false-band warrant, two-Grapheus dialogue);
+the by-hand reading desk ([[project_by_hand_import_reading_desk]]); math fixtures
+([[project_math_fixtures_zfc_peirce_schema]]).
 
 *What the design settled (so the build doesn't re-litigate):*
 - **The contest is the semantic game** (`src/semantic_game.py`), **not** the Dau transformation
@@ -101,6 +114,32 @@ materialised broaderTransitive closure gives the Grapheus non-trivial selectives
 ELK / tension compaction — both in Backlog); or the **math menu** (∀x scaffold tactic /
 selection-driven fold). (The "land a cited Turtle/RDF ontology" consolidation is now **DONE** —
 `skos_core` landed 2026-06-12, ✅ block below.)
+
+---
+
+## ✅ DONE 2026-06-13 — DLCore reasoning services + benchmark harness (NL→logic step 1, core)
+
+The reasoning core of step 1 (DL-ReasonSuite's DLCore track), composed from what's built —
+no new reasoning power, just the DLCore task shape + a consistency check + fragment/signature
+honesty.
+
+- **`src/dl_reasoning.py`** — three services over a theory M (a `RelationalGraphWithCuts`):
+  `check_subsumption(M, C, D)` (wraps `theory_query.entails` over `~[ (C *x) ~[ (D x) ] ]`),
+  `check_instance(M, a, C)` (materialize the Horn fragment → read the least Herbrand model),
+  `check_consistency(M)` (materialize, then test each **denial** `~[ A… ]` against the closure
+  — a denial satisfied in the least model is violated in every model → sound INCONSISTENT).
+  Verdicts are three-valued + two refusals: `YES`/`NO`/`UNKNOWN` (open-world / non-Horn
+  residue), `UNSUPPORTED` (construct outside the fragment), `OUT_OF_SIGNATURE` (query names
+  vocabulary M never defined — the vocabulary-miss vs fact-miss distinction). A consistency
+  `YES` is given only within the fragment; an inconsistency is reliable whenever found.
+- **`tools/dl_benchmark.py`** — runs a task suite (subsumption/instance/consistency, gold
+  2-valued) and scores it the way a *bounded* reasoner deserves: **soundness** (1 − wrong/decided,
+  must be 1.0) + **coverage** (decided/total), abstentions reported not penalised. Dataset-
+  independent task schema (`ontology_egif` or `ontology_ref`); the DL-ReasonSuite OWL-DL→schema
+  adapter is the remaining thin layer. `--self-test` demo: 6 tasks, soundness 100%, coverage 83%.
+- **Tests:** `test_dl_reasoning.py` (12) + `test_dl_benchmark.py` (4) — the verdict mapping,
+  the consistency check (clean / direct violation / through-the-closure / unsupported-residue),
+  signature refusal, and the harness's soundness/coverage + loud wrong-detection.
 
 ---
 
