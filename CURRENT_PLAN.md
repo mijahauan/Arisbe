@@ -71,17 +71,24 @@ unmappable" caveat needs the backend + a vocabulary-miss notion first).
 `docs/ARISBE_IN_PRACTICE.md`** (one on-ramp; now/frontier refreshed — Grapheus/warrant/DL
 shipped; math horizon stays frontier). [[project_persona_capabilities_narrative]].
 
-**▶ Step 2 (FOLIO) — designed, awaiting one decision + the dataset.** FOLIO (github.com/Yale-LILY/FOLIO,
-1430 ex, label TRUE=entailed / FALSE=contradicted / UNCERTAIN=neither — matches Arisbe's
-3-valued thinking). Design: FOLIO-FOL ≈ Arisbe FOPL (`∀x (Dog(x)→Mammal(x))`), so the adapter
-is light normalization → `fopl_to_egi` (chapter18 Ψ) → EGI (the *pictures* + `same_graph`
-round-trip fidelity); entailment = `is_tautology` of the scroll `~[ premises ~[ C ] ]` (TRUE),
-`~[ premises C ]` (FALSE), else UNCERTAIN. **Blockers:** (a) **z3-solver not installed / not in
-pyproject** — the entailment engine (`z3_semantic_validator`) is dormant behind `Z3_AVAILABLE`;
-(b) clone FOLIO to a stable path. **Open decision — the entailment engine:** Z3-backed
-(verifier+pictures, adds z3 dep) vs Arisbe-native-only (bounded materialization/theory_query →
-honest soundness/coverage like DL, no dep) vs **both** (Z3 authoritative + Arisbe's native
-coverage alongside — the thesis-aligned result; recommended). Resolve this first.
+**▶ Step 2 (FOLIO) — engine decision = BOTH; increment 1 (Z3 verdict) DONE.** FOLIO cloned at
+/Users/mjh/Sync/GitHub/FOLIO (data/v0.0/folio-{train,validation}.jsonl; label True=entailed /
+False=contradicted / Uncertain=neither). z3-solver added (dev extra).
+- **Increment 1 — the authoritative Z3 verdict (DONE, ✅):** `src/folio_fol.py` (own FOL
+  parser ∀∃¬∧∨→↔⊕ + constants → AST → **direct** Z3 compile, NOT via the lossy EG→FOPL
+  string) + `tools/folio_benchmark.py` + `tests/test_folio_fol.py` (11). **Validation (204):
+  accuracy 91.2%, parse coverage 96.1%, recall T/F/U = 88/90/96%; of 10 disagreements, 9 are
+  X→Uncertain (conservative) and ZERO True↔False flips.** Parser reads 99% of corpus FOL; the
+  rest (comma-as-conjunction, decimal constants, unbalanced parens) abstain as Unparsed.
+- **Increment 2 — the pictures + fidelity (NEXT):** FOLIO-FOL AST → CLIF → EGI (`clif_parser_dau`,
+  constant-robust) → render; `same_graph` round-trip where it holds. Reuse the `folio_fol` AST,
+  add a CLIF emitter.
+- **Increment 3 — the native-coverage half (the "Both"):** the same premises/conclusion through
+  Arisbe's own bounded engine (materialize / theory_query / semantic game), abstaining where the
+  fragment can't decide — the DL-style soundness×coverage story over full FOL, reported beside
+  the Z3 verdict. Then a write-up.
+- Optional: inspect the one Uncertain→False directional disagreement (annotation nuance vs
+  quantifier-scope reading); nudge parse coverage (decimal constants / comma-as-∧) if worth it.
 
 **▶ MATH TRACK (do not drop — author flagged 2026-06-13):** finish the mathematics horizon —
 validate the draft EGIF fixtures (docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md) against the parser,
