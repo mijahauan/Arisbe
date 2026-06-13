@@ -36,6 +36,8 @@ from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
 from web_api.models.api_models import (
+    AgonContestChooseRequest,
+    AgonContestStartRequest,
     AgonDispositionRequest,
     AgonInterpretRequest,
     AgonInverseRequest,
@@ -55,6 +57,7 @@ from web_api.services.agonothetes import (
     apply_disposition,
     available_dispositions,
 )
+from web_api.services.grapheus_session_manager import get_grapheus_session_manager
 from web_api.services.introspection import egi_introspection
 from web_api.services.layout_service import generate_layout, layout_dto_to_dict
 from web_api.services.linear_forms import linear_forms
@@ -64,6 +67,7 @@ from domain_oracle import CorpusOracle
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 from endoporeutic_game import Player
+from grapheus import GrapheusContest
 from model_materialization import materialize_egi
 from semantic_game import evaluate as evaluate_semantic
 from theory_query import entails as theory_entails
@@ -466,6 +470,20 @@ def _resolve_model_egif(model_egif: Optional[str], model_uod: Optional[str]) -> 
     raise ValueError("Provide model_egif or model_uod (a corpus UoD id).")
 
 
+def _materialization_dict(rep, facts_egi) -> dict:
+    """The materialization report as a client payload (shared by the peel + the
+    automated-Grapheus contest)."""
+    return {
+        "summary": rep.summary,
+        "base_facts": rep.base_facts,
+        "derived_facts": rep.derived_facts,
+        "rules_applied": rep.rules_applied,
+        "materialized_egif": generate_egif(facts_egi),
+        "skipped": [{"reason": s.reason, "description": s.description}
+                    for s in rep.skipped],
+    }
+
+
 def _interpret_payload(
     model_egif: str, proposal_egif: str, closed: bool, materialize: bool = False
 ) -> dict:
@@ -481,15 +499,7 @@ def _interpret_payload(
         theory_egi = parse_egif(model_egif)
         facts_egi, rep = materialize_egi(theory_egi)
         oracle = CorpusOracle([("M", facts_egi)], closed=closed)
-        materialization = {
-            "summary": rep.summary,
-            "base_facts": rep.base_facts,
-            "derived_facts": rep.derived_facts,
-            "rules_applied": rep.rules_applied,
-            "materialized_egif": generate_egif(facts_egi),
-            "skipped": [{"reason": s.reason, "description": s.description}
-                        for s in rep.skipped],
-        }
+        materialization = _materialization_dict(rep, facts_egi)
         # When G is a universal subsumption/typing rule, model-checking it against an
         # empty or sparse A-box reads *vacuously* — so decide it as a **theorem of the
         # theory M** instead (freeze a fresh witness, materialize, check the head).
@@ -835,3 +845,183 @@ async def list_dispositions():
     """The full outcome taxonomy (mode-independent reference for clients)."""
     from web_api.services.agonothetes import DISPOSITIONS
     return ApiResponse(success=True, data=DISPOSITIONS)
+
+
+# --------------------------------------------------------------------------- #
+# The automated-Grapheus contest (the interpretation register, move-by-move)  #
+# --------------------------------------------------------------------------- #
+#
+# Where /interpret peels G against M in one shot, these routes drive the *same*
+# semantic game as an interactive extensive-form contest (docs/AUTOMATED_GRAPHEUS.md):
+# the human plays the Graphist (witnesses positive lines, pursues conjuncts the
+# defence chooses); the machine plays the Grapheus optimally and auto-advances to
+# the next contested Graphist frontier.  Under optimal play the contest's verdict
+# equals /interpret's (increment-1 conformance) — the contest is the *experience*
+# of that verdict, not a different one.
+
+
+def _build_contest_oracle(model_egif: str, closed: bool, materialize: bool):
+    """Resolve M to a contest oracle (mirrors ``_interpret_payload``'s M-side).
+
+    Returns ``(oracle, materialization_dict_or_None)``.  When ``materialize`` is set,
+    M's Horn rules are forward-chained to the least Herbrand model first so the
+    Grapheus is armed with the derived facts (the syllogism's conclusion).
+    """
+    if materialize:
+        facts_egi, rep = materialize_egi(parse_egif(model_egif))
+        oracle = CorpusOracle([("M", facts_egi)], closed=closed)
+        return oracle, _materialization_dict(rep, facts_egi)
+    return CorpusOracle.from_egif({"M": model_egif}, closed=closed), None
+
+
+def _frontier_payload(choice) -> Optional[dict]:
+    """The pending contested decision, as options the human Graphist may pick."""
+    if choice is None:
+        return None
+    options = []
+    for o in choice.options:
+        opt = {"key": o["key"], "label": o["label"], "value": o["value"].value}
+        if "is_cut" in o:
+            opt["is_cut"] = o["is_cut"]
+        options.append(opt)
+    return {
+        "kind": choice.kind,
+        "owner": choice.owner.value,
+        "area_id": choice.area_id,
+        "depth": choice.depth,
+        "polarity": choice.polarity,
+        "forced": choice.forced,
+        "options": options,
+    }
+
+
+def _contest_payload(session) -> dict:
+    """Standard response shape for any endpoint returning a contest state."""
+    play = session.contest.play
+    return {
+        "contest_id": session.contest_id,
+        "setup": session.setup,
+        "materialization": session.materialization,
+        "is_over": play.is_over,
+        "summary": play.summary,
+        "verdict": play.verdict.value if play.verdict is not None else None,
+        "outcome": play.outcome.value if play.outcome is not None else None,
+        "conceded": play.conceded,
+        "to_move": play.frontier.owner.value if play.frontier is not None else None,
+        "frontier": _frontier_payload(play.frontier),
+        "bindings": dict(play.bindings),
+        "selectives": [
+            {"line": s.line, "individual": s.individual, "by": s.by.value,
+             "at_polarity": s.at_polarity}
+            for s in play.selectives
+        ],
+        "history": [
+            {"kind": m.kind, "owner": m.owner.value, "area_id": m.area_id,
+             "depth": m.depth, "detail": m.detail}
+            for m in play.history
+        ],
+        "transcript": list(play.transcript),
+        # When the contest is over, surface the disposition taxonomy (verdict-
+        # annotated) — the Agonothetes assigns meaning, exactly as in /interpret.
+        "available_dispositions": (
+            available_dispositions(
+                verdict=(play.verdict.value if play.verdict is not None else None))
+            if play.is_over else None
+        ),
+    }
+
+
+@router.post("/contests")
+async def start_contest(request: AgonContestStartRequest):
+    """Open an automated-Grapheus contest and advance to the first Graphist move.
+
+    Resolves M (raw EGIF or a corpus UoD, optionally materialized), builds the
+    driver over G, and either pauses at the first contested Graphist frontier or —
+    when ``autoplay`` is set — plays both sides optimally straight to the verdict.
+    """
+    try:
+        proposal_egif = (request.proposal_egif or "").strip()
+        if not proposal_egif:
+            raise ValueError("proposal_egif (the graph G) is required.")
+        model_egif = _resolve_model_egif(request.model_egif, request.model_uod)
+        oracle, materialization = _build_contest_oracle(
+            model_egif, request.closed, request.materialize)
+        contest = GrapheusContest(parse_egif(proposal_egif), oracle, closed=request.closed)
+        if request.autoplay:
+            contest.autoplay()
+        else:
+            contest.start()
+        setup = {
+            "proposal_egif": proposal_egif,
+            "model_egif": model_egif,
+            "model_uod": request.model_uod,
+            "closed": request.closed,
+            "materialize": request.materialize,
+        }
+        session = get_grapheus_session_manager().create(
+            contest=contest, setup=setup, materialization=materialization)
+        return ApiResponse(success=True, data=_contest_payload(session))
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CONTEST_START_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
+        )
+
+
+@router.get("/contests/{contest_id}")
+async def get_contest(contest_id: str):
+    """The current state of an automated-Grapheus contest."""
+    session = get_grapheus_session_manager().get(contest_id)
+    if session is None:
+        return ApiResponse(
+            success=False,
+            error={"code": "CONTEST_NOT_FOUND", "message": f"No contest '{contest_id}'."},
+        )
+    return ApiResponse(success=True, data=_contest_payload(session))
+
+
+@router.post("/contests/{contest_id}/choose")
+async def choose_in_contest(contest_id: str, request: AgonContestChooseRequest):
+    """Apply the human Graphist's pick at the current frontier, then auto-advance
+    through Grapheus + forced moves to the next contested frontier (or termination)."""
+    session = get_grapheus_session_manager().get(contest_id)
+    if session is None:
+        return ApiResponse(
+            success=False,
+            error={"code": "CONTEST_NOT_FOUND", "message": f"No contest '{contest_id}'."},
+        )
+    try:
+        session.contest.choose(request.option_key)
+        return ApiResponse(success=True, data=_contest_payload(session))
+    except ValueError as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "ILLEGAL_CHOICE", "message": str(exc)},
+        )
+
+
+@router.post("/contests/{contest_id}/concede")
+async def concede_contest(contest_id: str):
+    """The human Graphist concedes — the contest ends in the Grapheus's favour."""
+    session = get_grapheus_session_manager().get(contest_id)
+    if session is None:
+        return ApiResponse(
+            success=False,
+            error={"code": "CONTEST_NOT_FOUND", "message": f"No contest '{contest_id}'."},
+        )
+    try:
+        session.contest.concede()
+        return ApiResponse(success=True, data=_contest_payload(session))
+    except ValueError as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CONTEST_OVER", "message": str(exc)},
+        )
+
+
+@router.delete("/contests/{contest_id}")
+async def discard_contest(contest_id: str):
+    """Discard an automated-Grapheus contest (ephemeral; touches no corpus)."""
+    discarded = get_grapheus_session_manager().discard(contest_id)
+    return ApiResponse(success=True, data={"discarded": discarded})

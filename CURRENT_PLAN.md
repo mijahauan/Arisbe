@@ -53,11 +53,20 @@ rest reported), and an **RDF front-end** (`tools/rdf_to_owl.py`, via rdflib) bri
 translator consumes. Real ontologies now import from where they actually live.
 
 **▶ DESIGNATED NEXT TASK — the automated Grapheus (the dialogical contest). DESIGN DONE
-2026-06-12; BUILD next.** P2 import-breadth is **closed** (only Manchester deferred). The
-design-of-record is **`docs/AUTOMATED_GRAPHEUS.md`** — read it first; it resolves the open
-sub-questions against Pietarinen, *Signs of Logic* Ch. 4 (the semantic-game reading of EGs).
-Memory: [[project_automated_grapheus_design]], [[project_agon_arena_v1_design]],
-[[project_domain_oracle_and_m]], [[project_chain_of_semiosis_grounding]].
+2026-06-12; BUILD in progress — increments 1 + 2 DONE (✅ block below); 3 (frontend) + 4
+(warrant ChainStep) remain.** The design-of-record is **`docs/AUTOMATED_GRAPHEUS.md`** — read
+it first; it resolves the open sub-questions against Pietarinen, *Signs of Logic* Ch. 4 (the
+semantic-game reading of EGs). Memory: [[project_automated_grapheus_design]],
+[[project_agon_arena_v1_design]], [[project_domain_oracle_and_m]],
+[[project_chain_of_semiosis_grounding]].
+
+**▶ Resume here next session: increment 3 (the interactive board) + increment 4 (the
+warrant ChainStep).** The headless core + routes are built and green (37 grapheus tests, 55
+agon/semantic regression). The frontend (`web_viewer/agon.html` + a contest panel) drives
+`POST /agon/contests` → `choose`/`concede`; Playwright E2E. Then the corpus-boundary
+`ChainStep` ("withstood Agon", referencing the `Play`) — mind the §7 persistence seam
+(`agonothetes._episode_to_chain` is transformation-game-shaped; needs a `Play`-aware warrant,
+not a reuse).
 
 *What the design settled (so the build doesn't re-litigate):*
 - **The contest is the semantic game** (`src/semantic_game.py`), **not** the Dau transformation
@@ -90,6 +99,43 @@ materialised broaderTransitive closure gives the Grapheus non-trivial selectives
 ELK / tension compaction — both in Backlog); or the **math menu** (∀x scaffold tactic /
 selection-driven fold). (The "land a cited Turtle/RDF ontology" consolidation is now **DONE** —
 `skos_core` landed 2026-06-12, ✅ block below.)
+
+---
+
+## ✅ DONE 2026-06-12 — automated Grapheus increments 1 + 2 (headless driver + routes)
+
+The semantic-game contest, built as the design's first two increments and verified green
+(37 grapheus tests + 55 agon/semantic regression, all passing).
+
+**Increment 1 — the headless driver** (`src/grapheus.py`, `tests/test_grapheus.py`).
+`GrapheusContest` lifts `semantic_game`'s one-shot peel into an interactive extensive-form
+**`Play`**: a single descending cursor, polarity-owned decisions (defender maximises,
+challenger minimises the *local* Kleene value — `_or3`==max, `_and3`==min, uniform across the
+per-cut swap), `start`/`choose`/`autoplay`/`concede`. Self-play reproduces `evaluate()`'s
+verdict across the truth table (both worlds) + the real `skos_core` model + a tomos slice.
+**Two bugs found and fixed while wiring the routes** (the earlier "exit 0" runs were *masked
+timeouts* — `| tail` / trailing `echo` ate pytest's real exit code; the driver had been
+hanging, never actually passing): (a) **infinite loop** — pursuing an atom conjunct recorded
+the terminal but didn't advance the cursor, so `_decision_here` re-offered the same conjuncts
+forever; fixed with a `_terminal_atom` guard. (b) **open-world horizon divergence** — the
+single concrete play walks only *known* individuals (Kleene max), but `_holds` bumps an
+unsatisfied existential to UNKNOWN in an open world (the unknown-individual horizon, lines
+226–229); on an open-world universal (`logician-open`) the contest read TRUE where `evaluate`
+reads UNKNOWN. Fixed by mirroring the bump: at a witness frontier where M's value is UNKNOWN
+but no known individual beats FALSE, the defender **declines** → independent (doc §6).
+Closed-world cases are untouched (no bump → no decline).
+
+**Increment 2 — the routes** (`src/web_api/routes/agon.py` + `services/grapheus_session_manager.py`
++ `AgonContestStartRequest`/`AgonContestChooseRequest`; `tests/test_grapheus_routes.py`, 10
+tests). `POST /agon/contests` (start, with `autoplay`), `GET /agon/contests/{id}`,
+`/choose`, `/concede`, `DELETE`. Reuses `_resolve_model_egif` + a factored `_materialization_dict`
+(shared with `_interpret_payload`) so M resolves from raw EGIF or a corpus UoD, optionally
+materialized. Route conformance: the five persona innings autoplay to `/interpret`'s verdict;
+`skos_core` (materialized) — the Grapheus must concede the derived broaderTransitive fact
+(Graphist wins) and declines Dog⊳Cat (independent); the interactive Graphist witnesses a line
+and wins. Ephemeral sessions (4-h TTL), no corpus touch.
+
+**Next: increment 3 (frontend board + Playwright) + increment 4 (the warrant ChainStep).**
 
 ---
 

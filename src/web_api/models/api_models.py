@@ -406,3 +406,30 @@ class AgonInverseRequest(BaseModel):
     include_examples: bool = True
     include_corpus: bool = True
     limit: int = 40
+
+
+class AgonContestStartRequest(BaseModel):
+    """Open an **automated-Grapheus contest** — the interpretation register played
+    move-by-move (docs/AUTOMATED_GRAPHEUS.md). The human plays the Graphist
+    (proposes G, witnesses positive lines); the machine plays the Grapheus (the
+    model side, optimally).
+
+    M is given as ``model_egif`` (raw facts) or ``model_uod`` (a corpus UoD id).
+    ``closed`` is M's regime; ``materialize`` forward-chains M's Horn rules into the
+    least Herbrand model first (so a model authored as facts + rules is testable).
+    ``autoplay`` plays *both* sides optimally straight to the verdict (self-play).
+    """
+
+    proposal_egif: str
+    model_egif: Optional[str] = None
+    model_uod: Optional[str] = None
+    closed: bool = False
+    materialize: bool = False
+    autoplay: bool = False
+
+
+class AgonContestChooseRequest(BaseModel):
+    """The human Graphist's pick at the current contested frontier — the ``key`` of
+    one of the frontier's options (a witness individual, or a conjunct to pursue)."""
+
+    option_key: str
