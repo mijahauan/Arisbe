@@ -67,17 +67,22 @@ arc; the vocabulary-miss vs fact-miss distinction). Agreed order: **(1) DL-Reaso
 (2) FOLIO via its FOL side → NOT (3) the LLM front-end yet** (the "understandable but
 unmappable" caveat needs the backend + a vocabulary-miss notion first).
 
-**▶ Resume here next session: run the full DLCore + publish the map, then start step 2.**
-- **Step 1 (DL-ReasonSuite DLCore) — adapter built and validated** (✅ block below). The dataset
-  is at github.com/okanss/DL-ReasonSuite (DLCore = 3 JSONL files over Turtle ontologies, buckets
-  `el`/`dl`). `tools/dl_reasonsuite.py --suite-dir <checkout>/dl-reason-suite` runs it.
-  **40/group sample: soundness 100%, coverage 98%** (only `el/consistency` abstains — EL
-  ontologies with existential restrictions can't be *certified* consistent in the Horn fragment).
-  **Remaining:** (a) **the full 3620-task run** (`--full`) — the real coverage map; expect coverage
-  to soften on `dl` subsumption/instance as fuller-DL constructs appear deeper in the files; the
-  sample is first-N, not random. (b) A stable DL-ReasonSuite checkout (it was cloned to /tmp,
-  which is ephemeral) — re-clone to a kept path before the full run. (c) write up the
-  soundness/coverage map (the honest "bounded reasoner vs full-DL benchmark" result).
+**▶ Resume here next session: the instance-negative lever (optional), then start step 2.**
+- **Step 1 (DL-ReasonSuite DLCore) — DONE: full 3620-task run, real map below.** Dataset:
+  github.com/okanss/DL-ReasonSuite (stable checkout at /home/mjh/Sync/GitHub/DL-ReasonSuite;
+  earlier run used a /tmp clone). `tools/dl_reasonsuite.py --suite-dir <checkout>/dl-reason-suite --full`.
+  **Full run: soundness 100% (0 wrong / 3620), coverage 67%** — and every gap is principled:
+  - subsumption 1200/1200 (100% cover) — freeze-a-witness decides every entailed subsumption;
+  - instance **exactly 50%** — decides every *entailed* instance (YES, sound), **abstains on every
+    *not_entailed*** (UNKNOWN): open-world incompleteness made honest (NO only when wholly Horn;
+    these ontologies carry existential restrictions). Verified: entailed→yes 80/80, not_entailed→
+    unknown 80/80;
+  - consistency — detects every inconsistency (dl 10/10, fired denial), certifies consistency only
+    within the fragment (el 6/10).
+  **The coverage lever** (next, optional): a refutation / model-construction capability (or an
+  explicit closed-world / NAF mode) for the *negative* half — instance non-entailment and
+  consistency certification. Real extension, not a bugfix. Also: write up the soundness×coverage
+  result (the honest "bounded sound reasoner vs full-DL benchmark — abstains, never errs" story).
 - **Step 2 (FOLIO):** a FOLIO-FOL → CLIF importer, then score import fidelity (`same_graph`
   round-trip) + entailment, rendering the proofs as pictures.
 
