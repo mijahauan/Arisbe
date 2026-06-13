@@ -202,6 +202,41 @@ def parse_fol(s: str) -> Formula:
 
 
 # ---------------------------------------------------------------------------
+# CLIF emission — the bridge to an EGI (the *picture*)
+# ---------------------------------------------------------------------------
+#
+# The verdict goes straight to Z3 (above); the picture goes through CLIF, because
+# clif_parser_dau is the constant-robust EGI front-end (the chapter18 FOPL parser rejects
+# constants).  clif_parser_dau supports forall/exists/not/and/or/iff/if directly; only ⊕
+# needs desugaring (a ⊕ b ≡ ¬(a ↔ b)).
+
+_CLIF_KW = {"and": "and", "or": "or", "implies": "if", "iff": "iff"}
+
+
+def ast_to_clif(f: Formula) -> str:
+    """Render a FOLIO AST as a CLIF sentence (the input to ``clif_parser_dau``)."""
+    if isinstance(f, Atom):
+        return "(" + " ".join([f.pred, *f.args]) + ")"
+    if isinstance(f, Not):
+        return "(not " + ast_to_clif(f.f) + ")"
+    if isinstance(f, BinOp):
+        if f.op == "xor":                          # a ⊕ b ≡ ¬(a ↔ b)
+            return "(not (iff " + ast_to_clif(f.left) + " " + ast_to_clif(f.right) + "))"
+        return ("(" + _CLIF_KW[f.op] + " "
+                + ast_to_clif(f.left) + " " + ast_to_clif(f.right) + ")")
+    if isinstance(f, Quant):
+        kw = "forall" if f.kind == "forall" else "exists"
+        return "(" + kw + " (" + f.var + ") " + ast_to_clif(f.body) + ")"
+    raise FolioParseError(f"uncliffable node {type(f).__name__}")
+
+
+def folio_fol_to_egi(fol_str: str):
+    """Parse a FOLIO-FOL string and build its EGI (the drawable graph) via CLIF."""
+    from clif_parser_dau import parse_clif
+    return parse_clif(ast_to_clif(parse_fol(fol_str)))
+
+
+# ---------------------------------------------------------------------------
 # Z3 compilation + the entailment decision
 # ---------------------------------------------------------------------------
 

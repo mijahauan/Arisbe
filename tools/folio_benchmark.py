@@ -39,9 +39,74 @@ _SRC = Path(__file__).parent.parent / "src"
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from folio_fol import decide_entailment
+from folio_fol import FolioParseError, decide_entailment, folio_fol_to_egi
 
 _GOLD = {"True", "False", "Uncertain"}
+
+
+# ---------------------------------------------------------------------------
+# Fidelity: FOLIO FOL → EG (the picture), and the linear↔graphical round-trip
+# ---------------------------------------------------------------------------
+
+@dataclass
+class FidelityReport:
+    total: int = 0           # FOL formulas seen
+    built: int = 0           # became an EGI (the drawable picture)
+    roundtrip: int = 0       # egi → CLIF → egi recovered the same graph
+    parse_fail: int = 0
+    build_fail: int = 0
+
+    @property
+    def build_rate(self) -> float:
+        return 0.0 if not self.total else self.built / self.total
+
+    @property
+    def roundtrip_rate(self) -> float:
+        return 0.0 if not self.built else self.roundtrip / self.built
+
+
+def run_fidelity(examples: List[dict]) -> FidelityReport:
+    """Build every FOL formula's EG and test the egi→CLIF→egi round-trip (same_graph).
+
+    The round-trip is exact for the EG-native connectives (∧ ¬ → ∀ ∃); ∨/↔/⊕ expand to
+    De Morgan cuts the generator re-emits equivalently-but-not-identically, so they build
+    but may not round-trip — reported, not hidden."""
+    from clif_generator_dau import generate_clif
+    from clif_parser_dau import parse_clif
+    from eg_navigation import same_graph
+
+    rep = FidelityReport()
+    for ex in examples:
+        fols = list(ex.get("premises-FOL") or [])
+        if ex.get("conclusion-FOL"):
+            fols.append(ex["conclusion-FOL"])
+        for fol in fols:
+            if not fol.strip():
+                continue
+            rep.total += 1
+            try:
+                egi = folio_fol_to_egi(fol)
+            except FolioParseError:
+                rep.parse_fail += 1
+                continue
+            except Exception:
+                rep.build_fail += 1
+                continue
+            rep.built += 1
+            try:
+                if same_graph(egi, parse_clif(generate_clif(egi))):
+                    rep.roundtrip += 1
+            except Exception:
+                pass
+    return rep
+
+
+def _print_fidelity(rep: FidelityReport) -> None:
+    print(f"{rep.total} FOL formulas · built {rep.built} ({rep.build_rate:.1%}) · "
+          f"round-trip {rep.roundtrip} ({rep.roundtrip_rate:.1%} of built)")
+    print(f"  parse failures: {rep.parse_fail} · build failures: {rep.build_fail}")
+    print("  (round-trip is exact for EG-native ∧¬→∀∃; ∨/↔/⊕ build but expand to "
+          "De Morgan cuts that re-emit equivalently, not identically)")
 
 
 @dataclass
@@ -118,13 +183,17 @@ def main(argv: List[str]) -> int:
     ap.add_argument("--data", required=True, help="path to a FOLIO jsonl split")
     ap.add_argument("--limit", type=int, default=None, help="cap examples")
     ap.add_argument("--timeout-ms", type=int, default=5000)
+    ap.add_argument("--fidelity", action="store_true",
+                    help="instead of entailment, report FOL→EG build + round-trip fidelity")
     args = ap.parse_args(argv)
 
     examples = [json.loads(l) for l in Path(args.data).read_text().splitlines() if l.strip()]
     if args.limit:
         examples = examples[: args.limit]
-    report = run_folio(examples, timeout_ms=args.timeout_ms)
-    _print(report)
+    if args.fidelity:
+        _print_fidelity(run_fidelity(examples))
+    else:
+        _print(run_folio(examples, timeout_ms=args.timeout_ms))
     return 0
 
 

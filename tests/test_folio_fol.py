@@ -97,3 +97,46 @@ def test_disjunctive_syllogism():
 def test_unparsed_is_reported_not_decided():
     r = decide_entailment(["Loves(x,)("], "P(a)")
     assert r.verdict == "Unparsed" and not r.parsed and not r.decided
+
+
+# ---------------------------------------------------------------------------
+# Pictures: FOLIO FOL → CLIF → EGI, and the round-trip (increment 2)
+# ---------------------------------------------------------------------------
+
+from folio_fol import ast_to_clif, folio_fol_to_egi
+
+
+def test_clif_emission_maps_operators():
+    assert ast_to_clif(parse_fol("Engaged(bonnie)")) == "(Engaged bonnie)"
+    assert ast_to_clif(parse_fol("∀x (Dog(x) → Mammal(x))")) == "(forall (x) (if (Dog x) (Mammal x)))"
+    assert ast_to_clif(parse_fol("∃y (Loves(bonnie, y))")) == "(exists (y) (Loves bonnie y))"
+    assert ast_to_clif(parse_fol("A(x) ∨ B(x)")) == "(or (A x) (B x))"
+    # ⊕ desugars to ¬(a ↔ b)
+    assert ast_to_clif(parse_fol("A(x) ⊕ B(x)")) == "(not (iff (A x) (B x)))"
+
+
+def test_fol_builds_an_egi():
+    egi = folio_fol_to_egi("∀x (Dog(x) → Mammal(x))")
+    assert len(egi.E) == 2 and len(egi.Cut) == 2     # the scroll for an implication
+
+
+@pytest.mark.parametrize("fol", [
+    "Engaged(bonnie)",
+    "∀x (Dog(x) → Mammal(x))",
+    "∀x (Chaperone(x) → ¬Students(x))",
+    "∃y (Loves(bonnie, y))",
+])
+def test_eg_native_shapes_round_trip(fol):
+    """The EG-native connectives (∧ ¬ → ∀ ∃, atoms) round-trip exactly."""
+    from clif_generator_dau import generate_clif
+    from clif_parser_dau import parse_clif
+    from eg_navigation import same_graph
+    egi = folio_fol_to_egi(fol)
+    assert same_graph(egi, parse_clif(generate_clif(egi)))
+
+
+def test_disjunction_builds_even_if_not_structurally_round_tripping():
+    # ∨ builds a (De Morgan) EG — the picture exists; structural round-trip is not
+    # guaranteed (the generator re-emits an equivalent, not identical, graph).
+    egi = folio_fol_to_egi("∀x (TalentShows(x) ∨ Inactive(x))")
+    assert len(egi.Cut) >= 1 and len(egi.E) == 2
