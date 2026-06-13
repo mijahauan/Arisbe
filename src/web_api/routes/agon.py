@@ -54,6 +54,7 @@ from web_api.services.agon_session_manager import (
 )
 from web_api.services.agonothetes import (
     DispositionError,
+    apply_contest_disposition,
     apply_disposition,
     available_dispositions,
 )
@@ -1017,6 +1018,53 @@ async def concede_contest(contest_id: str):
         return ApiResponse(
             success=False,
             error={"code": "CONTEST_OVER", "message": str(exc)},
+        )
+
+
+@router.post("/contests/{contest_id}/disposition")
+async def dispose_contest(contest_id: str, request: AgonDispositionRequest):
+    """Apply the Agonothetes' disposition to a finished contest — the warrant step.
+
+    An asserting disposition mints the "withstood Agon" `ChainStep` (G persisted with
+    the `Play` as provenance; §3.3 fires at the corpus boundary). A Grapheus win
+    blocks assertion; a non-asserting disposition records the judgment only. Nothing
+    auto-asserts — this is reached only by the user's explicit choice.
+    """
+    session = get_grapheus_session_manager().get(contest_id)
+    if session is None:
+        return ApiResponse(
+            success=False,
+            error={"code": "CONTEST_NOT_FOUND", "message": f"No contest '{contest_id}'."},
+        )
+    try:
+        result = apply_contest_disposition(
+            session,
+            disposition_key=request.disposition,
+            tomos=_get_tomos(),
+            target_uod_id=request.target_uod_id,
+            name=request.name,
+            description=request.description,
+            authors=request.authors,
+            tags=request.tags,
+            notes=request.notes,
+        )
+        return ApiResponse(success=True, data=result)
+    except DispositionError as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "DISPOSITION_ERROR", "message": str(exc)},
+        )
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc),
+                   "context": getattr(exc, "context", None)},
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "DISPOSITION_APPLY_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
         )
 
 

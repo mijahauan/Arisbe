@@ -226,7 +226,7 @@
       const $ = (id) => document.getElementById(id);
       const statusEl = $('status'), canvasEl = $('canvas');
       let gameId = null, currentRule = null, lastData = null, svgPZ = null, selectedDisp = null;
-      let contestId = null;
+      let contestId = null, selectedContestDisp = null;
       let selectedSubgraph = new Set(), selectedArea = null;
       let agonModels = { examples: [], corpus: [] }, selectedModelUod = null;
 
@@ -529,13 +529,24 @@
           h+='<div style="margin:12px 0 6px;"><span style="display:inline-block; padding:4px 14px; border-radius:6px; font-weight:700; color:#11111b; background:'
             +verdictColor(d.verdict)+';">'+esc(outcomeText(d.outcome))+'</span></div>';
           h+='<div style="margin-bottom:10px; color:#cdd6f4;">'+esc(d.summary)+(d.conceded?' (you conceded)':'')+'</div>';
-          h+='<div style="margin:12px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">What to do with it — the Agonothetes decides (coherent with this verdict highlighted)</div>';
+          const lost = d.outcome==='grapheus_wins';
+          h+='<div style="margin:12px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">The Agonothetes decides — pick a disposition (coherent with this verdict highlighted)</div>';
+          if(lost) h+='<div style="font-size:11px; color:#f9e2af; margin-bottom:4px;">G failed the contest — a lost inning cannot assert G (the warrant needs a Graphist win or an independent inning). Record a judgment, or search for a domain where G holds.</div>';
+          h+='<div id="contest-disp-list">';
           (d.available_dispositions||[]).forEach(dd=>{ const coh=dd.coherent_with_verdict;
-            h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border:1px solid '+(coh?'#585b70':'#313244')+'; opacity:'+(coh===false?'0.45':'1')+';">'
+            const blocked = lost && dd.asserts;
+            h+='<div class="contest-disp" data-key="'+esc(dd.key)+'" data-asserts="'+(dd.asserts?1:0)+'" '
+              +'style="padding:6px 8px; margin:3px 0; border-radius:6px; cursor:'+(blocked?'not-allowed':'pointer')+'; border:1px solid '+(coh?'#585b70':'#313244')+'; opacity:'+(blocked?'0.4':(coh===false?'0.7':'1'))+';">'
               +'<strong style="color:'+(coh?'#cdd6f4':'#9399b2')+';">'+esc(dd.label)+'</strong>'
-              +' <span style="font-size:10px; color:#6c7086;">'+esc(dd.mode)+(dd.asserts?' · asserts':'')+(coh?' · coheres':'')+'</span>'
+              +' <span style="font-size:10px; color:#6c7086;">'+esc(dd.mode)+(dd.asserts?' · asserts →corpus':'')+(coh?' · coheres':'')+(blocked?' · blocked (lost)':'')+'</span>'
               +'<div style="font-size:11px; color:#6c7086;">'+esc(dd.summary)+'</div></div>'; });
-          h+='<div style="margin-top:12px; font-size:11px; color:#6c7086;">A contested interpretation — nothing is recorded yet (the warrant step is forthcoming).</div>';
+          h+='</div>';
+          h+='<div id="contest-assert-fields" style="display:none; margin-top:6px;">'
+            +'<div class="field"><label>New UoD id (for asserting)</label><input type="text" id="contest-uod-id" placeholder="contest-v1" /></div>'
+            +'<div class="field"><label>Name</label><input type="text" id="contest-disp-name" /></div>'
+            +'<div class="field"><label>Notes (optional)</label><textarea id="contest-disp-notes" rows="2"></textarea></div></div>';
+          h+='<button class="action primary" id="btn-contest-dispose" disabled style="margin-top:6px;">Record disposition</button>';
+          h+='<div style="margin-top:8px; font-size:11px; color:#6c7086;">An asserting disposition mints the warrant — G enters the corpus as “withstood Agon”, with this play as its proof. Nothing auto-asserts.</div>';
         } else if(d.frontier){
           const f=d.frontier;
           const prompt=f.kind==='witness'
@@ -554,6 +565,21 @@
         el.innerHTML=h;
         el.querySelectorAll('.contest-opt').forEach(b=>b.addEventListener('click', ()=>chooseOption(b.dataset.key)));
         const cc=el.querySelector('#btn-contest-concede'); if(cc) cc.addEventListener('click', concedeContest);
+        // Disposition picker (over only): select → reveal asserting fields → record.
+        selectedContestDisp=null;
+        const lost = d.outcome==='grapheus_wins';
+        el.querySelectorAll('.contest-disp').forEach(item=>{
+          const asserts = item.dataset.asserts==='1';
+          if(lost && asserts) return;               // blocked — not selectable
+          item.addEventListener('click', ()=>{
+            el.querySelectorAll('.contest-disp').forEach(x=>x.style.outline='');
+            item.style.outline='2px solid #a6e3a1';
+            selectedContestDisp={ key:item.dataset.key, asserts };
+            const f=el.querySelector('#contest-assert-fields'); if(f) f.style.display=asserts?'block':'none';
+            const b=el.querySelector('#btn-contest-dispose'); if(b) b.disabled=false;
+          });
+        });
+        const db=el.querySelector('#btn-contest-dispose'); if(db) db.addEventListener('click', disposeContest);
       }
       async function startContest(){
         const proposal=$('setup-proposal').value.trim();
@@ -583,6 +609,16 @@
         if(!b.success){ setStatus('Concede failed: '+(b.error&&b.error.message),'error'); return; }
         renderContest(b.data);
         setStatus('Conceded — the Grapheus takes the inning.');
+      }
+      async function disposeContest(){
+        if(!contestId||!selectedContestDisp) return;
+        const payload={ disposition:selectedContestDisp.key, notes:($('contest-disp-notes')||{}).value||'' };
+        if(selectedContestDisp.asserts){ payload.target_uod_id=(($('contest-uod-id')||{}).value||'').trim();
+          payload.name=(($('contest-disp-name')||{}).value||'').trim(); }
+        const b=await post('/agon/contests/'+contestId+'/disposition', payload);
+        if(!b.success){ const e=b.error||{};
+          setStatus((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal: ':'Disposition failed: ')+(e.message||''),'error'); return; }
+        setStatus(b.data.message, b.data.asserted?'success':null);
       }
 
       // ---- wiring ----

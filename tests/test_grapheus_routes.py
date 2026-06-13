@@ -195,3 +195,93 @@ def test_discard_contest(client):
     cid = started["contest_id"]
     assert _ok(client.delete(f"/agon/contests/{cid}"))["discarded"] is True
     assert client.get(f"/agon/contests/{cid}").json()["error"]["code"] == "CONTEST_NOT_FOUND"
+
+
+# --------------------------------------------------------------------------- #
+# Increment 4 — the warrant: an asserting disposition mints "withstood Agon"   #
+# --------------------------------------------------------------------------- #
+
+
+@pytest.fixture
+def warrant_tomos(tmp_path, monkeypatch):
+    """Redirect the Agon route's TomosService to a fresh tmp corpus, so an
+    asserting contest disposition writes there and never the real tomos/."""
+    from tomos_service import TomosService
+    tmp = tmp_path / "tomos"
+    tmp.mkdir(parents=True)
+    fresh = TomosService(tmp)
+    monkeypatch.setattr(agon_route, "_tomos_service", fresh)
+    return fresh
+
+
+def test_won_contest_asserts_warrant_chain(client, warrant_tomos):
+    """A Graphist win + an asserting disposition mints the warrant ChainStep: G is
+    persisted with the Play as 'withstood Agon' provenance, and §3.3 fires on G."""
+    started = _ok(client.post("/agon/contests", json={
+        "proposal_egif": '(dog "Biscuit")', "model_egif": '(dog "Biscuit")'}))
+    assert started["outcome"] == "graphist_wins"
+    cid = started["contest_id"]
+
+    data = _ok(client.post(f"/agon/contests/{cid}/disposition", json={
+        "disposition": "theorem_registration",
+        "target_uod_id": "contest-warrant-1",
+        "name": "Biscuit is a dog (withstood Agon)",
+    }))
+    assert data["asserted"] is True
+    assert data["asserted_uod_id"] == "contest-warrant-1"
+
+    # The persisted chain carries the warrant step + the Play provenance.
+    chain = warrant_tomos.load_chain("contest-warrant-1")
+    assert chain is not None and len(chain.steps) == 1
+    step = chain.steps[0]
+    assert step.rule_name.startswith("Agon warrant")
+    assert step.parameters["warrant"] == "withstood_agon"
+    assert step.parameters["outcome"] == "graphist_wins"
+    assert step.parameters["transcript"]
+    # The asserted graph is G itself.
+    from egif_parser_dau import parse_egif as _pe
+    from eg_navigation import same_graph
+    assert same_graph(warrant_tomos.load_uod("contest-warrant-1").current_egi,
+                      _pe('(dog "Biscuit")'))
+
+
+def test_lost_contest_cannot_assert(client, warrant_tomos):
+    """A Grapheus win blocks assertion — a lost inning cannot assert G."""
+    started = _ok(client.post("/agon/contests", json={
+        "proposal_egif": '~[ (dog "Biscuit") ]', "model_egif": '(dog "Biscuit")'}))
+    assert started["outcome"] == "grapheus_wins"
+    r = client.post(f"/agon/contests/{started['contest_id']}/disposition", json={
+        "disposition": "theorem_registration", "target_uod_id": "should-not-write"})
+    body = r.json()
+    assert not body["success"]
+    assert body["error"]["code"] == "DISPOSITION_ERROR"
+    assert not warrant_tomos.uod_exists("should-not-write")
+
+
+def test_nonasserting_disposition_records_only(client, warrant_tomos):
+    """A non-asserting disposition records the judgment; no corpus write."""
+    started = _ok(client.post("/agon/contests", json={
+        "proposal_egif": '(dog "Biscuit")', "model_egif": '(dog "Biscuit")'}))
+    data = _ok(client.post(f"/agon/contests/{started['contest_id']}/disposition", json={
+        "disposition": "open_conjecture"}))
+    assert data["asserted"] is False
+    assert data["disposition"]["asserted_uod_id"] is None
+
+
+def test_asserting_disposition_requires_target_id(client, warrant_tomos):
+    started = _ok(client.post("/agon/contests", json={
+        "proposal_egif": '(dog "Biscuit")', "model_egif": '(dog "Biscuit")'}))
+    r = client.post(f"/agon/contests/{started['contest_id']}/disposition", json={
+        "disposition": "theorem_registration"})
+    assert r.json()["error"]["code"] == "DISPOSITION_ERROR"
+
+
+def test_independent_inning_can_assert_new_fact(client, warrant_tomos):
+    """An independent (UNKNOWN) inning warrants e.g. 'accept as new fact'."""
+    started = _ok(client.post("/agon/contests", json={
+        "proposal_egif": '(dog "Rex")', "model_egif": '(dog "Biscuit")'}))
+    assert started["outcome"] == "independent"
+    data = _ok(client.post(f"/agon/contests/{started['contest_id']}/disposition", json={
+        "disposition": "new_fact", "target_uod_id": "contest-newfact-1"}))
+    assert data["asserted"] is True
+    assert warrant_tomos.uod_exists("contest-newfact-1")

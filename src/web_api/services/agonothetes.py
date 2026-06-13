@@ -49,7 +49,10 @@ from universe_of_discourse import (
     UoDType,
 )
 
+from grapheus import Outcome
+
 from web_api.services.agon_session_manager import AgonGame
+from web_api.services.grapheus_session_manager import GrapheusSession
 
 
 # ---------------------------------------------------------------------------
@@ -297,4 +300,180 @@ def apply_disposition(
         "state_count": len(chain.states),
         "step_count": len(chain.steps),
         "message": f"Asserted contest as '{target_uod_id}' ({spec['label']}).",
+    }
+
+
+# ---------------------------------------------------------------------------
+# The automated-Grapheus contest's warrant (docs/AUTOMATED_GRAPHEUS.md §7;
+# docs/CHAIN_OF_SEMIOSIS.md "Semiosis is dialogical").
+#
+# The semantic-game contest's record is a ``Play`` (selectives + path), NOT a
+# transformation-game episode — so it needs its own warrant, not ``_episode_to_chain``.
+# The asserted graph is G itself (the proposal that withstood Agon); the warrant
+# ``ChainStep`` does not *transform* G — its from/to states are the same EGI — it
+# **attests** that G crossed the regime boundary by withstanding the contest.  This is
+# the "fullest form" of regime-2 standing CHAIN_OF_SEMIOSIS names (withstood challenge),
+# distinct from §3.3 (which attests correspondence, not truth, and still fires here at
+# the corpus boundary via ``save_uod_with_chain``).
+# ---------------------------------------------------------------------------
+
+
+def _play_to_warrant_chain(session: GrapheusSession, spec: Dict[str, Any]) -> TransformationChain:
+    """Build the single-step warrant chain for a Graphist-won / independent contest.
+
+    The base state is G (the contest's proposal EGI); one ``ChainStep`` carries the
+    whole ``Play`` (verdict, outcome, the selectives M supplied, the outside-in
+    transcript) as provenance — the auditable evidence that G withstood Agon.
+    """
+    play = session.contest.play
+    g_egi = session.contest.egi
+    base_id = f"state-{uuid.uuid4().hex[:8]}"
+    warranted_id = f"state-{uuid.uuid4().hex[:8]}"
+    # from == to EGI: the warrant attests G, it does not transform it.
+    states = {base_id: g_egi, warranted_id: g_egi}
+    step = ChainStep(
+        step_id=f"step-{uuid.uuid4().hex[:8]}",
+        rule_name=f"Agon warrant ({spec['label']})",
+        from_state_id=base_id,
+        to_state_id=warranted_id,
+        parameters={
+            "warrant": "withstood_agon",
+            "outcome": play.outcome.value if play.outcome else None,
+            "verdict": play.verdict.value if play.verdict else None,
+            "conceded": play.conceded,
+            "model_egif": session.setup.get("model_egif"),
+            "model_uod": session.setup.get("model_uod"),
+            "closed": session.setup.get("closed"),
+            "materialized": bool(session.materialization),
+            "proposal_egif": session.setup.get("proposal_egif"),
+            "bindings": dict(play.bindings),
+            "selectives": [
+                {"line": s.line, "individual": s.individual,
+                 "by": s.by.value, "at_polarity": s.at_polarity}
+                for s in play.selectives
+            ],
+            "transcript": list(play.transcript),
+            "disposition": spec["key"],
+            "mode": spec["mode"],
+        },
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        user_annotation=(
+            f"G withstood Agon against M ({play.outcome.value if play.outcome else '—'}); "
+            f"asserted by the Agonothetes as {spec['label']}."
+        ),
+    )
+    return TransformationChain(
+        initial_state_id=base_id, steps=[step], states=states)
+
+
+def apply_contest_disposition(
+    session: GrapheusSession,
+    *,
+    disposition_key: str,
+    tomos: TomosService,
+    target_uod_id: Optional[str] = None,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    authors: Optional[List[str]] = None,
+    tags: Optional[List[str]] = None,
+    notes: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Apply the Agonothetes' chosen disposition to a finished automated-Grapheus contest.
+
+    An **asserting** disposition mints the warrant: G is persisted as a new
+    ``EPG_SESSION`` UoD whose single ``ChainStep`` carries the ``Play`` as the
+    "withstood Agon" provenance (``save_uod_with_chain`` fires §3.3 on G before any
+    disk write).  A **non-asserting** disposition records the judgment on the session
+    only.  A **Grapheus win blocks assertion** — a lost inning (G failed in M) cannot
+    assert G; the false-band's own assertions (assert ¬G, revise M) are out of V1
+    scope and reported, not faked.  Nothing auto-asserts.
+
+    Raises ``DispositionError`` for unknown key / contest-not-over / a lost-inning
+    assertion / missing or colliding target id; propagates ``CorrespondenceViolation``
+    from the corpus boundary unchanged.
+    """
+    spec = _DISPOSITION_BY_KEY.get(disposition_key)
+    if spec is None:
+        raise DispositionError(
+            f"Unknown disposition '{disposition_key}'. "
+            f"Valid: {sorted(_DISPOSITION_BY_KEY)}."
+        )
+
+    play = session.contest.play
+    if not play.is_over:
+        raise DispositionError("The contest is not over; there is no result to dispose of.")
+
+    judgment = {
+        "key": spec["key"],
+        "label": spec["label"],
+        "mode": spec["mode"],
+        "asserts": spec["asserts"],
+        "outcome": play.outcome.value if play.outcome else None,
+        "verdict": play.verdict.value if play.verdict else None,
+        "notes": notes or "",
+        "decided_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    if not spec["asserts"]:
+        judgment["asserted_uod_id"] = None
+        session.disposition = judgment
+        return {
+            "disposition": judgment,
+            "asserted": False,
+            "message": f"Recorded disposition '{spec['label']}' (no corpus assertion).",
+        }
+
+    # Asserting — but a lost inning cannot assert G.
+    if play.outcome is Outcome.GRAPHEUS_WINS:
+        raise DispositionError(
+            f"G failed the contest (the Grapheus won), so '{spec['label']}' cannot "
+            f"assert G. Record a non-asserting judgment, or run the inverse pivot to "
+            f"find a domain where G holds. (Asserting ¬G / revising M is not yet built.)"
+        )
+
+    if not target_uod_id or not target_uod_id.strip():
+        raise DispositionError(
+            f"Disposition '{spec['label']}' asserts a corpus record and requires a "
+            f"target_uod_id."
+        )
+    target_uod_id = target_uod_id.strip()
+    if tomos.uod_exists(target_uod_id):
+        raise DispositionError(
+            f"UoD '{target_uod_id}' already exists; assertion never overwrites. "
+            f"Choose a different id."
+        )
+
+    chain = _play_to_warrant_chain(session, spec)
+    now = datetime.now(timezone.utc)
+    tag_set = set(tags or [])
+    tag_set.update({"agon", "contest", "warrant:withstood_agon",
+                    f"disposition:{spec['key']}", f"mode:{spec['mode']}"})
+
+    metadata = UoDMetadata(
+        uod_id=target_uod_id,
+        uod_type=UoDType.HISTORICAL,
+        name=name or target_uod_id,
+        description=description or spec["summary"],
+        category=UoDCategory.EPG_SESSION,
+        created=now,
+        last_modified=now,
+        authors=list(authors or []),
+        tags=tag_set,
+        total_states=len(chain.states),
+        total_transformations=len(chain.steps),
+    )
+    uod = UniverseOfDiscourse(metadata=metadata, current_egi=chain.current_egi)
+
+    # §3.3 fires inside save_uod_with_chain → save_uod, before any disk write.
+    tomos.save_uod_with_chain(uod, chain)
+
+    judgment["asserted_uod_id"] = target_uod_id
+    session.disposition = judgment
+    return {
+        "disposition": judgment,
+        "asserted": True,
+        "asserted_uod_id": target_uod_id,
+        "state_count": len(chain.states),
+        "step_count": len(chain.steps),
+        "message": f"Asserted G as '{target_uod_id}' — withstood Agon ({spec['label']}).",
     }

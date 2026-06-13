@@ -52,23 +52,23 @@ rest reported), and an **RDF front-end** (`tools/rdf_to_owl.py`, via rdflib) bri
 / RDF-XML / N-Triples / JSON-LD by reconstructing the same functional-syntax AST the OWL
 translator consumes. Real ontologies now import from where they actually live.
 
-**▶ DESIGNATED NEXT TASK — the automated Grapheus (the dialogical contest). DESIGN DONE
-2026-06-12; BUILD in progress — increments 1 + 2 + 3 DONE (✅ block below); only 4 (warrant
-ChainStep) remains.** The design-of-record is **`docs/AUTOMATED_GRAPHEUS.md`** — read it
-first; it resolves the open sub-questions against Pietarinen, *Signs of Logic* Ch. 4 (the
-semantic-game reading of EGs). Memory: [[project_automated_grapheus_design]],
-[[project_agon_arena_v1_design]], [[project_domain_oracle_and_m]],
-[[project_chain_of_semiosis_grounding]].
+**✅ DONE — the automated Grapheus (the dialogical contest), all four increments built and
+green (2026-06-12/13).** Design-of-record `docs/AUTOMATED_GRAPHEUS.md`; ✅ blocks below cover
+increments 1+2+3 (driver + routes + board) and increment 4 (the warrant). Memory:
+[[project_automated_grapheus_design]], [[project_agon_arena_v1_design]],
+[[project_domain_oracle_and_m]], [[project_chain_of_semiosis_grounding]]. The import↔Agon arc
+is now closed for a single G: a Graphist-won contest can be asserted into the corpus as
+"withstood Agon" ([[project_import_low_warrant_and_floor]]).
 
-**▶ Resume here next session: increment 4 — the warrant `ChainStep`.** The headless core +
-routes + interactive board are built and green (39 grapheus tests incl. 2 Playwright E2E, 55
-agon/semantic regression). What remains: a corpus-boundary `ChainStep` ("withstood Agon",
-referencing the `Play`) minted only when the Agonothetes chooses an *asserting* disposition on
-a Graphist-won contest — the import↔Agon warrant link ([[project_import_low_warrant_and_floor]]).
-**Mind the §7 persistence seam:** `agonothetes._episode_to_chain` is transformation-game-shaped
-(it walks `episode.move_egis`); a `Play` has no EGI-per-move, so this needs a `Play`-aware
-warrant, NOT a reuse. Design the warrant axis in `CHAIN_OF_SEMIOSIS.md` terms first. The
-contest board currently shows the disposition taxonomy read-only ("nothing recorded yet").
+**▶ Resume here next session — pick the next track (author's call):**
+- **The layout follow-ups** (Backlog): reader robustness on dense ELK / tension compaction.
+- **The math menu**: the ∀x scaffold tactic ([[project_universal_generalization_dau_homework]])
+  / selection-driven fold ([[project_definition_node_vs_phi_hole]]).
+- **Agon depth**: the contest's deferred axes (doc §10) — Beta sub-game ordering for legible
+  multi-ligature plays; or the false-band warrant (assert ¬G / revise M), which V1 reports-not-
+  builds; or two-Grapheus dialogue (`CHAIN_OF_SEMIOSIS` fuller social regime-2).
+- **The by-hand import "reading desk"** ([[project_by_hand_import_reading_desk]]) or the
+  **math fixtures** ([[project_math_fixtures_zfc_peirce_schema]]), both user-requested.
 
 *What the design settled (so the build doesn't re-litigate):*
 - **The contest is the semantic game** (`src/semantic_game.py`), **not** the Dau transformation
@@ -101,6 +101,36 @@ materialised broaderTransitive closure gives the Grapheus non-trivial selectives
 ELK / tension compaction — both in Backlog); or the **math menu** (∀x scaffold tactic /
 selection-driven fold). (The "land a cited Turtle/RDF ontology" consolidation is now **DONE** —
 `skos_core` landed 2026-06-12, ✅ block below.)
+
+---
+
+## ✅ DONE 2026-06-13 — automated Grapheus increment 4 (the warrant: "withstood Agon")
+
+The corpus-boundary warrant that closes the import↔Agon arc — a Graphist-won (or independent)
+contest can be asserted into the corpus, carrying its `Play` as proof. The semantic-game record
+is a `Play` (selectives + path), not a transformation-game episode, so this is a **`Play`-aware
+warrant**, not a reuse of `_episode_to_chain` (per design §7).
+
+- **`agonothetes.apply_contest_disposition` + `_play_to_warrant_chain`** (over a
+  `GrapheusSession`). The asserted graph is **G itself** (the proposal that withstood Agon); the
+  single warrant `ChainStep` does not *transform* G (from==to EGI) — it **attests** that G crossed
+  the regime boundary by withstanding the contest (CHAIN_OF_SEMIOSIS's "fullest form" of regime-2
+  = withstood challenge, distinct from §3.3 = correspondence). The step's `parameters` carry the
+  whole `Play` as provenance (verdict, outcome, the selectives M supplied, the outside-in
+  transcript). Persisted via `save_uod_with_chain` (EPG_SESSION UoD; tags incl.
+  `warrant:withstood_agon`) — so §3.3 still fires on G at the boundary, before any disk write.
+- **The guard**: a **Grapheus win blocks assertion** (a lost inning cannot assert G; the
+  false-band's own assertions — assert ¬G, revise M — are out of V1 scope and *reported*, not
+  faked). A Graphist win or an **independent** inning may assert; non-asserting dispositions
+  record the judgment on the session only. Nothing auto-asserts.
+- **Route** `POST /agon/contests/{id}/disposition` (reuses `AgonDispositionRequest`); **frontend**
+  — the contest board's disposition taxonomy is now interactive (select → asserting fields →
+  "Record disposition"; lost-inning asserts shown blocked). **Tests**: +5 route (won→warrant
+  chain round-trips with `Play` provenance; lost→blocked; independent→new_fact; non-asserting;
+  target-id required) + 1 Playwright (record a non-asserting disposition). 42 grapheus +
+  41 chain/EPG/organon regression green.
+
+**The automated-Grapheus build is COMPLETE (increments 1–4).**
 
 ---
 

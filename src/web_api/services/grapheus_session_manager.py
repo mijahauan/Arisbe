@@ -41,6 +41,9 @@ class GrapheusSession:
     contest: GrapheusContest
     setup: Dict[str, Any]
     materialization: Optional[Dict[str, Any]] = None
+    # The Agonothetes' post-contest judgment (set once a disposition is chosen);
+    # an asserting one also mints the warrant ChainStep at the corpus boundary.
+    disposition: Optional[Dict[str, Any]] = None
     created: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_accessed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 

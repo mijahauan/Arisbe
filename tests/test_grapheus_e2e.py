@@ -104,6 +104,24 @@ def test_contest_graphist_witnesses_and_wins(page, app_url):
     assert "Record as conjecture" in body          # a concrete disposition label
 
 
+def test_contest_record_nonasserting_disposition(page, app_url):
+    # A ground atom present in M: the contest is over at start (Graphist wins), so the
+    # Agonothetes' disposition picker is shown.  Pick a *non-asserting* disposition so
+    # the browser test exercises the picker without writing to the corpus.
+    page.goto(app_url + "/agon")
+    page.wait_for_selector("#btn-contest", state="visible")
+    page.fill("#setup-model", '(dog "Biscuit")')
+    page.fill("#setup-proposal", '(dog "Biscuit")')
+    page.click("#btn-contest")
+
+    page.wait_for_selector('#interpret-result:has-text("Graphist wins")')
+    page.wait_for_selector('.contest-disp')
+    page.click('.contest-disp:has-text("Record as conjecture")')
+    page.wait_for_selector('#btn-contest-dispose:not([disabled])')
+    page.click('#btn-contest-dispose')
+    page.wait_for_selector('#status:has-text("Recorded disposition")')
+
+
 def test_contest_concede_hands_inning_to_grapheus(page, app_url):
     page.goto(app_url + "/agon")
     page.wait_for_selector("#btn-contest", state="visible")
