@@ -67,7 +67,31 @@ arc; the vocabulary-miss vs fact-miss distinction). Agreed order: **(1) DL-Reaso
 (2) FOLIO via its FOL side → NOT (3) the LLM front-end yet** (the "understandable but
 unmappable" caveat needs the backend + a vocabulary-miss notion first).
 
-**▶ Resume here next session: the instance-negative lever (optional), then start step 2.**
+**▶ Docs (2026-06-13): `ARISBE_PERSONAS.md` + the scenario narrative MERGED into
+`docs/ARISBE_IN_PRACTICE.md`** (one on-ramp; now/frontier refreshed — Grapheus/warrant/DL
+shipped; math horizon stays frontier). [[project_persona_capabilities_narrative]].
+
+**▶ Step 2 (FOLIO) — designed, awaiting one decision + the dataset.** FOLIO (github.com/Yale-LILY/FOLIO,
+1430 ex, label TRUE=entailed / FALSE=contradicted / UNCERTAIN=neither — matches Arisbe's
+3-valued thinking). Design: FOLIO-FOL ≈ Arisbe FOPL (`∀x (Dog(x)→Mammal(x))`), so the adapter
+is light normalization → `fopl_to_egi` (chapter18 Ψ) → EGI (the *pictures* + `same_graph`
+round-trip fidelity); entailment = `is_tautology` of the scroll `~[ premises ~[ C ] ]` (TRUE),
+`~[ premises C ]` (FALSE), else UNCERTAIN. **Blockers:** (a) **z3-solver not installed / not in
+pyproject** — the entailment engine (`z3_semantic_validator`) is dormant behind `Z3_AVAILABLE`;
+(b) clone FOLIO to a stable path. **Open decision — the entailment engine:** Z3-backed
+(verifier+pictures, adds z3 dep) vs Arisbe-native-only (bounded materialization/theory_query →
+honest soundness/coverage like DL, no dep) vs **both** (Z3 authoritative + Arisbe's native
+coverage alongside — the thesis-aligned result; recommended). Resolve this first.
+
+**▶ MATH TRACK (do not drop — author flagged 2026-06-13):** finish the mathematics horizon —
+validate the draft EGIF fixtures (docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md) against the parser,
+then the **definition layer** (named graphs) + the **graph-with-holes schema node**
+(Separation/Replacement/induction), then **∀x** via the Dau-native scaffold (homework done:
+isolated-vertex insertion = equivalence in any context). [[project_math_fixtures_zfc_peirce_schema]],
+[[project_universal_generalization_dau_homework]], [[project_definition_node_vs_phi_hole]].
+Companion to FOLIO — interleave per author preference.
+
+**▶ Earlier resume note (step 1 lever, optional):**
 - **Step 1 (DL-ReasonSuite DLCore) — DONE: full 3620-task run, real map below.** Dataset:
   github.com/okanss/DL-ReasonSuite (stable checkout at /home/mjh/Sync/GitHub/DL-ReasonSuite;
   earlier run used a /tmp clone). `tools/dl_reasonsuite.py --suite-dir <checkout>/dl-reason-suite --full`.
