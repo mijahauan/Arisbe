@@ -1,433 +1,398 @@
-# Arisbe in Practice
+# Arisbe in Practice: Who Uses It, and How
 
-## How Knowing, Making, and Contesting Build Understanding
+*An introduction for people who have never heard of Arisbe — told through the
+people who might use it and the work they actually do.*
 
-Arisbe provides three complementary ways of working with knowledge,
-modelled on how reasoning actually happens in the world:
+**Status**: active development · **Last refreshed**: 2026-06-13
+*(Combines the former `ARISBE_PERSONAS.md` and the original scenario narrative.)*
 
-- **Organon** — the library. Browse, study, and compare what is already known.
-- **Ergasterion** — the workshop. Build new claims, descriptions, and ideas.
+---
+
+## What Arisbe is for
+
+Charles Sanders Peirce called his Existential Graphs "moving pictures of
+thought." He meant that literally. A graph is not a diagram *about* a
+proposition the way a bar chart is a picture about some numbers; the graph
+**is** the proposition, drawn — a sign you can reason *in*, not merely look at.
+To assert something is to scribe it on the sheet; to prove something is to
+transform the picture by rules that never let it say something false; to ask
+what a claim means is to play it out against what you already hold true.
+
+Arisbe is an environment for **doing logic in pictures, not pictures of logic** —
+Peirce's vision made operational. You draw, transform, and contest Existential
+Graphs directly, as diagrams that evolve over a course of inquiry. Frithjof
+Dau's formalization is the **guarantor of correctness** underneath — the
+bedrock that makes "the picture never lies" a theorem rather than a hope — but
+the *aim* is Peirce's: to think in pictures, and to let the picture and the
+sentence be two faces of one and the same thought.
+
+That last clause is the engineering heart of the system, and every persona
+below leans on it: Arisbe holds the **drawn form** and the **written form** of a
+graph in *provable correspondence*. The oval you draw and the formula
+`~[ (man *x) ~[ (rich x) ~[ (happy x) ] ] ]` denote the **same mathematical
+object**, and they keep denoting it across every edit, every re-layout, every
+transformation, every round-trip. A runtime check refuses to show you a picture
+that means something other than what it says.
+
+What Arisbe is **not**: it is not a natural-language parser, and not a black-box
+reasoner that hands you a verdict. When something must be turned from English
+into logic, that is a separate, noisy job best left to a language model or a
+semantic parser; Arisbe's contribution begins once a candidate logical form
+exists — to *verify* it, *draw* it, *interpret* it against a world, and keep its
+*warrant*. It is the trustworthy interpretant behind the parser, not the parser.
+
+---
+
+## How it works: the cycle of inquiry
+
+Arisbe offers three complementary ways of working, modelled on how reasoning
+actually happens:
+
+- **Organon** — the library. Browse, study, and compare what is already known
+  (read-only, every item attested in correspondence).
+- **Ergasterion** — the workshop. Build new claims by drawing them freehand and
+  having Arisbe *read* the drawing back as a determinate sign; practise the
+  transformation rules; keep private drafts.
 - **Agon** — the arena. Test a new claim against established knowledge to
-  discover what it means.
+  discover what it *means* — does it follow, contradict, extend, or open a new
+  question?
 
-These three activities form a cycle. You study what you know (Organon), craft
-something new (Ergasterion), test it (Agon), and the result flows back into
-what you know. This document walks through practical scenarios that show
-how the cycle works — in language meant for anyone, not just logicians.
-
-This is the narrative on-ramp; the formal account of the testing step (the
-Endoporeutic Game — its rules, its outcome taxonomy, and the Peircean theory of
-inquiry behind it) is in [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
-Each scenario below is a concrete instance of one of that guide's outcome cases;
-the guide's Part II gives the scenario-by-scenario mapping.
-
-One rule keeps the cycle honest: work in the workshop never lands directly in
-the library. A graph reaches the trusted record (the corpus) only by being
-*tested through Agon*, or as a presentation-only restyling of something already
-trusted. Until then, a workshop draft lives in a private scratch space. So
-where a scenario below says a new claim "becomes part of what she knows," read
-it as: the claim was made in the workshop and then earned its place by being
-contested.
+These form a cycle: **Know** (Organon) → **Make** (Ergasterion) → **Contest**
+(Agon) → **Integrate**, and the result flows back into what you know. One rule
+keeps the cycle honest: *work in the workshop never lands directly in the
+library.* A graph reaches the trusted corpus only by being **tested through
+Agon**, or as a presentation-only restyling of something already trusted. Until
+then a draft lives in a private scratch space. So where a scenario below says a
+claim "becomes part of what she knows," read it as: *made in the workshop, then
+earned its place by being contested.*
 
 ---
 
-## Scenario 1: What You Already Knew
+# Part I — By persona: what you can do, and what you gain
 
-### The veterinarian's reasoning
+For each: *what you can do today*, and *what you will be able to do once Arisbe
+is complete.* The line between them keeps moving — several items that were
+"when complete" a few months ago have since shipped, and are now under "Now."
 
-Dr. Melo runs a small animal clinic. Over the years she has built up a body
-of knowledge about animal biology:
+## The teacher
 
-> Every mammal is warm-blooded.
-> Every warm-blooded animal needs temperature regulation when under anaesthesia.
-> Dogs are mammals.
+**Maria teaches introductory logic.** She is tired of students who can push
+symbols around a truth table but cannot say what an implication *means*. She
+wants logic to be something her students *do*, not a notation they decode.
 
-A client brings in a dog named Biscuit for surgery. Dr. Melo needs to confirm
-that she should prepare temperature regulation equipment.
+**Now.** Maria opens **Organon** and pulls up a worked proof — Peirce's Law,
+Barbara, the uniqueness of a group identity — each a real chain of sound steps
+she can walk forward and back. She drops a small domain model in front of the
+class ("every mammal is warm-blooded; dogs are mammals…") and in **Agon** lets a
+student propose a claim and watch the game *unwrap* it from the outside in until
+it resolves to a theorem, a contradiction, or a genuinely new fact — now against
+an **automated opponent** (the machine plays the model side optimally), with the
+running play and its verdict shown move by move. She can hand a student a target
+graph and let **challenge mode** grade a freehand attempt against it, with a
+**legible diff** that says, in the student's own vocabulary, *exactly* where the
+attempt and the target part ways — wrong scope, missing line of identity,
+arguments in the wrong order. Nothing on screen is a static slide; every diagram
+is live and inspectable.
 
-**Organon** — Dr. Melo reviews her knowledge base. She can see the three
-assertions laid out, browse their relationships, and confirm they are current
-and agreed-upon.
+**When complete.** A fully constructive *proof mode* to complement the
+model-checking game, so a challenge can be played as "find the derivation," with
+the system refereeing each rule application; and richer authored challenge banks
+graded automatically. Logic class becomes a workshop with a tireless, honest
+referee.
 
-**Ergasterion** — She constructs a new claim: "Biscuit needs temperature
-regulation during surgery." This is her *proposal* — a sentence she believes
-follows from what she knows, but has not yet formally verified.
+## The student
 
-**Agon** — She puts the proposal to the test. The game is framed as a
-question: "Given everything Dr. Melo knows, does it follow that Biscuit
-needs temperature regulation?"
+**Amara is learning, not performing.** She does not yet trust her own reasoning,
+and abstract rules slide off her. She needs to *see* why a step is allowed and to
+be caught — kindly and immediately — when it is not.
 
-The game proceeds by unwrapping the claim from the outside in:
+**Now.** In **Ergasterion** Amara composes a graph by hand on a freeform canvas:
+she places relations, draws cuts as ovals, drags lines of identity. Then she
+asks the graph **"what do you say?"** — and it reads itself back as a determinate
+sign with its linear form shown, *or* tells her, in the vocabulary of graphs,
+why it is not yet well-formed (a line dangling into nothing, two cuts improperly
+overlapping). A **Graph↔Argument** switch makes the difference between a sketch
+and a committed claim unmistakable: you cannot apply a rule to an unfixed
+drawing, nor silently change the meaning of a fixed one. She practises the six
+transformation rules with every application validated against the mathematics,
+and **challenge mode** turns practice into a game she can win — reproduce *this*
+graph, and get told precisely how close she is.
 
-1. Biscuit is a dog. Does the knowledge base confirm this? *Yes* — the
-   client brought a dog.
-2. Dogs are mammals. Does the knowledge base confirm this? *Yes* — it's
-   one of the established facts.
-3. Mammals are warm-blooded. Confirmed.
-4. Warm-blooded animals need temperature regulation under anaesthesia.
-   Confirmed.
+**When complete.** The "reading desk" — transcribe a graph straight out of a
+textbook and have Arisbe confirm she copied it faithfully. Over a term she
+accumulates not memorized facts but the *experience of having reasoned her way*
+to them — the only thing that ever transfers.
 
-Every link in the chain checks out. The claim is a **theorem** — it was
-already implicit in what Dr. Melo knew. The game merely made it explicit.
+## The researcher
 
-**The result flows back**: The conclusion "Biscuit needs temperature
-regulation" can now be added to the record for this patient — a new explicit
-fact derived from established knowledge.
+**Kwame works across two fields that have never been formally introduced.** He
+has bodies of knowledge in ecology and economics and a hunch that a claim
+spanning both might hold. He needs the precise logical seam where one domain's
+conclusions become another's premises.
 
-### What this illustrates
+**Now.** Kwame studies two corpora side by side in **Organon**, identifies the
+shared concept, and in **Ergasterion** builds a bridging argument. He tests it in
+**Agon**, which *sorts* it: this part is a theorem of the merged model, this part
+a reasonable extension to be agreed, this part an open conjecture needing
+evidence the game cannot supply. He moves a claim between EGIF, CGIF, and CLIF
+without loss; imports external material through a doorway that admits it honestly
+at **low warrant** — parsed and attributed, never asserted true; and reads the
+full provenance of any corpus item. Real ontologies are already in hand as
+models to contest against — SUMO, BFO, FOAF, SKOS, COLORE — imported through the
+OWL/RDF→CLIF→EGI pipeline. He can ask the **interpretation register** "given this
+world M, does G hold?" (true / false / *unknown*, with a witness or
+counterexample), run the **inverse pivot** — "*in what world does G hold*, and
+what is its residual contribution?" — and, when a Graphist-won contest is worth
+keeping, mint a **warrant**: G enters the corpus as "withstood Agon," carrying
+its play as proof.
 
-This is *deduction* — drawing out what is already contained in what you know.
-The Agon did not tell Dr. Melo anything surprising; it confirmed that her
-reasoning was sound. In formal terms, this is the simplest kind of game:
-the Proposer wins because every piece of the claim maps onto something in
-the established knowledge.
+**When complete.** Larger ontologies (WordNet, SNOMED, Wikidata) as routine
+opponents; a sharper account of *vocabulary the model cannot even address*
+(distinct from "addressable but unconfirmed"); and a fuller warrant lifecycle
+that records *how much* a claim has been challenged and by whom. Research becomes
+a diachronic record of inquiry — not a pile of results, but a documented history
+of how a community tested its way to them.
+
+## The logician / mathematician
+
+**Sofia cares about the mathematics being right, all the way down.** She wants
+the diagram and the formal object to be the *same thing*, provably, and to
+interrogate the claim that they are.
+
+**Now.** Sofia works with Dau's six transformation rules (ERA, INS, IT+, IT−,
+DC+, DC−), Beta-aware — lines of identity, shared vertices across cut
+boundaries — through a headless stepwise protocol that constructs and replays a
+proof move by move with deterministic provenance. The mathematical core has a
+protected test suite that must always pass; correctness is not advisory. She
+reads the **correspondence invariant** as a runtime attestation that *refuses*
+any (picture, proposition) pair that does not denote one object — an operational
+claim about the iconicity of EGs she can try to break by running the module.
+Layout is a *projection* of a coordinate-free structure, so she can swap the ELK
+engine for the experimental "tension" engine that draws a line of identity as a
+single taut thread through the cut nest — the authentic Peircean single-line
+reading. Beyond proof, she has the **semantic game** (truth-in-a-model,
+three-valued and open-world), the **theory query** ("is this universal a theorem
+of that theory?", decided by freezing a fresh witness), and a fragment-honest
+**DL reasoning** layer (subsumption / instance / consistency) she can run against
+a benchmark — and which reports *soundness and coverage separately*: it abstains
+where its bounded fragment can't decide rather than ever answering wrongly.
+
+**When complete.** Exhaustive, hypothesis-driven testing that enumerates *every*
+applicable site for each rule; a theorem-prover bridge (Coq/Lean via CLIF); and
+the **mathematics horizon** — universal generalization via a Dau-native scaffold
+tactic, fold/unfold of named definitions, a graph-with-holes schema node — which
+opens EGs onto real mathematics (ZFC separation, Peirce's 1881 axioms of
+arithmetic). *(This track is actively in progress: the soundness homework for
+universal generalization is done, draft fixtures exist, and the definition/schema
+layer is next.)* The system becomes a place to *do new mathematics* in pictures,
+not only to reproduce known proofs.
+
+## The physician
+
+**Dr. Okonkwo reasons under a body of clinical knowledge** that is large,
+revisable, and occasionally self-contradictory. She does not want a black box
+that outputs a diagnosis; she wants to see *which* of her commitments forces a
+conclusion, and to be shown — explicitly — when a new finding contradicts the
+rules she has trusted.
+
+**Now.** She lays out the relevant knowledge in **Organon**, frames a question in
+**Ergasterion** ("given everything we hold, does this patient need temperature
+regulation under anaesthesia?"), and puts it to **Agon**'s interpretation
+register, which unwraps it link by visible link and returns a defensible verdict
+with the **witness** that satisfies it or the **counterexample** that defeats it —
+and, crucially, an honest *unknown* when her knowledge neither confirms nor
+denies. When a new observation collides with an existing rule, the disposition
+taxonomy lays out the genuine options — reject the finding, revise the rule, hold
+it as a hypothesis — exactly the move clinical knowledge makes when a textbook
+generalization meets a real exception. Nothing auto-asserts; the judgment is
+hers.
+
+**When complete.** A large medical ontology (SNOMED) as the standing model, with
+guideline rules materialized so the reasoning fires automatically; and the
+warrant lifecycle keeping a record of which clinical rules have withstood
+challenge and which remain provisional. The result is reasoning that is
+**auditable**: not "the system said so," but a drawn, inspectable chain from
+accepted premises to a defensible conclusion — and an honest account of where
+that chain is still open. *(This applied-clinical loop is the least-exercised of
+the personas; the machinery is built, the domain modelling is the work ahead.)*
+
+## The editor (Peirce scholar)
+
+**Étienne is preparing Peirce for publication.** His problem is not invention but
+**fidelity**: Peirce's graphs survive as hand-drawn marks across thousands of
+manuscript pages, and a critical edition needs each rendered faithfully,
+captioned, attributed, and typeset to professional standard. This is the persona
+the LaTeX package [`egpeirce.sty`](references/egpeirce.sty.txt) (and its
+[documentation](references/Egpeirce%20Documentation.pdf)) was written to serve.
+
+**Now.** Étienne transcribes a manuscript diagram into a linear form he is sure
+of — EGIF, CGIF, or CLIF — loads it into Arisbe, where it parses to a formal EGI
+and renders in a chosen style (a **Peirce-authentic** style alongside the Dau and
+Sowa conventions). Because layout is a free, presentation-only regime, he can
+nudge vertices, reshape a cut, and reroute a ligature by hand to match the
+*spatial arrangement of the original page* — and the correspondence attestation
+guarantees that all this hand-adjustment is pure appearance: it never changes
+what the graph asserts. He round-trips a graph between linear forms to
+cross-check his transcription, and carries the manuscript's provenance — source,
+date, page — as typed metadata on the corpus item.
+
+**When complete.** The decisive frontier is **LaTeX/TikZ export** — the bridge
+from Arisbe's drawn form to publication-ready vector graphics, so a verified
+graph becomes a figure he drops straight into the edition. With it: an
+**overlay-comparison mode** to fade between Peirce's scan and the recreation;
+**batch export** of a whole manuscript's graphs; an **auto-citation** generator;
+and the **by-hand reading desk** — an interactive transcription surface that
+captures the graph *and* its scholarly apparatus (provenance, editorial
+annotations, variant readings) together. The promise: the printed graph and the
+manuscript graph denote the same thought, and the apparatus says so, citably.
+(See [FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md](FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md).)
+
+## What the personas share
+
+Seven people, one sheet. The teacher wants logic *done*; the student wants to be
+*caught*; the researcher wants the *seam* between domains; the logician wants the
+mathematics *exact*; the physician wants reasoning that is *auditable*; the
+editor wants fidelity that is *citable*. What lets one system serve them all is
+the single commitment underneath: **the picture and the proposition are the same
+sign, and Arisbe keeps them so.** Peirce supplies the aim; Dau supplies the
+guarantee; the personas supply the reasons it matters.
 
 ---
 
-## Scenario 2: Something Genuinely New
+# Part II — In practice: six scenarios
 
-### The birdwatcher's discovery
+The personas above describe *who*; these scenarios show *how the cycle feels*, in
+language meant for anyone. Each is a concrete instance of one of the game's
+outcome cases (the formal account is in
+[ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md); its Part II gives the
+scenario-by-scenario mapping).
 
-Tomás keeps a careful log of birds in his local wetland reserve. His
-knowledge base records dozens of species with their characteristics:
+## Scenario 1: What you already knew — *deduction*
 
-> Herons are wading birds.
-> Wading birds have long legs.
-> Kingfishers are diving birds.
-> Diving birds nest near riverbanks.
+**Dr. Melo, a veterinarian**, holds: every mammal is warm-blooded; every
+warm-blooded animal needs temperature regulation under anaesthesia; dogs are
+mammals. A client brings in a dog, Biscuit, for surgery.
 
-One morning he spots a bird he has never recorded: it has bright blue plumage,
-a long bill, and it dives into the water from an overhanging branch.
+In **Organon** she reviews the three assertions. In **Ergasterion** she
+constructs the proposal "Biscuit needs temperature regulation during surgery." In
+**Agon** the game unwraps it from the outside in: Biscuit is a dog (the client
+brought one) → dogs are mammals (established) → mammals are warm-blooded → 
+warm-blooded animals need regulation. Every link checks out: the claim is a
+**theorem** — already implicit in what she knew. The conclusion can be added to
+the patient's record.
 
-**Organon** — Tomás searches his knowledge base. No existing entry matches
-this combination of traits. He finds partial matches — kingfishers dive,
-herons have long bills — but nothing that captures the whole bird.
+*This is deduction* — drawing out what is already contained in what you know. The
+Agon did not surprise her; it confirmed her reasoning was sound.
 
-**Ergasterion** — He constructs a description: "There exists a bird in the
-reserve that is blue, has a long bill, and dives from branches." He also
-drafts a tentative identification: "This bird is an Azure Kingfisher."
+## Scenario 2: Something genuinely new — *empirical enlargement*
 
-**Agon** — He tests his proposal against the knowledge base. The game
-unwraps it:
+**Tomás, a birdwatcher**, logs a wetland reserve: herons are wading birds;
+wading birds have long legs; kingfishers are diving birds; diving birds nest near
+riverbanks. One morning he spots a bird he has never recorded — bright blue, long
+bill, diving from a branch.
 
-1. "There exists a bird in the reserve with these traits." The knowledge
-   base says nothing about this — it neither confirms nor denies it.
-2. "This bird is an Azure Kingfisher." The knowledge base has no entry
-   for Azure Kingfishers.
+**Organon** has no matching entry. In **Ergasterion** he describes the bird and
+drafts an identification: "Azure Kingfisher." In **Agon** the game reaches a
+**stalemate** — not because anything is wrong, but because the proposal is
+*independent* of existing knowledge: it neither contradicts nor follows. Since
+the claim is compatible with everything known and he has direct observational
+evidence, he accepts it as a **new fact**; the knowledge base grows.
 
-The game reaches a **stalemate** — not because anything is wrong, but
-because the proposal is *independent* of the existing knowledge. It doesn't
-contradict anything; it simply goes beyond what is currently recorded.
-
-**The game produces an interpretation**: Since the claim is compatible
-with everything known, and Tomás has direct observational evidence (he
-saw the bird), he accepts it as a **new fact**.
-The knowledge base grows: it now includes the Azure Kingfisher, its traits,
-and the observation date.
-
-**The result flows back**: Future queries — "What diving birds live in the
-reserve?" — will now include the Azure Kingfisher.
-
-### What this illustrates
-
-This is *empirical enlargement* — adding genuinely new knowledge that could
-not have been derived from what was already known. The Agon's role here was
-not to prove or refute but to *sort* the proposal: it confirmed that the new
-claim is consistent with existing knowledge and independent of it, which is
+*This is empirical enlargement* — the game's role was not to prove or refute but
+to *sort* the proposal: consistent with, and independent of, what was known —
 exactly the condition under which a new fact can be accepted.
 
----
+## Scenario 3: A contradiction that teaches — *knowledge revision*
 
-## Scenario 3: A Contradiction That Teaches
+**A community garden** holds: tomatoes require full sun; the north bed is in full
+shade — so everyone has accepted that tomatoes cannot grow in the north bed. Then
+Priya plants cherry tomatoes there with reflective mulch, and they fruit
+abundantly.
 
-### The gardener's surprise
+In **Agon** her claim **contradicts** the established knowledge — but a
+contradiction is not a verdict. The game's interpretive function lays out the
+options: reject the proposal, revise the knowledge base, or hold it as a
+hypothesis pending investigation. The evidence is real, so the group **revises**:
+"tomatoes require adequate light" replaces "tomatoes require full sun," and
+"reflective mulch can supplement light" is added.
 
-A community garden has a shared knowledge base of growing wisdom:
+*This is knowledge revision* — the hardest and most powerful outcome. The old
+rule was not wrong; it was *incomplete*, and the game exposed the incompleteness
+and guided the repair.
 
-> Tomatoes require full sun.
-> The north bed is in full shade.
+## Scenario 4: Building an argument — *a mixed verdict*
 
-From these two facts, everyone has accepted as given:
+**Keiko, a town planner**, wants a park on a disused lot. From the council's
+accepted positions (green spaces cool the air; cooler air lowers energy costs;
+lower costs raise property values; the lot is residential and currently a
+drain), she builds a six-step argument to "a park is a net financial benefit."
 
-> Tomatoes cannot grow in the north bed.
+In **Agon** the argument *sorts*: steps 1–4 are a **theorem** of what the council
+already accepts; step 5 ("higher values → higher tax revenue") is a **reasonable
+extension** they could agree to add; step 6 ("revenue exceeds cost") is an **open
+conjecture** needing financial projections the game cannot supply. Keiko now
+knows exactly where her argument is strong and where it needs evidence.
 
-One season, a new member, Priya, plants cherry tomatoes in the north bed
-using reflective mulch. To everyone's surprise, the plants fruit
-abundantly. Priya proposes: "Tomatoes can grow in the north bed."
+*Real arguments are rarely pure deductions.* The Agon tells you which parts are
+certain, which are plausible-but-need-agreement, and which are open — far more
+useful than "valid / invalid."
 
-**Organon** — The group reviews their knowledge base and sees the existing
-assertions. The derivation "tomatoes cannot grow in the north bed" is
-indeed what follows from the current knowledge.
+## Scenario 5: A course of study — *learning through inquiry*
 
-**Ergasterion** — Priya constructs her claim formally: "Cherry tomatoes
-grew in the north bed (this season, with reflective mulch)."
+**Amara learns zoology** through guided investigation rather than lecture. Week 1
+establishes a small model (mammals warm-blooded; reptiles cold-blooded; …). Week
+2: "can whales regulate their temperature?" — "whales are mammals" is a **new
+fact** they accept on authority, after which the rest follows as a **theorem**,
+and she understands *why*. Week 3: "are all sea creatures cold-blooded?" — a
+**contradiction** with "whales are warm-blooded," so she learns to refute by
+counterexample. Week 4: "some fish regulate partially" — a contradiction she
+resolves by **revising** the rule. 
 
-**Agon** — The claim is tested against the knowledge base. The game finds
-a problem:
+*Education is not the transfer of facts.* It is the guided construction of
+understanding through proposing, testing, and revising — each inning leaving her
+with a richer model and the experience of having reasoned her way to it.
 
-1. "Tomatoes grew in the north bed." But the knowledge base says tomatoes
-   require full sun, the north bed has full shade, and therefore tomatoes
-   cannot grow there.
+## Scenario 6: Bridging two bodies of knowledge — *a merged theorem*
 
-The claim **contradicts** the established knowledge. This is a *refutation*
-of the proposal — or is it?
+**Kwame** has an ecology base (wetlands filter pollutants → fisheries →
+coastal communities) and an economics base (coastal communities → tourism
+revenue → infrastructure → population growth). He wants to know whether
+"preserving wetlands supports population growth."
 
-**But the game's interpretive function goes deeper than a simple
-verdict**: A contradiction does not necessarily mean the proposal is wrong.
-It means the proposal and the established knowledge cannot both be true
-as stated. There are several possibilities:
+In **Organon** he finds the shared concept — "coastal communities." In
+**Ergasterion** he builds the bridging chain. In **Agon** each step is a theorem
+within its domain, and the critical link holds because the domains share that
+concept: the conclusion is a **theorem of the merged model**. The two bases are
+now connected by an explicit chain, recorded for further inquiry.
 
-- **Reject the proposal**: Perhaps the cherry tomatoes were not really
-  thriving, or the north bed got more light than thought.
-- **Revise the knowledge base**: Perhaps "tomatoes require full sun" is too
-  strong. A more accurate rule might be: "Tomatoes require adequate light,
-  which can be supplemented by reflection."
-- **Hold both as a hypothesis pending investigation**: Perhaps keep the old
-  rule for now but mark Priya's observation as a data point that warrants
-  further study.
-
-The group discusses and decides: the evidence is real (the tomatoes are
-right there). They revise their knowledge: "Tomatoes require adequate
-light" replaces "Tomatoes require full sun," and "Reflective mulch can
-supplement light in shaded beds" is added as a new fact.
-
-**The result flows back**: The knowledge base is now more accurate. Future
-planting decisions can take reflective mulch into account.
-
-### What this illustrates
-
-This is *knowledge revision* — the most powerful and most difficult outcome
-of the game. The Agon did not simply accept or reject; it identified a
-genuine conflict and facilitated a resolution that improved the group's
-understanding of the world. The old rule was not "wrong" — it
-was *incomplete*. The game process exposed the incompleteness and guided
-the revision.
-
----
-
-## Scenario 4: Building an Argument
-
-### The town planner's case
-
-Keiko is a town planner who wants to persuade the council to build a park
-in a disused lot. She needs to make an argument — a chain of reasoning
-from premises the council already accepts to a conclusion they have not
-yet considered.
-
-**Organon** — Keiko reviews the council's established positions:
-
-> Green spaces reduce local air temperature.
-> Reduced air temperature lowers energy costs for adjacent buildings.
-> Lower energy costs increase property values.
-> The disused lot on Elm Street is surrounded by residential buildings.
-> The disused lot currently generates no revenue and incurs maintenance costs.
-
-**Ergasterion** — Keiko constructs her argument in steps:
-
-1. A park on Elm Street would be a green space.
-2. Therefore it would reduce local air temperature (from established knowledge).
-3. Therefore it would lower energy costs for the surrounding homes.
-4. Therefore it would increase property values.
-5. Increased property values generate higher tax revenue.
-6. Higher tax revenue exceeds the current maintenance costs.
-
-Her conclusion: "Building a park on the Elm Street lot is a net financial
-benefit to the municipality."
-
-**Agon** — The argument is tested against the council's established knowledge.
-The game unwraps each step:
-
-- Steps 1–4 check out: each follows from premises the council has already
-  accepted.
-- Step 5 introduces a new claim: "increased property values generate higher
-  tax revenue." The council's knowledge base does not contain this.
-- Step 6 introduces another new claim: the revenue *exceeds* the costs.
-  This is a quantitative assertion the knowledge base cannot verify.
-
-**The game yields a mixed interpretation**:
-
-- The first part of the argument is a **theorem** — it follows deductively
-  from what the council already accepts.
-- Step 5 is a **reasonable extension** — it is widely accepted economic
-  knowledge that the council could agree to add.
-- Step 6 is an **open conjecture** — it requires empirical data (actual
-  cost and revenue projections) that the game cannot supply.
-
-**The result flows back**: Keiko now knows exactly where her argument is
-strong and where it needs more work. She can strengthen step 6 with actual
-financial projections and re-test. The council can accept the logical
-structure of the argument while requesting evidence for the quantitative
-claim.
-
-### What this illustrates
-
-Real arguments are rarely pure deductions. They typically contain a
-deductive core (steps that follow from agreed premises), some extensions
-(new facts or widely accepted claims that need to be explicitly agreed upon),
-and some conjectures (claims that require external evidence). The Agon
-*sorts* the argument — it tells you which parts are logically certain,
-which parts are plausible but need agreement, and which parts are genuinely
-open questions. This is far more useful than a simple "valid" or "invalid."
+*Interdisciplinary insight* works not by blurring boundaries but by finding the
+precise logical links between well-understood domains.
 
 ---
 
-## Scenario 5: A Course of Study
+## The cycle, once more
 
-### Learning zoology through inquiry
+Every scenario follows the same pattern: **Know** (study what is established) →
+**Make** (construct a claim) → **Contest** (test it — does it follow, contradict,
+extend, or open a question?) → **Integrate** (add a fact, revise a rule, flag a
+hypothesis, record a refutation). This is Peirce's vision of logic as a **living
+practice** — not a static catalogue of truths but an ongoing process in which
+knowledge grows, corrects itself, and deepens through assertion, challenge, and
+resolution.
 
-A student, Amara, is learning basic zoology. Her teacher uses Arisbe as a
-teaching tool. Rather than lecturing, the teacher guides Amara through a
-series of investigations that build her knowledge step by step.
-
-**Week 1 — Establishing the ground**
-
-The teacher provides an initial knowledge base (a small domain model):
-
-> Mammals are warm-blooded.
-> Reptiles are cold-blooded.
-> Warm-blooded animals regulate their own body temperature.
-> Cold-blooded animals rely on external heat sources.
-
-Amara studies these in the Organon. She can browse the relationships, see
-how "warm-blooded" connects to "regulate body temperature," and get a
-feel for the structure.
-
-**Week 2 — First discovery**
-
-The teacher asks: "Whales live in cold ocean water. Can they regulate their
-body temperature?" Amara is not sure. She constructs the question in the
-Ergasterion:
-
-> Whales are mammals.
-> Therefore, whales are warm-blooded.
-> Therefore, whales regulate their own body temperature.
-
-She tests this in the Agon. The first step — "whales are mammals" — is not
-in her current knowledge base. It's a **new fact** that she and the teacher
-agree to accept (the teacher confirms it from biological authority). Once
-accepted, the rest follows as a theorem.
-
-*Amara has learned something*: she now knows that whales can regulate their
-body temperature, and she understands *why* — because they are mammals
-and mammals are warm-blooded. The knowledge is not memorized; it is
-*understood* through the logical structure.
-
-**Week 3 — A surprise**
-
-The teacher asks: "Are all sea creatures cold-blooded?" Amara's first
-instinct is "no — we just established that whales are warm-blooded and
-they live in the sea." She constructs the counter-claim in the Ergasterion
-and tests it. The Agon confirms: the claim "all sea creatures are
-cold-blooded" **contradicts** her knowledge base, because it conflicts
-with "whales are warm-blooded."
-
-*Amara has learned to reason by contradiction*: she can refute a false
-generalization by producing a counterexample from her own knowledge.
-
-**Week 4 — An open question**
-
-The teacher introduces: "Some fish can regulate their body temperature
-partially." This contradicts the simple rule that reptiles and fish are
-cold-blooded. Testing it in the Agon produces a contradiction with the
-existing knowledge.
-
-But instead of rejecting the claim, the teacher and Amara discuss it.
-The game presents the options: reject the claim, revise the knowledge
-base, or hold it as a hypothesis. Amara decides to **revise**:
-"Most fish are cold-blooded, but some species (like tuna) can partially
-regulate body temperature." Her knowledge base becomes more nuanced.
-
-*Amara has learned that knowledge evolves*: what seemed like a simple
-rule had exceptions, and discovering those exceptions made her understanding
-richer, not weaker.
-
-### What this illustrates
-
-Education is not the transfer of facts from teacher to student. It is the
-guided construction of understanding through a cycle of proposing, testing,
-and revising. The Organon provides the library; the Ergasterion provides
-the workshop where the student articulates their thinking; the Agon
-provides the arena where that thinking is tested against reality. Each
-cycle — each "inning" — leaves the student with a richer, more accurate
-knowledge base and, more importantly, with the experience of having
-*reasoned* their way to that knowledge.
+The participants need not be logicians. The formal machinery — the graph
+structures, the transformation rules, the game protocol — handles the rigour.
+What participants bring is clarity about what they know, honesty about what they
+claim, and willingness to revise when the evidence demands it: the habits of
+good reasoning Peirce spent his life trying to cultivate.
 
 ---
 
-## Scenario 6: Bridging Two Bodies of Knowledge
+## Pointers
 
-### Connecting ecology and economics
-
-A research group has two separate knowledge bases:
-
-- **Ecology**: "Wetlands filter pollutants. Filtered water supports
-  fisheries. Healthy fisheries sustain coastal communities."
-- **Economics**: "Coastal communities generate tourism revenue. Tourism
-  revenue funds infrastructure. Infrastructure supports population growth."
-
-Each domain is well-developed internally, but they have never been formally
-connected. A researcher, Kwame, wants to explore whether "preserving
-wetlands supports population growth" — a claim that spans both domains.
-
-**Organon** — Kwame studies both knowledge bases side by side. He identifies
-the linking concept: "coastal communities" appears in both.
-
-**Ergasterion** — He constructs a bridging argument:
-
-> Wetlands filter pollutants (ecology).
-> Filtered water supports fisheries (ecology).
-> Healthy fisheries sustain coastal communities (ecology).
-> Coastal communities generate tourism revenue (economics).
-> Tourism revenue funds infrastructure (economics).
-> Infrastructure supports population growth (economics).
-> Therefore: preserving wetlands supports population growth.
-
-**Agon** — The argument is tested. Each step is a theorem within its
-respective domain. The critical link — "healthy fisheries sustain coastal
-communities" chaining into "coastal communities generate tourism revenue"
-— holds because the two domains share the concept of "coastal communities."
-
-The game confirms: the conclusion follows from the combined knowledge of
-both domains. It is a **theorem of the merged model**.
-
-**The result flows back**: The two knowledge bases are now connected through
-an explicit chain of reasoning. This connection can be recorded in the
-Organon and used as the basis for further inquiry — for example, "If
-wetlands are drained, what happens to population growth?"
-
-### What this illustrates
-
-Knowledge does not live in isolation. The Organon's ability to connect
-multiple knowledge bases, combined with the Ergasterion's ability to
-construct bridging arguments, and the Agon's ability to verify them,
-enables the growth of understanding *across* domains. This is how
-interdisciplinary insight works: not by blurring boundaries, but by
-finding the precise logical links between well-understood domains.
-
----
-
-## The Cycle of Inquiry
-
-Every scenario above follows the same pattern:
-
-1. **Know** (Organon) — Study what is established. Understand the current
-   state of knowledge.
-2. **Make** (Ergasterion) — Construct a new claim, question, or argument.
-   Articulate what you think might be true.
-3. **Contest** (Agon) — Test the new claim against established knowledge.
-   Discover whether it follows, contradicts, extends, or opens new questions.
-4. **Integrate** — Based on the outcome, update the knowledge base: add
-   the new fact, revise an old rule, flag a hypothesis for further study,
-   or record a refutation for future reference.
-
-This is Peirce's vision of logic as a **living practice** — not a static
-catalogue of truths, but an ongoing process of inquiry in which knowledge
-grows, corrects itself, and deepens through the disciplined interplay of
-assertion, challenge, and resolution.
-
-The participants need not be logicians. The underlying formal machinery
-(the graph structures, the transformation rules, the game protocol) handles
-the rigour. What the participants need is clarity about what they know,
-honesty about what they claim, and willingness to revise when the evidence
-demands it. These are not technical skills. They are the habits of good
-reasoning that Peirce spent his life trying to understand and cultivate.
+- **For Peirce scholars in particular:** [ARISBE_FOR_SCHOLARS.md](ARISBE_FOR_SCHOLARS.md)
+- **The editor's frontier, in detail:** [FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md](FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md)
+- **The central contract (picture = proposition):** [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
+- **The formal account of the game:** [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md)
+- **Run it:** `uv sync --extra dev --extra web` then
+  `uv run uvicorn web_api.main:app --reload --port 8000` and open `/organon`.

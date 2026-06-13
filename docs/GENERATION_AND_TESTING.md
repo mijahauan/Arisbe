@@ -48,7 +48,7 @@ as a new fact," "hold as a conjecture" are *decisions about the outcome*, not
 separate game moves. The genuinely adversarial character is the *choices during the
 peel* (whose witness, which conjunct) plus the *freedom of the decision*.
 
-## Three clarifications the personas forced (see `ARISBE_PERSONAS.md`)
+## Three clarifications the personas forced (see `ARISBE_IN_PRACTICE.md`)
 
 1. **M is an extensional model; the peel is model-checking, not inference.** A
    *model* is the facts (the extension over a domain); *rules* belong to a *theory*.
@@ -111,4 +111,4 @@ context-retrieval; it reuses the oracle unchanged. See
 Related: [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) (the two formalisms),
 [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) (the regimes; asserted = withstood
 challenge), [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) (M as oracle),
-[ARISBE_PERSONAS.md](ARISBE_PERSONAS.md) (the worked innings).
+[ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) (the personas + worked innings).
