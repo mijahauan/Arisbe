@@ -42,8 +42,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set, Tuple
 
 from egi_core_dau import (
+    Edge,
     RelationalGraphWithCuts,
-    create_edge,
     create_empty_graph,
     create_vertex,
 )
@@ -247,7 +247,10 @@ def _facts_to_egi(facts: Set[Fact]) -> RelationalGraphWithCuts:
             g = g.with_vertex(v)
             vid_of[k] = v.id
 
-    for rel, args in sorted(facts):
-        edge = create_edge()
+    for i, (rel, args) in enumerate(sorted(facts)):
+        # Deterministic, collision-free edge ids.  ``create_edge`` draws a 32-bit random
+        # suffix, which collides once a materialized closure runs to thousands of facts
+        # (a DL ontology's least Herbrand model); enumerate instead — also reproducible.
+        edge = Edge(id=f"e_m{i}")
         g = g.with_edge(edge, tuple(vid_of[k] for k in args), rel)
     return g
