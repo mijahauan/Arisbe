@@ -230,6 +230,15 @@
       font-size: 12px;
       text-align: center;
     }
+    /* Overview (adaptive-scope) placeholder badges — drawn into the SVG over a
+       collapsed cut. The pill is a navigation affordance, not a logical mark:
+       it reports *form* (counts/polarity/boundary degree), never actuality. */
+    .overview-badge { cursor: pointer; }
+    .overview-badge .ov-hit { fill: rgba(137,180,250,0.05); }
+    .overview-badge:hover .ov-hit { fill: rgba(137,180,250,0.16); }
+    .overview-badge .ov-pill { fill: #1e1e2e; opacity: 0.92; }
+    .overview-badge .ov-pill-text { fill: #cdd6f4; font: 600 12px ui-sans-serif, system-ui, sans-serif; }
+    .overview-badge .ov-sub-text { fill: #a6adc8; font: 500 10px ui-sans-serif, system-ui, sans-serif; }
   </style>
 </head>
 <body>
@@ -323,9 +332,22 @@
         <label for="view-lens" style="font-size:11px; color:#a6adc8;">Lens</label>
         <select id="view-lens" style="font-size:12px;" title="A read-only projection of this UoD — never the asserted drawing.">
           <option value="drawing">Drawing (default)</option>
+          <option value="overview">Drawing — overview (adaptive scope)</option>
           <option value="well">Well — 2.5-D negation depth</option>
           <option value="storyboard" hidden disabled>Storyboard — the line of thought</option>
         </select>
+        <!-- Overview (adaptive-scope) controls: shown only in the overview lens.
+             Collapse deep cuts into content-sized placeholders so a graph too
+             large to draw whole can still be navigated (docs/ADAPTIVE_SCOPE_VIEWER.md).
+             Tap a placeholder to expand it; the camera holds so detail appears
+             in place. The view is attested by the weaker attest_overview (visible
+             part corresponds + placeholders faithfully summarize) — never a
+             promotion source. -->
+        <span id="overview-controls" style="display:none; align-items:center; gap:8px; margin-left:8px;">
+          <button id="ov-reset" style="font-size:11px; padding:3px 9px; cursor:pointer;"
+                  title="Collapse everything back to the top-level overview">⊖ Collapse all</button>
+          <span id="ov-hint" style="font-size:10px; color:#6c7086;"></span>
+        </span>
         <label for="view-style" style="font-size:11px; color:#a6adc8; margin-left:8px;">View style</label>
         <select id="view-style" style="font-size:12px;">
           <option value="">Dau (default)</option>
@@ -424,6 +446,11 @@
       let currentStructure = null;     // cached /structure for the Well lens
       let currentHistory = null;       // cached /history-structure for diachronic lenses
       let activeLensHandle = null;     // {destroy()} of the mounted non-drawing lens
+      // Overview (adaptive-scope) state: the cuts the reader has drilled into
+      // (ancestors auto-included server-side). Empty ⇒ the auto-expand policy
+      // shows the top of the graph; each expand re-fetches a larger visible part.
+      let overviewExpanded = new Set();
+      let overviewLoading = false;     // guards the camera mode (fit first, then hold)
       function styleQuery() {
         const q = [];
         if (currentStyle) q.push('style=' + encodeURIComponent(currentStyle));
@@ -745,6 +772,8 @@
         currentHistory = null;
         currentLens = 'drawing';
         destroyActiveLens();
+        overviewExpanded = new Set();
+        setOverviewControls(false);
         if (viewLensSel) viewLensSel.value = 'drawing';
         setDiachronicLensesAvailable(false);
         renderCanvas(data.svg || '', data.linear_forms, false);
@@ -754,6 +783,9 @@
       // in the chosen style — no Export round-trip. §3.3 attests each render.
       async function applyViewStyle() {
         if (!selectedUodId) return;
+        // In the overview lens, a style change reprojects the collapsed view
+        // (keeping the current drilled-into set); camera holds.
+        if (currentLens === 'overview') { renderOverview(false); return; }
         const label = currentStyle || 'Dau (default)';
         // Immediate feedback: a styled re-render of a whole chain (oval refit +
         // hand-drawn) can take a few seconds, so show progress rather than
@@ -831,9 +863,16 @@
         renderLens(lens);
       }
 
+      // Show/hide the overview controls (Collapse-all + hint) — overview lens only.
+      function setOverviewControls(on) {
+        const c = document.getElementById('overview-controls');
+        if (c) c.style.display = on ? 'inline-flex' : 'none';
+      }
+
       async function renderLens(lens) {
         currentLens = lens;
         destroyActiveLens();
+        setOverviewControls(lens === 'overview');
         if (lens === 'drawing') {
           // The chain player belongs to the Drawing lens; restore it if diachronic.
           if (currentHasChain) {
@@ -847,6 +886,12 @@
         // Non-drawing lenses: the player is hidden (these are alternative views).
         stopPlay();
         if (cp.bar) cp.bar.style.display = 'none';
+        if (lens === 'overview') {
+          // Adaptive-scope: a fresh entry starts collapsed (auto-policy), fit camera.
+          overviewExpanded = new Set();
+          await renderOverview(true);
+          return;
+        }
         canvasEl.innerHTML = '<div id="organon-canvas-placeholder">Rendering lens…</div>';
         try {
           if (!selectedUodId) return;
@@ -863,6 +908,145 @@
             'Lens failed: ' + escapeHtml(e.message || String(e)) + '</div>';
         }
       }
+
+      // ---- Overview (adaptive-scope navigation projection) ----
+      // The Drawing at a reduced level of detail: deep cuts collapse into
+      // content-sized placeholders so a graph ELK can't draw whole stays within
+      // budget. Server path = collapse_quotient → generate_layout (?lod=overview);
+      // it returns the SVG + a `collapsed` badge map (cut id → form-only counts).
+      // Tap a placeholder to expand it (camera holds, detail appears in place).
+
+      function ovUrl() {
+        const q = ['lod=overview'];
+        if (overviewExpanded.size) {
+          q.push('expand=' + encodeURIComponent(Array.from(overviewExpanded).join(',')));
+        }
+        if (currentStyle) q.push('style=' + encodeURIComponent(currentStyle));
+        return '/organon/uods/' + encodeURIComponent(selectedUodId) + '?' + q.join('&');
+      }
+
+      async function renderOverview(fitCamera) {
+        if (!selectedUodId) return;
+        overviewLoading = true;
+        if (fitCamera) {
+          canvasEl.innerHTML = '<div id="organon-canvas-placeholder">Rendering overview…</div>';
+        }
+        try {
+          const res = await fetch(ovUrl());
+          const body = await res.json();
+          if (!body.success) {
+            canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:#f38ba8;">' +
+              escapeHtml((body.error && body.error.message) || 'Overview failed') + '</div>';
+            return;
+          }
+          const data = body.data;
+          const collapsed = data.collapsed || {};
+          // Render the overview SVG via the shared viewer. Fit on first entry;
+          // hold (keep, re-fit only if it overflows) on an expand so detail
+          // appears in place — the map-app feel (docs/ADAPTIVE_SCOPE_VIEWER.md §6).
+          svgPanZoomInstance = diagramView.render(data.svg, {
+            camera: fitCamera ? 'fit' : 'keep',
+          });
+          decorateOverview(collapsed);
+          const n = Object.keys(collapsed).length;
+          const hint = document.getElementById('ov-hint');
+          if (hint) {
+            hint.textContent = n
+              ? n + ' placeholder' + (n === 1 ? '' : 's') + ' — tap to expand'
+              : 'fully expanded (nothing collapsed)';
+          }
+          setStatus(n
+            ? 'Overview: ' + n + ' collapsed region(s). Tap a placeholder to drill in. ' +
+              'Attested by attest_overview (not full §3.3 — a navigation projection).'
+            : 'Overview: this graph fits the budget — drawn in full.');
+        } catch (e) {
+          setStatus('Overview render failed: ' + e.message, true);
+        } finally {
+          overviewLoading = false;
+        }
+      }
+
+      // Draw a badge + clickable hit-area over each collapsed placeholder cut.
+      // Coordinates come from each cut <g>'s getBBox() (final SVG user space), so
+      // no renderer-offset math is needed; appending into that same <g> inherits
+      // its coordinate system and pans/zooms with the diagram.
+      function decorateOverview(collapsed) {
+        const svg = canvasEl.querySelector('svg');
+        if (!svg) return;
+        const ns = 'http://www.w3.org/2000/svg';
+        Object.keys(collapsed).forEach(function (cutId) {
+          const badge = collapsed[cutId];
+          let g = null;
+          try { g = svg.querySelector('[data-element-type="cut"][data-element-id="' + CSS.escape(cutId) + '"]'); } catch (_) {}
+          if (!g) return;
+          let bb; try { bb = g.getBBox(); } catch (_) { return; }
+          if (!bb || !bb.width) return;
+          const cx = bb.x + bb.width / 2, cy = bb.y + bb.height / 2;
+
+          const grp = document.createElementNS(ns, 'g');
+          grp.setAttribute('class', 'overview-badge');
+          grp.setAttribute('data-overview-cut', cutId);
+
+          const hit = document.createElementNS(ns, 'rect');
+          hit.setAttribute('class', 'ov-hit');
+          hit.setAttribute('x', bb.x); hit.setAttribute('y', bb.y);
+          hit.setAttribute('width', bb.width); hit.setAttribute('height', bb.height);
+          grp.appendChild(hit);
+
+          // Compact, form-only label: cuts / relations / lines (+ boundary lines).
+          const main = (badge.predicates || 0) + ' rel · ' + (badge.cuts || 0) +
+            ' cut' + ((badge.cuts === 1) ? '' : 's') + ' · ' + (badge.vertices || 0) +
+            ' line' + ((badge.vertices === 1) ? '' : 's');
+          const sub = '＋ expand' + (badge.boundary_degree
+            ? '  ·  ⇢ ' + badge.boundary_degree + ' enter' : '');
+          const padX = 8, w = Math.max(96, main.length * 6.6 + padX * 2), h = 30;
+          const pill = document.createElementNS(ns, 'rect');
+          pill.setAttribute('class', 'ov-pill');
+          pill.setAttribute('x', cx - w / 2); pill.setAttribute('y', cy - h / 2);
+          pill.setAttribute('width', w); pill.setAttribute('height', h);
+          pill.setAttribute('rx', 6); pill.setAttribute('ry', 6);
+          grp.appendChild(pill);
+
+          const t1 = document.createElementNS(ns, 'text');
+          t1.setAttribute('class', 'ov-pill-text');
+          t1.setAttribute('x', cx); t1.setAttribute('y', cy - 2);
+          t1.setAttribute('text-anchor', 'middle');
+          t1.textContent = main;
+          grp.appendChild(t1);
+
+          const t2 = document.createElementNS(ns, 'text');
+          t2.setAttribute('class', 'ov-sub-text');
+          t2.setAttribute('x', cx); t2.setAttribute('y', cy + 11);
+          t2.setAttribute('text-anchor', 'middle');
+          t2.textContent = sub;
+          grp.appendChild(t2);
+
+          // Tap-to-expand, per badge. svg-pan-zoom grabs pointer events on the
+          // SVG (and preventDefaults mousedown, which would swallow a bubbled
+          // click), so we stop the badge's mousedown from reaching it — the badge
+          // is a button, not a pan handle — and expand on click.
+          grp.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+          grp.addEventListener('click', function (e) {
+            e.stopPropagation();
+            expandOverviewCut(cutId);
+          });
+
+          g.appendChild(grp);
+        });
+      }
+
+      function expandOverviewCut(cutId) {
+        if (!cutId || overviewLoading || currentLens !== 'overview') return;
+        overviewExpanded.add(cutId);
+        renderOverview(false);  // keep camera — detail appears in place
+      }
+
+      const ovReset = document.getElementById('ov-reset');
+      if (ovReset) ovReset.addEventListener('click', function () {
+        if (currentLens !== 'overview') return;
+        overviewExpanded = new Set();
+        renderOverview(true);  // back to the top-level overview, re-fit
+      });
 
       // ---- Diachronic chain player ----
 

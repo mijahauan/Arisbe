@@ -27,7 +27,11 @@ from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
 from web_api.models.api_models import ApiResponse
-from web_api.services.layout_service import generate_layout, layout_dto_to_dict
+from web_api.services.layout_service import (
+    generate_layout,
+    generate_overview_layout,
+    layout_dto_to_dict,
+)
 from web_api.services.linear_forms import linear_forms
 
 from tomos_service import TomosService
@@ -142,7 +146,8 @@ async def list_uods():
 
 
 @router.get("/uods/{uod_id}")
-async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk"):
+async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk",
+                  lod: str = "full", expand: Optional[str] = None):
     """Return the UoD's drawing + summary metadata.
 
     Pipeline:
@@ -161,6 +166,19 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk")
     render boundary, and ``tension`` falls back to ELK on any graph it can't yet
     lay out.  A style-only/engine-only reprojection of an attested graph is free
     (§3.3 attests *correspondence*, not truth), so the archive may show it.
+
+    ``lod`` selects the level of detail — ``"full"`` (default, the canonical
+    §3.3 drawing) or ``"overview"`` (the navigation projection,
+    docs/ADAPTIVE_SCOPE_VIEWER.md): collapse deep cuts into content-sized
+    placeholders so a graph too large to draw whole can still be navigated.
+    ``expand`` is a comma-separated list of cut ids the reader has drilled into
+    (ancestors auto-included); absent ⇒ the auto-expand policy opens the top of
+    the graph to a drawn-cut budget.  An overview is attested by the *weaker*
+    ``attest_overview`` (visible part corresponds + placeholders faithfully
+    summarize) — explicitly **not** a full §3.3 correspondence, and never a
+    promotion source; the fully-expanded drawing stays §3.3-governed.  The
+    response carries a ``collapsed`` map (placeholder cut id → badge) for the
+    client's badges and expand affordances.
     """
     try:
         tomos = _get_tomos()
@@ -181,6 +199,31 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk")
                 error={
                     "code": "EMPTY_UOD",
                     "message": f"UoD '{uod_id}' has no current EGI to draw",
+                },
+            )
+
+        # Overview (adaptive-scope navigation projection): collapse deep cuts
+        # into placeholders so the Drawing renders graphs ELK can't draw whole.
+        collapsed_map = None
+        if lod == "overview":
+            expand_ids = (
+                [s for s in (expand.split(",") if expand else []) if s.strip()]
+            ) or None
+            layout_dto, svg, collapsed_map, _collapsed_ids = (
+                generate_overview_layout(egi, expand=expand_ids, style_name=style)
+            )
+            layout_dict = layout_dto_to_dict(layout_dto)
+            return ApiResponse(
+                success=True,
+                data={
+                    "uod_id": uod_id,
+                    "svg": svg,
+                    "layout_dto": layout_dict,
+                    "lod": "overview",
+                    # Placeholder badges (cut id → {cuts, vertices, predicates,
+                    # polarity, boundary_degree}) — *form*, never actuality.
+                    "collapsed": collapsed_map,
+                    "egi_summary": _egi_summary(egi),
                 },
             )
 

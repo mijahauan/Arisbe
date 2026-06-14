@@ -517,9 +517,147 @@ def is_in_correspondence(
     return not check_correspondence(egi, dto)
 
 
+# ---------------------------------------------------------------------------
+# Overview attestation — the navigation-projection contract.
+#
+# An overview (docs/ADAPTIVE_SCOPE_VIEWER.md) is a *deliberately incomplete*
+# drawing: it collapses deep cuts into content-sized placeholders so a graph too
+# large to draw whole can still be navigated.  It therefore CANNOT satisfy §3.3
+# totality, and pretending otherwise would be exactly the drift §3.3 exists to
+# catch.  ``attest_overview`` is the honest weaker contract a lossy map can make:
+#
+#   P1  Visible-part correspondence.  Form the quotient EGI (each collapsed cut →
+#       a leaf placeholder holding only synthetic boundary predicates for the
+#       lines that enter it) and run FULL §3.3 on it.  Everything drawn is exactly
+#       right — containment, incidence, crossing-multiset, argument order — and
+#       each boundary line crosses into its placeholder once and ends there (the
+#       synthetic predicate makes §3.3 check this for free).
+#   P2  Faithful summary.  Each placeholder's claimed badge equals the true
+#       coordinate-free facts of its hidden subtree (counts + polarity + boundary
+#       degree).  The placeholder tells the whole truth about what it hides and
+#       claims nothing more — *form*, never actuality.
+#
+# The expansion law ties the weak contract to the strong one: with no collapsed
+# cuts the quotient is the EGI itself and ``attest_overview`` ≡
+# ``attest_correspondence``; expanding all the way down lands on the real,
+# fully-§3.3-attested picture.
+# ---------------------------------------------------------------------------
+
+
+class OverviewViolation(AssertionError):
+    """Raised when an overview (EGI, LayoutDTO, collapsed-cut claims) triple is
+    not faithful.  Like ``CorrespondenceViolation`` it inherits ``AssertionError``
+    and carries the formatted failures; ``failures`` / ``context`` are exposed."""
+
+    def __init__(self, failures: Sequence[str], context: Optional[str] = None):
+        self.failures: List[str] = list(failures)
+        self.context = context
+        if context:
+            header = (
+                f"Overview faithfulness violated at {context} "
+                f"({len(self.failures)} failure(s)):"
+            )
+        else:
+            header = f"Overview faithfulness violated ({len(self.failures)} failure(s)):"
+        super().__init__(header + "\n" + "\n".join(self.failures))
+
+
+# Badge keys an overview placeholder claims (all exact functions of the EGI).
+_BADGE_KEYS = ("cuts", "vertices", "predicates", "polarity", "boundary_degree")
+
+
+def check_overview(
+    egi: RelationalGraphWithCuts,
+    dto: LayoutDTO,
+    collapsed_cuts,
+) -> List[str]:
+    """Run the overview faithfulness checks.  Returns failures ([] = faithful).
+
+    ``collapsed_cuts`` is a mapping ``{cut_id: badge}`` — the placeholders the
+    drawing claims, each with the badge it shows the reader (``cuts`` /
+    ``vertices`` / ``predicates`` / ``polarity`` / ``boundary_degree``).  Pass an
+    empty mapping for a full (uncollapsed) drawing, where this reduces to
+    ``check_correspondence``.
+    """
+    from overview_projection import (
+        collapse_quotient,
+        frontier_placeholders,
+        overview_summary,
+    )
+
+    failures: List[str] = []
+    claims = dict(collapsed_cuts)
+
+    cut_ids = {c.id for c in egi.Cut}
+    bad = set(claims) - cut_ids
+    if bad:
+        failures.append(f"  overview: claimed placeholders are not cuts: {sorted(bad)}")
+        # Drop the non-cuts so the quotient can still build for the rest.
+        for b in bad:
+            claims.pop(b, None)
+
+    # A claimed placeholder must be a *frontier* cut (no collapsed ancestor) —
+    # a placeholder nested inside another collapsed cut is hidden, never drawn.
+    frontier = frontier_placeholders(egi, claims.keys())
+    not_frontier = set(claims) - frontier
+    if not_frontier:
+        failures.append(
+            f"  overview: claimed placeholders hidden inside another "
+            f"placeholder (not drawn): {sorted(not_frontier)}"
+        )
+
+    # P1 — full §3.3 on the quotient.
+    try:
+        quotient = collapse_quotient(egi, claims.keys())
+        failures.extend(check_correspondence(quotient, dto))
+    except Exception as exc:  # malformed collapse → report, don't crash
+        failures.append(f"  overview: could not build quotient: {exc}")
+
+    # P2 — faithful summary: claimed badge == the true facts of the hidden subtree.
+    real = overview_summary(egi, claims.keys())
+    for cid, badge in claims.items():
+        truth = real.get(cid)
+        if truth is None:
+            continue  # already reported as not-a-cut / not-frontier
+        for key in _BADGE_KEYS:
+            if key not in badge:
+                failures.append(
+                    f"  overview-summary: placeholder {cid} badge missing '{key}'"
+                )
+                continue
+            if badge[key] != truth[key]:
+                failures.append(
+                    f"  overview-summary: placeholder {cid} claims {key}="
+                    f"{badge[key]!r}, true {key}={truth[key]!r}"
+                )
+
+    return failures
+
+
+def attest_overview(
+    egi: RelationalGraphWithCuts,
+    dto: LayoutDTO,
+    collapsed_cuts,
+    *,
+    context: Optional[str] = None,
+) -> None:
+    """Raise ``OverviewViolation`` if the overview is not faithful; else None.
+
+    The navigation-projection backstop, hooked at the overview render boundary
+    the way ``attest_correspondence`` is hooked at the full-drawing boundary.
+    ``context`` is a human-readable label included in the violation message.
+    """
+    failures = check_overview(egi, dto, collapsed_cuts)
+    if failures:
+        raise OverviewViolation(failures, context=context)
+
+
 __all__ = [
     "CorrespondenceViolation",
+    "OverviewViolation",
     "attest_correspondence",
+    "attest_overview",
     "check_correspondence",
+    "check_overview",
     "is_in_correspondence",
 ]

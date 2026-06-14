@@ -54,19 +54,73 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = server overview+expand + `attest_overview` (the navigation-projection
-attestation).** The adaptive-scope viewer's deferred *core*: collapse deep cuts into
-content-sized placeholders so the **Drawing** lens can render graphs ELK can't (the 250-cut
-frontier — the coordinate-free structure is already O(n), but the styled *drawing* isn't). This
-needs the one genuinely-new attestation semantics: a collapsed/overview view is explicitly
-**not** a full §3.3 correspondence — `attest_overview(egi, dto, collapsed_cuts)` verifies the
-*visible* part corresponds + each placeholder faithfully summarizes its subtree, while full §3.3
-still governs the fully-expanded drawable. **Write the design-doc first** (`docs/ADAPTIVE_SCOPE_VIEWER.md`)
-— this is the piece that touches the correspondence story conceptually (the membrane /
-*no-mark-bears-actuality* guardrail, `docs/MANIFEST_AND_MEANING.md`). Then the server
-`?lod=overview&expand=…` path (a reduced `LayoutDTO` via a new `subtree_summary`-fed collapse) +
-client wiring (the lenses already own the collapse/expand UI model). Memory:
+**▶▶ NEXT SESSION = the 250-cut frontier wall-clock measurement (the tail of step 4) + the
+deferred lighter items.** Steps 1–3 of the overview build are **DONE** (✅ blocks below): the
+`attest_overview` contract, the server `?lod=overview&expand=…` path, AND the browser client
+(overview Lens option, placeholder badges, tap-to-expand with camera-hold, Collapse-all) — with
+a Playwright E2E (`tests/test_overview_e2e.py`). What remains of step 4 is the **headline
+wall-clock measurement**: demonstrate overview renders a graph full-ELK *can't* draw comfortably.
+The genuine frontier UoD is the **full 250-cut SUMO** (≈74 s) — which is *not stored* (only its
+86-cut taxonomy subset is, and that lays out in ~1 s, so it doesn't show the dramatic win). So
+the measurement needs the full ontology loaded as a fixture, or a synthesized wide-relational
+graph in ELK's actual super-linear shape (a deep nested *chain* is NOT it — measured ~0.2 s). The
+*structural* guarantee already holds: overview lays out ≤ `budget` cuts regardless of `|egi|`
+(shown: 86→43 placeholders on stored SUMO, each expand incremental). Spec:
+`docs/ADAPTIVE_SCOPE_VIEWER.md` §9. Memory:
 [[project_adaptive_scope_viewer]].
+
+**✅ DONE 2026-06-15 — overview client wiring + E2E (build-order step 3 + the E2E half of step 4).**
+The overview is now usable in the browser. `web_viewer/organon.html`: a new **"Drawing — overview
+(adaptive scope)"** Lens option; `renderOverview()` fetches `?lod=overview&expand=…` and renders
+via the shared `DiagramViewer` (camera `fit` on entry, `keep` on expand so detail appears in place
+— the map-app feel); `decorateOverview()` overlays a **badge** on each collapsed placeholder (read
+from the cut `<g>`'s `getBBox()`, so no renderer-offset math), showing form-only counts (rel /
+cuts / lines, + "⇢ N enter" when a line of identity crosses in) and a "＋ expand" hint;
+**tap-to-expand** is wired per-badge (a `mousedown` `stopPropagation` so svg-pan-zoom doesn't eat
+the click as a pan), plus a **Collapse-all** control. Style changes reproject the overview;
+loading a new UoD resets it. `tests/test_overview_e2e.py` (Playwright: enter overview → badges
+render → tap a placeholder → that cut is drawn open → Collapse-all restores → back to Drawing
+restores the §3.3 SVG; zero console errors). All 33 overview + lens tests green together (no
+regression to the existing Well/Storyboard lenses). **Found while building:** expanding an *outer*
+subsumption cut reveals its *inner* cut as a new placeholder (net placeholder count can hold
+steady) — the correct invariant is "the *tapped* cut is no longer collapsed," not "the total
+drops." Spike screenshots/manual: server-verified 86-cut SUMO → 43 placeholders in ~1 s, each
+expand ~0.6 s.
+
+**✅ DONE 2026-06-15 — overview server path (build-order step 2).** The server can now serve
+an overview. `layout_service.generate_overview_layout(egi, expand, budget)` =
+`_resolve_collapsed` (the expanded-set → frontier-placeholder resolver: explicit `expand` opens
+a cut + its ancestors; absent ⇒ the auto-expand policy opens cuts BFS-from-the-sheet to a
+`DEFAULT_OVERVIEW_BUDGET=40` drawn-cut budget) → `collapse_quotient` → `generate_layout(quotient)`
+→ `attest_overview` backstop. A small graph (≤ budget cuts) opens fully — an overview of it is
+the ordinary drawing. The `GET /organon/uods/{id}?lod=overview&expand=<cutId>,…` branch returns
+the SVG + layout DTO + a `collapsed` badge map (placeholder cut id → counts/polarity/boundary
+degree; *form*, never actuality) for the client's badges and drill affordances; `lod=full`
+(default) is unchanged. `tests/test_overview_routes.py` (8: small-graph-opens-fully,
+budget/expand collapse + re-attest, faithful badge, auto-policy budget, ancestor-inclusion;
+route returns collapsed map / full has none). Regression: organon routes 15, overview
+attestation 22, correspondence-invariant fast subset 326 (the heavy `domain_model` ontology UoDs
+deselected — the pre-existing layout-perf frontier, untouched by these additive changes).
+
+**✅ DONE 2026-06-15 — overview attestation core (design doc + the navigation-projection
+contract, build-order step 1).** `docs/ADAPTIVE_SCOPE_VIEWER.md` written FIRST (the conceptual
+piece — the membrane / *no-mark-bears-actuality* guardrail governs what a placeholder may bear:
+*form* counts/polarity/boundary-degree, never actuality). Then `src/overview_projection.py`
+(`collapse_quotient` builds a real smaller EGI with each frontier cut a leaf placeholder; the one
+boundary case — a predicate *hidden inside* a collapsed cut wired to a vertex *visible outside*
+it, since a vertex sits at the **outermost** area its line reaches — is carried by an **anonymous
+synthetic boundary predicate** inside the placeholder, which makes ordinary §3.3 attest the
+boundary line's crossing+endpoint *for free*; + `boundary_incidences`/`boundary_degree`,
+`frontier_placeholders`, `overview_summary`, `synthetic_boundary_id`). `attest_overview` /
+`check_overview` / `OverviewViolation` added to `src/correspondence_attestation.py`: **P1** = full
+§3.3 on the quotient (subsumes boundary integrity / "P3"), **P2** = faithful badge (counts +
+polarity + boundary degree exact); the expansion law — empty collapse ≡ `attest_correspondence`,
+full expansion = the real §3.3 picture. Overview is **outside the three regimes** (a *viewing*
+op like pan/zoom; deliberately drops §3.3 totality; never a promotion source — the canonical
+full-expansion drawable stays §3.3-governed). `tests/test_overview_attestation.py` (22:
+expansion-law base case, boundary/closed/wide/nested collapses, frontier-vs-hidden, P1
+adversarial, boundary-integrity-via-P1, P2 lying-badge, monotonicity, quotient validity). 95
+passed on the touched modules; purely additive (no edit to existing `check_correspondence`).
 
 **▶ Then the lighter deferred items (after overview+expand — author's stated order):**
 time-stack *production* lens (tune the rough framing the spike flagged); **liveness/desuetude**

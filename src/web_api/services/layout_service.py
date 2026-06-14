@@ -579,6 +579,97 @@ def generate_layout(
     return dto, svg
 
 
+# Default drawn-cut budget for the auto-expand policy (docs/ADAPTIVE_SCOPE_VIEWER.md
+# §5.3): a small graph (≤ budget cuts) opens fully — an overview of it is just the
+# ordinary drawing; a large graph opens its top ``budget`` cuts and folds the deep
+# mass into placeholders.  A knob, not part of the contract.
+DEFAULT_OVERVIEW_BUDGET = 40
+
+
+def _resolve_collapsed(egi, expand: Optional[list] = None,
+                       budget: int = DEFAULT_OVERVIEW_BUDGET) -> set:
+    """Which cuts are drawn as **placeholders** (the frontier) for an overview.
+
+    ``expand`` is the user's drilled-into set of cut ids (ancestors auto-included);
+    a cut is *open* iff it (and every ancestor) is expanded.  When ``expand`` is
+    None, the auto-expand policy opens cuts breadth-first from the sheet until the
+    drawn-cut ``budget`` is reached (docs/ADAPTIVE_SCOPE_VIEWER.md §5.3).  A cut is
+    a frontier placeholder iff its parent is open (or the sheet) and it is not
+    itself open; deeper cuts are hidden inside it.
+    """
+    from collections import deque
+    from presentation_ops import cut_parents
+
+    cut_ids = {c.id for c in egi.Cut}
+    parent = cut_parents(egi)  # cut id -> parent context
+    children: Dict[str, list] = {}
+    for c, p in parent.items():
+        children.setdefault(p, []).append(c)
+
+    opened: set = set()
+    if expand is not None:
+        for x in expand:
+            cur = x
+            while cur in cut_ids and cur not in opened:
+                opened.add(cur)
+                cur = parent.get(cur, egi.sheet)
+    else:
+        q = deque(children.get(egi.sheet, []))
+        while q and len(opened) < budget:
+            c = q.popleft()
+            opened.add(c)
+            q.extend(children.get(c, []))
+
+    collapsed: set = set()
+    for c in cut_ids:
+        p = parent.get(c, egi.sheet)
+        parent_open = (p == egi.sheet) or (p in opened)
+        if parent_open and c not in opened:
+            collapsed.add(c)
+    return collapsed
+
+
+def generate_overview_layout(
+    egi,
+    expand: Optional[list] = None,
+    style_name: Optional[str] = None,
+    budget: int = DEFAULT_OVERVIEW_BUDGET,
+) -> Tuple[LayoutDTO, str, dict, set]:
+    """Lay out an **overview** — collapse deep cuts into content-sized placeholders
+    so a graph too large to draw whole can still be navigated
+    (docs/ADAPTIVE_SCOPE_VIEWER.md).
+
+    The whole path is ``collapse_quotient`` (a real, smaller EGI whose frontier
+    cuts are leaf placeholders carrying anonymous synthetic boundary predicates for
+    the lines that enter them) → ``generate_layout`` of that quotient.  Because the
+    drawn graph stays small (open content + leaf placeholders), the layout engine
+    stays within budget regardless of the full graph's size — the answer to the
+    layout-perf frontier.
+
+    Two attestations fire: ``generate_layout`` attests full §3.3 on the *quotient*
+    (the visible part is a genuine drawing of a real EGI), and ``attest_overview``
+    is the navigation-projection backstop (P1 visible-part §3.3 + P2 the placeholder
+    badges faithfully summarize what they hide).  An overview is **not** a full §3.3
+    correspondence of the whole graph and never a promotion source; the canonical
+    fully-expanded drawing stays §3.3-governed.
+
+    Returns ``(layout_dto, svg, collapsed_summary, collapsed_cut_ids)`` where
+    ``collapsed_summary`` maps each placeholder cut id to its badge (recursive
+    counts + polarity + boundary degree) — *form*, never actuality.
+    """
+    from overview_projection import collapse_quotient, overview_summary
+    from correspondence_attestation import attest_overview
+
+    collapsed = _resolve_collapsed(egi, expand, budget)
+    quotient = collapse_quotient(egi, collapsed)
+    dto, svg = generate_layout(quotient, style_name=style_name)
+    summary = overview_summary(egi, collapsed)
+    attest_overview(
+        egi, dto, summary, context="layout_service.generate_overview_layout"
+    )
+    return dto, svg, summary, collapsed
+
+
 def reanchor_ligatures(egi, dto: LayoutDTO) -> LayoutDTO:
     """Re-derive ligature endpoints from the current element geometry.
 
