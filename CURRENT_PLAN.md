@@ -1,6 +1,14 @@
 # Current Plan
 
-**Last Updated**: 2026-06-12 (session end) — this session **completed the P2 import-breadth
+**Last Updated**: 2026-06-14 (session end). **This session — the visualization/UX pivot:** with the
+logic underpinnings essentially complete (basics, not options), the session pivoted to the
+*experience* of the pictures and shipped the **adaptive-scope viewer** end to end — read-only
+Organon **lenses** (2.5-D negation well + storyboard, behind a Lens selector, over O(n) structure
+endpoints; bedrock untouched) via a decide-by-prototype spike — plus **FOLIO increment 3** (the
+native bounded engine, soundness 100% / coverage 23%) and deep philosophical additions to
+`docs/MANIFEST_AND_MEANING.md` (the membrane/separation, the **no-mark-bears-actuality** guardrail,
+two-deaths/liveness, Peirce's cable). See ▶ NEXT SESSION. *(The 2026-06-12 recap below is prior
+context.)* The 2026-06-12 session **completed the P2 import-breadth
 queue**: (1) finished the **OWL construct fragment** — `ObjectHasValue` + `ObjectMinCardinality 1`
 (≡ someValues, sound either polarity) added to `_class_expr`; `ObjectComplementOf` in
 superclass position (`(not 〚D〛)`, head-only like ∀R.D); higher/max/exact cardinality +
@@ -46,26 +54,46 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ Last session (2026-06-13b) shipped FOLIO increment 3 — the "Both" FOLIO arc is COMPLETE,
-and discovered the MATH TRACK was already done.** Two findings:
-1. **The math track listed as "next session" was already complete and green** (commit
-   `3ce6886`, 2026-06-09 — four days before the 2026-06-13 plan re-listed it). All three items
-   verified: fixtures validated (`test_math_fixtures.py`), definition layer + schema node built
-   (`src/definitions.py`/`schema.py`/`eg_splice.py`), and **∀x via the Dau scaffold** —
-   `test_totality_universal` proves ∀x∀Y∃z plus(x,Y,z), green; `universal_generalization` at
-   `derived_rules.py:204`; the protected cut-level `IT-`/`ERA` it needed also landed (`223583c`).
-   The plan header was stale. The genuinely-open math frontier is the **schema-drawing /
-   correspondence** question (how a hole `⟨φ:?x⟩` draws + whether `instantiate` preserves §3.3)
-   — *not* yet built; see [[project_math_fixtures_zfc_peirce_schema]] (its closing note).
-2. **FOLIO increment 3 DONE** — the native bounded engine beside Z3 (✅ block below). The
-   complete "Both" FOLIO arc (Z3 verdict + pictures/fidelity + native soundness×coverage) is
-   now done; write-up at `docs/FOLIO_EVALUATION.md`.
+**▶▶ NEXT SESSION = server overview+expand + `attest_overview` (the navigation-projection
+attestation).** The adaptive-scope viewer's deferred *core*: collapse deep cuts into
+content-sized placeholders so the **Drawing** lens can render graphs ELK can't (the 250-cut
+frontier — the coordinate-free structure is already O(n), but the styled *drawing* isn't). This
+needs the one genuinely-new attestation semantics: a collapsed/overview view is explicitly
+**not** a full §3.3 correspondence — `attest_overview(egi, dto, collapsed_cuts)` verifies the
+*visible* part corresponds + each placeholder faithfully summarizes its subtree, while full §3.3
+still governs the fully-expanded drawable. **Write the design-doc first** (`docs/ADAPTIVE_SCOPE_VIEWER.md`)
+— this is the piece that touches the correspondence story conceptually (the membrane /
+*no-mark-bears-actuality* guardrail, `docs/MANIFEST_AND_MEANING.md`). Then the server
+`?lod=overview&expand=…` path (a reduced `LayoutDTO` via a new `subtree_summary`-fed collapse) +
+client wiring (the lenses already own the collapse/expand UI model). Memory:
+[[project_adaptive_scope_viewer]].
 
-**▶ Candidate next directions (author's call):** (a) the **FOLIO/DLCore coverage lever** — a
-disjunctive / model-construction (case-split) capability for the non-Horn negative half, the
-shared frontier both benchmarks defer to; (b) the **schema-drawing / §3.3** math frontier
-above; (c) the deferred **LLM front-end** of the NL→logic arc (now that both backends —
-DL-ReasonSuite + FOLIO — are in place; [[project_nl_to_logic_arisbe_as_interpretant]]).
+**▶ Then the lighter deferred items (after overview+expand — author's stated order):**
+time-stack *production* lens (tune the rough framing the spike flagged); **liveness/desuetude**
+tracking (manifest floor #7 — which UoDs/models are still consulted; forward-facing provenance, an
+Organon facet/badge); the **derivation-DAG** lens (branch structure; needs a branching episode to
+exercise); the broader **cross-mode UX consistency** pass (shared `design-system.css`, camera
+unification across the three modes, step/move terminology — the round-1 cross-mode findings).
+
+**▶ DONE this session (2026-06-14) — the visualization/UX pivot, all committed + pushed, bedrock untouched:**
+- **Adaptive-scope viewer.** `src/eg_structure.py` + `GET /organon/uods/{id}/structure` &
+  `/history-structure` (coordinate-free, O(n) — 86-cut SUMO structure in ~8 ms where ELK takes
+  seconds; `tests/test_eg_structure.py`). A decide-by-prototype **spike** → findings/decision in
+  `docs/ADAPTIVE_SCOPE_SPIKE.md`. Then production Organon **lenses** behind a Lens selector:
+  **Well** (`web_viewer/js/negation-well-lens.js` — the 2.5-D negation well; three.js; top-down =
+  the circle-packing so parent–child stays unambiguous, tilt = earned depth; white/gray polarity,
+  hue/texture + line-style reserved for Gamma) and **Storyboard** (`web_viewer/js/storyboard-lens.js`
+  — the diachronic line of thought as a styled strip), over `web_viewer/js/lens-common.js`. Wired
+  in `web_viewer/organon.html`; E2E `tests/test_organon_lenses_e2e.py`. Spike prototypes retired.
+- **FOLIO increment 3** — `src/folio_native.py` (the "Both" arc complete; `docs/FOLIO_EVALUATION.md`).
+- **`docs/MANIFEST_AND_MEANING.md`** — the philosophical floor the lenses obey (membrane/separation;
+  *no mark bears actuality*; two-deaths/liveness; Peirce's cable).
+
+**▶ Other open tracks (deferred behind the viewer work):** the **FOLIO/DLCore coverage lever**
+(disjunctive / case-split for the non-Horn negative half); the **schema-drawing / §3.3** math
+frontier ([[project_math_fixtures_zfc_peirce_schema]]); the deferred **LLM front-end** of the
+NL→logic arc (both backends now in place — [[project_nl_to_logic_arisbe_as_interpretant]]).
+*The math track and FOLIO "Both" arc are COMPLETE — see the ✅ blocks below.*
 
 *Last session (2026-06-13) recap:* recovered from an OOM mid-build and shipped a lot — the
 **automated Grapheus** (all 4 increments incl. the warrant), the **DL-ReasonSuite DLCore**
