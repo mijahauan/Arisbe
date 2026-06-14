@@ -234,6 +234,126 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk")
         )
 
 
+@router.get("/uods/{uod_id}/structure")
+async def get_uod_structure(uod_id: str):
+    """Return the UoD's **coordinate-free structure** (no drawing, no layout).
+
+    The shared foundation for the adaptive-scope viewer projection spike
+    (`docs/ADAPTIVE_SCOPE_SPIKE.md`): the containment tree + polarity, recursive
+    content counts, the predicate/vertex inventory, and per-ligature required
+    crossing-sequences — the projection-independent facts every candidate
+    projection (circle-packing / 3-D shells / hyperbolic) realizes differently.
+
+    Read-only and **O(n), not geometric**: it loads the UoD with ``attest=False``
+    (no §3.3 layout at the load boundary) and never runs a layout engine, so it
+    returns even the 250-cut SUMO taxonomy — which chokes ELK at ~74 s — in
+    milliseconds. Correspondence is unaffected: this returns *structure*, not a
+    drawing, and mutates nothing.
+    """
+    try:
+        from eg_structure import egi_structure
+        tomos = _get_tomos()
+        uod = tomos.load_uod(uod_id, attest=False)
+        if uod is None:
+            return ApiResponse(success=False, error={
+                "code": "UOD_NOT_FOUND", "message": f"UoD '{uod_id}' not found in tomos"})
+        egi = uod.current_egi
+        if egi is None:
+            return ApiResponse(success=False, error={
+                "code": "EMPTY_UOD", "message": f"UoD '{uod_id}' has no current EGI"})
+        return ApiResponse(success=True, data={
+            "uod_id": uod_id, "name": uod.name, "structure": egi_structure(egi)})
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "STRUCTURE_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+@router.post("/structure")
+async def structure_from_egif(payload: dict):
+    """Coordinate-free structure for a raw EGIF string (the ad-hoc sibling of
+    ``/uods/{id}/structure``) — body ``{"egif": "..."}``. Read-only; no attestation
+    (structure, not a drawing)."""
+    try:
+        from eg_structure import egi_structure
+        from egif_parser_dau import parse_egif
+        egif = (payload or {}).get("egif", "")
+        if not egif.strip():
+            return ApiResponse(success=False, error={
+                "code": "EMPTY_EGIF", "message": "body must carry a non-empty 'egif'"})
+        egi = parse_egif(egif)
+        return ApiResponse(success=True, data={"structure": egi_structure(egi)})
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "STRUCTURE_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+@router.get("/uods/{uod_id}/history-structure")
+async def get_history_structure(uod_id: str, style: Optional[str] = None,
+                                engine: str = "elk"):
+    """Diachronic substrate for the adaptive-scope spike's *time-flow* lenses
+    (storyboard + time-stack) — `docs/ADAPTIVE_SCOPE_SPIKE.md`.
+
+    Like ``/chain`` but each frame also carries its **geometric layout**
+    (`layout_dto`, so a time-stack can draw survivor threads by matching element ids
+    across frames) and a **per-step `legible_diff`** (`egi_diff` — what the rule
+    changed, in EG vocabulary). Read-only; each frame's `generate_layout` attests §3.3.
+    """
+    try:
+        from egi_diff import legible_diff
+        tomos = _get_tomos()
+        uod = tomos.load_uod(uod_id)
+        if uod is None:
+            return ApiResponse(success=False, error={
+                "code": "UOD_NOT_FOUND", "message": f"UoD '{uod_id}' not found"})
+        chain = tomos.load_chain(uod_id)
+        if chain is None:
+            return ApiResponse(success=True,
+                               data={"uod_id": uod_id, "has_chain": False, "frames": []})
+
+        def _diff(prev_egi, cur_egi):
+            rep = legible_diff(prev_egi, cur_egi)   # how cur (attempt) differs from prev (target)
+            by = {}
+            for f in rep.findings:
+                by[f.kind] = by.get(f.kind, 0) + 1
+            # extra = added by the rule; missing = erased by the rule
+            bits = []
+            if by.get("extra"): bits.append(f"+{by['extra']}")
+            if by.get("missing"): bits.append(f"−{by['missing']}")
+            for k in ("structure", "scope", "incidence", "order"):
+                if by.get(k): bits.append(f"{k} {by[k]}")
+            return {"summary": " · ".join(bits) or "no net change",
+                    "findings": [{"kind": f.kind, "message": f.message,
+                                  "subject": f.subject} for f in rep.findings]}
+
+        def _frame(index, kind, egi, prev_egi, rule=None, annotation=None,
+                   step_id=None, state_id=None):
+            dto, svg = generate_layout(egi, style_name=style, engine=engine)
+            return {
+                "index": index, "kind": kind, "rule": rule,
+                "annotation": annotation, "step_id": step_id, "state_id": state_id,
+                "svg": svg, "layout": layout_dto_to_dict(dto),
+                "egi_summary": _egi_summary(egi),
+                "diff": _diff(prev_egi, egi) if prev_egi is not None else None,
+            }
+
+        base_egi = chain.states[chain.initial_state_id]
+        frames = [_frame(0, "base", base_egi, None, state_id=chain.initial_state_id)]
+        prev = base_egi
+        for i, step in enumerate(chain.steps, start=1):
+            cur = chain.states[step.to_state_id]
+            frames.append(_frame(i, "step", cur, prev, rule=step.rule_name,
+                                  annotation=step.user_annotation,
+                                  step_id=step.step_id, state_id=step.to_state_id))
+            prev = cur
+        return ApiResponse(success=True, data={
+            "uod_id": uod_id, "name": uod.name, "has_chain": True,
+            "step_count": len(chain.steps), "frames": frames})
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "HISTORY_STRUCTURE_ERROR", "message": str(exc),
+            "type": type(exc).__name__})
+
+
 @router.get("/uods/{uod_id}/chain")
 async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                         engine: str = "elk"):

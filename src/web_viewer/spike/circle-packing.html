@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spike P1 — Zoomable circle-packing (EGI projection)</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: #0f1115; color: #e8e8ea; }
+  header { padding: 8px 12px; background: #171a21; border-bottom: 1px solid #2a2f3a; }
+  h1 { font-size: 14px; margin: 0 0 6px; font-weight: 600; }
+  .pk { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pk label { display: flex; gap: 4px; align-items: center; }
+  .pk select, .pk input { background: #0f1115; color: #e8e8ea; border: 1px solid #2a2f3a; border-radius: 4px; padding: 3px 5px; }
+  .pk button { background: #2d6cdf; color: #fff; border: 0; border-radius: 4px; padding: 4px 12px; cursor: pointer; }
+  .pk-or { opacity: .5; } .pk-msg { opacity: .7; font-size: 12px; }
+  #stage { width: 100vw; height: calc(100vh - 92px); display: block; cursor: pointer; }
+  .note { position: fixed; bottom: 8px; left: 12px; font-size: 11px; opacity: .55; max-width: 46vw; }
+  circle.node { stroke: rgba(0,0,0,.35); stroke-width: .5; }
+  circle.node.focusable:hover { stroke: #fff; stroke-width: 1.5; }
+  text.lbl { fill: #1a1a1a; pointer-events: none; text-anchor: middle; font-weight: 600; }
+  text.badge { fill: #444; pointer-events: none; text-anchor: middle; font-size: 10px; }
+  .vertex { fill: #111; stroke: #fff; }
+  line.lig { stroke-linecap: round; fill: none; opacity: .8; }
+</style>
+</head>
+<body>
+<header>
+  <h1>P1 · Zoomable circle-packing — cuts as nested ovals (Peirce's notation). Click a cut to zoom in; click background to zoom out.</h1>
+  <div id="picker"></div>
+</header>
+<svg id="stage"></svg>
+<div class="note">White = recto (asserted / even depth); gray = verso (denied / odd depth) — polarity on the value channel only (hue + line-style reserved for Gamma tinctures / the broken cut). Black dots = lines of identity; outlined circles = relations. Ligature color: green→red = more cut-boundaries crossed. Badge on a cut = recursive contents.</div>
+
+<script src="/spike/spike-common.js"></script>
+<script>
+const svg = d3.select('#stage');
+let W = 0, H = 0;
+function size() { const r = svg.node().getBoundingClientRect(); W = r.width; H = r.height; svg.attr('viewBox', `-${W/2} -${H/2} ${W} ${H}`); }
+size(); window.addEventListener('resize', () => { size(); if (current) draw(current); });
+
+const crossingColor = d3.scaleSequential(d3.interpolateRdYlGn).domain([6, 0]); // many→red, few→green
+let current = null, zoomTo = null, focus0 = null;
+
+function draw(data) {
+  current = data;
+  const dim = Math.min(W, H) - 20;
+  const root = d3.hierarchy(Spike.hierarchy(data.structure))
+    .sum(d => d.value || 0)
+    .sort((a, b) => (b.value || 0) - (a.value || 0));
+  d3.pack().size([dim, dim]).padding(4)(root);
+
+  const nodeById = new Map();
+  root.descendants().forEach(n => nodeById.set(n.data.id, n));
+
+  svg.selectAll('*').remove();
+  const g = svg.append('g');
+
+  // ligature layer first (under nodes)
+  const ligs = (data.structure.ligatures || []).map(l => ({
+    p: nodeById.get(l.predicate_id), v: nodeById.get(l.vertex_id),
+    n: (l.crossings || []).length,
+  })).filter(d => d.p && d.v);
+  const ligSel = g.append('g').selectAll('line').data(ligs).join('line')
+    .attr('class', 'lig')
+    .attr('stroke', d => crossingColor(Math.min(6, d.n)))
+    .attr('stroke-width', d => 1.2);
+
+  const nodes = root.descendants();
+  const circSel = g.append('g').selectAll('circle').data(nodes).join('circle')
+    .attr('class', d => 'node' + (d.children ? ' focusable' : ''))
+    .attr('fill', d => {
+      if (d.data.type === 'vertex') return '#111';                 // line of identity
+      if (d.data.type === 'predicate') return '#fff';              // relation token (outlined)
+      return Spike.polarityFill(d.data.polarity, d.data.depth);    // area: white=recto, gray=verso
+    })
+    .attr('stroke', d => d.data.type === 'vertex' ? '#fff'
+      : d.data.type === 'predicate' ? '#333' : 'rgba(0,0,0,.35)')
+    .attr('stroke-width', d => d.data.type === 'predicate' ? 1.4 : 0.5)
+    .on('click', (e, d) => { if (d.children && focus0 !== d) { zoomTo(d); e.stopPropagation(); } });
+
+  const labelSel = g.append('g').selectAll('text').data(
+    nodes.filter(d => d.data.type === 'predicate' || (d.data.type !== 'vertex' && d.children))
+  ).join('text')
+    .attr('class', d => d.data.type === 'predicate' ? 'lbl' : 'badge')
+    .text(d => d.data.type === 'predicate'
+      ? d.data.name
+      : `${d.data.summary.cuts}c · ${d.data.summary.predicates}r · ${d.data.summary.vertices}•`);
+
+  let view;
+  zoomTo = (d) => {
+    focus0 = d;
+    const v = [d.x, d.y, d.r * 2 + 16];
+    const t = svg.transition().duration(600).tween('zoom', () => {
+      const i = d3.interpolateZoom(view || v, v);
+      return tt => apply(i(tt));
+    });
+  };
+  function apply(v) {
+    view = v;
+    const k = Math.min(W, H) / v[2];
+    const tf = n => [(n.x - v[0]) * k, (n.y - v[1]) * k];
+    circSel.attr('transform', d => { const [x, y] = tf(d); return `translate(${x},${y})`; })
+      .attr('r', d => d.r * k);
+    labelSel.attr('transform', d => { const [x, y] = tf(d); return `translate(${x},${y})`; })
+      .attr('font-size', d => Math.max(7, Math.min(d.r * k * (d.data.type === 'predicate' ? 0.5 : 0.32), 22)))
+      .attr('dy', d => d.children ? -d.r * k * 0.62 : '0.32em')
+      .style('display', d => (d.r * k > 9 ? null : 'none'));
+    ligSel.each(function (d) {
+      const [x1, y1] = tf(d.p), [x2, y2] = tf(d.v);
+      d3.select(this).attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2)
+        .attr('stroke-width', Math.max(0.6, 1.4 * k * 0.04 * v[2] / v[2]));
+    });
+  }
+  focus0 = root;
+  apply([root.x, root.y, root.r * 2 + 16]);
+  svg.on('click', () => zoomTo(root));
+}
+
+Spike.mountPicker(document.getElementById('picker'), draw);
+</script>
+</body>
+</html>

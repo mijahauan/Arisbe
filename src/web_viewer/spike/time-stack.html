@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spike · Time-stack — the line of thought as a navigable film</title>
+<style>
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: #0a0c10; color: #e8e8ea; overflow: hidden; }
+  header { position: fixed; top: 0; left: 0; right: 0; z-index: 5; padding: 8px 12px; background: rgba(18,21,28,.92); border-bottom: 1px solid #2a2f3a; }
+  h1 { font-size: 14px; margin: 0 0 6px; font-weight: 600; }
+  .pk { display: flex; gap: 10px; align-items: center; }
+  .pk select { background: #0f1115; color: #e8e8ea; border: 1px solid #2a2f3a; border-radius: 4px; padding: 3px 5px; }
+  .pk-msg { opacity: .7; font-size: 12px; }
+  .note { position: fixed; bottom: 8px; left: 12px; z-index: 5; font-size: 11px; opacity: .55; max-width: 48vw; }
+  #stage { position: fixed; inset: 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Time-stack — the recorded derivation as a solid: each sheet the real styled 2-D drawing at that step, stacked along the derivation axis. Drag to look along the film.</h1>
+  <div id="picker"></div>
+</header>
+<div id="stage"></div>
+<div class="note">Depth = derivation order (genuinely orthogonal — earned, not imposed). Each sheet keeps its full Dau/Peirce style. Blue threads connect an element that <b>persists</b> from one step to the next — the literal thread of a line of thought; a thread that begins/ends marks what a rule added/erased.</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script src="/spike/spike-common.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const stage = document.getElementById('stage');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0a0c10');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+stage.appendChild(renderer.domElement);
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 1, 1e4);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+scene.add(new THREE.AmbientLight(0xffffff, 1));
+window.__tsCamera = camera; window.__tsControls = controls;
+
+const PW = 340, GAP = 150;
+let group = null;
+
+function loadTexture(svg, w, h) {
+  const tex = new THREE.Texture();
+  const img = new Image();
+  img.onload = () => {
+    const c = document.createElement('canvas'); c.width = img.width || w; c.height = img.height || h;
+    c.getContext('2d').drawImage(img, 0, 0);
+    tex.image = c; tex.needsUpdate = true; URL.revokeObjectURL(img.src);
+  };
+  img.src = URL.createObjectURL(new Blob([Spike.sizedSvg(svg, w, h)], { type: 'image/svg+xml' }));
+  return tex;
+}
+
+function build(data) {
+  if (group) { scene.remove(group); group.traverse(o => { o.geometry?.dispose?.(); o.material?.dispose?.(); }); }
+  group = new THREE.Group(); scene.add(group);
+
+  const placed = [];   // per frame: {z, world(id, map)->Vec3, ids:Set}
+  data.frames.forEach((f, i) => {
+    const vp = f.layout.viewport_bounds;
+    const vw = Math.max(1, vp.max_x - vp.min_x), vh = Math.max(1, vp.max_y - vp.min_y);
+    const aspect = vw / vh, PH = PW / aspect, z = -i * GAP;
+
+    // white backing + the styled sheet as a texture
+    const back = new THREE.Mesh(new THREE.PlaneGeometry(PW * 1.04, PH * 1.04),
+      new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    back.position.set(0, 0, z - 0.5); group.add(back);
+    const sheet = new THREE.Mesh(new THREE.PlaneGeometry(PW, PH),
+      new THREE.MeshBasicMaterial({ map: loadTexture(f.svg, Math.round(vw), Math.round(vh)), transparent: true }));
+    sheet.position.set(0, 0, z); group.add(sheet);
+
+    const posOf = (p) => new THREE.Vector3(
+      ((p.x - vp.min_x) / vw - 0.5) * PW, (0.5 - (p.y - vp.min_y) / vh) * PH, z);
+    const map = {};
+    Object.entries(f.layout.vertex_positions).forEach(([id, p]) => map[id] = posOf(p));
+    Object.entries(f.layout.predicate_positions).forEach(([id, p]) => map[id] = posOf(p));
+    placed.push({ z, map, ids: new Set(Object.keys(map)) });
+  });
+
+  // survivor threads: an element present in frame i and i+1
+  for (let i = 0; i + 1 < placed.length; i++) {
+    const a = placed[i], b = placed[i + 1];
+    a.ids.forEach(id => {
+      if (b.ids.has(id)) {
+        group.add(new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([a.map[id], b.map[id]]),
+          new THREE.LineBasicMaterial({ color: 0x6fa8ff, transparent: true, opacity: 0.7 })));
+      }
+    });
+  }
+
+  const span = (data.frames.length - 1) * GAP;
+  controls.target.set(0, 0, -span / 2);
+  camera.position.set(PW * 0.9, PW * 0.55, span / 2 + PW * 1.2);
+  controls.update();
+}
+
+function tick() { requestAnimationFrame(tick); controls.update(); renderer.render(scene, camera); }
+tick();
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+Spike.mountUodPicker(document.getElementById('picker'), build);
+</script>
+</body>
+</html>

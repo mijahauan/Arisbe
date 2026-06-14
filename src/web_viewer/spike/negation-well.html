@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spike P3 — 2.5-D negation well (circle-packing floor + depth)</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: #0a0c10; color: #e8e8ea; overflow: hidden; }
+  header { position: fixed; top: 0; left: 0; right: 0; z-index: 5; padding: 8px 12px; background: rgba(18,21,28,.92); border-bottom: 1px solid #2a2f3a; }
+  h1 { font-size: 14px; margin: 0 0 6px; font-weight: 600; }
+  .pk { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pk label { display: flex; gap: 4px; align-items: center; }
+  .pk select, .pk input { background: #0f1115; color: #e8e8ea; border: 1px solid #2a2f3a; border-radius: 4px; padding: 3px 5px; }
+  .pk button { background: #2d6cdf; color: #fff; border: 0; border-radius: 4px; padding: 4px 12px; cursor: pointer; }
+  #top { background: #243; }
+  .pk-or { opacity: .5; } .pk-msg { opacity: .7; font-size: 12px; }
+  .note { position: fixed; bottom: 8px; left: 12px; z-index: 5; font-size: 11px; opacity: .55; max-width: 48vw; }
+  #stage { position: fixed; inset: 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>P3 · 2.5-D negation well — top-down IS the circle-packing (parent–child by enclosure); tilt to lift nesting into depth. <button id="top">Top-down</button></h1>
+  <div id="picker"></div>
+</header>
+<div id="stage"></div>
+<div class="note">The floor-plan is the circle-packing (containment unambiguous); negation depth is height, so rotating "loosens" the flat constraint without losing parent–child (footprints stay nested + struts connect them). White ring = recto (asserted), gray ring = verso (denied) — polarity on value only; hue/texture + line-style reserved for Gamma. Black = lines of identity, white = relations. Ligature green→red = cuts crossed.</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script src="/spike/spike-common.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const stage = document.getElementById('stage');
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#0a0c10');
+const DIM = 600, STEP = 70;
+let camera, controls, group = null, frustum = DIM * 1.15;
+
+function makeCamera() {
+  const a = window.innerWidth / window.innerHeight;
+  camera = new THREE.OrthographicCamera(-frustum * a / 2, frustum * a / 2, frustum / 2, -frustum / 2, -1e4, 1e4);
+  camera.position.set(0, 0, 1200); camera.up.set(0, 1, 0);
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  window.__nwCamera = camera; window.__nwControls = controls;  // for headless tilt capture
+}
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+stage.appendChild(renderer.domElement);
+makeCamera();
+scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+
+const ringColor = (polarity) => new THREE.Color(polarity === 'negative' ? '#9aa0a8' : '#f3f4f6'); // gray=verso, white=recto
+const crossingColor = (n) => new THREE.Color().setHSL((Math.max(0, 6 - Math.min(6, n)) / 6) * 0.33, 0.7, 0.5);
+
+function labelSprite(text) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.font = 'bold 42px system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#fff'; ctx.fillText(text.slice(0, 8), 64, 64);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false }));
+  sp.scale.set(34, 34, 1); return sp;
+}
+
+function build(data) {
+  if (group) { scene.remove(group); group.traverse(o => { o.geometry?.dispose?.(); o.material?.dispose?.(); }); }
+  group = new THREE.Group(); scene.add(group);
+
+  // Shared circle-packing footprint — identical to P1, so top-down == circle-packing.
+  const root = d3.hierarchy(Spike.hierarchy(data.structure)).sum(d => d.value || 0)
+    .sort((a, b) => (b.value || 0) - (a.value || 0));
+  d3.pack().size([DIM, DIM]).padding(6)(root);
+  const pos = n => new THREE.Vector3(n.x - DIM / 2, -(n.y - DIM / 2), -depthOf(n) * STEP);
+  function depthOf(n) { return n.data.type === 'predicate' || n.data.type === 'vertex' ? (n.parent ? n.parent.data.depth : 0) : n.data.depth; }
+
+  const byId = new Map();
+  root.descendants().forEach(n => byId.set(n.data.id, n));
+
+  root.descendants().forEach(n => {
+    const p = pos(n), d = n.data;
+    if (d.type === 'cut' || d.type === 'sheet') {
+      // crisp value-coded ring (a flat torus) — polarity read off white/gray
+      const tube = Math.max(1.4, n.r * 0.018);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(n.r, tube, 8, 96),
+        new THREE.MeshBasicMaterial({ color: ringColor(d.polarity) }));
+      ring.position.copy(p); group.add(ring);
+      // faint fill so the area reads as a surface without occluding children
+      const fill = new THREE.Mesh(new THREE.CircleGeometry(n.r, 64),
+        new THREE.MeshBasicMaterial({ color: ringColor(d.polarity), transparent: true, opacity: 0.06, depthWrite: false }));
+      fill.position.copy(p); group.add(fill);
+      // strut to parent centre — viewpoint-independent parent→child cue
+      if (n.parent) {
+        const pp = pos(n.parent);
+        const strut = new THREE.Line(new THREE.BufferGeometry().setFromPoints([p, pp]),
+          new THREE.LineBasicMaterial({ color: 0x55606e, transparent: true, opacity: 0.5 }));
+        group.add(strut);
+      }
+    } else {
+      const sph = new THREE.Mesh(new THREE.SphereGeometry(d.type === 'predicate' ? 7 : 5, 16, 16),
+        new THREE.MeshBasicMaterial({ color: d.type === 'predicate' ? 0xffffff : 0x111111 }));
+      sph.position.copy(p); group.add(sph);
+      if (d.type === 'predicate') { const l = labelSprite(d.name); l.position.copy(p).y += 13; group.add(l); }
+      if (n.parent) {  // strut leaf → its area centre
+        const strut = new THREE.Line(new THREE.BufferGeometry().setFromPoints([p, pos(n.parent)]),
+          new THREE.LineBasicMaterial({ color: 0x39414d, transparent: true, opacity: 0.35 }));
+        group.add(strut);
+      }
+    }
+  });
+
+  (data.structure.ligatures || []).forEach(l => {
+    const a = byId.get(l.predicate_id), b = byId.get(l.vertex_id);
+    if (!a || !b) return;
+    group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([pos(a), pos(b)]),
+      new THREE.LineBasicMaterial({ color: crossingColor((l.crossings || []).length), transparent: true, opacity: 0.95 })));
+  });
+
+  topDown(data.structure.counts.max_depth);
+}
+
+function topDown(maxDepth = 2) {
+  const z = -(maxDepth || 2) * STEP / 2;
+  controls.target.set(0, 0, z);
+  camera.position.set(0, 0, 1200); camera.zoom = 1; camera.updateProjectionMatrix();
+  controls.update();
+}
+
+document.getElementById('top').addEventListener('click', () => topDown(window._maxDepth));
+function tick() { requestAnimationFrame(tick); controls.update(); renderer.render(scene, camera); }
+tick();
+window.addEventListener('resize', () => {
+  const a = window.innerWidth / window.innerHeight;
+  camera.left = -frustum * a / 2; camera.right = frustum * a / 2; camera.top = frustum / 2; camera.bottom = -frustum / 2;
+  camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+Spike.mountPicker(document.getElementById('picker'), (data) => { window._maxDepth = data.structure.counts.max_depth; build(data); });
+</script>
+</body>
+</html>
