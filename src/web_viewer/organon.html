@@ -320,7 +320,13 @@
            form is on the canvas. §3.3 attests every styled render. -->
       <div id="view-toolbar" style="display:none; align-items:center; gap:8px;
            padding:6px 12px; background:#1e1e2e; border-bottom:1px solid #313244;">
-        <label for="view-style" style="font-size:11px; color:#a6adc8;">View style</label>
+        <label for="view-lens" style="font-size:11px; color:#a6adc8;">Lens</label>
+        <select id="view-lens" style="font-size:12px;" title="A read-only projection of this UoD — never the asserted drawing.">
+          <option value="drawing">Drawing (default)</option>
+          <option value="well">Well — 2.5-D negation depth</option>
+          <option value="storyboard" hidden disabled>Storyboard — the line of thought</option>
+        </select>
+        <label for="view-style" style="font-size:11px; color:#a6adc8; margin-left:8px;">View style</label>
         <select id="view-style" style="font-size:12px;">
           <option value="">Dau (default)</option>
           <option value="dau-compliant@1.0">Dau — mathematical</option>
@@ -363,11 +369,23 @@
     </main>
   </div>
 
+  <!-- Adaptive-scope lenses (read-only navigation projections). d3 lays out the
+       circle-packing footprint; the importmap resolves three.js for the
+       lazily-imported Well lens (loaded only when first selected). -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <script type="importmap">
+  { "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }}
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/mode-nav.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
+  <script src="js/lens-common.js"></script>
+  <script src="js/storyboard-lens.js"></script>
   <script>
     (function () {
       const listEl = document.getElementById('organon-uod-list');
@@ -395,6 +413,17 @@
       // choices that persist across UoD switches — §3.3 attests every render).
       let currentStyle = '';
       let currentEngine = 'elk';
+
+      // Adaptive-scope lens state. The lens is a read-only navigation projection
+      // of the loaded UoD; "drawing" is the §3.3-attested SVG (the others are not
+      // the drawing and never a promotion source — docs/MANIFEST_AND_MEANING.md).
+      let currentLens = 'drawing';
+      let currentHasChain = false;
+      let currentDrawingSvg = '';      // last static drawing (for switch-back, non-chain)
+      let currentDrawingForms = null;
+      let currentStructure = null;     // cached /structure for the Well lens
+      let currentHistory = null;       // cached /history-structure for diachronic lenses
+      let activeLensHandle = null;     // {destroy()} of the mounted non-drawing lens
       function styleQuery() {
         const q = [];
         if (currentStyle) q.push('style=' + encodeURIComponent(currentStyle));
@@ -708,6 +737,16 @@
         const viewBar = document.getElementById('view-toolbar');
         if (viewBar) viewBar.style.display = 'flex';
 
+        // Each new UoD starts in the Drawing lens; clear cached lens data and reset
+        // the selector. Diachronic-lens availability is (re)set by loadChain().
+        currentDrawingSvg = data.svg || '';
+        currentDrawingForms = data.linear_forms;
+        currentStructure = null;
+        currentHistory = null;
+        currentLens = 'drawing';
+        destroyActiveLens();
+        if (viewLensSel) viewLensSel.value = 'drawing';
+        setDiachronicLensesAvailable(false);
         renderCanvas(data.svg || '', data.linear_forms, false);
       }
 
@@ -729,14 +768,22 @@
             const body = await res.json();
             if (body.success && body.data && body.data.has_chain) {
               chainFrames = body.data.frames || [];
-              showFrame(Math.min(chainIndex, chainFrames.length - 1), false);
+              // Style/engine reproject the Drawing; if a structural lens is active
+              // it is style-independent, so leave it untouched.
+              if (currentLens === 'drawing') {
+                showFrame(Math.min(chainIndex, chainFrames.length - 1), false);
+              }
             }
           } else {
             const res = await fetch(
               '/organon/uods/' + encodeURIComponent(selectedUodId) + styleQuery()
             );
             const body = await res.json();
-            if (body.success) renderCanvas(body.data.svg, body.data.linear_forms, false);
+            if (body.success) {
+              currentDrawingSvg = body.data.svg;
+              currentDrawingForms = body.data.linear_forms;
+              if (currentLens === 'drawing') renderCanvas(body.data.svg, body.data.linear_forms, false);
+            }
           }
           setStatus('Viewing in ' + (currentStyle || 'Dau (default)') + ' style.');
         } catch (e) {
@@ -757,6 +804,63 @@
         });
         if (window.LinearFormPanel) {
           window.LinearFormPanel.render(canvasEl, linearForms);
+        }
+      }
+
+      // ---- Adaptive-scope lenses ----
+      // The Lens selector swaps what is mounted in #organon-canvas. "drawing" is
+      // the attested SVG (the Drawing lens); the others are read-only structural
+      // projections fetched from the (O(n)) /structure and /history-structure
+      // endpoints. Switching back to drawing restores the attested render exactly.
+      const viewLensSel = document.getElementById('view-lens');
+
+      function destroyActiveLens() {
+        if (activeLensHandle) { try { activeLensHandle.destroy(); } catch (_) {} activeLensHandle = null; }
+      }
+
+      // Reveal/hide the diachronic lens options (only meaningful for a chained UoD).
+      function setDiachronicLensesAvailable(yes) {
+        const opt = viewLensSel && viewLensSel.querySelector('option[value="storyboard"]');
+        if (opt) { opt.disabled = !yes; opt.hidden = !yes; }
+        if (!yes && currentLens === 'storyboard') { selectLens('drawing'); }
+      }
+
+      function selectLens(lens) {
+        currentLens = lens;
+        if (viewLensSel && viewLensSel.value !== lens) viewLensSel.value = lens;
+        renderLens(lens);
+      }
+
+      async function renderLens(lens) {
+        currentLens = lens;
+        destroyActiveLens();
+        if (lens === 'drawing') {
+          // The chain player belongs to the Drawing lens; restore it if diachronic.
+          if (currentHasChain) {
+            if (cp.bar) cp.bar.style.display = 'flex';
+            showFrame(chainIndex, false);
+          } else {
+            renderCanvas(currentDrawingSvg, currentDrawingForms, false);
+          }
+          return;
+        }
+        // Non-drawing lenses: the player is hidden (these are alternative views).
+        stopPlay();
+        if (cp.bar) cp.bar.style.display = 'none';
+        canvasEl.innerHTML = '<div id="organon-canvas-placeholder">Rendering lens…</div>';
+        try {
+          if (!selectedUodId) return;
+          if (lens === 'well') {
+            if (!currentStructure) currentStructure = await window.LensCommon.fetchStructure(selectedUodId);
+            const mod = await import('/js/negation-well-lens.js');
+            activeLensHandle = mod.mount(canvasEl, currentStructure);
+          } else if (lens === 'storyboard') {
+            if (!currentHistory) currentHistory = await window.LensCommon.fetchHistory(selectedUodId);
+            activeLensHandle = window.Storyboard.mount(canvasEl, currentHistory);
+          }
+        } catch (e) {
+          canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:#f38ba8;">' +
+            'Lens failed: ' + escapeHtml(e.message || String(e)) + '</div>';
         }
       }
 
@@ -826,6 +930,8 @@
 
       async function loadChain(uodId) {
         hidePlayer();
+        currentHasChain = false;
+        setDiachronicLensesAvailable(false);
         try {
           const res = await fetch('/organon/uods/' + encodeURIComponent(uodId) + '/chain' + styleQuery());
           const body = await res.json();
@@ -833,6 +939,8 @@
           const frames = body.data.frames || [];
           if (frames.length < 2) return;  // nothing to play through
           chainFrames = frames;
+          currentHasChain = true;
+          setDiachronicLensesAvailable(true);  // reveal the diachronic lenses
           if (cp.bar) cp.bar.style.display = 'flex';
           // Start at the base state so the episode plays forward.
           showFrame(0, false);
@@ -990,6 +1098,11 @@
         viewEngineSel.addEventListener('change', function () {
           currentEngine = viewEngineSel.value;
           applyViewStyle();  // re-fetch + re-render in the chosen layout engine
+        });
+      }
+      if (viewLensSel) {
+        viewLensSel.addEventListener('change', function () {
+          renderLens(viewLensSel.value);  // swap the projection mounted in the canvas
         });
       }
       loadExportFormats();
