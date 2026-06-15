@@ -429,8 +429,19 @@ Route + E2E (mirroring `test_organon_routes.py` / `test_organon_lenses_e2e.py`):
   (~75 % reduction). E2E `tests/test_organon_lenses_e2e.py::test_time_stack_lens_for_a_chained_uod`
   (mounts the WebGL canvas, zero console errors, Drawing restores). Screenshot:
   `docs/assets/adaptive_scope_spike/d2-timestack-praeclarum-aligned.png`.
-- **Liveness / desuetude tracking** — manifest floor #7 (*two deaths, so track liveness*):
-  which UoDs/models are still consulted; a forward-facing provenance facet/badge in Organon.
+- **✅ DONE (2026-06-15) — Liveness / desuetude tracking** (manifest floor #7 — *two deaths, so
+  track liveness*). `src/liveness.py`: a `LivenessLog` (one compact summary per UoD: first/last/
+  count/per-kind tally/retired, in a single `tomos/.liveness.json`, gitignored as local usage
+  churn) with a desuetude policy (`alive` if consulted within `DORMANT_AFTER_DAYS=90`, else
+  `dormant`; `unconsulted` if never; `retired` if deliberately so — and re-consulting revives).
+  **Consultations recorded at two chokepoints:** opening a UoD in Organon (`GET /uods/{id}` →
+  `viewed`) and pressing a corpus UoD into service as a model M in Agon (`_resolve_model_egif` →
+  `model`). **Surfaced** as a forward-facing facet in the Organon detail panel (status dot +
+  "consulted N× · last …" + a reversible **Retire/Revive** toggle, `POST /uods/{id}/liveness/
+  retire`; read-only `GET /uods/{id}/liveness`) and a status dot on list rows
+  (`liveness_status`). Outside §3.3 (consulting a sign is not a sign); never mutates the UoD.
+  Tests: `test_liveness.py` (8, the policy/reversibility) + `test_liveness_routes.py` (6, both
+  chokepoints + retire) + an E2E facet toggle in `test_organon_lenses_e2e.py`.
 - **Derivation-DAG lens** — branch structure; needs a branching episode to exercise.
 - **Cross-mode UX consistency** — shared `design-system.css`, camera unification across the
   three modes, step/move terminology (the round-1 cross-mode findings).

@@ -464,6 +464,13 @@ def _resolve_model_egif(model_egif: Optional[str], model_uod: Optional[str]) -> 
         uod = _get_tomos().load_uod(model_uod, attest=False)  # M read as data
         if uod is None or uod.current_egi is None:
             raise ValueError(f"Model UoD '{model_uod}' not found or has no current EGI.")
+        # Forward-facing provenance (manifest floor #7): a corpus UoD pressed into
+        # service as a model M is being *consulted* — it keeps the telling alive.
+        try:
+            from liveness import get_log, KIND_MODEL
+            get_log(TOMOS_PATH).record(model_uod, KIND_MODEL)
+        except Exception:
+            pass  # liveness is best-effort usage telemetry; never block an inning
         from egif_generator_dau import generate_egif
         return generate_egif(uod.current_egi)
     if model_egif and model_egif.strip():

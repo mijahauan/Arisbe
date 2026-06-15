@@ -195,3 +195,7 @@ graphify-out/
 
 # Ergasterion workshop scratch (regime-1 drafts; not part of the corpus)
 /scratch/
+
+# Liveness / desuetude log — local forward-facing usage state (manifest floor #7);
+# churns on every consultation, so it rides beside the corpus, not inside it.
+tomos/.liveness.json

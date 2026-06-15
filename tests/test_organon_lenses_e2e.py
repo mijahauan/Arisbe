@@ -134,6 +134,32 @@ def test_storyboard_lens_for_a_chained_uod(page, app_url):
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
 
 
+def test_liveness_facet_and_retire_toggle(page, app_url):
+    """Opening a UoD records a consultation (it reads *alive*); the Retire toggle
+    flips it to *retired* and back — forward-facing provenance, manifest floor #7."""
+    _open_organon(page, app_url)
+    _load_uod(page, SYNCHRONIC)
+    page.wait_for_selector(".live-block", timeout=10000)
+    # a just-opened UoD is alive (viewing revives even a previously-retired one)
+    assert page.eval_on_selector(".live-block .live-status", "el => el.textContent") == "alive"
+
+    # Retire → the facet flips and the button offers Revive
+    page.click("#live-toggle")
+    page.wait_for_function(
+        "document.querySelector('.live-block .live-status') && "
+        "document.querySelector('.live-block .live-status').textContent === 'retired'",
+        timeout=8000)
+    assert page.eval_on_selector("#live-toggle", "el => el.textContent") == "Revive"
+
+    # Revive → back to alive
+    page.click("#live-toggle")
+    page.wait_for_function(
+        "document.querySelector('.live-block .live-status') && "
+        "document.querySelector('.live-block .live-status').textContent === 'alive'",
+        timeout=8000)
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
 def test_time_stack_lens_for_a_chained_uod(page, app_url):
     """A chained UoD offers the Time-stack lens (the 2.5-D derivation film); it
     mounts a three.js canvas, and switching back to Drawing restores the player."""

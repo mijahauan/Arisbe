@@ -131,4 +131,9 @@ upon it surrenderable.*
   and retiring a settled model are as first-class as asserting it. Knowledge
   holds not as a chain anchored to bedrock but as Peirce's **cable** — many
   contingent fibers, none reaching bottom, holding by their multitude and their
-  connection.
+  connection. *(Realized in `src/liveness.py`: every consultation — opened in
+  Organon, pressed into service as a model M in Agon — keeps a telling alive; an
+  unconsulted one reads `dormant`/`unconsulted` (the second death, though never
+  wrong); a model can be deliberately `retired` and, reversibly, revived. Outside
+  §3.3 — consulting a sign is not a sign — and surfaced as a forward-facing facet in
+  Organon.)*

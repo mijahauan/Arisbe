@@ -115,11 +115,15 @@ async def list_uods():
     cheap side-files, see ``_browse_facets``).
     """
     try:
+        from liveness import get_log
         tomos = _get_tomos()
         entries = tomos.list_uods()
+        live = get_log(TOMOS_PATH).all()   # forward-facing usage status per UoD
         items = []
         for e in entries:
             f = _browse_facets(e)
+            uid = e.get("uod_id", "")
+            ls = live.get(uid)
             items.append({
                 "uod_id": e.get("uod_id", ""),
                 "name": e.get("name", "Untitled"),
@@ -136,6 +140,10 @@ async def list_uods():
                 "kind": f["kind"],
                 "cited": f["cited"],
                 "description": f["description"],
+                # Forward-facing usage status (manifest floor #7): alive / dormant /
+                # unconsulted / retired — for a liveness badge in the browser list.
+                "liveness_status": ls.status if ls else "unconsulted",
+                "consult_count": ls.count if ls else 0,
             })
         return ApiResponse(success=True, data=items)
     except Exception as exc:
@@ -232,6 +240,13 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk",
         layout_dto, svg = generate_layout(egi, style_name=style, engine=engine)
         layout_dict = layout_dto_to_dict(layout_dto)
 
+        # Forward-facing provenance (manifest floor #7): opening a UoD in Organon is
+        # a *consultation* — it keeps the telling alive.  Outside §3.3; mutates only
+        # the local usage log, never the UoD.  (overview/structure sub-routes don't
+        # record — this is the canonical "open this UoD" event.)
+        from liveness import get_log, KIND_VIEWED
+        liveness = get_log(TOMOS_PATH).record(uod_id, KIND_VIEWED).to_dict()
+
         metadata = {
             "uod_id": uod.uod_id,
             "name": uod.name,
@@ -263,6 +278,10 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk",
                 # Annotation layer — marginalia *about* this UoD, all scopes
                 # (the client filters by scope).  Outside §3.3; [] when none.
                 "annotations": tomos.load_annotations(uod_id),
+                # Forward-facing provenance: is this telling still alive in the
+                # conversation? (consultations / last-consulted / desuetude status /
+                # explicit retirement).  Outside §3.3; *form* of use, never a verdict.
+                "liveness": liveness,
                 "metadata": metadata,
             },
         )
@@ -328,6 +347,39 @@ async def structure_from_egif(payload: dict):
     except Exception as exc:
         return ApiResponse(success=False, error={
             "code": "STRUCTURE_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+@router.get("/uods/{uod_id}/liveness")
+async def get_uod_liveness(uod_id: str):
+    """The forward-facing usage record for a UoD **without** recording a consultation
+    (manifest floor #7).  The detail route (``GET /uods/{id}``) records a view; this
+    one only reads — for a badge refresh that must not itself keep the telling alive."""
+    try:
+        from liveness import get_log
+        return ApiResponse(success=True,
+                           data=get_log(TOMOS_PATH).summary(uod_id).to_dict())
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "LIVENESS_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+@router.post("/uods/{uod_id}/liveness/retire")
+async def retire_uod(uod_id: str, payload: Optional[dict] = None):
+    """Explicitly **retire** (the deliberate second death) or **revive** a model —
+    body ``{"retired": true|false}`` (default ``true``).
+
+    Reversible by construction: nothing is asserted, nothing is deleted, the UoD and
+    its drawing are untouched — only the local usage *stance* changes (manifest: "no
+    irreversible commitment anywhere").  Re-consulting the UoD revives it on its own.
+    """
+    try:
+        from liveness import get_log
+        retired = True if payload is None else bool(payload.get("retired", True))
+        summary = get_log(TOMOS_PATH).set_retired(uod_id, retired)
+        return ApiResponse(success=True, data=summary.to_dict())
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "LIVENESS_ERROR", "message": str(exc), "type": type(exc).__name__})
 
 
 @router.get("/uods/{uod_id}/history-structure")

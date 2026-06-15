@@ -177,6 +177,27 @@
     #organon-detail-extra .ann-tag {
       font-size: 9px; color: #8a8fa3; margin-left: 4px;
     }
+    /* Liveness facet (manifest floor #7) — forward-facing usage, never a verdict. */
+    #organon-detail-extra .live-block {
+      margin-top: 6px; padding: 6px 8px; background: #f6f7f9;
+      border-radius: 4px; font-size: 11px; color: #45485a;
+    }
+    #organon-detail-extra .live-block strong { color: #2a2d3e; margin-right: 4px; }
+    .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      margin: 0 5px 0 2px; vertical-align: 0; }
+    .live-alive { background: #40a02b; }          /* alive — recently consulted */
+    .live-dormant { background: #df8e1d; }         /* dormant — sliding to desuetude */
+    .live-unconsulted { background: #9ca0b0; }     /* never consulted */
+    .live-retired { background: #6c6f85; box-shadow: inset 0 0 0 1.5px #d20f39; } /* deliberate second death */
+    .live-status { font-weight: 600; }
+    .live-tail { opacity: .8; }
+    .live-toggle {
+      margin-left: 8px; font-size: 10px; padding: 1px 7px; cursor: pointer;
+      border: 1px solid #cdd0d8; border-radius: 3px; background: #fff; color: #45485a;
+    }
+    .live-toggle:hover { background: #eef0f3; }
+    /* List status dot (same palette) before the name. */
+    .uod-item .live-dot { margin-right: 6px; }
     #organon-canvas {
       flex: 1;
       background: var(--canvas-bg);
@@ -494,9 +515,17 @@
         const cited = '<span class="uod-cited-dot ' + (uod.cited ? 'cited' : '') + '" title="' +
           (uod.cited ? 'cited from a source' : 'authored here') + '">●</span> ' +
           (uod.cited ? 'cited' : 'authored');
+        // Forward-facing usage dot (manifest floor #7) — shown only once a telling
+        // has a status worth flagging (alive / dormant / retired); the unconsulted
+        // majority stays unmarked so the consulted ones stand out.
+        const ls = uod.liveness_status;
+        const live = (ls && ls !== 'unconsulted')
+          ? ' · <span class="live-dot live-' + ls + '" title="' + ls +
+            (uod.consult_count ? ' · consulted ' + uod.consult_count + '×' : '') + '"></span>' + ls
+          : '';
         item.innerHTML =
           '<div class="uod-name">' + badge + escapeHtml(uod.name) + '</div>' +
-          '<div class="uod-meta">' + cited + (states ? ' · ' + states : '') + '</div>';
+          '<div class="uod-meta">' + cited + (states ? ' · ' + states : '') + live + '</div>';
         item.addEventListener('click', function () { openUod(uod.uod_id); });
         return item;
       }
@@ -718,6 +747,58 @@
         return '<div class="ann-block"><strong>notes</strong>' + items + '</div>';
       }
 
+      // Forward-facing provenance (manifest floor #7: "two deaths, so track
+      // liveness"): is this telling still alive in the conversation, or sliding into
+      // desuetude? *Form* of use, never a verdict — outside §3.3. Carries a Retire /
+      // Revive toggle (the deliberate second death, fully reversible).
+      function sinceText(days) {
+        if (days == null) return 'never';
+        if (days === 0) return 'today';
+        if (days === 1) return 'yesterday';
+        return days + ' days ago';
+      }
+      function renderLiveness(data) {
+        const L = data.liveness;
+        if (!L) return '';
+        const status = L.status || 'unconsulted';
+        const label = { alive: 'alive', dormant: 'dormant', unconsulted: 'never consulted',
+                        retired: 'retired' }[status] || status;
+        const bits = [];
+        if (L.count) bits.push('consulted ' + L.count + '×');
+        if (L.last) bits.push('last ' + sinceText(L.days_since_last));
+        const tail = bits.length ? ' · ' + bits.join(' · ') : '';
+        const btn = '<button id="live-toggle" class="live-toggle" data-retired="' +
+          (L.retired ? '1' : '0') + '">' + (L.retired ? 'Revive' : 'Retire') + '</button>';
+        return '<div class="live-block"><strong>liveness</strong> ' +
+          '<span class="live-dot live-' + escapeHtml(status) + '"></span>' +
+          '<span class="live-status">' + escapeHtml(label) + '</span>' +
+          '<span class="live-tail">' + escapeHtml(tail) + '</span>' + btn + '</div>';
+      }
+      // Wire the Retire/Revive toggle inside the detail-extra block (event-delegated
+      // each render). Toggling is reversible and touches only the usage stance.
+      function wireLivenessToggle(uodId) {
+        const btn = document.getElementById('live-toggle');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+          const makeRetired = btn.dataset.retired !== '1';
+          btn.disabled = true;
+          fetch('/organon/uods/' + encodeURIComponent(uodId) + '/liveness/retire',
+                { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ retired: makeRetired }) })
+            .then(function (r) { return r.json(); })
+            .then(function (b) {
+              if (b && b.success) {
+                const extraEl = document.getElementById('organon-detail-extra');
+                // re-render just the facet with the fresh summary
+                const fresh = { liveness: b.data, provenance: null, annotations: [] };
+                const block = extraEl.querySelector('.live-block');
+                if (block) { block.outerHTML = renderLiveness(fresh); wireLivenessToggle(uodId); }
+              } else { btn.disabled = false; }
+            })
+            .catch(function () { btn.disabled = false; });
+        });
+      }
+
       function renderDetail(data) {
         const meta = data.metadata || {};
         titleEl.textContent = meta.name || data.uod_id;
@@ -749,7 +830,10 @@
         // sit *outside* §3.3: they describe the source, they are not signs in the
         // graph.
         const extraEl = document.getElementById('organon-detail-extra');
-        if (extraEl) extraEl.innerHTML = renderProvenance(data) + renderAnnotations(data);
+        if (extraEl) {
+          extraEl.innerHTML = renderLiveness(data) + renderProvenance(data) + renderAnnotations(data);
+          wireLivenessToggle(data.uod_id);
+        }
 
         // Enable the item actions + reveal the view-style toolbar for the loaded
         // UoD. The export panel stays collapsed until the Export button is hit.

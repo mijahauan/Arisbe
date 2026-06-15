@@ -54,13 +54,27 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = liveness/desuetude tracking** (next in the author-ordered deferred list;
-the overview arc AND the time-stack lens are now done). Remaining deferred items: **liveness/
-desuetude** (manifest floor #7 — which UoDs/models are still consulted; a forward-facing
-provenance facet/badge in Organon) → **derivation-DAG lens** (branch structure; needs a
-branching episode to exercise) → **cross-mode UX consistency** pass (shared `design-system.css`,
-camera unification, step/move terminology). Spec for the lenses: `docs/ADAPTIVE_SCOPE_VIEWER.md`
-§10.
+**▶▶ NEXT SESSION = the derivation-DAG lens** (next in the author-ordered deferred list; the
+overview arc, the time-stack lens, AND liveness/desuetude are now done). The derivation-DAG lens
+shows **branch structure** — it needs a *branching* reasoning episode to exercise (most corpus
+chains are linear; a forked Ergasterion/Agon episode, or a synthesized branching chain fixture,
+is the prerequisite). Then the last deferred item: **cross-mode UX consistency** pass (shared
+`design-system.css`, camera unification across the three modes, step/move terminology). Spec:
+`docs/ADAPTIVE_SCOPE_VIEWER.md` §10.
+
+**✅ DONE 2026-06-15 — liveness/desuetude tracking** (manifest floor #7, *two deaths so track
+liveness*). `src/liveness.py` — a `LivenessLog` (one compact summary per UoD: first/last/count/
+per-kind tally/retired, in a single gitignored `tomos/.liveness.json`) + desuetude policy
+(`alive` if consulted ≤ `DORMANT_AFTER_DAYS=90`, else `dormant`; `unconsulted` if never;
+`retired` if deliberate — re-consulting revives). Consultations recorded at two chokepoints:
+**Organon view** (`GET /uods/{id}` → `viewed`) and **Agon model-use** (`_resolve_model_egif` →
+`model`). Surfaced as a forward-facing facet in the Organon detail panel (status dot + "consulted
+N× · last …" + a reversible **Retire/Revive** toggle; routes `POST/GET …/liveness[/retire]`) and
+a list-row status dot. Outside §3.3 (consulting a sign is not a sign); never mutates the UoD.
+Tests: `test_liveness.py` (8) + `test_liveness_routes.py` (6, both chokepoints) + E2E facet
+toggle. Additive (new module + routes + organon.html facet; manifest "provenance faces forward"
+now realized). Doc: `docs/ADAPTIVE_SCOPE_VIEWER.md` §10 + `docs/MANIFEST_AND_MEANING.md`. Memory:
+[[project_adaptive_scope_viewer]].
 
 **✅ DONE 2026-06-15 — time-stack production lens** (first deferred item). `src/web_viewer/js/
 time-stack-lens.js` (ES module, lazy-imported), wired into `organon.html`'s Lens selector beside
