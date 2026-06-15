@@ -442,6 +442,29 @@ Route + E2E (mirroring `test_organon_routes.py` / `test_organon_lenses_e2e.py`):
   (`liveness_status`). Outside §3.3 (consulting a sign is not a sign); never mutates the UoD.
   Tests: `test_liveness.py` (8, the policy/reversibility) + `test_liveness_routes.py` (6, both
   chokepoints + retire) + an E2E facet toggle in `test_organon_lenses_e2e.py`.
-- **Derivation-DAG lens** — branch structure; needs a branching episode to exercise.
+- **✅ DONE (2026-06-15) — Derivation-DAG lens** (branch structure). A reasoning episode is a
+  DAG, not always a line: two rule applications from one state **fork** the development, two
+  reaching the same graph **converge** it (the alternate-proofs diamond). Pieces:
+  - **Substrate made DAG-capable** (the persisted chain was V1-linear): `ChainStep` gained an
+    optional `branch_id`; `ProofChain` gained `at(state_id)` (fork — the next `apply` shares a
+    `from_state_id`), a `branch=` label, and `converge_last_into(state_id)` (merge — redirect the
+    last step onto a `same_graph` state, refusing a non-match). Persistence round-trips
+    `branch_id` and the fork/merge topology. The DAG is carried by the `from`/`to` ids; the
+    branch label only colours a line of development.
+  - **Native fixture** (`tools/build_branching_demo_chain.py` → corpus UoD `branching_confluence`):
+    *confluence of erasure* — from `(P)(Q)(R)`, erase `(P)` and `(Q)` in either order, converging
+    at `(R)`. A real ERA at every edge (so the whole DAG is §3.3-attestable), authored as a
+    demonstration of branch structure (no theorem citation — method-only provenance). The
+    alternate-proofs idea realised *natively* in Dau's calculus rather than imported from a foreign
+    prover (TSTP/Metamath were considered — see [[project_organon_adaptive_scope_viewer]] notes —
+    but their steps aren't Peirce rules, so they'd violate the sound-step floor).
+  - **Endpoint** — `/history-structure` now emits a `dag` block (one node per unique state with its
+    drawing/layout/summary + longest-path `depth`; one edge per step with rule/branch/diff) and a
+    `branching` flag; `/chain` carries `branching` too, so the client offers the *linear* lenses
+    (storyboard / time-stack) only for a line and the **derivation-DAG** lens for any chain.
+  - **Lens** — `src/web_viewer/js/derivation-dag-lens.js`: states layered by depth, the real styled
+    drawing in each node, edges arrowed + coloured by branch with rule/diff pills (prior art:
+    Sutcliffe's IDV, borrowed in spirit). Tests: `test_branching_chain.py` (8) + an E2E in
+    `test_organon_lenses_e2e.py`. Screenshot `docs/assets/adaptive_scope_spike/d3-derivation-dag-confluence.png`.
 - **Cross-mode UX consistency** — shared `design-system.css`, camera unification across the
   three modes, step/move terminology (the round-1 cross-mode findings).

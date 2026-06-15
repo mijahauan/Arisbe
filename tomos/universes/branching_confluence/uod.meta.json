@@ -1,0 +1,19 @@
+{
+  "uod_id": "branching_confluence",
+  "uod_type": "historical",
+  "name": "Confluence of erasure (a branching episode)",
+  "description": "From (P)(Q)(R), erase (P) and (Q) in either order \u2014 two lines of development that fork at the start and converge at (R). A native demonstration of branch-and-merge structure (the derivation-DAG view): every edge a real ERA application, so the whole DAG is attestable; the order-independence it shows is a local-confluence fact about erasure.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

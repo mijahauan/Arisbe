@@ -357,6 +357,7 @@
           <option value="well">Well — 2.5-D negation depth</option>
           <option value="storyboard" hidden disabled>Storyboard — the line of thought</option>
           <option value="time-stack" hidden disabled>Time-stack — the derivation as a 2.5-D film</option>
+          <option value="derivation-dag" hidden disabled>Derivation DAG — branch structure</option>
         </select>
         <!-- Overview (adaptive-scope) controls: shown only in the overview lens.
              Collapse deep cuts into content-sized placeholders so a graph too
@@ -430,6 +431,7 @@
   <script src="js/diagram-viewer.js"></script>
   <script src="js/lens-common.js"></script>
   <script src="js/storyboard-lens.js"></script>
+  <script src="js/derivation-dag-lens.js"></script>
   <script>
     (function () {
       const listEl = document.getElementById('organon-uod-list');
@@ -935,13 +937,21 @@
         if (activeLensHandle) { try { activeLensHandle.destroy(); } catch (_) {} activeLensHandle = null; }
       }
 
-      // Reveal/hide the diachronic lens options (only meaningful for a chained UoD).
-      function setDiachronicLensesAvailable(yes) {
-        ['storyboard', 'time-stack'].forEach(v => {
+      // Reveal/hide the diachronic lens options (only meaningful for a chained
+      // UoD). The DAG lens is offered for any chain; the *linear* lenses
+      // (storyboard / time-stack, which read a single line) only when the chain
+      // doesn't branch — a branching episode is the DAG lens's job.
+      function setDiachronicLensesAvailable(yes, branching) {
+        const avail = { storyboard: yes && !branching, 'time-stack': yes && !branching,
+                        'derivation-dag': yes };
+        Object.keys(avail).forEach(v => {
           const opt = viewLensSel && viewLensSel.querySelector('option[value="' + v + '"]');
-          if (opt) { opt.disabled = !yes; opt.hidden = !yes; }
+          if (opt) { opt.disabled = !avail[v]; opt.hidden = !avail[v]; }
         });
-        if (!yes && (currentLens === 'storyboard' || currentLens === 'time-stack')) { selectLens('drawing'); }
+        if (!avail[currentLens] && (currentLens === 'storyboard' ||
+            currentLens === 'time-stack' || currentLens === 'derivation-dag')) {
+          selectLens('drawing');
+        }
       }
 
       function selectLens(lens) {
@@ -993,6 +1003,9 @@
             if (!currentHistory) currentHistory = await window.LensCommon.fetchHistory(selectedUodId);
             const mod = await import('/js/time-stack-lens.js');
             activeLensHandle = mod.mount(canvasEl, currentHistory);
+          } else if (lens === 'derivation-dag') {
+            if (!currentHistory) currentHistory = await window.LensCommon.fetchHistory(selectedUodId);
+            activeLensHandle = window.DerivationDag.mount(canvasEl, currentHistory);
           }
         } catch (e) {
           canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:#f38ba8;">' +
@@ -1215,7 +1228,8 @@
           if (frames.length < 2) return;  // nothing to play through
           chainFrames = frames;
           currentHasChain = true;
-          setDiachronicLensesAvailable(true);  // reveal the diachronic lenses
+          // reveal the diachronic lenses (DAG always; linear ones only if a line)
+          setDiachronicLensesAvailable(true, !!body.data.branching);
           if (cp.bar) cp.bar.style.display = 'flex';
           // Start at the base state so the episode plays forward.
           showFrame(0, false);

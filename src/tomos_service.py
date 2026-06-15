@@ -83,16 +83,30 @@ class ChainStep:
     parameters: Dict[str, Any]
     timestamp: str
     user_annotation: Optional[str] = None
+    # Optional branch label (the JSONL format always reserved room for this).
+    # A chain *branches* whenever two steps share a ``from_state_id`` and
+    # *converges* when two share a ``to_state_id`` — the topology is carried by
+    # those ids alone; ``branch_id`` is only a human label for grouping/colouring
+    # a line of development in the derivation-DAG view.  ``None`` ⇒ the single
+    # (linear) line, the whole existing corpus.
+    branch_id: Optional[str] = None
 
 
 @dataclass
 class TransformationChain:
-    """A linear chain of rule applications anchored at an initial state.
+    """A chain of rule applications anchored at an initial state.
+
+    Usually **linear** (each step applied to the previous result — the whole
+    seeded corpus), but the shape is a DAG in general: steps sharing a
+    ``from_state_id`` *fork* the line of development, steps sharing a
+    ``to_state_id`` *converge* it.  ``current_state_id`` then names the most
+    recently produced state, not "the end" (a branching episode has several
+    leaves).
 
     The chain is the unit of meaning for a Peircean reasoning episode:
     each step's force is conferred by its parent state plus the chain's
-    accumulated context.  V1 supports only linear (non-branching)
-    chains; the JSONL format leaves room for ``branch_id`` later.
+    accumulated context.  Branching is carried by the ``from``/``to`` ids; the
+    optional per-step ``branch_id`` is a human label for a line of development.
 
     Attributes:
         initial_state_id: ID of the base state — the context against
@@ -801,6 +815,7 @@ class TomosService:
                             "parameters": step.parameters,
                             "timestamp": step.timestamp,
                             "user_annotation": step.user_annotation,
+                            "branch_id": step.branch_id,
                         }
                     )
                     + "\n"
@@ -889,6 +904,7 @@ class TomosService:
                             parameters=obj.get("parameters", {}),
                             timestamp=obj["timestamp"],
                             user_annotation=obj.get("user_annotation"),
+                            branch_id=obj.get("branch_id"),
                         )
                     )
 

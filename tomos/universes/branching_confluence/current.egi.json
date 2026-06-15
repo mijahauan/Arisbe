@@ -1,0 +1,23 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_17bf40ed"
+    }
+  ],
+  "V": [],
+  "alphabet": null,
+  "area": {
+    "sheet_6de14ef8": [
+      "e_17bf40ed"
+    ]
+  },
+  "nu": {
+    "e_17bf40ed": []
+  },
+  "rel": {
+    "e_17bf40ed": "R"
+  },
+  "rho": {},
+  "sheet": "sheet_6de14ef8"
+}

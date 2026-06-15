@@ -45,7 +45,8 @@ CITED = {
 ONTOLOGIES = {"porphyry_tree", "foaf_core", "sumo_upper", "bfo_core",
               "colore_between", "colore_field", "skos_core"}
 # The worked-proof fixtures (each carries a real chain).
-PROOFS = {"peirce_law", "barbara", "group_identity", "theorem_praeclarum"}
+PROOFS = {"peirce_law", "barbara", "group_identity", "theorem_praeclarum",
+          "branching_confluence"}
 
 
 @pytest.mark.parametrize("uod_id", _uod_ids())

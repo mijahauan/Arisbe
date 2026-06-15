@@ -1,0 +1,28 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Dau, Frithjof",
+      "title": "Mathematical Logic with Diagrams",
+      "note": "Ch. 14 transformation rules (the erasure rule); Ch. 17 soundness."
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "proof",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Dau, Frithjof. Mathematical Logic with Diagrams"
+    ]
+  }
+}

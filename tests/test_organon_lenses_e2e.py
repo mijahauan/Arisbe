@@ -29,7 +29,8 @@ from playwright.sync_api import sync_playwright  # noqa: E402
 
 REPO = Path(__file__).parent.parent
 SYNCHRONIC = "porphyry_tree"        # no recorded chain
-CHAINED = "theorem_praeclarum"      # a worked 7-step proof
+CHAINED = "theorem_praeclarum"      # a worked 7-step proof (linear)
+BRANCHING = "branching_confluence"  # a fork-and-merge episode (a DAG)
 
 
 def _free_port():
@@ -157,6 +158,27 @@ def test_liveness_facet_and_retire_toggle(page, app_url):
         "document.querySelector('.live-block .live-status') && "
         "document.querySelector('.live-block .live-status').textContent === 'alive'",
         timeout=8000)
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
+def test_derivation_dag_lens_for_a_branching_episode(page, app_url):
+    """A branching episode offers the Derivation-DAG lens and hides the *linear*
+    lenses (storyboard / time-stack); the DAG draws a node per state."""
+    _open_organon(page, app_url)
+    _load_uod(page, BRANCHING)
+    # the DAG lens is offered; the linear lenses are not (this chain forks)
+    assert page.eval_on_selector("#view-lens option[value='derivation-dag']", "o => o.hidden") is False
+    assert page.eval_on_selector("#view-lens option[value=storyboard]", "o => o.hidden") is True
+
+    page.select_option("#view-lens", "derivation-dag")
+    page.wait_for_selector(".dd-node", timeout=10000)
+    nodes = page.eval_on_selector_all(".dd-node", "els => els.length")
+    assert nodes == 4, f"expected the 4-state diamond, got {nodes}"
+    # the fork + merge are drawn as edges with rule pills
+    assert page.eval_on_selector_all(".dd-rule", "els => els.length") == 4
+
+    page.select_option("#view-lens", "drawing")
+    page.wait_for_selector("#organon-canvas svg", timeout=10000)
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
 
 

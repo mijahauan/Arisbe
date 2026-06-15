@@ -440,9 +440,43 @@ async def get_history_structure(uod_id: str, style: Optional[str] = None,
                                   annotation=step.user_annotation,
                                   step_id=step.step_id, state_id=step.to_state_id))
             prev = cur
+
+        # The derivation **DAG** (the branch-aware view): one node per *unique*
+        # state, one edge per step. A chain branches when two steps share a
+        # from_state (a fork) and converges when two share a to_state (a merge) —
+        # the topology the storyboard's single line cannot show. depth = longest
+        # path from the initial state, so the lens can layer the nodes.
+        edges = [{"from": s.from_state_id, "to": s.to_state_id, "rule": s.rule_name,
+                  "branch_id": s.branch_id, "annotation": s.user_annotation,
+                  "step_id": s.step_id,
+                  "diff": _diff(chain.states[s.from_state_id], chain.states[s.to_state_id])}
+                 for s in chain.steps]
+        depth = {chain.initial_state_id: 0}
+        for _ in range(len(chain.states)):            # relax to longest path (tiny DAG)
+            for e in edges:
+                if e["from"] in depth:
+                    depth[e["to"]] = max(depth.get(e["to"], 0), depth[e["from"]] + 1)
+        nodes = []
+        for sid, egi in chain.states.items():
+            dto, svg = generate_layout(egi, style_name=style, engine=engine)
+            nodes.append({
+                "id": sid, "depth": depth.get(sid, 0),
+                "kind": "base" if sid == chain.initial_state_id else "state",
+                "svg": svg, "layout": layout_dto_to_dict(dto),
+                "egi_summary": _egi_summary(egi),
+            })
+        nodes.sort(key=lambda n: (n["depth"], n["id"]))
+        from collections import Counter
+        frm, to = Counter(e["from"] for e in edges), Counter(e["to"] for e in edges)
+        branching = any(v > 1 for v in frm.values()) or any(v > 1 for v in to.values())
+
         return ApiResponse(success=True, data={
             "uod_id": uod_id, "name": uod.name, "has_chain": True,
-            "step_count": len(chain.steps), "frames": frames})
+            "step_count": len(chain.steps), "frames": frames,
+            # The DAG view consumes this; `branching` lets the client offer the
+            # linear lenses (storyboard / time-stack) only when the chain is a line.
+            "dag": {"nodes": nodes, "edges": edges, "branching": branching,
+                    "initial_state_id": chain.initial_state_id}})
     except Exception as exc:
         return ApiResponse(success=False, error={
             "code": "HISTORY_STRUCTURE_ERROR", "message": str(exc),
@@ -529,12 +563,22 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                 )
             )
 
+        # A chain *branches* when two steps share a from_state (fork) or a
+        # to_state (converge) — the linear lenses (storyboard / time-stack / the
+        # frame player) read a single line, so the client offers them only when
+        # the chain is linear; the derivation-DAG lens handles the rest.
+        from collections import Counter as _C
+        _frm = _C(s.from_state_id for s in chain.steps)
+        _to = _C(s.to_state_id for s in chain.steps)
+        branching = any(v > 1 for v in _frm.values()) or any(v > 1 for v in _to.values())
+
         return ApiResponse(
             success=True,
             data={
                 "uod_id": uod_id,
                 "has_chain": True,
                 "step_count": len(chain.steps),
+                "branching": branching,
                 # Whole-derivation and whole-universe notes (not tied to a frame).
                 "chain_annotations": annotations_to_list(for_scope(layer, SCOPE_CHAIN)),
                 "uod_annotations": annotations_to_list(for_scope(layer, SCOPE_UOD)),

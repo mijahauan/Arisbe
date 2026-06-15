@@ -1,0 +1,33 @@
+{
+  "annotations": [
+    {
+      "id": "ann_5c1d52c6",
+      "scope": "uod",
+      "text": "A branching episode: two lines of development fork from the start state and converge at the same conclusion (R). The derivation-DAG lens draws the fork and the merge; the storyboard / time-stack lenses (which assume a single line) are not offered for it.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "branching",
+        "derivation-dag",
+        "demonstration"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_05108ff9",
+      "scope": "chain",
+      "text": "Erasure order is immaterial \u2014 erase (P) then (Q), or (Q) then (P); both reach (R). The episode exists to exercise branch structure, not to assert a new theorem (low warrant, authored here).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "confluence",
+        "alpha"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

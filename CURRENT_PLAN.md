@@ -54,13 +54,32 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = the derivation-DAG lens** (next in the author-ordered deferred list; the
-overview arc, the time-stack lens, AND liveness/desuetude are now done). The derivation-DAG lens
-shows **branch structure** — it needs a *branching* reasoning episode to exercise (most corpus
-chains are linear; a forked Ergasterion/Agon episode, or a synthesized branching chain fixture,
-is the prerequisite). Then the last deferred item: **cross-mode UX consistency** pass (shared
-`design-system.css`, camera unification across the three modes, step/move terminology). Spec:
-`docs/ADAPTIVE_SCOPE_VIEWER.md` §10.
+**▶▶ NEXT SESSION = the cross-mode UX consistency pass** — the *last* deferred adaptive-scope
+item (the overview arc, time-stack lens, liveness/desuetude, AND the derivation-DAG lens are all
+done; the adaptive-scope viewer track is essentially complete). The cross-mode pass: a shared
+`design-system.css`, camera unification across the three modes (Organon/Ergasterion/Agon all use
+`diagram-viewer.js` but with drifted conventions), and step/move terminology consistency — the
+round-1 cross-mode findings. Spec: `docs/ADAPTIVE_SCOPE_VIEWER.md` §10. (After this, the open
+non-viewer tracks resurface: the FOLIO/DLCore disjunctive coverage lever, the schema-drawing math
+frontier, the deferred LLM front-end.)
+
+**✅ DONE 2026-06-15 — derivation-DAG lens** (branch structure; the 3rd deferred item). A
+reasoning episode is a DAG: two rules from one state **fork**, two reaching the same graph
+**converge** (alternate-proofs diamond). Three pieces: **(1) substrate** — made the V1-linear
+chain DAG-capable: `ChainStep.branch_id` (optional); `ProofChain.at(state_id)` (fork),
+`branch=` label, `converge_last_into(state_id)` (merge, refuses non-`same_graph`); persistence
+round-trips the topology. **(2) native fixture** — `tools/build_branching_demo_chain.py` → corpus
+UoD `branching_confluence` (*confluence of erasure*: from `(P)(Q)(R)` erase P,Q either order →
+`(R)`; real ERA per edge, §3.3-attestable; authored demonstration, method-only provenance). The
+alternate-proofs idea realized **natively** in Dau's calculus, not imported from TSTP/Metamath
+(their steps aren't Peirce rules → would break the sound-step floor — see the discussion this
+session). **(3) endpoint + lens** — `/history-structure` emits a `dag` block (node/state +
+edge/step + longest-path depth + `branching`); `/chain` carries `branching` so linear lenses
+(storyboard/time-stack) show only for a line, the DAG lens for any chain;
+`src/web_viewer/js/derivation-dag-lens.js` layers states by depth, real drawing per node, edges
+arrowed+coloured by branch with rule/diff pills (prior art: Sutcliffe's IDV, borrowed in spirit).
+Tests: `test_branching_chain.py` (8) + E2E. Additive (+ `ChainStep.branch_id` field; corpus +1
+UoD). Doc: `docs/ADAPTIVE_SCOPE_VIEWER.md` §10. Memory: [[project_adaptive_scope_viewer]].
 
 **✅ DONE 2026-06-15 — liveness/desuetude tracking** (manifest floor #7, *two deaths so track
 liveness*). `src/liveness.py` — a `LivenessLog` (one compact summary per UoD: first/last/count/

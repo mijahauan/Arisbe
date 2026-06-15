@@ -161,6 +161,37 @@ class ProofChain:
     def current_state_id(self) -> str:
         return self._current_id
 
+    def at(self, state_id: str) -> "ProofChain":
+        """Move the cursor back to an already-recorded state, so the next
+        ``apply`` **forks** a new line of development from there (two steps then
+        share a ``from_state_id`` — the branch).  Returns ``self``."""
+        if state_id not in self._states:
+            raise KeyError(f"no recorded state '{state_id}' to branch from")
+        self._current_id, self._current = state_id, self._states[state_id]
+        return self
+
+    def converge_last_into(self, state_id: str) -> "ProofChain":
+        """Redirect the most recent step to an existing state it reproduces, so
+        two lines of development **converge** (share a ``to_state_id``) — the
+        alternate-proofs "diamond".  Refuses unless the produced graph is in fact
+        the same graph (a genuine convergence, not a relabel)."""
+        from eg_navigation import same_graph
+        if not self._steps:
+            raise ValueError("no step to converge")
+        last = self._steps[-1]
+        if state_id not in self._states:
+            raise KeyError(f"no recorded state '{state_id}' to converge into")
+        if not same_graph(self._states[last.to_state_id], self._states[state_id]):
+            raise ValueError(
+                f"refusing to converge: '{last.to_state_id}' is not the same graph "
+                f"as '{state_id}'")
+        import dataclasses
+        orphan = last.to_state_id
+        self._steps[-1] = dataclasses.replace(last, to_state_id=state_id)
+        self._states.pop(orphan, None)
+        self._current_id, self._current = state_id, self._states[state_id]
+        return self
+
     def _resolve(self, spec: Spec):
         if spec is None:
             return None
@@ -177,6 +208,7 @@ class ProofChain:
         into: Spec = None,
         label: Optional[str] = None,
         note: Optional[str] = None,
+        branch: Optional[str] = None,
     ) -> "ProofChain":
         """Apply one rule and record the step. Returns ``self`` for chaining.
 
@@ -223,6 +255,7 @@ class ProofChain:
             parameters=params,
             timestamp=(self._base + timedelta(seconds=i)).isoformat(),
             user_annotation=annotation,
+            branch_id=branch,
         ))
         self._states[to_id] = new_egi
         self._current_id, self._current = to_id, new_egi
