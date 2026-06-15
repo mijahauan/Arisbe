@@ -583,7 +583,17 @@ def generate_layout(
 # §5.3): a small graph (≤ budget cuts) opens fully — an overview of it is just the
 # ordinary drawing; a large graph opens its top ``budget`` cuts and folds the deep
 # mass into placeholders.  A knob, not part of the contract.
-DEFAULT_OVERVIEW_BUDGET = 40
+# Max cuts opened (drawn with their interior) in an auto-expand overview.  Tuned
+# *down* from 40 after the frontier measurement (tools/overview_frontier_benchmark.py):
+# on the 246-cut SUMO taxonomy, opening 40 cross-linked subsumption scrolls re-enters
+# ELK's super-linear regime (~210 s — as slow as drawing the whole graph), because the
+# cost is driven by the lines of identity routed *among* opened cuts, not the opened
+# count.  Below the cliff (≤35 opened) the same overview lays out in <1 s; 24 keeps a
+# safe margin (~0.8 s) while still showing substantial structure.  A degree-aware budget
+# (cheap to open a hub-free region, costly to open a high-degree one) is the principled
+# future refinement; a conservative count cap is the pragmatic guard.  See
+# docs/ADAPTIVE_SCOPE_VIEWER.md §9 step 4.
+DEFAULT_OVERVIEW_BUDGET = 24
 
 
 def _resolve_collapsed(egi, expand: Optional[list] = None,
@@ -605,6 +615,12 @@ def _resolve_collapsed(egi, expand: Optional[list] = None,
     children: Dict[str, list] = {}
     for c, p in parent.items():
         children.setdefault(p, []).append(c)
+    # Deterministic frontier: sort each sibling list so the auto-expand BFS opens
+    # the *same* cuts every run (Python hash randomization would otherwise vary set
+    # iteration per process, making both the policy and the layout-perf measurement
+    # — which cuts get opened drives ELK time — irreproducible).
+    for sibs in children.values():
+        sibs.sort()
 
     opened: set = set()
     if expand is not None:

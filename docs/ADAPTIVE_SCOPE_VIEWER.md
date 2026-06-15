@@ -25,10 +25,11 @@ just code.
 ## 1. The problem: structure is O(n), the styled *drawing* is not
 
 Arisbe's logic is essentially complete. The remaining gap is the **experience of the
-pictures**, walled off by the **layout-perf frontier**: ELK is super-linear in nesting
-depth, so the full 250-cut SUMO taxonomy takes ≈74 s to lay out
-(`docs/CORPUS_AND_IMPORT_MODEL.md`), and a 130-cut relational theory chokes the §3.3
-save boundary. The coordinate-free *structure* of such a graph is already O(n) —
+pictures**, walled off by the **layout-perf frontier**: ELK is super-linear in the breadth
+of sibling scrolls and the lines of identity routed among them, so the full 246-cut SUMO
+taxonomy takes **≈289 s** to lay out (measured 2026-06-15, `tools/overview_frontier_benchmark.py`;
+`docs/CORPUS_AND_IMPORT_MODEL.md` cites ≈74 s on a faster host), and a 130-cut relational
+theory chokes the §3.3 save boundary. The coordinate-free *structure* of such a graph is already O(n) —
 `eg_structure.egi_structure` returns the 86-cut SUMO structure in ~8 ms — and the
 read-only **lenses** (negation well, storyboard) exploit exactly that: they project the
 cheap structure, never a styled SVG.
@@ -372,7 +373,44 @@ Route + E2E (mirroring `test_organon_routes.py` / `test_organon_lenses_e2e.py`):
    → `generate_layout(quotient)`), hooked to `attest_overview`; the `?lod=overview&expand=…`
    branch in `GET /organon/uods/{id}` returning the DTO + the `overview_summary` badge map.
 3. **Client** — Drawing-lens expanded-set + badge rendering + tap-to-expand, camera-hold.
-4. **E2E + the frontier measurement.**
+4. **✅ DONE (2026-06-15) — E2E + the frontier measurement (which also found & fixed a budget
+   mis-tuning).** E2E shipped 2026-06-15 (`tests/test_overview_e2e.py`). The **headline
+   wall-clock measurement** — `tools/overview_frontier_benchmark.py`, the paired baseline on
+   the genuine frontier UoD: the **full SUMO ground taxonomy** (123 subsumptions → **246
+   cuts**, 132 vertices, 255 edges), rebuilt from `docs/references/SUMO1.2.txt` via
+   `tools/suokif_to_eg.py` (it is *not* stored — only the depth-≤2 `sumo_upper` spine, 86 cuts,
+   ~1 s, is; the full taxonomy is the ELK super-linear shape that cannot be saved as a drawn
+   UoD, which is the very frontier this measures).
+
+   **Result (this laptop):** full ELK `generate_layout` of all 246 cuts = **≈289 s** (unusable
+   interactively); the **overview at the default budget = ≈0.8 s** — a **~340×** speedup — and
+   it §3.3-attests (`attest_overview` passes). Overview lays ELK out over **147 cuts** (24
+   opened with their interior + 123 leaf placeholders) instead of 246 cuts with full interiors
+   *and* 255 cross-cutting lines of identity; 99 cuts hidden entirely. The structural guarantee
+   (overview ≤ `budget` *opened* cuts regardless of `|egi|`) is unit-tested in
+   `tests/test_overview_routes.py`; this is its empirical confirmation.
+
+   **Finding — the frontier is *breadth*, not depth.** SUMO's taxonomy is only **depth 2**
+   (each subsumption `A ⊑ B` is a double-cut scroll `~[ (A x) ~[ (B x) ] ]`), yet 289 s slow:
+   ELK's super-linear cost here is **packing 123 sibling scrolls and routing 255 lines of
+   identity among them**, not nesting depth (a deep nested *chain* measured ~0.2 s — already
+   noted in `CURRENT_PLAN.md`). Overview wins by collapsing most siblings into cheap leaf
+   placeholders.
+
+   **The budget cliff (and the fix).** The cost is driven by the lines of identity routed
+   *among* opened cuts, **not** the opened *count* — so the budget has a sharp cliff. A
+   deterministic budget sweep on the frontier graph (`--sweep`): budgets **0→35 all lay out in
+   <1 s**, but **40 → ≈210 s** and **60 → ≈275 s** (reproducibly, ≈ the whole-graph time). The
+   original `DEFAULT_OVERVIEW_BUDGET = 40` therefore put the *default* overview of the frontier
+   graph back over the cliff — defeating the feature. Two fixes landed: (a) `_resolve_collapsed`
+   now **sorts** the auto-expand BFS so *which* cuts open is deterministic (Python per-process
+   hash randomization had made it vary run-to-run — and which cross-linked scrolls open drives
+   the time, which is exactly why an early ad-hoc run fluked a fast 1.1 s); (b) the default was
+   lowered to **24** (≈0.8 s, comfortable margin below the cliff). The principled future
+   refinement is a **degree-aware** budget (opening a high-degree hub scroll forces global line
+   routing — cheap to count, costly to lay out); the conservative count cap is the pragmatic
+   guard. Run it: `uv run python tools/overview_frontier_benchmark.py --full-elk --sweep` (the
+   baseline + slow budgets are minutes and opt-in; overview-at-default always runs).
 
 ## 10. Deferred (author's stated order, after overview+expand)
 

@@ -54,20 +54,35 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = the 250-cut frontier wall-clock measurement (the tail of step 4) + the
-deferred lighter items.** Steps 1–3 of the overview build are **DONE** (✅ blocks below): the
-`attest_overview` contract, the server `?lod=overview&expand=…` path, AND the browser client
-(overview Lens option, placeholder badges, tap-to-expand with camera-hold, Collapse-all) — with
-a Playwright E2E (`tests/test_overview_e2e.py`). What remains of step 4 is the **headline
-wall-clock measurement**: demonstrate overview renders a graph full-ELK *can't* draw comfortably.
-The genuine frontier UoD is the **full 250-cut SUMO** (≈74 s) — which is *not stored* (only its
-86-cut taxonomy subset is, and that lays out in ~1 s, so it doesn't show the dramatic win). So
-the measurement needs the full ontology loaded as a fixture, or a synthesized wide-relational
-graph in ELK's actual super-linear shape (a deep nested *chain* is NOT it — measured ~0.2 s). The
-*structural* guarantee already holds: overview lays out ≤ `budget` cuts regardless of `|egi|`
-(shown: 86→43 placeholders on stored SUMO, each expand incremental). Spec:
-`docs/ADAPTIVE_SCOPE_VIEWER.md` §9. Memory:
-[[project_adaptive_scope_viewer]].
+**▶▶ NEXT SESSION = the deferred lighter overview items** (overview+expand is now COMPLETE —
+all four build-order steps done; see the ✅ block immediately below). The whole overview arc —
+`attest_overview` contract, server path, browser client, E2E, **and the headline frontier
+measurement** — has shipped. Next is the author-ordered deferred list (see "▶ Then the lighter
+deferred items" below): time-stack *production* lens → liveness/desuetude → derivation-DAG lens
+→ cross-mode UX consistency pass.
+
+**✅ DONE 2026-06-15 — the 250-cut frontier wall-clock measurement (build-order step 4 tail) —
+which also found & fixed a budget mis-tuning.** `tools/overview_frontier_benchmark.py` — the
+paired baseline on the genuine frontier UoD, the **full SUMO ground taxonomy** (123 subsumptions
+→ **246 cuts**, 132 V, 255 E), rebuilt from `docs/references/SUMO1.2.txt` via
+`tools/suokif_to_eg.py` (it is *not* stored — only the depth-≤2 86-cut `sumo_upper` spine is,
+which lays out in ~1 s and hides the win; the full taxonomy is the ELK super-linear shape that
+can't be saved as a drawn UoD — the very frontier this measures). **Result (this laptop): full
+ELK `generate_layout` of all 246 cuts ≈ 289 s (unusable interactively) vs overview at the
+(newly-tuned) default budget ≈ 0.8 s — a ~340× speedup — and it §3.3-attests (`attest_overview`
+passes).** Overview lays ELK out over **147 cuts** (24 opened + 123 leaf placeholders) instead
+of 246 cuts with full interiors + 255 cross-cutting lines; 99 hidden. **Finding — the frontier
+is *breadth*, not depth:** SUMO is only depth 2, yet slow, because ELK super-linearly packs 123
+sibling scrolls + routes 255 lines of identity among them (a deep nested *chain* = ~0.2 s).
+**The budget cliff + the fix:** the cost tracks the lines routed *among* opened cuts, not the
+opened *count*, so the budget cliffs hard — a deterministic sweep shows **0→35 all <1 s but
+40 → ≈210 s, 60 → ≈275 s** (≈ whole-graph time). The old `DEFAULT_OVERVIEW_BUDGET=40` thus put
+the *default* overview of the frontier graph back over the cliff. Fixed: (a) `_resolve_collapsed`
+now **sorts** the auto-expand BFS (deterministic — per-process hash randomization had made it
+vary, and an early ad-hoc run fluked a misleading fast 1.1 s); (b) default lowered to **24**
+(≈0.8 s, margin below the cliff). Future refinement = a degree-aware budget (hub scrolls force
+global routing). Additive except the two small `layout_service` tweaks (sort + default). Doc:
+`docs/ADAPTIVE_SCOPE_VIEWER.md` §9 step 4 + §1. Memory: [[project_adaptive_scope_viewer]].
 
 **✅ DONE 2026-06-15 — overview client wiring + E2E (build-order step 3 + the E2E half of step 4).**
 The overview is now usable in the browser. `web_viewer/organon.html`: a new **"Drawing — overview
