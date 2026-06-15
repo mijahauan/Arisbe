@@ -54,12 +54,29 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = the deferred lighter overview items** (overview+expand is now COMPLETE —
-all four build-order steps done; see the ✅ block immediately below). The whole overview arc —
-`attest_overview` contract, server path, browser client, E2E, **and the headline frontier
-measurement** — has shipped. Next is the author-ordered deferred list (see "▶ Then the lighter
-deferred items" below): time-stack *production* lens → liveness/desuetude → derivation-DAG lens
-→ cross-mode UX consistency pass.
+**▶▶ NEXT SESSION = liveness/desuetude tracking** (next in the author-ordered deferred list;
+the overview arc AND the time-stack lens are now done). Remaining deferred items: **liveness/
+desuetude** (manifest floor #7 — which UoDs/models are still consulted; a forward-facing
+provenance facet/badge in Organon) → **derivation-DAG lens** (branch structure; needs a
+branching episode to exercise) → **cross-mode UX consistency** pass (shared `design-system.css`,
+camera unification, step/move terminology). Spec for the lenses: `docs/ADAPTIVE_SCOPE_VIEWER.md`
+§10.
+
+**✅ DONE 2026-06-15 — time-stack production lens** (first deferred item). `src/web_viewer/js/
+time-stack-lens.js` (ES module, lazy-imported), wired into `organon.html`'s Lens selector beside
+Storyboard (both shown only for a chained UoD). The recorded derivation as a navigable 2.5-D
+solid: each sheet the *real styled* drawing at that state stacked along the (earned) derivation
+z-axis, **blue survivor threads** + **green/red entry/exit dots** (rule added/erased) + per-sheet
+rule labels. The spike's flagged **sloping threads** fixed *correctly*: a survivor can't move
+independently of its drawn sheet (the thread must touch it — correspondence), so instead of a
+conservative *layout* each frame is **rigidly registered** onto the previous by the best
+survivor-matching similarity (uniform scale + translation, no distortion) — survivors stand
+columnar; a thread slopes only on an honest relayout. Validated on the 8-frame Praeclarum chain:
+mean survivor drift **45.9 → 11.9** world units (~75 %). E2E
+`test_organon_lenses_e2e.py::test_time_stack_lens_for_a_chained_uod` (3 lens E2E green, zero
+console errors). Purely additive (new lens module + 3 small organon.html wiring edits). Screenshot
+`docs/assets/adaptive_scope_spike/d2-timestack-praeclarum-aligned.png`. Doc:
+`docs/ADAPTIVE_SCOPE_VIEWER.md` §10. Memory: [[project_adaptive_scope_viewer]].
 
 **✅ DONE 2026-06-15 — the 250-cut frontier wall-clock measurement (build-order step 4 tail) —
 which also found & fixed a budget mis-tuning.** `tools/overview_frontier_benchmark.py` — the

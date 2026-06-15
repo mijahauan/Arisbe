@@ -335,6 +335,7 @@
           <option value="overview">Drawing — overview (adaptive scope)</option>
           <option value="well">Well — 2.5-D negation depth</option>
           <option value="storyboard" hidden disabled>Storyboard — the line of thought</option>
+          <option value="time-stack" hidden disabled>Time-stack — the derivation as a 2.5-D film</option>
         </select>
         <!-- Overview (adaptive-scope) controls: shown only in the overview lens.
              Collapse deep cuts into content-sized placeholders so a graph too
@@ -852,9 +853,11 @@
 
       // Reveal/hide the diachronic lens options (only meaningful for a chained UoD).
       function setDiachronicLensesAvailable(yes) {
-        const opt = viewLensSel && viewLensSel.querySelector('option[value="storyboard"]');
-        if (opt) { opt.disabled = !yes; opt.hidden = !yes; }
-        if (!yes && currentLens === 'storyboard') { selectLens('drawing'); }
+        ['storyboard', 'time-stack'].forEach(v => {
+          const opt = viewLensSel && viewLensSel.querySelector('option[value="' + v + '"]');
+          if (opt) { opt.disabled = !yes; opt.hidden = !yes; }
+        });
+        if (!yes && (currentLens === 'storyboard' || currentLens === 'time-stack')) { selectLens('drawing'); }
       }
 
       function selectLens(lens) {
@@ -902,6 +905,10 @@
           } else if (lens === 'storyboard') {
             if (!currentHistory) currentHistory = await window.LensCommon.fetchHistory(selectedUodId);
             activeLensHandle = window.Storyboard.mount(canvasEl, currentHistory);
+          } else if (lens === 'time-stack') {
+            if (!currentHistory) currentHistory = await window.LensCommon.fetchHistory(selectedUodId);
+            const mod = await import('/js/time-stack-lens.js');
+            activeLensHandle = mod.mount(canvasEl, currentHistory);
           }
         } catch (e) {
           canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:#f38ba8;">' +

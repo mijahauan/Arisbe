@@ -127,6 +127,12 @@ per-step `legible_diff`; reuses `generate_layout` + `egi_diff`; each frame §3.3
   most legible when looking *along* the film. Survivor threads also exposed that the per-frame
   layouts aren't positionally conservative across the chain (threads slope) — a real finding:
   the production version wants conservative layout so survivors stay columnar.
+  **→ Production (2026-06-15): `src/web_viewer/js/time-stack-lens.js`.** The "sloping threads"
+  finding resolved without a conservative *layout* engine (which couldn't move an element
+  independently of its drawn sheet without breaking correspondence): each frame is instead
+  **rigidly registered** onto the previous by the best survivor-matching similarity (uniform
+  scale + translation) — survivor drift on Praeclarum dropped 45.9 → 11.9 (~75 %), threads now
+  read columnar. Camera/labels/entry-exit-dots tuned. See `ADAPTIVE_SCOPE_VIEWER.md` §10.
 
 Decision: **storyboard is the immediate win** (legible, low-risk, the default time view);
 **time-stack is the showpiece** for the "moving pictures of thought" — keep, tune later. The

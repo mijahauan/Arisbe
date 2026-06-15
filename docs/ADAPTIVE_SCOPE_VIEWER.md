@@ -414,9 +414,21 @@ Route + E2E (mirroring `test_organon_routes.py` / `test_organon_lenses_e2e.py`):
 
 ## 10. Deferred (author's stated order, after overview+expand)
 
-- **Time-stack production lens** — tune the rough framing the spike flagged
-  (`ADAPTIVE_SCOPE_SPIKE.md` round 3); needs positionally-conservative per-frame layout so
-  survivor threads stay columnar.
+- **✅ DONE (2026-06-15) — Time-stack production lens.** `src/web_viewer/js/time-stack-lens.js`
+  (ES module, lazy-imported), wired into `organon.html`'s Lens selector beside Storyboard (both
+  revealed only for a chained UoD). The recorded derivation as a navigable 2.5-D solid: each
+  sheet the *real styled* drawing at that state, stacked along the (earned) derivation z-axis,
+  with **blue survivor threads** (an element persisting step→step), **green/red entry/exit dots**
+  (what a rule added / erased), and a per-sheet rule label. **The spike's flagged "sloping
+  threads" fixed correctly:** a surviving element can't be moved independently of its drawn sheet
+  (the thread must touch it — correspondence), so instead of a conservative *layout*, each frame
+  is **rigidly registered** onto the previous by the similarity (uniform scale + translation, no
+  distortion) that best matches their shared survivors — survivors then stand columnar; a thread
+  slopes only where the element genuinely moved relative to its cohort (an honest relayout).
+  Validated on the 8-frame Praeclarum chain: mean survivor drift **45.9 → 11.9** world units
+  (~75 % reduction). E2E `tests/test_organon_lenses_e2e.py::test_time_stack_lens_for_a_chained_uod`
+  (mounts the WebGL canvas, zero console errors, Drawing restores). Screenshot:
+  `docs/assets/adaptive_scope_spike/d2-timestack-praeclarum-aligned.png`.
 - **Liveness / desuetude tracking** — manifest floor #7 (*two deaths, so track liveness*):
   which UoDs/models are still consulted; a forward-facing provenance facet/badge in Organon.
 - **Derivation-DAG lens** — branch structure; needs a branching episode to exercise.

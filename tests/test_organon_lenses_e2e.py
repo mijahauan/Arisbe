@@ -132,3 +132,22 @@ def test_storyboard_lens_for_a_chained_uod(page, app_url):
     time.sleep(1.0)
     assert page.eval_on_selector("#chain-player", "el => el.style.display") == "flex"
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
+def test_time_stack_lens_for_a_chained_uod(page, app_url):
+    """A chained UoD offers the Time-stack lens (the 2.5-D derivation film); it
+    mounts a three.js canvas, and switching back to Drawing restores the player."""
+    _open_organon(page, app_url)
+    _load_uod(page, CHAINED)
+    # offered only for a chained UoD; hidden for the synchronic majority
+    assert page.eval_on_selector("#view-lens option[value='time-stack']", "o => o.hidden") is False
+
+    page.select_option("#view-lens", "time-stack")
+    page.wait_for_selector("#organon-canvas canvas", timeout=15000)   # WebGL canvas mounted
+    # the lens overlay (Look-along reset + legend) is present
+    assert page.eval_on_selector_all("#organon-canvas button", "els => els.length") >= 1
+
+    page.select_option("#view-lens", "drawing")
+    time.sleep(1.0)
+    assert page.eval_on_selector("#chain-player", "el => el.style.display") == "flex"
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
