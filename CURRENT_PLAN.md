@@ -56,12 +56,36 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 **▶▶ NEXT SESSION = the cross-mode UX consistency pass** — the *last* deferred adaptive-scope
 item (the overview arc, time-stack lens, liveness/desuetude, AND the derivation-DAG lens are all
-done; the adaptive-scope viewer track is essentially complete). The cross-mode pass: a shared
-`design-system.css`, camera unification across the three modes (Organon/Ergasterion/Agon all use
-`diagram-viewer.js` but with drifted conventions), and step/move terminology consistency — the
-round-1 cross-mode findings. Spec: `docs/ADAPTIVE_SCOPE_VIEWER.md` §10. (After this, the open
-non-viewer tracks resurface: the FOLIO/DLCore disjunctive coverage lever, the schema-drawing math
-frontier, the deferred LLM front-end.)
+done; the adaptive-scope viewer track is essentially complete). Spec: `docs/ADAPTIVE_SCOPE_VIEWER.md`
+§10. (After this, the open non-viewer tracks resurface: the FOLIO/DLCore disjunctive coverage
+lever, the schema-drawing math frontier, the deferred LLM front-end.)
+
+**START WITH AN AUDIT, NOT A BUILD.** This pass is cross-cutting (touches all three mode files +
+new shared infra), so open it by reading the three modes side by side and cataloguing the drift
+*before* changing anything; decide the shared tokens + the canonical camera convention, then apply.
+The three surfaces: `src/web_viewer/organon.html`, `ergasterion.html`, `agon.html` (+ shared
+`src/web_viewer/js/diagram-viewer.js`, `mode-nav.js`, and the CSS in `src/web_viewer/css/`). The
+audit checklist:
+- **Camera unification.** Each mode calls `DiagramViewer.render(svg, {camera, dolly, transition})`
+  but with drifted conventions — catalogue every call site and reconcile to one convention
+  (Organon: `fit` on load / `hold` on chain-step + lenses; Ergasterion: hold-the-camera during a
+  move; Agon: ?). Pick the canonical default + document when each mode legitimately differs.
+- **Shared `design-system.css`.** No shared stylesheet exists yet — each mode inlines its own
+  colours/spacing/fonts/badges. Extract the common tokens (the dark palette `#0e1014`/`#1e1e2e`/
+  `#313244`, accent blues, the catppuccin-ish status colours already reused by liveness +
+  derivation-DAG, badge/pill/dot styles, the left-nav) into `src/web_viewer/css/design-system.css`
+  and have all three modes consume it. Watch: the lenses inject their own `<style>` — fold the
+  shared bits in.
+- **Terminology.** "step" vs "move" vs "transformation" vs "inning"; "state" vs "frame"; the
+  Organon/Ergasterion/Agon nav labels. Pick one vocabulary per concept and align the visible
+  strings (not the API).
+- **Nav + chrome consistency.** `mode-nav.js` is shared, but headers/toolbars/status-bars differ
+  per mode — align the shell (left column, top bar, status line) so switching modes feels like one
+  app. Note where a mode *should* differ (read-only Organon vs the workshop) vs accidental drift.
+- **Method:** consider a small read-only audit pass first (e.g. an Explore agent or a side-by-side
+  read) producing a concrete findings list, then land the shared CSS, then per-mode adoption + an
+  E2E that the three modes still render. Regression risk is across all three modes — change one
+  thing at a time and keep the existing Playwright suites green.
 
 **✅ DONE 2026-06-15 — derivation-DAG lens** (branch structure; the 3rd deferred item). A
 reasoning episode is a DAG: two rules from one state **fork**, two reaching the same graph
