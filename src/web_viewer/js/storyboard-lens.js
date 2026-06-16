@@ -62,7 +62,7 @@ window.Storyboard = (function () {
       sheet.innerHTML = f.svg || '';
       const cap = document.createElement('div');
       cap.className = 'sb-cap';
-      const idx = f.kind === 'base' ? 'base state · 0' : 'step ' + f.index;
+      const idx = f.kind === 'base' ? 'base state · 0' : 'state ' + f.index;
       cap.innerHTML = `<div class="sb-idx">${idx} / ${total}</div>` +
         (f.annotation ? `<div class="sb-ann">${esc(f.annotation)}</div>` : '');
       fr.appendChild(sheet);

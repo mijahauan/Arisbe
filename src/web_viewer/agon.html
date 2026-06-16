@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arisbe Agon — Arena</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/design-system.css" />
   <style>
     #agon-app { display: grid; grid-template-columns: 340px 1fr 340px; height: 100vh; }
     .panel { display: flex; flex-direction: column; background: var(--sidebar-bg);
       border-right: 1px solid var(--bottombar-border); overflow: hidden; }
     .panel.right { border-right: none; border-left: 1px solid var(--bottombar-border); }
-    .panel-header { padding: 16px 14px 12px; border-bottom: 1px solid var(--bottombar-border); }
+    .panel-header { padding: var(--header-pad); border-bottom: 1px solid var(--bottombar-border); }
     .panel-header h1 { font-size: 16px; font-weight: 700; color: var(--sidebar-accent); letter-spacing: 0.5px; }
     .panel-header h2 { font-size: 14px; font-weight: 700; color: var(--sidebar-accent); letter-spacing: 0.5px; }
-    .panel-header p { font-size: 11px; color: #6c7086; margin-top: 2px; }
+    .panel-header p { font-size: 11px; color: var(--ctp-overlay0); margin-top: 2px; }
     .panel-body { flex: 1; overflow-y: auto; padding: 10px 14px; }
     .mode-tag { display: inline-block; margin-top: 6px; padding: 2px 6px; background: var(--btn-primary);
       color: var(--sidebar-bg); font-size: 10px; font-weight: 600; letter-spacing: 0.5px; border-radius: 3px; text-transform: uppercase; }
@@ -21,57 +22,57 @@
       color: var(--btn-text); border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px; cursor: pointer; text-align: left; }
     button.action:hover { background: var(--btn-hover); }
     button.action.primary { background: var(--btn-primary); color: var(--btn-primary-text); font-weight: 600; text-align: center; }
-    button.action.primary:hover { background: #b4befe; }
+    button.action.primary:hover { background: var(--ctp-lavender); }
     button.action.danger { color: var(--btn-danger); }
     button.action:disabled { opacity: 0.45; cursor: not-allowed; }
     .rule-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 12px; }
     .rule-grid button.action { margin-bottom: 0; text-align: center; font-family: monospace; font-weight: 600; }
     .field { margin-bottom: 10px; }
-    .field label { display: block; font-size: 10px; color: #6c7086; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field label { display: block; font-size: 10px; color: var(--ctp-overlay0); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
     .field input, .field textarea, .field select { width: 100%; padding: 5px 7px; background: var(--btn-bg);
       color: var(--sidebar-text); border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px; font-family: inherit; }
     .field textarea { font-family: monospace; min-height: 44px; resize: vertical; }
-    .empty-state { padding: 16px 0; color: #6c7086; font-size: 11px; text-align: center; font-style: italic; }
+    .empty-state { padding: 16px 0; color: var(--ctp-overlay0); font-size: 11px; text-align: center; font-style: italic; }
     #canvas { background: var(--canvas-bg); overflow: hidden; position: relative; }
-    #canvas-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c7086; font-size: 13px; text-align: center; }
+    #canvas-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--ctp-overlay0); font-size: 13px; text-align: center; }
     #canvas svg { width: 100%; height: 100%; display: block; }
     #canvas g[data-element-type="vertex"].sel-subgraph circle,
     #canvas g[data-element-type="predicate"].sel-subgraph rect,
-    #canvas g[data-element-type="cut"].sel-subgraph > rect { stroke: #f9a06c; stroke-width: 3px; }
-    #canvas g[data-element-type="cut"].sel-area > rect { stroke: #40a02b; stroke-width: 3px; stroke-dasharray: 7 3; }
+    #canvas g[data-element-type="cut"].sel-subgraph > rect { stroke: var(--select-subgraph); stroke-width: 3px; }
+    #canvas g[data-element-type="cut"].sel-area > rect { stroke: var(--ltt-green); stroke-width: 3px; stroke-dasharray: 7 3; }
     #turn-banner { padding: 10px 14px; border-bottom: 1px solid var(--bottombar-border); }
     #turn-banner .role { font-size: 15px; font-weight: 700; }
-    #turn-banner .role.graphist { color: #89b4fa; }
-    #turn-banner .role.grapheus { color: #f38ba8; }
-    #turn-banner .sub { font-size: 10px; color: #6c7086; margin-top: 2px; }
+    #turn-banner .role.graphist { color: var(--ctp-blue); }
+    #turn-banner .role.grapheus { color: var(--ctp-maroon); }
+    #turn-banner .sub { font-size: 10px; color: var(--ctp-overlay0); margin-top: 2px; }
     #turn-banner.over .role { color: var(--success); }
-    .selection-bar { margin-bottom: 10px; padding: 7px 9px; background: var(--btn-bg); border-radius: 3px; font-size: 10px; color: #a6adc8; }
+    .selection-bar { margin-bottom: 10px; padding: 7px 9px; background: var(--btn-bg); border-radius: 3px; font-size: 10px; color: var(--ctp-subtext0); }
     .selection-bar .sel-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
-    .selection-bar .sel-swatch.subgraph { background: #f9a06c; }
-    .selection-bar .sel-swatch.area { background: #40a02b; }
+    .selection-bar .sel-swatch.subgraph { background: var(--select-subgraph); }
+    .selection-bar .sel-swatch.area { background: var(--ltt-green); }
     .selection-bar code { color: var(--sidebar-text); font-size: 10px; word-break: break-all; }
     .selection-bar .clear-sel { color: var(--btn-danger); cursor: pointer; float: right; }
     .move-item { padding: 7px 9px; background: var(--btn-bg); border-radius: 3px; margin-bottom: 5px; font-size: 11px; }
     .move-item .move-rule { font-family: monospace; font-weight: 600; color: var(--sidebar-accent); }
     .move-item .move-role { font-size: 10px; }
-    .move-item .move-role.graphist { color: #89b4fa; }
-    .move-item .move-role.grapheus { color: #f38ba8; }
-    .move-item .move-egif { color: #6c7086; font-family: monospace; font-size: 10px; margin-top: 2px; word-break: break-all; }
+    .move-item .move-role.graphist { color: var(--ctp-blue); }
+    .move-item .move-role.grapheus { color: var(--ctp-maroon); }
+    .move-item .move-egif { color: var(--ctp-overlay0); font-family: monospace; font-size: 10px; margin-top: 2px; word-break: break-all; }
     .disp-item { padding: 8px 9px; background: var(--btn-bg); border-radius: 3px; margin-bottom: 5px; font-size: 11px; cursor: pointer; border: 1px solid transparent; }
     .disp-item:hover { background: var(--btn-hover); }
     .disp-item.selected { border-color: var(--btn-primary); }
     .disp-item .disp-label { font-weight: 600; color: var(--sidebar-text); }
     .disp-item .disp-mode { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; padding: 1px 5px; border-radius: 3px; margin-left: 6px; }
-    .disp-item .disp-mode.deduction { background: #313244; color: #89b4fa; }
-    .disp-item .disp-mode.induction { background: #313244; color: #a6e3a1; }
-    .disp-item .disp-mode.abduction { background: #313244; color: #f9e2af; }
-    .disp-item .disp-mode.none { background: #313244; color: #6c7086; }
+    .disp-item .disp-mode.deduction { background: var(--ctp-surface0); color: var(--ctp-blue); }
+    .disp-item .disp-mode.induction { background: var(--ctp-surface0); color: var(--ctp-green); }
+    .disp-item .disp-mode.abduction { background: var(--ctp-surface0); color: var(--ctp-yellow); }
+    .disp-item .disp-mode.none { background: var(--ctp-surface0); color: var(--ctp-overlay0); }
     .disp-item .disp-asserts { font-size: 9px; color: var(--warning); margin-left: 6px; }
-    .disp-item .disp-summary { color: #6c7086; font-size: 10px; margin-top: 3px; }
-    #status { grid-column: 1 / -1; padding: 6px 14px; background: var(--bottombar-bg); color: var(--sidebar-text); font-size: 11px; border-top: 1px solid var(--bottombar-border); }
+    .disp-item .disp-summary { color: var(--ctp-overlay0); font-size: 10px; margin-top: 3px; }
+    #status { grid-column: 1 / -1; padding: var(--statusbar-pad); background: var(--bottombar-bg); color: var(--sidebar-text); font-size: 11px; border-top: 1px solid var(--bottombar-border); }
     #status.error { color: var(--error); }
     #status.success { color: var(--success); }
-    .hint { font-size: 10px; color: #6c7086; margin-bottom: 8px; font-style: italic; }
+    .hint { font-size: 10px; color: var(--ctp-overlay0); margin-bottom: 8px; font-style: italic; }
   </style>
 </head>
 <body>
@@ -188,7 +189,7 @@
           <button class="action primary" id="btn-move" disabled>Apply move</button>
           <button class="action danger" id="btn-concede">Concede (opponent wins)</button>
 
-          <h2 style="font-size:11px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px; margin:16px 0 6px;">
+          <h2 style="font-size:11px; color:var(--ctp-overlay0); text-transform:uppercase; letter-spacing:0.5px; margin:16px 0 6px;">
             Episode · <span id="move-count">0</span> move(s)
           </h2>
           <div id="move-list"><div class="empty-state">No moves yet.</div></div>
@@ -364,72 +365,72 @@
       }
 
       // ---- interpretation register (part 2: peel G against M) ----
-      function verdictColor(v){ return v==='true'?'#a6e3a1':(v==='false'?'#f38ba8':'#f9e2af'); }
+      function verdictColor(v){ return v==='true'?'var(--ctp-green)':(v==='false'?'var(--ctp-maroon)':'var(--ctp-yellow)'); }
       function pairs(o){ return Object.keys(o||{}).map(k=>k+' = '+o[k]).join(', '); }
       function renderInterpretation(d){
         $('turn-banner').style.display='none'; canvasEl.style.display='none';
         const el=$('interpret-result'); el.style.display='block';
-        let h='<div style="font-size:12px; color:#6c7086; margin-bottom:8px;">Given M, then G — the peel (outside-in):</div>';
-        h+='<span style="display:inline-block; padding:4px 14px; border-radius:6px; font-weight:700; color:#11111b; background:'+verdictColor(d.verdict)+';">'+esc(d.verdict.toUpperCase())+'</span>';
-        h+='<div style="margin:8px 0 12px; color:#cdd6f4;">'+esc(d.summary)+'</div>';
-        if(d.counterexample) h+='<div style="color:#f38ba8; margin-bottom:4px;">Counterexample — '+esc(pairs(d.counterexample))+' (the individual that defeats it)</div>';
-        if(d.winning_witness) h+='<div style="color:#a6e3a1; margin-bottom:4px;">Witness — '+esc(pairs(d.winning_witness))+' (the assignment that satisfies it)</div>';
-        h+='<div style="font-size:11px; color:#6c7086;">M ('+(d.closed?'closed':'open')+' world): <code>'+esc(d.model_egif)+'</code></div>';
-        h+='<div style="font-size:11px; color:#6c7086;">G: <code>'+esc(d.proposal_egif)+'</code></div>';
+        let h='<div style="font-size:12px; color:var(--ctp-overlay0); margin-bottom:8px;">Given M, then G — the peel (outside-in):</div>';
+        h+='<span style="display:inline-block; padding:4px 14px; border-radius:6px; font-weight:700; color:var(--ctp-crust); background:'+verdictColor(d.verdict)+';">'+esc(d.verdict.toUpperCase())+'</span>';
+        h+='<div style="margin:8px 0 12px; color:var(--ctp-text);">'+esc(d.summary)+'</div>';
+        if(d.counterexample) h+='<div style="color:var(--ctp-maroon); margin-bottom:4px;">Counterexample — '+esc(pairs(d.counterexample))+' (the individual that defeats it)</div>';
+        if(d.winning_witness) h+='<div style="color:var(--ctp-green); margin-bottom:4px;">Witness — '+esc(pairs(d.winning_witness))+' (the assignment that satisfies it)</div>';
+        h+='<div style="font-size:11px; color:var(--ctp-overlay0);">M ('+(d.closed?'closed':'open')+' world): <code>'+esc(d.model_egif)+'</code></div>';
+        h+='<div style="font-size:11px; color:var(--ctp-overlay0);">G: <code>'+esc(d.proposal_egif)+'</code></div>';
         if(d.materialization){ const mt=d.materialization;
-          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:#181825; font-size:11px; color:#6c7086;">'
-            +'<strong style="color:#89b4fa;">Materialized M</strong> — '+esc(mt.summary)
-            +(mt.derived_facts?'<div style="color:#a6e3a1; margin-top:2px;">facts now: <code>'+esc(mt.materialized_egif)+'</code></div>':'');
-          (mt.skipped||[]).forEach(s=>{ h+='<div style="color:#f9e2af; margin-top:2px;">left to the contest game ('+esc(s.reason)+'): <code>'+esc(s.description)+'</code></div>'; });
+          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:var(--ctp-mantle); font-size:11px; color:var(--ctp-overlay0);">'
+            +'<strong style="color:var(--ctp-blue);">Materialized M</strong> — '+esc(mt.summary)
+            +(mt.derived_facts?'<div style="color:var(--ctp-green); margin-top:2px;">facts now: <code>'+esc(mt.materialized_egif)+'</code></div>':'');
+          (mt.skipped||[]).forEach(s=>{ h+='<div style="color:var(--ctp-yellow); margin-top:2px;">left to the contest game ('+esc(s.reason)+'): <code>'+esc(s.description)+'</code></div>'; });
           h+='</div>'; }
         // The deduction beside the extensional peel: is G a *theorem* of the theory M?
         // (freeze a fresh witness, materialize, check the head) — the real answer when
         // the peel reads vacuously over an empty/sparse A-box (a pure T-box ontology).
         if(d.theorem){ const tq=d.theorem;
-          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:#181825; border-left:3px solid '+verdictColor(tq.verdict)+'; font-size:11px; color:#cdd6f4;">'
-            +'<strong style="color:#cba6f7;">Theorem of M? (deduction)</strong> '
-            +'<span style="display:inline-block; padding:1px 8px; border-radius:4px; font-weight:700; color:#11111b; background:'+verdictColor(tq.verdict)+';">'+esc(tq.verdict.toUpperCase())+'</span>'
-            +'<div style="color:#6c7086; margin-top:2px;">'+esc(tq.summary)+'</div>'
-            +'<div style="color:#6c7086; margin-top:2px;">freeze a fresh witness: <code>'+esc(tq.body_egif||'')+'</code> ⊢ <code>'+esc(tq.head_egif||'')+'</code></div>'
-            +((tq.derived&&tq.derived.length)?'<div style="color:#a6e3a1; margin-top:2px;">head derived: <code>'+esc(tq.derived.join(' '))+'</code></div>':'')
-            +((tq.missing&&tq.missing.length)?'<div style="color:#f38ba8; margin-top:2px;">head not derivable: <code>'+esc(tq.missing.join(' '))+'</code></div>':'')
+          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:var(--ctp-mantle); border-left:3px solid '+verdictColor(tq.verdict)+'; font-size:11px; color:var(--ctp-text);">'
+            +'<strong style="color:var(--ctp-mauve);">Theorem of M? (deduction)</strong> '
+            +'<span style="display:inline-block; padding:1px 8px; border-radius:4px; font-weight:700; color:var(--ctp-crust); background:'+verdictColor(tq.verdict)+';">'+esc(tq.verdict.toUpperCase())+'</span>'
+            +'<div style="color:var(--ctp-overlay0); margin-top:2px;">'+esc(tq.summary)+'</div>'
+            +'<div style="color:var(--ctp-overlay0); margin-top:2px;">freeze a fresh witness: <code>'+esc(tq.body_egif||'')+'</code> ⊢ <code>'+esc(tq.head_egif||'')+'</code></div>'
+            +((tq.derived&&tq.derived.length)?'<div style="color:var(--ctp-green); margin-top:2px;">head derived: <code>'+esc(tq.derived.join(' '))+'</code></div>':'')
+            +((tq.missing&&tq.missing.length)?'<div style="color:var(--ctp-maroon); margin-top:2px;">head not derivable: <code>'+esc(tq.missing.join(' '))+'</code></div>':'')
             +'</div>'; }
-        h+='<div style="margin:12px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">Moves</div>';
-        h+='<pre style="background:#181825; padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:#cdd6f4; margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
-        h+='<div style="margin:14px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">What to do with it — the Agonothetes decides (coherent with this verdict highlighted)</div>';
+        h+='<div style="margin:12px 0 4px; font-size:10px; color:var(--ctp-overlay0); text-transform:uppercase; letter-spacing:0.5px;">Moves</div>';
+        h+='<pre style="background:var(--ctp-mantle); padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:var(--ctp-text); margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
+        h+='<div style="margin:14px 0 4px; font-size:10px; color:var(--ctp-overlay0); text-transform:uppercase; letter-spacing:0.5px;">What to do with it — the Agonothetes decides (coherent with this verdict highlighted)</div>';
         (d.available_dispositions||[]).forEach(dd=>{ const coh=dd.coherent_with_verdict;
-          h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border:1px solid '+(coh?'#585b70':'#313244')+'; opacity:'+(coh===false?'0.45':'1')+';">'
-            +'<strong style="color:'+(coh?'#cdd6f4':'#9399b2')+';">'+esc(dd.label)+'</strong>'
-            +' <span style="font-size:10px; color:#6c7086;">'+esc(dd.mode)+(dd.asserts?' · asserts':'')+(coh?' · coheres':'')+'</span>'
-            +'<div style="font-size:11px; color:#6c7086;">'+esc(dd.summary)+'</div></div>'; });
-        h+='<div style="margin-top:12px; font-size:11px; color:#6c7086;">An interpretation, not an assertion — nothing is recorded. “Play it out (full contest)” to contest it move-by-move.</div>';
+          h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border:1px solid '+(coh?'var(--ctp-surface2)':'var(--ctp-surface0)')+'; opacity:'+(coh===false?'0.45':'1')+';">'
+            +'<strong style="color:'+(coh?'var(--ctp-text)':'var(--phase-sealed)')+';">'+esc(dd.label)+'</strong>'
+            +' <span style="font-size:10px; color:var(--ctp-overlay0);">'+esc(dd.mode)+(dd.asserts?' · asserts':'')+(coh?' · coheres':'')+'</span>'
+            +'<div style="font-size:11px; color:var(--ctp-overlay0);">'+esc(dd.summary)+'</div></div>'; });
+        h+='<div style="margin-top:12px; font-size:11px; color:var(--ctp-overlay0);">An interpretation, not an assertion — nothing is recorded. “Play it out (full contest)” to contest it move-by-move.</div>';
         el.innerHTML=h;
       }
 
       // ---- the inverse pivot: in what domain does G hold? ----
-      function relColor(rel){ return rel==='holds'?'#a6e3a1':(rel==='contradicts'?'#f38ba8':(rel==='partial'?'#89b4fa':'#f9e2af')); }
+      function relColor(rel){ return rel==='holds'?'var(--ctp-green)':(rel==='contradicts'?'var(--ctp-maroon)':(rel==='partial'?'var(--ctp-blue)':'var(--ctp-yellow)')); }
       function renderInverse(d){
         $('turn-banner').style.display='none'; canvasEl.style.display='none';
         const el=$('interpret-result'); el.style.display='block';
         const c=d.counts||{};
-        let h='<div style="font-size:12px; color:#6c7086; margin-bottom:8px;">In what domain does G hold? — the peel, run across every candidate model'+(d.materialized?' (rules materialized)':'')+':</div>';
-        h+='<div style="font-size:11px; color:#6c7086;">G: <code>'+esc(d.proposal_egif)+'</code></div>';
+        let h='<div style="font-size:12px; color:var(--ctp-overlay0); margin-bottom:8px;">In what domain does G hold? — the peel, run across every candidate model'+(d.materialized?' (rules materialized)':'')+':</div>';
+        h+='<div style="font-size:11px; color:var(--ctp-overlay0);">G: <code>'+esc(d.proposal_egif)+'</code></div>';
         h+='<div style="margin:8px 0;">'
-          +'<span style="color:#a6e3a1;">'+(c.holds||0)+' holds</span> · '
-          +'<span style="color:#89b4fa;">'+(c.partial||0)+' partial</span> · '
-          +'<span style="color:#f9e2af;">'+(c.independent||0)+' independent</span> · '
-          +'<span style="color:#f38ba8;">'+(c.contradicts||0)+' contradicts</span></div>';
+          +'<span style="color:var(--ctp-green);">'+(c.holds||0)+' holds</span> · '
+          +'<span style="color:var(--ctp-blue);">'+(c.partial||0)+' partial</span> · '
+          +'<span style="color:var(--ctp-yellow);">'+(c.independent||0)+' independent</span> · '
+          +'<span style="color:var(--ctp-maroon);">'+(c.contradicts||0)+' contradicts</span></div>';
         (d.results||[]).forEach(r=>{
-          h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border-left:3px solid '+relColor(r.relationship)+'; background:#181825;">'
+          h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border-left:3px solid '+relColor(r.relationship)+'; background:var(--ctp-mantle);">'
             +'<div><strong style="color:'+relColor(r.relationship)+';">'+esc(r.relationship)+'</strong>'
-            +' <span style="color:#cdd6f4;">'+esc(r.title)+'</span>'
-            +' <span style="font-size:10px; color:#6c7086;">['+esc(r.kind)+' · '+r.verdict+']</span></div>';
-          if(r.residue && r.residue.length) h+='<div style="font-size:11px; color:#89b4fa;">residue (the contribution): <code>'+esc(r.residue.join(' '))+'</code></div>';
-          if(r.counterexample) h+='<div style="font-size:11px; color:#f38ba8;">counterexample: '+esc(pairs(r.counterexample))+'</div>';
+            +' <span style="color:var(--ctp-text);">'+esc(r.title)+'</span>'
+            +' <span style="font-size:10px; color:var(--ctp-overlay0);">['+esc(r.kind)+' · '+r.verdict+']</span></div>';
+          if(r.residue && r.residue.length) h+='<div style="font-size:11px; color:var(--ctp-blue);">residue (the contribution): <code>'+esc(r.residue.join(' '))+'</code></div>';
+          if(r.counterexample) h+='<div style="font-size:11px; color:var(--ctp-maroon);">counterexample: '+esc(pairs(r.counterexample))+'</div>';
           h+='</div>';
         });
-        if(!(d.results||[]).length) h+='<div style="color:#6c7086;">No candidate models.</div>';
-        h+='<div style="margin-top:10px; font-size:11px; color:#6c7086;">Abduction: which context would make G a matter of course. Nothing asserted.</div>';
+        if(!(d.results||[]).length) h+='<div style="color:var(--ctp-overlay0);">No candidate models.</div>';
+        h+='<div style="margin-top:10px; font-size:11px; color:var(--ctp-overlay0);">Abduction: which context would make G a matter of course. Nothing asserted.</div>';
         el.innerHTML=h;
       }
 
@@ -512,55 +513,55 @@
         contestId=d.contest_id;
         $('turn-banner').style.display='none'; canvasEl.style.display='none';
         const el=$('interpret-result'); el.style.display='block';
-        let h='<div style="font-size:12px; color:#6c7086; margin-bottom:8px;">Contest the Grapheus — you are the '
-          +'<strong style="color:#a6e3a1;">Graphist</strong> (defend G); the machine plays the '
-          +'<strong style="color:#89b4fa;">Grapheus</strong> (the model M), and moves automatically.</div>';
-        h+='<div style="font-size:11px; color:#6c7086;">G: <code>'+esc(d.setup.proposal_egif)+'</code></div>';
-        h+='<div style="font-size:11px; color:#6c7086;">M ('+(d.setup.closed?'closed':'open')+' world): <code>'+esc(d.setup.model_egif)+'</code></div>';
+        let h='<div style="font-size:12px; color:var(--ctp-overlay0); margin-bottom:8px;">Contest the Grapheus — you are the '
+          +'<strong style="color:var(--ctp-green);">Graphist</strong> (defend G); the machine plays the '
+          +'<strong style="color:var(--ctp-blue);">Grapheus</strong> (the model M), and moves automatically.</div>';
+        h+='<div style="font-size:11px; color:var(--ctp-overlay0);">G: <code>'+esc(d.setup.proposal_egif)+'</code></div>';
+        h+='<div style="font-size:11px; color:var(--ctp-overlay0);">M ('+(d.setup.closed?'closed':'open')+' world): <code>'+esc(d.setup.model_egif)+'</code></div>';
         if(d.materialization && d.materialization.derived_facts){
-          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:#181825; font-size:11px; color:#6c7086;">'
-            +'<strong style="color:#89b4fa;">Materialized M</strong> — the Grapheus is armed with the derived closure: '
-            +'<code style="color:#a6e3a1;">'+esc(d.materialization.materialized_egif)+'</code></div>'; }
+          h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:var(--ctp-mantle); font-size:11px; color:var(--ctp-overlay0);">'
+            +'<strong style="color:var(--ctp-blue);">Materialized M</strong> — the Grapheus is armed with the derived closure: '
+            +'<code style="color:var(--ctp-green);">'+esc(d.materialization.materialized_egif)+'</code></div>'; }
         if(d.selectives && d.selectives.length){
-          h+='<div style="margin-top:6px; font-size:11px; color:#cdd6f4;">Lines fixed: '
-            +d.selectives.map(s=>'<code>'+esc(s.line)+' = '+esc(s.individual)+'</code> <span style="color:#6c7086;">('+esc(s.by)+')</span>').join(', ')+'</div>'; }
+          h+='<div style="margin-top:6px; font-size:11px; color:var(--ctp-text);">Lines fixed: '
+            +d.selectives.map(s=>'<code>'+esc(s.line)+' = '+esc(s.individual)+'</code> <span style="color:var(--ctp-overlay0);">('+esc(s.by)+')</span>').join(', ')+'</div>'; }
 
         if(d.is_over){
-          h+='<div style="margin:12px 0 6px;"><span style="display:inline-block; padding:4px 14px; border-radius:6px; font-weight:700; color:#11111b; background:'
+          h+='<div style="margin:12px 0 6px;"><span style="display:inline-block; padding:4px 14px; border-radius:6px; font-weight:700; color:var(--ctp-crust); background:'
             +verdictColor(d.verdict)+';">'+esc(outcomeText(d.outcome))+'</span></div>';
-          h+='<div style="margin-bottom:10px; color:#cdd6f4;">'+esc(d.summary)+(d.conceded?' (you conceded)':'')+'</div>';
+          h+='<div style="margin-bottom:10px; color:var(--ctp-text);">'+esc(d.summary)+(d.conceded?' (you conceded)':'')+'</div>';
           const lost = d.outcome==='grapheus_wins';
-          h+='<div style="margin:12px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">The Agonothetes decides — pick a disposition (coherent with this verdict highlighted)</div>';
-          if(lost) h+='<div style="font-size:11px; color:#f9e2af; margin-bottom:4px;">G failed the contest — a lost inning cannot assert G (the warrant needs a Graphist win or an independent inning). Record a judgment, or search for a domain where G holds.</div>';
+          h+='<div style="margin:12px 0 4px; font-size:10px; color:var(--ctp-overlay0); text-transform:uppercase; letter-spacing:0.5px;">The Agonothetes decides — pick a disposition (coherent with this verdict highlighted)</div>';
+          if(lost) h+='<div style="font-size:11px; color:var(--ctp-yellow); margin-bottom:4px;">G failed the contest — a lost inning cannot assert G (the warrant needs a Graphist win or an independent inning). Record a judgment, or search for a domain where G holds.</div>';
           h+='<div id="contest-disp-list">';
           (d.available_dispositions||[]).forEach(dd=>{ const coh=dd.coherent_with_verdict;
             const blocked = lost && dd.asserts;
             h+='<div class="contest-disp" data-key="'+esc(dd.key)+'" data-asserts="'+(dd.asserts?1:0)+'" '
-              +'style="padding:6px 8px; margin:3px 0; border-radius:6px; cursor:'+(blocked?'not-allowed':'pointer')+'; border:1px solid '+(coh?'#585b70':'#313244')+'; opacity:'+(blocked?'0.4':(coh===false?'0.7':'1'))+';">'
-              +'<strong style="color:'+(coh?'#cdd6f4':'#9399b2')+';">'+esc(dd.label)+'</strong>'
-              +' <span style="font-size:10px; color:#6c7086;">'+esc(dd.mode)+(dd.asserts?' · asserts →corpus':'')+(coh?' · coheres':'')+(blocked?' · blocked (lost)':'')+'</span>'
-              +'<div style="font-size:11px; color:#6c7086;">'+esc(dd.summary)+'</div></div>'; });
+              +'style="padding:6px 8px; margin:3px 0; border-radius:6px; cursor:'+(blocked?'not-allowed':'pointer')+'; border:1px solid '+(coh?'var(--ctp-surface2)':'var(--ctp-surface0)')+'; opacity:'+(blocked?'0.4':(coh===false?'0.7':'1'))+';">'
+              +'<strong style="color:'+(coh?'var(--ctp-text)':'var(--phase-sealed)')+';">'+esc(dd.label)+'</strong>'
+              +' <span style="font-size:10px; color:var(--ctp-overlay0);">'+esc(dd.mode)+(dd.asserts?' · asserts →corpus':'')+(coh?' · coheres':'')+(blocked?' · blocked (lost)':'')+'</span>'
+              +'<div style="font-size:11px; color:var(--ctp-overlay0);">'+esc(dd.summary)+'</div></div>'; });
           h+='</div>';
           h+='<div id="contest-assert-fields" style="display:none; margin-top:6px;">'
             +'<div class="field"><label>New UoD id (for asserting)</label><input type="text" id="contest-uod-id" placeholder="contest-v1" /></div>'
             +'<div class="field"><label>Name</label><input type="text" id="contest-disp-name" /></div>'
             +'<div class="field"><label>Notes (optional)</label><textarea id="contest-disp-notes" rows="2"></textarea></div></div>';
           h+='<button class="action primary" id="btn-contest-dispose" disabled style="margin-top:6px;">Record disposition</button>';
-          h+='<div style="margin-top:8px; font-size:11px; color:#6c7086;">An asserting disposition mints the warrant — G enters the corpus as “withstood Agon”, with this play as its proof. Nothing auto-asserts.</div>';
+          h+='<div style="margin-top:8px; font-size:11px; color:var(--ctp-overlay0);">An asserting disposition mints the warrant — G enters the corpus as “withstood Agon”, with this play as its proof. Nothing auto-asserts.</div>';
         } else if(d.frontier){
           const f=d.frontier;
           const prompt=f.kind==='witness'
             ? 'Your move, Graphist — witness the line of identity (pick the individual that defends G):'
             : 'Your move, Graphist — pursue a conjunct (the one you will defend):';
-          h+='<div style="margin:12px 0 6px; padding:8px 10px; border-radius:6px; background:#181825; border-left:3px solid #a6e3a1;">'
-            +'<div style="color:#a6e3a1; font-weight:600; margin-bottom:6px;">'+esc(prompt)+'</div>'
+          h+='<div style="margin:12px 0 6px; padding:8px 10px; border-radius:6px; background:var(--ctp-mantle); border-left:3px solid var(--ctp-green);">'
+            +'<div style="color:var(--ctp-green); font-weight:600; margin-bottom:6px;">'+esc(prompt)+'</div>'
             +'<div id="contest-options">'
             +f.options.map(o=>'<button class="action contest-opt" data-key="'+esc(o.key)+'" style="margin:2px 4px 2px 0;">'
               +esc(o.label)+'</button>').join('')
             +'</div></div>';
         }
-        h+='<div style="margin:14px 0 4px; font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">The play (outside-in)</div>';
-        h+='<pre style="background:#181825; padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:#cdd6f4; margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
+        h+='<div style="margin:14px 0 4px; font-size:10px; color:var(--ctp-overlay0); text-transform:uppercase; letter-spacing:0.5px;">The play (outside-in)</div>';
+        h+='<pre style="background:var(--ctp-mantle); padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:var(--ctp-text); margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
         if(!d.is_over){ h+='<div style="margin-top:10px;"><button class="action danger" id="btn-contest-concede">Concede the inning</button></div>'; }
         el.innerHTML=h;
         el.querySelectorAll('.contest-opt').forEach(b=>b.addEventListener('click', ()=>chooseOption(b.dataset.key)));
@@ -573,7 +574,7 @@
           if(lost && asserts) return;               // blocked — not selectable
           item.addEventListener('click', ()=>{
             el.querySelectorAll('.contest-disp').forEach(x=>x.style.outline='');
-            item.style.outline='2px solid #a6e3a1';
+            item.style.outline='2px solid var(--ctp-green)';
             selectedContestDisp={ key:item.dataset.key, asserts };
             const f=el.querySelector('#contest-assert-fields'); if(f) f.style.display=asserts?'block':'none';
             const b=el.querySelector('#btn-contest-dispose'); if(b) b.disabled=false;

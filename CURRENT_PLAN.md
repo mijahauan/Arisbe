@@ -54,38 +54,43 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = the cross-mode UX consistency pass** — the *last* deferred adaptive-scope
-item (the overview arc, time-stack lens, liveness/desuetude, AND the derivation-DAG lens are all
-done; the adaptive-scope viewer track is essentially complete). Spec: `docs/ADAPTIVE_SCOPE_VIEWER.md`
-§10. (After this, the open non-viewer tracks resurface: the FOLIO/DLCore disjunctive coverage
-lever, the schema-drawing math frontier, the deferred LLM front-end.)
+**▶▶ NEXT SESSION = open non-viewer tracks** — the adaptive-scope viewer track AND the cross-mode
+UX consistency pass are now complete (see the ✅ block immediately below). The resurfacing forks:
+the **FOLIO/DLCore disjunctive coverage lever** (case-split/model-construction for the non-Horn
+negative half — the frontier both benchmarks defer to), the **schema-drawing / §3.3** math frontier
+([[project_math_fixtures_zfc_peirce_schema]]), and the deferred **LLM front-end** of the NL→logic
+arc (both backends in place — [[project_nl_to_logic_arisbe_as_interpretant]]).
 
-**START WITH AN AUDIT, NOT A BUILD.** This pass is cross-cutting (touches all three mode files +
-new shared infra), so open it by reading the three modes side by side and cataloguing the drift
-*before* changing anything; decide the shared tokens + the canonical camera convention, then apply.
-The three surfaces: `src/web_viewer/organon.html`, `ergasterion.html`, `agon.html` (+ shared
-`src/web_viewer/js/diagram-viewer.js`, `mode-nav.js`, and the CSS in `src/web_viewer/css/`). The
-audit checklist:
-- **Camera unification.** Each mode calls `DiagramViewer.render(svg, {camera, dolly, transition})`
-  but with drifted conventions — catalogue every call site and reconcile to one convention
-  (Organon: `fit` on load / `hold` on chain-step + lenses; Ergasterion: hold-the-camera during a
-  move; Agon: ?). Pick the canonical default + document when each mode legitimately differs.
-- **Shared `design-system.css`.** No shared stylesheet exists yet — each mode inlines its own
-  colours/spacing/fonts/badges. Extract the common tokens (the dark palette `#0e1014`/`#1e1e2e`/
-  `#313244`, accent blues, the catppuccin-ish status colours already reused by liveness +
-  derivation-DAG, badge/pill/dot styles, the left-nav) into `src/web_viewer/css/design-system.css`
-  and have all three modes consume it. Watch: the lenses inject their own `<style>` — fold the
-  shared bits in.
-- **Terminology.** "step" vs "move" vs "transformation" vs "inning"; "state" vs "frame"; the
-  Organon/Ergasterion/Agon nav labels. Pick one vocabulary per concept and align the visible
-  strings (not the API).
-- **Nav + chrome consistency.** `mode-nav.js` is shared, but headers/toolbars/status-bars differ
-  per mode — align the shell (left column, top bar, status line) so switching modes feels like one
-  app. Note where a mode *should* differ (read-only Organon vs the workshop) vs accidental drift.
-- **Method:** consider a small read-only audit pass first (e.g. an Explore agent or a side-by-side
-  read) producing a concrete findings list, then land the shared CSS, then per-mode adoption + an
-  E2E that the three modes still render. Regression risk is across all three modes — change one
-  thing at a time and keep the existing Playwright suites green.
+**✅ DONE 2026-06-15 — the cross-mode UX consistency pass** (the last adaptive-scope item; the
+viewer track is now closed). Audit-first per the plan: an Explore agent catalogued the drift across
+`organon.html` / `ergasterion.html` / `agon.html` + the shared `diagram-viewer.js` / `mode-nav.js`
+/ lenses before any edit. Findings → four reconciliations.
+- **Shared tokens.** New `src/web_viewer/css/design-system.css` is the single source of truth —
+  the palette named by provenance (**Catppuccin Mocha** dark chrome `--ctp-*` + **Catppuccin Latte**
+  for Organon's read-only detail header `--ltt-*` + custom `--select-*`/`--phase-*`/`--kind-*`/
+  `--lens-*`), semantic aliases (`--panel-bg`/`--text-muted`/`--accent`/…), an 8-step spacing scale,
+  radii, type, and shell rhythm (`--panel-width`/`--header-pad`/`--statusbar-pad`). All three shells
+  link it after `styles.css` and **fully consume it: zero `#rrggbb` literals remain in any shell**
+  (verified) — every prior literal maps to a value-identical token, so the change is centralization,
+  not recolour. (Lens three.js numeric colours can't take CSS vars; `--lens-*` is their documented
+  mirror.)
+- **Camera convention.** The three modes' `DiagramViewer.render` options are *deliberately*
+  different, not drift: canonical default `fit` on a new graph; Organon re-`fit`s independent chain
+  frames (+`dolly`) & `keep`s on overview-expand, Ergasterion `keep`s but yields to overflow, Agon
+  `hold`s absolutely (the board must not move under the player). Documented, not force-unified.
+- **Vocabulary.** Canon = **move** (a rule application) / **state** (a position in a derivation).
+  Aligned Organon's visible strings (was "step"/"frames" → "move"/"state"; nav titles → "Previous/
+  Next move") + the storyboard lens label; Ergasterion/Agon already matched.
+- **Chrome.** Fixed Organon's status-bar padding drift (`6px 18px` → `--statusbar-pad`); header/
+  status paddings tokenized. Agon's 340px columns left intentional (denser setup/disposition) and
+  documented as such.
+- **Doc:** `docs/WEB_VIEWER_DESIGN.md` — the scoped "DESIGN.md" companion (tokens + camera + vocab +
+  chrome + known follow-ups). Decided *against* a global DESIGN.md (redundant with CLAUDE.md + the
+  docs spine); the article's value applies precisely to the web viewer's design system, which had a
+  real gap. **Tests:** 99 web route/interpretation + 18 browser E2E (lenses, overview, agon,
+  freeform, challenge, grapheus) all green; every referenced token verified defined. Purely
+  additive (new CSS + new doc; HTML/lens edits are literal→token + string-only). Memory:
+  [[project_adaptive_scope_viewer]], [[project_web_viewer_design_system]].
 
 **✅ DONE 2026-06-15 — derivation-DAG lens** (branch structure; the 3rd deferred item). A
 reasoning episode is a DAG: two rules from one state **fork**, two reaching the same graph

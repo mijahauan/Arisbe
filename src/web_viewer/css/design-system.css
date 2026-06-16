@@ -1,0 +1,133 @@
+/* ============================================================================
+ * design-system.css — the single source of truth for the web viewer's tokens.
+ *
+ * Loaded by all three mode shells (organon.html, ergasterion.html, agon.html)
+ * after css/styles.css. Where styles.css carries the original index viewer's
+ * layout + a partial `--sidebar-*` palette, THIS file owns the canonical design
+ * tokens the three modes share: the colour palette, spacing scale, radii, and
+ * type. Mode `<style>` blocks should reference these `var(--…)` tokens rather
+ * than re-declaring literals — that is what keeps the three surfaces reading as
+ * one app (see docs/WEB_VIEWER_DESIGN.md).
+ *
+ * Palette provenance: Catppuccin Mocha (dark chrome, every mode) + Catppuccin
+ * Latte (the light read-only detail header in Organon) + a small custom set for
+ * on-canvas selection and the Organon lenses. Named so the origin is legible.
+ *
+ * GUARDRAIL: hue/line-style here is *chrome*, never a logical mark. Polarity is
+ * value-only; colour as actuality is reserved for Gamma (docs/MANIFEST_AND_MEANING.md,
+ * "no mark bears actuality").
+ * ========================================================================== */
+
+:root {
+  /* ── Catppuccin Mocha — dark surfaces (the chrome of every mode) ────────── */
+  --ctp-base:     #1e1e2e;   /* panel / canvas-chrome background            */
+  --ctp-mantle:   #181825;   /* header / sub-bar background (one step down) */
+  --ctp-crust:    #11111b;
+  --ctp-surface0: #313244;   /* button / input / chip background           */
+  --ctp-surface1: #45475a;   /* button hover / input border                */
+  --ctp-surface2: #585b70;
+  --ctp-overlay0: #6c7086;   /* muted text (labels, meta, hints)           */
+  --ctp-overlay1: #7f849c;
+  --ctp-subtext0: #a6adc8;   /* secondary text                             */
+  --ctp-subtext1: #bac2de;
+  --ctp-text:     #cdd6f4;   /* primary text                               */
+  --ctp-blue:     #89b4fa;   /* accent (the through-line blue)             */
+  --ctp-sky:      #74c7ec;
+  --ctp-lavender: #b4befe;
+  --ctp-teal:     #94e2d5;
+  --ctp-green:    #a6e3a1;
+  --ctp-yellow:   #f9e2af;
+  --ctp-peach:    #fab387;
+  --ctp-maroon:   #f38ba8;   /* danger / the Grapheus side                 */
+  --ctp-mauve:    #cba6f7;
+
+  /* ── Catppuccin Latte — light surfaces (Organon's read-only detail head) ── */
+  --ltt-base:        #f8f9fa;
+  --ltt-mantle:      #f6f7f9;
+  --ltt-surface:     #eef0f3;
+  --ltt-border:      #e0e3e8;
+  --ltt-border-1:    #d0d4da;
+  --ltt-border-2:    #cdd0d8;
+  --ltt-text:        #2a2d3e;
+  --ltt-subtext:     #45485a;
+  --ltt-subtext-1:   #4a4d5e;
+  --ltt-overlay:     #8a8fa3;
+  --ltt-overlay-1:   #6c6f85;   /* retired dot fill                 */
+  --ltt-overlay-gray:#9ca0b0;
+  --ltt-slate:       #94a3b8;   /* uncited dot                      */
+  --ltt-green:       #40a02b;   /* alive · selection-area           */
+  --ltt-yellow:      #df8e1d;   /* dormant                          */
+  --ltt-red:         #d20f39;   /* retired ring                     */
+  --ltt-mauve:       #5b21b6;
+  --ltt-mauve-bg:    #ede9fe;
+
+  /* ── Corpus kind taxonomy (Organon list badges; fg on bg) ───────────────── */
+  --kind-ontology-fg: var(--ltt-mauve);  --kind-ontology-bg: var(--ltt-mauve-bg);
+  --kind-proof-fg:    #166534;            --kind-proof-bg:    #dcfce7;
+  --kind-pattern-fg:  #92400e;            --kind-pattern-bg:  #fef3c7;
+  --kind-domain-fg:   #115e59;            --kind-domain-bg:   #ccfbf1;
+  --kind-exemplar-fg: #334155;            --kind-exemplar-bg: #e2e8f0;
+  --kind-none-fg:     #44475a;            --kind-none-bg:     #cdd0d8;
+
+  /* ── Semantic aliases — prefer these in mode CSS ────────────────────────── */
+  --panel-bg:        var(--ctp-base);
+  --header-bg:       var(--ctp-mantle);
+  --text:            var(--ctp-text);
+  --text-secondary:  var(--ctp-subtext0);
+  --text-muted:      var(--ctp-overlay0);
+  --border:          var(--ctp-surface0);
+  --accent:          var(--ctp-blue);
+  --status-success:  var(--ctp-green);
+  --status-warning:  var(--ctp-peach);
+  --status-error:    var(--ctp-maroon);
+
+  /* Agon roles — by polarity (Graphist defends recto, Grapheus the model side) */
+  --role-graphist:   var(--ctp-blue);
+  --role-grapheus:   var(--ctp-maroon);
+
+  /* On-canvas selection palette (Ergasterion + Agon) — chrome, not assertion. */
+  --select-subgraph: #f9a06c;          /* the directly-chosen sub-graph     */
+  --select-area:     var(--ltt-green); /* the chosen area / empty region    */
+  --select-justify:  var(--ctp-blue);  /* the warrant (why a move is legal) */
+  --settle:          var(--ctp-teal);  /* regime-3 manual settle handles    */
+
+  /* Phase / workspace accents (Ergasterion two-mode switch + phase banner). */
+  --phase-composing: var(--ctp-yellow);  /* composing = unfixed clay  */
+  --phase-deriving:  var(--ctp-green);   /* deriving = fixed argument */
+  --phase-sealed:    #9399b2;
+
+  /* Organon adaptive-scope lens accents (the diachronic film). NOTE: the
+     three.js lenses set these as numeric colours in JS — these tokens are the
+     CSS-side mirror + the documented source of truth. */
+  --lens-bg:      #0a0c10;
+  --lens-accent:  #9bb6e8;
+  --lens-thread:  #6fa8ff;   /* a survivor line of identity         */
+  --lens-added:   #73d393;   /* a mark a move added                 */
+  --lens-erased:  #f38ba8;   /* a mark the next move erases         */
+
+  /* ── Spacing scale (replaces the scattered 2–18px magic numbers) ────────── */
+  --space-1:  2px;
+  --space-2:  4px;
+  --space-3:  6px;
+  --space-4:  8px;
+  --space-5: 10px;
+  --space-6: 12px;
+  --space-7: 14px;
+  --space-8: 16px;
+  --space-9: 18px;
+
+  /* ── Radii ──────────────────────────────────────────────────────────────── */
+  --radius-sm:   3px;   /* inputs, buttons, tight badges */
+  --radius-md:   4px;   /* cards, the .btn baseline      */
+  --radius-lg:   6px;   /* segmented controls           */
+  --radius-pill:10px;   /* facet chips, status pills    */
+
+  /* ── Type ───────────────────────────────────────────────────────────────── */
+  --font-sans: ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ── Layout rhythm (the shell the three modes share) ────────────────────── */
+  --panel-width:    320px;          /* left/right column width             */
+  --header-pad:     16px 14px 12px; /* panel-header padding (all modes)    */
+  --statusbar-pad:  6px 14px;       /* bottom status bar padding           */
+}

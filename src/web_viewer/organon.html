@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arisbe Organon — the Tomos</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/design-system.css" />
   <style>
     /* Organon-specific overrides: read-only archive layout */
     #organon-app {
@@ -20,7 +21,7 @@
       overflow: hidden;
     }
     #organon-sidebar-header {
-      padding: 16px 14px 12px;
+      padding: var(--header-pad);
       border-bottom: 1px solid var(--bottombar-border);
     }
     #organon-sidebar-header h1 {
@@ -31,7 +32,7 @@
     }
     #organon-sidebar-header p {
       font-size: 11px;
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       margin-top: 2px;
     }
     #organon-sidebar-header .mode-tag {
@@ -69,7 +70,7 @@
       font-weight: 500;
     }
     .uod-item .uod-meta {
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       font-size: 10px;
       margin-top: 3px;
     }
@@ -77,7 +78,7 @@
       display: inline-block;
       padding: 1px 5px;
       background: var(--btn-bg);
-      color: #a6adc8;
+      color: var(--ctp-subtext0);
       font-size: 9px;
       border-radius: 2px;
       margin-right: 4px;
@@ -95,13 +96,13 @@
       border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px;
     }
     #organon-controls .ctl-row { display: flex; gap: 7px; align-items: center; }
-    #organon-controls .ctl-row label { font-size: 10px; color: #6c7086; white-space: nowrap; }
-    #organon-count { font-size: 10px; color: #6c7086; }
+    #organon-controls .ctl-row label { font-size: 10px; color: var(--ctp-overlay0); white-space: nowrap; }
+    #organon-count { font-size: 10px; color: var(--ctp-overlay0); }
     /* kind facet chips */
     #organon-facets { display: flex; flex-wrap: wrap; gap: 4px; }
     .facet-chip {
       font-size: 10px; padding: 2px 7px; border-radius: 10px; cursor: pointer;
-      border: 1px solid var(--bottombar-border); color: #a6adc8; background: transparent;
+      border: 1px solid var(--bottombar-border); color: var(--ctp-subtext0); background: transparent;
       user-select: none;
     }
     .facet-chip:hover { color: var(--sidebar-text); }
@@ -111,11 +112,11 @@
       position: sticky; top: 0; z-index: 1;
       display: flex; align-items: center; gap: 6px;
       padding: 6px 14px; cursor: pointer;
-      background: #181825; border-bottom: 1px solid var(--bottombar-border);
+      background: var(--ctp-mantle); border-bottom: 1px solid var(--bottombar-border);
       font-size: 11px; font-weight: 700; color: var(--sidebar-text); letter-spacing: .02em;
     }
-    .kind-group-header .kg-caret { font-size: 9px; color: #6c7086; width: 9px; }
-    .kind-group-header .kg-count { font-size: 10px; color: #6c7086; font-weight: 500; }
+    .kind-group-header .kg-caret { font-size: 9px; color: var(--ctp-overlay0); width: 9px; }
+    .kind-group-header .kg-count { font-size: 10px; color: var(--ctp-overlay0); font-weight: 500; }
     .kind-group.collapsed .uod-item { display: none; }
     /* per-row kind badge + cited dot */
     .uod-kind-badge {
@@ -123,8 +124,8 @@
       font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .03em;
       margin-right: 5px;
     }
-    .uod-cited-dot { font-size: 9px; color: #94a3b8; }
-    .uod-cited-dot.cited { color: #a6e3a1; }
+    .uod-cited-dot { font-size: 9px; color: var(--ltt-slate); }
+    .uod-cited-dot.cited { color: var(--ctp-green); }
 
     #organon-main {
       display: flex;
@@ -133,19 +134,19 @@
     }
     #organon-detail-header {
       padding: 14px 18px;
-      background: #f8f9fa;
-      border-bottom: 1px solid #e0e3e8;
-      color: #2a2d3e;
+      background: var(--ltt-base);
+      border-bottom: 1px solid var(--ltt-border);
+      color: var(--ltt-text);
     }
     #organon-detail-header h2 {
       font-size: 18px;
       font-weight: 600;
-      color: #2a2d3e;
+      color: var(--ltt-text);
       margin: 0;
     }
     #organon-detail-header .detail-meta {
       font-size: 11px;
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       margin-top: 4px;
     }
     #organon-detail-header .detail-meta span {
@@ -154,48 +155,48 @@
     #organon-detail-extra { margin-top: 8px; }
     #organon-detail-extra .prov-block,
     #organon-detail-extra .ann-block {
-      font-size: 11px; color: #4a4d5e; margin-top: 6px;
-      border-left: 2px solid #d0d4da; padding: 2px 0 2px 8px;
+      font-size: 11px; color: var(--ltt-subtext-1); margin-top: 6px;
+      border-left: 2px solid var(--ltt-border-1); padding: 2px 0 2px 8px;
     }
     #organon-detail-extra .prov-block strong,
-    #organon-detail-extra .ann-block strong { color: #2a2d3e; }
+    #organon-detail-extra .ann-block strong { color: var(--ltt-text); }
     #organon-detail-extra .prov-kind {
       display: inline-block; font-size: 10px; font-weight: 600;
       text-transform: uppercase; letter-spacing: .04em;
-      color: #5b21b6; background: #ede9fe;
+      color: var(--ltt-mauve); background: var(--ltt-mauve-bg);
       border-radius: 3px; padding: 1px 6px; margin-right: 6px;
     }
     #organon-detail-extra .prov-warrant {
-      font-size: 10px; color: #6c7086;
+      font-size: 10px; color: var(--ctp-overlay0);
     }
     #organon-detail-extra .ann-item { margin: 3px 0; line-height: 1.4; }
     #organon-detail-extra .ann-scope {
       display: inline-block; font-size: 9px; font-weight: 600;
-      text-transform: uppercase; color: #6c7086; background: #eef0f3;
+      text-transform: uppercase; color: var(--ctp-overlay0); background: var(--ltt-surface);
       border-radius: 3px; padding: 0 5px; margin-right: 5px; vertical-align: 1px;
     }
     #organon-detail-extra .ann-tag {
-      font-size: 9px; color: #8a8fa3; margin-left: 4px;
+      font-size: 9px; color: var(--ltt-overlay); margin-left: 4px;
     }
     /* Liveness facet (manifest floor #7) — forward-facing usage, never a verdict. */
     #organon-detail-extra .live-block {
-      margin-top: 6px; padding: 6px 8px; background: #f6f7f9;
-      border-radius: 4px; font-size: 11px; color: #45485a;
+      margin-top: 6px; padding: 6px 8px; background: var(--ltt-mantle);
+      border-radius: 4px; font-size: 11px; color: var(--ltt-subtext);
     }
-    #organon-detail-extra .live-block strong { color: #2a2d3e; margin-right: 4px; }
+    #organon-detail-extra .live-block strong { color: var(--ltt-text); margin-right: 4px; }
     .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
       margin: 0 5px 0 2px; vertical-align: 0; }
-    .live-alive { background: #40a02b; }          /* alive — recently consulted */
-    .live-dormant { background: #df8e1d; }         /* dormant — sliding to desuetude */
-    .live-unconsulted { background: #9ca0b0; }     /* never consulted */
-    .live-retired { background: #6c6f85; box-shadow: inset 0 0 0 1.5px #d20f39; } /* deliberate second death */
+    .live-alive { background: var(--ltt-green); }          /* alive — recently consulted */
+    .live-dormant { background: var(--ltt-yellow); }         /* dormant — sliding to desuetude */
+    .live-unconsulted { background: var(--ltt-overlay-gray); }     /* never consulted */
+    .live-retired { background: var(--ltt-overlay-1); box-shadow: inset 0 0 0 1.5px var(--ltt-red); } /* deliberate second death */
     .live-status { font-weight: 600; }
     .live-tail { opacity: .8; }
     .live-toggle {
       margin-left: 8px; font-size: 10px; padding: 1px 7px; cursor: pointer;
-      border: 1px solid #cdd0d8; border-radius: 3px; background: #fff; color: #45485a;
+      border: 1px solid var(--kind-none-bg); border-radius: 3px; background: #fff; color: var(--ltt-subtext);
     }
-    .live-toggle:hover { background: #eef0f3; }
+    .live-toggle:hover { background: var(--ltt-surface); }
     /* List status dot (same palette) before the name. */
     .uod-item .live-dot { margin-right: 6px; }
     #organon-canvas {
@@ -209,7 +210,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       font-size: 14px;
       text-align: center;
     }
@@ -221,7 +222,7 @@
     /* --- unified action toolbar (transfer in/out + cross-mode) --- */
     #organon-actionbar {
       display: flex; align-items: center; gap: 6px;
-      padding: 7px 14px; background: #181825;
+      padding: 7px 14px; background: var(--ctp-mantle);
       border-bottom: 1px solid var(--bottombar-border);
     }
     .xfer-btn {
@@ -236,7 +237,7 @@
     .xfer-sep { width: 1px; align-self: stretch; background: var(--bottombar-border); margin: 0 3px; }
     .xfer-spacer { flex: 1; }
     #organon-status {
-      padding: 6px 18px;
+      padding: var(--statusbar-pad);
       background: var(--bottombar-bg);
       color: var(--sidebar-text);
       font-size: 11px;
@@ -247,7 +248,7 @@
     }
     .empty-state {
       padding: 20px 14px;
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       font-size: 12px;
       text-align: center;
     }
@@ -257,9 +258,9 @@
     .overview-badge { cursor: pointer; }
     .overview-badge .ov-hit { fill: rgba(137,180,250,0.05); }
     .overview-badge:hover .ov-hit { fill: rgba(137,180,250,0.16); }
-    .overview-badge .ov-pill { fill: #1e1e2e; opacity: 0.92; }
-    .overview-badge .ov-pill-text { fill: #cdd6f4; font: 600 12px ui-sans-serif, system-ui, sans-serif; }
-    .overview-badge .ov-sub-text { fill: #a6adc8; font: 500 10px ui-sans-serif, system-ui, sans-serif; }
+    .overview-badge .ov-pill { fill: var(--ctp-base); opacity: 0.92; }
+    .overview-badge .ov-pill-text { fill: var(--ctp-text); font: 600 12px ui-sans-serif, system-ui, sans-serif; }
+    .overview-badge .ov-sub-text { fill: var(--ctp-subtext0); font: 500 10px ui-sans-serif, system-ui, sans-serif; }
   </style>
 </head>
 <body>
@@ -326,12 +327,12 @@
         <div id="organon-detail-extra"></div>
         <div id="organon-export" style="display:none; margin-top:8px; font-size:12px;">
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
-            <label style="font-size:10px; color:#6c7086;">Format</label>
+            <label style="font-size:10px; color:var(--ctp-overlay0);">Format</label>
             <select id="export-format"></select>
             <button id="export-go" style="padding:4px 10px; cursor:pointer;">Export</button>
-            <span id="export-status" style="font-size:10px; color:#6c7086;"></span>
+            <span id="export-status" style="font-size:10px; color:var(--ctp-overlay0);"></span>
           </div>
-          <div id="export-view-note" style="font-size:10px; color:#6c7086; margin-top:4px;">
+          <div id="export-view-note" style="font-size:10px; color:var(--ctp-overlay0); margin-top:4px;">
             Exports the current view — set the style and layout in the toolbar above the canvas.
           </div>
           <div id="export-output" style="display:none; margin-top:8px;">
@@ -349,8 +350,8 @@
            basic viewing option, distinct from the Export path. Shown whenever a
            form is on the canvas. §3.3 attests every styled render. -->
       <div id="view-toolbar" style="display:none; align-items:center; gap:8px;
-           padding:6px 12px; background:#1e1e2e; border-bottom:1px solid #313244;">
-        <label for="view-lens" style="font-size:11px; color:#a6adc8;">Lens</label>
+           padding:6px 12px; background:var(--ctp-base); border-bottom:1px solid var(--ctp-surface0);">
+        <label for="view-lens" style="font-size:11px; color:var(--ctp-subtext0);">Lens</label>
         <select id="view-lens" style="font-size:12px;" title="A read-only projection of this UoD — never the asserted drawing.">
           <option value="drawing">Drawing (default)</option>
           <option value="overview">Drawing — overview (adaptive scope)</option>
@@ -369,16 +370,16 @@
         <span id="overview-controls" style="display:none; align-items:center; gap:8px; margin-left:8px;">
           <button id="ov-reset" style="font-size:11px; padding:3px 9px; cursor:pointer;"
                   title="Collapse everything back to the top-level overview">⊖ Collapse all</button>
-          <span id="ov-hint" style="font-size:10px; color:#6c7086;"></span>
+          <span id="ov-hint" style="font-size:10px; color:var(--ctp-overlay0);"></span>
         </span>
-        <label for="view-style" style="font-size:11px; color:#a6adc8; margin-left:8px;">View style</label>
+        <label for="view-style" style="font-size:11px; color:var(--ctp-subtext0); margin-left:8px;">View style</label>
         <select id="view-style" style="font-size:12px;">
           <option value="">Dau (default)</option>
           <option value="dau-compliant@1.0">Dau — mathematical</option>
           <option value="peirce-authentic@1.0">Peirce — handwritten</option>
           <option value="sowa-compliant@1.0">Sowa — conceptual graph</option>
         </select>
-        <label for="view-engine" style="font-size:11px; color:#a6adc8; margin-left:8px;">Layout</label>
+        <label for="view-engine" style="font-size:11px; color:var(--ctp-subtext0); margin-left:8px;">Layout</label>
         <select id="view-engine" style="font-size:12px;">
           <option value="elk">ELK (default)</option>
           <option value="tension">Tension — relation between arguments</option>
@@ -390,17 +391,17 @@
            then each rule application — so the reasoning episode is watched
            unfolding, not just its final picture. Hidden for synchronic UoDs. -->
       <div id="chain-player" style="display:none; align-items:center; gap:10px;
-           padding:8px 12px; background:#181825; border-bottom:1px solid #313244;
+           padding:8px 12px; background:var(--ctp-mantle); border-bottom:1px solid var(--ctp-surface0);
            flex-wrap:wrap;">
         <div style="display:flex; gap:4px;">
           <button id="cp-first" title="Base state" style="cursor:pointer; padding:3px 8px;">«</button>
-          <button id="cp-prev"  title="Previous step" style="cursor:pointer; padding:3px 8px;">‹</button>
+          <button id="cp-prev"  title="Previous move" style="cursor:pointer; padding:3px 8px;">‹</button>
           <button id="cp-play"  title="Play" style="cursor:pointer; padding:3px 10px;">▶ Play</button>
-          <button id="cp-next"  title="Next step" style="cursor:pointer; padding:3px 8px;">›</button>
+          <button id="cp-next"  title="Next move" style="cursor:pointer; padding:3px 8px;">›</button>
           <button id="cp-last"  title="Final state" style="cursor:pointer; padding:3px 8px;">»</button>
         </div>
-        <span id="cp-counter" style="font-size:12px; color:#a6adc8; min-width:90px;"></span>
-        <span id="cp-annotation" style="font-size:12px; color:#cdd6f4; flex:1 1 240px;"></span>
+        <span id="cp-counter" style="font-size:12px; color:var(--ctp-subtext0); min-width:90px;"></span>
+        <span id="cp-annotation" style="font-size:12px; color:var(--ctp-text); flex:1 1 240px;"></span>
       </div>
 
       <div id="organon-canvas">
@@ -492,12 +493,12 @@
       // The import-kind taxonomy is the corpus's shelving dimension
       // (docs/CORPUS_AND_IMPORT_MODEL.md §2). Order, label and colour per kind.
       const KIND_META = {
-        ontology:     { label: 'Ontologies',    color: '#5b21b6', bg: '#ede9fe' },
-        proof:        { label: 'Proofs',        color: '#166534', bg: '#dcfce7' },
-        pattern:      { label: 'Patterns',      color: '#92400e', bg: '#fef3c7' },
-        domain_model: { label: 'Domain models', color: '#115e59', bg: '#ccfbf1' },
-        exemplar:     { label: 'Exemplars',     color: '#334155', bg: '#e2e8f0' },
-        _none:        { label: 'Unclassified',  color: '#44475a', bg: '#cdd0d8' },
+        ontology:     { label: 'Ontologies',    color: 'var(--ltt-mauve)', bg: 'var(--ltt-mauve-bg)' },
+        proof:        { label: 'Proofs',        color: 'var(--kind-proof-fg)', bg: 'var(--kind-proof-bg)' },
+        pattern:      { label: 'Patterns',      color: 'var(--kind-pattern-fg)', bg: 'var(--kind-pattern-bg)' },
+        domain_model: { label: 'Domain models', color: 'var(--kind-domain-fg)', bg: 'var(--kind-domain-bg)' },
+        exemplar:     { label: 'Exemplars',     color: 'var(--kind-exemplar-fg)', bg: 'var(--kind-exemplar-bg)' },
+        _none:        { label: 'Unclassified',  color: 'var(--kind-none-fg)', bg: 'var(--kind-none-bg)' },
       };
       const KIND_ORDER = ['ontology', 'proof', 'pattern', 'domain_model', 'exemplar', '_none'];
       const collapsedKinds = {};   // kind -> true when its group is collapsed
@@ -668,7 +669,7 @@
               true
             );
             canvasEl.innerHTML =
-              '<div id="organon-canvas-placeholder" style="color:#f38ba8;">' +
+              '<div id="organon-canvas-placeholder" style="color:var(--ctp-maroon);">' +
               escapeHtml(err.message || 'Load failed') +
               '</div>';
             return;
@@ -878,7 +879,7 @@
         // hand-drawn) can take a few seconds, so show progress rather than
         // appearing frozen.
         setStatus('Rendering in ' + label +
-          (chainFrames.length ? ' (' + chainFrames.length + ' frames)…' : '…'));
+          (chainFrames.length ? ' (' + chainFrames.length + ' states)…' : '…'));
         try {
           if (chainFrames.length) {
             const res = await fetch(
@@ -1008,7 +1009,7 @@
             activeLensHandle = window.DerivationDag.mount(canvasEl, currentHistory);
           }
         } catch (e) {
-          canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:#f38ba8;">' +
+          canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:var(--ctp-maroon);">' +
             'Lens failed: ' + escapeHtml(e.message || String(e)) + '</div>';
         }
       }
@@ -1039,7 +1040,7 @@
           const res = await fetch(ovUrl());
           const body = await res.json();
           if (!body.success) {
-            canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:#f38ba8;">' +
+            canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:var(--ctp-maroon);">' +
               escapeHtml((body.error && body.error.message) || 'Overview failed') + '</div>';
             return;
           }
@@ -1186,7 +1187,7 @@
         if (cp.counter) {
           cp.counter.textContent = chainIndex === 0
             ? 'base state · 0 / ' + total
-            : 'step ' + chainIndex + ' / ' + total;
+            : 'state ' + chainIndex + ' / ' + total;
         }
         if (cp.annotation) {
           cp.annotation.textContent = f.kind === 'base'
@@ -1234,7 +1235,7 @@
           // Start at the base state so the episode plays forward.
           showFrame(0, false);
           setStatus('Diachronic chain: ' + (frames.length - 1) +
-            ' step(s). Use the player to follow each rule application.');
+            ' move(s). Use the player to follow each rule application.');
         } catch (_) { /* leave player hidden on any error */ }
       }
 

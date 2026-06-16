@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arisbe Ergasterion — Workshop</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/design-system.css" />
   <style>
     /* Ergasterion-specific overrides: composition layout */
     #ergasterion-app {
@@ -24,7 +25,7 @@
       border-left: 1px solid var(--bottombar-border);
     }
     .panel-header {
-      padding: 16px 14px 12px;
+      padding: var(--header-pad);
       border-bottom: 1px solid var(--bottombar-border);
     }
     .panel-header h1, .panel-header h2 {
@@ -36,7 +37,7 @@
     .panel-header h1 { font-size: 16px; }
     .panel-header p {
       font-size: 11px;
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       margin-top: 2px;
     }
     .panel-body {
@@ -61,7 +62,7 @@
     }
     .regime-banner {
       font-size: 10px;
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       margin-top: 4px;
       font-style: italic;
     }
@@ -87,7 +88,7 @@
       font-weight: 600;
     }
     button.action.primary:hover {
-      background: #b4befe;
+      background: var(--ctp-lavender);
     }
     button.action.danger {
       color: var(--btn-danger);
@@ -114,7 +115,7 @@
     .field label {
       display: block;
       font-size: 10px;
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       margin-bottom: 3px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -181,13 +182,13 @@
       color: var(--sidebar-accent);
     }
     .step-item .step-meta {
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       font-size: 10px;
       margin-top: 2px;
     }
     .empty-state {
       padding: 16px 0;
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       font-size: 11px;
       text-align: center;
       font-style: italic;
@@ -202,7 +203,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       font-size: 13px;
       text-align: center;
     }
@@ -216,11 +217,11 @@
     #canvas g[data-element-type="vertex"].sel-subgraph circle,
     #canvas g[data-element-type="predicate"].sel-subgraph rect,
     #canvas g[data-element-type="cut"].sel-subgraph > rect {
-      stroke: #f9a06c;
+      stroke: var(--select-subgraph);
       stroke-width: 3px;
     }
     #canvas g[data-element-type="cut"].sel-area > rect {
-      stroke: #40a02b;
+      stroke: var(--ltt-green);
       stroke-width: 3px;
       stroke-dasharray: 7 3;
     }
@@ -230,7 +231,7 @@
     #canvas g[data-element-type="vertex"].sel-closure circle,
     #canvas g[data-element-type="predicate"].sel-closure rect,
     #canvas g[data-element-type="cut"].sel-closure > rect {
-      stroke: #f9a06c;
+      stroke: var(--select-subgraph);
       stroke-width: 2px;
       stroke-dasharray: 4 3;
     }
@@ -240,7 +241,7 @@
     #canvas g[data-element-type="vertex"].sel-justify circle,
     #canvas g[data-element-type="predicate"].sel-justify rect,
     #canvas g[data-element-type="cut"].sel-justify > rect {
-      stroke: #89b4fa;
+      stroke: var(--ctp-blue);
       stroke-width: 3px;
       stroke-dasharray: 2 2;
     }
@@ -256,15 +257,15 @@
     #canvas.settle-mode g[data-element-type="cut"]:active,
     #canvas.settle-mode path.ligature-path:active { cursor: grabbing; }
     #canvas .settle-handle {
-      fill: #94e2d5;
-      stroke: #181825;
+      fill: var(--ctp-teal);
+      stroke: var(--ctp-mantle);
       stroke-width: 1px;
       cursor: nwse-resize;
     }
     /* A faint, non-interactive ring marking each grabbable vertex / predicate. */
     #canvas .settle-grabhint {
       fill: none;
-      stroke: #94e2d5;
+      stroke: var(--ctp-teal);
       stroke-width: 1px;
       stroke-dasharray: 2 2;
       opacity: 0.55;
@@ -272,7 +273,7 @@
     }
     #canvas .settle-preview {
       fill: none;
-      stroke: #94e2d5;
+      stroke: var(--ctp-teal);
       stroke-width: 1.5px;
       stroke-dasharray: 4 3;
       pointer-events: none;
@@ -280,25 +281,25 @@
     /* The live guide for a ligature reroute: the polyline the line will take. */
     #canvas .settle-preview-line {
       fill: none;
-      stroke: #94e2d5;
+      stroke: var(--ctp-teal);
       stroke-width: 1.5px;
       stroke-dasharray: 4 3;
       pointer-events: none;
     }
     #canvas .settle-preview-dot {
-      fill: #94e2d5;
-      stroke: #181825;
+      fill: var(--ctp-teal);
+      stroke: var(--ctp-mantle);
       stroke-width: 1px;
       pointer-events: none;
     }
-    #btn-settle.primary { background: #94e2d5; color: #181825; }
+    #btn-settle.primary { background: var(--ctp-teal); color: var(--ctp-mantle); }
     #selection-bar {
       margin-bottom: 10px;
       padding: 7px 9px;
       background: var(--btn-bg);
       border-radius: 3px;
       font-size: 10px;
-      color: #a6adc8;
+      color: var(--ctp-subtext0);
     }
     #selection-bar .sel-line { margin-bottom: 3px; }
     #selection-bar .sel-swatch {
@@ -308,8 +309,8 @@
       margin-right: 4px;
       vertical-align: middle;
     }
-    #selection-bar .sel-swatch.subgraph { background: #f9a06c; }
-    #selection-bar .sel-swatch.area { background: #40a02b; }
+    #selection-bar .sel-swatch.subgraph { background: var(--select-subgraph); }
+    #selection-bar .sel-swatch.area { background: var(--ltt-green); }
     #selection-bar code {
       color: var(--sidebar-text);
       font-size: 10px;
@@ -323,7 +324,7 @@
       padding: 1px 6px;
       margin: 1px 2px;
       border-radius: 9px;
-      background: var(--sidebar-hover, #313244);
+      background: var(--sidebar-hover, var(--ctp-surface0));
       color: var(--sidebar-text);
       font-size: 10px;
       cursor: default;
@@ -336,8 +337,8 @@
       vertical-align: middle;
     }
     /* recto (positive) vs verso (negative) — the same parity the shading shows */
-    #selection-bar .sel-chip .pol.pos { background: #cdd6f4; border: 1px solid #6c7086; }
-    #selection-bar .sel-chip .pol.neg { background: #6c7086; }
+    #selection-bar .sel-chip .pol.pos { background: var(--ctp-text); border: 1px solid var(--ctp-overlay0); }
+    #selection-bar .sel-chip .pol.neg { background: var(--ctp-overlay0); }
     #selection-bar .clear-sel {
       color: var(--btn-danger);
       cursor: pointer;
@@ -368,9 +369,9 @@
       text-align: center;
       display: none;
     }
-    #phase-banner.composing { display: block; background: rgba(249,226,175,0.92); color: #1e1e2e; }
-    #phase-banner.deriving  { display: block; background: rgba(166,227,161,0.92); color: #1e1e2e; }
-    #phase-banner.sealed    { display: block; background: rgba(147,153,178,0.92); color: #1e1e2e; }
+    #phase-banner.composing { display: block; background: rgba(249,226,175,0.92); color: var(--ctp-base); }
+    #phase-banner.deriving  { display: block; background: rgba(166,227,161,0.92); color: var(--ctp-base); }
+    #phase-banner.sealed    { display: block; background: rgba(147,153,178,0.92); color: var(--ctp-base); }
     #phase-banner .consequence {
       font-weight: 400;
       text-transform: none;
@@ -383,28 +384,28 @@
        transformation rules on a fixed graph. */
     #workspace-switch { margin-bottom: 10px; }
     .mode-seg {
-      display: flex; gap: 0; border: 1px solid #45475a; border-radius: 6px;
+      display: flex; gap: 0; border: 1px solid var(--ctp-surface1); border-radius: 6px;
       overflow: hidden;
     }
     .mode-seg .seg {
       flex: 1; padding: 8px 6px; font-size: 11px; font-weight: 700;
-      letter-spacing: 0.3px; background: #181825; color: #6c7086;
+      letter-spacing: 0.3px; background: var(--ctp-mantle); color: var(--ctp-overlay0);
       border: none; cursor: pointer; transition: background 0.12s, color 0.12s;
     }
-    .mode-seg .seg + .seg { border-left: 1px solid #45475a; }
-    .mode-seg .seg:hover:not(.locked):not(.active) { color: #cdd6f4; background: #1e1e2e; }
-    .mode-seg .seg.active.graph { background: rgba(249,226,175,0.92); color: #1e1e2e; }
-    .mode-seg .seg.active.argument { background: rgba(166,227,161,0.92); color: #1e1e2e; }
-    .mode-seg .seg.locked { color: #45475a; cursor: not-allowed; }
+    .mode-seg .seg + .seg { border-left: 1px solid var(--ctp-surface1); }
+    .mode-seg .seg:hover:not(.locked):not(.active) { color: var(--ctp-text); background: var(--ctp-base); }
+    .mode-seg .seg.active.graph { background: rgba(249,226,175,0.92); color: var(--ctp-base); }
+    .mode-seg .seg.active.argument { background: rgba(166,227,161,0.92); color: var(--ctp-base); }
+    .mode-seg .seg.locked { color: var(--ctp-surface1); cursor: not-allowed; }
     .ws-state {
       margin-top: 6px; padding: 6px 9px; border-radius: 5px; font-size: 11px;
       line-height: 1.45; display: flex; align-items: flex-start; gap: 6px;
     }
-    .ws-state.unfixed { background: rgba(249,226,175,0.10); border: 1px solid rgba(249,226,175,0.35); color: #f9e2af; }
-    .ws-state.fixed   { background: rgba(166,227,161,0.10); border: 1px solid rgba(166,227,161,0.35); color: #a6e3a1; }
-    .ws-state.sealed  { background: rgba(147,153,178,0.12); border: 1px solid rgba(147,153,178,0.4); color: #9399b2; }
+    .ws-state.unfixed { background: rgba(249,226,175,0.10); border: 1px solid rgba(249,226,175,0.35); color: var(--ctp-yellow); }
+    .ws-state.fixed   { background: rgba(166,227,161,0.10); border: 1px solid rgba(166,227,161,0.35); color: var(--ctp-green); }
+    .ws-state.sealed  { background: rgba(147,153,178,0.12); border: 1px solid rgba(147,153,178,0.4); color: var(--phase-sealed); }
     .ws-state .lock { font-size: 14px; line-height: 1; }
-    .ws-state .ws-sub { color: #9399b2; font-weight: 400; }
+    .ws-state .ws-sub { color: var(--phase-sealed); font-weight: 400; }
     /* The palette (composing). Same grid bones as the rule grid. */
     .palette-grid {
       display: grid;
@@ -428,13 +429,13 @@
     #canvas g[data-element-type="cut"].compose-target > rect,
     #canvas g[data-element-type="cut"].compose-target > ellipse,
     #canvas g[data-element-type="cut"].compose-target > path {
-      stroke: #f9e2af;
+      stroke: var(--ctp-yellow);
       stroke-width: 3px;
       stroke-dasharray: 7 3;
     }
     .gate-consequence {
       font-size: 10px;
-      color: #6c7086;
+      color: var(--ctp-overlay0);
       margin: -2px 0 10px;
       font-style: italic;
     }
@@ -447,7 +448,7 @@
     .lf-panel.pulse { animation: lf-pulse 0.6s ease-out 1; }
     #status {
       grid-column: 1 / -1;
-      padding: 6px 14px;
+      padding: var(--statusbar-pad);
       background: var(--bottombar-bg);
       color: var(--sidebar-text);
       font-size: 11px;
@@ -498,14 +499,14 @@
           <h2 style="font-size: 12px; color: var(--sidebar-accent); margin-bottom: 8px;">
             Pick a context to compose against
           </h2>
-          <p style="font-size: 10px; color: #6c7086; margin-bottom: 10px;">
+          <p style="font-size: 10px; color: var(--ctp-overlay0); margin-bottom: 10px;">
             Every assertion resides in a context. Choose your starting point.
           </p>
           <button class="action primary" id="btn-start-empty">
             Empty sheet of assertion
           </button>
           <div style="margin-top: 10px;">
-            <label style="font-size: 10px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px;">
+            <label style="font-size: 10px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px;">
               Or start from a corpus UoD
             </label>
             <input
@@ -519,7 +520,7 @@
             </div>
           </div>
           <div style="margin-top: 14px;">
-            <label style="font-size: 10px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px;">
+            <label style="font-size: 10px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px;">
               Or reopen a saved draft
             </label>
             <div id="scratch-list" style="margin-top: 6px;">
@@ -616,9 +617,9 @@
                the appearance of the fixed graph (regime-3; logic held fixed by
                the server). Shown only once the graph is fixed; "Edit base graph"
                (the meaning) lives in the switch above. -->
-          <div id="settle-row" style="margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid #313244; display:none; align-items:center; gap:8px;">
+          <div id="settle-row" style="margin-bottom:12px; padding-bottom:10px; border-bottom:1px solid var(--ctp-surface0); display:none; align-items:center; gap:8px;">
             <button class="action" id="btn-settle" style="flex:0 0 auto;">✋ Settle appearance</button>
-            <span style="font-size:10px; color:#6c7086;">
+            <span style="font-size:10px; color:var(--ctp-overlay0);">
               tidy the layout — drag a spot, a relation, a cut (body to move, corner to resize), or a line. The logic/meaning stays fixed.
             </span>
           </div>
@@ -626,7 +627,7 @@
           <!-- Palette (composing phase). Four kinds of ink + the non-placing
                actions — the palette IS the Beta ontology (spec §2.1). -->
           <div id="palette-block" style="display: none;">
-            <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+            <h2 style="font-size: 11px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
               Palette — click the canvas to place
             </h2>
             <div class="palette-grid">
@@ -653,9 +654,9 @@
                 <input type="text" id="palette-label" placeholder="Socrates" />
               </div>
             </div>
-            <div id="palette-hint" style="font-size:10px; color:#89b4fa; min-height:14px; margin-bottom:8px;"></div>
+            <div id="palette-hint" style="font-size:10px; color:var(--ctp-blue); min-height:14px; margin-bottom:8px;"></div>
             <details style="margin-bottom:10px;">
-              <summary style="font-size:11px; color:#6c7086; cursor:pointer;">Fragment — graft EGIF text as ink</summary>
+              <summary style="font-size:11px; color:var(--ctp-overlay0); cursor:pointer;">Fragment — graft EGIF text as ink</summary>
               <div class="field" style="margin-top:6px;">
                 <textarea id="fragment-egif" placeholder="(Human *x) ~[ (Mortal x) ]"></textarea>
               </div>
@@ -664,7 +665,7 @@
             <!-- Freeform: draw-then-read (build step 2). Marks are ink, no live
                  EGI; the picture is read into a sign only at gate ①.
                  docs/FREEFORM_COMPOSITION_AND_LEARNING.md. -->
-            <div id="freeform-block" style="margin: 10px 0; border-top: 1px solid #313244; padding-top: 8px;">
+            <div id="freeform-block" style="margin: 10px 0; border-top: 1px solid var(--ctp-surface0); padding-top: 8px;">
               <button class="action" id="btn-freeform-toggle" title="Draw marks freely; read them into the graph at gate ①">✎ Freeform draw</button>
               <div id="freeform-tools" style="display:none; margin-top:6px;">
                 <div class="palette-grid">
@@ -676,19 +677,19 @@
                   <button class="action" data-fftool="line" title="Click a relation then a vertex">⟝ Connect</button>
                   <button class="action" data-fftool="erase" title="Erase a mark (a cut leaves its contents)">✕ Erase</button>
                 </div>
-                <div id="freeform-area" style="font-size:10px; color:#89b4fa; min-height:14px; margin:4px 0;"></div>
+                <div id="freeform-area" style="font-size:10px; color:var(--ctp-blue); min-height:14px; margin:4px 0;"></div>
                 <button class="action" id="btn-read-drawing">👁 Read it now — what does it say?</button>
                 <div id="freeform-validity" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
 
                 <!-- Challenge mode (build step 4): pick a linear form, draw it
                      freehand, grade against the target with the legible diff.
                      docs/FREEFORM_COMPOSITION_AND_LEARNING.md -->
-                <div id="challenge-block" style="margin-top:8px; border-top:1px dashed #313244; padding-top:6px;">
-                  <label style="font-size:10px; color:#cdd6f4;">🎯 Challenge — read this, then draw it:</label>
-                  <select id="challenge-select" style="width:100%; margin:4px 0; font-size:11px; background:#1e1e2e; color:#cdd6f4; border:1px solid #313244;">
+                <div id="challenge-block" style="margin-top:8px; border-top:1px dashed var(--ctp-surface0); padding-top:6px;">
+                  <label style="font-size:10px; color:var(--ctp-text);">🎯 Challenge — read this, then draw it:</label>
+                  <select id="challenge-select" style="width:100%; margin:4px 0; font-size:11px; background:var(--ctp-base); color:var(--ctp-text); border:1px solid var(--ctp-surface0);">
                     <option value="">— pick a graph to reproduce —</option>
                   </select>
-                  <div id="challenge-prompt" style="font-size:11px; color:#f9e2af; min-height:14px;"></div>
+                  <div id="challenge-prompt" style="font-size:11px; color:var(--ctp-yellow); min-height:14px;"></div>
                   <button class="action" id="btn-grade-challenge" disabled>✓ Grade my drawing</button>
                   <div id="challenge-result" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
                 </div>
@@ -699,7 +700,7 @@
               From here the graph is no longer clay — it changes only by the
               six rules. (Recorded; stepping back before it forks fresh clay.)
             </p>
-            <p style="font-size:10px; color:#6c7086; margin-bottom:10px;">
+            <p style="font-size:10px; color:var(--ctp-overlay0); margin-bottom:10px;">
               Double-click a relation or constant to rename it.
               Esc disarms the tool.
             </p>
@@ -712,8 +713,8 @@
               <span class="sel-swatch subgraph"></span>
               <strong>selection:</strong> click elements ·
               <code id="sel-subgraph-display">none</code>
-              <span id="closure-note" style="margin-left:8px; color:#f9a06c; font-size:11px;"></span>
-              <span id="justify-note" style="margin-left:8px; color:#89b4fa; font-size:11px;"></span>
+              <span id="closure-note" style="margin-left:8px; color:var(--select-subgraph); font-size:11px;"></span>
+              <span id="justify-note" style="margin-left:8px; color:var(--ctp-blue); font-size:11px;"></span>
             </div>
             <div class="sel-line">
               <span class="sel-swatch area"></span>
@@ -723,7 +724,7 @@
             <div class="sel-line" id="rule-steps-guidance" style="margin-top:6px;"></div>
           </div>
 
-          <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+          <h2 style="font-size: 11px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
             Rule
           </h2>
           <div class="rule-grid">
@@ -754,13 +755,13 @@
                order of placements/erasures carries no meaning. The sequence
                begins only at gate ① (fix-graph). -->
           <div id="sequence-panel">
-          <h2 style="font-size: 11px; color: #6c7086; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 6px;">
+          <h2 style="font-size: 11px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 6px;">
             Sequence · <span id="step-count">0</span> move(s)
           </h2>
           <!-- Branch switcher: a workshop session can hold several lines that
                diverge from a common point. -->
           <div id="branch-switcher" style="display:none; margin-bottom:6px;">
-            <div style="font-size:10px; color:#6c7086; margin-bottom:3px;">Branches</div>
+            <div style="font-size:10px; color:var(--ctp-overlay0); margin-bottom:3px;">Branches</div>
             <div id="branch-list" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
           </div>
           <!-- Move-by-move navigator: step through every graph in the
@@ -772,7 +773,7 @@
             <button class="nav-btn" id="nav-next" title="Next move">›</button>
             <button class="nav-btn" id="nav-last" title="Latest">»</button>
           </div>
-          <div id="nav-banner" style="display:none; font-size:10px; color:#f9e2af; background:rgba(249,226,175,0.08); border:1px solid rgba(249,226,175,0.25); border-radius:3px; padding:5px 7px; margin-bottom:6px;">
+          <div id="nav-banner" style="display:none; font-size:10px; color:var(--ctp-yellow); background:rgba(249,226,175,0.08); border:1px solid rgba(249,226,175,0.25); border-radius:3px; padding:5px 7px; margin-bottom:6px;">
             Viewing an earlier state. Applying a move here <strong>forks a new
             branch</strong> — the current line is kept.
             <a href="#" id="nav-return" style="color:var(--sidebar-accent);">Return to latest</a>.
@@ -788,7 +789,7 @@
                not truth, so it is not on its own a ticket into the corpus. -->
           <div class="promote-section">
             <div class="label" id="keep-label">Keep this work</div>
-            <p style="font-size: 10px; color: #6c7086; margin-bottom: 8px;" id="keep-desc">
+            <p style="font-size: 10px; color: var(--ctp-overlay0); margin-bottom: 8px;" id="keep-desc">
               The workshop is regime-1: nothing here is asserted. Save a draft
               to <strong>scratch</strong> to return to it, or send it to
               <strong>Agon</strong> to be tested — only a graph that withstands
@@ -1079,7 +1080,7 @@
           const done = stepFilled(s);
           const active = (i === activeStepIndex);
           const canvasStep = s.kind !== 'provide_egif';
-          const color = done ? '#a6e3a1' : (active ? '#f9e2af' : '#a6adc8');
+          const color = done ? 'var(--ctp-green)' : (active ? 'var(--ctp-yellow)' : 'var(--ctp-subtext0)');
           return '<span data-step="' + i + '" style="display:inline-block; ' +
             'margin-right:10px; cursor:' + (canvasStep ? 'pointer' : 'default') +
             '; color:' + color + ';' + (active ? ' text-decoration:underline;' : '') +
@@ -1092,7 +1093,7 @@
         else if (act && act.kind === 'select_area') mode = 'click a region — a cut’s interior, or empty space for the sheet';
         else if (act && act.kind === 'provide_egif') mode = 'type EGIF content in the field above';
         el.innerHTML = '<strong>' + escapeHtml(currentRule) + ' needs:</strong> ' + parts +
-          (mode ? '<div style="margin-top:3px; color:#89b4fa;">now: ' + escapeHtml(mode) + '</div>' : '');
+          (mode ? '<div style="margin-top:3px; color:var(--ctp-blue);">now: ' + escapeHtml(mode) + '</div>' : '');
         el.querySelectorAll('[data-step]').forEach((sp) => {
           sp.addEventListener('click', () => {
             const i = parseInt(sp.getAttribute('data-step'), 10);
@@ -2165,10 +2166,10 @@
             row.style.justifyContent = 'space-between';
             row.innerHTML =
               '<span data-open="' + d.scratch_id + '" style="cursor:pointer; flex:1;">' +
-              escapeHtml(d.name) + ' <span style="color:#6c7086;">· ' +
+              escapeHtml(d.name) + ' <span style="color:var(--ctp-overlay0);">· ' +
               d.step_count + ' move' + (d.step_count === 1 ? '' : 's') + '</span></span>' +
               '<span data-del="' + d.scratch_id + '" title="Delete" ' +
-              'style="cursor:pointer; color:#f38ba8; padding-left:8px;">✕</span>';
+              'style="cursor:pointer; color:var(--ctp-maroon); padding-left:8px;">✕</span>';
             scratchListEl.appendChild(row);
           });
         } catch (_) {
@@ -2425,7 +2426,7 @@
             onChange: () => {
               const v = document.getElementById('freeform-validity');
               if (v) v.innerHTML =
-                '<span style="color:#6c7086;">drawing changed — read it to see what it says</span>';
+                '<span style="color:var(--ctp-overlay0);">drawing changed — read it to see what it says</span>';
             },
           });
         }
@@ -2469,7 +2470,7 @@
         const v = document.getElementById('freeform-validity');
         if (!v) return;
         if (!body.success) {
-          v.innerHTML = '<span style="color:#f38ba8;">' +
+          v.innerHTML = '<span style="color:var(--ctp-maroon);">' +
             escapeHtml(body.error && body.error.message) + '</span>';
           return;
         }
@@ -2477,15 +2478,15 @@
         const val = data.validity || {};
         let html = '';
         (val.errors || []).forEach((e) =>
-          html += '<div style="color:#f38ba8;">✕ ' + escapeHtml(e.message) + '</div>');
+          html += '<div style="color:var(--ctp-maroon);">✕ ' + escapeHtml(e.message) + '</div>');
         (val.warnings || []).forEach((w) =>
-          html += '<div style="color:#f9e2af;">⚠ ' + escapeHtml(w.message) + '</div>');
+          html += '<div style="color:var(--ctp-yellow);">⚠ ' + escapeHtml(w.message) + '</div>');
         if (val.is_well_formed && data.linear_forms) {
           const egif = (((data.linear_forms.forms || {}).egif) || {}).text || '';
-          html += '<div style="color:#a6e3a1; margin-top:4px;">✓ reads as: <code>' +
+          html += '<div style="color:var(--ctp-green); margin-top:4px;">✓ reads as: <code>' +
             escapeHtml(egif) + '</code></div>';
         }
-        v.innerHTML = html || '<span style="color:#6c7086;">empty drawing</span>';
+        v.innerHTML = html || '<span style="color:var(--ctp-overlay0);">empty drawing</span>';
       }
 
       async function readDrawing() {
@@ -2573,7 +2574,7 @@
           }
           challengePromptEl.innerHTML =
             'Draw: <code>' + escapeHtml(c.prompt_egif) + '</code>' +
-            (c.hint ? '<div style="color:#6c7086; margin-top:2px;">' +
+            (c.hint ? '<div style="color:var(--ctp-overlay0); margin-top:2px;">' +
               escapeHtml(c.hint) + '</div>' : '');
           if (challengeResultEl) challengeResultEl.innerHTML = '';
           if (btnGradeChallenge) btnGradeChallenge.disabled = false;
@@ -2583,7 +2584,7 @@
       function renderChallengeResult(body) {
         if (!challengeResultEl) return;
         if (!body.success) {
-          challengeResultEl.innerHTML = '<span style="color:#f38ba8;">' +
+          challengeResultEl.innerHTML = '<span style="color:var(--ctp-maroon);">' +
             escapeHtml(body.error && body.error.message) + '</span>';
           return;
         }
@@ -2591,22 +2592,22 @@
         if (!data.gradeable) {
           // Ill-formed ink: show the validity issues, not a grade.
           const val = data.validity || {};
-          let html = '<div style="color:#f9e2af;">Not a well-formed graph yet — fix these first:</div>';
+          let html = '<div style="color:var(--ctp-yellow);">Not a well-formed graph yet — fix these first:</div>';
           (val.errors || []).forEach((e) =>
-            html += '<div style="color:#f38ba8;">✕ ' + escapeHtml(e.message) + '</div>');
+            html += '<div style="color:var(--ctp-maroon);">✕ ' + escapeHtml(e.message) + '</div>');
           (val.warnings || []).forEach((w) =>
-            html += '<div style="color:#f9e2af;">⚠ ' + escapeHtml(w.message) + '</div>');
+            html += '<div style="color:var(--ctp-yellow);">⚠ ' + escapeHtml(w.message) + '</div>');
           challengeResultEl.innerHTML = html;
           return;
         }
         if (data.matches) {
           challengeResultEl.innerHTML =
-            '<div style="color:#a6e3a1;">✓ Correct — your drawing denotes the same graph.</div>';
+            '<div style="color:var(--ctp-green);">✓ Correct — your drawing denotes the same graph.</div>';
           return;
         }
-        let html = '<div style="color:#f38ba8;">✗ ' + escapeHtml(data.summary || 'Not the same graph.') + '</div>';
+        let html = '<div style="color:var(--ctp-maroon);">✗ ' + escapeHtml(data.summary || 'Not the same graph.') + '</div>';
         (data.findings || []).forEach((f) =>
-          html += '<div style="color:#fab387;">• <span style="color:#6c7086;">[' +
+          html += '<div style="color:var(--ctp-peach);">• <span style="color:var(--ctp-overlay0);">[' +
             escapeHtml(f.kind) + ']</span> ' + escapeHtml(f.message) + '</div>');
         challengeResultEl.innerHTML = html;
       }
