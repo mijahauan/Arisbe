@@ -60,18 +60,28 @@ def test_negative_conclusion_through_a_chain_is_true():
 # Honest abstention
 # ---------------------------------------------------------------------------
 
-def test_open_world_non_entailment_abstains():
-    """``Mammal(spot)`` does not make ``Dog(spot)`` derivable — abstain, never guess."""
+def test_open_world_non_entailment_certifies_uncertain():
+    """``Mammal(spot)`` makes ``Dog(spot)`` neither entailed nor refuted — models of both
+    ``M∪{¬Dog}`` and ``M∪{Dog}`` exist, so it is soundly certified **Uncertain**."""
     r = decide_native(["∀x (Dog(x) → Mammal(x))", "Mammal(spot)"], "Dog(spot)")
-    assert r.verdict == "Unknown" and not r.decided
+    assert r.verdict == "Uncertain" and r.via == "model_construction" and r.decided
 
 
-def test_never_predicts_uncertain():
-    """The bounded engine emits only True / False / Unknown / Unparsed — never Uncertain
-    (soundly certifying 'neither' needs a completeness it does not have)."""
+def test_genuine_uncertain_via_model_construction():
+    """``∀x (P(x)∨Q(x)) ⊬ P(a)`` (the a-case may be the Q one) — certified Uncertain by two
+    surviving models, the model-construction half of the lever."""
     r = decide_native(["∀x (P(x) ∨ Q(x))"], "P(a)")
-    assert r.verdict in ("True", "False", "Unknown", "Unparsed")
-    assert r.verdict != "Uncertain"
+    assert r.verdict == "Uncertain" and r.via == "model_construction"
+
+
+def test_entailment_beyond_the_bound_still_abstains():
+    """A genuine entailment the bounded prover can't reach (a disjunction *under* a ∀, so
+    no top-level case split) and whose negation has **no** counter-model: the finder can't
+    certify Uncertain and the prover can't prove True — so it abstains, soundly (Unknown),
+    never guessing the (correct) True it cannot justify."""
+    r = decide_native(
+        ["∀x (P(x) ∨ Q(x))", "∀x (P(x) → R(x))", "∀x (Q(x) → R(x))"], "∀x R(x)")
+    assert r.verdict == "Unknown" and not r.decided
 
 
 def test_unparsed_passes_through():
@@ -102,24 +112,25 @@ def test_negative_constant_literal_is_sound():
     assert _denial_reading_unsound([Not(Atom("Q", ("a",)))]) is False
 
 
-def test_existential_premise_abstains_not_errs():
-    """The FOLIO shape that exposed the bug: an existential-negative premise must make the
-    engine ABSTAIN, not emit a spurious False (gold here is genuinely Uncertain)."""
+def test_existential_premise_never_spurious_false():
+    """The FOLIO shape that exposed the denial-over-fire bug: an existential-negative
+    premise must NEVER yield a spurious ``False``.  Gold is genuinely Uncertain, and the
+    model finder now certifies it as such (the refutation guard still blocks the False)."""
     r = decide_native(
         ["∃x (BasketballPlayer(x) ∧ ¬American(x))",
          "∀x (BasketballPlayer(x) → Tall(x))"],
         "American(yuri)")
-    assert r.verdict == "Unknown"
+    assert r.verdict == "Uncertain" and r.verdict != "False"
 
 
-def test_existential_negative_conclusion_abstains():
+def test_existential_negative_conclusion_not_refuted():
     """``∃x (Evergreen(x) ∧ ¬ObjectOfWorship(x))`` against fir-tree premises is genuinely
-    Uncertain — the engine must not refute it into a False."""
+    Uncertain — the engine must not refute it into a False; it now certifies Uncertain."""
     r = decide_native(
         ["∀x (FirTree(x) → Evergreen(x))",
          "∃x (ObjectOfWorship(x) ∧ FirTree(x))"],
         "∃x (Evergreen(x) ∧ ¬ObjectOfWorship(x))")
-    assert r.verdict == "Unknown"
+    assert r.verdict == "Uncertain" and r.verdict != "False"
 
 
 # ---------------------------------------------------------------------------
@@ -159,11 +170,11 @@ def test_xor_premise_decided_by_cases():
     assert r.verdict == "True" and r.via == "case_split"
 
 
-def test_case_split_without_total_coverage_abstains():
-    """``P∨Q, P→R ⊢ R`` is genuinely Uncertain (the Q-case leaves R open): one branch
-    cannot be refuted, so the lever does NOT over-decide — it abstains, soundly."""
+def test_case_split_without_total_coverage_does_not_over_decide():
+    """``P∨Q, P→R ⊢ R`` is genuinely Uncertain (the Q-case leaves R open): the case-split
+    lever does NOT over-decide it to True, and the model finder then certifies Uncertain."""
     r = decide_native(["P(a) ∨ Q(a)", "∀x (P(x) → R(x))"], "R(a)")
-    assert r.verdict == "Unknown"
+    assert r.verdict == "Uncertain" and r.verdict != "True"
 
 
 def test_disjuncts_and_flatten_helpers():

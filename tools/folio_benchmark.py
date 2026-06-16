@@ -152,32 +152,59 @@ def run_folio(examples: List[dict], *, timeout_ms: int = 5000) -> FolioReport:
     return report
 
 
-def run_native(examples: List[dict]) -> FolioReport:
-    """Decide FOLIO with Arisbe's **own** bounded engine (the soundness×coverage half)."""
+def run_native(examples: List[dict], *, cross_check: bool = True,
+               timeout_ms: int = 5000) -> FolioReport:
+    """Decide FOLIO with Arisbe's **own** bounded engine (the soundness×coverage half).
+
+    Soundness must be measured against the **FOL semantics**, not FOLIO's (occasionally
+    noisy) gold label — so every *decided* verdict is cross-checked against the authoritative
+    Z3 verdict (the complete oracle).  A native verdict that disagrees with gold but *agrees*
+    with Z3 is gold-noise, not an engine error."""
     from folio_native import decide_native
+    from folio_fol import Z3_AVAILABLE, decide_entailment
     report = FolioReport()
     for ex in examples:
-        r = decide_native(ex.get("premises-FOL") or [], ex.get("conclusion-FOL") or "")
+        prem, concl = ex.get("premises-FOL") or [], ex.get("conclusion-FOL") or ""
+        r = decide_native(prem, concl)
+        z3 = ""
+        if cross_check and Z3_AVAILABLE and r.verdict in _GOLD:
+            z3 = decide_entailment(prem, concl, timeout_ms=timeout_ms).verdict
         report.rows.append({"gold": ex.get("label", ""), "pred": r.verdict,
-                            "parsed": r.parsed,
+                            "parsed": r.parsed, "z3": z3,
                             "story_id": ex.get("story_id", ex.get("example_id", ""))})
     return report
 
 
 def _print_native(report: FolioReport) -> None:
     """Soundness×coverage, the way a *bounded* reasoner deserves (cf. dl_benchmark):
-    abstentions (``Unknown``) are coverage the fragment doesn't reach, NOT errors."""
-    decided = report.correct + report.wrong   # over the True/False the engine committed to
-    soundness = 1.0 if decided == 0 else report.correct / decided
+    abstentions (``Unknown``) are coverage the fragment doesn't reach, NOT errors — and
+    soundness is judged against the FOL semantics (Z3), so noisy gold is not counted as error."""
+    decided_rows = [r for r in report.rows if r["pred"] in _GOLD]
+    decided = len(decided_rows)
     coverage = 0.0 if not report.total else decided / report.total
+    # Soundness vs the complete oracle (Z3): of the decided rows we cross-checked, how many
+    # agree with Z3.  This is the real soundness — the gold label may itself be wrong.
+    checked = [r for r in decided_rows if r["z3"] in _GOLD]
+    sound_vs_z3 = sum(1 for r in checked if r["pred"] == r["z3"])
+    # vs gold: agreement, and the disagreements split into Z3-corroborated (gold-noise) vs real.
+    correct_gold = sum(1 for r in decided_rows if r["pred"] == r["gold"])
+    gold_disagree = [r for r in decided_rows if r["pred"] != r["gold"]]
+    gold_noise = [r for r in gold_disagree if r["z3"] == r["pred"]]   # Z3 backs native
+    real_errors = [r for r in gold_disagree if r["z3"] in _GOLD and r["z3"] != r["pred"]]
+
     print(f"{report.total} examples · Arisbe's bounded engine (Horn materializer + "
-          f"freeze-witness + denial check)")
-    print(f"  SOUNDNESS {soundness:.1%} ({report.correct}/{decided} decided correct) · "
-          f"COVERAGE {coverage:.1%} ({decided}/{report.total} decided)")
-    print(f"  (abstained on {report.total - decided} — non-Horn residue / open world; "
-          f"never predicts Uncertain)")
+          f"freeze-witness + denial check + case-split + model construction)")
+    if checked:
+        print(f"  SOUNDNESS vs Z3 {sound_vs_z3/len(checked):.1%} "
+              f"({sound_vs_z3}/{len(checked)} decided agree with the complete oracle) · "
+              f"COVERAGE {coverage:.1%} ({decided}/{report.total} decided)")
+    else:
+        print(f"  COVERAGE {coverage:.1%} ({decided}/{report.total} decided)")
+    print(f"  vs gold: {correct_gold}/{decided} match; {len(gold_noise)} disagree but Z3 "
+          f"corroborates native (gold-noise); {len(real_errors)} genuine error(s)")
+    print(f"  (abstained on {report.total - decided} — residue beyond the engine's bound)")
     print("-" * 64)
-    labels = ["True", "False", "Unknown", "Unparsed"]
+    labels = ["True", "False", "Uncertain", "Unknown", "Unparsed"]
     conf = report.confusion()
     for g in ["True", "False", "Uncertain"]:
         gc = sum(1 for r in report.rows if r["gold"] == g)
@@ -185,11 +212,18 @@ def _print_native(report: FolioReport) -> None:
             continue
         print(f"  gold {g:>10} ({gc:>3}): " +
               " ".join(f"{p}={conf.get((g, p), 0)}" for p in labels))
-    bad = [r for r in report.rows if r["pred"] in _GOLD and r["pred"] != r["gold"]]
-    if bad:
-        print(f"\n  ⚠ {len(bad)} UNSOUND verdict(s) — a decided prediction contradicts gold:")
-        for r in bad[:8]:
-            print(f"     {r['gold']:>9} → {r['pred']:<9} {r['story_id']}")
+    if real_errors:
+        print(f"\n  ⚠ {len(real_errors)} UNSOUND verdict(s) — native disagrees with BOTH gold "
+              f"and Z3:")
+        for r in real_errors[:8]:
+            print(f"     gold {r['gold']:>9} · z3 {r['z3']:>9} → native {r['pred']:<9} "
+                  f"{r['story_id']}")
+    elif gold_noise:
+        print(f"\n  ✓ all {len(gold_noise)} gold-disagreement(s) corroborated by Z3 "
+              f"(noisy gold labels, not engine errors):")
+        for r in gold_noise[:8]:
+            print(f"     gold {r['gold']:>9} · z3 {r['z3']:>9} = native {r['pred']:<9} "
+                  f"{r['story_id']}")
 
 
 def _print(report: FolioReport) -> None:

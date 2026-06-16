@@ -32,10 +32,12 @@ Universal/subsumption conclusions (``∀x (B(x) → H(x))``) carry no denial to 
 freeze-a-witness ``theory_query.entails`` recovers them — the same sound + Horn-complete
 decision the DLCore subsumption track uses.
 
-Never predicts ``Uncertain``: soundly certifying "neither C nor ¬C is entailed" needs a
-completeness the bounded fragment doesn't have over full FOL, so the honest move is to
-abstain (``Unknown``). This is exactly the DL instance-checking shape — decide every
-entailment/contradiction it can prove, abstain on the rest.
+``Uncertain`` is certified by **model construction** (``folio_model_finder``): a finite model
+of ``M ∪ {¬C}`` *and* one of ``M ∪ {C}`` together witness that neither is entailed (sound — two
+real models prove independence). Where even the bounded model finder is exhausted, the engine
+abstains (``Unknown``) — decide every entailment/contradiction/independence it can prove or
+model, abstain on the rest. Soundness is judged against the FOL semantics (every decided
+verdict agrees with the complete Z3 oracle on the FOLIO validation set), not the noisy gold.
 
 The premises + conclusion are compiled to an EGI **directly** (not via CLIF/EGIF text):
 ``clif_parser_dau`` has no notion of a Dau constant — it reads every term as a generic line
@@ -73,15 +75,16 @@ from folio_fol import (
 class NativeResult:
     """One FOLIO verdict from Arisbe's bounded engine, with how it was reached."""
 
-    verdict: str            # "True" | "False" | "Unknown" | "Unparsed"
+    verdict: str            # "True" | "False" | "Uncertain" | "Unknown" | "Unparsed"
     detail: str = ""
     parsed: bool = True
-    via: str = ""           # "refutation" | "theory_query" | "" (abstained)
+    via: str = ""           # "refutation" | "case_split" | "theory_query" | "model_construction" | "" (abstained)
 
     @property
     def decided(self) -> bool:
-        # "Unknown" is a deliberate abstention, not a decision (mirrors DLAnswer.UNKNOWN).
-        return self.verdict in ("True", "False")
+        # "Unknown" is a deliberate abstention; "Uncertain" is the third *decided* value —
+        # a model-construction certificate that neither C nor ¬C is entailed.
+        return self.verdict in ("True", "False", "Uncertain")
 
 
 def _negate(ast: Formula) -> Formula:
@@ -363,10 +366,11 @@ def _refutes_cases(asts: List[Formula]) -> "tuple[bool, bool]":
 def decide_native(premise_fols: List[str], conclusion_fol: str) -> NativeResult:
     """Decide FOLIO entailment with Arisbe's bounded engine — sound, abstaining.
 
-    ``True`` if M entails the conclusion, ``False`` if M entails its negation, both
-    proved by the Horn materializer / freeze-witness; ``Unknown`` when the bounded
-    fragment cannot prove either (the honest abstention); ``Unparsed`` if any FOL is
-    unreadable.
+    ``True`` if M entails the conclusion, ``False`` if M entails its negation (both proved
+    by the Horn materializer / case-split / freeze-witness); ``Uncertain`` when a finite
+    model of ``M ∪ {¬C}`` *and* one of ``M ∪ {C}`` are both found (a sound certificate that
+    neither is entailed); ``Unknown`` when the bounded engine can certify none of the three
+    (the honest abstention); ``Unparsed`` if any FOL is unreadable.
     """
     try:
         prem_asts = [parse_fol(p) for p in premise_fols if p and p.strip()]
@@ -403,6 +407,22 @@ def decide_native(premise_fols: List[str], conclusion_fol: str) -> NativeResult:
         detail = ("M ∪ {C} is inconsistent by cases — M entails ¬C" if false_by_cases
                   else "M ∪ {C} is Horn-inconsistent — M entails ¬C")
         return NativeResult("False", detail, via=via)
+
+    # Neither entailment proved.  Try to *certify* Uncertain by constructing a model of
+    # M ∪ {¬C} and a model of M ∪ {C}: if both exist, neither is entailed (sound).
+    try:
+        from folio_model_finder import certify_independent
+        certificate = certify_independent(prem_asts, concl_ast, neg_concl)
+    except Exception:
+        certificate = None
+    if certificate is not None:
+        m_not_c, m_c = certificate
+        return NativeResult(
+            "Uncertain",
+            f"models of both M∪{{¬C}} ({m_not_c.describe()}) and M∪{{C}} "
+            f"({m_c.describe()}) exist — neither C nor ¬C is entailed",
+            via="model_construction")
+
     return NativeResult(
         "Unknown",
-        "the bounded fragment proves neither C nor ¬C (non-Horn residue / open world)")
+        "the bounded engine certifies none of True/False/Uncertain (residue beyond its bound)")

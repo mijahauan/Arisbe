@@ -1,10 +1,12 @@
 # Current Plan
 
 **Last Updated**: 2026-06-15 (session end). **This session:** committed the prior session's
-cross-mode UX consistency pass (was done-but-uncommitted), then built the **disjunctive case-split
-lever** — the refutation half of the FOLIO/DLCore coverage lever (native FOLIO coverage 23 % →
-28.9 %, soundness held at 100 %). See the ✅ blocks under ▶ NEXT SESSION. *(Prior-session recap
-follows.)* **The 2026-06-14 visualization/UX pivot:** with the
+cross-mode UX consistency pass (was done-but-uncommitted), then built **both halves of the
+FOLIO/DLCore coverage lever** — the **disjunctive case-split** (refutation) and the **finite-model
+finder** (model construction). Native FOLIO coverage **23 % → 63.2 %** at **100 % soundness vs Z3**
+(decides 61 of 69 gold-Uncertain; the 9 gold-disagreements are all Z3-corroborated noise — 0 genuine
+errors). See the ✅ blocks under ▶ NEXT SESSION. *(Prior-session recap follows.)* **The 2026-06-14
+visualization/UX pivot:** with the
 logic underpinnings essentially complete (basics, not options), the session pivoted to the
 *experience* of the pictures and shipped the **adaptive-scope viewer** end to end — read-only
 Organon **lenses** (2.5-D negation well + storyboard, behind a Lens selector, over O(n) structure
@@ -59,13 +61,35 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 ## ▶ NEXT SESSION — start here
 
 **▶▶ NEXT SESSION = open non-viewer tracks** — the adaptive-scope viewer track AND the cross-mode
-UX consistency pass are now complete. The resurfacing forks: the **FOLIO/DLCore coverage lever** —
-its **refutation half (disjunctive case-split) is now DONE** (✅ block below; FOLIO native 23 % →
-28.9 %, soundness 100 %); what **remains** is the **model-construction half** (a bounded
-finite-model finder to soundly certify `Uncertain` / non-entailment — the half DLCore's negative
-side also needs); the **schema-drawing / §3.3** math frontier
-([[project_math_fixtures_zfc_peirce_schema]]); and the deferred **LLM front-end** of the NL→logic
-arc (both backends in place — [[project_nl_to_logic_arisbe_as_interpretant]]).
+UX consistency pass are complete; **the FOLIO/DLCore coverage lever is now DONE — both halves**
+(✅ blocks below: disjunctive case-split + finite-model finder; FOLIO native **23 % → 63.2 %** at
+**100 % soundness vs Z3**). The resurfacing forks: **(a)** carry the model finder from the FOLIO
+AST to the EGI so **DLCore's negative half** (instance non-entailment / consistency certification)
+inherits it, and raise the model bound + a grounded case-split over universal disjunctions (the 75
+remaining FOLIO abstentions — coverage levers, not soundness); **(b)** the **schema-drawing / §3.3**
+math frontier ([[project_math_fixtures_zfc_peirce_schema]]); **(c)** the deferred **LLM front-end**
+of the NL→logic arc (both backends in place — [[project_nl_to_logic_arisbe_as_interpretant]]).
+
+**✅ DONE 2026-06-15 — the finite-model-finder lever (FOLIO coverage lever, model-construction half).**
+The dual of refutation: soundly certify `Uncertain` (and non-entailment) by **exhibiting a model**.
+`src/folio_model_finder.py` — a bounded finite-model finder (Arisbe's *own*, not Z3): `M ⊭ C`
+witnessed by a model of `M ∪ {¬C}`, `M ⊭ ¬C` by a model of `M ∪ {C}`; **both exist ⇒ Uncertain**
+(two real models prove independence). FOLIO's fragment is function-free relational FOL (no equality),
+so a finite model = finite domain + predicate extension: domain = constants (distinct, sound UNA) +
+a few anonymous existential witnesses; **ground** quantifiers over it (`∀`→∧, `∃`→∨); **Tseitin→CNF→
+DPLL** (a small home-grown solver). An independent `satisfies` evaluator re-checks every found model
+against the original FOL before it is trusted (the guard the verdict's soundness rests on); bounded
+by a witness cap + DPLL node budget, abstains on exhaustion. Wired into `decide_native` (verdict
+`Uncertain`, `via="model_construction"`). **Validation (204): coverage 28.9 % → 63.2 % (59 → 129),
+soundness 100 % vs Z3 (129/129 decided agree with the complete oracle)** — decides **61 of 69**
+gold-`Uncertain` (0 before), zero over-firing. **Soundness is now judged against the FOL semantics
+(Z3), not the noisy gold:** the only 9 gold-disagreements are *all* corroborated by Z3 as gold-noise
+(same conservative X→Uncertain errors increment 1 found) — **0 genuine errors**. The `--native`
+harness was reworked to cross-check each decided verdict against Z3 and report soundness-vs-Z3 +
+gold-noise. Tests: `tests/test_folio_model_finder.py` (9) + `test_folio_native.py` (→21, the old
+"never predicts Uncertain" tests repurposed to the new sound capability). Regression: 112 green
+across folio/dl/theory-query/materialization/agon. Additive (new module + harness rework + docstring/
+`NativeResult` updates). Docs: `docs/FOLIO_EVALUATION.md`. Memory: [[project_nl_to_logic_arisbe_as_interpretant]].
 
 **✅ DONE 2026-06-15 — the disjunctive case-split lever (FOLIO coverage lever, refutation half).**
 The bounded native engine could not reach an entailment that needs **reasoning by cases**

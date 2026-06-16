@@ -1,8 +1,9 @@
 # FOLIO on Arisbe — the "Both" evaluation
 
-**Status:** all three increments built and green (2026-06-13); the **disjunctive case-split
-lever** added 2026-06-15 (native coverage 23.0 % → 28.9 %, soundness held at 100 %).
-Validation split (204 examples) is the entailment-scorable one (the train split ships no
+**Status:** all three increments built and green (2026-06-13); the coverage lever added
+2026-06-15 in two halves — the **disjunctive case-split** (refutation) and the **finite-model
+finder** (model construction) — taking native coverage **23.0 % → 63.2 % at 100 % soundness vs
+Z3**. Validation split (204 examples) is the entailment-scorable one (the train split ships no
 `conclusion-FOL`).
 
 FOLIO (Han et al. 2022, [github.com/Yale-LILY/FOLIO](https://github.com/Yale-LILY/FOLIO))
@@ -96,10 +97,11 @@ skipped. Universal/subsumption conclusions (`∀x B(x)→H(x)`) carry no denial 
 freeze-a-witness `theory_query.entails` recovers them (the same sound + Horn-complete decision
 DLCore subsumption uses).
 
-It **never predicts `Uncertain`**: soundly certifying "neither C nor ¬C is entailed" needs a
-completeness the bounded fragment doesn't have over full FOL, so the honest move is to abstain
-(`Unknown`). This is exactly the DL instance-checking shape — decide every entailment /
-contradiction it can prove, abstain on the rest.
+Originally this prover **never predicted `Uncertain`** — soundly certifying "neither C nor ¬C
+is entailed" needs more than refutation. The **model-construction lever** (below) supplies it:
+a finite model of `M ∪ {¬C}` *and* one of `M ∪ {C}` together certify `Uncertain` soundly. Where
+even that bound is exceeded, the engine still abstains (`Unknown`) — decide what it can prove or
+model, abstain on the rest.
 
 ### Three things that had to be right (the bugs the build surfaced)
 
@@ -130,18 +132,28 @@ as the flat denials the materializer fires on.
 
 ### The result
 
-**Validation (204): SOUNDNESS 100.0 % (59/59 decided correct), COVERAGE 28.9 % (59/204
-decided)** — *with the disjunctive case-split lever (below) enabled; 23.0 % / 47 without it.*
-The confusion is clean — gold-True → 34 True / 0 False, gold-False → 25 False / 0 True,
-gold-Uncertain → 0 decided. The 145 abstentions are principled: the residue is
-universally-quantified disjunctions (`∀x (P(x)∨Q(x))`, not a *top-level* case split) and every
-`Uncertain` gold (which the bounded fragment can never soundly decide). **Zero unsound
-verdicts.** Tests: `tests/test_folio_native.py` (20).
+**Validation (204): SOUNDNESS 100.0 % vs Z3 (129/129 decided agree with the complete oracle),
+COVERAGE 63.2 % (129/204 decided)** — with **both** levers below enabled (23.0 % / 47 with
+neither; 28.9 % / 59 with case-split alone). No native verdict that commits to True / False /
+Uncertain ever disagrees with Z3. Against FOLIO's *gold label*, 120 / 129 match and the **9
+disagreements are all gold-noise** — Z3 (the complete checker) corroborates the native verdict
+on every one (they are the same conservative `X → Uncertain` annotation errors increment 1
+found). **Zero genuine errors.** The confusion: gold-True → 34 True / 5 Uncertain, gold-False →
+25 False / 4 Uncertain, gold-Uncertain → **61 Uncertain / 0 True / 0 False** (was 0 decided).
+The 75 abstentions are the residue genuinely beyond the engine's bound. Tests:
+`tests/test_folio_native.py` (21) + `tests/test_folio_model_finder.py` (9).
+
+> **Why soundness is judged against Z3, not gold.** Once the engine soundly decides
+> `Uncertain`, it surfaces FOLIO's known gold-vs-FOL noise. The honest soundness claim is
+> against the *FOL semantics*: every decided native verdict agrees with the complete decision
+> procedure (Z3). Independently of Z3, the model finder's own `satisfies` guard guarantees each
+> returned model genuinely satisfies the parsed FOL — so soundness does not *depend* on Z3; Z3
+> merely confirms it empirically. `tools/folio_benchmark.py --native` runs this cross-check.
 
 This is the headline the "Both" decision exists to produce, beside Z3's complete 91.2 %: a
-**bounded, sound reasoner over a full-FOL benchmark — it abstains, it never errs.** It is the
-same story DL-ReasonSuite DLCore told (soundness 100 %, coverage 67 % over 3620 tasks), now
-over natural-language-grounded full first-order logic instead of description logic.
+**bounded reasoner over a full-FOL benchmark that decides a clear majority and never errs.** It
+is the same story DL-ReasonSuite DLCore told (soundness 100 %, coverage 67 % over 3620 tasks),
+now over natural-language-grounded full first-order logic instead of description logic.
 
 ### The disjunctive case-split lever (built 2026-06-15)
 
@@ -161,11 +173,39 @@ a disjunction trapped under a universal (`∀x (P(x)∨Q(x))`) is *not* `(∀x P
 is left to the residue rather than split unsoundly. Lift: **+12 examples (47 → 59), soundness
 held at 100 %.**
 
-### The remaining lever — model construction (still deferred)
+### The model-construction lever (built 2026-06-15)
 
-Case-split raises the **refutation** (entailment) half. The other half — soundly certifying
-`Uncertain` (neither `C` nor `¬C` is entailed) and instance *non*-entailment — needs the dual
-capability: **construct a model** of `M ∪ {¬C}` *and* of `M ∪ {C}` (a bounded finite-model
-finder), so that two surviving models witness independence. That is the completeness-flavoured
-extension DLCore's negative half also defers to, and the reason the native engine still never
-predicts `Uncertain`.
+Case-split raises the **refutation** (entailment) half. The dual question — soundly certifying
+`Uncertain` (neither `C` nor `¬C` is entailed) — needs the opposite capability: **exhibit a
+model**. `src/folio_model_finder.py` is a bounded finite-model finder (Arisbe's own, *not* Z3):
+
+```
+M ⊭ C   is witnessed by a model of  M ∪ {¬C}      (premises hold, conclusion fails)
+M ⊭ ¬C  is witnessed by a model of  M ∪ { C}      (premises hold, conclusion holds)
+both models exist                    ⇒  Uncertain (neither entailed — and the two models prove it)
+```
+
+Finding a model is a **positive certificate** — sound however incomplete the entailment prover
+is; *failing* to find one certifies nothing, so the finder only ever yields `Uncertain` /
+non-entailment, never an entailment. FOLIO's fragment is function-free relational FOL (no
+equality), so a finite model is a finite domain + a predicate extension. It is found the
+MACE way: domain = the constants (**distinct** — a sound unique-names restriction) + a few
+anonymous witnesses for existentials; **ground** every quantifier over that domain (`∀`→∧,
+`∃`→∨); **Tseitin → CNF → DPLL** (a small home-grown solver). A satisfying assignment is the
+model; the true ground atoms are the predicate extension. An independent `satisfies` evaluator
+re-checks every found model against the original FOL before it is trusted — the guard the
+`Uncertain` verdict's soundness rests on. Bounded by an anonymous-witness cap + a DPLL node
+budget; on exhaustion it abstains (`Unknown`).
+
+**Lift: coverage 28.9 % → 63.2 % (59 → 129), soundness held at 100 % vs Z3** — it decides 61 of
+69 gold-`Uncertain` examples (0 before) with zero over-firing on the entailed ones.
+
+### The still-deferred frontier
+
+What remains abstained (`Unknown`, 75) is the genuinely hard residue: instances whose only
+models exceed the witness/domain bound, or whose entailment needs case analysis the top-level
+split does not reach (a disjunction trapped under a universal). Raising the model bound and a
+grounded case-split over universal disjunctions are the next levers — both extend coverage, not
+soundness. The same finder is the capability **DLCore's negative half** (instance
+non-entailment, consistency certification) also needs; lifting it from the FOLIO AST to the EGI
+is the bridge that would carry it there.
