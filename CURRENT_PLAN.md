@@ -1,6 +1,10 @@
 # Current Plan
 
-**Last Updated**: 2026-06-14 (session end). **This session — the visualization/UX pivot:** with the
+**Last Updated**: 2026-06-15 (session end). **This session:** committed the prior session's
+cross-mode UX consistency pass (was done-but-uncommitted), then built the **disjunctive case-split
+lever** — the refutation half of the FOLIO/DLCore coverage lever (native FOLIO coverage 23 % →
+28.9 %, soundness held at 100 %). See the ✅ blocks under ▶ NEXT SESSION. *(Prior-session recap
+follows.)* **The 2026-06-14 visualization/UX pivot:** with the
 logic underpinnings essentially complete (basics, not options), the session pivoted to the
 *experience* of the pictures and shipped the **adaptive-scope viewer** end to end — read-only
 Organon **lenses** (2.5-D negation well + storyboard, behind a Lens selector, over O(n) structure
@@ -55,11 +59,30 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 ## ▶ NEXT SESSION — start here
 
 **▶▶ NEXT SESSION = open non-viewer tracks** — the adaptive-scope viewer track AND the cross-mode
-UX consistency pass are now complete (see the ✅ block immediately below). The resurfacing forks:
-the **FOLIO/DLCore disjunctive coverage lever** (case-split/model-construction for the non-Horn
-negative half — the frontier both benchmarks defer to), the **schema-drawing / §3.3** math frontier
-([[project_math_fixtures_zfc_peirce_schema]]), and the deferred **LLM front-end** of the NL→logic
+UX consistency pass are now complete. The resurfacing forks: the **FOLIO/DLCore coverage lever** —
+its **refutation half (disjunctive case-split) is now DONE** (✅ block below; FOLIO native 23 % →
+28.9 %, soundness 100 %); what **remains** is the **model-construction half** (a bounded
+finite-model finder to soundly certify `Uncertain` / non-entailment — the half DLCore's negative
+side also needs); the **schema-drawing / §3.3** math frontier
+([[project_math_fixtures_zfc_peirce_schema]]); and the deferred **LLM front-end** of the NL→logic
 arc (both backends in place — [[project_nl_to_logic_arisbe_as_interpretant]]).
+
+**✅ DONE 2026-06-15 — the disjunctive case-split lever (FOLIO coverage lever, refutation half).**
+The bounded native engine could not reach an entailment that needs **reasoning by cases**
+(`P∨Q, P→R, Q→R ⊢ R` — every disjunct forces `R`, but no single denial fires). Added the tableau
+β-rule on top of the Horn closure (`src/folio_native.py`: `_refutes_cases` / `_refute_rec` /
+`_disjuncts` / `_flatten_and`): `M ∪ {A∨B}` is unsatisfiable **iff** `M ∪ {A}` and `M ∪ {B}` both
+are, so a **top-level** disjunction is split and *every* branch must close at the existing sound
+Horn+denial primitive; `∨` branches directly, `⊕`/`↔` via their two models; a split budget bounds
+the search and `all(...)` short-circuits. **Sound by construction** — branches are exhaustive given
+the disjunctive conjunct holds (all-refuted ⇒ refuted; one branch open ⇒ abstain, never
+over-decides a genuine `Uncertain`); splits **only** top-level disjunctions (one trapped under a ∀
+is left to the residue, since `∀x(P∨Q) ≠ (∀x P)∨(∀x Q)`). **Validation (204): coverage 23.0 % →
+28.9 % (+12 decided, 47 → 59), soundness held at 100 % (59/59), confusion still clean,
+gold-`Uncertain` still never decided.** Tests: `tests/test_folio_native.py` 16 → **20**.
+Regression: 102 green across folio/dl/theory-query/materialization/agon. Purely additive (new
+functions + `decide_native` wiring tags `via="case_split"`). Docs: `docs/FOLIO_EVALUATION.md`.
+Memory: [[project_nl_to_logic_arisbe_as_interpretant]].
 
 **✅ DONE 2026-06-15 — the cross-mode UX consistency pass** (the last adaptive-scope item; the
 viewer track is now closed). Audit-first per the plan: an Explore agent catalogued the drift across

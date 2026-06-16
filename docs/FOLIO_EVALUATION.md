@@ -1,7 +1,9 @@
 # FOLIO on Arisbe — the "Both" evaluation
 
-**Status:** all three increments built and green (2026-06-13). Validation split (204
-examples) is the entailment-scorable one (the train split ships no `conclusion-FOL`).
+**Status:** all three increments built and green (2026-06-13); the **disjunctive case-split
+lever** added 2026-06-15 (native coverage 23.0 % → 28.9 %, soundness held at 100 %).
+Validation split (204 examples) is the entailment-scorable one (the train split ships no
+`conclusion-FOL`).
 
 FOLIO (Han et al. 2022, [github.com/Yale-LILY/FOLIO](https://github.com/Yale-LILY/FOLIO))
 pairs natural-language premises + a conclusion with **human-authored FOL annotations** and a
@@ -128,22 +130,42 @@ as the flat denials the materializer fires on.
 
 ### The result
 
-**Validation (204): SOUNDNESS 100.0 % (47/47 decided correct), COVERAGE 23.0 % (47/204
-decided).** The confusion is clean — gold-True → 27 True / 0 False, gold-False → 20 False / 0
-True, gold-Uncertain → 0 decided. The 157 abstentions are principled: non-Horn premises
-(disjunction, `⊕`, existential-under-negation) and every `Uncertain` gold (which the bounded
-fragment can never soundly decide). **Zero unsound verdicts.** Tests:
-`tests/test_folio_native.py` (16).
+**Validation (204): SOUNDNESS 100.0 % (59/59 decided correct), COVERAGE 28.9 % (59/204
+decided)** — *with the disjunctive case-split lever (below) enabled; 23.0 % / 47 without it.*
+The confusion is clean — gold-True → 34 True / 0 False, gold-False → 25 False / 0 True,
+gold-Uncertain → 0 decided. The 145 abstentions are principled: the residue is
+universally-quantified disjunctions (`∀x (P(x)∨Q(x))`, not a *top-level* case split) and every
+`Uncertain` gold (which the bounded fragment can never soundly decide). **Zero unsound
+verdicts.** Tests: `tests/test_folio_native.py` (20).
 
 This is the headline the "Both" decision exists to produce, beside Z3's complete 91.2 %: a
 **bounded, sound reasoner over a full-FOL benchmark — it abstains, it never errs.** It is the
 same story DL-ReasonSuite DLCore told (soundness 100 %, coverage 67 % over 3620 tasks), now
 over natural-language-grounded full first-order logic instead of description logic.
 
-### The coverage lever (the real extension, deferred)
+### The disjunctive case-split lever (built 2026-06-15)
 
-Coverage is bounded by the Horn-rules-plus-denials fragment. The principled way to raise it —
-not a bugfix — is a **disjunctive / model-construction** capability (case split on `∨` and
-`⊕`, or an explicit closed-world / refutation-search mode) for the FOLIO instances whose
-entailment genuinely needs reasoning by cases. That is the FOLIO twin of DLCore's deferred
-"refutation / model-construction for the negative half" lever.
+The original Horn-rules-plus-denials fragment cannot reach an entailment that genuinely needs
+**reasoning by cases** — `P∨Q, P→R, Q→R ⊢ R` (the constructive dilemma): each disjunct forces
+`R`, but no single denial fires. The lever (`folio_native._refutes_cases`) adds the tableau
+β-rule on top of the closure: `M ∪ {A∨B}` is unsatisfiable **iff** `M ∪ {A}` and `M ∪ {B}`
+both are, so a top-level disjunction is split and *every* branch must close at the sound
+Horn+denial primitive `_refutes`. It branches `∨`, and `⊕` / `↔` via their two models
+(`A⊕B ≡ (A∧¬B)∨(¬A∧B)`; `A↔B ≡ (A∧B)∨(¬A∧¬B)`); a split budget (`MAX_CASE_SPLITS`) bounds the
+search and `all(...)` short-circuits on the first branch it cannot refute.
+
+**Soundness is preserved by construction** — the branches are exhaustive given the disjunctive
+conjunct holds, so all-branches-refuted ⇒ the whole refutes; one branch left open ⇒ abstain
+(it does *not* over-decide a genuine Uncertain). It splits only **top-level** disjunctions:
+a disjunction trapped under a universal (`∀x (P(x)∨Q(x))`) is *not* `(∀x P) ∨ (∀x Q)`, so it
+is left to the residue rather than split unsoundly. Lift: **+12 examples (47 → 59), soundness
+held at 100 %.**
+
+### The remaining lever — model construction (still deferred)
+
+Case-split raises the **refutation** (entailment) half. The other half — soundly certifying
+`Uncertain` (neither `C` nor `¬C` is entailed) and instance *non*-entailment — needs the dual
+capability: **construct a model** of `M ∪ {¬C}` *and* of `M ∪ {C}` (a bounded finite-model
+finder), so that two surviving models witness independence. That is the completeness-flavoured
+extension DLCore's negative half also defers to, and the reason the native engine still never
+predicts `Uncertain`.

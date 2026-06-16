@@ -141,6 +141,43 @@ def test_normalize_exportation():
 
 
 # ---------------------------------------------------------------------------
+# The disjunctive case-split lever — reasoning by cases over the non-Horn residue
+# ---------------------------------------------------------------------------
+
+def test_constructive_dilemma_via_case_split():
+    """``P∨Q, P→R, Q→R ⊢ R`` — every case forces R, so the disjunction entails it.
+    The bare denial check cannot reach this; the β-split decides it (and tags ``via``)."""
+    r = decide_native(
+        ["P(a) ∨ Q(a)", "∀x (P(x) → R(x))", "∀x (Q(x) → R(x))"], "R(a)")
+    assert r.verdict == "True" and r.via == "case_split"
+
+
+def test_xor_premise_decided_by_cases():
+    """An exclusive-or premise splits into its two models; both force the conclusion."""
+    r = decide_native(
+        ["P(a) ⊕ Q(a)", "∀x (P(x) → R(x))", "∀x (Q(x) → R(x))"], "R(a)")
+    assert r.verdict == "True" and r.via == "case_split"
+
+
+def test_case_split_without_total_coverage_abstains():
+    """``P∨Q, P→R ⊢ R`` is genuinely Uncertain (the Q-case leaves R open): one branch
+    cannot be refuted, so the lever does NOT over-decide — it abstains, soundly."""
+    r = decide_native(["P(a) ∨ Q(a)", "∀x (P(x) → R(x))"], "R(a)")
+    assert r.verdict == "Unknown"
+
+
+def test_disjuncts_and_flatten_helpers():
+    """Unit-level: top-level disjunctions branch; ``∧`` and De Morgan ``¬(A∨B)`` flatten."""
+    from folio_native import _disjuncts, _flatten_and
+    assert _disjuncts(BinOp("or", Atom("A", ()), Atom("B", ()))) is not None
+    assert len(_disjuncts(BinOp("xor", Atom("A", ()), Atom("B", ())))) == 2
+    assert _disjuncts(Atom("A", ())) is None          # an atom is not a disjunction
+    # ¬(A ∨ B) ≡ ¬A ∧ ¬B — two conjuncts after flattening; A ∧ B — two conjuncts.
+    assert len(_flatten_and([Not(BinOp("or", Atom("A", ()), Atom("B", ())))])) == 2
+    assert len(_flatten_and([BinOp("and", Atom("A", ()), Atom("B", ()))])) == 2
+
+
+# ---------------------------------------------------------------------------
 # The headline invariant: soundness on a curated FOLIO-shaped sample
 # ---------------------------------------------------------------------------
 
@@ -154,6 +191,8 @@ _SAMPLE = [
     (["∃x (P(x) ∧ ¬Q(x))", "∀x (P(x) → R(x))"], "Q(a)", "Uncertain"),
     (["∀x (FirTree(x) → Evergreen(x))", "∃x (Worship(x) ∧ FirTree(x))"],
      "∃x (Evergreen(x) ∧ ¬Worship(x))", "Uncertain"),
+    # constructive dilemma — decided only by the case-split lever, gold True
+    (["P(a) ∨ Q(a)", "∀x (P(x) → R(x))", "∀x (Q(x) → R(x))"], "R(a)", "True"),
 ]
 
 

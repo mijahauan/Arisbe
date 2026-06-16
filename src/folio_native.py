@@ -284,6 +284,82 @@ def _universal_entails(prem_asts: List[Formula], concl_ast: Formula) -> bool:
     return tq.applicable and tq.verdict == "true"
 
 
+# ---------------------------------------------------------------------------
+# The disjunctive case-split lever — reasoning by cases over the non-Horn
+# residue the bare denial check cannot reach (docs/FOLIO_EVALUATION.md).
+# ---------------------------------------------------------------------------
+
+MAX_CASE_SPLITS = 6   # bound on nested β-branches per refutation (2**6 leaves worst case)
+
+
+def _flatten_and(asts: List[Formula]) -> List[Formula]:
+    """Break top-level conjunctions into a flat conjunct list (juxtaposition = ∧), so a
+    disjunction buried under ``∧`` becomes a splittable conjunct.  Also collapses ``¬¬φ``
+    and pushes ``¬(A∨B)`` to the conjunction ``¬A ∧ ¬B`` (De Morgan) — both expose more
+    top-level structure without changing meaning."""
+    out: List[Formula] = []
+    for a in asts:
+        a = normalize(a)
+        if isinstance(a, BinOp) and a.op == "and":
+            out.extend(_flatten_and([a.left, a.right]))
+        elif isinstance(a, Not) and isinstance(a.f, Not):           # ¬¬φ ≡ φ
+            out.extend(_flatten_and([a.f.f]))
+        elif (isinstance(a, Not) and isinstance(a.f, BinOp)
+              and a.f.op == "or"):                                   # ¬(A∨B) ≡ ¬A ∧ ¬B
+            out.extend(_flatten_and([Not(a.f.left), Not(a.f.right)]))
+        else:
+            out.append(a)
+    return out
+
+
+def _disjuncts(ast: Formula) -> "List[Formula] | None":
+    """If ``ast`` is a **top-level** disjunction (a conjunct that is true in more than one
+    irreducible way), return the case branches; else ``None``.  Splitting these — and only
+    these, never a disjunction trapped under a ∀ (``∀x (P(x)∨Q(x))`` ≠ a top-level case
+    split) — keeps the lever sound.
+
+    * ``A ∨ B``   → ``[A, B]``
+    * ``A ⊕ B``   → ``[A ∧ ¬B, ¬A ∧ B]``     (exactly one holds)
+    * ``A ↔ B``   → ``[A ∧ B, ¬A ∧ ¬B]``     (both or neither)
+    """
+    if isinstance(ast, BinOp):
+        if ast.op == "or":
+            return [ast.left, ast.right]
+        if ast.op == "xor":
+            return [BinOp("and", ast.left, Not(ast.right)),
+                    BinOp("and", Not(ast.left), ast.right)]
+        if ast.op == "iff":
+            return [BinOp("and", ast.left, ast.right),
+                    BinOp("and", Not(ast.left), Not(ast.right))]
+    return None
+
+
+def _refute_rec(conjuncts: List[Formula], budget: int) -> bool:
+    """Refute the conjunction by reasoning over cases.  Pick a top-level disjunctive
+    conjunct and branch: the whole is unsatisfiable iff **every** branch is.  With no
+    disjunction left to split (or the budget spent) fall to the sound Horn+denial
+    primitive ``_refutes``.  ``all(...)`` short-circuits, so a branch that cannot be
+    refuted stops the search at once."""
+    if budget > 0:
+        for i, c in enumerate(conjuncts):
+            branches = _disjuncts(c)
+            if branches is not None:
+                rest = conjuncts[:i] + conjuncts[i + 1:]
+                return all(
+                    _refute_rec(_flatten_and(rest + [b]), budget - 1) for b in branches)
+    return _refutes(conjuncts)
+
+
+def _refutes_cases(asts: List[Formula]) -> "tuple[bool, bool]":
+    """Sound refutation with the disjunctive case-split lever.  Returns
+    ``(refuted, by_cases)`` — ``by_cases`` flags that a β-split (not the bare denial
+    check) closed it, for the verdict's ``via``."""
+    conjuncts = _flatten_and(asts)
+    if not any(_disjuncts(c) is not None for c in conjuncts):
+        return _refutes(conjuncts), False          # no disjunction → the base primitive
+    return _refute_rec(conjuncts, MAX_CASE_SPLITS), True
+
+
 def decide_native(premise_fols: List[str], conclusion_fol: str) -> NativeResult:
     """Decide FOLIO entailment with Arisbe's bounded engine — sound, abstaining.
 
@@ -300,8 +376,8 @@ def decide_native(premise_fols: List[str], conclusion_fol: str) -> NativeResult:
 
     try:
         neg_concl = _negate(concl_ast)
-        prove_true_refut = _refutes(prem_asts + [neg_concl])   # M ∪ {¬C} ⊥  ⇒ M ⊨ C
-        prove_false = _refutes(prem_asts + [concl_ast])        # M ∪ { C} ⊥  ⇒ M ⊨ ¬C
+        prove_true_refut, true_by_cases = _refutes_cases(prem_asts + [neg_concl])   # M ∪ {¬C} ⊥ ⇒ M ⊨ C
+        prove_false, false_by_cases = _refutes_cases(prem_asts + [concl_ast])       # M ∪ { C} ⊥ ⇒ M ⊨ ¬C
         prove_true_uni = _universal_entails(prem_asts, concl_ast)
     except Exception as exc:
         # The bounded engine could not build/decide this shape — abstain, never guess.
@@ -314,13 +390,19 @@ def decide_native(premise_fols: List[str], conclusion_fol: str) -> NativeResult:
         return NativeResult(
             "Unknown", "premises are inconsistent in the Horn fragment — abstaining")
     if prove_true:
-        via = "refutation" if prove_true_refut else "theory_query"
-        detail = ("M ∪ {¬C} is Horn-inconsistent — M entails C" if prove_true_refut
-                  else "the conclusion is a theorem of M (freeze-a-witness)")
+        if prove_true_refut:
+            via = "case_split" if true_by_cases else "refutation"
+            detail = ("M ∪ {¬C} is inconsistent by cases — M entails C" if true_by_cases
+                      else "M ∪ {¬C} is Horn-inconsistent — M entails C")
+        else:
+            via = "theory_query"
+            detail = "the conclusion is a theorem of M (freeze-a-witness)"
         return NativeResult("True", detail, via=via)
     if prove_false:
-        return NativeResult(
-            "False", "M ∪ {C} is Horn-inconsistent — M entails ¬C", via="refutation")
+        via = "case_split" if false_by_cases else "refutation"
+        detail = ("M ∪ {C} is inconsistent by cases — M entails ¬C" if false_by_cases
+                  else "M ∪ {C} is Horn-inconsistent — M entails ¬C")
+        return NativeResult("False", detail, via=via)
     return NativeResult(
         "Unknown",
         "the bounded fragment proves neither C nor ¬C (non-Horn residue / open world)")
