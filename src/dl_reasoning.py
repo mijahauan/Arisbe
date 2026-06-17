@@ -138,6 +138,33 @@ def _sheet_denials(egi: RelationalGraphWithCuts) -> List[Tuple[List[Fact], str]]
 
 
 # ---------------------------------------------------------------------------
+# Model-construction backstop — the negative half (non-Horn residue)
+# ---------------------------------------------------------------------------
+# Where the Horn engine must abstain (a non-Horn axiom *might* bear), a positive
+# model certificate decides soundly in the opposite direction: a finite model of M
+# certifies M **consistent**; a model of ``M ∪ {¬C(a)}`` certifies ``a`` is **not** a
+# ``C``.  The finder reads the *whole* EGI (Horn and non-Horn alike) via ``egi_to_fol``,
+# so a model it returns satisfies every axiom — the certificate is sound regardless of
+# what the Horn materializer skipped.  It works under a sound **unique-names** restriction
+# (distinct constants): that can only *narrow* the search (→ abstain), never make a found
+# model spurious, so soundness is preserved and the caveat is surfaced in the verdict.
+
+
+def _find_model(theory: RelationalGraphWithCuts, extra=None):
+    """A finite model of M (``extra`` conjoined, if given), or ``None`` if none is found
+    within the finder's bounds.  Read-only on ``theory``."""
+    from egi_to_fol import read_egi_to_fol
+    from folio_model_finder import find_model
+    asts = read_egi_to_fol(theory)
+    if extra:
+        asts = asts + list(extra)
+    return find_model(asts)
+
+
+_UNA_NOTE = "model exhibited under unique-names (distinct constants)"
+
+
+# ---------------------------------------------------------------------------
 # The three DLCore services
 # ---------------------------------------------------------------------------
 
@@ -185,9 +212,22 @@ def check_instance(
     # Not derived: a decided NO only if M is wholly Horn (nothing left that might add it).
     non_denial = [s for s in report.skipped if s.reason != "denial"]
     if non_denial:
+        # The Horn engine must abstain — but a model of M ∪ {¬C(a)} decides NO soundly
+        # (it exhibits a world where M holds and a is not a C → C(a) is not entailed).
+        from folio_fol import Atom, Not
+        model = _find_model(theory, extra=[Not(Atom(cls, (individual,)))])
+        if model is not None:
+            return DLResult(task="instance", answer=DLAnswer.NO, query=q,
+                            detail=(f"a model of M with {cls}({individual}) false exists — "
+                                    f"{cls}({individual}) is not entailed ({_UNA_NOTE}): "
+                                    f"{model.describe()}"),
+                            missing=[f"{cls}({individual})"],
+                            derived=[model.describe()],
+                            unsupported_axioms=len(report.skipped))
         return DLResult(task="instance", answer=DLAnswer.UNKNOWN, query=q,
                         detail=(f"{cls}({individual}) not derived from the Horn fragment; "
-                                f"{len(non_denial)} non-Horn axiom(s) might bear"),
+                                f"{len(non_denial)} non-Horn axiom(s) might bear "
+                                f"(no countermodel found within the finder's bound)"),
                         missing=[f"{cls}({individual})"],
                         unsupported_axioms=len(report.skipped))
     return DLResult(task="instance", answer=DLAnswer.NO, query=q,
@@ -213,10 +253,20 @@ def check_consistency(theory: RelationalGraphWithCuts) -> DLResult:
     unsupported = [s for s in report.skipped
                    if s.reason in ("complex_body", "negation_in_head", "existential_head")]
     if unsupported:
+        # The Horn check is silent on the non-Horn residue — but *exhibiting* a finite model
+        # of the whole M certifies consistency soundly (a real model is a real model).
+        model = _find_model(theory)
+        if model is not None:
+            return DLResult(task="consistency", answer=DLAnswer.YES,
+                            detail=(f"a finite model of M exists — M is consistent "
+                                    f"({_UNA_NOTE}): {model.describe()}"),
+                            derived=[model.describe()],
+                            unsupported_axioms=len(unsupported))
         return DLResult(task="consistency", answer=DLAnswer.UNKNOWN,
                         detail=(f"no modelled denial is violated, but {len(unsupported)} "
-                                f"axiom(s) lie outside Arisbe's fragment — consistency "
-                                f"within the fragment only"),
+                                f"axiom(s) lie outside Arisbe's fragment, and no model was "
+                                f"found within the finder's bound — consistency within the "
+                                f"fragment only"),
                         unsupported_axioms=len(unsupported))
     return DLResult(task="consistency", answer=DLAnswer.YES,
                     detail="M is wholly within the fragment and no denial is violated")

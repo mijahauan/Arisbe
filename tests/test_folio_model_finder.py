@@ -14,7 +14,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from folio_fol import parse_fol
-from folio_model_finder import certify_independent, find_model, satisfies
+from folio_model_finder import (
+    certify_independent,
+    decide_epr,
+    find_model,
+    satisfies,
+)
 
 
 def _p(*ss):
@@ -107,3 +112,34 @@ def test_every_found_model_satisfies_its_formula():
         m = find_model(asts)
         assert m is not None, f"expected a model for {asts}"
         assert satisfies(asts, m), f"unsound model for {asts}: {m.describe()}"
+
+
+# ---------------------------------------------------------------------------
+# The EPR (Bernays–Schönfinkel) complete decision — the universal case-split lever
+# ---------------------------------------------------------------------------
+
+def test_epr_decides_universal_disjunction_unsat():
+    # ∀x(P∨Q), ∀x(P→R), ∀x(Q→R), ∃x¬R  — the refutation needs reasoning by cases *under* a
+    # ∀; EPR grounds it over the small-model bound and decides UNSAT (a sound refutation).
+    asts = _p("∀x (P(x) ∨ Q(x))", "∀x (P(x) → R(x))", "∀x (Q(x) → R(x))", "∃x ¬R(x)")
+    assert decide_epr(asts) == "unsat"
+
+
+def test_epr_decides_sat_for_a_real_model():
+    asts = _p("∀x (P(x) ∨ Q(x))", "∀x (P(x) → R(x))", "∀x (Q(x) → R(x))", "∀x R(x)")
+    assert decide_epr(asts) == "sat"
+
+
+def test_epr_bails_on_existential_under_universal():
+    # ∀x∃y R(x,y) Skolemizes to a function → infinite Herbrand universe → not EPR → None.
+    assert decide_epr(_p("∀x ∃y Loves(x, y)")) is None
+
+
+def test_epr_admits_outer_existential():
+    # ∃x∀y is EPR (the ∃ is a Skolem *constant*, not a function).
+    assert decide_epr(_p("∃x ∀y Loves(x, y)")) == "sat"
+
+
+def test_epr_classic_syllogism_unsat():
+    asts = _p("∀x (Human(x) → Mortal(x))", "Human(socrates)", "¬Mortal(socrates)")
+    assert decide_epr(asts) == "unsat"

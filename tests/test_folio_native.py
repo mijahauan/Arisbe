@@ -74,14 +74,14 @@ def test_genuine_uncertain_via_model_construction():
     assert r.verdict == "Uncertain" and r.via == "model_construction"
 
 
-def test_entailment_beyond_the_bound_still_abstains():
-    """A genuine entailment the bounded prover can't reach (a disjunction *under* a ∀, so
-    no top-level case split) and whose negation has **no** counter-model: the finder can't
-    certify Uncertain and the prover can't prove True — so it abstains, soundly (Unknown),
-    never guessing the (correct) True it cannot justify."""
+def test_universal_disjunction_syllogism_decided_by_epr():
+    """A genuine entailment that needs reasoning by cases *under* a ∀ (a disjunction trapped
+    beneath the universal, so no top-level case split) — out of reach for the Horn + denial +
+    case-split pipeline.  The EPR complete decision (function-free, no ∃-under-∀) grounds it
+    over its small-model bound and proves it soundly.  Z3-corroborated (the harness checks)."""
     r = decide_native(
         ["∀x (P(x) ∨ Q(x))", "∀x (P(x) → R(x))", "∀x (Q(x) → R(x))"], "∀x R(x)")
-    assert r.verdict == "Unknown" and not r.decided
+    assert r.verdict == "True" and r.via == "epr" and r.decided
 
 
 def test_unparsed_passes_through():

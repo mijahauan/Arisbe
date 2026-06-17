@@ -88,6 +88,25 @@ def test_instance_out_of_signature():
     assert r.answer is DLAnswer.OUT_OF_SIGNATURE
 
 
+def test_instance_non_entailment_by_countermodel():
+    # Non-Horn residue (a disjunctive axiom) leaves the Horn engine unable to decide, but a
+    # finite model of M ∪ {¬Flies(tweety)} exists → Flies(tweety) is NOT entailed (sound NO).
+    m = parse_egif('(Bird "tweety") ~[ ~[ (Flies "x") ] ~[ (Swims "x") ] ]')
+    r = check_instance(m, "tweety", "Flies")
+    assert r.answer is DLAnswer.NO
+    assert r.derived  # carries the witnessing countermodel
+    assert "not entailed" in r.detail
+
+
+def test_instance_unknown_when_entailed_only_by_cases():
+    # P(a)∨Q(a), P→C, Q→C entails C(a) by cases — but the Horn engine cannot *derive* it and
+    # (since it is entailed) there is no countermodel to find → honest UNKNOWN, never a wrong NO.
+    m = parse_egif(
+        '~[ ~[ (P "a") ] ~[ (Q "a") ] ] ~[ (P *x) ~[ (C x) ] ] ~[ (Q *y) ~[ (C y) ] ]')
+    r = check_instance(m, "a", "C")
+    assert r.answer is DLAnswer.UNKNOWN
+
+
 # ---------------------------------------------------------------------------
 # Consistency
 # ---------------------------------------------------------------------------
@@ -115,10 +134,24 @@ def test_consistency_inconsistency_through_the_closure():
     assert r.answer is DLAnswer.NO
 
 
-def test_consistency_unknown_when_unsupported_constructs_remain():
-    # A non-Horn axiom (disjunctive head) the materializer can't use, and no denial fires
-    # → consistency only within the fragment (UNKNOWN), not a clean YES.
+def test_consistency_certified_by_model_construction():
+    # A non-Horn axiom (disjunctive head) the materializer can't use, and no denial fires.
+    # The Horn check alone could only say "consistent within the fragment"; the model finder
+    # exhibits an actual finite model of the *whole* M → a sound YES, with the witness.
     m = parse_egif('(A "a") ~[ (A *x) ~[ ~[ (B x) ] ~[ (C x) ] ] ]')
+    r = check_consistency(m)
+    assert r.answer is DLAnswer.YES
+    assert r.unsupported_axioms >= 1     # the YES is despite non-Horn residue …
+    assert r.derived                     # … because a model was constructed
+    assert "model" in r.detail.lower()
+
+
+def test_consistency_unknown_when_inconsistent_but_non_horn():
+    # P(a)∨Q(a) together with ¬P(a) and ¬Q(a) is inconsistent, but no *flat* denial fires
+    # (the disjunction is skipped) and no model exists → the finder cannot certify either
+    # way, so the honest answer is UNKNOWN — never a wrong YES.
+    m = parse_egif(
+        '~[ ~[ (P "a") ] ~[ (Q "a") ] ] ~[ (P "a") ] ~[ (Q "a") ]')
     r = check_consistency(m)
     assert r.answer is DLAnswer.UNKNOWN
     assert r.unsupported_axioms >= 1

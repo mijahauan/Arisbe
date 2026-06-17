@@ -303,6 +303,113 @@ def find_model(asts: List[Formula]) -> Optional[Model]:
     return None
 
 
+# ---------------------------------------------------------------------------
+# The EPR (Bernays–Schönfinkel) complete decision — the universal case-split lever
+# ---------------------------------------------------------------------------
+# FOLIO is function-free relational FOL **without equality**.  A sentence whose prenex
+# prefix is ∃*∀* (no existential in the scope of a universal — equivalently, Skolemization
+# introduces no functions, only constants) is in the EPR / Bernays–Schönfinkel class: it has
+# the **finite-model property** with a model of size ≤ |constants| + |∃-quantifiers|.  So
+# grounding it over a domain of exactly that size is a *complete* decision:
+#
+#   grounded formula UNSAT (propositionally)  ⟺  the FOL sentence is unsatisfiable.
+#
+# That is the sound lever the top-level case-split misses: ``M ∪ {¬C}`` UNSAT ⇒ ``M ⊨ C``,
+# even when the refutation requires reasoning by cases *under* a universal
+# (``∀x(P(x)∨Q(x)), ∀x(P→R), ∀x(Q→R) ⊨ ∀x R``).  No-equality is what makes the grounder's
+# unique-names assumption sound here too: a satisfiable no-equality sentence always has a
+# model with all constants distinct (duplicate the shared element), so UNA-UNSAT ⟺ UNSAT.
+#
+# A budget cap on the domain size keeps it honest — beyond it (or on a non-EPR shape, where a
+# Skolem function would make the Herbrand universe infinite) the function returns ``None`` and
+# the caller falls back to the bounded pipeline.
+
+EPR_MAX_DOMAIN = 12   # cap on |domain| for the complete EPR grounding; beyond ⇒ abstain
+
+
+def _epr_scan(asts: List[Formula]) -> "Optional[int]":
+    """If the conjunction of ``asts`` is EPR (no ∃-type quantifier under a ∀-type one, no
+    quantifier under ↔/⊕), return the number of ∃-type quantifiers (for the domain bound);
+    else ``None``.  A quantifier's *type* is by polarity: ``∃`` at + or ``∀`` at − is
+    "∃-type" (Skolem witness); ``∀`` at + or ``∃`` at − is "∀-type" (ranges over the domain)."""
+    exists_types = 0
+    ok = True
+
+    def walk(a: Formula, pol: int, under_universal: bool) -> None:
+        nonlocal exists_types, ok
+        if not ok:
+            return
+        if isinstance(a, Atom):
+            return
+        if isinstance(a, Not):
+            walk(a.f, -pol, under_universal)
+        elif isinstance(a, BinOp):
+            if a.op in ("iff", "xor"):
+                # Both polarities reachable; a quantifier here has no well-defined type.
+                if _has_quant(a):
+                    ok = False
+                return
+            if a.op == "implies":
+                walk(a.left, -pol, under_universal)
+                walk(a.right, pol, under_universal)
+            else:                                   # and / or — polarity unchanged
+                walk(a.left, pol, under_universal)
+                walk(a.right, pol, under_universal)
+        elif isinstance(a, Quant):
+            exists_type = ((a.kind == "exists" and pol > 0)
+                           or (a.kind == "forall" and pol < 0))
+            if exists_type:
+                if under_universal:
+                    ok = False                      # ∃ under ∀ ⇒ Skolem function ⇒ not EPR
+                    return
+                exists_types += 1
+            walk(a.body, pol, under_universal or not exists_type)
+
+    for a in asts:
+        walk(a, +1, False)
+        if not ok:
+            return None
+    return exists_types
+
+
+def _has_quant(a: Formula) -> bool:
+    if isinstance(a, Quant):
+        return True
+    if isinstance(a, Not):
+        return _has_quant(a.f)
+    if isinstance(a, BinOp):
+        return _has_quant(a.left) or _has_quant(a.right)
+    return False
+
+
+def decide_epr(asts: List[Formula]) -> "Optional[str]":
+    """Decide satisfiability of the conjunction completely when it is EPR.
+
+    Returns ``"unsat"`` / ``"sat"`` (a sound, *complete* verdict for the EPR fragment of
+    function-free, equality-free FOL) or ``None`` when the shape is not EPR or the EPR
+    domain bound / DPLL budget is exceeded (abstain — never guess)."""
+    asts = [a for a in asts if a is not None]
+    n_exists = _epr_scan(asts)
+    if n_exists is None:
+        return None
+    consts, _preds = _signature(asts)
+    size = max(1, len(consts) + n_exists)           # the EPR small-model bound
+    if size > EPR_MAX_DOMAIN:
+        return None
+    const_elem = {c: i for i, c in enumerate(consts)}
+    domain = list(range(size))
+    gnd = _Grounder(const_elem, domain)
+    top = ("and", [gnd.ground(a, {}) for a in asts]) if asts else True
+    ts = _Tseitin(gnd._next)
+    top_lit = ts.encode(top)
+    clauses = ts.clauses + [[top_lit]]
+    try:
+        assignment = _dpll(clauses, {}, [DPLL_NODE_BUDGET])
+    except _BudgetExceeded:
+        return None
+    return "sat" if assignment is not None else "unsat"
+
+
 def certify_independent(
     prem_asts: List[Formula], concl_ast: Formula, neg_concl: Formula,
 ) -> Optional[Tuple[Model, Model]]:

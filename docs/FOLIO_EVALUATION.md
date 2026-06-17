@@ -2,9 +2,13 @@
 
 **Status:** all three increments built and green (2026-06-13); the coverage lever added
 2026-06-15 in two halves — the **disjunctive case-split** (refutation) and the **finite-model
-finder** (model construction) — taking native coverage **23.0 % → 63.2 % at 100 % soundness vs
-Z3**. Validation split (204 examples) is the entailment-scorable one (the train split ships no
-`conclusion-FOL`).
+finder** (model construction) — taking native coverage 23.0 % → 63.2 %; then 2026-06-17 the
+**EPR (Bernays–Schönfinkel) complete decision** took it to **95.1 % at 100 % soundness vs Z3**
+(194/204 decided, 0 genuine errors; the remaining 10 are 8 unparsed + 2 non-EPR Skolem-function
+entailments). The same finite-model machinery was carried from the FOLIO AST **to the EGI**
+(`src/egi_to_fol.py`), so **DLCore's negative half** inherits it: instance non-entailment
+coverage 50 % → 75 % at 100 % soundness. Validation split (204 examples) is the
+entailment-scorable one (the train split ships no `conclusion-FOL`).
 
 FOLIO (Han et al. 2022, [github.com/Yale-LILY/FOLIO](https://github.com/Yale-LILY/FOLIO))
 pairs natural-language premises + a conclusion with **human-authored FOL annotations** and a
@@ -140,8 +144,10 @@ disagreements are all gold-noise** — Z3 (the complete checker) corroborates th
 on every one (they are the same conservative `X → Uncertain` annotation errors increment 1
 found). **Zero genuine errors.** The confusion: gold-True → 34 True / 5 Uncertain, gold-False →
 25 False / 4 Uncertain, gold-Uncertain → **61 Uncertain / 0 True / 0 False** (was 0 decided).
-The 75 abstentions are the residue genuinely beyond the engine's bound. Tests:
-`tests/test_folio_native.py` (21) + `tests/test_folio_model_finder.py` (9).
+The 75 abstentions are the residue genuinely beyond the engine's bound (later cut to 10 by the
+EPR lever below). Tests: `tests/test_folio_native.py` (21) + `tests/test_folio_model_finder.py`
+(14, incl. the EPR decision) + `tests/test_egi_to_fol.py` (14, the EGI bridge) +
+`tests/test_dl_reasoning.py` (15, incl. the model-certified negative half).
 
 > **Why soundness is judged against Z3, not gold.** Once the engine soundly decides
 > `Uncertain`, it surfaces FOLIO's known gold-vs-FOL noise. The honest soundness claim is
@@ -200,12 +206,65 @@ budget; on exhaustion it abstains (`Unknown`).
 **Lift: coverage 28.9 % → 63.2 % (59 → 129), soundness held at 100 % vs Z3** — it decides 61 of
 69 gold-`Uncertain` examples (0 before) with zero over-firing on the entailed ones.
 
-### The still-deferred frontier
+### The EPR complete-decision lever (built 2026-06-17)
 
-What remains abstained (`Unknown`, 75) is the genuinely hard residue: instances whose only
-models exceed the witness/domain bound, or whose entailment needs case analysis the top-level
-split does not reach (a disjunction trapped under a universal). Raising the model bound and a
-grounded case-split over universal disjunctions are the next levers — both extend coverage, not
-soundness. The same finder is the capability **DLCore's negative half** (instance
-non-entailment, consistency certification) also needs; lifting it from the FOLIO AST to the EGI
-is the bridge that would carry it there.
+The 75 abstentions the two 2026-06-15 levers left split sharply: **61 were gold-True/False the
+engine could not *refute*** (a disjunction trapped *under* a universal — `∀x(P(x)∨Q(x)),
+∀x(P→R), ∀x(Q→R) ⊨ ∀x R` — which the top-level case-split cannot reach), and only 6 were
+gold-Uncertain needing a bigger model search. So the headroom was in **refutation**, and the
+sound way to it is a classical observation: FOLIO is **function-free relational FOL without
+equality**, so a sentence whose prenex prefix is `∃*∀*` (no existential in the scope of a
+universal — Skolemization yields only constants, no functions) is in the **Bernays–Schönfinkel
+(EPR) class** and has the *finite-model property* with a model of size ≤ |constants| +
+|∃-quantifiers|. Grounding it over exactly that bound is therefore a **complete** propositional
+decision:
+
+> grounded formula UNSAT (DPLL) ⟺ the FOL sentence is unsatisfiable.
+
+`folio_model_finder.decide_epr` reuses the finder's own grounder + Tseitin + DPLL to return
+`"sat"`/`"unsat"` for the EPR fragment, or `None` (abstain) for a non-EPR shape (∃-under-∀,
+which would need a Skolem function and an infinite Herbrand universe) or a domain over the
+budget. No-equality is also what makes the grounder's **unique-names** assumption sound here: a
+satisfiable equality-free sentence always has a model with all constants distinct (duplicate
+the shared element), so UNA-UNSAT ⟺ UNSAT. `decide_native` calls it **last** (after the cheaper
+Horn / case-split / freeze-witness / model-construction paths), so it purely *adds* coverage on
+the residue and tags those verdicts `via="epr"`.
+
+**Lift: coverage 63.2 % → 95.1 % (129 → 194), soundness held at 100 % vs Z3** (every EPR verdict
+agrees with the complete oracle; the harness cross-checks). The earlier "raise the model bound"
+lever proved unnecessary — EPR subsumed the structured headroom, including the gold-Uncertain
+cases (both `M∪{¬C}` and `M∪{C}` come back `"sat"` ⇒ a complete, sound `Uncertain`). What still
+abstains: 8 **unparsed** (parser limits, not reasoning) + 2 genuine **non-EPR** entailments
+(`∃`-under-`∀` → a Skolem function the bounded engine does not introduce) — honest abstention.
+
+### The bridge to the EGI — DLCore's negative half (built 2026-06-17)
+
+The finite-model machinery was carried from the FOLIO `Formula` AST **to any EGI** by
+`src/egi_to_fol.py` — the **read-only** inverse of `folio_native._build` (cut → ¬, juxtaposition
+→ ∧, generic vertex → ∃ at its home area, constant vertex → a free term). It only *observes* the
+immutable graph; it never mutates and is wholly outside the transformation calculus (the same
+posture `model_materialization` / `theory_query` / `semantic_game` take). Faithfulness is pinned
+by Z3: the formula read back from `_build(φ)`'s EGI is logically equivalent to φ
+(`tests/test_egi_to_fol.py`).
+
+With that bridge, `dl_reasoning` gains the **negative half** the Horn engine could only abstain
+on: `check_instance` now **exhibits a model of `M ∪ {¬C(a)}`** to certify non-entailment (`a` is
+not a `C`), and `check_consistency` can **exhibit a finite model of M** to certify consistency (a
+real model is a real model — sound even past the non-Horn residue). The unique-names restriction
+is sound for Arisbe EGIs by construction — identity is the shared *line* (the same vertex), never
+an equality atom between two named constants, so M cannot force two distinct constants equal —
+and it is surfaced in the verdict's detail.
+
+**Measured on DL-ReasonSuite (100 % soundness throughout — 0 wrong):**
+
+| task | before | after |
+|------|--------|-------|
+| instance_check | 50 % (entailed only; abstains on every `not_entailed`) | **75 %** (countermodels decide the `not_entailed` cases within the bound) |
+| consistency | dl 100 % · el 60 % | unchanged in-sample — the abstainers exceed the finder's domain cap |
+| subsumption | 100 % | 100 % (positive half, freeze-a-witness) |
+
+The instance-check lift is the headline: half the previously-abstained `not_entailed` cases now
+decide soundly. What still abstains (larger ontologies, more individuals than the finder's
+domain bound) is the **runtime-bounded frontier** — raising the bound trades coverage for an
+exponential model search, so it is left as an explicit, honest boundary rather than pushed
+speculatively.

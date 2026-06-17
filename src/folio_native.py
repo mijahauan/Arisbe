@@ -363,6 +363,34 @@ def _refutes_cases(asts: List[Formula]) -> "tuple[bool, bool]":
     return _refute_rec(conjuncts, MAX_CASE_SPLITS), True
 
 
+def _epr_decide(
+    prem_asts: List[Formula], concl_ast: Formula, neg_concl: Formula,
+) -> "NativeResult | None":
+    """The Bernays–Schönfinkel fast path: when both ``M ∪ {¬C}`` and ``M ∪ {C}`` are EPR
+    (function-free, no ∃-under-∀), a complete-and-sound finite grounding decides the inning
+    outright — reaching universal-disjunction refutations the top-level case-split cannot.
+    Returns a verdict, or ``None`` to fall through to the bounded pipeline (a non-EPR shape
+    or a domain/budget overrun on either side)."""
+    from folio_model_finder import decide_epr
+    not_c = decide_epr(prem_asts + [neg_concl])     # M ∪ {¬C}
+    if not_c is None:
+        return None
+    c = decide_epr(prem_asts + [concl_ast])         # M ∪ { C}
+    if c is None:
+        return None
+    if not_c == "unsat" and c == "unsat":
+        return None                                 # M itself inconsistent — abstain (rare)
+    if not_c == "unsat":
+        return NativeResult("True", "M ∪ {¬C} is unsatisfiable over its EPR bound — "
+                            "M entails C (complete finite-model decision)", via="epr")
+    if c == "unsat":
+        return NativeResult("False", "M ∪ {C} is unsatisfiable over its EPR bound — "
+                            "M entails ¬C (complete finite-model decision)", via="epr")
+    return NativeResult("Uncertain", "models of both M ∪ {¬C} and M ∪ {C} exist over the "
+                        "EPR bound — neither is entailed (complete finite-model decision)",
+                        via="epr")
+
+
 def decide_native(premise_fols: List[str], conclusion_fol: str) -> NativeResult:
     """Decide FOLIO entailment with Arisbe's bounded engine — sound, abstaining.
 
@@ -378,8 +406,8 @@ def decide_native(premise_fols: List[str], conclusion_fol: str) -> NativeResult:
     except FolioParseError as exc:
         return NativeResult("Unparsed", str(exc), parsed=False)
 
+    neg_concl = _negate(concl_ast)
     try:
-        neg_concl = _negate(concl_ast)
         prove_true_refut, true_by_cases = _refutes_cases(prem_asts + [neg_concl])   # M ∪ {¬C} ⊥ ⇒ M ⊨ C
         prove_false, false_by_cases = _refutes_cases(prem_asts + [concl_ast])       # M ∪ { C} ⊥ ⇒ M ⊨ ¬C
         prove_true_uni = _universal_entails(prem_asts, concl_ast)
@@ -422,6 +450,17 @@ def decide_native(premise_fols: List[str], conclusion_fol: str) -> NativeResult:
             f"models of both M∪{{¬C}} ({m_not_c.describe()}) and M∪{{C}} "
             f"({m_c.describe()}) exist — neither C nor ¬C is entailed",
             via="model_construction")
+
+    # Last resort: the EPR (Bernays–Schönfinkel) complete decision.  When the inning is
+    # function-free with no ∃-under-∀, a finite grounding over the small-model bound decides
+    # it soundly *and* completely — reaching the universal-disjunction refutations the
+    # top-level case-split cannot, where the cheaper paths have all abstained.
+    try:
+        epr = _epr_decide(prem_asts, concl_ast, neg_concl)
+    except Exception:
+        epr = None
+    if epr is not None:
+        return epr
 
     return NativeResult(
         "Unknown",

@@ -60,15 +60,42 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = open non-viewer tracks** — the adaptive-scope viewer track AND the cross-mode
-UX consistency pass are complete; **the FOLIO/DLCore coverage lever is now DONE — both halves**
-(✅ blocks below: disjunctive case-split + finite-model finder; FOLIO native **23 % → 63.2 %** at
-**100 % soundness vs Z3**). The resurfacing forks: **(a)** carry the model finder from the FOLIO
-AST to the EGI so **DLCore's negative half** (instance non-entailment / consistency certification)
-inherits it, and raise the model bound + a grounded case-split over universal disjunctions (the 75
-remaining FOLIO abstentions — coverage levers, not soundness); **(b)** the **schema-drawing / §3.3**
-math frontier ([[project_math_fixtures_zfc_peirce_schema]]); **(c)** the deferred **LLM front-end**
-of the NL→logic arc (both backends in place — [[project_nl_to_logic_arisbe_as_interpretant]]).
+**▶▶ NEXT SESSION = open non-viewer tracks** — the adaptive-scope viewer track, the cross-mode
+UX pass, the FOLIO/DLCore coverage lever, AND **fork (a)** (the EGI bridge + EPR lever — ✅ block
+immediately below) are all complete. The remaining resurfacing forks: **(b)** the **schema-drawing
+/ §3.3** math frontier ([[project_math_fixtures_zfc_peirce_schema]]); **(c)** the deferred **LLM
+front-end** of the NL→logic arc (both backends in place — [[project_nl_to_logic_arisbe_as_interpretant]]).
+*Residual coverage tails left as honest, runtime-bounded frontiers (not soundness gaps):* DLCore
+consistency/instance abstainers beyond the finder's domain cap; 2 non-EPR (Skolem-function) FOLIO
+entailments; 8 unparsed FOLIO formulas (parser limits).
+
+**✅ DONE 2026-06-17 — fork (a): the EGI model-finder bridge + the EPR complete-decision lever.**
+Two deliverables, both sound and measured against Z3.
+- **(a1) The EGI→FOL bridge + DLCore's negative half.** `src/egi_to_fol.py` — the **read-only**
+  inverse of `folio_native._build` (cut→¬, juxtaposition→∧, generic vertex→∃ at its home area,
+  constant vertex→free term). It *observes* the immutable graph and emits a `folio_fol.Formula`;
+  it never mutates, never calls a `with_*` builder, and is wholly outside the transformation
+  calculus — **the bedrock (egi_core_dau, the six rules) is untouched; core-protection CLEAN**.
+  Faithfulness pinned by Z3 (read-back of `_build(φ)` ≡ φ). Wired into `dl_reasoning`:
+  `check_instance` now exhibits a model of `M∪{¬C(a)}` to certify **non-entailment** (sound NO),
+  `check_consistency` a model of M to certify **consistency** (sound YES) — the two branches the
+  Horn engine could only abstain on. UNA is sound here by construction (EGs are equality-free;
+  identity is the shared *line*, not an equality atom, so M can't force two constants equal) and
+  surfaced in the verdict. **DL-ReasonSuite instance-check 50 % → 75 %, soundness 100 %** (0 wrong);
+  consistency dl 100 %/el 60 %, subsumption 100 % (unchanged; abstainers beyond the domain cap).
+- **(a2) The EPR (Bernays–Schönfinkel) lever — FOLIO native 63.2 % → 95.1 %.** The 75 abstentions
+  were 61 unrefuted gold-True/False (a disjunction trapped *under* a ∀ — the top-level case-split
+  can't reach it) + 6 gold-Uncertain. FOLIO is function-free relational FOL **without equality**,
+  so an `∃*∀*` (no ∃-under-∀) inning is EPR and has the finite-model property: grounding over the
+  small-model bound (`|consts|+|∃|`) is a **complete** sound decision. `folio_model_finder.decide_epr`
+  reuses the finder's grounder+Tseitin+DPLL; `decide_native` calls it **last** (after the cheaper
+  paths) so it purely adds coverage, `via="epr"`. **Coverage 63.2 % → 95.1 % (194/204), soundness
+  100 % vs Z3 (194/194), 0 genuine errors.** The "raise the model bound" lever proved unnecessary —
+  EPR subsumed the structured headroom (incl. the gold-Uncertain via both-`sat`). Tests:
+  `test_egi_to_fol.py` (14) + `test_folio_model_finder.py` (→14) + `test_folio_native.py` (21) +
+  `test_dl_reasoning.py` (→15). Regression: 237 across folio/dl/theory-query/materialization/agon/
+  grapheus/semantic/owl/rdf + math core green. Additive (new module + unprotected-module edits).
+  Docs: `docs/FOLIO_EVALUATION.md`. Memory: [[project_nl_to_logic_arisbe_as_interpretant]].
 
 **✅ DONE 2026-06-15 — the finite-model-finder lever (FOLIO coverage lever, model-construction half).**
 The dual of refutation: soundly certify `Uncertain` (and non-entailment) by **exhibiting a model**.
