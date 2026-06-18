@@ -74,10 +74,22 @@ form-distinction is licit (it marks *how a bet is held*); the actuality smuggled
 in by the word "fact" is not. The burden is on any such mark to prove it is not
 impersonating the world; if it cannot be kept strictly as form, better not
 drawn. The reciprocal guard holds equally: that we see only our representations
-does not mean there is nothing *but* representations — the real is what the
-corrected traffic across the membrane converges toward, never grasped bare yet
-always pushing back. Reverence threads between the two errors — a real we never
-hold in hand, and no mark that escapes to it.
+does not mean there is nothing *but* representations — the real is never grasped
+bare yet always pushes back. Reverence threads between the two errors — a real we
+never hold in hand, and no mark that escapes to it.
+
+*Where the real stands is itself contested, and we record two readings rather than
+collapse them.* Peirce's regulative hope places it **downstream**: the real is what
+the corrected traffic across the membrane *converges toward*, the limit of inquiry.
+A second reading — the author's, argued in
+[MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §8 — places it **upstream and
+around**: the real is the un-enclosable ground that any inquiry presupposes (the
+very membrane this section names), the condition for there being play rather than
+its terminus. On the second reading inquiry never converges and need not; demotion
+"never ends and never need arrive anywhere." The two part ways on what "the real
+pushes back" *toward* — a final consensus, or a containment no game can take as its
+object — and on each the membrane discipline is the same. We hold them in the same
+chord, and leave the choice live.
 
 ## What the bridge obliges us to build — the practical floor
 
@@ -93,7 +105,11 @@ hold in hand, and no mark that escapes to it.
    consistency — the chord — not warrant about the world.
 4. **The process is the entity.** The diachronic UoD (the sea) is
    primary; the graph (the wave) is a snapshot. Warrant is a **gradient**
-   that rises by withstanding challenge and *can fall*.
+   that rises by withstanding challenge and *can fall*. So *"fact"* is not a
+   glow in the object but the **defeasible status of the last-standing
+   trajectory** — the line not yet pruned — *conferred* by the enacted history
+   yet *answerable* beyond it, free to be demoted on better information or
+   changed need. Conferred-yet-answerable, never frozen.
 5. **A library of universes, not a universe.** Provenance is the trace of
    an un-hosted dialogue; the corpus may hold mutually inconsistent UoDs
    without contradiction — faithful to a community across history, not
@@ -104,6 +120,19 @@ hold in hand, and no mark that escapes to it.
    never in the ink. Any modal mark (a dotted line, a tincture) is admissible
    only as *form within the notional*; the moment it would claim "this is the
    world," it has crossed a membrane no mark crosses.
+   **And for modality in particular, no mark is needed at all.** The standard
+   translation sends □ / ◇ to ordinary Beta quantifiers over an accessibility
+   relation, and Arisbe's diachronic DAG (worlds = sheets, accessibility = legal
+   transition) and corpus of universes (worlds = M's) *are* that frame, drawn
+   rather than hidden — so Peirce's broken cut and tinctures have nothing left to
+   carry, the embedded "□(P→◇Q)" case included. **Gamma conceived as a modal
+   extension is not a problem to solve;** the real frontier is *second-order logic
+   about the graphs themselves* (graphs of graphs, abstraction), which is not
+   modality and not a colour mark. See
+   [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md). A future
+   modal-*looking* glyph is admissible only as a **non-load-bearing map symbol**
+   — concision indicating that detail exists elsewhere and is mechanically
+   expansible — never an operator (§5 there).
 7. **Two deaths, so track liveness.** A telling can be relinquished by
    *falsification* (drawn back under a cut and refuted) or by *desuetude*
    (falling out of use). Warrant records not only how a telling was tested but

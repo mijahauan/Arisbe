@@ -1,6 +1,12 @@
 # Current Plan
 
-**Last Updated**: 2026-06-15 (session end). **This session:** committed the prior session's
+**Last Updated**: 2026-06-18 (session end). **This session (doctrine, no code):** discharged the
+2026-06-18 external-conversation handoff — wrote `docs/MODALITY_WITHOUT_GAMMA.md` (modality needs no
+Gamma; the diachronic DAG/corpus *is* the drawn Kripke frame; the real frontier is second-order logic
+about the graphs), reconciled MANIFEST_AND_MEANING + CHAIN_OF_SEMIOSIS (third position recorded
+*alongside* Peirce's convergence), adjusted the adaptive-scope reserved-channel wording. Bedrock
+untouched, core-protection clean. See ✅ DONE 2026-06-18b under ▶ NEXT SESSION. *(Prior-session recap
+follows.)* **This [2026-06-15] session:** committed the prior session's
 cross-mode UX consistency pass (was done-but-uncommitted), then built **both halves of the
 FOLIO/DLCore coverage lever** — the **disjunctive case-split** (refutation) and the **finite-model
 finder** (model construction). Native FOLIO coverage **23 % → 63.2 %** at **100 % soundness vs Z3**
@@ -67,8 +73,9 @@ UX pass, the FOLIO/DLCore coverage lever, **fork (a)** (EGI bridge + EPR lever),
 complete. **Open next:** fork (c)'s remaining fast-follows — **multi-candidate disambiguation**
 (G1,G2,G3 ranked by verdict — the distinctively-Peircean "disambiguate by interpretation, not
 parser confidence") and **LOW-warrant `/import/admit`** persistence of a tested proposal carrying
-its NL+LLM provenance as the bibliographic trace. *(See also the pending re-evaluation in light of
-the author's external conversation — handoff note at the bottom of ▶ NEXT SESSION.)*
+its NL+LLM provenance as the bibliographic trace. *(The author's external-conversation re-evaluation
+is now DISCHARGED — see ✅ DONE 2026-06-18b below + `docs/MODALITY_WITHOUT_GAMMA.md`: modality needs
+no Gamma; the real frontier is second-order logic about the graphs.)*
 *Residual coverage tails left as honest, runtime-bounded frontiers (not soundness gaps):* DLCore
 consistency/instance abstainers beyond the finder's domain cap; 2 non-EPR (Skolem-function) FOLIO
 entailments; 8 unparsed FOLIO formulas (parser limits).
@@ -100,17 +107,34 @@ an error; LOW warrant, nothing persisted) + `tests/test_propose_nl_route.py` (5,
 `_default_client`) + **full doc `docs/NL_TO_LOGIC.md`**. Memory:
 [[project_nl_to_logic_arisbe_as_interpretant]].
 
-**▶ NEXT-SESSION HANDOFF (author-requested 2026-06-18) — plan / re-evaluate in light of an
-external conversation.** The author wants the next session to plan or re-evaluate the direction in
-light of a Claude.ai shared conversation:
-`https://claude.ai/share/c0fad07b-b253-49d2-953a-7ad00c747fd5`. **That share link is
-JavaScript-rendered — `WebFetch` returns only the word "Claude" (no readable content), so the
-content could not be retrieved this session.** **First action next session:** ask the author to
-**paste the conversation text** (or a summary of its key points / decisions), then plan against it.
-Likely candidates it bears on (confirm against the pasted content, don't assume): the NL→logic
-fast-follows above (multi-candidate disambiguation; LOW-warrant persistence), or a re-prioritisation
-across the open tracks. Until the content is in hand, treat the direction as **open pending the
-author's paste**.
+**✅ DONE 2026-06-18b — the external-conversation handoff is DISCHARGED (doctrine, not code).**
+The author supplied the conversation (archived `docs/references/EG-modality-conversation.pdf`). It
+was overwhelmingly *confirmatory* of the existing floor and settled one long-open question
+definitively: **Gamma conceived as a modal extension is not a problem Arisbe needs to solve.** New
+doc **`docs/MODALITY_WITHOUT_GAMMA.md`** makes and defends the claim at the level of model theory:
+the **standard translation** sends □/◇ to ordinary Beta quantifiers over an accessibility relation,
+and Arisbe's diachronic DAG (worlds = sheets, R = legal transition) and corpus of M's (worlds = M's)
+*are* that frame, **drawn rather than hidden** — so the broken cut → ∃/∀ over accessible sheets,
+tinctures → the explicit identity of which UoD a region inhabits, and Peirce's unsolved trans-world
+identity → a **line of identity carried across a legal transition** (the across-DAG invariant Arisbe
+already keeps inerrant). Complete (modal logic = the bisimulation-invariant fragment of FOL, van
+Benthem) and clearer (the frame is exhibited, not metalinguistic); honest limits stated (first-order-
+definable frames only; succinctness traded for explicitness; adequacy argument, not a mechanized
+theorem). Reconciled `docs/MANIFEST_AND_MEANING.md` (floor #6 → "no modal mark needed at all"; floor
+#4 → fact = defeasible last-standing status; the membrane → the **third position** recorded
+*alongside* Peirce's convergence, not replacing it) and `docs/CHAIN_OF_SEMIOSIS.md` (convergence
+divergence noted; pointer added). Adjusted the "reserved-for-Gamma" channel wording in the adaptive-
+scope docs (the channels are *not* reserved against modality). **No code, no bedrock touched**
+(core-protection clean). **Two horizons named, neither started:** (1) **the real frontier =
+second-order logic about the graphs themselves** (graphs of graphs, abstraction, predication of
+qualities — *not* modal, *not* a colour mark; toe-in-the-water = the φ-hole/schema node `src/schema.py`
++ the math track [[project_math_fixtures_zfc_peirce_schema]]); (2) **concision-bearing abbreviation**
+(the "map" level-of-detail doctrine — a future modal-*looking* glyph is admissible only as a
+non-load-bearing map symbol gated by the overview *expansion law*, generalizing the shipped
+adaptive-scope overview). **Scoped-not-built code candidate:** an explicit *logical demotion* event
+(first-class "free to demote") — verdict: **no new bedrock needed**; Agon (a graph drawn back under a
+cut + re-challenged) and `src/liveness.py` (reversible retire/revive) already cover it; at most a thin
+convenience, flagged not built. Memory: [[project_modality_without_gamma]].
 
 **✅ DONE 2026-06-17 — fork (a): the EGI model-finder bridge + the EPR complete-decision lever.**
 Two deliverables, both sound and measured against Z3.

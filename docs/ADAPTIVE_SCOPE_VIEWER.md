@@ -187,8 +187,12 @@ region holding N relations and M nested cuts," never "this region is true / fals
 world." Concretely, inherited verbatim from the lenses ([[project_adaptive_scope_viewer]]):
 
 - **Polarity rides the value channel only** — white = recto, gray = verso. **Hue, texture,
-  and line-style stay reserved for a future Gamma foray** (Peirce's tinctures; the broken
-  cut / dotted lines of identity). Do **not** reach for modal marking on a placeholder.
+  and line-style stay unspent.** Do **not** reach for modal marking on a placeholder — and
+  note the reservation is *not* against modality, which the diachronic frame discharges with
+  no mark at all (see [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md): □/◇ are Beta
+  quantifiers over the drawn DAG/corpus). If these channels are ever spent it is against the
+  *second-order-about-the-graphs* frontier (graphs of graphs, abstraction) — itself contestable,
+  since much of that is display-as-history — never to operator-ize a mode.
 - The badge is a count, a polarity, and a boundary degree — all exact functions of the EGI,
   all *notional* (about the representation), none *actual* (about the world).
 

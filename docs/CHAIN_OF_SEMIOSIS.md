@@ -216,6 +216,17 @@ social to the root: inquiry is a community process, and truth is the limit
 toward which a community of inquirers tends. A single chain is the visible
 track left by something that is, in its nature, a dialogue.
 
+*(One divergence, recorded not resolved.* That last clause is Peirce's
+**convergence** — the real as the downstream limit of inquiry — and it is the
+framing this codebase inherited. The author holds a second, non-convergence view:
+the real is the **un-enclosable ground** any inquiry presupposes, "upstream and
+around," so that demotion never ends and need not arrive anywhere. On that reading
+the chain still records warranted semiosis exactly as below, but it converges on
+nothing; "fact" is the last-standing line, conferred yet always answerable. The
+two are held in the same chord; the full argument is in
+[MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §8 and
+[MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md), "The membrane.")*
+
 This is why **Agon** — the Endoporeutic Game — is not a third feature
 sitting beside Organon and Ergasterion, but the mode in which the
 dialogical character the lone chain only *implies* becomes literal. It is
@@ -284,6 +295,10 @@ thinking more clearly.
 *Companion to [PRODUCT_VISION.md](PRODUCT_VISION.md),
 [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md),
 and [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md).
+See also [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md): the diachronic
+chain *is* the apparatus that carries modality (and the meta-judgment of a
+community) without any mark — second-order content displayed as history, not
+asserted.
 The chain-persistence implementation lands in `src/tomos_service.py`
 (`TransformationChain`, `ChainStep`, `save_uod_with_chain`, `load_chain`).
 The regime-1→2 boundary is now reached through Agon's asserting disposition

@@ -69,6 +69,11 @@ the **broken cut / dotted lines of identity** → line-style); and (2) the 3-D d
 compelling *if you can rotate to let nesting express itself in depth*, but the **danger** is
 losing the parent–child clarity that 2-D enclosure conveys for free.
 
+<!-- 2026-06-18 doctrine update: modality needs no mark — the diachronic frame discharges □/◇
+(see MODALITY_WITHOUT_GAMMA.md). The channels reserved above, if ever spent, are for the
+second-order-about-the-graphs frontier, not for modal marking. This spike record is otherwise
+left as-is. -->
+
 Built **P3 — the 2.5-D "negation well"** (`negation-well.html`) to resolve both:
 - The **circle-packing footprint is the floor** (identical to P1), **negation depth is height**.
   **Top-down view IS the 2-D circle-packing** (`p3-well-deep-topdown.png`) — parent–child
