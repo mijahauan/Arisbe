@@ -61,13 +61,56 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 ## ▶ NEXT SESSION — start here
 
 **▶▶ NEXT SESSION = open non-viewer tracks** — the adaptive-scope viewer track, the cross-mode
-UX pass, the FOLIO/DLCore coverage lever, AND **fork (a)** (the EGI bridge + EPR lever — ✅ block
-immediately below) are all complete. The remaining resurfacing forks: **(b)** the **schema-drawing
-/ §3.3** math frontier ([[project_math_fixtures_zfc_peirce_schema]]); **(c)** the deferred **LLM
-front-end** of the NL→logic arc (both backends in place — [[project_nl_to_logic_arisbe_as_interpretant]]).
+UX pass, the FOLIO/DLCore coverage lever, **fork (a)** (EGI bridge + EPR lever), **fork (b)**
+(schema-drawing/§3.3 — found already built+tested, closed), AND **fork (c) increment 1 + the
+`/agon/propose-nl` web route** (the NL→logic LLM front-end — ✅ block immediately below) are all
+complete. **Open next:** fork (c)'s remaining fast-follows — **multi-candidate disambiguation**
+(G1,G2,G3 ranked by verdict — the distinctively-Peircean "disambiguate by interpretation, not
+parser confidence") and **LOW-warrant `/import/admit`** persistence of a tested proposal carrying
+its NL+LLM provenance as the bibliographic trace. *(See also the pending re-evaluation in light of
+the author's external conversation — handoff note at the bottom of ▶ NEXT SESSION.)*
 *Residual coverage tails left as honest, runtime-bounded frontiers (not soundness gaps):* DLCore
 consistency/instance abstainers beyond the finder's domain cap; 2 non-EPR (Skolem-function) FOLIO
 entailments; 8 unparsed FOLIO formulas (parser limits).
+
+**✅ DONE 2026-06-18 — fork (c) increment 1: the NL→logic LLM front-end (*LLM proposes, Arisbe
+disposes*).** The deferred front-end is unblocked now both backends are in place and the
+vocabulary-miss/fact-miss gate (`dl_reasoning.OUT_OF_SIGNATURE`) exists. The thinnest sound slice,
+with a **strict boundary**: the LLM emits only a candidate **FOL string** (the existing `folio_fol`
+grammar) + a declared vocabulary; everything downstream is deterministic and pre-tested.
+`src/nl_to_logic.py` (unprotected, additive): `propose(nl, *, vocabulary_hint, client=…)` calls
+Claude (`claude-opus-4-8`, **forced-tool structured output** `emit_fol`, adaptive thinking; SDK
+import **guarded by `ANTHROPIC_AVAILABLE`**, client injectable) → `build_proposal` parses
+deterministically (`parse_fol` → `folio_fol_to_egi` → `generate_egif`) — a malformed candidate is
+**reported** (`parse_error`), an `unmappable` sentence stays honestly unbuilt, an API error is
+captured (never crashes). `reconcile` splits the proposal's predicates into **addressable** vs
+**out-of-signature** against M (`ontology_signature`) — the vocabulary-miss made first-class.
+`interpret_against` runs the **same peel** as `/agon/interpret` (mirrors `_interpret_payload`).
+The LLM **never touches the EGI and never asserts truth**. `tools/nl_to_logic_cli.py` drives it,
+incl. a `--no-llm --fol` path that exercises the whole disposing half with zero network. Decisions
+locked with the author: FOL target / single best parse / module+CLI surface. Tests:
+`tests/test_nl_to_logic.py` (12 + 1 live, key-gated) — round-trip via `same_graph`, malformed→
+reported, unmappable, API-failure capture, declared≠used flag, reconcile split, peel verdict +
+cross-check vs `_interpret_payload`. Regression: 101 green across nl/folio/agon/dl/egi-to-fol;
+core-protection CLEAN; CLI smoke verified (deterministic path + graceful no-key failure). Dep:
+`anthropic>=0.40` in a new optional `nl` extra. **Also shipped the `POST /agon/propose-nl` web
+route** (`AgonProposeNLRequest`; resolve M → hint the LLM with M's signature → propose →
+reconcile → peel; an unmappable/malformed candidate returns `parsed:false` with the reason, not
+an error; LOW warrant, nothing persisted) + `tests/test_propose_nl_route.py` (5, LLM mocked at
+`_default_client`) + **full doc `docs/NL_TO_LOGIC.md`**. Memory:
+[[project_nl_to_logic_arisbe_as_interpretant]].
+
+**▶ NEXT-SESSION HANDOFF (author-requested 2026-06-18) — plan / re-evaluate in light of an
+external conversation.** The author wants the next session to plan or re-evaluate the direction in
+light of a Claude.ai shared conversation:
+`https://claude.ai/share/c0fad07b-b253-49d2-953a-7ad00c747fd5`. **That share link is
+JavaScript-rendered — `WebFetch` returns only the word "Claude" (no readable content), so the
+content could not be retrieved this session.** **First action next session:** ask the author to
+**paste the conversation text** (or a summary of its key points / decisions), then plan against it.
+Likely candidates it bears on (confirm against the pasted content, don't assume): the NL→logic
+fast-follows above (multi-candidate disambiguation; LOW-warrant persistence), or a re-prioritisation
+across the open tracks. Until the content is in hand, treat the direction as **open pending the
+author's paste**.
 
 **✅ DONE 2026-06-17 — fork (a): the EGI model-finder bridge + the EPR complete-decision lever.**
 Two deliverables, both sound and measured against Z3.

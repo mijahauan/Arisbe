@@ -390,6 +390,26 @@ class AgonModelTestRequest(BaseModel):
     materialize: bool = False
 
 
+class AgonProposeNLRequest(BaseModel):
+    """Propose an English proposition into the interpretation register — the NL→logic
+    front-end (*LLM proposes, Arisbe disposes*; src/nl_to_logic.py).
+
+    The LLM translates ``nl`` into a candidate first-order-logic form; Arisbe parses it
+    deterministically, reconciles its vocabulary against M (the vocabulary-miss vs
+    fact-miss split), and — when it parsed — peels it against M like
+    ``/agon/interpret``. The LLM never touches the EGI and never asserts truth. M is given
+    as ``model_egif`` or ``model_uod`` (its signature is passed to the LLM as a hint).
+    Needs the ``nl`` extra + an API key on the server.
+    """
+
+    nl: str
+    model_egif: Optional[str] = None
+    model_uod: Optional[str] = None
+    closed: bool = False
+    materialize: bool = False
+    model: Optional[str] = None     # optional LLM model id override
+
+
 class AgonInverseRequest(BaseModel):
     """The inverse pivot — *in what domain does G hold?* (docs/DOMAIN_ORACLE_AND_M.md
     §7). Range the peel across candidate models and rank by how G relates to each:

@@ -44,6 +44,7 @@ from web_api.models.api_models import (
     AgonModelTestRequest,
     AgonMoveRequest,
     AgonNewGameRequest,
+    AgonProposeNLRequest,
     AgonSetModelRequest,
     ApiResponse,
 )
@@ -681,6 +682,61 @@ async def interpret_standalone(request: AgonModelTestRequest):
     except Exception as exc:
         return ApiResponse(success=False, error={
             "code": "INTERPRET_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+@router.post("/propose-nl")
+async def propose_nl(request: AgonProposeNLRequest):
+    """The NL→logic front-end: propose an English proposition into the inning.
+
+    *LLM proposes, Arisbe disposes.* The LLM translates ``nl`` into a candidate FOL form
+    (hinted by M's own vocabulary); Arisbe parses it **deterministically** (the LLM never
+    touches the EGI), reconciles its predicates against M — the **vocabulary-miss** ("M
+    cannot address that") vs **fact-miss** ("M cannot confirm that") split — and, when it
+    parsed, peels it against M exactly as ``/interpret`` does. A sentence the LLM finds
+    understandable-but-unmappable, or a candidate that fails to parse, returns the honest
+    proposal (``parsed: false``) with the reason — not an error. Nothing is asserted or
+    persisted (the proposal is at LOW warrant — it earns warrant only by withstanding Agon).
+    """
+    try:
+        from nl_to_logic import interpret_against, propose, reconcile
+        from dl_reasoning import ontology_signature
+        from egif_parser_dau import parse_egif
+
+        model_egif = _resolve_model_egif(request.model_egif, request.model_uod)
+        sig = ontology_signature(parse_egif(model_egif))
+        kwargs = {"vocabulary_hint": sig}
+        if request.model:
+            kwargs["model"] = request.model
+        proposal = propose(request.nl, **kwargs)
+
+        data = {
+            "nl": proposal.nl,
+            "fol": proposal.fol,
+            "predicates": proposal.predicates,
+            "constants": proposal.constants,
+            "egif": proposal.egif,
+            "parsed": proposal.parsed,
+            "parse_error": proposal.parse_error,
+            "unmappable": proposal.unmappable,
+            "confidence": proposal.confidence,
+            "vocab_mismatch": proposal.vocab_mismatch,
+            "model_egif": model_egif,
+        }
+        if proposal.usable:
+            vr = reconcile(proposal, model_egif)
+            data["vocabulary"] = {
+                "addressable": vr.addressable,
+                "out_of_signature": vr.out_of_signature,
+                "fully_addressable": vr.fully_addressable,
+            }
+            data["interpretation"] = interpret_against(
+                proposal, model_egif, closed=request.closed, materialize=request.materialize)
+        return ApiResponse(success=True, data=data)
+    except ValueError as exc:
+        return ApiResponse(success=False, error={"code": "INVALID_MODEL", "message": str(exc)})
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "PROPOSE_NL_ERROR", "message": str(exc), "type": type(exc).__name__})
 
 
 # --------------------------------------------------------------------------- #

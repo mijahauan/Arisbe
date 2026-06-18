@@ -54,6 +54,13 @@ web = [
     "fastapi>=0.100.0",
     "uvicorn[standard]>=0.30.0",
 ]
+# Natural-language front-end for the NL->logic arc (src/nl_to_logic.py): the LLM
+# proposes a candidate FOL form, Arisbe parses + tests it. Optional at runtime
+# (guarded by ANTHROPIC_AVAILABLE); the deterministic --no-llm path and every
+# non-LLM test run with the SDK absent.
+nl = [
+    "anthropic>=0.40",
+]
 
 [tool.uv]
 package = false
