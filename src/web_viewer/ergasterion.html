@@ -245,6 +245,22 @@
       stroke-width: 3px;
       stroke-dasharray: 2 2;
     }
+    /* Definition port designation: the hook lines a fold welds the spot onto,
+       in argument order.  Mauve, distinct from selection blue / region green. */
+    #canvas g[data-element-type="vertex"].def-port circle {
+      stroke: var(--ctp-mauve);
+      stroke-width: 3.5px;
+    }
+    #btn-def-ports.armed { background: var(--ctp-mauve); color: var(--ctp-mantle); }
+    #definitions-panel .def-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 6px; padding: 3px 6px; margin-bottom: 3px;
+      background: var(--btn-bg); border-radius: 3px; font-size: 11px;
+    }
+    #definitions-panel .def-row code { color: var(--ctp-mauve); }
+    #definitions-panel .def-unfold {
+      margin: 0; padding: 2px 8px; font-size: 10px; width: auto;
+    }
     /* Settle ④b — manual regime-3 touch-up.  In settle mode the cursor invites
        dragging, cut corners show grab handles, and a drag previews in cyan. */
     #canvas.settle-mode { cursor: grab; }
@@ -743,6 +759,32 @@
             Apply rule
           </button>
 
+          <!-- Abstraction (build A): name *this drawn subgraph* and fold it into
+               a single defined spot — the visible face of the definition layer.
+               Meaning-preserving (a conservative definitional abbreviation) and
+               reversible (unfold). The legitimacy is the body + soundness gates,
+               not the name. docs/DEFINITION_NODE.md. -->
+          <div id="definitions-panel" style="margin-top:14px; border-top:1px solid var(--ctp-surface0); padding-top:10px;">
+            <h2 style="font-size: 11px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+              Define — abstract a subgraph
+            </h2>
+            <p style="font-size:10px; color:var(--ctp-overlay0); margin-bottom:8px;">
+              Click the body elements on the canvas (the selection above), designate
+              the hook lines in argument order, name it — then fold it into one spot.
+            </p>
+            <div class="field">
+              <label>Definition name</label>
+              <input type="text" id="def-name" placeholder="Human" />
+            </div>
+            <button class="action" id="btn-def-ports" title="Then click lines (heavy spots) in argument order">
+              ⟝ Designate ports
+            </button>
+            <div id="def-ports-readout" style="font-size:10px; color:var(--ctp-mauve); min-height:14px; margin:4px 0;">ports: none</div>
+            <button class="action primary" id="btn-define-fold">Define &amp; fold selection</button>
+            <div id="def-feedback" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
+            <div id="definitions-list" style="margin-top:8px;"></div>
+          </div>
+
           <button class="action" id="btn-fix-chain" style="margin-top:8px;">② Fix this chain</button>
           <p class="gate-consequence">
             The derivation is complete — the line becomes read-only
@@ -876,6 +918,13 @@
       // so manual entry still works and the route API is unaffected.
       let selectedSubgraph = new Set();
       let selectedArea = null;
+
+      // Definition authoring (build A): the ordered hook lines (vertex ids) that
+      // become a folded spot's ports, in argument order, and whether the canvas
+      // is currently designating them (a click names the next port instead of
+      // toggling a body element). The body itself is `selectedSubgraph`.
+      let definitionPorts = [];
+      let definitionPortMode = false;
 
       // The current state's introspection block (areas + content-bearing
       // elements), carried in every session/apply payload. It lets the
@@ -1216,6 +1265,154 @@
         refreshSelectionUI();
       }
 
+      // ---- definition authoring (build A): fold-to-define / unfold ----
+
+      function setDefinitionPortMode(on) {
+        definitionPortMode = on;
+        const btn = document.getElementById('btn-def-ports');
+        if (btn) btn.classList.toggle('armed', on);
+        if (on) setStatus('Designating ports — click the hook lines in argument order.');
+      }
+
+      function toggleDefinitionPort(id) {
+        const i = definitionPorts.indexOf(id);
+        if (i >= 0) definitionPorts.splice(i, 1);
+        else definitionPorts.push(id);
+        const d = describeElement(id);
+        setStatus((i >= 0 ? 'removed port · ' : 'port ' + definitionPorts.length + ' · ') + d.label);
+        refreshDefinitionPortsUI();
+      }
+
+      function refreshDefinitionPortsUI() {
+        const out = document.getElementById('def-ports-readout');
+        if (out) {
+          out.textContent = 'ports: ' + (definitionPorts.length
+            ? definitionPorts.map((id, n) => (n + 1) + '·' + describeElement(id).label).join('   ')
+            : 'none');
+        }
+        const svgEl = canvasEl.querySelector('svg');
+        if (svgEl) {
+          svgEl.querySelectorAll('.def-port').forEach((el) => el.classList.remove('def-port'));
+          definitionPorts.forEach((id) => {
+            const g = svgEl.querySelector('[data-element-id="' + cssAttr(id) + '"]');
+            if (g) g.classList.add('def-port');
+          });
+        }
+      }
+
+      function resetDefinitionAuthoring() {
+        definitionPorts = [];
+        setDefinitionPortMode(false);
+        refreshDefinitionPortsUI();
+        const nameEl = document.getElementById('def-name');
+        if (nameEl) nameEl.value = '';
+      }
+
+      function setDefFeedback(msg, kind) {
+        const el = document.getElementById('def-feedback');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.style.color = kind === 'error' ? 'var(--ctp-red)'
+          : kind === 'ok' ? 'var(--ctp-green)' : 'var(--ctp-overlay0)';
+      }
+
+      async function defineFold() {
+        if (!currentSessionId) return;
+        const name = ((document.getElementById('def-name') || {}).value || '').trim();
+        if (!name) { setDefFeedback('Name the definition first.', 'error'); return; }
+        if (!selectedSubgraph.size) {
+          setDefFeedback('Select the body elements on the canvas (the selection above).', 'error');
+          return;
+        }
+        const fromStateId = stateIdForIndex(viewIndex);
+        const willFork = !atTip();
+        setStatus('Folding under ' + name + '…');
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/define-fold', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name,
+                selection: Array.from(selectedSubgraph),
+                ports: definitionPorts.slice(),
+                from_state_id: fromStateId,
+              }),
+            });
+          const body = await res.json();
+          if (!body.success) {
+            setDefFeedback((body.error && body.error.message) || 'Fold refused.', 'error');
+            setStatus('Define refused: ' + (body.error && body.error.message), 'error');
+            return;
+          }
+          clearSelection();
+          resetDefinitionAuthoring();
+          setDefFeedback('Defined ' + name + ' and folded the selection into one spot.', 'ok');
+          // A fold is a continuation of the same episode — hold the camera.
+          showSession({ ...body.data }, true);
+          setStatus(willFork
+            ? ('Defined ' + name + ' — forked a new branch (the original line is kept).')
+            : ('Defined and folded ' + name + '.'), 'success');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
+      async function defineUnfold(spotId) {
+        if (!currentSessionId || !spotId) return;
+        const fromStateId = stateIdForIndex(viewIndex);
+        const willFork = !atTip();
+        setStatus('Unfolding…');
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/define-unfold', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ spot_id: spotId, from_state_id: fromStateId }),
+            });
+          const body = await res.json();
+          if (!body.success) {
+            setStatus('Unfold refused: ' + (body.error && body.error.message), 'error');
+            return;
+          }
+          showSession({ ...body.data }, true);
+          setStatus(willFork
+            ? 'Unfolded — forked a new branch (the original line is kept).'
+            : 'Unfolded the spot back to its body.', 'success');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
+      // The session's authored definitions + which current-state spots can be
+      // unfolded (from the payload's `definitions` block).
+      function renderDefinitions(defs) {
+        const el = document.getElementById('definitions-list');
+        if (!el) return;
+        defs = defs || { names: [], spots: [] };
+        const names = defs.names || [];
+        const spots = defs.spots || [];
+        if (!names.length) {
+          el.innerHTML = '<div class="empty-state" style="font-size:10px;">No definitions yet.</div>';
+          return;
+        }
+        let html = '<div style="font-size:10px; color:var(--ctp-overlay0); margin-bottom:3px;">Authored definitions</div>';
+        names.forEach((n) => {
+          const live = spots.filter((s) => s.name === n);
+          html += '<div class="def-row"><code>' + escapeHtml(n) + '</code>';
+          if (live.length) {
+            html += '<span style="display:flex; gap:4px;">' + live.map((s) =>
+              '<button class="action def-unfold" data-spot="' + escapeHtml(s.edge_id) +
+              '" title="Unfold this spot back to its body">unfold</button>').join('') +
+              '</span>';
+          } else {
+            html += '<span style="font-size:9px; color:var(--ctp-overlay0);">no live spot</span>';
+          }
+          html += '</div>';
+        });
+        el.innerHTML = html;
+      }
+
       // The kind of the step the canvas is currently filling
       // ('select_subgraph' | 'select_area' | 'provide_egif' | null).
       function activeStepKind() {
@@ -1265,6 +1462,15 @@
         if (window.SettleAdjust && SettleAdjust.isEnabled()) return;
         const g = e.target.closest && e.target.closest('[data-element-id]');
         const id = g && g.getAttribute('data-element-id');
+
+        // Designating definition ports takes priority: a click names the next
+        // hook line (a vertex), in argument order, rather than selecting a body
+        // element. Only a line can be a port.
+        if (definitionPortMode) {
+          if (id && describeElement(id).type === 'vertex') toggleDefinitionPort(id);
+          else setStatus('A port is a line — click a heavy spot (line of identity).', 'error');
+          return;
+        }
 
         // Shift is always a quick "select region" override, regardless of step.
         if (e.shiftKey) { selectRegion(resolveRegionAt(e)); return; }
@@ -1682,6 +1888,7 @@
 
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && armedTool) disarmTool();
+        if (e.key === 'Escape' && definitionPortMode) setDefinitionPortMode(false);
       });
 
       // The two fixings — recorded gate steps that advance the phase.
@@ -1920,6 +2127,8 @@
         currentEgif = egifFromForms(data.linear_forms);
         renderChain(data.chain);
         renderBranches(data.branches);
+        // Session-authored definitions + which current spots can be unfolded.
+        renderDefinitions(data.definitions);
         // Phase drives the right panel (palette / rules / disposition) and
         // the banner. A payload without one (older endpoints) keeps the last.
         if (data.phase) currentPhase = data.phase;
@@ -1949,6 +2158,8 @@
         ruleParamsEl.innerHTML = '';
         btnApply.disabled = true;
         clearSelection();
+        resetDefinitionAuthoring();
+        setDefFeedback('');
       }
 
       // ---- rule parameter forms ----
@@ -2371,6 +2582,7 @@
           if (!window.SettleAdjust) return;
           const on = !SettleAdjust.isEnabled();
           SettleAdjust.setEnabled(on);
+          if (on && definitionPortMode) setDefinitionPortMode(false);
           btnSettle.classList.toggle('primary', on);
           setStatus(on
             ? 'Settle on — drag a spot, a relation, a cut (body moves it, corner resizes it), or a line to tidy. The logic is held fixed.'
@@ -2380,6 +2592,18 @@
 
       document.querySelectorAll('button.action[data-rule]').forEach((b) => {
         b.addEventListener('click', () => renderRuleParams(b.dataset.rule));
+      });
+
+      // Definition authoring (build A): port designation, fold, unfold.
+      const btnDefPorts = document.getElementById('btn-def-ports');
+      if (btnDefPorts) btnDefPorts.addEventListener('click',
+        () => setDefinitionPortMode(!definitionPortMode));
+      const btnDefineFold = document.getElementById('btn-define-fold');
+      if (btnDefineFold) btnDefineFold.addEventListener('click', defineFold);
+      const definitionsListEl = document.getElementById('definitions-list');
+      if (definitionsListEl) definitionsListEl.addEventListener('click', (e) => {
+        const btn = e.target.closest && e.target.closest('.def-unfold');
+        if (btn) defineUnfold(btn.dataset.spot);
       });
 
       // Palette tools + the Fragment graft + the two gates.

@@ -72,15 +72,28 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶▶ IMMEDIATE NEXT TASK (2026-06-18 handoff): finish BUILD A — the fold-to-define FRONTEND +
-Playwright E2E.** Backend + routes are done, tested, committed (0b1f1aa) — see ◐ DONE 2026-06-18d
-below for the exact API + the next-increment spec. Wire the on-canvas subgraph selection
-(`selectedSubgraph` in `web_viewer/ergasterion.html`) → a "Define from selection" action (name +
-**ordered port designation**: click boundary lines in argument order, "ports: x, y" readout) →
-`POST /ergasterion/sessions/{id}/define-fold`; add an **unfold** affordance on a defined spot
-(payload `definitions.spots`) → `…/define-unfold`; Playwright E2E. Memory: [[project_fold_to_define]].
-**Also deferred (not urgent): rework `docs/LEVEL_ZERO_AND_THE_REGISTERS.md` for readability** — the
-content is settled/correct but the prose is too dense (author-flagged; [[project_level_zero_registers]]).
+**▶▶▶ BUILD A IS COMPLETE (2026-06-18e).** The fold-to-define frontend + E2E shipped (see ✅ DONE
+2026-06-18e immediately below) — backend + routes + frontend + Playwright now all green. **IMMEDIATE
+NEXT TASK is now open:** pick from the fork-(c) fast-follows (multi-candidate disambiguation; LOW-warrant
+`/import/admit` persistence) OR the deferred **`docs/LEVEL_ZERO_AND_THE_REGISTERS.md` readability
+rework** (content settled/correct but prose too dense; author-flagged; [[project_level_zero_registers]]).
+See "▶▶ Other open tracks" below for the full menu.
+
+**✅ DONE 2026-06-18e — BUILD A frontend + E2E (the fold-to-define UI; build A now COMPLETE).**
+`src/web_viewer/ergasterion.html` only (unprotected; backend/routes were 0b1f1aa). A **"Define —
+abstract a subgraph"** panel inside `derive-block` (shown in the deriving/Argument workspace): a name
+input + a **"⟝ Designate ports"** toggle (`definitionPortMode`) that routes canvas clicks to an ordered
+`definitionPorts` list — a click names the next hook line (a vertex) in argument order, mauve
+`.def-port` highlight, "ports: 1·x  2·y" readout — while the existing `selectedSubgraph` stays the body.
+**Define & fold** → `POST …/define-fold` (selection=body, ports=ordered, from_state_id=current view so
+an earlier state forks a branch), resets authoring + holds the camera on success, and reports refusals
+in-panel (`#def-feedback`; a missing name is caught client-side, never reaching the server). A
+`#definitions-list` rendered from the payload's `definitions` block lists authored names with a
+per-live-spot **unfold** button → `POST …/define-unfold`. Esc and engaging Settle disarm port mode.
+Tests `tests/test_ergasterion_define_e2e.py` (2, Playwright: draw man(x)→fix→select+designate-port+fold
+→ a live unfoldable spot, 'man' abstracted away; unfold → body back, definition persists; no-name fold
+refused in-panel + non-mutating). 74 green across ergasterion/freeform/define route+E2E suites; 2 new
+E2E green; core-protection CLEAN; additive (one HTML file + one test). Memory: [[project_fold_to_define]].
 
 **▶▶ Other open tracks** — the adaptive-scope viewer track, the cross-mode
 UX pass, the FOLIO/DLCore coverage lever, **fork (a)** (EGI bridge + EPR lever), **fork (b)**
@@ -173,9 +186,9 @@ registers), DOMAIN_ORACLE_AND_M (new §4a), MODALITY_WITHOUT_GAMMA (free-to-demo
 legitimacy = its expansion + soundness gate, not its name). Core-protection clean. Memory:
 [[project_level_zero_registers]].
 
-**◐ IN PROGRESS 2026-06-18d — BUILD A: fold-to-define (author abstractions from a selection).** The
+**✅ DONE 2026-06-18d — BUILD A backend + routes (fold-to-define; frontend shipped in 18e above).** The
 visible face of the second-order/abstraction layer — *name this drawn subgraph and reuse it as a
-single spot.* **Backend + routes DONE (tested); frontend + E2E = next increment.**
+single spot.* **Backend + routes (this block) + frontend/E2E (✅ 18e above) all complete.**
 - **Backend core** (`src/definitions.py`, additive): `Definition.from_egi` (a definition whose body
   is a pre-built EGI, not EGIF text) + `definition_from_selection(egi, selection, ports, name)` —
   re-roots a selected sub-structure into a standalone body EGI so `fold_selection` can fold under it
@@ -189,10 +202,9 @@ single spot.* **Backend + routes DONE (tested); frontend + E2E = next increment.
   carries a `definitions` block (names + live spots). Tests `tests/test_ergasterion_define.py` (5):
   round trip + dangling/duplicate-name/non-spot/composing refusals. 104 green across ergasterion/
   freeform/challenge/definitions/chain-persistence; core-protection CLEAN; additive only.
-- **NEXT INCREMENT (frontend + E2E):** wire the on-canvas subgraph selection (`selectedSubgraph`) to
-  a "Define from selection" action (name + ordered port designation) → `/define-fold`; an "unfold"
-  affordance on a defined spot → `/define-unfold`; Playwright E2E. Later: folded-graph promotion to
-  Agon (expand-first), a definitions panel.
+- **Frontend + E2E: DONE (✅ 2026-06-18e above)** — the Define panel, ordered port designation, fold,
+  per-spot unfold, and 2 Playwright E2E. **Later (not built):** folded-graph promotion to Agon
+  (expand-first); a richer definitions side panel; multi-port re-ordering.
 
 **✅ DONE 2026-06-17 — fork (a): the EGI model-finder bridge + the EPR complete-decision lever.**
 Two deliverables, both sound and measured against Z3.
