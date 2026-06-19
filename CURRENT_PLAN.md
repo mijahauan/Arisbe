@@ -72,7 +72,17 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶ NEXT SESSION = open non-viewer tracks** — the adaptive-scope viewer track, the cross-mode
+**▶▶▶ IMMEDIATE NEXT TASK (2026-06-18 handoff): finish BUILD A — the fold-to-define FRONTEND +
+Playwright E2E.** Backend + routes are done, tested, committed (0b1f1aa) — see ◐ DONE 2026-06-18d
+below for the exact API + the next-increment spec. Wire the on-canvas subgraph selection
+(`selectedSubgraph` in `web_viewer/ergasterion.html`) → a "Define from selection" action (name +
+**ordered port designation**: click boundary lines in argument order, "ports: x, y" readout) →
+`POST /ergasterion/sessions/{id}/define-fold`; add an **unfold** affordance on a defined spot
+(payload `definitions.spots`) → `…/define-unfold`; Playwright E2E. Memory: [[project_fold_to_define]].
+**Also deferred (not urgent): rework `docs/LEVEL_ZERO_AND_THE_REGISTERS.md` for readability** — the
+content is settled/correct but the prose is too dense (author-flagged; [[project_level_zero_registers]]).
+
+**▶▶ Other open tracks** — the adaptive-scope viewer track, the cross-mode
 UX pass, the FOLIO/DLCore coverage lever, **fork (a)** (EGI bridge + EPR lever), **fork (b)**
 (schema-drawing/§3.3 — found already built+tested, closed), AND **fork (c) increment 1 + the
 `/agon/propose-nl` web route** (the NL→logic LLM front-end — ✅ block immediately below) are all
