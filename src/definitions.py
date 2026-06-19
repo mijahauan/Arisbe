@@ -27,7 +27,7 @@ from typing import Dict, FrozenSet, Iterable, List, Optional, Sequence, Tuple
 
 from frozendict import frozendict
 
-from egi_core_dau import Edge, ElementID, RelationalGraphWithCuts, Vertex
+from egi_core_dau import Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
 from egif_parser_dau import parse_egif
 from eg_splice import _all_ids, splice
 
@@ -47,12 +47,40 @@ class Definition:
         self.ports = tuple(ports)
         self.body_egif = body_egif
         self._body: Optional[RelationalGraphWithCuts] = None
+        # When built from a pre-existing body EGI (``from_egi``), the port host
+        # ids are known directly and ``variable_names`` lookup is bypassed.
+        self._port_ids_override: Optional[Tuple[ElementID, ...]] = None
         # validate ports resolve in the body, eagerly
         missing = [p for p in self.ports if self._port_id(p) is None]
         if missing:
             raise ValueError(
                 f"definition {name!r}: ports {missing} are not lines in the body"
             )
+
+    @classmethod
+    def from_egi(
+        cls,
+        name: str,
+        port_ids: Sequence[ElementID],
+        body_egi: RelationalGraphWithCuts,
+        *,
+        port_names: Optional[Sequence[str]] = None,
+    ) -> "Definition":
+        """A definition whose body is an already-built EGI (not EGIF text).
+
+        The companion to the EGIF constructor for **authoring a definition from a
+        drawn selection** (:func:`definition_from_selection`): the body is the
+        induced sub-EGI re-rooted on its own sheet, and ``port_ids`` are the body
+        vertices that the use-site arguments weld onto, in argument order.
+        ``variable_names`` lookup is skipped — the port ids are given directly.
+        """
+        self = cls.__new__(cls)
+        self.name = name
+        self.ports = tuple(port_names) if port_names is not None else tuple(port_ids)
+        self.body_egif = None
+        self._body = body_egi
+        self._port_ids_override = tuple(port_ids)
+        return self
 
     @property
     def arity(self) -> int:
@@ -72,6 +100,8 @@ class Definition:
 
     def port_ids(self) -> List[ElementID]:
         """The body vertex ids for ``self.ports``, in argument order."""
+        if self._port_ids_override is not None:
+            return list(self._port_ids_override)
         return [self._port_id(p) for p in self.ports]
 
     def __repr__(self) -> str:
@@ -265,6 +295,82 @@ def _mark_ports(
     return replace(egi, V=new_V)
 
 
+_BODY_SHEET = "_def_body_sheet"
+
+
+def definition_from_selection(
+    egi: RelationalGraphWithCuts,
+    selection: Iterable[ElementID],
+    ports: Sequence[ElementID],
+    name: str,
+) -> Definition:
+    """Author a :class:`Definition` ``name(ports) := body`` from a live selection.
+
+    The **abstraction front door**: name *this drawn subgraph* and reuse it as a
+    single spot.  The body is the sub-structure on ``selection`` **re-rooted** on
+    a fresh sheet — selected elements whose host parent is outside the selection
+    become top-level in the body, nesting *within* the selection is preserved, and
+    the designated ``ports`` (in argument order) are the body's free lines.
+
+    The result feeds :func:`fold_selection` directly: because the body is the
+    selection re-rooted, it is isomorphic to the selection by construction, so
+    folding under it is sound (and re-checked by ``fold_selection``'s two gates).
+
+    Raises ``ValueError`` if a selected edge references a vertex that is neither
+    selected nor a port (the body would be open — make it a port or include it),
+    or if the selection holds no edge/cut to abstract.
+    """
+    ports = tuple(ports)
+    sel = frozenset(selection) | frozenset(ports)
+
+    # Host parent (containing area) of each element.
+    parent: Dict[ElementID, ElementID] = {}
+    for area_id, contents in egi.area.items():
+        for x in contents:
+            parent[x] = area_id
+
+    def body_parent(x: ElementID) -> ElementID:
+        p = parent.get(x, egi.sheet)
+        return p if p in sel else _BODY_SHEET
+
+    sel_vertices = [v for v in egi.V if v.id in sel]
+    sel_edges = [e for e in egi.E if e.id in sel]
+    sel_cuts = [c for c in egi.Cut if c.id in sel]
+
+    if not (sel_edges or sel_cuts):
+        raise ValueError("selection holds nothing to abstract (no edge or cut)")
+
+    # Every vertex a selected edge touches must be in the body (selected or port);
+    # otherwise the abstraction would have a dangling line.
+    for e in sel_edges:
+        for vid in egi.nu.get(e.id, ()):
+            if vid not in sel:
+                raise ValueError(
+                    f"selection edge {e.id!r} references vertex {vid!r} outside "
+                    "the selection — include it in the selection or mark it a port"
+                )
+
+    # Re-rooted area map: each selected element under its host parent if that
+    # parent is also selected, else under the fresh body sheet.
+    body_area: Dict[ElementID, set] = {_BODY_SHEET: set()}
+    for c in sel_cuts:
+        body_area[c.id] = set()
+    for x in sel:
+        body_area.setdefault(body_parent(x), set()).add(x)
+
+    body = RelationalGraphWithCuts(
+        V=frozenset(sel_vertices),
+        E=frozenset(sel_edges),
+        nu=frozendict({e.id: tuple(egi.nu[e.id]) for e in sel_edges}),
+        sheet=_BODY_SHEET,
+        Cut=frozenset(sel_cuts),
+        area=frozendict({k: frozenset(v) for k, v in body_area.items()}),
+        rel=frozendict({e.id: egi.rel[e.id] for e in sel_edges}),
+        rho=frozendict({k: v for k, v in egi.rho.items() if k in sel}),
+    )
+    return Definition.from_egi(name, port_ids=ports, body_egi=body)
+
+
 def fold_selection(
     egi: RelationalGraphWithCuts,
     registry: DefinitionRegistry,
@@ -356,6 +462,6 @@ def fold_selection(
 
 
 __all__ = [
-    "Definition", "DefinitionRegistry", "expand", "expand_at", "fold",
-    "fold_selection", "FoldPoint",
+    "Definition", "DefinitionRegistry", "definition_from_selection", "expand",
+    "expand_at", "fold", "fold_selection", "FoldPoint",
 ]

@@ -1,12 +1,18 @@
 # Current Plan
 
-**Last Updated**: 2026-06-18 (session end). **This session (doctrine, no code):** discharged the
-2026-06-18 external-conversation handoff — wrote `docs/MODALITY_WITHOUT_GAMMA.md` (modality needs no
-Gamma; the diachronic DAG/corpus *is* the drawn Kripke frame; the real frontier is second-order logic
-about the graphs), reconciled MANIFEST_AND_MEANING + CHAIN_OF_SEMIOSIS (third position recorded
-*alongside* Peirce's convergence), adjusted the adaptive-scope reserved-channel wording. Bedrock
-untouched, core-protection clean. See ✅ DONE 2026-06-18b under ▶ NEXT SESSION. *(Prior-session recap
-follows.)* **This [2026-06-15] session:** committed the prior session's
+**Last Updated**: 2026-06-18 (session end). **This session (two doctrine passes, no code; then build
+A next):** (1) discharged the 2026-06-18 external-conversation handoff — `docs/MODALITY_WITHOUT_GAMMA.md`
+(modality needs no Gamma; the diachronic DAG/corpus *is* the drawn Kripke frame; real frontier =
+second-order logic about the graphs). (2) A second part-two conversation → `docs/LEVEL_ZERO_AND_THE_REGISTERS.md`
+(level 0 bears *form* not free-floating content; demonstrative vs assertoric **registers**; the
+**scroll** `cut[M cut[P]]` is the Alpha home of "given M, then P" + model-revision-as-INS — i.e. the
+Agon inning + the formal home of "free to demote"). Reconciled MANIFEST_AND_MEANING (floors #4/#6/#2 +
+membrane), CHAIN_OF_SEMIOSIS (third position + two registers), DOMAIN_ORACLE_AND_M (§4a scroll),
+adaptive-scope reserved-channel wording. Bedrock untouched, core-protection clean. **Next: BUILD A —
+fold-to-define UI** (wire the built+tested `definitions.fold_selection` into the drawing canvas:
+draw a body → fold under a named definition → unfold; the visible face of the second-order/abstraction
+layer; hard logic done, UI+route+E2E remain). See ✅ DONE 2026-06-18b/c under ▶ NEXT SESSION.
+*(Prior-session recap follows.)* **This [2026-06-15] session:** committed the prior session's
 cross-mode UX consistency pass (was done-but-uncommitted), then built **both halves of the
 FOLIO/DLCore coverage lever** — the **disjunctive case-split** (refutation) and the **finite-model
 finder** (model construction). Native FOLIO coverage **23 % → 63.2 %** at **100 % soundness vs Z3**
@@ -135,6 +141,48 @@ adaptive-scope overview). **Scoped-not-built code candidate:** an explicit *logi
 (first-class "free to demote") — verdict: **no new bedrock needed**; Agon (a graph drawn back under a
 cut + re-challenged) and `src/liveness.py` (reversible retire/revive) already cover it; at most a thin
 convenience, flagged not built. Memory: [[project_modality_without_gamma]].
+
+**✅ DONE 2026-06-18c — second doctrine pass: Level Zero + the two registers (no code).** A part-two
+conversation (archived `docs/references/EG-level-zero-conversation.pdf`) → new
+**`docs/LEVEL_ZERO_AND_THE_REGISTERS.md`**. Overwhelmingly confirmatory + foundational. Key results:
+**(a)** "context" equivocates between *enclosure* (depth, what the formal literature handles) and
+*ground* (whose sheet/universe/commitments — context-as-ground, on which level 0 is silent); the
+blank sheet is itself a graph (Peirce's Phemic Sheet; assertion = assuming responsibility = exposure =
+falsifiability). **(b)** The author's **level-0 theorem** — no unenclosed *contingent* proposition is
+derivable from the blank — confirmed from **soundness**; only scaffolding (the scroll) originates at
+depth 0. **(c)** Two **registers**: *demonstrative* (derived-truth-preservingly = the **chain**) vs
+*assertoric* (posited-under-warrant = a premise / **import at LOW warrant** / sent to Agon); the
+literature's sin is leaving the seam unmarked — Arisbe already marks it. **(d) The standout:**
+assertion has a formal Alpha home — the **scroll** `cut[ M cut[P] ]` ("P given M"), and because M sits
+in a negative context, **revising M is a sound INS on the antecedent**, not stance-taking. This is
+*literally* the Agon interpretation register's "given M, then G" inning + the formal home of the
+diachronic **"free to demote"**. **(e)** Sharpened *falsifiability* (world-facing, the membrane) vs
+*defeasibility* (in the rules, the scroll). Reconciled MANIFEST floor #2, CHAIN_OF_SEMIOSIS (two
+registers), DOMAIN_ORACLE_AND_M (new §4a), MODALITY_WITHOUT_GAMMA (free-to-demote home + footer). The
+"names can't purchase permissions" theme is the philosophical backdrop for **build A** (a definition's
+legitimacy = its expansion + soundness gate, not its name). Core-protection clean. Memory:
+[[project_level_zero_registers]].
+
+**◐ IN PROGRESS 2026-06-18d — BUILD A: fold-to-define (author abstractions from a selection).** The
+visible face of the second-order/abstraction layer — *name this drawn subgraph and reuse it as a
+single spot.* **Backend + routes DONE (tested); frontend + E2E = next increment.**
+- **Backend core** (`src/definitions.py`, additive): `Definition.from_egi` (a definition whose body
+  is a pre-built EGI, not EGIF text) + `definition_from_selection(egi, selection, ports, name)` —
+  re-roots a selected sub-structure into a standalone body EGI so `fold_selection` can fold under it
+  and `expand_at` unfold it; the body is the selection re-rooted, isomorphic by construction (and
+  re-checked by `fold_selection`'s two soundness gates). Refuses a dangling line. Tests
+  `tests/test_definition_authoring.py` (4): nested-cut + flat round-trips via `same_graph`, refusals.
+- **Routes** (`/ergasterion/sessions/{id}/define-fold` + `/define-unfold`): author+fold / unfold a
+  defined spot, recorded as meaning-preserving `definition.fold`/`definition.unfold` chain steps
+  (earlier `from_state_id` forks a branch); phase-gated to a *fixed* graph. A **session-scoped
+  `DefinitionRegistry`** on `WorkshopSession` persists authored definitions; the session payload now
+  carries a `definitions` block (names + live spots). Tests `tests/test_ergasterion_define.py` (5):
+  round trip + dangling/duplicate-name/non-spot/composing refusals. 104 green across ergasterion/
+  freeform/challenge/definitions/chain-persistence; core-protection CLEAN; additive only.
+- **NEXT INCREMENT (frontend + E2E):** wire the on-canvas subgraph selection (`selectedSubgraph`) to
+  a "Define from selection" action (name + ordered port designation) → `/define-fold`; an "unfold"
+  affordance on a defined spot → `/define-unfold`; Playwright E2E. Later: folded-graph promotion to
+  Agon (expand-first), a definitions panel.
 
 **✅ DONE 2026-06-17 — fork (a): the EGI model-finder bridge + the EPR complete-decision lever.**
 Two deliverables, both sound and measured against Z3.

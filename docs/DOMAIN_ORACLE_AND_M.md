@@ -127,6 +127,34 @@ not truth* already protects this boundary.
 
 ---
 
+## 4a. The Alpha home of the inning: the scroll, and model-revision as INS
+
+The inning "given M, then G" is not an extra-systematic frame bolted onto the
+calculus — it has a home in Alpha. "P given M" is the **scroll**
+`cut[ M cut[P] ]` = M → P: P sits at *even* depth inside (affirmed-relative-to-M),
+M at *odd* depth, in a **negative** context. Two consequences make the register
+honest:
+
+- **Choosing M, and revising it, are sound moves — not stance-taking.** Because M
+  is in a negative context, the **Insertion rule (INS)** licenses freely adding
+  conditions to it. Strengthening the antecedent — refining or revising the model
+  under which you assert G — is INS operating on the antecedent, a permission of
+  the calculus, not an extra-logical "new stand." This is the Alpha-level warrant
+  for "the choice of M is a *move*" (§4) and for the diachronic *"free to
+  demote"*: model revision *is* insertion into the conditioning context.
+- **The asymmetry is the epistemology.** Erase freely where things are affirmed
+  (positive), insert freely where things are conditioned (negative). G held under
+  M is *logically defeasible* by construction.
+
+So the semantic-game inning (`src/semantic_game.py`, `src/theory_query.py`,
+`/agon/interpret`) and the inverse pivot (§7) are reading and revising a scroll.
+The full argument is in
+[LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5; it is the
+Alpha grounding of the philosophy this document and
+[MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) have been asserting.
+
+---
+
 ## 5. Cost reality
 
 OWL→CLIF→EGI layout is super-linear (~74s at 127 axioms, observed). So **never

@@ -56,6 +56,8 @@ from web_api.models.api_models import (
     ErgasterionApplyRequest,
     ErgasterionClosureRequest,
     ErgasterionComposeRequest,
+    ErgasterionDefineFoldRequest,
+    ErgasterionDefineUnfoldRequest,
     ErgasterionDrawingRequest,
     ErgasterionFixRequest,
     ErgasterionOpenRequest,
@@ -86,6 +88,12 @@ from composition_ops import (
 )
 from correspondence_attestation import CorrespondenceViolation
 from challenge_mode import get_challenge, grade, list_challenges
+from definitions import (
+    DefinitionRegistry,
+    definition_from_selection,
+    expand_at,
+    fold_selection,
+)
 from drawing_to_egi import build_egi_from_drawing
 from drawing_validity import validate_drawing
 from layout_dto import BoundingBox, LayoutDTO, LigaturePath, Point
@@ -187,6 +195,20 @@ def _branches_summary(session: WorkshopSession) -> dict:
     }
 
 
+def _definitions_summary(session: WorkshopSession) -> dict:
+    """Session-authored definitions + which current-state edges are defined
+    spots — so the client can list abstractions and offer "unfold" on a spot."""
+    names = session.definition_registry.names()
+    nameset = set(names)
+    egi = session.current_egi
+    spots = [
+        {"edge_id": eid, "name": rel}
+        for eid, rel in egi.rel.items()
+        if rel in nameset
+    ]
+    return {"names": names, "spots": spots}
+
+
 def _session_payload(session: WorkshopSession, svg: str) -> dict:
     """Standard response shape for any endpoint that returns a session state."""
     return {
@@ -211,6 +233,9 @@ def _session_payload(session: WorkshopSession, svg: str) -> dict:
         "linear_forms": linear_forms(session.current_egi),
         "chain": _chain_summary(session),
         "branches": _branches_summary(session),
+        # Session-authored definitions (the abstraction layer) + which current
+        # spots are unfoldable.
+        "definitions": _definitions_summary(session),
         # Recorded regime-3 hand-adjustments for the current state (Settle ④b) —
         # the sparse human overrides that a re-render replays over the base
         # layout.  Tagged with each target's structural description.
@@ -1469,6 +1494,211 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
                 "message": str(exc),
                 "type": type(exc).__name__,
             },
+        )
+
+
+def _define_state(session, request):
+    """Resolve and phase-gate the state a define-fold/unfold acts from.
+
+    Returns ``(from_state_id, from_egi, None)`` on success, or
+    ``(None, None, ApiResponse)`` carrying the refusal."""
+    from_state_id = request.from_state_id or session.chain.current_state_id
+    from_egi = session.chain.states.get(from_state_id)
+    if from_egi is None:
+        return None, None, ApiResponse(
+            success=False,
+            error={
+                "code": "STATE_NOT_FOUND",
+                "message": (
+                    f"Cannot act from state '{from_state_id}': not part of this "
+                    "session's active branch."
+                ),
+            },
+        )
+    phase = phase_at_state(session, from_state_id)
+    if phase == "composing":
+        return None, None, _phase_refusal(
+            "The graph isn't fixed yet — fix the graph (gate ①) before "
+            "abstracting a definition.",
+            phase=phase,
+        )
+    if phase == "sealed":
+        return None, None, _phase_refusal(
+            "This chain is fixed — step back before the fixing to fork a new "
+            "line, or open a new session.",
+            phase=phase,
+        )
+    return from_state_id, from_egi, None
+
+
+@router.post("/sessions/{session_id}/define-fold")
+async def define_fold(session_id: str, request: ErgasterionDefineFoldRequest):
+    """Author a definition from a selection and fold the selection under it.
+
+    The **abstraction** move: name *this drawn subgraph* ``name(ports) := body``
+    and replace it with a single spot.  Meaning-preserving (a conservative
+    definitional abbreviation — ``docs/DEFINITION_NODE.md``), reversible via
+    ``/define-unfold``, and recorded as a ``definition.fold`` chain step (an
+    earlier ``from_state_id`` forks a branch).  The definition's legitimacy comes
+    from its body + the two soundness gates in ``fold_selection``, not its name.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+
+        from_state_id, from_egi, refusal = _define_state(session, request)
+        if refusal is not None:
+            return refusal
+
+        name = request.name.strip()
+        if not name:
+            return ApiResponse(
+                success=False,
+                error={"code": "BAD_DEFINITION", "message": "A definition needs a name."},
+            )
+        registry = session.definition_registry
+        if name in registry:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "DEFINITION_EXISTS",
+                    "message": f"A definition named '{name}' already exists in this session.",
+                },
+            )
+
+        try:
+            defn = definition_from_selection(
+                from_egi, request.selection, request.ports, name
+            )
+            # Fold against a throwaway registry; only commit the definition to
+            # the session on success (no half-registered name on refusal).
+            folded = fold_selection(
+                from_egi, DefinitionRegistry([defn]), name,
+                request.selection, request.ports,
+            )
+        except ValueError as exc:
+            return ApiResponse(
+                success=False,
+                error={"code": "FOLD_REFUSED", "message": str(exc)},
+            )
+
+        registry.add(defn)
+        new_dto, svg = generate_layout(
+            folded, previous_layout=session.current_layout_dto,
+            style_name=session.style_name,
+        )
+        manager.add_step(
+            session_id,
+            rule_name="definition.fold",
+            parameters={
+                "name": name,
+                "ports": list(request.ports),
+                "selection": list(request.selection),
+            },
+            result_egi=folded,
+            new_layout_dto=new_dto,
+            from_state_id=from_state_id,
+            user_annotation=request.user_annotation,
+        )
+        session = manager.get_session(session_id)
+        return ApiResponse(success=True, data=_session_payload(session, svg))
+
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={
+                "code": "CORRESPONDENCE_VIOLATION",
+                "message": str(exc),
+                "context": getattr(exc, "context", None),
+            },
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "DEFINE_FOLD_ERROR", "message": str(exc), "type": type(exc).__name__},
+        )
+
+
+@router.post("/sessions/{session_id}/define-unfold")
+async def define_unfold(session_id: str, request: ErgasterionDefineUnfoldRequest):
+    """Unfold a defined spot back to its body — the inverse of ``/define-fold``
+    (``definitions.expand_at``).  Recorded as a ``definition.unfold`` step."""
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+
+        from_state_id, from_egi, refusal = _define_state(session, request)
+        if refusal is not None:
+            return refusal
+
+        spot_id = request.spot_id
+        rel = from_egi.rel.get(spot_id)
+        registry = session.definition_registry
+        if rel is None or rel not in registry:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "NOT_A_DEFINED_SPOT",
+                    "message": (
+                        f"Element '{spot_id}' is not a defined spot in this "
+                        "session (no session definition for it to unfold)."
+                    ),
+                },
+            )
+
+        try:
+            unfolded = expand_at(from_egi, registry, spot_id)
+        except ValueError as exc:
+            return ApiResponse(
+                success=False,
+                error={"code": "UNFOLD_REFUSED", "message": str(exc)},
+            )
+
+        new_dto, svg = generate_layout(
+            unfolded, previous_layout=session.current_layout_dto,
+            style_name=session.style_name,
+        )
+        manager.add_step(
+            session_id,
+            rule_name="definition.unfold",
+            parameters={"spot_id": spot_id, "name": rel},
+            result_egi=unfolded,
+            new_layout_dto=new_dto,
+            from_state_id=from_state_id,
+            user_annotation=request.user_annotation,
+        )
+        session = manager.get_session(session_id)
+        return ApiResponse(success=True, data=_session_payload(session, svg))
+
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={
+                "code": "CORRESPONDENCE_VIOLATION",
+                "message": str(exc),
+                "context": getattr(exc, "context", None),
+            },
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "DEFINE_UNFOLD_ERROR", "message": str(exc), "type": type(exc).__name__},
         )
 
 

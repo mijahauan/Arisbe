@@ -81,6 +81,37 @@ class ErgasterionApplyRequest(BaseModel):
     from_state_id: Optional[str] = None
 
 
+class ErgasterionDefineFoldRequest(BaseModel):
+    """Author a definition from a selection and fold the selection under it —
+    the abstraction move (``definitions.definition_from_selection`` +
+    ``fold_selection``).
+
+    ``name`` is the new relation; ``selection`` is the host element ids forming
+    the body; ``ports`` are the host vertex ids that become the spot's hooks, in
+    argument order.  The fold is recorded as a meaning-preserving
+    ``definition.fold`` chain step; an earlier ``from_state_id`` forks a branch.
+    """
+
+    name: str
+    selection: List[str]
+    ports: List[str]
+    user_annotation: Optional[str] = None
+    from_state_id: Optional[str] = None
+
+
+class ErgasterionDefineUnfoldRequest(BaseModel):
+    """Unfold a defined spot back to its body (``definitions.expand_at``).
+
+    ``spot_id`` is the host edge id of the defined-relation spot (its relation
+    must be a definition the session has authored).  Recorded as a
+    ``definition.unfold`` step; an earlier ``from_state_id`` forks a branch.
+    """
+
+    spot_id: str
+    user_annotation: Optional[str] = None
+    from_state_id: Optional[str] = None
+
+
 class ErgasterionComposeRequest(BaseModel):
     """One palette action in a session's *composing* phase (regime 1).
 

@@ -29,6 +29,7 @@ if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
 from composition_ops import FIX_CHAIN_STEP, FIX_GRAPH_STEP
+from definitions import DefinitionRegistry
 from egi_core_dau import RelationalGraphWithCuts
 from layout_dto import LayoutDTO
 from tomos_service import ChainStep, TransformationChain
@@ -120,6 +121,11 @@ class WorkshopSession:
     # the seed for diachronic inheritance (effective = surviving-id parent deltas
     # ⊕ authored-here).  See docs/PRESENTATION_DELTAS_AND_STYLE.md.
     presentation_deltas: Dict[str, List[PresentationDelta]] = field(default_factory=dict)
+    # Session-scoped definitions the user has authored from selections (the
+    # abstraction layer — `definitions.definition_from_selection`).  Held in
+    # memory for the session's life so a folded spot can be unfolded later and
+    # the same name reused.  Ephemeral like the session itself.
+    definition_registry: DefinitionRegistry = field(default_factory=DefinitionRegistry)
     created: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_accessed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 

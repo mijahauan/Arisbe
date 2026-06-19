@@ -99,7 +99,16 @@ chord, and leave the choice live.
 2. **Falsifiability is in the rules, not a policy.** Insertion into a
    negative context (entertain *anything*) and erasure from a positive
    context (relinquish *any* assertion) are both legal moves of the
-   calculus. Everything can be walked back toward the blank sheet.
+   calculus. Everything can be walked back toward the blank sheet. Read as an
+   epistemology, that asymmetry is the whole posture: *erase freely where things
+   are affirmed, insert freely where things are conditioned.* What the rules
+   supply is **logical defeasibility** (content held under negation, walkable
+   back); **empirical falsifiability** — Popper's world-facing exposure — is the
+   membrane's business, not the mark's. And assertion itself has a formal home in
+   the calculus: the **scroll** `cut[ M cut[P] ]` ("P given M"), where revising M
+   is just INS on the negative-context antecedent — the Alpha warrant for the
+   diachronic "free to demote." See
+   [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md).
 3. **We attest correspondence, never truth.** Dau guarantees the calculus
    is truth-*preserving*, not truth-*producing*. §3.3 is internal
    consistency — the chord — not warrant about the world.

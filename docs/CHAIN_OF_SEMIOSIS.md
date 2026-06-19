@@ -168,6 +168,20 @@ context. Until then it is a *form*: convenient, suggestive, possibly
 deceptive, but not yet an assertion. (See "The regimes and the chain,"
 below, and [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md) §4.)
 
+**Two registers, and the seam the textbooks erase.** An EG drawing can stand in
+either of two provenances, and the literature's habit of printing both flush
+together — "scribe on the sheet = assert" — erases a real distinction. A
+*derived* graph is **demonstrative**: reached from the blank by truth-preserving
+steps, it inherits the blank sheet's warrant — this is the **chain** above. A
+*posited* graph is **assertoric**: a premise scribed on the Sheet of Assertion,
+overwhelmingly contingent, with no warrant from the calculus at all — its warrant
+comes from the utterer's exposure and rises only by withstanding challenge. In
+Arisbe that is a graph admitted at **low warrant** (import) or **sent to Agon**,
+never a product of the chain. The architecture *marks the seam the textbooks
+leave unmarked* — derived-truth-preservingly vs. posited-under-warrant are
+different relations to a context, not one undifferentiated drawing. See
+[LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md).
+
 ---
 
 ## The regimes and the chain

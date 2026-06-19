@@ -242,7 +242,10 @@ status of the last-standing trajectory** — the line that has not been pruned �
 *conferred* by the enacted history yet *answerable* beyond it, free to be demoted on
 better information or changed need. Conferred-yet-answerable is the needle the whole
 account threads, and the diachronic framing threads it without either horn (MANIFEST
-floor #4; realized in part by [`src/liveness.py`](../src/liveness.py)).
+floor #4; realized in part by [`src/liveness.py`](../src/liveness.py)). "Free to
+demote" even has a formal home in Alpha — model revision is INS on the negative-context
+antecedent of the scroll `cut[ M cut[G] ]` — see
+[LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5.
 
 And the ground. The conversation stakes a **third position** on what "demote"
 answers to. Within any chosen game, the modal vocabulary really is just bookkeeping
@@ -263,6 +266,7 @@ standing on something it didn't lay down.*
 
 *Companion to [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
 [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md),
+[LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md),
 [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md), and
 [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md). Source:
 [references/EG-modality-conversation.pdf](references/EG-modality-conversation.pdf).*
