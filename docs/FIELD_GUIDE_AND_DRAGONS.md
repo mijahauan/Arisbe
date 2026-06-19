@@ -15,7 +15,7 @@ viewer and check.
 
 ---
 
-## Before the dragons: three things to hold onto
+## Before the dragons: four things to hold onto
 
 **1. The graph *is* the proposition — not a picture about it.** A bar chart is a
 picture *about* some numbers. An Existential Graph is not about a proposition; it
@@ -39,6 +39,32 @@ dragons:
 
 A drawing on the sheet does not, by looking at it, tell you which of these it is.
 Keeping them apart is most of wisdom here.
+
+**4. A fragment is a building block, not the building — so ask after its
+context.** This is the habit that protects you from most misreadings, and it is
+worth keeping for life, not just while learning. When you meet a bare expression
+sitting alone — `(Cat *x) (On x *y) (Mat y)` on an otherwise empty page — your
+*first* reflex should be: **what context lets me read this?** An isolated graph is
+almost always an **extract** — a word pulled from a sentence, a single frame
+lifted from a movie, one step cut out of a sequence. Its appearing alone usually
+says more about the size of the page, or the one narrow point an author is
+illustrating, than about any complete claim. Two kinds of context are doing silent
+work, and both matter:
+
+- **The structural context** — the rest of the graph it was cut from: *which cuts
+  enclose it, which lines run through it.* As the dragons below show, one oval more
+  or less flips "is" into "isn't," "some" into "every." A fragment shown without
+  its enclosing cuts has had its meaning amputated.
+- **The ground** — the universe of discourse the graph is asserted *in*: *whose
+  sheet it is, what is taken as understood between the parties.* Peirce built this
+  in deliberately — the sheet is not a neutral blank but an **index of a universe
+  already agreed**. A graph is never floating free over nothing; it is scribed onto
+  a sheet that already posits a world.
+
+So never take a lone fragment at face value as a finished thought. Find — or ask
+for — the whole it belongs to, and the ground it stands on. (The textbook habit of
+printing fragments *without* their ground is the very thing that breeds the next
+section's confusion.)
 
 ---
 
@@ -69,6 +95,15 @@ the seam unmarked. Arisbe marks it: a posited premise enters at **low warrant**
 (carrying where it came from), while a theorem is the end of a chain of sound
 steps. Same picture; two completely different standings; which one it is *is* the
 question.
+
+And pair this with the second reflex (point 4 above): cat-on-mat shown by itself
+is almost certainly an **extract**. Even granting it was posited, ask *what whole
+it is a piece of and what universe it stands in* — is it the premise of an
+argument whose conclusion is off the page? a single state in a sequence the author
+abbreviated? a sub-graph that, in its real setting, sits inside a cut that would
+reverse its force? The bare fragment is a word, not the sentence; a frame, not the
+movie. Read it as a building block awaiting its building, and you will not mistake
+an illustration for a claim.
 
 > **Try it.** Ask Arisbe to *derive* an unenclosed contingent atom from the blank
 > sheet. You can't — there is no legal sequence of rules that does it. Then notice
@@ -235,6 +270,10 @@ survived?). If the answer is "just the name," it counts for nothing.
 
 Four headings that keep you off the rocks:
 
+- **A fragment is a building block — ask after its context and ground.** A lone
+  graph is usually an extract: find the whole it was cut from (which cuts enclose
+  it) and the universe it is asserted in. A word is not the sentence; a frame is
+  not the movie. (Point 4; the silent partner of every dragon below.)
 - **Posited vs. derived.** Always know whether a graph is a premise you put there
   or a theorem the rules handed you. (Dragons 1-of-cat-on-mat, 8.)
 - **Inside vs. outside a cut flips everything.** One oval is the difference between
