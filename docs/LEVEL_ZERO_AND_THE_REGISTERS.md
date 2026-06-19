@@ -14,9 +14,15 @@ second part of a 2026-06 conversation, archived at
 
 ## The thesis, flatly
 
-**Level 0 is not a surface that says something true; it is a surface that
-*cannot say*.** The recto bears *form* — the conditional scaffolding, the scroll,
-structures that are valid or model-relative — and the saying of any contingent
+**Level 0 is not a surface that says something true; on its depth-0 marks no
+contingent saying is *constituted by the marks themselves*.** *(Qualified post-
+examination — see [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §3 and
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md): the precise claim is that
+the **demonstrative** recto cannot *derive* contingent content, and the bare
+depth-0 position does not, by itself, *assert* it — **not** that the Sheet of
+Assertion cannot bear a posited contingent premise, which is its primary office,
+§4.)* The recto bears *form* — the conditional scaffolding, the scroll, structures
+that are valid or model-relative — and the saying of any *derived* contingent
 content happens **always-already conditioned, inside, under the exposure of a
 negative context.** "Assertion" is not a graphical permission that lives at even
 depth; it is a name for what a scribing *does* in the hands of an utterer before
@@ -204,9 +210,11 @@ conditional? The answer is *yes, and that is the point*, because it **generalize
 the level-0 theorem rather than breaking it. Level 0 now carries only **logical
 form** — the scroll, the scaffolding, structures valid or model-relative — and never
 bare contingent content, which always lives conditioned inside. "No unenclosed
-contingent proposition" is thereby promoted from a fact about *theorems* to a
-**constitutional rule about what the Sheet of Assertion is *for*:** it holds form,
-not free-floating content. And the level-0 scaffold is itself defeasible, because
+*derived* contingent proposition" is thereby promoted from a fact about *theorems*
+to a **constitutional rule about what the *demonstrative recto* holds as form:**
+the calculus delivers form, never bare contingent content — the assertoric office
+to *posit* a contingent premise is preserved alongside, unaffected (the next
+paragraph guards exactly this). And the level-0 scaffold is itself defeasible, because
 the sheet has no external boundary — there is no incorrigible tier; the regress
 does not bottom out in a privileged surface, it bottoms out in the **blank**, which
 is no content at all (MANIFEST floor #1; the unenclosable ground of
@@ -242,11 +250,15 @@ as the eliminative-vs-reduction joint in MODALITY_WITHOUT_GAMMA §8, and it is l
 open on the same grounds: the explication is worth more than its cost, and the
 structure stands either way.
 
-**The committed position** (the author's, recorded): we cannot *say* anything at
-level 0, and the value is in the process that **tests, evaluates, interprets, and
-decides** how to use what we propose in the context of a model — or of others. The
-only "assertion" worth the word is the one that scribes itself where it can still
-be wrong.
+**The committed position** (the author's, recorded — qualified per the
+examination): the depth-0 *marks* do not, by themselves, *constitute* a contingent
+saying (the demonstrative recto cannot derive one; the bare position does not
+assert one), and the value is in the process that **tests, evaluates, interprets,
+and decides** how to use what we propose in the context of a model — or of others.
+This does not forbid the assertoric register from *positing* an unenclosed premise
+— that is the Sheet of Assertion's office; the discipline is to keep the register
+legible, not to refuse the posit. The only "assertion" worth the word is the one
+that scribes itself where it can still be wrong.
 
 ---
 

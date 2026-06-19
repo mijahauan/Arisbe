@@ -16,9 +16,15 @@ Distilled from a 2026-06 conversation, archived at
 **Gamma, conceived as a *modal* extension, is not a problem Arisbe needs to
 solve.** Beta Existential Graphs in their full Arisbe-*diachronic* form — the
 sheet plus the rule-governed history of sheets, plus the corpus of universes —
-express **everything** the modern □ and ◇ express, and express it with *better
-clarity*, because the apparatus those operators quietly presuppose is **drawn**
-rather than hidden in a metalanguage. Peirce reached for the broken cut and then
+express the work of the modern □ and ◇ *with no new modal mark*, and express it
+with *better clarity*, because the apparatus those operators quietly presuppose is
+**drawn** rather than hidden in a metalanguage. *(Scope, post-examination — see §3
+and [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §4: the "expresses
+everything □/◇ express, no gap" guarantee is exact for **propositional** modal
+logic via van Benthem; the first-order-with-identity modality the §2 construction
+features lies beyond that theorem and carries its own declared commitments. The
+load-bearing claim — **no new mark** — is untouched; the unconditional
+completeness boast is scoped down to adequacy.)* Peirce reached for the broken cut and then
 the tinctures to carry modality on a single static sheet; the load they were
 meant to bear is carried, exactly and without remainder, by the diachronic
 structure Arisbe already maintains and attests.
@@ -100,14 +106,31 @@ case is Arisbe's home ground.
 
 ## 3. Why this is complete, and why it is clearer
 
-**Complete.** By the standard translation, modal logic is a *fragment* of
-first-order logic — and van Benthem's theorem pins down which fragment: modal
-logic is exactly the **bisimulation-invariant fragment of FOL**. Two consequences
-follow. First, there is no expressive demand □/◇ can make that Beta-over-the-drawn-
-frame cannot already meet — so no modal mark is needed to fill a gap, because there
-is no gap. Second, Beta over the frame is *strictly more expressive* than the modal
-language (it can say frame-dependent things no modal formula can). The
-expressivity inclusion runs the safe direction.
+**Complete — for the propositional fragment, and that is the right scope.** By the
+standard translation, *basic propositional* modal logic is a *fragment* of
+first-order logic — and van Benthem's theorem pins down which fragment: it is
+exactly the **bisimulation-invariant fragment of FOL**. Two consequences follow.
+First, there is no expressive demand *propositional* □/◇ can make that
+Beta-over-the-drawn-frame cannot already meet — so no modal mark is needed to fill
+a gap, because there is no gap. Second, Beta over the frame is *strictly more
+expressive* than the propositional modal language. The expressivity inclusion runs
+the safe direction.
+
+*An adversarial examination (see [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md)
+§4 and [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)) forced one
+correction here, and it is important: van Benthem's theorem is about the
+**propositional** modal language. The moment §2's crux carries a **line of
+identity across a transition**, we are in **first-order modal logic with identity**
+(QML), which that theorem does not govern. So the "no gap" guarantee is genuine for
+the propositional fragment and does **not** transfer automatically to the
+with-identity case the §2 construction features. The architectural claim — that no
+new modal **mark** is needed — is untouched (a line across the DAG is still no
+broken cut, no tincture). But the carried line makes substantive, contested
+commitments — the **necessity of identity**, and with a fixed carried domain the
+**converse Barcan formula** — that depend on a **domain policy** (constant vs.
+varying/expanding) we owe and here flag as undischarged, rather than treating
+trans-world identity as unproblematic "home ground." The honest claim is therefore
+**adequacy, not unconditional completeness.***
 
 **Clearer.** The operator achieves its concision by *hiding* the frame: its
 semantics is a quantification deferred to a metalanguage the reader must supply.
@@ -125,12 +148,18 @@ structure you can walk.
 The claim is definitive *because* it is bounded. Three limits, stated plainly:
 
 1. **First-order-definable frames only.** The standard translation captures the
-   modal logics whose frame conditions are first-order definable — K, T, S4, S5,
-   and the ordinary company of "the modern use of □ and ◇." Genuinely
-   non-first-order conditions (Löb / GL well-foundedness, certain infinitary
-   notions) are not first-order expressible and so fall outside the construction.
-   They lie outside ordinary modal practice, and we flag them rather than claim
-   them.
+   modal logics whose frame conditions are first-order definable — K, T, S4, S5.
+   Genuinely non-first-order conditions are not first-order expressible and so fall
+   outside the construction — and these are **not** exotic: GL/provability
+   (Löb well-foundedness), common-knowledge (transitive closure), and
+   temporal-liveness modalities are everyday, and the §1 provability/trajectory
+   reading is itself GL-shaped — *gestured at* there, not constructed. They are
+   honestly reclassified as part of the **§7 second-order residue**, not claimed.
+   Counterfactuals (Lewis/Stalnaker sphere semantics, not a single accessibility
+   relation R) and the object-language **actuality operator @** (forgone by
+   principle — [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) floor #6 forbids
+   any mark bearing actuality) are likewise not served. "Modality without Gamma" is
+   thus narrower than total, and we flag the boundary rather than paper over it.
 
 2. **Succinctness traded for explicitness.** A modal formula can be exponentially
    more compact than its first-order translation. Arisbe deliberately accepts the
@@ -256,11 +285,24 @@ bigger model. It is *realist about the ground*: the un-enclosable containment an
 game whatsoever presupposes, shown by structure (every graph stands on a sheet it
 cannot enclose) and never asserted as a graph. So demotion answers neither to a
 future consensus nor to a standing fact, but to *that* — a reality that can overturn
-any standing without ever being a standing itself. This is a sharper disagreement
-with Peirce's regulative convergence than fallibilist humility, and we own the
-distance: reality is **upstream and around**, the condition for there being play,
-not **downstream**, the terminus play converges to. *The last-one-standing is always
+any standing without ever being a standing itself: reality is **upstream and
+around**, the condition for there being play. *The last-one-standing is always
 standing on something it didn't lay down.*
+
+*Examined (2026-06-19; [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §2,
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)). The "third position" is
+held with its distance from Peirce now precisely measured, not overstated. What is
+**secured**: the eliminative/negative orientation — demotion is driven from behind,
+by what overturns a standing (Peirce's own* Fixation of Belief *engine), and the
+ground so encountered is cognizable* in its effects*, hence not the incognizable
+thing-in-itself. What is **at parity, not won**: the disagreement is no longer
+"inquiry never converges" (which dissolved into sophisticated Peirce) but a single
+meta-level question — whether the corrected sequence converges on a real
+*toward-which* (Peirce) or only ever overturns with no privileged terminus (the
+author). Reserving "reality" for the upstream ground is a choice of where to point
+the word, **held at parity, not a refutation**; the joint (whether the regress of
+standards closes) is undischarged on both sides. We keep the picture and own the
+debt.*
 
 ---
 

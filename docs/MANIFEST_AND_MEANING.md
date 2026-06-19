@@ -79,17 +79,25 @@ bare yet always pushes back. Reverence threads between the two errors — a real
 never hold in hand, and no mark that escapes to it.
 
 *Where the real stands is itself contested, and we record two readings rather than
-collapse them.* Peirce's regulative hope places it **downstream**: the real is what
-the corrected traffic across the membrane *converges toward*, the limit of inquiry.
-A second reading — the author's, argued in
-[MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §8 — places it **upstream and
-around**: the real is the un-enclosable ground that any inquiry presupposes (the
-very membrane this section names), the condition for there being play rather than
-its terminus. On the second reading inquiry never converges and need not; demotion
-"never ends and never need arrive anywhere." The two part ways on what "the real
-pushes back" *toward* — a final consensus, or a containment no game can take as its
-object — and on each the membrane discipline is the same. We hold them in the same
-chord, and leave the choice live.
+collapse them — in the precise form a five-round adversarial examination left them
+([FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §2;
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)).* What the examination
+**secured for both readings**: the real is felt as *push* — it overturns standings
+(the hole, the crop, the recalcitrant fact), and inquiry is driven from behind,
+away from doubt and error. This negative orientation is Peirce's own (the
+*Fixation of Belief* engine), and the real so encountered is cognizable *in its
+effects*, hence **not** the incognizable thing-in-itself. It also secured that "is
+this nearer the real?" is a **first-order non-locution**: a representation cannot
+scribe its own distance to the limit of the sequence it belongs to. Where the
+readings still **part ways is one rung up**, at parity: Peirce's regulative hope
+places the real **downstream**, as what the corrected traffic *converges toward*,
+its push cashed as "pushes *toward*" a real attractor; the author's reading places
+it **upstream and around**, the un-enclosable ground (this very membrane), push
+cashed by overturning-power alone, with "reality" reserved for that ground and the
+name *refused* to any meta-limit — a choice of where to point the word, not a
+refutation. Whether the meta-sequence converges turns on an open joint neither side
+has closed (whether the regress of standards settles); on each reading the membrane
+discipline is the same. We hold them in the same chord, and leave the choice live.
 
 ## What the bridge obliges us to build — the practical floor
 
