@@ -1,7 +1,22 @@
 # Current Plan
 
-**Last Updated**: 2026-06-18 (session end). **This session (two doctrine passes, no code; then build
-A next):** (1) discharged the 2026-06-18 external-conversation handoff — `docs/MODALITY_WITHOUT_GAMMA.md`
+**Last Updated**: 2026-06-19 (session end). **▶▶▶ NEXT SESSION = UX (deliberately deferred for a
+while; now the focus).** This session: (1) **shipped BUILD A frontend** — the fold-to-define UI +
+Playwright E2E (commit fdf4cb8; build A now complete end-to-end). (2) Discharged the author's
+**fidelity-to-Peirce** request: wrote `docs/FIDELITY_AND_DEPARTURES.md` (the debt + three departures +
+their Peirce-rooted justifications + points of confusion) and ran a **five-round multi-agent adversarial
+examination** (`docs/ADVERSARIAL_EXAMINATION.md`) — all three departures **survive WITH AMENDMENT**; the
+four doctrine docs were amended to their post-examination form (Departure I "inquiry doesn't converge"
+fell to one open joint held at parity, negative orientation secured from Peirce's own *Fixation*; II/III
+survive as scope-corrections). Commit 406746b. (3) Wrote a **beginner field guide** —
+`docs/FIELD_GUIDE_AND_DRAGONS.md` (plain on-ramp + 8 "here-be-dragons" pitfalls with EGIF examples
+*verified against the parser/FOPL*; + the **context reflex**: a fragment is a building block, ask after
+its ground). Commits 2115e5f / 30b081b. **Bedrock untouched, core-protection CLEAN throughout; all
+pushed.** Memories: [[project_fidelity_and_departures]], [[feedback_newcomer_accessibility_dragons]],
+[[project_fold_to_define]]. **The UX has been neglected while doctrine/backend ran — next session turns
+to how all of this *plays out in the interface* (see the ▶ NEXT SESSION UX block below).**
+
+*(Prior session recap — 2026-06-18, two doctrine passes:)* (1) discharged the 2026-06-18 external-conversation handoff — `docs/MODALITY_WITHOUT_GAMMA.md`
 (modality needs no Gamma; the diachronic DAG/corpus *is* the drawn Kripke frame; real frontier =
 second-order logic about the graphs). (2) A second part-two conversation → `docs/LEVEL_ZERO_AND_THE_REGISTERS.md`
 (level 0 bears *form* not free-floating content; demonstrative vs assertoric **registers**; the
@@ -72,12 +87,34 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶▶ BUILD A IS COMPLETE (2026-06-18e).** The fold-to-define frontend + E2E shipped (see ✅ DONE
-2026-06-18e immediately below) — backend + routes + frontend + Playwright now all green. **IMMEDIATE
-NEXT TASK is now open:** pick from the fork-(c) fast-follows (multi-candidate disambiguation; LOW-warrant
-`/import/admit` persistence) OR the deferred **`docs/LEVEL_ZERO_AND_THE_REGISTERS.md` readability
-rework** (content settled/correct but prose too dense; author-flagged; [[project_level_zero_registers]]).
-See "▶▶ Other open tracks" below for the full menu.
+**▶▶▶ IMMEDIATE NEXT TASK (2026-06-19 handoff): the UX pass — "how all this plays out in the
+interface."** The author flagged that UX has been deliberately neglected while doctrine and backend ran,
+and the next session turns to it. This is an **explore-and-decide** session first, not a fixed build:
+*open the three modes and ask where the doctrine and the pedagogy should become visible.* Candidate
+threads (to scope with the author, not a committed list):
+- **Make posited-vs-derived / the warrant gradient visible.** The cat-on-mat answer (low-warrant import
+  vs derived chain) is the deepest distinction in the field guide, and right now it is barely surfaced in
+  the UI. How does a graph's *standing* (posited at LOW warrant · derived chain · withstood Agon · style-
+  only reprojection) show on screen? ([[project_import_low_warrant_and_floor]], [[project_fidelity_and_departures]].)
+- **The context reflex in the UI.** A learner who sees a fragment should be able to *ask after its
+  ground/whole* — which UoD/universe it lives in (Organon shows this), which chain it is a step in
+  (Ergasterion), which cuts enclose it. Surface "this is a fragment of …" rather than presenting graphs
+  as free-floating. ([[feedback_newcomer_accessibility_dragons]] — context-as-ground.)
+- **"Correspondence, not truth" made legible.** §3.3 attests silently; the UI could make the chord
+  (picture↔proposition) and its *non*-claim about truth visible, so users don't read attestation as a
+  truth-verdict.
+- **A "dragons" challenge set.** The 8 field-guide pitfalls map ~1:1 onto challenge-mode targets — seed a
+  difficulty set so a learner meets each dragon by drawing it and getting graded (the field guide → hands-
+  on practice). Lowest-risk, highest-pedagogical-value starter.
+- **General cross-mode learner affordances.** The last focused UX pass was the 2026-06-15 cross-mode
+  consistency pass (design-system.css, camera, vocab); this is the first UX pass aimed at *newcomers and
+  the doctrine's legibility*, not internal consistency.
+
+**▶▶ Also still open (deferred, not urgent):** fork-(c) fast-follows (multi-candidate disambiguation;
+LOW-warrant `/import/admit` persistence); the **`docs/LEVEL_ZERO_AND_THE_REGISTERS.md` readability
+rework** (author-flagged; [[project_level_zero_registers]]); the **reflexive-diagonal** argument for
+Departure I's open joint ([[project_fidelity_and_departures]]). See "▶▶ Other open tracks" below for the
+full menu.
 
 **✅ DONE 2026-06-18e — BUILD A frontend + E2E (the fold-to-define UI; build A now COMPLETE).**
 `src/web_viewer/ergasterion.html` only (unprotected; backend/routes were 0b1f1aa). A **"Define —
