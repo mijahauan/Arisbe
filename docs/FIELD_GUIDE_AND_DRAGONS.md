@@ -290,7 +290,13 @@ Four headings that keep you off the rocks:
 > immediately whether your picture says what you meant (dragons 1-5 surface here
 > instantly). **Challenge mode** gives you a target proposition, lets you draw it
 > freehand, and grades your attempt with a plain-language diff of how it differs.
-> Those two are the fastest way to meet the dragons safely.
+> The five drawable dragons above each have their own challenge (marked 🐉 in the
+> picker): draw `🐉1` "every man is mortal," `🐉2` the empty cut, `🐉3` the
+> removable double cut, `🐉4` a shared line of identity, `🐉5` a non-symmetric
+> relation — and when your attempt goes wrong, the grader hands you back the
+> antidote from this guide. Those two surfaces are the fastest way to meet the
+> dragons safely. (Dragons 6-8 aren't a single drawing — they live in *how a
+> graph earns its standing*, not in the ink.)
 
 ---
 

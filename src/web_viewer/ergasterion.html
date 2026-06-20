@@ -702,6 +702,8 @@
                      docs/FREEFORM_COMPOSITION_AND_LEARNING.md -->
                 <div id="challenge-block" style="margin-top:8px; border-top:1px dashed var(--ctp-surface0); padding-top:6px;">
                   <label style="font-size:10px; color:var(--ctp-text);">🎯 Challenge — read this, then draw it:</label>
+                  <div style="font-size:9px; color:var(--ctp-overlay0); margin:2px 0 4px;">🐉 entries are the
+                    <em>dragons</em> from the field guide — draw one to meet a classic pitfall safely.</div>
                   <select id="challenge-select" style="width:100%; margin:4px 0; font-size:11px; background:var(--ctp-base); color:var(--ctp-text); border:1px solid var(--ctp-surface0);">
                     <option value="">— pick a graph to reproduce —</option>
                   </select>
@@ -2782,7 +2784,8 @@
           challengeBank.forEach((c) => {
             const opt = document.createElement('option');
             opt.value = c.id;
-            opt.textContent = c.difficulty + ' · ' + c.title;
+            const badge = c.dragon ? '🐉' + c.dragon + ' · ' : '';
+            opt.textContent = badge + c.difficulty + ' · ' + c.title;
             challengeSelect.appendChild(opt);
           });
         } catch (err) { /* non-fatal: challenge mode just stays empty */ }
@@ -2799,7 +2802,10 @@
           challengePromptEl.innerHTML =
             'Draw: <code>' + escapeHtml(c.prompt_egif) + '</code>' +
             (c.hint ? '<div style="color:var(--ctp-overlay0); margin-top:2px;">' +
-              escapeHtml(c.hint) + '</div>' : '');
+              escapeHtml(c.hint) + '</div>' : '') +
+            (c.dragon ? '<div style="color:var(--ctp-peach); margin-top:3px;">🐉 Dragon ' +
+              c.dragon + (c.temptation ? ' — watch out: ' + escapeHtml(c.temptation) : '') +
+              '</div>' : '');
           if (challengeResultEl) challengeResultEl.innerHTML = '';
           if (btnGradeChallenge) btnGradeChallenge.disabled = false;
         });
@@ -2833,6 +2839,13 @@
         (data.findings || []).forEach((f) =>
           html += '<div style="color:var(--ctp-peach);">• <span style="color:var(--ctp-overlay0);">[' +
             escapeHtml(f.kind) + ']</span> ' + escapeHtml(f.message) + '</div>');
+        // The field-guide antidote for this dragon, if the target was a dragon.
+        if (data.dragon && data.dragon.antidote) {
+          html += '<div style="margin-top:5px; padding:4px 6px; border-left:2px solid var(--ctp-yellow); ' +
+            'color:var(--ctp-yellow); background:var(--ctp-base);">🐉 Dragon ' +
+            escapeHtml(String(data.dragon.number)) + ' — the antidote: ' +
+            escapeHtml(data.dragon.antidote) + '</div>';
+        }
         challengeResultEl.innerHTML = html;
       }
 

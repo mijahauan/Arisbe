@@ -1,7 +1,21 @@
 # Current Plan
 
-**Last Updated**: 2026-06-19 (session end). **▶▶▶ NEXT SESSION = UX (deliberately deferred for a
-while; now the focus).** This session: (1) **shipped BUILD A frontend** — the fold-to-define UI +
+**Last Updated**: 2026-06-20 (session end). **▶▶▶ UX PASS — first thread shipped: the DRAGONS CHALLENGE
+SET.** With the author's steer ("Dragons challenge set" from the UX menu), wired the field guide's five
+*drawable* dragons into challenge mode end to end: `src/challenge_mode.py` gains `dragon`/`temptation`/
+`antidote` on `Challenge` + two new targets (🐉2 the empty cut `~[ ]` = false; 🐉3 the removable double
+cut `~[ ~[ P ] ]`, the look-alike contrast to the scroll) + `list_dragons()`; existing rungs tagged to
+their dragon (🐉1 universal, 🐉4 shared line, 🐉5 argument order). The `/ergasterion/challenges` route
+exposes the metadata; `grade-challenge` returns the field-guide **antidote** when a dragon attempt fails.
+UI (`ergasterion.html`): 🐉N badges in the picker, the temptation shown on select, the antidote surfaced
+in a highlighted box on a wrong grade. Field guide cross-links the set (dragons 6-8 are conceptual — not
+drawable — and belong to the warrant / correspondence-not-truth threads). Tests: +6 core
+(`test_challenge_mode`) +5 route (`test_ergasterion_challenge`, incl. both new targets round-tripping
+through the *drawing reader*); 102 in the ergasterion/freeform/diff sweep green, quality gate 152 core
+green, **core-protection CLEAN**. Memory: [[project_dragons_challenge_set]]. **The other UX threads
+(warrant gradient · context reflex · correspondence-not-truth) remain open — see the menu below.**
+
+*(Prior session — 2026-06-19:)* (1) **shipped BUILD A frontend** — the fold-to-define UI +
 Playwright E2E (commit fdf4cb8; build A now complete end-to-end). (2) Discharged the author's
 **fidelity-to-Peirce** request: wrote `docs/FIDELITY_AND_DEPARTURES.md` (the debt + three departures +
 their Peirce-rooted justifications + points of confusion) and ran a **five-round multi-agent adversarial
@@ -103,9 +117,10 @@ threads (to scope with the author, not a committed list):
 - **"Correspondence, not truth" made legible.** §3.3 attests silently; the UI could make the chord
   (picture↔proposition) and its *non*-claim about truth visible, so users don't read attestation as a
   truth-verdict.
-- **A "dragons" challenge set.** The 8 field-guide pitfalls map ~1:1 onto challenge-mode targets — seed a
-  difficulty set so a learner meets each dragon by drawing it and getting graded (the field guide → hands-
-  on practice). Lowest-risk, highest-pedagogical-value starter.
+- ~~**A "dragons" challenge set.**~~ ✅ **DONE 2026-06-20** — the five *drawable* field-guide dragons are
+  now challenges (🐉 in the picker), graded with the antidote handed back on a wrong attempt. Dragons 6-8
+  are conceptual, not drawable — they fold into the warrant / correspondence-not-truth threads above.
+  ([[project_dragons_challenge_set]].)
 - **General cross-mode learner affordances.** The last focused UX pass was the 2026-06-15 cross-mode
   consistency pass (design-system.css, camera, vocab); this is the first UX pass aimed at *newcomers and
   the doctrine's legibility*, not internal consistency.

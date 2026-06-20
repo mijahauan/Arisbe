@@ -17,6 +17,7 @@ from challenge_mode import (
     get_challenge,
     grade,
     list_challenges,
+    list_dragons,
 )
 
 
@@ -50,6 +51,37 @@ def test_gradient_spans_easy_to_hard():
     diffs = {c.difficulty for c in CHALLENGE_BANK}
     assert min(diffs) == 1
     assert max(diffs) >= 5  # the universal: a line crossing a cut boundary
+
+
+# ---------------------------------------------------------------------------
+# The drawable-dragon walk (docs/FIELD_GUIDE_AND_DRAGONS.md)
+# ---------------------------------------------------------------------------
+
+def test_list_dragons_covers_the_five_drawable_pitfalls():
+    dragons = list_dragons()
+    # Dragons 1–5 are the drawable ones; 6–8 are conceptual (not in the bank).
+    assert [c.dragon for c in dragons] == [1, 2, 3, 4, 5]
+
+
+def test_every_dragon_challenge_carries_an_antidote():
+    for c in list_dragons():
+        assert c.antidote, f"{c.id} (dragon {c.dragon}) must carry a field-guide antidote"
+        assert c.temptation, f"{c.id} (dragon {c.dragon}) must name the common temptation"
+
+
+def test_empty_cut_is_false_and_grades_itself():
+    # 🐉2: a cut around nothing — its own faithful render must grade as a match.
+    c = get_challenge("empty-cut")
+    assert c is not None and c.dragon == 2
+    assert grade(c.prompt_egif, parse_egif(c.prompt_egif)).matches
+
+
+def test_removable_double_cut_is_not_the_scroll():
+    # 🐉3: the removable double cut and the scroll look alike but are different
+    # graphs — the scroll has content in the ring between the two cuts.
+    double = parse_egif(get_challenge("double-cut").prompt_egif)
+    scroll = parse_egif(get_challenge("scroll").prompt_egif)
+    assert not grade(scroll, double).matches
 
 
 # ---------------------------------------------------------------------------

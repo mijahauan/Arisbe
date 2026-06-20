@@ -1158,7 +1158,8 @@ async def list_challenges_route():
     return ApiResponse(success=True, data={
         "challenges": [
             {"id": c.id, "title": c.title, "prompt_egif": c.prompt_egif,
-             "difficulty": c.difficulty, "hint": c.hint}
+             "difficulty": c.difficulty, "hint": c.hint,
+             "dragon": c.dragon, "temptation": c.temptation, "antidote": c.antidote}
             for c in list_challenges()
         ]
     })
@@ -1213,7 +1214,7 @@ async def grade_challenge(session_id: str, request: ChallengeGradeRequest):
 
         attempt = build_egi_from_drawing(dto, predicate_labels, vertex_labels)
         diff = grade(target_egif, attempt)
-        return ApiResponse(success=True, data={
+        payload = {
             "gradeable": True,
             "matches": diff.matches,
             "summary": diff.summary,
@@ -1223,7 +1224,15 @@ async def grade_challenge(session_id: str, request: ChallengeGradeRequest):
             ],
             "validity": _issues_payload(report),
             "target_linear_forms": linear_forms(parse_egif(target_egif)),
-        })
+        }
+        # A wrong attempt against a dragon challenge surfaces the field-guide
+        # antidote (the named pitfall, not just the structural finding).
+        if not diff.matches and challenge is not None and challenge.dragon is not None:
+            payload["dragon"] = {
+                "number": challenge.dragon,
+                "antidote": challenge.antidote,
+            }
+        return ApiResponse(success=True, data=payload)
     except Exception as exc:
         return ApiResponse(success=False, error={
             "code": "GRADE_CHALLENGE_ERROR", "message": str(exc),

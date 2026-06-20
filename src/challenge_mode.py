@@ -20,6 +20,23 @@ This module is the gradeable core, standalone and web-independent:
 The bank is a deliberate gradient (single relation → argument order → conjunction →
 negation → the scroll → the universal with a line crossing a cut boundary), so the
 hard cases the reader was de-risked on are exactly the ones the learner climbs to.
+
+**The dragons.** ``docs/FIELD_GUIDE_AND_DRAGONS.md`` marks eight "here-be-dragons"
+pitfalls.  Five of them are *drawable* — a single graph you can be asked to render,
+where the tempting wrong move surfaces as a specific legible-diff finding — and each
+such challenge carries the ``dragon`` it trains plus the field-guide ``antidote``,
+shown when the grade comes back wrong.  The mapping:
+
+    🐉1 missing outer cut ("every" vs "some-isn't")  → ``universal``
+    🐉2 blank sheet vs the empty cut (true vs false) → ``empty-cut``
+    🐉3 the double cut you may *not* remove          → ``double-cut`` (vs ``scroll``)
+    🐉4 a line declares (``*x``) vs refers (``x``)   → ``conjunction``
+    🐉5 argument order is not symmetric              → ``argument-order``
+
+Dragons 6–8 ("which graph is closer to reality", "I need a mark for *possibly*",
+"I named it, so it counts") are *conceptual* — no single graph draws them — so they
+belong to the warrant / correspondence-not-truth surfaces, not this bank.  See
+``list_dragons()`` for the drawable walk and the field guide for the full eight.
 """
 
 from __future__ import annotations
@@ -46,6 +63,13 @@ class Challenge:
     prompt_egif: str
     difficulty: int     # 1 (easiest) … 5 (a shared line crossing a cut boundary)
     hint: str = ""
+    # Dragon metadata (``docs/FIELD_GUIDE_AND_DRAGONS.md``).  ``dragon`` is the
+    # field-guide pitfall number this challenge trains (None for a pure warm-up
+    # rung); ``temptation`` names the common wrong move; ``antidote`` is the
+    # field-guide one-liner, shown when the grade comes back wrong.
+    dragon: Optional[int] = None
+    temptation: str = ""
+    antidote: str = ""
 
 
 # The gradient.  Each rung introduces exactly one new correspondence skill.
@@ -63,6 +87,25 @@ CHALLENGE_BANK: List[Challenge] = [
         prompt_egif='(loves "Romeo" "Juliet")',
         difficulty=2,
         hint="A binary relation — the order of the two individuals is part of what it says.",
+        dragon=5,
+        temptation='Swapping the hooks: (loves "Juliet" "Romeo") is a different, silent claim.',
+        antidote="Order is part of the meaning, and it is drawable — read the hooks "
+                 "clockwise around the spot. When a relation isn't symmetric, check the "
+                 "order the way you'd check a minus sign.",
+    ),
+    Challenge(
+        id="empty-cut",
+        title="The empty cut — false",
+        prompt_egif='~[ ]',
+        difficulty=2,
+        hint="A cut drawn around nothing. Not the same as a blank sheet.",
+        dragon=2,
+        temptation="Treating a cut-around-nothing like a blank sheet. The blank sheet "
+                   "means true; an empty cut means false.",
+        antidote="An empty cut is the strongest claim you can make — it says 'this is "
+                 "impossible.' Put one next to anything and you've declared the whole "
+                 "sheet false. When you mean 'true / nothing left to say,' you want the "
+                 "blank, not a cut around a blank.",
     ),
     Challenge(
         id="conjunction",
@@ -70,6 +113,12 @@ CHALLENGE_BANK: List[Challenge] = [
         prompt_egif='(man *x) (mortal x)',
         difficulty=3,
         hint="Two relations on one line of identity: the same (unnamed) thing is both.",
+        dragon=4,
+        temptation="Drawing two separate lines — saying 'some man, and separately, "
+                   "something mortal.' The line never connected.",
+        antidote="A line declares once (*x) and refers everywhere else (x) — and in the "
+                 "drawn form it is one connected line. Star a line once, where it first "
+                 "appears; thread the same line through every spot that is the same thing.",
     ),
     Challenge(
         id="negation",
@@ -83,7 +132,23 @@ CHALLENGE_BANK: List[Challenge] = [
         title="If–then (the scroll)",
         prompt_egif='~[ (man "Socrates") ~[ (mortal "Socrates") ] ]',
         difficulty=4,
-        hint="A cut inside a cut: the outer denies (inner-affirmed AND outer-affirmed) — an implication.",
+        hint="A cut inside a cut, with content in the outer ring: the outer denies "
+             "(inner-affirmed AND outer-affirmed) — an implication.",
+    ),
+    Challenge(
+        id="double-cut",
+        title="The removable double cut",
+        prompt_egif='~[ ~[ (mortal "Socrates") ] ]',
+        difficulty=4,
+        hint="Two cuts directly nested with NOTHING in the ring between them.",
+        dragon=3,
+        temptation="Confusing this with the scroll. They look almost identical, but the "
+                   "scroll has a relation sitting in the ring between the two cuts — and "
+                   "that one is NOT a removable double cut.",
+        antidote="Before peeling two nested cuts, look in the ring between them. Empty? "
+                 "Then it's a removable double cut (~[ ~[ P ] ] = P). Anything there? "
+                 "Then it's a scroll doing its job — peeling it would turn 'if P then Q' "
+                 "into 'P and Q,' inventing a claim.",
     ),
     Challenge(
         id="universal",
@@ -91,6 +156,12 @@ CHALLENGE_BANK: List[Challenge] = [
         prompt_egif='~[ (man *x) ~[ (mortal x) ] ]',
         difficulty=5,
         hint="A scroll with one line of identity running from the outer cut into the inner one — ∀x(man→mortal). Where the line sits is the whole meaning.",
+        dragon=1,
+        temptation="Leaving the antecedent bare on the sheet: (man *x) ~[ (mortal x) ] "
+                   "reads 'there is a man who is NOT mortal' — the opposite of what you meant.",
+        antidote="A conditional always lives inside an outer cut, with the conclusion "
+                 "nested one deeper. If your 'if-then' has its antecedent sitting bare on "
+                 "the sheet, you've drawn an existential, not a universal.",
     ),
 ]
 
@@ -98,6 +169,17 @@ CHALLENGE_BANK: List[Challenge] = [
 def list_challenges() -> List[Challenge]:
     """The full bank, in difficulty order."""
     return sorted(CHALLENGE_BANK, key=lambda c: (c.difficulty, c.id))
+
+
+def list_dragons() -> List[Challenge]:
+    """The drawable-dragon walk: the field-guide pitfalls a learner can meet by
+    drawing, ordered by dragon number (1 → 5).  See
+    ``docs/FIELD_GUIDE_AND_DRAGONS.md``; dragons 6–8 are conceptual and not here.
+    """
+    return sorted(
+        (c for c in CHALLENGE_BANK if c.dragon is not None),
+        key=lambda c: c.dragon,
+    )
 
 
 def get_challenge(challenge_id: str) -> Optional[Challenge]:

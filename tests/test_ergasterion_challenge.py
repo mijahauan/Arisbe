@@ -96,6 +96,15 @@ def test_list_challenges(client):
         assert "drawing" not in c
 
 
+def test_dragon_metadata_in_listing(client):
+    # The drawable dragons carry their field-guide number, temptation, and antidote.
+    challenges = client.get("/ergasterion/challenges").json()["data"]["challenges"]
+    dragons = {c["id"]: c for c in challenges if c.get("dragon")}
+    assert {c["dragon"] for c in dragons.values()} == {1, 2, 3, 4, 5}
+    for c in dragons.values():
+        assert c["temptation"] and c["antidote"]
+
+
 # ---------------------------------------------------------------------------
 # Grading a faithful attempt — by challenge id and by raw target
 # ---------------------------------------------------------------------------
@@ -118,6 +127,20 @@ def test_faithful_drawing_passes_by_raw_target(client):
     drawing = _drawing_from_egi('~[ (P *x) ~[ (Q x) ] ]')
     r = client.post(f"/ergasterion/sessions/{sid}/grade-challenge",
                     json={"target_egif": "~[ (P *x) ~[ (Q x) ] ]", "drawing": drawing})
+    assert r.status_code == 200, r.text
+    assert r.json()["data"]["matches"] is True
+
+
+@pytest.mark.parametrize("cid", ["empty-cut", "double-cut"])
+def test_new_dragon_targets_round_trip_through_the_reader(client, cid):
+    # The two dragons added with the dragon set (🐉2 empty cut, 🐉3 removable
+    # double cut) must read back from faithful ink, not just EGI-vs-EGI.
+    sid = _open(client)
+    prompt = next(c["prompt_egif"]
+                  for c in client.get("/ergasterion/challenges").json()["data"]["challenges"]
+                  if c["id"] == cid)
+    r = client.post(f"/ergasterion/sessions/{sid}/grade-challenge",
+                    json={"challenge_id": cid, "drawing": _drawing_from_egi(prompt)})
     assert r.status_code == 200, r.text
     assert r.json()["data"]["matches"] is True
 
@@ -156,6 +179,20 @@ def test_argument_order_error_reported(client):
     data = r.json()["data"]
     assert data["matches"] is False
     assert any(f["kind"] == "order" for f in data["findings"])
+    # argument-order is 🐉5 — a wrong attempt surfaces the field-guide antidote.
+    assert data["dragon"]["number"] == 5
+    assert data["dragon"]["antidote"]
+
+
+def test_correct_dragon_attempt_has_no_antidote(client):
+    # A faithful drawing of a dragon target passes — no antidote is attached.
+    sid = _open(client)
+    drawing = _drawing_from_egi('(loves "Romeo" "Juliet")')
+    r = client.post(f"/ergasterion/sessions/{sid}/grade-challenge",
+                    json={"challenge_id": "argument-order", "drawing": drawing})
+    data = r.json()["data"]
+    assert data["matches"] is True
+    assert "dragon" not in data
 
 
 # ---------------------------------------------------------------------------
