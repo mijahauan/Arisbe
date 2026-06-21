@@ -167,9 +167,38 @@ threads (to scope with the author, not a committed list):
   consistency pass (design-system.css, camera, vocab); this is the first UX pass aimed at *newcomers and
   the doctrine's legibility*, not internal consistency.
 
+**▶▶▶ ALSO COMMITTED NEXT SESSION — DOCTRINE (author-flagged 2026-06-20, "we must not forget to make this
+crystal clear"). The LEVEL_ZERO rework, now with a gapless account of assertion as its centerpiece + an
+Examination II correction.** A long post-wrap dialogue (2026-06-20) drove the assertion question to a new
+resting place that **closes a conceded examination gap** — capture it carefully. THE CRUX, stated crisply:
+
+- **The blank sheet is the ONLY unconditioned thing — and it is not a posit; it asserts nothing** (true by
+  withholding). It is the sole fixed point.
+- **There is no unconditioned posit anywhere.** An "unconditioned M" — a contingent claim sitting
+  categorically on the *positive* recto — would **violate the rules** (insertion into a positive context is
+  forbidden). So a bare contingent assertion on the sheet is not a foundation; it is a *forbidden move*.
+- **Every assertion enters as a contingent GIVEN in a NEGATIVE context, built from the blank by legal,
+  truth-preserving nesting:** `DC+` opens a negative ring · `INS` places the given there · `IT+` carries any
+  graph (incl. a domain model) where it must bear · `DC+` again opens the next ring. The recto stays
+  **nothing but cuts** (consistent with the earlier-agreed "truth-preserving UoD = all cuts, no exposed
+  predicate"). A domain model is built-from-scratch (nesting) or imported-and-embedded via `INS` into a
+  negative context — a **running, dialogical, world-tested, sweepable** (`ERA` from positive = "free to
+  demote") contingency; never an unconditioned foundation.
+- **What the calculus does NOT supply is the *content* (which M)** — and that is *not a gap* but the proper
+  contingency, answered in the world and the Agon. (`assertion-4` conflated "can't fix which M" with "can't
+  *place* M"; `INS` places it.) → **Examination II's conceded `assertion-4` gap is CLOSED (over-conceded);
+  the LEVEL_ZERO "always-already conditioned / inside" thesis is gapless, vindicated.** No A/B verdict moves.
+- **THE STANDING CHALLENGE is contextual honesty:** tracking *what context (nesting / regime / given)
+  delivers a graph's interpretive meaning* — which IS the central correspondence problem, the field guide's
+  context reflex, the three regimes, and §3.3, at once.
+
+Tasks: (1) rework `docs/LEVEL_ZERO_AND_THE_REGISTERS.md` with this as the spine; re-scope the "cannot say" /
+"always-already inside" language to the now-gapless form; worked cases = Praeclarum (built from blank, all
+cuts) + the scroll + DC+/IT+/INS nesting. (2) Add a **correction-note to `docs/ADVERSARIAL_EXAMINATION.md`
+"Examination II": `assertion-4` closed by the nesting argument.** ([[project_level_zero_registers]].)
+
 **▶▶ Also still open (deferred, not urgent):** fork-(c) fast-follows (multi-candidate disambiguation;
-LOW-warrant `/import/admit` persistence); the **`docs/LEVEL_ZERO_AND_THE_REGISTERS.md` readability
-rework** (author-flagged; [[project_level_zero_registers]]); the **reflexive-diagonal** argument for
+LOW-warrant `/import/admit` persistence); the **reflexive-diagonal** argument for
 Departure I's open joint ([[project_fidelity_and_departures]]). See "▶▶ Other open tracks" below for the
 full menu.
 
