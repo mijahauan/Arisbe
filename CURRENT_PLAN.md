@@ -1,6 +1,53 @@
 # Current Plan
 
-**Last Updated**: 2026-06-20 (session end). **▶▶▶ UX PASS — two threads shipped this session.**
+**Last Updated**: 2026-06-20 (session end). **▶▶▶ This session: two UX-pass threads + a doctrine pass.**
+
+**(C′) DOCTRINE — A & B BROUGHT TO DEPARTURE-I PARITY (four-round examination → resting place).** At the
+author's challenge ("have A and B been tested as thoroughly as the Departures?" — they had not), ran the
+full iterative dissolution-press on the *refined* form. Outcome (honest, the kind the author courts —
+"positions lost to good arguments"): **the two perspectives did NOT survive as independent perspectives —
+they dissolved into the departures + a conceded structural realism.** **A → `departure_absorbed`** (≈0.81):
+no proposition independent of Departure I (negative orientation + first-order non-locution) + Departure II
+(the low-warrant assertoric posit — the killer: run with Dep II's *real* two-register content, the
+"context-less end is malformed" analogy backfires, since an end is a licit *posit*, not malformed; and ends
+are Thirdness, not a level-0 *marks*-theorem). Residue = the *no-founder-exemption* office (FSM turned
+even-handedly on tradition's respectable termini), kept as pedagogy. **B → `departure_narrowed`** (≈0.75):
+metric terminus dissolved (= Dep I) but the context-free **comparative efficacy-vector is CONCEDED** (=
+structural realism; only the *summit* was ever a non-locution, never the vector); residue = the
+**worth-ladder denial** vs the convergent dreams' competence/worth fusion, held *at parity in the
+axiological register* on an *imported equal-dignity premise* the departures don't derive. **Immanent-tendency
+cap re-typed: enclosure, not scope — WON, not parity** (§3.3 + negative orientation instance the category).
+Honest billing: **one discipline (Deps I+II) + an imported equal-dignity premise + conceded structural
+realism, two targets — a *corollary* of FIDELITY, not two departures.** Live floor: the warrant badge reads
+as in-context competence, NEVER worth/nearness/context-free Progress. Docs rewritten to the tested form
+(THE_LARGER_GAME + ADVERSARIAL_EXAMINATION "Examination II" rounds 2–4 + FIDELITY §2 cross-ref). Docs only;
+core-protection untouched. Memory: [[project_larger_game_common_sheet]].
+
+**(C) DOCTRINE — "THE LARGER GAME AND THE COMMON SHEET" (two perspectives, first examination — SUPERSEDED by C′).** At the author's
+prompting, captured + adversarially tested two perspectives that "cost the sophisticate her investment":
+**A — we are played, not only playing** (we hold no referee's chair; "principalities and powers"), and
+**B — the common sheet / no ladder** (non-convergence's axiological corollary: no reasoner stands *nearer*
+the real). Drafted boldly → handed to **three independent adversaries** (hard naturalist · Peircean realist ·
+developmental progressivist) → both **survive only with substantial amendment**, recorded in
+`docs/ADVERSARIAL_EXAMINATION.md` "Examination II" and folded into `docs/THE_LARGER_GAME_AND_THE_COMMON_SHEET.md`
+(post-exam form). Key amendments (the draft genuinely fell on these), then the **author's refinement that unified both under
+the level-0 enclosure discipline** (Departure II): **A** — "principalities and powers" was an **FSM-style
+reductio** (invoked to *demote* every context-less ultimate, tradition's *terminus ad quem* included), so it
+asserts no agency across the membrane (floor-#6 charge *dissolved*, not merely answered) and **does not
+obviate ends at all** — arguments/innings/goals end *in context*; only the **context-less, un-contingent
+end** is dissolved, "just like the unenclosed proposition on level 0." **B** — progress exists "the way ends
+and convergence exist: within a context, contingent, fallible, local," never as a context-free external
+scheme the game serves; in-context ordinal progress is **affirmed** (Galileo over augurs, abolition over
+slavery — the warrant gradient in aggregate), and only **context-free** progress / metric nearness / the
+**worth** of persons is denied ("a later stage is a better instrument; its inhabitants are not better
+souls"). So A=ends, B=progress, both = Departure II applied by analogy; Departure I's meta-question is left
+**open but idle for play**. Dropped "no farther from the truth" / quarantined "nearer the love of God" /
+withdrew the synechism-extension. The standing badge (thread B below) is the live guardrail: read it as
+**in-context standing + competence, never context-free progress / nearness / worth**. FIDELITY §2 points to
+B as Departure I's axiological corollary. **Docs only; no code; core-protection untouched.** Memory:
+[[project_larger_game_common_sheet]].
+
+**(UX PASS — two threads shipped this session.)**
 
 **(B) WARRANT GRADIENT VISIBLE (thread 2).** Made a graph's *standing* legible in Organon. `provenance.py`
 gains a `standing_of(...)` projection over the existing warrant model + corpus signals → an ordered badge

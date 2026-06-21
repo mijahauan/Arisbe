@@ -188,6 +188,20 @@ its committed content is now exactly: the first-order non-locution (won), the
 reservation of "reality" for the encountered ground (a choice at parity), and the
 co-grounding analogy (won) — not the original "inquiry does not converge."
 
+*The **axiological corollary** of this departure — that if "nearer the real" is a
+non-locution then no reasoner, age, or culture stands *nearer* than another (the
+no-ladder claim) — was drawn out and **examined over four rounds** in
+[THE_LARGER_GAME_AND_THE_COMMON_SHEET.md](THE_LARGER_GAME_AND_THE_COMMON_SHEET.md)
+("Perspective B") and **largely absorbed back into this departure**. What survives:
+the **metric** terminus is dissolved (this departure's first-order result); the
+context-free **comparative efficacy-vector** is *conceded* (structural realism — only
+the summit was ever a non-locution, never the vector); and the one genuine residue is
+the **worth-ladder denial** against the convergent dreams' fusion of competence with
+worth — held at parity in the axiological register, on an **imported equal-dignity
+premise** this departure does not derive. Its companion "Perspective A" (the discipline
+applied to *ends*) absorbed entirely into this departure + Departure II. See
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) "Examination II".*
+
 ---
 
 ## 3. Departure II — nothing contingent can be *said* at level 0

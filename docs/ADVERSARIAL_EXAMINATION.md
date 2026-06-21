@@ -623,3 +623,379 @@ unsettled.
 *Produced by a dissolution-press workflow (construct → prosecute → defend → adjudicate → synthesize),
 2026-06-19. After five rounds the joint is confirmed irreducible: it reasserts one rung up each time it is
 pressed. This is the resting place.*
+
+---
+
+# Examination II — The Larger Game and the Common Sheet
+
+## Preface
+
+The two perspectives of [THE_LARGER_GAME_AND_THE_COMMON_SHEET.md](THE_LARGER_GAME_AND_THE_COMMON_SHEET.md)
+were drafted boldly and then handed, on 2026-06-20, to three independent opponents charged to *refute,
+not flatter*: a **hard naturalist** (Quine/Dennett lineage) against Perspective A; a **Peircean realist**
+(Misak/Hookway/Short lineage) against Perspective B; and a **developmental progressivist** (Piaget/Kitcher/
+Singer lineage) against B's no-ladder claim. Each was asked for the strongest charge, whether the doc's own
+pre-emptive answers defuse or merely deflect, the most damaging charge the doc did *not* anticipate, and an
+exact amendment. The draft did **not** survive intact. Both perspectives **survive only with substantial
+amendment**; the sections below record what fell, what held, and the exact wording forced in. The draft's
+verdicts had been asserted *citing this very examination before it was run* — itself a violation of
+Perspective A (the doc crowning itself referee of a contest never held), now repaired by holding it.
+
+---
+
+## Perspective A — the larger game
+
+**Verdict: survives with amendment, heavily demoted.** (adversary confidence 0.78 that the draft *falls*;
+survives only under the forced amendment below)
+
+### The strongest charge
+
+A is **explanatorily idle**, and the idleness is concealed by an equivocation on "consequence." Every
+restraint A claims to ground — §3.3 attests correspondence not truth, nothing auto-asserts, no final
+arbiter — is *already overdetermined* by cheaper premises the corpus owns: floor #3 (Dau's calculus is
+truth-*preserving*, not truth-*producing*), floor #6 (no mark bears actuality), and the membrane regress
+(MANIFEST: "to draw that would demand another sheet, and the regress never closes"). A adds no restraint
+that was not already mandatory; it predicts nothing and forbids nothing new. By the project's own pragmatic
+maxim, a doctrine whose entire effect-set is produced by cheaper premises has no cash value of its own — it
+is a redescription wearing the grammar of a derivation. And the redescription is not innocent: the membrane
+establishes a *limit* (representation cannot enclose its own outside); A reads that limit "from the agent's
+side" and populates the far side with "principalities and powers," "a device," "a Graphist we are not,"
+purposes "we perform." Nothing in the regress licenses **agency**. "The regress never closes" entails *we
+lack a God's-eye chair*; it does **not** entail *someone else sits in it*. A personifies a limit.
+
+### The most damaging charge the draft did not anticipate
+
+**A violates the very floor it claims to enforce.** Floor #6 forbids any mark from bearing actuality: a
+mark may carry *form*, never an existence claim about the world across the membrane. Applied to A *as a
+sign in Arisbe's own corpus of doctrine*: "there is a referee's chair we do not occupy" is formal (licit);
+"there is *someone in it*, whose *intent* we *perform*" is an existence claim about actuality on the far
+side of the membrane — the paradigm of a mark "standing for the world" where no mark may. By the doc's own
+rule ("if it cannot be kept strictly as form, better not drawn"), the agency-reading of A is *better not
+drawn*. A would be the one place in the entire corpus where Arisbe scribes actuality across the membrane —
+the precise sin the project exists to refuse, committed in the project's own voice.
+
+### The author's best answer
+
+Conceded, substantially. The naturalist is right that A imports no new restraint and right that the
+agency-reading breaches floor #6. What is *not* conceded away is the membrane-limit itself, read from the
+agent's side: it is true and load-bearing that **there is no surveyable outside to our own reasoning — no
+referee's chair we occupy.** That is the whole of A's entitlement, and it is enough to do the orientational
+work (it is *why* the restraints are not mere modesty but our only honest posture). The error was billing a
+*gloss* as a *derivation*, and dressing an epistemic limit as an agency. "Principalities and powers" is
+kept only as **imagery for the limit**, explicitly *not* an existence claim — exactly as Departure I keeps
+"reality" for the encountered ground as a *choice*, not a result.
+
+### The exact amendment (forced)
+
+1. A is demoted from "operational consequence with independent work" to a **gloss/orientation that adds no
+   new restraint** — the restraints are derived in full from floors #3/#6 and the membrane regress without
+   recourse to a larger game.
+2. The agency-talk ("principalities and powers," "device," "Graphist," "intent or purpose we perform") is
+   marked, in the doc's own voice, as **imagery for the epistemic limit, not an existence claim about a
+   player outside the membrane** — because read as the latter it bears actuality across the membrane and is,
+   by floor #6, *better not drawn*.
+3. A's metaphysics (that there *are* such agencies, an author, a love) is held **open and unasserted**,
+   exactly parallel to Departure I's undischarged meta-naming.
+
+What survives: *you are not the referee, because there is no surveyable outside* — an epistemic limit with
+orientational teeth. What fell: the inference from that limit to an agency, and A's standing as an
+independent consequence rather than a gloss.
+
+---
+
+## Perspective B — the common sheet
+
+**Verdict: survives with amendment.** (Peircean-realist confidence 0.78 that the draft *falls* as written;
+progressivist 0.72 *survives with amendment*; reconciled below as survives-with-amendment once the
+competence/worth and ordinal/metric distinctions are forced in.)
+
+### The strongest charges (two, convergent)
+
+**(Realist.)** The no-ladder conclusion is derived from Departure I's *secured first-order* half but
+actually requires its *open meta-half*. The secured result is reflexive — *no claim can scribe its own
+distance to the real* — and reflexive malformedness does not entail that two distinct stages are
+*equidistant*; from "d(x) is undefined" one may infer only that *the equality claim is as malformed as the
+ranking*, never "d(Galileo) = d(augurs)." B helps itself to equality (warmly: "sympathy," "no farther")
+while forbidding ranking — a smuggled symmetry. And whether stages are orderable by nearness turns on the
+*open* meta-question (does the sequence converge?), held at **parity**: on the horn where the regress
+closes, there *is* a direction and later inquiry *is* nearer. So B is the corollary of **one unproven
+horn**, presented as won.
+
+**(Progressivist.)** B equivocates between *competence* and *attainment*. "Capacity" is not a neutral
+spec-sheet; capacity is the disposition to produce claims that survive. The preoperational child does not
+command *fewer* graphs — it commits *systematic, stage-diagnostic errors* (conservation failure) the adult
+does not. B itself concedes claims are orderable by dialogical survival; a stage/culture is extensionally a
+distribution over the claims it produces and survives; therefore **stages and practices ARE orderable** —
+experiment over augury, abolition over chattel slavery. Progress is **ordinal, not metric**: it needs no
+terminus, only a comparative ("withstands more than"). B refuted the terminus and illicitly inferred it had
+refuted the ladder. *You can climb a staircase with no top.*
+
+### The most damaging charges the draft did not anticipate
+
+- **The cited examination did not exist.** The draft asserted that B "survives with amendment" after being
+  "examined adversarially," citing an "Examination II" that had not been written. A survival-verdict on
+  *humility's own perspective*, asserted without the contest it cites, is the doc occupying the referee's
+  chair Perspective A forbids. (Repaired by this examination.)
+- **Synechism is mis-conscripted.** B claims to turn synechism "from a metaphysics of the cosmos into a
+  fellowship of inquirers." But synechism is a *directional, teleological* realism — it underwrites Peirce's
+  agapism and the very convergence B denies. One cannot keep its name (continuity, sympathy, agape — note
+  B's own "nearer the love of God") while discarding its slope. Cite it as **departed from, not extended.**
+- **"Nearer the love of God" over-reads.** An epistemic distance-to-the-real non-locution has no purchase
+  on a theological axiology of nearness-to-God. Asserting *equal* nearness-to-God breaks the
+  register-neutrality Perspective A keeps; it is an undischarged theological posit, not an entailment.
+- **Reflexive self-refutation.** B presents *itself* as an improvement over naive convergent-realism, via
+  adversarial survival — enacting a ladder of inquiry in the act of denying ladders. Either B abandons its
+  own pretension to be better (full relativism) or it admits the ranking of positions/practices it denied.
+
+### The author's best answer
+
+The realist and progressivist are *both right*, and they converge on one repair. B over-reached in three
+places and must retreat to a defensible core that is, in fact, sharper and more interesting:
+
+1. **Concede ordinal progress, outright.** Because claims are orderable by dialogical survival, the
+   *practices and stages* that reliably generate them are orderable too. Galileo's astronomy over the
+   augurs', conservation-competence over the preoperational error, abolition over slavery — **genuine
+   progress, affirmed.** A later stage is a *better instrument of inquiry*. This is the warrant gradient
+   read in aggregate, and B should never have appeared to deny it.
+2. **Progress is ordinal, not metric.** It needs no terminus; the comparative suffices. So conceding
+   progress costs B nothing of Departure I: what stays denied is *metric distance to a possessed real*,
+   which is a non-locution at first order (secured) and at the meta-level a **parity-bet** on the open horn
+   (not won).
+3. **What B denies, exactly and only two things:** (i) that survival-ordering measures a *metric distance
+   to a possessed terminus* (Departure I), and (ii) that competence-rank licenses ranking the **moral worth
+   or dignity of the persons and peoples** who inhabit a stage. *A later stage is a better instrument; its
+   inhabitants are not better souls.* The child's conservation error is worse than the adult's competence,
+   **and** the child is the adult's equal in dignity and in the worth of the effort — both at once, because
+   competence and worth are different currencies. The decentering of the sophisticate is real but precise:
+   her competence may be genuinely greater; her *nearness to the real* is a non-locution and her *worth as a
+   soul* is not raised one inch by it.
+
+### The exact amendment (forced)
+
+- Withdraw "stand no farther from the truth" on its substantive reading; replace with "are owed equal
+  dignity as effortful inquirers, and are not made better souls by a better instrument."
+- State plainly that **inquiries, practices, and stages ARE orderable by dialogical survival** (ordinal
+  progress affirmed), and that B denies only metric-nearness (parity) and moral-worth ranking.
+- Mark the metric-nearness denial as a **parity-bet on the open meta-horn**, not an entailment of the
+  secured half.
+- Quarantine "nearer the love of God" as an **undischarged theological posit asserted by neither reading**,
+  parallel to A's owed admission; or strike it.
+- Withdraw the claim that B *extends* synechism; cite synechism as the directional realism B **departs
+  from**.
+
+What survives: the first-order non-locution (won); the refusal of a *metric* terminus (parity); and the
+sharp separation of **competence (orderable, progress is real) from worth (equal, unranked) from
+metric-nearness (a non-locution)**. What fell: "no farther from the truth," the synechism-extension, the
+theological over-reach, and the appearance that B denies progress.
+
+---
+
+## Closing note: what the double decentering becomes
+
+After examination the two perspectives are narrower and harder to dislodge. **A:** *you are not the referee
+— because there is no surveyable outside, not because an agency runs you* (the agency is imagery, held
+open). **B:** *you are not nearer a possessed real, and you are not worth more — though you, or your age,
+may be a genuinely better instrument of inquiry.* The sophisticate keeps her competence and loses two
+illusions: that mastery is refereehood (A), and that being a better instrument is being nearer the real or
+worth more (B). What survives the decentering is unchanged: the activity itself — playing, in continuity and
+equal dignity with every other player, under a push from behind we do not author and toward no terminus we
+can score.
+
+*Produced by a three-opponent adversarial examination (naturalist · Peircean realist · developmental
+progressivist), 2026-06-20. Both perspectives revised in the author's voice to their post-examination form
+in [THE_LARGER_GAME_AND_THE_COMMON_SHEET.md](THE_LARGER_GAME_AND_THE_COMMON_SHEET.md).*
+
+---
+
+## Author's post-examination refinement (2026-06-20)
+
+After the three opponents reported, the author answered in his own voice — and the
+answer tightened both perspectives by locating them under **one discipline already
+in the corpus: the level-0 enclosure rule** (Departure II). It is recorded here
+because it changes the *grounding* of the verdicts above, not merely their wording.
+
+**On A — the FSM reading dissolves the floor-#6 charge.** "Principalities and
+powers" were invoked as the **Flying Spaghetti Monster** is invoked: not to promote
+His Noodly Appendage but to **demote** every such posit by putting it on the same
+footing — *including the respectable inventions taken for granted in tradition*, the
+ultimate *terminus ad quem* of philosophy and theology. So A never asserted an
+agency across the membrane (the naturalist's floor-#6 charge presupposed it did);
+A is a **reductio** that refuses to let anyone — self or tradition — scribe a
+context-less ultimate end. Crucially, this **does not obviate ends at all**:
+arguments end, innings end, a player conceives a goal and lays plans to win the
+Game — every such end *enclosed in a context*. What is dissolved is only the
+**unverifiable, context-less, un-contingent end**, "just like we denied the
+unenclosed proposition on level 0." A is thereby re-seated as the twin of Departure
+II, and the floor-#6 worry lapses: A *enforces* the floor against tradition's
+termini rather than breaching it.
+
+**On B — progress exists the way ends and convergence exist: in a context.** The
+author grants progress "in the same way convergence and ends exist — within a
+context, contingent, fallible, local, and **not** as an external drive or scheme
+that the game serves or that we can apprehend or that stands outside the scope of
+inquiry." We can mark progress in an argument, a discipline, an age, *with
+appropriate contextualization*; doing so **does not warrant a progress outside any
+context**. This is the progressivist's concession (ordinal, contextual progress is
+real and affirmed) and the realist's limit (no context-free terminus) unified under
+the same enclosure rule — and it makes Departure I's open meta-question **idle for
+play**: even if reality converges, that convergence cannot be scribed as a
+context-free measure the game serves.
+
+**Net effect on the verdicts.** Both perspectives still **survive with amendment**,
+but the amendment is now a *strengthening by subsumption*: A and B are the
+enclosure discipline (Departure II) applied to **ends** and to **progress**,
+co-grounded with the three departures under "a sayable in-context status is not a
+context-free terminus." A asserts no agency (charge dissolved, not merely answered);
+B affirms in-context progress outright and denies only the context-free summit, the
+metric, and the worth-ranking of persons. This is the resting place unless a fourth
+opponent can show that an *end* or a *progress-measure* is not, like a contingent
+content, something that requires a context to be sayable.
+
+*Recorded 2026-06-20, after the three-opponent examination above; folded into
+[THE_LARGER_GAME_AND_THE_COMMON_SHEET.md](THE_LARGER_GAME_AND_THE_COMMON_SHEET.md).*
+
+---
+
+# Re-examination — A & B, the analogy pressed (round 2)
+
+*The author's refinement (above) claimed A and B are "the level-0 enclosure discipline (Departure II)
+applied to ends and to progress." That identity-claim — the load-bearing move of the refined form — was
+handed to three fresh opponents the first round did not field: a Peircean-on-the-categories (vs A), a
+scientific/structural realist (vs B), and an agapist Peircean (vs both).*
+
+## A — the categories charge
+
+**Ruling: `departure_narrowed`** (confidence 0.82). The identity-claim does **not** transfer. Level-0
+unsayability is "a syntactic theorem about **marks**" (Secondness); an *end* / final cause is **Thirdness**
+— a real general that governs without being an inscription needing an enclosing cut. Applying a
+marks-theorem to ends is a category mistake. A also welds two different modalities of impossibility —
+the **epistemic** membrane regress ("unverifiable") and the **syntactic** level-0 result ("malformed") —
+and slides between them; an unverifiable telos may be perfectly well-formed and real.
+
+**The unanticipated charge (decisive):** run with Departure II's *real* two-register content, the analogy
+**backfires**. Departure II does not dissolve the unenclosed contingent thing — it **licenses** it in the
+assertoric register as a *posit under warrant* (the recto is exactly where contingent premises go). So a
+context-free ultimate end is a **legitimate low-warrant assertoric posit, fully sayable, not malformed**;
+A had borrowed the "bare cannot-say" slogan the examination already condemned. Amendment forced: narrow A
+from *identity* to *analogy*, re-typed from level-0/syntactic to **membrane/epistemic**; scope the FSM
+reductio to *invented/surveyable* termini, not argued generals; concede ends-as-licit-posits.
+
+## B — the efficacy charge
+
+**Ruling: `reduces_to_joint`** (confidence 0.78). "No context-free progress" splits into two claims with
+opposite fates. The context-free **metric terminus / possessed summit** is a non-locution — dissolved
+(round-5 result). But conceding "a genuinely better instrument of inquiry" concedes a context-free
+**comparative efficacy-fact**: an instrument is scored by work on a world that does not read our scoreboard
+(novel prediction, intervention, the bridge that holds), and a survival-ordering that did *not* track
+world-efficacy would be mere fashion (the augurs "survived" in their own court for a millennium). "Ordinal,
+no top" defends only the *terminus*: ω is the textbook objective comparative **without** a summit. B reached
+for the structure that defeats its own denial. **The efficacy joint** is booked open with the burden
+running *against* the author — and it must **not** be laundered into Departure I's (honest-parity)
+meta-convergence joint: this joint is first-order and comparative, and B has already conceded the relatum.
+
+## Both — the synechism charge
+
+**Ruling: `survives_with_amendment`** (confidence 0.82). The FSM solvent over-reaches *by one quantifier*:
+it dissolves *context-less* termini (licit) under language that dissolves *context-transcending
+directionality* tout court (illicit). Synechism asserts an **immanent operative tendency** — real and
+operative across all contexts *without* being a context one stands outside and scores — which is not a
+terminus and which the FSM move never touches. And the corpus's **own** §3.3 correspondence invariant and
+secured negative orientation **are** such tendencies, so the over-reaching dissolution corrodes floor #3.3
+itself. Register-neutrality does not shield this: dissolving immanent directionality takes the
+*anti-synechist* side (the side Peirce, the project's aim, argued against). Amendment: draw the line at
+*surveyable-served-terminus* (dissolved) vs *immanent-operative-tendency* (not dissolved).
+
+---
+
+# Re-examination — A & B, the defended form pressed (round 3)
+
+*The narrowed/defended form — A as membrane-epistemic analogy with ends conceded as licit posits; B
+splitting the terminus (dissolved) from the efficacy-vector (conceded as the encountered real); the
+immanent tendency conceded with the cosmic question "held at parity" — was handed to a fresh panel:
+efficacy-realist (vs B), agapist (vs the tendency-cap), Peircean (vs A's residue).*
+
+## B — the firewall relocated
+
+**Ruling: `reduces_to_joint`** (confidence 0.74). The (terminus)/(efficacy) firewall is drawn in the wrong
+place — "summit vs no-summit" — when it must be "mind-independent-direction vs mere-survivor-bookkeeping."
+**Structural realism lives in the ordinal, terminus-free, directional vector**, not the summit; conceding
+the efficacy-fact as "real, sayable, the encountered real cognizable in its effects" concedes *the vector*,
+which is a non-metric directionality toward the real. Dilemma: if "more efficacious" tracks the
+mind-independent ground (yes), it is that directionality (a covert terminus-free nearness); if not, the
+concession is retracted to deflationary bookkeeping. The round-5 non-locution was about the **limit**; the
+efficacy-fact is a **present pairwise comparison** that needs no limit and slips under that settlement.
+**Outcome:** B's positive content reduces to *conceded structural realism* (the vector) + *Departure I*
+(the dissolved terminus) + the worth ≠ competence separation — and the last, alone, is granted by every
+interlocutor.
+
+## The immanent tendency — the cap re-typed (a correction to round 2)
+
+**Ruling: `departure_narrowed`** (confidence 0.74). "Held at parity" was the **wrong** framing. The
+agapist's foothold (a) fails — §3.3 and negative orientation are instanced as *sayable in-context*
+corrective habits; the slide from "operative in every context we can enclose" to "operative as the
+structure of the whole" is the status-traded-for-terminus slide. But (b) lands: a **scope-cap** ("operative
+across all contexts, but stopping short of the cosmos") is incoherent — it is either the referee's chair A
+forbids or a synechist over-concession. The correct cap is the **enclosure cap**: the tendency is sayable
+and operative *wherever a context encloses it*, and **enclosure-malformed when scribed as the operative
+structure of the unenclosable whole** (the membrane — the outermost sep cannot be drawn). This is **won,
+not a parity-bet**: the terminus-parity (round 5) is about convergence-to-a-limit, which the terminus-free
+immanent tendency does not claim. Agapism wins its **category** (real, instanced); **nothing** of the
+cosmic verdict.
+
+## A — pressed to its residue
+
+**Ruling: `departure_absorbed`** (confidence 0.79). After the concessions (agency → floor #6;
+level-0-of-ends → category mistake; ends-as-malformed → licit posits), every surviving clause of A is a
+clause of I or II: "inquiry derives no context-free end" = Departure I's negative orientation; "the game is
+not scored against a surveyable terminus" = Departure I's first-order non-locution; "such ends are licit
+posits" = Departure II. The *posited-ultimate vs served-terminus* distinction is **unstable**: a low-warrant
+ultimate posit that survives the Agon sits at `withstood ⚔` and is then a *served* terminus on the only
+reading the gradient permits — and A, "adding no new restraint," cannot forbid it; only Departure I's
+non-locution does. A retains no proposition independent of I+II. Its one residue is the **even-handed
+application** to tradition's respectable termini — a scope-of-enforcement, not a new claim.
+
+---
+
+# Re-examination — the dissolution press (round 4, final)
+
+*The resting-place candidate (A absorbed into I+II; B reduced to Departure I + conceded structural realism
++ a worth-denial; the immanent tendency conceded with a won enclosure-cap) was pressed by two opponents: a
+prosecutor arguing **total** absorption (both residues are zero), and a Peircean asked to find the true
+resting line. They converged.*
+
+## A — absorbed
+
+**Ruling: `departure_absorbed`** (confidence 0.81). A's residue is **zero as content**: the non-locution is
+already universally quantified, so "Omega and the Final Opinion don't escape it either" is universal
+instantiation, not a new thesis; the FSM reductio adds *choice of rhetorical target*, not logic. What
+survives is a small **disciplinary office** — the *no-founder-exemption*: performing the non-locution
+even-handedly against tradition's *respectable, on-record* termini, refusing the dignity-exemption the
+owners might have spared. A *use* of owned content, kept as **pedagogy / a named stance inside Departure
+I**, not a standalone perspective.
+
+## B — narrowed to one axiological residue + a design debt
+
+**Ruling: `departure_narrowed`** (confidence 0.75), nearly absorbed. Every *proposition* is owned upstream:
+metric terminus = Departure I; the mind-independent comparative efficacy-vector = conceded structural
+realism (survivor side); competence ≠ worth = a category-fact. The **one genuine residue** is the
+**worth-ladder denial aimed at an asserting opponent**: the convergent dreams (Peirce's final opinion as
+later-better; Teilhard's Omega as later-holier) *do* fuse competence with worth/nearness, and severing them
+— while conceding the competence-vector — is content, because the opponent is on record. It is held **at
+parity in the axiological register, never as a logical theorem** ("nearer the love of God" overreaches and
+is quarantined), and it rests on an **imported equal-dignity premise** the departures do not derive.
+
+## The resting place
+
+**Both opponents agree the doctrine rests** — and, unlike Departure I, it rests by **absorption**, not by a
+joint that reasserts one rung up. The honest shape is **one discipline (Departures I + II) + one imported
+equal-dignity premise + a conceded structural realism, deployed against two targets** (tradition's
+respectable termini; the worth-misreading of the warrant gradient) — *not* "two new perspectives." A is
+absorbed (residue: the no-founder-exemption office); B is narrowed to a single thin axiological residue
+(the worth-ladder denial against an asserting opponent) plus a perpetual **design debt**. What does *not*
+rest, and is supposed never to: the design vigilance — the warrant gradient (and any ranking surface) must
+read as in-context competence, **never** as worth, nearness, or context-free Progress — and A's floor-#6
+guard. The doctrine is settled; the floor it mandates stays live.
+
+*Produced by an iterative dissolution-press (rounds 2–4, three fresh opponent panels), 2026-06-20. The two
+"perspectives" dissolve into the departures + conceded structural realism — the outcome the author courts:
+positions lost to good arguments rather than held on conviction. This is the resting place.*
