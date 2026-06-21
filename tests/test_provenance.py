@@ -31,10 +31,16 @@ from egif_parser_dau import parse_egif
 from provenance import (
     DERIVATION_AUTHORED,
     DERIVATION_TRANSCRIBED,
+    STANDING_BLANK,
+    STANDING_DERIVED,
+    STANDING_POSITED,
+    STANDING_WITHSTOOD,
     WARRANT_LOW,
+    WARRANT_TESTED,
     Provenance,
     authored_proof,
     make_provenance,
+    standing_of,
     transcribed_proof,
 )
 from tomos_service import TomosService, TransformationChain
@@ -225,6 +231,43 @@ def sample_uod_id():
     if not ids:
         pytest.skip("tomos corpus is empty")
     return "beta_converse_mp" if "beta_converse_mp" in ids else ids[0]
+
+
+# ---------------------------------------------------------------------------
+# Standing — the display projection of warrant (the warrant-gradient badge)
+# ---------------------------------------------------------------------------
+
+def test_standing_defaults_to_posited():
+    s = standing_of()
+    assert s["key"] == STANDING_POSITED
+    assert s["level"] == 1
+    # Every standing below withstood carries the correspondence-not-truth non-claim.
+    assert "not asserted true" in s["non_claim"].lower()
+
+
+def test_standing_derived_when_a_chain_reaches_it():
+    s = standing_of(has_chain=True)
+    assert s["key"] == STANDING_DERIVED
+    assert s["level"] == 2
+
+
+def test_standing_withstood_by_tag_or_tested_warrant():
+    by_tag = standing_of(tags=["agon", "warrant:withstood_agon"])
+    by_warrant = standing_of(warrant={"theorem": WARRANT_TESTED, "derivation": WARRANT_LOW})
+    assert by_tag["key"] == by_warrant["key"] == STANDING_WITHSTOOD
+    assert by_tag["level"] == 3
+
+
+def test_standing_withstood_outranks_chain():
+    # Highest standing wins: a withstood graph that also has a chain reads withstood.
+    s = standing_of(tags=["warrant:withstood_agon"], has_chain=True)
+    assert s["key"] == STANDING_WITHSTOOD
+
+
+def test_standing_blank_only_for_the_empty_sheet():
+    assert standing_of(is_blank=True)["key"] == STANDING_BLANK
+    # A blank sheet that is somehow derived is no longer just blank.
+    assert standing_of(is_blank=True, has_chain=True)["key"] == STANDING_DERIVED
 
 
 def test_detail_route_surfaces_provenance(client, sample_uod_id, monkeypatch):

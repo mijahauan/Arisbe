@@ -35,6 +35,7 @@ from web_api.services.layout_service import (
 from web_api.services.linear_forms import linear_forms
 
 from tomos_service import TomosService
+from provenance import standing_of
 from annotations import (
     SCOPE_UOD,
     SCOPE_CHAIN,
@@ -84,7 +85,8 @@ def _browse_facets(entry: dict) -> dict:
     corpus graph on every list request); only the small JSON side-files are read.
     """
     import json
-    facets = {"kind": None, "cited": False, "description": "", "extra_tags": []}
+    facets = {"kind": None, "cited": False, "description": "", "extra_tags": [],
+              "warrant": None, "has_chain": False}
     path = entry.get("path")
     if not path:
         return facets
@@ -93,6 +95,7 @@ def _browse_facets(entry: dict) -> dict:
         prov = json.loads((base / "provenance.json").read_text(encoding="utf-8"))
         facets["kind"] = prov.get("kind")
         facets["cited"] = bool(prov.get("theorem_source"))
+        facets["warrant"] = prov.get("warrant")
     except Exception:
         pass
     try:
@@ -101,6 +104,8 @@ def _browse_facets(entry: dict) -> dict:
         facets["extra_tags"] = list(meta.get("tags") or [])
     except Exception:
         pass
+    # Cheap chain-existence (a file stat, no parse) — the "derived" signal.
+    facets["has_chain"] = (base / "history" / "chain.jsonl").exists()
     return facets
 
 
@@ -124,6 +129,11 @@ async def list_uods():
             f = _browse_facets(e)
             uid = e.get("uod_id", "")
             ls = live.get(uid)
+            row_tags = e.get("tags", []) + [t for t in f["extra_tags"] if t not in e.get("tags", [])]
+            standing = standing_of(
+                warrant=f["warrant"], tags=row_tags,
+                has_chain=f["has_chain"] or e.get("uod_type") == "historical",
+            )
             items.append({
                 "uod_id": e.get("uod_id", ""),
                 "name": e.get("name", "Untitled"),
@@ -134,11 +144,13 @@ async def list_uods():
                 "created": e.get("created", ""),
                 "last_modified": e.get("last_modified", ""),
                 "authors": e.get("authors", []),
-                "tags": e.get("tags", []) + [t for t in f["extra_tags"] if t not in e.get("tags", [])],
+                "tags": row_tags,
                 "total_states": e.get("total_states", 1),
                 "total_transformations": e.get("total_transformations", 0),
                 "kind": f["kind"],
                 "cited": f["cited"],
+                # Standing badge (posited / derived / withstood-Agon) — see standing_of.
+                "standing": standing,
                 "description": f["description"],
                 # Forward-facing usage status (manifest floor #7): alive / dormant /
                 # unconsulted / retired — for a liveness badge in the browser list.
@@ -259,6 +271,18 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk",
             "source_citation": getattr(uod.metadata, "source_citation", None),
         }
 
+        # Standing — what this graph's claim to a corpus place rests on (posited /
+        # derived / withstood-Agon), a display projection over warrant + chain +
+        # tags.  Its tooltip carries the "correspondence, not truth" non-claim, so
+        # the badge is never read as a verdict.  Outside §3.3.
+        prov = tomos.load_provenance(uod_id)
+        standing = standing_of(
+            warrant=(prov or {}).get("warrant"),
+            tags=uod.metadata.tags,
+            has_chain=tomos.has_chain(uod_id),
+            is_blank=not (egi.V or egi.E or egi.Cut),
+        )
+
         return ApiResponse(
             success=True,
             data={
@@ -274,7 +298,10 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk",
                 # Provenance bundle — typed theorem / EG-derivation / calculus
                 # source layers + per-layer warrant + transcribed-vs-authored
                 # flag (None for items without one).  Outside §3.3.
-                "provenance": tomos.load_provenance(uod_id),
+                "provenance": prov,
+                # Standing badge (posited / derived / withstood-Agon) + the
+                # correspondence-not-truth non-claim.  Outside §3.3.
+                "standing": standing,
                 # Annotation layer — marginalia *about* this UoD, all scopes
                 # (the client filters by scope).  Outside §3.3; [] when none.
                 "annotations": tomos.load_annotations(uod_id),

@@ -209,6 +209,90 @@ def make_provenance(
     return prov
 
 
+# --------------------------------------------------------------------------- #
+# Standing — the display projection of warrant (docs/MANIFEST_AND_MEANING.md)   #
+# --------------------------------------------------------------------------- #
+#
+# A graph's *standing* is what its claim to a place in the corpus rests on.  It
+# is a read-only projection over the warrant model plus two corpus signals (does
+# a sound transformation chain reach it? has it withstood Agon?), packaged for a
+# badge.  The doctrine it makes legible: §3.3 attests **correspondence, not
+# truth** — so every standing below "withstood" carries that non-claim in words,
+# precisely so the badge is never misread as a truth verdict (the field guide's
+# dragon 6).  The blank sheet is the one exception — it says nothing, and so is
+# the only thing that cannot be wrong.
+
+STANDING_BLANK = "blank"          # the empty sheet — the one inviolable truth
+STANDING_POSITED = "posited"      # admitted/authored at low warrant; attested, not asserted
+STANDING_DERIVED = "derived"      # reached from its base by sound transformation steps
+STANDING_WITHSTOOD = "withstood"  # survived the dialogical contest (Agon) — regime-2
+
+# key → (glyph, label, gradient level 0..3, meaning, the non-claim)
+_STANDING_FACES = {
+    STANDING_BLANK: (
+        "○", "Blank sheet", 0,
+        "The empty sheet — it asserts nothing.",
+        "The one inviolable truth: saying nothing, it cannot be wrong.",
+    ),
+    STANDING_POSITED: (
+        "◇", "Posited", 1,
+        "Admitted or authored at low warrant: its picture and its proposition "
+        "denote the same graph (§3.3-attested).",
+        "Attested for correspondence, NOT asserted true — it has withstood no "
+        "challenge yet.",
+    ),
+    STANDING_DERIVED: (
+        "⛓", "Derived", 2,
+        "Reached from its base by sound transformation steps — every step a "
+        "rule application.",
+        "Sound GIVEN its base; the base's own standing is separate. Still "
+        "attests correspondence, not truth.",
+    ),
+    STANDING_WITHSTOOD: (
+        "⚔", "Withstood Agon", 3,
+        "Played out in the dialogical contest and left standing — the fullest "
+        "regime-2 standing.",
+        "Earned by surviving challenge, not measured on a truth-meter; it can "
+        "always lose standing if later overturned.",
+    ),
+}
+
+
+def _warrant_is_tested(warrant: Optional[Dict[str, str]]) -> bool:
+    return bool(warrant) and WARRANT_TESTED in warrant.values()
+
+
+def standing_of(
+    *,
+    warrant: Optional[Dict[str, str]] = None,
+    tags: "Optional[object]" = None,
+    has_chain: bool = False,
+    is_blank: bool = False,
+) -> Dict[str, Any]:
+    """Compute a graph's standing badge from the corpus signals.
+
+    Highest standing wins: *withstood* (the ``warrant:withstood_agon`` tag, or a
+    ``tested`` warrant layer) ▸ *derived* (a sound transformation chain reaches
+    it) ▸ *posited* (the low-warrant floor) — with *blank* reserved for the empty
+    sheet when nothing higher applies.  Returns a display record:
+    ``{key, glyph, label, level, meaning, non_claim}``.
+    """
+    tagset = set(tags or ())
+    if "warrant:withstood_agon" in tagset or _warrant_is_tested(warrant):
+        key = STANDING_WITHSTOOD
+    elif has_chain:
+        key = STANDING_DERIVED
+    elif is_blank:
+        key = STANDING_BLANK
+    else:
+        key = STANDING_POSITED
+    glyph, label, level, meaning, non_claim = _STANDING_FACES[key]
+    return {
+        "key": key, "glyph": glyph, "label": label, "level": level,
+        "meaning": meaning, "non_claim": non_claim,
+    }
+
+
 __all__ = [
     "Provenance",
     "DERIVATION_TRANSCRIBED",
@@ -216,6 +300,11 @@ __all__ = [
     "WARRANT_BLANK",
     "WARRANT_LOW",
     "WARRANT_TESTED",
+    "STANDING_BLANK",
+    "STANDING_POSITED",
+    "STANDING_DERIVED",
+    "STANDING_WITHSTOOD",
+    "standing_of",
     "KIND_EXEMPLAR",
     "KIND_PROOF",
     "KIND_PATTERN",

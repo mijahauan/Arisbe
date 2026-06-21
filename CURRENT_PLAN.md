@@ -1,7 +1,21 @@
 # Current Plan
 
-**Last Updated**: 2026-06-20 (session end). **▶▶▶ UX PASS — first thread shipped: the DRAGONS CHALLENGE
-SET.** With the author's steer ("Dragons challenge set" from the UX menu), wired the field guide's five
+**Last Updated**: 2026-06-20 (session end). **▶▶▶ UX PASS — two threads shipped this session.**
+
+**(B) WARRANT GRADIENT VISIBLE (thread 2).** Made a graph's *standing* legible in Organon. `provenance.py`
+gains a `standing_of(...)` projection over the existing warrant model + corpus signals → an ordered badge
+(`blank ○` · `posited ◇` · `derived ⛓` · `withstood ⚔`), each carrying the **"correspondence, not truth"
+non-claim** in words (so the badge is never read as a verdict — this also discharges field-guide 🐉6).
+Highest standing wins: withstood (`warrant:withstood_agon` tag / `tested` warrant) ▸ derived (a sound
+chain reaches it, via new cheap `TomosService.has_chain`) ▸ posited (the low floor) ▸ blank. Exposed in
+the Organon **list** (per-row, computed from cheap side-files — no `load_uod`) and **detail** payloads;
+rendered as a pill in `organon.html` (compact glyph in list rows, full badge in the detail header, tooltip
+= meaning + non-claim). Visually verified (Playwright screenshot: 29 badges, derived Praeclarum shows
+⛓ Derived). Corpus today: 21 posited, 7 derived, 0 withstood (none asserted through Agon yet). Tests:
++5 unit (`test_provenance` standing branches) +2 route (`test_organon_routes` list+detail carry standing).
+Ergasterion (regime-1, no standing by design) + Agon untouched. Memory: [[project_warrant_gradient_visible]].
+
+**(A) DRAGONS CHALLENGE SET (thread 1).** With the author's steer ("Dragons challenge set" from the UX menu), wired the field guide's five
 *drawable* dragons into challenge mode end to end: `src/challenge_mode.py` gains `dragon`/`temptation`/
 `antidote` on `Challenge` + two new targets (🐉2 the empty cut `~[ ]` = false; 🐉3 the removable double
 cut `~[ ~[ P ] ]`, the look-alike contrast to the scroll) + `list_dragons()`; existing rungs tagged to
@@ -106,17 +120,19 @@ interface."** The author flagged that UX has been deliberately neglected while d
 and the next session turns to it. This is an **explore-and-decide** session first, not a fixed build:
 *open the three modes and ask where the doctrine and the pedagogy should become visible.* Candidate
 threads (to scope with the author, not a committed list):
-- **Make posited-vs-derived / the warrant gradient visible.** The cat-on-mat answer (low-warrant import
-  vs derived chain) is the deepest distinction in the field guide, and right now it is barely surfaced in
-  the UI. How does a graph's *standing* (posited at LOW warrant · derived chain · withstood Agon · style-
-  only reprojection) show on screen? ([[project_import_low_warrant_and_floor]], [[project_fidelity_and_departures]].)
+- ~~**Make posited-vs-derived / the warrant gradient visible.**~~ ✅ **DONE 2026-06-20** — `standing_of`
+  + the Organon list/detail badge (○ posited / ◇ … / ⛓ derived / ⚔ withstood) with the
+  correspondence-not-truth non-claim in the tooltip. ([[project_warrant_gradient_visible]].) **Fast-follows
+  still open:** surface standing in **Agon** when a graph is asserted (mints ⚔ — currently only persisted,
+  not shown back), and an explicit **style-only reprojection** affordance (inherits its source's standing).
 - **The context reflex in the UI.** A learner who sees a fragment should be able to *ask after its
   ground/whole* — which UoD/universe it lives in (Organon shows this), which chain it is a step in
   (Ergasterion), which cuts enclose it. Surface "this is a fragment of …" rather than presenting graphs
   as free-floating. ([[feedback_newcomer_accessibility_dragons]] — context-as-ground.)
 - **"Correspondence, not truth" made legible.** §3.3 attests silently; the UI could make the chord
   (picture↔proposition) and its *non*-claim about truth visible, so users don't read attestation as a
-  truth-verdict.
+  truth-verdict. *(Partly seeded 2026-06-20: the standing badge's tooltip now states the non-claim in words
+  — 🐉6 — but the picture↔proposition chord itself is still not shown.)*
 - ~~**A "dragons" challenge set.**~~ ✅ **DONE 2026-06-20** — the five *drawable* field-guide dragons are
   now challenges (🐉 in the picker), graded with the antidote handed back on a wrong attempt. Dragons 6-8
   are conceptual, not drawable — they fold into the warrant / correspondence-not-truth threads above.

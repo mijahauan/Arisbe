@@ -857,6 +857,17 @@ class TomosService:
         except (json.JSONDecodeError, OSError):
             return {}
 
+    def has_chain(self, uod_id: str) -> bool:
+        """Cheap existence check: does a persisted transformation chain reach this
+        UoD?  Tests only for the ``history/chain.jsonl`` side-file — does NOT parse
+        the chain (so a standing badge can be computed per list row without
+        hydrating every corpus graph).  See ``load_chain`` for the full read.
+        """
+        entry = self.get_uod_metadata(uod_id)
+        if entry is None:
+            return False
+        return (Path(entry["path"]) / "history" / "chain.jsonl").exists()
+
     def load_chain(self, uod_id: str) -> Optional[TransformationChain]:
         """Load the transformation chain persisted alongside a UoD.
 

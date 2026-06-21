@@ -122,6 +122,27 @@ def test_list_uods_carries_browse_facets(client):
         assert by_id["ternary_relation_challenge"]["cited"] is False
 
 
+def test_list_uods_carries_standing(client):
+    """Every list row carries a computed standing badge (posited/derived/...)."""
+    body = client.get("/organon/uods").json()["data"]
+    assert body, "corpus empty"
+    keys = set()
+    for u in body:
+        st = u["standing"]
+        assert {"key", "glyph", "label", "level", "meaning", "non_claim"} <= set(st.keys())
+        keys.add(st["key"])
+    # The corpus has both un-derived imports and worked proofs.
+    assert "posited" in keys
+
+
+def test_detail_carries_standing_with_the_non_claim(client, sample_uod_id):
+    data = client.get(f"/organon/uods/{sample_uod_id}").json()["data"]
+    st = data["standing"]
+    assert st["key"] in {"posited", "derived", "withstood", "blank"}
+    # The badge always carries its meaning + a non-claim string for the tooltip.
+    assert st["meaning"] and st["non_claim"]
+
+
 # --------------------------------------------------------------------------- #
 # 2. UoD detail                                                               #
 # --------------------------------------------------------------------------- #
