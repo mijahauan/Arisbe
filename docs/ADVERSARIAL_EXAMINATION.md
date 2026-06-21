@@ -630,7 +630,8 @@ pressed. This is the resting place.*
 
 ## Preface
 
-The two perspectives of [THE_LARGER_GAME_AND_THE_COMMON_SHEET.md](THE_LARGER_GAME_AND_THE_COMMON_SHEET.md)
+The two perspectives — "the larger game" (A) and "the common sheet" (B), now recorded as the **Corollary**
+of [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) —
 were drafted boldly and then handed, on 2026-06-20, to three independent opponents charged to *refute,
 not flatter*: a **hard naturalist** (Quine/Dennett lineage) against Perspective A; a **Peircean realist**
 (Misak/Hookway/Short lineage) against Perspective B; and a **developmental progressivist** (Piaget/Kitcher/
@@ -803,7 +804,7 @@ can score.
 
 *Produced by a three-opponent adversarial examination (naturalist · Peircean realist · developmental
 progressivist), 2026-06-20. Both perspectives revised in the author's voice to their post-examination form
-in [THE_LARGER_GAME_AND_THE_COMMON_SHEET.md](THE_LARGER_GAME_AND_THE_COMMON_SHEET.md).*
+in the **Corollary** of [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md).*
 
 ---
 
@@ -851,8 +852,8 @@ metric, and the worth-ranking of persons. This is the resting place unless a fou
 opponent can show that an *end* or a *progress-measure* is not, like a contingent
 content, something that requires a context to be sayable.
 
-*Recorded 2026-06-20, after the three-opponent examination above; folded into
-[THE_LARGER_GAME_AND_THE_COMMON_SHEET.md](THE_LARGER_GAME_AND_THE_COMMON_SHEET.md).*
+*Recorded 2026-06-20, after the three-opponent examination above; folded into the **Corollary** of
+[FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md).*
 
 ---
 

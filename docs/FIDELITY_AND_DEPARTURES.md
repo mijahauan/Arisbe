@@ -190,9 +190,10 @@ co-grounding analogy (won) — not the original "inquiry does not converge."
 
 *The **axiological corollary** of this departure — that if "nearer the real" is a
 non-locution then no reasoner, age, or culture stands *nearer* than another (the
-no-ladder claim) — was drawn out and **examined over four rounds** in
-[THE_LARGER_GAME_AND_THE_COMMON_SHEET.md](THE_LARGER_GAME_AND_THE_COMMON_SHEET.md)
-("Perspective B") and **largely absorbed back into this departure**. What survives:
+no-ladder claim) — was drawn out and **examined over four rounds** (as "Perspective
+B"; see the **Corollary** at the end of this document and the full record in
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) "Examination II") and
+**largely absorbed back into this departure**. What survives:
 the **metric** terminus is dissolved (this departure's first-order result); the
 context-free **comparative efficacy-vector** is *conceded* (structural realism — only
 the summit was ever a non-locution, never the vector); and the one genuine residue is
@@ -461,6 +462,109 @@ booked in the open.
 
 ---
 
+## Corollary — the larger game and the common sheet (ends and progress, absorbed)
+
+Two further perspectives were drafted after the three departures and tested by the
+same standard: **A — "the larger game,"** the discipline applied to *ends* (we hold
+no referee's chair; "principalities and powers" invoked, in the manner of the Flying
+Spaghetti Monster, to *demote* every context-less ultimate end, tradition's
+respectable *terminus ad quem* included); and **B — "the common sheet,"** the
+discipline applied to *progress* (the convergent dreams — Peirce's final opinion,
+Teilhard's Omega — rank the history of mind as a climb toward a terminus; B removes
+the terminus and the worth-ranking). They were examined over four rounds (an opening
+panel plus an iterative dissolution-press; the full record is
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md), "Examination II"). **Neither
+survived as an independent perspective.** Pressed, both dissolved back into the three
+departures plus a conceded structural realism — the outcome §7 courts. This corollary
+records what they became; it is not a fourth or fifth departure.
+
+**A is `departure_absorbed`** (≈0.81). It carries no proposition independent of
+Departure I and Departure II. Two charges were decisive. First, the claim that a
+context-less *end* is *malformed* "just as the unenclosed proposition is at level 0"
+is a **category mistake**: level-0 unsayability is a syntactic theorem about *marks*
+(Secondness), while an end / final cause is **Thirdness** — a real general that needs
+no enclosing cut to be well-formed. Second, run with Departure II's *real* two-register
+content the analogy **backfires**: Departure II does not dissolve the unenclosed
+contingent thing, it **licenses** it in the assertoric register, so a context-free
+ultimate end is a **legitimate low-warrant posit, fully sayable, not malformed**
+(admitted at import, exposed to the Agon, never *derived*). Stripped of the over-reach,
+A's two refusals *are* Departure I: "inquiry **derives** no context-free end" is the
+negative orientation; "the game is not scored against a surveyable terminus" is the
+first-order non-locution. (And the posited-vs-served distinction is unstable — a
+low-warrant ultimate posit that survives the Agon sits at `withstood` and is then a
+*served* terminus on the only reading the warrant gradient permits; only Departure I's
+non-locution forbids it.) **A's surviving contribution is one small disciplinary
+office — the *no-founder-exemption*:** the non-locution is universally quantified, so
+it already ranges over Omega and the Final Opinion; what A *performs* is the refusal to
+grant tradition's respectable, on-record termini the dignity-exemption their owners
+might have spared. That is a use of owned content and good pedagogy (the FSM is the
+memorable way to teach the universal), not a new claim. Ends *in context* — arguments
+end, innings end, a player conceives a goal and lays plans to win — are real
+throughout; A obviates no ends, only the context-less terminus *the game is said to
+serve*.
+
+**B is `departure_narrowed`** (≈0.75), nearly absorbed. Its master-claim ("no progress
+outside any context") splits into parts with opposite fates. The context-free **metric
+terminus** — a possessed summit, a distance-to-the-real the gradient scores nearness to
+— is a non-locution, **dissolved** (this is Departure I's first-order result; "ordinal,
+a staircase with no top" defends exactly and only this). But the context-free
+**comparative efficacy-vector** is **conceded, not dissolved**: an instrument is scored
+by work on a world that does not read our scoreboard (novel prediction, intervention,
+the bridge that holds, the augurs' eclipse-failures recurring direction-stably), so
+"a genuinely better instrument" is a mind-independent, ordinal, directional fact — and
+an order with no greatest element is the textbook objective comparative *without* a
+summit. That is **structural realism's** thesis (the vector, never the summit), and it
+sits on the **survivor side** (§2's encountered real, cognizable in its effects). B
+conceded it the moment it said "better instrument." So B's propositions absorb: metric
+terminus = Departure I; efficacy-vector = conceded structural realism; competence ≠
+worth = a category-fact. **B's one genuine residue is the *worth-ladder denial aimed at
+an asserting opponent*:** the convergent dreams *fuse* competence with worth (later =
+nearer, later = holier), and severing that fusion — *a later stage is a better
+instrument; its inhabitants are not better souls; the child, the prior age, the
+layperson stand at no greater distance in **worth***— is content, because the opponent
+is on record. Three qualifications the examination forced: it is held **at parity in
+the axiological register, never as a logical theorem** (made an entailment — "nearer
+the love of God" — it overreaches into theology and is quarantined); it rests on an
+**imported equal-dignity premise** this departure does not derive (own it, do not
+smuggle it as following from the enclosure discipline); and it does **not** flatten
+progress (abolition over slavery, conservation over the preoperational error are real
+ordinal advances *in instrument*, not in the worth of souls).
+
+**One correction this examination forces on the surrounding doctrine.** B set
+"context-free progress" against the wrong thing. A real **immanent operative tendency**
+— synechism's continuity, habit-taking, the growth of concrete reasonableness — is
+operative across contexts *without* being a terminus one stands outside and scores; the
+deflationary (FSM / level-0) solvent, scoped to *surveyable* termini, never touches it.
+The corpus already **instances** the category: the §3.3 correspondence invariant and the
+secured negative orientation *are* exercised, immanent, context-transcending corrective
+tendencies. The cap on this is **not a scope-cap** ("operative up to our contexts,
+stopping at the cosmos" — that would be the referee's chair A forbids, or a synechist
+over-concession) but an **enclosure cap, and it is won, not wagered**: the tendency is
+sayable and operative wherever a context encloses it, and enclosure-malformed only when
+scribed as the operative structure of the unenclosable whole (the outermost sep cannot
+be drawn). Agapism thus wins its *category* (the tendency is real and instanced) and
+*nothing* of the cosmic verdict, which remains Departure I's meta-joint, at parity.
+
+**The honest billing, and the live floor.** Counted honestly this is not two new
+departures but **one discipline (Departures I + II) + one imported equal-dignity premise
++ a conceded structural realism, deployed against two targets** (tradition's respectable
+termini; the worth-misreading of progress). The double decentering survives, precisely:
+*you are not the referee* (no surveyable outside — an epistemic limit, not an agency)
+and *you are not nearer a possessed real, nor worth more* (though you may wield a
+genuinely better instrument, which is a real, terminus-free fact). What is removed is
+the chair and the conflation of *better instrument* with *nearer* and *worth more*; what
+is untouched is competence. The doctrine rests; the **vigilance it mandates does not**,
+and is meant never to: at every ranking surface Arisbe builds — the **warrant gradient**
+(`provenance.standing_of`), the personas, any badge — the ordering must read as
+**in-context standing and competence** (including the conceded efficacy-vector) and
+**never** as the **worth or dignity of the reasoner**, **metric nearness** to a possessed
+real, or **context-free Progress**. A badge read as a worth-ladder *is* the field-guide
+dragon ([FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md), no. 6), whatever the
+tooltip says. And A's agency-imagery, taken as a positive claim, would bear actuality
+across the membrane and is *better not drawn* (floor #6) — kept strictly as imagery.
+
+---
+
 *Companion to [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
 [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md),
 [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md),
@@ -469,4 +573,4 @@ examination record [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md).
 Sources for the three departures: the archived conversations under
 [references/](references/).*
 
-**Created**: 2026-06-18 · **Examined and amended**: 2026-06-19
+**Created**: 2026-06-18 · **Examined and amended**: 2026-06-19 · **Corollary (ends & progress) examined and absorbed**: 2026-06-20
