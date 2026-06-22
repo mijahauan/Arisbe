@@ -109,7 +109,46 @@ proposition — and is left as is.)
 
 ---
 
-## 5. Known follow-ups (documented, not silently dropped)
+## 5. The context reflex — `js/context-reflex.js`
+
+A shared, framework-free panel (`window.ContextReflex`, the twin of
+[`LinearFormPanel`](../src/web_viewer/js/linear-form-panel.js)) that floats over
+the diagram host in **all three modes** and answers the field guide's first
+reflex — *"what context lets you read this?"*
+([FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md) point 4;
+[LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) — contextual
+honesty made visible). It renders two sections:
+
+- **The ground** — the universe the graph is asserted in (name + standing badge),
+  the regime, and the derivation position. Each mode supplies a `ground` object
+  with what it knows; missing fields are omitted, so the same component reads
+  correctly as a corpus item (Organon: standing + "state N of M"), a regime-1
+  draft (Ergasterion: "regime 1 · workshop", with a *correspondence-suspended*
+  claim), or a contest board (Agon: move position, *nothing-asserted* claim).
+- **The structure** — on element click, the enclosing-cut breadcrumb
+  (`⊙ sheet › ¬ › ¬ ▸ here`) plus the element's polarity/depth in words and the
+  lines through it. Computed by walking the area tree in the **introspection**
+  block (`{ areas, elements }`).
+
+**The id-matching contract (important):** the enclosure walk only works if the
+clicked SVG `data-element-id` matches an introspection key. That holds **only**
+when the introspection comes from the *same egi* as the rendered svg — so each
+mode passes the introspection **bundled with the render**, never a fresh
+`/introspect {text}` (re-parsing regenerates ids). Ergasterion and Agon already
+carry an `introspection` block in their state/game payloads; Organon's detail and
+chain-frame payloads now do too. Polarity is shown in **words, never hue** (floor
+#6: hue/line-style stay reserved for Gamma; this is a meta-affordance, not a mark).
+
+API: `ContextReflex.render(host, {ground, introspection})` (re-attaches after the
+host's innerHTML is swapped) · `.select(host, id)` / `.clearSelect(host)` (the
+breadcrumb) · pure `.enclosureChain(intro, id)` / `.describeElement(intro, id)`.
+Open/closed state + last selection persist on the host dataset. Tests:
+[`test_context_reflex_e2e.py`](../tests/test_context_reflex_e2e.py) (Organon
+integration + the cross-mode module contract on all three pages).
+
+---
+
+## 6. Known follow-ups (documented, not silently dropped)
 
 - **`rgba(...)` alpha variants** (phase-banner tints, hint backgrounds) are not
   yet tokenized — they're contextual one-offs; tokenize if a second use appears.

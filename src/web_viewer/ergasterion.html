@@ -866,6 +866,7 @@
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
+  <script src="js/context-reflex.js"></script>
   <script src="js/freeform-canvas.js"></script>
   <script src="js/settle-adjust.js"></script>
   <script>
@@ -933,6 +934,10 @@
       // selection bar name elements by meaning (relation/label + polarity)
       // instead of by raw id, and lets us forewarn polarity mismatches.
       let currentIntrospection = null;
+
+      // The base context this session forks from (the ground, for the context
+      // reflex panel) — set when a session opens.
+      let currentBaseSource = null;
 
       // Which act the user is performing (spec §4.2/§5.1): composing |
       // deriving | sealed.  Drives the phase banner and which right-panel
@@ -1445,6 +1450,10 @@
         const a = describeArea(regionId);
         setStatus((selectedArea ? 'target region · ' : 'cleared region · ') +
           a.label + (a.polarity ? ' (' + a.polarity + ')' : ''));
+        if (window.ContextReflex) {
+          if (selectedArea) ContextReflex.select(canvasEl, regionId);
+          else ContextReflex.clearSelect(canvasEl);
+        }
         refreshSelectionUI();
       }
 
@@ -1455,6 +1464,10 @@
         const d = describeElement(id);
         setStatus((added ? 'selected · ' : 'deselected · ') +
           d.label + (d.polarity ? ' (' + d.polarity + ')' : ''));
+        if (window.ContextReflex) {
+          if (added) ContextReflex.select(canvasEl, id);
+          else if (!selectedSubgraph.size) ContextReflex.clearSelect(canvasEl);
+        }
         refreshSelectionUI();
       }
 
@@ -2008,6 +2021,7 @@
           if (window.LinearFormPanel) {
             window.LinearFormPanel.render(canvasEl, body.data.linear_forms);
           }
+          renderContextReflex();
           renderChain(currentChain);  // refresh highlight + nav state
           setStatus(atTip()
             ? 'At latest move.'
@@ -2095,6 +2109,36 @@
         });
       }
 
+      // The context reflex (shared ContextReflex panel): the ground (the base
+      // context this draft forks from, the regime, the move position) plus, on
+      // element click, which cuts enclose it. A regime-1 draft is clay, so the
+      // claim says correspondence is suspended; in composing there is no fixed
+      // graph yet, so the panel stays away.
+      function renderContextReflex() {
+        if (!window.ContextReflex || !canvasEl) return;
+        const phase = (typeof effectivePhase === 'function')
+          ? effectivePhase() : currentPhase;
+        if (phase === 'composing') {
+          const p = canvasEl.querySelector('.cx-panel');
+          if (p) p.remove();
+          return;
+        }
+        const tip = (typeof tipIndex === 'function') ? tipIndex() : 0;
+        const ground = {
+          universe: currentBaseSource || 'workshop draft',
+          regime: 'regime 1 · workshop' + (phase ? ' · ' + phase : ''),
+          derivation: {
+            label: 'move',
+            text: viewIndex === 0 ? 'base · 0 of ' + tip : viewIndex + ' of ' + tip,
+          },
+          claim: 'A workshop draft (regime 1): correspondence is suspended here — ' +
+            'this is clay, not an assertion. Its ground is the base context it forks from.',
+        };
+        window.ContextReflex.render(canvasEl, {
+          ground, introspection: currentIntrospection,
+        });
+      }
+
       function showSession(data, preserveView) {
         currentSessionId = data.session_id;
         // Capture introspection before rendering so the selection bar can
@@ -2112,8 +2156,9 @@
           }
         }
         sessionIdDisplay.value = data.session_id;
-        baseSourceDisplay.value = data.base_source +
+        currentBaseSource = data.base_source +
           (data.base_source_uod_id ? ' (' + data.base_source_uod_id + ')' : '');
+        baseSourceDisplay.value = currentBaseSource;
         pickerSection.style.display = 'none';
         sessionInfoEl.style.display = 'block';
         rulesSectionEl.style.display = 'block';
@@ -2135,6 +2180,7 @@
         // the banner. A payload without one (older endpoints) keeps the last.
         if (data.phase) currentPhase = data.phase;
         updatePhaseUI();
+        renderContextReflex();
       }
 
       function egifFromForms(lf) {

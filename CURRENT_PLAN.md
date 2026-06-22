@@ -1,8 +1,9 @@
 # Current Plan
 
-**Last Updated**: 2026-06-21 (mid-session). **▶▶▶ This session: discharged the committed DOCTRINE task —
-the LEVEL_ZERO rework with the gapless account of assertion + the `assertion-4` closure (✅ block under
-▶ NEXT SESSION). NEXT = the UX threads (context reflex · correspondence-not-truth · warrant fast-follows).**
+**Last Updated**: 2026-06-22 (mid-session). **▶▶▶ This session: (1) discharged the committed DOCTRINE task —
+the LEVEL_ZERO rework + `assertion-4` closure (committed c5be85f); (2) shipped the UX **context reflex** — a
+shared cross-mode "what context lets you read this?" panel (✅ blocks under ▶ NEXT SESSION). NEXT remaining UX
+threads = correspondence-not-truth chord · warrant fast-follows (⚔ in Agon, style-only reprojection).**
 
 **(C) DOCTRINE — A & B examined to Departure-I parity, then MERGED into FIDELITY as a corollary.** Captured
 two perspectives that "cost the sophisticate her investment" — **A** (the larger game; we hold no referee's
@@ -152,10 +153,15 @@ threads (to scope with the author, not a committed list):
   correspondence-not-truth non-claim in the tooltip. ([[project_warrant_gradient_visible]].) **Fast-follows
   still open:** surface standing in **Agon** when a graph is asserted (mints ⚔ — currently only persisted,
   not shown back), and an explicit **style-only reprojection** affordance (inherits its source's standing).
-- **The context reflex in the UI.** A learner who sees a fragment should be able to *ask after its
-  ground/whole* — which UoD/universe it lives in (Organon shows this), which chain it is a step in
-  (Ergasterion), which cuts enclose it. Surface "this is a fragment of …" rather than presenting graphs
-  as free-floating. ([[feedback_newcomer_accessibility_dragons]] — context-as-ground.)
+- ~~**The context reflex in the UI.**~~ ✅ **DONE 2026-06-22** — a shared `ContextReflex` panel
+  (`js/context-reflex.js`) across **all three modes** (author chose the cross-mode option): "what context
+  lets you read this?" = **the ground** (universe + standing + derivation position "state N of M") + on
+  element click **the structure** (the enclosing-cut breadcrumb `⊙ sheet › ¬ › ¬ ▸ here`, polarity/depth in
+  words). The UI face of the just-closed *contextual honesty* doctrine. Key fix: introspection must be
+  bundled with the render (matching ids), so added it to Organon's detail + chain-frame payloads (Ergasterion
+  + Agon already carried it). Polarity in words, never hue (floor #6). E2E `test_context_reflex_e2e.py` (4);
+  17 existing mode E2E still green; core-protection CLEAN. ([[project_context_reflex_built]];
+  [[feedback_newcomer_accessibility_dragons]].)
 - **"Correspondence, not truth" made legible.** §3.3 attests silently; the UI could make the chord
   (picture↔proposition) and its *non*-claim about truth visible, so users don't read attestation as a
   truth-verdict. *(Partly seeded 2026-06-20: the standing badge's tooltip now states the non-claim in words

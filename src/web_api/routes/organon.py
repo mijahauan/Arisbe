@@ -33,6 +33,7 @@ from web_api.services.layout_service import (
     layout_dto_to_dict,
 )
 from web_api.services.linear_forms import linear_forms
+from web_api.services.introspection import egi_introspection
 
 from tomos_service import TomosService
 from provenance import standing_of
@@ -291,6 +292,10 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk",
                 "layout_dto": layout_dict,
                 "egi_summary": _egi_summary(egi),
                 "linear_forms": linear_forms(egi),
+                # Per-element area + polarity, from the SAME egi as the svg so
+                # element ids match — the context reflex's enclosure walk
+                # (which cuts enclose a clicked element). Outside §3.3.
+                "introspection": egi_introspection(egi),
                 # Bibliographic provenance for imported UoDs (None for
                 # non-imports) — the trace of the un-hosted dialogue the
                 # linear form came from.
@@ -571,6 +576,9 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                 "svg": svg,
                 "egi_summary": _egi_summary(egi),
                 "linear_forms": linear_forms(egi),
+                # Per-frame introspection from the same egi as the svg (ids
+                # match) — the context reflex's enclosure walk per chain state.
+                "introspection": egi_introspection(egi),
             }
 
         frames = [

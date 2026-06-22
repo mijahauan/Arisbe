@@ -222,6 +222,7 @@
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
+  <script src="js/context-reflex.js"></script>
   <script>
     (function () {
       const $ = (id) => document.getElementById(id);
@@ -230,6 +231,9 @@
       let contestId = null, selectedContestDisp = null;
       let selectedSubgraph = new Set(), selectedArea = null;
       let agonModels = { examples: [], corpus: [] }, selectedModelUod = null;
+      // Context reflex: the board's introspection (bundled in the game payload,
+      // same egi as the svg) for the enclosure walk.
+      let currentIntrospection = null;
 
       function setStatus(m, k) { statusEl.textContent = m; statusEl.classList.remove('error','success'); if (k) statusEl.classList.add(k); }
       function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -252,13 +256,39 @@
         if($('sel-area-display')) $('sel-area-display').textContent = selectedArea||'none';
       }
       function refreshSel(){ applyHighlights(); syncFields(); updateBar(); }
-      function clearSel(){ selectedSubgraph=new Set(); selectedArea=null; refreshSel(); }
+      function clearSel(){ selectedSubgraph=new Set(); selectedArea=null; refreshSel();
+        if(window.ContextReflex) ContextReflex.clearSelect(canvasEl); }
       function onCanvasClick(e){
         const g=e.target.closest && e.target.closest('[data-element-id]'); if(!g) return;
         const id=g.getAttribute('data-element-id'), type=g.getAttribute('data-element-type'); if(!id) return;
         if(e.shiftKey){ if(type==='cut') selectedArea = selectedArea===id?null:id; }
         else { selectedSubgraph.has(id)?selectedSubgraph.delete(id):selectedSubgraph.add(id); }
+        // The context reflex follows the just-clicked element — which cuts
+        // enclose it (polarity is what makes a move legal in the arena).
+        if(window.ContextReflex) ContextReflex.select(canvasEl, id);
         refreshSel();
+      }
+
+      // The context reflex for the contest board: the ground (a contest tests a
+      // proposal by play; nothing is asserted until won + disposed) + the move
+      // position, plus on-click the enclosing cut chain. The game payload already
+      // carries an `introspection` block from the same egi as the svg (ids match),
+      // so no separate fetch is needed.
+      function renderAgonContext(d){
+        if(!window.ContextReflex || !canvasEl) return;
+        currentIntrospection = d.introspection || null;
+        if(canvasEl) canvasEl.dataset.cxSel = '';   // selection is per board state
+        const moves = (d.episode && d.episode.moves) ? d.episode.moves.length : 0;
+        const ground = {
+          universe: 'the contest board',
+          regime: 'Agon · contest',
+          derivation: { label: 'play', text: d.is_over
+            ? ('over — ' + (d.winner ? d.winner + ' wins' : 'drawn'))
+            : (moves + ' move' + (moves===1?'':'s') + ' · ' + d.current_role + "'s turn") },
+          claim: 'The arena tests a proposal by play — nothing here is asserted ' +
+            'until a contest is won and disposed. §3.3 attests correspondence, not truth.',
+        };
+        window.ContextReflex.render(canvasEl, { ground, introspection: currentIntrospection });
       }
 
       // Stable viewport (Settle ④a, step 1a): a move is a continuation of the
@@ -338,6 +368,7 @@
         // Collapsible linear-form view of the contest's current state
         // (EGIF default; CGIF / CLIF selectable). Updates as the game advances.
         if (window.LinearFormPanel) { window.LinearFormPanel.render(canvasEl, d.linear_forms); }
+        renderAgonContext(d);
         if(d.is_over){ renderDispositions(d); }
         else { $('moves-section').style.display='block'; $('disposition-section').style.display='none';
           $('right-title').textContent='Moves'; $('right-sub').textContent='Apply rules in your territory.'; }

@@ -444,6 +444,7 @@
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
+  <script src="js/context-reflex.js"></script>
   <script src="js/lens-common.js"></script>
   <script src="js/storyboard-lens.js"></script>
   <script src="js/derivation-dag-lens.js"></script>
@@ -485,6 +486,11 @@
       let currentStructure = null;     // cached /structure for the Well lens
       let currentHistory = null;       // cached /history-structure for diachronic lenses
       let activeLensHandle = null;     // {destroy()} of the mounted non-drawing lens
+      // Context reflex (shared ContextReflex panel): the ground + the introspection
+      // of the graph currently on the canvas. Introspection travels with the
+      // rendered state (detail payload / chain frame), so ids match the svg.
+      let currentContextGround = null;
+      let currentContextIntrospection = null;
       // Overview (adaptive-scope) state: the cuts the reader has drilled into
       // (ancestors auto-included server-side). Empty ⇒ the auto-expand policy
       // shows the top of the graph; each expand re-fetches a larger visible part.
@@ -898,6 +904,19 @@
         setOverviewControls(false);
         if (viewLensSel) viewLensSel.value = 'drawing';
         setDiachronicLensesAvailable(false);
+
+        // Context reflex: the ground of this UoD (universe + standing + kind).
+        // Derivation position is filled in by the chain player (showFrame); a
+        // non-chained UoD shows no derivation line — it is a posited/imported
+        // graph, not a derived one. Introspection is fetched for the canonical
+        // state (a chained UoD then re-introspects per frame in showFrame).
+        currentContextGround = {
+          universe: meta.name || data.uod_id,
+          kind: meta.category ? meta.category.replace(/_/g, ' ') : null,
+          standingHtml: data.standing ? standingBadgeHtml(data.standing, true) : null,
+        };
+        currentContextIntrospection = data.introspection || null;
+        if (canvasEl) canvasEl.dataset.cxSel = '';
         renderCanvas(data.svg || '', data.linear_forms, false);
       }
 
@@ -959,7 +978,23 @@
         if (window.LinearFormPanel) {
           window.LinearFormPanel.render(canvasEl, linearForms);
         }
+        // The context reflex: the ground + (on click) which cuts enclose an
+        // element. The panel re-attaches on every render (the host innerHTML is
+        // swapped); the click handler re-binds to the fresh SVG.
+        if (window.ContextReflex) {
+          window.ContextReflex.render(canvasEl, {
+            ground: currentContextGround,
+            introspection: currentContextIntrospection,
+          });
+          diagramView.onElementClick(function (id) {
+            if (id) window.ContextReflex.select(canvasEl, id);
+          });
+        }
       }
+
+      // The introspection now travels *with* the rendered state (detail payload
+      // and each chain frame carry an `introspection` block from the same egi as
+      // the svg, so element ids match the drawing exactly). No separate fetch.
 
       // ---- Adaptive-scope lenses ----
       // The Lens selector swaps what is mounted in #organon-canvas. "drawing" is
@@ -1216,8 +1251,18 @@
         if (!chainFrames.length) return;
         chainIndex = Math.max(0, Math.min(i, chainFrames.length - 1));
         const f = chainFrames[chainIndex];
-        renderCanvas(f.svg, f.linear_forms, animate);
         const total = chainFrames.length - 1;  // step count (frame 0 is base)
+        // Context reflex: this frame's ground position + its own introspection
+        // (bundled with the frame, so element ids match this drawing). Set before
+        // the render so the panel paints with the right enclosure data.
+        if (currentContextGround) {
+          currentContextGround.derivation = chainIndex === 0
+            ? { label: 'state', text: 'base · 0 of ' + total }
+            : { label: 'state', text: chainIndex + ' of ' + total };
+        }
+        currentContextIntrospection = f.introspection || null;
+        if (canvasEl) canvasEl.dataset.cxSel = '';   // selection is per-state
+        renderCanvas(f.svg, f.linear_forms, animate);
         if (cp.counter) {
           cp.counter.textContent = chainIndex === 0
             ? 'base state · 0 / ' + total
