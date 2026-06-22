@@ -3,8 +3,13 @@
 *An introduction for people who have never heard of Arisbe — told through the
 people who might use it and the work they actually do.*
 
-**Status**: active development · **Last refreshed**: 2026-06-13
+**Status**: active development · **Last refreshed**: 2026-06-22
 *(Combines the former `ARISBE_PERSONAS.md` and the original scenario narrative.)*
+
+*New to the **ideas** rather than the tool? The plain-language
+[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md) tells the story of what
+Arisbe challenged in Peirce and the traditions that read him, and what changed — no
+logic required. This document is its practical companion: who uses Arisbe, and how.*
 
 ---
 
@@ -116,7 +121,13 @@ and a committed claim unmistakable: you cannot apply a rule to an unfixed
 drawing, nor silently change the meaning of a fixed one. She practises the six
 transformation rules with every application validated against the mathematics,
 and **challenge mode** turns practice into a game she can win — reproduce *this*
-graph, and get told precisely how close she is.
+graph, and get told precisely how close she is (the trickiest targets are marked
+with a 🐉, the field guide's "dragons," and a wrong attempt hands her back the
+antidote). And because a lone graph is so easy to misread, a small **context
+panel** rides alongside every picture, answering the beginner's first question —
+*what whole is this a fragment of, and on whose sheet does it stand?* — with the
+chain of cuts that enclose whatever she clicks. She never mistakes an extract for
+a finished thought.
 
 **When complete.** The "reading desk" — transcribe a graph straight out of a
 textbook and have Arisbe confirm she copied it faithfully. Over a term she
@@ -144,7 +155,11 @@ world M, does G hold?" (true / false / *unknown*, with a witness or
 counterexample), run the **inverse pivot** — "*in what world does G hold*, and
 what is its residual contribution?" — and, when a Graphist-won contest is worth
 keeping, mint a **warrant**: G enters the corpus as "withstood Agon," carrying
-its play as proof.
+its play as proof. Every corpus item now wears its **standing** on a badge —
+*posited* (admitted at low warrant), *derived* (a sound chain reaches it), or
+*withstood* (it has survived the arena) — and the badge's own tooltip states the
+non-claim it must never be read against: *correspondence is attested, truth is
+not*. The badge ranks the **claim**, never the person who entered it.
 
 **When complete.** Larger ontologies (WordNet, SNOMED, Wikidata) as routine
 opponents; a sharper account of *vocabulary the model cannot even address*
@@ -177,15 +192,19 @@ of that theory?", decided by freezing a fresh witness), and a fragment-honest
 a benchmark — and which reports *soundness and coverage separately*: it abstains
 where its bounded fragment can't decide rather than ever answering wrongly.
 
+She can also **fold** a drawn subgraph under a named definition and **unfold** it
+again — abstracting a reusable piece whose legitimacy rests on its *expansion*
+(the rules accept the swap), never on its name.
+
 **When complete.** Exhaustive, hypothesis-driven testing that enumerates *every*
-applicable site for each rule; a theorem-prover bridge (Coq/Lean via CLIF); and
-the **mathematics horizon** — universal generalization via a Dau-native scaffold
-tactic, fold/unfold of named definitions, a graph-with-holes schema node — which
-opens EGs onto real mathematics (ZFC separation, Peirce's 1881 axioms of
-arithmetic). *(This track is actively in progress: the soundness homework for
-universal generalization is done, draft fixtures exist, and the definition/schema
-layer is next.)* The system becomes a place to *do new mathematics* in pictures,
-not only to reproduce known proofs.
+applicable site for each rule; a theorem-prover bridge (Coq/Lean via CLIF); and the
+rest of the **mathematics horizon** — universal generalization via a Dau-native
+scaffold tactic and a graph-with-holes schema node — which opens EGs onto real
+mathematics (ZFC separation, Peirce's 1881 axioms of arithmetic). *(This track is
+in progress: the fold/unfold definition layer has shipped, the soundness homework
+for universal generalization is done, and draft fixtures exist; the schema node is
+next.)* The system becomes a place to *do new mathematics* in pictures, not only to
+reproduce known proofs.
 
 ## The physician
 
@@ -256,6 +275,20 @@ editor wants fidelity that is *citable*. What lets one system serve them all is
 the single commitment underneath: **the picture and the proposition are the same
 sign, and Arisbe keeps them so.** Peirce supplies the aim; Dau supplies the
 guarantee; the personas supply the reasons it matters.
+
+And they share one more thing, easy to miss because it is built so deep: **the
+graph is judged, never the grapher.** A claim earns its standing by passing the
+*method* — the rules, the §3.3 check, the contest — *on its content*, whoever
+drew it. The newcomer's graph and the expert's graph meet exactly the same
+scrutiny; the doorway gates *what* you propose, not *who* you are; the warrant
+badge reports how a *claim* has fared, never the worth of a person. The opposite —
+dismissing a claim because of who made it rather than testing it — is the one move
+the system is built to refuse (it has a name in the wider world: *epistemic
+injustice*). Adherence: the augurs were rightly demoted by **losing the contest**.
+Breaking: refusing to look through Galileo's telescope because of who was holding
+it. *(The argument behind this — and where it parts from the grand "ladder of
+progress" readings of Peirce — is told in
+[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md), Doubt 4.)*
 
 ---
 
@@ -390,6 +423,10 @@ good reasoning Peirce spent his life trying to cultivate.
 
 ## Pointers
 
+- **The ideas, in plain language** (what Arisbe challenged in Peirce and the
+  tradition, and what changed): [FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md)
+- **The beginner's on-ramp to the graphs themselves** (with the pitfalls marked):
+  [FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md)
 - **For Peirce scholars in particular:** [ARISBE_FOR_SCHOLARS.md](ARISBE_FOR_SCHOLARS.md)
 - **The editor's frontier, in detail:** [FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md](FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md)
 - **The central contract (picture = proposition):** [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
