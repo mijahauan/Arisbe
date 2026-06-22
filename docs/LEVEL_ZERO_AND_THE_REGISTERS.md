@@ -1,5 +1,12 @@
 # Level Zero, and the Two Registers
 
+> **New here? Read the story first.** This document makes the case *precisely*, for a
+> reader fluent in the logic. For the same idea in plain language — *what can a blank
+> page actually say?*, with worked examples — see **Doubt 2** of
+> **[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md)**. In one line: the
+> blank sheet is the only unconditioned thing and it asserts nothing; every contingent
+> claim enters *conditioned* (inside a cut), so it can always still be challenged.
+
 *Scribing, assertion, and the limits of the sheet — why the recto bears form
 and the saying happens always-already conditioned, inside.*
 

@@ -1,5 +1,14 @@
 # Fidelity and Departures
 
+> **New here? Read the story first.** This document states the departures
+> *precisely*, for a reader fluent in the logic. For the same material as a plain
+> narrative — what stirred each doubt, how it was argued out, and what changed —
+> see **[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md)** (no prior logic
+> required; every principle carries a worked example). *Latest change:* the
+> worth-ladder's footing was re-grounded — from an imported "equal-dignity" premise
+> to a methodological one (*gate the claim by method, never the agent by worth;
+> owe every claim its uptake*) — see the Corollary and Examination III.
+
 *What Arisbe owes Peirce, where it leaves him, and why — and a standing
 invitation to have the departures tested by an opposing mind.*
 
@@ -198,8 +207,9 @@ the **metric** terminus is dissolved (this departure's first-order result); the
 context-free **comparative efficacy-vector** is *conceded* (structural realism — only
 the summit was ever a non-locution, never the vector); and the one genuine residue is
 the **worth-ladder denial** against the convergent dreams' fusion of competence with
-worth — held at parity in the axiological register, on an **imported equal-dignity
-premise** this departure does not derive. Its companion "Perspective A" (the discipline
+worth — re-grounded (Examination III) on a **methodological** footing (the gate is
+*method-on-the-claim*, not *identity-on-the-agent*; plus the *uptake* duty), no longer the
+**imported equal-dignity premise** it once leaned on. Its companion "Perspective A" (the discipline
 applied to *ends*) absorbed entirely into this departure + Departure II. See
 [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) "Examination II".*
 
@@ -536,6 +546,29 @@ smuggle it as following from the enclosure discipline); and it does **not** flat
 progress (abolition over slavery, conservation over the preoperational error are real
 ordinal advances *in instrument*, not in the worth of souls).
 
+**Update — the residue's footing, re-grounded (Examination III, 2026-06-22).** The author
+moved to replace the *imported equal-dignity premise* with a derivable one — **"fair access
+to the Game"** (the capacity to signify is the ticket of admission; competence is only how
+well one plays once admitted). A three-opponent panel found "fair access" **falls as a
+derivation** — a motte-and-bailey between *semiosis-as-such is open* (trivially true) and
+*fair access to actual inquiry* (false: every real inquiry is a method-gated forum); the
+anti-gerrymandering support **backfires**, since it is *submission to the method*, not
+universal access, that lets convergence track the real. But the examination **re-grounds the
+residue better than the import it replaces**, and this is now its footing:
+**the only legitimate gate is the *method* applied to a *claim*, judged by content, never by
+the author's identity; ranking *agents* by worth-as-inquirers is the gerrymander (an
+identity-gate where only a method-gate tracks the real); and the positive duty is *uptake* —
+test a claim on its content before dismissing it by its author (the anti-*ad hominem*; its
+violation is epistemic injustice).** So the worth-ladder denial **no longer imports equal
+dignity**: it follows methodologically from "only method-on-content tracks the real"
+(framework-conditional on taking inquiry seriously — symmetric, since refusing that loses the
+worth-ladder too). The competence/standing distinction is re-cut as **method-gate-on-claims**
+(legitimate; the reactor) vs **identity-gate-on-agents** (the corruption). Full record:
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) Examination III. *Worked instances*
+of each principle (adherence and the obvious break — Galileo's telescope, the reactor corridor,
+the augurs' contest) are kept there and in the plain-language account
+[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md).
+
 **One correction this examination forces on the surrounding doctrine.** B set
 "context-free progress" against the wrong thing. A real **immanent operative tendency**
 — synechism's continuity, habit-taking, the growth of concrete reasonableness — is
@@ -552,8 +585,9 @@ be drawn). Agapism thus wins its *category* (the tendency is real and instanced)
 *nothing* of the cosmic verdict, which remains Departure I's meta-joint, at parity.
 
 **The honest billing, and the live floor.** Counted honestly this is not two new
-departures but **one discipline (Departures I + II) + one imported equal-dignity premise
-+ a conceded structural realism, deployed against two targets** (tradition's respectable
+departures but **one discipline (Departures I + II) + a methodological footing (the gate is
+method-on-the-claim, not identity-on-the-agent; plus the uptake duty — Examination III) + a
+conceded structural realism, deployed against two targets** (tradition's respectable
 termini; the worth-misreading of progress). The double decentering survives, precisely:
 *you are not the referee* (no surveyable outside — an epistemic limit, not an agency)
 and *you are not nearer a possessed real, nor worth more* (though you may wield a
@@ -579,4 +613,4 @@ examination record [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md).
 Sources for the three departures: the archived conversations under
 [references/](references/).*
 
-**Created**: 2026-06-18 · **Examined and amended**: 2026-06-19 · **Corollary (ends & progress) examined and absorbed**: 2026-06-20
+**Created**: 2026-06-18 · **Examined and amended**: 2026-06-19 · **Corollary (ends & progress) examined and absorbed**: 2026-06-20 · **Worth-ladder footing re-grounded (Examination III: method-gate + uptake)**: 2026-06-22

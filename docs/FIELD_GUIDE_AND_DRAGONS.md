@@ -13,6 +13,47 @@ malformed. This guide marks them, explains why each is tempting, and gives the
 antidote — each worked in Arisbe's own notation, which you can type into the
 viewer and check.
 
+*(This guide is about the **graphs**. For the story of where Arisbe knowingly
+**departs** from Peirce and the traditions that read him — the doubts, the
+arguments, and what changed — see the plain-language
+[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md). Dragon 6 below is its
+doorway.)*
+
+---
+
+## The marks, in plain sight
+
+Before any dragons, the whole alphabet — there are only four marks, and you can
+draw all of them with a pen:
+
+- **The sheet** — the page. To **draw something on it is to assert it** (to claim
+  it). The empty page asserts nothing, and so is simply **true**.
+- **A loop** — a closed curve (Peirce called it a **cut**). To put something inside
+  a loop is to **deny** it. One loop = **not**.
+- **Nested loops** — a loop inside a loop, with a claim in the ring between them,
+  reads as **"if … then …"**. (This shape has a name, the *scroll*; "if-then" is
+  all you need.)
+- **A line** — a heavy line joining marks says **"the same one"**; a line on its
+  own says **"something exists."**
+
+That is the entire visual language. **The picture is the real thing**; everything
+in logic that matters here, you can *see*.
+
+**The written shorthand.** Because you can't always draw in a text box, Arisbe also
+has a typed form (called EGIF) — the examples below use it, so here is the key:
+
+| You type | It means | In a drawing |
+|----------|----------|--------------|
+| `(Cat *x)` | "there is a cat" — `*x` starts a **new** line | a spot labelled *Cat* on a fresh line |
+| `(On x *y)` | "…it is on some *y*" — bare `x` reuses the **same** line | the same line, now also at *On* |
+| `~[ … ]` | a **loop** around `…` — "**not** …" | a cut enclosing those marks |
+| `~[ A ~[ B ] ]` | "**if** A **then** B" — A in the ring, B nested deeper | nested loops (the scroll) |
+| `~[ ]` | a loop around **nothing** = **false** (the impossible) | an empty cut |
+
+So `(Cat *x) (On x *y) (Mat y)` is just "a cat is on a mat," and
+`~[ (Human *x) ~[ (Mortal x) ] ]` is "if something is human, then it is mortal."
+Keep this key nearby and every example below is readable.
+
 ---
 
 ## Before the dragons: four things to hold onto
@@ -233,8 +274,19 @@ is *attest correspondence, never truth.*
 the contest Peirce called the game (Arisbe's *Agon*); a claim that withstands the
 attack earns standing, and a claim can always *lose* standing later. "Fact" here
 is "the last claim still standing," held open to being overturned — never a
-distance-reading on a dial. (The long version of this, and where it genuinely
-parts from Peirce, is in `FIDELITY_AND_DEPARTURES.md`; you don't need it to start.)
+distance-reading on a dial.
+
+And one guard that follows from it: standing is earned by **the claim** passing
+**the method** (the test, on its content) — **never granted or denied by who
+proposed it.** A newcomer's graph and an expert's graph meet the very same
+scrutiny; the badge a graph earns describes the *graph*, never the person. To
+dismiss a claim because of *who* made it (rather than test it) is the dragon's
+cousin — and it has a name, *epistemic injustice*. (Adherence: the augurs were
+rightly demoted by **losing the contest**, not by being barred from it. Breaking:
+refusing to look through Galileo's telescope because of who held it.) The long
+version of all this — and where Arisbe knowingly parts from Peirce — is told plainly
+in [FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md) (Doubt 4) and
+precisely in `FIDELITY_AND_DEPARTURES.md`; you don't need either to start.
 
 ### 🐉 7. "I need a special mark for *possibly* / *necessarily*"
 
@@ -306,14 +358,18 @@ Each dragon here has a full, technical, historical treatment for when you want i
 — including the places where Peirce *himself* was unsettled and where the
 scholarship still argues:
 
+- [`FIDELITY_A_PLAIN_ACCOUNT.md`](FIDELITY_A_PLAIN_ACCOUNT.md) — **start here for the
+  ideas behind the dragons:** the plain-language story of what Arisbe challenged in
+  Peirce and the tradition, how it was argued out, and what changed (no logic
+  required; a worked example for every principle).
 - `ARISBE_IN_PRACTICE.md` — what Arisbe is, told through the people who use it.
 - `CHAIN_OF_SEMIOSIS.md` — why a proof is a *chain* of sound steps (the
   posited-vs-derived distinction, made precise).
 - `LEVEL_ZERO_AND_THE_REGISTERS.md` — the deep version of cat-on-mat and dragon 8.
 - `MODALITY_WITHOUT_GAMMA.md` — the deep version of dragon 7.
 - `FIDELITY_AND_DEPARTURES.md` + `ADVERSARIAL_EXAMINATION.md` — the deep version
-  of dragon 6, including a five-round examination of exactly where Arisbe parts
-  from Peirce and why (and where it owes an argument it does not yet hold).
+  of dragon 6, including the examinations of exactly where Arisbe parts from Peirce
+  and why (three departures, then the larger-game and worth-ladder rounds).
 
 The point of a field guide is that **you should not need any of those to begin.**
 Draw on the blank sheet. Watch the cuts. Ask whether a thing was posited or

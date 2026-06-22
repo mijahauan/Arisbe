@@ -1,5 +1,14 @@
 # Adversarial Examination: The Three Departures Tested
 
+> **New here? Read the story first.** This is the prosecution record — the charges,
+> verdicts, and forced amendments, in the working vocabulary of logic and
+> argumentation. For a plain-language account of *what was challenged, how we argued
+> it out, and what changed* — with a worked example for every principle — see
+> **[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md)**. The examinations
+> below run in order: **Departures I–III** (the first panel), then **Examination II**
+> (the larger game / the common sheet), then **Examination III** (fair access and
+> the worth-ladder's footing — the most recent).
+
 ## Preface
 
 This document records the result of an adversarial examination of the three points at which Arisbe departs from Peirce. Four prosecuting chairs filed charges — **The Traditional Peircean**, **The Modal Logician**, **The Philosophy-of-Assertion / Level-0 Scholar**, and **The Historian of the Secondary Literature** — and three judges, one per departure, ruled on whether each departure can stand as written.
@@ -1004,3 +1013,115 @@ guard. The doctrine is settled; the floor it mandates stays live.
 *Produced by an iterative dissolution-press (rounds 2–4, three fresh opponent panels), 2026-06-20. The two
 "perspectives" dissolve into the departures + conceded structural realism — the outcome the author courts:
 positions lost to good arguments rather than held on conviction. This is the resting place.*
+
+---
+
+# Examination III — Fair Access, and the Worth-Ladder's Footing
+
+## Preface
+
+Examination II left the **worth-ladder denial** (the claim that we may not rank agents or cultures by their
+*worth* or *nearness-to-the-real as inquirers*) resting on an **imported equal-dignity premise** — an
+undischarged value-posit. On 2026-06-22 the author moved to replace that import with a supposedly *derivable*
+footing: **fair access to the Game**. The capacity to *signify* (he argued) is the ticket of admission to
+the Game — semiosis, inquiry itself — while *competence* is only how well one plays once admitted; so
+differentiated competence *within* a domain (nobody hands a child the reactor controls) never converts into
+differentiated *standing* as a meaning-maker. The footing was to be two supports: a **performative** one
+(to rule a signifier out of the Game you must address a community of interpreters — a move in the very Game
+you'd deny) and an **anti-gerrymandering** one (if the real is what the community would converge on, gating
+*membership* by competence collapses "the real" into "what our in-group settles on," so universal access is
+the condition of convergence-realism's own coherence).
+
+Three independent opponents, charged to *refute not flatter*, filed: a **non-cognitivist / error-theorist**,
+an **epistemic elitist / meritocrat**, and an **institutional / social-epistemology realist** (the very
+realist who pressed the worth-ladder in Examination II). They had not seen one another's briefs.
+
+**Headline result — survives only by transformation (all three at confidence 0.82 that it falls *as stated*).**
+"Fair access" fails *as a derivation that discharges the equal-dignity premise* — it is a **motte-and-bailey**.
+But the examination hands back a **stronger, derivable** footing for the worth-ladder denial than either the
+import or the slogan: *the only legitimate gate is the method applied to claims, content-not-author; ranking
+agents by worth is the gerrymander; and the positive duty is uptake.*
+
+## The strongest charge (convergent, from three directions)
+
+- **The motte-and-bailey (all three).** The **motte** — *semiosis-as-such is open*; no agent can be barred
+  from signifying, since barring is itself a sign — is trivially true and is all the performative argument
+  earns. The **bailey** — *fair access to actual inquiry* — is false as stated, because every actual instance
+  of inquiry is a **forum with gates**. "The Game as such," stripped of every forum, denotes only that
+  signifying creatures signify: *standing that does nothing is not standing* (the meritocrat).
+- **Anti-gerrymandering backfires (all three, decisively).** It **equivocates on "membership."** Peirce's
+  unlimited community is unlimited *in time* and *across those who submit to the self-correcting method* — not
+  "every signifying agent here-and-now has equal standing in every live inquiry." And convergence is not a
+  headcount; it is **competence-weighted**. So if gating *membership* by competence relativizes the real, then
+  weighting *uptake* by competence does too — and the competence/standing split collapses *at the definition
+  of "converge."* The realist's correction is the hinge: **the legitimate gate is the *method*, not an
+  in-group.** Method-as-gate (replication, peer review, §3.3, Agon) is exactly what makes a verdict answer to
+  the real rather than to the assembled parties. *Submission to the method*, not universal access, is the
+  condition of convergence-realism.
+- **The premise is relocated, not discharged (non-cognitivist).** The "derivation" yields only a conditional:
+  *convergence-realists are committed to undifferentiated standing.* Nothing makes one a convergence-realist;
+  the equal-dignity posit is moved into "the hope," never paid off. As a *discharge*, it fails.
+
+## The author's best answer — and why it only deflects
+
+The Game/forum scope line and the Arisbe-mirror (gate *what* not *who*) are real, but they **deflect**: by
+conceding that competence within forums is legitimate, the argument concedes everything operative — *inquiry
+just is the activity inside forums under method* — leaving "standing in the Game as such" too thin to denote
+anything inquiry cares about. The symmetry reply (a non-cognitivist who drops convergence-realism loses the
+worth-ladder too) scores a partial, local hit but does not earn the *categorical* denial back.
+
+## Verdict and the exact amendment
+
+**Falls as stated; survives transformed — and re-grounded better than the import it replaces.** Retire "fair
+access *discharges* the premise." Record instead the form all three opponents' *survivals* converge on:
+
+1. **The only legitimate gate is the method applied to a *claim*, judged by its content, never by its author's
+   identity.** This is the realists' point, and Arisbe *is* it: §3.3 and Agon are **method-gates** that test
+   *what* is proposed, never *who* proposed it.
+2. **Ranking *agents* by worth/nearness-*as-inquirers* is the gerrymander** — it swaps an *identity-gate* for a
+   *method-gate*, which on convergence-realism's own terms corrupts truth-tracking. So the worth-ladder denial
+   **survives without the equal-dignity premise**: it follows from "only method-on-content tracks the real."
+   (It remains framework-conditional on taking inquiry seriously — symmetric: refuse that and you lose the
+   worth-ladder too. This is a *methodological* ground, not an *axiological import* — the advance the author
+   sought.)
+3. **The positive duty is *uptake*** (the realist's gift): the defeasible obligation to *test a claim on its
+   content before dismissing it by its author* — the anti-*ad hominem*, whose violation is Fricker's
+   *epistemic injustice*. This is the sayable core "fair access" was reaching for, and it is what Arisbe does.
+
+**What is LOST:** "fair access to the Game" as a standalone derivation; the anti-gerrymandering argument *for
+universal access* (it argues, instead, for *method*-as-gate). **What is KEPT and strengthened:** the
+worth-ladder denial, now grounded methodologically rather than imported; the competence/standing distinction,
+re-cut as *method-gate-on-claims* vs *identity-gate-on-agents*; and a positive principle (uptake) the prior
+resting place lacked.
+
+## The principles in action (adherence / breaking)
+
+*Per the author's standing request: each principle carries a worked instance — adherence, and the obvious
+break.*
+
+- **Gate the claim by method, not the agent by identity.**
+  - *Adherence:* in Agon a proposal is peeled against the model and tested by the rules **whoever** drew it; the
+    warrant badge it earns describes the *graph*, never the person. A newcomer's graph and a laureate's graph
+    meet the same §3.3.
+  - *Breaking:* "we needn't test that — look who's proposing it." Dismissal by author. (Historic break: the
+    contemporaries who would not look through Galileo's telescope — refusing the claim its method-test because
+    of who pressed it.)
+- **Local competence does not sum to universal competence; local incompetence not to universal incompetence.**
+  - *Adherence:* the child may not run the reactor (a *forum* competence-gate) — and that licenses **nothing**
+    about whether the child's report that "the corridor is on fire" deserves a hearing.
+  - *Breaking:* "she was wrong about the budget, so ignore her on the merger" — laundering one domain's
+    incompetence into a general silencing.
+- **Uptake-obligation (test before dismissing by author).**
+  - *Adherence:* a heterodox import enters at LOW warrant and is *played*, not pre-rejected; it rises only by
+    withstanding challenge.
+  - *Breaking:* withholding a hearing because of the speaker's group or station — epistemic injustice. (The
+    augurs were rightly demoted by *losing the contest*, not barred from entering it.)
+- **Method-as-gate is what makes convergence track the real (not open admission, not an in-group).**
+  - *Adherence:* replication and peer review gate by *fidelity to evidence* — a method, answerable beyond the
+    assembled parties.
+  - *Breaking:* a clique that gates membership by *credential or affiliation* and calls its consensus "the
+    real" — the gerrymander, convergence-realism's own nightmare.
+
+*Produced by a three-opponent panel, 2026-06-22. The author proposed "fair access"; the examination converted
+it — by his own preferred standard, a position improved by good arguments — into the stronger, derivable form
+recorded above. This is the resting place.*

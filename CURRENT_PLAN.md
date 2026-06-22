@@ -1,9 +1,29 @@
 # Current Plan
 
-**Last Updated**: 2026-06-22 (mid-session). **▶▶▶ This session: (1) discharged the committed DOCTRINE task —
-the LEVEL_ZERO rework + `assertion-4` closure (committed c5be85f); (2) shipped the UX **context reflex** — a
-shared cross-mode "what context lets you read this?" panel (✅ blocks under ▶ NEXT SESSION). NEXT remaining UX
-threads = correspondence-not-truth chord · warrant fast-follows (⚔ in Agon, style-only reprojection).**
+**Last Updated**: 2026-06-22 (mid-session). **▶▶▶ This session: (1) DOCTRINE — LEVEL_ZERO rework +
+`assertion-4` closure (c5be85f); (2) UX — the cross-mode **context reflex** panel (c2d561f); (3) **DOCUMENTARY
+HOUSE-CLEANING** (author-directed: make the challenge/dialog record accessible) — examined the author's new
+*fair-access* reframing of the worth-ladder (3-opponent panel → falls as stated, re-grounded methodologically:
+*gate the claim by method, never the agent by worth; owe every claim its uptake*), recorded as **Examination
+III** + a revised FIDELITY Corollary, and wrote a plain-language front-door **`docs/FIDELITY_A_PLAIN_ACCOUNT.md`**
+(the whole arc of doubt→challenge→resolution→what-changed, a worked example per principle) + light prefaces on
+the 3 technical docs + a visual-alphabet primer for FIELD_GUIDE. UX work is PAUSED per author. NEXT (still
+queued, when UX resumes) = correspondence-not-truth chord · warrant fast-follows (⚔ in Agon, style-only
+reprojection).**
+
+**▶▶▶ DOCUMENTARY PASS (2026-06-22) — accessibility of the challenge record.** Author's directive: the recent
+challenge-driven docs (LEVEL_ZERO, ADVERSARIAL, FIDELITY, FIELD_GUIDE) are specialist-only except FIELD_GUIDE,
+which is still opaque; make the *dialog* (what excited the doubt, how expressed, how negotiated, what changed in
+the author's position / in Arisbe / in our reading of Peirce & the tradition) legible to a well-read
+non-specialist, **with a clear worked example — adherence or obvious breaking — for every principle.** Done:
+(a) **fair-access examined then recorded** (author chose examine-first): the equal-dignity premise → fair-access
+→ (post-exam) *method-is-the-only-legitimate-gate-on-claims + uptake-obligation*; the worth-ladder denial no
+longer imports equal dignity. (b) New **`FIDELITY_A_PLAIN_ACCOUNT.md`** front door (4 doubts as a narrative;
+examples: Galileo's telescope, the reactor corridor, the augurs' contest, cat-on-mat, Praeclarum). (c) "New
+here? read the story first" prefaces atop FIDELITY/ADVERSARIAL/LEVEL_ZERO. (d) FIELD_GUIDE: a "marks in plain
+sight" primer (the 4-mark alphabet + an EGIF key table) so notation isn't thrown cold; dragon-6 carries the
+method-gate/uptake guard + its examples. Docs only; core-protection untouched. ([[project_fidelity_and_departures]],
+[[feedback_newcomer_accessibility_dragons]].)
 
 **(C) DOCTRINE — A & B examined to Departure-I parity, then MERGED into FIDELITY as a corollary.** Captured
 two perspectives that "cost the sophisticate her investment" — **A** (the larger game; we hold no referee's
