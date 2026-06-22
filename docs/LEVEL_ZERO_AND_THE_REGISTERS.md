@@ -14,26 +14,46 @@ second part of a 2026-06 conversation, archived at
 
 ## The thesis, flatly
 
-**Level 0 is not a surface that says something true; on its depth-0 marks no
-contingent saying is *constituted by the marks themselves*.** *(Qualified post-
-examination — see [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §3 and
-[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md): the precise claim is that
-the **demonstrative** recto cannot *derive* contingent content, and the bare
-depth-0 position does not, by itself, *assert* it — **not** that the Sheet of
-Assertion cannot bear a posited contingent premise, which is its primary office,
-§4.)* The recto bears *form* — the conditional scaffolding, the scroll, structures
-that are valid or model-relative — and the saying of any *derived* contingent
-content happens **always-already conditioned, inside, under the exposure of a
-negative context.** "Assertion" is not a graphical permission that lives at even
-depth; it is a name for what a scribing *does* in the hands of an utterer before
-an interpreter. No honorific attached to content at even depth can buy what only
-the six rules grant. The formal fact (no unenclosed *contingent* graph is
-derivable at level 0) and the epistemic posture (no incorrigible saying) are the
-same fact seen twice.
+**The blank sheet is the only unconditioned thing — and it asserts nothing.** It is
+the sole fixed point: true by *withholding*, committing to nothing. Everything else a
+graph can carry, it carries **conditioned** — brought to bear from the blank by legal
+moves, and therefore always-already *inside*, under the exposure of a negative context,
+never floating free on the bare recto. In consequence there is **no unconditioned posit
+anywhere.**
 
-This vindicates a unease that is *correct*, not a misunderstanding: the literature's
-"scribe on the sheet = assert" compresses a real bifurcation, and the compression
-is the source of the trouble.
+The claim has a demonstrative half and an assertoric half, and the calculus closes the
+seam between them:
+
+- **Demonstratively**, no legitimate derivation from the blank yields an unenclosed
+  *contingent* proposition (§3). The recto bears *form* — the conditional scaffolding,
+  the scroll, structures valid or model-relative — and never bare contingent content.
+- **Assertorically**, a contingent *given* still cannot sit unconditioned on the recto,
+  because the **Alpha asymmetry forbids it**: insertion is a permission of *negative*
+  contexts only; the positive recto can be *erased from*, never *inserted into*. A
+  contingent claim placed categorically on the positive recto is therefore not a
+  foundation but a **forbidden move** (§4–§5). Every assertion a universe of discourse
+  brings to bear enters instead as a **given under a cut**, built from the blank by
+  nesting (`DC+` opens a negative ring · `INS` places the given · `IT+` carries a graph
+  where it must bear · `DC+` opens the next), and stays running, dialogical,
+  world-tested, and **sweepable** (`ERA` from a positive context — "free to demote").
+
+"Assertion" is thus not a graphical permission that lives at even depth; it is a name
+for what a scribing *does* in the hands of an utterer before an interpreter, and the
+only place a scribing can *legally* do it is inside, where it can still be wrong. No
+honorific attached to content at even depth can buy what only the six rules grant. The
+formal fact (no contingent graph originates naked on the positive recto) and the
+epistemic posture (no incorrigible saying) are the same fact seen twice.
+
+What the calculus does **not** supply is the *content* — *which* model M, *which*
+premise. That is **not a gap but the proper contingency**, answered in the world and in
+the Agon (§5–§6). The one standing obligation it leaves is **contextual honesty**:
+tracking *what* context — what nesting, what regime, what given — delivers a graph's
+interpretive meaning. That obligation *is* the central correspondence problem, the field
+guide's "context reflex," the three regimes, and §3.3, all at once.
+
+This vindicates an unease that is *correct*, not a misunderstanding: the literature's
+"scribe on the sheet = assert" compresses a real bifurcation, and the compression is the
+source of the trouble.
 
 ---
 
@@ -115,11 +135,15 @@ EG actually has two registers, and conflating them is the literature's real faul
 
 - **Demonstrative use** — start from the blank, apply permissions, derive
   theorems. Michael's level-0 theorem holds *here*, provably, from soundness.
-- **Assertoric use** — scribe on the Sheet of Assertion the propositions you
-  *assert* about a universe. Premises are scribed unenclosed and are
-  overwhelmingly **contingent**. "Never legitimately have an unenclosed
-  proposition" is true of *theorems* and false of *premises*; the SA exists to
-  bear the latter.
+- **Assertoric use** — bring to bear the **contingent** propositions you *posit*
+  about a universe. The older gloss said these are "scribed unenclosed" on the recto.
+  The Alpha asymmetry says otherwise: a posit is *introduced*, and the only rule that
+  introduces content is `INS`, which lives in **negative** contexts. So a
+  brought-to-bear premise enters as a **given inside a cut** — conditioned,
+  defeasible, sweepable — not as a naked recto assertion (§5). "Never legitimately
+  have an unenclosed *contingent* proposition" is true of *theorems* (they are form)
+  *and* of disciplined premises (they are conditioned givens); the recto bears only
+  cuts and the blank.
 
 The cat-on-mat *is* a well-formed graph; it denotes its asserted proposition
 perfectly. What it is **not** is a *derived* graph — it is a **posited assertion**,
@@ -138,9 +162,10 @@ two things the architecture keeps distinct by construction:
   sheet's warrant through a truth-preserving rule.
 - *Posited-under-warrant* = a premise admitted at **LOW warrant** — **import**
   (parsed, attested for correspondence, *never asserted true*; bibliographic
-  attribution as the trace of the un-hosted dialogue), or a graph **sent to Agon**
-  to be tested. Warrant from the calculus is nil here; it comes from outside — the
-  utterer's exposure — and rises only by **withstanding challenge**
+  attribution as the trace of the un-hosted dialogue; **embedded by `INS` into a
+  negative context**, not laid bare on the recto), or a graph **sent to Agon** to be
+  tested. Warrant from the calculus is nil here; it comes from outside — the utterer's
+  exposure — and rises only by **withstanding challenge**
   ([import doorway + the floor](MANIFEST_AND_MEANING.md)).
 
 The responsibility analysis fixes where warrant lives in each register, and the
@@ -150,7 +175,7 @@ from the act of putting it where it can be knocked down.
 
 ---
 
-## 5. The scroll: the formal home of assertion — and of "free to demote"
+## 5. The scroll, the gapless construction of the given — and "free to demote"
 
 What context embeds an assertion so that it *keeps* its exposure rather than
 escaping to a bare recto? Not a single cut — `cut[P]` asserts ¬P, too strong. The
@@ -180,6 +205,46 @@ the Alpha shape of **"given M, then G"** — the interpretation register's innin
 Alpha-level warrant for treating the choice and refinement of M as a *move*
 (§4 there), and for `src/liveness.py`'s reversible retire/revive. The philosophy
 the corpus has been asserting now has its place in the calculus.
+
+### How a given enters: the construction from the blank
+
+The scroll is not *derived* from the blank as a theorem — a contingent `M → P` is not
+valid, so soundness forbids it at the recto (§3). What *is* built from the blank, by
+legal moves, is the **place** the given occupies — and the given is then *put there* by
+the one rule that introduces content:
+
+1. **`DC+`** inserts a double cut (a sound equivalence, legal anywhere) — opening a
+   **negative ring**.
+2. **`INS`** places the given into that ring — legal precisely because the ring is a
+   negative context.
+3. **`IT+`** iterates a graph (a model, a shared line of identity) inward, carrying it
+   to the depth where it must bear.
+4. **`DC+`** again opens the next ring, for the next conditional layer.
+
+At no step does a contingent predicate land naked on the positive recto; the recto
+stays **nothing but cuts** — the earlier-settled shape of a truth-preserving UoD (all
+cuts, no exposed predicate). A domain model is either **built from scratch** this way
+or **imported and embedded** — `INS` dropping it into a negative context — where it
+becomes a *running, dialogical, world-tested* contingency, sweepable by `ERA` from a
+positive context. Never an unconditioned foundation. And `assertion-4` — the conceded
+worry that the antecedent M is itself an *unconditioned* posit — dissolves here: it
+conflated "the calculus cannot fix *which* M" (true, and the proper contingency) with
+"the calculus cannot *place* M" (false — `INS` places it; see §8 and the closing note).
+
+**Two worked cases.**
+
+- *The Praeclarum Theorema* — the **demonstrative** case. Leibniz's
+  `((p → r) ∧ (q → s)) → ((p ∧ q) → (r ∧ s))` is derived from the blank by sound
+  steps and is **all cuts**: a nest of scrolls with predicates only inside, nothing
+  contingent floating free at the recto. It is the level-0 thesis made visible — the
+  demonstrative recto bearing pure *form*. (Built natively in the corpus as a real
+  transformation chain; see the Praeclarum exemplar.)
+- *The scroll `cut[ M cut[P] ]`* — the **assertoric** case. `M` sits at odd depth, a
+  **given in a negative context**, placed by `INS`; `P` is entertained relative to it.
+  The frame is *set up* (composition, regime 1), the given brought to bear conditioned,
+  and *which* `M` decided not by the calculus but in the world and the Agon (§6). This
+  is the interpretation register's "given M, then G" inning, with its antecedent
+  honestly conditioned rather than smuggled in unconditioned.
 
 ---
 
@@ -213,19 +278,22 @@ bare contingent content, which always lives conditioned inside. "No unenclosed
 *derived* contingent proposition" is thereby promoted from a fact about *theorems*
 to a **constitutional rule about what the *demonstrative recto* holds as form:**
 the calculus delivers form, never bare contingent content — the assertoric office
-to *posit* a contingent premise is preserved alongside, unaffected (the next
-paragraph guards exactly this). And the level-0 scaffold is itself defeasible, because
+to *posit* is preserved alongside, but as the positing of **conditioned givens** (§5),
+never of unconditioned lumps (the next paragraph guards exactly this). And the level-0
+scaffold is itself defeasible, because
 the sheet has no external boundary — there is no incorrigible tier; the regress
 does not bottom out in a privileged surface, it bottoms out in the **blank**, which
 is no content at all (MANIFEST floor #1; the unenclosable ground of
 MODALITY_WITHOUT_GAMMA §8).
 
-*One guard against over-reading.* This is a claim about the **demonstrative** recto
-— what the calculus can *derive* and what scaffolding the sheet *bears as form*. It
-does **not** forbid the assertoric register from positing an unenclosed premise:
-that is the SA's primary office (§4). The discipline is to keep the **register
-legible** — derived vs. posited — never to refuse the posit. Arisbe's regimes and
-warrant gradient are exactly that legibility.
+*One guard against over-reading.* This does **not** forbid the assertoric register
+from *positing* — positing is its office (§4). What the asymmetry forbids is the
+*unconditioned* posit: a contingent premise dropped naked on the positive recto, which
+no rule can place there. The register posits freely, but every posit it brings to bear
+enters **conditioned**, as a given inside a cut (§5) — and the discipline is to keep
+the **register legible** (derived vs. posited) and the **given honest about its
+conditions**, never to pretend any saying is unconditioned. Arisbe's regimes, warrant
+gradient, and §3.3 are exactly that legibility.
 
 ---
 
@@ -250,15 +318,27 @@ as the eliminative-vs-reduction joint in MODALITY_WITHOUT_GAMMA §8, and it is l
 open on the same grounds: the explication is worth more than its cost, and the
 structure stands either way.
 
-**The committed position** (the author's, recorded — qualified per the
-examination): the depth-0 *marks* do not, by themselves, *constitute* a contingent
-saying (the demonstrative recto cannot derive one; the bare position does not
-assert one), and the value is in the process that **tests, evaluates, interprets,
-and decides** how to use what we propose in the context of a model — or of others.
-This does not forbid the assertoric register from *positing* an unenclosed premise
-— that is the Sheet of Assertion's office; the discipline is to keep the register
-legible, not to refuse the posit. The only "assertion" worth the word is the one
-that scribes itself where it can still be wrong.
+**The committed position** (the author's, recorded — now in its gapless form; see
+the note below): the **blank alone is unconditioned, and it asserts nothing**; every
+other saying is conditioned, because the calculus has no move that places a contingent
+graph naked on the positive recto. The depth-0 *marks* do not, by themselves,
+*constitute* a contingent saying — the demonstrative recto cannot derive one, and the
+assertoric register can only bring one to bear *inside*, as a conditioned given. The
+value is in the process that **tests, evaluates, interprets, and decides** how to use
+what we propose in the context of a model — or of others. What the calculus does not
+fix is *which* content; that is the proper contingency, not a gap. The only "assertion"
+worth the word is the one that scribes itself where it can still be wrong.
+
+> **Note — the antecedent-posit gap (`assertion-4`) is closed.** An earlier examination
+> ([ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md), Departure II) conceded that
+> "always-already conditioned, inside" was *false for the antecedent M* — that every
+> scroll requires "at least one unconditioned positing." That concession was an
+> **over-concession.** There is no unconditioned positing: a contingent `M` on the
+> positive recto is a forbidden move (the Alpha asymmetry inserts only into *negative*
+> contexts), and `M` enters legally only by `INS` into a negative context (§5). The
+> concession conflated "the calculus cannot fix *which* `M`" (true, and proper) with
+> "the calculus cannot *place* `M`" (false — `INS` places it). The thesis is gapless;
+> the Departure II verdict (survives with amendment) is otherwise unchanged.
 
 ---
 
@@ -268,4 +348,5 @@ that scribes itself where it can still be wrong.
 [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md). Source:
 [references/EG-level-zero-conversation.pdf](references/EG-level-zero-conversation.pdf).*
 
-**Created**: 2026-06-18
+**Created**: 2026-06-18 · **Updated**: 2026-06-21 (the gapless account of assertion —
+no unconditioned posit; `assertion-4` closed)

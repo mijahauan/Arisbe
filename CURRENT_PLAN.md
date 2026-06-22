@@ -1,7 +1,8 @@
 # Current Plan
 
-**Last Updated**: 2026-06-21 (session end). **▶▶▶ Session wrap: two UX-pass threads shipped + a doctrine
-pass examined to parity and merged. NEXT SESSION = resume the UX threads (see ▶ NEXT SESSION below).**
+**Last Updated**: 2026-06-21 (mid-session). **▶▶▶ This session: discharged the committed DOCTRINE task —
+the LEVEL_ZERO rework with the gapless account of assertion + the `assertion-4` closure (✅ block under
+▶ NEXT SESSION). NEXT = the UX threads (context reflex · correspondence-not-truth · warrant fast-follows).**
 
 **(C) DOCTRINE — A & B examined to Departure-I parity, then MERGED into FIDELITY as a corollary.** Captured
 two perspectives that "cost the sophisticate her investment" — **A** (the larger game; we hold no referee's
@@ -167,10 +168,22 @@ threads (to scope with the author, not a committed list):
   consistency pass (design-system.css, camera, vocab); this is the first UX pass aimed at *newcomers and
   the doctrine's legibility*, not internal consistency.
 
-**▶▶▶ ALSO COMMITTED NEXT SESSION — DOCTRINE (author-flagged 2026-06-20, "we must not forget to make this
-crystal clear"). The LEVEL_ZERO rework, now with a gapless account of assertion as its centerpiece + an
-Examination II correction.** A long post-wrap dialogue (2026-06-20) drove the assertion question to a new
-resting place that **closes a conceded examination gap** — capture it carefully. THE CRUX, stated crisply:
+**✅ DONE 2026-06-21 — DOCTRINE: the LEVEL_ZERO rework + the `assertion-4` closure** (author-flagged
+2026-06-20, "we must not forget to make this crystal clear"). Discharged this session, docs only,
+core-protection untouched: (1) `docs/LEVEL_ZERO_AND_THE_REGISTERS.md` reworked with the gapless account of
+assertion as its **spine** — thesis recast (the blank is the only unconditioned thing; no unconditioned posit
+anywhere; the Alpha asymmetry makes a positive-recto contingent posit a *forbidden move*); §4 assertoric
+register = a **conditioned given via `INS`**, not a naked recto posit; §5 retitled + new "How a given enters:
+the construction from the blank" (`DC+`·`INS`·`IT+`·`DC+`) + two worked cases (**Praeclarum** demonstrative-
+all-cuts, **the scroll** assertoric-given); §7 guard refined; §8 committed-position rewritten + a boxed
+`assertion-4`-closed note. (2) `docs/ADVERSARIAL_EXAMINATION.md` — correction note + superseded amendment-4
+in **Departure II** (the handoff said "Examination II", but `assertion-4` actually lives in *Departure II* of
+the first examination; Examination II = the A&B Larger-Game examination, where no verdict moves — corrected in
+place with a parenthetical noting the slip). (3) `docs/FIDELITY_AND_DEPARTURES.md` §3 "A construction…"
+paragraph strengthened to the gapless form for consistency. Memory [[project_level_zero_registers]] TODO
+discharged. *(The original crux follows, kept for the record.)*
+
+**▶▶▶ THE DOCTRINE CRUX (recorded; now realized in the docs above):**
 
 - **The blank sheet is the ONLY unconditioned thing — and it is not a posit; it asserts nothing** (true by
   withholding). It is the sole fixed point.

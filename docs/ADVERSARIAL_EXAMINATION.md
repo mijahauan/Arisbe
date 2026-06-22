@@ -97,6 +97,10 @@ Four edits, all narrowing scope to what the docs already concede internally:
 
 With these edits the departure stands, and the novelty is correctly stated as (a) noticing diagrammatic EG lacks a turnstile-equivalent and (b) supplying one operationally as a runtime warrant gradient — **not** as the discovery of an unmarked distinction or a buried equivocation in the logic.
 
+### Correction (2026-06-21): *assertion-4* is closed — amendment 4 was an over-concession
+
+Amendment 4 (and the *assertion-4* concession it answered) is **retracted as an over-concession.** It granted that "every scroll requires at least one unconditioned positing of M." It does not. The **Alpha asymmetry** forbids it: `INS` introduces content only in *negative* contexts, and the positive recto can be erased from but never inserted into — so a contingent `M` placed naked on the recto is not a foundation but a *forbidden move*. `M` enters legally only by nesting into a negative context (`DC+` opens a negative ring · `INS` places the given · `IT+` carries it where it must bear · `DC+` opens the next), where it remains a running, sweepable, defeasible given. The concession **conflated** "the calculus cannot fix *which* M" (true — that is the proper contingency, answered in the world and the Agon) with "the calculus cannot *place* M" (false — `INS` places it). So the thesis "the saying happens always-already conditioned, inside" is **gapless**, not strictly-false-for-the-antecedent: the blank alone is unconditioned, and it asserts nothing. See [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5, §8. **The Departure II verdict is unchanged** (survives with amendment); only this one sub-gap is closed, and closed in the author's favor. *(The handoff that drove this filed it under "Examination II"; the gap actually lives here, in Departure II of the first examination — Examination II below treats the Larger Game and the Common Sheet, where no verdict moves.)*
+
 ---
 
 ## Departure III — Modality without Gamma
@@ -150,7 +154,7 @@ A prioritized list of doc revisions, each tied to a charge that landed. Top of t
 
 3. **LEVEL_ZERO_AND_THE_REGISTERS — qualify every bare "cannot say" (lines 17, 245) and demote the "constitutional rule" (line 208).** *(assertion-1, assertion-3, assertion-4.)* Inline the §7 demonstrative-scoping that the slogans elsewhere drop. Re-scope the "constitutional rule" to the demonstrative recto.
 
-4. **LEVEL_ZERO §5 / the "always-already conditioned, inside" subtitle — acknowledge the antecedent posit.** *(assertion-4, the substantive gap, not a slip.)* State that every scroll requires at least one unconditioned positing of M (entering at LOW warrant via import/Agon), and narrow the thesis to "no *derived* contingent content floats free."
+4. ~~**LEVEL_ZERO §5 / the "always-already conditioned, inside" subtitle — acknowledge the antecedent posit.**~~ **SUPERSEDED 2026-06-21 — see the Correction above.** This item told the author to *concede* that every scroll requires one unconditioned positing of M. That was the over-concession. The Alpha asymmetry forbids any unconditioned posit: M enters only by `INS` into a negative context, so the thesis is gapless and `assertion-4` is **closed**, not amended-around. (Done: LEVEL_ZERO §5/§8 reworked to the gapless form.)
 
 5. **FIDELITY §5 + LEVEL_ZERO §1/§4 — index every "the literature / the tradition / buried / unmarked / equivocation" claim in-line.** *(assertion-2, historian-1, historian-2, historian-4.)* Restrict to "the formal/syntactic and diagrammatic EG presentations (Zeman, Roberts, Dau)"; explicitly exempt proof theory (turnstile) and the dialogical strand (Pietarinen, Hintikka) as allies. Downgrade "buried equivocation" to "left implicit and made operational."
 

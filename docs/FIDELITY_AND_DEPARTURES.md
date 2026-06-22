@@ -253,17 +253,23 @@ modest and real: noticing that diagrammatic EG lacks a turnstile-equivalent, and
 supplying one operationally as a runtime warrant gradient — not the discovery of a
 buried equivocation in the logic.
 
-**A construction, not an unconditioned posit.** One might object that the scroll
-`cut[ M cut[P] ]` ("P given M") merely relocates the unconditioned saying to its
-antecedent M — M has to be scribed *somewhere*. But M need not enter as an
-unconditioned lump: it can be **built from the empty sheet through a sequence of
-innings** (compose, test in Agon, retire). The regress of "what conditioned this
-M?" bottoms out not in a brute contingent assertion but in the **blank** — which
-is unconditioned yet *contentless* ([LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md)
-§7). Every contentful step toward M is a *defeasible* posit (a move that can be
-erased or challenged), which is the assertoric register doing its office — not an
-incorrigible given. The thesis is therefore precisely: **no *derived* contingent
-content floats free at level 0**, not "nothing is ever posited."
+**A construction, not an unconditioned posit — and no unconditioned posit at all.**
+One might object that the scroll `cut[ M cut[P] ]` ("P given M") merely relocates the
+unconditioned saying to its antecedent M — M has to be scribed *somewhere*. It does
+not. M cannot be scribed *anywhere unconditioned*, because the **Alpha asymmetry**
+forbids it: `INS` introduces content only in *negative* contexts, so a contingent M on
+the positive recto is not a foundation but a **forbidden move**. M enters legally only
+by nesting from the blank (`DC+` opens a negative ring · `INS` places the given · `IT+`
+carries it where it must bear · `DC+` opens the next), where it is a *defeasible* given
+— sweepable, never incorrigible. The regress of "what conditioned this M?" bottoms out
+not in a brute contingent assertion but in the **blank** — unconditioned yet
+*contentless* ([LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5,
+§8). The thesis is therefore **gapless**: not merely "no *derived* contingent content
+floats free at level 0," but "**no unconditioned posit anywhere** — the blank alone is
+unconditioned, and it asserts nothing." What the calculus does not fix is *which* M;
+that is the proper contingency, not a gap. *(This closes the `assertion-4` concession
+recorded in [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md), Departure II — an
+over-concession; the Departure II verdict is otherwise unchanged.)*
 
 **What is genuinely at stake.** The load-bearing move is about **names**: the
 hope that calling a positive-context insertion "an assertion" might *license* it
