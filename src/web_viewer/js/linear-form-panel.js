@@ -44,7 +44,11 @@
       'color:var(--sidebar-text,#cdd6f4);line-height:1.5;}' +
       '.lf-panel .lf-text.lf-error{color:var(--warning,#f9e2af);font-style:italic;}' +
       '.lf-panel .lf-copy{margin-left:6px;background:none;border:1px solid var(--bottombar-border,#45475a);' +
-      'color:#a6adc8;border-radius:3px;font-size:10px;padding:1px 6px;cursor:pointer;}';
+      'color:#a6adc8;border-radius:3px;font-size:10px;padding:1px 6px;cursor:pointer;}' +
+      '.lf-panel .lf-chord{margin:0;padding:5px 10px;border-top:1px solid var(--bottombar-border,#313244);' +
+      'display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.2px;' +
+      'color:var(--ctp-overlay1,#7f849c);cursor:help;}' +
+      '.lf-panel .lf-chord .lf-eq{color:var(--ctp-green,#a6e3a1);font-weight:700;font-size:12px;}';
     var style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = css;
@@ -107,10 +111,26 @@
     summary.appendChild(select);
     summary.appendChild(copyBtn);
 
+    // The correspondence chord — naming, in words, what §3.3 silently attests on
+    // every render: this linear form (the proposition) and the drawing on the
+    // canvas (the picture) denote the SAME mathematical object.  It is a
+    // correspondence claim, never a truth claim (manifest floor; field guide
+    // dragon 6).  docs/LINEAR_GRAPHICAL_CORRESPONDENCE §3.3.
+    var chord = document.createElement('div');
+    chord.className = 'lf-chord';
+    chord.title =
+      'This linear form and the drawing on the canvas denote the SAME graph — ' +
+      'the picture↔proposition correspondence the system attests (§3.3) on ' +
+      'every render. It certifies that the two match, NOT that either is true.';
+    chord.innerHTML =
+      '<span class="lf-eq">≡</span> picture ↔ proposition · ' +
+      '§3.3 correspondence, not truth';
+
     var pre = document.createElement('pre');
     pre.className = 'lf-text';
 
     panel.appendChild(summary);
+    panel.appendChild(chord);
     panel.appendChild(pre);
     host.appendChild(panel);
 

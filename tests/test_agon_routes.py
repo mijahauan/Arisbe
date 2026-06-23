@@ -264,6 +264,12 @@ def test_asserting_disposition_persists_contest_chain(client, fresh_agon, isolat
     assert body["data"]["asserted"] is True
     assert body["data"]["asserted_uod_id"] == target
     assert body["data"]["step_count"] == 1
+    # The disposition surfaces the standing the asserted graph now carries — a
+    # transformation-game episode is a sound chain, so ⛓ derived, with the
+    # "correspondence, not truth" non-claim for the Agon UI to show.
+    standing = body["data"]["standing"]
+    assert standing["key"] == "derived" and standing["glyph"] == "⛓"
+    assert "not truth" in standing["non_claim"]
 
     svc = isolated_tomos["service"]
     assert svc.uod_exists(target)

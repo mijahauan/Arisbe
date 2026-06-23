@@ -230,6 +230,13 @@ def test_won_contest_asserts_warrant_chain(client, warrant_tomos):
     assert data["asserted"] is True
     assert data["asserted_uod_id"] == "contest-warrant-1"
 
+    # The disposition surfaces the standing G now carries — ⚔ withstood Agon
+    # (the fullest regime-2 standing), with the "correspondence, not truth"
+    # non-claim, so the Agon UI can show what the contest earned.
+    standing = data["standing"]
+    assert standing["key"] == "withstood" and standing["glyph"] == "⚔"
+    assert "not truth" in standing["non_claim"] or "truth-meter" in standing["non_claim"]
+
     # The persisted chain carries the warrant step + the Play provenance.
     chain = warrant_tomos.load_chain("contest-warrant-1")
     assert chain is not None and len(chain.steps) == 1

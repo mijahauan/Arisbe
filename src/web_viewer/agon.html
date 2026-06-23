@@ -219,6 +219,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/mode-nav.js"></script>
+  <script src="js/standing-badge.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
@@ -517,6 +518,23 @@
         if(!b.success){ setStatus('Concede failed: '+(b.error&&b.error.message),'error'); return; }
         showGame(b.data); setStatus('Conceded. '+(b.data.winner||'')+' wins. Choose a disposition.','success');
       }
+      // When an asserting disposition succeeds, surface what G *earned* — its
+      // corpus standing badge (⚔ withstood / ⛓ derived) beside the new id, with
+      // the "correspondence, not truth" non-claim. The same badge the Organon
+      // archive will show. `host` is the panel to append the card to.
+      function showAssertConfirm(host, data){
+        if(!host || !data || !data.asserted) return;
+        const old=host.querySelector('.assert-confirm'); if(old) old.remove();
+        const badge=(window.StandingBadge && data.standing) ? window.StandingBadge.html(data.standing, false) : '';
+        const nonClaim=(data.standing && data.standing.non_claim) ? data.standing.non_claim : '';
+        const h='<div class="assert-confirm" style="margin-top:12px; padding:10px 12px; border-radius:6px; background:var(--ctp-mantle); border-left:3px solid var(--ctp-green);">'
+          +'<div style="font-size:12px; color:var(--ctp-green); font-weight:600; margin-bottom:6px;">✓ Asserted into the corpus</div>'
+          +'<div style="font-size:12px; color:var(--ctp-text); display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><code>'+esc(data.asserted_uod_id||'')+'</code> '+badge+'</div>'
+          +(nonClaim ? '<div style="margin-top:6px; font-size:11px; color:var(--ctp-overlay0);">— '+esc(nonClaim)+'</div>' : '')
+          +'<div style="margin-top:6px; font-size:11px; color:var(--ctp-overlay0);">It appears in the <a href="organon.html" style="color:var(--ctp-blue);">Organon</a> archive carrying this same standing.</div>'
+          +'</div>';
+        host.insertAdjacentHTML('beforeend', h);
+      }
       async function dispose(){
         if(!gameId||!selectedDisp) return;
         const payload={ disposition:selectedDisp.key, notes:($('disp-notes')||{}).value||'' };
@@ -525,6 +543,7 @@
         if(!b.success){ const e=b.error||{};
           setStatus((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal: ':'Disposition failed: ')+(e.message||''),'error'); return; }
         setStatus(b.data.message,'success');
+        showAssertConfirm($('disposition-section'), b.data);
       }
       async function discard(){ if(gameId){ try{ await fetch('/agon/games/'+gameId,{method:'DELETE'}); }catch(_){} }
         if(contestId){ try{ await fetch('/agon/contests/'+contestId,{method:'DELETE'}); }catch(_){} contestId=null; }
@@ -651,6 +670,7 @@
         if(!b.success){ const e=b.error||{};
           setStatus((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal: ':'Disposition failed: ')+(e.message||''),'error'); return; }
         setStatus(b.data.message, b.data.asserted?'success':null);
+        showAssertConfirm($('interpret-result'), b.data);
       }
 
       // ---- wiring ----

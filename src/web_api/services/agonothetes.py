@@ -50,6 +50,7 @@ from universe_of_discourse import (
 )
 
 from grapheus import Outcome
+from provenance import standing_of
 
 from web_api.services.agon_session_manager import AgonGame
 from web_api.services.grapheus_session_manager import GrapheusSession
@@ -299,6 +300,11 @@ def apply_disposition(
         "asserted_uod_id": target_uod_id,
         "state_count": len(chain.states),
         "step_count": len(chain.steps),
+        # The standing the asserted graph now carries in the corpus — surfaced so
+        # the moment of assertion shows what it earned (the transformation-game
+        # episode is a sound chain, so *derived*; the warrant tooltip carries the
+        # "correspondence, not truth" non-claim).
+        "standing": standing_of(tags=tag_set, has_chain=True),
         "message": f"Asserted contest as '{target_uod_id}' ({spec['label']}).",
     }
 
@@ -475,5 +481,10 @@ def apply_contest_disposition(
         "asserted_uod_id": target_uod_id,
         "state_count": len(chain.states),
         "step_count": len(chain.steps),
+        # G crossed the regime boundary by withstanding the dialogical contest —
+        # the fullest regime-2 standing (⚔ withstood Agon, from the
+        # ``warrant:withstood_agon`` tag).  The tooltip carries the
+        # "correspondence, not truth" non-claim.
+        "standing": standing_of(tags=tag_set, has_chain=True),
         "message": f"Asserted G as '{target_uod_id}' — withstood Agon ({spec['label']}).",
     }

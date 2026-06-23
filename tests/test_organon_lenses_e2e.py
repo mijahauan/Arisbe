@@ -199,3 +199,39 @@ def test_time_stack_lens_for_a_chained_uod(page, app_url):
     time.sleep(1.0)
     assert page.eval_on_selector("#chain-player", "el => el.style.display") == "flex"
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
+def test_correspondence_chord_on_linear_form(page, app_url):
+    """The shared LinearFormPanel carries the picture↔proposition correspondence
+    chord — naming §3.3 in words, with the 'not truth' non-claim."""
+    _open_organon(page, app_url)
+    _load_uod(page, SYNCHRONIC)
+    # The chord lives in the panel body (a collapsed <details>), so assert it is
+    # attached rather than visible.
+    page.wait_for_selector("#organon-canvas .lf-panel .lf-chord", state="attached", timeout=10000)
+    text = page.eval_on_selector("#organon-canvas .lf-panel .lf-chord", "el => el.textContent")
+    assert "picture" in text and "proposition" in text
+    assert "not truth" in text
+    tip = page.eval_on_selector("#organon-canvas .lf-panel .lf-chord", "el => el.title")
+    assert "SAME graph" in tip and "true" in tip
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
+def test_style_reprojection_note_appears_on_restyle(page, app_url):
+    """Choosing a non-default style reveals the 'style-only reprojection · standing
+    unchanged' note — making legible that a restyle preserves standing (§3.3
+    attests correspondence, not truth)."""
+    _open_organon(page, app_url)
+    _load_uod(page, SYNCHRONIC)
+    # Hidden at the default (Dau / ELK) projection.
+    assert page.eval_on_selector("#reprojection-note", "el => el.style.display") == "none"
+    page.select_option("#view-style", "peirce-authentic@1.0")
+    time.sleep(1.5)  # re-fetch + re-render in the chosen style
+    assert page.eval_on_selector("#reprojection-note", "el => el.style.display") != "none"
+    note = page.eval_on_selector("#reprojection-note", "el => el.textContent")
+    assert "reprojection" in note and "standing unchanged" in note
+    # Back to default hides it again.
+    page.select_option("#view-style", "")
+    time.sleep(1.5)
+    assert page.eval_on_selector("#reprojection-note", "el => el.style.display") == "none"
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"

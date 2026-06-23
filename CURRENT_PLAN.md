@@ -1,6 +1,13 @@
 # Current Plan
 
-**Last Updated**: 2026-06-22 (mid-session). **▶▶▶ This session: (1) DOCTRINE — LEVEL_ZERO rework +
+**Last Updated**: 2026-06-23. **▶▶▶ This session (2026-06-23) — UX fast-follows (author said "proceed
+with both"): (1) WARRANT — standing surfaced in **Agon** (both disposition services return a `standing`
+block; an `✓ Asserted into the corpus` badge card in `agon.html`; contest → ⚔ withstood, game → ⛓ derived)
++ a **style-only reprojection** note in Organon's view toolbar (`↺ standing unchanged`); badge markup
+extracted to shared `js/standing-badge.js`. (2) CORRESPONDENCE CHORD — the shared `LinearFormPanel` (all 3
+modes) now shows `≡ picture ↔ proposition · §3.3 correspondence, not truth` with an explanatory tooltip.
+Tests: +2 route asserts, +3 E2E; core-protection CLEAN; additive (one new JS module). See the two ✅ DONE
+2026-06-23 bullets in ▶ NEXT SESSION. — Prior 2026-06-22 session: (1) DOCTRINE — LEVEL_ZERO rework +
 `assertion-4` closure (c5be85f); (2) UX — the cross-mode **context reflex** panel (c2d561f); (3) **DOCUMENTARY
 HOUSE-CLEANING** (author-directed: make the challenge/dialog record accessible) — examined the author's new
 *fair-access* reframing of the worth-ladder (3-opponent panel → falls as stated, re-grounded methodologically:
@@ -171,8 +178,16 @@ threads (to scope with the author, not a committed list):
 - ~~**Make posited-vs-derived / the warrant gradient visible.**~~ ✅ **DONE 2026-06-20** — `standing_of`
   + the Organon list/detail badge (○ posited / ◇ … / ⛓ derived / ⚔ withstood) with the
   correspondence-not-truth non-claim in the tooltip. ([[project_warrant_gradient_visible]].) **Fast-follows
-  still open:** surface standing in **Agon** when a graph is asserted (mints ⚔ — currently only persisted,
-  not shown back), and an explicit **style-only reprojection** affordance (inherits its source's standing).
+  ✅ DONE 2026-06-23:** (1) **standing surfaced in Agon** — both disposition services
+  (`apply_disposition` game-path, `apply_contest_disposition` contest-path) now return a `standing` block
+  (`standing_of(tags, has_chain=True)` — contest → ⚔ withstood, game → ⛓ derived, honestly), rendered as an
+  `✓ Asserted into the corpus` confirmation card with the badge + non-claim in `agon.html` (both
+  `dispose`/`disposeContest`). (2) **style-only reprojection affordance** — Organon's view toolbar shows a
+  `↺ style-only reprojection · standing unchanged` note whenever a non-default style/layout is active,
+  stating in words that the restyle redraws the same proposition and inherits its standing. Extracted the
+  badge markup+CSS into a shared `js/standing-badge.js` (Organon migrated to it; Agon reuses it). Tests:
+  +2 route asserts (`test_grapheus_routes`/`test_agon_routes` carry `standing`), +1 E2E (reprojection note
+  toggles). Core-protection CLEAN. ([[project_warrant_gradient_visible]].)
 - ~~**The context reflex in the UI.**~~ ✅ **DONE 2026-06-22** — a shared `ContextReflex` panel
   (`js/context-reflex.js`) across **all three modes** (author chose the cross-mode option): "what context
   lets you read this?" = **the ground** (universe + standing + derivation position "state N of M") + on
@@ -182,10 +197,13 @@ threads (to scope with the author, not a committed list):
   + Agon already carried it). Polarity in words, never hue (floor #6). E2E `test_context_reflex_e2e.py` (4);
   17 existing mode E2E still green; core-protection CLEAN. ([[project_context_reflex_built]];
   [[feedback_newcomer_accessibility_dragons]].)
-- **"Correspondence, not truth" made legible.** §3.3 attests silently; the UI could make the chord
-  (picture↔proposition) and its *non*-claim about truth visible, so users don't read attestation as a
-  truth-verdict. *(Partly seeded 2026-06-20: the standing badge's tooltip now states the non-claim in words
-  — 🐉6 — but the picture↔proposition chord itself is still not shown.)*
+- ~~**"Correspondence, not truth" made legible.**~~ ✅ **DONE 2026-06-23** — the shared `LinearFormPanel`
+  (`js/linear-form-panel.js`, in **all three modes**) now carries a **correspondence chord** line in its
+  body: `≡ picture ↔ proposition · §3.3 correspondence, not truth`, with a tooltip naming what §3.3 silently
+  attests on every render — *this linear form and the drawing denote the SAME graph; it certifies they match,
+  NOT that either is true*. The panel was already the picture-beside-proposition home, so the chord just
+  names the relation. E2E `test_correspondence_chord_on_linear_form`. *(The 2026-06-20 seed — the standing
+  badge tooltip's non-claim, 🐉6 — remains; this adds the picture↔proposition chord itself.)*
 - ~~**A "dragons" challenge set.**~~ ✅ **DONE 2026-06-20** — the five *drawable* field-guide dragons are
   now challenges (🐉 in the picker), graded with the antidote handed back on a wrong attempt. Dragons 6-8
   are conceptual, not drawable — they fold into the warrant / correspondence-not-truth threads above.

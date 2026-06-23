@@ -127,17 +127,9 @@
     .uod-cited-dot { font-size: 9px; color: var(--ltt-slate); }
     .uod-cited-dot.cited { color: var(--ctp-green); }
     /* standing badge — what a graph's corpus place rests on (posited/derived/withstood).
-       The tooltip carries the "correspondence, not truth" non-claim. */
-    .standing-badge {
-      display: inline-block; padding: 1px 7px; border-radius: 10px;
-      font-size: 9px; font-weight: 600; letter-spacing: .02em; cursor: help;
-      border: 1px solid currentColor;
-    }
-    .standing-badge .sb-glyph { margin-right: 3px; }
-    .standing-posited   { color: var(--ctp-overlay1); }
-    .standing-derived   { color: var(--ctp-blue); }
-    .standing-withstood { color: var(--ctp-green); }
-    .standing-blank     { color: var(--ltt-slate); }
+       The badge markup + base CSS live in the shared js/standing-badge.js module
+       (also used by Agon); the tooltip carries the "correspondence, not truth"
+       non-claim.  Only the detail-header size override is Organon-specific. */
     /* detail-header variant: a touch larger, filled */
     #organon-detail-header .standing-badge { font-size: 10px; padding: 2px 9px; vertical-align: middle; }
 
@@ -398,6 +390,16 @@
           <option value="elk">ELK (default)</option>
           <option value="tension">Tension — relation between arguments</option>
         </select>
+        <!-- Style-only reprojection note: a non-default style or layout redraws the
+             SAME proposition, so it inherits this graph's standing unchanged (the mode
+             contract's second, standing-preserving route into the corpus). Shown only
+             when a non-default projection is active; §3.3 attests correspondence, not
+             truth. -->
+        <span id="reprojection-note" title="A style or layout change is a style-only reprojection: it redraws the same mathematical object, so the proposition — and its standing — are unchanged. §3.3 attests the picture↔proposition correspondence, never truth."
+              style="display:none; align-items:center; gap:4px; margin-left:auto; font-size:10px;
+                     color:var(--ctp-mauve); cursor:help; white-space:nowrap;">
+          ↺ style-only reprojection · standing unchanged
+        </span>
       </div>
 
       <!-- Diachronic chain player: a UoD with a persisted TransformationChain
@@ -441,6 +443,7 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/mode-nav.js"></script>
+  <script src="js/standing-badge.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
@@ -528,16 +531,10 @@
       // The standing badge — what this graph's corpus place rests on. The title
       // (hover) carries the meaning AND the correspondence-not-truth non-claim, so
       // the badge is never read as a verdict. ``compact`` shows just the glyph.
+      // Markup + base CSS live in the shared StandingBadge module (js/standing-badge.js),
+      // also used by Agon when a contest is disposed.
       function standingBadgeHtml(standing, compact) {
-        if (!standing || !standing.key) return '';
-        const tip = (standing.meaning || '') +
-          (standing.non_claim ? '\n\n— ' + standing.non_claim : '');
-        const body = compact
-          ? '<span class="sb-glyph">' + escapeHtml(standing.glyph || '') + '</span>'
-          : '<span class="sb-glyph">' + escapeHtml(standing.glyph || '') + '</span>' +
-            escapeHtml(standing.label || standing.key);
-        return '<span class="standing-badge standing-' + escapeHtml(standing.key) +
-          '" title="' + escapeHtml(standing.label + ' — ' + tip) + '">' + body + '</span>';
+        return window.StandingBadge ? window.StandingBadge.html(standing, compact) : '';
       }
 
       function makeItemEl(uod) {
@@ -1455,10 +1452,21 @@
           applyFilter();
         });
       }
+      // Reveal the "style-only reprojection" note whenever a non-default style or
+      // layout is active — making legible that the restyle redraws the same
+      // proposition and inherits its standing (correspondence, not truth).
+      function updateReprojectionNote() {
+        const note = document.getElementById('reprojection-note');
+        if (!note) return;
+        const reprojected = (currentStyle && currentStyle !== '') ||
+          (currentEngine && currentEngine !== 'elk');
+        note.style.display = reprojected ? 'inline-flex' : 'none';
+      }
       const viewStyleSel = document.getElementById('view-style');
       if (viewStyleSel) {
         viewStyleSel.addEventListener('change', function () {
           currentStyle = viewStyleSel.value;
+          updateReprojectionNote();
           applyViewStyle();
         });
       }
@@ -1466,6 +1474,7 @@
       if (viewEngineSel) {
         viewEngineSel.addEventListener('change', function () {
           currentEngine = viewEngineSel.value;
+          updateReprojectionNote();
           applyViewStyle();  // re-fetch + re-render in the chosen layout engine
         });
       }
