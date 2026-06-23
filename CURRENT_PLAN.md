@@ -170,11 +170,22 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶▶ IMMEDIATE NEXT TASK (2026-06-19 handoff): the UX pass — "how all this plays out in the
-interface."** The author flagged that UX has been deliberately neglected while doctrine and backend ran,
-and the next session turns to it. This is an **explore-and-decide** session first, not a fixed build:
-*open the three modes and ask where the doctrine and the pedagogy should become visible.* Candidate
-threads (to scope with the author, not a committed list):
+**▶▶▶ IMMEDIATE NEXT TASK (2026-06-23 directive): cross-mode UX coherence, use-case-driven.** The author
+wants to return to the **whole-experience** UX across the three modes — Organon, Ergasterion, Agon — judged
+against **several distinctly different use cases** (not internal-consistency drift, the 2026-06-15 pass
+already did that). Two goals: **(1) a recognizable, consistent experience** — a user moving between modes
+should find the chrome, vocabulary, camera, panels, and affordances familiar and predictable; **(2) the
+views + interactions give a natural, intuitive appreciation of the *drawings* themselves** — the pictures
+read as logic-in-pictures, not as diagrams to decode. This is **explore-and-decide first, not a fixed
+build:** enumerate a handful of concrete personas/use-cases (e.g. a teacher walking a class through a proof
+in Organon; a student composing freehand in Ergasterion; a researcher contesting a claim in Agon; a logician
+round-tripping a form across modes), walk each end-to-end, and catalogue where the experience breaks
+recognizability or where a drawing fails to read intuitively. Bring findings back to the author before
+committing edits. *(The doctrine-legibility threads below — warrant gradient, context reflex, dragons,
+correspondence chord — all shipped; this is the next, broader UX arc.)*
+
+**▶▶ Prior framing (2026-06-19 handoff): the UX pass — "how all this plays out in the interface."** Candidate
+doctrine-legibility threads (now all shipped — kept for the record):
 - ~~**Make posited-vs-derived / the warrant gradient visible.**~~ ✅ **DONE 2026-06-20** — `standing_of`
   + the Organon list/detail badge (○ posited / ◇ … / ⛓ derived / ⚔ withstood) with the
   correspondence-not-truth non-claim in the tooltip. ([[project_warrant_gradient_visible]].) **Fast-follows
