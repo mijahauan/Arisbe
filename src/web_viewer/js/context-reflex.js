@@ -188,6 +188,14 @@
         (ground.standingHtml ? ' <span class="cx-badge-slot">' + ground.standingHtml + '</span>' : '') +
         '</span></div>');
     }
+    if (ground.origin && ground.origin.name) {
+      // The form's ground carried across a mode handoff — so the same proposition
+      // stays recognizable as it moves Organon → Ergasterion → Agon.
+      var fromMode = ground.origin.mode
+        ? (' <span style="color:#a6adc8;">(' + esc(ground.origin.mode) + ')</span>') : '';
+      rows.push('<div class="cx-line"><span class="cx-k">carried from</span>' +
+        '<span class="cx-v">' + esc(ground.origin.name) + fromMode + '</span></div>');
+    }
     if (ground.kind) {
       rows.push('<div class="cx-line"><span class="cx-k">kind</span>' +
         '<span class="cx-v">' + esc(ground.kind) + '</span></div>');

@@ -167,6 +167,32 @@ def test_winning_witness_named_on_true_existential():
     assert res.counterexample is None
 
 
+def test_witness_vertex_ids_locate_the_deciding_line_on_G():
+    # The deciding line token must also carry the *G vertex id* of the line it names,
+    # so the drawing of G can be highlighted at the line that decided the verdict
+    # (the board-in-Agon hook — token→individual says who, this says where).
+    g = parse_egif('(P *x) ~[ (Q x) ]')
+    res = evaluate(g, M(closed=True, f='(P "a") (P "b") (Q "a")'))
+    assert res.verdict is Verdict3.TRUE
+    assert res.witness_vertex_ids is not None
+    assert set(res.witness_vertex_ids) == set(res.winning_witness)   # same tokens
+    generic_ids = {v.id for v in g.V if v.is_generic}
+    assert res.witness_vertex_ids["x"] in generic_ids               # a real G line
+
+    # The counterexample line is located on G too (the student's Whale).
+    sg = parse_egif('~[ (seacreature *x) ~[ (coldblooded x) ] ]')
+    student = evaluate(sg, M(closed=True,
+                             sea='(seacreature "Whale") (warmblooded "Whale")'))
+    assert student.verdict is Verdict3.FALSE
+    assert set(student.witness_vertex_ids) == set(student.counterexample)
+    assert student.witness_vertex_ids["x"] in {v.id for v in sg.V if v.is_generic}
+
+    # An UNKNOWN verdict has no decisive line — nothing to light.
+    unknown = evaluate(parse_egif('(dog "Rex")'), M(animals=BISCUIT))  # open, absent
+    assert unknown.verdict is Verdict3.UNKNOWN
+    assert unknown.witness_vertex_ids is None
+
+
 def test_result_holds_and_transcript():
     res = evaluate(parse_egif('(dog "Biscuit")'), M(animals=BISCUIT))
     assert res.holds is True

@@ -297,3 +297,59 @@ def test_inverse_with_materialize_uses_rules(client):
     # Across the corpus too — just assert it runs and ranks without error.
     data = _sweep(client, '(mammal "Whale")', include_corpus=True, materialize=True)
     assert "results" in data and "counts" in data
+
+
+# ---------------------------------------------------------------------------
+# Keep the drawing present in Agon (①): every register now hands back a board
+# (svg + introspection) and locates the deciding line on it (witness_vertex_ids).
+# ---------------------------------------------------------------------------
+
+def _vid_appears_in_svg(svg, vid):
+    return ('data-element-id="%s"' % vid) in svg
+
+
+def test_interpret_payload_carries_a_board_and_locates_the_evidence(client):
+    # The student's refutation: the board is G, and the counterexample line is on it.
+    gid = _new_game(
+        client,
+        '(seacreature "Whale") (warmblooded "Whale") (seacreature "Cod") (coldblooded "Cod")',
+        '~[ (seacreature *x) ~[ (coldblooded x) ] ]', closed=True)
+    data = _interpret(client, gid)
+    assert data["verdict"] == "false"
+    # the board
+    assert isinstance(data["svg"], str) and "<svg" in data["svg"]
+    assert data["introspection"]
+    # the deciding line, located on the drawing of G
+    wv = data["witness_vertex_ids"]
+    assert wv and set(wv) == set(data["counterexample"])      # same tokens
+    assert _vid_appears_in_svg(data["svg"], wv["x"])          # really on the board
+
+
+def test_standalone_interpret_carries_a_board(client):
+    r = client.post("/agon/interpret", json={
+        "model_egif": '(P "a") (P "b") (Q "a")',
+        "proposal_egif": '(P *x) ~[ (Q x) ]', "closed": True})
+    data = r.json()["data"]
+    assert data["verdict"] == "true"
+    assert "<svg" in data["svg"] and data["introspection"]
+    assert _vid_appears_in_svg(data["svg"], data["witness_vertex_ids"]["x"])
+
+
+def test_inverse_pivot_draws_G_once_and_locates_per_result(client):
+    data = _sweep(client, '~[ (mammal *x) ~[ (warmblooded x) ] ]')
+    assert "<svg" in data["svg"] and data["introspection"]    # G drawn once, up top
+    ward = next(r for r in data["results"] if r["title"].startswith("Ward chart"))
+    assert ward["counterexample"] == {"x": "Biscuit"}
+    assert set(ward["witness_vertex_ids"]) == set(ward["counterexample"])
+
+
+def test_contest_payload_carries_a_board_and_line_ids(client):
+    r = client.post("/agon/contests", json={
+        "model_egif": '(seacreature "Whale") (warmblooded "Whale")',
+        "proposal_egif": '~[ (seacreature *x) ~[ (coldblooded x) ] ]', "closed": True})
+    assert r.status_code == 200, r.text
+    data = r.json()["data"]
+    assert "<svg" in data["svg"] and data["introspection"]
+    # token → G vertex id for every line of identity (so fixed selectives can light up)
+    wv = data["witness_vertex_ids"]
+    assert wv and all(_vid_appears_in_svg(data["svg"], vid) for vid in wv.values())

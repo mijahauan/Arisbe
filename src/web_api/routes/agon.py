@@ -527,8 +527,12 @@ def _interpret_payload(
             }
     else:
         oracle = CorpusOracle.from_egif({"M": model_egif}, closed=closed)
-    result = evaluate_semantic(parse_egif(proposal_egif), oracle)
+    g_egi = parse_egif(proposal_egif)
+    result = evaluate_semantic(g_egi, oracle)
     verdict = result.verdict.value
+    # Keep the drawing present: the peel is *about* G, so draw G and hand back the
+    # ids that let the client highlight the deciding line of identity on it.
+    _dto, g_svg = generate_layout(g_egi)
     return {
         "model_egif": model_egif,
         "proposal_egif": proposal_egif,
@@ -541,6 +545,9 @@ def _interpret_payload(
         "transcript": result.transcript,
         "winning_witness": result.winning_witness,
         "counterexample": result.counterexample,
+        "witness_vertex_ids": result.witness_vertex_ids,
+        "svg": g_svg,
+        "introspection": egi_introspection(g_egi),
         "available_dispositions": available_dispositions(verdict=verdict),
     }
 
@@ -598,6 +605,7 @@ def _candidate_fit(kind, cid, title, model_egif, closed, g_egi, g_consts,
         "residue": residue,
         "winning_witness": result.winning_witness,
         "counterexample": result.counterexample,
+        "witness_vertex_ids": result.witness_vertex_ids,
     }
 
 
@@ -649,10 +657,15 @@ async def where_it_holds(request: AgonInverseRequest):
 
         rank = {"holds": 0, "partial": 1, "independent": 2, "contradicts": 3}
         results.sort(key=lambda r: (rank.get(r["relationship"], 9), -r["fit"]))
+        # G is constant across candidates — draw it once; the client highlights the
+        # focused result's witness/counterexample lines on this one board.
+        _dto, g_svg = generate_layout(g_egi)
         return ApiResponse(success=True, data={
             "proposal_egif": request.proposal_egif.strip(),
             "materialized": request.materialize,
             "results": results,
+            "svg": g_svg,
+            "introspection": egi_introspection(g_egi),
             "counts": {k: sum(1 for r in results if r["relationship"] == k)
                        for k in ("holds", "partial", "independent", "contradicts")},
         })
@@ -962,10 +975,19 @@ def _frontier_payload(choice) -> Optional[dict]:
 def _contest_payload(session) -> dict:
     """Standard response shape for any endpoint returning a contest state."""
     play = session.contest.play
+    g_egi = session.contest.egi
+    _dto, g_svg = generate_layout(g_egi)
+    # token → G vertex id for every line of identity, so the selectives the contest
+    # has fixed can be highlighted on the board (the frontier already carries real
+    # element ids for its area + option keys).
+    line_vertex_ids = {tok: vid for vid, tok in session.contest._sg._gen_name.items()}
     return {
         "contest_id": session.contest_id,
         "setup": session.setup,
         "materialization": session.materialization,
+        "svg": g_svg,
+        "introspection": egi_introspection(g_egi),
+        "witness_vertex_ids": line_vertex_ids,
         "is_over": play.is_over,
         "summary": play.summary,
         "verdict": play.verdict.value if play.verdict is not None else None,

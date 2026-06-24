@@ -1416,15 +1416,21 @@
       document.getElementById('btn-import').addEventListener('click', function () {
         window.location.href = '/import';
       });
+      // ④ The form's ground travels with it: pass the source UoD's name + mode so the
+      // destination's context reflex can say "carried from: <name> (Organon)".
+      function originSuffix() {
+        const nm = (currentContextGround && currentContextGround.universe) || selectedUodId || '';
+        return nm ? ('&from=' + encodeURIComponent(nm) + '&fromMode=organon') : '';
+      }
       document.getElementById('act-ergasterion').addEventListener('click', function () {
         if (!selectedUodId) return;
         // The workshop opens a regime-1 *copy* as its base — a draft to transform.
-        window.location.href = '/ergasterion?open=' + encodeURIComponent('uod:' + selectedUodId);
+        window.location.href = '/ergasterion?open=' + encodeURIComponent('uod:' + selectedUodId) + originSuffix();
       });
       document.getElementById('act-agon').addEventListener('click', function () {
         if (!currentEgif) { setStatus('No linear form available to carry into Agon.', true); return; }
         // Carry the graph in as the reference model M; the user composes G there.
-        window.location.href = '/agon?model_egif=' + encodeURIComponent(currentEgif);
+        window.location.href = '/agon?model_egif=' + encodeURIComponent(currentEgif) + originSuffix();
       });
       document.getElementById('act-copy').addEventListener('click', function () {
         if (!currentEgif) return;

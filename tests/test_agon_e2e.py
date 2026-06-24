@@ -146,3 +146,39 @@ def test_inverse_pivot_searches_models(page, app_url):
         timeout=15000)
     txt = page.text_content("#interpret-result")
     assert "holds" in txt and "contradicts" in txt
+
+
+def test_interpret_keeps_the_board_and_lights_the_evidence(page, app_url):
+    """① The drawing stays present: after 'Does G hold in M?', the board (an svg)
+    is still on the canvas — not replaced by text — and the deciding line of
+    identity is highlighted on it (the student's refutation lights its counterexample)."""
+    page.goto(app_url + "/agon")
+    page.wait_for_function(
+        "document.querySelectorAll('#model-picker option').length > 1", timeout=10000)
+    page.select_option("#model-picker", "ex:student-sea")
+    page.click("#btn-interpret")
+    _interpret_text_containing(page, "seacreature")
+    # the board is drawn (not hidden) and reads beside the peel
+    page.wait_for_selector("#canvas svg", state="attached", timeout=10000)
+    assert page.is_visible("#canvas"), "the board must stay present in Agon"
+    # the deciding line is lit on the drawing (highlightElement records data-orig-stroke)
+    page.wait_for_function(
+        "document.querySelectorAll('#canvas [data-orig-stroke]').length > 0",
+        timeout=10000)
+
+
+def test_handoff_carries_the_origin_into_the_ground(page, app_url):
+    """④ A form carried in from Organon keeps its ground: the context reflex says
+    'carried from: <name>' so the same proposition stays recognizable across modes."""
+    page.goto(app_url + "/agon?model_egif="
+              + "(seacreature%20%22Whale%22)%20(coldblooded%20%22Whale%22)"
+              + "&from=StudentSea&fromMode=organon")
+    page.fill("#setup-proposal", '~[ (seacreature *x) ~[ (coldblooded x) ] ]')
+    page.click("#btn-interpret")
+    _interpret_text_containing(page, "seacreature")
+    page.wait_for_function(
+        "document.querySelector('#canvas .cx-panel') && "
+        "document.querySelector('#canvas .cx-panel').textContent.includes('carried from')",
+        timeout=10000)
+    panel = page.text_content("#canvas .cx-panel")
+    assert "StudentSea" in panel and "organon" in panel

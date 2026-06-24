@@ -108,12 +108,18 @@ class SemanticResult:
     universal) names the individual that defeated it — the evidence the
     Agonothetes' decision rests on (the physician's Biscuit, the student's Whale).
     Each maps a line token (``x``, ``x2``, …) to an M individual's label.
+
+    ``witness_vertex_ids`` maps the *same* line tokens to the **G vertex id** of
+    the generic line they name — so a viewer can highlight the deciding line of
+    identity *on the drawing of G* (the token→individual binding says who; this
+    says where). Present whenever a decisive witness/counterexample is.
     """
 
     verdict: Verdict3
     transcript: List[str] = field(default_factory=list)
     winning_witness: Optional[Dict[str, str]] = None
     counterexample: Optional[Dict[str, str]] = None
+    witness_vertex_ids: Optional[Dict[str, str]] = None
 
     @property
     def holds(self) -> bool:
@@ -161,11 +167,18 @@ class SemanticGame:
         transcript: List[str] = []
         verdict, binding = self._holds(egi.sheet, {}, depth=0, transcript=transcript)
         decisive = self._render_binding(binding) if binding else None
+        # The same decisive lines, keyed token→G vertex id, so the drawing of G
+        # can be highlighted at the line that decided the verdict.
+        decisive_ids = (
+            {self._gen_name[vid]: vid for vid in binding if vid in self._gen_name}
+            if binding else None
+        ) or None
         return SemanticResult(
             verdict=verdict,
             transcript=transcript,
             winning_witness=decisive if verdict is Verdict3.TRUE else None,
             counterexample=decisive if verdict is Verdict3.FALSE else None,
+            witness_vertex_ids=decisive_ids if verdict is not Verdict3.UNKNOWN else None,
         )
 
     def _render_binding(self, binding) -> Optional[Dict[str, str]]:

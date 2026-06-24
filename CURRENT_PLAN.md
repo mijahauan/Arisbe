@@ -1,6 +1,34 @@
 # Current Plan
 
-**Last Updated**: 2026-06-23. **▶▶▶ This session (2026-06-23) — UX fast-follows (author said "proceed
+**Last Updated**: 2026-06-24. **▶▶▶ This session (2026-06-24) — cross-mode UX coherence, pass 1 (explore →
+decide → BUILD).** Walked the three modes against six personas (teacher/Organon, student/Ergasterion,
+researcher + domain-expert/Agon, cold-start newcomer, logician round-trip) via parallel read-only catalogues,
+brought findings to the author, who anchored on **①** (keep the drawing present in Agon) **and ④** (carry the
+form's ground across mode handoffs). Both shipped, additive, core-protection CLEAN.
+**① the board stays present in Agon** — the interpret / where-it-holds / contest registers no longer hide the
+canvas behind a text peel; they now draw the proposal **G** beside the reading and **light the deciding line of
+identity on it**. Backend: `semantic_game.SemanticResult` gains `witness_vertex_ids` (line token → G vertex id,
+from the existing `_gen_name` map; `None` on UNKNOWN); `agon.py` `_interpret_payload` / `where_it_holds` /
+`_contest_payload` each render G (`generate_layout`) and return `svg` + `introspection` + `witness_vertex_ids`
+(contest emits the full line-token→vid map so fixed selectives light up; its frontier already carries real
+edge/cut ids). Frontend (`agon.html`): center `#board-row` (board + a 380px reading strip), shared
+`showReadingBoard` / `renderReadingContext` / `highlightEvidence` + `paintContestBoard`; witness=green,
+counterexample=maroon, contested area=yellow, conjunct option lit blue on hover. `diagram-viewer.js`'s
+`highlightElement`/`clearHighlights` were already there — the gap was payload ids + not hiding the board.
+**④ the form's ground travels** — Organon→Ergasterion / Organon→Agon / Ergasterion→Agon handoff URLs now carry
+`&from=<name>&fromMode=<mode>`; each destination captures it into `currentOrigin` and threads `ground.origin`
+into its ContextReflex; shared `context-reflex.js` `groundHtml` renders a **`carried from: <name> (<mode>)`**
+row (additive, ignores-unknown contract preserved). So Agon's generic "the contest board" now also says where the
+proposition came from — the same form stays recognizable across modes. Tests: +1 `test_semantic_game`
+(witness_vertex_ids locate the line on G), +4 `test_agon_interpretation` (interpret/standalone/inverse/contest
+carry a board + locate evidence; vid really appears as `data-element-id` in the svg), +2 `test_agon_e2e`
+(Playwright: board stays visible + evidence lit; handoff origin reaches the ground panel). 248 web/mode tests
+green; quality gate 152 core green; core-protection CLEAN. **Scope deliberately deferred** (flagged to author):
+rendering M, a structured/clickable transcript, and the bigger **newcomer / EGIF-authoring on-ramp** (a
+non-logician can read the lit board now but still can't easily *author* M/G — `index.html` + Agon setup throw
+jargon cold). [[project_next_cross_mode_ux_coherence]]. *(Prior 2026-06-23 session below.)*
+
+**▶▶▶ Prior session (2026-06-23) — UX fast-follows (author said "proceed
 with both"): (1) WARRANT — standing surfaced in **Agon** (both disposition services return a `standing`
 block; an `✓ Asserted into the corpus` badge card in `agon.html`; contest → ⚔ withstood, game → ⛓ derived)
 + a **style-only reprojection** note in Organon's view toolbar (`↺ standing unchanged`); badge markup

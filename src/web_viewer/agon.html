@@ -149,18 +149,22 @@
       </div>
     </aside>
 
-    <!-- Center: turn banner + board -->
+    <!-- Center: turn banner + board (kept present in every register), with the
+         interpretation reading beside it rather than in place of it — the board
+         is the proposal G, and the peel highlights the deciding line on it. -->
     <section style="display:flex; flex-direction:column; overflow:hidden;">
       <div id="turn-banner" style="display:none;">
         <div class="role" id="turn-role">—</div>
         <div class="sub" id="turn-sub"></div>
       </div>
-      <div id="canvas" style="flex:1;">
-        <div id="canvas-placeholder">Set up a contest on the left to begin.</div>
+      <div id="board-row" style="flex:1; display:flex; overflow:hidden; min-height:0;">
+        <div id="canvas" style="flex:1;">
+          <div id="canvas-placeholder">Set up a contest on the left to begin.</div>
+        </div>
+        <!-- The interpretation register (given M, then G): the peel reading,
+             beside the drawing of G. docs/GENERATION_AND_TESTING.md. -->
+        <div id="interpret-result" style="display:none; width:380px; flex:none; padding:14px 16px; overflow:auto; border-left:1px solid var(--border); background:var(--panel-bg);"></div>
       </div>
-      <!-- The interpretation register (given M, then G): the peel result, shown
-           in place of the board. docs/GENERATION_AND_TESTING.md. -->
-      <div id="interpret-result" style="display:none; flex:1; padding:18px; overflow:auto;"></div>
     </section>
 
     <!-- Right: moves / episode / disposition -->
@@ -235,6 +239,9 @@
       // Context reflex: the board's introspection (bundled in the game payload,
       // same egi as the svg) for the enclosure walk.
       let currentIntrospection = null;
+      // ④ The form's ground, carried across the mode handoff (set from the URL):
+      // where this proposal/model came from, shown in every register's context reflex.
+      let currentOrigin = null;
 
       function setStatus(m, k) { statusEl.textContent = m; statusEl.classList.remove('error','success'); if (k) statusEl.classList.add(k); }
       function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -289,6 +296,7 @@
           claim: 'The arena tests a proposal by play — nothing here is asserted ' +
             'until a contest is won and disposed. §3.3 attests correspondence, not truth.',
         };
+        if (currentOrigin) ground.origin = currentOrigin;   // ④ carried from the handoff
         window.ContextReflex.render(canvasEl, { ground, introspection: currentIntrospection });
       }
 
@@ -304,6 +312,42 @@
           transition: !!preserveView,
         });
         clearSel();
+      }
+
+      // Keep the drawing present in the interpretation/contest registers: the peel
+      // is *about* G, so draw G on the board and read the verdict beside it (not in
+      // place of it). EVID colours match Catppuccin --ctp-* (highlightElement sets a
+      // concrete stroke, so it can't take a CSS var). The board lights the deciding
+      // line of identity; the strip carries the words.
+      const EVID = { witness:'#a6e3a1', counter:'#eba0ac' };
+      function showReadingBoard(d, opts){
+        canvasEl.style.display=''; $('turn-banner').style.display='none';
+        if(d && d.svg){ svgPZ = agonView.render(d.svg, { camera:'fit' }); }
+        $('interpret-result').style.display='block';
+        renderReadingContext(d, opts);
+      }
+      function renderReadingContext(d, opts){
+        if(!window.ContextReflex || !canvasEl) return;
+        currentIntrospection = (d && d.introspection) || null;
+        canvasEl.dataset.cxSel = '';
+        const ground = {
+          universe: (opts && opts.universe) || 'the proposal G',
+          regime: 'Agon · interpretation',
+          derivation: { label: 'reading', text: (opts && opts.derivationText) || 'given M, then G' },
+          claim: 'The arena reads a proposal against a model — nothing here is asserted ' +
+            'until a contest is won and disposed. §3.3 attests correspondence, not truth.',
+        };
+        if (currentOrigin) ground.origin = currentOrigin;     // ④ threaded from the handoff
+        window.ContextReflex.render(canvasEl, { ground, introspection: currentIntrospection });
+      }
+      // Light the deciding line(s) of identity on the drawing of G. ``ids`` maps a
+      // line token → G vertex id; ``kind`` picks witness (green) vs counterexample (red).
+      function highlightEvidence(ids, kind){
+        if(!agonView || !agonView.clearHighlights) return;
+        agonView.clearHighlights();
+        const color = kind==='counter' ? EVID.counter : EVID.witness;
+        Object.keys(ids||{}).forEach(tok=>{ const vid=ids[tok];
+          if(vid){ try{ agonView.highlightElement(vid, color, 4); }catch(_){} } });
       }
 
       // ---- rule param forms (mirror Ergasterion) ----
@@ -400,13 +444,16 @@
       function verdictColor(v){ return v==='true'?'var(--ctp-green)':(v==='false'?'var(--ctp-maroon)':'var(--ctp-yellow)'); }
       function pairs(o){ return Object.keys(o||{}).map(k=>k+' = '+o[k]).join(', '); }
       function renderInterpretation(d){
-        $('turn-banner').style.display='none'; canvasEl.style.display='none';
-        const el=$('interpret-result'); el.style.display='block';
+        showReadingBoard(d, { universe: 'the proposal G', derivationText: 'given M, then G' });
+        // Light the deciding line on the drawing: witness (green) or counterexample (red).
+        highlightEvidence(d.witness_vertex_ids, d.verdict==='false' ? 'counter' : 'witness');
+        const el=$('interpret-result');
         let h='<div style="font-size:12px; color:var(--ctp-overlay0); margin-bottom:8px;">Given M, then G — the peel (outside-in):</div>';
         h+='<span style="display:inline-block; padding:4px 14px; border-radius:6px; font-weight:700; color:var(--ctp-crust); background:'+verdictColor(d.verdict)+';">'+esc(d.verdict.toUpperCase())+'</span>';
         h+='<div style="margin:8px 0 12px; color:var(--ctp-text);">'+esc(d.summary)+'</div>';
-        if(d.counterexample) h+='<div style="color:var(--ctp-maroon); margin-bottom:4px;">Counterexample — '+esc(pairs(d.counterexample))+' (the individual that defeats it)</div>';
-        if(d.winning_witness) h+='<div style="color:var(--ctp-green); margin-bottom:4px;">Witness — '+esc(pairs(d.winning_witness))+' (the assignment that satisfies it)</div>';
+        const onBoard = (d.witness_vertex_ids && Object.keys(d.witness_vertex_ids).length) ? ' <span style="color:var(--ctp-overlay0);">— its line is lit on the board</span>' : '';
+        if(d.counterexample) h+='<div style="color:var(--ctp-maroon); margin-bottom:4px;">Counterexample — '+esc(pairs(d.counterexample))+' (the individual that defeats it)'+onBoard+'</div>';
+        if(d.winning_witness) h+='<div style="color:var(--ctp-green); margin-bottom:4px;">Witness — '+esc(pairs(d.winning_witness))+' (the assignment that satisfies it)'+onBoard+'</div>';
         h+='<div style="font-size:11px; color:var(--ctp-overlay0);">M ('+(d.closed?'closed':'open')+' world): <code>'+esc(d.model_egif)+'</code></div>';
         h+='<div style="font-size:11px; color:var(--ctp-overlay0);">G: <code>'+esc(d.proposal_egif)+'</code></div>';
         if(d.materialization){ const mt=d.materialization;
@@ -442,18 +489,19 @@
       // ---- the inverse pivot: in what domain does G hold? ----
       function relColor(rel){ return rel==='holds'?'var(--ctp-green)':(rel==='contradicts'?'var(--ctp-maroon)':(rel==='partial'?'var(--ctp-blue)':'var(--ctp-yellow)')); }
       function renderInverse(d){
-        $('turn-banner').style.display='none'; canvasEl.style.display='none';
-        const el=$('interpret-result'); el.style.display='block';
+        showReadingBoard(d, { universe: 'the proposal G', derivationText: 'across candidate models' });
+        if(agonView.clearHighlights) agonView.clearHighlights();
+        const el=$('interpret-result');
         const c=d.counts||{};
         let h='<div style="font-size:12px; color:var(--ctp-overlay0); margin-bottom:8px;">In what domain does G hold? — the peel, run across every candidate model'+(d.materialized?' (rules materialized)':'')+':</div>';
-        h+='<div style="font-size:11px; color:var(--ctp-overlay0);">G: <code>'+esc(d.proposal_egif)+'</code></div>';
+        h+='<div style="font-size:11px; color:var(--ctp-overlay0);">G: <code>'+esc(d.proposal_egif)+'</code> <span style="color:var(--ctp-overlay0);">— drawn on the board; click a result to light its evidence</span></div>';
         h+='<div style="margin:8px 0;">'
           +'<span style="color:var(--ctp-green);">'+(c.holds||0)+' holds</span> · '
           +'<span style="color:var(--ctp-blue);">'+(c.partial||0)+' partial</span> · '
           +'<span style="color:var(--ctp-yellow);">'+(c.independent||0)+' independent</span> · '
           +'<span style="color:var(--ctp-maroon);">'+(c.contradicts||0)+' contradicts</span></div>';
-        (d.results||[]).forEach(r=>{
-          h+='<div style="padding:6px 8px; margin:3px 0; border-radius:6px; border-left:3px solid '+relColor(r.relationship)+'; background:var(--ctp-mantle);">'
+        (d.results||[]).forEach((r,i)=>{
+          h+='<div class="inv-result" data-idx="'+i+'" style="padding:6px 8px; margin:3px 0; border-radius:6px; border-left:3px solid '+relColor(r.relationship)+'; background:var(--ctp-mantle); cursor:pointer;">'
             +'<div><strong style="color:'+relColor(r.relationship)+';">'+esc(r.relationship)+'</strong>'
             +' <span style="color:var(--ctp-text);">'+esc(r.title)+'</span>'
             +' <span style="font-size:10px; color:var(--ctp-overlay0);">['+esc(r.kind)+' · '+r.verdict+']</span></div>';
@@ -464,6 +512,13 @@
         if(!(d.results||[]).length) h+='<div style="color:var(--ctp-overlay0);">No candidate models.</div>';
         h+='<div style="margin-top:10px; font-size:11px; color:var(--ctp-overlay0);">Abduction: which context would make G a matter of course. Nothing asserted.</div>';
         el.innerHTML=h;
+        // Click a result row → light that candidate's witness/counterexample on G.
+        el.querySelectorAll('.inv-result').forEach(row=>{ row.addEventListener('click', ()=>{
+          el.querySelectorAll('.inv-result').forEach(x=>x.style.outline='');
+          row.style.outline='2px solid '+'var(--ctp-surface2)';
+          const r=(d.results||[])[+row.dataset.idx]; if(!r) return;
+          highlightEvidence(r.witness_vertex_ids, r.verdict==='false' ? 'counter' : 'witness');
+        }); });
       }
 
       // ---- API ----
@@ -559,10 +614,21 @@
       // the verdict /interpret gives — the contest is the *experience* of that verdict.
       function outcomeText(o){ return o==='graphist_wins'?'Graphist wins — G holds in M':
         (o==='grapheus_wins'?'Grapheus wins — G fails in M':'Independent — M neither confirms nor denies G'); }
+      function paintContestBoard(d){
+        if(!agonView.clearHighlights) return;
+        agonView.clearHighlights();
+        const ids=d.witness_vertex_ids||{};
+        (d.selectives||[]).forEach(s=>{ const vid=ids[s.line];
+          if(vid){ try{ agonView.highlightElement(vid, EVID.witness, 4); }catch(_){} } });
+        // the area now contested, lit so the choice has a place on the picture
+        if(!d.is_over && d.frontier && d.frontier.area_id){
+          try{ agonView.highlightElement(d.frontier.area_id, '#f9e2af', 4); }catch(_){} }
+      }
       function renderContest(d){
         contestId=d.contest_id;
-        $('turn-banner').style.display='none'; canvasEl.style.display='none';
-        const el=$('interpret-result'); el.style.display='block';
+        showReadingBoard(d, { universe: 'the contest board',
+          derivationText: d.is_over ? ('over — '+(d.outcome||'')) : 'your move, Graphist' });
+        const el=$('interpret-result');
         let h='<div style="font-size:12px; color:var(--ctp-overlay0); margin-bottom:8px;">Contest the Grapheus — you are the '
           +'<strong style="color:var(--ctp-green);">Graphist</strong> (defend G); the machine plays the '
           +'<strong style="color:var(--ctp-blue);">Grapheus</strong> (the model M), and moves automatically.</div>';
@@ -614,7 +680,16 @@
         h+='<pre style="background:var(--ctp-mantle); padding:8px; border-radius:6px; font-size:11px; white-space:pre-wrap; color:var(--ctp-text); margin:0;">'+esc((d.transcript||[]).join('\n')||'—')+'</pre>';
         if(!d.is_over){ h+='<div style="margin-top:10px;"><button class="action danger" id="btn-contest-concede">Concede the inning</button></div>'; }
         el.innerHTML=h;
-        el.querySelectorAll('.contest-opt').forEach(b=>b.addEventListener('click', ()=>chooseOption(b.dataset.key)));
+        paintContestBoard(d);   // light the fixed lines + the contested area on G
+        el.querySelectorAll('.contest-opt').forEach(b=>{
+          b.addEventListener('click', ()=>chooseOption(b.dataset.key));
+          // A conjunct option's key is an edge/cut id on the board — light it on hover
+          // so the choice reads on the picture; witness options pick an M individual (off-board).
+          if(d.frontier && d.frontier.kind==='conjunct'){
+            b.addEventListener('mouseenter', ()=>{ try{ agonView.highlightElement(b.dataset.key, '#89b4fa', 4); }catch(_){} });
+            b.addEventListener('mouseleave', ()=>paintContestBoard(d));
+          }
+        });
         const cc=el.querySelector('#btn-contest-concede'); if(cc) cc.addEventListener('click', concedeContest);
         // Disposition picker (over only): select → reveal asserting fields → record.
         selectedContestDisp=null;
@@ -698,6 +773,11 @@
         const me = params.get('model_egif');
         if (pe) $('setup-proposal').value = pe;
         if (me) $('setup-model').value = me;
+        // ④ The form's ground, carried from the originating mode (Organon / Ergasterion):
+        // shown in every register's context reflex so the proposition stays recognizable.
+        const fromName = params.get('from');
+        const fromMode = params.get('fromMode');
+        if (fromName) currentOrigin = { name: fromName, mode: fromMode || null };
         if ((pe || me) && typeof setStatus === 'function') {
           setStatus(me
             ? 'Reference model M brought in from Organon — add a proposal G, then start.'

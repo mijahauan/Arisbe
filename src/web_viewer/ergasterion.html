@@ -938,6 +938,8 @@
       // The base context this session forks from (the ground, for the context
       // reflex panel) — set when a session opens.
       let currentBaseSource = null;
+      // ④ Where this form came from across the mode handoff (set from the URL).
+      let currentOrigin = null;
 
       // Which act the user is performing (spec §4.2/§5.1): composing |
       // deriving | sealed.  Drives the phase banner and which right-panel
@@ -2134,6 +2136,7 @@
           claim: 'A workshop draft (regime 1): correspondence is suspended here — ' +
             'this is clay, not an assertion. Its ground is the base context it forks from.',
         };
+        if (currentOrigin) ground.origin = currentOrigin;   // ④ carried from the handoff
         window.ContextReflex.render(canvasEl, {
           ground, introspection: currentIntrospection,
         });
@@ -2403,7 +2406,10 @@
           setStatus('No linear form available to send to Agon.', 'error');
           return;
         }
-        window.open('/agon?proposal_egif=' + encodeURIComponent(currentEgif), '_blank');
+        // ④ Carry the form's ground: tell Agon where this draft came from.
+        const origin = currentBaseSource || 'workshop draft';
+        window.open('/agon?proposal_egif=' + encodeURIComponent(currentEgif)
+          + '&from=' + encodeURIComponent(origin) + '&fromMode=ergasterion', '_blank');
         setStatus('Opened Agon with this graph as the proposal G.');
       }
 
@@ -2987,7 +2993,12 @@
       // Hand-off from Organon: ?open=uod:<id> (or empty_sheet) opens that base
       // directly, so "Open in Ergasterion" lands in a ready workshop session.
       try {
-        const open = new URLSearchParams(window.location.search).get('open');
+        const qp = new URLSearchParams(window.location.search);
+        const open = qp.get('open');
+        // ④ Carry the form's ground in from Organon so the context reflex can say
+        // "carried from: <name> (Organon)" beside the workshop draft.
+        const fromName = qp.get('from');
+        if (fromName) currentOrigin = { name: fromName, mode: qp.get('fromMode') || null };
         if (open && (open.indexOf('uod:') === 0 || open === 'empty_sheet')) {
           openSession(open);
         }
