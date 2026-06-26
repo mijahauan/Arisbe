@@ -409,44 +409,62 @@ No new storage is needed — every chain node/edge already carries its narration
 The translators exist (`egif_generator_dau`, `clif_generator_dau`, `cgif_generator_dau`, `egi_to_fol`) and the
 NL bridge exists ([`nl_to_logic.py`](../src/nl_to_logic.py)). **The check needs a scorer, not a schema.**
 
-### The prototype scorer (built — first result on Praeclarum)
+### The prototype scorer (built — corpus result)
 
-The scorer is now built and run on the ground-truth fixture:
+The scorer is built and run across **the whole corpus of narrated worked chains** (7 UoDs, 33 steps):
 [`src/diagram_narration_check.py`](../src/diagram_narration_check.py) +
 [`tools/run_diagram_narration_check.py`](../tools/run_diagram_narration_check.py) +
-[`tests/test_diagram_narration_check.py`](../tests/test_diagram_narration_check.py) (12 tests, incl. two
-falsifiers). Read-only — it observes the immutable per-state EGIs and the slim on-disk `chain.jsonl` narration
-(`parameters.description` / Peirce label), mutates nothing, asserts no truth.
+[`tests/test_diagram_narration_check.py`](../tests/test_diagram_narration_check.py) (21 tests, incl. two
+falsifiers + a per-chain corpus parametrization). Read-only — it observes the immutable per-state EGIs and the
+slim on-disk `chain.jsonl` narration (`parameters.description` / Peirce label), mutates nothing, asserts no truth.
 
 Per move `Gᵢ₋₁ →r Gᵢ` it computes, all as exact functions of the two EGIs + the recorded gold `selection`:
-the **focal set** `Φ` (the move's delta `added∪removed` ∪ the selection ∪ each one's **sticky enclosing cut**,
-S3) and the **referenced set** `Ρ` (standing material the move reuses — the iteration/deiteration source). The
-narration is parsed deterministically (sound for the controlled Peircean register; the predicate alphabet is
-{P,Q,R,S}) into **operated** vs. **locative** relation tokens by a verb/locative-marker split — the Centering
-distinction between the utterance's *center* (the operated object) and the material that merely *addresses* it
-("into the cut **holding** (P⊃R)", "**around** S", "a **copy of** the enclosing Q").
+the **focal set** `Φ` = the move's delta `added∪removed` ∪ the selection ∪ each one's **sticky enclosing cut**
+(S3) ∪ the **effect set** (D3 — survivors whose *enclosing scope changed* because a cut was inserted/erased
+around them, the full subtree of each changed cut ∩ survivors); and the **referenced set** `Ρ` (standing
+material the move reuses — the iteration/deiteration source).
 
-Three diachronic metrics — the spatial overview metrics degenerate because Praeclarum is sub-budget (max area
-fan-out 3, depth 4 ≤ 7), which the harness detects and declares:
+**The corpus forced the model's shape — this is the harness doing its job.** A first two-role parse (operated
+object vs. locative address) scored a clean 100 % on the two Alpha *construction* proofs (Praeclarum,
+Peirce's-law: INS/IT+/DC+) but **failed systematically on every eliminative/macro chain** (DC-/ERA/IT-: 38–75 %).
+The misses were not noise — they were all a **third role** the two-role model had no bucket for: predicates in a
+clause *restating the resulting proposition* ("→ every S is P", ", **leaving** (R)", "**landing** S on the
+sheet", "the **bare theorem** e = f"). So the parse now splits each mention into three Centering/DRT roles by the
+region of its earliest occurrence:
 
-| metric | claim | falsifier | Praeclarum |
+| role | what it is (Centering/DRT) | must resolve to | marker |
 |---|---|---|---|
-| **center coverage** (operated→Φ) | every operated predicate has a bearer in `Φ` | an operated token sits outside the focal set | **100 %** |
-| **locative grounding** (locative→Ρ) | every locative anchor resolves to *standing* material, not freshly-added structure | a locative token names what the move just introduced | **100 %** |
-| **reference alignment** | the narration's introduce/reference stance is structurally witnessed (introduce→adds; reference→reuses/removes) | stance and structure disagree | **100 %** |
+| **operated** | the utterance's *center* — the move's object | the focal set `Φ` | before any locative/restatement marker |
+| **locative** | the spatial/back-referential *anchor* | standing material `Ρ` | after `into` / `around` / `holding` / `copy of` … |
+| **restatement** | *discourse-old* restatement of the upshot proposition | in-view `V` | after a dash / `→` / `leaving` / `landing` / `the bare theorem` … |
 
-**First result: the EG↔DRT step-update bridge holds on Praeclarum** — operated mentions land in the focal set
-and locative mentions in the referenced set, never crossing, across all 7 transcribed steps (whose segmentation
-Arisbe did not design). The two falsifier tests prove the metrics *bite* (a doctored "Erase S" drops coverage;
-a doctored "into the cut around R" on the inserting step drops grounding) — so the 100 % is earned, not vacuous.
-This is the §9 rules' first passing falsification test, and it operationalizes the long-acknowledged-but-never-
-built EG↔DRT bridge (a narrated proof step = a DRS update; new vs. reused discourse referents = added vs. reused
-graph elements). **Honest limits stay surfaced** (`honest_limits`): deterministic alignment not the LLM bridge;
-a single transcribed narration, not a corpus (so *alignment*, never *optimality*, and no inter-narrator
-agreement); token-level salience (a name credited to any bearer, not the specific copy); and the sub-budget
-caveat above. **Next falsifications** (what earns the rules their keep): a *larger, super-budget* chain to make
-the spatial metrics live (S1/S2); a *corpus of narrations* per chain for inter-narrator agreement; the LLM
-alignment bridge for *free* narration; and metric 3 (chapter-boundary) once a branching DAG fixture is narrated.
+| metric | claim | falsifier | corpus |
+|---|---|---|---|
+| **center coverage** (operated→Φ) | every operated predicate has a bearer in `Φ` | an operated token sits outside the focal set | **100 %** (7/7) |
+| **locative grounding** (locative→Ρ) | every locative anchor resolves to *standing* material, not freshly-added structure | a locative token names what the move just introduced | **100 %** (7/7) |
+| **restatement-in-view** (restatement→V) | every restated upshot is visible | a restated item has been collapsed off-view | **100 %** (7/7) |
+| **reference alignment** | the narration's introduce/reference stance is structurally witnessed | stance and structure disagree | **100 %** on 6/7; **88 % on `group_identity`** |
+
+**Result: the EG↔DRT step-update bridge holds across the corpus** for all three salience roles (a narrated proof
+step = a DRS update; the operated/referential/restated mentions = the update's new / anchoring / discourse-old
+referents). The two falsifiers prove the metrics *bite* (a doctored "Iterate S" drops coverage; a doctored "into
+the cut around R" on the inserting step drops grounding) — the 100 % is earned, not vacuous. **The one honest
+residual is itself a finding:** `group_identity` step-1 is a **squashed macro move** ("insert the f-connection,
+merge, erase the freed double cut" collapsed into one chain node) whose narrated stance is *introduce* yet whose
+net delta is *pure removal* — so reference-alignment correctly fails. That is the **D4 squash phenomenon** the
+rules name; aligning it needs sub-step expansion of macro moves, not a metric patch.
+
+**Honest limits stay surfaced** (`honest_limits`): deterministic relation-name alignment, **not** the
+`nl_to_logic` LLM bridge — sound only for the controlled Peircean register (alphabets like {P,Q,R,S}/{M,=}); a
+**single** transcribed narration per chain, not a corpus of narrators (so *alignment*, never *optimality*, and no
+inter-narrator agreement); token-level salience (a name credited to any bearer, not the specific copy). Every
+chain is **sub-budget** (max area fan-out ≤ 7), which the harness detects and declares — so the **spatial**
+overview metrics (S1/S2) degenerate and only the diachronic ones are live here; restatement-in-view is the metric
+that *becomes discriminating* on a super-budget chain (where a restated item must not have been collapsed).
+**Next falsifications** (what earns the rules their keep): a *larger, super-budget* chain to make S1/S2 live and
+restatement-in-view bite; a *corpus of narrations* per chain for inter-narrator agreement; the LLM alignment
+bridge for *free* narration; sub-step expansion of squashed macro moves (the `group_identity` residual); and
+metric 3 (chapter-boundary) once a branching DAG fixture is narrated.
 
 ### Candidate validation rules (to adopt as the rules earn their keep)
 

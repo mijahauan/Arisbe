@@ -22,12 +22,26 @@ metrics **bite** (doctored "Erase S" drops coverage; doctored "into the cut arou
 drops grounding) → the 100 % is **earned, not vacuous**. Spatial metrics (S1/S2 overview) degenerate because
 Praeclarum is sub-budget (max area fan-out 3, depth 4 ≤ 7) — the harness **detects and declares** this, and
 `honest_limits` keeps every caveat surfaced (deterministic-not-LLM alignment; single narration not a corpus, so
-*alignment* never *optimality*; token-level salience). Doc updated: §10 "half-built" → a new **"prototype scorer
-(built — first result)"** subsection with the metric/falsifier/result table + named next falsifications (a
-super-budget chain to make spatial metrics live; a narration corpus for inter-narrator agreement; the LLM bridge
-for free narration; metric-3 chapter-boundary on a branching DAG). [[project_minimal_in_view_set]]. **Other
-open threads from 2026-06-25 unchanged:** (d)+(c) render-M UI (safe, near-term), (b) reference/transclusion node
-(the architectural fork, author's decision). *(Prior 2026-06-25 session below.)*
+*alignment* never *optimality*; token-level salience). **Then extended to the WHOLE corpus of narrated worked
+chains (7 UoDs, 33 steps) — and the corpus did its job: it falsified the two-role model.** The operated/locative
+parse scored 100 % on the two Alpha *construction* proofs (Praeclarum, Peirce's-law) but failed systematically on
+every *eliminative/macro* chain (DC-/ERA/IT-, 38–75 %) — the misses all a **third role** the model lacked:
+**restatement** of the resulting proposition ("→ every S is P", "leaving (R)", "landing S on the sheet", "the
+bare theorem e = f"). Two principled refinements faithful to §9: (1) the **D3 effect set** — when a cut is
+added/erased its surviving *subtree* changed scope and joins Φ ("enclose P and ~[(Q)] in a double cut", "erase
+the double cut, landing Q on the sheet"); (2) the **three Centering/DRT roles** — operated→Φ (center),
+locative→Ρ (anchor), restatement→in-view V (discourse-old upshot), bucketed by earliest-occurrence vs
+locative/restatement markers (+ a `:=` substitution-vs-identity tokenizer fix). **Corpus result: all three
+salience roles hold 100 % across all 7 chains; reference-alignment 100 % on 6/7.** **The lone residual is itself
+a finding:** `group_identity` step-1 is a **squashed macro move** (insert+merge+erase collapsed into one node)
+whose narrated stance is *introduce* but whose net delta is *pure removal* → reference-alignment honestly fails =
+the **D4 squash phenomenon** (needs sub-step expansion, not a metric patch). 21 tests (2 falsifiers + per-chain
+corpus parametrization + the macro-residual). Doc §10 "half-built" → **"prototype scorer (built — corpus
+result)"** with a three-role table + metric/falsifier/result table + named next falsifications (super-budget
+chain to make S1/S2 + restatement-in-view live; narration corpus for inter-narrator agreement; LLM bridge for
+free narration; macro sub-step expansion; metric-3 chapter-boundary on a branching DAG). [[project_minimal_in_view_set]].
+**Other open threads from 2026-06-25 unchanged:** (d)+(c) render-M UI (safe, near-term), (b) reference/transclusion
+node (the architectural fork, author's decision). *(Prior 2026-06-25 session below.)*
 
 **▶▶▶ Prior session (2026-06-25) — DOCTRINE/DESIGN doc: the minimal in-view set
 (scale, attention, scoping) + the diagram↔narration check.** Discharged the *design* of the deferred "render

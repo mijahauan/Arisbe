@@ -118,6 +118,21 @@ def test_iterate_object_before_locus(chain, alphabet):
     assert parse.locative_tokens == {"R"}
 
 
+def test_restatement_role_is_distinguished_from_operated():
+    # The third role the corpus forced: a predicate in a clause restating the
+    # resulting proposition (after a dash / arrow / result verb) is restatement,
+    # not the operated object.  Use branching_confluence step-2 "Then erase (Q),
+    # leaving (R)": Q is erased (operated), R only names what is left (restatement).
+    branching = load_worked_chain(
+        PRAECLARUM.parent / "branching_confluence")
+    alpha = _relation_alphabet(branching)
+    step2 = next(s for s in branching.steps if s.step_id == "step-2")
+    parse = parse_narration(step2, alpha)
+    assert parse.operated_tokens == {"Q"}
+    assert parse.restatement_tokens == {"R"}
+    assert "R" not in parse.operated_tokens
+
+
 # --- the headline result: the bridge holds on Praeclarum ---------------------
 
 
@@ -144,12 +159,12 @@ def test_praeclarum_is_sub_budget_and_says_so(chain):
 
 
 def test_operated_token_outside_focus_fails_center_coverage(chain, alphabet):
-    # Doctor step-7's narration to claim it *erases S* (S as operated object).
-    # The move does not touch the S edge (S persists), so S has no bearer in the
-    # focal set Φ — center coverage must drop below 100 %.  This proves the
-    # 100 % on the real chain is earned, not vacuous.
-    real = _step(chain, "step-7")
-    doctored = replace(real, narration="Erase S.")
+    # Doctor step-3 (IT+ iterating (P⊃R)) to claim it *operates on S*.  S is
+    # untouched by this move and lies outside the focal set Φ even after the D3
+    # effect set (it is not in any cut whose scope changed), so center coverage
+    # must drop below 100 %.  This proves the corpus 100 % is earned, not vacuous.
+    real = _step(chain, "step-3")
+    doctored = replace(real, narration="Iterate S into the inner cut.")
     parse = parse_narration(doctored, alphabet)
     assert parse.operated_tokens == {"S"}  # now claimed as the object
 
@@ -170,3 +185,39 @@ def test_locative_token_on_fresh_material_fails_grounding(chain, alphabet):
     score = score_step(doctored, alphabet)
     assert "R" in score.ungrounded_locative
     assert score.locative_grounding < 1.0
+
+
+# --- the corpus result: the three salience roles hold everywhere -------------
+
+# Every worked chain in the corpus that carries a narration.
+CORPUS = [
+    "barbara", "beta_converse_mp", "beta_modus_ponens", "branching_confluence",
+    "group_identity", "peirce_law", "theorem_praeclarum",
+]
+
+
+@pytest.mark.parametrize("uod", CORPUS)
+def test_three_salience_roles_hold_across_the_corpus(uod):
+    # Across all seven transcribed chains, every operated predicate lands in Φ,
+    # every locative anchor resolves to standing Ρ, and every restated upshot is
+    # in-view V.  This is the headline corpus result — the diagram↔narration
+    # bridge holds for all three Centering/DRT roles.
+    report = check_chain(load_worked_chain(PRAECLARUM.parent / uod))
+    assert report.mean_center_coverage == pytest.approx(1.0)
+    assert report.mean_locative_grounding == pytest.approx(1.0)
+    assert report.mean_restatement_in_view == pytest.approx(1.0)
+
+
+def test_macro_step_misaligns_an_honest_residual():
+    # group_identity step-1 is a SQUASHED macro move ("insert the f-connection,
+    # merge, erase the freed double cut"): the narration's stance is *introduce*
+    # ("(M e f f) asserted on the sheet"), yet the net chain-step delta is pure
+    # removal — so reference-alignment honestly fails.  The harness must flag
+    # this (the D4 squash phenomenon), not paper over it.
+    report = check_chain(load_worked_chain(PRAECLARUM.parent / "group_identity"))
+    step1 = report.steps[0]
+    assert step1.narr_introduces
+    assert not step1.struct_adds          # the squashed delta only removes
+    assert step1.reference_aligned is False
+    # it is the *only* misalignment in the corpus
+    assert report.reference_alignment_rate < 1.0

@@ -31,27 +31,28 @@ def main(argv: list[str]) -> int:
     print(f"diagram↔narration check — {chain.name}")
     print(f"  {len(chain.steps)} steps; sub-budget={report.sub_budget}\n")
 
-    header = (f"{'step':7} {'rule':5} {'operated→Φ':16} {'locative→Ρ':16} "
-              f"{'ref?':7} {'ok':3}  narration")
+    def cell(tokens, rate, miss):
+        body = ",".join(sorted(tokens)) or "—"
+        return f"{body} {rate:.0%}" + ("!" if miss else "")
+
+    header = (f"{'step':7} {'rule':5} {'operated→Φ':14} {'locative→Ρ':13} "
+              f"{'restate→V':13} {'ok':3}  narration")
     print(header)
     print("-" * len(header))
     for s in report.steps:
-        op = ",".join(sorted(s.operated_tokens)) or "—"
-        op += f" {s.center_coverage:.0%}" + ("!" if s.uncovered_operated else "")
-        loc = ",".join(sorted(s.locative_tokens)) or "—"
-        loc += f" {s.locative_grounding:.0%}" + ("!" if s.ungrounded_locative else "")
-        stance = ("ref" if s.narr_references_prior else "") + (
-            "/ins" if s.narr_introduces else "")
-        stance = stance.strip("/") or "—"
+        op = cell(s.operated_tokens, s.center_coverage, s.uncovered_operated)
+        loc = cell(s.locative_tokens, s.locative_grounding, s.ungrounded_locative)
+        res = cell(s.restatement_tokens, s.restatement_in_view, s.offview_restatement)
         ok = "✓" if s.reference_aligned else "✗"
-        print(f"{s.step_id:7} {s.rule_name:5} {op:16} {loc:16} {stance:7} {ok:3}  "
-              f"{s.narration}")
+        print(f"{s.step_id:7} {s.rule_name:5} {op:14} {loc:13} {res:13} {ok:3}  "
+              f"{s.narration[:64]}")
 
     print()
-    print(f"  mean center-coverage (operated→Φ) : {report.mean_center_coverage:.0%}")
-    print(f"  mean locative-grounding (loc→Ρ)   : {report.mean_locative_grounding:.0%}")
-    print(f"  reference-alignment rate          : {report.reference_alignment_rate:.0%}")
-    print(f"  center-continuity                 : {report.center_continuity:.0%}")
+    print(f"  mean center-coverage (operated→Φ)  : {report.mean_center_coverage:.0%}")
+    print(f"  mean locative-grounding (loc→Ρ)    : {report.mean_locative_grounding:.0%}")
+    print(f"  mean restatement-in-view (rest→V)  : {report.mean_restatement_in_view:.0%}")
+    print(f"  reference-alignment rate           : {report.reference_alignment_rate:.0%}")
+    print(f"  center-continuity                  : {report.center_continuity:.0%}")
 
     print("\nhonest limits:")
     for lim in honest_limits(report):

@@ -25,19 +25,31 @@ operational EG↔DRT step-update bridge in miniature (a narrated proof step is
 a DRS update; its new vs. reused discourse referents are the rule's added vs.
 reused graph elements; Kamp & Reyle).
 
+Each narration mention is bucketed into one of **three Centering/DRT roles**
+(a structure the corpus run *forced* — a first two-role parse failed
+systematically on every eliminative/macro chain, the misses all a third role):
+the utterance's **operated** center (must land in the focal set Φ), its
+spatial/back-referential **locative** anchor (must resolve to standing Ρ), and
+the *discourse-old* **restatement** of the resulting proposition (must be
+in-view V).  Run across the corpus of narrated worked chains, all three roles
+hold (100 %); the one residual — a squashed macro move whose narrated stance no
+longer matches its net delta — is the D4 squash phenomenon, reported not hidden.
+
 **Honest scope of this prototype** (see ``honest_limits``):
 
 * Alignment is **deterministic**, not the heuristic ``nl_to_logic`` LLM
   bridge — it keys narration tokens to graph elements by relation name
   (``egi.rel``).  That is sound for the controlled Peircean register of a
-  transcribed Dau derivation (the predicate alphabet is {P,Q,R,S}); free
+  transcribed Dau derivation (small alphabets like {P,Q,R,S} / {M,=}); free
   expert narration would need the LLM bridge, and its mapping errors must
   then be *reported, not hidden* (§10 honest limits).
-* A **single** (transcribed) narration per step, not a corpus — so we report
-  *alignment*, never *optimality*, and never inter-narrator agreement.
-* The Praeclarum graph is sub-budget, so the **spatial** metrics (Centering
-  overlap against a *collapsed* focal set) degenerate; we test the
-  diachronic metrics the fixture can actually falsify and say so.
+* A **single** (transcribed) narration per step, not a corpus of narrators —
+  so we report *alignment*, never *optimality*, and never inter-narrator
+  agreement.
+* Every corpus chain is sub-budget, so the **spatial** metrics (Centering
+  overlap against a *collapsed* focal set) degenerate; we test the diachronic
+  metrics the fixtures can actually falsify and say so.  Restatement-in-view is
+  the metric that becomes discriminating on a super-budget chain.
 
 The module is **read-only**: it observes immutable EGIs and the slim on-disk
 ``chain.jsonl`` narration.  It mutates nothing, asserts no truth, and is the
@@ -160,6 +172,19 @@ def _enclosing_cut(eid: ElementID, parent: Dict[ElementID, ElementID],
     return None
 
 
+def _subtree(egi: RelationalGraphWithCuts, root: ElementID) -> Set[ElementID]:
+    """All elements transitively contained in ``root`` (excluding root)."""
+    out: Set[ElementID] = set()
+    stack = list(egi.area.get(root, []))
+    while stack:
+        eid = stack.pop()
+        if eid in out:
+            continue
+        out.add(eid)
+        stack.extend(egi.area.get(eid, []))
+    return out
+
+
 @dataclass(frozen=True)
 class StepSets:
     """The structural decomposition of a step, all exact functions of the two
@@ -177,8 +202,11 @@ def step_sets(step: WorkedStep) -> StepSets:
 
     * Φ (focal) = the move's **delta** (added ∪ removed) ∪ the gold
       **selection** ∪ the **sticky enclosing cut** of each (S3: keep the
-      enclosing scope co-present).  This is the predicted *attention center*
-      of the step — what a reader must be looking at to follow the move.
+      enclosing scope co-present) ∪ the **effect set** (D3: survivors whose
+      *enclosing scope changed* because a cut was inserted/erased around them
+      — the elements an eliminative move is narratively *about*, e.g. "erase
+      the double cut, landing Q on the sheet").  This is the predicted
+      *attention center* — what a reader must be looking at to follow the move.
     * Ρ (referenced) = **standing material reused** by the move: any element
       that *persists* across the move and bears a relation name shared with a
       delta element (the iteration / deiteration source — "a copy of the
@@ -190,6 +218,7 @@ def step_sets(step: WorkedStep) -> StepSets:
     added = to_ids - from_ids
     removed = from_ids - to_ids
     selection = set(step.selection)
+    persisting = from_ids & to_ids
 
     # Sticky enclosing cut (S3) for each focal element, in whichever EGI holds it.
     focal: Set[ElementID] = set(added) | set(removed) | set(selection)
@@ -200,8 +229,21 @@ def step_sets(step: WorkedStep) -> StepSets:
             if enc is not None:
                 focal.add(enc)
 
+    # D3 effect set: when a cut is added or removed, the *surviving* elements it
+    # contained have a changed enclosing scope (a DC+ encloses standing P,Q — even
+    # nested inside ~[(Q)]; a DC- frees them onto a shallower sheet).  Those
+    # scope-changed survivors are the narrative center of the move, so they belong
+    # in Φ.  Scoped to the subtree of each changed cut, intersected with survivors
+    # (inserted/erased structure is already in the delta) — the frame rule, not
+    # "everything".
+    added_cuts = {c.id for c in step.to_egi.Cut} & added
+    removed_cuts = {c.id for c in step.from_egi.Cut} & removed
+    for c in added_cuts:
+        focal |= _subtree(step.to_egi, c) & persisting
+    for c in removed_cuts:
+        focal |= _subtree(step.from_egi, c) & persisting
+
     # Referenced Ρ: persisting edges whose relation name matches a delta edge's.
-    persisting = from_ids & to_ids
     delta_names = {
         step.to_egi.rel.get(e) for e in added if e in step.to_egi.rel
     } | {step.from_egi.rel.get(e) for e in removed if e in step.from_egi.rel}
@@ -233,13 +275,23 @@ _INTRODUCE_CUES = (
 # already there), so DC-/ERA/IT- narrations point back, not forward.
 _ERASE_CUES = ("erase", "deiterate")
 
-# Locative markers: a relation token appearing *after* the earliest of these
-# is naming a *location/address* ("into the cut holding (P⊃R)", "around S",
-# "a copy of the enclosing Q"), not the operated object.  This is the
-# Centering distinction between the utterance's center (the operated thing) and
-# the backward-/spatially-referential material that anchors it.  Deliberately
-# minimal and transparent for the transcribed register.
+# A narrated proof step splits its mentions into THREE roles (a structure the
+# corpus run forced — the two-role model failed systematically on eliminative and
+# macro moves).  This is Centering + DRT: the utterance's *center* (operated), its
+# spatial/back-referential *anchor* (locative), and *discourse-old restatement* of
+# the resulting proposition (restatement).
+#
+# Locative markers — a token after the earliest is naming a *location/address*
+# ("into the cut holding (P⊃R)", "around S", "a copy of the enclosing Q").
 _LOCATIVE_MARKERS = ("into", "around", "holding", "enclosing", "copy of", "of the")
+# Restatement markers — a token after the earliest is *restating the resulting
+# proposition* ("→ every S is P", ", leaving (R)", "landing S on the sheet",
+# "to complete (P⊃Q)⊃P", "the bare theorem e = f", "∎").  A dash/arrow or a
+# result verb introduces the upshot, not a new operated object.
+_RESTATEMENT_MARKERS = (
+    "—", "→", " - ", "leaving", "landing", "reaching", "to complete",
+    "completing", "asserted on the sheet", "the bare theorem", "∎",
+)
 
 
 @dataclass(frozen=True)
@@ -247,6 +299,7 @@ class NarrationParse:
     tokens: Set[str]                 # all relation names mentioned (e.g. {"P","R"})
     operated_tokens: Set[str]        # the move's object — should land in Φ
     locative_tokens: Set[str]        # address/back-reference — should land in Ρ
+    restatement_tokens: Set[str]     # restated upshot — should be in-view (V)
     references_prior: bool           # narration carries a back-reference cue
     introduces: bool                 # narration carries an introduction cue
 
@@ -260,7 +313,10 @@ def _relation_alphabet(chain: WorkedChain) -> Set[str]:
 
 
 def _token_positions(text: str, name: str) -> List[int]:
-    pat = rf"(?<![A-Za-z]){re.escape(name)}(?![A-Za-z])"
+    # A relation token is a whole word: not flanked by letters (so "S" never
+    # matches inside "Insert"), and — for the identity relation "=" — not the
+    # substitution operator ":=" (binding syntax, not a predicate occurrence).
+    pat = rf"(?<![A-Za-z:]){re.escape(name)}(?![A-Za-z=])"
     return [m.start() for m in re.finditer(pat, text)]
 
 
@@ -268,34 +324,42 @@ def parse_narration(step: WorkedStep, alphabet: Set[str]) -> NarrationParse:
     """Deterministically parse one narration into its operated vs. locative
     relation tokens (keyed to ``egi.rel``) and its reference/introduce cues.
 
-    The split is the heart of the prototype: a mentioned predicate that is the
-    *object* of the rule verb (before any locative marker) is the move's
-    **center** and must appear in Φ; a predicate naming *where* the move acts
-    (after a locative marker) is **referential** and must resolve to standing
-    material Ρ.  Conflating the two is exactly the error the first crude
-    "mentioned ⊆ focal" metric made.
+    The split is the heart of the prototype.  Each mentioned predicate is bucketed
+    by the region of its **earliest** occurrence: before the first locative *and*
+    restatement marker → **operated** (the move's object, must be in Φ); in the
+    locative region → **locative** (the address, must resolve to standing Ρ); in
+    the restatement region → **restatement** (the upshot proposition, must be
+    in-view V).  Conflating these is exactly the error the first crude
+    "mentioned ⊆ focal" metric made; the corpus run showed the two-role model
+    failing on every eliminative/macro move, forcing the third role.
     """
     text = step.narration
     low = text.lower()
 
-    # Earliest locative marker position (in the lowercased text); everything at
-    # or after it is the locative region.
-    loc_positions = [low.find(m) for m in _LOCATIVE_MARKERS if low.find(m) >= 0]
-    loc_start = min(loc_positions) if loc_positions else len(text)
+    def earliest(markers) -> int:
+        hits = [low.find(m.lower()) for m in markers]
+        hits = [h for h in hits if h >= 0]
+        return min(hits) if hits else len(text)
+
+    loc_start = earliest(_LOCATIVE_MARKERS)
+    restate_start = earliest(_RESTATEMENT_MARKERS)
 
     tokens: Set[str] = set()
     operated: Set[str] = set()
     locative: Set[str] = set()
+    restatement: Set[str] = set()
     for name in alphabet:
         positions = _token_positions(text, name)
         if not positions:
             continue
         tokens.add(name)
-        # operated if the token occurs anywhere before the locative region.
-        if any(p < loc_start for p in positions):
-            operated.add(name)
-        else:
+        pos = min(positions)  # the earliest occurrence decides the role
+        if pos >= restate_start:
+            restatement.add(name)
+        elif pos >= loc_start:
             locative.add(name)
+        else:
+            operated.add(name)
 
     references_prior = any(c in low for c in _REFERENCE_CUES) or any(
         c in low for c in _ERASE_CUES
@@ -303,7 +367,7 @@ def parse_narration(step: WorkedStep, alphabet: Set[str]) -> NarrationParse:
     introduces = any(c in low for c in _INTRODUCE_CUES)
 
     return NarrationParse(tokens=tokens, operated_tokens=operated,
-                          locative_tokens=locative,
+                          locative_tokens=locative, restatement_tokens=restatement,
                           references_prior=references_prior, introduces=introduces)
 
 
@@ -319,6 +383,7 @@ class StepScore:
     narration: str
     operated_tokens: Set[str]
     locative_tokens: Set[str]
+    restatement_tokens: Set[str]
     # Metric A — center coverage: each *operated* relation token has ≥1 bearer
     # in the focal set Φ.
     covered_operated: Set[str]
@@ -328,6 +393,13 @@ class StepScore:
     # structure — the fold-matches-reference check (§10 metric 2).
     grounded_locative: Set[str]
     ungrounded_locative: Set[str]
+    # Metric D — restatement-in-view: each *restated* token (the upshot
+    # proposition) has a bearer in the visible graph V.  On a sub-budget graph V
+    # is the whole graph, so this is ~always satisfied; it becomes discriminating
+    # on a super-budget chain, where a restated item must NOT have been collapsed
+    # (fold-matches-reference, restatement half).
+    invview_restatement: Set[str]
+    offview_restatement: Set[str]
     # Metric B — reference alignment: does the narration's introduce/reference
     # stance match the structural move (introduce → adds; reference → reuses or
     # removes standing material)?
@@ -340,7 +412,7 @@ class StepScore:
 
     @property
     def tokens(self) -> Set[str]:
-        return self.operated_tokens | self.locative_tokens
+        return self.operated_tokens | self.locative_tokens | self.restatement_tokens
 
     @property
     def center_coverage(self) -> float:
@@ -351,6 +423,11 @@ class StepScore:
     def locative_grounding(self) -> float:
         n = len(self.grounded_locative) + len(self.ungrounded_locative)
         return 1.0 if n == 0 else len(self.grounded_locative) / n
+
+    @property
+    def restatement_in_view(self) -> float:
+        n = len(self.invview_restatement) + len(self.offview_restatement)
+        return 1.0 if n == 0 else len(self.invview_restatement) / n
 
 
 def _bearers_in(ids: Set[ElementID], egis: Sequence[RelationalGraphWithCuts],
@@ -378,6 +455,13 @@ def score_step(step: WorkedStep, alphabet: Set[str]) -> StepScore:
     grounded = {t for t in parse.locative_tokens if _bearers_in(standing, egis, t)}
     ungrounded = parse.locative_tokens - grounded
 
+    # Metric D: restated tokens must be in-view — a bearer somewhere in the
+    # resulting visible graph V (the whole of G_i on a sub-budget chain).
+    visible = _all_ids(step.to_egi)
+    in_view = {t for t in parse.restatement_tokens
+               if _bearers_in(visible, (step.to_egi,), t)}
+    off_view = parse.restatement_tokens - in_view
+
     struct_adds = bool(sets.added)
     struct_reuses_or_removes = bool(sets.referenced) or bool(sets.removed)
 
@@ -397,10 +481,13 @@ def score_step(step: WorkedStep, alphabet: Set[str]) -> StepScore:
         narration=step.narration,
         operated_tokens=parse.operated_tokens,
         locative_tokens=parse.locative_tokens,
+        restatement_tokens=parse.restatement_tokens,
         covered_operated=covered,
         uncovered_operated=uncovered,
         grounded_locative=grounded,
         ungrounded_locative=ungrounded,
+        invview_restatement=in_view,
+        offview_restatement=off_view,
         narr_references_prior=parse.references_prior,
         narr_introduces=parse.introduces,
         struct_adds=struct_adds,
@@ -428,6 +515,12 @@ class ChainReport:
         if not self.steps:
             return 1.0
         return sum(s.locative_grounding for s in self.steps) / len(self.steps)
+
+    @property
+    def mean_restatement_in_view(self) -> float:
+        if not self.steps:
+            return 1.0
+        return sum(s.restatement_in_view for s in self.steps) / len(self.steps)
 
     @property
     def reference_alignment_rate(self) -> float:
