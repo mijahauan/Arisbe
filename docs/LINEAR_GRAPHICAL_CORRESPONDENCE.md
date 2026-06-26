@@ -3,6 +3,8 @@
 **Status**: Active contract — stated, tested, and runtime-attested (last revised 2026-06-07). The §7 property tests (`tests/test_correspondence_invariant.py`) and the §3.3 runtime hook (`src/correspondence_attestation.py`, wired into the web layout service) are in place.
 **Scope**: Specification of the correspondence between an EGI's linear written form and its graphical drawn form. This document defines the contract that every other workstream (transformation rules, layout, rendering, sessions, the three modes, the Endoporeutic Game) must respect.
 
+**A third correspondence** (cognitive, validation-only): [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SET.md) proposes **diagram ↔ natural-language narration** as a *falsifiable check* on how a reasoning process is scoped for a bounded attention. It is a validator, **not** a new assertion regime — nothing enters the corpus through it.
+
 ---
 
 ## 1. Why this document exists

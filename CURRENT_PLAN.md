@@ -1,6 +1,32 @@
 # Current Plan
 
-**Last Updated**: 2026-06-24. **▶▶▶ This session (2026-06-24) — cross-mode UX coherence, pass 1 (explore →
+**Last Updated**: 2026-06-25. **▶▶▶ This session (2026-06-25) — DOCTRINE/DESIGN doc: the minimal in-view set
+(scale, attention, scoping) + the diagram↔narration check.** Discharged the *design* of the deferred "render
+M" task by reframing it (author-led, three deepening passes) as the Peircean cognitive problem: EGs leverage
+bounded visual attention, so the question is normative — *what minimum subset of a UoD stays in view, and what
+rules govern it, synchronically and diachronically?* New doc **`docs/THE_MINIMAL_IN_VIEW_SET.md`** (design-of-
+record, no code): (1) the **three scale axes** "too big" conflates — synchronic EGI (`overview_projection`),
+diachronic history DAG, ambient model M (`domain_oracle`); "render M" = axis (iii). (2) **One governing
+principle** = Relevance (Sperber & Wilson) capped at ~4 chunks (Cowan), along two distances — cut-nesting
+(Furnas DOI) in space, steps-from-HEAD (git) in time; Arisbe's 4 primitives map 1:1 onto the cognitive
+literature (overview=DOI, fold=chunking, ContextReflex=common ground, oracle=extended mind / long-term working
+memory). (3) The **normative rules** S1–S5 (synchronic) / D1–D4 (diachronic). (4) **The keystone — a falsifiable
+*diagram↔narration* check**: a narrated proof is a chain of DRSs and a DRS *is* a Beta EG (Kamp & Reyle; the
+EG↔DRT bridge, acknowledged but never made operational — Arisbe would be first); Centering (per-step salient
+set) + Grosz/Sidner focus-stack (chaptering) supply the metrics; verbal reports of *current contents* are valid
+data (Ericsson & Simon). The check is **already half-built** — every chain node/edge carries narration
+(`StateSnapshot.natural_language_summary`/`linear_forms`, `TransformationStep.natural_language_description`,
+`LogicalProvenance.rule_citation`); fixture = the transcribed Dau **Praeclarum** chain; needs a *scorer*, not a
+schema. (5) Answer to "scoping without recapitulation" = accessibility (DRT) + focus-stack + LTWM retrieval
+cues (Ericsson & Kintsch) + the math register's black-boxing — all already sound in Arisbe (oracle, fold-no-
+global-unfold, `rule_citation`). **Recommendation:** near-term safe path = (d) ground/legend panel + (c)
+relevant-neighborhood M-render (extends shipped code); **prototype (g) the validation harness first** (turns the
+rules into tested claims); **(b) a first-class reference/transclusion node** is the open architectural fork
+(touches `egi_core_dau`+§3.3) — the author's decision. Docs only; core-protection untouched; cross-linked from
+ADAPTIVE_SCOPE_VIEWER / DOMAIN_ORACLE_AND_M / LINEAR_GRAPHICAL_CORRESPONDENCE. [[project_minimal_in_view_set]].
+*(Prior 2026-06-24 session below.)*
+
+**▶▶▶ Prior session (2026-06-24) — cross-mode UX coherence, pass 1 (explore →
 decide → BUILD).** Walked the three modes against six personas (teacher/Organon, student/Ergasterion,
 researcher + domain-expert/Agon, cold-start newcomer, logician round-trip) via parallel read-only catalogues,
 brought findings to the author, who anchored on **①** (keep the drawing present in Agon) **and ④** (carry the

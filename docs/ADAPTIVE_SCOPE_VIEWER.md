@@ -5,6 +5,11 @@
 that touches the correspondence story *conceptually*, so it earns a design doc, not
 just code.
 
+**Companion:** [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SET.md) is the cognitive *why* behind this
+machinery — the overview's expansion-law discipline generalized across all three scale axes (synchronic EGI,
+diachronic history, ambient model M), grounded in the study of bounded attention, and given a falsifiable
+diagram↔narration test.
+
 **Prior art in this repo (read first):**
 - `docs/ADAPTIVE_SCOPE_SPIKE.md` — the decide-by-prototype spike. The lenses
   (2.5-D negation well + storyboard) shipped 2026-06-14 over the coordinate-free

@@ -5,6 +5,11 @@ BUILT** (oracle + peel + materialization + `/agon` interpretation register & inv
 search 2026-06-11; ontology-as-M / T-box theorem deduction 2026-06-12) · remaining:
 oracle scale steps 4–6 (cache → horizon → SPARQL) · **Drafted**: 2026-06-11
 
+> **On *rendering* M** (vs. holding it): see [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SET.md) §3, §11.
+> M is axis (iii) of the scale problem; the answer is to draw only the relevant *neighborhood* G touches (the
+> oracle's ego-graph slice) with a horizon map-symbol — never M in full. "M queried, not held" is itself the
+> extended-mind / long-term-working-memory precedent (cues, not content).
+
 > The question this answers: the Endoporeutic Game tests a proposal G against a
 > domain model **M** — "the outside" that enables the outside-in interpretation.
 > But we can't pull in all knowledge, and yet we need *enough* to ground
