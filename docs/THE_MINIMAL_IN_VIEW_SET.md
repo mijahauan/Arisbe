@@ -411,7 +411,7 @@ NL bridge exists ([`nl_to_logic.py`](../src/nl_to_logic.py)). **The check needs 
 
 ### The prototype scorer (built — corpus result)
 
-The scorer is built and run across **the whole corpus of narrated worked chains** (7 UoDs, 33 steps):
+The scorer is built and run across **the whole corpus of narrated worked chains** (8 UoDs, 35 steps):
 [`src/diagram_narration_check.py`](../src/diagram_narration_check.py) +
 [`tools/run_diagram_narration_check.py`](../tools/run_diagram_narration_check.py) +
 [`tests/test_diagram_narration_check.py`](../tests/test_diagram_narration_check.py) (21 tests, incl. two
@@ -443,7 +443,8 @@ region of its earliest occurrence:
 | **center coverage** (operated→Φ) | every operated predicate has a bearer in `Φ` | an operated token sits outside the focal set | **100 %** (7/7) |
 | **locative grounding** (locative→Ρ) | every locative anchor resolves to *standing* material, not freshly-added structure | a locative token names what the move just introduced | **100 %** (7/7) |
 | **restatement-in-view** (restatement→V) | every restated upshot is visible | a restated item has been collapsed off-view | **100 %** (7/7) |
-| **reference alignment** | the narration's introduce/reference stance is structurally witnessed | stance and structure disagree | **100 %** on 6/7; **88 % on `group_identity`** |
+| **salient-in-view** (salient→V) | every narrated item survives the focus-centered overview collapse (S1) | a narrated item lies inside a collapsed cut | **100 %** (degenerate on 7 sub-budget chains; **live on `crowded_modus_ponens`**) |
+| **reference alignment** | the narration's introduce/reference stance is structurally witnessed | stance and structure disagree | **100 %** on 7/8; **88 % on `group_identity`** |
 
 **Result: the EG↔DRT step-update bridge holds across the corpus** for all three salience roles (a narrated proof
 step = a DRS update; the operated/referential/restated mentions = the update's new / anchoring / discourse-old
@@ -454,17 +455,37 @@ merge, erase the freed double cut" collapsed into one chain node) whose narrated
 net delta is *pure removal* — so reference-alignment correctly fails. That is the **D4 squash phenomenon** the
 rules name; aligning it needs sub-step expansion of macro moves, not a metric patch.
 
+### The spatial rule goes live — the super-budget chain
+
+The seven transcribed chains are all **sub-budget** (max area fan-out ≤ 7), so the spatial overview metric
+degenerates on them (the visible set is the whole graph). To make **S1** falsifiable we authored the corpus's
+first super-budget chain — [`tomos/universes/crowded_modus_ponens`](../tomos/universes/crowded_modus_ponens)
+(`tools/build_crowded_modus_ponens_chain.py`): the fact `(A)` and the matching rule `A⊃B` sit on a sheet beside
+**ten unrelated rules** `Dk⊃Ek` — twelve sibling chunks, well over budget — and the proof does ordinary modus
+ponens (IT-, DC-) on the *one* matching rule, landing `(B)`. Every step a real, attestable Dau-rule application;
+an authored demonstration at low warrant.
+
+The harness now models S1 directly (`spatial_visible`): at each step it collapses the graph to ~7 chunks around
+that step's focus, ranking cuts by **cut-nesting distance** (Furnas DOI) and hiding the interiors of the far
+ones (a focus-centered overview, the §9 S1 budget — *not* the shipped `layout_service` engine; a model of it). On
+`crowded_modus_ponens` the matching rule and the fact stay in view at both steps while all ten distractor
+consequents `Ek` (each two cuts deep) collapse off-view. **The proof's own narration names only the fact and the
+matching rule — it ignores the crowd — so salient-in-view scores 100 %**: direct evidence for S1 (an expert keeps
+the narration within a bounded focus-neighborhood even amid a dozen competing chunks). A fourth falsifier proves
+the spatial metric *bites*: a doctored "…but recall (Ek)" naming a collapsed distractor drops salient-in-view
+below 100 %, because the budget dropped exactly what the doctored narration tried to keep salient. (The metric is
+scoped to its job — a token the *rule erased* is not an in-view failure, only a token that *exists but is
+collapsed* is.)
+
 **Honest limits stay surfaced** (`honest_limits`): deterministic relation-name alignment, **not** the
 `nl_to_logic` LLM bridge — sound only for the controlled Peircean register (alphabets like {P,Q,R,S}/{M,=}); a
 **single** transcribed narration per chain, not a corpus of narrators (so *alignment*, never *optimality*, and no
-inter-narrator agreement); token-level salience (a name credited to any bearer, not the specific copy). Every
-chain is **sub-budget** (max area fan-out ≤ 7), which the harness detects and declares — so the **spatial**
-overview metrics (S1/S2) degenerate and only the diachronic ones are live here; restatement-in-view is the metric
-that *becomes discriminating* on a super-budget chain (where a restated item must not have been collapsed).
-**Next falsifications** (what earns the rules their keep): a *larger, super-budget* chain to make S1/S2 live and
-restatement-in-view bite; a *corpus of narrations* per chain for inter-narrator agreement; the LLM alignment
-bridge for *free* narration; sub-step expansion of squashed macro moves (the `group_identity` residual); and
-metric 3 (chapter-boundary) once a branching DAG fixture is narrated.
+inter-narrator agreement); token-level salience (a name credited to any bearer, not the specific copy); and the
+spatial collapse is a *model* of the overview budget (focus-centered DOI), not the production layout engine.
+**Next falsifications** (what earns the rules their keep): a *corpus of narrations* per chain for inter-narrator
+agreement; the LLM alignment bridge for *free* narration; sub-step expansion of squashed macro moves (the
+`group_identity` residual); wiring the spatial metric to the *production* overview engine; and metric 3
+(chapter-boundary) once a branching DAG fixture is narrated.
 
 ### Candidate validation rules (to adopt as the rules earn their keep)
 

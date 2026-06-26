@@ -1,0 +1,34 @@
+{
+  "annotations": [
+    {
+      "id": "ann_54c6c63d",
+      "scope": "uod",
+      "text": "A super-budget worked chain: the inference sits in a crowd of twelve sibling chunks, far over the ~7 in-view budget. It exists to make the diagram\u2194narration harness's spatial metric (in-view coverage under a focus-centered overview) live \u2014 every other corpus chain is sub-budget. Low warrant (an authored demonstration of modus ponens).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "super-budget",
+        "in-view",
+        "demonstration"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_9e6b95ab",
+      "scope": "chain",
+      "text": "Modus ponens picks the one rule whose antecedent matches the asserted fact (A); the ten distractors are never touched. The narration names only the fact and the matching rule \u2014 evidence for S1 (an expert keeps the narration within a bounded focus-neighborhood).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "modus-ponens",
+        "alpha",
+        "selective-attention"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

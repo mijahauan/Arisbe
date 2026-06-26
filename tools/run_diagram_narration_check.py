@@ -29,7 +29,8 @@ def main(argv: list[str]) -> int:
     report = check_chain(chain)
 
     print(f"diagram↔narration check — {chain.name}")
-    print(f"  {len(chain.steps)} steps; sub-budget={report.sub_budget}\n")
+    print(f"  {len(chain.steps)} steps; sub-budget={report.sub_budget}; "
+          f"spatial-metric-live={report.has_super_budget_state}\n")
 
     def cell(tokens, rate, miss):
         body = ",".join(sorted(tokens)) or "—"
@@ -51,6 +52,8 @@ def main(argv: list[str]) -> int:
     print(f"  mean center-coverage (operated→Φ)  : {report.mean_center_coverage:.0%}")
     print(f"  mean locative-grounding (loc→Ρ)    : {report.mean_locative_grounding:.0%}")
     print(f"  mean restatement-in-view (rest→V)  : {report.mean_restatement_in_view:.0%}")
+    live = " [LIVE]" if report.has_super_budget_state else " [degenerate: sub-budget]"
+    print(f"  mean salient-in-view (S1, salient→V): {report.mean_salient_in_view:.0%}{live}")
     print(f"  reference-alignment rate           : {report.reference_alignment_rate:.0%}")
     print(f"  center-continuity                  : {report.center_continuity:.0%}")
 

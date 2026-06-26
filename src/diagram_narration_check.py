@@ -185,6 +185,79 @@ def _subtree(egi: RelationalGraphWithCuts, root: ElementID) -> Set[ElementID]:
     return out
 
 
+def spatial_visible(egi: RelationalGraphWithCuts, focus_ids: Set[ElementID],
+                    budget: int) -> Set[ElementID]:
+    """The S1 focus-centered overview: the set of elements that stay **visible**
+    when a super-budget graph is collapsed to ``budget`` chunks around the focus.
+
+    Cuts are ranked by cut-nesting distance (Furnas DOI) from the focus locus —
+    the cuts enclosing/among the focus elements; the nearest ``budget`` (plus the
+    focus and its ancestors, always) keep their interiors drawn, the rest collapse
+    to form-only placeholders (their subtree hidden, their boundary still shown —
+    `overview_projection`'s contract).  Deterministic (distance then id) so the
+    metric is reproducible.  A relation token whose only bearers fall inside a
+    collapsed cut is *off-view* — the falsifiable core of S1.
+    """
+    parent = _parent_of(egi)
+    cut_ids = {c.id for c in egi.Cut}
+
+    def ancestors(x: ElementID) -> Set[ElementID]:
+        out: Set[ElementID] = set()
+        cur = x
+        while cur in parent:
+            cur = parent[cur]
+            out.add(cur)
+        return out
+
+    def depth(x: ElementID) -> int:
+        # path length from the sheet to x (ancestors() includes the sheet, not x);
+        # a top-level cut has depth 1, the sheet depth 0.
+        return len(ancestors(x))
+
+    def dist(a: ElementID, b: ElementID) -> int:
+        aa = ancestors(a) | {a}
+        cur, path_b = b, [b]
+        while cur in parent:
+            cur = parent[cur]
+            path_b.append(cur)
+        lca = next(x for x in path_b if x in aa)
+        return depth(a) + depth(b) - 2 * depth(lca)
+
+    # Focus loci: focus elements that are cuts, plus the enclosing cut of each.
+    foci: Set[ElementID] = set()
+    for f in focus_ids:
+        if f in cut_ids:
+            foci.add(f)
+        enc = parent.get(f)
+        if enc is not None and enc in cut_ids:
+            foci.add(enc)
+
+    ranked = []
+    for c in cut_ids:
+        if c in foci:
+            d = 0
+        elif foci:
+            d = min(dist(c, f) for f in foci)
+        else:
+            d = depth(c)
+        ranked.append((d, c))
+    ranked.sort(key=lambda t: (t[0], t[1]))
+
+    keep: Set[ElementID] = {c for _, c in ranked[:budget]} | foci
+    for c in list(keep):
+        keep |= ancestors(c) & cut_ids
+    collapsed = cut_ids - keep
+
+    hidden: Set[ElementID] = set()
+    for c in collapsed:
+        hidden |= _subtree(egi, c)
+    return _all_ids(egi) - hidden
+
+
+def _state_super_budget(egi: RelationalGraphWithCuts, budget: int) -> bool:
+    return max(_max_fanout(egi), _max_depth(egi)) > budget
+
+
 @dataclass(frozen=True)
 class StepSets:
     """The structural decomposition of a step, all exact functions of the two
@@ -400,6 +473,14 @@ class StepScore:
     # (fold-matches-reference, restatement half).
     invview_restatement: Set[str]
     offview_restatement: Set[str]
+    # Metric E — salient-in-view (the S1 spatial metric): every salient token
+    # (operated ∪ locative ∪ restatement) has a bearer in the focus-centered
+    # collapsed view V.  Live only on a super-budget state (else V is the whole
+    # graph and this is degenerate).  Falsifier: a narrated item lies inside a
+    # collapsed cut — the budget dropped something the expert kept salient.
+    state_super_budget: bool
+    invview_salient: Set[str]
+    offview_salient: Set[str]
     # Metric B — reference alignment: does the narration's introduce/reference
     # stance match the structural move (introduce → adds; reference → reuses or
     # removes standing material)?
@@ -429,6 +510,11 @@ class StepScore:
         n = len(self.invview_restatement) + len(self.offview_restatement)
         return 1.0 if n == 0 else len(self.invview_restatement) / n
 
+    @property
+    def salient_in_view(self) -> float:
+        n = len(self.invview_salient) + len(self.offview_salient)
+        return 1.0 if n == 0 else len(self.invview_salient) / n
+
 
 def _bearers_in(ids: Set[ElementID], egis: Sequence[RelationalGraphWithCuts],
                 token: str) -> bool:
@@ -437,6 +523,21 @@ def _bearers_in(ids: Set[ElementID], egis: Sequence[RelationalGraphWithCuts],
             if egi.rel.get(e.id) == token and e.id in ids:
                 return True
     return False
+
+
+def _in_view(token: str, egi: RelationalGraphWithCuts,
+             visible: Set[ElementID]) -> bool:
+    """Whether ``token`` survives the budget-collapse of ``egi`` to ``visible``.
+
+    A token with *no* bearer in the resulting graph is **not** an in-view failure
+    — it was removed by the rule (you erased it), not collapsed by the budget.
+    A token is off-view only when it *has* bearers in the graph but **all** of
+    them fall inside collapsed cuts.  This keeps the spatial metric scoped to its
+    one job: catching what the in-view budget dropped."""
+    bearers = [e.id for e in egi.E if egi.rel.get(e.id) == token]
+    if not bearers:
+        return True
+    return any(b in visible for b in bearers)
 
 
 def score_step(step: WorkedStep, alphabet: Set[str]) -> StepScore:
@@ -455,12 +556,21 @@ def score_step(step: WorkedStep, alphabet: Set[str]) -> StepScore:
     grounded = {t for t in parse.locative_tokens if _bearers_in(standing, egis, t)}
     ungrounded = parse.locative_tokens - grounded
 
-    # Metric D: restated tokens must be in-view — a bearer somewhere in the
-    # resulting visible graph V (the whole of G_i on a sub-budget chain).
-    visible = _all_ids(step.to_egi)
+    # The visible set V: on a super-budget state, the focus-centered collapsed
+    # overview (S1); else the whole resulting graph.  Restatement-in-view (D) and
+    # salient-in-view (E) are both scored against V — degenerate when sub-budget,
+    # live and falsifiable when the budget actually bites.
+    state_super = _state_super_budget(step.to_egi, _BUDGET_CHUNKS)
+    visible = (spatial_visible(step.to_egi, sets.focal, _BUDGET_CHUNKS)
+               if state_super else _all_ids(step.to_egi))
+
     in_view = {t for t in parse.restatement_tokens
-               if _bearers_in(visible, (step.to_egi,), t)}
+               if _in_view(t, step.to_egi, visible)}
     off_view = parse.restatement_tokens - in_view
+
+    salient = parse.operated_tokens | parse.locative_tokens | parse.restatement_tokens
+    in_view_salient = {t for t in salient if _in_view(t, step.to_egi, visible)}
+    off_view_salient = salient - in_view_salient
 
     struct_adds = bool(sets.added)
     struct_reuses_or_removes = bool(sets.referenced) or bool(sets.removed)
@@ -488,6 +598,9 @@ def score_step(step: WorkedStep, alphabet: Set[str]) -> StepScore:
         ungrounded_locative=ungrounded,
         invview_restatement=in_view,
         offview_restatement=off_view,
+        state_super_budget=state_super,
+        invview_salient=in_view_salient,
+        offview_salient=off_view_salient,
         narr_references_prior=parse.references_prior,
         narr_introduces=parse.introduces,
         struct_adds=struct_adds,
@@ -521,6 +634,16 @@ class ChainReport:
         if not self.steps:
             return 1.0
         return sum(s.restatement_in_view for s in self.steps) / len(self.steps)
+
+    @property
+    def mean_salient_in_view(self) -> float:
+        if not self.steps:
+            return 1.0
+        return sum(s.salient_in_view for s in self.steps) / len(self.steps)
+
+    @property
+    def has_super_budget_state(self) -> bool:
+        return any(s.state_super_budget for s in self.steps)
 
     @property
     def reference_alignment_rate(self) -> float:
@@ -593,16 +716,26 @@ def honest_limits(report: ChainReport) -> List[str]:
     if report.sub_budget:
         limits.append(
             "This chain is sub-budget (≤7 visible chunks throughout), so the "
-            "SPATIAL overview/collapse metrics degenerate: only the diachronic "
-            "metrics (center coverage, reference alignment, continuity) are "
-            "live here. A larger graph is needed to falsify S1."
+            "SPATIAL metric (salient-in-view under a focus-centered overview) "
+            "degenerates: only the diachronic metrics (center coverage, "
+            "reference alignment, continuity) are live here. A larger graph is "
+            "needed to falsify S1."
+        )
+    else:
+        limits.append(
+            "This chain has a SUPER-BUDGET state, so the spatial metric "
+            "(salient-in-view, S1) is LIVE: it collapses the graph to ~7 chunks "
+            "around each step's focus and checks every narrated item stays "
+            "visible. The collapse is a focus-centered DOI ranking (cut-nesting "
+            "distance), a model of the overview budget, not the shipped "
+            "layout_service overview engine."
         )
     return limits
 
 
 __all__ = [
     "WorkedStep", "WorkedChain", "load_worked_chain",
-    "StepSets", "step_sets",
+    "StepSets", "step_sets", "spatial_visible",
     "NarrationParse", "parse_narration",
     "StepScore", "score_step",
     "ChainReport", "check_chain", "honest_limits",

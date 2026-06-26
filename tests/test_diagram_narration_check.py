@@ -24,6 +24,7 @@ from diagram_narration_check import (
     load_worked_chain,
     parse_narration,
     score_step,
+    spatial_visible,
     step_sets,
 )
 
@@ -192,20 +193,95 @@ def test_locative_token_on_fresh_material_fails_grounding(chain, alphabet):
 # Every worked chain in the corpus that carries a narration.
 CORPUS = [
     "barbara", "beta_converse_mp", "beta_modus_ponens", "branching_confluence",
-    "group_identity", "peirce_law", "theorem_praeclarum",
+    "group_identity", "peirce_law", "theorem_praeclarum", "crowded_modus_ponens",
 ]
 
 
 @pytest.mark.parametrize("uod", CORPUS)
 def test_three_salience_roles_hold_across_the_corpus(uod):
-    # Across all seven transcribed chains, every operated predicate lands in Φ,
-    # every locative anchor resolves to standing Ρ, and every restated upshot is
-    # in-view V.  This is the headline corpus result — the diagram↔narration
-    # bridge holds for all three Centering/DRT roles.
+    # Across all corpus chains, every operated predicate lands in Φ, every
+    # locative anchor resolves to standing Ρ, every restated upshot is in-view V,
+    # and every salient item survives the focus-centered overview (S1).  This is
+    # the headline corpus result — the diagram↔narration bridge holds for all
+    # three Centering/DRT roles, sub-budget AND super-budget.
     report = check_chain(load_worked_chain(PRAECLARUM.parent / uod))
     assert report.mean_center_coverage == pytest.approx(1.0)
     assert report.mean_locative_grounding == pytest.approx(1.0)
     assert report.mean_restatement_in_view == pytest.approx(1.0)
+    assert report.mean_salient_in_view == pytest.approx(1.0)
+
+
+# --- the super-budget chain: the spatial S1 metric goes live ----------------
+
+CROWDED = "crowded_modus_ponens"
+
+
+@pytest.fixture(scope="module")
+def crowded():
+    return load_worked_chain(PRAECLARUM.parent / CROWDED)
+
+
+def test_crowded_chain_is_super_budget(crowded):
+    # The fact + matching rule + ten distractors = twelve sibling chunks: the
+    # one corpus chain whose state exceeds the in-view budget.
+    report = check_chain(crowded)
+    assert report.sub_budget is False
+    assert report.has_super_budget_state is True
+    limits = honest_limits(report)
+    assert any("SUPER-BUDGET" in lim for lim in limits)
+
+
+def test_focus_centered_overview_keeps_focus_and_collapses_far_distractors(crowded):
+    # At step 1 (IT- on the matching rule), the focus-centered overview keeps the
+    # matching rule (its A and B visible) and collapses the far distractors: every
+    # distractor consequent Ek (buried two cuts deep) falls off-view.
+    step1 = crowded.steps[0]
+    sets = step_sets(step1)
+    visible = spatial_visible(step1.to_egi, sets.focal, 7)
+    rel = step1.to_egi.rel
+
+    def visible_names():
+        return {rel[e.id] for e in step1.to_egi.E if e.id in visible}
+
+    names = visible_names()
+    assert "A" in names and "B" in names        # the matching rule stays in view
+    # all ten distractor consequents collapse out of view
+    for k in range(1, 11):
+        assert f"E{k}" not in names
+
+
+def test_crowded_narration_passes_the_live_spatial_metric(crowded):
+    # The proof's own narration names only the fact and the matching rule — it
+    # ignores the crowd — so every salient item stays visible (S1 holds).
+    report = check_chain(crowded)
+    assert report.mean_salient_in_view == pytest.approx(1.0)
+    assert all(s.state_super_budget for s in report.steps)
+
+
+def test_recalling_a_collapsed_distractor_fails_the_spatial_metric(crowded):
+    # Doctor step 1 to "recall" a distractor consequent Ek — which the
+    # focus-centered overview has collapsed off-view.  salient-in-view must drop
+    # below 100 %.  This proves the spatial metric (S1) actually bites: the
+    # budget dropped exactly what the doctored narration tried to keep salient.
+    step1 = crowded.steps[0]
+    sets = step_sets(step1)
+    visible = spatial_visible(step1.to_egi, sets.focal, 7)
+    rel = step1.to_egi.rel
+    # find a distractor consequent with no visible bearer
+    hidden_E = sorted(
+        n for n in {rel[e.id] for e in step1.to_egi.E}
+        if n.startswith("E")
+        and not any(rel.get(e.id) == n and e.id in visible for e in step1.to_egi.E)
+    )
+    assert hidden_E, "expected at least one collapsed distractor"
+    alpha = _relation_alphabet(crowded)
+
+    doctored = replace(step1, narration=f"Deiterate the inner (A), but recall ({hidden_E[0]}).")
+    parse = parse_narration(doctored, alpha)
+    assert hidden_E[0] in parse.tokens
+    score = score_step(doctored, alpha)
+    assert hidden_E[0] in score.offview_salient
+    assert score.salient_in_view < 1.0
 
 
 def test_macro_step_misaligns_an_honest_residual():

@@ -1,7 +1,28 @@
 # Current Plan
 
 **Last Updated**: 2026-06-26. **▶▶▶ This session (2026-06-26) — BUILD (g): the diagram↔narration validation
-harness, prototyped (author chose the doc's top research recommendation).** The 2026-06-25 doc designed §10's
+harness, prototyped → corpus → SUPER-BUDGET chain (the spatial S1 metric now live).** Third iteration:
+authored the corpus's first **super-budget** worked chain — `tomos/universes/crowded_modus_ponens`
+(`tools/build_crowded_modus_ponens_chain.py`): the fact `(A)` + the matching rule `A⊃B` among **ten unrelated
+rules `Dk⊃Ek`** (twelve sibling chunks, over the ~7 budget), then ordinary modus ponens (IT-, DC-) on the one
+matching rule → `(B)`. Every other corpus chain is sub-budget, so the spatial overview metric (S1) degenerated
+on all of them; this makes it **falsifiable**. Extended the harness with `spatial_visible` — a focus-centered
+DOI collapse (cut-nesting distance, Furnas; a *model* of the overview budget, not the production engine): at each
+step it hides the interiors of cuts far from the focus. New metric **salient-in-view (S1)**: every narrated item
+survives the collapse. On the crowded chain the matching rule + fact stay visible while all ten distractor
+consequents `Ek` (two cuts deep) collapse off-view, and **the proof's narration names only the fact + matching
+rule → salient-in-view 100 % [LIVE]** — direct evidence for S1 (an expert keeps the narration in a bounded
+focus-neighborhood amid a dozen chunks). A **fourth falsifier** proves it bites: a doctored "…recall (Ek)" naming
+a collapsed distractor drops it below 100 %. (Fixed a real bug found en route: `depth()` subtracted the sheet,
+collapsing all sibling cuts to DOI-distance 0 — the ranking was degenerate; and scoped the metric so a
+rule-*erased* token isn't an in-view failure, only a *collapsed* one is — caught by branching_confluence's
+all-ERA steps.) Corpus now **8 chains/35 steps**; all salience-role metrics 100 % across all 8 (ref-align 7/8,
+the group_identity macro-residual). 26 tests (4 falsifiers + per-chain corpus param + spatial). Doc §10 gains a
+"spatial rule goes live — the super-budget chain" subsection + salient-in-view table row. Adjacent suites
+(organon/tomos/chain-persistence/correspondence) green; core-protection CLEAN; additive. [[project_minimal_in_view_set]].
+*(First two iterations of this session below.)*
+
+**▶▶ Earlier this session (2026-06-26) — BUILD (g) iterations 1–2.** The 2026-06-25 doc designed §10's
 harness but left it unbuilt ("needs a scorer, not a schema"). Built the scorer and ran it on the ground-truth
 fixture, the transcribed Dau **Praeclarum** chain (whose 7-step segmentation Arisbe did not design — honest
 ground truth). New, **read-only**, additive, core-protection **CLEAN**: `src/diagram_narration_check.py` +

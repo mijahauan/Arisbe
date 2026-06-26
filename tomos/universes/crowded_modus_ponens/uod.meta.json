@@ -1,0 +1,19 @@
+{
+  "uod_id": "crowded_modus_ponens",
+  "uod_type": "historical",
+  "name": "Crowded Modus Ponens",
+  "description": "The fact (A) and the rule A\u2283B among ten unrelated rules Dk\u2283Ek \u2014 a twelve-chunk sheet (super-budget). Modus ponens on the one matching rule (IT-, DC-) lands (B); the narration ignores the ten distractors. Authored to exercise the spatial in-view rules (S1/S2): a focus-centered overview collapses the far siblings, and every narrated item stays visible. An authored demonstration (low warrant); every step a real, attestable Dau-rule application.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}
