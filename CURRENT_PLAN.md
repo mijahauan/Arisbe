@@ -1,6 +1,35 @@
 # Current Plan
 
-**Last Updated**: 2026-06-25. **▶▶▶ This session (2026-06-25) — DOCTRINE/DESIGN doc: the minimal in-view set
+**Last Updated**: 2026-06-26. **▶▶▶ This session (2026-06-26) — BUILD (g): the diagram↔narration validation
+harness, prototyped (author chose the doc's top research recommendation).** The 2026-06-25 doc designed §10's
+harness but left it unbuilt ("needs a scorer, not a schema"). Built the scorer and ran it on the ground-truth
+fixture, the transcribed Dau **Praeclarum** chain (whose 7-step segmentation Arisbe did not design — honest
+ground truth). New, **read-only**, additive, core-protection **CLEAN**: `src/diagram_narration_check.py` +
+`tools/run_diagram_narration_check.py` + `tests/test_diagram_narration_check.py` (12, incl. **two falsifiers**).
+Per move `Gᵢ₋₁→Gᵢ` it computes — all exact functions of the two immutable EGIs + the recorded gold `selection` —
+the **focal set Φ** (delta `added∪removed` ∪ selection ∪ each one's **sticky enclosing cut**, S3) and the
+**referenced set Ρ** (standing material the move reuses = the iteration source). It parses each transcribed
+narration **deterministically** (sound for the controlled {P,Q,R,S} Peircean register) into **operated** vs.
+**locative** relation tokens via a verb/locative-marker split — the Centering distinction between the
+utterance's *center* (operated object) and the material that merely *addresses* it ("into the cut **holding**
+(P⊃R)", "**around** S"). **The crux finding:** the first crude "everything-mentioned ⊆ focal" metric scored
+71 % with unexplained misses — because it conflated operated mentions with *locative* ones; the misses were
+**all locative** (P,R locating a cut; S as "the double cut around S"). The refined metric splits them, and the
+**EG↔DRT step-update bridge then holds on Praeclarum: operated→Φ 100 %, locative→Ρ 100 %, reference-alignment
+100 %** across all 7 steps (a narrated proof step = a DRS update; new vs. reused referents = added vs. reused
+graph elements — the long-acknowledged-but-never-operationalized bridge). The two falsifier tests prove the
+metrics **bite** (doctored "Erase S" drops coverage; doctored "into the cut around R" on the inserting step
+drops grounding) → the 100 % is **earned, not vacuous**. Spatial metrics (S1/S2 overview) degenerate because
+Praeclarum is sub-budget (max area fan-out 3, depth 4 ≤ 7) — the harness **detects and declares** this, and
+`honest_limits` keeps every caveat surfaced (deterministic-not-LLM alignment; single narration not a corpus, so
+*alignment* never *optimality*; token-level salience). Doc updated: §10 "half-built" → a new **"prototype scorer
+(built — first result)"** subsection with the metric/falsifier/result table + named next falsifications (a
+super-budget chain to make spatial metrics live; a narration corpus for inter-narrator agreement; the LLM bridge
+for free narration; metric-3 chapter-boundary on a branching DAG). [[project_minimal_in_view_set]]. **Other
+open threads from 2026-06-25 unchanged:** (d)+(c) render-M UI (safe, near-term), (b) reference/transclusion node
+(the architectural fork, author's decision). *(Prior 2026-06-25 session below.)*
+
+**▶▶▶ Prior session (2026-06-25) — DOCTRINE/DESIGN doc: the minimal in-view set
 (scale, attention, scoping) + the diagram↔narration check.** Discharged the *design* of the deferred "render
 M" task by reframing it (author-led, three deepening passes) as the Peircean cognitive problem: EGs leverage
 bounded visual attention, so the question is normative — *what minimum subset of a UoD stays in view, and what

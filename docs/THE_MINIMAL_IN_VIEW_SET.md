@@ -409,6 +409,45 @@ No new storage is needed — every chain node/edge already carries its narration
 The translators exist (`egif_generator_dau`, `clif_generator_dau`, `cgif_generator_dau`, `egi_to_fol`) and the
 NL bridge exists ([`nl_to_logic.py`](../src/nl_to_logic.py)). **The check needs a scorer, not a schema.**
 
+### The prototype scorer (built — first result on Praeclarum)
+
+The scorer is now built and run on the ground-truth fixture:
+[`src/diagram_narration_check.py`](../src/diagram_narration_check.py) +
+[`tools/run_diagram_narration_check.py`](../tools/run_diagram_narration_check.py) +
+[`tests/test_diagram_narration_check.py`](../tests/test_diagram_narration_check.py) (12 tests, incl. two
+falsifiers). Read-only — it observes the immutable per-state EGIs and the slim on-disk `chain.jsonl` narration
+(`parameters.description` / Peirce label), mutates nothing, asserts no truth.
+
+Per move `Gᵢ₋₁ →r Gᵢ` it computes, all as exact functions of the two EGIs + the recorded gold `selection`:
+the **focal set** `Φ` (the move's delta `added∪removed` ∪ the selection ∪ each one's **sticky enclosing cut**,
+S3) and the **referenced set** `Ρ` (standing material the move reuses — the iteration/deiteration source). The
+narration is parsed deterministically (sound for the controlled Peircean register; the predicate alphabet is
+{P,Q,R,S}) into **operated** vs. **locative** relation tokens by a verb/locative-marker split — the Centering
+distinction between the utterance's *center* (the operated object) and the material that merely *addresses* it
+("into the cut **holding** (P⊃R)", "**around** S", "a **copy of** the enclosing Q").
+
+Three diachronic metrics — the spatial overview metrics degenerate because Praeclarum is sub-budget (max area
+fan-out 3, depth 4 ≤ 7), which the harness detects and declares:
+
+| metric | claim | falsifier | Praeclarum |
+|---|---|---|---|
+| **center coverage** (operated→Φ) | every operated predicate has a bearer in `Φ` | an operated token sits outside the focal set | **100 %** |
+| **locative grounding** (locative→Ρ) | every locative anchor resolves to *standing* material, not freshly-added structure | a locative token names what the move just introduced | **100 %** |
+| **reference alignment** | the narration's introduce/reference stance is structurally witnessed (introduce→adds; reference→reuses/removes) | stance and structure disagree | **100 %** |
+
+**First result: the EG↔DRT step-update bridge holds on Praeclarum** — operated mentions land in the focal set
+and locative mentions in the referenced set, never crossing, across all 7 transcribed steps (whose segmentation
+Arisbe did not design). The two falsifier tests prove the metrics *bite* (a doctored "Erase S" drops coverage;
+a doctored "into the cut around R" on the inserting step drops grounding) — so the 100 % is earned, not vacuous.
+This is the §9 rules' first passing falsification test, and it operationalizes the long-acknowledged-but-never-
+built EG↔DRT bridge (a narrated proof step = a DRS update; new vs. reused discourse referents = added vs. reused
+graph elements). **Honest limits stay surfaced** (`honest_limits`): deterministic alignment not the LLM bridge;
+a single transcribed narration, not a corpus (so *alignment*, never *optimality*, and no inter-narrator
+agreement); token-level salience (a name credited to any bearer, not the specific copy); and the sub-budget
+caveat above. **Next falsifications** (what earns the rules their keep): a *larger, super-budget* chain to make
+the spatial metrics live (S1/S2); a *corpus of narrations* per chain for inter-narrator agreement; the LLM
+alignment bridge for *free* narration; and metric 3 (chapter-boundary) once a branching DAG fixture is narrated.
+
 ### Candidate validation rules (to adopt as the rules earn their keep)
 
 1. **Centering-alignment** — `Φᵢ` contains `Cb` and ranks top-k `Cf` consistently (Grosz/Joshi/Weinstein).
