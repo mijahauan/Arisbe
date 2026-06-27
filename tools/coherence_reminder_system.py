@@ -70,7 +70,17 @@ class CoherenceReminderSystem:
         print("="*60)
         print("📚 FORGOT THE API? Check: ARISBE_CORE_API_REFERENCE.md")
         print("🔍 NEED USAGE EXAMPLES? See: CORE_API_USAGE_GUIDE.md")
-        print("🛡️ CORE PROTECTION ACTIVE: 16 modules, 87 tests validated")
+        # Derive the count live so it can't drift (it read "16 modules, 87 tests"
+        # long after the set had changed). The core suite must always pass.
+        try:
+            _here = str(Path(__file__).resolve().parent)
+            if _here not in sys.path:
+                sys.path.insert(0, _here)
+            from core_protection_system import CoreProtectionSystem
+            _n = len(CoreProtectionSystem().protected_modules)
+            print(f"🛡️ CORE PROTECTION ACTIVE: {_n} modules guarded; core suite must pass")
+        except Exception:
+            print("🛡️ CORE PROTECTION ACTIVE: core suite must pass")
         print("📊 SYSTEM STATUS: python tools/daily_quality_dashboard.py")
         print("="*60)
         print(f"Context: {context} | Reminder #{self.get_reminder_count() + 1}")
