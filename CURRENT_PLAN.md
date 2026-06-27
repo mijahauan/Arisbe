@@ -338,6 +338,25 @@ the de-facto requirements from tests + docs spine + `core_protection_system` set
 **avoid heavyweight SRS/IEEE-830 ceremony** — wrong fit for a research-grade project. Decisions to settle at
 session start: single-doc vs small set; how much roadmap detail; audience (solo-author vs newcomer-facing).
 
+**▶ PART OF THIS PASS (author-added 2026-06-27): explicitly reconsider the "protected core."** It is one of
+the three authoritative sources for the spine's *non-negotiables*, so re-audit it as part of the consolidation
+rather than treat it as given. Cover: **(a) definition & mechanism** — today a git-diff guard on ~17 modules
+(`tools/core_protection_system.py`: EGI data model + IO `egi_core_dau`/`egi_io`/`hierarchical_index`; the
+linear parsers/generators EGIF/CGIF/CLIF; diachronic `universe_of_discourse`/`egi_transformation_history`; Dau
+rules `formal_transformation_rules`/`rule_interaction`; Beta validators `subgraph_closure_validator`/
+`graph_isomorphism_engine`; ligature `ligature_manipulation_rules`/`single_object_ligature_detector`),
+enforced at pre-commit via `.core_modification_authorized` + the coupling "the mathematical core suite must
+pass." **(b) how & why we have it** — guard Dau's formalization (the correctness bedrock) from inadvertent
+change; force a deliberate authorization speed-bump. **(c) right scope now?** — reconcile the **count drift**
+(gate says "16 modules", CLAUDE.md says "17"); question whether the *linear parsers/generators* are bedrock in
+the same sense as the rules or are application-level; confirm the ligature/`hierarchical_index` members are
+still load-bearing (ghosts were pruned May 2026 — verify no new ones); and weigh **ADDING** the newer
+correspondence machinery now central to §3.3 (`correspondence_attestation.py`, `presentation_ops.py`,
+`natural_layout.py`) — the correspondence invariant is *the central problem*, yet its runtime attestors may be
+unprotected. **(d) still necessary?** — is it genuine safety or ceremony given the ~1000-test suite already
+guards behavior; for a solo author, does the `.core_modification_authorized` dance + list-maintenance earn its
+keep, or would "tests-as-spec + a CODEOWNERS-style note" suffice? Outcome feeds the spine's bedrock section.
+
 **▶▶ MARKED FOR RECONSIDERATION LATER (author's call 2026-06-27 — do NOT pick up without a fresh directive):**
 - **(4) the Context reflex overlay.** Leave as-is for now. It floats absolute top-left over every board (the
   one shared element that can occlude a left-heavy/large drawing). Revisit: dock-as-a-column vs
