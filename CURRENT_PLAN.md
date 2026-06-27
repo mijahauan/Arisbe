@@ -30,9 +30,16 @@ src module touched.) **Caught + corrected mid-task:** I first also added the `te
 to the fast gate, but measured them at **>6.5 min** (corpus-wide ELK layout generation) — they would bust
 the gate's <30s budget / 180s timeout and fail every commit. Reverted that half with an explanatory comment;
 the invariant is guarded at commit time by the module protection + in full CI, not the fast gate. Docs
-(VISION §3 / ROADMAP #1) corrected to the honest version.
-Options (b) trim I/O parsers / (c) replace speed-bump with CODEOWNERS-note left open in ROADMAP #1 as the
-author's values call. **Then, at the author's request, a LITERATURE / CONTRIBUTION ASSESSMENT** (3 adversarial
+(VISION §3 / ROADMAP #1) corrected to the honest version. **Then the author took (b) + (c) too:** **(b)
+trimmed** the six EGIF/CGIF/CLIF parsers/generators out of the set (application-level I/O the calculus
+doesn't import; guarded by corpus round-trip tests in CI) → **net 17 → 20 → 14 modules** (the genuine
+calculus core; report verified 14/CLEAN). **(c) declined CODEOWNERS** — it routes PR reviews and does
+nothing in a solo/no-PR workflow; instead the protected set's inline comments now **double as the bedrock
+note** (one artifact that documents *and* enforces); the gate is kept because its real value is an **AI
+tripwire** on the calculus. **Repo hygiene (author-approved):** fast-forwarded `main` (was stale 9 commits
+behind) → pushed; **pruned all 7 stale branches** (local + remote; all fully merged, 0 unique commits) so
+only `main` remains; **deleted the dead `.git/hooks/post-merge`** (imported a non-existent
+`architectural_integrity_system`). Going forward: work on `main` directly (solo, local-primary). **Then, at the author's request, a LITERATURE / CONTRIBUTION ASSESSMENT** (3 adversarial
 web-research sweeps: EG-software landscape · formal/theoretical claims · endoporeutic/iconicity) →
 **`docs/CONTRIBUTION_AND_PRIOR_ART.md`**. Honest headline: Arisbe's contribution is **operationalization +
 integration, not new logic**; the **one element with no located prior art = the runtime-attested

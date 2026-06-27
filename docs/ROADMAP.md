@@ -18,19 +18,22 @@ built; FRONTIER = built but an edge remains; DECISION = a choice precedes any bu
 
 ## Near-term (with design intent)
 
-### 1. Settle the "protected core" question — **DECISION PARTLY TAKEN (2026-06-27)**
+### 1. Settle the "protected core" question — **✅ DECISION TAKEN & EXECUTED (2026-06-27)**
 
-> **✅ Done — option (a) "keep + extend":** `correspondence_attestation.py`, `presentation_ops.py`, and
-> `natural_layout.py` added to the protected set (now **20** modules) — the §3.3 enforcers now require
-> authorization to change. *(The corpus-wide `test_correspondence_*` suites were intentionally NOT added
-> to the fast pre-commit gate: they generate ELK layouts and run for minutes, busting the gate's <30s
-> budget / 180s timeout. They run in full CI; at commit time the invariant is guarded by the module
-> protection. A small in-gate smoke check is possible future work.)*
-> **Still open (author's values call):** whether to *also trim* the I/O parsers / thin ligature
-> modules (option b), or eventually *replace* the name-match speed-bump with a CODEOWNERS-style bedrock
-> note + tests-as-spec (option c). The findings that motivate those options remain below.
+> **(a) keep + extend:** added the three §3.3 enforcers (`correspondence_attestation`, `presentation_ops`,
+> `natural_layout`) — they now require authorization to change.
+> **(b) trim:** removed the six EGIF/CGIF/CLIF parsers/generators — application-level I/O the calculus
+> doesn't import; guarded by corpus round-trip tests in CI. **Net 17 → 14 modules** (the genuine calculus
+> core). The thin ligature modules and `hierarchical_index` were *kept* — still load-bearing.
+> **(c) replace with CODEOWNERS — declined:** CODEOWNERS routes PR reviews and does nothing in a solo,
+> no-PR workflow; the protected set's inline comments now double as the bedrock note (it documents *and*
+> enforces). The gate is kept because its real value here is an **AI tripwire** on the calculus —
+> something neither a doc-note nor CODEOWNERS can provide.
+> *(The corpus-wide `test_correspondence_*` suites were NOT added to the fast gate: minutes-long ELK
+> layout, busts the <30s budget / 180s timeout; they run in full CI. A small in-gate smoke check is
+> possible future work.)*
 
-The re-audit (2026-06-27) produced these findings:
+The re-audit (2026-06-27) that motivated the decision:
 
 - **Count drift resolved.** The gate reports **17** modules, matching CLAUDE.md. No ghosts: every
   protected member has a live importer.

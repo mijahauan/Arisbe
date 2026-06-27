@@ -162,13 +162,17 @@
 
 ## The protected-core set (authoritative)
 
-The **20** modules guarded by `tools/core_protection_system.py` (require `.core_modification_authorized`
-to modify). This is the **actual** list from the source:
+The **14** modules guarded by `tools/core_protection_system.py` (require `.core_modification_authorized`
+to modify) — the genuine calculus core. This is the **actual** list from the source:
 
-`egi_core_dau` · `egi_io` · `hierarchical_index` · `egif_parser_dau` · `egif_generator_dau` ·
-`cgif_parser_dau` · `cgif_generator_dau` · `clif_parser_dau` · `clif_generator_dau` ·
-`universe_of_discourse` · `egi_transformation_history` · `formal_transformation_rules` ·
-`rule_interaction` · `subgraph_closure_validator` · `graph_isomorphism_engine` ·
-`ligature_manipulation_rules` · `single_object_ligature_detector` ·
-**`correspondence_attestation`** · **`presentation_ops`** · **`natural_layout`** *(last three added
-2026-06-27, decision (a) — the runtime enforcers of the central invariant).*
+`egi_core_dau` · `egi_io` · `hierarchical_index` · `universe_of_discourse` ·
+`egi_transformation_history` · `formal_transformation_rules` · `rule_interaction` ·
+`subgraph_closure_validator` · `graph_isomorphism_engine` · `ligature_manipulation_rules` ·
+`single_object_ligature_detector` · **`correspondence_attestation`** · **`presentation_ops`** ·
+**`natural_layout`**.
+
+> **Set history (2026-06-27):** the three correspondence enforcers were **added** (decision (a) — the
+> runtime guards of the central invariant); the six EGIF/CGIF/CLIF parsers/generators were **removed**
+> (decision (b) — application-level I/O, not the calculus; the rules don't import them; guarded instead
+> by the corpus round-trip tests in CI). Net 17 → 20 → 14. The set's inline comments now double as the
+> bedrock note — there is no separate CODEOWNERS file (it wouldn't fire in a solo, no-PR workflow).

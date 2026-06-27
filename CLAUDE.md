@@ -41,10 +41,11 @@ directory's README for context. They remain in git history if needed.
 
 ## Core Protection System
 
-**20 modules in `src/` are protected** and cannot be modified without authorization (the data model +
-IO, the linear parsers/generators, diachronic state, the Dau rules + validators, the ligature
-machinery, and — added 2026-06-27 — the correspondence enforcers `correspondence_attestation` /
-`presentation_ops` / `natural_layout`):
+**14 modules in `src/` are protected** and cannot be modified without authorization — the genuine
+calculus core: the data model + IO, diachronic state, the Dau rules + validators, the ligature
+machinery, and the correspondence enforcers `correspondence_attestation` / `presentation_ops` /
+`natural_layout` (the three added 2026-06-27). The EGIF/CGIF/CLIF parsers/generators were *removed* from
+the set on 2026-06-27 as application-level I/O guarded by corpus round-trip tests, not the calculus:
 
 ```bash
 touch .core_modification_authorized   # Required before modifying protected modules

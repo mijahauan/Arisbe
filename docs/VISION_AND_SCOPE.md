@@ -106,13 +106,18 @@ A re-audit this pass (2026-06-27) found, and the author then acted:
   two **most-imported** modules in `src/` (28 and 31 importers) yet were **unprotected**.
 - The real guard is the **core test subset** (the fast gate), not the name-match speed-bump.
 
-→ **Decision taken (2026-06-27, option (a) "keep + extend"):** `correspondence_attestation.py`,
-`presentation_ops.py`, and `natural_layout.py` were **added to the protected set (now 20 modules)** — so
-the §3.3 enforcers now require authorization to change. (The corpus-wide `test_correspondence_*` suites
-were *not* added to the fast pre-commit gate: they generate layouts and run for minutes, far past that
-gate's <30s budget; they run in full CI, and the central invariant is guarded at commit time by the
-module protection itself.) The keep-vs-replace question for the speed-bump is left open (a values call);
-see [ROADMAP.md](ROADMAP.md) #1.
+→ **Decision taken (2026-06-27):** *(a, "keep + extend")* `correspondence_attestation.py`,
+`presentation_ops.py`, and `natural_layout.py` were **added** to the protected set — so the §3.3 enforcers
+now require authorization to change; *(b, "trim")* the six EGIF/CGIF/CLIF parsers/generators were
+**removed** as application-level I/O the calculus doesn't import (guarded instead by corpus round-trip
+tests in CI). Net **17 → 14** modules, now the genuine calculus core. *(c, "replace with a CODEOWNERS-style
+note") was declined:* CODEOWNERS routes PR reviews and would not fire in a solo, no-PR workflow — instead
+the protected set's inline comments now **double as the bedrock note**, one artifact that both documents
+*and* enforces. The pre-commit gate is kept because its real job in an AI-assisted solo workflow — making
+an inadvertent edit to the calculus impossible to miss — is one neither a doc-note nor CODEOWNERS can do.
+*(The corpus-wide `test_correspondence_*` suites were **not** added to the fast gate: minutes-long, far
+past its <30s budget; they run in CI, and the invariant is guarded at commit time by the module
+protection.)* See [ROADMAP.md](ROADMAP.md) #1.
 
 ---
 

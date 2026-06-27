@@ -23,26 +23,34 @@ class CoreProtectionSystem:
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or Path.cwd()
         
-        # Protected core modules.
+        # Protected core modules. This set IS the "bedrock note": the names plus
+        # these comments record what is non-negotiable and why, and the pre-commit
+        # gate enforces it (its real job in an AI-assisted solo workflow is to make
+        # an inadvertent edit to the calculus impossible to miss — the commit fails
+        # until `.core_modification_authorized` is created deliberately).
         # Rationale: each module here is either (a) the EGI data model and its IO,
         # (b) a Dau transformation rule or its interaction protocol, (c) a Beta-aware
-        # validator/matcher relied on by the rules, or (d) layout/ligature machinery
-        # that downstream code treats as a stable interface. Modules dropped in
+        # validator/matcher relied on by the rules, (d) layout/ligature machinery
+        # downstream code treats as a stable interface, or (e) a runtime enforcer of
+        # the central linear<->graphical correspondence invariant. Modules dropped in
         # 2026-05 (enhanced_ligature_algorithms.py, syntactic_equivalence_checker.py)
-        # were orphaned — no imports anywhere in the codebase — and so could not
-        # be load-bearing despite being protected.
+        # were orphaned — no imports anywhere — and so could not be load-bearing.
+        # The EGIF/CGIF/CLIF parsers/generators were dropped 2026-06-27 as
+        # application-level I/O (see the note where they were, below).
         self.protected_modules = {
             # EGI data model + IO
             'egi_core_dau.py',
             'egi_io.py',
             'hierarchical_index.py',
-            # Linear format parsers/generators
-            'egif_parser_dau.py',
-            'egif_generator_dau.py',
-            'cgif_parser_dau.py',
-            'cgif_generator_dau.py',
-            'clif_parser_dau.py',
-            'clif_generator_dau.py',
+            # Linear-format parsers/generators (EGIF/CGIF/CLIF) were REMOVED from
+            # this set on 2026-06-27. The audit established they are application-
+            # level I/O, not the calculus: the six transformation rules and the
+            # validators do not import them (the data model + rules operate purely
+            # on RelationalGraphWithCuts). Their correctness is guarded by the
+            # corpus round-trip tests (test_tomos_parsing, test_clif_unit, the
+            # properties_*_round_trip suites) in CI, not by this commit-time
+            # speed-bump. Re-add only if a parser/generator becomes load-bearing
+            # for the calculus itself.
             # Diachronic state + history
             'universe_of_discourse.py',
             'egi_transformation_history.py',
