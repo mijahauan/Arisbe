@@ -52,6 +52,15 @@ class CoreProtectionSystem:
             # Beta-aware validation + isomorphism
             'subgraph_closure_validator.py',
             'graph_isomorphism_engine.py',
+            # Correspondence machinery — the runtime enforcers of the central
+            # invariant (linear<->graphical correspondence). Added 2026-06-27:
+            # these are the most-imported modules in src/ and enforce the very
+            # contract the protection exists to defend, so they are bedrock in
+            # the same sense as the rules. natural_layout is the coordinate-free
+            # foundation both rest on.
+            'correspondence_attestation.py',
+            'presentation_ops.py',
+            'natural_layout.py',
             # Ligature machinery (stable interfaces). Four other ligature
             # modules listed in earlier versions of this set
             # (area_spatial_constraint_system, ligature_aware_positioning_engine,
@@ -158,6 +167,14 @@ class CoreProtectionSystem:
             "tests/test_beta_converse_proof.py",
             "tests/test_logical_proof_exercises.py",
             "tests/test_induction_proofs.py",
+            # NOTE (2026-06-27): the central correspondence invariant is guarded by
+            # (a) the three correspondence modules now in `protected_modules`
+            # (authorization required to touch the §3.3 enforcers) and (b) the full
+            # `test_correspondence_invariant` / `test_correspondence_attestation`
+            # suites in CI. They are deliberately NOT in this fast subset: they are
+            # corpus-wide and generate layouts (ELK), taking minutes — far past the
+            # <30s budget this gate exists to keep. A small in-gate smoke check is
+            # possible future work if the speed-bump alone proves insufficient.
         ]
 
         # Prefer the uv-managed environment (the project standard).

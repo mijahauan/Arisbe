@@ -1,6 +1,66 @@
 # Current Plan
 
-**Last Updated**: 2026-06-26. **▶▶▶ This session (2026-06-26) — WEB PRESENTATION AUDIT (observe-and-assess)
+**Last Updated**: 2026-06-27. **▶▶▶ This session (2026-06-27) — CONSOLIDATION / PLANNING SPINE shipped + the
+protected-core re-audit.** Built the top-down orientation Arisbe never had, as **four thin, cross-linked,
+additive docs** (decisions taken with the author at session start: small-set / layered-for-both-audiences /
+backlog-with-near-term-detail): **`docs/VISION_AND_SCOPE.md`** (what Arisbe is, the central correspondence
+problem, the bedrock non-negotiables + three regimes, who it's for, scope in/out/deferred, governing
+principles, system-at-a-glance, trajectory), **`docs/CAPABILITY_MAP.md`** (one living status table — every
+capability → SHIPPED/PARTIAL/DESIGNED/OUT → src module → test home; corrected the extraction's over-clean
+"all-shipped" with honest PARTIAL/DESIGNED/OUT rows for tension_engine 17/18, Agon V1 hot-seat, DLCore
+abstainers, layout-perf, NL-disambiguation, render-M, reference-node, Gamma/raster OUT), **`docs/ROADMAP.md`**
+(one sequenced backlog consolidating the scattered open tracks; near-term items expanded), and
+**`docs/GLOSSARY.md`** (Peirce/Dau/Arisbe vocabulary + reading-order by audience). All four linked from
+CLAUDE.md's "Start here" block. Method = read-only multi-agent extraction from the three authoritative sources
+(protected-core = non-negotiables, tests/ = behavior, docs spine = the why), then synthesis; every cited
+test/src filename verified to exist on disk. **The protected-core re-audit (author-added sub-task) findings,
+folded into VISION_AND_SCOPE §3 + ROADMAP #1 as a DECISION for the author:** (a) the "16 vs 17" count drift is
+**already reconciled** (report prints 17, matches CLAUDE.md; no ghosts — every member has a live importer);
+(b) **the mechanism does NOT guard the central invariant** — `correspondence_attestation.py` (28 importers) +
+`presentation_ops.py` (31 importers) are the *most-imported* modules in src/ yet **unprotected** → recommend
+adding them (+ maybe `natural_layout.py`); (c) the real guard is the ~150-test core subset, which itself omits
+`test_correspondence_invariant`/`_attestation` from the fast gate; (d) the linear parsers/generators are
+architecturally I/O, not calculus (the six rules don't import them); (e) two thinly-held ligature members
+(single consumer = chapter17_soundness_evaluation). Options (keep+extend / keep+trim / replace-with-bedrock-note)
+laid out in ROADMAP #1. **Author chose option (a) "keep + extend" — EXECUTED this session:** added
+`correspondence_attestation.py` + `presentation_ops.py` + `natural_layout.py` to the protected set (now
+**20 modules**, report verified) — the §3.3 enforcers now require authorization to change; spine docs +
+CLAUDE.md updated to 20. (Edits are in `tools/`, not `src/`, so core-protection stays CLEAN; no protected
+src module touched.) **Caught + corrected mid-task:** I first also added the `test_correspondence_*` suites
+to the fast gate, but measured them at **>6.5 min** (corpus-wide ELK layout generation) — they would bust
+the gate's <30s budget / 180s timeout and fail every commit. Reverted that half with an explanatory comment;
+the invariant is guarded at commit time by the module protection + in full CI, not the fast gate. Docs
+(VISION §3 / ROADMAP #1) corrected to the honest version.
+Options (b) trim I/O parsers / (c) replace speed-bump with CODEOWNERS-note left open in ROADMAP #1 as the
+author's values call. **Then, at the author's request, a LITERATURE / CONTRIBUTION ASSESSMENT** (3 adversarial
+web-research sweeps: EG-software landscape · formal/theoretical claims · endoporeutic/iconicity) →
+**`docs/CONTRIBUTION_AND_PRIOR_ART.md`**. Honest headline: Arisbe's contribution is **operationalization +
+integration, not new logic**; the **one element with no located prior art = the runtime-attested
+linear↔graphical correspondence invariant** (the signature claim); Beta-complete Dau-faithful interactive
+editing fills an apparently empty niche (the one maintained interactive EG prover, RAIR's Peirce-My-Heart, is
+Alpha-only); most other claims are "KNOWN IDEA NEWLY OPERATIONALIZED" (EG≅DRS = Sowa/Kamp, endoporeutic-as-game
+= Hilpinen/Hintikka/Pietarinen, modality = standard translation/Zeman, iconicity = Stjernfelt/Shin — all must
+be cited); two overclaim risks flagged (EG≅DRS isomorphism is textbook Sowa; "Gamma unnecessary" cuts against
+Ma & Pietarinen). Gap Arisbe could fill: no machine-checked Dau formalization found. **Then an ATTRIBUTION-HONESTY PASS** (author:
+"give clear and explicit credit ... describe gaps in expressibility not using gamma exposes + the diagrammatic
+advantages Ma & Pietarinen find"): deep research (Ma & Pietarinen 2018 *Gamma graph calculi*; van Benthem;
+Vardi; Zeman; Roberts; Peirce CP 4.516/MS R 467) + a docs overclaim audit. Fixed real misrepresentations
+(audit's "docs already fine" was unreliable): **(1)** `MODALITY_WITHOUT_GAMMA.md` — added explicit credits
+(van Benthem/Zeman/Ma & Pietarinen) + a **References section** (had none); reframed "the case Peirce kept
+failing at" honestly (Peirce *left the broken-cut iteration rule open*, not "failed"; Ma & Pietarinen
+**rehabilitate** it — sound-complete calculi for 15 modal logics, "only (DMN),(B),(5) new", algebraic not
+Kripke completeness); added a 3-part **expressibility ledger** (no object-language loss for propositional
+modality / genuine gaps = second-order + metalinguistic / perspicuity-decidability cost — Vardi) + a "What
+Gamma keeps" section naming the diagrammatic advantages (position-polarity off cut topology, no NNF, no labels,
+ambient-space free bookkeeping) + the iconicity caveat (contested by Pietarinen himself, "Two Dogmas");
+reframed thesis to "no modal *mark* needed for Arisbe's architecture," NOT "Gamma dispensable for logic".
+**(2)** `THE_MINIMAL_IN_VIEW_SET.md` — corrected the EG↔DRT overclaim (it said "no published EG→DRS reduction
+exists"): the **static DRS≅EG isomorphism is Sowa's** (tracing to Kamp 1981), credited in 4 spots + refs;
+Arisbe's contribution scoped to the *dynamic* step↔update **scorer**. **(3)** `CONTRIBUTION_AND_PRIOR_ART.md`
+Gamma ledger entry sharpened + year fixed (Synthese 2018). **Docs only; core-protection CLEAN.**
+[[project_consolidation_requirements_spine]]. *(Prior 2026-06-26 web-presentation audit below.)*
+
+**▶▶ Prior session (2026-06-26) — WEB PRESENTATION AUDIT (observe-and-assess)
 → 5 fidelity fixes shipped.** Walked the running web server across all three modes with headless Chromium
 (drove each like a real user, captured + read ~30 screenshots), judging how faithfully the rendered screen shows
 the implemented ideas. **Verdict: the experience corresponds FAITHFULLY — no idea is garbled or

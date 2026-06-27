@@ -4,6 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 > **Start here each session:** active work and the next-session handoff live in
 > [CURRENT_PLAN.md](CURRENT_PLAN.md) (`▶ NEXT SESSION` section) — read it first.
+>
+> **Orienting (the structural spine, consolidated 2026-06-27):**
+> [docs/VISION_AND_SCOPE.md](docs/VISION_AND_SCOPE.md) (what/why/scope/bedrock) ·
+> [docs/CAPABILITY_MAP.md](docs/CAPABILITY_MAP.md) (what works, where, what guards it) ·
+> [docs/ROADMAP.md](docs/ROADMAP.md) (what's next) · [docs/GLOSSARY.md](docs/GLOSSARY.md)
+> (terms + reading order). Read these for the top-down view; CURRENT_PLAN is the chronological log.
 
 ## What This Project Is
 
@@ -35,7 +41,10 @@ directory's README for context. They remain in git history if needed.
 
 ## Core Protection System
 
-**17 modules in `src/` are protected** and cannot be modified without authorization:
+**20 modules in `src/` are protected** and cannot be modified without authorization (the data model +
+IO, the linear parsers/generators, diachronic state, the Dau rules + validators, the ligature
+machinery, and — added 2026-06-27 — the correspondence enforcers `correspondence_attestation` /
+`presentation_ops` / `natural_layout`):
 
 ```bash
 touch .core_modification_authorized   # Required before modifying protected modules

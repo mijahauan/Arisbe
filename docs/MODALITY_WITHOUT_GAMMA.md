@@ -25,15 +25,26 @@ logic via van Benthem; the first-order-with-identity modality the §2 constructi
 features lies beyond that theorem and carries its own declared commitments. The
 load-bearing claim — **no new mark** — is untouched; the unconditional
 completeness boast is scoped down to adequacy.)* Peirce reached for the broken cut and then
-the tinctures to carry modality on a single static sheet; the load they were
-meant to bear is carried, exactly and without remainder, by the diachronic
-structure Arisbe already maintains and attests.
+the tinctures to carry modality on a single static sheet; the *modal* load they were
+meant to bear is carried by the diachronic structure Arisbe already maintains and
+attests — though "without remainder" is too strong, and the honest ledger of what is
+and isn't carried is set out below ("What not using Gamma costs").
+
+**One thing to say plainly up front, since it is the heart of the credit owed.**
+"No modal *mark* needed" is **not** a verdict that Gamma is worthless or unworkable.
+Peirce's broken cut has been *rehabilitated*: Zeman (1964) connected it to S4/S5, and
+Ma & Pietarinen (2018) give sound-and-complete graphical (broken-cut) calculi for a
+family of fifteen normal modal logics — Peirce's own apparatus, needing only three
+added rules. Arisbe's choice to draw the frame instead is a **defensible
+architectural decision**, not a refutation of Gamma; it forgoes a real virtue the
+broken cut keeps (the on-sheet topological perspicuity of the modal operator itself),
+and that cost is named, not hidden — see "What Gamma keeps," below.
 
 This is not a stance dressed as a result. It rides on a settled fact of modal
 model theory — the **standard translation** of modal logic into first-order
-logic — and it leaves a precise residue. The residue is **not** modal and **not**
-a tincture: it is *second-order logic about the graphs themselves*, and that —
-not Gamma — is the real frontier.
+logic (van Benthem) — and it leaves a precise residue. The residue is **not** modal
+and **not** a tincture: it is *second-order logic about the graphs themselves*, and
+that — not Gamma — is the real frontier.
 
 ---
 
@@ -95,12 +106,27 @@ modality. Each maps cleanly onto the drawn frame:
 | **The case Peirce kept failing at** — *iterated* broken cuts, and **lines of identity crossing tincture boundaries** (trans-world identity) | the same individual, named across a change of universe | A **line of identity carried across a legal sheet-to-sheet transition.** Trans-world identity becomes identity-across-the-DAG — the very invariant the [linear↔graphical correspondence](LINEAR_GRAPHICAL_CORRESPONDENCE.md) keeps inerrant. |
 
 The third row is the crux, and it is where the diachronic reading earns its keep
-rather than merely asserting it. The hardest part of modal *notation* — the part
-that drove Peirce through revision after revision because the broken cut "couldn't
-handle iteration" — is not a marking problem at all. It is an **identity-across-
-worlds** problem, and identity carried faithfully across a change of context is
-the one thing Arisbe's architecture exists to guarantee. The notation's hardest
-case is Arisbe's home ground.
+rather than merely asserting it. Be precise about Peirce's actual difficulty (it is
+often loosely reported): Peirce did not find the broken cut *unworkable* — he left
+its **iteration rule open**. Reading his two broken-cut rules at CP 4.516, Zeman
+notes that one "begs for study," the open question being whether to permit iterating
+a graph *across* a broken cut and under what restriction; and in MS R 467 Peirce
+records his own doubt about *double* broken cuts (whether ◇□g and □◇g are
+interderivable — "It is only because I have not sufficiently reflected upon the
+subject that I can have any doubt"). The different restrictions on that one rule are
+exactly what separate S4 from S5 — which is why Zeman had to build several systems,
+and why Ma & Pietarinen (2018) could later *settle* the matter with sound-complete
+graphical calculi (their Remark 1 even gives the explicit counterexamples showing
+the unrestricted rule is unsound). So the broken cut is rehabilitated, not defeated.
+
+Arisbe's diachronic reading takes a different road to the *same* underlying object —
+because the genuinely hard part is not the modal mark but the **identity-across-
+worlds** problem (a line of identity crossing a change of universe; Peirce coined a
+"special relation" for it in MS 490 and never reduced it to the ordinary
+line-of-identity apparatus). Identity carried faithfully across a change of context
+is the one thing Arisbe's architecture exists to guarantee, so the notation's
+hardest case is Arisbe's home ground. This is a reason to *prefer* the drawn frame
+for Arisbe's purposes — not evidence that the broken cut cannot be made to work.
 
 ---
 
@@ -140,6 +166,128 @@ entire purpose is the *analysis of reasoning* — Peirce's "moving picture of
 thought," made examinable — exhibiting the frame is not a cost but the whole
 point. What the operator compresses into an opaque glyph, Arisbe spreads into a
 structure you can walk.
+
+---
+
+## What not using Gamma costs — the expressibility ledger
+
+*(Added 2026-06-27, at the author's request: an honest accounting of what the
+no-Gamma stance forgoes, distinguishing real expressibility gaps from mere
+perspicuity costs. The ledger splits in three.)*
+
+**(1) No object-language loss for *propositional* modality.** By **van Benthem's
+characterization theorem**, propositional modal logic is *exactly* the
+bisimulation-invariant fragment of first-order logic. So there is no proposition the
+propositional modal object-language can state that Beta-over-the-drawn-frame cannot —
+and the frame can state strictly more (count successors, assert irreflexivity ¬Rxx),
+which simply are not modal facts. Here the no-Gamma stance loses **nothing of
+expressive power**; what it trades is succinctness and perspicuity (point 3).
+
+**(2) Genuine gaps, beyond the standard translation.** Three things Gamma reached
+that a *propositional* standard translation does **not** capture — so Arisbe does not
+get them "for free" from §1, and routes them honestly to the §7 frontier instead:
+
+- **Second-order / higher-order content** — quantifying over qualities, relations,
+  and propositions. Even propositional modal *frame*-validity "implicitly involves a
+  higher-order quantification over propositions" — "even propositional modal logic is
+  fundamentally second-order in nature" (Goldblatt). Peirce's Gamma reached here on
+  purpose (Roberts: "second (and higher) order functional calculi"; the "logic of
+  potentials"). **A real gap** — and exactly what §7 names as the genuine frontier.
+- **Metalinguistic graphs-of-graphs** — Gamma as a "logic of second intentions,"
+  reasoning *about* graphs with graphs. Orthogonal to any object-level FOL-over-*R*
+  translation; Arisbe keeps it strictly metalinguistic in the φ-hole / schema node
+  (§7), never as a modal mark. (Sowa notes even ISO Common Logic needs its IKL
+  extension to reach the relevant constructs.) **A real gap.**
+- **Non-first-order-definable frame conditions** — GL/Löb (converse
+  well-foundedness), McKinsey, common-knowledge (transitive closure). A single
+  explicit *R* in FOL cannot axiomatize these either, so this is a limit of
+  first-order frame definability *in general* — shared by the standard-translation
+  route, **not** a unique Gamma surplus. Already flagged in §4.1.
+
+**(3) The perspicuity / succinctness / decidability cost.** Even where there is no
+object-language loss, the standard translation is costly, and the cost is precisely
+what diagrams exist to avoid:
+
+- **Blow-up** — each modal operator introduces a new world-variable, so deep modal
+  nesting becomes deep quantifier alternation (Vardi 1996); a modal formula can be
+  exponentially more compact than its translation (§4.2).
+- **Loss of the local/internal view** — modal languages give "an internal, local
+  perspective on relational structures," evaluated "at a state" (Blackburn–de
+  Rijke–Venema); the FOL image dissolves this into global prefixes. Vardi's point:
+  that very locality (the tree-model property) is *why* modal logic is robustly
+  decidable — the translation buries the thing that makes it tractable and surveyable.
+- **The honest two-sidedness.** Arisbe gives up the operator's on-sheet compression,
+  but by *drawing the frame* it keeps a different surveyability — worlds you can open,
+  accessibility you can replay. It trades one "free ride" (the operator's locality)
+  for another (the examinable, attested frame). Neither is strictly better; the choice
+  is purposive, not a free lunch.
+
+**Tinctures — the apparent big loss, mostly recovered.** Peirce's tinctures (1906
+*Prolegomena*: twelve tinctures in three Modes — Color / Fur / Metal for Possibility /
+Intention / Actuality) mark *kinds* of universe, not one accessibility relation. But
+marking kinds of modality is exactly **multimodal logic** — an indexed family *Rᵢ* —
+which still has a standard translation (FOL with several binary relations). So most of
+the tincture apparatus is multimodal convenience the corpus's library of UoDs already
+supplies; the irreducible residue is only where it touches (a) the second-order
+content and (b) cross-world individual identity — i.e. it folds back into the genuine
+gaps above, **not** into a need for a colour mark.
+
+---
+
+## What Gamma keeps: the broken cut, rehabilitated (Zeman; Ma & Pietarinen)
+
+*(Added 2026-06-27. The credit this document most owes — and it cuts against an easy
+reading of the thesis, so it is stated fully rather than buried.)*
+
+**What they prove.** **Zeman (1964)** first connected Peirce's broken-cut graphs to
+the modern modal logics S4 and S5. **Ma & Pietarinen (2018)**, "Gamma graph calculi
+for modal logics" (*Synthese* 195(8); open-access companion "Graphical Sequent
+Calculi for Modal Logics," EPTCS 243, 2017), establish **sound and complete**
+graphical (broken-cut) calculi for a family of **fifteen** normal modal logics — base
+**Kg** plus extensions through D, T, 4, B, 5, up to **S4g** and **S5g** — with
+cut-elimination. *(Caveat owed in turn: their completeness is **algebraic** — with
+respect to modal algebras — not Kripke/relational; do not overstate it as
+frame-completeness.)* The rehabilitation is concrete: the rules "arise systematically
+from Peirce's presentation of broken-cut gamma graphs… **Only (DMN), (B) and (5) are
+new**" — and those three are precisely the ones Peirce himself resisted, given his
+epistemic (S5-rejecting) reading of the broken cut.
+
+**The diagrammatic advantages they name** — virtues the standard translation
+discards, quoted precisely:
+
+- **Position and polarity are read directly off the cut topology** — "the notion of a
+  position… is made explicit in graphical logic. This makes such graphical calculi the
+  natural home for deep inference." Scope and negation are *in the picture*, not
+  reconstructed from a quantifier prefix.
+- **No negation normal form, and no labels** — "graphs need not assume negation normal
+  form… Labels are likewise not needed," an advantage over symbolic deep-inference
+  systems.
+- **The ambient sheet absorbs structural bookkeeping for free** — because the sheet is
+  "continuous, compact, open and non-oriented," the permutation/associativity
+  equalities "follow from the basic properties of the space and therefore need no
+  separate statement." *(This is the nearest thing in their text to a "free ride" —
+  but note they do **not** use the terms "free ride," "surveyability," or "continuous
+  deformation"; those are not theirs to cite.)*
+
+**Why this matters for the thesis — allies, not opponents.** These advantages support
+Arisbe's *deeper* commitment (keep modality diagrammatic and examinable, never buried
+in a metalanguage), they do not undercut it. The genuine tension is narrower and
+worth stating exactly: Ma & Pietarinen keep the modal operator's structure **on one
+sheet**, so the *form* of necessity is itself surveyable in the topology of the cut;
+Arisbe spreads modality across the **diachronic DAG**, so the *frame* is surveyable
+but the operator's on-sheet compression is gone. Each keeps a different perspicuity.
+Arisbe takes its route because its central guarantee — identity carried inerrantly
+across a change of context — is exactly the trans-world-identity problem Peirce never
+reduced; but the choice **forgoes the broken cut's on-sheet virtue**, and that is a
+real cost, made vivid precisely *by* Ma & Pietarinen's result. The defensible claim is
+"no modal *mark* needed for Arisbe's purposes," not "Gamma is dispensable for logic."
+
+**A caution about iconicity, which sits under all of this.** The strong claim that
+diagrams are iconic or perspicuous "in senses symbolic notations are not" is
+**contested — by Pietarinen himself** ("Two Dogmas of Diagrammatic Reasoning," 2017).
+The claim Arisbe rests on is the deflated, defensible one, in Peirce's own terms: the
+graphs aim at "the closest correspondence with the process of reasoning," as "moving
+pictures of thought" — examinability, not a metaphysical privilege of the visual.
 
 ---
 
@@ -306,6 +454,43 @@ debt.*
 
 ---
 
+## References
+
+The modal model theory and the Peirce scholarship this document relies on. Arisbe
+*uses* these results; it does not originate them.
+
+- **van Benthem, J.** *Modal Correspondence Theory* (PhD, 1976) and *Modal Logic and
+  Classical Logic* (1983) — the standard translation and the characterization theorem
+  (modal logic = the bisimulation-invariant fragment of FOL). The basis of §1 and §3.
+- **Goldblatt, R.** "Mathematical Modal Logic: A View of its Evolution" / SEP *Modern
+  Origins of Modal Logic* — frame-validity as implicitly higher-order ("even
+  propositional modal logic is fundamentally second-order in nature"). Ledger point 2.
+- **Vardi, M.** "Why Is Modal Logic So Robustly Decidable?" (DIMACS, 1996/97) — the
+  locality / tree-model property the standard translation buries. Ledger point 3.
+- **Blackburn, de Rijke & Venema.** *Modal Logic* (CUP, 2001) — the internal, local
+  perspective of modal languages. Ledger point 3.
+- **Zeman, J. J.** *The Graphical Logic of C. S. Peirce* (PhD, 1964) — the broken cut
+  ↔ S4/S5 correspondence, and the open iteration rule at CP 4.516.
+- **Ma, M. & Pietarinen, A.-V.** "Gamma graph calculi for modal logics," *Synthese*
+  195(8):3621–3650 (2018); open companion "Graphical Sequent Calculi for Modal
+  Logics," EPTCS 243 (2017), 91–103 — sound-and-complete broken-cut calculi for
+  fifteen normal modal logics; the diagrammatic advantages; the broken-cut
+  rehabilitation ("only (DMN), (B), (5) are new"). The principal credit of this doc.
+- **Roberts, D. D.** *The Existential Graphs of Charles S. Peirce* (1973), esp. p. 64
+  — Gamma as second/higher-order + abstraction + graphs-of-graphs; the unfinished
+  state of Gamma.
+- **Peirce, C. S.** "Prolegomena to an Apology for Pragmaticism," *The Monist* 16
+  (1906), CP 4.530ff. — the system of tinctures (twelve tinctures, three Modes); MS R
+  467 and MS 490 (the broken-cut doubts; the trans-world "special relation").
+- **Pietarinen, A.-V.** "Two Dogmas of Diagrammatic Reasoning" (2017) — the *internal*
+  critique of strong iconicity; cited for balance. Sowa, *From Existential Graphs to
+  Conceptual Graphs* — the EG/Common-Logic interchange and IKL note.
+
+A consolidated cross-project prior-art ledger lives in
+[CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md).
+
+---
+
 *Companion to [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
 [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md),
 [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md),
@@ -313,4 +498,4 @@ debt.*
 [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md). Source:
 [references/EG-modality-conversation.pdf](references/EG-modality-conversation.pdf).*
 
-**Created**: 2026-06-18
+**Created**: 2026-06-18 · **Credits + expressibility ledger added**: 2026-06-27

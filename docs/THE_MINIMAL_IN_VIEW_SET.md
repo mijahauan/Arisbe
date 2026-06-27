@@ -197,10 +197,14 @@ of external representations to escape it. Each entry: the finding, then its impl
   | **accessibility** by box subordination | **scope** by cut nesting |
   | incremental DRS construction across sentences | the transformation chain across steps |
 
-  So a narration *is* a chain of DRSs and a DRS *is* an EG. The EG↔DRT kinship is acknowledged
-  ([SEP, "Diagrams and Diagrammatic Reasoning"](https://plato.stanford.edu/entries/diagrams/); Pietarinen's
-  endoporeutic games) but **never made operational** — no published EG→DRS reduction exists. Rendering it
-  operational is Arisbe's contribution, and it is the theoretical warrant for the narration check.
+  So a narration *is* a chain of DRSs and a DRS *is* an EG. **Credit where it is due: the structural
+  isomorphism "a DRS is (structurally) a Beta EG" is not ours — it is John Sowa's**, stated explicitly in
+  *From Existential Graphs to Conceptual Graphs* ("Kamp's DRSs … the logical structure is isomorphic to
+  Peirce's existential graphs"), and tracing to Kamp (1981), who arrived at the box-and-scope apparatus
+  independently of Peirce. What is *not* in the prior literature is the **dynamic** half: aligning EG
+  *transformation steps* with DRT *discourse-update* dynamics and **scoring** that alignment (Centering +
+  focus-stack). The static kinship is Sowa/Kamp; the operational diagram↔narration *scorer* is Arisbe's
+  contribution, and it is the theoretical warrant for the narration check.
 - **Segmented DRT.** Adds rhetorical relations (Explanation, Elaboration, Contrast…) linking Elementary
   Discourse Units into a hierarchy with a "right frontier" governing attachment ([Asher & Lascarides 2003,
   *Logics of Conversation*](https://philpapers.org/rec/ASHLOC)). *For Arisbe:* a *chain* of diagrams ↔ a chain
@@ -398,8 +402,9 @@ measurable quantity.
 - Think-aloud is valid but **incomplete** (a narrator may hold something silently). The check therefore tests
   **alignment** ("does Arisbe scope the way expert speech scopes?"), **not optimality** ("is this budget the
   cognitively ideal one?"). That is exactly the falsifiable claim the thesis makes.
-- The EG↔DRT bridge is kinship + games, not a published reduction; the `nl_to_logic` alignment is heuristic
-  ("LLM proposes, Arisbe disposes") — so element-mapping errors must be *reported*, not hidden.
+- The static EG≅DRS isomorphism is **Sowa's** (tracing to Kamp 1981); what is unpublished is the *dynamic*
+  step↔update alignment + its scorer. The `nl_to_logic` alignment is heuristic ("LLM proposes, Arisbe
+  disposes") — so element-mapping errors must be *reported*, not hidden.
 
 ### The check is already half-built
 
@@ -542,7 +547,8 @@ the breadth cliff; **(f)** is the natural diachronic companion (mostly UI over t
 
 **Highest research leverage — recommend prototyping first:** **(g), the validation harness**, even minimally on
 Praeclarum. It turns §9's rules from assertions into tested claims *before* we tune their parameters, and it
-pioneers the EG↔DRT operational bridge — a genuine contribution. Tuning S1–S5 / D1–D4 without (g) is guessing.
+operationalizes the EG↔DRT bridge — the static isomorphism is Sowa's/Kamp's, but the *dynamic*
+step↔update scorer is a genuine contribution. Tuning S1–S5 / D1–D4 without (g) is guessing.
 
 **The open architectural question (the author's to decide): (b), the reference / transclusion node.** It is the
 general form of (c) and the only real fork, because it touches `egi_core_dau` and the §3.3 contract. Three
@@ -619,6 +625,9 @@ older monographs carry their canonical stable URLs.*
 
 - Kamp, H., & Reyle, U. (1993). *From Discourse to Logic* (Studies in Linguistics and Philosophy 42). Kluwer /
   Springer. https://doi.org/10.1007/978-94-017-1616-1
+- Sowa, J. F. *From Existential Graphs to Conceptual Graphs* — states the DRS≅EG isomorphism explicitly
+  (tracing to Kamp 1981). http://www.jfsowa.com/pubs/eg2cg.pdf **(the source of the static bridge this
+  harness operationalizes — credited, not claimed).**
 - Kamp, H., van Genabith, J., & Reyle, U. (2011). Discourse Representation Theory. In D. M. Gabbay & F.
   Guenthner (Eds.), *Handbook of Philosophical Logic* (2nd ed., Vol. 15, pp. 125–394). Springer.
   https://doi.org/10.1007/978-94-007-0485-5_3
@@ -639,8 +648,11 @@ older monographs carry their canonical stable URLs.*
 - Just, M. A., & Carpenter, P. A. (1992). A capacity theory of comprehension: Individual differences in
   working memory. *Psychological Review* 99(1), 122–149. https://doi.org/10.1037/0033-295X.99.1.122
 
-*No published formal EG→DRS reduction was found — the literature records kinship (SEP; Pietarinen's
-endoporeutic games), so making the bridge **operational** is Arisbe's contribution, not a borrowed result.*
+*The **static** EG≅DRS isomorphism is published — John Sowa states it explicitly (*From Existential Graphs
+to Conceptual Graphs*: a DRS's "logical structure is isomorphic to Peirce's existential graphs"), tracing to
+Kamp (1981). What was **not** found in the literature is a **dynamic** reduction aligning EG transformation
+steps with DRT discourse updates, with a scoring metric — so the operational diagram↔narration scorer is
+Arisbe's contribution; the underlying correspondence is borrowed and credited (Sowa; Kamp & Reyle).*
 
 ### Math register & Peirce
 

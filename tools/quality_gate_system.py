@@ -41,6 +41,11 @@ def run_quality_checks():
         "tests/test_beta_converse_proof.py",
         "tests/test_logical_proof_exercises.py",
         "tests/test_induction_proofs.py",
+        # NOTE (2026-06-27): the correspondence invariant's runtime enforcers
+        # (correspondence_attestation / presentation_ops / natural_layout) are now
+        # protected modules, but the corpus-wide `test_correspondence_*` suites are
+        # NOT added here — they generate layouts (ELK) and take minutes, busting
+        # this gate's <30s budget / 180s timeout. They run in full CI instead.
     ]
 
     # Prefer the uv-managed environment (the project standard); fall back to
