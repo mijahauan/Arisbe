@@ -288,7 +288,23 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶▶ IMMEDIATE NEXT TASK (2026-06-23 directive): cross-mode UX coherence, use-case-driven.** The author
+**▶▶▶ IMMEDIATE NEXT TASK (2026-06-26 directive): walk the web server and judge presentation ↔ underlying
+ideas.** The author wants to **return to actually look at what the web server presents** (run
+`uv run uvicorn web_api.main:app --reload --port 8000`, open `/organon`, `/ergasterion`, `/agon`) and assess
+**how well the rendered experience corresponds to the underlying ideas we've implemented** — the correspondence
+invariant, the three regimes, the warrant/standing gradient, the context reflex, the chain-of-semiosis, the
+freeform draw-then-read flow, the Agon interpretation register, and the doctrine made legible (correspondence-
+not-truth, level-zero, fidelity/departures). This is an **observe-and-assess pass first, not a build**: drive
+each mode like a real user, catalogue where the screen faithfully *shows* an implemented idea vs. where the idea
+is real in the code but invisible/garbled/misleading on screen, and bring the gaps back to the author before
+editing. (Much backend/doctrine has shipped while the *interface's* faithfulness to it went unaudited; the last
+true UX passes were cross-mode coherence pass 1 (2026-06-24) and the 2026-06-15 consistency pass. The
+just-built diagram↔narration harness is a *measurement* tool, not surfaced in the UI — consider whether any of
+its in-view findings should inform what the viewer shows.) Use the `verify`/`run` skills to launch and observe.
+*(The cross-mode UX coherence arc below is the prior framing; this directive narrows it to "does the picture on
+screen match the idea in the code?")*
+
+**▶▶ Prior framing (2026-06-23 directive): cross-mode UX coherence, use-case-driven.** The author
 wants to return to the **whole-experience** UX across the three modes — Organon, Ergasterion, Agon — judged
 against **several distinctly different use cases** (not internal-consistency drift, the 2026-06-15 pass
 already did that). Two goals: **(1) a recognizable, consistent experience** — a user moving between modes
