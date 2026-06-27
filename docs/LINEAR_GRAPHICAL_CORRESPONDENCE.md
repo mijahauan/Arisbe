@@ -117,6 +117,43 @@ freedom to scramble, recombine, and read from an unearned perspective is how
 inquiry probes and expands. Exploration suspends *assertion*, never the
 *legibility* of coherence.
 
+### 3.0.1 Two legs, two guards — what is attested at runtime and what in CI
+
+"Linear *and* graphical denote the same object" is, mechanically, a **triangle**:
+the EGI is the apex, and the invariant has two legs — **EGI ↔ drawing** and
+**EGI ↔ linear form** (EGIF/CGIF/CLIF). The linear↔graphical relation the title
+names is mediated through the EGI; it holds exactly when both legs hold. The two
+legs are real and are guarded by **two different mechanisms**, and the difference
+is principled — it tracks the *drift surface*, not the importance:
+
+| Leg | Guard | When | Why this guard suffices |
+|---|---|---|---|
+| EGI ↔ **drawing** | `attest_correspondence` (§3.3), a pure function of `(EGI, LayoutDTO)` — it never inspects any linear form | **runtime**, at every render and every load/save boundary (§6) | The drawing is the output of an **optimizer** (ELK / SMACOF / tension) that *searches* for geometry and can fail per-instance and silently — a cut that fails to contain its contents, a ligature crossing the wrong boundary. A fallible producer demands a per-instance runtime check. |
+| EGI ↔ **linear form** | round-trip property tests (`tests/test_properties_round_trip.py`, `…cgif_clif_round_trip.py`, `test_tomos_parsing.py`): `parse → generate → parse` preserves `\|V\|, \|E\|, \|Cut\|` (and `same_graph`) over the whole corpus | **test-time**, in CI | Linear generation is a **deterministic, syntax-directed translation** — `generate_egif(egi)` is pure and total over valid EGIs, with `parse` its inverse. There is no per-instance failure mode: if the *function* is correct, *every* output is. A function-level proof discharges it. |
+
+So `attest_correspondence` guards only the drawing leg — confirmed by construction
+(`src/correspondence_attestation.py` imports `LayoutDTO`, never a parser/generator).
+The linear leg is closed entirely by the round-trip suites
+(`tests/test_properties_round_trip.py`, `…cgif_clif_round_trip.py`, `test_tomos_parsing.py`).
+One leg rides a fallible optimizer (needs runtime attestation); the other rides an
+infallible-once-tested translator (needs only CI). Together they close the triangle.
+
+**This is why the protected core looks the way it does.** The runtime §3.3 enforcers
+(`correspondence_attestation`, `presentation_ops`, `natural_layout`) are bedrock —
+a silent edit disables a *runtime* guarantee nothing else replaces — and are in the
+protected set. The EGIF/CGIF/CLIF parsers/generators are **not**: they sit on the
+test-guarded leg, where a regression is caught deterministically by the round-trip
+suite, so they were removed from the set (2026-06-27). The protected core thus maps
+onto *the calculus + the runtime drift surface*, which is exactly the leg of this
+triangle that can fail per-instance.
+
+**One honest caveat.** There is, today, **no runtime attestation that a linear form
+shown in the UI matches the EGI** — the `LinearFormPanel` trusts the generator's
+tested correctness. That is sound *because* generation is deterministic. If a future
+linear renderer became non-deterministic (e.g. a stylistic or LLM-assisted
+serialization), that leg would lose its correct-by-construction guarantee and would
+have to **move to runtime attestation** alongside the drawing leg.
+
 ### 3.1 EGI → drawing (the "render" direction)
 
 Given an EGI, produce a drawing whose structure preserves the EGI. This is what [elk_layout_engine.py](../src/elk_layout_engine.py) + [simple_svg_renderer.py](../src/simple_svg_renderer.py) do today: EGI → `LayoutDTO` → SVG.
