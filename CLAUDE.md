@@ -26,7 +26,7 @@ uv run python tools/core_protection_system.py --report  # Check protected module
 uv run python tools/daily_quality_dashboard.py     # Overall system status
 
 # Web viewer (canonical UI as of May 2026)
-uv run uvicorn web_api.main:app --reload --port 8000   # API + static viewer at /
+uv run uvicorn --app-dir src web_api.main:app --reload --port 8000   # API + static viewer at /
 ```
 
 The Qt-based GUI (`arisbe.py`, `src/gui_clean/`) and its `unified_d3` layout

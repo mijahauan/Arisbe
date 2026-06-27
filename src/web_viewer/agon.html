@@ -429,6 +429,13 @@
             agonModels.examples.forEach(e=>{ const o=document.createElement('option'); o.value='ex:'+e.id; o.textContent=e.title; og.appendChild(o); }); pick.appendChild(og); }
           if((agonModels.corpus||[]).length){ const og=document.createElement('optgroup'); og.label='Corpus models';
             agonModels.corpus.forEach(c=>{ const o=document.createElement('option'); o.value='uod:'+c.uod_id; o.textContent=c.title; og.appendChild(o); }); pick.appendChild(og); }
+          // Land on a worked example so the arena is runnable on arrival: with
+          // empty fields the placeholders read as if pre-filled, and "Does G
+          // hold in M?" just reports "enter a proposal G". A clean TRUE scenario
+          // shows a newcomer the whole loop at once; experts re-pick or clear it.
+          if((agonModels.examples||[]).some(e=>e.id==='teacher-mammals')){
+            pick.value='ex:teacher-mammals'; onPickModel();
+          }
         }catch(_){}
       }
       function onPickModel(){

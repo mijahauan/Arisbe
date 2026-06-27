@@ -432,4 +432,4 @@ good reasoning Peirce spent his life trying to cultivate.
 - **The central contract (picture = proposition):** [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
 - **The formal account of the game:** [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md)
 - **Run it:** `uv sync --extra dev --extra web` then
-  `uv run uvicorn web_api.main:app --reload --port 8000` and open `/organon`.
+  `uv run uvicorn --app-dir src web_api.main:app --reload --port 8000` and open `/organon`.

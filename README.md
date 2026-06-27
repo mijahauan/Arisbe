@@ -271,7 +271,7 @@ uv sync --extra dev   # Python 3.12; see pyproject.toml
 ### Launch the web viewer (canonical UI as of May 2026)
 
 ```bash
-uv run uvicorn web_api.main:app --reload --port 8000
+uv run uvicorn --app-dir src web_api.main:app --reload --port 8000
 # Open http://localhost:8000/ in a browser.
 ```
 

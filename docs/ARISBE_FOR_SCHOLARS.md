@@ -157,4 +157,4 @@ logic.
   [MANIFEST\_AND_MEANING.md](MANIFEST_AND_MEANING.md).
 - **The corpus and import model:** [CORPUS\_AND\_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md).
 - **Run it:** `uv sync --extra dev` then
-  `uv run uvicorn web_api.main:app --reload --port 8000` and open `/organon`.
+  `uv run uvicorn --app-dir src web_api.main:app --reload --port 8000` and open `/organon`.

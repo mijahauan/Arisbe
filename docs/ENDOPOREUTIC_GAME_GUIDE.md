@@ -2019,7 +2019,7 @@ Interactive play happens in the browser, not a terminal REPL. Start the web
 app and open the Agon arena:
 
 ```bash
-uv run uvicorn web_api.main:app --reload --port 8000
+uv run uvicorn --app-dir src web_api.main:app --reload --port 8000
 # then open http://localhost:8000/agon
 ```
 

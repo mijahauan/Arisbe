@@ -88,13 +88,18 @@ def page(app_url):
 
 
 def _enter_freeform_with_challenge(page, app_url):
-    """Start an empty composition, open the freeform canvas, and wait for the
-    challenge picker to populate from /ergasterion/challenges."""
+    """Start an empty composition, open the freeform canvas + the challenge
+    disclosure, and wait for the challenge picker to populate from
+    /ergasterion/challenges.  The challenge picker lives in an always-present
+    ``<details>`` during composition (so a learner can find it without first
+    discovering freeform mode); open it to reach the select."""
     page.goto(app_url + "/ergasterion")
     page.click("#btn-start-empty")
     page.wait_for_selector("#workspace-switch", state="visible")
     page.click("#btn-freeform-toggle")
     page.wait_for_selector("#freeform-tools", state="visible")
+    page.click("#challenge-details > summary")
+    page.wait_for_selector("#challenge-select", state="visible")
     page.wait_for_function(
         "document.querySelectorAll('#challenge-select option').length > 1",
         timeout=10000)

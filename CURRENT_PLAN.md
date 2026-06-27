@@ -1,6 +1,38 @@
 # Current Plan
 
-**Last Updated**: 2026-06-26. **▶▶▶ This session (2026-06-26) — BUILD (g): the diagram↔narration validation
+**Last Updated**: 2026-06-26. **▶▶▶ This session (2026-06-26) — WEB PRESENTATION AUDIT (observe-and-assess)
+→ 5 fidelity fixes shipped.** Walked the running web server across all three modes with headless Chromium
+(drove each like a real user, captured + read ~30 screenshots), judging how faithfully the rendered screen shows
+the implemented ideas. **Verdict: the experience corresponds FAITHFULLY — no idea is garbled or
+misrepresented; the gaps were polish + onboarding.** Organon: standing/warrant badges, the full provenance
+bundle, the chain-of-semiosis player (per-move rule + narration, e.g. "INS — Insert Q into the cut holding the
+iterated (P⊃R)"), clean nested-cut drawings, the context reflex + correspondence chord all read true.
+Ergasterion: the regime-1 labeling, the Graph↔Argument lock/unlock contract (rules appear only after ① fix),
+the typed-mark palette + freeform draw + Fragment graft, the scratch/Agon-only mode contract, fold-to-define,
+and the dragon challenges all faithful. Agon: the triadic framing, the ①-board-stays-present with the peel
+transcript (verifier/falsifier moves + witnesses), the verdict-coherent disposition taxonomy (nothing
+auto-asserts), and the inverse pivot all faithful. **Then, at the author's direction ("do all but 4 and 7"),
+shipped 5 fixes (all additive; core-protection CLEAN):** **(1)** the documented launch command
+(`uvicorn web_api.main:app`) **failed** — `ModuleNotFoundError: web_api` — fixed to the self-contained
+`uvicorn --app-dir src web_api.main:app` across all 7 docs (CLAUDE/AGENTS/README/CURRENT_PLAN + 3 docs/).
+**(2)** Agon now **lands on a worked example** (`teacher-mammals`, a clean TRUE) so the arena is runnable on
+arrival — the empty fields' placeholders had read as if pre-filled, and "Does G hold in M?" just reported
+"enter a proposal G". **(3)** Ergasterion **challenge mode surfaced** — lifted from two-levels-deep inside the
+freeform tools into an always-visible `🎯 Challenge` disclosure during composition; picking a target now
+auto-engages the freeform canvas for the learner. **(5)** Organon's header **`shape` is qualified at the base
+frame** (`0V / 0E / 0C · starting context`) so the blank starting context no longer reads as the theorem's own
+(empty) shape; the qualifier drops as you step. **(6) VERIFIED, no fix needed** — the witness/counterexample
+line-of-identity **does** light on the Agon board (DOM-confirmed maroon `#eba0ac` stroke on the Biscuit
+counterexample; green for an existential witness); the universal-TRUE case I'd flagged has **no single witness
+by design**, so its un-lit line was correct. Tests: route+challenge+interpretation suites green (133), agon /
+challenge / freeform / define / organon-lenses / context-reflex E2E green; updated `test_ergasterion_challenge_e2e`
+to open the new disclosure. **DEFERRED for the author's decision (4 & 7):** **(4)** the Context reflex floats as
+an absolute top-left overlay on every board — the one shared element that can sit over the drawing (dock vs
+auto-dim?); **(7)** the newcomer / EGIF-authoring on-ramp (a non-logician can read a lit verdict but can't yet
+easily author M/G — already flagged 2026-06-24). [[project_next_cross_mode_ux_coherence]]. *(Prior 2026-06-26
+session — BUILD (g) the diagram↔narration harness — below.)*
+
+**▶▶▶ Prior this session (2026-06-26) — BUILD (g): the diagram↔narration validation
 harness, prototyped → corpus → SUPER-BUDGET chain (the spatial S1 metric now live).** Third iteration:
 authored the corpus's first **super-budget** worked chain — `tomos/universes/crowded_modus_ponens`
 (`tools/build_crowded_modus_ponens_chain.py`): the fact `(A)` + the matching rule `A⊃B` among **ten unrelated
@@ -288,9 +320,37 @@ freeform history is condensed below; per-module mechanics live in git/docs/memor
 
 ## ▶ NEXT SESSION — start here
 
-**▶▶▶ IMMEDIATE NEXT TASK (2026-06-26 directive): walk the web server and judge presentation ↔ underlying
+**✅ DONE 2026-06-26 — the web-presentation audit ran + 5 fidelity fixes shipped (see the ▶▶▶ This session
+block at the top).** Verdict: the rendered experience corresponds faithfully to the implemented ideas. Fixed
+items 1/2/3/5 (launch-command doc bug · Agon worked-example default · challenge-mode discoverability · Organon
+base-frame shape qualifier) and verified item 6 (witness line lights — no fix needed).
+
+**▶▶▶ IMMEDIATE NEXT TASK (2026-06-27 directive): a CONSOLIDATION / planning pass — a tighter top-down
+description of Arisbe (a "Vision & Scope + current-capability map + trajectory" spine) to serve three goals the
+author named:** (a) capture retrospectively *what Arisbe does and why*, (b) state its *trajectory toward
+fruition*, (c) enable focus / prioritization + onboarding of new collaborators. The author is not a trained
+software engineer and did not start from a requirements doc; the raw material is abundant but **distributed and
+episodic** (CURRENT_PLAN is a session-log palimpsest, not a spec; the docs/ spine is topic-deep but
+context-assuming; much is implicit in `tests/` + the protected-core set). **This is consolidation/synthesis,
+NOT from-scratch authoring** — the new spine should be thin and LINK to the deep docs, not restate them. See
+the session-opening advice memo (to be written) for the recommended artifact shape + method (reverse-engineer
+the de-facto requirements from tests + docs spine + `core_protection_system` set, then synthesize). Explicitly
+**avoid heavyweight SRS/IEEE-830 ceremony** — wrong fit for a research-grade project. Decisions to settle at
+session start: single-doc vs small set; how much roadmap detail; audience (solo-author vs newcomer-facing).
+
+**▶▶ MARKED FOR RECONSIDERATION LATER (author's call 2026-06-27 — do NOT pick up without a fresh directive):**
+- **(4) the Context reflex overlay.** Leave as-is for now. It floats absolute top-left over every board (the
+  one shared element that can occlude a left-heavy/large drawing). Revisit: dock-as-a-column vs
+  auto-dim/collapse-on-overlap vs leave. (`js/context-reflex.js`, all 3 modes.)
+- **(7) the newcomer / EGIF-authoring on-ramp.** A non-logician can now read a lit Agon verdict + land on a
+  worked example, but still can't easily *author* their own M/G (jargon thrown cold at `index.html` + the
+  Agon/Ergasterion setup). The larger, longstanding UX arc (first flagged 2026-06-24).
+
+*(The original audit directive, now discharged, follows for the record.)*
+
+**▶▶▶ ORIGINAL DIRECTIVE (2026-06-26, DISCHARGED): walk the web server and judge presentation ↔ underlying
 ideas.** The author wants to **return to actually look at what the web server presents** (run
-`uv run uvicorn web_api.main:app --reload --port 8000`, open `/organon`, `/ergasterion`, `/agon`) and assess
+`uv run uvicorn --app-dir src web_api.main:app --reload --port 8000`, open `/organon`, `/ergasterion`, `/agon`) and assess
 **how well the rendered experience corresponds to the underlying ideas we've implemented** — the correspondence
 invariant, the three regimes, the warrant/standing gradient, the context reflex, the chain-of-semiosis, the
 freeform draw-then-read flow, the Agon interpretation register, and the doctrine made legible (correspondence-

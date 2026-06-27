@@ -1275,8 +1275,14 @@
         if (cp.next) cp.next.disabled = chainIndex === total;
         if (cp.last) cp.last.disabled = chainIndex === total;
         // Keep the header "shape" counts in step with the frame on screen.
+        // The base frame is the blank/asserted starting context (often 0/0/0),
+        // so qualify it — otherwise the bare counts read as the theorem's own
+        // shape rather than the empty sheet the derivation starts from.
         const shapeEl = document.getElementById('shape-counts');
-        if (shapeEl && f.egi_summary) shapeEl.textContent = shapeText(f.egi_summary);
+        if (shapeEl && f.egi_summary) {
+          shapeEl.textContent = shapeText(f.egi_summary) +
+            (f.kind === 'base' ? ' · starting context' : '');
+        }
       }
 
       function togglePlay() {

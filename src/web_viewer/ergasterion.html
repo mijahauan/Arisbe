@@ -683,6 +683,28 @@
                  docs/FREEFORM_COMPOSITION_AND_LEARNING.md. -->
             <div id="freeform-block" style="margin: 10px 0; border-top: 1px solid var(--ctp-surface0); padding-top: 8px;">
               <button class="action" id="btn-freeform-toggle" title="Draw marks freely; read them into the graph at gate ①">✎ Freeform draw</button>
+
+              <!-- Challenge mode (build step 4): pick a linear form, draw it
+                   freehand, grade against the target with the legible diff. Kept
+                   here (always visible during composition, not buried inside the
+                   freeform tools) so a learner can find "practice reading a graph"
+                   without first discovering freeform mode — picking a target
+                   engages the draw tools for them.
+                   docs/FREEFORM_COMPOSITION_AND_LEARNING.md -->
+              <details id="challenge-details" style="margin-top:8px; border-top:1px dashed var(--ctp-surface0); padding-top:8px;">
+                <summary style="font-size:11px; color:var(--ctp-text); cursor:pointer;">🎯 Challenge — read a target, draw it, get graded</summary>
+                <div id="challenge-block" style="margin-top:6px;">
+                  <div style="font-size:9px; color:var(--ctp-overlay0); margin:0 0 4px;">🐉 entries are the
+                    <em>dragons</em> from the field guide — draw one to meet a classic pitfall safely.</div>
+                  <select id="challenge-select" style="width:100%; margin:4px 0; font-size:11px; background:var(--ctp-base); color:var(--ctp-text); border:1px solid var(--ctp-surface0);">
+                    <option value="">— pick a graph to reproduce —</option>
+                  </select>
+                  <div id="challenge-prompt" style="font-size:11px; color:var(--ctp-yellow); min-height:14px;"></div>
+                  <button class="action" id="btn-grade-challenge" disabled>✓ Grade my drawing</button>
+                  <div id="challenge-result" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
+                </div>
+              </details>
+
               <div id="freeform-tools" style="display:none; margin-top:6px;">
                 <div class="palette-grid">
                   <button class="action" data-fftool="select" title="Move marks">↺ Move</button>
@@ -696,21 +718,6 @@
                 <div id="freeform-area" style="font-size:10px; color:var(--ctp-blue); min-height:14px; margin:4px 0;"></div>
                 <button class="action" id="btn-read-drawing">👁 Read it now — what does it say?</button>
                 <div id="freeform-validity" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
-
-                <!-- Challenge mode (build step 4): pick a linear form, draw it
-                     freehand, grade against the target with the legible diff.
-                     docs/FREEFORM_COMPOSITION_AND_LEARNING.md -->
-                <div id="challenge-block" style="margin-top:8px; border-top:1px dashed var(--ctp-surface0); padding-top:6px;">
-                  <label style="font-size:10px; color:var(--ctp-text);">🎯 Challenge — read this, then draw it:</label>
-                  <div style="font-size:9px; color:var(--ctp-overlay0); margin:2px 0 4px;">🐉 entries are the
-                    <em>dragons</em> from the field guide — draw one to meet a classic pitfall safely.</div>
-                  <select id="challenge-select" style="width:100%; margin:4px 0; font-size:11px; background:var(--ctp-base); color:var(--ctp-text); border:1px solid var(--ctp-surface0);">
-                    <option value="">— pick a graph to reproduce —</option>
-                  </select>
-                  <div id="challenge-prompt" style="font-size:11px; color:var(--ctp-yellow); min-height:14px;"></div>
-                  <button class="action" id="btn-grade-challenge" disabled>✓ Grade my drawing</button>
-                  <div id="challenge-result" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
-                </div>
               </div>
             </div>
             <button class="action primary" id="btn-fix-graph">① Fix this graph</button>
@@ -2843,6 +2850,16 @@
         } catch (err) { /* non-fatal: challenge mode just stays empty */ }
       }
 
+      // Opening the Challenge disclosure populates the picker (it no longer
+      // rides on first entering freeform mode, since the picker is now visible
+      // during composition without it).
+      const challengeDetails = document.getElementById('challenge-details');
+      if (challengeDetails) {
+        challengeDetails.addEventListener('toggle', () => {
+          if (challengeDetails.open) loadChallenges();
+        });
+      }
+
       if (challengeSelect) {
         challengeSelect.addEventListener('change', () => {
           const c = challengeBank.find((x) => x.id === challengeSelect.value);
@@ -2851,6 +2868,9 @@
             if (btnGradeChallenge) btnGradeChallenge.disabled = true;
             return;
           }
+          // A challenge is drawn freehand, so arm the freeform canvas for the
+          // learner rather than make them find the "✎ Freeform draw" button.
+          if (!freeformOn && btnFreeformToggle) btnFreeformToggle.click();
           challengePromptEl.innerHTML =
             'Draw: <code>' + escapeHtml(c.prompt_egif) + '</code>' +
             (c.hint ? '<div style="color:var(--ctp-overlay0); margin-top:2px;">' +

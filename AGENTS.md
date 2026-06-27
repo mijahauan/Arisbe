@@ -470,7 +470,7 @@ egi = load_egi_json("my_diagram.json")  # Deltas restored automatically
 
 ## 🖥️ UI - Three-Mode Architecture (web)
 - **Status**: All three mode routes live in the web app (`/organon`, `/ergasterion`, `/agon`)
-- **Launch**: `uv run uvicorn web_api.main:app --reload --port 8000`
+- **Launch**: `uv run uvicorn --app-dir src web_api.main:app --reload --port 8000`
 - **Note**: The earlier Qt/PySide6 GUI (`src/gui_clean/`) was archived to `archive/qt-gui-2025/` (May 2026)
 
 ### Universe of Discourse Model (✅ PRODUCTION 2025-10-14)
