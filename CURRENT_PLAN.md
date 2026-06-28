@@ -1,15 +1,30 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION (set 2026-06-28) — RETURN TO UX + the pending UX issues.** The author wants to come back
-to the web experience and work the open UX threads. They are consolidated in [docs/ROADMAP.md](docs/ROADMAP.md):
+**▶▶▶ THIS SESSION (2026-06-28) — UX: shipped (#5) the Context-reflex overlay docking (auto-dim-on-overlap).**
+The reflex panel floated absolute top-left over every board and could occlude a left-heavy / frame-filling
+drawing. Chose **auto-dim-on-overlap** (over dock-as-column / leave) — the only option that is uniform across
+all three modes with no per-mode layout surgery and **zero regression** when there's no overlap. All in
+`web_viewer/js/context-reflex.js`: the panel watches the drawn extent (the `.svg-pan-zoom_viewport` group's
+screen rect — the same measure `DiagramViewer._contentFitsViewport` uses) and toggles `cx-occluding` when the
+*open* panel overlaps it → the panel recedes to a faint "Context" chip and its body becomes **click-through**
+(`pointer-events:none`) so nothing under it is unreachable; **hover/focus** (`cx-peek`) restores it in full.
+Because `fit`+`centre` leaves margins, the picture only reaches the top-left corner when it is genuinely large,
+so a small/centred drawing leaves the panel untouched. Re-tested on render, on camera changes (wheel-zoom /
+pan-drag end, rAF-coalesced) and on resize; opacity/background only, so the overlap test never oscillates.
+Exposed `recomputeOcclusion` / `_rectsOverlap`. Tests: +2 in `test_context_reflex_e2e.py` (the `_rectsOverlap`
+logic on every mode page + a deterministic synthetic-host occluding/peek check); all 5 green, adjacent
+Agon/Organon E2E (13) green, core-protection CLEAN. Verified visually (headless Chromium): dimmed → faint chip
++ drawing shows through; peek → full ground panel back. Docs: ROADMAP #5 → DONE, WEB_VIEWER_DESIGN §5 +
+docking paragraph. [[project_context_reflex_built]], [[project_next_cross_mode_ux_coherence]].
+
+**▶▶▶ NEXT SESSION — the remaining open UX threads** (consolidated in [docs/ROADMAP.md](docs/ROADMAP.md)):
+**(#2) render-M UI** — the safe near-term build the in-view-set work teed up (a ground/legend panel + a
+relevant-neighborhood M-render; extends shipped `domain_oracle` + adaptive-scope code, no core change);
 **(#4) the newcomer / EGIF-authoring on-ramp** — the largest open UX arc (a non-logician can read a lit Agon
 verdict + land on a worked example, but still can't easily *author* their own M/G; jargon thrown cold at
-`index.html` + the Agon/Ergasterion setup); **(#5) the Context-reflex overlay docking** — it floats absolute
-top-left over every board and can occlude a left-heavy drawing (dock-as-column vs auto-dim-on-overlap vs
-leave; `web_viewer/js/context-reflex.js`, all 3 modes); **(#2) render-M UI** — the safe near-term build the
-in-view-set work teed up (a ground/legend panel + a relevant-neighborhood M-render; extends shipped code, no
-core change). Background: the last UX passes were cross-mode coherence pass 1 (2026-06-24) and the
-web-presentation fidelity audit (2026-06-26). The capability map + roadmap + the cross-mode-UX memory
+`index.html` + the Agon/Ergasterion setup; would start with design). Background: the last UX passes were
+cross-mode coherence pass 1 (2026-06-24), the web-presentation fidelity audit (2026-06-26), and this
+session's context-reflex docking. The capability map + roadmap + the cross-mode-UX memory
 ([[project_next_cross_mode_ux_coherence]]) hold the full context; start there.
 
 **Last Updated**: 2026-06-27. **▶▶▶ This session (2026-06-27) — CONSOLIDATION / PLANNING SPINE shipped + the

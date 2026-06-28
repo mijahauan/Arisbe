@@ -34,6 +34,17 @@
  * Open/closed state and the last-selected element persist on the *host*
  * (dataset), so they survive the innerHTML swap a re-render performs.
  *
+ * Docking (auto-dim-on-overlap): the panel floats top-left over the board, so a
+ * left-heavy or frame-filling drawing can sit beneath it. Rather than dock it
+ * into a per-mode column, the panel watches the drawn extent (the
+ * `.svg-pan-zoom_viewport` group's screen rect — the same measure
+ * DiagramViewer._contentFitsViewport uses): when the open panel overlaps the
+ * picture it dims to a faint "Context" chip and lets clicks fall *through* to
+ * the elements behind it (so nothing under it becomes unreachable); hover or
+ * focus restores it in full. Fit+centre leaves margins, so the picture only
+ * reaches the top-left corner when it is genuinely large — which is exactly the
+ * occlusion case. No overlap ⇒ the panel is unchanged (zero regression).
+ *
  * Guardrail (manifest floor #6, no mark bears actuality): polarity is stated
  * in WORDS, never hue — hue/line-style stay reserved for Gamma. This is a
  * meta-affordance about a graph, not a mark on it.
@@ -73,7 +84,21 @@
       '.cx-crumb-here{color:var(--sidebar-accent,#89b4fa);font-weight:600;}' +
       '.cx-sep{color:#585b70;padding:0 2px;}' +
       '.cx-elem-meta{font-size:10px;color:#a6adc8;}' +
-      '.cx-badge-slot{display:inline-flex;align-items:center;}';
+      '.cx-badge-slot{display:inline-flex;align-items:center;}' +
+      // Auto-dim-on-overlap: when the open panel covers the drawing it recedes
+      // to a faint chip and the body lets clicks pass through to the picture
+      // beneath; hover/focus (cx-peek) brings it back. Opacity/background only —
+      // no layout change, so the overlap test never oscillates.
+      '.cx-panel.cx-occluding{background:transparent;border-color:transparent;box-shadow:none;}' +
+      '.cx-panel.cx-occluding>summary{background:rgba(30,30,46,0.5);border-radius:5px;' +
+      'opacity:0.6;transition:opacity .2s,background .2s;}' +
+      '.cx-panel.cx-occluding .cx-body{opacity:0.07;pointer-events:none;' +
+      'border-top-color:transparent;transition:opacity .2s;}' +
+      '.cx-panel.cx-occluding.cx-peek{background:var(--sidebar-bg,#1e1e2e);' +
+      'border-color:var(--bottombar-border,#313244);box-shadow:0 4px 14px rgba(0,0,0,0.35);}' +
+      '.cx-panel.cx-occluding.cx-peek>summary{background:transparent;opacity:1;}' +
+      '.cx-panel.cx-occluding.cx-peek .cx-body{opacity:1;pointer-events:auto;' +
+      'border-top-color:var(--bottombar-border,#313244);}';
     var style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = css;
@@ -179,6 +204,62 @@
     return n;
   }
 
+  // --- Auto-dim-on-overlap (docking) ------------------------------------
+
+  // Axis-aligned rectangle intersection.
+  function rectsOverlap(a, b) {
+    return !!a && !!b &&
+      a.left < b.right && a.right > b.left &&
+      a.top < b.bottom && a.bottom > b.top;
+  }
+
+  // The screen rect of the *drawn* extent — the svg-pan-zoom viewport group, the
+  // same measure DiagramViewer uses to decide a re-fit. Returns null when it
+  // can't be measured, so an unknown never dims the panel (conservative: keep
+  // the info readable rather than hide it on a guess).
+  function contentRect(host) {
+    var svg = host.querySelector('svg');
+    if (!svg) return null;
+    var vp = svg.querySelector('.svg-pan-zoom_viewport');
+    if (!vp) return null;
+    var r = vp.getBoundingClientRect();
+    if (!r || !r.width || !r.height) return null;
+    return r;
+  }
+
+  // Toggle .cx-occluding on the panel by whether it (open) overlaps the picture.
+  function recomputeOcclusion(host) {
+    if (!host) return;
+    var panel = host.querySelector('.cx-panel');
+    if (!panel) return;
+    if (!panel.open) { panel.classList.remove('cx-occluding'); return; }
+    var cr = contentRect(host);
+    var pr = panel.getBoundingClientRect();
+    if (!cr || !pr || !pr.width) { panel.classList.remove('cx-occluding'); return; }
+    if (rectsOverlap(pr, cr)) panel.classList.add('cx-occluding');
+    else panel.classList.remove('cx-occluding');
+  }
+
+  // rAF-coalesced recompute — pan/zoom can fire many events per frame.
+  function scheduleOcclusion(host) {
+    if (!host || host._cxOccRaf) return;
+    host._cxOccRaf = requestAnimationFrame(function () {
+      host._cxOccRaf = 0;
+      recomputeOcclusion(host);
+    });
+  }
+
+  // Camera changes (wheel-zoom, pan-drag end) and window resize move the drawn
+  // extent under the panel — re-test then. Bound once per host.
+  function bindOcclusionListeners(host) {
+    if (host._cxOccBound) return;
+    host._cxOccBound = true;
+    ['wheel', 'pointerup', 'mouseup'].forEach(function (ev) {
+      host.addEventListener(ev, function () { scheduleOcclusion(host); }, { passive: true });
+    });
+    window.addEventListener('resize', function () { scheduleOcclusion(host); });
+  }
+
   function groundHtml(ground) {
     ground = ground || {};
     var rows = [];
@@ -266,6 +347,7 @@
     body.innerHTML =
       groundHtml(state.ground) +
       structHtml(state.introspection, host.dataset.cxSel || null);
+    scheduleOcclusion(host);
   }
 
   function render(host, opts) {
@@ -294,9 +376,22 @@
 
     panel.addEventListener('toggle', function () {
       host.dataset.cxOpen = panel.open ? '1' : '0';
+      scheduleOcclusion(host);
     });
 
+    // Hover / focus the panel to bring a dimmed (occluding) panel back in full.
+    // While dimmed the body is click-through, so the summary chip is the handle.
+    panel.addEventListener('mouseenter', function () { panel.classList.add('cx-peek'); });
+    panel.addEventListener('mouseleave', function () { panel.classList.remove('cx-peek'); });
+    panel.addEventListener('focusin', function () { panel.classList.add('cx-peek'); });
+    panel.addEventListener('focusout', function () { panel.classList.remove('cx-peek'); });
+
+    bindOcclusionListeners(host);
     paint(host);
+    // The picture settles after svg-pan-zoom's fit/centre (and any camera dolly
+    // or survivor transition) — re-test once those land.
+    setTimeout(function () { recomputeOcclusion(host); }, 80);
+    setTimeout(function () { recomputeOcclusion(host); }, 560);
   }
 
   function select(host, elementId) {
@@ -317,5 +412,7 @@
     clearSelect: clearSelect,
     enclosureChain: enclosureChain,
     describeElement: describeElement,
+    recomputeOcclusion: recomputeOcclusion,
+    _rectsOverlap: rectsOverlap,
   };
 })();

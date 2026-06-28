@@ -162,4 +162,69 @@ def test_context_reflex_module_present_and_correct(page, app_url, mode):
     )
     assert desc["kind"] == "edge" and desc["throughLines"] == 1
 
+    # The auto-dim-on-overlap helper is exported and its rectangle logic is sound.
+    overlaps = page.evaluate(
+        "() => window.ContextReflex._rectsOverlap("
+        "{left:0,top:0,right:100,bottom:100}, {left:50,top:50,right:150,bottom:150})"
+    )
+    apart = page.evaluate(
+        "() => window.ContextReflex._rectsOverlap("
+        "{left:0,top:0,right:40,bottom:40}, {left:60,top:60,right:120,bottom:120})"
+    )
+    assert overlaps is True and apart is False
+
     assert not page._errs, f"console/page errors on {mode}: {page._errs[:5]}"
+
+
+def test_context_reflex_auto_dims_when_it_covers_the_drawing(page, app_url):
+    """The docking behaviour: an open panel that overlaps the drawn extent gets
+    `cx-occluding` (so the picture shows through); when the picture sits clear of
+    it the panel is untouched; hovering brings a dimmed panel back (`cx-peek`).
+    Driven on a synthetic host so the geometry is deterministic, not layout-dependent."""
+    page.goto(app_url + "/organon")
+    page.wait_for_function("() => !!window.ContextReflex", timeout=15000)
+
+    # Build a host with a drawing whose extent FILLS it → the top-left panel overlaps.
+    covered = page.evaluate(
+        """() => {
+          const host = document.createElement('div');
+          host.style.cssText = 'position:relative;width:600px;height:400px';
+          host.innerHTML =
+            '<svg width="600" height="400">' +
+            '<g class="svg-pan-zoom_viewport">' +
+            '<rect x="0" y="0" width="600" height="400" fill="#888"/></g></svg>';
+          document.body.appendChild(host);
+          window.ContextReflex.render(host, { ground: { universe: 'Test' }, introspection: null });
+          window.ContextReflex.recomputeOcclusion(host);
+          const panel = host.querySelector('.cx-panel');
+          const occluding = panel.classList.contains('cx-occluding');
+          // Hover → peek restores it.
+          panel.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+          const peeked = panel.classList.contains('cx-peek');
+          host.remove();
+          return { occluding, peeked };
+        }"""
+    )
+    assert covered["occluding"] is True, "panel over the drawing should dim"
+    assert covered["peeked"] is True, "hover should restore (peek) a dimmed panel"
+
+    # Build a host with the drawing tucked into the bottom-right → no overlap.
+    clear = page.evaluate(
+        """() => {
+          const host = document.createElement('div');
+          host.style.cssText = 'position:relative;width:600px;height:400px';
+          host.innerHTML =
+            '<svg width="600" height="400">' +
+            '<g class="svg-pan-zoom_viewport">' +
+            '<rect x="430" y="300" width="150" height="90" fill="#888"/></g></svg>';
+          document.body.appendChild(host);
+          window.ContextReflex.render(host, { ground: { universe: 'Test' }, introspection: null });
+          window.ContextReflex.recomputeOcclusion(host);
+          const occluding = host.querySelector('.cx-panel').classList.contains('cx-occluding');
+          host.remove();
+          return occluding;
+        }"""
+    )
+    assert clear is False, "panel clear of the drawing should not dim"
+
+    assert not page._errs, f"console/page errors: {page._errs[:5]}"

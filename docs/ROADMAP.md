@@ -98,9 +98,12 @@ front-end (G) and challenge mode.
 
 ## Backlog (one-liners)
 
-5. **Context-reflex overlay docking** — FRONTIER · *marked for reconsideration*. The reflex floats
-   absolute top-left over every board (can occlude a left-heavy drawing). Revisit: dock-as-column vs
-   auto-dim-on-overlap vs leave. (`web_viewer/js/context-reflex.js`, all three modes.)
+5. **Context-reflex overlay docking** — ✅ **DONE 2026-06-28** (chose **auto-dim-on-overlap**). The
+   reflex floated absolute top-left over every board and could occlude a left-heavy/frame-filling
+   drawing. Now: when the open panel overlaps the drawn extent (`.svg-pan-zoom_viewport` rect) it
+   recedes to a faint "Context" chip and its body becomes click-through, so the picture shows and
+   nothing under it is unreachable; hover/focus restores it. Self-contained in
+   `web_viewer/js/context-reflex.js` (all three modes); zero regression when there's no overlap.
 
 6. **NL→logic fast-follows** — DESIGNED. (a) Multi-candidate disambiguation (G1,G2,G3 ranked *by
    verdict* — the distinctively-Peircean "disambiguate by interpretation, not parser confidence").

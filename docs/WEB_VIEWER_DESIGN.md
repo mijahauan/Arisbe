@@ -139,12 +139,27 @@ carry an `introspection` block in their state/game payloads; Organon's detail an
 chain-frame payloads now do too. Polarity is shown in **words, never hue** (floor
 #6: hue/line-style stay reserved for Gamma; this is a meta-affordance, not a mark).
 
+**Docking — auto-dim-on-overlap.** The panel floats absolute top-left, so a
+left-heavy or frame-filling drawing can sit beneath it. Rather than dock it into a
+per-mode column, the panel watches the drawn extent — the `.svg-pan-zoom_viewport`
+group's screen rect, the same measure `DiagramViewer._contentFitsViewport` uses —
+and toggles `cx-occluding` when the open panel overlaps it: the panel recedes to a
+faint "Context" chip, and the body becomes **click-through** (`pointer-events:none`)
+so nothing under it is unreachable. Hover or focus (`cx-peek`) restores it in full.
+Because `fit`+`centre` leaves margins, the picture only reaches the top-left corner
+when it is genuinely large — so a small/centred drawing leaves the panel untouched
+(zero regression). The test is re-run on render, on camera changes (wheel-zoom /
+pan-drag end, rAF-coalesced), and on resize. Opacity/background only — no layout
+change, so the overlap test never oscillates.
+
 API: `ContextReflex.render(host, {ground, introspection})` (re-attaches after the
 host's innerHTML is swapped) · `.select(host, id)` / `.clearSelect(host)` (the
-breadcrumb) · pure `.enclosureChain(intro, id)` / `.describeElement(intro, id)`.
+breadcrumb) · pure `.enclosureChain(intro, id)` / `.describeElement(intro, id)` ·
+`.recomputeOcclusion(host)` / `._rectsOverlap(a, b)` (the docking helpers).
 Open/closed state + last selection persist on the host dataset. Tests:
 [`test_context_reflex_e2e.py`](../tests/test_context_reflex_e2e.py) (Organon
-integration + the cross-mode module contract on all three pages).
+integration + the cross-mode module contract on all three pages + the
+auto-dim/peek docking behaviour on a synthetic deterministic host).
 
 ---
 
