@@ -1,5 +1,17 @@
 # Current Plan
 
+**▶▶▶ NEXT SESSION (set 2026-06-28) — RETURN TO UX + the pending UX issues.** The author wants to come back
+to the web experience and work the open UX threads. They are consolidated in [docs/ROADMAP.md](docs/ROADMAP.md):
+**(#4) the newcomer / EGIF-authoring on-ramp** — the largest open UX arc (a non-logician can read a lit Agon
+verdict + land on a worked example, but still can't easily *author* their own M/G; jargon thrown cold at
+`index.html` + the Agon/Ergasterion setup); **(#5) the Context-reflex overlay docking** — it floats absolute
+top-left over every board and can occlude a left-heavy drawing (dock-as-column vs auto-dim-on-overlap vs
+leave; `web_viewer/js/context-reflex.js`, all 3 modes); **(#2) render-M UI** — the safe near-term build the
+in-view-set work teed up (a ground/legend panel + a relevant-neighborhood M-render; extends shipped code, no
+core change). Background: the last UX passes were cross-mode coherence pass 1 (2026-06-24) and the
+web-presentation fidelity audit (2026-06-26). The capability map + roadmap + the cross-mode-UX memory
+([[project_next_cross_mode_ux_coherence]]) hold the full context; start there.
+
 **Last Updated**: 2026-06-27. **▶▶▶ This session (2026-06-27) — CONSOLIDATION / PLANNING SPINE shipped + the
 protected-core re-audit.** Built the top-down orientation Arisbe never had, as **four thin, cross-linked,
 additive docs** (decisions taken with the author at session start: small-set / layered-for-both-audiences /
