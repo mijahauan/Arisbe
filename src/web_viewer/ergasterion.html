@@ -874,6 +874,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/mode-nav.js"></script>
+  <script src="js/primer.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
@@ -3032,6 +3033,22 @@
         if (fromName) currentOrigin = { name: fromName, mode: qp.get('fromMode') || null };
         if (open && (open.indexOf('uod:') === 0 || open === 'empty_sheet')) {
           openSession(open);
+        }
+        // Deep-link from the primer (New here? → the drawable dragons): land in
+        // a ready session with that dragon's challenge engaged, freehand-armed.
+        const challengeParam = qp.get('challenge');
+        if (challengeParam) {
+          const dragonNum = (challengeParam.match(/\d+/) || [])[0];
+          if (!open) openSession('empty_sheet');
+          if (challengeDetails) challengeDetails.open = true;
+          loadChallenges().then(() => {
+            if (!dragonNum) return;
+            const c = challengeBank.find((x) => String(x.dragon) === dragonNum);
+            if (c && challengeSelect) {
+              challengeSelect.value = c.id;
+              challengeSelect.dispatchEvent(new Event('change'));
+            }
+          });
         }
       } catch (_) {}
     })();

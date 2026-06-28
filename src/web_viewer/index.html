@@ -30,6 +30,9 @@
     .mode .greek { font-size: 12px; color: #6c7086; margin: 2px 0 10px; font-style: italic; }
     .mode .desc { font-size: 12.5px; line-height: 1.55; color: #bac2de; }
     .doorway { margin-top: 16px; }
+    .newhere { margin: 8px 0 4px; border-color: var(--ctp-green, #a6e3a1); }
+    .newhere .name { color: var(--ctp-green, #a6e3a1); }
+    .newhere:hover { border-color: var(--ctp-green, #a6e3a1); }
     .mode.wide { display: flex; align-items: baseline; gap: 14px; }
     .mode.wide .name { flex: 0 0 auto; }
     .mode.wide .desc { margin: 0; }
@@ -62,6 +65,12 @@
       Beneath all of it lies the blank sheet of assertion — the one thing that, saying
       nothing, cannot be wrong; everything scribed upon it remains open to challenge.
     </p>
+
+    <a class="mode wide newhere" id="primer-door" href="#">
+      <div class="name">New here?</div>
+      <div class="desc">Never read an Existential Graph? Start with the four marks — a two-minute
+        primer with your first graphs drawn by Arisbe itself. No prior logic required.</div>
+    </a>
 
     <h2 class="section">The three modes</h2>
     <div class="modes">
@@ -98,5 +107,12 @@
     </footer>
 
   </main>
+  <script src="js/primer.js"></script>
+  <script>
+    document.getElementById("primer-door").addEventListener("click", function (e) {
+      e.preventDefault();
+      window.Primer.open();
+    });
+  </script>
 </body>
 </html>

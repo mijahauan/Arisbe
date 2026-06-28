@@ -104,6 +104,7 @@
 | Disposition taxonomy (Agonothetes) | SHIPPED | `web_api/services/agonothetes.py` → `test_agon_routes.py` | Verdict-annotated; nothing auto-asserts. |
 | Cross-mode context reflex | SHIPPED | `web_viewer/js/context-reflex.js`, `introspection.py` → `test_context_reflex_e2e.py` | Ground (universe/standing/derivation) + enclosing-cut breadcrumb. **Overlay docking open — ROADMAP #5.** |
 | Shared diagram viewer (pan/zoom/camera) | SHIPPED | `web_viewer/js/diagram-viewer.js` | One component all three modes use. |
+| Newcomer "first graph" primer | SHIPPED | `web_viewer/js/primer.js`, `web_api/routes/primer.py` → `test_primer_route.py`, `test_primer_e2e.py` | The four marks + EGIF key + worked first graphs drawn by the real engine; dragon chips deep-link into challenge mode. "New here?" on every mode page + the home door. ROADMAP #4 stage 2(b). |
 
 ---
 

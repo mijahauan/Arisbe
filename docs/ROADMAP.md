@@ -90,7 +90,7 @@ but it **touches the protected core** (`egi_core_dau` + the §3.3 correspondence
 not a safe additive build — it needs an author decision on whether to open the data model. See
 [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) recommendation (b).
 
-### 4. Newcomer / EGIF-authoring on-ramp — **PARTIAL (stage 1 of the carry-a-G flow shipped 2026-06-28)**
+### 4. Newcomer / EGIF-authoring on-ramp — **PARTIAL (stage 1 + stage 2(b) shipped 2026-06-28; only 2(a) plain-English door remains)**
 
 The largest open UX arc (first flagged 2026-06-24, reaffirmed since). The author reframed it (2026-06-28):
 a newcomer's journey is **Organon → Ergasterion → Agon**, and a proposed G is *picked from Organon* or
@@ -104,10 +104,19 @@ from-scratch EGIF box. Audience: "both, in sequence" (carry-a-graph first, then 
   wins. Ergasterion's "Send to Agon" mirrored the same two verbs (**⚔ Propose in Agon** / **⚖ as model M**) for
   full carry-a-graph symmetry. (`organon.html` + `ergasterion.html` + `agon.html` + 1 Organon E2E; core-protection
   CLEAN.)
-- **Stage 2 (open):** the *authoring* on-ramp. (a) Surface the already-built-but-UI-less **NL→logic front-end**
-  (`POST /agon/propose-nl`, `src/nl_to_logic.py` — plain English → drawn candidate G, with the vocab-miss /
-  fact-miss split) as a "describe it in plain English" door. (b) A guided "first graph" / in-app Field Guide
-  primer ([FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md) is doc-only today) for the notation learner.
+- **✅ Stage 2(b) (2026-06-28):** the guided **"first graph" primer** — the in-app front door to the Field Guide
+  ([FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md)) for the notation learner. New shared
+  `web_viewer/js/primer.js` overlay (loaded on all three mode pages + the home door): the four marks in plain
+  sight, the EGIF key table, and the **worked first graphs drawn by the real engine** (`GET /primer/examples` →
+  `src/web_api/routes/primer.py` renders cat-on-mat / the human→mortal scroll / the empty cut through
+  `generate_layout` so the picture↔proposition correspondence is *shown*, not described), the five drawable
+  dragons each deep-linking into Ergasterion challenge mode (`?challenge=🐉N`, new param handler), and
+  where-to-practice. Reached by a "New here? — start with the marks" link auto-injected into the shared mode-nav
+  and a green "New here?" door on the home page. (`primer.py` + `primer.js` + `index/organon/ergasterion/agon.html`
+  + `test_primer_route.py` (3) + `test_primer_e2e.py` (5); core-protection CLEAN, additive.)
+- **Stage 2(a) (open):** Surface the already-built-but-UI-less **NL→logic front-end** (`POST /agon/propose-nl`,
+  `src/nl_to_logic.py` — plain English → drawn candidate G, with the vocab-miss / fact-miss split) as a "describe
+  it in plain English" door in Agon — the plain-English authoring half of stage 2.
 
 ---
 

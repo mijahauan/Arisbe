@@ -63,15 +63,37 @@ sequence"). **Then mirrored the same two verbs in Ergasterion** (author-approved
 **⚔ Propose in Agon** + **⚖ as model M** (`sendToAgon(asModel)` branch on `proposal_egif` vs `model_egif`), so
 the carry-a-graph hand-off is fully symmetric across both source modes. [[project_next_cross_mode_ux_coherence]].
 
-**▶▶▶ NEXT SESSION — continue (#4) the newcomer on-ramp, stage 2** (consolidated in
-[docs/ROADMAP.md](docs/ROADMAP.md)): the carry-a-G *flow* now works from Organon (this session) and Ergasterion
-(already). Stage 2 = the *authoring* on-ramp the journey leads to — **(a)** surface the already-built-but-UI-less
-**NL→logic front-end** (`POST /agon/propose-nl`, `src/nl_to_logic.py`: plain English → candidate G, drawn, with
-the vocab-miss / fact-miss split) as a "describe it in plain English" door in Agon; **(b)** a guided "first
-graph" / in-app Field Guide primer ([docs/FIELD_GUIDE_AND_DRAGONS.md](docs/FIELD_GUIDE_AND_DRAGONS.md) exists as a
-doc only) for the notation learner. Bring the (a)-vs-(b) ordering to the author (the audience answer was "both, in
-sequence"). The cross-mode-UX memory ([[project_next_cross_mode_ux_coherence]]) + roadmap #4 hold the full
-context; start there.
+**▶▶▶ THIS SESSION (2026-06-28, cont. 3) — UX: shipped (#4) stage 2(b), the guided "first graph" primer (the
+in-app front door to the Field Guide for the notation learner).** Author chose (b) primer-first over (a)
+plain-English door (the "both, in sequence" pair). The newcomer's journey is Organon → Ergasterion → Agon, and
+to *author* a graph the learner first needs the notation; the primer teaches it without throwing EGIF cold.
+**Shipped (additive; 1 small read-only route + 1 shared JS module + `*.html` wiring; core-protection CLEAN):**
+new **`src/web_api/routes/primer.py`** (`GET /primer/examples` — renders the curated first graphs cat-on-mat /
+the human→mortal scroll / the empty cut through the **real** `generate_layout` so the picture↔proposition
+correspondence is *shown*, not described; fail-soft, asserts nothing) + new shared **`web_viewer/js/primer.js`**
+overlay (self-contained, themed off CSS vars, mirrors mode-nav/context-reflex tag pattern): the **four marks in
+plain sight**, the **EGIF key table** ("you type / it means / in a drawing"), the **worked first graphs drawn by
+Arisbe**, the **five drawable dragons** each deep-linking into Ergasterion challenge mode, and where-to-practice.
+Reached by a **"New here? — start with the marks"** link auto-injected into the shared mode-nav (so present on all
+three mode pages) + a green **"New here?"** door on the home page (`index.html`). Added a **`?challenge=🐉N`**
+deep-link handler to `ergasterion.html` so a dragon chip lands in a ready session with that challenge engaged,
+freehand-armed. All content faithful to `docs/FIELD_GUIDE_AND_DRAGONS.md`. Tests: `test_primer_route.py` (3:
+examples served+drawn, scroll+empty-cut present, each parses+renders), `test_primer_e2e.py` (5: home door opens
+the overlay with ≥3 drawn SVGs; "New here?" link on all 3 mode pages opens it; dragon chip deep-links into
+challenge mode). 96 route tests + 14 adjacent E2E (challenge/context-reflex/agon) green; core-protection CLEAN.
+Verified visually (headless Chromium): the overlay shows the four marks, the key table, and the live-drawn
+cat-on-mat + scroll. Docs: ROADMAP #4 → stage 2(b) DONE (only 2(a) plain-English door remains), CAPABILITY_MAP
+primer row → SHIPPED. [[project_next_cross_mode_ux_coherence]], [[feedback_newcomer_accessibility_dragons]].
+
+**▶▶▶ NEXT SESSION — finish (#4) the newcomer on-ramp, stage 2(a)** (consolidated in
+[docs/ROADMAP.md](docs/ROADMAP.md)): the carry-a-G *flow* (stage 1) and the notation primer (stage 2(b)) now both
+ship; the only remaining piece of the "both, in sequence" pair is **(a)** the plain-English authoring door —
+surface the already-built-but-UI-less **NL→logic front-end** (`POST /agon/propose-nl`, `src/nl_to_logic.py`:
+plain English → candidate G, drawn, with the vocab-miss / fact-miss split) as a "describe it in plain English"
+input in Agon's setup (it currently takes raw EGIF in `#setup-proposal`). The route returns `parsed`/`fol`/`egif`/
+`vocab_mismatch`/`vocabulary`{addressable,out_of_signature}/`interpretation` — a UI can fill `#setup-proposal`
+from `egif` and show the vocab-miss vs fact-miss split. The cross-mode-UX memory
+([[project_next_cross_mode_ux_coherence]]) + roadmap #4 hold the full context; start there.
 
 **Last Updated**: 2026-06-27. **▶▶▶ This session (2026-06-27) — CONSOLIDATION / PLANNING SPINE shipped + the
 protected-core re-audit.** Built the top-down orientation Arisbe never had, as **four thin, cross-linked,
