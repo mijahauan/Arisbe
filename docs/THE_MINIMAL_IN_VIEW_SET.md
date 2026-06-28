@@ -510,8 +510,8 @@ agreement; the LLM alignment bridge for *free* narration; sub-step expansion of 
 |---|---|---|---|---|---|---|
 | a | overview → all modes (esp. Agon) | i | S1 | `layout_service.generate_overview_layout` | extend | low |
 | b | **reference / transclusion node** | iii (+i,ii) | S4 | `egi_core_dau` + §3.3 | **NEW** | high |
-| c | relevant-neighborhood M-rendering | iii | S1,S4 | `domain_oracle` + overview | extend | medium |
-| d | ground / legend panel | A (all) | S3,S4 | `context-reflex.js` | extend | low |
+| c | relevant-neighborhood M-rendering — **✅ BUILT 2026-06-28** (`m_render.m_fragment`) | iii | S1,S4 | `domain_oracle` + overview | extend | medium |
+| d | ground / legend panel — **✅ BUILT 2026-06-28** (`m_render.vocabulary_overlap`) | A (all) | S3,S4 | `context-reflex.js` | extend | low |
 | e | degree-aware / fisheye budget | i | S1 | `layout_service._resolve_collapsed` | extend | low–med |
 | f | chapter / flag the diachronic DAG | ii | D1–D4 | `egi_transformation_history` + DAG view | extend | medium |
 | g | **diagram↔narration validation harness** | — (validates all) | the whole rule set | the §10 assets | **NEW (research)** | medium |
@@ -542,7 +542,9 @@ freezes the focus (S5).
 
 **Near-term, doctrine-clean (safe to build):** **(d) + (c)**, together, meet the Agon "render M" need *and*
 answer both failure modes — G drawn full-fidelity, the touched M-neighborhood drawn-and-badged, the
-interpretive ground stated in the legend. **(a)** falls out of (c); **(e)** is the follow-on hardening against
+interpretive ground stated in the legend. **✅ BUILT 2026-06-28** as `src/m_render.py` (`vocabulary_overlap` =
+(d), `m_fragment` = (c)), wired into the Agon interpret payload (`render_m`) and drawn in `agon.html` (the
+legend + a small M-fragment board in the reading strip). M is drawn as read-only chrome, never asserted. **(a)** falls out of (c); **(e)** is the follow-on hardening against
 the breadth cliff; **(f)** is the natural diachronic companion (mostly UI over the existing DAG).
 
 **Highest research leverage — recommend prototyping first:** **(g), the validation harness**, even minimally on

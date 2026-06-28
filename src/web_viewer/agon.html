@@ -450,6 +450,48 @@
       // ---- interpretation register (part 2: peel G against M) ----
       function verdictColor(v){ return v==='true'?'var(--ctp-green)':(v==='false'?'var(--ctp-maroon)':'var(--ctp-yellow)'); }
       function pairs(o){ return Object.keys(o||{}).map(k=>k+' = '+o[k]).join(', '); }
+      // Render M (the ground/legend + the relevant-neighborhood fragment) beside
+      // the reading — so a reader can see what the terms mean without leaving the
+      // board (docs/THE_MINIMAL_IN_VIEW_SET.md (c)+(d)). Read-only: M is drawn,
+      // never asserted.
+      function vocabChips(arr, color){
+        if(!arr || !arr.length) return '<span style="color:var(--ctp-overlay0);">—</span>';
+        return arr.map(t=>'<span style="display:inline-block; padding:1px 7px; margin:1px 3px 1px 0; border-radius:10px; font-size:10px; border:1px solid '+color+'; color:'+color+';">'+esc(t)+'</span>').join('');
+      }
+      function renderMSection(d){
+        const rm=d.render_m; if(!rm) return '';
+        const vo=rm.vocabulary, fr=rm.fragment;
+        let h='<div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--ctp-surface0);">';
+        h+='<div style="font-size:10px; color:var(--ctp-overlay0); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:5px;">Model M — what your terms mean here ('+(d.closed?'closed':'open')+' world)</div>';
+        if(fr && !fr.empty && fr.svg){
+          h+='<div style="font-size:11px; color:var(--ctp-overlay0); margin-bottom:3px;">the part of M your proposal touches'
+            +(fr.horizon?' <span style="color:var(--ctp-yellow);">· +'+fr.horizon+' more fact'+(fr.horizon===1?'':'s')+' beyond view</span>':'')
+            +(fr.nested?' <span style="color:var(--ctp-overlay0);">· and structure inside cuts</span>':'')
+            +'</div>';
+          h+='<div id="m-frag-board" style="height:190px; background:var(--ctp-crust); border:1px solid var(--ctp-surface0); border-radius:6px; overflow:hidden;"></div>';
+        } else if(fr && fr.empty){
+          h+='<div style="font-size:11px; color:var(--ctp-yellow); margin-bottom:4px;">M says nothing about your terms — the whole model'+(fr.horizon?' ('+fr.horizon+' fact'+(fr.horizon===1?'':'s')+')':'')+' lies beyond your proposal.</div>';
+        }
+        if(vo){
+          h+='<div style="font-size:11px; margin-top:8px;">';
+          h+='<div style="margin:2px 0;"><span style="color:var(--ctp-overlay0);">M can speak to: </span>'+vocabChips(vo.shared_relations,'var(--ctp-green)')+'</div>';
+          if(vo.g_only_relations && vo.g_only_relations.length)
+            h+='<div style="margin:2px 0;"><span style="color:var(--ctp-overlay0);">M is silent on (terms it can\'t address): </span>'+vocabChips(vo.g_only_relations,'var(--ctp-maroon)')+'</div>';
+          if(vo.m_only_relations && vo.m_only_relations.length)
+            h+='<div style="margin:2px 0;"><span style="color:var(--ctp-overlay0);">M also knows: </span>'+vocabChips(vo.m_only_relations.slice(0,12),'var(--ctp-overlay1)')+(vo.m_only_relations.length>12?' <span style="color:var(--ctp-overlay0);">…</span>':'')+'</div>';
+          h+='</div>';
+        }
+        h+='<div style="margin-top:6px; font-size:10px; color:var(--ctp-overlay0);">M (full): <code>'+esc(d.model_egif)+'</code></div>';
+        h+='</div>';
+        return h;
+      }
+      // After the strip's innerHTML is set, mount the M-fragment SVG into its board.
+      function mountMFragment(d){
+        const fb=$('m-frag-board');
+        if(fb && d.render_m && d.render_m.fragment && d.render_m.fragment.svg){
+          try{ new DiagramViewer({minZoom:0.05}).attach(fb).render(d.render_m.fragment.svg, {camera:'fit'}); }catch(_){}
+        }
+      }
       function renderInterpretation(d){
         showReadingBoard(d, { universe: 'the proposal G', derivationText: 'given M, then G' });
         // Light the deciding line on the drawing: witness (green) or counterexample (red).
@@ -461,8 +503,8 @@
         const onBoard = (d.witness_vertex_ids && Object.keys(d.witness_vertex_ids).length) ? ' <span style="color:var(--ctp-overlay0);">— its line is lit on the board</span>' : '';
         if(d.counterexample) h+='<div style="color:var(--ctp-maroon); margin-bottom:4px;">Counterexample — '+esc(pairs(d.counterexample))+' (the individual that defeats it)'+onBoard+'</div>';
         if(d.winning_witness) h+='<div style="color:var(--ctp-green); margin-bottom:4px;">Witness — '+esc(pairs(d.winning_witness))+' (the assignment that satisfies it)'+onBoard+'</div>';
-        h+='<div style="font-size:11px; color:var(--ctp-overlay0);">M ('+(d.closed?'closed':'open')+' world): <code>'+esc(d.model_egif)+'</code></div>';
         h+='<div style="font-size:11px; color:var(--ctp-overlay0);">G: <code>'+esc(d.proposal_egif)+'</code></div>';
+        h+=renderMSection(d);   // the ground/legend + the M-fragment G touches
         if(d.materialization){ const mt=d.materialization;
           h+='<div style="margin-top:6px; padding:6px 8px; border-radius:6px; background:var(--ctp-mantle); font-size:11px; color:var(--ctp-overlay0);">'
             +'<strong style="color:var(--ctp-blue);">Materialized M</strong> — '+esc(mt.summary)
@@ -491,6 +533,7 @@
             +'<div style="font-size:11px; color:var(--ctp-overlay0);">'+esc(dd.summary)+'</div></div>'; });
         h+='<div style="margin-top:12px; font-size:11px; color:var(--ctp-overlay0);">An interpretation, not an assertion — nothing is recorded. “Play it out (full contest)” to contest it move-by-move.</div>';
         el.innerHTML=h;
+        mountMFragment(d);   // the strip's HTML is in place — draw M's fragment into its board
       }
 
       // ---- the inverse pivot: in what domain does G hold? ----

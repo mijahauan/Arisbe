@@ -200,6 +200,55 @@ def test_standalone_interpret_with_raw_model(client):
     assert "challenge_to_M" in keys
 
 
+def test_render_m_legend_and_fragment(client):
+    """The interpret payload renders M: a vocabulary legend (d) + the
+    relevant-neighborhood fragment G touches (c), read-only, M never asserted."""
+    data = client.post("/agon/interpret", json={
+        "model_egif": '(mammal "Biscuit") (mammal "Whale") (warmblooded "Whale") (bird "Robin")',
+        "proposal_egif": '~[ (mammal *x) ~[ (warmblooded x) ] ]',
+        "closed": True,
+    }).json()["data"]
+    rm = data["render_m"]
+    assert rm is not None
+    # (d) the legend: shared vocabulary, and M-only context (bird) beyond G.
+    vo = rm["vocabulary"]
+    assert set(vo["shared_relations"]) == {"mammal", "warmblooded"}
+    assert "bird" in vo["m_only_relations"]
+    # (c) the fragment: the three mammal/warmblooded atoms are drawn; bird(Robin)
+    # is untouched → it sits at the horizon. A real SVG is handed back.
+    fr = rm["fragment"]
+    assert fr["shown"] == 3 and fr["horizon"] == 1 and fr["empty"] is False
+    assert set(fr["matched_relations"]) == {"mammal", "warmblooded"}
+    assert fr["svg"] and "<svg" in fr["svg"]
+    assert fr["introspection"] is not None
+
+
+def test_render_m_fragment_empty_when_vocabulary_alien(client):
+    data = client.post("/agon/interpret", json={
+        "model_egif": '(mammal "Whale") (bird "Robin")',
+        "proposal_egif": '(dragon "Smaug")',
+        "closed": False,
+    }).json()["data"]
+    fr = data["render_m"]["fragment"]
+    assert fr["empty"] is True and fr["svg"] is None
+    assert fr["horizon"] == 2   # all of M lies beyond G's reach
+    # The legend still names the gap: dragon is G-only (M can't address it).
+    assert data["render_m"]["vocabulary"]["g_only_relations"] == ["dragon"]
+
+
+def test_render_m_draws_materialized_facts(client):
+    """With materialize on, the fragment renders the forward-chained facts — so a
+    derived `mortal(Socrates)` (and the man(Socrates) one hop away) are visible."""
+    data = client.post("/agon/interpret", json={
+        "model_egif": '(man "Socrates") ~[ (man *x) ~[ (mortal x) ] ]',
+        "proposal_egif": '(mortal "Socrates")',
+        "closed": True, "materialize": True,
+    }).json()["data"]
+    fr = data["render_m"]["fragment"]
+    assert fr["shown"] == 2 and "mortal" in fr["egif"] and "man" in fr["egif"]
+    assert fr["matched_constants"] == ["Socrates"]
+
+
 def test_standalone_interpret_every_example_scenario(client):
     data = client.get("/agon/models").json()["data"]
     expected = {

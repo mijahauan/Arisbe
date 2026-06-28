@@ -167,6 +167,24 @@ def test_interpret_keeps_the_board_and_lights_the_evidence(page, app_url):
         timeout=10000)
 
 
+def test_render_m_legend_and_fragment_board(page, app_url):
+    """Render-M (#2): the interpretation panel shows the ground/legend ('M can
+    speak to: …') AND draws the relevant-neighborhood fragment into its own board
+    (a second svg) — so a reader sees what the terms mean without leaving G."""
+    page.goto(app_url + "/agon")
+    page.wait_for_function(
+        "document.querySelectorAll('#model-picker option').length > 1", timeout=10000)
+    page.select_option("#model-picker", "ex:teacher-mammals")
+    page.click("#btn-interpret")
+    txt = _interpret_text_containing(page, "Model M — what your terms mean here")
+    assert "M can speak to" in txt           # the legend (d)
+    # the fragment board mounts its own svg (c)
+    page.wait_for_selector("#m-frag-board svg", state="attached", timeout=10000)
+    assert page.is_visible("#m-frag-board")
+    # G's board is still the main canvas (M is supporting chrome, not a replacement)
+    assert page.is_visible("#canvas")
+
+
 def test_handoff_carries_the_origin_into_the_ground(page, app_url):
     """④ A form carried in from Organon keeps its ground: the context reflex says
     'carried from: <name>' so the same proposition stays recognizable across modes."""

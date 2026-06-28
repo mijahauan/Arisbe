@@ -145,7 +145,7 @@
 | Diagram↔narration check | SHIPPED (prototype) | `diagram_narration_check.py` → `test_diagram_narration_check.py` | Scorer over 8 chains/35 steps; 3 Centering/DRT salience roles 100%. **Measurement tool — not surfaced in the UI.** See [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10. |
 | Schema layer (graph-with-holes node) | SHIPPED | `schema.py`, `eg_splice.py` → `test_schema.py` | P7 least-number schema; induction scaffold. Schema-drawing/§3.3 is a frontier. |
 | Derived rules (named UI moves) | SHIPPED | `derived_rules.py` → `test_derived_rules.py` | Built atop Dau's six. |
-| Render-M UI (ground/legend + neighborhood) | DESIGNED | — | The near-term safe build the in-view-set work teed up. See ROADMAP #2. |
+| Render-M UI (ground/legend + neighborhood) | SHIPPED | `m_render.py` → `test_m_render.py`, `test_agon_interpretation.py`, `test_agon_e2e.py` | Agon interpretation register draws M: the vocabulary legend (d) + the relevant-neighborhood fragment G touches (c, seed + one hop, budget-capped, horizon reported). Read-only chrome, M never asserted. See ROADMAP #2 / [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) (c)+(d). |
 | Reference / transclusion node | DESIGNED | — | Architectural fork; touches `egi_core_dau` + §3.3. Author decision. ROADMAP #3. |
 
 ---

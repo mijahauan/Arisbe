@@ -71,6 +71,7 @@ from egif_parser_dau import parse_egif
 from endoporeutic_game import Player
 from grapheus import GrapheusContest
 from model_materialization import materialize_egi
+from m_render import vocabulary_overlap, m_fragment
 from semantic_game import evaluate as evaluate_semantic
 from theory_query import entails as theory_entails
 from tomos_service import TomosService
@@ -493,6 +494,35 @@ def _materialization_dict(rep, facts_egi) -> dict:
     }
 
 
+def _render_m_payload(m_egi, g_egi) -> dict:
+    """Render M (the ground/legend + the relevant-neighborhood fragment) for the
+    interpretation register — read-only chrome over the model, never asserting it
+    (docs/THE_MINIMAL_IN_VIEW_SET.md (c)+(d)). M-rendering must never break an
+    inning, so every step degrades gracefully.
+    """
+    try:
+        vocabulary = vocabulary_overlap(g_egi, m_egi)
+    except Exception:
+        vocabulary = None
+    fragment = None
+    try:
+        fr = m_fragment(m_egi, g_egi)
+        fragment = {
+            "shown": fr.shown, "horizon": fr.horizon, "nested": fr.nested,
+            "empty": fr.empty, "egif": fr.egif,
+            "matched_relations": fr.matched_relations,
+            "matched_constants": fr.matched_constants,
+            "svg": None, "introspection": None,
+        }
+        if fr.egi is not None:
+            _fdto, frag_svg = generate_layout(fr.egi)
+            fragment["svg"] = frag_svg
+            fragment["introspection"] = egi_introspection(fr.egi)
+    except Exception:
+        fragment = None
+    return {"vocabulary": vocabulary, "fragment": fragment}
+
+
 def _interpret_payload(
     model_egif: str, proposal_egif: str, closed: bool, materialize: bool = False
 ) -> dict:
@@ -504,11 +534,13 @@ def _interpret_payload(
     """
     materialization = None
     theorem = None
+    m_egi_for_render = None
     if materialize:
         theory_egi = parse_egif(model_egif)
         facts_egi, rep = materialize_egi(theory_egi)
         oracle = CorpusOracle([("M", facts_egi)], closed=closed)
         materialization = _materialization_dict(rep, facts_egi)
+        m_egi_for_render = facts_egi   # render the forward-chained facts (flat, testable)
         # When G is a universal subsumption/typing rule, model-checking it against an
         # empty or sparse A-box reads *vacuously* — so decide it as a **theorem of the
         # theory M** instead (freeze a fresh witness, materialize, check the head).
@@ -533,6 +565,14 @@ def _interpret_payload(
     # Keep the drawing present: the peel is *about* G, so draw G and hand back the
     # ids that let the client highlight the deciding line of identity on it.
     _dto, g_svg = generate_layout(g_egi)
+    # Render M too — the ground/legend + the relevant-neighborhood fragment G
+    # touches (read-only chrome, M never asserted).
+    if m_egi_for_render is None:
+        try:
+            m_egi_for_render = parse_egif(model_egif)
+        except Exception:
+            m_egi_for_render = None
+    render_m = _render_m_payload(m_egi_for_render, g_egi) if m_egi_for_render is not None else None
     return {
         "model_egif": model_egif,
         "proposal_egif": proposal_egif,
@@ -548,6 +588,7 @@ def _interpret_payload(
         "witness_vertex_ids": result.witness_vertex_ids,
         "svg": g_svg,
         "introspection": egi_introspection(g_egi),
+        "render_m": render_m,
         "available_dispositions": available_dispositions(verdict=verdict),
     }
 

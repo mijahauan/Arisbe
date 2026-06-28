@@ -17,14 +17,34 @@ Agon/Organon E2E (13) green, core-protection CLEAN. Verified visually (headless 
 + drawing shows through; peek → full ground panel back. Docs: ROADMAP #5 → DONE, WEB_VIEWER_DESIGN §5 +
 docking paragraph. [[project_context_reflex_built]], [[project_next_cross_mode_ux_coherence]].
 
-**▶▶▶ NEXT SESSION — the remaining open UX threads** (consolidated in [docs/ROADMAP.md](docs/ROADMAP.md)):
-**(#2) render-M UI** — the safe near-term build the in-view-set work teed up (a ground/legend panel + a
-relevant-neighborhood M-render; extends shipped `domain_oracle` + adaptive-scope code, no core change);
+**▶▶▶ THIS SESSION (2026-06-28, cont.) — UX: shipped (#2) the render-M UI (ground/legend + relevant-neighborhood
+M-render).** The Agon interpretation register drew only G; M sat as a wall of raw EGIF text. Now M is *drawn*,
+read-only (M never asserted — the "fourth thing"). New pure module **`src/m_render.py`**: `vocabulary_overlap`
+= **(d) the ground/legend** (how G's and M's vocabularies meet — shared / G-only = the addressability gap /
+M-only = context beyond G) and `m_fragment` = **(c) the relevant-neighborhood** (the part of M G *touches* —
+seed = M's sheet atoms whose relation/individual G uses, then one hop along the same individual or line of
+identity, budget-capped ~8, the rest reported as a **horizon** "+N more facts beyond view"; materialized
+forward-chained facts render too; empty when M's vocabulary is alien). Wired into `_interpret_payload` as a
+`render_m` block (the caller renders the returned fragment EGI through the ordinary `generate_layout` path; the
+module stays web/layout-free so it's unit-testable); drawn in `agon.html`'s reading strip (the legend chips +
+a small M-fragment board mounted via a fresh `DiagramViewer`). Decisions: kept M-rendering purely additive +
+fail-soft (any error degrades to legend-only / text-only, never breaks an inning); rendered the *materialized*
+facts when materialize is on. Tests: `test_m_render.py` (6 unit), `test_agon_interpretation.py` (+3 route:
+legend+fragment, empty-alien, materialized facts drawn), `test_agon_e2e.py` (+1 browser: legend text + the
+`#m-frag-board svg` mounts beside G). 74 green across render-M/agon/semantic suites; core-protection CLEAN;
+additive only. Verified visually (headless Chromium): the strip shows "Model M — what your terms mean here",
+the touched-fragment board, and "M can speak to: …" chips; the empty case reads "M says nothing about your
+terms." Docs: ROADMAP #2 → DONE, CAPABILITY_MAP render-M → SHIPPED, THE_MINIMAL_IN_VIEW_SET (c)+(d) → BUILT,
+CLAUDE.md module + test entries. [[project_minimal_in_view_set]], [[project_domain_oracle_and_m]].
+
+**▶▶▶ NEXT SESSION — the remaining open UX thread** (consolidated in [docs/ROADMAP.md](docs/ROADMAP.md)):
 **(#4) the newcomer / EGIF-authoring on-ramp** — the largest open UX arc (a non-logician can read a lit Agon
 verdict + land on a worked example, but still can't easily *author* their own M/G; jargon thrown cold at
-`index.html` + the Agon/Ergasterion setup; would start with design). Background: the last UX passes were
-cross-mode coherence pass 1 (2026-06-24), the web-presentation fidelity audit (2026-06-26), and this
-session's context-reflex docking. The capability map + roadmap + the cross-mode-UX memory
+`index.html` + the Agon/Ergasterion setup). This one would **start with design** (gentle on-ramps, guided
+authoring, plain-language → well-formed graph; partly enabled by the NL→logic front-end + challenge mode),
+so bring options to the author before building. Background: the last UX passes were cross-mode coherence pass
+1 (2026-06-24), the web-presentation fidelity audit (2026-06-26), and this session's context-reflex docking
+(#5) + render-M UI (#2). The capability map + roadmap + the cross-mode-UX memory
 ([[project_next_cross_mode_ux_coherence]]) hold the full context; start there.
 
 **Last Updated**: 2026-06-27. **▶▶▶ This session (2026-06-27) — CONSOLIDATION / PLANNING SPINE shipped + the

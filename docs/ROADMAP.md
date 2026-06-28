@@ -66,16 +66,20 @@ The re-audit (2026-06-27) that motivated the decision:
 Recommendation: at minimum **(a)** — the central invariant should not sit unguarded. The keep-vs-
 replace question is a values call. *Outcome updates [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) §3.*
 
-### 2. Render-M UI — ground/legend panel + relevant-neighborhood M-render — **DESIGNED**
+### 2. Render-M UI — ground/legend panel + relevant-neighborhood M-render — **✅ DONE 2026-06-28**
 
-The safe near-term build the in-view-set work teed up. Two parts, both *extend shipped code* (no core
-change):
-- **(d) a ground/legend panel** — surface the ambient model M's vocabulary/legend beside a proposal so
-  a reader can see what the terms mean without leaving the board.
-- **(c) a relevant-neighborhood M-render** — draw the *part of M the proposal touches* (vocabulary-
-  bounded), not all of M, governed by the minimal-in-view rules (Relevance capped ~4 chunks).
+Shipped in the Agon interpretation register, both parts, read-only chrome (M drawn, never asserted):
+- **(d) the ground/legend** — `m_render.vocabulary_overlap`: the panel lists how G's and M's vocabularies
+  meet (shared / G-only = the addressability gap / M-only = context beyond G), so a reader sees what the
+  terms mean without leaving the board.
+- **(c) the relevant-neighborhood M-render** — `m_render.m_fragment`: draws only the part of M the proposal
+  *touches* — seed = M's sheet atoms whose relation/individual G uses, then one hop along the same
+  individual / line of identity, budget-capped (~a handful); the rest is reported as a **horizon** ("+N
+  more facts beyond view"). Materialized (forward-chained) facts render too.
 
-Backed by `domain_oracle` + the overview/adaptive-scope machinery already in place. See
+New module `src/m_render.py` (pure, unit-testable); wired into `_interpret_payload` (`render_m` block) and
+drawn in `agon.html` (legend + a small M-fragment board in the reading strip). Tests: `test_m_render.py`
+(6), `test_agon_interpretation.py` (+3 route), `test_agon_e2e.py` (+1 browser). See
 [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) (recommendations (d) + (c)).
 
 ### 3. First-class reference / transclusion node — **DESIGNED · (author decision)**
