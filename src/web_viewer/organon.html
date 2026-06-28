@@ -316,8 +316,11 @@
                 title="Open a copy in the workshop to transform (a regime-1 draft; the corpus item is not changed)">
           <span class="xfer-ico">✎</span> Open in Ergasterion</button>
         <button class="xfer-btn" id="act-agon" disabled
-                title="Carry this graph into the arena as a reference model M to test a proposal against">
-          <span class="xfer-ico">⚔</span> Use in Agon</button>
+                title="Carry this graph into the arena as the proposal G — the claim to be tested against a model M">
+          <span class="xfer-ico">⚔</span> Propose in Agon</button>
+        <button class="xfer-btn" id="act-agon-model" disabled
+                title="Carry this graph into the arena as the reference model M — the world a proposal G is tested against">
+          <span class="xfer-ico">⚖</span> as model M</button>
         <button class="xfer-btn" id="act-copy" disabled
                 title="Copy the EGIF linear form to the clipboard">
           <span class="xfer-ico">⧉</span> Copy</button>
@@ -1412,7 +1415,7 @@
       // Organon is the reference shelf; these verbs hand a corpus graph to the
       // other modes (it is *consumed*, never written back here — the mode
       // contract: a graph reaches the corpus only via Agon or Import).
-      const ITEM_ACTION_IDS = ['act-ergasterion', 'act-agon', 'act-copy', 'act-export'];
+      const ITEM_ACTION_IDS = ['act-ergasterion', 'act-agon', 'act-agon-model', 'act-copy', 'act-export'];
       function setItemActionsEnabled(on) {
         ITEM_ACTION_IDS.forEach(function (id) {
           const b = document.getElementById(id);
@@ -1435,7 +1438,14 @@
       });
       document.getElementById('act-agon').addEventListener('click', function () {
         if (!currentEgif) { setStatus('No linear form available to carry into Agon.', true); return; }
-        // Carry the graph in as the reference model M; the user composes G there.
+        // The corpus is a source of *proposals*, not only of models: carry the graph
+        // in as the proposal G — the claim to be tested. (A learner's G originates
+        // here in Organon or is composed in Ergasterion, then travels to the arena.)
+        window.location.href = '/agon?proposal_egif=' + encodeURIComponent(currentEgif) + originSuffix();
+      });
+      document.getElementById('act-agon-model').addEventListener('click', function () {
+        if (!currentEgif) { setStatus('No linear form available to carry into Agon.', true); return; }
+        // Or use the graph as the reference model M — the world a proposal is tested against.
         window.location.href = '/agon?model_egif=' + encodeURIComponent(currentEgif) + originSuffix();
       });
       document.getElementById('act-copy').addEventListener('click', function () {

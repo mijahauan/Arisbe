@@ -433,7 +433,13 @@
           // empty fields the placeholders read as if pre-filled, and "Does G
           // hold in M?" just reports "enter a proposal G". A clean TRUE scenario
           // shows a newcomer the whole loop at once; experts re-pick or clear it.
-          if((agonModels.examples||[]).some(e=>e.id==='teacher-mammals')){
+          // BUT a graph carried in from Organon / Ergasterion (?proposal_egif /
+          // ?model_egif) must win — never clobber a deliberate hand-off with the
+          // default example. (loadModels is async, so without this guard its awaited
+          // onPickModel() would overwrite the fields the URL-handoff IIFE just set.)
+          const hp=new URLSearchParams(window.location.search);
+          const handoff=hp.get('proposal_egif')||hp.get('model_egif');
+          if(!handoff && (agonModels.examples||[]).some(e=>e.id==='teacher-mammals')){
             pick.value='ex:teacher-mammals'; onPickModel();
           }
         }catch(_){}
@@ -813,10 +819,11 @@
       canvasEl.addEventListener('click', onCanvasClick);
       $('clear-selection').addEventListener('click', clearSel);
 
-      // Hand-offs into the arena via URL:
-      //   ?proposal_egif=<egif> — from Ergasterion: prefill the proposal G.
-      //   ?model_egif=<egif>    — from Organon ("Use in Agon"): prefill the
-      //                           reference model M, then compose a proposal G.
+      // Hand-offs into the arena via URL. The proposal G or the model M may originate
+      // in either source mode — a learner's G is picked in Organon ("Propose in Agon")
+      // or composed in Ergasterion ("Send to Agon"); a model M likewise:
+      //   ?proposal_egif=<egif> — prefill the proposal G (Ergasterion send / Organon propose).
+      //   ?model_egif=<egif>    — prefill the reference model M (Organon "as model M").
       try {
         const params = new URLSearchParams(window.location.search);
         const pe = params.get('proposal_egif');
@@ -829,9 +836,13 @@
         const fromMode = params.get('fromMode');
         if (fromName) currentOrigin = { name: fromName, mode: fromMode || null };
         if ((pe || me) && typeof setStatus === 'function') {
-          setStatus(me
-            ? 'Reference model M brought in from Organon — add a proposal G, then start.'
-            : 'Proposal G brought in from Ergasterion — add a model M, then start.');
+          const src = fromName ? (' from ' + fromName)
+            : (fromMode ? (' from ' + fromMode) : '');
+          setStatus(me && pe
+            ? ('Model M and proposal G brought in' + src + ' — review, then start.')
+            : me
+              ? ('Reference model M brought in' + src + ' — add a proposal G, then start.')
+              : ('Proposal G brought in' + src + ' — add a model M, then start.'));
         }
       } catch (_) {}
     })();

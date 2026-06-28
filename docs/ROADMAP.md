@@ -90,13 +90,23 @@ but it **touches the protected core** (`egi_core_dau` + the §3.3 correspondence
 not a safe additive build — it needs an author decision on whether to open the data model. See
 [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) recommendation (b).
 
-### 4. Newcomer / EGIF-authoring on-ramp — **DESIGNED (longstanding UX arc)**
+### 4. Newcomer / EGIF-authoring on-ramp — **PARTIAL (stage 1 of the carry-a-G flow shipped 2026-06-28)**
 
-The largest open UX arc (first flagged 2026-06-24, reaffirmed since). A non-logician can now *read* a
-lit Agon verdict and land on a worked example, but still cannot easily *author* their own M/G — jargon
-is thrown cold at `index.html` and the Agon/Ergasterion setup. Wants: gentle on-ramps, guided
-authoring, a path from plain language to a well-formed graph. Partly enabled by the NL→logic
-front-end (G) and challenge mode.
+The largest open UX arc (first flagged 2026-06-24, reaffirmed since). The author reframed it (2026-06-28):
+a newcomer's journey is **Organon → Ergasterion → Agon**, and a proposed G is *picked from Organon* or
+*composed in Ergasterion* before it reaches the arena — so the on-ramp is first about that **flow**, not a
+from-scratch EGIF box. Audience: "both, in sequence" (carry-a-graph first, then notation/plain-English authoring).
+
+- **✅ Stage 1 (2026-06-28):** the corpus is now a source of *proposals*, not only of models. Organon's single
+  "Use in Agon" (which hardcoded the graph into the **M** slot) split into **"⚔ Propose in Agon"** (the graph
+  → proposal G; the learner's path) + **"⚖ as model M"** (the prior behavior). Fixed a real bug: Agon's async
+  worked-example default was clobbering an incoming `?proposal_egif`/`?model_egif`; the deliberate hand-off now
+  wins. (`organon.html` + `agon.html` + 1 Organon E2E; core-protection CLEAN.)
+- **Stage 2 (open):** the *authoring* on-ramp. (a) Surface the already-built-but-UI-less **NL→logic front-end**
+  (`POST /agon/propose-nl`, `src/nl_to_logic.py` — plain English → drawn candidate G, with the vocab-miss /
+  fact-miss split) as a "describe it in plain English" door. (b) A guided "first graph" / in-app Field Guide
+  primer ([FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md) is doc-only today) for the notation learner.
+  Possible small follow-up: mirror an "as model M" option in Ergasterion for full carry-a-graph symmetry.
 
 ---
 

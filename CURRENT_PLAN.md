@@ -37,15 +37,40 @@ the touched-fragment board, and "M can speak to: …" chips; the empty case read
 terms." Docs: ROADMAP #2 → DONE, CAPABILITY_MAP render-M → SHIPPED, THE_MINIMAL_IN_VIEW_SET (c)+(d) → BUILT,
 CLAUDE.md module + test entries. [[project_minimal_in_view_set]], [[project_domain_oracle_and_m]].
 
-**▶▶▶ NEXT SESSION — the remaining open UX thread** (consolidated in [docs/ROADMAP.md](docs/ROADMAP.md)):
-**(#4) the newcomer / EGIF-authoring on-ramp** — the largest open UX arc (a non-logician can read a lit Agon
-verdict + land on a worked example, but still can't easily *author* their own M/G; jargon thrown cold at
-`index.html` + the Agon/Ergasterion setup). This one would **start with design** (gentle on-ramps, guided
-authoring, plain-language → well-formed graph; partly enabled by the NL→logic front-end + challenge mode),
-so bring options to the author before building. Background: the last UX passes were cross-mode coherence pass
-1 (2026-06-24), the web-presentation fidelity audit (2026-06-26), and this session's context-reflex docking
-(#5) + render-M UI (#2). The capability map + roadmap + the cross-mode-UX memory
-([[project_next_cross_mode_ux_coherence]]) hold the full context; start there.
+**▶▶▶ THIS SESSION (2026-06-28, cont. 2) — UX: started (#4) the newcomer on-ramp — the corpus is now a source
+of *proposals*, not only of models (Organon → propose-as-G into Agon).** Brought options to the author per the
+"start with design" note; the author **reframed the arc**: a newcomer's journey is **Organon → Ergasterion →
+Agon**, and "a proposed Graph G can be **picked from Organon** or composed in Ergasterion" — so the first,
+highest-value slice is making the *carry-a-G flow* work (audience: "both, in sequence" — plain-English / notation
+learning comes later). Found a concrete **asymmetry**: Organon's single "⚔ Use in Agon" hardcoded the graph into
+the **M (model)** slot (`/agon?model_egif=…`) — the corpus could only ever supply a *model*, never a *proposal*,
+directly contradicting the author's framing. **Shipped (additive, `*.html` + 1 E2E only; core-protection CLEAN):**
+**(1)** split Organon's action into two roles — **"⚔ Propose in Agon"** (→ `?proposal_egif=…`, the graph becomes
+the proposal G; PRIMARY, the learner's path) + **"⚖ as model M"** (→ `?model_egif=…`, the prior behavior, kept).
+`ITEM_ACTION_IDS` enables both when a UoD is open. **(2)** generalized Agon's incoming-handoff status to name the
+real origin mode (a G can now arrive from Organon, not just Ergasterion). **(3) fixed a real bug found en route:**
+Agon's "land on a worked example" default (`loadModels`→`onPickModel`, 2026-06-26) is **async**, so its awaited
+`onPickModel()` silently **clobbered** an incoming `?proposal_egif`/`?model_egif` the URL-handoff IIFE had just
+set — a carried G/M was overwritten by the default example. Guard added: skip the auto-land when the URL carries a
+hand-off (the deliberate carry wins; empty arrival still lands on the example). Tests: +1 Organon E2E
+(`test_propose_in_agon_carries_the_graph_as_proposal_g` — clicks the real button, asserts `?proposal_egif=` +
+`#setup-proposal` prefilled / `#setup-model` empty for propose; `?model_egif=` + `#setup-model` prefilled for
+model). Organon-lenses E2E (8), Agon E2E (7, incl. the worked-example landing + origin-ground handoff), Agon
+route+interpretation+Organon route (60) all green; core-protection CLEAN. **NOT done (the rest of #4):** the
+notation-learning on-ramp (guided "first graph" / in-app Field Guide) and the plain-English authoring door
+(surface the *already-built but UI-less* `/agon/propose-nl` / `nl_to_logic.py`) — these are stage 2 ("both, in
+sequence"). Possible small follow-up: Ergasterion could mirror an "as model M" option for full symmetry (it
+already sends as G). [[project_next_cross_mode_ux_coherence]].
+
+**▶▶▶ NEXT SESSION — continue (#4) the newcomer on-ramp, stage 2** (consolidated in
+[docs/ROADMAP.md](docs/ROADMAP.md)): the carry-a-G *flow* now works from Organon (this session) and Ergasterion
+(already). Stage 2 = the *authoring* on-ramp the journey leads to — **(a)** surface the already-built-but-UI-less
+**NL→logic front-end** (`POST /agon/propose-nl`, `src/nl_to_logic.py`: plain English → candidate G, drawn, with
+the vocab-miss / fact-miss split) as a "describe it in plain English" door in Agon; **(b)** a guided "first
+graph" / in-app Field Guide primer ([docs/FIELD_GUIDE_AND_DRAGONS.md](docs/FIELD_GUIDE_AND_DRAGONS.md) exists as a
+doc only) for the notation learner. Bring the (a)-vs-(b) ordering to the author (the audience answer was "both, in
+sequence"). The cross-mode-UX memory ([[project_next_cross_mode_ux_coherence]]) + roadmap #4 hold the full
+context; start there.
 
 **Last Updated**: 2026-06-27. **▶▶▶ This session (2026-06-27) — CONSOLIDATION / PLANNING SPINE shipped + the
 protected-core re-audit.** Built the top-down orientation Arisbe never had, as **four thin, cross-linked,

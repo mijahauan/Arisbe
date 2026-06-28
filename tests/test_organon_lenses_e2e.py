@@ -217,6 +217,33 @@ def test_correspondence_chord_on_linear_form(page, app_url):
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
 
 
+def test_propose_in_agon_carries_the_graph_as_proposal_g(page, app_url):
+    """The corpus is a source of *proposals*, not only of models. 'Propose in Agon'
+    carries the open graph into the arena as the proposal G (prefilling #setup-proposal,
+    leaving M empty); 'as model M' carries it as the reference model M instead."""
+    _open_organon(page, app_url)
+    _load_uod(page, SYNCHRONIC)
+
+    # Primary path: propose the graph as G.
+    page.click("#act-agon")
+    page.wait_for_selector("#setup-proposal", timeout=15000)
+    assert "/agon" in page.url and "proposal_egif=" in page.url
+    proposal = page.eval_on_selector("#setup-proposal", "el => el.value")
+    model = page.eval_on_selector("#setup-model", "el => el.value")
+    assert proposal.strip(), "the proposal G field should be prefilled from Organon"
+    assert not model.strip(), "the model M field should be left empty"
+
+    # Secondary path: the same graph used as the reference model M.
+    page.goto(app_url + "/organon")
+    page.wait_for_selector(".uod-item", timeout=15000)
+    _load_uod(page, SYNCHRONIC)
+    page.click("#act-agon-model")
+    page.wait_for_selector("#setup-model", timeout=15000)
+    assert "/agon" in page.url and "model_egif=" in page.url
+    assert page.eval_on_selector("#setup-model", "el => el.value").strip(), \
+        "the model M field should be prefilled when carried 'as model M'"
+
+
 def test_style_reprojection_note_appears_on_restyle(page, app_url):
     """Choosing a non-default style reveals the 'style-only reprojection · standing
     unchanged' note — making legible that a restyle preserves standing (§3.3
