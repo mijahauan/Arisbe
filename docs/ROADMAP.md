@@ -101,12 +101,13 @@ from-scratch EGIF box. Audience: "both, in sequence" (carry-a-graph first, then 
   "Use in Agon" (which hardcoded the graph into the **M** slot) split into **"⚔ Propose in Agon"** (the graph
   → proposal G; the learner's path) + **"⚖ as model M"** (the prior behavior). Fixed a real bug: Agon's async
   worked-example default was clobbering an incoming `?proposal_egif`/`?model_egif`; the deliberate hand-off now
-  wins. (`organon.html` + `agon.html` + 1 Organon E2E; core-protection CLEAN.)
+  wins. Ergasterion's "Send to Agon" mirrored the same two verbs (**⚔ Propose in Agon** / **⚖ as model M**) for
+  full carry-a-graph symmetry. (`organon.html` + `ergasterion.html` + `agon.html` + 1 Organon E2E; core-protection
+  CLEAN.)
 - **Stage 2 (open):** the *authoring* on-ramp. (a) Surface the already-built-but-UI-less **NL→logic front-end**
   (`POST /agon/propose-nl`, `src/nl_to_logic.py` — plain English → drawn candidate G, with the vocab-miss /
   fact-miss split) as a "describe it in plain English" door. (b) A guided "first graph" / in-app Field Guide
   primer ([FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md) is doc-only today) for the notation learner.
-  Possible small follow-up: mirror an "as model M" option in Ergasterion for full carry-a-graph symmetry.
 
 ---
 

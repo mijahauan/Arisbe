@@ -855,7 +855,11 @@
               Save to scratch
             </button>
             <button class="action" id="btn-send-agon" style="margin-top:6px;">
-              Send to Agon →
+              ⚔ Propose in Agon →
+            </button>
+            <button class="action" id="btn-send-agon-model" style="margin-top:6px;"
+                    title="Carry this graph into the arena as the reference model M — the world a proposal G is tested against">
+              ⚖ as model M →
             </button>
           </div>
 
@@ -894,6 +898,7 @@
       const btnApply = document.getElementById('btn-apply');
       const btnSaveScratch = document.getElementById('btn-save-scratch');
       const btnSendAgon = document.getElementById('btn-send-agon');
+      const btnSendAgonModel = document.getElementById('btn-send-agon-model');
       const scratchNameEl = document.getElementById('scratch-name');
       const scratchListEl = document.getElementById('scratch-list');
       const btnDiscard = document.getElementById('btn-discard');
@@ -2405,19 +2410,24 @@
         }
       }
 
-      function sendToAgon() {
-        // Hand the graph in view to Agon as the proposal G — the warrant-raising
-        // path (a graph earns the corpus by withstanding challenge, not by §3.3
-        // alone). Agon prefills its proposal field from the query string.
+      function sendToAgon(asModel) {
+        // Hand the graph in view to Agon. The default role is the proposal G — the
+        // warrant-raising path (a graph earns the corpus by withstanding challenge,
+        // not by §3.3 alone). The mirror role carries it in as the reference model M
+        // (the world a proposal is tested against), for symmetry with Organon's two
+        // hand-off verbs. Agon prefills the matching field from the query string.
         if (!currentEgif) {
           setStatus('No linear form available to send to Agon.', 'error');
           return;
         }
         // ④ Carry the form's ground: tell Agon where this draft came from.
         const origin = currentBaseSource || 'workshop draft';
-        window.open('/agon?proposal_egif=' + encodeURIComponent(currentEgif)
+        const param = asModel ? 'model_egif' : 'proposal_egif';
+        window.open('/agon?' + param + '=' + encodeURIComponent(currentEgif)
           + '&from=' + encodeURIComponent(origin) + '&fromMode=ergasterion', '_blank');
-        setStatus('Opened Agon with this graph as the proposal G.');
+        setStatus(asModel
+          ? 'Opened Agon with this graph as the reference model M.'
+          : 'Opened Agon with this graph as the proposal G.');
       }
 
       async function loadScratchList() {
@@ -2590,7 +2600,8 @@
       btnStartEmpty.addEventListener('click', () => openSession('empty_sheet'));
       btnApply.addEventListener('click', applyRule);
       btnSaveScratch.addEventListener('click', saveToScratch);
-      btnSendAgon.addEventListener('click', sendToAgon);
+      btnSendAgon.addEventListener('click', () => sendToAgon(false));
+      btnSendAgonModel.addEventListener('click', () => sendToAgon(true));
       // Reopen / delete saved drafts from the picker list.
       scratchListEl.addEventListener('click', (e) => {
         const openId = e.target.closest('[data-open]');

@@ -59,8 +59,9 @@ model). Organon-lenses E2E (8), Agon E2E (7, incl. the worked-example landing + 
 route+interpretation+Organon route (60) all green; core-protection CLEAN. **NOT done (the rest of #4):** the
 notation-learning on-ramp (guided "first graph" / in-app Field Guide) and the plain-English authoring door
 (surface the *already-built but UI-less* `/agon/propose-nl` / `nl_to_logic.py`) — these are stage 2 ("both, in
-sequence"). Possible small follow-up: Ergasterion could mirror an "as model M" option for full symmetry (it
-already sends as G). [[project_next_cross_mode_ux_coherence]].
+sequence"). **Then mirrored the same two verbs in Ergasterion** (author-approved): "Send to Agon" became
+**⚔ Propose in Agon** + **⚖ as model M** (`sendToAgon(asModel)` branch on `proposal_egif` vs `model_egif`), so
+the carry-a-graph hand-off is fully symmetric across both source modes. [[project_next_cross_mode_ux_coherence]].
 
 **▶▶▶ NEXT SESSION — continue (#4) the newcomer on-ramp, stage 2** (consolidated in
 [docs/ROADMAP.md](docs/ROADMAP.md)): the carry-a-G *flow* now works from Organon (this session) and Ergasterion
