@@ -90,7 +90,7 @@ but it **touches the protected core** (`egi_core_dau` + the §3.3 correspondence
 not a safe additive build — it needs an author decision on whether to open the data model. See
 [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) recommendation (b).
 
-### 4. Newcomer / EGIF-authoring on-ramp — **PARTIAL (stage 1 + stage 2(b) shipped 2026-06-28; only 2(a) plain-English door remains)**
+### 4. Newcomer / EGIF-authoring on-ramp — **DONE (stages 1 + 2(a) + 2(b) all shipped 2026-06-28)**
 
 The largest open UX arc (first flagged 2026-06-24, reaffirmed since). The author reframed it (2026-06-28):
 a newcomer's journey is **Organon → Ergasterion → Agon**, and a proposed G is *picked from Organon* or
@@ -114,9 +114,16 @@ from-scratch EGIF box. Audience: "both, in sequence" (carry-a-graph first, then 
   where-to-practice. Reached by a "New here? — start with the marks" link auto-injected into the shared mode-nav
   and a green "New here?" door on the home page. (`primer.py` + `primer.js` + `index/organon/ergasterion/agon.html`
   + `test_primer_route.py` (3) + `test_primer_e2e.py` (5); core-protection CLEAN, additive.)
-- **Stage 2(a) (open):** Surface the already-built-but-UI-less **NL→logic front-end** (`POST /agon/propose-nl`,
-  `src/nl_to_logic.py` — plain English → drawn candidate G, with the vocab-miss / fact-miss split) as a "describe
-  it in plain English" door in Agon — the plain-English authoring half of stage 2.
+- **✅ Stage 2(a) (2026-06-28):** the **plain-English authoring door** in Agon's setup — surfaced the
+  already-built-but-UI-less **NL→logic front-end** (`POST /agon/propose-nl`, `src/nl_to_logic.py`). A
+  "…or describe G in plain English" textarea + **✶ Translate to a proposal G** button posts the description
+  (with the chosen M, whose signature hints the translation) → the page fills the Proposal G field from the
+  drafted EGIF and shows the **reading** (`read as <FOL>`), the **vocabulary-miss** (terms M can't even address —
+  "not even wrong") distinct from the **fact-miss** (the peel's verdict), and honest non-results (unmappable /
+  malformed / translator-absent all return `parsed:false` with the reason, fail-soft, never an error). Purely
+  additive (`agon.html` only) + 2 Agon E2E (network-stubbed for determinism); core-protection CLEAN. *LLM
+  proposes, Arisbe disposes* — the LLM never touches the EGI, nothing is asserted (LOW warrant; earns warrant
+  only by withstanding Agon).
 
 ---
 

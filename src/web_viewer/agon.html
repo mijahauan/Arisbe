@@ -115,6 +115,13 @@
             <label>Domain model M (EGIF — the facts)</label>
             <textarea id="setup-model" placeholder="(Human *x) ~[ (Human x) ~[ (Mortal x) ] ]"></textarea>
           </div>
+          <div class="field" id="nl-field">
+            <label>…or describe G in plain English — Arisbe drafts the graph</label>
+            <textarea id="setup-nl" placeholder="Every mammal is warm-blooded"></textarea>
+            <button class="action" id="btn-propose-nl" style="margin-top:4px;">✶ Translate to a proposal G</button>
+            <div class="hint" style="margin-top:4px;">A translator proposes a candidate logical form; Arisbe parses it deterministically and fills G below. Nothing is asserted — a proposal earns warrant only by withstanding Agon.</div>
+            <div id="nl-feedback" style="display:none; margin-top:6px; font-size:11px; line-height:1.4;"></div>
+          </div>
           <div class="field">
             <label>Proposal G (EGIF) — framed as ~[ M ~[ G ] ]</label>
             <textarea id="setup-proposal" placeholder="(Mortal *x)"></textarea>
@@ -605,6 +612,63 @@
         setStatus('G is '+b.data.verdict.toUpperCase()+' in M.', b.data.verdict==='true'?'success':(b.data.verdict==='false'?'error':null));
       }
 
+      // ---- the plain-English door (NL→logic: LLM proposes, Arisbe disposes) ----
+      // Surface the already-built /agon/propose-nl front-end: type one English
+      // proposition, a translator drafts a candidate FOL form (hinted by M's own
+      // vocabulary), Arisbe parses it deterministically and fills G. The reading
+      // makes the two misses legible — the *vocabulary*-miss (a term M can't even
+      // address) vs the *fact*-miss (M can address it but doesn't confirm it = the
+      // peel's verdict). Nothing is asserted. docs/ROADMAP.md #4 stage 2(a).
+      async function proposeNL(){
+        const nl=$('setup-nl').value.trim();
+        if(!nl){ setStatus('Describe the proposition in plain English first.','error'); return; }
+        const body={ nl, closed:$('model-closed').checked, materialize:$('model-materialize').checked };
+        if(selectedModelUod) body.model_uod=selectedModelUod; else body.model_egif=$('setup-model').value.trim();
+        if(!selectedModelUod && !body.model_egif){
+          setStatus('Choose or type a reference model M first — its vocabulary guides the translation.','error'); return; }
+        setStatus('Translating to logic…');
+        const b=await post('/agon/propose-nl', body);
+        if(!b.success){ setStatus('Translate failed: '+(b.error&&b.error.message),'error'); return; }
+        renderProposeNL(b.data);
+      }
+      function renderProposeNL(d){
+        const fb=$('nl-feedback'); fb.style.display='block';
+        // Honest non-results first: an unmappable sentence, a malformed candidate,
+        // or an absent translator each return parsed:false with the reason (a
+        // meaningful outcome, never an error).
+        if(!d.parsed){
+          const why = d.unmappable
+            ? 'Can’t be said as a first-order graph — '+esc(d.unmappable)
+            : (/LLM front-end failed/.test(d.parse_error||'')
+                ? 'The plain-English translator isn’t available on this server — type the proposal G as EGIF below instead.'
+                : 'Couldn’t form a graph from the draft — '+esc(d.parse_error||'unknown reason'));
+          fb.innerHTML='<div style="color:var(--ctp-yellow);">'+why+'</div>';
+          setStatus('No graph drafted — see the note.', null);
+          return;
+        }
+        // Parsed: fill the proposal G and show the reading + the vocabulary split.
+        $('setup-proposal').value=d.egif;
+        let h='';
+        if(d.fol) h+='<div style="margin-bottom:3px;"><span style="color:var(--ctp-overlay0);">read as </span><code>'+esc(d.fol)+'</code></div>';
+        h+='<div style="margin-bottom:3px;"><span style="color:var(--ctp-overlay0);">drafted G </span><code>'+esc(d.egif)+'</code> <span style="color:var(--ctp-overlay0);">→ filled below; review it</span></div>';
+        const vo=d.vocabulary;
+        if(vo){
+          if(vo.out_of_signature && vo.out_of_signature.length)
+            h+='<div style="color:var(--ctp-maroon);">M can’t address: '+esc(vo.out_of_signature.join(', '))
+              +' <span style="color:var(--ctp-overlay0);">(a vocabulary-miss — not even wrong in this model)</span></div>';
+          else
+            h+='<div style="color:var(--ctp-green);">every term is in M’s vocabulary</div>';
+        }
+        if(d.interpretation){
+          const v=d.interpretation.verdict;
+          h+='<div style="margin-top:3px;">in M this reads <strong style="color:'+verdictColor(v)+';">'+esc(v.toUpperCase())+'</strong>'
+            +' <span style="color:var(--ctp-overlay0);">— press “Does G hold in M?” for the peel</span></div>';
+        }
+        if(d.confidence==='low') h+='<div style="color:var(--ctp-overlay0); margin-top:3px;">low-confidence translation — check it reads right.</div>';
+        fb.innerHTML=h;
+        setStatus('Drafted a proposal G from your description — review G below, then test it.','success');
+      }
+
       async function start(){
         const initial=$('setup-initial').value.trim(), model=$('setup-model').value.trim(),
           proposal=$('setup-proposal').value.trim(), goal=$('setup-goal').value.trim(), first=$('setup-first').value;
@@ -807,6 +871,7 @@
 
       // ---- wiring ----
       $('btn-interpret').addEventListener('click', interpret);
+      $('btn-propose-nl').addEventListener('click', proposeNL);
       $('btn-contest').addEventListener('click', startContest);
       $('btn-inverse').addEventListener('click', inverseSearch);
       $('model-picker').addEventListener('change', onPickModel);

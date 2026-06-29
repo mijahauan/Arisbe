@@ -1,5 +1,30 @@
 # Current Plan
 
+**▶▶▶ THIS SESSION (2026-06-28, cont. 4) — UX: shipped (#4) stage 2(a), the plain-English authoring door — the
+on-ramp (#4) is now COMPLETE.** The NL→logic front-end (`POST /agon/propose-nl`, `src/nl_to_logic.py`: *LLM
+proposes, Arisbe disposes*) was fully built and route-tested but had **no UI** — a non-logician could read a lit
+verdict but still had to hand-author EGIF to *author* a G. **Shipped (purely additive — `agon.html` only; core-
+protection CLEAN):** a **"…or describe G in plain English — Arisbe drafts the graph"** textarea + **✶ Translate
+to a proposal G** button in Agon's setup, just above the Proposal G field. `proposeNL()` posts the description
+with the chosen M (whose signature hints the translation) → `renderProposeNL()` fills `#setup-proposal` from the
+drafted EGIF and shows the **reading** (`read as <FOL>`), the **drafted G** (`→ filled below; review it`), and —
+the distinctive value — the **vocabulary-miss** (terms M can't even address, "not even wrong in this model",
+maroon) made legible *as distinct from* the **fact-miss** (the peel's verdict, shown as "in M this reads
+TRUE/FALSE/UNKNOWN — press 'Does G hold in M?' for the peel"). Honest non-results render fail-soft, never as an
+error: an `unmappable` sentence → "Can't be said as a first-order graph — <reason>"; a malformed candidate →
+"Couldn't form a graph from the draft — <reason>"; an **absent translator** (no SDK / no key on the server) →
+"The plain-English translator isn't available on this server — type the proposal G as EGIF below instead." The
+button requires M chosen first (consistent with `interpret()`; M's vocabulary is the translation hint). Nothing
+is asserted — a proposal is at LOW warrant, earning warrant only by withstanding Agon. Tests: +2 Agon E2E
+(`test_plain_english_door_drafts_a_proposal` — happy path: fills G + shows reading + "every term is in M's
+vocabulary" + TRUE; `test_plain_english_door_surfaces_the_vocabulary_miss` — the vocab-miss surface), both
+**network-stubbed** (`page.route` fulfills `/agon/propose-nl`) so the wiring is tested deterministically without
+the live LLM. 14 green across the propose-nl route + Agon E2E suites; core-protection CLEAN. Verified visually
+(headless Chromium, network-stubbed): the field, the translate button, the reading (`read as ∀x (mammal(x) →
+warmblooded(x))`), the green "every term is in M's vocabulary", the TRUE fact-side reading, and the auto-filled
+Proposal G all render faithfully. Docs: ROADMAP #4 → **DONE** (all three stages shipped), CAPABILITY_MAP +
+plain-English-door row → SHIPPED. [[project_next_cross_mode_ux_coherence]], [[project_nl_to_logic_arisbe_as_interpretant]].
+
 **▶▶▶ THIS SESSION (2026-06-28) — UX: shipped (#5) the Context-reflex overlay docking (auto-dim-on-overlap).**
 The reflex panel floated absolute top-left over every board and could occlude a left-heavy / frame-filling
 drawing. Chose **auto-dim-on-overlap** (over dock-as-column / leave) — the only option that is uniform across
@@ -85,15 +110,15 @@ Verified visually (headless Chromium): the overlay shows the four marks, the key
 cat-on-mat + scroll. Docs: ROADMAP #4 → stage 2(b) DONE (only 2(a) plain-English door remains), CAPABILITY_MAP
 primer row → SHIPPED. [[project_next_cross_mode_ux_coherence]], [[feedback_newcomer_accessibility_dragons]].
 
-**▶▶▶ NEXT SESSION — finish (#4) the newcomer on-ramp, stage 2(a)** (consolidated in
-[docs/ROADMAP.md](docs/ROADMAP.md)): the carry-a-G *flow* (stage 1) and the notation primer (stage 2(b)) now both
-ship; the only remaining piece of the "both, in sequence" pair is **(a)** the plain-English authoring door —
-surface the already-built-but-UI-less **NL→logic front-end** (`POST /agon/propose-nl`, `src/nl_to_logic.py`:
-plain English → candidate G, drawn, with the vocab-miss / fact-miss split) as a "describe it in plain English"
-input in Agon's setup (it currently takes raw EGIF in `#setup-proposal`). The route returns `parsed`/`fol`/`egif`/
-`vocab_mismatch`/`vocabulary`{addressable,out_of_signature}/`interpretation` — a UI can fill `#setup-proposal`
-from `egif` and show the vocab-miss vs fact-miss split. The cross-mode-UX memory
-([[project_next_cross_mode_ux_coherence]]) + roadmap #4 hold the full context; start there.
+**▶▶▶ NEXT SESSION — the newcomer on-ramp (#4) is now fully shipped (all three stages); pick the next track
+from [docs/ROADMAP.md](docs/ROADMAP.md).** The near-term UX backlog (#2 render-M, #4 on-ramp, #5 context-reflex
+docking) is now clear. The one remaining *near-term* item is **ROADMAP #3 — the first-class reference /
+transclusion node**, but it is an **author decision**, not a safe additive build: it touches the protected core
+(`egi_core_dau` + the §3.3 correspondence contract), so opening the data model needs the author's go-ahead. The
+[THE_MINIMAL_IN_VIEW_SET.md](docs/THE_MINIMAL_IN_VIEW_SET.md) recommendation (b) + the *(b) reference node* open
+item in [[project_minimal_in_view_set]] hold the full context. Otherwise the **Backlog** + **Long-horizon
+research frontier** sections of the ROADMAP list the next candidates (e.g. tension_engine 17/18 → 18/18,
+multi-candidate NL disambiguation, layout-perf). Bring options to the author at session start.
 
 **Last Updated**: 2026-06-27. **▶▶▶ This session (2026-06-27) — CONSOLIDATION / PLANNING SPINE shipped + the
 protected-core re-audit.** Built the top-down orientation Arisbe never had, as **four thin, cross-linked,

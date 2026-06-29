@@ -134,6 +134,7 @@
 |---|---|---|---|
 | NL → FOL proposal | SHIPPED | `nl_to_logic.py` → `test_nl_to_logic.py` | LLM emits only a FOL string + vocabulary; everything downstream deterministic + pre-tested. LLM never touches the EGI. |
 | `/agon/propose-nl` route | SHIPPED | `web_api/routes/agon.py` → `test_propose_nl_route.py` | Resolve M → hint → propose → reconcile → peel; LOW warrant, nothing persisted. |
+| Plain-English door (Agon setup UI) | SHIPPED | `web_viewer/agon.html` → `test_agon_e2e.py` | "…or describe G in plain English" textarea + ✶ Translate → fills Proposal G from the drafted EGIF; shows the reading, the vocabulary-miss vs fact-miss split, honest non-results. ROADMAP #4 stage 2(a). |
 | Multi-candidate disambiguation (G1,G2,G3 by verdict) | DESIGNED | — | "Disambiguate by interpretation, not parser confidence." See ROADMAP. |
 | LOW-warrant `/import/admit` persistence | DESIGNED | — | Persist a tested proposal with its NL+LLM provenance trace. See ROADMAP. |
 

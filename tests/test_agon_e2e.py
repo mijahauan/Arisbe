@@ -12,6 +12,7 @@ Requires Playwright + Chromium (``uv run playwright install chromium``); skipped
 cleanly if absent.  Spawns the app on its own port so it is self-contained.
 """
 
+import json
 import os
 import socket
 import subprocess
@@ -200,3 +201,58 @@ def test_handoff_carries_the_origin_into_the_ground(page, app_url):
         timeout=10000)
     panel = page.text_content("#canvas .cx-panel")
     assert "StudentSea" in panel and "organon" in panel
+
+
+def test_plain_english_door_drafts_a_proposal(page, app_url):
+    """#4 stage 2(a): the plain-English door. Type an English proposition, click
+    'Translate to a proposal G' → the page posts to /agon/propose-nl, fills the
+    proposal G from the drafted EGIF, and shows the reading + the vocabulary split.
+    The LLM step is stubbed at the network so the wiring is tested deterministically."""
+    page.goto(app_url + "/agon")
+    page.wait_for_function(
+        "document.querySelectorAll('#model-picker option').length > 1", timeout=10000)
+    page.route("**/agon/propose-nl", lambda route: route.fulfill(
+        status=200, content_type="application/json",
+        body=json.dumps({"success": True, "data": {
+            "parsed": True,
+            "fol": "∀x (mammal(x) → warmblooded(x))",
+            "egif": "~[ (mammal *x) ~[ (warmblooded x) ] ]",
+            "vocabulary": {"addressable": ["mammal", "warmblooded"],
+                           "out_of_signature": [], "fully_addressable": True},
+            "interpretation": {"verdict": "true"},
+            "confidence": "high",
+        }})))
+    page.fill("#setup-nl", "Every mammal is warm-blooded")
+    page.click("#btn-propose-nl")
+    page.wait_for_selector("#nl-feedback", state="visible", timeout=10000)
+    fb = page.text_content("#nl-feedback")
+    assert "read as" in fb                      # the candidate FOL is shown
+    assert "every term is in" in fb             # fully addressable → no vocabulary-miss
+    assert "TRUE" in fb                         # the fact-side reading (the peel verdict)
+    # the drafted G was filled into the proposal field, ready to test/contest
+    assert "mammal" in page.input_value("#setup-proposal")
+
+
+def test_plain_english_door_surfaces_the_vocabulary_miss(page, app_url):
+    """The distinctive value: a term M can't even address surfaces as a
+    *vocabulary*-miss ('not even wrong'), distinct from a fact-miss (a FALSE peel).
+    An unmappable sentence likewise returns an honest non-result, not an error."""
+    page.goto(app_url + "/agon")
+    page.wait_for_function(
+        "document.querySelectorAll('#model-picker option').length > 1", timeout=10000)
+    page.route("**/agon/propose-nl", lambda route: route.fulfill(
+        status=200, content_type="application/json",
+        body=json.dumps({"success": True, "data": {
+            "parsed": True,
+            "fol": "flies(\"Rex\")",
+            "egif": '(flies "Rex")',
+            "vocabulary": {"addressable": [], "out_of_signature": ["flies"],
+                           "fully_addressable": False},
+            "interpretation": {"verdict": "false"},
+        }})))
+    page.fill("#setup-nl", "Rex flies")
+    page.click("#btn-propose-nl")
+    page.wait_for_selector("#nl-feedback", state="visible", timeout=10000)
+    fb = page.text_content("#nl-feedback")
+    assert "can’t address" in fb and "flies" in fb
+    assert "vocabulary-miss" in fb
