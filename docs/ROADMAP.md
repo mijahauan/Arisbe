@@ -219,8 +219,12 @@ few things first:
     hand-drawn waver and bridges); (b) **worked-chain → multi-figure LaTeX document** (`export_peirce_chain` +
     `POST /export/chain` + `export_peirce_chain_document`) — a reasoning episode in print, one captioned figure
     per step; (c) **HTTP route deltas** — `ExportRequest.deltas` + `scroll_glyph` thread regime-3 adjustments
-    and the glyph through `/export`. **Still deferred:** (d) the drawing→EGI **learning loop** feeding the
-    presentation-deltas → style ladder; and a session-export convenience route.
+    and the glyph through `/export`. (d) the **drawing→EGI learning loop** (`layout_learning.py`):
+    `arrangement_deltas` recovers the regime-3 deltas between Arisbe's canonical layout and a human-drawn
+    arrangement of the same EGI (the inverse of `apply_deltas`), and `generalize_arrangement` crystallises them
+    onto untouched siblings via the existing style ladder — so a replica drawn in Peirce's hand teaches the
+    Peirce-style spec. **#14 is now complete.** Only a thin UI surface remains optional (an Ergasterion route that
+    feeds the freeform canvas's drawn DTO into the loop, and a session-export convenience route).
 
 15. **Start-up guidance for new users — layered + tailored by expertise.** Clear, thorough on-ramp docs that
     assume *no* math/logic background, then branch to what an **ontologist**, **logician**, **mathematician**,

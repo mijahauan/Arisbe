@@ -1,7 +1,23 @@
 # Current Plan
 
+**▶▶▶ THIS SESSION (2026-06-29, cont. 3) — FINISHED ROADMAP #14 (d): the drawing→EGI learning loop. #14
+COMPLETE.** After committing+pushing phases 1+2 (`cf79974`), built (d). New `src/layout_learning.py` +
+`tests/test_layout_learning.py` (6 green): `arrangement_deltas(egi, canonical_dto, drawn_dto)` recovers the
+regime-3 `PresentationDelta`s carrying Arisbe's canonical layout to a human-drawn arrangement of the *same* EGI
+(the **inverse of `presentation_deltas.apply_deltas`** — move_vertex/predicate/cut + reshape_cut, each tagged by
+`describe` for generalization); `generalize_arrangement` is the loop-closing pass-through to `extrapolate_deltas`
+(crystallise the learned placements onto untouched siblings → a refined Peirce-style regularity). This makes the
+replica-then-parse signal (journey 2) into the codebase's delta currency — reads only regime-3 facts so it's
+correspondence-safe, and replay re-attests §3.3. Tests build a §3.3-valid "drawn" arrangement by replaying known
+moves onto canonical, then verify recovery (vertex/predicate/cut reshape), no-op on identical layouts, exact
+round-trip, and sibling generalization. Adjacent `test_presentation_deltas` (25 total) green; core-protection
+CLEAN; additive. **#14 (LaTeX export for the Peirce Edition Project) is now fully done — phases 1+2+(d).** Only a
+thin UI surface remains optional (an Ergasterion route feeding the freeform canvas's drawn DTO into the loop; a
+session-export convenience route). Docs: ROADMAP #14 → complete; CAPABILITY_MAP; CLAUDE.md module+test entries.
+[[project_tidyup_tracks_post_reference_node]].
+
 **▶▶▶ THIS SESSION (2026-06-29, cont. 2) — BUILT ROADMAP #14 phase 2 (3 of 4 items): iconic scroll glyph,
-worked-chain LaTeX document, HTTP route deltas.** Author picked (a)+(b)+(c), deferred (d) the learning loop.
+worked-chain LaTeX document, HTTP route deltas.** Author picked (a)+(b)+(c), then asked to finish (d) too.
 Done lowest-risk-first. **(c) route deltas** — `ExportRequest.deltas` (JSON `PresentationDelta` shape) +
 `scroll_glyph`; the route converts via `deltas_from_list` (→ `BAD_DELTAS` on a malformed item) and threads into
 `export_egi(deltas=…)`; `export_egi` gained the `deltas`/`previous_layout`/`scroll_glyph` params. So the PEP
@@ -235,12 +251,12 @@ Verified visually (headless Chromium): the overlay shows the four marks, the key
 cat-on-mat + scroll. Docs: ROADMAP #4 → stage 2(b) DONE (only 2(a) plain-English door remains), CAPABILITY_MAP
 primer row → SHIPPED. [[project_next_cross_mode_ux_coherence]], [[feedback_newcomer_accessibility_dragons]].
 
-**▶▶▶ NEXT SESSION — ROADMAP #14 phases 1 + 2 (authentic-Peirce LaTeX export) are SHIPPED. Next = #15 or #16
-(the two remaining tidy-up tracks), or #14 (d) the drawing→EGI learning loop, or back to reference-node
-increment 2 — author's pick.** The reference node is PAUSED on the 2nd-order frontier (increment 2 = cross-UoD
-use/mention fork, DoR §4½/§7 — author decision). Of the three tidy-up tracks the author set, **#14 is done
-(phases 1+2: oval cuts, heavy LoI, hooks, iconic scroll glyph, worked-chain document, route deltas)**; remaining:
-**(#14 (d), optional)** the drawing→EGI learning loop feeding the presentation-deltas → style ladder; a session-export route;
+**▶▶▶ NEXT SESSION — ROADMAP #14 (authentic-Peirce LaTeX export) is COMPLETE (phases 1 + 2 + (d)). Next = #15
+or #16 (the two remaining tidy-up tracks), or back to reference-node increment 2 — author's pick.** The reference
+node is PAUSED on the 2nd-order frontier (increment 2 = cross-UoD use/mention fork, DoR §4½/§7 — author decision).
+Of the three tidy-up tracks the author set, **#14 is fully done** (oval cuts, heavy LoI, hooks, iconic scroll
+glyph, worked-chain document, route deltas, drawing→EGI learning loop); only an optional thin UI surface remains
+(Ergasterion route into the learning loop; session-export route). Remaining tracks:
 **(#15) layered start-up guidance** for new users assuming no math/logic background, then branching to what an
 **ontologist / logician / mathematician / Peirce expert** each needs (a written, role-aware companion to the shipped
 in-app primer / Field Guide);
