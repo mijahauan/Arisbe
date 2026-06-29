@@ -199,3 +199,7 @@ graphify-out/
 # Liveness / desuetude log — local forward-facing usage state (manifest floor #7);
 # churns on every consultation, so it rides beside the corpus, not inside it.
 tomos/.liveness.json
+
+# Coherence reminder counter — local tooling state (timestamp + count); churns
+# on every commit, so it rides beside the repo, not inside it (cf .liveness.json).
+.coherence_reminder_state
