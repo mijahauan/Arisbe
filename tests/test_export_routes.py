@@ -53,10 +53,10 @@ def test_formats_endpoint_lists_all(client):
     body = client.get("/export/formats").json()
     assert body["success"] is True
     fmts = {f["format"] for f in body["data"]}
-    assert {"egif", "cgif", "clif", "svg", "tikz", "png", "pdf"} == fmts
-    # Linear / svg / tikz are always available.
+    assert {"egif", "cgif", "clif", "svg", "tikz", "peirce-tikz", "png", "pdf"} == fmts
+    # Linear / svg / tikz / peirce-tikz are always available.
     for f in body["data"]:
-        if f["format"] in ("egif", "cgif", "clif", "svg", "tikz"):
+        if f["format"] in ("egif", "cgif", "clif", "svg", "tikz", "peirce-tikz"):
             assert f["available"] is True
 
 
@@ -107,6 +107,54 @@ def test_unknown_format_and_no_source(client):
     assert bad["success"] is False and bad["error"]["code"] == "EXPORT_ERROR"
     none = client.post("/export", json={"format": "svg"}).json()
     assert none["success"] is False and none["error"]["code"] == "NO_SOURCE"
+
+
+def test_export_honors_regime3_deltas(client, isolated_tomos):
+    """The /export route threads regime-3 presentation adjustments into the
+    layout — "export what you adjusted to see" (the PEP transcribe-then-tune
+    path).  A move_vertex delta changes the exported drawing.  Driven from a
+    corpus UoD because stored ids are stable (parse_egif ids are randomized)."""
+    uid = isolated_tomos["seed_id"]
+    egi = isolated_tomos["service"].load_uod(uid).current_egi
+    if not egi.V:
+        pytest.skip(f"seed UoD '{uid}' has no vertex to nudge")
+    vid = next(iter(egi.V)).id
+    delta = {"op": "move_vertex", "params": {"vertex_id": vid, "dx": 40.0, "dy": 0.0}}
+
+    plain = client.post("/export", json={"uod_id": uid, "format": "tikz"}).json()["data"]
+    tuned = client.post(
+        "/export", json={"uod_id": uid, "format": "tikz", "deltas": [delta]}
+    ).json()
+    assert tuned["success"] is True, tuned.get("error")
+    assert tuned["data"]["content"] != plain["content"]  # the adjustment reached the drawing
+
+
+def test_export_rejects_malformed_deltas(client):
+    # No "op" key → deltas_from_list raises → BAD_DELTAS.
+    bad = client.post(
+        "/export", json={"text": FORM, "format": "tikz", "deltas": [{"params": {}}]}
+    ).json()
+    assert bad["success"] is False and bad["error"]["code"] == "BAD_DELTAS"
+
+
+def test_export_chain_route(client, monkeypatch, tmp_path):
+    """POST /export/chain exports a UoD's worked chain as one Peirce LaTeX doc."""
+    from tomos_service import TomosService
+    real = TomosService(Path(__file__).parent.parent / "tomos")
+    # A corpus UoD that has a worked chain (history/chain.jsonl).
+    chain_uid = "beta_modus_ponens"
+    fresh = TomosService(tmp_path / "tomos")
+    fresh.save_uod_with_chain(real.load_uod(chain_uid), real.load_chain(chain_uid))
+    monkeypatch.setattr(export_route, "_tomos_service", fresh)
+
+    ok = client.post("/export/chain", json={"uod_id": chain_uid, "title": "BMP"}).json()
+    assert ok["success"] is True, ok.get("error")
+    doc = ok["data"]["content"]
+    assert "\\begin{tikzpicture}" in doc and "Initial graph" in doc and "Step 1:" in doc
+    assert ok["data"]["filename"] == f"{chain_uid}-chain.tex"
+
+    missing = client.post("/export/chain", json={"uod_id": "no_such_uod"}).json()
+    assert missing["success"] is False and missing["error"]["code"] == "CHAIN_NOT_FOUND"
 
 
 @pytest.mark.skipif(not _HAS_RSVG, reason="rsvg-convert not installed")

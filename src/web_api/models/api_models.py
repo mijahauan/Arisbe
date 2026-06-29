@@ -262,6 +262,26 @@ class ExportRequest(BaseModel):
     style_name: Optional[str] = None
     engine: str = "elk"
     standalone: bool = True
+    # Regime-3 presentation adjustments to replay before drawing — "export what
+    # you *adjusted* to see" (the Peirce-Edition transcribe-then-tune path). Each
+    # item is the JSON shape of a presentation_deltas.PresentationDelta
+    # ({op, params, target}); logic-indifferent, so §3.3 still attests.
+    deltas: Optional[List[Dict[str, Any]]] = None
+    # Authentic-Peirce only: draw a detected scroll ~[A ~[B]] as the iconic
+    # self-continuing curve rather than two nested ovals (ink-only, opt-in).
+    scroll_glyph: bool = False
+
+
+class ExportChainRequest(BaseModel):
+    """Export a UoD's worked transformation chain as a single authentic-Peirce
+    LaTeX document (one figure per step).  Needs a ``uod_id`` whose history holds
+    a chain; ``style_name`` / ``engine`` select the projection, ``title`` is an
+    optional document heading."""
+
+    uod_id: str
+    style_name: Optional[str] = None
+    engine: str = "elk"
+    title: Optional[str] = None
 
 
 class IntrospectRequest(BaseModel):

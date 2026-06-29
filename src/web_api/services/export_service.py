@@ -34,6 +34,9 @@ from egif_generator_dau import generate_egif
 
 from web_api.services.layout_service import generate_layout
 from web_api.services.tikz_export import export_tikz
+from peirce_latex import (
+    export_peirce_latex, export_peirce_chain_document, _tex_escape,
+)
 
 
 class ExportError(Exception):
@@ -48,6 +51,7 @@ _FORMATS: List[Dict[str, Any]] = [
     {"format": "clif", "label": "CLIF (linear)", "ext": "clif", "media_type": "text/plain", "binary": False, "requires": None},
     {"format": "svg", "label": "SVG (styled drawing)", "ext": "svg", "media_type": "image/svg+xml", "binary": False, "requires": None},
     {"format": "tikz", "label": "TikZ / LaTeX", "ext": "tex", "media_type": "text/x-tex", "binary": False, "requires": None},
+    {"format": "peirce-tikz", "label": "Authentic Peirce (LaTeX/TikZ)", "ext": "tex", "media_type": "text/x-tex", "binary": False, "requires": None},
     {"format": "png", "label": "PNG (raster)", "ext": "png", "media_type": "image/png", "binary": True, "requires": "rsvg-convert"},
     {"format": "pdf", "label": "PDF (vector)", "ext": "pdf", "media_type": "application/pdf", "binary": True, "requires": "rsvg-convert"},
 ]
@@ -105,9 +109,21 @@ def export_egi(
     engine: str = "elk",
     standalone: bool = True,
     basename: str = "export",
+    deltas: Optional[list] = None,
+    previous_layout=None,
+    scroll_glyph: bool = False,
 ) -> Dict[str, Any]:
     """Export *egi* in *fmt* using the same *style_name* + layout *engine* the
     viewer is showing — "export what you see".
+
+    ``deltas`` / ``previous_layout`` thread the viewer's **regime-3
+    presentation adjustments** (the logic-indifferent ``move_vertex`` /
+    ``move_cut`` / ``reshape_cut`` nudges) straight into ``generate_layout``, so
+    a hand-tuned arrangement is published as drawn — "export what you *adjusted*
+    to see".  This is the Peirce Edition Project's transcribe-then-tune path: a
+    scholar matches Peirce's page, then exports.  §3.3 still attests every
+    (EGI, DTO) pair inside ``generate_layout`` — deltas are logic-indifferent,
+    so attestation holds by construction.
 
     Returns a JSON-able dict::
 
@@ -133,20 +149,89 @@ def export_egi(
         result["content"] = _LINEAR[fmt](egi)
         return result
 
+    # The authentic-Peirce path defaults to the oval style so the layout grows
+    # cut boxes that contain their contents as inscribed ellipses (a rounded-rect
+    # DTO would clip an oval drawn over it).
+    if fmt == "peirce-tikz" and not style_name:
+        style_name = "peirce-authentic@1.0"
+
+    def _layout():
+        return generate_layout(
+            egi, previous_layout=previous_layout, style_name=style_name,
+            deltas=deltas, engine=engine,
+        )
+
     if fmt == "svg":
-        _dto, svg = generate_layout(egi, style_name=style_name, engine=engine)
+        _dto, svg = _layout()
         result["content"] = svg
         return result
 
     if fmt == "tikz":
-        dto, _svg = generate_layout(egi, style_name=style_name, engine=engine)
+        dto, _svg = _layout()
         result["content"] = export_tikz(dto, egi, standalone=standalone, style=dto.style)
+        return result
+
+    if fmt == "peirce-tikz":
+        dto, _svg = _layout()
+        result["content"] = export_peirce_latex(
+            dto, egi, standalone=standalone, style=dto.style, scroll_glyph=scroll_glyph)
         return result
 
     if fmt in ("png", "pdf"):
         # §3.3 fires here (styled render) before the external conversion.
-        _dto, svg = generate_layout(egi, style_name=style_name, engine=engine)
+        _dto, svg = _layout()
         result["content_base64"] = base64.b64encode(_rsvg(svg, fmt)).decode("ascii")
         return result
 
     raise ExportError(f"Unhandled format '{fmt}'.")  # pragma: no cover
+
+
+def export_peirce_chain(
+    chain,
+    *,
+    title: Optional[str] = None,
+    style_name: Optional[str] = None,
+    engine: str = "elk",
+    basename: str = "chain",
+) -> Dict[str, Any]:
+    """Export a transformation *chain* (a ``tomos_service.TransformationChain``)
+    as a single authentic-Peirce LaTeX document — one figure per step, captioned
+    by the rule that produced it (the Peirce-Edition "worked chain").
+
+    Each state is laid out through the ordinary §3.3-attested path (so every
+    drawn step corresponds to its EGI), rendered with ``export_peirce_latex``,
+    and assembled by ``export_peirce_chain_document``.  Returns the same
+    JSON-able envelope as ``export_egi``.
+    """
+    if style_name is None:
+        style_name = "peirce-authentic@1.0"
+
+    figures = []
+    egi0 = chain.states[chain.initial_state_id]
+    dto0, _svg = generate_layout(egi0, style_name=style_name, engine=engine)  # attests §3.3
+    figures.append((export_peirce_latex(dto0, egi0, standalone=False),
+                    "\\textbf{Initial graph}"))
+
+    for k, step in enumerate(chain.steps, start=1):
+        egi = chain.states.get(step.to_state_id)
+        if egi is None:  # pragma: no cover - a chain with a dangling state id
+            continue
+        dto, _svg = generate_layout(egi, style_name=style_name, engine=engine)
+        body = export_peirce_latex(dto, egi, standalone=False)
+        params = step.parameters or {}
+        desc = params.get("description") or step.user_annotation or ""
+        label = params.get("peirce_label")
+        head = f"Step {k}: {_tex_escape(step.rule_name)}"
+        if label:
+            head += f" ({_tex_escape(str(label))})"
+        caption = f"\\textbf{{{head}}}"
+        if desc:
+            caption += f" --- {_tex_escape(desc)}"
+        figures.append((body, caption))
+
+    doc = export_peirce_chain_document(figures, title=title)
+    return {
+        "format": "peirce-chain", "filename": f"{basename}.tex",
+        "media_type": "text/x-tex", "is_binary": False,
+        "content": doc, "content_base64": None,
+    }

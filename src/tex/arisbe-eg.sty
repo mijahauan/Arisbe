@@ -1,0 +1,96 @@
+%% arisbe-eg.sty — authentic Existential Graphs in pure TikZ.
+%%
+%% A from-scratch reimplementation of the *function* of Jukka Nikulainen's
+%% egpeirce.sty (oval cuts, scrolls, heavy lines of identity, hooks, argument
+%% order) with no PSTricks dependency: it compiles with plain pdflatex and the
+%% rest of the modern TikZ toolchain (xelatex / lualatex).
+%%
+%% Two things make it different from egpeirce, both deliberate:
+%%   1. Modern + robust: pure TikZ, key-value knobs, no \@ifnextchar / pgffor
+%%      double-brace regrouping, no PostScript.
+%%   2. Wedded to the logic. egpeirce is pure typesetting with no model
+%%      underneath. These macros are driven by Arisbe's `peirce_latex` exporter
+%%      from a §3.3-attested EGI, so the printed picture provably denotes a
+%%      definite Existential Graph. Every element carries its EGI id in a
+%%      comment, so the drawing is traceable back to the logic.
+%%
+%% The macros take plain coordinates (the exporter feeds DTO numbers), so the
+%% picture is also straightforward to hand-author:
+%%
+%%   \begin{tikzpicture}[x=0.75pt,y=-0.75pt]
+%%     \egcut{100}{100}{40pt}{30pt}{none}     % an oval cut
+%%     \egpred{60}{100}{man}                  % a relation spot
+%%     \egloi{(60,100) -- (160,100)}          % a heavy line of identity
+%%     \egdot{160}{100}                       % an identity / branch spot
+%%   \end{tikzpicture}
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{arisbe-eg}[2026/06/29 v0.1 Authentic Existential Graphs in TikZ]
+\RequirePackage{tikz}
+
+%% ---- tunable knobs (key-value via \egset{...}) --------------------------
+\newdimen\eg@cutwidth   \eg@cutwidth=1.5pt
+\newdimen\eg@loiwidth   \eg@loiwidth=2pt
+\newdimen\eg@dotradius  \eg@dotradius=2pt
+\newdimen\eg@hooklen    \eg@hooklen=4pt
+\def\eg@cutcolor{black}
+\def\eg@loicolor{black}
+\def\eg@predfont{\itshape}
+
+\pgfkeys{
+  /eg/.is family, /eg,
+  cut width/.code={\eg@cutwidth=#1},
+  loi width/.code={\eg@loiwidth=#1},
+  dot radius/.code={\eg@dotradius=#1},
+  hook len/.code={\eg@hooklen=#1},
+  cut color/.store in=\eg@cutcolor,
+  loi color/.store in=\eg@loicolor,
+  pred font/.store in=\eg@predfont,
+}
+\newcommand{\egset}[1]{\pgfkeys{/eg,#1}}
+
+%% ---- drawing styles ------------------------------------------------------
+\tikzset{
+  eg cut/.style={line width=\eg@cutwidth, draw=\eg@cutcolor},
+  eg loi/.style={line width=\eg@loiwidth, draw=\eg@loicolor, line cap=round},
+  eg dot/.style={fill=\eg@loicolor},
+  eg pred/.style={inner sep=1pt, font=\eg@predfont},
+  eg const/.style={inner sep=1pt, anchor=west, font=\eg@predfont},
+  eg num/.style={inner sep=0.5pt, font=\tiny, text=black!55},
+  eg bridge erase/.style={draw=white, line width=\dimexpr\eg@loiwidth+1pt\relax, line cap=round},
+}
+
+%% ---- semantic macros -----------------------------------------------------
+%% An oval cut centred at (#1,#2) with radii #3 (x) and #4 (y, absolute dims)
+%% and fill #5 (a colour, or `none`). The cut's curve is the cut.
+\newcommand{\egcut}[5]{\draw[eg cut, fill=#5] (#1,#2) ellipse [x radius=#3, y radius=#4];}
+
+%% A heavy line of identity along the explicit TikZ path #1 (the part after the
+%% first coordinate, e.g. `(0,0) .. controls (..) and (..) .. (10,0)`).
+\newcommand{\egloi}[1]{\draw[eg loi] #1;}
+
+%% An identity / branch spot (Peirce's heavy point): a filled disk.
+\newcommand{\egdot}[2]{\fill[eg dot] (#1,#2) circle [radius=\eg@dotradius];}
+
+%% A short hook tick from (#1,#2) to (#3,#4). The exporter usually lets the line
+%% of identity itself terminate on the predicate's box edge (the line meeting the
+%% spot is the hook); this is here for hand-authoring.
+\newcommand{\eghook}[4]{\draw[eg loi] (#1,#2) -- (#3,#4);}
+
+%% A relation spot (predicate) labelled #3 at (#1,#2).
+\newcommand{\egpred}[3]{\node[eg pred] at (#1,#2) {#3};}
+
+%% A constant / quantifier label #3 anchored just right of a vertex at (#1,#2).
+\newcommand{\egconst}[3]{\node[eg const] at (#1,#2) {#3};}
+
+%% An argument-order numeral #3 (Peirce's Convention 13 / Dau's §11.2) at (#1,#2).
+\newcommand{\egnum}[3]{\node[eg num] at (#1,#2) {#3};}
+
+%% A scroll = an outer cut with exactly one inner cut (Peirce's conditional,
+%% `~[ A ~[ B ] ]`). Phase 1 renders it as two ovals (drawn by the exporter as
+%% two \egcut calls); the iconic self-intersecting scroll glyph is a planned
+%% enhancement (it will ship its own cut-boundary polyline so the reader still
+%% validates the drawn curve).
+\newcommand{\egscroll}[2]{#1#2}
+
+\endinput

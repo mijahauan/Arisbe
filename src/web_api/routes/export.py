@@ -18,10 +18,11 @@ if str(_src_dir) not in sys.path:
 
 from fastapi import APIRouter
 
-from web_api.models.api_models import ApiResponse, ExportRequest
+from web_api.models.api_models import ApiResponse, ExportRequest, ExportChainRequest
 from web_api.services import export_service
 
 from correspondence_attestation import CorrespondenceViolation
+from presentation_deltas import deltas_from_list
 from egif_parser_dau import parse_egif
 from cgif_parser_dau import parse_cgif
 from clif_parser_dau import parse_clif
@@ -88,9 +89,22 @@ async def do_export(request: ExportRequest):
                        "message": "Provide a uod_id or inline text."},
             )
 
+        # Regime-3 adjustments (optional) — replayed before drawing so the
+        # export reflects a hand-tuned arrangement ("export what you adjusted").
+        deltas = None
+        if request.deltas:
+            try:
+                deltas = deltas_from_list(request.deltas)
+            except Exception as exc:
+                return ApiResponse(
+                    success=False,
+                    error={"code": "BAD_DELTAS", "message": str(exc)},
+                )
+
         artifact = export_service.export_egi(
             egi, request.format, style_name=request.style_name,
             engine=request.engine, standalone=request.standalone, basename=basename,
+            deltas=deltas, scroll_glyph=request.scroll_glyph,
         )
         return ApiResponse(success=True, data=artifact)
 
@@ -99,6 +113,37 @@ async def do_export(request: ExportRequest):
             success=False,
             error={"code": "EXPORT_ERROR", "message": str(exc)},
         )
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc),
+                   "context": getattr(exc, "context", None)},
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "EXPORT_FAILED", "message": str(exc), "type": type(exc).__name__},
+        )
+
+
+@router.post("/chain")
+@router.post("/chain/")
+async def do_export_chain(request: ExportChainRequest):
+    """Export a UoD's worked transformation chain as one authentic-Peirce LaTeX
+    document — a reasoning episode in print, one figure per step."""
+    try:
+        chain = _get_tomos().load_chain(request.uod_id)
+        if chain is None:
+            return ApiResponse(
+                success=False,
+                error={"code": "CHAIN_NOT_FOUND",
+                       "message": f"UoD '{request.uod_id}' has no worked chain."},
+            )
+        artifact = export_service.export_peirce_chain(
+            chain, title=request.title, style_name=request.style_name,
+            engine=request.engine, basename=f"{request.uod_id}-chain",
+        )
+        return ApiResponse(success=True, data=artifact)
     except CorrespondenceViolation as exc:
         return ApiResponse(
             success=False,

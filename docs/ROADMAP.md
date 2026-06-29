@@ -202,10 +202,25 @@ The reference / transclusion node reached the **second-order frontier** (increme
 the cross-UoD use/mention fork, an author decision — #3). The author chose to **pause there** and tidy a
 few things first:
 
-14. **LaTeX export path** — for the **Peirce Edition Project** use case. A publication-quality export of an
-    EG (and likely a worked chain) to LaTeX/TikZ, so a drawn graph can land in print. Joins the linear-format
-    family (EGIF/CGIF/CLIF/FOPL/JSON) as an *output* path; should round-trip-test against the corpus the way
-    the others do.
+14. **LaTeX export path** — for the **Peirce Edition Project** use case. **Phase 1 SHIPPED (2026-06-29).**
+    A geometric Dau/Sowa TikZ exporter already existed; the new **authentic-Peirce** path reimplements the
+    *function* of Jukka Nikulainen's `egpeirce.sty` (oval cuts, scrolls, heavy lines of identity, hooks,
+    argument order) in **pure TikZ that compiles with plain pdflatex** — no PSTricks. Two improvements over
+    egpeirce: it is **wedded to the EGI** (drives off the §3.3-attested `LayoutDTO`, so the printed picture
+    provably denotes the graph, every element id traced in a comment) and it is **delta-faithful** ("export
+    what you *adjusted* to see" — regime-3 nudges thread through, the PEP transcribe-then-tune path).
+    Deliverables: `src/tex/arisbe-eg.sty` (a modern, hand-authorable semantic macro package — the egpeirce
+    replacement), `src/peirce_latex.py` (the exporter), `peirce-tikz` format in `export_service`, and
+    `tests/test_peirce_latex.py` (corpus totality+traceability over all 29 UoDs, reader-faithfulness on a
+    representative subset + a falsifier, **actual pdflatex compilation** of a curated handful, the PEP delta
+    path). **Phase 2 SHIPPED (2026-06-29), three of four items:** (a) the **iconic self-continuing scroll
+    glyph** — `~[A ~[B]]` drawn as the outer cut with a downward neck that crosses itself and wraps the inner
+    oval; opt-in (`scroll_glyph=`), **ink-only** so `cut_bounds`/§3.3/`read_drawing` are untouched (like the
+    hand-drawn waver and bridges); (b) **worked-chain → multi-figure LaTeX document** (`export_peirce_chain` +
+    `POST /export/chain` + `export_peirce_chain_document`) — a reasoning episode in print, one captioned figure
+    per step; (c) **HTTP route deltas** — `ExportRequest.deltas` + `scroll_glyph` thread regime-3 adjustments
+    and the glyph through `/export`. **Still deferred:** (d) the drawing→EGI **learning loop** feeding the
+    presentation-deltas → style ladder; and a session-export convenience route.
 
 15. **Start-up guidance for new users — layered + tailored by expertise.** Clear, thorough on-ramp docs that
     assume *no* math/logic background, then branch to what an **ontologist**, **logician**, **mathematician**,

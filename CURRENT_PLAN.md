@@ -1,5 +1,71 @@
 # Current Plan
 
+**▶▶▶ THIS SESSION (2026-06-29, cont. 2) — BUILT ROADMAP #14 phase 2 (3 of 4 items): iconic scroll glyph,
+worked-chain LaTeX document, HTTP route deltas.** Author picked (a)+(b)+(c), deferred (d) the learning loop.
+Done lowest-risk-first. **(c) route deltas** — `ExportRequest.deltas` (JSON `PresentationDelta` shape) +
+`scroll_glyph`; the route converts via `deltas_from_list` (→ `BAD_DELTAS` on a malformed item) and threads into
+`export_egi(deltas=…)`; `export_egi` gained the `deltas`/`previous_layout`/`scroll_glyph` params. So the PEP
+transcribe-then-tune path works over HTTP, not just the Python layer (found `parse_egif` ids are *randomized per
+call*, so the route deltas test is driven from a corpus UoD whose stored ids are stable). **(b) worked-chain →
+multi-figure LaTeX document** — `export_peirce_chain(chain)` lays out the initial state + each step's result
+(each §3.3-attested), renders via `export_peirce_latex(standalone=False)`, and `export_peirce_chain_document`
+assembles one `article` doc (macros inlined once) with a captioned figure per step (rule + Peirce label +
+description); `POST /export/chain` (`ExportChainRequest`, → `CHAIN_NOT_FOUND`). Verified visually: `beta_modus_ponens`
+renders as a titled derivation — initial P⊃Q scroll+P, then IT− deiteration, then DC− leaving Q—P. **(a) iconic
+self-continuing scroll glyph** (the hard "do better than egpeirce" win — Jukka admits PSTricks scrolls "look
+awful") — opt-in `scroll_glyph=`; for a detected scroll `~[A ~[B]]` the outer cut is drawn as an oval with a
+downward **neck that crosses itself and wraps over the inner oval**, the inner loop nestling in the neck (verified
+visually on `~[ Man ~[ Mortal ] ]`). **Crucially ink-only:** it changes only the stroke, never `cut_bounds`, so
+§3.3 + `read_drawing` validate exactly as before (the same discipline as the hand-drawn waver and the crossing
+bridges) — faithfulness holds with the glyph on or off. Default off keeps the robust nested-oval baseline.
+**Tests +13** (`test_peirce_latex.py` 51, `test_export_routes.py` 13): scroll-glyph opt-in + ink-only-faithful +
+compiles; worked-chain assembles (one figure per step, names every rule) + compiles; route deltas (effect +
+malformed rejection) + chain route (+ CHAIN_NOT_FOUND). core-protection CLEAN; additive only. **Deferred: (d) the
+drawing→EGI learning loop** (parsed-replica deltas → presentation-deltas/style ladder) + a session-export
+convenience route. Docs: ROADMAP #14 phase-2 SHIPPED; CAPABILITY_MAP; CLAUDE.md. [[project_tidyup_tracks_post_reference_node]].
+
+**▶▶▶ THIS SESSION (2026-06-29, cont.) — BUILT ROADMAP #14 phase 1: the authentic-Peirce LaTeX/TikZ export
+path for the Peirce Edition Project.** Author chose #14 first of the three tidy-up tracks. **Discovery:** a
+*geometric* Dau/Sowa TikZ exporter already existed (`tikz_export.py`, wired into `/export`), but its docstring
+said the **authentic-Peirce path is a separate exporter** never built. Author's brief, refined across the session:
+replicate the *function* of Jukka Nikulainen's `egpeirce.sty` (oval cuts, scrolls, heavy lines of identity, hooks)
+but with a **modern, robust, widely-supported, easier-to-use** implementation — **pure TikZ, plain pdflatex, no
+PSTricks** — *not bound to egpeirce's spec, improving where we can* (Jukka admits its limits); and **CRITICAL:
+stay wedded to the logic of an EGI** (egpeirce is pure typesetting with no model underneath — Arisbe's edge is
+the LaTeX is *generated from* the §3.3-attested EGI, so the printed picture provably denotes the same object).
+Author also enriched the design with the **PEP use cases**: (1) transcribe-then-tune (write a journal graph's
+EGIF, Arisbe draws it, scholar **adjusts within the logic** — regime-3 deltas — to match Peirce's page, then
+exports) and (2) replica-then-parse (draw a Peirce-style replica → parse to EGI; the drawing→EGI layout deltas
+that differ from Arisbe's canonical output are *a learning experience* feeding the Peirce-style spec). So export
+must be **delta-faithful** ("export what you adjusted to see"). **The load-bearing design decision:** draw at the
+**§3.3-attested `LayoutDTO`'s own coordinates** — ovals at `cut_bounds`, heavy lines from `vertex_positions` to a
+hook on the `predicate→points[0]` ray (which **preserves the hook angle** the reader keys argument order off) — so
+the picture *is* the DTO and the existing reader (`eg_reader.read_drawing`+`reading_matches_egi`) vouches for it,
+**correspondence for free, no new prover**. **SHIPPED (additive; core-protection CLEAN):** `src/tex/arisbe-eg.sty`
+(a modern, hand-authorable semantic TikZ macro package — the egpeirce replacement: `\egcut`/`\egloi`/`\egdot`/
+`\egpred`/`\egconst`/`\egnum`, key-value `\egset`, no PSTricks), `src/peirce_latex.py` (`export_peirce_latex(dto,
+egi)` — oval cuts in nesting order with parity shading; **branching** heavy lines of identity grouped by vertex
+with a branch dot at teridentities; hooks trimmed to the predicate label-box edge on the angle-preserving ray;
+bridges at crossings reusing `render_geometry`; argument-order numerals honoring `order_label`; constants from
+`rho`; scroll **detection**→annotation with nested ovals; TeX-escaping; standalone inlines the `.sty` with
+`article` fallback for minimal installs), and wiring in `export_service.py` (new `peirce-tikz` format forcing the
+oval style; `export_egi` gained `deltas`/`previous_layout` pass-through for the PEP path). **Tests
+`tests/test_peirce_latex.py` (47 green):** corpus-wide totality+traceability over all 29 UoDs (every id in the
+`.tex`, macro counts match); reader-faithfulness on a representative subset + a falsifier (doctored DTO reads back
+different — the check has teeth); **actual pdflatex compilation** of a curated 6 (alpha double-cut, beta
+teridentity, scroll, isolated vertex, empty cut, TeX-special `under_score` name); the PEP delta path; format/route
+wiring. Verified visually: `(Human *x) ~[ (Mortal x) ]` → a shaded **oval cut** with italic "Mortal" inside and a
+continuous **heavy line of identity** from "Human" on the sheet bending into the cut — recognizably authentic
+Peirce, ∃x(Human(x) ∧ ¬Mortal(x)). Honest reader limit surfaced + documented: dense ontologies (`bfo_core`,
+`skos_core`) don't fully read back — a reader-heuristic property, **not** the exporter; §3.3 still attests them
+(covered by the corpus tier). Updated the existing `test_export_routes` format-set assertion. **Phase 2 deferred
+(flagged):** the iconic self-intersecting `\egscroll` glyph (via the DTO `cut_boundary` so the reader still
+validates — where egpeirce admits defeat); a **worked-chain → multi-figure LaTeX document** (the "and likely a
+worked chain" clause); an HTTP route-level deltas field / session-export convenience; the drawing→EGI **learning
+loop** feeding the presentation-deltas → style ladder. Docs: ROADMAP #14 → phase-1 SHIPPED; CAPABILITY_MAP row;
+CLAUDE.md module + test entries. Plan file: `~/.claude/plans/fluffy-seeking-hartmanis.md`.
+[[project_tidyup_tracks_post_reference_node]].
+
 **▶▶▶ THIS SESSION (2026-06-29) — DE-RISK: prototyped the reference/transclusion-node *validation harness* (ROADMAP
 #3, the precursor before touching the protected core). SUCCESS.** Author's framing: "prototype the validation
 harness; if successful we dig into the reference/transclusion node." Built it **read-only, no protected-core change**:
@@ -169,13 +235,12 @@ Verified visually (headless Chromium): the overlay shows the four marks, the key
 cat-on-mat + scroll. Docs: ROADMAP #4 → stage 2(b) DONE (only 2(a) plain-English door remains), CAPABILITY_MAP
 primer row → SHIPPED. [[project_next_cross_mode_ux_coherence]], [[feedback_newcomer_accessibility_dragons]].
 
-**▶▶▶ NEXT SESSION — reference/transclusion node increment 1 is SHIPPED; PAUSED on the 2nd-order frontier by
-author choice. Next = three author-chosen tidy-up tracks (ROADMAP #14–#16), not increment 2.** The reference node
-reached the second-order frontier (increment 1a logic + 1b glyph done, fully additive); **increment 2 = cross-UoD =
-the use(scroll-import)/mention(2nd-order-naming) fork (DoR §4½/§7) — deferred as an author decision.** Instead, the
-author set three tidy-up tracks to do first (see [docs/ROADMAP.md](docs/ROADMAP.md) #14–#16):
-**(#14) LaTeX export path** for the **Peirce Edition Project** (publication-quality EG→LaTeX/TikZ, joins the
-linear-format family as an output path, corpus round-trip-tested);
+**▶▶▶ NEXT SESSION — ROADMAP #14 phases 1 + 2 (authentic-Peirce LaTeX export) are SHIPPED. Next = #15 or #16
+(the two remaining tidy-up tracks), or #14 (d) the drawing→EGI learning loop, or back to reference-node
+increment 2 — author's pick.** The reference node is PAUSED on the 2nd-order frontier (increment 2 = cross-UoD
+use/mention fork, DoR §4½/§7 — author decision). Of the three tidy-up tracks the author set, **#14 is done
+(phases 1+2: oval cuts, heavy LoI, hooks, iconic scroll glyph, worked-chain document, route deltas)**; remaining:
+**(#14 (d), optional)** the drawing→EGI learning loop feeding the presentation-deltas → style ladder; a session-export route;
 **(#15) layered start-up guidance** for new users assuming no math/logic background, then branching to what an
 **ontologist / logician / mathematician / Peirce expert** each needs (a written, role-aware companion to the shipped
 in-app primer / Field Guide);
