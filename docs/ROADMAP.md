@@ -82,13 +82,43 @@ drawn in `agon.html` (legend + a small M-fragment board in the reading strip). T
 (6), `test_agon_interpretation.py` (+3 route), `test_agon_e2e.py` (+1 browser). See
 [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) (recommendations (d) + (c)).
 
-### 3. First-class reference / transclusion node — **DESIGNED · (author decision)**
+### 3. First-class reference / transclusion node — **increment 1 SHIPPED (2026-06-29) · increment 2 = the cross-UoD fork (author decision)**
+
+> **Increment 1 (intra-UoD) shipped 2026-06-29, fully additive, core-protection CLEAN:** `src/reference_node.py`
+> (a **Form-2 reference edge** + an overlay `ReferenceMark` + the `ReferenceResolver` seam with
+> `DefinitionReferenceResolver`/`ChainReferenceResolver` + the `attest_reference` boundary hook + `reference_horizon`)
+> and the **render glyph** in `simple_svg_renderer` (`reference_marks=` → a dashed spot + "+N beyond view" badge,
+> default-off, no §3.3 change). Tests: `test_reference_node.py` (11) + `test_reference_glyph.py` (3); 95 corpus-wide
+> §3.3/render tests confirm zero regression. See [REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md).
+> **Increment 2 — cross-UoD — is the author decision below:** it is *not* "more reference" but a **use / mention**
+> fork (DoR §4½/§7): **use** = governed import via the scroll `~[ B ~[ G ] ]` (B conditioned, LOW/attributed warrant,
+> never the transparent double-cut co-assertion that would merge universes); **mention** = second-order naming, B
+> drawn as the read-only "fourth thing" (`m_render`). **Paused here on the 2nd-order frontier (#13) by author choice.**
 
 The open *architectural fork*. A node that references material defined elsewhere (a shared sub-graph,
 a corpus graph) rather than copying it. High value for scale and for "scoping without recapitulation,"
 but it **touches the protected core** (`egi_core_dau` + the §3.3 correspondence contract), so it is
 not a safe additive build — it needs an author decision on whether to open the data model. See
-[THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) recommendation (b).
+[THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) recommendation (b) + §12's three decisions.
+
+**De-risk done (2026-06-29):** before opening the core, the law a reference node must satisfy —
+`RESOLVE ≡ INLINED-AND-ATTESTED` (§12 decision 3, an `attest_reference` analogous to `attest_overview`)
+— is now **prototyped and proven on real graphs without any core change**:
+`src/reference_resolution_check.py` + `tools/run_reference_resolution_check.py` +
+`tests/test_reference_resolution_check.py` (11). Checks R1 resolve-equals-inline (`same_graph`),
+R2 resolved-is-§3.3-attested, R3 recoverable (`fold`, where an inverse exists), R4 honest horizon
+(unresolved named). PASS on definition references (Power Set, Infinity) **and** a transclusion
+reference (cl-imports model); falsifiers bite. The key finding: `definitions.py` is *the reference
+node in miniature* (defined edge → body elsewhere; `expand`/`fold` ⇒ resolve/refold), so the
+remaining decision is **form + recoverability, not correctness of resolution** — see
+[[project_reference_node_validation_harness]] / the memory note. The three §12 decisions (form:
+element vs edge vs overlay · calculus-entry under level-0 doctrine · the attestation contract) are now
+taken in a **design-of-record — [REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md)**:
+Form 2 (a relation-shaped reference *edge* generalizing the definition node), **additive-first**
+(increment 1 touches no protected module — generalize the resolver to corpus-UoD-by-name, reference
+glyph, provenance in the overlay), with the **second-order-frontier invariant** banked (keep references
+in the `splice`/port/expansion family so definition/schema/reference stay one mechanism). Awaiting the
+author's go-ahead on increment 1.
 
 ### 4. Newcomer / EGIF-authoring on-ramp — **DONE (stages 1 + 2(a) + 2(b) all shipped 2026-06-28)**
 
@@ -163,6 +193,31 @@ from-scratch EGIF box. Audience: "both, in sequence" (carry-a-graph first, then 
 
 12. **Doctrine: Departure I reflexive-diagonal argument** — the one open joint held "at parity" in
     [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md). A standing intellectual thread, not a build.
+
+---
+
+## Chosen next — tidy-up tracks (author-set 2026-06-29, paused before reference-node increment 2)
+
+The reference / transclusion node reached the **second-order frontier** (increment 1 shipped; increment 2 =
+the cross-UoD use/mention fork, an author decision — #3). The author chose to **pause there** and tidy a
+few things first:
+
+14. **LaTeX export path** — for the **Peirce Edition Project** use case. A publication-quality export of an
+    EG (and likely a worked chain) to LaTeX/TikZ, so a drawn graph can land in print. Joins the linear-format
+    family (EGIF/CGIF/CLIF/FOPL/JSON) as an *output* path; should round-trip-test against the corpus the way
+    the others do.
+
+15. **Start-up guidance for new users — layered + tailored by expertise.** Clear, thorough on-ramp docs that
+    assume *no* math/logic background, then branch to what an **ontologist**, **logician**, **mathematician**,
+    or **Peirce expert** each needs. Complements the shipped in-app primer / Field Guide (newcomer on-ramp #4)
+    with a written, role-aware front door. Audience-layered the way `VISION_AND_SCOPE` / `GLOSSARY` already are.
+
+16. **External-sources & import documentation** — how Arisbe interacts with outside information: importing
+    **ontologies** (OWL/RDF/CLIF/SUOKIF), and admitting material **from textbooks, websites, papers**. The
+    machinery exists and is scattered across [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md),
+    [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (LOW-warrant import floor), the OWL/RDF importers, and
+    `cl_import_resolver`; this is a *consolidating doc* that makes the import story legible end-to-end (what
+    enters, at what warrant, attributed how, attested how).
 
 ---
 

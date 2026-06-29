@@ -552,6 +552,12 @@ Praeclarum. It turns §9's rules from assertions into tested claims *before* we 
 operationalizes the EG↔DRT bridge — the static isomorphism is Sowa's/Kamp's, but the *dynamic*
 step↔update scorer is a genuine contribution. Tuning S1–S5 / D1–D4 without (g) is guessing.
 
+> **Update (2026-06-29):** the law is now de-risked (`src/reference_resolution_check.py`, proving
+> `RESOLVE ≡ INLINED-AND-ATTESTED` with no core change) and the three decisions below are taken in a
+> design-of-record — **[REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md)**:
+> Form 2 (a relation-shaped reference *edge* generalizing the definition node), additive-first, with the
+> second-order-frontier invariant banked.
+
 **The open architectural question (the author's to decide): (b), the reference / transclusion node.** It is the
 general form of (c) and the only real fork, because it touches `egi_core_dau` and the §3.3 contract. Three
 decisions:

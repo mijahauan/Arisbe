@@ -10,7 +10,7 @@ Date: 2025-10-12
 
 import math
 import xml.etree.ElementTree as ET
-from typing import Optional
+from typing import Dict, Optional
 
 import render_geometry as rg
 from layout_dto import LayoutDTO
@@ -26,20 +26,28 @@ class SimpleSVGRenderer:
         dto: LayoutDTO,
         title: str = "",
         egif: str = "",
-        egi: Optional[RelationalGraphWithCuts] = None
+        egi: Optional[RelationalGraphWithCuts] = None,
+        reference_marks: Optional[Dict[str, int]] = None,
     ) -> str:
         """
         Convert LayoutDTO to SVG string.
-        
+
         Args:
             dto: Layout data from unified D3 engine (includes style)
             title: Diagram title
             egif: EGIF linear form for display
             egi: EGI model for labels
-        
+            reference_marks: optional {predicate_id: horizon} — decorate those
+                predicate spots as reference / transclusion nodes (a dashed spot +
+                a "+N beyond view" badge), reusing the overview horizon idiom.
+                Pure chrome: it reads the overlay (``reference_node.render_marks``),
+                never the EGI, and changes no DTO geometry, so §3.3 (which reads the
+                DTO) is untouched. Default ``None`` is byte-identical to before.
+
         Returns:
             SVG string
         """
+        reference_marks = reference_marks or {}
         
         # Use style from DTO (already contains Dau style specification)
         style = dto.style
@@ -58,6 +66,10 @@ class SimpleSVGRenderer:
         ligature_color = _raw.get("ligature", {}).get("color", "#000000")
         predicate_label_color = _raw.get("predicate", {}).get("label_color", "#000000")
         vertex_label_color = _raw.get("vertex", {}).get("label_color", "#000000")
+        # The reference-node accent (increment 1b): a distinct ink for a reference
+        # spot's dashed box + its "+N beyond view" horizon badge.  Style-overridable;
+        # the default is a neutral blue that reads as "pointer, not primitive".
+        reference_accent = _raw.get("reference", {}).get("accent_color", "#7287fd")
         font_style = _raw.get("global", {}).get("font_style", "normal")
         ligature_routing = _raw.get("ligature", {}).get("routing_mode", "orthogonal")
         # A cut is drawn as an inscribed ellipse (Peirce/Sowa "oval") or a
@@ -421,24 +433,40 @@ class SimpleSVGRenderer:
             text_width = _box.max_x - _box.min_x
             text_height = _box.max_y - _box.min_y
 
+            # Is this predicate spot a reference / transclusion node? (overlay,
+            # not the EGI — chrome only.)
+            is_reference = p_id in reference_marks
+
             # Wrap in a named group so the frontend can detect clicks by element ID
-            p_g = ET.SubElement(element_group, "g", {
+            p_attrs_g = {
                 "id": p_id,
                 "data-element-id": p_id,
                 "data-element-type": "predicate",
                 "cursor": "pointer",
-            })
+            }
+            if is_reference:
+                p_attrs_g["class"] = "reference-spot"
+                p_attrs_g["data-reference"] = "true"
+                p_attrs_g["data-reference-horizon"] = str(reference_marks[p_id])
+            p_g = ET.SubElement(element_group, "g", p_attrs_g)
 
             # Background rectangle — always present as a clickable hit area.
-            # Use the style colour if specified, otherwise transparent.
+            # Use the style colour if specified, otherwise transparent.  A
+            # reference spot gets a dashed accent border so it reads as a pointer,
+            # not a primitive relation (no extent change — same box §3.3 reads).
             bg_color = style.raw_style_data.get('predicate', {}).get('label_box_background', 'transparent')
-            ET.SubElement(p_g, "rect", {
+            rect_attrs = {
                 "x": str(x - text_width / 2), "y": str(y - text_height / 2),
                 "width": str(text_width), "height": str(text_height),
                 "rx": "2", "ry": "2",
                 "fill": bg_color,
                 "stroke": "none",
-            })
+            }
+            if is_reference:
+                rect_attrs["stroke"] = reference_accent
+                rect_attrs["stroke-width"] = "1"
+                rect_attrs["stroke-dasharray"] = "3,2"
+            ET.SubElement(p_g, "rect", rect_attrs)
 
             # Label text
             p_attrs = {
@@ -452,7 +480,24 @@ class SimpleSVGRenderer:
             if font_style != "normal":
                 p_attrs["font-style"] = font_style
             ET.SubElement(p_g, "text", p_attrs).text = label
-        
+
+            # The "+N beyond view" horizon badge — top-right of the label box,
+            # small accent text.  Pure decoration; sits outside the attested
+            # predicate extent (the badge is not part of dto.predicate_positions).
+            if is_reference:
+                horizon = reference_marks[p_id]
+                badge = ET.SubElement(p_g, "text", {
+                    "class": "reference-horizon",
+                    "x": str(x + text_width / 2 + 3),
+                    "y": str(y - text_height / 2 + 2),
+                    "text-anchor": "start",
+                    "font-size": str(max(8.0, float(style.font_size) * 0.7)),
+                    "font-family": style.font_family,
+                    "fill": reference_accent,
+                    "font-weight": "bold",
+                })
+                badge.text = f"+{horizon}"
+
         # EGIF at bottom
         if egif:
             egif_lines = egif.split('\n')[:3]  # First 3 lines

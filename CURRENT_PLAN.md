@@ -1,5 +1,64 @@
 # Current Plan
 
+**▶▶▶ THIS SESSION (2026-06-29) — DE-RISK: prototyped the reference/transclusion-node *validation harness* (ROADMAP
+#3, the precursor before touching the protected core). SUCCESS.** Author's framing: "prototype the validation
+harness; if successful we dig into the reference/transclusion node." Built it **read-only, no protected-core change**:
+`src/reference_resolution_check.py` + `tools/run_reference_resolution_check.py` + `tests/test_reference_resolution_check.py`
+(11). It is the analogue of `attest_overview` for the reference contract — §12 decision 3 named the law,
+**RESOLVE ≡ INLINED-AND-ATTESTED**. Per candidate: **R1** resolve-equals-inline (`same_graph(resolve(), inlined)` —
+the heart), **R2** resolved-is-§3.3-attested (`attest_correspondence` on the resolved graph; `layout_fn` injected so
+the pure module imports no geometry), **R3** recoverable (`same_graph(refold(resolve()), host)`, only when an inverse
+exists), **R4** honest horizon (unresolved names reported, never silently dropped — informational). **The insight that
+made it cheap:** the reference node already exists in miniature in **unprotected** code — `definitions.py` (a defined
+edge → a body elsewhere; `expand`/`expand_at` resolve, `fold` is the exact inverse, `test_definitions.py:65` already
+proves expand recovers an independently-authored raw fixture). Transclusion (b) = the generalization (reference another
+UoD/module by name+provenance); identical law, only *where the body comes from* differs (registry vs corpus/text-assembly
+— exactly how `cl_import_resolver` works). **Result: PASS on every real candidate** — definition references (Power Set:
+full R1+R2+R3; Infinity: multi-reference whole-graph expand) **and** a transclusion reference (inter-graph cl-imports
+model that names its `no_such_module` horizon). **Falsifiers bite** (R1 doctored-inline, R3 lossy-refold, R2
+rejecting-attest, resolve-raises) so the PASS is earned; the real-ELK §3.3 path runs (not skipped). Core-protection
+CLEAN; 11/11 green; `test_definitions` (15) green. **What it tells the author for the (b) decision:** the law is
+representation-independent (it holds with the reference modeled *out of core*), so first-class-element-hood is needed
+only for *drawing the glyph + §3.3 totality over it*, **not** for correctness of resolution; `attest_reference` is just
+"resolve, then ordinary §3.3 on the resolved EGI" (no new §3.3 machinery); and **recoverability is a real asymmetry** —
+definitions have a clean local inverse (`fold`), transclusion does not (R3 N/A, surfaced in `honest_limits`). The three
+§12 decisions (form / calculus-entry under level-0 / attestation contract) are now ready for the author. Docs: ROADMAP
+#3 → "law DE-RISKED"; [[project_reference_node_validation_harness]]. **Then (same session) the author chose to lay
+out the three §12 decisions and took them — new design-of-record `docs/REFERENCE_AND_TRANSCLUSION_NODE.md`:** Form =
+**Form 2, a relation-shaped reference *edge* generalizing the definition node** (resolve=`expand`/`fold`; §3.3 already
+covers it as a predicate — zero §3.3 change; Form 1 = new element kind rejected as highest-cost, Form 3 = overlay kept
+as a cheap legibility *complement*, not a substitute). Calculus entry = like a definition, conditioned in a cut
+(level-0 clean), LOW warrant. Attestation = `attest_reference` = the harness R-checks. Timing = **additive-first, core
+later** (author's call): increment 1 touches NO protected module (generalize resolver `DefinitionRegistry`→corpus-UoD-by-name
+via `TomosService.load_uod`; reference-ness + provenance in the overlay; reference glyph style-only; `attest_reference`
+at the serve boundary). **The author asked whether this choice helps/hurts the 2nd-order frontier (ROADMAP #13) later —
+answer: BETTER, banked as an invariant.** definition/schema/reference are ONE family (relation-shaped, port-bearing,
+`eg_splice.splice`-resolved); schema.py's "metalevel generator + expansion-to-instances" soundness dodge IS the harness
+law, so Form 2 inherits it; Form 1 would force a later 3-way reconciliation. Invariant to preserve: keep references in the
+splice/port/expansion family + the abstraction hook (foldable/abstractable, nameable by a line of identity). Honest scope:
+*alignment* (one mechanism to extend), NOT *advancement* (no in-logic 2nd-order quantification — schema.py dodges that).
+Docs cross-linked from ROADMAP #3 + THE_MINIMAL_IN_VIEW_SET §12. **Then (author said "Proceed") BUILT increment 1a —
+the reference-node logic layer, fully additive, core-protection CLEAN:** new `src/reference_node.py` (a Form-2 reference
+edge + an OVERLAY `ReferenceMark` keyed by edge id carrying target/kind/origin/`warrant="low"`, kept beside the EGI so
+`egi_core_dau` is untouched; the `ReferenceResolver` Protocol shaped like `cl_import_resolver.ImportResolver` with
+`DefinitionReferenceResolver` (resolution = `expand_at`, inverse = `fold`) + `ChainReferenceResolver` so schema/UoD
+resolvers drop in additively; `mark_reference`/`resolve_reference`/`refold_reference`/`attest_reference` boundary hook
+building a `reference_resolution_check.Reference` and attesting R2+R3) + `tests/test_reference_node.py` (11: mark
+round-trip, refuse-unresolvable=R4, resolve=raw fixture=R1, refold=host=R3, boundary hook bites on doctored inlining,
+chain dispatch, real-ELK R2). 22 green (node + harness); `test_definitions`+`test_schema` (34) green; core-protection
+CLEAN. At a production boundary R1 is trivial (no independent inlining) so R3 carries the round-trip weight; R1-vs-ground-truth
+is the offline proof in tests. **Then (author "Proceed") BUILT increment 1b — the render glyph**, additive, core-protection CLEAN: `simple_svg_renderer`
+(unprotected) gains an optional `reference_marks={edge_id: horizon}` param → a marked predicate spot draws with a **dashed
+accent box** + a **"+N beyond view"** badge (`reference_node.reference_horizon` = spliced-body size; `render_marks` builds
+the map). Pure chrome — reads the overlay, never the EGI, changes **no DTO geometry**, so §3.3 (which reads the DTO) is
+untouched; default `None` byte-identical. +3 tests (`test_reference_glyph.py`: horizon>0, glyph drawn only when marked,
+geometry unchanged). 25 green (glyph+node+harness); **95 corpus-wide §3.3/render/organon/layout-service tests green**
+(2.5 min ELK run) confirming zero regression; core-protection CLEAN. Wiring `layout_service`/web routes to *supply* marks
+is a thin follow-on (no UI authors references yet). **Increment 1 (1a+1b) COMPLETE. NEXT = increment 2: cross-UoD as the
+use(scroll-import)/mention(2nd-order-naming) fork (§7) — an author decision (the use branch = governed import; mention =
+the 2nd-order frontier).** Docs: REFERENCE_AND_TRANSCLUSION_NODE §5 → 1a+1b SHIPPED. [[project_reference_node_validation_harness]],
+[[project_minimal_in_view_set]].
+
 **▶▶▶ THIS SESSION (2026-06-28, cont. 4) — UX: shipped (#4) stage 2(a), the plain-English authoring door — the
 on-ramp (#4) is now COMPLETE.** The NL→logic front-end (`POST /agon/propose-nl`, `src/nl_to_logic.py`: *LLM
 proposes, Arisbe disposes*) was fully built and route-tested but had **no UI** — a non-logician could read a lit
@@ -110,15 +169,20 @@ Verified visually (headless Chromium): the overlay shows the four marks, the key
 cat-on-mat + scroll. Docs: ROADMAP #4 → stage 2(b) DONE (only 2(a) plain-English door remains), CAPABILITY_MAP
 primer row → SHIPPED. [[project_next_cross_mode_ux_coherence]], [[feedback_newcomer_accessibility_dragons]].
 
-**▶▶▶ NEXT SESSION — the newcomer on-ramp (#4) is now fully shipped (all three stages); pick the next track
-from [docs/ROADMAP.md](docs/ROADMAP.md).** The near-term UX backlog (#2 render-M, #4 on-ramp, #5 context-reflex
-docking) is now clear. The one remaining *near-term* item is **ROADMAP #3 — the first-class reference /
-transclusion node**, but it is an **author decision**, not a safe additive build: it touches the protected core
-(`egi_core_dau` + the §3.3 correspondence contract), so opening the data model needs the author's go-ahead. The
-[THE_MINIMAL_IN_VIEW_SET.md](docs/THE_MINIMAL_IN_VIEW_SET.md) recommendation (b) + the *(b) reference node* open
-item in [[project_minimal_in_view_set]] hold the full context. Otherwise the **Backlog** + **Long-horizon
-research frontier** sections of the ROADMAP list the next candidates (e.g. tension_engine 17/18 → 18/18,
-multi-candidate NL disambiguation, layout-perf). Bring options to the author at session start.
+**▶▶▶ NEXT SESSION — reference/transclusion node increment 1 is SHIPPED; PAUSED on the 2nd-order frontier by
+author choice. Next = three author-chosen tidy-up tracks (ROADMAP #14–#16), not increment 2.** The reference node
+reached the second-order frontier (increment 1a logic + 1b glyph done, fully additive); **increment 2 = cross-UoD =
+the use(scroll-import)/mention(2nd-order-naming) fork (DoR §4½/§7) — deferred as an author decision.** Instead, the
+author set three tidy-up tracks to do first (see [docs/ROADMAP.md](docs/ROADMAP.md) #14–#16):
+**(#14) LaTeX export path** for the **Peirce Edition Project** (publication-quality EG→LaTeX/TikZ, joins the
+linear-format family as an output path, corpus round-trip-tested);
+**(#15) layered start-up guidance** for new users assuming no math/logic background, then branching to what an
+**ontologist / logician / mathematician / Peirce expert** each needs (a written, role-aware companion to the shipped
+in-app primer / Field Guide);
+**(#16) external-sources & import documentation** — a consolidating doc making the end-to-end import story legible
+(ontologies OWL/RDF/CLIF/SUOKIF; textbooks/websites/papers; what enters, at what warrant, attributed/attested how —
+gathering CORPUS_AND_IMPORT_MODEL + MANIFEST_AND_MEANING + the OWL/RDF importers + `cl_import_resolver`).
+Bring sequencing options for #14–#16 to the author at session start.
 
 **Last Updated**: 2026-06-27. **▶▶▶ This session (2026-06-27) — CONSOLIDATION / PLANNING SPINE shipped + the
 protected-core re-audit.** Built the top-down orientation Arisbe never had, as **four thin, cross-linked,
