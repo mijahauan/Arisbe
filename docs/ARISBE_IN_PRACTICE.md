@@ -3,7 +3,7 @@
 *An introduction for people who have never heard of Arisbe — told through the
 people who might use it and the work they actually do.*
 
-**Status**: active development · **Last refreshed**: 2026-06-22
+**Status**: active development · **Last refreshed**: 2026-06-30 (capabilities re-audited)
 *(Combines the former `ARISBE_PERSONAS.md` and the original scenario narrative.)*
 
 *New to the **ideas** rather than the tool? The plain-language
@@ -155,16 +155,18 @@ world M, does G hold?" (true / false / *unknown*, with a witness or
 counterexample), run the **inverse pivot** — "*in what world does G hold*, and
 what is its residual contribution?" — and, when a Graphist-won contest is worth
 keeping, mint a **warrant**: G enters the corpus as "withstood Agon," carrying
-its play as proof. Every corpus item now wears its **standing** on a badge —
+its play as proof. When his proposal and a model don't fully meet, a **vocabulary
+legend** shows what M can speak to, the terms it can address but hasn't confirmed, and
+the terms it cannot even address — *"not even wrong" in this model* — keeping that
+**addressability gap** distinct from the merely-unconfirmed. Every corpus item now wears its **standing** on a badge —
 *posited* (admitted at low warrant), *derived* (a sound chain reaches it), or
 *withstood* (it has survived the arena) — and the badge's own tooltip states the
 non-claim it must never be read against: *correspondence is attested, truth is
 not*. The badge ranks the **claim**, never the person who entered it.
 
 **When complete.** Larger ontologies (WordNet, SNOMED, Wikidata) as routine
-opponents; a sharper account of *vocabulary the model cannot even address*
-(distinct from "addressable but unconfirmed"); and a fuller warrant lifecycle
-that records *how much* a claim has been challenged and by whom. Research becomes
+opponents; and a fuller warrant lifecycle that records *how much* a claim has been
+challenged and by whom. Research becomes
 a diachronic record of inquiry — not a pile of results, but a documented history
 of how a community tested its way to them.
 
@@ -194,16 +196,20 @@ where its bounded fragment can't decide rather than ever answering wrongly.
 
 She can also **fold** a drawn subgraph under a named definition and **unfold** it
 again — abstracting a reusable piece whose legitimacy rests on its *expansion*
-(the rules accept the swap), never on its name.
+(the rules accept the swap), never on its name. And she can read **modal** force
+straight off the diachronic history — ◇φ where *some* legal trajectory scribes φ,
+□φ where *every* one does — with no Gamma mark required (necessity is convergence,
+possibility is branching).
 
 **When complete.** Exhaustive, hypothesis-driven testing that enumerates *every*
 applicable site for each rule; a theorem-prover bridge (Coq/Lean via CLIF); and the
 rest of the **mathematics horizon** — universal generalization via a Dau-native
-scaffold tactic and a graph-with-holes schema node — which opens EGs onto real
-mathematics (ZFC separation, Peirce's 1881 axioms of arithmetic). *(This track is
-in progress: the fold/unfold definition layer has shipped, the soundness homework
-for universal generalization is done, and draft fixtures exist; the schema node is
-next.)* The system becomes a place to *do new mathematics* in pictures, not only to
+scaffold tactic, applied to real mathematics (ZFC separation, Peirce's 1881 axioms
+of arithmetic). *(This track is well advanced: the fold/unfold definition layer and
+the graph-with-holes **schema node** have both shipped, the soundness homework for
+universal generalization is done, and draft fixtures exist; the remaining frontier is
+**schema-drawing/§3.3** — drawing a hole and attesting it.)* The system becomes a
+place to *do new mathematics* in pictures, not only to
 reproduce known proofs.
 
 ## The physician
@@ -224,7 +230,10 @@ denies. When a new observation collides with an existing rule, the disposition
 taxonomy lays out the genuine options — reject the finding, revise the rule, hold
 it as a hypothesis — exactly the move clinical knowledge makes when a textbook
 generalization meets a real exception. Nothing auto-asserts; the judgment is
-hers.
+hers. And in **Organon** an **audit lens** replays that standing question against
+each successive version of her knowledge, drawing the verdict at every step and
+flagging exactly where it flips and which revision flipped it — each transition
+labelled by its disposition and Peircean mode (induction / deduction / abduction).
 
 **When complete.** A large medical ontology (SNOMED) as the standing model, with
 guideline rules materialized so the reasoning fires automatically; and the
@@ -253,17 +262,21 @@ nudge vertices, reshape a cut, and reroute a ligature by hand to match the
 guarantees that all this hand-adjustment is pure appearance: it never changes
 what the graph asserts. He round-trips a graph between linear forms to
 cross-check his transcription, and carries the manuscript's provenance — source,
-date, page — as typed metadata on the corpus item.
+date, page — as typed metadata on the corpus item. And once it is verified he
+**exports it to publication-ready LaTeX/TikZ** — an *authentic-Peirce* rendering
+(oval cuts, heavy lines of identity, hooks; pure TikZ, plain `pdflatex`, no
+PSTricks) generated *from* the §3.3-attested graph, so the printed figure provably
+denotes the same object — with a scholarly **citation** drawn from the item's own
+provenance, and **batch export** that assembles many graphs into one document (an
+appendix of figures, or a worked proof as a multi-figure derivation). He drops the
+result straight into the edition.
 
-**When complete.** The decisive frontier is **LaTeX/TikZ export** — the bridge
-from Arisbe's drawn form to publication-ready vector graphics, so a verified
-graph becomes a figure he drops straight into the edition. With it: an
-**overlay-comparison mode** to fade between Peirce's scan and the recreation;
-**batch export** of a whole manuscript's graphs; an **auto-citation** generator;
-and the **by-hand reading desk** — an interactive transcription surface that
-captures the graph *and* its scholarly apparatus (provenance, editorial
-annotations, variant readings) together. The promise: the printed graph and the
-manuscript graph denote the same thought, and the apparatus says so, citably.
+**When complete.** What remains are two conveniences *around* that export: an
+**overlay-comparison mode** to fade between Peirce's scan and the recreation, and
+the **by-hand reading desk** — an interactive transcription surface that captures
+the graph *and* its scholarly apparatus (provenance, editorial annotations, variant
+readings) together. The promise is already kept for the figure itself: the printed
+graph and the manuscript graph denote the same thought, and the apparatus says so, citably.
 (See [FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md](FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md).)
 
 ## What the personas share
