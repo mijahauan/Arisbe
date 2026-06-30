@@ -46,7 +46,18 @@ ONTOLOGIES = {"porphyry_tree", "foaf_core", "sumo_upper", "bfo_core",
               "colore_between", "colore_field", "skos_core"}
 # The worked-proof fixtures (each carries a real chain).
 PROOFS = {"peirce_law", "barbara", "group_identity", "theorem_praeclarum",
-          "branching_confluence"}
+          "branching_confluence",
+          # the propositional exemplar quartet + the modal-branching demonstration
+          "de_morgan", "contraposition", "ex_falso_quodlibet",
+          "hypothetical_syllogism", "possible_and_necessary"}
+# Authored proofs of *cited* classical theorems — they legitimately carry a
+# theorem_source (the named theorem they derive), exactly like peirce_law. They are
+# authored derivations, not transcribed content, so they sit apart from CITED — but
+# they are emphatically *not* synthetic, and the citation is real, not fabricated.
+AUTHORED_CITED_PROOFS = {
+    "peirce_law", "barbara", "group_identity",
+    "de_morgan", "contraposition", "ex_falso_quodlibet", "hypothetical_syllogism",
+}
 
 
 @pytest.mark.parametrize("uod_id", _uod_ids())
@@ -99,7 +110,7 @@ def test_imported_ontologies_are_kind_ontology(uod_id, tomos):
 
 def test_synthetic_uods_are_authored_not_falsely_cited(tomos):
     """Honesty floor: a synthetic exemplar must NOT carry a fabricated source."""
-    synthetic = set(_uod_ids()) - CITED - {"peirce_law", "barbara", "group_identity"}
+    synthetic = set(_uod_ids()) - CITED - AUTHORED_CITED_PROOFS
     for uid in synthetic:
         prov = Provenance.from_dict(tomos.load_provenance(uid))
         assert not prov.theorem_source, (

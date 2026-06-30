@@ -1,0 +1,46 @@
+{
+  "annotations": [
+    {
+      "id": "ann_e6cea25e",
+      "scope": "uod",
+      "text": "The transitivity of implication, drawn. Unlike the other three exemplars (each one or two moves), this is a genuine multi-step derivation, showing iteration and deiteration doing the real work of splicing two conditionals on their shared middle term Q.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "alpha",
+        "cited",
+        "iteration",
+        "transitivity"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_523c2529",
+      "scope": "chain",
+      "text": "The crux is steps 1\u20132: iterating Q\u2192R inside P\u2192Q and then deiterating the duplicated Q is the EG form of 'discharge the middle term'. Everything after is bookkeeping \u2014 peel the double cut, erase the spent material.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "strategy"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_98fb232d",
+      "scope": "step",
+      "text": "Iteration places a copy of the second premise exactly where it can meet the first premise's consequent \u2014 the move that makes the splice possible.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "crux"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    }
+  ]
+}

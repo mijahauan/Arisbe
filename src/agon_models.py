@@ -23,10 +23,11 @@ class ExampleModel:
 
     id: str
     title: str
-    model_egif: str       # the reference world M (ground facts)
+    model_egif: str       # the reference world M (ground facts, optionally + Horn rules)
     closed: bool          # asserted-complete (a miss is FALSE) vs sampled (UNKNOWN)
     sample_proposal: str  # a G that shows this model's characteristic outcome
     note: str             # what the inning illustrates
+    materialize: bool = False  # M is a *theory* — forward-chain its Horn rules before the peel
 
 
 EXAMPLE_MODELS: List[ExampleModel] = [
@@ -69,6 +70,52 @@ EXAMPLE_MODELS: List[ExampleModel] = [
         closed=False,
         sample_proposal='~[ (mammal *x) ~[ (warmblooded x) ] ]',
         note="The same universal reads UNKNOWN open / TRUE closed — closing the world is what licenses ∀.",
+    ),
+    # --- Boards drawn from the corpus domain-model exemplars (docs/EXEMPLARS.md). ---
+    # These inline the same EGIF as the `zoo_world` / `harbor_town` corpus UoDs
+    # (built by tools/build_domain_model_exemplars.py), so they double as one-click
+    # innings against the richer boards. The corpus UoDs are the source of truth.
+    ExampleModel(
+        id="zoo-chain",
+        title="Zoo world — a Horn taxonomy (holds via the chain)",
+        model_egif=(
+            '(dog "Rex") (cat "Tom") (whale "Moby") (sparrow "Pip") '
+            '~[ (dog *x) ~[ (mammal x) ] ] ~[ (cat *x) ~[ (mammal x) ] ] '
+            '~[ (whale *x) ~[ (mammal x) ] ] ~[ (sparrow *x) ~[ (bird x) ] ] '
+            '~[ (mammal *x) ~[ (warmblooded x) ] ] ~[ (bird *x) ~[ (warmblooded x) ] ]'
+        ),
+        closed=True,
+        materialize=True,
+        sample_proposal='~[ (dog *x) ~[ (warmblooded x) ] ]',
+        note="“Every dog is warm-blooded” holds — decided through the materialized "
+             "dog→mammal→warm-blooded chain, not stated directly. Horn rules forward-chained.",
+    ),
+    ExampleModel(
+        id="zoo-refuted",
+        title="Zoo world — over-broad universal (fails, names Pip)",
+        model_egif=(
+            '(dog "Rex") (cat "Tom") (whale "Moby") (sparrow "Pip") '
+            '~[ (dog *x) ~[ (mammal x) ] ] ~[ (cat *x) ~[ (mammal x) ] ] '
+            '~[ (whale *x) ~[ (mammal x) ] ] ~[ (sparrow *x) ~[ (bird x) ] ] '
+            '~[ (mammal *x) ~[ (warmblooded x) ] ] ~[ (bird *x) ~[ (warmblooded x) ] ]'
+        ),
+        closed=True,
+        materialize=True,
+        sample_proposal='~[ (warmblooded *x) ~[ (mammal x) ] ]',
+        note="“Every warm-blooded thing is a mammal” is refuted — Pip the sparrow is the "
+             "counterexample the peel names (warm-blooded via bird, yet no mammal).",
+    ),
+    ExampleModel(
+        id="harbor-open",
+        title="Harbor town — an open civic world (independent)",
+        model_egif=(
+            '(town "Bayside") (harbor "Bayside") (island "Greyrock") '
+            '(ferry "Bayside" "Greyrock") (lighthouse "Greyrock")'
+        ),
+        closed=False,
+        sample_proposal='(harbor "Bayside") (hosts_market "Bayside")',
+        note="Open world: “Bayside hosts a market” is neither confirmed nor denied — "
+             "UNKNOWN, a candidate new fact, not a falsehood.",
     ),
 ]
 

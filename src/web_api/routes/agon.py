@@ -445,7 +445,8 @@ async def list_models():
 
     examples = [
         {"id": e.id, "title": e.title, "model_egif": e.model_egif,
-         "closed": e.closed, "sample_proposal": e.sample_proposal, "note": e.note}
+         "closed": e.closed, "sample_proposal": e.sample_proposal, "note": e.note,
+         "materialize": e.materialize}
         for e in list_example_models()
     ]
     corpus = []

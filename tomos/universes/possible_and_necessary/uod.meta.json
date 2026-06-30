@@ -1,0 +1,19 @@
+{
+  "uod_id": "possible_and_necessary",
+  "uod_type": "historical",
+  "name": "Possibility and necessity (a branching episode)",
+  "description": "A diachronic, mark-free reading of \u25c7 and \u25a1 (docs/MODALITY_WITHOUT_GAMMA.md): the branching history is the Kripke frame, so \u25c7\u03c6 = 'some legal trajectory scribes \u03c6' and \u25a1\u03c6 = 'every legal trajectory scribes \u03c6'. From a morning (cloudy)(cold)(calm), two lines of development each drop a feature and converge on (cold). Across the reachable sheets, (cold) is necessary (\u25a1 \u2014 on every trajectory), while (cloudy) and (calm) are each merely possible (\u25c7 \u2014 on some). Read off the DAG by src/modal_query.py; no broken cut, no tincture \u2014 necessity is convergence, possibility is branching.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

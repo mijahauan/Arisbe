@@ -1,5 +1,78 @@
 # Current Plan
 
+**▶▶▶ THIS SESSION (2026-06-29, cont. 5) — CORPUS EXEMPLARS: "meat on the bones" (foundation batch).**
+Author asked for more loadable exemplars — proofs, Endoporeutic-Game innings, domain models (≥1 needed to
+play at all), diachronic-branching/modality demos, and M-transforms-through-dialog. Decided **foundation
+first** (proofs + domain models now; modality + dialog with the *thin missing code* in a second pass, after
+review). Mapped the machinery with 3 parallel Explore agents (proof-chain build pattern; EPG + domain models;
+diachronic DAG + modality) — key finding: branching DAG persists today but the modal □/◇ *query* and active
+M-revision are conceptual, hence the two-pass plan. **SHIPPED this turn (all verified, additive):**
+**(1) Four propositional proof exemplars** (`tools/build_propositional_exemplars.py`, real `ProofChain`s):
+`de_morgan` (DC+×2 — disjunction is the double-cut law), `contraposition` (one DC+ — P→Q and ¬Q→¬P are the
+*same graph*), `ex_falso_quodlibet` (INS — explosion, insertion only legal in a negative context),
+`hypothetical_syllogism` (IT+/IT−/DC−/ERA/ERA — the meaty transitivity proof). **Together they exercise all
+six Dau rules.** Each verified to build to its conclusion (`same_graph`), §3.3-attests at save, and replays
+soundly from disk. **(2) Two domain-model boards** (`tools/build_domain_model_exemplars.py`, `kind=domain_model`
+standalone UoDs): `zoo_world` (closed Horn taxonomy — materializes dog→mammal→warm-blooded, so "every dog is
+warm-blooded" holds via the chain and "every warm-blooded thing is a mammal" fails naming **Pip** the sparrow)
+and `harbor_town` (open civic world — "Bayside hosts a market" reads UNKNOWN/independent). Both load + §3.3-attest;
+both appear in the Agon picker's corpus list. **(3) Picker wiring:** three curated `ExampleModel` innings
+(`zoo-chain`/`zoo-refuted`/`harbor-open`) in `src/agon_models.py`; added a `materialize` field to `ExampleModel`
+(a board that is a *theory* forward-chains its Horn rules before the peel) threaded through `/agon/models` +
+`agon.html` (sets the existing materialize checkbox on example-pick) + the existing route test.
+**Tests:** new `tests/test_new_exemplars.py` (16) — proofs build to conclusion + all-six-rules + low-warrant
+provenance; domain models materialize + peel to advertised verdicts; innings present + peel as promised.
+Updated `test_agon_interpretation.py`'s enumerate-all-examples test (+3 verdicts, passes `materialize`).
+**Doc:** `docs/EXEMPLARS.md` (catalogue + a "second pass" section). Spine: CLAUDE.md Key Documentation.
+**SECOND PASS (same session) — SHIPPED, additive, with the thin missing code (author pre-approved).**
+**(a) Modality as diachronic branching:** `src/modal_query.py` (NEW) reads ◇/□ off the branching DAG — the
+*trajectory reading* of MODALITY_WITHOUT_GAMMA §1 (worlds=sheets, R=legal transitions): `possibly`/
+`necessarily` over `reachable_states`/`leaf_states`, predicate helpers `scribes_relation`/`equals_graph`/
+`is_blank`, `over="states"|"leaves"`. Geometry-free, no §3.3 obligation. Exemplar `tools/build_modal_branching.py`
+→ `possible_and_necessary` UoD: from `(cloudy)(cold)(calm)`, two legal ERA lines drop a feature and converge on
+`(cold)` — □cold (necessary=convergence), ◇cloudy/◇calm (possible=branching, not □). Built/attested; query reads
+it correctly. (The *alethic* reading ◇/□-across-models is already `/agon/where-it-holds`.) **(b) M transforms
+through dialog:** `src/model_revision.py` (NEW) — `assert_fact` (enlargement = a `new_fact` posit juxtaposed onto
+M's sheet, low warrant) + `retract_relation` (relinquishment = ERA dual, free to demote) + `revise_with_disposition`.
+Exemplar `tools/build_dialog_model_evolution.py` → `dialogue_model_revision` UoD: standing proposal "every patient
+is insured" peeled after each revision **flips FALSE→TRUE→FALSE→TRUE** as the dialogue admits Ben's insurance, a
+new patient Cal (unsettles it), then Cal's coverage — M persisted as its own diachronic history (steps =
+`apply_derived("ADMIT_FACT")`). **Tests:** `tests/test_modal_and_dialog.py` (12). **Doc:** EXEMPLARS.md §5+§6
+rewritten from "what's next" to shipped. Both new UoDs load+§3.3-attest. CLAUDE.md module map += modal_query +
+model_revision. core-protection CLEAN (both modules additive, not in the protected set).
+**▶ NEXT (open):** the corpus now has read+play+modal+dialogue exemplars across Organon/Agon; remaining author
+decisions unchanged — reference-node increment 2 (cross-UoD, ROADMAP #3), second-order frontier (#13). A thin
+*UI surface* for the modal-query lens / the M-revision dialogue could be a follow-up if wanted (currently
+backend + corpus only). [[project_corpus_exemplars_meat_on_bones]].
+
+**▶▶▶ THIS SESSION (2026-06-29, cont. 4) — DOCS: shipped ROADMAP #15 + #16 (two consolidating docs;
+no code).** Author asked to beef up documentation per #15 and #16. Both were *documentation* tracks; both
+now done, additive, links-out-not-restate, in the established spine voice.
+**#15 → `docs/GETTING_STARTED.md`** — the written, role-aware on-ramp the in-app primer/Field Guide lacked
+a companion for. Structure: §0 three-sentence what-it-is → §1 a **shared "five minutes"** (run it with
+`uv sync --extra dev --extra web` + uvicorn; the three modes as a table; first graph two ways — read
+`peirce_cp_4_394_man_mortal` in Organon / draw dragon `🐉1` in challenge mode; the *attest correspondence
+not truth* discipline) → §2 a **door per reader** (newcomer / ontologist / logician / mathematician / Peirce
+scholar), each with *what to read first · do first · your honest frontier* → §3 the contributor pointer →
+§4 a one-screen door map. Assumes **no logic/math** at the entrance, branches by expertise the way
+VISION_AND_SCOPE / GLOSSARY do.
+**#16 → `docs/EXTERNAL_SOURCES_AND_IMPORT.md`** — the consolidating import map (the machinery was scattered
+across CORPUS_AND_IMPORT_MODEL, MANIFEST_AND_MEANING, IMPORT_EXPORT_FORMATS, the OWL/RDF importers,
+`cl_import_resolver`). Structure: §1 the **low-warrant floor** (attest correspondence not truth; provenance
+outside §3.3; no fabricated citation) → §2 the **two families** (formal files vs human-read material) → §3
+family A (T-box axiom→EG-shape table; the OWL/RDF/SUO-KIF/CLIF/COLORE→CLIF→EGI paths; the honest
+skip-report + function-relationalisation; closing the loop with `theory_query.entails` import-as-M) → §4
+family B (`/import` linear-form doorway with citation; NL→logic "LLM proposes, Arisbe disposes"; the future
+reading desk) → §5 the **tool/module map** table → §6 forward edges → §7 one-paragraph summary.
+**Wired into the spine:** ROADMAP #15+#16 marked ✅ DONE; VISION_AND_SCOPE front-matter "New here?" pointer;
+GLOSSARY reading-order new "New user, just arriving" entry; CLAUDE.md Key Documentation (two new bullets).
+**Verified** every cross-reference resolves (7 linked docs exist, `/agon/propose-nl` + `/import/*` routes
+exist, `domain_model_importer` exposes `from_owl/from_clif/from_rdf_*`, the `peirce_cp_4_394_man_mortal`
+corpus id is real). No code, no tests touched; core-protection untouched (docs only).
+[[project_tidyup_tracks_post_reference_node]]. **▶ NEXT:** the tidy-up tracks (#14–16) are now all done;
+the open author decision remains **reference-node increment 2** (the cross-UoD use/mention fork, ROADMAP #3),
+the named research frontier being second-order logic about the graphs (#13).
+
 **▶▶▶ THIS SESSION (2026-06-29, cont. 3) — FINISHED ROADMAP #14 (d): the drawing→EGI learning loop. #14
 COMPLETE.** After committing+pushing phases 1+2 (`cf79974`), built (d). New `src/layout_learning.py` +
 `tests/test_layout_learning.py` (6 green): `arrangement_deltas(egi, canonical_dto, drawn_dto)` recovers the

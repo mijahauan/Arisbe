@@ -1,0 +1,19 @@
+{
+  "uod_id": "de_morgan",
+  "uod_type": "historical",
+  "name": "De Morgan (\u00ac(P\u2227Q) \u22a2 \u00acP\u2228\u00acQ)",
+  "description": "De Morgan's law in Existential Graphs: the negation of a conjunction equals the disjunction of the negations. Because a disjunction A\u2228B is drawn ~[ ~[A] ~[B] ], the law is just the double-cut equivalence \u2014 two DC+ moves grow a double cut around each conjunct of ~[ (P) (Q) ], reaching ~[ ~[~[(P)]] ~[~[(Q)]] ]. A worked demonstration that EG disjunction is a double-negated form.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

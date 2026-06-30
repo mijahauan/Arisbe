@@ -1,0 +1,71 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_0417db55"
+    },
+    {
+      "id": "e_8d0fa20c"
+    },
+    {
+      "id": "e_d1456c9c"
+    },
+    {
+      "id": "e_e3ae4e7f"
+    },
+    {
+      "id": "e_faba8494"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_91471430",
+      "is_generic": false,
+      "label": "Bayside"
+    },
+    {
+      "id": "v_9ab2ee81",
+      "is_generic": false,
+      "label": "Greyrock"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "sheet_1e609954": [
+      "e_0417db55",
+      "e_8d0fa20c",
+      "e_d1456c9c",
+      "e_e3ae4e7f",
+      "e_faba8494",
+      "v_91471430",
+      "v_9ab2ee81"
+    ]
+  },
+  "nu": {
+    "e_0417db55": [
+      "v_91471430"
+    ],
+    "e_8d0fa20c": [
+      "v_9ab2ee81"
+    ],
+    "e_d1456c9c": [
+      "v_9ab2ee81"
+    ],
+    "e_e3ae4e7f": [
+      "v_91471430",
+      "v_9ab2ee81"
+    ],
+    "e_faba8494": [
+      "v_91471430"
+    ]
+  },
+  "rel": {
+    "e_0417db55": "town",
+    "e_8d0fa20c": "island",
+    "e_d1456c9c": "lighthouse",
+    "e_e3ae4e7f": "ferry",
+    "e_faba8494": "harbor"
+  },
+  "rho": {},
+  "sheet": "sheet_1e609954"
+}

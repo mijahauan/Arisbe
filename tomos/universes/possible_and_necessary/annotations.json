@@ -1,0 +1,35 @@
+{
+  "annotations": [
+    {
+      "id": "ann_ae257112",
+      "scope": "uod",
+      "text": "Possibility and necessity drawn as the shape of a derivation, not as a modal mark (docs/MODALITY_WITHOUT_GAMMA.md \u00a71, the trajectory reading). The worlds are the four reachable sheets; accessibility is the legal-transition DAG. src/modal_query.py reads \u25c7/\u25a1 off it: \u25a1(cold) holds (cold is on every reachable sheet \u2014 necessity as convergence), while \u25c7(cloudy) and \u25c7(calm) hold without \u25a1 (each on some sheet but not all \u2014 possibility as branching).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "modality",
+        "branching",
+        "derivation-dag",
+        "demonstration"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_e7c3aa81",
+      "scope": "chain",
+      "text": "Two legal lines of development drop (cloudy) and (calm) in either order and converge on (cold). Every edge is a sound ERA in a positive context (a relinquishment the rules license), so the whole frame is \u00a73.3-attestable \u2014 the modal frame is drawn and checkable, never asserted by a glyph.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "confluence",
+        "alpha",
+        "modal-frame"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

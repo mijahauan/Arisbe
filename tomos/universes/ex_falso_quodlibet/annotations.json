@@ -1,0 +1,19 @@
+{
+  "annotations": [
+    {
+      "id": "ann_3969a2f5",
+      "scope": "uod",
+      "text": "The principle of explosion, drawn. The single move is the insertion rule (INS), which is legal precisely \u2014 and only \u2014 in a negative context: you may scribe anything inside an odd number of cuts, because there it is entertained, not asserted (docs/LEVEL_ZERO_AND_THE_REGISTERS.md).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "alpha",
+        "insertion",
+        "negative-context"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

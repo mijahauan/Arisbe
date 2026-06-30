@@ -255,11 +255,13 @@ def test_standalone_interpret_every_example_scenario(client):
         "teacher-mammals": "true", "student-sea": "false",
         "researcher-coast": "unknown", "physician-ward": "false",
         "logician-open": "unknown",
+        # Innings drawn from the corpus domain-model exemplars (docs/EXEMPLARS.md).
+        "zoo-chain": "true", "zoo-refuted": "false", "harbor-open": "unknown",
     }
     for e in data["examples"]:
         res = client.post("/agon/interpret", json={
             "model_egif": e["model_egif"], "proposal_egif": e["sample_proposal"],
-            "closed": e["closed"]}).json()["data"]
+            "closed": e["closed"], "materialize": e.get("materialize", False)}).json()["data"]
         assert res["verdict"] == expected[e["id"]], e["id"]
 
 

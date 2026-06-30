@@ -1,0 +1,279 @@
+{
+  "Cut": [
+    {
+      "id": "c_13b36742"
+    },
+    {
+      "id": "c_54a95d55"
+    },
+    {
+      "id": "c_5ce98b6b"
+    },
+    {
+      "id": "c_67583750"
+    },
+    {
+      "id": "c_9980b15f"
+    },
+    {
+      "id": "c_a168dd94"
+    },
+    {
+      "id": "c_a521016e"
+    },
+    {
+      "id": "c_aa5df6f8"
+    },
+    {
+      "id": "c_f32b8e9d"
+    },
+    {
+      "id": "c_fb025e22"
+    },
+    {
+      "id": "c_fc5fd8e1"
+    },
+    {
+      "id": "c_ffc12e5d"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_010f82f6"
+    },
+    {
+      "id": "e_0cc3db74"
+    },
+    {
+      "id": "e_28efccc5"
+    },
+    {
+      "id": "e_28f51b72"
+    },
+    {
+      "id": "e_39bd70e0"
+    },
+    {
+      "id": "e_56841f35"
+    },
+    {
+      "id": "e_755adcfe"
+    },
+    {
+      "id": "e_76f0c8a1"
+    },
+    {
+      "id": "e_7ac17a04"
+    },
+    {
+      "id": "e_7f8ddaf0"
+    },
+    {
+      "id": "e_898c3a6b"
+    },
+    {
+      "id": "e_a8496177"
+    },
+    {
+      "id": "e_ce3e9132"
+    },
+    {
+      "id": "e_e0429b63"
+    },
+    {
+      "id": "e_e685e660"
+    },
+    {
+      "id": "e_f87f0563"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_0ba2f253",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_14fff9aa",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_3d131e35",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_4459064b",
+      "is_generic": false,
+      "label": "Tom"
+    },
+    {
+      "id": "v_4d3c4e70",
+      "is_generic": false,
+      "label": "Moby"
+    },
+    {
+      "id": "v_4d8c1099",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_96502b59",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_a18d0600",
+      "is_generic": false,
+      "label": "Rex"
+    },
+    {
+      "id": "v_db68387a",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_dc7dbf24",
+      "is_generic": false,
+      "label": "Pip"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "c_13b36742": [
+      "c_fc5fd8e1",
+      "e_76f0c8a1",
+      "v_14fff9aa"
+    ],
+    "c_54a95d55": [
+      "e_7ac17a04"
+    ],
+    "c_5ce98b6b": [
+      "c_ffc12e5d",
+      "e_a8496177",
+      "v_db68387a"
+    ],
+    "c_67583750": [
+      "e_56841f35"
+    ],
+    "c_9980b15f": [
+      "e_39bd70e0"
+    ],
+    "c_a168dd94": [
+      "c_54a95d55",
+      "e_ce3e9132",
+      "v_96502b59"
+    ],
+    "c_a521016e": [
+      "c_9980b15f",
+      "e_28f51b72",
+      "v_3d131e35"
+    ],
+    "c_aa5df6f8": [
+      "e_898c3a6b"
+    ],
+    "c_f32b8e9d": [
+      "c_67583750",
+      "e_010f82f6",
+      "v_0ba2f253"
+    ],
+    "c_fb025e22": [
+      "c_aa5df6f8",
+      "e_755adcfe",
+      "v_4d8c1099"
+    ],
+    "c_fc5fd8e1": [
+      "e_f87f0563"
+    ],
+    "c_ffc12e5d": [
+      "e_0cc3db74"
+    ],
+    "sheet_33cedecb": [
+      "c_13b36742",
+      "c_5ce98b6b",
+      "c_a168dd94",
+      "c_a521016e",
+      "c_f32b8e9d",
+      "c_fb025e22",
+      "e_28efccc5",
+      "e_7f8ddaf0",
+      "e_e0429b63",
+      "e_e685e660",
+      "v_4459064b",
+      "v_4d3c4e70",
+      "v_a18d0600",
+      "v_dc7dbf24"
+    ]
+  },
+  "nu": {
+    "e_010f82f6": [
+      "v_0ba2f253"
+    ],
+    "e_0cc3db74": [
+      "v_db68387a"
+    ],
+    "e_28efccc5": [
+      "v_4459064b"
+    ],
+    "e_28f51b72": [
+      "v_3d131e35"
+    ],
+    "e_39bd70e0": [
+      "v_3d131e35"
+    ],
+    "e_56841f35": [
+      "v_0ba2f253"
+    ],
+    "e_755adcfe": [
+      "v_4d8c1099"
+    ],
+    "e_76f0c8a1": [
+      "v_14fff9aa"
+    ],
+    "e_7ac17a04": [
+      "v_96502b59"
+    ],
+    "e_7f8ddaf0": [
+      "v_a18d0600"
+    ],
+    "e_898c3a6b": [
+      "v_4d8c1099"
+    ],
+    "e_a8496177": [
+      "v_db68387a"
+    ],
+    "e_ce3e9132": [
+      "v_96502b59"
+    ],
+    "e_e0429b63": [
+      "v_dc7dbf24"
+    ],
+    "e_e685e660": [
+      "v_4d3c4e70"
+    ],
+    "e_f87f0563": [
+      "v_14fff9aa"
+    ]
+  },
+  "rel": {
+    "e_010f82f6": "cat",
+    "e_0cc3db74": "mammal",
+    "e_28efccc5": "cat",
+    "e_28f51b72": "dog",
+    "e_39bd70e0": "mammal",
+    "e_56841f35": "mammal",
+    "e_755adcfe": "sparrow",
+    "e_76f0c8a1": "bird",
+    "e_7ac17a04": "warmblooded",
+    "e_7f8ddaf0": "dog",
+    "e_898c3a6b": "bird",
+    "e_a8496177": "whale",
+    "e_ce3e9132": "mammal",
+    "e_e0429b63": "sparrow",
+    "e_e685e660": "whale",
+    "e_f87f0563": "warmblooded"
+  },
+  "rho": {},
+  "sheet": "sheet_33cedecb"
+}

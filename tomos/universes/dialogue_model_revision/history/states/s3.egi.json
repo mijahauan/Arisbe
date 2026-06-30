@@ -1,0 +1,84 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_2e8e9970"
+    },
+    {
+      "id": "e_651f7aea"
+    },
+    {
+      "id": "e_6c8e4b7e"
+    },
+    {
+      "id": "e_70b1977a"
+    },
+    {
+      "id": "e_74ccb514"
+    },
+    {
+      "id": "e_9e03d4e8"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_1528c948",
+      "is_generic": false,
+      "label": "Ann"
+    },
+    {
+      "id": "v_adac5226",
+      "is_generic": false,
+      "label": "Ben"
+    },
+    {
+      "id": "v_dba2c317",
+      "is_generic": false,
+      "label": "Cal"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "sheet_0c51ce39": [
+      "e_2e8e9970",
+      "e_651f7aea",
+      "e_6c8e4b7e",
+      "e_70b1977a",
+      "e_74ccb514",
+      "e_9e03d4e8",
+      "v_1528c948",
+      "v_adac5226",
+      "v_dba2c317"
+    ]
+  },
+  "nu": {
+    "e_2e8e9970": [
+      "v_1528c948"
+    ],
+    "e_651f7aea": [
+      "v_adac5226"
+    ],
+    "e_6c8e4b7e": [
+      "v_adac5226"
+    ],
+    "e_70b1977a": [
+      "v_dba2c317"
+    ],
+    "e_74ccb514": [
+      "v_dba2c317"
+    ],
+    "e_9e03d4e8": [
+      "v_1528c948"
+    ]
+  },
+  "rel": {
+    "e_2e8e9970": "insured",
+    "e_651f7aea": "patient",
+    "e_6c8e4b7e": "insured",
+    "e_70b1977a": "insured",
+    "e_74ccb514": "patient",
+    "e_9e03d4e8": "patient"
+  },
+  "rho": {},
+  "sheet": "sheet_0c51ce39"
+}

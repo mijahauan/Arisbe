@@ -1,0 +1,36 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "van Benthem, Johan",
+      "title": "Modal Correspondence Theory",
+      "year": "1976",
+      "note": "the standard translation \u2014 modal operators as quantifiers over a frame"
+    },
+    {
+      "type": "book",
+      "author": "Dau, Frithjof",
+      "title": "Mathematical Logic with Diagrams",
+      "note": "Ch. 14 erasure rule; Ch. 17 soundness \u2014 each edge a sound move"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "proof",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "van Benthem, Johan (1976). Modal Correspondence Theory",
+      "Dau, Frithjof. Mathematical Logic with Diagrams"
+    ]
+  }
+}

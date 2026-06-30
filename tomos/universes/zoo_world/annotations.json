@@ -1,0 +1,21 @@
+{
+  "annotations": [
+    {
+      "id": "ann_cdd54ca3",
+      "scope": "uod",
+      "text": "A board built to exercise the holds/fails outcomes of the interpretation register. Six scrolls encode the taxonomy as Horn rules; the Agon materializes them (least Herbrand model) before peeling a proposal, so a universal like 'every dog is warm-blooded' is decided through the dog\u2192mammal\u2192warm-blooded chain. The closed flag is what licenses \u2200: a silence is read as 'no', so a refuting individual (Pip) makes the over-broad universal definitely FALSE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "domain-model",
+        "synthetic",
+        "closed-world",
+        "horn",
+        "agon-board"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

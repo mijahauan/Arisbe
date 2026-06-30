@@ -1,0 +1,92 @@
+{
+  "annotations": [
+    {
+      "id": "ann_420d1bd3",
+      "scope": "uod",
+      "text": "How a domain model transforms through ongoing dialog. The standing proposal 'every patient is insured' is audited against M after each revision; the verdict moves FALSE\u2192TRUE\u2192FALSE\u2192TRUE as the dialogue admits evidence and a new individual unsettles a settled universal. M carries its own diachronic history \u2014 the dialogue that made it what it is, replayable in Organon. No model is ever frozen (docs/MANIFEST_AND_MEANING.md).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "domain-model",
+        "dialogue",
+        "model-revision",
+        "liveness",
+        "demonstration"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_bf974a93",
+      "scope": "chain",
+      "text": "Each step is a model-revising 'new_fact' disposition (src/model_revision.py): an independent proposal the dialogue accepts as evidence, juxtaposed onto M's sheet as a new posit at low warrant. Enlargement here; retraction (free to demote, the ERA dual) is the other licensed move.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "new-fact",
+        "enlargement",
+        "low-warrant"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_96bb764e",
+      "scope": "uod",
+      "text": "M0 (the opening record): 'every patient is insured' peels to FALSE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_7ec6b784",
+      "scope": "step",
+      "text": "M1: 'every patient is insured' peels to TRUE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    },
+    {
+      "id": "ann_4a40a3b8",
+      "scope": "step",
+      "text": "M2: 'every patient is insured' peels to FALSE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": "step-2",
+      "element_id": null
+    },
+    {
+      "id": "ann_c084f5be",
+      "scope": "step",
+      "text": "M3: 'every patient is insured' peels to TRUE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": "step-3",
+      "element_id": null
+    }
+  ]
+}

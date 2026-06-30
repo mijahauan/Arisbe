@@ -1,0 +1,33 @@
+{
+  "annotations": [
+    {
+      "id": "ann_20992594",
+      "scope": "uod",
+      "text": "De Morgan's law is not a separate axiom in EG \u2014 it falls out of how disjunction is drawn. \u00acP\u2228\u00acQ is ~[ ~[\u00acP] ~[\u00acQ] ], and \u00ac\u00acX is X under a double cut, so \u00ac(P\u2227Q) = ~[ (P)(Q) ] becomes \u00acP\u2228\u00acQ by growing a double cut around each conjunct.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "alpha",
+        "cited",
+        "double-cut",
+        "disjunction"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_f6bc87c0",
+      "scope": "chain",
+      "text": "Two DC+ moves, each meaning-preserving (a double cut adds nothing). The equivalence runs both ways: DC- twice returns the conjunction.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "strategy"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

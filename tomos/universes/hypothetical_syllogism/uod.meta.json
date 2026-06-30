@@ -1,0 +1,19 @@
+{
+  "uod_id": "hypothetical_syllogism",
+  "uod_type": "historical",
+  "name": "Hypothetical Syllogism (P\u2192Q, Q\u2192R \u22a2 P\u2192R)",
+  "description": "Transitivity of implication \u2014 the chain rule for conditionals. Five legal moves splice two scrolls into one: iterate Q\u2192R into the body of P\u2192Q (IT+), deiterate the shared Q (IT-), peel the resulting double cut (DC-) to reach P\u2192(Q\u2227R), erase the now-positive Q (ERA) to get P\u2192R, and erase the spent second premise (ERA). The substantial derivation of the set \u2014 every step a real, attestable Dau-rule application.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

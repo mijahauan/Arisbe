@@ -1,0 +1,19 @@
+{
+  "uod_id": "ex_falso_quodlibet",
+  "uod_type": "historical",
+  "name": "Ex falso quodlibet (\u00acP \u22a2 P\u2192Q)",
+  "description": "From a denied antecedent, anything follows: \u00acP \u22a2 (P\u2192Q). The proof is a single insertion \u2014 ~[ (P) ] (which is \u00acP, and also the empty scroll's antecedent) admits ~[ (Q) ] into its negative interior by the insertion rule, producing the scroll ~[ (P) ~[(Q)] ] = P\u2192Q. A clean illustration of the one place insertion is licensed: inside a negative context, where you may entertain anything without yet asserting it.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

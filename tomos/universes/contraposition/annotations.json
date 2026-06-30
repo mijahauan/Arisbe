@@ -1,0 +1,20 @@
+{
+  "annotations": [
+    {
+      "id": "ann_c140f341",
+      "scope": "uod",
+      "text": "The classic equivalence of a conditional with its contrapositive. In a symbolic calculus this needs several steps; in EG both forms are one and the same graph \u00ac(P\u2227\u00acQ), differing only by where you draw a (logically inert) double cut. The single DC+ makes the contrapositive's scroll shape literal.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "alpha",
+        "cited",
+        "double-cut",
+        "iconicity"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

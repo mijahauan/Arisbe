@@ -1,0 +1,19 @@
+{
+  "uod_id": "zoo_world",
+  "uod_type": "standalone",
+  "name": "Zoo world \u2014 a closed taxonomy",
+  "description": "A small closed zoology authored as facts plus Horn rules: four named animals (Rex the dog, Tom the cat, Moby the whale, Pip the sparrow) and a subsumption spine \u2014 dog/cat/whale \u2291 mammal, sparrow \u2291 bird, mammal \u2291 warm-blooded, bird \u2291 warm-blooded. Materialized (forward-chained) it derives every animal's kind and warmth. As a game board: 'every mammal is warm-blooded' is a theorem of this world (holds); 'every warm-blooded thing is a mammal' is refuted by Pip the sparrow (fails). Closed-world: an unrecorded trait counts as absent.",
+  "category": "domain_model",
+  "created": "2026-06-29T00:00:00+00:00",
+  "last_modified": "2026-06-29T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

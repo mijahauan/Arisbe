@@ -1,0 +1,54 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_053bd787"
+    },
+    {
+      "id": "e_34aa9d5b"
+    },
+    {
+      "id": "e_dbe4403d"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_7890c486",
+      "is_generic": false,
+      "label": "Ann"
+    },
+    {
+      "id": "v_f58f4bf7",
+      "is_generic": false,
+      "label": "Ben"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "sheet_2d0a7e88": [
+      "e_053bd787",
+      "e_34aa9d5b",
+      "e_dbe4403d",
+      "v_7890c486",
+      "v_f58f4bf7"
+    ]
+  },
+  "nu": {
+    "e_053bd787": [
+      "v_f58f4bf7"
+    ],
+    "e_34aa9d5b": [
+      "v_7890c486"
+    ],
+    "e_dbe4403d": [
+      "v_7890c486"
+    ]
+  },
+  "rel": {
+    "e_053bd787": "patient",
+    "e_34aa9d5b": "patient",
+    "e_dbe4403d": "insured"
+  },
+  "rho": {},
+  "sheet": "sheet_2d0a7e88"
+}

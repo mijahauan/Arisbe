@@ -1,0 +1,25 @@
+{
+  "theorem_source": {},
+  "proof_source": {},
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected",
+      "note": "existential-graph notation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "domain_model",
+  "formatted": {
+    "theorem": "",
+    "proof": "",
+    "methods": [
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

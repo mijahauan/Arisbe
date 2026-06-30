@@ -1,0 +1,44 @@
+{
+  "theorem_source": {
+    "type": "book",
+    "author": "Aristotle",
+    "title": "Prior Analytics",
+    "year": "c. 350 BCE",
+    "note": "contraposition (conversion by contradiction)"
+  },
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Dau, Frithjof",
+      "title": "The Logic System of Concept Graphs with Negation",
+      "year": "2003",
+      "bibkey": "dau2003logic",
+      "note": "the six-rule formalization Arisbe enforces"
+    },
+    {
+      "type": "book",
+      "author": "Roberts, Don D.",
+      "title": "The Existential Graphs of Charles S. Peirce",
+      "year": "1973",
+      "note": "EG rule presentation"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "proof",
+  "formatted": {
+    "theorem": "Aristotle (c. 350 BCE). Prior Analytics",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Dau, Frithjof (2003). The Logic System of Concept Graphs with Negation",
+      "Roberts, Don D. (1973). The Existential Graphs of Charles S. Peirce"
+    ]
+  }
+}

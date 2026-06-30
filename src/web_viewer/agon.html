@@ -456,7 +456,8 @@
         const v=$('model-picker').value; selectedModelUod=null; $('model-note').textContent='';
         if(v.indexOf('ex:')===0){ const e=(agonModels.examples||[]).find(x=>x.id===v.slice(3)); if(!e) return;
           $('setup-model').value=e.model_egif; $('setup-proposal').value=e.sample_proposal;
-          $('model-closed').checked=!!e.closed; $('model-note').textContent=e.note; }
+          $('model-closed').checked=!!e.closed; $('model-materialize').checked=!!e.materialize;
+          $('model-note').textContent=e.note; }
         else if(v.indexOf('uod:')===0){ selectedModelUod=v.slice(4); $('setup-model').value='';
           $('model-note').textContent='Model M = corpus “'+selectedModelUod+'”. Enter a proposal G to test against it.'; }
       }
