@@ -1037,7 +1037,9 @@ an **epistemic elitist / meritocrat**, and an **institutional / social-epistemol
 realist who pressed the worth-ladder in Examination II). They had not seen one another's briefs.
 
 **Headline result — survives only by transformation (all three at confidence 0.82 that it falls *as stated*).**
-"Fair access" fails *as a derivation that discharges the equal-dignity premise* — it is a **motte-and-bailey**.
+"Fair access" fails *as a derivation that discharges the equal-dignity premise* — it is a **motte-and-bailey**
+(a rhetorical move that retreats to an easily-defended, trivial claim when pressed, then advances the bold,
+contested one once the pressure is off).
 But the examination hands back a **stronger, derivable** footing for the worth-ladder denial than either the
 import or the slogan: *the only legitimate gate is the method applied to claims, content-not-author; ranking
 agents by worth is the gerrymander; and the positive duty is uptake.*
@@ -1054,7 +1056,7 @@ agents by worth is the gerrymander; and the positive duty is uptake.*
   "every signifying agent here-and-now has equal standing in every live inquiry." And convergence is not a
   headcount; it is **competence-weighted**. So if gating *membership* by competence relativizes the real, then
   weighting *uptake* by competence does too — and the competence/standing split collapses *at the definition
-  of "converge."* The realist's correction is the hinge: **the legitimate gate is the *method*, not an
+  of "converge."* The realist's correction is the crux: **the legitimate gate is the *method*, not an
   in-group.** Method-as-gate (replication, peer review, §3.3, Agon) is exactly what makes a verdict answer to
   the real rather than to the assembled parties. *Submission to the method*, not universal access, is the
   condition of convergence-realism.

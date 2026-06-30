@@ -767,7 +767,7 @@ the claim put forward.
 one: the Agonothetes is what the game is *for*.  It is the understanding
 that the process aims to produce.  Each Agonothetes judgment, once rendered,
 becomes part of M (the Grapheus) for subsequent inquiry.  The Agonothetes is
-therefore the hinge between one cycle of inquiry and the next — the point
+therefore the pivot between one cycle of inquiry and the next — the point
 at which the diachronic process turns.  In the UoD's diachronic process, the
 Agonothetes is what *comes to be*: the growth of understanding that feeds
 forward into the next round.

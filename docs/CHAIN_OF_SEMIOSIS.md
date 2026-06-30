@@ -209,7 +209,7 @@ three relations a chain of semiosis can stand in to a context.
   construction (`src/presentation_ops.py` refuses any boundary-crossing
   proposal). Semiosis is untouched; only its rendering moves.
 
-**Promotion is the hinge.** It is the regime-1 → regime-2 transition: the
+**Promotion is the crux.** It is the regime-1 → regime-2 transition: the
 moment a chain of sound steps becomes an asserted record. Concretely
 ([CLAUDE.md](../CLAUDE.md), `tomos_service.save_uod_with_chain`): the
 whole chain — base state plus every `ChainStep` — is persisted, with the

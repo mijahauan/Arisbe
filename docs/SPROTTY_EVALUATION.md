@@ -365,7 +365,7 @@ crown-jewel invariant, and the existing ELK / `natural_layout` investment):
   `ReconnectLigatureOperation`), and adopt GLSP's **type-hint** idea — have the
   server publish, per element, what is movable/reshapeable/reparentable so the
   client can give *synchronous* preview feedback (grey out illegal targets)
-  before posting. This directly addresses the existing dogfood friction
+  before posting. This directly addresses the existing friction of using Arisbe ourselves
   ("rule requirements not discoverable; §3.3 invisible until it fails") with no
   framework dependency. It also keeps the door open to GLSP later, because the
   edit API will already be operation-shaped.

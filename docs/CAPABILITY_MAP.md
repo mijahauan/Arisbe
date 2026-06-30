@@ -1,7 +1,7 @@
 # Arisbe — Capability & Maturity Map
 
 > **What this is.** A single living table of *what Arisbe can do*, its maturity, where it lives in the
-> code, and what test guards it. It replaces reading the `CURRENT_PLAN.md` session-log palimpsest to
+> code, and what test guards it. It replaces reading the layered `CURRENT_PLAN.md` session log to
 > answer "what actually works." Update the relevant row when a capability ships or changes status.
 >
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) · [ROADMAP.md](ROADMAP.md) ·

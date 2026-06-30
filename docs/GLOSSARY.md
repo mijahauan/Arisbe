@@ -132,6 +132,90 @@ optional tension layout.
 
 ---
 
+## Key terms
+
+Concise, linkable entries for the specialized vocabulary the book uses (each introduced on first
+use and linked here). The conceptual groupings below under *Terms* give fuller context.
+
+### Peel
+**Peel** — to read a graph *from the outside in* against a model M (the interpretation register's
+core move), yielding a three-valued verdict plus a witness or counterexample. The term follows
+**Sowa**: *"Graphist and Grapheus would take turns **peeling off** negations and mapping subgraphs
+of g to M"* (Sowa 2011, *From Existential Graphs to Conceptual Graphs*). (Not, as far as we can
+verify, Peirce's own word.)
+
+### Episode
+**Episode** — one play of the Endoporeutic Game: *given a model M, then a proposition G* (peel →
+decide). Previously called an "inning."
+
+### Endoporeutic
+**Endoporeutic** — Peirce's own word for reading a graph **from the outside in**, as a transaction
+between a defender (Graphist) and a skeptic (Grapheus). Arisbe's Agon makes it operational.
+
+### Agonothetes
+**Agonothetes** (ἀγωνοθέτης, "organizer of the contest") — the game's **interpretant**: not a third
+player but the function that turns a true/false outcome into an act of inquiry (a theorem
+registered, a model revised, a hypothesis held).
+
+### Scroll
+**Scroll** — a nested double cut `~[ M ~[ P ] ]` reading "P given M"; the Alpha home of conditional
+assertion.
+
+### Scribe
+**Scribe** (verb) — to draw/assert a graph on the sheet (Peirce's term for inscribing a graph).
+
+### Recto
+**Recto** — the asserted face of the sheet (an evenly-enclosed, *positive* area). Its complement is
+the **verso**.
+
+### Verso
+**Verso** — the negated face (an oddly-enclosed, *negative* area), one cut deeper than the recto.
+
+### Tincture
+**Tincture** — Peirce's Gamma colourings of areas (his modal/higher-order experiments). Arisbe
+treats Gamma-as-modality as out of scope.
+
+### Teridentity
+**Teridentity** — a three-way point of identity: a branch where one line of identity meets two
+others (three "hooks" at one spot).
+
+### Floor
+**Floor** — a baseline that may not be gone under. The *correctness floor* (Dau's calculus); the
+*low-warrant floor* every import starts at; the *philosophical floor* (attest correspondence, not
+truth).
+
+### Membrane
+**Membrane** — the boundary where the sheet meets the world — the one place error is corrected
+(the Popperian image behind the low-warrant import discipline).
+
+### Seam
+**Seam** — the boundary between two Universes of Discourse, or the point where a reference/transclusion
+crosses from one graph into another.
+
+### Horizon
+**Horizon** — what lies just beyond the part currently in view: open-world unknowns, or the part of a
+model a graph does not touch — reported honestly, never silently dropped.
+
+### Style ladder
+**Style ladder** — how presentation is persisted: a default style → sparse hand-tuned exemplar
+deltas → an extrapolated regularity crystallised onto untouched siblings.
+
+### Warrant
+**Warrant / standing** — a graph's epistemic status as a *gradient*: **posited** → **derived** →
+**withstood**. Rises by surviving challenge; can fall. "Fact" = the last-standing trajectory, never
+a property of the ink.
+
+### Voidness
+**Voidness** — the failure mode of an *integrity* (formation) breach: marks that embed no consistent
+object at all — *"not even wrong"* (attributed to Wolfgang Pauli), as opposed to a graph that is
+well-formed but false.
+
+### Tomos
+**Tomos** (Greek "volume") — the on-disk corpus of canonical EG examples (with EGIF/CGIF/CLIF/FOPL
+variants) under `tomos/`; the source of truth and the round-trip test bed.
+
+---
+
 ## Terms
 
 ### Peirce's Existential Graphs
