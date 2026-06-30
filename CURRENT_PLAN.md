@@ -1,5 +1,48 @@
 # Current Plan
 
+**▶▶▶ THIS SESSION (2026-06-30) — UI SURFACE for the modal-query lens + the M-revision dialogue
+(the open follow-up from the exemplars session).** The `modal_query` (◇/□) and `model_revision`
+(M-through-dialogue) modules shipped backend+corpus only; this session surfaces both in Organon as two
+read-only **diachronic reading lenses**, fully additive (core-protection CLEAN). **(1) Modal lens** —
+new `GET /organon/uods/{id}/modal` (geometry-free, `attest=False`) reads ◇/□ off a UoD's chain via
+`modal_query`: every relation scribed across the reachable sheets is classified □ Necessary (on every
+sheet) / ◇ Possible (on some), with the worlds the modality ranges over and a `states`/`leaves` toggle;
+`web_viewer/js/modal-lens.js` draws the two columns + worlds strip + the "necessity is convergence,
+possibility is branching" footer. Verified on `possible_and_necessary`: □cold, ◇cloudy/◇calm.
+**(2) Audit lens** — new `GET /organon/uods/{id}/audit` peels a standing proposal G against every
+successive model M in the chain (materialize + `CorpusOracle(closed)` + `semantic_game.evaluate`, mirroring
+the build script's `_verdict`), returning the verdict at each state; `web_viewer/js/audit-lens.js` draws
+the **verdict ribbon** with each transition labelled by the admitted fact and "verdict flips" flagged.
+The proposal defaults to the UoD's **declared `audit-proposal` annotation** (added to
+`build_dialog_model_evolution.py`; re-seeded `dialogue_model_revision` — only `annotations.json` changed,
+id-churn reverted) or any EGIF the reader types. Verified: FALSE→TRUE→FALSE→TRUE. Both lenses wired into
+`organon.html`'s `#view-lens` (offered for any chain), `lens-common.js` got `fetchModal`/`fetchAudit`.
+**Tests:** `test_organon_routes.py` +8 (modal reading/leaves/synchronic/unknown; audit default-flip/explicit/
+NO_PROPOSAL/AUDIT_ERROR), `test_organon_lenses_e2e.py` +2 (modal □/◇ columns + leaves toggle; audit ribbon +
+pre-filled proposal + flips). All green; lenses E2E 10/10; core-protection CLEAN.
+**THEN (same session, author's mid-task ask): the EPG inning-outcome taxonomy now informs the
+Domain-Model-revision examples.** `model_revision` enacted only `new_fact`/`retract_fact`; broadened to the
+whole M-revising subset of the disposition taxonomy. New **`REVISION_TAXONOMY`** (the subset that *transforms
+M*, each carrying its **Peircean mode** induction/deduction/abduction/convention + structural **kind**
+enlargement/relinquishment): `new_fact`(3a), `generalization`(Case 8), `conditional_acceptance`(3e),
+`abductive_hypothesis`(3b), `definition`(3d), `reductio`(2d), `theorem_registration`(1a), `challenge_to_M`(2b).
+New primitives `add_rule` (enlarge by a law) + **`retract_subgraph`** (relinquish a sheet-level law/cut by a
+*genuine Dau ERA*, verified by reconstruction — the structural generalization of `retract_relation`);
+`revise_with_disposition` dispatches all of them; `revision_taxonomy(key)` rejects the non-revising
+dispositions (`redundancy`/`rejection`/…). New exemplar **`dialogue_swan_revision`**
+(`tools/build_swan_generalization.py`) — the guide's own swan/black-swan story, walking **all three modes**:
+FALSE→TRUE→TRUE→TRUE→FALSE as induction observes Ciel + leaps to the law *all swans white*, the law **absorbs a
+newcomer** (Dover stays TRUE where insurance's Cal flipped FALSE — deduction over an inductive law vs a bare
+tally), then abduction meets the black swan Nox and **relinquishes the over-general law**. The **audit lens**
+now shows each transition's **disposition · mode** (endpoint frame carries `disposition`/`mode`/`fact`).
+**Tests** `test_modal_and_dialog.py` +6 (taxonomy modes/kinds; non-revising rejected; add_rule↔retract_subgraph
+round-trip; law-covers-newcomer; challenge relinquishes+admits; swan walk) and `test_organon_routes.py` +1
+(audit surfaces disposition/mode). All green (60 across organon+modal/dialog+exemplars); core-protection CLEAN
+(model_revision additive, not protected). Docs: EXEMPLARS §6 (swan table + taxonomy + audit-lens), CLAUDE.md
+module entry. [[project_corpus_exemplars_meat_on_bones]]. **▶ NEXT:** open author decisions unchanged
+(reference-node increment 2, 2nd-order frontier #13); the modal/dialogue exemplars now have a UI surface and
+the M-revision examples now span the inning-outcome taxonomy.
+
 **▶▶▶ THIS SESSION (2026-06-29, cont. 5) — CORPUS EXEMPLARS: "meat on the bones" (foundation batch).**
 Author asked for more loadable exemplars — proofs, Endoporeutic-Game innings, domain models (≥1 needed to
 play at all), diachronic-branching/modality demos, and M-transforms-through-dialog. Decided **foundation

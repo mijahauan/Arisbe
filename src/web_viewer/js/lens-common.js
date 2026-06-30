@@ -26,6 +26,21 @@ window.LensCommon = (function () {
   const fetchHistory = (uodId) =>
     _json('/organon/uods/' + encodeURIComponent(uodId) + '/history-structure');
 
+  // Modal reading (◇/□ off the branching history — src/modal_query.py).
+  const fetchModal = (uodId, over) =>
+    _json('/organon/uods/' + encodeURIComponent(uodId) + '/modal' +
+          (over ? '?over=' + encodeURIComponent(over) : ''));
+
+  // Audit trajectory (a standing proposal peeled against every chain state —
+  // src/model_revision.py). `proposal` omitted ⇒ the UoD's declared default.
+  const fetchAudit = (uodId, proposal, closed) => {
+    const q = [];
+    if (proposal != null && proposal !== '') q.push('proposal=' + encodeURIComponent(proposal));
+    if (closed === false) q.push('closed=false');
+    return _json('/organon/uods/' + encodeURIComponent(uodId) + '/audit' +
+                 (q.length ? '?' + q.join('&') : ''));
+  };
+
   /* Indexed model: maps + per-area direct contents. */
   function model(structure) {
     const areasById = new Map(structure.areas.map(a => [a.id, a]));
@@ -80,5 +95,6 @@ window.LensCommon = (function () {
     return svg.replace(/<svg/, `<svg width="${w}" height="${h}"`);
   }
 
-  return { fetchStructure, fetchHistory, model, hierarchy, polarityFill, sizedSvg };
+  return { fetchStructure, fetchHistory, fetchModal, fetchAudit,
+           model, hierarchy, polarityFill, sizedSvg };
 })();

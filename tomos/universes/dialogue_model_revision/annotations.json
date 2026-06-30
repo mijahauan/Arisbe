@@ -1,6 +1,19 @@
 {
   "annotations": [
     {
+      "id": "ann_92d12d54",
+      "scope": "uod",
+      "text": "~[ (patient *x) ~[ (insured x) ] ]",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit-proposal"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
       "id": "ann_420d1bd3",
       "scope": "uod",
       "text": "How a domain model transforms through ongoing dialog. The standing proposal 'every patient is insured' is audited against M after each revision; the verdict moves FALSE\u2192TRUE\u2192FALSE\u2192TRUE as the dialogue admits evidence and a new individual unsettles a settled universal. M carries its own diachronic history \u2014 the dialogue that made it what it is, replayable in Organon. No model is ever frozen (docs/MANIFEST_AND_MEANING.md).",

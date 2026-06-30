@@ -30,25 +30,136 @@ resulting model. Used by ``tools/build_dialog_model_evolution.py``.
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from egi_core_dau import RelationalGraphWithCuts
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 
-# Disposition kinds this module enacts (a subset of the Agon taxonomy that *revises M*).
-DISPOSITION_NEW_FACT = "new_fact"        # admit an independent proposal as evidence
-DISPOSITION_RETRACT = "retract_fact"     # relinquish a fact (free to demote)
+# --------------------------------------------------------------------------- #
+# The inning-outcome taxonomy, scoped to the dispositions that *revise M*       #
+# --------------------------------------------------------------------------- #
+#
+# An inning of the Endoporeutic Game ends in a disposition (the full taxonomy of
+# 13 lives in ``web_api/services/agonothetes.py`` and
+# ``docs/ENDOPOREUTIC_GAME_GUIDE.md`` §"Taxonomy of Game Outcomes"). Only a subset
+# *transforms the model itself* — and those are exactly the model-revising moves
+# this module enacts. Each carries a **Peircean mode of inference** (the guide §IV)
+# and a structural **kind** (how it touches M's sheet):
+#
+#   enlargement  — juxtapose content onto M's sheet (a posit; INS at the sheet)
+#   relinquishment — erase content from M's sheet (free to demote; ERA, positive ctx)
+#
+# The same structural move (juxtaposition) can carry *different* inferential
+# warrant depending on the inning outcome — that distinction is the taxonomy's,
+# not the geometry's, so it lives here as data and is recorded on the revision.
+DISPOSITION_NEW_FACT = "new_fact"        # 3a — admit an observed independent proposal
+DISPOSITION_RETRACT = "retract_fact"     # relinquish a sheet-level fact (free to demote)
+DISPOSITION_ABDUCTIVE = "abductive_hypothesis"   # 3b — admit an explanatory hypothesis
+DISPOSITION_DEFINITION = "definition"            # 3d — admit terminology by convention
+DISPOSITION_CONDITIONAL = "conditional_acceptance"  # 3e — admit a rule P → G
+DISPOSITION_GENERALIZATION = "generalization"    # Case 8 — admit an inductive law
+DISPOSITION_REGISTRATION = "theorem_registration"  # 1a — admit a derived theorem
+DISPOSITION_REDUCTIO = "reductio"        # 2d — admit ¬G as a constraint
+DISPOSITION_CHALLENGE_M = "challenge_to_M"  # 2b — the refutation revises M (relinquish + admit)
+
+# disposition key → its place in the taxonomy. ``content`` names which argument
+# carries the move's payload: "fact" (a sheet atom), "rule" (a P→G / law cut),
+# "constraint" (a ¬G cut), "relation" (the name to drop), or "both" (retract a
+# rule/fact *and* admit the anomaly that refuted it).
+REVISION_TAXONOMY: Dict[str, Dict[str, str]] = {
+    DISPOSITION_NEW_FACT: {
+        "mode": "induction", "kind": "enlargement", "content": "fact",
+        "summary": "G is independent of M and observed — admit it; M grows by induction."},
+    DISPOSITION_ABDUCTIVE: {
+        "mode": "abduction", "kind": "enlargement", "content": "fact",
+        "summary": "G explains something puzzling in M — admit it as a hypothesis, pending evidence."},
+    DISPOSITION_GENERALIZATION: {
+        "mode": "induction", "kind": "enlargement", "content": "rule",
+        "summary": "an inductive leap from the instances to a law (the most Peircean move) — admit the rule."},
+    DISPOSITION_CONDITIONAL: {
+        "mode": "deduction", "kind": "enlargement", "content": "rule",
+        "summary": "G holds under an added premise P — admit the rule P → G."},
+    DISPOSITION_DEFINITION: {
+        "mode": "convention", "kind": "enlargement", "content": "fact",
+        "summary": "G introduces terminology/structure accepted by convention — admit it."},
+    DISPOSITION_REGISTRATION: {
+        "mode": "deduction", "kind": "enlargement", "content": "fact",
+        "summary": "G is entailed by M — admit it as a derived theorem; M grows by deduction."},
+    DISPOSITION_REDUCTIO: {
+        "mode": "deduction", "kind": "enlargement", "content": "constraint",
+        "summary": "the contradiction establishes ¬G as a theorem of M — admit that constraint."},
+    DISPOSITION_RETRACT: {
+        "mode": "none", "kind": "relinquishment", "content": "relation",
+        "summary": "relinquish a sheet-level fact (the ERA dual) — free to demote."},
+    DISPOSITION_CHALLENGE_M: {
+        "mode": "abduction", "kind": "relinquishment", "content": "both",
+        "summary": "G's refutation is evidence against M (the irritation of doubt) — relinquish the "
+                   "impugned law/fact and admit the anomaly; M is revised."},
+}
+
+
+def revision_taxonomy(disposition: str) -> Dict[str, str]:
+    """The taxonomy entry (mode / kind / content / summary) for a model-revising
+    disposition. Raises if the disposition does not revise M (e.g. ``redundancy``,
+    ``rejection``, ``open_conjecture``, ``tautology`` — recorded judgments that
+    leave M untouched)."""
+    try:
+        return dict(REVISION_TAXONOMY[disposition])
+    except KeyError:
+        raise ValueError(
+            f"disposition {disposition!r} does not revise M; the M-revising subset is "
+            f"{sorted(REVISION_TAXONOMY)}")
 
 
 def assert_fact(model: RelationalGraphWithCuts, fact_egif: str) -> RelationalGraphWithCuts:
     """**Enlargement.** Admit ``fact_egif`` into the model by juxtaposing it onto
     M's sheet (conjunction). The result is a new posit at low warrant — the model
-    has *grown*, not been proven. Returns a fresh EGI (M ∧ fact)."""
+    has *grown*, not been proven. Returns a fresh EGI (M ∧ fact).
+
+    The same juxtaposition serves every *enlargement* disposition (a fact, a rule
+    P→G, a ¬G constraint) — what differs is the inning's inferential mode and
+    warrant, which the taxonomy records, not the geometry. ``add_rule`` is the
+    rule-shaped alias."""
     base = generate_egif(model).strip()
     fact = fact_egif.strip()
     combined = f"{base} {fact}".strip() if base else fact
     return parse_egif(combined)
+
+
+def add_rule(model: RelationalGraphWithCuts, rule_egif: str) -> RelationalGraphWithCuts:
+    """**Enlargement by a rule** — admit a law / conditional ``~[ B ~[ H ] ]`` onto
+    M's sheet (the structural twin of ``assert_fact``, named for the taxonomy). A
+    range-restricted Horn rule is forward-chained by ``model_materialization`` at
+    audit time, so the law *covers new individuals* (a generalization absorbs the
+    newcomer an isolated fact-list could not). Used by the generalization (Case 8),
+    conditional-acceptance (3e) and definition (3d) dispositions."""
+    return assert_fact(model, rule_egif)
+
+
+def retract_subgraph(
+    model: RelationalGraphWithCuts, subgraph_egif: str
+) -> RelationalGraphWithCuts:
+    """**Relinquishment of a sheet-level subgraph** — a rule / negation *cut*, the
+    structural generalization of ``retract_relation`` (which drops only sheet
+    atoms). Erases the matching sheet-level cut **as a unit** by the genuine Dau
+    **ERA** rule (the sheet is positive, so erasure is sound), then *verifies* the
+    match: removing the cut must leave exactly ``M minus the subgraph`` — i.e.
+    re-admitting the subgraph reconstructs M (``same_graph``). Raises if no
+    sheet-level subgraph matches (a retraction must have something to retract).
+
+    This is the move a **challenge-to-M** makes on an over-general law: the black
+    swan refutes "all swans are white", so the law is relinquished."""
+    from eg_navigation import child_cuts, same_graph
+    from proof_authoring import apply_rule
+
+    parse_egif(subgraph_egif)   # validate the target parses (raises early if not)
+    for cut_id in child_cuts(model, model.sheet):
+        erased = apply_rule("ERA", model, selection=[cut_id])   # ERA closes over the cut's contents
+        if same_graph(assert_fact(erased, subgraph_egif), model):
+            return erased
+    raise ValueError(
+        f"no sheet-level subgraph matching {subgraph_egif!r} to retract")
 
 
 def _atom_egif(model: RelationalGraphWithCuts, edge) -> str:
@@ -82,18 +193,63 @@ def revise_with_disposition(
     *,
     fact_egif: Optional[str] = None,
     relation: Optional[str] = None,
+    rule_egif: Optional[str] = None,
+    subgraph_egif: Optional[str] = None,
 ) -> RelationalGraphWithCuts:
-    """Enact a model-revising disposition, returning the revised M.
+    """Enact any **model-revising inning outcome** (the ``REVISION_TAXONOMY`` subset
+    of the EPG disposition taxonomy), returning the revised M. The structural move
+    follows the disposition's taxonomy ``kind``/``content``; the *mode* of inference
+    (induction / deduction / abduction / convention) is the taxonomy's to record.
 
-      * ``new_fact``     — ``fact_egif`` is admitted (enlargement).
-      * ``retract_fact`` — every fact named ``relation`` is relinquished.
+      enlargement (juxtapose a posit onto M's sheet) —
+        * ``new_fact`` (3a, induction), ``abductive_hypothesis`` (3b, abduction),
+          ``definition`` (3d, convention), ``theorem_registration`` (1a, deduction)
+          — admit ``fact_egif``.
+        * ``generalization`` (Case 8, induction), ``conditional_acceptance`` (3e,
+          deduction) — admit a law ``rule_egif`` (forward-chained at audit time).
+        * ``reductio`` (2d, deduction) — admit a ¬G ``fact_egif`` constraint.
+      relinquishment (erase from M's sheet) —
+        * ``retract_fact`` — drop every fact named ``relation``.
+        * ``challenge_to_M`` (2b, abduction) — *the irritation of doubt*: relinquish
+          the impugned law (``subgraph_egif``) and/or fact (``relation``), then admit
+          the refuting anomaly (``fact_egif``). M is revised.
+
+    Non-revising dispositions (``redundancy``, ``rejection``, ``open_conjecture``,
+    ``tautology``, …) leave M untouched and are rejected here — they are recorded
+    judgments, not model edits.
     """
-    if disposition == DISPOSITION_NEW_FACT:
+    spec = revision_taxonomy(disposition)   # raises for a non-revising disposition
+
+    # Enlargement family — the structural move is juxtaposition; ``content`` says
+    # which argument carries it (a rule for laws, a fact/constraint otherwise).
+    if spec["kind"] == "enlargement":
+        if spec["content"] == "rule":
+            payload = rule_egif or subgraph_egif
+            if not payload:
+                raise ValueError(f"{disposition} disposition requires rule_egif")
+            return add_rule(model, payload)
         if not fact_egif:
-            raise ValueError("new_fact disposition requires fact_egif")
+            raise ValueError(f"{disposition} disposition requires fact_egif")
         return assert_fact(model, fact_egif)
+
+    # Relinquishment family.
     if disposition == DISPOSITION_RETRACT:
         if not relation:
             raise ValueError("retract_fact disposition requires relation")
         return retract_relation(model, relation)
+
+    if disposition == DISPOSITION_CHALLENGE_M:
+        revised = model
+        if subgraph_egif:
+            revised = retract_subgraph(revised, subgraph_egif)
+        if relation:
+            revised = retract_relation(revised, relation)
+        if fact_egif:
+            revised = assert_fact(revised, fact_egif)
+        if revised is model:
+            raise ValueError(
+                "challenge_to_M requires something to relinquish (subgraph_egif / "
+                "relation) and/or an anomaly to admit (fact_egif)")
+        return revised
+
     raise ValueError(f"disposition {disposition!r} does not revise M")

@@ -368,6 +368,8 @@
           <option value="storyboard" hidden disabled>Storyboard — the line of thought</option>
           <option value="time-stack" hidden disabled>Time-stack — the derivation as a 2.5-D film</option>
           <option value="derivation-dag" hidden disabled>Derivation DAG — branch structure</option>
+          <option value="modal" hidden disabled>Modal reading — ◇ / □ off the history</option>
+          <option value="audit" hidden disabled>Audit — verdict trajectory (M through dialog)</option>
         </select>
         <!-- Overview (adaptive-scope) controls: shown only in the overview lens.
              Collapse deep cuts into content-sized placeholders so a graph too
@@ -455,6 +457,8 @@
   <script src="js/lens-common.js"></script>
   <script src="js/storyboard-lens.js"></script>
   <script src="js/derivation-dag-lens.js"></script>
+  <script src="js/modal-lens.js"></script>
+  <script src="js/audit-lens.js"></script>
   <script>
     (function () {
       const listEl = document.getElementById('organon-uod-list');
@@ -1013,14 +1017,17 @@
       // (storyboard / time-stack, which read a single line) only when the chain
       // doesn't branch — a branching episode is the DAG lens's job.
       function setDiachronicLensesAvailable(yes, branching) {
+        // modal (◇/□) and audit (verdict trajectory) read the chain like the DAG
+        // lens — offered for any chain (modal is sharpest on a branching one).
         const avail = { storyboard: yes && !branching, 'time-stack': yes && !branching,
-                        'derivation-dag': yes };
+                        'derivation-dag': yes, modal: yes, audit: yes };
         Object.keys(avail).forEach(v => {
           const opt = viewLensSel && viewLensSel.querySelector('option[value="' + v + '"]');
           if (opt) { opt.disabled = !avail[v]; opt.hidden = !avail[v]; }
         });
         if (!avail[currentLens] && (currentLens === 'storyboard' ||
-            currentLens === 'time-stack' || currentLens === 'derivation-dag')) {
+            currentLens === 'time-stack' || currentLens === 'derivation-dag' ||
+            currentLens === 'modal' || currentLens === 'audit')) {
           selectLens('drawing');
         }
       }
@@ -1077,6 +1084,14 @@
           } else if (lens === 'derivation-dag') {
             if (!currentHistory) currentHistory = await window.LensCommon.fetchHistory(selectedUodId);
             activeLensHandle = window.DerivationDag.mount(canvasEl, currentHistory);
+          } else if (lens === 'modal') {
+            // ◇/□ off the branching history (modal_query) — the lens owns its
+            // fetch + the states/leaves toggle.
+            activeLensHandle = window.ModalLens.mount(canvasEl, selectedUodId);
+          } else if (lens === 'audit') {
+            // The verdict trajectory of a model revised through dialog
+            // (model_revision) — the lens owns its fetch + the editable proposal.
+            activeLensHandle = window.AuditLens.mount(canvasEl, selectedUodId);
           }
         } catch (e) {
           canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:var(--ctp-maroon);">' +

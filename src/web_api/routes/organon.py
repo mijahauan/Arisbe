@@ -629,3 +629,187 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                 "type": type(exc).__name__,
             },
         )
+
+
+@router.get("/uods/{uod_id}/modal")
+async def get_uod_modal(uod_id: str, over: str = "states"):
+    """Read **◇ (possibility) and □ (necessity) off the branching history** — the
+    *trajectory reading* of `docs/MODALITY_WITHOUT_GAMMA.md` §1, with **no modal
+    mark** (the diachronic lens for ``src/modal_query.py``).
+
+    A modal operator is a quantifier over a Kripke frame ⟨W, R⟩, and a UoD's
+    transformation chain *is* that frame: the worlds are its EGI states (sheets),
+    accessibility is the legal-transition DAG.  So for a relation φ scribed across
+    the reachable sheets, ◇φ = "some legal trajectory scribes φ" and □φ = "every
+    legal trajectory scribes φ" — *possibility is branching, necessity is
+    convergence.*  This route classifies every relation appearing across the worlds
+    as **necessary** (□ — on every reachable sheet) or merely **possible** (◇ — on
+    some but not all).
+
+    ``over`` quantifies over ``"states"`` (all reachable sheets, the standard Kripke
+    reading; default) or ``"leaves"`` (the trajectory endpoints only).  Geometry-free
+    — reads only DAG structure + EGI content, so it loads with ``attest=False`` and
+    runs no layout engine; it adds **no** §3.3 obligation.  ``has_chain`` is False
+    (empty ``relations``) for the synchronic majority of the corpus.
+    """
+    try:
+        import modal_query as mq
+        from egif_generator_dau import generate_egif
+
+        tomos = _get_tomos()
+        uod = tomos.load_uod(uod_id, attest=False)   # structure only — modality is geometry-free
+        if uod is None:
+            return ApiResponse(success=False, error={
+                "code": "UOD_NOT_FOUND", "message": f"UoD '{uod_id}' not found in tomos"})
+
+        chain = tomos.load_chain(uod_id)
+        if chain is None:
+            return ApiResponse(success=True, data={
+                "uod_id": uod_id, "has_chain": False, "relations": []})
+
+        if over not in ("states", "leaves"):
+            over = "states"
+        worlds = sorted(
+            mq.leaf_states(chain) if over == "leaves" else mq.reachable_states(chain))
+
+        # Every relation name scribed on *some* considered world — the φ's to classify.
+        names = sorted({n for w in worlds for n in chain.states[w].rel.values()})
+        relations = []
+        for name in names:
+            pos = mq.possibly(chain, mq.scribes_relation(name), over=over)
+            nec = mq.necessarily(chain, mq.scribes_relation(name), over=over)
+            relations.append({
+                "name": name,
+                "necessary": nec.holds,            # □ — on every reachable sheet
+                "possible": pos.holds,             # ◇ — on some reachable sheet
+                "modal": "necessary" if nec.holds else "possible",
+                "witnesses": pos.witnesses,        # worlds where φ holds
+                "counterexamples": nec.counterexamples,  # worlds where φ is absent
+                "summary": nec.summary if nec.holds else pos.summary,
+            })
+
+        # Is the blank sheet (the one unconditioned world) reachable? — ◇⊤-shaped.
+        blank = mq.possibly(chain, mq.is_blank(), over=over)
+
+        # Per-world descriptors so the lens can show the sheets the modality reads off.
+        leaves = mq.leaf_states(chain)
+        worlds_detail = [{
+            "id": w,
+            "egif": generate_egif(chain.states[w]).strip() or "(blank sheet)",
+            "is_initial": w == chain.initial_state_id,
+            "is_leaf": w in leaves,
+        } for w in worlds]
+
+        from collections import Counter as _C
+        _frm = _C(s.from_state_id for s in chain.steps)
+        _to = _C(s.to_state_id for s in chain.steps)
+        branching = any(v > 1 for v in _frm.values()) or any(v > 1 for v in _to.values())
+
+        return ApiResponse(success=True, data={
+            "uod_id": uod_id, "name": uod.name, "has_chain": True,
+            "over": over, "branching": branching,
+            "world_count": len(worlds), "worlds": worlds_detail,
+            "relations": relations,
+            "blank_possible": blank.holds,
+        })
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "MODAL_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+def _audit_proposal_default(tomos: TomosService, uod_id: str) -> Optional[str]:
+    """The standing proposal a chained UoD declares for auditing — a UoD-scoped
+    annotation tagged ``audit-proposal`` whose text is the proposal's EGIF (written
+    by the dialogue exemplar's build script).  ``None`` if the UoD declares none."""
+    for ann in tomos.load_annotations(uod_id) or []:
+        if "audit-proposal" in (ann.get("tags") or []):
+            text = (ann.get("text") or "").strip()
+            if text:
+                return text
+    return None
+
+
+@router.get("/uods/{uod_id}/audit")
+async def get_uod_audit(uod_id: str, proposal: Optional[str] = None,
+                        closed: bool = True):
+    """Peel a **standing proposal G against every state of the chain** — the
+    *verdict trajectory* of a model **revised through dialog** (``src/model_revision.py``;
+    `docs/EXEMPLARS.md` §6).
+
+    An inning is *given M, then G*; what the dialogue does is **revise M itself**, and
+    the verdict a later inning gives can flip as M grows.  This route makes that
+    visible: it walks the chain (each state is a successive model M), materializes M's
+    Horn fragment, and peels the same proposal G against it — returning the verdict at
+    each state, so a reader watches the audit move (the dialogue exemplar flips
+    FALSE→TRUE→FALSE→TRUE).  This is read-only **model-checking** (truth-in-a-model, not
+    inference); **nothing is asserted** — a proposal earns warrant only by withstanding
+    Agon.
+
+    ``proposal`` is the EGIF of G; absent, the UoD's declared ``audit-proposal``
+    annotation is used (404-style ``NO_PROPOSAL`` if neither is present).  ``closed``
+    selects closed-world (default — a domain model is read as a closed record) vs
+    open-world.  Geometry-free (``attest=False``); no §3.3 obligation.
+    """
+    try:
+        from model_materialization import materialize_egi
+        from domain_oracle import CorpusOracle
+        from semantic_game import evaluate as evaluate_semantic
+        from egif_parser_dau import parse_egif
+
+        tomos = _get_tomos()
+        uod = tomos.load_uod(uod_id, attest=False)
+        if uod is None:
+            return ApiResponse(success=False, error={
+                "code": "UOD_NOT_FOUND", "message": f"UoD '{uod_id}' not found in tomos"})
+
+        chain = tomos.load_chain(uod_id)
+        if chain is None:
+            return ApiResponse(success=True, data={
+                "uod_id": uod_id, "has_chain": False, "frames": []})
+
+        if not (proposal and proposal.strip()):
+            proposal = _audit_proposal_default(tomos, uod_id)
+        if not (proposal and proposal.strip()):
+            return ApiResponse(success=False, error={
+                "code": "NO_PROPOSAL",
+                "message": ("no proposal given and this UoD declares no 'audit-proposal' "
+                            "— pass ?proposal=<egif>")})
+
+        g_egi = parse_egif(proposal)   # raises (caught) if the proposal is ill-formed
+
+        def _verdict(state_egi):
+            facts, _ = materialize_egi(state_egi)
+            oracle = CorpusOracle([("M", facts)], closed=closed)
+            return evaluate_semantic(g_egi, oracle, closed=closed)
+
+        def _frame(index, kind, state_id, rule=None, params=None, annotation=None):
+            r = _verdict(chain.states[state_id])
+            p = params or {}
+            # The revision's payload, under whichever key the disposition used
+            # (a sheet fact, a law/rule cut, or the subgraph relinquished).
+            fact = (p.get("fact") or p.get("fact_egif") or p.get("rule_egif")
+                    or p.get("subgraph_egif"))
+            return {
+                "index": index, "kind": kind, "state_id": state_id,
+                "rule": rule, "fact": fact, "annotation": annotation,
+                # The inning outcome that produced this M (the taxonomy made visible):
+                # which disposition, in which Peircean mode.
+                "disposition": p.get("disposition"), "mode": p.get("mode"),
+                "verdict": r.verdict.value, "summary": r.summary,
+                "winning_witness": r.winning_witness,
+                "counterexample": r.counterexample,
+            }
+
+        frames = [_frame(0, "base", chain.initial_state_id)]
+        for i, step in enumerate(chain.steps, start=1):
+            frames.append(_frame(
+                i, "step", step.to_state_id, rule=step.rule_name,
+                params=(step.parameters or {}), annotation=step.user_annotation))
+
+        return ApiResponse(success=True, data={
+            "uod_id": uod_id, "name": uod.name, "has_chain": True,
+            "proposal": proposal, "closed": closed,
+            "step_count": len(chain.steps), "frames": frames})
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "AUDIT_ERROR", "message": str(exc), "type": type(exc).__name__})

@@ -24,6 +24,7 @@ import modal_query as mq  # noqa: E402
 import model_revision as mr  # noqa: E402
 import build_modal_branching as modal  # noqa: E402
 import build_dialog_model_evolution as dialog  # noqa: E402
+import build_swan_generalization as swan  # noqa: E402
 
 
 # --------------------------------------------------------------------------- #
@@ -121,3 +122,95 @@ def test_dialogue_chain_records_revisions():
     assert len(chain.steps) == 3
     assert all(s.rule_name == "ADMIT_FACT" for s in chain.steps)
     assert all(s.parameters.get("disposition") == "new_fact" for s in chain.steps)
+
+
+# --------------------------------------------------------------------------- #
+# model_revision across the inning-outcome taxonomy                            #
+# --------------------------------------------------------------------------- #
+#
+# The EPG taxonomy of game outcomes (docs/ENDOPOREUTIC_GAME_GUIDE.md §"Taxonomy")
+# informs M-revision: only a subset of dispositions transform M, each in a distinct
+# Peircean mode. REVISION_TAXONOMY names that subset; revise_with_disposition enacts it.
+
+
+def test_revision_taxonomy_names_modes_and_kinds():
+    """Each M-revising disposition carries a Peircean mode + a structural kind."""
+    new_fact = mr.revision_taxonomy(mr.DISPOSITION_NEW_FACT)
+    assert new_fact["mode"] == "induction" and new_fact["kind"] == "enlargement"
+    challenge = mr.revision_taxonomy(mr.DISPOSITION_CHALLENGE_M)
+    assert challenge["mode"] == "abduction" and challenge["kind"] == "relinquishment"
+    gen = mr.revision_taxonomy(mr.DISPOSITION_GENERALIZATION)
+    assert gen["mode"] == "induction" and gen["content"] == "rule"
+    # All three Peircean modes appear across the revising subset.
+    modes = {v["mode"] for v in mr.REVISION_TAXONOMY.values()}
+    assert {"induction", "deduction", "abduction"} <= modes
+
+
+def test_non_revising_disposition_is_rejected():
+    """A recorded-judgment disposition (no M edit) is not a revision."""
+    for key in ("redundancy", "rejection", "open_conjecture", "tautology"):
+        with pytest.raises(ValueError):
+            mr.revision_taxonomy(key)
+        with pytest.raises(ValueError):
+            mr.revise_with_disposition(parse_egif("(swan \"a\")"), key)
+
+
+def test_add_rule_then_retract_subgraph_round_trips():
+    """add_rule juxtaposes a law; retract_subgraph erases that sheet-level cut as a
+    unit (a genuine ERA) and re-admitting it reconstructs M."""
+    m = parse_egif('(swan "a") (white "a")')
+    law = '~[ (swan *x) ~[ (white x) ] ]'
+    grown = mr.add_rule(m, law)
+    assert any(True for _ in nav.child_cuts(grown, grown.sheet)), "the law is a sheet cut"
+    shrunk = mr.retract_subgraph(grown, law)
+    assert nav.same_graph(shrunk, m), "retracting the law restores the fact-only model"
+    # Retracting an absent subgraph is refused (a retraction must have a target).
+    with pytest.raises(ValueError):
+        mr.retract_subgraph(m, law)
+
+
+def test_generalization_law_covers_a_newcomer():
+    """A generalization (a law) materializes onto a new individual where a bare
+    fact-list would not — deduction over an inductive leap."""
+    base = parse_egif('(swan "a") (white "a")')
+    with_law = mr.revise_with_disposition(base, mr.DISPOSITION_GENERALIZATION,
+                                          rule_egif='~[ (swan *x) ~[ (white x) ] ]')
+    with_newcomer = mr.revise_with_disposition(with_law, mr.DISPOSITION_NEW_FACT,
+                                               fact_egif='(swan "b")')
+    # The law covers swan b: "every swan is white" still holds.
+    assert swan._verdict(with_newcomer) == "true"
+    # Without the law, the bare newcomer would flip it FALSE.
+    bare = mr.revise_with_disposition(base, mr.DISPOSITION_NEW_FACT, fact_egif='(swan "b")')
+    assert swan._verdict(bare) == "false"
+
+
+def test_challenge_to_M_relinquishes_the_law_and_admits_the_anomaly():
+    """challenge_to_M (2b, abduction) retracts the impugned law and admits the
+    refuting anomaly in one revision."""
+    m = parse_egif('(swan "a") (white "a")')
+    m = mr.add_rule(m, '~[ (swan *x) ~[ (white x) ] ]')
+    revised = mr.revise_with_disposition(
+        m, mr.DISPOSITION_CHALLENGE_M,
+        subgraph_egif='~[ (swan *x) ~[ (white x) ] ]',
+        fact_egif='(swan "n") (black "n")')
+    assert swan._verdict(revised) == "false"          # the law is gone; n is a non-white swan
+    assert not any(True for _ in nav.child_cuts(revised, revised.sheet)), "the law was relinquished"
+
+
+# --------------------------------------------------------------------------- #
+# The swan exemplar — a verdict moving across the taxonomy of modes             #
+# --------------------------------------------------------------------------- #
+
+def test_swan_exemplar_walks_the_taxonomy():
+    """'Every swan is white' moves FALSE→TRUE→TRUE→TRUE→FALSE as the dialogue
+    observes (induction), generalizes (induction), admits a covered newcomer, then
+    meets the black swan and revises M (abduction)."""
+    chain, _uod = swan.build_swan_chain()
+    verdicts = [swan._verdict(chain.states[chain.initial_state_id])] + [
+        swan._verdict(chain.states[s.to_state_id]) for s in chain.steps]
+    assert verdicts == ["false", "true", "true", "true", "false"]
+    # The exemplar exercises more than one mode (the contrast with the insurance walk).
+    modes = {s.parameters.get("mode") for s in chain.steps}
+    assert {"induction", "abduction"} <= modes
+    dispositions = {s.parameters.get("disposition") for s in chain.steps}
+    assert {"new_fact", "generalization", "challenge_to_M"} <= dispositions

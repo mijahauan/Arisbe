@@ -31,6 +31,8 @@ REPO = Path(__file__).parent.parent
 SYNCHRONIC = "porphyry_tree"        # no recorded chain
 CHAINED = "theorem_praeclarum"      # a worked 7-step proof (linear)
 BRANCHING = "branching_confluence"  # a fork-and-merge episode (a DAG)
+MODAL = "possible_and_necessary"    # a branching weather episode — □cold, ◇cloudy/◇calm
+DIALOGUE = "dialogue_model_revision"  # M revised through dialog — verdict FALSE→TRUE→FALSE→TRUE
 
 
 def _free_port():
@@ -261,4 +263,57 @@ def test_style_reprojection_note_appears_on_restyle(page, app_url):
     page.select_option("#view-style", "")
     time.sleep(1.5)
     assert page.eval_on_selector("#reprojection-note", "el => el.style.display") == "none"
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
+def test_modal_lens_reads_diamond_and_necessity(page, app_url):
+    """A branching episode offers the Modal lens; it reads □ (necessary — on every
+    reachable sheet) and ◇ (possible — on some) off the history. (cold) is necessary;
+    (cloudy)/(calm) are possible-but-not-necessary."""
+    _open_organon(page, app_url)
+    _load_uod(page, MODAL)
+    assert page.eval_on_selector("#view-lens option[value=modal]", "o => o.hidden") is False
+
+    page.select_option("#view-lens", "modal")
+    page.wait_for_selector(".ml-cols", timeout=10000)
+    nec = page.eval_on_selector(".ml-nec", "el => el.textContent")
+    pos = page.eval_on_selector(".ml-pos", "el => el.textContent")
+    assert "cold" in nec, f"expected cold under □ Necessary, got: {nec}"
+    assert "cloudy" in pos and "calm" in pos, f"expected cloudy/calm under ◇ Possible, got: {pos}"
+    # the worlds the modality ranges over are drawn, the leaf (cold) marked
+    assert page.eval_on_selector_all(".ml-world", "els => els.length") == 4
+    # toggling to leaves-only re-fetches (a single endpoint world)
+    page.select_option(".ml-over-sel", "leaves")
+    page.wait_for_function(
+        "document.querySelectorAll('.ml-world').length === 1", timeout=8000)
+
+    page.select_option("#view-lens", "drawing")
+    page.wait_for_selector("#organon-canvas svg", timeout=10000)
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
+def test_audit_lens_shows_the_verdict_flipping(page, app_url):
+    """The dialogue exemplar offers the Audit lens; it peels the declared proposal
+    against each successive M and draws the verdict ribbon FALSE→TRUE→FALSE→TRUE, with
+    each transition labelled by the admitted fact."""
+    _open_organon(page, app_url)
+    _load_uod(page, DIALOGUE)
+    assert page.eval_on_selector("#view-lens option[value=audit]", "o => o.hidden") is False
+
+    page.select_option("#view-lens", "audit")
+    page.wait_for_selector(".au-state", timeout=10000)
+    states = page.eval_on_selector_all(".au-state", "els => els.length")
+    assert states == 4, f"expected M0..M3, got {states}"
+    # the declared proposal pre-fills the input
+    assert page.eval_on_selector("#au-prop", "el => el.value").strip(), \
+        "the audit proposal input should pre-fill from the UoD's declared proposal"
+    # the verdict ribbon reads FALSE, TRUE, FALSE, TRUE in order
+    verdicts = page.eval_on_selector_all(
+        ".au-verdict", "els => els.map(e => e.textContent.trim())")
+    assert [v.split()[-1] for v in verdicts] == ["FALSE", "TRUE", "FALSE", "TRUE"], verdicts
+    # at least one transition is flagged as flipping the verdict
+    assert page.eval_on_selector_all(".au-flip", "els => els.length") >= 1
+
+    page.select_option("#view-lens", "drawing")
+    time.sleep(1.0)
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"

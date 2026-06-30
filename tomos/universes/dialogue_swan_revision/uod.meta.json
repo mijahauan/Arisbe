@@ -1,0 +1,19 @@
+{
+  "uod_id": "dialogue_swan_revision",
+  "uod_type": "historical",
+  "name": "A model revised across the inning taxonomy (the swans)",
+  "description": "A reference model M revised through dialog by *different* inning outcomes, each a distinct Peircean mode (docs/ENDOPOREUTIC_GAME_GUIDE.md). The standing proposal G = 'every swan is white' is peeled against M after each revision; the verdict moves FALSE\u2192TRUE\u2192TRUE\u2192TRUE\u2192FALSE as the dialogue observes Ciel (new_fact, induction), leaps to the law 'all swans are white' (generalization, induction), admits a new swan the law covers (new_fact \u2014 G stays TRUE where a bare fact-list would flip), then meets a black swan and relinquishes the over-general law (challenge-to-M, abduction). Enacted by src/model_revision.py's REVISION_TAXONOMY; the taxonomy of game outcomes made operational. M carries its own diachronic history.",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

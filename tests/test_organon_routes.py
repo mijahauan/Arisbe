@@ -361,3 +361,124 @@ def test_organon_index_serves_html(client):
     assert "organon-uod-list" in html
     # Read-only mode marker — transformation UI must not bleed in.
     assert "mode-btn" not in html
+
+
+# --------------------------------------------------------------------------- #
+# 6. Diachronic reading lenses — modal (◇/□) + audit (verdict trajectory)      #
+# --------------------------------------------------------------------------- #
+#
+# These two routes surface the corpus's modality / model-revision exemplars
+# (src/modal_query.py, src/model_revision.py) — read-only readings off a UoD's
+# transformation chain. Neither runs a layout engine (attest=False); both are
+# geometry-free and add no §3.3 obligation.
+
+
+def test_modal_reading_off_branching_history(client):
+    """GET /modal reads ◇/□ off the branching exemplar: (cold) is necessary (□ — on
+    every reachable sheet), (cloudy)/(calm) are merely possible (◇ — on some)."""
+    resp = client.get("/organon/uods/possible_and_necessary/modal")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["has_chain"] and data["branching"]
+    assert data["world_count"] == 4
+    by = {r["name"]: r for r in data["relations"]}
+    assert by["cold"]["necessary"] is True and by["cold"]["possible"] is True
+    assert by["cloudy"]["necessary"] is False and by["cloudy"]["possible"] is True
+    assert by["calm"]["necessary"] is False and by["calm"]["possible"] is True
+    # The worlds the modality ranges over carry their EGIF + leaf/initial flags.
+    assert any(w["is_leaf"] and w["egif"].strip() == "(cold)" for w in data["worlds"])
+
+
+def test_modal_reading_over_leaves_only(client):
+    """over=leaves quantifies only over trajectory endpoints; both lines rest at
+    (cold), so over the single leaf every scribed relation reads necessary."""
+    resp = client.get("/organon/uods/possible_and_necessary/modal?over=leaves")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["over"] == "leaves" and data["world_count"] == 1
+    by = {r["name"]: r for r in data["relations"]}
+    assert by["cold"]["necessary"] is True
+
+
+def test_modal_reading_absent_for_synchronic_uod(client, sample_uod_id):
+    """A UoD with no chain has no frame to read ◇/□ off — has_chain False, no error."""
+    resp = client.get(f"/organon/uods/{sample_uod_id}/modal")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    if not body["data"]["has_chain"]:
+        assert body["data"]["relations"] == []
+
+
+def test_modal_unknown_id_is_clean_error(client):
+    resp = client.get("/organon/uods/no-such-uod/modal")
+    assert resp.json()["success"] is False
+    assert resp.json()["error"]["code"] == "UOD_NOT_FOUND"
+
+
+def test_audit_trajectory_flips_as_model_is_revised(client):
+    """GET /audit peels the dialogue's declared proposal against each successive M;
+    'every patient is insured' moves FALSE→TRUE→FALSE→TRUE as the dialogue admits
+    Ben's insurance, a new patient Cal, then Cal's coverage."""
+    resp = client.get("/organon/uods/dialogue_model_revision/audit")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["has_chain"]
+    # The default proposal is the UoD's declared audit-proposal annotation.
+    assert "patient" in data["proposal"] and "insured" in data["proposal"]
+    verdicts = [f["verdict"] for f in data["frames"]]
+    assert verdicts == ["false", "true", "false", "true"]
+    # Each revision step is labelled by the fact the dialogue admitted.
+    facts = [f["fact"] for f in data["frames"] if f["kind"] == "step"]
+    assert any("Ben" in (f or "") for f in facts)
+
+
+def test_audit_accepts_an_explicit_proposal(client):
+    """A caller-supplied proposal overrides the declared default."""
+    prop = '~[ (patient *x) ~[ (insured x) ] ]'
+    resp = client.get("/organon/uods/dialogue_model_revision/audit",
+                      params={"proposal": prop})
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["proposal"] == prop
+    assert [f["verdict"] for f in data["frames"]] == ["false", "true", "false", "true"]
+
+
+def test_audit_without_a_declared_proposal_is_clean_error(client):
+    """A chained UoD that declares no audit-proposal and gets none returns a clean
+    NO_PROPOSAL, not a 500."""
+    resp = client.get("/organon/uods/theorem_praeclarum/audit")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "NO_PROPOSAL"
+
+
+def test_audit_ill_formed_proposal_is_clean_error(client):
+    """A malformed proposal EGIF is reported as an AUDIT_ERROR, never a stack-trace 500."""
+    resp = client.get("/organon/uods/dialogue_model_revision/audit",
+                      params={"proposal": "~[ (patient *x"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "AUDIT_ERROR"
+
+
+def test_audit_surfaces_the_disposition_and_mode(client):
+    """The swan exemplar walks the inning-outcome taxonomy: the audit frames carry
+    each step's disposition + Peircean mode (induction → induction → abduction), and
+    the verdict moves FALSE→TRUE→TRUE→TRUE→FALSE (a law absorbs the newcomer; the
+    black swan revises M)."""
+    resp = client.get("/organon/uods/dialogue_swan_revision/audit")
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["has_chain"]
+    assert [f["verdict"] for f in data["frames"]] == \
+        ["false", "true", "true", "true", "false"]
+    steps = [f for f in data["frames"] if f["kind"] == "step"]
+    dispositions = [f["disposition"] for f in steps]
+    assert dispositions == ["new_fact", "generalization", "new_fact", "challenge_to_M"]
+    modes = {f["mode"] for f in steps}
+    assert {"induction", "abduction"} <= modes
+    # the challenge step carries the relinquished law / admitted anomaly as its payload
+    assert any("black" in (f["fact"] or "") for f in steps)

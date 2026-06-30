@@ -1,0 +1,126 @@
+{
+  "annotations": [
+    {
+      "id": "ann_ef88a9cf",
+      "scope": "uod",
+      "text": "~[ (swan *x) ~[ (white x) ] ]",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit-proposal"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_ae4f2a9e",
+      "scope": "uod",
+      "text": "A domain model revised across the *taxonomy* of inning outcomes \u2014 not one disposition repeated but four distinct ones, each a Peircean mode. 'Every swan is white' is audited against M: induction observes Ciel and leaps to the law; the law then covers a new swan (deduction over an inductive generalization \u2014 G stays TRUE where a bare tally would flip); abduction meets the black swan and relinquishes the over-general law. The taxonomy of game outcomes (docs/ENDOPOREUTIC_GAME_GUIDE.md) made operational.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "domain-model",
+        "dialogue",
+        "model-revision",
+        "taxonomy",
+        "induction",
+        "abduction",
+        "demonstration"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_23213725",
+      "scope": "chain",
+      "text": "Each step is a model-revising disposition from src/model_revision.py's REVISION_TAXONOMY: new_fact (3a, induction \u00b7 enlargement), generalization (Case 8, induction \u00b7 a law), challenge_to_M (2b, abduction \u00b7 relinquish the law by a genuine Dau ERA + admit the anomaly). Enlargement is INS at the sheet; relinquishment is ERA in the positive sheet \u2014 the same calculus that draws every other graph.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "taxonomy",
+        "enlargement",
+        "relinquishment",
+        "low-warrant"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_746cff46",
+      "scope": "uod",
+      "text": "M0 (the opening record): 'every swan is white' peels to FALSE \u2014 Ciel's colour is unrecorded.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_35980ffc",
+      "scope": "step",
+      "text": "M1: 'every swan is white' peels to TRUE (after new_fact \u00b7 induction).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict",
+        "taxonomy"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    },
+    {
+      "id": "ann_ab72bc77",
+      "scope": "step",
+      "text": "M2: 'every swan is white' peels to TRUE (after generalization \u00b7 induction).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict",
+        "taxonomy"
+      ],
+      "state_id": null,
+      "step_id": "step-2",
+      "element_id": null
+    },
+    {
+      "id": "ann_c463afa1",
+      "scope": "step",
+      "text": "M3: 'every swan is white' peels to TRUE (after new_fact \u00b7 induction).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict",
+        "taxonomy"
+      ],
+      "state_id": null,
+      "step_id": "step-3",
+      "element_id": null
+    },
+    {
+      "id": "ann_a59cdc28",
+      "scope": "step",
+      "text": "M4: 'every swan is white' peels to FALSE (after challenge_to_M \u00b7 abduction).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict",
+        "taxonomy"
+      ],
+      "state_id": null,
+      "step_id": "step-4",
+      "element_id": null
+    }
+  ]
+}

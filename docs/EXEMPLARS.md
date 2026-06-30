@@ -159,12 +159,58 @@ by — evidence:
 | M3 | + admit `(insured Cal)` | **TRUE** (settled again, for now) |
 
 Each step is a model-revising `new_fact` disposition — an independent proposal the
-dialogue accepts, juxtaposed onto M's sheet as a new posit at low warrant. The thin
-missing code is [src/model_revision.py](../src/model_revision.py): `assert_fact`
-(enlargement) and `retract_relation` (relinquishment — *free to demote*, the ERA
-dual), dispatched by `revise_with_disposition`. The exemplar makes the manifest floor
-operational: **a model is never frozen**, and "fact" is the defeasible status of the
-last-standing trajectory ([MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
+dialogue accepts, juxtaposed onto M's sheet as a new posit at low warrant. The exemplar
+makes the manifest floor operational: **a model is never frozen**, and "fact" is the
+defeasible status of the last-standing trajectory
+([MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
 [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5).
 
-Tests for both: [tests/test_modal_and_dialog.py](../tests/test_modal_and_dialog.py).
+### Across the taxonomy of inning outcomes — `dialogue_swan_revision`
+
+The insurance dialogue walks a single disposition (`new_fact`) four times. But the
+**taxonomy of game outcomes** ([ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md)
+§"Taxonomy") is richer — *each inning ends in a disposition, and the model-revising
+ones are different **Peircean modes of inference*** (§IV: deduction / induction /
+abduction). `dialogue_swan_revision`
+([tools/build_swan_generalization.py](../tools/build_swan_generalization.py)) is the
+guide's own canonical example — **the swans** — revised across that taxonomy. G = "every
+swan is white":
+
+| State | Revision (disposition · mode) | "every swan is white" |
+|---|---|---|
+| M0 | swans Alba/Bianca (white), Ciel (colour unrecorded) | **FALSE** (Ciel uncovered) |
+| M1 | observe Ciel is white — `new_fact` · induction | **TRUE** |
+| M2 | leap to the law *all swans white* — `generalization` · induction | **TRUE** (a law, not a tally) |
+| M3 | a new swan, Dover, arrives — `new_fact` · induction | **TRUE** — *the law covers Dover* |
+| M4 | a black swan, Nox — `challenge_to_M` · abduction | **FALSE** — the law is relinquished |
+
+Two things the insurance dialogue cannot show. **A law absorbs the newcomer:** at M3 a
+new individual arrives with no recorded colour yet G stays TRUE — the *generalization*
+forward-chains (white Dover), where insurance's Cal (no rule in M) flipped the verdict
+FALSE. Deduction over an inductive law vs a bare tally. **The irritation of doubt
+revises M:** the black swan refutes the law; the inning's outcome is *challenge-to-M*
+(2b) — the over-general law is **relinquished** (a genuine Dau ERA in the positive sheet)
+and the anomaly admitted. M is corrected by abduction — "the only logical operation which
+introduces any new idea."
+
+The taxonomy is enacted by [src/model_revision.py](../src/model_revision.py)'s
+`REVISION_TAXONOMY` — the M-revising subset of the disposition taxonomy, each entry
+carrying its mode + structural **kind** (enlargement = `assert_fact`/`add_rule`, INS at
+the sheet; relinquishment = `retract_relation` for a fact, `retract_subgraph` for a
+law/cut, ERA in the positive sheet), dispatched by `revise_with_disposition`. The same
+calculus that draws every other graph; the dispositions that *don't* revise M
+(`redundancy`, `rejection`, `open_conjecture`, …) are recorded judgments, not edits.
+
+### Reading them in Organon — the **audit lens**
+
+Both dialogues are surfaced by the Organon **audit lens** (`web_viewer/js/audit-lens.js`
+over `GET /organon/uods/{id}/audit`): a standing proposal G — each UoD declares its own
+in an `audit-proposal` annotation, and the reader may type another — is peeled against
+every successive model M, drawn as the **verdict ribbon** with each transition labelled
+by its disposition · mode and "verdict flips" flagged. The companion **modal lens**
+(`modal-lens.js` over `/modal`) reads ◇/□ off the branching history (§5). Both are
+read-only navigation projections — never the asserted drawing.
+
+Tests for all of this: [tests/test_modal_and_dialog.py](../tests/test_modal_and_dialog.py)
+(the modules + exemplars) and [tests/test_organon_routes.py](../tests/test_organon_routes.py)
+/ [tests/test_organon_lenses_e2e.py](../tests/test_organon_lenses_e2e.py) (the lenses).

@@ -109,6 +109,10 @@ def dialogue_provenance() -> dict:
 
 def dialogue_annotations(chain: TransformationChain) -> list:
     anns = [
+        # The standing proposal this dialogue audits — declared in EGIF (text = the
+        # bare EGIF, tag-keyed) so the Organon "audit" lens (GET
+        # /organon/uods/{id}/audit) can pre-fill it and peel it against every state of M.
+        make_annotation(SCOPE_UOD, PROPOSAL_G, tags=["audit-proposal"]),
         make_annotation(SCOPE_UOD,
             "How a domain model transforms through ongoing dialog. The standing "
             "proposal 'every patient is insured' is audited against M after each "
