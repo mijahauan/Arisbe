@@ -7,8 +7,9 @@
 >
 > **Companion documents:** [CAPABILITY_MAP.md](CAPABILITY_MAP.md) (what works today, where it lives,
 > what guards it) · [ROADMAP.md](ROADMAP.md) (what's next, in order) · [GLOSSARY.md](GLOSSARY.md)
-> (terms + a reading order by audience). For the developer-facing module map and commands, see
-> [../CLAUDE.md](../CLAUDE.md).
+> (terms + a reading order by audience). **New here?** [GETTING_STARTED.md](GETTING_STARTED.md) is the
+> layered, role-aware on-ramp (assumes no logic background, then branches by expertise). For the
+> developer-facing module map and commands, see [../CLAUDE.md](../CLAUDE.md).
 >
 > *Last consolidated: 2026-06-27.*
 

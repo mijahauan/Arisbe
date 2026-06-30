@@ -226,17 +226,24 @@ few things first:
     Peirce-style spec. **#14 is now complete.** Only a thin UI surface remains optional (an Ergasterion route that
     feeds the freeform canvas's drawn DTO into the loop, and a session-export convenience route).
 
-15. **Start-up guidance for new users — layered + tailored by expertise.** Clear, thorough on-ramp docs that
-    assume *no* math/logic background, then branch to what an **ontologist**, **logician**, **mathematician**,
-    or **Peirce expert** each needs. Complements the shipped in-app primer / Field Guide (newcomer on-ramp #4)
-    with a written, role-aware front door. Audience-layered the way `VISION_AND_SCOPE` / `GLOSSARY` already are.
+15. **Start-up guidance for new users — layered + tailored by expertise — ✅ DONE (2026-06-29).**
+    [GETTING_STARTED.md](GETTING_STARTED.md): a written, role-aware on-ramp that assumes *no* math/logic
+    background (a shared "five minutes" — run it, the three modes, your first graph, the *attest
+    correspondence not truth* discipline), then **branches** to a door per reader — newcomer, **ontologist**,
+    **logician**, **mathematician**, **Peirce scholar** — each with *what to read first / do first / your
+    frontier*, and a one-screen map. Complements the shipped in-app primer / Field Guide (newcomer on-ramp #4)
+    rather than restating; audience-layered the way `VISION_AND_SCOPE` / `GLOSSARY` already are. Linked from the
+    spine front-matter + GLOSSARY reading order + CLAUDE.md.
 
-16. **External-sources & import documentation** — how Arisbe interacts with outside information: importing
-    **ontologies** (OWL/RDF/CLIF/SUOKIF), and admitting material **from textbooks, websites, papers**. The
-    machinery exists and is scattered across [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md),
-    [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (LOW-warrant import floor), the OWL/RDF importers, and
-    `cl_import_resolver`; this is a *consolidating doc* that makes the import story legible end-to-end (what
-    enters, at what warrant, attributed how, attested how).
+16. **External-sources & import documentation — ✅ DONE (2026-06-29).**
+    [EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md): the consolidating map of how outside
+    information gets *in* — the low-warrant **floor** (attest correspondence, not truth; no fabricated
+    citation), the **two families** (formal files: OWL/RDF/SUO-KIF/CLIF/COLORE → CLIF → EGI translators wrapped
+    as `kind=ontology` UoDs, with the honest skip-report and function-relationalisation; human-read material:
+    the `/import` linear-form doorway + NL→logic + the future reading desk), the **tool/module map**, the
+    loop-closing *import-as-M* theorem query, and the forward edges. Pulls together what was scattered across
+    [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md), [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
+    [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md), the OWL/RDF importers, and `cl_import_resolver`.
 
 ---
 

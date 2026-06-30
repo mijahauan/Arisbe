@@ -11,6 +11,11 @@
 
 ## Reading order by audience
 
+**New user, just arriving (role-aware on-ramp):**
+- [GETTING_STARTED.md](GETTING_STARTED.md) — assumes no logic background; a shared "five minutes" (run it,
+  the three modes, your first graph), then a **door per reader**: newcomer / ontologist / logician /
+  mathematician / Peirce scholar. Start here if you want to *use* Arisbe before reading the spine.
+
 **New collaborator, orienting cold (≈30 min):**
 1. [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) — what/why/scope/bedrock (this is the front door).
 2. This glossary — pick up the vocabulary.
