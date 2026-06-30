@@ -334,3 +334,43 @@ def test_chain_document_compiles(tomos, tmp_path):
     pdf = tmp_path / "chain.pdf"
     assert proc.returncode == 0, proc.stdout[-1500:]
     assert pdf.exists() and pdf.stat().st_size > 0
+
+
+# --------------------------------------------------------------------------- #
+# Scholarly citation caption (publication path)                                #
+# --------------------------------------------------------------------------- #
+
+_CAPTION = "Peirce, C. S. (1903). MS 280, p. 12. § a & b_c 100% faithful."
+
+
+def test_caption_is_ink_outside_the_picture():
+    """A citation caption is emitted under the figure, TeX-escaped, and leaves the
+    tikzpicture body byte-identical (ink outside the picture — §3.3 untouched)."""
+    egi = parse_egif("(Human *x) ~[ (Mortal x) ]")
+    dto, _svg = generate_layout(egi, style_name=PEIRCE_STYLE)
+    plain = export_peirce_latex(dto, egi, standalone=True, document_class=_DOC_CLASS)
+    cited = export_peirce_latex(dto, egi, standalone=True, document_class=_DOC_CLASS,
+                                caption=_CAPTION)
+    assert "footnotesize" not in plain
+    assert "footnotesize" in cited
+    # TeX-special chars escaped, not raw.
+    assert "\\%" in cited and "\\&" in cited and "\\_" in cited
+    body = lambda t: t.split("\\begin{tikzpicture}")[1].split("\\end{tikzpicture}")[0]
+    assert body(plain) == body(cited)
+
+
+@pytest.mark.skipif(not _HAS_PDFLATEX, reason="pdflatex not installed")
+def test_captioned_document_compiles(tmp_path):
+    egi = parse_egif("(Human *x) ~[ (Mortal x) ]")
+    dto, _svg = generate_layout(egi, style_name=PEIRCE_STYLE)
+    tex = export_peirce_latex(dto, egi, standalone=True, document_class=_DOC_CLASS,
+                              caption=_CAPTION)
+    src = tmp_path / "cited.tex"
+    src.write_text(tex, encoding="utf-8")
+    proc = subprocess.run(
+        ["pdflatex", "-interaction=nonstopmode", "-halt-on-error",
+         "-output-directory", str(tmp_path), str(src)],
+        capture_output=True, text=True, timeout=60,
+    )
+    assert proc.returncode == 0, proc.stdout[-1500:]
+    assert (tmp_path / "cited.pdf").exists()

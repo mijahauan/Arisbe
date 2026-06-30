@@ -1,5 +1,32 @@
 # Current Plan
 
+**▶▶▶ THIS SESSION (2026-06-30, cont. 2) — SCHOLARLY CITATION + BATCH EXPORT (the genuinely-remaining
+items in `docs/FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md`).** Author opened the feature doc; first fixed
+its Workflow-A example (it stated "if a man is wise…" but transcribed/rendered the cat-on-mat graph) to
+work through `~[ (man *x) (wise x) ~[ (rich x) ~[ (happy x) ] ] ]` end-to-end (EGIF/FOPL/TikZ verified
+against the live parser + exporter). Then **audited the doc's 10 "Needs Implementation" items against the
+current codebase** — most were already shipped (the authentic-Peirce exporter #2, CGIF/CLIF/FOPL parsers
+#4, drawing mode #5, the Organon LaTeX-export button #1, fidelity waver #3) or obsolete (Qt-era pseudocode).
+The **genuinely-remaining publishing path** (#7 citation, #10 citation-into-LaTeX, #9 batch) was built,
+fully additive (core-protection CLEAN — `provenance`/`peirce_latex`/`export_service`/routes are unprotected):
+**(#7)** new `src/scholarly_citation.py` — `format_citation` (human author-date line from a CSL record) +
+`bibtex_entry` (CSL `type`→BibTeX) + `citation_for` (bundle, prefers `theorem_source`, falls back to
+transcribed-proof / method / free-text `source_citation`); **fabricates nothing** (absent field omitted,
+sourceless graph → `has_source:false`); self-contained. `GET /export/citation`.
+**(#10)** `export_peirce_latex(..., caption=)` stamps the citation as a `\footnotesize` line **under** the
+figure — ink *outside* the tikzpicture, so `cut_bounds`/§3.3 are byte-identical with/without it; threaded
+through `export_egi(caption=)` + `ExportRequest.cite` + the **"cite" checkbox** in Organon's export panel
+(shown only for `peirce-tikz`). (standalone wrapper gains `varwidth=12cm` when captioned so the line wraps.)
+**(#9)** `export_service.export_peirce_document` (an **appendix of several UoDs**, one captioned figure each,
+reusing the chain-document assembler) + `POST /export/document` (reports skipped ids). **Deferred with
+rationale:** Ergasterion export (#1 — drafts have no provenance; export belongs to attested Organon by the
+mode contract), handwriting-font/ink-bleed (#3), template library (#6 — corpus+primer cover it), overlay
+comparison (#8 — niche). **Tests:** `test_scholarly_citation.py` (11), `test_export_routes.py` +7
+(citation route, cited-caption ink-outside, batch+missing), `test_peirce_latex.py` +2 (caption ink-only +
+**pdflatex compile** of a captioned doc). All green; UI cite-checkbox verified in headless Chromium; core-
+protection CLEAN. Docs: rewrote the feature doc's Required-Features into a reconciliation table + built/deferred
+sections + a real cited Example Output; CLAUDE.md module/route entries. [[project_corpus_exemplars_meat_on_bones]].
+
 **▶▶▶ THIS SESSION (2026-06-30) — UI SURFACE for the modal-query lens + the M-revision dialogue
 (the open follow-up from the exemplars session).** The `modal_query` (◇/□) and `model_revision`
 (M-through-dialogue) modules shipped backend+corpus only; this session surfaces both in Organon as two

@@ -183,6 +183,7 @@ def export_peirce_latex(
     style=None,
     document_class: str = "standalone",
     scroll_glyph: bool = False,
+    caption: Optional[str] = None,
 ) -> str:
     """Render the §3.3-attested *dto* of *egi* as authentic-Peirce TikZ.
 
@@ -203,6 +204,12 @@ def export_peirce_latex(
     publication default — a tightly-cropped PDF ready to ``\\includegraphics``,
     needs the ``standalone`` class from a full TeX install) or ``"article"`` (a
     universal fallback that compiles on a minimal install such as BasicTeX).
+
+    ``caption`` (a plain string, TeX-escaped here) is emitted under the figure in
+    a standalone document — the scholarly attribution line (e.g. the citation from
+    ``scholarly_citation.citation_for``). It is ink *outside* the picture, so it
+    changes no ``cut_bounds`` and §3.3 is untouched; ignored for a bare
+    (``standalone=False``) ``tikzpicture``.
     """
     style = style or dto.style
     raw = getattr(style, "raw_style_data", {}) or {}
@@ -342,19 +349,31 @@ def export_peirce_latex(
     L.append("\\end{tikzpicture}")
     body = "\n".join(L)
 
-    return _wrap_document(body, standalone, document_class)
+    return _wrap_document(body, standalone, document_class, caption)
 
 
-def _wrap_document(body: str, standalone: bool, document_class: str) -> str:
+def _wrap_document(body: str, standalone: bool, document_class: str,
+                   caption: Optional[str] = None) -> str:
     if not standalone:
         return body
 
+    # A standalone-class document is auto-cropped to its content, so a caption
+    # needs the `varwidth` option to reserve text width; the article fallback
+    # already flows text.
     if document_class == "article":
         opening = "\\documentclass{article}\n\\usepackage{tikz}\n"
         begin = "\\begin{document}\n\\thispagestyle{empty}\n\\noindent\n"
+    elif caption:
+        # varwidth lets the cropped standalone reserve a text column for the
+        # caption (so the citation wraps to a readable width under the figure).
+        opening = "\\documentclass[border=8pt,varwidth=12cm]{standalone}\n\\usepackage{tikz}\n"
+        begin = "\\begin{document}\n"
     else:
         opening = "\\documentclass[border=8pt]{standalone}\n\\usepackage{tikz}\n"
         begin = "\\begin{document}\n"
+    cap = ""
+    if caption:
+        cap = (f"\\par\\medskip\n\\noindent\\footnotesize {_tex_escape(caption)}\n")
     return (
         f"{opening}"
         "\\makeatletter\n"
@@ -362,6 +381,7 @@ def _wrap_document(body: str, standalone: bool, document_class: str) -> str:
         "\\makeatother\n"
         f"{begin}"
         f"{body}\n"
+        f"{cap}"
         "\\end{document}\n"
     )
 

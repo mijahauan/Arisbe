@@ -338,6 +338,9 @@
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
             <label style="font-size:10px; color:var(--ctp-overlay0);">Format</label>
             <select id="export-format"></select>
+            <label id="export-cite-wrap" style="display:none; font-size:10px; color:var(--ctp-overlay0);"
+                   title="Emit this graph's scholarly citation (from its provenance) as a caption under the figure.">
+              <input type="checkbox" id="export-cite" /> cite</label>
             <button id="export-go" style="padding:4px 10px; cursor:pointer;">Export</button>
             <span id="export-status" style="font-size:10px; color:var(--ctp-overlay0);"></span>
           </div>
@@ -1368,6 +1371,14 @@
             o.disabled = !f.available;
             sel.appendChild(o);
           });
+          // The "cite" affordance is meaningful only for the authentic-Peirce
+          // LaTeX export (a scholarly figure caption from the UoD's provenance).
+          const toggleCite = () => {
+            const wrap = document.getElementById('export-cite-wrap');
+            if (wrap) wrap.style.display = (sel.value === 'peirce-tikz') ? 'inline' : 'none';
+          };
+          sel.addEventListener('change', toggleCite);
+          toggleCite();
         } catch (_) {}
       }
 
@@ -1388,6 +1399,8 @@
             body: JSON.stringify({
               uod_id: exportUodId, format: fmt,
               style_name: style || null, engine: currentEngine || 'elk',
+              // Scholarly citation caption — authentic-Peirce only (its provenance).
+              cite: fmt === 'peirce-tikz' && document.getElementById('export-cite').checked,
             }),
           }).then((r) => r.json());
           if (!body.success) { exStatus.textContent = 'Failed: ' + (body.error && body.error.message); return; }

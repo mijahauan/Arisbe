@@ -112,6 +112,7 @@ def export_egi(
     deltas: Optional[list] = None,
     previous_layout=None,
     scroll_glyph: bool = False,
+    caption: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Export *egi* in *fmt* using the same *style_name* + layout *engine* the
     viewer is showing — "export what you see".
@@ -174,7 +175,8 @@ def export_egi(
     if fmt == "peirce-tikz":
         dto, _svg = _layout()
         result["content"] = export_peirce_latex(
-            dto, egi, standalone=standalone, style=dto.style, scroll_glyph=scroll_glyph)
+            dto, egi, standalone=standalone, style=dto.style,
+            scroll_glyph=scroll_glyph, caption=caption)
         return result
 
     if fmt in ("png", "pdf"):
@@ -232,6 +234,47 @@ def export_peirce_chain(
     doc = export_peirce_chain_document(figures, title=title)
     return {
         "format": "peirce-chain", "filename": f"{basename}.tex",
+        "media_type": "text/x-tex", "is_binary": False,
+        "content": doc, "content_base64": None,
+    }
+
+
+def export_peirce_document(
+    items,
+    *,
+    title: Optional[str] = None,
+    style_name: Optional[str] = None,
+    engine: str = "elk",
+    basename: str = "peirce-figures",
+) -> Dict[str, Any]:
+    """Assemble **several independent graphs** into one authentic-Peirce LaTeX
+    document — the scholar's *appendix of figures* (a batch export, distinct from
+    ``export_peirce_chain``'s single worked derivation).
+
+    ``items`` is an ordered list of ``(egi, name, citation)`` — ``name`` a short
+    label and ``citation`` the scholarly attribution (e.g. from
+    ``scholarly_citation.citation_for``); either may be empty. Each graph is laid
+    out through the §3.3-attested path and captioned with its name + citation, then
+    assembled by ``export_peirce_chain_document`` (the figure-stacking is the
+    same; only the captions differ). Returns the ``export_egi`` envelope.
+    """
+    if style_name is None:
+        style_name = "peirce-authentic@1.0"
+
+    figures = []
+    for egi, name, citation in items:
+        dto, _svg = generate_layout(egi, style_name=style_name, engine=engine)  # attests §3.3
+        body = export_peirce_latex(dto, egi, standalone=False)
+        bits = []
+        if name:
+            bits.append(f"\\textbf{{{_tex_escape(str(name))}}}")
+        if citation:
+            bits.append(f"\\footnotesize {_tex_escape(str(citation))}")
+        figures.append((body, "\\quad ".join(bits)))
+
+    doc = export_peirce_chain_document(figures, title=title or "Existential Graph figures")
+    return {
+        "format": "peirce-document", "filename": f"{basename}.tex",
         "media_type": "text/x-tex", "is_binary": False,
         "content": doc, "content_base64": None,
     }

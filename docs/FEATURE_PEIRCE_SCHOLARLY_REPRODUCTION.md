@@ -28,24 +28,51 @@ Peirce MS 280 (1903)
 Hand-written: "If a man is wise, then if he is rich, he is happy"
 
 ↓ Transcribe to EGIF
-*x *y (Cat x) (Mat y) (On x y)
+~[ (man *x) (wise x) ~[ (rich x) ~[ (happy x) ] ] ]
+
+  Two nested scrolls (Peirce's "if … then" = ~[ A ~[ B ] ]):
+    if (man & wise) then ( if rich then happy )
+  The man is one line of identity (*x), the same "he" running
+  through man · wise · rich · happy.
 
 ↓ Load into Arisbe
-Creates EGI: 2 vertices (Cat, Mat), 1 relation (On)
+Creates EGI: 1 line of identity (the man), 4 relations
+(man, wise, rich, happy), 3 nested cuts (the two scrolls +
+the inner negation of "happy").
+Reads (Φ): ¬(man(x) ∧ wise(x) ∧ ¬(rich(x) ∧ ¬happy(x)))
+        ≡ ∀x. man(x) ∧ wise(x) ∧ rich(x) → happy(x)
 
 ↓ Layout with peirce-authentic@1.0
-Auto-positions elements using Peirce conventions
+Auto-positions elements using Peirce conventions: oval cuts in
+nesting order, the heavy line of identity branching to each hook.
 
 ↓ Manual adjustment in Ergasterion
-Match Peirce's actual spatial arrangement from notebook
+Match Peirce's actual spatial arrangement from the notebook
+(regime-3 nudges only — the EGI, and its meaning, are untouched).
 
-↓ Export to LaTeX
-\begin{tikzpicture}
-  \draw[line width=1.8pt] (oval cut)...
-  \fill (3.2, 5.1) circle [radius=2pt] node[anchor=west] {Cat};
-  ...
+↓ Export to LaTeX (authentic-Peirce TikZ, via peirce_latex.py + arisbe-eg.sty)
+\begin{tikzpicture}[x=0.75pt,y=-0.75pt]
+  \egset{cut width=1.50pt, loi width=2.00pt, dot radius=1.50pt}
+  \egcut{118.21}{182.24}{77.41pt}{125.43pt}{black!6}  % outer scroll: if (man & wise) then …
+  \egcut{98.71}{182.24}{37.99pt}{47.57pt}{none}        % middle scroll: … then ( if rich then … )
+  \egcut{96.21}{156.24}{23.41pt}{12.01pt}{black!6}      % inner cut: … then happy
+  % the man — one continuous heavy line of identity branching to each predicate hook
+  \egloi{(141.81,83.81) -- (186.36,156.64)}   % → man
+  \egloi{(136.76,280.67) -- (186.36,156.64)}  % → wise
+  \egloi{(122.20,207.26) -- (186.36,156.64)}  % → rich
+  \egloi{(115.46,156.33) -- (186.36,156.64)}  % → happy
+  \egdot{186.36}{156.64}                       % the branch point (teridentity)
+  \egpred{136.61}{75.31}{man}
+  \egpred{133.36}{289.17}{wise}
+  \egpred{111.43}{215.76}{rich}
+  \egpred{96.21}{156.24}{happy}
 \end{tikzpicture}
 ```
+
+*(The TikZ above is the exporter's actual output for this graph — every
+oval is a `cut_bounds` from the §3.3-attested layout, every `\egloi` runs
+from the man's vertex to a predicate hook, so the printed picture provably
+denotes the same EGI. See [`src/peirce_latex.py`](../src/peirce_latex.py).)*
 
 ### **Workflow B: Drawing-First (Visual → Text)**
 
@@ -82,184 +109,107 @@ Extracts: V, E, Cut, area, nu mappings
 
 ## Required Features
 
-### ✅ Already Implemented
+> **Status (updated 2026-06-30).** This spec predates the web-app migration and the
+> authentic-Peirce LaTeX export track (ROADMAP #14), so most of it is **already
+> shipped** — and via different, current modules than the Qt-era pseudocode below
+> named. The table reconciles the original ten items with what exists today; the
+> sections that follow detail only what genuinely remained (and was built this pass).
 
-1. **EGI Core Model** - Formal representation of existential graphs
-2. **EGIF Parser** - Converts linear form → EGI
-3. **Layout Engine** - Spatial arrangement with style support
-4. **Peirce Style Spec** - `peirce-authentic@1.0.json` exists
-5. **TikZ Exporter** - `export/tikz_exporter.py` generates LaTeX
-6. **Manual Positioning** - Ergasterion supports drag/drop element placement
+| # | Original item | Status | Where it lives now |
+|---|---|---|---|
+| 1 | LaTeX export button | **Done (Organon)** | `web_viewer/organon.html` export panel → `peirce-tikz` format; deferred for Ergasterion (see note) |
+| 2 | DTO → TikZ bridge | **Obsolete / done** | `peirce_latex.export_peirce_latex(dto, egi)` consumes the `LayoutDTO` directly — no "render commands" intermediary |
+| 3 | Peirce fidelity (waver / ink) | **Mostly done** | `peirce_latex.py` + `tex/arisbe-eg.sty`: hand-drawn waver, organic ligature routing, crossing bridges, iconic scroll glyph. Handwriting-font / ink-bleed deferred (niche) |
+| 4 | CGIF / CLIF / FOPL parsers | **Done** | `cgif_parser_dau.py`, `clif_parser_dau.py`, `chapter18_fopl_translation.py` — production, round-trip tested |
+| 5 | Drawing mode | **Done** | `web_viewer/js/freeform-canvas.js` + `drawing_to_egi.py` (draw-then-read, Graph↔Argument lock) |
+| 6 | Template library | **Deferred** | Largely covered by the seeded corpus + the in-app primer (`web_api/routes/primer.py`) |
+| 7 | **Citation generator** | **Built (2026-06-30)** | `scholarly_citation.py` → author-date line + BibTeX; `GET /export/citation` |
+| 8 | Overlay comparison | **Deferred** | Niche (needs original-image upload + a transparency slider) |
+| 9 | **Batch export** | **Built (2026-06-30)** | `export_service.export_peirce_document` + `POST /export/document` (an appendix of figures); chain-document path already existed |
+| 10 | **Citation/notes into LaTeX** | **Built (2026-06-30)** | `export_peirce_latex(..., caption=…)` + the export `cite` flag — the scholarly attribution under the figure |
 
-### ⚠️ Needs Implementation/Enhancement
+### Built this pass (the genuinely-remaining publishing path)
 
-#### High Priority:
+**7 + 10 — Citation generator, surfaced in the export.** A corpus UoD already carries
+its source in the typed **provenance** bundle ([provenance.py](../src/provenance.py))
+(`theorem_source` = where the proposition comes from, `method_sources`, a transcribed
+`proof_source`) plus an optional `bibliography.json`. [`scholarly_citation.py`](../src/scholarly_citation.py)
+turns that into the two forms a scholar needs:
 
-**1. LaTeX Export Integration in Organon/Ergasterion**
+- a **human author-date citation** — *"Peirce, C. S. (1903). MS 280. In Writings of
+  Charles S. Peirce, Vol. 6, p. 12."* — and
+- a **BibTeX entry** (`@unpublished{peirceMS280, …}`), the CSL `type` mapped to the
+  right entry type.
 
-- **Current:** Only SVG export button
-- **Need:** "Export LaTeX..." button
-- **Location:** `organon_mode.py` line 104-107, `ergasterion_mode.py`
-- **Implementation:**
-  ```python
-  def _on_export_latex(self):
-      file_path = QFileDialog.getSaveFileName(
-          self, "Export to LaTeX", 
-          f"{self.egi_name}.tex",
-          "LaTeX (*.tex)"
-      )
-      if file_path:
-          dto = self.controller.get_renderable_dto()
-          from export.tikz_exporter import generate_tikz
-          # Convert DTO to render commands
-          tikz_output = generate_tikz(render_commands, standalone=True)
-          Path(file_path).write_text(tikz_output)
-  ```
+It **fabricates nothing**: an absent field is omitted, and a graph with no recorded
+source honestly reports `has_source: false` (an original Arisbe graph has nothing
+external to cite). Exposed at `GET /export/citation?uod_id=…`, and — the load-bearing
+join with #10 — `POST /export` with `cite: true` (or the **"cite" checkbox** in
+Organon's export panel) stamps the citation as a `\footnotesize` caption **under** the
+authentic-Peirce figure. The caption is ink *outside* the `tikzpicture`, so `cut_bounds`
+and §3.3 are untouched (the tikzpicture body is byte-identical with or without it).
 
-**2. DTO → TikZ Render Commands Bridge**
+**9 — Batch export (an appendix of figures).** `export_peirce_document` assembles
+several corpus UoDs into one authentic-Peirce LaTeX document, each a captioned figure
+(name + its citation), reusing the same figure-stacking as the worked-chain document.
+`POST /export/document` takes a list of `uod_ids` and honestly reports any it skipped.
+(The single-derivation companion, `export_peirce_chain` / `POST /export/chain`, already
+existed — one figure per proof step.)
 
-- **Current:** TikZ exporter expects "render commands" format
-- **Need:** Convert `LayoutDTO` → TikZ render commands
-- **Missing Link:** Adapter between unified DTO and old render command format
-- **File:** Create `src/export/dto_to_tikz_adapter.py`
+### Deferred (with rationale)
 
-**3. Peirce Style Fidelity Enhancements**
-
-- **Current:** Basic Peirce conventions in JSON
-- **Need:** More authentic details:
-  - Hand-drawn line variation (slight wobble)
-  - Ink bleed effect (thicker at endpoints)
-  - Oval shape irregularity
-  - Font matching Peirce's handwriting
-- **File:** Enhance `styles/peirce-authentic@1.0.json`
-
-#### Medium Priority:
-
-**4. CGIF/CLIF/FOPL Parsers**
-
-- **Current:** Only EGIF parser implemented
-- **Need:** Parse Sowa's CGIF, Common Logic CLIF, FOPL
-- **Benefit:** Scholars can use any linear notation format
-- **Files:** Create `src/parsers/cgif_parser.py`, `clif_parser.py`, `fopl_parser.py`
-
-**5. Drawing Mode in Ergasterion**
-
-- **Current:** Transformation mode only (apply formal rules)
-- **Need:** Free drawing mode (no rule validation)
-- **UI:** Mode toggle: [Transformation] / [Drawing]
-- **Behavior:** In drawing mode, allow any placement without checking graph-theoretic validity
-
-**6. Template Library**
-
-- **Current:** Start from scratch
-- **Need:** Pre-made templates of common Peirce diagrams
-- **Examples:**
-  - Simple conditional (MS 280)
-  - Nested implications (MS 514)
-  - Quantifier structure (MS 669)
-- **Storage:** `tomos/templates/peirce/`
-
-**7. Citation Generator**
-
-- **Current:** Manual citation entry
-- **Need:** Auto-generate proper citations
-- **Format:** "Peirce, C.S. (1903). MS 280, p. 12. In *Writings of Charles S. Peirce*, Vol. 6."
-- **Integration:** Metadata panel → "Generate Citation" button
-
-#### Low Priority:
-
-**8. Overlay Comparison Mode**
-
-- **Need:** Overlay Peirce's original image with Arisbe recreation
-- **UI:** Transparency slider to fade between original and recreation
-- **Benefit:** Verify spatial accuracy
-
-**9. Batch Export**
-
-- **Need:** Export multiple diagrams at once
-- **Format:** Single LaTeX document with all diagrams
-- **Use Case:** Creating appendix of all Peirce diagrams for a paper
-
-**10. Historical Context Annotations**
-
-- **Need:** Add scholarly notes to diagrams
-- **Format:** LaTeX footnotes/margin notes
-- **Content:** "This diagram appears in MS 514 and represents Peirce's treatment of..."
-
----
-
-## Implementation Phases
-
-### Phase 1: Core Export (2-3 hours)
-- [x] TikZ exporter exists
-- [ ] Create DTO → TikZ adapter
-- [ ] Add "Export LaTeX..." button to Organon
-- [ ] Add "Export LaTeX..." button to Ergasterion
-- [ ] Test roundtrip: EGIF → Layout → LaTeX → compile
-
-### Phase 2: Style Refinement (4-6 hours)
-- [ ] Enhance `peirce-authentic@1.0.json`
-- [ ] Add hand-drawn variation parameters
-- [ ] Test with actual Peirce diagrams (MS 280, 514, 669)
-- [ ] Create style guide documentation
-
-### Phase 3: Parser Extensions (8-10 hours)
-- [ ] Implement CGIF parser
-- [ ] Implement CLIF parser
-- [ ] Implement FOPL parser
-- [ ] Unified parser interface
-
-### Phase 4: Drawing Mode (10-15 hours)
-- [ ] Mode toggle in Ergasterion UI
-- [ ] Disable formal rule validation in drawing mode
-- [ ] Free-form element creation
-- [ ] Reverse generation (Drawing → EGI)
-
-### Phase 5: Scholarly Features (6-8 hours)
-- [ ] Template library
-- [ ] Citation generator
-- [ ] Batch export
-- [ ] Documentation for scholars
+- **1 (Ergasterion export):** the scholarly export lives in **Organon**, the attested
+  archive — by the mode contract a graph reaches the citable corpus only through Agon,
+  so a regime-1 Ergasterion *draft* has no provenance to cite and "publication-ready"
+  would misrepresent its standing. Export a graph by sending it to the corpus first.
+- **3 (handwriting font / ink-bleed):** the hand-drawn *waver* and round-capped heavy
+  lines already evoke ink; a matched handwriting font is cosmetic and niche.
+- **6 (template library):** the seeded corpus exemplars + the in-app primer already
+  give a scholar canonical graphs to start from; a separate `tomos/templates/peirce/`
+  would duplicate them.
+- **8 (overlay comparison):** genuinely unbuilt, but niche — it needs an
+  original-scan upload path and a fade slider, a sizeable UI feature for a narrow
+  verification use; revisit if a scholar asks.
 
 ---
 
 ## Example Output
 
-**Input EGIF:**
-```
-*x *y (Cat x) (Mat y) (On x y)
-```
+The **actual** output of the authentic-Peirce path (`peirce-tikz`, `cite: true`) for
+the corpus graph `peirce_cp_4_394_man_mortal` — the man–mortal scroll, `(Human *x) ~[
+(Mortal x) ]` with the constant *Socrates*:
 
 **Generated LaTeX:**
 
 ```latex
-\documentclass[tikz]{standalone}
-\usepackage{tikz}
+\documentclass[border=8pt,varwidth=12cm]{standalone}
+\usepackage{tikz}                 % + the arisbe-eg macros, inlined for a self-contained file
 \begin{document}
-\begin{tikzpicture}[x=1pt,y=1pt]
-
-% Sheet (background)
-\draw[line width=1.8pt,rounded corners=12pt] 
-  (10, 10) rectangle (180, 120);
-
-% Ligatures (hand-drawn style with slight curve)
-\draw[line width=1.8pt,line cap=round] 
-  (45, 85) .. controls (50, 75) .. (55, 65);
-
-% Vertices (spots with labels)
-\fill (30, 90) circle [radius=2pt] 
-  node[anchor=west,font=\fontsize{11}{13}\selectfont] {Cat};
-\fill (70, 90) circle [radius=2pt] 
-  node[anchor=west,font=\fontsize{11}{13}\selectfont] {Mat};
-
-% Predicate (relation label)
-\node[font=\fontsize{11}{13}\selectfont] at (50, 60) {On};
-
+\begin{tikzpicture}[x=0.75pt,y=-0.75pt]
+  \egset{cut width=1.50pt, loi width=2.00pt, dot radius=1.50pt}
+  \egcut{133.72}{78.43}{89.04pt}{47.57pt}{black!6}   % outer cut (the scroll)
+  \egcut{88.42}{52.43}{26.87pt}{12.01pt}{none}        % inner cut
+  % scroll: outer=c_abe14f9e inner=c_ddf31f9b
+  \egloi{(110.92,52.99) -- (182.04,54.76)}            % heavy line of identity (Socrates),
+  \egloi{(116.44,103.45) -- (182.04,54.76)}            %   branching to Human and into the cut
+  \egconst{188.04}{54.76}{Socrates}
+  \egpred{104.99}{111.95}{Human}
+  \egpred{88.42}{52.43}{Mortal}
 \end{tikzpicture}
+\par\medskip
+\noindent\footnotesize Peirce, Charles Sanders (1931). Collected Papers of Charles
+  Sanders Peirce. p. 4.394. the man–mortal scroll (CP 4.394)
 \end{document}
 ```
 
-**Compiled Result:** Vector graphic matching Peirce's hand-drawn style
+Every oval is a `cut_bounds` from the §3.3-attested `LayoutDTO`, every `\egloi` runs
+from the constant's vertex to a predicate hook, and the `\footnotesize` line is the
+**scholarly citation** built from the UoD's provenance (`scholarly_citation.citation_for`)
+— so the printed figure provably denotes the EGI *and* carries its attribution.
+`\usepackage{tikz}` is the only hard dependency; the `arisbe-eg` macros are inlined.
+
+**Compiled Result:** a tightly-cropped, publication-ready vector PDF (the `article`
+class is the automatic fallback on minimal TeX installs without `standalone.cls`).
 
 ---
 

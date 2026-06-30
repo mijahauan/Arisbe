@@ -270,6 +270,22 @@ class ExportRequest(BaseModel):
     # Authentic-Peirce only: draw a detected scroll ~[A ~[B]] as the iconic
     # self-continuing curve rather than two nested ovals (ink-only, opt-in).
     scroll_glyph: bool = False
+    # Authentic-Peirce + UoD source only: emit the scholarly citation (built from
+    # the UoD's provenance) as a caption under the figure. No-op without a uod_id.
+    cite: bool = False
+
+
+class ExportDocumentRequest(BaseModel):
+    """Export **several corpus UoDs** as one authentic-Peirce LaTeX document — the
+    scholar's appendix of figures (a batch, distinct from a single worked chain).
+    Each graph is captioned with its name and, when ``cite`` is set, its
+    provenance citation."""
+
+    uod_ids: List[str]
+    style_name: Optional[str] = None
+    engine: str = "elk"
+    title: Optional[str] = None
+    cite: bool = True
 
 
 class ExportChainRequest(BaseModel):

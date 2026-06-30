@@ -199,3 +199,84 @@ def test_ergasterion_renders_in_chosen_style(client):
     again = client.get(f"/ergasterion/sessions/{sid}").json()["data"]["svg"]
     assert again == peirce["data"]["svg"]
     client.delete(f"/ergasterion/sessions/{sid}")
+
+
+# --------------------------------------------------------------------------- #
+# Scholarly citation + batch document (the Peirce-Edition publishing path)      #
+# --------------------------------------------------------------------------- #
+#
+# A corpus UoD's provenance becomes a publication citation (a human line + BibTeX);
+# the authentic-Peirce export can stamp it as a figure caption; and several UoDs
+# assemble into one captioned "appendix of figures". See src/scholarly_citation.py.
+
+CITED_UOD = "peirce_cp_4_394_man_mortal"   # carries a real theorem_source (CP 4.394)
+
+
+def _has(client, uod_id):
+    return client.get(f"/organon/uods/{uod_id}").json().get("success")
+
+
+def test_citation_route_returns_citation_and_bibtex(client):
+    if not _has(client, CITED_UOD):
+        pytest.skip(f"{CITED_UOD} not in corpus")
+    body = client.get("/export/citation", params={"uod_id": CITED_UOD}).json()
+    assert body["success"]
+    d = body["data"]
+    assert d["has_source"] is True
+    assert "Peirce" in d["citation"]
+    assert d["bibtex"].startswith("@") and d["key"]
+
+
+def test_citation_route_unknown_uod_is_clean_error(client):
+    body = client.get("/export/citation", params={"uod_id": "no-such-uod"}).json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "UOD_NOT_FOUND"
+
+
+def test_peirce_export_with_cite_emits_a_caption(client):
+    if not _has(client, CITED_UOD):
+        pytest.skip(f"{CITED_UOD} not in corpus")
+    plain = client.post("/export", json={
+        "format": "peirce-tikz", "uod_id": CITED_UOD}).json()["data"]["content"]
+    cited = client.post("/export", json={
+        "format": "peirce-tikz", "uod_id": CITED_UOD, "cite": True}).json()["data"]["content"]
+    assert "footnotesize" not in plain
+    assert "footnotesize" in cited and "Peirce" in cited
+    # The citation is ink *outside* the picture — the tikzpicture body is unchanged.
+    body_of = lambda t: t.split("\\begin{tikzpicture}")[1].split("\\end{tikzpicture}")[0]
+    assert body_of(plain) == body_of(cited)
+
+
+def test_cite_is_noop_for_non_peirce_format(client):
+    if not _has(client, CITED_UOD):
+        pytest.skip(f"{CITED_UOD} not in corpus")
+    tikz = client.post("/export", json={
+        "format": "tikz", "uod_id": CITED_UOD, "cite": True}).json()
+    assert tikz["success"]   # cite ignored for the geometric tikz path, no error
+
+
+def test_export_document_assembles_a_captioned_appendix(client):
+    ids = [u["uod_id"] for u in client.get("/organon/uods").json()["data"]][:2]
+    body = client.post("/export/document", json={
+        "uod_ids": ids, "title": "Appendix A", "cite": True}).json()
+    assert body["success"]
+    d = body["data"]
+    assert d["format"] == "peirce-document"
+    assert "Appendix A" in d["content"]
+    # One captioned figure per UoD (each a centred tikzpicture).
+    assert d["content"].count("\\begin{center}") >= len(ids)
+    assert d["missing"] == []
+
+
+def test_export_document_reports_missing_ids(client):
+    ids = [u["uod_id"] for u in client.get("/organon/uods").json()["data"]][:1]
+    body = client.post("/export/document", json={
+        "uod_ids": ids + ["no-such-uod"], "cite": False}).json()
+    assert body["success"]
+    assert body["data"]["missing"] == ["no-such-uod"]
+
+
+def test_export_document_all_missing_is_clean_error(client):
+    body = client.post("/export/document", json={"uod_ids": ["no-such-uod"]}).json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "UOD_NOT_FOUND"
