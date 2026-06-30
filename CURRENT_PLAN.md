@@ -1,5 +1,37 @@
 # Current Plan
 
+**▶▶▶ NEXT SESSION — PLAN THE ALPHA RELEASE: consolidate docs into a single-source
+"book + browseable web help", then triage `docs/`.** Author's intent (stated 2026-06-30 at
+wrap): prepare an alpha release of Arisbe to share with others; deliver the documentation as
+**both a book (PDF/epub) and a browseable web interface**, plus clear "clone-the-repo → start it →
+open the book/help" steps. `docs/` today is **61 .md files** mixing user-facing docs, architecture,
+and planning/dev material — needs cleanup + consolidation.
+**Proposed structure (author asked for a better one than their draft outline; this is the agreed
+starting point — refine next session):** organize around **Diátaxis** (tutorial / how-to / reference /
+explanation) so one source serves both the linear book and the web help. Parts:
+**I · Why** (Intro & motivation ←VISION_AND_SCOPE+PRODUCT_VISION *merge*; **The central problem** =
+linear↔graphical correspondence, own chapter ←LINEAR_GRAPHICAL_CORRESPONDENCE; Philosophy ←CHAIN_OF_SEMIOSIS/
+MANIFEST_AND_MEANING/FIDELITY_*/LEVEL_ZERO/MODALITY_WITHOUT_GAMMA).
+**II · Getting started** (*the missing piece up front* — Install & run from the repo: `uv sync` + uvicorn +
+open `/`, and where the book/help lives; Your first graph ←FIELD_GUIDE+primer; Doors by background
+←GETTING_STARTED/ARISBE_FOR_SCHOLARS).
+**III · Using Arisbe** (the three modes in practice ←ARISBE_IN_PRACTICE/ENDOPOREUTIC_GAME_GUIDE; **Worked
+examples = the exemplars** ←EXEMPLARS; Import/export incl. Peirce-edition LaTeX+citation ←EXTERNAL_SOURCES_AND_IMPORT/
+IMPORT_EXPORT_FORMATS/FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION; How-to/FAQ "How do I…?").
+**IV · How it works** (Architecture ←arisbe_triad/UNIVERSE_OF_DISCOURSE/DAG_HISTORY; the §3.3 correspondence
+contract in depth; Capability map ←CAPABILITY_MAP).
+**V · Reference** (linear formats; Core API ←ARISBE_CORE_API_REFERENCE; Glossary ←GLOSSARY; References/sources/
+prior art ←CONTRIBUTION_AND_PRIOR_ART; Index). **Separate Contributor/Dev section** (ROADMAP, CURRENT_PLAN,
+design-of-record docs, session logs, evaluations, spikes) — kept in-repo, **excluded from the reader's book**.
+**Three early decisions for the author:** (1) **single-source tooling** — recommend **Quarto** (one source →
+HTML site + PDF + epub, native BibTeX citations that pair with `scholarly_citation`, can embed live engine
+SVG; alternatives mdBook / Sphinx-Jupyter-Book); (2) **one source, two renders** (don't hand-maintain book +
+help separately) — the same rendered HTML can be served at a `/book` or `/help` route; (3) **`docs/` triage
+policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev/`, retire/merge overlaps
+(VISION_AND_SCOPE↔PRODUCT_VISION, FIDELITY_AND_DEPARTURES↔FIDELITY_A_PLAIN_ACCOUNT, etc.). **First concrete
+step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
+then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
+
 **▶▶▶ THIS SESSION (2026-06-30, cont. 2) — SCHOLARLY CITATION + BATCH EXPORT (the genuinely-remaining
 items in `docs/FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md`).** Author opened the feature doc; first fixed
 its Workflow-A example (it stated "if a man is wise…" but transcribed/rendered the cat-on-mat graph) to
