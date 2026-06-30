@@ -1,8 +1,8 @@
 # Arisbe Core API Reference
 
-**Last Generated**: 2026-06-06T09:20:41-05:00  
+**Last Generated**: 2026-06-14T15:57:36-05:00  
 **Source of truth**: `tools/core_protection_system.py` (`protected_modules`)  
-**Module count**: 17
+**Module count**: 14
 
 ---
 
@@ -14,261 +14,137 @@ To regenerate this file, run `python tools/extract_core_api.py`.
 
 ---
 
-## cgif_generator_dau.py
+::: {.content-hidden when-format="html"}
+*The full symbol reference is included in the web/HTML edition only. The print and epub editions omit it for length — browse and search it in the HTML book, or read `docs/ARISBE_CORE_API_REFERENCE.md` in the repository.*
+:::
 
-**Path**: `src/cgif_generator_dau.py`  
+::: {.content-visible when-format="html"}
+
+## correspondence_attestation.py
+
+**Path**: `src/correspondence_attestation.py`  
 **Status**: Protected Core Module
 
 ### Module Description
 
-Dau-compliant CGIF (Conceptual Graph Interchange Format) generator.
-Converts RelationalGraphWithCuts structures to CGIF expressions.
+Runtime attestation of the linear-graphical correspondence invariant.
 
-CGIF Generation Strategy:
-- Vertices with type relations: [Type: *x] or [Type: John]
-- Edges as relations: (Loves ?x John)
-- Cuts as negation: ~[CG content]
-- Generic vertices: [*x]
-- Constants: [: John] or just John in relations
-- Proper coreference label management
+docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §6 ("Boundary events — when the
+invariant attaches") names the points at which correspondence becomes
+mandatory: save to tomos corpus, assert in Agon, apply a transformation
+rule, load from corpus, and (future) submit a stylus drawing.  §8's
+first open question is whether to run the check in production as well
+as in CI — "Cost: constant-factor overhead at save/load/apply time.
+Benefit: catches drift in production, not only in CI."
 
-Maintains same rigor as EGIF and CLIF generators.
+This module is the answer to that question.  It exposes:
 
-### Classes
+- ``check_correspondence(egi, dto)`` — runs every §3.3 property check
+  and returns a list of human-readable failure messages.  Empty list
+  means the (EGI, drawing) pair denotes the same object.
+- ``attest_correspondence(egi, dto, *, context=None)`` — wraps
+  ``check_correspondence``: returns None on success, raises
+  ``CorrespondenceViolation`` on failure.  This is the hook for
+  boundary events.
+- ``is_in_correspondence(egi, dto)`` — boolean wrapper for callers
+  that need a predicate, not an exception.
 
-#### `CGIFGenerator`
-
-Generates CGIF expressions from Dau-compliant graphs.
-
-**Methods**:
-
-- `__init__(self, graph: Optional[egi_core_dau.RelationalGraphWithCuts] = None)`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `generate(self) -> str`
-  Generate CGIF expression from graph.
-- `generate_cgif(self, graph: egi_core_dau.RelationalGraphWithCuts) -> str`
-  Legacy API: cgif_gen.generate_cgif(graph) -> str
-
-### Functions
-
-#### `generate_cgif(egi: egi_core_dau.RelationalGraphWithCuts) -> str`
-
-Generate CGIF expression from EGI structure.
-
----
-
-## cgif_parser_dau.py
-
-**Path**: `src/cgif_parser_dau.py`  
-**Status**: Protected Core Module
-
-### Module Description
-
-Dau-compliant CGIF (Conceptual Graph Interchange Format) parser.
-Converts CGIF expressions to RelationalGraphWithCuts structures.
-
-CGIF Syntax Overview (from ISO/IEC 24707:2007 Annex B):
-- Concepts: [Type: *x], [: John], [*x]
-- Relations: (Loves ?x John), (Go ?x)
-- Contexts: [CG content]
-- Coreference labels: *x (defining), ?x (bound)
-- Universal quantifier: @every
-- Negation: ~[CG content]
-
-Maps to EGI as:
-- Concepts -> Vertices with type relations
-- Relations -> Edges
-- Contexts -> Areas (cuts for negation)
-- Coreference labels -> Variable bindings
+All three are pure functions of (EGI, LayoutDTO) and do not mutate
+either argument.  They reuse the area-topology helpers from
+``presentation_ops`` so the runtime check and the §7 property tests
+share their internal vocabulary.
 
 ### Classes
 
-#### `CGIFLexer`
+#### `CorrespondenceViolation`
 
-Lexical analyzer for CGIF expressions.
+Raised when an (EGI, LayoutDTO) pair fails §3.3 correspondence.
 
-**Methods**:
-
-- `__init__(self, text: str)`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `tokenize(self) -> List[cgif_parser_dau.CGIFToken]`
-  Tokenize CGIF text.
-
-#### `CGIFParseNode`
-
-Node in CGIF parse tree.
+Inherits ``AssertionError`` so it surfaces as a contract violation,
+not a generic runtime error.  The exception's ``args[0]`` is the
+fully formatted multi-line failure report; ``failures`` and
+``context`` are exposed as attributes for callers that want
+structured access.
 
 **Methods**:
 
-- `__init__(self, type: str, value: Optional[str] = None, children: List[ForwardRef('CGIFParseNode')] = None, attributes: Dict[str, Any] = None) -> None`
+- `__init__(self, failures: Sequence[str], context: Optional[str] = None)`
   Initialize self.  See help(type(self)) for accurate signature.
-- `__post_init__(self)`
-- `__repr__(self)`
-  Return repr(self).
 
-#### `CGIFParser`
+#### `OverviewViolation`
 
-Parser for CGIF expressions.
+Raised when an overview (EGI, LayoutDTO, collapsed-cut claims) triple is
+not faithful.  Like ``CorrespondenceViolation`` it inherits ``AssertionError``
+and carries the formatted failures; ``failures`` / ``context`` are exposed.
 
 **Methods**:
 
-- `__init__(self, text: str)`
+- `__init__(self, failures: Sequence[str], context: Optional[str] = None)`
   Initialize self.  See help(type(self)) for accurate signature.
-- `parse(self) -> egi_core_dau.RelationalGraphWithCuts`
-  Parse CGIF text into EGI structure.
-
-#### `CGIFToken`
-
-CGIF lexical token.
-
-**Methods**:
-
-- `__init__(self, type: cgif_parser_dau.CGIFTokenType, value: str, position: int) -> None`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `__repr__(self)`
-  Return repr(self).
-
-#### `CGIFTokenType`
-
-Token types for CGIF lexical analysis.
 
 ### Functions
 
-#### `parse_cgif(cgif_text: str) -> egi_core_dau.RelationalGraphWithCuts`
+#### `attest_correspondence(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO, *, context: Optional[str] = None) -> None`
 
-Parse CGIF text into EGI structure.
+Raise CorrespondenceViolation if (egi, dto) is not in correspondence.
 
----
+Returns None on success.  ``context`` is a human-readable label
+included in the violation message ("after applying ERA", "loading
+from corpus", etc.) — pass something descriptive at every hook
+point so post-mortem reports tell you which boundary event failed.
 
-## clif_generator_dau.py
+#### `attest_overview(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO, collapsed_cuts, *, context: Optional[str] = None) -> None`
 
-**Path**: `src/clif_generator_dau.py`  
-**Status**: Protected Core Module
+Raise ``OverviewViolation`` if the overview is not faithful; else None.
 
-### Module Description
+The navigation-projection backstop, hooked at the overview render boundary
+the way ``attest_correspondence`` is hooked at the full-drawing boundary.
+``context`` is a human-readable label included in the violation message.
 
-Dau-compliant CLIF (Common Logic Interchange Format) generator.
-Converts RelationalGraphWithCuts structures to CLIF expressions.
+#### `check_correspondence(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO) -> List[str]`
 
-CLIF Generation Strategy:
-- Atomic formulas from edges: (P x y)
-- Negation from cuts: (not ...)
-- Conjunction from multiple elements in same area: (and ...)
-- Variable scoping handled through quantification
-- Proper parenthesization and formatting
+Run every §3.3 property check on (egi, dto).  Returns failures.
 
-Maintains same rigor as EGIF generator with proper variable management.
+The returned list is empty when the pair is in correspondence.
+Non-empty means the pair violates one or more §3.3 properties; each
+entry is a human-readable explanation of which property failed.
 
-### Classes
+Properties checked, in order:
+  - Totality and injectivity (every EGI element appears in the DTO
+    and vice versa);
+  - Containment fidelity (cut bounds geometrically contain the
+    elements the EGI says are in their areas, and sub-cut bounds
+    nest correctly);
+  - Incidence fidelity (LigaturePath count + vertex multiset per
+    predicate matches ν);
+  - Identity fidelity:
+      - endpoint placement (path[-1] coincides with the vertex
+        position; both endpoints lie in their respective areas'
+        cut bounds);
+      - crossing-multiset equality (the ligature crosses each
+        authorized cut's boundary exactly once and no other cut's
+        boundary at all, where the authorized set is the area-tree
+        path between predicate-area and vertex-area — the
+        projection-independent ``crossing_sequence``);
+      - shared-identity connectedness (the union of paths ending at
+        a vertex forms one connected component rooted at the
+        vertex's drawn position);
+  - Argument order (LigaturePath.port_index sequenced by ascending
+    port reproduces ν exactly).
 
-#### `CLIFGenerator`
+#### `check_overview(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO, collapsed_cuts) -> List[str]`
 
-Generates CLIF expressions from Dau-compliant graphs.
+Run the overview faithfulness checks.  Returns failures ([] = faithful).
 
-**Methods**:
+``collapsed_cuts`` is a mapping ``{cut_id: badge}`` — the placeholders the
+drawing claims, each with the badge it shows the reader (``cuts`` /
+``vertices`` / ``predicates`` / ``polarity`` / ``boundary_degree``).  Pass an
+empty mapping for a full (uncollapsed) drawing, where this reduces to
+``check_correspondence``.
 
-- `__init__(self, graph: Optional[egi_core_dau.RelationalGraphWithCuts] = None)`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `generate(self) -> str`
-  Generate CLIF expression from graph.
-- `generate_clif(self, graph: egi_core_dau.RelationalGraphWithCuts) -> str`
-  Legacy API: clif_gen.generate_clif(graph) -> str
-- `generate_with_quantification(self) -> str`
-  Generate CLIF with explicit quantification.
+#### `is_in_correspondence(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO) -> bool`
 
-### Functions
-
-#### `generate_clif(egi: egi_core_dau.RelationalGraphWithCuts) -> str`
-
-Generate CLIF expression from EGI structure with quantification.
-
-#### `generate_clif_with_quantification(egi: egi_core_dau.RelationalGraphWithCuts) -> str`
-
-Generate CLIF expression with explicit quantification.
-
----
-
-## clif_parser_dau.py
-
-**Path**: `src/clif_parser_dau.py`  
-**Status**: Protected Core Module
-
-### Module Description
-
-Dau-compliant CLIF (Common Logic Interchange Format) parser.
-Converts CLIF expressions to RelationalGraphWithCuts structures.
-
-CLIF Syntax Overview:
-- Atomic formulas: (P x y)
-- Quantification: (forall (x) (P x))
-- Negation: (not (P x))
-- Conjunction: (and (P x) (Q y))
-- Disjunction: (or (P x) (Q y))
-- Comments: ;; comment text
-
-Maps to EGI as:
-- Atomic formulas -> Edges with vertices
-- Negation -> Cuts containing negated content
-- Quantification -> Variable scoping in areas
-- Conjunction -> Multiple elements in same area
-- Disjunction -> Requires transformation to negation normal form
-
-### Classes
-
-#### `CLIFLexer`
-
-Lexical analyzer for CLIF expressions.
-
-**Methods**:
-
-- `__init__(self, text: str)`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `tokenize(self) -> List[clif_parser_dau.CLIFToken]`
-  Convert CLIF text into tokens.
-
-#### `CLIFParseNode`
-
-Node in CLIF parse tree.
-
-**Methods**:
-
-- `__init__(self, type: str, value: Optional[str] = None, children: List[ForwardRef('CLIFParseNode')] = None) -> None`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `__post_init__(self)`
-- `__repr__(self)`
-  Return repr(self).
-
-#### `CLIFParser`
-
-Parser for CLIF expressions.
-
-**Methods**:
-
-- `__init__(self, text: str)`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `parse(self) -> egi_core_dau.RelationalGraphWithCuts`
-  Parse CLIF text into EGI structure.
-
-#### `CLIFToken`
-
-CLIF token with type and value.
-
-**Methods**:
-
-- `__init__(self, type: clif_parser_dau.CLIFTokenType, value: str, position: int) -> None`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `__repr__(self)`
-  Return repr(self).
-
-#### `CLIFTokenType`
-
-Token types for CLIF lexical analysis.
-
-### Functions
-
-#### `parse_clif(clif_text: str) -> egi_core_dau.RelationalGraphWithCuts`
-
-Parse CLIF text into EGI structure.
+Predicate wrapper around ``check_correspondence``.
 
 ---
 
@@ -637,115 +513,6 @@ Record of a single transformation step with rich semantic context.
   Initialize self.  See help(type(self)) for accurate signature.
 - `__repr__(self)`
   Return repr(self).
-
----
-
-## egif_generator_dau.py
-
-**Path**: `src/egif_generator_dau.py`  
-**Status**: Protected Core Module
-
-### Module Description
-
-Fixed Dau-compliant EGIF generator with proper variable scoping.
-Fixes the critical issue where variables defined in cuts were not marked as defining.
-
-Key fix: Variables that first appear in any context (including cuts) are marked as defining (*x).
-
-### Classes
-
-#### `EGIFGenerator`
-
-Generates EGIF expressions from Dau-compliant graphs with proper variable scoping.
-
-**Methods**:
-
-- `__init__(self, graph: Optional[egi_core_dau.RelationalGraphWithCuts] = None)`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `generate(self) -> str`
-  Generate EGIF expression from graph.
-- `generate_egif(self, graph: egi_core_dau.RelationalGraphWithCuts) -> str`
-  Legacy API: egif_gen.generate_egif(graph) -> str
-
-### Functions
-
-#### `generate_egif(graph: egi_core_dau.RelationalGraphWithCuts) -> str`
-
-Generate EGIF expression from Dau-compliant graph.
-
----
-
-## egif_parser_dau.py
-
-**Path**: `src/egif_parser_dau.py`  
-**Status**: Protected Core Module
-
-### Module Description
-
-Dau-compliant EGIF parser that builds RelationalGraphWithCuts structures.
-Supports isolated vertices, proper syntax validation, and Dau's 6+1 component model.
-
-Key improvements over previous parser:
-- Supports isolated vertices (*x, "Socrates") as per Dau's "heavy dot" rule
-- Builds proper Dau-compliant structures with area/context distinction
-- Comprehensive syntax validation before processing
-- Proper handling of generic vs constant vertices
-
-### Classes
-
-#### `EGIFLexer`
-
-Lexical analyzer for EGIF expressions with isolated vertex support.
-
-**Methods**:
-
-- `__init__(self, text: str)`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `tokenize(self) -> List[egif_parser_dau.Token]`
-  Scan the EGIF text and produce a flat list of Tokens.
-
-#### `EGIFParser`
-
-Parser for EGIF expressions that builds Dau-compliant structures.
-
-**Methods**:
-
-- `__init__(self, text: str)`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `parse(self) -> egi_core_dau.RelationalGraphWithCuts`
-  Parse EGIF expression into Dau-compliant graph.
-
-#### `EGIFSyntaxValidator`
-
-Validates EGIF syntax before parsing.
-
-**Methods**:
-
-- `__init__(self, tokens: List[egif_parser_dau.Token])`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `validate(self) -> bool`
-  Validate EGIF syntax.
-
-#### `Token`
-
-Token in EGIF expression.
-
-**Methods**:
-
-- `__init__(self, type: egif_parser_dau.TokenType, value: str, position: int) -> None`
-  Initialize self.  See help(type(self)) for accurate signature.
-- `__repr__(self)`
-  Return repr(self).
-
-#### `TokenType`
-
-Token types for EGIF lexical analysis.
-
-### Functions
-
-#### `parse_egif(text: str) -> egi_core_dau.RelationalGraphWithCuts`
-
-Parse EGIF expression into Dau-compliant graph.
 
 ---
 
@@ -1289,6 +1056,468 @@ Collapses an entire ligature (W,F) to a single vertex w0.
 #### `demonstrate_ligature_manipulation()`
 
 Demonstrate ligature manipulation rules.
+
+---
+
+## natural_layout.py
+
+**Path**: `src/natural_layout.py`  
+**Status**: Protected Core Module
+
+### Module Description
+
+Natural layout — the coordinate-free, projection-independent structure
+that any faithful drawing of an EGI must realize.
+
+This is the "own the dimensionality" layer (see
+``docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md`` §3.1–§3.2 natural vs.
+projected representation, and the project memory
+``project-render-as-projection-own-dimensionality``).  It holds the
+facts that are invariant across *any* projection — 2-D SVG today, 3-D
+or Peirce's verso later — and therefore must hold no coordinates,
+distances, or orderings.
+
+What it commits to (the starting set):
+
+- the cut-containment tree (``cut_parent``);
+- each vertex/edge's area (``element_area``);
+- per-ligature **required crossing-sequence**: the ordered cuts whose
+  boundary a ligature segment must cross, derived from the unique
+  area-tree path between the predicate's area and the vertex's area;
+- predicate–vertex incidence with argument order (``port_index``).
+
+The required-crossing-sequence is the rigorous, projection-independent
+form of §3.3 *identity fidelity* ("the ligature passes through exactly
+the areas given by the ``area`` mapping of its members, and no
+others"): stated in terms of boundary **crossings** rather than area
+**membership**, which is what makes it checkable as a crossing-multiset
+equality against any projection.
+
+DIMENSION-FREE DISCIPLINE: this module must never import ``Point`` /
+``BoundingBox`` (``layout_dto``) or any geometry.  A projection (e.g.
+``elk_layout_engine``) consumes a ``NaturalLayout`` and *realizes* it
+into coordinates; a checker compares a realized drawing's actual
+crossings against the required ones.  Keeping geometry out of here is
+what makes a future 3-D projection additive rather than a rewrite.
+``tests/test_natural_layout.py`` enforces the no-geometry-import rule.
+
+### Classes
+
+#### `NaturalLayout`
+
+Projection-independent layout structure for an EGI.
+
+Coordinate-free by construction.  A projection realizes it into a
+``LayoutDTO``; ``natural_layout_check`` (or a strengthened
+``correspondence_attestation``) verifies a realization against it.
+
+**Methods**:
+
+- `__init__(self, sheet: str, cut_parent: Dict[str, str], element_area: Dict[str, str], ligatures: Tuple[natural_layout.NaturalLigature, ...]) -> None`
+  Initialize self.  See help(type(self)) for accurate signature.
+- `__repr__(self)`
+  Return repr(self).
+- `required_crossings(self, predicate_id: str, vertex_id: str, port_index: int) -> Optional[Tuple[str, ...]]`
+  Required crossing-sequence for one incidence, or None if absent.
+
+#### `NaturalLigature`
+
+One predicate→vertex incidence and the cuts its line must cross.
+
+``required_crossings`` is the ordered tuple of cut IDs whose
+boundary the connecting ligature segment must cross exactly once, as
+the curve travels from the predicate (outward to the meet) and then
+inward to the vertex.  Empty when predicate and vertex share an area.
+
+**Methods**:
+
+- `__init__(self, predicate_id: str, vertex_id: str, port_index: int, required_crossings: Tuple[str, ...]) -> None`
+  Initialize self.  See help(type(self)) for accurate signature.
+- `__repr__(self)`
+  Return repr(self).
+
+### Functions
+
+#### `authorized_crossings(pred_area: Optional[str], vert_area: Optional[str], parent_map: Dict[str, str]) -> Tuple[str, ...]`
+
+Ordered cuts whose boundary a ligature from ``pred_area`` to
+``vert_area`` must cross.
+
+These are exactly the cuts on the unique area-tree path between the
+two areas, *excluding* their lowest common ancestor (you do not
+cross the meet's boundary).  Order follows the curve: outward from
+the predicate's area to just below the meet, then inward from just
+below the meet down to the vertex's area.
+
+Semantic alias for the projection-independent layer.  The
+computation itself lives once in ``presentation_ops.crossing_sequence``
+(sharing its ``_tree_path`` walk with ``area_chain``); this name is
+the projection-independent vocabulary the layout/projection code
+consumes.  ``ELKLayoutEngine._authorized_cuts`` delegates here, so
+the area-tree walk is computed once, not three times.
+
+#### `natural_layout(egi: egi_core_dau.RelationalGraphWithCuts) -> natural_layout.NaturalLayout`
+
+Build the coordinate-free ``NaturalLayout`` for an EGI.
+
+Pure function of the EGI; no geometry, no layout engine.  One
+``NaturalLigature`` per (predicate, argument-position) incidence in
+``ν`` — matching how ``LigaturePath`` is keyed, so a realization can
+be compared one-to-one.
+
+---
+
+## presentation_ops.py
+
+**Path**: `src/presentation_ops.py`  
+**Status**: Protected Core Module
+
+### Module Description
+
+Presentation-only (regime-3) operations over a (EGI, LayoutDTO) pair.
+
+This module implements the closed algebra over the projection that
+docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.3 and §5.5 require: a user
+may freely reposition a vertex, reshape a cut, or reroute a ligature
+*as long as* the EGI is untouched and the resulting drawing remains in
+correspondence with it.
+
+The operations exposed here — ``move_vertex``, ``move_predicate``,
+``reshape_cut``, ``move_cut``, ``reroute_ligature`` — take an EGI and a
+LayoutDTO and return a *new* LayoutDTO.  They never mutate the EGI.  They
+refuse (by raising ``Regime3Violation``) any proposal that would cross a
+regime boundary:
+
+- a vertex / predicate translation that would push the element outside its
+  current area;
+- a cut reshape that would change which elements are geometrically
+  inside the cut (the §5.5 interior-preservation rule);
+- a cut *move* (rigid translation of the cut and everything it contains)
+  that would leave its parent area, absorb a non-descendant element, or
+  overlap a non-descendant cut;
+- a ligature reroute whose new interior points or segment midpoints
+  would leave the area chain between predicate-area and vertex-area
+  (changes W-realisation).
+
+These refusals are the "structural impossibility of regime-3 abuse"
+from §5.5: an ill-defined operation is not detected after the fact, it
+is refused at the API surface.
+
+Four area-topology helpers are also exposed publicly:
+
+- ``element_area`` — inverse of ``egi.area``: element_id -> area_id
+- ``cut_parents`` — area-tree parent map: cut_id -> enclosing area_id
+- ``area_chain`` — set of areas on the path between two areas in the
+  area tree (inclusive of endpoints and LCA)
+- ``deepest_containing_cut`` — deepest-by-depth cut whose bounds
+  strictly contain a point; returns ``egi.sheet`` if none.
+
+These are duplicated across several test files today (correspondence
+invariant tests, ELK ligature edge-case tests).  Consolidating them
+here gives both this module and future runtime-assertion work a
+canonical home.
+
+### Classes
+
+#### `Regime3Violation`
+
+Raised when a proposed regime-3 op would cross a regime boundary.
+
+A regime-3 operation is, by definition, one whose effect on the
+(EGI, projection) pair is restricted to the projection component.
+A proposal that would change area membership, alter the W-partition
+on the drawing, or otherwise touch structural data is not a
+regime-3 op — it is refused at the API surface.
+
+### Functions
+
+#### `area_chain(a: str, b: str, parent_map: Dict[str, str]) -> Set[str]`
+
+Return the set of areas on the path from ``a`` to ``b`` in the area tree.
+
+The path goes a -> ancestors -> LCA -> ... -> b.  Both endpoints
+and the LCA are included.  ``parent_map.get(sheet)`` is None — the
+sheet is the tree's root.
+
+Derived from the shared ``_tree_path`` walk (see
+``crossing_sequence`` for the boundary-crossing counterpart).
+
+#### `bounds_in_cut(inner: layout_dto.BoundingBox, outer: layout_dto.BoundingBox, shape, corner_radius: float = 0.0, boundary: Optional[Sequence[layout_dto.Point]] = None) -> bool`
+
+Whether the whole ``inner`` box lies inside the cut ``outer`` as drawn —
+every corner of ``inner`` inside ``outer``'s drawn shape (the literal
+``boundary`` polyline when given, else inscribed ellipse / rounded rectangle /
+box).
+
+#### `box_intrudes_cut(box: layout_dto.BoundingBox, bounds: layout_dto.BoundingBox, shape, corner_radius: float = 0.0) -> bool`
+
+Whether any part of ``box`` lies inside the cut ``bounds`` as drawn — used to
+forbid a label box from dipping into a cut that is *not* its container (the box
+analogue of the ligature "enters forbidden cut" check).  True if any corner of
+``box`` is inside the cut, or any corner of the cut's bounds is inside ``box``
+(the box engulfing part of the cut).  This catches every straddle where a corner
+crosses the boundary; a pure cross-overlap with no corner inside either is not a
+case the engine produces for axis-aligned label boxes.
+
+#### `boxes_overlap(a: layout_dto.BoundingBox, b: layout_dto.BoundingBox) -> bool`
+
+True iff two axis-aligned boxes share a positive-area region.  Boxes that
+merely abut along an edge or touch at a corner do *not* overlap — text that just
+touches is still legible; only genuine area overlap is occlusion.
+
+#### `count_boundary_crossings(points, rect: layout_dto.BoundingBox) -> int`
+
+Number of times a polyline crosses the boundary of an AABB.
+
+A convex rectangle bounds each straight segment to 0/1/2 boundary
+crossings: 1 when its endpoints straddle the boundary, else 0 unless
+the segment passes clean through (then 2).  This is the projection
+geometry behind the crossing-multiset form of §3.3 identity
+fidelity — for an authorized cut the count must be 1 (net once), for
+an unauthorized cut 0 (the line must not enter it at all).
+
+#### `count_cut_crossings(points, bounds: layout_dto.BoundingBox, shape, corner_radius: float = 0.0, boundary: Optional[Sequence[layout_dto.Point]] = None) -> int`
+
+Number of times a polyline crosses the cut boundary as the style draws it.
+When the cut's literal ``boundary`` polyline is supplied (Phase 4), count
+crossings of the actual drawn curve (``polyline_polygon_crossings``); otherwise
+the analytic drawn shape — inscribed ellipse for an oval/circle, rounded
+rectangle (with ``corner_radius``) for a Dau box, plain box when 0.
+
+The crossing-multiset form of §3.3 reads off the *drawn* curve, so this consumes
+the same boundary as Phase 1's containment (``point_in_cut``): a ligature that
+clips a rounded-away corner is counted exactly as the eye sees it — not as a
+spurious entry into the cut (`docs/EXACT_CORRESPONDENCE.md` Phase 2).
+``corner_radius`` defaults to 0; callers with the style pass
+``style.cut_corner_radius``.
+
+#### `crossing_sequence(pred_area: Optional[str], vert_area: Optional[str], parent_map: Dict[str, str]) -> Tuple[str, ...]`
+
+Ordered cuts whose boundary a ligature must cross, from
+``pred_area`` outward to the meet then inward to ``vert_area``.
+
+The projection-independent crossing structure: the cuts on the
+area-tree path *excluding* the lowest common ancestor (whose
+boundary is occupied, not crossed).  Empty for same-area
+incidences.  This is the single authoritative computation;
+``natural_layout.authorized_crossings`` is a semantic alias for the
+projection-independent layer, and ``ELKLayoutEngine._authorized_cuts``
+consumes it (as a set) for obstacle determination — so the walk is
+computed once, not three times.
+
+#### `cut_boundary(bounds: layout_dto.BoundingBox, shape, corner_radius: float = 0.0, wobble_amplitude: float = 0.0, seed=None, samples: int = 96) -> Tuple[layout_dto.Point, ...]`
+
+The closed polyline of a cut's **drawn** boundary — the single source of
+truth for "what the cut is" as a curve.  Oval/circle → (optionally wobbled)
+inscribed ellipse; otherwise the rounded rectangle (`corner_radius`).  The
+points are in DTO coordinates and the polygon is implicitly closed (last → first).
+
+#### `cut_parents(egi: egi_core_dau.RelationalGraphWithCuts) -> Dict[str, str]`
+
+Area-tree parent map: each cut ID -> the area that encloses it.
+
+The sheet has no parent and is omitted from the result.
+
+#### `deepest_containing_cut(point: layout_dto.Point, dto: layout_dto.LayoutDTO, egi: egi_core_dau.RelationalGraphWithCuts, parent_map: Optional[Dict[str, str]] = None) -> str`
+
+Deepest-by-depth cut whose bounds strictly contain ``point``.
+
+Strict bounds (< not ≤) treat boundary-tangent points as outside
+the cut — important because routing intentionally runs along the
+outside edge of unauthorized cuts and we don't want to confuse
+those with violations.
+
+Returns ``egi.sheet`` if no cut strictly contains the point.
+
+#### `element_area(egi: egi_core_dau.RelationalGraphWithCuts) -> Dict[str, str]`
+
+Inverse of ``egi.area``: each vertex and edge ID -> its area ID.
+
+Cuts are omitted (they *are* areas; their parent area is in
+``cut_parents``).
+
+#### `move_cut(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO, cut_id: str, dx: float, dy: float) -> layout_dto.LayoutDTO`
+
+Rigidly translate a cut **and everything it contains** by ``(dx, dy)``.
+
+Unlike ``reshape_cut`` (which moves one boundary and must preserve which
+elements are inside) a *move* slides the whole subtree together — the cut's
+bounds, every descendant cut's bounds, the vertices and predicates in its
+descendant areas, and the ligature points that ride inside it.  Because the
+contents move with the boundary, interior membership is preserved by
+construction; the structural risk is only at the cut's *own* boundary.
+
+Raises ``Regime3Violation`` if the translated cut would:
+  - leave its parent area (translated outer bounds no longer fit inside the
+    parent cut's bounds) — a change of nesting depth, not regime-3;
+  - absorb a non-descendant vertex/predicate (one that didn't move would
+    fall inside the translated bounds);
+  - overlap a non-descendant cut.
+
+A line of identity that *crosses* the cut boundary keeps its outside
+endpoint fixed and its inside endpoint translated, so the crossing is
+preserved; the §3.3 attestation backstops the stretched segment.
+
+#### `move_predicate(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO, predicate_id: str, dx: float, dy: float) -> layout_dto.LayoutDTO`
+
+Translate a predicate (edge / relation label) by ``(dx, dy)`` and
+cascade to its ligature predicate-side endpoints.
+
+A relation's *drawn position* carries no logic: where the label ``P`` sits
+is pure presentation, so long as it stays in its EGI area and its incident
+identity lines keep their endpoints attached.  This is the predicate-side
+twin of ``move_vertex`` — every ``LigaturePath`` with
+``predicate_id == predicate_id`` has its predicate-side endpoint
+(``points[0]``, the hook on the predicate's box) translated by the same
+``(dx, dy)`` so the line follows the label, while the vertex-side endpoint
+stays pinned.
+
+Raises ``Regime3Violation`` if:
+  - ``predicate_id`` is not in ``dto.predicate_positions``;
+  - the predicate's area is a cut and the translated position would fall
+    outside ``dto.cut_bounds[area]`` (a silent area change, not regime-3).
+
+As with ``move_vertex`` the explicit guard is area-containment of the
+predicate's anchor point; a stretched first segment that would mis-cross a
+cut is caught by the §3.3 attestation backstop at the service boundary.
+
+#### `move_vertex(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO, vertex_id: str, dx: float, dy: float) -> layout_dto.LayoutDTO`
+
+Translate a vertex by ``(dx, dy)`` and cascade to ligature endpoints.
+
+The vertex's new position must remain inside the cut bounds of its
+EGI area (if its area is a cut; sheet vertices have no bounds
+constraint).  Every LigaturePath with ``vertex_id == vertex_id``
+has its vertex-side endpoint (``points[-1]``) updated to the new
+position, preserving §3.3 identity-endpoint correspondence.
+
+Raises Regime3Violation if:
+  - ``vertex_id`` is not in ``dto.vertex_positions``;
+  - the vertex's area is a cut and the translated position would
+    fall outside ``dto.cut_bounds[area]`` (this would silently
+    change area membership — not a regime-3 op).
+
+#### `path_intersects_box(points, box: layout_dto.BoundingBox) -> bool`
+
+True iff a polyline passes through the *open interior* of ``box`` — some
+segment has a portion strictly inside, or a vertex strictly inside.  A line
+merely touching or running along the border (e.g. a ligature grazing the box's
+edge) stays on the boundary and does not count, so a label sitting against a line
+is not falsely flagged.  This is the obstacle-test primitive for the deferred
+label-aware ligature routing (`docs/EXACT_CORRESPONDENCE.md` Phase 3b).
+
+#### `point_in_cut(p: layout_dto.Point, bounds: layout_dto.BoundingBox, shape, corner_radius: float = 0.0, boundary: Optional[Sequence[layout_dto.Point]] = None) -> bool`
+
+Whether point ``p`` is inside the cut **as the style draws it**.  When the
+cut's literal ``boundary`` polyline is supplied (Phase 4), test point-in-polygon
+against it — the exact drawn curve, wobble and all.  Otherwise fall back to the
+analytic drawn shape: the inscribed ellipse for an oval/circle, the rounded
+rectangle (with ``corner_radius``) for a Dau box, the plain box when 0.
+
+Testing the *drawn* shape (not a bounding-box proxy) is what makes containment
+exact (`docs/EXACT_CORRESPONDENCE.md`).  ``corner_radius`` defaults to 0;
+callers with the style pass ``style.cut_corner_radius``.
+
+#### `point_in_polygon(p: layout_dto.Point, poly: Sequence[layout_dto.Point]) -> bool`
+
+Ray-casting test: is ``p`` strictly inside the closed polygon ``poly``
+(implicitly closed last → first)?  This is the exact reading of "inside the
+drawn cut" once the cut is carried as its literal polyline — what the browser's
+``isPointInFill`` computes on the same path.
+
+#### `polyline_polygon_crossings(points: Sequence[layout_dto.Point], poly: Sequence[layout_dto.Point]) -> int`
+
+How many times the open polyline ``points`` crosses the closed polygon
+boundary ``poly`` — the polygon analogue of ``count_cut_crossings`` for a cut
+carried as its literal curve.
+
+#### `predicate_label_box(label: str, center, style) -> layout_dto.BoundingBox`
+
+The axis-aligned **extent** of a predicate's drawn label box, centred on
+``center`` (its ``predicate_positions`` anchor).  This is the rectangle the
+renderer actually draws (`simple_svg_renderer`): width
+``len(label)·char_width + 2·pad_h``, height ``predicate_height + 2·pad_v``.
+
+§3.3 reads a predicate's containment off *this extent*, not the anchor point —
+so a label may not straddle a cut boundary (`docs/EXACT_CORRESPONDENCE.md`
+Phase 3).  Single source of truth: the renderer draws from this same box, so
+test and picture agree.  ``style`` may be ``None`` (defaults are used).
+
+#### `reroute_ligature(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO, predicate_id: str, vertex_id: str, port_index: int, new_interior: Iterable[layout_dto.Point]) -> layout_dto.LayoutDTO`
+
+Replace the interior of a ligature path with ``new_interior``.
+
+Endpoints are pinned: ``new_path.points[0] == old_path.points[0]``
+(predicate side) and ``new_path.points[-1] == old_path.points[-1]``
+(vertex side).  Moving an endpoint is a different operation —
+``move_vertex`` cascades to the vertex-side endpoint; the
+predicate-side endpoint is a hook on the predicate's box and is
+not user-configurable.
+
+The reroute is regime-3 only if every new interior point AND every
+new segment midpoint lies on the area chain between
+predicate-area and vertex-area (§3.3 identity-fidelity area-chain
+traversal).  A waypoint that wanders into a sibling cut, or a
+straight segment that crosses an unauthorized cut, would change
+W-realisation — refused.
+
+Raises Regime3Violation if no path matches the (predicate_id,
+vertex_id, port_index) key or if any new point/midpoint leaves the
+chain.
+
+#### `reshape_cut(egi: egi_core_dau.RelationalGraphWithCuts, dto: layout_dto.LayoutDTO, cut_id: str, new_bounds: layout_dto.BoundingBox) -> layout_dto.LayoutDTO`
+
+Replace ``dto.cut_bounds[cut_id]`` with ``new_bounds``.
+
+The new bounds must preserve interior membership in both
+directions (§5.5):
+
+  - every element the EGI says is in ``area[cut_id]`` (or in any
+    descendant area) must still be geometrically inside; and
+  - no element outside those descendant areas may become
+    geometrically inside.
+
+Raises Regime3Violation if either direction fails, or if
+``cut_id`` is not in ``dto.cut_bounds``.
+
+#### `resolve_cut_boundaries(dto) -> Dict[str, Optional[Tuple[layout_dto.Point, ...]]]`
+
+Per-cut drawn-boundary polyline to test containment against, or ``None``
+where the cut has an analytic drawn shape.  The "boundary of record" shared by
+§3.3 and ``eg_reader``:
+
+- a cut **carried as an explicit polyline** (``dto.cut_boundary`` — a human-drawn
+  freeform cut, where the polyline *is* the cut, with no analytic shape behind
+  it) → that polyline, tested point-in-polygon;
+- any cut from the analytic engines (inscribed ellipse / rounded rectangle) →
+  ``None``: ``point_in_cut`` reads the exact drawn shape from ``cut_bounds`` +
+  style.  (The hand-drawn *wobble* is a stroke-only cosmetic flourish applied at
+  render time and capped within the containment margin — see ``render_geometry``;
+  it is deliberately not part of the attested geometry, so it is not resolved
+  here.)
+
+#### `vertex_label_box(label, center, style, ligature_paths=(), vertex_id=None, egi=None, cut_bounds=None) -> layout_dto.BoundingBox`
+
+The axis-aligned **extent** of a vertex/constant label, placed adjacent to
+its dot.  The preferred direction is the *freest* angular gap between the lines
+of identity incident to the vertex (so the label never sits on a ligature it is
+incident to), defaulting to the right of the dot when no incident line leaves
+eastward.  This mirrors `simple_svg_renderer`'s placement; the renderer draws the
+text centred in this same box, so picture and §3.3 test agree (single source of
+truth, like `predicate_label_box`).
+
+**Cut-aware placement.**  When ``egi`` and ``cut_bounds`` are supplied, the
+preferred direction is only taken if the resulting box stays wholly inside the
+vertex's area cut and clear of every non-ancestor cut; otherwise the freest
+direction is tried, then the four cardinals, and the first that fits is used.
+Only if *no* direction fits (a genuinely cramped layout the engine must widen)
+does it fall back to the freest gap — which §3.3 then flags as a real occlusion.
+This keeps the label legible without the layout engine yet reserving room.
+
+``ligature_paths``/``vertex_id`` supply the incident directions.  ``style`` may
+be ``None`` (defaults used).  The label width is estimated from the font size
+(the renderer draws plain text, not a boxed run), so the extent is faithful, not
+pixel-exact.
 
 ---
 
@@ -1904,3 +2133,6 @@ if result is None:
 ---
 
 *For usage examples, see [CORE_API_USAGE_GUIDE.md](CORE_API_USAGE_GUIDE.md).*
+
+
+:::

@@ -225,6 +225,19 @@ def render(project_root: Path, modules: Sequence[str]) -> tuple[str, int, int]:
     out.append("---")
     out.append("")
 
+    # The bulky symbol reference is HTML-only: it bloats the PDF/epub book and is
+    # best browsed/searched online. Print/epub get a short pointer instead.
+    out.append('::: {.content-hidden when-format="html"}')
+    out.append(
+        "*The full symbol reference is included in the web/HTML edition only. The "
+        "print and epub editions omit it for length — browse and search it in the "
+        "HTML book, or read `docs/ARISBE_CORE_API_REFERENCE.md` in the repository.*"
+    )
+    out.append(":::")
+    out.append("")
+    out.append('::: {.content-visible when-format="html"}')
+    out.append("")
+
     total_classes = 0
     total_functions = 0
     for module_name in modules:
@@ -234,6 +247,8 @@ def render(project_root: Path, modules: Sequence[str]) -> tuple[str, int, int]:
         total_functions += fc
 
     out.append(USAGE_NOTES)
+    out.append("")
+    out.append(":::")  # close the HTML-only content block
     return "\n".join(out).rstrip() + "\n", total_classes, total_functions
 
 
