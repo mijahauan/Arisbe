@@ -2,7 +2,7 @@
 
 > **What this is.** A short catalogue of the worked exemplars seeded into the corpus
 > so that Organon has things to read and Agon has somewhere to play: **proof
-> exemplars** (§2), **domain-model boards** (§3) and the curated **episodes** that
+> exemplars** (§2), **domain-model boards** (§3) and the curated [**episodes**](GLOSSARY.md#episode) that
 > wire them into the game picker (§4), a **branching-modality** episode (§5), and a
 > **model that transforms through dialog** (§6). It is a guide to *what is there and
 > why*, not a how-to for authoring more (that pattern lives in the `tools/build_*.py`
@@ -27,7 +27,7 @@ gaps were filled in one pass:
   ponens) leaned toward the harder theorems. The new quartet adds **short, iconic
   propositional laws** — including two that teach an Existential Graph ([EG](GLOSSARY.md#eg))-specific insight worth more
   than the theorem.
-- **Boards to play on.** The Endoporeutic Game's interpretation register is *given
+- **Boards to play on.** The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game's interpretation register is *given
   M, then G* — and you cannot play without an M. The curated persona models in
   `src/agon_models.py` are inline on-ramps; the corpus wanted **richer,
   browsable domain-model Universes of Discourse ([UoDs](GLOSSARY.md#uod))** that double as game boards. Two were added, a
@@ -53,7 +53,7 @@ set doubles as a tour of the calculus.
 | `hypothetical_syllogism` | P→Q, Q→R ⊢ P→R | `IT+`,`IT-`,`DC-`,`ERA`,`ERA` | The substantial one: iterate Q→R into P→Q and deiterate the shared Q — the EG form of "discharge the middle term" — then clear the scaffolding. |
 
 Each is an **authored** derivation of a **cited** classical law, admitted at **low
-warrant** (attested for correspondence, never asserted true — the manifest floor).
+[warrant](GLOSSARY.md#warrant)** (attested for correspondence, never asserted true — the manifest [floor](GLOSSARY.md#floor) (the baseline that may not be gone under)).
 Annotations carry the teaching notes; the crux of the syllogism is flagged at the
 step level.
 
@@ -63,12 +63,12 @@ step level.
 
 Built by [`tools/build_domain_model_exemplars.py`](../tools/build_domain_model_exemplars.py)
 as `kind=domain_model` standalone UoDs. They are a deliberate **closed/open
-contrast**, the two regimes the open-world peel turns on.
+contrast**, the two regimes the open-world [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) turns on.
 
 ### `zoo_world` — a closed taxonomy with Horn rules
 
 Four named animals (Rex the dog, Tom the cat, Moby the whale, Pip the sparrow) plus
-a subsumption spine authored as scrolls: dog/cat/whale ⊑ mammal, sparrow ⊑ bird,
+a subsumption spine authored as [scrolls](GLOSSARY.md#scroll) (a nested double cut — "if … then"): dog/cat/whale ⊑ mammal, sparrow ⊑ bird,
 mammal ⊑ warm-blooded, bird ⊑ warm-blooded. **Materialized** (forward-chained to the
 least Herbrand model), it derives every animal's kind and warmth — so universals are
 decided *through the chain*, not stated directly. As a board:
@@ -90,7 +90,7 @@ something to witness, and the open world means an unrecorded claim is **UNKNOWN*
 not false:
 
 - *"Bayside hosts a market"* → **UNKNOWN** — a candidate *new fact*, the independent
-  outcome the horizon produces (not a refutation).
+  outcome the [horizon](GLOSSARY.md#horizon) produces (not a refutation).
 - *"The ferry runs Bayside→Greyrock"* → **TRUE** (present in the record).
 
 The contrast piece to `zoo_world`: the same kind of universal reads differently open
@@ -125,13 +125,13 @@ is the diachronic, **mark-free** reading of ◇ and □
 A modal operator is a quantifier over a Kripke frame, and the branching history *is*
 that frame — worlds are sheets, accessibility is the legal-transition directed acyclic graph ([DAG](GLOSSARY.md#dag)). So:
 
-> ◇φ = "some legal trajectory scribes φ" · □φ = "every legal trajectory scribes φ"
+> ◇φ = "some legal trajectory [scribes](GLOSSARY.md#scribe) φ" · □φ = "every legal trajectory scribes φ"
 > — *possibility is branching, necessity is convergence.*
 
 From a morning `(cloudy) (cold) (calm)`, two legal lines of development each drop a
 feature and converge on `(cold)`. Reading off the four reachable sheets: **□ cold**
 (on every trajectory — necessary), **◇ cloudy** and **◇ calm** (on some but not all —
-possible, not necessary). No broken cut, no tincture: the modality is the shape of
+possible, not necessary). No broken cut, no [tincture](GLOSSARY.md#tincture) (Peirce's Gamma colourings): the modality is the shape of
 the DAG.
 
 The thin missing code is [src/modal_query.py](../src/modal_query.py) —

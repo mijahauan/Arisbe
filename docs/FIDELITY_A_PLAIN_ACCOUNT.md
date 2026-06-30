@@ -19,10 +19,10 @@ Arisbe is a tool for **doing logic in pictures** — Charles Sanders Peirce's
 "moving pictures of thought." You need only four things to follow this account:
 
 - A **sheet** — a page you draw on. Drawing something on it is *asserting* it.
-- A **loop** (Peirce called it a *cut*) — a closed curve. To put something inside a
-  loop is to **deny** it. One loop means "not."
-- **Nested loops** — a loop inside a loop. Two loops, with a claim between them,
-  read as **"if … then …"**. (This shape has a name — the *scroll* — but you can
+- A **cut** — a closed curve. To put something inside a
+  cut is to **deny** it. One cut means "not."
+- **Nested cuts** — a cut inside a cut. Two cuts, with a claim between them,
+  read as **"if … then …"**. (This shape has a name — the *[scroll](GLOSSARY.md#scroll)* — but you can
   just think "if-then.")
 - A **line** — a heavy line joining things means "this is the *same* one." It is
   how the pictures say "something exists" and "the very same thing."
@@ -89,7 +89,7 @@ sheet is to assert it as true.* The blank page, on this telling, is the home of
 plain assertion — you write "the cat is on the mat," and there it stands, asserted.
 
 **How it was expressed.** The author suspected this runs two very different things
-together. The page bears **form** — the scaffolding of *if-then*, the loops, the
+together. The page bears **form** — the scaffolding of *if-then*, the cuts, the
 structures that are valid no matter what the world is like. But a bare *contingent*
 claim (something that just happens to be true or false, like the cat's whereabouts)
 is a different kind of thing. The deepest version of the doubt: on the rules of the
@@ -97,8 +97,8 @@ game, you cannot even *legally place* a bare contingent claim, naked, on the pag
 
 This sounds technical; it is actually simple. The rules of Peirce's system are
 lopsided in a precise way: in a **positive** position (not inside an odd number of
-loops) you may *erase* freely but not *add*; to *add* a new claim, you must be in a
-**negative** position — inside a loop. So a fresh claim can only enter the picture
+cuts) you may *erase* freely but not *add*; to *add* a new claim, you must be in a
+**negative** position — inside a cut. So a fresh claim can only enter the picture
 **conditioned** — tucked inside the "if" part of an if-then, where it can still be
 challenged and swept away. The only thing that sits on the page wholly
 unconditioned is **the blank itself — which asserts nothing at all.**
@@ -107,8 +107,8 @@ unconditioned is **the blank itself — which asserts nothing at all.**
 said, the "if" part (the model you reason under) had to get onto the page *somehow*,
 and *that* first placing was an unconditioned assertion. On re-examination, that
 concession was **too generous.** There is no unconditioned placing. A claim is built
-up *from the blank* by legal, meaning-preserving steps — open a loop, place the
-claim inside it, carry it where it must apply, open the next loop — and at no point
+up *from the blank* by legal, meaning-preserving steps — open a cut, place the
+claim inside it, carry it where it must apply, open the next cut — and at no point
 does a bare claim land naked on the page. What the rules *don't* fix is *which*
 claim you bring; but that was never a gap. *Which* model of the world to reason
 under is the real, proper business of inquiry, settled out in the world and in
@@ -116,15 +116,15 @@ argument — not something the calculus was ever supposed to hand you.
 
 **What changed.** A conceded weakness was **closed**: the thesis "every assertion
 is always-already conditioned, inside" turned out to be **gapless**, not almost-true.
-And Arisbe now does, by construction, what the textbooks omit: it **marks the seam**
+And Arisbe now does, by construction, what the textbooks omit: it **marks the [seam](GLOSSARY.md#seam)**
 between two registers that they print flush together —
 - what you **derived** (earned step by truth-preserving step — a *proof*), versus
-- what you **posited** (brought in as a premise, admitted at low warrant, to be
+- what you **posited** (brought in as a premise, admitted at low [warrant](GLOSSARY.md#warrant), to be
   tested).
 
 **The principle in action.**
 - *Adherence:* Leibniz's *Praeclarum Theorema*, a real theorem Arisbe builds from
-  the blank page by legal steps — it ends up **all loops**, with claims only inside
+  the blank page by legal steps — it ends up **all cuts**, with claims only inside
   them, nothing contingent floating free. The page bears pure form.
 - *Breaking:* the famous "cat on the mat," printed right next to the theorems with
   no mark to say *which kind of thing it is* — so a reader cannot tell "someone is
@@ -164,7 +164,7 @@ can be defended. "No new modal mark" survived untouched.
 - *Adherence:* you say "the same person who is here could have been there" by
   drawing **one identity line carried across a legal transition** between two
   sheets. The "could have" lives in the *move between worlds*, fully drawn.
-- *Breaking:* inventing a special "broken loop" to stamp *possibility* onto a single
+- *Breaking:* inventing a special "broken cut" to stamp *possibility* onto a single
   claim in a single world — trying to seat a relation-between-worlds inside one mark,
   the very confusion that stalled Gamma for a hundred years.
 
@@ -283,7 +283,7 @@ exactly as intended:
   the open picture without claiming it as fact" (Doubt 1).
 - "The blank page can't assert contingent content" → the sharper, *gapless*
   "nothing contingent is ever placed *unconditioned*; every claim enters inside a
-  loop, where it can still be challenged" (Doubt 2).
+  cut, where it can still be challenged" (Doubt 2).
 - "Equal dignity grounds the refusal of worth-ladders" → "method-on-content is the
   only honest gate; never rank agents by worth; owe every claim its uptake" (Doubt 4).
 - Doubt 3 ("no new mark for modality") stood — only an overstated boast was trimmed.
@@ -321,7 +321,7 @@ corrected *us* — that it is the **method**, not open admission, that keeps a v
 honest (Doubt 4). That, too, is recorded.
 
 **The one thread through all of it.** Call it *contextual honesty*: always ask what
-context — what loop, what page, what given, what method — delivers a picture's
+context — what cut, what page, what given, what method — delivers a picture's
 meaning; gate claims by that method; owe every claim a hearing; and never, ever,
 read a ranking of *claims* as a ranking of *souls*.
 

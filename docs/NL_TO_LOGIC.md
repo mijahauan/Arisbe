@@ -12,7 +12,7 @@ Turning English into logic is two problems, and they want opposite tools:
 1. **English → a *candidate* logical form** — the noisy parse. LLMs are good at this and bad at
    guaranteeing the result means anything.
 2. **candidate form → verified / interpreted / drawable proposition** — Arisbe's home turf. The
-   correspondence engine, the peel, the soundness floor.
+   correspondence engine, the [peel](GLOSSARY.md#peel) (reading it from the outside in against the model), the soundness [floor](GLOSSARY.md#floor) (the baseline that may not be gone under).
 
 So Arisbe is the **interpretant / verifier behind the parser, not the parser**. It should never
 become a wide-coverage semantic parser; its contribution begins once a candidate form exists.
@@ -105,7 +105,7 @@ Takes `{nl, model_egif|model_uod, closed, materialize, model?}` and returns the 
 when it parsed, the `vocabulary` reconciliation and the `interpretation` (the peel). An
 unmappable sentence or a malformed candidate returns `parsed: false` with the reason — a
 successful response, not an error (the honest "can't say that here" surface). Nothing is
-asserted or persisted: the proposal sits at **LOW warrant** and earns warrant only by
+asserted or persisted: the proposal sits at **LOW [warrant](GLOSSARY.md#warrant)** and earns warrant only by
 withstanding Agon (the import↔Agon floor — §3.3 attests *correspondence, not truth*).
 
 ## Setup

@@ -7,7 +7,7 @@ This guide is organized in four parts, from machinery to meaning to practice:
 - **Part I · The Game** — how it works: the two formal layers, the mechanics of
   play, and the constructive (proof-mode) counterpart.
 - **Part II · Outcomes and Interpretation** — what the game produces: the outcome
-  taxonomy, the *Agonothetes* (the interpretive function that makes meaning of a
+  taxonomy, the [*Agonothetes*](GLOSSARY.md#agonothetes) (the interpretive function that makes meaning of a
   result), and where the domain model M comes from.
 - **Part III · The Philosophy of Inquiry** — why it matters: the Peircean account
   of doubt, situated meaning, and fallibilism that the game formalizes.
@@ -24,7 +24,7 @@ concrete instance of an outcome in Part II's taxonomy (the mapping is given ther
 
 ## Implemented today (Agon V1) vs the Frontier
 
-The Endoporeutic Game is Arisbe's **end game** — the part of the arc that is
+The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game is Arisbe's **end game** — the part of the arc that is
 deliberately *not finished*. This guide describes the full framework; most of
 it is theory and design-ahead. To keep the reader honest about what is wired
 today, here is the split. Banners further down mark design-only material in
@@ -48,7 +48,7 @@ place.
 
 **Built since (2026-06-11):** the inner **semantic game** is now a first-class API
 (`src/semantic_game.py`) and is wired into Agon as the **interpretation register** —
-the episode *given M, then G* (choose M → peel G against M → decide). The
+the [episode](GLOSSARY.md#episode) *given M, then G* (choose M → [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) G against M → decide). The
 *constructive* direction (INS/IT+/DC+) is now located as **making in Ergasterion**,
 not an Agon mode: the eliminative peel is the game, additive construction is the
 workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
@@ -942,13 +942,13 @@ and the class's understanding grows through the iterated cycle.
 ### From Import: External Ontologies as Domain Models
 
 > **⚠️ Frontier (partly built).** As of 2026-06-11 a model M is **chosen** for a
-> contest (hand-authored facts, or a tomos UoD), **queried** through a `DomainOracle`,
+> contest (hand-authored facts, or a [tomos](GLOSSARY.md#tomos) UoD), **queried** through a `DomainOracle`,
 > and **materializable** — facts + Horn rules forward-chain to the least Herbrand
 > model (`docs/DOMAIN_ORACLE_AND_M.md` §6.1), which is exactly what a T-box needs to
 > become testable. What remains **not implemented** is the *automated* OWL→CLIF→EGI
 > import pipeline and the live ontology sources (WordNet, SNOMED, Wikidata) below;
 > materialization unblocks the T-box side of that. (Arisbe's `/import` route admits
-> linear forms at *low warrant* — `docs/MANIFEST_AND_MEANING.md` — distinct from this
+> linear forms at *low [warrant](GLOSSARY.md#warrant)* — `docs/MANIFEST_AND_MEANING.md` — distinct from this
 > pipeline.)
 
 But one need not start from an empty sheet.  Published ontologies represent
@@ -1620,7 +1620,7 @@ propositions.
 What does it mean that our assertions live in negative contexts?  It means
 that, formally, the sum of what we assert is *false* — or more precisely,
 it is *falsifiable*.  The negative context is the formal expression of
-fallibilism.  Nothing scribed within it is sheltered from challenge.  The
+fallibilism.  Nothing [scribed](GLOSSARY.md#scribe) within it is sheltered from challenge.  The
 Grapheus (M, the domain, the world-as-known) will test every inscription
 through the game, and the game may refute it.
 

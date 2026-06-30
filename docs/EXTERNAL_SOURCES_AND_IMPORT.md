@@ -4,12 +4,12 @@
 > Arisbe gets *in* — published **ontologies** (Web Ontology Language ([OWL](GLOSSARY.md#owl)) / Resource Description Framework ([RDF](GLOSSARY.md#rdf)) / Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) / Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif)) / Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore)))
 > and material read by a human from **textbooks, websites, and papers**. The
 > machinery is real but scattered across several docs and tools; this doc is the
-> **consolidating map**: what enters, *at what warrant*, *attributed how*,
+> **consolidating map**: what enters, *at what [warrant](GLOSSARY.md#warrant)*, *attributed how*,
 > *attested how*, and what is honestly **not** brought across. It links out rather
 > than restating.
 >
 > **Read alongside:** [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (the
-> philosophical floor — *attest correspondence, not truth*) and
+> philosophical [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) — *attest correspondence, not truth*) and
 > [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md) (the corpus's structure
 > and the import-kind taxonomy — the deep doc this one summarizes). Format
 > mechanics: [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md).
@@ -31,7 +31,7 @@ So an import is **admitted, comprehended, and attested — never asserted true.*
 is parsed (it has a determinate meaning), checked for correspondence (the picture
 and the text agree), and bibliographically attributed (the trace of the un-hosted
 dialogue it came from). The only thing that lifts an item above the floor is
-**surviving the Endoporeutic Game** — see
+**surviving the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game** — see
 [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md) §4.
 
 Two consequences worth stating up front:
@@ -45,7 +45,7 @@ Two consequences worth stating up front:
   *cited-vs-synthetic* — and they must not be collapsed.
 
 This floor is the same one Popper's falsifiability lives under here: import admits
-a fragment at low warrant with a bibliographic record, and the **membrane** between
+a fragment at low warrant with a bibliographic record, and the [**membrane**](GLOSSARY.md#membrane) between
 the sheet and the world is the only place error is corrected
 ([MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md)).
 
@@ -76,7 +76,7 @@ Agon.
 
 | Axiom (Description Logic ([DL](GLOSSARY.md#dl))) | EG shape |
 |---|---|
-| subsumption `A ⊑ B` | `~[ (A *x) ~[ (B x) ] ]` (a **scroll**) |
+| subsumption `A ⊑ B` | `~[ (A *x) ~[ (B x) ] ]` (a [**scroll**](GLOSSARY.md#scroll) (a nested double cut — "if … then")) |
 | disjointness `A ⊓ B ⊑ ⊥` | `~[ (A *x) (B x) ]` (a denial) |
 | domain/range typing | `~[ (R …*x…) ~[ (C x) ] ]` (a typing scroll) |
 | A-box `C(a)` | `(C "a")` |

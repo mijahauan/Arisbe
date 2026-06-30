@@ -90,7 +90,13 @@ passage using "peel" can be supplied, cite that too.
 
 - **`inning` → `episode`** (not "round") — keeps Peirce's Greek register. ✅ applied.
 - **"not even wrong"** — cite clearly → attributed to Wolfgang Pauli. ✅ applied.
-- **`peel`** — keep + introduce + cite Sowa (2011). (pending the first-use pass)
+- **`peel`** — keep + introduce + cite Sowa (2011). ✅ applied (Glossary entry + first-use links).
+- **`loop` → `cut`** — "loop" is NOT a general synonym for cut. In the literature it has a *narrow*
+  sense (Roberts/CP 4.437: the **inner cut of a scroll**), and Dau uses "loop" graph-theoretically
+  (a self-edge). The beginner docs used it loosely for any cut. ✅ replaced "loop" → "cut" in
+  FIELD_GUIDE_AND_DRAGONS, FIDELITY_A_PLAIN_ACCOUNT, GETTING_STARTED (option A).
+- **First-use introduce-and-link pass** — ✅ done across all chapters (6 parallel agents); every kept
+  term links to its Glossary anchor on first use, opaque ones glossed where not already explained.
 - All other audit rows approved as written.
 
 ## After sign-off

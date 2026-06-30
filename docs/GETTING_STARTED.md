@@ -29,7 +29,7 @@ Frithjof Dau's formalization is the **guarantor of correctness** underneath.
 
 If you read nothing else first, read the one-page
 [FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md): there are only **four
-marks** (a sheet, a loop, nested loops, a line), and you can draw all of logic that
+marks** (a sheet, a cut, nested cuts, a line), and you can draw all of logic that
 matters here with a pen.
 
 ---
@@ -66,7 +66,7 @@ web app:
 ### Your first graph, two ways
 
 - **Read one.** Open `/organon`, pick `peirce_cp_4_394_man_mortal`, and watch
-  "every man is mortal" drawn as a *scroll* (nested loops). Toggle its linear forms
+  "every man is mortal" drawn as a *[scroll](GLOSSARY.md#scroll)* (nested cuts). Toggle its linear forms
   (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)) / Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)) / Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) / First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl))) and watch the same proposition stay recognizable.
 - **Draw one.** Open `/ergasterion`, switch to **challenge mode**, pick the dragon
   `🐉1` "every man is mortal," and draw it freehand. Arisbe grades your attempt with
@@ -128,21 +128,21 @@ Universe of Discourse you can browse in Organon and play as a **model M** in Ago
 
 **Shortest path in:**
 1. Read [EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md) — the
-   consolidating import doc: what enters, at what warrant, attributed how, attested
+   consolidating import doc: what enters, at what [warrant](GLOSSARY.md#warrant), attributed how, attested
    how. This is your main door.
 2. Bring a file: **Web Ontology Language ([OWL](GLOSSARY.md#owl))** (Functional-Style `.ofn`) and **Resource Description Framework ([RDF](GLOSSARY.md#rdf))** (Turtle/RDF-XML/…)
    travel **OWL → CLIF → Existential Graph Instance ([EGI](GLOSSARY.md#egi))**; **Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif))** and raw **CLIF/Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore))** import directly
    (the back half is `clif_parser_dau`). See the tool/module table in that doc.
 3. Ask a question of it. In `/agon`, pick your imported ontology as M and let
    `theory_query.entails` decide a **subsumption / intersection / transitivity**
-   theorem — the "is G a theorem of this theory?" episode. The conceptual account is
+   theorem — the "is G a theorem of this theory?" [episode](GLOSSARY.md#episode). The conceptual account is
    [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) §6.2.
 
 **What you most want to know, stated honestly:**
 - **Honest partial translation.** Constructs Arisbe can't express as ground EG
   (cardinality, union, `AllValuesFrom`, datatypes, modal/higher-order SUO-KIF) are
   **reported by construct, never silently dropped.** Bring across the expressible
-  ground, at low warrant, and be explicit about the rest. (Same floor as everything
+  ground, at low warrant, and be explicit about the rest. (Same [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) as everything
   else: *attest correspondence, not truth*.)
 - **The upper ontology is Peircean.** SUMO's top division
   (`Independent / Relative / Mediating` under `Entity`) *is* Peirce's
@@ -182,8 +182,8 @@ notations** and stays the same proposition everywhere.
 - **A step and its warrant are the same act.** You cannot make a change and *then*
   check it: a rule won't apply unless its preconditions hold, so the move *is* its
   proof of soundness. ([CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md).)
-- **Two games, not one.** The Endoporeutic **contest** (Dau's six-rule proof game)
-  and the inner **semantic** evaluation game (peel G against a model M → a
+- **Two games, not one.** The [Endoporeutic](GLOSSARY.md#endoporeutic) **contest** (Dau's six-rule proof game)
+  and the inner **semantic** evaluation game ([peel](GLOSSARY.md#peel) (reading it from the outside in against the model) G against a model M → a
   three-valued Kleene verdict + witness/counterexample) are kept distinct and
   bridged by deiteration. [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md),
   [AUTOMATED_GRAPHEUS.md](AUTOMATED_GRAPHEUS.md).
@@ -248,7 +248,7 @@ cured into one consistent whole.
 **Shortest path in:**
 1. [ARISBE_FOR_SCHOLARS.md](ARISBE_FOR_SCHOLARS.md) — the scholar's introduction
    (and the specific questions it puts to readers in the Pietarinen tradition: the
-   *Agonothetes* construct, and the correspondence invariant as **mechanized
+   *[Agonothetes](GLOSSARY.md#agonothetes)* (the role that turns the game's outcome into an act of inquiry) construct, and the correspondence invariant as **mechanized
    iconicity** — the claim that the graph *is* the proposition, not a notation for
    it).
 2. The departures, plain then precise:
@@ -269,7 +269,7 @@ cured into one consistent whole.
   dotted line for "the real world." Polarity is named **in words, never by colour**.
   [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md).
 - **To assert is to take responsibility** (Peirce's 1906 Phemic Sheet) — an *act*,
-  not a feature of the drawing. Arisbe marks the seam the everyday presentations
+  not a feature of the drawing. Arisbe marks the [seam](GLOSSARY.md#seam) the everyday presentations
   leave flush: posited premise (low warrant) vs. derived theorem (end of a sound
   chain). [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md).
 - **For publication:** the authentic-Peirce **LaTeX/TikZ export** reimplements the

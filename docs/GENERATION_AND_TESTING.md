@@ -2,7 +2,7 @@
 
 **Status**: design-of-record · **Drafted**: 2026-06-11
 
-> The question: the Endoporeutic Game peels a proposition outside-in against a model
+> The question: the [Endoporeutic](GLOSSARY.md#endoporeutic) Game [peels](GLOSSARY.md#peel) a proposition outside-in against a model
 > M (eliminative), whereas proof-building, generalizing, and abducing head the other
 > way (additive). Where does the Agon/Ergasterion boundary fall — and what is the
 > dialogue the arena only stubs today?
@@ -18,12 +18,12 @@
 The directionality the question names is real, but it is not the mode boundary by
 itself; it is the difference between **making** a candidate sign and **testing** one.
 Ergasterion generates candidate signs by any of the three reasonings; Agon puts them
-at risk and decides what the result means. Generation is warrant-*claiming*; testing
+at risk and decides what the result means. Generation is [warrant](GLOSSARY.md#warrant)-*claiming*; testing
 is warrant-*conferring*.
 
 ## An episode of the Endoporeutic Game has three parts
 
-Agon *is* this episode. Its basic framing tests **"given M, then G"** — evaluate the
+Agon *is* this [episode](GLOSSARY.md#episode). Its basic framing tests **"given M, then G"** — evaluate the
 proposal G against the reference world M, and decide what to do with the result.
 
 ```
@@ -71,7 +71,7 @@ peel* (whose witness, which conjunct) plus the *freedom of the decision*.
    means *complete M*. The peel makes the **grounds** visible (M's denial vs M's
    silence); the decision rests on collateral warrant the verdict alone cannot
    supply. So part 3 annotates dispositions by the verdict but **never narrows or
-   auto-asserts** — the meaning stays the Agonothetes' to assign.
+   auto-asserts** — the meaning stays the [Agonothetes](GLOSSARY.md#agonothetes)' (the role that turns the game's outcome into an act of inquiry) to assign.
 
 ## The reasonings, located
 

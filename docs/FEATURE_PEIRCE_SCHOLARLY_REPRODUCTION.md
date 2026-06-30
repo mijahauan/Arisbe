@@ -119,7 +119,7 @@ Extracts: V, E, Cut, area, nu mappings
 |---|---|---|---|
 | 1 | LaTeX export button | **Done (Organon)** | `web_viewer/organon.html` export panel → `peirce-tikz` format; deferred for Ergasterion (see note) |
 | 2 | Data Transfer Object ([DTO](GLOSSARY.md#dto)) → TikZ bridge | **Obsolete / done** | `peirce_latex.export_peirce_latex(dto, egi)` consumes the `LayoutDTO` directly — no "render commands" intermediary |
-| 3 | Peirce fidelity (waver / ink) | **Mostly done** | `peirce_latex.py` + `tex/arisbe-eg.sty`: hand-drawn waver, organic ligature routing, crossing bridges, iconic scroll glyph. Handwriting-font / ink-bleed deferred (niche) |
+| 3 | Peirce fidelity (waver / ink) | **Mostly done** | `peirce_latex.py` + `tex/arisbe-eg.sty`: hand-drawn waver, organic ligature routing, crossing bridges, iconic [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then") glyph. Handwriting-font / ink-bleed deferred (niche) |
 | 4 | CGIF / CLIF / FOPL parsers | **Done** | `cgif_parser_dau.py`, `clif_parser_dau.py`, `chapter18_fopl_translation.py` — production, round-trip tested |
 | 5 | Drawing mode | **Done** | `web_viewer/js/freeform-canvas.js` + `drawing_to_egi.py` (draw-then-read, Graph↔Argument lock) |
 | 6 | Template library | **Deferred** | Largely covered by the seeded corpus + the in-app primer (`web_api/routes/primer.py`) |

@@ -1,7 +1,7 @@
 # Linear–Graphical Correspondence: The Central Invariant
 
 **Status**: Active contract — stated, tested, and runtime-attested (last revised 2026-06-07). The §7 property tests (`tests/test_correspondence_invariant.py`) and the §3.3 runtime hook (`src/correspondence_attestation.py`, wired into the web layout service) are in place.
-**Scope**: Specification of the correspondence between an Existential Graph Instance ([EGI](GLOSSARY.md#egi))'s linear written form and its graphical drawn form. This document defines the contract that every other workstream (transformation rules, layout, rendering, sessions, the three modes, the Endoporeutic Game) must respect.
+**Scope**: Specification of the correspondence between an Existential Graph Instance ([EGI](GLOSSARY.md#egi))'s linear written form and its graphical drawn form. This document defines the contract that every other workstream (transformation rules, layout, rendering, sessions, the three modes, the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game) must respect.
 
 **A third correspondence** (cognitive, validation-only): [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SET.md) proposes **diagram ↔ natural-language narration** as a *falsifiable check* on how a reasoning process is scoped for a bounded attention. It is a validator, **not** a new assertion regime — nothing enters the corpus through it.
 
@@ -15,7 +15,7 @@ We call that contract the **linear–graphical correspondence**: in any state as
 
 This spec is the source of truth for:
 
-- Property tests that audit correspondence (`tests/test_correspondence_invariant.py`, all six §7 shapes against the tomos corpus).
+- Property tests that audit correspondence (`tests/test_correspondence_invariant.py`, all six §7 shapes against the [tomos](GLOSSARY.md#tomos) corpus).
 - Design reviews of features touching parse, generate, layout, render, transform, or undo/redo.
 - Decisions about which user interactions are permitted in which mode.
 - Future work on alternative projections (3-D visualization, stylus drawing input, accessibility renderings).
@@ -44,9 +44,9 @@ A drawing has glyphs at coordinates, cuts as nested regions with continuous boun
 
 But graphical space is itself two-layered, and this distinction is load-bearing:
 
-- **Natural representation space — potentially n-dimensional.** Some logical configurations don't embed naturally on a plane. A ligature crossing through many cuts may need to make a path that visually intersects other ligatures it has no logical relation to. Sibling cuts have no logical left/right ordering, yet a planar layout must choose one. Peirce himself worked in a richer space than the page: he invoked the *back* of the sheet for negation (the cut as a *physical cut*, exposing the verso), bridge marks for ligature crossings, distinct curve styles for distinct identities. The space where the logical structure naturally lives may have more degrees of freedom than the page.
+- **Natural representation space — potentially n-dimensional.** Some logical configurations don't embed naturally on a plane. A ligature crossing through many cuts may need to make a path that visually intersects other ligatures it has no logical relation to. Sibling cuts have no logical left/right ordering, yet a planar layout must choose one. Peirce himself worked in a richer space than the page: he invoked the *back* of the sheet for negation (the cut as a *physical cut*, exposing the [verso](GLOSSARY.md#verso) (the negated side)), bridge marks for ligature crossings, distinct curve styles for distinct identities. The space where the logical structure naturally lives may have more degrees of freedom than the page.
 
-- **Projected representation space — typically 2-D, the screen.** What the user actually sees. A *projection* of the natural representation, governed by stated **conventions**: how ligature crossings are disambiguated (bridge marks? gap markers?), how sibling cut order is chosen (canonical labeling? user preference?), how depth or recto/verso is indicated if needed, what shape conventions distinguish ligatures from predicate hooks. Conventions are introduced as the system commits to them; Gamma-level Existential Graphs ([EGs](GLOSSARY.md#eg)) (Peirce's modal, temporal, and abstractional extensions) will require further conventions and are an expected future source of them.
+- **Projected representation space — typically 2-D, the screen.** What the user actually sees. A *projection* of the natural representation, governed by stated **conventions**: how ligature crossings are disambiguated (bridge marks? gap markers?), how sibling cut order is chosen (canonical labeling? user preference?), how depth or [recto](GLOSSARY.md#recto)/verso is indicated if needed, what shape conventions distinguish ligatures from predicate hooks. Conventions are introduced as the system commits to them; Gamma-level Existential Graphs ([EGs](GLOSSARY.md#eg)) (Peirce's modal, temporal, and abstractional extensions) will require further conventions and are an expected future source of them.
 
 This split matters because the correspondence has to hold *through the projection*. A 2-D drawing that obeys the conventions can be unambiguously parsed back to the natural representation, and from there to the EGI. A 2-D drawing that *silently* breaks a convention is a correspondence failure — even if the underlying logical map is intact. Conventions are part of the contract.
 
@@ -90,7 +90,7 @@ So correspondence is **syntax in the broad logician's sense** — formation of
 the *bilingual* object (picture-and-proposition-as-one), not the grammar of
 the linear string alone (a string can parse and still be drawn into a lie),
 and not semantics (that is truth, gate 3). Its failure is not falsehood but
-**voidness** — *"not even wrong,"* the dismissal attributed to the physicist
+**[voidness](GLOSSARY.md#voidness)** — *"not even wrong,"* the dismissal attributed to the physicist
 Wolfgang Pauli (German *nicht einmal falsch*) for a claim too ill-formed to be
 either true or false. The mechanism of an integrity
 failure is precise: it is *using a rule and breaking it in the same act*. To

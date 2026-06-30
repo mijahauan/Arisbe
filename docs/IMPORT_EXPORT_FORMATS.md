@@ -179,7 +179,7 @@ corpus.save_uod(uod)
 
 **Use Cases**:
 
-- Complete tomos storage
+- Complete [tomos](GLOSSARY.md#tomos) storage
 - Metadata preservation
 - History tracking
 - Layout persistence
@@ -329,7 +329,7 @@ Import Universe of Discourse
 > **⚠️ PLANNED API.** The `ImportExportManager` shown below is **not yet
 > implemented** — it sketches the unified import/export manager listed under
 > "Organon Integration 🔄" above. Today, importing happens through the `/import`
-> route (linear forms at low warrant) and exporting through
+> route (linear forms at low [warrant](GLOSSARY.md#warrant)) and exporting through
 > `export_service.render_export(...)` / the export route; the individual
 > parsers/generators (`egif_parser_dau`, `cgif_generator_dau`, …) are callable
 > directly. Treat this section as a design sketch.

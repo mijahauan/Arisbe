@@ -67,7 +67,7 @@
 | Drawing→EGI builder | SHIPPED | `drawing_to_egi.py` → `test_drawing_to_egi.py` | "fix = read"; corpus round-trip via `same_graph`. |
 | Legible EGI diff | SHIPPED | `egi_diff.py` → `test_egi_diff.py` | structure/missing/extra/scope/incidence/order, content-aligned. |
 | TikZ / export rendering (geometric) | SHIPPED | `web_api/services/tikz_export.py`, `export_service.py` | Dau/Sowa coordinate TikZ; `/export` formats EGIF / CGIF / CLIF / SVG / TikZ / PNG / PDF. |
-| Authentic-Peirce LaTeX export | SHIPPED (phase 1+2) | `peirce_latex.py` + `tex/arisbe-eg.sty` → `test_peirce_latex.py` | `peirce-tikz` format: oval cuts, heavy lines of identity, hooks; pure TikZ, pdflatex-native (no PSTricks); wedded to the §3.3-attested Data Transfer Object ([DTO](GLOSSARY.md#dto)); delta-faithful (regime-3 nudges thread through `/export`). Phase 2: **iconic self-continuing scroll glyph** (opt-in `scroll_glyph`, ink-only), **worked-chain → multi-figure LaTeX document** (`export_peirce_chain`, `POST /export/chain`), **drawing→EGI learning loop** (`layout_learning.py`: `arrangement_deltas` + `generalize_arrangement` → style ladder). |
+| Authentic-Peirce LaTeX export | SHIPPED (phase 1+2) | `peirce_latex.py` + `tex/arisbe-eg.sty` → `test_peirce_latex.py` | `peirce-tikz` format: oval cuts, heavy lines of identity, hooks; pure TikZ, pdflatex-native (no PSTricks); wedded to the §3.3-attested Data Transfer Object ([DTO](GLOSSARY.md#dto)); delta-faithful (regime-3 nudges thread through `/export`). Phase 2: **iconic self-continuing [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then") glyph** (opt-in `scroll_glyph`, ink-only), **worked-chain → multi-figure LaTeX document** (`export_peirce_chain`, `POST /export/chain`), **drawing→EGI learning loop** (`layout_learning.py`: `arrangement_deltas` + `generalize_arrangement` → style [ladder](GLOSSARY.md#style-ladder)). |
 
 ---
 
@@ -78,7 +78,7 @@
 | Universe of Discourse entity | SHIPPED | `universe_of_discourse.py` → `test_universe_of_discourse.py` | Synchronic EGI + diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) + deltas. |
 | Branching transformation history | SHIPPED | `egi_transformation_history.py` → `test_egi_transformation_history.py` | Immutable states; append-only DAG. |
 | Corpus persistence (`TomosService`) | SHIPPED | `tomos_service.py` → `test_chain_persistence.py` | save/load attest §3.3 at the boundary; chain JSONL. |
-| Provenance + warrant / standing | SHIPPED | `provenance.py` → `test_provenance.py` | `standing_of` → posited/derived/withstood badge. |
+| Provenance + [warrant](GLOSSARY.md#warrant) / standing | SHIPPED | `provenance.py` → `test_provenance.py` | `standing_of` → posited/derived/withstood badge. |
 | Presentation deltas + style ladder | SHIPPED | `presentation_deltas.py`, `style_loader.py`, `style_specification.py` → `test_presentation_deltas.py`, `test_styles.py` | Sparse regime-3 exemplars; extrapolation. |
 | Liveness / desuetude | SHIPPED | `liveness.py` → `test_liveness.py` | Reversible retire/revive. |
 | Annotations | SHIPPED | `annotations.py` → `test_annotations.py` | Persistent element metadata. |
@@ -98,11 +98,11 @@
 | Challenge mode | SHIPPED | `challenge_mode.py` → `test_challenge_mode.py`, `test_ergasterion_challenge.py` | Difficulty gradient; graded by `same_graph` + diff; dragon targets. |
 | Fold-to-define (abstraction) | SHIPPED | `definitions.py`, `eg_splice.py` → `test_definitions.py`, `test_ergasterion_define*.py` | Name a subgraph, reuse as one spot; local + reversible. |
 | Composition palette / ops | SHIPPED | `composition_ops.py` → `test_composition_ops.py` | Regime-1 palette; per-branch phases. |
-| **Agon** — Endoporeutic Game | PARTIAL (V1) | `endoporeutic_game.py`, `web_api/routes/agon.py` → `test_epg_exemplar_scripts.py`, `test_agon_routes.py` | Triadic framing; **hot-seat** (one user, both roles); nothing auto-asserts. Deferred: full auto-opponent UX, dynamic-M. |
-| Agon — interpretation register | SHIPPED | `semantic_game.py`, `domain_oracle.py`, `agon_models.py` → `test_semantic_game.py`, `test_agon_interpretation.py` | Choose M → peel G outside-in → Kleene verdict + witness/counterexample + transcript. |
+| **Agon** — [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game | PARTIAL (V1) | `endoporeutic_game.py`, `web_api/routes/agon.py` → `test_epg_exemplar_scripts.py`, `test_agon_routes.py` | Triadic framing; **hot-seat** (one user, both roles); nothing auto-asserts. Deferred: full auto-opponent UX, dynamic-M. |
+| Agon — interpretation register | SHIPPED | `semantic_game.py`, `domain_oracle.py`, `agon_models.py` → `test_semantic_game.py`, `test_agon_interpretation.py` | Choose M → [peel](GLOSSARY.md#peel) G outside-in → Kleene verdict + witness/counterexample + transcript. |
 | Agon — where-it-holds (inverse pivot) | SHIPPED | `web_api/routes/agon.py` → `test_agon_interpretation.py` | Ranks domains: holds / partial / independent / contradicts. |
 | Automated Grapheus (minimax opponent) | SHIPPED | `grapheus.py` → `test_grapheus.py` | Move-by-move contest; minimax over the peel. |
-| Disposition taxonomy (Agonothetes) | SHIPPED | `web_api/services/agonothetes.py` → `test_agon_routes.py` | Verdict-annotated; nothing auto-asserts. |
+| Disposition taxonomy ([Agonothetes](GLOSSARY.md#agonothetes)) | SHIPPED | `web_api/services/agonothetes.py` → `test_agon_routes.py` | Verdict-annotated; nothing auto-asserts. |
 | Cross-mode context reflex | SHIPPED | `web_viewer/js/context-reflex.js`, `introspection.py` → `test_context_reflex_e2e.py` | Ground (universe/standing/derivation) + enclosing-cut breadcrumb. **Overlay docking open — ROADMAP #5.** |
 | Shared diagram viewer (pan/zoom/camera) | SHIPPED | `web_viewer/js/diagram-viewer.js` | One component all three modes use. |
 | Newcomer "first graph" primer | SHIPPED | `web_viewer/js/primer.js`, `web_api/routes/primer.py` → `test_primer_route.py`, `test_primer_e2e.py` | The four marks + EGIF key + worked first graphs drawn by the real engine; dragon chips deep-link into challenge mode. "New here?" on every mode page + the home door. ROADMAP #4 stage 2(b). |

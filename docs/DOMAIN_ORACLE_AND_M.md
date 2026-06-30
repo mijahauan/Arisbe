@@ -1,16 +1,16 @@
 # The Domain Oracle: situating a graph in "enough" of a model M
 
 **Status**: design-of-record · **steps 1–3 + the inverse pivot + theory query (§6.2)
-BUILT** (oracle + peel + materialization + `/agon` interpretation register & inverse
+BUILT** (oracle + [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) + materialization + `/agon` interpretation register & inverse
 search 2026-06-11; ontology-as-M / terminological box ([T-box](GLOSSARY.md#t-box)) theorem deduction 2026-06-12) · remaining:
-oracle scale steps 4–6 (cache → horizon → SPARQL) · **Drafted**: 2026-06-11
+oracle scale steps 4–6 (cache → [horizon](GLOSSARY.md#horizon) → SPARQL) · **Drafted**: 2026-06-11
 
 > **On *rendering* M** (vs. holding it): see [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SET.md) §3, §11.
 > M is axis (iii) of the scale problem; the answer is to draw only the relevant *neighborhood* G touches (the
 > oracle's ego-graph slice) with a horizon map-symbol — never M in full. "M queried, not held" is itself the
 > extended-mind / long-term-working-memory precedent (cues, not content).
 
-> The question this answers: the Endoporeutic Game tests a proposal G against a
+> The question this answers: the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game tests a proposal G against a
 > domain model **M** — "the outside" that enables the outside-in interpretation.
 > But we can't pull in all knowledge, and yet we need *enough* to ground
 > interpretation, confirmation, refutation, or the admission of a new fact. How
@@ -22,7 +22,7 @@ an implementation; it fixes the *shape* of the problem and the first step.
 
 Related: [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) (where M comes
 from, the outside-in process), [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md)
-(warrant gradient; *attest correspondence, not truth*),
+([warrant](GLOSSARY.md#warrant) gradient; *attest correspondence, not truth*),
 [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)
 (the diachronic Universe of Discourse ([UoD](GLOSSARY.md#uod)) that M's growth is an instance of).
 
@@ -44,7 +44,7 @@ Everything reduces to localized membership / homomorphism / witness queries.
 
 So the contact surface is **an oracle interface, not a bulk import.** The game
 engine stays Existential Graph Instance ([EGI](GLOSSARY.md#egi))-native and source-agnostic; behind the oracle sits whatever can
-answer those queries — the local tomos corpus, a Wikidata SPARQL endpoint, a
+answer those queries — the local [tomos](GLOSSARY.md#tomos) corpus, a Wikidata SPARQL endpoint, a
 SNOMED service, a WordNet lookup. The consequence is the whole point:
 
 > "Enough" stops being a property of M's *coverage* and becomes a property of
@@ -73,7 +73,7 @@ when the backing does.
 
 1. **Vocabulary-bounded.** The proposal's signature (its predicates and
    individuals) seeds the whole interaction. You only ever touch terms the graph
-   mentions, plus their *scrolls* — and subsumption is already a scroll in the
+   mentions, plus their *[scrolls](GLOSSARY.md#scroll)* (a nested double cut — "if … then") — and subsumption is already a scroll in the
    corpus model, so the relevant **type spine** around those terms is the only
    hierarchy you need, never the instance mass beneath it. An ego-graph of
    radius *n* around the signature, not the ontology.
@@ -120,7 +120,7 @@ how a situated interpreter stands.
 
 The deepest form of the worry — "who decides what's relevant, and won't it be
 arbitrary?" — is resolved by making **the choice of M the opening move of the
-game**: an Agonothetes/Grapheus act. *"I will test this against Wikidata,
+game**: an [Agonothetes](GLOSSARY.md#agonothetes) (the role that turns the game's outcome into an act of inquiry)/Grapheus act. *"I will test this against Wikidata,
 neighborhood radius 2, this fragment asserted-complete."* Recorded, warranted,
 contestable. Relevance *is* a judgment; the honest place for it is owned by
 someone and open to challenge, not buried in a config file.
@@ -134,7 +134,7 @@ not truth* already protects this boundary.
 
 ## 4a. The Alpha home of the episode: the scroll, and model-revision as INS
 
-The episode "given M, then G" is not an extra-systematic frame bolted onto the
+The [episode](GLOSSARY.md#episode) "given M, then G" is not an extra-systematic frame bolted onto the
 calculus — it has a home in Alpha. "P given M" is the **scroll**
 `cut[ M cut[P] ]` = M → P: P sits at *even* depth inside (affirmed-relative-to-M),
 M at *odd* depth, in a **negative** context. Two consequences make the register
@@ -193,7 +193,7 @@ Sequence:
    negative-area pick. Built directly on the public EGI API, not the protected
    isomorphism engine (a negation-free `g` has no cuts, so the embedding is small
    and well-defined).
-2. **[DONE 2026-06-11]** The semantic-game seam — `src/semantic_game.py`,
+2. **[DONE 2026-06-11]** The semantic-game [seam](GLOSSARY.md#seam) — `src/semantic_game.py`,
    `tests/test_semantic_game.py` (15 tests). `evaluate(egi, oracle)` reads G
    outside-in and asks the oracle (`match_atoms` / `individuals`, added to the
    interface this step) at each negation-free layer; returns a three-valued

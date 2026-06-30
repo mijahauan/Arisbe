@@ -4,7 +4,7 @@
 > against the connected literature and existing software — written to *distinguish real contribution
 > from faithful re-implementation*, not to flatter the project. Based on three adversarial
 > web-research sweeps (2026-06-27): the [EG](GLOSSARY.md#eg)-software landscape, the formal/theoretical claims, and the
-> endoporeutic/iconicity claims. Every claim below traces to a cited source; where evidence was
+> [endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in)/iconicity claims. Every claim below traces to a cited source; where evidence was
 > "not found" rather than "proven absent," that is stated.
 >
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) · [CAPABILITY_MAP.md](CAPABILITY_MAP.md).
@@ -44,7 +44,7 @@ must cite) · **CANNOT DETERMINE**.
 | 3 | **Four-way linear round-trip** (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif))/Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif))/Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))/First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl))) bound to one drawn object | **OPERATIONALIZED** | The notations + their mappings are **Sowa's design + ISO/IEC 24707 Common Logic** — *not* Arisbe's. Binding all four to one drawn EG under a checked invariant is the new part, not the formats. |
 | 4 | **"A DRS is a Beta EG"; the EG↔DRT bridge operationalized** | **OPERATIONALIZED (high overclaim risk)** | The isomorphism is **explicitly Sowa's** ("DRS … isomorphic to Peirce's existential graphs"), tracing to Kamp 1981 — *must be cited, never claimed*. The novel part is narrow: the **Centering/focus-stack scorer** aligning EG transforms with Discourse Representation Theory ([DRT](GLOSSARY.md#drt)) discourse updates (no prior art found). |
 | 5 | **Modality without Gamma; the diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) is the drawn Kripke frame** | **OPERATIONALIZED (caveat)** | "□/◇ → quantifiers over an accessibility relation" is the **standard translation** (van Benthem); Gamma ≅ S4/S5 is **Zeman (1964)**; sheets-as-worlds is widely read into Peirce. "No modal mark needed" runs *against* Ma & Pietarinen, who defend Gamma's diagrammatic advantages. Only the *history-DAG-as-drawn-frame* framing is original. |
-| 6 | **The Endoporeutic Game as an operational model-checking engine** | **OPERATIONALIZED** | Endoporeutic-as-game is **Hilpinen (1982)** + **Hintikka GTS (1973)** + **Pietarinen, _Signs of Logic_ (2006)** — including the outside-in peel and the "lazy, SQL-like" evaluation analogy. 3-valued model-checking with witnesses + minimax are standard. The *running implementation* as an EG evaluator appears new. |
+| 6 | **The Endoporeutic Game as an operational model-checking engine** | **OPERATIONALIZED** | Endoporeutic-as-game is **Hilpinen (1982)** + **Hintikka GTS (1973)** + **Pietarinen, _Signs of Logic_ (2006)** — including the outside-in [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) and the "lazy, SQL-like" evaluation analogy. 3-valued model-checking with witnesses + minimax are standard. The *running implementation* as an EG evaluator appears new. |
 | 7 | **"Logic in pictures, not pictures of logic" / iconicity** | **ESTABLISHED (as philosophy)** | A paraphrase of **Stjernfelt's operational iconicity** and Peirce's "moving pictures of thought" (Shin 2002; Bellucci & Pietarinen). The *banner* is not novel; the *engineering that realizes it* is where any contribution lives. |
 
 ---

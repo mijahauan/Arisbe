@@ -25,7 +25,7 @@ logic via van Benthem; the first-order-with-identity modality the §2 constructi
 features lies beyond that theorem and carries its own declared commitments. The
 load-bearing claim — **no new mark** — is untouched; the unconditional
 completeness boast is scoped down to adequacy.)* Peirce reached for the broken cut and then
-the tinctures to carry modality on a single static sheet; the *modal* load they were
+the [tinctures](GLOSSARY.md#tincture) (Peirce's Gamma colourings) to carry modality on a single static sheet; the *modal* load they were
 meant to bear is carried by the diachronic structure Arisbe already maintains and
 attests — though "without remainder" is too strong, and the honest ledger of what is
 and isn't carried is set out below ("What not using Gamma costs").
@@ -67,7 +67,7 @@ readings:
 
 - **The trajectory reading** (provability / derivability modality). Worlds are
   **sheets** — the immutable Existential Graph Instance ([EGI](GLOSSARY.md#egi)) states; *R* is the **legal-transition relation**
-  of the derivation directed acyclic graph ([DAG](GLOSSARY.md#dag)). Then "◇φ" is "some legal trajectory scribes φ" and "□φ"
+  of the derivation directed acyclic graph ([DAG](GLOSSARY.md#dag)). Then "◇φ" is "some legal trajectory [scribes](GLOSSARY.md#scribe) φ" and "□φ"
   is "every legal trajectory scribes φ." This is the diachronic gloss the
   conversation reaches by a different road: *possibility is the **branching** of
   legal trajectories, necessity is their **convergence**, and the only necessity
@@ -82,8 +82,8 @@ readings:
 - **The alethic reading** (□ = true in all accessible worlds). Worlds are the
   corpus's several **Universes of Discourse ([UoDs](GLOSSARY.md#uod)) / models M**; *R* is an accessibility relation drawn
   **among** them. The corpus is already a *library of universes*, mutually
-  inconsistent without contradiction (MANIFEST floor #5). Modal force becomes the
-  Endoporeutic Game's quantification over the choice of M — which the interpretation
+  inconsistent without contradiction (MANIFEST [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #5). Modal force becomes the
+  [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game's quantification over the choice of M — which the interpretation
   register already performs (`/agon/where-it-holds`, the inverse pivot across
   models). The conversation names this lineage outright: *the dialogical
   relativization to M does the modal work the older syntactic operators reached
@@ -357,7 +357,7 @@ one day be readmitted — but only as a **map symbol**: a non-load-bearing
 indicator that *the diachronic/FOL detail exists here* and is expansible on
 demand, gated by an expansion law that forces it to unfold to the real frame. It
 would recover concision without surrendering the drawn frame, and it would bear no
-actuality (MANIFEST floor #6). **This is a horizon, not a present build** — recorded
+actuality (MANIFEST floor #6). **This is a [horizon](GLOSSARY.md#horizon), not a present build** — recorded
 here so that if the temptation returns, it returns through the one gate that keeps
 it honest.
 
@@ -421,13 +421,13 @@ better information or changed need. Conferred-yet-answerable is the needle the w
 account threads, and the diachronic framing threads it without either horn (MANIFEST
 floor #4; realized in part by [`src/liveness.py`](../src/liveness.py)). "Free to
 demote" even has a formal home in Alpha — model revision is INS on the negative-context
-antecedent of the scroll `cut[ M cut[G] ]` — see
+antecedent of the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then") `cut[ M cut[G] ]` — see
 [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5.
 
 And the ground. The conversation stakes a **third position** on what "demote"
 answers to. Within any chosen game, the modal vocabulary really is just bookkeeping
 over legal trajectories — *eliminative about the would-be*. But the **blank sheet**
-— the one separation Arisbe cannot draw, the membrane between the whole sheet and
+— the one separation Arisbe cannot draw, the [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets the world) between the whole sheet and
 the world it is *of* (MANIFEST, "The membrane") — is not another would-be and not a
 bigger model. It is *realist about the ground*: the un-enclosable containment any
 game whatsoever presupposes, shown by structure (every graph stands on a sheet it

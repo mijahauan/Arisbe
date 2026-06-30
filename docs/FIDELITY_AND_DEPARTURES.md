@@ -43,11 +43,11 @@ three cases narrower and more honest than the first draft:
    parity, with "reality" reserved for the encountered ground as a choice, not a
    refutation. The committed content is much narrower than the original headline.
 2. **Nothing *derived*-contingent floats free at level 0** *(was: "nothing
-   contingent can be said")* — the demonstrative recto bears form, not derived
+   contingent can be said")* — the demonstrative [recto](GLOSSARY.md#recto) (the asserted side of the sheet) bears form, not derived
    contingent content; the assertoric register's office to *posit* a premise is
    preserved. Survives, as a scope-correction the docs already half-stated.
 3. **Gamma's *modal* program is not needed** *(was: "Gamma is not needed at
-   all")* — no new modal *mark* (broken cut, tincture) is needed; the architecture
+   all")* — no new modal *mark* (broken cut, [tincture](GLOSSARY.md#tincture) (Peirce's Gamma colourings)) is needed; the architecture
    stands. The *completeness* boast is scoped to propositional modal logic; the
    second-order program is the real frontier. Survives, amended.
 
@@ -64,7 +64,7 @@ voice, below.
 ## 1. The devotion — what Arisbe takes from Peirce wholesale
 
 State the debt first, because the departures are unintelligible without it. None
-of these is hedged; they are the floor.
+of these is hedged; they are the [floor](GLOSSARY.md#floor) (the baseline that may not be gone under).
 
 - **The aim.** Peirce did not build the graphs to draw logic prettily but to
   *analyze reasoning* — a "moving picture of thought," a "rough and generalized
@@ -86,10 +86,10 @@ of these is hedged; they are the floor.
   the snapshot, is the unit of meaning. This reading is offered as Peircean in
   spirit, not as a quotation, and the codebase is organized around it.
 
-- **The dialogical test.** "Endoporeutic" is Peirce's own word for reading a
+- **The dialogical test.** "[Endoporeutic](GLOSSARY.md#endoporeutic)" is Peirce's own word for reading a
   graph from the outside in, as a transaction between a defender and a skeptic.
   For Peirce the game is not a gloss on the logic — it is *how the logic means*.
-  Arisbe's Agon is that conviction made operational: a graph's warrant is what
+  Arisbe's Agon is that conviction made operational: a graph's [warrant](GLOSSARY.md#warrant) is what
   survives the contest, not what the drawing asserts.
 
 - **Fallibilism and the community of inquiry.** No belief is incorrigible;
@@ -126,7 +126,7 @@ position is a **joint, not a dissolution**, with two rungs that must not be merg
 
 **First order — secured.** "Is *P* or ¬*P* nearer the real?" / "this graph is at
 distance *d* from the world" is a **non-locution** — pointless, not false. A
-representation is a term in the sequence of inquiry; it cannot scribe its own
+representation is a term in the sequence of inquiry; it cannot [scribe](GLOSSARY.md#scribe) its own
 distance to that sequence's limit, since the limit (if any) is the limit *of* the
 sequence, not a coordinate available *within* a term of it. This holds whether or
 not the regress of standards closes. It is the same first-order discipline the
@@ -165,7 +165,7 @@ charge in the examination.
 
 **Negative orientation — secured.** Inquiry is driven from behind, away from doubt
 and error; a standing is held until overturned by what thinking does not control;
-the Agon peels and prunes (IT−, DC−, ERA); liveness retires what falls from use.
+the Agon [peels](GLOSSARY.md#peel) (reading it from the outside in against the model) and prunes (IT−, DC−, ERA); liveness retires what falls from use.
 This is Peirce's own *Fixation of Belief* engine, and it is convergence *in*
 reality under push — granted in full. Peirce's discriminator between science and
 tenacity is **overturnability** by what our thinking does not control, not
@@ -223,13 +223,13 @@ lives; depth 0 is the asserted ground; cuts deny.
 
 **The Arisbe position.** Level 0 is not a surface that says something true; on its
 depth-0 marks **no contingent saying is constituted by the marks themselves**. The
-recto bears *form* — the scroll, the conditional scaffolding, structures valid or
+recto bears *form* — the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then"), the conditional scaffolding, structures valid or
 model-relative — and the *demonstrative* recto cannot **derive** contingent
 content; the bare depth-0 position does not, by itself, assert it. (We do not deny
 the assertoric register its primary office — positing a contingent premise — see
 below; the claim is about what the *marks* and the *depth* constitute, not a ban
 on positing.) There are **two registers**, and the fault — in the formal and
-diagrammatic EG presentations, not in proof theory generally (which marks the seam
+diagrammatic EG presentations, not in proof theory generally (which marks the [seam](GLOSSARY.md#seam)
 with the turnstile Γ⊢φ vs ⊢φ) nor in the dialogical strand (Pietarinen, Hintikka,
 which already supplies context-as-ground) — is conflating them:
 
@@ -515,7 +515,7 @@ it already ranges over Omega and the Final Opinion; what A *performs* is the ref
 grant tradition's respectable, on-record termini the dignity-exemption their owners
 might have spared. That is a use of owned content and good pedagogy (the FSM is the
 memorable way to teach the universal), not a new claim. Ends *in context* — arguments
-end, episodes end, a player conceives a goal and lays plans to win — are real
+end, [episodes](GLOSSARY.md#episode) end, a player conceives a goal and lays plans to win — are real
 throughout; A obviates no ends, only the context-less terminus *the game is said to
 serve*.
 
@@ -601,7 +601,7 @@ and is meant never to: at every ranking surface Arisbe builds — the **warrant 
 real, or **context-free Progress**. A badge read as a worth-ladder *is* the field-guide
 dragon ([FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md), no. 6), whatever the
 tooltip says. And A's agency-imagery, taken as a positive claim, would bear actuality
-across the membrane and is *better not drawn* (floor #6) — kept strictly as imagery.
+across the [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets the world) and is *better not drawn* (floor #6) — kept strictly as imagery.
 
 ---
 

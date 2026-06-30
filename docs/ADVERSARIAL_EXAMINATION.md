@@ -15,9 +15,9 @@ This document records the result of an adversarial examination of the three poin
 
 The departures examined:
 
-- **Departure I** — *Non-convergence.* Inquiry need not converge on a final opinion; the real is "upstream and around," an un-enclosable ground that pushes back at the membrane without ever being a settled terminus.
-- **Departure II** — *Level zero bears form, not content.* The two registers (demonstrative/derived vs. assertoric/posited); the level-0 soundness theorem; the scroll as the Alpha home of defeasibility; warrant provenance as a runtime gradient.
-- **Departure III** — *Modality without Gamma.* No new modal mark (no broken cut, no tincture) is needed; the standard translation over Arisbe's diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) discharges the modal logics with first-order-definable frames; the irreducible residue is second-order, not modal.
+- **Departure I** — *Non-convergence.* Inquiry need not converge on a final opinion; the real is "upstream and around," an un-enclosable ground that pushes back at the [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets the world) without ever being a settled terminus.
+- **Departure II** — *Level zero bears form, not content.* The two registers (demonstrative/derived vs. assertoric/posited); the level-0 soundness theorem; the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then") as the Alpha home of defeasibility; [warrant](GLOSSARY.md#warrant) provenance as a runtime gradient.
+- **Departure III** — *Modality without Gamma.* No new modal mark (no broken cut, no [tincture](GLOSSARY.md#tincture) (Peirce's Gamma colourings)) is needed; the standard translation over Arisbe's diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) discharges the modal logics with first-order-definable frames; the irreducible residue is second-order, not modal.
 
 **Headline result:**
 
@@ -79,13 +79,13 @@ Three moves:
 
 At the level of *substance*, the defense neutralizes every charge: the two-register distinction is real, the level-0 theorem is a correct soundness fact, the scroll genuinely is the Alpha home of defeasibility, and the warrant-gradient operationalization is a contribution the prosecution itself concedes. Internally the author does **not** hold "no contingent thing can be asserted at depth 0" — §4 and §7 say the assertoric register's "primary office" is to bear unenclosed contingent premises. That is what saves the doctrine.
 
-The charge lands on the **prose**, and the defense concedes six of seven charges. The deepest surviving point is *assertion-4*, which the defense grants rather than answers: **model-revision-as-INS (§5) presupposes an M already scribed**, and the scribing of that antecedent M is an *unconditioned* posit the scroll machinery cannot itself supply. So the document's own thesis — "the saying happens always-already conditioned, inside" — is strictly **false for the antecedent M**: every scroll requires at least one unconditioned positing. The reply ("M enters at low warrant via Agon, not as a theorem") concedes exactly this — low warrant is still a posit on the recto. This is a substantive gap, not a wording slip, and §8's own admission that the constitutive-vs-diagrammatic joint is "left genuinely open" means the constitutive reading underwriting "always-already conditioned" is assumed, not established.
+The charge lands on the **prose**, and the defense concedes six of seven charges. The deepest surviving point is *assertion-4*, which the defense grants rather than answers: **model-revision-as-INS (§5) presupposes an M already scribed**, and the scribing of that antecedent M is an *unconditioned* posit the scroll machinery cannot itself supply. So the document's own thesis — "the saying happens always-already conditioned, inside" — is strictly **false for the antecedent M**: every scroll requires at least one unconditioned positing. The reply ("M enters at low warrant via Agon, not as a theorem") concedes exactly this — low warrant is still a posit on the [recto](GLOSSARY.md#recto) (the asserted side of the sheet). This is a substantive gap, not a wording slip, and §8's own admission that the constitutive-vs-diagrammatic joint is "left genuinely open" means the constitutive reading underwriting "always-already conditioned" is assumed, not established.
 
 Three families of wording are demonstrably false as written:
 
 - **(a) The bare "cannot say."** "we cannot say anything at level 0" (LEVEL_ZERO 17, 245; FIDELITY 145), stated flatly in the register where "say" most naturally means "assert a contingent premise" — which §4/§7 affirm the SA does. Contradicts the author's own text and Peirce's Phemic-Sheet reading, on which the recto is exactly where, by the responsibility-act, one *does* say.
 - **(b) "A constitutional rule about what the Sheet of Assertion is for."** (LEVEL_ZERO 208) Its own next paragraph restricts the rule to the demonstrative recto. Calling it constitutional of the whole SA (which also hosts the assertoric office) is a category slip; properly scoped, it reduces to the trivial theorem-not-premise point.
-- **(c) The unqualified "the literature" / "the tradition" / "buried" / "equivocation."** (FIDELITY 175, 253–256, 264–273) Overclaims against proof theory (Γ⊢φ vs. ⊢φ marks the seam maximally) and against the dialogical strand (Pietarinen/Hintikka supply context-as-ground). The silence charge is true only of *in-the-picture Existential Graph ([EG](GLOSSARY.md#eg)) diagrammatic exposition*.
+- **(c) The unqualified "the literature" / "the tradition" / "buried" / "equivocation."** (FIDELITY 175, 253–256, 264–273) Overclaims against proof theory (Γ⊢φ vs. ⊢φ marks the [seam](GLOSSARY.md#seam) maximally) and against the dialogical strand (Pietarinen/Hintikka supply context-as-ground). The silence charge is true only of *in-the-picture Existential Graph ([EG](GLOSSARY.md#eg)) diagrammatic exposition*.
 
 ### The author's best answer
 
@@ -99,7 +99,7 @@ None of the falsities is fatal, because each is corrected elsewhere in the same 
 
 Four edits, all narrowing scope to what the docs already concede internally:
 
-1. **Qualify every unhedged "cannot say."** Replace "a surface that *cannot say*" / "we cannot say anything at level 0" with: *"a surface on whose depth-0 marks no contingent saying is constituted by the marks themselves — the demonstrative recto cannot DERIVE contingent content, and the bare depth-0 position does not, by itself, assert it."* Keep "the only assertion worth the word is the one that scribes itself where it can still be wrong."
+1. **Qualify every unhedged "cannot say."** Replace "a surface that *cannot say*" / "we cannot say anything at level 0" with: *"a surface on whose depth-0 marks no contingent saying is constituted by the marks themselves — the demonstrative recto cannot DERIVE contingent content, and the bare depth-0 position does not, by itself, assert it."* Keep "the only assertion worth the word is the one that [scribes](GLOSSARY.md#scribe) itself where it can still be wrong."
 2. **Demote the "constitutional rule."** Replace "a constitutional rule about what the Sheet of Assertion is *for*: it holds form, not free-floating content" with: *"a constitutional rule about what the demonstrative recto holds as form: the calculus delivers form, never bare contingent content — the assertoric office to posit a contingent premise is preserved alongside, unaffected."*
 3. **Index every silence/seam/buried claim in-line.** Replace "the literature" / "the tradition" / "the alpha/beta textbook tradition buried it" with: *"the formal/syntactic and diagrammatic EG presentations (Zeman, Roberts, Dau) — NOT proof theory generally, which marks premise/theorem with the turnstile, nor the dialogical strand (Pietarinen, Hintikka), which already supplies context-as-ground."* Downgrade "buried equivocation" to *"a condition the formal expositions leave implicit and Arisbe makes operational"*; drop the claim that the seam is "unmarked" anywhere but in single-diagram exposition.
 4. **Amend the "always-already conditioned, inside" thesis** to acknowledge the antecedent posit it requires: *the scroll relocates contingent content inside, but the model M in cut[M cut[P]] is itself scribed by an unconditioned posit that enters at LOW warrant via import/Agon — the thesis is "no DERIVED contingent content floats free at level 0," not "nothing is ever posited unconditioned."*
@@ -133,7 +133,7 @@ Two further over-reaches must be amended:
 
 ### The author's best answer
 
-The no-new-mark thesis is rescued in every case: a line carried across the DAG is still no broken cut and no tincture. The non-FO cases are not counterexamples demanding a mark — they are the second-order residue the author already keeps (§7). Frame-selection-as-feature is coherent: the document offers two readings (trajectory/derivability and alethic/S5) as *different* frames for different work, and the corpus-as-library-of-universes makes "which frame" a chooseable, drawn object. On @, floor #6 turns the alleged contradiction into a *confirmed prediction*: the membrane forbids any mark from bearing actuality, so forgoing @ is the floor doing its intended work, not an oversight.
+The no-new-mark thesis is rescued in every case: a line carried across the DAG is still no broken cut and no tincture. The non-FO cases are not counterexamples demanding a mark — they are the second-order residue the author already keeps (§7). Frame-selection-as-feature is coherent: the document offers two readings (trajectory/derivability and alethic/S5) as *different* frames for different work, and the corpus-as-library-of-universes makes "which frame" a chooseable, drawn object. On @, [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #6 turns the alleged contradiction into a *confirmed prediction*: the membrane forbids any mark from bearing actuality, so forgoing @ is the floor doing its intended work, not an oversight.
 
 ### Rationale
 
@@ -836,7 +836,7 @@ ultimate *terminus ad quem* of philosophy and theology. So A never asserted an
 agency across the membrane (the naturalist's floor-#6 charge presupposed it did);
 A is a **reductio** that refuses to let anyone — self or tradition — scribe a
 context-less ultimate end. Crucially, this **does not obviate ends at all**:
-arguments end, episodes end, a player conceives a goal and lays plans to win the
+arguments end, [episodes](GLOSSARY.md#episode) end, a player conceives a goal and lays plans to win the
 Game — every such end *enclosed in a context*. What is dissolved is only the
 **unverifiable, context-less, un-contingent end**, "just like we denied the
 unenclosed proposition on level 0." A is thereby re-seated as the twin of Departure
@@ -1102,7 +1102,7 @@ resting place lacked.
 break.*
 
 - **Gate the claim by method, not the agent by identity.**
-  - *Adherence:* in Agon a proposal is peeled against the model and tested by the rules **whoever** drew it; the
+  - *Adherence:* in Agon a proposal is [peeled](GLOSSARY.md#peel) (reading it from the outside in against the model) and tested by the rules **whoever** drew it; the
     warrant badge it earns describes the *graph*, never the person. A newcomer's graph and a laureate's graph
     meet the same §3.3.
   - *Breaking:* "we needn't test that — look who's proposing it." Dismissal by author. (Historic break: the

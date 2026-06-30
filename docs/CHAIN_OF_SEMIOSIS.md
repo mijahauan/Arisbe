@@ -76,7 +76,7 @@ on its own:
   edit; it is a *justified* relation between the two signs. It is what
   carries the meaning of the first forward into the second while
   preserving denotation.
-- **A reasoning episode is therefore a chain of semiosis.** A proof, an
+- **A reasoning [episode](GLOSSARY.md#episode) is therefore a chain of semiosis.** A proof, an
   argument, an inquiry — each is an unbroken sequence of sign-transitions,
   every link of which is a sound step. The chain *is* the thought, made
   examinable.
@@ -93,7 +93,7 @@ snapshot, is the unit of meaning ([UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVER
 
 ## Every rule application is an attestation event
 
-Here is the load-bearing claim. In Arisbe, **a step and its warrant are
+Here is the load-bearing claim. In Arisbe, **a step and its [warrant](GLOSSARY.md#warrant) are
 the same act.** You do not first make a change and then, separately, check
 whether the change was legitimate. The only way to advance the chain is to
 apply a rule, and a rule will not apply unless its preconditions hold. The
@@ -168,9 +168,9 @@ context. Until then it is a *form*: convenient, suggestive, possibly
 deceptive, but not yet an assertion. (See "The regimes and the chain,"
 below, and [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md) §4.)
 
-**Two registers, and the seam the textbooks erase.** An EG drawing can stand in
+**Two registers, and the [seam](GLOSSARY.md#seam) the textbooks erase.** An EG drawing can stand in
 either of two provenances, and the literature's habit of printing both flush
-together — "scribe on the sheet = assert" — erases a real distinction. A
+together — "[scribe](GLOSSARY.md#scribe) on the sheet = assert" — erases a real distinction. A
 *derived* graph is **demonstrative**: reached from the blank by truth-preserving
 steps, it inherits the blank sheet's warrant — this is the **chain** above. A
 *posited* graph is **assertoric**: a premise scribed on the Sheet of Assertion,
@@ -241,7 +241,7 @@ two are held in the same chord; the full argument is in
 [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §8 and
 [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md), "The membrane.")*
 
-This is why **Agon** — the Endoporeutic Game — is not a third feature
+This is why **Agon** — the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game — is not a third feature
 sitting beside Organon and Ergasterion, but the mode in which the
 dialogical character the lone chain only *implies* becomes literal. It is
 also the most authentically Peircean of the three. "Endoporeutic" is

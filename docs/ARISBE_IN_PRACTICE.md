@@ -19,7 +19,7 @@ Charles Sanders Peirce called his Existential Graphs "moving pictures of
 thought." He meant that literally. A graph is not a diagram *about* a
 proposition the way a bar chart is a picture about some numbers; the graph
 **is** the proposition, drawn — a sign you can reason *in*, not merely look at.
-To assert something is to scribe it on the sheet; to prove something is to
+To assert something is to [scribe](GLOSSARY.md#scribe) it on the sheet; to prove something is to
 transform the picture by rules that never let it say something false; to ask
 what a claim means is to play it out against what you already hold true.
 
@@ -44,7 +44,7 @@ reasoner that hands you a verdict. When something must be turned from English
 into logic, that is a separate, noisy job best left to a language model or a
 semantic parser; Arisbe's contribution begins once a candidate logical form
 exists — to *verify* it, *draw* it, *interpret* it against a world, and keep its
-*warrant*. It is the trustworthy interpretant behind the parser, not the parser.
+[*warrant*](GLOSSARY.md#warrant). It is the trustworthy interpretant behind the parser, not the parser.
 
 ---
 
@@ -138,7 +138,7 @@ to them — the only thing that ever transfers.
 
 **Kwame works across two fields that have never been formally introduced.** He
 has bodies of knowledge in ecology and economics and a hunch that a claim
-spanning both might hold. He needs the precise logical seam where one domain's
+spanning both might hold. He needs the precise logical [seam](GLOSSARY.md#seam) where one domain's
 conclusions become another's premises.
 
 **Now.** Kwame studies two corpora side by side in **Organon**, identifies the
@@ -382,7 +382,7 @@ counterexample. Week 4: "some fish regulate partially" — a contradiction she
 resolves by **revising** the rule. 
 
 *Education is not the transfer of facts.* It is the guided construction of
-understanding through proposing, testing, and revising — each episode leaving her
+understanding through proposing, testing, and revising — each [episode](GLOSSARY.md#episode) leaving her
 with a richer model and the experience of having reasoned her way to it.
 
 ## Scenario 6: Bridging two bodies of knowledge — *a merged theorem*

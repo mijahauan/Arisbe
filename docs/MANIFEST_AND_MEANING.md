@@ -1,6 +1,6 @@
 # Manifest and Meaning
 
-*The philosophical floor beneath Arisbe — a bridge from the first chapter
+*The philosophical [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) beneath Arisbe — a bridge from the first chapter
 of the Tao Te Ching to the engineering commitments of this project. Read
 it beside [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md): that document
 gives the Peircean grounding of the reasoning chain; this one gives the
@@ -39,9 +39,9 @@ more**.
 |---|---|
 | *Our tales — slender threads in its telling; our names — brief glimmers of its naming.* (The Tao told is not the eternal Tao.) | Every linear form, every graph, every domain model is a **telling**, never the ground. The real (Peirce's *dynamical object*) exceeds every interpretant. So **no representation is final**: each is a determination, held open to revision. |
 | *All things — distinct in unbegotten, unfathomable union.* (The nameless, beginning of heaven and earth.) | The **blank sheet of assertion** is that union: the only unequivocal truth, a fullness that says nothing because it withholds nothing. The ten thousand graphs are scribings upon it. It is the **fixed point of erasure** — the one inviolable element. |
-| *...naming and knowing each other.* (The ten thousand things in mutual relation.) | Meaning is **relational, and settled in use**: a mark means not by itself but through its **interpretant** — what it does in conduct, how the community takes it up and holds it to account. Things name and know *each other*; no mark names alone. So fact-versus-lie is a matter of *commitment*, never of ink — which is why warrant is earned in the **Agon**, not conferred by the drawing. |
+| *...naming and knowing each other.* (The ten thousand things in mutual relation.) | Meaning is **relational, and settled in use**: a mark means not by itself but through its **interpretant** — what it does in conduct, how the community takes it up and holds it to account. Things name and know *each other*; no mark names alone. So fact-versus-lie is a matter of *commitment*, never of ink — which is why [warrant](GLOSSARY.md#warrant) is earned in the **Agon**, not conferred by the drawing. |
 | *Manifest and meaning sound in the same chord.* (The two spring from one source, differ in name.) | The **linear↔graphical correspondence** — picture and proposition, one object sounded twice. This *is* Arisbe's central engineering problem. **§3.3 attests the chord holds** — correspondence, never truth. |
-| *Detaching, one glimpses the sea; desiring, one rides the waves.* (Desireless, the mystery; desiring, the manifestations.) | Two stances, one water: the **diachronic process** (the sea — the living, reconsidering Universe of Discourse) and the **synchronic move** (the wave — a single Existential Graph ([EG](GLOSSARY.md#eg)), an assertion). Detachment is readiness to **erase**; desire is the move that **scribes**. |
+| *Detaching, one glimpses the sea; desiring, one rides the waves.* (Desireless, the mystery; desiring, the manifestations.) | Two stances, one water: the **diachronic process** (the sea — the living, reconsidering Universe of Discourse) and the **synchronic move** (the wave — a single Existential Graph ([EG](GLOSSARY.md#eg)), an assertion). Detachment is readiness to **erase**; desire is the move that **[scribes](GLOSSARY.md#scribe)**. |
 | *An inscrutable mystery of mysteries, and yet a threshold of understanding.* (The gate to all understanding.) | The ground we stand within and cannot survey is both **limit** (we never know for sure) and **enabling condition** (inquiry proceeds within it, corrected by it). The **Agon** is that threshold made operational — where warrant rises and falls, never settles. |
 | *(The turn beneath it all:)* the ground comprehends us; we speak within it. | The system must **encode its own fallibility**: every Universe of Discourse ([UoD](GLOSSARY.md#uod)), domain model included, is a partial determination, surrenderable. We are signs among signs, not surveyors. |
 
@@ -55,7 +55,7 @@ would have nothing to represent and no one to represent it to; only across a
 boundary does an outside become something to model, anticipate, and bet upon.
 (Peirce's first word for the cut was *sep* — a separation.) Arisbe draws its
 internal seps freely — the cuts that part asserted from denied, actual from
-notional — but the one separation it cannot draw is the outermost: the membrane
+notional — but the one separation it cannot draw is the outermost: the [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets the world)
 between the whole sheet and the world the sheet is *of*. To draw that would
 demand another sheet, and the regress never closes. The blank sheet is how
 Arisbe honors that membrane without depicting it — the unmarked inner face
@@ -113,7 +113,7 @@ discipline is the same. We hold them in the same chord, and leave the choice liv
    supply is **logical defeasibility** (content held under negation, walkable
    back); **empirical falsifiability** — Popper's world-facing exposure — is the
    membrane's business, not the mark's. And assertion itself has a formal home in
-   the calculus: the **scroll** `cut[ M cut[P] ]` ("P given M"), where revising M
+   the calculus: the **[scroll](GLOSSARY.md#scroll)** `cut[ M cut[P] ]` ("P given M"), where revising M
    is just INS on the negative-context antecedent — the Alpha warrant for the
    diachronic "free to demote." See
    [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md).
@@ -134,7 +134,7 @@ discipline is the same. We hold them in the same chord, and leave the choice liv
 6. **No mark bears actuality.** A mark may encode logical *form* — negation,
    conditionality, modality — but never actuality. Whether a telling is *so*
    is deferred, not depicted: it lives in use, in the game played out in deeds,
-   never in the ink. Any modal mark (a dotted line, a tincture) is admissible
+   never in the ink. Any modal mark (a dotted line, a [tincture](GLOSSARY.md#tincture) (Peirce's Gamma colourings)) is admissible
    only as *form within the notional*; the moment it would claim "this is the
    world," it has crossed a membrane no mark crosses.
    **And for modality in particular, no mark is needed at all.** The standard

@@ -7,7 +7,7 @@
 > blank sheet is the only unconditioned thing and it asserts nothing; every contingent
 > claim enters *conditioned* (inside a cut), so it can always still be challenged.
 
-*Scribing, assertion, and the limits of the sheet — why the recto bears form
+*Scribing, assertion, and the limits of the sheet — why the [recto](GLOSSARY.md#recto) (the asserted side of the sheet) bears form
 and the saying happens always-already conditioned, inside.*
 
 *A philosophy-spine companion to
@@ -29,11 +29,11 @@ never floating free on the bare recto. In consequence there is **no unconditione
 anywhere.**
 
 The claim has a demonstrative half and an assertoric half, and the calculus closes the
-seam between them:
+[seam](GLOSSARY.md#seam) between them:
 
 - **Demonstratively**, no legitimate derivation from the blank yields an unenclosed
   *contingent* proposition (§3). The recto bears *form* — the conditional scaffolding,
-  the scroll, structures valid or model-relative — and never bare contingent content.
+  the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then"), structures valid or model-relative — and never bare contingent content.
 - **Assertorically**, a contingent *given* still cannot sit unconditioned on the recto,
   because the **Alpha asymmetry forbids it**: insertion is a permission of *negative*
   contexts only; the positive recto can be *erased from*, never *inserted into*. A
@@ -59,7 +59,7 @@ interpretive meaning. That obligation *is* the central correspondence problem, t
 guide's "context reflex," the three regimes, and §3.3, all at once.
 
 This vindicates an unease that is *correct*, not a misunderstanding: the literature's
-"scribe on the sheet = assert" compresses a real bifurcation, and the compression is the
+"[scribe](GLOSSARY.md#scribe) on the sheet = assert" compresses a real bifurcation, and the compression is the
 source of the trouble.
 
 ---
@@ -77,7 +77,7 @@ universe, under what commitments a scribing counts as an assertion at all.
 Level 0 has no enclosing cut, so under enclosure it reads "contextless." But the
 absence of a bounding line is not the absence of context. **The sheet supplies
 context not by bounding the graph but by grounding it** — it is the unenclosable
-sheet wearing work clothes (see MANIFEST, "The membrane"). So "no context at
+sheet wearing work clothes (see MANIFEST, "The [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets the world)"). So "no context at
 level 0" is true of context-as-enclosure and quietly false of context-as-ground,
 and the formal literature's silence on the latter is what unsettles a careful
 reader.
@@ -158,7 +158,7 @@ a premise, which could never be a product of the calculus it is drawn next to. T
 books' sin is to print it in the assertoric register, flush against the
 demonstrative permissions, **without marking the seam** — so the reader cannot tell
 "someone asserts this, take it as given" from "the system delivers this." Two
-categorically different **provenances** — *posited-under-warrant* versus
+categorically different **provenances** — *posited-under-[warrant](GLOSSARY.md#warrant)* versus
 *derived-truth-preservingly* — erased by one undifferentiated drawing.
 
 **Arisbe already marks the seam the literature elides.** The two provenances are
@@ -205,7 +205,7 @@ grounds Arisbe's whole interpretation register in Alpha:
   affirmed (positive context), insert freely where things are conditioned (negative
   context).** The fallibility wanted as a uniform regime *is* that asymmetry.
 
-This is exactly the episode Arisbe already runs. The scroll `cut[ M cut[G] ]` is
+This is exactly the [episode](GLOSSARY.md#episode) Arisbe already runs. The scroll `cut[ M cut[G] ]` is
 the Alpha shape of **"given M, then G"** — the interpretation register's episode
 ([DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md), `src/semantic_game.py`,
 `src/theory_query.py`, `/agon/interpret`). Model-revision-as-INS-on-M is the
@@ -268,7 +268,7 @@ easy to run together:
   observation. The calculus does not supply this; it lives in the act of exposure,
   across the membrane, where world and sign touch.
 
-This sharpens MANIFEST floor #2 (*falsifiability is in the rules, not a policy*):
+This sharpens MANIFEST [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #2 (*falsifiability is in the rules, not a policy*):
 what is *in the rules* is logical defeasibility — the Alpha asymmetry above. The
 world-facing half is the membrane's business, not the mark's.
 

@@ -19,7 +19,7 @@ drawn form** — picture and proposition denoting the same mathematical object
 across every transformation, every re-layout, every edit, every round-trip. The
 system is real and running: a transformation engine over Dau's six rules, a
 runtime correctness attestation, a curated corpus of worked proofs and imported
-ontologies, three working modes (archive, workshop, and an Endoporeutic-Game
+ontologies, three working modes (archive, workshop, and an [Endoporeutic](GLOSSARY.md#endoporeutic)-Game
 arena), all behind a browser interface. It is also frankly unfinished in
 well-marked places, which is part of why this introduction exists.
 
@@ -70,8 +70,8 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
   model**, and imported **ontologies** (Porphyry's Tree, a FOAF slice, and the
   upper spine of SUMO translated from Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif))).
 - **An import doorway with a warrant model** — external material is admitted at
-  **low warrant** (parsed, §3.3-attested, attributed), never asserted true; the
-  philosophical floor is explicit (*attest correspondence, not truth*).
+  **low [warrant](GLOSSARY.md#warrant)** (parsed, §3.3-attested, attributed), never asserted true; the
+  philosophical [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) is explicit (*attest correspondence, not truth*).
 - **Three modes, in the browser** — **Organon** (a read-only archive/corpus
   browser), **Ergasterion** (a workshop for composing and transforming drafts),
   and **Agon** (the Endoporeutic-Game arena, V1: hot-seat play with the engine
@@ -90,7 +90,7 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
   rule applications with deterministic provenance; every item states its source
   and its warrant. The corpus is meant to grow by contribution.
 - **Probe the research claims directly.** The correspondence invariant, the
-  warrant/provenance model, and the *Agonothetes* construct (below) are all open
+  warrant/provenance model, and the *[Agonothetes](GLOSSARY.md#agonothetes)* (the role that turns the game's outcome into an act of inquiry) construct (below) are all open
   to critique — and the code is the argument: each is a module you can read, run,
   and try to break.
 
@@ -98,8 +98,8 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
 
 The Endoporeutic-Game side has advanced but remains the least finished. **Built**
 (2026-06-11): the inner **semantic game** as a first-class API
-(`src/semantic_game.py`) and Agon's **interpretation register** — the episode *given
-M, then G*: choose a reference model M, peel G against it to a three-valued verdict
+(`src/semantic_game.py`) and Agon's **interpretation register** — the [episode](GLOSSARY.md#episode) *given
+M, then G*: choose a reference model M, [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) G against it to a three-valued verdict
 (holds / fails / independent) with the deciding witness or counterexample named, with
 M **materializable** (facts + Horn rules → the least Herbrand model, so the syllogism
 works) and an **inverse pivot** ("in what domain does G hold?"). The conceptual

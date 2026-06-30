@@ -32,7 +32,7 @@ phase model) — this records *what composition becomes* and why.
    drawings; this trains the *human's*. The grader is isomorphism (`same_graph`),
    so it rewards **structure, not appearance** — a correct drawing may look nothing
    like the canonical render, which is itself the lesson (one linear form has many
-   correct drawings). The tomos corpus (87+ examples) is a ready challenge bank.
+   correct drawings). The [tomos](GLOSSARY.md#tomos) corpus (87+ examples) is a ready challenge bank.
 
 These share one new surface — a freeform drawing canvas — and one new logical
 piece — a **legible EGI diff** (the discrepancy report). Almost everything else
@@ -303,7 +303,7 @@ readable. *That* is the complete geometric realization of inerrant correspondenc
    missing / extra). Reused by both fix-time validity *and* challenge mode.
 4. **Challenge mode** in Ergasterion: pick a tomos linear form, hide its drawing,
    grade the freehand attempt with `same_graph` + the diff. Difficulty gradient
-   straight from the corpus: single relation → nested cuts (negation, the scroll)
+   straight from the corpus: single relation → nested cuts (negation, the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then"))
    → Beta with a shared line crossing a boundary (∀x(P→Q)), where scope errors are
    the gold.
 

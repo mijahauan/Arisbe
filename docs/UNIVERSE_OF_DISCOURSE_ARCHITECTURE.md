@@ -105,7 +105,7 @@ The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#e
 #### a. Asserting Facts
 - Introducing new EGI content into the Sheet of Assertion
 - Sources: Literature imports, Ergasterion promotions, direct user input
-- Validation: Must pass Endoporeutic Game challenge (Agon)
+- Validation: Must pass [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game challenge (Agon)
 
 #### b. Abduction
 - User proposes new hypothesis (subgraph)
@@ -159,7 +159,7 @@ The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#e
 
 **User Actions**:
 
-- Browse tomos of UoDs
+- Browse [tomos](GLOSSARY.md#tomos) of UoDs
 - Open historical UoD for inspection
 - Navigate transformation history
 - Export current state or proof sequence

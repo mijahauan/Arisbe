@@ -53,7 +53,7 @@ When the two come apart, the system has failed its central purpose — *not beca
 
 A crucial discipline: **correspondence is attested, never truth.** §3.3 certifies that *this linear
 form and this drawing denote the same graph* — it is internal consistency, *not* a claim that either
-is true of the world. A correspondence failure is not falsehood but *voidness* (Pauli's "not even
+is true of the world. A correspondence failure is not falsehood but *[voidness](GLOSSARY.md#voidness)* (Pauli's "not even
 wrong"). Truth is settled elsewhere — in use, in the Agon. See
 [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md).
 
@@ -67,7 +67,7 @@ the UI — see [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10.
 
 These are the commitments that may **not** be traded away. Everything else is negotiable engineering.
 
-1. **Dau's calculus is the correctness floor.** All six transformation rules (ERA, INS, IT+, IT−,
+1. **Dau's calculus is the correctness [floor](GLOSSARY.md#floor) (the baseline that may not be gone under).** All six transformation rules (ERA, INS, IT+, IT−,
    DC+, DC−) are implemented in full compliance, Beta-aware. The mathematical core test suite must
    always pass; a failing core test is a real correctness defect, not test noise.
 
@@ -81,7 +81,7 @@ These are the commitments that may **not** be traded away. Everything else is ne
 4. **The correspondence invariant, scoped to three regimes** (below). Mandatory where things are
    asserted; suspended where things are merely entertained.
 
-5. **We attest correspondence, never truth.** Warrant is a *gradient* (posited → derived → withstood)
+5. **We attest correspondence, never truth.** [Warrant](GLOSSARY.md#warrant) is a *gradient* (posited → derived → withstood)
    that rises by surviving challenge and can fall; "fact" is the defeasible status of the
    last-standing trajectory, never a glow in the ink. No mark bears actuality.
 
@@ -132,7 +132,7 @@ Condensed personas (the fuller narrative lives in [ARISBE_IN_PRACTICE.md](ARISBE
 - **The student** — composes freehand in **Ergasterion** (workshop): draw marks, fix them into a
   graph, practice transformations, and learn correspondence by being graded against a target
   (challenge mode).
-- **The researcher / domain expert** — contests a claim in **Agon**: pick a model M, peel a
+- **The researcher / domain expert** — contests a claim in **Agon**: pick a model M, [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) a
   proposition G against it, get a verdict + witness/counterexample, or ask "in what domain does G
   hold?" (the inverse pivot).
 - **The logician** — round-trips a form across modes and across four linear notations (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)) / Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)) /
@@ -148,7 +148,7 @@ Condensed personas (the fuller narrative lives in [ARISBE_IN_PRACTICE.md](ARISBE
 Alpha + Beta EGs in Dau's formalization; the six transformation rules; the diachronic UoD + branching
 DAG history; four round-tripped linear formats; the correspondence machinery (coordinate-free layout,
 §3.3 attestation, regime-3 presentation algebra, drawn→EG reading); the three web modes; freeform
-draw-then-read composition; the Endoporeutic Game (contest + interpretation registers); ontology/Web Ontology Language ([OWL](GLOSSARY.md#owl))/
+draw-then-read composition; the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game (contest + interpretation registers); ontology/Web Ontology Language ([OWL](GLOSSARY.md#owl))/
 Resource Description Framework ([RDF](GLOSSARY.md#rdf)) import as a *bridge*; an NL→logic front-end where "the LLM proposes, Arisbe disposes."
 
 ### Out of scope — deliberate, with reasons
@@ -164,7 +164,7 @@ Resource Description Framework ([RDF](GLOSSARY.md#rdf)) import as a *bridge*; an
 
 ### Deferred — wanted, not yet built
 Manchester OWL syntax (no maintained Python parser); a semantic layer + automated Grapheus opponent +
-dynamically-learned M for the Endoporeutic Game (a thin V1 ships today); Gamma *tinctures* as a
+dynamically-learned M for the Endoporeutic Game (a thin V1 ships today); Gamma *[tinctures](GLOSSARY.md#tincture)* (Peirce's Gamma colourings) as a
 non-load-bearing map symbol (channels reserved, forward-compatible by construction); the layout-perf
 frontier for very large ontologies. These live in [ROADMAP.md](ROADMAP.md).
 
@@ -183,7 +183,7 @@ The invariants a contributor should internalize before changing anything:
 - **Warrant is a gradient** — posited / derived / withstood; it rises and falls; nothing is exempt
   from being drawn back under a cut and challenged again.
 - **The blank sheet is the only unconditioned thing** — and it asserts nothing. No contingent
-  proposition sits unenclosed on the recto; every given enters under a cut, built from the blank by
+  proposition sits unenclosed on the [recto](GLOSSARY.md#recto) (the asserted side of the sheet); every given enters under a cut, built from the blank by
   legal nesting. See [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md).
 - **Local is primary, GitHub is backup** — the corpus on disk is the source of truth; pushes are
   backup, not collaboration.

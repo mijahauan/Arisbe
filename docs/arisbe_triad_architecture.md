@@ -26,7 +26,7 @@ The triad is not accidental. It reflects Peirce's irreducibly triadic conception
 
 No pair suffices. The Organon without the Ergasterion is a library no one writes for. The Ergasterion without the Agon produces signs that are never tested. The Agon without the Organon has nothing to test against. The three together form the minimal structure for the growth of understanding.
 
-This triadic structure recurs *within* the Agon itself, where the Graphist (representamen — produces the proposed sign), the Grapheus (object — the domain model the sign is tested against), and the Agonothetes (interpretant — the understanding the contest produces) form a sign-triad at the level of the individual game. See `docs/ENDOPOREUTIC_GAME_GUIDE.md` for the full account.
+This triadic structure recurs *within* the Agon itself, where the Graphist (representamen — produces the proposed sign), the Grapheus (object — the domain model the sign is tested against), and the [Agonothetes](GLOSSARY.md#agonothetes) (interpretant — the understanding the contest produces) form a sign-triad at the level of the individual game. See `docs/ENDOPOREUTIC_GAME_GUIDE.md` for the full account.
 
 ---
 
@@ -40,7 +40,7 @@ This triadic structure recurs *within* the Agon itself, where the Graphist (repr
 
 **Core functions**:
 
-- Browse the tomos (corpus) of Existential Graph Instance ([EGI](GLOSSARY.md#egi)) graphs by category and metadata
+- Browse the [tomos](GLOSSARY.md#tomos) (corpus) of Existential Graph Instance ([EGI](GLOSSARY.md#egi)) graphs by category and metadata
 - Import EGIs from linear forms (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)), First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl)))
 - View diagrams in multiple styles (Dau, Peirce, Sowa)
 - Inspect transformation history (diachronic view of a reasoning session)
@@ -110,7 +110,7 @@ result = InsertionRule().apply_transformation(context)
 
 ### Agon — Formal Game and Reasoning
 
-**Purpose**: Formal dialogical reasoning via the Endoporeutic Game, proof construction, semantic validation.
+**Purpose**: Formal dialogical reasoning via the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game, proof construction, semantic validation.
 
 **Location**: `src/web_api/routes/agon.py` + `src/web_viewer/agon.html` (arena), `src/endoporeutic_game.py` (engine)
 

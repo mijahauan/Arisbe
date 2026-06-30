@@ -28,10 +28,10 @@ draw all of them with a pen:
 
 - **The sheet** — the page. To **draw something on it is to assert it** (to claim
   it). The empty page asserts nothing, and so is simply **true**.
-- **A loop** — a closed curve (Peirce called it a **cut**). To put something inside
-  a loop is to **deny** it. One loop = **not**.
-- **Nested loops** — a loop inside a loop, with a claim in the ring between them,
-  reads as **"if … then …"**. (This shape has a name, the *scroll*; "if-then" is
+- **A cut** — a closed curve. To put something inside
+  a cut is to **deny** it. One cut = **not**.
+- **Nested cuts** — a cut inside a cut, with a claim in the ring between them,
+  reads as **"if … then …"**. (This shape has a name, the *[scroll](GLOSSARY.md#scroll)*; "if-then" is
   all you need.)
 - **A line** — a heavy line joining marks says **"the same one"**; a line on its
   own says **"something exists."**
@@ -46,9 +46,9 @@ has a typed form (called Existential Graph Interchange Format ([EGIF](GLOSSARY.m
 |----------|----------|--------------|
 | `(Cat *x)` | "there is a cat" — `*x` starts a **new** line | a spot labelled *Cat* on a fresh line |
 | `(On x *y)` | "…it is on some *y*" — bare `x` reuses the **same** line | the same line, now also at *On* |
-| `~[ … ]` | a **loop** around `…` — "**not** …" | a cut enclosing those marks |
-| `~[ A ~[ B ] ]` | "**if** A **then** B" — A in the ring, B nested deeper | nested loops (the scroll) |
-| `~[ ]` | a loop around **nothing** = **false** (the impossible) | an empty cut |
+| `~[ … ]` | a **cut** around `…` — "**not** …" | a cut enclosing those marks |
+| `~[ A ~[ B ] ]` | "**if** A **then** B" — A in the ring, B nested deeper | nested cuts (the scroll) |
+| `~[ ]` | a cut around **nothing** = **false** (the impossible) | an empty cut |
 
 So `(Cat *x) (On x *y) (Mat y)` is just "a cat is on a mat," and
 `~[ (Human *x) ~[ (Mortal x) ] ]` is "if something is human, then it is mortal."
@@ -72,7 +72,7 @@ from and can always be erased back to.
 single most important distinction in the whole guide, and the source of half the
 dragons:
 
-- You can **posit** it — scribe a premise, a thing you are *claiming*. "Take this
+- You can **posit** it — [scribe](GLOSSARY.md#scribe) a premise, a thing you are *claiming*. "Take this
   as given." It might be false.
 - You can **derive** it — reach it from the blank by the rules, which are
   truth-preserving. A derived graph *cannot* be false; the system handed it to
@@ -132,7 +132,7 @@ The confusion is real and it is not your fault: textbooks routinely print a
 **with no mark telling them apart**. Peirce's late work (the 1906 "Phemic
 Sheet") is clear that to assert is to *take responsibility* for a claim — an act,
 not a feature of the drawing — but the everyday alpha/beta presentations leave
-the seam unmarked. Arisbe marks it: a posited premise enters at **low warrant**
+the [seam](GLOSSARY.md#seam) unmarked. Arisbe marks it: a posited premise enters at **low [warrant](GLOSSARY.md#warrant)**
 (carrying where it came from), while a theorem is the end of a chain of sound
 steps. Same picture; two completely different standings; which one it is *is* the
 question.
@@ -292,7 +292,7 @@ precisely in `FIDELITY_AND_DEPARTURES.md`; you don't need either to start.
 
 You want to say "P is **possible**," and you reach for a new kind of ink — a
 dotted oval, a colored region. Peirce did too (he tried "broken cuts" and colored
-"tinctures" for years). Dragon: you don't need one.
+"[tinctures](GLOSSARY.md#tincture)" (Peirce's Gamma colourings) for years). Dragon: you don't need one.
 
 **The antidote:** "possibly P" means "**in some reachable situation**, P holds" —
 and "some situation" is just an *existence* claim, which the ordinary line of
