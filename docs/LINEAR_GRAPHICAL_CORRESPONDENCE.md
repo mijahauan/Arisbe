@@ -90,7 +90,9 @@ So correspondence is **syntax in the broad logician's sense** — formation of
 the *bilingual* object (picture-and-proposition-as-one), not the grammar of
 the linear string alone (a string can parse and still be drawn into a lie),
 and not semantics (that is truth, gate 3). Its failure is not falsehood but
-**voidness** — Pauli's *"not even wrong."* The mechanism of an integrity
+**voidness** — *"not even wrong,"* the dismissal attributed to the physicist
+Wolfgang Pauli (German *nicht einmal falsch*) for a claim too ill-formed to be
+either true or false. The mechanism of an integrity
 failure is precise: it is *using a rule and breaking it in the same act*. To
 draw cuts and lines at all is to invoke the EG conventions — that is what makes
 the marks readable as a graph; a line drawn through a cut it does not cross

@@ -205,8 +205,8 @@ grounds Arisbe's whole interpretation register in Alpha:
   affirmed (positive context), insert freely where things are conditioned (negative
   context).** The fallibility wanted as a uniform regime *is* that asymmetry.
 
-This is exactly the inning Arisbe already runs. The scroll `cut[ M cut[G] ]` is
-the Alpha shape of **"given M, then G"** — the interpretation register's inning
+This is exactly the episode Arisbe already runs. The scroll `cut[ M cut[G] ]` is
+the Alpha shape of **"given M, then G"** — the interpretation register's episode
 ([DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md), `src/semantic_game.py`,
 `src/theory_query.py`, `/agon/interpret`). Model-revision-as-INS-on-M is the
 Alpha-level warrant for treating the choice and refinement of M as a *move*
@@ -250,7 +250,7 @@ conflated "the calculus cannot fix *which* M" (true, and the proper contingency)
   **given in a negative context**, placed by `INS`; `P` is entertained relative to it.
   The frame is *set up* (composition, regime 1), the given brought to bear conditioned,
   and *which* `M` decided not by the calculus but in the world and the Agon (§6). This
-  is the interpretation register's "given M, then G" inning, with its antecedent
+  is the interpretation register's "given M, then G" episode, with its antecedent
   honestly conditioned rather than smuggled in unconditioned.
 
 ---

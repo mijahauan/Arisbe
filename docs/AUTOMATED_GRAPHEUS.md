@@ -174,7 +174,7 @@ Kleene** — an absent atom or an unsatisfiable existential lifts to `UNKNOWN`, 
 (`semantic_game.py` docstring; sound for supervaluation). We keep this overlay deliberately:
 
 - At a frontier the **Grapheus** owns where M returns `UNKNOWN` (no warranted move either way),
-  the Grapheus **declines**, and the Agonothetes records the inning as **independent** — G is
+  the Grapheus **declines**, and the Agonothetes records the episode as **independent** — G is
   neither confirmed nor refuted *in this M*. This is the honest open-world stalemate
   `ENDOPOREUTIC_GAME_GUIDE.md` makes first-class, and it is the natural hand-off to the
   **inverse pivot** (`/agon/where-it-holds`: "in what M *does* it hold?") and to widening M
@@ -205,7 +205,7 @@ This is the seam to the import↔Agon arc (`project_import_low_warrant_and_floor
    regime-2** — the missing link. The §3.3 attestation still attests *correspondence, not
    truth* (`mode contract`); the *warrant* the Play certifies is a separate, new axis.
 
-A Grapheus win records nothing to the corpus (G failed in M); an `independent` inning records
+A Grapheus win records nothing to the corpus (G failed in M); an `independent` episode records
 nothing but is worth surfacing (it is a result, and a prompt for the inverse pivot). Per the
 mode contract, **nothing auto-asserts** — the Agonothetes annotates a disposition, the human
 acts.
@@ -234,7 +234,7 @@ does.
 
 The Agonothetes' disposition taxonomy (`available_dispositions`, already verdict-annotated)
 gains the contest outcome as its evidence: a *deduction* disposition is warranted by a Graphist
-win; *independent* by an UNKNOWN inning; a Grapheus win blocks assertion.
+win; *independent* by an UNKNOWN episode; a Grapheus win blocks assertion.
 
 ---
 
@@ -273,8 +273,8 @@ a Grapheus that must concede because the transitive closure supplies the witness
    on UNKNOWN. Self-play reproduces `evaluate()`'s verdict on the corpus (the conformance test:
    driver-to-terminal value == one-shot peel value, every tomos G × the example models).
 2. **Routes + payload** — start/apply/get/concede over the driver; reuse model resolution +
-   `materialize`. Route tests: the five persona innings replay move-by-move to the same verdict;
-   a `skos_core` inning closes the broaderTransitive challenge.
+   `materialize`. Route tests: the five persona episodes replay move-by-move to the same verdict;
+   a `skos_core` episode closes the broaderTransitive challenge.
 3. **Frontend** — the interactive board; Playwright E2E (draw a proposal → contest a corpus M →
    reach a verdict → see the disposition).
 4. **The warrant step** — the corpus-boundary `ChainStep` "withstood Agon", referencing the
@@ -294,7 +294,7 @@ Increment 1 is the whole logical core; 2–4 are surface + persistence.
   conjuncts, the order in which the owner is asked is a strategic detail; the *value* is
   order-independent (the evaluator already exhausts it), but the *play* (and the transcript's
   legibility) depends on a chosen order. Default: outermost-first, then left-to-right by area
-  signature — confirm against a few hand-played innings.
+  signature — confirm against a few hand-played episodes.
 - **Imperfect information** (Pietarinen's hidden-role variant) — a later register, not now.
 - **Materialised vs. queried M during a long contest.** Materialising once up front (current
   `/interpret` behaviour) is simplest; demand-driven oracle queries mid-contest

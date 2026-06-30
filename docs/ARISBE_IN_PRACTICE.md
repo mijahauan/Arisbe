@@ -382,7 +382,7 @@ counterexample. Week 4: "some fish regulate partially" — a contradiction she
 resolves by **revising** the rule. 
 
 *Education is not the transfer of facts.* It is the guided construction of
-understanding through proposing, testing, and revising — each inning leaving her
+understanding through proposing, testing, and revising — each episode leaving her
 with a richer model and the experience of having reasoned her way to it.
 
 ## Scenario 6: Bridging two bodies of knowledge — *a merged theorem*

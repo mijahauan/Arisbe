@@ -98,7 +98,7 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
 
 The Endoporeutic-Game side has advanced but remains the least finished. **Built**
 (2026-06-11): the inner **semantic game** as a first-class API
-(`src/semantic_game.py`) and Agon's **interpretation register** — the inning *given
+(`src/semantic_game.py`) and Agon's **interpretation register** — the episode *given
 M, then G*: choose a reference model M, peel G against it to a three-valued verdict
 (holds / fails / independent) with the deciding witness or counterexample named, with
 M **materializable** (facts + Horn rules → the least Herbrand model, so the syllogism

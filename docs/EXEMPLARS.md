@@ -2,7 +2,7 @@
 
 > **What this is.** A short catalogue of the worked exemplars seeded into the corpus
 > so that Organon has things to read and Agon has somewhere to play: **proof
-> exemplars** (§2), **domain-model boards** (§3) and the curated **innings** that
+> exemplars** (§2), **domain-model boards** (§3) and the curated **episodes** that
 > wire them into the game picker (§4), a **branching-modality** episode (§5), and a
 > **model that transforms through dialog** (§6). It is a guide to *what is there and
 > why*, not a how-to for authoring more (that pattern lives in the `tools/build_*.py`
@@ -10,7 +10,7 @@
 >
 > **Companions:** [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) (how a board is
 > queried as a model M) · [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md)
-> (the inning *given M, then G*) · [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
+> (the episode *given M, then G*) · [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
 >
 > *Created 2026-06-29.*
 
@@ -98,13 +98,13 @@ vs. closed — closing the world is what turns a sample into a law.
 
 ---
 
-## 4. Playing them — the curated innings
+## 4. Playing them — the curated episodes
 
-`src/agon_models.py` gains three `ExampleModel` innings that wire the boards into the
+`src/agon_models.py` gains three `ExampleModel` episodes that wire the boards into the
 Agon model picker (`GET /agon/models`) with a ready sample proposal each, so a
 newcomer can select one and immediately see the peel:
 
-| Inning id | Board | Proposal | Verdict |
+| Episode id | Board | Proposal | Verdict |
 |---|---|---|---|
 | `zoo-chain` | zoo_world | every dog is warm-blooded | TRUE (via the materialized chain) |
 | `zoo-refuted` | zoo_world | every warm-blooded thing is a mammal | FALSE (names Pip) |
@@ -112,7 +112,7 @@ newcomer can select one and immediately see the peel:
 
 The boards are *also* selectable directly by UoD id (the picker lists every corpus
 UoD), with the curated entries being the one-click on-ramp. A test
-(`tests/test_new_exemplars.py`) pins each inning's advertised verdict, so the picker
+(`tests/test_new_exemplars.py`) pins each episode's advertised verdict, so the picker
 never promises an outcome the peel won't deliver.
 
 ---
@@ -146,7 +146,7 @@ It reads only DAG structure + Existential Graph Instance ([EGI](GLOSSARY.md#egi)
 ## 6. A domain model transforming through dialog
 
 `dialogue_model_revision` ([tools/build_dialog_model_evolution.py](../tools/build_dialog_model_evolution.py))
-shows a reference model M revised inning by inning and persisted as **its own
+shows a reference model M revised episode by episode and persisted as **its own
 history**. The standing proposal G = "every patient is insured" is peeled against M
 after each revision, and the verdict moves as the dialogue admits — and is unsettled
 by — evidence:
@@ -165,11 +165,11 @@ defeasible status of the last-standing trajectory
 ([MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
 [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5).
 
-### Across the taxonomy of inning outcomes — `dialogue_swan_revision`
+### Across the taxonomy of episode outcomes — `dialogue_swan_revision`
 
 The insurance dialogue walks a single disposition (`new_fact`) four times. But the
 **taxonomy of game outcomes** ([ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md)
-§"Taxonomy") is richer — *each inning ends in a disposition, and the model-revising
+§"Taxonomy") is richer — *each episode ends in a disposition, and the model-revising
 ones are different **Peircean modes of inference*** (§IV: deduction / induction /
 abduction). `dialogue_swan_revision`
 ([tools/build_swan_generalization.py](../tools/build_swan_generalization.py)) is the
@@ -188,7 +188,7 @@ Two things the insurance dialogue cannot show. **A law absorbs the newcomer:** a
 new individual arrives with no recorded colour yet G stays TRUE — the *generalization*
 forward-chains (white Dover), where insurance's Cal (no rule in M) flipped the verdict
 FALSE. Deduction over an inductive law vs a bare tally. **The irritation of doubt
-revises M:** the black swan refutes the law; the inning's outcome is *challenge-to-M*
+revises M:** the black swan refutes the law; the episode's outcome is *challenge-to-M*
 (2b) — the over-general law is **relinquished** (a genuine Dau ERA in the positive sheet)
 and the anomaly admitted. M is corrected by abduction — "the only logical operation which
 introduces any new idea."

@@ -48,7 +48,7 @@ place.
 
 **Built since (2026-06-11):** the inner **semantic game** is now a first-class API
 (`src/semantic_game.py`) and is wired into Agon as the **interpretation register** —
-the inning *given M, then G* (choose M → peel G against M → decide). The
+the episode *given M, then G* (choose M → peel G against M → decide). The
 *constructive* direction (INS/IT+/DC+) is now located as **making in Ergasterion**,
 not an Agon mode: the eliminative peel is the game, additive construction is the
 workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
@@ -606,7 +606,7 @@ to it:
 | 2 · the birdwatcher (a new species, consistent + independent) | Case 3a — new fact | Induction |
 | 3 · the gardener (tomatoes in the shade) | Case 2b — challenge to M / revision | (M-revision) |
 | 4 · the town planner (a mixed argument) | Case 6 — partial overlap (theorem + extension + conjecture) | Composite |
-| 5 · the zoology course (proposing, testing, revising) | Cases 1, 2b, 3a across innings | The full cycle |
+| 5 · the zoology course (proposing, testing, revising) | Cases 1, 2b, 3a across episodes | The full cycle |
 | 6 · ecology ↔ economics (a bridging argument) | Case 1 — theorem of the *merged* model | Deduction |
 
 A reader who wants the intuition first should read those scenarios, then return
@@ -1235,7 +1235,7 @@ when doubt arrives — and to not pretend it isn't there when it does.
 The preceding sections establish that meaning is produced by the triadic
 cycle: the Graphist proposes, the Grapheus resists, the Agonothetes
 interprets.  But there is a stronger claim implicit in the framework: **a
-single play of the EPG — one "inning" — situates the meaning of every term
+single play of the EPG — one "episode" — situates the meaning of every term
 it touches in a way that is simultaneously context-dependent and formally
 precise.**
 

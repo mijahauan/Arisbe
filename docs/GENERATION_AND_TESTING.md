@@ -21,9 +21,9 @@ Ergasterion generates candidate signs by any of the three reasonings; Agon puts 
 at risk and decides what the result means. Generation is warrant-*claiming*; testing
 is warrant-*conferring*.
 
-## An inning of the Endoporeutic Game has three parts
+## An episode of the Endoporeutic Game has three parts
 
-Agon *is* this inning. Its basic framing tests **"given M, then G"** — evaluate the
+Agon *is* this episode. Its basic framing tests **"given M, then G"** — evaluate the
 proposal G against the reference world M, and decide what to do with the result.
 
 ```
@@ -39,7 +39,7 @@ Part 2 is the semantic game (`src/semantic_game.py`); part 1 is a thin opening (
 existing Agon already frames `~[ M ~[ G ] ]`); part 3 is the disposition taxonomy
 (`agonothetes.py`). The frame `~[ M ~[ G ] ]` reads literally as **M → G**.
 
-## What the inning is *not*
+## What the episode is *not*
 
 There is **no separate dialogical-contest engine** with commitment ledgers to build.
 The "dialogue" that was under-described is **part 3** — the decision about the
@@ -65,7 +65,7 @@ peel* (whose witness, which conjunct) plus the *freedom of the decision*.
    tautologies. **Validity** (truth in *all* models) is established by **construction**
    in Ergasterion (the sound-step proof chain), not by the game.
 3. **The part-3 disposition is a judgment, not a function of the verdict.** Two
-   innings can return the same FALSE and mean opposite things — the student's
+   episodes can return the same FALSE and mean opposite things — the student's
    counterexample (Whale, which M *positively* records as warm-blooded) means
    *reject the generalization*; the physician's (Biscuit, on which M is *silent*)
    means *complete M*. The peel makes the **grounds** visible (M's denial vs M's
@@ -89,7 +89,7 @@ no direct workshop→corpus route.
 
 ## The inverse pivot (forward direction)
 
-Because the inning parameterizes on M (part 1 is choosing it), the same machinery
+Because the episode parameterizes on M (part 1 is choosing it), the same machinery
 turns around: **"in what domain does this proposition make sense?"** — run the peel
 across candidate models and rank by how well G holds. That is abductive
 context-retrieval; it reuses the oracle unchanged. See
@@ -111,4 +111,4 @@ context-retrieval; it reuses the oracle unchanged. See
 Related: [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) (the two formalisms),
 [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) (the regimes; asserted = withstood
 challenge), [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) (M as oracle),
-[ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) (the personas + worked innings).
+[ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) (the personas + worked episodes).

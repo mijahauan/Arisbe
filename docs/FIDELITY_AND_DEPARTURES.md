@@ -515,7 +515,7 @@ it already ranges over Omega and the Final Opinion; what A *performs* is the ref
 grant tradition's respectable, on-record termini the dignity-exemption their owners
 might have spared. That is a use of owned content and good pedagogy (the FSM is the
 memorable way to teach the universal), not a new claim. Ends *in context* — arguments
-end, innings end, a player conceives a goal and lays plans to win — are real
+end, episodes end, a player conceives a goal and lays plans to win — are real
 throughout; A obviates no ends, only the context-less terminus *the game is said to
 serve*.
 

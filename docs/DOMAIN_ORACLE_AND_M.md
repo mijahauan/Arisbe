@@ -132,9 +132,9 @@ not truth* already protects this boundary.
 
 ---
 
-## 4a. The Alpha home of the inning: the scroll, and model-revision as INS
+## 4a. The Alpha home of the episode: the scroll, and model-revision as INS
 
-The inning "given M, then G" is not an extra-systematic frame bolted onto the
+The episode "given M, then G" is not an extra-systematic frame bolted onto the
 calculus — it has a home in Alpha. "P given M" is the **scroll**
 `cut[ M cut[P] ]` = M → P: P sits at *even* depth inside (affirmed-relative-to-M),
 M at *odd* depth, in a **negative** context. Two consequences make the register
@@ -151,7 +151,7 @@ honest:
   (positive), insert freely where things are conditioned (negative). G held under
   M is *logically defeasible* by construction.
 
-So the semantic-game inning (`src/semantic_game.py`, `src/theory_query.py`,
+So the semantic-game episode (`src/semantic_game.py`, `src/theory_query.py`,
 `/agon/interpret`) and the inverse pivot (§7) are reading and revising a scroll.
 The full argument is in
 [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5; it is the
@@ -309,7 +309,7 @@ optionally materialized), and rank by relationship — **holds** (at home / a th
 **contradicts**. The partial-map residue (below) is surfaced concretely — e.g. a
 proposal `(coastal C) (generates_tourism C)` reads *partial* in the wetland model with
 residue `(generates_tourism C)`. The interface needed no change to `resolve`/the peel:
-the forward inning already parameterizes on M, so the inverse is iteration plus a
+the forward episode already parameterizes on M, so the inverse is iteration plus a
 coarse sheet-atom fit score. Original sketch below.
 
 The forward game is *given M, test G*. There is an inverse worth naming because

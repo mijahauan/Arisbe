@@ -135,7 +135,7 @@ Universe of Discourse you can browse in Organon and play as a **model M** in Ago
    (the back half is `clif_parser_dau`). See the tool/module table in that doc.
 3. Ask a question of it. In `/agon`, pick your imported ontology as M and let
    `theory_query.entails` decide a **subsumption / intersection / transitivity**
-   theorem — the "is G a theorem of this theory?" inning. The conceptual account is
+   theorem — the "is G a theorem of this theory?" episode. The conceptual account is
    [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) §6.2.
 
 **What you most want to know, stated honestly:**

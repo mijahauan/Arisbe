@@ -836,7 +836,7 @@ ultimate *terminus ad quem* of philosophy and theology. So A never asserted an
 agency across the membrane (the naturalist's floor-#6 charge presupposed it did);
 A is a **reductio** that refuses to let anyone — self or tradition — scribe a
 context-less ultimate end. Crucially, this **does not obviate ends at all**:
-arguments end, innings end, a player conceives a goal and lays plans to win the
+arguments end, episodes end, a player conceives a goal and lays plans to win the
 Game — every such end *enclosed in a context*. What is dissolved is only the
 **unverifiable, context-less, un-contingent end**, "just like we denied the
 unenclosed proposition on level 0." A is thereby re-seated as the twin of Departure
