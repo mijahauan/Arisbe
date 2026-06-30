@@ -78,9 +78,9 @@
   var MARKS = [
     "<b>The sheet</b> — the page. To draw something on it is to <b>assert</b> it. " +
       "The empty page asserts nothing, and so is simply <b>true</b>.",
-    "<b>A loop</b> — a closed curve (Peirce's <i>cut</i>). To put something inside a loop is to " +
-      "<b>deny</b> it. One loop = <b>not</b>.",
-    "<b>Nested loops</b> — a loop inside a loop, with a claim in the ring between, reads as " +
+    "<b>A cut</b> — a closed curve. To put something inside a cut is to " +
+      "<b>deny</b> it. One cut = <b>not</b>.",
+    "<b>Nested cuts</b> — a cut inside a cut, with a claim in the ring between, reads as " +
       "<b>“if … then …”</b> (the <i>scroll</i>).",
     "<b>A line</b> — a heavy line joining marks says <b>“the same one”</b>; a line on its own " +
       "says <b>“something exists.”</b>",
@@ -90,9 +90,9 @@
   var KEY = [
     ["(Cat *x)", "“there is a cat” — <code>*x</code> starts a <b>new</b> line", "a spot labelled Cat on a fresh line"],
     ["(On x *y)", "“…it is on some y” — bare <code>x</code> reuses the <b>same</b> line", "the same line, now also at On"],
-    ["~[ … ]", "a <b>loop</b> around … = “<b>not</b> …”", "a cut enclosing those marks"],
-    ["~[ A ~[ B ] ]", "“<b>if</b> A <b>then</b> B” — A in the ring, B nested deeper", "nested loops (the scroll)"],
-    ["~[ ]", "a loop around <b>nothing</b> = <b>false</b>", "an empty cut"],
+    ["~[ … ]", "a <b>cut</b> around … = “<b>not</b> …”", "a cut enclosing those marks"],
+    ["~[ A ~[ B ] ]", "“<b>if</b> A <b>then</b> B” — A in the ring, B nested deeper", "nested cuts (the scroll)"],
+    ["~[ ]", "a cut around <b>nothing</b> = <b>false</b>", "an empty cut"],
   ];
 
   // The five drawable dragons → a deep-link into Ergasterion challenge mode.

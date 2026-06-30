@@ -73,7 +73,11 @@ async def primer_examples():
     for ex in _FIRST_GRAPHS:
         try:
             egi = parse_egif(ex["egif"])
-            _dto, svg = generate_layout(egi)
+            # Render cuts as closed curves (ovals) — the primer teaches "a cut is
+            # a closed curve," so the default boxy rounded-rectangle (Dau) style
+            # would contradict the words. Sowa's oval cuts read cleanly with a
+            # legible font (vs Peirce-authentic's cursive).
+            _dto, svg = generate_layout(egi, style_name="sowa-compliant@1.0")
         except Exception as exc:  # fail soft — a primer is never a hard error
             out.append({**ex, "svg": None, "error": str(exc)})
             continue
