@@ -1,0 +1,82 @@
+# Install & run
+
+This chapter takes you from a fresh clone to Arisbe running in your browser, and shows where
+this book/help lives once the app is up.
+
+## Prerequisites
+
+- **Python 3.12** (Arisbe targets 3.12).
+- **[uv](https://docs.astral.sh/uv/)** — the project's dependency manager. Install it with
+  `curl -LsSf https://astral.sh/uv/install.sh | sh` (macOS/Linux) or see the uv docs for
+  other platforms. `uv` creates and manages the virtual environment for you.
+
+That is all you need to run the application. Building the book/help as a PDF or a local site
+additionally needs Quarto and a LaTeX toolchain — see *Build the book/help* below.
+
+## Get the code and install
+
+```bash
+git clone https://github.com/mijahauan/Arisbe.git
+cd Arisbe
+uv sync --extra dev --extra web
+```
+
+`uv sync` is exact: the **`web`** extra carries FastAPI and uvicorn (the web viewer and the
+route tests need them), and **`dev`** carries the test/quality tooling. If you omit an extra,
+`uv sync` will *prune* it — so install both. No manual virtual-environment activation is
+needed; prefix commands with `uv run`, or `source .venv/bin/activate` once if you prefer.
+
+## Run the web viewer (the canonical UI)
+
+```bash
+uv run uvicorn --app-dir src web_api.main:app --reload --port 8000
+```
+
+Then open **<http://localhost:8000/>**. The home page links the three modes:
+
+| Mode | Route | What it is |
+|------|-------|------------|
+| **Organon** | `/organon` | The archive — browse the corpus and read graphs, read-only. |
+| **Ergasterion** | `/ergasterion` | The workshop — draw and compose graphs, practice the rules. |
+| **Agon** | `/agon` | The arena — test a graph against a model, play the Endoporeutic Game. |
+
+New to existential graphs? Read **Your first graph** next, then find your **door by
+background**.
+
+## Check the install (optional)
+
+```bash
+uv run pytest tests/ -q
+```
+
+The suite has roughly a thousand passing tests. The mathematical core must always pass; if it
+doesn't, something is genuinely wrong rather than flaky.
+
+## Build the book/help
+
+This book is single-sourced from the project's documentation with
+[Quarto](https://quarto.org). To render it locally you need Quarto installed, plus a LaTeX
+toolchain for the PDF (the same one the Peirce-edition LaTeX export uses; `quarto install
+tinytex` provides one).
+
+```bash
+# one-time: install Quarto (see quarto.org/docs/get-started) — e.g. on macOS:
+brew install quarto
+
+# render the web help (HTML site) into docs/_book/
+quarto render docs
+
+# or a specific format
+quarto render docs --to pdf
+quarto render docs --to epub
+
+# live preview while editing
+quarto preview docs
+```
+
+The rendered HTML site lands in `docs/_book/`. When that directory exists, the running web
+app serves it at **<http://localhost:8000/book/>**, so the book and the in-app help are the
+same artifact — never maintained twice.
+
+> The generated outputs (`docs/_book/`, `docs/.quarto/`) are not checked in; run
+> `quarto render docs` after pulling to refresh them.

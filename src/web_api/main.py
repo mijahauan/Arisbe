@@ -40,6 +40,16 @@ app.include_router(imports.router)
 app.include_router(styles.router)
 app.include_router(export.router)
 
+# Serve the rendered book/help, if it has been built (quarto render docs/book).
+# Mounted before the catch-all "/" so /book/ wins. Absent until rendered — that's fine.
+book_path = Path(__file__).parent.parent.parent / "docs" / "_book"
+if book_path.exists():
+    app.mount(
+        "/book",
+        StaticFiles(directory=str(book_path), html=True),
+        name="book",
+    )
+
 # Serve the frontend
 viewer_path = Path(__file__).parent.parent / "web_viewer"
 if viewer_path.exists():

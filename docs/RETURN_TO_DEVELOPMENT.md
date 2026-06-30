@@ -10,7 +10,7 @@ This supersedes the five context-recovery documents that previously lived under
 # 1. Re-anchor on the code
 cat CLAUDE.md          # ground-truth dev guide (~150 lines)
 cat README.md          # what + how to run
-cat docs/PRODUCT_VISION.md  # why + philosophy
+cat docs/VISION_AND_SCOPE.md  # why + philosophy
 
 # 2. Confirm system health
 uv run pytest tests/ -q
@@ -30,7 +30,7 @@ always [CURRENT_PLAN.md](../CURRENT_PLAN.md)'s `▶ NEXT SESSION` section.
 A Python 3.12 implementation of Dau's formalization of Peirce's Existential
 Graphs. The core entity is not a static EGI diagram but the **Universe of
 Discourse** (UoD) — the evolving diachronic process of which a single EGI is one
-synchronic frame. See [PRODUCT_VISION.md](PRODUCT_VISION.md) for the longer
+synchronic frame. See [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) for the longer
 philosophical statement and [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)
 for how the model expresses it.
 

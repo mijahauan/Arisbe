@@ -1,0 +1,73 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Arisbe"
+  subtitle: "Doing logic in pictures — Peirce's moving pictures of thought, made operational"
+  author: "The Arisbe project"
+  search: true
+  repo-url: https://github.com/mijahauan/Arisbe
+  repo-actions: [source, issue]
+  sidebar:
+    style: docked
+    collapse-level: 1
+  chapters:
+    - index.qmd
+    - part: "I · Why"
+      chapters:
+        - VISION_AND_SCOPE.md
+        - LINEAR_GRAPHICAL_CORRESPONDENCE.md
+        - CHAIN_OF_SEMIOSIS.md
+        - MANIFEST_AND_MEANING.md
+        - FIDELITY_A_PLAIN_ACCOUNT.md
+        - LEVEL_ZERO_AND_THE_REGISTERS.md
+        - MODALITY_WITHOUT_GAMMA.md
+    - part: "II · Getting started"
+      chapters:
+        - install.qmd
+        - FIELD_GUIDE_AND_DRAGONS.md
+        - GETTING_STARTED.md
+        - ARISBE_FOR_SCHOLARS.md
+    - part: "III · Using Arisbe"
+      chapters:
+        - ARISBE_IN_PRACTICE.md
+        - ENDOPOREUTIC_GAME_GUIDE.md
+        - EXEMPLARS.md
+        - EXTERNAL_SOURCES_AND_IMPORT.md
+        - FREEFORM_COMPOSITION_AND_LEARNING.md
+        - FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md
+        - NL_TO_LOGIC.md
+    - part: "IV · How it works"
+      chapters:
+        - arisbe_triad_architecture.md
+        - UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md
+        - DAG_HISTORY_ARCHITECTURE.md
+        - EXACT_CORRESPONDENCE.md
+        - DOMAIN_ORACLE_AND_M.md
+        - CAPABILITY_MAP.md
+    - part: "V · Reference"
+      chapters:
+        - IMPORT_EXPORT_FORMATS.md
+        - CHAPTER18_FOPL_TRANSLATION_DOCUMENTATION.md
+        - GLOSSARY.md
+        - CONTRIBUTION_AND_PRIOR_ART.md
+        - ARISBE_CORE_API_REFERENCE.md
+
+# The project root IS docs/, so each canonical doc is listed directly as a chapter and
+# its relative cross-links (SIBLING.md, ../CLAUDE.md) resolve naturally. Only the two
+# book-specific pages (index.qmd preface, install.qmd) are authored here. Dev/design-of-record
+# docs are simply not listed — they are not rendered into the book (see ALPHA_RELEASE_PLAN.md).
+
+format:
+  html:
+    theme:
+      - cosmo
+    toc: true
+    code-copy: true
+  pdf:
+    documentclass: scrbook
+    papersize: letter
+    toc: true
+  epub:
+    toc: true

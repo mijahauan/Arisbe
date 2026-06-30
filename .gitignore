@@ -203,3 +203,7 @@ tomos/.liveness.json
 # Coherence reminder counter — local tooling state (timestamp + count); churns
 # on every commit, so it rides beside the repo, not inside it (cf .liveness.json).
 .coherence_reminder_state
+
+# Quarto book/help generated outputs
+docs/_book/
+docs/.quarto/

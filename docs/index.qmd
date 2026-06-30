@@ -1,0 +1,39 @@
+# Preface {.unnumbered}
+
+**Arisbe** is an environment for *doing logic in pictures, not pictures of logic* — Charles
+Sanders Peirce's "moving pictures of thought" made operational, with Frithjof Dau's
+formalization as the guarantor of correctness.
+
+The central engineering and research problem the system exists to solve is the **inerrant
+correspondence between an existential graph's linear written form and its graphical drawn
+form** — picture and proposition denoting the same mathematical object across every
+transformation, every layout, every edit, every round-trip. That contract is the book's
+spine; it gets its own chapter in Part I and is treated in depth in Part IV.
+
+## How this book is organized
+
+The book follows the [Diátaxis](https://diataxis.fr) shape so that one source can serve both
+a linear read and task-oriented lookup:
+
+- **I · Why** — what Arisbe is, the central problem, and the philosophy underneath it.
+- **II · Getting started** — install and run it from the repository, draw your first graph,
+  find the door that fits your background, and (for scholars) read the research invitation.
+- **III · Using Arisbe** — the three modes in practice, the worked examples, and
+  import/export including the Peirce-edition publishing path.
+- **IV · How it works** — the architecture, the correspondence contract in depth, and a map
+  of what is built.
+- **V · Reference** — linear formats, the core API, the glossary, and prior art.
+
+## One source, two renders
+
+This book is built with [Quarto](https://quarto.org) from the project's own documentation. The
+same source renders to:
+
+- a **browseable web help** (an HTML site, also served in-app — see *Install & run*), and
+- a **book** (PDF and epub).
+
+The reader chapters are the canonical docs that live under `docs/`, selected and ordered here;
+the project's design-of-record, roadmap, and session notes stay in the repository and are
+deliberately excluded from the reader's book.
+
+> **New here?** Jump to **II · Getting started → Install & run**, then **Your first graph**.

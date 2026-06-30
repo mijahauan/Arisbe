@@ -218,7 +218,7 @@ Acknowledge when quick fixes create technical debt. Future developers need to kn
 
 ### Always Check
 Before proposing any significant work:
-1. **Read PRODUCT_VISION.md** - Does this align with project goals?
+1. **Read VISION_AND_SCOPE.md** - Does this align with project goals?
 2. **Check "Out of Scope"** - Are we feature-creeping?
 3. **Verify "Success Criteria"** - Does this move us toward success?
 

@@ -2,7 +2,7 @@
 Organon (archive) routes.
 
 Organon is the read-only mode in the Organon / Ergasterion / Agon trio
-(`docs/PRODUCT_VISION.md`, `CLAUDE.md`).  It surfaces the tomos corpus
+(`docs/VISION_AND_SCOPE.md`, `CLAUDE.md`).  It surfaces the tomos corpus
 as a browsable archive — list every UoD, open one, see its drawing.
 No editing, no transformation UI, no session state.
 

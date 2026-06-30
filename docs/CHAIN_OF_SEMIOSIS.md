@@ -15,7 +15,7 @@ they are.
 
 It is a companion to three documents, not a replacement for any:
 
-- [PRODUCT_VISION.md](PRODUCT_VISION.md) — *what* Arisbe is and who it serves.
+- [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) — *what* Arisbe is and who it serves.
 - [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md) —
   the diachronic process (the film vs. the photograph).
 - [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md) —
@@ -107,7 +107,7 @@ at the moment the step is taken:
    (`src/rule_interaction.py`) enforces each rule's preconditions — area
    polarity, subgraph closure, isomorphism for de-iteration — and refuses
    the move otherwise. A step that survives is a denotation-preserving
-   step by construction. (See [PRODUCT_VISION.md](PRODUCT_VISION.md), "The
+   step by construction. (See [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md), "The
    Guarantor — Dau's formalization.")
 2. **Correspondence.** When a step's result is asserted — when it becomes
    part of a record claimed to mean something definite — the §3.3
@@ -306,7 +306,7 @@ thinking more clearly.
 
 ---
 
-*Companion to [PRODUCT_VISION.md](PRODUCT_VISION.md),
+*Companion to [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md),
 [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md),
 and [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md).
 See also [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md): the diachronic

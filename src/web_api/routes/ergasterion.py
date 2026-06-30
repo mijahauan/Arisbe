@@ -2,7 +2,7 @@
 Ergasterion (workshop) routes.
 
 Ergasterion is the composition mode in the Organon / Ergasterion / Agon
-trio (``docs/PRODUCT_VISION.md``, ``CLAUDE.md``).  It is where a user
+trio (``docs/VISION_AND_SCOPE.md``, ``CLAUDE.md``).  It is where a user
 *plays*: composes new graphs, or copies any graph from Organon and
 transforms / branches it.  Everything here is **regime-1** — drawn but
 not asserted.  Rule applications mutate an in-memory

@@ -108,7 +108,7 @@ The **core reasoning engine** and referee.
 **Who**: Researchers, logicians, and students working with diagrammatic reasoning
 **Why**: First modern implementation that treats correspondence as a stated, tested, and runtime-attested invariant — not an emergent property maintained by careful code
 
-👉 **Full vision**: [PRODUCT_VISION.md](docs/PRODUCT_VISION.md)
+👉 **Full vision**: [VISION_AND_SCOPE.md](docs/VISION_AND_SCOPE.md)
 👉 **Correspondence spec**: [LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md)
 👉 **AI assistance**: [AI_CONDUCT_GUIDELINES.md](AI_CONDUCT_GUIDELINES.md)
 
@@ -265,19 +265,41 @@ styles/               Visual style specifications (JSON)
 ### Install
 
 ```bash
-uv sync --extra dev   # Python 3.12; see pyproject.toml
+git clone https://github.com/mijahauan/Arisbe.git
+cd Arisbe
+uv sync --extra dev --extra web   # Python 3.12; the `web` extra carries FastAPI/uvicorn
 ```
 
-### Launch the web viewer (canonical UI as of May 2026)
+`uv sync` is exact — install **both** extras (`web` for the viewer/route tests, `dev` for the
+test/quality tooling) or they get pruned.
+
+### Launch the web viewer (canonical UI)
 
 ```bash
 uv run uvicorn --app-dir src web_api.main:app --reload --port 8000
 # Open http://localhost:8000/ in a browser.
 ```
 
+The home page links the three live modes: **Organon** (`/organon`, the read-only archive),
+**Ergasterion** (`/ergasterion`, the workshop), and **Agon** (`/agon`, the contest/interpretation
+arena).
+
 The Qt-based GUI (`arisbe.py`, `src/gui_clean/`) was archived to
 `archive/qt-gui-2025/` in May 2026. The web viewer
 (`src/web_api/` + `src/web_viewer/`) is the active surface.
+
+### 📖 Documentation — the book / help
+
+The full documentation is a single-source **book** (also served as browseable in-app help),
+built with [Quarto](https://quarto.org) from the docs themselves (`docs/_quarto.yml`):
+
+```bash
+quarto render docs          # → docs/_book/ (HTML site)
+```
+
+Once rendered, the running app serves it at **http://localhost:8000/book/**. See
+[docs/install.qmd](docs/install.qmd) for PDF/epub builds, and
+[docs/ALPHA_RELEASE_PLAN.md](docs/ALPHA_RELEASE_PLAN.md) for the consolidation plan.
 
 ### Play the Endoporeutic Game (REPL)
 
@@ -374,7 +396,7 @@ the Qt implementation was archived in May 2026.
 |---|---|---|
 | **Organon** (Archive/browser) | ✅ **Live** | `web_api/routes/organon.py` + `web_viewer/organon.html` — read-only corpus archive at `/organon`. Both load and render boundaries §3.3-attested per request. |
 | **Ergasterion** (Workshop) | ✅ **Live** | `web_api/routes/ergasterion.py` + `web_viewer/ergasterion.html` — composition route at `/ergasterion`. Regime-1 drafts (correspondence invariant suspended); promotion is the regime-1 → regime-2 boundary at which §3.3 attestation fires. Chain of rule applications persisted via `TomosService.save_uod_with_chain` (V1 linear chains, JSONL + per-state snapshots). |
-| **Agon** (Endoporeutic Game) | ✅ **Engine implemented; web route pending** | `endoporeutic_game.py` + `game_repl.py`; Z3-validated. REPL available today; web arena ahead |
+| **Agon** (Endoporeutic Game) | ✅ **Live** | `web_api/routes/agon.py` + `web_viewer/agon.html` at `/agon` — the contest (hot-seat transformation game) and the interpretation register (choose a model M, peel G against it → verdict + witness/counterexample, the inverse pivot). REPL also available (`game_repl.py`); Z3-validated. |
 | **Correspondence attestation** | ✅ **Live** | `correspondence_attestation.py` + hook in `web_api/services/layout_service.py` |
 
 ---
