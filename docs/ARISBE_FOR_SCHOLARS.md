@@ -14,7 +14,7 @@ Charles Sanders Peirce's "moving pictures of thought" made operational. A user
 asserts, transforms, and contests Existential Graphs directly, as diagrams that
 evolve; Frithjof Dau's formalization is the guarantor of correctness. The
 **central engineering and research problem** the system exists to solve is the
-**inerrant correspondence between an EG's linear written form and its graphical
+**inerrant correspondence between an Existential Graph ([EG](GLOSSARY.md#eg))'s linear written form and its graphical
 drawn form** — picture and proposition denoting the same mathematical object
 across every transformation, every re-layout, every edit, every round-trip. The
 system is real and running: a transformation engine over Dau's six rules, a
@@ -30,12 +30,12 @@ an underlying formula — a picture downstream of the logic. Arisbe inverts this
 The drawn mark **is** the logical sign: every pixel inside a drawn cut line is a
 child of that cut's area; containment, incidence, and ligature-crossing are read
 off the drawn shape, identically across visual styles (Dau, Peirce-authentic,
-Sowa). The linear form (EGIF/CGIF/CLIF) and the graphical form are two projections
+Sowa). The linear form (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif))/Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif))/Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))) and the graphical form are two projections
 of one coordinate-free structure, and Arisbe holds them in provable
 correspondence.
 
 This is enforced at runtime. A §3.3 *correspondence attestation* (`attest_correspondence`)
-checks every (EGI, drawing) pair before it is served, saved, or admitted to the
+checks every (Existential Graph Instance ([EGI](GLOSSARY.md#egi)), drawing) pair before it is served, saved, or admitted to the
 corpus, and **refuses** any pair that does not correspond — raising a
 `CorrespondenceViolation` rather than displaying a graph that means something
 other than it says. The invariant is scoped to three regimes, which keeps it
@@ -57,10 +57,10 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
   has a protected test suite that must always pass.
 - **Linear ↔ graphical round-tripping** — production parsers/generators for
   **EGIF**, **CGIF** (ISO/IEC 24707-adjacent), and **CLIF** (Common Logic), tested
-  across ~90 canonical examples, plus FOPL translation in Dau's Chapter-18 sense.
+  across ~90 canonical examples, plus First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl)) translation in Dau's Chapter-18 sense.
 - **Layout as projection** — a coordinate-free "natural layout" (containment tree,
   per-ligature required crossing-sequence, incidence, ports) from which concrete
-  drawings are derived; the renderer is a pluggable projection (an ELK-based
+  drawings are derived; the renderer is a pluggable projection (an Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk))-based
   engine and an experimental "tension" engine that draws a line of identity as one
   taut thread through the cut nest, the Peircean single-line reading).
 - **A curated corpus** of worked items, each carrying typed provenance and an
@@ -68,7 +68,7 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
   the uniqueness of the group identity, Leibniz's *Praeclarum Theorema*),
   **exemplars** from Peirce/Roberts/Sowa/Dau, an argument **pattern**, a **domain
   model**, and imported **ontologies** (Porphyry's Tree, a FOAF slice, and the
-  upper spine of SUMO translated from SUO-KIF).
+  upper spine of SUMO translated from Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif))).
 - **An import doorway with a warrant model** — external material is admitted at
   **low warrant** (parsed, §3.3-attested, attributed), never asserted true; the
   philosophical floor is explicit (*attest correspondence, not truth*).
@@ -106,8 +106,8 @@ works) and an **inverse pivot** ("in what domain does G hold?"). The conceptual
 division is settled (`docs/GENERATION_AND_TESTING.md`): the *eliminative* peel is the
 game (Agon), *additive* construction is making (Ergasterion). **Still not built**: the
 dialogical **contest** with an automated **Grapheus** (the peel now supplies the
-model-respecting reply it would use); the **ontology-as-M pipeline** (OWL→CLIF→EGI
-from WordNet/SNOMED/Wikidata — materialization unblocks the T-box side); and the
+model-respecting reply it would use); the **ontology-as-M pipeline** (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI
+from WordNet/SNOMED/Wikidata — materialization unblocks the terminological box ([T-box](GLOSSARY.md#t-box)) side); and the
 **warrant lifecycle** that would raise a graph from *low* to *tested* by its surviving
 Agon. We would rather say this plainly than oversell a demo.
 

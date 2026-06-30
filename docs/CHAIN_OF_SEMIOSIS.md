@@ -35,7 +35,7 @@ built them to *analyze reasoning* — to make the steps of an inference
 perspicuous enough that thought could be inspected, criticized, and
 improved. He called the graphs a "moving picture of thought" and, more
 strikingly, a "rough and generalized diagram of the Mind." The point of a
-moving picture is the *motion*: the EGs were meant to show reasoning
+moving picture is the *motion*: the Existential Graphs ([EGs](GLOSSARY.md#eg)) were meant to show reasoning
 happening, step by justified step, not to freeze a conclusion.
 
 His larger project was continuous with this. From the pragmatic maxim of
@@ -67,7 +67,7 @@ thought.
 Read an Existential Graph this way and the architecture falls out almost
 on its own:
 
-- **Each EGI state is a sign.** A drawn graph stands for a state of the
+- **Each Existential Graph Instance ([EGI](GLOSSARY.md#egi)) state is a sign.** A drawn graph stands for a state of the
   universe of discourse. It is a determinate, inspectable object with a
   fixed meaning.
 - **Each rule application is an interpretant — a warranted transition.**
@@ -134,7 +134,7 @@ way to state what Arisbe is.
 
 | System | Unit of change | Immutability | Provenance | Is the step *required to be sound*? |
 |---|---|---|---|---|
-| **Git** | Commit (typed, parented, content-addressed) | Commits immutable; history a DAG | Parent links, author, message | **No.** A commit may contain anything; soundness (tests, review) is a *separate*, optional layer. |
+| **Git** | Commit (typed, parented, content-addressed) | Commits immutable; history a directed acyclic graph ([DAG](GLOSSARY.md#dag)) | Parent links, author, message | **No.** A commit may contain anything; soundness (tests, review) is a *separate*, optional layer. |
 | **Datomic / event sourcing** | Transaction (append-only fact) | Never overwrite; state is a fold over the log; "as-of" queries | The log *is* the provenance | **No.** A transaction records *what changed*, not whether the change was warranted. |
 | **Wikis** | Revision | Every revision immutable and addressable | Revision history; sandbox vs. mainspace | **No.** Any edit is a revision; correctness is social and after-the-fact. |
 | **Scholarship** | Note → preprint → publication | Published record is fixed | Citation, peer review | **Partly, and socially.** A journal *vouches*; the warrant is external and human, not intrinsic to the act of writing. |

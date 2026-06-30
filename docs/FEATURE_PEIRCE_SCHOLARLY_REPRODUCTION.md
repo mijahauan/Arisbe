@@ -16,8 +16,8 @@
 
 **User Journey:**
 
-1. Scholar transcribes Peirce's diagram to linear form (EGIF, CGIF, CLIF, or FOPL)
-2. Loads into Arisbe → parses to EGI model
+1. Scholar transcribes Peirce's diagram to linear form (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)), or First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl)))
+2. Loads into Arisbe → parses to Existential Graph Instance ([EGI](GLOSSARY.md#egi)) model
 3. Layout engine applies Peirce style → initial spatial arrangement
 4. Scholar manually adjusts in Ergasterion to match Peirce's original spatial layout
 5. Export to LaTeX (TikZ) → publication-ready vector graphics
@@ -118,7 +118,7 @@ Extracts: V, E, Cut, area, nu mappings
 | # | Original item | Status | Where it lives now |
 |---|---|---|---|
 | 1 | LaTeX export button | **Done (Organon)** | `web_viewer/organon.html` export panel → `peirce-tikz` format; deferred for Ergasterion (see note) |
-| 2 | DTO → TikZ bridge | **Obsolete / done** | `peirce_latex.export_peirce_latex(dto, egi)` consumes the `LayoutDTO` directly — no "render commands" intermediary |
+| 2 | Data Transfer Object ([DTO](GLOSSARY.md#dto)) → TikZ bridge | **Obsolete / done** | `peirce_latex.export_peirce_latex(dto, egi)` consumes the `LayoutDTO` directly — no "render commands" intermediary |
 | 3 | Peirce fidelity (waver / ink) | **Mostly done** | `peirce_latex.py` + `tex/arisbe-eg.sty`: hand-drawn waver, organic ligature routing, crossing bridges, iconic scroll glyph. Handwriting-font / ink-bleed deferred (niche) |
 | 4 | CGIF / CLIF / FOPL parsers | **Done** | `cgif_parser_dau.py`, `clif_parser_dau.py`, `chapter18_fopl_translation.py` — production, round-trip tested |
 | 5 | Drawing mode | **Done** | `web_viewer/js/freeform-canvas.js` + `drawing_to_egi.py` (draw-then-read, Graph↔Argument lock) |
@@ -130,7 +130,7 @@ Extracts: V, E, Cut, area, nu mappings
 
 ### Built this pass (the genuinely-remaining publishing path)
 
-**7 + 10 — Citation generator, surfaced in the export.** A corpus UoD already carries
+**7 + 10 — Citation generator, surfaced in the export.** A corpus Universe of Discourse ([UoD](GLOSSARY.md#uod)) already carries
 its source in the typed **provenance** bundle ([provenance.py](../src/provenance.py))
 (`theorem_source` = where the proposition comes from, `method_sources`, a transcribed
 `proof_source`) plus an optional `bibliography.json`. [`scholarly_citation.py`](../src/scholarly_citation.py)
@@ -227,7 +227,7 @@ class is the automatic fallback on minimal TeX installs without `standalone.cls`
 ## Documentation Needs
 
 1. **Tutorial:** "Recreating Peirce MS 280 in Arisbe"
-2. **Style Guide:** Peirce's EG conventions (vertex placement, ligature routing, cut shapes)
+2. **Style Guide:** Peirce's Existential Graph ([EG](GLOSSARY.md#eg)) conventions (vertex placement, ligature routing, cut shapes)
 3. **LaTeX Integration:** How to include exported diagrams in papers
 4. **Parser Reference:** Which notation format to use when
 5. **Template Gallery:** Common Peirce diagram patterns

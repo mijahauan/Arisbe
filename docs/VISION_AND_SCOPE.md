@@ -19,7 +19,7 @@
 
 Arisbe is an environment for **doing logic in pictures, not pictures of logic** — Charles Sanders
 Peirce's "moving pictures of thought" made operational. You draw and transform Existential Graphs
-(EGs) directly; the picture *is* the reasoning, not an illustration of reasoning done elsewhere.
+([EGs](GLOSSARY.md#eg)) directly; the picture *is* the reasoning, not an illustration of reasoning done elsewhere.
 
 Peirce is the **aim**; Frithjof Dau's formalization is the **guarantor of correctness**. Arisbe does
 not try to improve Peirce's calculus — it implements Dau's rigorous formalization of Alpha (the cut,
@@ -27,7 +27,7 @@ the sheet, juxtaposition) and Beta (the line of identity) faithfully, and builds
 bedrock. (See [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) for the debt to Peirce and the
 three places Arisbe consciously departs, each examined adversarially and surviving with amendment.)
 
-The fundamental entity is **not a static diagram** but the **Universe of Discourse (UoD)** — a
+The fundamental entity is **not a static diagram** but the **Universe of Discourse ([UoD](GLOSSARY.md#uod))** — a
 *diachronic* (evolving) process of reasoning. A single EG is a *synchronic* snapshot (a photograph)
 within that larger film. See [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md).
 
@@ -58,7 +58,7 @@ wrong"). Truth is settled elsewhere — in use, in the Agon. See
 [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md).
 
 A third correspondence has recently joined the doctrine: **diagram ↔ narration** (a narrated proof is
-a chain of DRSs, and a DRS *is* a Beta EG). It is a measurement/validation lens, not yet surfaced in
+a chain of Discourse Representation Structures ([DRSs](GLOSSARY.md#drs)), and a DRS *is* a Beta EG). It is a measurement/validation lens, not yet surfaced in
 the UI — see [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10.
 
 ---
@@ -71,8 +71,8 @@ These are the commitments that may **not** be traded away. Everything else is ne
    DC+, DC−) are implemented in full compliance, Beta-aware. The mathematical core test suite must
    always pass; a failing core test is a real correctness defect, not test noise.
 
-2. **The EGI is immutable.** State advances only by constructing a new graph (`.with_vertex()`,
-   `.with_edge()`), never by mutation. Provenance is therefore append-only and the history is a DAG.
+2. **The Existential Graph Instance ([EGI](GLOSSARY.md#egi)) is immutable.** State advances only by constructing a new graph (`.with_vertex()`,
+   `.with_edge()`), never by mutation. Provenance is therefore append-only and the history is a directed acyclic graph ([DAG](GLOSSARY.md#dag)).
 
 3. **A step and its warrant are the same act.** You cannot make a change and *then* check it: the only
    way to advance the chain is to apply a rule, and a rule will not apply unless its preconditions
@@ -135,8 +135,8 @@ Condensed personas (the fuller narrative lives in [ARISBE_IN_PRACTICE.md](ARISBE
 - **The researcher / domain expert** — contests a claim in **Agon**: pick a model M, peel a
   proposition G against it, get a verdict + witness/counterexample, or ask "in what domain does G
   hold?" (the inverse pivot).
-- **The logician** — round-trips a form across modes and across four linear notations (EGIF / CGIF /
-  CLIF / FOPL), trusting that the same proposition stays recognizable everywhere.
+- **The logician** — round-trips a form across modes and across four linear notations (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)) / Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)) /
+  Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) / First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl))), trusting that the same proposition stays recognizable everywhere.
 - **The scholar** — transcribes a historical graph with provenance, faithful to a community across
   history rather than cured into one consistent whole.
 
@@ -148,8 +148,8 @@ Condensed personas (the fuller narrative lives in [ARISBE_IN_PRACTICE.md](ARISBE
 Alpha + Beta EGs in Dau's formalization; the six transformation rules; the diachronic UoD + branching
 DAG history; four round-tripped linear formats; the correspondence machinery (coordinate-free layout,
 §3.3 attestation, regime-3 presentation algebra, drawn→EG reading); the three web modes; freeform
-draw-then-read composition; the Endoporeutic Game (contest + interpretation registers); ontology/OWL/
-RDF import as a *bridge*; an NL→logic front-end where "the LLM proposes, Arisbe disposes."
+draw-then-read composition; the Endoporeutic Game (contest + interpretation registers); ontology/Web Ontology Language ([OWL](GLOSSARY.md#owl))/
+Resource Description Framework ([RDF](GLOSSARY.md#rdf)) import as a *bridge*; an NL→logic front-end where "the LLM proposes, Arisbe disposes."
 
 ### Out of scope — deliberate, with reasons
 - **Gamma as a *modal* extension.** Not a problem Arisbe needs to solve: the diachronic DAG (worlds =

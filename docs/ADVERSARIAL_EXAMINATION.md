@@ -17,7 +17,7 @@ The departures examined:
 
 - **Departure I** — *Non-convergence.* Inquiry need not converge on a final opinion; the real is "upstream and around," an un-enclosable ground that pushes back at the membrane without ever being a settled terminus.
 - **Departure II** — *Level zero bears form, not content.* The two registers (demonstrative/derived vs. assertoric/posited); the level-0 soundness theorem; the scroll as the Alpha home of defeasibility; warrant provenance as a runtime gradient.
-- **Departure III** — *Modality without Gamma.* No new modal mark (no broken cut, no tincture) is needed; the standard translation over Arisbe's diachronic DAG discharges the modal logics with first-order-definable frames; the irreducible residue is second-order, not modal.
+- **Departure III** — *Modality without Gamma.* No new modal mark (no broken cut, no tincture) is needed; the standard translation over Arisbe's diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) discharges the modal logics with first-order-definable frames; the irreducible residue is second-order, not modal.
 
 **Headline result:**
 
@@ -85,7 +85,7 @@ Three families of wording are demonstrably false as written:
 
 - **(a) The bare "cannot say."** "we cannot say anything at level 0" (LEVEL_ZERO 17, 245; FIDELITY 145), stated flatly in the register where "say" most naturally means "assert a contingent premise" — which §4/§7 affirm the SA does. Contradicts the author's own text and Peirce's Phemic-Sheet reading, on which the recto is exactly where, by the responsibility-act, one *does* say.
 - **(b) "A constitutional rule about what the Sheet of Assertion is for."** (LEVEL_ZERO 208) Its own next paragraph restricts the rule to the demonstrative recto. Calling it constitutional of the whole SA (which also hosts the assertoric office) is a category slip; properly scoped, it reduces to the trivial theorem-not-premise point.
-- **(c) The unqualified "the literature" / "the tradition" / "buried" / "equivocation."** (FIDELITY 175, 253–256, 264–273) Overclaims against proof theory (Γ⊢φ vs. ⊢φ marks the seam maximally) and against the dialogical strand (Pietarinen/Hintikka supply context-as-ground). The silence charge is true only of *in-the-picture EG diagrammatic exposition*.
+- **(c) The unqualified "the literature" / "the tradition" / "buried" / "equivocation."** (FIDELITY 175, 253–256, 264–273) Overclaims against proof theory (Γ⊢φ vs. ⊢φ marks the seam maximally) and against the dialogical strand (Pietarinen/Hintikka supply context-as-ground). The silence charge is true only of *in-the-picture Existential Graph ([EG](GLOSSARY.md#eg)) diagrammatic exposition*.
 
 ### The author's best answer
 
@@ -306,7 +306,7 @@ uphill with no global summit. It earns nothing for non-convergence on its own.
 > remade, we win. We have not shown creativity is generative rather than combinatorial; the strongest
 > truthful statement is "convergence is not *guaranteed* by the corrective engine's local asymmetry,"
 > not "the engine has no tendency." The diachronic architecture and the library of mutually-inconsistent
-> UoDs (floor #5) are *neutral data structures* — the correct instrument under either horn, **not**
+> Universes of Discourse ([UoDs](GLOSSARY.md#uod)) (floor #5) are *neutral data structures* — the correct instrument under either horn, **not**
 > evidence for non-convergence; we stop citing them as such. We also owe, and do not yet hold, a
 > principled object/meta boundary the meta-relocation charge cannot collapse.
 >

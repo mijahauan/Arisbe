@@ -3,7 +3,7 @@
 > **What this is.** An honest assessment of what Arisbe genuinely contributes to its field, measured
 > against the connected literature and existing software — written to *distinguish real contribution
 > from faithful re-implementation*, not to flatter the project. Based on three adversarial
-> web-research sweeps (2026-06-27): the EG-software landscape, the formal/theoretical claims, and the
+> web-research sweeps (2026-06-27): the [EG](GLOSSARY.md#eg)-software landscape, the formal/theoretical claims, and the
 > endoporeutic/iconicity claims. Every claim below traces to a cited source; where evidence was
 > "not found" rather than "proven absent," that is stated.
 >
@@ -26,7 +26,7 @@ competing tools: **the linear↔graphical correspondence treated as a continuous
 invariant over a live, editable EG system.** That is the strongest basis for an originality claim.
 
 Two places carry real **over-claim risk** and should always be stated with their prior art:
-the EG≅DRS isomorphism (textbook Sowa) and "Gamma is unnecessary" (cuts *against* active scholarship
+the EG≅Discourse Representation Structure ([DRS](GLOSSARY.md#drs)) isomorphism (textbook Sowa) and "Gamma is unnecessary" (cuts *against* active scholarship
 that values Gamma).
 
 ---
@@ -41,9 +41,9 @@ must cite) · **CANNOT DETERMINE**.
 |---|---|---|---|
 | 1 | Interactive editor enforcing **Dau's full six-rule Beta calculus** | **OPERATIONALIZED** | Interactive EG provers exist but are **Alpha-only** (Peirce-My-Heart, RAIR Lab) or unmaintained (UAH editor). Beta + full Dau rules in a maintained interactive tool appears *unoccupied*. |
 | 2 | **Linear↔graphical correspondence as a runtime-attested invariant** | **OPERATIONALIZED → strongest claim** | The *faithfulness concern* is established (heterogeneous reasoning — Barwise & Etchemendy, Shin, Hammer; "free rides" — Shimojima, Stapleton). Runtime invariant-checking is generic. The *combination* — picture↔proposition as a per-operation runtime monitor in a live EG system — **no prior art found.** |
-| 3 | **Four-way linear round-trip** (EGIF/CGIF/CLIF/FOPL) bound to one drawn object | **OPERATIONALIZED** | The notations + their mappings are **Sowa's design + ISO/IEC 24707 Common Logic** — *not* Arisbe's. Binding all four to one drawn EG under a checked invariant is the new part, not the formats. |
-| 4 | **"A DRS is a Beta EG"; the EG↔DRT bridge operationalized** | **OPERATIONALIZED (high overclaim risk)** | The isomorphism is **explicitly Sowa's** ("DRS … isomorphic to Peirce's existential graphs"), tracing to Kamp 1981 — *must be cited, never claimed*. The novel part is narrow: the **Centering/focus-stack scorer** aligning EG transforms with DRT discourse updates (no prior art found). |
-| 5 | **Modality without Gamma; the diachronic DAG is the drawn Kripke frame** | **OPERATIONALIZED (caveat)** | "□/◇ → quantifiers over an accessibility relation" is the **standard translation** (van Benthem); Gamma ≅ S4/S5 is **Zeman (1964)**; sheets-as-worlds is widely read into Peirce. "No modal mark needed" runs *against* Ma & Pietarinen, who defend Gamma's diagrammatic advantages. Only the *history-DAG-as-drawn-frame* framing is original. |
+| 3 | **Four-way linear round-trip** (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif))/Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif))/Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))/First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl))) bound to one drawn object | **OPERATIONALIZED** | The notations + their mappings are **Sowa's design + ISO/IEC 24707 Common Logic** — *not* Arisbe's. Binding all four to one drawn EG under a checked invariant is the new part, not the formats. |
+| 4 | **"A DRS is a Beta EG"; the EG↔DRT bridge operationalized** | **OPERATIONALIZED (high overclaim risk)** | The isomorphism is **explicitly Sowa's** ("DRS … isomorphic to Peirce's existential graphs"), tracing to Kamp 1981 — *must be cited, never claimed*. The novel part is narrow: the **Centering/focus-stack scorer** aligning EG transforms with Discourse Representation Theory ([DRT](GLOSSARY.md#drt)) discourse updates (no prior art found). |
+| 5 | **Modality without Gamma; the diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) is the drawn Kripke frame** | **OPERATIONALIZED (caveat)** | "□/◇ → quantifiers over an accessibility relation" is the **standard translation** (van Benthem); Gamma ≅ S4/S5 is **Zeman (1964)**; sheets-as-worlds is widely read into Peirce. "No modal mark needed" runs *against* Ma & Pietarinen, who defend Gamma's diagrammatic advantages. Only the *history-DAG-as-drawn-frame* framing is original. |
 | 6 | **The Endoporeutic Game as an operational model-checking engine** | **OPERATIONALIZED** | Endoporeutic-as-game is **Hilpinen (1982)** + **Hintikka GTS (1973)** + **Pietarinen, _Signs of Logic_ (2006)** — including the outside-in peel and the "lazy, SQL-like" evaluation analogy. 3-valued model-checking with witnesses + minimax are standard. The *running implementation* as an EG evaluator appears new. |
 | 7 | **"Logic in pictures, not pictures of logic" / iconicity** | **ESTABLISHED (as philosophy)** | A paraphrase of **Stjernfelt's operational iconicity** and Peirce's "moving pictures of thought" (Shin 2002; Bellucci & Pietarinen). The *banner* is not novel; the *engineering that realizes it* is where any contribution lives. |
 
@@ -105,7 +105,7 @@ must cite) · **CANNOT DETERMINE**.
 - **Dau is the de-facto standard *for software* but not uncontested in philosophy** (SEP surveys
   Zeman/Roberts/Shin and omits Dau). Arisbe choosing Dau as bedrock is defensible and arguably the
   right engineering call, but the project should not present Dau as universally "the" formalization.
-- **DL/OWL-as-diagrams already exists** (a sound-complete diagrammatic system for ALC; Graphol ≈ OWL 2).
+- **Description Logic ([DL](GLOSSARY.md#dl))/Web Ontology Language ([OWL](GLOSSARY.md#owl))-as-diagrams already exists** (a sound-complete diagrammatic system for ALC; Graphol ≈ OWL 2).
   Arisbe's EG-native subsumption-by-freeze-a-witness is a reasonable extension, not a new bridge.
 
 ---

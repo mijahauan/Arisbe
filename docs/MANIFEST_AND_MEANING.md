@@ -41,9 +41,9 @@ more**.
 | *All things — distinct in unbegotten, unfathomable union.* (The nameless, beginning of heaven and earth.) | The **blank sheet of assertion** is that union: the only unequivocal truth, a fullness that says nothing because it withholds nothing. The ten thousand graphs are scribings upon it. It is the **fixed point of erasure** — the one inviolable element. |
 | *...naming and knowing each other.* (The ten thousand things in mutual relation.) | Meaning is **relational, and settled in use**: a mark means not by itself but through its **interpretant** — what it does in conduct, how the community takes it up and holds it to account. Things name and know *each other*; no mark names alone. So fact-versus-lie is a matter of *commitment*, never of ink — which is why warrant is earned in the **Agon**, not conferred by the drawing. |
 | *Manifest and meaning sound in the same chord.* (The two spring from one source, differ in name.) | The **linear↔graphical correspondence** — picture and proposition, one object sounded twice. This *is* Arisbe's central engineering problem. **§3.3 attests the chord holds** — correspondence, never truth. |
-| *Detaching, one glimpses the sea; desiring, one rides the waves.* (Desireless, the mystery; desiring, the manifestations.) | Two stances, one water: the **diachronic process** (the sea — the living, reconsidering Universe of Discourse) and the **synchronic move** (the wave — a single EG, an assertion). Detachment is readiness to **erase**; desire is the move that **scribes**. |
+| *Detaching, one glimpses the sea; desiring, one rides the waves.* (Desireless, the mystery; desiring, the manifestations.) | Two stances, one water: the **diachronic process** (the sea — the living, reconsidering Universe of Discourse) and the **synchronic move** (the wave — a single Existential Graph ([EG](GLOSSARY.md#eg)), an assertion). Detachment is readiness to **erase**; desire is the move that **scribes**. |
 | *An inscrutable mystery of mysteries, and yet a threshold of understanding.* (The gate to all understanding.) | The ground we stand within and cannot survey is both **limit** (we never know for sure) and **enabling condition** (inquiry proceeds within it, corrected by it). The **Agon** is that threshold made operational — where warrant rises and falls, never settles. |
-| *(The turn beneath it all:)* the ground comprehends us; we speak within it. | The system must **encode its own fallibility**: every UoD, domain model included, is a partial determination, surrenderable. We are signs among signs, not surveyors. |
+| *(The turn beneath it all:)* the ground comprehends us; we speak within it. | The system must **encode its own fallibility**: every Universe of Discourse ([UoD](GLOSSARY.md#uod)), domain model included, is a partial determination, surrenderable. We are signs among signs, not surveyors. |
 
 ## The membrane, and what a mark may bear
 
@@ -139,7 +139,7 @@ discipline is the same. We hold them in the same chord, and leave the choice liv
    world," it has crossed a membrane no mark crosses.
    **And for modality in particular, no mark is needed at all.** The standard
    translation sends □ / ◇ to ordinary Beta quantifiers over an accessibility
-   relation, and Arisbe's diachronic DAG (worlds = sheets, accessibility = legal
+   relation, and Arisbe's diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) (worlds = sheets, accessibility = legal
    transition) and corpus of universes (worlds = M's) *are* that frame, drawn
    rather than hidden — so Peirce's broken cut and tinctures have nothing left to
    carry, the embedded "□(P→◇Q)" case included. **Gamma conceived as a modal

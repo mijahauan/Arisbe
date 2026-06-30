@@ -8,7 +8,7 @@ phase model) — this records *what composition becomes* and why.
 
 1. **Freeform composition.** While composing the base graph, elements are **ink,
    not logic**: graphical marks (labelled spots, lines, closed cut-curves) that
-   you position freely, with no live EGI and no live interpretation. The order of
+   you position freely, with no live Existential Graph Instance ([EGI](GLOSSARY.md#egi)) and no live interpretation. The order of
    placement carries no meaning; the view holds only presence, position, and
    removal (spec §2.3). A cut is just a drawn curve — erase it and its contents
    stay exactly where they are; drag a mark across a boundary to change its area.
@@ -57,7 +57,7 @@ reads exactly what is drawn. The gaps are all imprecision/validity, and bounded:
 **Conclusion:** no reader rewrite. The freeform model needs (a) **draw-time
 snapping** — line endpoints to hooks/vertices, spot placement to clearly-in/out of
 a cut; and (b) a **fix-time validity pass** that catches the drawings the reader
-*can* read but that aren't well-formed EGs (overlapping cuts, unwired hooks,
+*can* read but that aren't well-formed Existential Graphs ([EGs](GLOSSARY.md#eg)) (overlapping cuts, unwired hooks,
 dangling lines) and reports them in EG vocabulary. Both are bounded.
 
 ## Visible, unambiguous containment regions (no invisible boundary)
@@ -79,7 +79,7 @@ region* `point_in_cut` uses. Today (`presentation_ops.point_in_cut`):
 
   Why it is dormant *today* but a real freeform concern: `simple_svg_renderer`
   deliberately keeps decorative deviation (corner rounding, hand-drawn wobble)
-  **under the engine's content clearance** — §3.3 reads the idealized DTO geometry,
+  **under the engine's content clearance** — §3.3 reads the idealized Data Transfer Object ([DTO](GLOSSARY.md#dto)) geometry,
   not the drawn stroke, and the engine grows cut boxes with margin, so no
   *engine-placed* element ever lands in a void. **Freeform human placement breaks
   that guarantee** — a person can drop a mark squarely in the corner void where the
@@ -156,7 +156,7 @@ drawn curves, no proxy. Three consequences, including the two the author named:
 - **Obstacle avoidance** — knowing every exact path and spot/label position, route
   the line *around* unrelated marks and sibling cuts it must not cross. (Routing
   stays a constrained problem — connect A→B, cross exactly {C…}, avoid the rest —
-  but the constraints and the verification are now exact; ELK orthogonal routing
+  but the constraints and the verification are now exact; Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk)) orthogonal routing
   and the tension taut-thread router are the substrate.)
 
 **What it retires.** The box/ellipse/rounded special-casing in `point_in_cut`; the

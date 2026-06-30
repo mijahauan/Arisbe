@@ -2,7 +2,7 @@
 
 **Status**: design-of-record · **steps 1–3 + the inverse pivot + theory query (§6.2)
 BUILT** (oracle + peel + materialization + `/agon` interpretation register & inverse
-search 2026-06-11; ontology-as-M / T-box theorem deduction 2026-06-12) · remaining:
+search 2026-06-11; ontology-as-M / terminological box ([T-box](GLOSSARY.md#t-box)) theorem deduction 2026-06-12) · remaining:
 oracle scale steps 4–6 (cache → horizon → SPARQL) · **Drafted**: 2026-06-11
 
 > **On *rendering* M** (vs. holding it): see [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SET.md) §3, §11.
@@ -24,7 +24,7 @@ Related: [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) (where M comes
 from, the outside-in process), [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md)
 (warrant gradient; *attest correspondence, not truth*),
 [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)
-(the diachronic UoD that M's growth is an instance of).
+(the diachronic Universe of Discourse ([UoD](GLOSSARY.md#uod)) that M's growth is an instance of).
 
 ---
 
@@ -43,7 +43,7 @@ local questions:
 Everything reduces to localized membership / homomorphism / witness queries.
 
 So the contact surface is **an oracle interface, not a bulk import.** The game
-engine stays EGI-native and source-agnostic; behind the oracle sits whatever can
+engine stays Existential Graph Instance ([EGI](GLOSSARY.md#egi))-native and source-agnostic; behind the oracle sits whatever can
 answer those queries — the local tomos corpus, a Wikidata SPARQL endpoint, a
 SNOMED service, a WordNet lookup. The consequence is the whole point:
 
@@ -162,7 +162,7 @@ Alpha grounding of the philosophy this document and
 
 ## 5. Cost reality
 
-OWL→CLIF→EGI layout is super-linear (~74s at 127 axioms, observed). So **never
+Web Ontology Language ([OWL](GLOSSARY.md#owl))→Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))→EGI layout is super-linear (~74s at 127 axioms, observed). So **never
 bulk-translate to graphs.** Keep M in native/CLIF form behind the oracle and
 translate to a *drawn* EGI only the fragment that enters the **visible** game —
 the part the user actually watches get unwrapped. The contested graph is the one
@@ -225,7 +225,7 @@ Sequence:
 facts to a fixpoint, returning a facts-only model `M′` (the least Herbrand model) and
 an honest **skip-report** of the rules left unmaterialized.
 
-- **The Horn line in EG.** A rule is a scroll `~[ B ~[ H ] ]` (= *B → H*).
+- **The Horn line in Existential Graph ([EG](GLOSSARY.md#eg)).** A rule is a scroll `~[ B ~[ H ] ]` (= *B → H*).
   Materializable iff: **B** (the outer cut's area, minus the inner cut) is a
   conjunction of **atoms** over lines of identity; **H** (the inner cut's area) is a
   conjunction of **atoms**; and every line in H also occurs in B (**range-restricted**
@@ -244,7 +244,7 @@ an honest **skip-report** of the rules left unmaterialized.
   theory's entailment. For queries with cuts (negation), this is closed-world /
   stratified-negation — which is exactly why materialization pairs with the **closed**
   regime (§3): materialize, then close, then peel.
-- **Honest skip-report.** Mirrors the SUO-KIF import's report ([[project_ontology_import]]):
+- **Honest skip-report.** Mirrors the Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif)) import's report ([[project_ontology_import]]):
   every non-Horn rule is named and left to the contest/deduction game, never silently
   dropped. The user sees precisely how much of M the peel can and cannot use.
 - **Wiring.** A standalone `src/model_materialization.py` (`materialize_egi(egi) →

@@ -24,7 +24,7 @@
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
-| EGI data model (`RelationalGraphWithCuts`) | SHIPPED | `egi_core_dau.py` → `test_egi_core_comprehensive.py` | Dau's `(V,E,ν,⊤,Cut,area,ρ)`; immutable. |
+| Existential Graph Instance ([EGI](GLOSSARY.md#egi)) data model (`RelationalGraphWithCuts`) | SHIPPED | `egi_core_dau.py` → `test_egi_core_comprehensive.py` | Dau's `(V,E,ν,⊤,Cut,area,ρ)`; immutable. |
 | Immutability / construction API | SHIPPED | `egi_core_dau.py` → same | `.with_vertex()`, `.with_edge()`; never `.add_*()`. |
 | Six transformation rules (ERA, INS, IT±, DC±) | SHIPPED | `formal_transformation_rules.py` → `test_chapter15_formal_calculus.py`, `test_beta_proof_exercises.py` | Beta-aware; Dau Ch. 14/15. |
 | Headless rule-interaction protocol | SHIPPED | `rule_interaction.py` → `test_rule_interaction.py` | Stepwise `begin→advance→apply` for all six. |
@@ -33,7 +33,7 @@
 | Graph isomorphism (VF2, for IT−) | SHIPPED | `graph_isomorphism_engine.py` → `test_graph_isomorphism_engine.py` | NetworkX VF2 copy detection. |
 | Ligature manipulation (Ch. 16–17) | SHIPPED | `ligature_manipulation_rules.py`, `single_object_ligature_detector.py` → `test_chapter16_17_ligature_soundness_simplified.py` | Sole non-test consumer is `chapter17_soundness_evaluation.py` — thinly held. |
 | Syntactic equivalence (Ch. 20) | SHIPPED | `syntactic_equivalence_checker.py`, `chapter20_syntactic_equivalence_fixes.py` → `test_chapter20_syntactic_equivalence.py` | |
-| EG navigation / introspection | SHIPPED | `eg_navigation.py` → `test_introspection_and_rules.py` | Content-addressable selection; `same_graph` Beta authority. |
+| Existential Graph ([EG](GLOSSARY.md#eg)) navigation / introspection | SHIPPED | `eg_navigation.py` → `test_introspection_and_rules.py` | Content-addressable selection; `same_graph` Beta authority. |
 | Proof authoring chains (`ProofChain`/`ChainStep`) | SHIPPED | `proof_authoring.py` → `test_chain_persistence.py`, `test_branching_chain.py` | Rule-by-locator; deterministic replay. |
 
 ---
@@ -42,10 +42,10 @@
 
 | Capability | Status | Home (src → test) | Corpus |
 |---|---|---|---|
-| EGIF parse / generate | SHIPPED | `egif_parser_dau.py` / `egif_generator_dau.py` → `test_tomos_parsing.py` | 57+ |
-| CGIF parse / generate (ISO/IEC) | SHIPPED | `cgif_parser_dau.py` / `cgif_generator_dau.py` → `test_tomos_parsing.py` | 40+ |
-| CLIF parse / generate (Common Logic) | SHIPPED | `clif_parser_dau.py` / `clif_generator_dau.py` → `test_clif_unit.py`, `test_tomos_parsing.py` | 35+ |
-| FOPL translation (Φ/Ψ bidirectional) | SHIPPED | `chapter18_fopl_translation.py` → `test_egi_to_fol.py` | EGI ↔ FOL |
+| Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)) parse / generate | SHIPPED | `egif_parser_dau.py` / `egif_generator_dau.py` → `test_tomos_parsing.py` | 57+ |
+| Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)) parse / generate (ISO/IEC) | SHIPPED | `cgif_parser_dau.py` / `cgif_generator_dau.py` → `test_tomos_parsing.py` | 40+ |
+| Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) parse / generate (Common Logic) | SHIPPED | `clif_parser_dau.py` / `clif_generator_dau.py` → `test_clif_unit.py`, `test_tomos_parsing.py` | 35+ |
+| First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl)) translation (Φ/Ψ bidirectional) | SHIPPED | `chapter18_fopl_translation.py` → `test_egi_to_fol.py` | EGI ↔ FOL |
 | EGI→FOL bridge (read-only inverse) | SHIPPED | `egi_to_fol.py` → `test_egi_to_fol.py` | Faithfulness pinned by Z3. |
 | JSON I/O (with layout deltas) | SHIPPED | `egi_io.py` → `test_complete_serialization_simplified.py` | Deltas survive transforms. |
 
@@ -58,7 +58,7 @@
 | Coordinate-free natural layout | SHIPPED | `natural_layout.py` → `test_natural_layout.py` | Containment + crossing-sequences + incidence; geometry-free. |
 | §3.3 runtime attestation | SHIPPED | `correspondence_attestation.py` → `test_correspondence_attestation.py`, `test_correspondence_invariant.py` | `attest_correspondence` hooked into layout_service + save/load. **Protected (added 2026-06-27).** |
 | Regime-3 presentation algebra | SHIPPED | `presentation_ops.py` → `test_presentation_ops.py` | move/reshape/reroute; `Regime3Violation` on boundary crossing. **Protected (added 2026-06-27).** |
-| ELK layout engine (default) | SHIPPED | `elk_layout_engine.py` (+`elk_worker.js`) → `test_elk_layout_engine.py`, `test_elk_ligature_edge_cases.py` | Cut-aware; ligature edge cases audited. |
+| Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk)) layout engine (default) | SHIPPED | `elk_layout_engine.py` (+`elk_worker.js`) → `test_elk_layout_engine.py`, `test_elk_ligature_edge_cases.py` | Cut-aware; ligature edge cases audited. |
 | Tension layout engine (opt-in) | PARTIAL | `tension_engine.py` → `test_tension_engine.py` | `?engine=tension`; 17/18 corpus attest, §3.3-gated with ELK fallback. |
 | Tension sibling-order + stress | SHIPPED | `tension_layout.py` → `test_tension_layout.py` | `?tension` knob; crossing-sequence-independent. |
 | SVG renderer | SHIPPED | `simple_svg_renderer.py` → `test_overview_attestation.py` | LayoutDTO → SVG; one engine across all modes. |
@@ -67,7 +67,7 @@
 | Drawing→EGI builder | SHIPPED | `drawing_to_egi.py` → `test_drawing_to_egi.py` | "fix = read"; corpus round-trip via `same_graph`. |
 | Legible EGI diff | SHIPPED | `egi_diff.py` → `test_egi_diff.py` | structure/missing/extra/scope/incidence/order, content-aligned. |
 | TikZ / export rendering (geometric) | SHIPPED | `web_api/services/tikz_export.py`, `export_service.py` | Dau/Sowa coordinate TikZ; `/export` formats EGIF / CGIF / CLIF / SVG / TikZ / PNG / PDF. |
-| Authentic-Peirce LaTeX export | SHIPPED (phase 1+2) | `peirce_latex.py` + `tex/arisbe-eg.sty` → `test_peirce_latex.py` | `peirce-tikz` format: oval cuts, heavy lines of identity, hooks; pure TikZ, pdflatex-native (no PSTricks); wedded to the §3.3-attested DTO; delta-faithful (regime-3 nudges thread through `/export`). Phase 2: **iconic self-continuing scroll glyph** (opt-in `scroll_glyph`, ink-only), **worked-chain → multi-figure LaTeX document** (`export_peirce_chain`, `POST /export/chain`), **drawing→EGI learning loop** (`layout_learning.py`: `arrangement_deltas` + `generalize_arrangement` → style ladder). |
+| Authentic-Peirce LaTeX export | SHIPPED (phase 1+2) | `peirce_latex.py` + `tex/arisbe-eg.sty` → `test_peirce_latex.py` | `peirce-tikz` format: oval cuts, heavy lines of identity, hooks; pure TikZ, pdflatex-native (no PSTricks); wedded to the §3.3-attested Data Transfer Object ([DTO](GLOSSARY.md#dto)); delta-faithful (regime-3 nudges thread through `/export`). Phase 2: **iconic self-continuing scroll glyph** (opt-in `scroll_glyph`, ink-only), **worked-chain → multi-figure LaTeX document** (`export_peirce_chain`, `POST /export/chain`), **drawing→EGI learning loop** (`layout_learning.py`: `arrangement_deltas` + `generalize_arrangement` → style ladder). |
 
 ---
 
@@ -75,7 +75,7 @@
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
-| Universe of Discourse entity | SHIPPED | `universe_of_discourse.py` → `test_universe_of_discourse.py` | Synchronic EGI + diachronic DAG + deltas. |
+| Universe of Discourse entity | SHIPPED | `universe_of_discourse.py` → `test_universe_of_discourse.py` | Synchronic EGI + diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) + deltas. |
 | Branching transformation history | SHIPPED | `egi_transformation_history.py` → `test_egi_transformation_history.py` | Immutable states; append-only DAG. |
 | Corpus persistence (`TomosService`) | SHIPPED | `tomos_service.py` → `test_chain_persistence.py` | save/load attest §3.3 at the boundary; chain JSONL. |
 | Provenance + warrant / standing | SHIPPED | `provenance.py` → `test_provenance.py` | `standing_of` → posited/derived/withstood badge. |
@@ -90,7 +90,7 @@
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
-| **Organon** — read-only archive | SHIPPED | `web_api/routes/organon.py` → `test_organon_routes.py`, `test_overview_routes.py` | Listing, UoD detail, chain player; both load+render §3.3-attested. |
+| **Organon** — read-only archive | SHIPPED | `web_api/routes/organon.py` → `test_organon_routes.py`, `test_overview_routes.py` | Listing, Universe of Discourse ([UoD](GLOSSARY.md#uod)) detail, chain player; both load+render §3.3-attested. |
 | Adaptive-scope lenses (overview) | SHIPPED | `overview_projection.py`, `eg_structure.py` → `test_overview_attestation.py` | Negation well + storyboard; LOD knob. |
 | **Ergasterion** — workshop | SHIPPED | `web_api/routes/ergasterion.py` → `test_ergasterion_routes.py` | RuleInteraction-driven; regime-1 drafts; branch-on-edit; scratch store. |
 | Freeform draw-then-read | SHIPPED | `web_viewer/js/freeform-canvas.js`, `drawing_*`→ `test_ergasterion_freeform.py`, `…_e2e.py` | Typed marks → gate ① read/fix. E2E (Playwright). |
@@ -116,9 +116,9 @@
 | Domain oracle (M queried, not held) | SHIPPED | `domain_oracle.py` → `test_domain_oracle.py` | `resolve`/`witness`/`match_atoms`; open-world. |
 | Semantic game / peel (Kleene 3-valued) | SHIPPED | `semantic_game.py` → `test_semantic_game.py` | Model-checking, not inference. |
 | Model materialization (Horn forward-chain) | SHIPPED | `model_materialization.py` → `test_model_materialization.py` | Least Herbrand model; non-Horn skipped honestly. |
-| Theory query (T-box subsumption) | SHIPPED | `theory_query.py` → `test_theory_query.py` | `entails` by freeze-a-fresh-witness; Horn-complete. |
-| OWL → CLIF → EGI pipeline | SHIPPED | `domain_model_importer.py`, `tools/owl_to_clif.py` → `test_owl_import.py` | Untranslatable constructs reported, not dropped. |
-| RDF front-end (Turtle/XML/N-Triples/JSON-LD) | SHIPPED | `domain_model_importer.py`, `tools/rdf_to_owl.py` → `test_rdf_import.py` | rdflib → same OWL AST. |
+| Theory query (terminological box ([T-box](GLOSSARY.md#t-box)) subsumption) | SHIPPED | `theory_query.py` → `test_theory_query.py` | `entails` by freeze-a-fresh-witness; Horn-complete. |
+| Web Ontology Language ([OWL](GLOSSARY.md#owl)) → CLIF → EGI pipeline | SHIPPED | `domain_model_importer.py`, `tools/owl_to_clif.py` → `test_owl_import.py` | Untranslatable constructs reported, not dropped. |
+| Resource Description Framework ([RDF](GLOSSARY.md#rdf)) front-end (Turtle/XML/N-Triples/JSON-LD) | SHIPPED | `domain_model_importer.py`, `tools/rdf_to_owl.py` → `test_rdf_import.py` | rdflib → same OWL AST. |
 | cl-imports auto-resolution | SHIPPED | `cl_import_resolver.py` → `test_cl_import_resolver.py` | Mapping/Directory/ColoreWeb/Caching/Chain. |
 | Ontology EGIF encoder | SHIPPED | `ontology_egif.py` → `test_ontology_import.py` | Subsumption = scroll. |
 | Z3 SMT validation | SHIPPED | `z3_semantic_validator.py` | Semantic cross-check. |
@@ -145,7 +145,7 @@
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
-| Diagram↔narration check | SHIPPED (prototype) | `diagram_narration_check.py` → `test_diagram_narration_check.py` | Scorer over 8 chains/35 steps; 3 Centering/DRT salience roles 100%. **Measurement tool — not surfaced in the UI.** See [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10. |
+| Diagram↔narration check | SHIPPED (prototype) | `diagram_narration_check.py` → `test_diagram_narration_check.py` | Scorer over 8 chains/35 steps; 3 Centering/Discourse Representation Theory ([DRT](GLOSSARY.md#drt)) salience roles 100%. **Measurement tool — not surfaced in the UI.** See [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10. |
 | Schema layer (graph-with-holes node) | SHIPPED | `schema.py`, `eg_splice.py` → `test_schema.py` | P7 least-number schema; induction scaffold. Schema-drawing/§3.3 is a frontier. |
 | Derived rules (named UI moves) | SHIPPED | `derived_rules.py` → `test_derived_rules.py` | Built atop Dau's six. |
 | Render-M UI (ground/legend + neighborhood) | SHIPPED | `m_render.py` → `test_m_render.py`, `test_agon_interpretation.py`, `test_agon_e2e.py` | Agon interpretation register draws M: the vocabulary legend (d) + the relevant-neighborhood fragment G touches (c, seed + one hop, budget-capped, horizon reported). Read-only chrome, M never asserted. See ROADMAP #2 / [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) (c)+(d). |

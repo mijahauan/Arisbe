@@ -25,12 +25,12 @@ gaps were filled in one pass:
   derivations* a teacher or student can step through. The existing set (Peirce's
   Law, Barbara, Leibniz's *Praeclarum*, the group-identity uniqueness, beta modus
   ponens) leaned toward the harder theorems. The new quartet adds **short, iconic
-  propositional laws** — including two that teach an EG-specific insight worth more
+  propositional laws** — including two that teach an Existential Graph ([EG](GLOSSARY.md#eg))-specific insight worth more
   than the theorem.
 - **Boards to play on.** The Endoporeutic Game's interpretation register is *given
   M, then G* — and you cannot play without an M. The curated persona models in
   `src/agon_models.py` are inline on-ramps; the corpus wanted **richer,
-  browsable domain-model UoDs** that double as game boards. Two were added, a
+  browsable domain-model Universes of Discourse ([UoDs](GLOSSARY.md#uod))** that double as game boards. Two were added, a
   closed/open contrast.
 
 Everything below is a real corpus UoD: §3.3-attested at save and load, browsable in
@@ -123,7 +123,7 @@ never promises an outcome the peel won't deliver.
 is the diachronic, **mark-free** reading of ◇ and □
 ([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §1, the *trajectory reading*).
 A modal operator is a quantifier over a Kripke frame, and the branching history *is*
-that frame — worlds are sheets, accessibility is the legal-transition DAG. So:
+that frame — worlds are sheets, accessibility is the legal-transition directed acyclic graph ([DAG](GLOSSARY.md#dag)). So:
 
 > ◇φ = "some legal trajectory scribes φ" · □φ = "every legal trajectory scribes φ"
 > — *possibility is branching, necessity is convergence.*
@@ -139,7 +139,7 @@ The thin missing code is [src/modal_query.py](../src/modal_query.py) —
 `leaf_states`), with predicate helpers (`scribes_relation`, `equals_graph`,
 `is_blank`) and an `over="states"|"leaves"` choice (all reachable worlds, or just the
 trajectory endpoints — over endpoints, a *transient* like cloudy isn't even possible).
-It reads only DAG structure + EGI content, draws no mark, and adds no §3.3 obligation.
+It reads only DAG structure + Existential Graph Instance ([EGI](GLOSSARY.md#egi)) content, draws no mark, and adds no §3.3 obligation.
 (The *alethic* reading — ◇/□ across the corpus's models M — is the inverse pivot,
 `/agon/where-it-holds`.)
 

@@ -41,6 +41,97 @@
 
 ---
 
+## Abbreviations
+
+The acronyms the book uses, each expanded on first use and linked here. Headings are the
+link targets (e.g. a first use renders *Existential Graph Instance ([EGI](GLOSSARY.md#egi))*).
+
+### EG
+**Existential Graph** — Peirce's diagrammatic logic; assertions drawn as marks on a sheet and
+transformed as pictures. See [FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md).
+
+### EGI
+**Existential Graph Instance** — Dau's formal structure `(V, E, ν, ⊤, Cut, area, ρ)`; the immutable
+data model. See *Terms → EGI* below and [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md).
+
+### UoD
+**Universe of Discourse** — the fundamental entity: a *diachronic* (evolving) reasoning process of
+which an EGI is one synchronic frame. See [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md).
+
+### DAG
+**Directed Acyclic Graph** — the shape of the branching transformation history. See
+[DAG_HISTORY_ARCHITECTURE.md](DAG_HISTORY_ARCHITECTURE.md).
+
+### EGIF
+**Existential Graph Interchange Format** — Dau's linear notation for EGs. See
+[IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md).
+
+### CGIF
+**Conceptual Graph Interchange Format** — the ISO/IEC 24707 conceptual-graph notation.
+
+### CLIF
+**Common Logic Interchange Format** — the Common Logic standard notation.
+
+### FOPL
+**First-Order Predicate Logic** — the symbolic logic Arisbe round-trips to/from EGs via Dau's
+Φ / Ψ translation. See [CHAPTER18_FOPL_TRANSLATION_DOCUMENTATION.md](CHAPTER18_FOPL_TRANSLATION_DOCUMENTATION.md).
+(*FOL* = First-Order Logic, the same fragment.)
+
+### EPG
+**Endoporeutic Game** — Peirce's outside-in dialogical reading of a graph, made operational in Agon.
+See [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
+
+### DRS
+**Discourse Representation Structure** — a box of referents + conditions from Discourse
+Representation Theory; in Arisbe a DRS *is* a Beta EG, the basis of the diagram↔narration check.
+See [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10.
+
+### DRT
+**Discourse Representation Theory** — Kamp's dynamic semantics of discourse; the source of the
+DRS and Centering notions Arisbe borrows for diagram↔narration.
+
+### DTO
+**Data Transfer Object** — the platform-independent `LayoutDTO` that carries a drawing between
+the layout engines and the renderer. See [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md).
+
+### ELK
+**Eclipse Layout Kernel** — the cut-aware graph-layout engine that is Arisbe's default projection.
+
+### DOI
+**Degree of Interest** — the attention/scoping metric of the minimal in-view set (*not* "digital
+object identifier"). See [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md).
+
+### OWL
+**Web Ontology Language** — a W3C ontology language; imported via OWL → CLIF → EGI. See
+[EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md).
+
+### RDF
+**Resource Description Framework** — the W3C graph data model; rides the OWL import path.
+
+### SUO-KIF
+**Standard Upper Ontology Knowledge Interchange Format** — the SUMO dialect; ground axioms import to EGs.
+
+### COLORE
+**Common Logic Ontology Repository** — a Common-Logic ontology library; imports via its `cl-imports` closure.
+
+### DL
+**Description Logic** — the logic family of OWL/ontologies; its T-box axioms each map to an EG shape.
+
+### T-box
+**Terminological box** — the schema/vocabulary part of an ontology (class/role axioms), as opposed
+to the **A-box** (assertional box, the individuals/facts).
+
+### SMACOF
+**Scaling by Majorizing a Complicated Function** — the stress-majorization method behind the
+optional tension layout.
+
+### the six transformation rules
+**ERA** (erasure), **INS** (insertion), **IT+ / IT−** (iteration / deiteration), **DC+ / DC−**
+(double-cut add / remove) — Dau's truth-preserving, Beta-aware rules; the correctness floor. See
+[LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md) and the transformation chapters.
+
+---
+
 ## Terms
 
 ### Peirce's Existential Graphs

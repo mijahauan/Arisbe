@@ -60,14 +60,14 @@ world-variable:
 > ST(◇φ, w)  =  ∃w′ ( R(w, w′) ∧ ST(φ, w′) )
 
 The operators vanish into ordinary ∀ and ∃ over the frame. And ∀/∃ over a
-relation is exactly what Beta EG draws. So the only thing standing between Beta
+relation is exactly what Beta Existential Graph ([EG](GLOSSARY.md#eg)) draws. So the only thing standing between Beta
 EG and modal expressivity is *a representation of the frame* — and that is
 precisely what Arisbe's diachronic architecture supplies natively, in two
 readings:
 
 - **The trajectory reading** (provability / derivability modality). Worlds are
-  **sheets** — the immutable EGI states; *R* is the **legal-transition relation**
-  of the derivation DAG. Then "◇φ" is "some legal trajectory scribes φ" and "□φ"
+  **sheets** — the immutable Existential Graph Instance ([EGI](GLOSSARY.md#egi)) states; *R* is the **legal-transition relation**
+  of the derivation directed acyclic graph ([DAG](GLOSSARY.md#dag)). Then "◇φ" is "some legal trajectory scribes φ" and "□φ"
   is "every legal trajectory scribes φ." This is the diachronic gloss the
   conversation reaches by a different road: *possibility is the **branching** of
   legal trajectories, necessity is their **convergence**, and the only necessity
@@ -80,7 +80,7 @@ readings:
   [derivation-DAG lens](../src/web_viewer/js/derivation-dag-lens.js).
 
 - **The alethic reading** (□ = true in all accessible worlds). Worlds are the
-  corpus's several **UoDs / models M**; *R* is an accessibility relation drawn
+  corpus's several **Universes of Discourse ([UoDs](GLOSSARY.md#uod)) / models M**; *R* is an accessibility relation drawn
   **among** them. The corpus is already a *library of universes*, mutually
   inconsistent without contradiction (MANIFEST floor #5). Modal force becomes the
   Endoporeutic Game's quantification over the choice of M — which the interpretation

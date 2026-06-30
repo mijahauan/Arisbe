@@ -15,7 +15,7 @@ staying coordinate-free.
 ## Why the gap exists today, and why it is eliminable
 
 Three layers; only the middle one approximates:
-1. **Logic (EGI)** — *topological*: which elements sit in which nested areas, which
+1. **Logic (the [EGI](GLOSSARY.md#egi))** — *topological*: which elements sit in which nested areas, which
    line is a predicate's argument *i*. Exact, pixel-agnostic.
 2. **Drawing** — *closed curves and extents*. By the **Jordan Curve Theorem** any
    closed curve has a precise inside/outside, for any shape. Exact, for free.
@@ -46,7 +46,7 @@ removing the proxy closes the gap.
   **crossing-sequence invariant** (actual-vs-required crossing multiset) is then
   checked against the literal curves. Enables precise chosen crossing points, no
   spurious crossings, and obstacle-aware routing (route around unrelated marks /
-  sibling cuts) — routing stays constrained (ELK / tension are the substrate) but
+  sibling cuts) — routing stays constrained (Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk)) / tension are the substrate) but
   its constraints and verification become exact.
 - **Every mark is an extent, wholly within its area, unoccluded.** A predicate /
   constant is a **label box** (its containment uses the box, not an anchor point —
@@ -256,7 +256,7 @@ analytic shape behind it.
   wobble, seed, samples)`) samples the drawn curve (rounded rectangle / inscribed
   ellipse / wobble) as a closed polyline; `point_in_polygon` and
   `polyline_polygon_crossings` test against it.
-- **The DTO carries it** (`LayoutDTO.cut_boundary: {cut_id: polyline}`, optional).
+- **The Data Transfer Object ([DTO](GLOSSARY.md#dto)) carries it** (`LayoutDTO.cut_boundary: {cut_id: polyline}`, optional).
   `resolve_cut_boundaries(dto)` is the boundary of record shared by §3.3 and
   `eg_reader`: a carried polyline (freeform cut) → tested point-in-polygon; an
   analytic cut → `None`, read by the exact `point_in_cut` from `cut_bounds` + style.
@@ -296,7 +296,7 @@ are worlds apart:
   not pixels.**
 
 - **DEFERRED, out of current scope — reading a *raster image*.** A photo, scan, or
-  true stylus-freehand of a hand-drawn EG (e.g. a figure from a book, Peirce's
+  true stylus-freehand of a hand-drawn Existential Graph ([EG](GLOSSARY.md#eg)) (e.g. a figure from a book, Peirce's
   notebook) is a different and genuinely hard problem: stroke segmentation, mark
   classification, label handwriting recognition, structure inference from noisy
   pixels. That is computer vision / sketch recognition, **not** what freeform

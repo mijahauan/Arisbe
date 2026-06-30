@@ -1,7 +1,7 @@
 # Linear–Graphical Correspondence: The Central Invariant
 
 **Status**: Active contract — stated, tested, and runtime-attested (last revised 2026-06-07). The §7 property tests (`tests/test_correspondence_invariant.py`) and the §3.3 runtime hook (`src/correspondence_attestation.py`, wired into the web layout service) are in place.
-**Scope**: Specification of the correspondence between an EGI's linear written form and its graphical drawn form. This document defines the contract that every other workstream (transformation rules, layout, rendering, sessions, the three modes, the Endoporeutic Game) must respect.
+**Scope**: Specification of the correspondence between an Existential Graph Instance ([EGI](GLOSSARY.md#egi))'s linear written form and its graphical drawn form. This document defines the contract that every other workstream (transformation rules, layout, rendering, sessions, the three modes, the Endoporeutic Game) must respect.
 
 **A third correspondence** (cognitive, validation-only): [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SET.md) proposes **diagram ↔ natural-language narration** as a *falsifiable check* on how a reasoning process is scoped for a bounded attention. It is a validator, **not** a new assertion regime — nothing enters the corpus through it.
 
@@ -46,7 +46,7 @@ But graphical space is itself two-layered, and this distinction is load-bearing:
 
 - **Natural representation space — potentially n-dimensional.** Some logical configurations don't embed naturally on a plane. A ligature crossing through many cuts may need to make a path that visually intersects other ligatures it has no logical relation to. Sibling cuts have no logical left/right ordering, yet a planar layout must choose one. Peirce himself worked in a richer space than the page: he invoked the *back* of the sheet for negation (the cut as a *physical cut*, exposing the verso), bridge marks for ligature crossings, distinct curve styles for distinct identities. The space where the logical structure naturally lives may have more degrees of freedom than the page.
 
-- **Projected representation space — typically 2-D, the screen.** What the user actually sees. A *projection* of the natural representation, governed by stated **conventions**: how ligature crossings are disambiguated (bridge marks? gap markers?), how sibling cut order is chosen (canonical labeling? user preference?), how depth or recto/verso is indicated if needed, what shape conventions distinguish ligatures from predicate hooks. Conventions are introduced as the system commits to them; Gamma-level EGs (Peirce's modal, temporal, and abstractional extensions) will require further conventions and are an expected future source of them.
+- **Projected representation space — typically 2-D, the screen.** What the user actually sees. A *projection* of the natural representation, governed by stated **conventions**: how ligature crossings are disambiguated (bridge marks? gap markers?), how sibling cut order is chosen (canonical labeling? user preference?), how depth or recto/verso is indicated if needed, what shape conventions distinguish ligatures from predicate hooks. Conventions are introduced as the system commits to them; Gamma-level Existential Graphs ([EGs](GLOSSARY.md#eg)) (Peirce's modal, temporal, and abstractional extensions) will require further conventions and are an expected future source of them.
 
 This split matters because the correspondence has to hold *through the projection*. A 2-D drawing that obeys the conventions can be unambiguously parsed back to the natural representation, and from there to the EGI. A 2-D drawing that *silently* breaks a convention is a correspondence failure — even if the underlying logical map is intact. Conventions are part of the contract.
 
@@ -122,13 +122,13 @@ inquiry probes and expands. Exploration suspends *assertion*, never the
 "Linear *and* graphical denote the same object" is, mechanically, a **triangle**:
 the EGI is the apex, and the invariant has two legs — **EGI ↔ drawing** and
 **EGI ↔ linear form** (EGIF/CGIF/CLIF). The linear↔graphical relation the title
-names is mediated through the EGI; it holds exactly when both legs hold. The two
+names is mediated through the EGI; it holds exactly when both legs hold (the linear-form leg covers Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), and Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))). The two
 legs are real and are guarded by **two different mechanisms**, and the difference
 is principled — it tracks the *drift surface*, not the importance:
 
 | Leg | Guard | When | Why this guard suffices |
 |---|---|---|---|
-| EGI ↔ **drawing** | `attest_correspondence` (§3.3), a pure function of `(EGI, LayoutDTO)` — it never inspects any linear form | **runtime**, at every render and every load/save boundary (§6) | The drawing is the output of an **optimizer** (ELK / SMACOF / tension) that *searches* for geometry and can fail per-instance and silently — a cut that fails to contain its contents, a ligature crossing the wrong boundary. A fallible producer demands a per-instance runtime check. |
+| EGI ↔ **drawing** | `attest_correspondence` (§3.3), a pure function of `(EGI, LayoutDTO)` — it never inspects any linear form | **runtime**, at every render and every load/save boundary (§6) | The drawing is the output of an **optimizer** (Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk)) / Scaling by Majorizing a Complicated Function ([SMACOF](GLOSSARY.md#smacof)) / tension) that *searches* for geometry and can fail per-instance and silently — a cut that fails to contain its contents, a ligature crossing the wrong boundary. A fallible producer demands a per-instance runtime check. |
 | EGI ↔ **linear form** | round-trip property tests (`tests/test_properties_round_trip.py`, `…cgif_clif_round_trip.py`, `test_tomos_parsing.py`): `parse → generate → parse` preserves `\|V\|, \|E\|, \|Cut\|` (and `same_graph`) over the whole corpus | **test-time**, in CI | Linear generation is a **deterministic, syntax-directed translation** — `generate_egif(egi)` is pure and total over valid EGIs, with `parse` its inverse. There is no per-instance failure mode: if the *function* is correct, *every* output is. A function-level proof discharges it. |
 
 So `attest_correspondence` guards only the drawing leg — confirmed by construction
@@ -267,7 +267,7 @@ At each event, the system should either verify the invariant or refuse the opera
 
 The next workstream after this spec is a property-test layer in [tests/](../tests/) that asserts the invariant on canonical states. Anticipated test shapes:
 
-1. **Render round-trip.** For every UoD in the tomos corpus: load → render to `LayoutDTO` → serialize → re-parse the structural data → assert structural equality with the source EGI. Catches losses through the render/serialize path.
+1. **Render round-trip.** For every Universe of Discourse ([UoD](GLOSSARY.md#uod)) in the tomos corpus: load → render to `LayoutDTO` → serialize → re-parse the structural data → assert structural equality with the source EGI. Catches losses through the render/serialize path.
 2. **Transformation invariance.** For every rule applied to every applicable site in a corpus example: assert the post-state's drawing corresponds to the post-state's EGI, and that the rule's claimed semantic effect on the EGI matches what the rule did. Catches rule-induced drift.
 3. **Containment fidelity.** For every canonical state, assert the `LayoutDTO`'s cut bounds correctly nest by `area` membership, no two cuts overlap, depth is preserved.
 4. **Identity fidelity.** For every canonical state, assert ligature paths realize the W-partition exactly: connectedness within class, disconnection across class, area-visit set equal to the class members' `area` set.
@@ -286,7 +286,7 @@ The conventions are grouped by what they bind:
 
 ### 8.1 Layout-level conventions (visible in `LayoutDTO`)
 
-These conventions shape the structural layout output and are testable directly from the DTO.
+These conventions shape the structural layout output and are testable directly from the Data Transfer Object ([DTO](GLOSSARY.md#dto)).
 
 - **L1. Deterministic layout** — within a single process, two calls to `engine.generate_layout(egi, style)` for the same EGI produce equal `LayoutDTO`s. The flat-file render path is reproducible. *Across* processes, Python frozenset iteration order may differ; if cross-process reproducibility becomes a requirement (e.g., for diff-based PR review of layouts), this commits us to setting `PYTHONHASHSEED` or sorting area contents before feeding ELK.
 - **L2. ELK layered algorithm with hierarchy** — every layout is produced by `elk.algorithm: layered` with `elk.hierarchyHandling: INCLUDE_CHILDREN`. Child cuts are laid out *inside* their parent's box; the parent's bounds expand to fit.

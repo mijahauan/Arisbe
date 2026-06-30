@@ -59,7 +59,7 @@ workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
   candidate M; abductive context-retrieval). See `DOMAIN_ORACLE_AND_M.md` §7.
 - An **automated Grapheus** opponent (move/strategy selection) — V1 is hot-seat
   only; the semantic game now supplies the model-respecting reply it would use.
-- A **dynamically-learned model M** and **ontology import** (OWL→CLIF→EGI,
+- A **dynamically-learned model M** and **ontology import** (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI,
   WordNet/SNOMED/Wikidata) — today M is built by hand (queried via `DomainOracle`).
 - **Automated doubt detection** and guided **M-revision** workflows.
 - A **frontend** for the interpretation register (routes are wired; no UI yet).
@@ -72,7 +72,7 @@ workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
 
 ## Overview
 
-The Endoporeutic Game (EPG) is Peirce's dialogical **interpretation** of
+The Endoporeutic Game ([EPG](GLOSSARY.md#epg)) is Peirce's dialogical **interpretation** of
 Existential Graphs — a paraphrasing of "unwrapping game" or "outside-in game."
 It is not a proof procedure. Proof and interpretation are related but serve
 different purposes and follow different procedures. The EPG provides the
@@ -104,7 +104,7 @@ double negative providing the initial context).
 
 | Component | Description |
 |-----------|-------------|
-| **Domain Model (M)** | An agreed EGI on the Sheet of Assertion — the shared knowledge base |
+| **Domain Model (M)** | An agreed Existential Graph Instance ([EGI](GLOSSARY.md#egi)) on the Sheet of Assertion — the shared knowledge base |
 | **Proposal (G)** | The Graphist's "seed" graph — an assertion to be tested |
 | **Rules** | IT- (de-iteration) and DC- (double cut elimination) — the two eliminative rules used by the EPG |
 | **Agonothetes** | The interpretive function of the game: provides context, validates moves, produces understanding from the outcome |
@@ -536,7 +536,7 @@ presides over the post-game negotiation that determines which path is taken.
   "irritation of doubt." Under what conditions might G supplant what
   contradicted it in M?
 - **2c. Fork**: Both G and ¬G have defensible grounds. The UoD branches into
-  alternative domain models (M₁ with G, M₂ without). The DAG history
+  alternative domain models (M₁ with G, M₂ without). The directed acyclic graph ([DAG](GLOSSARY.md#dag)) history
   records both branches.
 - **2d. Reductio resource**: The contradiction itself is useful — it establishes
   ¬G as a theorem of M, constraining future reasoning.
@@ -667,7 +667,7 @@ The Agonothetes manifests in three phases of the game:
 
 **Before the game — providing context:**
 
-Everything happens within one **Universe of Discourse** (UoD), where more
+Everything happens within one **Universe of Discourse** ([UoD](GLOSSARY.md#uod)), where more
 than one domain model may exist. The Graphist and Grapheus agree on a
 particular reference model M and a proposed graph G to interpret against it.
 
@@ -987,7 +987,7 @@ EGI (Existential Graph Instance)
 M in a Universe of Discourse
 ```
 
-CLIF is an ISO standard (ISO/IEC 24707) for Common Logic, and Sowa's work
+Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) is an ISO standard (ISO/IEC 24707) for Common Logic, and Sowa's work
 explicitly establishes the correspondence between Conceptual Graphs, Common
 Logic, and Existential Graphs.  Translation from OWL to CLIF (or a close
 approximation) is a studied problem with existing tooling.
@@ -1263,7 +1263,7 @@ the mapping breaks are as informative as the places where it holds.
 **2. A student learning conceptual graphs via "the cat is on the mat."**
 
 M is the formal apparatus of Conceptual Graph theory — type hierarchies,
-relation definitions, the syntax of CGIF.  "Cat" enters the game not as an
+relation definitions, the syntax of Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)).  "Cat" enters the game not as an
 animal but as a *type label*: a node in a type lattice, an exemplar concept
 used to illustrate the machinery.  The Graphist proposes:
 `[Cat: #]→(On)→[Mat: #]`.  The game tests whether this is well-formed

@@ -23,7 +23,7 @@
 
 Arisbe is an environment for **doing logic in pictures, not pictures of logic** —
 Charles Sanders Peirce's "moving pictures of thought" made operational. You draw,
-transform, and contest **Existential Graphs** (EGs) directly; the picture *is* the
+transform, and contest **Existential Graphs** ([EGs](GLOSSARY.md#eg)) directly; the picture *is* the
 reasoning, not an illustration of reasoning done elsewhere. Peirce is the **aim**;
 Frithjof Dau's formalization is the **guarantor of correctness** underneath.
 
@@ -67,7 +67,7 @@ web app:
 
 - **Read one.** Open `/organon`, pick `peirce_cp_4_394_man_mortal`, and watch
   "every man is mortal" drawn as a *scroll* (nested loops). Toggle its linear forms
-  (EGIF / CGIF / CLIF / FOPL) and watch the same proposition stay recognizable.
+  (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)) / Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)) / Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) / First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl))) and watch the same proposition stay recognizable.
 - **Draw one.** Open `/ergasterion`, switch to **challenge mode**, pick the dragon
   `🐉1` "every man is mortal," and draw it freehand. Arisbe grades your attempt with
   a **plain-language diff** of how it differs — and hands back the antidote when you
@@ -121,7 +121,7 @@ past the dragons; they catch experts too (and caught the author writing the guid
 
 ### 2b. The ontologist — "I have vocabularies, OWL/RDF, a T-box"
 
-Arisbe treats an **ontology as a theory you can draw and reason in** — every T-box
+Arisbe treats an **ontology as a theory you can draw and reason in** — every terminological box ([T-box](GLOSSARY.md#t-box))
 axiom is already an EG shape (subsumption is a *scroll*, disjointness is a denial,
 domain/range are typing scrolls). You bring a file in; it becomes a `kind=ontology`
 Universe of Discourse you can browse in Organon and play as a **model M** in Agon.
@@ -130,8 +130,8 @@ Universe of Discourse you can browse in Organon and play as a **model M** in Ago
 1. Read [EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md) — the
    consolidating import doc: what enters, at what warrant, attributed how, attested
    how. This is your main door.
-2. Bring a file: **OWL** (Functional-Style `.ofn`) and **RDF** (Turtle/RDF-XML/…)
-   travel **OWL → CLIF → EGI**; **SUO-KIF** and raw **CLIF/COLORE** import directly
+2. Bring a file: **Web Ontology Language ([OWL](GLOSSARY.md#owl))** (Functional-Style `.ofn`) and **Resource Description Framework ([RDF](GLOSSARY.md#rdf))** (Turtle/RDF-XML/…)
+   travel **OWL → CLIF → Existential Graph Instance ([EGI](GLOSSARY.md#egi))**; **Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif))** and raw **CLIF/Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore))** import directly
    (the back half is `clif_parser_dau`). See the tool/module table in that doc.
 3. Ask a question of it. In `/agon`, pick your imported ontology as M and let
    `theory_query.entails` decide a **subsumption / intersection / transitivity**
@@ -188,7 +188,7 @@ notations** and stays the same proposition everywhere.
   bridged by deiteration. [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md),
   [AUTOMATED_GRAPHEUS.md](AUTOMATED_GRAPHEUS.md).
 - **Modality needs no new mark.** □/◇ go to ordinary Beta quantifiers over an
-  accessibility relation, and the diachronic DAG *is* that frame. *Gamma-as-modality
+  accessibility relation, and the diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) *is* that frame. *Gamma-as-modality
   is out of scope* on purpose. [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md).
 - **Frontier:** the automated **Grapheus** opponent and a learned dynamic M for the
   contest register; the universal-generalization rule's Dau-native scaffold
@@ -216,7 +216,7 @@ so provenance is append-only and history is a branching **DAG**.
 3. The **correspondence machinery** — your likely interest. Layout is a
    *coordinate-free projection*: `natural_layout` (containment tree + per-ligature
    required **crossing-sequence** + incidence + ports) imports no geometry, so a
-   future 3-D projection is additive; renderers (ELK, the experimental *tension*
+   future 3-D projection is additive; renderers (Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk)), the experimental *tension*
    engine) are pluggable optimizers within those constraints; `attest_correspondence`
    enforces §3.3 at runtime. [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
    §3.1–3.3, [TENSION_LAYOUT.md](TENSION_LAYOUT.md).

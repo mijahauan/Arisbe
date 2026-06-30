@@ -1,7 +1,7 @@
 # External Sources & Import — how outside information enters Arisbe
 
 > **What this is.** The single legible account of how material from *outside*
-> Arisbe gets *in* — published **ontologies** (OWL / RDF / CLIF / SUO-KIF / COLORE)
+> Arisbe gets *in* — published **ontologies** (Web Ontology Language ([OWL](GLOSSARY.md#owl)) / Resource Description Framework ([RDF](GLOSSARY.md#rdf)) / Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) / Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif)) / Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore)))
 > and material read by a human from **textbooks, websites, and papers**. The
 > machinery is real but scattered across several docs and tools; this doc is the
 > **consolidating map**: what enters, *at what warrant*, *attributed how*,
@@ -23,7 +23,7 @@
 Everything that enters Arisbe from outside enters at **low warrant**, and the
 reason is a single discipline:
 
-> Arisbe attests that an EG's **drawn form and its linear form denote the same
+> Arisbe attests that an Existential Graph ([EG](GLOSSARY.md#eg))'s **drawn form and its linear form denote the same
 > mathematical object** (§3.3). It does **not** assert that the proposition is
 > *true*. A classical theorem and a synthetic test graph arrive at the same floor.
 
@@ -58,7 +58,7 @@ doorways:
 
 | Family | What it is | The doorway | Warrant on entry |
 |--------|-----------|-------------|------------------|
-| **A. Formal files** | a machine-readable theory: OWL, RDF, CLIF, SUO-KIF, COLORE | **translators** (file → CLIF → EGI) wrapped as a `kind=ontology` UoD | low |
+| **A. Formal files** | a machine-readable theory: OWL, RDF, CLIF, SUO-KIF, COLORE | **translators** (file → CLIF → Existential Graph Instance ([EGI](GLOSSARY.md#egi))) wrapped as a `kind=ontology` Universe of Discourse ([UoD](GLOSSARY.md#uod)) | low |
 | **B. Human-read material** | a graph (or proposition) a person reads in a book, on a website, in a paper | **the `/import` linear-form doorway** + (future) the by-hand reading desk | low |
 
 Family A is a *translator bringing a file across*; family B is a *human bringing a
@@ -69,12 +69,12 @@ reading.
 
 ## 3. Family A — formal files and ontologies
 
-An **ontology is a T-box**, and every T-box axiom is already an EG shape the corpus
+An **ontology is a terminological box ([T-box](GLOSSARY.md#t-box))**, and every T-box axiom is already an EG shape the corpus
 knows. So an ontology imports as the **conjunction of its axioms on one sheet** — a
 single `kind=ontology` UoD, browsable in Organon and playable as a model **M** in
 Agon.
 
-| Axiom (DL) | EG shape |
+| Axiom (Description Logic ([DL](GLOSSARY.md#dl))) | EG shape |
 |---|---|
 | subsumption `A ⊑ B` | `~[ (A *x) ~[ (B x) ] ]` (a **scroll**) |
 | disjointness `A ⊓ B ⊑ ⊥` | `~[ (A *x) (B x) ]` (a denial) |

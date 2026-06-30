@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides comprehensive documentation for the implementation of Frithjof Dau's Chapter 18 FOPL (First Order Predicate Logic) to Existential Graph translation system in the Arisbe framework.
+This document provides comprehensive documentation for the implementation of Frithjof Dau's Chapter 18 [FOPL](GLOSSARY.md#fopl) (First Order Predicate Logic) to Existential Graph translation system in the Arisbe framework.
 
 ## Implementation Status
 
@@ -14,7 +14,7 @@ This document provides comprehensive documentation for the implementation of Fri
    module; there is no separate "enhanced" module.
    - Complete FOPL parser with lexical analysis and recursive descent parsing
      (`FOPLLexer`, `FOPLParser`, `parse_fopl_formula`)
-   - Ψ translation: FOPL formulas → EGIs (`Chapter18FOPLTranslator.psi_translate`)
+   - Ψ translation: FOPL formulas → Existential Graph Instances ([EGIs](GLOSSARY.md#egi)) (`Chapter18FOPLTranslator.psi_translate`)
    - Φ translation: EGIs → FOPL formulas (`phi_translate` / `egi_to_fopl`)
    - Module-level convenience wrappers: `fopl_to_egi`, `egi_to_fopl`
    - Variable-sharing detection, existential vertex merging, and round-trip
@@ -22,7 +22,7 @@ This document provides comprehensive documentation for the implementation of Fri
    - Support for all logical operators: ∧, ∨, ¬, →, ∃, ∀, .=
 
 2. **Comprehensive Testing** (`tests/test_chapter18_*`)
-   - Translation consistency verification across EGIF, CGIF, CLIF formats
+   - Translation consistency verification across Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) formats
    - Round-trip translation fidelity testing
    - Completeness properties verification
    - Format parser compatibility validation
@@ -198,7 +198,7 @@ The system provides comprehensive error handling for:
 ### Research Directions
 1. **Automated Theorem Proving**: Integration with ATP systems
 2. **Visual Proof Construction**: Graphical proof development
-3. **Semantic Web Integration**: RDF/OWL compatibility
+3. **Semantic Web Integration**: Resource Description Framework ([RDF](GLOSSARY.md#rdf))/Web Ontology Language ([OWL](GLOSSARY.md#owl)) compatibility
 4. **Machine Learning Applications**: Pattern recognition in proofs
 
 ## Conclusion

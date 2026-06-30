@@ -159,6 +159,13 @@ DOCUMENTATION_REVIEW_PREP.md *(stale process doc)*
    book↔book → `./X.html`. 33 HTML pages now.
 10. ✅ **Book-voice (started)** — ARISBE_FOR_SCHOLARS factual fixes (the `uv sync --extra dev --extra
     web` install + de-numbered the stale "~23 items"; pointer to the Install chapter).
+11. ✅ **Abbreviation clarity pass** — added an anchored **Abbreviations** quick-reference to the
+    Glossary (each term a `### ABBR` heading → clean `#egi`/`#t-box`/… slugs that resolve on GitHub
+    *and* in Quarto), then expanded each important abbreviation on **first use per chapter** to
+    *Full Term ([ABBR](GLOSSARY.md#anchor))* across 28 source docs (174 links). Done as **source
+    edits** (benefits in-repo + book) via 5 parallel agents on a strict spec (first prose occurrence
+    only; skip code/headings; link-only when already expanded). All 20 used anchors verified to
+    resolve; render clean; 2 awkward label/compound spots tuned to link-only.
 
 ### ▶ Remaining
 

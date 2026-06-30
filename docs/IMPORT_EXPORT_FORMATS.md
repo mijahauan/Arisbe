@@ -116,7 +116,7 @@ fopl_text = egi_to_fopl(egi)
 ---
 
 ### 5. JSON (EGI Structure)
-**Purpose**: Native Arisbe EGI format  
+**Purpose**: Native Arisbe Existential Graph Instance ([EGI](GLOSSARY.md#egi)) format  
 **Direction**: ✅ Import | ✅ Export  
 **File Extension**: `.json` or `.egi.json`
 
@@ -142,7 +142,7 @@ save_egi_json(egi, "filename.json")
 ---
 
 ### 6. JSON (Full Universe of Discourse)
-**Purpose**: Complete UoD with metadata + history + layout  
+**Purpose**: Complete Universe of Discourse ([UoD](GLOSSARY.md#uod)) with metadata + history + layout  
 **Direction**: ✅ Import | ✅ Export  
 **File Extension**: `.uod.json` or `.json`
 
@@ -255,10 +255,10 @@ LaTeX/TikZ is export-only (visual representation, not data)
 
 | Format | Import | Export | Metadata | History | Layout | Standard |
 |--------|--------|--------|----------|---------|--------|----------|
-| **EGIF** | ✅ | ✅ | ❌ | ❌ | ❌ | Arisbe |
-| **CGIF** | ✅ | ✅ | ❌ | ❌ | ❌ | ISO CG |
-| **CLIF** | ✅ | ✅ | ❌ | ❌ | ❌ | ISO CL |
-| **FOPL** | ✅ | ✅ | ❌ | ❌ | ❌ | Dau Ch.18 |
+| **Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif))** | ✅ | ✅ | ❌ | ❌ | ❌ | Arisbe |
+| **Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif))** | ✅ | ✅ | ❌ | ❌ | ❌ | ISO CG |
+| **Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))** | ✅ | ✅ | ❌ | ❌ | ❌ | ISO CL |
+| **First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl))** | ✅ | ✅ | ❌ | ❌ | ❌ | Dau Ch.18 |
 | **JSON (EGI)** | ✅ | ✅ | ❌ | ❌ | ✅ | Arisbe |
 | **JSON (UoD)** | ✅ | ✅ | ✅ | ✅ | ✅ | Arisbe |
 | **SVG** | ❌ | ✅ | ❌ | ❌ | ✅ | W3C |
@@ -380,7 +380,7 @@ manager.export_uod(uod, format='uod_json', file_path='output.uod.json')
 - [ ] Export options dialog
 
 ### Possible Future Formats
-- RDF/OWL (semantic web)
+- Resource Description Framework ([RDF](GLOSSARY.md#rdf))/Web Ontology Language ([OWL](GLOSSARY.md#owl)) (semantic web)
 - GraphML (graph exchange)
 - DOT (Graphviz)
 - PNG/JPEG (raster images)

@@ -66,7 +66,7 @@ source of the trouble.
 
 ## 1. Two senses of "context": enclosure vs. ground
 
-The formal EG literature (Dau, and the lineage back through Zeman and Roberts)
+The formal Existential Graph ([EG](GLOSSARY.md#eg)) literature (Dau, and the lineage back through Zeman and Roberts)
 carries a rigorous notion of *context* — but it means the **area** a subgraph
 occupies, individuated by enclosure: the Sheet is the context of depth 0, a cut
 opens depth 1, and so on. That is **context-as-enclosure**. Read those texts and

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Universe of Discourse (UoD) history model now supports **branching development** through a **Directed Acyclic Graph (DAG)** structure. This enables realistic inquiry workflows where multiple paths can be explored from any historical state.
+The Universe of Discourse ([UoD](GLOSSARY.md#uod)) history model now supports **branching development** through a **Directed Acyclic Graph ([DAG](GLOSSARY.md#dag))** structure. This enables realistic inquiry workflows where multiple paths can be explored from any historical state.
 
 ## Why DAG Instead of Linear?
 

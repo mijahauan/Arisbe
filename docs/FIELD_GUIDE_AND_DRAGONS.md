@@ -40,7 +40,7 @@ That is the entire visual language. **The picture is the real thing**; everythin
 in logic that matters here, you can *see*.
 
 **The written shorthand.** Because you can't always draw in a text box, Arisbe also
-has a typed form (called EGIF) — the examples below use it, so here is the key:
+has a typed form (called Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif))) — the examples below use it, so here is the key:
 
 | You type | It means | In a drawing |
 |----------|----------|--------------|
@@ -186,7 +186,7 @@ the whole thing**, with the conclusion nested one deeper:
 
 Now it reads `¬(Human(x) ∧ ¬Mortal(x))` = **"every human is mortal"**
 (∀x: Human(x) → Mortal(x)). This nested shape — a cut inside a cut with the
-antecedent in the outer ring — is called a **scroll**, and it is the EG picture
+antecedent in the outer ring — is called a **scroll**, and it is the Existential Graph ([EG](GLOSSARY.md#eg)) picture
 of implication. The rule of thumb: **a conditional always lives inside an outer
 cut.** If your "if-then" has its antecedent sitting bare on the sheet, you have
 drawn an existential, not a universal.
@@ -378,4 +378,4 @@ derived. The dragons are few, and now they are on the map.
 ---
 
 **Created**: 2026-06-19. Examples verified against Arisbe's EGIF parser and
-Chapter-18 FOPL translation.
+Chapter-18 First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl)) translation.

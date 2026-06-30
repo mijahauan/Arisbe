@@ -40,8 +40,8 @@ This triadic structure recurs *within* the Agon itself, where the Graphist (repr
 
 **Core functions**:
 
-- Browse the tomos (corpus) of EGI graphs by category and metadata
-- Import EGIs from linear forms (EGIF, CGIF, CLIF, FOPL)
+- Browse the tomos (corpus) of Existential Graph Instance ([EGI](GLOSSARY.md#egi)) graphs by category and metadata
+- Import EGIs from linear forms (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)), First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl)))
 - View diagrams in multiple styles (Dau, Peirce, Sowa)
 - Inspect transformation history (diachronic view of a reasoning session)
 - Export to SVG, PNG, LaTeX/TikZ
@@ -116,7 +116,7 @@ result = InsertionRule().apply_transformation(context)
 
 **Core functions**:
 
-- Load a domain model (Universe of Discourse) as an EGIF
+- Load a domain model (Universe of Discourse ([UoD](GLOSSARY.md#uod))) as an EGIF
 - Propose an assertion (another EGIF) to be tested against the domain
 - Play the Endoporeutic Game: Proposer (Graphist) and Skeptic (Grapheus) alternate moves
 - Validate proofs: a sequence of rule applications from premises to conclusion
@@ -214,7 +214,7 @@ Three styles selectable across all modes:
 
 ## Architecture Principles
 
-**Immutability**: EGIs are never modified in place. Every transformation produces a new EGI. The history is a DAG of EGI states with rule applications as edges.
+**Immutability**: EGIs are never modified in place. Every transformation produces a new EGI. The history is a directed acyclic graph ([DAG](GLOSSARY.md#dag)) of EGI states with rule applications as edges.
 
 **EGIF as the universal language**: Every domain model, assertion, proof step, and corpus entry is representable as EGIF. There is no separate "data model" for the domain — it is an EGI.
 

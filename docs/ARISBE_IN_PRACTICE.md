@@ -145,12 +145,12 @@ conclusions become another's premises.
 shared concept, and in **Ergasterion** builds a bridging argument. He tests it in
 **Agon**, which *sorts* it: this part is a theorem of the merged model, this part
 a reasonable extension to be agreed, this part an open conjecture needing
-evidence the game cannot supply. He moves a claim between EGIF, CGIF, and CLIF
+evidence the game cannot supply. He moves a claim between Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), and Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))
 without loss; imports external material through a doorway that admits it honestly
 at **low warrant** — parsed and attributed, never asserted true; and reads the
 full provenance of any corpus item. Real ontologies are already in hand as
-models to contest against — SUMO, BFO, FOAF, SKOS, COLORE — imported through the
-OWL/RDF→CLIF→EGI pipeline. He can ask the **interpretation register** "given this
+models to contest against — SUMO, BFO, FOAF, SKOS, Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore)) — imported through the
+Web Ontology Language ([OWL](GLOSSARY.md#owl))/Resource Description Framework ([RDF](GLOSSARY.md#rdf))→CLIF→EGI pipeline. He can ask the **interpretation register** "given this
 world M, does G hold?" (true / false / *unknown*, with a witness or
 counterexample), run the **inverse pivot** — "*in what world does G hold*, and
 what is its residual contribution?" — and, when a Graphist-won contest is worth
@@ -181,14 +181,14 @@ proof move by move with deterministic provenance. The mathematical core has a
 protected test suite that must always pass; correctness is not advisory. She
 reads the **correspondence invariant** as a runtime attestation that *refuses*
 any (picture, proposition) pair that does not denote one object — an operational
-claim about the iconicity of EGs she can try to break by running the module.
-Layout is a *projection* of a coordinate-free structure, so she can swap the ELK
+claim about the iconicity of Existential Graphs ([EGs](GLOSSARY.md#eg)) she can try to break by running the module.
+Layout is a *projection* of a coordinate-free structure, so she can swap the Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk))
 engine for the experimental "tension" engine that draws a line of identity as a
 single taut thread through the cut nest — the authentic Peircean single-line
 reading. Beyond proof, she has the **semantic game** (truth-in-a-model,
 three-valued and open-world), the **theory query** ("is this universal a theorem
 of that theory?", decided by freezing a fresh witness), and a fragment-honest
-**DL reasoning** layer (subsumption / instance / consistency) she can run against
+**Description Logic ([DL](GLOSSARY.md#dl)) reasoning** layer (subsumption / instance / consistency) she can run against
 a benchmark — and which reports *soundness and coverage separately*: it abstains
 where its bounded fragment can't decide rather than ever answering wrongly.
 
@@ -245,7 +245,7 @@ the LaTeX package [`egpeirce.sty`](references/egpeirce.sty.txt) (and its
 [documentation](references/Egpeirce%20Documentation.pdf)) was written to serve.
 
 **Now.** Étienne transcribes a manuscript diagram into a linear form he is sure
-of — EGIF, CGIF, or CLIF — loads it into Arisbe, where it parses to a formal EGI
+of — EGIF, CGIF, or CLIF — loads it into Arisbe, where it parses to a formal Existential Graph Instance ([EGI](GLOSSARY.md#egi))
 and renders in a chosen style (a **Peirce-authentic** style alongside the Dau and
 Sowa conventions). Because layout is a free, presentation-only regime, he can
 nudge vertices, reshape a cut, and reroute a ligature by hand to match the

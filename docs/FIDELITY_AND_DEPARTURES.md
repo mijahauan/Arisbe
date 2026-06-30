@@ -81,7 +81,7 @@ of these is hedged; they are the floor.
 
 - **The semiotic.** A sign stands for an object to an interpretant which is
   itself a further sign — *semiosis*, triadic and unbounded. Arisbe's deepest
-  architectural thesis is that an EG derivation **is a chain of semiosis**: each
+  architectural thesis is that an Existential Graph ([EG](GLOSSARY.md#eg)) derivation **is a chain of semiosis**: each
   state a sign, each rule application a warranted interpretant. The chain, not
   the snapshot, is the unit of meaning. This reading is offered as Peircean in
   spirit, not as a quotation, and the codebase is organized around it.
@@ -309,7 +309,7 @@ carried, exactly and without remainder, by structure Arisbe already maintains:
   and ◇ are quantifiers over a Kripke frame: □φ at w is ∀w′(R(w,w′)→φ at w′). The
   operators vanish into ∀/∃ over an accessibility relation — and ∀/∃ over a
   relation is exactly what **Beta draws**.
-- Arisbe already *builds the frame*: the diachronic DAG of sheets (worlds =
+- Arisbe already *builds the frame*: the diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) of sheets (worlds =
   states, R = legal transition) and the corpus of universes (worlds = models M).
   So the broken cut becomes ∃/∀ over accessible sheets with the accessibility
   *visible*; tinctures become the explicit identity of which universe a region

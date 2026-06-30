@@ -5,7 +5,7 @@
 
 ## Executive Summary
 
-The fundamental entity in Arisbe is **not** a static EGI diagram, but the **Universe of Discourse (UoD)** - the diachronic process of logical reasoning itself.
+The fundamental entity in Arisbe is **not** a static Existential Graph Instance ([EGI](GLOSSARY.md#egi)) diagram, but the **Universe of Discourse ([UoD](GLOSSARY.md#uod))** - the diachronic process of logical reasoning itself.
 
 **Key Insight**: A single EGI is a **synchronic snapshot** (a photograph) within the larger **diachronic process** (the film) of evolving logical discourse.
 
@@ -31,7 +31,7 @@ For the Peircean reading of *why* the diachronic chain is the unit of meaning â€
 - The **dynamic evolution** of logical thought
 
 ### Result: Incomplete Model
-The literature's synchronic focus treats EGs as if they spring into existence fully formed, disconnected from the reasoning process that produced them.
+The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#eg)) as if they spring into existence fully formed, disconnected from the reasoning process that produced them.
 
 ---
 
@@ -89,7 +89,7 @@ The literature's synchronic focus treats EGs as if they spring into existence fu
 
 - **EGI**: Logical structure (RelationalGraphWithCuts)
 - **LayoutDeltas**: User-specified visual presentation preferences
-- **Linear forms**: EGIF, CGIF, CLIF representations
+- **Linear forms**: Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) representations
 - **Metadata**: Timestamps, descriptions, domain contexts
 - **Natural language**: Human-readable summaries
 
@@ -600,7 +600,7 @@ tomos/
 - Transactional state updates (atomic)
 - Efficient history append (streaming JSONL)
 - Snapshot strategy (balance between full states and deltas)
-- Branch management (DAG of states)
+- Branch management (directed acyclic graph ([DAG](GLOSSARY.md#dag)) of states)
 - Validation cache (avoid recomputing)
 
 ---
