@@ -144,18 +144,34 @@ DOCUMENTATION_REVIEW_PREP.md *(stale process doc)*
 7. ✅ **Merge 1 — PRODUCT_VISION retired** → VISION_AND_SCOPE; redirect stub left; live code/doc
    refs repointed (`organon.py`, `ergasterion.py`, `AI_CONDUCT_GUIDELINES`, `RETURN_TO_DEVELOPMENT`,
    `CHAIN_OF_SEMIOSIS`). Merges 2 & 3 revised to **keep** (see §2 table) after content review.
+8. ✅ **PDF margins fixed** — overfull boxes 167 → **0 severe / 0 visible** (90 are <5pt,
+   imperceptible). `_quarto.yml` pdf: `geometry margin=1in`, `fontsize 10pt`, `code-overflow: wrap`,
+   header adds `microtype` + `xurl` + `hyphenat[htt]` (breaks long inline `module.function`/path
+   tokens) + `\sloppy`/`\emergencystretch` + `\fvset{fontsize=\small}`; two wide source blocks
+   (the VISION §7 diagram, a FEATURE_PEIRCE TikZ sample) trimmed; a slash-run in CAPABILITY_MAP
+   spaced. PDF now ~1 MB.
+9. ✅ **Residual dead links fixed** — two moves: **(a) promoted** three heavily-linked book-grade
+   docs to chapters — FIDELITY_AND_DEPARTURES + ADVERSARIAL_EXAMINATION (Part I), GENERATION_AND_TESTING
+   (Part IV); **(b) `_devlinks.lua`** (registered `filters:`) rewrites links to *non-book* docs
+   (ROADMAP, CORPUS_AND_IMPORT_MODEL, THE_MINIMAL_IN_VIEW_SET, …) and repo-root files (`../CLAUDE.md`)
+   → GitHub-source URLs **at render time**, so source files keep clean relative links for in-repo
+   reading while the book/help has no dead internal links. Verified: dev links → github.com,
+   book↔book → `./X.html`. 33 HTML pages now.
+10. ✅ **Book-voice (started)** — ARISBE_FOR_SCHOLARS factual fixes (the `uv sync --extra dev --extra
+    web` install + de-numbered the stale "~23 items"; pointer to the Install chapter).
 
 ### ▶ Remaining
 
-- **Book voice / freshness pass** on the chapters (esp. refresh ARISBE_FOR_SCHOLARS's stale
-  `uv sync` + item count; trim FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION's dev framing for the book).
-- **Residual dead links**: book chapters that link to *dev* docs (e.g. `ROADMAP.md`, `../CLAUDE.md`)
-  point to pages not in the rendered site. Decide: convert to GitHub-source links, or include those
-  targets as unlisted rendered pages. (Book↔book links already resolve.)
+- **Book-voice (deeper pass)** — the chapters still carry doc-style front-matter (`> What this is /
+  Read this first / Companion documents`, `Last consolidated:` footers, `Status/Reviewed` lines) that
+  read as standalone-doc chrome in a linear book. They remain *useful in-repo*, so the call is whether
+  to (a) leave them (they render fine and links resolve), (b) strip them only in the book via a Lua
+  filter, or (c) edit per-doc. **Author decision.** Also: trim FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION's
+  feature/reconciliation framing toward a usage chapter.
 - **PDF size** — the 504-page PDF is dominated by the auto-generated `ARISBE_CORE_API_REFERENCE`.
   Consider HTML-only for that appendix, or a trimmed print version.
-- **Move DEV/ARCHIVE/RETIRE docs** out of the reader's path (logical today; optional physical
-  `docs/dev/` later) and refresh `ARCHIVE_INDEX.md`.
+- **Keep `_devlinks.lua`'s BOOK set in sync** with `_quarto.yml` chapters when chapters change.
+- **Move DEV/ARCHIVE/RETIRE docs** to a physical `docs/dev/` (optional) and refresh `ARCHIVE_INDEX.md`.
 - **CI** (optional) — render the book on push; publish the site.
 
 > Quarto note: installed locally (now on PATH at `/usr/local/bin/quarto`) with TinyTeX

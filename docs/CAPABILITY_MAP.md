@@ -66,7 +66,7 @@
 | Fix-time drawing validity | SHIPPED | `drawing_validity.py` → `test_drawing_validity.py` | Errors/warnings on a drawing with no EGI yet. |
 | Drawing→EGI builder | SHIPPED | `drawing_to_egi.py` → `test_drawing_to_egi.py` | "fix = read"; corpus round-trip via `same_graph`. |
 | Legible EGI diff | SHIPPED | `egi_diff.py` → `test_egi_diff.py` | structure/missing/extra/scope/incidence/order, content-aligned. |
-| TikZ / export rendering (geometric) | SHIPPED | `web_api/services/tikz_export.py`, `export_service.py` | Dau/Sowa coordinate TikZ; `/export` formats EGIF/CGIF/CLIF/SVG/TikZ/PNG/PDF. |
+| TikZ / export rendering (geometric) | SHIPPED | `web_api/services/tikz_export.py`, `export_service.py` | Dau/Sowa coordinate TikZ; `/export` formats EGIF / CGIF / CLIF / SVG / TikZ / PNG / PDF. |
 | Authentic-Peirce LaTeX export | SHIPPED (phase 1+2) | `peirce_latex.py` + `tex/arisbe-eg.sty` → `test_peirce_latex.py` | `peirce-tikz` format: oval cuts, heavy lines of identity, hooks; pure TikZ, pdflatex-native (no PSTricks); wedded to the §3.3-attested DTO; delta-faithful (regime-3 nudges thread through `/export`). Phase 2: **iconic self-continuing scroll glyph** (opt-in `scroll_glyph`, ink-only), **worked-chain → multi-figure LaTeX document** (`export_peirce_chain`, `POST /export/chain`), **drawing→EGI learning loop** (`layout_learning.py`: `arrangement_deltas` + `generalize_arrangement` → style ladder). |
 
 ---

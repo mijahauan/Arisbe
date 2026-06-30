@@ -63,7 +63,7 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
   drawings are derived; the renderer is a pluggable projection (an ELK-based
   engine and an experimental "tension" engine that draws a line of identity as one
   taut thread through the cut nest, the Peircean single-line reading).
-- **A curated corpus** of ~23 worked items, each carrying typed provenance and an
+- **A curated corpus** of worked items, each carrying typed provenance and an
   annotation layer: authored and transcribed **proofs** (Peirce's Law, Barbara,
   the uniqueness of the group identity, Leibniz's *Praeclarum Theorema*),
   **exemplars** from Peirce/Roberts/Sowa/Dau, an argument **pattern**, a **domain
@@ -156,5 +156,6 @@ logic.
   [CHAIN\_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) and
   [MANIFEST\_AND_MEANING.md](MANIFEST_AND_MEANING.md).
 - **The corpus and import model:** [CORPUS\_AND\_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md).
-- **Run it:** `uv sync --extra dev` then
+- **Run it:** `uv sync --extra dev --extra web` then
   `uv run uvicorn --app-dir src web_api.main:app --reload --port 8000` and open `/organon`.
+  (Full install/run steps: the *Install & run* chapter.)

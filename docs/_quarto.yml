@@ -21,6 +21,8 @@ book:
         - CHAIN_OF_SEMIOSIS.md
         - MANIFEST_AND_MEANING.md
         - FIDELITY_A_PLAIN_ACCOUNT.md
+        - FIDELITY_AND_DEPARTURES.md
+        - ADVERSARIAL_EXAMINATION.md
         - LEVEL_ZERO_AND_THE_REGISTERS.md
         - MODALITY_WITHOUT_GAMMA.md
     - part: "II · Getting started"
@@ -45,6 +47,7 @@ book:
         - DAG_HISTORY_ARCHITECTURE.md
         - EXACT_CORRESPONDENCE.md
         - DOMAIN_ORACLE_AND_M.md
+        - GENERATION_AND_TESTING.md
         - CAPABILITY_MAP.md
     - part: "V · Reference"
       chapters:
@@ -59,6 +62,9 @@ book:
 # book-specific pages (index.qmd preface, install.qmd) are authored here. Dev/design-of-record
 # docs are simply not listed — they are not rendered into the book (see ALPHA_RELEASE_PLAN.md).
 
+filters:
+  - _devlinks.lua
+
 format:
   html:
     theme:
@@ -68,6 +74,23 @@ format:
   pdf:
     documentclass: scrbook
     papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 10pt
     toc: true
+    # Keep long code lines and identifiers inside the text block.
+    code-overflow: wrap
+    include-in-header:
+      text: |
+        \usepackage{microtype}
+        \usepackage{xurl}
+        % Let long inline-code tokens (module.function names, file paths) break
+        % across lines instead of running into the margin.
+        \usepackage[htt]{hyphenat}
+        \sloppy
+        \emergencystretch=3em
+        % Slightly smaller code font so wide code blocks / ASCII diagrams fit.
+        \usepackage{fvextra}
+        \fvset{fontsize=\small}
   epub:
     toc: true

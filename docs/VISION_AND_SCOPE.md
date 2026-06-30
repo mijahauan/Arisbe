@@ -195,19 +195,19 @@ The invariants a contributor should internalize before changing anything:
 ## 7. The system at a glance
 
 ```
-Universe of Discourse (diachronic): State_n = (EGI_n, LayoutDeltas_n), branching DAG history
+Universe of Discourse (diachronic): State_n = (EGI_n, LayoutDeltas_n) + DAG history
         │
         ├── EGI  ── immutable RelationalGraphWithCuts (V, E, ν, ⊤, Cut, area, ρ)
-        │          two co-resident structures: cut-containment (tree) + ligatures (W-partition)
+        │          cut-containment (tree) + ligatures (W-partition)
         │
         ├── linear forms  ── EGIF · CGIF · CLIF · FOPL · JSON  (round-trip tested)
         │
-        ├── correspondence layer ── natural_layout → ELK / tension → SVG;  §3.3 attested
+        ├── correspondence layer ── natural_layout → ELK / tension → SVG; §3.3 attested
         │
-        └── three modes (web app, src/web_api + src/web_viewer):
-              Organon      "instrument"  — read-only archive / corpus browser / chain player
-              Ergasterion  "workshop"    — freeform compose, transform, challenge, fold-to-define
-              Agon         "contest"     — Endoporeutic Game: contest + interpretation registers
+        └── three modes (web app: src/web_api + src/web_viewer):
+            Organon      "instrument" — read-only archive / browser / player
+            Ergasterion  "workshop"   — compose, transform, challenge, define
+            Agon         "contest"    — Endoporeutic Game: contest + interpretation
 ```
 
 The full annotated module map, the commands, and the test inventory live in

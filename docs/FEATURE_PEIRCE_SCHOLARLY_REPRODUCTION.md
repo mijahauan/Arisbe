@@ -53,9 +53,9 @@ Match Peirce's actual spatial arrangement from the notebook
 ↓ Export to LaTeX (authentic-Peirce TikZ, via peirce_latex.py + arisbe-eg.sty)
 \begin{tikzpicture}[x=0.75pt,y=-0.75pt]
   \egset{cut width=1.50pt, loi width=2.00pt, dot radius=1.50pt}
-  \egcut{118.21}{182.24}{77.41pt}{125.43pt}{black!6}  % outer scroll: if (man & wise) then …
-  \egcut{98.71}{182.24}{37.99pt}{47.57pt}{none}        % middle scroll: … then ( if rich then … )
-  \egcut{96.21}{156.24}{23.41pt}{12.01pt}{black!6}      % inner cut: … then happy
+  \egcut{118.21}{182.24}{77.41pt}{125.43pt}{black!6}  % outer: if (man & wise) then …
+  \egcut{98.71}{182.24}{37.99pt}{47.57pt}{none}       % middle: … if rich then …
+  \egcut{96.21}{156.24}{23.41pt}{12.01pt}{black!6}    % inner: … then happy
   % the man — one continuous heavy line of identity branching to each predicate hook
   \egloi{(141.81,83.81) -- (186.36,156.64)}   % → man
   \egloi{(136.76,280.67) -- (186.36,156.64)}  % → wise
