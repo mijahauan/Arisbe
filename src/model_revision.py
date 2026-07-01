@@ -162,6 +162,10 @@ def retract_subgraph(
         f"no sheet-level subgraph matching {subgraph_egif!r} to retract")
 
 
+def _labels(model: RelationalGraphWithCuts, edge_id: str) -> List[Optional[str]]:
+    return [model.get_vertex(v).label for v in model.nu.get(edge_id, ())]
+
+
 def _atom_egif(model: RelationalGraphWithCuts, edge) -> str:
     """The EGIF of one ground-fact atom: relation name + its constant arguments."""
     name = model.rel.get(edge.id)
@@ -170,6 +174,25 @@ def _atom_egif(model: RelationalGraphWithCuts, edge) -> str:
         label = model.get_vertex(v).label
         args.append(f'"{label}"' if label else "*x")
     return f"({name} {' '.join(args)})" if args else f"({name})"
+
+
+def retract_atom(
+    model: RelationalGraphWithCuts, relation: str, labels: List[Optional[str]]
+) -> RelationalGraphWithCuts:
+    """**Relinquishment of one specific sheet atom** — drop the sheet-level fact whose relation
+    name is ``relation`` and whose argument labels are exactly ``labels`` (finer than
+    ``retract_relation``, which drops *every* fact of a name). Needed when a relation is
+    multi-valued — e.g. a Wikidata property that holds several statements — and only the
+    contradicted/deprecated value must go. Raises if no such atom is present."""
+    from eg_navigation import area_of
+    want = tuple(labels)
+    sheet = [e for e in model.E if area_of(model, e.id) == model.sheet]
+    matches = [e for e in sheet
+               if model.rel.get(e.id) == relation and tuple(_labels(model, e.id)) == want]
+    if not matches:
+        raise ValueError(f"no sheet-level fact {relation}{want} to retract")
+    keep = [e for e in sheet if e not in matches]
+    return parse_egif(" ".join(_atom_egif(model, e) for e in keep))
 
 
 def retract_relation(
@@ -195,6 +218,7 @@ def revise_with_disposition(
     relation: Optional[str] = None,
     rule_egif: Optional[str] = None,
     subgraph_egif: Optional[str] = None,
+    labels: Optional[List[Optional[str]]] = None,
 ) -> RelationalGraphWithCuts:
     """Enact any **model-revising inning outcome** (the ``REVISION_TAXONOMY`` subset
     of the EPG disposition taxonomy), returning the revised M. The structural move
@@ -236,7 +260,9 @@ def revise_with_disposition(
     if disposition == DISPOSITION_RETRACT:
         if not relation:
             raise ValueError("retract_fact disposition requires relation")
-        return retract_relation(model, relation)
+        if labels is not None:                       # atom-level: drop just this value
+            return retract_atom(model, relation, labels)
+        return retract_relation(model, relation)     # coarse: drop every fact of the name
 
     if disposition == DISPOSITION_CHALLENGE_M:
         revised = model

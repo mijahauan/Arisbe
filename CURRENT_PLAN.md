@@ -32,6 +32,37 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-01, cont. 2) — THE FIRST LIVE SOURCE: Wikidata (author's pick over
+prediction markets — cheapest/cleanest, structured→no NL, public/no-auth, best fit to our
+atemporal FOL fragment).** Recommendation given (wiki over markets, with reasons: our logic
+fragment is atemporal so market dated/probabilistic claims mismatch; the machinery is
+purpose-built; the distinctive result is "which resolution mechanism produces durable knowledge";
+free/replayable). Author chose **Wikidata structured claims**. **SHIPPED, additive, core-protection
+CLEAN.** `src/wikidata_source.py` — a statement (item+property+value) → ground binary fact
+`(prop "item" "value")`; **reference** → provenance (`reliable_source` vs bare `consensus`);
+**rank** → resolution (`preferred`/`normal` stand; `deprecated` = relinquishment, settled False);
+**competing values** → contestation (reverts proxy). `WikidataSource` is a `LiveSource` over an
+**injectable fetch** (CI offline on recorded statements; `wbgetentities_fetch` = the real
+stdlib-`urllib` wbgetentities call, public/no-auth, wired by the caller, **never hit in CI**). It
+drives the whole pipeline unchanged (`LiveRunner`+`WikiDisputeFeed`+§6). **To make deprecation/
+overturn dispose without an LLM** (the real payoff — Wikidata facts are ground, so the swan-style
+law-challenge never fires), two small additive pieces: `model_revision.retract_atom` (drop ONE
+sheet atom by relation+labels — finer than whole-relation `retract_fact`; `revise_with_disposition`
+retract_fact gained a `labels` param) + the mechanical **`agon_evolution.ContradictionAgent`**
+(opt-in panel agent, NOT in DEFAULT_PANEL: a sourced denial `~[ (rel …) ]` of a *standing* atom →
+`retract_fact` that atom). `LiveRunner` gained a `panel` passthrough. **Headline (no LLM):** a bare
+'Cambridge' is admitted, then Wikidata deprecates it + a reliably-sourced 'London' replaces it →
+the ContradictionAgent relinquishes the bare value (retract_fact) and the referenced one stands —
+*a reliable source overturns a bare one, mechanically*. (Test bug caught: single-char EGIF relation
+names `(p …)` don't tokenize — use multi-char; real property labels are fine.) **Tests**
+`test_wikidata_source.py` (8: mapping, source poll/exhaust, from_fetch, retract_atom,
+ContradictionAgent vote/abstain, end-to-end overturn). **Demo** `tools/build_wikidata_demo.py`
+(offline by default; `--live Q42` hits the real API). core-protection CLEAN; additive. **▶ NEXT:**
+a live *raise-and-resolve* source (prediction-market/sports/weather API) once a **temporal
+fragment** is added (our FOL is atemporal — the blocker for markets); Wikidata P/Q-id→label lookups;
+the §6 runs-as-corpus/test-suite + self-describing-rulebook harvests.
+[[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-07-01, cont.) — LIVE + AUTOMATED: the operational layer (rate/memory/
 disk estimates + the paced, checkpointed, decay-bounded runner). §10.** Author: "proceed with a
 live source — have we estimated rate/memory/duration/periodic-stops/disk for running live and

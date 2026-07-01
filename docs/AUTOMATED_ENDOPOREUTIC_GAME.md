@@ -3,9 +3,11 @@
 **Status**: design-of-record · **Stages 1–3 BUILT** (`src/agon_llm.py`, 2026-06-30) — the
 LLM **Graphist** (doubt), **Grapheus** (defense), and **Agonothetes** (judge + branch-the-DAG),
 all three under the mechanical referee · the **§6 meta-learning instruments**
-(`src/agon_metalearning.py`) + **both §4b open membranes** — raise-only
-(`src/discourse_membrane.py`) and raise-and-resolve (`src/resolving_membrane.py`) — BUILT ·
-aim = **discovery** · **Drafted**: 2026-06-30
+(`src/agon_metalearning.py`) + **three §4b open membranes** — raise-only
+(`src/discourse_membrane.py`), raise-and-resolve (`src/resolving_membrane.py`), wiki-dispute
+(`src/wiki_dispute_membrane.py`) — the **live runner** (`src/live_runner.py`, §10) and the **first
+live source, Wikidata** (`src/wikidata_source.py`) BUILT · aim = **discovery** · **Drafted**:
+2026-06-30
 
 > **The question this answers.** Can the Endoporeutic Game be played *automatically* — no
 > ponderous human in the loop — by AI agents that, starting from scratch, build a domain
@@ -371,10 +373,14 @@ preprint already does exactly this was not resolved.
   `WikiDisputeFeed` (conflict + resolution structure — edit wars ending in editorial mechanisms;
   `episodes(result)` hands the run to §6). Demos `tools/build_{discourse via metalearning,
   resolving_membrane,wiki_dispute}_demo.py`; tests `tests/test_{discourse,resolving,wiki_dispute}_membrane.py`.
-- **Next.** A **live** source behind these feed interfaces (a wiki/forum dispute stream, or a
-  prediction-market / sports / weather API — the first with a real world on the other end); a
-  mechanical source-conflict agent (dispose of *raise-only* contested contents without an LLM);
-  the runs-as-corpus/test-suite + self-describing-rulebook harvests (§6 futures). Keep the floor:
+- **The live runner + first live source (§10, BUILT).** `src/live_runner.py` (paced, bounded by
+  disuse-decay, checkpointed, prune-history, stop conditions, per-segment evaluation) +
+  `src/wikidata_source.py` (Wikidata as the first `LiveSource`; `wbgetentities_fetch` the real
+  call). The mechanical **source-conflict agent** shipped too: `agon_evolution.ContradictionAgent`
+  + `model_revision.retract_atom` dispose a sourced denial of a standing fact without an LLM.
+- **Next.** A live *raise-and-resolve* source (a prediction-market / sports / weather API) once a
+  temporal fragment is added; label lookups for the Wikidata adapter (P/Q ids → names); the
+  runs-as-corpus/test-suite + self-describing-rulebook harvests (§6 futures). Keep the floor:
   *progression, not progress* (§7); nothing auto-promotes to the attested corpus.
 
 ## 10 · Operating a live, automated run — rate, memory, disk, pacing, evaluation
@@ -435,3 +441,21 @@ findings evolve, watch the unresolved (◇-contested) frontier. Demo (offline, n
 `feed_factory` that wraps a batch into the matching membrane. Everything else — pacing, bounding,
 checkpointing, evaluation, stopping — is already in place and unchanged. Keep the floor:
 low-warrant input, *progression not progress*, nothing auto-promotes to the attested corpus.
+
+**The first live source is BUILT — Wikidata** (`src/wikidata_source.py`), chosen as the cheapest,
+cleanest real source (structured, so no NL parsing; public, no auth). A Wikidata **statement** maps
+1:1 to the membrane: item + property + value → a ground binary fact `(prop "item" "value")`; a
+**reference** → provenance (`reliable_source` vs bare `consensus`); a **rank** → the resolution
+(`preferred`/`normal` stand; `deprecated` = a **relinquishment**, settled False); **competing
+values** → the contestation. `WikidataSource` is a `LiveSource` over an injectable `fetch` (so CI
+runs offline on recorded statements; `wbgetentities_fetch` is the real stdlib-`urllib` call, wired
+by the caller, never hit in CI). It drives the whole pipeline unchanged — `LiveRunner` +
+`WikiDisputeFeed` + §6 dispute-learning. To make deprecation/overturn *dispose* without an LLM, two
+small additive pieces landed: `model_revision.retract_atom` (drop one specific sheet atom by
+relation+labels — finer than the whole-relation `retract_fact`) and the mechanical
+`agon_evolution.ContradictionAgent` (opt into the panel; a sourced denial `~[ (rel …) ]` of a
+standing atom → `retract_fact` that atom). Verified end-to-end (no LLM): a bare value is admitted,
+then Wikidata deprecates it and a reliably-sourced value replaces it → the bare value is
+relinquished and the referenced one stands (*a reliable source overturns a bare one*). Demo
+`tools/build_wikidata_demo.py` (offline by default; `--live Q42` hits the real API); tests
+`tests/test_wikidata_source.py`.

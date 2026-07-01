@@ -291,6 +291,46 @@ class ChallengerAgent:
         )
 
 
+class ContradictionAgent:
+    """Relinquishment on a *sourced denial*. When a proposal is a bare sheet-level negation
+    ``~[ (rel …) ]`` of an atom that currently stands on M's sheet, retract that specific atom
+    (``retract_fact`` with atom-level ``labels``). This is the mechanical *source-conflict*
+    move: a later, better-warranted source that denies a standing fact (e.g. a Wikidata
+    statement deprecated, or a reliable source overturning a bare one) makes M *fall*, not just
+    grow. Abstains on anything else. Not in ``DEFAULT_PANEL`` — opt in for the raise-only /
+    wiki loops that need denials disposed without an LLM."""
+
+    name = "contradiction"
+    priority = 25
+
+    def vote(self, ctx):
+        g = parse_egif(ctx.proposal_egif)
+        cuts = child_cuts(g, g.sheet)
+        # exactly one sheet cut, no sheet-level positive atom (a pure denial)
+        if len(cuts) != 1:
+            return None
+        if any(area_of(g, e.id) == g.sheet and e.id in g.rel for e in g.E):
+            return None
+        inside = [e for e in g.E if area_of(g, e.id) == cuts[0] and e.id in g.rel]
+        if len(inside) != 1 or child_cuts(g, cuts[0]):
+            return None
+        e = inside[0]
+        rel, labels = g.rel[e.id], tuple(_labels(g, e.id))
+        standing = {
+            (ctx.model.rel[x.id], tuple(_labels(ctx.model, x.id)))
+            for x in ctx.model.E
+            if area_of(ctx.model, x.id) == ctx.model.sheet and x.id in ctx.model.rel
+        }
+        if (rel, labels) not in standing:
+            return None                          # nothing standing to contradict
+        return Vote(
+            self.name, "retract_fact",
+            {"relation": rel, "labels": list(labels)},
+            "a sourced denial contradicts a standing fact — relinquish it.",
+            self.priority,
+        )
+
+
 def _refuted_law(ctx: DeliberationContext) -> Optional[str]:
     """The first standing law ``~[ (B *x) ~[ (H x) ] ]`` this proposal *refutes*,
     or ``None``. A Horn law is self-fulfilling under materialization (asserting
@@ -658,7 +698,7 @@ def _default_description(name: str) -> str:
 __all__ = [
     "peel", "Proposer", "CorpusProposer", "MutationProposer",
     "DeliberationContext", "Vote", "PolicyAgent",
-    "ObserverAgent", "GeneralizerAgent", "ChallengerAgent",
+    "ObserverAgent", "GeneralizerAgent", "ChallengerAgent", "ContradictionAgent",
     "Agonothetes", "DEFAULT_PANEL", "UsageLedger",
     "RoundOutcome", "Discovery", "EvolutionResult", "run",
 ]

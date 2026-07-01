@@ -155,6 +155,7 @@ class LiveRunner:
         *,
         uod_id: str = "live",
         seed_laws: Optional[Sequence[str]] = None,
+        panel=None,                            # an Agonothetes panel (default: the mechanical one)
         evaluate: Optional[Callable[[Proposer, EvolutionResult], Dict]] = None,
         service=None,                          # a TomosService for checkpoints (or None to skip)
         clock: Callable[[], float] = None,
@@ -166,6 +167,7 @@ class LiveRunner:
         self._cfg = config or LiveRunConfig()
         self._uod_id = uod_id
         self._laws: List[str] = list(seed_laws or [])
+        self._panel = panel
         self._evaluate = evaluate
         self._service = service
         if clock is None:
@@ -211,7 +213,7 @@ class LiveRunner:
             # per-segment (which would reset every segment and never bound |M|).
             res = run(model_egif, feed, rounds=len(items),
                       uod_id=f"{self._uod_id}_seg{seg_idx}", name=f"{self._uod_id} segment {seg_idx}",
-                      ttl=None, seed_laws=self._laws)
+                      ttl=None, seed_laws=self._laws, panel=self._panel)
 
             rounds_done = len(res.outcomes)
             total_rounds += rounds_done
