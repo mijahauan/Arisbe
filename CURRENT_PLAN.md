@@ -32,6 +32,37 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-01) — AUTOMATED ENDOPOREUTIC GAME: the wiki-dispute membrane +
+the dispute-learning layer (§4b + §6).** Author: "What about the wiki conflicts as well? …take
+advantage of what we can learn from this so let's build the metalearning module." (The base §6
+`agon_metalearning` shipped cont.6; this adds the *wiki source* + the *dispute-aware learning*.)
+**SHIPPED, additive, core-protection CLEAN, deterministic + LLM-free.** `src/wiki_dispute_membrane.py`
+— the recommended *first real* membrane, the source with **conflict + resolution structure**
+(between raise-only and raise-and-resolve): a `WikiDispute(claim, edits, resolution)` is an **edit
+war** (`WikiEdit` asserts/reverts — `reverts` = contestedness) ending in a **resolution** with an
+editorial *mechanism* (`reliable_source` / `admin` / `consensus` / `unresolved`), NOT a physical
+verdict — so warrant differs by mechanism and a reliable source can **overturn** a prior consensus.
+`WikiDisputeFeed` (a `Proposer`) replays a recorded record one dispute/round, scribing each
+resolution's ground truth for the mechanical panel (consensus generalization admitted;
+reliable-source counterexample → `challenge_to_M` relinquishes the over-general law via the
+cont.7 `seed_laws`/Challenger; unresolved → entertained low-warrant). **The payoff — learning:**
+`WikiDisputeFeed.episodes(result)` → `agon_metalearning.DisputeEpisode`s, and new instruments
+`mechanism_principles` (which resolution mechanism produces **durable** knowledge — stick-rate by
+mechanism), `edit_war_friction` (the contested frontier, ranked), `unresolved_frontier` (the
+◇-contested horizon) + a public `is_stuck`. **Headline (no LLM):** a reliable-source citation
+overturns a prior consensus generalization and **stands** (`stuck=True`, `durable`) while the
+consensus generalization does **not** (`stuck=False`, stick-rate 0.0) — *reliable sources produce
+durable knowledge where a contradicted consensus does not*; the fiercest edit war (2 reverts, the
+unresolved Zed claim) tops the friction map and sits on the unresolved frontier. **Tests**
+`test_wiki_dispute_membrane.py` (10) + `test_agon_metalearning.py` (unchanged, 11) green together
+(16 in the two-file run counted incl. shared). **Demo** `tools/build_wiki_dispute_demo.py` (NO LLM).
+Adjacent agon suites green; core-protection CLEAN. Docs: AUTOMATED_ENDOPOREUTIC_GAME §4b/§6/§9;
+CLAUDE.md module + test entries. **▶ NEXT:** a **LIVE** source behind these feed interfaces (a
+wiki/forum dispute stream or a prediction-market/sports/weather API — the first with a real world
+on the other end; isolate behind the interface so CI stays offline); a mechanical source-conflict
+agent for the *raise-only* loop; the §6 runs-as-corpus/test-suite + self-describing-rulebook
+harvests. [[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-06-30, cont. 7) — AUTOMATED ENDOPOREUTIC GAME: the raise-and-resolve
 membrane (§4b, the flavour with *world-teeth*).** Author asked whether we can start an automatic
 game fuelled by a raise-and-resolve membrane, or what else must be in place — then said "yes,"

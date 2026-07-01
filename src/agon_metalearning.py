@@ -132,6 +132,13 @@ def _stuck(outcome: RoundOutcome, result: EvolutionResult,
     return bool(added) and added <= final_relations
 
 
+def is_stuck(outcome: RoundOutcome, result: EvolutionResult) -> Optional[bool]:
+    """Whether ``outcome``'s revising move survived to the final M (``None`` for a non-revising
+    round). The public entry to the stickiness reader — used by open membranes that build their
+    own episode records (e.g. ``wiki_dispute_membrane``)."""
+    return _stuck(outcome, result, _sheet_relations(result.uod.current_egi))
+
+
 def episodes_from(result: EvolutionResult, *, run_id: str = "run") -> List[EpisodeRecord]:
     """Turn one run's outcomes into mining records — the ``(M, G, verdict, slate, disposition,
     did-it-stick)`` tuples §6 mines over."""
@@ -337,11 +344,96 @@ def run_ablation(
     return results
 
 
+# --------------------------------------------------------------------------- #
+# §6 — learning from disputes (conflict + resolution structure)               #
+# --------------------------------------------------------------------------- #
+#
+# A wiki-style dispute (``wiki_dispute_membrane``) carries structure a bare round does not: an
+# edit-war intensity (``reverts``) and an editorial *resolution mechanism* (a reliable-source
+# citation / consensus / admin / unresolved). That lets the game *learn what wiki conflicts
+# teach* — not just replay them:
+#
+#   * which mechanism produces DURABLE knowledge — a reliable-source resolution that overturns a
+#     prior consensus should *stick* where the consensus did not (``mechanism_principles``);
+#   * where the contested frontier is — the edit wars, ranked (``edit_war_friction``);
+#   * what stays open — the claims no mechanism settled (``unresolved_frontier``), the honest ◇.
+
+@dataclass
+class DisputeEpisode:
+    """One resolved (or unresolved) dispute as a learning datum: the claim, how it ended
+    (``mechanism`` / ``settled``), its edit-war intensity (``reverts``), the loop's
+    ``disposition``, and whether that move *stuck* in the final M."""
+    claim_egif: str
+    mechanism: str
+    settled: Optional[bool]
+    reverts: int
+    disposition: Optional[str]
+    stuck: Optional[bool]
+
+
+@dataclass
+class MechanismPrinciple:
+    """What a *resolution mechanism* empirically buys: how often its resolutions took hold. A
+    mechanism whose resolutions all stick (``stick_rate == 1.0``) is ``durable`` — the learned
+    finding that (say) reliable-source citations produce lasting knowledge where consensus, when
+    overturned, does not."""
+    mechanism: str
+    count: int
+    dominant_disposition: Optional[str]
+    stick_rate: Optional[float]
+    durable: bool
+
+
+def mechanism_principles(episodes: Sequence[DisputeEpisode]) -> List[MechanismPrinciple]:
+    """Mine, per resolution mechanism, its dominant disposition and its **stick-rate** — the
+    heart of learning from wiki conflicts: *which way of resolving a dispute produces durable
+    knowledge.* Sorted most-used first."""
+    by_mech: Dict[str, List[DisputeEpisode]] = defaultdict(list)
+    for e in episodes:
+        by_mech[e.mechanism].append(e)
+
+    out: List[MechanismPrinciple] = []
+    for mechanism, recs in by_mech.items():
+        dispositions = Counter(e.disposition for e in recs if e.disposition is not None)
+        dominant = dispositions.most_common(1)[0][0] if dispositions else None
+        stuck = [e.stuck for e in recs if e.stuck is not None]
+        rate = (sum(stuck) / len(stuck)) if stuck else None
+        out.append(MechanismPrinciple(
+            mechanism=mechanism,
+            count=len(recs),
+            dominant_disposition=dominant,
+            stick_rate=rate,
+            # an unresolved dispute never yields *durable knowledge*, even if its tentative
+            # low-warrant posit happened to linger unchallenged this run.
+            durable=(rate == 1.0 and mechanism != "unresolved"),
+        ))
+    out.sort(key=lambda p: (-p.count, p.mechanism))
+    return out
+
+
+def edit_war_friction(episodes: Sequence[DisputeEpisode]) -> List[DisputeEpisode]:
+    """The disputes ranked by contestedness (reverts, then whether still unsettled) — where the
+    edit wars are, i.e. the frontier the rules are most stressed on."""
+    return sorted(
+        episodes,
+        key=lambda e: (-e.reverts, e.settled is not None),
+    )
+
+
+def unresolved_frontier(episodes: Sequence[DisputeEpisode]) -> List[str]:
+    """The claims no mechanism settled (``mechanism == 'unresolved'`` or ``settled is None``) —
+    the honest ◇-contested horizon the modal lens would read as *possible, not necessary*."""
+    return [e.claim_egif for e in episodes
+            if e.mechanism == "unresolved" or e.settled is None]
+
+
 __all__ = [
     "proposal_shape", "situation_of",
-    "EpisodeRecord", "episodes_from",
+    "EpisodeRecord", "episodes_from", "is_stuck",
     "Principle", "resolution_principles",
     "FrictionPoint", "friction_map", "gaps",
     "StabilityReport", "stability_report",
     "AblationVariant", "AblationResult", "run_ablation",
+    "DisputeEpisode", "MechanismPrinciple", "mechanism_principles",
+    "edit_war_friction", "unresolved_frontier",
 ]

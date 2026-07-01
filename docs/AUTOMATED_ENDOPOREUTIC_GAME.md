@@ -159,9 +159,27 @@ theories (DAG branches / ablation arms) by net track record — *the world selec
 over-general theory* (the Robot-Scientist teeth). No new referee: the outcome is *data*; the
 calculus still decides. Correspondence-not-truth holds — a resolved market is low-warrant data;
 M self-certifies a *track record*, not truth. Demo: `tools/build_resolving_membrane_demo.py`;
-tests: `tests/test_resolving_membrane.py`. Still ahead: a **live** source behind the
-`ResolvingFeed` interface (a prediction-market / sports / weather API), and a mechanical
-source-conflict agent so the *raise-only* loop disposes of contested contents without an LLM.
+tests: `tests/test_resolving_membrane.py`.
+
+**The recommended *first real* membrane — wiki disputes — is BUILT** (`src/wiki_dispute_membrane.py`),
+the source with **conflict + resolution structure**. It sits *between* raise-only and
+raise-and-resolve: a dispute is an **edit war** (a run of asserts/reverts on a claim — its
+`reverts` count is the contestedness signal) that ends in a **resolution** carrying an editorial
+*mechanism* (`reliable_source` / `admin` / `consensus` / `unresolved`), not a physical-world
+verdict — so warrant differs by mechanism and a later reliable source can **overturn** an earlier
+consensus. `WikiDisputeFeed` replays a recorded dispute record one dispute per round, scribing
+each resolution's ground truth for the mechanical panel: a consensus generalization is admitted, a
+reliable-source counterexample **relinquishes** the over-general standing law (`challenge_to_M`,
+reusing `seed_laws`/the Challenger), an unresolved dispute is entertained at low warrant and left
+on the frontier. **The payoff — *take advantage of what we can learn* — is that a wiki-dispute run
+feeds straight into the §6 meta-learning** (`WikiDisputeFeed.episodes(result)` → `DisputeEpisode`s):
+`mechanism_principles` mines *which resolution mechanism produces durable knowledge* (stick-rate by
+mechanism — reliable-source resolutions stick where an overturned consensus does not),
+`edit_war_friction` ranks the contested frontier, `unresolved_frontier` names the ◇-contested
+horizon. Demo: `tools/build_wiki_dispute_demo.py`; tests: `tests/test_wiki_dispute_membrane.py`.
+Still ahead: a **live** source behind these feed interfaces (a wiki/forum dispute stream; a
+prediction-market / sports / weather API), and a mechanical source-conflict agent so the
+*raise-only* loop disposes of contested contents without an LLM.
 
 ## 5 · Irreducible disagreement → branch the DAG
 
@@ -208,7 +226,17 @@ episodes:
   policy the game converged on — mining an explicit rulebook from self-play (the AlphaZero
   lesson, applied to dialogue-game resolution). *(future — `resolution_principles` is the seed.)*
 
-Demo (no LLM): `tools/build_metalearning_demo.py`. Tests: `tests/test_agon_metalearning.py`.
+- **Learning from disputes (BUILT — `mechanism_principles` / `edit_war_friction` /
+  `unresolved_frontier`).** A wiki-dispute run (§4b, `wiki_dispute_membrane`) carries structure a
+  bare round lacks — an edit-war intensity and an editorial *resolution mechanism*. Fed its
+  `DisputeEpisode`s, the meta-learning mines *which mechanism produces durable knowledge*
+  (stick-rate by mechanism — the finding that a reliable-source citation stays where an overturned
+  consensus does not), ranks the edit wars (friction), and names the still-contested claims (the
+  honest ◇ horizon). This is "take advantage of what we can learn from the conflicts" made
+  operational.
+
+Demo (no LLM): `tools/build_metalearning_demo.py` + `tools/build_wiki_dispute_demo.py`. Tests:
+`tests/test_agon_metalearning.py` + `tests/test_wiki_dispute_membrane.py`.
 
 ## 7 · Risks and the floor
 
@@ -335,14 +363,15 @@ preprint already does exactly this was not resolved.
   `run_ablation` — the microscope on the game's own rules, deterministic and geometry-free over
   the `EvolutionResult` a `run` returns; works on the mechanical loop (no LLM). Demo
   `tools/build_metalearning_demo.py`; tests `tests/test_agon_metalearning.py`.
-- **The open membranes (§4b, BUILT).** `src/discourse_membrane.py`: `DiscourseFeed` (a
-  raise-only, dated, sourced `Proposer`) + `consistency_report` (cross-source coherence); tests
-  `tests/test_discourse_membrane.py`. `src/resolving_membrane.py`: `ResolvingFeed` +
-  `PredictionLedger` + `select_best` (the raise-and-resolve flavour with world-teeth — M
-  forecasts via the peel, is empirically falsified where it over-reaches, and selection ranks
-  predictors by track record); demo `tools/build_resolving_membrane_demo.py`, tests
-  `tests/test_resolving_membrane.py`.
-- **Next.** A **live** raise-and-resolve source behind the `ResolvingFeed` interface (a
+- **The open membranes (§4b, BUILT — three flavours).** `src/discourse_membrane.py`:
+  `DiscourseFeed` (raise-only, dated, sourced) + `consistency_report` (cross-source coherence).
+  `src/resolving_membrane.py`: `ResolvingFeed` + `PredictionLedger` + `select_best` (raise-and-
+  resolve, world-teeth — M forecasts via the peel, is empirically falsified where it over-reaches,
+  and selection ranks predictors by track record). `src/wiki_dispute_membrane.py`:
+  `WikiDisputeFeed` (conflict + resolution structure — edit wars ending in editorial mechanisms;
+  `episodes(result)` hands the run to §6). Demos `tools/build_{discourse via metalearning,
+  resolving_membrane,wiki_dispute}_demo.py`; tests `tests/test_{discourse,resolving,wiki_dispute}_membrane.py`.
+- **Next.** A **live** source behind these feed interfaces (a wiki/forum dispute stream, or a
   prediction-market / sports / weather API — the first with a real world on the other end); a
   mechanical source-conflict agent (dispose of *raise-only* contested contents without an LLM);
   the runs-as-corpus/test-suite + self-describing-rulebook harvests (§6 futures). Keep the floor:
