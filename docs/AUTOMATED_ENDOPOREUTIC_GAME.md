@@ -376,3 +376,62 @@ preprint already does exactly this was not resolved.
   mechanical source-conflict agent (dispose of *raise-only* contested contents without an LLM);
   the runs-as-corpus/test-suite + self-describing-rulebook harvests (§6 futures). Keep the floor:
   *progression, not progress* (§7); nothing auto-promotes to the attested corpus.
+
+## 10 · Operating a live, automated run — rate, memory, disk, pacing, evaluation
+
+Running a membrane *live and automated* (rather than replaying a fixed record) needs an outer
+loop with resource discipline, because the round loop was **measured** to be super-linear in the
+size of the developing model. The numbers (mechanical loop, no LLM, `src/live_runner.py` bench):
+
+| accumulated \|M\| | per mechanical round |
+|---|---|
+| ~25 facts | ~4 ms |
+| ~100 facts | ~73 ms |
+| ~250 facts | ~1.1 s |
+
+Two structural reasons: the **peel forward-chains M's Horn fragment every round** (work grows with
+\|M\|), and **`ProofChain` snapshots the whole graph each round and holds every state in RAM**
+(memory and per-state disk grow with \|M\| too — each state file is the full EGI, ~370 B/fact,
+~10 KB/round at \|M\|≈50). So an unbounded run against one ever-growing M degrades on **rate,
+memory, and disk together**. With an LLM in the loop the per-round wall-clock is dominated by the
+model call (seconds), so the calculus is negligible *until* M grows large — which makes bounding M
+matter for cost either way.
+
+**The two controls that keep all three axes flat** (both in `LiveRunner`):
+
+1. **Bound \|M\| with disuse-decay** (`LiveRunConfig.ttl`). A relation idle for `ttl` *global*
+   rounds is erased. Decay is applied by the runner **across segments** (not inside each
+   per-segment `run`, whose ledger would reset every segment and never bound anything). Measured:
+   with `ttl` on, \|M\| stabilises at ≈`ttl` and per-round cost / memory / per-checkpoint disk stay
+   roughly constant; with it off, \|M\| grows without bound (and cost with it).
+2. **Segment + checkpoint + prune.** The runner processes one **segment** per poll (a batch of
+   source items, capped by `segment_cap`), saves a **checkpoint** (a UoD + chain via
+   `TomosService.save_uod_with_chain`, §3.3 attested at the write), records an **evaluation
+   digest**, then **drops the in-RAM `ProofChain`** and carries only M (as EGIF) + its live laws
+   forward. Peak memory is therefore one segment's history, not the whole run; the full diachronic
+   record is the *sequence of checkpoints* on disk.
+
+**Rough capacity planning** (mechanical loop; multiply per-round by seconds-per-LLM-call when an
+LLM role is in). Hold \|M\| ≈ B with `ttl`; then per round ≈ the table's cost at B, per-checkpoint
+disk ≈ B × ~370 B, peak RAM ≈ (segment rounds) × (B × ~370 B). Example: B ≈ 50, `segment_cap` = 25
+→ ~7 ms/round, ~18 KB/checkpoint, well under a MB of live history; a 24 h run paced at
+`min_interval_s` = 5 s is ~17 k rounds and, with old checkpoints rotated, bounded disk.
+
+**Pacing and stopping** (`LiveRunConfig`): `min_interval_s` throttles polling (API rate limits /
+CPU); `max_rounds`, `max_seconds`, and a `stop_file` (external control) end the run cleanly;
+`max_m_relations` is a safety net that halts if decay ever fails to contain M. The `clock` and
+`sleep` are injectable, so the whole loop is deterministic and CI-testable with no real waiting.
+
+**Managing what's going on — evaluation.** Each segment emits a `SegmentDigest` (rounds, \|M\|,
+the disposition tally, decayed count, branches, elapsed) plus an optional membrane-specific
+`evaluate(feed, result)` payload — e.g. a `ResolvingFeed`'s prediction accuracy or a
+`WikiDisputeFeed`'s `mechanism_principles` / `unresolved_frontier` from §6. The digest stream *is*
+the monitoring surface: watch \|M\| stay bounded, watch the disposition mix and the durable-mechanism
+findings evolve, watch the unresolved (◇-contested) frontier. Demo (offline, no LLM):
+`tools/build_live_runner_demo.py`; tests `tests/test_live_runner.py`.
+
+**Going truly live** = implementing `LiveSource.fetch()`/`exhausted()` against a real endpoint
+(a wiki/forum dispute stream, a prediction-market / sports / weather API) and handing the runner a
+`feed_factory` that wraps a batch into the matching membrane. Everything else — pacing, bounding,
+checkpointing, evaluation, stopping — is already in place and unchanged. Keep the floor:
+low-warrant input, *progression not progress*, nothing auto-promotes to the attested corpus.

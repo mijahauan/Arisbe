@@ -32,6 +32,35 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-01, cont.) — LIVE + AUTOMATED: the operational layer (rate/memory/
+disk estimates + the paced, checkpointed, decay-bounded runner). §10.** Author: "proceed with a
+live source — have we estimated rate/memory/duration/periodic-stops/disk for running live and
+automated? how do we manage pacing and evaluation?" First **measured** (no LLM): the round loop is
+**super-linear in |M|** — ~4 ms/round at |M|≈25 → ~73 ms at |M|≈100 → ~1.1 s at |M|≈250 (the peel
+forward-chains M each round; `ProofChain` snapshots the *whole* graph every round and holds *every*
+state in RAM; each state file is the full EGI ≈370 B/fact, ≈10 KB/round at |M|≈50). So an unbounded
+live run degrades on rate+memory+disk together. **SHIPPED** `src/live_runner.py` with the two
+controls that keep all three flat: (1) **disuse-decay bounds |M|** applied **across global rounds**
+by the runner (the bug I caught+fixed in the smoke test: per-segment `run` resets its ledger every
+segment, so decay MUST live in the outer loop; measured |M| stabilises at ≈ttl vs. growing
+unbounded); (2) **segment + checkpoint + prune** — one segment per poll, saved via
+`save_uod_with_chain` (§3.3 at the write), then the in-RAM ProofChain **dropped**, carrying only M
+(EGIF)+live laws forward (peak RAM = one segment, not the run; the diachronic record = the sequence
+of checkpoints). `LiveSource` Protocol (`fetch`/`exhausted`) + `ReplaySource` (offline; a real
+wiki/market API replaces it alone) + a `feed_factory` (membrane-agnostic). Pacing `min_interval_s`;
+stops `max_rounds`/`max_seconds`/`stop_file`/`max_m_relations`; injectable `clock`/`sleep`
+(deterministic). **Evaluation surface** = per-segment `SegmentDigest` (rounds/|M|/dispositions/
+decayed/branched/elapsed) + optional `evaluate(feed, result)` (ResolvingFeed accuracy /
+WikiDisputeFeed `mechanism_principles`). §10 of the design doc gives the estimates + capacity
+planning + the pacing/evaluation answer in full. **Tests** `test_live_runner.py` (11: segmentation,
+decay-bounds-|M| vs unbounded, all 4 stops, pacing, disk checkpoints, evaluate hook). **Demo**
+`tools/build_live_runner_demo.py` (offline wiki stream, NO LLM). core-protection CLEAN; additive.
+**▶ NEXT — going truly live** = implement `LiveSource.fetch()/exhausted()` against a real endpoint
+(a wiki/forum dispute stream or a prediction-market/sports/weather API) + a `feed_factory` wrapping
+its batches into the matching membrane; everything else (pacing/bounding/checkpointing/evaluation/
+stopping) is in place. Also: a mechanical source-conflict agent for the raise-only loop; the §6
+runs-as-corpus/test-suite + self-describing-rulebook harvests. [[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-07-01) — AUTOMATED ENDOPOREUTIC GAME: the wiki-dispute membrane +
 the dispute-learning layer (§4b + §6).** Author: "What about the wiki conflicts as well? …take
 advantage of what we can learn from this so let's build the metalearning module." (The base §6
