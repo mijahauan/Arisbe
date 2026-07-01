@@ -2,7 +2,9 @@
 
 **Status**: design-of-record · **Stages 1–3 BUILT** (`src/agon_llm.py`, 2026-06-30) — the
 LLM **Graphist** (doubt), **Grapheus** (defense), and **Agonothetes** (judge + branch-the-DAG),
-all three under the mechanical referee · aim = **discovery** · **Drafted**: 2026-06-30
+all three under the mechanical referee · the **§6 meta-learning instruments**
+(`src/agon_metalearning.py`) + the **first §4b open membrane** (`src/discourse_membrane.py`)
+BUILT · aim = **discovery** · **Drafted**: 2026-06-30
 
 > **The question this answers.** Can the Endoporeutic Game be played *automatically* — no
 > ponderous human in the loop — by AI agents that, starting from scratch, build a domain
@@ -130,6 +132,19 @@ real membranes: argument forums / Wikipedia dispute records (conflict + resoluti
 then a live-API predictor (the first raise-and-resolve). Ties to the existing low-warrant
 `/import` doorway and the ontology-import machinery.
 
+**The first open membrane is BUILT** (`src/discourse_membrane.py`) in the **raise-only**
+flavour, offline and replayable (so it is CI-safe; a live source attaches at the same
+`Proposer` socket). `DiscourseFeed` replays a stream of **dated, sourced** propositions
+(`DiscourseItem(day, source, egif, deny=)`) one per round — a *day is a generation* — and drives
+`run` exactly like the closed proposers. The raise-only referee cannot check the world, so
+`consistency_report` enforces only **cross-source consistency**: it surfaces the contents one
+source asserts and another denies (`P@A` vs `¬P@B`) as *contested* — for the game (a
+`challenge_to_M` or the Stage-3 Agonothetes' DAG branch) to dispose of, never adjudicating them
+itself. You model *the discourse, not the world*. Demo: `tools/build_metalearning_demo.py`
+(second board). Tests: `tests/test_discourse_membrane.py`. Still ahead: a *raise-and-resolve*
+membrane (a live API returning verdicts over time) and a mechanical source-conflict policy agent
+so the closed loop disposes of contested contents without an LLM.
+
 ## 5 · Irreducible disagreement → branch the DAG
 
 When the Graphist and Grapheus disagree in a way the verdict does not settle, **do not force a
@@ -141,26 +156,41 @@ dialectical disagreement.
 ## 6 · Meta-learning — the game studying the game
 
 Because the referee is mechanical and runs are reproducible (seeded, mocked, or replayed), the
-simulator is a microscope on the EPG's own rules:
+simulator is a microscope on the EPG's own rules. **The core instruments are BUILT**
+(`src/agon_metalearning.py`) — they read only the `EvolutionResult` a `run` already returns
+(geometry-free, deterministic, no §3.3 obligation), and demonstrably work on the *mechanical*
+loop (no LLM needed): each round is classified by a **situation** signature (`situation_of` =
+verdict + the proposal's shape — ground / law / counterexample / negation), and over the
+episodes:
 
-- **Mine resolution principles from self-play.** Every episode logs `(M, G, verdict, args,
-  disposition, did-it-stick)`. Over thousands, ask which `(situation → disposition)` mappings
-  are *stable* vs *thrash* — the stable ones are empirically-discovered resolution principles;
-  thrashing ones reveal ambiguity or a missing rule. The 9 hand-assigned dispositions get
-  *tested*, and gaps (situations no disposition fits) surface as candidate new ones.
-- **A friction map for clarity.** Where the three agents most disagree localizes the
-  *underspecified* parts of the rules. Smooth functioning = fast, low-disagreement resolution;
-  the friction map says which rules to sharpen.
-- **Ablation experiments.** Vary the doubt schedule / parsimony weight / branch-vs-force policy
-  / disposition priorities and measure (does M stabilize? how fast? thrash? stay §3.3-coherent?).
-  Resolution principles become *tested parameters*, not stipulations.
+- **Mine resolution principles from self-play (BUILT — `resolution_principles`).** Every
+  episode logs `(M, G, verdict, the vote slate, the disposition, did-it-stick)`
+  (`episodes_from`). Grouped by situation, `resolution_principles` reports each situation's
+  dominant disposition and its **stability** (the fraction of that situation's revising rounds
+  that chose it): stability 1.0 = an empirically-discovered resolution principle; a split flags
+  a **thrash** (ambiguity or a missing rule). *Stickiness* is tracked too — whether the resolved
+  move survived to the final M (a `generalization` later relinquished by a `challenge_to_M`
+  reads `stuck=False`, the "superseded law" surfacing as a low stick-rate). `gaps` flags
+  situations handled *inconsistently* (sometimes revised, sometimes left inert) — candidate
+  missing rules.
+- **A friction map for clarity (BUILT — `friction_map`).** Per round, disagreement = distinct
+  dispositions in the vote slate + siblings branched; aggregated per situation, most-contested
+  first. High friction localizes an underspecified rule. (On the single-vote *mechanical* panel
+  friction is 0; it lights up under the multi-agent LLM panel + branching.)
+- **Ablation experiments (BUILT — `run_ablation` + `stability_report`).** `run_ablation` runs
+  the loop once per variant (a fresh proposer each — panel / disuse-`ttl` / priorities /
+  standing-proposal overrides) and measures stabilization (`settle_round`, `revising`,
+  `thrash_situations`, `branched`, `final_m_relations`). Resolution principles become *tested
+  parameters*, not stipulations. (§3.3-coherence stays attested where a run is *saved*.)
 - **The runs generate their own corpus + test suite.** Clean episodes → exemplars (readable in
-  Organon) *and* regression tests; confusing episodes → bug reports against the rules.
+  Organon) *and* regression tests; confusing episodes → bug reports against the rules. *(future)*
 - **Human calibration on machine volume.** Periodically a human labels a sample apt/inapt,
-  re-tuning the Agonothetes. Machine does volume; human does calibration.
+  re-tuning the Agonothetes. Machine does volume; human does calibration. *(future)*
 - **The self-describing rulebook.** With enough well-resolved episodes, articulate the implicit
   policy the game converged on — mining an explicit rulebook from self-play (the AlphaZero
-  lesson, applied to dialogue-game resolution).
+  lesson, applied to dialogue-game resolution). *(future — `resolution_principles` is the seed.)*
+
+Demo (no LLM): `tools/build_metalearning_demo.py`. Tests: `tests/test_agon_metalearning.py`.
 
 ## 7 · Risks and the floor
 
@@ -282,6 +312,15 @@ preprint already does exactly this was not resolved.
   linear and fully backward-compatible. Demo: `tools/build_llm_epg_demo.py` (all three roles,
   key-gated). Tests: `tests/test_agon_llm.py` (scripted role-agnostic fake client — CI-green
   with no SDK/key), incl. the DAG-fork check and the mechanical-fallback paths.
-- **Next — the meta-learning instruments (§6)** over the now-complete three-role loop: mine
-  resolution principles from self-play, the friction map, ablation experiments; and the *open*
-  membranes (§4b) that renew doubt from outside. *Progression, not progress* (§7).
+- **Stage 4 — the meta-learning instruments (§6, BUILT).** `src/agon_metalearning.py`:
+  `episodes_from` / `resolution_principles` / `friction_map` / `gaps` / `stability_report` /
+  `run_ablation` — the microscope on the game's own rules, deterministic and geometry-free over
+  the `EvolutionResult` a `run` returns; works on the mechanical loop (no LLM). Demo
+  `tools/build_metalearning_demo.py`; tests `tests/test_agon_metalearning.py`.
+- **The first open membrane (§4b, BUILT).** `src/discourse_membrane.py`: `DiscourseFeed` (a
+  raise-only, dated, sourced `Proposer`) + `consistency_report` (cross-source coherence). Tests
+  `tests/test_discourse_membrane.py`.
+- **Next.** A *raise-and-resolve* membrane (live API / prediction market — the first membrane
+  with world-teeth); a mechanical source-conflict agent (dispose of contested contents without
+  an LLM); the runs-as-corpus/test-suite + self-describing-rulebook harvests (§6 futures). Keep
+  the floor: *progression, not progress* (§7); nothing auto-promotes to the attested corpus.

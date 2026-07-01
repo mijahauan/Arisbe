@@ -32,6 +32,40 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-06-30, cont. 6) — AUTOMATED ENDOPOREUTIC GAME: the §6 meta-learning
+instruments + the first §4b open membrane.** After Stages 2→3 the author said "proceed with the
+meta-learning instruments and open membranes." Both built, **additive, geometry-free,
+core-protection CLEAN**, and — the point — **deterministic + LLM-free** (they run on the
+mechanical loop, so the microscope is tangible offline). **(A) `src/agon_metalearning.py` — the
+game studying the game (§6):** reads only the `EvolutionResult` a `run` returns (no §3.3
+obligation). `situation_of` classifies each round `verdict:shape` (ground / law / counterexample
+/ negation via `proposal_shape`); `episodes_from` yields the `(M, G, verdict, slate, disposition,
+did-it-stick)` mining tuples — **stickiness** = did the resolved move survive to the final M, so
+a `generalization` later relinquished by the challenge reads `stuck=False` (the "superseded law"
+surfacing as a low stick-rate). `resolution_principles` mines each situation's dominant
+disposition + **stability** (1.0 = a discovered resolution principle; a split = **thrash** =
+ambiguity/missing rule) + stick-rate; `friction_map` ranks situations by disagreement (distinct
+dispositions voted + branches — 0 on the single-vote mechanical panel, lights up under the LLM
+panel + branching); `gaps` flags inconsistently-handled situations (candidate missing rules);
+`stability_report` (settle_round / revising / thrash / branched / final size) + `run_ablation`
+(fresh proposer per variant) measure stabilization across parameter arms. **(B)
+`src/discourse_membrane.py` — the first *open* membrane (§4b), raise-only, offline+replayable
+(CI-safe; a live source attaches at the same `Proposer` socket):** `DiscourseFeed` replays
+**dated, sourced** propositions (`DiscourseItem(day, source, egif, deny=)`) one per round — a day
+is a generation — driving `run` from *outside* the corpus. The raise-only referee can't check the
+world, so `consistency_report` enforces only **cross-source consistency**: it surfaces `P@A` vs
+`¬P@B` as *contested* (for a `challenge_to_M` or the Stage-3 Agonothetes' DAG branch to dispose
+of), modelling *the discourse, not the world*; `contested_contents` names the ◇-disputed points.
+**Tests** `test_agon_metalearning.py` (11) + `test_discourse_membrane.py` (7) — deterministic, no
+SDK/key; **Demo** `tools/build_metalearning_demo.py` (both boards, runs with NO LLM). Adjacent
+agon suites green (test_agon_llm/evolution/interpretation + the two new = all green); core-
+protection CLEAN. Docs: AUTOMATED_ENDOPOREUTIC_GAME §6/§4b/§9 → BUILT; CLAUDE.md module + test
+entries. **▶ NEXT:** a *raise-and-resolve* membrane (a live API / prediction market — the first
+membrane with world-teeth, empirically-falsifiable M); a **mechanical source-conflict agent** so
+the closed loop disposes of contested contents without an LLM; the runs-as-corpus/test-suite +
+self-describing-rulebook harvests (the §6 futures). Floor holds: *progression, not progress*;
+nothing auto-promotes to the attested corpus. [[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-06-30, cont. 5) — AUTOMATED ENDOPOREUTIC GAME: Stages 2 → 3 (the LLM
 Grapheus + LLM Agonothetes). The three-role loop is now complete.** Author said "Proceed per
 current plan on stage 2 → 3." Both built, **additive, core-protection CLEAN** (`agon_llm` /
