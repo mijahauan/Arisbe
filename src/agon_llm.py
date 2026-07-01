@@ -31,8 +31,11 @@ from collections import Counter
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
+from agon_evolution import Agonothetes, DeliberationContext, Vote, peel
 from egi_core_dau import RelationalGraphWithCuts
+from egif_generator_dau import generate_egif
 from eg_navigation import area_of, child_cuts
+from model_revision import REVISION_TAXONOMY, revise_with_disposition
 from nl_to_logic import (
     ANTHROPIC_AVAILABLE,
     DEFAULT_MODEL,
@@ -134,6 +137,50 @@ def _normalize_fol(fol: str, model_vocab: Set[str]) -> str:
         return f"{lower_map.get(name.lower(), name.lower())}("
 
     return _PRED_APP.sub(repl, fol)
+
+
+# An EGIF relation name is the first token *inside* a ``(`` — ``(swan *x)`` / ``(white "Alba")``.
+# Cuts are ``~[ … ]`` and vertices are ``*x`` / ``x`` / ``"C"``, so ``(`` always precedes a name.
+_EGIF_REL = re.compile(r"\(\s*([A-Za-z_]\w*)")
+
+
+def _normalize_egif(egif: str, model_vocab: Set[str]) -> str:
+    """The Grapheus/Agonothetes emit EGIF *payloads* (a fact, a law) whose relation names must
+    match M's exact spelling, or ``revise_with_disposition`` juxtaposes a *different* relation
+    onto M's sheet. Same discipline as ``_normalize_fol`` but over EGIF's ``(name …)`` — map
+    each relation name to M's spelling where a case-insensitive match exists, else lowercase."""
+    lower_map = {r.lower(): r for r in model_vocab}
+
+    def repl(m: "re.Match") -> str:
+        name = m.group(1)
+        return f"({lower_map.get(name.lower(), name.lower())}"
+
+    return _EGIF_REL.sub(repl, egif)
+
+
+# --------------------------------------------------------------------------- #
+# The one non-deterministic step — forced tool use, shared by all three roles  #
+# --------------------------------------------------------------------------- #
+
+def _call_tool(client, model: str, system: str, tool: Dict, user: str) -> Dict:
+    """Invoke the LLM with a single **forced** tool and return that tool call's ``input``
+    dict. Mirrors ``nl_to_logic._emit_fol``: adaptive thinking, ``tool_choice`` pinned to the
+    one tool (a schema-valid object guaranteed), read from the ``tool_use`` block. Raises if
+    the model returns no such call (the caller turns that into a clean end-of-run)."""
+    resp = client.messages.create(
+        model=model,
+        max_tokens=4000,
+        thinking={"type": "adaptive"},
+        system=system,
+        tools=[tool],
+        tool_choice={"type": "tool", "name": tool["name"]},
+        messages=[{"role": "user", "content": user}],
+    )
+    for block in resp.content:
+        if (getattr(block, "type", None) == "tool_use"
+                and getattr(block, "name", "") == tool["name"]):
+            return dict(block.input)
+    raise RuntimeError(f"the model did not return a {tool['name']} tool call")
 
 
 # --------------------------------------------------------------------------- #
@@ -300,24 +347,343 @@ class LLMGraphist:
         user = brief_text
         if feedback:
             user += f"\n\nYour previous attempt was rejected: {feedback}"
-        resp = client.messages.create(
-            model=self._model,
-            max_tokens=4000,
-            thinking={"type": "adaptive"},
-            system=_SYSTEM,
-            tools=[_PROPOSE_GRAPH_TOOL],
-            tool_choice={"type": "tool", "name": "propose_graph"},
-            messages=[{"role": "user", "content": user}],
-        )
-        for block in resp.content:
-            if (getattr(block, "type", None) == "tool_use"
-                    and getattr(block, "name", "") == "propose_graph"):
-                return dict(block.input)
-        raise RuntimeError("the model did not return a propose_graph tool call")
+        return _call_tool(client, self._model, _SYSTEM, _PROPOSE_GRAPH_TOOL, user)
+
+
+# --------------------------------------------------------------------------- #
+# Stage 2 — the LLM Grapheus (the motive to *defend* M)                        #
+# --------------------------------------------------------------------------- #
+#
+# Beat ③ of the episode: given the verdict, argue the *minimal* revision that conserves M's
+# coherence while honestly answering the proposal. In the ``agon_evolution`` panel the Grapheus
+# is a ``PolicyAgent`` whose vote is LLM-chosen — but, exactly as with the Graphist, **its move
+# is reduced to a calculus artifact and re-checked**: the chosen disposition + EGIF payload is
+# *applied* (``revise_with_disposition``) and the proposal *re-peeled* against the revised M.
+# A defense that will not apply cleanly never becomes a vote (it retries, then abstains). The
+# LLM argues minimality (logged rationale); the calculus decides applicability.
+
+# Which taxonomy argument each disposition's payload rides in (mirrors REVISION_TAXONOMY's
+# ``content``): a fact/constraint → fact_egif, a rule/law → rule_egif, a relinquishment →
+# subgraph_egif (a law/cut) and/or relation (a sheet fact), an anomaly to admit → fact_egif.
+_DEFEND_TOOL = {
+    "name": "defend_model",
+    "description": (
+        "Choose the MINIMAL revision of the model M that honestly answers the proposal G "
+        "given the mechanical verdict. Emit the disposition and the EGIF payload it needs."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "disposition": {
+                "type": "string",
+                "enum": sorted(REVISION_TAXONOMY),
+                "description": "The model-revising disposition the exchange warrants.",
+            },
+            "fact_egif": {
+                "type": "string",
+                "description": (
+                    "For new_fact / abductive_hypothesis / definition / theorem_registration "
+                    "/ reductio, or the anomaly a challenge_to_M admits: the ground graph in "
+                    "EGIF, e.g. (white \"Ciel\") or ~[ (white \"Nox\") ] for a negation. Use "
+                    "M's EXACT lowercase relation names."
+                ),
+            },
+            "rule_egif": {
+                "type": "string",
+                "description": (
+                    "For generalization / conditional_acceptance: the law as a scroll "
+                    "~[ (body *x) ~[ (head x) ] ]. Use M's exact lowercase relation names."
+                ),
+            },
+            "subgraph_egif": {
+                "type": "string",
+                "description": (
+                    "For challenge_to_M: the standing law/cut to relinquish, as EGIF "
+                    "~[ (body *x) ~[ (head x) ] ] — it must match a sheet-level cut of M."
+                ),
+            },
+            "relation": {
+                "type": "string",
+                "description": (
+                    "For retract_fact, or the fact a challenge_to_M relinquishes: the "
+                    "relation NAME whose sheet facts to drop (not EGIF)."
+                ),
+            },
+            "rationale": {
+                "type": "string",
+                "description": (
+                    "One sentence: why this is the minimal coherent revision. Logged for "
+                    "the record; never load-bearing — the calculus decides applicability."
+                ),
+            },
+        },
+        "required": ["disposition", "rationale"],
+    },
+}
+
+_GRAPHEUS_SYSTEM = (
+    "You are the GRAPHEUS in an Endoporeutic Game. Your motive is to DEFEND the coherence of "
+    "the model M by making the SMALLEST honest revision that answers a proposal G, given a "
+    "mechanical verdict you cannot overrule. Do not over-concede and do not deny what the "
+    "verdict shows. Guidance by verdict: if G reads UNKNOWN (M is silent), enlarge M minimally "
+    "— admit the fact (new_fact), or, only when the instances clearly support it, leap to a law "
+    "(generalization); if G reads FALSE because it refutes a standing universal law (a "
+    "counterexample to it), relinquish that over-general law and admit the anomaly "
+    "(challenge_to_M); if G reads TRUE already, prefer the smallest registration (or, if it adds "
+    "nothing, you may still pick the closest enlargement). Output ONLY by calling the "
+    "defend_model tool. Provide exactly the payload the chosen disposition needs, in EGIF, using "
+    "M's EXACT relation names (they are lowercase, shown in the brief). Introduce no new "
+    "world knowledge as asserted — revise only to answer G."
+)
+
+
+@dataclass
+class GrapheusEpisode:
+    """One recorded defense attempt (kept on the agent for the demo / inspection)."""
+    round_idx: int
+    verdict: str
+    disposition: Optional[str]
+    kwargs: Dict[str, str]
+    rationale: str
+    repeel_verdict: Optional[str]   # the proposal's verdict after the defense was applied
+    ok: bool
+    error: Optional[str] = None
+
+
+class LLMGrapheus:
+    """The Grapheus as an ``agon_evolution.PolicyAgent``: each deliberation it reads M, the
+    proposal, and the verdict, and votes the *minimal* model-revising disposition — but only
+    after its chosen revision is **applied and re-peeled** (reduce-to-artifact). A defense that
+    will not apply is rejected (retry with the error fed back), then the agent abstains
+    (returns ``None``). Never raises."""
+
+    name = "grapheus"
+
+    def __init__(
+        self,
+        *,
+        client=None,
+        model: str = DEFAULT_MODEL,
+        max_retries: int = 2,
+        priority: int = 40,
+    ):
+        self._client = client
+        self._model = model
+        self._max_retries = max_retries
+        self.priority = priority
+        self.episodes: List[GrapheusEpisode] = []
+
+    # -- the PolicyAgent protocol ----------------------------------------------
+    def vote(self, ctx: DeliberationContext) -> Optional[Vote]:
+        from dl_reasoning import ontology_signature
+
+        vocab = set(ontology_signature(ctx.model))
+        brief = self._brief(ctx, sorted(vocab))
+        verdict = ctx.verdict.value
+        feedback: Optional[str] = None
+        data: Dict = {}
+        for _ in range(self._max_retries + 1):
+            try:
+                data = self._invoke(brief, feedback)
+            except Exception as exc:   # unreachable model / SDK / key → abstain cleanly
+                self.episodes.append(GrapheusEpisode(
+                    ctx_round(ctx), verdict, None, {}, "", None, False,
+                    f"LLM call failed: {exc}"))
+                return None
+            disposition = (data.get("disposition") or "").strip()
+            if disposition not in REVISION_TAXONOMY:
+                feedback = (f"{disposition!r} is not a model-revising disposition; choose one "
+                            f"of {sorted(REVISION_TAXONOMY)}.")
+                continue
+            kwargs = self._payload(data, vocab)
+            try:                                   # reduce-to-artifact: it must apply cleanly
+                revised = revise_with_disposition(ctx.model, disposition, **kwargs)
+            except Exception as exc:
+                feedback = f"that revision did not apply: {exc}"
+                continue
+            repeel = peel(revised, ctx.proposal_egif).verdict.value   # re-peel: honest answer
+            rationale = data.get("rationale", "")
+            self.episodes.append(GrapheusEpisode(
+                ctx_round(ctx), verdict, disposition, kwargs, rationale, repeel, True))
+            return Vote(self.name, disposition, kwargs, rationale, self.priority)
+        # retries exhausted → abstain
+        self.episodes.append(GrapheusEpisode(
+            ctx_round(ctx), verdict, data.get("disposition"), {},
+            data.get("rationale", ""), None, False, feedback))
+        return None
+
+    # -- brief + payload -------------------------------------------------------
+    def _brief(self, ctx: DeliberationContext, vocab: List[str]) -> str:
+        m_egif = generate_egif(ctx.model).strip() or "(the blank sheet)"
+        lines = [
+            f"Model M (its sheet as EGIF): {m_egif}",
+            f"M speaks these relations (use these EXACT names): {', '.join(vocab) or '(none)'}.",
+            f"Standing laws admitted so far: {', '.join(ctx.known_laws) or '(none)'}.",
+            f"The Graphist's proposal G: {ctx.proposal_egif}",
+            f"The mechanical verdict of G in M: {ctx.verdict.value.upper()}.",
+        ]
+        ce = ctx.result.counterexample
+        wit = ctx.result.winning_witness
+        if ce:
+            lines.append(f"Counterexample the peel found: {ce}")
+        if wit:
+            lines.append(f"Witness the peel found: {wit}")
+        lines.append(
+            "Choose the MINIMAL disposition that honestly answers G (per your instructions) "
+            "and give exactly its payload.")
+        return "\n".join(lines)
+
+    def _payload(self, data: Dict, vocab: Set[str]) -> Dict[str, str]:
+        """Collect the non-empty payload fields, normalizing EGIF relation names to M's
+        spelling (a ``relation`` NAME is normalized to M's spelling if it matches one)."""
+        out: Dict[str, str] = {}
+        for key in ("fact_egif", "rule_egif", "subgraph_egif"):
+            val = (data.get(key) or "").strip()
+            if val:
+                out[key] = _normalize_egif(val, vocab)
+        rel = (data.get("relation") or "").strip()
+        if rel:
+            lower_map = {r.lower(): r for r in vocab}
+            out["relation"] = lower_map.get(rel.lower(), rel.lower())
+        return out
+
+    def _invoke(self, brief_text: str, feedback: Optional[str]) -> Dict:
+        client = self._client or _default_client()
+        user = brief_text
+        if feedback:
+            user += f"\n\nYour previous defense was rejected: {feedback}"
+        return _call_tool(client, self._model, _GRAPHEUS_SYSTEM, _DEFEND_TOOL, user)
+
+
+def ctx_round(ctx: DeliberationContext) -> int:
+    """The round index a deliberation belongs to, if the panel recorded it (best-effort; the
+    ``DeliberationContext`` does not carry it, so the episode's round is stamped by the loop)."""
+    return getattr(ctx, "round_idx", 0)
+
+
+# --------------------------------------------------------------------------- #
+# Stage 3 — the LLM Agonothetes (the *judge*) + branch-the-DAG                 #
+# --------------------------------------------------------------------------- #
+#
+# Beat ⑤: choose the disposition the exchange warrants. The mechanical panel resolves by fixed
+# priority; the LLM Agonothetes instead *judges among the votes actually cast* — it cannot
+# fabricate a disposition (it returns an index into the slate), so the calculus still bounds it.
+# On **irreducible disagreement** (§5) it does not force a single reading: it names the
+# dissenting votes to carry forward as **siblings**, and ``agon_evolution.run`` forks the
+# diachronic DAG from the pre-round state for each. Never raises: any failure falls back to the
+# mechanical highest-priority resolution.
+
+_JUDGE_TOOL = {
+    "name": "judge",
+    "description": (
+        "Judge which of the dispositions actually proposed best answers the exchange. Return "
+        "the INDEX of the chosen vote; optionally name dissenting votes to carry forward as "
+        "diachronic siblings when the disagreement is irreducible."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "chosen_index": {
+                "type": "integer",
+                "description": "The 0-based index of the winning vote in the slate shown.",
+            },
+            "branch_indices": {
+                "type": "array",
+                "items": {"type": "integer"},
+                "description": (
+                    "Indices of OTHER votes whose reading is a genuine, unsettled alternative "
+                    "worth carrying forward as a sibling branch of the DAG. Empty if the "
+                    "verdict settles the matter and no branch is warranted."
+                ),
+            },
+            "rationale": {
+                "type": "string",
+                "description": "One sentence for the record; never load-bearing.",
+            },
+        },
+        "required": ["chosen_index"],
+    },
+}
+
+_AGONOTHETES_SYSTEM = (
+    "You are the AGONOTHETES (the judge) in an Endoporeutic Game. Several agents have each "
+    "proposed a disposition of the same exchange; you choose the one the exchange warrants. You "
+    "may ONLY pick among the votes shown (return its index) — you cannot invent a disposition, "
+    "and you cannot overrule the mechanical verdict. Prefer the most parsimonious disposition "
+    "that honestly answers the proposal. When two votes embody a genuine, unsettled "
+    "disagreement the verdict does not resolve, do NOT force one: pick the better as the "
+    "winner and list the other in branch_indices to carry it forward as a sibling reading. "
+    "Output ONLY by calling the judge tool."
+)
+
+
+class LLMAgonothetes(Agonothetes):
+    """Stage-3 judge: the panel deliberates mechanically (the same ``PolicyAgent`` votes, which
+    may themselves be LLM agents), but **resolution** is an LLM choosing among the votes cast.
+    Falls back to mechanical priority on any failure. Records the dissenting votes it deems
+    worth branching, which ``agon_evolution.run`` reads via :meth:`branch_votes`."""
+
+    def __init__(self, *, agents=None, client=None, model: str = DEFAULT_MODEL):
+        if agents is None:
+            super().__init__()
+        else:
+            super().__init__(agents)
+        self._client = client
+        self._model = model
+        self._pending_branches: List[Vote] = []
+        self.judgments: List[Dict] = []
+
+    def resolve(self, votes):   # type: ignore[override]
+        self._pending_branches = []
+        if not votes:
+            return None
+        votes = list(votes)
+        # No genuine choice to judge → mechanical (single vote, or a unanimous disposition).
+        if len(votes) == 1 or len({v.disposition for v in votes}) == 1:
+            return max(votes, key=lambda v: v.priority)
+        try:
+            data = self._invoke(votes)
+            idx = int(data.get("chosen_index"))
+            if not (0 <= idx < len(votes)):
+                raise ValueError(f"chosen_index {idx} out of range")
+            winner = votes[idx]
+            branches = [
+                votes[i] for i in (data.get("branch_indices") or [])
+                if isinstance(i, int) and 0 <= i < len(votes) and i != idx
+            ]
+            self._pending_branches = branches
+            self.judgments.append({
+                "chosen": winner.disposition,
+                "branches": [b.disposition for b in branches],
+                "rationale": data.get("rationale", ""),
+            })
+            return winner
+        except Exception:
+            # never raises — the calculus's mechanical resolution is the safe default
+            return max(votes, key=lambda v: v.priority)
+
+    def branch_votes(self, votes, winner) -> List[Vote]:
+        """The dissenting votes the last judgment flagged to carry forward as siblings (never
+        including the winner). ``agon_evolution.run`` forks the DAG for each."""
+        return [b for b in self._pending_branches if b is not winner]
+
+    def _invoke(self, votes: List[Vote]) -> Dict:
+        client = self._client or _default_client()
+        lines = ["The exchange produced these votes:"]
+        for i, v in enumerate(votes):
+            spec = REVISION_TAXONOMY.get(v.disposition, {})
+            lines.append(
+                f"  [{i}] agent={v.agent} disposition={v.disposition} "
+                f"({spec.get('mode', '?')}·{spec.get('kind', '?')}): {v.rationale}")
+        lines.append("Judge which the exchange warrants (per your instructions).")
+        return _call_tool(client, self._model, _AGONOTHETES_SYSTEM, _JUDGE_TOOL,
+                          "\n".join(lines))
 
 
 __all__ = [
     "ANTHROPIC_AVAILABLE", "DOUBT_TYPES",
     "AttentionBrief", "attention_brief",
     "GraphistEpisode", "LLMGraphist",
+    "GrapheusEpisode", "LLMGrapheus",
+    "LLMAgonothetes",
 ]

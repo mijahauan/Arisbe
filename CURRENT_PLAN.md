@@ -32,6 +32,45 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-06-30, cont. 5) — AUTOMATED ENDOPOREUTIC GAME: Stages 2 → 3 (the LLM
+Grapheus + LLM Agonothetes). The three-role loop is now complete.** Author said "Proceed per
+current plan on stage 2 → 3." Both built, **additive, core-protection CLEAN** (`agon_llm` /
+`agon_evolution` are not protected). Governing principle unchanged — *the LLM argues, the
+calculus decides*; **every LLM move is reduced to a calculus artifact and re-checked**.
+**Stage 2 — `LLMGrapheus` (an `agon_evolution.PolicyAgent`):** beat ③, the defense. Given M +
+the proposal + the verdict (+ witness/counterexample the peel found), it votes the *minimal*
+model-revising disposition from `REVISION_TAXONOMY` via forced tool-use (`defend_model`).
+**Reduce-to-artifact + re-peel:** the EGIF payload is normalized to M's vocabulary
+(new `_normalize_egif`, EGIF twin of `_normalize_fol`), *applied* (`revise_with_disposition`),
+and the proposal *re-peeled* against the revised M — a defense that won't apply retries with the
+error fed back, then abstains (returns `None` vote). Same optional-`nl` / injectable-client /
+never-raises contract as the Graphist; refactored the shared forced-tool call into `_call_tool`.
+Drop into a panel as `Agonothetes([LLMGrapheus(...)])`; **the LLM Grapheus (not the mechanical
+panel) reproduces the swan trajectory** new_fact→generalization→challenge_to_M, standing law
+TRUE→TRUE→FALSE. **Stage 3 — `LLMAgonothetes(Agonothetes)`:** beat ⑤, resolution. The panel
+still deliberates mechanically (its `PolicyAgent`s vote — some are LLM agents), but *which vote
+wins* is an LLM judging among the votes cast via `judge` (returns an **index** into the slate —
+cannot fabricate a disposition or overrule the verdict); falls back to mechanical highest-
+priority on any failure, and **never fires the LLM when there is nothing to judge** (a single
+vote, or a unanimous disposition). **Branch-the-DAG (§5):** on irreducible disagreement the judge
+names dissenting votes to carry forward as siblings; `agon_evolution.run` reads the optional
+`panel.branch_votes` hook and **forks the diachronic DAG from the pre-round state** (via
+`ProofChain.at()`) for each — two chain steps then share a `from_state_id` — resuming the main
+line afterwards. The mechanical panel exposes no such hook, so the closed loop stays linear and
+**fully backward-compatible**. Minimal additive `run` changes: `DeliberationContext` gained
+`round_idx`, `RoundOutcome` gained `branched: List[str]`, a `_fork_siblings` helper. **Tests**
+`test_agon_llm.py` (36 total, +11 for Stages 2/3, role-agnostic `ToolClient` fake): Grapheus
+minimal-defense + re-peel-flips-TRUE, retry-then-recover, abstain paths, the swan-via-Grapheus
+headline; Agonothetes judges-among-votes, single/unanimous-is-mechanical-no-LLM-call, bad-index
+fallback, **the run forks the DAG on disagreement** + the mechanical panel stays linear. Adjacent
+`test_agon_evolution` (25 together) + interpretation/exemplars/modal-dialog (62) green; core-
+protection CLEAN. Demo `tools/build_llm_epg_demo.py` (all three roles, key-gated). Docs:
+AUTOMATED_ENDOPOREUTIC_GAME §2/§9 → Stages 1–3 BUILT; CLAUDE.md module + test entries.
+**▶ NEXT:** the **meta-learning instruments** (§6 — mine resolution principles from self-play;
+the friction map; ablation experiments) over the now-complete three-role loop, and the *open*
+membranes (§4b — argument forums / prediction markets) that renew doubt from outside.
+[[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-06-30, cont. 4) — AUTOMATED ENDOPOREUTIC GAME: Stage 1 (the LLM Graphist).**
 Extending the automated-model-development loop toward the author's real target: an EPG played by
 **three LLM roles** — **Graphist** (doubt) / **Grapheus** (defend M) / **Agonothetes** (judge) — under an

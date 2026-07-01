@@ -200,6 +200,7 @@ class DeliberationContext:
     proposal_egif: str
     result: SemanticResult
     known_laws: Sequence[str]   # law EGIFs admitted so far and not yet relinquished
+    round_idx: int = 0          # which round this deliberation belongs to (for logging)
 
     @property
     def verdict(self) -> Verdict3:
@@ -421,6 +422,7 @@ class RoundOutcome:
     decayed: List[str]              # relations erased by disuse this round
     standing_verdict: Optional[str] # the audited proposal's verdict after the round
     changed: bool
+    branched: List[str] = field(default_factory=list)  # dispositions forked as DAG siblings
 
 
 @dataclass
@@ -473,12 +475,13 @@ def run(
 
     for r in range(1, rounds + 1):
         model = pc.current
+        pre_id = pc.current_state_id            # the pre-round state a sibling forks from
         g_egif = proposer.propose(model, r)
         if g_egif is None:
             break   # the membrane is exhausted
 
         result = peel(model, g_egif)
-        ctx = DeliberationContext(model, g_egif, result, list(known_laws))
+        ctx = DeliberationContext(model, g_egif, result, list(known_laws), round_idx=r)
         votes = panel.deliberate(ctx)
         winner = panel.resolve(votes)
         slate = [(v.agent, v.disposition) for v in votes]
@@ -507,10 +510,16 @@ def run(
             ledger.touch(_relations_of(g_egif), r)
             decayed = _apply_decay(pc, ledger, r)
 
+        # ⑤b — irreducible disagreement: fork the DAG (Stage 3). A judge (e.g. the LLM
+        # Agonothetes) may name dissenting votes to carry forward as siblings; each is applied
+        # from the *pre-round* state as an alternate reading, then the main line resumes.
+        # Selection decides later; no agent must be right in the moment. (§5 of the design.)
+        branched = _fork_siblings(pc, panel, votes, winner, pre_id, r)
+
         outcomes.append(RoundOutcome(
             r, g_egif, result.verdict.value, winner.disposition, spec["mode"],
             winner.rationale, slate, decayed,
-            _verdict_or_none(pc.current, standing_proposal), True,
+            _verdict_or_none(pc.current, standing_proposal), True, branched,
         ))
 
     chain, uod = pc.to_uod(
@@ -522,6 +531,45 @@ def run(
         chain=chain, uod=uod, outcomes=outcomes,
         discoveries=_discoveries(outcomes), known_laws=known_laws,
     )
+
+
+def _fork_siblings(
+    pc: ProofChain,
+    panel: "Agonothetes",
+    votes: Sequence[Vote],
+    winner: Vote,
+    pre_id: str,
+    round_idx: int,
+) -> List[str]:
+    """Fork a diachronic sibling for each dissenting vote a branch-aware judge flagged. Reads
+    the optional ``panel.branch_votes`` hook (absent on the mechanical panel → no branching,
+    fully backward compatible). Each sibling is a real fork off ``pre_id`` (two steps share a
+    ``from_state_id``); the main line is restored afterwards. Best-effort — a sibling whose
+    revision won't apply is skipped, never aborting the run."""
+    branch_fn = getattr(panel, "branch_votes", None)
+    if branch_fn is None:
+        return []
+    dissenters = [v for v in branch_fn(votes, winner) if v is not winner]
+    if not dissenters:
+        return []
+    main_id = pc.current_state_id
+    branched: List[str] = []
+    for bv in dissenters:
+        try:
+            spec = revision_taxonomy(bv.disposition)
+            pc.at(pre_id).apply_derived(
+                "REVISE_M(sibling)",
+                lambda g, w=bv: revise_with_disposition(g, w.disposition, **w.kwargs),
+                label=f"{round_idx}·M~", note=f"dissenting reading (irreducible disagreement): "
+                                              f"{bv.rationale}",
+                params={"disposition": bv.disposition, "mode": spec["mode"],
+                        "sibling": True, **bv.kwargs},
+            )
+            branched.append(bv.disposition)
+        except Exception:
+            continue
+    pc.at(main_id)   # resume the main line
+    return branched
 
 
 def _update_known_laws(known_laws: List[str], winner: Vote) -> None:

@@ -15,9 +15,12 @@ from egif_parser_dau import parse_egif
 from eg_navigation import same_graph
 from semantic_game import Verdict3
 
-from agon_evolution import run, peel
+from agon_evolution import (
+    run, peel, Agonothetes, DeliberationContext, ObserverAgent, Vote,
+)
 from agon_llm import (
-    ANTHROPIC_AVAILABLE, LLMGraphist, attention_brief, _normalize_fol,
+    ANTHROPIC_AVAILABLE, LLMGraphist, LLMGrapheus, LLMAgonothetes,
+    attention_brief, _normalize_fol, _normalize_egif,
 )
 
 
@@ -60,6 +63,45 @@ def _doubt(fol, doubt_type="gap", **kw):
     return {"fol": fol, "predicates": kw.get("predicates", {}),
             "constants": kw.get("constants", []), "doubt_type": doubt_type,
             "rationale": kw.get("rationale", "a doubt.")}
+
+
+class _ToolBlock:
+    def __init__(self, name, inp):
+        self.type = "tool_use"
+        self.name = name
+        self.input = inp
+
+
+class _ToolResp:
+    def __init__(self, name, inp):
+        self.content = [_ToolBlock(name, inp)]
+
+
+class ToolClient:
+    """A role-agnostic scripted client: it echoes whichever forced tool the request pinned
+    (``tool_choice.name``) — so one client type serves the Graphist, Grapheus and Agonothetes.
+    Returns scripted tool inputs, one per ``messages.create`` (the last repeats)."""
+
+    def __init__(self, script):
+        self._script = list(script)
+        self._i = 0
+        self.calls = []
+
+        class _Messages:
+            def create(_self, **kw):
+                self.calls.append(kw)
+                name = kw["tool_choice"]["name"]
+                inp = self._script[min(self._i, len(self._script) - 1)]
+                self._i += 1
+                return _ToolResp(name, inp)
+
+        self.messages = _Messages()
+
+
+def _defend(disposition, **kw):
+    d = {"disposition": disposition, "rationale": kw.pop("rationale", "minimal.")}
+    d.update(kw)
+    return d
 
 
 SWAN_M0 = '(swan "Alba") (white "Alba") (swan "Ciel")'
@@ -180,6 +222,135 @@ def test_trajectory_persists_and_attests(tmp_path):
     service.save_uod_with_chain(res.uod, res.chain)           # §3.3 fires before any write
     reloaded = service.load_chain("llm_swan")
     assert reloaded is not None and len(reloaded.steps) == len(res.chain.steps)
+
+
+# --------------------------------------------------------------------------- #
+# Stage 2 — the LLM Grapheus (defense, reduce-to-artifact + re-peel)            #
+# --------------------------------------------------------------------------- #
+
+def test_normalize_egif_maps_relation_names_to_model_vocabulary():
+    # Capitalized EGIF relation → M's lowercase spelling; constants/variables untouched
+    assert _normalize_egif('(White "Ciel")', {"white"}) == '(white "Ciel")'
+    assert (_normalize_egif('~[ (Swan *x) ~[ (White x) ] ]', {"swan", "white"})
+            == '~[ (swan *x) ~[ (white x) ] ]')
+    # a genuinely new relation → lowercase (codebase convention)
+    assert _normalize_egif('(Dragon "Puff")', {"white"}) == '(dragon "Puff")'
+
+
+def _ctx(model_egif, g_egif, known_laws=(), round_idx=1):
+    m = parse_egif(model_egif)
+    return DeliberationContext(m, g_egif, peel(m, g_egif), list(known_laws), round_idx=round_idx)
+
+
+def test_grapheus_votes_minimal_defense_and_repeels():
+    # G does not yet hold in M; the Grapheus admits the fact (Capitalized EGIF → normalized),
+    # and the re-peel confirms the defense honestly answers it (now TRUE).
+    ctx = _ctx(SWAN_M0, '(white "Ciel")')
+    assert ctx.verdict is not Verdict3.TRUE
+    g = LLMGrapheus(client=ToolClient([_defend("new_fact", fact_egif='(White "Ciel")')]))
+    vote = g.vote(ctx)
+    assert vote is not None and vote.disposition == "new_fact"
+    assert vote.kwargs["fact_egif"] == '(white "Ciel")'      # normalized to M's spelling
+    assert g.episodes[-1].ok and g.episodes[-1].repeel_verdict == "true"
+
+
+def test_grapheus_retries_on_inapplicable_defense_then_recovers():
+    # first proposes a challenge whose subgraph matches no sheet cut (raises), then a good one
+    ctx = _ctx(SWAN_M0, '(white "Ciel")')
+    g = LLMGrapheus(client=ToolClient([
+        _defend("challenge_to_M", subgraph_egif='~[ (swan *x) ~[ (white x) ] ]'),
+        _defend("new_fact", fact_egif='(white "Ciel")')]))
+    vote = g.vote(ctx)
+    assert vote is not None and vote.disposition == "new_fact"
+
+
+def test_grapheus_abstains_when_defense_never_applies():
+    ctx = _ctx(SWAN_M0, '(white "Ciel")')
+    g = LLMGrapheus(client=ToolClient([
+        _defend("retract_fact", relation="nonesuch")]), max_retries=1)
+    assert g.vote(ctx) is None                                # abstains — never raises
+    assert not g.episodes[-1].ok
+
+
+def test_grapheus_abstains_when_client_unreachable():
+    class Boom:
+        class messages:
+            @staticmethod
+            def create(**kw):
+                raise RuntimeError("no key")
+    assert LLMGrapheus(client=Boom()).vote(_ctx(SWAN_M0, '(white "Ciel")')) is None
+
+
+def test_llm_grapheus_drives_the_swan_trajectory():
+    # The full Stage-2 loop: the LLM Graphist doubts, the LLM Grapheus defends (mechanical
+    # Agonothetes resolves the single vote). Fed the swan exchange it walks new_fact →
+    # generalization → challenge_to_M, and the standing law flips TRUE → TRUE → FALSE.
+    graphist = LLMGraphist(client=ToolClient(SWAN_SCRIPT))
+    grapheus = LLMGrapheus(client=ToolClient([
+        _defend("new_fact", fact_egif='(white "Ciel")'),
+        _defend("generalization", rule_egif=SWAN_LAW),
+        _defend("challenge_to_M", subgraph_egif=SWAN_LAW,
+                fact_egif='(swan "Nox") ~[ (white "Nox") ]')]))
+    res = run(SWAN_M0, graphist, rounds=3, uod_id="llm_epg_swan", name="llm epg swan",
+              panel=Agonothetes([grapheus]), standing_proposal=SWAN_LAW)
+    assert [o.disposition for o in res.outcomes] == [
+        "new_fact", "generalization", "challenge_to_M"]
+    assert [o.standing_verdict for o in res.outcomes] == ["true", "true", "false"]
+    assert len(grapheus.episodes) == 3 and all(e.ok for e in grapheus.episodes)
+
+
+# --------------------------------------------------------------------------- #
+# Stage 3 — the LLM Agonothetes (judge among votes; branch the DAG)            #
+# --------------------------------------------------------------------------- #
+
+_V_FACT = Vote("observer", "new_fact", {"fact_egif": '(cat "Tom")'}, "observed", 10)
+_V_LAW = Vote("generalizer", "generalization",
+              {"rule_egif": "~[ (cat *x) ~[ (mammal x) ] ]"}, "leap", 20)
+
+
+def test_agonothetes_judges_among_the_votes_cast():
+    j = LLMAgonothetes(client=ToolClient([{"chosen_index": 0, "rationale": "the fact suffices"}]))
+    winner = j.resolve([_V_FACT, _V_LAW])
+    assert winner is _V_FACT                                  # chose the lower-priority vote
+    assert j.judgments[-1]["chosen"] == "new_fact"
+
+
+def test_agonothetes_single_or_unanimous_vote_is_mechanical_no_llm_call():
+    j = LLMAgonothetes(client=ToolClient([{"chosen_index": 0}]))
+    assert j.resolve([_V_LAW]).disposition == "generalization"
+    same = Vote("grapheus", "new_fact", {"fact_egif": '(cat "Tom")'}, "r", 40)
+    assert j.resolve([_V_FACT, same]).priority == 40         # unanimous disposition → highest
+    assert j._client.calls == []                             # never consulted the LLM
+
+
+def test_agonothetes_falls_back_to_mechanical_on_bad_index():
+    j = LLMAgonothetes(client=ToolClient([{"chosen_index": 99}]))
+    assert j.resolve([_V_FACT, _V_LAW]) is _V_LAW            # highest-priority fallback
+    assert j.branch_votes([_V_FACT, _V_LAW], _V_LAW) == []
+
+
+def test_run_forks_the_dag_on_irreducible_disagreement():
+    # Two agents vote distinct dispositions on one proposal; the judge keeps the winner AND
+    # branches the dissenter → the chain has two steps sharing the pre-round state (a sibling).
+    graphist = LLMGraphist(client=ToolClient([_doubt("Cat(Tom)")]))
+    grapheus = LLMGrapheus(client=ToolClient([_defend("definition", fact_egif='(cat "Tom")')]))
+    judge = LLMAgonothetes(
+        agents=[ObserverAgent(), grapheus],
+        client=ToolClient([{"chosen_index": 0, "branch_indices": [1], "rationale": "keep both"}]))
+    res = run("", graphist, rounds=1, uod_id="llm_branch", name="branch", panel=judge)
+    o = res.outcomes[0]
+    assert o.disposition == "new_fact" and o.branched == ["definition"]
+    froms = [s.from_state_id for s in res.chain.steps]
+    assert froms.count("s0") == 2                            # a genuine fork off the pre-round state
+
+
+def test_run_without_a_branch_aware_panel_never_forks():
+    # the mechanical panel has no branch_votes hook → linear chain, fully backward compatible
+    graphist = LLMGraphist(client=ToolClient(SWAN_SCRIPT))
+    res = run(SWAN_M0, graphist, rounds=3, uod_id="lin", name="linear")
+    froms = [s.from_state_id for s in res.chain.steps]
+    assert len(set(froms)) == len(froms)                     # every step from a distinct state
+    assert all(o.branched == [] for o in res.outcomes)
 
 
 # --------------------------------------------------------------------------- #

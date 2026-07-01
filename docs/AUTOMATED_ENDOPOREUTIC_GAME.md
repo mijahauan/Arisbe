@@ -1,7 +1,8 @@
 # The automated Endoporeutic Game: three roles, one incorruptible referee
 
-**Status**: design-of-record · **Stage 1 (the LLM Graphist) BUILT** (`src/agon_llm.py`,
-2026-06-30) · Stages 2–3 ahead · aim = **discovery** · **Drafted**: 2026-06-30
+**Status**: design-of-record · **Stages 1–3 BUILT** (`src/agon_llm.py`, 2026-06-30) — the
+LLM **Graphist** (doubt), **Grapheus** (defense), and **Agonothetes** (judge + branch-the-DAG),
+all three under the mechanical referee · aim = **discovery** · **Drafted**: 2026-06-30
 
 > **The question this answers.** Can the Endoporeutic Game be played *automatically* — no
 > ponderous human in the loop — by AI agents that, starting from scratch, build a domain
@@ -63,8 +64,13 @@ truth-in-M; it is not an agent with an opinion. The episode anatomy:
 | ④ counter | Graphist | push back / sharpen / accept |
 | ⑤ resolve | Agonothetes | the chosen disposition — enacted + §3.3-attested |
 
-In **Stage 1 (built)** only ① is an LLM (the Graphist); ②–⑤ are the mechanical
-`agon_evolution.Agonothetes()` panel. Stages 2–3 turn ③ and ⑤ into LLM agents (§9).
+All three arguing roles are now LLM agents: ① the Graphist, ③ the Grapheus (a `PolicyAgent`
+in the panel), ⑤ the Agonothetes (judging among the votes cast). Only ② — the peel — is
+mechanical, and it stays that way. Each LLM move is **reduced to a calculus artifact and
+re-checked** before it counts: ① the doubt must parse to an EGIF; ③ the defense must *apply*
+(`revise_with_disposition`) and is *re-peeled*; ⑤ the judge may only pick among the votes
+actually cast (it returns an index — it cannot fabricate a disposition or overrule the verdict).
+See §9 for the code.
 
 ## 3 · From scratch
 
@@ -251,7 +257,31 @@ preprint already does exactly this was not resolved.
   it bootstraps a model from the blank sheet; the trajectory §3.3-persists. Demo:
   `tools/build_llm_graphist_demo.py` (key-gated). Tests: `tests/test_agon_llm.py` (scripted
   fake client — CI-green with no SDK/key).
-- **Stage 2 — the LLM Grapheus** (defense move ③, conserve-M-minimally, inserted before
-  resolution; the adversarial gradient).
-- **Stage 3 — the LLM Agonothetes** (resolution ⑤) + branch-the-DAG on irreducible
-  disagreement; then the meta-learning instruments (§6).
+- **Stage 2 — the LLM Grapheus (BUILT).** `agon_llm.LLMGrapheus` implements the
+  `agon_evolution.PolicyAgent` socket: given M, the proposal, and the verdict (+ any
+  witness/counterexample the peel found), it votes the *minimal* model-revising disposition
+  from the `REVISION_TAXONOMY`. **Reduce-to-artifact + re-peel:** the chosen disposition's EGIF
+  payload is normalized to M's vocabulary (`_normalize_egif`), *applied*
+  (`revise_with_disposition`), and the proposal *re-peeled* against the revised M — a defense
+  that won't apply never becomes a vote (it retries with the error fed back, then abstains).
+  Drop it into a panel as `Agonothetes([LLMGrapheus(...)])`; the mechanical `resolve` picks the
+  winner. Verified: driven by the swan exchange the LLM Grapheus walks new_fact → generalization
+  → challenge_to_M and the standing law flips TRUE → TRUE → FALSE. Same optional-`nl` /
+  injectable-client / never-raises contract as the Graphist.
+- **Stage 3 — the LLM Agonothetes (BUILT).** `agon_llm.LLMAgonothetes(Agonothetes)` overrides
+  **resolution** (⑤): the panel still deliberates mechanically (its `PolicyAgent`s vote, some of
+  which are themselves LLM agents), but *which vote wins* is an LLM judging among the votes cast
+  — it returns an **index** into the slate (it cannot invent a disposition or overrule the
+  verdict), falling back to mechanical highest-priority on any failure, and it never fires the
+  LLM when there is nothing to judge (a single vote, or a unanimous disposition). **Branch-the-DAG
+  (§5):** on irreducible disagreement the judge names dissenting votes to carry forward as
+  siblings; `agon_evolution.run` reads the optional `panel.branch_votes` hook and **forks the
+  diachronic DAG from the pre-round state** for each (two chain steps then share a
+  `from_state_id`), resuming the main line afterwards — selection decides later, no agent must be
+  right in the moment. The mechanical panel exposes no such hook, so the closed loop stays
+  linear and fully backward-compatible. Demo: `tools/build_llm_epg_demo.py` (all three roles,
+  key-gated). Tests: `tests/test_agon_llm.py` (scripted role-agnostic fake client — CI-green
+  with no SDK/key), incl. the DAG-fork check and the mechanical-fallback paths.
+- **Next — the meta-learning instruments (§6)** over the now-complete three-role loop: mine
+  resolution principles from self-play, the friction map, ablation experiments; and the *open*
+  membranes (§4b) that renew doubt from outside. *Progression, not progress* (§7).
