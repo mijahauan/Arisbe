@@ -6,7 +6,8 @@ all three under the mechanical referee · the **§6 meta-learning instruments**
 (`src/agon_metalearning.py`) + **three §4b open membranes** — raise-only
 (`src/discourse_membrane.py`), raise-and-resolve (`src/resolving_membrane.py`), wiki-dispute
 (`src/wiki_dispute_membrane.py`) — the **live runner** (`src/live_runner.py`, §10) and the **first
-live source, Wikidata** (`src/wikidata_source.py`) BUILT · aim = **discovery** · **Drafted**:
+live source, Wikidata** (`src/wikidata_source.py`) BUILT · §4c reads the whole as a *model living
+with a given reality (the wiki-world) through the membrane* · aim = **discovery** · **Drafted**:
 2026-06-30
 
 > **The question this answers.** Can the Endoporeutic Game be played *automatically* — no
@@ -182,6 +183,38 @@ horizon. Demo: `tools/build_wiki_dispute_demo.py`; tests: `tests/test_wiki_dispu
 Still ahead: a **live** source behind these feed interfaces (a wiki/forum dispute stream; a
 prediction-market / sports / weather API), and a mechanical source-conflict agent so the
 *raise-only* loop disposes of contested contents without an LLM.
+
+## 4c · What the developing model is a model *of* (the biological reading)
+
+The word "membrane" is not decoration: the metaphor is a **cell living with an environment
+through a selective boundary**, and it sheds real light on what a live run *is*. A running
+automated game is a developing model M **living alongside a given reality it takes in through the
+membrane** — for the first live source, that reality is **Wikidata**. Three clarifications keep
+the picture honest (they are the §7 floor, read through the metaphor):
+
+- **What kind of reality.** Wikidata is a *given reality of the record/discourse*, not of the
+  world. Its resolutions — ranks, references, deprecations — are **editorial**, not physical
+  verdicts (so it sits *between* raise-only and raise-and-resolve). M therefore develops a model
+  of the **wiki-world** — the world *as Wikidata curates and represents it* — which is exactly the
+  honest scope: *model the discourse, not the world; correspondence, not truth.*
+- **What "living with" means.** Wikidata is *itself in flux* (edits, new sources, deprecations
+  arrive continuously), so over a long run the membrane delivers a **changing** reality and M
+  tracks it — a deprecation retracts, a new reliable source overturns a bare value. That is a real
+  living-*alongside*. The current asymmetry: it is **ingestion**, not mutual co-evolution — M
+  changes in response to Wikidata, but does not (yet) push back on it (feeding M's contested
+  frontier back as suggested edits is a future edge).
+- **What kind of model M is.** Not a mirror or a growing copy. With disuse-decay M is a
+  **bounded, rolling, low-warrant, diachronic *stance*** toward the wiki-world — selective (only
+  what the membrane delivers and the working set retains), interpreted through the game's
+  dispositions, and carrying its own history of how it came to be. It *develops / progresses /
+  revises* — never *improves toward truth* (**progression, not progress**, §7).
+
+The payoff of the biological reading: because Wikidata hands the membrane **provenance and its own
+resolutions**, M does not merely absorb facts — it forms a **meta-model of how the wiki-world
+settles its disagreements** (the §6 `mechanism_principles`: reliable-source citations produce
+durable knowledge where a contradicted consensus does not). So a live run is a bounded, low-warrant,
+diachronic model that develops by living alongside a reality in flux, modelling both **what** the
+wiki-world records **and how** it resolves what it disputes.
 
 ## 5 · Irreducible disagreement → branch the DAG
 

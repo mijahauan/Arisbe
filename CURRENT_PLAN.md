@@ -57,8 +57,14 @@ the ContradictionAgent relinquishes the bare value (retract_fact) and the refere
 names `(p …)` don't tokenize — use multi-char; real property labels are fine.) **Tests**
 `test_wikidata_source.py` (8: mapping, source poll/exhaust, from_fetch, retract_atom,
 ContradictionAgent vote/abstain, end-to-end overturn). **Demo** `tools/build_wikidata_demo.py`
-(offline by default; `--live Q42` hits the real API). core-protection CLEAN; additive. **▶ NEXT:**
-a live *raise-and-resolve* source (prediction-market/sports/weather API) once a **temporal
+(offline by default; `--live Q42` hits the real API). core-protection CLEAN; additive. **THEN (conceptual, doc-only):** author affirmed the framing "a
+membrane with a given reality (Wikidata) *living with* the game plays, gradually developing a model
+of the wiki-world" — captured as design-doc **§4c "What the developing model is a model *of* (the
+biological reading)"**: Wikidata = a reality of the *record/discourse* (editorial resolutions, not
+physical → *model the discourse, not the world*); "living with" = ingestion of a reality-in-flux
+(not yet mutual co-evolution); M = a bounded/low-warrant/diachronic *stance* (progression not
+progress) that also forms a **meta-model of how the wiki-world settles disputes** (mechanism_principles).
+**▶ NEXT:** a live *raise-and-resolve* source (prediction-market/sports/weather API) once a **temporal
 fragment** is added (our FOL is atemporal — the blocker for markets); Wikidata P/Q-id→label lookups;
 the §6 runs-as-corpus/test-suite + self-describing-rulebook harvests.
 [[project_next_automated_model_development_life]].
