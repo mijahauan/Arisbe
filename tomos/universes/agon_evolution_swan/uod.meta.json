@@ -1,0 +1,19 @@
+{
+  "uod_id": "agon_evolution_swan",
+  "uod_type": "historical",
+  "name": "A model developed automatically by the Agon (the swans)",
+  "description": "A domain model grown move-by-move by the automated Agon-evolution loop (src/agon_evolution.py): each state is a round of the Endoporeutic Game \u2014 produce a graph, peel it against the developing M, negotiate a disposition among the Agonothetes panel, inject the revision. Fed a closed membrane (the swan pool), the loop reproduces the hand-played dialogue_swan_revision trajectory on its own: observe Ciel (new_fact), leap to 'all swans are white' (generalization), admit a swan the law covers (new_fact), then meet a non-white swan and relinquish the over-general law (challenge_to_M, abduction). The engine of change is the game, not deterministic rules; selection from outside is the only bound on the unbounded sheet. See docs/AUTOMATED_MODEL_DEVELOPMENT.md.",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

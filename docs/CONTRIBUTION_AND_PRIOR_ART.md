@@ -107,6 +107,18 @@ must cite) · **CANNOT DETERMINE**.
   right engineering call, but the project should not present Dau as universally "the" formalization.
 - **Description Logic ([DL](GLOSSARY.md#dl))/Web Ontology Language ([OWL](GLOSSARY.md#owl))-as-diagrams already exists** (a sound-complete diagrammatic system for ALC; Graphol ≈ OWL 2).
   Arisbe's EG-native subsumption-by-freeze-a-witness is a reasonable extension, not a new bridge.
+- **No system was found that plays an *automated* role-based dialogue game to build a knowledge
+  model from scratch under a *sound* referee.** A 2026-06-30 deep-research pass (25 verified
+  claims, 0 refuted) found every neighbour holds at most two of {multi-agent role dialogue,
+  build-from-scratch, sound formal referee}: dialogue/debate systems (Black & Hunter inquiry
+  dialogues, PARMA, AI-safety-via-debate, Du et al., SPAG, CAMEL, DeepMind oversight) have roles
+  but offload truth to participants / human / weak-LLM judges; belief-revision + ILP (AGM-for-Dung,
+  ILASP/CDILP, AutoSpec) and FunSearch have a sound engine but are single-agent / single-proposer.
+  Arisbe's **automated Endoporeutic Game** (Graphist/Grapheus/Agonothetes under the §3.3-attested
+  peel, with the correspondence-not-truth floor) is positioned in that empty intersection — see
+  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §8. (Threads 5–6 — automated
+  science, LLM ontology construction — were not exhaustively verified; read as *"none among the
+  verified set."*)
 
 ---
 

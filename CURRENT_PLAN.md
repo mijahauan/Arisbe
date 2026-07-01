@@ -32,6 +32,56 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-06-30, cont. 4) — AUTOMATED ENDOPOREUTIC GAME: Stage 1 (the LLM Graphist).**
+Extending the automated-model-development loop toward the author's real target: an EPG played by
+**three LLM roles** — **Graphist** (doubt) / **Grapheus** (defend M) / **Agonothetes** (judge) — under an
+**incorruptible mechanical referee** (the peel decides truth-in-M; the LLMs only argue). Design-of-record
+`docs/AUTOMATED_ENDOPOREUTIC_GAME.md` (prior art done as a deep-research verified pass); staged one role at
+a time. **Stage 1 SHIPPED (additive, core-protection CLEAN):** `src/agon_llm.py` — the **LLM Graphist** as
+an `agon_evolution.Proposer`; Grapheus/Agonothetes stay the **mechanical** `Agonothetes()` panel. Reuses
+`nl_to_logic` wholesale (optional `nl` extra, `ANTHROPIC_AVAILABLE`, injectable client, forced tool-use,
+never-raises): the Graphist reads M's **thin spots** (`attention_brief`) and voices **one doubt** via a
+`propose_graph` tool emitting **FOL** + `doubt_type`; Arisbe **reduces it to a calculus artifact**
+(`build_proposal` → EGIF) and re-checks — unparseable doubts never reach the loop. **Key fix:** FOL
+Capitalizes predicates, corpus is lowercase → `_normalize_fol` maps them onto M's vocabulary (tight-paren
+regex so it doesn't eat `∀x (`). Fed the swan doubts (as Capitalized FOL) it **reproduces the swan
+trajectory** through the mechanical panel; **bootstraps from the blank sheet**. Demo
+`tools/build_llm_graphist_demo.py` (key-gated). **Tests** `test_agon_llm.py` (11, scripted FakeClient,
+CI-green w/o SDK/key, incl. §3.3-persist) + `test_agon_evolution.py` unchanged (25 together); core math 122;
+core-protection CLEAN. (Full non-E2E suite is slow-but-green — corpus-wide ELK/§3.3 tests dominate ~30+min.)
+Doc captures the doubt-engine portfolio, **recurrent real-world membranes** (raise-only vs raise-and-resolve;
+news models *the discourse not the world*; Arisbe *runs on* conflict via low-warrant + provenance),
+branch-on-disagreement, and the meta-learning payoff. **▶ NEXT:** Stage 2 (LLM Grapheus defense move) → Stage
+3 (LLM Agonothetes + branch-the-DAG). [[project_next_automated_model_development_life]].
+
+**▶▶▶ THIS SESSION (2026-06-30, cont. 3) — AUTOMATED MODEL DEVELOPMENT: the Agon as the engine of
+change** (the "Game of Life" next-idea, reframed by the author). Conway's local-rules-on-a-bounded-plane
+doesn't fit: materialization is monotonic (growth-only, no death) and the real engine of change isn't
+local rules at all — **it's the Agon**. A *generation* = a **round of the game**: ① a `Proposer` (the
+*membrane*) scribes a candidate G → ② `peel` tests it against the developing M → ③ an `Agonothetes`
+**panel** negotiates a disposition (the negotiation is where emergence lives) → ④ `revise_with_disposition`
+injects it → ⑤ a `UsageLedger` decays what fell from use. Author's constraint: GoL is bounded by its
+plane's *edge*; the Agon's sheet is **unbounded**, so the only bound — and the shaper of emergence — is
+**selection from outside** (decay substitutes for the boundary). Author chose: aim = **discovery**,
+first membrane = **closed/internal**, **design-doc-first**.
+**SHIPPED (all additive, core-protection CLEAN):** `docs/AUTOMATED_MODEL_DEVELOPMENT.md` (design-of-record:
+reframing, round anatomy, the plural panel, disuse-decay, closed→open membrane staging). `src/agon_evolution.py`
+— `Proposer` Protocol + `CorpusProposer` (replays a pool) / `MutationProposer` (recombines M's unary
+relations into candidate subsumption laws → surfaces the lattice the corpus already commits to);
+`Agonothetes` panel (`ObserverAgent`·new_fact / `GeneralizerAgent`·generalization / `ChallengerAgent`·
+challenge_to_M, resolved by priority); `UsageLedger`+decay; `run(...) → EvolutionResult`
+(TransformationChain + DOMAIN_MODEL UoD + RoundOutcomes + discovery digest); deterministic. **Headline:
+fed the swan pool the loop reproduces the hand-played `dialogue_swan_revision` trajectory *on its own*.**
+Demo `tools/build_agon_evolution_demo.py` → corpus UoD `agon_evolution_swan`, renders through the existing
+**audit lens** with no lens change (verified via `/audit`). **Key correctness insight:** a Horn law is
+self-fulfilling under materialization, so refutation must carry the head's negation — a *non-white swan*
+`(swan "Nox") ~[ (white "Nox") ]`, detected structurally (more correct than the swan script's external
+black≠white). **Tests** `test_agon_evolution.py` (14, incl. §3.3 persist round-trip); core math 122 green;
+organon/exemplars/modal-dialog 74 green. (Full suite not run to completion — pre-existing Playwright E2E
+tests hang; unrelated to this additive backend module.) **▶ NEXT FRONTIER (the rub the author flagged):**
+the Stage-1 **open membrane** — an LLM/human/online `Proposer` for genuine novelty (the viability
+question). [[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-06-30, cont. 2) — SCHOLARLY CITATION + BATCH EXPORT (the genuinely-remaining
 items in `docs/FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md`).** Author opened the feature doc; first fixed
 its Workflow-A example (it stated "if a man is wise…" but transcribed/rendered the cat-on-mat graph) to

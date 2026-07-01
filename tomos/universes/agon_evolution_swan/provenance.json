@@ -1,0 +1,29 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Peirce, Charles Sanders",
+      "title": "Collected Papers",
+      "bibkey": "peirce1931collected",
+      "note": "inquiry as the fixation of belief \u2014 observation, the inductive leap, and the irritation of doubt that relinquishes a belief"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "domain_model",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Peirce, Charles Sanders. Collected Papers"
+    ]
+  }
+}

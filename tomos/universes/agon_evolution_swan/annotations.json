@@ -1,0 +1,28 @@
+{
+  "annotations": [
+    {
+      "id": "ann_ef88a9cf",
+      "scope": "uod",
+      "text": "~[ (swan *x) ~[ (white x) ] ]",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit-proposal"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_49a426a9",
+      "scope": "uod",
+      "text": "Developed automatically by the Agon-evolution loop \u2014 not hand-authored. Each state is one game round; the disposition that drove it is recorded on the step (disposition / mode), so the audit lens labels each transition. The standing proposal 'every swan is white' is audited across the run.",
+      "author": null,
+      "created": null,
+      "tags": [],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}
