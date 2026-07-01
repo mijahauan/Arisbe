@@ -32,6 +32,36 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-06-30, cont. 7) — AUTOMATED ENDOPOREUTIC GAME: the raise-and-resolve
+membrane (§4b, the flavour with *world-teeth*).** Author asked whether we can start an automatic
+game fuelled by a raise-and-resolve membrane, or what else must be in place — then said "yes,"
+build the offline scaffold. **SHIPPED, additive, core-protection CLEAN, deterministic + LLM-free.**
+`src/resolving_membrane.py` — the first raise-and-resolve open membrane, offline/replayable
+(recorded outcomes; a live API attaches at the same `Proposer` socket). **The design insight that
+made it cheap:** the pieces were already load-bearing — **M's prediction *is* the peel**
+(`peel(M, claim, closed=False)` forecasts open-world, materializing M's laws so M bets on
+individuals it was never told about; UNKNOWN = an abstention, taken *before* the outcome is folded
+in), the disposition machinery folds the resolution in, the existing mechanical panel disposes it,
+and the DAG-fork / diachrony / meta-learning stickiness were all reusable. So the genuinely-new
+code is small: `ResolvingItem(claim, happened, world_egif)` (the world's verdict + the ground-truth
+graph to scribe); `ResolvingFeed` (a `Proposer` that records M's forecast in a `PredictionLedger`
+then hands the truth to the loop); `classify` (hit/miss/abstain) + `PredictionLedger`
+(hits/misses/abstentions, `net_score`, `accuracy`); `select_best` (rank competing theories by track
+record). One tiny additive `run` change: **`seed_laws`** — standing laws M *carries* (not derived
+in a round) are seeded into `known_laws` so the Challenger can recognise a later refutation of them.
+**Headline (the Robot-Scientist teeth, no LLM):** two theories of one world compete — an over-general
+`swan→white` forecasts a non-white swan white → **empirically falsified**, disposed `challenge_to_M`
+(the world relinquishes the over-general law), net −1; the correct `bird→flies` hits then abstains,
+net +1; `select_best` → the correct theory. *The world selecting against over-reach.* No new referee
+(the outcome is *data*; the calculus still decides); correspondence-not-truth holds (a resolved market
+is low-warrant; M self-certifies a track record, not truth). **Tests** `test_resolving_membrane.py`
+(9, incl. seed_laws-enables-the-falsification + select_best). **Demo** `tools/build_resolving_membrane_demo.py`
+(runs with NO LLM). Adjacent agon suites green; core-protection CLEAN. Docs: AUTOMATED_ENDOPOREUTIC_GAME
+§4b/§9 → both membranes BUILT; CLAUDE.md module + test entries. **▶ NEXT:** a **live** raise-and-resolve
+source behind the `ResolvingFeed` interface (a prediction-market / sports / weather API — the first with
+a real world on the other end); a mechanical source-conflict agent for the *raise-only* loop; the §6
+runs-as-corpus/test-suite + self-describing-rulebook harvests. [[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-06-30, cont. 6) — AUTOMATED ENDOPOREUTIC GAME: the §6 meta-learning
 instruments + the first §4b open membrane.** After Stages 2→3 the author said "proceed with the
 meta-learning instruments and open membranes." Both built, **additive, geometry-free,

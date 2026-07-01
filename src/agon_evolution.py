@@ -452,6 +452,7 @@ def run(
     panel: Optional[Agonothetes] = None,
     ttl: Optional[int] = None,
     standing_proposal: Optional[str] = None,
+    seed_laws: Optional[Sequence[str]] = None,
 ) -> EvolutionResult:
     """Play ``rounds`` automated game rounds, developing M from ``model_egif``.
 
@@ -461,7 +462,10 @@ def run(
 
     ``ttl`` (optional) turns on disuse-decay; ``standing_proposal`` (optional,
     EGIF) is audited after each round so a verdict flip caused by growth or decay
-    is *surfaced*, never silent.
+    is *surfaced*, never silent. ``seed_laws`` (optional, EGIF) are standing laws
+    M already carries on its sheet (e.g. from the corpus) that were *not* derived
+    in a round — seeding them lets the Challenger recognise a later refutation of
+    them (the raise-and-resolve membrane relies on this).
     """
     panel = panel or Agonothetes()
     pc = ProofChain.from_egif(model_egif)
@@ -471,7 +475,7 @@ def run(
         ledger.seed(_sheet_relations(pc.current))
 
     outcomes: List[RoundOutcome] = []
-    known_laws: List[str] = []
+    known_laws: List[str] = list(seed_laws or [])
 
     for r in range(1, rounds + 1):
         model = pc.current

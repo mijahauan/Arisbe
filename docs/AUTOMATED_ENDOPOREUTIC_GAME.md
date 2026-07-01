@@ -3,8 +3,9 @@
 **Status**: design-of-record · **Stages 1–3 BUILT** (`src/agon_llm.py`, 2026-06-30) — the
 LLM **Graphist** (doubt), **Grapheus** (defense), and **Agonothetes** (judge + branch-the-DAG),
 all three under the mechanical referee · the **§6 meta-learning instruments**
-(`src/agon_metalearning.py`) + the **first §4b open membrane** (`src/discourse_membrane.py`)
-BUILT · aim = **discovery** · **Drafted**: 2026-06-30
+(`src/agon_metalearning.py`) + **both §4b open membranes** — raise-only
+(`src/discourse_membrane.py`) and raise-and-resolve (`src/resolving_membrane.py`) — BUILT ·
+aim = **discovery** · **Drafted**: 2026-06-30
 
 > **The question this answers.** Can the Endoporeutic Game be played *automatically* — no
 > ponderous human in the loop — by AI agents that, starting from scratch, build a domain
@@ -141,9 +142,26 @@ flavour, offline and replayable (so it is CI-safe; a live source attaches at the
 source asserts and another denies (`P@A` vs `¬P@B`) as *contested* — for the game (a
 `challenge_to_M` or the Stage-3 Agonothetes' DAG branch) to dispose of, never adjudicating them
 itself. You model *the discourse, not the world*. Demo: `tools/build_metalearning_demo.py`
-(second board). Tests: `tests/test_discourse_membrane.py`. Still ahead: a *raise-and-resolve*
-membrane (a live API returning verdicts over time) and a mechanical source-conflict policy agent
-so the closed loop disposes of contested contents without an LLM.
+(second board). Tests: `tests/test_discourse_membrane.py`.
+
+**The raise-and-resolve membrane is also BUILT** (`src/resolving_membrane.py`) — the flavour
+with **world-teeth**, still offline/replayable (recorded outcomes; a live API attaches at the
+same socket). The mechanism reuses everything: **M's prediction is the peel** —
+`peel(M, claim, closed=False)` is M's own open-world forecast (materializing M's laws, so M bets
+on individuals it was never directly told about; UNKNOWN = an abstention, not a false guess),
+taken *before* the outcome is folded in. A `ResolvingItem(claim, happened, world_egif)` carries
+the world's verdict; `ResolvingFeed` records the forecast in a `PredictionLedger`, then hands the
+ground truth to the loop, where the **existing mechanical panel** disposes it — a confirmed fact
+→ `new_fact`, a swan-that-is-not-white refuting M's standing law → `challenge_to_M` (the world
+relinquishing the over-general law; `run` gained `seed_laws` so a law M *carries* is visible to
+the Challenger). The ledger tallies hits/misses/abstentions, and `select_best` ranks competing
+theories (DAG branches / ablation arms) by net track record — *the world selecting against the
+over-general theory* (the Robot-Scientist teeth). No new referee: the outcome is *data*; the
+calculus still decides. Correspondence-not-truth holds — a resolved market is low-warrant data;
+M self-certifies a *track record*, not truth. Demo: `tools/build_resolving_membrane_demo.py`;
+tests: `tests/test_resolving_membrane.py`. Still ahead: a **live** source behind the
+`ResolvingFeed` interface (a prediction-market / sports / weather API), and a mechanical
+source-conflict agent so the *raise-only* loop disposes of contested contents without an LLM.
 
 ## 5 · Irreducible disagreement → branch the DAG
 
@@ -317,10 +335,15 @@ preprint already does exactly this was not resolved.
   `run_ablation` — the microscope on the game's own rules, deterministic and geometry-free over
   the `EvolutionResult` a `run` returns; works on the mechanical loop (no LLM). Demo
   `tools/build_metalearning_demo.py`; tests `tests/test_agon_metalearning.py`.
-- **The first open membrane (§4b, BUILT).** `src/discourse_membrane.py`: `DiscourseFeed` (a
-  raise-only, dated, sourced `Proposer`) + `consistency_report` (cross-source coherence). Tests
-  `tests/test_discourse_membrane.py`.
-- **Next.** A *raise-and-resolve* membrane (live API / prediction market — the first membrane
-  with world-teeth); a mechanical source-conflict agent (dispose of contested contents without
-  an LLM); the runs-as-corpus/test-suite + self-describing-rulebook harvests (§6 futures). Keep
-  the floor: *progression, not progress* (§7); nothing auto-promotes to the attested corpus.
+- **The open membranes (§4b, BUILT).** `src/discourse_membrane.py`: `DiscourseFeed` (a
+  raise-only, dated, sourced `Proposer`) + `consistency_report` (cross-source coherence); tests
+  `tests/test_discourse_membrane.py`. `src/resolving_membrane.py`: `ResolvingFeed` +
+  `PredictionLedger` + `select_best` (the raise-and-resolve flavour with world-teeth — M
+  forecasts via the peel, is empirically falsified where it over-reaches, and selection ranks
+  predictors by track record); demo `tools/build_resolving_membrane_demo.py`, tests
+  `tests/test_resolving_membrane.py`.
+- **Next.** A **live** raise-and-resolve source behind the `ResolvingFeed` interface (a
+  prediction-market / sports / weather API — the first with a real world on the other end); a
+  mechanical source-conflict agent (dispose of *raise-only* contested contents without an LLM);
+  the runs-as-corpus/test-suite + self-describing-rulebook harvests (§6 futures). Keep the floor:
+  *progression, not progress* (§7); nothing auto-promotes to the attested corpus.
