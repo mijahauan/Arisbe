@@ -323,6 +323,33 @@ implements the rest: the musement pole, the economy-of-research ordering of reac
 horizon as a first-class, retained register. Nothing here auto-promotes; *progression, not progress*
 (§7).
 
+**The observable shadow of poise (an instrument, not a target — defined 2026-07-01, BUILT).**
+Poise itself cannot be measured: there is no absolute frame to measure it *in* — that was the
+whole point. But it casts a **shadow on the trace**, and the trace is ours. Over any window of
+rounds, read three things, each computed from the run's own record and nothing else: **engagement**
+(the dance still moves — some rounds revise M), **settlement** (habits hold *while they are held* —
+no situation is disposed inconsistently within the window; no thrash), and **absorption** (fresh
+irritations arrive — a relinquishment, a DAG branch, a sharp disagreement; Secondness intruding —
+and are disposed without cascading). A window with all three reads **poised**. One that fails reads
+toward a **pole**: *rigidity* (settlement without engagement — nothing moves, the dance has
+stopped; a run with no stumbles and no engagement is not poised, it is dead) or *thrash*
+(engagement without settlement — the same situation disposed differently, relinquishments
+cascading). A **stumble** is an *event, never a failure* — exactly §4d's "its loss is a stumble,
+not a measured departure from the true" — and its measure is **recovery**: how many rounds until a
+poised window resumes. Competence, on this reading, is that stumbles keep arriving *and* keep
+being absorbed. Three honesty clauses keep the observable inside the floor: (1) it is
+**perspectival by construction** — window size and absorption threshold belong to the observer,
+and the reading is *comparative* (across a run's phases, across an ablation's arms), never an
+absolute score; (2) it reads **states of the run, not relations to the actuality** — a poised run
+can be poised around a mistaken M (doubt settles as readily on a mistaken notion; the veto remains
+ever-possible); (3) it must **never become a target** — a player optimized to maximize the poise
+reading would learn to avoid stumbles by avoiding engagement, or to manufacture cheap settlements;
+Goodhart's law here is the §7 floor restated (*the observable reads the dance; it must not
+choreograph it*). Instruments: `agon_metalearning.poise_report` (episode-level: per-window
+readings + stumbles with recoveries) and `poise_from_digests` (the coarse per-segment reading for
+a live run's monitoring stream, §10); the audit lens's verdict ribbon is the human-visible face of
+the same dynamics.
+
 ## 5 · Irreducible disagreement → branch the DAG
 
 When the Graphist and Grapheus disagree in a way the verdict does not settle, **do not force a
@@ -348,7 +375,17 @@ episodes:
   that chose it): stability 1.0 = an empirically-discovered resolution principle; a split flags
   a **thrash** (ambiguity or a missing rule). *Stickiness* is tracked too — whether the resolved
   move survived to the final M (a `generalization` later relinquished by a `challenge_to_M`
-  reads `stuck=False`, the "superseded law" surfacing as a low stick-rate). `gaps` flags
+  reads `stuck=False`, the "superseded law" surfacing as a low stick-rate). **Stickiness is
+  decay-aware (2026-07-01):** an erasure the *game* performed (a denial's `retract_fact`, a
+  challenge) is durability evidence and reads `stuck=False`, but content that merely **fell to
+  disuse-decay** reads `stuck=None` + `erased_by_decay=True` — excluded from stick-rates and
+  *counted* rather than silently conflated with relinquishment (in a decay-bounded live run most
+  episodes decay, so without the split every stick-rate would be working-set noise; a 150-round
+  Wikidata run read 125/150 decay-erased). Two retro-markers keep the **cross-segment** aggregate
+  honest where the `LiveRunner` prunes per-segment history: `mark_decayed` (runner decay → the
+  earlier admission flips to no-evidence) and its mirror `mark_relinquished` (a later segment's
+  retraction/law-removal → the earlier admission flips to `stuck=False`, atom-precise); the
+  runner applies both and returns the aggregate as `LiveResult.episodes`. `gaps` flags
   situations handled *inconsistently* (sometimes revised, sometimes left inert) — candidate
   missing rules.
 - **A friction map for clarity (BUILT — `friction_map`).** Per round, disagreement = distinct
@@ -376,6 +413,10 @@ episodes:
   consensus does not), ranks the edit wars (friction), and names the still-contested claims (the
   honest ◇ horizon). This is "take advantage of what we can learn from the conflicts" made
   operational.
+- **The poise reading (BUILT — `poise_report` / `poise_from_digests`).** The §4d observable:
+  windows of the trace read for engagement / settlement / absorption, failures named by pole
+  (rigidity vs thrash), stumbles located and their recoveries measured. Perspectival,
+  comparative, and — per §4d's honesty clauses — never a target.
 
 Demo (no LLM): `tools/build_metalearning_demo.py` + `tools/build_wiki_dispute_demo.py`. Tests:
 `tests/test_agon_metalearning.py` + `tests/test_wiki_dispute_membrane.py`.
@@ -573,7 +614,14 @@ the disposition tally, decayed count, branches, elapsed) plus an optional membra
 `evaluate(feed, result)` payload — e.g. a `ResolvingFeed`'s prediction accuracy or a
 `WikiDisputeFeed`'s `mechanism_principles` / `unresolved_frontier` from §6. The digest stream *is*
 the monitoring surface: watch \|M\| stay bounded, watch the disposition mix and the durable-mechanism
-findings evolve, watch the unresolved (◇-contested) frontier. Demo (offline, no LLM):
+findings evolve, watch the unresolved (◇-contested) frontier — and read the stream's **poise**
+(`agon_metalearning.poise_from_digests`, the §4d observable: poised / rigidity / thrash per
+segment, stumbles absorbed or cascading). The runner also accumulates the feed's meta-learning
+episodes **across segments** as `LiveResult.episodes`, with runner-level decay and cross-segment
+relinquishments retro-marked (`mark_decayed` / `mark_relinquished`, §6) — the honest long-run
+input to `mechanism_principles` (per-segment `extra` payloads alone cannot see an overturn that
+lands in a later segment). A fetched batch larger than `segment_cap` is **queued, never
+truncated** — the cap sets checkpoint cadence, not coverage. Demo (offline, no LLM):
 `tools/build_live_runner_demo.py`; tests `tests/test_live_runner.py`.
 
 **Going truly live** = implementing `LiveSource.fetch()`/`exhausted()` against a real endpoint
@@ -599,3 +647,28 @@ then Wikidata deprecates it and a reliably-sourced value replaces it → the bar
 relinquished and the referenced one stands (*a reliable source overturns a bare one*). Demo
 `tools/build_wikidata_demo.py` (offline by default; `--live Q42` hits the real API); tests
 `tests/test_wikidata_source.py`.
+
+**Legibility — P/Q ids resolve to labels (BUILT 2026-07-01).** An M full of `(p31 "Q42" "Q5")`
+is unreadable through the audit lens, and legibility is the point of the whole system. The pure
+half is offline-testable (`collect_ids` gathers every P/Q id a statement batch touches;
+`resolve_labels` substitutes known labels and — honesty over legibility — leaves an unlabelled id
+as the id, never fabricating a name); `wblabels_fetch` is the one network call (batched at 50 ids,
+the anonymous cap), and `wbgetentities_fetch(with_labels=True)` is now the default, so a live M
+reads `(place_of_birth "Douglas Adams" "Cambridge")`. Two live-world findings from building it:
+(1) since 2024 an item whose name is language-independent carries one **`mul`** (multilingual)
+label *instead of* an `en` one — Q42's "Douglas Adams" lives there, so the fetch asks
+`languages=en|mul` and prefers the specific language; (2) a stock stdlib `urllib` TLS context has
+**no CA bundle** on common Python installs (MacPorts/pyenv) — the shared `_api_json` helper
+verifies against `certifi` when available and sends a descriptive User-Agent (Wikimedia API
+etiquette).
+
+**The first watched live session (2026-07-01).** Run supervised before anything unattended: 150
+statements from three entities (Q42, Q7259, Q937) through the full pipeline against the real API —
+labels resolved, the 150-item poll correctly *queued* into six 25-round segments (not truncated),
+`ttl=25` holding \|M\| at 21–24 across segments with per-segment elapsed flat (~0.5 s), and the
+decay-aware stickiness earning its keep: **125 of 150 episodes were decay-erased** by the
+working-set bound — without the §6 split, consensus would have read stick-rate ≈0.20 and
+reliable-source ≈0.11 (both "not durable", pure ttl noise); with it, both correctly read 1.0 on
+the episodes carrying actual evidence, decay counted and reported. The overturn scenario
+(deprecation + reliably-sourced replacement across *segments*) reads correctly in the aggregate:
+consensus `stick_rate=0.0, durable=False`; reliable_source `1.0, durable=True`.

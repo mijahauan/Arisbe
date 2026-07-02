@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Sequence
+from typing import Callable, Dict, List, Mapping, Optional, Sequence
 
 from wiki_dispute_membrane import Resolution, WikiDispute, WikiEdit
 
@@ -107,6 +107,77 @@ def statements_to_disputes(
 
 
 # --------------------------------------------------------------------------- #
+# P/Q id → label resolution (legibility)                                      #
+# --------------------------------------------------------------------------- #
+#
+# ``wbgetentities`` returns entity-valued fields as bare P/Q ids, and an M full of
+# ``(p31 "Q42" "Q5")`` is unreadable through the audit lens — legibility is the point of the
+# whole system. The pure half (collect + substitute) is offline-testable; only
+# :func:`wblabels_fetch` touches the network.
+
+_PQ_ID = re.compile(r"^[PQ]\d+$")
+
+
+def collect_ids(statements: Sequence[WikidataStatement]) -> List[str]:
+    """The distinct P/Q ids appearing in the statements (item, property, value), in first-seen
+    order — the lookup set for :func:`wblabels_fetch`."""
+    seen: set = set()
+    out: List[str] = []
+    for s in statements:
+        for token in (s.item, s.prop, s.value):
+            if _PQ_ID.match(token) and token not in seen:
+                seen.add(token)
+                out.append(token)
+    return out
+
+
+def resolve_labels(
+    statements: Sequence[WikidataStatement], labels: Mapping[str, str]
+) -> List[WikidataStatement]:
+    """The statements with P/Q ids replaced by their labels where known. An id with no label
+    stays an id — honesty over legibility (never fabricate a name)."""
+    return [
+        WikidataStatement(
+            item=labels.get(s.item, s.item),
+            prop=labels.get(s.prop, s.prop),
+            value=labels.get(s.value, s.value),
+            rank=s.rank,
+            referenced=s.referenced,
+        )
+        for s in statements
+    ]
+
+
+def wblabels_fetch(
+    ids: Sequence[str],
+    *,
+    lang: str = "en",
+    endpoint: str = "https://www.wikidata.org/w/api.php",
+    timeout: float = 20.0,
+) -> Dict[str, str]:  # pragma: no cover - network; wire it, don't unit-test it
+    """Labels for P/Q ids via ``wbgetentities`` ``props=labels``, batched at 50 ids per request
+    (the anonymous API cap). Asks for ``lang`` **and** ``mul`` — since 2024 an item whose name
+    is language-independent (most person/place names) carries one ``mul`` label *instead of* an
+    ``en`` one (Q42's "Douglas Adams" lives there; found live 2026-07-01). ``lang`` wins where
+    both exist. Returns ``id → label``; an id with no label in either is absent
+    (``resolve_labels`` then leaves it as the id)."""
+    ids = [i for i in ids if _PQ_ID.match(i)]
+    out: Dict[str, str] = {}
+    for start in range(0, len(ids), 50):
+        batch = ids[start:start + 50]
+        data = _api_json({
+            "action": "wbgetentities", "ids": "|".join(batch),
+            "props": "labels", "format": "json", "languages": f"{lang}|mul",
+        }, endpoint, timeout)
+        for eid, entity in (data.get("entities") or {}).items():
+            labels = entity.get("labels") or {}
+            label = (labels.get(lang) or labels.get("mul") or {}).get("value")
+            if label:
+                out[eid] = label
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # The live source                                                             #
 # --------------------------------------------------------------------------- #
 
@@ -141,28 +212,53 @@ class WikidataSource:
 # The real Wikidata call — stdlib only, no auth; NOT exercised in CI          #
 # --------------------------------------------------------------------------- #
 
+_USER_AGENT = "Arisbe/alpha (https://github.com/mijahauan/Arisbe; automated-EPG live source)"
+
+
+def _api_json(params: Dict[str, str], endpoint: str,
+              timeout: float):  # pragma: no cover - network; wire it, don't unit-test it
+    """One anonymous GET → parsed JSON. Sends a descriptive User-Agent (Wikimedia API
+    etiquette) and verifies TLS against ``certifi``'s bundle when available (the stock stdlib
+    context has no CA bundle wired on e.g. MacPorts/pyenv Pythons and fails the handshake)."""
+    import json
+    import ssl
+    import urllib.parse
+    import urllib.request
+
+    try:
+        import certifi
+        ctx = ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        ctx = ssl.create_default_context()
+    req = urllib.request.Request(
+        f"{endpoint}?{urllib.parse.urlencode(params)}",
+        headers={"User-Agent": _USER_AGENT})
+    with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
 def wbgetentities_fetch(
     entity_ids: Sequence[str],
     *,
     lang: str = "en",
     endpoint: str = "https://www.wikidata.org/w/api.php",
     timeout: float = 20.0,
+    with_labels: bool = True,
 ) -> List[WikidataStatement]:  # pragma: no cover - network; wire it, don't unit-test it
     """The real Wikidata read: ``wbgetentities`` for the given Q-ids, flattened to
     :class:`WikidataStatement`. Public, no auth, no dependency (``urllib``). Value stringifying
     is best-effort (entity-id → its id, time → the time string, quantity → amount, string →
-    value). Property/value entity ids are left as ids unless a label lookup is added by the
-    caller. Be polite: batch ids, cache, and pace via ``LiveRunConfig.min_interval_s``."""
+    value). With ``with_labels`` (the default) every P/Q id encountered — item, property, and
+    entity-valued value — is resolved to its ``lang`` label via :func:`wblabels_fetch`, so the
+    facts scribed onto M are legible (``(place_of_birth "Douglas Adams" "Cambridge")``, not
+    ``(p19 "Q42" "Q350")``); an id with no label stays an id. Be polite: batch ids, cache, and
+    pace via ``LiveRunConfig.min_interval_s``."""
     import json
-    import urllib.parse
-    import urllib.request
 
-    q = urllib.parse.urlencode({
+    data = _api_json({
         "action": "wbgetentities", "ids": "|".join(entity_ids),
         "props": "claims", "format": "json", "languages": lang,
-    })
-    with urllib.request.urlopen(f"{endpoint}?{q}", timeout=timeout) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
+    }, endpoint, timeout)
 
     def _value(snak) -> Optional[str]:
         if snak.get("snaktype") != "value":
@@ -192,10 +288,14 @@ def wbgetentities_fetch(
                     rank=claim.get("rank", "normal"),
                     referenced=bool(claim.get("references")),
                 ))
+    if with_labels and out:
+        out = resolve_labels(out, wblabels_fetch(
+            collect_ids(out), lang=lang, endpoint=endpoint, timeout=timeout))
     return out
 
 
 __all__ = [
     "WikidataStatement", "statement_egif", "statements_to_disputes",
+    "collect_ids", "resolve_labels", "wblabels_fetch",
     "WikidataSource", "wbgetentities_fetch",
 ]

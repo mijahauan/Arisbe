@@ -129,16 +129,18 @@ class WikiDisputeFeed:
         """Build the dispute-aware meta-learning records for this run — pairing each dispute
         (in order) with the loop's outcome and its stickiness. Returns
         ``agon_metalearning.DisputeEpisode`` objects."""
-        from agon_metalearning import DisputeEpisode, is_stuck
+        from agon_metalearning import DisputeEpisode, stickiness
         episodes = []
         for d, outcome in zip(self._disputes, result.outcomes):
+            stuck, by_decay = stickiness(outcome, result)
             episodes.append(DisputeEpisode(
                 claim_egif=d.claim_egif,
                 mechanism=d.resolution.mechanism,
                 settled=d.resolution.settled,
                 reverts=d.reverts,
                 disposition=outcome.disposition,
-                stuck=is_stuck(outcome, result),
+                stuck=stuck,
+                erased_by_decay=by_decay,
             ))
         return episodes
 

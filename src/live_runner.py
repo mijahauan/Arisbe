@@ -117,10 +117,16 @@ class SegmentDigest:
 
 @dataclass
 class LiveResult:
+    """``episodes`` is the cross-segment accumulation of the feed's meta-learning records
+    (when the membrane supports ``.episodes``), with runner-level disuse-decay already
+    retro-marked (``agon_metalearning.mark_decayed``) — the honest long-run input to
+    ``mechanism_principles`` and friends. Per-segment ``extra`` payloads are computed *before*
+    that segment's decay; this list is the decay-aware aggregate."""
     segments: List[SegmentDigest]
     total_rounds: int
     final_model_egif: str
     stopped_because: str
+    episodes: List = field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
@@ -181,6 +187,9 @@ class LiveRunner:
         if self._ledger is not None:
             self._ledger.seed(_relations_of(model_egif) if model_egif else set())
         self._round = 0
+        self._pending: List = []                # fetched items awaiting a segment (never dropped)
+        self._polled = False
+        self._episodes: List = []               # cross-segment meta-learning records
 
     def run(self) -> LiveResult:
         cfg = self._cfg
@@ -193,19 +202,23 @@ class LiveRunner:
         while True:
             stop = self._should_stop(start, total_rounds, model_egif)
             if stop:
-                return LiveResult(segments, total_rounds, model_egif, stop)
+                return LiveResult(segments, total_rounds, model_egif, stop, self._episodes)
 
-            # pacing / rate limit: never poll faster than min_interval_s
-            if segments and cfg.min_interval_s:
-                self._sleep(cfg.min_interval_s)
+            # A batch larger than segment_cap is queued, not truncated — the remainder becomes
+            # the next segment(s). Poll the source only when the queue is empty.
+            if not self._pending:
+                if self._polled and cfg.min_interval_s:
+                    self._sleep(cfg.min_interval_s)   # pacing / rate limit between polls
+                self._pending.extend(self._source.fetch())
+                self._polled = True
+                if not self._pending:
+                    if self._source.exhausted():
+                        return LiveResult(segments, total_rounds, model_egif,
+                                          "source_exhausted", self._episodes)
+                    continue                    # nothing new yet — poll again (paced above)
 
-            items = list(self._source.fetch())
-            if not items:
-                if self._source.exhausted():
-                    return LiveResult(segments, total_rounds, model_egif, "source_exhausted")
-                continue                        # nothing new yet — poll again (paced above)
-
-            items = items[: cfg.segment_cap]     # bound the segment (checkpoint cadence)
+            items = self._pending[: cfg.segment_cap]  # bound the segment (checkpoint cadence)
+            del self._pending[: len(items)]
             seg_idx += 1
             seg_start = self._clock()
             feed = self._feed_factory(items)
@@ -223,8 +236,16 @@ class LiveRunner:
             used = set().union(*(_relations_of(o.proposal_egif) for o in res.outcomes)) \
                 if res.outcomes else set()
             model_egif = generate_egif(res.uod.current_egi)   # carry M forward as EGIF
-            self._laws = list(res.known_laws)
+            laws_before, self._laws = self._laws, list(res.known_laws)
             extra = self._evaluate(feed, res) if self._evaluate else {}
+            if hasattr(feed, "episodes"):       # accumulate the meta-learning records
+                if self._episodes:
+                    # a relinquishment in THIS segment of content admitted in an EARLIER one is
+                    # durability evidence the earlier record must carry (stuck → False)
+                    from agon_metalearning import mark_relinquished
+                    mark_relinquished(self._episodes, res,
+                                      [l for l in laws_before if l not in self._laws])
+                self._episodes.extend(feed.episodes(res))
             checkpoint_uod = self._checkpoint(res, seg_idx)
             # PRUNE: drop the ProofChain so memory is bounded by one segment, not the whole run.
             del res, feed
@@ -234,6 +255,10 @@ class LiveRunner:
             model_egif, dropped = self._decay(model_egif, used)
             if dropped:
                 self._laws = [l for l in self._laws if not (_relations_of(l) & dropped)]
+                if self._episodes:
+                    # falling from the working set is not relinquishment — keep stick-rates honest
+                    from agon_metalearning import mark_decayed
+                    mark_decayed(self._episodes, dropped)
 
             segments.append(SegmentDigest(
                 segment=seg_idx,

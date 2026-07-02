@@ -78,7 +78,11 @@ def situation_of(proposal_egif: str, verdict: str) -> str:
 class EpisodeRecord:
     """One round as a mining datum: the situation, the vote slate, the resolved disposition,
     the siblings branched, and whether the move *stuck* (its effect survives in the final M).
-    ``disagreement`` counts distinct dispositions the agents proposed (0 = unanimous)."""
+    ``disagreement`` counts distinct dispositions the agents proposed (0 = unanimous).
+    ``stuck`` is ``None`` both for a non-revising round (nothing to stick) and for a move whose
+    content later fell to **disuse-decay** — falling out of the working set is no evidence about
+    durability either way, so it must not read as *relinquished*; ``erased_by_decay``
+    distinguishes the two."""
     run_id: str
     round_idx: int
     situation: str
@@ -88,7 +92,8 @@ class EpisodeRecord:
     slate: List[str]
     branched: List[str]
     disagreement: int
-    stuck: Optional[bool]   # None ⇒ a non-revising round (nothing to stick)
+    stuck: Optional[bool]   # None ⇒ non-revising, or erased by decay (see erased_by_decay)
+    erased_by_decay: bool = False
 
 
 def _sheet_relations(egif_graph) -> Set[str]:
@@ -107,9 +112,26 @@ def _relations_of(egif: str) -> Set[str]:
     return {g.rel[e.id] for e in g.E if e.id in g.rel}
 
 
-def _stuck(outcome: RoundOutcome, result: EvolutionResult,
-           final_relations: Set[str]) -> Optional[bool]:
-    """Did this revising round's move survive to the end of the trajectory?
+def _last_erasures(result: EvolutionResult) -> Dict[str, str]:
+    """``relation → how`` for the **last** time each sheet relation was erased during the run —
+    ``"decay"`` (fell from use, ⑤) or ``"disposition"`` (a game move: ``retract_fact``'s pure
+    denial names its atom's relation). Within a round the revision applies before decay, so
+    decay overwrites a same-round retraction — matching the loop's order."""
+    how: Dict[str, str] = {}
+    for o in result.outcomes:
+        if o.disposition == "retract_fact":
+            for rel in _relations_of(o.proposal_egif):
+                how[rel] = "disposition"
+        for rel in o.decayed:
+            how[rel] = "decay"
+    return how
+
+
+def _stickiness(outcome: RoundOutcome, result: EvolutionResult,
+                final_relations: Set[str], erasures: Dict[str, str]
+                ) -> Tuple[Optional[bool], bool]:
+    """``(stuck, erased_by_decay)`` — did this revising round's move survive to the end of the
+    trajectory, and if not, did its content merely *fall from use*?
 
       * a *relinquishment* (``challenge_to_M`` / ``retract_fact``) reshaped M by removing
         content — it stands unless something re-added it; we read it as stuck (an event that
@@ -118,34 +140,121 @@ def _stuck(outcome: RoundOutcome, result: EvolutionResult,
         ``known_laws`` (a later ``challenge_to_M`` may have relinquished it — ``_discoveries``
         calls that ``superseded_law``).
       * any other *enlargement* (a fact/definition/…) sticks iff its relations are all still
-        present on the final sheet (disuse-decay or a challenge may have erased them).
+        present on the final sheet. If they are gone and every missing relation's **last
+        erasure was disuse-decay**, the move was not relinquished — it fell out of the working
+        set, which is no evidence about durability either way → ``(None, True)``. Only an
+        erasure the *game* performed reads ``(False, False)``.
     """
     disp = outcome.disposition
     if disp is None:
-        return None
+        return None, False
     if disp in ("challenge_to_M", "retract_fact"):
-        return True
+        return True, False
     if disp in ("generalization", "conditional_acceptance"):
         return any(same_graph(parse_egif(l), parse_egif(outcome.proposal_egif))
-                   for l in result.known_laws)
+                   for l in result.known_laws), False
     added = _relations_of(outcome.proposal_egif)
-    return bool(added) and added <= final_relations
+    if not added:
+        return False, False
+    missing = added - final_relations
+    if not missing:
+        return True, False
+    if all(erasures.get(rel) == "decay" for rel in missing):
+        return None, True
+    return False, False
+
+
+def stickiness(outcome: RoundOutcome, result: EvolutionResult) -> Tuple[Optional[bool], bool]:
+    """``(stuck, erased_by_decay)`` for one outcome — the public stickiness reader for open
+    membranes that build their own episode records (e.g. ``wiki_dispute_membrane``). ``stuck``
+    is ``None`` for a non-revising round *and* for a decay-erasure (excluded from stick-rates);
+    ``erased_by_decay`` says which."""
+    return _stickiness(outcome, result,
+                       _sheet_relations(result.uod.current_egi), _last_erasures(result))
 
 
 def is_stuck(outcome: RoundOutcome, result: EvolutionResult) -> Optional[bool]:
     """Whether ``outcome``'s revising move survived to the final M (``None`` for a non-revising
-    round). The public entry to the stickiness reader — used by open membranes that build their
-    own episode records (e.g. ``wiki_dispute_membrane``)."""
-    return _stuck(outcome, result, _sheet_relations(result.uod.current_egi))
+    round **or** a disuse-decay erasure — use :func:`stickiness` to tell them apart)."""
+    return stickiness(outcome, result)[0]
+
+
+def _atoms_of(egif: str) -> Set[Tuple[str, Tuple]]:
+    """Every atom of a graph as ``(relation, (labels…))`` — cuts included, so a denial
+    ``~[ (rel …) ]`` yields the atom it denies."""
+    try:
+        g = parse_egif(egif)
+    except Exception:
+        return set()
+    return {
+        (g.rel[e.id], tuple(g.get_vertex(v).label for v in g.nu.get(e.id, ())))
+        for e in g.E if e.id in g.rel
+    }
+
+
+def mark_relinquished(episodes: Sequence, result: EvolutionResult,
+                      removed_laws: Sequence[str] = ()) -> int:
+    """The mirror of :func:`mark_decayed`: retro-mark accumulated episodes whose admitted
+    content a **later segment's game move** relinquished — this IS durability evidence, so the
+    earlier admission flips to ``stuck=False``. ``result`` is the later segment: its
+    ``retract_fact`` rounds name the denied atoms; ``removed_laws`` are laws a later challenge
+    relinquished (the runner diffs its carried law registry). Call it on the episodes
+    accumulated *before* the segment, then extend with the segment's own records (whose
+    within-run stickiness is already correct). Returns how many were re-marked."""
+    retracted: Set[Tuple[str, Tuple]] = set()
+    for o in result.outcomes:
+        if o.disposition == "retract_fact":
+            retracted |= _atoms_of(o.proposal_egif)
+    if not retracted and not removed_laws:
+        return 0
+    n = 0
+    for e in episodes:
+        if e.stuck is not True or e.disposition in ("challenge_to_M", "retract_fact"):
+            continue
+        claim = getattr(e, "claim_egif", None) or getattr(e, "proposal_egif", "")
+        if e.disposition in ("generalization", "conditional_acceptance"):
+            if any(same_graph(parse_egif(claim), parse_egif(l)) for l in removed_laws):
+                e.stuck = False
+                n += 1
+            continue
+        if retracted and _atoms_of(claim) & retracted:
+            e.stuck = False
+            n += 1
+    return n
+
+
+def mark_decayed(episodes: Sequence, dropped: Set[str]) -> int:
+    """Retro-mark accumulated episodes whose admitted content later fell to disuse-decay
+    **outside** the run that produced them — the ``LiveRunner`` decays across segments, after
+    each segment's episodes were built. An episode counted ``stuck=True`` whose claim's
+    relations were dropped flips to ``stuck=None`` + ``erased_by_decay=True`` (falling out of
+    the working set must not read as durable *or* relinquished). Relinquishment episodes
+    (``challenge_to_M`` / ``retract_fact``) are events that happened and stay stuck. Works on
+    :class:`EpisodeRecord` and :class:`DisputeEpisode` alike. Returns how many were re-marked."""
+    if not dropped:
+        return 0
+    n = 0
+    for e in episodes:
+        if e.stuck is not True or e.disposition in ("challenge_to_M", "retract_fact"):
+            continue
+        claim = getattr(e, "claim_egif", None) or getattr(e, "proposal_egif", "")
+        rels = _relations_of(claim)
+        if rels and rels & dropped:
+            e.stuck = None
+            e.erased_by_decay = True
+            n += 1
+    return n
 
 
 def episodes_from(result: EvolutionResult, *, run_id: str = "run") -> List[EpisodeRecord]:
     """Turn one run's outcomes into mining records — the ``(M, G, verdict, slate, disposition,
     did-it-stick)`` tuples §6 mines over."""
     final_relations = _sheet_relations(result.uod.current_egi)
+    erasures = _last_erasures(result)
     records: List[EpisodeRecord] = []
     for o in result.outcomes:
         dispositions = [d for _agent, d in o.votes]
+        stuck, by_decay = _stickiness(o, result, final_relations, erasures)
         records.append(EpisodeRecord(
             run_id=run_id,
             round_idx=o.round_idx,
@@ -156,7 +265,8 @@ def episodes_from(result: EvolutionResult, *, run_id: str = "run") -> List[Episo
             slate=dispositions,
             branched=list(o.branched),
             disagreement=max(0, len(set(dispositions)) - 1) + len(o.branched),
-            stuck=_stuck(o, result, final_relations),
+            stuck=stuck,
+            erased_by_decay=by_decay,
         ))
     return records
 
@@ -345,6 +455,164 @@ def run_ablation(
 
 
 # --------------------------------------------------------------------------- #
+# §4d — the observable shadow of poise (an instrument, not a target)          #
+# --------------------------------------------------------------------------- #
+#
+# Poise itself — "balance in a dance the inquiry bends" (§4d) — has no absolute frame to be
+# measured in. What it casts is a *shadow on the trace*: over a window of rounds, read
+#
+#   * ENGAGEMENT  — the dance still moves (some rounds revise M);
+#   * SETTLEMENT  — habits hold while they are held (no situation disposed inconsistently
+#                   within the window — no thrash);
+#   * ABSORPTION  — fresh irritations arrive (a relinquishment, a DAG branch, a sharp
+#                   disagreement — Secondness intruding) and are disposed without cascading.
+#
+# A window with all three reads *poised*; one that fails reads toward a pole — RIGIDITY
+# (settlement without engagement: nothing moves, the dance has stopped) or THRASH (engagement
+# without settlement: the same situation disposed differently, relinquishments cascading). A
+# STUMBLE is an event, never a failure; its measure is RECOVERY — how many rounds until a
+# poised window resumes. Competence, on this reading, is that stumbles keep arriving AND keep
+# being absorbed: a run with no stumbles and no engagement is not poised, it is dead.
+#
+# Everything is computed from the run's own trace — perspectival by construction, comparative
+# across ablation arms, never a distance-to-truth. And it must never become a target: a player
+# optimized to maximize this reading would learn to avoid stumbles by avoiding engagement, or
+# to manufacture cheap settlements (Goodhart — which is the §7 floor again: *progression, not
+# progress*; the observable reads the dance, it must not choreograph it).
+
+STUMBLE_DISPOSITIONS = ("challenge_to_M", "retract_fact")
+
+
+@dataclass
+class Stumble:
+    """One fresh irritation on the trace: a relinquishment the game performed, a DAG branch,
+    or a sharp disagreement (≥2 distinct dispositions beyond the winner). ``recovery`` is the
+    number of rounds until a poised window resumes — ``None`` if the trace ends first (the
+    frontier, not a fall)."""
+    round_idx: int
+    kind: str                       # relinquishment | branch | disagreement
+    recovery: Optional[int] = None
+
+
+@dataclass
+class PoiseWindow:
+    """One window's reading. ``failure`` names the pole a non-poised window fails toward —
+    ``rigidity`` (no engagement) or ``thrash`` (engagement without settlement)."""
+    start_round: int
+    end_round: int
+    engagement: float               # revising rounds / rounds
+    thrash_situations: int          # situations disposed inconsistently within the window
+    stumbles: int
+    poised: bool
+    failure: Optional[str]          # rigidity | thrash | None
+
+
+@dataclass
+class PoiseReport:
+    """The trajectory read as a dynamics: per-window readings, the stumble events with their
+    recoveries, and the aggregate. ``poised_fraction`` is comparative (across a run's phases or
+    an ablation's arms), not an absolute score."""
+    windows: List[PoiseWindow]
+    stumbles: List[Stumble]
+    poised_fraction: float
+    mean_recovery: Optional[float]  # over recovered stumbles; None if none recovered
+    unrecovered: int                # stumbles the trace ended on (the frontier)
+
+
+def _window_reading(eps: Sequence[EpisodeRecord], *, max_stumbles: int) -> PoiseWindow:
+    revising = [e for e in eps if e.disposition is not None]
+    engagement = len(revising) / len(eps) if eps else 0.0
+    thrash = sum(1 for p in resolution_principles(eps) if p.thrash)
+    stumbles = sum(1 for e in eps if _stumble_kind(e))
+    if engagement == 0.0:
+        poised, failure = False, "rigidity"
+    elif thrash > 0 or stumbles > max_stumbles:
+        poised, failure = False, "thrash"
+    else:
+        poised, failure = True, None
+    return PoiseWindow(
+        start_round=eps[0].round_idx, end_round=eps[-1].round_idx,
+        engagement=engagement, thrash_situations=thrash, stumbles=stumbles,
+        poised=poised, failure=failure,
+    )
+
+
+def _stumble_kind(e: EpisodeRecord) -> Optional[str]:
+    if e.disposition in STUMBLE_DISPOSITIONS:
+        return "relinquishment"
+    if e.branched:
+        return "branch"
+    if e.disagreement >= 2:
+        return "disagreement"
+    return None
+
+
+def poise_report(episodes: Sequence[EpisodeRecord], *, window: int = 8,
+                 max_stumbles: int = 1) -> PoiseReport:
+    """Read the observable shadow of poise off a run's episodes: tumbling windows of ``window``
+    rounds, each read for engagement / settlement / absorption; stumbles located and their
+    recovery measured (rounds until the next poised *sliding* window begins). The thresholds
+    (``window``, ``max_stumbles``) belong to the observer — the reading is perspectival and
+    comparative, never absolute. See the section comment: an instrument, not a target."""
+    eps = list(episodes)
+    if not eps:
+        return PoiseReport([], [], 0.0, None, 0)
+
+    windows = [
+        _window_reading(eps[i:i + window], max_stumbles=max_stumbles)
+        for i in range(0, len(eps), window)
+    ]
+
+    stumbles: List[Stumble] = []
+    for i, e in enumerate(eps):
+        kind = _stumble_kind(e)
+        if kind is None:
+            continue
+        recovery: Optional[int] = None
+        for j in range(i + 1, len(eps) - window + 1):    # first poised sliding window after it
+            w = _window_reading(eps[j:j + window], max_stumbles=max_stumbles)
+            if w.poised:
+                recovery = eps[j].round_idx - e.round_idx
+                break
+        stumbles.append(Stumble(e.round_idx, kind, recovery))
+
+    recovered = [s.recovery for s in stumbles if s.recovery is not None]
+    return PoiseReport(
+        windows=windows,
+        stumbles=stumbles,
+        poised_fraction=sum(1 for w in windows if w.poised) / len(windows),
+        mean_recovery=(sum(recovered) / len(recovered)) if recovered else None,
+        unrecovered=sum(1 for s in stumbles if s.recovery is None),
+    )
+
+
+def poise_from_digests(segments: Sequence, *, max_stumbles: int = 1) -> List[PoiseWindow]:
+    """The live monitoring surface: one coarse poise reading per ``SegmentDigest`` (a segment
+    is the natural window of a live run). Engagement = revising rounds / rounds; stumbles =
+    relinquishing dispositions + branches; thrash is not computable from a digest (no
+    per-situation record), so a segment fails toward thrash only on cascading stumbles. Watch
+    the stream: poised segments with stumbles arriving *and* being absorbed is the shape of
+    competence; a wall of rigidity or of thrash is a run to intervene on."""
+    out: List[PoiseWindow] = []
+    for d in segments:
+        revising = sum(d.dispositions.values())
+        engagement = revising / d.rounds if d.rounds else 0.0
+        stumbles = sum(d.dispositions.get(k, 0) for k in STUMBLE_DISPOSITIONS) + d.branched
+        if engagement == 0.0:
+            poised, failure = False, "rigidity"
+        elif stumbles > max_stumbles:
+            poised, failure = False, "thrash"
+        else:
+            poised, failure = True, None
+        out.append(PoiseWindow(
+            start_round=d.total_rounds - d.rounds + 1, end_round=d.total_rounds,
+            engagement=engagement, thrash_situations=0, stumbles=stumbles,
+            poised=poised, failure=failure,
+        ))
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # §6 — learning from disputes (conflict + resolution structure)               #
 # --------------------------------------------------------------------------- #
 #
@@ -362,13 +630,16 @@ def run_ablation(
 class DisputeEpisode:
     """One resolved (or unresolved) dispute as a learning datum: the claim, how it ended
     (``mechanism`` / ``settled``), its edit-war intensity (``reverts``), the loop's
-    ``disposition``, and whether that move *stuck* in the final M."""
+    ``disposition``, and whether that move *stuck* in the final M. A move whose content later
+    fell to disuse-decay reads ``stuck=None`` + ``erased_by_decay=True`` — excluded from
+    stick-rates (no durability evidence), never counted as relinquished."""
     claim_egif: str
     mechanism: str
     settled: Optional[bool]
     reverts: int
     disposition: Optional[str]
     stuck: Optional[bool]
+    erased_by_decay: bool = False
 
 
 @dataclass
@@ -376,12 +647,14 @@ class MechanismPrinciple:
     """What a *resolution mechanism* empirically buys: how often its resolutions took hold. A
     mechanism whose resolutions all stick (``stick_rate == 1.0``) is ``durable`` — the learned
     finding that (say) reliable-source citations produce lasting knowledge where consensus, when
-    overturned, does not."""
+    overturned, does not. ``decay_erased`` counts the episodes whose content merely fell from
+    use — reported, not silently dropped, but carrying no durability evidence either way."""
     mechanism: str
     count: int
     dominant_disposition: Optional[str]
     stick_rate: Optional[float]
     durable: bool
+    decay_erased: int = 0
 
 
 def mechanism_principles(episodes: Sequence[DisputeEpisode]) -> List[MechanismPrinciple]:
@@ -406,6 +679,7 @@ def mechanism_principles(episodes: Sequence[DisputeEpisode]) -> List[MechanismPr
             # an unresolved dispute never yields *durable knowledge*, even if its tentative
             # low-warrant posit happened to linger unchallenged this run.
             durable=(rate == 1.0 and mechanism != "unresolved"),
+            decay_erased=sum(1 for e in recs if e.erased_by_decay),
         ))
     out.sort(key=lambda p: (-p.count, p.mechanism))
     return out
@@ -429,10 +703,13 @@ def unresolved_frontier(episodes: Sequence[DisputeEpisode]) -> List[str]:
 
 __all__ = [
     "proposal_shape", "situation_of",
-    "EpisodeRecord", "episodes_from", "is_stuck",
+    "EpisodeRecord", "episodes_from", "is_stuck", "stickiness",
+    "mark_decayed", "mark_relinquished",
     "Principle", "resolution_principles",
     "FrictionPoint", "friction_map", "gaps",
     "StabilityReport", "stability_report",
+    "Stumble", "PoiseWindow", "PoiseReport", "poise_report", "poise_from_digests",
+    "STUMBLE_DISPOSITIONS",
     "AblationVariant", "AblationResult", "run_ablation",
     "DisputeEpisode", "MechanismPrinciple", "mechanism_principles",
     "edit_war_friction", "unresolved_frontier",

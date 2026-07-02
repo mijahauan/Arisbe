@@ -14,7 +14,8 @@ from live_runner import LiveRunConfig, LiveRunner
 from model_revision import retract_atom
 from wiki_dispute_membrane import WikiDisputeFeed
 from wikidata_source import (
-    WikidataSource, WikidataStatement as WS, statement_egif, statements_to_disputes,
+    WikidataSource, WikidataStatement as WS, collect_ids, resolve_labels,
+    statement_egif, statements_to_disputes,
 )
 
 
@@ -43,6 +44,33 @@ def test_statements_to_disputes_maps_rank_and_references():
     assert height.resolution.settled is False           # deprecated → relinquished
     assert height.ground_truth().startswith("~[")       # scribed as a denial
     assert author.reverts == 1                           # two occupation values compete
+
+
+# --------------------------------------------------------------------------- #
+# P/Q id → label resolution (legibility; the pure half, offline)              #
+# --------------------------------------------------------------------------- #
+
+def test_collect_ids_finds_pq_ids_in_first_seen_order():
+    sts = [
+        WS("Q42", "P19", "Q350"),                 # item, property, entity value — all ids
+        WS("Q42", "P569", "1952-03-11"),          # a time value is not an id
+        WS("Douglas_Adams", "occupation", "author"),   # labels already — nothing to look up
+    ]
+    assert collect_ids(sts) == ["Q42", "P19", "Q350", "P569"]
+
+
+def test_resolve_labels_substitutes_known_ids_and_keeps_unknown():
+    sts = [WS("Q42", "P19", "Q350", "normal", referenced=True),
+           WS("Q42", "P570", "Q84")]
+    labels = {"Q42": "Douglas Adams", "P19": "place of birth", "Q350": "Cambridge",
+              "Q84": "London"}                     # P570 has no label → stays an id (honest)
+    out = resolve_labels(sts, labels)
+    assert out[0].item == "Douglas Adams" and out[0].prop == "place of birth"
+    assert out[0].value == "Cambridge" and out[0].referenced   # rank/provenance carried
+    assert out[1].prop == "P570" and out[1].value == "London"
+    # and the scribed fact is legible EGIF
+    assert statement_egif(out[0]) == '(place_of_birth "Douglas Adams" "Cambridge")'
+    assert parse_egif(statement_egif(out[1]))      # unresolved id still parses
 
 
 # --------------------------------------------------------------------------- #

@@ -32,6 +32,51 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-01, cont. 3) — PRE-UNATTENDED HARDENING + THE POISE OBSERVABLE.**
+Author: "proceed with the remaining work before an unattended run; then carefully define an
+observable for poise." Four pieces, all SHIPPED, core-protection CLEAN, additive. **(1) Legibility
+— Wikidata P/Q→label lookups** (`wikidata_source.py`): pure half `collect_ids` (first-seen P/Q ids
+across item/prop/value) + `resolve_labels` (substitute known, keep unknown as ids — never fabricate)
+offline-tested; `wblabels_fetch` batched 50/request; `wbgetentities_fetch(with_labels=True)` now
+default. TWO LIVE-WORLD FINDINGS: (a) since 2024 language-independent names live in the **`mul`**
+label, NOT `en` (Q42's "Douglas Adams" — fetch asks `en|mul`, prefers `en`); (b) stock stdlib TLS
+has no CA bundle on MacPorts/pyenv → shared `_api_json` uses `certifi` + a Wikimedia-etiquette
+User-Agent. **(2) The decay/stickiness confound FIXED** (`agon_metalearning.py`): a game-performed
+erasure = durability evidence (`stuck=False`); disuse-decay = NO evidence (`stuck=None` +
+`erased_by_decay=True`, excluded from stick-rates, counted in `MechanismPrinciple.decay_erased`);
+`_last_erasures` attributes each missing relation's LAST eraser. Plus the **mirror confound** found
+live (per-segment stickiness can't see a later segment's overturn — the demo read the overturned
+consensus as durable!): `mark_relinquished` (atom-precise, spares relinquishment episodes) +
+`mark_decayed` retro-mark the cross-segment aggregate the runner now accumulates as
+**`LiveResult.episodes`** (the honest long-run §6 input). **(3) LiveRunner bug: oversized batch
+silently TRUNCATED** (`items[:segment_cap]` dropped the remainder — a 1300-statement live poll
+would lose all but 25): now a pending queue — cap = checkpoint cadence, not coverage; pacing moved
+to per-poll. **(4) FIRST WATCHED LIVE SESSION** (real API, Q42+Q7259+Q937, 150 statements, ttl=25):
+labels legible, batch queued into 6 segments, |M| held 21–24, ~0.5s/segment; **125/150 episodes
+decay-erased** — without (2) consensus would read stick-rate ≈0.20/reliable ≈0.11 (pure ttl noise);
+with it both read 1.0 on evidence-bearing episodes; the cross-segment overturn reads consensus
+0.0/not-durable, reliable_source 1.0/durable. **THEN THE POISE OBSERVABLE (§4d, co-design continued):**
+poise cast as its **shadow on the trace** — per window read **engagement** (rounds revise M) /
+**settlement** (no situation disposed inconsistently — no thrash) / **absorption** (stumbles —
+relinquishment/branch/sharp-disagreement = Secondness intruding — disposed without cascading);
+failure named by **pole** (rigidity = settlement without engagement, the dance stopped ≠ poise;
+thrash = engagement without settlement); a **stumble is an event never a failure**, its measure is
+**recovery** (rounds to the next poised window); competence = stumbles keep arriving AND keep being
+absorbed. THREE HONESTY CLAUSES: perspectival by construction (thresholds belong to the observer;
+comparative not absolute), reads states-of-the-run not relations-to-actuality (a poised run can be
+poised around a mistaken M; the veto remains), and **never a target** (Goodhart = §7 restated: the
+observable reads the dance, must not choreograph it). BUILT: `agon_metalearning.poise_report`
+(tumbling windows + stumbles with recoveries; swan run = poised with one absorbed frontier stumble)
++ `poise_from_digests` (per-segment live monitoring). Tests: +5 metalearning (decay-vs-retraction,
+mark_decayed, mark_relinquished, rigidity/thrash poles, recovery), +3 live_runner (no-truncation,
+decay-not-relinquishment aggregate, cross-segment overturn), +2 wikidata (collect/resolve). Docs:
+design-doc §4d (the observable, honesty clauses) + §6 (decay-aware stickiness, poise bullet) + §10
+(labels/mul/TLS, watched-session findings, queue-not-truncate, LiveResult.episodes).
+**▶ NEXT:** the run is ready for a longer unattended-with-checkpoints session (stop_file +
+max_seconds + checkpoints on); Wikidata qualifiers/temporal fragment still the blocker for
+raise-and-resolve; the directed-engagement/tropism module per §4d (poise now has its observable);
+§6 runs-as-corpus harvests. [[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-07-01, cont. 2) — THE FIRST LIVE SOURCE: Wikidata (author's pick over
 prediction markets — cheapest/cleanest, structured→no NL, public/no-auth, best fit to our
 atemporal FOL fragment).** Recommendation given (wiki over markets, with reasons: our logic

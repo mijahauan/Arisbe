@@ -136,3 +136,72 @@ def test_evaluate_hook_feeds_the_digest():
                    LiveRunConfig(ttl=None, checkpoint=False),
                    evaluate=evaluate, clock=_zero_clock).run()
     assert r.segments[0].extra["durable"] == ["reliable_source"]
+
+
+# --------------------------------------------------------------------------- #
+# No silent truncation — a batch larger than segment_cap is queued, not dropped #
+# --------------------------------------------------------------------------- #
+
+def test_oversized_batch_is_segmented_not_dropped():
+    batch = [DiscourseItem("d", "s", f'(topic{i} "X")') for i in range(5)]
+    r = LiveRunner("", ReplaySource([batch]), DiscourseFeed,
+                   LiveRunConfig(ttl=None, segment_cap=2, checkpoint=False),
+                   clock=_zero_clock).run()
+    assert r.total_rounds == 5                               # every item processed
+    assert [d.rounds for d in r.segments] == [2, 2, 1]       # cap sets cadence, not coverage
+    assert '(topic4 "X")' in r.final_model_egif
+
+
+# --------------------------------------------------------------------------- #
+# Cross-segment decay does not corrupt stickiness — the long-run §6 aggregate  #
+# --------------------------------------------------------------------------- #
+
+def _consensus(claim):
+    return WikiDispute(claim, [WikiEdit("a", True)], Resolution("consensus", True))
+
+
+def test_runner_decay_reads_as_decay_not_relinquishment_in_episodes():
+    from agon_metalearning import mechanism_principles
+    batches = [[_consensus('(hot "Mon")')],
+               [_consensus('(cold "Tue")')],
+               [_consensus('(wind "Wed")')]]
+    r = LiveRunner("", ReplaySource(batches), WikiDisputeFeed,
+                   LiveRunConfig(ttl=1, checkpoint=False), clock=_zero_clock).run()
+    assert len(r.episodes) == 3
+    hot, cold, wind = r.episodes
+    # hot and cold fell to the runner's cross-segment disuse-decay — retro-marked, not failed
+    assert hot.stuck is None and hot.erased_by_decay is True
+    assert cold.stuck is None and cold.erased_by_decay is True
+    assert wind.stuck is True
+    # so consensus still reads durable (1 sticky / 1 with evidence), with the decay reported —
+    # without the split the rate would read 1/3 and the finding would be silently corrupted
+    p = mechanism_principles(r.episodes)[0]
+    assert p.mechanism == "consensus"
+    assert p.stick_rate == 1.0 and p.durable is True
+    assert p.decay_erased == 2
+
+
+def test_cross_segment_overturn_reads_as_not_durable():
+    """The mirror confound: a bare consensus admitted in segment 1 and overturned by a
+    reliably-sourced denial in segment 2 must read stuck=False in the long-run aggregate —
+    per-segment stickiness alone would leave it stuck=True (the Wikidata overturn scenario)."""
+    from agon_evolution import (
+        Agonothetes, ChallengerAgent, ContradictionAgent, GeneralizerAgent, ObserverAgent,
+    )
+    from agon_metalearning import mechanism_principles
+    from wikidata_source import WikidataSource, WikidataStatement as WS
+    polls = [
+        [WS("Q42", "place of birth", "Cambridge", "normal", referenced=False)],
+        [WS("Q42", "place of birth", "Cambridge", "deprecated", referenced=False),
+         WS("Q42", "place of birth", "London", "normal", referenced=True)],
+    ]
+    panel = Agonothetes([ObserverAgent(), GeneralizerAgent(), ChallengerAgent(),
+                         ContradictionAgent()])
+    r = LiveRunner("", WikidataSource(polls), WikiDisputeFeed,
+                   LiveRunConfig(ttl=None, checkpoint=False),
+                   panel=panel, clock=_zero_clock).run()
+    by_mech = {p.mechanism: p for p in mechanism_principles(r.episodes)}
+    assert by_mech["consensus"].stick_rate == 0.0       # the bare value was overturned
+    assert by_mech["consensus"].durable is False
+    assert by_mech["reliable_source"].stick_rate == 1.0 # the referenced value stands
+    assert by_mech["reliable_source"].durable is True
