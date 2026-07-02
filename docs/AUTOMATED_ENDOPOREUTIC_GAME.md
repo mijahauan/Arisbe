@@ -813,7 +813,7 @@ the **trajectory**, never a single M; a rate is meaningless without its volume (
 `decay_erased`, accuracy with abstentions); silence is evidence only where a tripwire watches;
 poise is read, never targeted.
 
-## 12 · Run 2 — the change stream (BUILT; priors DRAFT, to affirm before execution)
+## 12 · Run 2 — the change stream (BUILT; priors AFFIRMED by the author 2026-07-02, pre-run)
 
 Run 1's disposed findings (runs/RUN_1_LOG.md) *prescribed* this build: **F3** — the crawl
 samples the settled surface and carries almost no contestation (1 deprecated / 432 statements);
@@ -836,8 +836,12 @@ same entity carrying the deprecation + a referenced replacement — `mechanism_p
 **reliable_source-heavy** — 49:13 vs the crawl's consensus-heavy 299:127 — actively edited items
 carry references; legibility 0.09, labels lag fresh edits).
 
-**DRAFT priors (P1′–P7′) — to affirm with the author before run 2 executes** (the §11
-discipline: priors predate the run they read):
+**Priors (P1′–P7′) — AFFIRMED by the author 2026-07-02, before execution** (the §11 discipline:
+priors predate the run they read). Affirmed as drafted, including the three flagged judgment
+calls: P2′'s reversal-is-a-discovery commitment, the `!bot` scoping (M-game models the
+wiki-world's *human editorial activity*), and the 0.2 legibility lag threshold. Run shape:
+**supervised sitting**; after run 2 is disposed, this arc **pauses and the alpha-release
+documentation track resumes** (the author's scheduling decision, same date):
 
 - **P1′ dispositions:** `new_fact` still dominant, but `retract_fact` **> 0** over a multi-hour
   run (the stream revisits; deprecations and reverts are present); challenge/generalization ≈ 0.

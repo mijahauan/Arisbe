@@ -379,6 +379,29 @@ class EGIFParser:
         # Preserve all variable name mappings created during parsing
         self.all_variable_names = {}  # Maps vertex_id -> variable_name for all variables
 
+    @staticmethod
+    def _unquoted_hash(line: str) -> int:
+        """The index of the first ``#`` that is *outside* every double-quoted constant, or -1.
+        A ``#`` inside a ``"constant"`` is content, not a comment — found live 2026-07-02 when a
+        Wikidata URL value carrying ``#pid=1`` amputated its own line and read as an
+        unterminated string. Tracks the same escape convention as ``_read_constant``
+        (a backslash inside a string skips the next character)."""
+        in_string = False
+        i = 0
+        while i < len(line):
+            c = line[i]
+            if in_string:
+                if c == "\\":
+                    i += 1              # skip the escaped character
+                elif c == '"':
+                    in_string = False
+            elif c == '"':
+                in_string = True
+            elif c == "#":
+                return i
+            i += 1
+        return -1
+
     def _preprocess_text(self, text: str) -> str:
         """Preprocess EGIF text to handle comments and normalize whitespace."""
         lines = text.split("\n")
@@ -392,13 +415,11 @@ class EGIFParser:
             if not line:
                 continue
 
-            # Skip comment lines (starting with #)
-            if line.startswith("#"):
-                continue
-
-            # Remove inline comments (everything after # on a line)
-            if "#" in line:
-                line = line[: line.index("#")].strip()
+            # Remove comments — everything after the first UNQUOTED # on a line
+            # (covers full-line comments too); a # inside a "constant" is content.
+            cut = self._unquoted_hash(line)
+            if cut != -1:
+                line = line[:cut].strip()
                 if not line:  # Skip if nothing left after removing comment
                     continue
 

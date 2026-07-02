@@ -32,6 +32,30 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-02, cont. 4) — RUN 2 EXECUTED + DISPOSED (runs/RUN_2_LOG.md); THE ARC
+PAUSES → ALPHA DOCS RESUME.** Author affirmed §12 priors (incl. the 3 judgment calls), chose
+supervised, and set the pause. Run 2: 2 sittings (split by a REAL crash), **21 segments / 439
+rounds / 9 polls / 53 entities**, 21/21 checkpoints attested, canary GREEN. **F1′ (the crash,
+disposed):** a URL value carrying `#pid=1` — the EGIF lexer's comment stripper was QUOTE-BLIND
+(`#` inside a constant amputated its line → unterminated string; segment 5 died 100 rounds in).
+Fixed twice: `_unquoted_hash` quote-aware comment stripping in `egif_parser_dau._preprocess_text`
+(corpus suites green) + membrane defense-in-depth (`parseable_disputes` gate — unparseable
+disputes dropped AND counted `unparseable_dropped`, ⚠ in digests; `_const` neutralizes control
+chars). Crash/resume passed its first UNPLANNED test: only the in-flight segment lost; the
+stream's continuation timestamp survived. **F2′ (the run's finding, challenge_to_M against P1′):
+the change stream is a FIREHOSE OF NOVELTY, not a conversation** — 53 entities, ZERO seen twice
+in ~75 min at 8-of-50 non-bot sampling → zero redundancy/retracts/negations; P2′ vacuous AGAIN.
+Both passive membranes now characterized (crawl = settled surface; stream = novelty frontier;
+NEITHER revisits) → exercising mechanism durability requires **M's state directing the reaches
+(warm-set re-poll) = the §4d tropism module, now EMPIRICALLY MANDATED** ("ingestion alone cannot
+test durability; only directed re-engagement can"). **F3′:** the monological baseline replicates
+across sources (same principle/stability/poise on a different membrane) → departures in future
+LLM/tropism runs are attributable to the new machinery. **▶ NEXT SESSION: the ALPHA-RELEASE
+DOCUMENTATION track resumes** (see the standing ▶▶▶ NEXT SESSION block at top — Quarto book
+docs triage/consolidation, docs/ALPHA_RELEASE_PLAN.md). Arc re-entry points = RUN_2_LOG horizon
+(tropism/warm-set re-poll; true:negation; rigidity-at-exhaustion; attest wall-clock).
+[[project_next_automated_model_development_life]] [[project_alpha_release_docs_consolidation]].
+
 **▶▶▶ THIS SESSION (2026-07-02, cont. 3) — RUN 2 BUILT: THE CHANGE STREAM (recentchanges), §12.**
 Run 1's F2/F3 prescribed it; SHIPPED additive, core-protection CLEAN. `wikidata_source.rc_ids`
 (pure payload→ids half, offline-tested: dedup, newest-first, skips non-items, continuation

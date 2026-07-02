@@ -118,7 +118,9 @@ def main(argv=None) -> int:
               + (f" legibility={leg:.2f}" if leg is not None else "")
               + (f" frontier_dropped={frontier_dropped}" if frontier_dropped else "")
               + (f" statements_dropped={source.statements_dropped}"
-                 if source.statements_dropped else ""), flush=True)
+                 if source.statements_dropped else "")
+              + (f" ⚠ unparseable_dropped={source.unparseable_dropped}"
+                 if getattr(source, "unparseable_dropped", 0) else ""), flush=True)
         return {"legibility": leg}
 
     config = LiveRunConfig(

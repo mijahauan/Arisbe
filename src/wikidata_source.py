@@ -56,8 +56,13 @@ def _relation_name(prop: str) -> str:
 
 
 def _const(value: str) -> str:
-    """A value/item → an EGIF constant token (quotes stripped so the string stays well-formed)."""
-    return value.replace('"', "").replace("\\", "").strip() or "?"
+    """A value/item → an EGIF constant token: quotes/backslashes stripped and control
+    characters (newlines, tabs — fresh human edits carry them; found live 2026-07-02, run 2)
+    replaced by spaces, so the string stays well-formed and single-line."""
+    cleaned = "".join(
+        c if c.isprintable() else " "
+        for c in value.replace('"', "").replace("\\", ""))
+    return cleaned.strip() or "?"
 
 
 def statement_egif(s: WikidataStatement) -> str:
@@ -282,6 +287,26 @@ def replay_polls(path: str) -> List[List[WikidataStatement]]:
     return polls
 
 
+def parseable_disputes(disputes: Sequence[WikiDispute]) -> Tuple[List[WikiDispute], int]:
+    """The **parse gate** (never-poison, at the membrane): a dispute whose claim or scribed
+    ground truth does not parse as EGIF must not reach the loop — one exotic string from a
+    live source must never kill an unattended run (found live 2026-07-02: a URL value carrying
+    ``#`` read as an EGIF comment and crashed run 2's fifth segment; the lexer is fixed too —
+    this gate is the defense in depth). Returns ``(kept, dropped_count)`` — drops are counted
+    by the caller, never silent."""
+    from egif_parser_dau import parse_egif
+    kept: List[WikiDispute] = []
+    dropped = 0
+    for d in disputes:
+        try:
+            parse_egif(d.claim_egif)
+            parse_egif(d.ground_truth())
+            kept.append(d)
+        except Exception:
+            dropped += 1
+    return kept, dropped
+
+
 def _cap_by_entity(
     statements: Sequence[WikidataStatement], cap: Optional[int]
 ) -> Tuple[List[WikidataStatement], int]:
@@ -354,6 +379,7 @@ class RotatingWikidataSource:
         self.legibility: List[float] = []
         self.frontier_dropped = 0
         self.statements_dropped = 0
+        self.unparseable_dropped = 0
 
     def fetch(self) -> Sequence[WikiDispute]:
         if self._i >= len(self._queue):
@@ -375,7 +401,9 @@ class RotatingWikidataSource:
         if self._record:
             record_poll(self._record, statements)
         self.legibility.append(unresolved_fraction(statements))
-        return statements_to_disputes(statements)
+        disputes, bad = parseable_disputes(statements_to_disputes(statements))
+        self.unparseable_dropped += bad
+        return disputes
 
     def exhausted(self) -> bool:
         return self._i >= len(self._queue)
@@ -389,6 +417,7 @@ class RotatingWikidataSource:
             "queue": self._queue, "cursor": self._i,
             "frontier_dropped": self.frontier_dropped,
             "statements_dropped": self.statements_dropped,
+            "unparseable_dropped": self.unparseable_dropped,
             "labels": self._cache._labels, "no_label": sorted(self._cache._no_label),
             "legibility": self.legibility,
         }
@@ -406,6 +435,7 @@ class RotatingWikidataSource:
         src._i = state["cursor"]
         src.frontier_dropped = state.get("frontier_dropped", 0)
         src.statements_dropped = state.get("statements_dropped", 0)
+        src.unparseable_dropped = state.get("unparseable_dropped", 0)
         src._cache._labels.update(state.get("labels", {}))
         src._cache._no_label.update(state.get("no_label", []))
         src.legibility = list(state.get("legibility", []))
@@ -473,6 +503,7 @@ class RecentChangesSource:
         self._cache = LabelCache(label_fetch)
         self.legibility: List[float] = []
         self.statements_dropped = 0
+        self.unparseable_dropped = 0
         self.polls = 0
 
     def fetch(self) -> Sequence[WikiDispute]:
@@ -490,7 +521,9 @@ class RecentChangesSource:
         if self._record:
             record_poll(self._record, statements)
         self.legibility.append(unresolved_fraction(statements))
-        return statements_to_disputes(statements)
+        disputes, bad = parseable_disputes(statements_to_disputes(statements))
+        self.unparseable_dropped += bad
+        return disputes
 
     def exhausted(self) -> bool:
         return False                              # a live stream never ends of itself
@@ -504,6 +537,7 @@ class RecentChangesSource:
             "since": self._since,
             "polls": self.polls,
             "statements_dropped": self.statements_dropped,
+            "unparseable_dropped": self.unparseable_dropped,
             "labels": self._cache._labels, "no_label": sorted(self._cache._no_label),
             "legibility": self.legibility,
         }
@@ -520,6 +554,7 @@ class RecentChangesSource:
         src = cls(since=state.get("since"), **kwargs)
         src.polls = state.get("polls", 0)
         src.statements_dropped = state.get("statements_dropped", 0)
+        src.unparseable_dropped = state.get("unparseable_dropped", 0)
         src._cache._labels.update(state.get("labels", {}))
         src._cache._no_label.update(state.get("no_label", []))
         src.legibility = list(state.get("legibility", []))
@@ -640,6 +675,7 @@ def wbgetentities_fetch(
 __all__ = [
     "WikidataStatement", "statement_egif", "statements_to_disputes",
     "collect_ids", "resolve_labels", "unresolved_fraction", "wblabels_fetch",
+    "parseable_disputes",
     "LabelCache", "record_poll", "replay_polls", "RotatingWikidataSource",
     "rc_ids", "RecentChangesSource", "recentchanges_fetch",
     "WikidataSource", "wbgetentities_fetch",

@@ -396,3 +396,56 @@ def test_recentchanges_state_round_trip(tmp_path):
         fetch_ids=lambda ids: [], label_fetch=lambda ids: {})
     assert resumed.fetch() == []                   # the injected assert proves since == "T9"
     assert resumed.polls == 2 and resumed.legibility[:1] == [0.0]
+
+
+# --------------------------------------------------------------------------- #
+# Dirty live strings — the run-2 crash class (found live 2026-07-02)           #
+# --------------------------------------------------------------------------- #
+
+from wikidata_source import parseable_disputes
+from wiki_dispute_membrane import Resolution as _Res, WikiDispute as _WD, WikiEdit as _WE
+
+
+def test_hash_in_a_constant_is_content_not_a_comment():
+    """The run-2 crasher: a URL value carrying '#' amputated its own line in the EGIF
+    preprocessor and read as an unterminated string. Quote-aware comment stripping fixes it;
+    real comments still strip."""
+    g = parse_egif('(described_at_url "Q1" "https://x.de/a#pid=1")')
+    assert len(g.E) == 1
+    # real comments still work — full-line and trailing
+    g2 = parse_egif('# a comment line\n(rel "X" "y")  # trailing comment')
+    assert len(g2.E) == 1
+    # and a commented-out graph stays commented out
+    assert len(parse_egif('(rel "X" "y")\n# (rel "X" "z")').E) == 1
+
+
+def test_const_neutralizes_control_characters():
+    """Fresh human edits carry newlines/tabs; the membrane renders them as spaces so the
+    scribed fact stays single-line and well-formed."""
+    s = WS("Q1", "described at URL", "line one\nline two\ttabbed")
+    egif = statement_egif(s)
+    assert "\n" not in egif and "\t" not in egif
+    assert parse_egif(egif)
+
+
+def test_parse_gate_drops_and_counts_a_poisonous_dispute():
+    """Defense in depth: whatever exotic string the live world produces next, one bad dispute
+    must not kill an unattended run — it is dropped and counted, never silent."""
+    good = _WD('(rel "X" "ok")', [_WE("a", True)], _Res("consensus", True))
+    bad = _WD('(rel "X" "broken', [_WE("a", True)], _Res("consensus", True))
+    kept, dropped = parseable_disputes([good, bad])
+    assert kept == [good] and dropped == 1
+
+
+def test_recentchanges_source_counts_unparseable(tmp_path):
+    src = RecentChangesSource(
+        fetch_changes=lambda since: _rc_payload(("Q1", "T1")),
+        fetch_ids=lambda ids: [WS("One", "relname", "fine")],
+        label_fetch=lambda ids: {})
+    src.fetch()
+    assert src.unparseable_dropped == 0            # clean input → gate is invisible
+    src.save_state(str(tmp_path / "s.json"))
+    resumed = RecentChangesSource.load_state(
+        str(tmp_path / "s.json"), fetch_changes=lambda since: {"query": {}},
+        fetch_ids=lambda ids: [], label_fetch=lambda ids: {})
+    assert resumed.unparseable_dropped == 0        # counter persists through resume
