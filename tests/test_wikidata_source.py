@@ -291,3 +291,108 @@ def test_rotating_source_per_entity_cap_bounds_the_hub_and_counts_drops():
     batch = src.fetch()
     assert len(batch) == 3                                     # hub degree bounded
     assert src.statements_dropped == 7                         # counted, not silent
+
+
+# --------------------------------------------------------------------------- #
+# The change stream — run 2's live source (recentchanges)                      #
+# --------------------------------------------------------------------------- #
+
+from wikidata_source import RecentChangesSource, rc_ids
+
+
+def _rc_payload(*title_ts):
+    return {"query": {"recentchanges": [
+        {"title": t, "timestamp": ts} for t, ts in title_ts]}}
+
+
+def test_rc_ids_dedups_keeps_order_and_skips_non_items():
+    data = _rc_payload(("Q42", "T3"), ("Property:P31", "T2"), ("Q42", "T2"),
+                       ("Q7259", "T1"), ("Talk:Q1", "T1"))
+    ids, newest = rc_ids(data)
+    assert ids == ["Q42", "Q7259"]                 # distinct items, newest-first order kept
+    assert newest == "T3"                          # the continuation point
+    assert rc_ids({}) == ([], None)
+
+
+def test_recentchanges_source_continues_from_the_newest_timestamp():
+    asked = []
+
+    def fetch_changes(since):
+        asked.append(since)
+        return _rc_payload(("Q1", f"T{len(asked)}"))
+
+    src = RecentChangesSource(
+        fetch_changes=fetch_changes,
+        fetch_ids=lambda ids: [WS(i, "propname", "value") for i in ids],
+        label_fetch=lambda ids: {i: f"item {i}" for i in ids})
+    src.fetch()
+    src.fetch()
+    assert asked == [None, "T1"]                   # each poll picks up where the last ended
+    assert not src.exhausted()                     # a live stream never ends of itself
+    assert src.polls == 2 and src.legibility == [0.0, 0.0]
+
+
+def test_recentchanges_overturn_bites_because_the_stream_revisits():
+    """THE RUN-2 HEADLINE (the F2 fix): the change stream re-delivers an edited entity, so a
+    deprecation arrives while the bare value it overturns still STANDS in M — the overturn
+    fires across polls, and the mechanism durability question is actually exercised
+    (run 1's crawl left it vacuous)."""
+    from agon_metalearning import mechanism_principles
+
+    polls = [
+        [WS("Q42", "place of birth", "Cambridge", "normal", referenced=False)],
+        [WS("Q42", "place of birth", "Cambridge", "deprecated", referenced=False),
+         WS("Q42", "place of birth", "London", "normal", referenced=True)],
+    ]
+
+    def fetch_changes(since):
+        return _rc_payload(("Q42", f"T{len(calls) + 1}")) if calls_left() else {"query": {}}
+
+    calls = []
+    def calls_left():
+        return len(calls) < len(polls)
+
+    def fetch_ids(ids):
+        calls.append(list(ids))
+        return polls[len(calls) - 1]
+
+    src = RecentChangesSource(fetch_changes=fetch_changes, fetch_ids=fetch_ids,
+                              label_fetch=lambda ids: {})
+    r = LiveRunner("", src, WikiDisputeFeed,
+                   LiveRunConfig(ttl=None, max_rounds=3, checkpoint=False),
+                   panel=_wikidata_panel(), clock=lambda: 0.0).run()
+    # the bare value was admitted (poll 1), then relinquished when its deprecation arrived
+    # with the value still standing (poll 2) — the referenced replacement is what stands
+    assert same_graph(parse_egif(r.final_model_egif),
+                      parse_egif('(place_of_birth "Q42" "London")'))
+    by_mech = {p.mechanism: p for p in mechanism_principles(r.episodes)}
+    assert by_mech["consensus"].stick_rate == 0.0 and not by_mech["consensus"].durable
+    assert by_mech["reliable_source"].stick_rate == 1.0 and by_mech["reliable_source"].durable
+
+
+def test_recentchanges_quiet_stream_paces_and_stops_on_budget():
+    clk = [0.0]
+    src = RecentChangesSource(fetch_changes=lambda since: {"query": {}},
+                              fetch_ids=lambda ids: [], label_fetch=lambda ids: {})
+    r = LiveRunner("", src, WikiDisputeFeed,
+                   LiveRunConfig(ttl=None, min_interval_s=5.0, max_seconds=12.0,
+                                 checkpoint=False),
+                   clock=lambda: clk[0],
+                   sleep=lambda s: clk.__setitem__(0, clk[0] + s)).run()
+    assert r.stopped_because == "max_seconds" and r.total_rounds == 0
+    assert src.polls >= 2                          # it kept politely polling, paced
+
+
+def test_recentchanges_state_round_trip(tmp_path):
+    src = RecentChangesSource(fetch_changes=lambda since: _rc_payload(("Q1", "T9")),
+                              fetch_ids=lambda ids: [WS("Q1", "propname", "val")],
+                              label_fetch=lambda ids: {"Q1": "One"})
+    src.fetch()
+    src.save_state(str(tmp_path / "stream.json"))
+    resumed = RecentChangesSource.load_state(
+        str(tmp_path / "stream.json"),
+        fetch_changes=lambda since: {"query": {}} if since == "T9" else (_ for _ in ()).throw(
+            AssertionError(f"continuation lost: {since}")),
+        fetch_ids=lambda ids: [], label_fetch=lambda ids: {})
+    assert resumed.fetch() == []                   # the injected assert proves since == "T9"
+    assert resumed.polls == 2 and resumed.legibility[:1] == [0.0]

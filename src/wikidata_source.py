@@ -30,7 +30,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass
-from typing import Callable, Dict, List, Mapping, Optional, Sequence, Set
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Set, Tuple
 
 from wiki_dispute_membrane import Resolution, WikiDispute, WikiEdit
 
@@ -282,6 +282,27 @@ def replay_polls(path: str) -> List[List[WikidataStatement]]:
     return polls
 
 
+def _cap_by_entity(
+    statements: Sequence[WikidataStatement], cap: Optional[int]
+) -> Tuple[List[WikidataStatement], int]:
+    """The **hub-degree bound** shared by the live sources: keep at most ``cap`` statements
+    per entity (an entity's M is a star graph and the checkpoint attest is super-linear in hub
+    degree — the measured §10 finding). Returns ``(kept, dropped_count)`` — drops are counted
+    by the caller, never silent."""
+    if cap is None:
+        return list(statements), 0
+    kept: List[WikidataStatement] = []
+    taken: Dict[str, int] = {}
+    dropped = 0
+    for s in statements:
+        if taken.get(s.item, 0) < cap:
+            taken[s.item] = taken.get(s.item, 0) + 1
+            kept.append(s)
+        else:
+            dropped += 1
+    return kept, dropped
+
+
 # --------------------------------------------------------------------------- #
 # The rotating frontier — run 1's live source                                  #
 # --------------------------------------------------------------------------- #
@@ -339,17 +360,8 @@ class RotatingWikidataSource:
             return []
         ids = self._queue[self._i:self._i + self._chunk]
         self._i += len(ids)
-        statements = list(self._fetch_ids(ids))
-        if self._entity_cap is not None:
-            kept: List[WikidataStatement] = []
-            taken: Dict[str, int] = {}
-            for s in statements:
-                if taken.get(s.item, 0) < self._entity_cap:
-                    taken[s.item] = taken.get(s.item, 0) + 1
-                    kept.append(s)
-                else:
-                    self.statements_dropped += 1
-            statements = kept
+        statements, dropped = _cap_by_entity(list(self._fetch_ids(ids)), self._entity_cap)
+        self.statements_dropped += dropped
         if self._crawl:
             for s in statements:
                 v = s.value
@@ -401,6 +413,120 @@ class RotatingWikidataSource:
 
 
 # --------------------------------------------------------------------------- #
+# The change stream — run 2's live source (recentchanges)                     #
+# --------------------------------------------------------------------------- #
+#
+# Run 1's finding (runs/RUN_1_LOG.md F2/F3): the crawl samples the wiki-world's *settled
+# surface* (1 deprecated statement in 432 — contestation lives in the tail and the change
+# stream), and a relinquishment only bites when its target still stands in the working set.
+# The change stream fixes both at once: each poll asks which items were *just edited* and
+# fetches those — so the sample skews to where the wiki-world is actively settling its
+# disagreements, and an entity edited again is fetched again, meaning a deprecation arrives
+# while the bare value it overturns may still stand in M (recency-selection IS the revisit).
+
+def rc_ids(data: Dict) -> Tuple[List[str], Optional[str]]:
+    """The pure half of the ``recentchanges`` read: the API payload → (ordered distinct
+    item Q-ids, the newest timestamp seen — the next poll's continuation point). Non-item
+    titles (properties, talk pages) are skipped; newest-first order is preserved."""
+    ids: List[str] = []
+    seen: Set[str] = set()
+    newest: Optional[str] = None
+    for rc in ((data.get("query") or {}).get("recentchanges") or []):
+        if newest is None:
+            newest = rc.get("timestamp")          # the API lists newest first
+        title = rc.get("title", "")
+        if title.startswith("Q") and _PQ_ID.match(title) and title not in seen:
+            seen.add(title)
+            ids.append(title)
+    return ids, newest
+
+
+class RecentChangesSource:
+    """Run 2's live source — **the change stream**. Each poll: ``fetch_changes(since)`` (the
+    real ``recentchanges`` call, or a fixture in CI) → :func:`rc_ids` → fetch those entities'
+    statements → the same hub cap / label cache / poll record / legibility tripwire as the
+    rotating source. **Never exhausts** (a live stream keeps flowing); the runner's stop
+    conditions — ``max_seconds`` / ``max_rounds`` / ``stop_file`` — are the only ends, and an
+    empty poll (nothing edited since last time) simply paces and polls again.
+    ``save_state``/``load_state`` persist the continuation timestamp + counters so a resumed
+    run picks up the stream where it stopped."""
+
+    def __init__(
+        self,
+        *,
+        ids_per_poll: int = 8,
+        per_entity_cap: Optional[int] = 25,
+        since: Optional[str] = None,
+        fetch_changes: Optional[Callable[[Optional[str]], Dict]] = None,
+        fetch_ids: Optional[Callable[[Sequence[str]], Sequence[WikidataStatement]]] = None,
+        record_path: Optional[str] = None,
+        label_fetch: Optional[Callable[..., Dict[str, str]]] = None,
+    ):
+        self._ids_per_poll = ids_per_poll
+        self._entity_cap = per_entity_cap
+        self._since = since
+        self._fetch_changes = fetch_changes or (
+            lambda since: recentchanges_fetch(since=since))
+        self._fetch_ids = fetch_ids or (
+            lambda ids: wbgetentities_fetch(ids, with_labels=False))
+        self._record = record_path
+        self._cache = LabelCache(label_fetch)
+        self.legibility: List[float] = []
+        self.statements_dropped = 0
+        self.polls = 0
+
+    def fetch(self) -> Sequence[WikiDispute]:
+        data = self._fetch_changes(self._since)
+        self.polls += 1
+        ids, newest = rc_ids(data)
+        if newest:
+            self._since = newest                  # continuation: next poll = changes since now
+        ids = ids[: self._ids_per_poll]
+        if not ids:
+            return []                             # quiet stream — the runner paces + re-polls
+        statements, dropped = _cap_by_entity(list(self._fetch_ids(ids)), self._entity_cap)
+        self.statements_dropped += dropped
+        statements = resolve_labels(statements, self._cache.lookup(collect_ids(statements)))
+        if self._record:
+            record_poll(self._record, statements)
+        self.legibility.append(unresolved_fraction(statements))
+        return statements_to_disputes(statements)
+
+    def exhausted(self) -> bool:
+        return False                              # a live stream never ends of itself
+
+    # -- stream persistence (the source half of a kill + resume) ---------------
+    def save_state(self, path: str) -> None:
+        import json
+        import os
+        state = {
+            "version": 1,
+            "since": self._since,
+            "polls": self.polls,
+            "statements_dropped": self.statements_dropped,
+            "labels": self._cache._labels, "no_label": sorted(self._cache._no_label),
+            "legibility": self.legibility,
+        }
+        tmp = f"{path}.tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(state, fh, indent=1)
+        os.replace(tmp, path)
+
+    @classmethod
+    def load_state(cls, path: str, **kwargs) -> "RecentChangesSource":
+        import json
+        with open(path, "r", encoding="utf-8") as fh:
+            state = json.load(fh)
+        src = cls(since=state.get("since"), **kwargs)
+        src.polls = state.get("polls", 0)
+        src.statements_dropped = state.get("statements_dropped", 0)
+        src._cache._labels.update(state.get("labels", {}))
+        src._cache._no_label.update(state.get("no_label", []))
+        src.legibility = list(state.get("legibility", []))
+        return src
+
+
+# --------------------------------------------------------------------------- #
 # The real Wikidata call — stdlib only, no auth; NOT exercised in CI          #
 # --------------------------------------------------------------------------- #
 
@@ -427,6 +553,31 @@ def _api_json(params: Dict[str, str], endpoint: str,
         headers={"User-Agent": _USER_AGENT})
     with urllib.request.urlopen(req, timeout=timeout, context=ctx) as resp:
         return json.loads(resp.read().decode("utf-8"))
+
+
+def recentchanges_fetch(
+    *,
+    since: Optional[str] = None,
+    limit: int = 50,
+    show: str = "!bot",
+    endpoint: str = "https://www.wikidata.org/w/api.php",
+    timeout: float = 20.0,
+) -> Dict:  # pragma: no cover - network; wire it, don't unit-test it
+    """The real change-stream read: ``list=recentchanges`` over the item namespace, newest
+    first, back to ``since`` (the previous poll's newest timestamp — the continuation point;
+    omit for "the most recent ``limit`` changes"). ``show='!bot'`` excludes bot edits by
+    default — Wikidata's volume is mostly bots, and the human edits are where the disputes
+    live; pass ``show=''`` to include everything. Feed the payload to :func:`rc_ids`."""
+    params = {
+        "action": "query", "list": "recentchanges", "format": "json",
+        "rcnamespace": "0", "rctype": "edit|new",
+        "rcprop": "title|timestamp", "rclimit": str(limit),
+    }
+    if show:
+        params["rcshow"] = show
+    if since:
+        params["rcend"] = since   # rcdir=older (default): newest → back to `since`
+    return _api_json(params, endpoint, timeout)
 
 
 def wbgetentities_fetch(
@@ -490,5 +641,6 @@ __all__ = [
     "WikidataStatement", "statement_egif", "statements_to_disputes",
     "collect_ids", "resolve_labels", "unresolved_fraction", "wblabels_fetch",
     "LabelCache", "record_poll", "replay_polls", "RotatingWikidataSource",
+    "rc_ids", "RecentChangesSource", "recentchanges_fetch",
     "WikidataSource", "wbgetentities_fetch",
 ]

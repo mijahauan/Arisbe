@@ -1,7 +1,14 @@
-"""Run 1 — the first live, unattended-with-checkpoints session against Wikidata
-(docs/AUTOMATED_ENDOPOREUTIC_GAME.md §10 operating layer + §11 pre-registration).
+"""Live Wikidata sessions against the automated Endoporeutic Game
+(docs/AUTOMATED_ENDOPOREUTIC_GAME.md §10 operating layer + §11/§12 pre-registrations).
 
-Rotating entity frontier → WikiDisputeFeed → LiveRunner, with every §11 control armed:
+Two sources, chosen by --source:
+  * frontier (run 1)      — the rotating entity crawl (seeds → crawled Q-ids)
+  * recentchanges (run 2) — the change stream: poll which items were just edited and fetch
+    those, so the sample skews to live contestation and an edited entity is *revisited*
+    (a deprecation arrives while the bare value it overturns still stands in M — the
+    RUN_1_LOG F2/F3 findings made operational)
+
+Either source → WikiDisputeFeed → LiveRunner, with every §11 control armed:
 
   * checkpoints to a **side store** (``<runs-dir>/checkpoints`` — never the main corpus);
   * ``state.json`` + ``frontier.json`` so a killed process resumes with ``--resume``
@@ -15,10 +22,12 @@ Rotating entity frontier → WikiDisputeFeed → LiveRunner, with every §11 con
 Usage (supervised first hour per §11, then leave it running):
 
     uv run python tools/run_live_wikidata.py --seeds Q42 Q7259 Q937 --max-seconds 3600
+    uv run python tools/run_live_wikidata.py --source recentchanges --runs-dir runs/run2 \
+        --max-seconds 3600
     touch runs/run1/STOP                                  # clean stop
     uv run python tools/run_live_wikidata.py --resume     # continue after a kill/stop
 
-Record findings in runs/RUN_1_LOG.md against the §11 priors (P1–P7).
+Record findings in runs/RUN_<n>_LOG.md against the pre-registered priors.
 """
 
 import argparse
@@ -34,7 +43,7 @@ from agon_evolution import (
 from live_runner import LiveRunConfig, LiveRunner
 from tomos_service import TomosService
 from wiki_dispute_membrane import WikiDisputeFeed
-from wikidata_source import RotatingWikidataSource
+from wikidata_source import RecentChangesSource, RotatingWikidataSource
 
 DEFAULT_SEEDS = ["Q42", "Q7259", "Q937"]   # Douglas Adams, Ada Lovelace, Albert Einstein
 
@@ -47,7 +56,11 @@ def _panel():
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--seeds", nargs="+", default=DEFAULT_SEEDS, metavar="QID")
+    ap.add_argument("--source", choices=["frontier", "recentchanges"], default="frontier",
+                    help="frontier = the rotating crawl (run 1); recentchanges = the change "
+                         "stream (run 2 — live contestation + natural revisits)")
+    ap.add_argument("--seeds", nargs="+", default=DEFAULT_SEEDS, metavar="QID",
+                    help="frontier source only")
     ap.add_argument("--chunk", type=int, default=8, help="entity ids per poll")
     ap.add_argument("--frontier-cap", type=int, default=400)
     ap.add_argument("--per-entity-cap", type=int, default=25,
@@ -74,15 +87,25 @@ def main(argv=None) -> int:
     frontier_path = str(runs / "frontier.json")
     stop_file = str(runs / "STOP")
 
-    src_kwargs = dict(chunk_size=args.chunk, crawl=not args.no_crawl,
-                      frontier_cap=args.frontier_cap,
-                      per_entity_cap=args.per_entity_cap or None,
-                      record_path=str(runs / "polls.jsonl"))
-    if args.resume:
-        source = RotatingWikidataSource.load_state(frontier_path, **src_kwargs)
-        print(f"resuming: frontier restored from {frontier_path}")
+    if args.source == "recentchanges":
+        src_kwargs = dict(ids_per_poll=args.chunk,
+                          per_entity_cap=args.per_entity_cap or None,
+                          record_path=str(runs / "polls.jsonl"))
+        if args.resume:
+            source = RecentChangesSource.load_state(frontier_path, **src_kwargs)
+            print(f"resuming: change-stream state restored from {frontier_path}")
+        else:
+            source = RecentChangesSource(**src_kwargs)
     else:
-        source = RotatingWikidataSource(args.seeds, **src_kwargs)
+        src_kwargs = dict(chunk_size=args.chunk, crawl=not args.no_crawl,
+                          frontier_cap=args.frontier_cap,
+                          per_entity_cap=args.per_entity_cap or None,
+                          record_path=str(runs / "polls.jsonl"))
+        if args.resume:
+            source = RotatingWikidataSource.load_state(frontier_path, **src_kwargs)
+            print(f"resuming: frontier restored from {frontier_path}")
+        else:
+            source = RotatingWikidataSource(args.seeds, **src_kwargs)
 
     def evaluate(feed, res):
         """Per-segment console digest + persist the frontier beside the runner state."""
@@ -90,10 +113,10 @@ def main(argv=None) -> int:
         from collections import Counter
         dispositions = dict(Counter(o.disposition for o in res.outcomes if o.disposition))
         leg = source.legibility[-1] if source.legibility else None
+        frontier_dropped = getattr(source, "frontier_dropped", 0)
         print(f"  segment: rounds={len(res.outcomes)} dispositions={dispositions}"
               + (f" legibility={leg:.2f}" if leg is not None else "")
-              + (f" frontier_dropped={source.frontier_dropped}"
-                 if source.frontier_dropped else "")
+              + (f" frontier_dropped={frontier_dropped}" if frontier_dropped else "")
               + (f" statements_dropped={source.statements_dropped}"
                  if source.statements_dropped else ""), flush=True)
         return {"legibility": leg}
@@ -116,7 +139,9 @@ def main(argv=None) -> int:
                             evaluate=evaluate, service=service)
 
     started = time.strftime("%Y-%m-%d %H:%M:%S")
-    print(f"run 1 start {started} — seeds={args.seeds} ttl={args.ttl} "
+    origin = (f"seeds={args.seeds}" if args.source == "frontier"
+              else "the recentchanges stream (bots excluded)")
+    print(f"run start {started} — source={args.source} · {origin} · ttl={args.ttl} "
           f"pacing={args.min_interval}s stop: touch {stop_file}", flush=True)
     res = runner.run()
 

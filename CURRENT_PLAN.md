@@ -32,6 +32,32 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-02, cont. 3) — RUN 2 BUILT: THE CHANGE STREAM (recentchanges), §12.**
+Run 1's F2/F3 prescribed it; SHIPPED additive, core-protection CLEAN. `wikidata_source.rc_ids`
+(pure payload→ids half, offline-tested: dedup, newest-first, skips non-items, continuation
+timestamp) + `recentchanges_fetch` (real call: rcnamespace=0, rcshow=!bot default — human edits
+carry the disputes; `rcend` continuation from the previous poll's newest timestamp) +
+**`RecentChangesSource`** — the first **never-exhausting** LiveSource (exhausted()=False; the
+runner's stops are the only ends; empty polls pace+re-poll; same hub-cap/label-cache/poll-record/
+legibility machinery, factored `_cap_by_entity` shared with the rotating source;
+save/load_state persists the continuation point). Driver `tools/run_live_wikidata.py --source
+recentchanges` (source-state file reused; evaluate hook getattr-guarded). **HEADLINE TEST (the F2
+fix, offline):** poll 1 admits a bare value; poll 2 re-delivers the SAME entity with the
+deprecation + a referenced replacement → the denial meets its STANDING target → retract_fact
+fires cross-poll → `mechanism_principles` **actually differentiates** (consensus 0.0/not-durable
+vs reliable_source 1.0/durable) — the question run 1 left vacuous, now exercisable. +4 more tests
+(rc_ids purity, continuation, quiet-stream pacing under budget, state round-trip). **LIVE SMOKE**
+(62 rounds, bounded): the stream is **reliable_source-heavy (49:13)** vs the crawl's
+consensus-heavy (299:127) — the change stream and the settled surface are evidentially different
+samples; legibility 0.09 (labels lag fresh edits — expected, thresholded in P7′). **§12 added:
+DRAFT priors P1′–P7′** (retract>0; consensus<1.0 once overturns occur — reversal would be a
+discovery; true:negation must stay consistently inert else it's a gap; redundancy≫run 1 = the
+revisit working; poise ○ readings interpreted against redundancy count; legibility <0.2 = label
+lag) — **to AFFIRM with the author before run 2 executes** (priors predate the run).
+**▶ NEXT: affirm §12 priors → execute run 2** (supervised first sitting; findings →
+runs/RUN_2_LOG.md); then LLM-roles-live; tropism module (§4d).
+[[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-07-02, cont. 2) — RUN 1 EXECUTED + FINDINGS DISPOSED (runs/RUN_1_LOG.md).**
 The first live run, per §11: seeds Q42+Q7259+Q937, 2 supervised sittings, **12 segments / 300
 rounds / 3 polls / 432 statements**, STOP-file exercised (clean `stop_file` exit after seg 8),

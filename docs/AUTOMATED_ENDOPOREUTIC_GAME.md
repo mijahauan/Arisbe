@@ -812,3 +812,51 @@ are about the wiki-world-as-represented and about the game — never the world; 
 the **trajectory**, never a single M; a rate is meaningless without its volume (stick-rate with
 `decay_erased`, accuracy with abstentions); silence is evidence only where a tripwire watches;
 poise is read, never targeted.
+
+## 12 · Run 2 — the change stream (BUILT; priors DRAFT, to affirm before execution)
+
+Run 1's disposed findings (runs/RUN_1_LOG.md) *prescribed* this build: **F3** — the crawl
+samples the settled surface and carries almost no contestation (1 deprecated / 432 statements);
+**F2** — a relinquishment only bites when its target still stands in the working set. The
+**`recentchanges` adapter** answers both at once: each poll asks which items were *just edited*
+(bots excluded by default) and fetches those — the sample skews to live contestation, and an
+entity edited again is fetched again, so a deprecation arrives while the bare value it overturns
+may still stand in M. *Recency-selection is the revisit.*
+
+**BUILT:** `rc_ids` (the pure payload→ids half, offline-tested) + `recentchanges_fetch` (the
+real call, `rcend`-continuation from the previous poll's newest timestamp) +
+`RecentChangesSource` (a **never-exhausting** `LiveSource` — the runner's stops are the only
+ends; empty polls pace and re-poll; same hub cap / label cache / poll record / legibility
+tripwire as the rotating source; `save_state`/`load_state` persist the continuation point).
+Driver: `tools/run_live_wikidata.py --source recentchanges`. The **headline test** demonstrates
+the F2 fix offline: a bare value admitted from poll 1 is overturned when poll 2 re-delivers the
+same entity carrying the deprecation + a referenced replacement — `mechanism_principles` then
+*actually differentiates* (consensus 0.0/not-durable vs reliable_source 1.0/durable), which run
+1 left vacuous. A bounded live smoke validated the real endpoint (62 rounds; notably
+**reliable_source-heavy** — 49:13 vs the crawl's consensus-heavy 299:127 — actively edited items
+carry references; legibility 0.09, labels lag fresh edits).
+
+**DRAFT priors (P1′–P7′) — to affirm with the author before run 2 executes** (the §11
+discipline: priors predate the run they read):
+
+- **P1′ dispositions:** `new_fact` still dominant, but `retract_fact` **> 0** over a multi-hour
+  run (the stream revisits; deprecations and reverts are present); challenge/generalization ≈ 0.
+  Redundancy rounds **≫ run 1** (revisits re-deliver standing facts — the mechanism working,
+  not a failure).
+- **P2′ (the run's question):** mechanism durability actually exercised — expect overturns;
+  prior: stick-rate(reliable_source) ≥ stick-rate(consensus), with consensus **< 1.0** once
+  overturns occur. If the ordering *reverses*, that is a genuine discovery (about Wikidata's
+  editorial dynamics or about our rank/reference mapping).
+- **P3′ working set:** |M| ≈ ttl as before; revisited facts stay warm (redundant re-deliveries
+  touch the ledger), so decay concentrates on entities the stream abandons.
+- **P4′ rulebook:** still zero thrash/gaps expected. Watch the new situation run 1 saw once —
+  `true:negation` (a denial whose target is not standing) — it should *consistently* dispose
+  inert; if it sometimes revises, that is a gap (a missing rule).
+- **P5′ dialog shape:** ground + negation only; the negation fraction ≫ run 1; branched = 0.
+- **P6′ poise:** ● dominant. Caveat: heavy-revisit windows depress engagement (many redundancy
+  rounds) and can read as rigidity — interpret the ○ pole against the redundancy count before
+  calling it a stall. Quiet-stream stretches produce *no rounds at all* (not rigidity — absence
+  of play).
+- **P7′ operational floor:** as run 1, plus: legibility may be **small-but-nonzero** on freshly
+  edited entities (labels lag edits — 0.09 observed in the smoke); treat < 0.2 as expected lag,
+  a sustained rise as degradation. Checkpoint wall-clock rider (F1) still applies.
