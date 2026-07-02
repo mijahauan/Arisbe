@@ -1,36 +1,28 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION — PLAN THE ALPHA RELEASE: consolidate docs into a single-source
-"book + browseable web help", then triage `docs/`.** Author's intent (stated 2026-06-30 at
-wrap): prepare an alpha release of Arisbe to share with others; deliver the documentation as
-**both a book (PDF/epub) and a browseable web interface**, plus clear "clone-the-repo → start it →
-open the book/help" steps. `docs/` today is **61 .md files** mixing user-facing docs, architecture,
-and planning/dev material — needs cleanup + consolidation.
-**Proposed structure (author asked for a better one than their draft outline; this is the agreed
-starting point — refine next session):** organize around **Diátaxis** (tutorial / how-to / reference /
-explanation) so one source serves both the linear book and the web help. Parts:
-**I · Why** (Intro & motivation ←VISION_AND_SCOPE+PRODUCT_VISION *merge*; **The central problem** =
-linear↔graphical correspondence, own chapter ←LINEAR_GRAPHICAL_CORRESPONDENCE; Philosophy ←CHAIN_OF_SEMIOSIS/
-MANIFEST_AND_MEANING/FIDELITY_*/LEVEL_ZERO/MODALITY_WITHOUT_GAMMA).
-**II · Getting started** (*the missing piece up front* — Install & run from the repo: `uv sync` + uvicorn +
-open `/`, and where the book/help lives; Your first graph ←FIELD_GUIDE+primer; Doors by background
-←GETTING_STARTED/ARISBE_FOR_SCHOLARS).
-**III · Using Arisbe** (the three modes in practice ←ARISBE_IN_PRACTICE/ENDOPOREUTIC_GAME_GUIDE; **Worked
-examples = the exemplars** ←EXEMPLARS; Import/export incl. Peirce-edition LaTeX+citation ←EXTERNAL_SOURCES_AND_IMPORT/
-IMPORT_EXPORT_FORMATS/FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION; How-to/FAQ "How do I…?").
-**IV · How it works** (Architecture ←arisbe_triad/UNIVERSE_OF_DISCOURSE/DAG_HISTORY; the §3.3 correspondence
-contract in depth; Capability map ←CAPABILITY_MAP).
-**V · Reference** (linear formats; Core API ←ARISBE_CORE_API_REFERENCE; Glossary ←GLOSSARY; References/sources/
-prior art ←CONTRIBUTION_AND_PRIOR_ART; Index). **Separate Contributor/Dev section** (ROADMAP, CURRENT_PLAN,
-design-of-record docs, session logs, evaluations, spikes) — kept in-repo, **excluded from the reader's book**.
-**Three early decisions for the author:** (1) **single-source tooling** — recommend **Quarto** (one source →
-HTML site + PDF + epub, native BibTeX citations that pair with `scholarly_citation`, can embed live engine
-SVG; alternatives mdBook / Sphinx-Jupyter-Book); (2) **one source, two renders** (don't hand-maintain book +
-help separately) — the same rendered HTML can be served at a `/book` or `/help` route; (3) **`docs/` triage
-policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev/`, retire/merge overlaps
-(VISION_AND_SCOPE↔PRODUCT_VISION, FIDELITY_AND_DEPARTURES↔FIDELITY_A_PLAIN_ACCOUNT, etc.). **First concrete
-step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
-then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
+**▶▶▶ NEXT SESSION — ARC RE-ENTRY: THE TROPISM MODULE (warm-set re-poll), the empirically
+mandated build.** *(The alpha-docs track is CLOSED — book + filters + archive tidy + CI all
+shipped; see docs/ALPHA_RELEASE_PLAN.md and the cont. 5 block below.)* The re-entry starts from a
+**design draft written 2026-07-02, pre-registered per the §11/§12 discipline:
+`docs/AUTOMATED_ENDOPOREUTIC_GAME.md` §13 — READ IT FIRST, then AFFIRM/AMEND WITH THE AUTHOR
+before writing code.** The mandate (RUN_2_LOG F2′): both passive membranes never revisit → P2
+(mechanism durability) vacuous twice; *ingestion alone cannot test durability; only directed
+re-engagement can*. Increment 1 = the humblest tropism, **re-check what you hold**: a
+`WarmSetTropism` **policy owned by the player/runner** (§4d: tropism belongs to the player, not
+M, not the source) emitting re-reaches for entities backing M's standing facts, priority
+decay-adjacent-first; warm set recovered by **reversing the run's `LabelCache`** (M's facts carry
+labels; no schema change); each poll = `warm_fraction` warm + remainder fresh; the one source
+seam must **bypass `RotatingWikidataSource._seen`** (a deliberate re-reach is not a crawl
+duplicate). Aim = exercise durability of settled habits, never truth-tracking; the existing panel
+disposes everything (redundancy = the habit holding; a deprecation now meets its *standing*
+target = the P2 event). **Run 3 = crawl + tropism** (clean attribution against the run-1 baseline
+per F3′; stream + tropism is run 4's candidate), draft priors P1″–P7″ in §13.
+**Five author decisions queued in §13:** (1) seam form (policy + `inject(ids)` vs
+driver-composed); (2) warm priority (decay-adjacent recommended); (3) `warm_fraction` default
+(0.5, fixed for run 3); (4) run-3 source (crawl recommended); (5) ambiguous labels (skip + count
+recommended). Also on the horizon (RUN_2_LOG): true:negation falls out free once revisits deliver
+denials; rigidity-at-exhaustion wants a deliberately small frontier; attest wall-clock residual
+named. [[project_next_automated_model_development_life]].
 
 **▶▶▶ THIS SESSION (2026-07-02, cont. 5) — ALPHA DOCS RESUMED: THE POST-ARC CURRENCY SWEEP.**
 The automated-EPG arc (2026-06-30→07-02) landed *after* the book's chapters were consolidated,
@@ -67,8 +59,10 @@ pass (35). (15) **CI**: `.github/workflows/book.yml` — render-check (HTML) on 
 dev-doc-leak guard; nothing published (local primary). Full render verified after all of it:
 33 HTML / PDF / epub, only the pre-existing non-fatal LaTeX convergence warning. **The
 documentation track is CLOSED for alpha** (ALPHA_RELEASE_PLAN §4 steps 13–15; Remaining = only
-the devlinks/bookvoice sync habit). **▶ NEXT SESSION:** release mechanics if desired (tag +
-share instructions) — else **arc re-entry = RUN_2_LOG horizon (tropism/warm-set re-poll first)**.
+the devlinks/bookvoice sync habit). **Author then chose arc re-entry (tropism) as the next
+session** and the re-entry design draft was written the same sitting — `AUTOMATED_ENDOPOREUTIC_
+GAME.md` §13 (increment-1 shape, run-3 priors P1″–P7″, five open decisions) + cross-refs in
+RUN_2_LOG horizon and CAPABILITY_MAP §H; see the standing ▶▶▶ NEXT SESSION block at top.
 [[project_alpha_release_docs_consolidation]].
 
 **▶▶▶ THIS SESSION (2026-07-02, cont. 4) — RUN 2 EXECUTED + DISPOSED (runs/RUN_2_LOG.md); THE ARC

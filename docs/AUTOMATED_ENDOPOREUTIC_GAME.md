@@ -321,7 +321,8 @@ between the methodeutic surround and the calculus. And the outside storey is not
 is a **proto-tropism**, its irritation pole already built. The eventual directed-engagement piece
 implements the rest: the musement pole, the economy-of-research ordering of reaches, and the
 horizon as a first-class, retained register. Nothing here auto-promotes; *progression, not progress*
-(§7).
+(§7). *(Runs 1–2 converted this commitment into an empirically mandated build — the warm-set
+re-poll design draft is §13.)*
 
 **The observable shadow of poise (an instrument, not a target — defined 2026-07-01, BUILT).**
 Poise itself cannot be measured: there is no absolute frame to measure it *in* — that was the
@@ -864,3 +865,92 @@ documentation track resumes** (the author's scheduling decision, same date):
 - **P7′ operational floor:** as run 1, plus: legibility may be **small-but-nonzero** on freshly
   edited entities (labels lag edits — 0.09 observed in the smoke); treat < 0.2 as expected lag,
   a sustained rise as degradation. Checkpoint wall-clock rider (F1) still applies.
+
+## 13 · Arc re-entry: the tropism module — the warm-set re-poll (design draft 2026-07-02, to AFFIRM before building)
+
+*Drafted at the close of the alpha-docs track so the re-entry session starts from a design, not a
+blank page. Per the pre-registration discipline (§11–§12): the author affirms or amends this
+section — including the open decisions at the end — before any code is written.*
+
+**The mandate (empirical, not philosophical).** Runs 1–2 characterized both passive membranes:
+the crawl samples the settled surface, the stream samples the novelty frontier, and **neither
+revisits** (run 2: 53 entities, zero seen twice in ~75 min). P2 — mechanism durability, *the*
+question — was vacuous both times. The instruments' verdict (RUN_2_LOG F2′): *ingestion alone
+cannot test durability; only directed re-engagement can.* What §4d held as a commitment is now a
+mandated build. The first tropism is the humblest one: **re-check what you hold.**
+
+**Placement (the §4d discipline made structural).** Tropism belongs to the **player, not to M and
+not to the source**. So it is a *policy the runner consults at each poll boundary*, not a new
+membrane: a `Tropism` object reads the player's own state and emits the next reaches; the sources
+stay dumb fetchers and gain exactly one seam (accept injected ids). Increment 1 implements only
+the **irritation pole** (`attention_brief` is its proto — §4d); the musement pole and the
+horizon-as-register remain future, named, unbuilt.
+
+**Increment 1 — the design:**
+
+- **`src/tropism.py`** (additive, geometry-free, no protected-core change):
+  `WarmSetTropism.reaches(model_egif, ledger, label_to_id, k) → List[entity_id]` — the entities
+  backing M's **standing** facts, priority **decay-adjacent first** (facts nearest their ttl:
+  re-check *while the target still stands*, before decay erases the evidence-bearer — this is
+  what makes durability testable, and it ties the policy to the irritation pole rather than to
+  truth-tracking).
+- **Recovering the warm set.** M's facts carry *labels* (legibility resolved them at ingestion);
+  the id→label map lives in the run's persisted `LabelCache`. Reverse it (label→id); an
+  unresolved id is already an id; an ambiguous label (two ids, one label) is re-polled on all its
+  ids or skipped — **counted either way, never silent**. No schema change, no new provenance
+  channel: increment 1 rides what the state files already carry (and `--resume` already
+  preserves).
+- **The mix — the economy-of-research knob.** Each poll's chunk = `warm_fraction` from the
+  tropism + the remainder fresh (frontier or stream). All-fresh is runs 1–2; all-warm is a closed
+  loop that never meets a newcomer (the rigidity pole ○). Proposed default: 0.5.
+- **The source seam.** `RotatingWikidataSource` keeps a `_seen` set precisely to *prevent*
+  re-enqueueing — the warm seam must **bypass `_seen`** (that is the whole point: a deliberate
+  re-reach is not a crawl duplicate). Either `inject(ids)` on the source (front-of-queue,
+  seen-exempt) or the driver composes `fetch_ids(warm) + source.fetch()` — decide at build
+  (decision (a) below).
+- **What it must NOT do (the floor, §7).** The re-poll's aim is to **exercise the durability of
+  settled habits**, not to verify M against the world — a re-delivered unchanged value is a
+  `redundancy` round (the habit holding), a deprecation/changed value arrives as a denial that
+  now *meets its standing target* (the P2 event, mechanically disposed by the existing panel and
+  `ContradictionAgent`). No new referee, no disposition change, nothing auto-promotes.
+
+**Run 3 — draft priors (each bound to its instrument; to affirm pre-run):**
+
+- **P1″ the revisit works** (digest `dispositions` / episodes): `redundancy` ≫ 0 — the
+  structural fraction runs 1–2 measured at zero. If redundancy stays ≈ 0 with warm_fraction 0.5,
+  the warm-set recovery is broken (labels not reversing, or ids not reaching the fetch), an
+  implementation finding, not a world finding.
+- **P2″ durability, finally populated** (`mechanism_principles`, decay-aware): retracts > 0 live;
+  consensus stick-rate < 1.0 once overturns occur; reliable_source ≥ consensus expected —
+  **a reversal is a genuine discovery** (about Wikidata's editorial dynamics or our
+  reverts-proxy; the raw dispute records arbitrate). `decay_erased` reported, not folded in.
+- **P3″ the ledger under re-poll** (digest `m_relations`/`decayed`): warm re-polls touch held
+  facts' relations, so decay concentrates on what the tropism *doesn't* choose — |M| still
+  ≈ ttl; a working set pinned by re-poll rather than by arrival order is the intended change.
+- **P4″ true:negation, for free**: denials meeting standing targets consistently retract;
+  denials without a standing target consistently inert. Inconsistency = a rulebook gap (the §6
+  instrument that would catch it: `gaps`).
+- **P5″ attribution** (against F3′): the baseline replicated across two passive sources, so any
+  departure — redundancy fraction, retract rate, a second resolution principle — is attributable
+  to the tropism, not source variance. Run 3 should be **crawl + tropism** for exactly this
+  reason (same source as the run-1 baseline; stream + tropism is run 4's candidate).
+- **P6″ poise, read honestly**: redundancy-heavy windows depress engagement — read ○ against the
+  redundancy count (§12's caveat, now expected as the *normal* case); the warm/fresh mix is the
+  structural guard against the all-warm rigidity loop.
+- **P7″ operational floor**: unchanged from §12, plus the **hub-degree rider**: the warm set by
+  construction concentrates polls on entities M already holds — a star-shaped M is the checkpoint
+  attest's worst case (the 140× fix helps; `per_entity_cap` still applies and its drops are still
+  counted).
+
+**Open decisions for the author (affirm/amend at the re-entry session, before code):**
+
+1. **Seam form** — `Tropism` policy + `source.inject(ids)` (runner stays thin) **vs** the driver
+   composing warm and fresh fetches itself (no source change). Draft recommends the former: the
+   seam is one method, and the policy stays testable offline against recorded state files.
+2. **Warm priority** — decay-adjacent first (draft recommendation, argued above) **vs**
+   oldest-unchecked first **vs** uniform over held entities.
+3. **The knob** — `warm_fraction` default (draft: 0.5) and whether it is fixed or
+   segment-adaptive (draft: fixed for run 3; adaptivity is itself a finding to earn).
+4. **Run 3 source** — crawl + tropism (draft recommendation, P5″) **vs** stream + tropism.
+5. **Ambiguous labels** — re-poll all candidate ids **vs** skip + count (draft: skip + count for
+   run 3; the ambiguity rate is itself worth measuring before spending polls on it).

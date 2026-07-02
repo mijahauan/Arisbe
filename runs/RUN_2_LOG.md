@@ -92,7 +92,9 @@ tropism runs will be attributable to the new machinery, not to source variance.
 
 - **The warm-set re-poll / directed engagement** (F2′) — the §4d tropism module is now the
   empirically mandated route to exercising P2′ (mechanism durability). The first tropism the
-  system needs is the humblest one: *re-check what you hold*.
+  system needs is the humblest one: *re-check what you hold*. *(Design drafted 2026-07-02 for
+  the re-entry session: `docs/AUTOMATED_ENDOPOREUTIC_GAME.md` §13 — increment-1 shape, run-3
+  draft priors P1″–P7″, five open author decisions.)*
 - **`true:negation` consistency** (P4′) — still no evidence either way; falls out free once
   revisits deliver denials against standing targets.
 - **Rigidity-at-exhaustion + stumble recovery** — still unexercised (both runs stayed poised
