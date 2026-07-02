@@ -283,6 +283,36 @@ objectivation → internalization). Her prior thought becomes part of the world 
 with; each move's objectivation reshapes the gradient that draws or pushes the next. That loop —
 not a telos — is the engine.
 
+**The aim, and the shape of poise (the floor as a dynamics).** Be careful never to say the drive
+*accommodates M to the actuality* — that smuggles truth-tracking back in. The aim of the irritation
+pole is the **settlement of doubt** — the fixation of belief, the forming of a habit that quiets the
+friction (Peirce, *The Fixation of Belief*); the aim of the musement pole is its **own satisfaction**.
+Both are **states of the inquirer**, not relations to the actuality: doubt settles *as readily on a
+mistaken notion of what lies outside as on an apt one*, and we have no ruler that measures M against a
+dynamical object we only ever know through its play in the dianexus. The actuality therefore keeps a
+**veto, never a target** — it may *refute* a settled habit later (Secondness intruding), but it is
+never a point the tropism approaches. (This is already how the system behaves: `model_revision` treats
+a fact as *the defeasible status of the last-standing trajectory*, and the diachronic DAG is the record
+of vetoes exercised over time.)
+
+And **poise is background-independent.** Since neither the regulative hope (inquiry converges on the
+real) nor its performative contrary (inquiry alters the reality it seeks, so it cannot) is decidable —
+the inquirer and its world do not cleanly separate — *balance in the dance* cannot reside at a fixed
+point in an absolute (Newtonian, rectilinear) background. There is no such stage. Poise is a
+**geodesic in a landscape the inquiry itself bends** (general relativity's background independence;
+Varela's *enaction* — laying down the path in walking), a **dynamic, relational balance held between
+partners who each move because the other moves**, sustainable *for now*, and assessable only from
+within a perspective — never from a view from nowhere. Its loss is a *stumble* (a fresh irritation),
+not a measured departure from the true; its keeping is **competence, not correspondence-to-Progress**.
+What keeps this from collapsing into the merely arbitrary is the relativistic lesson: abandoning the
+absolute frame **relocates** rigor to the **invariants every perspective shares** — the sound calculus
+(a Dau move is valid in any frame), **§3.3 correspondence** (picture and proposition denote the same
+object — an internal invariant needing no absolute frame, which is *why* Arisbe attests correspondence,
+not truth), and the ever-possible **veto**. Arisbe is, in this sense, already relativistic; the surround
+is defensible, not merely evocative, because it lives on those invariants. (Continuous with the floor
+*warrant = in-context competence, never worth/Progress* — in-context competence *is* perspectival
+warrant.)
+
 **The border, and what already lives outside it.** Only a **legible** reach crosses onto the sheet
 as a mark; the not-yet-legible stays in the horizon. The low-warrant floor and the mode contract
 (nothing reaches the attested corpus except through the game) are exactly the **border guards**
