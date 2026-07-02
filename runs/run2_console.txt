@@ -1,0 +1,76 @@
+run start 2026-07-02 13:41:32 — source=recentchanges · the recentchanges stream (bots excluded) · ttl=30 pacing=10.0s stop: touch runs/run2/STOP
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.05
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.05
+  segment: rounds=5 dispositions={'new_fact': 5} legibility=0.05
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.06 statements_dropped=498
+Traceback (most recent call last):
+  File "/Users/mjh/Sync/GitHub/Arisbe/tools/run_live_wikidata.py", line 173, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/tools/run_live_wikidata.py", line 146, in main
+    res = runner.run()
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/live_runner.py", line 275, in run
+    res = run(model_egif, feed, rounds=len(items),
+              uod_id=f"{self._uod_id}_seg{seg_idx}", name=f"{self._uod_id} segment {seg_idx}",
+              ttl=None, seed_laws=self._laws, panel=self._panel)
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/agon_evolution.py", line 535, in run
+    result = peel(model, g_egif)
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/agon_evolution.py", line 68, in peel
+    return evaluate(parse_egif(proposal_egif), oracle, closed=closed)
+                    ~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 1009, in parse_egif
+    return parser.parse()
+           ~~~~~~~~~~~~^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 419, in parse
+    self.tokens = lexer.tokenize()
+                  ~~~~~~~~~~~~~~^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 129, in tokenize
+    constant = self._read_constant()
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 206, in _read_constant
+    raise ValueError(f"Unterminated string at position {start}")
+ValueError: Unterminated string at position 31
+resuming: change-stream state restored from runs/run2/frontier.json
+run start 2026-07-02 13:49:02 — source=recentchanges · the recentchanges stream (bots excluded) · ttl=30 pacing=10.0s stop: touch runs/run2/STOP
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.01 statements_dropped=619
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.01 statements_dropped=619
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.01 statements_dropped=619
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.01 statements_dropped=619
+  segment: rounds=7 dispositions={'new_fact': 7} legibility=0.01 statements_dropped=619
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=630
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=630
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=630
+  segment: rounds=3 dispositions={'new_fact': 3} legibility=0.00 statements_dropped=630
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=630
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=630
+  segment: rounds=12 dispositions={'new_fact': 12} legibility=0.00 statements_dropped=630
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.06 statements_dropped=630
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.06 statements_dropped=630
+  segment: rounds=12 dispositions={'new_fact': 12} legibility=0.06 statements_dropped=630
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.03 statements_dropped=630
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.03 statements_dropped=630
+
+stopped: max_seconds   total rounds: 439
+  segment 5: rounds=25 |M|=35 dispositions={'new_fact': 25} decayed=3 (38.0s)
+  segment 6: rounds=25 |M|=35 dispositions={'new_fact': 25} decayed=10 (103.2s)
+  segment 7: rounds=25 |M|=31 dispositions={'new_fact': 25} decayed=12 (55.1s)
+  segment 8: rounds=25 |M|=23 dispositions={'new_fact': 25} decayed=18 (241.1s)
+  segment 9: rounds=7 |M|=17 dispositions={'new_fact': 7} decayed=12 (135.4s)
+  segment 10: rounds=25 |M|=24 dispositions={'new_fact': 25} decayed=7 (104.8s)
+  segment 11: rounds=25 |M|=34 dispositions={'new_fact': 25} decayed=6 (123.6s)
+  segment 12: rounds=25 |M|=33 dispositions={'new_fact': 25} decayed=14 (240.0s)
+  segment 13: rounds=3 |M|=35 dispositions={'new_fact': 3} decayed=0 (67.4s)
+  segment 14: rounds=25 |M|=30 dispositions={'new_fact': 25} decayed=11 (158.6s)
+  segment 15: rounds=25 |M|=11 dispositions={'new_fact': 25} decayed=21 (170.9s)
+  segment 16: rounds=12 |M|=10 dispositions={'new_fact': 12} decayed=1 (31.7s)
+  segment 17: rounds=25 |M|=27 dispositions={'new_fact': 25} decayed=1 (40.2s)
+  segment 18: rounds=25 |M|=28 dispositions={'new_fact': 25} decayed=0 (162.8s)
+  segment 19: rounds=12 |M|=15 dispositions={'new_fact': 12} decayed=13 (268.7s)
+  segment 20: rounds=25 |M|=27 dispositions={'new_fact': 25} decayed=2 (351.7s)
+  segment 21: rounds=25 |M|=34 dispositions={'new_fact': 25} decayed=8 (403.5s)
+legibility per poll: ['0.05', '0.06', '0.01', '0.00', '0.00', '0.06', '0.03']
+mechanism principles (decay-aware, cross-segment):
+  consensus: n=219 stick_rate=1.0 durable=True decay_erased=160
+  reliable_source: n=140 stick_rate=1.0 durable=True decay_erased=101
+poise per segment (● poised · ○ rigidity · ✕ thrash): ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ●
+
+artifacts: runs/run2/polls.jsonl (offline replay) · runs/run2/checkpoints (UoDs) · log your dispositions of the P1–P7 priors in runs/RUN_1_LOG.md

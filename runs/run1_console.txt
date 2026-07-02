@@ -1,0 +1,46 @@
+run 1 start 2026-07-02 09:16:47 — seeds=['Q42', 'Q7259', 'Q937'] ttl=30 pacing=5.0s stop: touch runs/run1/STOP
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1119
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1119
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1119
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1778
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1778
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1778
+  segment: rounds=25 dispositions={'new_fact': 23} legibility=0.00 statements_dropped=1778
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1778
+
+stopped: stop_file   total rounds: 200
+  segment 1: rounds=25 |M|=15 dispositions={'new_fact': 25} decayed=0 (3.5s)
+  segment 2: rounds=25 |M|=27 dispositions={'new_fact': 25} decayed=0 (19.7s)
+  segment 3: rounds=25 |M|=24 dispositions={'new_fact': 25} decayed=11 (135.1s)
+  segment 4: rounds=25 |M|=17 dispositions={'new_fact': 25} decayed=12 (164.7s)
+  segment 5: rounds=25 |M|=13 dispositions={'new_fact': 25} decayed=12 (216.6s)
+  segment 6: rounds=25 |M|=21 dispositions={'new_fact': 25} decayed=4 (158.5s)
+  segment 7: rounds=25 |M|=14 dispositions={'new_fact': 23} decayed=8 (289.1s)
+  segment 8: rounds=25 |M|=14 dispositions={'new_fact': 25} decayed=2 (138.9s)
+legibility per poll: ['0.00', '0.00']
+mechanism principles (decay-aware, cross-segment):
+  consensus: n=131 stick_rate=1.0 durable=True decay_erased=76
+  reliable_source: n=68 stick_rate=1.0 durable=True decay_erased=52
+  deprecated: n=1 stick_rate=None durable=False decay_erased=0
+poise per segment (● poised · ○ rigidity · ✕ thrash): ● ● ● ● ● ● ● ●
+
+artifacts: runs/run1/polls.jsonl (offline replay) · runs/run1/checkpoints (UoDs) · log your dispositions of the P1–P7 priors in runs/RUN_1_LOG.md
+resuming: frontier restored from runs/run1/frontier.json
+run 1 start 2026-07-02 09:36:21 — seeds=['Q42', 'Q7259', 'Q937'] ttl=30 pacing=5.0s stop: touch runs/run1/STOP
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=2362
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=2362
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=2362
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=2362
+
+stopped: max_seconds   total rounds: 300
+  segment 9: rounds=25 |M|=20 dispositions={'new_fact': 25} decayed=1 (289.3s)
+  segment 10: rounds=25 |M|=26 dispositions={'new_fact': 25} decayed=2 (593.4s)
+  segment 11: rounds=25 |M|=30 dispositions={'new_fact': 25} decayed=5 (362.2s)
+  segment 12: rounds=25 |M|=24 dispositions={'new_fact': 25} decayed=16 (475.1s)
+legibility per poll: ['0.00', '0.00', '0.00']
+mechanism principles (decay-aware, cross-segment):
+  consensus: n=78 stick_rate=1.0 durable=True decay_erased=34
+  reliable_source: n=22 stick_rate=1.0 durable=True decay_erased=7
+poise per segment (● poised · ○ rigidity · ✕ thrash): ● ● ● ●
+
+artifacts: runs/run1/polls.jsonl (offline replay) · runs/run1/checkpoints (UoDs) · log your dispositions of the P1–P7 priors in runs/RUN_1_LOG.md
