@@ -189,7 +189,7 @@ transcribed-vs-authored, warrant stays `low`) and annotations, watch it §3.3-at
 live, and save to scratch or send to Agon. The building blocks exist (the workshop
 editor, `save_provenance` / `save_annotations`, the parsers); the dedicated
 provenance/annotation surface does not. [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md)
-§6, [ORGANON_IMPORT_WALKTHROUGH.md](ORGANON_IMPORT_WALKTHROUGH.md).
+§6, [ORGANON_IMPORT_WALKTHROUGH.md](archived/ORGANON_IMPORT_WALKTHROUGH.md).
 
 ---
 

@@ -1,6 +1,6 @@
 """
 Build **Barbara** as a real transformation chain — the Beta half of the Organon
-import walkthrough (``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §4.2), and the first
+import walkthrough (``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §4.2), and the first
 fixture to exercise the derived **universal-instantiation / iterate-and-join**
 move (``derived_rules.universal_instantiation``; Sowa Fig. 14; Dau §16.1).
 

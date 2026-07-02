@@ -289,7 +289,7 @@ def _universal_entails(prem_asts: List[Formula], concl_ast: Formula) -> bool:
 
 # ---------------------------------------------------------------------------
 # The disjunctive case-split lever — reasoning by cases over the non-Horn
-# residue the bare denial check cannot reach (docs/FOLIO_EVALUATION.md).
+# residue the bare denial check cannot reach (docs/archived/FOLIO_EVALUATION.md).
 # ---------------------------------------------------------------------------
 
 MAX_CASE_SPLITS = 6   # bound on nested β-branches per refutation (2**6 leaves worst case)

@@ -11,7 +11,7 @@ diachronic history, ambient model M), grounded in the study of bounded attention
 diagram↔narration test.
 
 **Prior art in this repo (read first):**
-- `docs/ADAPTIVE_SCOPE_SPIKE.md` — the decide-by-prototype spike. The lenses
+- `docs/archived/ADAPTIVE_SCOPE_SPIKE.md` — the decide-by-prototype spike. The lenses
   (2.5-D negation well + storyboard) shipped 2026-06-14 over the coordinate-free
   structure substrate. This doc is the spike's deferred **core**.
 - `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` — §3.3 ("What 'faithful map' requires"),

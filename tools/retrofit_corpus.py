@@ -2,7 +2,7 @@
 Retrofit the pre-existing tomos corpus *up to spec* — attach a typed provenance
 bundle (``src/provenance.py``) + an annotation layer (``src/annotations.py``) to
 every curated UoD, so the whole corpus carries the same outside-record the
-import-walkthrough fixtures do (``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §5).
+import-walkthrough fixtures do (``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §5).
 
 The corpus is **two populations**, and honesty (the manifest floor — *attest
 correspondence, not truth*; warrant is a gradient) requires keeping them distinct:

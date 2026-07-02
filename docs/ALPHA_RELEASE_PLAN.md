@@ -187,19 +187,36 @@ DOCUMENTATION_REVIEW_PREP.md *(stale process doc)*
     stickiness, poise, tropism). Triage table gains the two arc design-of-record docs as DEV
     (`_devlinks.lua` already routes them to GitHub — no manifest change).
 
+13. ✅ **Book-voice (deeper pass, 2026-07-02)** — author chose **(b) strip in the book via a Lua
+    filter**: `docs/_bookvoice.lua` (registered after `_devlinks.lua`) removes the doc-chrome at
+    render time only — leading "What this is / Read this first / New here?" blockquotes,
+    `**Status**/**Date**/**Reviewed**` metadata paragraphs (front-matter zone = before the first
+    `##` heading), and pure maintenance-date lines (`Last consolidated:` …) anywhere. Substantive
+    caveat quotes (the triad doc's Qt note, GENERATION's "The question:") are kept; sources keep
+    their in-repo headers. One source fix: LINEAR's glued `**Status**`/`**Scope**` paragraph split
+    so the Scope abstract survives. Also **FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION trimmed to a
+    usage chapter** — retitled "Reproducing Peirce's Hand-Drawn Graphs in Print", prose intro
+    (no Goal/Users labels), the ten-item reconciliation table → a "pieces and where they live"
+    table, "Built this pass" → "The citation path in detail", "Deferred" → "Deliberately not
+    built (and why)"; Benefits / Documentation Needs / Success Criteria / Timeline cut.
+14. ✅ **Archive tidy (2026-07-02; author chose archive-only, DEV stays flat)** — the 7
+    ARCHIVE-triaged docs moved to `docs/archived/` with dated banners (2 session logs,
+    ADAPTIVE_SCOPE_SPIKE, SPROTTY_EVALUATION, FOLIO_EVALUATION, ORGANON_IMPORT_WALKTHROUGH, the
+    coherence spec — `docs/coherence/` now gone); DOCUMENTATION_REVIEW_PREP **retired outright**;
+    every inbound reference repointed (src/tools/tests docstrings, CURRENT_PLAN, book + dev
+    docs); `ARCHIVE_INDEX.md` gains the 2026-07-02 section.
+15. ✅ **CI render-check (2026-07-02; author chose check-only, no publish)** —
+    `.github/workflows/book.yml`: on push/PR touching `docs/**`, set up Quarto 1.9.38, `quarto
+    render docs --to html`, and fail on dev-doc leaks into `_book/`. Nothing published — local
+    is primary, GitHub is backup.
+
 ### ▶ Remaining
 
-- **Book-voice (deeper pass)** — the chapters still carry doc-style front-matter (`> What this is /
-  Read this first / Companion documents`, `Last consolidated:` footers, `Status/Reviewed` lines) that
-  read as standalone-doc chrome in a linear book. They remain *useful in-repo*, so the call is whether
-  to (a) leave them (they render fine and links resolve), (b) strip them only in the book via a Lua
-  filter, or (c) edit per-doc. **Author decision.** Also: trim FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION's
-  feature/reconciliation framing toward a usage chapter.
-- ~~**PDF size**~~ — done: `ARISBE_CORE_API_REFERENCE` is HTML-only in the book
-  (`.content-visible when-format="html"`), PDF 504 → ~314 pp.
-- **Keep `_devlinks.lua`'s BOOK set in sync** with `_quarto.yml` chapters when chapters change.
-- **Move DEV/ARCHIVE/RETIRE docs** to a physical `docs/dev/` (optional) and refresh `ARCHIVE_INDEX.md`.
-- **CI** (optional) — render the book on push; publish the site.
+- **Keep `_devlinks.lua`'s BOOK set in sync** with `_quarto.yml` chapters when chapters change
+  (and `_bookvoice.lua`'s marker patterns in mind when adding new chapter front-matter).
+- ~~PDF size~~ · ~~book-voice~~ · ~~FEATURE_PEIRCE trim~~ · ~~archive move~~ · ~~CI~~ — all done
+  (steps 8, 12–15). **The documentation track is closed for alpha**; what remains for the release
+  is outside this doc (cut a tag, share instructions).
 
 > Quarto note: installed locally (now on PATH at `/usr/local/bin/quarto`) with TinyTeX
 > (`quarto install tinytex`) for the PDF. Render with `quarto render docs`; preview with

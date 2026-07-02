@@ -5,7 +5,7 @@ Tests for the provenance bundle (``src/provenance.py`` + its persistence and the
 Provenance splits into layers that don't share a source — theorem / EG-derivation
 / calculus — and a derivation is either *transcribed* (a published proof) or
 *authored here*; flattening them would misattribute an authored derivation to a
-historical source (``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §2.5).  Warrant is a
+historical source (``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §2.5).  Warrant is a
 per-layer record (not a tag, not a protected ``UoDMetadata`` field).  These tests
 pin:
 

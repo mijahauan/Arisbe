@@ -1,7 +1,7 @@
 """
 Build **uniqueness of the group identity** as a real transformation chain — the
 Beta, *theory-relative* third fixture of the Organon import walkthrough
-(``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §4.3), and the one that exercises
+(``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §4.3), and the one that exercises
 **multi-line universal instantiation** and **equality-as-ligature**.
 
     A1. ∀y. e·y = y     (e is a left identity)

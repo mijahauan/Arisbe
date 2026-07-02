@@ -1,3 +1,5 @@
+> **Archived 2026-07-02** (alpha-release docs triage — see `../ALPHA_RELEASE_PLAN.md` §2). Walkthrough that became the design-of-record. Superseded by `../CORPUS_AND_IMPORT_MODEL.md` (deep doc) and `../EXTERNAL_SOURCES_AND_IMPORT.md` (summary).
+
 # Organon Import — Walkthrough, Issues, and the Path "Up to Spec"
 
 *Where this sits on the arc: Organon is the attested, read-only archive (the

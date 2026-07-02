@@ -1,7 +1,7 @@
 """
 Build **Peirce's Law** as a real transformation chain — the tomos's first
 *authored-here* exemplar, and the Alpha half of the Organon import walkthrough
-(``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §4.1).
+(``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §4.1).
 
     ((P ⊃ Q) ⊃ P) ⊃ P
 

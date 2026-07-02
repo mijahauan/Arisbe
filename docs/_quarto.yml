@@ -64,6 +64,7 @@ book:
 
 filters:
   - _devlinks.lua
+  - _bookvoice.lua
 
 format:
   html:

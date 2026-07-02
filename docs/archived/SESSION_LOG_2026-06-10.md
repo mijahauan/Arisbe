@@ -1,3 +1,5 @@
+> **Archived 2026-07-02** (alpha-release docs triage — see `../ALPHA_RELEASE_PLAN.md` §2). A dated session log. The chronological log lives in `../../CURRENT_PLAN.md`.
+
 # Session log — 2026-06-10: the exact-correspondence engine, completed (Phases 1–4)
 
 A thorough record of one long session. It carried the **exact-correspondence

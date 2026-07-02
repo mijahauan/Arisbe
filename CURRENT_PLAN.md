@@ -52,11 +52,24 @@ seats. **GENERATION_AND_TESTING** — the testing register runs autonomously (gr
 **EXTERNAL_SOURCES_AND_IMPORT** — **family C: live sources** (the doorway is the game itself).
 **GLOSSARY** — membrane's closed/open senses + disposition, disuse-decay, stickiness, poise,
 tropism. ALPHA_RELEASE_PLAN: triage gains the two arc design docs as DEV (devlinks already
-routes them); PDF-size item struck (API-ref HTML-only); progress step 12. **▶ NEXT SESSION —
-remaining alpha items, all small:** (1) book-voice deeper pass — **author decision** (leave /
-Lua-strip / per-doc edit the doc-chrome front-matter) + trim FEATURE_PEIRCE framing; (2)
-optional physical `docs/dev/` move + ARCHIVE_INDEX refresh; (3) optional CI render+publish.
-Arc re-entry unchanged = RUN_2_LOG horizon (tropism first). [[project_alpha_release_docs_consolidation]].
+routes them); PDF-size item struck (API-ref HTML-only); progress step 12.
+**SAME SESSION, SECOND HALF — THE TRACK CLOSED (author's three calls: Lua-strip / archive-only /
+CI-check-only).** (13) **Book-voice**: `docs/_bookvoice.lua` strips the doc-chrome at render time
+only (leading What-this-is/Read-this-first/New-here? quotes; Status/Date/Reviewed metadata paras
+in the front zone; Last-consolidated date lines anywhere; substantive caveat quotes kept; sources
+keep their in-repo headers; LINEAR's glued Status/Scope para split so the Scope abstract
+survives) + **FEATURE_PEIRCE trimmed to a usage chapter** ("Reproducing Peirce's Hand-Drawn
+Graphs in Print"; reconciliation table → pieces-and-where-they-live; Benefits/Doc-Needs/Success/
+Timeline cut). (14) **Archive tidy**: the 7 ARCHIVE docs → `docs/archived/` with dated banners
+(coherence/ dir gone), DOCUMENTATION_REVIEW_PREP retired outright, all inbound refs repointed
+(src/tools/tests docstrings + book/dev docs), ARCHIVE_INDEX 2026-07-02 section; touched tests
+pass (35). (15) **CI**: `.github/workflows/book.yml` — render-check (HTML) on docs/** push/PR +
+dev-doc-leak guard; nothing published (local primary). Full render verified after all of it:
+33 HTML / PDF / epub, only the pre-existing non-fatal LaTeX convergence warning. **The
+documentation track is CLOSED for alpha** (ALPHA_RELEASE_PLAN §4 steps 13–15; Remaining = only
+the devlinks/bookvoice sync habit). **▶ NEXT SESSION:** release mechanics if desired (tag +
+share instructions) — else **arc re-entry = RUN_2_LOG horizon (tropism/warm-set re-poll first)**.
+[[project_alpha_release_docs_consolidation]].
 
 **▶▶▶ THIS SESSION (2026-07-02, cont. 4) — RUN 2 EXECUTED + DISPOSED (runs/RUN_2_LOG.md); THE ARC
 PAUSES → ALPHA DOCS RESUME.** Author affirmed §12 priors (incl. the 3 judgment calls), chose
@@ -1630,7 +1643,7 @@ Two deliverables, both sound and measured against Z3.
   `test_egi_to_fol.py` (14) + `test_folio_model_finder.py` (→14) + `test_folio_native.py` (21) +
   `test_dl_reasoning.py` (→15). Regression: 237 across folio/dl/theory-query/materialization/agon/
   grapheus/semantic/owl/rdf + math core green. Additive (new module + unprotected-module edits).
-  Docs: `docs/FOLIO_EVALUATION.md`. Memory: [[project_nl_to_logic_arisbe_as_interpretant]].
+  Docs: `docs/archived/FOLIO_EVALUATION.md`. Memory: [[project_nl_to_logic_arisbe_as_interpretant]].
 
 **✅ DONE 2026-06-15 — the finite-model-finder lever (FOLIO coverage lever, model-construction half).**
 The dual of refutation: soundly certify `Uncertain` (and non-entailment) by **exhibiting a model**.
@@ -1651,7 +1664,7 @@ harness was reworked to cross-check each decided verdict against Z3 and report s
 gold-noise. Tests: `tests/test_folio_model_finder.py` (9) + `test_folio_native.py` (→21, the old
 "never predicts Uncertain" tests repurposed to the new sound capability). Regression: 112 green
 across folio/dl/theory-query/materialization/agon. Additive (new module + harness rework + docstring/
-`NativeResult` updates). Docs: `docs/FOLIO_EVALUATION.md`. Memory: [[project_nl_to_logic_arisbe_as_interpretant]].
+`NativeResult` updates). Docs: `docs/archived/FOLIO_EVALUATION.md`. Memory: [[project_nl_to_logic_arisbe_as_interpretant]].
 
 **✅ DONE 2026-06-15 — the disjunctive case-split lever (FOLIO coverage lever, refutation half).**
 The bounded native engine could not reach an entailment that needs **reasoning by cases**
@@ -1667,7 +1680,7 @@ is left to the residue, since `∀x(P∨Q) ≠ (∀x P)∨(∀x Q)`). **Validati
 28.9 % (+12 decided, 47 → 59), soundness held at 100 % (59/59), confusion still clean,
 gold-`Uncertain` still never decided.** Tests: `tests/test_folio_native.py` 16 → **20**.
 Regression: 102 green across folio/dl/theory-query/materialization/agon. Purely additive (new
-functions + `decide_native` wiring tags `via="case_split"`). Docs: `docs/FOLIO_EVALUATION.md`.
+functions + `decide_native` wiring tags `via="case_split"`). Docs: `docs/archived/FOLIO_EVALUATION.md`.
 Memory: [[project_nl_to_logic_arisbe_as_interpretant]].
 
 **✅ DONE 2026-06-15 — the cross-mode UX consistency pass** (the last adaptive-scope item; the
@@ -1836,13 +1849,13 @@ unification across the three modes, step/move terminology — the round-1 cross-
 - **Adaptive-scope viewer.** `src/eg_structure.py` + `GET /organon/uods/{id}/structure` &
   `/history-structure` (coordinate-free, O(n) — 86-cut SUMO structure in ~8 ms where ELK takes
   seconds; `tests/test_eg_structure.py`). A decide-by-prototype **spike** → findings/decision in
-  `docs/ADAPTIVE_SCOPE_SPIKE.md`. Then production Organon **lenses** behind a Lens selector:
+  `docs/archived/ADAPTIVE_SCOPE_SPIKE.md`. Then production Organon **lenses** behind a Lens selector:
   **Well** (`web_viewer/js/negation-well-lens.js` — the 2.5-D negation well; three.js; top-down =
   the circle-packing so parent–child stays unambiguous, tilt = earned depth; white/gray polarity,
   hue/texture + line-style reserved for Gamma) and **Storyboard** (`web_viewer/js/storyboard-lens.js`
   — the diachronic line of thought as a styled strip), over `web_viewer/js/lens-common.js`. Wired
   in `web_viewer/organon.html`; E2E `tests/test_organon_lenses_e2e.py`. Spike prototypes retired.
-- **FOLIO increment 3** — `src/folio_native.py` (the "Both" arc complete; `docs/FOLIO_EVALUATION.md`).
+- **FOLIO increment 3** — `src/folio_native.py` (the "Both" arc complete; `docs/archived/FOLIO_EVALUATION.md`).
 - **`docs/MANIFEST_AND_MEANING.md`** — the philosophical floor the lenses obey (membrane/separation;
   *no mark bears actuality*; two-deaths/liveness; Peirce's cable).
 
@@ -1902,7 +1915,7 @@ False=contradicted / Uncertain=neither). z3-solver added (dev extra).
   **Validation (204): SOUNDNESS 100.0% (47/47 decided correct), COVERAGE 23.0%** — confusion
   clean (gold-True→27T/0F, gold-False→20F/0T, gold-Uncertain→all abstain); never predicts
   Uncertain. `tools/folio_benchmark.py --native`; `tests/test_folio_native.py` (16). Write-up:
-  `docs/FOLIO_EVALUATION.md`. See the ✅ block below.
+  `docs/archived/FOLIO_EVALUATION.md`. See the ✅ block below.
 
 **▶ MATH TRACK (do not drop — author flagged 2026-06-13):** finish the mathematics horizon —
 validate the draft EGIF fixtures (docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md) against the parser,
@@ -2004,7 +2017,7 @@ DL-style honest-bounded story over natural-language-grounded full first-order lo
 - **Harness:** `tools/folio_benchmark.py --native` (soundness×coverage printer). **Tests:**
   `tests/test_folio_native.py` (16) — the two provers, the guard, honest abstention, normalize,
   and a soundness invariant over a FOLIO-shaped sample. No regressions across
-  folio/dl/theory-query/materialization (77). **Write-up:** `docs/FOLIO_EVALUATION.md` (all
+  folio/dl/theory-query/materialization (77). **Write-up:** `docs/archived/FOLIO_EVALUATION.md` (all
   three increments). **Coverage lever (deferred, the real extension):** a disjunctive /
   model-construction (case-split) capability for the non-Horn negative half — the same frontier
   DLCore defers to.
@@ -2586,7 +2599,7 @@ as designed (`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`).
 *draw-then-read*. The exact-correspondence engine (Phases 1–4) is done; that was
 **build step 0** of `docs/FREEFORM_COMPOSITION_AND_LEARNING.md`, so the next session
 **starts at step 1**. Read that doc's "Build order" + the three-move arc, and
-`docs/SESSION_LOG_2026-06-10.md` for how the foundation got here.
+`docs/archived/SESSION_LOG_2026-06-10.md` for how the foundation got here.
 
 **The build, in order (each a shippable increment):**
 1. **Visible containment + snapping + fix-time validity** (the de-risked core).

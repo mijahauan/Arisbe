@@ -5,7 +5,7 @@ A comment is a **telling about** the reasoning, not part of it.  So annotations
 live in a side layer, never baked into the EGI, the ``ChainStep`` record, or the
 ``UoDMetadata`` — exactly as regime-3 presentation deltas ride alongside the
 graph without being part of it.  Three consequences follow, and they are the
-whole contract of this module (see ``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §3):
+whole contract of this module (see ``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §3):
 
 - **Outside §3.3.** An annotation is not a sign in the existential graph, so the
   correspondence chord does not answer for it.  This module imports no layout,

@@ -1,3 +1,5 @@
+> **Archived 2026-07-02** (alpha-release docs triage — see `../ALPHA_RELEASE_PLAN.md` §2). Spike notes, now built and superseded. As-built: `../ADAPTIVE_SCOPE_VIEWER.md` + `src/overview_projection.py`.
+
 # Adaptive-scope viewer — projection spike (findings)
 
 **Date:** 2026-06-13. **Status:** spike complete; decision below. Plan:

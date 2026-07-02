@@ -998,7 +998,7 @@ class TomosService:
         and ``history/deltas.json`` do, and like them is **outside §3.3** (a
         comment is not a sign in the graph, so the correspondence chord does not
         answer for it; this method runs no attestation).  See
-        ``src/annotations.py`` and ``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §3.
+        ``src/annotations.py`` and ``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §3.
 
         ``annotations`` is the already-serialized list (from
         ``annotations.annotations_to_list``).  Written to

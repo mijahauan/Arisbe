@@ -239,7 +239,7 @@ readable. *That* is the complete geometric realization of inerrant correspondenc
 ## Build order
 
 0. **Exact extents (the foundation). — DONE 2026-06-10 (exact-correspondence engine,
-   Phases 1–4; see docs/EXACT_CORRESPONDENCE.md + SESSION_LOG_2026-06-10.md).** Cut
+   Phases 1–4; see docs/EXACT_CORRESPONDENCE.md + archived/SESSION_LOG_2026-06-10.md).** Cut
    containment / ligature crossing read off the rounded-rect / ellipse the renderer
    draws; predicate/constant containment uses the **label box** (not the anchor
    point); §3.3 has the "every mark wholly within its area and unoccluded" checks

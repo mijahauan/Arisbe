@@ -1,3 +1,5 @@
+> **Archived 2026-07-02** (alpha-release docs triage — see `../ALPHA_RELEASE_PLAN.md` §2). A dated session log. The chronological log lives in `../../CURRENT_PLAN.md`.
+
 # Session log — 2026-06-11: the freeform composition canvas (steps 1–3)
 
 A long session that built **draw-then-read composition** end to end — from the

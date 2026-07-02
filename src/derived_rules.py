@@ -1,7 +1,7 @@
 """
 Derived inference rules — the R7 layer: named moves built *atop* Dau's
 primitives, each expanding to a sequence of sound, syntactically-equivalent
-rules.  (See ``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §6 — the derived-rule layer
+rules.  (See ``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §6 — the derived-rule layer
 is the prerequisite for scaling EG proofs past toy theorems.)
 
 Both moves here are realizations of the *same* underlying idea — Sowa's
@@ -29,7 +29,7 @@ place: for each ``(source, target)`` insert ``=``(target, source) in the
 universal's own (negative) area — a sound insertion — then merge ``source`` into
 the (enclosing) ``target``.  ``joins`` may carry several pairs at once, so a
 functionality axiom's four lines instantiate to two constants in a single move
-(uniqueness-of-group-identity, ``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §4.3).  The
+(uniqueness-of-group-identity, ``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §4.3).  The
 caller discharges the result (a double cut for a single-line universal, the
 instantiated scroll for an implication) with the primitive rules.
 

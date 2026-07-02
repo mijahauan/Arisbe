@@ -261,7 +261,7 @@ cured into one consistent whole.
    ontology), *transcribed-vs-authored*, and *cited-vs-synthetic* — three different
    facts that must not be collapsed. A synthetic test graph may **never** carry a
    fabricated citation (enforced). [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md),
-   [ORGANON_IMPORT_WALKTHROUGH.md](ORGANON_IMPORT_WALKTHROUGH.md).
+   [ORGANON_IMPORT_WALKTHROUGH.md](archived/ORGANON_IMPORT_WALKTHROUGH.md).
 
 **What you most want to know:**
 - **No mark bears actuality.** A mark may carry *form* (negation, conditionality,

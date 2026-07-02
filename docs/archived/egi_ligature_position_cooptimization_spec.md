@@ -1,3 +1,5 @@
+> **Archived 2026-07-02** (alpha-release docs triage — see `../ALPHA_RELEASE_PLAN.md` §2). Early co-optimization spec. Superseded by the shipped exact-correspondence machinery — `../EXACT_CORRESPONDENCE.md`, `src/presentation_ops.py`, `src/natural_layout.py`.
+
 # EGI Ligature-Position Co-Optimization Specification
 
 **Document ID**: `egi_ligature_position_cooptimization_spec`  

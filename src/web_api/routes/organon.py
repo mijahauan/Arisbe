@@ -333,7 +333,7 @@ async def get_uod_structure(uod_id: str):
     """Return the UoD's **coordinate-free structure** (no drawing, no layout).
 
     The shared foundation for the adaptive-scope viewer projection spike
-    (`docs/ADAPTIVE_SCOPE_SPIKE.md`): the containment tree + polarity, recursive
+    (`docs/archived/ADAPTIVE_SCOPE_SPIKE.md`): the containment tree + polarity, recursive
     content counts, the predicate/vertex inventory, and per-ligature required
     crossing-sequences — the projection-independent facts every candidate
     projection (circle-packing / 3-D shells / hyperbolic) realizes differently.
@@ -418,7 +418,7 @@ async def retire_uod(uod_id: str, payload: Optional[dict] = None):
 async def get_history_structure(uod_id: str, style: Optional[str] = None,
                                 engine: str = "elk"):
     """Diachronic substrate for the adaptive-scope spike's *time-flow* lenses
-    (storyboard + time-stack) — `docs/ADAPTIVE_SCOPE_SPIKE.md`.
+    (storyboard + time-stack) — `docs/archived/ADAPTIVE_SCOPE_SPIKE.md`.
 
     Like ``/chain`` but each frame also carries its **geometric layout**
     (`layout_dto`, so a time-stack can draw survivor threads by matching element ids

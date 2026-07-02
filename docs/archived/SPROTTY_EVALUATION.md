@@ -1,3 +1,5 @@
+> **Archived 2026-07-02** (alpha-release docs triage — see `../ALPHA_RELEASE_PLAN.md` §2). Framework evaluation, decision taken (declined; borrow concepts). The decision is recorded in `../VISION_AND_SCOPE.md` / `../ROADMAP.md`.
+
 # Sprotty / GLSP Evaluation for Arisbe
 
 **Status:** research + analysis, June 2026.

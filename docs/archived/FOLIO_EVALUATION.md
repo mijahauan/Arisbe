@@ -1,3 +1,5 @@
+> **Archived 2026-07-02** (alpha-release docs triage — see `../ALPHA_RELEASE_PLAN.md` §2). Evaluation, now built. As-built: `src/folio_fol.py`, `src/folio_native.py`, `src/folio_model_finder.py`.
+
 # FOLIO on Arisbe — the "Both" evaluation
 
 **Status:** all three increments built and green (2026-06-13); the coverage lever added

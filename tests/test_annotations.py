@@ -5,7 +5,7 @@ read-path surfacing).
 The layer is marginalia *about* a UoD / chain / step / element — a side store
 that rides alongside the graph, **never baked into** the EGI, the ``ChainStep``,
 or ``UoDMetadata``, and **outside §3.3** (a comment is not a sign in the graph).
-See ``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §3.  These tests pin:
+See ``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §3.  These tests pin:
 
 1. **Model** — four scopes; per-scope target validation; deterministic ids;
    to_dict/from_dict round-trip; the scope/target query helpers.

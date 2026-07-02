@@ -1,12 +1,14 @@
-# Feature: Scholarly Reproduction of Peirce's Hand-Drawn EGs
+# Reproducing Peirce's Hand-Drawn Graphs in Print
 
-## Use Case
-
-**Goal:** Enable academics to recreate Peirce's hand-drawn existential graphs from his notebooks in publication-ready LaTeX format for scholarly publications.
-
-**Users:** Peirce scholars, logic historians, semiotics researchers, philosophy academics
-
-**Output:** LaTeX documents using TikZ/pgf that can be included in academic papers, dissertations, and textbooks.
+Arisbe can recreate Peirce's hand-drawn existential graphs — from his notebooks and
+the *Collected Papers* — as publication-ready LaTeX. A scholar transcribes or draws
+the graph, adjusts its arrangement to match the original, and exports pure TikZ that
+compiles with plain `pdflatex`: oval cuts, heavy lines of identity, hooks, the
+hand-drawn waver, and the citation stamped under the figure. The output drops into
+papers, dissertations, and textbooks as scalable vector graphics — and, unlike a
+hand-coded figure, the picture is *wedded to the graph*: it is generated from the
+same attested (EGI, layout) pair the rest of Arisbe reasons over, so the figure and
+the proposition cannot drift apart.
 
 ---
 
@@ -107,30 +109,22 @@ Extracts: V, E, Cut, area, nu mappings
 
 ---
 
-## Required Features
+## The pieces, and where they live
 
-> **Status (updated 2026-06-30).** This spec predates the web-app migration and the
-> authentic-Peirce LaTeX export track (ROADMAP #14), so most of it is **already
-> shipped** — and via different, current modules than the Qt-era pseudocode below
-> named. The table reconciles the original ten items with what exists today; the
-> sections that follow detail only what genuinely remained (and was built this pass).
+| Piece | Where it lives |
+|---|---|
+| LaTeX export (Organon export panel) | `web_viewer/organon.html` → the `peirce-tikz` format (Organon only — see "Deliberately not built" for why not Ergasterion) |
+| The exporter itself | `peirce_latex.export_peirce_latex(dto, egi)` — a pure function of the attested `LayoutDTO` (Data Transfer Object ([DTO](GLOSSARY.md#dto))) |
+| Peirce fidelity (waver / ink) | `peirce_latex.py` + `tex/arisbe-eg.sty`: hand-drawn waver, organic ligature routing, crossing bridges, iconic [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then") glyph |
+| Transcription formats | `egif_parser_dau.py`, `cgif_parser_dau.py`, `clif_parser_dau.py`, `chapter18_fopl_translation.py` — production, round-trip tested |
+| Drawing mode | `web_viewer/js/freeform-canvas.js` + `drawing_to_egi.py` (draw-then-read, Graph↔Argument lock) |
+| Citation generator | `scholarly_citation.py` → author-date line + BibTeX; `GET /export/citation` |
+| Batch export (appendix of figures) | `export_service.export_peirce_document` + `POST /export/document`; the per-proof-step companion is `export_peirce_chain` + `POST /export/chain` |
+| Citation under the figure | `export_peirce_latex(..., caption=…)` + the export `cite` flag / Organon's **"cite" checkbox** |
 
-| # | Original item | Status | Where it lives now |
-|---|---|---|---|
-| 1 | LaTeX export button | **Done (Organon)** | `web_viewer/organon.html` export panel → `peirce-tikz` format; deferred for Ergasterion (see note) |
-| 2 | Data Transfer Object ([DTO](GLOSSARY.md#dto)) → TikZ bridge | **Obsolete / done** | `peirce_latex.export_peirce_latex(dto, egi)` consumes the `LayoutDTO` directly — no "render commands" intermediary |
-| 3 | Peirce fidelity (waver / ink) | **Mostly done** | `peirce_latex.py` + `tex/arisbe-eg.sty`: hand-drawn waver, organic ligature routing, crossing bridges, iconic [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then") glyph. Handwriting-font / ink-bleed deferred (niche) |
-| 4 | CGIF / CLIF / FOPL parsers | **Done** | `cgif_parser_dau.py`, `clif_parser_dau.py`, `chapter18_fopl_translation.py` — production, round-trip tested |
-| 5 | Drawing mode | **Done** | `web_viewer/js/freeform-canvas.js` + `drawing_to_egi.py` (draw-then-read, Graph↔Argument lock) |
-| 6 | Template library | **Deferred** | Largely covered by the seeded corpus + the in-app primer (`web_api/routes/primer.py`) |
-| 7 | **Citation generator** | **Built (2026-06-30)** | `scholarly_citation.py` → author-date line + BibTeX; `GET /export/citation` |
-| 8 | Overlay comparison | **Deferred** | Niche (needs original-image upload + a transparency slider) |
-| 9 | **Batch export** | **Built (2026-06-30)** | `export_service.export_peirce_document` + `POST /export/document` (an appendix of figures); chain-document path already existed |
-| 10 | **Citation/notes into LaTeX** | **Built (2026-06-30)** | `export_peirce_latex(..., caption=…)` + the export `cite` flag — the scholarly attribution under the figure |
+### The citation path in detail
 
-### Built this pass (the genuinely-remaining publishing path)
-
-**7 + 10 — Citation generator, surfaced in the export.** A corpus Universe of Discourse ([UoD](GLOSSARY.md#uod)) already carries
+**The citation generator, surfaced in the export.** A corpus Universe of Discourse ([UoD](GLOSSARY.md#uod)) already carries
 its source in the typed **provenance** bundle ([provenance.py](../src/provenance.py))
 (`theorem_source` = where the proposition comes from, `method_sources`, a transcribed
 `proof_source`) plus an optional `bibliography.json`. [`scholarly_citation.py`](../src/scholarly_citation.py)
@@ -144,32 +138,32 @@ turns that into the two forms a scholar needs:
 It **fabricates nothing**: an absent field is omitted, and a graph with no recorded
 source honestly reports `has_source: false` (an original Arisbe graph has nothing
 external to cite). Exposed at `GET /export/citation?uod_id=…`, and — the load-bearing
-join with #10 — `POST /export` with `cite: true` (or the **"cite" checkbox** in
+join with the export — `POST /export` with `cite: true` (or the **"cite" checkbox** in
 Organon's export panel) stamps the citation as a `\footnotesize` caption **under** the
 authentic-Peirce figure. The caption is ink *outside* the `tikzpicture`, so `cut_bounds`
 and §3.3 are untouched (the tikzpicture body is byte-identical with or without it).
 
-**9 — Batch export (an appendix of figures).** `export_peirce_document` assembles
+**Batch export (an appendix of figures).** `export_peirce_document` assembles
 several corpus UoDs into one authentic-Peirce LaTeX document, each a captioned figure
 (name + its citation), reusing the same figure-stacking as the worked-chain document.
 `POST /export/document` takes a list of `uod_ids` and honestly reports any it skipped.
 (The single-derivation companion, `export_peirce_chain` / `POST /export/chain`, already
 existed — one figure per proof step.)
 
-### Deferred (with rationale)
+### Deliberately not built (and why)
 
-- **1 (Ergasterion export):** the scholarly export lives in **Organon**, the attested
+- **Export from Ergasterion:** the scholarly export lives in **Organon**, the attested
   archive — by the mode contract a graph reaches the citable corpus only through Agon,
   so a regime-1 Ergasterion *draft* has no provenance to cite and "publication-ready"
   would misrepresent its standing. Export a graph by sending it to the corpus first.
-- **3 (handwriting font / ink-bleed):** the hand-drawn *waver* and round-capped heavy
+- **Handwriting font / ink-bleed:** the hand-drawn *waver* and round-capped heavy
   lines already evoke ink; a matched handwriting font is cosmetic and niche.
-- **6 (template library):** the seeded corpus exemplars + the in-app primer already
-  give a scholar canonical graphs to start from; a separate `tomos/templates/peirce/`
-  would duplicate them.
-- **8 (overlay comparison):** genuinely unbuilt, but niche — it needs an
-  original-scan upload path and a fade slider, a sizeable UI feature for a narrow
-  verification use; revisit if a scholar asks.
+- **A separate template library:** the seeded corpus exemplars + the in-app primer
+  already give a scholar canonical graphs to start from; a separate
+  `tomos/templates/peirce/` would duplicate them.
+- **Overlay comparison against the original scan:** genuinely unbuilt, but niche — it
+  needs an original-scan upload path and a fade slider, a sizeable UI feature for a
+  narrow verification use; revisit if a scholar asks.
 
 ---
 
@@ -213,27 +207,6 @@ class is the automatic fallback on minimal TeX installs without `standalone.cls`
 
 ---
 
-## Benefits
-
-1. **Academic Rigor** - Faithful reproduction of historical diagrams
-2. **Publication Quality** - Vector graphics scale perfectly in LaTeX
-3. **Workflow Efficiency** - Faster than manual TikZ coding
-4. **Scholarly Citation** - Proper attribution and documentation
-5. **Research Tool** - Experiment with variations of Peirce's diagrams
-6. **Educational** - Students can recreate and understand Peirce's notation
-
----
-
-## Documentation Needs
-
-1. **Tutorial:** "Recreating Peirce MS 280 in Arisbe"
-2. **Style Guide:** Peirce's Existential Graph ([EG](GLOSSARY.md#eg)) conventions (vertex placement, ligature routing, cut shapes)
-3. **LaTeX Integration:** How to include exported diagrams in papers
-4. **Parser Reference:** Which notation format to use when
-5. **Template Gallery:** Common Peirce diagram patterns
-
----
-
 ## Related Work
 
 - **John Sowa's CGIF Tools** - Conceptual graph interchange format
@@ -241,38 +214,3 @@ class is the automatic fallback on minimal TeX installs without `standalone.cls`
 - **Logic LaTeX Packages** - `prooftrees`, `logicproof`, `bussproofs`
 - **Historical Notation Projects** - Frege notation in LaTeX, Russell's *Principia* recreation
 
----
-
-## Success Criteria
-
-✅ Scholar can:
-
-1. Transcribe Peirce's diagram from notebook to EGIF
-2. Load into Arisbe with Peirce style
-3. Manually adjust to match Peirce's spatial layout
-4. Export publication-ready LaTeX
-5. Compile to PDF and include in academic paper
-
-✅ Output quality:
-
-- Visually faithful to Peirce's hand-drawn style
-- Vector graphics (scalable without loss)
-- Proper line weights, curves, and spacing
-- LaTeX-compatible (compiles without errors)
-
----
-
-## Timeline Estimate
-
-**Minimal Viable (Phase 1):** 2-3 hours
-
-**Production Ready (Phases 1-2):** 6-9 hours
-
-**Full Feature Set (Phases 1-5):** 36-47 hours
-
-**Next Immediate Steps:**
-
-1. Create DTO → TikZ adapter (1 hour)
-2. Add export buttons (30 min)
-3. Test with one Peirce diagram (1 hour)
-4. Document workflow (30 min)

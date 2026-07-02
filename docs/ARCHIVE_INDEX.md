@@ -23,6 +23,24 @@ directory holds documentation retired from active `docs/` because it was
 superseded or built-and-diverged. Each retired file carries a banner at its
 top explaining why and what supersedes it.
 
+**Alpha-release docs triage — 2026-07-02** (see `ALPHA_RELEASE_PLAN.md` §2):
+
+- `SESSION_LOG_2026-06-10.md`, `SESSION_LOG_2026-06-11.md` — dated session logs;
+  the chronological log is `../CURRENT_PLAN.md`.
+- `ADAPTIVE_SCOPE_SPIKE.md` — spike notes, built; as-built `ADAPTIVE_SCOPE_VIEWER.md`
+  + `src/overview_projection.py`.
+- `SPROTTY_EVALUATION.md` — framework evaluation, decision taken (declined;
+  borrow concepts); recorded in `VISION_AND_SCOPE.md` / `ROADMAP.md`.
+- `FOLIO_EVALUATION.md` — evaluation, built; as-built `src/folio_fol.py`,
+  `src/folio_native.py`, `src/folio_model_finder.py`.
+- `ORGANON_IMPORT_WALKTHROUGH.md` — walkthrough that became the design-of-record;
+  superseded by `CORPUS_AND_IMPORT_MODEL.md` + `EXTERNAL_SOURCES_AND_IMPORT.md`.
+- `egi_ligature_position_cooptimization_spec.md` (was `docs/coherence/`) — early
+  spec; superseded by the shipped exact-correspondence machinery
+  (`EXACT_CORRESPONDENCE.md`, `presentation_ops.py`, `natural_layout.py`).
+- `DOCUMENTATION_REVIEW_PREP.md` was **retired outright** (stale process doc;
+  in git history only).
+
 **Documentation review — 2026-06-08:**
 
 - `WEB_VIEWER_IMPLEMENTATION_PLAN.md` — April 2026 plan, now built and

@@ -7,7 +7,7 @@ provenance bundle. §4 (the Agon warrant lifecycle) remains the forward edge.
 This doc sits downstream of two others and should be read after them:
 [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (the philosophical floor —
 *attest correspondence, not truth*; the warrant gradient) and
-[ORGANON_IMPORT_WALKTHROUGH.md](ORGANON_IMPORT_WALKTHROUGH.md) (how a worked proof
+[ORGANON_IMPORT_WALKTHROUGH.md](archived/ORGANON_IMPORT_WALKTHROUGH.md) (how a worked proof
 reaches the corpus through the provenance/annotation doorway). It answers a
 question those raise but don't settle: **what kinds of things do we import, and
 what is the corpus *for*?**

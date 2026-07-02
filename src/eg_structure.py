@@ -1,6 +1,6 @@
 """
 Coordinate-free structural summary of an EGI — the shared foundation for the
-adaptive-scope viewer projection spike (`docs/ADAPTIVE_SCOPE_SPIKE.md`).
+adaptive-scope viewer projection spike (`docs/archived/ADAPTIVE_SCOPE_SPIKE.md`).
 
 Every candidate projection (zoomable circle-packing, 3-D nested shells, hyperbolic
 focus+context) is a different *realization* of the same projection-independent facts.

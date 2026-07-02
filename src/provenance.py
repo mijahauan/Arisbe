@@ -3,7 +3,7 @@ Provenance bundle — typed, multi-layer attribution for a worked proof.
 
 A single ``source_citation`` cannot hold the truth about an imported proof,
 because **provenance splits into layers that do not share a source** (see
-``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §2.5):
+``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §2.5):
 
     theorem_source   — where the *proposition* comes from
                        (Peirce 1885; Aristotle; Leibniz)
@@ -69,7 +69,7 @@ _DERIVATION_KINDS = (DERIVATION_TRANSCRIBED, DERIVATION_AUTHORED)
 # What *kind* of import this is — so Organon can shelve it and Agon can query it
 # ("give me a domain model to play in", "an argument pattern to apply"). A
 # coarse typology over the corpus, orthogonal to warrant and to transcribed-vs-
-# authored (``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §5).
+# authored (``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §5).
 KIND_EXEMPLAR = "exemplar"          # a single depicted graph, no derivation
 KIND_PROOF = "proof"               # a worked derivation (carries a chain)
 KIND_PATTERN = "pattern"           # an argument form (MP, syllogism, dilemma…)

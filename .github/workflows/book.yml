@@ -1,0 +1,37 @@
+name: book-render-check
+
+# Render-check only: the book (docs/_quarto.yml) must render to HTML with no
+# broken chapters. Nothing is published — local is primary, GitHub is backup.
+# (PDF/epub are rendered locally; CI checks the HTML render that /book serves.)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/book.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/workflows/book.yml"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.9.38
+
+      - name: Render the book (HTML)
+        run: quarto render docs --to html
+
+      - name: Fail on dev-doc leaks
+        run: |
+          leaked=$(ls docs/_book | grep -iE "AUTOMATED_|ROADMAP|CORPUS_AND_IMPORT|MINIMAL_IN_VIEW|ALPHA_RELEASE|CURRENT_PLAN" || true)
+          if [ -n "$leaked" ]; then
+            echo "Dev docs leaked into the rendered book:"; echo "$leaked"; exit 1
+          fi

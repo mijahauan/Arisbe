@@ -4,7 +4,7 @@ Peirce's Law (Alpha), and — as they land — Barbara and group-identity (Beta)
 
 Each fixture is a *real* ``TransformationChain`` (every step a sound Dau-rule
 application), carrying a typed provenance bundle and an annotation layer at the
-scopes the walkthrough mapped (``docs/ORGANON_IMPORT_WALKTHROUGH.md`` §4).  These
+scopes the walkthrough mapped (``docs/archived/ORGANON_IMPORT_WALKTHROUGH.md`` §4).  These
 tests pin: the derivation reaches the stated conclusion; the provenance is a
 valid authored-here bundle; the annotations cover the expected scopes; and the
 whole payload round-trips through ``save_uod_with_chain`` + ``save_annotations``
