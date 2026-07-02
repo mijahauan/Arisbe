@@ -32,6 +32,29 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-02, cont. 2) — RUN 1 EXECUTED + FINDINGS DISPOSED (runs/RUN_1_LOG.md).**
+The first live run, per §11: seeds Q42+Q7259+Q937, 2 supervised sittings, **12 segments / 300
+rounds / 3 polls / 432 statements**, STOP-file exercised (clean `stop_file` exit after seg 8),
+`--resume` exercised (segs 9–12; frontier + decay clock + global counters intact), 12/12
+checkpoints §3.3-attested, **determinism canary GREEN** (offline replay of polls.jsonl reproduced
+the live trajectory exactly: 298 revising + 2 inert). Priors: **P1/P3/P4/P5/P6 CONFIRMED**
+(100% of revising rounds new_fact; |M| 13–30 at ttl 30 with ~73% of episodes decay-erased,
+counted; ONE resolution principle false:ground→new_fact stability 1.0, zero thrash/gaps/friction;
+shapes ground+1 negation, branched 0; poise 12/12 ● with zero stumbles — predicted late rigidity
+didn't appear, frontier unexhausted). **P2 UNTESTED (vacuous)** — the finding: F3 the capped
+crawl's settled surface carries ~no contestation (1 deprecated/432; per_entity_cap takes first-N
+and disputes live in the tail/change stream) → the strongest argument yet that **run 2 =
+recentchanges**. **F2 (new_fact about game-with-source): overturn visibility is
+WORKING-SET-RELATIVE** — the one deprecation arrived as a denial whose target wasn't standing →
+correctly inert; under decay, relinquishments only bite if the source revisits within ttl —
+mechanism-durability findings are conditioned on revisit-rate. **F1 (challenge_to_M vs the §10
+capacity model, partially relinquished pre-run):** checkpoint attest dominates wall-clock
+(3.5→593 s/segment vs <1 s compute), residual = ELK visibility-graph O(pairs) loop, named.
+**F4:** the monological-ingestion baseline is on record — the reference for the tropism + LLM
+runs. **▶ NEXT: the recentchanges adapter (run 2)** — deliver relinquishments *with* their
+standing context (F2/F3); optionally a small-frontier run to exercise the rigidity pole + stumble
+recovery for real. [[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-07-02, cont.) — THE RUN-1 KIT + A 140× CHECKPOINT FIX. SHIPPED,
 core-protection CLEAN.** Author chose frontier order: **rotating (run 1) → recentchanges API
 (run 2) → flux observation (run 3)**; commissioned the poll recorder + label cache; agreed side
