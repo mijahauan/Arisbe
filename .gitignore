@@ -207,3 +207,11 @@ tomos/.liveness.json
 # Quarto book/help generated outputs
 docs/_book/
 docs/.quarto/
+
+# Live-run side store (checkpoint UoDs + state + recorded polls are run artifacts,
+# never the corpus; the run LOG is tracked)
+runs/*/checkpoints/
+runs/*/state.json
+runs/*/frontier.json
+runs/*/polls.jsonl
+runs/*/STOP

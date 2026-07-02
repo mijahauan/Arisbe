@@ -702,6 +702,33 @@ watched run tolerates and an unattended one does not:
    content is untrusted quoted data, never instructions. The mechanical quorum + reduce-to-artifact
    remain the deeper bound; the fences shrink the bias channel.
 
+**The run-1 kit (BUILT 2026-07-02)** — everything §11's binding configuration names, assembled:
+`wikidata_source.RotatingWikidataSource` (the **rotating frontier**: a Q-id queue consumed
+`chunk_size` per poll, fetched *lazily at poll time* so the runner's pacing actually paces the
+API; `crawl` grows the frontier from entity-valued statement values, bounded by `frontier_cap`
+with drops counted; one `LabelCache` across the run — fetch only unseen ids, negative-cached —
+and `save_state`/`load_state` so a resumed run **continues its crawl**);
+`record_poll`/`replay_polls` (every poll appended as JSONL → the whole run replays offline
+through `WikidataSource`, the determinism canary — used the very day it was built, to reproduce
+a live timing anomaly offline); and the driver `tools/run_live_wikidata.py` (side-store
+checkpoints under `runs/<run>/checkpoints`, `state.json` + `frontier.json` + `--resume`,
+STOP-file, pacing, per-segment console digests, final §6 + poise summary; log findings in
+`runs/RUN_1_LOG.md` against §11). Rehearsed end-to-end against the live API, including a
+stop + `--resume` continuing segments 3–4 with the frontier and decay clock intact.
+
+**A measured pre-run finding (2026-07-02): checkpoint attest cost scales with M's *shape*, not
+just |M|.** The smoke run's second segment took 452 s against 0.8 s of round compute — isolated
+(via the recorded polls replayed offline) to `save_uod_with_chain`'s §3.3 attest: a Wikidata
+entity's M is a **star graph** (one hub individual shared by every atom), and the ELK ligature
+router built its visibility graph with no spatial pruning — O(waypoints² × obstacles) full
+segment/rect tests, ~133 M cross-products for a 25-fact graph. Two responses: (1) an **exact
+quick reject** in `_seg_crosses_rect` (a segment wholly to one side of a rect cannot touch it —
+strict inequalities, so boundary cases still take the full test and results are bit-identical):
+451.8 s → **3.2 s**, verified against the layout-consuming test suites with §3.3 attest live
+everywhere; (2) `per_entity_cap` on the rotating source (bound the hub degree at the membrane;
+drops counted in `statements_dropped`, never silent). The §10 capacity table now carries this
+rider: *plan for M's shape (hub degree), not only its size.*
+
 ## 11 · Run 1 — pre-registered expectations (the run as evidence in domain-building about the game)
 
 *(Written 2026-07-02, BEFORE the first live run, so that interpretation is prepared rather than
@@ -729,13 +756,17 @@ a result is read against a prior that predates it, and *progression not progress
 wording of every finding.
 
 **The run-1 configuration this pre-registration binds to** (change it and the priors must be
-re-derived): `WikidataSource` over a **rotating entity frontier** (fresh Q-ids per poll — see
-"considerations" below; a fixed id list would make every poll after the first pure redundancy),
-labels on; `WikiDisputeFeed`; the **mechanical panel + `ContradictionAgent`** (no LLM roles —
-telemetry is expected trivially zero and any nonzero value is a bug); `ttl` set, `segment_cap` 25,
-`min_interval_s` ≥ 2 s, `max_seconds` a few hours, `stop_file` armed, `checkpoint` on to a
-**runs/ side store, never the main corpus**, `state_path` set; every poll's statements **recorded
-to disk** so the whole run replays offline afterward.
+re-derived): `RotatingWikidataSource` — a **rotating entity frontier** (fresh Q-ids per poll,
+`crawl` on, `frontier_cap` bounding growth with drops counted; a fixed id list would make every
+poll after the first pure redundancy), labels on through one `LabelCache`, **`per_entity_cap`**
+bounding the hub degree (the checkpoint attest is super-linear in M's star shape — the measured
+§10 finding; capped statements counted in `statements_dropped`); `WikiDisputeFeed`; the
+**mechanical panel + `ContradictionAgent`** (no LLM roles — telemetry is expected trivially zero
+and any nonzero value is a bug); `ttl` set, `segment_cap` 25, `min_interval_s` ≥ 2 s,
+`max_seconds` a few hours, `stop_file` armed, `checkpoint` on to a **runs/ side store, never the
+main corpus**, `state_path` + `frontier.json` set (kill + `--resume` rehearsed); every poll
+**recorded to disk** (`polls.jsonl`) so the whole run replays offline afterward. Driver:
+`tools/run_live_wikidata.py`; findings go to `runs/RUN_1_LOG.md`.
 
 **Priors (P1–P7), each bound to its instrument:**
 

@@ -29,8 +29,8 @@ input; nothing auto-promotes to the attested corpus.
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Mapping, Optional, Sequence
+from dataclasses import asdict, dataclass
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Set
 
 from wiki_dispute_membrane import Resolution, WikiDispute, WikiEdit
 
@@ -228,6 +228,179 @@ class WikidataSource:
 
 
 # --------------------------------------------------------------------------- #
+# The label cache — politeness across polls                                    #
+# --------------------------------------------------------------------------- #
+
+class LabelCache:
+    """An in-memory ``id → label`` cache shared across a run's polls. A rotating frontier
+    re-encounters the same property ids (P31, P569, …) every poll; without the cache every poll
+    re-asks the API for them. ``lookup`` fetches only the ids not yet seen — including
+    **negative caching** (an id the API returned no label for is not re-asked). ``fetched``
+    counts ids actually sent to the API (the politeness accounting)."""
+
+    def __init__(self, fetch: Callable[..., Dict[str, str]] = None):
+        self._fetch = fetch if fetch is not None else wblabels_fetch
+        self._labels: Dict[str, str] = {}
+        self._no_label: Set[str] = set()
+        self.fetched = 0
+
+    def lookup(self, ids: Sequence[str]) -> Dict[str, str]:
+        missing = [i for i in ids
+                   if _PQ_ID.match(i) and i not in self._labels and i not in self._no_label]
+        if missing:
+            self.fetched += len(missing)
+            got = self._fetch(missing)
+            self._labels.update(got)
+            self._no_label.update(i for i in missing if i not in got)
+        return {i: self._labels[i] for i in ids if i in self._labels}
+
+
+# --------------------------------------------------------------------------- #
+# The poll record — every live poll persisted for offline replay              #
+# --------------------------------------------------------------------------- #
+#
+# §11's determinism canary made real: a live run whose polls are recorded replays offline —
+# ``WikidataSource(replay_polls(path))`` re-drives the identical trajectory, so "would the
+# current code produce the same run?" is a cheap diff, not an argument.
+
+def record_poll(path: str, statements: Sequence[WikidataStatement]) -> None:
+    """Append one poll's (resolved) statements to ``path`` as a JSONL line."""
+    import json
+    with open(path, "a", encoding="utf-8") as fh:
+        fh.write(json.dumps([asdict(s) for s in statements]) + "\n")
+
+
+def replay_polls(path: str) -> List[List[WikidataStatement]]:
+    """Read a :func:`record_poll` file back into polls — hand to ``WikidataSource`` to replay
+    the recorded run offline."""
+    import json
+    polls: List[List[WikidataStatement]] = []
+    with open(path, "r", encoding="utf-8") as fh:
+        for line in fh:
+            if line.strip():
+                polls.append([WikidataStatement(**d) for d in json.loads(line)])
+    return polls
+
+
+# --------------------------------------------------------------------------- #
+# The rotating frontier — run 1's live source                                  #
+# --------------------------------------------------------------------------- #
+
+class RotatingWikidataSource:
+    """The **rotating-frontier** live source (run 1, §11): a queue of Q-ids consumed
+    ``chunk_size`` per poll, fetched **lazily at poll time** — so the runner's pacing actually
+    paces the API (``WikidataSource.from_fetch`` prefetches eagerly at construction and is not
+    suitable for a live run). With ``crawl`` (the default) each poll **grows the frontier**:
+    entity-valued statement values (Q-ids) not yet seen are enqueued for later polls, bounded
+    by ``frontier_cap`` — ids dropped at the cap are *counted* (``frontier_dropped``), never
+    silent. One :class:`LabelCache` serves the whole run; every poll's resolved statements are
+    appended to ``record_path`` (offline replay) and its ``unresolved_fraction`` to
+    ``legibility`` (the tripwire). ``fetch_ids`` is injectable — CI runs on fixtures; production
+    wires the real ``wbgetentities_fetch(ids, with_labels=False)`` (labels resolve here, through
+    the cache). ``save_state``/``load_state`` persist the frontier (queue, cursor, cache) so a
+    resumed run continues its crawl instead of restarting from the seeds.
+
+    ``per_entity_cap`` bounds how many statements one entity contributes per poll — the
+    **hub-degree bound**: an M built from one entity's facts is a star graph (one individual
+    shared by every atom), and the §3.3 attest at each checkpoint routes ligatures through a
+    visibility graph that is super-linear in hub degree (measured 2026-07-02: ~0.3 s synthetic,
+    ~28 s at a 25-fact star, ~452 s at 46). Capped statements are *counted*
+    (``statements_dropped``), never silent."""
+
+    def __init__(
+        self,
+        seed_ids: Sequence[str],
+        *,
+        chunk_size: int = 8,
+        crawl: bool = True,
+        frontier_cap: int = 400,
+        per_entity_cap: Optional[int] = None,
+        fetch_ids: Optional[Callable[[Sequence[str]], Sequence[WikidataStatement]]] = None,
+        record_path: Optional[str] = None,
+        label_fetch: Optional[Callable[..., Dict[str, str]]] = None,
+    ):
+        self._queue: List[str] = list(dict.fromkeys(seed_ids))
+        self._seen: Set[str] = set(self._queue)
+        self._i = 0
+        self._chunk = chunk_size
+        self._crawl = crawl
+        self._cap = frontier_cap
+        self._entity_cap = per_entity_cap
+        self._fetch_ids = fetch_ids or (
+            lambda ids: wbgetentities_fetch(ids, with_labels=False))
+        self._record = record_path
+        self._cache = LabelCache(label_fetch)
+        self.legibility: List[float] = []
+        self.frontier_dropped = 0
+        self.statements_dropped = 0
+
+    def fetch(self) -> Sequence[WikiDispute]:
+        if self._i >= len(self._queue):
+            return []
+        ids = self._queue[self._i:self._i + self._chunk]
+        self._i += len(ids)
+        statements = list(self._fetch_ids(ids))
+        if self._entity_cap is not None:
+            kept: List[WikidataStatement] = []
+            taken: Dict[str, int] = {}
+            for s in statements:
+                if taken.get(s.item, 0) < self._entity_cap:
+                    taken[s.item] = taken.get(s.item, 0) + 1
+                    kept.append(s)
+                else:
+                    self.statements_dropped += 1
+            statements = kept
+        if self._crawl:
+            for s in statements:
+                v = s.value
+                if v.startswith("Q") and _PQ_ID.match(v) and v not in self._seen:
+                    if len(self._queue) < self._cap:
+                        self._seen.add(v)
+                        self._queue.append(v)
+                    else:
+                        self.frontier_dropped += 1
+        statements = resolve_labels(statements, self._cache.lookup(collect_ids(statements)))
+        if self._record:
+            record_poll(self._record, statements)
+        self.legibility.append(unresolved_fraction(statements))
+        return statements_to_disputes(statements)
+
+    def exhausted(self) -> bool:
+        return self._i >= len(self._queue)
+
+    # -- frontier persistence (the source half of a kill + resume) -------------
+    def save_state(self, path: str) -> None:
+        import json
+        import os
+        state = {
+            "version": 1,
+            "queue": self._queue, "cursor": self._i,
+            "frontier_dropped": self.frontier_dropped,
+            "statements_dropped": self.statements_dropped,
+            "labels": self._cache._labels, "no_label": sorted(self._cache._no_label),
+            "legibility": self.legibility,
+        }
+        tmp = f"{path}.tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(state, fh, indent=1)
+        os.replace(tmp, path)
+
+    @classmethod
+    def load_state(cls, path: str, **kwargs) -> "RotatingWikidataSource":
+        import json
+        with open(path, "r", encoding="utf-8") as fh:
+            state = json.load(fh)
+        src = cls(state["queue"], **kwargs)
+        src._i = state["cursor"]
+        src.frontier_dropped = state.get("frontier_dropped", 0)
+        src.statements_dropped = state.get("statements_dropped", 0)
+        src._cache._labels.update(state.get("labels", {}))
+        src._cache._no_label.update(state.get("no_label", []))
+        src.legibility = list(state.get("legibility", []))
+        return src
+
+
+# --------------------------------------------------------------------------- #
 # The real Wikidata call — stdlib only, no auth; NOT exercised in CI          #
 # --------------------------------------------------------------------------- #
 
@@ -316,5 +489,6 @@ def wbgetentities_fetch(
 __all__ = [
     "WikidataStatement", "statement_egif", "statements_to_disputes",
     "collect_ids", "resolve_labels", "unresolved_fraction", "wblabels_fetch",
+    "LabelCache", "record_poll", "replay_polls", "RotatingWikidataSource",
     "WikidataSource", "wbgetentities_fetch",
 ]

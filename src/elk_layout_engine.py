@@ -990,6 +990,18 @@ class ELKLayoutEngine:
     @staticmethod
     def _seg_crosses_rect(p1: Point, p2: Point, rect: BoundingBox) -> bool:
         """True if segment (p1, p2) crosses *into or out of* rect."""
+        # Exact quick reject: a segment wholly to one side of the rect cannot touch it.
+        # (Pure prefilter — strict inequalities, so boundary-touching cases still take the
+        # full test below and results are bit-identical.) The visibility-graph build tests
+        # O(waypoints² × obstacles) segment/rect pairs, almost all far apart; without this
+        # a checkpoint attest of a ~50-atom star-shaped M measured ~450 s (2026-07-02).
+        if (
+            (p1.x < rect.min_x and p2.x < rect.min_x)
+            or (p1.x > rect.max_x and p2.x > rect.max_x)
+            or (p1.y < rect.min_y and p2.y < rect.min_y)
+            or (p1.y > rect.max_y and p2.y > rect.max_y)
+        ):
+            return False
 
         def inside(p: Point) -> bool:
             return (

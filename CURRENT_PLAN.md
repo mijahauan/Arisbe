@@ -32,6 +32,34 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-02, cont.) — THE RUN-1 KIT + A 140× CHECKPOINT FIX. SHIPPED,
+core-protection CLEAN.** Author chose frontier order: **rotating (run 1) → recentchanges API
+(run 2) → flux observation (run 3)**; commissioned the poll recorder + label cache; agreed side
+store / rehearsed failure paths / run log. Built: **(1) `RotatingWikidataSource`** — lazy per-poll
+fetch (the runner's pacing actually paces the API; `from_fetch` prefetches eagerly and is unfit
+for live), `crawl` grows the frontier from entity-valued values (`frontier_cap`, drops counted),
+`per_entity_cap` bounds hub degree (`statements_dropped` counted), one **`LabelCache`** per run
+(unseen-only + negative-cached; `fetched` = politeness accounting), `save_state`/`load_state` so
+a resumed run **continues its crawl**. **(2) `record_poll`/`replay_polls`** — every poll → JSONL →
+the run replays offline (the determinism canary — USED THE SAME DAY: reproduced a live timing
+anomaly offline). **(3) driver `tools/run_live_wikidata.py`** — side-store checkpoints
+(`runs/<run>/checkpoints`, never the corpus), `state.json`+`frontier.json`+`--resume`, STOP-file,
+per-segment console digests, final §6+poise summary; `runs/RUN_1_LOG.md` template (session header
+→ P7 gate first → P1–P6 observed-vs-expected → dated disposed findings → horizon); gitignore keeps
+artifacts out, log in. **THE FINDING (via the canary): checkpoint attest cost scales with M's
+SHAPE, not just |M|** — a Wikidata entity's M is a STAR graph (hub individual, degree ~40);
+`save_uod_with_chain`'s §3.3 attest ran the ELK ligature router's visibility graph with NO spatial
+pruning (~133M cross-products at 25 facts): smoke seg-2 = 452s vs 0.8s round compute. FIX: an
+**exact bbox quick reject** in `elk_layout_engine._seg_crosses_rect` (strict inequalities —
+bit-identical routes): 451.8s → **3.2s** (140×), verified against the layout-consuming suites
+(§3.3 attest live everywhere). §10 rider: *plan for M's shape (hub degree), not only size*.
+Driver REHEARSED live end-to-end incl. stop + `--resume` (segments continue 3/4, global rounds
+100, frontier + decay clock intact). §11 binding config updated (per_entity_cap named). Tests:
++5 wikidata (cache unseen-only/negative, record/replay round-trip, lazy+crawl, cap counted,
+frontier state round-trip). **▶ NEXT: run 1 itself** (supervised first hour per §11, findings →
+RUN_1_LOG.md); then recentchanges adapter (run 2); LLM-roles-live; tropism module (§4d).
+[[project_next_automated_model_development_life]].
+
 **▶▶▶ THIS SESSION (2026-07-02) — THE THREE UNATTENDED-RUN ITEMS (tripwires · resume · injection
 guards). SHIPPED, additive, core-protection CLEAN.** The three gaps a watched run tolerates and an
 unattended one does not (design-doc §10 "Unattended-run hardening"): **(1) Tripwires** —

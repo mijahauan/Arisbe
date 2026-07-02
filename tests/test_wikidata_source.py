@@ -14,7 +14,8 @@ from live_runner import LiveRunConfig, LiveRunner
 from model_revision import retract_atom
 from wiki_dispute_membrane import WikiDisputeFeed
 from wikidata_source import (
-    WikidataSource, WikidataStatement as WS, collect_ids, resolve_labels,
+    LabelCache, RotatingWikidataSource, WikidataSource, WikidataStatement as WS,
+    collect_ids, record_poll, replay_polls, resolve_labels,
     statement_egif, statements_to_disputes, unresolved_fraction,
 )
 
@@ -165,3 +166,128 @@ def test_deprecation_overturns_bare_value_end_to_end():
     # the referenced value stands; the bare deprecated one is gone
     assert same_graph(parse_egif(res.final_model_egif),
                       parse_egif('(place_of_birth "Q42" "London")'))
+
+
+# --------------------------------------------------------------------------- #
+# The label cache — politeness across polls                                    #
+# --------------------------------------------------------------------------- #
+
+def test_label_cache_fetches_only_missing_and_negative_caches():
+    asked = []
+
+    def fake_fetch(ids):
+        asked.append(list(ids))
+        return {i: f"label:{i}" for i in ids if i != "Q404"}   # Q404 has no label
+
+    cache = LabelCache(fake_fetch)
+    got = cache.lookup(["Q42", "P19", "Q404", "not_an_id"])
+    assert got == {"Q42": "label:Q42", "P19": "label:P19"}
+    assert asked == [["Q42", "P19", "Q404"]]                   # non-ids never asked
+    # a second lookup over the same ids (plus one new) asks ONLY for the new one —
+    # including the labelless Q404 (negative-cached, not re-asked every poll)
+    got2 = cache.lookup(["Q42", "Q404", "Q1"])
+    assert got2 == {"Q42": "label:Q42", "Q1": "label:Q1"}
+    assert asked[1] == ["Q1"]
+    assert cache.fetched == 4
+
+
+# --------------------------------------------------------------------------- #
+# The poll record — offline replay (the determinism canary)                    #
+# --------------------------------------------------------------------------- #
+
+def test_record_and_replay_polls_round_trip(tmp_path):
+    path = str(tmp_path / "polls.jsonl")
+    poll1 = [WS("Douglas Adams", "place of birth", "Cambridge", "normal", True)]
+    poll2 = [WS("Q1", "instance_of", "Q2", "deprecated", False)]
+    record_poll(path, poll1)
+    record_poll(path, poll2)
+    polls = replay_polls(path)
+    assert polls == [poll1, poll2]                             # fields + order intact
+    # and the replayed record drives the SAME source shape the live run used
+    src = WikidataSource(polls)
+    assert src.fetch()[0].claim_egif == '(place_of_birth "Douglas Adams" "Cambridge")'
+    assert src.fetch()[0].resolution.mechanism == "deprecated"
+
+
+# --------------------------------------------------------------------------- #
+# The rotating frontier — run 1's live source                                  #
+# --------------------------------------------------------------------------- #
+
+def _frontier_fixture(ids):
+    """A tiny fake wiki: each entity has one statement; Q1's value names Q3 (the crawl edge)."""
+    world = {
+        "Q1": WS("Q1", "P19", "Q3"),                # entity-valued → crawlable
+        "Q2": WS("Q2", "P569", "1952-03-11"),       # time value → not crawlable
+        "Q3": WS("Q3", "P17", "somewhere"),
+    }
+    return [world[i] for i in ids if i in world]
+
+
+def test_rotating_source_is_lazy_and_crawls_the_frontier(tmp_path):
+    calls = []
+
+    def fetch_ids(ids):
+        calls.append(list(ids))
+        return _frontier_fixture(ids)
+
+    labels = {"Q1": "Adam", "Q2": "Eve", "Q3": "Cambridge", "P19": "place of birth",
+              "P17": "country", "P569": "date of birth"}
+    src = RotatingWikidataSource(
+        ["Q1", "Q2"], chunk_size=2, fetch_ids=fetch_ids,
+        record_path=str(tmp_path / "polls.jsonl"),
+        label_fetch=lambda ids: {i: labels[i] for i in ids if i in labels})
+    assert calls == []                                         # lazy: nothing at construction
+    batch1 = src.fetch()
+    assert calls == [["Q1", "Q2"]]
+    # the crawl discovered Q3 (an entity-valued value) and enqueued it for the next poll
+    assert not src.exhausted()
+    batch2 = src.fetch()
+    assert calls[1] == ["Q3"]
+    assert src.exhausted()
+    # labels resolved through the shared cache; the claims are legible
+    assert any('(place_of_birth "Adam" "Cambridge")' == d.claim_egif for d in batch1)
+    assert any('(country "Cambridge" "somewhere")' == d.claim_egif for d in batch2)
+    assert src.legibility == [0.0, 0.0]
+    # and every poll was recorded — the run replays offline
+    polls = replay_polls(str(tmp_path / "polls.jsonl"))
+    assert len(polls) == 2 and polls[0][0].item == "Adam"
+
+
+def test_rotating_source_frontier_cap_counts_drops():
+    src = RotatingWikidataSource(
+        ["Q1"], chunk_size=1, frontier_cap=1,                  # no room to grow
+        fetch_ids=_frontier_fixture, label_fetch=lambda ids: {})
+    src.fetch()
+    assert src.frontier_dropped == 1                           # Q3 dropped, counted not silent
+    assert src.exhausted()
+
+
+def test_rotating_source_state_round_trip_continues_the_crawl(tmp_path):
+    calls = []
+
+    def fetch_ids(ids):
+        calls.append(list(ids))
+        return _frontier_fixture(ids)
+
+    kwargs = dict(chunk_size=1, fetch_ids=fetch_ids, label_fetch=lambda ids: {})
+    src = RotatingWikidataSource(["Q1", "Q2"], **kwargs)
+    src.fetch()                                                # consumes Q1, crawls Q3
+    src.save_state(str(tmp_path / "frontier.json"))
+    resumed = RotatingWikidataSource.load_state(str(tmp_path / "frontier.json"), **kwargs)
+    # the resumed source continues: Q1 not re-polled, the crawled Q3 not lost
+    assert resumed.fetch() and calls[-1] == ["Q2"]
+    assert resumed.fetch() and calls[-1] == ["Q3"]
+    assert resumed.exhausted()
+
+
+def test_rotating_source_per_entity_cap_bounds_the_hub_and_counts_drops():
+    """The hub-degree bound: one entity's M is a star graph, and the checkpoint attest's
+    ligature routing is super-linear in hub degree — so statements per entity are capped,
+    with drops counted, never silent."""
+    big = [WS("Q1", f"prop{i}", f"v{i}") for i in range(10)]
+    src = RotatingWikidataSource(["Q1"], chunk_size=1, per_entity_cap=3, crawl=False,
+                                 fetch_ids=lambda ids: list(big),
+                                 label_fetch=lambda ids: {})
+    batch = src.fetch()
+    assert len(batch) == 3                                     # hub degree bounded
+    assert src.statements_dropped == 7                         # counted, not silent
