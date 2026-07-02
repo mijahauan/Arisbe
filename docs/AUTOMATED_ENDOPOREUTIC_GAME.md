@@ -6,9 +6,10 @@ all three under the mechanical referee · the **§6 meta-learning instruments**
 (`src/agon_metalearning.py`) + **three §4b open membranes** — raise-only
 (`src/discourse_membrane.py`), raise-and-resolve (`src/resolving_membrane.py`), wiki-dispute
 (`src/wiki_dispute_membrane.py`) — the **live runner** (`src/live_runner.py`, §10) and the **first
-live source, Wikidata** (`src/wikidata_source.py`) BUILT · §4c reads the whole as a *model living
-with a given reality (the wiki-world) through the membrane* · aim = **discovery** · **Drafted**:
-2026-06-30
+live source, Wikidata** (`src/wikidata_source.py`) BUILT · §4c–4d frame the whole as a *model
+living with a given reality through the membrane* and locate the drive (**tropism**), the coupling
+(**dianexus**), and the not-yet-legible (**horizon**) in the *methodeutic surround outside the
+calculus* · aim = **discovery** · **Drafted**: 2026-06-30
 
 > **The question this answers.** Can the Endoporeutic Game be played *automatically* — no
 > ponderous human in the loop — by AI agents that, starting from scratch, build a domain
@@ -215,6 +216,82 @@ settles its disagreements** (the §6 `mechanism_principles`: reliable-source cit
 durable knowledge where a contradicted consensus does not). So a live run is a bounded, low-warrant,
 diachronic model that develops by living alongside a reality in flux, modelling both **what** the
 wiki-world records **and how** it resolves what it disputes.
+
+## 4d · The methodeutic surround — dianexus, tropism, and the horizon (what the calculus does not contain)
+
+*(Framing capture, not yet built — the ground the eventual directed-engagement piece will stand
+on. Co-designed 2026-07-01.)*
+
+The game (the calculus) governs the **marks on the sheet of assertion (S0A)** and their soundness:
+assertions, cuts, ligatures; the Dau rules; the peel as referee; a disposition revising M. But much
+of what makes a *live* run live happens **outside** the game — the drive to make a move at all, the
+reaching across the membrane, the not-yet-intelligible that comes through garbled. This is not a
+gap in the design. It is Peirce's own third branch of logic-as-semiotic — **methodeutic**
+(speculative rhetoric): the *conduct of inquiry*, which speculative grammar (well-formedness) and
+critic (validity) were never meant to contain. Getting comfortable with the automated game means
+getting comfortable with this two-storey picture.
+
+```
+OUTSIDE the game  — the conduct of inquiry (Peirce's methodeutic)
+  the Graphist (the agent):
+    · moved by TROPISM       irritation (push) ⟵ | ⟶ musement (pull)
+    · DANCING the DIANEXUS with the objective world = { M-objectified , the other }
+    · reaches across the MEMBRANE; the reaches are ordered by the economy of research
+    · the HORIZON holds what comes back not-yet-legible (it cannot be a mark yet)
+
+──────────  the membrane / the common sheet (the ground/commens; it can grow)  ──────────
+
+INSIDE the game   — the calculus (speculative grammar + critic)
+  the sheet of assertion (S0A): marks — assertions, cuts, ligatures
+    · a *legible* reach becomes a proposal G placed on the sheet
+    · the peel (the mechanical referee) tests it; a disposition revises M
+    · M's new objectivation re-enters the objective world → reshapes the gradient
+```
+
+**The layered vocabulary** (co-designed; adjust as understanding sharpens):
+
+- **membrane** — the selective boundary; a live source is what lies beyond it.
+- **the common sheet / commens** — the *ground*: the shared addressability that lets the other's
+  marks land on the same sheet as M's (Peirce's *commens*, the common ground any assertion-to
+  presupposes; in EG, the sheet you can assert *to* another on). It is not fixed — it can **grow**.
+- **the other** — the unknown, not-fully-predictable partner beyond the membrane (Peircean
+  **Secondness**: brute resistance, surprise, the not-me).
+- **dianexus** — the *binding-across* (dia- + nexus): the bond the Graphist has with the objective
+  world — **danced, not stood in**, and binding her with the world **notionally and in actuality**
+  (not a mere figure of speech — an actual coupling). It is mutual, temporal co-movement (structural
+  coupling). Its trace — the graph's evolution, *the ongoing conversation, thought itself* — is the
+  dance's **choreography**: the coupling objectified into a pattern that, once laid down, in turn
+  shapes the next movement (the dialectic again — the trace becomes the score).
+- **tropism** — the *drive*, and it belongs to the **player, not to M** (M, once objectified, is
+  driveless — only marks on a sheet). It is a **bipolar gradient**: **irritation** (push — the
+  irritation of doubt, *Fixation of Belief*) and **musement** (pull — the drawn, pleasurable play
+  that seeds abduction, *A Neglected Argument*). It is **tropic, not self-directed**: she does not
+  set the gradient (no telos of her own conception); it is *revealed in* the dance and *reshaped by*
+  what has been objectified.
+- **horizon** — the retained **not-yet-legible**. A ground-miss ("reads as *not even wrong*") is
+  **kept, not discarded** — a *could-be* of an as-yet-incomprehensible aspect coming through
+  garbled. Recurrence + musement draw a horizon-arrival toward **ground-enlargement** (abducing a
+  new term that extends the common sheet). In the categories: a **First** (a bare could-be) that,
+  by insisting (**Second**), is carried into a new habit/term (**Third**). So the *ground itself*
+  co-evolves — the membrane can teach new **words**, not only new **facts** — and the horizon
+  **breathes** (an abduced term shrinks it; the newly-legible reveals fresh adjacent unintelligibles
+  that enlarge it).
+
+**The reflexive twist** (Berger & Luckmann's dialectic): the objective world *includes M* — M is the
+Graphist's own product, yet once **objectified** it confronts her as object (externalization →
+objectivation → internalization). Her prior thought becomes part of the world she must now contend
+with; each move's objectivation reshapes the gradient that draws or pushes the next. That loop —
+not a telos — is the engine.
+
+**The border, and what already lives outside it.** Only a **legible** reach crosses onto the sheet
+as a mark; the not-yet-legible stays in the horizon. The low-warrant floor and the mode contract
+(nothing reaches the attested corpus except through the game) are exactly the **border guards**
+between the methodeutic surround and the calculus. And the outside storey is not empty today:
+`attention_brief` — a pre-move reading of M's thin spots that is *not itself a mark on the sheet* —
+is a **proto-tropism**, its irritation pole already built. The eventual directed-engagement piece
+implements the rest: the musement pole, the economy-of-research ordering of reaches, and the
+horizon as a first-class, retained register. Nothing here auto-promotes; *progression, not progress*
+(§7).
 
 ## 5 · Irreducible disagreement → branch the DAG
 

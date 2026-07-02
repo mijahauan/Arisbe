@@ -64,8 +64,31 @@ biological reading)"**: Wikidata = a reality of the *record/discourse* (editoria
 physical → *model the discourse, not the world*); "living with" = ingestion of a reality-in-flux
 (not yet mutual co-evolution); M = a bounded/low-warrant/diachronic *stance* (progression not
 progress) that also forms a **meta-model of how the wiki-world settles disputes** (mechanism_principles).
-**▶ NEXT:** a live *raise-and-resolve* source (prediction-market/sports/weather API) once a **temporal
-fragment** is added (our FOL is atemporal — the blocker for markets); Wikidata P/Q-id→label lookups;
+**THEN (conceptual co-design, doc-only) — the methodeutic surround (design-doc §4c + §4d).** After
+affirming the biological reading (§4c), the author + I worked out the vocabulary and the *inside/
+outside* split for the deferred directed-engagement build, captured as **§4d "The methodeutic surround
+— dianexus, tropism, and the horizon (what the calculus does not contain)."** KEY MOVES: (1) the drive
+belongs to the **player (Graphist), not to M** (M once objectified is driveless marks) — "M's tropism"
+was my error; (2) **tropism** = a *bipolar gradient* — **irritation** (push, doubt/Fixation-of-Belief)
++ **musement** (pull, the drawn play that seeds abduction/Neglected-Argument) — **tropic, not
+self-directed** (she doesn't set the gradient); (3) **dianexus** = the binding-across the Graphist has
+with the **objective world = { M-objectified + the other }**, **danced not stood in** (notionally *and
+in actuality*), whose trace — the evolving graph, thought itself — is the dance's **choreography** that
+then shapes the next move (Berger-Luckmann dialectic: the trace becomes the score); (4) **"not even wrong"
+→ "not yet"** — a ground-miss is **retained in the horizon** (a could-be), and recurrence + musement draw
+it toward **ground-enlargement** (abducing a new term extends the *common sheet/commens* — the ground
+co-evolves, First→Second→Third); (5) the whole thing is Peirce's **methodeutic** (third branch, conduct of
+inquiry) — *outside* the calculus (speculative grammar + critic), which governs only the marks on the
+**sheet of assertion (S0A)** and their soundness; only *legible* reaches cross onto the sheet, the
+low-warrant floor/mode-contract being the border guards; `attention_brief` is an already-built
+proto-tropism (its irritation pole). Vocabulary layers: membrane / common-sheet(commens, the ground, can
+grow) / the other (Secondness) / dianexus (the danced coupling) / tropism (the drive) / horizon (the
+not-yet-legible). **Not built — this is the ground the eventual directed-engagement/tropism module stands
+on** (it would add the musement pole + economy-of-research reach-ordering + the horizon as a first-class
+retained register; read-only reaches first, write-back later). [[project_next_automated_model_development_life]].
+**▶ NEXT:** build the directed-engagement/tropism module per §4d (deferred, author still getting
+comfortable with the inside/outside layers); OR a live *raise-and-resolve* source (prediction-market/
+sports/weather API) once a **temporal fragment** is added (our FOL is atemporal — the blocker for markets); Wikidata P/Q-id→label lookups;
 the §6 runs-as-corpus/test-suite + self-describing-rulebook harvests.
 [[project_next_automated_model_development_life]].
 
