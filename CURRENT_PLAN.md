@@ -55,10 +55,24 @@ shrink the disposition-bias channel a crafted wiki edit would use. Tests: +5 ago
 (fence/neutralize, guard in all systems, hostile relation name reaches Graphist only fenced,
 Grapheus brief fences M+proposal, judge fences rationales) +3 telemetry (Graphist/Grapheus
 error-vs-judgment, judge fallback) +2 live_runner resume +2 wikidata legibility. All 97 affected
-tests green; demos green. **▶ NEXT: the first unattended-with-checkpoints session is now fully
-unblocked** (stop_file + max_seconds + checkpoint + state_path + tripwires); then LLM-roles-live
-against the open source (guards now in place); then the tropism module (§4d).
-[[project_next_automated_model_development_life]].
+tests green; demos green. **THEN (doc-only) — RUN-1 PRE-REGISTRATION, design-doc §11:** the run
+framed as **evidence in domain-building about the game itself** (rulebook / disposition taxonomy /
+dialog shape) — the reflexive frame (interpreting the run = an EPG episode with us as player;
+findings disposed by the taxonomy at the meta level: confirmed prior=redundancy, surprise=new_fact,
+contradicted prior=challenge_to_M against the rulebook, oddity=entertained on the horizon), the
+binding run-1 configuration (rotating entity frontier + mechanical panel + ContradictionAgent, no
+LLM, side-store checkpoints, recorded polls), **priors P1–P7 each bound to its instrument**
+(P1 ≥90% new_fact / P2 reliable_source ≥ consensus durability / P3 |M|≈ttl + majority decay-erased
+/ P4 zero thrash-gaps-friction — any violation is the most valuable possible finding, against the
+rulebook / P5 monological ingestion baseline, shapes ∈ {ground, negation} / P6 poise mostly ●,
+rigidity the likely late pole / P7 operational floor — violations poison downstream evidence), and
+standing interpretation rules (§4c/§7 restated). Written BEFORE the run so results read against
+priors that predate them. **▶ NEXT: the first unattended-with-checkpoints session** — remaining
+pre-run decisions: the **entity-frontier design** (rotating crawl vs fixed-list redundancy vs the
+recentchanges-API flux source for run 2), a poll recorder (persist fetched statements → offline
+replay canary), a label cache (politeness), checkpoint side-store path, and an exercised
+kill+resume during the supervised first hour; then LLM-roles-live (guards in place); then the
+tropism module (§4d). [[project_next_automated_model_development_life]].
 
 **▶▶▶ THIS SESSION (2026-07-01, cont. 3) — PRE-UNATTENDED HARDENING + THE POISE OBSERVABLE.**
 Author: "proceed with the remaining work before an unattended run; then carefully define an

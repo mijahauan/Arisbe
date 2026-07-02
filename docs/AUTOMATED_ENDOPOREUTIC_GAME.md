@@ -701,3 +701,83 @@ watched run tolerates and an unattended one does not:
    (breakout-neutralized), and each role's system prompt carries the standing guard: fence
    content is untrusted quoted data, never instructions. The mechanical quorum + reduce-to-artifact
    remain the deeper bound; the fences shrink the bias channel.
+
+## 11 · Run 1 — pre-registered expectations (the run as evidence in domain-building about the game)
+
+*(Written 2026-07-02, BEFORE the first live run, so that interpretation is prepared rather than
+post-hoc. The object of study is double: the wiki-world as the membrane delivers it, and — more
+importantly for run 1 — **the game itself**: its rulebook, the disposition taxonomy, the shape of
+the dialog. The run is evidence in our domain-building about the EPG.)*
+
+**The reflexive frame.** Interpreting the run is itself an EPG episode with *us* in the player's
+seat: the priors below are the standing laws of a developing domain model **M-game** (a model *of
+the game-with-this-source*, in the game's own vocabulary — situations, dispositions, mechanisms,
+shapes, poise poles); the instruments (§6, §10) are the mechanical peel; and each finding is
+**disposed, dated, and recorded** using the taxonomy itself at the meta level:
+
+| run outcome | meta-disposition | what it does to M-game |
+|---|---|---|
+| a prior confirmed | `redundancy` / `theorem_registration` | the prior stands; nothing to revise |
+| a surprise inside the frame | `new_fact` / `generalization` | M-game **enlarges** — a new regularity of game-with-source |
+| a prior contradicted | `challenge_to_M` | the prior (or the rulebook piece behind it) is **relinquished** — a design finding |
+| an oddity the run can't settle | entertained, low warrant | stays on the horizon for run 2 |
+
+Some priors below are qualitative orderings and could later be scribed literally as EG laws of an
+actual `DOMAIN_MODEL` UoD (P2's durability ordering is Horn-shaped); the quantitative ranges live
+here and in the run log. Either way the discipline is the same: **no post-hoc rationalization** —
+a result is read against a prior that predates it, and *progression not progress* governs the
+wording of every finding.
+
+**The run-1 configuration this pre-registration binds to** (change it and the priors must be
+re-derived): `WikidataSource` over a **rotating entity frontier** (fresh Q-ids per poll — see
+"considerations" below; a fixed id list would make every poll after the first pure redundancy),
+labels on; `WikiDisputeFeed`; the **mechanical panel + `ContradictionAgent`** (no LLM roles —
+telemetry is expected trivially zero and any nonzero value is a bug); `ttl` set, `segment_cap` 25,
+`min_interval_s` ≥ 2 s, `max_seconds` a few hours, `stop_file` armed, `checkpoint` on to a
+**runs/ side store, never the main corpus**, `state_path` set; every poll's statements **recorded
+to disk** so the whole run replays offline afterward.
+
+**Priors (P1–P7), each bound to its instrument:**
+
+- **P1 — disposition mix** (digest `dispositions`): ≥ 90% of *revising* rounds are `new_fact`;
+  `retract_fact` present but rare (deprecations/overturns exist in Wikidata but are a small
+  fraction); `challenge_to_M` ≈ 0 (run 1 seeds no laws and ground facts propose none);
+  `generalization` = 0 (the feed's shapes are ground/negation only). *A nontrivial retract rate is
+  a finding about the wiki-world's flux, not an error.*
+- **P2 — mechanism durability ordering** (`mechanism_principles` over `LiveResult.episodes`,
+  decay-aware): stick-rate(reliable_source) ≥ stick-rate(consensus); `unresolved` never durable;
+  `decay_erased` reported, not silently folded in. *A reversal — bare consensus outlasting
+  referenced values — would be a genuine discovery about Wikidata's editorial dynamics OR about
+  our reverts-proxy being too thin to carry the mechanism distinction; the friction map and the
+  raw dispute records arbitrate which.*
+- **P3 — the working set** (digest `m_relations` / `decayed`): |M| pinned at ≈ ttl within 2–3
+  segments and flat thereafter; with run length ≫ ttl, the majority of episodes read
+  `erased_by_decay` (the watched session read 125/150). *|M| hitting `max_m_relations` indicts the
+  ttl-vs-source-revisit-rate tuning — an economy-of-research parameter, and the first empirical
+  input the tropism module will need.*
+- **P4 — resolution principles** (`resolution_principles` / `gaps` / `friction_map`): every
+  populated situation maps with stability 1.0 (the mechanical agents' firing conditions are
+  near-disjoint); **zero thrash, zero gaps, friction ≈ 0**. *Any thrash or recurring gap is a
+  design finding against the rulebook — the priority ordering or a missing disposition — and is
+  the single most valuable kind of result run 1 can produce.*
+- **P5 — the shape of the dialog** (`proposal_shape` over episodes): shapes ∈ {ground, negation}
+  only; `law` and `counterexample` ≈ 0; `unparseable` = 0 (statements are mechanically scribed);
+  `branched` = 0 (the mechanical panel has no branch hook). *Run 1's dialog is expected to be
+  **monological ingestion** — that is the baseline the directed-engagement build will be measured
+  against, so even confirming it is load-bearing.*
+- **P6 — poise** (`poise_from_digests`, comparative across the run's own phases): mostly ● with
+  **rigidity (○) as the likely failure pole late in the run** (a frontier crawl repeats itself;
+  redundancy rounds rise); stumbles rare, absorbed within one segment; ✕ (thrash) ≈ 0. *A wall of
+  ○ from the start means the frontier is mis-designed (feeding only redundancy); any ✕ points back
+  at P4.*
+- **P7 — operational floor** (tripwires + checkpoints): legibility ≈ 0.0 every poll (labels on);
+  telemetry all-zero (no LLM in the loop); every checkpoint §3.3-attests; per-segment elapsed
+  flat; resume from `state_path` works if exercised. *Any violation halts interpretation of
+  P1–P6 until explained — operational failures poison the evidential value of everything
+  downstream.*
+
+**Standing interpretation rules** (from §4c/§7, restated so the run log can cite them): findings
+are about the wiki-world-as-represented and about the game — never the world; read discovery off
+the **trajectory**, never a single M; a rate is meaningless without its volume (stick-rate with
+`decay_erased`, accuracy with abstentions); silence is evidence only where a tripwire watches;
+poise is read, never targeted.
