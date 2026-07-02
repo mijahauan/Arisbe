@@ -108,6 +108,14 @@ context-retrieval; it reuses the oracle unchanged. See
   verdict)` annotates part 3 by the outcome. `src/web_api/routes/agon.py`,
   `agon_session_manager.py`, `agonothetes.py`.
 
+Since then the testing register has also been **automated end to end**: the game plays
+autonomously — a proposer (the *membrane*) voices a claim, the peel tests it against a
+developing M, a panel (mechanical or LLM) negotiates the disposition, M revises, and disuse
+decays what fell from use — including against live external sources (Wikidata). The episode
+grammar in this chapter is unchanged; only the players are optional. See
+[AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) and
+[CAPABILITY_MAP.md](CAPABILITY_MAP.md) §H.
+
 Related: [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) (the two formalisms),
 [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) (the regimes; asserted = withstood
 challenge), [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) (M as oracle),

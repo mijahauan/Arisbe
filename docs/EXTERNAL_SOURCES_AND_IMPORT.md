@@ -60,10 +60,17 @@ doorways:
 |--------|-----------|-------------|------------------|
 | **A. Formal files** | a machine-readable theory: OWL, RDF, CLIF, SUO-KIF, COLORE | **translators** (file → CLIF → Existential Graph Instance ([EGI](GLOSSARY.md#egi))) wrapped as a `kind=ontology` Universe of Discourse ([UoD](GLOSSARY.md#uod)) | low |
 | **B. Human-read material** | a graph (or proposition) a person reads in a book, on a website, in a paper | **the `/import` linear-form doorway** + (future) the by-hand reading desk | low |
+| **C. Live sources** | a stream the world keeps writing: Wikidata statements and its recent-changes feed | **the automated Endoporeutic Game's membranes** (`wikidata_source.py` → `live_runner.py`) — each claim enters by being *played*, not filed | low; each claim is peeled and disposed on entry |
 
 Family A is a *translator bringing a file across*; family B is a *human bringing a
 page across*. Both land on the same floor (§1); they differ only in who does the
-reading.
+reading. Family C — added 2026-07 — is different in kind: the source is *ongoing*,
+and the doorway is the game itself. A polled statement is not saved; it is proposed
+into the automated game, tested against the developing model M, and enters (or
+doesn't) under a named disposition, with disuse-decay bounding what accumulates.
+The claim's entry record *is* its game record. See
+[AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §10 and
+[CAPABILITY_MAP.md](CAPABILITY_MAP.md) §H.
 
 ---
 

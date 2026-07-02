@@ -186,7 +186,42 @@ truth).
 
 ### Membrane
 **Membrane** — the boundary where the sheet meets the world — the one place error is corrected
-(the Popperian image behind the low-warrant import discipline).
+(the Popperian image behind the low-warrant import discipline). In the *automated* Endoporeutic
+Game the membrane is a concrete component: the proposer that carries outside claims into the
+game, one per round. A **closed** membrane replays a fixed pool; an **open** membrane admits the
+world — *raise-only* (dated discourse, with no way to check it against the world), *raise-and-resolve*
+(predictions the world later settles), and *wiki-dispute* (edit wars ending in an editorial
+resolution). See [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
+
+### Disposition
+**Disposition** — the Agonothetes' ruling on what an episode's outcome *does to the record*: each
+entry in the taxonomy (new_fact, generalization, challenge_to_M, redundancy, rejection, …) names a
+structural move, and the model-revising subset carries its Peircean mode (induction / deduction /
+abduction / convention). Nothing enters the model except under a disposition.
+
+### Disuse-decay
+**Disuse-decay** — the only bound on an unbounded sheet: a relation no round has touched for a set
+span is erased from the developing model M. Decay is *not* evidence against a claim (it is excluded
+from durability statistics); it is the working-set discipline that keeps a live run's per-round
+cost flat.
+
+### Stickiness
+**Stickiness** — whether a move survived to the end of a run: a generalization later relinquished
+by play reads *not sticky* (durability evidence), while a fact erased by disuse-decay reads neither
+sticky nor unsticky (no evidence either way). Stick-rates by resolution mechanism are how the game
+learns *which kind of settling produces durable knowledge*.
+
+### Poise
+**Poise** — the automated game's health observable, read off windows of a run: engagement (still
+taking the world in), settlement (dispositions stabilizing), absorption (stumbles recovered from).
+Its failure poles are **rigidity** (nothing changes anything) and **thrash** (nothing settles).
+Perspectival and comparative — never a target.
+
+### Tropism
+**Tropism** — *designed, not yet built* (empirically mandated by live run 2): the model's own state
+directing which sources to re-engage — the **warm-set re-poll** that revisits what M currently
+holds, so a later denial can meet its still-standing target. Passive ingestion never revisits, so
+without tropism the durability of settled claims goes untested.
 
 ### Seam
 **Seam** — the boundary between two Universes of Discourse, or the point where a reference/transclusion

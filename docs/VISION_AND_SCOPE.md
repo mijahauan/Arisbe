@@ -11,7 +11,7 @@
 > layered, role-aware on-ramp (assumes no logic background, then branches by expertise). For the
 > developer-facing module map and commands, see [../CLAUDE.md](../CLAUDE.md).
 >
-> *Last consolidated: 2026-06-27.*
+> *Last consolidated: 2026-07-02.*
 
 ---
 
@@ -149,7 +149,7 @@ Alpha + Beta EGs in Dau's formalization; the six transformation rules; the diach
 DAG history; four round-tripped linear formats; the correspondence machinery (coordinate-free layout,
 §3.3 attestation, regime-3 presentation algebra, drawn→EG reading); the three web modes; freeform
 draw-then-read composition; the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game (contest + interpretation registers); ontology/Web Ontology Language ([OWL](GLOSSARY.md#owl))/
-Resource Description Framework ([RDF](GLOSSARY.md#rdf)) import as a *bridge*; an NL→logic front-end where "the LLM proposes, Arisbe disposes."
+Resource Description Framework ([RDF](GLOSSARY.md#rdf)) import as a *bridge*; an NL→logic front-end where "the LLM proposes, Arisbe disposes"; the *automated* Endoporeutic Game — the game played autonomously (LLM roles argue, the calculus decides) against live external sources (Wikidata), with the model M revising through play (see [CAPABILITY_MAP.md](CAPABILITY_MAP.md) §H).
 
 ### Out of scope — deliberate, with reasons
 - **Gamma as a *modal* extension.** Not a problem Arisbe needs to solve: the diachronic DAG (worlds =
@@ -163,8 +163,9 @@ Resource Description Framework ([RDF](GLOSSARY.md#rdf)) import as a *bridge*; an
   UI.
 
 ### Deferred — wanted, not yet built
-Manchester OWL syntax (no maintained Python parser); a semantic layer + automated Grapheus opponent +
-dynamically-learned M for the Endoporeutic Game (a thin V1 ships today); Gamma *[tinctures](GLOSSARY.md#tincture)* (Peirce's Gamma colourings) as a
+Manchester OWL syntax (no maintained Python parser); the **tropism** module for the automated game
+(the model's own state directing *which* sources to re-engage — empirically mandated by live run 2,
+which found that passive ingestion never revisits and so cannot test durability); Gamma *[tinctures](GLOSSARY.md#tincture)* (Peirce's Gamma colourings) as a
 non-load-bearing map symbol (channels reserved, forward-compatible by construction); the layout-perf
 frontier for very large ontologies. These live in [ROADMAP.md](ROADMAP.md).
 

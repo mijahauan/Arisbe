@@ -84,7 +84,10 @@ REFERENCE_AND_TRANSCLUSION_NODE.md · DEFINITION_NODE.md · SCHEMA_HOLE_CORRESPO
 UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md · PROOF_SERIALIZER.md · ADAPTIVE_SCOPE_VIEWER.md ·
 MATH_FIXTURES_ZFC_PEIRCE_1881.md · TRANSFORMATION_WORKFLOW_SPEC.md · COMPOSITION_WORKFLOW_SPEC.md ·
 ARCHIVE_INDEX.md · ADVERSARIAL_EXAMINATION.md *(or book appendix)* · **CORPUS_AND_IMPORT_MODEL.md**
-*(deep-doc behind EXTERNAL_SOURCES_AND_IMPORT)*
+*(deep-doc behind EXTERNAL_SOURCES_AND_IMPORT)* · **AUTOMATED_MODEL_DEVELOPMENT.md** ·
+**AUTOMATED_ENDOPOREUTIC_GAME.md** *(both added 2026-06-30→07-02: design-of-record for the
+automated-EPG arc — `_devlinks.lua` already routes book links to them to GitHub, no manifest change
+needed; the arc's user-visible summary lives in CAPABILITY_MAP §H)*
 
 ### → ARCHIVE (historical; move to dev archive)
 
@@ -167,6 +170,23 @@ DOCUMENTATION_REVIEW_PREP.md *(stale process doc)*
     only; skip code/headings; link-only when already expanded). All 20 used anchors verified to
     resolve; render clean; 2 awkward label/compound spots tuned to link-only.
 
+12. ✅ **Currency sweep after the automated-EPG arc (2026-07-02)** — the arc (agon_evolution /
+    agon_llm / metalearning / three membranes / live_runner / wikidata_source; live runs 1–2
+    executed) landed *after* the book's chapters were consolidated, so a staleness sweep
+    (subagent scan over all 30 chapters) found and fixed: **CAPABILITY_MAP** re-consolidated
+    (new **§H — the automated Endoporeutic Game** table; modal/audit/citation + reference-node
+    rows added; EGIF quote-aware-`#` and ELK bbox-quick-reject notes); **VISION_AND_SCOPE**
+    (in-scope gains the automated game; the stale "automated Grapheus + dynamic-M deferred"
+    entry replaced by the real open item, tropism); **ENDOPOREUTIC_GAME_GUIDE** (the 2026-06-11
+    Frontier list re-marked shipped-vs-open; the ontology-import banner; module map + arena
+    section point at autonomous play); **DOMAIN_ORACLE_AND_M** (steps 2/3/6 annotated DONE /
+    realized-differently); **NL_TO_LOGIC** (the proposer is now one of three LLM seats);
+    **GENERATION_AND_TESTING** (the testing register runs autonomously; grammar unchanged);
+    **EXTERNAL_SOURCES_AND_IMPORT** (**family C — live sources**, doorway = the game itself);
+    **GLOSSARY** (membrane's open/closed senses + new entries: disposition, disuse-decay,
+    stickiness, poise, tropism). Triage table gains the two arc design-of-record docs as DEV
+    (`_devlinks.lua` already routes them to GitHub — no manifest change).
+
 ### ▶ Remaining
 
 - **Book-voice (deeper pass)** — the chapters still carry doc-style front-matter (`> What this is /
@@ -175,8 +195,8 @@ DOCUMENTATION_REVIEW_PREP.md *(stale process doc)*
   to (a) leave them (they render fine and links resolve), (b) strip them only in the book via a Lua
   filter, or (c) edit per-doc. **Author decision.** Also: trim FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION's
   feature/reconciliation framing toward a usage chapter.
-- **PDF size** — the 504-page PDF is dominated by the auto-generated `ARISBE_CORE_API_REFERENCE`.
-  Consider HTML-only for that appendix, or a trimmed print version.
+- ~~**PDF size**~~ — done: `ARISBE_CORE_API_REFERENCE` is HTML-only in the book
+  (`.content-visible when-format="html"`), PDF 504 → ~314 pp.
 - **Keep `_devlinks.lua`'s BOOK set in sync** with `_quarto.yml` chapters when chapters change.
 - **Move DEV/ARCHIVE/RETIRE docs** to a physical `docs/dev/` (optional) and refresh `ARCHIVE_INDEX.md`.
 - **CI** (optional) — render the book on push; publish the site.

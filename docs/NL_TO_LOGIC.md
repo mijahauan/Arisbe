@@ -35,6 +35,13 @@ The LLM **never produces an EGI and never asserts truth.** A malformed candidate
 declared-vs-used cross-check. The whole "disposing" half is deterministic and was already
 built and tested before the LLM was wired in.
 
+This proposer seat is now **one of three LLM seats**. The automated Endoporeutic Game
+(`src/agon_llm.py`) puts an LLM in each role — Graphist (voice a doubt), Grapheus (defend the
+model), Agonothetes (judge among the votes) — and every seat honors the same boundary: each
+LLM move is reduced to a calculus artifact and re-checked before it counts (*the LLM argues,
+the calculus decides*). This chapter's contract (`nl_to_logic`) is the shared reduction path
+all three roles use. See [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
+
 ## Vocabulary-miss vs fact-miss
 
 The distinction the NL-parse use case turns on (and the reason the front-end waited until the

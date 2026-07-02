@@ -32,6 +32,32 @@ policy** — proposed: release source → `docs/book/`, dev/design → `docs/dev
 step next session:** a full `docs/` inventory → a triage table (book / architecture / dev-archive / retire),
 then pick tooling, then scaffold the book skeleton. [[project_alpha_release_docs_consolidation]].
 
+**▶▶▶ THIS SESSION (2026-07-02, cont. 5) — ALPHA DOCS RESUMED: THE POST-ARC CURRENCY SWEEP.**
+The automated-EPG arc (2026-06-30→07-02) landed *after* the book's chapters were consolidated,
+so this session swept the 30 book chapters for staleness against it (subagent scan; the graphify
+run's hyperedges independently confirmed the arc + book clusters cohere). Fixed and re-rendered
+(**33 HTML pages / PDF / epub, no link warnings, no dev-doc leaks**): **CAPABILITY_MAP**
+re-consolidated 2026-07-02 — new **§H "The automated Endoporeutic Game"** table (evolution loop,
+three LLM roles, meta-learning+poise, the three open membranes, live runner, Wikidata source,
+runs 1–2 as evidence, tropism DESIGNED-mandated), plus rows the 06-29/30 wave never got
+(modal/audit lenses, model_revision, scholarly_citation) and reference-node DESIGNED→SHIPPED
+(incr. 1); EGIF quote-aware-`#` + ELK bbox-quick-reject notes. **ENDOPOREUTIC_GAME_GUIDE** — the
+2026-06-11 Frontier list re-marked shipped-vs-open (inverse pivot, auto-Grapheus, dynamic M +
+Wikidata, doubt detection, register frontend all shipped; tropism the honest residue); the
+ontology-import banner; module map + arena → autonomous play. **VISION_AND_SCOPE** — in-scope
+gains the automated game; stale deferred entry (auto-Grapheus/dynamic-M) → tropism.
+**DOMAIN_ORACLE_AND_M** — steps 2/3 DONE, step 6 realized-differently (Wikidata feeds M via the
+membrane; SparqlOracle seat still open). **NL_TO_LOGIC** — the proposer is one of three LLM
+seats. **GENERATION_AND_TESTING** — the testing register runs autonomously (grammar unchanged).
+**EXTERNAL_SOURCES_AND_IMPORT** — **family C: live sources** (the doorway is the game itself).
+**GLOSSARY** — membrane's closed/open senses + disposition, disuse-decay, stickiness, poise,
+tropism. ALPHA_RELEASE_PLAN: triage gains the two arc design docs as DEV (devlinks already
+routes them); PDF-size item struck (API-ref HTML-only); progress step 12. **▶ NEXT SESSION —
+remaining alpha items, all small:** (1) book-voice deeper pass — **author decision** (leave /
+Lua-strip / per-doc edit the doc-chrome front-matter) + trim FEATURE_PEIRCE framing; (2)
+optional physical `docs/dev/` move + ARCHIVE_INDEX refresh; (3) optional CI render+publish.
+Arc re-entry unchanged = RUN_2_LOG horizon (tropism first). [[project_alpha_release_docs_consolidation]].
+
 **▶▶▶ THIS SESSION (2026-07-02, cont. 4) — RUN 2 EXECUTED + DISPOSED (runs/RUN_2_LOG.md); THE ARC
 PAUSES → ALPHA DOCS RESUME.** Author affirmed §12 priors (incl. the 3 judgment calls), chose
 supervised, and set the pause. Run 2: 2 sittings (split by a REAL crash), **21 segments / 439

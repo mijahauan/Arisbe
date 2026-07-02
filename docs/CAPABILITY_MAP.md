@@ -7,7 +7,7 @@
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) · [ROADMAP.md](ROADMAP.md) ·
 > [GLOSSARY.md](GLOSSARY.md). Developer module map: [../CLAUDE.md](../CLAUDE.md).
 >
-> *Last consolidated: 2026-06-27.*
+> *Last consolidated: 2026-07-02.*
 
 **Status legend**
 - **SHIPPED** — working, with a passing test home.
@@ -42,7 +42,7 @@
 
 | Capability | Status | Home (src → test) | Corpus |
 |---|---|---|---|
-| Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)) parse / generate | SHIPPED | `egif_parser_dau.py` / `egif_generator_dau.py` → `test_tomos_parsing.py` | 57+ |
+| Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)) parse / generate | SHIPPED | `egif_parser_dau.py` / `egif_generator_dau.py` → `test_tomos_parsing.py` | 57+ (comment stripping is quote-aware — a `#` inside a constant, e.g. a URL, is data) |
 | Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)) parse / generate (ISO/IEC) | SHIPPED | `cgif_parser_dau.py` / `cgif_generator_dau.py` → `test_tomos_parsing.py` | 40+ |
 | Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) parse / generate (Common Logic) | SHIPPED | `clif_parser_dau.py` / `clif_generator_dau.py` → `test_clif_unit.py`, `test_tomos_parsing.py` | 35+ |
 | First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl)) translation (Φ/Ψ bidirectional) | SHIPPED | `chapter18_fopl_translation.py` → `test_egi_to_fol.py` | EGI ↔ FOL |
@@ -58,7 +58,7 @@
 | Coordinate-free natural layout | SHIPPED | `natural_layout.py` → `test_natural_layout.py` | Containment + crossing-sequences + incidence; geometry-free. |
 | §3.3 runtime attestation | SHIPPED | `correspondence_attestation.py` → `test_correspondence_attestation.py`, `test_correspondence_invariant.py` | `attest_correspondence` hooked into layout_service + save/load. **Protected (added 2026-06-27).** |
 | Regime-3 presentation algebra | SHIPPED | `presentation_ops.py` → `test_presentation_ops.py` | move/reshape/reroute; `Regime3Violation` on boundary crossing. **Protected (added 2026-06-27).** |
-| Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk)) layout engine (default) | SHIPPED | `elk_layout_engine.py` (+`elk_worker.js`) → `test_elk_layout_engine.py`, `test_elk_ligature_edge_cases.py` | Cut-aware; ligature edge cases audited. |
+| Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk)) layout engine (default) | SHIPPED | `elk_layout_engine.py` (+`elk_worker.js`) → `test_elk_layout_engine.py`, `test_elk_ligature_edge_cases.py` | Cut-aware; ligature edge cases audited. Ligature router carries an exact bounding-box quick reject (~140× on a large star-shaped graph, routes bit-identical). |
 | Tension layout engine (opt-in) | PARTIAL | `tension_engine.py` → `test_tension_engine.py` | `?engine=tension`; 17/18 corpus attest, §3.3-gated with ELK fallback. |
 | Tension sibling-order + stress | SHIPPED | `tension_layout.py` → `test_tension_layout.py` | `?tension` knob; crossing-sequence-independent. |
 | SVG renderer | SHIPPED | `simple_svg_renderer.py` → `test_overview_attestation.py` | LayoutDTO → SVG; one engine across all modes. |
@@ -83,6 +83,9 @@
 | Liveness / desuetude | SHIPPED | `liveness.py` → `test_liveness.py` | Reversible retire/revive. |
 | Annotations | SHIPPED | `annotations.py` → `test_annotations.py` | Persistent element metadata. |
 | Proof serializer | SHIPPED | `proof_serializer.py` → `test_proof_serializer.py` | Chain JSON/JSONL replay schema. |
+| Modal reading (◇/□ off the DAG) | SHIPPED | `modal_query.py` → `test_modal_and_dialog.py`, `test_organon_routes.py` | ◇φ = some legal trajectory scribes φ, □φ = every one does; no modal mark needed. Surfaced as the Organon **modal lens**. |
+| Model revision through dialog | SHIPPED | `model_revision.py` → `test_modal_and_dialog.py` | The [Agonothetes](GLOSSARY.md#agonothetes) disposition taxonomy's M-revising subset (new_fact / generalization / challenge_to_M / …), each a real Dau move on M's sheet. Surfaced as the Organon **audit lens** (a standing proposal peeled against every successive M). |
+| Provenance → publication citation | SHIPPED | `scholarly_citation.py` → `test_scholarly_citation.py` | `citation_for` → human line + BibTeX from a UoD's source record; fabricates nothing. `GET /export/citation` + the figure-caption `cite` flag. |
 
 ---
 
@@ -98,7 +101,7 @@
 | Challenge mode | SHIPPED | `challenge_mode.py` → `test_challenge_mode.py`, `test_ergasterion_challenge.py` | Difficulty gradient; graded by `same_graph` + diff; dragon targets. |
 | Fold-to-define (abstraction) | SHIPPED | `definitions.py`, `eg_splice.py` → `test_definitions.py`, `test_ergasterion_define*.py` | Name a subgraph, reuse as one spot; local + reversible. |
 | Composition palette / ops | SHIPPED | `composition_ops.py` → `test_composition_ops.py` | Regime-1 palette; per-branch phases. |
-| **Agon** — [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game | PARTIAL (V1) | `endoporeutic_game.py`, `web_api/routes/agon.py` → `test_epg_exemplar_scripts.py`, `test_agon_routes.py` | Triadic framing; **hot-seat** (one user, both roles); nothing auto-asserts. Deferred: full auto-opponent UX, dynamic-M. |
+| **Agon** — [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game | PARTIAL (V1) | `endoporeutic_game.py`, `web_api/routes/agon.py` → `test_epg_exemplar_scripts.py`, `test_agon_routes.py` | Triadic framing; **hot-seat** (one user, both roles); nothing auto-asserts. Deferred: full auto-opponent UX, dynamic-M. The game also plays *autonomously*, headless — see §H. |
 | Agon — interpretation register | SHIPPED | `semantic_game.py`, `domain_oracle.py`, `agon_models.py` → `test_semantic_game.py`, `test_agon_interpretation.py` | Choose M → [peel](GLOSSARY.md#peel) G outside-in → Kleene verdict + witness/counterexample + transcript. |
 | Agon — where-it-holds (inverse pivot) | SHIPPED | `web_api/routes/agon.py` → `test_agon_interpretation.py` | Ranks domains: holds / partial / independent / contradicts. |
 | Automated Grapheus (minimax opponent) | SHIPPED | `grapheus.py` → `test_grapheus.py` | Move-by-move contest; minimax over the peel. |
@@ -141,7 +144,28 @@
 
 ---
 
-## H. Analysis / doctrine tooling
+## H. The automated Endoporeutic Game — *model development against sources*
+
+The game played autonomously under the incorruptible mechanical referee: a proposer (the
+*membrane*) voices a claim, the [peel](GLOSSARY.md#peel) tests it against the developing model M,
+a panel negotiates a disposition, the model revises, disuse decays what fell from use. Design of
+record: [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) ·
+[AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
+
+| Capability | Status | Home (src → test) | Note |
+|---|---|---|---|
+| Automated evolution loop (closed membrane) | SHIPPED | `agon_evolution.py` → `test_agon_evolution.py` | A generation is a game round: produce → test → negotiate → inject → decay. Reproduces the hand-played swan trajectory on its own. |
+| Three LLM roles (Graphist / Grapheus / Agonothetes) | SHIPPED | `agon_llm.py` → `test_agon_llm.py` | *The LLM argues, the calculus decides*: every move reduced to a calculus artifact and re-checked. Branch-the-DAG on irreducible disagreement. Prompt-injection quarantine + per-role telemetry. CI runs on a scripted fake client; live is key-gated. |
+| Meta-learning (the game studying the game) | SHIPPED | `agon_metalearning.py` → `test_agon_metalearning.py` | Resolution principles, stickiness (decay-aware), friction, gaps, ablations, and the **poise** observable (engagement/settlement/absorption — perspectival, never a target). |
+| Open membranes (raise-only / raise-and-resolve / wiki-dispute) | SHIPPED | `discourse_membrane.py`, `resolving_membrane.py`, `wiki_dispute_membrane.py` → `test_*_membrane.py` | Discourse (cross-source consistency only), world-teeth (prediction ledger; the world selects against the over-general theory), edit-war + editorial mechanism (which resolution produces *durable* knowledge). |
+| Live runner (bounded, paced, checkpointed) | SHIPPED | `live_runner.py` → `test_live_runner.py` | Disuse-decay bounds \|M\|; segment → §3.3-attested checkpoint → prune RAM; stop conditions; crash/resume (the decay clock continues, not resets). |
+| Wikidata live source (crawl + change stream) | SHIPPED | `wikidata_source.py` → `test_wikidata_source.py` | Statements → ground facts; references → provenance; ranks → resolutions; label legibility with a degradation tripwire. `RotatingWikidataSource` (frontier crawl) + `RecentChangesSource` (live contestation stream). A reliable source overturns a bare value mechanically — no LLM. |
+| Live runs 1–2 (executed evidence) | DONE (evidence on record) | `tools/run_live_wikidata.py` → `runs/RUN_1_LOG.md`, `runs/RUN_2_LOG.md` | Pre-registered priors; determinism canary green (offline replay reproduces the live trajectory). Run 1 = the monological-ingestion baseline; run 2 = the change stream is a firehose of novelty — neither passive membrane revisits. |
+| Tropism (warm-set re-poll) | DESIGNED — **empirically mandated** | — | Run 2's finding: ingestion alone cannot test durability; only M's state directing re-engagement can. The arc's re-entry point. |
+
+---
+
+## I. Analysis / doctrine tooling
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
@@ -149,7 +173,7 @@
 | Schema layer (graph-with-holes node) | SHIPPED | `schema.py`, `eg_splice.py` → `test_schema.py` | P7 least-number schema; induction scaffold. Schema-drawing/§3.3 is a frontier. |
 | Derived rules (named UI moves) | SHIPPED | `derived_rules.py` → `test_derived_rules.py` | Built atop Dau's six. |
 | Render-M UI (ground/legend + neighborhood) | SHIPPED | `m_render.py` → `test_m_render.py`, `test_agon_interpretation.py`, `test_agon_e2e.py` | Agon interpretation register draws M: the vocabulary legend (d) + the relevant-neighborhood fragment G touches (c, seed + one hop, budget-capped, horizon reported). Read-only chrome, M never asserted. See ROADMAP #2 / [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) (c)+(d). |
-| Reference / transclusion node | DESIGNED | — | Architectural fork; touches `egi_core_dau` + §3.3. Author decision. ROADMAP #3. |
+| Reference / transclusion node | SHIPPED (increment 1, intra-UoD) | `reference_node.py`, `reference_resolution_check.py` → `test_reference_node.py`, `test_reference_glyph.py`, `test_reference_resolution_check.py` | Form-2 reference edge + overlay mark, additive (`egi_core_dau` untouched); the law `RESOLVE ≡ INLINED-AND-ATTESTED` proven (R1–R4) before building. Cross-UoD (use/mention fork) deferred. ROADMAP #3. |
 
 ---
 

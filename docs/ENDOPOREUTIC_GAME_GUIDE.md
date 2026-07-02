@@ -53,16 +53,36 @@ the [episode](GLOSSARY.md#episode) *given M, then G* (choose M → [peel](GLOSSA
 not an Agon mode: the eliminative peel is the game, additive construction is the
 workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
 
-**The Frontier — described below, not yet built:**
+**The Frontier — as first mapped here (2026-06-11). Since then most of it has been built:**
 
-- The **inverse pivot** — "in what domain does G hold?" (run the peel across
-  candidate M; abductive context-retrieval). See `DOMAIN_ORACLE_AND_M.md` §7.
-- An **automated Grapheus** opponent (move/strategy selection) — V1 is hot-seat
-  only; the semantic game now supplies the model-respecting reply it would use.
-- A **dynamically-learned model M** and **ontology import** (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI,
-  WordNet/SNOMED/Wikidata) — today M is built by hand (queried via `DomainOracle`).
-- **Automated doubt detection** and guided **M-revision** workflows.
-- A **frontend** for the interpretation register (routes are wired; no UI yet).
+- The **inverse pivot** — "in what domain does G hold?" — **shipped** as
+  `/agon/where-it-holds` (ranks candidate M: holds / partial / independent /
+  contradicts). See `DOMAIN_ORACLE_AND_M.md` §7.
+- An **automated Grapheus** opponent — **shipped** (`src/grapheus.py`, minimax over
+  the peel). Beyond it, the game now plays **fully autonomously**: three LLM roles
+  (Graphist·doubt / Grapheus·defense / Agonothetes·judge) argue under the
+  incorruptible mechanical peel — *the LLM argues, the calculus decides*
+  (`src/agon_llm.py`; design of record
+  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md)).
+- A **dynamically-learned model M** — **shipped**: M revises through play
+  (`src/model_revision.py`, `src/agon_evolution.py`) and **live external sources**
+  feed it (Wikidata — a rotating crawl and the recent-changes stream,
+  `src/wikidata_source.py`, run bounded/paced/checkpointed by `src/live_runner.py`).
+  **Ontology import** (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI) is
+  also shipped; WordNet/SNOMED remain unwired.
+- **Automated doubt detection** and guided **M-revision** — **shipped** as the
+  attention brief (the LLM Graphist reads M's thin spots and voices one doubt) plus
+  the disposition-driven revision loop, with meta-learning over the game's own
+  resolutions (`src/agon_metalearning.py`).
+- A **frontend** for the interpretation register — **shipped** (the Agon model
+  picker, render-M, and the verdict reading strip).
+
+Still open: the **tropism** module — M's own state directing *which* sources to
+re-engage (warm-set re-poll). The two executed live runs (`runs/RUN_1_LOG.md`,
+`runs/RUN_2_LOG.md`) found that passive ingestion never revisits, so only directed
+re-engagement can test the durability of what the game settles; tropism is mandated
+but not yet built. The browser arena itself also remains hot-seat (the autonomous
+game runs headless).
 
 ---
 
@@ -941,15 +961,17 @@ and the class's understanding grows through the iterated cycle.
 
 ### From Import: External Ontologies as Domain Models
 
-> **⚠️ Frontier (partly built).** As of 2026-06-11 a model M is **chosen** for a
-> contest (hand-authored facts, or a [tomos](GLOSSARY.md#tomos) UoD), **queried** through a `DomainOracle`,
-> and **materializable** — facts + Horn rules forward-chain to the least Herbrand
-> model (`docs/DOMAIN_ORACLE_AND_M.md` §6.1), which is exactly what a T-box needs to
-> become testable. What remains **not implemented** is the *automated* OWL→CLIF→EGI
-> import pipeline and the live ontology sources (WordNet, SNOMED, Wikidata) below;
-> materialization unblocks the T-box side of that. (Arisbe's `/import` route admits
-> linear forms at *low [warrant](GLOSSARY.md#warrant)* — `docs/MANIFEST_AND_MEANING.md` — distinct from this
-> pipeline.)
+> **Since built.** A model M is **chosen** for a contest (hand-authored facts, or a
+> [tomos](GLOSSARY.md#tomos) UoD), **queried** through a `DomainOracle`, and
+> **materialized** — facts + Horn rules forward-chain to the least Herbrand model
+> (`docs/DOMAIN_ORACLE_AND_M.md` §6.1), which is exactly what a T-box needs to
+> become testable. The *automated* OWL→CLIF→EGI import pipeline has also shipped
+> (`tools/owl_to_clif.py` + `domain_model_importer.py`), and **Wikidata is live** as
+> the first external source — feeding the automated game, not just a one-time import
+> ([AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §10). WordNet and
+> SNOMED remain unwired. (Arisbe's `/import` route admits linear forms at *low
+> [warrant](GLOSSARY.md#warrant)* — `docs/MANIFEST_AND_MEANING.md` — distinct from
+> this pipeline.)
 
 But one need not start from an empty sheet.  Published ontologies represent
 the crystallized results of extensive prior inquiry — someone else's M,
@@ -1986,6 +2008,7 @@ of the following scenarios:
 | `proof_serializer.py` | Save/load proofs as JSON or text |
 | `formal_transformation_rules.py` | The six Dau rules (Beta-aware) |
 | `rule_interaction.py` | Headless stepwise protocol |
+| `agon_evolution.py` / `agon_llm.py` / `live_runner.py` | The **automated** game: the loop that plays it autonomously, the three LLM roles, and bounded live runs against external sources — see [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) |
 
 ### Starting a Game
 
@@ -2027,7 +2050,10 @@ The arena drives the same `EndoporeuticGame` engine shown above over the
 `/agon` routes (`new_game` / `apply_move` / `concede` / `legal_areas`), with
 hot-seat play (one user drives both roles) and a post-game disposition
 selector. *(An earlier `src/game_repl.py` terminal REPL was removed; the engine
-API above is the headless entry point if you want to script a game.)*
+API above is the headless entry point if you want to script a game.)* The game
+also plays with no one at the keyboard — the autonomous loop in
+`src/agon_evolution.py` / `src/agon_llm.py` runs whole campaigns headless
+([AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md)).
 
 ### Saving and Loading Proofs
 

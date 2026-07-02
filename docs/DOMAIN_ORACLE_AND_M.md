@@ -204,9 +204,11 @@ Sequence:
    even open-world); negation of a *present* atom is a definite FALSE
    (monotonicity). The universal `~[ (man *x) ~[ (mortal x) ] ]` reads TRUE
    closed / UNKNOWN open, FALSE with a closed-world counterexample. This is the
-   inner evaluation game; it does **not** yet drive the transformation game's
-   moves — that wiring (auto-Grapheus, the dialogical loop) is a later step.
-3. **[NEXT] Materialize the model — facts + rules → the fullest extensional M.**
+   inner evaluation game. *(The wiring this step deferred has since shipped: the
+   minimax auto-Grapheus (`src/grapheus.py`) and the fully autonomous dialogical
+   loop (`src/agon_evolution.py`, `src/agon_llm.py`) — see
+   [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).)*
+3. **[DONE — `src/model_materialization.py`, `tests/test_model_materialization.py`] Materialize the model — facts + rules → the fullest extensional M.**
    See §6.1. Resolves the "model-checking, not inference" limit
    ([GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md) clarification 1): a model
    M authored as *facts + Horn-shaped rules* is forward-chained to its **least
@@ -218,6 +220,11 @@ Sequence:
 4. Provenance-tagged session working-model (the demand-driven cache).
 5. Horizon radius + open/closed declaration as M-selection parameters.
 6. One remote backing (`SparqlOracle`, Wikidata) behind the same interface.
+   *(Realized differently: Wikidata went live as a **source feeding M** — statements
+   ingested by `src/wikidata_source.py` into the automated game's developing model,
+   which is then materialized and peeled locally — rather than as a SPARQL oracle
+   answering `resolve` at peel time. The `SparqlOracle` seat behind the interface
+   remains open.)*
 
 ### 6.1 Materialization spec (step 3)
 
