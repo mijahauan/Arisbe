@@ -78,6 +78,11 @@ def main(argv=None) -> int:
         print(f"  segment {d.segment}: rounds={d.rounds} |M|={d.m_relations} "
               f"dispositions={d.dispositions} decayed={d.decayed} ({d.elapsed_s:.1f}s)")
     print(f"\nstopped: {res.stopped_because}   total rounds: {res.total_rounds}")
+    if source.legibility:
+        worst = max(source.legibility)
+        print(f"legibility tripwire (unresolved-id fraction per poll): "
+              f"{['%.2f' % f for f in source.legibility]}"
+              + ("   ⚠ labels degrading" if worst > 0.5 else ""))
     print(f"final M: {res.final_model_egif}")
     if res.episodes:
         from agon_metalearning import mechanism_principles

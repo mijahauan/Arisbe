@@ -15,7 +15,7 @@ from model_revision import retract_atom
 from wiki_dispute_membrane import WikiDisputeFeed
 from wikidata_source import (
     WikidataSource, WikidataStatement as WS, collect_ids, resolve_labels,
-    statement_egif, statements_to_disputes,
+    statement_egif, statements_to_disputes, unresolved_fraction,
 )
 
 
@@ -71,6 +71,20 @@ def test_resolve_labels_substitutes_known_ids_and_keeps_unknown():
     # and the scribed fact is legible EGIF
     assert statement_egif(out[0]) == '(place_of_birth "Douglas Adams" "Cambridge")'
     assert parse_egif(statement_egif(out[1]))      # unresolved id still parses
+
+
+def test_unresolved_fraction_is_the_legibility_tripwire():
+    assert unresolved_fraction([WS("Douglas Adams", "place of birth", "Cambridge")]) == 0.0
+    assert unresolved_fraction([WS("Q42", "place of birth", "Cambridge")]) == 1 / 3
+    assert unresolved_fraction([WS("Q42", "P19", "Q350")]) == 1.0
+    assert unresolved_fraction([]) == 0.0
+
+
+def test_source_records_legibility_per_poll():
+    src = WikidataSource([[WS("Q1", "prop", "a")], [WS("Item", "prop", "b")]])
+    src.fetch()
+    src.fetch()
+    assert src.legibility == [1 / 3, 0.0]          # a spike = labels silently degrading
 
 
 # --------------------------------------------------------------------------- #

@@ -672,3 +672,32 @@ reliable-source ≈0.11 (both "not durable", pure ttl noise); with it, both corr
 the episodes carrying actual evidence, decay counted and reported. The overturn scenario
 (deprecation + reliably-sourced replacement across *segments*) reads correctly in the aggregate:
 consensus `stick_rate=0.0, durable=False`; reliable_source `1.0, durable=True`.
+
+**Unattended-run hardening (BUILT 2026-07-02)** — the three gaps agent-loop experience says a
+watched run tolerates and an unattended one does not:
+
+1. **Tripwires — silent degradation must become a number in the digest.** Every best-effort
+   path gets a visibility counter. *Legibility:* `wikidata_source.unresolved_fraction` +
+   `WikidataSource.legibility` (per-poll fraction of tokens still bare P/Q ids — a spike is
+   exactly how the `mul`-label change would have shown up instead of M quietly filling with
+   Q-ids). *Never-raises accounting:* `agon_llm.RoleTelemetry` on all three LLM roles splits
+   **error** (the client/SDK failed — an outage) from **judgment** (the model was reachable and
+   the role abstained on content) from **fallback** (the judge fell back to mechanical) — without
+   the split, a dead API key silently degrades the LLM loop to the mechanical panel for days,
+   looking healthy.
+2. **Crash/resume — a killed process loses at most its in-flight segment.**
+   `LiveRunConfig.state_path` persists the runner's carried state per segment (post-decay M,
+   live laws, global segment/round counters, the disuse ledger — written atomically);
+   `LiveRunner.resume(state_path, source, feed_factory, …)` reconstructs and continues.
+   Numbering stays global and the **decay clock continues rather than resets** (a resumed run
+   must neither grant every relation a fresh ttl nor treat carried facts as instantly stale —
+   pinned by test at exactly one round's difference).
+3. **Prompt-side injection guards — the prompt twin of the EGIF sanitizers.** The calculus was
+   already injection-proof (`_relation_name`/`_const` sanitize source text before it becomes
+   EGIF), but once the LLM roles meet an open source, source-derived strings (M's sheet and
+   vocabulary, proposals, witnesses, other agents' logged rationales) are interpolated into
+   prompts — and a crafted wiki edit need not break the calculus to do damage, only bias
+   dispositions. Now every such string enters a prompt only inside a `<data>…</data>` fence
+   (breakout-neutralized), and each role's system prompt carries the standing guard: fence
+   content is untrusted quoted data, never instructions. The mechanical quorum + reduce-to-artifact
+   remain the deeper bound; the fences shrink the bias channel.

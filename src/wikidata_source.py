@@ -131,6 +131,22 @@ def collect_ids(statements: Sequence[WikidataStatement]) -> List[str]:
     return out
 
 
+def unresolved_fraction(statements: Sequence[WikidataStatement]) -> float:
+    """The **legibility tripwire** (§10): the fraction of the statements' (item, property,
+    value) tokens still bare P/Q ids after label resolution. 0.0 = fully legible; a spike
+    means resolution is silently degrading — exactly how the 2024 ``mul``-label change
+    manifested (labels stopped resolving and nothing complained). Surface it per poll (the
+    source records it; see :attr:`WikidataSource.legibility`) so a live run's digest stream
+    shows the failure instead of M quietly filling with Q-ids. Empty input reads 0.0."""
+    total = unresolved = 0
+    for s in statements:
+        for token in (s.item, s.prop, s.value):
+            total += 1
+            if _PQ_ID.match(token):
+                unresolved += 1
+    return (unresolved / total) if total else 0.0
+
+
 def resolve_labels(
     statements: Sequence[WikidataStatement], labels: Mapping[str, str]
 ) -> List[WikidataStatement]:
@@ -190,6 +206,7 @@ class WikidataSource:
     def __init__(self, polls: Sequence[Sequence[WikidataStatement]]):
         self._polls = [list(p) for p in polls]
         self._i = 0
+        self.legibility: List[float] = []   # per-poll unresolved-id fraction (the tripwire)
 
     @classmethod
     def from_fetch(cls, fetch: Callable[[], Sequence[WikidataStatement]], *, polls: int):
@@ -200,7 +217,9 @@ class WikidataSource:
     def fetch(self) -> Sequence[WikiDispute]:
         if self._i >= len(self._polls):
             return []
-        batch = statements_to_disputes(self._polls[self._i])
+        statements = self._polls[self._i]
+        self.legibility.append(unresolved_fraction(statements))
+        batch = statements_to_disputes(statements)
         self._i += 1
         return batch
 
@@ -296,6 +315,6 @@ def wbgetentities_fetch(
 
 __all__ = [
     "WikidataStatement", "statement_egif", "statements_to_disputes",
-    "collect_ids", "resolve_labels", "wblabels_fetch",
+    "collect_ids", "resolve_labels", "unresolved_fraction", "wblabels_fetch",
     "WikidataSource", "wbgetentities_fetch",
 ]

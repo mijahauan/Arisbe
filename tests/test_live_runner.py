@@ -153,6 +153,43 @@ def test_oversized_batch_is_segmented_not_dropped():
 
 
 # --------------------------------------------------------------------------- #
+# Resume — a killed process loses at most its in-flight segment                #
+# --------------------------------------------------------------------------- #
+
+def test_resume_from_state_continues_the_run(tmp_path):
+    sp = str(tmp_path / "state.json")
+    batches = _fact_batches(4)
+    r1 = LiveRunner("", ReplaySource(batches[:2]), DiscourseFeed,
+                    LiveRunConfig(ttl=None, checkpoint=False, state_path=sp),
+                    clock=_zero_clock).run()
+    assert r1.total_rounds == 2 and os.path.exists(sp)
+    r2 = LiveRunner.resume(sp, ReplaySource(batches[2:]), DiscourseFeed,
+                           LiveRunConfig(ttl=None, checkpoint=False),
+                           clock=_zero_clock).run()
+    # continues, never restarts: segment/round numbering is global, all facts carried
+    assert [d.segment for d in r2.segments] == [3, 4]
+    assert r2.total_rounds == 4
+    for i in range(4):
+        assert f'(topic{i} "X")' in r2.final_model_egif
+
+
+def test_resume_restores_the_decay_clock(tmp_path):
+    """The disuse ledger continues rather than resets — a resumed run must neither grant
+    every relation a fresh ttl nor (the reset-to-zero failure) treat carried facts as
+    instantly stale."""
+    sp = str(tmp_path / "state.json")
+    batches = _fact_batches(4)
+    LiveRunner("", ReplaySource(batches[:2]), DiscourseFeed,
+               LiveRunConfig(ttl=3, checkpoint=False, state_path=sp),
+               clock=_zero_clock).run()
+    r2 = LiveRunner.resume(sp, ReplaySource(batches[2:]), DiscourseFeed,
+                           LiveRunConfig(ttl=3, checkpoint=False), clock=_zero_clock).run()
+    # topic0 was last used in global round 1 → stale exactly at round 4 (4-1=3), not at
+    # round 3 (a reset-to-zero ledger would have decayed it a segment early)
+    assert [d.decayed for d in r2.segments] == [0, 1]
+
+
+# --------------------------------------------------------------------------- #
 # Cross-segment decay does not corrupt stickiness — the long-run §6 aggregate  #
 # --------------------------------------------------------------------------- #
 

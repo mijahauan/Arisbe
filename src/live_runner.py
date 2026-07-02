@@ -92,6 +92,7 @@ class LiveRunConfig:
     max_m_relations: Optional[int] = None     # hard cap: stop if |M| blows past this (a safety net)
     stop_file: Optional[str] = None           # stop cleanly when this path exists (external control)
     checkpoint: bool = True                   # save a UoD+chain per segment (needs a service)
+    state_path: Optional[str] = None          # persist runner state per segment → LiveRunner.resume
 
 
 # --------------------------------------------------------------------------- #
@@ -190,14 +191,61 @@ class LiveRunner:
         self._pending: List = []                # fetched items awaiting a segment (never dropped)
         self._polled = False
         self._episodes: List = []               # cross-segment meta-learning records
+        self._seg0 = 0                          # segment/round offsets a resume restores
+        self._total0 = 0
+
+    @classmethod
+    def resume(cls, state_path: str, source: LiveSource,
+               feed_factory: Callable[[Sequence], Proposer],
+               config: Optional[LiveRunConfig] = None, **kwargs) -> "LiveRunner":
+        """Reconstruct a runner from the state file a previous run wrote (``state_path``) and
+        continue where it stopped: M and its live laws are restored, segment/round numbering
+        continues, and the disuse-decay ledger's clock **continues rather than resets** (a
+        resumed run must not grant every relation a fresh ttl). A killed process therefore
+        loses at most its in-flight segment — the crash/resume gap for an unattended run.
+        The caller supplies a fresh ``source``; ``config.state_path`` defaults to the same
+        path so the resumed run keeps checkpointing its state."""
+        import json
+        with open(state_path, "r", encoding="utf-8") as fh:
+            state = json.load(fh)
+        config = config or LiveRunConfig()
+        if config.state_path is None:
+            config.state_path = state_path
+        runner = cls(state["model_egif"], source, feed_factory, config,
+                     seed_laws=state.get("laws"), **kwargs)
+        runner._round = state.get("round", 0)
+        runner._seg0 = state.get("segment", 0)
+        runner._total0 = state.get("total_rounds", 0)
+        if runner._ledger is not None and state.get("ledger") is not None:
+            runner._ledger.restore(state["ledger"])
+        return runner
+
+    def _save_state(self, seg_idx: int, total_rounds: int, model_egif: str) -> None:
+        if not self._cfg.state_path:
+            return
+        import json
+        import os
+        state = {
+            "version": 1,
+            "segment": seg_idx,
+            "round": self._round,
+            "total_rounds": total_rounds,
+            "model_egif": model_egif,
+            "laws": list(self._laws),
+            "ledger": self._ledger.snapshot() if self._ledger is not None else None,
+        }
+        tmp = f"{self._cfg.state_path}.tmp"
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(state, fh, indent=1)
+        os.replace(tmp, self._cfg.state_path)   # atomic: a crash never leaves a torn state
 
     def run(self) -> LiveResult:
         cfg = self._cfg
         start = self._clock()
         segments: List[SegmentDigest] = []
-        total_rounds = 0
+        total_rounds = self._total0
         model_egif = self._model_egif
-        seg_idx = 0
+        seg_idx = self._seg0
 
         while True:
             stop = self._should_stop(start, total_rounds, model_egif)
@@ -272,6 +320,8 @@ class LiveRunner:
                 checkpoint_uod=checkpoint_uod,
                 extra=extra,
             ))
+            # persist the post-decay carried state — what LiveRunner.resume restores
+            self._save_state(seg_idx, total_rounds, model_egif)
 
     # -- stop conditions -------------------------------------------------------
     def _should_stop(self, start: float, total_rounds: int, model_egif: str) -> Optional[str]:

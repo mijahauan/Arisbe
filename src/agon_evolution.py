@@ -445,6 +445,14 @@ class UsageLedger:
     def forget(self, relation: str) -> None:
         self._last.pop(relation, None)
 
+    def snapshot(self) -> Dict[str, int]:
+        """The ledger's state (relation → last-used round) for a runner checkpoint."""
+        return dict(self._last)
+
+    def restore(self, last: Dict[str, int]) -> None:
+        """Restore a :meth:`snapshot` — a resumed run's decay clock continues, not resets."""
+        self._last = dict(last)
+
 
 # --------------------------------------------------------------------------- #
 # Outcomes, discoveries, and the round driver                                 #
