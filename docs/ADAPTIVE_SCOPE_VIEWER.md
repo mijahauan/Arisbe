@@ -430,7 +430,14 @@ Route + E2E (mirroring `test_organon_routes.py` / `test_organon_lenses_e2e.py`):
   [`RATE_AND_INTELLIGIBILITY.md`](RATE_AND_INTELLIGIBILITY.md) — rate as the third LOD axis
   beside this doc's spatial quotient (temporal placeholders counted, `attest_overview`'s
   temporal twin). Born from supervising run 3, whose character (the `non_revising` hum,
-  decay, warm re-poll) exists in no single checkpoint.
+  decay, warm re-poll) exists in no single checkpoint. **Rider (2026-07-03, run 4): a
+  hyperbolic lens for hub-heavy M.** A Wikidata-fed M grows stars and containment trees
+  (RUN_3 F1″ / RUN_4: hubs of degree 20–25, ~200 atoms) — the shapes hyperbolic space embeds
+  with low distortion. A Poincaré-disk *projection* (regime-3, presentation-only) would give
+  focus+context for free: the warm working set at center, decay-adjacent facts compressed
+  toward the rim. `natural_layout`'s own-the-dimensionality doctrine makes such a projection
+  additive; candidate *within* the spectator surface, not affirmed separately. Geometry may
+  suggest, structure must decide — the drawn cut topology stays the §3.3-attested authority.
 - **✅ DONE (2026-06-15) — Time-stack production lens.** `src/web_viewer/js/time-stack-lens.js`
   (ES module, lazy-imported), wired into `organon.html`'s Lens selector beside Storyboard (both
   revealed only for a chained UoD). The recorded derivation as a navigable 2.5-D solid: each

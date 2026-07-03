@@ -1,25 +1,24 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION — author decisions from the run-4 disposal, then the chosen probe.** Run 4
-is EXECUTED & DISPOSED (`runs/RUN_4_LOG.md`; 2026-07-03 block below). Queued decisions:
-(1) **The rulebook question, now MANDATED by evidence (RUN_4 F2⁗ + P3‴)** — atom-level decay
-vs per-name atom cap (what is *one fact's* disuse under a warm name?). Deferred pre-run "one
-variable at a time"; F2⁗ upgraded it from hygiene to the binding cost model: with attest fixed
-(1075 s → 1.7 s at ~200 atoms), **round compute** (peel re-materialization + whole-graph
-ProofChain snapshots) is the new super-linear-in-atoms wall — segment elapsed 1.3 s → ~125 s
-as atoms grew 25 → 207 while names read 14–43. Engineering second-orders (incremental
-materialization; delta-snapshot chain) noted, subordinate. (2) **The duration lever (F1⁗)** —
-the P2 event is a rank-*transition* event with base rate below the 1-hour horizon even under
-revisit × stream (all 3 live deprecations born-deprecated); the named probe is the
-**multi-hour/overnight unattended run** (crash/resume + STOP + tripwires proven; decide the
-rulebook first or accept slow late segments). (3) **§15 — the docket of doubts** (drafted this
-session, the §13 pattern): the two-faced surprise artifact (outward: content-directed membrane
-queries, Q1–Q4 vocabulary ladder; inward: abduction seeds whose deduced consequences return as
-probes via a proving-ground DAG branch; musement gets its first mechanical seat). **Mandate
-gate NOT fired by run 4** (starvation is world-side transition rate, not probe aiming) — five
-author decisions queued in §15, gate re-examined after the duration probe. (4) **The spectator
-surface** — still queued (ADAPTIVE_SCOPE_VIEWER §10 + RATE_AND_INTELLIGIBILITY), cheaper now
-(attest fix cut the frame budget's dominant cost).
+**▶▶▶ NEXT SESSION — build ATOM-LEVEL DECAY (affirmed), then the overnight duration probe.**
+Run 4 is EXECUTED & DISPOSED (`runs/RUN_4_LOG.md`; 2026-07-03 block below). **The rulebook
+decision is AFFIRMED (author, 2026-07-03): atom-level decay** — the habit is the fact, not
+the name; `UsageLedger` → per-atom last-use (**use = re-delivery**, first increment;
+inference-use-as-refresh is a later §6 question), erasure via the existing
+`model_revision.retract_atom`; `per_entity_cap` stays as membrane flow-control (no new knob);
+per-name cap rejected (a representation rule masquerading as a use rule). Consequences: F1″'s
+warm-name pinning *dissolves* (only re-delivered atoms stay warm); tropism decay-adjacency
+becomes atom-precise. Riding along, correctness-preserving: **semi-naive materialization**
+(derive only from new atoms per round) against F2⁗'s round-compute wall (attest is fixed —
+1.7 s at ~200 atoms; segment elapsed 1.3 → ~125 s is now peel re-materialization + whole-graph
+ProofChain snapshots; `run4_seg92` = the fixture). Then: (2) **the duration probe** —
+overnight unattended stream+tropism run (F1⁗: the P2 event is a rank-*transition* event, base
+rate < 1 h; crash/resume + STOP + tripwires proven). (3) **§15 docket gate** re-examined after
+the duration probe (NOT fired by run 4 — starvation is world-side); five decisions queued in
+§15, which also carries the *gated* structured-embedding-prior pointer (2026-07-03). (4) **The
+spectator surface** — still queued (ADAPTIVE_SCOPE_VIEWER §10 now carries the hyperbolic-lens
+rider for hub-heavy M; RATE_AND_INTELLIGIBILITY); cheaper now (attest fix cut the frame
+budget's dominant cost).
 
 **▶▶▶ THIS SESSION (2026-07-03, second sitting) — RUN-3 HORIZON DISPOSED + RUN 4 EXECUTED &
 DISPOSED: stream + tropism, live (runs/RUN_4_LOG.md).** Author affirmed all four horizon

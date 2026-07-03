@@ -124,13 +124,19 @@ fixture) · `runs/run4/state.json` + `frontier.json` (resume state) · `runs/run
 
 ## Horizon
 
-- **The rulebook decision, now evidence-backed (F2⁗ + P3‴):** what is *one fact's* disuse
-  under a warm name — atom-level decay vs per-name atom cap. Deferred pre-run by the author
-  (one variable at a time); F2⁗ upgraded it from hygiene to the binding cost model (round
-  compute is super-linear in exactly the unit name-decay cannot bound). The run-4 atoms
-  profile (steady accumulation, 25 → 207, hubs already capped) is the decision's evidence.
-  Engineering second-orders (incremental materialization; delta-snapshot ProofChain) noted in
-  F2⁗, subordinate to the rulebook question.
+- **The rulebook decision — AFFIRMED by the author 2026-07-03, same day, post-disposal:
+  ATOM-LEVEL DECAY.** The habit was never the name: `(place_of_birth Adam Cambridge)` is the
+  habit; "place_of_birth" is vocabulary. The `UsageLedger` moves to per-atom last-use
+  (**use = re-delivery** for the first increment; whether inference-use refreshes a habit is
+  a later §6 question), erasure by the existing `model_revision.retract_atom`. Consequences:
+  a warm re-delivery keeps only the *re-delivered* atoms warm (F1″'s pinning dissolves rather
+  than being capped); decay-adjacent tropism priority becomes atom-precise (re-check the
+  *fact* nearest its ttl); `per_entity_cap` stays as the membrane flow-control — no new knob.
+  The per-name cap was rejected as a representation rule masquerading as a use rule.
+  Engineering second-order riding along (correctness-preserving, no affirmation needed):
+  semi-naive materialization (derive only from atoms new since the last round). Both are the
+  precursor to the duration probe — an overnight run would otherwise choke on its own
+  structural success (F2⁗).
 - **The duration lever (F1⁗):** the P2 event's base rate is below the 1-hour horizon — the
   named probe is a **multi-hour/overnight unattended stream+tropism run** (crash/resume, STOP,
   tripwires, checkpoints all proven; the F2⁗ round-compute wall argues for deciding the

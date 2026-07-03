@@ -1149,6 +1149,15 @@ answer separates standing hypotheses — a probe that would refute H₁ *or* H�
 lands beats one that flatters both); **starvation guard** (age raises priority slowly, so the
 expensive articulate asks eventually fire — bounded by budget). Increment discipline: v1 is a
 fixed lexicographic ordering; a *learned* priority is itself a finding to earn (§6 across runs).
+*Later, gated refinement (recorded 2026-07-03):* a **structured-embedding prior** — a
+hyperbolic/Poincaré embedding of the vocabulary (subsumption lattices embed there almost by
+construction; the `kind=ontology` imports are the natural training set) supplying a
+*plausibility ranking* over candidate probes and candidate laws (the `MutationProposer`
+currently recombines blindly). Strictly proposal-side, the same floor as `agon_llm`: the
+embedding may **suggest** an ordering; every candidate that counts is reduced to a calculus
+artifact and re-checked — approximate similarity never substitutes for identity (no "close"
+labels merged, no "near" atom as a witness). Earns its place only after v1's fixed ordering
+has a measured failure.
 
 **The speculative horizon (recorded, fenced, never a target).** The author's hypothesis, worth
 carrying explicitly: the outward face — a mind presenting *its* surprise to the world through
