@@ -10,10 +10,13 @@ that would have choked an overnight run is dealt with (atom-decay bounds the she
 unit; the incremental materializer keeps round compute flat). Findings are about the game (and
 Wikidata's editorial dynamics as represented) — never the world. *Progression, not progress.*
 
-**Driver (draft):** `uv run python tools/run_live_wikidata.py --source recentchanges
---runs-dir runs/run5 --max-seconds 28800` (chunk 8, warm_fraction 0.5 → k=4, per_entity_cap 25,
-ttl 30, segment_cap 25, min_interval 5.0, max_m 200, max_m_atoms 1000). Supervise ~15 min, then
-leave it; `touch runs/run5/STOP` to halt cleanly; `--resume` after any crash.
+**Driver (as launched):** `caffeinate -i uv run python tools/run_live_wikidata.py --source
+recentchanges --runs-dir runs/run5 --max-seconds 50400` (chunk 8, warm_fraction 0.5 → k=4,
+per_entity_cap 25, ttl 30, segment_cap 25, min_interval 5.0, max_m 200, max_m_atoms 1000).
+**Amendment recorded pre-launch (author, 2026-07-03):** `max_seconds` 28800 → **50400 (14 h)**
+— start ~15:00 local, self-stop just before 05:00 so the author reads results on rising;
+duration is the very lever the probe pulls, all other knobs as affirmed. Supervised the first
+~15 min; STOP file available but not expected to be needed; `--resume` after any crash.
 
 **Machinery under test (built 2026-07-03, offline-proven):** atom-level disuse-decay
 (`UsageLedger` in `atom_key` units; use = re-delivery; erasure via the structural

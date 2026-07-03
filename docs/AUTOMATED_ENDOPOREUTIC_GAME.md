@@ -1345,3 +1345,7 @@ first ~15 minutes (the §11 pattern), then left alone; `touch runs/run5/STOP` fo
 **Stops:** `max_seconds` 28800 · STOP file · `max_m_atoms` 1000 (the net a P2⁵ violation would
 fire) · `max_m` 200. **The §15 gate is re-examined on this run's disposal** (per RUN_4_LOG:
 duration must be tried before content direction can be mandated).
+
+*Launch note (2026-07-03): amended pre-launch with the author — `max_seconds` 50400 (14 h,
+~15:00 → just before 05:00 local, read-on-rising); duration is the lever, every other knob as
+affirmed. Recorded in RUN_5_LOG's header.*
