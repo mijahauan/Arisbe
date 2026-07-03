@@ -90,6 +90,9 @@ class LiveRunConfig:
     max_rounds: Optional[int] = None          # stop after this many rounds total
     max_seconds: Optional[float] = None       # stop after this much wall-clock
     max_m_relations: Optional[int] = None     # hard cap: stop if |M| blows past this (a safety net)
+    max_m_atoms: Optional[int] = None         # hard cap in ATOM units — under tropism, decay bounds
+                                              # names, not atoms (RUN_3 F1″): hub names accumulate
+                                              # atoms unboundedly while m_relations reads flat
     stop_file: Optional[str] = None           # stop cleanly when this path exists (external control)
     checkpoint: bool = True                   # save a UoD+chain per segment (needs a service)
     state_path: Optional[str] = None          # persist runner state per segment → LiveRunner.resume
@@ -114,6 +117,9 @@ class SegmentDigest:
     elapsed_s: float
     checkpoint_uod: Optional[str]
     extra: Dict = field(default_factory=dict)
+    m_atoms: int = 0                          # sheet ATOMS after the segment — the honest unit
+                                              # (RUN_3 F1″: names stay flat while atoms grow; attest
+                                              # wall-clock tracks atoms × hub degree, not names)
 
 
 @dataclass
@@ -141,6 +147,13 @@ def _sheet_relations(egi) -> set:
 
 def _sheet_relation_count(egi) -> int:
     return len(_sheet_relations(egi))
+
+
+def _sheet_atom_count(egi) -> int:
+    """Atoms (relation edges) on the sheet — the F1″ unit. Distinct from
+    :func:`_sheet_relation_count`: one warm hub *name* can hold dozens of atoms."""
+    return sum(1 for e in egi.E
+               if area_of(egi, e.id) == egi.sheet and e.id in egi.rel)
 
 
 def _relations_of(egif: str) -> set:
@@ -324,11 +337,13 @@ class LiveRunner:
                     from agon_metalearning import mark_decayed
                     mark_decayed(self._episodes, dropped)
 
+            carried = parse_egif(model_egif)
             segments.append(SegmentDigest(
                 segment=seg_idx,
                 rounds=rounds_done,
                 total_rounds=total_rounds,
-                m_relations=_sheet_relation_count(parse_egif(model_egif)),
+                m_relations=_sheet_relation_count(carried),
+                m_atoms=_sheet_atom_count(carried),
                 dispositions=dispositions,
                 decayed=len(dropped),
                 branched=branched,
@@ -350,10 +365,13 @@ class LiveRunner:
             import os
             if os.path.exists(cfg.stop_file):
                 return "stop_file"
-        if cfg.max_m_relations is not None:
+        if cfg.max_m_relations is not None or cfg.max_m_atoms is not None:
             from egif_parser_dau import parse_egif
-            if _sheet_relation_count(parse_egif(model_egif)) > cfg.max_m_relations:
+            g = parse_egif(model_egif)
+            if cfg.max_m_relations is not None and _sheet_relation_count(g) > cfg.max_m_relations:
                 return "max_m_relations"
+            if cfg.max_m_atoms is not None and _sheet_atom_count(g) > cfg.max_m_atoms:
+                return "max_m_atoms"
         return None
 
     def _decay(self, model_egif: str, used: set) -> tuple:

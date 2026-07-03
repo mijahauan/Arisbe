@@ -278,3 +278,107 @@ def test_deprecation_on_warm_repoll_meets_its_standing_target():
     assert same_graph(parse_egif(res.final_model_egif),
                       parse_egif('(place_of_birth "Adam" "London")'))
     assert src.injected == 1 and tropism.emitted == 1
+
+
+# --------------------------------------------------------------------------- #
+# Stream + tropism — the run-4 seam (§14): revisit × world-motion              #
+# --------------------------------------------------------------------------- #
+
+from wikidata_source import RecentChangesSource
+
+
+def _rc_payload(*title_ts):
+    return {"query": {"recentchanges": [
+        {"title": t, "timestamp": ts} for t, ts in title_ts]}}
+
+
+def test_stream_inject_rides_the_front_of_the_next_chunk():
+    calls = []
+
+    def fetch_ids(ids):
+        calls.append(list(ids))
+        return [WS(i, "P19", "x") for i in ids]
+
+    src = RecentChangesSource(ids_per_poll=2,
+                              fetch_changes=lambda since: _rc_payload(("Q8", "T1"), ("Q9", "T1")),
+                              fetch_ids=fetch_ids, label_fetch=lambda ids: {})
+    src.inject(["Q1"])
+    src.fetch()
+    assert calls == [["Q1", "Q8"]]        # warm first, the stream fills the remainder
+    assert src.injected == 1
+
+
+def test_stream_quiet_tick_still_serves_the_warm_set():
+    # the F2″ composition half the stream can't do alone: while the world is idle the
+    # tropism keeps its targets standing — a quiet tick is a warm re-reach, not a skip
+    calls = []
+
+    def fetch_ids(ids):
+        calls.append(list(ids))
+        return [WS(i, "P19", "x") for i in ids]
+
+    src = RecentChangesSource(fetch_changes=lambda since: {"query": {}},
+                              fetch_ids=fetch_ids, label_fetch=lambda ids: {})
+    src.inject(["Q1"])
+    assert src.fetch() != []
+    assert calls == [["Q1"]]
+
+
+def test_stream_warm_pending_survives_the_state_round_trip(tmp_path):
+    src = RecentChangesSource(fetch_changes=lambda since: {"query": {}},
+                              fetch_ids=lambda ids: [], label_fetch=lambda ids: {})
+    src.inject(["Q1", "Q2"])
+    src.save_state(str(tmp_path / "stream.json"))
+    calls = []
+
+    def fetch_ids(ids):
+        calls.append(list(ids))
+        return [WS(i, "P19", "x") for i in ids]
+
+    resumed = RecentChangesSource.load_state(
+        str(tmp_path / "stream.json"), fetch_changes=lambda since: {"query": {}},
+        fetch_ids=fetch_ids, label_fetch=lambda ids: {})
+    assert resumed.injected == 2
+    resumed.fetch()
+    assert calls == [["Q1", "Q2"]]        # a persisted warm re-reach survives the resume
+
+
+def test_stream_plus_tropism_composition_delivers_the_p2_event():
+    """THE RUN-4 HEADLINE, offline: the stream supplies world-motion (the value changes
+    rank between visits), the tropism supplies the revisit (the stream has moved on) —
+    composed, a deprecation meets its STANDING target and the panel retracts it. Neither
+    half suffices alone: run 2's stream never revisited on its own once the edit scrolled
+    past; run 3's crawl revisited a world that hadn't moved."""
+    calls = []
+
+    def fetch_ids(ids):
+        calls.append(list(ids))
+        if len(calls) == 1:
+            return [WS("Q1", "P19", "Cambridge", "normal", referenced=False)]
+        return [WS("Q1", "P19", "Cambridge", "deprecated", referenced=False),
+                WS("Q1", "P19", "London", "normal", referenced=True)]
+
+    # the stream mentions Q1 once (the edit scrolls past), then goes quiet — only the
+    # tropism's warm re-reach revisits it after the world has moved
+    ticks = []
+
+    def fetch_changes(since):
+        ticks.append(since)
+        return _rc_payload(("Q1", "T1")) if len(ticks) == 1 else {"query": {}}
+
+    labels = {"Q1": "Adam", "P19": "place of birth"}
+    src = RecentChangesSource(ids_per_poll=1, fetch_changes=fetch_changes,
+                              fetch_ids=fetch_ids,
+                              label_fetch=lambda ids: {i: labels[i] for i in ids if i in labels})
+    tropism = WarmSetTropism(src.known_labels, k=1)
+    runner = LiveRunner("", src, WikiDisputeFeed,
+                        LiveRunConfig(ttl=None, checkpoint=False, max_rounds=3),
+                        panel=_wikidata_panel(), tropism=tropism, clock=lambda: 0.0)
+    res = runner.run()
+    assert calls == [["Q1"], ["Q1"]]                                # the revisit happened
+    assert res.segments[0].dispositions == {"new_fact": 1}          # the habit forms
+    assert res.segments[1].dispositions.get("retract_fact") == 1    # …and meets its denial
+    assert res.segments[1].dispositions.get("new_fact") == 1
+    assert same_graph(parse_egif(res.final_model_egif),
+                      parse_egif('(place_of_birth "Adam" "London")'))
+    assert src.injected == 1 and tropism.emitted == 1

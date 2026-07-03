@@ -8,10 +8,16 @@ Two sources, chosen by --source:
     (a deprecation arrives while the bare value it overturns still stands in M — the
     RUN_1_LOG F2/F3 findings made operational)
 
-Plus the §13 tropism (run 3 = crawl + tropism, --warm-fraction, default 0.5): each poll's
-chunk mixes warm re-reaches of the entities backing M's standing facts (decay-adjacent first)
-with fresh frontier ids — the directed re-engagement runs 1–2 showed no passive membrane
-supplies. --warm-fraction 0 reproduces the passive baseline.
+Plus the §13 tropism (--warm-fraction, default 0.5): each poll's chunk mixes warm re-reaches
+of the entities backing M's standing facts (decay-adjacent first) with fresh ids — the
+directed re-engagement runs 1–2 showed no passive membrane supplies. Composes with either
+source (run 3 = crawl + tropism; run 4 = stream + tropism, the §14 F2″ composition:
+revisit × world-motion). --warm-fraction 0 reproduces the passive baseline.
+
+Usage (run 4):
+
+    uv run python tools/run_live_wikidata.py --source recentchanges --runs-dir runs/run4 \\
+        --max-seconds 3600
 
 Either source → WikiDisputeFeed → LiveRunner, with every §11 control armed:
 
@@ -45,7 +51,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from agon_evolution import (
     Agonothetes, ChallengerAgent, ContradictionAgent, GeneralizerAgent, ObserverAgent,
 )
-from live_runner import LiveRunConfig, LiveRunner
+from live_runner import LiveRunConfig, LiveRunner, _sheet_atom_count
 from tomos_service import TomosService
 from tropism import WarmSetTropism
 from wiki_dispute_membrane import WikiDisputeFeed
@@ -77,16 +83,19 @@ def main(argv=None) -> int:
                     help="poll only the seeds (no frontier growth)")
     ap.add_argument("--warm-fraction", type=float, default=0.5,
                     help="fraction of each poll's chunk re-reached from M's warm set — the "
-                         "§13 tropism (run 3: 0.5, fixed). 0 = off, the runs-1/2 passive "
-                         "baseline. Frontier source only (stream + tropism is run 4's "
-                         "candidate)")
+                         "§13 tropism (run 3: crawl + tropism at 0.5; run 4: stream + "
+                         "tropism — the F2″ composition, revisit × world-motion). 0 = off, "
+                         "the runs-1/2 passive baseline")
     ap.add_argument("--ttl", type=int, default=30, help="disuse-decay ttl (global rounds)")
     ap.add_argument("--segment-cap", type=int, default=25)
     ap.add_argument("--min-interval", type=float, default=5.0,
                     help="min seconds between polls (API politeness)")
     ap.add_argument("--max-seconds", type=float, default=3600.0)
     ap.add_argument("--max-rounds", type=int, default=None)
-    ap.add_argument("--max-m", type=int, default=200, help="safety net on |M|")
+    ap.add_argument("--max-m", type=int, default=200, help="safety net on |M| (relation names)")
+    ap.add_argument("--max-m-atoms", type=int, default=1000,
+                    help="safety net on sheet ATOMS — the F1″ unit (decay bounds names, not "
+                         "atoms; under tropism hub names accumulate atoms while |M| reads flat)")
     ap.add_argument("--runs-dir", default="runs/run1")
     ap.add_argument("--resume", action="store_true",
                     help="continue from the state files in --runs-dir")
@@ -97,10 +106,6 @@ def main(argv=None) -> int:
     state_path = str(runs / "state.json")
     frontier_path = str(runs / "frontier.json")
     stop_file = str(runs / "STOP")
-
-    if args.warm_fraction > 0 and args.source != "frontier":
-        ap.error("--warm-fraction needs --source frontier (run 3 = crawl + tropism; "
-                 "stream + tropism is run 4's candidate) — pass --warm-fraction 0")
 
     if args.source == "recentchanges":
         src_kwargs = dict(ids_per_poll=args.chunk,
@@ -139,7 +144,10 @@ def main(argv=None) -> int:
         non_revising = sum(1 for o in res.outcomes if o.disposition is None)
         leg = source.legibility[-1] if source.legibility else None
         frontier_dropped = getattr(source, "frontier_dropped", 0)
-        print(f"  segment: rounds={len(res.outcomes)} dispositions={dispositions}"
+        # F1″'s live instrument: atoms (pre-decay) beside names — the digest's m_atoms is the
+        # post-decay figure; this line is what the operator watches climb under warm hubs.
+        atoms = _sheet_atom_count(res.uod.current_egi)
+        print(f"  segment: rounds={len(res.outcomes)} atoms={atoms} dispositions={dispositions}"
               + (f" non_revising={non_revising}" if non_revising else "")
               + (f" legibility={leg:.2f}" if leg is not None else "")
               + (f" warm_injected={source.injected}" if getattr(source, "injected", 0) else "")
@@ -152,12 +160,12 @@ def main(argv=None) -> int:
                  if source.statements_dropped else "")
               + (f" ⚠ unparseable_dropped={source.unparseable_dropped}"
                  if getattr(source, "unparseable_dropped", 0) else ""), flush=True)
-        return {"legibility": leg, "non_revising": non_revising}
+        return {"legibility": leg, "non_revising": non_revising, "atoms_pre_decay": atoms}
 
     config = LiveRunConfig(
         ttl=args.ttl, segment_cap=args.segment_cap, min_interval_s=args.min_interval,
         max_rounds=args.max_rounds, max_seconds=args.max_seconds,
-        max_m_relations=args.max_m, stop_file=stop_file,
+        max_m_relations=args.max_m, max_m_atoms=args.max_m_atoms, stop_file=stop_file,
         checkpoint=True, state_path=state_path,
     )
     service = TomosService(runs / "checkpoints")
@@ -183,7 +191,7 @@ def main(argv=None) -> int:
 
     print(f"\nstopped: {res.stopped_because}   total rounds: {res.total_rounds}")
     for d in res.segments:
-        print(f"  segment {d.segment}: rounds={d.rounds} |M|={d.m_relations} "
+        print(f"  segment {d.segment}: rounds={d.rounds} |M|={d.m_relations} atoms={d.m_atoms} "
               f"dispositions={d.dispositions} decayed={d.decayed} ({d.elapsed_s:.1f}s)")
     if tropism:
         print(f"tropism: warm_emitted={tropism.emitted} injected={source.injected} "
@@ -205,7 +213,7 @@ def main(argv=None) -> int:
                          for w in poise_from_digests(res.segments))
         print(f"poise per segment (● poised · ○ rigidity · ✕ thrash): {strip}")
     print(f"\nartifacts: {runs}/polls.jsonl (offline replay) · {runs}/checkpoints (UoDs) · "
-          f"log your dispositions of the P1–P7 priors in runs/RUN_1_LOG.md")
+          f"log your dispositions of the pre-registered priors in runs/RUN_<n>_LOG.md")
     return 0
 
 

@@ -975,3 +975,100 @@ horizon-as-register remain future, named, unbuilt.
 4. **Run 3 source** — crawl + tropism (draft recommendation, P5″) **vs** stream + tropism.
 5. **Ambiguous labels** — re-poll all candidate ids **vs** skip + count (draft: skip + count for
    run 3; the ambiguity rate is itself worth measuring before spending polls on it).
+
+## 14 · Run 4 — stream + tropism (the F2″ composition; priors AFFIRMED by the author 2026-07-03, pre-run)
+
+**The mandate (RUN_3_LOG F2″).** Run 3 proved the tropism's plumbing (P1″: the redundancy
+fraction went 0 → 23.6 %, warm counters clean) and in the same hour sharpened P2's requirement:
+**the P2 event = revisit × world-motion**. The crawl's settled surface did not move within the
+hour, so the only deprecations delivered were *born-deprecated* — never admitted, target never
+standing, correctly inert even on a warm re-reach. Revisit is necessary, not sufficient. Runs 2
+and 3 proved the two halves separately (the stream samples the world *moving*; the warm set
+*holds the target standing*); run 4 composes them. With it the 2×2 design closes:
+run 1 = crawl·passive, run 2 = stream·passive, run 3 = crawl·tropism, **run 4 = stream·tropism**
+— departures read against both margins (vs run 2: the tropism's effect on the stream; vs run 3:
+the source's effect under tropism).
+
+**The author's dispositions of the run-3 horizon (2026-07-03, this session, pre-run):**
+
+1. **F1″ atom-unit instruments — build now** (affirmed as recommended): `SegmentDigest.m_atoms`
+   (sheet atoms after the segment — the honest unit beside the name-unit `m_relations`) +
+   `LiveRunConfig.max_m_atoms` (the atom-unit safety net; driver `--max-m-atoms`, default 1000)
+   + a live `atoms=` column in the per-segment console line. Instrument-only, no behavior
+   change; run 4's priors bind to it (P3‴).
+2. **F1″ rulebook question — DEFERRED, observe first** (affirmed as recommended): what *one
+   fact's* disuse under a warm name means (per-name atom cap vs atom-level decay) is a real
+   rulebook change; decide it on run-4 evidence with the honest column in view, not before.
+   One variable at a time — run 4 changes the *source*, not the decay semantics.
+3. **F1″ attest-cost residual — optimized now** (affirmed as recommended): the ligature
+   router's visibility-graph build (`elk_layout_engine._route_via_visibility_graph`) gained
+   three exact, deterministic accelerations — a **separation short-circuit** (one endpoint
+   inside an obstacle rect and one out → no path exists; the over-constrained-soft case that
+   used to exhaust the whole graph), a **uniform grid** over obstacles (a segment consults only
+   obstacles sharing a cell; registration inflated one cell, so the same crossings are found),
+   and **lazy A\*** (Euclidean heuristic, consistent → first arrival is a shortest path;
+   visibility edges computed only for expanded nodes). Measured on the F1″ fixture: the
+   run3_seg17 checkpoint (135 atoms, five hubs deg 20–25) load-attests in **3.8 s** where it
+   exceeded **10 minutes** (>160×); run3_seg1 7.4 s → 0.4 s. Correctness: routes remain
+   shortest paths (tie-breaks may differ from the old eager Dijkstra — still deterministic);
+   the correspondence/reader/tension/LaTeX suites pass.
+4. **The spectator surface — stays queued, unaffirmed** (RATE_AND_INTELLIGIBILITY hypotheses +
+   ADAPTIVE_SCOPE_VIEWER §10); run 4 executes first.
+
+**Machinery under test (built 2026-07-03, offline-proven in `tests/test_tropism.py`):**
+`RecentChangesSource` gains the §13 seam — `inject(ids)` (warm re-reaches ride the **front of
+the next poll's chunk**, ahead of whatever the stream delivers; the stream has no `_seen`, so
+the seam only skips already-pending ids; counted, never silent) + `known_labels()` +
+`warm_pending` persisted through `save_state`/`load_state` (a persisted warm re-reach survives
+resume, verbatim — the run-3 lesson). One deliberate semantic: **a quiet stream tick still
+serves the warm set** (warm pending → the poll fetches them even when nothing was edited) — the
+tropism holds its targets standing *while the world is idle*, which is exactly the F2″
+composition. The driver's `--source recentchanges --warm-fraction` refusal is lifted. Offline
+headline (`test_stream_plus_tropism_composition_delivers_the_p2_event`): the stream mentions an
+entity once and moves on; the world then deprecates the admitted value and references a
+replacement; only the tropism's warm re-reach revisits — the denial **meets its standing
+target**, the panel retracts, the referenced value stands.
+
+**Run shape:** supervised sitting, one hour, config matching run 2's stream run except the
+tropism on: `--source recentchanges --runs-dir runs/run4 --max-seconds 3600` (chunk 8,
+warm_fraction 0.5 → k=4, per_entity_cap 25, ttl 30, segment_cap 25, min_interval 5.0,
+max_m 200, max_m_atoms 1000). Findings → `runs/RUN_4_LOG.md` (skeleton pre-registered).
+
+**Priors P1‴–P7‴ (each bound to its instrument; affirmed pre-run):**
+
+- **P1‴ the tropism works on the stream** (digest `non_revising` + `warm_injected` + skip
+  counters): non-revising > 0 (run 2 measured zero) with counters clean (emitted = injected,
+  skips counted). The stream's warm set forms more slowly than the crawl's (facts arrive from
+  whatever was just edited), so the fraction may run below run 3's 23.6 % — the *presence* of
+  the warm-shaped texture is the prior, not its magnitude.
+- **P2‴ THE RUN'S QUESTION — the P2 event, live:** a value admitted from an earlier poll is
+  denied (deprecation / rank change / reliably-sourced replacement) while it **still stands**
+  in M → `retract_fact` > 0 live, and `mechanism_principles` differentiates on live data
+  (consensus stick-rate < 1.0 once overturns occur; reliable_source ≥ consensus, a reversal =
+  a genuine discovery). Honest floor: born-deprecated deliveries stay correctly inert (run-3
+  F2″); the event needs the world to move *between visits within the hour* — the stream skews
+  to actively-edited entities, so motion is plausible, not guaranteed. **A zero is then a rate
+  finding** (the event is rarer than a 1-hour horizon), not a machinery finding — the offline
+  headline already witnesses the mechanism.
+- **P3‴ atoms, the honest unit** (digest `m_atoms` vs `m_relations` — the new F1″ instrument's
+  first live outing): expect atoms ≫ names wherever warm names pin hubs; `max_m_atoms` firing
+  is a *legitimate stop*, not a failure (the net working). Report the atoms-per-warm-name
+  profile — this is the evidence the deferred rulebook decision (per-name cap vs atom-level
+  decay) will be made on.
+- **P4‴ true:negation, both sides now reachable**: denials meeting standing targets
+  consistently retract (the P2‴ event); denials without a standing target consistently inert.
+  Inconsistency on either side = a rulebook gap (`gaps`).
+- **P5‴ attribution (the 2×2 closes)**: vs run 2 (same source, passive) any redundancy/retract
+  departure is tropism-attributable; vs run 3 (same tropism, crawl) any contestation-mix
+  departure (reliable_source-heavy, deprecations present) is source-attributable. Expect run
+  2's mechanism mix (49:13 reliable-source-heavy) to survive the tropism.
+- **P6‴ poise, read honestly**: quiet-stream stretches no longer produce zero rounds when the
+  warm set is non-empty (the quiet tick serves it) — expect *fewer* dead segments than run 2;
+  redundancy waves read against `non_revising` (run 3: ● even at 96 % redundancy at 0.5).
+- **P7‴ operational floor**: legibility < 0.2 (labels lag fresh edits; 0.09 in the run-2
+  smoke); all checkpoints §3.3-attest to the side store; determinism canary green
+  (`polls.jsonl` replay). **The attest-cost rider, re-measured**: with the visibility-graph
+  fix in, checkpoint elapsed should track round compute rather than dominating wall-clock
+  (run 3: attest ≈ 100 % of elapsed, 3.3 → 1075 s; the fixture now loads in 3.8 s) — segment
+  elapsed staying flat-ish while atoms grow is the fix confirmed live; a super-linear tail
+  reappearing is a new finding.

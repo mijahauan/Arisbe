@@ -530,10 +530,30 @@ class RecentChangesSource:
             lambda ids: wbgetentities_fetch(ids, with_labels=False))
         self._record = record_path
         self._cache = LabelCache(label_fetch)
+        self._warm_pending: List[str] = []
         self.legibility: List[float] = []
         self.statements_dropped = 0
         self.unparseable_dropped = 0
+        self.injected = 0
         self.polls = 0
+
+    def inject(self, ids: Sequence[str]) -> None:
+        """The tropism seam (§13; run 4 = stream + tropism): deliberately re-reach these
+        entities at the **next poll**, riding the front of the chunk ahead of whatever the
+        stream happens to deliver. The stream has no ``_seen`` (natural revisits are its
+        point), so the seam only skips ids already pending; non-Q tokens are ignored and
+        everything injected is counted (``injected``), never silent."""
+        fresh = [i for i in dict.fromkeys(ids)
+                 if i.startswith("Q") and _PQ_ID.match(i) and i not in self._warm_pending]
+        if not fresh:
+            return
+        self._warm_pending.extend(fresh)
+        self.injected += len(fresh)
+
+    def known_labels(self) -> Dict[str, str]:
+        """The run's resolved ``id → label`` map — what the warm-set tropism reverses to
+        recover entity ids from M's (label-carrying) facts. A copy; the cache stays private."""
+        return dict(self._cache._labels)
 
     def fetch(self) -> Sequence[WikiDispute]:
         data = self._fetch_changes(self._since)
@@ -541,7 +561,12 @@ class RecentChangesSource:
         ids, newest = rc_ids(data)
         if newest:
             self._since = newest                  # continuation: next poll = changes since now
-        ids = ids[: self._ids_per_poll]
+        # Warm re-reaches first, the stream filling the remainder of the chunk. A quiet
+        # stream tick still serves the warm set — the tropism holds its targets standing
+        # while the world is idle (the F2″ composition: revisit × world-motion).
+        warm = self._warm_pending[: self._ids_per_poll]
+        del self._warm_pending[: len(warm)]
+        ids = warm + [i for i in ids if i not in warm][: max(0, self._ids_per_poll - len(warm))]
         if not ids:
             return []                             # quiet stream — the runner paces + re-polls
         statements, dropped = _cap_by_entity(list(self._fetch_ids(ids)), self._entity_cap)
@@ -567,6 +592,7 @@ class RecentChangesSource:
             "polls": self.polls,
             "statements_dropped": self.statements_dropped,
             "unparseable_dropped": self.unparseable_dropped,
+            "warm_pending": self._warm_pending, "injected": self.injected,
             "labels": self._cache._labels, "no_label": sorted(self._cache._no_label),
             "legibility": self.legibility,
         }
@@ -584,6 +610,10 @@ class RecentChangesSource:
         src.polls = state.get("polls", 0)
         src.statements_dropped = state.get("statements_dropped", 0)
         src.unparseable_dropped = state.get("unparseable_dropped", 0)
+        # verbatim (mirrors the rotating source's resume rule): a persisted warm
+        # re-reach is deliberate and must survive the resume
+        src._warm_pending = list(state.get("warm_pending", []))
+        src.injected = state.get("injected", 0)
         src._cache._labels.update(state.get("labels", {}))
         src._cache._no_label.update(state.get("no_label", []))
         src.legibility = list(state.get("legibility", []))

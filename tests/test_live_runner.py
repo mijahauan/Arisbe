@@ -101,6 +101,36 @@ def test_max_m_relations_stop():
 
 
 # --------------------------------------------------------------------------- #
+# Atom units — the RUN_3 F1″ instruments                                       #
+# (decay erases per relation NAME; a warm hub name accumulates atoms while     #
+#  m_relations reads flat — the digest and the safety net must see atoms)      #
+# --------------------------------------------------------------------------- #
+
+def _hub_batches(n):
+    """n batches, each a new fact under the SAME relation name — the hub shape."""
+    return [[DiscourseItem("d", "s", f'(prop "X{i}")')] for i in range(n)]
+
+
+def test_digest_reports_atoms_beside_names_and_warm_name_defeats_decay():
+    # ttl=2 with the hub name used every round: name-decay never fires, so the
+    # name count reads flat at 1 while the sheet grows an atom per round.
+    r = LiveRunner("", ReplaySource(_hub_batches(6)), DiscourseFeed,
+                   LiveRunConfig(ttl=2, checkpoint=False), clock=_zero_clock).run()
+    assert all(d.m_relations == 1 for d in r.segments)       # the flattering unit
+    assert all(d.decayed == 0 for d in r.segments)           # decay never reaches the warm name
+    assert r.segments[-1].m_atoms == 6                       # the honest unit grows
+    assert [d.m_atoms for d in r.segments] == [1, 2, 3, 4, 5, 6]
+
+
+def test_max_m_atoms_stop_fires_while_names_read_flat():
+    r = LiveRunner("", ReplaySource(_hub_batches(20)), DiscourseFeed,
+                   LiveRunConfig(ttl=None, max_m_relations=10, max_m_atoms=3, checkpoint=False),
+                   clock=_zero_clock).run()
+    assert r.stopped_because == "max_m_atoms"                # names never hit their cap
+    assert all(d.m_relations <= 1 for d in r.segments)
+
+
+# --------------------------------------------------------------------------- #
 # Pacing                                                                       #
 # --------------------------------------------------------------------------- #
 

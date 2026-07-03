@@ -925,8 +925,37 @@ class ELKLayoutEngine:
     ) -> Tuple[Point, ...]:
         """Shortest obstacle-free path using a visibility graph.
 
-        ``pad`` is the obstacle-corner standoff convention."""
+        ``pad`` is the obstacle-corner standoff convention.
+
+        The naive build tests O(waypoints² × obstacles) segment/rect pairs —
+        the checkpoint-attest wall-clock of a hub-shaped M (RUN_3 F1″: 135
+        atoms, five hubs → attest was essentially the whole live elapsed).
+        Three exact accelerations, all sound and deterministic:
+
+        - **separation short-circuit** — if exactly one of start/end lies
+          within some obstacle rect, every segment out of it is a crossing, so
+          no visibility path exists (the over-constrained-soft case that
+          otherwise exhausts the whole graph before falling back);
+        - **uniform grid** over the obstacles — a segment consults only
+          obstacles sharing a cell with it. An obstacle a segment crosses
+          shares a cell with it (registration is inflated one cell to cover
+          corner-degenerate walks), so the same crossings are found;
+        - **lazy A*** (Euclidean heuristic — consistent for Euclidean edge
+          weights, so the first arrival at the goal is a shortest path):
+          visibility edges are computed only for nodes actually expanded.
+        """
         PAD = pad
+
+        # Separation short-circuit. ``_seg_crosses_rect`` counts any segment
+        # with one endpoint in a rect (closed bounds) and one out as a
+        # crossing, so a rect holding exactly one of start/end blocks every
+        # path — exactly the case the search below would prove by exhaustion.
+        for b in obstacles:
+            s_in = b.min_x <= start.x <= b.max_x and b.min_y <= start.y <= b.max_y
+            e_in = b.min_x <= end.x <= b.max_x and b.min_y <= end.y <= b.max_y
+            if s_in != e_in:
+                return (start, end)
+
         waypoints: List[Point] = [start, end]
         for b in obstacles:
             waypoints.extend([
@@ -937,42 +966,100 @@ class ELKLayoutEngine:
             ])
 
         n = len(waypoints)
+        inf = float("inf")
+
+        # ---- uniform grid over the obstacles (exact candidate culling) ----
+        gx0 = min(b.min_x for b in obstacles)
+        gy0 = min(b.min_y for b in obstacles)
+        extents = sorted(max(b.max_x - b.min_x, b.max_y - b.min_y) for b in obstacles)
+        cell = max(extents[len(extents) // 2], 1.0)   # median obstacle extent
+        inv = 1.0 / cell
+        grid: dict = {}
+        for k, b in enumerate(obstacles):
+            # one-cell inflation: a supercover walk that skips a corner-touched
+            # cell still finds the obstacle in the adjacent registered cell
+            for cx in range(math.floor((b.min_x - gx0) * inv) - 1,
+                            math.floor((b.max_x - gx0) * inv) + 2):
+                for cy in range(math.floor((b.min_y - gy0) * inv) - 1,
+                                math.floor((b.max_y - gy0) * inv) + 2):
+                    grid.setdefault((cx, cy), []).append(k)
+
+        stamp = [0] * len(obstacles)
+        tick = [0]
 
         def _can_see(a: Point, b: Point) -> bool:
-            return not any(cls._seg_crosses_rect(a, b, ob) for ob in obstacles)
+            """Grid-culled crossing test — identical verdicts to testing all
+            obstacles: any crossed obstacle shares a (inflated) cell with the
+            segment's Amanatides–Woo cell walk."""
+            tick[0] += 1
+            t = tick[0]
+            cx = math.floor((a.x - gx0) * inv)
+            cy = math.floor((a.y - gy0) * inv)
+            ex = math.floor((b.x - gx0) * inv)
+            ey = math.floor((b.y - gy0) * inv)
+            dx = b.x - a.x
+            dy = b.y - a.y
+            step_x = 1 if dx > 0 else -1
+            step_y = 1 if dy > 0 else -1
+            if dx != 0.0:
+                t_max_x = ((gx0 + (cx + (1 if dx > 0 else 0)) * cell) - a.x) / dx
+                t_dx = cell / abs(dx)
+            else:
+                t_max_x, t_dx = inf, inf
+            if dy != 0.0:
+                t_max_y = ((gy0 + (cy + (1 if dy > 0 else 0)) * cell) - a.y) / dy
+                t_dy = cell / abs(dy)
+            else:
+                t_max_y, t_dy = inf, inf
+            remaining = abs(ex - cx) + abs(ey - cy)   # steps are monotone → exact bound
+            while True:
+                for k in grid.get((cx, cy), ()):
+                    if stamp[k] != t:
+                        stamp[k] = t
+                        if cls._seg_crosses_rect(a, b, obstacles[k]):
+                            return False
+                if remaining <= 0:
+                    return True
+                if t_max_x < t_max_y:
+                    cx += step_x
+                    t_max_x += t_dx
+                else:
+                    cy += step_y
+                    t_max_y += t_dy
+                remaining -= 1
 
-        # Build adjacency list
-        adj: List[List[Tuple[int, float]]] = [[] for _ in range(n)]
-        for i in range(n):
-            for j in range(i + 1, n):
-                if _can_see(waypoints[i], waypoints[j]):
-                    d = math.hypot(
-                        waypoints[j].x - waypoints[i].x,
-                        waypoints[j].y - waypoints[i].y,
-                    )
-                    adj[i].append((j, d))
-                    adj[j].append((i, d))
+        # ---- lazy A* from 0 (start) to 1 (end) ----
+        def _h(i: int) -> float:
+            return math.hypot(waypoints[i].x - end.x, waypoints[i].y - end.y)
 
-        # Dijkstra from 0 (start) to 1 (end)
-        dist_arr = [float("inf")] * n
-        dist_arr[0] = 0.0
+        g_cost = [inf] * n
+        g_cost[0] = 0.0
         prev = [-1] * n
-        pq: List[Tuple[float, int]] = [(0.0, 0)]
+        closed = [False] * n
+        pq: List[Tuple[float, int]] = [(_h(0), 0)]
 
         while pq:
-            d, u = heapq.heappop(pq)
-            if d > dist_arr[u]:
+            f, u = heapq.heappop(pq)
+            if closed[u]:
                 continue
+            closed[u] = True
             if u == 1:
                 break
-            for v, w in adj[u]:
-                nd = d + w
-                if nd < dist_arr[v]:
-                    dist_arr[v] = nd
+            pu = waypoints[u]
+            gu = g_cost[u]
+            for v in range(n):
+                if closed[v] or v == u:
+                    continue
+                pv = waypoints[v]
+                d = math.hypot(pv.x - pu.x, pv.y - pu.y)
+                if gu + d >= g_cost[v]:
+                    continue           # can't improve — skip the visibility test
+                if _can_see(pu, pv):
+                    g_cost[v] = gu + d
                     prev[v] = u
-                    heapq.heappush(pq, (nd, v))
+                    heapq.heappush(pq, (gu + d + _h(v), v))
 
-        if dist_arr[1] == float("inf"):
+        if g_cost[1] == inf or not closed[1]:
             return (start, end)  # no path found — straight line fallback
 
         path: List[Point] = []
