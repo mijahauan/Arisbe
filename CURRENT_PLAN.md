@@ -1,12 +1,54 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION — RUN 3: crawl + tropism, live.** §13 was AFFIRMED and the tropism module
-BUILT (2026-07-02/03, below); what remains is the live session itself:
-`uv run python tools/run_live_wikidata.py --runs-dir runs/run3 --max-seconds 3600` (warm_fraction
-0.5 is the default; supervised first hour per §11), findings logged against the pre-registered
-P1″–P7″ in `runs/RUN_3_LOG.md` (skeleton ready, instruments named per prior). Read §13's
-affirmation note first: P1″'s redundancy fraction surfaces as the digest's `non_revising` count
-(a warm re-delivery is a disposition-`None` round — every agent abstains, the habit holding).
+**▶▶▶ NEXT SESSION — dispose the run-3 horizon (author decisions), then run 4.** Run 3 is
+EXECUTED & DISPOSED (`runs/RUN_3_LOG.md`, 2026-07-03 block below). Three queued decisions:
+(1) **F1″ instruments** — atom-unit digest column + atom-unit safety net (cheap, recommended
+regardless); then the rulebook question: per-name atom cap vs atom-level decay (what is *one
+fact's* disuse under a warm name?); the attest O(waypoints²) residual now has a named fixture
+(the run3_seg17 checkpoint: 135 atoms, five hubs deg 20–25 — load exceeds 10 min).
+(2) **Run 4 = stream + tropism** (F2″'s prescription; §12/§13's named candidate): lift the
+driver's `--source recentchanges --warm-fraction` refusal (one guard line) + a §14-style
+pre-registration (P1‴…, including the F1″ atom-unit instruments) — the composition that makes
+the P2 event reachable (the stream supplies world-motion; the warm set holds the target
+standing to meet it). (3) **The spectator surface** — candidate queued in
+ADAPTIVE_SCOPE_VIEWER §10, hypotheses pre-registered in `docs/RATE_AND_INTELLIGIBILITY.md`
+(not yet affirmed).
+
+**▶▶▶ THIS SESSION (2026-07-03) — RUN 3 EXECUTED & DISPOSED: crawl + tropism, live
+(runs/RUN_3_LOG.md).** One supervised hour, seeds/config matching run 1 for P5″ attribution:
+**17 segments · 423 rounds · 3 polls**, 17/17 checkpoints attested, tropism counters clean
+(`warm_emitted=6 injected=6`, zero skips), legibility 0.00, **determinism canary GREEN** (the
+offline replay reproduced all 17 segments exactly, then ran the ~46 queued disputes to 469
+rounds — queued, never truncated). **P1″ CONFIRMED — the headline:** `non_revising` = 100/423
+(23.6 %), the structural redundancy fraction runs 1–2 measured at zero, arriving in
+warm-shaped waves (segs 12–14 peak 24/25) against fresh-shaped ones (F3″: the legible
+warm/fresh texture at segment scale). Poise 17/17 ● even in the 96 %-redundancy windows
+(P6″'s predicted ○ depression did not appear at warm_fraction 0.5). **F1″ (the run's
+operational finding): decay bounds the *vocabulary*, not the *sheet*** — `m_relations`, the
+ledger, and `max_m` all count relation *names*; the tropism refreshes exactly the held names,
+so atoms accumulate unboundedly under hot names: the digest showed |M|=10 while the seg-17
+sheet held **135 atoms / 136 vertices / five hubs of degree 20–25**, and checkpoint-attest
+wall-clock (essentially 100 % of live elapsed; round compute ~1 min for the whole replay)
+climbed 3.3 s → 1075 s. Disposed `challenge_to_M` against the §10 capacity model's units;
+prescriptions queued as author decisions (atom-unit instruments; per-name cap vs atom-level
+decay; the O(waypoints²) fixture). **F2″: the P2 event = revisit × world-motion** — the run's
+only deprecated deliveries were the *same born-deprecated statement* (never admitted → denial
+target never standing → correctly inert, twice, the second on a warm re-reach): revisit is
+necessary, not sufficient; the world must move between visits → **run 4 = stream + tropism**.
+P4″ confirmed weak-side (denials-without-target consistently inert); P5″ confirmed (both
+departures tropism-attributable against the replicated baseline). **Also this sitting, born
+watching the run happen invisibly: `docs/RATE_AND_INTELLIGIBILITY.md`** — rate as the third
+in-view-set axis (co-presence D-rules vs succession R-rules), six pre-registered hypotheses
+(H1 categorical imperceptibility of habit in stills … H6 temporal LOD) each bound to
+instruments the game already records (dispositions/stickiness/poise as free ground truth),
+seven regime-3 UX rules (event-paced clock, dwell table as style knob, redundancy→texture,
+mandatory registration, counted temporal placeholders = `attest_overview`'s temporal twin,
+one-lens-three-LOD-axes, rate-never-a-target); spectator-surface candidate queued in
+ADAPTIVE_SCOPE_VIEWER §10 + pointer in THE_MINIMAL_IN_VIEW_SET §9. Run-3 filmstrip: 10 of 17
+frames rendered to `runs/run3/filmstrip/` (recipe beside them in `render.py`; 240 s frame
+budget — seg 10 blew it, the hub-heavy tail was stopped at wrap: F1″ made visible; frame cost
+tracked sheet growth 3.5 s @ 25 atoms → 197 s @ 82).
+[[project_next_automated_model_development_life]].
 
 **▶▶▶ THIS SESSION (2026-07-02→03) — ARC RE-ENTRY EXECUTED: §13 AFFIRMED + TROPISM INCREMENT 1
 BUILT.** Author affirmed all five §13 decisions as drafted ((1) `source.inject(ids)` seam;

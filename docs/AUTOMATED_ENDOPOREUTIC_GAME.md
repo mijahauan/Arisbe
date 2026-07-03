@@ -882,6 +882,17 @@ driver's `--warm-fraction` knob (0 = the runs-1/2 passive baseline); tests
 unchanged value as a **non-revising round** (disposition `None` — every agent abstains), so the
 digest surfaces it as `non_revising`; that count *is* the redundancy fraction P1″ reads.
 
+**RUN 3 EXECUTED & DISPOSED 2026-07-03** — see [`runs/RUN_3_LOG.md`](../runs/RUN_3_LOG.md).
+Headlines: **P1″ CONFIRMED** (`non_revising` = 100/423 = 23.6 % — the fraction runs 1–2
+measured at zero; canary green); **F1″** — decay bounds the *vocabulary* (relation names),
+not the *sheet* (atoms): the tropism pins the held names warm, so atoms accumulate under hot
+names (digest |M|=10 vs a 135-atom five-hub sheet at seg 17; attest wall-clock 3.3 → 1075 s)
+— `challenge_to_M` against §10's capacity units, instrument/rulebook prescriptions queued;
+**F2″** — the P2 event = **revisit × world-motion**: revisit alone is necessary, not
+sufficient (both live deprecations were born-deprecated → target never standing → correctly
+inert, even on the warm re-reach) → **run 4 = stream + tropism** is the named next
+experiment. Poise 17/17 ● at warm_fraction 0.5 (the predicted redundancy ○ did not appear).
+
 **The mandate (empirical, not philosophical).** Runs 1–2 characterized both passive membranes:
 the crawl samples the settled surface, the stream samples the novelty frontier, and **neither
 revisits** (run 2: 53 entities, zero seen twice in ~75 min). P2 — mechanism durability, *the*

@@ -1,0 +1,46 @@
+run start 2026-07-03 06:38:38 — source=frontier · seeds=['Q42', 'Q7259', 'Q937'] · ttl=30 warm_fraction=0.5 (k=4/poll) pacing=5.0s stop: touch runs/run3/STOP
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1119
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1119
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=1119
+  segment: rounds=25 dispositions={'new_fact': 14} non_revising=11 legibility=0.00 warm_injected=3 statements_dropped=2758
+  segment: rounds=25 dispositions={'new_fact': 11} non_revising=14 legibility=0.00 warm_injected=3 statements_dropped=2758
+  segment: rounds=25 dispositions={'new_fact': 19} non_revising=6 legibility=0.00 warm_injected=3 statements_dropped=2758
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 warm_injected=3 statements_dropped=2758
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 warm_injected=3 statements_dropped=2758
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 warm_injected=3 statements_dropped=2758
+  segment: rounds=25 dispositions={'new_fact': 23} non_revising=2 legibility=0.00 warm_injected=3 statements_dropped=2758
+  segment: rounds=23 dispositions={'new_fact': 23} legibility=0.00 warm_injected=3 statements_dropped=2758
+  segment: rounds=25 dispositions={'new_fact': 4} non_revising=21 legibility=0.00 warm_injected=6 statements_dropped=3392
+  segment: rounds=25 dispositions={'new_fact': 1} non_revising=24 legibility=0.00 warm_injected=6 statements_dropped=3392
+  segment: rounds=25 dispositions={'new_fact': 3} non_revising=22 legibility=0.00 warm_injected=6 statements_dropped=3392
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 warm_injected=6 statements_dropped=3392
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 warm_injected=6 statements_dropped=3392
+  segment: rounds=25 dispositions={'new_fact': 25} legibility=0.00 warm_injected=6 statements_dropped=3392
+
+stopped: max_seconds   total rounds: 423
+  segment 1: rounds=25 |M|=15 dispositions={'new_fact': 25} decayed=0 (3.3s)
+  segment 2: rounds=25 |M|=27 dispositions={'new_fact': 25} decayed=0 (18.4s)
+  segment 3: rounds=25 |M|=24 dispositions={'new_fact': 25} decayed=11 (137.9s)
+  segment 4: rounds=25 |M|=25 dispositions={'new_fact': 14} decayed=10 (127.8s)
+  segment 5: rounds=25 |M|=27 dispositions={'new_fact': 11} decayed=8 (131.0s)
+  segment 6: rounds=25 |M|=24 dispositions={'new_fact': 19} decayed=11 (127.8s)
+  segment 7: rounds=25 |M|=17 dispositions={'new_fact': 25} decayed=12 (168.9s)
+  segment 8: rounds=25 |M|=13 dispositions={'new_fact': 25} decayed=12 (207.2s)
+  segment 9: rounds=25 |M|=21 dispositions={'new_fact': 25} decayed=4 (163.8s)
+  segment 10: rounds=25 |M|=14 dispositions={'new_fact': 23} decayed=8 (280.8s)
+  segment 11: rounds=23 |M|=14 dispositions={'new_fact': 23} decayed=2 (134.5s)
+  segment 12: rounds=25 |M|=15 dispositions={'new_fact': 4} decayed=1 (134.5s)
+  segment 13: rounds=25 |M|=14 dispositions={'new_fact': 1} decayed=2 (136.7s)
+  segment 14: rounds=25 |M|=14 dispositions={'new_fact': 3} decayed=2 (139.3s)
+  segment 15: rounds=25 |M|=12 dispositions={'new_fact': 25} decayed=3 (289.3s)
+  segment 16: rounds=25 |M|=10 dispositions={'new_fact': 25} decayed=2 (582.2s)
+  segment 17: rounds=25 |M|=10 dispositions={'new_fact': 25} decayed=4 (1075.1s)
+tropism: warm_emitted=6 injected=6 ambiguous_skipped=0 unmapped_skipped=0
+legibility per poll: ['0.00', '0.00', '0.00']
+mechanism principles (decay-aware, cross-segment):
+  consensus: n=281 stick_rate=1.0 durable=True decay_erased=128
+  reliable_source: n=140 stick_rate=1.0 durable=True decay_erased=86
+  deprecated: n=2 stick_rate=None durable=False decay_erased=0
+poise per segment (● poised · ○ rigidity · ✕ thrash): ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ●
+
+artifacts: runs/run3/polls.jsonl (offline replay) · runs/run3/checkpoints (UoDs) · log your dispositions of the P1–P7 priors in runs/RUN_1_LOG.md

@@ -423,6 +423,14 @@ Route + E2E (mirroring `test_organon_routes.py` / `test_organon_lenses_e2e.py`):
 
 ## 10. Deferred (author's stated order, after overview+expand)
 
+- **Candidate (2026-07-03, not yet affirmed) — the spectator surface + rate axis.** A
+  read-only store wire (Organon over a live run's checkpoint side store, e.g.
+  `?store=runs/run3/checkpoints`) with a trailing latest-segment view, and playback governed
+  by the pre-registered rate hypotheses/rules of
+  [`RATE_AND_INTELLIGIBILITY.md`](RATE_AND_INTELLIGIBILITY.md) — rate as the third LOD axis
+  beside this doc's spatial quotient (temporal placeholders counted, `attest_overview`'s
+  temporal twin). Born from supervising run 3, whose character (the `non_revising` hum,
+  decay, warm re-poll) exists in no single checkpoint.
 - **✅ DONE (2026-06-15) — Time-stack production lens.** `src/web_viewer/js/time-stack-lens.js`
   (ES module, lazy-imported), wired into `organon.html`'s Lens selector beside Storyboard (both
   revealed only for a chained UoD). The recorded derivation as a navigable 2.5-D solid: each

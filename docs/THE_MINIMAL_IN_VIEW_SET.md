@@ -347,6 +347,11 @@ them falsifiable.
 budget = DOI (Furnas/Cowan); fold = chunking (Miller/Sweller); ContextReflex = common ground (Clark); oracle =
 the off-loaded store (Clark–Chalmers / Ericsson & Kintsch).
 
+*The D-rules govern co-presence — how much history stands side by side, time flattened into space. The
+genuinely temporal axis (the **rate** of succession: which transitions get dwell, how compressed stretches
+stay honest) is ruled separately in [`RATE_AND_INTELLIGIBILITY.md`](RATE_AND_INTELLIGIBILITY.md), with its
+own pre-registered hypotheses (2026-07-03).*
+
 ## 10. The validation methodology — the diagram↔narration correspondence check
 
 The rules in §9 are *hypotheses about how people think*. They must be testable, or they are decoration. The
