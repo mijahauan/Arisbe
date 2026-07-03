@@ -380,6 +380,29 @@ class RotatingWikidataSource:
         self.frontier_dropped = 0
         self.statements_dropped = 0
         self.unparseable_dropped = 0
+        self.injected = 0
+
+    def inject(self, ids: Sequence[str]) -> None:
+        """The tropism seam (§13): deliberately re-reach these entities at the **next poll**.
+        Injected ids go front-of-queue and **bypass ``_seen``** — the whole point: ``_seen``
+        exists to stop the *crawl* re-enqueueing what it already met, and a deliberate re-reach
+        is not a crawl duplicate. Ids already pending ahead of the cursor are skipped (about to
+        be reached anyway), non-Q tokens are ignored, and everything injected is counted
+        (``injected``), never silent. The frontier cap does not apply — a warm re-reach is
+        consumed next poll, not parked."""
+        pending = set(self._queue[self._i:])
+        fresh = [i for i in dict.fromkeys(ids)
+                 if i.startswith("Q") and _PQ_ID.match(i) and i not in pending]
+        if not fresh:
+            return
+        self._queue[self._i:self._i] = fresh
+        self._seen.update(fresh)
+        self.injected += len(fresh)
+
+    def known_labels(self) -> Dict[str, str]:
+        """The run's resolved ``id → label`` map — what the warm-set tropism reverses to
+        recover entity ids from M's (label-carrying) facts. A copy; the cache stays private."""
+        return dict(self._cache._labels)
 
     def fetch(self) -> Sequence[WikiDispute]:
         if self._i >= len(self._queue):
@@ -418,6 +441,7 @@ class RotatingWikidataSource:
             "frontier_dropped": self.frontier_dropped,
             "statements_dropped": self.statements_dropped,
             "unparseable_dropped": self.unparseable_dropped,
+            "injected": self.injected,
             "labels": self._cache._labels, "no_label": sorted(self._cache._no_label),
             "legibility": self.legibility,
         }
@@ -432,10 +456,15 @@ class RotatingWikidataSource:
         with open(path, "r", encoding="utf-8") as fh:
             state = json.load(fh)
         src = cls(state["queue"], **kwargs)
+        # verbatim, not through the constructor's dedup: a persisted warm re-reach (§13 inject)
+        # is a deliberate duplicate and must survive the resume
+        src._queue = list(state["queue"])
+        src._seen = set(src._queue)
         src._i = state["cursor"]
         src.frontier_dropped = state.get("frontier_dropped", 0)
         src.statements_dropped = state.get("statements_dropped", 0)
         src.unparseable_dropped = state.get("unparseable_dropped", 0)
+        src.injected = state.get("injected", 0)
         src._cache._labels.update(state.get("labels", {}))
         src._cache._no_label.update(state.get("no_label", []))
         src.legibility = list(state.get("legibility", []))

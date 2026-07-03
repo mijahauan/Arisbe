@@ -77,12 +77,13 @@ workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
 - A **frontend** for the interpretation register — **shipped** (the Agon model
   picker, render-M, and the verdict reading strip).
 
-Still open: the **tropism** module — M's own state directing *which* sources to
-re-engage (warm-set re-poll). The two executed live runs (`runs/RUN_1_LOG.md`,
-`runs/RUN_2_LOG.md`) found that passive ingestion never revisits, so only directed
-re-engagement can test the durability of what the game settles; tropism is mandated
-but not yet built. The browser arena itself also remains hot-seat (the autonomous
-game runs headless).
+The **tropism** module — M's own state directing *which* sources to re-engage — is
+now **built** (increment 1, the warm-set re-poll: `src/tropism.py`, 2026-07-02). The
+two executed live runs (`runs/RUN_1_LOG.md`, `runs/RUN_2_LOG.md`) found that passive
+ingestion never revisits, so only directed re-engagement can test the durability of
+what the game settles; the live crawl+tropism session (run 3) is still ahead. Still
+open: the tropism's musement pole, and the browser arena itself remains hot-seat
+(the autonomous game runs headless).
 
 ---
 

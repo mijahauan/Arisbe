@@ -165,6 +165,7 @@ class LiveRunner:
         panel=None,                            # an Agonothetes panel (default: the mechanical one)
         evaluate: Optional[Callable[[Proposer, EvolutionResult], Dict]] = None,
         service=None,                          # a TomosService for checkpoints (or None to skip)
+        tropism=None,                          # a WarmSetTropism (§13) — consulted at each poll boundary
         clock: Callable[[], float] = None,
         sleep: Callable[[float], None] = None,
     ):
@@ -177,6 +178,13 @@ class LiveRunner:
         self._panel = panel
         self._evaluate = evaluate
         self._service = service
+        # Tropism (§13): a player-side policy emitting warm re-reaches. The runner stays thin —
+        # one consult per poll boundary — and the source carries the one seam it needs.
+        if tropism is not None and not hasattr(source, "inject"):
+            raise ValueError(
+                "a tropism needs a source with an inject(ids) seam "
+                f"({type(source).__name__} has none)")
+        self._tropism = tropism
         if clock is None:
             import time
             clock = time.monotonic
@@ -257,6 +265,14 @@ class LiveRunner:
             if not self._pending:
                 if self._polled and cfg.min_interval_s:
                     self._sleep(cfg.min_interval_s)   # pacing / rate limit between polls
+                if self._tropism is not None:
+                    # The warm-set re-poll (§13): the player's state directs the next reaches.
+                    # Injected ids ride front-of-queue, so this poll's chunk = warm + fresh.
+                    # Note an injection can revive an exhausted frontier — the configured stop
+                    # conditions, not exhaustion, then end the run.
+                    warm = self._tropism.reaches(model_egif, self._ledger)
+                    if warm:
+                        self._source.inject(warm)
                 self._pending.extend(self._source.fetch())
                 self._polled = True
                 if not self._pending:

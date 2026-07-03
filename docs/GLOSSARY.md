@@ -218,10 +218,11 @@ Its failure poles are **rigidity** (nothing changes anything) and **thrash** (no
 Perspectival and comparative — never a target.
 
 ### Tropism
-**Tropism** — *designed, not yet built* (empirically mandated by live run 2): the model's own state
-directing which sources to re-engage — the **warm-set re-poll** that revisits what M currently
-holds, so a later denial can meet its still-standing target. Passive ingestion never revisits, so
-without tropism the durability of settled claims goes untested.
+**Tropism** — the model's own state directing which sources to re-engage (empirically mandated by
+live run 2, built 2026-07-02 as `tropism.py`): the **warm-set re-poll** revisits the entities
+backing what M currently holds — decay-adjacent first — so a later denial can meet its
+still-standing target. Passive ingestion never revisits, so without tropism the durability of
+settled claims goes untested.
 
 ### Seam
 **Seam** — the boundary between two Universes of Discourse, or the point where a reference/transclusion

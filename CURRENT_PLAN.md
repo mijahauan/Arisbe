@@ -1,6 +1,49 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION — ARC RE-ENTRY: THE TROPISM MODULE (warm-set re-poll), the empirically
+**▶▶▶ NEXT SESSION — RUN 3: crawl + tropism, live.** §13 was AFFIRMED and the tropism module
+BUILT (2026-07-02/03, below); what remains is the live session itself:
+`uv run python tools/run_live_wikidata.py --runs-dir runs/run3 --max-seconds 3600` (warm_fraction
+0.5 is the default; supervised first hour per §11), findings logged against the pre-registered
+P1″–P7″ in `runs/RUN_3_LOG.md` (skeleton ready, instruments named per prior). Read §13's
+affirmation note first: P1″'s redundancy fraction surfaces as the digest's `non_revising` count
+(a warm re-delivery is a disposition-`None` round — every agent abstains, the habit holding).
+
+**▶▶▶ THIS SESSION (2026-07-02→03) — ARC RE-ENTRY EXECUTED: §13 AFFIRMED + TROPISM INCREMENT 1
+BUILT.** Author affirmed all five §13 decisions as drafted ((1) `source.inject(ids)` seam;
+(2) decay-adjacent first; (3) `warm_fraction` 0.5 fixed for run 3; (4) run 3 = crawl + tropism;
+(5) ambiguous labels skip + count). Built the same sitting: **`src/tropism.py`** —
+`reverse_labels` (the run's `LabelCache` id→label reversed through the same `_const`
+normalization M's scribed facts carry; ambiguous labels split out, never silently resolved) +
+`WarmSetTropism.reaches(model_egif, ledger)` (sheet-level standing facts → the item entity's
+Q-id; priority = the relation's oldest ledger last-use = decay-adjacent first; unresolved
+id-shaped labels pass through; `ambiguous_skipped`/`unmapped_skipped`/`emitted` counters).
+**`RotatingWikidataSource.inject(ids)`** (front-of-queue at the cursor, `_seen`-exempt — a
+deliberate re-reach is not a crawl duplicate; pending ids and non-Q tokens skipped; `injected`
+counted + persisted; **bug found & fixed**: `load_state` rebuilt the queue through the
+constructor's dedup, which would silently drop a persisted warm re-reach — now restored
+verbatim) + `known_labels()` accessor. **`LiveRunner(tropism=…)`** — one consult per poll
+boundary (reaches → inject → fetch; loud `ValueError` if the source lacks the seam; an
+injection can *revive* an exhausted frontier, so stops — not exhaustion — end a tropism run).
+**Driver** `--warm-fraction` (default 0.5 → k=4 of chunk 8; `0` = the passive baseline;
+refused for `--source recentchanges` — stream+tropism is run 4's candidate); digests gained
+`non_revising` (P1″'s instrument), `warm_injected`, skip counters; `uod_id` from the runs-dir
+name. **Tests `tests/test_tropism.py` (18)** — reversal/priority/passthrough/ambiguity/k-bound
+units; the seam (bypasses `_seen`, state round-trip); the runner consult order; two offline
+headlines: a warm re-delivery reads as a **non-revising round** (the habit holding), and a
+deprecation arriving on a warm re-reach **meets its standing target** and is mechanically
+retracted (`retract_fact` + the referenced replacement admitted) — the P2 event runs 1–2 never
+produced. Arc suites green (18+82); full suite green on every non-flaky front (13 batch-run
+failures were browser-E2E contention — all pass in isolation with the diff applied, verified
+against clean main too). Docs: §13 heading → drafted+AFFIRMED with the decisions recorded;
+CAPABILITY_MAP §H tropism row DESIGNED→SHIPPED; GLOSSARY/VISION/EGG-guide currency;
+`runs/RUN_3_LOG.md` pre-registered skeleton. Also this session: a **Pietarinen (2005)
+reality-check** of the implementation against the Endoporeutic Principle literature (in-chat;
+correspondences: the peel = EP outside-in, truth-as-stable-habit = stickiness/durability/tropism;
+divergences: Kleene-3 open-world oracle vs two-valued common-ground M, dispositions lift the
+game from truth-in-a-model to model-revision — both deliberate).
+[[project_next_automated_model_development_life]].
+
+**▶▶ PREVIOUS — ARC RE-ENTRY PREPARED: THE TROPISM MODULE (warm-set re-poll), the empirically
 mandated build.** *(The alpha-docs track is CLOSED — book + filters + archive tidy + CI all
 shipped; see docs/ALPHA_RELEASE_PLAN.md and the cont. 5 block below.)* The re-entry starts from a
 **design draft written 2026-07-02, pre-registered per the §11/§12 discipline:

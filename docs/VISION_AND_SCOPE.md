@@ -163,9 +163,9 @@ Resource Description Framework ([RDF](GLOSSARY.md#rdf)) import as a *bridge*; an
   UI.
 
 ### Deferred — wanted, not yet built
-Manchester OWL syntax (no maintained Python parser); the **tropism** module for the automated game
-(the model's own state directing *which* sources to re-engage — empirically mandated by live run 2,
-which found that passive ingestion never revisits and so cannot test durability); Gamma *[tinctures](GLOSSARY.md#tincture)* (Peirce's Gamma colourings) as a
+Manchester OWL syntax (no maintained Python parser); the tropism's **musement pole** and
+horizon-as-register (the irritation pole — the warm-set re-poll — shipped 2026-07-02 as
+`tropism.py`; live run 3 pending); Gamma *[tinctures](GLOSSARY.md#tincture)* (Peirce's Gamma colourings) as a
 non-load-bearing map symbol (channels reserved, forward-compatible by construction); the layout-perf
 frontier for very large ontologies. These live in [ROADMAP.md](ROADMAP.md).
 

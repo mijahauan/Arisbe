@@ -866,11 +866,21 @@ documentation track resumes** (the author's scheduling decision, same date):
   edited entities (labels lag edits — 0.09 observed in the smoke); treat < 0.2 as expected lag,
   a sustained rise as degradation. Checkpoint wall-clock rider (F1) still applies.
 
-## 13 · Arc re-entry: the tropism module — the warm-set re-poll (design draft 2026-07-02, to AFFIRM before building)
+## 13 · Arc re-entry: the tropism module — the warm-set re-poll (drafted + AFFIRMED 2026-07-02)
 
 *Drafted at the close of the alpha-docs track so the re-entry session starts from a design, not a
 blank page. Per the pre-registration discipline (§11–§12): the author affirms or amends this
 section — including the open decisions at the end — before any code is written.*
+
+**AFFIRMED 2026-07-02 — all five decisions as drafted:** (1) policy + `source.inject(ids)`;
+(2) decay-adjacent first; (3) `warm_fraction` 0.5, fixed for run 3; (4) run 3 = crawl + tropism;
+(5) ambiguous labels skip + count. Built the same session: `src/tropism.py`
+(`WarmSetTropism` + `reverse_labels`), the `inject` seam + `known_labels` on
+`RotatingWikidataSource`, `LiveRunner(tropism=…)` consulted at each poll boundary, and the
+driver's `--warm-fraction` knob (0 = the runs-1/2 passive baseline); tests
+`tests/test_tropism.py`. One reading note for P1″: the mechanical panel records a re-delivered
+unchanged value as a **non-revising round** (disposition `None` — every agent abstains), so the
+digest surfaces it as `non_revising`; that count *is* the redundancy fraction P1″ reads.
 
 **The mandate (empirical, not philosophical).** Runs 1–2 characterized both passive membranes:
 the crawl samples the settled surface, the stream samples the novelty frontier, and **neither

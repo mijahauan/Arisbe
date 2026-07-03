@@ -8,6 +8,11 @@ Two sources, chosen by --source:
     (a deprecation arrives while the bare value it overturns still stands in M — the
     RUN_1_LOG F2/F3 findings made operational)
 
+Plus the §13 tropism (run 3 = crawl + tropism, --warm-fraction, default 0.5): each poll's
+chunk mixes warm re-reaches of the entities backing M's standing facts (decay-adjacent first)
+with fresh frontier ids — the directed re-engagement runs 1–2 showed no passive membrane
+supplies. --warm-fraction 0 reproduces the passive baseline.
+
 Either source → WikiDisputeFeed → LiveRunner, with every §11 control armed:
 
   * checkpoints to a **side store** (``<runs-dir>/checkpoints`` — never the main corpus);
@@ -42,6 +47,7 @@ from agon_evolution import (
 )
 from live_runner import LiveRunConfig, LiveRunner
 from tomos_service import TomosService
+from tropism import WarmSetTropism
 from wiki_dispute_membrane import WikiDisputeFeed
 from wikidata_source import RecentChangesSource, RotatingWikidataSource
 
@@ -69,6 +75,11 @@ def main(argv=None) -> int:
                          "(0 = uncapped; drops are counted, never silent)")
     ap.add_argument("--no-crawl", action="store_true",
                     help="poll only the seeds (no frontier growth)")
+    ap.add_argument("--warm-fraction", type=float, default=0.5,
+                    help="fraction of each poll's chunk re-reached from M's warm set — the "
+                         "§13 tropism (run 3: 0.5, fixed). 0 = off, the runs-1/2 passive "
+                         "baseline. Frontier source only (stream + tropism is run 4's "
+                         "candidate)")
     ap.add_argument("--ttl", type=int, default=30, help="disuse-decay ttl (global rounds)")
     ap.add_argument("--segment-cap", type=int, default=25)
     ap.add_argument("--min-interval", type=float, default=5.0,
@@ -86,6 +97,10 @@ def main(argv=None) -> int:
     state_path = str(runs / "state.json")
     frontier_path = str(runs / "frontier.json")
     stop_file = str(runs / "STOP")
+
+    if args.warm_fraction > 0 and args.source != "frontier":
+        ap.error("--warm-fraction needs --source frontier (run 3 = crawl + tropism; "
+                 "stream + tropism is run 4's candidate) — pass --warm-fraction 0")
 
     if args.source == "recentchanges":
         src_kwargs = dict(ids_per_poll=args.chunk,
@@ -107,21 +122,37 @@ def main(argv=None) -> int:
         else:
             source = RotatingWikidataSource(args.seeds, **src_kwargs)
 
+    tropism = None
+    if args.warm_fraction > 0:
+        # §13 (affirmed): warm slots = warm_fraction × chunk, front-of-queue via inject —
+        # each poll's chunk is then k warm + the remainder fresh (the crawl).
+        k = max(1, round(args.warm_fraction * args.chunk))
+        tropism = WarmSetTropism(source.known_labels, k=k)
+
     def evaluate(feed, res):
         """Per-segment console digest + persist the frontier beside the runner state."""
         source.save_state(frontier_path)
         from collections import Counter
         dispositions = dict(Counter(o.disposition for o in res.outcomes if o.disposition))
+        # P1″'s instrument: a warm re-delivery of an unchanged value is a NON-REVISING round
+        # (every agent abstains — the habit holding); runs 1–2 measured this fraction at zero.
+        non_revising = sum(1 for o in res.outcomes if o.disposition is None)
         leg = source.legibility[-1] if source.legibility else None
         frontier_dropped = getattr(source, "frontier_dropped", 0)
         print(f"  segment: rounds={len(res.outcomes)} dispositions={dispositions}"
+              + (f" non_revising={non_revising}" if non_revising else "")
               + (f" legibility={leg:.2f}" if leg is not None else "")
+              + (f" warm_injected={source.injected}" if getattr(source, "injected", 0) else "")
+              + (f" ambiguous_skipped={tropism.ambiguous_skipped}"
+                 if tropism and tropism.ambiguous_skipped else "")
+              + (f" unmapped_skipped={tropism.unmapped_skipped}"
+                 if tropism and tropism.unmapped_skipped else "")
               + (f" frontier_dropped={frontier_dropped}" if frontier_dropped else "")
               + (f" statements_dropped={source.statements_dropped}"
                  if source.statements_dropped else "")
               + (f" ⚠ unparseable_dropped={source.unparseable_dropped}"
                  if getattr(source, "unparseable_dropped", 0) else ""), flush=True)
-        return {"legibility": leg}
+        return {"legibility": leg, "non_revising": non_revising}
 
     config = LiveRunConfig(
         ttl=args.ttl, segment_cap=args.segment_cap, min_interval_s=args.min_interval,
@@ -130,27 +161,34 @@ def main(argv=None) -> int:
         checkpoint=True, state_path=state_path,
     )
     service = TomosService(runs / "checkpoints")
+    uod_id = runs.name or "live"                       # runs/run3 → "run3" checkpoints
 
     if args.resume:
         runner = LiveRunner.resume(state_path, source, WikiDisputeFeed, config,
-                                   uod_id="run1", panel=_panel(),
+                                   uod_id=uod_id, panel=_panel(), tropism=tropism,
                                    evaluate=evaluate, service=service)
     else:
         runner = LiveRunner("", source, WikiDisputeFeed, config,
-                            uod_id="run1", panel=_panel(),
+                            uod_id=uod_id, panel=_panel(), tropism=tropism,
                             evaluate=evaluate, service=service)
 
     started = time.strftime("%Y-%m-%d %H:%M:%S")
     origin = (f"seeds={args.seeds}" if args.source == "frontier"
               else "the recentchanges stream (bots excluded)")
-    print(f"run start {started} — source={args.source} · {origin} · ttl={args.ttl} "
-          f"pacing={args.min_interval}s stop: touch {stop_file}", flush=True)
+    warm = (f" warm_fraction={args.warm_fraction} (k={tropism._k}/poll)" if tropism
+            else " tropism off (passive baseline)")
+    print(f"run start {started} — source={args.source} · {origin} · ttl={args.ttl}"
+          f"{warm} pacing={args.min_interval}s stop: touch {stop_file}", flush=True)
     res = runner.run()
 
     print(f"\nstopped: {res.stopped_because}   total rounds: {res.total_rounds}")
     for d in res.segments:
         print(f"  segment {d.segment}: rounds={d.rounds} |M|={d.m_relations} "
               f"dispositions={d.dispositions} decayed={d.decayed} ({d.elapsed_s:.1f}s)")
+    if tropism:
+        print(f"tropism: warm_emitted={tropism.emitted} injected={source.injected} "
+              f"ambiguous_skipped={tropism.ambiguous_skipped} "
+              f"unmapped_skipped={tropism.unmapped_skipped}")
     if source.legibility:
         worst = max(source.legibility)
         print(f"legibility per poll: {['%.2f' % f for f in source.legibility]}"
