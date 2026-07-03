@@ -1,20 +1,62 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION — dispose the run-3 horizon (author decisions), then run 4.** Run 3 is
-EXECUTED & DISPOSED (`runs/RUN_3_LOG.md`, 2026-07-03 block below). Three queued decisions:
-(1) **F1″ instruments** — atom-unit digest column + atom-unit safety net (cheap, recommended
-regardless); then the rulebook question: per-name atom cap vs atom-level decay (what is *one
-fact's* disuse under a warm name?); the attest O(waypoints²) residual now has a named fixture
-(the run3_seg17 checkpoint: 135 atoms, five hubs deg 20–25 — load exceeds 10 min).
-(2) **Run 4 = stream + tropism** (F2″'s prescription; §12/§13's named candidate): lift the
-driver's `--source recentchanges --warm-fraction` refusal (one guard line) + a §14-style
-pre-registration (P1‴…, including the F1″ atom-unit instruments) — the composition that makes
-the P2 event reachable (the stream supplies world-motion; the warm set holds the target
-standing to meet it). (3) **The spectator surface** — candidate queued in
-ADAPTIVE_SCOPE_VIEWER §10, hypotheses pre-registered in `docs/RATE_AND_INTELLIGIBILITY.md`
-(not yet affirmed).
+**▶▶▶ NEXT SESSION — author decisions from the run-4 disposal, then the chosen probe.** Run 4
+is EXECUTED & DISPOSED (`runs/RUN_4_LOG.md`; 2026-07-03 block below). Queued decisions:
+(1) **The rulebook question, now MANDATED by evidence (RUN_4 F2⁗ + P3‴)** — atom-level decay
+vs per-name atom cap (what is *one fact's* disuse under a warm name?). Deferred pre-run "one
+variable at a time"; F2⁗ upgraded it from hygiene to the binding cost model: with attest fixed
+(1075 s → 1.7 s at ~200 atoms), **round compute** (peel re-materialization + whole-graph
+ProofChain snapshots) is the new super-linear-in-atoms wall — segment elapsed 1.3 s → ~125 s
+as atoms grew 25 → 207 while names read 14–43. Engineering second-orders (incremental
+materialization; delta-snapshot chain) noted, subordinate. (2) **The duration lever (F1⁗)** —
+the P2 event is a rank-*transition* event with base rate below the 1-hour horizon even under
+revisit × stream (all 3 live deprecations born-deprecated); the named probe is the
+**multi-hour/overnight unattended run** (crash/resume + STOP + tripwires proven; decide the
+rulebook first or accept slow late segments). (3) **§15 — the docket of doubts** (drafted this
+session, the §13 pattern): the two-faced surprise artifact (outward: content-directed membrane
+queries, Q1–Q4 vocabulary ladder; inward: abduction seeds whose deduced consequences return as
+probes via a proving-ground DAG branch; musement gets its first mechanical seat). **Mandate
+gate NOT fired by run 4** (starvation is world-side transition rate, not probe aiming) — five
+author decisions queued in §15, gate re-examined after the duration probe. (4) **The spectator
+surface** — still queued (ADAPTIVE_SCOPE_VIEWER §10 + RATE_AND_INTELLIGIBILITY), cheaper now
+(attest fix cut the frame budget's dominant cost).
 
-**▶▶▶ THIS SESSION (2026-07-03) — RUN 3 EXECUTED & DISPOSED: crawl + tropism, live
+**▶▶▶ THIS SESSION (2026-07-03, second sitting) — RUN-3 HORIZON DISPOSED + RUN 4 EXECUTED &
+DISPOSED: stream + tropism, live (runs/RUN_4_LOG.md).** Author affirmed all four horizon
+calls: F1″ instruments now / rulebook deferred-to-evidence / attest optimized now / spectator
+queued. Built same sitting: **atom-unit instruments** (`SegmentDigest.m_atoms` + live `atoms=`
+console column + `LiveRunConfig.max_m_atoms` / `--max-m-atoms` net; two F1″-shaped tests —
+warm hub name defeats name-decay while atoms climb; the atom cap fires while names read flat);
+**the visibility-graph fix** (`elk_layout_engine._route_via_visibility_graph`: exact
+separation short-circuit + uniform-grid obstacle culling + lazy A* — the run3_seg17 fixture
+>10 min → **3.8 s**, seg1 7.4 s → 0.4 s; routes remain shortest; 750/750 clean re-run, the 3
+first-batch fails were profiling-job contention); **the stream tropism seam**
+(`RecentChangesSource.inject` front-of-chunk + `known_labels` + `warm_pending` persisted
+verbatim; **a quiet stream tick still serves the warm set**; driver guard lifted; offline
+headline: the stream mentions an entity once, the world deprecates the admitted value, only
+the warm re-reach revisits → the denial meets its **standing** target and retracts); **§14
+pre-registered** (priors P1‴–P7‴ affirmed pre-run) + RUN_4_LOG skeleton; committed 8b037ad
+pre-run. **RUN 4 (one supervised hour, 09:33–10:33): 92 segments · 2009 rounds · 23 polls ·
+92/92 checkpoints attested — ~4.8× run 3's throughput (the attest fix at run scale).**
+P1‴ CONFIRMED (non_revising 638/2009 = **31.8 %** vs crawl's 23.6 %, counters exact 88=88);
+P5‴ CONFIRMED (the 2×2 closed, both margins attributable); P6‴ 88●/4○, no dead stretches
+(quiet ticks served the warm set); P7‴ legibility 0.13–0.29 falling to 0.00–0.08 (cache
+warming). **F1⁗**: the P2 event is a rank-*transition* event — all 3 live deprecations
+born-deprecated (same-poll rank-siblings, first visit); zero transitions in-window → the
+pre-registered rate branch fired; levers = duration (named next) / width / §15 content
+direction (gate NOT fired). **F2⁗**: the wall moved — attest now 1.7 s at 195 atoms live, but
+segment elapsed still climbed to ~125 s: **round compute** (peel re-materialization +
+whole-graph ProofChain snapshots) is the new super-linear-in-atoms cost → the deferred
+rulebook question is now evidence-mandated. **Also this sitting: §15 "the docket of doubts"
+drafted** (author's request, the §13 pre-registration pattern) — the two-faced surprise
+artifact unifying UNKNOWN-driven probes, thin spots, and deduced-consequence hunting (one
+ledger, outward face = membrane queries on a Q1–Q4 vocabulary ladder, inward face = abduction
+seeds; proving-ground DAG branch for entertained hypotheses; the author's
+surprise-outward-as-the-world's-creativity hypothesis recorded + fenced; musement's first
+mechanical seat; 5 decisions queued; mandate gate explicit).
+[[project_next_automated_model_development_life]].
+
+**▶▶ PREVIOUS (2026-07-03, first sitting) — RUN 3 EXECUTED & DISPOSED: crawl + tropism, live
 (runs/RUN_3_LOG.md).** One supervised hour, seeds/config matching run 1 for P5″ attribution:
 **17 segments · 423 rounds · 3 polls**, 17/17 checkpoints attested, tropism counters clean
 (`warm_emitted=6 injected=6`, zero skips), legibility 0.00, **determinism canary GREEN** (the

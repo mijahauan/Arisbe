@@ -1072,3 +1072,131 @@ max_m 200, max_m_atoms 1000). Findings → `runs/RUN_4_LOG.md` (skeleton pre-reg
   (run 3: attest ≈ 100 % of elapsed, 3.3 → 1075 s; the fixture now loads in 3.8 s) — segment
   elapsed staying flat-ish while atoms grow is the fix confirmed live; a super-linear tail
   reappearing is a new finding.
+
+## 15 · The docket of doubts — surprise as a two-faced artifact (DRAFT 2026-07-03, pre-registered; mandate PENDING run-4 disposal)
+
+*Drafted while run 4 executed, per the §13 discipline: the design predates its mandate so the
+re-entry session starts from a page, not a blank. The mandate line is deliberately open — run
+4's findings name the actual bottleneck (revisit rate? world-motion rate? probes undirected by
+content?), and the author affirms or amends this section — including the open decisions at the
+end — before any code is written. If run 4's disposal mandates something else, this section
+waits without prejudice.*
+
+**What increment 1 taught, read forward.** The tropism now on the board (§13) maps *state* to
+*query*: a standing fact → its entity → a re-reach. It is identity-shaped — the probe's content
+is "this entity again," never "this missing answer." Meanwhile the system already *names its own
+missing answers* in three places, none of which currently reaches the membrane: the peel's
+**Kleene UNKNOWN** transcript entries (the atoms the oracle could not decide — the
+addressability gap `m_render` computes as the honest horizon); the Graphist's **`attention_brief`
+thin spots** (relations with ≤1 instance, ungrounded laws, lonely individuals — today they seed
+*proposals*, tested inward against M, never *probes*, sent outward); and any **materialized
+consequence without a witness** (what `model_materialization` can forward-chain from a
+hypothesis but nothing currently tracks as *deduced-awaiting-evidence*). Three articulations of
+doubt; one plumbing gap: no wire from articulated doubt to executable reach.
+
+**The unifying primitive: the docket.** One player-side register of *named wants* — each entry a
+small EG shape (an atom or subgraph) that M neither holds nor denies, carrying:
+
+- **shape** — the relation + argument shape wanted (e.g. `(phase_shift ?f "T")`);
+- **constants** — what is already bound (the handle the membrane can grip);
+- **provenance** — *why it is wanted*: `unknown_in_peel(G)` · `thin_spot(kind)` ·
+  `deduced_from(H)` (the hypothesis whose standing rides on it) · `horizon(garbled-arrival)`;
+- **priority** — the economy of research (below);
+- **age / attempts** — a docket entry that never resolves is *counted, never silently dropped*
+  (the `attest_overview` twin, again).
+
+This **is** §4d's *horizon as a first-class register*, previously named-but-unbuilt — extended
+one notch: it holds not only the not-yet-legible that *arrived* garbled, but the
+not-yet-answered that *inquiry itself generated*. Placement per the §4d/§13 discipline: the
+docket belongs to the **player** (not M — M objectified is driveless marks; not the source —
+sources stay dumb fetchers). A policy consulted at the poll boundary, exactly where
+`WarmSetTropism` sits today; the two compose (warm re-reach is simply the docket's cheapest,
+lowest-articulation stratum).
+
+**The two faces of an entry.** The same artifact works outward and inward — this is the
+section's load-bearing claim, and the reason docket and abduction must not be built as separate
+organs:
+
+- **Outward — the membrane query.** An entry maps to the *highest query vocabulary the source
+  offers*, negotiated per source: **Q1** entity re-reach (`inject(ids)` — exists); **Q2**
+  entity + property fetch (a filtered `wbgetentities` — cheap seam); **Q3** shape query
+  (SPARQL: "all x with P" — the long-deferred SparqlOracle seat, relocated to the *membrane*
+  side where it belongs); **Q4** the open ask (a question posed to a human or LLM source — the
+  reading-desk surface; the first genuinely *bidirectional* membrane). An entry no vocabulary
+  can express stays on the docket, counted — the honest residue.
+- **Inward — the abduction seed.** The same entry handed to the Graphist/Grapheus as the
+  *situation of doubt*: "here is what the world has not answered; propose the hypothesis that
+  would explain or predict it." The hypothesis's materialized consequences enter the docket as
+  `deduced_from(H)` entries → probes → witnesses or refutations → the hypothesis's standing.
+  Abduction generates probes; probes discipline abduction; one ledger carries both directions.
+
+**Entertainment, not assertion (the provisional-consequence machinery).** An abductive
+hypothesis must be *entertained* while its consequences are hunted — never asserted. The
+machinery exists: **branch the DAG** (the Stage-3 `_fork_siblings` mechanics — two chain steps
+sharing a `from_state_id`). H lives on a **proving-ground branch M′**; `materialize_egi` runs
+there; its unwitnessed derived atoms enter the docket tagged `deduced_from(H)`. A witness
+arriving through the membrane strengthens H (its docket entries resolve); a refutation
+relinquishes the branch — and the DAG *keeps* the entertained-and-relinquished hypothesis as
+negative knowledge (§6 mines failed abductions exactly as it mines failed generalizations).
+Admission of H to the main line is a *disposition* like any other — nothing auto-promotes; the
+floor (§7) is untouched. Level Zero already provides the scroll shape for the conditional
+reading (`cut[H cut[consequences]]`) where a branch is too heavy.
+
+**The economy of research (priority, Peirce's own doctrine).** Order the docket by: **cost
+tier** (Q1 < Q2 < Q3 ≪ Q4 — ask cheap questions first); **decay-adjacency** (inherited from
+§13 — re-check while the target still stands); **discrimination value** (prefer probes whose
+answer separates standing hypotheses — a probe that would refute H₁ *or* H₂ whichever way it
+lands beats one that flatters both); **starvation guard** (age raises priority slowly, so the
+expensive articulate asks eventually fire — bounded by budget). Increment discipline: v1 is a
+fixed lexicographic ordering; a *learned* priority is itself a finding to earn (§6 across runs).
+
+**The speculative horizon (recorded, fenced, never a target).** The author's hypothesis, worth
+carrying explicitly: the outward face — a mind presenting *its* surprise to the world through
+the membrane — may be how the world generates creativity in itself by means of minds. Peircean
+anchors: objective idealism (matter as effete mind; the universe itself acquiring habits), the
+growth of concrete reasonableness, musement as the pull-pole that seeds abduction. Mechanical
+reading: Q1–Q3 are read-only (the world unchanged by being asked — the hypothesis idles);
+**Q4 is where it becomes empirical** — an asked human/community *articulates what it never had
+occasion to state*, and the common sheet grows on *both* sides of the membrane
+(ground-enlargement as a two-way street; the wiki talk-page question that precipitates an
+editorial resolution which did not exist before the asking). Honesty clauses, standing: this is
+a hypothesis about the system's *role*, not anything the calculus can attest (§3.3 attests
+correspondence, not truth, and certainly not cosmology); docket throughput must never become a
+target (Goodhart — §7); findings remain findings about the game. The musement pole gets its
+first mechanical seat here as the docket's lowest-priority stratum: budget-bounded playful
+entries (the `MutationProposer` generalized from recombining M's relations to recombining
+*questions*) — drawn, not driven, and cheap by construction.
+
+**Increments (each earned, none anticipatory):**
+
+- **2a — the docket, minimum.** `src/query_docket.py` (working name; see decision 5):
+  entries from the peel's UNKNOWN transcript + `attention_brief` thin spots; consumer = the
+  existing `inject(ids)` seam (entries whose constants reverse to entity ids ride Q1; the rest
+  wait, counted). No new source capability, offline-testable end to end, composes with
+  `WarmSetTropism` at the same poll boundary.
+- **2b — the proving ground.** Branch-entertained hypotheses + `deduced_from(H)` entries +
+  witness/refutation resolution + relinquished-branch mining. Closes the author's
+  abduction↔probe loop mechanically (a scripted Grapheus suffices offline; the LLM seat drops
+  in unchanged).
+- **3 — the vocabulary ladder.** Q2 (property-filtered fetch), then Q3 (the SPARQL membrane
+  seam). Each tier pre-registered with its own run before the next is built.
+- **4 — the open ask (horizon).** Q4 the bidirectional membrane + the musement stratum — where
+  the speculative hypothesis above first becomes testable rather than decorative.
+
+**Open decisions for the author (affirm/amend before code):**
+
+1. **Mandate gate** — build 2a only if run 4's disposal names *content-undirected probing* (or
+   UNKNOWN starvation) as the operative bottleneck; otherwise this section waits for the run
+   that does.
+2. **Docket placement** — player-side policy at the poll boundary, composing with (not
+   replacing) `WarmSetTropism` (draft recommendation) **vs** folding the tropism into the
+   docket as its Q1 stratum from day one.
+3. **Admission rule for a witnessed hypothesis** — mechanical threshold (N independent
+   witnesses, zero refutations) **vs** an Agonothetes judgment seat (draft: mechanical for 2b;
+   the judge is an LLM-stage refinement).
+4. **Proving-ground cost** — does M′ checkpoint (§3.3 per segment, real cost) or stay
+   RAM-bounded per hypothesis with only its *outcome* checkpointed (draft: outcome-only; a
+   hypothesis is entertainment, and the F1″ lesson says checkpoint weight is the binding
+   budget)?
+5. **The name** — docket of doubts / horizon register / question ledger (draft: **docket** —
+   it is procedural, ordered, and disposed, which is exactly Peirce's register of the term).
