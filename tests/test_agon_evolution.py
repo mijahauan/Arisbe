@@ -17,7 +17,7 @@ from agon_evolution import (
     CorpusProposer, MutationProposer,
     DeliberationContext, Agonothetes,
     ObserverAgent, GeneralizerAgent, ChallengerAgent,
-    UsageLedger,
+    UsageLedger, atom_key,
 )
 
 SWAN_M0 = ('(swan "Alba") (white "Alba") (swan "Bianca") (white "Bianca") '
@@ -92,19 +92,37 @@ def test_panel_resolves_by_priority_challenger_over_observer():
 # ⑤ Decay — the only bound on an unbounded plane                               #
 # --------------------------------------------------------------------------- #
 
-def test_usage_ledger_marks_idle_relations_stale():
+def test_usage_ledger_marks_idle_keys_stale():
     led = UsageLedger(ttl=2)
-    led.seed({"swan", "rumor"}, round_idx=0)
-    led.touch({"swan"}, round_idx=1)
-    assert "rumor" in led.stale(2) and "swan" not in led.stale(2)
+    led.seed({atom_key("swan", ["Alba"]), atom_key("rumor", ["X"])}, round_idx=0)
+    led.touch({atom_key("swan", ["Alba"])}, round_idx=1)
+    assert atom_key("rumor", ["X"]) in led.stale(2)
+    assert atom_key("swan", ["Alba"]) not in led.stale(2)
 
 
-def test_decay_erases_a_relation_that_fell_from_use():
+def test_decay_erases_an_atom_that_fell_from_use():
     pool = ['(swan "Bianca")', '(white "Bianca")', '(swan "Ciel")']
     res = run('(swan "Alba") (white "Alba") (rumor "X")', CorpusProposer(pool),
               rounds=3, ttl=2, uod_id="decay", name="decay")
-    assert any("rumor" in o.decayed for o in res.outcomes)
+    assert any(atom_key("rumor", ["X"]) in o.decayed for o in res.outcomes)
     assert "rumor" not in res.uod.current_egi.rel.values()
+
+
+def test_decay_is_atom_level_the_habit_is_the_fact_not_the_name():
+    """The rulebook decision (affirmed 2026-07-03): one atom of a name decays while
+    a *re-delivered* atom of the SAME name stays — the F1″ warm-name pinning
+    dissolved. Under the old name-level ledger the re-delivery of (spot Alba)
+    would have kept (spot Ciel) warm forever."""
+    pool = ['(spot "Alba")'] * 4                       # Alba re-delivered every round
+    res = run('(spot "Alba") (spot "Ciel")', CorpusProposer(pool),
+              rounds=4, ttl=2, uod_id="atomdecay", name="atomdecay")
+    decayed = [k for o in res.outcomes for k in o.decayed]
+    assert atom_key("spot", ["Ciel"]) in decayed        # the idle atom fell
+    assert atom_key("spot", ["Alba"]) not in decayed    # the re-delivered habit held
+    final = res.uod.current_egi
+    standing = {tuple(final.get_vertex(v).label for v in final.nu[e.id])
+                for e in final.E if final.rel.get(e.id) == "spot"}
+    assert standing == {("Alba",)}                      # the name survives on its warm atom
 
 
 # --------------------------------------------------------------------------- #

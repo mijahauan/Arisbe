@@ -30,6 +30,7 @@ internals.
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Protocol, Sequence, Set, Tuple
 
@@ -39,12 +40,12 @@ from egi_core_dau import RelationalGraphWithCuts
 from eg_navigation import area_of, child_cuts, same_graph
 from domain_oracle import CorpusOracle
 from semantic_game import Verdict3, evaluate, SemanticResult
-from model_materialization import materialize_egi
+from model_materialization import IncrementalMaterializer, materialize_egi
 from model_revision import (
     DISPOSITION_NEW_FACT,
     DISPOSITION_GENERALIZATION,
     DISPOSITION_CHALLENGE_M,
-    retract_relation,
+    retract_atom,
     revise_with_disposition,
     revision_taxonomy,
 )
@@ -57,13 +58,20 @@ from universe_of_discourse import UniverseOfDiscourse, UoDCategory
 # --------------------------------------------------------------------------- #
 
 def peel(
-    model: RelationalGraphWithCuts, proposal_egif: str, *, closed: bool = True
+    model: RelationalGraphWithCuts, proposal_egif: str, *, closed: bool = True,
+    materializer: Optional[IncrementalMaterializer] = None,
 ) -> SemanticResult:
     """Peel a proposal G against a model state, materializing M's Horn fragment
     first so any admitted *law* covers new individuals (mirrors the swan
     exemplar's ``_verdict``). M is the truth-teller — this is mechanical, not an
-    opinion."""
-    facts, _ = materialize_egi(model)
+    opinion. ``materializer`` (optional) is a shared
+    :class:`model_materialization.IncrementalMaterializer` — a caller peeling the
+    same growing M round after round (the run loop) avoids re-materializing it
+    from scratch each time (the F2⁗ semi-naive rider); the closure is identical."""
+    if materializer is not None:
+        facts, _ = materializer.materialize(model)
+    else:
+        facts, _ = materialize_egi(model)
     oracle = CorpusOracle([("M", facts)], closed=closed)
     return evaluate(parse_egif(proposal_egif), oracle, closed=closed)
 
@@ -134,6 +142,45 @@ def _already_holds(model: RelationalGraphWithCuts, ground_egif: str) -> bool:
 
 def _labels(graph: RelationalGraphWithCuts, edge_id: str) -> List[Optional[str]]:
     return [graph.get_vertex(v).label for v in graph.nu.get(edge_id, ())]
+
+
+# --------------------------------------------------------------------------- #
+# Atom keys — the identity of one habit (the atom-level decay rulebook,        #
+# affirmed 2026-07-03: the habit is the fact, not the name)                    #
+# --------------------------------------------------------------------------- #
+
+def atom_key(relation: str, labels: Sequence[Optional[str]]) -> str:
+    """The serialized identity of one sheet atom — relation name + argument labels.
+    This is the unit the :class:`UsageLedger` tracks and disuse-decay erases:
+    ``(place_of_birth Adam Cambridge)`` is the habit; ``place_of_birth`` is only
+    vocabulary. JSON-encoded so it survives a runner-state round trip verbatim."""
+    return json.dumps([relation, list(labels)], ensure_ascii=False,
+                      separators=(",", ":"))
+
+
+def parse_atom_key(key: str) -> Tuple[str, List[Optional[str]]]:
+    """Inverse of :func:`atom_key` — ``(relation, labels)``."""
+    relation, labels = json.loads(key)
+    return relation, labels
+
+
+def sheet_atom_keys(egi: RelationalGraphWithCuts) -> Set[str]:
+    """The atom keys of every **standing** (sheet-level) fact of M — the decayable
+    units. Content inside a cut (a law, a denial) is not a standing habit."""
+    return {
+        atom_key(egi.rel[e.id], _labels(egi, e.id))
+        for e in egi.E
+        if e.id in egi.rel and area_of(egi, e.id) == egi.sheet
+    }
+
+
+def delivered_atom_keys(egif: str) -> Set[str]:
+    """**Use = re-delivery** (the rulebook's first increment): the sheet-level atoms
+    a proposal delivers, whether or not the round revises M — a redundant
+    re-delivery refreshes the habit. A denial or a law delivers no standing atom,
+    so it refreshes nothing (whether *inference*-use refreshes a habit is a later
+    §6 question, deliberately not taken here)."""
+    return sheet_atom_keys(parse_egif(egif))
 
 
 # --------------------------------------------------------------------------- #
@@ -420,33 +467,39 @@ class Agonothetes:
 # --------------------------------------------------------------------------- #
 
 class UsageLedger:
-    """Tracks the round each sheet relation was last *invoked*. A relation idle
-    for ``ttl`` rounds has fallen from use and is erased (relinquishment by
+    """Tracks the round each standing **atom** was last *re-delivered* (keys are
+    :func:`atom_key` strings; the class itself is key-agnostic). An atom idle for
+    ``ttl`` rounds has fallen from use and is erased (relinquishment by
     attrition). This is the unbounded sheet's substitute for Life's plane edge —
-    selection by use, not by a boundary."""
+    selection by use, not by a boundary.
+
+    **Atom-level since 2026-07-03** (the rulebook decision RUN_4_LOG affirmed:
+    the habit is the fact, not the name — F1″'s warm-name pinning dissolves
+    because a warm re-delivery now keeps only the *re-delivered* atoms warm,
+    while the name-level ledger let one hot name pin an unbounded atom pile)."""
 
     def __init__(self, ttl: int):
         self.ttl = ttl
         self._last: Dict[str, int] = {}
 
-    def seed(self, relations: Set[str], round_idx: int = 0) -> None:
-        for r in relations:
-            self._last.setdefault(r, round_idx)
+    def seed(self, keys: Set[str], round_idx: int = 0) -> None:
+        for k in keys:
+            self._last.setdefault(k, round_idx)
 
-    def touch(self, relations: Set[str], round_idx: int) -> None:
-        for r in relations:
-            self._last[r] = round_idx
+    def touch(self, keys: Set[str], round_idx: int) -> None:
+        for k in keys:
+            self._last[k] = round_idx
 
     def stale(self, round_idx: int) -> List[str]:
         return sorted(
-            r for r, last in self._last.items() if round_idx - last >= self.ttl
+            k for k, last in self._last.items() if round_idx - last >= self.ttl
         )
 
-    def forget(self, relation: str) -> None:
-        self._last.pop(relation, None)
+    def forget(self, key: str) -> None:
+        self._last.pop(key, None)
 
     def snapshot(self) -> Dict[str, int]:
-        """The ledger's state (relation → last-used round) for a runner checkpoint."""
+        """The ledger's state (atom key → last-delivered round) for a runner checkpoint."""
         return dict(self._last)
 
     def restore(self, last: Dict[str, int]) -> None:
@@ -467,7 +520,7 @@ class RoundOutcome:
     mode: Optional[str]
     rationale: str
     votes: List[Tuple[str, str]]    # (agent, disposition) — the full slate
-    decayed: List[str]              # relations erased by disuse this round
+    decayed: List[str]              # atom keys erased by disuse this round (atom_key strings)
     standing_verdict: Optional[str] # the audited proposal's verdict after the round
     changed: bool
     branched: List[str] = field(default_factory=list)  # dispositions forked as DAG siblings
@@ -501,6 +554,7 @@ def run(
     ttl: Optional[int] = None,
     standing_proposal: Optional[str] = None,
     seed_laws: Optional[Sequence[str]] = None,
+    materializer: Optional[IncrementalMaterializer] = None,
 ) -> EvolutionResult:
     """Play ``rounds`` automated game rounds, developing M from ``model_egif``.
 
@@ -508,19 +562,25 @@ def run(
     (ready for ``TomosService.save_uod_with_chain``), the per-round outcomes, and
     a discovery digest. Deterministic given a deterministic proposer.
 
-    ``ttl`` (optional) turns on disuse-decay; ``standing_proposal`` (optional,
-    EGIF) is audited after each round so a verdict flip caused by growth or decay
-    is *surfaced*, never silent. ``seed_laws`` (optional, EGIF) are standing laws
-    M already carries on its sheet (e.g. from the corpus) that were *not* derived
-    in a round — seeding them lets the Challenger recognise a later refutation of
-    them (the raise-and-resolve membrane relies on this).
+    ``ttl`` (optional) turns on **atom-level** disuse-decay (use = re-delivery;
+    an atom idle ``ttl`` rounds is retracted by ``retract_atom``);
+    ``standing_proposal`` (optional, EGIF) is audited after each round so a
+    verdict flip caused by growth or decay is *surfaced*, never silent.
+    ``seed_laws`` (optional, EGIF) are standing laws M already carries on its
+    sheet (e.g. from the corpus) that were *not* derived in a round — seeding
+    them lets the Challenger recognise a later refutation of them (the
+    raise-and-resolve membrane relies on this). ``materializer`` (optional) is a
+    shared :class:`IncrementalMaterializer` a caller (the ``LiveRunner``) keeps
+    across segments; by default each run gets its own, so the per-round peel
+    extends the previous round's closure instead of rebuilding it (F2⁗).
     """
     panel = panel or Agonothetes()
     pc = ProofChain.from_egif(model_egif)
+    mat = materializer if materializer is not None else IncrementalMaterializer()
     ledger: Optional[UsageLedger] = None
     if ttl:
         ledger = UsageLedger(ttl)
-        ledger.seed(_sheet_relations(pc.current))
+        ledger.seed(sheet_atom_keys(pc.current))
 
     outcomes: List[RoundOutcome] = []
     known_laws: List[str] = list(seed_laws or [])
@@ -532,19 +592,25 @@ def run(
         if g_egif is None:
             break   # the membrane is exhausted
 
-        result = peel(model, g_egif)
+        result = peel(model, g_egif, materializer=mat)
         ctx = DeliberationContext(model, g_egif, result, list(known_laws), round_idx=r)
         votes = panel.deliberate(ctx)
         winner = panel.resolve(votes)
         slate = [(v.agent, v.disposition) for v in votes]
 
-        decayed: List[str] = []
+        # ⑤a — use = re-delivery (the atom-level rulebook): every delivered standing
+        # atom refreshes its habit, whether or not the round revises M (a redundant
+        # warm re-delivery is exactly the habit holding).
+        if ledger is not None:
+            ledger.touch(delivered_atom_keys(g_egif), r)
+
         if winner is None:
+            decayed = _apply_decay(pc, ledger, r) if ledger is not None else []
             outcomes.append(RoundOutcome(
                 r, g_egif, result.verdict.value, None, None,
                 "no agent moved — recorded judgment, M untouched.",
                 slate, decayed,
-                _verdict_or_none(pc.current, standing_proposal), False,
+                _verdict_or_none(pc.current, standing_proposal, mat), bool(decayed),
             ))
             continue
 
@@ -558,9 +624,7 @@ def run(
         )
         _update_known_laws(known_laws, winner)
 
-        if ledger is not None:
-            ledger.touch(_relations_of(g_egif), r)
-            decayed = _apply_decay(pc, ledger, r)
+        decayed = _apply_decay(pc, ledger, r) if ledger is not None else []
 
         # ⑤b — irreducible disagreement: fork the DAG (Stage 3). A judge (e.g. the LLM
         # Agonothetes) may name dissenting votes to carry forward as siblings; each is applied
@@ -571,7 +635,7 @@ def run(
         outcomes.append(RoundOutcome(
             r, g_egif, result.verdict.value, winner.disposition, spec["mode"],
             winner.rationale, slate, decayed,
-            _verdict_or_none(pc.current, standing_proposal), True, branched,
+            _verdict_or_none(pc.current, standing_proposal, mat), True, branched,
         ))
 
     chain, uod = pc.to_uod(
@@ -638,27 +702,41 @@ def _update_known_laws(known_laws: List[str], winner: Vote) -> None:
 
 
 def _apply_decay(pc: ProofChain, ledger: UsageLedger, round_idx: int) -> List[str]:
+    """⑤b — erase each standing **atom** idle past ttl (atom-level decay: the habit
+    is the fact, not the name; erasure by ``retract_atom``, which preserves every
+    other atom of the name and any standing law cut). An atom already gone from the
+    sheet — retracted by a game move — is simply forgotten."""
+    stale = ledger.stale(round_idx)
+    if not stale:
+        return []
     decayed: List[str] = []
-    for rel in ledger.stale(round_idx):
-        if rel not in _sheet_relations(pc.current):
-            ledger.forget(rel)
+    standing = sheet_atom_keys(pc.current)
+    for key in stale:
+        if key not in standing:
+            ledger.forget(key)
             continue
+        rel, labels = parse_atom_key(key)
         pc.apply_derived(
             "DECAY",
-            lambda g, _r=rel: retract_relation(g, _r),
+            lambda g, _r=rel, _l=labels: retract_atom(g, _r, list(_l)),
             label=f"{round_idx}·decay",
-            note=f"'{rel}' fell from use — erased (disuse-decay).",
-            params={"disposition": "retract_fact", "mode": "none", "relation": rel},
+            note=f"({rel} {' '.join(repr(l) for l in labels)}) fell from use — "
+                 f"erased (disuse-decay).",
+            params={"disposition": "retract_fact", "mode": "none",
+                    "relation": rel, "labels": list(labels)},
         )
-        decayed.append(rel)
-        ledger.forget(rel)
+        decayed.append(key)
+        ledger.forget(key)
     return decayed
 
 
 def _verdict_or_none(
-    model: RelationalGraphWithCuts, proposal: Optional[str]
+    model: RelationalGraphWithCuts, proposal: Optional[str],
+    materializer: Optional[IncrementalMaterializer] = None,
 ) -> Optional[str]:
-    return peel(model, proposal).verdict.value if proposal else None
+    if not proposal:
+        return None
+    return peel(model, proposal, materializer=materializer).verdict.value
 
 
 def _discoveries(outcomes: Sequence[RoundOutcome]) -> List[Discovery]:
@@ -708,5 +786,6 @@ __all__ = [
     "DeliberationContext", "Vote", "PolicyAgent",
     "ObserverAgent", "GeneralizerAgent", "ChallengerAgent", "ContradictionAgent",
     "Agonothetes", "DEFAULT_PANEL", "UsageLedger",
+    "atom_key", "parse_atom_key", "sheet_atom_keys", "delivered_atom_keys",
     "RoundOutcome", "Discovery", "EvolutionResult", "run",
 ]

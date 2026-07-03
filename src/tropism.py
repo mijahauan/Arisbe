@@ -29,6 +29,7 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List, Mapping, Optional, Tuple, Union
 
+from agon_evolution import atom_key
 from egif_parser_dau import parse_egif
 from eg_navigation import area_of
 from wikidata_source import _PQ_ID, _const
@@ -88,9 +89,11 @@ class WarmSetTropism:
     def reaches(self, model_egif: str, ledger=None, k: Optional[int] = None) -> List[str]:
         """The next warm re-reaches. ``ledger`` is the runner's cross-segment
         :class:`agon_evolution.UsageLedger` (or ``None`` — then uniform over held entities,
-        ordered deterministically): a fact's priority is its relation's last-used round, oldest
-        first = decay-adjacent first. An entity backing several facts takes its most
-        decay-adjacent one. Returns at most ``k`` distinct Q-ids."""
+        ordered deterministically): a fact's priority is its **atom's** last-delivered round,
+        oldest first = decay-adjacent first — atom-precise since the atom-level decay rulebook
+        (2026-07-03: re-check the *fact* nearest its ttl, not the name; a name-keyed entry from
+        an older ledger still reads as a fallback). An entity backing several facts takes its
+        most decay-adjacent one. Returns at most ``k`` distinct Q-ids."""
         budget = self._k if k is None else k
         if not model_egif or budget <= 0:
             return []
@@ -122,7 +125,9 @@ class WarmSetTropism:
                 continue
             if not entity.startswith("Q"):
                 continue                            # only entities are re-fetchable
-            last_used = last.get(egi.rel[edge.id], 0)
+            akey = atom_key(egi.rel[edge.id],
+                            [egi.get_vertex(v).label for v in args])
+            last_used = last.get(akey, last.get(egi.rel[edge.id], 0))
             if entity not in best or last_used < best[entity]:
                 best[entity] = last_used
         self.ambiguous_skipped += len(skipped_ambiguous)

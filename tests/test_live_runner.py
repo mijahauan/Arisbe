@@ -101,9 +101,9 @@ def test_max_m_relations_stop():
 
 
 # --------------------------------------------------------------------------- #
-# Atom units — the RUN_3 F1″ instruments                                       #
-# (decay erases per relation NAME; a warm hub name accumulates atoms while     #
-#  m_relations reads flat — the digest and the safety net must see atoms)      #
+# Atom units — the RUN_3 F1″ instruments, and the F1″ *dissolution*            #
+# (the atom-level decay rulebook, affirmed 2026-07-03: the habit is the fact,  #
+#  not the name — a warm hub name no longer pins its idle atom pile)           #
 # --------------------------------------------------------------------------- #
 
 def _hub_batches(n):
@@ -111,15 +111,18 @@ def _hub_batches(n):
     return [[DiscourseItem("d", "s", f'(prop "X{i}")')] for i in range(n)]
 
 
-def test_digest_reports_atoms_beside_names_and_warm_name_defeats_decay():
-    # ttl=2 with the hub name used every round: name-decay never fires, so the
-    # name count reads flat at 1 while the sheet grows an atom per round.
-    r = LiveRunner("", ReplaySource(_hub_batches(6)), DiscourseFeed,
+def test_atom_level_decay_dissolves_the_warm_hub_name_pinning():
+    """The F1″ defect this test used to *pin* (name-level decay never fires while a
+    hub name is used every round, so atoms accumulate unboundedly) is dissolved:
+    each delivered atom is its own habit, so the idle ones fall at ttl and |M|
+    stabilises in the honest unit too."""
+    r = LiveRunner("", ReplaySource(_hub_batches(8)), DiscourseFeed,
                    LiveRunConfig(ttl=2, checkpoint=False), clock=_zero_clock).run()
-    assert all(d.m_relations == 1 for d in r.segments)       # the flattering unit
-    assert all(d.decayed == 0 for d in r.segments)           # decay never reaches the warm name
-    assert r.segments[-1].m_atoms == 6                       # the honest unit grows
-    assert [d.m_atoms for d in r.segments] == [1, 2, 3, 4, 5, 6]
+    assert all(d.m_relations == 1 for d in r.segments)       # the name survives throughout
+    assert any(d.decayed > 0 for d in r.segments)            # decay reaches the idle atoms now
+    atoms = [d.m_atoms for d in r.segments]
+    assert max(atoms) <= 3                                   # ≈ ttl, not one-per-round
+    assert atoms[-1] == atoms[-2]                            # stabilised, not growing
 
 
 def test_max_m_atoms_stop_fires_while_names_read_flat():

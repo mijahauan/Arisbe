@@ -1,24 +1,61 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION — build ATOM-LEVEL DECAY (affirmed), then the overnight duration probe.**
-Run 4 is EXECUTED & DISPOSED (`runs/RUN_4_LOG.md`; 2026-07-03 block below). **The rulebook
-decision is AFFIRMED (author, 2026-07-03): atom-level decay** — the habit is the fact, not
-the name; `UsageLedger` → per-atom last-use (**use = re-delivery**, first increment;
-inference-use-as-refresh is a later §6 question), erasure via the existing
-`model_revision.retract_atom`; `per_entity_cap` stays as membrane flow-control (no new knob);
-per-name cap rejected (a representation rule masquerading as a use rule). Consequences: F1″'s
-warm-name pinning *dissolves* (only re-delivered atoms stay warm); tropism decay-adjacency
-becomes atom-precise. Riding along, correctness-preserving: **semi-naive materialization**
-(derive only from new atoms per round) against F2⁗'s round-compute wall (attest is fixed —
-1.7 s at ~200 atoms; segment elapsed 1.3 → ~125 s is now peel re-materialization + whole-graph
-ProofChain snapshots; `run4_seg92` = the fixture). Then: (2) **the duration probe** —
-overnight unattended stream+tropism run (F1⁗: the P2 event is a rank-*transition* event, base
-rate < 1 h; crash/resume + STOP + tripwires proven). (3) **§15 docket gate** re-examined after
-the duration probe (NOT fired by run 4 — starvation is world-side); five decisions queued in
-§15, which also carries the *gated* structured-embedding-prior pointer (2026-07-03). (4) **The
-spectator surface** — still queued (ADAPTIVE_SCOPE_VIEWER §10 now carries the hyperbolic-lens
-rider for hub-heavy M; RATE_AND_INTELLIGIBILITY); cheaper now (attest fix cut the frame
-budget's dominant cost).
+**▶▶▶ NEXT SESSION — LAUNCH RUN 5, the overnight duration probe (machinery BUILT; priors
+P1⁵–P6⁵ AFFIRMED as drafted by the author 2026-07-03 — launch is the overnight sitting).**
+The rulebook is built and offline-proven (2026-07-03 3rd sitting, block below): atom-level
+decay + semi-naive materialization + the canonical-signature fix, all landed, all suites
+green. The probe: `uv run python
+tools/run_live_wikidata.py --source recentchanges --runs-dir runs/run5 --max-seconds 28800`
+(config = run 4 except duration; supervise ~15 min then leave; STOP file + `--resume` proven).
+Pre-registration `docs/AUTOMATED_ENDOPOREUTIC_GAME.md` §16.3 + `runs/RUN_5_LOG.md` skeleton.
+After disposal: **§15 docket gate re-examined** (duration before content direction; five
+decisions still queued in §15, which also carries the gated structured-embedding-prior
+pointer); **rigidity-at-exhaustion** probe still open; **the spectator surface** still queued
+(ADAPTIVE_SCOPE_VIEWER §10 hyperbolic-lens rider; RATE_AND_INTELLIGIBILITY).
+
+**▶▶▶ THIS SESSION (2026-07-03, third sitting) — THE RULEBOOK BUILT: atom-level decay +
+semi-naive materialization (the run-5 precursors).** The affirmed decision enacted end to end:
+**(1) atom-level decay** — `agon_evolution` gained the atom-key vocabulary (`atom_key` /
+`parse_atom_key` / `sheet_atom_keys` / `delivered_atom_keys`); `UsageLedger` keys are atom
+keys (class stayed key-agnostic); **use = re-delivery** (touch fires every round, revising or
+not — a redundant warm re-delivery is the habit holding; denials/laws refresh nothing); decay
+⑤ evaluated every round; erasure via `model_revision.retract_atom` made **structural**
+(`without_element` + orphan-vertex prune — cut-preserving, so per-atom decay on a sheet
+carrying laws never silently drops a law; the old text-rebuild dropped every cut, a latent bug
+atom-frequency would have promoted); `LiveRunner` cross-segment decay in atom units (laws fall
+only when a name's last atom goes; old name-keyed state files degrade gracefully);
+`WarmSetTropism.reaches` decay-adjacency **atom-precise** (the fact nearest its ttl, name-key
+fallback); `agon_metalearning` stickiness atom-precise (`_last_erasures`/`_stickiness` in atom
+units + `mark_decayed_atoms` beside name-level `mark_decayed` — an atom decaying under a
+surviving name reads decay, never durability). Headlines pinned:
+`test_atom_level_decay_dissolves_the_warm_hub_name_pinning` (the F1″ fixture that grew 1
+atom/round forever now stabilises at ≈ttl with the name standing) +
+`test_decay_is_atom_level_the_habit_is_the_fact_not_the_name` + atom-precise tropism rotation
+under a shared name. **(2) semi-naive materialization (F2⁗ rider)** — the fixpoint is
+semi-naive (delta iteration, exact closure, empty-body rules seeded); rules canonicalized
+(generic keys positional → a law survives reparse); `IncrementalMaterializer` (monotone growth
+= chase new atoms + extend the cached facts-EGI, O(|Δ|·|M|); retraction/rule-change = one full
+rebuild; `rebuilds`/`extensions`/`hits` observable, printed by the driver) threaded
+`peel(materializer=)` → `run(materializer=)` → one per `LiveRunner`. Exactness tested
+(closure equality across growth/retraction/recursive-transitive/reparse; peel verdicts match
+uncached). **(3) THE SESSION'S FINDING — F2⁗ decomposed by profile: the round-compute wall
+was `generate_egif`'s canonical signatures, not the peel.** 88 of 90 s of a 5-round/200-atom
+profile sat in `canonical_signature.compute_canonical_signatures` (called per round by
+`assert_fact`'s text juxtaposition + per state serialization): the WL refinement grew colors
+as unshared nested trees and its termination check could never fire, so it always ran |V|+1
+tree-walking rounds — 15.7 s to *generate one 200-atom hub-shaped sheet* (heterogeneous ~75×
+cheaper — why run 4 read ~5 s/round). **Fixed exactly: hash-cons colors to canonical rank
+strings + stop at partition stabilization** (split-only ⇒ unchanged class count = fixpoint;
+canonicality preserved — two parses of one structure still emit identical text; tie-breaks
+among truly symmetric elements may differ, the visibility-fix caveat again;
+`canonical_signature` is unprotected). Measured: 200-atom hub sheet 15.7 s → **3.3 ms**
+(~4800×), near-linear to 400; a 25-round segment at 200 atoms ~450 s → **2.6 s**, → **1.55 s**
+with the materializer. ProofChain whole-graph snapshots = the honestly-named second-order
+residual (§16.2). **Verified:** arc suites + core suites green (295 arc-neighborhood + 111
+core); corpus round-trip + correspondence referee suites green post-signature-fix; all offline
+demos run clean. §16 written (16.1 rulebook record · 16.2 the decomposition + riders · 16.3
+run-5 priors DRAFT); RUN_5_LOG.md skeleton; §10 decay paragraph updated to atom units;
+CLAUDE.md bullets current. [[project_next_automated_model_development_life]].
 
 **▶▶▶ THIS SESSION (2026-07-03, second sitting) — RUN-3 HORIZON DISPOSED + RUN 4 EXECUTED &
 DISPOSED: stream + tropism, live (runs/RUN_4_LOG.md).** Author affirmed all four horizon

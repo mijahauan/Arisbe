@@ -108,6 +108,38 @@ def test_mark_decayed_retro_marks_enlargements_and_spares_relinquishments():
     assert mark_decayed(eps, set()) == 0
 
 
+def test_mark_decayed_atoms_is_atom_precise_under_a_surviving_name():
+    """The atom-level rulebook (2026-07-03): the runner drops (hot "Mon") to disuse while
+    (hot "Tue") stays warm — only the episode whose ATOM fell is retro-marked; the
+    same-name sibling still reads durable (name-level marking flipped both)."""
+    from agon_metalearning import mark_decayed_atoms
+    eps = [
+        DisputeEpisode('(hot "Mon")', "consensus", True, 0, "new_fact", True),
+        DisputeEpisode('(hot "Tue")', "consensus", True, 0, "new_fact", True),
+        DisputeEpisode('~[ (hot "Mon") ]', "reliable_source", False, 1, "retract_fact", True),
+    ]
+    n = mark_decayed_atoms(eps, {("hot", ("Mon",))})
+    assert n == 1
+    assert eps[0].stuck is None and eps[0].erased_by_decay is True   # its atom fell
+    assert eps[1].stuck is True and eps[1].erased_by_decay is False  # the warm sibling spared
+    assert eps[2].stuck is True                                      # relinquishment untouched
+    assert mark_decayed_atoms(eps, set()) == 0
+
+
+def test_within_run_stickiness_reads_atom_decay_under_a_surviving_name():
+    """episodes_from's stickiness is atom-precise: an admitted atom that later falls to
+    in-run disuse-decay reads (stuck=None, erased_by_decay) even though its relation name
+    still stands on the final sheet via a warmer atom."""
+    pool = ['(spot "Ciel")'] + ['(spot "Alba")'] * 4     # Ciel admitted once, then idle
+    res = run("", CorpusProposer(pool), rounds=5, ttl=2, uod_id="ml_atom", name="ml atom")
+    eps = episodes_from(res, run_id="atom")
+    ciel = eps[0]
+    assert ciel.proposal_egif == '(spot "Ciel")' and ciel.disposition == "new_fact"
+    assert ciel.stuck is None and ciel.erased_by_decay is True
+    # the name survives on the re-delivered atom — the final sheet still says (spot Alba)
+    assert any(res.uod.current_egi.rel[e.id] == "spot" for e in res.uod.current_egi.E)
+
+
 def test_mark_relinquished_flips_an_earlier_admission_a_later_segment_retracts():
     """The mirror of mark_decayed: a later segment's retract_fact IS durability evidence for
     the earlier admission — atom-precise (a same-relation sibling is spared)."""

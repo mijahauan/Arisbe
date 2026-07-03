@@ -31,6 +31,7 @@ regularity of the game, not a truth about the world; "progression, not progress"
 
 from __future__ import annotations
 
+import json
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Sequence, Set, Tuple
@@ -104,6 +105,17 @@ def _sheet_relations(egif_graph) -> Set[str]:
     }
 
 
+def _sheet_atoms(egif_graph) -> Set[Tuple[str, Tuple]]:
+    """Standing (sheet-level) atoms as ``(relation, (labels…))`` — the atom-precise twin of
+    :func:`_sheet_relations` (the atom-level decay rulebook's unit)."""
+    return {
+        (egif_graph.rel[e.id],
+         tuple(egif_graph.get_vertex(v).label for v in egif_graph.nu.get(e.id, ())))
+        for e in egif_graph.E
+        if area_of(egif_graph, e.id) == egif_graph.sheet and e.id in egif_graph.rel
+    }
+
+
 def _relations_of(egif: str) -> Set[str]:
     try:
         g = parse_egif(egif)
@@ -112,23 +124,36 @@ def _relations_of(egif: str) -> Set[str]:
     return {g.rel[e.id] for e in g.E if e.id in g.rel}
 
 
-def _last_erasures(result: EvolutionResult) -> Dict[str, str]:
-    """``relation → how`` for the **last** time each sheet relation was erased during the run —
-    ``"decay"`` (fell from use, ⑤) or ``"disposition"`` (a game move: ``retract_fact``'s pure
-    denial names its atom's relation). Within a round the revision applies before decay, so
-    decay overwrites a same-round retraction — matching the loop's order."""
-    how: Dict[str, str] = {}
+def _atom_from_key(key: str) -> Tuple[str, Tuple]:
+    """An ``agon_evolution.atom_key`` string → the ``(relation, (labels…))`` tuple this
+    module matches claims by. Tolerant of a pre-2026-07-03 name-level entry (returned as a
+    never-matching sentinel rather than raising on an old in-flight result)."""
+    try:
+        relation, labels = json.loads(key)
+        return relation, tuple(labels)
+    except Exception:
+        return key, ("<name-level>",)
+
+
+def _last_erasures(result: EvolutionResult) -> Dict[Tuple[str, Tuple], str]:
+    """``atom → how`` for the **last** time each sheet atom was erased during the run —
+    ``"decay"`` (fell from use, ⑤; ``RoundOutcome.decayed`` carries atom keys) or
+    ``"disposition"`` (a game move: ``retract_fact``'s pure denial names its atom). Within a
+    round the revision applies before decay, so decay overwrites a same-round retraction —
+    matching the loop's order. Atom-precise since the atom-level decay rulebook (2026-07-03):
+    an atom decaying under a still-standing name must read decay, not durability."""
+    how: Dict[Tuple[str, Tuple], str] = {}
     for o in result.outcomes:
         if o.disposition == "retract_fact":
-            for rel in _relations_of(o.proposal_egif):
-                how[rel] = "disposition"
-        for rel in o.decayed:
-            how[rel] = "decay"
+            for atom in _atoms_of(o.proposal_egif):
+                how[atom] = "disposition"
+        for key in o.decayed:
+            how[_atom_from_key(key)] = "decay"
     return how
 
 
 def _stickiness(outcome: RoundOutcome, result: EvolutionResult,
-                final_relations: Set[str], erasures: Dict[str, str]
+                final_atoms: Set[Tuple[str, Tuple]], erasures: Dict[Tuple[str, Tuple], str]
                 ) -> Tuple[Optional[bool], bool]:
     """``(stuck, erased_by_decay)`` — did this revising round's move survive to the end of the
     trajectory, and if not, did its content merely *fall from use*?
@@ -139,11 +164,13 @@ def _stickiness(outcome: RoundOutcome, result: EvolutionResult,
       * a *generalization* / conditional (a law) sticks iff the law is still among the final
         ``known_laws`` (a later ``challenge_to_M`` may have relinquished it — ``_discoveries``
         calls that ``superseded_law``).
-      * any other *enlargement* (a fact/definition/…) sticks iff its relations are all still
-        present on the final sheet. If they are gone and every missing relation's **last
-        erasure was disuse-decay**, the move was not relinquished — it fell out of the working
-        set, which is no evidence about durability either way → ``(None, True)``. Only an
-        erasure the *game* performed reads ``(False, False)``.
+      * any other *enlargement* (a fact/definition/…) sticks iff its **atoms** are all still
+        present on the final sheet (atom-precise since the atom-level rulebook, 2026-07-03 —
+        a claim's atom decaying under a surviving name is not durability). If atoms are gone
+        and every missing atom's **last erasure was disuse-decay**, the move was not
+        relinquished — it fell out of the working set, which is no evidence about durability
+        either way → ``(None, True)``. Only an erasure the *game* performed reads
+        ``(False, False)``.
     """
     disp = outcome.disposition
     if disp is None:
@@ -153,13 +180,13 @@ def _stickiness(outcome: RoundOutcome, result: EvolutionResult,
     if disp in ("generalization", "conditional_acceptance"):
         return any(same_graph(parse_egif(l), parse_egif(outcome.proposal_egif))
                    for l in result.known_laws), False
-    added = _relations_of(outcome.proposal_egif)
+    added = _atoms_of(outcome.proposal_egif)
     if not added:
         return False, False
-    missing = added - final_relations
+    missing = added - final_atoms
     if not missing:
         return True, False
-    if all(erasures.get(rel) == "decay" for rel in missing):
+    if all(erasures.get(atom) == "decay" for atom in missing):
         return None, True
     return False, False
 
@@ -170,7 +197,7 @@ def stickiness(outcome: RoundOutcome, result: EvolutionResult) -> Tuple[Optional
     is ``None`` for a non-revising round *and* for a decay-erasure (excluded from stick-rates);
     ``erased_by_decay`` says which."""
     return _stickiness(outcome, result,
-                       _sheet_relations(result.uod.current_egi), _last_erasures(result))
+                       _sheet_atoms(result.uod.current_egi), _last_erasures(result))
 
 
 def is_stuck(outcome: RoundOutcome, result: EvolutionResult) -> Optional[bool]:
@@ -246,15 +273,37 @@ def mark_decayed(episodes: Sequence, dropped: Set[str]) -> int:
     return n
 
 
+def mark_decayed_atoms(episodes: Sequence, dropped: Set[Tuple[str, Tuple]]) -> int:
+    """The atom-precise :func:`mark_decayed` (the atom-level decay rulebook, 2026-07-03):
+    ``dropped`` is a set of ``(relation, (labels…))`` atoms the runner's cross-segment
+    disuse-decay erased. An episode flips to ``stuck=None`` + ``erased_by_decay=True`` when
+    the *specific atoms* its claim delivered fell from use — even while their relation name
+    survives on other, still-warm atoms (which name-level marking could not see).
+    Relinquishment episodes stay stuck, as in :func:`mark_decayed`."""
+    if not dropped:
+        return 0
+    n = 0
+    for e in episodes:
+        if e.stuck is not True or e.disposition in ("challenge_to_M", "retract_fact"):
+            continue
+        claim = getattr(e, "claim_egif", None) or getattr(e, "proposal_egif", "")
+        atoms = _atoms_of(claim)
+        if atoms and atoms & dropped:
+            e.stuck = None
+            e.erased_by_decay = True
+            n += 1
+    return n
+
+
 def episodes_from(result: EvolutionResult, *, run_id: str = "run") -> List[EpisodeRecord]:
     """Turn one run's outcomes into mining records — the ``(M, G, verdict, slate, disposition,
     did-it-stick)`` tuples §6 mines over."""
-    final_relations = _sheet_relations(result.uod.current_egi)
+    final_atoms = _sheet_atoms(result.uod.current_egi)
     erasures = _last_erasures(result)
     records: List[EpisodeRecord] = []
     for o in result.outcomes:
         dispositions = [d for _agent, d in o.votes]
-        stuck, by_decay = _stickiness(o, result, final_relations, erasures)
+        stuck, by_decay = _stickiness(o, result, final_atoms, erasures)
         records.append(EpisodeRecord(
             run_id=run_id,
             round_idx=o.round_idx,
@@ -704,7 +753,7 @@ def unresolved_frontier(episodes: Sequence[DisputeEpisode]) -> List[str]:
 __all__ = [
     "proposal_shape", "situation_of",
     "EpisodeRecord", "episodes_from", "is_stuck", "stickiness",
-    "mark_decayed", "mark_relinquished",
+    "mark_decayed", "mark_decayed_atoms", "mark_relinquished",
     "Principle", "resolution_principles",
     "FrictionPoint", "friction_map", "gaps",
     "StabilityReport", "stability_report",

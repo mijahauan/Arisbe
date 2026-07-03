@@ -15,7 +15,7 @@ from egif_parser_dau import parse_egif
 from eg_navigation import same_graph
 from agon_evolution import (
     Agonothetes, ChallengerAgent, ContradictionAgent, GeneralizerAgent, ObserverAgent,
-    UsageLedger,
+    UsageLedger, atom_key,
 )
 from live_runner import LiveRunConfig, LiveRunner, ReplaySource
 from tropism import WarmSetTropism, reverse_labels
@@ -64,16 +64,41 @@ def test_reaches_emits_the_entities_backing_standing_facts():
 
 
 def test_reaches_orders_decay_adjacent_first():
-    # the fact whose relation was used LONGEST ago is nearest its ttl — re-check it first,
-    # while the target still stands
+    # the fact whose ATOM was delivered LONGEST ago is nearest its ttl — re-check it first,
+    # while the target still stands (atom-precise since the 2026-07-03 rulebook)
+    tropism = WarmSetTropism({"Q10": "swan1", "Q20": "adam"}, k=4)
+    ledger = UsageLedger(ttl=8)
+    ledger.touch({atom_key("color", ["swan1", "white"])}, 1)
+    ledger.touch({atom_key("name", ["adam", "Adam Smith"])}, 5)
+    m = '(name "adam" "Adam Smith") (color "swan1" "white")'
+    assert tropism.reaches(m, ledger) == ["Q10", "Q20"]     # color (1) before name (5)
+    ledger.touch({atom_key("color", ["swan1", "white"])}, 9)  # now name is decay-adjacent
+    assert tropism.reaches(m, ledger) == ["Q20", "Q10"]
+
+
+def test_reaches_priority_is_atom_precise_under_a_shared_name():
+    """Two facts of the SAME relation, different entities, different last-delivery: the
+    older *atom*'s entity is re-reached first — the ordering a name-keyed ledger could not
+    express (every fact of the name read as one age)."""
+    tropism = WarmSetTropism({"Q10": "swan1", "Q20": "swan2"}, k=4)
+    ledger = UsageLedger(ttl=8)
+    ledger.touch({atom_key("color", ["swan1", "white"])}, 1)
+    ledger.touch({atom_key("color", ["swan2", "black"])}, 5)
+    m = '(color "swan1" "white") (color "swan2" "black")'
+    assert tropism.reaches(m, ledger) == ["Q10", "Q20"]     # the older atom first
+    ledger.touch({atom_key("color", ["swan1", "white"])}, 9)
+    assert tropism.reaches(m, ledger) == ["Q20", "Q10"]     # flips with the atom, not the name
+
+
+def test_reaches_falls_back_to_a_name_keyed_ledger_entry():
+    # a pre-rulebook state file restores a name-keyed ledger — priority degrades to the
+    # name's age rather than resetting to zero
     tropism = WarmSetTropism({"Q10": "swan1", "Q20": "adam"}, k=4)
     ledger = UsageLedger(ttl=8)
     ledger.touch({"color"}, 1)
     ledger.touch({"name"}, 5)
     m = '(name "adam" "Adam Smith") (color "swan1" "white")'
-    assert tropism.reaches(m, ledger) == ["Q10", "Q20"]     # color (1) before name (5)
-    ledger.touch({"color"}, 9)                              # now name is decay-adjacent
-    assert tropism.reaches(m, ledger) == ["Q20", "Q10"]
+    assert tropism.reaches(m, ledger) == ["Q10", "Q20"]
 
 
 def test_reaches_k_bounds_the_warm_slots():

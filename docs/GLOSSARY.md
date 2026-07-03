@@ -200,10 +200,12 @@ structural move, and the model-revising subset carries its Peircean mode (induct
 abduction / convention). Nothing enters the model except under a disposition.
 
 ### Disuse-decay
-**Disuse-decay** — the only bound on an unbounded sheet: a relation no round has touched for a set
-span is erased from the developing model M. Decay is *not* evidence against a claim (it is excluded
-from durability statistics); it is the working-set discipline that keeps a live run's per-round
-cost flat.
+**Disuse-decay** — the only bound on an unbounded sheet: a fact no round has re-delivered for a set
+span is erased from the developing model M. **Atom-level** since 2026-07-03 (the affirmed rulebook:
+the habit is the *fact* — `(place_of_birth Adam Cambridge)` — not the relation name, which is only
+vocabulary; use = re-delivery, so one warm fact no longer keeps its name-siblings alive). Decay is
+*not* evidence against a claim (it is excluded from durability statistics); it is the working-set
+discipline that keeps a live run's per-round cost flat.
 
 ### Stickiness
 **Stickiness** — whether a move survived to the end of a run: a generalization later relinquished

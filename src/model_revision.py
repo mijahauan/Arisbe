@@ -183,16 +183,29 @@ def retract_atom(
     name is ``relation`` and whose argument labels are exactly ``labels`` (finer than
     ``retract_relation``, which drops *every* fact of a name). Needed when a relation is
     multi-valued — e.g. a Wikidata property that holds several statements — and only the
-    contradicted/deprecated value must go. Raises if no such atom is present."""
+    contradicted/deprecated value must go. Raises if no such atom is present.
+
+    Structural (``without_element``), so everything else on the sheet — other atoms of the
+    same name, standing *law cuts* — is preserved untouched. That matters because this is the
+    erasure primitive of **atom-level disuse-decay** (the rulebook decision, 2026-07-03):
+    decay fires per fact, routinely, on a sheet that may carry laws. An argument vertex left
+    with no remaining incidence is pruned with its atom (the individual was only ever posited
+    by the retracted habit)."""
     from eg_navigation import area_of
     want = tuple(labels)
-    sheet = [e for e in model.E if area_of(model, e.id) == model.sheet]
-    matches = [e for e in sheet
-               if model.rel.get(e.id) == relation and tuple(_labels(model, e.id)) == want]
+    matches = [e for e in model.E
+               if area_of(model, e.id) == model.sheet
+               and model.rel.get(e.id) == relation and tuple(_labels(model, e.id)) == want]
     if not matches:
         raise ValueError(f"no sheet-level fact {relation}{want} to retract")
-    keep = [e for e in sheet if e not in matches]
-    return parse_egif(" ".join(_atom_egif(model, e) for e in keep))
+    g = model
+    for e in matches:
+        args = g.nu.get(e.id, ())
+        g = g.without_element(e.id)
+        for vid in dict.fromkeys(args):      # each argument once
+            if not any(vid in incident for incident in g.nu.values()):
+                g = g.without_element(vid)   # orphaned by the retraction — prune
+    return g
 
 
 def retract_relation(

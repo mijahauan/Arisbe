@@ -90,20 +90,35 @@ class MaterializationReport:
 # Conjunctive matching of a rule body against the current facts
 # ---------------------------------------------------------------------------
 
-def _match_body(
-    body: List[Fact], facts_by_key: Dict[Tuple[str, int], List[Tuple[Key, ...]]]
+def _index(facts) -> Dict[Tuple[str, int], List[Tuple[Key, ...]]]:
+    """Facts indexed by (relation, arity) — the match dispatch table."""
+    idx: Dict[Tuple[str, int], List[Tuple[Key, ...]]] = {}
+    for rel, args in facts:
+        idx.setdefault((rel, len(args)), []).append(args)
+    return idx
+
+
+def _match_body_at(
+    body: Tuple[Fact, ...], i: int,
+    all_idx: Dict[Tuple[str, int], List[Tuple[Key, ...]]],
+    delta_idx: Dict[Tuple[str, int], List[Tuple[Key, ...]]],
 ) -> List[Dict[Key, Key]]:
-    """All bindings (generic body key → individual key) under which the conjunction
-    ``body`` holds in the facts.  A constant body key matches only the same constant;
-    a generic body key is a variable that may bind to any individual."""
+    """All bindings under which ``body`` holds with atom ``i`` drawn from the
+    *delta* facts and every other atom from the full set — the semi-naive
+    restriction (a derivation is found in the pass its last supporting fact
+    arrives, never re-found).  A constant body key matches only the same
+    constant; a generic body key is a variable."""
+    order = [i] + [j for j in range(len(body)) if j != i]
     results: List[Dict[Key, Key]] = []
 
-    def rec(i: int, bind: Dict[Key, Key]) -> None:
-        if i == len(body):
+    def rec(pos: int, bind: Dict[Key, Key]) -> None:
+        if pos == len(order):
             results.append(dict(bind))
             return
-        rel, args = body[i]
-        for fargs in facts_by_key.get((rel, len(args)), ()):
+        j = order[pos]
+        rel, args = body[j]
+        src = delta_idx if j == i else all_idx
+        for fargs in src.get((rel, len(args)), ()):
             trial = dict(bind)
             ok = True
             for k, ind in zip(args, fargs):
@@ -118,24 +133,99 @@ def _match_body(
                 else:
                     trial[k] = ind
             if ok:
-                rec(i + 1, trial)
+                rec(pos + 1, trial)
 
     rec(0, {})
     return results
+
+
+def _match_body(
+    body: List[Fact], facts_by_key: Dict[Tuple[str, int], List[Tuple[Key, ...]]]
+) -> List[Dict[Key, Key]]:
+    """All bindings under which the conjunction ``body`` holds in the facts (every
+    atom drawn from the full set). Kept for one-shot matching against a closed fact
+    set (``dl_reasoning``); the chase itself uses the semi-naive
+    :func:`_match_body_at`."""
+    if not body:
+        return [{}]
+    return _match_body_at(tuple(body), 0, facts_by_key, facts_by_key)
+
+
+def _chase(facts: Set[Fact], horn, delta: Set[Fact] = None) -> None:
+    """Forward-chain ``horn`` over ``facts`` to the least fixpoint, in place —
+    **semi-naive** (Datalog delta iteration): each pass derives only from
+    bindings that touch the previous pass's new facts, so the whole model is
+    never re-derived per pass.  Exact same closure as naive evaluation.
+
+    ``delta=None`` evaluates from scratch (empty-body rules — an unconditional
+    ``~[ ~[ H ] ]`` head, ground by range-restriction — are seeded first).  A
+    caller *extending* an already-closed fact set passes the newly added atoms
+    as ``delta``; the rules must be unchanged for that to be sound."""
+    rules = sorted(horn)
+    if delta is None:
+        for body, head in rules:
+            if not body:
+                facts.update(head)
+        delta = set(facts)
+    else:
+        delta = set(delta)
+    while delta:
+        all_idx = _index(facts)
+        delta_idx = _index(delta)
+        new: Set[Fact] = set()
+        for body, head in rules:
+            for i in range(len(body)):
+                for bind in _match_body_at(body, i, all_idx, delta_idx):
+                    for hrel, hargs in head:
+                        f: Fact = (hrel, tuple(k if k[0] == "c" else bind[k]
+                                               for k in hargs))
+                        if f not in facts:
+                            new.add(f)
+        facts |= new
+        delta = new
 
 
 # ---------------------------------------------------------------------------
 # The materializer
 # ---------------------------------------------------------------------------
 
-def materialize_egi(
-    egi: RelationalGraphWithCuts,
-) -> Tuple[RelationalGraphWithCuts, MaterializationReport]:
-    """Forward-chain the Horn fragment of ``egi`` to its least Herbrand model.
+def _canonical_rule(body: List[Fact], head: List[Fact]) -> Tuple[Tuple[Fact, ...], Tuple[Fact, ...]]:
+    """A rule with its generic keys renamed positionally (first occurrence over the
+    sorted body, then the sorted head) — so the *same* rule extracted from two parses
+    of the same EGIF (fresh vertex ids each time) compares equal.  That equality is
+    what lets :class:`IncrementalMaterializer` recognise "rules unchanged" across
+    rounds.  Sorting uses a variable-blind atom key, so ties among structurally
+    interchangeable atoms stay deterministic within one extraction."""
+    def blind(atom: Fact):
+        rel, args = atom
+        return (rel, len(args), tuple(k if k[0] == "c" else ("g", "?") for k in args))
 
-    Returns ``(facts_egi, report)`` — a facts-only EGI the peel can model-check
-    against, and an honest account of what was derived and what was skipped.
-    """
+    sorted_body = sorted(body, key=blind)
+    sorted_head = sorted(head, key=blind)
+    mapping: Dict[Key, Key] = {}
+
+    def norm(args: Tuple[Key, ...]) -> Tuple[Key, ...]:
+        out = []
+        for k in args:
+            if k[0] == "g":
+                if k not in mapping:
+                    mapping[k] = ("g", str(len(mapping)))
+                out.append(mapping[k])
+            else:
+                out.append(k)
+        return tuple(out)
+
+    nb = tuple((rel, norm(args)) for rel, args in sorted_body)
+    nh = tuple((rel, norm(args)) for rel, args in sorted_head)
+    return nb, nh
+
+
+def _extract(
+    egi: RelationalGraphWithCuts,
+) -> Tuple[Set[Fact], frozenset, MaterializationReport]:
+    """Read ``egi`` into (base facts, canonical Horn rules, report-with-skips) —
+    the shared front half of :func:`materialize_egi` and
+    :class:`IncrementalMaterializer` (``derived_facts`` left for the caller)."""
     vmap = {v.id: v for v in egi.V}
     edge_ids = {e.id for e in egi.E}
     cut_ids = {c.id for c in egi.Cut}
@@ -154,7 +244,7 @@ def materialize_egi(
     report = MaterializationReport(base_facts=len(facts))
 
     # Classify sheet-level cuts into Horn rules vs. skipped.
-    horn: List[Tuple[List[Fact], List[Fact]]] = []
+    horn: Set[Tuple[Tuple[Fact, ...], Tuple[Fact, ...]]] = set()
     for c1 in [x for x in egi.area.get(egi.sheet, ()) if x in cut_ids]:
         inner_cuts = [x for x in egi.area.get(c1, ()) if x in cut_ids]
         if len(inner_cuts) == 0:
@@ -177,27 +267,88 @@ def materialize_egi(
         if not head_gen <= body_gen:
             report.skipped.append(SkippedRule("existential_head", _describe_cut(egi, c1, edge_ids, cut_ids)))
             continue
-        horn.append((body, head))
+        horn.add(_canonical_rule(body, head))
 
     report.rules_applied = len(horn)
+    return facts, frozenset(horn), report
 
-    # Forward-chain to a fixpoint.
-    changed = True
-    while changed:
-        changed = False
-        facts_by_key: Dict[Tuple[str, int], List[Tuple[Key, ...]]] = {}
-        for rel, args in facts:
-            facts_by_key.setdefault((rel, len(args)), []).append(args)
-        for body, head in horn:
-            for bind in _match_body(body, facts_by_key):
-                for hrel, hargs in head:
-                    new: Fact = (hrel, tuple(k if k[0] == "c" else bind[k] for k in hargs))
-                    if new not in facts:
-                        facts.add(new)
-                        changed = True
 
-    report.derived_facts = len(facts) - report.base_facts
-    return _facts_to_egi(facts), report
+def materialize_egi(
+    egi: RelationalGraphWithCuts,
+) -> Tuple[RelationalGraphWithCuts, MaterializationReport]:
+    """Forward-chain the Horn fragment of ``egi`` to its least Herbrand model.
+
+    Returns ``(facts_egi, report)`` — a facts-only EGI the peel can model-check
+    against, and an honest account of what was derived and what was skipped.
+    """
+    facts, horn, report = _extract(egi)
+    closure = set(facts)
+    _chase(closure, horn)
+    report.derived_facts = len(closure) - report.base_facts
+    return _facts_to_egi(closure), report
+
+
+class IncrementalMaterializer:
+    """Cross-round materialization cache — the semi-naive rider on the atom-level
+    decay rulebook (RUN_4_LOG F2⁗, 2026-07-03).
+
+    The live loop re-materializes M every round, but a round almost always *grows*
+    M by juxtaposition (``new_fact``, or a redundant re-delivery): same rules, a
+    superset of ground atoms.  This cache exploits exactly that shape: when the new
+    state's rules are unchanged (canonical comparison, stable across reparse) and
+    its base atoms are a superset of the cached ones, only the truly-new atoms are
+    chased (:func:`_chase` with a delta) and the cached facts-EGI is *extended*
+    edge-by-edge rather than rebuilt — turning the per-round O(|M|²) rebuild into
+    O(|Δ|·|M|).  Anything else — a retraction/decay, a rule change, a generic
+    (non-ground) sheet atom whose identity does not survive reparse — falls back to
+    one full materialization.  **Exact**: the closure always equals
+    :func:`materialize_egi`'s (least-fixpoint extension is sound for monotone
+    growth under fixed rules).
+
+    ``hits`` / ``extensions`` / ``rebuilds`` are observable counters (tests, digests).
+    """
+
+    def __init__(self):
+        self._atoms: Set[Fact] = None
+        self._horn: frozenset = None
+        self._closure: Set[Fact] = None
+        self._builder: _FactsBuilder = None
+        self.hits = 0
+        self.extensions = 0
+        self.rebuilds = 0
+
+    def materialize(
+        self, egi: RelationalGraphWithCuts
+    ) -> Tuple[RelationalGraphWithCuts, MaterializationReport]:
+        facts, horn, report = _extract(egi)
+        if self._atoms is not None and horn == self._horn and self._atoms <= facts:
+            if facts == self._atoms:                      # the same M again (an audit re-peel)
+                self.hits += 1
+                report.derived_facts = len(self._closure) - report.base_facts
+                return self._builder.egi, report
+            delta = facts - self._atoms                   # monotone growth — the common round
+            before = len(self._closure)
+            rendered = set(self._closure)
+            new_atoms = delta - self._closure
+            self._closure |= delta
+            if new_atoms:
+                _chase(self._closure, horn, delta=new_atoms)
+            self._builder.add(self._closure - rendered)
+            self._atoms = set(facts)
+            self.extensions += 1
+            report.derived_facts = len(self._closure) - report.base_facts
+            assert len(self._closure) >= before
+            return self._builder.egi, report
+        # anything else: one full materialization, then cache the new state
+        self._atoms = set(facts)
+        self._horn = horn
+        self._closure = set(facts)
+        _chase(self._closure, horn)
+        self._builder = _FactsBuilder()
+        self._builder.add(self._closure)
+        self.rebuilds += 1
+        report.derived_facts = len(self._closure) - report.base_facts
+        return self._builder.egi, report
 
 
 def _describe_cut(egi, cut_id, edge_ids, cut_ids) -> str:
@@ -221,36 +372,48 @@ def _describe_cut(egi, cut_id, edge_ids, cut_ids) -> str:
     return "~[ " + render_area(cut_id) + " ]"
 
 
-def _facts_to_egi(facts: Set[Fact]) -> RelationalGraphWithCuts:
-    """Build a facts-only EGI from the materialized atom set (all ground).
+class _FactsBuilder:
+    """Incrementally build a facts-only EGI from ground atoms.
 
     Constructed **directly** through the immutable EGI API rather than by generating
     EGIF text and reparsing: a CLIF/COLORE-imported model may carry relation or
     individual names EGIF text cannot round-trip (e.g. ``Warm-blooded``), and they are
     legal in the graph.  Building structurally keeps any name the source allowed.
+    ``add`` may be called repeatedly (the :class:`IncrementalMaterializer` extension
+    path); vertex identity and edge numbering carry across calls.
     """
-    if not facts:
-        return create_empty_graph()  # the blank sheet (an empty model)
 
-    g = create_empty_graph()
-    vid_of: Dict[Key, str] = {}
-    counter = 0
-    for _rel, args in sorted(facts):
-        for k in args:
-            if k in vid_of:
-                continue
-            if k[0] == "c":
-                v = create_vertex(label=k[1], is_generic=False)
-            else:
-                counter += 1
-                v = create_vertex(label=f"_i{counter}", is_generic=False)
-            g = g.with_vertex(v)
-            vid_of[k] = v.id
+    def __init__(self):
+        self.egi = create_empty_graph()      # the blank sheet (an empty model)
+        self._vid_of: Dict[Key, str] = {}
+        self._gen = 0                        # synthetic names for generic individuals
+        self._seq = 0                        # deterministic, collision-free edge ids:
+                                             # ``create_edge`` draws a 32-bit random suffix,
+                                             # which collides once a closure runs to thousands
+                                             # of facts — enumerate instead (also reproducible)
 
-    for i, (rel, args) in enumerate(sorted(facts)):
-        # Deterministic, collision-free edge ids.  ``create_edge`` draws a 32-bit random
-        # suffix, which collides once a materialized closure runs to thousands of facts
-        # (a DL ontology's least Herbrand model); enumerate instead — also reproducible.
-        edge = Edge(id=f"e_m{i}")
-        g = g.with_edge(edge, tuple(vid_of[k] for k in args), rel)
-    return g
+    def add(self, facts) -> RelationalGraphWithCuts:
+        g = self.egi
+        batch = sorted(facts)
+        for _rel, args in batch:
+            for k in args:
+                if k in self._vid_of:
+                    continue
+                if k[0] == "c":
+                    v = create_vertex(label=k[1], is_generic=False)
+                else:
+                    self._gen += 1
+                    v = create_vertex(label=f"_i{self._gen}", is_generic=False)
+                g = g.with_vertex(v)
+                self._vid_of[k] = v.id
+        for rel, args in batch:
+            edge = Edge(id=f"e_m{self._seq}")
+            self._seq += 1
+            g = g.with_edge(edge, tuple(self._vid_of[k] for k in args), rel)
+        self.egi = g
+        return g
+
+
+def _facts_to_egi(facts: Set[Fact]) -> RelationalGraphWithCuts:
+    """Build a facts-only EGI from the materialized atom set (all ground)."""
+    return _FactsBuilder().add(facts)

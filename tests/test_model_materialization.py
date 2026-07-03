@@ -131,3 +131,75 @@ def test_report_summary_reads():
     M = parse_egif('(man "Socrates") ~[ (man *x) ~[ (mortal x) ] ]')
     _, rep = materialize_egi(M)
     assert "derived" in rep.summary
+
+
+# ---------------------------------------------------------------------------
+# IncrementalMaterializer — the F2⁗ semi-naive rider (2026-07-03)
+# The contract is EXACTNESS: whatever the cache does internally (hit / delta
+# extension / full rebuild), the returned closure always equals materialize_egi's.
+# ---------------------------------------------------------------------------
+
+def _mat_equal(inc_result, egi):
+    full, _ = materialize_egi(egi)
+    return _facts(inc_result) == _facts(full)
+
+
+def test_incremental_equals_full_across_monotone_growth():
+    from model_materialization import IncrementalMaterializer
+    mat = IncrementalMaterializer()
+    m1 = parse_egif('(man "Socrates") ~[ (man *x) ~[ (mortal x) ] ]')
+    out1, rep1 = mat.materialize(m1)
+    assert _mat_equal(out1, m1) and rep1.derived_facts == 1
+    assert mat.rebuilds == 1
+    # grow M by juxtaposition — the common live round; same rule, fresh parse
+    m2 = parse_egif(generate_egif(m1) + ' (man "Plato")')
+    out2, rep2 = mat.materialize(m2)
+    assert _mat_equal(out2, m2)                       # Plato derived mortal via the delta
+    assert ("mortal", "Plato") in _facts(out2)
+    assert mat.extensions == 1 and mat.rebuilds == 1  # extended, not rebuilt: the rule
+                                                      # survived reparse (canonicalization)
+    # the same M again (an audit re-peel) is a pure cache hit
+    out3, _ = mat.materialize(m2)
+    assert mat.hits == 1 and _facts(out3) == _facts(out2)
+
+
+def test_incremental_recursive_rule_extends_the_closure():
+    from model_materialization import IncrementalMaterializer
+    mat = IncrementalMaterializer()
+    law = '~[ (path *x *y) (edge y *z) ~[ (path x z) ] ]'
+    m1 = parse_egif(f'(path "a" "b") (edge "b" "c") {law}')
+    out1, _ = mat.materialize(m1)
+    assert ("path", "a", "c") in _facts(out1)
+    # a new edge arrives: the transitive closure must extend through the OLD facts
+    m2 = parse_egif(generate_egif(m1) + ' (edge "c" "d")')
+    out2, _ = mat.materialize(m2)
+    assert mat.extensions == 1
+    assert {("path", "a", "c"), ("path", "a", "d")} <= _facts(out2)
+    assert _mat_equal(out2, m2)
+
+
+def test_incremental_falls_back_to_full_on_retraction_and_rule_change():
+    from model_materialization import IncrementalMaterializer
+    mat = IncrementalMaterializer()
+    m1 = parse_egif('(swan "Alba") (swan "Ciel") ~[ (swan *x) ~[ (white x) ] ]')
+    mat.materialize(m1)
+    # an atom retracted (decay / a game move): not a superset → one full rebuild, exact
+    m2 = parse_egif('(swan "Alba") ~[ (swan *x) ~[ (white x) ] ]')
+    out2, _ = mat.materialize(m2)
+    assert mat.rebuilds == 2 and _mat_equal(out2, m2)
+    assert ("white", "Ciel") not in _facts(out2)      # no stale derivation survives
+    # a rule change (the law relinquished): again a full rebuild, exact
+    m3 = parse_egif('(swan "Alba")')
+    out3, _ = mat.materialize(m3)
+    assert mat.rebuilds == 3 and _mat_equal(out3, m3)
+    assert _facts(out3) == {("swan", "Alba")}
+
+
+def test_incremental_peel_verdicts_match_the_uncached_peel():
+    from agon_evolution import peel
+    from model_materialization import IncrementalMaterializer
+    mat = IncrementalMaterializer()
+    m = parse_egif('(man "Socrates") ~[ (man *x) ~[ (mortal x) ] ]')
+    for proposal in ['(mortal "Socrates")', '(mortal "Plato")', '(man "Socrates")']:
+        assert (peel(m, proposal, materializer=mat).verdict
+                is peel(m, proposal).verdict)

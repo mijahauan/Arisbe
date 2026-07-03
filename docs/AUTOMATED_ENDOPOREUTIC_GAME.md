@@ -587,11 +587,15 @@ matter for cost either way.
 
 **The two controls that keep all three axes flat** (both in `LiveRunner`):
 
-1. **Bound \|M\| with disuse-decay** (`LiveRunConfig.ttl`). A relation idle for `ttl` *global*
-   rounds is erased. Decay is applied by the runner **across segments** (not inside each
-   per-segment `run`, whose ledger would reset every segment and never bound anything). Measured:
-   with `ttl` on, \|M\| stabilises at ≈`ttl` and per-round cost / memory / per-checkpoint disk stay
-   roughly constant; with it off, \|M\| grows without bound (and cost with it).
+1. **Bound \|M\| with disuse-decay** (`LiveRunConfig.ttl`). An **atom** idle for `ttl` *global*
+   rounds is erased (atom-level since 2026-07-03 — the §16 rulebook decision; before that the
+   unit was the relation *name*, which RUN_3 F1″ showed a warm hub name defeats: tropism kept
+   the name touched while its atoms accumulated unboundedly). Use = **re-delivery**; erasure by
+   `retract_atom`, so name-siblings and standing law cuts survive. Decay is applied by the
+   runner **across segments** (not inside each per-segment `run`, whose ledger would reset
+   every segment and never bound anything). Measured: with `ttl` on, \|M\| stabilises at ≈`ttl`
+   **in atom units too** and per-round cost / memory / per-checkpoint disk stay roughly
+   constant; with it off, \|M\| grows without bound (and cost with it).
 2. **Segment + checkpoint + prune.** The runner processes one **segment** per poll (a batch of
    source items, capped by `segment_cap`), saves a **checkpoint** (a UoD + chain via
    `TomosService.save_uod_with_chain`, §3.3 attested at the write), records an **evaluation
@@ -1209,3 +1213,135 @@ entries (the `MutationProposer` generalized from recombining M's relations to re
    budget)?
 5. **The name** — docket of doubts / horizon register / question ledger (draft: **docket** —
    it is procedural, ordered, and disposed, which is exactly Peirce's register of the term).
+
+## 16 · The rulebook built + run 5, the duration probe (BUILT 2026-07-03; priors P1⁵–P6⁵ AFFIRMED by the author 2026-07-03, pre-launch)
+
+*The §13/§14 discipline again: the machinery half of this section is built and offline-proven;
+the run half was pre-registered and **affirmed as drafted by the author the same day** —
+launch is the overnight sitting.*
+
+### 16.1 · Atom-level decay — the rulebook decision, built (2026-07-03)
+
+**Affirmed by the author 2026-07-03 (RUN_4_LOG horizon), built the same day.** The habit was
+never the name: `(place_of_birth Adam Cambridge)` is the habit; `place_of_birth` is vocabulary.
+What changed, and where:
+
+- **The unit.** `UsageLedger` keys are now **atom keys** (`agon_evolution.atom_key` —
+  relation + argument labels, JSON-serialized so runner state round-trips verbatim). The class
+  stayed key-agnostic; every caller changed what it feeds.
+- **Use = re-delivery** (the affirmed first increment; whether *inference*-use refreshes a
+  habit is a later §6 question). `delivered_atom_keys(proposal)` = the proposal's sheet-level
+  atoms — so a redundant warm re-delivery refreshes exactly its own atoms, and a denial or a
+  law refreshes nothing. Touch now happens on **every** round, revising or not (a non-revising
+  round is precisely the habit holding), and decay (⑤) is evaluated every round rather than
+  only on revising ones.
+- **Erasure = `model_revision.retract_atom`**, made **structural** (`without_element` + prune
+  of newly-orphaned argument vertices): other atoms of the same name — and any standing law
+  cut — survive an erasure untouched (the old text-rebuild silently dropped every cut on the
+  sheet, a latent bug atom-frequency decay would have promoted).
+- **Consequences, as predicted at affirmation:** F1″'s warm-name pinning **dissolves** — the
+  hub fixture that grew one atom per round forever under name-decay now stabilises at ≈ttl
+  atoms with the name still standing (`test_atom_level_decay_dissolves_the_warm_hub_name_pinning`);
+  tropism decay-adjacency is **atom-precise** (`WarmSetTropism.reaches` orders by the *fact*
+  nearest its ttl — two facts of one name now rotate independently; a pre-rulebook name-keyed
+  state file degrades to name-age, never resets). `per_entity_cap` stays as membrane
+  flow-control; the per-name cap was rejected (a representation rule masquerading as a use rule).
+- **Honesty plumbing:** `RoundOutcome.decayed` carries atom keys; `agon_metalearning`'s
+  stickiness is atom-precise (an atom decaying under a surviving name reads *decay*, never
+  durability — `_last_erasures`/`_stickiness` in atom units, `mark_decayed_atoms` beside the
+  name-level `mark_decayed`); the runner drops a carried law only when a relation's *last*
+  atom goes (vocabulary loss, not habit loss).
+
+### 16.2 · Round compute, decomposed and fixed — the F2⁗ engineering riders (correctness-preserving)
+
+RUN_4 F2⁗ named "round compute" (peel re-materialization + whole-graph snapshots) as the new
+super-linear wall. **Profiling the fixture shape found the dominant term was neither**: at
+200 hub-shaped atoms, **88 of 90 seconds** of a 5-round run sat in
+`generate_egif → canonical_signature.compute_canonical_signatures` — called once per round by
+`assert_fact`'s text juxtaposition (and again per state serialization / segment carry-forward).
+The Weisfeiler–Leman refinement built colors as **unshared nested trees** (each round's color
+embeds every neighbour's whole previous color) and its termination check could never fire
+(`(old, inc)` never equals `old`), so it always ran |V|+1 rounds of tree-walking comparisons —
+measured **15.7 s to generate one 200-atom hub-shaped sheet** (58 ms at 50; far worse than
+cubic on symmetric shapes; heterogeneous sheets ~75× cheaper, which is why run 4's live mix
+read ~5 s/round rather than ~18). **Fixed exactly (2026-07-03): hash-cons the colors** — each
+round's colors rank to canonical fixed-width strings (ranks assigned by sorting the
+UUID-independent color *values*, so two parses of one structure still rank identically) and
+the loop stops when the partition stabilises (WL refinement is split-only, so an unchanged
+class count is a fixpoint; the old extra rounds added no discrimination). The canonical
+guarantee is unchanged — `generate(parse(s))` stable across parses — with tie-breaks among
+*truly symmetric* elements possibly differing from the old order (the visibility-graph fix's
+caveat, again). Measured: the 200-atom hub sheet generates in **3.3 ms** (~4800×), near-linear
+to 400 atoms; a 25-round segment at 200 atoms fell from ~450 s (extrapolated from the profile)
+to **2.6 s** — and **1.55 s** with the materializer below. `canonical_signature` is
+unprotected (generator support, not the calculus core); the corpus round-trip +
+correspondence suites are the referee. Also built, the originally-named rider:
+
+- the fixpoint itself is now **semi-naive** (Datalog delta iteration; empty-body rules seeded
+  up front) — exact same closure, never re-deriving the whole model per pass;
+- **`model_materialization.IncrementalMaterializer`** — a cross-round cache keyed on (canonical
+  rules, base atoms): monotone growth (the common round) chases only the truly-new atoms and
+  *extends* the cached facts-EGI instead of rebuilding it edge-by-edge (O(|Δ|·|M|) not O(|M|²));
+  a retraction/decay/rule-change falls back to one full rebuild. Rules are **canonicalized**
+  (generic keys positional) so the same law survives reparse — the identity a text-carried M
+  loses every round. Counters (`rebuilds`/`extensions`/`hits`) are observable; the driver
+  prints them;
+- threaded as `peel(materializer=)` → `run(materializer=)` → one persistent materializer per
+  `LiveRunner` (a decaying segment costs exactly one rebuild).
+
+Exactness is the tested contract: closure equality with `materialize_egi` across growth,
+retraction, recursive rules (transitive closure through old facts), and reparse.
+
+The honestly-named residual: `ProofChain` still snapshots whole graphs per step — with the
+signature fix that cost is now linear-with-small-constants per round, second-order again.
+A delta-snapshotting chain remains a *named, unbuilt* lever if a future run's profile
+re-mandates it.
+
+### 16.3 · Run 5 — the duration probe (overnight, unattended; priors AFFIRMED as drafted, 2026-07-03)
+
+**Mandate (RUN_4 F1⁗):** the P2 event is a rank-*transition* event and its base rate is below
+the one-hour horizon even under revisit × stream. Duration is the cheapest pre-registered
+lever (width and §15 content-direction wait behind it); the §11 design always intended an
+unattended run, and its preconditions — crash/resume, STOP, tripwires, checkpoints, and now
+a round loop that does not choke on its own structural success (F2⁗) — are all proven.
+
+**Run shape (draft):** unattended overnight, ~8 h, stream + tropism, config matching run 4
+except duration: `uv run python tools/run_live_wikidata.py --source recentchanges
+--runs-dir runs/run5 --max-seconds 28800` (chunk 8, warm_fraction 0.5 → k=4, per_entity_cap 25,
+ttl 30, segment_cap 25, min_interval 5.0, max_m 200, max_m_atoms 1000). Supervised for the
+first ~15 minutes (the §11 pattern), then left alone; `touch runs/run5/STOP` for a clean halt;
+`--resume` after any crash. Findings → `runs/RUN_5_LOG.md` against these priors.
+
+**Priors (P1⁵–P6⁵, each bound to an instrument; affirmed as drafted):**
+
+- **P1⁵ THE RUN'S QUESTION — the P2 event at duration** (`mechanism_principles` decay-aware +
+  `retract_fact` count): ≥1 rank transition lands on a warm-held standing target in ~8 h →
+  `retract_fact` > 0 live and mechanism durability finally differentiates on live data. **A
+  zero at 8× the horizon is itself a finding** — a measured ceiling on the observable
+  transition rate at chunk 8, which then arbitrates between the width lever and §15 content
+  direction (the gate F1⁗ left unfired).
+- **P2⁵ the sheet is bounded in the honest unit** (digest `m_atoms`, the `atoms=` console
+  column, `max_m_atoms`): under atom-level decay `m_atoms` stabilises (≈ ttl-scaled, not
+  monotone) across the whole night; the net never fires; no warm-name atom pile-up (F1″
+  dissolved at run scale, P3‴'s 25 → 207 growth not reproduced).
+- **P3⁵ round compute stays flat (F2⁗ disposed)** (segment `elapsed_s` + the materializer
+  counters): late-night segment elapsed stays the same order as early segments (no 1.3 → 125 s
+  climb); `extensions ≫ rebuilds`, rebuilds ≈ decaying segments. A super-linear tail
+  reappearing names the ProofChain-snapshot residual as the next wall — a finding, not a
+  failure.
+- **P4⁵ tropism at atom precision** (warm counters + `non_revising` texture): the warm set
+  rotates by atom age (re-reaches vary even while the entity set is stable); counters stay
+  exact (emitted = injected, skips counted); the non-revising fraction persists at duration
+  (the habit texture does not decay into silence overnight).
+- **P5⁵ the unattended operational floor** (the §11 tripwires, first outing with nobody
+  watching): every checkpoint §3.3-attests to the side store; `polls.jsonl` records everything
+  (the canary replays a prefix offline post-run); legibility per poll < 0.2 sustained (cache
+  warming, no silent label degradation); a crash — if one happens — resumes with the decay
+  clock continuing (the state file is per-segment).
+- **P6⁵ poise, read honestly at duration** (`poise_from_digests`): the quiet-hours stream
+  (UTC night) does not produce dead stretches while the warm set is non-empty (the quiet tick
+  serves it); ○ windows correlate with genuine stream lulls, not redundancy waves.
+
+**Stops:** `max_seconds` 28800 · STOP file · `max_m_atoms` 1000 (the net a P2⁵ violation would
+fire) · `max_m` 200. **The §15 gate is re-examined on this run's disposal** (per RUN_4_LOG:
+duration must be tried before content direction can be mandated).

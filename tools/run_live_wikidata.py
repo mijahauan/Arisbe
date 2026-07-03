@@ -197,6 +197,9 @@ def main(argv=None) -> int:
         print(f"tropism: warm_emitted={tropism.emitted} injected={source.injected} "
               f"ambiguous_skipped={tropism.ambiguous_skipped} "
               f"unmapped_skipped={tropism.unmapped_skipped}")
+    mat = runner.materializer
+    print(f"materializer (F2⁗ semi-naive): rebuilds={mat.rebuilds} "
+          f"extensions={mat.extensions} hits={mat.hits}")
     if source.legibility:
         worst = max(source.legibility)
         print(f"legibility per poll: {['%.2f' % f for f in source.legibility]}"

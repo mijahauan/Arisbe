@@ -72,13 +72,30 @@ def compute_canonical_signatures(
         v = graph.get_vertex(vid)
         return getattr(v, "label", None) or ""
 
-    vertex_color: Dict[ElementID, Any] = {}
+    def ranked(colors: Dict[ElementID, Any]) -> Dict[ElementID, str]:
+        """Hash-cons a round's colors to canonical fixed-width rank strings.
+
+        Ranks are assigned by sorting the (UUID-independent) color *values*, so
+        two parses of the same structure rank identically. Consing keeps each
+        round's colors O(1)-comparable — without it a color embeds the whole
+        previous round's color of every neighbour, so colors grow as unshared
+        trees, every comparison walks them, and the loop below (which the old
+        tuple-equality check never ended early, since ``(old, inc)`` can never
+        equal ``old``) went super-linear: ~16 s to generate a 200-atom hub-shaped
+        sheet, measured 2026-07-03 (the RUN_4 F2⁗ round-compute wall)."""
+        distinct = sorted(set(colors.values()))
+        idx = {c: f"{i:08d}" for i, c in enumerate(distinct)}
+        return {k: idx[c] for k, c in colors.items()}
+
+    initial: Dict[ElementID, Any] = {}
     for v in graph.V:
         vid = v.id
         if is_constant(vid):
-            vertex_color[vid] = ("const", vertex_depth[vid], constant_name(vid))
+            initial[vid] = ("const", vertex_depth[vid], constant_name(vid))
         else:
-            vertex_color[vid] = ("generic", vertex_depth[vid])
+            initial[vid] = ("generic", vertex_depth[vid])
+    vertex_color: Dict[ElementID, str] = ranked(initial)
+    n_classes = len(set(vertex_color.values()))
 
     vertex_incidences: Dict[ElementID, List[Tuple[ElementID, int]]] = {
         v.id: [] for v in graph.V
@@ -97,16 +114,22 @@ def compute_canonical_signatures(
                 edge_depth[e.id],
                 tuple(vertex_color[v] for v in vseq),
             )
-        new_color: Dict[ElementID, Any] = {}
+        new_raw: Dict[ElementID, Any] = {}
         for v in graph.V:
             vid = v.id
             inc = sorted(
                 (edge_sig[eid], pos) for (eid, pos) in vertex_incidences[vid]
             )
-            new_color[vid] = (vertex_color[vid], tuple(inc))
-        if new_color == vertex_color:
+            new_raw[vid] = (vertex_color[vid], tuple(inc))
+        new_color = ranked(new_raw)
+        new_n = len(set(new_color.values()))
+        if new_n == n_classes:
+            # WL refinement only ever *splits* color classes (a round's color
+            # extends the previous round's), so an unchanged class count means
+            # the partition is stable — later rounds cannot discriminate more.
             break
         vertex_color = new_color
+        n_classes = new_n
 
     final_edge_sig: Dict[ElementID, Any] = {}
     for e in graph.E:

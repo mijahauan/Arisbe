@@ -14,8 +14,10 @@ more than the round loop, because the loop was measured to be **super-linear in 
 graph every round and holds *every* state in RAM). So an unbounded run against one growing M
 degrades on rate, memory, and disk together. The two controls that keep it flat:
 
-  * **bound \\|M\\| with disuse-decay** (``ttl``) — a relation idle for ``ttl`` rounds is erased, so
-    \\|M\\| — and thus per-round cost, per-state disk, and segment memory — stay roughly constant;
+  * **bound \\|M\\| with disuse-decay** (``ttl``) — an **atom** idle for ``ttl`` rounds is erased
+    (atom-level since 2026-07-03: the habit is the fact, not the name — use = re-delivery, so a
+    warm hub name no longer pins an unbounded atom pile, RUN_3 F1″/RUN_4 F2⁗), keeping \\|M\\| —
+    and thus per-round cost, per-state disk, and segment memory — roughly constant;
   * **run in checkpointed segments that prune history** — each segment runs K rounds from the
     current M, saves a checkpoint (a UoD + chain), records an evaluation digest, then **drops the
     in-memory ProofChain** and carries only M (as EGIF) + its live laws forward. The full
@@ -38,8 +40,12 @@ from typing import Callable, Dict, List, Optional, Protocol, Sequence
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 from eg_navigation import area_of
-from agon_evolution import EvolutionResult, Proposer, UsageLedger, run
-from model_revision import retract_relation
+from agon_evolution import (
+    EvolutionResult, Proposer, UsageLedger, run,
+    delivered_atom_keys, parse_atom_key, sheet_atom_keys,
+)
+from model_materialization import IncrementalMaterializer
+from model_revision import retract_atom
 
 
 # --------------------------------------------------------------------------- #
@@ -205,9 +211,14 @@ class LiveRunner:
         self._sleep = sleep or (lambda _s: None)
         # Disuse-decay is a LONG-RUN concern, so it lives here (across global rounds), not inside
         # each per-segment run (whose ledger would reset every segment and never bound |M|).
+        # ATOM-LEVEL (rulebook 2026-07-03): the ledger keys are atom keys, not relation names.
         self._ledger: Optional[UsageLedger] = UsageLedger(self._cfg.ttl) if self._cfg.ttl else None
         if self._ledger is not None:
-            self._ledger.seed(_relations_of(model_egif) if model_egif else set())
+            self._ledger.seed(delivered_atom_keys(model_egif) if model_egif else set())
+        # One materializer for the whole run (F2⁗ semi-naive rider): each segment's peels
+        # extend the previous closure instead of rebuilding M from scratch every round.
+        # Public so a driver can report its counters (rebuilds ≈ decaying segments).
+        self.materializer = IncrementalMaterializer()
         self._round = 0
         self._pending: List = []                # fetched items awaiting a segment (never dropped)
         self._polled = False
@@ -303,14 +314,17 @@ class LiveRunner:
             # per-segment (which would reset every segment and never bound |M|).
             res = run(model_egif, feed, rounds=len(items),
                       uod_id=f"{self._uod_id}_seg{seg_idx}", name=f"{self._uod_id} segment {seg_idx}",
-                      ttl=None, seed_laws=self._laws, panel=self._panel)
+                      ttl=None, seed_laws=self._laws, panel=self._panel,
+                      materializer=self.materializer)
 
             rounds_done = len(res.outcomes)
             total_rounds += rounds_done
             self._round += rounds_done
             dispositions = dict(Counter(o.disposition for o in res.outcomes if o.disposition))
             branched = sum(len(o.branched) for o in res.outcomes)
-            used = set().union(*(_relations_of(o.proposal_egif) for o in res.outcomes)) \
+            # use = re-delivery (atom-level): every atom a proposal delivered this segment,
+            # revising or not — a redundant warm re-delivery refreshes exactly its own atoms.
+            used = set().union(*(delivered_atom_keys(o.proposal_egif) for o in res.outcomes)) \
                 if res.outcomes else set()
             model_egif = generate_egif(res.uod.current_egi)   # carry M forward as EGIF
             laws_before, self._laws = self._laws, list(res.known_laws)
@@ -328,14 +342,21 @@ class LiveRunner:
             del res, feed
 
             # Cross-segment disuse-decay: bound |M| (and thus per-round cost + disk) over the long
-            # run. Relations used this segment stay; those idle past ttl are erased from M.
+            # run. Atoms re-delivered this segment stay; those idle past ttl are erased from M
+            # (atom-level — one warm atom no longer keeps its name-siblings alive).
+            names_before = _relations_of(model_egif)
             model_egif, dropped = self._decay(model_egif, used)
             if dropped:
-                self._laws = [l for l in self._laws if not (_relations_of(l) & dropped)]
+                names_gone = names_before - _relations_of(model_egif)
+                if names_gone:
+                    # a law only falls with its vocabulary — when a relation's last atom decays
+                    self._laws = [l for l in self._laws if not (_relations_of(l) & names_gone)]
                 if self._episodes:
                     # falling from the working set is not relinquishment — keep stick-rates honest
-                    from agon_metalearning import mark_decayed
-                    mark_decayed(self._episodes, dropped)
+                    from agon_metalearning import mark_decayed_atoms
+                    dropped_atoms = {(r, tuple(l)) for r, l in
+                                     (parse_atom_key(k) for k in dropped)}
+                    mark_decayed_atoms(self._episodes, dropped_atoms)
 
             carried = parse_egif(model_egif)
             segments.append(SegmentDigest(
@@ -375,20 +396,27 @@ class LiveRunner:
         return None
 
     def _decay(self, model_egif: str, used: set) -> tuple:
-        """Erase relations idle past ``ttl`` global rounds — the only bound on the unbounded
+        """Erase **atoms** idle past ``ttl`` global rounds — the only bound on the unbounded
         sheet, applied across segments so |M| (and per-round cost, memory, disk) stays flat.
-        Returns ``(new_model_egif, dropped_relations)``."""
+        Atom-level (the rulebook decision, 2026-07-03): the ledger and the erasure both work
+        in :func:`agon_evolution.atom_key` units, retracting via ``retract_atom`` so other
+        atoms of the same name — and any standing law cut — survive. Returns
+        ``(new_model_egif, dropped_atom_keys)``."""
         if self._ledger is None:
             return model_egif, set()
-        present = _relations_of(model_egif)
+        g = parse_egif(model_egif)
+        present = sheet_atom_keys(g)
         self._ledger.seed(present, self._round)          # register any newcomers
-        self._ledger.touch(used & present, self._round)  # mark this segment's use
+        self._ledger.touch(used & present, self._round)  # mark this segment's re-deliveries
         dropped = set()
-        for rel in self._ledger.stale(self._round):
-            if rel in present:
-                model_egif = generate_egif(retract_relation(parse_egif(model_egif), rel))
-                dropped.add(rel)
-            self._ledger.forget(rel)
+        for key in self._ledger.stale(self._round):
+            if key in present:
+                rel, labels = parse_atom_key(key)
+                g = retract_atom(g, rel, labels)
+                dropped.add(key)
+            self._ledger.forget(key)
+        if dropped:
+            model_egif = generate_egif(g)
         return model_egif, dropped
 
     def _checkpoint(self, res: EvolutionResult, seg_idx: int) -> Optional[str]:
