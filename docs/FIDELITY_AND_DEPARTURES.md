@@ -610,6 +610,10 @@ across the [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets 
 [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md),
 [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md), and the
 examination record [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md).
+Where this document states departures from Peirce, a separate check states
+correspondence with the scholarship's reading of him:
+[FIDELITY_ENDOPOREUTIC_CHECK.md](FIDELITY_ENDOPOREUTIC_CHECK.md) (the
+implementation against Pietarinen's account of the Endoporeutic Principle).
 Sources for the three departures: the archived conversations under
 [references/](references/).*
 

@@ -37,10 +37,13 @@ failures were browser-E2E contention — all pass in isolation with the diff app
 against clean main too). Docs: §13 heading → drafted+AFFIRMED with the decisions recorded;
 CAPABILITY_MAP §H tropism row DESIGNED→SHIPPED; GLOSSARY/VISION/EGG-guide currency;
 `runs/RUN_3_LOG.md` pre-registered skeleton. Also this session: a **Pietarinen (2005)
-reality-check** of the implementation against the Endoporeutic Principle literature (in-chat;
-correspondences: the peel = EP outside-in, truth-as-stable-habit = stickiness/durability/tropism;
-divergences: Kleene-3 open-world oracle vs two-valued common-ground M, dispositions lift the
-game from truth-in-a-model to model-revision — both deliberate).
+reality-check** of the implementation against the Endoporeutic Principle literature, written up
+as the spine doc **`docs/FIDELITY_ENDOPOREUTIC_CHECK.md`** (a book chapter beside the FIDELITY
+docs; source PDF at `docs/references/`; correspondences: the peel = EP outside-in never
+NNF-compiled, truth-as-stable-habit = stickiness/durability/tropism, Context Principle =
+disuse-decay; divergences owned: Kleene-3 open-world oracle vs two-valued common-ground M,
+warrant-not-satisfaction, the game lifted to dispositions — the calculus plays Peirce's game,
+the agents play a game about its outcomes).
 [[project_next_automated_model_development_life]].
 
 **▶▶ PREVIOUS — ARC RE-ENTRY PREPARED: THE TROPISM MODULE (warm-set re-poll), the empirically
