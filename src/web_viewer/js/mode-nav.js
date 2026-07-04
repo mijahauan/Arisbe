@@ -57,6 +57,10 @@
       var cls = "mn-item" + (m.id === current ? " active" : "");
       return '<a class="' + cls + '" href="' + m.href + '">' + m.label + "</a>";
     }).join('<span class="mn-sep">·</span>');
+    // The book/help — not a mode, but reachable from every mode (opens beside the work).
+    items += '<span class="mn-sep">·</span>' +
+      '<a class="mn-item" href="/book/" target="_blank" rel="noopener" ' +
+      'title="The Arisbe book — handbook &amp; reference">Help</a>';
 
     var active = null;
     for (var i = 0; i < MODES.length; i++) {

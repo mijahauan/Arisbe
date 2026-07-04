@@ -44,6 +44,14 @@ app.include_router(export.router)
 # Mounted before the catch-all "/" so /book/ wins. Absent until rendered — that's fine.
 book_path = Path(__file__).parent.parent.parent / "docs" / "_book"
 if book_path.exists():
+    # Registered BEFORE the mount so the exact path /book (which the mount would 404)
+    # redirects to /book/ — the UI links use /book/, but a hand-typed address
+    # shouldn't dead-end.
+    @app.get("/book", include_in_schema=False)
+    def _book_slash_redirect():
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/book/")
+
     app.mount(
         "/book",
         StaticFiles(directory=str(book_path), html=True),
