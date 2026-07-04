@@ -86,7 +86,16 @@ def main(argv=None) -> int:
                          "§13 tropism (run 3: crawl + tropism at 0.5; run 4: stream + "
                          "tropism — the F2″ composition, revisit × world-motion). 0 = off, "
                          "the runs-1/2 passive baseline")
-    ap.add_argument("--ttl", type=int, default=30, help="disuse-decay ttl (global rounds)")
+    ap.add_argument("--ttl", type=int, default=30,
+                    help="disuse-decay ttl, denominated by --ttl-unit")
+    ap.add_argument("--ttl-unit", choices=["rounds", "polls"], default="rounds",
+                    help="the habit clock (RUN_5 F2⁵): 'rounds' collapsed to a ~2 s memory once "
+                         "rounds became ~free; 'polls' counts engagement opportunities, so a "
+                         "warm-re-reached target persists across poll gaps at any throughput. "
+                         "A state file is only resumable under the unit that wrote it")
+    ap.add_argument("--max-crashes", type=int, default=50,
+                    help="supervisor budget: auto-resume after an in-run crash up to this many "
+                         "times (RUN_5 F1⁵ — one unlucky roll must not end an unattended run)")
     ap.add_argument("--segment-cap", type=int, default=25)
     ap.add_argument("--min-interval", type=float, default=5.0,
                     help="min seconds between polls (API politeness)")
@@ -107,89 +116,149 @@ def main(argv=None) -> int:
     frontier_path = str(runs / "frontier.json")
     stop_file = str(runs / "STOP")
 
-    if args.source == "recentchanges":
-        src_kwargs = dict(ids_per_poll=args.chunk,
-                          per_entity_cap=args.per_entity_cap or None,
-                          record_path=str(runs / "polls.jsonl"))
-        if args.resume:
-            source = RecentChangesSource.load_state(frontier_path, **src_kwargs)
-            print(f"resuming: change-stream state restored from {frontier_path}")
-        else:
-            source = RecentChangesSource(**src_kwargs)
-    else:
-        src_kwargs = dict(chunk_size=args.chunk, crawl=not args.no_crawl,
-                          frontier_cap=args.frontier_cap,
-                          per_entity_cap=args.per_entity_cap or None,
-                          record_path=str(runs / "polls.jsonl"))
-        if args.resume:
-            source = RotatingWikidataSource.load_state(frontier_path, **src_kwargs)
-            print(f"resuming: frontier restored from {frontier_path}")
-        else:
-            source = RotatingWikidataSource(args.seeds, **src_kwargs)
-
-    tropism = None
-    if args.warm_fraction > 0:
-        # §13 (affirmed): warm slots = warm_fraction × chunk, front-of-queue via inject —
-        # each poll's chunk is then k warm + the remainder fresh (the crawl).
-        k = max(1, round(args.warm_fraction * args.chunk))
-        tropism = WarmSetTropism(source.known_labels, k=k)
-
-    def evaluate(feed, res):
-        """Per-segment console digest + persist the frontier beside the runner state."""
-        source.save_state(frontier_path)
-        from collections import Counter
-        dispositions = dict(Counter(o.disposition for o in res.outcomes if o.disposition))
-        # P1″'s instrument: a warm re-delivery of an unchanged value is a NON-REVISING round
-        # (every agent abstains — the habit holding); runs 1–2 measured this fraction at zero.
-        non_revising = sum(1 for o in res.outcomes if o.disposition is None)
-        leg = source.legibility[-1] if source.legibility else None
-        frontier_dropped = getattr(source, "frontier_dropped", 0)
-        # F1″'s live instrument: atoms (pre-decay) beside names — the digest's m_atoms is the
-        # post-decay figure; this line is what the operator watches climb under warm hubs.
-        atoms = _sheet_atom_count(res.uod.current_egi)
-        print(f"  segment: rounds={len(res.outcomes)} atoms={atoms} dispositions={dispositions}"
-              + (f" non_revising={non_revising}" if non_revising else "")
-              + (f" legibility={leg:.2f}" if leg is not None else "")
-              + (f" warm_injected={source.injected}" if getattr(source, "injected", 0) else "")
-              + (f" ambiguous_skipped={tropism.ambiguous_skipped}"
-                 if tropism and tropism.ambiguous_skipped else "")
-              + (f" unmapped_skipped={tropism.unmapped_skipped}"
-                 if tropism and tropism.unmapped_skipped else "")
-              + (f" frontier_dropped={frontier_dropped}" if frontier_dropped else "")
-              + (f" statements_dropped={source.statements_dropped}"
-                 if source.statements_dropped else "")
-              + (f" ⚠ unparseable_dropped={source.unparseable_dropped}"
-                 if getattr(source, "unparseable_dropped", 0) else ""), flush=True)
-        return {"legibility": leg, "non_revising": non_revising, "atoms_pre_decay": atoms}
-
     config = LiveRunConfig(
-        ttl=args.ttl, segment_cap=args.segment_cap, min_interval_s=args.min_interval,
+        ttl=args.ttl, ttl_unit=args.ttl_unit, segment_cap=args.segment_cap,
+        min_interval_s=args.min_interval,
         max_rounds=args.max_rounds, max_seconds=args.max_seconds,
         max_m_relations=args.max_m, max_m_atoms=args.max_m_atoms, stop_file=stop_file,
-        checkpoint=True, state_path=state_path,
+        checkpoint=True, checkpoint_refusal="skip",     # RUN_5 F1⁵: count + quarantine, never die
+        state_path=state_path,
     )
     service = TomosService(runs / "checkpoints")
     uod_id = runs.name or "live"                       # runs/run3 → "run3" checkpoints
 
-    if args.resume:
-        runner = LiveRunner.resume(state_path, source, WikiDisputeFeed, config,
-                                   uod_id=uod_id, panel=_panel(), tropism=tropism,
-                                   evaluate=evaluate, service=service)
-    else:
-        runner = LiveRunner("", source, WikiDisputeFeed, config,
-                            uod_id=uod_id, panel=_panel(), tropism=tropism,
-                            evaluate=evaluate, service=service)
+    def build(resume: bool):
+        """Construct (source, tropism, runner) — fresh for the first leg, restored from the
+        persisted state/frontier for a resumed one (the RUN_5 F1⁵ supervisor rebuilds this
+        after any in-run crash; the decay clock and the crawl continue, never reset)."""
+        if args.source == "recentchanges":
+            src_kwargs = dict(ids_per_poll=args.chunk,
+                              per_entity_cap=args.per_entity_cap or None,
+                              record_path=str(runs / "polls.jsonl"))
+            source = (RecentChangesSource.load_state(frontier_path, **src_kwargs)
+                      if resume else RecentChangesSource(**src_kwargs))
+        else:
+            src_kwargs = dict(chunk_size=args.chunk, crawl=not args.no_crawl,
+                              frontier_cap=args.frontier_cap,
+                              per_entity_cap=args.per_entity_cap or None,
+                              record_path=str(runs / "polls.jsonl"))
+            source = (RotatingWikidataSource.load_state(frontier_path, **src_kwargs)
+                      if resume else RotatingWikidataSource(args.seeds, **src_kwargs))
+        if resume:
+            print(f"resuming: source state restored from {frontier_path}", flush=True)
+
+        tropism = None
+        if args.warm_fraction > 0:
+            # §13 (affirmed): warm slots = warm_fraction × chunk, front-of-queue via inject —
+            # each poll's chunk is then k warm + the remainder fresh (the crawl).
+            k = max(1, round(args.warm_fraction * args.chunk))
+            tropism = WarmSetTropism(source.known_labels, k=k)
+
+        holder = {}          # lets `evaluate` read the runner's refusal counter (set below)
+
+        def evaluate(feed, res):
+            """Per-segment console digest + persist the frontier beside the runner state."""
+            source.save_state(frontier_path)
+            from collections import Counter
+            dispositions = dict(Counter(o.disposition for o in res.outcomes if o.disposition))
+            # P1″'s instrument: a warm re-delivery of an unchanged value is a NON-REVISING round
+            # (every agent abstains — the habit holding); runs 1–2 measured this fraction at zero.
+            non_revising = sum(1 for o in res.outcomes if o.disposition is None)
+            leg = source.legibility[-1] if source.legibility else None
+            frontier_dropped = getattr(source, "frontier_dropped", 0)
+            # F1″'s live instrument: atoms (pre-decay) beside names — the digest's m_atoms is the
+            # post-decay figure; this line is what the operator watches climb under warm hubs.
+            atoms = _sheet_atom_count(res.uod.current_egi)
+            refused = holder["runner"].checkpoints_refused if "runner" in holder else 0
+            print(f"  segment: rounds={len(res.outcomes)} atoms={atoms} dispositions={dispositions}"
+                  + (f" non_revising={non_revising}" if non_revising else "")
+                  + (f" legibility={leg:.2f}" if leg is not None else "")
+                  + (f" warm_injected={source.injected}" if getattr(source, "injected", 0) else "")
+                  + (f" ambiguous_skipped={tropism.ambiguous_skipped}"
+                     if tropism and tropism.ambiguous_skipped else "")
+                  + (f" unmapped_skipped={tropism.unmapped_skipped}"
+                     if tropism and tropism.unmapped_skipped else "")
+                  + (f" frontier_dropped={frontier_dropped}" if frontier_dropped else "")
+                  + (f" statements_dropped={source.statements_dropped}"
+                     if source.statements_dropped else "")
+                  + (f" ⚠ ckpt_refused={refused}" if refused else "")
+                  + (f" ⚠ unparseable_dropped={source.unparseable_dropped}"
+                     if getattr(source, "unparseable_dropped", 0) else ""), flush=True)
+            return {"legibility": leg, "non_revising": non_revising, "atoms_pre_decay": atoms}
+
+        # sleep=time.sleep: the runner's injectable sleep DEFAULTS TO A NO-OP (for tests) —
+        # without passing the real one, min_interval pacing never sleeps and a quiet stream
+        # (empty polls, e.g. overnight hours) becomes a hot spin against the Wikimedia API.
+        if resume:
+            runner = LiveRunner.resume(state_path, source, WikiDisputeFeed, config,
+                                       uod_id=uod_id, panel=_panel(), tropism=tropism,
+                                       evaluate=evaluate, service=service, sleep=time.sleep)
+        else:
+            runner = LiveRunner("", source, WikiDisputeFeed, config,
+                                uod_id=uod_id, panel=_panel(), tropism=tropism,
+                                evaluate=evaluate, service=service, sleep=time.sleep)
+        holder["runner"] = runner
+        return source, tropism, runner
+
+    # ---- the supervisor loop (RUN_5 F1⁵ disposal (b)): an in-run crash is caught, counted, ----
+    # ---- and the run RESUMED from the per-segment state — the overall deadline is honored  ----
+    # ---- across legs (each resumed leg gets the remaining wall-clock, not a fresh budget). ----
+    deadline = (time.monotonic() + args.max_seconds) if args.max_seconds else None
+    resume = args.resume
+    crashes = 0
+    refused_total = 0
+    res = None
 
     started = time.strftime("%Y-%m-%d %H:%M:%S")
     origin = (f"seeds={args.seeds}" if args.source == "frontier"
               else "the recentchanges stream (bots excluded)")
-    warm = (f" warm_fraction={args.warm_fraction} (k={tropism._k}/poll)" if tropism
+    warm = (f" warm_fraction={args.warm_fraction}" if args.warm_fraction > 0
             else " tropism off (passive baseline)")
-    print(f"run start {started} — source={args.source} · {origin} · ttl={args.ttl}"
-          f"{warm} pacing={args.min_interval}s stop: touch {stop_file}", flush=True)
-    res = runner.run()
+    print(f"run start {started} — source={args.source} · {origin} · ttl={args.ttl} "
+          f"{args.ttl_unit}{warm} pacing={args.min_interval}s stop: touch {stop_file}", flush=True)
 
-    print(f"\nstopped: {res.stopped_because}   total rounds: {res.total_rounds}")
+    while True:
+        if deadline is not None:
+            config.max_seconds = max(1.0, deadline - time.monotonic())
+        source, tropism, runner = build(resume)
+        try:
+            res = runner.run()
+            refused_total += runner.checkpoints_refused
+            break
+        except KeyboardInterrupt:
+            raise
+        except Exception:
+            import traceback
+            refused_total += runner.checkpoints_refused
+            crashes += 1
+            traceback.print_exc()
+            if crashes > args.max_crashes:
+                print(f"supervisor: crash budget exhausted ({crashes} crashes) — giving up",
+                      flush=True)
+                raise
+            if deadline is not None and time.monotonic() >= deadline - 60:
+                print("supervisor: crash at the deadline — stopping; per-segment digests "
+                      "above are the record", flush=True)
+                break
+            can_resume = Path(state_path).exists() and Path(frontier_path).exists()
+            resume = can_resume
+            print(f"supervisor: crash #{crashes} — "
+                  + ("resuming from the persisted state" if can_resume
+                     else "no persisted state yet, restarting fresh")
+                  + " in 10 s", flush=True)
+            time.sleep(10)
+
+    if res is None:
+        print(f"\nstopped: crash_at_deadline   crashes survived: {crashes}   "
+              f"checkpoints refused (quarantined): {refused_total}")
+        return 1
+
+    print(f"\nstopped: {res.stopped_because}   total rounds: {res.total_rounds}"
+          + (f"   crashes survived: {crashes}" if crashes else "")
+          + (f"   checkpoints refused (quarantined): {refused_total}" if refused_total else ""))
+    if crashes:
+        print("supervisor note: the final summary below covers the last leg only; "
+              "per-segment digests above span the whole run")
     for d in res.segments:
         print(f"  segment {d.segment}: rounds={d.rounds} |M|={d.m_relations} atoms={d.m_atoms} "
               f"dispositions={d.dispositions} decayed={d.decayed} ({d.elapsed_s:.1f}s)")

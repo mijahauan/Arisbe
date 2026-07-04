@@ -91,6 +91,14 @@ class ReplaySource:
 class LiveRunConfig:
     """The pacing / bounding / stopping knobs. Defaults are conservative for an indefinite run."""
     ttl: Optional[int] = 8                    # disuse-decay — REQUIRED to keep |M| (and cost) flat
+    ttl_unit: str = "rounds"                  # "rounds" | "polls" — the habit clock's denomination.
+                                              # RUN_5 F2⁵: rounds became ~free (17.8/s), so a
+                                              # rounds-denominated ttl collapsed to a ~2 s memory
+                                              # and no atom survived a poll gap; "polls" ties the
+                                              # clock to engagement opportunities, so ttl=N means
+                                              # "idle N polls", throughput-invariant. A state file
+                                              # written under one unit is not resumable under the
+                                              # other (the ledger's clock values change meaning).
     segment_cap: int = 25                     # max rounds per segment (a checkpoint cadence)
     min_interval_s: float = 0.0               # min wall-clock between polls (rate limit / pacing)
     max_rounds: Optional[int] = None          # stop after this many rounds total
@@ -101,6 +109,16 @@ class LiveRunConfig:
                                               # atoms unboundedly while m_relations reads flat
     stop_file: Optional[str] = None           # stop cleanly when this path exists (external control)
     checkpoint: bool = True                   # save a UoD+chain per segment (needs a service)
+    checkpoint_refusal: str = "raise"         # "raise" | "skip" — what a §3.3 refusal at the
+                                              # checkpoint save does. "raise" is the corpus-boundary
+                                              # contract; "skip" is the unattended posture (RUN_5
+                                              # F1⁵: the attest is a content-dependent coin flip —
+                                              # long machine-scale labels — and one unlucky roll
+                                              # must not end a 14 h run): the refused segment's M
+                                              # is QUARANTINED beside the state file, the refusal
+                                              # COUNTED (``checkpoints_refused``), and the run
+                                              # continues — never a silent skip, never an
+                                              # unattested write.
     state_path: Optional[str] = None          # persist runner state per segment → LiveRunner.resume
 
 
@@ -220,6 +238,8 @@ class LiveRunner:
         # Public so a driver can report its counters (rebuilds ≈ decaying segments).
         self.materializer = IncrementalMaterializer()
         self._round = 0
+        self._poll_idx = 0                      # polls made — the habit clock when ttl_unit="polls"
+        self.checkpoints_refused = 0            # §3.3 refusals skipped (checkpoint_refusal="skip")
         self._pending: List = []                # fetched items awaiting a segment (never dropped)
         self._polled = False
         self._episodes: List = []               # cross-segment meta-learning records
@@ -246,6 +266,7 @@ class LiveRunner:
         runner = cls(state["model_egif"], source, feed_factory, config,
                      seed_laws=state.get("laws"), **kwargs)
         runner._round = state.get("round", 0)
+        runner._poll_idx = state.get("poll", 0)
         runner._seg0 = state.get("segment", 0)
         runner._total0 = state.get("total_rounds", 0)
         if runner._ledger is not None and state.get("ledger") is not None:
@@ -261,6 +282,7 @@ class LiveRunner:
             "version": 1,
             "segment": seg_idx,
             "round": self._round,
+            "poll": self._poll_idx,
             "total_rounds": total_rounds,
             "model_egif": model_egif,
             "laws": list(self._laws),
@@ -299,6 +321,7 @@ class LiveRunner:
                         self._source.inject(warm)
                 self._pending.extend(self._source.fetch())
                 self._polled = True
+                self._poll_idx += 1             # a poll = one engagement opportunity (ttl_unit="polls")
                 if not self._pending:
                     if self._source.exhausted():
                         return LiveResult(segments, total_rounds, model_egif,
@@ -404,12 +427,15 @@ class LiveRunner:
         ``(new_model_egif, dropped_atom_keys)``."""
         if self._ledger is None:
             return model_egif, set()
+        # The habit clock: global rounds, or polls (RUN_5 F2⁵ — once rounds are ~free, "idle N
+        # rounds" is a ~2 s memory; "idle N polls" counts engagement opportunities instead).
+        now = self._poll_idx if self._cfg.ttl_unit == "polls" else self._round
         g = parse_egif(model_egif)
         present = sheet_atom_keys(g)
-        self._ledger.seed(present, self._round)          # register any newcomers
-        self._ledger.touch(used & present, self._round)  # mark this segment's re-deliveries
+        self._ledger.seed(present, now)          # register any newcomers
+        self._ledger.touch(used & present, now)  # mark this segment's re-deliveries
         dropped = set()
-        for key in self._ledger.stale(self._round):
+        for key in self._ledger.stale(now):
             if key in present:
                 rel, labels = parse_atom_key(key)
                 g = retract_atom(g, rel, labels)
@@ -422,8 +448,37 @@ class LiveRunner:
     def _checkpoint(self, res: EvolutionResult, seg_idx: int) -> Optional[str]:
         if not (self._cfg.checkpoint and self._service is not None):
             return None
-        self._service.save_uod_with_chain(res.uod, res.chain)   # §3.3 attests before any write
+        try:
+            self._service.save_uod_with_chain(res.uod, res.chain)   # §3.3 attests before any write
+        except Exception as exc:
+            # RUN_5 F1⁵: the attest at machine-scale content is a content-dependent coin flip
+            # (long-label occlusion, UUID tie-breaks) — under "skip", a refusal is counted and
+            # the refused M quarantined (EGIF + error beside the state file: auditable, never
+            # silently dropped, never written unattested), and the run continues. "raise"
+            # keeps the corpus-boundary contract for attended runs.
+            from correspondence_attestation import CorrespondenceViolation
+            if self._cfg.checkpoint_refusal != "skip" or not isinstance(
+                    exc, CorrespondenceViolation):
+                raise
+            self.checkpoints_refused += 1
+            self._quarantine(res, seg_idx, exc)
+            return None
         return res.uod.metadata.uod_id
+
+    def _quarantine(self, res: EvolutionResult, seg_idx: int, exc: Exception) -> None:
+        """Write the refused segment's M (EGIF) + the refusal text beside the state file —
+        the honest record of a skipped checkpoint (RUN_5 F1⁵ disposal (b))."""
+        if not self._cfg.state_path:
+            return
+        import json
+        import os
+        path = os.path.join(os.path.dirname(self._cfg.state_path) or ".",
+                            f"refused_seg{seg_idx}.json")
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump({"segment": seg_idx,
+                       "uod_id": res.uod.metadata.uod_id,
+                       "error": str(exc),
+                       "model_egif": generate_egif(res.uod.current_egi)}, fh, indent=1)
 
 
 __all__ = [

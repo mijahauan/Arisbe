@@ -275,3 +275,109 @@ def test_cross_segment_overturn_reads_as_not_durable():
     assert by_mech["consensus"].durable is False
     assert by_mech["reliable_source"].stick_rate == 1.0 # the referenced value stands
     assert by_mech["reliable_source"].durable is True
+
+
+# --------------------------------------------------------------------------- #
+# RUN_5 F2⁵ — the habit clock denominated in POLLS (engagement opportunities)  #
+# --------------------------------------------------------------------------- #
+
+def _multi_fact_batches():
+    """3 polls × 4 facts; topic0 arrives in poll 1 and is never re-delivered."""
+    return [
+        [DiscourseItem("d", "s", f'(topic0 "X")')] +
+        [DiscourseItem("d", "s", f'(a{i} "X")') for i in range(3)],
+        [DiscourseItem("d", "s", f'(b{i} "X")') for i in range(4)],
+        [DiscourseItem("d", "s", f'(c{i} "X")') for i in range(4)],
+    ]
+
+
+def test_ttl_in_polls_counts_engagement_opportunities_not_rounds():
+    """RUN_5 F2⁵: once rounds are ~free, a rounds-denominated ttl is a ~seconds memory and
+    no atom survives a poll gap.  Under ttl_unit="polls", ttl=2 means "idle 2 polls":
+    topic0 (delivered poll 1, never again) survives poll 2's decay pass and falls only
+    at poll 3 — even though far more than 2 ROUNDS have passed by then."""
+    r = LiveRunner("", ReplaySource(_multi_fact_batches()), DiscourseFeed,
+                   LiveRunConfig(ttl=2, ttl_unit="polls", checkpoint=False),
+                   clock=_zero_clock).run()
+    # survives the poll-2 pass (idle 1 poll), decays at the poll-3 pass (idle 2 polls)
+    assert r.segments[0].decayed == 0
+    assert r.segments[1].decayed == 0
+    assert r.segments[2].decayed >= 1
+    assert '(topic0 "X")' not in r.final_model_egif
+
+    # contrast: the same schedule under the ROUNDS clock kills topic0 a poll earlier
+    # (by the end of poll 2, topic0 has been idle 7 rounds ≥ ttl=2)
+    r2 = LiveRunner("", ReplaySource(_multi_fact_batches()), DiscourseFeed,
+                    LiveRunConfig(ttl=2, ttl_unit="rounds", checkpoint=False),
+                    clock=_zero_clock).run()
+    assert r2.segments[1].decayed >= 1
+
+
+def test_resume_restores_the_poll_clock(tmp_path):
+    """The poll clock persists through a crash/resume like the round clock — a resumed
+    run must not reset poll numbering (which would grant every atom a fresh polls-ttl)."""
+    import json as _json
+    sp = str(tmp_path / "state.json")
+    batches = _multi_fact_batches()
+    LiveRunner("", ReplaySource(batches[:2]), DiscourseFeed,
+               LiveRunConfig(ttl=2, ttl_unit="polls", checkpoint=False, state_path=sp),
+               clock=_zero_clock).run()
+    with open(sp) as fh:
+        assert _json.load(fh)["poll"] == 2
+    r2 = LiveRunner.resume(sp, ReplaySource(batches[2:]), DiscourseFeed,
+                           LiveRunConfig(ttl=2, ttl_unit="polls", checkpoint=False),
+                           clock=_zero_clock)
+    assert r2._poll_idx == 2
+    res = r2.run()
+    # the resumed poll-3 pass sees topic0 idle 2 polls → it decays exactly on schedule
+    assert res.segments[0].decayed >= 1
+    assert '(topic0 "X")' not in res.final_model_egif
+    with open(sp) as fh:
+        assert _json.load(fh)["poll"] == 3
+
+
+# --------------------------------------------------------------------------- #
+# RUN_5 F1⁵ — a §3.3 refusal at the checkpoint is skipped, counted, quarantined #
+# --------------------------------------------------------------------------- #
+
+class _RefusingService:
+    """A checkpoint service whose save always refuses §3.3 (the F1⁵ coin-flip loss)."""
+
+    def save_uod_with_chain(self, uod, chain):
+        from correspondence_attestation import CorrespondenceViolation
+        raise CorrespondenceViolation(
+            ["  occlusion: vertex A label box overlaps vertex B label box (text-on-text)"],
+            context="test refusal")
+
+
+def test_checkpoint_refusal_skip_counts_and_quarantines(tmp_path):
+    """Under checkpoint_refusal="skip" (the unattended posture), a refusal does not end
+    the run: it is counted, the digest carries no checkpoint id, and the refused M is
+    quarantined (EGIF + error) beside the state file — auditable, never silent."""
+    import json as _json
+    sp = str(tmp_path / "state.json")
+    runner = LiveRunner("", ReplaySource(_fact_batches(2)), DiscourseFeed,
+                        LiveRunConfig(ttl=None, checkpoint=True, checkpoint_refusal="skip",
+                                      state_path=sp),
+                        service=_RefusingService(), clock=_zero_clock)
+    res = runner.run()
+    assert res.stopped_because == "source_exhausted"        # the run SURVIVED both refusals
+    assert runner.checkpoints_refused == 2
+    assert all(d.checkpoint_uod is None for d in res.segments)
+    q = tmp_path / "refused_seg1.json"
+    assert q.exists()
+    data = _json.loads(q.read_text())
+    assert "occlusion" in data["error"] and data["model_egif"]
+    assert '(topic0 "X")' in data["model_egif"]
+
+
+def test_checkpoint_refusal_raise_is_the_default_contract():
+    """Without opting into "skip", the corpus-boundary contract stands: the refusal
+    propagates (an attended run should die loudly, as before)."""
+    import pytest
+    from correspondence_attestation import CorrespondenceViolation
+    runner = LiveRunner("", ReplaySource(_fact_batches(1)), DiscourseFeed,
+                        LiveRunConfig(ttl=None, checkpoint=True),
+                        service=_RefusingService(), clock=_zero_clock)
+    with pytest.raises(CorrespondenceViolation):
+        runner.run()
