@@ -632,7 +632,9 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
 
 
 @router.get("/uods/{uod_id}/modal")
-async def get_uod_modal(uod_id: str, over: str = "states"):
+async def get_uod_modal(uod_id: str, over: str = "states",
+                        proposal: Optional[str] = None, closed: bool = True,
+                        thumbs: bool = True):
     """Read **◇ (possibility) and □ (necessity) off the branching history** — the
     *trajectory reading* of `docs/MODALITY_WITHOUT_GAMMA.md` §1, with **no modal
     mark** (the diachronic lens for ``src/modal_query.py``).
@@ -647,10 +649,24 @@ async def get_uod_modal(uod_id: str, over: str = "states"):
     some but not all).
 
     ``over`` quantifies over ``"states"`` (all reachable sheets, the standard Kripke
-    reading; default) or ``"leaves"`` (the trajectory endpoints only).  Geometry-free
-    — reads only DAG structure + EGI content, so it loads with ``attest=False`` and
-    runs no layout engine; it adds **no** §3.3 obligation.  ``has_chain`` is False
-    (empty ``relations``) for the synchronic majority of the corpus.
+    reading; default) or ``"leaves"`` (the trajectory endpoints only).  ``has_chain``
+    is False (empty ``relations``) for the synchronic majority of the corpus.
+
+    ``proposal`` (optional EGIF) is the **compound-meaning reader** the Gamma
+    demonstrations need (docs/GAMMA_DEMONSTRATIONS.md): a per-relation ◇/◻ cannot
+    display Peirce's would-be ◻(fails→suicides).  G is peeled at each world with the
+    same three-valued semantics the audit route uses (materialize + closed-world
+    ``CorpusOracle`` by default; ``closed=false`` for the open-world reading), and
+    the response's ``proposal`` block reports ◻G (TRUE at every world) / ◇G (TRUE at
+    some), with witnesses, counterexamples, and UNKNOWN worlds listed — abstentions
+    reported, never coerced.  Absent an explicit proposal, the UoD's declared
+    ``audit-proposal`` annotation is evaluated (so a would-be exemplar pre-fills).
+
+    ``thumbs`` adds a small **drawn thumbnail** per world (the §3.3-attested render
+    path, like ``/history-structure``) so the worlds strip shows the pictures
+    themselves; skipped with ``thumbs_omitted`` when the frame exceeds 24 worlds.
+    Without thumbnails the route stays geometry-free (``attest=False`` load, no
+    layout engine, no §3.3 obligation).
     """
     try:
         import modal_query as mq
@@ -691,14 +707,71 @@ async def get_uod_modal(uod_id: str, over: str = "states"):
         # Is the blank sheet (the one unconditioned world) reachable? — ◇⊤-shaped.
         blank = mq.possibly(chain, mq.is_blank(), over=over)
 
-        # Per-world descriptors so the lens can show the sheets the modality reads off.
+        # The compound-meaning reader: peel a proposal G at each world (the audit
+        # route's three-valued semantics), then read ◻G/◇G off the verdict map.
+        # An explicit ?proposal= wins; else the declared audit-proposal pre-fills.
+        proposal_block = None
+        effective = (proposal or "").strip() or _audit_proposal_default(tomos, uod_id)
+        if effective:
+            from domain_oracle import CorpusOracle
+            from egif_parser_dau import parse_egif
+            from model_materialization import materialize_egi
+            from semantic_game import evaluate as evaluate_semantic
+            try:
+                g_egi = parse_egif(effective)
+            except Exception as pexc:
+                if (proposal or "").strip():
+                    return ApiResponse(success=False, error={
+                        "code": "MODAL_PROPOSAL_INVALID",
+                        "message": f"proposal is not well-formed EGIF: {pexc}"})
+                g_egi = None      # a broken *declared* default is skipped, not fatal
+            if g_egi is not None:
+                verdicts = {}
+                for w in worlds:
+                    facts, _ = materialize_egi(chain.states[w])
+                    oracle = CorpusOracle([("M", facts)], closed=closed)
+                    verdicts[w] = evaluate_semantic(
+                        g_egi, oracle, closed=closed).verdict.value
+                true_w = [w for w, v in verdicts.items() if v == "true"]
+                false_w = [w for w, v in verdicts.items() if v == "false"]
+                unknown_w = [w for w, v in verdicts.items() if v == "unknown"]
+                nec = bool(worlds) and len(true_w) == len(worlds)
+                pos = bool(true_w)
+                glyph = "□" if nec else ("◇" if pos else "□¬")
+                proposal_block = {
+                    "proposal": effective,
+                    "from_annotation": not bool((proposal or "").strip()),
+                    "closed": closed,
+                    "necessary": nec,              # ◻G — TRUE at every considered world
+                    "possible": pos,               # ◇G — TRUE at some considered world
+                    "witnesses": true_w,
+                    "counterexamples": false_w,
+                    "unknown_worlds": unknown_w,   # abstentions reported, never coerced
+                    "verdicts": verdicts,
+                    "summary": (f"{glyph}G over {len(worlds)} {over} — "
+                                f"true at {len(true_w)}, false at {len(false_w)}"
+                                + (f", unknown at {len(unknown_w)}" if unknown_w else "")),
+                }
+
+        # Per-world descriptors so the lens can show the sheets the modality reads off
+        # — with a drawn thumbnail (the attested render path) unless the frame is huge.
         leaves = mq.leaf_states(chain)
-        worlds_detail = [{
-            "id": w,
-            "egif": generate_egif(chain.states[w]).strip() or "(blank sheet)",
-            "is_initial": w == chain.initial_state_id,
-            "is_leaf": w in leaves,
-        } for w in worlds]
+        thumbs_omitted = thumbs and len(worlds) > 24
+        render_thumbs = thumbs and not thumbs_omitted
+        worlds_detail = []
+        for w in worlds:
+            d = {
+                "id": w,
+                "egif": generate_egif(chain.states[w]).strip() or "(blank sheet)",
+                "is_initial": w == chain.initial_state_id,
+                "is_leaf": w in leaves,
+            }
+            if proposal_block is not None:
+                d["verdict"] = proposal_block["verdicts"].get(w)
+            if render_thumbs:
+                _dto, svg = generate_layout(chain.states[w])
+                d["svg"] = svg
+            worlds_detail.append(d)
 
         from collections import Counter as _C
         _frm = _C(s.from_state_id for s in chain.steps)
@@ -711,6 +784,8 @@ async def get_uod_modal(uod_id: str, over: str = "states"):
             "world_count": len(worlds), "worlds": worlds_detail,
             "relations": relations,
             "blank_possible": blank.holds,
+            "proposal": proposal_block,
+            "thumbs_omitted": thumbs_omitted,
         })
     except Exception as exc:
         return ApiResponse(success=False, error={

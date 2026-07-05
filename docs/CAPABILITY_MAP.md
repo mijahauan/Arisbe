@@ -84,6 +84,7 @@
 | Annotations | SHIPPED | `annotations.py` → `test_annotations.py` | Persistent element metadata. |
 | Proof serializer | SHIPPED | `proof_serializer.py` → `test_proof_serializer.py` | Chain JSON/JSONL replay schema. |
 | Modal reading (◇/□ off the DAG) | SHIPPED | `modal_query.py` → `test_modal_and_dialog.py`, `test_organon_routes.py` | ◇φ = some legal trajectory scribes φ, □φ = every one does; no modal mark needed. Surfaced as the Organon **modal lens**. |
+| Gamma demonstrations (Peirce's modal figures in Beta) | SHIPPED 2026-07-04 | `tools/build_gamma_modal_exemplars.py` → `test_gamma_demonstrations.py` | The broken-cut square (Lowell 1903), the *de inesse* / would-be pair (*Prolegomena*, CP 4.546 / Ms 490), the book of sheets — corpus exemplars with verified citations; the modal lens gained a **proposal reading** (◇G/□G peeled per world) + drawn world thumbnails. See `docs/GAMMA_DEMONSTRATIONS.md`. |
 | Model revision through dialog | SHIPPED | `model_revision.py` → `test_modal_and_dialog.py` | The [Agonothetes](GLOSSARY.md#agonothetes) disposition taxonomy's M-revising subset (new_fact / generalization / challenge_to_M / …), each a real Dau move on M's sheet. Surfaced as the Organon **audit lens** (a standing proposal peeled against every successive M). |
 | Provenance → publication citation | SHIPPED | `scholarly_citation.py` → `test_scholarly_citation.py` | `citation_for` → human line + BibTeX from a UoD's source record; fabricates nothing. `GET /export/citation` + the figure-caption `cite` flag. |
 

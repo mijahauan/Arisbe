@@ -1,0 +1,76 @@
+{
+  "Cut": [
+    {
+      "id": "c_6bcd1a21"
+    },
+    {
+      "id": "c_71d4e8cb"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_0d0b8531"
+    },
+    {
+      "id": "e_b7f2918b"
+    },
+    {
+      "id": "e_cca27985"
+    },
+    {
+      "id": "e_f1ac2cce"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_32b5278b",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_e4a62a79",
+      "is_generic": true,
+      "label": null
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "c_6bcd1a21": [
+      "c_71d4e8cb",
+      "e_b7f2918b"
+    ],
+    "c_71d4e8cb": [
+      "e_cca27985"
+    ],
+    "sheet_be52e7ee": [
+      "c_6bcd1a21",
+      "e_0d0b8531",
+      "e_f1ac2cce",
+      "v_32b5278b",
+      "v_e4a62a79"
+    ]
+  },
+  "nu": {
+    "e_0d0b8531": [
+      "v_32b5278b",
+      "v_e4a62a79"
+    ],
+    "e_b7f2918b": [
+      "v_32b5278b"
+    ],
+    "e_cca27985": [
+      "v_e4a62a79"
+    ],
+    "e_f1ac2cce": [
+      "v_e4a62a79"
+    ]
+  },
+  "rel": {
+    "e_0d0b8531": "husband",
+    "e_b7f2918b": "fails_in_business",
+    "e_cca27985": "commits_suicide",
+    "e_f1ac2cce": "married_woman"
+  },
+  "rho": {},
+  "sheet": "sheet_be52e7ee"
+}

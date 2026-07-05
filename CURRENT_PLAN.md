@@ -1,6 +1,36 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION — LAUNCH RUN 5, the overnight duration probe (machinery BUILT; priors
+**▶▶▶ THIS SESSION (2026-07-04) — RUN 5 DISPOSED (crashed at 32 min: F1⁵ attest coin-flip +
+F2⁵ ttl/persistence) → hardening BUILT + RUN 5B RELAUNCHED (14 h, in flight) → THE GAMMA
+DEMONSTRATIONS SHIPPED.** Run 5: §3.3 occlusion refusal at seg-1531 killed the unattended
+probe (50% re-roll rate on long-label content — UUID tie-breaks); and the atom-level rulebook
+had dissolved name-pinning, P2's de facto persistence (ttl=30 *rounds* ≈ 2 s at the new
+throughput — the one genuine rank transition, Artinian ISNI ×5 redeliveries, was missed).
+Built per author affirmation: checkpoint skip-and-count + quarantine
+(`checkpoint_refusal="skip"`), driver supervisor auto-resume (`--max-crashes`), **ttl
+re-denominated in polls** (`ttl_unit="polls"`, poll clock resumable), real pacing sleep (the
+runner's no-op-sleep rider — quiet polls would have hot-spun the API). Run 5b flying:
+`--runs-dir runs/run5b --max-seconds 50400 --ttl 8 --ttl-unit polls --max-m 800 --max-m-atoms
+2500`; zero refusals so far; atoms ~1000 and self-limiting; self-stops ~22:36. Full disposal +
+run-5b pre-launch record in `runs/RUN_5_LOG.md`. **F1⁵ root fix queued** (global label
+placement shared by renderer+attest — protected-core design pass; also retires 3 intermittent
+`test_eg_reader` clockwise flakes). THEN the author-affirmed **Gamma demonstrations**
+(docs/GAMMA_DEMONSTRATIONS.md): Peirce's attempted modal drawings expressed in Beta + the
+DAG, citations verified against the in-repo Roberts extract — `broken_cut_square` (Lowell
+1903: all four modal statuses as one derivation frame; R6 + □g⊨g/□g⊨◇g as frame facts; the
+CP 4.519 non-inference exhibited), `would_be_de_inesse` (CP 4.546 "too easily true" on one
+sheet), `would_be_courses` (Ms 490's blue-tinted strict implication as □G over courses of
+experience — the experiential register; choosing R *is* the tincture point). Modal lens
+gained the **proposal reading** (◇G/□G peeled per world, pre-filled from `audit-proposal`,
+UNKNOWN reported) + **worlds drawn as thumbnails**; challenge targets `de-inesse` /
+`would-be-course`; `apply_derived` gained `branch=`; modal lens now offered on synchronic
+UoDs (the teaching note was unreachable). Tests `test_gamma_demonstrations.py` (16); book
+renders with the new chapter. Also: `serve.sh` one-command UI launcher + book/help linked
+from home + mode-nav (Help). **Next session: read run 5b against P1⁵–P6⁵ (the log's
+observed columns), then the §15 docket gate re-exam; the F1⁵ root fix; the spectator
+surface still queued.**
+
+**▶▶ PREVIOUS — LAUNCH RUN 5, the overnight duration probe (machinery BUILT; priors
 P1⁵–P6⁵ AFFIRMED as drafted by the author 2026-07-03 — launch is the overnight sitting).**
 The rulebook is built and offline-proven (2026-07-03 3rd sitting, block below): atom-level
 decay + semi-naive materialization + the canonical-signature fix, all landed, all suites

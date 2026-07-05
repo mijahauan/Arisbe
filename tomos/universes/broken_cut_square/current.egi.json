@@ -1,0 +1,23 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_31f40fb8"
+    }
+  ],
+  "V": [],
+  "alphabet": null,
+  "area": {
+    "sheet_8405afb1": [
+      "e_31f40fb8"
+    ]
+  },
+  "nu": {
+    "e_31f40fb8": []
+  },
+  "rel": {
+    "e_31f40fb8": "daylight"
+  },
+  "rho": {},
+  "sheet": "sheet_8405afb1"
+}

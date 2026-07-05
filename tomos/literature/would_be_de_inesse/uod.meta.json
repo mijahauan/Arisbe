@@ -1,0 +1,19 @@
+{
+  "uod_id": "would_be_de_inesse",
+  "uod_type": "standalone",
+  "name": "P de inesse \u2014 the married woman (Prolegomena 1906)",
+  "description": "Peirce's proposition P: 'There is some married woman who will commit suicide in case her husband fails in business' (CP 4.546, 4.549; parallel CP 4.580 = Ms 490), read *de inesse* \u2014 the material conditional on one synchronic sheet. Its truth is too easily guaranteed: it holds if some husband merely does not fail (or some wife happens to suicide), no connection between failure and suicide required \u2014 Roberts (1973, p. 96) shows the two-move derivation that makes it true from 'some married man does not fail in business'. A synchronic sheet has no branching frame, so the modal lens rightly has nothing to read: the de inesse reading is all there is. The would-be this proposition *meant* lives in the companion UoD 'would_be_courses'.",
+  "category": "literature_example",
+  "created": "2026-07-04T00:00:00+00:00",
+  "last_modified": "2026-07-04T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

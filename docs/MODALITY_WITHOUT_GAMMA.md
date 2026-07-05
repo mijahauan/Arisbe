@@ -9,6 +9,11 @@ chain) and [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) (the chain itself).
 Distilled from a 2026-06 conversation, archived at
 [references/EG-modality-conversation.pdf](references/EG-modality-conversation.pdf).*
 
+*The claim is now **demonstrated on Peirce's own attempted figures** — the broken
+cut, the tinctured would-be, the book of separate sheets — as corpus exemplars
+readable through the Organon lenses:
+[GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) (2026-07-04).*
+
 ---
 
 ## The thesis, flatly

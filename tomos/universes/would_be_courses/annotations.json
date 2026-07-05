@@ -1,0 +1,50 @@
+{
+  "annotations": [
+    {
+      "id": "ann_4ca27d71",
+      "scope": "uod",
+      "text": "~[ (fails_in_business \"Otto\") ~[ (commits_suicide \"Clara\") ] ]",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit-proposal"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_f3d264eb",
+      "scope": "uod",
+      "text": "The would-be made drawable: 'should Otto fail, Clara would suicide' is not a fact of one sheet but a habit of every course of experience. The worlds are the reachable sheets of this DAG; the modal lens's proposal reading peels G = ~[ (fails_in_business \"Otto\") ~[ (commits_suicide \"Clara\") ] ] at each world: TRUE everywhere \u2014 \u25a1G, Peirce's 'not possible that he fails without her suiciding' (Ms 490). Try the contrast proposal ~[ (fails_in_business \"Otto\") ~[ (prospers \"Otto\") ] ] \u2014 the ruin course refutes it (\u25c7 only, with a counterexample world). Note the de inesse trap is visible per-world: at the prosperity worlds G is TRUE merely because Otto has not failed.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "would-be",
+        "strict-implication",
+        "modality",
+        "prolegomena",
+        "demonstration"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_a075f873",
+      "scope": "chain",
+      "text": "Experiential register: each edge is a new_fact enlargement (src/model_revision.py) \u2014 a course of experience admitting what happens, not a Dau inference. Choosing this accessibility relation R (courses) rather than derivability (the broken_cut_square's R) is exactly what Peirce's tinctures chose: the mode of the modality is which R the frame ranges over (docs/MODALITY_WITHOUT_GAMMA.md \u00a72 \u2014 the multimodal point).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "experiential-register",
+        "tinctures",
+        "accessibility",
+        "new-fact"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

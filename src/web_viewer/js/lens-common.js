@@ -27,9 +27,16 @@ window.LensCommon = (function () {
     _json('/organon/uods/' + encodeURIComponent(uodId) + '/history-structure');
 
   // Modal reading (◇/□ off the branching history — src/modal_query.py).
-  const fetchModal = (uodId, over) =>
-    _json('/organon/uods/' + encodeURIComponent(uodId) + '/modal' +
-          (over ? '?over=' + encodeURIComponent(over) : ''));
+  // `proposal` (optional EGIF) engages the compound-meaning reader: ◇G/□G peeled
+  // at each world (docs/GAMMA_DEMONSTRATIONS.md); omitted ⇒ the UoD's declared
+  // audit-proposal, if any.
+  const fetchModal = (uodId, over, proposal) => {
+    const q = [];
+    if (over) q.push('over=' + encodeURIComponent(over));
+    if (proposal != null && proposal !== '') q.push('proposal=' + encodeURIComponent(proposal));
+    return _json('/organon/uods/' + encodeURIComponent(uodId) + '/modal' +
+                 (q.length ? '?' + q.join('&') : ''));
+  };
 
   // Audit trajectory (a standing proposal peeled against every chain state —
   // src/model_revision.py). `proposal` omitted ⇒ the UoD's declared default.

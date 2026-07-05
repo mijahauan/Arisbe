@@ -1,0 +1,19 @@
+{
+  "uod_id": "would_be_courses",
+  "uod_type": "historical",
+  "name": "The would-be \u2014 courses of experience (Prolegomena 1906)",
+  "description": "Peirce's would-be, expressed without a tincture: his blue-tinted figure (Ms 490, the passage omitted at the end of CP 4.575) asserts 'it is not possible that a man fails in business without suiciding' \u2014 a strict implication, more than the conditional de inesse (see the companion UoD 'would_be_de_inesse'). Here the tinted possibility is a branching DAG of courses of experience \u2014 prosperity, ruin, prosperity-then-late-ruin \u2014 each branch a new_fact revision (the experiential register: what the dialogue with the world admits, not what the rules derive). The would-be G = 'if Otto fails, Clara suicides' peels TRUE at every reachable world (\u25a1G \u2014 the strict implication), while the contrast G2 = 'if Otto fails, he prospers' is refuted by the ruin course (\u25c7 only). Constant labels carry identity across worlds \u2014 the rigid-designator policy, stated not solved (docs/MODALITY_WITHOUT_GAMMA.md \u00a73).",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

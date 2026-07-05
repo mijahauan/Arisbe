@@ -1,0 +1,19 @@
+{
+  "uod_id": "broken_cut_square",
+  "uod_type": "historical",
+  "name": "The broken cut, without the broken cut (Lowell 1903)",
+  "description": "Peirce's broken cut (Lowell Lectures 1903, Lecture IV; CP 4.510\u20134.516) predicates possibility of a proposition: convention C10 (CP 4.410) makes the broken cut say the graph on its area is contingent \u2014 his own Fig. 1 reads 'it is possible that it does not rain'. This UoD expresses every status the broken cut and its combinations drew, with no modal mark: the branching derivation DAG is the frame, and src/modal_query.py reads it. \u25a1 daylight (on every reachable sheet \u2014 Peirce's solid-around-broken, 'necessary'); \u25c7 rains and \u25c7 mist without \u25a1 (broken-around-solid, 'possible'); \u25c7\u00ac rains (the broken cut itself \u2014 some sheet lacks it); \u25a1\u00ac thunders (no sheet scribes it \u2014 'impossible'). Derivability register: every edge a sound ERA.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

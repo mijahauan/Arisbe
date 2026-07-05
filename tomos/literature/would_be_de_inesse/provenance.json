@@ -1,0 +1,37 @@
+{
+  "theorem_source": {
+    "type": "article-journal",
+    "author": "Peirce, Charles Sanders",
+    "title": "Prolegomena to an Apology for Pragmaticism",
+    "container-title": "The Monist",
+    "year": "1906",
+    "note": "CP 4.546, 4.549 \u2014 the married-woman proposition and the argument that its de inesse reading is too easily true; parallel argument CP 4.580 (Ms 490). Verified against Roberts 1973, pp. 95\u201396."
+  },
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Roberts, Don D.",
+      "title": "The Existential Graphs of Charles S. Peirce",
+      "publisher": "Mouton",
+      "year": "1973",
+      "bibkey": "roberts1973existential"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "Peirce, Charles Sanders (1906). Prolegomena to an Apology for Pragmaticism",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Roberts, Don D. (1973). The Existential Graphs of Charles S. Peirce"
+    ]
+  }
+}

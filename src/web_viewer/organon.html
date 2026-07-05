@@ -1022,8 +1022,11 @@
       function setDiachronicLensesAvailable(yes, branching) {
         // modal (◇/□) and audit (verdict trajectory) read the chain like the DAG
         // lens — offered for any chain (modal is sharpest on a branching one).
+        // The modal lens stays offered even WITHOUT a chain: on a synchronic UoD it
+        // teaches the point — a static graph has no branching frame to read ◇/□ off
+        // (the de inesse half of docs/GAMMA_DEMONSTRATIONS.md §4 depends on seeing that).
         const avail = { storyboard: yes && !branching, 'time-stack': yes && !branching,
-                        'derivation-dag': yes, modal: yes, audit: yes };
+                        'derivation-dag': yes, modal: true, audit: yes };
         Object.keys(avail).forEach(v => {
           const opt = viewLensSel && viewLensSel.querySelector('option[value="' + v + '"]');
           if (opt) { opt.disabled = !avail[v]; opt.hidden = !avail[v]; }

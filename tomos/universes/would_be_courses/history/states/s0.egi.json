@@ -1,0 +1,47 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_bb3a7d21"
+    },
+    {
+      "id": "e_f6630b2e"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_47f78c12",
+      "is_generic": false,
+      "label": "Clara"
+    },
+    {
+      "id": "v_b7788572",
+      "is_generic": false,
+      "label": "Otto"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "sheet_f883a710": [
+      "e_bb3a7d21",
+      "e_f6630b2e",
+      "v_47f78c12",
+      "v_b7788572"
+    ]
+  },
+  "nu": {
+    "e_bb3a7d21": [
+      "v_47f78c12"
+    ],
+    "e_f6630b2e": [
+      "v_b7788572",
+      "v_47f78c12"
+    ]
+  },
+  "rel": {
+    "e_bb3a7d21": "married_woman",
+    "e_f6630b2e": "husband"
+  },
+  "rho": {},
+  "sheet": "sheet_f883a710"
+}

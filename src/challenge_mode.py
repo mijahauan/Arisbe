@@ -163,6 +163,39 @@ CHALLENGE_BANK: List[Challenge] = [
                  "nested one deeper. If your 'if-then' has its antecedent sitting bare on "
                  "the sheet, you've drawn an existential, not a universal.",
     ),
+    # -- the Gamma demonstrations (docs/GAMMA_DEMONSTRATIONS.md) ---------------- #
+    Challenge(
+        id="de-inesse",
+        title="Peirce's de inesse conditional (Prolegomena 1906)",
+        prompt_egif='(married_woman *w) (husband *h w) '
+                    '~[ (fails_in_business h) ~[ (commits_suicide w) ] ]',
+        difficulty=5,
+        hint="Peirce's own example (CP 4.546): a married woman and her husband — two "
+             "lines of identity declared on the sheet, both threading INTO the scroll. "
+             "The conditional is material: it says nothing about any connection.",
+        temptation="Declaring *h inside the scroll — then the husband exists only "
+                   "hypothetically, and you've said 'she has no failing husband' "
+                   "instead of 'her husband, if he fails…'.",
+        antidote="Declare a line where the individual is asserted to exist; let it "
+                 "cross into the cuts that merely talk about it. Peirce's complaint "
+                 "about this very graph — true just because the husband never fails — "
+                 "is why he reached for the tinctures; the would-be lives in the "
+                 "branching history, not in more ink on this sheet.",
+    ),
+    Challenge(
+        id="would-be-course",
+        title="A course of experience (the would-be's world)",
+        prompt_egif='(married_woman "Clara") (husband "Otto" "Clara") '
+                    '(fails_in_business "Otto") (commits_suicide "Clara")',
+        difficulty=4,
+        hint="One world of the would-be: the ruin course, everything scribed as fact "
+             "on a single sheet. Constants only — no cuts, no lines to declare.",
+        temptation="Reaching for a cut: a single course asserts what happens in it; "
+                   "the 'if' lives across the courses, not inside any one of them.",
+        antidote="A would-be is a habit of every course, not a mark on one sheet. Draw "
+                 "each course as plain fact; let the branching history carry the "
+                 "modality (□G = G holds at every course — the modal lens reads it).",
+    ),
 ]
 
 

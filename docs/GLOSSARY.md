@@ -173,7 +173,22 @@ the **verso**.
 
 ### Tincture
 **Tincture** — Peirce's Gamma colourings of areas (his modal/higher-order experiments). Arisbe
-treats Gamma-as-modality as out of scope.
+treats Gamma-as-modality as out of scope — and demonstrates the modal work carried instead by
+the diachronic branching history, on Peirce's own figures
+([GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md)).
+
+### Broken cut
+**Broken cut** — Peirce's 1903 Gamma mark (a cut with "many little interruptions"): the graph on
+its area is *contingent* — ◇¬. Arisbe draws no such mark; the same four modal statuses are read
+off the branching derivation DAG (the `broken_cut_square` exemplar,
+[GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) §2).
+
+### Would-be / de inesse
+**Would-be** vs **de inesse** — Peirce's two readings of a conditional (*Prolegomena* 1906, CP
+4.546): *de inesse* is the material conditional on one sheet ("too easily true" — it holds if the
+antecedent merely never occurs); the *would-be* is the strict reading, a habit holding across
+every course of experience. In Arisbe the would-be is □G over a branching DAG of courses (the
+`would_be_courses` exemplar, [GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) §4).
 
 ### Teridentity
 **Teridentity** — a three-way point of identity: a branch where one line of identity meets two

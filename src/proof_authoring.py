@@ -269,6 +269,7 @@ class ProofChain:
         label: Optional[str] = None,
         note: Optional[str] = None,
         params: Optional[Dict[str, Any]] = None,
+        branch: Optional[str] = None,
     ) -> "ProofChain":
         """Apply a *derived* rule and record it as one ``ChainStep``.
 
@@ -281,7 +282,9 @@ class ProofChain:
         proof writes "by universal instantiation").
 
         Use this for moves outside the six base rules (Beta ligature work);
-        ``apply`` remains the path for the six primitives.
+        ``apply`` remains the path for the six primitives.  ``branch`` is the
+        same human label ``apply`` takes — a derived line of development (e.g. a
+        course of experience) groups and colours in the DAG lens like any other.
         """
         new_egi = transform(self._current)
         i = len(self._steps)
@@ -302,6 +305,7 @@ class ProofChain:
             parameters=p,
             timestamp=(self._base + timedelta(seconds=i)).isoformat(),
             user_annotation=annotation,
+            branch_id=branch,
         ))
         self._states[to_id] = new_egi
         self._current_id, self._current = to_id, new_egi

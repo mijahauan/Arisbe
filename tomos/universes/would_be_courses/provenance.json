@@ -1,0 +1,45 @@
+{
+  "theorem_source": {
+    "type": "article-journal",
+    "author": "Peirce, Charles Sanders",
+    "title": "Prolegomena to an Apology for Pragmaticism",
+    "container-title": "The Monist",
+    "year": "1906",
+    "note": "The would-be as strict implication: the blue-tinted figure of Ms 490 (passage omitted at the end of CP 4.575) \u2014 'it is not possible that a man fails in business without suiciding'; the de inesse/would-be contrast at CP 4.546, 4.549. Verified against Roberts 1973, pp. 89, 95\u201396."
+  },
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "book",
+      "author": "Roberts, Don D.",
+      "title": "The Existential Graphs of Charles S. Peirce",
+      "publisher": "Mouton",
+      "year": "1973",
+      "bibkey": "roberts1973existential"
+    },
+    {
+      "type": "book",
+      "author": "van Benthem, Johan",
+      "title": "Modal Correspondence Theory",
+      "year": "1976",
+      "note": "the standard translation \u2014 modal operators as quantifiers over a frame"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "domain_model",
+  "formatted": {
+    "theorem": "Peirce, Charles Sanders (1906). Prolegomena to an Apology for Pragmaticism",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Roberts, Don D. (1973). The Existential Graphs of Charles S. Peirce",
+      "van Benthem, Johan (1976). Modal Correspondence Theory"
+    ]
+  }
+}

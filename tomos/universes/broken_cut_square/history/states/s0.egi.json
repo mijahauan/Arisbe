@@ -1,0 +1,35 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_12d1d5e2"
+    },
+    {
+      "id": "e_31f40fb8"
+    },
+    {
+      "id": "e_fb8b0345"
+    }
+  ],
+  "V": [],
+  "alphabet": null,
+  "area": {
+    "sheet_8405afb1": [
+      "e_12d1d5e2",
+      "e_31f40fb8",
+      "e_fb8b0345"
+    ]
+  },
+  "nu": {
+    "e_12d1d5e2": [],
+    "e_31f40fb8": [],
+    "e_fb8b0345": []
+  },
+  "rel": {
+    "e_12d1d5e2": "rains",
+    "e_31f40fb8": "daylight",
+    "e_fb8b0345": "mist"
+  },
+  "rho": {},
+  "sheet": "sheet_8405afb1"
+}

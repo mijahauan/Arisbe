@@ -1,0 +1,37 @@
+{
+  "annotations": [
+    {
+      "id": "ann_fea1596f",
+      "scope": "uod",
+      "text": "Peirce's four broken-cut shapes, each mapped to a reading of this DAG (the trajectory semantics of docs/MODALITY_WITHOUT_GAMMA.md \u00a71): (1) the broken cut around g \u2014 '\u25c7\u00acg, it is possible that not-g' (CP 4.410 C10; his Fig. 1 'It rains') \u2014 here: (rains) has counterexample worlds; (2) a solid cut around a broken cut \u2014 '\u25a1g' \u2014 here: (daylight) is on every reachable sheet; (3) a broken cut around a solid cut \u2014 '\u25c7g' \u2014 here: (rains)/(mist) on some sheet but not all; (4) the denial of \u25c7g \u2014 '\u25a1\u00acg, impossible' \u2014 here: (thunders) on no reachable sheet. The modal lens's green/amber/absent columns display exactly this square.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "modality",
+        "broken-cut",
+        "gamma",
+        "lowell-1903",
+        "demonstration"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_3f0d5070",
+      "scope": "chain",
+      "text": "Peirce's Lowell-IV inferences hold here as frame facts on the reflexive states reading: \u25a1g \u22a8 g (his Figs. 2\u21924, via R6(b) then R5), \u25a1g \u22a8 \u25c7g (Figs. 2\u21925, via R6(a)), \u25a1\u00acg \u22a8 \u00acg (Figs. 6\u21928). His R6 cut-conversion \u2014 (a) an evenly enclosed solid cut may be half-erased into a broken cut, (b) an oddly enclosed broken cut may be filled up into a solid cut \u2014 is the modal weakening/strengthening the trajectory reading validates. And his caution stands: g and \u25c7\u25a1g 'can neither of them be inferred from the other' (CP 4.519) \u2014 on this frame (rains) holds at the base while \u25c7\u25a1rains fails. No iteration across the broken cut (R3/R4 withheld) \u2014 and none is needed: no mark crosses anything; the modality is the DAG's shape.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "broken-cut-rules",
+        "cut-conversion",
+        "modal-frame",
+        "cp-4-519"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

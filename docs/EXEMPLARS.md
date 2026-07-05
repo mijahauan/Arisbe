@@ -143,6 +143,24 @@ It reads only DAG structure + Existential Graph Instance ([EGI](GLOSSARY.md#egi)
 (The *alethic* reading — ◇/□ across the corpus's models M — is the inverse pivot,
 `/agon/where-it-holds`.)
 
+### 5.1 The Gamma demonstrations — Peirce's own modal drawings
+
+Three further exemplars ([tools/build_gamma_modal_exemplars.py](../tools/build_gamma_modal_exemplars.py))
+reconstruct **specific modal meanings Peirce attempted to draw with Gamma**, each with a
+verified citation in its provenance (`theorem_source`); the full account is
+[GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md).
+
+| UoD id | Peirce figure | The demonstration |
+|---|---|---|
+| `broken_cut_square` | the broken cut, Lowell 1903 (CP 4.510–4.516; convention C10 at 4.410 — his Fig. 1 is "It rains") | all four modal statuses (◇¬ / □ / ◇ / □¬) as verdicts of one branching derivation; his R6 cut-conversion and □g⊨g, □g⊨◇g as frame facts; the CP 4.519 non-inference exhibited |
+| `would_be_de_inesse` | P *de inesse*, *Prolegomena* (CP 4.546, 4.549) | the material conditional on one synchronic sheet — "too easily true"; the modal lens rightly finds no frame |
+| `would_be_courses` | the blue-tinted strict implication (Ms 490, end of CP 4.575) | the would-be as a DAG of *courses of experience* (each edge a `new_fact` revision): G = "if Otto fails, Clara suicides" peels TRUE at **every** world — □G — while a contrast proposal is refuted by the ruin course |
+
+Reading surface: the **modal lens** gained a *proposal reading* (peel any compound G
+across the worlds — ◇G/□G with per-world verdicts) and draws each world as a small
+thumbnail; challenge mode gained the `de-inesse` and `would-be-course` targets.
+Tests: `tests/test_gamma_demonstrations.py`.
+
 ## 6. A domain model transforming through dialog
 
 `dialogue_model_revision` ([tools/build_dialog_model_evolution.py](../tools/build_dialog_model_evolution.py))
