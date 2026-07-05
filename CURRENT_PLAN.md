@@ -26,9 +26,17 @@ UNKNOWN reported) + **worlds drawn as thumbnails**; challenge targets `de-inesse
 `would-be-course`; `apply_derived` gained `branch=`; modal lens now offered on synchronic
 UoDs (the teaching note was unreachable). Tests `test_gamma_demonstrations.py` (16); book
 renders with the new chapter. Also: `serve.sh` one-command UI launcher + book/help linked
-from home + mode-nav (Help). **Next session: read run 5b against P1⁵–P6⁵ (the log's
-observed columns), then the §15 docket gate re-exam; the F1⁵ root fix; the spectator
-surface still queued.**
+from home + mode-nav (Help). **RUN 5B COMPLETED & DISPOSED same day (22:36, full 14 h; RUN_5_LOG.md):** 253/253
+checkpoints attested (zero refusals), supervisor absorbed one real crash — **F1ᵇ: 32-bit
+`uuid4().hex[:8]` vertex ids collide at machine scale** (parser-side regenerate queued,
+before any run 6); persistence held (P2⁵/P3⁵/P4⁵/P6⁵ confirmed at duration; P1⁵ = a
+measured rate ceiling with the instrument now valid — 0 transitions in 14 h, all 18
+deprecations born-deprecated); **F2ᵇ: segment cost at the persistent ~1,000-atom M
+collapsed the poll rate to 46/14 h** — duration buys less world-exposure than polls do
+(levers queued: checkpoint cadence / smaller ttl / attest cost, with the §15 gate); §6
+payoff at scale (consensus n=1,637 / reliable_source n=1,033 durable · deprecated n=10
+not). **Next session: the §15 docket gate re-exam (ripe — duration achieved) + F1ᵇ fix +
+F2ᵇ decision; the F1⁵ root fix (label placement); the spectator surface still queued.**
 
 **▶▶ PREVIOUS — LAUNCH RUN 5, the overnight duration probe (machinery BUILT; priors
 P1⁵–P6⁵ AFFIRMED as drafted by the author 2026-07-03 — launch is the overnight sitting).**

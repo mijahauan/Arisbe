@@ -211,17 +211,85 @@ can exist); expected new observables: `ckpt_refused` count (F1⁵ base rate at d
 `m_atoms` at the new steady state (~400–700), segment `elapsed_s` at that |M| (checkpoint
 attest cost grows with atoms — self-limiting cadence, watch it).
 
+## Run 5b — EXECUTED & DISPOSED (2026-07-04, the duration probe achieved)
+
+**The 14 hours ran to completion.** 08:35:59 → 22:36 (stop: `max_seconds`, on schedule).
+**Totals:** 253 segments · 5,817 rounds · 46 polls (5,975 statements) · **253/253
+checkpoints §3.3-attested — zero refusals** · **1 crash, absorbed by the supervisor**
+(resumed in 10 s, decay clock continuing; at most one in-flight segment lost) ·
+dispositions all `new_fact` + whole warm segments non-revising · tropism warm_emitted 92 /
+injected 180 (≈3.9/poll, k=4) / ambiguous 18 / unmapped 0 · materializer rebuilds 24 ·
+extensions 2,090 · hits 566 · legibility ≤ 0.09 throughout · poise strip: ● with a periodic
+○ at each poll-boundary decay/warm segment (the breathing rhythm of the new regime).
+
+### P5⁵ — the unattended operational floor: **PASSED, exercised for real**
+
+The floor did its job twice over: (1) **zero attest refusals in 253 checkpoints** at the
+~1,000-atom steady state — the F1⁵ coin flip never lost this run (the skip-and-count path
+stood armed and unneeded); (2) the **supervisor absorbed a genuine mid-run crash** — not
+the attest, a **new bug** (F1ᵇ below) — and the run continued to its scheduled stop. The
+canary artifacts are on disk (`runs/run5b/polls.jsonl`); crash/resume passed its first
+real unattended test.
+
+### Priors — observed at duration
+
+| prior | observed | disposition |
+|---|---|---|
+| P1⁵ the P2 event | **0 rank transitions arrived in 14 h** — 18 deprecated-rank statements, 11 sharing an (item,prop) with a standing value, but *all born-deprecated beside their replacement* (the F1⁗ inert shape); the 10 `deprecated`-mechanism episodes were entertained and read not-durable. Unlike run 5's 32 minutes (which caught one), the 14 h window had none. | **a measured rate ceiling, instrument now valid** — persistence held (885 ledger atoms; targets stood across polls), so the zero measures the world's rate on this sample, not the knobs. The event is real but lumpy; see F2ᵇ for why the *effective* sampling rate matters more than wall-clock. |
+| P2⁵ sheet bounded in atoms | **CONFIRMED in the new regime** — atoms sawtooth 860–1,030 across 14 h (decay bursts of 63–129 at poll boundaries — the polls-ttl firing in batches); \|M\| names ~245–280; neither net fired. | confirmed |
+| P3⁵ round compute flat | **CONFIRMED at the new operating point** — segment elapsed stabilised (~284 s mean segs 51–100 ≈ ~282 s segs 101–118; no divergence), extensions ≫ rebuilds (2,090 vs 24). Not run 5's 1.26 s/segment: the *persistent* ~1,000-atom M costs ~3–10 min/segment (layout+attest+peel at scale) — flat, but heavy (F2ᵇ). | confirmed (flat ≠ cheap) |
+| P4⁵ tropism at atom precision | counters exact; warm re-reach every poll; whole non-revising segments at poll boundaries = the habit holding under re-delivery. | confirmed |
+| P6⁵ poise at duration | 14 h of strip: poised with a rhythmic ○ per poll cycle (decay/warm segments) — engagement/settlement/absorption visible at duration; no thrash. The run spanned daytime (08:36–22:36), so the overnight-quiet-hours clause is still only partially exercised. | confirmed (daytime) |
+
+### F1ᵇ (2026-07-04) — 32-bit vertex ids collide at machine scale
+
+`ValueError: Vertex v_4599e538 already exists`, raised inside a revision's EGIF parse
+(`egif_parser_dau._parse_argument` → `with_vertex_in_context`). Element ids are
+`v_{uuid4().hex[:8]}` (`egi_core_dau` ~L1115) — **32 bits**. A ~1,000-vertex sheet parsed
+thousands of times makes a birthday collision statistically due (~10⁻⁴ per parse at that
+size; tens of thousands of parses per run). The supervisor absorbed it — but it will
+recur on every long run. **Fix queued (author):** regenerate-on-collision at the parser
+layer (application-level, no protected-core change), or widen the id; the parser-side
+retry is the minimal honest fix.
+
+### F2ᵇ (2026-07-04) — the persistence fix moved the bottleneck to segment cost; the
+duration lever buys fewer polls than it seems
+
+Run 5 polled 335 times in 32 minutes; run 5b polled **46 times in 14 hours** (~18 min/poll
+cycle: ~5–6 segments × ~250 s each per batch). The persistent ~1,000-atom M makes every
+segment (checkpoint layout+attest + peel) expensive, so the *world-sampling rate* — what
+the P2 event probability actually scales with — collapsed to ~1/40th of run 5's. Duration
+alone no longer buys proportionate exposure. Levers for a run 6, in ascending
+invasiveness: **(a)** checkpoint every Nth segment (cadence ≠ coverage — the digests and
+state remain per-segment); **(b)** smaller steady state (ttl 4–6 polls ≈ 500–700 atoms);
+**(c)** lighter checkpoint attest at scale (ties into the F1⁵ root fix). Queued for the
+author with the §15 gate re-exam.
+
+### §6 payoff — mechanism principles at live scale
+
+The first duration-scale dispute-learning read: `consensus` n=1,637 (durable, 760
+decay-erased) · `reliable_source` n=1,033 (durable, 598 decay-erased) · `deprecated` n=10
+(not durable) — the mechanism differentiation the wiki-dispute program wanted, from a real
+14 h live stream, decay-aware throughout.
+
 ## Artifacts
 
-`runs/run5/polls.jsonl` (335 polls, 34,549 statements — replays green) ·
+**Run 5:** `runs/run5/polls.jsonl` (335 polls, 34,549 statements — replays green) ·
 `runs/run5/checkpoints/` (1,530 attested UoDs) · `runs/run5/state.json` (post-seg-1530,
 resumable) + `frontier.json` · `runs/run5_console.txt` (full digests + the fatal traceback).
+**Run 5b:** `runs/run5b/polls.jsonl` (46 polls, 5,975 statements) · `runs/run5b/checkpoints/`
+(253 attested UoDs) · `runs/run5b/state.json` (final, poll 46) + `frontier.json` ·
+`runs/run5b_console.txt` (full digests, the F1ᵇ traceback + supervisor recovery, the §6
+final summary).
 
 ## Horizon
 
-- **§15 gate re-examined on this run's disposal:** deferred — the duration probe has not yet
-  been achieved; the gate question (docket of doubts) waits for a run that actually reaches
-  duration.
+- **§15 gate re-examined on this run's disposal:** the duration probe is now **achieved**
+  (run 5b) — the gate question (the docket of doubts, content direction) is ripe for the
+  author's re-examination, informed by F2ᵇ (duration buys less world-exposure than polls
+  do) and the §6 mechanism read.
+- **F1ᵇ fix** (vertex-id collision, parser-side regenerate) — before any run 6.
+- **F2ᵇ decision** (checkpoint cadence / ttl / attest cost) — with the §15 gate.
 - **The F1⁵ root fix** (global deterministic label placement shared by renderer + attest;
   protected-core design pass): also implicated in three *intermittent* `test_eg_reader`
   clockwise failures observed 2026-07-04 (fail in a full-suite roll, pass in isolation —

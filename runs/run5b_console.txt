@@ -1,0 +1,434 @@
+run start 2026-07-04 08:35:59 — source=recentchanges · the recentchanges stream (bots excluded) · ttl=8 polls warm_fraction=0.5 pacing=5.0s stop: touch runs/run5b/STOP
+  segment: rounds=25 atoms=24 dispositions={'new_fact': 24} non_revising=1 legibility=0.00 statements_dropped=240
+  segment: rounds=25 atoms=49 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=240
+  segment: rounds=25 atoms=74 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=240
+  segment: rounds=25 atoms=99 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=240
+  segment: rounds=25 atoms=124 dispositions={'new_fact': 25} legibility=0.00 statements_dropped=240
+  segment: rounds=14 atoms=138 dispositions={'new_fact': 14} legibility=0.00 statements_dropped=240
+  segment: rounds=25 atoms=138 dispositions={} non_revising=25 legibility=0.00 warm_injected=4 statements_dropped=453
+  segment: rounds=25 atoms=138 dispositions={} non_revising=25 legibility=0.00 warm_injected=4 statements_dropped=453
+  segment: rounds=25 atoms=143 dispositions={'new_fact': 5} non_revising=20 legibility=0.00 warm_injected=4 statements_dropped=453
+  segment: rounds=25 atoms=168 dispositions={'new_fact': 25} legibility=0.00 warm_injected=4 statements_dropped=453
+  segment: rounds=25 atoms=193 dispositions={'new_fact': 25} legibility=0.00 warm_injected=4 statements_dropped=453
+  segment: rounds=13 atoms=206 dispositions={'new_fact': 13} legibility=0.00 warm_injected=4 statements_dropped=453
+  segment: rounds=25 atoms=206 dispositions={} non_revising=25 legibility=0.00 warm_injected=8 statements_dropped=724
+  segment: rounds=25 atoms=206 dispositions={} non_revising=25 legibility=0.00 warm_injected=8 statements_dropped=724
+  segment: rounds=25 atoms=212 dispositions={'new_fact': 6} non_revising=19 legibility=0.00 warm_injected=8 statements_dropped=724
+  segment: rounds=25 atoms=237 dispositions={'new_fact': 25} legibility=0.00 warm_injected=8 statements_dropped=724
+  segment: rounds=25 atoms=262 dispositions={'new_fact': 25} legibility=0.00 warm_injected=8 statements_dropped=724
+  segment: rounds=4 atoms=266 dispositions={'new_fact': 4} legibility=0.00 warm_injected=8 statements_dropped=724
+  segment: rounds=25 atoms=266 dispositions={} non_revising=25 legibility=0.01 warm_injected=12 statements_dropped=829
+  segment: rounds=25 atoms=267 dispositions={'new_fact': 1} non_revising=24 legibility=0.01 warm_injected=12 statements_dropped=829
+  segment: rounds=25 atoms=289 dispositions={'new_fact': 22} non_revising=3 legibility=0.01 warm_injected=12 statements_dropped=829
+  segment: rounds=25 atoms=314 dispositions={'new_fact': 25} legibility=0.01 warm_injected=12 statements_dropped=829
+  segment: rounds=21 atoms=335 dispositions={'new_fact': 21} legibility=0.01 warm_injected=12 statements_dropped=829
+  segment: rounds=25 atoms=335 dispositions={} non_revising=25 legibility=0.00 warm_injected=16 statements_dropped=1092
+  segment: rounds=25 atoms=335 dispositions={} non_revising=25 legibility=0.00 warm_injected=16 statements_dropped=1092
+  segment: rounds=25 atoms=335 dispositions={} non_revising=25 legibility=0.00 warm_injected=16 statements_dropped=1092
+  segment: rounds=25 atoms=349 dispositions={'new_fact': 14} non_revising=11 legibility=0.00 warm_injected=16 statements_dropped=1092
+  segment: rounds=25 atoms=374 dispositions={'new_fact': 25} legibility=0.00 warm_injected=16 statements_dropped=1092
+  segment: rounds=25 atoms=398 dispositions={'new_fact': 24} non_revising=1 legibility=0.00 warm_injected=16 statements_dropped=1092
+  segment: rounds=20 atoms=418 dispositions={'new_fact': 20} legibility=0.00 warm_injected=16 statements_dropped=1092
+  segment: rounds=25 atoms=418 dispositions={} non_revising=25 legibility=0.00 warm_injected=20 statements_dropped=1335
+  segment: rounds=25 atoms=418 dispositions={} non_revising=25 legibility=0.00 warm_injected=20 statements_dropped=1335
+  segment: rounds=25 atoms=418 dispositions={} non_revising=25 legibility=0.00 warm_injected=20 statements_dropped=1335
+  segment: rounds=25 atoms=441 dispositions={'new_fact': 23} non_revising=2 legibility=0.00 warm_injected=20 statements_dropped=1335
+  segment: rounds=25 atoms=466 dispositions={'new_fact': 25} legibility=0.00 warm_injected=20 statements_dropped=1335
+  segment: rounds=1 atoms=467 dispositions={'new_fact': 1} legibility=0.00 warm_injected=20 statements_dropped=1335
+  segment: rounds=25 atoms=467 dispositions={} non_revising=25 legibility=0.00 warm_injected=24 statements_dropped=1652
+  segment: rounds=25 atoms=467 dispositions={} non_revising=25 legibility=0.00 warm_injected=24 statements_dropped=1652
+  segment: rounds=25 atoms=481 dispositions={'new_fact': 14} non_revising=11 legibility=0.00 warm_injected=24 statements_dropped=1652
+  segment: rounds=25 atoms=506 dispositions={'new_fact': 25} legibility=0.00 warm_injected=24 statements_dropped=1652
+  segment: rounds=25 atoms=530 dispositions={'new_fact': 24} non_revising=1 legibility=0.00 warm_injected=24 statements_dropped=1652
+  segment: rounds=25 atoms=553 dispositions={'new_fact': 23} non_revising=2 legibility=0.00 warm_injected=24 statements_dropped=1652
+  segment: rounds=17 atoms=570 dispositions={'new_fact': 17} legibility=0.00 warm_injected=24 statements_dropped=1652
+  segment: rounds=25 atoms=570 dispositions={} non_revising=25 legibility=0.03 warm_injected=28 ambiguous_skipped=1 statements_dropped=1725
+  segment: rounds=25 atoms=572 dispositions={'new_fact': 2} non_revising=23 legibility=0.03 warm_injected=28 ambiguous_skipped=1 statements_dropped=1725
+  segment: rounds=25 atoms=597 dispositions={'new_fact': 25} legibility=0.03 warm_injected=28 ambiguous_skipped=1 statements_dropped=1725
+  segment: rounds=25 atoms=622 dispositions={'new_fact': 25} legibility=0.03 warm_injected=28 ambiguous_skipped=1 statements_dropped=1725
+  segment: rounds=25 atoms=647 dispositions={'new_fact': 25} legibility=0.03 warm_injected=28 ambiguous_skipped=1 statements_dropped=1725
+  segment: rounds=19 atoms=666 dispositions={'new_fact': 19} legibility=0.03 warm_injected=28 ambiguous_skipped=1 statements_dropped=1725
+  segment: rounds=25 atoms=667 dispositions={'new_fact': 1} non_revising=24 legibility=0.02 warm_injected=32 ambiguous_skipped=2 statements_dropped=1854
+  segment: rounds=25 atoms=667 dispositions={} non_revising=25 legibility=0.02 warm_injected=32 ambiguous_skipped=2 statements_dropped=1854
+  segment: rounds=25 atoms=667 dispositions={} non_revising=25 legibility=0.02 warm_injected=32 ambiguous_skipped=2 statements_dropped=1854
+  segment: rounds=25 atoms=680 dispositions={'new_fact': 13} non_revising=12 legibility=0.02 warm_injected=32 ambiguous_skipped=2 statements_dropped=1854
+  segment: rounds=25 atoms=705 dispositions={'new_fact': 25} legibility=0.02 warm_injected=32 ambiguous_skipped=2 statements_dropped=1854
+  segment: rounds=22 atoms=727 dispositions={'new_fact': 22} legibility=0.02 warm_injected=32 ambiguous_skipped=2 statements_dropped=1854
+  segment: rounds=25 atoms=727 dispositions={} non_revising=25 legibility=0.00 warm_injected=36 ambiguous_skipped=3 statements_dropped=2009
+  segment: rounds=25 atoms=727 dispositions={} non_revising=25 legibility=0.00 warm_injected=36 ambiguous_skipped=3 statements_dropped=2009
+  segment: rounds=25 atoms=729 dispositions={'new_fact': 2} non_revising=23 legibility=0.00 warm_injected=36 ambiguous_skipped=3 statements_dropped=2009
+  segment: rounds=25 atoms=754 dispositions={'new_fact': 25} legibility=0.00 warm_injected=36 ambiguous_skipped=3 statements_dropped=2009
+  segment: rounds=25 atoms=779 dispositions={'new_fact': 25} legibility=0.00 warm_injected=36 ambiguous_skipped=3 statements_dropped=2009
+  segment: rounds=23 atoms=802 dispositions={'new_fact': 23} legibility=0.00 warm_injected=36 ambiguous_skipped=3 statements_dropped=2009
+  segment: rounds=25 atoms=802 dispositions={} non_revising=25 legibility=0.00 warm_injected=40 ambiguous_skipped=4 statements_dropped=2134
+  segment: rounds=25 atoms=802 dispositions={} non_revising=25 legibility=0.00 warm_injected=40 ambiguous_skipped=4 statements_dropped=2134
+  segment: rounds=25 atoms=802 dispositions={} non_revising=25 legibility=0.00 warm_injected=40 ambiguous_skipped=4 statements_dropped=2134
+  segment: rounds=25 atoms=809 dispositions={'new_fact': 7} non_revising=18 legibility=0.00 warm_injected=40 ambiguous_skipped=4 statements_dropped=2134
+  segment: rounds=25 atoms=834 dispositions={'new_fact': 25} legibility=0.00 warm_injected=40 ambiguous_skipped=4 statements_dropped=2134
+  segment: rounds=25 atoms=859 dispositions={'new_fact': 25} legibility=0.00 warm_injected=40 ambiguous_skipped=4 statements_dropped=2134
+  segment: rounds=23 atoms=882 dispositions={'new_fact': 23} legibility=0.00 warm_injected=40 ambiguous_skipped=4 statements_dropped=2134
+  segment: rounds=25 atoms=883 dispositions={'new_fact': 1} non_revising=24 legibility=0.03 warm_injected=44 ambiguous_skipped=5 statements_dropped=2165
+  segment: rounds=25 atoms=886 dispositions={'new_fact': 3} non_revising=22 legibility=0.03 warm_injected=44 ambiguous_skipped=5 statements_dropped=2165
+  segment: rounds=25 atoms=906 dispositions={'new_fact': 20} non_revising=5 legibility=0.03 warm_injected=44 ambiguous_skipped=5 statements_dropped=2165
+  segment: rounds=12 atoms=918 dispositions={'new_fact': 12} legibility=0.03 warm_injected=44 ambiguous_skipped=5 statements_dropped=2165
+  segment: rounds=25 atoms=918 dispositions={} non_revising=25 legibility=0.02 warm_injected=48 ambiguous_skipped=6 statements_dropped=2475
+  segment: rounds=25 atoms=918 dispositions={} non_revising=25 legibility=0.02 warm_injected=48 ambiguous_skipped=6 statements_dropped=2475
+  segment: rounds=25 atoms=927 dispositions={'new_fact': 9} non_revising=16 legibility=0.02 warm_injected=48 ambiguous_skipped=6 statements_dropped=2475
+  segment: rounds=25 atoms=952 dispositions={'new_fact': 25} legibility=0.02 warm_injected=48 ambiguous_skipped=6 statements_dropped=2475
+  segment: rounds=10 atoms=962 dispositions={'new_fact': 10} legibility=0.02 warm_injected=48 ambiguous_skipped=6 statements_dropped=2475
+  segment: rounds=25 atoms=962 dispositions={} non_revising=25 legibility=0.00 warm_injected=52 ambiguous_skipped=7 statements_dropped=2813
+  segment: rounds=25 atoms=962 dispositions={} non_revising=25 legibility=0.00 warm_injected=52 ambiguous_skipped=7 statements_dropped=2813
+  segment: rounds=25 atoms=962 dispositions={} non_revising=25 legibility=0.00 warm_injected=52 ambiguous_skipped=7 statements_dropped=2813
+  segment: rounds=25 atoms=962 dispositions={} non_revising=25 legibility=0.00 warm_injected=52 ambiguous_skipped=7 statements_dropped=2813
+  segment: rounds=25 atoms=987 dispositions={'new_fact': 25} legibility=0.00 warm_injected=52 ambiguous_skipped=7 statements_dropped=2813
+  segment: rounds=25 atoms=1012 dispositions={'new_fact': 25} legibility=0.00 warm_injected=52 ambiguous_skipped=7 statements_dropped=2813
+  segment: rounds=5 atoms=1017 dispositions={'new_fact': 5} legibility=0.00 warm_injected=52 ambiguous_skipped=7 statements_dropped=2813
+  segment: rounds=25 atoms=1017 dispositions={} non_revising=25 legibility=0.00 warm_injected=56 ambiguous_skipped=8 statements_dropped=2939
+  segment: rounds=25 atoms=993 dispositions={'new_fact': 8} non_revising=17 legibility=0.00 warm_injected=56 ambiguous_skipped=8 statements_dropped=2939
+  segment: rounds=25 atoms=993 dispositions={} non_revising=25 legibility=0.00 warm_injected=56 ambiguous_skipped=8 statements_dropped=2939
+  segment: rounds=25 atoms=1013 dispositions={'new_fact': 20} non_revising=5 legibility=0.00 warm_injected=56 ambiguous_skipped=8 statements_dropped=2939
+  segment: rounds=25 atoms=1038 dispositions={'new_fact': 25} legibility=0.00 warm_injected=56 ambiguous_skipped=8 statements_dropped=2939
+  segment: rounds=25 atoms=1063 dispositions={'new_fact': 25} legibility=0.00 warm_injected=56 ambiguous_skipped=8 statements_dropped=2939
+  segment: rounds=3 atoms=1066 dispositions={'new_fact': 3} legibility=0.00 warm_injected=56 ambiguous_skipped=8 statements_dropped=2939
+  segment: rounds=25 atoms=1066 dispositions={} non_revising=25 legibility=0.04 warm_injected=60 ambiguous_skipped=8 statements_dropped=3053
+  segment: rounds=25 atoms=1019 dispositions={'new_fact': 25} legibility=0.04 warm_injected=60 ambiguous_skipped=8 statements_dropped=3053
+  segment: rounds=25 atoms=1044 dispositions={'new_fact': 25} legibility=0.04 warm_injected=60 ambiguous_skipped=8 statements_dropped=3053
+  segment: rounds=25 atoms=1069 dispositions={'new_fact': 25} legibility=0.04 warm_injected=60 ambiguous_skipped=8 statements_dropped=3053
+  segment: rounds=25 atoms=1094 dispositions={'new_fact': 25} legibility=0.04 warm_injected=60 ambiguous_skipped=8 statements_dropped=3053
+  segment: rounds=3 atoms=1097 dispositions={'new_fact': 3} legibility=0.04 warm_injected=60 ambiguous_skipped=8 statements_dropped=3053
+  segment: rounds=25 atoms=1099 dispositions={'new_fact': 2} non_revising=23 legibility=0.03 warm_injected=64 ambiguous_skipped=8 statements_dropped=3089
+  segment: rounds=25 atoms=1000 dispositions={'new_fact': 24} non_revising=1 legibility=0.03 warm_injected=64 ambiguous_skipped=8 statements_dropped=3089
+  segment: rounds=25 atoms=1025 dispositions={'new_fact': 25} legibility=0.03 warm_injected=64 ambiguous_skipped=8 statements_dropped=3089
+  segment: rounds=25 atoms=1048 dispositions={'new_fact': 23} non_revising=2 legibility=0.03 warm_injected=64 ambiguous_skipped=8 statements_dropped=3089
+  segment: rounds=20 atoms=1068 dispositions={'new_fact': 20} legibility=0.03 warm_injected=64 ambiguous_skipped=8 statements_dropped=3089
+  segment: rounds=25 atoms=1068 dispositions={} non_revising=25 legibility=0.00 warm_injected=68 ambiguous_skipped=8 statements_dropped=3264
+  segment: rounds=25 atoms=970 dispositions={'new_fact': 25} legibility=0.00 warm_injected=68 ambiguous_skipped=8 statements_dropped=3264
+  segment: rounds=25 atoms=995 dispositions={'new_fact': 25} legibility=0.00 warm_injected=68 ambiguous_skipped=8 statements_dropped=3264
+  segment: rounds=25 atoms=1020 dispositions={'new_fact': 25} legibility=0.00 warm_injected=68 ambiguous_skipped=8 statements_dropped=3264
+  segment: rounds=25 atoms=1045 dispositions={'new_fact': 25} legibility=0.00 warm_injected=68 ambiguous_skipped=8 statements_dropped=3264
+  segment: rounds=25 atoms=1070 dispositions={'new_fact': 25} legibility=0.00 warm_injected=68 ambiguous_skipped=8 statements_dropped=3264
+  segment: rounds=6 atoms=1076 dispositions={'new_fact': 6} legibility=0.00 warm_injected=68 ambiguous_skipped=8 statements_dropped=3264
+  segment: rounds=25 atoms=1076 dispositions={} non_revising=25 legibility=0.04 warm_injected=72 ambiguous_skipped=9 statements_dropped=3288
+  segment: rounds=25 atoms=953 dispositions={'new_fact': 25} legibility=0.04 warm_injected=72 ambiguous_skipped=9 statements_dropped=3288
+  segment: rounds=25 atoms=978 dispositions={'new_fact': 25} legibility=0.04 warm_injected=72 ambiguous_skipped=9 statements_dropped=3288
+  segment: rounds=25 atoms=1003 dispositions={'new_fact': 25} legibility=0.04 warm_injected=72 ambiguous_skipped=9 statements_dropped=3288
+  segment: rounds=19 atoms=1022 dispositions={'new_fact': 19} legibility=0.04 warm_injected=72 ambiguous_skipped=9 statements_dropped=3288
+  segment: rounds=25 atoms=1022 dispositions={} non_revising=25 legibility=0.02 warm_injected=76 ambiguous_skipped=10 statements_dropped=3420
+  segment: rounds=25 atoms=985 dispositions={'new_fact': 25} legibility=0.02 warm_injected=76 ambiguous_skipped=10 statements_dropped=3420
+  segment: rounds=25 atoms=1010 dispositions={'new_fact': 25} legibility=0.02 warm_injected=76 ambiguous_skipped=10 statements_dropped=3420
+  segment: rounds=25 atoms=1035 dispositions={'new_fact': 25} legibility=0.02 warm_injected=76 ambiguous_skipped=10 statements_dropped=3420
+  segment: rounds=25 atoms=1060 dispositions={'new_fact': 25} legibility=0.02 warm_injected=76 ambiguous_skipped=10 statements_dropped=3420
+  segment: rounds=22 atoms=1082 dispositions={'new_fact': 22} legibility=0.02 warm_injected=76 ambiguous_skipped=10 statements_dropped=3420
+  segment: rounds=25 atoms=1082 dispositions={} non_revising=25 legibility=0.03 warm_injected=80 ambiguous_skipped=11 statements_dropped=3422
+  segment: rounds=25 atoms=1022 dispositions={'new_fact': 25} legibility=0.03 warm_injected=80 ambiguous_skipped=11 statements_dropped=3422
+  segment: rounds=24 atoms=1046 dispositions={'new_fact': 24} legibility=0.03 warm_injected=80 ambiguous_skipped=11 statements_dropped=3422
+  segment: rounds=25 atoms=1046 dispositions={} non_revising=25 legibility=0.00 warm_injected=84 ambiguous_skipped=12 statements_dropped=3962
+  segment: rounds=25 atoms=941 dispositions={'new_fact': 25} legibility=0.00 warm_injected=84 ambiguous_skipped=12 statements_dropped=3962
+  segment: rounds=25 atoms=966 dispositions={'new_fact': 25} legibility=0.00 warm_injected=84 ambiguous_skipped=12 statements_dropped=3962
+  segment: rounds=25 atoms=991 dispositions={'new_fact': 25} legibility=0.00 warm_injected=84 ambiguous_skipped=12 statements_dropped=3962
+  segment: rounds=25 atoms=1016 dispositions={'new_fact': 25} legibility=0.00 warm_injected=84 ambiguous_skipped=12 statements_dropped=3962
+  segment: rounds=25 atoms=1041 dispositions={'new_fact': 25} legibility=0.00 warm_injected=84 ambiguous_skipped=12 statements_dropped=3962
+  segment: rounds=11 atoms=1052 dispositions={'new_fact': 11} legibility=0.00 warm_injected=84 ambiguous_skipped=12 statements_dropped=3962
+  segment: rounds=25 atoms=1052 dispositions={} non_revising=25 legibility=0.00 warm_injected=88 ambiguous_skipped=14 statements_dropped=4205
+  segment: rounds=25 atoms=949 dispositions={'new_fact': 25} legibility=0.00 warm_injected=88 ambiguous_skipped=14 statements_dropped=4205
+  segment: rounds=25 atoms=974 dispositions={'new_fact': 25} legibility=0.00 warm_injected=88 ambiguous_skipped=14 statements_dropped=4205
+  segment: rounds=25 atoms=999 dispositions={'new_fact': 25} legibility=0.00 warm_injected=88 ambiguous_skipped=14 statements_dropped=4205
+  segment: rounds=25 atoms=1024 dispositions={'new_fact': 25} legibility=0.00 warm_injected=88 ambiguous_skipped=14 statements_dropped=4205
+Traceback (most recent call last):
+  File "/Users/mjh/Sync/GitHub/Arisbe/tools/run_live_wikidata.py", line 225, in main
+    res = runner.run()
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/live_runner.py", line 338, in run
+    res = run(model_egif, feed, rounds=len(items),
+              uod_id=f"{self._uod_id}_seg{seg_idx}", name=f"{self._uod_id} segment {seg_idx}",
+              ttl=None, seed_laws=self._laws, panel=self._panel,
+              materializer=self.materializer)
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/agon_evolution.py", line 618, in run
+    pc.apply_derived(
+    ~~~~~~~~~~~~~~~~^
+        "REVISE_M",
+        ^^^^^^^^^^^
+    ...<3 lines>...
+                "proposal": g_egif, **winner.kwargs},
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/proof_authoring.py", line 286, in apply_derived
+    new_egi = transform(self._current)
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/agon_evolution.py", line 620, in <lambda>
+    lambda g, w=winner: revise_with_disposition(g, w.disposition, **w.kwargs),
+                        ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/model_revision.py", line 270, in revise_with_disposition
+    return assert_fact(model, fact_egif)
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/model_revision.py", line 127, in assert_fact
+    return parse_egif(combined)
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 1030, in parse_egif
+    return parser.parse()
+           ~~~~~~~~~~~~^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 458, in parse
+    self._parse_eg()
+    ~~~~~~~~~~~~~~^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 478, in _parse_eg
+    self._parse_node(self.graph.sheet)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 490, in _parse_node
+    self._parse_relation(context_id)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 532, in _parse_relation
+    vertex_id = self._parse_argument(context_id)
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egif_parser_dau.py", line 643, in _parse_argument
+    self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/Users/mjh/Sync/GitHub/Arisbe/src/egi_core_dau.py", line 665, in with_vertex_in_context
+    raise ValueError(f"Vertex {vertex.id} already exists")
+ValueError: Vertex v_4599e538 already exists
+supervisor: crash #1 — resuming from the persisted state in 10 s
+resuming: source state restored from runs/run5b/frontier.json
+  segment: rounds=25 atoms=1024 dispositions={} non_revising=25 legibility=0.09 warm_injected=92 ambiguous_skipped=2 statements_dropped=4205
+  segment: rounds=25 atoms=946 dispositions={'new_fact': 25} legibility=0.09 warm_injected=92 ambiguous_skipped=2 statements_dropped=4205
+  segment: rounds=25 atoms=971 dispositions={'new_fact': 25} legibility=0.09 warm_injected=92 ambiguous_skipped=2 statements_dropped=4205
+  segment: rounds=6 atoms=977 dispositions={'new_fact': 6} legibility=0.09 warm_injected=92 ambiguous_skipped=2 statements_dropped=4205
+  segment: rounds=25 atoms=977 dispositions={} non_revising=25 legibility=0.06 warm_injected=96 ambiguous_skipped=4 statements_dropped=4227
+  segment: rounds=25 atoms=909 dispositions={'new_fact': 24} non_revising=1 legibility=0.06 warm_injected=96 ambiguous_skipped=4 statements_dropped=4227
+  segment: rounds=25 atoms=932 dispositions={'new_fact': 23} non_revising=2 legibility=0.06 warm_injected=96 ambiguous_skipped=4 statements_dropped=4227
+  segment: rounds=25 atoms=957 dispositions={'new_fact': 25} legibility=0.06 warm_injected=96 ambiguous_skipped=4 statements_dropped=4227
+  segment: rounds=25 atoms=982 dispositions={'new_fact': 25} legibility=0.06 warm_injected=96 ambiguous_skipped=4 statements_dropped=4227
+  segment: rounds=2 atoms=984 dispositions={'new_fact': 2} legibility=0.06 warm_injected=96 ambiguous_skipped=4 statements_dropped=4227
+  segment: rounds=25 atoms=984 dispositions={} non_revising=25 legibility=0.00 warm_injected=100 ambiguous_skipped=6 statements_dropped=4545
+  segment: rounds=25 atoms=878 dispositions={'new_fact': 25} legibility=0.00 warm_injected=100 ambiguous_skipped=6 statements_dropped=4545
+  segment: rounds=25 atoms=903 dispositions={'new_fact': 25} legibility=0.00 warm_injected=100 ambiguous_skipped=6 statements_dropped=4545
+  segment: rounds=25 atoms=928 dispositions={'new_fact': 25} legibility=0.00 warm_injected=100 ambiguous_skipped=6 statements_dropped=4545
+  segment: rounds=25 atoms=953 dispositions={'new_fact': 25} legibility=0.00 warm_injected=100 ambiguous_skipped=6 statements_dropped=4545
+  segment: rounds=23 atoms=976 dispositions={'new_fact': 23} legibility=0.00 warm_injected=100 ambiguous_skipped=6 statements_dropped=4545
+  segment: rounds=25 atoms=976 dispositions={} non_revising=25 legibility=0.05 warm_injected=104 ambiguous_skipped=8 statements_dropped=4569
+  segment: rounds=25 atoms=907 dispositions={'new_fact': 25} legibility=0.05 warm_injected=104 ambiguous_skipped=8 statements_dropped=4569
+  segment: rounds=25 atoms=932 dispositions={'new_fact': 25} legibility=0.05 warm_injected=104 ambiguous_skipped=8 statements_dropped=4569
+  segment: rounds=25 atoms=957 dispositions={'new_fact': 25} legibility=0.05 warm_injected=104 ambiguous_skipped=8 statements_dropped=4569
+  segment: rounds=25 atoms=982 dispositions={'new_fact': 25} legibility=0.05 warm_injected=104 ambiguous_skipped=8 statements_dropped=4569
+  segment: rounds=4 atoms=986 dispositions={'new_fact': 4} legibility=0.05 warm_injected=104 ambiguous_skipped=8 statements_dropped=4569
+  segment: rounds=25 atoms=986 dispositions={} non_revising=25 legibility=0.03 warm_injected=108 ambiguous_skipped=10 statements_dropped=4629
+  segment: rounds=25 atoms=889 dispositions={'new_fact': 25} legibility=0.03 warm_injected=108 ambiguous_skipped=10 statements_dropped=4629
+  segment: rounds=25 atoms=914 dispositions={'new_fact': 25} legibility=0.03 warm_injected=108 ambiguous_skipped=10 statements_dropped=4629
+  segment: rounds=25 atoms=939 dispositions={'new_fact': 25} legibility=0.03 warm_injected=108 ambiguous_skipped=10 statements_dropped=4629
+  segment: rounds=14 atoms=953 dispositions={'new_fact': 14} legibility=0.03 warm_injected=108 ambiguous_skipped=10 statements_dropped=4629
+  segment: rounds=25 atoms=953 dispositions={} non_revising=25 legibility=0.03 warm_injected=112 ambiguous_skipped=12 statements_dropped=4647
+  segment: rounds=25 atoms=929 dispositions={'new_fact': 25} legibility=0.03 warm_injected=112 ambiguous_skipped=12 statements_dropped=4647
+  segment: rounds=17 atoms=946 dispositions={'new_fact': 17} legibility=0.03 warm_injected=112 ambiguous_skipped=12 statements_dropped=4647
+  segment: rounds=25 atoms=946 dispositions={} non_revising=25 legibility=0.00 warm_injected=116 ambiguous_skipped=14 statements_dropped=4759
+  segment: rounds=25 atoms=835 dispositions={'new_fact': 25} legibility=0.00 warm_injected=116 ambiguous_skipped=14 statements_dropped=4759
+  segment: rounds=25 atoms=860 dispositions={'new_fact': 25} legibility=0.00 warm_injected=116 ambiguous_skipped=14 statements_dropped=4759
+  segment: rounds=25 atoms=884 dispositions={'new_fact': 24} non_revising=1 legibility=0.00 warm_injected=116 ambiguous_skipped=14 statements_dropped=4759
+  segment: rounds=24 atoms=908 dispositions={'new_fact': 24} legibility=0.00 warm_injected=116 ambiguous_skipped=14 statements_dropped=4759
+  segment: rounds=25 atoms=908 dispositions={} non_revising=25 legibility=0.01 warm_injected=120 ambiguous_skipped=15 statements_dropped=4932
+  segment: rounds=25 atoms=833 dispositions={'new_fact': 25} legibility=0.01 warm_injected=120 ambiguous_skipped=15 statements_dropped=4932
+  segment: rounds=25 atoms=858 dispositions={'new_fact': 25} legibility=0.01 warm_injected=120 ambiguous_skipped=15 statements_dropped=4932
+  segment: rounds=25 atoms=883 dispositions={'new_fact': 25} legibility=0.01 warm_injected=120 ambiguous_skipped=15 statements_dropped=4932
+  segment: rounds=25 atoms=908 dispositions={'new_fact': 25} legibility=0.01 warm_injected=120 ambiguous_skipped=15 statements_dropped=4932
+  segment: rounds=25 atoms=933 dispositions={'new_fact': 25} legibility=0.01 warm_injected=120 ambiguous_skipped=15 statements_dropped=4932
+  segment: rounds=5 atoms=938 dispositions={'new_fact': 5} legibility=0.01 warm_injected=120 ambiguous_skipped=15 statements_dropped=4932
+  segment: rounds=25 atoms=938 dispositions={} non_revising=25 legibility=0.05 warm_injected=124 ambiguous_skipped=16 statements_dropped=5015
+  segment: rounds=25 atoms=907 dispositions={'new_fact': 25} legibility=0.05 warm_injected=124 ambiguous_skipped=16 statements_dropped=5015
+  segment: rounds=25 atoms=932 dispositions={'new_fact': 25} legibility=0.05 warm_injected=124 ambiguous_skipped=16 statements_dropped=5015
+  segment: rounds=21 atoms=953 dispositions={'new_fact': 21} legibility=0.05 warm_injected=124 ambiguous_skipped=16 statements_dropped=5015
+  segment: rounds=25 atoms=953 dispositions={} non_revising=25 legibility=0.02 warm_injected=128 ambiguous_skipped=17 statements_dropped=5063
+  segment: rounds=25 atoms=878 dispositions={'new_fact': 24} non_revising=1 legibility=0.02 warm_injected=128 ambiguous_skipped=17 statements_dropped=5063
+  segment: rounds=25 atoms=901 dispositions={'new_fact': 23} non_revising=2 legibility=0.02 warm_injected=128 ambiguous_skipped=17 statements_dropped=5063
+  segment: rounds=25 atoms=926 dispositions={'new_fact': 25} legibility=0.02 warm_injected=128 ambiguous_skipped=17 statements_dropped=5063
+  segment: rounds=25 atoms=951 dispositions={'new_fact': 25} legibility=0.02 warm_injected=128 ambiguous_skipped=17 statements_dropped=5063
+  segment: rounds=25 atoms=976 dispositions={'new_fact': 25} legibility=0.02 warm_injected=128 ambiguous_skipped=17 statements_dropped=5063
+  segment: rounds=7 atoms=983 dispositions={'new_fact': 7} legibility=0.02 warm_injected=128 ambiguous_skipped=17 statements_dropped=5063
+  segment: rounds=25 atoms=983 dispositions={} non_revising=25 legibility=0.01 warm_injected=132 ambiguous_skipped=18 statements_dropped=5102
+  segment: rounds=25 atoms=885 dispositions={'new_fact': 25} legibility=0.01 warm_injected=132 ambiguous_skipped=18 statements_dropped=5102
+  segment: rounds=25 atoms=910 dispositions={'new_fact': 25} legibility=0.01 warm_injected=132 ambiguous_skipped=18 statements_dropped=5102
+  segment: rounds=25 atoms=935 dispositions={'new_fact': 25} legibility=0.01 warm_injected=132 ambiguous_skipped=18 statements_dropped=5102
+  segment: rounds=19 atoms=954 dispositions={'new_fact': 19} legibility=0.01 warm_injected=132 ambiguous_skipped=18 statements_dropped=5102
+  segment: rounds=25 atoms=954 dispositions={} non_revising=25 legibility=0.06 warm_injected=136 ambiguous_skipped=18 statements_dropped=5103
+  segment: rounds=25 atoms=875 dispositions={'new_fact': 25} legibility=0.06 warm_injected=136 ambiguous_skipped=18 statements_dropped=5103
+  segment: rounds=25 atoms=900 dispositions={'new_fact': 25} legibility=0.06 warm_injected=136 ambiguous_skipped=18 statements_dropped=5103
+  segment: rounds=25 atoms=925 dispositions={'new_fact': 25} legibility=0.06 warm_injected=136 ambiguous_skipped=18 statements_dropped=5103
+  segment: rounds=4 atoms=929 dispositions={'new_fact': 4} legibility=0.06 warm_injected=136 ambiguous_skipped=18 statements_dropped=5103
+  segment: rounds=25 atoms=929 dispositions={} non_revising=25 legibility=0.02 warm_injected=140 ambiguous_skipped=18 statements_dropped=5111
+  segment: rounds=25 atoms=865 dispositions={'new_fact': 25} legibility=0.02 warm_injected=140 ambiguous_skipped=18 statements_dropped=5111
+  segment: rounds=25 atoms=890 dispositions={'new_fact': 25} legibility=0.02 warm_injected=140 ambiguous_skipped=18 statements_dropped=5111
+  segment: rounds=25 atoms=915 dispositions={'new_fact': 25} legibility=0.02 warm_injected=140 ambiguous_skipped=18 statements_dropped=5111
+  segment: rounds=25 atoms=940 dispositions={'new_fact': 25} legibility=0.02 warm_injected=140 ambiguous_skipped=18 statements_dropped=5111
+  segment: rounds=5 atoms=945 dispositions={'new_fact': 5} legibility=0.02 warm_injected=140 ambiguous_skipped=18 statements_dropped=5111
+  segment: rounds=25 atoms=945 dispositions={} non_revising=25 legibility=0.03 warm_injected=144 ambiguous_skipped=18 statements_dropped=5122
+  segment: rounds=25 atoms=927 dispositions={'new_fact': 24} non_revising=1 legibility=0.03 warm_injected=144 ambiguous_skipped=18 statements_dropped=5122
+  segment: rounds=25 atoms=952 dispositions={'new_fact': 25} legibility=0.03 warm_injected=144 ambiguous_skipped=18 statements_dropped=5122
+  segment: rounds=14 atoms=966 dispositions={'new_fact': 14} legibility=0.03 warm_injected=144 ambiguous_skipped=18 statements_dropped=5122
+  segment: rounds=25 atoms=966 dispositions={} non_revising=25 legibility=0.00 warm_injected=148 ambiguous_skipped=18 statements_dropped=5388
+  segment: rounds=25 atoms=894 dispositions={'new_fact': 24} non_revising=1 legibility=0.00 warm_injected=148 ambiguous_skipped=18 statements_dropped=5388
+  segment: rounds=25 atoms=918 dispositions={'new_fact': 24} non_revising=1 legibility=0.00 warm_injected=148 ambiguous_skipped=18 statements_dropped=5388
+  segment: rounds=25 atoms=943 dispositions={'new_fact': 25} legibility=0.00 warm_injected=148 ambiguous_skipped=18 statements_dropped=5388
+  segment: rounds=25 atoms=968 dispositions={'new_fact': 25} legibility=0.00 warm_injected=148 ambiguous_skipped=18 statements_dropped=5388
+  segment: rounds=24 atoms=992 dispositions={'new_fact': 24} legibility=0.00 warm_injected=148 ambiguous_skipped=18 statements_dropped=5388
+  segment: rounds=25 atoms=992 dispositions={} non_revising=25 legibility=0.00 warm_injected=152 ambiguous_skipped=18 statements_dropped=5440
+  segment: rounds=25 atoms=887 dispositions={'new_fact': 25} legibility=0.00 warm_injected=152 ambiguous_skipped=18 statements_dropped=5440
+  segment: rounds=25 atoms=912 dispositions={'new_fact': 25} legibility=0.00 warm_injected=152 ambiguous_skipped=18 statements_dropped=5440
+  segment: rounds=25 atoms=937 dispositions={'new_fact': 25} legibility=0.00 warm_injected=152 ambiguous_skipped=18 statements_dropped=5440
+  segment: rounds=25 atoms=962 dispositions={'new_fact': 25} legibility=0.00 warm_injected=152 ambiguous_skipped=18 statements_dropped=5440
+  segment: rounds=25 atoms=986 dispositions={'new_fact': 24} non_revising=1 legibility=0.00 warm_injected=152 ambiguous_skipped=18 statements_dropped=5440
+  segment: rounds=11 atoms=997 dispositions={'new_fact': 11} legibility=0.00 warm_injected=152 ambiguous_skipped=18 statements_dropped=5440
+  segment: rounds=25 atoms=997 dispositions={} non_revising=25 legibility=0.05 warm_injected=156 ambiguous_skipped=18 statements_dropped=5603
+  segment: rounds=25 atoms=950 dispositions={'new_fact': 24} non_revising=1 legibility=0.05 warm_injected=156 ambiguous_skipped=18 statements_dropped=5603
+  segment: rounds=25 atoms=975 dispositions={'new_fact': 25} legibility=0.05 warm_injected=156 ambiguous_skipped=18 statements_dropped=5603
+  segment: rounds=22 atoms=997 dispositions={'new_fact': 22} legibility=0.05 warm_injected=156 ambiguous_skipped=18 statements_dropped=5603
+  segment: rounds=25 atoms=997 dispositions={} non_revising=25 legibility=0.02 warm_injected=160 ambiguous_skipped=18 statements_dropped=5638
+  segment: rounds=25 atoms=892 dispositions={'new_fact': 24} non_revising=1 legibility=0.02 warm_injected=160 ambiguous_skipped=18 statements_dropped=5638
+  segment: rounds=25 atoms=917 dispositions={'new_fact': 25} legibility=0.02 warm_injected=160 ambiguous_skipped=18 statements_dropped=5638
+  segment: rounds=25 atoms=942 dispositions={'new_fact': 25} legibility=0.02 warm_injected=160 ambiguous_skipped=18 statements_dropped=5638
+  segment: rounds=25 atoms=966 dispositions={'new_fact': 24} non_revising=1 legibility=0.02 warm_injected=160 ambiguous_skipped=18 statements_dropped=5638
+  segment: rounds=25 atoms=991 dispositions={'new_fact': 25} legibility=0.02 warm_injected=160 ambiguous_skipped=18 statements_dropped=5638
+  segment: rounds=1 atoms=992 dispositions={'new_fact': 1} legibility=0.02 warm_injected=160 ambiguous_skipped=18 statements_dropped=5638
+  segment: rounds=25 atoms=992 dispositions={} non_revising=25 legibility=0.00 warm_injected=164 ambiguous_skipped=18 statements_dropped=5646
+  segment: rounds=25 atoms=923 dispositions={'new_fact': 25} legibility=0.00 warm_injected=164 ambiguous_skipped=18 statements_dropped=5646
+  segment: rounds=25 atoms=948 dispositions={'new_fact': 25} legibility=0.00 warm_injected=164 ambiguous_skipped=18 statements_dropped=5646
+  segment: rounds=25 atoms=973 dispositions={'new_fact': 25} legibility=0.00 warm_injected=164 ambiguous_skipped=18 statements_dropped=5646
+  segment: rounds=23 atoms=996 dispositions={'new_fact': 23} legibility=0.00 warm_injected=164 ambiguous_skipped=18 statements_dropped=5646
+  segment: rounds=25 atoms=996 dispositions={} non_revising=25 legibility=0.03 warm_injected=168 ambiguous_skipped=18 statements_dropped=5804
+  segment: rounds=25 atoms=942 dispositions={'new_fact': 25} legibility=0.03 warm_injected=168 ambiguous_skipped=18 statements_dropped=5804
+  segment: rounds=25 atoms=967 dispositions={'new_fact': 25} legibility=0.03 warm_injected=168 ambiguous_skipped=18 statements_dropped=5804
+  segment: rounds=25 atoms=992 dispositions={'new_fact': 25} legibility=0.03 warm_injected=168 ambiguous_skipped=18 statements_dropped=5804
+  segment: rounds=25 atoms=1017 dispositions={'new_fact': 25} legibility=0.03 warm_injected=168 ambiguous_skipped=18 statements_dropped=5804
+  segment: rounds=13 atoms=1030 dispositions={'new_fact': 13} legibility=0.03 warm_injected=168 ambiguous_skipped=18 statements_dropped=5804
+  segment: rounds=25 atoms=1030 dispositions={} non_revising=25 legibility=0.03 warm_injected=172 ambiguous_skipped=18 statements_dropped=5858
+  segment: rounds=25 atoms=950 dispositions={'new_fact': 25} legibility=0.03 warm_injected=172 ambiguous_skipped=18 statements_dropped=5858
+  segment: rounds=25 atoms=975 dispositions={'new_fact': 25} legibility=0.03 warm_injected=172 ambiguous_skipped=18 statements_dropped=5858
+  segment: rounds=25 atoms=1000 dispositions={'new_fact': 25} legibility=0.03 warm_injected=172 ambiguous_skipped=18 statements_dropped=5858
+  segment: rounds=2 atoms=1002 dispositions={'new_fact': 2} legibility=0.03 warm_injected=172 ambiguous_skipped=18 statements_dropped=5858
+  segment: rounds=25 atoms=1002 dispositions={} non_revising=25 legibility=0.04 warm_injected=176 ambiguous_skipped=18 statements_dropped=5858
+  segment: rounds=25 atoms=964 dispositions={'new_fact': 25} legibility=0.04 warm_injected=176 ambiguous_skipped=18 statements_dropped=5858
+  segment: rounds=19 atoms=983 dispositions={'new_fact': 19} legibility=0.04 warm_injected=176 ambiguous_skipped=18 statements_dropped=5858
+  segment: rounds=25 atoms=983 dispositions={} non_revising=25 legibility=0.00 warm_injected=180 ambiguous_skipped=18 statements_dropped=6244
+  segment: rounds=25 atoms=885 dispositions={'new_fact': 24} non_revising=1 legibility=0.00 warm_injected=180 ambiguous_skipped=18 statements_dropped=6244
+
+stopped: max_seconds   total rounds: 5817   crashes survived: 1
+supervisor note: the final summary below covers the last leg only; per-segment digests above span the whole run
+  segment 136: rounds=25 |M|=277 atoms=921 dispositions={} decayed=103 (272.6s)
+  segment 137: rounds=25 |M|=280 atoms=946 dispositions={'new_fact': 25} decayed=0 (247.9s)
+  segment 138: rounds=25 |M|=283 atoms=971 dispositions={'new_fact': 25} decayed=0 (228.5s)
+  segment 139: rounds=6 |M|=283 atoms=977 dispositions={'new_fact': 6} decayed=0 (203.4s)
+  segment 140: rounds=25 |M|=268 atoms=885 dispositions={} decayed=92 (211.8s)
+  segment 141: rounds=25 |M|=271 atoms=909 dispositions={'new_fact': 24} decayed=0 (135.2s)
+  segment 142: rounds=25 |M|=271 atoms=932 dispositions={'new_fact': 23} decayed=0 (85.0s)
+  segment 143: rounds=25 |M|=272 atoms=957 dispositions={'new_fact': 25} decayed=0 (165.6s)
+  segment 144: rounds=25 |M|=275 atoms=982 dispositions={'new_fact': 25} decayed=0 (121.4s)
+  segment 145: rounds=2 |M|=275 atoms=984 dispositions={'new_fact': 2} decayed=0 (249.4s)
+  segment 146: rounds=25 |M|=242 atoms=853 dispositions={} decayed=131 (108.9s)
+  segment 147: rounds=25 |M|=245 atoms=878 dispositions={'new_fact': 25} decayed=0 (78.9s)
+  segment 148: rounds=25 |M|=254 atoms=903 dispositions={'new_fact': 25} decayed=0 (130.2s)
+  segment 149: rounds=25 |M|=256 atoms=928 dispositions={'new_fact': 25} decayed=0 (55.2s)
+  segment 150: rounds=25 |M|=265 atoms=953 dispositions={'new_fact': 25} decayed=0 (171.4s)
+  segment 151: rounds=23 |M|=277 atoms=976 dispositions={'new_fact': 23} decayed=0 (299.9s)
+  segment 152: rounds=25 |M|=266 atoms=882 dispositions={} decayed=94 (248.4s)
+  segment 153: rounds=25 |M|=269 atoms=907 dispositions={'new_fact': 25} decayed=0 (104.5s)
+  segment 154: rounds=25 |M|=273 atoms=932 dispositions={'new_fact': 25} decayed=0 (112.0s)
+  segment 155: rounds=25 |M|=278 atoms=957 dispositions={'new_fact': 25} decayed=0 (127.9s)
+  segment 156: rounds=25 |M|=283 atoms=982 dispositions={'new_fact': 25} decayed=0 (90.4s)
+  segment 157: rounds=4 |M|=283 atoms=986 dispositions={'new_fact': 4} decayed=0 (131.3s)
+  segment 158: rounds=25 |M|=262 atoms=864 dispositions={} decayed=122 (257.2s)
+  segment 159: rounds=25 |M|=270 atoms=889 dispositions={'new_fact': 25} decayed=0 (175.5s)
+  segment 160: rounds=25 |M|=281 atoms=914 dispositions={'new_fact': 25} decayed=0 (188.2s)
+  segment 161: rounds=25 |M|=288 atoms=939 dispositions={'new_fact': 25} decayed=0 (319.2s)
+  segment 162: rounds=14 |M|=296 atoms=953 dispositions={'new_fact': 14} decayed=0 (164.2s)
+  segment 163: rounds=25 |M|=283 atoms=904 dispositions={} decayed=49 (274.7s)
+  segment 164: rounds=25 |M|=284 atoms=929 dispositions={'new_fact': 25} decayed=0 (184.1s)
+  segment 165: rounds=17 |M|=289 atoms=946 dispositions={'new_fact': 17} decayed=0 (161.1s)
+  segment 166: rounds=25 |M|=258 atoms=810 dispositions={} decayed=136 (150.3s)
+  segment 167: rounds=25 |M|=260 atoms=835 dispositions={'new_fact': 25} decayed=0 (192.1s)
+  segment 168: rounds=25 |M|=264 atoms=860 dispositions={'new_fact': 25} decayed=0 (201.9s)
+  segment 169: rounds=25 |M|=274 atoms=884 dispositions={'new_fact': 24} decayed=0 (144.8s)
+  segment 170: rounds=24 |M|=278 atoms=908 dispositions={'new_fact': 24} decayed=0 (87.5s)
+  segment 171: rounds=25 |M|=264 atoms=808 dispositions={} decayed=100 (86.1s)
+  segment 172: rounds=25 |M|=270 atoms=833 dispositions={'new_fact': 25} decayed=0 (139.4s)
+  segment 173: rounds=25 |M|=270 atoms=858 dispositions={'new_fact': 25} decayed=0 (179.1s)
+  segment 174: rounds=25 |M|=275 atoms=883 dispositions={'new_fact': 25} decayed=0 (170.1s)
+  segment 175: rounds=25 |M|=277 atoms=908 dispositions={'new_fact': 25} decayed=0 (97.6s)
+  segment 176: rounds=25 |M|=278 atoms=933 dispositions={'new_fact': 25} decayed=0 (286.6s)
+  segment 177: rounds=5 |M|=278 atoms=938 dispositions={'new_fact': 5} decayed=0 (288.7s)
+  segment 178: rounds=25 |M|=272 atoms=882 dispositions={} decayed=56 (165.5s)
+  segment 179: rounds=25 |M|=276 atoms=907 dispositions={'new_fact': 25} decayed=0 (278.0s)
+  segment 180: rounds=25 |M|=278 atoms=932 dispositions={'new_fact': 25} decayed=0 (394.2s)
+  segment 181: rounds=21 |M|=280 atoms=953 dispositions={'new_fact': 21} decayed=0 (321.0s)
+  segment 182: rounds=25 |M|=268 atoms=854 dispositions={} decayed=99 (344.4s)
+  segment 183: rounds=25 |M|=272 atoms=878 dispositions={'new_fact': 24} decayed=0 (224.4s)
+  segment 184: rounds=25 |M|=272 atoms=901 dispositions={'new_fact': 23} decayed=0 (156.0s)
+  segment 185: rounds=25 |M|=272 atoms=926 dispositions={'new_fact': 25} decayed=0 (551.5s)
+  segment 186: rounds=25 |M|=272 atoms=951 dispositions={'new_fact': 25} decayed=0 (114.6s)
+  segment 187: rounds=25 |M|=272 atoms=976 dispositions={'new_fact': 25} decayed=0 (241.6s)
+  segment 188: rounds=7 |M|=272 atoms=983 dispositions={'new_fact': 7} decayed=0 (470.5s)
+  segment 189: rounds=25 |M|=239 atoms=860 dispositions={} decayed=123 (150.2s)
+  segment 190: rounds=25 |M|=242 atoms=885 dispositions={'new_fact': 25} decayed=0 (374.6s)
+  segment 191: rounds=25 |M|=254 atoms=910 dispositions={'new_fact': 25} decayed=0 (274.3s)
+  segment 192: rounds=25 |M|=261 atoms=935 dispositions={'new_fact': 25} decayed=0 (308.5s)
+  segment 193: rounds=19 |M|=266 atoms=954 dispositions={'new_fact': 19} decayed=0 (513.5s)
+  segment 194: rounds=25 |M|=244 atoms=850 dispositions={} decayed=104 (169.4s)
+  segment 195: rounds=25 |M|=249 atoms=875 dispositions={'new_fact': 25} decayed=0 (188.6s)
+  segment 196: rounds=25 |M|=265 atoms=900 dispositions={'new_fact': 25} decayed=0 (167.9s)
+  segment 197: rounds=25 |M|=268 atoms=925 dispositions={'new_fact': 25} decayed=0 (343.5s)
+  segment 198: rounds=4 |M|=269 atoms=929 dispositions={'new_fact': 4} decayed=0 (347.0s)
+  segment 199: rounds=25 |M|=234 atoms=840 dispositions={} decayed=89 (166.3s)
+  segment 200: rounds=25 |M|=243 atoms=865 dispositions={'new_fact': 25} decayed=0 (76.1s)
+  segment 201: rounds=25 |M|=250 atoms=890 dispositions={'new_fact': 25} decayed=0 (356.5s)
+  segment 202: rounds=25 |M|=262 atoms=915 dispositions={'new_fact': 25} decayed=0 (397.3s)
+  segment 203: rounds=25 |M|=266 atoms=940 dispositions={'new_fact': 25} decayed=0 (267.6s)
+  segment 204: rounds=5 |M|=266 atoms=945 dispositions={'new_fact': 5} decayed=0 (319.2s)
+  segment 205: rounds=25 |M|=257 atoms=903 dispositions={} decayed=42 (125.8s)
+  segment 206: rounds=25 |M|=263 atoms=927 dispositions={'new_fact': 24} decayed=0 (585.5s)
+  segment 207: rounds=25 |M|=266 atoms=952 dispositions={'new_fact': 25} decayed=0 (418.4s)
+  segment 208: rounds=14 |M|=266 atoms=966 dispositions={'new_fact': 14} decayed=0 (186.5s)
+  segment 209: rounds=25 |M|=238 atoms=870 dispositions={} decayed=96 (81.6s)
+  segment 210: rounds=25 |M|=248 atoms=894 dispositions={'new_fact': 24} decayed=0 (248.5s)
+  segment 211: rounds=25 |M|=251 atoms=918 dispositions={'new_fact': 24} decayed=0 (227.0s)
+  segment 212: rounds=25 |M|=252 atoms=943 dispositions={'new_fact': 25} decayed=0 (595.9s)
+  segment 213: rounds=25 |M|=254 atoms=968 dispositions={'new_fact': 25} decayed=0 (429.3s)
+  segment 214: rounds=24 |M|=264 atoms=992 dispositions={'new_fact': 24} decayed=0 (493.9s)
+  segment 215: rounds=25 |M|=253 atoms=862 dispositions={} decayed=130 (517.9s)
+  segment 216: rounds=25 |M|=260 atoms=887 dispositions={'new_fact': 25} decayed=0 (317.2s)
+  segment 217: rounds=25 |M|=260 atoms=912 dispositions={'new_fact': 25} decayed=0 (248.1s)
+  segment 218: rounds=25 |M|=260 atoms=937 dispositions={'new_fact': 25} decayed=0 (410.0s)
+  segment 219: rounds=25 |M|=262 atoms=962 dispositions={'new_fact': 25} decayed=0 (285.8s)
+  segment 220: rounds=25 |M|=266 atoms=986 dispositions={'new_fact': 24} decayed=0 (458.5s)
+  segment 221: rounds=11 |M|=267 atoms=997 dispositions={'new_fact': 11} decayed=0 (413.0s)
+  segment 222: rounds=25 |M|=259 atoms=926 dispositions={} decayed=71 (112.0s)
+  segment 223: rounds=25 |M|=262 atoms=950 dispositions={'new_fact': 24} decayed=0 (97.6s)
+  segment 224: rounds=25 |M|=265 atoms=975 dispositions={'new_fact': 25} decayed=0 (389.7s)
+  segment 225: rounds=22 |M|=276 atoms=997 dispositions={'new_fact': 22} decayed=0 (282.1s)
+  segment 226: rounds=25 |M|=271 atoms=868 dispositions={} decayed=129 (238.5s)
+  segment 227: rounds=25 |M|=275 atoms=892 dispositions={'new_fact': 24} decayed=0 (202.4s)
+  segment 228: rounds=25 |M|=275 atoms=917 dispositions={'new_fact': 25} decayed=0 (172.4s)
+  segment 229: rounds=25 |M|=275 atoms=942 dispositions={'new_fact': 25} decayed=0 (108.8s)
+  segment 230: rounds=25 |M|=277 atoms=966 dispositions={'new_fact': 24} decayed=0 (151.0s)
+  segment 231: rounds=25 |M|=280 atoms=991 dispositions={'new_fact': 25} decayed=0 (347.4s)
+  segment 232: rounds=1 |M|=281 atoms=992 dispositions={'new_fact': 1} decayed=0 (213.6s)
+  segment 233: rounds=25 |M|=257 atoms=898 dispositions={} decayed=94 (78.0s)
+  segment 234: rounds=25 |M|=259 atoms=923 dispositions={'new_fact': 25} decayed=0 (154.1s)
+  segment 235: rounds=25 |M|=270 atoms=948 dispositions={'new_fact': 25} decayed=0 (351.9s)
+  segment 236: rounds=25 |M|=274 atoms=973 dispositions={'new_fact': 25} decayed=0 (350.9s)
+  segment 237: rounds=23 |M|=280 atoms=996 dispositions={'new_fact': 23} decayed=0 (166.6s)
+  segment 238: rounds=25 |M|=272 atoms=917 dispositions={} decayed=79 (247.4s)
+  segment 239: rounds=25 |M|=274 atoms=942 dispositions={'new_fact': 25} decayed=0 (191.0s)
+  segment 240: rounds=25 |M|=274 atoms=967 dispositions={'new_fact': 25} decayed=0 (141.8s)
+  segment 241: rounds=25 |M|=279 atoms=992 dispositions={'new_fact': 25} decayed=0 (440.3s)
+  segment 242: rounds=25 |M|=281 atoms=1017 dispositions={'new_fact': 25} decayed=0 (406.0s)
+  segment 243: rounds=13 |M|=281 atoms=1030 dispositions={'new_fact': 13} decayed=0 (405.3s)
+  segment 244: rounds=25 |M|=249 atoms=925 dispositions={} decayed=105 (257.2s)
+  segment 245: rounds=25 |M|=260 atoms=950 dispositions={'new_fact': 25} decayed=0 (535.0s)
+  segment 246: rounds=25 |M|=266 atoms=975 dispositions={'new_fact': 25} decayed=0 (239.3s)
+  segment 247: rounds=25 |M|=267 atoms=1000 dispositions={'new_fact': 25} decayed=0 (170.8s)
+  segment 248: rounds=2 |M|=267 atoms=1002 dispositions={'new_fact': 2} decayed=0 (320.0s)
+  segment 249: rounds=25 |M|=256 atoms=939 dispositions={} decayed=63 (126.9s)
+  segment 250: rounds=25 |M|=258 atoms=964 dispositions={'new_fact': 25} decayed=0 (335.6s)
+  segment 251: rounds=19 |M|=267 atoms=983 dispositions={'new_fact': 19} decayed=0 (101.9s)
+  segment 252: rounds=25 |M|=243 atoms=861 dispositions={} decayed=122 (291.1s)
+  segment 253: rounds=25 |M|=253 atoms=885 dispositions={'new_fact': 24} decayed=0 (341.8s)
+tropism: warm_emitted=92 injected=180 ambiguous_skipped=18 unmapped_skipped=0
+materializer (F2⁗ semi-naive): rebuilds=24 extensions=2090 hits=566
+legibility per poll: ['0.00', '0.00', '0.00', '0.01', '0.00', '0.00', '0.00', '0.03', '0.02', '0.00', '0.00', '0.03', '0.02', '0.00', '0.00', '0.04', '0.03', '0.00', '0.04', '0.02', '0.03', '0.00', '0.00', '0.09', '0.06', '0.00', '0.05', '0.03', '0.03', '0.00', '0.01', '0.05', '0.02', '0.01', '0.06', '0.02', '0.03', '0.00', '0.00', '0.05', '0.02', '0.00', '0.03', '0.03', '0.04', '0.00']
+mechanism principles (decay-aware, cross-segment):
+  consensus: n=1637 stick_rate=1.0 durable=True decay_erased=760
+  reliable_source: n=1033 stick_rate=1.0 durable=True decay_erased=598
+  deprecated: n=10 stick_rate=None durable=False decay_erased=0
+poise per segment (● poised · ○ rigidity · ✕ thrash): ○ ● ● ● ○ ● ● ● ● ● ○ ● ● ● ● ● ○ ● ● ● ● ● ○ ● ● ● ● ○ ● ● ○ ● ● ● ● ○ ● ● ● ● ● ● ○ ● ● ● ○ ● ● ● ● ● ● ○ ● ● ● ● ○ ● ● ● ● ○ ● ● ● ● ● ○ ● ● ● ○ ● ● ● ● ● ○ ● ● ● ● ● ● ○ ● ● ● ○ ● ● ● ● ● ● ○ ● ● ● ● ○ ● ● ● ● ● ○ ● ● ● ● ○ ● ● ○ ●
+
+artifacts: runs/run5b/polls.jsonl (offline replay) · runs/run5b/checkpoints (UoDs) · log your dispositions of the pre-registered priors in runs/RUN_<n>_LOG.md
