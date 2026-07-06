@@ -20,10 +20,22 @@ oldest; `inexpressible` = the honest residue Q2/Q3 exist to shrink) + `LiveRunne
 at the poll boundary composing with `WarmSetTropism` + driver `--docket`/`--docket-asks`
 with per-segment `docket=No/Nr/Na/Nx` digest + final-summary line. Tests
 `test_query_docket.py` (9, incl. end-to-end composition with the tropism in a runner).
-**Next: run 6 = the docket's own pre-registered run (2a live); then the first live
-resolving source (weather/sports forecast-vs-actual) BEFORE Q2/Q3; 2b (proving ground)
-waits as pre-registered; the F1⁵ root fix (label placement) still queued; spectator
-surface still queued.**
+**RUN 6 EXECUTED & DISPOSED (launched 2026-07-05 19:44, author-directed STOP-file stop
+2026-07-06 07:31 = 11h47m; runs/RUN_6_LOG.md):** 1,063 segments · 23,891 rounds · 221
+polls (the checkpoint-every-5 lever = **~5.7× run-5b's poll rate**); docket whole-run
+≈765 harvested/≈365 resolved (~48%)/438 asks; **P1⁶ partially confirmed — F1⁶: attribution
+unmeasured, instrument gap** (asks counted never identified; register+counters per-leg,
+reset at the supervisor resume) → **2a.1 queued before the next docket run** (ask journal
+beside polls.jsonl + register persisted in state.json + distinct-deferred counting + cap
+policy + value-label grip filter); **F2⁶: the Q1 residue is unreversible grips
+(unmapped=1,034), not gripless wants (inexpressible=0)** — Q2's case re-framed; **F3⁶: the
+floor battle-tested** (parser fix held; the F1ᵇ SIBLING — materializer facts-builder
+vertex ids — surfaced live, absorbed, fixed same morning with deterministic v_m{n}; the
+F1⁵ skip-and-count took its FIRST live refusal at seg 1060 and the run survived); P6⁶
+zero transitions = the 2nd rate-ceiling sample. **Next session: the first live
+resolving-membrane source (weather/sports forecast-vs-actual behind ResolvingFeed) — the
+affirmed ordering, BEFORE Q2/Q3; 2a.1 instrument fixes with it; 2b waits; F1⁵ root fix
+(label placement) + spectator surface still queued.**
 
 **▶▶ PREVIOUS (2026-07-04) — RUN 5 DISPOSED (crashed at 32 min: F1⁵ attest coin-flip +
 F2⁵ ttl/persistence) → hardening BUILT + RUN 5B RELAUNCHED (14 h, in flight) → THE GAMMA
