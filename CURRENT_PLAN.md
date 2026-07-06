@@ -1,6 +1,31 @@
 # Current Plan
 
-**▶▶▶ THIS SESSION (2026-07-04) — RUN 5 DISPOSED (crashed at 32 min: F1⁵ attest coin-flip +
+**▶▶▶ THIS SESSION (2026-07-05) — F1ᵇ/F2ᵇ FIXED · §15 GATE FIRED & AFFIRMED · INCREMENT
+2a (THE DOCKET) BUILT.** F1ᵇ: `egif_parser_dau` regenerates on the 32-bit id birthday
+collision (`_fresh_vertex/_fresh_edge/_fresh_cut`; collision simulated deterministically in
+`test_parser_id_collision.py`). F2ᵇ lever (a): `LiveRunConfig.checkpoint_every` + driver
+`--checkpoint-every` (cadence ≠ coverage — digests/episodes/resume-state stay per-segment).
+§15.1: gate re-examined on run 5b's disposal — **content-undirected probing named the
+operative bottleneck by elimination across runs 1–5b**; all five decisions **AFFIRMED as
+recommended (author, 2026-07-05)** with one ordering amendment from the single-source
+check: **the first live resolving-membrane source lands between increment 2a and the Q2/Q3
+tiers** (Wikidata-only constricts the game's dispositional range — run 5b was 100%
+new_fact, zero laws, §6 claims one-wiki-cultural; the check henceforth: *branch sources
+where a finding's disposition would differ by source class*). **Increment 2a BUILT:**
+`src/query_docket.py` (`QueryDocket` — thin spots of M (rare relations, lonely
+individuals) + the `note_unknowns` peel seam → `DocketEntry` register (age/attempts,
+counted never dropped); Q1 `reaches()` via the same label-reversal as the tropism;
+`observe()` settles answered wants per segment; v1 fixed priority: fewest-attempts →
+oldest; `inexpressible` = the honest residue Q2/Q3 exist to shrink) + `LiveRunner(docket=)`
+at the poll boundary composing with `WarmSetTropism` + driver `--docket`/`--docket-asks`
+with per-segment `docket=No/Nr/Na/Nx` digest + final-summary line. Tests
+`test_query_docket.py` (9, incl. end-to-end composition with the tropism in a runner).
+**Next: run 6 = the docket's own pre-registered run (2a live); then the first live
+resolving source (weather/sports forecast-vs-actual) BEFORE Q2/Q3; 2b (proving ground)
+waits as pre-registered; the F1⁵ root fix (label placement) still queued; spectator
+surface still queued.**
+
+**▶▶ PREVIOUS (2026-07-04) — RUN 5 DISPOSED (crashed at 32 min: F1⁵ attest coin-flip +
 F2⁵ ttl/persistence) → hardening BUILT + RUN 5B RELAUNCHED (14 h, in flight) → THE GAMMA
 DEMONSTRATIONS SHIPPED.** Run 5: §3.3 occlusion refusal at seg-1531 killed the unattended
 probe (50% re-roll rate on long-label content — UUID tie-breaks); and the atom-level rulebook

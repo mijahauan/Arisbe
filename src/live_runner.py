@@ -210,6 +210,7 @@ class LiveRunner:
         evaluate: Optional[Callable[[Proposer, EvolutionResult], Dict]] = None,
         service=None,                          # a TomosService for checkpoints (or None to skip)
         tropism=None,                          # a WarmSetTropism (§13) — consulted at each poll boundary
+        docket=None,                           # a QueryDocket (§15 · 2a) — the articulate stratum
         clock: Callable[[], float] = None,
         sleep: Callable[[float], None] = None,
     ):
@@ -229,6 +230,14 @@ class LiveRunner:
                 "a tropism needs a source with an inject(ids) seam "
                 f"({type(source).__name__} has none)")
         self._tropism = tropism
+        # The docket (§15 increment 2a): the player's register of named wants,
+        # consulted at the same poll boundary the tropism uses — the two compose
+        # (warm re-reach = the cheapest stratum; docket asks = the articulate one).
+        if docket is not None and not hasattr(source, "inject"):
+            raise ValueError(
+                "a docket needs a source with an inject(ids) seam "
+                f"({type(source).__name__} has none)")
+        self._docket = docket
         if clock is None:
             import time
             clock = time.monotonic
@@ -326,6 +335,12 @@ class LiveRunner:
                     warm = self._tropism.reaches(model_egif, self._ledger)
                     if warm:
                         self._source.inject(warm)
+                if self._docket is not None:
+                    # The docket's Q1 asks (§15 · 2a): what M *lacks* directs a reach too —
+                    # articulated doubt riding the same seam, beside the warm stratum.
+                    asks = self._docket.reaches()
+                    if asks:
+                        self._source.inject(asks)
                 self._pending.extend(self._source.fetch())
                 self._polled = True
                 self._poll_idx += 1             # a poll = one engagement opportunity (ttl_unit="polls")
@@ -402,6 +417,10 @@ class LiveRunner:
                 checkpoint_uod=checkpoint_uod,
                 extra=extra,
             ))
+            if self._docket is not None:
+                # One docket tick per segment against the carried (post-decay) M:
+                # settle answered wants, age the rest, harvest fresh thin spots.
+                self._docket.observe(model_egif)
             # persist the post-decay carried state — what LiveRunner.resume restores
             self._save_state(seg_idx, total_rounds, model_egif)
 

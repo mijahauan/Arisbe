@@ -86,6 +86,13 @@ def main(argv=None) -> int:
                          "§13 tropism (run 3: crawl + tropism at 0.5; run 4: stream + "
                          "tropism — the F2″ composition, revisit × world-motion). 0 = off, "
                          "the runs-1/2 passive baseline")
+    ap.add_argument("--docket", action="store_true",
+                    help="arm the docket of doubts (§15 increment 2a): thin spots of M "
+                         "(rare relations, lonely individuals) become Q1 re-reaches riding "
+                         "the same inject seam as the tropism; open/resolved/inexpressible "
+                         "counted per segment, never silently dropped")
+    ap.add_argument("--docket-asks", type=int, default=2,
+                    help="docket Q1 asks emitted per poll (the articulate stratum's budget)")
     ap.add_argument("--ttl", type=int, default=30,
                     help="disuse-decay ttl, denominated by --ttl-unit")
     ap.add_argument("--ttl-unit", choices=["rounds", "polls"], default="rounds",
@@ -160,6 +167,13 @@ def main(argv=None) -> int:
             k = max(1, round(args.warm_fraction * args.chunk))
             tropism = WarmSetTropism(source.known_labels, k=k)
 
+        docket = None
+        if args.docket:
+            # §15 increment 2a: the articulate stratum beside the warm one — what M
+            # *lacks* (thin spots) directs Q1 re-reaches through the same inject seam.
+            from query_docket import QueryDocket
+            docket = QueryDocket(source.known_labels, k=args.docket_asks)
+
         holder = {}          # lets `evaluate` read the runner's refusal counter (set below)
 
         def evaluate(feed, res):
@@ -188,6 +202,8 @@ def main(argv=None) -> int:
                   + (f" statements_dropped={source.statements_dropped}"
                      if source.statements_dropped else "")
                   + (f" ⚠ ckpt_refused={refused}" if refused else "")
+                  + (f" docket={len(docket.open_entries)}o/{docket.resolved}r/"
+                     f"{docket.emitted}a/{docket.inexpressible}x" if docket else "")
                   + (f" ⚠ unparseable_dropped={source.unparseable_dropped}"
                      if getattr(source, "unparseable_dropped", 0) else ""), flush=True)
             return {"legibility": leg, "non_revising": non_revising, "atoms_pre_decay": atoms}
@@ -198,13 +214,15 @@ def main(argv=None) -> int:
         if resume:
             runner = LiveRunner.resume(state_path, source, WikiDisputeFeed, config,
                                        uod_id=uod_id, panel=_panel(), tropism=tropism,
-                                       evaluate=evaluate, service=service, sleep=time.sleep)
+                                       docket=docket, evaluate=evaluate, service=service,
+                                       sleep=time.sleep)
         else:
             runner = LiveRunner("", source, WikiDisputeFeed, config,
                                 uod_id=uod_id, panel=_panel(), tropism=tropism,
-                                evaluate=evaluate, service=service, sleep=time.sleep)
+                                docket=docket, evaluate=evaluate, service=service,
+                                sleep=time.sleep)
         holder["runner"] = runner
-        return source, tropism, runner
+        return source, tropism, docket, runner
 
     # ---- the supervisor loop (RUN_5 F1⁵ disposal (b)): an in-run crash is caught, counted, ----
     # ---- and the run RESUMED from the per-segment state — the overall deadline is honored  ----
@@ -226,7 +244,7 @@ def main(argv=None) -> int:
     while True:
         if deadline is not None:
             config.max_seconds = max(1.0, deadline - time.monotonic())
-        source, tropism, runner = build(resume)
+        source, tropism, docket, runner = build(resume)
         try:
             res = runner.run()
             refused_total += runner.checkpoints_refused
@@ -272,6 +290,12 @@ def main(argv=None) -> int:
         print(f"tropism: warm_emitted={tropism.emitted} injected={source.injected} "
               f"ambiguous_skipped={tropism.ambiguous_skipped} "
               f"unmapped_skipped={tropism.unmapped_skipped}")
+    if docket:
+        print(f"docket (§15·2a): harvested={docket.harvested} resolved={docket.resolved} "
+              f"asks_emitted={docket.emitted} open={len(docket.open_entries)} "
+              f"inexpressible={docket.inexpressible} deferred={docket.deferred} "
+              f"ambiguous_skipped={docket.ambiguous_skipped} "
+              f"unmapped_skipped={docket.unmapped_skipped}")
     mat = runner.materializer
     print(f"materializer (F2⁗ semi-naive): rebuilds={mat.rebuilds} "
           f"extensions={mat.extensions} hits={mat.hits}")

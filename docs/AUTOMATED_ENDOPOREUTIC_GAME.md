@@ -1238,8 +1238,24 @@ that the P2-specific payoff arrives at increment 3's Q2 (rank-addressable fetch)
 tier discipline stands, each with its own run; **(2)** player-side policy composing with
 `WarmSetTropism`; **(3)** mechanical admission for 2b; **(4)** outcome-only checkpointing
 for the proving ground (F2ᵇ re-measured exactly the checkpoint-weight lesson this draft
-anticipated); **(5)** "docket". *Nothing below this line is built until the author
-affirms or amends.*
+anticipated); **(5)** "docket".
+
+**AFFIRMED by the author, 2026-07-05, all five as recommended — with one ordering
+amendment** (from the single-source check the author called for): **the first live
+resolving-membrane source lands between increment 2a and increment 3.** Rationale
+recorded: the constriction of Wikidata-only is small for the operating layer (those
+findings are source-independent) but large for the game's dispositional range — run 5b's
+dispositions were 100% `new_fact`, its final M carries **zero laws** (the inductive
+register idle), the §6 mechanism claims are so far facts about one wiki's editorial
+culture, and the P2 event is world-motion one editorial step removed. A resolving source
+(weather forecast-vs-actual or similar: cheap, deterministic, a natural daily resolution
+clock) delivers a P2-equivalent **daily** — a standing forecast met by an outcome — and
+exercises predict→refute→relinquish live. The check henceforth: *branch sources at the
+point where a finding's disposition would differ by source class*; the docket's asking
+economy and the §6 mechanism claims must never be single-source artifacts.
+**Increment 2a: BUILT 2026-07-05** (`src/query_docket.py` + the `LiveRunner` docket seam
++ driver `--docket`; offline-tested end to end — see below). 2b and the tiers wait,
+as pre-registered.
 
 ## 16 · The rulebook built + run 5, the duration probe (BUILT 2026-07-03; priors P1⁵–P6⁵ AFFIRMED by the author 2026-07-03, pre-launch)
 
