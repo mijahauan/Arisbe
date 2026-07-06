@@ -44,8 +44,8 @@ from typing import Dict, List, Set, Tuple
 from egi_core_dau import (
     Edge,
     RelationalGraphWithCuts,
+    Vertex,
     create_empty_graph,
-    create_vertex,
 )
 
 # An individual key: ("c", label) for a named constant, ("g", vertex_id) for a
@@ -391,6 +391,9 @@ class _FactsBuilder:
                                              # ``create_edge`` draws a 32-bit random suffix,
                                              # which collides once a closure runs to thousands
                                              # of facts — enumerate instead (also reproducible)
+        self._vseq = 0                       # same for vertex ids (RUN_6, the F1ᵇ sibling:
+                                             # create_vertex's 32-bit draw collided live in a
+                                             # ~thousand-vertex facts graph built every round)
 
     def add(self, facts) -> RelationalGraphWithCuts:
         g = self.egi
@@ -399,11 +402,13 @@ class _FactsBuilder:
             for k in args:
                 if k in self._vid_of:
                     continue
+                self._vseq += 1
                 if k[0] == "c":
-                    v = create_vertex(label=k[1], is_generic=False)
+                    v = Vertex(id=f"v_m{self._vseq}", label=k[1], is_generic=False)
                 else:
                     self._gen += 1
-                    v = create_vertex(label=f"_i{self._gen}", is_generic=False)
+                    v = Vertex(id=f"v_m{self._vseq}", label=f"_i{self._gen}",
+                               is_generic=False)
                 g = g.with_vertex(v)
                 self._vid_of[k] = v.id
         for rel, args in batch:
