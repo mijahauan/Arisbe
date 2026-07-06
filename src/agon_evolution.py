@@ -379,26 +379,60 @@ class ContradictionAgent:
 
 
 def _refuted_law(ctx: DeliberationContext) -> Optional[str]:
-    """The first standing law ``~[ (B *x) ~[ (H x) ] ]`` this proposal *refutes*,
+    """The first standing law ``~[ (B x⃗) ~[ (H y⃗) ] ]`` this proposal *refutes*,
     or ``None``. A Horn law is self-fulfilling under materialization (asserting
-    ``B(c)`` merely derives ``H(c)``), so the only thing that refutes it is a
-    **counterexample carrying the negation of the head** — ``(B c) ~[ (H c) ]``,
-    a B that is *not* an H. We recognise that shape structurally (no disjointness
-    axiom required): the proposal has a positive atom ``(B c)`` and a negated atom
-    ``~[ (H c) ]`` over the same individual, matching some standing law's B, H."""
+    ``B(c⃗)`` merely derives ``H(…)``), so the only thing that refutes it is a
+    **counterexample carrying the negation of the head** — ``(B c⃗) ~[ (H d⃗) ]``
+    where ``d⃗`` is the head's projection of ``c⃗``. Recognised structurally, at
+    **any arity** (generalized 2026-07-06 for the resolving membrane's laws, e.g.
+    ``~[ (forecast_temp_band *s *t *b) ~[ (temp_band s t b) ] ]`` — the original
+    matcher was unary, the swan shape): the head's argument positions within the
+    body's argument tuple come from :func:`_law_signature`, so a permuted or
+    projected head is matched faithfully, never guessed."""
     g = parse_egif(ctx.proposal_egif)
     pos = _positive_atoms(g)
     neg = _negated_atoms(g)
     if not neg:
         return None
     for law in ctx.known_laws:
-        rels = _law_relations(law)
-        if rels is None:
+        sig = _law_signature(law)
+        if sig is None:
             continue
-        body, head = rels
+        body, head, positions = sig
         for rel, labels in pos:
-            if rel == body and len(labels) == 1 and (head, labels) in neg:
+            if rel != body or (positions and len(labels) <= max(positions)):
+                continue
+            head_labels = tuple(labels[j] for j in positions)
+            if (head, head_labels) in neg:
                 return law
+    return None
+
+
+def _law_signature(law_egif: str) -> Optional[Tuple[str, str, Tuple[int, ...]]]:
+    """``(body_relation, head_relation, head_arg_positions)`` for a Horn scroll
+    ``~[ (B x⃗) ~[ (H y⃗) ] ]`` where every head argument is a body argument
+    (range-restricted). ``head_arg_positions[i]`` is the index in the body's
+    argument tuple of the head's i-th argument — the projection a counterexample
+    check must apply. ``None`` for any other shape (conservative: no match, no
+    relinquishment on a shape we did not understand)."""
+    g = parse_egif(law_egif)
+    for outer in child_cuts(g, g.sheet):
+        inner = child_cuts(g, outer)
+        if not inner:
+            continue
+        body_e = next((e for e in g.E
+                       if area_of(g, e.id) == outer and e.id in g.rel), None)
+        head_e = next((e for e in g.E
+                       if area_of(g, e.id) == inner[0] and e.id in g.rel), None)
+        if body_e is None or head_e is None:
+            continue
+        body_args = list(g.nu.get(body_e.id, ()))
+        head_args = list(g.nu.get(head_e.id, ()))
+        try:
+            positions = tuple(body_args.index(v) for v in head_args)
+        except ValueError:
+            continue                     # a head variable not bound in the body
+        return g.rel[body_e.id], g.rel[head_e.id], positions
     return None
 
 

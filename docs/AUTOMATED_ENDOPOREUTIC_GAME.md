@@ -1421,3 +1421,44 @@ poll rate; digests/episodes/resume-state stay per-segment).
 | P6⁶ the P2 window stays open | dispositions | any rank transition on a warm- or docket-held target → retract; a zero adds a second duration sample to the rate ceiling. |
 
 **Log:** `runs/RUN_6_LOG.md` (skeleton pre-launch; disposal after).
+
+## 18 · Run 7 — the first live resolving-membrane source (weather; drafted 2026-07-06, launch delegated by the author's "Let's proceed" same day)
+
+*The affirmed ordering (§15.1): the first live raise-and-resolve source lands between the
+docket's 2a and its Q2/Q3 tiers, because wiki-only starves the game's dispositional range
+(runs 5b/6: 100% `new_fact`, zero laws, two rate-ceiling samples on the P2 event). Weather
+supplies the missing event class hourly: a standing forecast met by an observation.
+Findings are about the game (and NWS forecasts as represented) — never the world.*
+
+**The membrane:** `src/weather_source.py` → `resolving_membrane.ResolvingFeed` (unchanged)
+→ `LiveRunner`. Two-phase fetch: *raise* (NWS hourly forecasts within a 6 h horizon become
+pending claims + forecast-arrival facts) / *resolve* (observations score matured claims;
+an unresolvable claim drops **counted** after 3 h grace). Claims: temperature **bands**
+(5 °F — the discretization that makes a forecast checkable) and precipitation (PoP ≥ 60%).
+**The theory under test is seeded**: M carries the naive laws *"what is forecast,
+happens"* (`~[ (forecast_temp_band *s *t *b) ~[ (temp_band s t b) ] ]` and the precip
+twin), so the open-world peel genuinely **bets** (materialized law + forecast atom → TRUE)
+— and a miss arrives in the law-refuting shape the mechanical Challenger relinquishes over.
+Rider built for it: `_refuted_law` generalized from unary to **n-ary** laws
+(`_law_signature` — head-argument projection matched faithfully; swan/wiki behavior
+unchanged, suites green). No tropism, no docket — a clean first exercise of the new
+membrane (composition later).
+
+**Driver:** `caffeinate -i uv run python tools/run_live_weather.py --runs-dir runs/run7
+--max-seconds 50400` (5 stations KAUS/KSEA/KBOS/KDEN/KMIA · horizon 6 h · band 5 °F ·
+PoP ≥ 60 · poll every 600 s · ttl 48 polls · checkpoint every segment — M is small ·
+supervisor + skip-and-count armed · pending claims persisted for `--resume` · every
+batch recorded for the offline replay canary).
+
+**Priors (drafted with the launch delegation; amendments welcome at disposal):**
+
+| prior | instrument | expected |
+|---|---|---|
+| P1⁷ **the world exercises the missing registers** (headline) | `PredictionLedger` + dispositions | M bets (predicted `true`, not abstain) on resolution claims; ≥1 hit and ≥1 miss inside the run; the first miss disposes **`challenge_to_M`** — a seeded law relinquished by the world. The finding is the naive theory's measured survival time and net score at death, per claim kind. |
+| P2⁷ honest epistemic change | ledger after a law falls | bets on that kind become **abstentions** (M no longer pretends); the run's second act is abstention, not noise. |
+| P3⁷ two arms, independent fates | per-kind ledger split | LAW_TEMP and LAW_PRECIP fall (or survive) independently — the first live `select_best`-shaped comparison. |
+| P4⁷ floor on a new membrane | supervisor/resume, canary, counters | pending claims survive a resume; recorded batches replay; unresolved drops + fetch errors counted, never silent; \|M\| stays small. |
+| P5⁷ the two-clock texture | digests | claims raised from poll 1; the first bets arrive only after the first hour matures (~6–8 polls) — raise and resolve visibly out of phase. |
+| P6⁷ correspondence floor | checkpoint attests | all segments attest (M is tens of atoms; the F1⁵ coin flip has negligible surface here). |
+
+**Log:** `runs/RUN_7_LOG.md`.

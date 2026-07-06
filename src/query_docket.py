@@ -55,6 +55,19 @@ import re
 
 _PQ_ID = re.compile(r"^[PQ]\d+$")
 
+# A label a Q1 reach can plausibly grip: an entity-ish name, not a *value* (RUN_6
+# F2⁶: 1,034 unreversible grips were timestamps, urls, identifiers, coordinate
+# blobs — asking the membrane to re-fetch "+2012-03-31T00:00:00Z" is a category
+# error the harvest should refuse up front).
+def _griplike(label: str) -> bool:
+    if not label or len(label) > 60:
+        return False
+    if label[0] in "+-0123456789":
+        return False
+    if label.startswith(("http://", "https://", "{")):
+        return False
+    return True
+
 
 # --------------------------------------------------------------------------- #
 # The entry — a named want                                                     #
@@ -106,17 +119,24 @@ class QueryDocket:
         self,
         labels: Union[Mapping[str, str], Callable[[], Mapping[str, str]]],
         k: int = 2,
-        max_entries: int = 200,
+        max_entries: int = 500,
+        journal_path: Optional[str] = None,
     ):
         self._labels = labels
         self._k = k
         self._max = max_entries
+        # The ask journal (2a.1, RUN_6 F1⁶): every Q1 ask appended as one JSONL line
+        # (poll · entity · want-key · provenance) beside the polls record, so
+        # ask-driven resolutions can be separated from stream-borne ones at disposal.
+        self._journal_path = journal_path
         self._entries: Dict[Tuple[str, Tuple[str, ...]], DocketEntry] = {}
+        self._deferred_keys: set = set()   # DISTINCT wants refused at the cap (F1⁶:
+                                           # the old per-attempt count re-counted every
+                                           # re-harvest pass — ~197k for ~200 wants)
         # Counters — the never-silent ledger.
         self.harvested = 0          # entries ever admitted
         self.resolved = 0           # entries the sheet came to answer
         self.emitted = 0            # Q1 asks emitted (attempts, summed)
-        self.deferred = 0           # harvests refused at max_entries (counted, not lost silently)
         self.ambiguous_skipped = 0  # grips whose label reverses to several ids
         self.unmapped_skipped = 0   # grips the cache cannot reverse at all
 
@@ -126,6 +146,11 @@ class QueryDocket:
         """The active register, in the emission ordering (see ``reaches``)."""
         return sorted(self._entries.values(),
                       key=lambda e: (e.attempts, -e.age, e.key))
+
+    @property
+    def deferred(self) -> int:
+        """DISTINCT wants refused at the register cap — counted, never lost silently."""
+        return len(self._deferred_keys)
 
     @property
     def inexpressible(self) -> int:
@@ -140,9 +165,10 @@ class QueryDocket:
         if entry.key in self._entries:
             return
         if len(self._entries) >= self._max:
-            self.deferred += 1
+            self._deferred_keys.add(entry.key)
             return
         self._entries[entry.key] = entry
+        self._deferred_keys.discard(entry.key)
         self.harvested += 1
 
     # -- the seams --------------------------------------------------------------
@@ -179,29 +205,36 @@ class QueryDocket:
             else:
                 e.age += 1
 
-        # harvest thin spots (the attention_brief categories, structurally)
+        # harvest thin spots (the attention_brief categories, structurally).
+        # Grips are FILTERED griplike (F2⁶): the entity-position (first) argument if
+        # it is entity-ish, else no grip — an ungripped want waits as inexpressible
+        # rather than burning asks on value-labels the cache can never reverse.
         for rel, n in rel_counts.items():
             if n <= 1:
                 lone = next((labels for r, labels in atoms if r == rel), [])
-                grip = tuple(l for l in lone if l)[:1]     # the lone atom's entity, if any
+                consts = [l for l in lone if l]
+                grip = tuple(consts[:1]) if consts and _griplike(consts[0]) else ()
                 self._admit(DocketEntry(shape=rel, constants=grip,
                                         provenance="thin_spot(rare_relation)"))
         for const, n in const_counts.items():
-            if n == 1:
+            if n == 1 and _griplike(const):    # a lonely timestamp is not an individual
                 self._admit(DocketEntry(shape="*", constants=(const,),
                                         provenance="thin_spot(lonely_individual)"))
 
-    def reaches(self, k: Optional[int] = None) -> List[str]:
+    def reaches(self, k: Optional[int] = None, poll: Optional[int] = None) -> List[str]:
         """The next Q1 asks: up to ``k`` distinct entity ids, from the top of the
         v1 ordering (fewest attempts, then oldest). A grip that is already a Q-id
         passes through; a label reverses via the cache; ambiguous/unreversible
         grips are skipped **and counted** (§13 decision 5's discipline). Emitting
-        increments the entry's ``attempts`` — the ask is recorded on the want."""
+        increments the entry's ``attempts`` — and appends one **journal line**
+        per ask (2a.1: poll · entity · want-key · provenance) when a
+        ``journal_path`` was given, so disposal can attribute resolutions."""
         budget = self._k if k is None else k
         if budget <= 0 or not self._entries:
             return []
         label_to_id, ambiguous = reverse_labels(self._label_map())
         out: List[str] = []
+        asked: List[DocketEntry] = []
         skipped_amb: set = set()
         skipped_unm: set = set()
         for e in self.open_entries:
@@ -220,12 +253,57 @@ class QueryDocket:
                     continue
                 if entity.startswith("Q") and entity not in out:
                     out.append(entity)
+                    asked.append(e)
                     e.attempts += 1
                     break
         self.ambiguous_skipped += len(skipped_amb)
         self.unmapped_skipped += len(skipped_unm)
         self.emitted += len(out)
+        if self._journal_path and out:
+            import json
+            with open(self._journal_path, "a", encoding="utf-8") as fh:
+                for entity, e in zip(out, asked):
+                    fh.write(json.dumps({
+                        "poll": poll, "entity": entity,
+                        "want": [e.shape, list(e.constants)],
+                        "provenance": e.provenance,
+                        "attempts": e.attempts, "age": e.age,
+                    }) + "\n")
         return out[:budget]
+
+    # -- persistence (2a.1: the register survives a supervisor resume) -----------
+
+    def snapshot(self) -> dict:
+        """The register + counters as a JSON-able dict (for ``state.json``, the
+        disuse-ledger pattern) — a resumed run keeps its wants, ages, attempts,
+        and whole-run counters instead of starting a fresh docket per leg."""
+        return {
+            "entries": [
+                {"shape": e.shape, "constants": list(e.constants),
+                 "provenance": e.provenance, "age": e.age, "attempts": e.attempts}
+                for e in self._entries.values()
+            ],
+            "deferred": [[k[0], list(k[1])] for k in self._deferred_keys],
+            "counters": {"harvested": self.harvested, "resolved": self.resolved,
+                         "emitted": self.emitted,
+                         "ambiguous_skipped": self.ambiguous_skipped,
+                         "unmapped_skipped": self.unmapped_skipped},
+        }
+
+    def restore(self, state: dict) -> None:
+        self._entries = {}
+        for d in state.get("entries", []):
+            e = DocketEntry(shape=d["shape"], constants=tuple(d["constants"]),
+                            provenance=d["provenance"], age=d.get("age", 0),
+                            attempts=d.get("attempts", 0))
+            self._entries[e.key] = e
+        self._deferred_keys = {(s0, tuple(c)) for s0, c in state.get("deferred", [])}
+        c = state.get("counters", {})
+        self.harvested = c.get("harvested", 0)
+        self.resolved = c.get("resolved", 0)
+        self.emitted = c.get("emitted", 0)
+        self.ambiguous_skipped = c.get("ambiguous_skipped", 0)
+        self.unmapped_skipped = c.get("unmapped_skipped", 0)
 
 
 __all__ = ["DocketEntry", "QueryDocket"]

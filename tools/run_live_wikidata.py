@@ -172,7 +172,8 @@ def main(argv=None) -> int:
             # §15 increment 2a: the articulate stratum beside the warm one — what M
             # *lacks* (thin spots) directs Q1 re-reaches through the same inject seam.
             from query_docket import QueryDocket
-            docket = QueryDocket(source.known_labels, k=args.docket_asks)
+            docket = QueryDocket(source.known_labels, k=args.docket_asks,
+                                 journal_path=str(runs / "asks.jsonl"))
 
         holder = {}          # lets `evaluate` read the runner's refusal counter (set below)
 

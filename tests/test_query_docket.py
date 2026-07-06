@@ -144,3 +144,94 @@ def test_docket_composes_with_tropism_in_the_runner():
     assert docket.harvested > 0                        # thin spots of the growing M
     assert docket.emitted > 0 and src.injected_ids     # asks reached the seam
     assert all(i.startswith("Q") for i in src.injected_ids)
+
+
+# --------------------------------------------------------------------------- #
+# 2a.1 (RUN_6 F1⁶/F2⁶) — ask journal, persisted register, filtered grips       #
+# --------------------------------------------------------------------------- #
+
+def test_ask_journal_identifies_every_ask(tmp_path):
+    import json
+    jp = str(tmp_path / "asks.jsonl")
+    d = QueryDocket(LABELS, k=2, journal_path=jp)
+    d.note_unknowns([("white", ["Ciel"]), ("black", ["Alba"])])
+    asks = d.reaches(poll=7)
+    assert len(asks) == 2
+    lines = [json.loads(l) for l in open(jp)]
+    assert len(lines) == 2
+    assert {l["entity"] for l in lines} == set(asks)
+    assert all(l["poll"] == 7 for l in lines)
+    assert {tuple(l["want"][1]) for l in lines} == {("Ciel",), ("Alba",)}
+    assert all(l["provenance"] == "unknown_in_peel" for l in lines)
+
+
+def test_register_snapshot_restore_round_trip():
+    d = QueryDocket(LABELS, k=1, max_entries=1)
+    d.note_unknowns([("white", ["Ciel"]), ("black", ["Alba"])])   # 2nd deferred at cap
+    d.observe("")                                                  # age
+    d.reaches()                                                    # 1 attempt + emitted
+    snap = d.snapshot()
+
+    d2 = QueryDocket(LABELS, k=1, max_entries=1)
+    d2.restore(snap)
+    assert [e.key for e in d2.open_entries] == [e.key for e in d.open_entries]
+    e, = d2.open_entries
+    assert e.age == 1 and e.attempts == 1
+    assert d2.deferred == 1 and d2.emitted == 1 and d2.harvested == 1
+
+
+def test_register_survives_a_runner_resume(tmp_path):
+    """The F1⁶ per-leg reset, fixed: a resumed runner keeps its wants and counters."""
+    import json
+    from discourse_membrane import DiscourseFeed, DiscourseItem
+    from live_runner import LiveRunConfig, LiveRunner, ReplaySource
+
+    class _Src(ReplaySource):
+        def inject(self, ids): pass
+
+    sp = str(tmp_path / "state.json")
+    batches = [[DiscourseItem("d", "s", '(ringed "Alba")')],
+               [DiscourseItem("d", "s", '(seen "Bianca")')]]
+    d1 = QueryDocket(LABELS, k=1)
+    LiveRunner("", _Src(batches[:1]), DiscourseFeed,
+               LiveRunConfig(ttl=None, checkpoint=False, state_path=sp),
+               docket=d1, clock=lambda: 0.0).run()
+    assert d1.harvested > 0
+    saved = json.load(open(sp))
+    assert saved["docket"] and saved["docket"]["entries"]
+
+    d2 = QueryDocket(LABELS, k=1)
+    r2 = LiveRunner.resume(sp, _Src(batches[1:]), DiscourseFeed,
+                           LiveRunConfig(ttl=None, checkpoint=False),
+                           docket=d2, clock=lambda: 0.0)
+    assert d2.harvested == d1.harvested                 # counters carried, not reset
+    # same wants restored (order-insensitive: d1's in-memory attempts moved past the
+    # last state write when the runner's final poll asked again before exhausting)
+    assert {e.key for e in d2.open_entries} == {e.key for e in d1.open_entries}
+    r2.run()
+    assert d2.harvested >= d1.harvested                 # and the register keeps growing
+
+
+def test_value_labels_are_not_gripped_or_lonely(tmp_path):
+    """F2⁶: timestamps/urls/blobs are values, not individuals — no lonely entry, and
+    a rare relation whose first constant is a value gets NO grip (waits inexpressible)."""
+    d = QueryDocket(LABELS)
+    d.observe('(colour "Alba") (colour "Bianca") '
+              '(inception "Alba") (inception "Bianca") '
+              '(opened "+2012-03-31T00:00:00Z") '
+              '(website "https://example.org")')
+    lonely = [e for e in d.open_entries if e.provenance == "thin_spot(lonely_individual)"]
+    assert all(not e.constants[0].startswith(("+", "http")) for e in lonely)
+    rare = {e.shape: e for e in d.open_entries
+            if e.provenance == "thin_spot(rare_relation)"}
+    assert rare["opened"].constants == ()               # value grip refused
+    assert rare["website"].constants == ()
+    assert d.inexpressible >= 2
+
+
+def test_deferred_counts_distinct_wants_not_reattempts():
+    d = QueryDocket(LABELS, max_entries=1)
+    d.note_unknowns([("white", ["Alba"])])
+    for _ in range(5):                                   # the same want re-refused 5×
+        d.note_unknowns([("black", ["Bianca"])])
+    assert d.deferred == 1                               # distinct, not 5

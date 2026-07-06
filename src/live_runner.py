@@ -287,6 +287,8 @@ class LiveRunner:
         runner._total0 = state.get("total_rounds", 0)
         if runner._ledger is not None and state.get("ledger") is not None:
             runner._ledger.restore(state["ledger"])
+        if runner._docket is not None and state.get("docket") is not None:
+            runner._docket.restore(state["docket"])
         return runner
 
     def _save_state(self, seg_idx: int, total_rounds: int, model_egif: str) -> None:
@@ -303,6 +305,9 @@ class LiveRunner:
             "model_egif": model_egif,
             "laws": list(self._laws),
             "ledger": self._ledger.snapshot() if self._ledger is not None else None,
+            # 2a.1 (RUN_6 F1⁶): the docket register survives a resume like the ledger —
+            # a supervisor leg must not restart the wants (or the whole-run counters).
+            "docket": self._docket.snapshot() if self._docket is not None else None,
         }
         tmp = f"{self._cfg.state_path}.tmp"
         with open(tmp, "w", encoding="utf-8") as fh:
@@ -338,7 +343,8 @@ class LiveRunner:
                 if self._docket is not None:
                     # The docket's Q1 asks (§15 · 2a): what M *lacks* directs a reach too —
                     # articulated doubt riding the same seam, beside the warm stratum.
-                    asks = self._docket.reaches()
+                    # The upcoming poll's index rides into the ask journal (2a.1).
+                    asks = self._docket.reaches(poll=self._poll_idx + 1)
                     if asks:
                         self._source.inject(asks)
                 self._pending.extend(self._source.fetch())
