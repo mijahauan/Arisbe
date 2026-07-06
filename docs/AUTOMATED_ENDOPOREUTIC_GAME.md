@@ -1392,3 +1392,32 @@ duration must be tried before content direction can be mandated).
 *Launch note (2026-07-03): amended pre-launch with the author — `max_seconds` 50400 (14 h,
 ~15:00 → just before 05:00 local, read-on-rising); duration is the lever, every other knob as
 affirmed. Recorded in RUN_5_LOG's header.*
+
+## 17 · Run 6 — the docket live (§15 · 2a's own run; drafted 2026-07-05, launch delegated by the author's "Proceed" same day)
+
+*The tier discipline (§15 increments): each capability gets its own pre-registered run
+before the next is built. Increment 2a (the docket, Q1-only) is BUILT and offline-proven;
+this run puts it against the live stream. Per the affirmed ordering, the run AFTER this
+one is the first live resolving-membrane source — not Q2/Q3. Findings are about the game
+and Wikidata's editorial dynamics as represented, never the world. Progression, not
+progress.*
+
+**Driver:** `caffeinate -i uv run python tools/run_live_wikidata.py --source recentchanges
+--runs-dir runs/run6 --max-seconds 50400 --ttl 8 --ttl-unit polls --max-m 800
+--max-m-atoms 2500 --checkpoint-every 5 --docket --docket-asks 2` — the run-5b affirmed
+regime plus the two additions this run exists to test: **the docket armed** (chunk 8 =
+~4 warm + ~2 asks + ~2 fresh) and **checkpoint cadence 5** (the F2ᵇ lever (a): recover
+poll rate; digests/episodes/resume-state stay per-segment).
+
+**Priors (drafted with the launch delegation; amendments welcome at disposal):**
+
+| prior | instrument | expected |
+|---|---|---|
+| P1⁶ **the docket changes what the membrane delivers** (the headline) | `docket=` digest (`No/Nr/Na/Nx`) + final counters | asks emitted > 0 and **resolved wants > 0** — some thin spot settles *because its ask was fetched*. A zero-resolutions run is itself a finding: Q1 re-reach of a thin spot's lone entity may simply not carry more of the wanted shape — the first empirical argument about Q1's expressive ceiling. |
+| P2⁶ **`inexpressible` sizes the Q2 tier** | the `x` counter | grows steadily (relation-shaped wants with no constant grip accumulate); its magnitude at disposal = the first measured case for/against building Q2 next after the resolving source. |
+| P3⁶ composition safety | `warm_injected` vs docket `a` + `non_revising` texture | the two strata share the seam without starving each other or the fresh stream; warm texture persists (~run-5b's rhythm). |
+| P4⁶ operational floor + F1ᵇ holds | supervisor/crash counters; ckpt_refused; poll count | zero id-collision crashes (the parser regenerates now); poll rate ≥ ~2× run 5b's 46/14 h under cadence 5; refusals (if any) skipped + quarantined. |
+| P5⁶ sheet bounded (run-5b regime) | `m_atoms` digest | sawtooth ≈ 5b (nets never fire). |
+| P6⁶ the P2 window stays open | dispositions | any rank transition on a warm- or docket-held target → retract; a zero adds a second duration sample to the rate ceiling. |
+
+**Log:** `runs/RUN_6_LOG.md` (skeleton pre-launch; disposal after).
