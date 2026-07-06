@@ -472,6 +472,36 @@ class EGIFParser:
         if self.position < len(self.tokens) - 1:
             self.position += 1
 
+    # -- fresh element ids (RUN_5 F1ᵇ) ------------------------------------------
+    # Element ids are `uuid4().hex[:8]` — 32 bits — and a machine-scale sheet
+    # (~1,000 elements) parsed thousands of times per run makes a birthday
+    # collision statistically due (observed live 2026-07-04: "Vertex v_4599e538
+    # already exists" crashed an unattended 14 h run mid-revision). The parser is
+    # the high-volume creation path, so uniqueness is enforced here, by
+    # regenerating against the ids already in this parse's graph — random draws,
+    # so a second collision in a row is ~2⁻³² per retry.
+
+    def _fresh_vertex(self, label, is_generic):
+        existing = {v.id for v in self.graph.V}
+        while True:
+            vertex = create_vertex(label=label, is_generic=is_generic)
+            if vertex.id not in existing:
+                return vertex
+
+    def _fresh_edge(self):
+        existing = {e.id for e in self.graph.E}
+        while True:
+            edge = create_edge()
+            if edge.id not in existing:
+                return edge
+
+    def _fresh_cut(self):
+        existing = {c.id for c in self.graph.Cut}
+        while True:
+            cut = create_cut()
+            if cut.id not in existing:
+                return cut
+
     def _parse_eg(self):
         """Parse a sequence of top-level EGIF nodes, placing them on the sheet."""
         while self._current_token().type != TokenType.EOF:
@@ -537,7 +567,7 @@ class EGIFParser:
         self._advance()
 
         # Create edge
-        edge = create_edge()
+        edge = self._fresh_edge()
         self.graph = self.graph.with_edge(
             edge, tuple(vertex_ids), relation_name, context_id
         )
@@ -591,7 +621,7 @@ class EGIFParser:
             if var_name in self.defs_in_area[context_id]:
                 raise ValueError(f"Duplicate defining label *{var_name} in same area")
             self.defs_in_area[context_id].add(var_name)
-            vertex = create_vertex(label=None, is_generic=True)
+            vertex = self._fresh_vertex(label=None, is_generic=True)
 
             # Defining variables are assigned to the context where they are first defined
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
@@ -639,7 +669,7 @@ class EGIFParser:
                 return vertex_id
             else:
                 # First occurrence — create a new constant (non-generic) vertex
-                vertex = create_vertex(label=constant_value, is_generic=False)
+                vertex = self._fresh_vertex(label=constant_value, is_generic=False)
                 self.graph = self.graph.with_vertex_in_context(vertex, context_id)
                 self.constant_vertices[constant_value] = vertex.id
                 # Track occurrence for LCA hoisting
@@ -668,7 +698,7 @@ class EGIFParser:
         self._advance()
 
         # Create cut
-        cut = create_cut()
+        cut = self._fresh_cut()
         self.graph = self.graph.with_cut(cut, context_id)
         # Prepare area definition set for this cut
         self.defs_in_area.setdefault(cut.id, set())
@@ -707,7 +737,7 @@ class EGIFParser:
         if var_name in self.defs_in_area[context_id]:
             raise ValueError(f"Duplicate defining label *{var_name} in same area")
         self.defs_in_area[context_id].add(var_name)
-        vertex = create_vertex(label=None, is_generic=True)
+        vertex = self._fresh_vertex(label=None, is_generic=True)
         self.graph = self.graph.with_vertex_in_context(vertex, context_id)
         self.var_stack.setdefault(var_name, []).append((context_id, vertex.id))
         self.variable_map[var_name] = vertex.id
@@ -742,7 +772,7 @@ class EGIFParser:
             if var_name in self.defs_in_area[context_id]:
                 raise ValueError(f"Duplicate defining label *{var_name} in same area")
             self.defs_in_area[context_id].add(var_name)
-            vertex = create_vertex(label=None, is_generic=True)
+            vertex = self._fresh_vertex(label=None, is_generic=True)
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
             self.var_stack.setdefault(var_name, []).append((context_id, vertex.id))
             self.variable_map[var_name] = vertex.id
@@ -776,7 +806,7 @@ class EGIFParser:
         elif token.type == TokenType.CONSTANT:
             # Isolated constant "Socrates"
             constant_value = token.value[1:-1]  # Remove quotes
-            vertex = create_vertex(label=constant_value, is_generic=False)
+            vertex = self._fresh_vertex(label=constant_value, is_generic=False)
             self.graph = self.graph.with_vertex_in_context(vertex, context_id)
 
             # Track constant occurrences for validation

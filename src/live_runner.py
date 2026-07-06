@@ -109,6 +109,13 @@ class LiveRunConfig:
                                               # atoms unboundedly while m_relations reads flat
     stop_file: Optional[str] = None           # stop cleanly when this path exists (external control)
     checkpoint: bool = True                   # save a UoD+chain per segment (needs a service)
+    checkpoint_every: int = 1                 # checkpoint every Nth segment (RUN_5 F2ᵇ: at the
+                                              # persistent-M steady state the checkpoint's
+                                              # layout+attest dominates segment cost and collapses
+                                              # the poll rate — cadence ≠ coverage: digests, the
+                                              # meta-learning episodes, and the resumable state
+                                              # file remain PER-SEGMENT; only the browsable UoD
+                                              # record thins. 1 = every segment (the old behavior).
     checkpoint_refusal: str = "raise"         # "raise" | "skip" — what a §3.3 refusal at the
                                               # checkpoint save does. "raise" is the corpus-boundary
                                               # contract; "skip" is the unattended posture (RUN_5
@@ -448,6 +455,8 @@ class LiveRunner:
     def _checkpoint(self, res: EvolutionResult, seg_idx: int) -> Optional[str]:
         if not (self._cfg.checkpoint and self._service is not None):
             return None
+        if self._cfg.checkpoint_every > 1 and seg_idx % self._cfg.checkpoint_every != 0:
+            return None                     # cadence, not coverage (see LiveRunConfig)
         try:
             self._service.save_uod_with_chain(res.uod, res.chain)   # §3.3 attests before any write
         except Exception as exc:

@@ -97,6 +97,11 @@ def main(argv=None) -> int:
                     help="supervisor budget: auto-resume after an in-run crash up to this many "
                          "times (RUN_5 F1⁵ — one unlucky roll must not end an unattended run)")
     ap.add_argument("--segment-cap", type=int, default=25)
+    ap.add_argument("--checkpoint-every", type=int, default=1,
+                    help="checkpoint (save a browsable UoD, layout+§3.3-attested) every Nth "
+                         "segment — RUN_5 F2ᵇ: at the persistent-M steady state the attest "
+                         "dominates segment cost; digests/episodes/resume-state stay "
+                         "per-segment regardless")
     ap.add_argument("--min-interval", type=float, default=5.0,
                     help="min seconds between polls (API politeness)")
     ap.add_argument("--max-seconds", type=float, default=3600.0)
@@ -122,6 +127,7 @@ def main(argv=None) -> int:
         max_rounds=args.max_rounds, max_seconds=args.max_seconds,
         max_m_relations=args.max_m, max_m_atoms=args.max_m_atoms, stop_file=stop_file,
         checkpoint=True, checkpoint_refusal="skip",     # RUN_5 F1⁵: count + quarantine, never die
+        checkpoint_every=args.checkpoint_every,         # RUN_5 F2ᵇ: cadence ≠ coverage
         state_path=state_path,
     )
     service = TomosService(runs / "checkpoints")

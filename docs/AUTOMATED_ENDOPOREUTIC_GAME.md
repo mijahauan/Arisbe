@@ -1214,6 +1214,33 @@ entries (the `MutationProposer` generalized from recombining M's relations to re
 5. **The name** — docket of doubts / horizon register / question ledger (draft: **docket** —
    it is procedural, ordered, and disposed, which is exactly Peirce's register of the term).
 
+### 15.1 · Gate re-examination on run 5b's disposal (2026-07-05 — assessment recorded, author affirmation PENDING)
+
+The duration probe completed (RUN_5_LOG, run 5b: 14 h, 253 segments, floor held). Read
+against decision 1's gate, the assessment is that **the gate now fires, by elimination**:
+the P2-event program has exhausted the passive levers one per run — run 1 showed the crawl
+never revisits; run 2 added the stream (revisit without direction); runs 3–4 added the
+tropism (identity-shaped re-reach: revisit × world-motion); run 5b added duration with
+persistence genuinely fixed (targets held; the instrument valid) — and observed **zero
+rank transitions in 14 h, all 18 arriving deprecations born-deprecated**. Time, memory,
+persistence, and identity-shaped attention are all in place; what the player still cannot
+do is *ask for the content it is missing* — a rank transition can only be hunted by a
+query articulated in terms of ranks (Q2/Q3 vocabulary), and UNKNOWN/thin-spot doubts never
+reach the membrane at all. That is content-undirected probing as the operative bottleneck,
+named by the run. Compounding it, F2ᵇ (segment cost collapsed the poll rate to 46/14 h)
+makes *undirected* polls expensive enough that directing them is no longer an optimization
+but the difference between sampling the phenomenon and not (mitigation shipped:
+`checkpoint_every`, the cadence ≠ coverage knob).
+
+Recommended dispositions of the five decisions (all as drafted): **(1)** gate FIRES →
+build **2a** next (the docket minimum, Q1-only, offline-testable), with the honest note
+that the P2-specific payoff arrives at increment 3's Q2 (rank-addressable fetch) — the
+tier discipline stands, each with its own run; **(2)** player-side policy composing with
+`WarmSetTropism`; **(3)** mechanical admission for 2b; **(4)** outcome-only checkpointing
+for the proving ground (F2ᵇ re-measured exactly the checkpoint-weight lesson this draft
+anticipated); **(5)** "docket". *Nothing below this line is built until the author
+affirms or amends.*
+
 ## 16 · The rulebook built + run 5, the duration probe (BUILT 2026-07-03; priors P1⁵–P6⁵ AFFIRMED by the author 2026-07-03, pre-launch)
 
 *The §13/§14 discipline again: the machinery half of this section is built and offline-proven;

@@ -381,3 +381,44 @@ def test_checkpoint_refusal_raise_is_the_default_contract():
                         service=_RefusingService(), clock=_zero_clock)
     with pytest.raises(CorrespondenceViolation):
         runner.run()
+
+
+# --------------------------------------------------------------------------- #
+# RUN_5 F2ᵇ — checkpoint cadence: every Nth segment, coverage untouched        #
+# --------------------------------------------------------------------------- #
+
+class _CountingService:
+    def __init__(self):
+        self.saved = []
+
+    def save_uod_with_chain(self, uod, chain):
+        self.saved.append(uod.metadata.uod_id)
+
+
+def test_checkpoint_every_thins_the_record_not_the_coverage(tmp_path):
+    """checkpoint_every=2 saves segments 2 and 4 only — but every segment still
+    runs, digests still accumulate, and the resumable state file is still written
+    per segment (cadence ≠ coverage)."""
+    svc = _CountingService()
+    sp = str(tmp_path / "state.json")
+    runner = LiveRunner("", ReplaySource(_fact_batches(4)), DiscourseFeed,
+                        LiveRunConfig(ttl=None, checkpoint=True, checkpoint_every=2,
+                                      state_path=sp),
+                        service=svc, clock=_zero_clock)
+    res = runner.run()
+    assert [d.segment for d in res.segments] == [1, 2, 3, 4]        # all segments ran
+    assert svc.saved == ["live_seg2", "live_seg4"]                  # record thinned
+    assert [d.checkpoint_uod for d in res.segments] == [
+        None, "live_seg2", None, "live_seg4"]
+    assert os.path.exists(sp)                                       # state per segment
+    import json as _json
+    with open(sp) as fh:
+        assert _json.load(fh)["segment"] == 4
+
+
+def test_checkpoint_every_default_keeps_the_old_behavior():
+    svc = _CountingService()
+    res = LiveRunner("", ReplaySource(_fact_batches(2)), DiscourseFeed,
+                     LiveRunConfig(ttl=None, checkpoint=True),
+                     service=svc, clock=_zero_clock).run()
+    assert svc.saved == ["live_seg1", "live_seg2"]                  # every segment
