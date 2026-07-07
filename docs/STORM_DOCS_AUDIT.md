@@ -36,7 +36,7 @@ Priority = (breadth across personas × severity), newcomer- and adopter-blocking
 | G2 | **Error / refusal index** — what a stuck user sees and does for each refusal | **GAP → DISPOSED** | teacher, newcomer, API-integrator, operator, contributor, logician | The refusal vocabulary (`CorrespondenceViolation`, `Regime3Violation`, `PHASE_REFUSED` 409, `NO_PROPOSAL`, `CHAIN_NOT_FOUND`, `MODAL_PROPOSAL_INVALID`, drawing-validity findings) is well-designed but **nowhere catalogued**. **Disposed:** new `TROUBLESHOOTING.md` (D2). | **P0** |
 | G3 | **"When NOT to use Arisbe" / positioning** vs Lean, Coq, Isabelle, TLA+, Alloy, Protégé | **PARTIAL → DISPOSED** | evaluator (whole set), logician, domain-pro, ontologist | Comparisons are scattered (`ADVERSARIAL_EXAMINATION.md`, `CONTRIBUTION_AND_PRIOR_ART.md`) but there is **no positioning section and no explicit anti-pitch** (verified: no "when not to use" in VISION/CAPABILITY). The single most-requested thing from the evaluator. **Disposed:** added a "When to reach for something else" section to `VISION_AND_SCOPE.md` (D3). | **P0** |
 | G4 | **Contributor guide** — protected-vs-additive, the socket contracts, the test gate, review norms | **GAP → DISPOSED** | contributor (whole set), ontologist, logician, AI-integrator | Deep guidance exists but only in `CLAUDE.md` / `AGENTS.md` (insider/agent-facing); **no `CONTRIBUTING.md`** (verified absent). **Disposed:** new root `CONTRIBUTING.md` orienting the outsider (D4). | **P0** |
-| G5 | **Operations runbook** — launch a long unattended run, stop conditions, resume, digest fields, tripwires, disposal | **PARTIAL** | operator (whole set), researcher, AI-integrator | The knowledge is real but lives in `runs/RUN_*_LOG.md` (lab notebooks) + `AUTOMATED_ENDOPOREUTIC_GAME.md` §10 + tool `--help`. No operator-facing runbook consolidates the driver command, the digest-field glossary, and the resume/disposal procedure. **Not disposed** (larger; queued). | P1 |
+| G5 | **Operations runbook** — launch a long unattended run, stop conditions, resume, digest fields, tripwires, disposal | **PARTIAL → DISPOSED (2026-07-07)** | operator (whole set), researcher, AI-integrator | The knowledge lived in `runs/RUN_*_LOG.md` (lab notebooks) + `AUTOMATED_ENDOPOREUTIC_GAME.md` §10 + tool `--help`. **Disposed:** new [`runs/OPERATIONS.md`](../runs/OPERATIONS.md) — the two artifacts the cold-read scoped (a **digest-field glossary with healthy/stop thresholds** + a **one-page disposal checklist**), pointing back to `--help` + §10 for the launch flow. See D5. | P1 |
 | G6 | **Teaching pack** — author your own challenge targets keyed to a syllabus; batch-grade N submissions; gradeable/collectable artifacts; multi-user | **PARTIAL/GAP** | teacher, course-designer, education (implicit) | `CHALLENGE_BANK` is a code list (`challenge_mode.py:76`) with no documented user-authoring path; `same_graph`/`legible_diff` grading exists but no batch/CLI grading doc; sessions are **in-memory, per-process** (`ergasterion.py:8`) → no multi-user story. Queued. | P1 |
 | G7 | **Scale & performance envelope** — largest graph/proof/ontology that stays interactive; where the super-linear walls sit *now* | **PARTIAL** | evaluator, logician, ontologist, operator, domain-pro, researcher | The RUN logs + CAPABILITY_MAP carry the real numbers (canonical-signature fix, visibility-graph fix, ~200-atom attest) but they are scattered across dated notebooks; no single "performance envelope" table. Queued. | P1 |
 | G8 | **Soundness boundary — proven vs tested vs claimed** | **PARTIAL** | logician (whole set), evaluator, Peirce scholar, AI-integrator | The `FIDELITY_*` + `ADVERSARIAL_EXAMINATION` chapters are honest and strong, but a reader cannot quickly see *which* results rest on the ~118 core tests vs paper argument vs corpus round-trips, or what an external re-checker would need. Partly a docs gap, partly the prospects R1 (proof certificates). Queued. | P1 |
@@ -48,7 +48,7 @@ Priority = (breadth across personas × severity), newcomer- and adopter-blocking
 ## Coverage tally
 
 - **ANSWERED (well-served):** G11 (newcomer), G12 (provenance), G10 (import, near-complete) — the book's conceptual and on-ramp core is strong.
-- **PARTIAL:** G1, G3, G5, G6, G7, G8 — knowledge exists in the repo but not where the asking reader looks (scattered across code docstrings, run logs, or insider docs).
+- **PARTIAL:** G6, G7, G8 — knowledge exists in the repo but not where the asking reader looks (scattered across code docstrings, run logs, or insider docs). (G1, G3, G5 disposed — see below.)
 - **GAP → now disposed:** G2 (error index, → `TROUBLESHOOTING.md`), G4 (contributor, →
   `CONTRIBUTING.md`); **still GAP:** G9 (multi-user/auth/CORS) — genuinely absent, and the
   cold read found it is *structural* (single in-memory process, one shared corpus), not just
@@ -109,10 +109,14 @@ not have found, being over-familiar with a repo that always ran from that path.
 - **D4 — `CONTRIBUTING.md`** (new, repo root): the outsider's orientation — protected core
   vs additive surface, the socket contracts (Proposer/LiveSource/PolicyAgent/lens), the
   test gate, the CI-safety convention, and where the deeper guidance lives.
+- **D5 — `runs/OPERATIONS.md`** (new, 2026-07-07): the operations runbook — a digest-field
+  glossary with healthy/stop thresholds + a one-page disposal checklist. Consolidates the
+  instruments an operator reads and the procedure that turns a finished run into a disposed
+  `RUN_N_LOG.md`; the launch flow stays in `--help` + §10. Disposes G5.
 
 ## Queued (named, not silently dropped)
 
-G5 (operations runbook), G6 (teaching pack), G7 (performance-envelope table), G8 (a
+G6 (teaching pack), G7 (performance-envelope table), G8 (a
 proven-vs-tested-vs-claimed matrix), G9 (multi-user honest-scope note). Each is a
 bounded doc task; none blocks the newcomer or the conceptual reader. The performance and
 soundness-boundary gaps (G7, G8) also connect to prospect candidates (R1, R5) — best

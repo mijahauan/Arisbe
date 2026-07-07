@@ -1,45 +1,56 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION (prepared 2026-07-07) — THE CONSOLIDATE / ADOPT TRACK.** Author decisions
-affirmed 2026-07-07: **lead track = consolidate/adopt** (turn a laptop research system into
-one others can use + adopt), **grow-vs-federate = DEFERRED** (decide when a candidate forces
-it), **medium-vs-view = PRIMARY MEDIUM + BRIDGES** (diagrams ARE the logic *and* export
-skeletons / import fragments for inspection). The three consolidation candidates all fit
-"primary medium + bridges" and need no deferred decision to start. Execute in this order:
+**▶▶ THIS SESSION (2026-07-07, second sitting) — THE CONSOLIDATE/ADOPT TRACK, R3+R2+G5 SHIPPED.**
+The three affirmed consolidation candidates all built + green. Author framing reaffirmed at the
+start: *keep this phase solid up to the frontier of gamma/2nd-order, get more people involved,
+keep the gamma/2nd-order door explicitly open* — exactly this track; the gamma boundary is now
+stated at the interface (the MCP server's own instructions to the calling agent) and in both new
+docs, not just in the roadmap.
+- **R3 — the MCP verifier service (the centerpiece).** `src/mcp_verifier.py` (pure logic, imports
+  no MCP SDK → CI-safe) + `src/mcp_server.py` (thin import-guarded `FastMCP` stdio wrapper) expose
+  the five referee tools: `check_egif` (parse+validate + a **canonical content-addressed element
+  index** — `sheet`/`v0`/`e0`/`cut0`, stable across parses via `canonical_signature`, so the
+  discover→apply flow is stateless without server state), `peel` (`semantic_game.evaluate` vs a
+  supplied M, 3-valued + witness/counterexample), `apply_rule`/`validate_step` (sound Dau move via
+  `proof_authoring.apply_rule`; canonical labels resolved against the live parse), `attest` (§3.3
+  via ELK + `attest_correspondence`, no fastapi dep). `mcp` = a new **optional extra** (pyproject),
+  import-guarded like `nl`. Single source of truth = `mcp_verifier.TOOLS`. Serve:
+  `uv run --extra mcp python -m mcp_server`. Tests `tests/test_mcp_verifier.py` (22: pure funcs
+  always run; server round-trip gated on the extra present, guard-path gated on it absent — both
+  covered depending on env). Docs `docs/MCP_VERIFIER.md` + CAPABILITY_MAP §J (new "Interfaces/
+  adoption"). A wrapper over existing logic — *the LLM argues, the calculus decides.*
+- **R2 — the correspondence contract as a prover-agnostic spec.** `docs/CORRESPONDENCE_CONTRACT.md`:
+  the two objects (EGI 7-tuple / LayoutDTO), the properties P1–P5 (totality/injectivity,
+  containment, incidence+arg-order, the 3-way identity incl. the crossing-multiset topological
+  invariant, convention compliance), the six §7 test shapes, the failure taxonomy (tag → property
+  → example message), the three regimes, and a **dataset/interchange-schema card** for tomos (EGI
+  JSON schema + chain JSONL + provenance + **MIT license explicit**) + a conformance checklist.
+  Grounded in `correspondence_attestation.py` + `test_correspondence_invariant.py`; the doc the
+  MCP `attest` tool *enforces*. Answers PROSPECTS R2 (no shared diagrammatic-proof benchmark).
+- **G5 — the operations runbook.** `runs/OPERATIONS.md`: the **digest-field glossary** (every
+  segment-digest field → means → healthy vs stop/investigate threshold, grounded in the run
+  findings — |M|/atoms must plateau, non_revising ~20–35% under tropism, legibility ≥~0.9,
+  the F2ᵇ elapsed-wall, F1⁵ ckpt_refused, poise poles) + the **one-page disposal checklist**
+  (stop→floor→score-each-prior→file-findings→canary→fixtures→propagate→commit). Disposes the
+  STORM G5 gap (audit updated: tally, disposal D5). Launch flow stays in `--help` + AEG §10.
+Verified: `test_mcp_verifier` 21p/1s, correspondence suite green (117p/1s), core math suite 90p.
+Nothing existing modified — all additive (2 src modules, 1 test, 3 docs, 1 pyproject extra, doc
+cross-links). **Not yet committed.**
 
-1. **R3 — verifier-as-an-MCP-service (the centerpiece build).** Expose the mechanical referee
-   as MCP tools any LLM-agent framework can call: `check_egif` (parse+validate), `peel`
-   (`semantic_game.evaluate` @ src/semantic_game.py:318 → 3-valued verdict + witness/
-   counterexample against a supplied M), `validate_step`/`apply_rule` (a Dau rule,
-   soundness-checked), `attest` (`correspondence_attestation.attest_correspondence` @ :495).
-   Rides the MCP substrate wave; the machinery already exists (a wrapper, not new logic) — the
-   single highest external-leverage adoption move. **Pattern:** a stdio MCP server (the
-   graphify skill's `graphify.serve` is a reference shape); add `mcp` as an **optional extra**
-   (`nl`-style gated, import-guarded, CI-safe with a scripted-fake client; never hits a live
-   model in tests). Additive, non-core. Ship with a `docs/` note + a CAPABILITY_MAP row; no
-   run/pre-registration needed (it's a build, not a probe).
-2. **R2 first increment — the §3.3 attestation contract as a prover-agnostic spec** (the
-   companion doc: the MCP verifier *enforces* exactly this). Extract the correspondence
-   contract — properties, the six §7 test shapes, the failure taxonomy — into a standalone
-   spec another tool could implement, grounded in `correspondence_attestation.py` +
-   `test_correspondence_invariant.py`. Plus a dataset/interchange-schema card for the tomos
-   corpus (EGI JSON + chain JSONL + provenance) with the MIT license made explicit — the
-   near-universal survey ask (PROSPECTS R2: the field has no shared diagrammatic-proof
-   benchmark; Arisbe's corpus is the best candidate).
-3. **G5 doc closures (cheap, no decision — warm-up or parallel).** The cold-read scoped these
-   precisely: a **digest-field glossary with healthy/stop thresholds** + a **one-page disposal
-   checklist** (the two artifacts that move the ops-runbook gap from PARTIAL to ANSWERED — the
-   launch/stop/resume flow is already covered by `--help` + AEG §10).
-
-**Queued after (named, not lost):** R4 (non-visual EG accessibility projection — screen-
+**▶▶▶ NEXT SESSION — pick from the named queue (nothing forced).** With the three consolidation
+candidates shipped, the standing queue: **R4** (non-visual EG accessibility projection — screen-
 reader-native sheet→cut→area→ligature traversal of the coordinate-free `natural_layout(egi)`
-@ src/natural_layout.py:113 + spoken linear forms — distinctive; Arisbe uniquely owns the
-ground truth); the **deferred build-track alternative run 8** (predict→refute→RE-GENERALIZE,
-the resolving membrane's own F2⁷ next question, machinery ready); the **F1⁵ root fix** (global
-label placement shared renderer+attest — protected-core design pass, also retires the eg_reader
-clockwise flakes); 2b (docket proving ground); the docket Q2/Q3 tiers (sized by RUN_6 F2⁶);
-the spectator surface (RATE_AND_INTELLIGIBILITY + ADAPTIVE_SCOPE_VIEWER §10). The two gating
-tensions (grow-vs-federate deferred; medium-vs-view decided) live in
+@ src/natural_layout.py:113 + spoken linear forms — distinctive; Arisbe uniquely owns the ground
+truth; a natural *next* consolidate/adopt build); the **run 8** build-track (predict→refute→
+RE-GENERALIZE, the resolving membrane's F2⁷ next question, machinery ready — but note F1⁷: NWS
+`/observations` needs retry/backoff first); the **F1⁵ root fix** (global label placement shared
+renderer+attest — protected-core design pass, also retires the eg_reader clockwise flakes); 2b
+(docket proving ground); the docket Q2/Q3 tiers (sized by RUN_6 F2⁶); the spectator surface
+(RATE_AND_INTELLIGIBILITY + ADAPTIVE_SCOPE_VIEWER §10). **The gamma / 2nd-order frontier stays
+explicitly open** (author's standing direction) — `MODALITY_WITHOUT_GAMMA.md` + the shipped Gamma
+demonstrations hold the current boundary; genuine 2nd-order development would extend additively
+through the MCP interface + the contract spec's property list. The two gating tensions
+(grow-vs-federate deferred; medium-vs-view = primary-medium+bridges) live in
 `docs/PROSPECTS_MULTIPERSPECTIVE.md` with R1–R10 + provenance.
 
 **▶▶ THIS SESSION (2026-07-06→07) — RUN 7 (THE VEIL CROSSED) · STORM AUDIT + PROSPECTS ·

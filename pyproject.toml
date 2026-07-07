@@ -61,6 +61,15 @@ web = [
 nl = [
     "anthropic>=0.40",
 ]
+# The MCP verifier service (src/mcp_server.py): exposes the mechanical referee
+# (src/mcp_verifier.py — parse/validate, peel, apply/validate a Dau rule, §3.3
+# attest) as Model Context Protocol stdio tools so any MCP-speaking agent
+# framework can call the calculus core. Optional at runtime (guarded by
+# MCP_AVAILABLE); the pure verifier functions and every non-server test run with
+# the SDK absent. Serve with `uv run --extra mcp python -m mcp_server`.
+mcp = [
+    "mcp>=1.2",
+]
 
 [tool.uv]
 package = false

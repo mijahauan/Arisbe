@@ -179,6 +179,14 @@ record: [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) ·
 
 ---
 
+## J. Interfaces / adoption — *the referee, callable from outside*
+
+| Capability | Status | Home (src → test) | Note |
+|---|---|---|---|
+| MCP verifier service | SHIPPED | `mcp_verifier.py` (logic) + `mcp_server.py` (transport) → `test_mcp_verifier.py` | Exposes the mechanical referee as [Model Context Protocol](https://modelcontextprotocol.io) stdio tools: `check_egif` (parse+validate, content-addressed element ids), `peel` (three-valued `semantic_game.evaluate` against a supplied M), `apply_rule`/`validate_step` (a sound Dau rule), `attest` (§3.3 correspondence). Pure functions import no MCP SDK (CI-safe); `mcp` is an **optional extra** (`uv sync --extra mcp`), import-guarded. Additive, non-core. A wrapper over existing logic — *the LLM argues, the calculus decides.* See [MCP_VERIFIER.md](MCP_VERIFIER.md). |
+
+---
+
 ## Out of scope (with reasons)
 
 | Item | Why | Pointer |
