@@ -19,10 +19,9 @@ from web_api.services.session_manager import get_session_manager
 from web_api.services.layout_service import generate_layout, layout_dto_to_dict
 
 from tomos_service import TomosService
+from web_api.paths import TOMOS_PATH
 
 router = APIRouter(prefix="/api")
-
-TOMOS_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/tomos")
 
 _tomos_service: Optional[TomosService] = None
 

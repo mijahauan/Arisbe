@@ -121,10 +121,10 @@ from rule_interaction import (
 from tomos_service import TomosService
 
 
+from web_api.paths import TOMOS_PATH, SCRATCH_PATH
+
 router = APIRouter(prefix="/ergasterion")
 
-TOMOS_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/tomos")
-SCRATCH_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/scratch")
 VIEWER_DIR = Path(__file__).parent.parent.parent / "web_viewer"
 
 _tomos_service: Optional[TomosService] = None

@@ -36,11 +36,11 @@ from web_api.services import bibliography, import_service
 
 from correspondence_attestation import CorrespondenceViolation
 from tomos_service import TomosService
+from web_api.paths import TOMOS_PATH
 
 
 router = APIRouter(prefix="/import")
 
-TOMOS_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/tomos")
 VIEWER_DIR = Path(__file__).parent.parent.parent / "web_viewer"
 
 _tomos_service: Optional[TomosService] = None

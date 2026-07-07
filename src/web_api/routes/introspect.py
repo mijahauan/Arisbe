@@ -35,11 +35,11 @@ from cgif_parser_dau import parse_cgif
 from clif_parser_dau import parse_clif
 from egif_parser_dau import parse_egif
 from tomos_service import TomosService
+from web_api.paths import TOMOS_PATH
 
 
 router = APIRouter(prefix="/introspect")
 
-TOMOS_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/tomos")
 _PARSERS = {"egif": parse_egif, "cgif": parse_cgif, "clif": parse_clif}
 
 _tomos_service: Optional[TomosService] = None

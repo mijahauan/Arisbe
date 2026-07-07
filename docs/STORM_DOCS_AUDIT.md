@@ -49,14 +49,57 @@ Priority = (breadth across personas × severity), newcomer- and adopter-blocking
 
 - **ANSWERED (well-served):** G11 (newcomer), G12 (provenance), G10 (import, near-complete) — the book's conceptual and on-ramp core is strong.
 - **PARTIAL:** G1, G3, G5, G6, G7, G8 — knowledge exists in the repo but not where the asking reader looks (scattered across code docstrings, run logs, or insider docs).
-- **GAP:** G2 (error index), G4 (contributor), G9 (multi-user) — genuinely absent.
+- **GAP → now disposed:** G2 (error index, → `TROUBLESHOOTING.md`), G4 (contributor, →
+  `CONTRIBUTING.md`); **still GAP:** G9 (multi-user/auth/CORS) — genuinely absent, and the
+  cold read found it is *structural* (single in-memory process, one shared corpus), not just
+  undocumented.
 - **The pattern:** Arisbe's documentation is **excellent at the conceptual/why layer and the newcomer on-ramp, and thin at the task/how-to/reference layer** — exactly the genre gap the phase-0 survey predicted (comparable projects ship cookbooks, error indices, positioning FAQs, and contributor guides; Arisbe ships design-of-record docs, worked exemplars, and pre-registered run logs — a differentiator worth keeping, not diluting).
+
+## Cold-reader independence check (2026-07-07)
+
+Three fresh agents cold-read the three least-certain PARTIAL/GAP clusters (G1 API, G5
+operations, G6 teaching) with no priors, to catch author-familiarity blind spots. All three
+**confirmed** the cluster verdicts and sharpened them — and G1 caught two real defects in this
+audit's own disposals, plus a portability bug the audit undersold. Corrections applied below.
+
+- **G1 (API):** verdict holds, but the honest shape is *1 disposed / 3 partial / 3 full GAP* —
+  the single "PARTIAL" hid that a **minimal HTTP client example (Q4) did not exist** (the
+  original D1 claim of a "client recipe" was **overstated** — only OpenAPI pointers were
+  added) and that **auth/CORS/multi-tenancy (Q6, tracked as G9) and seam stability (Q7)** are
+  full GAPs not surfaced under G1. Also: `TROUBLESHOOTING.md` was **not in the book nav**.
+  *Fixed this pass:* a real curl client example added to `install.qmd`; `TROUBLESHOOTING.md`
+  added to the Quarto book (Part III) + `_devlinks`; and the **hardcoded-corpus-path bug** the
+  cold read exposed (see below).
+- **G5 (operations):** confirmed PARTIAL. Sharpening — the launch/stop/resume flow is actually
+  *well* covered by the driver `--help` + AEG §10 + `TROUBLESHOOTING.md`; the two genuine holes
+  are a **digest-field glossary with healthy/stop thresholds** and a **one-page disposal
+  checklist**. Those two artifacts (not re-documenting the flow) are the highest-leverage
+  runbook work when G5 is disposed.
+- **G6 (teaching):** confirmed GAP-leaning-PARTIAL. Sharpening — one **bright spot** the audit
+  undersold: the *grading pedagogy* (beginner-vocabulary legible diff + `same_graph` accepts
+  any isomorphic answer) **is** well-documented (`TROUBLESHOOTING.md`, `ARISBE_IN_PRACTICE.md`,
+  `FREEFORM_COMPOSITION_AND_LEARNING.md`). What's absent is the classroom-*operations* surface
+  (author → distribute → collect → batch-grade → attributed artifact → 30 users), which is not
+  merely undocumented but structurally single-user.
+
+### Spillover finding — a real portability bug (fixed 2026-07-07)
+
+The G6/G9 cold read found the web app **hardcoded the author's absolute corpus path**
+(`/Users/mjh/Sync/GitHub/Arisbe/tomos`) across 8 route files — so a clone on any other machine
+served no corpus; the app only ran on one laptop. This is worse than "no multi-user story": a
+*single* user on a second machine was already blocked. **Fixed:** a new `src/web_api/paths.py`
+resolves `TOMOS_PATH`/`SCRATCH_PATH` **relative to the repo** with `ARISBE_TOMOS`/
+`ARISBE_SCRATCH` env overrides; verified the app boots and serves 42 UoDs from the relative
+path. The largest single win of the whole STORM exercise — and one the audit's own author would
+not have found, being over-familiar with a repo that always ran from that path.
 
 ## Disposed this effort
 
-- **D1 — API discoverability.** `install.qmd` gained an "HTTP API" note pointing at the
-  live `/docs` (Swagger UI) and `/openapi.json` the running server already serves, plus the
-  shortest scripted client path; `CAPABILITY_MAP.md` gained a row.
+- **D1 — API discoverability *and* a real client example.** `install.qmd` gained an "HTTP API"
+  section pointing at the live `/docs` (Swagger UI) and `/openapi.json`, **a working curl
+  client example** (list corpus → open a graph), the env-override deployment note, and the
+  honest single-user caveat; `CAPABILITY_MAP.md` gained a row. *(Corrected 2026-07-07: the
+  first pass claimed a client recipe it did not include — the cold read caught it; now it does.)*
 - **D2 — `docs/TROUBLESHOOTING.md`** (new): the refusal/error index in EG vocabulary —
   each refusal, what it means, what the user does. Serves G2 across six personas.
 - **D3 — positioning.** `VISION_AND_SCOPE.md` gained a "When to reach for something else"

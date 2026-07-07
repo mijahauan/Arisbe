@@ -96,3 +96,19 @@ HTTP for integrating *with* a running Arisbe, the Python reference for building 
 curated schema for the highest-traffic routes and their structured error bodies is queued;
 meanwhile `TROUBLESHOOTING.md` catalogues the error/refusal vocabulary an integrator will
 meet.
+
+A minimal end-to-end taste (list the corpus, open one graph's drawing + linear forms):
+
+```bash
+# with the server running on :8000
+curl -s localhost:8000/organon/uods | jq '.data[0]'          # first UoD in the corpus
+UID=$(curl -s localhost:8000/organon/uods | jq -r '.data[0].uod_id')
+curl -s "localhost:8000/organon/uods/$UID" | jq '{egif: .data.linear_forms.egif, svg_len: (.data.svg|length)}'
+```
+
+Every response is a `{success, data|error}` envelope; the interactive Swagger UI (`/docs`)
+lets you build up a longer flow — parse → render → transform → save — route by route.
+Deployment note: the corpus and scratch roots default to `<repo>/tomos` and `<repo>/scratch`
+and are overridable with the `ARISBE_TOMOS` / `ARISBE_SCRATCH` environment variables; the app
+is a **local single-user** server (no auth/multi-tenancy) unless you put your own gateway in
+front of it.

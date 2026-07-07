@@ -47,9 +47,10 @@ from annotations import (
     for_step,
 )
 
+from web_api.paths import TOMOS_PATH
+
 router = APIRouter(prefix="/organon")
 
-TOMOS_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/tomos")
 VIEWER_DIR = Path(__file__).parent.parent.parent / "web_viewer"
 
 _tomos_service: Optional[TomosService] = None

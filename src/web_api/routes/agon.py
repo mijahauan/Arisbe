@@ -77,9 +77,10 @@ from theory_query import entails as theory_entails
 from tomos_service import TomosService
 
 
+from web_api.paths import TOMOS_PATH
+
 router = APIRouter(prefix="/agon")
 
-TOMOS_PATH = Path("/Users/mjh/Sync/GitHub/Arisbe/tomos")
 VIEWER_DIR = Path(__file__).parent.parent.parent / "web_viewer"
 
 _tomos_service: Optional[TomosService] = None

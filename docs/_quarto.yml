@@ -42,6 +42,7 @@ book:
         - FREEFORM_COMPOSITION_AND_LEARNING.md
         - FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md
         - NL_TO_LOGIC.md
+        - TROUBLESHOOTING.md
     - part: "IV · How it works"
       chapters:
         - arisbe_triad_architecture.md

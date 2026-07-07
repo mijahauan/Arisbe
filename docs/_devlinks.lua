@@ -27,6 +27,7 @@ local BOOK = {
   EXEMPLARS = true,
   EXTERNAL_SOURCES_AND_IMPORT = true,
   FREEFORM_COMPOSITION_AND_LEARNING = true,
+  TROUBLESHOOTING = true,
   FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION = true,
   NL_TO_LOGIC = true,
   arisbe_triad_architecture = true,
