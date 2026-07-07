@@ -18,3 +18,12 @@ graphify-out/
 .claude/
 .core_modification_authorized
 .coherence_reminder_state
+
+# Rendered book output — regeneratable duplicates of the docs/*.md sources.
+docs/_book/
+docs/.quarto/
+
+# Live-run raw artifacts — the RUN_*_LOG.md carry the knowledge; these are raw data.
+runs/*/filmstrip/
+runs/*_console.txt
+runs/*/checkpoints/
