@@ -163,3 +163,58 @@ def test_end_to_end_the_naive_law_bets_and_is_falsified_by_a_miss():
     assert "challenge_to_M" in dispositions                    # the law fell to the world
     assert LAW_TEMP not in res.known_laws                      # relinquished
     assert any(LAW_PRECIP.strip() == l.strip() for l in res.known_laws)  # the other stands
+
+
+# --- F1⁷: bounded retry/backoff around the flaky NWS endpoints ---------------
+
+def test_fetch_retry_recovers_and_counts_no_error(_capture=None):
+    """A transient failure that recovers within the retry budget is invisible —
+    no error counted — and the backoff uses the injected sleep (no real waiting)."""
+    calls = {"n": 0}
+    slept = []
+
+    def flaky(url):
+        calls["n"] += 1
+        if calls["n"] < 3:
+            raise RuntimeError("503")
+        return {"ok": 1}
+
+    src = WeatherSource(stations={"KX": (0.0, 0.0)}, fetch_json=flaky,
+                        sleep=lambda s: slept.append(s), fetch_tries=3, fetch_backoff=0.5)
+    assert src._fetch_retry("u") == {"ok": 1}
+    assert calls["n"] == 3
+    assert slept == [0.5, 1.0]                     # exponential backoff, injected sleep
+    assert src.fetch_errors == 0                   # a recovered retry is not an error
+
+
+def test_dark_station_is_bounded_and_counted_per_station():
+    """A station whose endpoint is always down gives up after the retry budget and
+    is counted per-station (the F1⁷ dark-station signal), degrading gracefully."""
+    def dead(url):
+        raise RuntimeError("down")
+
+    src = WeatherSource(stations={"KX": (0.0, 0.0)}, fetch_json=dead,
+                        sleep=lambda s: None, fetch_tries=3)
+    assert src._recent_observations("KX") == []    # graceful empty, not a crash
+    assert src.fetch_errors == 1                    # one error per exhausted fetch
+    assert src.fetch_errors_by_station == {"KX": 1}
+
+
+def test_per_station_errors_persist_across_state():
+    """Per-station error counts + the (possibly re-generalized) claim knobs survive
+    a save/load, so a resume reports them and carries the recalibrated discretization."""
+    def dead(url):
+        raise RuntimeError("down")
+
+    src = WeatherSource(stations={"KX": (0.0, 0.0)}, fetch_json=dead,
+                        sleep=lambda s: None, band_width=10, pop_threshold=80)
+    src._recent_observations("KX")
+    import tempfile, os
+    fd, p = tempfile.mkstemp(suffix=".json")
+    os.close(fd)
+    src.save_state(p)
+    src2 = WeatherSource.load_state(p, stations={"KX": (0.0, 0.0)},
+                                    fetch_json=dead, sleep=lambda s: None)
+    os.unlink(p)
+    assert src2.fetch_errors_by_station == {"KX": 1}
+    assert src2._width == 10 and src2._pop == 80    # recalibrated knobs carried

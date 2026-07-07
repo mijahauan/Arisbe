@@ -1462,3 +1462,61 @@ batch recorded for the offline replay canary).
 | P6⁷ correspondence floor | checkpoint attests | all segments attest (M is tens of atoms; the F1⁵ coin flip has negligible surface here). |
 
 **Log:** `runs/RUN_7_LOG.md`.
+
+## 19 · Run 8 — predict → refute → **re-generalize** (machinery built 2026-07-07; live launch delegated to the author)
+
+*Run 7's F2⁷: after the world falsified both seeded laws the game fell **silent** — a
+relinquished law was never replaced, so the second act was pure abstention. Run 8 closes the
+loop: after refutation, **re-generalize** — induce a better-calibrated law from the ledger's
+track record and re-seed it, so the arc is predict→refute→**re-generalize**, not
+predict→refute→silence. The discretization (temperature band width, PoP threshold) is the
+falsifiability knob (F2⁷), and the controller turns it.*
+
+**The mechanism (LLM-free, deterministic, additive):**
+- **`src/weather_recalibration.py`** — `recalibrate(ledger, *, band_width, pop_threshold,
+  standing_laws, target, …) → RecalibrationResult`. An **adaptive controller to a reliability
+  target**: for each claim kind (temperature, precipitation) whose law has fallen off
+  `standing_laws` **or** whose recent accuracy is below `target`, it steps the knob toward a
+  less-falsifiable shape — temperature **widens the band** (an observation a few degrees off
+  then lands in the *same* band), precipitation **raises the PoP threshold** (only confident
+  forecasts are claimed) — each capped so it terminates, and marks a *fallen* law for
+  re-seeding. The `ScoreEntry` records only hit/miss (not the numeric delta), so a
+  one-step-per-segment controller-to-target is the honest minimal mechanism; it needs only the
+  counts.
+- **Re-scribing (generic seam, `live_runner`):** an `evaluate()` may return `reseed_laws`; the
+  runner juxtaposes each fallen law cut back onto the carried sheet + registry, so the next
+  segment materializes it and **bets again**. The **temp law string is band-width-agnostic** —
+  re-generalization moves the *claim discretization* (`WeatherSource._width`/`_pop`), not the
+  law text; a `PendingClaim.width` rider resolves each in-flight claim under the width it was
+  raised with, so a mid-run widen never spuriously misses a pending claim.
+- **F1⁷ (fetch resilience), shipped with it:** a bounded retry + exponential backoff around the
+  flaky NWS endpoints (injectable `sleep`, so CI is deterministic/offline) + **per-station**
+  error counts surfaced in the digest — a *dark station* is now visible, not folded into the
+  aggregate.
+
+**Driver:** `tools/run_live_weather.py --regenerate` (+ `--regen-target`, `--band-cap`,
+`--pop-cap`, `--fetch-tries`, `--fetch-backoff`); the per-segment digest gains a re-generalize
+line and per-station error rates. With `--regenerate` **off**, run 7 is reproduced exactly.
+
+**Offline replay finding (honest scope of the canary).** Replaying `runs/run7/items.jsonl`:
+with re-generalization **off** the run-7 trajectory reproduces (4 h / 2 m, net +2, both laws
+fall, 0 standing); **on**, the reseed mechanism fires (26 re-generalizations, both laws return
+to M) — but net *worsens* (−19). This is **not** a design failure: a replay's resolution items
+are **frozen at the band they were recorded under**, so widening the band cannot change a
+pre-recorded claim's hit/miss — the reseeded law keeps betting on frozen claims. **The
+calibration payoff is only measurable live**, where `_raise_claims` re-discretizes *fresh*
+observations under the wider band (the controlled integration test proves that causality on
+scripted data: refute → widen → re-bet → hit). So the replay canary validates *backward-compat
++ the reseed mechanism*; the calibration benefit is a **live-run hypothesis**.
+
+**Pre-registered priors (run 8):**
+
+| prior | instrument | expected |
+|---|---|---|
+| P1⁸ **re-generalization keeps the game alive** (headline) | dispositions + `reseed` count | after a `challenge_to_M`, the fallen kind's law returns to M within a segment and **bets again** — the second act is prediction, not abstention. |
+| P2⁸ the calibration payoff is live-only | per-kind live hit-rate before/after a widen | a re-generalized kind's **live** hit-rate recovers toward `target` as the band widens / PoP rises — the effect the replay structurally cannot show. |
+| P3⁸ convergence within the caps | band/PoP trajectory | the controller settles (stops stepping) once a kind meets target or hits its cap; no unbounded oscillation. |
+| P4⁸ F1⁷ resilience | per-station error rates | a transiently-flaky endpoint recovers within the retry budget (invisible); a dark station is bounded, counted, and **named** in the digest. |
+| P5⁸ floor unchanged | checkpoints, resume | §3.3 attests; `--resume` carries the recalibrated knobs (band/PoP persisted) + per-station errors; correspondence-not-truth holds (a resolved market is low-warrant). |
+
+**Log:** `runs/RUN_8_LOG.md` (to be written at disposal).

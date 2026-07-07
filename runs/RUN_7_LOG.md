@@ -49,7 +49,13 @@ abstention plateau read honestly as rigidity — M has nothing left to bet with)
 
 ## Findings (dated, disposed)
 
-### F1⁷ (2026-07-07) — the observations endpoint needs retry/backoff before a longer run
+### F1⁷ (2026-07-07) — the observations endpoint needs retry/backoff before a longer run  ·  **ADDRESSED 2026-07-07 (run-8 build)**
+
+*Resolved:* `weather_source._fetch_retry` wraps the three NWS fetches in a bounded exponential
+backoff (injectable `sleep`, CI-deterministic); `fetch_errors_by_station` + the driver digest
+now make a **dark station visible** (per-station rates, flagged), not just aggregated. See
+`docs/AUTOMATED_ENDOPOREUTIC_GAME.md` §19.
+
 
 10 `fetch_errors` over 29 polls × 5 stations: the NWS `/stations/{id}/observations`
 endpoint intermittently times out or 5xxs. Every error was absorbed (the source counts it
@@ -59,7 +65,15 @@ its claims all drop-unresolved silently-but-counted. **Queued (2a-class, additiv
 bounded retry with backoff in `weather_source._fetch` wrapping, and surface per-station
 error rates in the digest so a dark station is visible, not just aggregated.
 
-### F2⁷ (2026-07-07) — the discretization is the falsifiability knob (both laws died, temp first)
+### F2⁷ (2026-07-07) — the discretization is the falsifiability knob (both laws died, temp first)  ·  **MACHINERY BUILT 2026-07-07 (run 8); live disposal pending**
+
+*Addressed (build):* `weather_recalibration.recalibrate` is the predict→refute→**re-generalize**
+controller — after a law falls it widens the temp band / raises the PoP threshold from the
+ledger track record and re-seeds the (band-agnostic) law via the generic `live_runner`
+reseed hook; `--regenerate` drives it. The offline replay confirms backward-compat (off = this
+run) + the reseed mechanism, but **cannot** show the calibration payoff (replayed claims are
+frozen at their recording band) — that is a live-run hypothesis (P2⁸). See §19.
+
 
 Both naive laws were over-general enough to die within 4 hours, but *asymmetrically*: the
 5 °F temperature band is a fragile claim (an actual reading one band off refutes it), so

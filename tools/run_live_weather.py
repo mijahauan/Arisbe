@@ -29,6 +29,7 @@ from agon_evolution import (
 from live_runner import LiveRunConfig, LiveRunner, _sheet_atom_count
 from resolving_membrane import PredictionLedger, ResolvingFeed
 from tomos_service import TomosService
+from weather_recalibration import recalibrate
 from weather_source import DEFAULT_STATIONS, SEED_LAWS, WeatherSource
 
 
@@ -49,6 +50,20 @@ def main(argv=None) -> int:
                     help="temperature band width, °F — the claim discretization")
     ap.add_argument("--pop-threshold", type=int, default=60,
                     help="probability-of-precipitation %% at/above which a precip claim is raised")
+    # F1⁷: bounded retry/backoff around the flaky NWS endpoints.
+    ap.add_argument("--fetch-tries", type=int, default=3,
+                    help="bounded retries per NWS fetch (F1⁷)")
+    ap.add_argument("--fetch-backoff", type=float, default=0.5,
+                    help="base backoff seconds between fetch retries (doubles each try)")
+    # Run 8: predict→refute→re-generalize. After a law is relinquished, widen its
+    # discretization (temp band / PoP threshold) from the ledger track record and
+    # re-seed it, so the game bets again instead of falling silent (F2⁷).
+    ap.add_argument("--regenerate", action="store_true",
+                    help="enable re-generalization of relinquished/under-performing laws")
+    ap.add_argument("--regen-target", type=float, default=0.6,
+                    help="reliability target below which a standing law is recalibrated")
+    ap.add_argument("--band-cap", type=int, default=20, help="max temperature band width (°F)")
+    ap.add_argument("--pop-cap", type=int, default=90, help="max PoP threshold (%%)")
     ap.add_argument("--ttl", type=int, default=48, help="disuse-decay ttl (polls)")
     ap.add_argument("--segment-cap", type=int, default=25)
     ap.add_argument("--checkpoint-every", type=int, default=1)
@@ -96,7 +111,10 @@ def main(argv=None) -> int:
     src_kwargs = dict(stations=stations, horizon_hours=args.horizon_hours,
                       grace_hours=args.grace_hours, band_width=args.band_width,
                       pop_threshold=args.pop_threshold,
+                      fetch_tries=args.fetch_tries, fetch_backoff=args.fetch_backoff,
                       record_path=str(runs / "items.jsonl"))
+    # Run-level re-generalization tally (surfaced in the final report).
+    regen_count = {"n": 0}
 
     def build(resume: bool):
         if resume and Path(weather_state).exists():
@@ -120,13 +138,34 @@ def main(argv=None) -> int:
             bets = (f" bets={len(seg_bets)} (run: {run_ledger.hits}h/"
                     f"{run_ledger.misses}m/{run_ledger.abstentions}a "
                     f"net={run_ledger.net_score})") if seg_bets else ""
+
+            # Run 8: re-generalize a relinquished/under-performing law from the
+            # run-level track record — widen its discretization + re-seed it (the
+            # runner re-scribes reseed_laws onto M). Off by default (run-7 parity).
+            reseed: list = []
+            if args.regenerate:
+                rc = recalibrate(
+                    run_ledger, band_width=source._width, pop_threshold=source._pop,
+                    standing_laws=list(getattr(runner, "_laws", [])),
+                    target=args.regen_target, band_cap=args.band_cap, pop_cap=args.pop_cap)
+                if rc.changed:
+                    source._width, source._pop = rc.band_width, rc.pop_threshold
+                    reseed = rc.reseed_laws
+                    regen_count["n"] += 1
+                    print(f"    re-generalize: band={rc.band_width}°F pop≥{rc.pop_threshold}%"
+                          f" reseed={len(reseed)} — {'; '.join(rc.notes)}", flush=True)
+
+            # F1⁷: surface per-station error rates so a dark station is visible.
+            dark = " ".join(f"{st}:{n}" for st, n in sorted(
+                source.fetch_errors_by_station.items()) if n)
             print(f"  segment: rounds={len(res.outcomes)} atoms={atoms} "
                   f"dispositions={dispositions}{bets}"
                   + (f" claims={source.claims_raised} resolved={source.resolutions}"
                      f" dropped={source.unresolved_dropped}")
-                  + (f" ⚠ fetch_errors={source.fetch_errors}"
+                  + (f" ⚠ fetch_errors={source.fetch_errors} [{dark}]"
                      if source.fetch_errors else ""), flush=True)
-            return {"bets": len(seg_bets), "net": run_ledger.net_score}
+            return {"bets": len(seg_bets), "net": run_ledger.net_score,
+                    "reseed_laws": reseed}
 
         if resume:
             runner = LiveRunner.resume(state_path, source, ResolvingFeed, config,
@@ -148,6 +187,7 @@ def main(argv=None) -> int:
           f"stations={sorted(stations)} · horizon={args.horizon_hours}h · "
           f"band={args.band_width}°F · pop≥{args.pop_threshold}% · ttl={args.ttl} polls · "
           f"pacing={args.min_interval}s · laws seeded: what-is-forecast-happens · "
+          f"regenerate={'on' if args.regenerate else 'off'} · "
           f"stop: touch {stop_file}", flush=True)
 
     while True:
@@ -185,9 +225,13 @@ def main(argv=None) -> int:
           f"{run_ledger.misses} misses · {run_ledger.abstentions} abstentions · "
           f"net {run_ledger.net_score} · accuracy "
           f"{run_ledger.accuracy if run_ledger.accuracy is not None else '—'}")
+    by_st = " ".join(f"{st}:{n}" for st, n in sorted(
+        source.fetch_errors_by_station.items()) if n) or "none"
     print(f"claims: raised={source.claims_raised} resolved={source.resolutions} "
           f"dropped_unresolved={source.unresolved_dropped} "
-          f"fetch_errors={source.fetch_errors}")
+          f"fetch_errors={source.fetch_errors} (per-station: {by_st})")
+    if args.regenerate:
+        print(f"re-generalizations: {regen_count['n']}")
     final_laws = getattr(runner, "_laws", [])
     print("laws still standing: " + (" · ".join(final_laws) if final_laws
                                      else "(none — every seeded theory was relinquished)"))

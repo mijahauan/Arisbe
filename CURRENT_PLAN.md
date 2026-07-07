@@ -1,6 +1,36 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-07, third sitting) — R4 + F1⁵ ROOT FIX SHIPPED (run 8 next).**
+**▶▶ THIS SESSION (2026-07-07, third sitting) — R4 + F1⁵ + RUN-8 MACHINERY SHIPPED.**
+
+**RUN 8 MACHINERY — predict→refute→RE-GENERALIZE (+ F1⁷ NWS resilience).** Run 7's F2⁷: after
+the world falsified both seeded weather laws the game fell *silent*. Run 8 closes the loop —
+after refutation, **re-generalize**: induce a better-calibrated law from the ledger and re-seed
+it. Built (additive, LLM-free, deterministic, CI-offline):
+- **`src/weather_recalibration.py`** — `recalibrate(ledger, …)` = an adaptive controller to a
+  reliability target: a fallen/under-performing kind steps its knob toward less-falsifiable
+  (temp **widens the band**; precip **raises the PoP threshold**, both capped) and marks a
+  *fallen* law for re-seeding.
+- **Generic reseed seam in `live_runner`** — an `evaluate()` may return `reseed_laws`; the
+  runner juxtaposes the fallen law cut back onto M's sheet + registry so the next segment bets
+  again. The temp law string is **band-width-agnostic** — re-generalization moves the *claim
+  discretization* (`WeatherSource._width/_pop`), not the text; a `PendingClaim.width` rider
+  resolves in-flight claims under their raise-time width (no spurious miss on a widen).
+- **F1⁷** — `_fetch_retry` bounded exponential backoff (injectable sleep) around the flaky NWS
+  endpoints + **per-station** error counts surfaced in the digest (a *dark station* is visible).
+- **Driver** `tools/run_live_weather.py --regenerate` (+ regen/fetch knobs); digest gains the
+  re-generalize line + per-station rates; `--regenerate` off reproduces run 7.
+- **Verified:** 51 run-8 tests green (`test_weather_recalibration`/`_weather_source`/
+  `_resolving_membrane`/`_live_runner`) + 127 across the membrane/agon suites. **Offline replay
+  of run 7:** off → run-7 trajectory reproduces (4h/2m net +2, both laws fall); on → the reseed
+  fires (laws return, 26 re-generalizations) but **net worsens (−19) — an artifact of frozen
+  replay claims, not a design flaw**: a replay's resolution items are frozen at their recording
+  band, so widening can't change a pre-recorded hit/miss. **The calibration payoff is live-only**
+  (fresh observations re-discretized under the wider band; the integration test proves the
+  refute→widen→re-bet→hit causality on controlled data). Pre-registered priors P1⁸–P5⁸ in AEG
+  §19. **The live run is the author's to launch** (`--regenerate`, per the ops model). **Not yet
+  committed.**
+
+**R4 + F1⁵ ROOT FIX SHIPPED (committed dd2cbad, dcc6208, 57ba812).**
 
 **F1⁵ ROOT FIX — the label-occlusion coin-flip is gone.** Run 5 was killed at seg 1531 when
 the checkpoint §3.3 attest refused with a text-on-text occlusion (two long Wikidata constant

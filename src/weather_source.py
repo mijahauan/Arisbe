@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Dict, List, Optional, Sequence, Tuple
@@ -100,11 +101,19 @@ def _hour_dt(hour_label: str) -> datetime:
 
 @dataclass
 class PendingClaim:
-    """A raised, not-yet-resolved forecast claim."""
+    """A raised, not-yet-resolved forecast claim.
+
+    ``width`` records the temperature band width the claim was raised under, so a
+    mid-run re-generalization (a wider band) only affects *newly* raised claims —
+    an in-flight claim resolves against the discretization it was made with, not
+    the current one (else every pending claim would spuriously miss on a widen).
+    ``None`` for precip claims and for state written before the field existed.
+    """
     station: str
     hour: str            # UTC hour label
     kind: str            # "temp" | "precip"
     value: Optional[str]  # the forecast band (temp) or None (precip)
+    width: Optional[int] = None  # band width at raise time (temp only)
 
     @property
     def key(self) -> Tuple[str, str, str]:
@@ -129,6 +138,9 @@ class WeatherSource:
         fetch_json: Optional[Callable[[str], dict]] = None,
         record_path: Optional[str] = None,
         clock: Optional[Callable[[], datetime]] = None,
+        sleep: Optional[Callable[[float], None]] = None,
+        fetch_tries: int = 3,
+        fetch_backoff: float = 0.5,
     ):
         self._stations = dict(stations or DEFAULT_STATIONS)
         self._horizon = horizon_hours
@@ -138,6 +150,12 @@ class WeatherSource:
         self._fetch = fetch_json or _live_fetch_json
         self._record = record_path
         self._clock = clock or (lambda: datetime.now(timezone.utc))
+        # F1⁷: a bounded retry with backoff around the flaky NWS endpoints; the
+        # sleep is injectable (default time.sleep, a no-op capture in tests) so CI
+        # stays fast and deterministic — mirrors ``clock``.
+        self._sleep = sleep or time.sleep
+        self._fetch_tries = max(1, fetch_tries)
+        self._fetch_backoff = fetch_backoff
         self._forecast_urls: Dict[str, str] = {}
         self._pending: Dict[Tuple[str, str, str], PendingClaim] = {}
         self._claimed: set = set()          # keys ever raised (never re-claim an hour)
@@ -145,18 +163,46 @@ class WeatherSource:
         self.claims_raised = 0
         self.resolutions = 0
         self.unresolved_dropped = 0
-        self.fetch_errors = 0
+        self.fetch_errors = 0               # aggregate (back-compat)
+        # F1⁷: per-station error counts so a *dark station* is visible in the
+        # digest, not just folded into the aggregate.
+        self.fetch_errors_by_station: Dict[str, int] = {}
 
     # -- NWS plumbing -----------------------------------------------------------
+
+    def _fetch_retry(self, url: str) -> dict:
+        """``self._fetch(url)`` with a bounded exponential backoff (F1⁷).
+
+        Retries a failed fetch ``self._fetch_tries`` times, sleeping
+        ``backoff · 2^attempt`` between tries via the injectable ``self._sleep``.
+        Re-raises the last exception when every attempt fails — the caller counts
+        it once (per station) and degrades gracefully.  No counting here, so a
+        successful retry is invisible except in the reduced error rate.
+        """
+        last: Exception = RuntimeError("no fetch attempted")
+        for attempt in range(self._fetch_tries):
+            try:
+                return self._fetch(url)
+            except Exception as exc:              # transient 5xx/timeout — retry
+                last = exc
+                if attempt + 1 < self._fetch_tries:
+                    self._sleep(self._fetch_backoff * (2.0 ** attempt))
+        raise last
+
+    def _note_fetch_error(self, station: str) -> None:
+        """Count a fetch failure — aggregate + per-station (F1⁷)."""
+        self.fetch_errors += 1
+        self.fetch_errors_by_station[station] = (
+            self.fetch_errors_by_station.get(station, 0) + 1)
 
     def _forecast_url(self, station: str) -> Optional[str]:
         if station not in self._forecast_urls:
             lat, lon = self._stations[station]
             try:
-                meta = self._fetch(f"{NWS_API}/points/{lat},{lon}")
+                meta = self._fetch_retry(f"{NWS_API}/points/{lat},{lon}")
                 self._forecast_urls[station] = meta["properties"]["forecastHourly"]
             except Exception:
-                self.fetch_errors += 1
+                self._note_fetch_error(station)
                 return None
         return self._forecast_urls[station]
 
@@ -165,18 +211,19 @@ class WeatherSource:
         if not url:
             return []
         try:
-            data = self._fetch(url)
+            data = self._fetch_retry(url)
             return data["properties"]["periods"]
         except Exception:
-            self.fetch_errors += 1
+            self._note_fetch_error(station)
             return []
 
     def _recent_observations(self, station: str) -> List[dict]:
         try:
-            data = self._fetch(f"{NWS_API}/stations/{station}/observations?limit=12")
+            data = self._fetch_retry(
+                f"{NWS_API}/stations/{station}/observations?limit=12")
             return [f["properties"] for f in data.get("features", [])]
         except Exception:
-            self.fetch_errors += 1
+            self._note_fetch_error(station)
             return []
 
     # -- phase 1: raise ----------------------------------------------------------
@@ -200,7 +247,8 @@ class WeatherSource:
                     if key not in self._claimed:
                         b = band_of(float(temp), self._width)
                         self._claimed.add(key)
-                        self._pending[key] = PendingClaim(st, hour, "temp", b)
+                        self._pending[key] = PendingClaim(
+                            st, hour, "temp", b, width=self._width)
                         self.claims_raised += 1
                         items.append(ResolvingItem(
                             f'(forecast_temp_band "{st}" "{hour}" "{b}")',
@@ -265,7 +313,10 @@ class WeatherSource:
                 if not isinstance(temp_c, (int, float)):
                     self.unresolved_dropped += 1
                     continue
-                obs_band = band_of(temp_c * 9 / 5 + 32, self._width)
+                # Resolve under the claim's own raise-time width, so a mid-run
+                # re-generalization (a wider band) never spuriously misses a claim
+                # that was made under the narrower band.
+                obs_band = band_of(temp_c * 9 / 5 + 32, claim.width or self._width)
                 claim_egif = f'(temp_band "{st}" "{hour}" "{claim.value}")'
                 if obs_band == claim.value:
                     items.append(ResolvingItem(claim_egif, happened=True))
@@ -311,6 +362,10 @@ class WeatherSource:
                          "resolutions": self.resolutions,
                          "unresolved_dropped": self.unresolved_dropped,
                          "fetch_errors": self.fetch_errors},
+            "fetch_errors_by_station": dict(self.fetch_errors_by_station),
+            # The (possibly re-generalized) claim knobs, so a resume carries the
+            # recalibrated discretization, not the seed defaults.
+            "params": {"band_width": self._width, "pop_threshold": self._pop},
         }
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(state, fh, indent=1)
@@ -330,6 +385,10 @@ class WeatherSource:
         src.resolutions = c.get("resolutions", 0)
         src.unresolved_dropped = c.get("unresolved_dropped", 0)
         src.fetch_errors = c.get("fetch_errors", 0)
+        src.fetch_errors_by_station = dict(state.get("fetch_errors_by_station", {}))
+        p = state.get("params", {})
+        src._width = p.get("band_width", src._width)
+        src._pop = p.get("pop_threshold", src._pop)
         return src
 
 

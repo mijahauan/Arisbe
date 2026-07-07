@@ -380,6 +380,17 @@ class LiveRunner:
             model_egif = generate_egif(res.uod.current_egi)   # carry M forward as EGIF
             laws_before, self._laws = self._laws, list(res.known_laws)
             extra = self._evaluate(feed, res) if self._evaluate else {}
+            # Re-generalization hook (generic): an evaluate() may return
+            # ``reseed_laws`` — laws to re-scribe onto M after a relinquishment
+            # (e.g. the weather recalibrator returning a fallen law under a wider,
+            # better-calibrated discretization, docs/AUTOMATED_ENDOPOREUTIC_GAME.md
+            # §19). Juxtapose each law cut back onto the carried sheet + registry so
+            # the next segment materializes it and bets again — predict→refute→
+            # re-generalize, not predict→refute→silence.
+            for _law in (extra or {}).get("reseed_laws", []) or []:
+                model_egif = f"{model_egif} {_law}".strip()
+                if _law not in self._laws:
+                    self._laws.append(_law)
             if hasattr(feed, "episodes"):       # accumulate the meta-learning records
                 if self._episodes:
                     # a relinquishment in THIS segment of content admitted in an EARLIER one is
