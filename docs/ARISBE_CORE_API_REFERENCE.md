@@ -1,6 +1,6 @@
 # Arisbe Core API Reference
 
-**Last Generated**: 2026-06-14T15:57:36-05:00  
+**Last Generated**: 2026-07-07T14:55:42-05:00  
 **Source of truth**: `tools/core_protection_system.py` (`protected_modules`)  
 **Module count**: 14
 
@@ -1406,6 +1406,35 @@ edge) stays on the boundary and does not count, so a label sitting against a lin
 is not falsely flagged.  This is the obstacle-test primitive for the deferred
 label-aware ligature routing (`docs/EXACT_CORRESPONDENCE.md` Phase 3b).
 
+#### `place_label_boxes(egi, predicate_positions, vertex_positions, ligature_paths, cut_bounds, style, show_vertex_labels=True)`
+
+Global, deterministic, **sibling-aware** placement of every label box — the
+single source of truth the renderer draws from and §3.3 attests, so picture and
+test never diverge.
+
+``vertex_label_box`` places each label alone (cut-aware but blind to the other
+labels), so two long constant labels whose dots sit near each other both default
+to the right of their dot and overlap — a genuine text-on-text occlusion whose
+appearance flips with parse tie-breaks, the coin-flip that killed run 5
+(``runs/RUN_5_LOG.md`` F1⁵).  This pass places all labels *together* so each
+avoids the others.
+
+Predicate boxes are anchored (no placement freedom) and enter first as fixed
+obstacles.  Vertex/constant labels are then placed **longest-first** (the hardest
+to fit claims space early; tie-break by label then id, so two parses agree), each
+taking the first candidate direction+distance that
+
+  (1) stays inside its area cut and clear of every non-ancestor cut,
+  (2) overlaps no already-placed box, and
+  (3) is not struck through by a line of identity it is not incident to
+
+— i.e. the chosen spot satisfies all three §3.3 occlusion clauses by
+construction.  Only when *no* candidate fits (a genuinely cramped area the engine
+must widen) does it fall back to the freest gap, which §3.3 then flags honestly.
+
+Returns ``{element_id: BoundingBox}`` over edge ids (predicates) and the vertex
+ids of labelled vertices.  ``style`` may be ``None``.
+
 #### `point_in_cut(p: layout_dto.Point, bounds: layout_dto.BoundingBox, shape, corner_radius: float = 0.0, boundary: Optional[Sequence[layout_dto.Point]] = None) -> bool`
 
 Whether point ``p`` is inside the cut **as the style draws it**.  When the
@@ -1502,22 +1531,20 @@ The axis-aligned **extent** of a vertex/constant label, placed adjacent to
 its dot.  The preferred direction is the *freest* angular gap between the lines
 of identity incident to the vertex (so the label never sits on a ligature it is
 incident to), defaulting to the right of the dot when no incident line leaves
-eastward.  This mirrors `simple_svg_renderer`'s placement; the renderer draws the
-text centred in this same box, so picture and §3.3 test agree (single source of
-truth, like `predicate_label_box`).
+eastward.
 
-**Cut-aware placement.**  When ``egi`` and ``cut_bounds`` are supplied, the
-preferred direction is only taken if the resulting box stays wholly inside the
-vertex's area cut and clear of every non-ancestor cut; otherwise the freest
-direction is tried, then the four cardinals, and the first that fits is used.
-Only if *no* direction fits (a genuinely cramped layout the engine must widen)
-does it fall back to the freest gap — which §3.3 then flags as a real occlusion.
-This keeps the label legible without the layout engine yet reserving room.
+**Single-box placement** (cut-aware, sibling-*blind*).  This is the per-vertex
+primitive the layout engine / clockwise reader use as a soft-obstacle estimate.
+When ``egi`` and ``cut_bounds`` are supplied, the preferred direction is only
+taken if the resulting box stays wholly inside the vertex's area cut and clear
+of every non-ancestor cut; otherwise the freest direction is tried, then the
+four cardinals, and the first that fits is used, falling back to the freest gap.
 
-``ligature_paths``/``vertex_id`` supply the incident directions.  ``style`` may
-be ``None`` (defaults used).  The label width is estimated from the font size
-(the renderer draws plain text, not a boxed run), so the extent is faithful, not
-pixel-exact.
+The authoritative, **sibling-aware** placement the renderer draws and §3.3
+attests is ``place_label_boxes`` (which builds on these same primitives so the
+two never diverge); this function is unchanged so its existing callers keep
+identical geometry.  ``style`` may be ``None`` (defaults used); the width is a
+faithful font-size estimate, not pixel-exact.
 
 ---
 
