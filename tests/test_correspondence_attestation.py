@@ -394,6 +394,35 @@ def test_label_box_struck_through_by_non_incident_line(engine):
         + "\n  ".join(excinfo.value.failures))
 
 
+def test_long_adjacent_constants_attest_without_occlusion(engine, style):
+    """F1⁵ regression: two machine-scale (long) constant labels sharing a relation
+    — the Warner-Bros pair that killed run 5 — attest cleanly.  The global,
+    sibling-aware placement (`place_label_boxes`, which the attest reads) sends the
+    two labels to non-overlapping homes instead of the per-vertex 'both to the right
+    of the dot' collision that produced the content-dependent occlusion coin-flip
+    (runs/RUN_5_LOG.md F1⁵).  Determinism is checked across re-parses: the same
+    graph attests every time, not ~50/50."""
+    from egif_parser_dau import parse_egif
+    from presentation_ops import place_label_boxes, boxes_overlap
+
+    a = "Warner Bros. Studio Tour London – The Making of Harry Potter"
+    b = "Warner Bros. Studio Tours"
+    for _ in range(6):                       # fresh parse each time (fresh UUIDs)
+        egi = parse_egif(f'(part_of "{a}" "{b}")')
+        dto = engine.generate_layout(egi, style)
+        # The placement the attest reads separates the two long labels.
+        boxes = place_label_boxes(
+            egi, dto.predicate_positions, dto.vertex_positions,
+            dto.ligature_paths, dto.cut_bounds, style)
+        vboxes = [boxes[v.id] for v in egi.V if v.label and v.id in boxes]
+        assert not any(
+            boxes_overlap(vboxes[i], vboxes[j])
+            for i in range(len(vboxes)) for j in range(i + 1, len(vboxes))
+        ), "long adjacent constant labels must not overlap"
+        # And the whole drawing attests (no occlusion, deterministically).
+        attest_correspondence(egi, dto, context="warner-bros long-label pair")
+
+
 def test_attest_raises_on_ligature_endpoint_mismatch(tomos, engine, style):
     """If a ligature's last point doesn't equal its vertex position, raise."""
     egi, dto = _baseline(tomos, engine, style)

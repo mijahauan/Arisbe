@@ -605,35 +605,19 @@ def box_intrudes_cut(
 _VERTEX_CHAR_W_RATIO = 0.6
 
 
-def vertex_label_box(
-    label, center, style, ligature_paths=(), vertex_id=None,
-    egi=None, cut_bounds=None,
-) -> BoundingBox:
-    """The axis-aligned **extent** of a vertex/constant label, placed adjacent to
-    its dot.  The preferred direction is the *freest* angular gap between the lines
-    of identity incident to the vertex (so the label never sits on a ligature it is
-    incident to), defaulting to the right of the dot when no incident line leaves
-    eastward.  This mirrors `simple_svg_renderer`'s placement; the renderer draws the
-    text centred in this same box, so picture and §3.3 test agree (single source of
-    truth, like `predicate_label_box`).
+# --- Vertex-label placement primitives (shared by vertex_label_box + the global
+# --- place_label_boxes pass, so single-box and global placement stay identical).
 
-    **Cut-aware placement.**  When ``egi`` and ``cut_bounds`` are supplied, the
-    preferred direction is only taken if the resulting box stays wholly inside the
-    vertex's area cut and clear of every non-ancestor cut; otherwise the freest
-    direction is tried, then the four cardinals, and the first that fits is used.
-    Only if *no* direction fits (a genuinely cramped layout the engine must widen)
-    does it fall back to the freest gap — which §3.3 then flags as a real occlusion.
-    This keeps the label legible without the layout engine yet reserving room.
-
-    ``ligature_paths``/``vertex_id`` supply the incident directions.  ``style`` may
-    be ``None`` (defaults used).  The label width is estimated from the font size
-    (the renderer draws plain text, not a boxed run), so the extent is faithful, not
-    pixel-exact."""
+def _vertex_label_dims(label, style):
+    """The (width, height) extent of a vertex/constant label's box."""
     font_size = float(getattr(style, "font_size", 14.0) or 14.0)
-    vr = float(getattr(style, "vertex_radius", 5.0) or 5.0)
     w = len(label) * font_size * _VERTEX_CHAR_W_RATIO + 2.0 * _PRED_LABEL_PAD_H
     h = font_size + 2.0 * _PRED_LABEL_PAD_V
+    return w, h
 
+
+def _vertex_incident_angles(ligature_paths, vertex_id):
+    """The outgoing directions of the lines of identity incident to a vertex."""
     angs = []
     for lp in ligature_paths:
         if vertex_id is not None and getattr(lp, "vertex_id", None) != vertex_id:
@@ -642,37 +626,42 @@ def vertex_label_box(
         if len(pts) >= 2:
             a, b = pts[-1], pts[-2]
             angs.append(math.atan2(b.y - a.y, b.x - a.x))
+    return angs
 
+
+def _vertex_free_angle(angs):
+    """The *freest* angular gap between incident lines (so the label never sits on
+    a ligature it is incident to); to the right of the dot when east is clear."""
     east_blocked = any(
         abs(math.atan2(math.sin(a), math.cos(a))) < math.radians(50) for a in angs
     )
     if not east_blocked or not angs:
-        free_ang = 0.0  # to the right of the dot
-    else:
-        angs.sort()
-        best_gap, free_ang = -1.0, -math.pi / 2.0  # default: above
-        for i in range(len(angs)):
-            a0 = angs[i]
-            a1 = angs[(i + 1) % len(angs)] + (
-                2.0 * math.pi if i + 1 == len(angs) else 0.0)
-            if a1 - a0 > best_gap:
-                best_gap, free_ang = a1 - a0, (a0 + a1) / 2.0
+        return 0.0  # to the right of the dot
+    angs = sorted(angs)
+    best_gap, free_ang = -1.0, -math.pi / 2.0  # default: above
+    for i in range(len(angs)):
+        a0 = angs[i]
+        a1 = angs[(i + 1) % len(angs)] + (
+            2.0 * math.pi if i + 1 == len(angs) else 0.0)
+        if a1 - a0 > best_gap:
+            best_gap, free_ang = a1 - a0, (a0 + a1) / 2.0
+    return free_ang
 
-    def _box_at(ang: float) -> BoundingBox:
-        dirx, diry = math.cos(ang), math.sin(ang)
-        # Push the box out so its near edge clears the dot by ~8 units, regardless
-        # of direction: distance from dot to box centre = clearance + the box's
-        # half-extent projected onto the placement direction.
-        d = vr + 8.0 + abs(dirx) * w / 2.0 + abs(diry) * h / 2.0
-        bcx, bcy = center.x + dirx * d, center.y + diry * d
-        return BoundingBox(bcx - w / 2.0, bcy - h / 2.0, bcx + w / 2.0, bcy + h / 2.0)
 
-    if egi is None or cut_bounds is None or vertex_id is None:
-        return _box_at(free_ang)
+def _vertex_box_at(center, ang, w, h, vr, extra=0.0) -> BoundingBox:
+    """The label box placed in direction ``ang`` from the dot.  ``extra`` pushes it
+    farther out (the ladder the global pass uses to spread crowded labels)."""
+    dirx, diry = math.cos(ang), math.sin(ang)
+    # Distance from dot to box centre = dot clearance + extra push + the box's
+    # half-extent projected onto the placement direction.
+    d = vr + 8.0 + extra + abs(dirx) * w / 2.0 + abs(diry) * h / 2.0
+    bcx, bcy = center.x + dirx * d, center.y + diry * d
+    return BoundingBox(bcx - w / 2.0, bcy - h / 2.0, bcx + w / 2.0, bcy + h / 2.0)
 
-    # Cut-aware: find a direction that keeps the box inside its area cut and out of
-    # every non-ancestor cut, so the §3.3 occlusion test (which uses these very
-    # predicates) accepts it.  Try the aesthetic free direction first, then cardinals.
+
+def _vertex_cut_context(egi, vertex_id, cut_bounds, style):
+    """(container, non-ancestor-cut obstacles, cut shape, corner radius) for the
+    cut-containment test — the area a label box must stay inside / clear of."""
     cut_id_set = {c.id for c in egi.Cut}
     area_cut = element_area(egi).get(vertex_id, egi.sheet)
     parent_map = cut_parents(egi)
@@ -688,17 +677,54 @@ def vertex_label_box(
         cut_bounds[cid] for cid in cut_id_set
         if cid not in ancestors and cid in cut_bounds
     ]
+    return container, obstacles, shape, radius
 
-    def _fits(box: BoundingBox) -> bool:
-        if container is not None and not bounds_in_cut(box, container, shape, radius):
-            return False
-        return not any(box_intrudes_cut(box, ob, shape, radius) for ob in obstacles)
 
+def _fits_cuts(box, container, obstacles, shape, radius) -> bool:
+    """Whether ``box`` stays wholly inside its area cut and clear of every
+    non-ancestor cut (the cut-straddle clause of the §3.3 occlusion test)."""
+    if container is not None and not bounds_in_cut(box, container, shape, radius):
+        return False
+    return not any(box_intrudes_cut(box, ob, shape, radius) for ob in obstacles)
+
+
+def vertex_label_box(
+    label, center, style, ligature_paths=(), vertex_id=None,
+    egi=None, cut_bounds=None,
+) -> BoundingBox:
+    """The axis-aligned **extent** of a vertex/constant label, placed adjacent to
+    its dot.  The preferred direction is the *freest* angular gap between the lines
+    of identity incident to the vertex (so the label never sits on a ligature it is
+    incident to), defaulting to the right of the dot when no incident line leaves
+    eastward.
+
+    **Single-box placement** (cut-aware, sibling-*blind*).  This is the per-vertex
+    primitive the layout engine / clockwise reader use as a soft-obstacle estimate.
+    When ``egi`` and ``cut_bounds`` are supplied, the preferred direction is only
+    taken if the resulting box stays wholly inside the vertex's area cut and clear
+    of every non-ancestor cut; otherwise the freest direction is tried, then the
+    four cardinals, and the first that fits is used, falling back to the freest gap.
+
+    The authoritative, **sibling-aware** placement the renderer draws and §3.3
+    attests is ``place_label_boxes`` (which builds on these same primitives so the
+    two never diverge); this function is unchanged so its existing callers keep
+    identical geometry.  ``style`` may be ``None`` (defaults used); the width is a
+    faithful font-size estimate, not pixel-exact."""
+    vr = float(getattr(style, "vertex_radius", 5.0) or 5.0)
+    w, h = _vertex_label_dims(label, style)
+    angs = _vertex_incident_angles(ligature_paths, vertex_id)
+    free_ang = _vertex_free_angle(angs)
+
+    if egi is None or cut_bounds is None or vertex_id is None:
+        return _vertex_box_at(center, free_ang, w, h, vr)
+
+    container, obstacles, shape, radius = _vertex_cut_context(
+        egi, vertex_id, cut_bounds, style)
     for ang in (free_ang, -math.pi / 2.0, math.pi / 2.0, math.pi, 0.0):
-        box = _box_at(ang)
-        if _fits(box):
+        box = _vertex_box_at(center, ang, w, h, vr)
+        if _fits_cuts(box, container, obstacles, shape, radius):
             return box
-    return _box_at(free_ang)
+    return _vertex_box_at(center, free_ang, w, h, vr)
 
 
 def boxes_overlap(a: BoundingBox, b: BoundingBox) -> bool:
@@ -753,6 +779,113 @@ def path_intersects_box(points, box: BoundingBox) -> bool:
                 and box.min_y + 1e-9 < my < box.max_y - 1e-9):
             return True
     return False
+
+
+# Candidate directions for a crowded vertex label, tried in order — the aesthetic
+# free direction first, then the four cardinals, then the four diagonals — each at
+# a small ladder of push-out distances.  Enough spread that two long adjacent
+# labels find non-overlapping homes (the F1⁵ Warner-Bros collision class).
+_VERTEX_PUSH_LADDER = (0.0, 12.0, 26.0, 44.0, 68.0)
+
+
+def place_label_boxes(
+    egi, predicate_positions, vertex_positions, ligature_paths, cut_bounds, style,
+    show_vertex_labels=True,
+):
+    """Global, deterministic, **sibling-aware** placement of every label box — the
+    single source of truth the renderer draws from and §3.3 attests, so picture and
+    test never diverge.
+
+    ``vertex_label_box`` places each label alone (cut-aware but blind to the other
+    labels), so two long constant labels whose dots sit near each other both default
+    to the right of their dot and overlap — a genuine text-on-text occlusion whose
+    appearance flips with parse tie-breaks, the coin-flip that killed run 5
+    (``runs/RUN_5_LOG.md`` F1⁵).  This pass places all labels *together* so each
+    avoids the others.
+
+    Predicate boxes are anchored (no placement freedom) and enter first as fixed
+    obstacles.  Vertex/constant labels are then placed **longest-first** (the hardest
+    to fit claims space early; tie-break by label then id, so two parses agree), each
+    taking the first candidate direction+distance that
+
+      (1) stays inside its area cut and clear of every non-ancestor cut,
+      (2) overlaps no already-placed box, and
+      (3) is not struck through by a line of identity it is not incident to
+
+    — i.e. the chosen spot satisfies all three §3.3 occlusion clauses by
+    construction.  Only when *no* candidate fits (a genuinely cramped area the engine
+    must widen) does it fall back to the freest gap, which §3.3 then flags honestly.
+
+    Returns ``{element_id: BoundingBox}`` over edge ids (predicates) and the vertex
+    ids of labelled vertices.  ``style`` may be ``None``.
+    """
+    placed = {}
+    obstacle_boxes = []  # every box placed so far (predicate + vertex)
+
+    # Predicates first — fixed extent at their anchor; order is irrelevant (each is
+    # independent) so plain E iteration is fine.
+    for edge in egi.E:
+        ppos = predicate_positions.get(edge.id)
+        if ppos is None:
+            continue
+        box = predicate_label_box(egi.get_relation_name(edge.id), ppos, style)
+        placed[edge.id] = box
+        obstacle_boxes.append(box)
+
+    if not show_vertex_labels:
+        return placed
+
+    vr = float(getattr(style, "vertex_radius", 5.0) or 5.0)
+
+    labelled = [
+        v for v in egi.V
+        if getattr(v, "label", None) and vertex_positions.get(v.id) is not None
+    ]
+    # Deterministic, id-independent up to genuinely identical labels.
+    labelled.sort(key=lambda v: (-len(v.label), v.label, str(v.id)))
+
+    directions = (
+        None,  # placeholder for each vertex's free angle, filled per-vertex below
+        -math.pi / 2.0, math.pi / 2.0, math.pi, 0.0,
+        -math.pi / 4.0, math.pi / 4.0, -3.0 * math.pi / 4.0, 3.0 * math.pi / 4.0,
+    )
+
+    for v in labelled:
+        center = vertex_positions[v.id]
+        w, h = _vertex_label_dims(v.label, style)
+        angs = _vertex_incident_angles(ligature_paths, v.id)
+        free_ang = _vertex_free_angle(angs)
+        if cut_bounds is not None:
+            container, cut_obstacles, shape, radius = _vertex_cut_context(
+                egi, v.id, cut_bounds, style)
+        else:
+            container, cut_obstacles, shape, radius = None, [], None, 0.0
+        nonincident = [
+            lp for lp in ligature_paths if getattr(lp, "vertex_id", None) != v.id
+        ]
+        cand_dirs = tuple(free_ang if d is None else d for d in directions)
+
+        chosen = None
+        for extra in _VERTEX_PUSH_LADDER:
+            for ang in cand_dirs:
+                box = _vertex_box_at(center, ang, w, h, vr, extra)
+                if not _fits_cuts(box, container, cut_obstacles, shape, radius):
+                    continue
+                if any(boxes_overlap(box, ob) for ob in obstacle_boxes):
+                    continue
+                if any(path_intersects_box(getattr(lp, "points", ()), box)
+                       for lp in nonincident):
+                    continue
+                chosen = box
+                break
+            if chosen is not None:
+                break
+        if chosen is None:
+            chosen = _vertex_box_at(center, free_ang, w, h, vr)
+        placed[v.id] = chosen
+        obstacle_boxes.append(chosen)
+
+    return placed
 
 
 def _ellipse_secant_crossings(a: Point, b: Point, bounds: BoundingBox) -> int:
@@ -1449,6 +1582,7 @@ __all__ = [
     "predicate_label_box",
     "box_intrudes_cut",
     "vertex_label_box",
+    "place_label_boxes",
     "boxes_overlap",
     "path_intersects_box",
     "count_cut_crossings",

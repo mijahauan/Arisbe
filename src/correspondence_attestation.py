@@ -40,10 +40,10 @@ from presentation_ops import (
     cut_parents,
     element_area,
     path_intersects_box,
+    place_label_boxes,
     point_in_cut,
     predicate_label_box,
     resolve_cut_boundaries,
-    vertex_label_box,
 )
 
 
@@ -259,28 +259,25 @@ def check_correspondence(
     show_vertex_labels = (
         getattr(dto.style, "vertex_rendering_mode", "dot_and_label") != "dot_only"
     )
+    # The authoritative label boxes come from the single global, sibling-aware
+    # placement pass (`place_label_boxes`) that the renderer also draws from, so
+    # test and picture never diverge — and a crowded pair of long constant labels
+    # is placed to avoid each other rather than colliding (the F1⁵ occlusion
+    # coin-flip, runs/RUN_5_LOG.md).  A per-vertex placement would leave the two
+    # occlusion clauses below to catch what a global pass prevents by construction.
+    boxes_map = place_label_boxes(
+        egi, dto.predicate_positions, dto.vertex_positions,
+        dto.ligature_paths, dto.cut_bounds, dto.style,
+        show_vertex_labels=show_vertex_labels,
+    )
     label_boxes = []  # (kind, elem_id, box)
     for edge in egi.E:
-        ppos = dto.predicate_positions.get(edge.id)
-        if ppos is None:
-            continue
-        label_boxes.append(
-            ("predicate", edge.id,
-             predicate_label_box(egi.get_relation_name(edge.id), ppos, dto.style))
-        )
+        if edge.id in boxes_map:
+            label_boxes.append(("predicate", edge.id, boxes_map[edge.id]))
     if show_vertex_labels:
         for vertex in egi.V:
-            if not getattr(vertex, "label", None):
-                continue
-            vpos = dto.vertex_positions.get(vertex.id)
-            if vpos is None:
-                continue
-            label_boxes.append(
-                ("vertex", vertex.id,
-                 vertex_label_box(vertex.label, vpos, dto.style,
-                                  dto.ligature_paths, vertex.id,
-                                  egi=egi, cut_bounds=dto.cut_bounds))
-            )
+            if vertex.id in boxes_map:
+                label_boxes.append(("vertex", vertex.id, boxes_map[vertex.id]))
 
     # (1) text-on-text overlap (each unordered pair once).
     for i in range(len(label_boxes)):

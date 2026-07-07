@@ -43,6 +43,7 @@ from presentation_ops import (
     reroute_ligature,
     reshape_cut,
     move_cut,
+    place_label_boxes,
     vertex_label_box,
 )
 from style_loader import load_default_style
@@ -890,3 +891,75 @@ def test_vertex_label_box_is_cut_aware(tomos, engine, style):
     cramped = vertex_label_box("Socrates", vp, style, dto.ligature_paths, vid,
                                egi=egi, cut_bounds=tiny)
     assert not bounds_in_cut(cramped, tiny[cut_id], shape, radius)
+
+
+# --- place_label_boxes: the global, sibling-aware placement pass (F1⁵ root fix) - #
+
+_LONG_A = "Warner Bros. Studio Tour London – The Making of Harry Potter"
+_LONG_B = "Warner Bros. Studio Tours"
+
+
+def test_place_label_boxes_separates_crowded_long_labels(style):
+    """The F1⁵ failure class: two long constant labels whose dots sit near each
+    other collide under the per-vertex placement (both default to the right of the
+    dot) but the global pass places them to avoid each other."""
+    from egif_parser_dau import parse_egif
+
+    egi = parse_egif(f'(near "{_LONG_A}" "{_LONG_B}")')
+    vs = [v for v in egi.V if v.label]
+    # Force the collision: two dots close together, no ligatures, no cuts.
+    vpos = {vs[0].id: Point(100, 100), vs[1].id: Point(140, 100)}
+
+    naive0 = vertex_label_box(vs[0].label, vpos[vs[0].id], style)
+    naive1 = vertex_label_box(vs[1].label, vpos[vs[1].id], style)
+    assert boxes_overlap(naive0, naive1), "expected the naive placement to collide"
+
+    boxes = place_label_boxes(egi, {}, vpos, (), {}, style)
+    assert not boxes_overlap(boxes[vs[0].id], boxes[vs[1].id]), \
+        "the global pass must place the two long labels clear of each other"
+
+
+def test_place_label_boxes_is_deterministic(style):
+    """Same inputs → same map (no dependence on set-iteration / hash-seed order),
+    so the drawing and the §3.3 attest read one stable placement."""
+    from egif_parser_dau import parse_egif
+
+    egi = parse_egif(f'(near "{_LONG_A}" "{_LONG_B}")')
+    vs = [v for v in egi.V if v.label]
+    vpos = {vs[0].id: Point(100, 100), vs[1].id: Point(140, 100)}
+
+    def _snap():
+        m = place_label_boxes(egi, {}, vpos, (), {}, style)
+        return {k: (round(b.min_x, 4), round(b.min_y, 4)) for k, b in m.items()}
+
+    assert _snap() == _snap()
+
+
+def test_place_label_boxes_avoids_predicate_obstacles(style):
+    """A vertex label is placed clear of the (fixed) predicate boxes, not just of
+    other vertex labels — predicates enter the pass first as obstacles."""
+    from egif_parser_dau import parse_egif
+
+    egi = parse_egif(f'(near "{_LONG_A}" "{_LONG_B}")')
+    (eid,) = [e.id for e in egi.E]
+    vs = [v for v in egi.V if v.label]
+    vpos = {vs[0].id: Point(100, 100), vs[1].id: Point(300, 100)}
+    ppos = {eid: Point(120, 100)}     # predicate box sits right beside vertex 0's dot
+
+    boxes = place_label_boxes(egi, ppos, vpos, (), {}, style)
+    assert eid in boxes and vs[0].id in boxes
+    assert not boxes_overlap(boxes[eid], boxes[vs[0].id])
+
+
+def test_place_label_boxes_falls_back_when_no_gap(style):
+    """A single label boxed into a cut too small in every direction still yields a
+    box (the free placement) rather than crashing — §3.3 then flags it honestly."""
+    from egif_parser_dau import parse_egif
+
+    egi = parse_egif('~[ (Human "Socrates") ]')
+    (cut_id,) = [c.id for c in egi.Cut]
+    (vid,) = [v.id for v in egi.V]
+    vp = Point(200, 200)
+    tiny = {cut_id: BoundingBox(vp.x - 4, vp.y - 4, vp.x + 4, vp.y + 4)}
+    boxes = place_label_boxes(egi, {}, {vid: vp}, (), tiny, style)
+    assert vid in boxes and isinstance(boxes[vid], BoundingBox)

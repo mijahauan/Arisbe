@@ -14,7 +14,7 @@ from typing import Dict, Optional
 
 import render_geometry as rg
 from layout_dto import LayoutDTO
-from presentation_ops import predicate_label_box, vertex_label_box
+from presentation_ops import place_label_boxes, predicate_label_box, vertex_label_box
 from egi_core_dau import RelationalGraphWithCuts
 
 
@@ -351,7 +351,20 @@ class SimpleSVGRenderer:
         # ====================================================================
         # Render Vertices
         # ====================================================================
-        
+
+        # Global, sibling-aware label placement — the single source of truth the
+        # §3.3 occlusion attest also reads (presentation_ops.place_label_boxes), so
+        # a crowded pair of long labels is placed to avoid each other and the drawn
+        # picture is exactly what attest verifies (docs/EXACT_CORRESPONDENCE.md
+        # Phase 3b; the F1⁵ coin-flip fix, runs/RUN_5_LOG.md).
+        _label_boxes = {}
+        if egi is not None:
+            _label_boxes = place_label_boxes(
+                egi, dto.predicate_positions, dto.vertex_positions,
+                dto.ligature_paths, dto.cut_bounds, style,
+                show_vertex_labels=(style.vertex_rendering_mode != "dot_only"),
+            )
+
         for v_id, pos in dto.vertex_positions.items():
             cx = pos.x + offset_x
             cy = pos.y + offset_y
@@ -397,8 +410,10 @@ class SimpleSVGRenderer:
             # centred in that box, so the drawn extent and the §3.3 occlusion test
             # read from one source of truth (`docs/EXACT_CORRESPONDENCE.md` Phase 3b).
             if label and style.vertex_rendering_mode != "dot_only":
-                _vbox = vertex_label_box(label, pos, style, dto.ligature_paths, v_id,
-                                         egi=egi, cut_bounds=dto.cut_bounds)
+                _vbox = _label_boxes.get(v_id)
+                if _vbox is None:      # no egi (or unlabelled in the map) — fall back
+                    _vbox = vertex_label_box(label, pos, style, dto.ligature_paths,
+                                             v_id, egi=egi, cut_bounds=dto.cut_bounds)
                 v_attrs = {
                     "x": str((_vbox.min_x + _vbox.max_x) / 2 + offset_x),
                     "y": str((_vbox.min_y + _vbox.max_y) / 2 + offset_y),

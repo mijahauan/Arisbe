@@ -1,6 +1,63 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-07, second sitting) — THE CONSOLIDATE/ADOPT TRACK, R3+R2+G5 SHIPPED.**
+**▶▶ THIS SESSION (2026-07-07, third sitting) — R4 + F1⁵ ROOT FIX SHIPPED (run 8 next).**
+
+**F1⁵ ROOT FIX — the label-occlusion coin-flip is gone.** Run 5 was killed at seg 1531 when
+the checkpoint §3.3 attest refused with a text-on-text occlusion (two long Wikidata constant
+labels overlapping) — a *content-dependent coin-flip* (~50/50 across re-parses; parse
+tie-breaks → different ELK geometry → labels do/don't collide). Root cause:
+`presentation_ops.vertex_label_box` placed each label in the freest angular gap **per-vertex,
+sibling-blind**, so two long adjacent labels both defaulted to the right of their dot and
+overlapped. Fix (protected-core, authorized): a new **global, deterministic, sibling-aware**
+`presentation_ops.place_label_boxes` — predicates enter first as fixed obstacles, then vertex
+labels are placed **longest-first**, each taking the first candidate direction+distance (free
+gap → cardinals → diagonals × a push-out ladder) that (1) stays in its cut, (2) overlaps no
+placed box, (3) isn't struck by a non-incident ligature. Both the **renderer**
+(`simple_svg_renderer`) and the **attest** (`correspondence_attestation`) now read this one
+map, so picture and §3.3 never diverge. `vertex_label_box` kept unchanged for ELK/clockwise
+(soft-obstacle callers). **Verified:** the Warner-Bros pair now attests **20/20 across
+re-parses** (was ~50/50); corpus §3.3 invariant + layout-attestation **685 passed**; the full
+`presentation_ops`+`attestation` suites green with a new `place_label_boxes` unit set +
+Warner-Bros adversarial; core math **64 passed**. **Honest correction:** the queue hoped this
+would also *retire the `eg_reader` clockwise flakes* — it does **not**. Those 3 tests
+(`test_clockwise_*`, `test_round_trip[peirce-style1]`) fail identically on baseline under a
+fixed seed and pass under a random one; their root cause is **argument-order recovery from ELK
+geometry**, orthogonal to label placement — a separate, still-open flake (they don't gate the
+core suite). The `checkpoint_refusal="skip"` mitigation stays as belt-and-suspenders. **Not
+yet committed.**
+
+**R4 SHIPPED: the non-visual EG accessibility projection.** The queue's recommended next consolidate/adopt build. Arisbe owns the
+coordinate-free ground truth (`natural_layout(egi)`); the picture is one projection of it,
+and R4 adds a projection that is *not visual at all* — so an EG is legible to a screen-reader
+user, or anyone reading rather than seeing. All additive, geometry-free (no §3.3 obligation,
+like the modal/audit lenses), nothing existing modified except additive wiring.
+- **`src/accessible_projection.py`** (pure, geometry-free — a `test`-enforced no-geometry
+  import guard mirroring `natural_layout`): `accessible_projection(egi)` → a traversable
+  sheet → cut → area → predicate → line/ligature tree; `spoken_reading(egi)` → the outside-in
+  structural narration (clones `egi_to_fol._Reader.read_area`'s recursion: generic→∃,
+  atom→relation, cut→negation — *structural-faithful, not idiomatic*, so it never rephrases
+  scope); `reading_lines` → the flat screen-reader reading order; `projection_to_dict` for the
+  HTTP boundary. Introduces the **"asserted"/"denied" stance vocabulary** (keyed off canonical
+  polarity). **Faithfulness earned by tests:** totality/injectivity (every vertex/edge/cut
+  appears exactly once, corpus-wide) + crossing fidelity (each narrated incidence's crossings
+  == `natural_layout`'s). Ordering/naming made **id-independent** (structural signatures, not
+  fresh vertex ids) so two parses of one graph read identically — the `canonical_signature`
+  concern, solved locally.
+- **`GET /organon/uods/{id}/accessible`** — mirrors `/modal`,`/audit`: `attest=False` load,
+  returns `{tree, reading, reading_lines, linear_forms}` (the EGIF travels as the cross-check).
+- **`web_viewer/js/accessible-lens.js`** — a genuine **ARIA tree** (`role=tree/treeitem/group`,
+  `aria-level`/`aria-expanded`, roving tabindex + full arrow-key nav) so it is actually usable
+  by a screen reader; sighted users get the collapsible outline + the reading + EGIF. Mounted
+  in `organon.html` beside the modal/audit lenses; `fetchAccessible` added to `lens-common.js`.
+- **Tests:** `test_accessible_projection.py` (totality/crossing/determinism/hand-checked
+  readings/falsifier/no-geometry guard) + `/accessible` route coverage in `test_organon_routes.py`
+  + an ARIA-tree + keyboard-nav **e2e** in `test_organon_lenses_e2e.py`.
+- **Verified:** R4 module+route+correspondence+natural_layout suites **945 passed / 79 skipped
+  / 0 failed**; core math **64 passed**; the accessible-lens **e2e passed in real Chromium**
+  (tree mounts, ArrowDown moves focus, reading+EGIF present, zero console errors). **Not yet
+  committed.** Next in this session's plan: the **F1⁵ label-placement root fix**, then **run 8**.
+
+**▶▶ PREVIOUS (2026-07-07, second sitting) — THE CONSOLIDATE/ADOPT TRACK, R3+R2+G5 SHIPPED.**
 The three affirmed consolidation candidates all built + green. Author framing reaffirmed at the
 start: *keep this phase solid up to the frontier of gamma/2nd-order, get more people involved,
 keep the gamma/2nd-order door explicitly open* — exactly this track; the gamma boundary is now

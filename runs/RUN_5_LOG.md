@@ -172,13 +172,21 @@ Candidate resolutions:
    attesting a re-rolled isomorph while saving the original ids would plant a load-time bomb
    (the load boundary re-attests the original and would refuse it ~50% of rolls). Skip-and-count
    is the honest form.
-2. **F1⁵ root fix — QUEUED (not gating the re-run):** inspection shows the defect is deeper
-   than ELK sizing: `presentation_ops.vertex_label_box` places the label in the *freest angular
-   gap* post-layout (cut-aware but not sibling-label-aware), so ELK cannot reserve for it
-   without a global, deterministic label-placement pass shared by renderer and attest —
-   `presentation_ops` is **protected core**; the change wants its own design + corpus attest
-   pass. Skip-and-count covers the run meanwhile (observed refusal base rate: 1/1,531 segments
-   on live content).
+2. **F1⁵ root fix — SHIPPED (2026-07-07):** the defect was per-vertex, sibling-blind placement
+   in `presentation_ops.vertex_label_box` (freest angular gap post-layout, cut-aware only).
+   Fixed by a new **global, deterministic, sibling-aware** `presentation_ops.place_label_boxes`
+   (predicates first as fixed obstacles → vertex labels longest-first, each taking the first
+   candidate direction+distance that stays in its cut, overlaps no placed box, and clears
+   non-incident ligatures), read by **both** the renderer (`simple_svg_renderer`) and the attest
+   (`correspondence_attestation`) so picture and §3.3 never diverge. `vertex_label_box` kept
+   unchanged for ELK/clockwise soft-obstacle callers. Verified: the Warner-Bros pair attests
+   **20/20 across re-parses** (was ~50/50); corpus §3.3 invariant + attestation **685 passed**;
+   full `presentation_ops`+`attestation` **136 passed** (adds a `place_label_boxes` unit set + a
+   Warner-Bros adversarial); core math **64 passed**. Protected-core change, authorized.
+   Skip-and-count stays as belt-and-suspenders. **Not part of the fix:** the `eg_reader`
+   *clockwise* flakes the queue hoped this would retire — they fail identically on baseline
+   under a fixed seed (root cause = argument-order recovery from ELK geometry, orthogonal to
+   label placement); still open, don't gate the core suite.
 3. **F2⁵ persistence — BUILT as (ii):** `LiveRunConfig.ttl_unit="polls"` (+ driver
    `--ttl-unit`) — the habit clock counts **engagement opportunities**, not rounds; the poll
    clock is persisted in `state.json` ("poll") and continues through resume. Calibration for
