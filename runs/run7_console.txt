@@ -1,0 +1,39 @@
+run start 2026-07-06 13:00:01 — NWS resolving membrane · stations=['KAUS', 'KBOS', 'KDEN', 'KMIA', 'KSEA'] · horizon=6h · band=5°F · pop≥60% · ttl=48 polls · pacing=600.0s · laws seeded: what-is-forecast-happens · stop: touch runs/run7/STOP
+  segment: rounds=25 atoms=25 dispositions={'new_fact': 25} claims=34 resolved=0 dropped=0
+  segment: rounds=9 atoms=34 dispositions={'new_fact': 9} claims=34 resolved=0 dropped=0
+  segment: rounds=6 atoms=40 dispositions={'new_fact': 6} claims=40 resolved=0 dropped=0
+  segment: rounds=9 atoms=49 dispositions={'new_fact': 7, 'challenge_to_M': 1} bets=4 (run: 2h/1m/1a net=1) claims=45 resolved=4 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=49 dispositions={} bets=1 (run: 2h/1m/2a net=1) claims=45 resolved=5 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=58 dispositions={'new_fact': 9} bets=5 (run: 3h/1m/6a net=2) claims=51 resolved=10 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=59 dispositions={'new_fact': 1} bets=1 (run: 3h/1m/7a net=2) claims=51 resolved=11 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=12 atoms=68 dispositions={'new_fact': 9} bets=6 (run: 4h/1m/12a net=3) claims=57 resolved=17 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=77 dispositions={'new_fact': 8, 'challenge_to_M': 1} bets=5 (run: 4h/2m/16a net=2) claims=63 resolved=22 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=77 dispositions={} bets=1 (run: 4h/2m/17a net=2) claims=63 resolved=23 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=86 dispositions={'new_fact': 9} bets=5 (run: 4h/2m/22a net=2) claims=69 resolved=28 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=86 dispositions={} bets=1 (run: 4h/2m/23a net=2) claims=69 resolved=29 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=10 atoms=94 dispositions={'new_fact': 8} bets=4 (run: 4h/2m/27a net=2) claims=75 resolved=33 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=94 dispositions={} bets=1 (run: 4h/2m/28a net=2) claims=75 resolved=34 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=12 atoms=102 dispositions={'new_fact': 8} bets=6 (run: 4h/2m/34a net=2) claims=81 resolved=40 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=10 atoms=109 dispositions={'new_fact': 7} bets=4 (run: 4h/2m/38a net=2) claims=87 resolved=44 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=109 dispositions={} bets=1 (run: 4h/2m/39a net=2) claims=87 resolved=45 dropped=0 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=117 dispositions={'new_fact': 8} bets=5 (run: 4h/2m/44a net=2) claims=93 resolved=51 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=124 dispositions={'new_fact': 7} bets=5 (run: 4h/2m/49a net=2) claims=99 resolved=56 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=108 dispositions={} bets=1 (run: 4h/2m/50a net=2) claims=99 resolved=57 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=10 atoms=116 dispositions={'new_fact': 8} bets=4 (run: 4h/2m/54a net=2) claims=105 resolved=61 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=2 atoms=114 dispositions={} bets=2 (run: 4h/2m/56a net=2) claims=105 resolved=63 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=122 dispositions={'new_fact': 8} bets=5 (run: 4h/2m/61a net=2) claims=111 resolved=68 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=114 dispositions={} bets=1 (run: 4h/2m/62a net=2) claims=111 resolved=69 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=114 dispositions={'new_fact': 9} bets=5 (run: 4h/2m/67a net=2) claims=117 resolved=74 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=114 dispositions={} bets=1 (run: 4h/2m/68a net=2) claims=117 resolved=75 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=115 dispositions={'new_fact': 8} bets=5 (run: 4h/2m/73a net=2) claims=123 resolved=80 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=115 dispositions={} bets=1 (run: 4h/2m/74a net=2) claims=123 resolved=81 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=11 atoms=122 dispositions={'new_fact': 7} bets=5 (run: 4h/2m/79a net=2) claims=129 resolved=86 dropped=1 ⚠ fetch_errors=10
+  segment: rounds=1 atoms=106 dispositions={} bets=1 (run: 4h/2m/80a net=2) claims=129 resolved=87 dropped=1 ⚠ fetch_errors=10
+
+stopped: stop_file   total rounds: 215
+ledger (run-level, resolutions only): 4 hits · 2 misses · 80 abstentions · net 2 · accuracy 0.6666666666666666
+claims: raised=129 resolved=87 dropped_unresolved=1 fetch_errors=10
+laws still standing: (none — every seeded theory was relinquished)
+poise per segment: ● ● ● ● ○ ● ● ● ● ○ ● ○ ● ○ ● ● ○ ● ● ○ ● ○ ● ○ ● ○ ● ○ ● ○
+
+artifacts: runs/run7/items.jsonl (offline replay) · runs/run7/checkpoints · log dispositions in runs/RUN_7_LOG.md

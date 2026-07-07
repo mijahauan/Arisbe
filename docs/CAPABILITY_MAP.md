@@ -94,6 +94,7 @@
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
+| HTTP API (live OpenAPI spec) | SHIPPED | `web_api/main.py` (FastAPI) | `/openapi.json` + `/docs` (Swagger) auto-served — 80+ routes across `/organon` `/ergasterion` `/agon` `/export` `/import` `/primer`. The machine-readable API reference is the running server; error vocabulary in `TROUBLESHOOTING.md`. |
 | **Organon** — read-only archive | SHIPPED | `web_api/routes/organon.py` → `test_organon_routes.py`, `test_overview_routes.py` | Listing, Universe of Discourse ([UoD](GLOSSARY.md#uod)) detail, chain player; both load+render §3.3-attested. |
 | Adaptive-scope lenses (overview) | SHIPPED | `overview_projection.py`, `eg_structure.py` → `test_overview_attestation.py` | Negation well + storyboard; LOD knob. |
 | **Ergasterion** — workshop | SHIPPED | `web_api/routes/ergasterion.py` → `test_ergasterion_routes.py` | RuleInteraction-driven; regime-1 drafts; branch-on-edit; scratch store. |

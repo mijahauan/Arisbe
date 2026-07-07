@@ -214,4 +214,7 @@ runs/*/checkpoints/
 runs/*/state.json
 runs/*/frontier.json
 runs/*/polls.jsonl
+runs/*/items.jsonl
+runs/*/weather_state.json
+runs/*/asks.jsonl
 runs/*/STOP

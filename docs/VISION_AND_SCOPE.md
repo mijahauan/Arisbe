@@ -169,6 +169,40 @@ horizon-as-register (the irritation pole — the warm-set re-poll — shipped 20
 non-load-bearing map symbol (channels reserved, forward-compatible by construction); the layout-perf
 frontier for very large ontologies. These live in [ROADMAP.md](ROADMAP.md).
 
+### When to reach for something else — the honest anti-pitch
+
+Arisbe is a first-order diagrammatic logic environment whose distinctive value is *the
+picture being the logic* — an inerrant, runtime-attested correspondence between a drawn
+graph and its meaning, over a diachronic model that revises under dialogue and evidence. It
+is deliberately **not** a general proof assistant or a production reasoner, and honest
+scoping serves an adopter better than a broad claim:
+
+- **For dependent types, higher-order mathematics, or large automated proof** (mathlib-scale
+  formalization, tactic/hammer automation, a machine-checked archive): use **Lean/mathlib,
+  Coq/Rocq, or Isabelle**. Arisbe's calculus is Alpha+Beta = first-order logic with identity;
+  it offers legibility and a gentle two-rule symmetry, not expressive reach or proof search.
+- **For temporal specification and bounded model-finding with counterexample traces**
+  (protocols, concurrency, invariants over state): use **TLA+ or Alloy**. Arisbe's semantic
+  game does open-world, three-valued model-*checking* over a Horn fragment, not temporal
+  model-finding.
+- **For large-scale ontology classification and DL reasoning** (10⁵–10⁶ axioms, full OWL 2
+  DL, `unsatisfiable`-class detection at scale): use a **production reasoner via
+  Protégé/ROBOT** (ELK, HermiT, Pellet). Arisbe imports a Horn-shaped fragment and reports
+  what it cannot draw; its ceiling is thousands of atoms, not millions, and its layout layer
+  is an authoring/explanation surface, not the reasoner.
+
+What Arisbe uniquely offers *instead*, and where it is the right tool: a working notation in
+which humans read and manipulate first-order logic **as pictures** with a machine-checked
+guarantee that the picture cannot lie about its logic; a diachronic record where "fact" is
+the defeasible last-standing trajectory and every revision is attested; and a dialogical
+game in which a claim earns standing by withstanding challenge, played by humans or by LLMs
+under an incorruptible mechanical referee. For teaching quantifier scope and negation, for
+scholarly reproduction of Peirce's graphs, for auditing how a model's verdicts changed as
+evidence arrived, and for giving an LLM agent a checkable diagrammatic verifier — reach for
+Arisbe. (Several of these adjacencies are also *bridges under consideration* rather than
+walls — see [PROSPECTS_MULTIPERSPECTIVE.md](PROSPECTS_MULTIPERSPECTIVE.md), where the
+proof-assistant and ontology communities ask for exactly this interoperation.)
+
 ---
 
 ## 6. Governing principles

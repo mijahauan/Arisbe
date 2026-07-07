@@ -80,3 +80,19 @@ same artifact — never maintained twice.
 
 > The generated outputs (`docs/_book/`, `docs/.quarto/`) are not checked in; run
 > `quarto render docs` after pulling to refresh them.
+
+## The HTTP API
+
+The web app is a FastAPI service, so the **complete, live, machine-readable API reference is
+served by the running server** — no separate document to fall out of date:
+
+- **<http://localhost:8000/docs>** — interactive Swagger UI (browse and *try* every route).
+- **<http://localhost:8000/openapi.json>** — the OpenAPI 3 spec (80+ routes across
+  `/organon`, `/ergasterion`, `/agon`, `/export`, `/import`, `/primer`), for generating a
+  client or wiring an integration.
+
+`ARISBE_CORE_API_REFERENCE.md` documents the **Python** core API; the two are complementary —
+HTTP for integrating *with* a running Arisbe, the Python reference for building *inside* it. A
+curated schema for the highest-traffic routes and their structured error bodies is queued;
+meanwhile `TROUBLESHOOTING.md` catalogues the error/refusal vocabulary an integrator will
+meet.
