@@ -1,6 +1,68 @@
 # Current Plan
 
-**▶▶▶ THIS SESSION (2026-07-05) — F1ᵇ/F2ᵇ FIXED · §15 GATE FIRED & AFFIRMED · INCREMENT
+**▶▶▶ NEXT SESSION (prepared 2026-07-07) — THE CONSOLIDATE / ADOPT TRACK.** Author decisions
+affirmed 2026-07-07: **lead track = consolidate/adopt** (turn a laptop research system into
+one others can use + adopt), **grow-vs-federate = DEFERRED** (decide when a candidate forces
+it), **medium-vs-view = PRIMARY MEDIUM + BRIDGES** (diagrams ARE the logic *and* export
+skeletons / import fragments for inspection). The three consolidation candidates all fit
+"primary medium + bridges" and need no deferred decision to start. Execute in this order:
+
+1. **R3 — verifier-as-an-MCP-service (the centerpiece build).** Expose the mechanical referee
+   as MCP tools any LLM-agent framework can call: `check_egif` (parse+validate), `peel`
+   (`semantic_game.evaluate` @ src/semantic_game.py:318 → 3-valued verdict + witness/
+   counterexample against a supplied M), `validate_step`/`apply_rule` (a Dau rule,
+   soundness-checked), `attest` (`correspondence_attestation.attest_correspondence` @ :495).
+   Rides the MCP substrate wave; the machinery already exists (a wrapper, not new logic) — the
+   single highest external-leverage adoption move. **Pattern:** a stdio MCP server (the
+   graphify skill's `graphify.serve` is a reference shape); add `mcp` as an **optional extra**
+   (`nl`-style gated, import-guarded, CI-safe with a scripted-fake client; never hits a live
+   model in tests). Additive, non-core. Ship with a `docs/` note + a CAPABILITY_MAP row; no
+   run/pre-registration needed (it's a build, not a probe).
+2. **R2 first increment — the §3.3 attestation contract as a prover-agnostic spec** (the
+   companion doc: the MCP verifier *enforces* exactly this). Extract the correspondence
+   contract — properties, the six §7 test shapes, the failure taxonomy — into a standalone
+   spec another tool could implement, grounded in `correspondence_attestation.py` +
+   `test_correspondence_invariant.py`. Plus a dataset/interchange-schema card for the tomos
+   corpus (EGI JSON + chain JSONL + provenance) with the MIT license made explicit — the
+   near-universal survey ask (PROSPECTS R2: the field has no shared diagrammatic-proof
+   benchmark; Arisbe's corpus is the best candidate).
+3. **G5 doc closures (cheap, no decision — warm-up or parallel).** The cold-read scoped these
+   precisely: a **digest-field glossary with healthy/stop thresholds** + a **one-page disposal
+   checklist** (the two artifacts that move the ops-runbook gap from PARTIAL to ANSWERED — the
+   launch/stop/resume flow is already covered by `--help` + AEG §10).
+
+**Queued after (named, not lost):** R4 (non-visual EG accessibility projection — screen-
+reader-native sheet→cut→area→ligature traversal of the coordinate-free `natural_layout(egi)`
+@ src/natural_layout.py:113 + spoken linear forms — distinctive; Arisbe uniquely owns the
+ground truth); the **deferred build-track alternative run 8** (predict→refute→RE-GENERALIZE,
+the resolving membrane's own F2⁷ next question, machinery ready); the **F1⁵ root fix** (global
+label placement shared renderer+attest — protected-core design pass, also retires the eg_reader
+clockwise flakes); 2b (docket proving ground); the docket Q2/Q3 tiers (sized by RUN_6 F2⁶);
+the spectator surface (RATE_AND_INTELLIGIBILITY + ADAPTIVE_SCOPE_VIEWER §10). The two gating
+tensions (grow-vs-federate deferred; medium-vs-view decided) live in
+`docs/PROSPECTS_MULTIPERSPECTIVE.md` with R1–R10 + provenance.
+
+**▶▶ THIS SESSION (2026-07-06→07) — RUN 7 (THE VEIL CROSSED) · STORM AUDIT + PROSPECTS ·
+COLD-READER FIX · GRAPHIFY REFRESH.** Run 7 = the first live *resolving* membrane (NWS
+weather, §18): the naive seeded theory "what is forecast, happens" bet, was empirically
+FALSIFIED, and BOTH laws relinquished by the world via `challenge_to_M` (P1⁷–P6⁷ all
+confirmed; RUN_7_LOG). F1⁷ NWS /observations flaky (retry/backoff queued); F2⁷ discretization
+= the falsifiability knob → run-8 = re-generalize; F3⁷ single-source check vindicated. THEN
+applied Stanford **STORM** natively (multi-agent): `docs/STORM_DOCS_AUDIT.md` (13 reader-
+personas incl. 6 delta perspectives → ~180 questions → 12 gap themes; disposed 4 highest-
+demand gaps: OpenAPI discoverability, `TROUBLESHOOTING.md`, an anti-pitch in VISION,
+`CONTRIBUTING.md`) + `docs/PROSPECTS_MULTIPERSPECTIVE.md` (7 web-surveyed disciplinary lenses
+→ convergent asks R1–R10 + 4 tensions; ROADMAP untouched). THEN a **cold-reader independence
+check** (3 fresh agents on G1/G5/G6) that EARNED ITS KEEP: caught a real **portability bug**
+(8 route files hardcoded the author's absolute corpus path → app only ran on one laptop;
+fixed via `src/web_api/paths.py` repo-relative + `ARISBE_TOMOS`/`ARISBE_SCRATCH` env
+overrides; 42 UoDs served from the relative path, 122 route tests pass) + two overstated
+disposals (added a real curl client example; TROUBLESHOOTING into the book nav). THEN
+`graphify --update` (12,269→12,884 nodes; the run-2→7 arc crystallized as community 200;
+noise filters made permanent in `.graphifyignore`). Commits: 3065fad (run 7), 472e5e7
+(STORM), 5dda22f (cold-reader+portability), 09da271 (graphify) — all pushed.
+
+**▶▶ PREVIOUS (2026-07-05) — F1ᵇ/F2ᵇ FIXED · §15 GATE FIRED & AFFIRMED · INCREMENT
 2a (THE DOCKET) BUILT.** F1ᵇ: `egif_parser_dau` regenerates on the 32-bit id birthday
 collision (`_fresh_vertex/_fresh_edge/_fresh_cut`; collision simulated deterministically in
 `test_parser_id_collision.py`). F2ᵇ lever (a): `LiveRunConfig.checkpoint_every` + driver
