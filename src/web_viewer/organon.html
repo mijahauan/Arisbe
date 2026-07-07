@@ -373,6 +373,7 @@
           <option value="derivation-dag" hidden disabled>Derivation DAG — branch structure</option>
           <option value="modal" hidden disabled>Modal reading — ◇ / □ off the history</option>
           <option value="audit" hidden disabled>Audit — verdict trajectory (M through dialog)</option>
+          <option value="accessible">Accessible reading — non-visual (screen-reader)</option>
         </select>
         <!-- Overview (adaptive-scope) controls: shown only in the overview lens.
              Collapse deep cuts into content-sized placeholders so a graph too
@@ -462,6 +463,7 @@
   <script src="js/derivation-dag-lens.js"></script>
   <script src="js/modal-lens.js"></script>
   <script src="js/audit-lens.js"></script>
+  <script src="js/accessible-lens.js"></script>
   <script>
     (function () {
       const listEl = document.getElementById('organon-uod-list');
@@ -1098,6 +1100,10 @@
             // The verdict trajectory of a model revised through dialog
             // (model_revision) — the lens owns its fetch + the editable proposal.
             activeLensHandle = window.AuditLens.mount(canvasEl, selectedUodId);
+          } else if (lens === 'accessible') {
+            // The non-visual, screen-reader-native projection (accessible_projection)
+            // — synchronic (any UoD, no chain needed); the lens owns its fetch.
+            activeLensHandle = window.AccessibleLens.mount(canvasEl, selectedUodId);
           }
         } catch (e) {
           canvasEl.innerHTML = '<div id="organon-canvas-placeholder" style="color:var(--ctp-maroon);">' +

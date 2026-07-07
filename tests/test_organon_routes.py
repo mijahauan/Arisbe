@@ -482,3 +482,53 @@ def test_audit_surfaces_the_disposition_and_mode(client):
     assert {"induction", "abduction"} <= modes
     # the challenge step carries the relinquished law / admitted anomaly as its payload
     assert any("black" in (f["fact"] or "") for f in steps)
+
+
+# --- The accessible reading route (src/accessible_projection.py) ----------- #
+# GET /accessible is a non-visual projection of the same graph the drawing
+# shows — a sheet→cut→area→ligature tree + a spoken reading + the linear form.
+# Synchronic (any UoD, no chain), geometry-free (attest=False, no §3.3 hook).
+
+def test_accessible_reading_returns_tree_reading_and_linear_form(client, sample_uod_id):
+    resp = client.get(f"/organon/uods/{sample_uod_id}/accessible")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["success"] is True
+    data = body["data"]
+    # The tree is rooted at the sheet; the spoken reading opens by asserting it.
+    assert data["tree"]["kind"] == "sheet"
+    assert data["reading"].startswith("The sheet asserts:")
+    assert data["reading_lines"][0].strip() == "Sheet of assertion"
+    # The canonical linear form travels with the reading as the cross-check.
+    assert data["linear_forms"]["forms"]["egif"]["ok"] is True
+
+
+def test_accessible_reading_beta_scroll_is_faithful(client, corpus_ids):
+    """On the man→mortal scroll the reading names the negation and the shared
+    line, so picture, reading, and proposition denote one graph."""
+    if "peirce_cp_4_394_man_mortal" not in corpus_ids:
+        pytest.skip("man-mortal exemplar not in this tomos")
+    resp = client.get("/organon/uods/peirce_cp_4_394_man_mortal/accessible")
+    data = resp.json()["data"]
+    assert "it is not the case that:" in data["reading"]
+    # The inner (double-negated) area's interior reads as asserted, the outer as denied.
+    outer = data["tree"]["cuts"][0]
+    assert outer["stance"] == "denied"
+
+
+def test_accessible_reading_no_attest_hook(client, sample_uod_id, monkeypatch):
+    """The projection is the ground truth (no drawing in between), so — like
+    /modal and /audit — the route fires no §3.3 correspondence attestation."""
+    calls = []
+    monkeypatch.setattr(
+        layout_service, "attest_correspondence",
+        lambda *a, **k: calls.append(k.get("context", "?")))
+    resp = client.get(f"/organon/uods/{sample_uod_id}/accessible")
+    assert resp.status_code == 200 and resp.json()["success"] is True
+    assert calls == []          # geometry-free — no layout, no attestation
+
+
+def test_accessible_unknown_id_is_clean_error(client):
+    resp = client.get("/organon/uods/no-such-uod/accessible")
+    assert resp.json()["success"] is False
+    assert resp.json()["error"]["code"] == "UOD_NOT_FOUND"

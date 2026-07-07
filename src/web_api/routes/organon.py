@@ -889,3 +889,47 @@ async def get_uod_audit(uod_id: str, proposal: Optional[str] = None,
     except Exception as exc:
         return ApiResponse(success=False, error={
             "code": "AUDIT_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+@router.get("/uods/{uod_id}/accessible")
+async def get_uod_accessible(uod_id: str):
+    """The UoD's **non-visual, screen-reader-native projection** (R4).
+
+    An EG's ground truth is coordinate-free (``natural_layout(egi)``); the
+    picture is one projection of it, and this is another — a traversable
+    sheet → cut → area → ligature tree, a flat spoken reading order, and a
+    single outside-in reading of the whole graph — so the graph is legible to a
+    reader who is not looking at a drawing (see
+    ``docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md`` §3.1–§3.2).
+
+    Because it is a **pure function of the EGI + its natural layout**, it *is*
+    the ground truth: there is no drawing in between, so — like ``/modal`` and
+    ``/audit`` — it loads with ``attest=False`` and carries **no §3.3
+    obligation** (no geometry, no layout engine).  The canonical linear form is
+    included beside the reading as the cross-check (picture, reading, and
+    proposition all denote the same object).
+    """
+    try:
+        from accessible_projection import accessible_projection, projection_to_dict
+
+        tomos = _get_tomos()
+        uod = tomos.load_uod(uod_id, attest=False)   # geometry-free — no §3.3 obligation
+        if uod is None:
+            return ApiResponse(success=False, error={
+                "code": "UOD_NOT_FOUND", "message": f"UoD '{uod_id}' not found in tomos"})
+        egi = uod.current_egi
+        if egi is None:
+            return ApiResponse(success=False, error={
+                "code": "EMPTY_UOD", "message": f"UoD '{uod_id}' has no current EGI"})
+
+        proj = projection_to_dict(accessible_projection(egi))
+        return ApiResponse(success=True, data={
+            "uod_id": uod_id, "name": uod.name,
+            "tree": proj["tree"],
+            "reading": proj["reading"],
+            "reading_lines": proj["reading_lines"],
+            "linear_forms": linear_forms(egi),
+        })
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "ACCESSIBLE_ERROR", "message": str(exc), "type": type(exc).__name__})

@@ -48,6 +48,11 @@ window.LensCommon = (function () {
                  (q.length ? '?' + q.join('&') : ''));
   };
 
+  // Accessible projection (the non-visual reading — src/accessible_projection.py):
+  // the sheet→cut→area→ligature tree + spoken reading order + linear forms.
+  const fetchAccessible = (uodId) =>
+    _json('/organon/uods/' + encodeURIComponent(uodId) + '/accessible');
+
   /* Indexed model: maps + per-area direct contents. */
   function model(structure) {
     const areasById = new Map(structure.areas.map(a => [a.id, a]));
@@ -102,6 +107,6 @@ window.LensCommon = (function () {
     return svg.replace(/<svg/, `<svg width="${w}" height="${h}"`);
   }
 
-  return { fetchStructure, fetchHistory, fetchModal, fetchAudit,
+  return { fetchStructure, fetchHistory, fetchModal, fetchAudit, fetchAccessible,
            model, hierarchy, polarityFill, sizedSvg };
 })();

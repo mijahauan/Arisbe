@@ -317,3 +317,40 @@ def test_audit_lens_shows_the_verdict_flipping(page, app_url):
     page.select_option("#view-lens", "drawing")
     time.sleep(1.0)
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
+def test_accessible_lens_aria_tree_and_keyboard_nav(page, app_url):
+    """The accessible lens mounts a genuine ARIA tree (role=tree/treeitem) for any
+    UoD, shows the spoken reading + linear cross-check, and is keyboard-navigable:
+    ArrowDown moves focus between visible tree items, Enter collapses a group."""
+    _open_organon(page, app_url)
+    _load_uod(page, SYNCHRONIC)
+    # Offered for the synchronic majority (no chain needed — it is a projection of
+    # the graph itself, not of the history).
+    assert page.eval_on_selector("#view-lens option[value=accessible]", "o => o.hidden") is False
+
+    page.select_option("#view-lens", "accessible")
+    page.wait_for_selector('#organon-canvas ul[role="tree"]', timeout=10000)
+    # A real ARIA tree with at least the sheet + some contents.
+    items = page.eval_on_selector_all('#organon-canvas li[role="treeitem"]', "els => els.length")
+    assert items >= 2, f"expected the sheet plus contents as tree items, got {items}"
+    # The root treeitem is the sheet of assertion and is the initial tab stop.
+    root_label = page.eval_on_selector(
+        '#organon-canvas ul.al-tree > li[role="treeitem"]', "el => el.getAttribute('aria-label')")
+    assert "Sheet of assertion" == root_label
+    # The spoken reading and the EGIF cross-check are present.
+    reading = page.eval_on_selector("#organon-canvas .al-reading", "el => el.textContent")
+    assert reading.startswith("The sheet asserts:")
+    assert page.eval_on_selector_all("#organon-canvas .al-egif", "els => els.length") == 1
+
+    # Keyboard: focus the root, ArrowDown moves focus to the next visible item.
+    page.eval_on_selector('#organon-canvas ul.al-tree > li[role="treeitem"]', "el => el.focus()")
+    page.keyboard.press("ArrowDown")
+    moved = page.evaluate(
+        "() => document.activeElement && document.activeElement.getAttribute('role') === 'treeitem'"
+        " && document.activeElement !== document.querySelector('ul.al-tree > li[role=treeitem]')")
+    assert moved, "ArrowDown should move focus to the next tree item"
+
+    page.select_option("#view-lens", "drawing")
+    page.wait_for_selector("#organon-canvas svg", timeout=10000)
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
