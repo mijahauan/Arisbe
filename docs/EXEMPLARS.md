@@ -139,7 +139,7 @@ The thin missing code is [src/modal_query.py](../src/modal_query.py) —
 `leaf_states`), with predicate helpers (`scribes_relation`, `equals_graph`,
 `is_blank`) and an `over="states"|"leaves"` choice (all reachable worlds, or just the
 trajectory endpoints — over endpoints, a *transient* like cloudy isn't even possible).
-It reads only DAG structure + Existential Graph Instance ([EGI](GLOSSARY.md#egi)) content, draws no mark, and adds no §3.3 obligation.
+It reads only DAG structure + Existential Graph Instance ([EGI](GLOSSARY.md#egi)) content, draws no mark, and adds no correspondence-check obligation (§3.3).
 (The *alethic* reading — ◇/□ across the corpus's models M — is the inverse pivot,
 `/agon/where-it-holds`.)
 

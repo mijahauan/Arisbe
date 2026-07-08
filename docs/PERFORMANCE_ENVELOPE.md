@@ -19,7 +19,7 @@ fixed by making the algorithm exact-but-cheaper — never by approximating.
 | **Parse / generate** (EGIF/CGIF/CLIF) | hundreds of atoms | — | atoms | `canonical_signature` hash-consed (below); a 200-atom hub sheet generates in **3.3 ms**. |
 | **Coordinate-free structure** (`/structure`) | 250+ cuts | — | cuts | O(n), no geometry; returns the 250-cut SUMO taxonomy in **milliseconds**. |
 | **ELK layout + render** | ~tens of cuts / ~100 atoms | deep nesting, very wide areas | cuts × nesting | The default drawing path. See the walls below for the pathological shapes. |
-| **§3.3 attestation** | ~200 atoms | machine-scale label lengths | atoms × label length | Occlusion checks read label boxes; long constant labels were the F1⁵ coin-flip (fixed). |
+| **Correspondence check (§3.3) attestation** | ~200 atoms | machine-scale label lengths | atoms × label length | Occlusion checks read label boxes; long constant labels were the run-5 finding coin-flip (F1⁵, fixed). |
 | **Ligature routing** | ~200 atoms, five hubs deg 20–25 | — (after the fix) | hub degree | Visibility-graph router; see the 160× fix below. |
 | **Peel / model-check one G** | small M | large materialized M | \|M\| (facts) | Forward-chains M's Horn fragment each call; see the live-run wall. |
 | **One live-game round** | \|M\| ≈ tens | \|M\| in the hundreds | \|M\| | Super-linear; bounded operationally by disuse-decay (below). |

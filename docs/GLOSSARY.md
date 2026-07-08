@@ -6,6 +6,10 @@
 >
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) · [CAPABILITY_MAP.md](CAPABILITY_MAP.md) ·
 > [ROADMAP.md](ROADMAP.md).
+>
+> **Lost in the shorthand?** The **[Notation & reference numbers](#notation--reference-numbers)**
+> section below decodes `§3.3`, `§7`, and the `Gx` / `Rx` / `Fⁿ` / `Pⁿ` tracking IDs — the one
+> place the symbols are spelled out.
 
 ---
 
@@ -32,7 +36,7 @@
 
 **Researcher / philosopher:**
 1. [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) → [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) →
-   [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md).
+   [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) → [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
 2. [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) +
    [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) — the debt to Peirce and the examined departures.
 3. [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md),
@@ -132,6 +136,49 @@ optional tension layout.
 
 ---
 
+## Notation & reference numbers
+
+> **The one place the shorthand is decoded.** Arisbe's documents use three kinds of terse
+> reference a newcomer can't be expected to track. Here is what each means and where its full
+> description lives. **Rule of thumb: a bare "§N" always means a *section of the document you
+> are reading*; a cross-document reference always names the document** — write
+> "LINEAR_GRAPHICAL_CORRESPONDENCE §7", not a bare "§7".
+
+### Named anchors — section numbers that are really *concepts*
+
+A few section numbers are used so often they function as names. Prefer the name; the number is
+just a bookmark into the anchor's home document.
+
+| You'll see | Read it as | Full description |
+|---|---|---|
+| **§3.3** | *the correspondence check* — the runtime attestation that a drawing and its EGI denote the same object (`correspondence_attestation.attest_correspondence`); it attests **correspondence, not truth** | [LINEAR_GRAPHICAL_CORRESPONDENCE](LINEAR_GRAPHICAL_CORRESPONDENCE.md) §3.3 |
+| **§7** | *the six correspondence test shapes* — the properties any `(EGI, drawing)` pair must satisfy: totality/injectivity, containment, incidence + argument order, three-way identity, transformation invariance, regime-3 non-interference | [LINEAR_GRAPHICAL_CORRESPONDENCE](LINEAR_GRAPHICAL_CORRESPONDENCE.md) §7 (realized in `test_correspondence_invariant.py`) |
+| **Φ / Ψ** | Dau's bidirectional EGI ↔ first-order-logic translation | [CHAPTER18_FOPL_TRANSLATION_DOCUMENTATION](CHAPTER18_FOPL_TRANSLATION_DOCUMENTATION.md) |
+| **the three regimes** | composition (1) · asserted/canonical (2) · presentation-only (3) | [VISION_AND_SCOPE](VISION_AND_SCOPE.md) §3 |
+
+### Reference numbers — the project's own work-tracking IDs
+
+These letter-number tags are **development tracking, not concepts**: they index findings, gaps,
+and prospects in the lab-notebook documents. You never need them to understand Arisbe — but when
+one appears, here is its register. **A letter is reused across registers** (both prospects and the
+consolidate/adopt task track use "R"; both a run's priors and the correspondence contract use "P"),
+so always read a tag in the document that introduces it.
+
+| Tag | Meaning | Register |
+|---|---|---|
+| **G1, G2, …** | Documentation-gap numbers from the STORM cold-reader audit | [STORM_DOCS_AUDIT](STORM_DOCS_AUDIT.md) |
+| **R1, R2, …** | Prospects — candidate future work | [PROSPECTS_MULTIPERSPECTIVE](PROSPECTS_MULTIPERSPECTIVE.md) |
+| **D1, D2, …** | Disposals — how a gap was resolved | [STORM_DOCS_AUDIT](STORM_DOCS_AUDIT.md) |
+| **F1, F2, … (e.g. F1⁷)** | Findings from a live run; the superscript is the run number | `runs/RUN_<n>_LOG.md` |
+| **P1, P2, … (e.g. P2⁸)** | Pre-registered priors for a live run; superscript = run number. *(Separately, **P1–P5** in the correspondence contract are its five prover-agnostic properties.)* | `runs/RUN_<n>_LOG.md` · [CORRESPONDENCE_CONTRACT](CORRESPONDENCE_CONTRACT.md) |
+
+### Common acronyms
+
+The letter-acronyms (EGI, UoD, DTO, ELK, …) are in **[Abbreviations](#abbreviations)** just above.
+**CI** = continuous integration (the automated test run that guards every change).
+
+---
+
 ## Key terms
 
 Concise, linkable entries for the specialized vocabulary the book uses (each introduced on first
@@ -151,6 +198,23 @@ decide). Previously called an "inning."
 ### Endoporeutic
 **Endoporeutic** — Peirce's own word for reading a graph **from the outside in**, as a transaction
 between a defender (Graphist) and a skeptic (Grapheus). Arisbe's Agon makes it operational.
+
+### Dicisign and Argument
+**Dicisign / Argument** — two of Peirce's classes of sign by the interpretant they call for (the
+third trichotomy: **Rheme / Dicisign / Argument**). A **Dicisign** (or Dicent) asserts a
+proposition — it is the kind of sign that is true or false. An **Argument** is a sign whose
+interpretant presents it *as the conclusion of a lawful process*; it carries its own inferential
+genesis. Two Existential Graphs identical in form assert the same Dicisign (proposition) but may be
+different Arguments (reached by different derivations) — the distinction on which meaning-by-history
+turns. See [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
+
+### Reification
+**Reification** (Berger & Luckmann, *The Social Construction of Reality*, 1966) — treating a
+humanly produced, history-bound product as if it were a natural, given, authorless fact, forgetting
+its genesis; made easy by **sedimentation** (long use effaces a meaning's path-bound origin). In
+Arisbe the guarded-against case is *reifying a history*: lifting a telos a derivation-path merely
+*implies* out of the diachronic record and scribing it on the blank sheet as an earned assertion —
+the field guide's [dragon 9](FIELD_GUIDE_AND_DRAGONS.md). See [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
 
 ### Agonothetes
 **Agonothetes** (ἀγωνοθέτης, "organizer of the contest") — the game's **interpretant**: not a third

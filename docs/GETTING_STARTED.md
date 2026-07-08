@@ -168,7 +168,7 @@ notations** and stays the same proposition everywhere.
 1. [GLOSSARY.md](GLOSSARY.md) for the Peirce/Dau/Arisbe vocabulary, then
    [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md) — **the
    central contract**: picture and proposition denote the *same* object, stated,
-   tested, and runtime-attested (§3.3).
+   tested, and runtime-attested (the correspondence check, §3.3).
 2. Round-trip a form yourself: in any mode, toggle **EGIF / CGIF / CLIF / FOPL** on
    one graph. FOPL is **Dau's Φ/Ψ translation** (Chapter 18), not a naïve
    conversion. Formats and their modules: [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md).

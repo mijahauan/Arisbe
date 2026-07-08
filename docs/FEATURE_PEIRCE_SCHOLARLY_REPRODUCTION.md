@@ -141,7 +141,7 @@ external to cite). Exposed at `GET /export/citation?uod_id=…`, and — the loa
 join with the export — `POST /export` with `cite: true` (or the **"cite" checkbox** in
 Organon's export panel) stamps the citation as a `\footnotesize` caption **under** the
 authentic-Peirce figure. The caption is ink *outside* the `tikzpicture`, so `cut_bounds`
-and §3.3 are untouched (the tikzpicture body is byte-identical with or without it).
+and the correspondence check (§3.3) are untouched (the tikzpicture body is byte-identical with or without it).
 
 **Batch export (an appendix of figures).** `export_peirce_document` assembles
 several corpus UoDs into one authentic-Peirce LaTeX document, each a captioned figure

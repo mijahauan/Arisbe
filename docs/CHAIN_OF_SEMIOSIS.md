@@ -19,7 +19,7 @@ It is a companion to three documents, not a replacement for any:
 - [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md) —
   the diachronic process (the film vs. the photograph).
 - [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md) —
-  the §3.3 correspondence contract and its three regimes.
+  the correspondence check (§3.3) contract and its three regimes.
 
 This document adds the connective thesis those three imply but none of
 them states outright: **a piece of reasoning in Arisbe is a chain of

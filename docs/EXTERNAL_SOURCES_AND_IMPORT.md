@@ -24,7 +24,7 @@ Everything that enters Arisbe from outside enters at **low warrant**, and the
 reason is a single discipline:
 
 > Arisbe attests that an Existential Graph ([EG](GLOSSARY.md#eg))'s **drawn form and its linear form denote the same
-> mathematical object** (§3.3). It does **not** assert that the proposition is
+> mathematical object** (the correspondence check, §3.3). It does **not** assert that the proposition is
 > *true*. A classical theorem and a synthetic test graph arrive at the same floor.
 
 So an import is **admitted, comprehended, and attested — never asserted true.** It

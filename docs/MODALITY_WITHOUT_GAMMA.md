@@ -352,7 +352,7 @@ freehand:
   see [DEFINITION_NODE.md](DEFINITION_NODE.md)).
 - The **faithfulness guarantee** is already formalized as the *expansion law* in
   overview attestation: the empty collapse is identical to ordinary
-  `attest_correspondence`, and full expansion is the real §3.3 picture
+  `attest_correspondence`, and full expansion is the real correspondence check (§3.3) picture
   (`attest_overview` in
   [`src/correspondence_attestation.py`](../src/correspondence_attestation.py)). The
   abbreviation is licit *because* it expands to the attested truth.

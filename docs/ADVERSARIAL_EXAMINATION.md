@@ -46,7 +46,7 @@ Worse, the lever the departure declares for itself is conceded in the author's o
 Two replies work, and they are why the departure does not fall:
 
 1. **The membrane is not the incognizable.** MANIFEST names it "selectively permeable, the sole place where world and sign touch... the only place error is ever corrected." That is cognizable *in its effects at every corrective step* — which is exactly how Peirce rehabilitated the real against the 1868 incognizable. The author posits not a content withheld from all true representation but the condition every representation answers to. The "thing-in-itself wearing the membrane's clothes" charge misses.
-2. **"Why not drift?" has a within-system answer.** A demotion is a legal, attested, replayable move under the Alpha asymmetry (erase-in-positive / insert-in-negative). So "warranted change vs. arbitrary churn" is settled by legality + §3.3, needing no terminus.
+2. **"Why not drift?" has a within-system answer.** A demotion is a legal, attested, replayable move under the Alpha asymmetry (erase-in-positive / insert-in-negative). So "warranted change vs. arbitrary churn" is settled by legality + the correspondence check (§3.3), needing no terminus.
 
 ### Rationale
 

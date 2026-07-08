@@ -9,7 +9,8 @@
 > external evidence and named tensions, **not** a rewrite of [ROADMAP.md](ROADMAP.md), which
 > stays untouched pending the author's disposition. Run 2026-07-06→07; external sources are
 > cited **low-warrant background** per the import doctrine — evidence of what communities
-> want, not endorsements.
+> want, not endorsements. Its `Rx` prospect tags are decoded in
+> [GLOSSARY](GLOSSARY.md#notation--reference-numbers).
 
 ## The seven lenses (and what each community is living)
 

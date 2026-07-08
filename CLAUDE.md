@@ -230,6 +230,22 @@ Before starting any implementation task, check whether a solution already exists
 python tools/context_awareness_system.py --check "task description"
 ```
 
+## Documentation shorthand (keep it legible)
+
+Arisbe's docs use terse cross-references. **The decoder is
+[docs/GLOSSARY.md](docs/GLOSSARY.md#notation--reference-numbers)** ("Notation & reference
+numbers") — it names the load-bearing anchors (§3.3 = *the correspondence check*; §7 = *the six
+correspondence test shapes*) and the dev-tracking IDs (`Gx` STORM gaps, `Rx` prospects, `Dx`
+disposals, `Fⁿ`/`Pⁿ` run findings/priors). Standing convention when you write or edit docs:
+
+- **In a book chapter** (anything listed in `docs/_quarto.yml`): expand a shorthand on **first
+  use** — write "the correspondence check (§3.3)", not a bare "§3.3" — and **name the target
+  document** on any cross-doc section reference ("LINEAR_GRAPHICAL_CORRESPONDENCE §7", not "§7").
+- **A bare "§N" always means a section of the document you are reading.** Never use it for
+  another doc's section.
+- **Reserve `Gx`/`Rx`/`Fⁿ`/`Pⁿ` for the dev docs that own them** (run logs, STORM audit,
+  prospects). If one must appear in a book chapter, gloss it once ("a run-7 finding, F1⁷").
+
 ## Key Documentation
 
 - `AGENTS.md` — Developer guidelines with code patterns and usage examples

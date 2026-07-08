@@ -56,7 +56,7 @@
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
 | Coordinate-free natural layout | SHIPPED | `natural_layout.py` → `test_natural_layout.py` | Containment + crossing-sequences + incidence; geometry-free. |
-| §3.3 runtime attestation | SHIPPED | `correspondence_attestation.py` → `test_correspondence_attestation.py`, `test_correspondence_invariant.py` | `attest_correspondence` hooked into layout_service + save/load. **Protected (added 2026-06-27).** |
+| Correspondence check (§3.3) runtime attestation | SHIPPED | `correspondence_attestation.py` → `test_correspondence_attestation.py`, `test_correspondence_invariant.py` | `attest_correspondence` hooked into layout_service + save/load. **Protected (added 2026-06-27).** |
 | Regime-3 presentation algebra | SHIPPED | `presentation_ops.py` → `test_presentation_ops.py` | move/reshape/reroute; `Regime3Violation` on boundary crossing. **Protected (added 2026-06-27).** |
 | Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk)) layout engine (default) | SHIPPED | `elk_layout_engine.py` (+`elk_worker.js`) → `test_elk_layout_engine.py`, `test_elk_ligature_edge_cases.py` | Cut-aware; ligature edge cases audited. Ligature router carries an exact bounding-box quick reject (~140× on a large star-shaped graph, routes bit-identical). |
 | Tension layout engine (opt-in) | PARTIAL | `tension_engine.py` → `test_tension_engine.py` | `?engine=tension`; 17/18 corpus attest, §3.3-gated with ELK fallback. |

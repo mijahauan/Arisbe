@@ -130,7 +130,7 @@ representation is a term in the sequence of inquiry; it cannot [scribe](GLOSSARY
 distance to that sequence's limit, since the limit (if any) is the limit *of* the
 sequence, not a coordinate available *within* a term of it. This holds whether or
 not the regress of standards closes. It is the same first-order discipline the
-engine enforces at every save (§3.3 attests *correspondence, never truth*), at
+engine enforces at every save (the correspondence check (§3.3) attests *correspondence, never truth*), at
 [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) floor #6 (no mark bears
 actuality), and at level 0 ([LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md):
 the recto bears form, not free-floating contingent content): **no mark may bear

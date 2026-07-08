@@ -208,7 +208,7 @@ scaffold tactic, applied to real mathematics (ZFC separation, Peirce's 1881 axio
 of arithmetic). *(This track is well advanced: the fold/unfold definition layer and
 the graph-with-holes **schema node** have both shipped, the soundness homework for
 universal generalization is done, and draft fixtures exist; the remaining frontier is
-**schema-drawing/§3.3** — drawing a hole and attesting it.)* The system becomes a
+**schema-drawing/§3.3** (the correspondence check) — drawing a hole and attesting it.)* The system becomes a
 place to *do new mathematics* in pictures, not only to
 reproduce known proofs.
 

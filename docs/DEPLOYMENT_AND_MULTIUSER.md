@@ -34,7 +34,7 @@ hygiene, not multi-tenancy.
 The parts that carry the project's actual claims are hardened; the web tier is
 just their surface:
 
-- **The corpus is durable and auditable.** Every save re-attests §3.3 at the
+- **The corpus is durable and auditable.** Every save re-attests the correspondence check (§3.3) at the
   write boundary (`save_uod`), so a corrupt (EGI, drawing) pair is refused, not
   persisted. Provenance and diachronic history are recorded per UoD. Git is the
   backup/history layer (see [the local-is-primary
@@ -45,7 +45,7 @@ just their surface:
   [runs/OPERATIONS.md](../runs/OPERATIONS.md).
 - **Determinism.** Given the same input, layout/attestation are deterministic
   (the one historical exception — the label-placement coin-flip — was fixed; see
-  [SOUNDNESS_BOUNDARY.md](SOUNDNESS_BOUNDARY.md) and the F1⁵ root fix).
+  [SOUNDNESS_BOUNDARY.md](SOUNDNESS_BOUNDARY.md) and the run-5 finding root fix (F1⁵)).
 
 ## If you need a shared deployment
 

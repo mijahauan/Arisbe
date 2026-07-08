@@ -28,7 +28,7 @@ phase model) — this records *what composition becomes* and why.
 3. **Challenge mode — correspondence, learned by doing.** Present a linear form,
    challenge the author to draw it freehand, then `read_drawing` their drawing and
    compare to the parsed target with `same_graph`. The **discrepancy report** is
-   the pedagogy. This is the human-facing twin of §3.3: the engine attests *its*
+   the pedagogy. This is the human-facing twin of the correspondence check (§3.3): the engine attests *its*
    drawings; this trains the *human's*. The grader is isomorphism (`same_graph`),
    so it rewards **structure, not appearance** — a correct drawing may look nothing
    like the canonical render, which is itself the lesson (one linear form has many

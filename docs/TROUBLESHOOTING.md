@@ -31,7 +31,7 @@ guarantee. Knowing which you hit tells you whether to fix your *input* or your *
 
 ## For unattended runs
 
-A live run adds an operator's view of the same refusals. A checkpoint that fails §3.3 under
+A live run adds an operator's view of the same refusals. A checkpoint that fails the correspondence check (§3.3) under
 `checkpoint_refusal="skip"` is **counted and quarantined** (`refused_seg<n>.json` beside the
 state file), and the run continues — never a silent skip, never an unattested write. A crash
 is caught by the driver's supervisor and auto-resumed from the last checkpoint. Fetch errors

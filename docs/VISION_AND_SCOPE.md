@@ -47,11 +47,11 @@ When the two come apart, the system has failed its central purpose — *not beca
 
 - **Stated** — [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md), the central
   contract. Read it before touching anything that produces or consumes an `(EGI, drawing)` pair.
-- **Tested** — `tests/test_correspondence_invariant.py` (the six §7 shapes against the corpus).
+- **Tested** — `tests/test_correspondence_invariant.py` (the six correspondence test shapes (LINEAR_GRAPHICAL_CORRESPONDENCE §7) against the corpus).
 - **Attested at runtime** — `correspondence_attestation.attest_correspondence(egi, dto)` raises
   `CorrespondenceViolation`; hooked into the web serving + save/load boundaries.
 
-A crucial discipline: **correspondence is attested, never truth.** §3.3 certifies that *this linear
+A crucial discipline: **correspondence is attested, never truth.** The correspondence check (§3.3) certifies that *this linear
 form and this drawing denote the same graph* — it is internal consistency, *not* a claim that either
 is true of the world. A correspondence failure is not falsehood but *[voidness](GLOSSARY.md#voidness)* (Pauli's "not even
 wrong"). Truth is settled elsewhere — in use, in the Agon. See

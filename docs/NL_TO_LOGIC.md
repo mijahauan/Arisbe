@@ -113,7 +113,7 @@ when it parsed, the `vocabulary` reconciliation and the `interpretation` (the pe
 unmappable sentence or a malformed candidate returns `parsed: false` with the reason — a
 successful response, not an error (the honest "can't say that here" surface). Nothing is
 asserted or persisted: the proposal sits at **LOW [warrant](GLOSSARY.md#warrant)** and earns warrant only by
-withstanding Agon (the import↔Agon floor — §3.3 attests *correspondence, not truth*).
+withstanding Agon (the import↔Agon floor — the correspondence check (§3.3) attests *correspondence, not truth*).
 
 ## Setup
 

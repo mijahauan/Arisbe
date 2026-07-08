@@ -56,7 +56,7 @@ premise. That is **not a gap but the proper contingency**, answered in the world
 the Agon (§5–§6). The one standing obligation it leaves is **contextual honesty**:
 tracking *what* context — what nesting, what regime, what given — delivers a graph's
 interpretive meaning. That obligation *is* the central correspondence problem, the field
-guide's "context reflex," the three regimes, and §3.3, all at once.
+guide's "context reflex," the three regimes, and the correspondence check (§3.3), all at once.
 
 This vindicates an unease that is *correct*, not a misunderstanding: the literature's
 "[scribe](GLOSSARY.md#scribe) on the sheet = assert" compresses a real bifurcation, and the compression is the

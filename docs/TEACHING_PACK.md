@@ -6,7 +6,7 @@
 > **grades by meaning, not by pixels**. This page shows what exists today, the
 > pedagogy it supports, how to author your own problem sets keyed to a syllabus,
 > how to grade a stack of submissions, and — honestly — what an LMS would still
-> have to add. It disposes gap **G6** of [STORM_DOCS_AUDIT.md](STORM_DOCS_AUDIT.md).
+> have to add. It disposes documentation-gap **G6** of [STORM_DOCS_AUDIT.md](STORM_DOCS_AUDIT.md).
 
 ## The model of good teaching we're building toward
 

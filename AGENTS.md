@@ -46,6 +46,10 @@
 - **EGI immutability**: Use `.with_vertex()`, `.with_edge()` patterns (not `.add_*()`)
 - **Error handling**: Check return values, handle None cases
 - **Documentation**: Follow existing docstring patterns
+- **Doc shorthand**: expand on first use in book chapters (write "the correspondence check
+  (§3.3)", not bare "§3.3"); a bare "§N" means *this* doc's section — name the doc for cross-refs;
+  reserve `Gx`/`Rx`/`Fⁿ`/`Pⁿ` tags for the dev docs that own them. Decoder:
+  [docs/GLOSSARY.md](docs/GLOSSARY.md#notation--reference-numbers).
 
 ## 🧠 Context Recovery
 - **Returning after a break?** Read `docs/RETURN_TO_DEVELOPMENT.md` — the 5-minute checklist for re-anchoring on the code, the state of the suite, and the known follow-ups.

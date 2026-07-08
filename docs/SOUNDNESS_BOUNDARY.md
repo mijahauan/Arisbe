@@ -10,7 +10,7 @@
 > is the subject of prospect **R1** (proof certificates) — see the last section.
 
 The guiding distinction of the whole project: **Arisbe attests *correspondence*,
-not *truth*.** A graph that passes §3.3 says "this picture and this proposition
+not *truth*.** A graph that passes the correspondence check (§3.3) says "this picture and this proposition
 denote the same mathematical object" — it says *nothing* about whether that
 proposition is true. Truth is earned separately, through the Agon (testing) or a
 warranting chain. Keep that in view while reading the table: the guarantees below
@@ -39,9 +39,9 @@ content.
 | **Semantic validation agrees with an SMT solver** | **Machine-verified** | Z3 SMT encoding | `z3_semantic_validator.py` |
 | **Linear ↔ graphical round-trips exactly** (EGIF/CGIF/CLIF) | **Machine-verified**, corpus-wide | `same_graph` over 87+ tomos examples | the parser/generator pairs → `test_tomos_parsing.py` |
 | **The drawing reads back to the same EGI** | **Machine-verified**, corpus-wide + human geometry | `read(render(egi)) == egi` | `eg_reader.py` → `test_eg_reader.py` |
-| **Picture and proposition denote the same object** (§3.3, the central invariant) | **Attested at runtime** | `attest_correspondence` — the six §7 property shapes (totality/injectivity, containment, incidence+arg-order, the 3-way identity incl. the topological crossing-multiset invariant, convention compliance) | `correspondence_attestation.py` → `test_correspondence_invariant.py`, `test_correspondence_attestation.py`; hooked into layout_service + save/load |
+| **Picture and proposition denote the same object** (§3.3, the central invariant) | **Attested at runtime** | `attest_correspondence` — the six correspondence test shapes (LINEAR_GRAPHICAL_CORRESPONDENCE §7) (totality/injectivity, containment, incidence+arg-order, the 3-way identity incl. the topological crossing-multiset invariant, convention compliance) | `correspondence_attestation.py` → `test_correspondence_invariant.py`, `test_correspondence_attestation.py`; hooked into layout_service + save/load |
 | **Presentation edits never change meaning** (regime 3) | **Attested at runtime** | `Regime3Violation` raised on any boundary crossing | `presentation_ops.py` → `test_presentation_ops.py` |
-| **Attestation is deterministic** (no content-dependent coin-flip) | **Machine-verified** (as of the F1⁵ fix) | Global, sibling-aware, id-independent label placement shared by renderer + attest | `place_label_boxes` in `presentation_ops.py`; the Warner-Bros pair attests 20/20 across re-parses |
+| **Attestation is deterministic** (no content-dependent coin-flip) | **Machine-verified** (as of the run-5 finding fix, F1⁵) | Global, sibling-aware, id-independent label placement shared by renderer + attest | `place_label_boxes` in `presentation_ops.py`; the Warner-Bros pair attests 20/20 across re-parses |
 | **The peel is sound open-world** (three-valued Kleene) | **Machine-verified** | UNKNOWN is an honest abstention, never a false guess | `semantic_game.py` → `test_semantic_game.py` |
 | **Materialization computes the least Herbrand model** (Horn fragment) | **Machine-verified** | Semi-naive fixpoint = the exact closure; non-Horn shapes skipped with an honest report | `model_materialization.py` → `test_model_materialization.py` |
 | **A membrane never fabricates warrant** | **Argued** + partly machine-verified | Correspondence-not-truth: a resolved market/theory is low-warrant; the world's outcome is *data*, the calculus still decides | `resolving_membrane.py`, `MANIFEST_AND_MEANING.md`; ledger tests |
@@ -71,7 +71,7 @@ test suite — would need three things, and the first two already exist:
 
 1. **A prover-agnostic contract** stating the properties precisely, so a
    different implementation could be checked against the same spec. →
-   [CORRESPONDENCE_CONTRACT.md](CORRESPONDENCE_CONTRACT.md) (P1–P5, the six §7
+   [CORRESPONDENCE_CONTRACT.md](CORRESPONDENCE_CONTRACT.md) (the contract properties P1–P5, the six §7
    shapes, the failure taxonomy, the tomos dataset card, MIT-licensed).
 2. **A callable referee** that reduces every claim to a re-checkable calculus
    artifact. → the **MCP verifier** (`check_egif` / `peel` / `apply_rule` /

@@ -6,7 +6,8 @@
 > "documentation expert" then answered each against the actual sources, verdicting
 > **ANSWERED / PARTIAL / GAP**. This file is the curated docket — questions clustered into
 > gap themes, counted, prioritized, never silently dropped (the same discipline the
-> `query_docket` applies to M). It is a **working/dev doc**, not a book chapter.
+> `query_docket` applies to M). It is a **working/dev doc**, not a book chapter. Its `Gx` (gap) and `Dx`
+> (disposal) tags are decoded in [GLOSSARY](GLOSSARY.md#notation--reference-numbers).
 >
 > Run 2026-07-06→07. Method note: the persona question-generation and the web-grounded
 > prospect surveys ran as multi-agent workflows; the grounded-answering fan-out was

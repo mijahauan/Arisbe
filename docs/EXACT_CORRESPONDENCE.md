@@ -52,7 +52,7 @@ removing the proxy closes the gap.
   constant is a **label box** (its containment uses the box, not an anchor point —
   it must not straddle a cut); a vertex is a dot; a ligature is a path. **Readability
   is a correctness property**: an occluded or straddling label cannot be recovered
-  by the reader → correspondence breaks. §3.3 extends to "every mark wholly within
+  by the reader → correspondence breaks. The correspondence check (§3.3) extends to "every mark wholly within
   its area and unoccluded enough to read"; layout/routing treat label boxes as
   obstacles.
 - **Argument-order numerals are convention-dependent annotation.** Order *is* logic
