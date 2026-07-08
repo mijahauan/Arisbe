@@ -316,6 +316,40 @@ of where a mark sits; it is an *act* of taking responsibility, tested in the gam
 **expansion** (what does it unfold to?) and the **warrant** (what challenge has it
 survived?). If the answer is "just the name," it counts for nothing.
 
+### 🐉 9. The telos you lifted out of its history
+
+You watch a line of reasoning unfold — a universe of discourse growing, a chain of steps — and you
+*see a direction in it*: "this was always heading toward X"; "there is a progression here." So you
+take that direction, lift it out of the history, and write X flat on the sheet as a thing now
+established. Dragon.
+
+**Why it tempts:** the longer a history runs, the more it *sediments* — its authored, path-bound
+origin fades and the pattern it traced begins to look like plain fact. (Berger & Luckmann called
+exactly this **reification**: treating a history-bound product as an authorless given.) And a good
+story really does imply a shape; the momentum is real. The mistake is not *seeing* the direction —
+it is *asserting* it.
+
+**Antidote:** a progression is a feature of a *path*, not a fact of the world. Three checks, each a
+lock Arisbe already holds:
+- The history belongs in the **record**, not on the sheet — nothing reaches the asserted corpus
+  except by being tested through the game (Agon). A direction the path merely *implies* has earned
+  nothing yet.
+- One history scribing X makes X only *possible* (◇: some trajectory reached it), never *necessary*
+  (□: every trajectory converges on it). Reifying the telos is a ◇ misread as □ — dragon 7's
+  machinery, turned on histories.
+- A tendency is sayable *inside* a context — under a cut, as the antecedent of a scroll — and
+  malformed the moment it is scribed as the structure of the whole. Keep it enclosed:
+
+```
+~[ (inquiry *x) ~[ (reaches_goal x) ] ]   ← conditioned, enclosed — a would-be habit; legitimate
+(reaches_goal *x)                          ← scribed flat on the sheet — the reified telos
+```
+
+Everything here erases back to the blank; no progression is frozen. Peirce affirmed a telos of his
+own — the growth of concrete reasonableness — but as a *would-be*, a hope that regulates inquiry,
+never as a flat assertion. The biography of this dragon is
+[MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
+
 ---
 
 ## How not to get lost — the compass
@@ -335,7 +369,7 @@ Four headings that keep you off the rocks:
   surviving challenge and can be lost again. (Dragon 6.)
 - **Everything erases back to the blank.** Nothing here is frozen. The one
   bedrock is the empty sheet, which says nothing and so cannot be wrong; every
-  claim above it is surrenderable.
+  claim above it is surrenderable. (Dragon 9 — no progression is ever frozen there.)
 
 > **Where to practice in Arisbe itself.** The workshop's **freeform canvas** lets
 > you draw a graph by hand and asks Arisbe to *read it back* to you — so you see
@@ -347,7 +381,7 @@ Four headings that keep you off the rocks:
 > removable double cut, `🐉4` a shared line of identity, `🐉5` a non-symmetric
 > relation — and when your attempt goes wrong, the grader hands you back the
 > antidote from this guide. Those two surfaces are the fastest way to meet the
-> dragons safely. (Dragons 6-8 aren't a single drawing — they live in *how a
+> dragons safely. (Dragons 6-9 aren't a single drawing — they live in *how a
 > graph earns its standing*, not in the ink.)
 
 ---
@@ -370,6 +404,9 @@ scholarship still argues:
 - `FIDELITY_AND_DEPARTURES.md` + `ADVERSARIAL_EXAMINATION.md` — the deep version
   of dragon 6, including the examinations of exactly where Arisbe parts from Peirce
   and why (three departures, then the larger-game and worth-ladder rounds).
+- [`MEANING_BY_HISTORY.md`](MEANING_BY_HISTORY.md) — the deep version of dragon 9: how a
+  graph's *history* bears meaning (the same picture, a different argument) and why a telos
+  must never be reified out of that history onto the sheet.
 
 The point of a field guide is that **you should not need any of those to begin.**
 Draw on the blank sheet. Watch the cuts. Ask whether a thing was posited or
