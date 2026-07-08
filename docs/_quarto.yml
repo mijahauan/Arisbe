@@ -27,6 +27,7 @@ book:
         - ADVERSARIAL_EXAMINATION.md
         - LEVEL_ZERO_AND_THE_REGISTERS.md
         - MODALITY_WITHOUT_GAMMA.md
+        - SECOND_ORDER_FRONTIER.md
         - GAMMA_DEMONSTRATIONS.md
     - part: "II · Getting started"
       chapters:

@@ -14,6 +14,11 @@ cut, the tinctured would-be, the book of separate sheets — as corpus exemplars
 readable through the Organon lenses:
 [GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) (2026-07-04).*
 
+*The **other** half of Gamma — the genuinely second-order half this document names as
+the real frontier (graphs about graphs, abstraction) — is mapped in
+[SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md) (2026-07-08): how far Peirce leads,
+where we take other guides, and the rule that the crossing must stay a **drawing**.*
+
 ---
 
 ## The thesis, flatly

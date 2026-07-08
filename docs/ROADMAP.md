@@ -253,7 +253,11 @@ few things first:
     qualities. Explicitly named (in [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md)) as *the*
     real frontier — **not** modal marks, **not** a Gamma tincture. Toe-in-the-water already exists:
     the φ-hole / schema node (`schema.py`) and the math fixtures track. This is the direction Arisbe
-    grows *toward*, once the near-term spine is settled.
+    grows *toward*, once the near-term spine is settled. **Mapped (2026-07-08) in
+    [SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md):** how far Peirce's Gamma-as-second-order
+    leads, where his manuscripts trail off (comprehension / paradox control), and the governing rule
+    that the crossing must be *drawn* (§3.3 one order up) — with a recommended sortal layer completing
+    Peirce's own tinctures, and the departure marked.
 
 ---
 

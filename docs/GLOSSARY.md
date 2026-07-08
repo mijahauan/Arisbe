@@ -208,6 +208,14 @@ genesis. Two Existential Graphs identical in form assert the same Dicisign (prop
 different Arguments (reached by different derivations) — the distinction on which meaning-by-history
 turns. See [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
 
+### Hypostatic abstraction
+**Hypostatic abstraction** — Peirce's operation of turning a predicate into a subject ("hard" ⟶
+"hardness"; a dyadic relation into a triadic one via an abstract intermediary), so that predicates
+and propositions become objects one can quantify over. His route from first- to higher-order logic —
+the ascent operator at the heart of the **[second-order frontier](SECOND_ORDER_FRONTIER.md)** —
+realized in miniature and *reversibly* by `definitions.py` (a defined relation names a graph and
+unfolds back). Widely read as an early anticipation of category theory.
+
 ### Reification
 **Reification** (Berger & Luckmann, *The Social Construction of Reality*, 1966) — treating a
 humanly produced, history-bound product as if it were a natural, given, authorless fact, forgetting
