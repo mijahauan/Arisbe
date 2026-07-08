@@ -127,6 +127,52 @@ The synchronic/diachronic split of the [UoD](GLOSSARY.md#uod) is precisely
 the machinery that lets Arisbe say both things at once: the picture is the proposition, and the
 history is the argument.
 
+## Two histories, one graph — worked
+
+The point is easy to see across *two* universes: `(mortal Socrates)` means one thing in a UoD of
+Greek biography and another in a UoD of worked syllogisms — but there the two graphs are only
+*homographs*, tokens in separate books, and no one is tempted to confuse them. The sharper case —
+the one that shows history doing work the picture cannot — is **two histories to the same graph
+inside one UoD**, where the derivation history genuinely *converges*: two `ChainStep` lines meeting
+at a shared `to_state_id`, the same synchronic frame reached by different roads.
+
+**Example A — one conclusion, two grounds.** A single UoD opens with two facts and two implications
+on its sheet:
+
+```
+(sprinkler_on)   ~[ (sprinkler_on) ~[ (grass_wet) ] ]
+(rained)         ~[ (rained)        ~[ (grass_wet) ] ]
+```
+
+— *if the sprinkler is on, the grass is wet; if it rained, the grass is wet.* The grass is wet twice
+over, and two histories now reach the very same conclusion graph `(grass_wet)`:
+
+- **History A** deiterates `(sprinkler_on)` from the first scroll (it is a copy of the fact already
+  on the sheet) and removes the resulting double cut — `(grass_wet)` *because the sprinkler was on*.
+- **History B** does the same with `(rained)` and the second scroll — `(grass_wet)` *because it
+  rained*.
+
+Erase the scaffolding (erasure is free on the positive sheet) and both histories leave the sheet
+asserting exactly `(grass_wet)`: byte-for-byte the same graph, and `same_graph` returns true. Yet
+the two are different **Arguments**, and the difference is not idle. Suppose a later round of the
+game retracts `(sprinkler_on)` — a challenge shows the sprinkler was off all week. The
+synchronically identical `(grass_wet)` now behaves differently depending on which history laid it
+down: History A's grass-wet is **undercut** — its only recorded ground is gone — while History B's is
+**untouched**, the rain still standing. *Same picture, different future — because different past.* A
+claim's vulnerability is written in its history, not its form; Arisbe keeps that history in the chain
+precisely so the undercut one can fall and the other be spared.
+
+**Example B — proved versus observed.** In the same UoD, let the shared graph be a lone assertion
+`(grass_wet)`. One history *derives* it — a theorem read off premises since erased — and it wears the
+**derived ⛓** face: sound *given its base*. Another history *posits* it — someone looked out the
+window — and, sent to Agon and surviving, it wears the **withstood ⚔** face: warranted *because it
+met the world and held*. `same_graph` cannot tell the two apart; `standing_of` can, because standing
+is read from the path, not the picture. A proof and an observation may arrive at the identical
+sentence and still not be the same sign.
+
+Both examples are one lesson: what is shared is the Dicisign; what differs — the ground, the
+defeasibility, the standing — is the Argument, and it lives in the history the diachronic UoD keeps.
+
 ## The sneak: reifying a history
 
 Here the essay turns critical, and here Berger & Luckmann earn their place. Their term for the
