@@ -37,10 +37,10 @@ Priority = (breadth across personas × severity), newcomer- and adopter-blocking
 | G3 | **"When NOT to use Arisbe" / positioning** vs Lean, Coq, Isabelle, TLA+, Alloy, Protégé | **PARTIAL → DISPOSED** | evaluator (whole set), logician, domain-pro, ontologist | Comparisons are scattered (`ADVERSARIAL_EXAMINATION.md`, `CONTRIBUTION_AND_PRIOR_ART.md`) but there is **no positioning section and no explicit anti-pitch** (verified: no "when not to use" in VISION/CAPABILITY). The single most-requested thing from the evaluator. **Disposed:** added a "When to reach for something else" section to `VISION_AND_SCOPE.md` (D3). | **P0** |
 | G4 | **Contributor guide** — protected-vs-additive, the socket contracts, the test gate, review norms | **GAP → DISPOSED** | contributor (whole set), ontologist, logician, AI-integrator | Deep guidance exists but only in `CLAUDE.md` / `AGENTS.md` (insider/agent-facing); **no `CONTRIBUTING.md`** (verified absent). **Disposed:** new root `CONTRIBUTING.md` orienting the outsider (D4). | **P0** |
 | G5 | **Operations runbook** — launch a long unattended run, stop conditions, resume, digest fields, tripwires, disposal | **PARTIAL → DISPOSED (2026-07-07)** | operator (whole set), researcher, AI-integrator | The knowledge lived in `runs/RUN_*_LOG.md` (lab notebooks) + `AUTOMATED_ENDOPOREUTIC_GAME.md` §10 + tool `--help`. **Disposed:** new [`runs/OPERATIONS.md`](../runs/OPERATIONS.md) — the two artifacts the cold-read scoped (a **digest-field glossary with healthy/stop thresholds** + a **one-page disposal checklist**), pointing back to `--help` + §10 for the launch flow. See D5. | P1 |
-| G6 | **Teaching pack** — author your own challenge targets keyed to a syllabus; batch-grade N submissions; gradeable/collectable artifacts; multi-user | **PARTIAL/GAP** | teacher, course-designer, education (implicit) | `CHALLENGE_BANK` is a code list (`challenge_mode.py:76`) with no documented user-authoring path; `same_graph`/`legible_diff` grading exists but no batch/CLI grading doc; sessions are **in-memory, per-process** (`ergasterion.py:8`) → no multi-user story. Queued. | P1 |
-| G7 | **Scale & performance envelope** — largest graph/proof/ontology that stays interactive; where the super-linear walls sit *now* | **PARTIAL** | evaluator, logician, ontologist, operator, domain-pro, researcher | The RUN logs + CAPABILITY_MAP carry the real numbers (canonical-signature fix, visibility-graph fix, ~200-atom attest) but they are scattered across dated notebooks; no single "performance envelope" table. Queued. | P1 |
-| G8 | **Soundness boundary — proven vs tested vs claimed** | **PARTIAL** | logician (whole set), evaluator, Peirce scholar, AI-integrator | The `FIDELITY_*` + `ADVERSARIAL_EXAMINATION` chapters are honest and strong, but a reader cannot quickly see *which* results rest on the ~118 core tests vs paper argument vs corpus round-trips, or what an external re-checker would need. Partly a docs gap, partly the prospects R1 (proof certificates). Queued. | P1 |
-| G9 | **Multi-user / concurrency / day-two ops** | **GAP** | teacher, domain-pro, evaluator, API-integrator | Confirmed single-user in-memory; no CORS/auth/locking story; `save_uod_with_chain` concurrency unaddressed in docs. Honest scoping note owed. Queued. | P2 |
+| G6 | **Teaching pack** — author your own challenge targets keyed to a syllabus; batch-grade N submissions; gradeable/collectable artifacts; multi-user | **PARTIAL/GAP → DISPOSED (2026-07-07)** | teacher, course-designer, education (implicit) | `CHALLENGE_BANK` is a code list (`challenge_mode.py:76`) with no documented user-authoring path; `same_graph`/`legible_diff` grading exists but no batch/CLI grading doc; sessions are **in-memory, per-process** (`ergasterion.py:8`). **Disposed:** new [`TEACHING_PACK.md`](TEACHING_PACK.md) — the pedagogy model (Champagne's one-permission-per-step animation, Peirce-5↔Dau-6 bridge), authoring targets keyed to a syllabus, a batch-grading recipe, the gradeable-artifact table (auto vs human), direct/indirect (reductio) workflow, and the honest LMS gaps (points at G9). | P1 |
+| G7 | **Scale & performance envelope** — largest graph/proof/ontology that stays interactive; where the super-linear walls sit *now* | **PARTIAL → DISPOSED (2026-07-07)** | evaluator, logician, ontologist, operator, domain-pro, researcher | The RUN logs + CAPABILITY_MAP carried the real numbers but scattered across dated notebooks. **Disposed:** new [`PERFORMANCE_ENVELOPE.md`](PERFORMANCE_ENVELOPE.md) — the interactive envelope table, the four walls-and-fixes (canonical-signature 4800×, bbox-reject 140×, visibility-graph 160×, materializer), known-heavy shapes (ELK ~74 s on 250 cuts; persistent ~1000-atom M ~3–10 min/segment), measured live throughput, and how to reproduce. | P1 |
+| G8 | **Soundness boundary — proven vs tested vs claimed** | **PARTIAL → DISPOSED (2026-07-07)** | logician (whole set), evaluator, Peirce scholar, AI-integrator | A reader could not quickly see *which* results rest on paper proof vs the ~118 core tests vs runtime attestation. **Disposed:** new [`SOUNDNESS_BOUNDARY.md`](SOUNDNESS_BOUNDARY.md) — the four-tier framing (proven / machine-verified / attested-at-runtime / argued) + the per-claim matrix + "what an external re-checker would need" (the contract + MCP verifier exist; proof certificates = prospect R1). | P1 |
+| G9 | **Multi-user / concurrency / day-two ops** | **GAP → DISPOSED (2026-07-07)** | teacher, domain-pro, evaluator, API-integrator | Confirmed single-user in-memory; no CORS/auth/locking. **Disposed:** new [`DEPLOYMENT_AND_MULTIUSER.md`](DEPLOYMENT_AND_MULTIUSER.md) — the honest single-user/single-process scope note (what's absent by design: auth, tenancy, wide-open CORS, in-memory sessions, unlocked corpus writes; what *is* robust; and the 5-step path to a shared deployment). The gap was structural, not a doc omission — so this names it plainly rather than pretending it's built. | P2 |
 | G10 | **Import fidelity specifics** — exact OWL-2 construct coverage, skip-report contents, round-trip guarantee | **ANSWERED (mostly)** | ontologist, domain-pro, researcher | `EXTERNAL_SOURCES_AND_IMPORT.md` + `IMPORT_EXPORT_FORMATS.md` + `test_owl_import.py` cover this well; the skip-report is real and per-construct. Minor: a one-page "OWL 2 profile coverage" table would close it. Low-priority. | P3 |
 | G11 | **Newcomer first-hour path** | **ANSWERED** | newcomer, teacher | `GETTING_STARTED.md` (role-aware), the in-app primer, `FIELD_GUIDE_AND_DRAGONS.md`, the challenge ladder, and the glossary reading-order are genuinely strong and cross-linked. The book's best-served reader. | — |
 | G12 | **Provenance / citation granularity** | **ANSWERED** | Peirce scholar, domain-pro, researcher | `scholarly_citation.py` + provenance model + the citation chapter answer per-assertion attribution, honest-omission, BibTeX. Peirce-specific identifier alignment (Robin/LoF sigla) is a *prospect*, not a doc gap (see prospects R6). | — |
@@ -48,11 +48,15 @@ Priority = (breadth across personas × severity), newcomer- and adopter-blocking
 ## Coverage tally
 
 - **ANSWERED (well-served):** G11 (newcomer), G12 (provenance), G10 (import, near-complete) — the book's conceptual and on-ramp core is strong.
-- **PARTIAL:** G6, G7, G8 — knowledge exists in the repo but not where the asking reader looks (scattered across code docstrings, run logs, or insider docs). (G1, G3, G5 disposed — see below.)
-- **GAP → now disposed:** G2 (error index, → `TROUBLESHOOTING.md`), G4 (contributor, →
-  `CONTRIBUTING.md`); **still GAP:** G9 (multi-user/auth/CORS) — genuinely absent, and the
-  cold read found it is *structural* (single in-memory process, one shared corpus), not just
-  undocumented.
+- **DISPOSED (2026-07-07):** G6 (→ `TEACHING_PACK.md`), G7 (→ `PERFORMANCE_ENVELOPE.md`),
+  G8 (→ `SOUNDNESS_BOUNDARY.md`), G9 (→ `DEPLOYMENT_AND_MULTIUSER.md`) — the four remaining
+  P1/P2 gaps, each a bounded doc grounded in real repo facts (perf numbers from the run logs,
+  the soundness tiers from the test inventory, the multi-user reality from the web tier).
+- **GAP → disposed earlier:** G2 (error index, → `TROUBLESHOOTING.md`), G4 (contributor, →
+  `CONTRIBUTING.md`). G9's structural nature (single in-memory process, one shared corpus) is
+  now *named* in its scope note rather than papered over.
+- **Whole docket now disposed or answered** — nothing left GAP/PARTIAL. Remaining refinements
+  (e.g. G10's OWL-2 profile table) are P3 polish, not gaps.
 - **The pattern:** Arisbe's documentation is **excellent at the conceptual/why layer and the newcomer on-ramp, and thin at the task/how-to/reference layer** — exactly the genre gap the phase-0 survey predicted (comparable projects ship cookbooks, error indices, positioning FAQs, and contributor guides; Arisbe ships design-of-record docs, worked exemplars, and pre-registered run logs — a differentiator worth keeping, not diluting).
 
 ## Cold-reader independence check (2026-07-07)
@@ -114,10 +118,11 @@ not have found, being over-familiar with a repo that always ran from that path.
   instruments an operator reads and the procedure that turns a finished run into a disposed
   `RUN_N_LOG.md`; the launch flow stays in `--help` + §10. Disposes G5.
 
-## Queued (named, not silently dropped)
+## Queued → DISPOSED (2026-07-07)
 
-G6 (teaching pack), G7 (performance-envelope table), G8 (a
-proven-vs-tested-vs-claimed matrix), G9 (multi-user honest-scope note). Each is a
-bounded doc task; none blocks the newcomer or the conceptual reader. The performance and
-soundness-boundary gaps (G7, G8) also connect to prospect candidates (R1, R5) — best
-written once those directions are decided.
+G6 (teaching pack), G7 (performance-envelope table), G8 (proven-vs-tested-vs-claimed matrix),
+G9 (multi-user honest-scope note) — **all four written and wired into the book** (see the
+docket rows above). G8 explicitly threads to prospect R1 (proof certificates) and G7 to the
+run-findings; both were written now rather than deferred, since the directions they point at
+are named in `PROSPECTS_MULTIPERSPECTIVE.md` and do not need to be *resolved* for the docs to
+be honest. Nothing from the STORM docket remains open.

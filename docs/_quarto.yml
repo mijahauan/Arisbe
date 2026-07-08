@@ -38,6 +38,7 @@ book:
         - ARISBE_IN_PRACTICE.md
         - ENDOPOREUTIC_GAME_GUIDE.md
         - EXEMPLARS.md
+        - TEACHING_PACK.md
         - EXTERNAL_SOURCES_AND_IMPORT.md
         - FREEFORM_COMPOSITION_AND_LEARNING.md
         - FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md
@@ -52,12 +53,15 @@ book:
         - DOMAIN_ORACLE_AND_M.md
         - GENERATION_AND_TESTING.md
         - CAPABILITY_MAP.md
+        - SOUNDNESS_BOUNDARY.md
+        - PERFORMANCE_ENVELOPE.md
     - part: "V · Reference"
       chapters:
         - IMPORT_EXPORT_FORMATS.md
         - CHAPTER18_FOPL_TRANSLATION_DOCUMENTATION.md
         - GLOSSARY.md
         - CONTRIBUTION_AND_PRIOR_ART.md
+        - DEPLOYMENT_AND_MULTIUSER.md
         - ARISBE_CORE_API_REFERENCE.md
 
 # The project root IS docs/, so each canonical doc is listed directly as a chapter and

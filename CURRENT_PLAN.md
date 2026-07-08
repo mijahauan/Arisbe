@@ -1,6 +1,35 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-07, third sitting) — R4 + F1⁵ + RUN-8 MACHINERY SHIPPED.**
+**▶▶ THIS SESSION (2026-07-07, third sitting) — STORM DOCKET FULLY DISPOSED (G6–G9) while run 8 runs.**
+While the live run-8 resolving-membrane probe executes in the background, closed the four
+remaining STORM audit gaps (all P1/P2 doc tasks, grounded in real repo facts — no invention):
+- **G6 → `docs/TEACHING_PACK.md`** — the teacher's surface. Pedagogy modeled on Champagne's
+  *39 Exercises* (one-permission-per-step animation; the Peirce-5↔Dau-6 vocabulary bridge);
+  authoring challenge targets keyed to a syllabus (extend `CHALLENGE_BANK`); a batch-grading
+  recipe (`grade()` = `same_graph` + legible diff, surface-independent); the gradeable-artifact
+  table (machine-graded formation/transformation vs human-graded interpretation/strategy);
+  direct + indirect (reductio/"contrapiction") workflow via `ProofChain` + the storyboard lens;
+  honest LMS gaps → points at G9.
+- **G7 → `docs/PERFORMANCE_ENVELOPE.md`** — the numbers in one place. Interactive envelope
+  table; the four walls-and-exact-fixes (canonical-signature 15.7 s→3.3 ms ~4800×; bbox-reject
+  452 s→3.2 s ~140×; visibility-graph >10 min→3.8 s >160×; materializer O(|M|²)→O(|Δ|·|M|));
+  known-heavy shapes (ELK ~74 s on 250 cuts; persistent ~1000-atom M ~3–10 min/segment);
+  measured live throughput; reproduce-it notes. Doctrine: costs scale with *shape*, fixes are
+  exact never approximate.
+- **G8 → `docs/SOUNDNESS_BOUNDARY.md`** — proven (Dau) / machine-verified (tests) / attested-
+  at-runtime (§3.3) / argued (prose) four-tier framing + per-claim matrix + "what an external
+  re-checker needs" (contract + MCP verifier exist; proof certificates = prospect R1). Anchors
+  *correspondence-not-truth*.
+- **G9 → `docs/DEPLOYMENT_AND_MULTIUSER.md`** — the honest single-user/single-process scope
+  note (absent by design: auth, tenancy, wide-open CORS, in-memory sessions, unlocked corpus
+  writes; what *is* robust; the 5-step path to a shared deployment). Names the structural gap
+  plainly.
+All four wired into the Quarto book (`_quarto.yml` + `_devlinks.lua` BOOK set, kept in sync);
+STORM audit tally + queued section updated — **whole docket now disposed or answered, nothing
+GAP/PARTIAL left**. Cross-links + chapter files verified; HTML render-check run. **Not yet
+committed.** Run 8 continues in the background (watched for milestones).
+
+**▶▶ PREVIOUS (2026-07-07, third sitting) — R4 + F1⁵ + RUN-8 MACHINERY SHIPPED.**
 
 **RUN 8 MACHINERY — predict→refute→RE-GENERALIZE (+ F1⁷ NWS resilience).** Run 7's F2⁷: after
 the world falsified both seeded weather laws the game fell *silent*. Run 8 closes the loop —
