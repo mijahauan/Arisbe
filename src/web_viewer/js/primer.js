@@ -156,6 +156,13 @@
       "another. Each is a challenge you can draw and have graded — pick one to practise:</p>" +
       '<div class="primer-dragons">' + dragonsHtml + "</div>" +
 
+      "<h2>Two reflexes worth keeping</h2>" +
+      '<p class="primer-practice"><b>Posited vs. derived</b> — did someone <i>assert</i> ' +
+      'this, or did the <i>rules</i> hand it to you? The picture won’t tell you; ' +
+      'the standing does. And <b>a fragment is a building block</b> — a lone graph is ' +
+      'usually an <i>extract</i>; ask what whole it was cut from and what universe it ' +
+      'stands in.</p>' +
+
       "<h2>Where to go next</h2>" +
       '<p class="primer-practice">Compose a graph by hand in the ' +
       '<a href="/ergasterion">workshop (Ergasterion)</a> and watch Arisbe read it back to you; ' +
