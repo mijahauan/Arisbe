@@ -24,16 +24,16 @@ surface work over already-attested endpoints.
 
 ## Per-persona task completion — can they do it in the browser today?
 
-| Persona | Typical task | In browser today? | Blocking finding |
+| Persona | Typical task | At audit | Now (all fixes shipped) |
 |---|---|---|---|
-| **Newcomer** | primer → challenge → draw a dragon, get graded | ⚠️ marquee deep-link lands on a **disabled canvas** | U2 |
-| **Ontologist** | import a file → browse → ask a theorem of it | ❌ **no web import at all**; theorem silently no-ops | U1, U3 |
-| **Logician** | 4-way form round-trip → apply six rules → step a proof | ⚠️ only **3** notations (no FOPL); proof loop itself works | U4 |
-| **Mathematician** | read the formal object; §3.3; DAG history | ⚠️ sees only the **rendered picture**; formal object hidden | U7, U8 |
-| **Peirce scholar** | step a proof → provenance/cite → LaTeX export | ⚠️ single-graph export works; **no chain export / no BibTeX** | U5, U6 |
+| **Newcomer** | primer → challenge → draw a dragon, get graded | ⚠️ deep-link → disabled canvas | ✅ deep-link armed (U2); challenge door (U12); target picture on a miss (U9) |
+| **Ontologist** | import a file → browse → ask a theorem of it | ❌ no web import; theorem no-ops | ✅ web OWL/RDF/CLIF import (U1) → kind=ontology (U22) w/ skip-report (U17); materialize defaults on (U3); M-picker grouped (U14) |
+| **Logician** | 4-way form round-trip → six rules → step a proof | ⚠️ only 3 notations | ✅ FOPL (U4); per-step diff (U10); refusal inline + apply-gating (U15/U16) |
+| **Mathematician** | read the formal object; §3.3; DAG history | ⚠️ only the rendered picture | ✅ Structure lens (U7) + crossings (U11); DAG click-through (U8); §3.3 badge (U13); immutability note (U21) |
+| **Peirce scholar** | step a proof → provenance/cite → LaTeX export | ⚠️ no chain export / no BibTeX | ✅ chain LaTeX (U5) + BibTeX (U6); cite honesty gate (U18); transcribed/authored (U19); ⚔ ladder (U20) |
 
-The logician and mathematician have *degraded-but-functional* paths; the
-**ontologist, scholar, and newcomer each have a broken primary path**.
+At the audit the ontologist, scholar, and newcomer each had a **broken primary
+path**; all three now complete in the browser.
 
 ---
 
@@ -236,16 +236,28 @@ mostly surface-existing endpoints; several *un-break a broken primary path*):
 ergasterion) + E2E page-load of all three modes + a live-server smoke of every wired
 route + a new U2 regression assertion. No calculus/core module touched.*
 
-**Tier 2 — medium** (a real lens/feature, still additive): U7 structure lens ·
-U8 DAG click-through · U9 challenge target picture · U10 chain per-step diff ·
-U11 crossing-sequence as data · U14 M-picker kind grouping · U15/U16 rule refusal
-inline + apply-gating · U12 challenge-mode door · U17 skip-report persist+render ·
-U19 transcribed/authored label · U24 two reflexes · U21 immutability note.
+**Tier 2 — medium** — ✅ **SHIPPED 2026-07-09** (all twelve; additive, no core):
+U7 structure lens (reframed accessible lens as the coordinate-free formal object) ·
+U8 DAG click-through (`jumpToState` by state_id) · U9 challenge target picture
+(§3.3-attested `target_svg` on a wrong answer) · U10 chain per-step diff (`/chain`
+frames carry `legible_diff`) · U11 crossing-sequence as data ([crosses N cuts]) ·
+U14 M-picker kind grouping · U15/U16 rule refusal inline + apply-gating · U12
+challenge-mode door · U17 skip-report persist+render *(with Tier-3)* · U19
+transcribed/authored label · U24 two reflexes · U21 immutability note.
+*Verified: Organon + Ergasterion + Agon + primer route/E2E suites green.*
 
-**Tier 3 — structural** (bigger; U1 is a *blocker* but a larger build): U1 web
-file-import (upload + wire translators) · U22 import shelving as `kind=ontology`
-(goes with U1) · U25 layout-at-scale guard.
+**Tier 3 — structural** — ✅ **SHIPPED 2026-07-09** (the blocker + neighbours;
+additive, no core): U1 web file-import (OWL 2 functional / RDF Turtle+XML / CLIF →
+`check_ontology`/`admit_ontology` over `domain_model_importer`; upload or paste, a
+mode toggle on `/import`) · U22 shelving as `kind=ontology` (provenance
+kind=ontology → Organon facet + Agon M-picker) · U17 the construct-level
+skip-report persisted in provenance and rendered (import preview + Organon detail) ·
+U25 layout-at-scale guard (scale assessment; admit refuses a graph too large to
+draw/§3.3-attest interactively, pointing to the CLI). *Verified: 18 import-route
+tests (4 new) + a new headless ontology-import E2E; admit shelves + persists the
+skip-report with no corpus residue.*
 
-*Note: priority ≠ effort. U1 is the audit's only blocker but is Tier-3 by size; the
-Tier-1 quick wins collectively un-break the newcomer, ontologist-theorem, and
-scholar-export paths for a fraction of the cost.*
+**Status: the whole docket (U1–U25) is shipped.** Every persona's typical
+alpha/beta task now completes in the browser. Priority ≠ effort held: U1 (the only
+blocker) was Tier-3 by size, but the Tier-1 quick wins un-broke the newcomer,
+ontologist-theorem, and scholar-export paths first, for a fraction of the cost.
