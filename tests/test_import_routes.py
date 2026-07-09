@@ -234,3 +234,59 @@ def test_organon_detail_surfaces_imported_provenance(client, isolated_tomos):
     assert detail["success"] is True
     assert detail["data"]["bibliography"] is not None
     assert "Peirce" in detail["data"]["bibliography"]["formatted"]
+
+
+# --------------------------------------------------------------------------- #
+# Ontology file import (OWL / RDF / CLIF → kind=ontology UoD) — U1/U17/U22/U25  #
+# --------------------------------------------------------------------------- #
+
+_ZOO_OFN = (Path(__file__).parent / "fixtures" / "zoo.ofn").read_text()
+
+
+def test_check_ontology_reports_skips_and_scale(client):
+    body = client.post("/import/check-ontology", json={"text": _ZOO_OFN, "fmt": "owl"}).json()
+    assert body["success"] is True, body.get("error")
+    d = body["data"]
+    assert d["parsed"]["ok"] is True
+    # Counts translated, not silently dropped: the skip-report names each construct.
+    assert d["counts"]["axioms"] > 0 and d["counts"]["types"] > 0
+    assert any("skipped" in s for s in d["skipped_constructs"])
+    # Scale assessment present; the zoo fixture draws (svg + §3.3) — not too large.
+    assert d["scale"]["level"] in ("ok", "large")
+    assert d["svg"] and d["correspondence"]["ok"] is True
+
+
+def test_admit_ontology_shelves_as_ontology_with_skip_report(client, isolated_tomos):
+    body = client.post("/import/admit-ontology", json={
+        "text": _ZOO_OFN, "fmt": "owl", "uod_id": "zoo-onto", "name": "Zoo ontology",
+    }).json()
+    assert body["success"] is True, body.get("error")
+    assert body["data"]["kind"] == "ontology"
+    svc = isolated_tomos["service"]
+    assert svc.uod_exists("zoo-onto")
+    # Shelved as kind=ontology in provenance (the browse facet + Agon M-picker dim).
+    prov = svc.load_provenance("zoo-onto")
+    assert prov["kind"] == "ontology"
+    # The construct-level skip-report is persisted (U17), not only logged at the CLI.
+    assert prov["skipped_constructs"] and any("skipped" in s for s in prov["skipped_constructs"])
+    # Organon detail surfaces the kind + the skip-report.
+    detail = client.get("/organon/uods/zoo-onto").json()["data"]
+    assert detail["provenance"]["kind"] == "ontology"
+    assert detail["provenance"]["skipped_constructs"]
+    # And the list facets it under kind=ontology.
+    row = next(e for e in client.get("/organon/uods").json()["data"] if e["uod_id"] == "zoo-onto")
+    assert row["kind"] == "ontology"
+
+
+def test_admit_ontology_refuses_duplicate(client, isolated_tomos):
+    payload = {"text": _ZOO_OFN, "fmt": "owl", "uod_id": "zoo-dup"}
+    assert client.post("/import/admit-ontology", json=payload).json()["success"] is True
+    second = client.post("/import/admit-ontology", json=payload).json()
+    assert second["success"] is False
+    assert second["error"]["code"] == "IMPORT_ERROR"
+
+
+def test_check_ontology_unknown_format_is_a_clean_error(client):
+    body = client.post("/import/check-ontology", json={"text": "x", "fmt": "manchester"}).json()
+    assert body["success"] is False
+    assert body["error"]["code"] == "IMPORT_ERROR"

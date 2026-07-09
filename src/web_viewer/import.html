@@ -67,14 +67,56 @@
       </div>
       <div class="panel-body">
         <div class="field">
-          <label>Notation</label>
-          <select id="notation"><option value="egif">EGIF</option><option value="cgif">CGIF</option><option value="clif">CLIF</option></select>
+          <label>Import kind</label>
+          <div style="display:flex; gap:6px;">
+            <button class="action primary" id="mode-linear" style="flex:1; margin:0;">Linear form</button>
+            <button class="action" id="mode-ontology" style="flex:1; margin:0;">Ontology file</button>
+          </div>
         </div>
-        <div class="field">
-          <label>Linear form — transcribe or paste</label>
-          <textarea id="linear-input" placeholder="(Human *x) ~[ (Mortal x) ]"></textarea>
+
+        <div id="linear-mode">
+          <div class="field">
+            <label>Notation</label>
+            <select id="notation"><option value="egif">EGIF</option><option value="cgif">CGIF</option><option value="clif">CLIF</option></select>
+          </div>
+          <div class="field">
+            <label>Linear form — transcribe or paste</label>
+            <textarea id="linear-input" placeholder="(Human *x) ~[ (Mortal x) ]"></textarea>
+          </div>
+          <button class="action primary" id="btn-check">Check &amp; render</button>
         </div>
-        <button class="action primary" id="btn-check">Check &amp; render</button>
+
+        <div id="ontology-mode" style="display:none;">
+          <p class="hint" style="margin-top:0;">An OWL / RDF / CLIF vocabulary becomes a
+            <em>kind=ontology</em> UoD — browsable in Organon, playable as a model M in Agon.
+            The EG-expressible axioms come across; anything that can't is <em>reported</em>,
+            never silently dropped.</p>
+          <div class="field">
+            <label>Ontology format</label>
+            <select id="onto-format">
+              <option value="owl">OWL 2 functional syntax (.ofn)</option>
+              <option value="rdf-turtle">RDF — Turtle</option>
+              <option value="rdf-xml">RDF/XML</option>
+              <option value="clif">Common Logic (CLIF / SUO-KIF-style)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Upload a file</label>
+            <input type="file" id="onto-file" accept=".ofn,.owl,.ttl,.rdf,.xml,.owx,.clif,.cl,.kif,.txt" />
+          </div>
+          <div class="field">
+            <label>…or paste the ontology text</label>
+            <textarea id="onto-input" placeholder="Prefix(:=&lt;http://example/&gt;)&#10;Ontology(&lt;http://example/zoo&gt; ... )"></textarea>
+          </div>
+          <button class="action primary" id="btn-check-onto">Check &amp; render</button>
+
+          <div class="checks" id="onto-results" style="display:none;">
+            <div class="check-row"><span class="badge" id="ob-parse">—</span><div><div>Translated</div><div class="check-detail" id="od-parse"></div></div></div>
+            <div class="check-row"><span class="badge" id="ob-scale">—</span><div><div>Scale</div><div class="check-detail" id="od-scale"></div></div></div>
+            <div class="check-row"><span class="badge" id="ob-corr">—</span><div><div>§3.3 correspondence</div><div class="check-detail" id="od-corr"></div></div></div>
+            <div id="onto-skipped" style="margin-top:8px;"></div>
+          </div>
+        </div>
 
         <div class="checks" id="checks" style="display:none;">
           <div class="check-row"><span class="badge" id="b-parse">—</span><div><div>Grammatical correctness</div><div class="check-detail" id="d-parse"></div></div></div>
@@ -100,13 +142,15 @@
         <p>Proper attribution — the trace of where this came from.</p>
       </div>
       <div class="panel-body">
-        <div class="field">
-          <label>Source type</label>
-          <select id="cite-type"></select>
+        <div id="bib-section">
+          <div class="field">
+            <label>Source type</label>
+            <select id="cite-type"></select>
+          </div>
+          <div id="cite-fields"></div>
+          <label style="font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">Formatted citation</label>
+          <div class="citation-preview" id="citation-preview"></div>
         </div>
-        <div id="cite-fields"></div>
-        <label style="font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px;">Formatted citation</label>
-        <div class="citation-preview" id="citation-preview"></div>
 
         <div class="section-sep">Admit to corpus</div>
         <div class="field"><label>UoD id <span class="req">*</span></label><input type="text" id="uod-id" placeholder="peirce-cp-4-394" /></div>
@@ -129,6 +173,7 @@
       const $ = (id) => document.getElementById(id);
       const statusEl = $('status'), canvasEl = $('canvas');
       let svgPZ = null, citationTypes = [], lastCheckOk = false, fmtTimer = null;
+      let mode = 'linear';   // 'linear' | 'ontology'
 
       function setStatus(m, k){ statusEl.textContent=m; statusEl.classList.remove('error','success'); if(k) statusEl.classList.add(k); }
       function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -199,22 +244,83 @@
         setStatus(lastCheckOk ? 'Checks passed — comprehended and in correspondence. Attribute and admit.' : 'Check completed with problems — see the badges.', lastCheckOk?'success':'error');
       }
 
+      // ---- ontology import (OWL / RDF / CLIF → kind=ontology UoD) ----
+      function setMode(m){
+        mode = m;
+        $('linear-mode').style.display = (m==='linear') ? 'block' : 'none';
+        $('ontology-mode').style.display = (m==='ontology') ? 'block' : 'none';
+        $('bib-section').style.display = (m==='ontology') ? 'none' : 'block';
+        $('mode-linear').className = 'action' + (m==='linear' ? ' primary' : '');
+        $('mode-ontology').className = 'action' + (m==='ontology' ? ' primary' : '');
+        lastCheckOk = false; $('btn-admit').disabled = true;
+        $('admit-hint').textContent = (m==='ontology')
+          ? 'Check an ontology file first. It admits at low warrant as kind=ontology.'
+          : 'Run a successful check first. §3.3 fires again at the corpus boundary.';
+      }
+
+      async function checkOntology(){
+        const text = $('onto-input').value, fmt = $('onto-format').value;
+        if(!text.trim()){ setStatus('Upload or paste an ontology first.','error'); return; }
+        setStatus('Translating ' + fmt.toUpperCase() + '…');
+        const b = await post('/import/check-ontology', { text, fmt });
+        if(!b.success){ setStatus('Check error: '+(b.error&&b.error.message),'error'); return; }
+        const r = b.data; $('onto-results').style.display='block';
+        // translated
+        if(r.parsed.ok){ badge($('ob-parse'),'ok','OK');
+          const c=r.counts||{}, s=r.egi_summary||{};
+          $('od-parse').textContent = (c.axioms||0)+' axioms · '+(c.types||0)+' types · '+
+            (c.relations||0)+' relations · '+(c.individuals||0)+' individuals → '+
+            (s.vertex_count||0)+'V / '+(s.edge_count||0)+'E / '+(s.cut_count||0)+'C'; }
+        else { badge($('ob-parse'),'bad','FAIL'); $('od-parse').textContent=r.parsed.error||''; }
+        // scale
+        const sc = r.scale||{};
+        badge($('ob-scale'), sc.level==='too_large'?'bad':(sc.level==='large'?'warn':'ok'),
+          sc.level==='too_large'?'TOO LARGE':(sc.level==='large'?'LARGE':'OK'));
+        $('od-scale').textContent = sc.message || (sc.size!=null? sc.size+' elements':'');
+        // §3.3
+        if(r.correspondence.ok){ badge($('ob-corr'),'ok','PASS'); $('od-corr').textContent='picture and proposition correspond'; }
+        else if(sc.level==='too_large'){ badge($('ob-corr'),'warn','SKIPPED'); $('od-corr').textContent='too large to draw interactively'; }
+        else { badge($('ob-corr'),'bad','FAIL'); $('od-corr').textContent=r.correspondence.error||''; }
+        // skip-report (partial translation, by construct)
+        const skipped = r.skipped_constructs||[];
+        $('onto-skipped').innerHTML = skipped.length
+          ? '<div style="font-size:10px; color:#6c7086; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px;">Not translated ('+skipped.length+') — reported, not dropped</div>'
+            + skipped.map(s=>'<div style="font-size:11px; color:var(--warning);">⚠ '+esc(s)+'</div>').join('')
+          : '<div style="font-size:11px; color:var(--success);">✓ every EG-expressible axiom came across</div>';
+        if(r.svg){ renderSvg(r.svg); }
+        else { canvasEl.innerHTML='<div id="canvas-placeholder">'+esc(sc.message||'No drawing.')+'</div>'; }
+        lastCheckOk = !!r.ok && sc.level!=='too_large';
+        $('btn-admit').disabled = !lastCheckOk;
+        $('admit-hint').textContent = lastCheckOk
+          ? 'Ready to admit as kind=ontology. §3.3 fires again at the corpus boundary.'
+          : (sc.level==='too_large' ? 'Too large to admit interactively — import via the CLI.'
+                                    : 'Fix the failing check(s) before admitting.');
+        setStatus(lastCheckOk ? 'Translated — '+skipped.length+' construct(s) skipped. Name it and admit.'
+                              : 'Check completed — see the badges.', lastCheckOk?'success':'error');
+      }
+
       // ---- admit ----
       async function admit(){
         if(!lastCheckOk) return;
-        const payload = {
-          text: $('linear-input').value, notation: $('notation').value,
-          bibliography: gatherRecord(), uod_id: ($('uod-id').value||'').trim(),
+        const uod_id = ($('uod-id').value||'').trim();
+        if(!uod_id){ setStatus('A UoD id is required.','error'); return; }
+        const common = { uod_id,
           name: ($('uod-name').value||'').trim() || null,
           description: ($('uod-desc').value||'').trim() || null,
-          tags: ($('uod-tags').value||'').split(',').map(s=>s.trim()).filter(Boolean),
-        };
-        if(!payload.uod_id){ setStatus('A UoD id is required.','error'); return; }
+          tags: ($('uod-tags').value||'').split(',').map(s=>s.trim()).filter(Boolean) };
         setStatus('Admitting…');
-        const b = await post('/import/admit', payload);
+        let b;
+        if(mode==='ontology'){
+          b = await post('/import/admit-ontology', { text: $('onto-input').value, fmt: $('onto-format').value, ...common });
+        } else {
+          b = await post('/import/admit', { text: $('linear-input').value, notation: $('notation').value, bibliography: gatherRecord(), ...common });
+        }
         if(!b.success){ const e=b.error||{};
           setStatus((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal at corpus boundary: ':'Admit refused: ')+(e.message||''),'error'); return; }
-        setStatus('Admitted as “'+b.data.uod_id+'”. It now sits in the corpus at low warrant — view it in Organon.','success');
+        const extra = (mode==='ontology' && b.data.skipped_constructs && b.data.skipped_constructs.length)
+          ? ' ('+b.data.skipped_constructs.length+' construct(s) skipped, recorded in its provenance)' : '';
+        setStatus('Admitted as “'+b.data.uod_id+'”'+(mode==='ontology'?' (kind=ontology)':'')+extra+
+          '. It now sits in the corpus at low warrant — view it in Organon.','success');
         $('btn-admit').disabled = true;
       }
 
@@ -231,6 +337,28 @@
         // re-checking invalidates the prior pass
         $('linear-input').addEventListener('input', ()=>{ lastCheckOk=false; $('btn-admit').disabled=true; });
         $('notation').addEventListener('change', ()=>{ lastCheckOk=false; $('btn-admit').disabled=true; });
+        // ontology mode
+        $('mode-linear').addEventListener('click', ()=>setMode('linear'));
+        $('mode-ontology').addEventListener('click', ()=>setMode('ontology'));
+        $('btn-check-onto').addEventListener('click', checkOntology);
+        $('onto-input').addEventListener('input', ()=>{ lastCheckOk=false; $('btn-admit').disabled=true; });
+        $('onto-format').addEventListener('change', ()=>{ lastCheckOk=false; $('btn-admit').disabled=true; });
+        $('onto-file').addEventListener('change', (e)=>{
+          const f = e.target.files && e.target.files[0];
+          if(!f) return;
+          const reader = new FileReader();
+          reader.onload = () => {
+            $('onto-input').value = reader.result || '';
+            // infer format from extension when possible
+            const n = f.name.toLowerCase();
+            if(n.endsWith('.ttl')) $('onto-format').value='rdf-turtle';
+            else if(n.endsWith('.rdf')||n.endsWith('.owx')||n.endsWith('.xml')) $('onto-format').value='rdf-xml';
+            else if(n.endsWith('.clif')||n.endsWith('.cl')||n.endsWith('.kif')) $('onto-format').value='clif';
+            else if(n.endsWith('.ofn')||n.endsWith('.owl')) $('onto-format').value='owl';
+            setStatus('Loaded '+f.name+' — press “Check & render”.');
+          };
+          reader.readAsText(f);
+        });
       }
       init();
     })();

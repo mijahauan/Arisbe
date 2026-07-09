@@ -58,9 +58,193 @@ from web_api.services.linear_forms import linear_forms
 _PARSERS = {"egif": parse_egif, "cgif": parse_cgif, "clif": parse_clif}
 _GENERATORS = {"egif": generate_egif, "cgif": generate_cgif, "clif": generate_clif}
 
+# Ontology file formats → (label, importer). Each importer returns a
+# domain_model_importer.ImportResult carrying the EGI + the construct-level
+# skip-report (``warnings``) — partial translation, never silently dropped.
+_ONTOLOGY_FORMATS = {
+    "owl": "OWL 2 functional syntax (.ofn)",
+    "rdf-turtle": "RDF (Turtle)",
+    "rdf-xml": "RDF/XML",
+    "clif": "Common Logic (CLIF / SUO-KIF-style)",
+}
+
+# Element count (V+E+Cut) beyond which ELK layout is super-linear to draw
+# (docs: a ~250-cut taxonomy is ~74 s). Above WARN we still admit but flag it;
+# above CAP we refuse an *interactive* import (it would hang the §3.3 attest at
+# save) and point to the CLI / structure view — the honest layout-at-scale limit.
+_ONTOLOGY_SCALE_WARN = 80
+_ONTOLOGY_SCALE_CAP = 220
+
 
 class ImportError_(Exception):
     """A recoverable import problem (bad notation, duplicate id, …)."""
+
+
+def _import_ontology(text: str, fmt: str):
+    """Run the format-appropriate importer → ImportResult (egi + skip-report)."""
+    from domain_model_importer import from_clif_text, from_owl_text, from_rdf_text
+    fmt = (fmt or "owl").lower().strip()
+    if fmt == "owl":
+        return from_owl_text(text or "")
+    if fmt == "rdf-turtle":
+        return from_rdf_text(text or "", "turtle")
+    if fmt == "rdf-xml":
+        return from_rdf_text(text or "", "xml")
+    if fmt == "clif":
+        return from_clif_text(text or "")
+    raise ImportError_(
+        f"Unknown ontology format '{fmt}'. Valid: {sorted(_ONTOLOGY_FORMATS)}.")
+
+
+def _egi_size(egi) -> int:
+    return len(egi.V) + len(egi.E) + len(egi.Cut)
+
+
+def check_ontology(text: str, fmt: str) -> Dict[str, Any]:
+    """Inspect an ontology file (OWL/RDF/CLIF) without persisting anything.
+
+    Returns the EGI summary + import counts, the **construct-level skip-report**
+    (what could not be translated, by construct — never silently dropped), a
+    **scale assessment**, and — only when the graph is small enough to draw
+    interactively — a §3.3-attested drawing preview. A large ontology is correct
+    but super-linear to draw, so the preview is skipped with a scale warning
+    rather than hanging the request.
+    """
+    fmt = (fmt or "owl").lower().strip()
+    result: Dict[str, Any] = {
+        "fmt": fmt, "format_label": _ONTOLOGY_FORMATS.get(fmt, fmt),
+        "parsed": {"ok": False, "error": None},
+        "counts": None, "egi_summary": None,
+        "skipped_constructs": [], "scale": None,
+        "svg": None, "layout_dto": None,
+        "correspondence": {"ok": False, "error": None},
+        "ok": False,
+    }
+    try:
+        imp = _import_ontology(text, fmt)
+    except ImportError_:
+        raise
+    except Exception as exc:
+        result["parsed"]["error"] = f"{type(exc).__name__}: {exc}"
+        return result
+    egi = imp.egi
+    result["parsed"]["ok"] = True
+    result["counts"] = {"axioms": imp.num_axioms, "types": imp.num_types,
+                        "relations": imp.num_relations, "individuals": imp.num_individuals}
+    result["egi_summary"] = {"vertex_count": len(egi.V), "edge_count": len(egi.E),
+                             "cut_count": len(egi.Cut)}
+    result["skipped_constructs"] = list(imp.warnings or [])
+    size = _egi_size(egi)
+    if size > _ONTOLOGY_SCALE_CAP:
+        result["scale"] = {"size": size, "level": "too_large",
+                           "message": (f"{size} elements — too large to draw and §3.3-attest "
+                                       "interactively. Import via the CLI (tools/build_ontologies) "
+                                       "or browse it in the coordinate-free Structure view.")}
+    elif size > _ONTOLOGY_SCALE_WARN:
+        result["scale"] = {"size": size, "level": "large",
+                           "message": (f"{size} elements — large; drawing may take a while "
+                                       "(layout is super-linear).")}
+    else:
+        result["scale"] = {"size": size, "level": "ok", "message": ""}
+
+    # Draw + attest only when it is small enough to be interactive.
+    if size <= _ONTOLOGY_SCALE_CAP:
+        try:
+            dto, svg = generate_layout(egi)
+            result["svg"] = svg
+            result["layout_dto"] = layout_dto_to_dict(dto)
+            result["correspondence"]["ok"] = True
+        except CorrespondenceViolation as exc:
+            result["correspondence"]["error"] = str(exc)
+        except Exception as exc:
+            result["correspondence"]["error"] = f"{type(exc).__name__}: {exc}"
+    result["ok"] = result["parsed"]["ok"] and (
+        size > _ONTOLOGY_SCALE_CAP or result["correspondence"]["ok"])
+    return result
+
+
+def admit_ontology(
+    *,
+    text: str,
+    fmt: str,
+    uod_id: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    tags: Optional[List[str]] = None,
+    tomos: TomosService,
+) -> Dict[str, Any]:
+    """Admit an ontology file into the corpus as a low-warrant ``kind=ontology`` UoD.
+
+    Translates OWL/RDF/CLIF → EGI, builds a ``DOMAIN_MODEL`` UoD shelved as an
+    **ontology** (so Organon facets it and Agon lists it as a model M), persists
+    the **construct-level skip-report** in its provenance, and saves it (``save_uod``
+    fires §3.3 at the boundary). Refuses a graph too large to draw/attest
+    interactively (it would hang the attest) — the honest layout-at-scale limit.
+    """
+    fmt = (fmt or "owl").lower().strip()
+    uod_id = (uod_id or "").strip()
+    if not uod_id:
+        raise ImportError_("A uod_id is required to admit an import.")
+    if tomos.uod_exists(uod_id):
+        raise ImportError_(
+            f"UoD '{uod_id}' already exists; import never overwrites. "
+            f"Choose a different id.")
+    try:
+        imp = _import_ontology(text, fmt)
+    except ImportError_:
+        raise
+    except Exception as exc:
+        raise ImportError_(f"Could not import {fmt.upper()}: {exc}")
+
+    egi = imp.egi
+    size = _egi_size(egi)
+    if size > _ONTOLOGY_SCALE_CAP:
+        raise ImportError_(
+            f"This ontology is too large to draw and §3.3-attest interactively "
+            f"({size} elements > {_ONTOLOGY_SCALE_CAP}). Import it via the CLI "
+            f"(tools/build_ontologies) where it is admitted as a spine, or reduce it.")
+
+    from provenance import KIND_ONTOLOGY, Provenance
+
+    now = datetime.now(timezone.utc)
+    tag_set = set(tags or [])
+    tag_set.update({"import", "warrant:low", "kind:ontology", "source:ontology"})
+    metadata = UoDMetadata(
+        uod_id=uod_id,
+        uod_type=UoDType.STANDALONE,
+        name=name or uod_id,
+        description=description or "",
+        category=UoDCategory.DOMAIN_MODEL,
+        created=now,
+        last_modified=now,
+        authors=[],
+        tags=tag_set,
+        source_citation="",
+        natural_language_summary=description or None,
+    )
+    uod = UniverseOfDiscourse(metadata=metadata, current_egi=egi)
+
+    # §3.3 fires inside save_uod BEFORE any disk write.
+    tomos.save_uod(uod)
+
+    # Provenance: shelve as kind=ontology (the browse/facet + M-picker dimension)
+    # and persist the construct-level skip-report so the partial translation is
+    # visible in Organon, not only at the CLI. The skip-report rides in the raw
+    # provenance dict (the detail route passes it through un-rehydrated).
+    prov = Provenance(kind=KIND_ONTOLOGY).to_dict()
+    prov["skipped_constructs"] = list(imp.warnings or [])
+    prov["import_format"] = _ONTOLOGY_FORMATS.get(fmt, fmt)
+    tomos.save_provenance(uod, prov)
+
+    return {
+        "uod_id": uod_id,
+        "kind": "ontology",
+        "counts": {"axioms": imp.num_axioms, "types": imp.num_types,
+                   "relations": imp.num_relations, "individuals": imp.num_individuals},
+        "skipped_constructs": list(imp.warnings or []),
+        "egi_summary": {"vertex_count": len(egi.V), "edge_count": len(egi.E),
+                        "cut_count": len(egi.Cut)},
+    }
 
 
 def _canonical(egi) -> str:

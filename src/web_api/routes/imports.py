@@ -31,6 +31,8 @@ from web_api.models.api_models import (
     FormatCitationRequest,
     ImportAdmitRequest,
     ImportCheckRequest,
+    OntologyAdmitRequest,
+    OntologyCheckRequest,
 )
 from web_api.services import bibliography, import_service
 
@@ -77,6 +79,45 @@ async def check(request: ImportCheckRequest):
             success=False,
             error={"code": "CHECK_ERROR", "message": str(exc), "type": type(exc).__name__},
         )
+
+
+@router.post("/check-ontology")
+async def check_ontology(request: OntologyCheckRequest):
+    """Inspect an ontology file (OWL / RDF / CLIF): EGI summary, the construct-level
+    skip-report, a scale assessment, and a §3.3 preview when small enough.  No write."""
+    try:
+        result = import_service.check_ontology(request.text, request.fmt)
+        return ApiResponse(success=True, data=result)
+    except import_service.ImportError_ as exc:
+        return ApiResponse(success=False, error={"code": "IMPORT_ERROR", "message": str(exc)})
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CHECK_ERROR", "message": str(exc), "type": type(exc).__name__})
+
+
+@router.post("/admit-ontology")
+async def admit_ontology(request: OntologyAdmitRequest):
+    """Admit an ontology file as a low-warrant ``kind=ontology`` UoD (browsable in
+    Organon, playable as a model M in Agon); persists the construct-level skip-report;
+    refuses a graph too large to draw/attest interactively."""
+    try:
+        result = import_service.admit_ontology(
+            text=request.text, fmt=request.fmt, uod_id=request.uod_id,
+            name=request.name, description=request.description, tags=request.tags,
+            tomos=_get_tomos())
+        return ApiResponse(success=True, data=result)
+    except import_service.ImportError_ as exc:
+        return ApiResponse(success=False, error={"code": "IMPORT_ERROR", "message": str(exc)})
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc),
+                   "context": getattr(exc, "context", None)})
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "ADMIT_ERROR", "message": str(exc), "type": type(exc).__name__})
 
 
 @router.post("/format-citation")

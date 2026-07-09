@@ -792,6 +792,17 @@
           if (f.methods && f.methods.length) {
             rows.push('<strong>method:</strong> ' + escapeHtml(f.methods.join('; ')));
           }
+          // U17: the construct-level skip-report for an imported ontology — the
+          // OWL/RDF axioms that could not be translated, reported not dropped
+          // (the manifest floor), visible in the app, not only at the CLI.
+          const skipped = p.skipped_constructs || [];
+          if (skipped.length) {
+            rows.push('<strong>partial translation:</strong> <span style="color:var(--ctp-peach,#fab387);">'
+              + skipped.length + ' construct(s) not translated</span> '
+              + '<span style="color:var(--ctp-overlay0);">(reported, never silently dropped)</span>'
+              + '<div style="margin-top:2px; font-size:11px; color:var(--ctp-overlay1);">'
+              + skipped.map(function (s) { return '⚠ ' + escapeHtml(s); }).join('<br>') + '</div>');
+          }
           return '<div class="prov-block">' + rows.join('<br>') + '</div>';
         }
         if (data.bibliography && data.bibliography.formatted) {

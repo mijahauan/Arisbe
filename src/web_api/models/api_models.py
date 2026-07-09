@@ -349,6 +349,36 @@ class ImportAdmitRequest(BaseModel):
     tags: Optional[List[str]] = None
 
 
+class OntologyCheckRequest(BaseModel):
+    """Inspect an ontology file (OWL / RDF / CLIF) without persisting it.
+
+    ``fmt`` is ``"owl"`` (functional syntax), ``"rdf-turtle"``, ``"rdf-xml"``,
+    or ``"clif"``.  Returns the EGI summary, the construct-level skip-report
+    (partial translation, never silently dropped), a scale assessment, and a
+    drawing preview when the graph is small enough to draw interactively.
+    """
+
+    text: str
+    fmt: str = "owl"
+
+
+class OntologyAdmitRequest(BaseModel):
+    """Admit an ontology file into the corpus as a low-warrant ``kind=ontology`` UoD.
+
+    Translates OWL/RDF/CLIF → EGI, shelves it as an ontology (browsable in
+    Organon, playable as a model M in Agon), persists the construct-level
+    skip-report in its provenance, and refuses a graph too large to draw/attest
+    interactively (the honest layout-at-scale limit).
+    """
+
+    text: str
+    fmt: str = "owl"
+    uod_id: str
+    name: Optional[str] = None
+    description: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
 class AgonNewGameRequest(BaseModel):
     """Start an Endoporeutic Game contest.
 
