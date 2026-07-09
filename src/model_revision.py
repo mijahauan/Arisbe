@@ -149,17 +149,58 @@ def retract_subgraph(
     sheet-level subgraph matches (a retraction must have something to retract).
 
     This is the move a **challenge-to-M** makes on an over-general law: the black
-    swan refutes "all swans are white", so the law is relinquished."""
+    swan refutes "all swans are white", so the law is relinquished.
+
+    Structural (``_without_cut_subtree``), like ``retract_atom`` — *not* a Dau ERA.
+    ERA's for-erasure closure rejects a sheet-level cut whose interior shares a line
+    of identity across an area boundary ("elements not in target area"), and because
+    the probe below ERAs *every* sheet cut, one such cut used to crash the whole
+    retraction (RUN_8_LOG: the reseeded temp law after materialization). Removing the
+    subtree structurally never raises, so a non-matching cut is simply skipped."""
     from eg_navigation import child_cuts, same_graph
-    from proof_authoring import apply_rule
 
     parse_egif(subgraph_egif)   # validate the target parses (raises early if not)
     for cut_id in child_cuts(model, model.sheet):
-        erased = apply_rule("ERA", model, selection=[cut_id])   # ERA closes over the cut's contents
+        erased = _without_cut_subtree(model, cut_id)   # remove the cut as a unit
         if same_graph(assert_fact(erased, subgraph_egif), model):
             return erased
     raise ValueError(
         f"no sheet-level subgraph matching {subgraph_egif!r} to retract")
+
+
+def _without_cut_subtree(
+    model: RelationalGraphWithCuts, cut_id: str
+) -> RelationalGraphWithCuts:
+    """Return ``model`` with ``cut_id`` and everything it transitively contains
+    removed — erasing the cut *as a unit* structurally, without the ERA closure
+    validator. Argument vertices still incident to a **surviving** edge are kept
+    (not pruned), so relinquishing a law-cut never severs a sheet atom's line of
+    identity. Nested cuts are removed deepest-first so each redistributes only
+    already-emptied contents."""
+    contained = set(model.get_full_context(cut_id))
+    del_edges = contained & {e.id for e in model.E}
+    del_cuts = (contained & {c.id for c in model.Cut}) | {cut_id}
+    surviving_incidence = set()
+    for e in model.E:
+        if e.id not in del_edges:
+            surviving_incidence.update(model.nu.get(e.id, ()))
+    del_verts = (contained & {v.id for v in model.V}) - surviving_incidence
+
+    def _depth(cid: str) -> int:
+        d, cur = 0, cid
+        while cur != model.sheet:
+            cur = model.get_context(cur)
+            d += 1
+        return d
+
+    g = model
+    for eid in del_edges:
+        g = g.without_element(eid)
+    for vid in del_verts:
+        g = g.without_element(vid)
+    for cid in sorted(del_cuts, key=_depth, reverse=True):
+        g = g.without_element(cid)
+    return g
 
 
 def _labels(model: RelationalGraphWithCuts, edge_id: str) -> List[Optional[str]]:

@@ -1519,4 +1519,9 @@ scripted data: refute → widen → re-bet → hit). So the replay canary valida
 | P4⁸ F1⁷ resilience | per-station error rates | a transiently-flaky endpoint recovers within the retry budget (invisible); a dark station is bounded, counted, and **named** in the digest. |
 | P5⁸ floor unchanged | checkpoints, resume | §3.3 attests; `--resume` carries the recalibrated knobs (band/PoP persisted) + per-station errors; correspondence-not-truth holds (a resolved market is low-warrant). |
 
-**Log:** `runs/RUN_8_LOG.md` (to be written at disposal).
+**Log:** [`runs/RUN_8_LOG.md`](../runs/RUN_8_LOG.md) — **EXECUTED & DISPOSED 2026-07-08.**
+P1⁸/P2⁸/P4⁸/P5⁸ confirmed (13 re-generalizations; live accuracy 0.70, net +17; 0 fetch_errors;
+resume carried the knobs across 4 crashes); **P3⁸ refined** — the re-generalized law settles into
+a *positive-net limit cycle*, not a fixed point (F2⁸); the precip arm stayed dormant (F3⁸); a
+`retract_subgraph` robustness bug found + fixed (F1⁸). Next: run 9 (forecast-centered bins +
+per-arm instrumentation).

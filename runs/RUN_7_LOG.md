@@ -65,7 +65,7 @@ its claims all drop-unresolved silently-but-counted. **Queued (2a-class, additiv
 bounded retry with backoff in `weather_source._fetch` wrapping, and surface per-station
 error rates in the digest so a dark station is visible, not just aggregated.
 
-### F2⁷ (2026-07-07) — the discretization is the falsifiability knob (both laws died, temp first)  ·  **MACHINERY BUILT 2026-07-07 (run 8); live disposal pending**
+### F2⁷ (2026-07-07) — the discretization is the falsifiability knob (both laws died, temp first)  ·  **DISPOSED 2026-07-08 (run 8) — [RUN_8_LOG](RUN_8_LOG.md) P1⁸/P2⁸ + F2⁸**
 
 *Addressed (build):* `weather_recalibration.recalibrate` is the predict→refute→**re-generalize**
 controller — after a law falls it widens the temp band / raises the PoP threshold from the
