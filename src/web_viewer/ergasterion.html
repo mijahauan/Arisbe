@@ -521,6 +521,10 @@
           <button class="action primary" id="btn-start-empty">
             Empty sheet of assertion
           </button>
+          <button class="action" id="btn-start-challenge" style="margin-top: 8px;"
+                  title="Open an empty sheet and pick a target to draw freehand — Arisbe grades your attempt with a plain-language diff.">
+            🎯 Practice — draw a challenge
+          </button>
           <div style="margin-top: 10px;">
             <label style="font-size: 10px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px;">
               Or start from a corpus UoD
@@ -1145,7 +1149,7 @@
         const el = document.getElementById('rule-steps-guidance');
         if (!el) return;
         const steps = currentRule && ruleSteps[currentRule];
-        if (!steps || !steps.length) { el.innerHTML = ''; return; }
+        if (!steps || !steps.length) { el.innerHTML = ''; setApplyEnabled(); return; }
         const marks = ['①', '②', '③', '④'];
         const parts = steps.map((s, i) => {
           const done = stepFilled(s);
@@ -1171,6 +1175,7 @@
             if (steps[i] && steps[i].kind !== 'provide_egif') setActiveStep(i);
           });
         });
+        setApplyEnabled();   // U16: keep the Apply button in step with the checklist
       }
 
       // Closure preview (2b): a rule acts on a *closed* sub-graph, so a
@@ -1978,14 +1983,35 @@
         const k = Math.min(i, steps.length);
         return steps[k - 1] ? steps[k - 1].to_state_id : currentChain.initial_state_id;
       }
+      // U16: a step whose input we know how to check must be filled before apply;
+      // for any step kind we can't verify, don't block (stay conservative — never
+      // disable a legitimately-applicable rule).
+      function stepReady(step) {
+        const known = ['selected_elements', 'target_area', 'egif_content'];
+        if (!known.includes(step.parameter)) return true;
+        return stepFilled(step);
+      }
+      function applyPreconditionsMet() {
+        if (!currentRule) return false;
+        const steps = ruleSteps[currentRule];
+        if (!steps || !steps.length) return true;   // stepless rule
+        return steps.every((s) => s.optional || stepReady(s));
+      }
       function setApplyEnabled() {
         // The workshop is editable everywhere: a move can be applied from any
         // viewed state.  At the tip it extends the line; from an earlier state
         // it forks a new branch (handled server-side via from_state_id).
-        btnApply.disabled = !currentRule;
+        // U16: warrant-before-act — the button is live only when the rule's
+        // declared preconditions (its outstanding ☐ steps) are met, so a
+        // premature click is pre-empted rather than bouncing off a server refusal.
+        const ready = applyPreconditionsMet();
+        btnApply.disabled = !ready;
         btnApply.textContent = (currentRule && !atTip())
           ? 'Apply move (forks a branch)'
           : 'Apply rule';
+        btnApply.title = (currentRule && !ready)
+          ? 'Fill the outstanding step(s) above (☐) first — a rule applies only when its preconditions hold.'
+          : '';
       }
       function updateNavControls() {
         const tip = tipIndex();
@@ -2365,10 +2391,19 @@
           });
           const body = await res.json();
           if (!body.success) {
-            setStatus(
-              currentRule + ' refused: ' + (body.error && body.error.message),
-              'error'
-            );
+            const msg = (body.error && body.error.message) || 'precondition not met';
+            setStatus(currentRule + ' refused: ' + msg, 'error');
+            // U15: surface the refusal *inline* next to the rule checklist where
+            // the user just acted — the bottom status bar is transient and easy
+            // to miss, and "why did this fail" belongs beside the rule.
+            const g = document.getElementById('rule-steps-guidance');
+            if (g) {
+              g.insertAdjacentHTML('beforeend',
+                '<div class="rule-refusal" style="margin-top:5px; padding:4px 6px; ' +
+                'border-left:2px solid var(--ctp-maroon); color:var(--ctp-maroon); ' +
+                'background:var(--ctp-base);">✗ ' + escapeHtml(currentRule) +
+                ' refused: ' + escapeHtml(msg) + '</div>');
+            }
             return;
           }
           // A rule application is a *continuation* of the same episode —
@@ -2872,6 +2907,25 @@
         });
       }
 
+      // U12: a first-class "Practice a challenge" door on the landing picker —
+      // open an empty sheet, reveal the challenge picker, and focus it, so the
+      // challenge is a visible door rather than a disclosure buried in the
+      // freeform block. Orders openSession before engaging (the U2 fix).
+      const btnStartChallenge = document.getElementById('btn-start-challenge');
+      if (btnStartChallenge) {
+        btnStartChallenge.addEventListener('click', () => {
+          const ready = currentSessionId ? Promise.resolve() : openSession('empty_sheet');
+          ready.then(() => {
+            if (challengeDetails) challengeDetails.open = true;
+            return loadChallenges();
+          }).then(() => {
+            if (challengeDetails && challengeDetails.scrollIntoView)
+              challengeDetails.scrollIntoView({ block: 'nearest' });
+            if (challengeSelect) challengeSelect.focus();
+          });
+        });
+      }
+
       if (challengeSelect) {
         challengeSelect.addEventListener('change', () => {
           const c = challengeBank.find((x) => x.id === challengeSelect.value);
@@ -2884,6 +2938,8 @@
           // learner rather than make them find the "✎ Freeform draw" button.
           if (!freeformOn && btnFreeformToggle) btnFreeformToggle.click();
           challengePromptEl.innerHTML =
+            (c.title ? '<div style="font-weight:600; margin-bottom:2px;">' +
+              escapeHtml(c.title) + '</div>' : '') +
             'Draw: <code>' + escapeHtml(c.prompt_egif) + '</code>' +
             (c.hint ? '<div style="color:var(--ctp-overlay0); margin-top:2px;">' +
               escapeHtml(c.hint) + '</div>' : '') +
@@ -2929,6 +2985,16 @@
             'color:var(--ctp-yellow); background:var(--ctp-base);">🐉 Dragon ' +
             escapeHtml(String(data.dragon.number)) + ' — the antidote: ' +
             escapeHtml(data.dragon.antidote) + '</div>';
+        }
+        // U9: show the *correct* target drawing so the learner sees what they were
+        // aiming at, not only a word-diff (they shouldn't have to render EGIF in
+        // their head). The server rendered it (§3.3-attested).
+        if (data.target_svg) {
+          html += '<div style="margin-top:6px;">' +
+            '<div style="font-size:10px; color:var(--ctp-overlay0); margin-bottom:2px;">' +
+            'The target' + (data.target_title ? ' — ' + escapeHtml(data.target_title) : '') + ':</div>' +
+            '<div style="background:#fff; border-radius:6px; padding:4px; max-height:180px; overflow:auto;">' +
+            data.target_svg + '</div></div>';
         }
         challengeResultEl.innerHTML = html;
       }

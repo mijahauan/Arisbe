@@ -1214,6 +1214,11 @@ async def grade_challenge(session_id: str, request: ChallengeGradeRequest):
 
         attempt = build_egi_from_drawing(dto, predicate_labels, vertex_labels)
         diff = grade(target_egif, attempt)
+        # U9: render the *correct* target so a wrong attempt can see what it was
+        # aiming at (not only a word-diff) — the learner shouldn't have to render
+        # EGIF in their head. §3.3-attested like every other served drawing.
+        target_egi = parse_egif(target_egif)
+        _tdto, target_svg = generate_layout(target_egi, style_name=session.style_name)
         payload = {
             "gradeable": True,
             "matches": diff.matches,
@@ -1223,7 +1228,9 @@ async def grade_challenge(session_id: str, request: ChallengeGradeRequest):
                 for f in diff.findings
             ],
             "validity": _issues_payload(report),
-            "target_linear_forms": linear_forms(parse_egif(target_egif)),
+            "target_linear_forms": linear_forms(target_egi),
+            "target_svg": target_svg,
+            "target_title": challenge.title if challenge is not None else None,
         }
         # A wrong attempt against a dragon challenge surfaces the field-guide
         # antidote (the named pitfall, not just the structural finding).
