@@ -219,6 +219,27 @@ def test_correspondence_chord_on_linear_form(page, app_url):
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
 
 
+def test_english_reading_gloss_with_register_toggle(page, app_url):
+    """The LinearFormPanel carries a natural-language reading beside the notations —
+    a gloss (not a fifth form), toggleable between the plain (idiomatic) and literal
+    registers."""
+    _open_organon(page, app_url)
+    _load_uod(page, SYNCHRONIC)
+    page.wait_for_selector("#organon-canvas .lf-panel .lf-reading-text", state="attached", timeout=10000)
+    # The plain register shows by default; a wrong-vs-right reading is non-empty prose.
+    plain = page.eval_on_selector("#organon-canvas .lf-panel .lf-reading-text", "el => el.textContent")
+    assert plain and plain.strip(), "no idiomatic reading rendered"
+    # It is framed as a reading, not a form (the header tooltip says so).
+    tip = page.eval_on_selector("#organon-canvas .lf-panel .lf-reading-head", "el => el.title")
+    assert "does NOT round-trip" in tip and "gloss" in tip.lower()
+    # Toggling to the literal register changes the text to the structural reading.
+    page.eval_on_selector("#organon-canvas .lf-panel .lf-reg button[data-reg=literal]", "el => el.click()")
+    literal = page.eval_on_selector("#organon-canvas .lf-panel .lf-reading-text", "el => el.textContent")
+    assert literal and "The sheet asserts" in literal
+    assert literal != plain
+    assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
 def test_propose_in_agon_carries_the_graph_as_proposal_g(page, app_url):
     """The corpus is a source of *proposals*, not only of models. 'Propose in Agon'
     carries the open graph into the arena as the proposal G (prefilling #setup-proposal,

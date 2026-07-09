@@ -48,7 +48,20 @@
       '.lf-panel .lf-chord{margin:0;padding:5px 10px;border-top:1px solid var(--bottombar-border,#313244);' +
       'display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.2px;' +
       'color:var(--ctp-overlay1,#7f849c);cursor:help;}' +
-      '.lf-panel .lf-chord .lf-eq{color:var(--ctp-green,#a6e3a1);font-weight:700;font-size:12px;}';
+      '.lf-panel .lf-chord .lf-eq{color:var(--ctp-green,#a6e3a1);font-weight:700;font-size:12px;}' +
+      // The natural-language reading (a gloss, not a form).
+      '.lf-panel .lf-reading{margin:0;padding:6px 10px;border-top:1px solid var(--bottombar-border,#313244);}' +
+      '.lf-panel .lf-reading-head{display:flex;align-items:center;gap:8px;font-size:10px;' +
+      'text-transform:uppercase;letter-spacing:0.4px;color:var(--ctp-overlay1,#7f849c);' +
+      'margin-bottom:3px;cursor:help;}' +
+      '.lf-panel .lf-reg{margin-left:auto;display:inline-flex;gap:4px;}' +
+      '.lf-panel .lf-reg button{background:none;border:1px solid var(--bottombar-border,#45475a);' +
+      'color:#a6adc8;border-radius:3px;font-size:9px;padding:1px 6px;cursor:pointer;' +
+      'text-transform:none;letter-spacing:0;}' +
+      '.lf-panel .lf-reg button.on{background:var(--btn-bg,#313244);color:var(--sidebar-text,#cdd6f4);' +
+      'border-color:var(--sidebar-accent,#89b4fa);}' +
+      '.lf-panel .lf-reading-text{font-size:12px;line-height:1.5;color:var(--sidebar-text,#cdd6f4);' +
+      'font-style:italic;}';
     var style = document.createElement('style');
     style.id = STYLE_ID;
     style.textContent = css;
@@ -71,6 +84,19 @@
       pre.textContent = '(' + (entry.label || key) + ' unavailable — ' + (entry.error || 'error') + ')';
       pre.classList.add('lf-error');
     }
+  }
+
+  function paintReading(host) {
+    var panel = host.querySelector('.lf-panel');
+    if (!panel) return;
+    var reading = host._lf && host._lf.reading;
+    var box = panel.querySelector('.lf-reading-text');
+    if (!box || !reading) return;
+    var reg = host.dataset.lfRead || 'idiomatic';
+    box.textContent = reading[reg] || reading.idiomatic || '';
+    panel.querySelectorAll('.lf-reg button').forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-reg') === reg);
+    });
   }
 
   function render(host, linearForms) {
@@ -132,6 +158,41 @@
     panel.appendChild(summary);
     panel.appendChild(chord);
     panel.appendChild(pre);
+
+    // The natural-language reading — a *gloss*, in two registers (plain / literal).
+    // It is deliberately not one of the notation tabs: English is lossy and does
+    // not round-trip, so it can never be an authoritative, editable form.
+    var readingEl = null;
+    if (linearForms.reading) {
+      readingEl = document.createElement('div');
+      readingEl.className = 'lf-reading';
+      var head = document.createElement('div');
+      head.className = 'lf-reading-head';
+      head.title =
+        'A natural-language reading of the same graph — a gloss to connect the ' +
+        'picture and the linear forms to plain talk. Unlike the notations it does ' +
+        'NOT round-trip (English is ambiguous), so it is a reading, not a form. ' +
+        '“plain” idiomatises the common idioms; “literal” is the faithful, ' +
+        'structural reading.';
+      var rlabel = document.createElement('span');
+      rlabel.textContent = 'Reading (English)';
+      var reg = document.createElement('span');
+      reg.className = 'lf-reg';
+      ['idiomatic', 'literal'].forEach(function (r) {
+        var b = document.createElement('button');
+        b.setAttribute('data-reg', r);
+        b.textContent = (r === 'idiomatic') ? 'plain' : 'literal';
+        reg.appendChild(b);
+      });
+      head.appendChild(rlabel);
+      head.appendChild(reg);
+      var rtext = document.createElement('div');
+      rtext.className = 'lf-reading-text';
+      readingEl.appendChild(head);
+      readingEl.appendChild(rtext);
+      panel.appendChild(readingEl);
+    }
+
     host.appendChild(panel);
 
     // The select and copy button live in the <summary>; clicking them
@@ -159,7 +220,19 @@
       host.dataset.lfOpen = panel.open ? '1' : '';
     });
 
+    if (readingEl) {
+      if (!host.dataset.lfRead) host.dataset.lfRead = 'idiomatic';
+      readingEl.querySelectorAll('.lf-reg button').forEach(function (b) {
+        b.addEventListener('click', function (e) {
+          e.stopPropagation();
+          host.dataset.lfRead = b.getAttribute('data-reg');
+          paintReading(host);
+        });
+      });
+    }
+
     paint(host);
+    paintReading(host);
   }
 
   window.LinearFormPanel = { render: render };

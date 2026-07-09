@@ -84,13 +84,25 @@ def linear_forms(egi) -> Dict[str, object]:
 
     A client renders ``forms[selected].text`` and builds its selector from
     ``formats`` — so a new notation appears with no frontend change.
+
+    ``reading`` carries the natural-language **gloss** (``eg_to_english``) in two
+    registers (``idiomatic`` / ``literal``). It is *not* a linear form — English
+    is lossy and does not round-trip, so it is offered beside the notations as a
+    reading, never as an editable fifth notation. Defensive: a failure leaves
+    ``reading`` absent rather than breaking the forms.
     """
     forms: Dict[str, object] = {}
     for f in _FORMATS:
         result = _generate_one(egi, f["generator"])
         forms[f["key"]] = {"label": f["label"], **result}
-    return {
+    out: Dict[str, object] = {
         "default": _DEFAULT_FORMAT,
         "formats": linear_formats(),
         "forms": forms,
     }
+    try:
+        from eg_to_english import english_readings
+        out["reading"] = english_readings(egi)
+    except Exception:
+        pass  # the gloss is a convenience; never let it break the linear forms
+    return out
