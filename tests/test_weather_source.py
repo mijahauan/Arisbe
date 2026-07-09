@@ -12,7 +12,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from weather_source import (
-    LAW_PRECIP, LAW_TEMP, SEED_LAWS, WeatherSource, band_of, replay_item_batches,
+    LAW_PRECIP, LAW_TEMP, SEED_LAWS, WeatherSource, band_bounds, band_of,
+    replay_item_batches,
 )
 
 T0 = datetime(2026, 7, 6, 12, 0, tzinfo=timezone.utc)
@@ -53,6 +54,77 @@ def test_band_discretization():
     assert band_of(76.3) == "75-79"
     assert band_of(80.0) == "80-84"
     assert band_of(-3.0) == "-5--1"
+
+
+# --- Run 9 (F2⁸): forecast-centered bins -------------------------------------
+
+def test_band_bounds_grid_and_centered():
+    # grid: fixed [k·width, …) alignment (the run-7/8 behaviour band_of wraps)
+    assert band_bounds(76.3) == (75, "75-79")
+    assert band_bounds(80.0) == (80, "80-84")
+    # centered: the band is centered on the forecast, edge-fragility-free
+    assert band_bounds(79.0, center=79.0) == (77, "77-81")
+    assert band_bounds(80.0, center=80.0) == (78, "78-82")
+
+
+def test_centered_bins_turn_a_grid_edge_miss_into_a_hit():
+    """The F2⁸ mechanism: a forecast (79°F) near a grid edge with an observation
+    just past it (81.4°F) *misses* under grid bins ("75-79" vs "80-84") but *hits*
+    under forecast-centered bins ("77-81" ∋ 81.4°F)."""
+    obs_c = (81.4 - 32) * 5 / 9
+
+    src, clock = _source(T0, forecast_temp_f=79, pop=0, obs_temp_c=obs_c)
+    src.fetch()
+    clock["now"] = datetime(2026, 7, 6, 14, 5, tzinfo=timezone.utc)
+    (grid_item,) = src.fetch()
+    assert grid_item.claim_egif == '(temp_band "KTST" "2026-07-06T13Z" "75-79")'
+    assert not grid_item.happened                    # grid edge miss
+
+    clock2 = {"now": T0}
+    src2 = WeatherSource(stations={"KTST": (0.0, 0.0)}, bin_mode="centered",
+                         fetch_json=_fixture_fetch(forecast_temp_f=79, pop=0,
+                                                   obs_temp_c=obs_c),
+                         clock=lambda: clock2["now"])
+    b1 = src2.fetch()
+    assert '(forecast_temp_band "KTST" "2026-07-06T13Z" "77-81")' in {
+        i.claim_egif for i in b1}
+    clock2["now"] = datetime(2026, 7, 6, 14, 5, tzinfo=timezone.utc)
+    (c_item,) = src2.fetch()
+    assert c_item.claim_egif == '(temp_band "KTST" "2026-07-06T13Z" "77-81")'
+    assert c_item.happened                            # centered ∋ 81.4°F
+
+
+def test_invalid_bin_mode_rejected():
+    import pytest
+    with pytest.raises(ValueError):
+        WeatherSource(stations={"KX": (0.0, 0.0)}, bin_mode="quantile")
+
+
+# --- Run 9 (F3⁸): per-arm instrumentation ------------------------------------
+
+def test_per_arm_counters_track_raise_and_resolve():
+    src, clock = _source(T0, forecast_temp_f=76, pop=80, obs_temp_c=24.5)
+    src.fetch()                                        # raises temp + precip
+    assert src.claims_raised_by_kind == {"temp": 1, "precip": 1}
+    assert src.resolutions_by_kind == {}
+    clock["now"] = datetime(2026, 7, 6, 14, 5, tzinfo=timezone.utc)
+    src.fetch()                                        # both mature + score
+    assert src.resolutions_by_kind == {"temp": 1, "precip": 1}
+
+
+def test_bin_mode_and_per_arm_counters_round_trip(tmp_path):
+    clock = {"now": T0}
+    src = WeatherSource(stations={"KTST": (0.0, 0.0)}, bin_mode="centered",
+                        fetch_json=_fixture_fetch(forecast_temp_f=76, pop=80,
+                                                  obs_temp_c=24.5),
+                        clock=lambda: clock["now"])
+    src.fetch()
+    sp = str(tmp_path / "ws.json")
+    src.save_state(sp)
+    src2 = WeatherSource.load_state(sp, stations={"KTST": (0.0, 0.0)},
+                                    fetch_json=_fixture_fetch(), clock=lambda: T0)
+    assert src2._bin_mode == "centered"
+    assert src2.claims_raised_by_kind == {"temp": 1, "precip": 1}
 
 
 def test_raise_then_resolve_hit():

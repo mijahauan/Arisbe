@@ -80,12 +80,36 @@ def _live_fetch_json(url: str) -> dict:
         return json.loads(resp.read().decode("utf-8"))
 
 
+def band_bounds(temp_f: float, width: int = 5, *,
+                center: Optional[float] = None) -> Tuple[int, str]:
+    """Return ``(lo, label)`` for a temperature band — the claim's discretization.
+
+    Two modes (run 9, F2⁸):
+
+    - **grid** (``center=None``) — bins are aligned to a fixed ``[k·width, …)``
+      grid, so ``76.3°F → (75, "75-79")`` at width 5. A forecast near a grid edge
+      is *fragile*: a small observation error can cross the boundary and miss even
+      a well-calibrated band — the mechanism RUN_8_LOG F2⁸ implicates in the
+      positive-net limit cycle.
+    - **centered** (``center`` = the forecast) — the band is centered on the
+      forecast value, so ``79°F → (77, "77-81")``: a miss happens only when the
+      observation is more than ``width/2`` off the forecast, symmetric and
+      edge-fragility-free. Run 9 tests whether this converts the limit cycle to a
+      fixed point, or whether a noisy domain always limit-cycles.
+
+    The interval is half-open ``[lo, lo+width)`` (matching the grid), so a
+    fractional observation lands in exactly one band."""
+    if center is None:
+        lo = int(temp_f // width) * width
+    else:
+        lo = int(round(center)) - width // 2
+    return lo, f"{lo}-{lo + width - 1}"
+
+
 def band_of(temp_f: float, width: int = 5) -> str:
-    """The claim's discretization: a temperature band label, e.g. 76.3°F → "75-79"
-    at width 5. Bands make the forecast a checkable proposition rather than a point
-    estimate no observation would ever exactly match."""
-    lo = int(temp_f // width) * width
-    return f"{lo}-{lo + width - 1}"
+    """The grid band label — the run-7/8 discretization (and a plain descriptor of
+    an observed value). See :func:`band_bounds` for centered bins (run 9)."""
+    return band_bounds(temp_f, width)[1]
 
 
 def _hour_utc(iso: str) -> str:
@@ -114,6 +138,10 @@ class PendingClaim:
     kind: str            # "temp" | "precip"
     value: Optional[str]  # the forecast band (temp) or None (precip)
     width: Optional[int] = None  # band width at raise time (temp only)
+    band_lo: Optional[int] = None  # band lower bound at raise time (temp only) —
+    # carries the exact interval [band_lo, band_lo+width) so resolution is one
+    # half-open containment check, mode-independent (grid or centered). ``None``
+    # for precip and for state written before centered bins (F2⁸) existed.
 
     @property
     def key(self) -> Tuple[str, str, str]:
@@ -135,6 +163,7 @@ class WeatherSource:
         grace_hours: int = 3,
         band_width: int = 5,
         pop_threshold: int = 60,
+        bin_mode: str = "grid",
         fetch_json: Optional[Callable[[str], dict]] = None,
         record_path: Optional[str] = None,
         clock: Optional[Callable[[], datetime]] = None,
@@ -147,6 +176,9 @@ class WeatherSource:
         self._grace = grace_hours
         self._width = band_width
         self._pop = pop_threshold
+        if bin_mode not in ("grid", "centered"):
+            raise ValueError(f"bin_mode must be 'grid' or 'centered', got {bin_mode!r}")
+        self._bin_mode = bin_mode
         self._fetch = fetch_json or _live_fetch_json
         self._record = record_path
         self._clock = clock or (lambda: datetime.now(timezone.utc))
@@ -163,6 +195,12 @@ class WeatherSource:
         self.claims_raised = 0
         self.resolutions = 0
         self.unresolved_dropped = 0
+        # F3⁸ (run 9): per-arm claim/resolution counts, so a *dormant arm* is
+        # visible — a precip arm that never matured (few resolutions) is
+        # distinguishable from one that was simply well-calibrated (many
+        # resolutions, all hits). Keyed "temp" | "precip".
+        self.claims_raised_by_kind: Dict[str, int] = {}
+        self.resolutions_by_kind: Dict[str, int] = {}
         self.fetch_errors = 0               # aggregate (back-compat)
         # F1⁷: per-station error counts so a *dark station* is visible in the
         # digest, not just folded into the aggregate.
@@ -194,6 +232,18 @@ class WeatherSource:
         self.fetch_errors += 1
         self.fetch_errors_by_station[station] = (
             self.fetch_errors_by_station.get(station, 0) + 1)
+
+    def _count_raise(self, kind: str) -> None:
+        """Count a raised claim — aggregate + per-arm (F3⁸)."""
+        self.claims_raised += 1
+        self.claims_raised_by_kind[kind] = (
+            self.claims_raised_by_kind.get(kind, 0) + 1)
+
+    def _count_resolve(self, kind: str) -> None:
+        """Count a resolved (matured + scored) claim — aggregate + per-arm (F3⁸)."""
+        self.resolutions += 1
+        self.resolutions_by_kind[kind] = (
+            self.resolutions_by_kind.get(kind, 0) + 1)
 
     def _forecast_url(self, station: str) -> Optional[str]:
         if station not in self._forecast_urls:
@@ -245,11 +295,14 @@ class WeatherSource:
                 if isinstance(temp, (int, float)):
                     key = (st, hour, "temp")
                     if key not in self._claimed:
-                        b = band_of(float(temp), self._width)
+                        # Centered bins (F2⁸) center the band on the forecast;
+                        # grid bins snap it to a fixed grid — see band_bounds.
+                        center = float(temp) if self._bin_mode == "centered" else None
+                        lo, b = band_bounds(float(temp), self._width, center=center)
                         self._claimed.add(key)
                         self._pending[key] = PendingClaim(
-                            st, hour, "temp", b, width=self._width)
-                        self.claims_raised += 1
+                            st, hour, "temp", b, width=self._width, band_lo=lo)
+                        self._count_raise("temp")
                         items.append(ResolvingItem(
                             f'(forecast_temp_band "{st}" "{hour}" "{b}")',
                             happened=True))
@@ -259,7 +312,7 @@ class WeatherSource:
                     if key not in self._claimed:
                         self._claimed.add(key)
                         self._pending[key] = PendingClaim(st, hour, "precip", None)
-                        self.claims_raised += 1
+                        self._count_raise("precip")
                         items.append(ResolvingItem(
                             f'(forecast_precip "{st}" "{hour}")', happened=True))
         return items
@@ -306,19 +359,30 @@ class WeatherSource:
                     self.unresolved_dropped += 1
                 continue
             del self._pending[key]
-            self.resolutions += 1
             st, hour = claim.station, claim.hour
             if claim.kind == "temp":
                 temp_c = (obs.get("temperature") or {}).get("value")
                 if not isinstance(temp_c, (int, float)):
+                    # Matured with no usable observation → dropped, not a bet
+                    # (never scored, so never counted as a resolution).
                     self.unresolved_dropped += 1
                     continue
-                # Resolve under the claim's own raise-time width, so a mid-run
-                # re-generalization (a wider band) never spuriously misses a claim
-                # that was made under the narrower band.
-                obs_band = band_of(temp_c * 9 / 5 + 32, claim.width or self._width)
+                self._count_resolve("temp")
+                obs_f = temp_c * 9 / 5 + 32
+                w = claim.width or self._width
+                # Resolve by half-open containment in the claim's own raise-time
+                # band [band_lo, band_lo+w) — mode-independent (grid or centered),
+                # and under the claim's own width, so a mid-run re-generalization
+                # (a wider band) never spuriously misses a claim made under a
+                # narrower band. band_lo is None only for pre-F2⁸ carried state;
+                # fall back to a grid recompute there.
+                if claim.band_lo is None:
+                    hit = band_of(obs_f, w) == claim.value
+                else:
+                    hit = claim.band_lo <= obs_f < claim.band_lo + w
+                obs_band = band_of(obs_f, w)  # a plain grid descriptor of the observed value
                 claim_egif = f'(temp_band "{st}" "{hour}" "{claim.value}")'
-                if obs_band == claim.value:
+                if hit:
                     items.append(ResolvingItem(claim_egif, happened=True))
                 else:
                     items.append(ResolvingItem(
@@ -327,6 +391,7 @@ class WeatherSource:
                                     f'~[ (temp_band "{st}" "{hour}" "{claim.value}") ] '
                                     f'(temp_band "{st}" "{hour}" "{obs_band}")')))
             else:                                           # precip
+                self._count_resolve("precip")
                 happened = self._obs_precip(obs)
                 claim_egif = f'(precip "{st}" "{hour}")'
                 if happened:
@@ -362,10 +427,13 @@ class WeatherSource:
                          "resolutions": self.resolutions,
                          "unresolved_dropped": self.unresolved_dropped,
                          "fetch_errors": self.fetch_errors},
+            "claims_raised_by_kind": dict(self.claims_raised_by_kind),
+            "resolutions_by_kind": dict(self.resolutions_by_kind),
             "fetch_errors_by_station": dict(self.fetch_errors_by_station),
             # The (possibly re-generalized) claim knobs, so a resume carries the
             # recalibrated discretization, not the seed defaults.
-            "params": {"band_width": self._width, "pop_threshold": self._pop},
+            "params": {"band_width": self._width, "pop_threshold": self._pop,
+                       "bin_mode": self._bin_mode},
         }
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(state, fh, indent=1)
@@ -385,10 +453,13 @@ class WeatherSource:
         src.resolutions = c.get("resolutions", 0)
         src.unresolved_dropped = c.get("unresolved_dropped", 0)
         src.fetch_errors = c.get("fetch_errors", 0)
+        src.claims_raised_by_kind = dict(state.get("claims_raised_by_kind", {}))
+        src.resolutions_by_kind = dict(state.get("resolutions_by_kind", {}))
         src.fetch_errors_by_station = dict(state.get("fetch_errors_by_station", {}))
         p = state.get("params", {})
         src._width = p.get("band_width", src._width)
         src._pop = p.get("pop_threshold", src._pop)
+        src._bin_mode = p.get("bin_mode", src._bin_mode)
         return src
 
 
@@ -405,5 +476,5 @@ def replay_item_batches(path: str) -> List[List[ResolvingItem]]:
 
 
 __all__ = ["WeatherSource", "PendingClaim", "ResolvingItem", "band_of",
-           "replay_item_batches", "DEFAULT_STATIONS", "SEED_LAWS",
+           "band_bounds", "replay_item_batches", "DEFAULT_STATIONS", "SEED_LAWS",
            "LAW_TEMP", "LAW_PRECIP"]

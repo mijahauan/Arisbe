@@ -38,6 +38,36 @@ def _panel():
                         ContradictionAgent()])
 
 
+def _arm_of(claim_egif: str):
+    """The claim arm of a resolution entry ("temp" | "precip"), or None for a
+    raise-phase (forecast_…) item (never scored as a bet)."""
+    s = claim_egif.lstrip()
+    if s.startswith("(temp_band"):
+        return "temp"
+    if s.startswith("(precip"):
+        return "precip"
+    return None
+
+
+def _per_arm(ledger):
+    """Per-arm hits/misses/abstentions/net over a ledger's resolution bets (F3⁸)."""
+    tally = {"temp": [0, 0, 0], "precip": [0, 0, 0]}  # hits, misses, abstains
+    idx = {"hit": 0, "miss": 1, "abstain": 2}
+    for e in ledger.entries:
+        arm = _arm_of(e.claim_egif)
+        if arm is not None and e.result in idx:
+            tally[arm][idx[e.result]] += 1
+    return tally
+
+
+def _fmt_arm(arm, t, src):
+    h, m, a = t
+    raised = src.claims_raised_by_kind.get(arm, 0)
+    resolved = src.resolutions_by_kind.get(arm, 0)
+    return (f"{arm}: raised={raised} resolved={resolved} "
+            f"{h}h/{m}m/{a}a net={h - m}")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -50,6 +80,12 @@ def main(argv=None) -> int:
                     help="temperature band width, °F — the claim discretization")
     ap.add_argument("--pop-threshold", type=int, default=60,
                     help="probability-of-precipitation %% at/above which a precip claim is raised")
+    # Run 9 (F2⁸): forecast-centered bins. "grid" = the run-7/8 fixed-grid bins
+    # (a forecast near a bin edge is fragile); "centered" = the band is centered
+    # on the forecast, so a miss needs |obs−forecast| > band/2 — testing whether
+    # the sharper discretization converts the F2⁸ limit cycle to a fixed point.
+    ap.add_argument("--bin-mode", choices=("grid", "centered"), default="grid",
+                    help="temperature-band discretization (run 9: centered)")
     # F1⁷: bounded retry/backoff around the flaky NWS endpoints.
     ap.add_argument("--fetch-tries", type=int, default=3,
                     help="bounded retries per NWS fetch (F1⁷)")
@@ -110,7 +146,7 @@ def main(argv=None) -> int:
 
     src_kwargs = dict(stations=stations, horizon_hours=args.horizon_hours,
                       grace_hours=args.grace_hours, band_width=args.band_width,
-                      pop_threshold=args.pop_threshold,
+                      pop_threshold=args.pop_threshold, bin_mode=args.bin_mode,
                       fetch_tries=args.fetch_tries, fetch_backoff=args.fetch_backoff,
                       record_path=str(runs / "items.jsonl"))
     # Run-level re-generalization tally (surfaced in the final report).
@@ -164,6 +200,12 @@ def main(argv=None) -> int:
                      f" dropped={source.unresolved_dropped}")
                   + (f" ⚠ fetch_errors={source.fetch_errors} [{dark}]"
                      if source.fetch_errors else ""), flush=True)
+            # F3⁸: per-arm bet counts, disambiguating a dormant arm (few
+            # resolutions) from a well-calibrated one (many resolutions, all hits).
+            arm_tally = _per_arm(run_ledger)
+            print("    per-arm (run): "
+                  + " | ".join(_fmt_arm(a, arm_tally[a], source)
+                               for a in ("temp", "precip")), flush=True)
             return {"bets": len(seg_bets), "net": run_ledger.net_score,
                     "reseed_laws": reseed}
 
@@ -185,7 +227,8 @@ def main(argv=None) -> int:
     res = None
     print(f"run start {time.strftime('%Y-%m-%d %H:%M:%S')} — NWS resolving membrane · "
           f"stations={sorted(stations)} · horizon={args.horizon_hours}h · "
-          f"band={args.band_width}°F · pop≥{args.pop_threshold}% · ttl={args.ttl} polls · "
+          f"band={args.band_width}°F ({args.bin_mode}) · pop≥{args.pop_threshold}% · "
+          f"ttl={args.ttl} polls · "
           f"pacing={args.min_interval}s · laws seeded: what-is-forecast-happens · "
           f"regenerate={'on' if args.regenerate else 'off'} · "
           f"stop: touch {stop_file}", flush=True)
@@ -230,6 +273,10 @@ def main(argv=None) -> int:
     print(f"claims: raised={source.claims_raised} resolved={source.resolutions} "
           f"dropped_unresolved={source.unresolved_dropped} "
           f"fetch_errors={source.fetch_errors} (per-station: {by_st})")
+    arm_tally = _per_arm(run_ledger)
+    print("per-arm (run-level, F3⁸):")
+    for a in ("temp", "precip"):
+        print("  " + _fmt_arm(a, arm_tally[a], source))
     if args.regenerate:
         print(f"re-generalizations: {regen_count['n']}")
     final_laws = getattr(runner, "_laws", [])
@@ -241,7 +288,7 @@ def main(argv=None) -> int:
                          for w in poise_from_digests(res.segments))
         print(f"poise per segment: {strip}")
     print(f"\nartifacts: {runs}/items.jsonl (offline replay) · {runs}/checkpoints · "
-          f"log dispositions in runs/RUN_7_LOG.md")
+          f"log dispositions in the run's RUN_N_LOG.md")
     return 0
 
 

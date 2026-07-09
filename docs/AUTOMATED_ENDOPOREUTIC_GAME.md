@@ -1525,3 +1525,45 @@ resume carried the knobs across 4 crashes); **P3⁸ refined** — the re-general
 a *positive-net limit cycle*, not a fixed point (F2⁸); the precip arm stayed dormant (F3⁸); a
 `retract_subgraph` robustness bug found + fixed (F1⁸). Next: run 9 (forecast-centered bins +
 per-arm instrumentation).
+
+## 20 · Run 9 — forecast-centered bins + per-arm instrumentation (machinery built 2026-07-08; live launch delegated to the author)
+
+*Run 8's F2⁸: at the 20 °F band-cap the re-generalized temperature law settled into a
+**positive-net limit cycle** — ~0.7 reliable, felled once per segment and reseeded — not a
+fixed point, because a **grid-aligned** band makes a forecast near a bin edge fragile: a small
+observation error crosses the boundary and misses even a well-calibrated band. Run 9 asks a
+sharp question: does a **forecast-centered** bin — one centered on the forecast value, so a miss
+needs `|obs − forecast| > band/2`, symmetric and edge-fragility-free — **convert the limit cycle
+to a fixed point**, or do inherently noisy domains always limit-cycle? And F3⁸: the precip arm
+stayed **dormant** all run; per-arm instrumentation must disambiguate a well-calibrated arm from
+one whose claims rarely matured.*
+
+**The mechanism (additive, deterministic, geometry-free):**
+- **`src/weather_source.py` — `band_bounds(temp_f, width, *, center=None) → (lo, label)`.** The
+  discretization gains a **centered** mode: `center=None` keeps the run-7/8 grid (`band_of`
+  wraps it, unchanged); `center=forecast` centers the band on the forecast (`79°F → "77-81"`).
+  Resolution is now **one half-open containment check** against the claim's own raise-time band
+  `[band_lo, band_lo+width)` (a new `PendingClaim.band_lo` field) — **mode-independent**, and
+  behaviour-identical to run 8 on grid claims, so the change is a pure superset. The mode is a
+  `WeatherSource(bin_mode=…)` knob, carried across `save_state`/`resume` beside the recalibrated
+  width/PoP.
+- **Per-arm counters (F3⁸):** `claims_raised_by_kind` / `resolutions_by_kind` on the source, and
+  a `_per_arm` split of the run-level ledger in the driver — the per-segment digest and the
+  final report now print, per arm (temp | precip): `raised · resolved · h/m/a · net`. A *dormant
+  arm* (few resolutions) is now distinguishable from a *well-calibrated* one (many resolutions,
+  all hits). The non-binned precip arm is the clean control for F2⁸'s bin-ceiling hypothesis.
+
+**Driver:** `tools/run_live_weather.py --bin-mode centered` (+ the run-8 `--regenerate` &c.).
+With `--bin-mode grid` (the default) run 8 is reproduced exactly.
+
+**Pre-registered priors (run 9):**
+
+| prior | instrument | expected |
+|---|---|---|
+| P1⁹ **centered bins raise reliability at a given band** (headline) | per-arm temp accuracy vs run 8 at equal band | forecast-centered bins remove grid-edge misses, so temp accuracy at a given width **exceeds** run 8's grid accuracy — the controller needs to widen **less** (a narrower converged band, fewer reseeds). |
+| P2⁹ **fixed point vs limit cycle** | temp reseed count + band trajectory | the sharper discretization **converts F2⁸'s limit cycle toward a fixed point** (reseeds fall sharply, the band converges below the 20 °F cap and *holds*) — **or**, the honest null, a noisy domain still limit-cycles even centered (reliability plateaus < 1 so an occasional counterexample remains), refining F2⁸ into a claim about noise, not binning. |
+| P3⁹ **per-arm instrumentation disambiguates the dormant precip arm** | `claims_raised_by_kind` / `resolutions_by_kind` | the digest resolves F3⁸: either precip **resolved many, all hits** (genuinely well-calibrated at PoP ≥ 60%) or **raised-but-rarely-resolved** (dormant because claims seldom matured/bet), a fact run 8 could not see. |
+| P4⁹ floor + parity unchanged | `--bin-mode grid` replay; §3.3; resume | grid mode reproduces run 8; §3.3 attests; `--resume` carries `bin_mode` + per-arm counters + the recalibrated knobs; correspondence-not-truth holds. |
+
+**Log:** [`runs/RUN_9_LOG.md`](../runs/RUN_9_LOG.md) — **PRE-REGISTERED 2026-07-08; awaiting live
+execution.**
