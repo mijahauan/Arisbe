@@ -30,16 +30,21 @@ if str(_src_dir) not in sys.path:
     sys.path.insert(0, str(_src_dir))
 
 from cgif_generator_dau import generate_cgif
+from chapter18_fopl_translation import egi_to_fopl
 from clif_generator_dau import generate_clif
 from egif_generator_dau import generate_egif
 
 
 # Ordered registry — the first entry is the default the UI selects.  Add a
 # (key, label, generator) row to extend; payloads and selectors follow.
+# FOPL is Dau's Φ translation (Chapter 18), not a naïve conversion; it is
+# generated defensively like the rest, so a graph it cannot yet render cleanly
+# reports in its own entry rather than breaking the other notations.
 _FORMATS: List[Dict[str, object]] = [
     {"key": "egif", "label": "EGIF", "generator": generate_egif},
     {"key": "cgif", "label": "CGIF", "generator": generate_cgif},
     {"key": "clif", "label": "CLIF", "generator": generate_clif},
+    {"key": "fopl", "label": "FOPL", "generator": egi_to_fopl},
 ]
 
 _DEFAULT_FORMAT = _FORMATS[0]["key"]

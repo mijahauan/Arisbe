@@ -342,6 +342,8 @@
                    title="Emit this graph's scholarly citation (from its provenance) as a caption under the figure.">
               <input type="checkbox" id="export-cite" /> cite</label>
             <button id="export-go" style="padding:4px 10px; cursor:pointer;">Export</button>
+            <button id="export-chain-go" style="display:none; padding:4px 10px; cursor:pointer;"
+                    title="Export the whole worked derivation as one authentic-Peirce LaTeX document — one captioned figure per proof step.">Export worked chain (LaTeX)</button>
             <span id="export-status" style="font-size:10px; color:var(--ctp-overlay0);"></span>
           </div>
           <div id="export-view-note" style="font-size:10px; color:var(--ctp-overlay0); margin-top:4px;">
@@ -353,6 +355,14 @@
               <button id="export-copy" style="padding:3px 8px; cursor:pointer;">Copy</button>
               <a id="export-download" download style="font-size:11px;"></a>
             </div>
+          </div>
+          <!-- Citation (from provenance) — fabricates nothing: a sourceless graph
+               reports honestly and the cite caption falls back to "reproduced with Arisbe". -->
+          <div id="export-cite-block" style="display:none; margin-top:10px; border-top:1px solid var(--ctp-surface1,#45475a); padding-top:8px;">
+            <div style="font-size:10px; color:var(--ctp-overlay0); margin-bottom:3px;">Citation <span id="cite-source-note"></span></div>
+            <div id="cite-line" style="font-size:11px; margin-bottom:4px;"></div>
+            <textarea id="cite-bibtex" readonly style="width:100%; min-height:58px; font-family:ui-monospace,Menlo,monospace; font-size:11px;"></textarea>
+            <div style="margin-top:4px;"><button id="cite-copy" style="padding:3px 8px; cursor:pointer;">Copy BibTeX</button></div>
           </div>
         </div>
       </header>
@@ -486,6 +496,7 @@
       let chainFrames = [];      // ordered frames from /chain (base + steps)
       let chainIndex = 0;        // currently shown frame
       let chainPlayTimer = null; // setInterval handle while playing
+      let currentCitation = null; // {citation, bibtex, key, has_source} from /export/citation
 
       // View-projection state (style + layout engine; both are projection
       // choices that persist across UoD switches — §3.3 attests every render).
@@ -856,6 +867,16 @@
         if (data.standing) {
           parts.push('<span>' + standingBadgeHtml(data.standing, false) + '</span>');
         }
+        // A persistent, positive §3.3 signal (not only visible when it fails):
+        // every served (EGI, drawing) is attested at the load + render boundaries.
+        if (data.svg) {
+          parts.push('<span title="Picture and proposition denote the same object — ' +
+            'the §3.3 correspondence check, attested at the load and render boundaries. ' +
+            'Correspondence, not truth." ' +
+            'style="color:var(--ctp-green,#a6e3a1); border:1px solid currentColor; ' +
+            'border-radius:10px; padding:1px 7px; font-size:9px; font-weight:600; ' +
+            'letter-spacing:.02em; cursor:help; vertical-align:middle;">§3.3 ✓ attested</span>');
+        }
         if (meta.category) {
           parts.push('<span><strong>category:</strong> ' + escapeHtml(meta.category.replace(/_/g, ' ')) + '</span>');
         }
@@ -899,6 +920,11 @@
         if (exportPanel) exportPanel.style.display = 'none';
         const exOut = document.getElementById('export-output');
         if (exOut) exOut.style.display = 'none';
+        // Chain-export button is revealed by loadChain() only when a worked chain
+        // exists; reset it here (a non-chained UoD has none). Load the citation.
+        const chainBtn = document.getElementById('export-chain-go');
+        if (chainBtn) chainBtn.style.display = 'none';
+        loadCitation(data.uod_id);
         const viewBar = document.getElementById('view-toolbar');
         if (viewBar) viewBar.style.display = 'flex';
 
@@ -1344,6 +1370,9 @@
           currentHasChain = true;
           // reveal the diachronic lenses (DAG always; linear ones only if a line)
           setDiachronicLensesAvailable(true, !!body.data.branching);
+          // A worked chain exists → offer the whole-chain LaTeX document export.
+          const chainBtn = document.getElementById('export-chain-go');
+          if (chainBtn) chainBtn.style.display = 'inline-block';
           if (cp.bar) cp.bar.style.display = 'flex';
           // Start at the base state so the episode plays forward.
           showFrame(0, false);
@@ -1385,6 +1414,7 @@
           const toggleCite = () => {
             const wrap = document.getElementById('export-cite-wrap');
             if (wrap) wrap.style.display = (sel.value === 'peirce-tikz') ? 'inline' : 'none';
+            refreshCiteGate();  // U18: honesty gate on has_source
           };
           sel.addEventListener('change', toggleCite);
           toggleCite();
@@ -1414,38 +1444,109 @@
           }).then((r) => r.json());
           if (!body.success) { exStatus.textContent = 'Failed: ' + (body.error && body.error.message); return; }
           const a = body.data;
-          const dl = document.getElementById('export-download');
-          const out = document.getElementById('export-output');
-          const txt = document.getElementById('export-text');
-          if (a.is_binary) {
-            const blob = b64ToBlob(a.content_base64, a.media_type);
-            dl.href = URL.createObjectURL(blob);
-            dl.download = a.filename;
-            dl.textContent = '⤓ download ' + a.filename;
-            out.style.display = 'block';
-            txt.style.display = 'none';
-            document.getElementById('export-copy').style.display = 'none';
-          } else {
-            txt.style.display = 'block';
-            txt.value = a.content;
-            document.getElementById('export-copy').style.display = 'inline-block';
-            const blob = new Blob([a.content], { type: a.media_type });
-            dl.href = URL.createObjectURL(blob);
-            dl.download = a.filename;
-            dl.textContent = '⤓ download ' + a.filename;
-            out.style.display = 'block';
-            // SVG: also refresh the canvas preview in the chosen style.
-            if (fmt === 'svg') {
-              canvasEl.innerHTML = a.content;
-              const svgEl = canvasEl.querySelector('svg');
-              if (svgEl && window.svgPanZoom) {
-                svgEl.setAttribute('width', '100%'); svgEl.setAttribute('height', '100%');
-                window.svgPanZoom(svgEl, { zoomEnabled: true, controlIconsEnabled: false, fit: true, center: true, minZoom: 0.1, maxZoom: 20 });
-              }
-            }
-          }
+          showArtifact(a, fmt);
           exStatus.textContent = 'Exported ' + a.filename + '.';
         } catch (e) { exStatus.textContent = 'Network error: ' + e.message; }
+      }
+
+      // Render an export artifact (text or binary) into the output block — shared
+      // by the single-graph export and the worked-chain document export.
+      function showArtifact(a, fmt) {
+        const dl = document.getElementById('export-download');
+        const out = document.getElementById('export-output');
+        const txt = document.getElementById('export-text');
+        if (a.is_binary) {
+          const blob = b64ToBlob(a.content_base64, a.media_type);
+          dl.href = URL.createObjectURL(blob);
+          dl.download = a.filename;
+          dl.textContent = '⤓ download ' + a.filename;
+          out.style.display = 'block';
+          txt.style.display = 'none';
+          document.getElementById('export-copy').style.display = 'none';
+        } else {
+          txt.style.display = 'block';
+          txt.value = a.content;
+          document.getElementById('export-copy').style.display = 'inline-block';
+          const blob = new Blob([a.content], { type: a.media_type });
+          dl.href = URL.createObjectURL(blob);
+          dl.download = a.filename;
+          dl.textContent = '⤓ download ' + a.filename;
+          out.style.display = 'block';
+          // SVG: also refresh the canvas preview in the chosen style.
+          if (fmt === 'svg') {
+            canvasEl.innerHTML = a.content;
+            const svgEl = canvasEl.querySelector('svg');
+            if (svgEl && window.svgPanZoom) {
+              svgEl.setAttribute('width', '100%'); svgEl.setAttribute('height', '100%');
+              window.svgPanZoom(svgEl, { zoomEnabled: true, controlIconsEnabled: false, fit: true, center: true, minZoom: 0.1, maxZoom: 20 });
+            }
+          }
+        }
+      }
+
+      // U5: export the whole worked derivation as one authentic-Peirce LaTeX
+      // document — one captioned figure per proof step (POST /export/chain).
+      async function doExportChain() {
+        if (!exportUodId) return;
+        const exStatus = document.getElementById('export-status');
+        exStatus.textContent = 'Exporting worked chain (LaTeX)…';
+        try {
+          const body = await fetch('/export/chain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              uod_id: exportUodId,
+              style_name: currentStyle || null, engine: currentEngine || 'elk',
+            }),
+          }).then((r) => r.json());
+          if (!body.success) {
+            exStatus.textContent = 'Failed: ' + (body.error && body.error.message); return;
+          }
+          showArtifact(body.data, 'tex');
+          exStatus.textContent = 'Exported ' + body.data.filename + '.';
+        } catch (e) { exStatus.textContent = 'Network error: ' + e.message; }
+      }
+
+      // U6/U18: the UoD's scholarly citation (author-date line + BibTeX) from its
+      // provenance. Fabricates nothing — a sourceless graph reports has_source:false,
+      // which also gates the "cite" caption checkbox (no fake caption on a synthetic).
+      async function loadCitation(uodId) {
+        currentCitation = null;
+        const block = document.getElementById('export-cite-block');
+        if (block) block.style.display = 'none';
+        try {
+          const body = await fetch('/export/citation?uod_id=' + encodeURIComponent(uodId))
+            .then((r) => r.json());
+          if (!body.success || !body.data) { refreshCiteGate(); return; }
+          currentCitation = body.data;
+          const line = document.getElementById('cite-line');
+          const bib = document.getElementById('cite-bibtex');
+          const note = document.getElementById('cite-source-note');
+          if (line) line.textContent = currentCitation.citation || '';
+          if (bib) bib.value = currentCitation.bibtex || '';
+          if (note) {
+            note.textContent = currentCitation.has_source ? '(from provenance)'
+              : '(no recorded source — reproduced with Arisbe)';
+            note.style.color = 'var(--ctp-overlay0)';
+          }
+          if (block) block.style.display = 'block';
+        } catch (_) { /* leave citation hidden on any error */ }
+        refreshCiteGate();
+      }
+
+      // U18: the cite caption is honest only when there is a source to cite —
+      // disable the checkbox (and say why) for a sourceless graph.
+      function refreshCiteGate() {
+        const cb = document.getElementById('export-cite');
+        const wrap = document.getElementById('export-cite-wrap');
+        if (!cb || !wrap) return;
+        const sourceless = currentCitation && currentCitation.has_source === false;
+        cb.disabled = !!sourceless;
+        if (sourceless) { cb.checked = false; }
+        wrap.title = sourceless
+          ? 'This graph has no recorded source — no citation caption to emit.'
+          : "Emit this graph's scholarly citation (from its provenance) as a caption under the figure.";
+        wrap.style.opacity = sourceless ? '0.5' : '1';
       }
 
       // ---- Unified action toolbar: transfer (Import/Export) + cross-mode ----
@@ -1499,6 +1600,11 @@
       });
 
       document.getElementById('export-go').addEventListener('click', doExport);
+      document.getElementById('export-chain-go').addEventListener('click', doExportChain);
+      document.getElementById('cite-copy').addEventListener('click', function () {
+        const bib = document.getElementById('cite-bibtex');
+        if (bib && navigator.clipboard) navigator.clipboard.writeText(bib.value);
+      });
       document.getElementById('export-copy').addEventListener('click', function () {
         const txt = document.getElementById('export-text');
         if (navigator.clipboard) navigator.clipboard.writeText(txt.value);

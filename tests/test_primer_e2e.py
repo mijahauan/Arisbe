@@ -141,3 +141,20 @@ def test_dragon_chip_deeplinks_into_challenge(page, app_url):
             break
         time.sleep(0.5)
     assert "Draw" in prompt, f"challenge not engaged; prompt={prompt!r}"
+
+    # U2 (regression): the deep-link must leave the freeform canvas *armed* — the
+    # earlier race let openSession() disable freeform after the challenge armed it,
+    # stranding the newcomer with the prompt but no draw tools. The freeform tools
+    # row is revealed and the toggle carries the 'armed' class once engaged.
+    deadline = time.time() + 12
+    armed = False
+    while time.time() < deadline:
+        tools_shown = page.eval_on_selector(
+            "#freeform-tools", "el => getComputedStyle(el).display !== 'none'")
+        toggle_armed = page.eval_on_selector(
+            "#btn-freeform-toggle", "el => el.classList.contains('armed')")
+        if tools_shown and toggle_armed:
+            armed = True
+            break
+        time.sleep(0.5)
+    assert armed, "deep-link left the freeform canvas disabled (U2 race regressed)"

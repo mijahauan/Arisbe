@@ -41,11 +41,17 @@
       .replace(/"/g, '&quot;');
   }
 
+  // The full standing ladder, so hovering the ○/⛓ badges a corpus reader
+  // actually sees explains why ⚔ is absent here: it is earned only in Agon.
+  var LADDER = 'Standing ladder: ○ posited → ⛓ derived → ⚔ withstood ' +
+    '(⚔ is earned only by surviving a contest in Agon).';
+
   function html(standing, compact) {
     if (!standing || !standing.key) return '';
     injectStyles();
     var tip = (standing.meaning || '') +
-      (standing.non_claim ? '\n\n— ' + standing.non_claim : '');
+      (standing.non_claim ? '\n\n— ' + standing.non_claim : '') +
+      '\n\n' + LADDER;
     var glyph = '<span class="sb-glyph">' + esc(standing.glyph || '') + '</span>';
     var body = compact ? glyph : glyph + esc(standing.label || standing.key);
     return '<span class="standing-badge standing-' + esc(standing.key) +

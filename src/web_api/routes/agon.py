@@ -452,11 +452,20 @@ async def list_models():
     ]
     corpus = []
     try:
+        from web_api.routes.organon import _browse_facets
         for entry in _get_tomos().list_uods():
             uid = entry.get("uod_id") or entry.get("id")
             if uid:
+                # Carry the provenance ``kind`` (cheap side-file read) so the picker
+                # can group ontologies and default materialize on for a T-box M
+                # (a pure T-box peels vacuously without its rules — the U3 trap).
+                try:
+                    kind = _browse_facets(entry).get("kind")
+                except Exception:
+                    kind = None
                 corpus.append({"uod_id": uid,
-                               "title": entry.get("name") or entry.get("title") or uid})
+                               "title": entry.get("name") or entry.get("title") or uid,
+                               "kind": kind})
     except Exception:
         corpus = []  # corpus listing is best-effort; examples always work
     return ApiResponse(success=True, data={"examples": examples, "corpus": corpus})

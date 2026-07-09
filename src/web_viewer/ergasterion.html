@@ -3031,17 +3031,24 @@
         // "carried from: <name> (Organon)" beside the workshop draft.
         const fromName = qp.get('from');
         if (fromName) currentOrigin = { name: fromName, mode: qp.get('fromMode') || null };
+        let openPromise = Promise.resolve();
         if (open && (open.indexOf('uod:') === 0 || open === 'empty_sheet')) {
-          openSession(open);
+          openPromise = openSession(open);
         }
         // Deep-link from the primer (New here? → the drawable dragons): land in
         // a ready session with that dragon's challenge engaged, freehand-armed.
         const challengeParam = qp.get('challenge');
         if (challengeParam) {
           const dragonNum = (challengeParam.match(/\d+/) || [])[0];
-          if (!open) openSession('empty_sheet');
-          if (challengeDetails) challengeDetails.open = true;
-          loadChallenges().then(() => {
+          if (!open) openPromise = openSession('empty_sheet');
+          // U2: openSession() clears + disables the freeform canvas when its POST
+          // resolves — which would tear down the freeform that engaging the
+          // challenge arms. So wait for the session to be fully open *before*
+          // selecting the dragon (whose change handler re-arms freeform).
+          openPromise.then(() => {
+            if (challengeDetails) challengeDetails.open = true;
+            return loadChallenges();
+          }).then(() => {
             if (!dragonNum) return;
             const c = challengeBank.find((x) => String(x.dragon) === dragonNum);
             if (c && challengeSelect) {

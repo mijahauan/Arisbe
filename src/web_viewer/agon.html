@@ -436,7 +436,7 @@
           if((agonModels.examples||[]).length){ const og=document.createElement('optgroup'); og.label='Example scenarios';
             agonModels.examples.forEach(e=>{ const o=document.createElement('option'); o.value='ex:'+e.id; o.textContent=e.title; og.appendChild(o); }); pick.appendChild(og); }
           if((agonModels.corpus||[]).length){ const og=document.createElement('optgroup'); og.label='Corpus models';
-            agonModels.corpus.forEach(c=>{ const o=document.createElement('option'); o.value='uod:'+c.uod_id; o.textContent=c.title; og.appendChild(o); }); pick.appendChild(og); }
+            agonModels.corpus.forEach(c=>{ const o=document.createElement('option'); o.value='uod:'+c.uod_id; o.textContent=c.title+(c.kind==='ontology'?' — ontology':''); og.appendChild(o); }); pick.appendChild(og); }
           // Land on a worked example so the arena is runnable on arrival: with
           // empty fields the placeholders read as if pre-filled, and "Does G
           // hold in M?" just reports "enter a proposal G". A clean TRUE scenario
@@ -459,7 +459,16 @@
           $('model-closed').checked=!!e.closed; $('model-materialize').checked=!!e.materialize;
           $('model-note').textContent=e.note; }
         else if(v.indexOf('uod:')===0){ selectedModelUod=v.slice(4); $('setup-model').value='';
-          $('model-note').textContent='Model M = corpus “'+selectedModelUod+'”. Enter a proposal G to test against it.'; }
+          const c=(agonModels.corpus||[]).find(x=>x.uod_id===selectedModelUod);
+          // U3: an ontology M is a pure T-box — it peels *vacuously* (TRUE/UNKNOWN)
+          // unless its rules are materialized, so default materialize on and say so.
+          if(c && c.kind==='ontology'){
+            $('model-materialize').checked=true;
+            $('model-note').textContent='Model M = ontology “'+selectedModelUod+'” (T-box). '+
+              'Rules materialized so a subsumption/transitivity theorem can be decided. '+
+              'Enter a proposal G to test against it.'; }
+          else {
+            $('model-note').textContent='Model M = corpus “'+selectedModelUod+'”. Enter a proposal G to test against it.'; } }
       }
 
       // ---- interpretation register (part 2: peel G against M) ----
