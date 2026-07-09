@@ -93,12 +93,19 @@ window.AccessibleLens = (function () {
       });
     });
     (area.predicates || []).forEach(pr => {
-      const args = (pr.arguments || []).map(a => ({
-        kind: 'arg', cls: 'al-arg',
-        label: 'argument ' + a.port + ': ' + a.vertex_phrase +
-               (a.crossings && a.crossings.length ? ' — ' + a.crossing_phrase : ''),
-        children: [],
-      }));
+      const args = (pr.arguments || []).map(a => {
+        // U11: the required crossing-sequence as explicit data — the count is the
+        // topological invariant the correspondence check enforces (a per-ligature
+        // actual-vs-required multiset), shown beside its narration.
+        const nx = (a.crossings || []).length;
+        const crossData = nx ? ' — ' + a.crossing_phrase + ' [crosses ' + nx +
+          (nx === 1 ? ' cut]' : ' cuts]') : '';
+        return {
+          kind: 'arg', cls: 'al-arg',
+          label: 'argument ' + a.port + ': ' + a.vertex_phrase + crossData,
+          children: [],
+        };
+      });
       kids.push({ kind: 'pred', cls: 'al-pred', label: pr.heading, children: args });
     });
     (area.cuts || []).forEach(c => kids.push(areaNode(c)));
@@ -208,9 +215,11 @@ window.AccessibleLens = (function () {
 
     const head = document.createElement('div');
     head.className = 'al-head';
-    head.innerHTML = '<div class="al-title">Accessible reading — ' + esc(data.name || uodId) +
-      '</div><div class="al-sub">A non-visual projection of the same graph the drawing shows. ' +
-      'The picture is one projection of the coordinate-free structure; this reading is another.</div>';
+    head.innerHTML = '<div class="al-title">Structure (coordinate-free) — ' + esc(data.name || uodId) +
+      '</div><div class="al-sub">The projection-independent formal object — the containment tree, ' +
+      'polarity, and per-ligature required crossing-sequence — that the drawing is one picture of. ' +
+      'Navigable by keyboard and screen-reader. Geometry-free; carries no §3.3 obligation ' +
+      '(the projection <em>is</em> the ground truth).</div>';
     wrap.appendChild(head);
 
     const cols = document.createElement('div');

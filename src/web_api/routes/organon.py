@@ -560,8 +560,28 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
         # step-scoped (by step_id) plus element-scoped (anchored in this state).
         layer = annotations_from_list(tomos.load_annotations(uod_id))
 
+        from egi_diff import legible_diff
+
+        def _step_diff(prev_egi, cur_egi):
+            # What this step *changed*, in EG vocabulary — so the player can say
+            # "this step: +… / −…" instead of only naming the rule (U10). Same
+            # shape the derivation-DAG lens already shows on its edges.
+            rep = legible_diff(prev_egi, cur_egi)
+            by = {}
+            for f in rep.findings:
+                by[f.kind] = by.get(f.kind, 0) + 1
+            bits = []
+            if by.get("extra"):
+                bits.append(f"+{by['extra']}")
+            if by.get("missing"):
+                bits.append(f"−{by['missing']}")
+            for k in ("structure", "scope", "incidence", "order"):
+                if by.get(k):
+                    bits.append(f"{k} {by[k]}")
+            return {"summary": " · ".join(bits) or "no net change"}
+
         def _frame(index, kind, egi, state_id, rule=None, annotation=None,
-                   step_id=None):
+                   step_id=None, prev_egi=None):
             _dto, svg = generate_layout(egi, style_name=style, engine=engine)  # attests §3.3 per state
             frame_anns = list(for_state(layer, state_id))
             if step_id is not None:
@@ -573,6 +593,7 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                 "annotation": annotation,  # "<peirce label>: <note>" (baked-in)
                 "step_id": step_id,
                 "state_id": state_id,
+                "diff": _step_diff(prev_egi, egi) if prev_egi is not None else None,
                 "annotations": annotations_to_list(frame_anns),  # additive layer
                 "svg": svg,
                 "egi_summary": _egi_summary(egi),
@@ -586,18 +607,22 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
             _frame(0, "base", chain.states[chain.initial_state_id],
                    chain.initial_state_id)
         ]
+        _prev = chain.states[chain.initial_state_id]
         for i, step in enumerate(chain.steps, start=1):
+            _cur = chain.states[step.to_state_id]
             frames.append(
                 _frame(
                     i,
                     "step",
-                    chain.states[step.to_state_id],
+                    _cur,
                     step.to_state_id,
                     rule=step.rule_name,
                     annotation=step.user_annotation,
                     step_id=step.step_id,
+                    prev_egi=_prev,
                 )
             )
+            _prev = _cur
 
         # A chain *branches* when two steps share a from_state (fork) or a
         # to_state (converge) — the linear lenses (storyboard / time-stack / the

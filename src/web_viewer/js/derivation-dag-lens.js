@@ -60,7 +60,8 @@ window.DerivationDag = (function () {
   }
 
   // historyData: { dag: { nodes:[{id,depth,kind,svg,egi_summary}], edges:[{from,to,rule,branch_id,annotation,diff}], branching, initial_state_id } }
-  function mount(container, historyData) {
+  // onSelect(stateId): optional — clicking a node opens that state in the drawing.
+  function mount(container, historyData, onSelect) {
     injectStyle();
     const dag = (historyData && historyData.dag) || null;
     const wrap = document.createElement('div');
@@ -146,13 +147,21 @@ window.DerivationDag = (function () {
         '<div class="dd-cap"><span class="dd-id">' + esc(n.id) +
         (n.kind === 'base' ? ' · base' : '') + '</span><span>' +
         esc(summaryText(n.egi_summary)) + '</span></div>';
+      // U8: click a state to open it in the drawing (its formal object + linear
+      // form + context reflex), not just view the branch topology.
+      if (typeof onSelect === 'function') {
+        el.style.cursor = 'pointer';
+        el.title = 'Open this state in the drawing (immutable state ' + n.id + ')';
+        el.addEventListener('click', () => onSelect(n.id));
+      }
       stage.appendChild(el);
     });
 
     // Legend (branch colours + the structure note).
     const legend = document.createElement('div');
     legend.className = 'dd-legend';
-    legend.innerHTML = '<span>depth = derivation order · forks &amp; merges shown</span>' +
+    legend.innerHTML = '<span>depth = derivation order · forks &amp; merges shown · ' +
+      'states are immutable (append-only provenance) · click a state to open it</span>' +
       branches.map(b => '<span><span class="dd-sw" style="background:' + colorOf(b) + '"></span>' +
         esc(b) + '</span>').join('');
     wrap.appendChild(legend);

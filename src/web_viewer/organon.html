@@ -383,7 +383,7 @@
           <option value="derivation-dag" hidden disabled>Derivation DAG — branch structure</option>
           <option value="modal" hidden disabled>Modal reading — ◇ / □ off the history</option>
           <option value="audit" hidden disabled>Audit — verdict trajectory (M through dialog)</option>
-          <option value="accessible">Accessible reading — non-visual (screen-reader)</option>
+          <option value="accessible">Structure — coordinate-free (keyboard / screen-reader)</option>
         </select>
         <!-- Overview (adaptive-scope) controls: shown only in the overview lens.
              Collapse deep cuts into content-sized placeholders so a graph too
@@ -775,7 +775,20 @@
           }
           if (head.length) rows.push(head.join(' '));
           if (f.theorem) rows.push('<strong>theorem:</strong> ' + escapeHtml(f.theorem));
-          if (f.proof) rows.push('<strong>proof:</strong> ' + escapeHtml(f.proof));
+          if (f.proof) {
+            // U19: make the transcribed-vs-authored distinction explicit — a
+            // published proof copied in vs. a derivation original to Arisbe are
+            // different facts a scholar must not have to infer from the prose.
+            const dk = p.proof_source && p.proof_source.kind;
+            const chip = 'style="font-size:9px; font-weight:600; padding:1px 6px; border-radius:9px; ' +
+              'border:1px solid currentColor; color:var(--ctp-overlay1,#7f849c); margin-left:4px; vertical-align:middle;"';
+            const dlabel = dk === 'transcribed'
+              ? '<span ' + chip + ' title="This derivation is transcribed from a published proof (its citation).">transcribed</span>'
+              : (dk === 'authored'
+                ? '<span ' + chip + ' title="This derivation is original to Arisbe (authored here), not transcribed from a source.">authored here</span>'
+                : '');
+            rows.push('<strong>proof:</strong> ' + escapeHtml(f.proof) + (dlabel ? ' ' + dlabel : ''));
+          }
           if (f.methods && f.methods.length) {
             rows.push('<strong>method:</strong> ' + escapeHtml(f.methods.join('; ')));
           }
@@ -1072,6 +1085,19 @@
         renderLens(lens);
       }
 
+      // U8: open a derivation-DAG state in the Drawing lens — find the chain frame
+      // for that state id and switch to the drawing (which restores the player,
+      // linear form, and context reflex at that frame).
+      function jumpToState(stateId) {
+        const idx = chainFrames.findIndex(fr => fr.state_id === stateId);
+        if (idx < 0) {
+          setStatus('That state is not on the linear chain player.', true);
+          return;
+        }
+        chainIndex = idx;
+        selectLens('drawing');
+      }
+
       // Show/hide the overview controls (Collapse-all + hint) — overview lens only.
       function setOverviewControls(on) {
         const c = document.getElementById('overview-controls');
@@ -1117,7 +1143,7 @@
             activeLensHandle = mod.mount(canvasEl, currentHistory);
           } else if (lens === 'derivation-dag') {
             if (!currentHistory) currentHistory = await window.LensCommon.fetchHistory(selectedUodId);
-            activeLensHandle = window.DerivationDag.mount(canvasEl, currentHistory);
+            activeLensHandle = window.DerivationDag.mount(canvasEl, currentHistory, jumpToState);
           } else if (lens === 'modal') {
             // ◇/□ off the branching history (modal_query) — the lens owns its
             // fetch + the states/leaves toggle.
@@ -1323,9 +1349,14 @@
             : 'state ' + chainIndex + ' / ' + total;
         }
         if (cp.annotation) {
+          // U10: name the rule + rationale AND what the step changed (the legible
+          // diff: "+2 / −1 …"), so a logician verifies each step added/removed
+          // exactly what it should — not just which rule fired.
+          const diff = (f.diff && f.diff.summary && f.diff.summary !== 'no net change')
+            ? '  ·  this step: ' + f.diff.summary : '';
           cp.annotation.textContent = f.kind === 'base'
             ? 'The blank/asserted starting context.'
-            : (f.rule ? f.rule + ' — ' : '') + (f.annotation || '');
+            : (f.rule ? f.rule + ' — ' : '') + (f.annotation || '') + diff;
         }
         if (cp.prev) cp.prev.disabled = chainIndex === 0;
         if (cp.first) cp.first.disabled = chainIndex === 0;
