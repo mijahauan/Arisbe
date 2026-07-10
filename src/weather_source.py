@@ -60,6 +60,23 @@ DEFAULT_STATIONS: Dict[str, Tuple[float, float]] = {
     "KMIA": (25.788, -80.317),    # Miami
 }
 
+# A wet Gulf / Southeast constellation — summer daily convection gives high PoP,
+# so the *precipitation* arm actually raises and resolves claims (RUN_9_LOG F2⁹:
+# the precip arm was inert because PoP never reached the gate). Not in the default
+# set; named by ICAO on the command line.
+WET_STATIONS: Dict[str, Tuple[float, float]] = {
+    "KMIA": (25.788, -80.317),    # Miami
+    "KTPA": (27.976, -82.533),    # Tampa
+    "KMSY": (29.993, -90.258),    # New Orleans
+    "KIAH": (29.980, -95.360),    # Houston (Intercontinental)
+    "KJAX": (30.494, -81.688),    # Jacksonville
+    "KMCO": (28.429, -81.309),    # Orlando
+    "KFLL": (26.072, -80.153),    # Fort Lauderdale
+}
+
+# The full table the driver can resolve an ICAO against (defaults + wet).
+KNOWN_STATIONS: Dict[str, Tuple[float, float]] = {**DEFAULT_STATIONS, **WET_STATIONS}
+
 LAW_TEMP = "~[ (forecast_temp_band *s *t *b) ~[ (temp_band s t b) ] ]"
 LAW_PRECIP = "~[ (forecast_precip *s *t) ~[ (precip s t) ] ]"
 SEED_LAWS = [LAW_TEMP, LAW_PRECIP]
@@ -476,5 +493,6 @@ def replay_item_batches(path: str) -> List[List[ResolvingItem]]:
 
 
 __all__ = ["WeatherSource", "PendingClaim", "ResolvingItem", "band_of",
-           "band_bounds", "replay_item_batches", "DEFAULT_STATIONS", "SEED_LAWS",
+           "band_bounds", "replay_item_batches", "DEFAULT_STATIONS",
+           "WET_STATIONS", "KNOWN_STATIONS", "SEED_LAWS",
            "LAW_TEMP", "LAW_PRECIP"]

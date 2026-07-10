@@ -30,7 +30,7 @@ from live_runner import LiveRunConfig, LiveRunner, _sheet_atom_count
 from resolving_membrane import PredictionLedger, ResolvingFeed
 from tomos_service import TomosService
 from weather_recalibration import recalibrate
-from weather_source import DEFAULT_STATIONS, SEED_LAWS, WeatherSource
+from weather_source import DEFAULT_STATIONS, KNOWN_STATIONS, SEED_LAWS, WeatherSource
 
 
 def _panel():
@@ -119,8 +119,8 @@ def main(argv=None) -> int:
         if ":" in s:
             sid, lat, lon = s.split(":")
             stations[sid] = (float(lat), float(lon))
-        elif s in DEFAULT_STATIONS:
-            stations[s] = DEFAULT_STATIONS[s]
+        elif s in KNOWN_STATIONS:
+            stations[s] = KNOWN_STATIONS[s]
         else:
             raise SystemExit(f"unknown station {s!r} — give ICAO:lat:lon")
 

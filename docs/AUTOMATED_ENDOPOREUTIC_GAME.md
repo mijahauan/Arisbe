@@ -1574,3 +1574,48 @@ per-arm instrumentation showed **precip raised zero claims** (PoP never hit 60 %
 (F3⁹), so the exact reseed count is inferred from the miss trajectory; the driver now tees its
 digest to `runs/runN/console.txt`. Next: run 10 (a live precip arm — lower PoP gate / wetter
 stations — to give the non-binned control arm something to contest).
+
+## 21 · Run 10 — the live precip arm (the non-binned control; drafted 2026-07-10)
+
+*Run 9 established that forecast-centered bins convert the temperature limit cycle toward a fixed
+point (F1⁹), reading the F2⁸ limit cycle as largely a **grid edge-fragility artifact** of the
+binning. But that reading has an untested control: the **precipitation** arm is **non-binned** — a
+binary predicate (rain / no-rain) with no bin, hence no edge-fragility. In runs 7–9 it never
+contested (dormant: PoP never reached the 60 % gate — F2⁹). Run 10 activates it and asks the
+control question directly: does a **non-binned** law, refuted by the world, **converge** (or hold),
+or does it **also limit-cycle**? If it converges cleanly, that corroborates F1⁹ (binning drove the
+temp cycle). If it limit-cycles too, weather noise — not binning — is the driver, and F1⁹ is
+tempered to "centering raised the plateau" rather than "removed the cycle."*
+
+**The activation (params, not new machinery — the precip arm already exists):**
+- **Wetter stations** — a Gulf / Southeast July-convection constellation
+  (`weather_source.WET_STATIONS`: KMIA KTPA KMSY KIAH KJAX), where daily afternoon storms give
+  real PoP. Named by ICAO; the driver resolves against `KNOWN_STATIONS` (defaults + wet).
+- **A lower PoP gate** — `--pop-threshold 40` (from 60), so precip claims are actually raised, with
+  room to climb to the 90 % cap.
+- **Centered temp bins kept** (`--bin-mode centered`), so the *binned* arm sits at its established
+  fixed point as an in-run reference beside the *non-binned* precip arm — the clean side-by-side
+  control.
+
+**The precip re-generalization path (verified offline).** A refuted precip law (a PoP-60/70
+forecast met by no rain, in the shape `(forecast_precip …) ~[ (precip …) ]`) is relinquished by
+the Challenger; `weather_recalibration.recalibrate` **raises the PoP gate** (`pop_step` 10, cap
+90 — the precip *falsifiability knob*, analog of the temp band) and re-seeds the law, so the arm
+bets again at a higher confidence gate. Gate 40→50 + reseed confirmed on a scripted refutation.
+
+**Driver:** `caffeinate -i uv run python tools/run_live_weather.py --runs-dir runs/run10
+--stations KMIA KTPA KMSY KIAH KJAX --pop-threshold 40 --bin-mode centered --regenerate
+--max-seconds 50400`. The digest now tees to `runs/run10/console.txt` (F3⁹ closed), so the exact
+per-arm reseed / `challenge_to_M` count is a first-class artifact this time.
+
+**Pre-registered priors (run 10):**
+
+| prior | instrument | expected |
+|---|---|---|
+| P1¹⁰ **the precip arm activates** | `claims_raised_by_kind` / `resolutions_by_kind` | with the lower gate + wet stations, precip **raises and resolves** claims (> 0) — the F2⁹ dormancy is lifted, so the control arm actually contests. |
+| P2¹⁰ **non-binned: converge or limit-cycle?** (headline) | per-arm net trajectory + `challenge_to_M` count (now captured) | a binary predicate has no bin edge-fragility, so on refutation the precip law re-generalizes by **raising the gate** and then **holds / converges** — it does *not* persistently limit-cycle the way binned temp did before centering. The honest null: precip **also** limit-cycles → weather noise, not binning, drives the cycle, tempering F1⁹. |
+| P3¹⁰ **the PoP gate is the precip falsifiability knob** | gate trajectory (`weather_state.params.pop_threshold`) | refutation steps the gate up toward the 90 % cap (analog of the temp band 5→20); a well-calibrated gate holds without further reseeds. |
+| P4¹⁰ floor + F3⁹ closure | `runs/run10/console.txt`; resume | the digest (per-arm bets, dispositions, reseeds, poise) is captured to a file — the exact reseed count is recoverable this time; 0-fetch resilience; both knobs (band, gate) + `bin_mode` carried across resume; §3.3 attests. |
+
+**Log:** [`runs/RUN_10_LOG.md`](../runs/RUN_10_LOG.md) — **PRE-REGISTERED 2026-07-10; awaiting live
+execution.**
