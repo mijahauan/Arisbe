@@ -153,23 +153,60 @@ Verified: `test_mcp_verifier` 21p/1s, correspondence suite green (117p/1s), core
 Nothing existing modified — all additive (2 src modules, 1 test, 3 docs, 1 pyproject extra, doc
 cross-links). **Not yet committed.**
 
-**▶▶▶ NEXT SESSION — pick from the named queue (nothing forced).** With the three consolidation
-candidates shipped, the standing queue: **R4** (non-visual EG accessibility projection — screen-
-reader-native sheet→cut→area→ligature traversal of the coordinate-free `natural_layout(egi)`
-@ src/natural_layout.py:113 + spoken linear forms — distinctive; Arisbe uniquely owns the ground
-truth; a natural *next* consolidate/adopt build); the **run 8** build-track (predict→refute→
-RE-GENERALIZE, the resolving membrane's F2⁷ next question, machinery ready — but note F1⁷: NWS
-`/observations` needs retry/backoff first); the **F1⁵ root fix** (global label placement shared
-renderer+attest — protected-core design pass, also retires the eg_reader clockwise flakes); 2b
-(docket proving ground); the docket Q2/Q3 tiers (sized by RUN_6 F2⁶); the spectator surface
-(RATE_AND_INTELLIGIBILITY + ADAPTIVE_SCOPE_VIEWER §10). **The gamma / 2nd-order frontier stays
-explicitly open** (author's standing direction) — `MODALITY_WITHOUT_GAMMA.md` + the shipped Gamma
-demonstrations hold the current boundary; genuine 2nd-order development would extend additively
-through the MCP interface + the contract spec's property list. The two gating tensions
-(grow-vs-federate deferred; medium-vs-view = primary-medium+bridges) live in
-`docs/PROSPECTS_MULTIPERSPECTIVE.md` with R1–R10 + provenance.
+**▶▶▶ NEXT SESSION — finish the 2nd-order prep + cleanup, THEN the author's two crossing
+decisions (nothing forced).** Author's standing direction (2026-07-09): **square away alpha/beta
+before crossing the 2nd-order frontier.** STORM is CLOSED (nothing open — STORM_DOCS_AUDIT §"Nothing
+remains open") and the **alpha/beta UX docket is fully shipped** (U1–U25, `docs/ALPHA_BETA_UX_DOCKET.md`),
+so the pre-frontier work is down to a short list:
+1. **Finish the 2nd-order PREP** (the frontier is mapped + de-risked; not crossed). DONE this
+   session: the de-risking harness `src/second_order_check.py` (law S1–S4, 11 tests, falsifiers
+   bite) + memo 1 `docs/SECOND_ORDER_CORRESPONDENCE_CONTRACT.md` (§-for-§ P1–P5 one order up).
+   **REMAINING prep:** *memo 2* — the increment-2 **core-opening author-decision memo** (overlay-
+   forever beside `egi_core_dau`, like `reference_node`, vs. a native graph-valued node + a
+   sort-reader that recovers S3 off the drawing); and **#11** — give the schema φ-hole its §3.3
+   story (`SCHEMA_HOLE_CORRESPONDENCE.md`; it deliberately stops one step short of the device S1
+   licenses).
+2. **RUN 10 disposal** — the live precip arm (§21/`RUN_10_LOG.md`) finishes a few hours after this
+   session; write it up from `runs/run10/` (console.txt IS captured this time — F3⁹ — so the
+   per-arm reseed / `challenge_to_M` count settles **P2¹⁰ converge-vs-limit-cycle by count, not
+   inference**), commit the artifacts. Early peek: precip ACTIVATED (raised>0, not the run-9
+   dormancy), already re-generalizing (PoP gate 40→50→60 on misses) — leaning honest-null (the
+   non-binned arm *also* re-generalizes) but only 3 resolutions in, far too early.
+3. **THE TWO CROSSING DECISIONS (author's — gate any advance across the frontier):** **A.** which
+   comprehension floor (predicative-with-enclosure-escape is the harness default; ramified/other
+   swap in); **B.** how much to open the core (A/B laid out in SECOND_ORDER_CORRESPONDENCE_CONTRACT §7).
+4. **Optional cleanup / solidification (parallel, non-gating):** **#9 layout-at-scale** (the
+   ontologist ceiling — super-linear beyond ~127 axioms; the vertex-settle ≤60-gate + ELK bbox
+   fixes are partial); the **FOPL panel display nuance** (chapter18 renders the empty cut as blank
+   text and doesn't always attach ∀ — a logician-facing accuracy nit surfaced by the new FOPL row);
+   standing items **R4** accessibility polish, **F1⁵** global-label root fix. The two gating
+   tensions (grow-vs-federate; medium-vs-view) live in `docs/PROSPECTS_MULTIPERSPECTIVE.md`.
 
-**▶▶ THIS SESSION (2026-07-06→07) — RUN 7 (THE VEIL CROSSED) · STORM AUDIT + PROSPECTS ·
+**▶▶ SESSION (2026-07-09→10) — RUN 9 DISPOSED · ALPHA/BETA UX DOCKET (U1–U25) · NL READING ·
+LIGATURE-SETTLE + DELTA-PERSISTENCE · RUN 10 LAUNCHED · 2ND-ORDER PREP BEGUN.** (a) **Run 9**
+executed & disposed (RUN_9_LOG): forecast-centered bins **convert the F2⁸ limit cycle toward a
+fixed point** (temp acc @20°F 0.82 vs run8 grid 0.70; settled tail 24h/0m=1.00 — F1⁹ disposes F2⁸);
+precip raised ZERO claims (F2⁹ disposes F3⁸); F3⁹ ops = console not captured → driver now tees to
+`runs/runN/console.txt`. (b) **Alpha/beta UX persona docket** — 5-agent audit → 25 findings U1–U25
+(headline pattern: *backend built, UI not wired*); ALL SHIPPED Tier-1/2/3 (FOPL row, deep-link race,
+ontology-M materialize, chain-export+BibTeX, §3.3 badge, Structure lens, DAG click-through, chain
+diffs, challenge picture, rule-refusal-inline+gating, M-picker grouping, **web OWL/RDF/CLIF
+file-import** = the U1 blocker → kind=ontology UoD w/ skip-report + scale guard). `docs/ALPHA_BETA_UX_DOCKET.md`.
+(c) **NL reading** = an English gloss beside the 4 linear forms (`src/eg_to_english.py`, idiomatic +
+literal registers in the shared LinearFormPanel; a GLOSS not a 5th form — English doesn't round-trip;
+humanise+POS+global-coref after the would-be example read badly). (d) **Ligature quality** — ELK is
+layered, doesn't barycentre vertices → zig-zag; `_settle_vertices` (vertex→predicate centroid,
+self-verify-revert: §3.3 + no-collapse + crossing-count unchanged, size-gated ≤60) + **regime-3
+arrangement persistence to the corpus** (Gap B organon applies saved deltas + Gap A /save-arrangement
+guarded by same_graph, else Agon + Ergasterion button). (e) **Run 10 launched** — the live precip arm
+(non-binned control; wet Gulf/SE stations + PoP gate 40; §21/RUN_10_LOG). (f) **2nd-order PREP begun**
+(66941ce): `second_order_check.py` (de-risking harness, mirrors reference_resolution_check ONE ORDER
+UP; law S1 stratified=dragon9-enclosure / S2 quote-equals-quoted-and-attested / S3 read-back=injected
+frontier-reader / S4 horizon; overlay beside core, no core touch) + `SECOND_ORDER_CORRESPONDENCE_CONTRACT.md`
+(memo 1 of 2). Commits dffb638→66941ce all pushed. STORM CLOSED; docket CLOSED. See the ▶▶▶ NEXT
+SESSION block for the remainder.
+
+**▶▶ SESSION (2026-07-06→07) — RUN 7 (THE VEIL CROSSED) · STORM AUDIT + PROSPECTS ·
 COLD-READER FIX · GRAPHIFY REFRESH.** Run 7 = the first live *resolving* membrane (NWS
 weather, §18): the naive seeded theory "what is forecast, happens" bet, was empirically
 FALSIFIED, and BOTH laws relinquished by the world via `challenge_to_M` (P1⁷–P6⁷ all
