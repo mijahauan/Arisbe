@@ -128,6 +128,27 @@ def main(argv=None) -> int:
     (runs / "checkpoints").mkdir(parents=True, exist_ok=True)
     state_path = str(runs / "state.json")
     weather_state = str(runs / "weather_state.json")
+
+    # RUN_9_LOG F3⁹: the per-segment digest (bets, dispositions, reseed count,
+    # per-station errors, poise) and the final report go to stdout — tee them to a
+    # file so the stream is a first-class replayable artifact, not lost with the
+    # terminal. Append (a resume continues the same log), flush per line.
+    _console = open(runs / "console.txt", "a", encoding="utf-8", buffering=1)
+
+    class _Tee:
+        def __init__(self, *streams):
+            self._streams = streams
+
+        def write(self, s):
+            for st in self._streams:
+                st.write(s)
+                st.flush()
+
+        def flush(self):
+            for st in self._streams:
+                st.flush()
+
+    sys.stdout = _Tee(sys.__stdout__, _console)
     stop_file = str(runs / "STOP")
 
     config = LiveRunConfig(

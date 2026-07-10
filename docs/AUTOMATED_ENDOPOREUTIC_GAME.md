@@ -1565,5 +1565,12 @@ With `--bin-mode grid` (the default) run 8 is reproduced exactly.
 | P3⁹ **per-arm instrumentation disambiguates the dormant precip arm** | `claims_raised_by_kind` / `resolutions_by_kind` | the digest resolves F3⁸: either precip **resolved many, all hits** (genuinely well-calibrated at PoP ≥ 60%) or **raised-but-rarely-resolved** (dormant because claims seldom matured/bet), a fact run 8 could not see. |
 | P4⁹ floor + parity unchanged | `--bin-mode grid` replay; §3.3; resume | grid mode reproduces run 8; §3.3 attests; `--resume` carries `bin_mode` + per-arm counters + the recalibrated knobs; correspondence-not-truth holds. |
 
-**Log:** [`runs/RUN_9_LOG.md`](../runs/RUN_9_LOG.md) — **PRE-REGISTERED 2026-07-08; awaiting live
-execution.**
+**Log:** [`runs/RUN_9_LOG.md`](../runs/RUN_9_LOG.md) — **EXECUTED & DISPOSED 2026-07-10** (run
+2026-07-09, 14 h, completed on `max_seconds`). P1⁹/P2⁹/P3⁹/P4⁹ all confirmed: **forecast-centered
+bins convert F2⁸'s limit cycle toward a fixed point** — temp accuracy at the 20 °F band rose to
+0.82 (vs run 8's grid ~0.70) and the settled tail reached 1.00 (24 h / 0 m), disposing F2⁸; the
+per-arm instrumentation showed **precip raised zero claims** (PoP never hit 60 %), disposing F3⁸;
+0 fetch_errors, `bin_mode` carried across resume. One ops gap — the stdout digest was not captured
+(F3⁹), so the exact reseed count is inferred from the miss trajectory; the driver now tees its
+digest to `runs/runN/console.txt`. Next: run 10 (a live precip arm — lower PoP gate / wetter
+stations — to give the non-binned control arm something to contest).
