@@ -146,7 +146,13 @@ as containment and incidence are today. That is:
    incidence, argument order, restated for graphs whose subjects are graphs. This is
    the real engineering weight, and it is the promise the whole project is built on; a
    `CORRESPONDENCE_CONTRACT` §-for-§ companion at second order is the deliverable that earns the
-   frontier.
+   frontier. **This companion now exists** —
+   [SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md) restates
+   P1–P5 one order up and states the law S1–S4 — **and it is already checkable**: the de-risking
+   harness `src/second_order_check.py` runs the law on candidate quotations (the paradox floor S1
+   drawn as an enclosure rule = dragon 9), with `tests/test_second_order_check.py` showing the
+   falsifiers bite. So the frontier is *de-risked before the protected core is opened*, exactly as
+   `reference_resolution_check` de-risked the reference node.
 4. **Mark the departure** — precisely where Peirce's manuscript trail ends (drawing a second-order
    claim) and the borrowed floor begins (which claims are well-formed).
 
@@ -192,7 +198,11 @@ This frontier gets the treatment [FIDELITY_AND_DEPARTURES](FIDELITY_AND_DEPARTUR
 
 The frontier is not crossed until second-order logic can be **drawn tractably and read back** with
 the correspondence contract intact one order up. Until then this document is the map of the ground,
-and the boundary on it is marked.
+and the boundary on it is marked — and now **de-risked**: the contract one order up is written
+([SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md)) and its law is
+running on candidates (`second_order_check.py`), so the two decisions that *cross* it — which
+comprehension floor, and how much to open the core (overlay-forever vs. a native graph-valued node
++ a sort-reader) — are all that remain, and both are the author's.
 
 ## Sources & further reading
 

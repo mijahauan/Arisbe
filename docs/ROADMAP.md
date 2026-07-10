@@ -257,7 +257,14 @@ few things first:
     [SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md):** how far Peirce's Gamma-as-second-order
     leads, where his manuscripts trail off (comprehension / paradox control), and the governing rule
     that the crossing must be *drawn* (§3.3 one order up) — with a recommended sortal layer completing
-    Peirce's own tinctures, and the departure marked.
+    Peirce's own tinctures, and the departure marked. **Prep begun (2026-07-10) — the frontier
+    de-risked the way increment 1 was:** the correspondence contract one order up is written
+    ([SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md), P1–P5 + the
+    law S1–S4), and a checker runs it on candidate quotations *without touching the protected core*
+    (`src/second_order_check.py` + `tests/test_second_order_check.py`, falsifiers biting; the paradox
+    floor S1 = dragon 9 drawn as an enclosure rule). What remains — the *crossing* — is two author
+    decisions: **which comprehension floor**, and **how much to open the core** (overlay-forever vs.
+    a native graph-valued node + a sort-reader that recovers S3 off the drawing).
 
 ---
 
