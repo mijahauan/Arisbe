@@ -1,4 +1,4 @@
-# Run 10 log — the live precip arm (the non-binned control) — PRE-REGISTERED
+# Run 10 log — the live precip arm (the non-binned control) — LAUNCHED 2026-07-10
 
 **Pre-registration:** [docs/AUTOMATED_ENDOPOREUTIC_GAME.md §21](../docs/AUTOMATED_ENDOPOREUTIC_GAME.md)
 — the successor to run 9's F1⁹/F2⁹. Run 9 read the temperature limit cycle (F2⁸) as largely a
@@ -27,7 +27,7 @@ counters already existed (runs 7–9); this run finally gives them something to 
 
 | field | value |
 |---|---|
-| date / operator | _(pending launch)_ |
+| date / operator | 2026-07-10 (author, delegated) — launched; running |
 | stations · claim kinds | KMIA KTPA KMSY KIAH KJAX · temp bands (5→20 °F, centered), **precip (PoP ≥ 40 %, gate 40→90)** |
 | horizon · ttl | 6 h · 48 polls |
 | stops | `max_seconds` 50400 |
