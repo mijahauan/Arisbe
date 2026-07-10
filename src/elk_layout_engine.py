@@ -48,6 +48,18 @@ class ELKLayoutEngine:
     # (small) region.
     EMPTY_CUT_MIN_SIZE = 32.0
 
+    # Above this element count (|V|+|E|+|Cut|) the barycentric vertex-settling
+    # pass is skipped: a dense graph rarely benefits (its lines are constrained
+    # every which way) and the settle-then-attest verification is not cheap at
+    # scale, so such graphs keep ELK's placement. Small/medium graphs — the ones
+    # that read cleanly when a line lies between its predicates — always settle
+    # (and self-verify). Empirically the corpus splits well below/above this.
+    _SETTLE_MAX_ELEMENTS = 60
+
+    # Two distinct lines of identity (vertices) must not settle onto the same
+    # point — keep them at least this far apart, else leave them where ELK put them.
+    _VERTEX_MIN_SEP = 8.0
+
     def __init__(self, conventions: Optional[Conventions] = None):
         self.conventions = conventions or DEFAULT_CONVENTIONS
 
@@ -56,8 +68,17 @@ class ELKLayoutEngine:
         egi: RelationalGraphWithCuts,
         style: StyleSpecification,
         layout_deltas: Optional[Dict] = None,
+        settle: bool = True,
     ) -> LayoutDTO:
-        """Generate positioned layout for an EGI diagram."""
+        """Generate positioned layout for an EGI diagram.
+
+        ``settle`` runs the barycentric vertex-settling pass (lines of identity
+        centred between their predicates). It is a pure optimisation and never
+        *worsens* correspondence — but on a dense graph a settled line can occlude
+        a label box the router cannot detour, so the caller (``layout_service``)
+        verifies the settled layout and re-requests with ``settle=False`` if §3.3
+        does not hold, keeping the guarantee absolute."""
+        self._settle_enabled = settle
         element_sizes = self._compute_element_sizes(egi, style)
         elk_graph = self._egi_to_elk_graph(egi, style, element_sizes)
         try:
@@ -538,42 +559,158 @@ class ELKLayoutEngine:
         for child in elk_result.get("children", []):
             walk(child, root_x, root_y)
 
-        # Build ligature paths geometrically from positioned elements.
-        # We do NOT use ELK's edge routing — it doesn't understand EG
-        # area containment semantics (Peirce's "excised plane" model).
-        # Ligatures are routed to avoid unauthorized cut crossings.
-        ligature_paths = self._build_ligature_paths(
-            egi, vertex_positions, predicate_positions,
-            element_sizes, cut_bounds, style,
-        )
-
-        # Area hierarchy
+        # Area hierarchy + viewport (independent of vertex settling).
         area_hierarchy = {
-            area_id: set(contents)
-            for area_id, contents in egi.area.items()
+            area_id: set(contents) for area_id, contents in egi.area.items()
         }
-
-        # Viewport bounds from root node dimensions
         rw = elk_result.get("width", 800.0)
         rh = elk_result.get("height", 600.0)
         margin = style.diagram_margin
         viewport = BoundingBox(
-            root_x - margin,
-            root_y - margin,
-            root_x + rw + margin,
-            root_y + rh + margin,
+            root_x - margin, root_y - margin,
+            root_x + rw + margin, root_y + rh + margin,
         )
 
-        return LayoutDTO(
-            vertex_positions=vertex_positions,
-            predicate_positions=predicate_positions,
-            cut_bounds=cut_bounds,
-            ligature_paths=ligature_paths,
-            area_hierarchy=area_hierarchy,
-            viewport_bounds=viewport,
-            sheet_id=egi.sheet,
-            style=style,
-        )
+        def _assemble() -> LayoutDTO:
+            # Ligatures are routed geometrically from the positioned elements
+            # (NOT ELK's edge routing — it doesn't know EG area containment).
+            ligature_paths = self._build_ligature_paths(
+                egi, vertex_positions, predicate_positions,
+                element_sizes, cut_bounds, style,
+            )
+            return LayoutDTO(
+                vertex_positions=dict(vertex_positions),
+                predicate_positions=predicate_positions,
+                cut_bounds=cut_bounds,
+                ligature_paths=ligature_paths,
+                area_hierarchy=area_hierarchy,
+                viewport_bounds=viewport,
+                sheet_id=egi.sheet,
+                style=style,
+            )
+
+        # The un-settled ELK layout — the fallback, and the baseline the settled
+        # variant is judged against.
+        base_dto = _assemble()
+
+        # Settle each shared vertex toward the centroid of its predicates, so a
+        # line of identity lies *between* them instead of zig-zagging off to one
+        # side (ELK is a *layered* engine — it places the vertex node in its
+        # combinatorial grid, not at the Euclidean barycentre of its hooks).
+        #
+        # Settling only ever *tidies* the picture, so it is accepted only if it
+        # keeps the picture faithful in every way that matters (``_settle_is_safe``):
+        # §3.3 still attests, distinct lines of identity stay distinct (no
+        # collapse), and the ligature-crossing count is unchanged (an intentional
+        # crossing + its bridge — e.g. a beta-converse conclusion — is preserved).
+        # Otherwise it reverts to ELK.  Skipped above a size threshold, where dense
+        # graphs neither benefit nor verify cheaply.
+        size = len(egi.V) + len(egi.E) + len(egi.Cut)
+        if getattr(self, "_settle_enabled", True) and size <= self._SETTLE_MAX_ELEMENTS:
+            saved = dict(vertex_positions)
+            self._settle_vertices(
+                egi, vertex_positions, predicate_positions, element_sizes, cut_bounds
+            )
+            candidate = _assemble()
+            if self._settle_is_safe(egi, base_dto, candidate):
+                return candidate
+            vertex_positions.clear()
+            vertex_positions.update(saved)  # revert: use the un-settled layout
+
+        return base_dto
+
+    def _settle_is_safe(self, egi, base_dto, candidate) -> bool:
+        """Accept the settled layout only if it is faithful: no line-of-identity
+        collapse, the same number of ligature crossings as the un-settled layout
+        (so an intentional crossing + bridge survives), and §3.3 correspondence."""
+        import render_geometry as rg
+        if len(rg.ligature_crossings(candidate.ligature_paths)) != \
+                len(rg.ligature_crossings(base_dto.ligature_paths)):
+            return False
+        pts = list(candidate.vertex_positions.values())
+        for i in range(len(pts)):
+            for j in range(i + 1, len(pts)):
+                if (abs(pts[i].x - pts[j].x) < self._VERTEX_MIN_SEP
+                        and abs(pts[i].y - pts[j].y) < self._VERTEX_MIN_SEP):
+                    return False  # two distinct lines would coincide
+        try:
+            from correspondence_attestation import attest_correspondence
+            attest_correspondence(egi, candidate, context="elk.vertex_settle")
+        except Exception:
+            return False
+        return True
+
+    def _settle_vertices(
+        self,
+        egi: RelationalGraphWithCuts,
+        vertex_positions: Dict[ElementID, Point],
+        predicate_positions: Dict[ElementID, Point],
+        element_sizes: Dict[ElementID, Tuple[float, float]],
+        cut_bounds: Dict[ElementID, BoundingBox],
+    ) -> None:
+        """Move each shared vertex to the centroid of its incident predicates so
+        the lines of identity are as short/straight as possible (minimise ligature
+        length), mutating ``vertex_positions`` in place.
+
+        Only vertices whose incident predicates *all* sit in the vertex's own area
+        are moved — then every incidence has 0 required crossings, and a move within
+        the area cannot change any crossing-sequence, so §3.3 is preserved. A vertex
+        with any cross-boundary line, or fewer than two predicates (a leaf — nothing
+        to centre between), is left where ELK put it.
+        """
+        cut_ids = {c.id for c in egi.Cut}
+        elem_area: Dict[ElementID, ElementID] = {}
+        child_cuts_of: Dict[ElementID, List[ElementID]] = {}
+        for area_id, contents in egi.area.items():
+            child_cuts_of[area_id] = [c for c in contents if c in cut_ids]
+            for elem_id in contents:
+                if elem_id not in cut_ids:
+                    elem_area[elem_id] = area_id
+
+        incidence: Dict[ElementID, List[ElementID]] = {}
+        for e in egi.E:
+            for v_id in egi.nu.get(e.id, ()):
+                incidence.setdefault(v_id, []).append(e.id)
+
+        gap = 6.0  # keep the dot clear of a label box / cut boundary
+        for v_id, preds in incidence.items():
+            if v_id not in vertex_positions or len(preds) < 2:
+                continue
+            va = elem_area.get(v_id)
+            centers: List[Point] = []
+            same_area = True
+            for pid in preds:
+                if pid not in predicate_positions or elem_area.get(pid) != va:
+                    same_area = False
+                    break
+                centers.append(predicate_positions[pid])
+            if not same_area:
+                continue
+
+            tx = sum(p.x for p in centers) / len(centers)
+            ty = sum(p.y for p in centers) / len(centers)
+
+            # Don't land on an incident predicate's label box — push clear sideways.
+            for pid in preds:
+                pc = predicate_positions[pid]
+                pw, ph = element_sizes.get(pid, (40.0, 16.0))
+                if (abs(tx - pc.x) < pw / 2 + gap) and (abs(ty - pc.y) < ph / 2 + gap):
+                    tx = pc.x + (pw / 2 + gap if tx >= pc.x else -(pw / 2 + gap))
+
+            # Don't drift into a sibling cut nested in this area (it would read as
+            # being inside a cut it is not in); nudge back out along x.
+            for cid in child_cuts_of.get(va, []):
+                bb = cut_bounds.get(cid)
+                if bb and bb.min_x <= tx <= bb.max_x and bb.min_y <= ty <= bb.max_y:
+                    tx = bb.max_x + gap
+
+            # Stay inside the vertex's own area if that area is a cut.
+            if va in cut_bounds:
+                bb = cut_bounds[va]
+                tx = min(max(tx, bb.min_x + gap), bb.max_x - gap)
+                ty = min(max(ty, bb.min_y + gap), bb.max_y - gap)
+
+            vertex_positions[v_id] = Point(tx, ty)
 
     def _build_ligature_paths(
         self,
