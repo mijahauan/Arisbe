@@ -1185,3 +1185,61 @@ def test_save_to_scratch_unknown_session_is_clean_error(client, isolated_scratch
     )
     assert resp.status_code == 200
     assert resp.json()["error"]["code"] == "SESSION_NOT_FOUND"
+
+
+# --------------------------------------------------------------------------- #
+# Presentation-delta persistence — save a regime-3 arrangement to the corpus    #
+# (the mode contract's style-only-reprojection path). Gap A (save) + Gap B      #
+# (Organon renders with the saved deltas).                                      #
+# --------------------------------------------------------------------------- #
+
+def test_save_arrangement_persists_regime3_deltas_to_corpus(
+        client, isolated_tomos, monkeypatch):
+    from web_api.routes import organon as organon_route
+    svc = isolated_tomos["service"]
+    # Organon reads the same isolated corpus, so we can see the saved arrangement.
+    monkeypatch.setattr(organon_route, "_tomos_service", svc)
+    seed = isolated_tomos["seed_id"]
+
+    egi = svc.load_uod(seed).current_egi
+    vid = sorted(v.id for v in egi.V)[0]
+
+    before = (client.get(f"/organon/uods/{seed}").json()
+              ["data"]["layout_dto"]["vertex_positions"][vid])
+
+    # Open the corpus graph in a workshop session and nudge the vertex (regime-3).
+    sid = _open_session(client, f"uod:{seed}")["session_id"]
+    adj = client.post(f"/ergasterion/sessions/{sid}/adjust", json={
+        "operation": "move_vertex", "vertex_id": vid, "dx": 45, "dy": 33}).json()
+    assert adj["success"], adj.get("error")
+
+    # Save the arrangement back onto the corpus item.
+    saved = client.post(f"/ergasterion/sessions/{sid}/save-arrangement").json()
+    assert saved["success"], saved.get("error")
+    assert saved["data"]["uod_id"] == seed and saved["data"]["deltas_saved"] >= 1
+
+    # The corpus UoD now carries the regime-3 deltas (Gap A) ...
+    assert svc.load_uod(seed).current_layout_deltas
+
+    # ... and Organon renders with them — the vertex has moved (Gap B).
+    after = (client.get(f"/organon/uods/{seed}").json()
+             ["data"]["layout_dto"]["vertex_positions"][vid])
+    assert (round(after["x"]), round(after["y"])) != (round(before["x"]), round(before["y"])), \
+        f"deltas not applied on render: before={before} after={after}"
+
+
+def test_save_arrangement_refuses_without_a_corpus_source(client, fresh_session_manager):
+    # A scratch/empty session has no corpus origin to write an arrangement back to.
+    sid = _open_session(client, "empty_sheet")["session_id"]
+    r = client.post(f"/ergasterion/sessions/{sid}/save-arrangement").json()
+    assert r["success"] is False
+    assert r["error"]["code"] == "NO_SOURCE"
+
+
+def test_save_arrangement_refuses_when_no_adjustment_was_made(client, isolated_tomos):
+    # Opening a corpus graph but making no nudge → nothing to save.
+    seed = isolated_tomos["seed_id"]
+    sid = _open_session(client, f"uod:{seed}")["session_id"]
+    r = client.post(f"/ergasterion/sessions/{sid}/save-arrangement").json()
+    assert r["success"] is False
+    assert r["error"]["code"] == "NO_ARRANGEMENT"

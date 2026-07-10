@@ -105,7 +105,9 @@ from presentation_ops import (
     move_cut,
     reroute_ligature,
 )
-from presentation_deltas import record_delta, deltas_from_list, merge_inherited
+from presentation_deltas import (
+    record_delta, deltas_from_list, deltas_to_list, merge_inherited,
+)
 from presentation_ops import cut_boundary, resolve_cut_boundaries
 from style_loader import load_default_style, load_style
 from eg_reader import assign_order_labels
@@ -1863,6 +1865,80 @@ def _adjust_bad_request(message: str) -> ApiResponse:
         success=False,
         error={"code": "ADJUST_BAD_REQUEST", "message": message},
     )
+
+
+@router.post("/sessions/{session_id}/save-arrangement")
+async def save_arrangement(session_id: str):
+    """Persist a session's regime-3 **presentation arrangement** back onto the
+    corpus UoD it was opened from — the mode contract's *other* lawful path to the
+    corpus (beside Agon): "a graph reaches the corpus … as a **style-only
+    reprojection of an attested graph**." A hand-tidied arrangement (moved
+    vertices, rerouted ligatures) is exactly that — the EGI is unchanged.
+
+    Guarded so it can never smuggle a *logic* change into the corpus:
+      * the session must have been opened from a corpus UoD (``base_source_uod_id``);
+      * its EGI must be structurally identical to that UoD's (``same_graph``) — if a
+        rule was applied, the graph is different and must enter via Agon;
+      * only the arrangement is written (``current.deltas.json``); the EGI file is
+        untouched, and §3.3 re-attests the delta'd render *and* at ``save_uod``.
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(success=False, error={
+                "code": "SESSION_NOT_FOUND",
+                "message": f"Workshop session '{session_id}' not found."})
+
+        src_id = session.base_source_uod_id
+        if not src_id:
+            return ApiResponse(success=False, error={
+                "code": "NO_SOURCE",
+                "message": ("This session was not opened from a corpus UoD, so there "
+                            "is no source to save an arrangement back to. Save to "
+                            "scratch, or send it to Agon.")})
+
+        tomos = _get_tomos()
+        uod = tomos.load_uod(src_id)
+        if uod is None or uod.current_egi is None:
+            return ApiResponse(success=False, error={
+                "code": "UOD_NOT_FOUND",
+                "message": f"Source UoD '{src_id}' not found or has no current EGI."})
+
+        # No logic change: an arrangement is a reprojection of the *same* graph.
+        from eg_navigation import same_graph
+        if not same_graph(session.current_egi, uod.current_egi):
+            return ApiResponse(success=False, error={
+                "code": "LOGIC_CHANGED",
+                "message": ("The graph changed (a rule was applied), so this is not a "
+                            "style-only reprojection. A changed graph enters the corpus "
+                            "through Agon, not as an arrangement.")})
+
+        # The effective regime-3 deltas for the viewed state (inherited + local).
+        tip_deltas = merge_inherited(
+            state_ancestry(session.chain, session.chain.current_state_id),
+            session.presentation_deltas)
+        if not tip_deltas:
+            return ApiResponse(success=False, error={
+                "code": "NO_ARRANGEMENT",
+                "message": "No presentation adjustments to save — nudge the drawing first."})
+
+        # Attest the arranged render before persisting (raises on a §3.3 violation);
+        # then write the arrangement onto the corpus UoD (the EGI file is untouched).
+        generate_layout(uod.current_egi, style_name=session.style_name, deltas=tip_deltas)
+        uod.current_layout_deltas = deltas_to_list(tip_deltas)
+        tomos.save_uod(uod)  # re-attests §3.3 at the corpus boundary
+
+        return ApiResponse(success=True, data={
+            "uod_id": src_id, "deltas_saved": len(tip_deltas)})
+    except CorrespondenceViolation as exc:
+        return ApiResponse(success=False, error={
+            "code": "CORRESPONDENCE_VIOLATION", "message": str(exc),
+            "context": getattr(exc, "context", None)})
+    except Exception as exc:
+        return ApiResponse(success=False, error={
+            "code": "SAVE_ARRANGEMENT_ERROR", "message": str(exc),
+            "type": type(exc).__name__})
 
 
 @router.post("/sessions/{session_id}/closure")

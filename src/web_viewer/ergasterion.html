@@ -865,6 +865,13 @@
                     title="Carry this graph into the arena as the reference model M — the world a proposal G is tested against">
               ⚖ as model M →
             </button>
+            <!-- Presentation-only path to the corpus: save a regime-3 arrangement
+                 (a tidied appearance — no rule applied) back onto the source item.
+                 Shown only when this session was opened from a corpus UoD. -->
+            <button class="action" id="btn-save-arrangement" style="margin-top:6px; display:none;"
+                    title="Opened from the corpus. If you only tidied the appearance (moved a line, rerouted a ligature — no rule applied), save that arrangement back onto the corpus item so it renders this way. Presentation only: the logic is unchanged (a style-only reprojection of an attested graph).">
+              ▦ Save arrangement to source
+            </button>
           </div>
 
         </div>
@@ -955,6 +962,7 @@
       // The base context this session forks from (the ground, for the context
       // reflex panel) — set when a session opens.
       let currentBaseSource = null;
+      let currentBaseSourceUod = null;
       // ④ Where this form came from across the mode handoff (set from the URL).
       let currentOrigin = null;
 
@@ -2201,6 +2209,11 @@
         currentBaseSource = data.base_source +
           (data.base_source_uod_id ? ' (' + data.base_source_uod_id + ')' : '');
         baseSourceDisplay.value = currentBaseSource;
+        // The corpus origin (if any) enables "Save arrangement to source": a
+        // regime-3 reprojection can be written back to the item it came from.
+        currentBaseSourceUod = data.base_source_uod_id || null;
+        const btnArr = document.getElementById('btn-save-arrangement');
+        if (btnArr) btnArr.style.display = currentBaseSourceUod ? 'block' : 'none';
         pickerSection.style.display = 'none';
         sessionInfoEl.style.display = 'block';
         rulesSectionEl.style.display = 'block';
@@ -2420,6 +2433,36 @@
 
       // ---- workshop output: scratch + Agon (not a direct corpus shortcut) ----
 
+      // Presentation-only path to the corpus: write this session's regime-3
+      // arrangement back onto the corpus item it was opened from. The server
+      // refuses if a rule was applied (a changed graph enters via Agon) or if
+      // nothing was nudged.
+      async function saveArrangement() {
+        if (!currentSessionId) return;
+        setStatus('Saving arrangement to the source corpus item…');
+        try {
+          const res = await fetch(
+            '/ergasterion/sessions/' + currentSessionId + '/save-arrangement',
+            { method: 'POST' });
+          const body = await res.json();
+          if (!body.success) {
+            const e = body.error || {};
+            const msg = e.code === 'LOGIC_CHANGED'
+              ? 'The graph changed (a rule was applied) — that is not an arrangement. Send it to Agon to enter the corpus.'
+              : (e.code === 'NO_ARRANGEMENT'
+                  ? 'Nothing to save — tidy the drawing first (move a line, reroute a ligature).'
+                  : ('Could not save arrangement: ' + (e.message || e.code)));
+            setStatus(msg, 'error');
+            return;
+          }
+          setStatus('Arrangement saved onto “' + body.data.uod_id + '” (' +
+            body.data.deltas_saved + ' adjustment(s)) — the corpus item now renders ' +
+            'this way. Presentation only; the logic is unchanged.', 'success');
+        } catch (e) {
+          setStatus('Network error: ' + e.message, 'error');
+        }
+      }
+
       async function saveToScratch() {
         if (!currentSessionId) return;
         const name = (scratchNameEl.value || '').trim() || 'untitled draft';
@@ -2638,6 +2681,8 @@
       btnSaveScratch.addEventListener('click', saveToScratch);
       btnSendAgon.addEventListener('click', () => sendToAgon(false));
       btnSendAgonModel.addEventListener('click', () => sendToAgon(true));
+      const btnSaveArrangement = document.getElementById('btn-save-arrangement');
+      if (btnSaveArrangement) btnSaveArrangement.addEventListener('click', saveArrangement);
       // Reopen / delete saved drafts from the picker list.
       scratchListEl.addEventListener('click', (e) => {
         const openId = e.target.closest('[data-open]');

@@ -78,6 +78,23 @@ async def organon_index():
     return FileResponse(str(VIEWER_DIR / "organon.html"))
 
 
+def _corpus_deltas(uod):
+    """A corpus UoD's saved regime-3 presentation deltas as
+    ``List[PresentationDelta]`` for replay, or ``None``. Stored flat (the deltas
+    applying to the current EGI); tolerant of an absent/legacy shape."""
+    raw = getattr(uod, "current_layout_deltas", None)
+    if not raw:
+        return None
+    items = raw if isinstance(raw, list) else (raw.get("deltas") if isinstance(raw, dict) else None)
+    if not items:
+        return None
+    try:
+        from presentation_deltas import deltas_from_list
+        return deltas_from_list(items)
+    except Exception:
+        return None  # a bad delta file must never break the render
+
+
 def _browse_facets(entry: dict) -> dict:
     """Cheap browse facets for a list row — the provenance ``kind`` + a
     cited/authored flag + the description + tags — read straight from the
@@ -251,7 +268,13 @@ async def get_uod(uod_id: str, style: Optional[str] = None, engine: str = "elk",
 
         # Style is a *projection* choice: view any form in any style directly,
         # without the export path.  §3.3 attests every styled render.
-        layout_dto, svg = generate_layout(egi, style_name=style, engine=engine)
+        # A corpus UoD may carry saved regime-3 *presentation deltas* (a hand-tidied
+        # arrangement — moved vertices, rerouted ligatures — logic untouched); replay
+        # them over the fresh layout so the item renders the way it was arranged.
+        # Each surviving delta is §3.3-attested inside apply_deltas; a stale one is
+        # dropped. (Presentation-only: correspondence, not truth — see the mode contract.)
+        layout_dto, svg = generate_layout(
+            egi, style_name=style, engine=engine, deltas=_corpus_deltas(uod))
         layout_dict = layout_dto_to_dict(layout_dto)
 
         # Forward-facing provenance (manifest floor #7): opening a UoD in Organon is
