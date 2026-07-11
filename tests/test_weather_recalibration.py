@@ -11,7 +11,67 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from resolving_membrane import PredictionLedger, ResolvingItem
 from weather_recalibration import recalibrate
-from weather_source import LAW_PRECIP, LAW_TEMP
+from weather_source import LAW_PRECIP, LAW_PRECIP_DRY, LAW_TEMP
+
+
+def _precip_ledger(wet=(), dry=()):
+    """A ledger of calibrated precip bets: wet=(bool…) scores (precip …), dry=(bool…)
+    scores (dry …) — True = the forecast direction happened (a hit)."""
+    led = PredictionLedger()
+    r = 0
+    for happened in wet:
+        led.record(ResolvingItem('(precip "K" "h")', happened=happened), "true", r); r += 1
+    for happened in dry:
+        led.record(ResolvingItem('(dry "K" "h")', happened=happened), "true", r); r += 1
+    return led
+
+
+_CAL_LAWS = [LAW_TEMP, LAW_PRECIP, LAW_PRECIP_DRY]
+
+
+def test_calibrated_cut_rises_when_wet_bets_lose():
+    """Wet bets mostly missing = rain rarer than the cut assumes → raise the cut
+    (bet wet less, dry more). The gate-mode pop_threshold is untouched."""
+    led = _precip_ledger(wet=[False, False, False, False, True])
+    rc = recalibrate(led, band_width=5, pop_threshold=60, pop_cut=50,
+                     precip_mode="calibrated", standing_laws=_CAL_LAWS)
+    assert rc.pop_cut == 60 and rc.changed              # cut stepped up
+    assert rc.pop_threshold == 60                        # the selectivity gate is not the knob
+
+
+def test_calibrated_cut_falls_when_dry_bets_lose():
+    """Dry bets mostly missing = rain commoner than the cut assumes → lower the cut."""
+    led = _precip_ledger(dry=[False, False, False, True])
+    rc = recalibrate(led, band_width=5, pop_threshold=60, pop_cut=50,
+                     precip_mode="calibrated", standing_laws=_CAL_LAWS)
+    assert rc.pop_cut == 40 and rc.changed
+
+
+def test_calibrated_cut_holds_when_both_directions_win():
+    """A calibrated cut where each direction is right more than half the time is a
+    no-op — the arm has found the crossing."""
+    led = _precip_ledger(wet=[True, True, False], dry=[True, True, True])
+    rc = recalibrate(led, band_width=5, pop_threshold=60, pop_cut=50,
+                     precip_mode="calibrated", standing_laws=_CAL_LAWS)
+    assert rc.pop_cut == 50 and not rc.changed
+
+
+def test_calibrated_reseeds_a_fallen_dry_law():
+    """A relinquished dry law (absent from standing_laws) is marked for re-seeding
+    so the second act is prediction, not silence — the run-8 mechanism, dry side."""
+    led = _precip_ledger(dry=[False, False, True])
+    rc = recalibrate(led, band_width=5, pop_threshold=60, pop_cut=50,
+                     precip_mode="calibrated", standing_laws=[LAW_TEMP, LAW_PRECIP])
+    assert LAW_PRECIP_DRY in rc.reseed_laws and rc.changed
+
+
+def test_calibrated_cut_is_capped():
+    """The cut cannot exceed pop_cap — a persistently-dry world pins it at the cap
+    (almost always betting dry, the recovering majority-outcome regime)."""
+    led = _precip_ledger(wet=[False] * 6)
+    rc = recalibrate(led, band_width=5, pop_threshold=60, pop_cut=90,
+                     precip_mode="calibrated", standing_laws=_CAL_LAWS, pop_cap=90)
+    assert rc.pop_cut == 90                              # already at cap → no further rise
 
 
 def _ledger(temp=(), precip=()):

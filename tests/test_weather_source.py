@@ -12,11 +12,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from weather_source import (
-    LAW_PRECIP, LAW_TEMP, SEED_LAWS, WeatherSource, band_bounds, band_of,
-    replay_item_batches,
+    LAW_PRECIP, LAW_PRECIP_DRY, LAW_TEMP, SEED_LAWS, SEED_LAWS_CALIBRATED,
+    WeatherSource, band_bounds, band_of, replay_item_batches,
 )
 
 T0 = datetime(2026, 7, 6, 12, 0, tzinfo=timezone.utc)
+T_MATURE = datetime(2026, 7, 6, 14, 5, tzinfo=timezone.utc)  # after the 13Z hour ends
 
 
 def _fixture_fetch(forecast_temp_f=76, pop=80, obs_temp_c=None, obs_weather=""):
@@ -235,6 +236,118 @@ def test_end_to_end_the_naive_law_bets_and_is_falsified_by_a_miss():
     assert "challenge_to_M" in dispositions                    # the law fell to the world
     assert LAW_TEMP not in res.known_laws                      # relinquished
     assert any(LAW_PRECIP.strip() == l.strip() for l in res.known_laws)  # the other stands
+
+
+# --- run 11 (F1¹⁰): the calibrated precip arm — a two-direction cutpoint bet --
+
+def _calibrated_source(pop, *, pop_cut=50, obs_weather="", obs_temp_c=24.5):
+    clock = {"now": T0}
+    src = WeatherSource(stations={"KTST": (0.0, 0.0)},
+                        precip_mode="calibrated", pop_cut=pop_cut,
+                        fetch_json=_fixture_fetch(pop=pop, obs_temp_c=obs_temp_c,
+                                                  obs_weather=obs_weather),
+                        clock=lambda: clock["now"])
+    return src, clock
+
+
+def test_calibrated_precip_bets_wet_above_cut_and_dry_below():
+    """The calibrated arm bets a *direction* around ``pop_cut`` — wet at/above,
+    dry below — where the gate arm could only ever bet wet."""
+    wet, _ = _calibrated_source(pop=80, pop_cut=50)
+    claims = {i.claim_egif for i in wet.fetch()}
+    assert '(forecast_precip "KTST" "2026-07-06T13Z")' in claims   # PoP 80 ≥ cut → wet
+
+    dry, _ = _calibrated_source(pop=20, pop_cut=50)
+    claims = {i.claim_egif for i in dry.fetch()}
+    assert '(forecast_dry "KTST" "2026-07-06T13Z")' in claims       # PoP 20 < cut → dry
+    assert '(forecast_precip "KTST" "2026-07-06T13Z")' not in claims
+
+
+def test_calibrated_dry_bet_hits_when_dry_and_misses_law_shape_when_it_rains():
+    dry, clock = _calibrated_source(pop=20, obs_weather="")           # forecast dry, no rain
+    dry.fetch()
+    clock["now"] = T_MATURE
+    (item,) = [i for i in dry.fetch() if i.claim_egif.startswith("(dry")]
+    assert item.claim_egif == '(dry "KTST" "2026-07-06T13Z")' and item.happened  # dry → hit
+
+    rainy, clock = _calibrated_source(pop=20, obs_weather="rain")     # forecast dry, it rained
+    rainy.fetch()
+    clock["now"] = T_MATURE
+    (item,) = [i for i in rainy.fetch() if i.claim_egif.startswith("(dry")]
+    assert not item.happened                                          # the dry law over-reached
+    assert '(forecast_dry "KTST" "2026-07-06T13Z")' in item.world_egif
+    assert '~[ (dry "KTST" "2026-07-06T13Z") ]' in item.world_egif
+    assert '(precip "KTST" "2026-07-06T13Z")' in item.world_egif      # the refuting observation
+
+
+def test_gate_mode_is_the_default_and_below_gate_raises_no_precip():
+    """Run-10 parity: gate mode (default) only ever raises a wet claim, and only
+    above the threshold — a below-gate forecast raises nothing (the dormancy)."""
+    src, _ = _source(T0, pop=30)                                     # default precip_mode="gate"
+    assert src._precip_mode == "gate"
+    claims = {i.claim_egif for i in src.fetch()}
+    assert not any("precip" in c or "dry" in c for c in claims)      # pop 30 < gate 60 → no bet
+
+
+def test_calibrated_precip_state_round_trips(tmp_path):
+    src, _ = _calibrated_source(pop=20, pop_cut=70)
+    src._pop_cut = 80                                                # a mid-run recalibration
+    src.fetch()
+    sp = str(tmp_path / "ws.json")
+    src.save_state(sp)
+    src2 = WeatherSource.load_state(sp, stations={"KTST": (0.0, 0.0)},
+                                    fetch_json=_fixture_fetch(), clock=lambda: T0)
+    assert src2._precip_mode == "calibrated" and src2._pop_cut == 80
+
+
+def test_F1_10_calibrated_dry_arm_recovers_where_the_gate_wet_arm_loses():
+    """The run-11 headline (RUN_10_LOG F1¹⁰), offline through the real loop: in a
+    DRY world (rain rare), the calibrated arm bets ``dry`` and *recovers to a
+    positive net* — the selectivity gate, which can only ever bet ``wet``, loses
+    every bet and relinquishes its law. Same world, opposite outcome, purely from
+    the knob's nature."""
+    from agon_evolution import (
+        Agonothetes, ChallengerAgent, ContradictionAgent, GeneralizerAgent,
+        ObserverAgent, run,
+    )
+    from resolving_membrane import ResolvingFeed, ResolvingItem
+
+    # Three dry hours: it does not rain.
+    def dry_hours(forecast_atom, claim_atom, happened):
+        items = []
+        for h in ("H1", "H2", "H3"):
+            items.append(ResolvingItem(f'({forecast_atom} "KTST" "{h}")', happened=True))
+            items.append(ResolvingItem(f'({claim_atom} "KTST" "{h}")', happened=happened,
+                                       world_egif=None if happened else
+                                       f'(forecast_precip "KTST" "{h}") ~[ (precip "KTST" "{h}") ]'))
+        return items
+
+    panel = lambda: Agonothetes([ObserverAgent(), GeneralizerAgent(),
+                                 ChallengerAgent(), ContradictionAgent()])
+
+    # Calibrated arm: bets DRY; the dry event happens (no rain) → hits, and the
+    # dry law is never refuted, so it keeps betting and net climbs.
+    cal_items = dry_hours("forecast_dry", "dry", happened=True)
+    cal = ResolvingFeed(cal_items)
+    cal_res = run(" ".join(SEED_LAWS_CALIBRATED), cal, rounds=len(cal_items),
+                  uod_id="c", name="c", seed_laws=list(SEED_LAWS_CALIBRATED), panel=panel())
+    cal_bets = [e for e in cal.ledger.entries if not e.claim_egif.startswith("(forecast_")]
+
+    # Gate arm: bets WET; it does not rain → the first bet misses, the world
+    # relinquishes the law (challenge_to_M) and the arm falls SILENT (predict→
+    # refute→silence: the run-7/run-10 trap) — it never recovers a hit.
+    gate_items = dry_hours("forecast_precip", "precip", happened=False)
+    gate = ResolvingFeed(gate_items)
+    gate_res = run(" ".join(SEED_LAWS), gate, rounds=len(gate_items),
+                   uod_id="g", name="g", seed_laws=list(SEED_LAWS), panel=panel())
+
+    assert cal.ledger.net_score > 0                       # the calibrated arm RECOVERS
+    assert all(e.result == "hit" for e in cal_bets)
+    assert any(LAW_PRECIP_DRY.strip() == l.strip() for l in cal_res.known_laws)  # dry law stands
+
+    assert gate.ledger.hits == 0                          # the gate arm NEVER recovers a hit
+    assert gate.ledger.net_score < 0                       # and the world scored against it
+    assert not any(LAW_PRECIP.strip() == l.strip() for l in gate_res.known_laws)  # law fell
 
 
 # --- F1⁷: bounded retry/backoff around the flaky NWS endpoints ---------------

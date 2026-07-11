@@ -79,7 +79,16 @@ KNOWN_STATIONS: Dict[str, Tuple[float, float]] = {**DEFAULT_STATIONS, **WET_STAT
 
 LAW_TEMP = "~[ (forecast_temp_band *s *t *b) ~[ (temp_band s t b) ] ]"
 LAW_PRECIP = "~[ (forecast_precip *s *t) ~[ (precip s t) ] ]"
+# The *dry* companion law (run 11, the calibrated precip arm). The gate arm can
+# only ever bet "rain will happen"; the calibrated arm also bets the *opposite*
+# direction — "it will be dry" — for forecast hours below the learned cutpoint,
+# scored on the positive event ``(dry s t)`` = "no precip observed". Betting the
+# majority outcome (dry, when rain is rare) is what lets the precip arm *recover*
+# to a positive net the way the temperature band does (RUN_10_LOG F1¹⁰).
+LAW_PRECIP_DRY = "~[ (forecast_dry *s *t) ~[ (dry s t) ] ]"
 SEED_LAWS = [LAW_TEMP, LAW_PRECIP]
+# Calibrated mode seeds the dry law too, so M can predict either direction.
+SEED_LAWS_CALIBRATED = [LAW_TEMP, LAW_PRECIP, LAW_PRECIP_DRY]
 
 _PRECIP_RE = re.compile(r"rain|snow|drizzle|shower|thunder|sleet|hail", re.I)
 
@@ -153,12 +162,17 @@ class PendingClaim:
     station: str
     hour: str            # UTC hour label
     kind: str            # "temp" | "precip"
-    value: Optional[str]  # the forecast band (temp) or None (precip)
+    value: Optional[str]  # temp: the forecast band. precip: the bet *direction*
+    # ("wet" | "dry") in calibrated mode (run 11); ``None`` for a gate-mode precip
+    # claim (run 10) — which only ever bets "wet".
     width: Optional[int] = None  # band width at raise time (temp only)
     band_lo: Optional[int] = None  # band lower bound at raise time (temp only) —
     # carries the exact interval [band_lo, band_lo+width) so resolution is one
     # half-open containment check, mode-independent (grid or centered). ``None``
     # for precip and for state written before centered bins (F2⁸) existed.
+    pop: Optional[float] = None  # the forecast PoP (%) at raise time (calibrated
+    # precip only) — carried for the digest / diagnostics; ``None`` otherwise and
+    # for state written before run 11.
 
     @property
     def key(self) -> Tuple[str, str, str]:
@@ -181,6 +195,8 @@ class WeatherSource:
         band_width: int = 5,
         pop_threshold: int = 60,
         bin_mode: str = "grid",
+        precip_mode: str = "gate",
+        pop_cut: int = 50,
         fetch_json: Optional[Callable[[str], dict]] = None,
         record_path: Optional[str] = None,
         clock: Optional[Callable[[], datetime]] = None,
@@ -196,6 +212,16 @@ class WeatherSource:
         if bin_mode not in ("grid", "centered"):
             raise ValueError(f"bin_mode must be 'grid' or 'centered', got {bin_mode!r}")
         self._bin_mode = bin_mode
+        # Precip arm (run 11). "gate" = the run-10 selectivity gate (only ever bets
+        # "wet", above ``pop_threshold``). "calibrated" = a two-direction bet around
+        # a learned ``pop_cut``: at/above the cut → "wet" (forecast_precip→precip);
+        # below → "dry" (forecast_dry→dry). The cut is recalibrated from *observed*
+        # frequency (weather_recalibration), so it can bet the majority outcome.
+        if precip_mode not in ("gate", "calibrated"):
+            raise ValueError(
+                f"precip_mode must be 'gate' or 'calibrated', got {precip_mode!r}")
+        self._precip_mode = precip_mode
+        self._pop_cut = pop_cut
         self._fetch = fetch_json or _live_fetch_json
         self._record = record_path
         self._clock = clock or (lambda: datetime.now(timezone.utc))
@@ -324,15 +350,39 @@ class WeatherSource:
                             f'(forecast_temp_band "{st}" "{hour}" "{b}")',
                             happened=True))
                 pop = ((period.get("probabilityOfPrecipitation") or {}).get("value"))
-                if isinstance(pop, (int, float)) and pop >= self._pop:
-                    key = (st, hour, "precip")
-                    if key not in self._claimed:
-                        self._claimed.add(key)
-                        self._pending[key] = PendingClaim(st, hour, "precip", None)
-                        self._count_raise("precip")
-                        items.append(ResolvingItem(
-                            f'(forecast_precip "{st}" "{hour}")', happened=True))
+                if isinstance(pop, (int, float)):
+                    items.extend(self._raise_precip(st, hour, float(pop)))
         return items
+
+    def _raise_precip(self, st: str, hour: str, pop: float) -> List[ResolvingItem]:
+        """Raise the precip-arm claim for one forecast hour.
+
+        Gate mode (run 10): raise a "wet" claim only when ``pop >= pop_threshold``
+        — a selectivity gate that can only ever bet rain. Calibrated mode (run 11):
+        raise a claim for *every* forecast hour, betting **wet** at/above the
+        learned ``pop_cut`` (``forecast_precip → precip``) and **dry** below it
+        (``forecast_dry → dry``) — a two-direction bet that can recover to a
+        positive net by betting the majority (dry) outcome (RUN_10_LOG F1¹⁰).
+        """
+        key = (st, hour, "precip")
+        if key in self._claimed:
+            return []
+        if self._precip_mode == "gate":
+            if pop < self._pop:
+                return []
+            self._claimed.add(key)
+            self._pending[key] = PendingClaim(st, hour, "precip", None, pop=pop)
+            self._count_raise("precip")
+            return [ResolvingItem(f'(forecast_precip "{st}" "{hour}")', happened=True)]
+        # calibrated: bet a direction for every hour with a PoP value
+        self._claimed.add(key)
+        if pop >= self._pop_cut:
+            self._pending[key] = PendingClaim(st, hour, "precip", "wet", pop=pop)
+            self._count_raise("precip")
+            return [ResolvingItem(f'(forecast_precip "{st}" "{hour}")', happened=True)]
+        self._pending[key] = PendingClaim(st, hour, "precip", "dry", pop=pop)
+        self._count_raise("precip")
+        return [ResolvingItem(f'(forecast_dry "{st}" "{hour}")', happened=True)]
 
     # -- phase 2: resolve ---------------------------------------------------------
 
@@ -409,15 +459,30 @@ class WeatherSource:
                                     f'(temp_band "{st}" "{hour}" "{obs_band}")')))
             else:                                           # precip
                 self._count_resolve("precip")
-                happened = self._obs_precip(obs)
-                claim_egif = f'(precip "{st}" "{hour}")'
-                if happened:
-                    items.append(ResolvingItem(claim_egif, happened=True))
-                else:
-                    items.append(ResolvingItem(
-                        claim_egif, happened=False,
-                        world_egif=(f'(forecast_precip "{st}" "{hour}") '
-                                    f'~[ (precip "{st}" "{hour}") ]')))
+                rained = self._obs_precip(obs)
+                if claim.value == "dry":
+                    # Calibrated DRY bet: M forecast "no precip"; the positive event
+                    # (dry s t) happened iff it did *not* rain. A miss (it rained)
+                    # over-reaches the dry law → challenge_to_M relinquishes it, the
+                    # mirror of a wet miss relinquishing the precip law.
+                    claim_egif = f'(dry "{st}" "{hour}")'
+                    if not rained:
+                        items.append(ResolvingItem(claim_egif, happened=True))
+                    else:
+                        items.append(ResolvingItem(
+                            claim_egif, happened=False,
+                            world_egif=(f'(forecast_dry "{st}" "{hour}") '
+                                        f'~[ (dry "{st}" "{hour}") ] '
+                                        f'(precip "{st}" "{hour}")')))
+                else:                                       # "wet" or gate-mode None
+                    claim_egif = f'(precip "{st}" "{hour}")'
+                    if rained:
+                        items.append(ResolvingItem(claim_egif, happened=True))
+                    else:
+                        items.append(ResolvingItem(
+                            claim_egif, happened=False,
+                            world_egif=(f'(forecast_precip "{st}" "{hour}") '
+                                        f'~[ (precip "{st}" "{hour}") ]')))
         return items
 
     # -- the LiveSource shape ------------------------------------------------------
@@ -450,7 +515,8 @@ class WeatherSource:
             # The (possibly re-generalized) claim knobs, so a resume carries the
             # recalibrated discretization, not the seed defaults.
             "params": {"band_width": self._width, "pop_threshold": self._pop,
-                       "bin_mode": self._bin_mode},
+                       "bin_mode": self._bin_mode,
+                       "precip_mode": self._precip_mode, "pop_cut": self._pop_cut},
         }
         with open(path, "w", encoding="utf-8") as fh:
             json.dump(state, fh, indent=1)
@@ -477,6 +543,8 @@ class WeatherSource:
         src._width = p.get("band_width", src._width)
         src._pop = p.get("pop_threshold", src._pop)
         src._bin_mode = p.get("bin_mode", src._bin_mode)
+        src._precip_mode = p.get("precip_mode", src._precip_mode)
+        src._pop_cut = p.get("pop_cut", src._pop_cut)
         return src
 
 
@@ -494,5 +562,5 @@ def replay_item_batches(path: str) -> List[List[ResolvingItem]]:
 
 __all__ = ["WeatherSource", "PendingClaim", "ResolvingItem", "band_of",
            "band_bounds", "replay_item_batches", "DEFAULT_STATIONS",
-           "WET_STATIONS", "KNOWN_STATIONS", "SEED_LAWS",
-           "LAW_TEMP", "LAW_PRECIP"]
+           "WET_STATIONS", "KNOWN_STATIONS", "SEED_LAWS", "SEED_LAWS_CALIBRATED",
+           "LAW_TEMP", "LAW_PRECIP", "LAW_PRECIP_DRY"]

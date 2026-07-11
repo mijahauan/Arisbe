@@ -30,7 +30,8 @@ from live_runner import LiveRunConfig, LiveRunner, _sheet_atom_count
 from resolving_membrane import PredictionLedger, ResolvingFeed
 from tomos_service import TomosService
 from weather_recalibration import recalibrate
-from weather_source import DEFAULT_STATIONS, KNOWN_STATIONS, SEED_LAWS, WeatherSource
+from weather_source import (DEFAULT_STATIONS, KNOWN_STATIONS, SEED_LAWS,
+                            SEED_LAWS_CALIBRATED, WeatherSource)
 
 
 def _panel():
@@ -40,11 +41,12 @@ def _panel():
 
 def _arm_of(claim_egif: str):
     """The claim arm of a resolution entry ("temp" | "precip"), or None for a
-    raise-phase (forecast_…) item (never scored as a bet)."""
+    raise-phase (forecast_…) item (never scored as a bet). Both (precip …) (a wet
+    bet) and (dry …) (a calibrated dry bet, run 11) are precip-arm."""
     s = claim_egif.lstrip()
     if s.startswith("(temp_band"):
         return "temp"
-    if s.startswith("(precip"):
+    if s.startswith("(precip") or s.startswith("(dry"):
         return "precip"
     return None
 
@@ -79,7 +81,12 @@ def main(argv=None) -> int:
     ap.add_argument("--band-width", type=int, default=5,
                     help="temperature band width, °F — the claim discretization")
     ap.add_argument("--pop-threshold", type=int, default=60,
-                    help="probability-of-precipitation %% at/above which a precip claim is raised")
+                    help="gate-mode: PoP %% at/above which a (wet) precip claim is raised")
+    ap.add_argument("--precip-mode", choices=("gate", "calibrated"), default="gate",
+                    help="gate=run-10 selectivity gate (wet-only); calibrated=run-11 "
+                         "two-direction bet around a learned PoP cutpoint (F1¹⁰)")
+    ap.add_argument("--pop-cut", type=int, default=50,
+                    help="calibrated-mode initial PoP cutpoint: >= bets wet, < bets dry")
     # Run 9 (F2⁸): forecast-centered bins. "grid" = the run-7/8 fixed-grid bins
     # (a forecast near a bin edge is fragile); "centered" = the band is centered
     # on the forecast, so a miss needs |obs−forecast| > band/2 — testing whether
@@ -168,8 +175,11 @@ def main(argv=None) -> int:
     src_kwargs = dict(stations=stations, horizon_hours=args.horizon_hours,
                       grace_hours=args.grace_hours, band_width=args.band_width,
                       pop_threshold=args.pop_threshold, bin_mode=args.bin_mode,
+                      precip_mode=args.precip_mode, pop_cut=args.pop_cut,
                       fetch_tries=args.fetch_tries, fetch_backoff=args.fetch_backoff,
                       record_path=str(runs / "items.jsonl"))
+    # Calibrated precip seeds the dry companion law so M can predict either direction.
+    seed_laws = SEED_LAWS_CALIBRATED if args.precip_mode == "calibrated" else SEED_LAWS
     # Run-level re-generalization tally (surfaced in the final report).
     regen_count = {"n": 0}
 
@@ -203,13 +213,17 @@ def main(argv=None) -> int:
             if args.regenerate:
                 rc = recalibrate(
                     run_ledger, band_width=source._width, pop_threshold=source._pop,
+                    precip_mode=args.precip_mode, pop_cut=source._pop_cut,
                     standing_laws=list(getattr(runner, "_laws", [])),
                     target=args.regen_target, band_cap=args.band_cap, pop_cap=args.pop_cap)
                 if rc.changed:
                     source._width, source._pop = rc.band_width, rc.pop_threshold
+                    source._pop_cut = rc.pop_cut
                     reseed = rc.reseed_laws
                     regen_count["n"] += 1
-                    print(f"    re-generalize: band={rc.band_width}°F pop≥{rc.pop_threshold}%"
+                    knob = (f"pop≥{rc.pop_threshold}%" if args.precip_mode == "gate"
+                            else f"cut={rc.pop_cut}%")
+                    print(f"    re-generalize: band={rc.band_width}°F {knob}"
                           f" reseed={len(reseed)} — {'; '.join(rc.notes)}", flush=True)
 
             # F1⁷: surface per-station error rates so a dark station is visible.
@@ -236,8 +250,8 @@ def main(argv=None) -> int:
                                        evaluate=evaluate, service=service,
                                        sleep=time.sleep)
         else:
-            runner = LiveRunner(" ".join(SEED_LAWS), source, ResolvingFeed, config,
-                                uod_id=uod_id, seed_laws=list(SEED_LAWS),
+            runner = LiveRunner(" ".join(seed_laws), source, ResolvingFeed, config,
+                                uod_id=uod_id, seed_laws=list(seed_laws),
                                 panel=_panel(), evaluate=evaluate, service=service,
                                 sleep=time.sleep)
         return source, runner
@@ -248,7 +262,10 @@ def main(argv=None) -> int:
     res = None
     print(f"run start {time.strftime('%Y-%m-%d %H:%M:%S')} — NWS resolving membrane · "
           f"stations={sorted(stations)} · horizon={args.horizon_hours}h · "
-          f"band={args.band_width}°F ({args.bin_mode}) · pop≥{args.pop_threshold}% · "
+          f"band={args.band_width}°F ({args.bin_mode}) · "
+          f"precip={args.precip_mode}"
+          + (f" (gate pop≥{args.pop_threshold}%)" if args.precip_mode == "gate"
+             else f" (cut={args.pop_cut}%)") + " · "
           f"ttl={args.ttl} polls · "
           f"pacing={args.min_interval}s · laws seeded: what-is-forecast-happens · "
           f"regenerate={'on' if args.regenerate else 'off'} · "
